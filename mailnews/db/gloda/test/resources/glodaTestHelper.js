@@ -61,6 +61,8 @@ let throwingAppender = new Log4Moz.ThrowingAppender(do_throw);
 throwingAppender.level = Log4Moz.Level.Warn;
 Log4Moz.repository.rootLogger.addAppender(throwingAppender);
 
+var LOG = Log4Moz.repository.getLogger("gloda.test");
+
 /**
  * davida's patented dump function for what ails you. 
  */
@@ -885,6 +887,25 @@ function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
   aQuery.args.push(new QueryExpectationListener(expectedSet,
                                                 aGlodaExtractor));
   return aQuery.queryFunc.apply(aQuery.queryThis, aQuery.args);
+}
+
+/**
+ * Call the provided callback once the database has run all the async statements
+ *  whose execution was queued prior to this call.
+ * @param aCallback The callback to call.  No 'this' provided.
+ */
+function notifyWhenDatastoreDone(aCallback) {
+  // we already have a mechanism to do this by forcing a commit.  arguably,
+  //  it would be better to use a mechanism that does not induce an fsync.
+  var savedDepth = GlodaDatastore._transactionDepth;
+  if (!savedDepth)
+    GlodaDatastore._beginTransaction();
+  GlodaDatastore.runPostCommit(aCallback);
+  // we don't actually need to run things to zero... we can just wait for the
+  //  outer transaction to close itself...
+  GlodaDatastore._commitTransaction();
+  if (savedDepth)
+    GlodaDatastore._beginTransaction();
 }
 
 var glodaHelperTests = [];

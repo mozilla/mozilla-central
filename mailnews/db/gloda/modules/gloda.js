@@ -46,6 +46,7 @@ Cu.import("resource://app/modules/gloda/log4moz.js");
 
 Cu.import("resource://app/modules/gloda/datastore.js");
 Cu.import("resource://app/modules/gloda/datamodel.js");
+Cu.import("resource://app/modules/gloda/databind.js");
 Cu.import("resource://app/modules/gloda/collection.js");
 Cu.import("resource://app/modules/gloda/connotent.js");
 Cu.import("resource://app/modules/gloda/query.js");
@@ -647,8 +648,8 @@ var Gloda = {
   kSpecialColumnParent: GlodaDatastore.kSpecialColumnParent,
   /**
    * This attribute is stored as a string column on the row for the noun.  It
-   *  differs from kSpecialColumn in that it is a string and thus uses different
-   *  query mechanisms.
+   *  differs from kSpecialColumn in that it is a string, which once had
+   *  query ramifications and one day may have them again.
    */
   kSpecialString: GlodaDatastore.kSpecialString,
   /**
@@ -823,12 +824,47 @@ var Gloda = {
    *     parameter may only be non-null if you passed a usesParameter of true.
    *     Parameter may be of any type (BLOB), and value must be numeric (pass
    *     0 if you don't need the value).
-   */
+   *
+   * @param schema Unsupported mechanism by which you can define a table that
+   *     corresponds to this noun.  The table will be created if it does not
+   *     exist.
+   *     - name The table name; don't conflict with other things!
+   *     - columns A list of [column name, sqlite type] tuples.  You should
+   *       always include a definition like ["id", "INTEGER PRIMARY KEY"] for
+   *       now (and it should be the first column name too.)  If you care about
+   *       how the attributes are poked into your object (for example, you want
+   *       underscores used for some of them because the attributes should be
+   *       immutable), then you can include a third string that is the name of
+   *       the attribute to use.
+   *     - indices A dictionary of lists of column names, where the key name
+   *       becomes the index name.  Ex: {foo: ["bar"]} results in an index on
+   *       the column "bar" where the index is named "foo".
+  */
   defineNoun: function gloda_ns_defineNoun(aNounDef, aNounID) {
     this._log.info("Defining noun: " + aNounDef.name);
     if (aNounID === undefined)
       aNounID = this._nextNounID++;
     aNounDef.id = aNounID;
+    
+    // We allow nouns to have data tables associated with them where we do all
+    //  the legwork.  The schema attribute is the gateway to this magical world
+    //  of functionality.  Said door is officially unsupported.
+    if (aNounDef.schema) {
+      if (aNounDef.schema.name)
+        aNounDef.tableName = "ext_" + aNounDef.schema.name;
+      else
+        aNounDef.tableName = "ext_" + aNounDef.name;
+      // this creates the data table and binder and hooks everything up
+      GlodaDatastore.createNounTable(aNounDef);
+      if (!aNounDef.toParamAndValue)
+        aNounDef.toParamAndValue = function (aThing) {
+          if (aThing instanceof aNounDef.class)
+            return [null, aThing.id];
+          else // assume they're just passing the id directly
+            return [null, aThing];
+        };
+    }
+    
     // if it has a table, you can query on it.  seems straight-forward.
     if (aNounDef.tableName) {
       [aNounDef.queryClass, aNounDef.nullQueryClass,
@@ -870,6 +906,8 @@ var Gloda = {
     this._attrProviderOrderByNoun[aNounDef.id] = [];
     this._attrOptimizerOrderByNoun[aNounDef.id] = [];
     this._attrProvidersByNoun[aNounDef.id] = {};
+    
+    return aNounDef;
   },
 
   /**
@@ -1184,7 +1222,6 @@ var Gloda = {
     // -- the query constraint helpers
     if (aSubjectNounDef.queryClass !== undefined) {
       let constrainer;
-      // non-strings can use IN
       if (aAttrDef.special == this.kSpecialFulltext) {
         constrainer = function() {
           let constraint = [GlodaDatastore.kConstraintFulltext, aAttrDef];
@@ -1195,20 +1232,9 @@ var Gloda = {
           return this;
         };
       }
-      else if (aAttrDef.special != this.kSpecialString) {
+      else {
         constrainer = function() {
           let constraint = [GlodaDatastore.kConstraintIn, aAttrDef];
-          for (let iArg = 0; iArg < arguments.length; iArg++) {
-            constraint.push(arguments[iArg]);
-          }
-          this._constraints.push(constraint);
-          return this;
-        };
-      }
-      else { // strings need to use equals for escaping reasons
-        // (we could introduce an 'escaped' in that we manually escape though)
-        constrainer = function() {
-          let constraint = [GlodaDatastore.kConstraintEquals, aAttrDef];
           for (let iArg = 0; iArg < arguments.length; iArg++) {
             constraint.push(arguments[iArg]);
           }
@@ -1406,33 +1432,6 @@ var Gloda = {
   getAttrDef: function gloda_ns_getAttrDef(aPluginName, aAttrName) {
     let compoundName = aPluginName + ":" + aAttrName;
     return GlodaDatastore._attributeDBDefs[compoundName];
-  },
-
-  /**
-   * Define a SQL table for plug-ins.  This is intended to be used by
-   *  extensions/plug-ins whose storage needs exceed those provided by the
-   *  attribute parameter (on the attribute definition)/attribute value (on the
-   *  attribute instance) idiom.  (This includes extensions whose parameter
-   *  usage would exceed acceptable cardinality.)  They can create a table
-   *  to store information on their nouns, using their row id (commonly "id")
-   *  as the attribute value.
-   * The current implementation was for a prototype and this should not be
-   *  interpreted as our final approach.  Our goal is just to make it easy to
-   *  add your own data-type and have it interact with the rest of the gloda
-   *  schema.  We don't really want to be a be-all, end-all JS ORM (object
-   *  relational mapper), though we started down that road.
-   *
-   * The argument should be a dictionary with the following keys:
-   * @param name The table name; don't conflict with other things!
-   * @param columns A list of [column name, sqlite type] tuples.  You should
-   *     always include a definition like ["id", "INTEGER PRIMARY KEY"] for
-   *     now.
-   * @param indices A dictionary of lists of column names, where the key name
-   *     becomes the index name.  Ex: {foo: ["bar"]} results in an index on
-   *     the column "bar" where the index is named "foo".
-   */
-  defineTable: function gloda_ns_defineTable(aTableDef) {
-    return GlodaDatastore.createTableIfNotExists(aTableDef);
   },
 
   /**

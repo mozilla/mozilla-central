@@ -46,116 +46,91 @@ Cu.import("resource://app/modules/gloda/log4moz.js");
 
 let DBC_LOG = Log4Moz.repository.getLogger("gloda.ds.dbc");
 
-function DatabindCallback(aDatabind, aCallbackThis, aCallback, aOneShot) {
-  this._databind = aDatabind;
-  this._callbackThis = aCallbackThis;
-  this._callback = aCallback;
-  this._oneShot = aOneShot;
-  this._databind._datastore._pendingAsyncStatements++;
-}
-DatabindCallback.prototype = {
-  handleResult: function (aResultSet) {
-    try {
-      let rows = [];
-      let rowResult;
-      let getVariant = this._databind._datastore._getVariant;
-      while (rowResult = aResultSet.getNextRow()) {
-        let row = {};
-        for each (let [iCol, colDef] in
-                  Iterator(this._databind._tableDef.columns)) {
-          let colName = colDef[0];
-          row[colName] = getVariant(rowResult, iCol);
-        }
-        rows.push(row);
-      }
-      this._callback.call(this._callbackThis, rows, false);
-    }
-    catch (e) {
-      DBC_LOG.error("Exception in handleResult: " + e);
-    }
-  },
-  handleError: function (aError) {
-    DBC_LOG.error("got error in DatabindCallback.handleError(): " +
-                    aError.result + ": " + aError.message);
-  },
-  handleCompletion: function () {
-    try {
-      this._callback.call(this._callbackThis, [], true);
-      this._databind._datastore._asyncCompleted();
-    }
-    catch (e) {
-      DBC_LOG.error("Exception in handleCompletion: " + e);
-    }
-  },
-}
-
-function GlodaDatabind(aTableDef, aDatastore) {
-  this._tableDef = aTableDef;
+function GlodaDatabind(aNounDef, aDatastore) {
+  this._nounDef = aNounDef;
+  this._tableName = aNounDef.tableName;
+  this._tableDef = aNounDef.schema;
   this._datastore = aDatastore;
-  this._log = Log4Moz.repository.getLogger("gloda.databind." + aTableDef.name);
+  this._log = Log4Moz.repository.getLogger("gloda.databind." + this._tableName);
   
-  let insertSql = "INSERT INTO " + this._tableDef._realName + " (" +
+  // process the column definitions and make sure they have an attribute mapping
+  for each (let [, coldef] in Iterator(this._tableDef.columns)) {
+    // default to the other dude's thing.
+    if (coldef.length < 3)
+      coldef[2] = coldef[0];
+    if (coldef[0] == "id")
+      this._idAttr = coldef[2];
+  }
+
+  this._nextId = 1;
+  let stmt = this._datastore._createSyncStatement(
+    "SELECT MAX(id) FROM " + this._tableName, true);
+  if (stmt.executeStep()) {  // no chance of this SQLITE_BUSY on this call
+    this._nextId = stmt.getInt64(0) + 1;
+  }
+  stmt.finalize();
+  
+  let insertSql = "INSERT INTO " + this._tableName + " (" +
     [coldef[0] for each
-     ([i, coldef] in Iterator(this._tableDef.columns))].join(", ") +
+     ([, coldef] in Iterator(this._tableDef.columns))].join(", ") +
     ") VALUES (" +
     [(":" + coldef[0]) for each
-     ([i, coldef] in Iterator(this._tableDef.columns))].join(", ") +
+     ([, coldef] in Iterator(this._tableDef.columns))].join(", ") +
     ")";
+
+  // For the update, we want the 'id' to be a constraint and not a value
+  //  that gets set...
+  let updateSql = "UPDATE " + this._tableName + " SET " +
+    [(coldef[0] + "= ? ") for each
+     ([, coldef] in Iterator(this._tableDef.columns)) if
+     (coldef[0] != "id")].join(", ") +
+    " WHERE id = :id";
   
   this._insertStmt = aDatastore._createAsyncStatement(insertSql);
-  
-  this._stmtCache = {};
+  this._updateStmt = aDatastore._createAsyncStatement(updateSql);
 }
 
 GlodaDatabind.prototype = {
-  /*
-  getHighId: function(aLessThan) {
-    let sql = "select MAX(id) AS m_id FROM " + this._tableDef._realName;
-    if (aLessThan !== undefined)
-      sql += " WHERE id < " + aLessThan;
-  dump("SQL: " + sql);
-    let stmt = this._datastore._createStatement(sql);
-  dump("created\n");
-    let highId = 0;
-    if (stmt.step()) {
-      dump("stepped, retrieving\n");
-      highId = stmt.row["m_id"];
+  objFromRow: function(aRow) {
+    let getVariant = this._datastore._getVariant;
+    let obj = new this._nounDef.class();
+    for each (let [iCol, colDef] in Iterator(this._tableDef.columns)) {
+      obj[colDef[2]] = getVariant(aRow, iCol);
     }
-    stmt.reset();
-    
-    return highId;
-  },
-  */
-    
-  select: function(aColName, aColValue, aCallbackThis, aCallback) {
-    let stmt;
-    if (!(aColName in this._stmtCache)) {
-      let sqlString = "SELECT * FROM " + this._tableDef._realName;
-      if (aColName)
-        sqlString += " WHERE " + aColName + " = :value";
-      stmt = this._datastore._createAsyncStatement(sqlString);
-      this._stmtCache[aColName] = stmt;
-    }
-    else
-      stmt = this._stmtCache[aColName];
-    
-    if (aColName)
-      this._datastore._bindVariant(stmt, 0, aColValue);
-    // so, we're tricky-like and lazy and actually return the row, so we don't
-    //  want to reset until the user tries to use the statement again, as I
-    //  fear we would otherwise lose our awesome row binding (and have to copy
-    //  it, etc.)
-    stmt.executeAsync(new DatabindCallback(this, aCallbackThis, aCallback));
+    return obj;
   },
   
-  insert: function(aValueDicts) {
+  objInsert: function(aThing) {
+    if (!aThing[this._idAttr])
+      aThing[this._idAttr] = this._nextId++;
+    
     let stmt = this._insertStmt;
-    for each (let [,valueDict] in Iterator(aValueDicts)) {
-      for each (let [iColDef, colDef] in Iterator(this._tableDef.columns)) {
-        this._log.debug("insert arg: " + colDef[0] + "=" + valueDict[colDef[0]]);
-        stmt.params[colDef[0]] = valueDict[colDef[0]];
-      }
-      stmt.executeAsync(this._datastore.trackAsync());
+    for each (let [iColDef, colDef] in Iterator(this._tableDef.columns)) {
+      stmt.params[colDef[0]] = aThing[colDef[2]];
     }
+    stmt.executeAsync(this._datastore.trackAsync());
+  },
+  
+  objUpdate: function(aThing) {
+    let stmt = this._insertStmt;
+    // note, we specially bound the location of 'id' for the insert, but since
+    //  we're using named bindings, there is nothing special about setting it
+    for each (let [iColDef, colDef] in Iterator(this._tableDef.columns)) {
+      stmt.params[colDef[0]] = aThing[colDef[2]];
+    }
+    stmt.executeAsync(this._datastore.trackAsync());
+  },
+  
+  adjustAttributes: function() {
+    // just proxy the call over to the datastore... we have to do this for
+    //  'this' reasons.  we don't refactor things to avoid this because it does
+    //  make some sense to have all the methods exposed from a single object,
+    //  even if the implementation does live elsewhere.
+    return this._datastore.adjustAttributes.apply(this._datastore, arguments);
+  },
+  
+  // also proxied...
+  queryFromQuery: function() {
+    return this._datastore.queryFromQuery.apply(this._datastore, arguments);
   }
 };

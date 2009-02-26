@@ -552,10 +552,10 @@ var GlodaDatastore = {
       // ----- Messages
       folderLocations: {
         columns: [
-          "id INTEGER PRIMARY KEY",
-          "folderURI TEXT NOT NULL",
-          "dirtyStatus INTEGER NOT NULL",
-          "name TEXT NOT NULL",
+          ["id", "INTEGER PRIMARY KEY"],
+          ["folderURI", "TEXT NOT NULL"],
+          ["dirtyStatus", "INTEGER NOT NULL"],
+          ["name", "TEXT NOT NULL"],
         ],
 
         triggers: {
@@ -565,10 +565,10 @@ var GlodaDatastore = {
 
       conversations: {
         columns: [
-          "id INTEGER PRIMARY KEY",
-          "subject TEXT NOT NULL",
-          "oldestMessageDate INTEGER",
-          "newestMessageDate INTEGER",
+          ["id", "INTEGER PRIMARY KEY"],
+          ["subject", "TEXT NOT NULL"],
+          ["oldestMessageDate", "INTEGER"],
+          ["newestMessageDate", "INTEGER"],
         ],
 
         indices: {
@@ -578,7 +578,7 @@ var GlodaDatastore = {
         },
 
         fulltextColumns: [
-          "subject TEXT",
+          ["subject", "TEXT"],
         ],
 
         triggers: {
@@ -596,17 +596,17 @@ var GlodaDatastore = {
        */
       messages: {
         columns: [
-          "id INTEGER PRIMARY KEY",
-          "folderID INTEGER REFERENCES folderLocations(id)",
-          "messageKey INTEGER",
-          "conversationID INTEGER NOT NULL REFERENCES conversations(id)",
-          "date INTEGER",
+          ["id", "INTEGER PRIMARY KEY"],
+          ["folderID", "INTEGER REFERENCES folderLocations(id)"],
+          ["messageKey", "INTEGER"],
+          ["conversationID", "INTEGER NOT NULL REFERENCES conversations(id)"],
+          ["date", "INTEGER"],
           // we used to have the parentID, but because of the very real
           //  possibility of multiple copies of a message with a given
           //  message-id, the parentID concept is unreliable.
-          "headerMessageID TEXT",
-          "deleted INTEGER NOT NULL default 0",
-          "jsonAttributes TEXT",
+          ["headerMessageID", "TEXT"],
+          ["deleted", "INTEGER NOT NULL default 0"],
+          ["jsonAttributes", "TEXT"],
         ],
 
         indices: {
@@ -618,9 +618,9 @@ var GlodaDatastore = {
         },
 
         fulltextColumns: [
-          "subject TEXT",
-          "body TEXT",
-          "attachmentNames TEXT",
+          ["subject", "TEXT"],
+          ["body", "TEXT"],
+          ["attachmentNames", "TEXT"],
         ],
 
         triggers: {
@@ -631,11 +631,11 @@ var GlodaDatastore = {
       // ----- Attributes
       attributeDefinitions: {
         columns: [
-          "id INTEGER PRIMARY KEY",
-          "attributeType INTEGER NOT NULL",
-          "extensionName TEXT NOT NULL",
-          "name TEXT NOT NULL",
-          "parameter BLOB",
+          ["id", "INTEGER PRIMARY KEY"],
+          ["attributeType", "INTEGER NOT NULL"],
+          ["extensionName", "TEXT NOT NULL"],
+          ["name", "TEXT NOT NULL"],
+          ["parameter", "BLOB"],
         ],
 
         triggers: {
@@ -645,10 +645,11 @@ var GlodaDatastore = {
 
       messageAttributes: {
         columns: [
-          "conversationID INTEGER NOT NULL REFERENCES conversations(id)",
-          "messageID INTEGER NOT NULL REFERENCES messages(id)",
-          "attributeID INTEGER NOT NULL REFERENCES attributeDefinitions(id)",
-          "value NUMERIC",
+          ["conversationID", "INTEGER NOT NULL REFERENCES conversations(id)"],
+          ["messageID", "INTEGER NOT NULL REFERENCES messages(id)"],
+          ["attributeID",
+           "INTEGER NOT NULL REFERENCES attributeDefinitions(id)"],
+          ["value", "NUMERIC"],
         ],
 
         indices: {
@@ -668,13 +669,13 @@ var GlodaDatastore = {
        */
       contacts: {
         columns: [
-          "id INTEGER PRIMARY KEY",
-          "directoryUUID TEXT",
-          "contactUUID TEXT",
-          "popularity INTEGER",
-          "frecency INTEGER",
-          "name TEXT",
-          "jsonAttributes TEXT",
+          ["id", "INTEGER PRIMARY KEY"],
+          ["directoryUUID", "TEXT"],
+          ["contactUUID", "TEXT"],
+          ["popularity", "INTEGER"],
+          ["frecency", "INTEGER"],
+          ["name", "TEXT"],
+          ["jsonAttributes", "TEXT"],
         ],
         indices: {
           popularity: ["popularity"],
@@ -684,9 +685,10 @@ var GlodaDatastore = {
 
       contactAttributes: {
         columns: [
-          "contactID INTEGER NOT NULL REFERENCES contacts(id)",
-          "attributeID INTEGER NOT NULL REFERENCES attributeDefinitions(id)",
-          "value NUMERIC"
+          ["contactID", "INTEGER NOT NULL REFERENCES contacts(id)"],
+          ["attributeID",
+           "INTEGER NOT NULL REFERENCES attributeDefinitions(id)"],
+          ["value", "NUMERIC"]
         ],
         indices: {
           contactAttribQuery: [
@@ -700,14 +702,14 @@ var GlodaDatastore = {
        */
       identities: {
         columns: [
-          "id INTEGER PRIMARY KEY",
-          "contactID INTEGER NOT NULL REFERENCES contacts(id)",
-          "kind TEXT NOT NULL", // ex: email, irc, etc.
-          "value TEXT NOT NULL", // ex: e-mail address, irc nick/handle, etc.
-          "description NOT NULL", // what makes this identity different from the
-          // others? (ex: home, work, etc.)
-          "relay INTEGER NOT NULL", // is the identity just a relay mechanism?
-          // (ex: mailing list, twitter 'bouncer', IRC gateway, etc.)
+          ["id", "INTEGER PRIMARY KEY"],
+          ["contactID", "INTEGER NOT NULL REFERENCES contacts(id)"],
+          ["kind", "TEXT NOT NULL"], // ex: email, irc, etc.
+          ["value", "TEXT NOT NULL"], // ex: e-mail address, irc nick/handle...
+          ["description", "NOT NULL"], // what makes this identity different
+          // from the others? (ex: home, work, etc.)
+          ["relay", "INTEGER NOT NULL"], // is the identity just a relay
+          // mechanism? (ex: mailing list, twitter 'bouncer', IRC gateway, etc.)
         ],
 
         indices: {
@@ -715,10 +717,6 @@ var GlodaDatastore = {
           valueQuery: ["kind", "value"]
         }
       },
-
-      //identityAttributes: {
-      //},
-
     },
   },
 
@@ -896,28 +894,50 @@ var GlodaDatastore = {
   },
 
   _createTableSchema: function gloda_ds_createTableSchema(aDBConnection,
-      aTableName) {
-    let table = this._schema.tables[aTableName];
-
+      aTableName, aTableDef) {
     // - Create the table
-    aDBConnection.createTable(aTableName, table.columns.join(", "));
+    this._log.info("Creating table: " + aTableName);
+    aDBConnection.createTable(aTableName,
+      [(coldef[0] + " " + coldef[1]) for each
+       ([i, coldef] in Iterator(aTableDef.columns))].join(", "));
 
     // - Create the fulltext table if applicable
-    if ("fulltextColumns" in table) {
+    if (aTableDef.fulltextColumns) {
       let createFulltextSQL = "CREATE VIRTUAL TABLE " + aTableName + "Text" +
-        " USING fts3(tokenize porter, " + table.fulltextColumns.join(", ") +
+        " USING fts3(tokenize porter, " +
+        [(coldef[0] + " " + coldef[1]) for each
+         ([i, coldef] in Iterator(aTableDef.fulltextColumns))].join(", ") +
         ")";
-      this._log.info("Create fulltext: " + createFulltextSQL);
+      this._log.info("Creating fulltext table: " + createFulltextSQL);
       aDBConnection.executeSimpleSQL(createFulltextSQL);
     }
 
     // - Create its indices
-    for (let indexName in table.indices) {
-      let indexColumns = table.indices[indexName];
+    if (aTableDef.indices) {
+      for each (let [indexName, indexColumns] in Iterator(aTableDef.indices)) {
+        aDBConnection.executeSimpleSQL(
+          "CREATE INDEX " + indexName + " ON " + aTableName +
+          "(" + indexColumns.join(", ") + ")");
+      }
+    }
 
-      aDBConnection.executeSimpleSQL(
-        "CREATE INDEX " + indexName + " ON " + aTableName +
-        "(" + indexColumns.join(", ") + ")");
+    // - Create the attributes table if applicable
+    if (aTableDef.genericAttributes) {
+      aTableDef.genericAttributes = {
+        columns: [
+          ["nounID", "INTEGER NOT NULL REFERENCES " + aTableName + "(id)"],
+          ["attributeID",
+           "INTEGER NOT NULL REFERENCES attributeDefinitions(id)"],
+          ["value", "NUMERIC"]
+        ],
+        indices: {}
+      };
+      aTableDef.genericAttributes.indices[aTableName + "AttribQuery"] =
+        ["attributeID", "value", /* covering: */ "nounID"];
+      // let's use this very function!  (since we created genericAttributes,
+      //  explodey recursion is avoided.)
+      this._createTableSchema(aDBConnection, aTableName + "Attributes",
+                              aTableDef.genericAttributes);
     }
   },
 
@@ -928,51 +948,42 @@ var GlodaDatastore = {
    */
   _createSchema: function gloda_ds_createSchema(aDBConnection) {
     // -- For each table...
-    for (let tableName in this._schema.tables) {
-      this._createTableSchema(aDBConnection, tableName);
+    for each (let [tableName, tableDef] in Iterator(this._schema.tables)) {
+      this._createTableSchema(aDBConnection, tableName, tableDef);
     }
 
     aDBConnection.schemaVersion = this._schemaVersion;
   },
 
   /**
-   * Our table definition used here is slightly different from that used
-   *  internally, because we are potentially creating a sort of crappy ORM and
-   *  we don't want to have to parse the column names out.
+   * Create a table for a noun, replete with data binding.
    */
-  createTableIfNotExists: function gloda_ds_createTableIfNotExists(aTableDef) {
-    aTableDef._realName = "ext_" + aTableDef.name;
-
-    // first, check if the table exists
-    if (!this.asyncConnection.tableExists(aTableDef._realName)) {
+  createNounTable: function gloda_ds_createTableIfNotExists(aNounDef) {
+    // check if the table exists
+    if (!this.asyncConnection.tableExists(aNounDef.tableName)) {
+      // it doesn't! create it (and its potentially many variants)
       try {
-        this.asyncConnection.createTable(aTableDef._realName,
-          [coldef.join(" ") for each
-           ([i, coldef] in Iterator(aTableDef.columns))].join(", "));
+        this._createTableSchema(this.asyncConnection, aNounDef.tableName,
+                                aNounDef.schema);
       }
       catch (ex) {
-         this._log.error("Problem creating table " + aTableDef.name + " " +
+         this._log.error("Problem creating table " + aNounDef.tableName + " " +
            "because: " + ex + " at " + ex.fileName + ":" + ex.lineNumber);
          return null;
       }
-
-      for (let indexName in aTableDef.indices) {
-        let indexColumns = aTableDef.indices[indexName];
-
-        try {
-          let indexSql = "CREATE INDEX " + indexName + " ON " +
-            aTableDef._realName + " (" + indexColumns.join(", ") + ")";
-          this.asyncConnection.executeSimpleSQL(indexSql);
-        }
-        catch (ex) {
-          this._log.error("Problem creating index " + indexName + " for " +
-            "table " + aTableDef.name + " because " + ex + " at " +
-            ex.fileName + ":" + ex.lineNumber);
-        }
-      }
     }
 
-    return new GlodaDatabind(aTableDef, this);
+    aNounDef._dataBinder = new GlodaDatabind(aNounDef, this);
+    aNounDef.datastore = aNounDef._dataBinder;
+    aNounDef.objFromRow = aNounDef._dataBinder.objFromRow;
+    aNounDef.objInsert = aNounDef._dataBinder.objInsert;
+    aNounDef.objUpdate = aNounDef._dataBinder.objUpdate;
+    aNounDef.dbAttribAdjuster = aNounDef._dataBinder.adjustAttributes;
+
+    if (aNounDef.schema.genericAttributes) {
+      aNounDef.attrTableName = aNounDef.tableName + "Attributes";
+      aNounDef.attrIDColumnName = "nounID";
+    }
   },
 
   _migrate: function gloda_ds_migrate(aDBService, aDBFile, aDBConnection,
@@ -2757,8 +2768,19 @@ var GlodaDatastore = {
                 (values.length ? " AND " : "");
             else
               clausePart = "(";
-            if (values.length)
-              clausePart += valueColumnName + " IN (" + values.join(",") + "))";
+            if (values.length) {
+              // strings need to be escaped, we would use ? binding, except
+              //  that gets mad if we have too many strings... so we use our
+              //  own escaping logic.  correctly escaping is easy, but it still
+              //  feels wrong to do it. (just double the quote character...)
+              if (attrDef.special == this.kSpecialString)
+                clausePart += valueColumnName + " IN (" +
+                  [("'" + v.replace("'", "''", "g") + "'") for each
+                   ([, v] in Iterator(values))].join(",") + "))";
+              else
+                clausePart += valueColumnName + " IN (" + values.join(",") +
+                              "))";
+            }
             else
               clausePart += ")";
             clauses.push(clausePart);

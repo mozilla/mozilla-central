@@ -58,6 +58,12 @@ function MimeType(aID, aType, aSubType, aFullType) {
 MimeType.prototype = {
   get id() { return this._id; },
   get type() { return this._type; },
+  set fullType(aFullType) {
+    if (!this._fullType) {
+      this._fullType = aFullType;
+      [this._type, this._subType] = this._fullType.split("/");
+    }
+  },
   get subType() { return this._subType; },
   get fullType() { return this._fullType; },
   toString: function () {
@@ -66,8 +72,7 @@ MimeType.prototype = {
 };
 
 /**
- * @namespace Mime type noun provider.  Uses datastore mechanisms to define its
- *  table.
+ * @namespace Mime type noun provider.
  * 
  * The set of MIME Types is sufficiently limited that we can keep them all in
  *  memory.  In theory it is also sufficiently limited that we could use the
@@ -83,40 +88,49 @@ var MimeTypeNoun = {
   class: MimeType,
   allowsArbitraryAttrs: false,
   
+  // note! update test_noun_mimetype if you change our internals!
   _mimeTypes: {},
   _mimeTypesByID: {},
   TYPE_BLOCK_SIZE: 8096,
   _mimeTypeHighID: {},
   _highID: 0,
   
+  // we now use the exciting 'schema' mechanism of defineNoun to get our table
+  //  created for us, plus some helper methods that we simply don't use.
+  schema: {
+    name: 'mimeTypes',
+    columns: [['id', 'INTEGER PRIMARY KEY', '_id'],
+              ['mimeType', 'TEXT', 'fullType']],
+  },
+  
   _init: function() {
-    LOG.debug("initializing table definition");
-    this._tableMimeTypes = Gloda.defineTable({
-      name: 'mimeTypes',
-      columns: [['id', 'INTEGER PRIMARY KEY'],
-                ['mimeType', 'TEXT']],
-    });
     LOG.debug("loading MIME types");
     this._loadMimeTypes();
   },
   
   _loadMimeTypes: function() {
-    this._tableMimeTypes.select(null, null, this, this._processMimeTypes);
+    // get all the existing mime types!
+    let query = Gloda.newQuery(this.id);
+    nullFunc = function() {};
+    query.getCollection({
+      onItemsAdded: nullFunc, onItemsModified: nullFunc, onItemsRemoved: null,
+      onQueryCompleted: function (aCollection) {
+        MimeTypeNoun._processMimeTypes(aCollection.items);
+      }
+    }, null).becomeExplicit();
   },
   
-  _processMimeTypes: function(aRows, aDone) {
-    for each (let [, row] in Iterator(aRows)) {
-      if (row.id > this._highID)
-        this._highID = row.id;
-      let [typeName, subTypeName] = row.mimeType.split("/");
-      let mimeType = new MimeType(row.id, typeName, subTypeName, row.mimeType);
+  _processMimeTypes: function(aMimeTypes) {
+    for each (let [, mimeType] in Iterator(aMimeTypes)) {
+      if (mimeType.id > this._highID)
+        this._highID = mimeType.id;
       this._mimeTypes[mimeType] = mimeType;
       this._mimeTypesByID[mimeType.id] = mimeType;
       
       let typeBlock = mimeType.id - (mimeType.id % this.TYPE_BLOCK_SIZE);
-      let blockHighID = this._mimeTypeHighID[typeName];
+      let blockHighID = this._mimeTypeHighID[mimeType.type];
       if ((blockHighID === undefined) || mimeType.id > blockHighID)
-        this._mimeTypeHighID[typeName] = mimeType.id;
+        this._mimeTypeHighID[mimeType.type] = mimeType.id;
     }
   },
   
@@ -138,7 +152,10 @@ var MimeTypeNoun = {
     this._mimeTypes[aMimeTypeName] = mimeType;
     this._mimeTypesByID[nextID] = mimeType;
     
-    this._tableMimeTypes.insert([{id: nextID, mimeType: aMimeTypeName}]);
+    // as great as the gloda extension mechanisms are, we don't think it makes
+    //  a lot of sense to use them in this case.  So we directly trigger object
+    //  insertion without any of the grokNounItem stuff.
+    this.objInsert.call(this.datastore, mimeType);
     
     return mimeType;
   },
@@ -167,9 +184,9 @@ var MimeTypeNoun = {
     return this._mimeTypesByID[aMimeTypeID];
   },
 };
+Gloda.defineNoun(MimeTypeNoun, Gloda.NOUN_MIME_TYPE);
 try {
 MimeTypeNoun._init();
 } catch (ex) {
   LOG.error("problem init-ing: " + ex.fileName + ":" + ex.lineNumber + ": " + ex);
 }
-Gloda.defineNoun(MimeTypeNoun, Gloda.NOUN_MIME_TYPE);
