@@ -128,6 +128,10 @@ header-view-button-box {
   padding-top: 0.5em;
 }
 
+#expandedsubjectBox > .headerValue {
+  font-weight: bold;
+}
+
 /* ::::: edit message bar ::::: */
 
 #editMessageBox
