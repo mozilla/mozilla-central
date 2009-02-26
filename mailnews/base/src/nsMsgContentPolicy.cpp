@@ -747,10 +747,12 @@ nsMsgContentPolicy::OnLocationChange(nsIWebProgress *aWebProgress,
 
 #ifdef DEBUG
   nsCOMPtr<nsIChannel> channel = do_QueryInterface(aRequest, &rv);
-  nsCOMPtr<nsIDocShell> docShell2;
-  NS_QueryNotificationCallbacks(channel, docShell2);
-  NS_ASSERTION(docShell == docShell2, "aWebProgress and channel callbacks"
-                                      " do not point to the same docshell");
+  if (NS_SUCCEEDED(rv)) {
+    nsCOMPtr<nsIDocShell> docShell2;
+    NS_QueryNotificationCallbacks(channel, docShell2);
+    NS_ASSERTION(docShell == docShell2, "aWebProgress and channel callbacks"
+                                        " do not point to the same docshell");
+  }
 #endif
   
   // If this is a mailnews url, turn off JavaScript, otherwise turn it on
