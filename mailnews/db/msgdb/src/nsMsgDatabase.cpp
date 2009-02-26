@@ -4262,8 +4262,14 @@ nsresult nsMsgDatabase::ListAllThreads(nsTArray<nsMsgKey> *threadIds)
   return rv;
 }
 
-NS_IMETHODIMP nsMsgDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
-                                  const char *propertyVal, PRInt32 flags)
+NS_IMETHODIMP nsMsgDatabase::SetAttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
+                                  const char *propertyVal)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsMsgDatabase::SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
+                                  PRUint32 propertyVal)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

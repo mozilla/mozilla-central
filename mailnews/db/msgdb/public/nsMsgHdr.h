@@ -61,6 +61,7 @@ public:
     void                Init();
     virtual nsresult    InitCachedValues();
     virtual nsresult    InitFlags();
+    void                ClearCachedValues() {m_initedValues = 0;}
 
     NS_DECL_ISUPPORTS
 

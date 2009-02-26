@@ -6594,18 +6594,18 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages)
         nsCString junkScore;
         msgDBHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
         if (!junkScore.IsEmpty()) // ignore already scored messages.
-          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscore", junkScore.get(), 0);
+          mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "junkscore", junkScore.get());
         msgDBHdr->GetLabel(&label);
         if (label != 0)
         {
           nsCAutoString labelStr;
           labelStr.AppendInt(label);
-          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "label", labelStr.get(), 0);
+          mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "label", labelStr.get());
         }
         nsCString keywords;
         msgDBHdr->GetStringProperty("keywords", getter_Copies(keywords));
         if (!keywords.IsEmpty())
-          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "keywords", keywords.get(), 0);
+          mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "keywords", keywords.get());
       } 
       // do this even if the server supports user-defined flags.
       
@@ -6613,17 +6613,26 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages)
       msgDBHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
       msgDBHdr->GetStringProperty("junkpercent", getter_Copies(junkPercent));
       if (!junkScoreOrigin.IsEmpty())
-        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get(), 0);
+        mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get());
       if (!junkPercent.IsEmpty())
-        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get(), 0);             
-      
+        mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get());
+      PRUint32 messageSize;
+      nsMsgKey messageOffset;
+      msgDBHdr->GetMessageOffset(&messageOffset);
+      msgDBHdr->GetOfflineMessageSize(&messageSize);
+      if (messageSize)
+      {
+        mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "offlineMsgSize", messageSize);
+        mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "msgOffset", messageOffset);
+        mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "flags", nsMsgMessageFlags::Offline);
+      }
       nsMsgPriorityValue priority;
       msgDBHdr->GetPriority(&priority);
       if(priority != 0)
       {
         nsCAutoString priorityStr;
         priorityStr.AppendInt(priority);
-        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "priority", priorityStr.get(), 0);
+        mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "priority", priorityStr.get());
       }
     }
   }

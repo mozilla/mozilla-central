@@ -3079,8 +3079,8 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
                 nsCString messageId;
                 mMsgSend->GetMessageId(messageId);
                 msgHdr->SetMessageId(messageId.get());
-                msgDB->SetAttributesOnPendingHdr(msgHdr, ORIG_URI_PROPERTY, mOriginalMsgURI.get(), 0);
-                msgDB->SetAttributesOnPendingHdr(msgHdr, QUEUED_DISPOSITION_PROPERTY, dispositionSetting, 0); 
+                msgDB->SetAttributeOnPendingHdr(msgHdr, ORIG_URI_PROPERTY, mOriginalMsgURI.get());
+                msgDB->SetAttributeOnPendingHdr(msgHdr, QUEUED_DISPOSITION_PROPERTY, dispositionSetting);
                 msgDB->RemoveHeaderMdbRow(msgHdr);
               }
             }

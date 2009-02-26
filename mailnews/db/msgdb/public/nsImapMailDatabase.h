@@ -58,21 +58,24 @@ public:
   NS_IMETHOD    SetFolderStream(nsIOutputStream *aFileStream);
   NS_IMETHOD    GetFolderStream(nsIOutputStream **aFileStream);
   NS_IMETHOD    AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify);
-  NS_IMETHOD    SetAttributesOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property, 
-                                  const char *propertyVal, PRInt32 flags);
-  NS_IMETHODIMP DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, 
+  NS_IMETHOD    SetAttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
+                                  const char *propertyVal);
+  NS_IMETHOD    SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
+                                  PRUint32 propertyVal);
+  NS_IMETHOD    DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys,
                                nsIDBChangeListener *instigator);
 
 protected:
   // IMAP does not set local file flags, override does nothing
-  virtual void UpdateFolderFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, 
+  virtual void UpdateFolderFlag(nsIMsgDBHdr *msgHdr, PRBool bSet,
                                 nsMsgMessageFlagType flag, nsIOutputStream **ppFileStream);
   virtual PRBool SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, nsMsgMessageFlagType flag);
 
-   nsresult     GetAllPendingHdrsTable();
-   mdb_token    m_pendingHdrsRowScopeToken;
-   mdb_token    m_pendingHdrsTableKindToken; 
-   nsCOMPtr <nsIMdbTable> m_mdbAllPendingHdrsTable;
+  nsresult      GetRowForPendingHdr(nsIMsgDBHdr *pendingHdr, nsIMdbRow **row);
+  nsresult     GetAllPendingHdrsTable();
+  mdb_token    m_pendingHdrsRowScopeToken;
+  mdb_token    m_pendingHdrsTableKindToken;
+  nsCOMPtr<nsIMdbTable> m_mdbAllPendingHdrsTable;
 };
 
 

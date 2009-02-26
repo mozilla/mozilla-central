@@ -149,8 +149,6 @@ nsresult nsImapMailDatabase::GetAllPendingHdrsTable()
   return rv;
 }
 
-static const char *kFlagsName = "flags";
-
 NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify)
 {
   nsresult rv = nsMsgDatabase::AddNewHdrToDB(newHdr, notify);
@@ -180,10 +178,14 @@ NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool noti
         mdb_count numCells;
         mdbYarn cellYarn;
         mdb_column cellColumn;
+        PRUint32 existingFlags;
 
         pendingRow->GetCount(GetEnv(), &numCells);
+        newHdr->GetFlags(&existingFlags);
         // iterate over the cells in the pending hdr setting properties on the newHdr.
         // we skip cell 0, which is the messageId;
+        nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(newHdr);      // closed system, cast ok
+        nsIMdbRow *row = msgHdr->GetMDBRow();
         for (mdb_count cellIndex = 1; cellIndex < numCells; cellIndex++)
         {
           mdb_err err = pendingRow->SeekCellYarn(GetEnv(), cellIndex, &cellColumn, nsnull);
@@ -192,13 +194,15 @@ NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool noti
             err = pendingRow->AliasCellYarn(GetEnv(), cellColumn, &cellYarn);
             if (err == 0)
             {
-              nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(newHdr);      // closed system, cast ok
-              nsIMdbRow *row = msgHdr->GetMDBRow();
               if (row)
                 row->AddColumn(GetEnv(), cellColumn, &cellYarn);
             }
           }
         }
+        // We might have changed some cached values, so force a refresh.
+        msgHdr->ClearCachedValues();
+        PRUint32 resultFlags;
+        msgHdr->OrFlags(existingFlags, &resultFlags);
         m_mdbAllPendingHdrsTable->CutRow(GetEnv(), pendingRow);
         pendingRow->CutAllColumns(GetEnv());
       }
@@ -207,18 +211,15 @@ NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool noti
   return rv;
 }
 
-NS_IMETHODIMP nsImapMailDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
-                                  const char *propertyVal, PRInt32 flags)
+nsresult nsImapMailDatabase::GetRowForPendingHdr(nsIMsgDBHdr *pendingHdr,
+                                                 nsIMdbRow **row)
 {
-  NS_ENSURE_ARG_POINTER(pendingHdr);
   nsresult rv = GetAllPendingHdrsTable();
   NS_ENSURE_SUCCESS(rv, rv);
 
   mdbYarn messageIdYarn;
-  nsCOMPtr <nsIMdbRow> pendingRow;
-  nsIMdbRow *newHdrRow;
+  nsCOMPtr<nsIMdbRow> pendingRow;
   mdbOid  outRowId;
-  mdb_err err;
   nsCString messageId;
   pendingHdr->GetMessageId(getter_Copies(messageId));
   messageIdYarn.mYarn_Buf = (void*)messageId.get();
@@ -226,15 +227,13 @@ NS_IMETHODIMP nsImapMailDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pending
   messageIdYarn.mYarn_Form = 0;
   messageIdYarn.mYarn_Size = messageIdYarn.mYarn_Fill;
 
-  err = m_mdbStore->FindRow(GetEnv(), m_pendingHdrsRowScopeToken,
+  rv = m_mdbStore->FindRow(GetEnv(), m_pendingHdrsRowScopeToken,
             m_messageIdColumnToken, &messageIdYarn, &outRowId, getter_AddRefs(pendingRow));
 
   if (!pendingRow)
-  {
-    err  = m_mdbStore->NewRow(GetEnv(), m_pendingHdrsRowScopeToken, &newHdrRow);
-    pendingRow = do_QueryInterface(newHdrRow);
-  }
-  NS_ENSURE_SUCCESS(err, err);
+    rv  = m_mdbStore->NewRow(GetEnv(), m_pendingHdrsRowScopeToken, getter_AddRefs(pendingRow));
+
+  NS_ENSURE_SUCCESS(rv, rv);
   if (pendingRow)
   {
     // now we need to add cells to the row to remember the messageid, property and property value, and flags.
@@ -253,8 +252,7 @@ NS_IMETHODIMP nsImapMailDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pending
        // make sure this is the first cell so that when we ignore the first
        // cell in nsImapMailDatabase::AddNewHdrToDB, we're ignoring the right one
       (void) SetProperty(pendingRow, kMessageIdColumnName, messageId.get());
-      (void) SetProperty(pendingRow, property, propertyVal);
-      (void) SetUint32Property(pendingRow, kFlagsName, (PRUint32) flags);
+      pendingRow.forget(row);
     }
     else
       return NS_ERROR_FAILURE;
@@ -262,3 +260,24 @@ NS_IMETHODIMP nsImapMailDatabase::SetAttributesOnPendingHdr(nsIMsgDBHdr *pending
   return rv;
 }
 
+NS_IMETHODIMP nsImapMailDatabase::SetAttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
+                                  const char *propertyVal)
+{
+  NS_ENSURE_ARG_POINTER(pendingHdr);
+  nsCOMPtr<nsIMdbRow> pendingRow;
+  nsresult rv = GetRowForPendingHdr(pendingHdr, getter_AddRefs(pendingRow));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return SetProperty(pendingRow, property, propertyVal);
+}
+
+NS_IMETHODIMP
+nsImapMailDatabase::SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr,
+                                                   const char *property,
+                                                   PRUint32 propertyVal)
+{
+  NS_ENSURE_ARG_POINTER(pendingHdr);
+  nsCOMPtr<nsIMdbRow> pendingRow;
+  nsresult rv = GetRowForPendingHdr(pendingHdr, getter_AddRefs(pendingRow));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return SetUint32Property(pendingRow, property, propertyVal);
+}

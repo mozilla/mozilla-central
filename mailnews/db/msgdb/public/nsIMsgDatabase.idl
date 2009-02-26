@@ -232,7 +232,7 @@ interface nsIMsgDBService : nsISupports
   void unregisterPendingListener(in nsIDBChangeListener aListener);
 };
 
-[scriptable, uuid(55EEECA9-FCF6-4a94-A9D4-0ECFBAAE8CAA)]
+[scriptable, uuid(d9dd4a8d-6a75-4564-8bbd-9c0260e6cbc7)]
 interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   /**
    * Opens a database folder.
@@ -411,8 +411,11 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   [noscript] void ListAllOfflineDeletes(in nsMsgKeyArrayPtr offlineDeletes);
   [noscript] void ListAllOfflineMsgs(in nsMsgKeyArrayPtr offlineMsgs);
 
-  void setAttributesOnPendingHdr(in nsIMsgDBHdr pendingHdr, in string property, 
-                                  in string propertyVal, in long flags);
+  void setAttributeOnPendingHdr(in nsIMsgDBHdr pendingHdr, in string property,
+                                  in string propertyVal);
+
+  void setUint32AttributeOnPendingHdr(in nsIMsgDBHdr pendingHdr, in string property,
+                                  in unsigned long propertyVal);
 
   readonly attribute nsMsgKey lowWaterArticleNum;
   readonly attribute nsMsgKey highWaterArticleNum;
