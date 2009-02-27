@@ -78,10 +78,6 @@ function search()
       .getService(Components.interfaces.nsIPrefService);
   var prefs = prefService.getBranch(null);
 
-  gLdapServerURL =
-    Components.classes["@mozilla.org/network/ldap-url;1"]
-      .createInstance().QueryInterface(Components.interfaces.nsILDAPURL);
-
   // get the login to authenticate as, if there is one
   try {
     gLogin = prefs.getComplexValue(gDirectoryPref + ".auth.dn", Components.interfaces.nsISupportsString).data;
@@ -90,7 +86,11 @@ function search()
   }
 
   try {
-    gLdapServerURL.spec = prefs.getCharPref(gDirectoryPref + ".uri");
+    let url = prefs.getCharPref(gDirectoryPref + ".uri");
+
+    gLdapServerURL = Components.classes["@mozilla.org/network/io-service;1"]
+      .getService(Components.interfaces.nsIIOService)
+      .newURI(url, null, null).QueryInterface(Components.interfaces.nsILDAPURL);
 
     gLdapConnection = Components.classes["@mozilla.org/network/ldap-connection;1"]
       .createInstance().QueryInterface(Components.interfaces.nsILDAPConnection);
