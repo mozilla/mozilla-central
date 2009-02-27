@@ -198,7 +198,7 @@
                 accesskey="&fileButton.accesskey;"
                 observes="file_message_button"
                 oncommand="MoveMessageInSearch(event.target)">
-        <menupopup type="folder" showFileHereLabel="true"
+        <menupopup type="folder" showFileHereLabel="true" mode="filing"
                    fileHereLabel="&fileHereMenu.label;"
                    fileHereAccessKey="&fileHereMenu.accesskey;"/>
       </button>
