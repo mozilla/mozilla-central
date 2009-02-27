@@ -37,6 +37,34 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/* ****************************************************************************
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * 
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * 
+ * Dear Mortals,
+ * 
+ * Please be advised that if you are adding something here, you should also
+ * strongly consider adding it to the other place it goes too!  These can be
+ * found in paths like so: mailnews/.../build/*Factory.cpp
+ * 
+ * If you do not, your (static) release builds will be quite pleasant, but
+ * (dynamic) debug builds will disappoint you by not having your component in
+ * them.
+ * 
+ * Yours truly,
+ * The ghost that haunts the MailNews codebase.
+ * 
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * 
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ****************************************************************************/
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Core Module Include Files
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +144,7 @@
 #endif
 #include "nsCURILoader.h"
 #include "nsMessengerContentHandler.h"
+#include "nsStopwatch.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // addrbook includes
@@ -351,6 +380,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgContentPolicy, Init)
 #ifdef MOZ_THUNDERBIRD
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCookiePolicy)
 #endif
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsStopwatch)
 
 ////////////////////////////////////////////////////////////////////////////////
 // addrbook factories
@@ -911,6 +941,12 @@ static const nsModuleComponentInfo gComponents[] = {
       nsMsgCookiePolicyConstructor
     },
 #endif
+    {
+      "stopwatch",
+      NS_STOPWATCH_CID,
+      NS_STOPWATCH_CONTRACTID,
+      nsStopwatchConstructor
+    },
 
     ////////////////////////////////////////////////////////////////////////////////
     // addrbook components

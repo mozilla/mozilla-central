@@ -38,6 +38,31 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/* ****************************************************************************
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * 
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * 
+ * Dear Mortals,
+ * 
+ * Please be advised that if you are adding something here, you should also
+ * strongly consider adding it to mailnews/build/nsMailModule.cpp as well!
+ * 
+ * If you do not, your dynamic builds will be quite pleasant, but (static)
+ * release builds will disappoint you by not having your component in them.
+ * 
+ * Yours truly,
+ * The ghost that haunts the MailNews codebase.
+ * 
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * 
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+ * ****************************************************************************/
+
 #include "nsIFactory.h"
 #include "nsISupports.h"
 #include "msgCore.h"
