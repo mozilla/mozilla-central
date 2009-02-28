@@ -340,11 +340,14 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
     // is deferred, e.g., using the pop3 global inbox.
     rv = server->GetRootMsgFolder(getter_AddRefs(rootFolder));
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = rootFolder->GetURI(retval);
-    NS_ENSURE_SUCCESS(rv, rv);
-    retval.Append('/');
-    retval.Append(folderName);
-    return setFolderPref(prefname, retval, folderflag);
+    if (rootFolder)
+    {
+      rv = rootFolder->GetURI(retval);
+      NS_ENSURE_SUCCESS(rv, rv);
+      retval.Append('/');
+      retval.Append(folderName);
+      return setFolderPref(prefname, retval, folderflag);
+    }
   }
   // if there are no servers for this identity, return generic failure.
   return NS_ERROR_FAILURE;

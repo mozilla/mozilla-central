@@ -270,7 +270,7 @@ nsPop3IncomingServer::GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder)
   }
 
   NS_IF_ADDREF(*aRootMsgFolder = m_rootMsgFolder);
-  return rv;
+  return m_rootMsgFolder ? rv : NS_ERROR_FAILURE;
 }
 
 nsresult nsPop3IncomingServer::GetInbox(nsIMsgWindow *msgWindow, nsIMsgFolder **inbox)
