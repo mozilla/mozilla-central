@@ -881,11 +881,11 @@ static void QueryThreadFunc(void *aArguments)
     delete arguments ;
 }
 
-nsresult nsAbOutlookDirectory::DoQuery(nsIAbDirectory *aDirectory,
-                                       nsIAbDirectoryQueryArguments *aArguments,
-                                       nsIAbDirSearchListener *aListener,
-                                       PRInt32 aResultLimit, PRInt32 aTimeout,
-                                       PRInt32 *aReturnValue) 
+NS_IMETHODIMP nsAbOutlookDirectory::DoQuery(nsIAbDirectory *aDirectory,
+                                            nsIAbDirectoryQueryArguments *aArguments,
+                                            nsIAbDirSearchListener *aListener,
+                                            PRInt32 aResultLimit, PRInt32 aTimeout,
+                                            PRInt32 *aReturnValue)
 {
   if (!aArguments || !aListener || !aReturnValue)  { 
     return NS_ERROR_NULL_POINTER;
@@ -926,7 +926,7 @@ nsresult nsAbOutlookDirectory::DoQuery(nsIAbDirectory *aDirectory,
   return NS_OK;
 }
 
-nsresult nsAbOutlookDirectory::StopQuery(PRInt32 aContext)
+NS_IMETHODIMP nsAbOutlookDirectory::StopQuery(PRInt32 aContext)
 {
     PRThread *queryThread;
     if (mQueryThreads.Get(aContext, &queryThread)) {
