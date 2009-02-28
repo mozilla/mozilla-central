@@ -44,12 +44,18 @@
 
 const mailtolength = 7;
 
-// Function to change the highlighted row back to the row that is currently
-// outline/dotted without loading the contents of either rows.  This is
-// triggered when the context menu for a given row is hidden/closed
-// (onpopuphiding).
+/**
+ * Function to change the highlighted row back to the row that is currently
+ * outline/dotted without loading the contents of either rows. This is
+ * triggered when the context menu for a given row is hidden/closed
+ * (onpopuphiding).
+ * @param tree the tree element to restore selection for
+ */
 function RestoreSelectionWithoutContentLoad(tree)
 {
+    if (!tree)
+      return;
+
     // If a delete or move command had been issued, then we should
     // reset gRightMouseButtonDown and gThreadPaneDeleteOrMoveOccurred
     // and return (see bug 142065).
@@ -182,8 +188,10 @@ function fillMailContextMenu(event)
 
   ShowMenuItem("mailContext-moveToFolderAgain",
                numSelected && !hideMailItems);
-  if (!numSelected && !hideMailItems)
+  if (numSelected && !hideMailItems) {
     initMoveToFolderAgainMenu(document.getElementById("mailContext-moveToFolderAgain"));
+    goUpdateCommand("cmd_moveToFolderAgain");
+  }
 
   ShowMenuItem("paneContext-afterMove", !inThreadPane);
 

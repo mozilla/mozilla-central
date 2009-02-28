@@ -320,9 +320,11 @@ function InitMessageMenu()
 }
 
 /**
- * Enables / disables aMenuItem based on the value of
- * mail.last_msg_movecopy_target_uri and  adjusts the label and accesskey
- * for aMenuItem to include the folder name.
+ * Initializes the menu item aMenuItem to show either "Move" or "Copy" to
+ * folder again, based on the value of mail.last_msg_movecopy_target_uri.
+ * The menu item label and accesskey are adjusted to include the folder name.
+ *
+ * @param aMenuItem the menu item to adjust
  */
 function initMoveToFolderAgainMenu(aMenuItem)
 {
