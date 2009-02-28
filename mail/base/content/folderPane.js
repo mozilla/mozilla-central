@@ -696,8 +696,12 @@ let gFolderTreeView = {
         this._tree.rowCountChanged(aIndex + 1, this._rowMap.length - oldCount);
       // if this was a server that was expanded, let it update its counts
       let folder = this._rowMap[aIndex]._folder;
-      if (aExpandServer && folder.isServer)
-        folder.server.performExpand(msgWindow);
+      if (aExpandServer) {
+        if (folder.isServer)
+          folder.server.performExpand(msgWindow);
+        else if (folder instanceof Components.interfaces.nsIMsgImapMailFolder)
+          folder.performExpand(msgWindow);
+      }
     }
   },
 
