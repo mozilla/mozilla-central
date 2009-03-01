@@ -3110,10 +3110,10 @@ nsMsgDBView::DetermineActionsForJunkChange(PRBool msgsAreJunk,
   // set the move target folder to the inbox, if any.
   if (!msgsAreJunk)
   {
-    prefBranch->GetBoolPref("mail.spam.markAsNotJunkMarksUnRead",
-                            &changeReadState);
     if (folderFlags & nsMsgFolderFlags::Junk)
     {
+      prefBranch->GetBoolPref("mail.spam.markAsNotJunkMarksUnRead",
+                              &changeReadState);
       nsCOMPtr<nsIMsgFolder> rootMsgFolder;
       rv = server->GetRootMsgFolder(getter_AddRefs(rootMsgFolder));
       NS_ENSURE_SUCCESS(rv,rv);
