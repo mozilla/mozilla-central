@@ -2983,13 +2983,13 @@ function setupAutocomplete()
 function subjectKeyPress(event)
 {
   switch(event.keyCode) {
-  case 9:
+  case KeyEvent.DOM_VK_TAB:
     if (!event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
       SetMsgBodyFrameFocus();
       event.preventDefault();
     }
     break;
-  case 13:
+  case KeyEvent.DOM_VK_RETURN:
     SetMsgBodyFrameFocus();
     break;
   }

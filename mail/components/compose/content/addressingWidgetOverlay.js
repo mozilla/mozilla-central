@@ -897,8 +897,8 @@ function awArrowHit(inputElement, direction)
 function awRecipientKeyDown(event, element)
 {
   switch(event.keyCode) {
-  case 46:
-  case 8:
+  case KeyEvent.DOM_VK_DELETE:
+  case KeyEvent.DOM_VK_BACK_SPACE:
     /* do not query directly the value of the text field else the autocomplete widget could potentially
        alter it value while doing some internal cleanup, instead, query the value through the first child
     */
@@ -915,8 +915,8 @@ function awRecipientKeyDown(event, element)
 function awKeyDown(event, listboxElement)
 {
   switch(event.keyCode) {
-  case 46:
-  case 8:
+  case KeyEvent.DOM_VK_DELETE:
+  case KeyEvent.DOM_VK_BACK_SPACE:
     /* Warning, the listboxElement.selectedItems will change everytime we delete a row */
     var selItems = listboxElement.selectedItems;
     var length = listboxElement.selectedItems.length;
@@ -932,7 +932,7 @@ function awKeyDown(event, listboxElement)
 function awMenulistKeyPress(event, element)
 {
   switch(event.keyCode) {
-  case 9:
+  case KeyEvent.DOM_VK_TAB:
     awTabFromMenulist(element, event);
     break;
   }
