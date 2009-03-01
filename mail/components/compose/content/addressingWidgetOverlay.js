@@ -1042,7 +1042,7 @@ function awSizerMouseMove()
 
 function awSizerMouseUp()
 {
-  document.removeEventListener("mousemove", awSizerMouseUp, false);
+  document.removeEventListener("mousemove", awSizerMouseMove, true);
   document.removeEventListener("mouseup", awSizerMouseUp, false);
 }
 
