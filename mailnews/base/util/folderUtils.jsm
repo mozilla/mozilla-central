@@ -64,6 +64,8 @@ function getSpecialFolderString(aFolder) {
     return "Junk";
   if (aFolder.flags & Ci.nsMsgFolderFlags.Virtual)
     return "Virtual";
+  if (aFolder.flags & Ci.nsMsgFolderFlags.Archive)
+    return "Archive";
   return "none";
 }
 

@@ -614,6 +614,8 @@
             aMenuNode.setAttribute("SpecialFolder", "Templates");
           else if (aFolder.flags & Ci.nsMsgFolderFlags.Junk)
             aMenuNode.setAttribute("SpecialFolder", "Junk");
+          else if (aFolder.flags & Ci.nsMsgFolderFlags.Archive)
+            aMenuNode.setAttribute("SpecialFolder", "Archive");
           else if (aFolder.flags & Ci.nsMsgFolderFlags.Virtual)
             aMenuNode.setAttribute("SpecialFolder", "Virtual");
           else
