@@ -147,14 +147,12 @@ nsresult nsWindowsShellService::Init()
   if (!::GetModuleFileNameW(0, appPath, MAX_BUF))
     return NS_ERROR_FAILURE;
 
-  mAppLongPath = appPath;
-
-  // Support short path to the exe so if it is already set the user is not
-  // prompted to set the default mail client again.
-  if (!::GetShortPathNameW(appPath, appPath, sizeof(appPath)))
+  // Convert the path to a long path since GetModuleFileNameW returns the path
+  // that was used to launch the app which is not necessarily a long path.
+  if (!::GetLongPathNameW(appPath, appPath, MAX_BUF))
     return NS_ERROR_FAILURE;
 
-  mAppShortPath = appPath;
+  mAppLongPath = appPath;
 
   return NS_OK;
 }
@@ -282,19 +280,12 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
   for (SETTING * settings = aSettings; settings < end; ++settings)
   {
     NS_ConvertUTF8toUTF16 dataLongPath(settings->valueData);
-    NS_ConvertUTF8toUTF16 dataShortPath(settings->valueData);
     NS_ConvertUTF8toUTF16 key(settings->keyName);
     NS_ConvertUTF8toUTF16 value(settings->valueName);
     if (settings->flags & APP_PATH_SUBSTITUTION)
     {
       PRInt32 offset = dataLongPath.Find("%APPPATH%");
       dataLongPath.Replace(offset, 9, mAppLongPath);
-      // Remove the quotes around %APPPATH% for short paths
-      PRInt32 offsetQuoted = dataShortPath.Find("\"%APPPATH%\"");
-      if (offsetQuoted != -1)
-        dataShortPath.Replace(offsetQuoted, 11, mAppShortPath);
-      else
-        dataShortPath.Replace(offset, 9, mAppShortPath);
     }
 
     ::ZeroMemory(currValue, sizeof(currValue));
@@ -313,8 +304,7 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
     // Close the key we opened.
     ::RegCloseKey(theKey);
     if (REG_FAILED(result) ||
-        !dataLongPath.Equals(currValue, nsCaseInsensitiveStringComparator()) &&
-        !dataShortPath.Equals(currValue, nsCaseInsensitiveStringComparator()))
+        !dataLongPath.Equals(currValue, nsCaseInsensitiveStringComparator()))
     {
       // Key wasn't set, or was set to something else (something else became the default client)
       isDefault = PR_FALSE;

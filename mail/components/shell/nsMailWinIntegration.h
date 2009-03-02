@@ -74,7 +74,6 @@ protected:
 private:
   PRBool mCheckedThisSession;
   nsAutoString mAppLongPath;
-  nsAutoString mAppShortPath;
  };
 
 #endif
