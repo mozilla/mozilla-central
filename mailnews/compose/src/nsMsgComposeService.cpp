@@ -133,7 +133,7 @@ static PRBool _just_to_be_sure_we_create_only_one_compose_service_ = PR_FALSE;
 #define HTMLDOMAINUPDATE_DOMAINLIST_PREF_NAME      "global_html_domains"
 #define USER_CURRENT_HTMLDOMAINLIST_PREF_NAME      "html_domains"
 #define USER_CURRENT_PLAINTEXTDOMAINLIST_PREF_NAME "plaintext_domains"
-#define DOMAIN_DELIMITER                           ","
+#define DOMAIN_DELIMITER                           ','
 
 #ifdef MSGCOMP_TRACE_PERFORMANCE
 static PRLogModuleInfo *MsgComposeLogModule = nsnull;
@@ -1383,6 +1383,7 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
     rv = prefBranch->GetCharPref(HTMLDOMAINUPDATE_DOMAINLIST_PREF_NAME, getter_Copies(globalHtmlDomainList));
 
     if (NS_SUCCEEDED(rv) && !globalHtmlDomainList.IsEmpty()) {
+      nsTArray<nsCString> domainArray;
 
       // Get user's current HTML domain set for send format
       nsCString currentHtmlDomainList;
@@ -1391,9 +1392,7 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
 
       nsCAutoString newHtmlDomainList(currentHtmlDomainList);
       // Get the current html domain list into new list var
-      nsCStringArray htmlDomainArray;
-      if (!currentHtmlDomainList.IsEmpty())
-        ParseString(currentHtmlDomainList.get(), DOMAIN_DELIMITER, htmlDomainArray);
+      ParseString(currentHtmlDomainList, DOMAIN_DELIMITER, domainArray);
 
       // Get user's current Plaintext domain set for send format
       nsCString currentPlaintextDomainList;
@@ -1401,30 +1400,22 @@ nsresult nsMsgComposeService::AddGlobalHtmlDomains()
       NS_ENSURE_SUCCESS(rv,rv);
 
       // Get the current plaintext domain list into new list var
-      nsCStringArray plaintextDomainArray;
-      if (!currentPlaintextDomainList.IsEmpty())
-        ParseString(currentPlaintextDomainList.get(), DOMAIN_DELIMITER, plaintextDomainArray);
+      ParseString(currentPlaintextDomainList, DOMAIN_DELIMITER, domainArray);
 
-      if (htmlDomainArray.Count() || plaintextDomainArray.Count()) {
-        // Tokenize the data and add each html domain if it is not alredy there in
+      PRUint32 i = domainArray.Length();
+      if (i > 0) {
+        // Append each domain in the preconfigured html domain list
+        globalHtmlDomainList.StripWhitespace();
+        ParseString(globalHtmlDomainList, DOMAIN_DELIMITER, domainArray);
+
+        // Now add each domain that does not already appear in
         // the user's current html or plaintext domain lists
-        char *newData = globalHtmlDomainList.BeginWriting();
-        char *token = NS_strtok(DOMAIN_DELIMITER, &newData);
-
-        nsCAutoString htmlDomain;
-        while (token) {
-          if (token && *token) {
-            htmlDomain.Assign(token);
-            htmlDomain.StripWhitespace();
-
-            if (htmlDomainArray.IndexOf(htmlDomain) == -1  &&
-                plaintextDomainArray.IndexOf(htmlDomain) == -1) {
-              if (!newHtmlDomainList.IsEmpty())
-                newHtmlDomainList += DOMAIN_DELIMITER;
-              newHtmlDomainList += htmlDomain;
-            }
+        for (; i < domainArray.Length(); i++) {
+          if (domainArray.IndexOf(domainArray[i]) == i) {
+            if (!newHtmlDomainList.IsEmpty())
+              newHtmlDomainList += DOMAIN_DELIMITER;
+            newHtmlDomainList += domainArray[i];
           }
-          token = NS_strtok(DOMAIN_DELIMITER, &newData);
         }
       }
       else

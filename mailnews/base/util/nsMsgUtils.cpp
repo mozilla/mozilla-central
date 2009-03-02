@@ -1862,24 +1862,6 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<n
   return rv;
 }
 
-NS_MSG_BASE PRBool ParseString(const char *string, const char *delims, nsCStringArray& array)
-{
-  if (string && *string && delims && *delims) {
-    PRInt32 count = array.Count();
-    nsCString copy(string);
-    char *buffer = copy.BeginWriting();
-    char *token;
-    while ((token = NS_strtok(delims, &buffer)) != nsnull) {
-      if (!array.AppendCString(nsDependentCString(token))) {
-        while (array.Count() > count)
-          array.RemoveCStringAt(array.Count() - 1);
-        return PR_FALSE;
-      }
-    }
-  }
-  return PR_TRUE;
-}
-
 #ifdef MOZILLA_1_9_1_BRANCH
 NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsTArray<nsCString>& array)
 {

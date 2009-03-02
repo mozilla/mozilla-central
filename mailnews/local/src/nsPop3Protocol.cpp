@@ -275,16 +275,18 @@ net_pop3_load_state(const char* searchhost,
       /* It's a line with a UIDL on it. */
       if (current)
       {
-        nsCStringArray lineElems;
-        ParseString(line.get(), " \t", lineElems);
-        if (lineElems.Count() < 2)
+        for (PRInt32 pos = line.FindChar('\t'); pos != -1; pos = line.FindChar('\t', pos))
+          line.Replace(pos, 1, ' ');
+
+        nsTArray<nsCString> lineElems;
+        ParseString(line, ' ', lineElems);
+        if (lineElems.Length() < 2)
           continue;
-        nsCString *flags = lineElems[0];
-        nsCString *uidl = lineElems[1];
-        nsCString *dateReceivedStr = lineElems[2]; // will be null if only 2 elements.
+        nsCString *flags = &lineElems[0];
+        nsCString *uidl = &lineElems[1];
         PRUint32 dateReceived = TimeInSecondsFromPRTime(PR_Now()); // if we don't find a date str, assume now.
-        if (dateReceivedStr && !dateReceivedStr->IsEmpty())
-          dateReceived = atoi(dateReceivedStr->get());
+        if (lineElems.Length() > 2)
+          dateReceived = atoi(lineElems[2].get());
         if (!flags->IsEmpty() && !uidl->IsEmpty())
         {
           char flag = flags->CharAt(0);

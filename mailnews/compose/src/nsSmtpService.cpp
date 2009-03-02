@@ -62,7 +62,7 @@
 
 #include "nsComposeStrings.h"
 
-#define SERVER_DELIMITER ","
+#define SERVER_DELIMITER ','
 #define APPEND_SERVERS_VERSION_PREF_NAME "append_preconfig_smtpservers.version"
 #define MAIL_ROOT_PREF "mail."
 #define PREF_MAIL_SMTPSERVERS "mail.smtpservers"
@@ -384,140 +384,80 @@ nsSmtpService::GetSmtpServers(nsISimpleEnumerator **aResult)
 nsresult
 nsSmtpService::loadSmtpServers()
 {
-    if (mSmtpServersLoaded)
-      return NS_OK;
+  if (mSmtpServersLoaded)
+    return NS_OK;
     
-    nsresult rv;
-    nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-    if (NS_FAILED(rv)) return rv;
-    nsCOMPtr<nsIPrefBranch> prefRootBranch;
-    prefService->GetBranch(nsnull, getter_AddRefs(prefRootBranch));
-    if (NS_FAILED(rv)) return rv;
+  nsresult rv;
+  nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  if (NS_FAILED(rv))
+    return rv;
+  nsCOMPtr<nsIPrefBranch> prefRootBranch;
+  prefService->GetBranch(nsnull, getter_AddRefs(prefRootBranch));
+  if (NS_FAILED(rv))
+    return rv;
 
-    nsCString tempServerList;
-    nsCString serverList;
-    rv = prefRootBranch->GetCharPref(PREF_MAIL_SMTPSERVERS, getter_Copies(tempServerList));
+  nsCString serverList;
+  rv = prefRootBranch->GetCharPref(PREF_MAIL_SMTPSERVERS, getter_Copies(serverList));
+  serverList.StripWhitespace();
 
-    //Get the pref in a tempServerList and then parse it to see if it has dupes.
-    //if so remove the dupes and then create the serverList.
-    if (!tempServerList.IsEmpty()) {
+  nsTArray<nsCString> servers;
+  ParseString(serverList, SERVER_DELIMITER, servers);
 
-      // Tokenize the data and add each smtp server if it is not already there 
-      // in the user's current smtp server list
-      nsCStringArray servers;
-      ParseString(tempServerList.get(), SERVER_DELIMITER, servers);
-      nsCAutoString tempSmtpServer;
-      for (PRInt32 i = 0; i < servers.Count(); i++)
-      {
-          if (servers.IndexOf(* (servers[i])) == i) {
-            tempSmtpServer.Assign(* (servers[i]));
-            tempSmtpServer.StripWhitespace();
-            if (!serverList.IsEmpty())
-              serverList += SERVER_DELIMITER;
-            serverList += tempSmtpServer;
-          }
-      }
-    }
-    else {
-      serverList = tempServerList;
-    }
+  /**
+   * Check to see if we need to add pre-configured smtp servers.
+   * Following prefs are important to note in understanding the procedure here.
+   *
+   * 1. pref("mailnews.append_preconfig_smtpservers.version", version number);
+   * This pref registers the current version in the user prefs file. A default value
+   * is stored in mailnews.js file. If a given vendor needs to add more preconfigured
+   * smtp servers, the default version number can be increased. Comparing version
+   * number from user's prefs file and the default one from mailnews.js, we
+   * can add new smtp servers and any other version level changes that need to be done.
+   *
+   * 2. pref("mail.smtpservers.appendsmtpservers", <comma separated servers list>);
+   * This pref contains the list of pre-configured smp servers that ISP/Vendor wants to
+   * to add to the existing servers list.
+   */
+  nsCOMPtr<nsIPrefBranch> defaultsPrefBranch;
+  rv = prefService->GetDefaultBranch(MAIL_ROOT_PREF, getter_AddRefs(defaultsPrefBranch));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    // We need to check if we have any pre-configured smtp servers so that
-    // those servers can be appended to the list. 
+  nsCOMPtr<nsIPrefBranch> prefBranch;
+  rv = prefService->GetBranch(MAIL_ROOT_PREF, getter_AddRefs(prefBranch));
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  PRInt32 appendSmtpServersCurrentVersion = 0;
+  PRInt32 appendSmtpServersDefaultVersion = 0;
+  rv = prefBranch->GetIntPref(APPEND_SERVERS_VERSION_PREF_NAME, &appendSmtpServersCurrentVersion);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  rv = defaultsPrefBranch->GetIntPref(APPEND_SERVERS_VERSION_PREF_NAME, &appendSmtpServersDefaultVersion);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  // Update the smtp server list if needed
+  if (appendSmtpServersCurrentVersion <= appendSmtpServersDefaultVersion) {
+    // If there are pre-configured servers, add them to the existing server list
     nsCString appendServerList;
     rv = prefRootBranch->GetCharPref(PREF_MAIL_SMTPSERVERS_APPEND_SERVERS, getter_Copies(appendServerList));
+    appendServerList.StripWhitespace();
+    ParseString(appendServerList, SERVER_DELIMITER, servers);
 
-    // Get the list of smtp servers (either from regular pref i.e, mail.smtpservers or
-    // from preconfigured pref mail.smtpservers.appendsmtpservers) and create a keyed 
-    // server list.
-    if (!serverList.IsEmpty() || !appendServerList.IsEmpty()) {
-    /** 
-             * Check to see if we need to add pre-configured smtp servers.
-             * Following prefs are important to note in understanding the procedure here.
-             *
-             * 1. pref("mailnews.append_preconfig_smtpservers.version", version number);
-             * This pref registers the current version in the user prefs file. A default value 
-             * is stored in mailnews.js file. If a given vendor needs to add more preconfigured 
-             * smtp servers, the default version number can be increased. Comparing version 
-             * number from user's prefs file and the default one from mailnews.js, we
-             * can add new smtp servers and any other version level changes that need to be done.
-             *
-             * 2. pref("mail.smtpservers.appendsmtpservers", <comma separated servers list>);
-             * This pref contains the list of pre-configured smp servers that ISP/Vendor wants to
-             * to add to the existing servers list. 
-             */
-      nsCOMPtr<nsIPrefBranch> defaultsPrefBranch;
-      rv = prefService->GetDefaultBranch(MAIL_ROOT_PREF, getter_AddRefs(defaultsPrefBranch));
-      NS_ENSURE_SUCCESS(rv,rv);
+    // Increase the version number so that updates will happen as and when needed
+    prefBranch->SetIntPref(APPEND_SERVERS_VERSION_PREF_NAME, appendSmtpServersCurrentVersion + 1);
+  }
 
-      nsCOMPtr<nsIPrefBranch> prefBranch;
-      rv = prefService->GetBranch(MAIL_ROOT_PREF, getter_AddRefs(prefBranch));
-      NS_ENSURE_SUCCESS(rv,rv);
+  // use GetServerByKey to check if the key (pref) is already in
+  // in the list. If not it calls createKeyedServer directly.
 
-      PRInt32 appendSmtpServersCurrentVersion = 0;
-      PRInt32 appendSmtpServersDefaultVersion = 0;
-      rv = prefBranch->GetIntPref(APPEND_SERVERS_VERSION_PREF_NAME, &appendSmtpServersCurrentVersion);
-      NS_ENSURE_SUCCESS(rv,rv);
+  for (PRUint32 i = 0; i < servers.Length(); i++) {
+    nsCOMPtr<nsISmtpServer> server;
+    GetServerByKey(servers[i].get(), getter_AddRefs(server));
+  }
 
-      rv = defaultsPrefBranch->GetIntPref(APPEND_SERVERS_VERSION_PREF_NAME, &appendSmtpServersDefaultVersion);
-      NS_ENSURE_SUCCESS(rv,rv);
+  saveKeyList();
 
-      // Update the smtp server list if needed
-      if ((appendSmtpServersCurrentVersion <= appendSmtpServersDefaultVersion)) {
-        // If there are pre-configured servers, add them to the existing server list
-        if (!appendServerList.IsEmpty()) {
-          if (!serverList.IsEmpty()) {
-            nsCStringArray existingSmtpServersArray;
-            ParseString(serverList.get(), SERVER_DELIMITER, existingSmtpServersArray);
-
-            // Tokenize the data and add each smtp server if it is not already there 
-            // in the user's current smtp server list
-            char *newSmtpServerStr = appendServerList.BeginWriting(); 
-            char *token = NS_strtok(SERVER_DELIMITER, &newSmtpServerStr);
-
-            nsCAutoString newSmtpServer;
-            while (token) {
-              if (token && *token) {
-                newSmtpServer.Assign(token);
-                newSmtpServer.StripWhitespace();
-                if (existingSmtpServersArray.IndexOf(newSmtpServer) == -1) {
-                  serverList += ",";
-                  serverList += newSmtpServer;
-                }
-              }
-              token = NS_strtok(SERVER_DELIMITER, &newSmtpServerStr);
-            }
-          }
-          else {
-            serverList = appendServerList;
-          }
-          // Increase the version number so that updates will happen as and when needed
-          rv = prefBranch->SetIntPref(APPEND_SERVERS_VERSION_PREF_NAME, appendSmtpServersCurrentVersion + 1);
-        }
-      }
-
-      char *newStr = serverList.BeginWriting();
-      char *pref = NS_strtok(", ", &newStr);
-
-      while (pref) {
-        // fix for bug #96207
-        // code above makes sure that no duplicate entries in mail.smtpservers find
-        // their way to the mSmtpServers list.  But it doesn't check, if a server to be
-        // added already is in mSmtpServers.  That can happen in mail has been sent before 
-        // opening the settings (loading the list).
-        // use GetServerByKey to check if the key (pref) is already in
-        // in the list. If not it calls createKeyedServer directly.
-        nsCOMPtr<nsISmtpServer> server;
-        rv = GetServerByKey(pref, getter_AddRefs(server));
-        NS_ASSERTION(NS_SUCCEEDED(rv), "GetServerByKey failed");
-        pref = NS_strtok(", ", &newStr);
-      }
-    }
-
-    saveKeyList();
-
-    mSmtpServersLoaded = PR_TRUE;
-    return NS_OK;
+  mSmtpServersLoaded = PR_TRUE;
+  return NS_OK;
 }
 
 // save the list of keys

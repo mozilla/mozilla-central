@@ -212,20 +212,6 @@ NS_MSG_BASE PRUnichar *MsgEscapeHTML(const PRUnichar *aSourceBuffer,
 NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<nsMsgKey> &aKeys,
                                            nsIMutableArray *aHeaders);
 
-/**
- * Parses a given string using the delimiters passed in. Items parsed from the
- * string will be appended to the array.
- *
- * @param string
- *        The string to parse.
- * @param delims
- *        A set of delimter characters.
- * @param array
- *        The array to append tokens to.
- * @deprecated This call needs to be converted to the nsTArray<nsCString> api.
- */
-NS_MSG_BASE PRBool ParseString(const char *string, const char *delims, nsCStringArray& array);
-
 #ifdef MOZILLA_1_9_1_BRANCH
 /**
  * Parses a given string using the delimiter passed in. Items parsed from the

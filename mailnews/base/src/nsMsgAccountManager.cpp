@@ -104,7 +104,7 @@
 #define SERVER_PREFIX "server"
 #define ID_PREFIX "id"
 #define ABOUT_TO_GO_OFFLINE_TOPIC "network:offline-about-to-go-offline"
-#define ACCOUNT_DELIMITER ","
+#define ACCOUNT_DELIMITER ','
 #define APPEND_ACCOUNTS_VERSION_PREF_NAME "append_preconfig_accounts.version"
 #define MAILNEWS_ROOT_PREF "mailnews."
 #define PREF_MAIL_ACCOUNTMANAGER_APPEND_ACCOUNTS "mail.accountmanager.appendaccounts"
@@ -1258,30 +1258,26 @@ nsMsgAccountManager::LoadAccounts()
       // Get a list of pre-configured accounts
       nsCString appendAccountList;
       rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_APPEND_ACCOUNTS, getter_Copies(appendAccountList));
+      appendAccountList.StripWhitespace();
 
       // If there are pre-configured accounts, we need to add them to the existing list.
       if (!appendAccountList.IsEmpty()) {
         if (!accountList.IsEmpty()) {
-          nsCStringArray existingAccountsArray;
-          ParseString(accountList.get(), ACCOUNT_DELIMITER, existingAccountsArray);
-
-          // Tokenize the data and add each account if it is not already there
+          // Tokenize the data and add each account
           // in the user's current mailnews account list
-          char *newAccountStr = appendAccountList.BeginWriting();
-          char *token = NS_strtok(ACCOUNT_DELIMITER, &newAccountStr);
+          nsTArray<nsCString> accountsArray;
+          ParseString(accountList, ACCOUNT_DELIMITER, accountsArray);
+          PRUint32 i = accountsArray.Length();
 
-          nsCAutoString newAccount;
-          while (token) {
-            if (token && *token) {
-              newAccount.Assign(token);
-              newAccount.StripWhitespace();
+          // Append each account in the pre-configured account list
+          ParseString(appendAccountList, ACCOUNT_DELIMITER, accountsArray);
 
-              if (existingAccountsArray.IndexOf(newAccount) == -1) {
-                accountList.Append(',');
-                accountList.Append(newAccount);
-              }
+          // Now add each account that does not already appear in the list
+          for (; i < accountsArray.Length(); i++) {
+            if (accountsArray.IndexOf(accountsArray[i]) == i) {
+              accountList.Append(',');
+              accountList.Append(accountsArray[i]);
             }
-            token = NS_strtok(ACCOUNT_DELIMITER, &newAccountStr);
           }
         }
         else {
