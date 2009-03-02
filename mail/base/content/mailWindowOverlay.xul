@@ -501,7 +501,7 @@
 
   <popup id="mailContext"
          onpopupshowing="return fillMailContextMenu(event);"
-         onpopuphiding="RestoreSelectionWithoutContentLoad(document.getElementById('threadTree'));">
+         onpopuphiding="if (event.target == this) RestoreSelectionWithoutContentLoad(document.getElementById('threadTree'));">
     <menuseparator id="mailContext-sep-link"/>
     <menuitem id="mailContext-selectall"
               label="&selectAllCmd.label;"
