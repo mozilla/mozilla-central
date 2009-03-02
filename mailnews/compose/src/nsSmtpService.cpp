@@ -242,7 +242,7 @@ nsresult NS_MsgLoadSmtpUrl(nsIURI * aUrl, nsISupports * aConsumer, nsIRequest **
 {
     // for now, assume the url is an smtp url and load it....
     nsCOMPtr <nsISmtpUrl> smtpUrl;
-    nsSmtpProtocol	*smtpProtocol = nsnull;
+    nsSmtpProtocol *smtpProtocol = nsnull;
     nsresult rv = NS_OK;
 
     if (!aUrl)
@@ -267,7 +267,9 @@ nsresult NS_MsgLoadSmtpUrl(nsIURI * aUrl, nsISupports * aConsumer, nsIRequest **
 }
 
 NS_IMETHODIMP nsSmtpService::VerifyLogon(nsISmtpServer *aServer,
-                                         nsIUrlListener *aUrlListener)
+                                         nsIUrlListener *aUrlListener,
+                                         nsIMsgWindow *aMsgWindow,
+                                         nsIURI **aURL)
 {
   NS_ENSURE_ARG_POINTER(aServer);
   nsCString popHost;
@@ -275,10 +277,17 @@ NS_IMETHODIMP nsSmtpService::VerifyLogon(nsISmtpServer *aServer,
   nsCOMPtr <nsIURI> urlToRun;
 
   nsresult rv = NS_MsgBuildSmtpUrl(nsnull, aServer,
-                          nsnull, nsnull, aUrlListener, nsnull, 
+                          nsnull, nsnull, aUrlListener, nsnull,
                           nsnull , getter_AddRefs(urlToRun), PR_FALSE);
-  if (NS_SUCCEEDED(rv) && urlToRun)	
+  if (NS_SUCCEEDED(rv) && urlToRun)
+  {
+    nsCOMPtr<nsIMsgMailNewsUrl> url(do_QueryInterface(urlToRun, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    url->SetMsgWindow(aMsgWindow);
     rv = NS_MsgLoadSmtpUrl(urlToRun, nsnull, nsnull /* aRequest */);
+    if (aURL)
+      urlToRun.forget(aURL);
+  }
   return rv;
 }
 

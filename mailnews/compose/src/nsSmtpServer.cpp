@@ -415,12 +415,13 @@ nsSmtpServer::GetPassword(nsACString& aPassword)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::VerifyLogon(nsIUrlListener *aUrlListener)
+nsSmtpServer::VerifyLogon(nsIUrlListener *aUrlListener, nsIMsgWindow *aMsgWindow,
+                          nsIURI **aURL)
 {
   nsresult rv;
   nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  return smtpService->VerifyLogon(this, aUrlListener);
+  return smtpService->VerifyLogon(this, aUrlListener, aMsgWindow, aURL);
 }
 
 

@@ -184,9 +184,9 @@ nsMsgIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
   return NS_OK;
 }
 
-
 NS_IMETHODIMP
-nsMsgIncomingServer::VerifyLogon(nsIUrlListener *aUrlListener)
+nsMsgIncomingServer::VerifyLogon(nsIUrlListener *aUrlListener, nsIMsgWindow *aMsgWindow,
+                                 nsIURI **aURL)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

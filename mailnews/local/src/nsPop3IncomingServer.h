@@ -68,7 +68,8 @@ public:
   NS_IMETHOD GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder);
   NS_IMETHOD GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServer);
   NS_IMETHOD GetCanCreateFoldersOnServer(PRBool *aCanCreateFoldersOnServer);
-  NS_IMETHOD VerifyLogon(nsIUrlListener *aUrlListener);
+  NS_IMETHOD VerifyLogon(nsIUrlListener *aUrlListener, nsIMsgWindow *aMsgWindow,
+                         nsIURI **aURL);
   NS_IMETHOD GetNewMessages(nsIMsgFolder *aFolder, nsIMsgWindow *aMsgWindow,
                             nsIUrlListener *aUrlListener);
 

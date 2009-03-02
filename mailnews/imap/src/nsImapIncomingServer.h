@@ -97,7 +97,8 @@ public:
   NS_IMETHOD ForgetSessionPassword();
   NS_IMETHOD GetMsgFolderFromURI(nsIMsgFolder *aFolderResource, const nsACString& aURI, nsIMsgFolder **aFolder);
   NS_IMETHOD SetSocketType(PRInt32 aSocketType);
-  NS_IMETHOD VerifyLogon(nsIUrlListener *aUrlListener);
+  NS_IMETHOD VerifyLogon(nsIUrlListener *aUrlListener, nsIMsgWindow *aMsgWindow,
+                         nsIURI **aURL);
 
 protected:
   nsresult GetFolder(const nsACString& name, nsIMsgFolder** pFolder);

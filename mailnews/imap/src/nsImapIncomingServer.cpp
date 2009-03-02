@@ -933,7 +933,8 @@ nsImapIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
 }
 
 NS_IMETHODIMP
-nsImapIncomingServer::VerifyLogon(nsIUrlListener *aUrlListener)
+nsImapIncomingServer::VerifyLogon(nsIUrlListener *aUrlListener,
+                                  nsIMsgWindow *aMsgWindow, nsIURI **aURL)
 {
   nsresult rv;
 
@@ -944,9 +945,8 @@ nsImapIncomingServer::VerifyLogon(nsIUrlListener *aUrlListener)
   // do anything on disk.
   rv = GetRootFolder(getter_AddRefs(rootFolder));
   NS_ENSURE_SUCCESS(rv, rv);
-  return imapService->VerifyLogon(rootFolder, aUrlListener);
+  return imapService->VerifyLogon(rootFolder, aUrlListener, aMsgWindow, aURL);
 }
-
 
 NS_IMETHODIMP nsImapIncomingServer::PerformBiff(nsIMsgWindow* aMsgWindow)
 {

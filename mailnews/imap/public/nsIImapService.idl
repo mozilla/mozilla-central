@@ -58,7 +58,7 @@ interface nsIMsgWindow;
 interface nsIImapIncomingServer;
 interface nsICacheSession;
 
-[scriptable, uuid(a12113ff-0cc4-41ba-ae98-fe31cf2411ce)]
+[scriptable, uuid(9308fe9b-bc6c-4e5a-93a8-a8f7d4d75ba1)]
 interface nsIImapService : nsISupports
 {
   // You can pass in null for the url listener and the url if you don't require either.....
@@ -117,10 +117,19 @@ interface nsIImapService : nsISupports
                in nsIMsgFolder aImapMailFolder,
                in nsIUrlListener aUrlListener);
 
-  void verifyLogon(in nsIMsgFolder aImapMailFolder, 
-                   in nsIUrlListener aUrlListener);
+  /**
+   * Verify that we can login.
+   *
+   * @param aImapMailFolder - any old imap folder - we just need it to
+   *                          set url sinks.
+   * @param aMsgWindow    - nsIMsgWindow to use for notification callbacks.
+   * @return - the url that we run.
+   */
+  nsIURI verifyLogon(in nsIMsgFolder aImapMailFolder,
+                     in nsIUrlListener aUrlListener,
+                     in nsIMsgWindow aMsgWindow);
 
-  void biff(in nsIEventTarget aClientEventTarget, 
+  void biff(in nsIEventTarget aClientEventTarget,
             in nsIMsgFolder aImapMailFolder,
             in nsIUrlListener aUrlListener,
             out nsIURI aURL,

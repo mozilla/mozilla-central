@@ -47,8 +47,9 @@ interface nsIFile;
 interface nsIMsgStatusFeedback;
 interface nsIRequest;
 interface nsISimpleEnumerator;
+interface nsIMsgWindow;
 
-[scriptable, uuid(7b1c1604-7aad-451e-ae55-a7984c1fd0d9)]
+[scriptable, uuid(8c5c5d5b-3b69-4a80-bf4b-d6c22865a3c3)]
 interface nsISmtpService : nsISupports {
   /**
    * Sends a mail message via the given parameters. This function builds an
@@ -100,8 +101,11 @@ interface nsISmtpService : nsISupports {
    * @param  aSmtpServer       Server to try to logon to.
    * @param  aUrlListener      Listener that will get notified whether logon
    *                           was successful or not.
+   * @param aMsgWindow         nsIMsgWindow to use for notification callbacks.
+   * @return - the url that we run.
    */
-  void verifyLogon(in nsISmtpServer aServer, in nsIUrlListener aListener);
+  nsIURI verifyLogon(in nsISmtpServer aServer, in nsIUrlListener aListener,
+                     in nsIMsgWindow aMsgWindow);
 
   /**
    * Return the SMTP server that is associated with an identity.

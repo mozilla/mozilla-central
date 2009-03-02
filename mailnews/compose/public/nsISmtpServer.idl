@@ -40,6 +40,8 @@
 
 interface nsIAuthPrompt;
 interface nsIUrlListener;
+interface nsIURI;
+interface nsIMsgWindow;
 
 /**
  * This interface represents a single SMTP Server. A SMTP server instance may be
@@ -48,7 +50,7 @@ interface nsIUrlListener;
  * Most of the attributes will set/get preferences from the main preferences
  * file.
  */
-[scriptable, uuid(67725a6a-ddab-4fed-97f1-e58105c23c0e)]
+[scriptable, uuid(cf300e82-9def-43b0-b663-be08437960eb)]
 interface nsISmtpServer : nsISupports {
 
   /// A unique identifier for the server.
@@ -156,10 +158,10 @@ interface nsISmtpServer : nsISupports {
    * 
    * @param  aPassword - password to use
    * @param  aUrlListener - gets called back with success or failure.
+   * @return - the url that we run.
    *
    */
-  void verifyLogon(in nsIUrlListener aUrlListener);
-
+  nsIURI verifyLogon(in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
 
   /// Call this to clear all preference values for this server.
   void clearAllValues();

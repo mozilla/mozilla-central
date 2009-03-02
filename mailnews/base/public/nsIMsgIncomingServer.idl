@@ -51,6 +51,7 @@ interface nsIMsgFilterPlugin;
 interface nsIUrlListener;
 interface nsIMsgDBHdr;
 interface nsILocalFile;
+interface nsIURI;
 
 /*
  * Interface for incoming mail/news host
@@ -203,12 +204,13 @@ interface nsIMsgIncomingServer : nsISupports {
   void setDefaultLocalPath(in nsILocalFile aDefaultLocalPath);
 
   /**
-   * Verify that we can logon 
+   * Verify that we can logon
    * 
    * @param  aUrlListener - gets called back with success or failure.
-   *
+   * @param aMsgWindow         nsIMsgWindow to use for notification callbacks.
+   * @return - the url that we run.
    */
-  void verifyLogon(in nsIUrlListener aUrlListener);
+  nsIURI verifyLogon(in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
 
   /* do a biff */
   void performBiff(in nsIMsgWindow aMsgWindow);

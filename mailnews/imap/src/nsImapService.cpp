@@ -1503,30 +1503,32 @@ nsresult nsImapService::FolderCommand(nsIEventTarget *clientEventTarget,
 }
 
 NS_IMETHODIMP
-nsImapService::VerifyLogon(nsIMsgFolder *aFolder, nsIUrlListener *aUrlListener)
+nsImapService::VerifyLogon(nsIMsgFolder *aFolder, nsIUrlListener *aUrlListener,
+                           nsIMsgWindow *aMsgWindow, nsIURI **aURL)
 {
-  nsCOMPtr<nsIImapUrl> aImapUrl;
+  nsCOMPtr<nsIImapUrl> imapUrl;
   nsCAutoString urlSpec;
-  
+
   PRUnichar delimiter = '/'; // shouldn't matter what is is.
-  nsresult rv = CreateStartOfImapUrl(EmptyCString(), getter_AddRefs(aImapUrl), aFolder,
+  nsresult rv = CreateStartOfImapUrl(EmptyCString(), getter_AddRefs(imapUrl), aFolder,
                                      aUrlListener, urlSpec, delimiter);
-  if (NS_SUCCEEDED(rv) && aImapUrl)
+  if (NS_SUCCEEDED(rv) && imapUrl)
   {
-    nsCOMPtr<nsIURI> uri = do_QueryInterface(aImapUrl);
-    
-    nsCOMPtr<nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(aImapUrl);
+    nsCOMPtr<nsIURI> uri = do_QueryInterface(imapUrl);
+
+    nsCOMPtr<nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(imapUrl);
     mailNewsUrl->SetSuppressErrorMsgs(PR_TRUE);
-    rv = SetImapUrlSink(aFolder, aImapUrl);
+    mailNewsUrl->SetMsgWindow(aMsgWindow);
+    rv = SetImapUrlSink(aFolder, imapUrl);
     urlSpec.Append("/verifyLogon");
     rv = uri->SetSpec(urlSpec);
     if (NS_SUCCEEDED(rv))
-      rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), aImapUrl, nsnull, nsnull);
+      rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), imapUrl, nsnull, nsnull);
+    if (aURL)
+      uri.forget(aURL);
   }
   return rv;
-
 }
-
 
 // Noop, used to update a folder (causes server to send changes).
 NS_IMETHODIMP nsImapService::Noop(nsIEventTarget *aClientEventTarget, 

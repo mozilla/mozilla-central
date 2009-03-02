@@ -170,7 +170,9 @@ nsresult nsPop3Service::GetMail(PRBool downloadNewMail,
 }
 
 NS_IMETHODIMP nsPop3Service::VerifyLogon(nsIMsgIncomingServer *aServer,
-                                         nsIUrlListener *aUrlListener)
+                                         nsIUrlListener *aUrlListener,
+                                         nsIMsgWindow *aMsgWindow,
+                                         nsIURI **aURL)
 {
   NS_ENSURE_ARG_POINTER(aServer);
   nsCString popHost;
@@ -204,11 +206,15 @@ NS_IMETHODIMP nsPop3Service::VerifyLogon(nsIMsgIncomingServer *aServer,
     return NS_ERROR_OUT_OF_MEMORY;
   nsCOMPtr<nsIURI> url;
   rv = BuildPop3Url(urlSpec, nsnull, popServer, aUrlListener, 
-                    getter_AddRefs(url), nsnull);
+                    getter_AddRefs(url), aMsgWindow);
   PR_smprintf_free(urlSpec);
 
   if (NS_SUCCEEDED(rv) && url)
+  {
     rv = RunPopUrl(aServer, url);
+    if (NS_SUCCEEDED(rv) && aURL)
+      url.forget(aURL);
+  }
 
   return rv;
 }
