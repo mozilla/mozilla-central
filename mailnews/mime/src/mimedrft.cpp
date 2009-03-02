@@ -1417,16 +1417,17 @@ mime_parse_stream_complete (nsMIMESession *stream)
           char *bodyCharset = mimeCharset ? mimeCharset : mdd->mailcharset;
           if (bodyCharset)
           {
-            nsAutoString tempUnicodeString;
-            if (NS_SUCCEEDED(ConvertToUnicode(bodyCharset, body, tempUnicodeString)))
+            nsAutoString tmpUnicodeBody;
+            rv = ConvertToUnicode(bodyCharset, body, tmpUnicodeBody);
+            if (NS_FAILED(rv)) // Tough luck, ASCII/ISO-8859-1 then...
+              CopyASCIItoUTF16(body, tmpUnicodeBody);
+
+            char *newBody = ToNewUTF8String(tmpUnicodeBody);
+            if (newBody)
             {
-              char *newBody = ToNewUTF8String(tempUnicodeString);
-              if (newBody)
-              {
-                PR_Free(body);
-                body = newBody;
-                bodyLen = strlen(newBody);
-              }
+              PR_Free(body);
+              body = newBody;
+              bodyLen = strlen(newBody);
             }
           }
           PR_FREEIF(mimeCharset);
