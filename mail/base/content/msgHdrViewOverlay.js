@@ -67,8 +67,8 @@ var gHeadersShowReferences = false;
 var gShowCondensedEmailAddresses = true; // show the friendly display names for people I know instead of the name + email address
 
 // other components may listen to on start header & on end header notifications for each message we display
-// to do that you need to add yourself to our gMessageListeners array with object that has two properties:
-// onStartHeaders and onEndHeaders.
+// to do that you need to add yourself to our gMessageListeners array with an object that supports the three properties:
+// onStartHeaders, onEndHeaders and onEndAttachments.
 var gMessageListeners = new Array();
 
 // For every possible "view" in the message pane, you need to define the header names you want to
@@ -542,6 +542,11 @@ var messageHeaderSink = {
     onEndAllAttachments: function()
     {
       displayAttachmentsForExpandedView();
+
+      for (index in gMessageListeners) {
+        if ("onEndAttachments" in gMessageListeners[index])
+          gMessageListeners[index].onEndAttachments();
+      }
     },
 
     onEndMsgDownload: function(url)
