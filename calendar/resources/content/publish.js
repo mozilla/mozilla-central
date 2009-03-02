@@ -253,22 +253,22 @@ var publishingListener =
     {
         ctxt.wrappedJSObject.onStopUpload();
 
-        var channel;
-        var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
+        let channel;
+        let sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
                         .getService(Components.interfaces.nsIStringBundleService);
-        var props = sbs.createBundle("chrome://calendar/locale/calendar.properties");
-        var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+        let props = sbs.createBundle("chrome://calendar/locale/calendar.properties");
+        let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                       .getService(Components.interfaces.nsIPromptService);
+        let requestSucceeded;
         try {
             channel = request.QueryInterface(Components.interfaces.nsIHttpChannel);
-            dump(ch.requestSucceeded+"\n");
+            requestSucceeded = channel.requestSucceeded;
         } catch(e) {
         }
-        if (channel && !channel.requestSucceeded) {
+        if (channel && !requestSucceeded) {
             promptService.alert(null, calGetString("calendar", "genericErrorTitle"),
                                 props.formatStringFromName('httpPutError',[channel.responseStatus, channel.responseStatusText],2));
-        }
-        else if (!channel && !Components.isSuccessCode(request.status)) {
+        } else if (!channel && !Components.isSuccessCode(request.status)) {
             // XXX this should be made human-readable.
             promptService.alert(null, calGetString("calendar", "genericErrorTitle"),
                                 props.formatStringFromName('otherPutError',[request.status.toString(16)],1));
