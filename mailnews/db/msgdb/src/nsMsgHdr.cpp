@@ -103,9 +103,6 @@ nsresult nsMsgHdr::InitCachedValues()
     Seconds2PRTime(uint32Value, &m_date);
 
     err = GetUInt32Column(m_mdb->m_messageThreadIdColumnToken, &m_threadId);
-    err = GetUInt32Column(m_mdb->m_numReferencesColumnToken, &uint32Value);
-    if (NS_SUCCEEDED(err))
-      m_numReferences = (PRUint16) uint32Value;
 
     if (NS_SUCCEEDED(err))
       m_initedValues |= CACHED_VALUES_INITED;
@@ -320,11 +317,22 @@ NS_IMETHODIMP nsMsgHdr::SetUint32Property(const char *propertyName, PRUint32 val
 
 NS_IMETHODIMP nsMsgHdr::GetNumReferences(PRUint16 *result)
 {
-	if (!(m_initedValues & CACHED_VALUES_INITED))
-		InitCachedValues();
+  if (!(m_initedValues & REFERENCES_INITED))
+  {
+    const char *references;
+    if (NS_SUCCEEDED(m_mdb->RowCellColumnToConstCharPtr(GetMDBRow(),
+                       m_mdb->m_referencesColumnToken, &references)))
+      ParseReferences(references);
+    else
+      m_numReferences = 0;
+    m_initedValues |= REFERENCES_INITED;
+  }
 
-  *result = m_numReferences;
-	return NS_OK;
+  if (result)
+    *result = m_numReferences;
+  // there is no real failure here; if there are no references, there are no
+  //  references.
+  return NS_OK;
 }
 
 nsresult nsMsgHdr::ParseReferences(const char *references)
@@ -348,19 +356,12 @@ NS_IMETHODIMP nsMsgHdr::GetStringReference(PRInt32 refNum, nsACString& resultRef
   nsresult err = NS_OK;
 
   if(!(m_initedValues & REFERENCES_INITED))
-  {
-    const char *references;
-    err = m_mdb->RowCellColumnToConstCharPtr(GetMDBRow(), m_mdb->m_referencesColumnToken, &references);
-
-    if(NS_SUCCEEDED(err))
-    {
-      ParseReferences(references);
-      m_initedValues |= REFERENCES_INITED;
-    }
-  }
+    GetNumReferences(nsnull); // it can handle the null
 
   if (refNum < m_numReferences)
     m_references.CStringAt(refNum, resultReference);
+  else
+    err = NS_ERROR_ILLEGAL_VALUE;
   return err;
 }
 
@@ -411,7 +412,6 @@ NS_IMETHODIMP nsMsgHdr::SetReferences(const char *references)
     ParseReferences(references);
   }
 
-  SetUInt32Column(m_numReferences, m_mdb->m_numReferencesColumnToken);
   m_initedValues |= REFERENCES_INITED;
 
   return SetStringColumn(references, m_mdb->m_referencesColumnToken);

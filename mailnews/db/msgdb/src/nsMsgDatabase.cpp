@@ -861,7 +861,6 @@ nsMsgDatabase::nsMsgDatabase()
         m_threadUnreadChildrenColumnToken(0),
         m_messageThreadIdColumnToken(0),
         m_threadSubjectColumnToken(0),
-        m_numReferencesColumnToken(0),
         m_messageCharSetColumnToken(0),
         m_threadParentColumnToken(0),
         m_threadRootKeyColumnToken(0),
@@ -1366,7 +1365,6 @@ const char *kStatusOffsetColumnName = "statusOfset";
 const char *kNumLinesColumnName = "numLines";
 const char *kCCListColumnName = "ccList";
 const char *kMessageThreadIdColumnName = "msgThreadId";
-const char *kNumReferencesColumnName = "numRefs";
 const char *kThreadFlagsColumnName = "threadFlags";
 const char *kThreadIdColumnName = "threadId";
 const char *kThreadChildrenColumnName = "children";
@@ -1574,7 +1572,6 @@ nsresult nsMsgDatabase::InitMDBInfo()
       GetStore()->StringToToken(GetEnv(),  kThreadChildrenColumnName, &m_threadChildrenColumnToken);
       GetStore()->StringToToken(GetEnv(),  kThreadUnreadChildrenColumnName, &m_threadUnreadChildrenColumnToken);
       GetStore()->StringToToken(GetEnv(),  kThreadSubjectColumnName, &m_threadSubjectColumnToken);
-      GetStore()->StringToToken(GetEnv(),  kNumReferencesColumnName, &m_numReferencesColumnToken);
       GetStore()->StringToToken(GetEnv(),  kMessageCharSetColumnName, &m_messageCharSetColumnToken);
       err = GetStore()->StringToToken(GetEnv(), kMsgHdrsTableKind, &m_hdrTableKindToken);
       if (err == NS_OK)

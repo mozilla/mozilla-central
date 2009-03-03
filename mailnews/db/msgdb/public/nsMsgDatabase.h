@@ -273,7 +273,6 @@ protected:
   mdb_token     m_threadUnreadChildrenColumnToken;
   mdb_token     m_messageThreadIdColumnToken;
   mdb_token     m_threadSubjectColumnToken;
-  mdb_token     m_numReferencesColumnToken;
   mdb_token     m_messageCharSetColumnToken;
   mdb_token     m_threadParentColumnToken;
   mdb_token     m_threadRootKeyColumnToken;
