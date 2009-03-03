@@ -106,7 +106,6 @@ protected:
   // these allow us to handle duplicate incoming messages, e.g. delete them.
   nsDataHashtable<nsCStringHashKey,PRInt32> m_downloadedHdrs;
   PRInt32  m_numMsgsDownloaded;
-  nsIPrefBranch *m_prefBranch;
 static PLDHashOperator evictOldEntries(nsCStringHashKey::KeyType aKey, PRInt32 &aData, void *aClosure);
 private:
   nsCString m_password;
