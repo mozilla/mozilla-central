@@ -130,6 +130,8 @@ calICSCalendar.prototype = {
 
         if (calInstanceOf(channel, Components.interfaces.nsIHttpChannel)) {
             this.mHooks = new httpHooks();
+        } else if (calInstanceOf(channel, Components.interfaces.nsIFileChannel)) {
+            this.mHooks = new fileHooks();
         } else {
             this.mHooks = new dummyHooks();
         }
@@ -294,22 +296,31 @@ calICSCalendar.prototype = {
 
                     // Allow the hook to add things to the channel, like a
                     // header that checks etags
-                    savedthis.mHooks.onBeforePut(channel);
+                    var notChanged = savedthis.mHooks.onBeforePut(channel);
+                    if (notChanged) {
+                        channel.notificationCallbacks = savedthis;
+                        var uploadChannel = channel.QueryInterface(
+                            Components.interfaces.nsIUploadChannel);
 
-                    channel.notificationCallbacks = savedthis;
-                    var uploadChannel = channel.QueryInterface(
-                        Components.interfaces.nsIUploadChannel);
+                        // Serialize
+                        var icsStream = this.serializer.serializeToInputStream();
 
-                    // Serialize
-                    var icsStream = this.serializer.serializeToInputStream();
+                        // Upload
+                        uploadChannel.setUploadStream(icsStream,
+                                                    "text/calendar", -1);
 
-                    // Upload
-                    uploadChannel.setUploadStream(icsStream,
-                                                  "text/calendar", -1);
-
-                    appStartup.enterLastWindowClosingSurvivalArea();
-                    inLastWindowClosingSurvivalArea = true;
-                    channel.asyncOpen(savedthis, savedthis);
+                        appStartup.enterLastWindowClosingSurvivalArea();
+                        inLastWindowClosingSurvivalArea = true;
+                        channel.asyncOpen(savedthis, savedthis);
+                    } else {
+                        if (inLastWindowClosingSurvivalArea) {
+                            appStartup.exitLastWindowClosingSurvivalArea();
+                        }
+                        savedthis.mObserver.onError(savedthis.superCalendar,
+                                                    calIErrors.MODIFICATION_FAILED,
+                                                    "The calendar has been changed remotely. Please reload and apply your changes again!");
+                        savedthis.unlock(calIErrors.MODIFICATION_FAILED);
+                    }
                 } catch (ex) {
                     if (inLastWindowClosingSurvivalArea) {
                         appStartup.exitLastWindowClosingSurvivalArea();
@@ -971,3 +982,55 @@ httpHooks.prototype = {
         }
     }
 };
+
+function fileHooks() {
+    this.mChannel = null;
+}
+
+fileHooks.prototype = {
+    onBeforeGet: function(aChannel) {
+        this.mChannel = aChannel;
+        var fileChannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
+        return true;
+    },
+
+    /**
+     * @return
+     *     a boolean, false if the previous data should be used (the datastore
+     *     didn't change, there might be no data in this GET), true in all
+     *     other cases
+     */
+    onAfterGet: function() {
+        var filechannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
+        if (this.mtime) {
+            var newMtime = filechannel.file.lastModifiedTime;
+            if (this.mtime == newMtime) {
+                return false;
+            } else {
+                this.mtime = newMtime;
+                return true;
+            }
+        } else {
+            this.mtime = filechannel.file.lastModifiedTime;
+        return true;
+        }
+    },
+
+    onBeforePut: function(aChannel) {
+        var filechannel = aChannel.QueryInterface(Components.interfaces.nsIFileChannel);
+        if (this.mtime && this.mtime != filechannel.file.lastModifiedTime) {
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    onAfterPut: function(aChannel, aRespFunc) {
+        var filechannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
+        this.mtime = filechannel.file.lastModifiedTime;
+        aRespFunc();
+        return true;
+    },
+};
+
+
