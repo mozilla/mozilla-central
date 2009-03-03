@@ -58,6 +58,8 @@
         this.calMgrObserver.listTree = null;
       ]]></destructor>
 
+      <field name="mAddingFromComposite">false</field>
+
       <property name="compositeCalendar">
         <getter><![CDATA[
           if (!this.mCompositeCalendar) {
@@ -72,8 +74,10 @@
 
           // Now that we have a composite calendar, we can get all calendars
           // from the calendar manager.
-          let calendars = cal.getCalendarManager().getCalendars({});
+          this.mAddingFromComposite = true;
+          let calendars = sortCalendarArray(getCalendarManager().getCalendars({}));
           calendars.forEach(this.addCalendar, this);
+          this.mAddingFromComposite = false;
 
           return val;
         ]]></setter>
@@ -263,7 +267,6 @@
         if (this.mCompositeCalendar) {
             this.mCompositeCalendar.removeObserver(this.compositeObserver);
         }
-
       ]]></destructor>
 
       <field name="calObserver"><![CDATA[
@@ -418,10 +421,19 @@
       <method name="sortOrderChanged">
         <parameter name=""/>
         <body><![CDATA[
+          if (this.mAddingFromComposite) {
+              return;
+          }
           let event = document.createEvent('Events');
           event.initEvent("SortOrderChanged", true, false);
           event.sortOrder = this.sortOrder
           this.dispatchEvent(event);
+
+          let handler = this.getAttribute("onSortOrderChanged");
+          if (handler) {
+              // Call the given code in a function
+              (new Function("event", handler))(event);
+          }
         ]]></body>
       </method>
       <method name="displayScrollbarSpacer">

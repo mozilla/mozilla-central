@@ -544,27 +544,24 @@ var categoryManagement = {
       // Add color information to the stylesheets.
       categories.forEach(categoryManagement.updateStyleSheetForCategory,
                          categoryManagement);
-
-      categoryPrefBranch.addObserver("", this, false);
+      categoryPrefBranch.addObserver("", categoryManagement, false);
     },
 
     cleanupCategories: function cM_cleanupCategories() {
       let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                   .getService(Components.interfaces.nsIPrefService);
-      let categoryPrefBranch = prefService.getBranch("calendar.category.color.");
-      categoryPrefBranch.removeObserver("", this, false);
+      let categoryPrefBranch = prefService.getBranch("calendar.category.color.")
+                                          .QueryInterface(Components.interfaces.nsIPrefBranch2);
+      categoryPrefBranch.removeObserver("", categoryManagement, false);
     },
 
     observe: function cM_observe(aSubject, aTopic, aPrefName) {
-        if (aPrefName.substring(0, 24) == "calendar.category.color.") {
-            this.updateStyleSheetForCateogry(aPrefName.substring(24));
-        }
+        this.updateStyleSheetForCategory(aPrefName);
         // TODO Currently, the only way to find out if categories are removed is
         // to initially grab the calendar.categories.names preference and then
         // observe changes to it. it would be better if we had hooks for this,
         // so we could delete the rule from our style cache and also remove its
         // color preference.
-        
     },
 
     categoryStyleCache: {},
@@ -573,7 +570,7 @@ var categoryManagement = {
         if (!(aCatName in this.categoryStyleCache)) {
             // We haven't created a rule for this category yet, do so now.
             let sheet = getViewStyleSheet();
-            let ruleString = '.category-color-box[categories~="' + aCalendar.id + '"] {} ';
+            let ruleString = '.category-color-box[categories~="' + aCatName + '"] {} ';
             let ruleIndex = sheet.insertRule(ruleString, sheet.cssRules.length);
 
             this.categoryStyleCache[aCatName] = sheet.cssRules[ruleIndex];

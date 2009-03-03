@@ -174,7 +174,7 @@
       
           <tabpanel id="tablist-calendarlist">
             <!-- This will be overlayed by calendar-calendars-list.xul -->
-            <tree id="calendar-list-tree-widget" flex="1"/>
+            <calendar-list-tree id="calendar-list-tree-widget" flex="1"/>
           </tabpanel>
         </tabpanels>
       </tabbox>

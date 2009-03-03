@@ -81,21 +81,23 @@ function promptDeleteCalendar(aCalendar) {
  * Called to initialize the calendar manager for a window.
  */
 function loadCalendarManager() {
+    // Set up the composite calendar in the calendar list widget.
+    let tree = document.getElementById("calendar-list-tree-widget");
+    tree.compositeCalendar = getCompositeCalendar();
+
     // Create the home calendar if no calendar exists.
     let calendars = getCalendarManager().getCalendars({});
     if (!calendars.length) {
         initHomeCalendar();
     }
-
-    // Set up the composite calendar in the calendar list widget.
-    let tree = document.getElementById("calendar-list-tree-widget");
-    tree.compositeCalendar = getCompositeCalendar();
 }
 
 /**
  * Creates the initial "Home" calendar if no calendar exists.
  */
 function initHomeCalendar() {
+    let calMgr = cal.getCalendarManager();
+    let composite = getCompositeCalendar();
     let url = makeURL("moz-profile-calendar://");
     let homeCalendar = calMgr.createCalendar("storage", url);
 
