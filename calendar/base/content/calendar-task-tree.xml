@@ -1046,7 +1046,6 @@
           // immediately start the next job on the queue.
           this.popRefreshQueue();
 
-          this.mTreeView.rowCount = this.mTaskArray.length;
           var tree = document.getAnonymousNodes(this)[0];
           if(this.mTreeView.selectedColumn) {
               this.sortItems();
