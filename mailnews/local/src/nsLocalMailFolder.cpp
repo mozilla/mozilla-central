@@ -299,9 +299,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::AddSubfolder(const nsAString &name,
     PRBool exists;
     rv = path->Exists(&exists);
     if (!exists)
+    {
       rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
+      (*child)->UpdateSummaryTotals(PR_TRUE);
+    }
   }
-  (*child)->UpdateSummaryTotals(PR_TRUE);
   return rv;
 }
 
