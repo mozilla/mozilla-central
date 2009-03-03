@@ -457,9 +457,3 @@ pref("mail.spotlight.logging.console", false);
 pref("mail.spotlight.logging.dump", false);
 #endif
 #endif
-
-#ifdef XP_MACOSX
-// Disable detecting offline state on OS X until bug 470274 is fixed, so people
-// don't turn it off themselves out of frustration and never turn it back on.
-pref("offline.autoDetect", false);
-#endif
