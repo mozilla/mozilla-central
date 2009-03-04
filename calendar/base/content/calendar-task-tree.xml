@@ -898,7 +898,7 @@
       <method name="observe">
         <parameter name="aSubject"/>
         <parameter name="aTopic"/>
-        <parameter name="aData"/>
+        <parameter name="aPrefName"/>
         <body><![CDATA[
           switch (aPrefName) {
               case "calendar.date.format":

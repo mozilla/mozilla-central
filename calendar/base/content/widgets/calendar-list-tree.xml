@@ -51,6 +51,7 @@
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
         let calMgr = cal.getCalendarManager();
         calMgr.addObserver(this.calMgrObserver);
+
       ]]></constructor>
       <destructor><![CDATA[
         let calMgr = cal.getCalendarManager();
@@ -411,9 +412,6 @@
       <property name="writable"
                 onget="return (this.getAttribute('writable') == 'true');"
                 onset="return setBooleanAttribute(this, 'writable', val);"/>
-      <property name="seltype"
-                onget="return (this.getAttribute('seltype') || 'checkbox');"
-                onset="this.setAttribute('seltype', val); return val;"/>
       <property name="ignoreDisabledState"
                 onget="return (this.getAttribute('ignoredisabledstate') == 'true');"
                 onset="return setBooleanAttribute(this, 'ignoredisabledstate', val);"/>
@@ -573,21 +571,17 @@
           -->
         <parameter name="aCalendar"/>
         <body><![CDATA[
+          let color = aCalendar.getProperty("color") || "#a8c2e1";
+          let sheet = this.sheet;
           if (!(aCalendar.id in this.ruleCache)) {
-              let color = aCalendar.getProperty("color");
-              if (color) {
-                  let sheet = this.sheet;
-                  if (!(aCalendar.id in this.ruleCache)) {
-                      let ruleString = "calendar-list-tree > tree > treechildren" +
-                                       "::-moz-tree-cell(color-treecol, id-"  +
-                                       aCalendar.id + ") {}";
-                                     
-                      let ruleIndex = sheet.insertRule(ruleString, sheet.cssRules.length);
-                      this.ruleCache[aCalendar.id] = sheet.cssRules[ruleIndex];
-                  }
-                  this.ruleCache[aCalendar.id].style.backgroundColor = color;
-              }
+              let ruleString = "calendar-list-tree > tree > treechildren" +
+                               "::-moz-tree-cell(color-treecol, id-"  +
+                               aCalendar.id + ") {}";
+                             
+              let ruleIndex = sheet.insertRule(ruleString, sheet.cssRules.length);
+              this.ruleCache[aCalendar.id] = sheet.cssRules[ruleIndex];
           }
+          this.ruleCache[aCalendar.id].style.backgroundColor = color;
         ]]></body>
       </method>
 
@@ -1062,8 +1056,9 @@
             event.preventDefault();
         }
       ]]></handler>
-      <handler event="keypress" keycode="VK_SPACE"><![CDATA[
-        if (this.tree.currentIndex > -1 && this.seltype == "checkbox") {
+      <!-- use key=" " since keycode="VK_SPACE" doesn't work -->
+      <handler event="keypress" key=" "><![CDATA[
+        if (this.tree.currentIndex > -1) {
             this.cycleCell(this.tree.currentIndex, this.getColumn("checkbox-treecol"));
             event.preventDefault();
         }
