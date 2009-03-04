@@ -213,7 +213,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(aMsgWindow);
   *aMsgWindow = nsnull;
-  
+
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
   msgWindow.swap(*aMsgWindow);
   return *aMsgWindow ? NS_OK : NS_ERROR_NULL_POINTER;
@@ -221,8 +221,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 
 NS_IMETHODIMP nsMsgMailNewsUrl::SetMsgWindow(nsIMsgWindow *aMsgWindow)
 {
-  if (aMsgWindow)
-    m_msgWindowWeak = do_GetWeakReference(aMsgWindow);
+  m_msgWindowWeak = do_GetWeakReference(aMsgWindow);
   return NS_OK;
 }
 
