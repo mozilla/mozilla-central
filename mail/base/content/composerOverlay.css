@@ -36,12 +36,19 @@
 
 .moz-email-headers-table,
 .moz-email-headers-table > tbody > tr > th,
-.moz-email-headers-table > tbody > tr > td {
+.moz-email-headers-table > tbody > tr > td,
+blockquote[type=cite] table,
+blockquote[type=cite] table > tbody > tr > th,
+blockquote[type=cite] table > tbody > tr > td {
   border: 1px solid transparent !important;
 }
 
 table.moz-email-headers-table:hover,
 table.moz-email-headers-table:hover > tbody > tr > th,
-table.moz-email-headers-table:hover > tbody > tr > td {
+table.moz-email-headers-table:hover > tbody > tr > td,
+blockquote[type=cite] table:hover,
+blockquote[type=cite] table:hover > tbody > tr > th,
+blockquote[type=cite] table:hover > tbody > tr > td {
   border: 1px solid lightgrey !important;
 }
+
