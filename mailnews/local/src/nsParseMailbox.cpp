@@ -99,11 +99,10 @@ static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
 /* the following macros actually implement addref, release and query interface for our component. */
-NS_IMPL_ISUPPORTS_INHERITED3(nsMsgMailboxParser,
+NS_IMPL_ISUPPORTS_INHERITED2(nsMsgMailboxParser,
                              nsParseMailMessageState,
                              nsIStreamListener,
-                             nsIRequestObserver,
-                             nsIDBChangeListener)
+                             nsIRequestObserver)
 
 // Whenever data arrives from the connection, core netlib notifices the protocol by calling
 // OnDataAvailable. We then read and process the incoming data from the input stream.
@@ -178,7 +177,15 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStartRequest(nsIRequest *request, nsISupport
             // We'll accept failures and move on, as we're dealing with some
             // sort of unknown problem to begin with.
             if (NS_FAILED(rvignore))
+            {
+              if (m_backupMailDB)
+                m_backupMailDB->RemoveListener(this);
               m_backupMailDB = nsnull;
+            }
+            else if (m_backupMailDB)
+            {
+              m_backupMailDB->AddListener(this);
+            }
         }
     }
 
@@ -209,53 +216,70 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStopRequest(nsIRequest *request, nsISupports
 }
 
 NS_IMETHODIMP
-nsMsgMailboxParser::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
-  nsIDBChangeListener * aInstigator)
+nsParseMailMessageState::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange,
+    PRBool aPreChange, PRUint32 *aStatus, nsIDBChangeListener * aInstigator)
 {
   return NS_OK;
 }
 
 
-NS_IMETHODIMP nsMsgMailboxParser::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
+NS_IMETHODIMP
+nsParseMailMessageState::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged,
+    PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
 {
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailboxParser::OnHdrDeleted(nsIMsgDBHdr *aHdrChanged, nsMsgKey aParentKey, PRInt32 aFlags, nsIDBChangeListener *aInstigator)
+NS_IMETHODIMP
+nsParseMailMessageState::OnHdrDeleted(nsIMsgDBHdr *aHdrChanged,
+    nsMsgKey aParentKey, PRInt32 aFlags, nsIDBChangeListener *aInstigator)
 {
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailboxParser::OnHdrAdded(nsIMsgDBHdr *aHdrAdded, nsMsgKey aParentKey, PRInt32 aFlags, nsIDBChangeListener *aInstigator)
+NS_IMETHODIMP
+nsParseMailMessageState::OnHdrAdded(nsIMsgDBHdr *aHdrAdded,
+    nsMsgKey aParentKey, PRInt32 aFlags, nsIDBChangeListener *aInstigator)
 {
     return NS_OK;
 }
 
 /* void OnParentChanged (in nsMsgKey aKeyChanged, in nsMsgKey oldParent, in nsMsgKey newParent, in nsIDBChangeListener aInstigator); */
-NS_IMETHODIMP nsMsgMailboxParser::OnParentChanged(nsMsgKey aKeyChanged, nsMsgKey oldParent, nsMsgKey newParent, nsIDBChangeListener *aInstigator)
+NS_IMETHODIMP
+nsParseMailMessageState::OnParentChanged(nsMsgKey aKeyChanged,
+    nsMsgKey oldParent, nsMsgKey newParent, nsIDBChangeListener *aInstigator)
 {
     return NS_OK;
 }
 
 /* void OnAnnouncerGoingAway (in nsIDBChangeAnnouncer instigator); */
-NS_IMETHODIMP nsMsgMailboxParser::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)
+NS_IMETHODIMP
+nsParseMailMessageState::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)
 {
-  if (m_mailDB)
+  if (m_backupMailDB && m_backupMailDB == instigator)
+  {
+    m_backupMailDB->RemoveListener(this);
+    m_backupMailDB = nsnull;
+  }
+  else if (m_mailDB)
+  {
     m_mailDB->RemoveListener(this);
-
-  m_newMsgHdr = nsnull;
-  m_mailDB = nsnull;
+    m_mailDB = nsnull;
+    m_newMsgHdr = nsnull;
+  }
   return NS_OK;
 }
 
 /* void OnReadChanged (in nsIDBChangeListener instigator); */
-NS_IMETHODIMP nsMsgMailboxParser::OnReadChanged(nsIDBChangeListener *instigator)
+NS_IMETHODIMP
+nsParseMailMessageState::OnReadChanged(nsIDBChangeListener *instigator)
 {
     return NS_OK;
 }
 
 /* void OnJunkScoreChanged (in nsIDBChangeListener instigator); */
-NS_IMETHODIMP nsMsgMailboxParser::OnJunkScoreChanged(nsIDBChangeListener *instigator)
+NS_IMETHODIMP
+nsParseMailMessageState::OnJunkScoreChanged(nsIDBChangeListener *instigator)
 {
     return NS_OK;
 }
@@ -505,7 +529,7 @@ nsMsgMailboxParser::ReleaseFolderLock()
   return;
 }
 
-NS_IMPL_ISUPPORTS1(nsParseMailMessageState, nsIMsgParseMailMsgState)
+NS_IMPL_ISUPPORTS2(nsParseMailMessageState, nsIMsgParseMailMsgState, nsIDBChangeListener)
 
 nsParseMailMessageState::nsParseMailMessageState()
 {
@@ -682,6 +706,8 @@ NS_IMETHODIMP nsParseMailMessageState::SetMailDB(nsIMsgDatabase *mailDB)
 NS_IMETHODIMP nsParseMailMessageState::SetBackupMailDB(nsIMsgDatabase *aBackupMailDB)
 {
   m_backupMailDB = aBackupMailDB;
+  if (m_backupMailDB)
+    m_backupMailDB->AddListener(this);
   return NS_OK;
 }
 

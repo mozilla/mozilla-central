@@ -365,6 +365,10 @@ NS_IMETHODIMP nsMsgDBFolder::OpenBackupMsgDatabase()
   NS_ENSURE_SUCCESS(rv, rv);
   rv = msgDBService->OpenMailDBFromFile(
       backupDBDummyFolder, PR_FALSE, PR_TRUE, getter_AddRefs(mBackupDatabase));
+  // we add a listener so that we can close the db during OnAnnouncerGoingAway. There should
+  // not be any other calls to the listener with the backup database
+  if (NS_SUCCEEDED(rv) && mBackupDatabase)
+    mBackupDatabase->AddListener(this);
 
   if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
     // this is normal in reparsing
@@ -1054,7 +1058,12 @@ NS_IMETHODIMP nsMsgDBFolder::OnParentChanged(nsMsgKey aKeyChanged, nsMsgKey oldP
 
 NS_IMETHODIMP nsMsgDBFolder::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)
 {
-  if (mDatabase)
+  if (mBackupDatabase && instigator == mBackupDatabase)
+  {
+    mBackupDatabase->RemoveListener(this);
+    mBackupDatabase = nsnull;
+  }
+  else if (mDatabase)
   {
     mDatabase->RemoveListener(this);
     mDatabase = nsnull;

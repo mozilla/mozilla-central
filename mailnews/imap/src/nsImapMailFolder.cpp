@@ -2536,8 +2536,11 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
       if (NS_FAILED(rvbackup))
       {
         CloseAndBackupFolderDB(EmptyCString());
-        if (NS_FAILED(OpenBackupMsgDatabase()))
+        if (NS_FAILED(OpenBackupMsgDatabase()) && mBackupDatabase)
+        {
+          mBackupDatabase->RemoveListener(this);
           mBackupDatabase = nsnull;
+        }
       }
       else
         mDatabase->ForceClosed();

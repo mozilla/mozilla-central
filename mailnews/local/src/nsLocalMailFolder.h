@@ -59,6 +59,8 @@
 
 #define COPY_BUFFER_SIZE 16384
 
+class nsParseMailMessageState;
+
 struct nsLocalMailCopyState
 {
   nsLocalMailCopyState();
@@ -69,7 +71,7 @@ struct nsLocalMailCopyState
   nsCOMPtr<nsIArray> m_messages;
   nsRefPtr<nsLocalMoveCopyMsgTxn> m_undoMsgTxn;
   nsCOMPtr<nsIMsgDBHdr> m_message; // current copy message
-  nsCOMPtr<nsIMsgParseMailMsgState> m_parseMsgState;
+  nsRefPtr<nsParseMailMessageState> m_parseMsgState;
   nsCOMPtr<nsIMsgCopyServiceListener> m_listener;
   nsCOMPtr<nsIMsgWindow> m_msgWindow;
   nsCOMPtr<nsIMsgDatabase> m_destDB;

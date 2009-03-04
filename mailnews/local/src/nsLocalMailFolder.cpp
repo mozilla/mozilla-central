@@ -527,8 +527,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
         if (NS_FAILED(OpenBackupMsgDatabase()))
         {
           CloseAndBackupFolderDB(EmptyCString());
-          if (NS_FAILED(OpenBackupMsgDatabase()))
+          if (NS_FAILED(OpenBackupMsgDatabase()) && mBackupDatabase)
+          {
+            mBackupDatabase->RemoveListener(this);
             mBackupDatabase = nsnull;
+          }
         }
         else
           mDatabase->ForceClosed();
@@ -1740,7 +1743,7 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
     if (parseMsgState)
     {
       nsCOMPtr<nsIMsgDatabase> msgDb;
-      mCopyState->m_parseMsgState = do_QueryInterface(parseMsgState, &rv);
+      mCopyState->m_parseMsgState = parseMsgState;
       GetDatabaseWOReparse(getter_AddRefs(msgDb));
       if (msgDb)
         parseMsgState->SetMailDB(msgDb);
@@ -2141,7 +2144,7 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile,
     if (parseMsgState)
     {
       nsCOMPtr<nsIMsgDatabase> msgDb;
-      mCopyState->m_parseMsgState = do_QueryInterface(parseMsgState, &rv);
+      mCopyState->m_parseMsgState = parseMsgState;
       GetDatabaseWOReparse(getter_AddRefs(msgDb));
       if (msgDb)
         parseMsgState->SetMailDB(msgDb);

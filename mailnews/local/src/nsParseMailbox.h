@@ -77,11 +77,12 @@ typedef struct message_header
 } message_header;
 
 // This object maintains the parse state for a single mail message.
-class nsParseMailMessageState : public nsIMsgParseMailMsgState
+class nsParseMailMessageState : public nsIMsgParseMailMsgState, public nsIDBChangeListener
 {
 public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGPARSEMAILMSGSTATE
+  NS_DECL_NSIDBCHANGELISTENER
 
   nsParseMailMessageState();
   virtual               ~nsParseMailMessageState();
@@ -166,7 +167,7 @@ inline int nsParseMailMessageState::msg_UnHex(char C)
 }
 
 // This class is part of the mailbox parsing state machine
-class nsMsgMailboxParser : public nsIStreamListener, public nsParseMailMessageState, public nsMsgLineBuffer, public nsIDBChangeListener
+class nsMsgMailboxParser : public nsIStreamListener, public nsParseMailMessageState, public nsMsgLineBuffer
 {
 public:
   nsMsgMailboxParser(nsIMsgFolder *);
@@ -181,7 +182,6 @@ public:
   ////////////////////////////////////////////////////////////////////////////////////////
   NS_DECL_NSIREQUESTOBSERVER
   NS_DECL_NSISTREAMLISTENER
-  NS_DECL_NSIDBCHANGELISTENER
 
   void    SetDB (nsIMsgDatabase *mailDB) {m_mailDB = mailDB; }
 
