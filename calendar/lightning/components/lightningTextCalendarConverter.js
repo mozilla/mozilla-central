@@ -51,6 +51,9 @@ function getLightningStringBundle()
 }
 
 function linkifyText(text) {
+    // Save off the settings
+    var savedSettings = XML.settings();
+
     XML.ignoreWhitespace = false;
     XML.prettyPrinting = false;
     XML.prettyIndent = false;
@@ -83,6 +86,9 @@ function linkifyText(text) {
         localText = localText.substr(endPos);
     }
     dump(linkifiedText.toXMLString());
+    // restore the settings
+    XML.setSettings(savedSettings);
+
     return linkifiedText;
 }
 

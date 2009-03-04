@@ -122,6 +122,9 @@ cal.convertByteArray = function calConvertByteArray(aResult, aResultLength, aCha
 };
 
 cal.safeNewXML = function calSafeNewXML(aStr) {
+    // Restore XML global property defaults as a precaution
+    XML.setSettings();
+
     // Strip <?xml and surrounding whitespaces
     return new XML(aStr.replace(/^\s*<\?xml[^>]*>/g, "").trimRight());
 };
