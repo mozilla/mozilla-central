@@ -1841,6 +1841,7 @@ function checkForDirectoryListing()
 
 function URLBarSetURI(aURI, aValid) {
   var uri = aURI || getWebNavigation().currentURI;
+  var value;
 
   // If the url has "wyciwyg://" as the protocol, strip it off.
   // Nobody wants to see it on the urlbar for dynamically generated pages.
