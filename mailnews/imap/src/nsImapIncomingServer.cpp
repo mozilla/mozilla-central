@@ -1109,7 +1109,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
     return rv;
 
   nsCAutoString dupFolderPath(folderPath);
-  if (dupFolderPath.Last() == hierarchyDelimiter)
+  if (dupFolderPath.Last() == '/')
   {
     dupFolderPath.SetLength(dupFolderPath.Length()-1);
     // *** this is what we did in 4.x in order to list uw folder only
