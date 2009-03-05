@@ -77,6 +77,7 @@ searchTermContainer.prototype = {
         if (searchValue) searchValue.value = term.value;
 
         this.booleanAnd = val.booleanAnd;
+        this.matchAll = val.matchAll;
         return val;
     },
 
