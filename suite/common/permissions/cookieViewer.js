@@ -23,6 +23,7 @@
  *
  * Contributor(s):
  *   Ben Goodger
+ *   Jens Hatlak <jh@junetz.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -49,6 +50,7 @@ var gDateService = null;
 // cookies and permissions list
 var cookies              = [];
 var permissions          = [];
+var allCookies           = [];
 var deletedCookies       = [];
 var deletedPermissions   = [];
 
@@ -92,6 +94,8 @@ function Startup() {
   kObserverService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
   kObserverService.addObserver(cookieReloadDisplay, "cookie-changed", false);
   kObserverService.addObserver(cookieReloadDisplay, "perm-changed", false);
+
+  document.getElementById("filter").focus();
 }
 
 function Shutdown() {
@@ -104,10 +108,7 @@ var cookieReloadDisplay = {
     if (topic == gUpdatingBatch)
       return;
     if (topic == "cookie-changed") {
-      cookies.length = 0;
-      if (lastCookieSortColumn == "rawHost") {
-        lastCookieSortAscending = !lastCookieSortAscending; // prevents sort from being reversed
-      }
+      allCookies.length = 0;
       loadCookies();
     } else if (topic == "perm-changed") {
       permissions.length = 0;
@@ -176,24 +177,15 @@ function loadCookies() {
     if (!nextCookie) break;
     nextCookie = nextCookie.QueryInterface(Components.interfaces.nsICookie);
     var host = nextCookie.host;
-    cookies[count] =
+    allCookies[count] =
       new Cookie(count++, nextCookie.name, nextCookie.value, nextCookie.isDomain, host,
                  (host.charAt(0)==".") ? host.substring(1,host.length) : host,
                  nextCookie.path, nextCookie.isSecure, nextCookie.expires);
   }
-  cookiesTreeView.rowCount = cookies.length;
 
-  // sort and display the table
+  // filter, sort and display the table
   cookiesTree.treeBoxObject.view = cookiesTreeView;
-  // sort by host column
-  CookieColumnSort('rawHost');
-
-  // disable "remove all cookies" button if there are no cookies
-  if (cookies.length == 0) {
-    document.getElementById("removeAllCookies").setAttribute("disabled","true");
-  } else {
-    document.getElementById("removeAllCookies").removeAttribute("disabled");
-  }
+  filter(document.getElementById("filter").value);
 }
 
 function GetExpiresString(expires) {
@@ -275,9 +267,25 @@ function ClearCookieProperties() {
 }
 
 function DeleteCookie() {
+  if (cookiesTreeView.selection.count > 1) {
+    var title = cookieBundle.getString("deleteSelectedCookiesTitle");
+    var msg = cookieBundle.getString("deleteSelectedCookies");
+    var flags = ((promptservice.BUTTON_TITLE_IS_STRING * promptservice.BUTTON_POS_0) +
+                 (promptservice.BUTTON_TITLE_CANCEL * promptservice.BUTTON_POS_1) +
+                 promptservice.BUTTON_POS_1_DEFAULT)
+    var yes = cookieBundle.getString("deleteSelectedCookiesYes");
+    if (promptservice.confirmEx(window, title, msg, flags, yes, null, null, null, {value:0}) == 1)
+      return;
+  }
   DeleteSelectedItemFromTree(cookiesTree, cookiesTreeView,
                                  cookies, deletedCookies,
                                  "removeCookie", "removeAllCookies");
+  if (document.getElementById("filter").value) {
+    // remove selected cookies from unfiltered set
+    for (var i = 0; i < deletedCookies.length; ++i) {
+      allCookies.splice(allCookies.indexOf(deletedCookies[i]), 1);
+    }
+  }
   if (!cookies.length) {
     ClearCookieProperties();
   }
@@ -298,6 +306,7 @@ function DeleteAllCookies() {
   DeleteAllFromTree(cookiesTree, cookiesTreeView,
                         cookies, deletedCookies,
                         "removeCookie", "removeAllCookies");
+  allCookies.length = 0;
   FinalizeCookieDeletions();
 }
 
@@ -314,13 +323,13 @@ function FinalizeCookieDeletions() {
 }
 
 function HandleCookieKeyPress(e) {
-  if (e.keyCode == 46) {
+  if (e.keyCode == KeyEvent.DOM_VK_DELETE) {
     DeleteCookie();
   }
 }
 
-var lastCookieSortColumn = "";
-var lastCookieSortAscending = false;
+var lastCookieSortColumn = "rawHost";
+var lastCookieSortAscending = true;
 
 function CookieColumnSort(column) {
   lastCookieSortAscending =
@@ -550,4 +559,53 @@ function doHelpButton()
   var selTab = document.getElementById('tabbox').selectedTab;
   var key = selTab.getAttribute('help');
   openHelp(key, 'chrome://communicator/locale/help/suitehelp.rdf');
+}
+
+/*** =================== FILTER CODE =================== ***/
+
+function filterCookies(aFilterValue)
+{
+  var filterSet = [];
+  for (var i = 0; i < allCookies.length; ++i) {
+    var cookie = allCookies[i];
+    if (cookie.rawHost.indexOf(aFilterValue) != -1 ||
+        cookie.name.indexOf(aFilterValue) != -1 ||
+        cookie.value.indexOf(aFilterValue) != -1)
+      filterSet.push(cookie);
+  }
+  return filterSet;
+}
+
+function filter(filter)
+{
+  // clear the display
+  var oldCount = cookiesTreeView.rowCount;
+  cookiesTreeView.rowCount = 0;
+  cookiesTree.treeBoxObject.rowCountChanged(0, -oldCount);
+
+  // set up the display
+  cookies = filter ? filterCookies(filter) : allCookies;
+  cookiesTreeView.rowCount = cookies.length;
+  cookiesTree.treeBoxObject.rowCountChanged(0, cookiesTreeView.rowCount);
+
+  // sort the tree according to the last sort parameters
+  SortTree(cookiesTree, cookiesTreeView, cookies, lastCookieSortColumn,
+           lastCookieSortColumn, !lastCookieSortAscending);
+
+  // disable Remove All Cookies button if the view is filtered or there are no cookies
+  if (filter || !cookies.length)
+    document.getElementById("removeAllCookies").setAttribute("disabled", "true");
+  else
+    document.getElementById("removeAllCookies").removeAttribute("disabled");
+
+  // if the view is filtered and not empty then select the first item
+  if (filter && cookies.length)
+    cookiesTreeView.selection.select(0);
+}
+
+function focusFilterBox()
+{
+  var filterBox = document.getElementById("filter");
+  filterBox.focus();
+  filterBox.select();
 }

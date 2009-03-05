@@ -50,7 +50,7 @@
         buttonaccesskeyaccept="&buttonaccept.accesskey;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         windowtype="mozilla:cookieviewer"
-        style="width: 30em;"
+        style="width: 30em; height: 42em;"
         onload="Startup()"
         onunload="Shutdown()"
         ondialoghelp="doHelpButton();"
@@ -63,7 +63,10 @@
   <script type="application/javascript"
           src="chrome://help/content/contextHelp.js" />
 
-  <keyset id="dialogKeys"/>
+  <keyset id="dialogKeys">
+    <key key="&windowClose.key;" modifiers="accel" oncommand="window.close();"/>
+    <key key="&focusSearch.key;" modifiers="accel" oncommand="focusFilterBox();"/>
+  </keyset>
   <stringbundle id="cookieBundle"
                 src="chrome://communicator/locale/permissions/cookieViewer.properties"/>
            
@@ -75,6 +78,15 @@
     <tabpanels id="panel" flex="1">
       <vbox class="tabpanel" id="system" flex="1">
         <vbox id="dummyContainer" flex="1">
+          <!-- filter -->
+          <hbox align="center">
+            <textbox id="filter"
+                     flex="1"
+                     type="search"
+                     emptytext="&search.emptytext;"
+                     oncommand="filter(this.value);"/>
+          </hbox>
+          <separator class="thin"/>
           <label value="&div.cookiesonsystem.label;" control="cookiesTree"/>
           <separator class="thin"/>
           <tree id="cookiesTree" flex="1" style="height: 10em;"
@@ -82,7 +94,8 @@
                     onselect="CookieSelected();">
             <treecols>
               <treecol id="domainCol" label="&treehead.cookiedomain.label;" flex="5"
-                       onclick="CookieColumnSort('rawHost', true);" persist="width hidden"/>
+                       onclick="CookieColumnSort('rawHost', true);" persist="width hidden"
+                       sortDirection="descending"/>
               <splitter class="tree-splitter"/>
               <treecol id="nameCol" label="&treehead.cookiename.label;" flex="5"
                        onclick="CookieColumnSort('name', true);" persist="width hidden"/>
