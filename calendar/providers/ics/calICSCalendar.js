@@ -937,10 +937,7 @@ httpHooks.prototype = {
                 } catch (e) {
                     LOG("Failed to fetch channel etag");
                 }
-                if (str.indexOf("<?xml ") == 0) {
-                    str = str.substring(str.indexOf('<', 2));
-                }
-                var multistatus = new XML(str);
+                var multistatus = cal.safeNewXML(str);
                 try {
                     thisCalendar.mEtag = multistatus..D::getetag;
                 } catch (e) {
