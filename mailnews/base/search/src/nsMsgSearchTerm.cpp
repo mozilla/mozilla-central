@@ -103,6 +103,7 @@ nsMsgSearchAttribEntry SearchAttribEntryTable[] =
     {nsMsgSearchAttrib::To,         "to"},
     {nsMsgSearchAttrib::CC,         "cc"},
     {nsMsgSearchAttrib::ToOrCC,     "to or cc"},
+    {nsMsgSearchAttrib::AllAddresses, "all addresses"},
     {nsMsgSearchAttrib::AgeInDays,  "age in days"},
     {nsMsgSearchAttrib::Label,      "label"},
     {nsMsgSearchAttrib::Keywords,   "tag"},

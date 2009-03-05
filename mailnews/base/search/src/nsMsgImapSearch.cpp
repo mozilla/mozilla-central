@@ -243,6 +243,19 @@ nsMsgSearchValidityManager::InitOfflineMailTable()
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::IsntInAB, 1);
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::IsntInAB, 1);
 
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::Contains, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::Contains, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::DoesntContain, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::DoesntContain, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::BeginsWith, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::BeginsWith, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::EndsWith, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::EndsWith, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsInAB, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsInAB, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsntInAB, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsntInAB, 1);
+
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::DoesntContain, 1);
@@ -646,6 +659,19 @@ nsMsgSearchValidityManager::InitOfflineMailFilterTable()
   m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::IsInAB, 1);
   m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::IsntInAB, 1);
   m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::IsntInAB, 1);
+  
+  m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::Contains, 1);
+  m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::Contains, 1);
+  m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::DoesntContain, 1);
+  m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::DoesntContain, 1);
+  m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::BeginsWith, 1);
+  m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::BeginsWith, 1);
+  m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::EndsWith, 1);
+  m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::EndsWith, 1);
+  m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsInAB, 1);
+  m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsInAB, 1);
+  m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsntInAB, 1);
+  m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsntInAB, 1);
   
   m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
   m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);

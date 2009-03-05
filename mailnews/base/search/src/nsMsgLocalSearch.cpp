@@ -494,6 +494,24 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
         }
         break;
       }
+      case nsMsgSearchAttrib::AllAddresses:
+      {
+        PRBool boolKeepGoing;
+        aTerm->GetMatchAllBeforeDeciding(&boolKeepGoing);
+        msgToMatch->GetRecipients(getter_Copies(recipients));
+        err = aTerm->MatchRfc822String (recipients.get(), charset, charsetOverride, &result);
+        if (boolKeepGoing == result)
+        {
+          msgToMatch->GetCcList(getter_Copies(ccList));
+          err = aTerm->MatchRfc822String (ccList.get(), charset, charsetOverride, &result);
+        }
+        if (boolKeepGoing == result)
+        {
+          msgToMatch->GetAuthor(getter_Copies(matchString));
+          err = aTerm->MatchRfc822String (matchString.get(), charset, charsetOverride, &result);
+        }
+        break;
+      }
       case nsMsgSearchAttrib::Body:
        {
          nsMsgKey messageOffset;

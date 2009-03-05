@@ -35,6 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 // Testing of to, cc, toorcc in addressbook search features added in bug 187768
+// Added testing of AllAddresses from bug 310359
 
 do_import_script("../mailnews/test/resources/searchTestUtils.js");
 
@@ -64,21 +65,25 @@ const Sender = nsMsgSearchAttrib.Sender;
 const To = nsMsgSearchAttrib.To;
 const CCopy = nsMsgSearchAttrib.CC;
 const ToOrCC = nsMsgSearchAttrib.ToOrCC;
+const AllAddresses = nsMsgSearchAttrib.AllAddresses;
 const Keywords = nsMsgSearchAttrib.Keywords; // control entry that is not enabled
 
 /*
  * The address available in the test address book is "PrimaryEmail1@test.invalid"
  * Test emails may also include the address "invalid@example.com"
  *
+ *
  * Map of test email contents: (P is "Prim...", I is "inva.." address)
  *
  *  Email      From       To      CC
+ *    1         P         I       I
  *    2         P         P       P
  *    3         I         P       I
  *    4         I         I       P
  *    5         P         I       P
  *    6         I         I,P     P,I
  *    7         I         I       I
+ *    8         I         P       P
  *
  */
  
@@ -87,45 +92,55 @@ var Tests =
   { value: ABUri,
     attrib: Sender,
     op: IsInAB,
-    count: 2 },
+    count: 3 },
   { value: ABUri,
     attrib: To,
     op: IsInAB,
-    count: 3 },
+    count: 4 },
   { value: ABUri,
     attrib: ToOrCC,
     op: IsInAB,
-    count: 5 },
+    count: 6 },
+  { value: ABUri,
+    attrib: AllAddresses,
+    op: IsInAB,
+    count: 7 },
   { value: ABUri,
     attrib: CCopy,
     op: IsInAB,
-    count: 4 },
+    count: 5 },
   { value: ABUri,
     attrib: Sender,
     op: IsntInAB,
-    count: 4 },
+    count: 5 },
   { value: ABUri,
     attrib: To,
     op: IsntInAB,
-    count: 4 },
+    count: 5 },
   { value: ABUri,
     attrib: ToOrCC,
     op: IsntInAB,
-    count: 5 },
+    count: 6 },
+  { value: ABUri,
+    attrib: AllAddresses,
+    op: IsntInAB,
+    count: 7 },
   { value: ABUri,
     attrib: CCopy,
     op: IsntInAB,
-    count: 3 },
+    count: 4 },
 ];
 
 var Files = 
 [
+  "../mailnews/test/data/bugmail1",
   "../mailnews/test/data/bugmail2",
   "../mailnews/test/data/bugmail3",
   "../mailnews/test/data/bugmail4",
   "../mailnews/test/data/bugmail5",
   "../mailnews/test/data/bugmail6",
-  "../mailnews/test/data/bugmail7"
+  "../mailnews/test/data/bugmail7",
+  "../mailnews/test/data/bugmail8"
 ]
 
 var messageKey, hdr;
@@ -148,16 +163,19 @@ function run_test()
   testValidityTable(offlineMail, IsInAB, Sender, true);
   testValidityTable(offlineMail, IsInAB, To, true);
   testValidityTable(offlineMail, IsInAB, ToOrCC, true);
+  testValidityTable(offlineMail, IsInAB, AllAddresses, true);
   testValidityTable(offlineMail, IsInAB, CCopy, true);
   testValidityTable(offlineMail, IsInAB, Keywords, false);
   testValidityTable(offlineMail, IsntInAB, Sender, true);
   testValidityTable(offlineMail, IsntInAB, To, true);
   testValidityTable(offlineMail, IsntInAB, ToOrCC, true);
+  testValidityTable(offlineMail, IsntInAB, AllAddresses, true);
   testValidityTable(offlineMail, IsntInAB, CCopy, true);
   testValidityTable(offlineMail, IsntInAB, Keywords, false);
   testValidityTable(offlineMail, IsBefore, Sender, false);
   testValidityTable(offlineMail, IsBefore, To, false);
   testValidityTable(offlineMail, IsBefore, ToOrCC, false);
+  testValidityTable(offlineMail, IsBefore, AllAddresses, false);
   testValidityTable(offlineMail, IsBefore, CCopy, false);
   testValidityTable(offlineMail, IsBefore, Keywords, false);
 
@@ -165,16 +183,19 @@ function run_test()
   testValidityTable(offlineMailFilter, IsInAB, Sender, true);
   testValidityTable(offlineMailFilter, IsInAB, To, true);
   testValidityTable(offlineMailFilter, IsInAB, ToOrCC, true);
+  testValidityTable(offlineMailFilter, IsInAB, AllAddresses, true);
   testValidityTable(offlineMailFilter, IsInAB, CCopy, true);
   testValidityTable(offlineMailFilter, IsInAB, Keywords, false);
   testValidityTable(offlineMailFilter, IsntInAB, Sender, true);
   testValidityTable(offlineMailFilter, IsntInAB, To, true);
+  testValidityTable(offlineMailFilter, IsntInAB, AllAddresses, true);
   testValidityTable(offlineMailFilter, IsntInAB, ToOrCC, true);
   testValidityTable(offlineMailFilter, IsntInAB, CCopy, true);
   testValidityTable(offlineMailFilter, IsntInAB, Keywords, false);
   testValidityTable(offlineMailFilter, IsBefore, Sender, false);
   testValidityTable(offlineMailFilter, IsBefore, To, false);
   testValidityTable(offlineMailFilter, IsBefore, ToOrCC, false);
+  testValidityTable(offlineMailFilter, IsBefore, AllAddresses, false);
   testValidityTable(offlineMailFilter, IsBefore, CCopy, false);
   testValidityTable(offlineMailFilter, IsBefore, Keywords, false);
 

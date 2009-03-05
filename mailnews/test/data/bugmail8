@@ -4,32 +4,32 @@ X-UIDL: UID18345-1161858178
 X-Mozilla-Status: 0001
 X-Mozilla-Status2: 00000000
 X-Mozilla-Keys: $label4                                                                         
-Received: from caspiaco by host29.example.com with local-bsmtp (Exim 4.68)
+Received: from example by host29.example.com with local-bsmtp (Exim 4.68)
 	(envelope-from <bugzilla-daemon@mozilla.org>)
 	id 1JtrbR-0001Kc-Nf
-	for kent@example.com; Wed, 07 May 2008 15:55:21 -0600
+	for invalid@example.com; Wed, 07 May 2008 15:55:21 -0600
 X-Spam-Checker-Version: SpamAssassin 3.2.3 (2007-08-08) on
 	host29.example.com
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.4 required=5.0 tests=AWL,BAYES_00 autolearn=ham
 	version=3.2.3
-Received: from webapp01.sj.mozilla.com ([63.245.208.146] helo=webapp-out.mozilla.org)
+Received: from webapp01.sj.mozilla.com ([10.3.4.5] helo=webapp-out.mozilla.org)
 	by host29.example.com with esmtps (TLSv1:AES256-SHA:256)
 	(Exim 4.68)
 	(envelope-from <bugzilla-daemon@mozilla.org>)
 	id 1JtrbR-0001KT-FP
-	for kent@example.com; Wed, 07 May 2008 15:55:09 -0600
+	for invalid@example.com; Wed, 07 May 2008 15:55:09 -0600
 Received: from mrapp51.mozilla.org (mrapp51.mozilla.org [127.0.0.1])
 	by webapp-out.mozilla.org (8.13.8/8.13.8) with ESMTP id m47LtAFJ007547
-	for <kent@example.com>; Wed, 7 May 2008 14:55:10 -0700
+	for <invalid@example.com>; Wed, 7 May 2008 14:55:10 -0700
 Received: (from root@localhost)
 	by mrapp51.mozilla.org (8.13.8/8.13.8/Submit) id m47LtAEf007542;
 	Wed, 7 May 2008 14:55:10 -0700
 Date: Wed, 7 May 2008 14:55:10 -0700
-Message-Id: <200805072155.m47LtAEf007542@mrapp51.mozilla.org>
-To: invalid@example.com
-From: PrimaryEmail1@test.invalid
-Cc: invalid@example.com
+Message-Id: <bugmail7.m47LtAEf007542@mrapp51.mozilla.org>
+From: invalid@example.com
+To: PrimaryEmail1@test.invalid
+Cc: PrimaryEmail1@test.invalid
 Subject: [Bug 397009] A filter will let me tag, but not untag
 X-Bugzilla-Reason: None
 X-Bugzilla-Type: newchanged
@@ -48,7 +48,7 @@ In-Reply-To: <bug-397009-254728@https.bugzilla.mozilla.org/>
 References: <bug-397009-254728@https.bugzilla.mozilla.org/>
 Content-Type: text/plain; charset="UTF-8"
 MIME-Version: 1.0
-X-user: ::::63.245.208.146:host29.hostmonster.com::::::
+X-user: ::::10.0.1.2:host29.example.net::::::
 DomainKey-Status: no signature
 
 Do not reply to this email.  You can add comments to this bug at

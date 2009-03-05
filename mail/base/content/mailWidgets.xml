@@ -1116,10 +1116,11 @@
                 this.setAttribute("selectedIndex", "5");
             }
 
-              // if it's not sender, to, cc, or toorcc, we don't care
+              // if it's not sender, to, cc, alladdresses, or toorcc, we don't care
               if (this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.Sender && 
                 this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.To && 
                 this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.ToOrCC && 
+                this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.AllAddresses &&
                 this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.CC ) {
               this.internalOperator = val;
               return val;
@@ -1235,6 +1236,7 @@
           else if (attrib == nsMsgSearchAttrib.Sender || 
                    attrib == nsMsgSearchAttrib.To ||
                    attrib == nsMsgSearchAttrib.CC ||
+                   attrib == nsMsgSearchAttrib.AllAddresses ||
                    attrib == nsMsgSearchAttrib.ToOrCC)
           {
             if (this.internalOperator == Components.interfaces.nsMsgSearchOp.IsntInAB ||
@@ -1306,6 +1308,7 @@
             else if (searchAttribute == nsMsgSearchAttrib.Sender ||
                    searchAttribute == nsMsgSearchAttrib.To ||
                    searchAttribute == nsMsgSearchAttrib.CC ||
+                   searchAttribute == nsMsgSearchAttrib.AllAddresses ||
                    searchAttribute == nsMsgSearchAttrib.ToOrCC)
             {
               if (this.internalOperator == Components.interfaces.nsMsgSearchOp.IsntInAB ||

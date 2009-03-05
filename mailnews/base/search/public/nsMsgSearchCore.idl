@@ -66,7 +66,7 @@ interface nsMsgSearchScope {
 
 typedef long nsMsgSearchAttribValue;
 
-[scriptable, uuid(4ee04610-cd79-11dc-95ff-0800200c9a66)]
+[scriptable, uuid(9ED17774-4748-46a6-9A18-E651E3B791F2)]
 interface nsMsgSearchAttrib {
     const nsMsgSearchAttribValue Default = -1;
     const nsMsgSearchAttribValue Subject = 0;  /* mail and news */
@@ -106,7 +106,8 @@ interface nsMsgSearchAttrib {
     const nsMsgSearchAttribValue Organization = 31;
     const nsMsgSearchAttribValue Department = 32;
 
-    // 33 - 43, reserved for ab / LDAP;
+    // 33 - 42, reserved for ab / LDAP;
+    const nsMsgSearchAttribValue AllAddresses = 43;
     const nsMsgSearchAttribValue JunkScoreOrigin = 44;
     const nsMsgSearchAttribValue JunkPercent = 45;
     const nsMsgSearchAttribValue HasAttachmentStatus = 46;
