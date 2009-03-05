@@ -67,10 +67,10 @@ menulist > menupopup > menuitem {
   -moz-padding-end: 2px;
 }
 
-.small-button {
-  min-width: 3em;
-  padding: 0px;
-  margin: 0px 1px;
+.small-button,
+.small-button[disabled="true"] {
+  min-width: 3em !important;
+  margin: 0px 1px !important;
 }
 
 
