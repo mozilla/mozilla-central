@@ -48,8 +48,11 @@ EXTRA_COMPONENTS = \
 	nsAboutCertError.js \
 	nsAboutSessionRestore.js \
 	nsSessionStartup.js \
-	nsSessionStore.js \
 	nsSuiteGlue.js \
+	$(NULL)
+
+EXTRA_PP_COMPONENTS = \
+	nsSessionStore.js \
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk
