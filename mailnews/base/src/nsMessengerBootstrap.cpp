@@ -26,6 +26,7 @@
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   David Bienvenu <bienvenu@nventure.com>
  *   Siddharth Agarwal <sid1337@gmail.com>
+ *   Magnus Melin <mkmelin+mozilla@iki.fi>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -54,6 +55,8 @@
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
 #include "nsIWindowWatcher.h"
+#include "nsIPromptService.h"
+#include "nsIStringBundle.h"
 #include "nsString.h"
 #include "nsIURI.h"
 #include "nsIDialogParamBlock.h"
@@ -105,7 +108,7 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
     aCmdLine->SetPreventDefault(PR_TRUE);
   }
 #endif
-  
+
   nsAutoString mailUrl; // -mail or -mail <some url> 
   PRBool flag = PR_FALSE;
   rv = aCmdLine->HandleFlagWithParam(NS_LITERAL_STRING("mail"), PR_FALSE, mailUrl);
@@ -162,7 +165,6 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
       scriptableURL->SetData((mailUrl));
       argsArray->AppendElement(scriptableURL);
     }
-
     wwatch->OpenWindow(nsnull, "chrome://messenger/content/", "_blank",
                        "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar,dialog=no", argsArray, getter_AddRefs(opened));
     aCmdLine->SetPreventDefault(PR_TRUE);
@@ -188,11 +190,39 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
 
     if (StringEndsWith(arg, NS_LITERAL_STRING(".eml"), nsCaseInsensitiveStringComparator()))
     {
-      nsCOMPtr<nsILocalFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
-      NS_ENSURE_TRUE(file, NS_ERROR_FAILURE);
-      rv = file->InitWithPath(arg);
-      NS_ENSURE_SUCCESS(rv, rv);
-      // should we check that the file exists, or looks like a mail message?
+      nsCOMPtr<nsIFile> file;
+      rv = aCmdLine->ResolveFile(arg, getter_AddRefs(file));
+      PRBool fileExists = PR_FALSE;
+      if (file) // Absolute paths always resolve, check if it exists too.
+        file->Exists(&fileExists);
+
+      // If we couldn't resolve, or the file does not exist - shown an alert.
+      if (NS_FAILED(rv) || !fileExists)
+      {
+        nsCOMPtr<nsIStringBundleService> bs = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+        nsCOMPtr<nsIStringBundle> bundle;
+        rv = bs->CreateBundle("chrome://messenger/locale/messenger.properties",
+                              getter_AddRefs(bundle));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsAutoString title;
+        rv = bundle->GetStringFromName(NS_LITERAL_STRING("fileNotFoundTitle").get(),
+                                       getter_Copies(title));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsAutoString msg;
+        const PRUnichar *formatStrings[1] = { arg.get() };
+        rv = bundle->FormatStringFromName(NS_LITERAL_STRING("fileNotFoundMsg").get(),
+                                          formatStrings, 1, getter_Copies(msg));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsCOMPtr<nsIPromptService> promptService(do_GetService("@mozilla.org/embedcomp/prompt-service;1", &rv));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        promptService->Alert(nsnull, title.get(), msg.get());
+        return NS_OK;
+      }
 
       nsCOMPtr<nsIURI> uri;
       NS_NewFileURI(getter_AddRefs(uri), file);
