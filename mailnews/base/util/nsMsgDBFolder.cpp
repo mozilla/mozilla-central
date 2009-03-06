@@ -1956,6 +1956,73 @@ nsMsgDBFolder::SetStringProperty(const char *propertyName, const nsACString& pro
   return NS_OK;
 }
 
+// Get/Set ForcePropertyEmpty is only used with inherited properties
+NS_IMETHODIMP
+nsMsgDBFolder::GetForcePropertyEmpty(const char *aPropertyName, PRBool *_retval)
+{
+  NS_ENSURE_ARG_POINTER(_retval);
+  nsCAutoString nameEmpty(aPropertyName);
+  nameEmpty.Append(NS_LITERAL_CSTRING(".empty"));
+  nsCString value;
+  GetStringProperty(nameEmpty.get(), value);
+  *_retval = value.Equals(NS_LITERAL_CSTRING("true"));
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgDBFolder::SetForcePropertyEmpty(const char *aPropertyName, PRBool aValue)
+{
+ nsCAutoString nameEmpty(aPropertyName);
+ nameEmpty.Append(NS_LITERAL_CSTRING(".empty"));
+ return SetStringProperty(nameEmpty.get(),
+   aValue ? NS_LITERAL_CSTRING("true") : EmptyCString());
+}
+
+NS_IMETHODIMP
+nsMsgDBFolder::GetInheritedStringProperty(const char *aPropertyName, nsACString& aPropertyValue)
+{
+  NS_ENSURE_ARG_POINTER(aPropertyName);
+  nsCString value;
+  nsCOMPtr<nsIMsgIncomingServer> server;
+
+  PRBool forceEmpty = PR_FALSE;
+
+  if (!mIsServer)
+  {
+    GetForcePropertyEmpty(aPropertyName, &forceEmpty);
+  }
+  else
+  {
+    // root folders must get their values from the server
+    GetServer(getter_AddRefs(server));
+    if (server)
+      server->GetForcePropertyEmpty(aPropertyName, &forceEmpty);
+  }
+
+  if (forceEmpty)
+  {
+    aPropertyValue.Truncate();
+    return NS_OK;
+  }
+
+  // servers will automatically inherit from the preference mail.server.default.(propertyName)
+  if (server)
+    return server->GetCharValue(aPropertyName, aPropertyValue);
+
+  GetStringProperty(aPropertyName, value);
+  if (value.IsEmpty())
+  {
+    // inherit from the parent
+    nsCOMPtr<nsIMsgFolder> parent;
+    GetParent(getter_AddRefs(parent));
+    if (parent)
+      return parent->GetInheritedStringProperty(aPropertyName, aPropertyValue);
+  }
+
+  aPropertyValue.Assign(value);
+  return NS_OK;
+}
+
 // sub-classes need to override
 nsresult
 nsMsgDBFolder::SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin)

@@ -2090,3 +2090,24 @@ NS_IMETHODIMP nsMsgIncomingServer::IsNewHdrDuplicate(nsIMsgDBHdr *aNewHdr, PRBoo
   }
   return NS_OK;
 }
+
+NS_IMETHODIMP
+nsMsgIncomingServer::GetForcePropertyEmpty(const char *aPropertyName, PRBool *_retval)
+{
+  NS_ENSURE_ARG_POINTER(_retval);
+  nsCAutoString nameEmpty(aPropertyName);
+  nameEmpty.Append(NS_LITERAL_CSTRING(".empty"));
+  nsCString value;
+  GetCharValue(nameEmpty.get(), value);
+  *_retval = value.Equals(NS_LITERAL_CSTRING("true"));
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgIncomingServer::SetForcePropertyEmpty(const char *aPropertyName, PRBool aValue)
+{
+ nsCAutoString nameEmpty(aPropertyName);
+ nameEmpty.Append(NS_LITERAL_CSTRING(".empty"));
+ return SetCharValue(nameEmpty.get(),
+   aValue ? NS_LITERAL_CSTRING("true") : EmptyCString());
+}

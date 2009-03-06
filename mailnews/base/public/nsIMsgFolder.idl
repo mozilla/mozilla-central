@@ -67,7 +67,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(240c34dc-eb95-422b-a1e9-99cf6a23830b)]
+[scriptable, uuid(D7A5322F-C720-45c2-AEC5-A23185FB3E60)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -687,5 +687,51 @@ interface nsIMsgFolder : nsISupports {
    */
   void andProcessingFlags(in nsMsgKey msgKey, in unsigned long mask);
   /** @} */
+
+  /**
+   * Gets an inherited string property from the folder.
+   *
+   * If the forcePropertyEmpty boolean is set (see below), return an
+   * empty string.
+   *
+   * If the specified folder has a non-empty value for the property,
+   * return that value. Otherwise, return getInheritedStringProperty
+   * for the folder's parent.
+   *
+   * If a folder is the root folder for a server, then instead of
+   * checking the folder property, check the property of the same name
+   * for the server using nsIMsgIncomingServer.getCharValue(...)
+   *
+   * Note nsIMsgIncomingServer.getCharValue for a server inherits from
+   * the preference mail.server.default.(propertyName) as a global value
+   * 
+   * (ex: if propertyName = "IAmAGlobal" and no folder nor server properties
+   * are set, then the inherited property will return the preference value
+   * mail.server.default.IAmAGlobal)
+   *
+   * If the propertyName is undefined, returns an empty, void string.
+   *
+   * @param propertyName  The name of the property for the value to retrieve.
+   */
+  ACString getInheritedStringProperty(in string propertyName);
+
+  /**
+   * Set a boolean to force an inherited propertyName to return empty instead
+   * of inheriting from a parent folder, server, or the global
+   *
+   * @param propertyName         The name of the property
+   * @param aForcePropertyEmpty  true if an empty inherited property should be returned
+   */
+  void setForcePropertyEmpty(in string propertyName, in boolean aForcePropertyEmpty);
+
+  /**
+   * Get a boolean to force an inherited propertyName to return empty instead
+   * of inheriting from a parent folder, server, or the global
+   *
+   * @param propertyName      The name of the property
+   *
+   * @return                  true if an empty inherited property should be returned
+   */
+  boolean getForcePropertyEmpty(in string propertyName);
 
 };
