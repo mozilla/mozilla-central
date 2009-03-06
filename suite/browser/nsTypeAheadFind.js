@@ -99,6 +99,7 @@ typeAheadFind.prototype = {
   mFound: null,
   mLinks: false,
   mSearchString: "",
+  mSelection: null,
   mTimer: null,
   mXULBrowserWindow: null,
 
@@ -107,7 +108,8 @@ typeAheadFind.prototype = {
       Components.interfaces.nsISupportsWeakReference,
       Components.interfaces.nsIObserver,
       Components.interfaces.nsITimerCallback,
-      Components.interfaces.nsIDOMEventListener]),
+      Components.interfaces.nsIDOMEventListener,
+      Components.interfaces.nsISelectionListener]),
 
   /* nsIObserver */
   observe: function(aSubject, aTopic, aData) {
@@ -161,6 +163,11 @@ typeAheadFind.prototype = {
 
   /* nsIDOMEventListener */
   handleEvent: function(aEvent) {
+    if (aEvent.type != "keypress") {
+      this.stopFind(false);
+      return true;
+    }
+
     // We don't care about these keys.
     if (aEvent.altKey || aEvent.ctrlKey || aEvent.metaKey)
       return true;
@@ -244,6 +251,11 @@ typeAheadFind.prototype = {
     return false;
   },
 
+  /* nsISelectionListener */
+  notifySelectionChanged: function(aDoc, aSelection, aReason) {
+    this.stopFind(false);
+  },
+
   /* private methods */
   showStatus: function(aText) {
     if (this.mXULBrowserWindow)
@@ -300,6 +312,10 @@ typeAheadFind.prototype = {
         return false;
       }
       this.startTimer();
+      // The find will change the selection, so stop listening for changes
+      this.mEventTarget.removeEventListener("blur", this, true);
+      if (this.mSelection)
+        this.mSelection.removeSelectionListener(this);
       // Don't bother finding until we get back to a working string
       if (!this.mBadKeysSinceMatch || !--this.mBadKeysSinceMatch)
         result = this.mFind.find(this.mSearchString, this.mLinks);
@@ -315,6 +331,10 @@ typeAheadFind.prototype = {
       if (this.mBadKeysSinceMatch >= 3)
         return false;
 
+      // The find will change the selection/focus, so stop listening for changes
+      this.mEventTarget.removeEventListener("blur", this, true);
+      if (this.mSelection)
+        this.mSelection.removeSelectionListener(this);
       var previousString = this.mSearchString;
       this.mSearchString += String.fromCharCode(aEvent.charCode).toLowerCase();
       if (!this.mBadKeysSinceMatch) {
@@ -334,9 +354,22 @@ typeAheadFind.prototype = {
       this.mFindService = Components.classes["@mozilla.org/find/find_service;1"]
                                     .getService(Components.interfaces.nsIFindService);
     this.mFindService.searchString = this.mSearchString;
+    // Watch for blur changes in case the cursor leaves the current field.
+    this.mEventTarget.addEventListener("blur", this, true);
+    // Also watch for the cursor moving within the current field or window.
+    var commandDispatcher = this.mEventTarget.ownerDocument.commandDispatcher;
+    var editable = commandDispatcher.focusedElement;
+    if (editable instanceof Components.interfaces.nsIDOMNSEditableElement)
+      this.mSelection = editable.editor.selection;
+    else
+      this.mSelection = commandDispatcher.focusedWindow.getSelection();
+    this.mSelection.QueryInterface(Components.interfaces.nsISelectionPrivate)
+                   .addSelectionListener(this);
     return false;
   },
   startFind: function(aWindow, aLinks) {
+    if (this.mEventTarget)
+      this.stopFind(true);
     // Try to get the status bar for the specified window
     this.mXULBrowserWindow =
         aWindow.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
@@ -374,8 +407,9 @@ typeAheadFind.prototype = {
     // Set up all our properties
     this.mFind.setDocShell(docShell);
     this.mFound.setDocShell(docShell);
-    this.mEventTarget = aWindow.document.documentElement;
+    this.mEventTarget = docShell.chromeEventHandler;
     this.mEventTarget.addEventListener("keypress", this, true);
+    this.mEventTarget.addEventListener("unload", this, true);
     this.mCurrentWindow = w;
     this.mBadKeysSinceMatch = 0;
     this.mSearchString = "";
@@ -389,9 +423,15 @@ typeAheadFind.prototype = {
     if (this.mFind)
       this.mFind.setSelectionModeAndRepaint(
           Components.interfaces.nsISelectionController.SELECTION_ON);
-    if (this.mEventTarget)
+    if (this.mEventTarget) {
+      this.mEventTarget.removeEventListener("blur", this, true);
+      this.mEventTarget.removeEventListener("unload", this, true);
       this.mEventTarget.removeEventListener("keypress", this, true);
+    }
     this.mEventTarget = null;
+    if (this.mSelection)
+      this.mSelection.removeSelectionListener(this);
+    this.mSelection = null;
     this.showStatusString(aClear ? "" : "stopfind");
     if (aClear)
       this.mSearchString = "";
