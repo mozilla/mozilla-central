@@ -407,9 +407,6 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
       for (PRUint32 i = 0; i < oldCiteLevel - text->mCiteLevel; i++)
         prefaceResultStr += "</blockquote>";
       prefaceResultStr += "<pre wrap>";
-      if (text->mCiteLevel == 0)
-        prefaceResultStr += "<!---->";   /* Make sure, NGLayout puts out
-                                            a linebreak */
     }
 
     // Write plain text quoting tags
