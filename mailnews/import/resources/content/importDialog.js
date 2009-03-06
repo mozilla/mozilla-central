@@ -49,11 +49,13 @@ var selectedModuleName = null;
 var selLocIsHome = false ;
 var addInterface = null ;
 
+const nsISupportsString = Components.interfaces.nsISupportsString;
+
 function OnLoadImportDialog()
 {
   gImportMsgsBundle = document.getElementById("bundle_importMsgs");
-  importService = Components.classes["@mozilla.org/import/import-service;1"].getService();
-  importService = top.importService.QueryInterface(Components.interfaces.nsIImportService);
+  importService = Components.classes["@mozilla.org/import/import-service;1"]
+                            .getService(Components.interfaces.nsIImportService);
 
   progressInfo = { };
   progressInfo.progressWindow = null;
@@ -171,14 +173,10 @@ function ImportDialogOKButton()
       switch(importType)
       {
         case "mail":
-
-          top.successStr = Components.classes["@mozilla.org/supports-string;1"].createInstance();
-          if (top.successStr) {
-            top.successStr = top.successStr.QueryInterface( Components.interfaces.nsISupportsString);
-          }
-          top.errorStr = Components.classes["@mozilla.org/supports-string;1"].createInstance();
-          if (top.errorStr)
-            top.errorStr = top.errorStr.QueryInterface( Components.interfaces.nsISupportsString);
+          top.successStr = Components.classes["@mozilla.org/supports-string;1"]
+                                     .createInstance(nsISupportsString);
+          top.errorStr = Components.classes["@mozilla.org/supports-string;1"]
+                                   .createInstance(nsISupportsString);
 
           if (ImportMail( module, top.successStr, top.errorStr) == true)
           {
@@ -214,15 +212,12 @@ function ImportDialogOKButton()
           break;
 
         case "addressbook":
-          top.successStr = Components.classes["@mozilla.org/supports-string;1"].createInstance();
-          if (top.successStr)
-            top.successStr = top.successStr.QueryInterface( Components.interfaces.nsISupportsString);
-          top.errorStr = Components.classes["@mozilla.org/supports-string;1"].createInstance();
-          if (top.errorStr)
-            top.errorStr = top.errorStr.QueryInterface( Components.interfaces.nsISupportsString);
-          top.inputStr = Components.classes["@mozilla.org/supports-string;1"].createInstance();
-          if (top.inputStr)
-            top.inputStr = top.inputStr.QueryInterface( Components.interfaces.nsISupportsString);
+          top.successStr = Components.classes["@mozilla.org/supports-string;1"]
+                                     .createInstance(nsISupportsString);
+          top.errorStr = Components.classes["@mozilla.org/supports-string;1"]
+                                   .createInstance(nsISupportsString);
+          top.inputStr = Components.classes["@mozilla.org/supports-string;1"]
+                                   .createInstance(nsISupportsString);
 
           if (ImportAddress( module, top.successStr, top.errorStr) == true) {
             // We think it was a success, either, we need to
@@ -1049,12 +1044,31 @@ function enableAdvance()
 function back()
 {
   var deck = document.getElementById("stateDeck");
-  if (deck.getAttribute("selectedIndex") == "1") {
+  switch (deck.getAttribute("selectedIndex")) {
+  case "1":
     var backButton = document.getElementById("back");
     backButton.setAttribute("disabled", "true");
     var nextButton = document.getElementById("forward");
     nextButton.label = nextButton.getAttribute("nextval");
     nextButton.removeAttribute("disabled");
     deck.setAttribute("selectedIndex", "0");
+    break;
+  case "3":
+    // Clear out the results box.
+    var results = document.getElementById("results");
+    while (results.hasChildNodes())
+      results.removeChild(results.lastChild);
+
+    // Reset the next button.
+    var nextButton = document.getElementById("forward");
+    nextButton.label = nextButton.getAttribute("nextval");
+    nextButton.removeAttribute("disabled");
+
+    // Enable the cancel button again.
+    document.getElementById("cancel").removeAttribute("disabled");
+
+    // Now go back to the second page.
+    deck.setAttribute("selectedIndex", "1");
+    break;
   }
 }
