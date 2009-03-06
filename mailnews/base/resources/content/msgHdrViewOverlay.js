@@ -130,7 +130,7 @@ var gExpandedHeaderList = [ {name:"subject"},
                             {name:"tags"}];
 
 // Now, for each view the message pane can generate, we need a global table of headerEntries. These
-// header entry objects are generated dynamically based on the static date in the header lists (see above)
+// header entry objects are generated dynamically based on the static data in the header lists (see above)
 // and elements we find in the DOM based on properties in the header lists. 
 var gCollapsedHeaderView = {};
 var gExpandedHeaderView  = {};
@@ -163,6 +163,7 @@ function createHeaderEntry(prefix, headerListInfo)
   var partialIDName = prefix + headerListInfo.name;
   this.enclosingBox = document.getElementById(partialIDName + 'Box');
   this.textNode = document.getElementById(partialIDName + 'Value');
+  this.isNewHeader = false;
   this.isValid = false;
 
   if ("useShortView" in headerListInfo)
@@ -329,6 +330,7 @@ var messageHeaderSink = {
         if (gViewAllHeaders) // if we currently are in view all header mode, rebuild our header view so we remove most of the header data
         { 
           hideHeaderView(gExpandedHeaderView);
+          RemoveNewHeaderViews(gExpandedHeaderView);
           gExpandedHeaderView = {};
           initializeHeaderViewTables(); 
         }
@@ -782,9 +784,26 @@ function createNewHeaderView(headerName, label)
   topViewNode.appendChild(newHeader);
   
   this.enclosingBox = newHeader
+  this.isNewHeader = true;
   this.isValid = false;
   this.useToggle = false;
   this.outputFunction = updateHeaderValue;
+}
+
+/**
+ * Removes all non-predefined header nodes from the view.
+ *
+ * @param aHeaderTable Table of header entries.
+ */
+function RemoveNewHeaderViews(aHeaderTable)
+{
+  for (var index in aHeaderTable)
+  {
+    var headerEntry = aHeaderTable[index];
+    if (headerEntry.isNewHeader)
+      headerEntry.enclosingBox.parentNode
+                 .removeChild(headerEntry.enclosingBox);
+  }
 }
 
 // UpdateMessageHeaders: Iterate through all the current header data we received from mime for this message
