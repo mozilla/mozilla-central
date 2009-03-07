@@ -233,6 +233,10 @@
 
    <!-- Tools Menu -->
   <key id="key_mail"  key="&messengerCmd.commandkey;" oncommand="toMessengerWindow();" modifiers="accel"/>
+  <key id="key_addressbook"
+       key="&addressBookCmd.key;"
+       modifiers="accel, shift"
+       oncommand="toAddressBook();"/>
 
   <!-- Tab/F6 Keys -->
   <key keycode="VK_TAB" oncommand="SwitchElementFocus(event);" modifiers="control"/>
@@ -489,6 +493,7 @@
             <menuitem id="tasksMenuAddressBook"
                       label="&addressBookCmd.label;"
                       accesskey="&addressBookCmd.accesskey;"
+                      key="key_addressbook"
                       oncommand="toAddressBook();"
                       class="menuitem-iconic icon-addressbook16 menu-iconic"/>
 #endif

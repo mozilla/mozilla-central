@@ -463,6 +463,10 @@
 #else
   <key id="key_searchMail" key="&searchMailCmd.key;" oncommand="goDoCommand('cmd_search')" modifiers="accel, shift"/>
 #endif
+  <key id="key_addressbook"
+       key="&addressBookCmd.key;"
+       modifiers="accel, shift"
+       oncommand="toAddressBook();"/>
 
 #ifdef XP_UNIX
 #ifndef XP_MACOSX
@@ -1320,6 +1324,7 @@
         <menuitem id="addressBook"
                   label="&addressBookCmd.label;"
                   accesskey="&addressBookCmd.accesskey;"
+                  key="key_addressbook"
                   oncommand="toOpenWindowByType('mail:addressbook', 'chrome://messenger/content/addressbook/addressbook.xul');"/>
 #endif
         <menuitem id="addonsManager" label="&addons.label;" accesskey="&addons.accesskey;"

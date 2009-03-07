@@ -53,7 +53,16 @@
     <menuitem id="tasksMenuAddressBook"
               label="&addressBookCmd.label;"
               accesskey="&addressBookCmd.accesskey;"
+              key="key_addressbook"
               oncommand="toAddressBook();"
               insertbefore="sep-window-list"/>
   </menupopup>
+
+  <keyset id="tasksKeys">
+    <key id="key_addressbook"
+         key="&addressBookCmd.key;"
+         modifiers="accel, shift"
+         oncommand="toAddressBook();"/>
+  </keyset>
+
 </overlay>
