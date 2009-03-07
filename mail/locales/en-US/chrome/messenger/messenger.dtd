@@ -93,7 +93,7 @@
 <!ENTITY selectFlaggedCmd.label "Starred Messages">
 <!ENTITY selectFlaggedCmd.accesskey "S">
 <!ENTITY menuFavoriteFolder.label "Favorite Folder">
-<!ENTITY menuFavoriteFolder.accesskey "a">
+<!ENTITY menuFavoriteFolder.accesskey "v">
 <!ENTITY folderPropsCmd.label "Properties…">
 <!ENTITY folderPropsFolderCmd.label "Folder Properties…">
 <!ENTITY folderPropsNewsgroupCmd.label "Newsgroup Properties…">
