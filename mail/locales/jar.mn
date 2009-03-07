@@ -2,6 +2,7 @@
 
 @AB_CD@.jar:
 % locale messenger @AB_CD@ %locale/@AB_CD@/messenger/
+% override chrome://mozapps/locale/downloads/settingsChange.dtd chrome://messenger/locale/downloads/settingsChange.dtd
   locale/@AB_CD@/messenger/credits.dtd                                  (%chrome/messenger/credits.dtd)
   locale/@AB_CD@/messenger/aboutDialog.dtd                              (%chrome/messenger/aboutDialog.dtd)
   locale/@AB_CD@/messenger/aboutRights.dtd                              (%chrome/messenger/aboutRights.dtd)
@@ -132,6 +133,7 @@
   locale/@AB_CD@/messenger/search/searchIntegrationDialogWin.dtd        (%chrome/messenger/search/searchIntegrationDialogWin.dtd)
   locale/@AB_CD@/messenger/activity.dtd                                 (%chrome/messenger/activity.dtd)
   locale/@AB_CD@/messenger/activity.properties                          (%chrome/messenger/activity.properties)
+  locale/@AB_CD@/messenger/downloads/settingsChange.dtd                 (%chrome/overrides/settingsChange.dtd)
 % locale messenger-mapi @AB_CD@ %locale/@AB_CD@/messenger-mapi/
   locale/@AB_CD@/messenger-mapi/mapi.properties                         (%chrome/messenger-mapi/mapi.properties)
 % locale messenger-newsblog @AB_CD@ %locale/@AB_CD@/messenger-newsblog/
@@ -155,4 +157,4 @@
 % locale mozldap @AB_CD@ %locale/@AB_CD@/mozldap/
   locale/@AB_CD@/mozldap/ldap.properties                                (%chrome/mozldap/ldap.properties)
 % locale communicator @AB_CD@ %locale/@AB_CD@/communicator/
-  locale/@AB_CD@/communicator/utilityOverlay.dtd             (%chrome/communicator/utilityOverlay.dtd)
+  locale/@AB_CD@/communicator/utilityOverlay.dtd                        (%chrome/communicator/utilityOverlay.dtd)
