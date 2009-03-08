@@ -65,6 +65,10 @@ ifdef LIGHTNING_FIREFOX
 FIREFOX_VERSION := $(shell cat $(MOZILLA_SRCDIR)/browser/config/version.txt)
 endif
 
+ifneq (,$(findstring pre,$(LIGHTNING_VERSION)))
+DEFINES += -DLIGHTNING_PRERELEASE_VERSION=1
+endif
+
 # include config.mk here so myconfig or app-config can set DISABLE_LIGHTNING_INSTALL
 include $(topsrcdir)/config/config.mk
 
