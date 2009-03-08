@@ -408,13 +408,14 @@ bin\res\html.css
 bin\res\quirk.css
 bin\res\forms.css
 bin\res\viewsource.css
+bin\res\mathml.css
 bin\res\charsetData.properties
 bin\res\charsetalias.properties
 bin\res\langGroups.properties
 bin\res\language.properties
 bin\res\wincharset.properties
 bin\res\entityTables\*
-bin\res\dtd\xhtml11.dtd
+bin\res\dtd\*
 bin\res\arrow.gif
 bin\res\arrowd.gif
 bin\res\broken-image.gif
