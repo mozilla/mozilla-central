@@ -403,8 +403,9 @@ var progressNotifier = {
       if (this.mStatusFeedback)
       {
         this.mStatusFeedback.startMeteors();
-        this.mStatusFeedback.showStatusString(aSubscribeMode ? GetNewsBlogStringBundle().GetStringFromName('subscribe-validating') 
-                                            : GetNewsBlogStringBundle().GetStringFromName('newsblog-getNewMailCheck'));
+        this.mStatusFeedback.showStatusString(aSubscribeMode ?
+          GetNewsBlogStringBundle().GetStringFromName('subscribe-validating-feed') :
+          GetNewsBlogStringBundle().GetStringFromName('newsblog-getNewMsgsCheck'));
       }
     }
   },
@@ -431,8 +432,8 @@ var progressNotifier = {
       if (aErrorCode == kNewsBlogNoNewItems)
         this.mStatusFeedback.showStatusString(newsBlogBundle.GetStringFromName("newsblog-noNewArticlesForFeed"));
       else if (aErrorCode == kNewsBlogInvalidFeed)
-        this.mStatusFeedback.showStatusString(newsBlogBundle.formatStringFromName("newsblog-invalidFeed",
-                                              [feed.url], 1));
+        this.mStatusFeedback.showStatusString(
+          newsBlogBundle.formatStringFromName("newsblog-feedNotValid", [feed.url], 1));
       else if (aErrorCode == kNewsBlogRequestFailure)
         this.mStatusFeedback.showStatusString(newsBlogBundle.formatStringFromName("newsblog-networkError",
                                               [feed.url], 1));                                           
@@ -464,7 +465,9 @@ var progressNotifier = {
 
     if (this.mSubscribeMode && this.mStatusFeedback) // if we are subscribing to a feed, show feed download progress
     {
-      this.mStatusFeedback.showStatusString(GetNewsBlogStringBundle().formatStringFromName("subscribe-fetchingFeedItems", [aCurrentFeedItems, aMaxFeedItems], 2));
+      this.mStatusFeedback.showStatusString(
+        GetNewsBlogStringBundle().formatStringFromName("subscribe-gettingFeedItems",
+                                                       [aCurrentFeedItems, aMaxFeedItems], 2));
       this.onProgress(feed, aCurrentFeedItems, aMaxFeedItems);
     }
   },

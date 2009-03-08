@@ -43,7 +43,7 @@
 <!DOCTYPE window SYSTEM "chrome://messenger-newsblog/locale/feed-subscriptions.dtd">
 
 <window id="subscriptionsDialog"
-        title="&newsBlogSubscriptions.label;"
+        title="&feedSubscriptions.label;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 #ifdef XP_MACOSX
         style="width: 40em; height: 30em;"
@@ -71,6 +71,7 @@
   </keyset>
 
   <stringbundle id="bundle_newsblog" src="chrome://messenger-newsblog/locale/newsblog.properties"/>
+  <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
 
   <vbox flex="1" id="contentPane">
     <description control="rssSubscriptionsList">&subscriptionDesc.label;</description>

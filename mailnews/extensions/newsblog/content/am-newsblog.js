@@ -1,4 +1,4 @@
-# -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 # The contents of this file are subject to the Mozilla Public License Version
@@ -35,6 +35,22 @@
 # ***** END LICENSE BLOCK *****
 
 var gIncomingServer;
+
+function onInit(aPageId, aServerId)
+{
+  var accountName = document.getElementById("server.prettyName");
+  var title = document.getElementById("am-newsblog-title");
+  var defaultTitle = title.getAttribute("defaultTitle");
+
+  var titleValue;
+  if (accountName.value)
+    titleValue = defaultTitle + " - <" + accountName.value + ">";
+  else
+    titleValue = defaultTitle;
+
+  title.setAttribute("title", titleValue);
+  document.title = titleValue;
+}
 
 function onPreInit(account, accountValues)
 {

@@ -51,7 +51,7 @@ var gFeedSubscriptionsWindow = {
     // extract the server argument
     if (window.arguments[0].server)
       this.mRSSServer = window.arguments[0].server;
-    
+
     var docshell = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                         .getInterface(Components.interfaces.nsIWebNavigation)
                         .QueryInterface(Components.interfaces.nsIDocShell);        
@@ -59,14 +59,14 @@ var gFeedSubscriptionsWindow = {
 
     this.mTree = document.getElementById("rssSubscriptionsList");
     this.mBundle = document.getElementById("bundle_newsblog");
-   
+
     this.loadSubscriptions();
     this.mTree.treeBoxObject.view = this.mView;
 
     if (window.arguments[0].folder)
       this.selectFolder(window.arguments[0].folder);
   },
-  
+
   uninit: function ()
   {
     var dismissDialog = true;
@@ -501,7 +501,7 @@ var gFeedSubscriptionsWindow = {
     }
     else 
     {
-      var noneSelected = this.mBundle.getString("subscribe-noFeedSelected");
+      var noneSelected = this.mBundle.getString('subscribe-noFeedIsSelected');
       document.getElementById('nameValue').value = noneSelected;
       document.getElementById('locationValue').value = "";
     }
@@ -653,13 +653,14 @@ var gFeedSubscriptionsWindow = {
       promptService.alert(window, null, this.mBundle.getString("subscribe-feedAlreadySubscribed"));            
       return;
     }
-  
+
     var feed = this.storeFeed(feedProperties);
-    if(!feed)
+    if (!feed)
       return;
 
     // Now validate and start downloadng the feed....
-    updateStatusItem('statusText', document.getElementById("bundle_newsblog").getString('subscribe-validating'));
+    updateStatusItem('statusText', document.getElementById('bundle_newsblog')
+                                           .getString('subscribe-validating-feed'));
     updateStatusItem('progressMeter', 0);
     document.getElementById('addFeed').setAttribute('disabled', 'true');
     feed.download(true, this.mFeedDownloadCallback);
@@ -828,13 +829,15 @@ var gFeedSubscriptionsWindow = {
         refreshSubscriptionView();
 
         gFeedSubscriptionsWindow.selectFeed(feed);
-      } 
+      }
       else if (aErrorCode == kNewsBlogInvalidFeed) //  the feed was bad...
-        promptService.alert(null, null,
-                            gFeedSubscriptionsWindow.mBundle.getFormattedString("newsblog-invalidFeed", [feed.url]));
-      else if (aErrorCode == kNewsBlogRequestFailure) 
-        promptService.alert(null, null,
-                            gFeedSubscriptionsWindow.mBundle.getFormattedString('newsblog-networkError', [feed.url]));
+        promptService.alert(null,
+          gFeedSubscriptionsWindow.mBundle.getString('newsblog-feedNotValidTitle'),
+          gFeedSubscriptionsWindow.mBundle.getFormattedString('newsblog-feedNotValid', [feed.url]));
+      else if (aErrorCode == kNewsBlogRequestFailure)
+        promptService.alert(null,
+          gFeedSubscriptionsWindow.mBundle.getString('newsblog-networkErrorTitle'),
+          gFeedSubscriptionsWindow.mBundle.getFormattedString('newsblog-networkError', [feed.url]));
 
       // re-enable the add button now that we are done subscribing
       document.getElementById('addFeed').removeAttribute('disabled');
@@ -847,8 +850,8 @@ var gFeedSubscriptionsWindow = {
     // aCurrentFeedItems is an integer corresponding to how many feed items have been downloaded so far
     // aMaxFeedItems is an integer corresponding to the total number of feed items to download
     onFeedItemStored: function (feed, aCurrentFeedItems, aMaxFeedItems)
-    { 
-      updateStatusItem('statusText', gFeedSubscriptionsWindow.mBundle.getFormattedString("subscribe-fetchingFeedItems", 
+    {
+      updateStatusItem('statusText', gFeedSubscriptionsWindow.mBundle.getFormattedString('subscribe-gettingFeedItems',
                                                                                          [aCurrentFeedItems, aMaxFeedItems]));
       this.onProgress(feed, aCurrentFeedItems, aMaxFeedItems);
     },
@@ -869,11 +872,16 @@ var gFeedSubscriptionsWindow = {
 
       this.generatePPSpace(opmlRoot,"  ");
 
+      var brandBundle = document.getElementById("bundle_brand");
+
       // Make the <head> element
       var head = opmlDoc.createElement("head");
       this.generatePPSpace(head, "    ");
+      var titleText = this.mBundle.getFormattedString(
+                        "subscribe-OPMLExportFileDialogTitle",
+                        [brandBundle.getString("brandShortName")], 1);
       var title = opmlDoc.createElement("title");
-      title.appendChild(opmlDoc.createTextNode(this.mBundle.getString("subscribe-OPMLExportFileTitle")));
+      title.appendChild(opmlDoc.createTextNode(titleText));
       head.appendChild(title);
       this.generatePPSpace(head, "    ");
       var dt = opmlDoc.createElement("dateCreated");
@@ -893,8 +901,11 @@ var gFeedSubscriptionsWindow = {
       this.generatePPSpace(opmlRoot, "");
 
       var serial=new XMLSerializer();
+      var omplFileName = this.mBundle.getFormattedString(
+                           "subscribe-OPMLExportDefaultFileName",
+                           [brandBundle.getString("brandShortName")], 1);
       var rv = pickSaveAs(this.mBundle.getString("subscribe-OPMLExportTitle"),'$all',
-                          this.mBundle.getString("subscribe-OPMLExportFileName"));
+                          omplFileName);
       if(rv.reason == PICK_CANCEL)
         return;
       else if(rv)

@@ -1,11 +1,8 @@
 <?xml version="1.0"?>
-
 <!DOCTYPE RDF SYSTEM "chrome://messenger-newsblog/locale/am-newsblog.dtd">  
-
 <RDF:RDF
     xmlns:NC="http://home.netscape.com/NC-rdf#"
     xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-
   <RDF:Description about="NC:ispinfo">
     <NC:providers>
       <NC:nsIMsgAccount about="newsblog">
@@ -28,16 +25,15 @@
 
         <NC:wizardAutoGenerateUniqueHostname>true</NC:wizardAutoGenerateUniqueHostname>
         <NC:wizardHideIncoming>true</NC:wizardHideIncoming>
-        <NC:wizardAccountName>&rss.accountName;</NC:wizardAccountName>
+        <NC:wizardAccountName>&feeds.accountName;</NC:wizardAccountName>
         <NC:wizardSkipPanels>identitypage,serverpage,loginpage</NC:wizardSkipPanels>
-        <NC:wizardShortName>&rss.wizardShortName;</NC:wizardShortName>
-        <NC:wizardLongName>&rss.wizardLongName;</NC:wizardLongName>
-        <NC:wizardLongNameAccesskey>&rss.wizardLongName.accesskey;</NC:wizardLongNameAccesskey>
+        <NC:wizardShortName>&feeds.wizardShortName;</NC:wizardShortName>
+        <NC:wizardLongName>&feeds.wizardLongName;</NC:wizardLongName>
+        <NC:wizardLongNameAccesskey>&feeds.wizardLongName.accesskey;</NC:wizardLongNameAccesskey>
         <NC:wizardShow>true</NC:wizardShow>
         <NC:emailProviderName>RSS</NC:emailProviderName>
         <NC:showServerDetailsOnWizardSummary>false</NC:showServerDetailsOnWizardSummary> 
       </NC:nsIMsgAccount>
     </NC:providers>
   </RDF:Description>
-
 </RDF:RDF>

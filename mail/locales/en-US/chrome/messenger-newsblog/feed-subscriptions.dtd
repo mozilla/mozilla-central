@@ -1,5 +1,5 @@
 <!-- Subscription Dialog -->
-<!ENTITY newsBlogSubscriptions.label "RSS Subscriptions">
+<!ENTITY feedSubscriptions.label "Feed Subscriptions">
 <!ENTITY subscriptionDesc.label "Note: Removing or changing the folder for a feed will not affect previously downloaded articles.">
 <!ENTITY feedTitle.label "Title:">
 <!ENTITY location.label  "Location:">
