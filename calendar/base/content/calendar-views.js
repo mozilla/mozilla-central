@@ -509,7 +509,12 @@ function updateStyleSheetForViews(aCalendar) {
 /**
  * Category preferences observer. Used to update the stylesheets for category
  * colors.
+ *
+ * Note we need to keep the categoryPrefBranch variable outside of
+ * initCategories since branch observers only live as long as the branch object
+ * is alive, and out of categoryManagement to avoid cyclic references.
  */
+var categoryPrefBranch;
 var categoryManagement = {
     QueryInterface: function cM_QueryInterface(aIID) {
         return cal.doQueryInterface(this,
@@ -521,8 +526,8 @@ var categoryManagement = {
     initCategories: function cM_initCategories() {
       let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                   .getService(Components.interfaces.nsIPrefService);
-      let categoryPrefBranch = prefService.getBranch("calendar.category.color.")
-                                          .QueryInterface(Components.interfaces.nsIPrefBranch2);
+      categoryPrefBranch = prefService.getBranch("calendar.category.color.")
+                                      .QueryInterface(Components.interfaces.nsIPrefBranch2);
       let categories = categoryPrefBranch.getChildList("", {});
 
       // Fix illegally formatted category prefs.
@@ -550,9 +555,9 @@ var categoryManagement = {
     cleanupCategories: function cM_cleanupCategories() {
       let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                   .getService(Components.interfaces.nsIPrefService);
-      let categoryPrefBranch = prefService.getBranch("calendar.category.color.")
-                                          .QueryInterface(Components.interfaces.nsIPrefBranch2);
-      categoryPrefBranch.removeObserver("", categoryManagement, false);
+      categoryPrefBranch = prefService.getBranch("calendar.category.color.")
+                                      .QueryInterface(Components.interfaces.nsIPrefBranch2);
+      categoryPrefBranch.removeObserver("", categoryManagement);
     },
 
     observe: function cM_observe(aSubject, aTopic, aPrefName) {
