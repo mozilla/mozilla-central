@@ -251,4 +251,8 @@
                   ondragdrop="nsDragAndDrop.drop(event, calendarTaskButtonDNDObserver);"/>
     </vbox>
   </modevbox>
+
+  <commandset id="calendar_commands">
+    <command id="calendar_toggle_todaypane_command" oncommand="TodayPane.toggleVisibility(event)"/>
+  </commandset>
 </overlay>

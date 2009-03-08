@@ -110,12 +110,9 @@
     <command id="calendar_toggle_calendarlist_command" oncommand="document.getElementById('calendar-list-pane').togglePane(event)"/>
     <command id="calendar_task_filter_command" oncommand="taskViewUpdate(event.explicitOriginalTarget.getAttribute('value'))"/>
     <command id="calendar_toggle_filter_command" oncommand="document.getElementById('task-filter-pane').togglePane(event)"/>
-    <command id="calendar_toggle_todaypane_command"
-             oncommand="document.getElementById('today-pane-panel').togglePane(event); TodayPane.setTodayHeader()"/>
     <command id="calendar_view_next_command" oncommand="currentView().moveView(1)"/>
     <command id="calendar_view_today_command" oncommand="currentView().moveView()"/>
     <command id="calendar_view_prev_command" oncommand="currentView().moveView(-1)"/>
-
     <command id="calendar_go_to_today_command" oncommand="goToDate(now())"/>
   </commandset>
 

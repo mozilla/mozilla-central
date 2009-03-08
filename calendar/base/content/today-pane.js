@@ -55,7 +55,12 @@ var TodayPane = {
       this.setShortWeekdays();
       document.getElementById("modeBroadcaster").addEventListener("DOMAttrModified", this.onModeModified, false);
       this.setTodayHeader();
-      document.getElementById("today-splitter").addEventListener("command", onCalendarViewResize, false);
+
+      let panel =  document.getElementById('today-pane-panel');
+      let splitter = document.getElementById("today-splitter");
+      splitter.addEventListener("command", onCalendarViewResize, false);
+      splitter.hidden = !panel.isVisible();
+
   },
 
   /**
@@ -305,6 +310,12 @@ var TodayPane = {
               document.getElementById("today-splitter").setAttribute("state", "open");
           }
       }
+  },
+  toggleVisibility: function toggleVisbility(aEvent) {
+      let panel =  document.getElementById('today-pane-panel');
+      panel.togglePane(aEvent);
+      document.getElementById('today-splitter').hidden = !panel.isVisible();
+      TodayPane.setTodayHeader();
   }
 };
 
