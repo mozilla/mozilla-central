@@ -126,15 +126,14 @@ cal.auth = {
             let loginManager = Components.classes["@mozilla.org/login-manager;1"]
                                          .getService(Components.interfaces.nsILoginManager);
             let logins = loginManager.findLogins({}, aHostName, null, aRealm);
+
+            let newLoginInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
+                                         .createInstance(Components.interfaces.nsILoginInfo);
+            newLoginInfo.init(aHostName, null, aRealm, aUsername, aPassword, "", "");
             if (logins.length > 0) {
-                let loginInfo = logins[0].clone();
-                loginInfo.password = aPassword;
-                loginManager.modifyLogin(logins[0], loginInfo);
+                loginManager.modifyLogin(logins[0], newLoginInfo);
             } else {
-                let loginInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
-                                          .createInstance(Components.interfaces.nsILoginInfo);
-                loginInfo.init(aHostName, null, aRealm, aUsername, aPassword, "", "");
-                loginManager.addLogin(loginInfo);
+                loginManager.addLogin(newLoginInfo);
             }
         } catch (exc) {
             cal.ASSERT(false, exc);
