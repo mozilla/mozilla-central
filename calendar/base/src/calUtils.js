@@ -42,16 +42,32 @@
  * that loading this file twice in the same scope will throw errors.
  */
 
-/* Returns a clean new calIEvent */
-function createEvent() {
-    return Components.classes["@mozilla.org/calendar/event;1"].
-           createInstance(Components.interfaces.calIEvent);
+/**
+ * Returns a clean new calIEvent
+ *
+ * @param aIcalString       (optional) The icalString to read event details from.
+ */
+function createEvent(aIcalString) {
+    let event = Components.classes["@mozilla.org/calendar/event;1"]
+                          .createInstance(Components.interfaces.calIEvent);
+    if (aIcalString) {
+        event.icalString = aIcalString;
+    }
+    return event;
 }
 
-/* Returns a clean new calITodo */
-function createTodo() {
-    return Components.classes["@mozilla.org/calendar/todo;1"].
-           createInstance(Components.interfaces.calITodo);
+/**
+ * Returns a clean new calITodo
+ *
+ * @param aIcalString       (optional) The icalString to read task details from.
+ */
+function createTodo(aIcalString) {
+    let todo = Components.classes["@mozilla.org/calendar/todo;1"]
+                         .createInstance(Components.interfaces.calITodo);
+    if (aIcalString) {
+        todo.icalString = aIcalString;
+    }
+    return todo;
 }
 
 /* Returns a clean new calIDateTime */

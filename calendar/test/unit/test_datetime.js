@@ -36,11 +36,10 @@
 
 function run_test() {
     function getMozTimezone(tzid) {
-        return getTimezoneService().getTimezone(tzid);
+        return cal.getTimezoneService().getTimezone(tzid);
     }
 
-    var cd = Cc["@mozilla.org/calendar/datetime;1"].
-             createInstance(Ci.calIDateTime);
+    let cd = cal.createDateTime();
     cd.resetTo(2005, 10, 13,
                10, 0, 0,
                getMozTimezone("/mozilla.org/20050126_1/America/Bogota"));
@@ -48,10 +47,10 @@ function run_test() {
     do_check_eq(cd.hour, 10);
     do_check_eq(cd.icalString, "20051113T100000");
 
-    var cd_floating = cd.getInTimezone(floating());
+    let cd_floating = cd.getInTimezone(floating());
     do_check_eq(cd_floating.hour, 10);
 
-    var cd_utc = cd.getInTimezone(UTC());
+    let cd_utc = cd.getInTimezone(UTC());
     do_check_eq(cd_utc.hour, 15);
     do_check_eq(cd_utc.icalString, "20051113T150000Z");
 
@@ -80,21 +79,20 @@ function run_test() {
     do_check_eq(cd.timezoneOffset, 2*3600);
 
     // Bug 398724 - Problems with floating all-day items
-    var event = Cc["@mozilla.org/calendar/event;1"].createInstance(Ci.calIEvent);
-    event.icalString = "BEGIN:VEVENT\nUID:45674d53-229f-48c6-9f3b-f2b601e7ae4d\nSUMMARY:New Event\nDTSTART;VALUE=DATE:20071003\nDTEND;VALUE=DATE:20071004\nEND:VEVENT";
+    let event = cal.createEvent("BEGIN:VEVENT\nUID:45674d53-229f-48c6-9f3b-f2b601e7ae4d\nSUMMARY:New Event\nDTSTART;VALUE=DATE:20071003\nDTEND;VALUE=DATE:20071004\nEND:VEVENT");
     do_check_true(event.startDate.timezone.isFloating);
     do_check_true(event.endDate.timezone.isFloating);
 
     // Bug 392853 - Same times, different timezones, but subtractDate says times are PT0S apart
-    const zeroLength = Cc["@mozilla.org/calendar/duration;1"].createInstance(Ci.calIDuration);
-    const a = Cc["@mozilla.org/calendar/datetime;1"].createInstance(Ci.calIDateTime);
+    const zeroLength = cal.createDuration();
+    const a = cal.createDateTime();
     a.jsDate = new Date();
     a.timezone = getMozTimezone("/mozilla.org/20071231_1/Europe/Berlin");
 
-    var b = a.clone();
+    let b = a.clone();
     b.timezone = getMozTimezone("/mozilla.org/20071231_1/America/New_York");
 
-    var duration = a.subtractDate(b);
+    let duration = a.subtractDate(b);
     do_check_neq(duration.compare(zeroLength), 0);
     do_check_neq(a.compare(b), 0);
 

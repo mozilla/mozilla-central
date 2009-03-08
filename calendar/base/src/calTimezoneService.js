@@ -38,7 +38,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
-
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 var g_stringBundle = null;
@@ -80,7 +79,7 @@ calIntrinsicTimezone.prototype = {
     },
 
     get provider calIntrinsicTimezone_get_provider() {
-        return getTimezoneService();
+        return cal.getTimezoneService();
     }
 };
 
@@ -352,7 +351,7 @@ function guessSystemTimezone() {
     const offsetJun = dateJun.match(offsetRegex)[0];
     const offsetDec = dateDec.match(offsetRegex)[0];
 
-    const tzSvc = getTimezoneService();
+    const tzSvc = cal.getTimezoneService();
 
     function getIcalString(component, property) {
         var prop = (component && component.getFirstProperty(property));

@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK *****/
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 /**
  * Global Object to hold methods for the timezones dialog.
  */
@@ -49,7 +51,7 @@ var gTimezonesPane = {
         var tzMenuList = document.getElementById("calendar-timezone-menulist");
         var tzMenuPopup = document.getElementById("calendar-timezone-menupopup");
 
-        var tzService = getTimezoneService();
+        var tzService = cal.getTimezoneService();
         var enumerator = tzService.timezoneIds;
         var tzids = {};
         var displayNames = [];

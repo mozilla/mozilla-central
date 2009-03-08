@@ -35,6 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 /**
  * Sets up the timezone dialog from the window arguments, also setting up all
  * dialog controls from the window's dates.
@@ -45,7 +47,7 @@ function onLoad() {
     window.onAcceptCallback = args.onOk;
 
     var tzProvider = (args.calendar.getProperty("timezones.provider") ||
-                      getTimezoneService());
+                      cal.getTimezoneService());
     window.tzProvider = tzProvider;
 
     var menulist = document.getElementById("timezone-menulist");

@@ -339,7 +339,7 @@ cal.fromRFC3339 = function fromRFC3339(aStr, aTimezone) {
         dateTime.timezone = aTimezone;
 
     } else {
-        var offset_in_s = (matches[11] == "-" ? -1 : 1) *
+        let offset_in_s = (matches[11] == "-" ? -1 : 1) *
             ( (matches[12] * 3600) + (matches[13] * 60) );
 
         // try local timezone first
@@ -351,11 +351,11 @@ cal.fromRFC3339 = function fromRFC3339(aStr, aTimezone) {
         if (dateTime.timezoneOffset != offset_in_s) {
             // TODO A patch to Bug 363191 should make this more efficient.
 
-			var tzService = getTimezoneService();
+            let tzService = cal.getTimezoneService();
             // Enumerate timezones, set them, check their offset
-            var enumerator = tzService.timezoneIds;
+            let enumerator = tzService.timezoneIds;
             while (enumerator.hasMore()) {
-                var id = enumerator.getNext();
+                let id = enumerator.getNext();
                 dateTime.timezone = tzService.getTimezone(id);
                 if (dateTime.timezoneOffset == offset_in_s) {
                     // This is our last step, so go ahead and return

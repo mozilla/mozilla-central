@@ -232,7 +232,7 @@ function getTimezone(aTimezone) {
             }
         }
     } else {
-        tz = getTimezoneService().getTimezone(aTimezone);
+        tz = cal.getTimezoneService().getTimezone(aTimezone);
     }
     return tz;
 }
@@ -1339,7 +1339,7 @@ calStorageCalendar.prototype = {
         if (version) {
             versionComp = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
                                     .getService(Components.interfaces.nsIVersionComparator)
-                                    .compare(getTimezoneService().version, version);
+                                    .compare(cal.getTimezoneService().version, version);
         }
 
         if (versionComp < 0) {
@@ -1369,7 +1369,7 @@ calStorageCalendar.prototype = {
                     // Send the timezones off to the timezone service to attempt conversion:
                     var tz = getTimezone(zone);
                     if (tz) {
-                        var refTz = getTimezoneService().getTimezone(tz.tzid);
+                        var refTz = cal.getTimezoneService().getTimezone(tz.tzid);
                         if (refTz && refTz.tzid != zone) {
                             zonesToUpdate.push({ oldTzId: zone, newTzId: refTz.tzid });
                         }
@@ -1395,7 +1395,7 @@ calStorageCalendar.prototype = {
                         "UPDATE cal_todos      SET alarm_time_tz    = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "';");
                 }
                 this.mDB.executeSimpleSQL("DELETE FROM cal_tz_version; INSERT INTO cal_tz_version VALUES ('" +
-                                          getTimezoneService().version + "');");
+                                          cal.getTimezoneService().version + "');");
                 this.mDB.commitTransaction();
             } catch (exc) {
                 ASSERT(false, "Timezone update failed! DB Error: " + this.mDB.lastErrorString);
@@ -2302,7 +2302,7 @@ calStorageCalendar.prototype = {
         if (cdt) {
             params[entryname] = cdt.nativeTime;
             var tz = cdt.timezone;
-            var ownTz = getTimezoneService().getTimezone(tz.tzid);
+            var ownTz = cal.getTimezoneService().getTimezone(tz.tzid);
             if (ownTz) { // if we know that TZID, we use it
                 params[entryname + "_tz"] = ownTz.tzid;
             } else { // foreign one

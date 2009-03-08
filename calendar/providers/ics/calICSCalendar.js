@@ -985,9 +985,9 @@ function fileHooks() {
 }
 
 fileHooks.prototype = {
-    onBeforeGet: function(aChannel) {
+    onBeforeGet: function fH_onBeforeGet(aChannel) {
         this.mChannel = aChannel;
-        var fileChannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
+        let fileChannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
         return true;
     },
 
@@ -997,10 +997,10 @@ fileHooks.prototype = {
      *     didn't change, there might be no data in this GET), true in all
      *     other cases
      */
-    onAfterGet: function() {
-        var filechannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
+    onAfterGet: function fH_onAfterGet() {
+        let filechannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
         if (this.mtime) {
-            var newMtime = filechannel.file.lastModifiedTime;
+            let newMtime = filechannel.file.lastModifiedTime;
             if (this.mtime == newMtime) {
                 return false;
             } else {
@@ -1013,8 +1013,8 @@ fileHooks.prototype = {
         }
     },
 
-    onBeforePut: function(aChannel) {
-        var filechannel = aChannel.QueryInterface(Components.interfaces.nsIFileChannel);
+    onBeforePut: function fH_onBeforePut(aChannel) {
+        let filechannel = aChannel.QueryInterface(Components.interfaces.nsIFileChannel);
         if (this.mtime && this.mtime != filechannel.file.lastModifiedTime) {
             return false;
         } else {
@@ -1022,12 +1022,10 @@ fileHooks.prototype = {
         }
     },
 
-    onAfterPut: function(aChannel, aRespFunc) {
-        var filechannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
+    onAfterPut: function fH_onAfterPut(aChannel, aRespFunc) {
+        let filechannel = this.mChannel.QueryInterface(Components.interfaces.nsIFileChannel);
         this.mtime = filechannel.file.lastModifiedTime;
         aRespFunc();
         return true;
-    },
+    }
 };
-
-

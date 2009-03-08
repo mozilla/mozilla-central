@@ -36,6 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 
 function calWcapTimezone(tzProvider, tzid_, component_) {
@@ -52,7 +53,7 @@ calWcapTimezone.prototype = {
     get displayName calWcapTimezone_get_displayName() {
         if (this.mDisplayName === undefined) {
             // used l10n'ed display name if available:
-            var tz = getTimezoneService().getTimezone(this.tzid);
+            let tz = cal.getTimezoneService().getTimezone(this.tzid);
             this.mDisplayName = (tz ? tz.displayName : this.tzid);
         }
         return this.mDisplayName;
