@@ -177,7 +177,7 @@ function MsgCompactFolder(aCompactAccount)
       }
     }
     if (aCompactAccount)
-      selectedFolder.compactAll(null, msgWindow, isImapFolder || selectedFolder.server.type == "news");
+      selectedFolder.compactAll(null, msgWindow, isImapFolder || selectedFolder.server.type == "nntp");
     else
       selectedFolder.compact(null, msgWindow);
   }

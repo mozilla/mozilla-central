@@ -1428,7 +1428,7 @@ let gFolderTreeController = {
     if (!isImapFolder && gDBView && (gDBView.msgFolder == folder || aCompactAll))
       this._resetThreadPane();
     if (aCompactAll)
-      folder.compactAll(null, msgWindow, isImapFolder || folder.server.type == "news");
+      folder.compactAll(null, msgWindow, isImapFolder || folder.server.type == "nntp");
     else
       folder.compact(null, msgWindow);
   },
