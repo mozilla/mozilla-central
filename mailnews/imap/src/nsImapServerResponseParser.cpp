@@ -950,25 +950,21 @@ void nsImapServerResponseParser::mailbox(nsImapMailboxSpec *boxSpec)
     if (!fServerConnection.DeathSignalReceived())
       HandleMemoryFailure();
   }
-  else
+  else if (boxSpec->mConnection && boxSpec->mConnection->GetCurrentUrl())
   {
-    NS_ASSERTION(boxSpec->mConnection, "box spec has null connection");
-    NS_ASSERTION(boxSpec->mConnection->GetCurrentUrl(), "box spec has connection with null url");
-    //boxSpec->hostName = nsnull;
-    //if (boxSpec->connection && boxSpec->connection->GetCurrentUrl())
     boxSpec->mConnection->GetCurrentUrl()->AllocateCanonicalPath(boxname, boxSpec->mHierarchySeparator,
                                                                  getter_Copies(boxSpec->mAllocatedPathName));
     nsIURI *aURL = nsnull;
     boxSpec->mConnection->GetCurrentUrl()->QueryInterface(NS_GET_IID(nsIURI), (void **) &aURL);
     if (aURL)
       aURL->GetHost(boxSpec->mHostName);
-    
+
     NS_IF_RELEASE(aURL);
     if (boxname)
       PL_strfree( boxname);
     // storage for the boxSpec is now owned by server connection
     fServerConnection.DiscoverMailboxSpec(boxSpec);
-    
+
     // if this was cancelled by the user,then we sure don't want to
     // send more mailboxes their way
     if (fServerConnection.GetConnectionStatus() < 0)
