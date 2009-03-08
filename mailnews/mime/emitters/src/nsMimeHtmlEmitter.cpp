@@ -414,7 +414,7 @@ nsMimeHtmlDisplayEmitter::EndHeader()
 }
 
 nsresult
-nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
+nsMimeHtmlDisplayEmitter::StartAttachment(const nsACString &name,
                                           const char *contentType,
                                           const char *url,
                                           PRBool aIsExternalAttachment)
@@ -440,23 +440,11 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
     }
 
     // we need to convert the attachment name from UTF-8 to unicode before
-    // we emit it...
+    // we emit it.  The attachment name has already been rfc2047 processed
+    // upstream of us.  (Namely, mime_decode_filename has been called, deferring
+    // to nsIMimeHeaderParam.decodeParameter.)
     nsString unicodeHeaderValue;
-
-    rv = NS_ERROR_FAILURE;  // use failure to mean that we couldn't decode
-    if (mUnicodeConverter)
-      rv = mUnicodeConverter->DecodeMimeHeader(name, nsnull, PR_FALSE, PR_TRUE,
-                                               unicodeHeaderValue);
-
-    if (NS_FAILED(rv))
-    {
-      CopyUTF8toUTF16(nsDependentCString(name), unicodeHeaderValue);
-
-      // but it's not really a failure if we didn't have a converter
-      // in the first place
-      if ( !mUnicodeConverter )
-        rv = NS_OK;
-    }
+    CopyUTF8toUTF16(nsDependentCString(name), unicodeHeaderValue);
 
     headerSink->HandleAttachment(contentType, url /* was escapedUrl */,
                                  unicodeHeaderValue.get(), uriString.get(),
@@ -486,7 +474,9 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
 // and only show up during printing
 // XXX should they also show up during quoting?
 nsresult
-nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const char *name, const char *contentType, const char *url)
+nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
+                                                const char *contentType,
+                                                const char *url)
 {
   mSkipAttachment = PR_FALSE;
 
@@ -592,9 +582,10 @@ nsMimeHtmlDisplayEmitter::EndAllAttachments()
 }
 
 nsresult
-nsMimeHtmlDisplayEmitter::WriteBody(const char *buf, PRUint32 size, PRUint32 *amountWritten)
+nsMimeHtmlDisplayEmitter::WriteBody(const nsACString &buf,
+                                    PRUint32 *amountWritten)
 {
-  Write(buf, size, amountWritten);
+  Write(buf, amountWritten);
   return NS_OK;
 }
 

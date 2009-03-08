@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -98,15 +98,120 @@ const SUBJECT_SUFFIXES = [
   "In The Lobby", "On Your Desk", "In Your Car", "Hiding Behind The Door",
   ];
 
+/**
+ * Base class for MIME Part representation.
+ */
+function SyntheticPart(aProperties) {
+  if (aProperties) {
+    if (aProperties.charset)
+      this._charset = aProperties.charset;
+    if (aProperties.format)
+      this._format = aProperties.format;
+    if (aProperties.filename)
+      this._filename = aProperties.filename;
+    if (aProperties.boundary)
+      this._boundary = aProperties.boundary;
+  }
+}
+SyntheticPart.prototype = {
+  get contentTypeHeaderValue() {
+    s = this._contentType;
+    if (this._charset)
+      s += '; charset=' + this._charset;
+    if (this._format)
+      s += '; format=' + this._format;
+    if (this._filename)
+      s += ';\r\n name="' + this._filename +'"'
+    if (this._boundary)
+      s += ';\r\n boundary="' + this._boundary + '"';
+    return s;
+  },
+  get hasTransferEncoding() {
+    return this._encoding;
+  },
+  get contentTransferEncodingHeaderValue() {
+    return this._encoding;
+  },
+  get hasDisposition() {
+    return this._filename;
+  },
+  get contentDispositionHeaderValue() {
+    s = '';
+    if (this._filename)
+      s += 'attachment;\r\n filename="' + this._filename + '"';
+    return s;
+  },
+};
+
+/**
+ * Leaf MIME part, defaulting to text/plain.
+ */
+function SyntheticPartLeaf(aBody, aProperties) {
+  SyntheticPart.call(this, aProperties);
+  this.body = aBody;
+}
+SyntheticPartLeaf.prototype = {
+  __proto__: SyntheticPart.prototype,
+  _contentType: 'text/plain',
+  _charset: 'ISO-8859-1',
+  _format: 'flowed',
+  _encoding: '7bit',
+  toMessageString: function() {
+    return this.body;
+  }
+}
+
+/**
+ * Multipart (multipart/*) MIME part base class.
+ */
+function SyntheticPartMulti(aParts, aProperties) {
+  SyntheticPart.call(this, aProperties);
+
+  this._boundary = '--------------CHOPCHOP' + this.BOUNDARY_COUNTER;
+  this.__proto__.BOUNDARY_COUNTER += 1;
+  this.parts = (aParts != null) ? aParts : [];
+}
+SyntheticPartMulti.prototype = {
+  __proto__: SyntheticPart.prototype,
+  BOUNDARY_COUNTER: 0,
+  toMessageString: function() {
+    s = "This is a multi-part message in MIME format.\r\n";
+    for (let [,part] in Iterator(this.parts)) {
+      s += "--" + this._boundary + "\r\n";
+      s += "Content-Type: " + part.contentTypeHeaderValue + '\r\n';
+      if (part.hasTransferEncoding)
+        s += 'Content-Transfer-Encoding: ' +
+             part.contentTransferEncodingHeaderValue + '\r\n';
+      if (part.hasDisposition)
+        s += 'Content-Disposition: ' + part.contentDispositionHeaderValue +
+             '\r\n';
+      s += '\r\n';
+      s += part.toMessageString() + '\r\n\r\n';
+    }
+    s += "--" + this._boundary + '--';
+    return s;
+  },
+};
+
+/**
+ * Multipart mixed (multipart/mixed) MIME part.
+ */
+function SyntheticPartMultiMixed() {
+  SyntheticPartMulti.apply(this, arguments);
+}
+SyntheticPartMultiMixed.prototype = {
+  __proto__: SyntheticPartMulti.prototype,
+  _contentType: 'multipart/mixed',
+}
 
 /**
  * A synthetic message, created by the MessageGenerator.  Captures both the
  *  ingredients that went into the synthetic message as well as the rfc822 form
  *  of the message.
  */
-function SyntheticMessage(aHeaders, aBody) {
+function SyntheticMessage(aHeaders, aBodyPart) {
   this.headers = aHeaders || {};
-  this.body = aBody || "";
+  this.bodyPart = aBodyPart || new SyntheticPartLeaf("");
 }
 
 SyntheticMessage.prototype = {
@@ -241,6 +346,14 @@ SyntheticMessage.prototype = {
                             for each (nameAndAddr in aNameAndAddresses)]);
   },
 
+  get bodyPart() {
+    return this._bodyPart;
+  },
+  set bodyPart(aBodyPart) {
+    this._bodyPart = aBodyPart;
+    this.headers["Content-Type"] = this._bodyPart.contentTypeHeaderValue;
+  },
+
   /**
    * Normalizes header values, which may be strings or arrays of strings, into
    *  a suitable string suitable for appending to the header name/key.
@@ -255,7 +368,7 @@ SyntheticMessage.prototype = {
     // it's an array!
     if (aHeaderValues.length == 1)
       return aHeaderValues[0];
-    return aHeaderValues.join("\n\t");
+    return aHeaderValues.join("\r\n\t");
   },
 
   /**
@@ -273,7 +386,8 @@ SyntheticMessage.prototype = {
     let lines = [headerKey + ": " + this._formatHeaderValues(headerValues)
                  for each ([headerKey, headerValues] in Iterator(this.headers))];
 
-    return lines.join("\n") + "\n\n" + this.body + "\n";
+    return lines.join("\r\n") + "\r\n\r\n" + this.bodyPart.toMessageString() +
+      "\r\n";
   },
 
   /**
@@ -292,7 +406,8 @@ SyntheticMessage.prototype = {
    *  and making sure we've got a trailing newline.
    */
   writeToMboxStream: function (aStream) {
-    let str = "From " + this._from[1] + "\n" + this.toMessageString() + "\n";
+    let str = "From " + this._from[1] + "\r\n" + this.toMessageString() +
+      "\r\n";
     aStream.write(str, str.length);
   }
 }
@@ -366,8 +481,8 @@ MessageGenerator.prototype = {
   makeName: function(aNameNumber) {
     let iFirst = aNameNumber % FIRST_NAMES.length;
     let iLast = (iFirst + Math.floor(aNameNumber / FIRST_NAMES.length)) %
-	            LAST_NAMES.length;
-	
+                LAST_NAMES.length;
+
     return FIRST_NAMES[iFirst] + " " + LAST_NAMES[iLast];
   },
 
@@ -384,8 +499,8 @@ MessageGenerator.prototype = {
   makeMailAddress: function(aNameNumber) {
     let iFirst = aNameNumber % FIRST_NAMES.length;
     let iLast = (iFirst + Math.floor(aNameNumber / FIRST_NAMES.length)) %
-	      LAST_NAMES.length;
-		
+                LAST_NAMES.length;
+
     return FIRST_NAMES[iFirst].toLowerCase() + "@" +
            LAST_NAMES[iLast].toLowerCase() + ".nul";
   },
@@ -488,24 +603,34 @@ MessageGenerator.prototype = {
    *  be generated that has not been used before, and sent to a new name/address
    *  that has not been used before.
    *
-   * @param aInReplyTo the SyntheticMessage this message should be in reply-to.
-   *     If that message was in reply to another message, we will appropriately
-   *     compensate for that.
    * @param aArgs An object with any of the following attributes provided:
+   *     attachments: A list of dictionaries suitable for passing to
+   *         syntheticPartLeaf, plus a 'body' attribute that has already been
+   *         encoded.  Line chopping is on you FOR NOW.
+   *     body: A dictionary suitable for passing to SyntheticPart plus a 'body'
+   *         attribute that has already been encoded (if encoding is required).
+   *         Line chopping is on you FOR NOW.
+   *     callerData: A value to propagate to the callerData attribute on the
+   *         resulting message.
+   *     inReplyTo: the SyntheticMessage this message should be in reply-to.
+   *         If that message was in reply to another message, we will
+   *         appropriately compensate for that.
    *     replyAll: a boolean indicating whether this should be a reply-to-all or
    *         just to the author of the message.  (er, to-only, not cc.)
+   *     subject: The subject to use; you are responsible for doing any encoding
+   *         before passing it in.
    *     toCount: the number of people who the message should be to.
    * @returns a SyntheticMessage fashioned just to your liking.
    */
-  makeMessage: function(aInReplyTo, aArgs) {
+  makeMessage: function(aArgs) {
     aArgs = aArgs || {};
     let msg = new SyntheticMessage();
 
-    if (aInReplyTo) {
-      msg.parent = aInReplyTo;
+    if (aArgs.inReplyTo) {
+      msg.parent = aArgs.inReplyTo;
       msg.parent.children.push(msg);
 
-      let srcMsg = aInReplyTo;
+      let srcMsg = aArgs.inReplyTo;
 
       msg.subject = (srcMsg.subject.substring(0, 4) == "Re: ") ? srcMsg.subject
                     : ("Re: " + srcMsg.subject);
@@ -523,7 +648,7 @@ MessageGenerator.prototype = {
     else {
       msg.parent = null;
 
-      msg.subject = this.makeSubject();
+      msg.subject = aArgs.subject || this.makeSubject();
       msg.from = this.makeNameAndAddress();
       msg.to = this.makeNamesAndAddresses(aArgs.toCount || 1);
     }
@@ -532,7 +657,26 @@ MessageGenerator.prototype = {
     msg.messageId = this.makeMessageId(msg);
     msg.date = this.makeDate();
 
-    msg.body = "I am an e-mail.";
+    let bodyPart;
+    if (aArgs.bodyPart)
+      bodyPart = aArgs.bodyPart;
+    else if (aArgs.body)
+      bodyPart = new SyntheticPartLeaf(aArgs.body.body, aArgs.body);
+    else
+      bodyPart = new SyntheticPartLeaf("I am an e-mail.");
+
+    // if it has any attachments, create a multipart/mixed to be the body and
+    //  have it be the parent of the existing body and all the attachments
+    if (aArgs.attachments) {
+      let parts = [bodyPart];
+      for each (let [,attachDesc] in Iterator(aArgs.attachments))
+        parts.push(new SyntheticPartLeaf(attachDesc.body, attachDesc));
+      bodyPart = new SyntheticPartMultiMixed(parts);
+    }
+
+    msg.bodyPart = bodyPart;
+
+    msg.callerData = aArgs.callerData;
 
     return msg;
   }
@@ -565,7 +709,7 @@ MessageScenarioFactory.prototype = {
     aNumMessages = aNumMessages || 2;
     let messages = [this._msgGen.makeMessage()];
     for (let i = 1; i < aNumMessages; i++) {
-      messages.push(msgGen.makeMessage(messages[i-1]));
+      messages.push(this._msgGen.makeMessage({inReplyTo: messages[i-1]}));
     }
     return messages;
   },
@@ -573,16 +717,16 @@ MessageScenarioFactory.prototype = {
   /** Two siblings (present), one parent (missing). */
   siblingsMissingParent: function() {
     let missingParent = this._msgGen.makeMessage();
-    let msg1 = this._msgGen.makeMessage(missingParent);
-    let msg2 = this._msgGen.makeMessage(missingParent);
+    let msg1 = this._msgGen.makeMessage({inReplyTo: missingParent});
+    let msg2 = this._msgGen.makeMessage({inReplyTo: missingParent});
     return [msg1, msg2];
   },
 
   /** Present parent, missing child, present grand-child. */
   missingIntermediary: function() {
     let msg1 = this._msgGen.makeMessage();
-    let msg2 = this._msgGen.makeMessage(msg1);
-    let msg3 = this._msgGen.makeMessage(msg2);
+    let msg2 = this._msgGen.makeMessage({inReplyTo: msg1});
+    let msg3 = this._msgGen.makeMessage({inReplyTo: msg2});
     return [msg1, msg3];
   },
 
@@ -597,7 +741,7 @@ MessageScenarioFactory.prototype = {
     let messages = [root];
     function helper(aParent, aRemDepth) {
       for (let iChild = 0; iChild < aChildrenPerParent; iChild++) {
-        let child = msgGen.makeMessage(aParent);
+        let child = msgGen.makeMessage({inReplyTo: aParent});
         messages.push(child);
         if (aRemDepth)
           helper(child, aRemDepth - 1);

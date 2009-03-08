@@ -96,6 +96,7 @@ public:
   NS_DECL_NSIINTERFACEREQUESTOR
 
   // Utility output functions...
+  NS_IMETHOD          UtilityWrite(const nsACString &buf);
   NS_IMETHOD          UtilityWriteCRLF(const char *buf);
 
   // For string bundle usage...

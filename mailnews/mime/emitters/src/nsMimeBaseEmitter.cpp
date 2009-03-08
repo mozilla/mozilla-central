@@ -149,7 +149,8 @@ nsMimeBaseEmitter::~nsMimeBaseEmitter(void)
         continue;
 
       PR_FREEIF(attachInfo->contentType);
-      PR_FREEIF(attachInfo->displayName);
+      if (attachInfo->displayName)
+        NS_Free(attachInfo->displayName);
       PR_FREEIF(attachInfo->urlSpec);
       PR_FREEIF(attachInfo);
     }
@@ -388,7 +389,9 @@ nsMimeBaseEmitter::GetOutputListener(nsIStreamListener **listener)
 
 // Attachment handling routines
 nsresult
-nsMimeBaseEmitter::StartAttachment(const char *name, const char *contentType, const char *url,
+nsMimeBaseEmitter::StartAttachment(const nsACString &name,
+                                   const char *contentType,
+                                   const char *url,
                                    PRBool aIsExternalAttachment)
 {
   // Ok, now we will setup the attachment info
@@ -397,7 +400,7 @@ nsMimeBaseEmitter::StartAttachment(const char *name, const char *contentType, co
   {
     ++mAttachCount;
 
-    mCurrentAttachment->displayName = strdup(name);
+    mCurrentAttachment->displayName = ToNewCString(name);
     mCurrentAttachment->urlSpec = strdup(url);
     mCurrentAttachment->contentType = strdup(contentType);
     mCurrentAttachment->isExternalAttachment = aIsExternalAttachment;
@@ -434,28 +437,30 @@ nsMimeBaseEmitter::AddAttachmentField(const char *field, const char *value)
 NS_IMETHODIMP
 nsMimeBaseEmitter::UtilityWrite(const char *buf)
 {
-  PRInt32     tmpLen = strlen(buf);
   PRUint32    written;
+  Write(nsDependentCString(buf), &written);
+  return NS_OK;
+}
 
-  Write(buf, tmpLen, &written);
-
+NS_IMETHODIMP
+nsMimeBaseEmitter::UtilityWrite(const nsACString &buf)
+{
+  PRUint32    written;
+  Write(buf, &written);
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMimeBaseEmitter::UtilityWriteCRLF(const char *buf)
 {
-  PRInt32     tmpLen = strlen(buf);
   PRUint32    written;
-
-  Write(buf, tmpLen, &written);
-  Write(CRLF, 2, &written);
-
+  Write(nsDependentCString(buf), &written);
+  Write(NS_LITERAL_CSTRING(CRLF), &written);
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMimeBaseEmitter::Write(const char *buf, PRUint32 size, PRUint32 *amountWritten)
+nsMimeBaseEmitter::Write(const nsACString &buf, PRUint32 *amountWritten)
 {
   unsigned int        written = 0;
   nsresult rv = NS_OK;
@@ -466,7 +471,7 @@ nsMimeBaseEmitter::Write(const char *buf, PRUint32 size, PRUint32 *amountWritten
   printf("%s", buf);
 #endif
 
-  PR_LOG(gMimeEmitterLogModule, PR_LOG_ALWAYS, (buf));
+  PR_LOG(gMimeEmitterLogModule, PR_LOG_ALWAYS, (PromiseFlatCString(buf).get()));
   //
   // Make sure that the buffer we are "pushing" into has enough room
   // for the write operation. If not, we have to buffer, return, and get
@@ -488,7 +493,7 @@ nsMimeBaseEmitter::Write(const char *buf, PRUint32 size, PRUint32 *amountWritten
     // and return
     if (mBufferMgr->GetSize() > 0)
     {
-      mBufferMgr->IncreaseBuffer(buf, size);
+      mBufferMgr->IncreaseBuffer(buf.BeginReading(), buf.Length());
       return rv;
     }
   }
@@ -496,12 +501,14 @@ nsMimeBaseEmitter::Write(const char *buf, PRUint32 size, PRUint32 *amountWritten
 
   // if we get here, we are dealing with new data...try to write
   // and then do the right thing...
-  rv = WriteHelper(buf, size, &written);
+  rv = WriteHelper(buf.BeginReading(), buf.Length(), &written);
   *amountWritten = written;
   mTotalWritten += written;
 
-  if (written < size)
-    mBufferMgr->IncreaseBuffer(buf+written, (size-written));
+  if (written < buf.Length()) {
+    const nsACString &remainder = Substring(buf, written);
+    mBufferMgr->IncreaseBuffer(remainder.BeginReading(), remainder.Length());
+  }
 
   return rv;
 }
@@ -927,7 +934,7 @@ nsMimeBaseEmitter::Complete()
 
   nsresult rv = NS_OK;
   while ( NS_SUCCEEDED(rv) && (mBufferMgr) && (mBufferMgr->GetSize() > 0))
-    rv = Write("", 0, &written);
+    rv = Write(EmptyCString(), &written);
 
   if (mOutListener)
   {
@@ -963,7 +970,7 @@ nsMimeBaseEmitter::StartBody(PRBool bodyOnly, const char *msgID, const char *out
 }
 
 NS_IMETHODIMP
-nsMimeBaseEmitter::WriteBody(const char *buf, PRUint32 size, PRUint32 *amountWritten)
+nsMimeBaseEmitter::WriteBody(const nsACString &buf, PRUint32 *amountWritten)
 {
   return NS_OK;
 }

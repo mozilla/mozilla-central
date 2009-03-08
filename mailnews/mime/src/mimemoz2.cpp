@@ -893,14 +893,15 @@ mime_output_fn(const char *buf, PRInt32 size, void *stream_closure)
   {
     if (msd->output_emitter)
     {
-      msd->output_emitter->WriteBody(buf, (PRUint32) size, &written);
+      msd->output_emitter->WriteBody(Substring(buf, buf+size),
+                                     &written);
     }
   }
   else
   {
     if (msd->output_emitter)
     {
-      msd->output_emitter->Write(buf, (PRUint32) size, &written);
+      msd->output_emitter->Write(Substring(buf, buf+size), &written);
     }
   }
   return written;
@@ -1799,7 +1800,8 @@ mimeEmitterStartAttachment(MimeDisplayOptions *opt, const char *name, const char
   if (msd->output_emitter)
   {
     nsIMimeEmitter *emitter = (nsIMimeEmitter *)msd->output_emitter;
-    return emitter->StartAttachment(name, contentType, url, aIsExternalAttachment);
+    return emitter->StartAttachment(nsDependentCString(name), contentType, url,
+                                    aIsExternalAttachment);
   }
 
   return NS_ERROR_FAILURE;

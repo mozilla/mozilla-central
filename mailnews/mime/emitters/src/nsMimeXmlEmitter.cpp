@@ -183,7 +183,9 @@ nsMimeXmlEmitter::EndHeader()
 
 // Attachment handling routines
 nsresult
-nsMimeXmlEmitter::StartAttachment(const char *name, const char *contentType, const char *url,
+nsMimeXmlEmitter::StartAttachment(const nsACString &name,
+                                  const char *contentType,
+                                  const char *url,
                                   PRBool aIsExternalAttachment)
 {
   char    buf[128];
@@ -193,7 +195,7 @@ nsMimeXmlEmitter::StartAttachment(const char *name, const char *contentType, con
   sprintf(buf, "<mailattachment id=\"%d\">", mAttachCount);
   UtilityWrite(buf);
 
-  AddAttachmentField(HEADER_PARM_FILENAME, name);
+  AddAttachmentField(HEADER_PARM_FILENAME, PromiseFlatCString(name).get());
   return NS_OK;
 }
 

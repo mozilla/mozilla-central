@@ -51,7 +51,7 @@ public:
     nsMimeRawEmitter ();
     virtual       ~nsMimeRawEmitter (void);
 
-    NS_IMETHOD    WriteBody(const char *buf, PRUint32 size, PRUint32 *amountWritten);
+    NS_IMETHOD    WriteBody(const nsACString &buf, PRUint32 *amountWritten);
 
 protected:
 };

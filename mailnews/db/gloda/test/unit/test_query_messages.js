@@ -73,11 +73,13 @@ function generateFolderMessages() {
   let iAuthor = 0;
   for (let iMessage = 0; iMessage < world.MESSAGES_PER_FOLDER; iMessage++) {
     let iConvo = iMessage % world.NUM_CONVERSATIONS;
-    let smsg = msgGen.makeMessage(world.lastMessagesInConvos[iConvo]);
+    let smsg = msgGen.makeMessage({
+      inReplyTo: world.lastMessagesInConvos[iConvo]
+    });
     // we need missing messages to create ghosts, so periodically add an extra
     //  unknown into the equation
     if ((iMessage % 3) == 0)
-      smsg = msgGen.makeMessage(smsg);
+      smsg = msgGen.makeMessage({inReplyTo: smsg});
     
     // makeMessage is not exceedingly clever right now, we need to overwrite
     //  From and To...

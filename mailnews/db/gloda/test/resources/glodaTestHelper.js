@@ -220,6 +220,8 @@ function imsInit() {
     ims.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
     ims.catchAllCollection.listener = messageCollectionListener;
     
+    // Make the indexer be more verbose about indexing for us...
+    GlodaIndexer._unitTestSuperVerbose = true;
     // The indexer doesn't need to worry about load; zero his rescheduling time. 
     GlodaIndexer._indexInterval = 0;
     // And it doesn't need to adjust its performance, either.
@@ -813,6 +815,7 @@ QueryExpectationListener.prototype = {
       do_throw("Query should have returned " + key + "(" + value + ")");
     }
     
+    dump(">>> queryCompleted, advancing to next test\n");
     next_test();
   },
 }
@@ -915,8 +918,20 @@ function _gh_test_iterator() {
   do_test_pending();
 
   for (let iTest=0; iTest < glodaHelperTests.length; iTest++) {
-    dump("====== Test function: " + glodaHelperTests[iTest].name + "\n");
-    yield glodaHelperTests[iTest]();
+    let test = glodaHelperTests[iTest];
+    // deal with parameterized tests (via parameterizeTest)
+    if (test.length) {
+      let [testFunc, parameters] = test;
+      for each (let [, parameter] in Iterator(parameters)) {
+        dump("====== Test function: " + testFunc.name + " Parameter: " +
+             parameter.name + "\n");
+        yield testFunc(parameter);
+      }
+    }
+    else {
+      dump("====== Test function: " + test.name + "\n");
+      yield test();
+    }
   }
 
   if (indexMessageState.injectMechanism == INJECT_FAKE_SERVER) {
@@ -951,6 +966,18 @@ function next_test() {
 }
 
 DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS = 180;
+
+/**
+ * Purely decorative function to help explain to people reading lists of tests
+ *  using glodaHelperRunTests what is going on.  We just return a tuple of our
+ *  arguments and _gh_test_iterator understands what to do with this, namely
+ *  to run the test once for each element in the aParameters list.  If the
+ *  elements in the aParameters list have a 'name' attribute, it will get
+ *  printed out to help figure out what is actually happening.
+ */
+function parameterizeTest(aTestFunc, aParameters) {
+  return [aTestFunc, aParameters];
+}
 
 /**
  * Test driving logic that takes a list of tests to run.  Every completed test

@@ -380,8 +380,7 @@ MimeMessageEmitter.prototype = {
   },
   
   writeBody: function mime_emitter_writeBody(aBuf, aSize, aOutAmountWritten) {
-    if (this._curBodyPart)
-      this._curBodyPart.body += aBuf;
+    this._curBodyPart.body += aBuf;
   },
   
   endBody: function mime_emitter_endBody() {

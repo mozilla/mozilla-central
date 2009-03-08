@@ -61,14 +61,15 @@ public:
     NS_IMETHOD    EndHeader();
 
     // Attachment handling routines
-    NS_IMETHOD    StartAttachment(const char *name, const char *contentType, const char *url,
+    NS_IMETHOD    StartAttachment(const nsACString &name,
+                                  const char *contentType, const char *url,
                                   PRBool aIsExternalAttachment);
     NS_IMETHOD    AddAttachmentField(const char *field, const char *value);
     NS_IMETHOD    EndAttachment();
     NS_IMETHOD    EndAllAttachments();
 
     // Body handling routines
-    NS_IMETHOD    WriteBody(const char *buf, PRUint32 size, PRUint32 *amountWritten);
+    NS_IMETHOD    WriteBody(const nsACString &buf, PRUint32 *amountWritten);
     NS_IMETHOD    EndBody();
     NS_IMETHOD WriteHTMLHeaders();
 
@@ -84,7 +85,8 @@ protected:
 
     nsresult GetHeaderSink(nsIMsgHeaderSink ** aHeaderSink);
     PRBool BroadCastHeadersAndAttachments();
-    nsresult StartAttachmentInBody(const char *name, const char *contentType, const char *url);
+    nsresult StartAttachmentInBody(const nsACString &name,
+                                   const char *contentType, const char *url);
 
     nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
     nsresult GenerateDateString(const char * dateString, nsACString& formattedDate);

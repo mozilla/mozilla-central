@@ -889,7 +889,7 @@ const char output[] = "\
     PR_snprintf(outBuf, sizeof(outBuf), output, url.get(), url.get());
 
     if (mEmitter)
-      mEmitter->Write(outBuf, strlen(outBuf), &written);
+      mEmitter->Write(nsDependentCString(outBuf), &written);
 
     // rhp: will this stop the stream???? Not sure.
     return NS_ERROR_FAILURE;
@@ -930,7 +930,9 @@ const char output[] = "\
   {
     rc = NS_OK;
     if (mEmitter)
-      rc = mEmitter->Write(buf, readLen, &written);
+    {
+      rc = mEmitter->Write(Substring(buf, buf+readLen), &written);
+    }
   }
   else if (mBridgeStream)
   {

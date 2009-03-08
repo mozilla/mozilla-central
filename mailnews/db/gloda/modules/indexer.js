@@ -2333,10 +2333,12 @@ var GlodaIndexer = {
         aCallbackHandle.callback);
     let [,aMimeMsg] = yield this.kWorkAsync;
 
-    if (aMimeMsg)
-      this._log.debug("  * Got Mime Message!");
-    else
-      this._log.debug("  * Did not get body!");
+    if (this._unitTestSuperVerbose) {
+      if (aMimeMsg)
+        this._log.debug("  * Got Mime " + aMimeMsg.prettyString());
+      else
+        this._log.debug("  * NO MIME MESSAGE!!!\n");
+    }
 
     // -- Find/create the conversation the message belongs to.
     // Our invariant is that all messages that exist in the database belong to

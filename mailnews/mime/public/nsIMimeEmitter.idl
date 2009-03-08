@@ -55,7 +55,7 @@ interface nsMimeHeaderDisplayTypes
 #define NS_IMIME_MISC_STATUS_KEY       "@mozilla.org/MimeMiscStatus;1?type="
 %}
 
-[scriptable, uuid(c470b05e-9006-43a4-aa84-0da080360675)]
+[scriptable, uuid(7a57166f-2891-4122-9a74-6c3fab0caac3)]
 interface nsIMimeEmitter : nsISupports {
 
     // Output listener to allow access to it from mime.
@@ -78,7 +78,8 @@ interface nsIMimeEmitter : nsISupports {
     void updateCharacterSet([const] in string aCharset);
 
     // Attachment handling routines.
-    void startAttachment([const] in string name, [const] in string contentType,
+    void startAttachment([const] in AUTF8String name,
+                         [const] in string contentType,
                          [const] in string url, in PRBool aNotDownloaded);
     void addAttachmentField([const] in string field, [const] in string value);
     void endAttachment();
@@ -87,12 +88,12 @@ interface nsIMimeEmitter : nsISupports {
 
     // Body handling routines.
     void startBody(in PRBool bodyOnly, [const] in string msgID, [const] in string outCharset);
-    void writeBody([const] in string buf, in PRUint32 size, out PRUint32 amountWritten);
+    void writeBody([const] in AUTF8String buf, out PRUint32 amountWritten);
     void endBody();
 
     // Generic write routine. This is necessary for output that
     // libmime needs to pass through without any particular parsing
     // involved (i.e. decoded images, HTML Body Text, etc...
-    void write([const] in string buf, in PRUint32 size, out PRUint32 amountWritten);
+    void write([const] in ACString buf, out PRUint32 amountWritten);
     void utilityWrite([const] in string buf);
 };
