@@ -1,9 +1,9 @@
 // Import the servers
-do_import_script("../mailnews/test/fakeserver/maild.js")
-do_import_script("../mailnews/test/fakeserver/nntpd.js")
+do_import_script("../mailnews/test/fakeserver/maild.js");
+do_import_script("../mailnews/test/fakeserver/nntpd.js");
 
 // Generic mailnews resource scripts
-do_import_script("../mailnews/test/resources/mailDirService.js")
+do_import_script("../mailnews/test/resources/mailDirService.js");
 
 // The groups to set up on the fake server.
 // It is an array of tuples, where the first element is the group name and the
@@ -27,7 +27,7 @@ function setupNNTPDaemon() {
   var enumerator = auto_add.directoryEntries;
   while (enumerator.hasMoreElements())
     files.push(enumerator.getNext().QueryInterface(Ci.nsIFile));
-  
+
   files.sort(function (a, b) {
     if (a.leafName == b.leafName) return 0;
     return a.leafName < b.leafName ? -1 : 1;
@@ -40,7 +40,7 @@ function setupNNTPDaemon() {
                       .createInstance(Ci.nsIScriptableInputStream);
       fstream.init(file, -1, 0, 0);
       sstream.init(fstream);
-      
+
       var post = "";
       for (let part = sstream.read(4096); part.length > 0;) {
         post += part;
@@ -92,7 +92,7 @@ function setupLocalServer(port) {
     return _server;
   var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);
-  
+
   var server = acctmgr.createIncomingServer(null, "localhost", "nntp");
   server.port = port;
   server.valid = false;
@@ -104,7 +104,7 @@ function setupLocalServer(port) {
   subscribeServer(server);
 
   _server = server;
-  
+
   return server;
 }
 
@@ -115,7 +115,7 @@ const URLCreator = Cc["@mozilla.org/messenger/messageservice;1?type=news"]
 // Sets up a protocol object and prepares to run the test for the news url
 function setupProtocolTest(port, newsUrl, incomingServer) {
   var url;
-  if (newsUrl instanceof Ci.nsIMsgMailNewsUrl) { 
+  if (newsUrl instanceof Ci.nsIMsgMailNewsUrl) {
     url = newsUrl;
   } else {
     url = URLCreator.newURI(newsUrl, null, null);
@@ -124,7 +124,7 @@ function setupProtocolTest(port, newsUrl, incomingServer) {
   var newsServer = incomingServer;
   if (!newsServer)
     newsServer = setupLocalServer(port);
-  
+
   var listener = {
     onStartRequest : function () {},
     onStopRequest : function ()  {
@@ -134,7 +134,7 @@ function setupProtocolTest(port, newsUrl, incomingServer) {
         this.called = false;
       }
     },
-    onDataAvailable : function () {}, 
+    onDataAvailable : function () {},
     QueryInterface : function (iid) {
       if (iid.equals(Ci.nsIStreamListener) ||
           iid.equals(Ci.nsISupports))
