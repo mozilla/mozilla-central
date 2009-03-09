@@ -461,7 +461,8 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningURL);
     if (mailnewsUrl)
     {
-      mailnewsUrl->SetMsgWindow(aMsgWindow);
+      if (aMsgWindow)
+        mailnewsUrl->SetMsgWindow(aMsgWindow);
 
       m_runningURL->GetNewsAction(&m_newsAction);
       if (m_newsAction == nsINntpUrl::ActionFetchArticle || m_newsAction == nsINntpUrl::ActionFetchPart

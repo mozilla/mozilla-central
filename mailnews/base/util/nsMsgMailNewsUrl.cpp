@@ -221,8 +221,10 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 
 NS_IMETHODIMP nsMsgMailNewsUrl::SetMsgWindow(nsIMsgWindow *aMsgWindow)
 {
-  if (aMsgWindow)
-    m_msgWindowWeak = do_GetWeakReference(aMsgWindow);
+#ifdef DEBUG_David_Bienvenu
+  NS_ASSERTION(aMsgWindow || !m_msgWindowWeak, "someone crunching non-null msg window");
+#endif
+  m_msgWindowWeak = do_GetWeakReference(aMsgWindow);
   return NS_OK;
 }
 
