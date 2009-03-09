@@ -1,3 +1,4 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -127,12 +128,12 @@ nsActivityManager.prototype = {
   },
   
   removeActivity: function (aID) {
-    // make sure that the activity is not in-progress state
     let activity = this._activities[aID];
  
     if (!activity)
       throw Cr.NS_ERROR_NOT_AVAILABLE;
     
+    // make sure that the activity is not in-progress state
     if (activity instanceof Ci.nsIActivityProcess &&
         activity.state == Ci.nsIActivityProcess.STATE_INPROGRESS)
       throw Cr.NS_ERROR_FAILURE;
@@ -148,6 +149,19 @@ nsActivityManager.prototype = {
       catch(e) {
         // ignore the exception
       }
+    }
+  },
+
+  cleanUp: function () {
+    // Get the list of aIDs.
+    this.log.info("cleanUp\n");
+    for (var id in this._activities) {
+      let state = this._activities[id].state;
+      if (state != Ci.nsIActivityProcess.STATE_INPROGRESS ||
+          state != Ci.nsIActivityProcess.STATE_PAUSED ||
+          state != Ci.nsIActivityProcess.STATE_WAITINGFORINPUT ||
+          state != Ci.nsIActivityProcess.STATE_WAITINGFORRETRY)
+        this.removeActivity(id);
     }
   },
 

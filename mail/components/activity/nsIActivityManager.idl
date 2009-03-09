@@ -53,7 +53,7 @@ interface nsIVariant;
  * An interface to get notified by the major Activity Manager events.
  * Mostly used by UI glue code in activity.js.
  */
-[scriptable, uuid(8ed29f45-e0c4-4259-ad80-6ff177f87aa6)]
+[scriptable, uuid(14cfad1c-3401-4c44-ab04-4a11b6662663)]
 interface nsIActivityMgrListener : nsISupports {
   /**
    * Called _after_ activity manager adds an activity into
@@ -151,6 +151,11 @@ interface nsIActivityManager : nsISupports {
                              in nsIVariant aContextObject,
                              out unsigned long length,
                              [retval, array, size_is(length)] out nsIActivityProcess aProcesses);
+
+  /**
+   *  Call to remove all activities apart from those that are in progress.
+   */
+  void cleanUp();
 
   /**
    * The number of processes in the activity list.

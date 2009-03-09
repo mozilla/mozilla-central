@@ -295,18 +295,12 @@ function replaceInsert(aText, aIndex, aValue)
 function clearActivityList()
 {
   gActivityLogger.debug("clearActivityList");
-  // Remove each activity starting from the end until we hit a activity
-  // that is in progress or the end.
-  let item;
-  for (let i = gActivitiesView.itemCount-1; i >= 0; i--) {
-    let child = gActivitiesView.getItemAtIndex(i);
-    if (child.inProgress)
-      continue;
 
-    if (!child)
-      break;
-    removeActivityBinding(child.getAttribute('actID'));
-  }
+  // If/when we implement search, we'll want to remove just the items that
+  // are on the search display, however for now, we'll just clear up everything.
+  Components.classes["@mozilla.org/activity-manager;1"]
+            .getService(Components.interfaces.nsIActivityManager)
+            .cleanUp();
 
   gActivitiesView.focus();
 }
