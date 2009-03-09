@@ -40,7 +40,7 @@
 
 interface nsIMAPNamespace;
 
-[scriptable, uuid(94AE833C-3E53-481A-B588-89B28096F5D0)]
+[scriptable, uuid(29a2ffbd-9dad-41f5-8df7-51feca9bfbfc)]
 interface nsIMailboxSpec : nsISupports
 {
   attribute long folder_UIDVALIDITY;
@@ -52,10 +52,13 @@ interface nsIMailboxSpec : nsISupports
   attribute long numMessages;
   attribute long numUnseenMessages;
   attribute long numRecentMessages;
-	
-  attribute unsigned long	box_flags;
+
+  /// If server supports UIDNEXT, we store the result here.
+  attribute long nextUID;
+
+  attribute unsigned long box_flags;
   attribute unsigned long supportedUserFlags;
-	
+
   attribute ACString allocatedPathName;
   attribute AString unicharPathName;
   attribute char hierarchySeparator;
@@ -70,5 +73,3 @@ interface nsIMailboxSpec : nsISupports
 
   [noscript] attribute nsIMAPNamespace  namespaceForFolder;
 };
-
-

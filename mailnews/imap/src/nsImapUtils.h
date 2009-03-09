@@ -94,6 +94,7 @@ public:
   PRInt32   mNumOfMessages;
   PRInt32   mNumOfUnseenMessages;
   PRInt32   mNumOfRecentMessages;
+  PRInt32   mNextUID;
   nsCString mAllocatedPathName;
   nsCString mHostName;
   nsString  mUnicharPathName;

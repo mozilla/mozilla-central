@@ -159,6 +159,7 @@ nsImapMailboxSpec::nsImapMailboxSpec()
   mNumOfMessages = 0;
   mNumOfUnseenMessages = 0;
   mNumOfRecentMessages = 0;
+  mNextUID = 0;
   
   mBoxFlags = 0;
   mSupportedUserFlags = 0;
@@ -181,6 +182,7 @@ NS_IMPL_GETSET(nsImapMailboxSpec, HighestModSeq, PRUint64, mHighestModSeq)
 NS_IMPL_GETSET(nsImapMailboxSpec, NumMessages, PRInt32, mNumOfMessages)
 NS_IMPL_GETSET(nsImapMailboxSpec, NumUnseenMessages, PRInt32, mNumOfUnseenMessages)
 NS_IMPL_GETSET(nsImapMailboxSpec, NumRecentMessages, PRInt32, mNumOfRecentMessages)
+NS_IMPL_GETSET(nsImapMailboxSpec, NextUID, PRInt32, mNextUID)
 NS_IMPL_GETSET(nsImapMailboxSpec, HierarchySeparator, char, mHierarchySeparator)
 NS_IMPL_GETSET(nsImapMailboxSpec, FolderSelected, PRBool, mFolderSelected)
 NS_IMPL_GETSET(nsImapMailboxSpec, DiscoveredFromLsub, PRBool, mDiscoveredFromLsub)

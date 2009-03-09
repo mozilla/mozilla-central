@@ -350,6 +350,7 @@ public:
   // these might end up as an nsIImapMailFolder attribute.
   nsresult SetSupportedUserFlags(PRUint32 userFlags);
   nsresult GetSupportedUserFlags(PRUint32 *userFlags);
+
 protected:
   // Helper methods
 
@@ -461,8 +462,15 @@ protected:
   // used for condstore support;
   PRUint64 m_highestModSeq;
 
-  PRInt32 m_numStatusRecentMessages; // used to store counts from Status command
-  PRInt32 m_numStatusUnseenMessages;
+  // These three vars are used to store counts from STATUS or SELECT command
+  // They include deleted messages, so they can differ from the generic
+  // folder total and unread counts.
+  PRInt32 m_numServerRecentMessages; 
+  PRInt32 m_numServerUnseenMessages;
+  PRInt32 m_numServerTotalMessages;
+  // if server supports UIDNEXT, we store it here.
+  PRInt32 m_nextUID;
+
   PRInt32  m_nextMessageByteLength;
   nsCOMPtr<nsIThread> m_thread;
   nsCOMPtr<nsIUrlListener> m_urlListener;

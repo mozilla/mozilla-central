@@ -647,7 +647,7 @@ nsresult nsMsgDBFolder::ReadDBFolderInfo(PRBool force)
   // Since it turns out to be pretty expensive to open and close
   // the DBs all the time, if we have to open it once, get everything
   // we might need while we're here
-  nsresult result = NS_ERROR_FAILURE;
+  nsresult result = NS_OK;
 
   // don't need to reload from cache if we've already read from cache,
   // and, we might get stale info, so don't do it.

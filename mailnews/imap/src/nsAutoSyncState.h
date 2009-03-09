@@ -95,6 +95,9 @@ class nsAutoSyncState : public nsIAutoSyncState, public nsIUrlListener
   /// Manages storage space for auto-sync operations 
   nsresult ManageStorageSpace();
 
+  void SetServerCounts(PRInt32 total, PRInt32 recent, PRInt32 unseen,
+                       PRInt32 nextUID);
+
  private:
   ~nsAutoSyncState();
   
@@ -114,6 +117,13 @@ class nsAutoSyncState : public nsIAutoSyncState, public nsIUrlListener
   nsWeakPtr mOwnerFolder;
   PRUint32 mOffset;
   PRUint32 mLastOffset;
+
+  // used to tell if the Server counts have changed.
+  PRInt32 mLastServerTotal;
+  PRInt32 mLastServerRecent;
+  PRInt32 mLastServerUnseen;
+  PRInt32 mLastNextUID;
+
   PRTime mLastSyncTime;
   PRTime mLastUpdateTime;
   PRUint32 mProcessPointer;

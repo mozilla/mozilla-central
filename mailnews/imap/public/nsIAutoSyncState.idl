@@ -47,14 +47,21 @@ interface nsIAutoSyncState : nsISupports {
   /**
    * Auto-Sync states
    */
-   
+
   /** sync'd and no pending messages */
   const long stCompletedIdle = 0;     
-  
-  const long stDownloadInProgress	= 1;
-  
+
+  /** STATUS issued. Will check to see if  any counts changed since last STATUS */
+  const long stStatusIssued = 1;
+
+  /** Update issued. Will figure out if there are any bodies to download */
+  const long stUpdateIssued = 2;
+
+  /** Message body download in progress */
+  const long stDownloadInProgress = 3;
+
   /** ready to download the next group of messages */
-  const long stReadyToDownload = 2;             
+  const long stReadyToDownload = 4;
 
   /**
    * Puts the download queue offset to its previous position. 

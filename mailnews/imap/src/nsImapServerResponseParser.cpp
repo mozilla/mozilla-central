@@ -1927,6 +1927,15 @@ void nsImapServerResponseParser::resp_text_code()
         AdvanceToNextToken();
       }
     }
+    else if (!PL_strcasecmp(fNextToken,"UIDNEXT"))
+    {
+      AdvanceToNextToken();
+      if (ContinueParse())
+      {
+        fStatusNextUID = atoi(fNextToken);
+        AdvanceToNextToken();
+      }
+    }
     else if (!PL_strcasecmp(fNextToken, "APPENDUID"))
     {
       AdvanceToNextToken();
@@ -3155,7 +3164,8 @@ nsImapMailboxSpec *nsImapServerResponseParser::CreateCurrentMailboxSpec(const ch
   returnSpec->mNumOfMessages = (mailboxName) ? fStatusExistingMessages : fNumberOfExistingMessages;
   returnSpec->mNumOfUnseenMessages = (mailboxName) ? fStatusUnseenMessages : fNumberOfUnseenMessages;
   returnSpec->mNumOfRecentMessages = (mailboxName) ? fStatusRecentMessages : fNumberOfRecentMessages;
-  
+  returnSpec->mNextUID = fStatusNextUID;
+
   returnSpec->mSupportedUserFlags = fSupportsUserDefinedFlags;
 
   returnSpec->mBoxFlags = kNoFlags;	// stub

@@ -76,7 +76,7 @@ interface nsIMsgImapFolderProps : nsISupports {
     void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
 };
 
-[scriptable, uuid(b43edc8e-f49b-4d1a-9980-e7c4c0ebcdef)]
+[scriptable, uuid(a18390ec-f21a-40e0-8d77-a55dc0591698)]
 interface nsIMsgImapMailFolder : nsISupports {
   void removeSubFolder(in nsIMsgFolder folder);
   void createClientSubfolderInfo(in ACString folderName, in wchar hierarchyDelimiter, in long flags, in boolean suppressNotification);
@@ -131,6 +131,16 @@ interface nsIMsgImapMailFolder : nsISupports {
   readonly attribute nsIMsgParseMailMsgState hdrParser;
   readonly attribute nsIImapIncomingServer imapIncomingServer;
   readonly attribute nsIAutoSyncState autoSyncStateObj;
+  /**
+   * @{
+   * These are used to access the response to the STATUS or SELECT command.
+   * The counts include deleted messages, or headers we haven't downloaded yet.
+   */
+  readonly attribute long serverTotal;
+  readonly attribute long serverUnseen;
+  readonly attribute long serverRecent;
+  readonly attribute long serverNextUID;
+  /** @} */
 
   /**
    * Quota

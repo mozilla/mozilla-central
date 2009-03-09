@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifdef DEBUG_ebirol
+#if defined(DEBUG_ebirol) || defined(DEBUG_David_Bienvenu)
 #define DEBUG_me
 #endif
 
@@ -111,9 +111,11 @@ PRBool MsgStrategyComparatorAdaptor::LessThan(const nsMsgKey& a, const nsMsgKey&
   return PR_FALSE;
 }
 
-nsAutoSyncState::nsAutoSyncState(nsImapMailFolder *aOwnerFolder, PRTime aLastSyncTime) 
-  : mSyncState(stCompletedIdle), mOffset(0U), mLastOffset(0U), mLastSyncTime(aLastSyncTime), 
-    mLastUpdateTime(0UL), mProcessPointer(0U), mIsDownloadQChanged(PR_FALSE), mRetryCounter(0U)
+nsAutoSyncState::nsAutoSyncState(nsImapMailFolder *aOwnerFolder, PRTime aLastSyncTime)
+  : mSyncState(stCompletedIdle), mOffset(0U), mLastOffset(0U), mLastServerTotal(0),
+    mLastServerRecent(0), mLastServerUnseen(0), mLastNextUID(0),
+    mLastSyncTime(aLastSyncTime), mLastUpdateTime(0UL), mProcessPointer(0U),
+    mIsDownloadQChanged(PR_FALSE), mRetryCounter(0U)
 {
   mOwnerFolder = do_GetWeakReference(static_cast<nsIMsgImapMailFolder*>(aOwnerFolder));
 }
@@ -444,25 +446,55 @@ NS_IMETHODIMP nsAutoSyncState::OnStartRunningUrl(nsIURI* aUrl)
 }
 
 NS_IMETHODIMP nsAutoSyncState::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCode)
-{ 
+{
   nsresult rv;
   nsCOMPtr <nsIMsgFolder> ownerFolder = do_QueryReferent(mOwnerFolder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+  nsCOMPtr<nsIAutoSyncManager> autoSyncMgr = do_GetService(NS_AUTOSYNCMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIUrlListener> autoSyncMgrListener = do_QueryInterface(autoSyncMgr, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (mSyncState == stStatusIssued)
+  {
+    nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryReferent(mOwnerFolder, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    PRInt32 serverTotal, serverUnseen, serverRecent, serverNextUID;
+    imapFolder->GetServerTotal(&serverTotal);
+    imapFolder->GetServerUnseen(&serverUnseen);
+    imapFolder->GetServerRecent(&serverRecent);
+    imapFolder->GetServerNextUID(&serverNextUID);
+    if (serverNextUID != mLastNextUID || serverTotal != mLastServerTotal ||
+        serverUnseen != mLastServerUnseen || serverRecent != mLastServerRecent)
+    {
+#if defined(DEBUG_me) && defined(DEBUG_AutoSyncState_L0)
+      nsCString folderName;
+      ownerFolder->GetURI(folderName);
+      printf("folder %s status changed serverNextUID = %lx lastNextUID = %lx\n", folderName.get(),
+             serverNextUID, mLastNextUID);
+      printf("serverTotal = %lx lastServerTotal = %lx serverRecent = %lx lastServerRecent = %lx\n",
+        serverTotal, mLastServerTotal, serverRecent, mLastServerRecent);
+#endif
+      mSyncState = nsAutoSyncState::stUpdateIssued;
+      return imapFolder->UpdateFolder(nsnull, autoSyncMgrListener);
+    }
+    else
+    {
+      // nothing more to do.
+      mSyncState = nsAutoSyncState::stCompletedIdle;
+      // autoSyncMgr needs this notification, so manufacture it.
+      return autoSyncMgrListener->OnStopRunningUrl(nsnull, NS_OK);
+    }
+  }
   //XXXemre how we recover from this error?
   rv = ownerFolder->ReleaseSemaphore(ownerFolder);
   NS_ASSERTION(NS_SUCCEEDED(rv), "*** Cannot release folder semaphore");
-   
+
   nsCOMPtr<nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(aUrl);
   if (mailUrl)
     rv = mailUrl->UnRegisterListener(this);
-    
-  nsCOMPtr<nsIAutoSyncManager> autoSyncMgr = do_GetService(NS_AUTOSYNCMANAGER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  rv = autoSyncMgr->OnDownloadCompleted(this, aExitCode);
-    
-  return rv;
+
+  return autoSyncMgr->OnDownloadCompleted(this, aExitCode);
 }
 
 NS_IMETHODIMP nsAutoSyncState::GetState(PRInt32 *aState)
@@ -656,6 +688,15 @@ NS_IMETHODIMP nsAutoSyncState::SetLastUpdateTime(PRTime aLastUpdateTime)
 {
   mLastUpdateTime = aLastUpdateTime;
   return NS_OK;
+}
+
+void nsAutoSyncState::SetServerCounts(PRInt32 total, PRInt32 recent,
+                                      PRInt32 unseen, PRInt32 nextUID)
+{
+  mLastServerTotal = total;
+  mLastServerRecent = recent;
+  mLastServerUnseen = unseen;
+  mLastNextUID = nextUID;
 }
 
 NS_IMPL_ISUPPORTS2(nsAutoSyncState, nsIAutoSyncState, nsIUrlListener)

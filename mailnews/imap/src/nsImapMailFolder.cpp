@@ -236,8 +236,10 @@ nsImapMailFolder::nsImapMailFolder() :
   m_boxFlags = 0;
   m_uidValidity = kUidUnknown;
   m_highestModSeq = 0;
-  m_numStatusRecentMessages = 0;
-  m_numStatusUnseenMessages = 0;
+  m_numServerRecentMessages = 0;
+  m_numServerUnseenMessages = 0;
+  m_numServerTotalMessages = 0;
+  m_nextUID = nsMsgKey_None;
   m_hierarchyDelimiter = kOnlineHierarchySeparatorUnknown;
   m_folderACL = nsnull;
   m_aclFlags = 0;
@@ -1817,7 +1819,10 @@ NS_IMETHODIMP nsImapMailFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement
 
   m_aclFlags = -1; // init to invalid value.
   element->GetInt32Property("aclFlags", (PRInt32 *) &m_aclFlags);
-  
+  element->GetInt32Property("serverTotal", &m_numServerTotalMessages);
+  element->GetInt32Property("serverUnseen", &m_numServerUnseenMessages);
+  element->GetInt32Property("serverRecent", &m_numServerRecentMessages);
+  element->GetInt32Property("nextUID", &m_nextUID);
   PRInt32 lastSyncTimeInSec;
   if ( NS_FAILED(element->GetInt32Property("lastSyncTimeInSec", (PRInt32 *) &lastSyncTimeInSec)) )
     lastSyncTimeInSec = 0U;
@@ -1836,7 +1841,12 @@ NS_IMETHODIMP nsImapMailFolder::WriteToFolderCacheElem(nsIMsgFolderCacheElement 
   element->SetInt32Property("hierDelim", (PRInt32) m_hierarchyDelimiter);
   element->SetStringProperty("onlineName", m_onlineFolderName);
   element->SetInt32Property("aclFlags", (PRInt32) m_aclFlags);
-  
+  element->SetInt32Property("serverTotal", m_numServerTotalMessages);
+  element->SetInt32Property("serverUnseen", m_numServerUnseenMessages);
+  element->SetInt32Property("serverRecent", m_numServerRecentMessages);
+  if (m_nextUID != nsMsgKey_None)
+    element->SetInt32Property("nextUID", m_nextUID);
+
   // store folder's last sync time
   if (m_autoSyncStateObj)
   {
@@ -2466,8 +2476,8 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   nsresult rv;
   ChangeNumPendingTotalMessages(-GetNumPendingTotalMessages());
   ChangeNumPendingUnread(-GetNumPendingUnread());
-  m_numStatusRecentMessages = 0; // clear this since we selected the folder.
-  m_numStatusUnseenMessages = 0; // clear this since we selected the folder.
+  m_numServerRecentMessages = 0; // clear this since we selected the folder.
+  m_numServerUnseenMessages = 0; // clear this since we selected the folder.
 
   if (!mDatabase)
     GetDatabase();
@@ -2659,6 +2669,17 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
       ProgressStatus(aProtocol, IMAP_NO_NEW_MESSAGES, nsnull);
     SetPerformingBiff(PR_FALSE);
   }
+  aSpec->GetNumMessages(&m_numServerTotalMessages);
+  aSpec->GetNumUnseenMessages(&m_numServerUnseenMessages);
+  aSpec->GetNumRecentMessages(&m_numServerRecentMessages);
+
+  // some servers don't return UIDNEXT on SELECT - don't crunch
+  // existing values in that case.
+  PRInt32 nextUID;
+  aSpec->GetNextUID(&nextUID);
+  if (nextUID != nsMsgKey_None)
+    m_nextUID = nextUID;
+
   return rv;
 }
 
@@ -2666,18 +2687,22 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxStatus(
   nsIImapProtocol* aProtocol, nsIMailboxSpec* aSpec)
 {
   NS_ENSURE_ARG_POINTER(aSpec);
-  PRInt32 numRecent, numUnread;
-  aSpec->GetNumRecentMessages(&numRecent);
+  PRInt32 numUnread, numTotal;
   aSpec->GetNumUnseenMessages(&numUnread);
-  // If m_numStatusUnseenMessages is 0, it means
+  aSpec->GetNumMessages(&numTotal);
+  aSpec->GetNumRecentMessages(&m_numServerRecentMessages);
+  PRInt32 prevNextUID = m_nextUID;
+  aSpec->GetNextUID(&m_nextUID);
+
+  // If m_numServerUnseenMessages is 0, it means
   // this is the first time we've done a Status.
   // In that case, we count all the previous pending unread messages we know about
   // as unread messages.
   // We may want to do similar things with total messages, but the total messages
   // include deleted messages if the folder hasn't been expunged.
-  PRInt32 previousUnreadMessages = (m_numStatusUnseenMessages)
-    ? m_numStatusUnseenMessages : GetNumPendingUnread() + mNumUnreadMessages;
-  if (numUnread != previousUnreadMessages)
+  PRInt32 previousUnreadMessages = (m_numServerUnseenMessages)
+    ? m_numServerUnseenMessages : GetNumPendingUnread() + mNumUnreadMessages;
+  if (numUnread != previousUnreadMessages || m_nextUID != prevNextUID)
   {
     // we're going to assume that recent messages are unread.
     ChangeNumPendingUnread(numUnread - previousUnreadMessages);
@@ -2691,7 +2716,8 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxStatus(
     SummaryChanged();
   }
   SetPerformingBiff(PR_FALSE);
-  m_numStatusUnseenMessages = numUnread;
+  m_numServerUnseenMessages = numUnread;
+  m_numServerTotalMessages = numTotal;
   return NS_OK;
 }
 
@@ -4823,7 +4849,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
             {
               ChangeNumPendingTotalMessages(-mNumPendingTotalMessages);
               ChangeNumPendingUnread(-mNumPendingUnreadMessages);
-              m_numStatusUnseenMessages = 0;
+              m_numServerUnseenMessages = 0;
             }
 
           }
@@ -4918,7 +4944,7 @@ void nsImapMailFolder::UpdatePendingCounts()
     int numUnread = m_copyState->m_unreadCount;
     if (numUnread)
     {
-      m_numStatusUnseenMessages += numUnread; // adjust last status count by this delta.
+      m_numServerUnseenMessages += numUnread; // adjust last status count by this delta.
       ChangeNumPendingUnread(numUnread);
     }
     SummaryChanged();
@@ -8450,6 +8476,34 @@ NS_IMETHODIMP nsImapMailFolder::ChangePendingUnread(PRInt32 aDelta)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsImapMailFolder::GetServerRecent(PRInt32 *aServerRecent)
+{
+  NS_ENSURE_ARG_POINTER(aServerRecent);
+  *aServerRecent = m_numServerRecentMessages;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapMailFolder::GetServerTotal(PRInt32 *aServerTotal)
+{
+  NS_ENSURE_ARG_POINTER(aServerTotal);
+  *aServerTotal = m_numServerTotalMessages;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapMailFolder::GetServerUnseen(PRInt32 *aServerUnseen)
+{
+  NS_ENSURE_ARG_POINTER(aServerUnseen);
+  *aServerUnseen = m_numServerUnseenMessages;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapMailFolder::GetServerNextUID(PRInt32 *aNextUID)
+{
+  NS_ENSURE_ARG_POINTER(aNextUID);
+  *aNextUID = m_nextUID;
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsImapMailFolder::GetAutoSyncStateObj(nsIAutoSyncState **autoSyncStateObj)
 {
   NS_ENSURE_ARG_POINTER(autoSyncStateObj);
@@ -8486,11 +8540,23 @@ NS_IMETHODIMP nsImapMailFolder::InitiateAutoSync(nsIUrlListener *aUrlListener)
 
   // create auto-sync state object lazily
   InitAutoSyncState();
-  
+
+  // make sure we get the counts from the folder cache.
+  ReadDBFolderInfo(PR_FALSE);
+
   nsresult rv = m_autoSyncStateObj->ManageStorageSpace();
   NS_ENSURE_SUCCESS(rv, rv);
-  
-  rv = UpdateFolder(nsnull, aUrlListener);
+
+  // Issue a STATUS command and see if any counts changed.
+  m_autoSyncStateObj->SetState(nsAutoSyncState::stStatusIssued);
+  m_autoSyncStateObj->SetServerCounts(m_numServerTotalMessages,
+                                      m_numServerRecentMessages,
+                                      m_numServerUnseenMessages,
+                                      m_nextUID);
+  // The OnStopRunningUrl method of the autosync state obj
+  // will check if the counts or next uid have changed,
+  // and if so, will issue an UpdateFolder().
+  rv = UpdateStatus(m_autoSyncStateObj, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
   
   // record the last update time
