@@ -492,7 +492,7 @@ let gFolderTreeView = {
       // and there's only one, so just get the 0th element.
       let url = dt.mozGetDataAt("text/x-moz-url", 0);
       let uri = Cc["@mozilla.org/network/io-service;1"]
-                   .getService(Ci.nsIIOService).newUri(url, null, null);
+                   .getService(Ci.nsIIOService).newURI(url, null, null);
       if (!(uri.schemeIs("http") || uri.schemeIs("https")) ||
              targetFolder.server.type != 'rss')
         return;
