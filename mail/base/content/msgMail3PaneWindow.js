@@ -1186,15 +1186,17 @@ function TreeOnMouseDown(event)
       ChangeSelectionWithoutContentLoad(event, event.target.parentNode);
     }
     else
+    {
       gRightMouseButtonDown = false;
+    }
 }
 
 function FolderPaneOnClick(event)
 {
   var folderTree = document.getElementById("folderTree");
   
-  // Middle click on a folder opens the folder in a tab
-  if (event.button == 1)
+  // Middle click / ctrl + click on a folder opens the folder in a tab.
+  if (event.button == 1 || (event.button == 0 && event.ctrlKey))
   {
     MsgOpenNewTabForFolder();
     RestoreSelectionWithoutContentLoad(folderTree);
@@ -1223,8 +1225,8 @@ function ThreadTreeOnClick(event)
 {
   var threadTree = document.getElementById("threadTree");
   
-  // Middle click on a message opens the message in a tab
-  if (event.button == 1)
+  // Middle click / ctrl + click on a message opens the message in a tab.
+  if (event.button == 1 || (event.button == 0 && event.ctrlKey))
   {
     MsgOpenNewTabForMessage();
     RestoreSelectionWithoutContentLoad(threadTree);
