@@ -409,7 +409,7 @@ typeAheadFind.prototype = {
     this.mFound.setDocShell(docShell);
     this.mEventTarget = docShell.chromeEventHandler;
     this.mEventTarget.addEventListener("keypress", this, true);
-    this.mEventTarget.addEventListener("unload", this, true);
+    this.mEventTarget.addEventListener("pagehide", this, true);
     this.mCurrentWindow = w;
     this.mBadKeysSinceMatch = 0;
     this.mSearchString = "";
@@ -425,7 +425,7 @@ typeAheadFind.prototype = {
           Components.interfaces.nsISelectionController.SELECTION_ON);
     if (this.mEventTarget) {
       this.mEventTarget.removeEventListener("blur", this, true);
-      this.mEventTarget.removeEventListener("unload", this, true);
+      this.mEventTarget.removeEventListener("pagehide", this, true);
       this.mEventTarget.removeEventListener("keypress", this, true);
     }
     this.mEventTarget = null;
