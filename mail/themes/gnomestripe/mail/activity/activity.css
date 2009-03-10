@@ -56,10 +56,6 @@
   list-style-image: url(moz-icon://stock/gtk-clear?size=button&state=disabled);
 }
 
-activity-event:not([selected="true"]):nth-child(odd) {
-  background-color: -moz-oddtreerow;
-}
-
 /**
  * Images for buttons in the interface
  */
@@ -210,9 +206,6 @@ activity-process {
   min-height: 40px !important;
 }
 
-activity-event[selected="true"] {
-}
-
 activity-process .statusText {
   font-size: smaller;
   color: #555;
@@ -289,49 +282,32 @@ image.compactMail {
   -moz-padding-end: 2px;
 }
 
+.activityitem:not([selected="true"]):nth-child(odd) {
+  background-color: -moz-oddtreerow;
+}
+
 /* these are copied from richlistbox.css, to give us a starting point on selection */
 
-activity-process, activity-warning, activity-event {
+.activityitem {
   padding: 2px 4px;
   background-color: -moz-Field;
   color: -moz-FieldText;
 }
 
-activity-event[selected="true"],activity-warning[selected="true"],activity-process[selected="true"]{
+.activityitem[selected="true"] {
   background-color: -moz-Dialog;
   color: -moz-DialogText;
 }
 
-richlistbox.activitygroupbox:focus activity-process[selected="true"]{
-  background-color: Highlight;
-  color: Highlight;
-}
-
-richlistbox:focus activity-event[selected="true"],activity-warning[selected="true"]{
-  background-color: Highlight;
-  color: Highlight;
-}
-
+richlistbox:focus .activityitem[selected="true"],
 richlistbox:focus activity-group[selected="true"] {
   background-color: Highlight;
-}
-
-richlistbox.activitygroupbox:focus activity-process[selected="true"] .statusText,
-richlistbox.activitygroupbox:focus activity-process[selected="true"] .dateTime,
-richlistbox.activitygroupbox:focus activity-process[selected="true"] .displayText {
   color: HighlightText;
 }
 
-richlistbox:focus activity-event[selected="true"] .completionTime,
-richlistbox:focus activity-event[selected="true"] .displayText,
-richlistbox:focus activity-event[selected="true"] .dateTime,
-richlistbox:focus activity-event[selected="true"] .statusText {
-  color: HighlightText;
-}
-
-richlistbox:focus activity-warning[selected="true"] .dateTime,
-richlistbox:focus activity-warning[selected="true"] .displayText,
-richlistbox:focus activity-warning[selected="true"] .dateTime,
-richlistbox:focus activity-warning[selected="true"] .statusText {
+richlistbox:focus .activityitem[selected="true"] .statusText,
+richlistbox:focus .activityitem[selected="true"] .dateTime,
+richlistbox:focus .activityitem[selected="true"] .displayText,
+richlistbox:focus .activityitem[selected="true"] .completionTime {
   color: HighlightText;
 }

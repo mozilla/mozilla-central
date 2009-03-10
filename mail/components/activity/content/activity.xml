@@ -58,7 +58,7 @@
   <binding id="activity-group"
            extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
     <resources>
-      <stylesheet src="chrome://messenger/skin/activity.css"/>
+      <stylesheet src="chrome://messenger/skin/activity/activity.css"/>
     </resources>
     <implementation>
       <constructor>
@@ -145,7 +145,7 @@
 
   <binding id="activity-base" extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
     <resources>
-      <stylesheet src="chrome://messenger/skin/activity.css"/>
+      <stylesheet src="chrome://messenger/skin/activity/activity.css"/>
     </resources>
     <implementation implements="nsIActivityListener">
       <constructor>
@@ -573,7 +573,7 @@
         </getter>
       </property>
     </implementation>
-    <content>
+    <content class="activityitem">
       <xul:hbox flex="1" class="activityContentBox">
         <xul:vbox pack="center" class="processIconBox">
           <xul:image anonid="image" xbl:inherits="class=iconclass"/>
@@ -700,7 +700,7 @@
         </body>
       </method>
     </implementation>
-    <content>
+    <content class="activityitem">
       <xul:hbox flex="1">
         <xul:vbox pack="center" class="eventIconBox">
           <xul:image anonid="image" xbl:inherits="class=iconclass"/>
@@ -809,7 +809,7 @@
         </body>
       </method>
     </implementation>
-    <content>
+    <content class="activityitem">
       <xul:hbox flex="1">
         <xul:vbox pack="center" class="warningIconBox">
           <xul:image anonid="image"/>
