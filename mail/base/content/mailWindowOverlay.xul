@@ -458,11 +458,7 @@
        oncommand="ToggleMessageTagKey(9);"/>
 
   <!-- Tools Keys -->
-#ifdef MOZ_WIDGET_GTK2
-  <key id="key_searchMail" key="&searchMailCmd.key;" oncommand="goDoCommand('cmd_search')" modifiers="shift"/>
-#else
   <key id="key_searchMail" key="&searchMailCmd.key;" oncommand="goDoCommand('cmd_search')" modifiers="accel, shift"/>
-#endif
   <key id="key_addressbook"
        key="&addressBookCmd.key;"
        modifiers="accel, shift"
