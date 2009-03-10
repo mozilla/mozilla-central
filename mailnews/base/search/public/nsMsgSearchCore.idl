@@ -150,7 +150,8 @@ interface nsMsgSearchOp {
     const nsMsgSearchOpValue NameCompletion = 15; /* Name Completion operator...as the name implies =) */
     const nsMsgSearchOpValue IsInAB = 16;
     const nsMsgSearchOpValue IsntInAB = 17;
-    const nsMsgSearchOpValue kNumMsgSearchOperators  = 18;     /* must be last operator */
+    const nsMsgSearchOpValue IsntEmpty = 18; /* primarily for tags */
+    const nsMsgSearchOpValue kNumMsgSearchOperators  = 19;     /* must be last operator */
 };
 
 typedef long nsMsgSearchWidgetValue;

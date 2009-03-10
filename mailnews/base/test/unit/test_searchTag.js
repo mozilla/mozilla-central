@@ -55,6 +55,7 @@ const nsMsgSearchOp = Ci.nsMsgSearchOp;
 const Isnt = nsMsgSearchOp.Isnt;
 const Is = nsMsgSearchOp.Is;
 const IsEmpty = nsMsgSearchOp.IsEmpty;
+const IsntEmpty = nsMsgSearchOp.IsntEmpty;
 const Contains = nsMsgSearchOp.Contains;
 const DoesntContain = nsMsgSearchOp.DoesntContain;
 const IsBefore = nsMsgSearchOp.IsBefore; // control entry not enabled
@@ -100,6 +101,10 @@ var Tests =
     testTag: Tag1,
     op: IsEmpty,
     count: 0 },
+  { msgTag: Tag1,
+    testTag: Tag1,
+    op: IsntEmpty,
+    count: 1 },
   //test an invalid tag, should act like empty
   { msgTag: Tag2,
     testTag: Tag1,
@@ -121,6 +126,10 @@ var Tests =
     testTag: Tag1,
     op: IsEmpty,
     count: 1 },
+  { msgTag: Tag2,
+    testTag: Tag1,
+    op: IsntEmpty,
+    count: 0 },
 //   Message has two valid tags
   // test first tag
   { msgTag: Tag1Tag4,
@@ -143,6 +152,10 @@ var Tests =
     testTag: Tag1,
     op: IsEmpty,
     count: 0 },
+  { msgTag: Tag1Tag4,
+    testTag: Tag1,
+    op: IsntEmpty,
+    count: 1 },
   // test second tag
   { msgTag: Tag1Tag4,
     testTag: Tag4,
@@ -164,6 +177,10 @@ var Tests =
     testTag: Tag4,
     op: IsEmpty,
     count: 0 },
+  { msgTag: Tag1Tag4,
+    testTag: Tag4,
+    op: IsntEmpty,
+    count: 1 },
   // test tag not in message
   { msgTag: Tag1Tag4,
     testTag: Tag2,
@@ -185,6 +202,10 @@ var Tests =
     testTag: Tag2,
     op: IsEmpty,
     count: 0 },
+  { msgTag: Tag1Tag4,
+    testTag: Tag2,
+    op: IsntEmpty,
+    count: 1 },
   // empty message
   { msgTag: "",
     testTag: Tag2,
@@ -206,6 +227,10 @@ var Tests =
     testTag: Tag2,
     op: IsEmpty,
     count: 1 },
+  { msgTag: "",
+    testTag: Tag2,
+    op: IsntEmpty,
+    count: 0 },
 // message with two tags, only one is valid
   // test with the single valid tag  
   { msgTag: Tag1Tag3,
@@ -228,6 +253,10 @@ var Tests =
     testTag: Tag1,
     op: IsEmpty,
     count: 0 },
+  { msgTag: Tag1Tag3,
+    testTag: Tag1,
+    op: IsntEmpty,
+    count: 1 },
   // test with a tag not in the message  
   { msgTag: Tag1Tag3,
     testTag: Tag2,
@@ -249,6 +278,10 @@ var Tests =
     testTag: Tag2,
     op: IsEmpty,
     count: 0 },
+  { msgTag: Tag1Tag3,
+    testTag: Tag2,
+    op: IsntEmpty,
+    count: 1 },
 //   Message has a duplicated tag
   // test the tag
   { msgTag: Tag1Tag1,
@@ -271,6 +304,10 @@ var Tests =
     testTag: Tag1,
     op: IsEmpty,
     count: 0 },
+  { msgTag: Tag1Tag1,
+    testTag: Tag1,
+    op: IsntEmpty,
+    count: 1 },
 
 ];
 
@@ -288,6 +325,7 @@ function run_test()
   testValidityTable(offlineMail, Is, Keywords, true);
   testValidityTable(offlineMail, Isnt, Keywords, true);
   testValidityTable(offlineMail, IsEmpty, Keywords, true);
+  testValidityTable(offlineMail, IsntEmpty, Keywords, true);
   testValidityTable(offlineMail, IsBefore, Keywords, false);
 
   // offline mail filter table
@@ -296,6 +334,7 @@ function run_test()
   testValidityTable(offlineMailFilter, Is, Keywords, true);
   testValidityTable(offlineMailFilter, Isnt, Keywords, true);
   testValidityTable(offlineMailFilter, IsEmpty, Keywords, true);
+  testValidityTable(offlineMailFilter, IsntEmpty, Keywords, true);
   testValidityTable(offlineMailFilter, IsBefore, Keywords, false);
 
   // online mail
@@ -304,6 +343,7 @@ function run_test()
   testValidityTable(onlineMail, Is, Keywords, false);
   testValidityTable(onlineMail, Isnt, Keywords, false);
   testValidityTable(onlineMail, IsEmpty, Keywords, false);
+  testValidityTable(onlineMail, IsntEmpty, Keywords, false);
   testValidityTable(onlineMail, IsBefore, Keywords, false);
 
   // online mail filter  
@@ -312,6 +352,7 @@ function run_test()
   testValidityTable(onlineMailFilter, Is, Keywords, true);
   testValidityTable(onlineMailFilter, Isnt, Keywords, true);
   testValidityTable(onlineMailFilter, IsEmpty, Keywords, true);
+  testValidityTable(onlineMailFilter, IsntEmpty, Keywords, true);
   testValidityTable(onlineMailFilter, IsBefore, Keywords, false);
 
   // news
@@ -320,6 +361,7 @@ function run_test()
   testValidityTable(news, Is, Keywords, false);
   testValidityTable(news, Isnt, Keywords, false);
   testValidityTable(news, IsEmpty, Keywords, false);
+  testValidityTable(news, IsntEmpty, Keywords, false);
   testValidityTable(news, IsBefore, Keywords, false);
 
   // delete any existing tags

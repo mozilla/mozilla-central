@@ -233,6 +233,7 @@ nsMsgSearchOperatorEntry SearchOperatorEntryTable[] =
   {nsMsgSearchOp::Is,"is"},
   {nsMsgSearchOp::Isnt,  "isn't"},
   {nsMsgSearchOp::IsEmpty, "is empty"},
+  {nsMsgSearchOp::IsntEmpty, "isn't empty"},
   {nsMsgSearchOp::IsBefore, "is before"},
   {nsMsgSearchOp::IsAfter, "is after"},
   {nsMsgSearchOp::IsHigherThan, "is higher than"},
@@ -993,8 +994,8 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
   nsAutoString utf16StrToMatch;
   nsAutoString needle;
 
-  // Save some performance for opIsEmpty
-  if(nsMsgSearchOp::IsEmpty != m_operator)
+  // Save some performance for opIsEmpty / opIsntEmpty
+  if(nsMsgSearchOp::IsEmpty != m_operator && nsMsgSearchOp::IsntEmpty != m_operator)
   {
     NS_ASSERTION(MsgIsUTF8(nsDependentCString(m_value.string)),
                  "m_value.string is not UTF-8");
@@ -1049,6 +1050,11 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
   case nsMsgSearchOp::IsEmpty:
     // For IsEmpty, we didn't copy stringToMatch to utf16StrToMatch.
     if (!PL_strlen(stringToMatch))
+      result = PR_TRUE;
+    break;
+  case nsMsgSearchOp::IsntEmpty:
+    // For IsntEmpty, we didn't copy stringToMatch to utf16StrToMatch.
+    if (PL_strlen(stringToMatch))
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::BeginsWith:
@@ -1431,11 +1437,11 @@ nsresult nsMsgSearchTerm::MatchStatus(PRUint32 statusToMatch, PRBool *pResult)
 /*
  * MatchKeyword Logic table (*pResult: + is true, - is false)
  *
- *         # Valid Tokens IsEmpty Contains DoesntContain Is     Isnt
- *                0           +       -         +         -       +
- * Term found?                      N   Y     N   Y     N   Y   N   Y
- *                1           -     -   +     +   -     -   +   +   -
- *               >1           -     -   +     +   -     -   -   +   +
+ *         # Valid Tokens IsEmpty IsntEmpty Contains DoesntContain Is     Isnt
+ *                0           +         -      -         +         -       +
+ * Term found?                               N   Y     N   Y     N   Y   N   Y
+ *                1           -         +    -   +     +   -     -   +   +   -
+ *               >1           -         +    -   +     +   -     -   -   +   +
  */
 // look up nsMsgSearchTerm::m_value in space-delimited keywordList
 nsresult nsMsgSearchTerm::MatchKeyword(const nsACString& keywordList, PRBool *pResult)
@@ -1447,7 +1453,8 @@ nsresult nsMsgSearchTerm::MatchKeyword(const nsACString& keywordList, PRBool *pR
   if (keywordList.IsEmpty())
   {
     *pResult =  m_operator != nsMsgSearchOp::Contains &&
-                m_operator != nsMsgSearchOp::Is;
+                m_operator != nsMsgSearchOp::Is &&
+                m_operator != nsMsgSearchOp::IsntEmpty;
     return NS_OK;
   }
 
@@ -1503,6 +1510,13 @@ nsresult nsMsgSearchTerm::MatchKeyword(const nsACString& keywordList, PRBool *pR
         return rv;
       }
 
+      // IsntEmpty succeeds on any valid token
+      if (m_operator == nsMsgSearchOp::IsntEmpty)
+      {
+        *pResult = PR_TRUE;
+        return rv;
+      }
+
       // Does this valid tag key match our search term?
       matches = keywordArray[i].Equals(m_value.string);
 
@@ -1540,6 +1554,13 @@ nsresult nsMsgSearchTerm::MatchKeyword(const nsACString& keywordList, PRBool *pR
     *pResult = PR_TRUE;
     return NS_OK;
   }
+
+  if (m_operator == nsMsgSearchOp::IsntEmpty)
+  {
+    *pResult = PR_FALSE;
+    return NS_OK;
+  }
+
 
   // no valid match operator found
   NS_ERROR("invalid compare op for msg status");

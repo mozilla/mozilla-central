@@ -356,6 +356,8 @@ nsMsgSearchValidityManager::InitOfflineMailTable()
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Isnt, 1);
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
   return rv;
 }
 
@@ -575,6 +577,8 @@ nsMsgSearchValidityManager::InitOnlineMailFilterTable()
   m_onlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Isnt, 1);
   m_onlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
   m_onlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
+  m_onlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
+  m_onlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
 
   m_onlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
   m_onlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
@@ -743,6 +747,8 @@ nsMsgSearchValidityManager::InitOfflineMailFilterTable()
   m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Isnt, 1);
   m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
   m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
+  m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
+  m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
 
   m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
   m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
