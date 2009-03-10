@@ -74,9 +74,8 @@
 #include "nsIMsgIncomingServer.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgLocalCID.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIMsgFolderCacheElement.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsMsgUtils.h"
 #include "nsICopyMsgStreamListener.h"
@@ -93,7 +92,6 @@
 #include "nsIMsgMailSession.h"
 #include "nsIMsgFolderCompactor.h"
 #include "nsNetCID.h"
-#include "nsEscape.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsISpamSettings.h"
 #include "nsINoIncomingServer.h"
@@ -1135,7 +1133,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
   nsCAutoString oldLeafName;
   oldPathFile->GetNativeLeafName(oldLeafName);
 
+#ifdef MOZILLA_INTERNAL_API
   if (mName.Equals(aNewName, nsCaseInsensitiveStringComparator()))
+#else
+  if (mName.Equals(aNewName, CaseInsensitiveCompare))
+#endif
   {
     if(msgWindow)
       rv = ThrowAlertMsg("folderExists", msgWindow);
@@ -1673,7 +1675,13 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
   rv = srcFolder->GetURI(protocolType);
   protocolType.SetLength(protocolType.FindChar(':'));
 
-  if (WeAreOffline() && (protocolType.LowerCaseEqualsLiteral("imap") || protocolType.LowerCaseEqualsLiteral("news")))
+#ifdef MOZILLA_INTERNAL_API
+  if (WeAreOffline() && (protocolType.LowerCaseEqualsLiteral("imap") || 
+                         protocolType.LowerCaseEqualsLiteral("news")))
+#else
+  if (WeAreOffline() && (protocolType.Equals("imap", CaseInsensitiveCompare) || 
+                         protocolType.Equals("news", CaseInsensitiveCompare)))
+#endif
   {
     PRUint32 numMessages = 0;
     messages->GetLength(&numMessages);
@@ -1736,7 +1744,11 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
     return rv;
   }
 
+#ifdef MOZILLA_INTERNAL_API
   if (!protocolType.LowerCaseEqualsLiteral("mailbox"))
+#else
+  if (!protocolType.Equals("mailbox", CaseInsensitiveCompare))
+#endif
   {
     mCopyState->m_dummyEnvelopeNeeded = PR_TRUE;
     nsParseMailMessageState* parseMsgState = new nsParseMailMessageState();
@@ -1770,7 +1782,13 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
     }
   }
 
-  if (numMsgs > 1 && ((protocolType.LowerCaseEqualsLiteral("imap") && !WeAreOffline()) || protocolType.LowerCaseEqualsLiteral("mailbox")))
+#ifdef MOZILLA_INTERNAL_API
+  if (numMsgs > 1 && ((protocolType.LowerCaseEqualsLiteral("imap") && !WeAreOffline()) || 
+                      protocolType.LowerCaseEqualsLiteral("mailbox")))
+#else
+  if (numMsgs > 1 && ((protocolType.Equals("imap", CaseInsensitiveCompare) && !WeAreOffline()) || 
+                      protocolType.Equals("mailbox", CaseInsensitiveCompare)))
+#endif
   {
     mCopyState->m_copyingMultipleMessages = PR_TRUE;
     rv = CopyMessagesTo(mCopyState->m_messages, keyArray, msgWindow, this, isMove);
@@ -3006,7 +3024,7 @@ nsMsgLocalMailFolder::MarkMsgsOnPop3Server(nsIArray *aMessages, PRInt32 aMark)
       {
         msgPop3Server->AddUidlToMark(folderScanState.m_uidl, mark);
         // remember this pop server in list of servers with msgs deleted
-        if (pop3Servers.IndexOfObject(msgPop3Server) == kNotFound)
+        if (pop3Servers.IndexOfObject(msgPop3Server) == -1)
           pop3Servers.AppendObject(msgPop3Server);
       }
     }
@@ -3152,7 +3170,7 @@ nsMsgLocalMailFolder::GetIncomingServerType(nsCString& aServerType)
     nsCOMPtr<nsIURL> url = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
     if (NS_FAILED(rv)) return;
 
-    rv = url->SetSpec(nsDependentCString(mURI));
+    rv = url->SetSpec(mURI);
     if (NS_FAILED(rv)) return;
 
     nsCOMPtr<nsIMsgAccountManager> accountManager =

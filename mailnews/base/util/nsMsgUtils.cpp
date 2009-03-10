@@ -308,13 +308,14 @@ inline PRUint32 StringHash(const nsAutoString& str)
                       str.Length() * 2);
 }
 
-/* Utility functions used in a few places in this file */
+/* Utility functions used in a few places in mailnews */
 PRInt32
-FindCharInSet(const nsCString &aString, const char* aChars) 
+FindCharInSet(const nsCString &aString,
+              const char* aChars, PRUint32 aOffset) 
 {
   PRInt32 len = strlen(aChars);
   PRInt32 index = -1;
-  for (int i = 0; i < len; i++) {
+  for (int i = aOffset; i < len; i++) {
     index = aString.FindChar(aChars[i]);
     if (index != -1)
       return index;
@@ -323,11 +324,12 @@ FindCharInSet(const nsCString &aString, const char* aChars)
 }
 
 PRInt32
-FindCharInSet(const nsString &aString, const char* aChars) 
+FindCharInSet(const nsString &aString,
+              const char* aChars, PRUint32 aOffset)
 {
   PRInt32 len = strlen(aChars);
   PRInt32 index = -1;
-  for (int i = 0; i < len; i++) {
+  for (int i = aOffset; i < len; i++) {
     index = aString.FindChar(aChars[i]);
     if (index != -1)
       return index;
@@ -1883,3 +1885,32 @@ NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsTArra
   return PR_FALSE;
 }
 #endif
+
+NS_MSG_BASE nsresult
+MsgExamineForProxy(const char *scheme, const char *host,
+                   PRInt32 port, nsIProxyInfo **proxyInfo)
+{
+  nsresult rv;
+  nsCOMPtr<nsIProtocolProxyService> pps =
+          do_GetService(NS_PROTOCOLPROXYSERVICE_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) {
+    nsCAutoString spec(scheme);
+    spec.Append("://");
+    spec.Append(host);
+    spec.Append(':');
+    spec.AppendInt(port);
+    // XXXXX - Under no circumstances whatsoever should any code which
+    // wants a uri do this. I do this here because I do not, in fact,
+    // actually want a uri (the dummy uris created here may not be 
+    // syntactically valid for the specific protocol), and all we need
+    // is something which has a valid scheme, hostname, and a string
+    // to pass to PAC if needed - bbaetz
+    nsCOMPtr<nsIURI> uri = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
+    if (NS_SUCCEEDED(rv)) {
+      rv = uri->SetSpec(spec);
+      if (NS_SUCCEEDED(rv))
+        rv = pps->Resolve(uri, 0, proxyInfo);
+    }
+  }
+  return rv;
+}

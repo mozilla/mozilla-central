@@ -40,8 +40,6 @@
 #include "nsIServiceManager.h"
 #include "prsystem.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
-#include "nsEscape.h"
 #include "prmem.h"
 // stuff for temporary root folder hack
 #include "nsIMsgAccountManager.h"
@@ -49,6 +47,8 @@
 #include "nsIPop3IncomingServer.h"
 #include "nsINoIncomingServer.h"
 #include "nsMsgBaseCID.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 #include "nsMsgUtils.h"
 #include "nsNetCID.h"
@@ -192,14 +192,13 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
     while (*curPos && (*curPos)!='/') curPos++;
 
     nsCAutoString newPath("");
-    char *unescaped = strdup(curPos);  
+
     // Unescape folder name
-    if (unescaped) {
-      nsUnescape(unescaped);
-      NS_MsgCreatePathStringFromFolderURI(unescaped, newPath);
-      PR_Free(unescaped);
-    }
-    else
+    if (curPos) {
+      nsCString unescapedStr;
+      MsgUnescapeString(nsDependentCString(curPos), 0, unescapedStr);
+      NS_MsgCreatePathStringFromFolderURI(unescapedStr.get(), newPath);
+    } else
       NS_MsgCreatePathStringFromFolderURI(curPos, newPath);
 
     pathResult.Append('/');
@@ -227,19 +226,22 @@ nsresult nsParseLocalMessageURI(const char* uri,
   PRInt32 keySeparator = uriStr.FindChar('#');
   if(keySeparator != -1)
   {
-    PRInt32 keyEndSeparator = uriStr.FindCharInSet("?&", 
-                                                   keySeparator); 
-    nsAutoString folderPath;
-    uriStr.Left(folderURI, keySeparator);
+    PRInt32 keyEndSeparator = FindCharInSet(uriStr, "?&", keySeparator); 
+    folderURI = StringHead(uriStr, keySeparator);
     folderURI.Cut(7, 8);    // cut out the -message part of mailbox-message:
 
     nsCAutoString keyStr;
     if (keyEndSeparator != -1)
-        uriStr.Mid(keyStr, keySeparator+1, 
-                   keyEndSeparator-(keySeparator+1));
+      keyStr = Substring(uriStr, keySeparator + 1,
+                         keyEndSeparator - (keySeparator + 1));
     else
-        uriStr.Right(keyStr, uriStr.Length() - (keySeparator + 1));
+      keyStr = StringTail(uriStr, uriStr.Length() - (keySeparator + 1));
+
+#if MOZILLA_INTERNAL_API
     PRInt32 errorCode;
+#else
+    nsresult errorCode;
+#endif
     *key = keyStr.ToInteger(&errorCode);
 
     return errorCode;

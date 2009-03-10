@@ -38,7 +38,7 @@
 #ifndef NS_LOCALUTILS_H
 #define NS_LOCALUTILS_H
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIMsgIncomingServer.h"
 
 static const char kMailboxRootURI[] = "mailbox:/";

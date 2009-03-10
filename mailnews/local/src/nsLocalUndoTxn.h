@@ -47,6 +47,7 @@
 #include "nsCOMPtr.h"
 #include "nsIUrlListener.h"
 #include "nsIWeakReference.h"
+#include "nsIWeakReferenceUtils.h"
 
 class nsLocalUndoFolderListener;
 

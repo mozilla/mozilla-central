@@ -51,6 +51,7 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgMailNewsUrl.h"
+#include "nsServiceManagerUtils.h"
 
 static NS_DEFINE_CID(kCPop3ServiceCID, NS_POP3SERVICE_CID);
 

@@ -45,6 +45,7 @@
 
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIDBFolderInfo.h"
+#include "nsServiceManagerUtils.h"
 
 nsrefcnt nsRssIncomingServer::gInstanceCount    = 0;
 

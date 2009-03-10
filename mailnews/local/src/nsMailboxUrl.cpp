@@ -42,9 +42,7 @@
 #include "nsIMailboxUrl.h"
 #include "nsMailboxUrl.h"
 
-#include "nsString.h"
-#include "nsReadableUtils.h"
-#include "nsEscape.h"
+#include "nsStringGlue.h"
 #include "nsLocalUtils.h"
 #include "nsIMsgDatabase.h"
 #include "nsMsgDBCID.h"
@@ -416,15 +414,17 @@ char * extractAttributeValue(const char * searchString, const char * attributeNa
       startOfAttribute += attributeNameSize; // skip over the attributeName
       if (startOfAttribute) // is there something after the attribute name
       {
-        char * endofAttribute = startOfAttribute ? PL_strchr(startOfAttribute, '&') : nsnull;
-        if (startOfAttribute && endofAttribute) // is there text after attribute value
-          attributeValue = PL_strndup(startOfAttribute, endofAttribute - startOfAttribute);
+        char * endOfAttribute = startOfAttribute ? PL_strchr(startOfAttribute, '&') : nsnull;
+        nsDependentCString attributeValueStr;
+        if (startOfAttribute && endOfAttribute) // is there text after attribute value
+          attributeValueStr.Assign(startOfAttribute, endOfAttribute - startOfAttribute);
         else // there is nothing left so eat up rest of line.
-          attributeValue = PL_strdup(startOfAttribute);
+          attributeValueStr.Assign(startOfAttribute);
 
         // now unescape the string...
-        if (attributeValue)
-          attributeValue = nsUnescape(attributeValue); // unescape the string...
+        nsCString unescapedValue;
+        MsgUnescapeString(attributeValueStr, 0, unescapedValue);
+        attributeValue = PL_strdup(unescapedValue.get());
       } // if we have a attribute value
 
     } // if we have a attribute name

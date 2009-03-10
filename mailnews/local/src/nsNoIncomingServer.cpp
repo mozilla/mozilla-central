@@ -48,6 +48,7 @@
 #include "nsMsgBaseCID.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIPop3IncomingServer.h"
+#include "nsServiceManagerUtils.h"
 
 NS_IMPL_ISUPPORTS_INHERITED2(nsNoIncomingServer,
                             nsMsgIncomingServer,

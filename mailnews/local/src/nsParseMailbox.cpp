@@ -70,7 +70,6 @@
 #include "prprf.h"
 #include "prmem.h"
 #include "nsISeekableStream.h"
-#include "nsEscape.h"
 #include "nsIMimeHeaders.h"
 #include "nsIMsgMdnGenerator.h"
 #include "nsMsgSearchCore.h"
@@ -94,6 +93,7 @@
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 #include "nsIMsgFilterCustomAction.h"
+#include <ctype.h>
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -1044,11 +1044,15 @@ int nsParseMailMessageState::ParseHeaders ()
     }
     if (!header && m_customDBHeaders.Length())
     {
+#ifdef MOZILLA_INTERNAL_API
       nsDependentCSubstring headerStr(buf, end);
+#else
+      nsDependentCSubstring headerStr(buf, end - buf);
+#endif
 
       ToLowerCase(headerStr);
       PRInt32 customHeaderIndex = m_customDBHeaders.IndexOf(headerStr);
-      if (customHeaderIndex != kNotFound)
+      if (customHeaderIndex != -1)
         header = & m_customDBHeaderValues[customHeaderIndex];
     }
 
@@ -1115,10 +1119,10 @@ SEARCH_NEWLINE:
         // and less likely to be spoofed.
         nsCAutoString receivedHdr(header->value, header->length);
         PRInt32 lastSemicolon = receivedHdr.RFindChar(';');
-        if (lastSemicolon != kNotFound)
+        if (lastSemicolon != -1)
         {
           nsCAutoString receivedDate;
-          receivedHdr.Right(receivedDate, receivedHdr.Length() - lastSemicolon - 1);
+          receivedDate = StringTail(receivedHdr, receivedHdr.Length() - lastSemicolon - 1);
           receivedDate.Trim(" \t\b\r\n");
           PRTime resultTime;
           if (PR_ParseTimeString (receivedDate.get(), PR_FALSE, &resultTime) == PR_SUCCESS)
@@ -1971,8 +1975,13 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         }
       case nsMsgFilterAction::MoveToFolder:
         // if moving to a different file, do it.
+#ifdef MOZILLA_INTERNAL_API
         if (actionTargetFolderUri.get() && !m_inboxUri.Equals(actionTargetFolderUri,
-                                                             nsCaseInsensitiveCStringComparator()))
+                                                              nsCaseInsensitiveCStringComparator()))
+#else
+        if (actionTargetFolderUri.get() && !m_inboxUri.Equals(actionTargetFolderUri,
+                                                              CaseInsensitiveCompare))
+#endif
         {
           nsresult err;
           nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &err));
@@ -2220,7 +2229,7 @@ nsresult nsParseNewMailState::ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow
     if (!m_forwardTo[i]->IsEmpty())
     {
       nsAutoString forwardStr;
-      CopyASCIItoUTF16(m_forwardTo[i]->get(), forwardStr);
+      CopyASCIItoUTF16(*(m_forwardTo[i]), forwardStr);
       rv = m_rootFolder->GetServer(getter_AddRefs(server));
       NS_ENSURE_SUCCESS(rv, rv);
       {
@@ -2496,7 +2505,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   }
   if (movedMsgIsNew)
     destIFolder->SetHasNewMessages(PR_TRUE);
-  if (m_filterTargetFolders.IndexOf(destIFolder) == kNotFound)
+  if (m_filterTargetFolders.IndexOf(destIFolder) == -1)
     m_filterTargetFolders.AppendObject(destIFolder);
   m_inboxFileStream->Close();
 

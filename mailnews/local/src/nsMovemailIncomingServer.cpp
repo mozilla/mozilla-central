@@ -43,6 +43,7 @@
 #include "nsIFile.h"
 #include "msgCore.h" // pre-compiled headers
 #include "nsMovemailIncomingServer.h"
+#include "nsServiceManagerUtils.h"
 
 
 static NS_DEFINE_CID(kCMovemailServiceCID, NS_MOVEMAILSERVICE_CID);

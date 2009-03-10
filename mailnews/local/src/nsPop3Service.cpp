@@ -57,7 +57,6 @@
 #include "nsIDirectoryService.h"
 #include "nsMailDirServiceDefs.h"
 #include "prprf.h"
-#include "nsEscape.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgAccount.h"
@@ -66,6 +65,9 @@
 #include "nsInt64.h"
 #include "nsIPrompt.h"
 #include "nsLocalStrings.h"
+#include "nsINetUtil.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 #define PREF_MAIL_ROOT_POP3 "mail.root.pop3"        // old - for backward compatibility only
 #define PREF_MAIL_ROOT_POP3_REL "mail.root.pop3-rel"
@@ -145,7 +147,7 @@ nsresult nsPop3Service::GetMail(PRBool downloadNewMail,
     return NS_MSG_SERVER_USERNAME_MISSING;
 
   nsCString escapedUsername;
-  *((char**)getter_Copies(escapedUsername)) = nsEscape(popUser.get(), url_XAlphas);
+  MsgEscapeString(popUser, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
 
   if (NS_SUCCEEDED(rv) && aPopServer)
   {
@@ -355,8 +357,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     if (offset != -1)
         folderUri.SetLength(offset);
 
-    const nsCString &flatSpec = nsDependentCString(aSpec);
-    const char *uidl = PL_strstr(flatSpec.get(), "uidl=");
+    const char *uidl = PL_strstr(nsCString(aSpec).get(), "uidl=");
     if (!uidl) return NS_ERROR_FAILURE;
 
     nsCOMPtr<nsIRDFService> rdfService(do_GetService(kRDFServiceCID, &rv));
@@ -418,8 +419,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     // we need to escape the username because it may contain
     // characters like / % or @
     nsCString escapedUsername;
-    *((char **)getter_Copies(escapedUsername)) =
-      nsEscape(username.get(), url_XAlphas);
+    MsgEscapeString(username, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
 
     nsCAutoString popSpec("pop://");
     popSpec += escapedUsername;
@@ -446,8 +446,11 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
         if (NS_SUCCEEDED(rv))
         {
           nsCAutoString messageUri (aSpec);
-          messageUri.ReplaceSubstring("mailbox:", "mailbox-message:");
-          messageUri.ReplaceSubstring("?number=", "#");
+          if (!strncmp(messageUri.get(), "mailbox:", 8))
+            messageUri.Replace(0, 8, "mailbox-message:");
+          offset = messageUri.Find("?number=");
+          if (offset != -1)
+            messageUri.Replace(offset, 8, "#");
           offset = messageUri.Find("&");
           if (offset != -1)
             messageUri.SetLength(offset);

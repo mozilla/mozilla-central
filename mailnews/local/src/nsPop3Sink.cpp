@@ -50,7 +50,6 @@
 #include "nsLocalUtils.h"
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsIMsgFolder.h" // TO include biffState enum. Change to bool later...
-#include "nsReadableUtils.h"
 #include "nsMailHeaders.h"
 #include "nsIMsgAccountManager.h"
 #include "nsILineInputStream.h"
@@ -69,6 +68,7 @@
 #include "nsMsgUtils.h"
 #include "nsMsgBaseCID.h"
 #include "nsLocalStrings.h"
+#include "nsServiceManagerUtils.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsPop3Sink, nsIPop3Sink)
 
@@ -211,7 +211,13 @@ nsPop3Sink::FindPartialMessages(nsILocalFile *folderFile)
 
       // If we got the uidl, see if this partial message belongs to this
       // account. Add it to the array if so...
-      if (folderScanState.m_uidl && m_accountKey.Equals(folderScanState.m_accountKey, nsCaseInsensitiveCStringComparator()))
+#ifdef MOZILLA_INTERNAL_API
+      if (folderScanState.m_uidl && 
+          m_accountKey.Equals(folderScanState.m_accountKey, nsCaseInsensitiveCStringComparator()))
+#else
+      if (folderScanState.m_uidl &&
+          m_accountKey.Equals(folderScanState.m_accountKey, CaseInsensitiveCompare))
+#endif
       {
         partialRecord *partialMsg = new partialRecord();
         if (partialMsg)

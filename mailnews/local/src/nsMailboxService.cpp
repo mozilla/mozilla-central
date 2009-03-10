@@ -58,7 +58,6 @@
 #include "nsIDocShellLoadInfo.h"
 #include "nsIWebNavigation.h"
 #include "prprf.h"
-#include "nsEscape.h"
 #include "nsIMsgHdr.h"
 #include "nsIFileURL.h"
 
@@ -88,8 +87,8 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *
 
     aMailboxPath->GetNativePath(mailboxPath);
     nsCAutoString buf;
-    NS_EscapeURL(mailboxPath.get(),-1,
-                     esc_Minimal|esc_Forced|esc_AlwaysCopy,buf);
+    MsgEscapeURL(mailboxPath,
+                 nsINetUtil::ESCAPE_URL_MINIMAL | nsINetUtil::ESCAPE_URL_FORCED, buf);
     nsEscapeNativePath(buf);
     url->SetUpdatingFolder(PR_TRUE);
     url->SetMsgWindow(aMsgWindow);
@@ -203,8 +202,7 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
     rv = fileUrl->GetFile(getter_AddRefs(file));
     NS_ENSURE_SUCCESS(rv, rv);
     file->GetFileSize(&fileSize);
-    nsCAutoString uriString(aMessageURI);
-    uriString.ReplaceSubstring(NS_LITERAL_CSTRING("file:"), NS_LITERAL_CSTRING("mailbox:"));
+    uriString.Replace(0, 5, NS_LITERAL_CSTRING("mailbox:"));
     uriString.Append(NS_LITERAL_CSTRING("&number=0"));
     rv = NS_NewURI(getter_AddRefs(url), uriString);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -235,7 +233,7 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
     // this happens with forward inline of message/rfc822 attachment
     // opened in a stand-alone msg window.
     PRInt32 typeIndex = uriString.Find("&type=application/x-message-display");
-    if (typeIndex != kNotFound)
+    if (typeIndex != -1)
     {
       uriString.Cut(typeIndex, sizeof("&type=application/x-message-display") - 1);
       rv = NS_NewURI(getter_AddRefs(url), uriString.get());
@@ -325,7 +323,7 @@ nsMailboxService::StreamMessage(const char *aMessageURI,
     nsCAutoString aURIString(aMessageURI);
     if (!aAdditionalHeader.IsEmpty())
     {
-      aURIString.FindChar('?') == kNotFound ? aURIString += "?" : aURIString += "&";
+      aURIString.FindChar('?') == -1 ? aURIString += "?" : aURIString += "&";
       aURIString += "header=";
       aURIString += aAdditionalHeader;
     }
@@ -480,8 +478,8 @@ nsresult nsMailboxService::PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsI
     {
       // set up the url spec and initialize the url with it.
       nsCAutoString buf;
-      NS_EscapeURL(folderPath.get(),-1,
-                   esc_Directory|esc_Forced|esc_AlwaysCopy,buf);
+      MsgEscapeURL(folderPath,
+                   nsINetUtil::ESCAPE_URL_DIRECTORY | nsINetUtil::ESCAPE_URL_FORCED, buf);
       if (mPrintingOperation)
         urlSpec = PR_smprintf("mailbox://%s?number=%d&header=print", buf.get(), msgKey);
       else if (part)

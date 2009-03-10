@@ -62,7 +62,7 @@
 #include "nsIMsgMailNewsUrl.h"
 #include "nsPop3Protocol.h"
 #include "MailNewsTypes.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIPrompt.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsTextFormatter.h"
@@ -70,7 +70,6 @@
 #include "nsIMsgWindow.h"
 #include "nsIMsgFolder.h" // TO include biffState enum. Change to bool later...
 #include "nsIDocShell.h"
-#include "nsEscape.h"
 #include "nsMsgUtils.h"
 #include "nsISignatureVerifier.h"
 #include "nsIPrefBranch.h"
@@ -564,7 +563,7 @@ nsresult nsPop3Protocol::Initialize(nsIURI * aURL)
       server->GetRealHostName(hostName);
 
     nsCOMPtr<nsIProxyInfo> proxyInfo;
-    rv = NS_ExamineForProxy("pop", hostName.get(), port, getter_AddRefs(proxyInfo));
+    rv = MsgExamineForProxy("pop", hostName.get(), port, getter_AddRefs(proxyInfo));
     if (NS_FAILED(rv)) proxyInfo = nsnull;
 
     const char *connectionType = nsnull;
@@ -873,8 +872,10 @@ nsresult nsPop3Protocol::LoadUrl(nsIURI* aURL, nsISupports * /* aConsumer */)
   if (uidl)
   {
     uidl += 5;
-    char *only_uidl = PL_strdup(uidl);
-    m_pop3ConData->only_uidl = nsUnescape(only_uidl);
+    nsCString unescapedData;
+    MsgUnescapeString(nsDependentCString(uidl), 0, unescapedData);
+    m_pop3ConData->only_uidl = PL_strdup(unescapedData.get());
+
     mSuppressListenerNotifications = PR_TRUE; // suppress on start and on stop because this url won't have any content to display
   }
 
@@ -1068,8 +1069,10 @@ nsPop3Protocol::Error(PRInt32 err_code)
                   mLocalBundle->FormatStringFromID(POP3_SERVER_SAID, params, 1, getter_Copies(serverSaidPrefix));
                 }
 
-                nsAutoString message(alertString + NS_LITERAL_STRING(" ") +
-                                     serverSaidPrefix + NS_LITERAL_STRING(" "));
+                nsAutoString message(alertString);
+                message.AppendLiteral(" ");
+                message.Append(serverSaidPrefix);
+                message.AppendLiteral(" ");
                 message.Append(NS_ConvertASCIItoUTF16(m_commandResponse));
                 dialog->Alert(nsnull,message.get());
               }
@@ -1849,7 +1852,7 @@ PRInt32 nsPop3Protocol::SendPassword()
             // workaround for IPswitch's IMail server software
             // this server goes into LOGIN mode even if we send "AUTH PLAIN"
             // "VXNlc" is the begin of the base64 encoded prompt for LOGIN
-            if (m_commandResponse.Compare("VXNlc", PR_FALSE, 5) == 0)
+            if (StringBeginsWith(m_commandResponse, NS_LITERAL_CSTRING("VXNlc")))
             {
                 // disable PLAIN and enable LOGIN (in case it's not already enabled)
                 ClearCapFlag(POP3_HAS_AUTH_PLAIN);

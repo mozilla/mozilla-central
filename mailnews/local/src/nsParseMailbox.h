@@ -52,6 +52,7 @@
 #include "nsTime.h"
 #include "nsIDBChangeListener.h"
 #include "nsIWeakReference.h"
+#include "nsIWeakReferenceUtils.h"
 #include "nsIMsgWindow.h"
 #include "nsImapMoveCoalescer.h"
 
