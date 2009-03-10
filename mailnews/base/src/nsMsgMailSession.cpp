@@ -53,6 +53,7 @@
 #include "nsIAppShellService.h"
 #include "nsAppShellCID.h"
 #include "nsIWindowMediator.h"
+#include "nsIWindowWatcher.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgMailSession)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgMailSession)
@@ -199,6 +200,73 @@ NS_IMETHODIMP nsMsgMailSession::OnItemEvent(nsIMsgFolder *aFolder,
                                             nsIAtom *aEvent)
 {
   NOTIFY_FOLDER_LISTENERS(event, OnItemEvent, (aFolder, aEvent));
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgMailSession::AddUserFeedbackListener(nsIMsgUserFeedbackListener *aListener)
+{
+  NS_ENSURE_ARG_POINTER(aListener);
+
+  PRInt32 index = mFeedbackListeners.IndexOf(aListener);
+  NS_ASSERTION(index == -1, "tried to add duplicate listener");
+  if (index == -1)
+    mFeedbackListeners.AppendElement(aListener);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgMailSession::RemoveUserFeedbackListener(nsIMsgUserFeedbackListener *aListener)
+{
+  NS_ENSURE_ARG_POINTER(aListener);
+
+  PRInt32 index = mFeedbackListeners.IndexOf(aListener);
+  NS_ASSERTION(index != -1, "removing non-existent listener");
+  if (index != -1)
+    mFeedbackListeners.RemoveElementAt(index);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgMailSession::AlertUser(const nsAString &aMessage, nsIMsgWindow *aMsgWindow)
+{
+  PRBool listenersNotified = PR_FALSE;
+  nsTObserverArray<nsCOMPtr<nsIMsgUserFeedbackListener> >::ForwardIterator iter(mFeedbackListeners);
+  nsCOMPtr<nsIMsgUserFeedbackListener> listener;
+
+  while (iter.HasMore())
+  {
+    PRBool notified = PR_FALSE;
+    listener = iter.GetNext();
+    listener->OnAlert(aMessage, aMsgWindow, &notified);
+    listenersNotified = listenersNotified || notified;
+  }
+
+  // If the listeners notified the user, then we don't need to.
+  // If we haven't got a message window, then the error was a generated as a
+  // result of background activity (e.g. autosync, biff, etc), and hence we
+  // shouldn't prompt either.
+  if (listenersNotified || !aMsgWindow)
+    return NS_OK;
+
+  nsCOMPtr<nsIPrompt> dialog;
+  aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
+
+  if (!dialog) // if we didn't get one, use the default....
+  {
+    nsresult rv;
+    nsCOMPtr<nsIWindowWatcher> wwatch =
+      do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
+  }
+
+  if (dialog)
+    return dialog->Alert(nsnull, PromiseFlatString(aMessage).get());
+
   return NS_OK;
 }
 

@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -39,6 +39,8 @@
 #include "nsStringGlue.h"
 #include "nsMsgProtocol.h"
 #include "nsIMsgMailNewsUrl.h"
+#include "nsIMsgMailSession.h"
+#include "nsMsgBaseCID.h"
 #include "nsIStreamTransportService.h"
 #include "nsISocketTransportService.h"
 #include "nsISocketTransport.h"
@@ -405,10 +407,6 @@ NS_IMETHODIMP nsMsgProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctx
     if (!m_channelContext && NS_FAILED(aStatus) &&
         (aStatus != NS_BINDING_ABORTED))
     {
-      nsCOMPtr<nsIPrompt> msgPrompt;
-      GetPromptDialogFromUrl(msgUrl , getter_AddRefs(msgPrompt));
-      NS_ENSURE_TRUE(msgPrompt, NS_ERROR_FAILURE);
-
       PRInt32 errorID;
       switch (aStatus)
       {
@@ -431,16 +429,25 @@ NS_IMETHODIMP nsMsgProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctx
       NS_ASSERTION(errorID != UNKNOWN_ERROR, "unknown error, but don't alert user.");
       if (errorID != UNKNOWN_ERROR)
       {
-        PRUnichar *errorMsg = FormatStringWithHostNameByID(errorID, msgUrl);
-        if (errorMsg == nsnull)
+        nsString errorMsg;
+        errorMsg.Adopt(FormatStringWithHostNameByID(errorID, msgUrl));
+        if (errorMsg.IsEmpty())
         {
-          nsAutoString resultString(NS_LITERAL_STRING("[StringID "));
-          resultString.AppendInt(errorID);
-          resultString.AppendLiteral("?]");
-          errorMsg = ToNewUnicode(resultString);
+          errorMsg.Assign(NS_LITERAL_STRING("[StringID "));
+          errorMsg.AppendInt(errorID);
+          errorMsg.AppendLiteral("?]");
         }
-        rv = msgPrompt->Alert(nsnull, errorMsg);
-        nsMemory::Free(errorMsg);
+
+        nsCOMPtr <nsIMsgMailSession> mailSession =
+          do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsCOMPtr<nsIMsgWindow> msgWindow;
+        // If we don't manage to get a msgWindow, that's fine, its optional
+        // for AlertUser.
+        msgUrl->GetMsgWindow(getter_AddRefs(msgWindow));
+
+        rv = mailSession->AlertUser(errorMsg, msgWindow);
       }
     } // if we got an error code
   } // if we have a mailnews url.
@@ -1475,36 +1482,34 @@ PRInt32 nsMsgAsyncWriteProtocol::SendData(nsIURI * aURL, const char * dataBuffer
 
 PRUnichar *FormatStringWithHostNameByID(PRInt32 stringID, nsIMsgMailNewsUrl *msgUri)
 {
-  if (! msgUri)
+  if (!msgUri)
     return nsnull;
 
   nsresult rv;
-  nsCOMPtr <nsIStringBundle> sBundle = nsnull;
 
   nsCOMPtr<nsIStringBundleService> sBundleService =
           do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_FAILED(rv) || (! sBundleService))
-    return nsnull;
+  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
 
+  nsCOMPtr<nsIStringBundle> sBundle;
   rv = sBundleService->CreateBundle(MSGS_URL, getter_AddRefs(sBundle));
-  if (NS_FAILED(rv))
-    return nsnull;
+  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
 
   PRUnichar *ptrv = nsnull;
-  nsCString hostName;
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = msgUri->GetServer(getter_AddRefs(server));
+  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
 
-  if (NS_SUCCEEDED(rv) && server)
-    rv = server->GetRealHostName(hostName);
+  nsCString hostName;
+  rv = server->GetRealHostName(hostName);
+  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
 
-  NS_ConvertASCIItoUTF16 hostStr (hostName);
+  NS_ConvertASCIItoUTF16 hostStr(hostName);
   const PRUnichar *params[] = { hostStr.get() };
   rv = sBundle->FormatStringFromID(stringID, params, 1, &ptrv);
-  if (NS_FAILED(rv))
-    return nsnull;
+  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
 
-  return (ptrv);
+  return ptrv;
 }
 
 // vim: ts=2 sw=2

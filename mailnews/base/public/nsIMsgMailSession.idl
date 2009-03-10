@@ -52,8 +52,9 @@
 #include "nsIAtom.idl"
 
 interface nsIFile;
+interface nsIMsgUserFeedbackListener;
 
-[scriptable, uuid(11fd2852-d7f3-402c-9d2b-6dd206e7e8cd)]
+[scriptable, uuid(0dd3e1d2-608c-4bbc-a9fa-c70354424286)]
 interface nsIMsgMailSession : nsISupports {
   void Shutdown();
 
@@ -73,7 +74,34 @@ interface nsIMsgMailSession : nsISupports {
    * @param  aListener    The listener to remove.
    */
   void RemoveFolderListener(in nsIFolderListener aListener);
-  
+
+  /**
+   * Adds a listener to be notified of alert or prompt style feedback that
+   * should go to the user.
+   *
+   * @param  aListener    The listener to add.
+   */
+  void addUserFeedbackListener(in nsIMsgUserFeedbackListener aListener);
+
+  /**
+   * Removes a user feedback listener.
+   *
+   * @param  aListener    The listener to remove.
+   */
+  void removeUserFeedbackListener(in nsIMsgUserFeedbackListener aListener);
+
+  /**
+   * Call to alert the listeners of the message. If there are no listeners,
+   * or the listeners do not handle the alert, then this function will present
+   * the user with a modal dialog if aMsgWindow isn't null.
+   *
+   * @param aMessage    The localized message string to alert.
+   * @param aMsgWindow  Optional message window argument, if the original
+   *                    message window for the action which caused the alert
+   *                    is known.
+   */
+  void alertUser(in AString aMessage, [optional] in nsIMsgWindow aMsgWindow);
+
   readonly attribute nsIMsgWindow topmostMsgWindow;
   void AddMsgWindow(in nsIMsgWindow msgWindow);
   void RemoveMsgWindow(in nsIMsgWindow msgWindow);

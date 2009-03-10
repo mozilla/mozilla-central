@@ -102,6 +102,7 @@ XPIDLSRCS	= \
 		nsMsgFolderFlags.idl \
 		nsMsgMessageFlags.idl \
 		nsIStopwatch.idl \
+		nsIMsgUserFeedbackListener.idl \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

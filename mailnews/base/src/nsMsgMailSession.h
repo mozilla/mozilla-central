@@ -51,6 +51,7 @@
 #include "nsIMsgProgress.h"
 #include "nsTArray.h"
 #include "nsTObserverArray.h"
+#include "nsIMsgUserFeedbackListener.h"
 
 ///////////////////////////////////////////////////////////////////////////////////
 // The mail session is a replacement for the old 4.x MSG_Master object. It contains
@@ -95,7 +96,8 @@ protected:
     }
   };
 
-  nsTObserverArray<folderListener> mListeners; 
+  nsTObserverArray<folderListener> mListeners;
+  nsTObserverArray<nsCOMPtr<nsIMsgUserFeedbackListener> > mFeedbackListeners;
 
   nsCOMArray<nsIMsgWindow> mWindows;
   // stick this here temporarily

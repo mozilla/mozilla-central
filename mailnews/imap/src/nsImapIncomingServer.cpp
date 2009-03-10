@@ -1730,63 +1730,48 @@ void nsImapIncomingServer::UnsubscribeFromAllDescendents(nsIMsgFolder *parentFol
 NS_IMETHODIMP
 nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgWindow * aMsgWindow)
 {
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsIPrompt> dialog;
-  if (aMsgWindow)
-    aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
+  nsresult rv;
+  nsCOMPtr <nsIMsgMailSession> mailSession =
+    do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (!dialog) // if we didn't get one, use the default....
-  {
-    nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-    if (wwatch)
-      wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
-  }
-
-  if (dialog)
-    rv = dialog->Alert(nsnull, PromiseFlatString(aString).get());
-  return rv;
+  return mailSession->AlertUser(aString, aMsgWindow);
 }
 
 NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString, nsIMsgWindow * aMsgWindow)
 {
-  nsresult rv = NS_OK;
+  NS_ENSURE_TRUE(!aString.IsEmpty(), NS_OK);
+  
+  nsresult rv;
+  nsCOMPtr <nsIMsgMailSession> mailSession =
+    do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIPrompt> dialog;
-  if (aMsgWindow)
-    aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
+  // Skip over the first two words, I guess.
+  nsCString message(aString);
 
-  if (dialog)
+  // Find the first word break.
+  PRInt32 pos = message.FindChar(' ');
+
+  // Find the second word break.
+  if (pos != -1)
+    pos = message.FindChar(' ', pos + 1);
+
+  // Adjust the message.
+  if (pos != -1)
   {
-    if (!aString.IsEmpty())
-    {
-      // skip over the first two words, I guess.
-      // mscott: fix this string code to use nsString APIs!!!
-      nsCString charStr(aString);
-      char *whereRealMessage = PL_strchr(charStr.get(), ' ');
-      if (whereRealMessage)
-        whereRealMessage++;
-      if (whereRealMessage)
-        whereRealMessage = PL_strchr(whereRealMessage, ' ');
-      if (whereRealMessage)
-      {
-        PRInt32 len = PL_strlen(whereRealMessage)-1;
-        if (len > 0 && whereRealMessage[len] !=  '.')
-          whereRealMessage[len] = '.';
-      }
-
-      nsString message;
-      GetImapStringByID(IMAP_SERVER_SAID, message);
-      if (!message.IsEmpty())
-      {
-        // the alert string from the server IS UTF-8!!! We must convert it to unicode
-        // correctly before appending it to our error message string...
-        AppendUTF8toUTF16(whereRealMessage ? whereRealMessage : PromiseFlatCString(aString).get(), message);
-        rv = dialog->Alert(nsnull, message.get());
-      }
-    }
+    message = Substring(message, pos + 1);
+    message.Append('.');
   }
 
-  return rv;
+  nsString fullMessage;
+  GetImapStringByID(IMAP_SERVER_SAID, fullMessage);
+  NS_ENSURE_TRUE(!fullMessage.IsEmpty(), NS_OK);
+
+  // The alert string from the server IS UTF-8!!! We must convert it to unicode
+  // correctly before appending it to our error message string...
+  AppendUTF8toUTF16(message, fullMessage);
+  return mailSession->AlertUser(fullMessage, aMsgWindow);
 }
 
 #define IMAP_MSGS_URL       "chrome://messenger/locale/imapMsgs.properties"
