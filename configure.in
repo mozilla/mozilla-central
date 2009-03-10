@@ -1611,7 +1611,7 @@ dnl Get mozilla version from central milestone file
 MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
 
 changequote(,)
-MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/\(^[0-9]\.[0-9]\.[0-9]\).*/\1/;'`
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
 changequote([,])
 
 MOZILLA_1_9_1_BRANCH=
