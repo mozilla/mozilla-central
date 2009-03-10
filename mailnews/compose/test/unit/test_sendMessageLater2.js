@@ -92,6 +92,10 @@ msll.prototype = {
       do_check_eq(aTotal, aSuccessful);
       do_check_eq(msgSendLater.sendingMessages, false);
 
+      // Check that the send later service now thinks we don't have messages to
+      // send.
+      do_check_eq(msgSendLater.hasUnsentMessages(identity), false);
+
       // XXX This is another send multiple messages hack
       if (!transaction) {
         server.performTest();
@@ -132,6 +136,9 @@ function OnStopCopy(aStatus)
 
   // Check this is false before we start sending
   do_check_eq(msgSendLater.sendingMessages, false);
+
+  // Check that the send later service thinks we have messages to send.
+  do_check_eq(msgSendLater.hasUnsentMessages(identity), true);
 
   // Check we have a message in the unsent message folder
   do_check_eq(gSentFolder.getTotalMessages(false), gMsgOrder.length);
@@ -244,6 +251,9 @@ function run_test() {
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.
   loadLocalMailAccount();
+
+  // Check that the send later service thinks we don't have messages to send.
+  do_check_eq(msgSendLater.hasUnsentMessages(identity), false);
 
   var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);

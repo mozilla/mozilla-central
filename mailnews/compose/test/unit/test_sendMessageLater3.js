@@ -115,6 +115,8 @@ msll.prototype = {
     do_check_eq(aSuccessful, 0);
     do_check_eq(this._initialTotal, 1);
     do_check_eq(msgSendLater.sendingMessages, false);
+    // Check that the send later service still thinks we have messages to send.
+    do_check_eq(msgSendLater.hasUnsentMessages(identity), true);
 
     do_test_finished();
   }
@@ -127,6 +129,9 @@ function OnStopCopy(aStatus) {
   do_check_eq(msgSendLater.sendingMessages, false);
 
   let folder = msgSendLater.getUnsentMessagesFolder(identity);
+
+  // Check that the send later service thinks we have messages to send.
+  do_check_eq(msgSendLater.hasUnsentMessages(identity), true);
 
   // Check we have a message in the unsent message folder
   do_check_eq(folder.getTotalMessages(false), 1);
@@ -165,6 +170,9 @@ function run_test() {
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.
   loadLocalMailAccount();
+
+  // Check that the send later service thinks we don't have messages to send.
+  do_check_eq(msgSendLater.hasUnsentMessages(identity), false);
 
   var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);

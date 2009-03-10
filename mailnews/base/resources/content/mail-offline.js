@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -76,31 +76,9 @@ function GetMailOfflinePrefs()
 // Check for unsent messages
 function CheckForUnsentMessages()
 {
-  try
-  {
-    var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                 .getService(Components.interfaces.nsIMsgAccountManager);
-    var msgSendlater = Components.classes["@mozilla.org/messengercompose/sendlater;1"]
-                 .getService(Components.interfaces.nsIMsgSendLater);
-    var identitiesCount, allIdentities, currentIdentity, numMessages, msgFolder;
-
-    if(am) { 
-      allIdentities = am.allIdentities;
-      identitiesCount = allIdentities.Count();
-      for (var i = 0; i < identitiesCount; i++) {
-        currentIdentity = allIdentities.QueryElementAt(i, Components.interfaces.nsIMsgIdentity);
-        msgFolder = msgSendlater.getUnsentMessagesFolder(currentIdentity);
-        if(msgFolder) {
-          // if true, descends into all subfolders 
-          numMessages = msgFolder.getTotalMessages(false);
-          if(numMessages > 0) return true;
-        }
-      } 
-    }
-  }
-  catch(ex) {
-  }
-  return false;
+  return Components.classes["@mozilla.org/messengercompose/sendlater;1"]
+                   .getService(Components.interfaces.nsIMsgSendLater)
+                   .hasUnsentMessages();
 }
 
 // Init nsIPromptService & strings.

@@ -622,8 +622,25 @@ nsMsgSendLater::GetUnsentMessagesFolder(nsIMsgIdentity *aIdentity, nsIMsgFolder 
 {
   nsCString uri;
   GetFolderURIFromUserPrefs(nsIMsgSend::nsMsgQueueForLater, aIdentity, uri);
-  nsresult rv = LocateMessageFolder(aIdentity, nsIMsgSend::nsMsgQueueForLater, uri.get(), folder);
-  return rv;
+  return LocateMessageFolder(aIdentity, nsIMsgSend::nsMsgQueueForLater,
+                             uri.get(), folder);
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::HasUnsentMessages(nsIMsgIdentity *aIdentity, PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  nsCOMPtr<nsIMsgFolder> msgFolder;
+  nsresult rv = GetUnsentMessagesFolder(aIdentity, getter_AddRefs(msgFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRInt32 totalMessages;
+  rv = msgFolder->GetTotalMessages(PR_FALSE, &totalMessages);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  *aResult = totalMessages > 0;
+  return NS_OK;
 }
 
 //

@@ -89,6 +89,9 @@ function OnStopCopy(aStatus) {
     // Check we have a message in the unsent message folder
     do_check_eq(folder.getTotalMessages(false), 1);
 
+    // Check that the send later service thinks we have messages to send
+    do_check_eq(msgSendLater.hasUnsentMessages(identity), true);
+
     // Now do a comparison of what is in the sent mail folder
     var fileData = loadFileToString(folder.filePath);
 
@@ -169,6 +172,9 @@ function run_test() {
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.
   loadLocalMailAccount();
+
+  // Check that the send later service thinks we don't have messages to send
+  do_check_eq(msgSendLater.hasUnsentMessages(identity), false);
 
   var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);

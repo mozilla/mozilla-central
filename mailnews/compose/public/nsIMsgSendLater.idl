@@ -48,8 +48,12 @@ interface nsIMsgFolder;
  * nsIMsgSendLater is a service used for sending messages in the background.
  * Messages should be saved to an identity's unsent messages folder, and then
  * can be sent by calling sendUnsentMessages.
+ *
+ * Although the service supports passing identities as parameters, until bug
+ * 317803 is fixed, all identities use the same folder, and hence currently it
+ * has no effect.
  */
-[scriptable, uuid(2e2142b2-8f94-4604-8cc7-06a00d59f6b5)]
+[scriptable, uuid(fa324a4b-4b87-4e9a-a3c0-af9071a358df)]
 interface nsIMsgSendLater : nsIStreamListener 
 {
   /// Used to obtain status feedback for when messages are sent.
@@ -82,6 +86,14 @@ interface nsIMsgSendLater : nsIStreamListener
    * Returns the unsent messages folder for the identity.
    */
   nsIMsgFolder getUnsentMessagesFolder(in nsIMsgIdentity userIdentity);
+
+  /**
+   * Returns true if there are any unsent messages to send.
+   *
+   * @param aIdentity  The identity whose folder to check for unsent messages.
+   *                   If not specified, all unsent message folders are checked.
+   */
+  boolean hasUnsentMessages([optional] in nsIMsgIdentity aIdentity);
 
   /// Returns true if the service is currently sending messages.
   readonly attribute boolean sendingMessages;

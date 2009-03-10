@@ -38,8 +38,6 @@
 #ifndef _nsMsgSendLater_H_
 #define _nsMsgSendLater_H_
 
-#include "nsIMsgSendLater.h"
-
 #include "nsCOMArray.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgSendListener.h"

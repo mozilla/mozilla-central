@@ -1,4 +1,4 @@
-# -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -857,10 +857,8 @@ function UnloadCommandUpdateHandlers()
   top.controllers.removeController(DefaultController);
 }
 
-function IsSendUnsentMsgsEnabled(folderResource)
+function IsSendUnsentMsgsEnabled(unsentMsgsFolder)
 {
-  var identity;
-
   var msgSendlater =
     Components.classes["@mozilla.org/messengercompose/sendlater;1"]
               .getService(Components.interfaces.nsIMsgSendLater);
@@ -868,40 +866,28 @@ function IsSendUnsentMsgsEnabled(folderResource)
   // If we're currently sending unsent msgs, disable this cmd.
   if (msgSendlater.sendingMessages)
     return false;
-  try {
-    if (folderResource) {
-      // if folderResource is non-null, it is
-      // resource for the "Unsent Messages" folder
-      // we're here because we've done a right click on the "Unsent Messages"
-      // folder (context menu)
-      var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-      return (msgFolder.getTotalMessages(false) > 0);
-    }
-    else {
-      var folders = GetSelectedMsgFolders();
-      if (folders.length > 0) {
-        identity = getIdentityForServer(folders[0].server);
-      }
-    }
-  }
-  catch (ex) {
-    dump("ex = " + ex + "\n");
-    identity = null;
+
+  if (unsentMsgsFolder) {
+    // If unsentMsgsFolder is non-null, it is the "Unsent Messages" folder.
+    // We're here because we've done a right click on the "Unsent Messages"
+    // folder (context menu), so we can use the folder and return true/false
+    // straight away.
+    return unsentMsgsFolder.getTotalMessages(false) > 0;
   }
 
-  try {
-    if (!identity) {
-      var am = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-      identity = am.defaultAccount.defaultIdentity;
-    }
+  // Otherwise, we don't know where we are, so use the current identity and
+  // find out if we have messages or not via that.
+  let identity;
+  let folders = GetSelectedMsgFolders();
+  if (folders.length > 0)
+    identity = getIdentityForServer(folders[0].server);
 
-    var unsentMsgsFolder = msgSendlater.getUnsentMessagesFolder(identity);
-    return (unsentMsgsFolder.getTotalMessages(false) > 0);
-  }
-  catch (ex) {
-    dump("ex = " + ex + "\n");
-  }
-  return false;
+  if (!identity)
+    identity = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                         .getService(Components.interfaces.nsIMsgAccountManager)
+                         .defaultAccount.defaultIdentity;
+
+  return msgSendlater.hasUnsentMessages(identity);
 }
 
 function IsRenameFolderEnabled()
