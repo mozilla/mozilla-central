@@ -119,7 +119,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetPartialUIDFetch(PRBool *aPartialUIDFetch
 
 /* amount to expand for imap entry flags when we need more */
 
-nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages, PRUint16 flags)
+nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages)
 {
   fNumberOfMessagesAdded = 0;
   fNumberOfMessageSlotsAllocated = numberOfMessages;
@@ -129,25 +129,9 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages, PRUint16 
   
   fUids.InsertElementsAt(0, fNumberOfMessageSlotsAllocated, 0);
   memset(fFlags, 0, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated);
-  fSupportedUserFlags = flags;
+  fSupportedUserFlags = 0;
   fNumberDeleted = 0;
   fPartialUIDFetch = PR_TRUE;
-  m_customFlagsHash.Init(10);
-}
-
-nsImapFlagAndUidState::nsImapFlagAndUidState(const nsImapFlagAndUidState& state, 
-                                             uint16 flags)
-{
-  fNumberOfMessagesAdded = state.fNumberOfMessagesAdded;
-  
-  fNumberOfMessageSlotsAllocated = state.fNumberOfMessageSlotsAllocated;
-  fFlags = (imapMessageFlagsType*) PR_Malloc(sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated); // new imapMessageFlagsType[fNumberOfMessageSlotsAllocated];
-  fUids = state.fUids;
-
-  memcpy(fFlags, state.fFlags, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated);
-  fSupportedUserFlags = flags;
-  fNumberDeleted = 0;
-  fPartialUIDFetch = state.fPartialUIDFetch;
   m_customFlagsHash.Init(10);
 }
 
@@ -164,14 +148,21 @@ nsImapFlagAndUidState::~nsImapFlagAndUidState()
   if (m_customFlagsHash.IsInitialized())
     m_customFlagsHash.EnumerateRead(FreeCustomFlags, nsnull);
 }
-	
+
 NS_IMETHODIMP
-nsImapFlagAndUidState::SetSupportedUserFlags(uint16 flags)
+nsImapFlagAndUidState::OrSupportedUserFlags(uint16 flags)
 {
   fSupportedUserFlags |= flags;
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsImapFlagAndUidState::GetSupportedUserFlags(uint16 *aFlags)
+{
+  NS_ENSURE_ARG_POINTER(aFlags);
+  *aFlags = fSupportedUserFlags;
+  return NS_OK;
+}
 
 // we need to reset our flags, (re-read all) but chances are the memory allocation needed will be
 // very close to what we were already using

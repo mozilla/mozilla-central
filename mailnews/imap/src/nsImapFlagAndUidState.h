@@ -51,8 +51,7 @@ class nsImapFlagAndUidState : public nsIImapFlagAndUidState
 {
 public:
     NS_DECL_ISUPPORTS
-    nsImapFlagAndUidState(int numberOfMessages, PRUint16 flags = 0);
-    nsImapFlagAndUidState(const nsImapFlagAndUidState& state, PRUint16 flags = 0);
+    nsImapFlagAndUidState(int numberOfMessages);
     virtual ~nsImapFlagAndUidState();
 
     NS_DECL_NSIIMAPFLAGANDUIDSTATE

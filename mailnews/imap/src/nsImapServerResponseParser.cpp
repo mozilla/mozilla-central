@@ -1832,7 +1832,7 @@ void nsImapServerResponseParser::parse_folder_flags()
     fSupportsUserDefinedFlags |= kImapMsgLabelFlags;
 
   if (fFlagState)
-    fFlagState->SetSupportedUserFlags(fSupportsUserDefinedFlags);
+    fFlagState->OrSupportedUserFlags(fSupportsUserDefinedFlags);
 }
 /*
   resp_text_code  ::= ("ALERT" / "PARSE" /

@@ -504,7 +504,7 @@ nsresult nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList, n
   nsresult rv = m_downloadLineCache->GrowBuffer(kDownLoadCacheSize);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  m_flagState = new nsImapFlagAndUidState(kImapFlagAndUidStateSize, PR_FALSE);
+  m_flagState = new nsImapFlagAndUidState(kImapFlagAndUidStateSize);
   if (!m_flagState)
     return NS_ERROR_OUT_OF_MEMORY;
 

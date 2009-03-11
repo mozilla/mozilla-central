@@ -4000,7 +4000,7 @@ void nsImapMailFolder::TweakHeaderFlags(nsIImapProtocol* aProtocol, nsIMsgDBHdr 
       if (newFlags)
         tweakMe->OrFlags(newFlags, &dbHdrFlags);
       if (!customFlags.IsEmpty())
-        (void) HandleCustomFlags(m_curMsgUid, tweakMe, customFlags);
+        (void) HandleCustomFlags(m_curMsgUid, tweakMe, userFlags, customFlags);
     }
   }
 }
@@ -4245,7 +4245,10 @@ nsImapMailFolder::BeginMessageUpload()
   return NS_ERROR_FAILURE;
 }
 
-nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage, nsIMsgDBHdr *dbHdr, nsCString &keywords)
+nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage,
+                                             nsIMsgDBHdr *dbHdr,
+                                             PRUint16 userFlags,
+                                             nsCString &keywords)
 {
   ToLowerCase(keywords);
   PRBool messageClassified = PR_TRUE;
@@ -4275,7 +4278,8 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage, nsIMsgDBHdr 
     if (existingProperty.IsEmpty())
       dbHdr->SetStringProperty("junkscoreorigin", "imapflag");
   }
-  return dbHdr->SetStringProperty("keywords", keywords.get());
+  return (userFlags & kImapMsgSupportUserFlag) ?
+          dbHdr->SetStringProperty("keywords", keywords.get()) : NS_OK;
 }
 
 // synchronize the message flags in the database with the server flags
@@ -4283,7 +4287,7 @@ nsresult nsImapMailFolder::SyncFlags(nsIImapFlagAndUidState *flagState)
 {
   nsresult rv = GetDatabase(); // we need a database for this
   NS_ENSURE_SUCCESS(rv, rv);
-    // update all of the database flags
+  // update all of the database flags
   PRInt32 messageIndex;
   PRUint32 messageSize;
   PRUint32 oldFolderSize = mFolderSize;
@@ -4291,7 +4295,10 @@ nsresult nsImapMailFolder::SyncFlags(nsIImapFlagAndUidState *flagState)
   mFolderSize = 0;
   flagState->GetNumberOfMessages(&messageIndex);
 
-  for (PRInt32 flagIndex=0; flagIndex < messageIndex; flagIndex++)
+  PRUint16 supportedUserFlags;
+  flagState->GetSupportedUserFlags(&supportedUserFlags);
+
+  for (PRInt32 flagIndex = 0; flagIndex < messageIndex; flagIndex++)
   {
     PRUint32 uidOfMessage;
     flagState->GetUidOfMessage(flagIndex, &uidOfMessage);
@@ -4315,7 +4322,7 @@ nsresult nsImapMailFolder::SyncFlags(nsIImapFlagAndUidState *flagState)
       if (NS_SUCCEEDED(flagState->GetCustomFlags(uidOfMessage, getter_Copies(keywords))))
       {
         if (!keywords.IsEmpty() && dbHdr && NS_SUCCEEDED(rv))
-          HandleCustomFlags(uidOfMessage, dbHdr, keywords);
+          HandleCustomFlags(uidOfMessage, dbHdr, supportedUserFlags, keywords);
       }
     }
     NotifyMessageFlagsFromHdr(dbHdr, uidOfMessage, flags);

@@ -37,7 +37,7 @@
 
 #include "nsISupports.idl"
 
-[scriptable, uuid(fe57609e-f90b-46a2-b78c-9c13aded30ee)]
+[scriptable, uuid(65c41e49-0dbb-4c6d-8e89-bf3bb5b62cc8)]
 interface nsIImapFlagAndUidState : nsISupports 
 {
   readonly attribute long numberOfMessages;
@@ -59,6 +59,20 @@ interface nsIImapFlagAndUidState : nsISupports
    **/
   readonly attribute boolean partialUIDFetch;
 
+  /**
+   * Set of flags the server supports storing per message. See nsImapCore.h
+   * for the set of flags.
+   */
+  readonly attribute unsigned short supportedUserFlags;
+
+  /**
+   * OR's the  passed in flags with the previous flags because we want to
+   * accumulate the FLAGS and PERMANENTFLAGS response.
+   *
+   * @param aFlags - flags to OR with current flags.
+   */
+  void orSupportedUserFlags(in unsigned short aFlags);
+
   void getUidOfMessage(in long zeroBasedIndex, out unsigned long result);
   void getMessageFlags(in long zeroBasedIndex, out unsigned short result);
   void setMessageFlags(in long zeroBasedIndex, in unsigned short flags);
@@ -67,7 +81,6 @@ interface nsIImapFlagAndUidState : nsISupports
   void addUidCustomFlagPair(in unsigned long uid, in string customFlag);
   string getCustomFlags(in unsigned long uid); // returns space-separated keywords
   void reset(in unsigned long howManyLeft);
-  void setSupportedUserFlags(in unsigned short flags);
   void clearCustomFlags(in unsigned long uid);
 };
 
