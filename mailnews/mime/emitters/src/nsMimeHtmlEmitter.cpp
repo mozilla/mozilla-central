@@ -64,6 +64,7 @@
 #include "nsAutoPtr.h"
 #include "nsINetUtil.h"
 #include "nsMemory.h"
+#include "nsTextFormatter.h"
 
 #define VIEW_ALL_HEADERS 2
 
@@ -203,12 +204,10 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
   nsTArray<nsCString> extraExpandedHeadersArray;
   nsCAutoString convertedDateString;
 
-  PRBool displayOriginalDate = PR_FALSE;
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (pPrefBranch)
   {
-    pPrefBranch->GetBoolPref("mailnews.display.original_date", &displayOriginalDate);
     pPrefBranch->GetCharPref("mailnews.headers.extraExpandedHeaders", getter_Copies(extraExpandedHeaders));
     // todo - should make this upper case
     if (!extraExpandedHeaders.IsEmpty())
@@ -249,7 +248,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
             continue;
     }
 
-    if (!PL_strcasecmp("Date", headerInfo->name) && !displayOriginalDate)
+    if (!PL_strcasecmp("Date", headerInfo->name))
     {
       GenerateDateString(headerValue, convertedDateString);
       headerValueEnumerator->Append(convertedDateString);
@@ -317,7 +316,6 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders()
 
 nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, nsACString &formattedDate)
 {
-  nsAutoString formattedDateString;
   nsresult rv = NS_OK;
 
   if (!mDateFormatter) {
@@ -326,22 +324,52 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
       return rv;
   }
 
-  PRTime messageTime;
-  PR_ParseTimeString(dateString, PR_FALSE, &messageTime);
+  /**
+   * See if the user wants to have the date displayed in the senders
+   * timezone (including the timezone offset).
+   * We also evaluate the pref original_date which was introduced
+   * as makeshift in bug 118899.
+   */
+  PRBool displaySenderTimezone = PR_FALSE;
+  PRBool displayOriginalDate = PR_FALSE;
+
+  nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIPrefBranch> dateFormatPrefs;
+  rv = prefs->GetBranch("mailnews.display.", getter_AddRefs(dateFormatPrefs));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  dateFormatPrefs->GetBoolPref("date_senders_timezone", &displaySenderTimezone);
+  dateFormatPrefs->GetBoolPref("original_date", &displayOriginalDate);
+  // migrate old pref to date_senders_timezone
+  if (displayOriginalDate && !displaySenderTimezone)
+    dateFormatPrefs->SetBoolPref("date_senders_timezone", PR_TRUE);
+
+  PRExplodedTime explodedMsgTime;
+  PR_ParseTimeStringToExplodedTime(dateString, PR_FALSE, &explodedMsgTime);
+  /**
+   * We need to make the message time comparable to current time. Due to the
+   * lack of generic PRTimeParamFn the comparison can't be in message time zone.
+   * If we don't have a use for explodedCompTime (i.e. if we're displaying
+   * time in senders timezone), compare in GMT, else in local timezone. That
+   * saves time since PR_LocalTimeParameters() is quite expensive.
+   */
+  PRTime compareTime = PR_ImplodeTime(&explodedMsgTime);
+  PRExplodedTime explodedCompTime;
+  PR_ExplodeTime(compareTime, displaySenderTimezone ? PR_GMTParameters : PR_LocalTimeParameters, &explodedCompTime);
 
   PRTime currentTime = PR_Now();
   PRExplodedTime explodedCurrentTime;
-  PR_ExplodeTime(currentTime, PR_LocalTimeParameters, &explodedCurrentTime);
-  PRExplodedTime explodedMsgTime;
-  PR_ExplodeTime(messageTime, PR_LocalTimeParameters, &explodedMsgTime);
+  PR_ExplodeTime(currentTime, displaySenderTimezone ? PR_GMTParameters : PR_LocalTimeParameters, &explodedCurrentTime);
 
   // if the message is from today, don't show the date, only the time. (i.e. 3:15 pm)
   // if the message is from the last week, show the day of the week.   (i.e. Mon 3:15 pm)
   // in all other cases, show the full date (03/19/01 3:15 pm)
   nsDateFormatSelector dateFormat = kDateFormatShort;
-  if (explodedCurrentTime.tm_year == explodedMsgTime.tm_year &&
-      explodedCurrentTime.tm_month == explodedMsgTime.tm_month &&
-      explodedCurrentTime.tm_mday == explodedMsgTime.tm_mday)
+  if (explodedCurrentTime.tm_year == explodedCompTime.tm_year &&
+      explodedCurrentTime.tm_month == explodedCompTime.tm_month &&
+      explodedCurrentTime.tm_mday == explodedCompTime.tm_mday)
   {
     // same day...
     dateFormat = kDateFormatNone;
@@ -364,12 +392,23 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
   }
 */
 
+  nsAutoString formattedDateString;
   if (NS_SUCCEEDED(rv))
-    rv = mDateFormatter->FormatPRTime(nsnull /* nsILocale* locale */,
-                                      dateFormat,
-                                      kTimeFormatNoSeconds,
-                                      messageTime,
-                                      formattedDateString);
+    rv = mDateFormatter->FormatPRExplodedTime(nsnull /* nsILocale* locale */,
+                                              dateFormat,
+                                              kTimeFormatNoSeconds,
+                                              displaySenderTimezone ? &explodedMsgTime : &explodedCompTime,
+                                              formattedDateString);
+
+  if (displaySenderTimezone)
+  {
+    // offset of local time from UTC in minutes
+    PRInt32 senderoffset = (explodedMsgTime.tm_params.tp_gmt_offset + explodedMsgTime.tm_params.tp_dst_offset) / 60;
+    // append offset to date string
+    PRUnichar *tzstring = nsTextFormatter::smprintf(NS_LITERAL_STRING(" %+05d").get(), (senderoffset / 60 * 100) + (senderoffset % 60));
+    formattedDateString.Append(tzstring);
+    nsTextFormatter::smprintf_free(tzstring);
+  }
 
   if (NS_SUCCEEDED(rv))
     CopyUTF16toUTF8(formattedDateString, formattedDate);
