@@ -982,3 +982,12 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SetMsgHeaderSink(nsIMsgHeaderSink * aMsgHdrSink)
     mMsgHeaderSink = aMsgHdrSink;
     return NS_OK;
 }
+
+NS_IMETHODIMP nsMsgMailNewsUrl::GetIsMessageUri(PRBool *aIsMessageUri)
+{
+  NS_ENSURE_ARG(aIsMessageUri);
+  nsCAutoString scheme;
+  m_baseURL->GetScheme(scheme);
+  *aIsMessageUri = StringEndsWith(scheme, NS_LITERAL_CSTRING("-message"));
+  return NS_OK;
+}
