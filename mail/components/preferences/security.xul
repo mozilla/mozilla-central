@@ -39,22 +39,22 @@
 
 <!DOCTYPE overlay [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
-<!ENTITY % privacyDTD SYSTEM "chrome://messenger/locale/preferences/privacy.dtd">
+<!ENTITY % securityDTD SYSTEM "chrome://messenger/locale/preferences/security.dtd">
 %brandDTD;
-%privacyDTD;
+%securityDTD;
 ]>
 
-<overlay id="PrivacyPaneOverlay"
+<overlay id="SecurityPaneOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
            
-  <prefpane id="panePrivacy" onpaneload="gPrivacyPane.init();">
-    <script type="application/x-javascript" src="chrome://messenger/content/preferences/privacy.js"/>
+  <prefpane id="paneSecurity" onpaneload="gSecurityPane.init();">
+    <script type="application/x-javascript" src="chrome://messenger/content/preferences/security.js"/>
 
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
 
     <preferences>
-      <preference id="mail.preferences.privacy.selectedTabIndex"
-                  name="mail.preferences.privacy.selectedTabIndex" type="int"/>
+      <preference id="mail.preferences.security.selectedTabIndex"
+                  name="mail.preferences.security.selectedTabIndex" type="int"/>
       <preference id="mail.spam.manualMark" 
                   name="mail.spam.manualMark" 
                   type="bool"/>
@@ -81,7 +81,7 @@
                   type="bool"/>
     </preferences>
 
-    <tabbox id="privacyPrefs" flex="1" onselect="gPrivacyPane.tabSelectionChanged();">
+    <tabbox id="securityPrefs" flex="1" onselect="gSecurityPane.tabSelectionChanged();">
       <tabs>
         <tab label="&itemJunk.label;"/>
         <tab label="&itemPhishing.label;"/>
@@ -96,7 +96,7 @@
           
           <checkbox id="manualMark" 
                     preference="mail.spam.manualMark"
-                    oncommand="gPrivacyPane.updateManualMarkMode(this.checked);"
+                    oncommand="gSecurityPane.updateManualMarkMode(this.checked);"
                     label="&manualMark.label;" accesskey="&manualMark.accesskey;"/>
 
           <radiogroup id="manualMarkMode" class="indent"
@@ -111,17 +111,17 @@
 
           <hbox align="start">
             <checkbox id="enableJunkLogging" label="&enableJunkLogging.label;"
-                      oncommand="gPrivacyPane.updateJunkLogButton(this.checked);" 
+                      oncommand="gSecurityPane.updateJunkLogButton(this.checked);" 
                       preference="mail.spam.logging.enabled" 
                       accesskey="&enableJunkLogging.accesskey;"/>
             <spacer flex="1"/>
             <button id="openJunkLogButton" label="&openJunkLog.label;" accesskey="&openJunkLog.accesskey;" 
-                    oncommand="gPrivacyPane.openJunkLog();"/>
+                    oncommand="gSecurityPane.openJunkLog();"/>
           </hbox>
           <hbox align="start">
             <spacer flex="1"/>
             <button label="&resetTrainingData.label;" accesskey="&resetTrainingData.accesskey;" 
-                    oncommand="gPrivacyPane.resetTrainingData()"/>
+                    oncommand="gSecurityPane.resetTrainingData()"/>
           </hbox>          
         </tabpanel>
         
@@ -131,7 +131,6 @@
           <separator class="thin"/>
           <checkbox id="enablePhishingDetector"
                     label="&enablePhishingDetector1.label;" accesskey="&enablePhishingDetector1.accesskey;"
-                    oncommand="gPrivacyPane.updateDownloadedPhishingListState()" 
                     preference="mail.phishing.detection.enabled"/>
 <!--          
           <checkbox id="useDownloadedList" class="indent" label="&useDownloadedList.label;"
@@ -157,7 +156,7 @@
           <hbox>
             <spacer flex="1"/>
             <button label="&savedPasswords.label;" accesskey="&savedPasswords.accesskey;"
-                    oncommand="gPrivacyPane.showPasswords();"
+                    oncommand="gSecurityPane.showPasswords();"
                     preference="pref.privacy.disable_button.view_passwords"/>
           </hbox>
           <!-- XXX button to do a showExceptions()? -->
@@ -168,11 +167,11 @@
           <hbox>
             <checkbox id="useMasterPassword" flex="1"
                       label="&useMasterPassword.label;" accesskey="&useMasterPassword.accesskey;"
-                      oncommand="gPrivacyPane.updateMasterPasswordButton();"/>
+                      oncommand="gSecurityPane.updateMasterPasswordButton();"/>
 
             <button id="changeMasterPassword"
                     label="&changeMasterPassword.label;" accesskey="&changeMasterPassword.accesskey;"
-                    oncommand="gPrivacyPane.changeMasterPassword();"/>
+                    oncommand="gSecurityPane.changeMasterPassword();"/>
           </hbox>
           <separator flex="1"/>
         </tabpanel>

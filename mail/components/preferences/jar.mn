@@ -8,8 +8,8 @@ messenger.jar:
 *   content/messenger/preferences/compose.js
 *   content/messenger/preferences/sendoptions.xul
 *   content/messenger/preferences/sendoptions.js
-*   content/messenger/preferences/privacy.xul
-*   content/messenger/preferences/privacy.js
+*   content/messenger/preferences/security.xul
+*   content/messenger/preferences/security.js
 *   content/messenger/preferences/junkLog.xul
 *   content/messenger/preferences/junkLog.js
 *   content/messenger/preferences/advanced.js

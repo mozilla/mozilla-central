@@ -86,8 +86,8 @@
             src="chrome://messenger/content/preferences/display.xul"/>
   <prefpane id="paneCompose" label="&paneComposition.title;"
             src="chrome://messenger/content/preferences/compose.xul"/>
-  <prefpane id="panePrivacy" label="&panePrivacy.title;"
-            src="chrome://messenger/content/preferences/privacy.xul"/>
+  <prefpane id="paneSecurity" label="&paneSecurity.title;"
+            src="chrome://messenger/content/preferences/security.xul"/>
   <prefpane id="paneDownloads" label="&paneAttachments.title;"
             src="chrome://messenger/content/preferences/downloads.xul"/>
   <prefpane id="paneAdvanced" label="&paneAdvanced.title;"

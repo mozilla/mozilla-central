@@ -9,5 +9,5 @@
 <!ENTITY paneDisplay.title        "Display">
 <!ENTITY paneComposition.title    "Composition">
 <!ENTITY paneAttachments.title    "Attachments">
-<!ENTITY panePrivacy.title        "Privacy">
+<!ENTITY paneSecurity.title       "Security">
 <!ENTITY paneAdvanced.title       "Advanced">

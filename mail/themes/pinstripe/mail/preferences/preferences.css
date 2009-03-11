@@ -100,11 +100,11 @@ radio[pane=paneCompose]:active {
   -moz-image-region: rect(32px, 96px, 64px, 64px)
 }
 
-radio[pane=panePrivacy] {
+radio[pane=paneSecurity] {
   -moz-image-region: rect(0px 128px 32px 96px);
 }
 
-radio[pane=panePrivacy]:active {
+radio[pane=paneSecurity]:active {
   -moz-image-region: rect(32px 128px 64px 96px);
 }
 
@@ -199,7 +199,7 @@ caption {
   margin: 0 8px;
 }
 
-#privacyPrefs {
+#securityPrefs {
   padding: 0 4px;
 }
 

@@ -36,13 +36,13 @@
 #
 # ***** END LICENSE BLOCK *****
 
-var gPrivacyPane = {
+var gSecurityPane = {
   mPane: null,
   mInitialized: false,
 
   init: function ()
   {
-    this.mPane = document.getElementById("panePrivacy");
+    this.mPane = document.getElementById("paneSecurity");
 
     this.updateManualMarkMode(document.getElementById('manualMark').checked);
     this.updateJunkLogButton(document.getElementById('enableJunkLogging').checked);
@@ -52,17 +52,17 @@ var gPrivacyPane = {
     // update the checkbox for downloading phishing url tables
     // this.updateDownloadedPhishingListState();
 
-    var preference = document.getElementById("mail.preferences.privacy.selectedTabIndex");
+    var preference = document.getElementById("mail.preferences.security.selectedTabIndex");
     if (preference.value)
-      document.getElementById("privacyPrefs").selectedIndex = preference.value;
+      document.getElementById("securityPrefs").selectedIndex = preference.value;
     this.mInitialized = true;
   },
 
   tabSelectionChanged: function ()
   {
     if (this.mInitialized)
-      document.getElementById("mail.preferences.privacy.selectedTabIndex")
-              .valueFromPreferences = document.getElementById("privacyPrefs").selectedIndex;
+      document.getElementById("mail.preferences.security.selectedTabIndex")
+              .valueFromPreferences = document.getElementById("securityPrefs").selectedIndex;
   },
 
   updateManualMarkMode: function(aEnableRadioGroup)
