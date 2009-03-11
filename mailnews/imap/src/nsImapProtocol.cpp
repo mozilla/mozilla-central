@@ -6708,44 +6708,20 @@ void nsImapProtocol::OnMoveFolderHierarchy(const char * sourceMailbox)
 
 void nsImapProtocol::FindMailboxesIfNecessary()
 {
-    //PR_EnterMonitor(fFindingMailboxesMonitor);
-    // biff should not discover mailboxes
+  // biff should not discover mailboxes
   PRBool foundMailboxesAlready = PR_FALSE;
   nsImapAction imapAction;
-  nsresult rv = NS_OK;
 
   // need to do this for every connection in order to see folders.
-#ifdef DOING_PSEUDO_MAILBOXES
-  // check if this is an aol web mail server by checking for the host name the account wizard sets
-  // up for an aol web mail account - the host name itself is not used, but that's what we set it to,
-  // so compare against it. A better solution would be to have the wizard set a special pref property on the
-  // server and perhaps we should do that for RTM
-  if (GetServerStateParser().ServerIsAOLServer() && !GetImapHostName().IsEmpty() && 
-      GetImapHostName().EqualsLiteral("imap.mail.aol.com"))
-  {
-    PRBool suppressPseudoView = PR_FALSE;
-    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server);
-    server->GetBoolValue("suppresspseudoview", &suppressPseudoView);
-    if (!suppressPseudoView)
-      XAOL_Option("+READMBOX");
-  }
-#endif
-
-  rv = m_runningUrl->GetImapAction(&imapAction);
-  rv = m_hostSessionList->GetHaveWeEverDiscoveredFoldersForHost(GetImapServerKey(), foundMailboxesAlready);
-    if (NS_SUCCEEDED(rv) && !foundMailboxesAlready &&
-    (imapAction != nsIImapUrl::nsImapBiff) &&
-    (imapAction != nsIImapUrl::nsImapDiscoverAllBoxesUrl) &&
-    (imapAction != nsIImapUrl::nsImapUpgradeToSubscription) &&
-    !GetSubscribingNow())
-    {
+  (void) m_runningUrl->GetImapAction(&imapAction);
+  nsresult rv = m_hostSessionList->GetHaveWeEverDiscoveredFoldersForHost(GetImapServerKey(), foundMailboxesAlready);
+  if (NS_SUCCEEDED(rv) && !foundMailboxesAlready &&
+      (imapAction != nsIImapUrl::nsImapBiff) &&
+      (imapAction != nsIImapUrl::nsImapVerifylogon) &&
+      (imapAction != nsIImapUrl::nsImapDiscoverAllBoxesUrl) &&
+      (imapAction != nsIImapUrl::nsImapUpgradeToSubscription) &&
+      !GetSubscribingNow())
     DiscoverMailboxList();
-
-    // If we decide to do it, here is where we should check to see if
-    // a namespace exists (personal namespace only?) and possibly
-    // create it if it doesn't exist.
-  }
-    //PR_ExitMonitor(fFindingMailboxesMonitor);
 }
 
 void nsImapProtocol::DiscoverAllAndSubscribedBoxes()
