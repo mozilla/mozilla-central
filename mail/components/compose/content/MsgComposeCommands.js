@@ -1117,7 +1117,7 @@ function GetArgs(originalData)
       try {
         args[argname] = decodeURIComponent(argvalue);
       } catch (e) {args[argname] = argvalue;}
-    dump("[" + argname + "=" + args[argname] + "]\n");
+    // dump("[" + argname + "=" + args[argname] + "]\n");
   }
   return args;
 }
@@ -1497,8 +1497,6 @@ function ComposeLoad()
 
 function ComposeUnload()
 {
-  dump("\nComposeUnload from XUL\n");
-
   UnloadCommandUpdateHandlers();
 
   // Stop InlineSpellCheckerUI so personal dictionary is saved
@@ -1520,9 +1518,6 @@ function ComposeUnload()
 
 function SetDocumentCharacterSet(aCharset)
 {
-  dump("SetDocumentCharacterSet Callback!\n");
-  dump(aCharset + "\n");
-
   if (gMsgCompose) {
     gMsgCompose.SetDocumentCharset(aCharset);
     gCharsetTitle = null;
@@ -1620,10 +1615,6 @@ function GetCharsetUIString()
 
 function GenericSendMessage( msgType )
 {
-  dump("GenericSendMessage from XUL\n");
-
-  dump("Identity = " + getCurrentIdentity() + "\n");
-
   if (gMsgCompose != null)
   {
     var msgCompFields = gMsgCompose.compFields;
@@ -1874,7 +1865,6 @@ function CheckValidEmailAddress(to, cc, bcc)
 
 function SendMessage()
 {
-  dump("SendMessage from XUL\n");
   GenericSendMessage(nsIMsgCompDeliverMode.Now);
 }
 
@@ -1911,13 +1901,11 @@ function SendMessageWithCheck()
 
 function SendMessageLater()
 {
-  dump("SendMessageLater from XUL\n");
   GenericSendMessage(nsIMsgCompDeliverMode.Later);
 }
 
 function Save()
 {
-  dump("Save from XUL\n");
   switch (defaultSaveOperation)
   {
     case "file"     : SaveAsFile(false);      break;
@@ -1928,7 +1916,6 @@ function Save()
 
 function SaveAsFile(saveAs)
 {
-  dump("SaveAsFile from XUL\n");
   var subject = GetMsgSubjectElement().value;
   GetCurrentEditor().setDocumentTitle(subject);
 
@@ -1941,8 +1928,6 @@ function SaveAsFile(saveAs)
 
 function SaveAsDraft()
 {
-  dump("SaveAsDraft from XUL\n");
-
   gAutoSaveKickedIn = false;
   gEditingDraft = true;
 
@@ -1952,8 +1937,6 @@ function SaveAsDraft()
 
 function SaveAsTemplate()
 {
-  dump("SaveAsTemplate from XUL\n");
-
   gAutoSaveKickedIn = false;
   gEditingDraft = false;
 
@@ -2874,7 +2857,7 @@ function DetermineHTMLAction(convertible)
           noHtmlRecipients = msgCompFields.to + "," + msgCompFields.cc + "," + msgCompFields.bcc;
           preferFormat = nsIAbPreferMailFormat.unknown;
         }
-        dump("DetermineHTMLAction: preferFormat = " + preferFormat + ", noHtmlRecipients are " + noHtmlRecipients + "\n");
+        // dump("DetermineHTMLAction: preferFormat = " + preferFormat + ", noHtmlRecipients are " + noHtmlRecipients + "\n");
 
         //Check newsgroups now...
         noHtmlnewsgroups = gMsgCompose.compFields.newsgroups;
