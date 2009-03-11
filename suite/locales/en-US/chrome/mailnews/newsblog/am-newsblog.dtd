@@ -1,4 +1,4 @@
-<!ENTITY newsblogTitle.label "RSS Account Settings">
+<!ENTITY accountTitle.label "Account Settings">
 
 <!ENTITY biffStart.label "Check for new articles every ">
 <!ENTITY biffStart.accesskey "k">
@@ -13,8 +13,8 @@
 <!ENTITY manageSubscriptions.label "Manage Subscriptions…"> 
 <!ENTITY manageSubscriptions.accesskey "M">
 
-<!-- entities from defaults/isp/rss.rdf -->
-<!ENTITY rss.accountName            "News &amp; Blogs">
-<!ENTITY rss.wizardShortName        "RSS">  
-<!ENTITY rss.wizardLongName         "RSS News &amp; Blogs">
-<!ENTITY rss.wizardLongName.accesskey "R">
+<!-- entities from rss.rdf -->
+<!ENTITY feeds.accountName "Blogs &amp; News Feeds">
+<!ENTITY feeds.wizardShortName "Feeds">
+<!ENTITY feeds.wizardLongName "Blogs &amp; News Feeds">
+<!ENTITY feeds.wizardLongName.accesskey "F">

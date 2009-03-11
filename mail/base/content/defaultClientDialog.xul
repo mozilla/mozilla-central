@@ -60,7 +60,7 @@
   <listbox rows="3" seltype="single" id="defaultClientList">   
     <listitem id="checkMail" type="checkbox" label="&email.label;"/>
     <listitem id="checkNews" type="checkbox" label="&newsgroups.label;"/>
-    <listitem id="checkRSS"  type="checkbox" label="&rss.label;"/>    
+    <listitem id="checkRSS"  type="checkbox" label="&feeds.label;"/>
   </listbox>
 
   <separator class="thin"/>

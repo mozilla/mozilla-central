@@ -63,7 +63,7 @@
     <listitem value="BROWSER" type="checkbox" label="&browser.label;"/>
     <listitem value="MAIL" type="checkbox" label="&email.label;"/>
     <listitem value="NEWS" type="checkbox" label="&newsgroups.label;"/>
-    <listitem value="RSS" type="checkbox" label="&rss.label;"/>
+    <listitem value="RSS" type="checkbox" label="&feeds.label;"/>
   </listbox>
 
   <separator class="thin"/>

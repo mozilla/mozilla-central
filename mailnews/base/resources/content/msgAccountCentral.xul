@@ -122,13 +122,15 @@
 
       <row id="rssHeader" class="acctCentralTitleRow">
         <hbox class="acctCentralRowTitleBox">
-          <description>&rssSectionHdr.label;</description> 
+          <description>&feedsSectionHdr.label;</description>
         </hbox>
       </row>
       <separator id="rssHeader.separator" class="thin"/>
       <row id="SubscribeRSS" class="acctCentralRow">
-        <hbox> 
-          <label class="acctCentralText acctCentralLinkText" value="&subscibeRSS.label;" chromedir="&locale.dir;" onclick="Subscribe();"/> 
+        <hbox>
+          <label class="acctCentralText acctCentralLinkText"
+                 value="&subscribeFeeds.label;"
+                 chromedir="&locale.dir;" onclick="Subscribe();"/>
         </hbox> 
       </row>
       <separator id="SubscribeRSS.separator" class="thin"/>
