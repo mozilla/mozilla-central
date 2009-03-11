@@ -224,10 +224,10 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
               openingDiv += '\"';
             }
           }
-          openingDiv += "><pre wrap>";
+          openingDiv += "><pre wrap>\n";
         }
         else
-          openingDiv = "<pre wrap>";
+          openingDiv = "<pre wrap>\n";
       status = MimeObject_write(obj, openingDiv.get(), openingDiv.Length(), PR_FALSE);
       if (status < 0) return status;
 
@@ -399,14 +399,14 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
         else
           prefaceResultStr += "<blockquote type=cite>";
       }
-      prefaceResultStr += "<pre wrap>";
+      prefaceResultStr += "<pre wrap>\n";
     }
     else if (text->mCiteLevel < oldCiteLevel)
     {
       prefaceResultStr += "</pre>";
       for (PRUint32 i = 0; i < oldCiteLevel - text->mCiteLevel; i++)
         prefaceResultStr += "</blockquote>";
-      prefaceResultStr += "<pre wrap>";
+      prefaceResultStr += "<pre wrap>\n";
     }
 
     // Write plain text quoting tags
