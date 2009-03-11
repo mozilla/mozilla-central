@@ -53,7 +53,6 @@
 #include "nsIMsgMessageService.h"
 #include "nsIMsgFilterHitNotify.h"
 #include "nsIMsgFilterList.h"
-#include "nsIMsgFilterPlugin.h"
 #include "prmon.h"
 #include "nsIMsgImapMailFolder.h"
 #include "nsIMsgLocalMailFolder.h"
@@ -220,9 +219,7 @@ class nsImapMailFolder :  public nsMsgDBFolder,
                           public nsIImapMailFolderSink,
                           public nsIImapMessageSink,
                           public nsICopyMessageListener,
-                          public nsIMsgFilterHitNotify,
-                          public nsIJunkMailClassificationListener,
-                          public nsIMsgTraitClassificationListener
+                          public nsIMsgFilterHitNotify
 {
  static const PRUint32 PLAYBACK_TIMER_INTERVAL_IN_MS = 500; 
 public:
@@ -329,7 +326,6 @@ public:
 
   NS_DECL_NSIMSGFILTERHITNOTIFY
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
-  NS_DECL_NSIMSGTRAITCLASSIFICATIONLISTENER
 
   NS_IMETHOD IsCommandEnabled(const nsACString& command, PRBool *result);
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aMsgFilterList);
@@ -341,8 +337,6 @@ public:
                                   const nsACString& destFolder,
                                   nsIMsgFilter *filter,
                                   nsIMsgWindow *msgWindow);
-  virtual nsresult SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
-  virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
 
   static nsresult  AllocateUidStringFromKeys(nsMsgKey *keys, PRUint32 numKeys, nsCString &msgIds);
   static nsresult  BuildIdsAndKeyArray(nsIArray* messages, nsCString& msgIds, nsTArray<nsMsgKey>& keyArray);
@@ -453,7 +447,6 @@ protected:
   nsCOMPtr<nsIMsgFilterList> m_filterList;
   nsCOMPtr<nsIMsgFilterPlugin> m_filterPlugin;  // XXX should be a list
   // used with filter plugins to know when we've finished classifying and can playback moves
-  PRInt32 m_numFilterClassifyRequests;
   PRBool m_msgMovedByFilter;
   nsImapMoveCoalescer *m_moveCoalescer; // strictly owned by the nsImapMailFolder
   nsCOMPtr<nsIMutableArray> m_junkMessagesToMarkAsRead;

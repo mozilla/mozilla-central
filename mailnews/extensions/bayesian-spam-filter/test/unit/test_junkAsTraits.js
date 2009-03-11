@@ -316,6 +316,8 @@ var junkListener =
 // nsIJunkMailClassificationListener implementation
   onMessageClassified: function(aMsgURI, aClassification, aJunkPercent)
   {
+    if (!aMsgURI)
+      return; // ignore end-of-batch signal
     //print("Message URI is " + aMsgURI);
     //print("Junk percent is " + aJunkPercent);
     //print("Classification is " + aClassification);
@@ -364,6 +366,8 @@ var traitListener =
   //nsIMsgTraitClassificationListener implementation
   onMessageTraitsClassified: function(aMsgURI, {}, aTraits, aPercents)
   {
+    if (!aMsgURI)
+      return; //ignore end-of-batch signal
     //print("(Trait Listener)Message URI is " + aMsgURI);
     //print("(Trait Listener)Junk percent is " + aPercents);
     var command = gTest.command;

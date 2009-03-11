@@ -52,7 +52,6 @@
 #include "nsIMsgParseMailMsgState.h"
 #include "nsITransactionManager.h"
 #include "nsIMsgLocalMailFolder.h"
-#include "nsIMsgFilterPlugin.h"
 #include "nsISeekableStream.h"
 #include "nsIMutableArray.h"
 #include "nsLocalUndoTxn.h"
@@ -117,9 +116,7 @@ struct nsLocalFolderScanState
 
 class nsMsgLocalMailFolder : public nsMsgDBFolder,
                              public nsIMsgLocalMailFolder,
-                             public nsICopyMessageListener,
-                             public nsIJunkMailClassificationListener,
-                             public nsIMsgTraitClassificationListener
+                             public nsICopyMessageListener
 {
 public:
   nsMsgLocalMailFolder(void);
@@ -127,7 +124,6 @@ public:
   NS_DECL_NSICOPYMESSAGELISTENER
   NS_DECL_NSIMSGLOCALMAILFOLDER
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
-  NS_DECL_NSIMSGTRAITCLASSIFICATIONLISTENER
   NS_DECL_ISUPPORTS_INHERITED
   // nsIRDFResource methods:
   NS_IMETHOD Init(const char *aURI);
@@ -242,8 +238,6 @@ protected:
                          PRBool isMove, nsIMsgCopyServiceListener* listener, nsIMsgWindow *msgWindow, PRBool isMoveFolder, PRBool allowUndo);
   void CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDBHdr *srcHdr);
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
-  virtual nsresult SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
-  virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
   nsresult ChangeKeywordForMessages(nsIArray *aMessages, const nsACString& aKeyword, PRBool add);
   PRBool GetDeleteFromServerOnMove();
 
@@ -255,9 +249,7 @@ protected:
   PRPackedBool mCheckForNewMessagesAfterParsing;
   PRPackedBool m_parsingFolder;
   nsCOMPtr<nsIUrlListener> mReparseListener;
-  PRInt32 mNumFilterClassifyRequests;
   nsTArray<nsMsgKey> mSpamKeysToMove;
-  nsCString mSpamFolderURI;
   nsresult setSubfolderFlag(const nsAString& aFolderName, PRUint32 flags);
 
   // state variables for DownloadMessagesForOffline

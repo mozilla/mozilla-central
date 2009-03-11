@@ -1151,6 +1151,11 @@ public:
       }
       else
       {
+        // call all listeners with null parameters to signify end of batch
+        if (mJunkListener)
+          mJunkListener->OnMessageClassified(nsnull, nsnull, nsnull);
+        if (mTraitListener)
+          mTraitListener->OnMessageTraitsClassified(nsnull, nsnull, nsnull, nsnull);
         mTokenListener = nsnull; // this breaks the circular ref that keeps this object alive
                                  // so we will be destroyed as a result.
       }

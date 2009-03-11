@@ -60,8 +60,8 @@
 #include "nsCOMArray.h"
 #include "nsMsgKeySet.h"
 #include "nsMsgMessageFlags.h"
+#include "nsIMsgFilterPlugin.h"
 class nsIMsgFolderCacheElement;
-class nsIJunkMailPlugin;
 class nsICollation;
 class nsMsgKeySetU;
 
@@ -77,7 +77,9 @@ class NS_MSG_BASE nsMsgDBFolder: public nsRDFResource,
                                  public nsSupportsWeakReference,
                                  public nsIMsgFolder,
                                  public nsIDBChangeListener,
-                                 public nsIUrlListener
+                                 public nsIUrlListener,
+                                 public nsIJunkMailClassificationListener,
+                                 public nsIMsgTraitClassificationListener
 {
 public: 
   nsMsgDBFolder(void);
@@ -86,6 +88,8 @@ public:
   NS_DECL_NSIMSGFOLDER
   NS_DECL_NSIDBCHANGELISTENER
   NS_DECL_NSIURLLISTENER
+  NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
+  NS_DECL_NSIMSGTRAITCLASSIFICATIONLISTENER
   
   NS_IMETHOD WriteToFolderCacheElem(nsIMsgFolderCacheElement *element);
   NS_IMETHOD ReadFromFolderCacheElem(nsIMsgFolderCacheElement *element);

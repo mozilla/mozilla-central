@@ -146,6 +146,8 @@ var listener =
   onMessageTraitsClassified: function(aMsgURI, {}, aTraits, aPercents)
   {
     //print("Message URI is " + aMsgURI);
+    if (!aMsgURI)
+      return; //ignore end-of-batch signal
 
     switch (gTest.command)
     {

@@ -77,6 +77,8 @@ var doTestingListener =
 {
   onMessageClassified: function(aMsgURI, aClassification, aJunkPercent)
   {
+    if (!aMsgURI)
+      return; // ignore end-of-batch signal
     var email = emails.shift();
     var classification = classifications.shift();
     if (email)

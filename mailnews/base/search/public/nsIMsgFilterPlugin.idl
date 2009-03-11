@@ -75,19 +75,23 @@ interface nsIMsgFilterPlugin : nsISupports
  * one of a set of classifications to accomplish.
  */
 
-/**
- * Inform a listener of a message's classification aClassification, which
- * can be one of 3 values:  UNCLASSIFIED, GOOD, or JUNK.
- * Pass the indicator aJunkPercent, where 0 is not junk,
- * 100 is junk, and intermediate values represent varying uncertainty.
- */
 [scriptable, uuid(b15a0f9c-df07-4af0-9ba8-80dca68ac35d)]
 interface nsIJunkMailClassificationListener : nsISupports
 {
-    void onMessageClassified(in string aMsgURI,
-      in nsMsgJunkStatus aClassification,
-      in PRUint32 aJunkPercent);
-
+  /**
+   * Inform a listener of a message's classification as junk. At the end
+   * of a batch of classifications, signify end of batch by calling with
+   * null aMsgURI (other parameters are don't care)
+   *
+   * @param aMsgURI          URI of the message that was classified.
+   * @param aClassification  classification of message as UNCLASSIFIED, GOOD,
+   *                         or JUNK.
+   * @param aJunkPercent     indicator of degree of uncertainty, with 100 being
+   *                         probably junk, and 0 probably good
+   */
+  void onMessageClassified(in string aMsgURI,
+                           in nsMsgJunkStatus aClassification,
+                           in PRUint32 aJunkPercent);
 };
 
 [scriptable, uuid(AF247D07-72F0-482d-9EAB-5A786407AA4C)]
@@ -96,7 +100,9 @@ interface nsIMsgTraitClassificationListener : nsISupports
   /**
    * Inform a listener of a message's match to traits. The list
    * of traits being matched is in aTraits. Corresponding
-   * indicator of match (percent) is in aPercents.
+   * indicator of match (percent) is in aPercents. At the end
+   * of a batch of classifications, signify end of batch by calling with
+   * null aMsgURI (other parameters are don't care)
    *
    * @param aMsgURI      URI of the message that was classified
    * @param aTraitCount  length of aTraits and aPercents arrays
