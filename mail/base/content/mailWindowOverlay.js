@@ -1602,7 +1602,10 @@ let mailTabType = {
       tpSplitter.collapsed = collapse;
       document.getElementById("messagepanebox").collapsed = false;
     }
-    ChangeMessagePaneVisibility(IsMessagePaneCollapsed());
+    // Need to call ChangeMessagePaneVisibility() a little later after the
+    // message was selected so that the tab state data gets the message key
+    // saved off, which happens below in showTab().
+    setTimeout(ChangeMessagePaneVisibility, 0, IsMessagePaneCollapsed());
 
     try {
       document.getElementById("search-container").collapsed = collapse;
