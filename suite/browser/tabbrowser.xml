@@ -298,6 +298,28 @@
         </body>
       </method>
 
+      <method name="getBrowserAtIndex">
+        <parameter name="aIndex"/>
+        <body>
+          <![CDATA[
+            return this.browsers[aIndex];
+          ]]>
+        </body>
+      </method>
+
+      <method name="getBrowserIndexForDocument">
+        <parameter name="aDocument"/>
+        <body>
+          <![CDATA[
+            var browsers = this.browsers;
+            for (var i = 0; i < browsers.length; i++)
+              if (browsers[i].contentDocument == aDocument)
+                return i;
+            return -1;
+          ]]>
+        </body>
+      </method>
+
       <method name="getBrowserForDocument">
         <parameter name="aDocument"/>
         <body>
