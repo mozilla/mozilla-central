@@ -2074,7 +2074,7 @@
                     this.editingTimer = null;
                 }
 
-                this.calendarView.selectedItem = this.mOccurrence;
+                this.calendarView.setSelectedItems(1, [this.mOccurrence]);
 
                 this.mEditing = false;
 
@@ -2091,7 +2091,7 @@
                 this.editingTimer = null;
             }
 
-            this.calendarView.selectedItem = this.mOccurrence;
+            this.calendarView.setSelectedItems(1, [this.mOccurrence]);
 
             this.mEditing = false;
 
