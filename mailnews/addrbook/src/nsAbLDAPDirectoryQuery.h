@@ -40,7 +40,7 @@
 #ifndef nsAbLDAPDirectoryQuery_h__
 #define nsAbLDAPDirectoryQuery_h__
 
-#include "nsAbDirectoryQuery.h"
+#include "nsIAbDirectoryQuery.h"
 #include "nsILDAPConnection.h"
 #include "nsILDAPMessageListener.h"
 #include "nsILDAPURL.h"

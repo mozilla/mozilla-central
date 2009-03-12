@@ -108,28 +108,30 @@ public:
     virtual ~nsAbDirectoryQuery();
 
 protected:
-    nsresult query (nsIAbDirectory* directory,
-        nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirSearchListener* listener,
-        PRInt32* resultLimit);
-    nsresult queryChildren (nsIAbDirectory* directory,
-        nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirSearchListener* listener,
-        PRInt32* resultLimit);
-    nsresult queryCards (nsIAbDirectory* directory,
-        nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirSearchListener* listener,
-        PRInt32* resultLimit);
-    nsresult matchCard (nsIAbCard* card,
-        nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirSearchListener* listener,
-        PRInt32* resultLimit);
-    nsresult matchCardExpression (nsIAbCard* card,
-        nsIAbBooleanExpression* expression,
-        PRBool* result);
-    nsresult matchCardCondition (nsIAbCard* card,
-        nsIAbBooleanConditionString* condition,
-        PRBool* matchFound);
+    nsresult query(nsIAbDirectory* directory,
+                   nsIAbBooleanExpression* expression,
+                   nsIAbDirSearchListener* listener,
+                   PRBool doSubDirectories,
+                   PRInt32* resultLimit);
+    nsresult queryChildren(nsIAbDirectory* directory,
+                           nsIAbBooleanExpression* expression,
+                           nsIAbDirSearchListener* listener,
+                           PRBool doSubDirectories,
+                           PRInt32* resultLimit);
+    nsresult queryCards(nsIAbDirectory* directory,
+                        nsIAbBooleanExpression* expression,
+                        nsIAbDirSearchListener* listener,
+                        PRInt32* resultLimit);
+    nsresult matchCard(nsIAbCard* card,
+                       nsIAbBooleanExpression* expression,
+                       nsIAbDirSearchListener* listener,
+                       PRInt32* resultLimit);
+    nsresult matchCardExpression(nsIAbCard* card,
+                                 nsIAbBooleanExpression* expression,
+                                 PRBool* result);
+    nsresult matchCardCondition(nsIAbCard* card,
+                                nsIAbBooleanConditionString* condition,
+                                PRBool* matchFound);
 
     nsresult queryMatch (nsIAbCard* card,
         nsIAbDirSearchListener* listener);

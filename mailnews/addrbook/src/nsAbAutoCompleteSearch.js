@@ -107,11 +107,14 @@ nsAbAutoCompleteSearch.prototype = {
   _commentColumn: 0,
   _parser: Components.classes["@mozilla.org/messenger/headerparser;1"]
                      .getService(Components.interfaces.nsIMsgHeaderParser),
+  _abManager: Components.classes["@mozilla.org/abmanager;1"]
+                        .getService(Components.interfaces.nsIAbManager),
 
   // Private methods
-  _searchCards: function _searchCards(fullString, firstWord, rest, directory,
-                                      result) {
-    var childCards = directory.childCards;
+  _searchCards: function _searchCards(searchQuery, fullString, firstWord, rest,
+                                      directory, result) {
+    var childCards =
+      this._abManager.getDirectory(directory.URI + searchQuery).childCards;
 
     // Cache this values to save going through xpconnect each time
     var commentColumn = this._commentColumn == 1 ? directory.dirName : "";
@@ -120,8 +123,7 @@ nsAbAutoCompleteSearch.prototype = {
     while (childCards.hasMoreElements()) {
       var card = childCards.getNext();
 
-      if (card instanceof Components.interfaces.nsIAbCard &&
-          this._checkEntry(card, fullString, firstWord, rest))
+      if (card instanceof Components.interfaces.nsIAbCard)
         this._addToResult(commentColumn, card, result);
     }
   },
@@ -282,10 +284,24 @@ nsAbAutoCompleteSearch.prototype = {
     }
     else
     {
+      // Construct the search query; using a query means we can optimise
+      // on running the search through c++ which is better for string
+      // comparisons (_checkEntry is relatively slow).
+      let searchQuery = "(or(PrimaryEmail,bw,@V)(DisplayName,bw,@V)(FirstName,bw,@V)(LastName,bw,@V)(NickName,bw,@V)(and(IsMailList,=,TRUE)(Notes,bw,@V)))";
+      searchQuery = searchQuery.replace(/@V/g, encodeURIComponent(fullString));
+
+      if (firstWord && rest) {
+        let searchFNLNPart = "(or(and(FirstName,bw,@V1)(LastName,bw,@V2))(and(FirstName,bw,@V2)(LastName,bw,@V1)))";
+        searchFNLNPart = searchFNLNPart.replace(/@V1/g, encodeURIComponent(firstWord));
+        searchFNLNPart = searchFNLNPart.replace(/@V2/g, encodeURIComponent(rest));
+
+        searchQuery = "(or" + searchQuery + searchFNLNPart + ")";
+      }
+
+      searchQuery = "?" + searchQuery;
+
       // Now do the searching
-      var allABs = Components.classes["@mozilla.org/abmanager;1"]
-                             .getService(Components.interfaces.nsIAbManager)
-                             .directories;
+      var allABs = this._abManager.directories;
 
       // We're not going to bother searching sub-directories, currently the
       // architecture forces all cards that are in mailing lists to be in ABs as
@@ -296,7 +312,7 @@ nsAbAutoCompleteSearch.prototype = {
 
         if (dir instanceof Components.interfaces.nsIAbDirectory &&
             dir.useForAutocomplete(aSearchParam)) {
-          this._searchCards(fullString, firstWord, rest, dir, result);
+          this._searchCards(searchQuery, fullString, firstWord, rest, dir, result);
         }
       }
     }
