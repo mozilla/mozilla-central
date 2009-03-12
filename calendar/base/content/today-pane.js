@@ -56,11 +56,8 @@ var TodayPane = {
       document.getElementById("modeBroadcaster").addEventListener("DOMAttrModified", this.onModeModified, false);
       this.setTodayHeader();
 
-      let panel =  document.getElementById('today-pane-panel');
-      let splitter = document.getElementById("today-splitter");
-      splitter.addEventListener("command", onCalendarViewResize, false);
-      splitter.hidden = !panel.isVisible();
-
+      document.getElementById("today-splitter").addEventListener("command", onCalendarViewResize, false);
+      this.updateSplitterState();
   },
 
   /**
@@ -305,17 +302,24 @@ var TodayPane = {
   onModeModified: function onModeModified(aEvent) {
       if (aEvent.attrName == "mode") {
           TodayPane.setTodayHeader();
-          var todaypanebox = document.getElementById("today-pane-panel");
-          if (todaypanebox.isVisible()) {
-              document.getElementById("today-splitter").setAttribute("state", "open");
-          }
+          TodayPane.updateSplitterState();
       }
   },
+
   toggleVisibility: function toggleVisbility(aEvent) {
-      let panel =  document.getElementById('today-pane-panel');
-      panel.togglePane(aEvent);
-      document.getElementById('today-splitter').hidden = !panel.isVisible();
+      document.getElementById('today-pane-panel').togglePane(aEvent);
       TodayPane.setTodayHeader();
+      TodayPane.updateSplitterState();
+  },
+  
+  updateSplitterState: function updateSplitterState() {
+      let splitter = document.getElementById('today-splitter');
+      if ( document.getElementById('today-pane-panel').isVisible() ) {
+          splitter.removeAttribute("hidden");
+          splitter.setAttribute("state", "open");
+      } else {
+          splitter.hidden = true;
+      }
   }
 };
 

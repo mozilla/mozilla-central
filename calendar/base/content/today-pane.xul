@@ -77,7 +77,8 @@
         <spacer id="buttonspacer"/>
         <toolbarbutton id="today-closer" class="today-closebutton"
                        oncommand="document.getElementById('today-pane-panel').setVisible(false, true, true);
-                                  TodayPane.setTodayHeader()"/>
+                                  TodayPane.setTodayHeader(); 
+                                  TodayPane.updateSplitterState();"/>
       </sidebarheader>
       <vbox flex="1">
         <modevbox id="agenda-panel"
