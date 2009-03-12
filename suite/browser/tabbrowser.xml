@@ -251,7 +251,9 @@
           canvas.height = canvasH;
           canvas.parentNode.hidden = false;
 
-          var bgColor = this.mPrefs.getCharPref("browser.display.background_color");
+          var bgColor = this.mPrefs.getBoolPref("browser.display.use_system_colors") ?
+                        "Window" :
+                        this.mPrefs.getCharPref("browser.display.background_color");
           if (b.contentDocument instanceof ImageDocument &&
               !(b.contentDocument.imageRequest.imageStatus &
                 Components.interfaces.imgIRequest.STATUS_ERROR)) {
