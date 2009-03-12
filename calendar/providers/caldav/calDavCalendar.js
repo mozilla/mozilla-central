@@ -697,7 +697,11 @@ calDavCalendar.prototype = {
                 httpchannel2.requestMethod = "HEAD";
                 cal.sendHttpRequest(cal.createStreamLoader(), httpchannel2, delListener2);
             } else {
-                LOG("CalDAV: Unexpected status deleting item: " + status);
+                let str;
+                try {
+                    str = cal.convertByteArray(aResult, aResultLength);
+                } catch(e) {}
+                LOG("CalDAV: Unexpected status " + status + " deleting item. Content: " + str);
                 thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_REMOVE_ERROR);
             }
         };
@@ -714,6 +718,10 @@ calDavCalendar.prototype = {
                                              realListener, null);
             }
         };
+
+        if (this.verboseLogging()) {
+            LOG("CalDAV: Deleting " + eventUri.spec);
+        }
 
         let httpchannel = cal.prepHttpChannel(eventUri, null, null, this);
         if (!aIgnoreEtag) {
@@ -1006,6 +1014,10 @@ calDavCalendar.prototype = {
             if (thisCalendar.isCached) {
                 thisCalendar.superCalendar.startBatch();
             }
+
+            // We need this later on, do so once to save some cycles.
+            let uriPathComponentLength = aUri.path.split("/").length;
+
             try {
                 let multistatus = cal.safeNewXML(str);
                 for each (let response in multistatus.*::response) {
@@ -1064,9 +1076,15 @@ calDavCalendar.prototype = {
                         continue;
                     }
 
-                    var pathLength = decodeURIComponent(aUri.path).length;
-                    var locationPath = decodeURIComponent(resourcePath).substr(pathLength);
-                    var isInboxItem = thisCalendar.isInbox(aUri.spec);
+                    // Strip of the same number of components as the request
+                    // uri's path has. This way we make sure to handle servers
+                    // that pass hrefs like /dav/user/Calendar while
+                    // the request uri is like /dav/user@example.org/Calendar.
+                    let resPathComponents = resourcePath.split("/");
+                    resPathComponents.splice(0, uriPathComponentLength - 1);
+                    let locationPath = decodeURIComponent(resPathComponents.join("/"));
+                    let isInboxItem = thisCalendar.isInbox(aUri.spec);
+
                     if (thisCalendar.mItemInfoCache[item.id]) {
                         thisCalendar.mItemInfoCache[item.id].isNew = false;
                     } else {
@@ -2100,6 +2118,7 @@ calDavCalendar.prototype = {
         let uploadData;
         let uploadContent;
         if (aOldChannel instanceof Components.interfaces.nsIUploadChannel &&
+            aOldChannel instanceof Components.interfaces.nsIHttpChannel &&
             aOldChannel.uploadStream) {
             uploadData = aOldChannel.uploadStream;
             uploadContent = aOldChannel.getRequestHeader("Content-Type");
