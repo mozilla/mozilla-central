@@ -451,8 +451,8 @@ pref("mail.collect_email_address_newsgroup", false);
 #endif
 pref("mail.collect_email_address_outgoing", true);
 
-// by default, use the Personal Addressbook for collection
-pref("mail.collect_addressbook", "moz-abmdbdirectory://abook.mab"); // the Personal addressbook.
+// by default, use the Collected Addressbook for collection
+pref("mail.collect_addressbook", "moz-abmdbdirectory://history.mab");
 
 pref("mail.default_sendlater_uri", "mailbox://nobody@Local%20Folders/Unsent%20Messages");
 
