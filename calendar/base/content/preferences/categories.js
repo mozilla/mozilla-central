@@ -243,6 +243,10 @@ var gCategoriesPane = {
         }
 
         this.updateCategoryList();
+
+        var updatedCategory = gCategoryList.indexOf(categoryName);
+        list.ensureIndexIsVisible(updatedCategory); 
+        list.selectedIndex = updatedCategory;
     },
 
     /**
