@@ -370,6 +370,25 @@ var nsBrowserContentHandler = {
     } catch (e) {
     }
 
+    var param;
+    try {
+      while ((param = cmdLine.handleFlagWithParam("new-window", false)) != null) {
+        var uri = resolveURIInternal(cmdLine, param);
+        handURIToExistingBrowser(uri, nsIBrowserDOMWindow.OPEN_NEWWINDOW, features);
+        cmdLine.preventDefault = true;
+      }
+    } catch (e) {
+    }
+
+    try {
+      while ((param = cmdLine.handleFlagWithParam("new-tab", false)) != null) {
+        var uri = resolveURIInternal(cmdLine, param);
+        handURIToExistingBrowser(uri, nsIBrowserDOMWindow.OPEN_NEWTAB, features);
+        cmdLine.preventDefault = true;
+      }
+    } catch (e) {
+    }
+
     try {
       var chromeParam = cmdLine.handleFlagWithParam("chrome", false);
       if (chromeParam) {
