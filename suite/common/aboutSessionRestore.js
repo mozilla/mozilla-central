@@ -140,7 +140,12 @@ function restoreSession() {
 }
 
 function startNewSession() {
-  getBrowserWindow().BrowserHome();
+  if (Components.classes["@mozilla.org/preferences-service;1"]
+                .getService(Components.interfaces.nsIPrefBranch)
+                .getIntPref("browser.startup.page") == 1)
+    getBrowserWindow().BrowserHome();
+  else
+    getBrowserWindow().getBrowser().loadURI("about:blank");
 }
 
 function onListClick(aEvent) {
