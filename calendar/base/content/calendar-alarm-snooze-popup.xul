@@ -97,7 +97,7 @@
 <menuseparator/>
 <hbox>
   <textbox id="custom-menupopup-alarm-value"
-           size="1"
+           size="3" type="number" min="1"
            oninput="checkSnoozeValue('custom-menupopup-alarm');"/>
   <menulist id="custom-menupopup-alarm-unit">
    <menupopup>
