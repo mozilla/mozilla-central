@@ -1400,6 +1400,28 @@ function MsgOpenSelectedMessageInExistingWindow()
     return false;
 }
 
+function MsgOpenSearch(aSearchStr, aReverseBackgroundPref)
+{
+  var topWindow = getTopWin();
+  if (topWindow)
+  {
+    topWindow.OpenSearch("internet", aSearchStr, true, aReverseBackgroundPref);
+  }
+  else
+  {
+    // open the requested window, but block it until it's fully loaded
+    function NewSearchWindowLoaded()
+    {
+      topWindow.setTimeout(topWindow.OpenSearch, 0, "internet", aSearchStr, false, aReverseBackgroundPref);
+      // make sure that this handler is called only once
+      topWindow.removeEventListener("load", NewSearchWindowLoaded, false);
+    }
+    // open a new window to load the search in and remember it until it's fully loaded
+    topWindow = window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no");
+    topWindow.addEventListener("load", NewSearchWindowLoaded, false);
+  }
+}
+
 function MsgOpenNewWindowForMessage(messageUri, folderUri)
 {
     if (!messageUri)

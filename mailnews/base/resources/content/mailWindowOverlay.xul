@@ -535,6 +535,8 @@
               label="&copyCmd.label;"
               accesskey="&copyCmd.accesskey;"
               command="cmd_copy"/>
+    <menuitem id="context-searchselect"
+              oncommand="MsgOpenSearch(gContextMenu.searchSelected(), event.shiftKey);"/>
     <menuitem id="mailContext-openNewWindow"
               label="&contextOpenNewWindow.label;"
               accesskey="&contextOpenNewWindow.accesskey;"
