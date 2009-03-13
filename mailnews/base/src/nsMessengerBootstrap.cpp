@@ -73,6 +73,10 @@
 #include "nsMsgUtils.h"
 #include "nsEscape.h"
 
+#ifdef XP_MACOSX
+#include "nsDirectoryServiceDefs.h"
+#endif
+
 NS_IMPL_THREADSAFE_ADDREF(nsMessengerBootstrap)
 NS_IMPL_THREADSAFE_RELEASE(nsMessengerBootstrap)
 
@@ -176,22 +180,43 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
   aCmdLine->GetLength(&numArgs);
   if (numArgs > 0)
   {
+    nsAutoString mailPath;
+
+#ifdef XP_MACOSX
+    // Mac will get -file /path/to/file
+    rv = aCmdLine->HandleFlagWithParam(NS_LITERAL_STRING("file"), PR_FALSE, mailPath);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (StringEndsWith(mailPath, NS_LITERAL_STRING(".mozeml"), nsCaseInsensitiveStringComparator()))
+    {
+      rv = HandleIndexerResult(mailPath);
+      // If we've found a search result, don't pop up a 3pane window
+      if (NS_SUCCEEDED(rv))
+        aCmdLine->SetPreventDefault(PR_TRUE);
+    }
+#else
+    // All other OSes just get a straight path (i.e., no -file)
     nsAutoString arg;
     aCmdLine->GetArgument(0, arg);
 
-#ifdef XP_MACOSX
-    if (StringEndsWith(arg, NS_LITERAL_STRING(".mozeml"), nsCaseInsensitiveStringComparator()))
-      HandleIndexerResult(arg);
-#endif
+    rv = aCmdLine->RemoveArguments(0, 0);
+    NS_ENSURE_SUCCESS(rv, rv);
+    mailPath = arg;
 #ifdef XP_WIN
-    if (StringEndsWith(arg, NS_LITERAL_STRING(".wdseml"), nsCaseInsensitiveStringComparator()))
-      HandleIndexerResult(arg);
+    if (StringEndsWith(mailPath, NS_LITERAL_STRING(".wdseml"), nsCaseInsensitiveStringComparator()))
+    {
+      rv = HandleIndexerResult(mailPath);
+      // If we've found a search result, don't pop up a 3pane window
+      if (NS_SUCCEEDED(rv))
+        aCmdLine->SetPreventDefault(PR_TRUE);
+    }
+#endif
 #endif
 
-    if (StringEndsWith(arg, NS_LITERAL_STRING(".eml"), nsCaseInsensitiveStringComparator()))
+    if (StringEndsWith(mailPath, NS_LITERAL_STRING(".eml"), nsCaseInsensitiveStringComparator()))
     {
       nsCOMPtr<nsIFile> file;
-      rv = aCmdLine->ResolveFile(arg, getter_AddRefs(file));
+      rv = aCmdLine->ResolveFile(mailPath, getter_AddRefs(file));
       PRBool fileExists = PR_FALSE;
       if (file) // Absolute paths always resolve, check if it exists too.
         file->Exists(&fileExists);
@@ -240,7 +265,6 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
       aCmdLine->SetPreventDefault(PR_TRUE);
     }
     return NS_OK;
-
   }
 #endif
   return NS_OK;
@@ -253,6 +277,9 @@ nsMessengerBootstrap::GetHelpInfo(nsACString& aResult)
     "  -mail                Open the mail folder view.\n"
 #ifndef MOZ_SUITE
     "  -options             Open the options dialog.\n"
+#endif
+#ifdef XP_MACOSX
+    "  -file                Open the specified email file.\n"
 #endif
   );
 
@@ -375,19 +402,41 @@ nsMessengerBootstrap::HandleIndexerResult(const nsString &aPath)
   nsCOMPtr<nsILocalFile> folderPath;
 
 #ifdef XP_MACOSX
-  // We're going to have a native path file url:
-  // file://<folder path>.mozmsgs/<message-id>.mozeml
-  // need to convert to 8 bit chars...i.e., a local path.
-  nsCString nativeArg;
-  NS_CopyUnicodeToNative(folderPathStr, nativeArg);
+  // On Mac, the .mozeml files are stored outside the profile in
+  // ~/Library/Caches/Metadata.  We have to replace this root with
+  // the profile dir, so we can find the actual mail there.  NOTE:
+  // this works for profiles not in ~/Library/Thunderbird/Profiles.
+  nsCOMPtr<nsIFile> homeDir;
+  rv = NS_GetSpecialDirectory(NS_OS_HOME_DIR, getter_AddRefs(homeDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+  // TB Spotlight data goes in ~/Library/Caches/Metadata/Thunderbird
+  homeDir->Append(NS_LITERAL_STRING("Library"));
+  homeDir->Append(NS_LITERAL_STRING("Caches"));
+  homeDir->Append(NS_LITERAL_STRING("Metadata"));
+  homeDir->Append(NS_LITERAL_STRING("Thunderbird"));
+  nsAutoString metadataDirStr;
+  rv = homeDir->GetPath(metadataDirStr);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  // Get the nsILocalFile for this file:// URI.
-  rv = MsgGetLocalFileFromURI(nativeArg, getter_AddRefs(folderPath));
+  nsCOMPtr<nsIFile> profileDir;
+  rv = NS_GetSpecialDirectory("ProfD", getter_AddRefs(profileDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsAutoString profileDirStr;
+  rv = profileDir->GetPath(profileDirStr);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Swap the Spotlight metadata root and the profile dir root
+  folderPathStr.Replace(0, metadataDirStr.Length(), profileDirStr); 
+
+  folderPath = do_CreateInstance("@mozilla.org/file/local;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = folderPath->InitWithPath(folderPathStr);
   NS_ENSURE_SUCCESS(rv, rv);
 #endif
 #ifdef XP_WIN
-  // get the nsILocalFile for this path
-  folderPath = do_CreateInstance("@mozilla.org/file/local;1");
+  // Get the nsILocalFile for this path
+  folderPath = do_CreateInstance("@mozilla.org/file/local;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   rv = folderPath->InitWithPath(folderPathStr);
   NS_ENSURE_SUCCESS(rv, rv);
 #endif
