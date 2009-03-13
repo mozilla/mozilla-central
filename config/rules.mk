@@ -127,6 +127,8 @@ endif
 testxpcobjdir = $(MOZDEPTH)/_tests/xpcshell
 
 # Test file installation
+ifdef MOZILLA_1_9_1_BRANCH
+
 libs::
 	@$(EXIT_ON_ERROR) \
 	for testdir in $(XPCSHELL_TESTS); do \
@@ -190,6 +192,51 @@ check-one::
 	    $(NATIVE_TOPSRCDIR) \
 	    $(testxpcobjdir)/$(MODULE)/$$testdir \
 	    $(SOLO_FILE) 0;
+
+else # MOZILLA_1_9_1_BRANCH
+
+define _INSTALL_TESTS
+$(INSTALL) $(wildcard $(srcdir)/$(dir)/*.js) $(testxpcobjdir)/$(MODULE)/$(dir)
+
+endef # do not remove the blank line!
+
+SOLO_FILE ?= $(error Specify a test filename in SOLO_FILE when using check-interactive or check-one)
+
+libs::
+	$(foreach dir,$(XPCSHELL_TESTS),$(_INSTALL_TESTS))
+
+testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
+
+# Execute all tests in the $(XPCSHELL_TESTS) directories.
+check::
+	$(PYTHON) \
+          $(testxpcsrcdir)/runxpcshelltests.py \
+          $(DIST)/bin/xpcshell \
+          $(MOZILLA_SRCDIR) \
+          $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
+
+# Execute a single test, specified in $(SOLO_FILE), but don't automatically
+# start the test. Instead, present the xpcshell prompt so the user can
+# attach a debugger and then start the test.
+check-interactive::
+	$(PYTHON) \
+          $(testxpcsrcdir)/runxpcshelltests.py \
+          --test=$(SOLO_FILE) \
+          --interactive \
+          $(DIST)/bin/xpcshell \
+          $(MOZILLA_SRCDIR) \
+          $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
+
+# Execute a single test, specified in $(SOLO_FILE)
+check-one::
+	$(PYTHON) \
+          $(testxpcsrcdir)/runxpcshelltests.py \
+          --test=$(SOLO_FILE) \
+          $(DIST)/bin/xpcshell \
+          $(MOZILLA_SRCDIR) \
+          $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
+
+endif # MOZILLA_1_9_1_BRANCH
 
 endif # XPCSHELL_TESTS
 
