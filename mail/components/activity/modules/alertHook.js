@@ -36,16 +36,48 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// This module is designed to be a central place to initialise activity related
-// modules.
+const EXPORTED_SYMBOLS = ['alertHook'];
 
-const EXPORTED_SYMBOLS = [];
+const Cc = Components.classes;
+const Ci = Components.interfaces;
 
-Components.utils.import("resource://app/modules/activity/sendLater.js");
-sendLaterModule.init();
-Components.utils.import("resource://app/modules/activity/moveCopy.js");
-moveCopyModule.init();
-Components.utils.import("resource://app/modules/activity/autosync.js");
-autosyncModule.init();
-Components.utils.import("resource://app/modules/activity/alertHook.js");
-alertHook.init();
+const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
+                                            "nsIActivityWarning", "init");
+
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
+// This module provides a link between the send later service and the activity
+// manager.
+let alertHook =
+{
+  get activityMgr() {
+    delete this.activityMgr;
+    return this.activityMgr = Cc["@mozilla.org/activity-manager;1"]
+                                .getService(Ci.nsIActivityManager);
+  },
+
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgUserFeedbackListener]),
+
+  onAlert: function (aMessage, aMsgWindow) {
+    // Create a new warning.
+    let warning = new nsActWarning(aMessage, this.activityMgr, "");
+
+    warning.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_STANDALONE;
+
+    this.activityMgr.addActivity(warning);
+
+    // XXX Once activity manager is prompting the user (bug 476696), this needs
+    // to be flipped to true to stop the modal alerts appearing from within
+    // mailnews.
+    return false;
+  },
+
+  init: function() {
+    // We shouldn't need to remove the listener as we're not being held by
+    // anyone except by the send later instance.
+    let msgMailSession = Cc["@mozilla.org/messenger/services/session;1"]
+                             .getService(Ci.nsIMsgMailSession);
+
+    msgMailSession.addUserFeedbackListener(this);
+  }
+};
