@@ -161,6 +161,12 @@ let SearchIntegration =
     return true;
   },
 
+  /// Use the folder's path (i.e., in profile dir) as is
+  _getSearchPathForFolder: function winsearch_get_search_path(aFolder)
+  {
+    return aFolder.filePath;
+  },
+
   _init: function winsearch_init()
   {
     this._initLogging();

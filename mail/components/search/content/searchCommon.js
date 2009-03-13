@@ -434,7 +434,7 @@ let SearchSupport =
                         aSrcMsgs.queryElementAt(i, Ci.nsIMsgDBHdr));
         if (srcFile && srcFile.exists())
         {
-          let destFile = aDestFolder.filePath;
+          let destFile = SearchIntegration._getSearchPathForFolder(aDestFolder);
           destFile.leafName = destFile.leafName + ".mozmsgs";
           if (!destFile.exists())
           {
@@ -460,7 +460,7 @@ let SearchSupport =
     {
       SearchIntegration._log.info("in folderDeleted, folder name = " +
                                   aFolder.prettiestName);
-      let srcFile = aFolder.filePath;
+      let srcFile = SearchIntegration._getSearchPathForFolder(aFolder);
       srcFile.leafName = srcFile.leafName + ".mozmsgs";
       if (srcFile.exists())
         srcFile.remove(true);
@@ -475,8 +475,8 @@ let SearchSupport =
       if (!aMove && !this.enabled)
         return;
 
-      let srcFile = aSrcFolder.filePath;
-      let destFile = aDestFolder.filePath;
+      let srcFile = SearchIntegration._getSearchPathForFolder(aSrcFolder);
+      let destFile = SearchIntegration._getSearchPathForFolder(aDestFolder);
       srcFile.leafName = srcFile.leafName + ".mozmsgs";
       destFile.leafName += ".sbd";
       SearchIntegration._log.debug("src file path = " + srcFile.path);
@@ -496,7 +496,7 @@ let SearchSupport =
       SearchIntegration._log.info("in folderRenamed, aOrigFolder = " +
                                   aOrigFolder.prettiestName +
                                   ", aNewFolder = " + aNewFolder.prettiestName);
-      let srcFile = aOrigFolder.filePath;
+      let srcFile = SearchIntegration._getSearchPathForFolder(aOrigFolder);
       srcFile.leafName = srcFile.leafName + ".mozmsgs";
       let destName = aNewFolder.name + ".mozmsgs";
       SearchIntegration._log.debug("src file path = " + srcFile.path);
@@ -534,7 +534,7 @@ let SearchSupport =
     {
       let messageId = encodeURIComponent(msgHdr.messageId);
       this._log.debug("encoded message id = " + messageId);
-      let file = folder.filePath;
+      let file = this._getSearchPathForFolder(folder);
       file.leafName = file.leafName + ".mozmsgs";
       file.appendRelativePath(messageId + this._fileExt);
       this._log.debug("getting support file path = " + file.path);
@@ -602,7 +602,7 @@ let SearchSupport =
           let messageId = encodeURIComponent(msgHdr.messageId);
           SearchIntegration._log.info("generating support file, id = " +
                                       messageId);
-          let file = folder.filePath;
+          let file = SearchIntegration._getSearchPathForFolder(folder);
 
           file.leafName = file.leafName + ".mozmsgs";
           SearchIntegration._log.debug("file leafname = " + file.leafName);

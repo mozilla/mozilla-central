@@ -56,6 +56,28 @@ let SearchIntegration =
   /// The Spotlight pref base
   _prefBase: "mail.spotlight.",
 
+  /// The user's profile dir, which we'll cache and use a lot for path clean-up
+  get _profileDir()
+  {
+    delete this._profileDir;
+    return this._profileDir = Cc["@mozilla.org/file/directory_service;1"]
+                                .getService(Ci.nsIProperties)
+                                .get("ProfD", Ci.nsIFile);
+  }
+
+  /// Spotlight won't index files in the profile dir, but will use ~/Library/Caches/Metadata
+  _getSearchPathForFolder: function spotlight_get_search_path(aFolder)
+  {
+    // Swap the metadata dir for the profile dir prefix in the folder's path
+    let folderPath = aFolder.filePath.path;
+    let fixedPath = folderPath.replace(this._profileDir.path,
+                                       "~/Library/Caches/Metadata/Thunderbird");
+    let searchPath = Cc["@mozilla.org/file/local;1"]
+                       .createInstance(Ci.nsILocalFile);
+    searchPath.initWithPath(fixedPath);
+    return searchPath;
+  },
+
   _init: function spotlight_init()
   {
     this._initLogging();
