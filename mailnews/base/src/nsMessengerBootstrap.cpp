@@ -237,7 +237,7 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
         NS_ENSURE_SUCCESS(rv, rv);
 
         nsAutoString msg;
-        const PRUnichar *formatStrings[1] = { arg.get() };
+        const PRUnichar *formatStrings[1] = { mailPath.get() };
         rv = bundle->FormatStringFromName(NS_LITERAL_STRING("fileNotFoundMsg").get(),
                                           formatStrings, 1, getter_Copies(msg));
         NS_ENSURE_SUCCESS(rv, rv);
