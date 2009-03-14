@@ -66,6 +66,7 @@
   <keyset id="dialogKeys">
     <key key="&windowClose.key;" modifiers="accel" oncommand="window.close();"/>
     <key key="&focusSearch.key;" modifiers="accel" oncommand="focusFilterBox();"/>
+    <key key="&selectAll.key;" modifiers="accel" oncommand="doSelectAll();"/>
   </keyset>
   <stringbundle id="cookieBundle"
                 src="chrome://communicator/locale/permissions/cookieViewer.properties"/>

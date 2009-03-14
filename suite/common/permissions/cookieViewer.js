@@ -120,6 +120,12 @@ var cookieReloadDisplay = {
   }
 }
 
+function doSelectAll() {
+  var elem = document.commandDispatcher.focusedElement;
+  if (elem && "treeBoxObject" in elem)
+    elem.view.selection.selectAll();
+}
+
 /*** =================== COOKIES CODE =================== ***/
 
 const nsICookie = Components.interfaces.nsICookie;
