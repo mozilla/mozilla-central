@@ -63,7 +63,7 @@ let SearchIntegration =
     return this._profileDir = Cc["@mozilla.org/file/directory_service;1"]
                                 .getService(Ci.nsIProperties)
                                 .get("ProfD", Ci.nsIFile);
-  }
+  },
 
   /// Spotlight won't index files in the profile dir, but will use ~/Library/Caches/Metadata
   _getSearchPathForFolder: function spotlight_get_search_path(aFolder)
