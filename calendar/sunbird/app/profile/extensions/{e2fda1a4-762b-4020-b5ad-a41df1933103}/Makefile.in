@@ -19,6 +19,7 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Stefan Sitter <ssitter@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,6 +47,7 @@ DEFINES += -DSUNBIRD_VERSION=$(SUNBIRD_VERSION)
 
 FILES := \
 	install.rdf \
+	$(srcdir)/chrome.manifest \
 	$(NULL)
 
 libs::
