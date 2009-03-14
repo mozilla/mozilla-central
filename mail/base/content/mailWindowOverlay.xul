@@ -1242,7 +1242,7 @@
                   oncommand="MsgCopyMessage(event.target._folder)">
               <menupopup type="folder" mode="filing" showFileHereLabel="true"
                          showRecent="true" fileHereLabel="&copyHereMenu.label;"
-                         copyHereAccessKey="&fileHereMenu.accesskey;"
+                         fileHereAccessKey="&copyHereMenu.accesskey;"
                          recentLabel="&moveCopyMsgRecentMenu.label;"
                          recentAccessKey="&moveCopyMsgRecentMenu.accesskey;"/>
             </menu>
