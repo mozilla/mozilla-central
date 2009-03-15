@@ -266,44 +266,12 @@ function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
     OnItemEvent: function (aEventFolder, aEvent) {
       if (aEvent == kFolderLoadedAtom && aFolder.URI == aEventFolder.URI) {
         mailSession.RemoveFolderListener(this);
-        // issue a 0-interval timeout to ensure that we don't call this callback
-        //  until after the caller providing us with the FolderLoaded
-        //  notification has fully completed.
-        // this is an action made out of paranoia; a unit test has observed us
-        //  to notify the callback early... we're at least avoiding a class of
-        //  possible sources for this behaviour by doing this.
-        do_timeout_function(0, aCallback, aCallbackThis, aCallbackArgs);
+        aCallback.apply(aCallbackThis, aCallbackArgs);
       }
     }
   };
 
   mailSession.AddFolderListener(folderListener, Ci.nsIFolderListener.event);
 
-  let needToWait = false;
-  try {
-    aFolder.updateFolder(null);
-  }
-  // either of the two return values indicate that parsing is underway and we
-  //  can expect a FolderLoaded notification.
-  catch (e if ((e.result == Cr.NS_ERROR_NOT_INITIALIZED) ||
-               // const NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE = 0x80550005
-               // (The mailnews error codes are not expose in Components.results
-               //  and we do not want to put top-level consts in here that might
-               //  break other things, since this file is not namespaced.)
-               (e.result == 0x80550005))) {
-    needToWait = true;
-  }
-  catch (ex) {
-    do_throw(ex);
-  }
-
-  if (!needToWait) {
-    mailSession.RemoveFolderListener(folderListener);
-    try {
-      aCallback.apply(aCallbackThis, aCallbackArgs);
-    }
-    catch (ex) {
-      do_throw(ex);
-    }
-  }
+  aFolder.updateFolder(null);
 }

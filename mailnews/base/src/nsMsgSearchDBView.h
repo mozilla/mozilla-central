@@ -60,6 +60,8 @@ public:
   virtual const char * GetViewName(void) {return "SearchView"; }
   NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, 
         nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount);
+  NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow,
+                         nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval);
   NS_IMETHOD CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance, 
                         nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater);
   NS_IMETHOD Close();
@@ -87,8 +89,12 @@ public:
   virtual nsCOMArray<nsIMsgFolder>* GetFolders();
   virtual nsresult GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFolder);
 
+  NS_IMETHODIMP SetCurCustomColumn(const nsAString& aColID);
+  NS_IMETHODIMP GetCurCustomColumn(nsAString &result);
+
 protected:
   virtual void InternalClose();
+  virtual nsresult HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey);
   virtual nsresult ListIdsInThread(nsIMsgThread *threadHdr, 
                                    nsMsgViewIndex startOfThreadViewIndex, 
                                    PRUint32 *pNumListed);
@@ -104,7 +110,8 @@ protected:
                               nsMsgKey msgKey, PRUint32 flags, PRUint32 level);
   virtual PRBool InsertEmptyRows(nsMsgViewIndex viewIndex, PRInt32 numRows);
   virtual void RemoveRows(nsMsgViewIndex viewIndex, PRInt32 numRows);
-  virtual nsMsgViewIndex FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex = 0);
+  virtual nsMsgViewIndex FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex = 0,
+                                 PRBool allowDummy=PR_FALSE);
   virtual nsresult GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
   nsresult GetFoldersAndHdrsForSelection(nsMsgViewIndex *indices, PRInt32 numIndices);
   nsresult GroupSearchResultsByFolder();
@@ -113,6 +120,8 @@ protected:
                     PRInt32 numIndices, nsIMsgFolder *destFolder);
   void MoveThreadAt(nsMsgViewIndex threadIndex);
   
+  virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
+
   nsCOMArray<nsIMsgFolder> m_folders;
   nsCOMPtr <nsISupportsArray> m_hdrsForEachFolder;
   nsCOMPtr <nsISupportsArray> m_copyListenerList;
@@ -124,6 +133,8 @@ protected:
   nsCOMArray<nsIMsgDatabase> m_dbToUseList;
   nsMsgViewCommandTypeValue mCommand;
   nsCOMPtr <nsIMsgFolder> mDestFolder;
+  nsString m_curCustomColumn;
+
   nsresult ProcessRequestsInOneFolder(nsIMsgWindow *window);
   nsresult ProcessRequestsInAllFolders(nsIMsgWindow *window);
   // these are for doing threading of the search hits

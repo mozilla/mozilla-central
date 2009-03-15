@@ -147,6 +147,7 @@ public:
                                         nsMsgViewSortTypeValue sortType);
   PRInt32  SecondarySort(nsMsgKey key1, nsISupports *folder1, nsMsgKey key2, nsISupports *folder2,
                          class viewSortInfo *comparisonContext);
+
 protected:
   static nsrefcnt gInstanceCount;
   // atoms used for styling the view. we're going to have a lot of
@@ -272,7 +273,18 @@ protected:
 
   // helper routines for thread expanding and collapsing.
   nsresult GetThreadCount(nsMsgViewIndex viewIndex, PRUint32 *pThreadCount);
-  nsMsgViewIndex GetIndexOfFirstDisplayedKeyInThread(nsIMsgThread *threadHdr);
+  /**
+   * Retrieve the view index of the first displayed message in the given thread.
+   * @param threadHdr The thread you care about.
+   * @param allowDummy Should dummy headers be returned when the non-dummy
+   *     header is available?  If the root node of the thread is a dummy header
+   *     and you pass false, then we will return the first child of the thread
+   *     unless the thread is elided, in which case we will return the root.
+   *     If you pass true, we will always return the root.
+   * @return the view index of the first message in the thread, if any.
+   */
+  nsMsgViewIndex GetIndexOfFirstDisplayedKeyInThread(nsIMsgThread *threadHdr,
+      PRBool allowDummy=PR_FALSE);
   virtual nsresult GetFirstMessageHdrToDisplayInThread(nsIMsgThread *threadHdr, nsIMsgDBHdr **result);
   virtual nsMsgViewIndex ThreadIndexOfMsg(nsMsgKey msgKey,
                             nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
@@ -296,7 +308,19 @@ protected:
                   {return m_keys.SafeElementAt(index, nsMsgKey_None);}
   nsMsgViewIndex FindViewIndex(nsMsgKey  key)
      {return FindKey(key, PR_FALSE);}
-  virtual nsMsgViewIndex FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex = 0);
+  /**
+   * Find the message header if it is visible in this view.  (Messages in
+   *     threads/groups that are elided will not be
+   * @param msgHdr Message header to look for.
+   * @param startIndex The index to start looking from.
+   * @param allowDummy Are dummy headers acceptable?  If yes, then for a group
+   *     with a dummy header, we return the root of the thread (the dummy
+   *     header), otherwise we return the actual "content" header for the
+   *     message.
+   * @return The view index of the header found, if any.
+   */
+  virtual nsMsgViewIndex FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex = 0,
+                                 PRBool allowDummy=PR_FALSE);
   virtual nsMsgViewIndex FindKey(nsMsgKey key, PRBool expand);
   virtual nsresult GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDatabase **db);
   virtual nsCOMArray<nsIMsgFolder>* GetFolders();
@@ -472,7 +496,7 @@ protected:
   
   nsIMsgCustomColumnHandler* GetColumnHandler(const PRUnichar*);
   nsIMsgCustomColumnHandler* GetCurColumnHandlerFromDBInfo();
-  void GetCurCustomColumn(nsString &colID);
+
 #ifdef DEBUG_David_Bienvenu
 void InitEntryInfoForIndex(nsMsgViewIndex i, IdKeyPtr &EntryInfo);
 void ValidateSort();

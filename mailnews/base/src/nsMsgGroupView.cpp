@@ -46,6 +46,7 @@
 #include "nsMsgGroupThread.h"
 #include "nsITreeColumns.h"
 #include "nsMsgMessageFlags.h"
+#include <plhash.h>
 
 #define MSGHDR_CACHE_LOOK_AHEAD_SIZE  25    // Allocate this more to avoid reallocation on new mail.
 #define MSGHDR_CACHE_MAX_SIZE         8192  // Max msghdr cache entries.
@@ -88,7 +89,9 @@ void nsMsgGroupView::InternalClose()
 
   if (m_sortType == nsMsgViewSortType::byReceived)
     rcvDate = PR_TRUE;
-  if (m_db && (m_sortType == nsMsgViewSortType::byDate) || (m_sortType == nsMsgViewSortType::byReceived))
+  if (m_db &&
+      ((m_sortType == nsMsgViewSortType::byDate) ||
+       (m_sortType == nsMsgViewSortType::byReceived)))
   {
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
     m_db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
@@ -286,6 +289,15 @@ nsresult nsMsgGroupView::HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey)
         aHashKey.AppendInt(ageBucket);
       break;
     }
+    case nsMsgViewSortType::byCustom:
+    {
+      nsIMsgCustomColumnHandler* colHandler = GetCurColumnHandlerFromDBInfo();
+      if (colHandler)
+      {
+        rv = colHandler->GetSortStringForRow(msgHdr, aHashKey);
+        break;
+      }
+    }
     default:
       NS_ASSERTION(PR_FALSE, "no hash key for this type");
       rv = NS_ERROR_FAILURE;
@@ -315,9 +327,11 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
   m_groupsTable.Get(hashKey, getter_AddRefs(msgThread));
   PRBool newThread = !msgThread;
   *pNewThread = newThread;
-  nsMsgViewIndex viewIndexOfThread;
+  nsMsgViewIndex viewIndexOfThread; // index of first message in thread in view
+  nsMsgViewIndex threadInsertIndex; // index of newly added header in thread
 
   nsMsgGroupThread *foundThread = static_cast<nsMsgGroupThread *>(msgThread.get());
+  // If the thread does not already exist, create one
   if (!foundThread)
   {
     foundThread = CreateGroupThread(m_db);
@@ -329,31 +343,72 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
       msgFlags |=  MSG_VIEW_FLAG_DUMMY | MSG_VIEW_FLAG_HASCHILDREN;
     }
 
-    nsMsgViewIndex insertIndex = GetInsertIndex(msgHdr);
-    if (insertIndex == nsMsgViewIndex_None)
-      insertIndex = m_keys.Length();
-    InsertMsgHdrAt(insertIndex, msgHdr, msgKey, 
-                  msgFlags | MSG_VIEW_FLAG_ISTHREAD | nsMsgMessageFlags::Elided, 0);
-    // if grouped by date, insert dummy header for "age"
+    viewIndexOfThread = GetInsertIndex(msgHdr);
+    if (viewIndexOfThread == nsMsgViewIndex_None)
+      viewIndexOfThread = m_keys.Length();
+
+    // add the thread root node to the view
+    InsertMsgHdrAt(viewIndexOfThread, msgHdr, msgKey,
+                   msgFlags | MSG_VIEW_FLAG_ISTHREAD | nsMsgMessageFlags::Elided, 0);
+
+    // For dummy rows, Have the header serve as the dummy node (it will be added
+    //  again for its actual content later.)
     if (GroupViewUsesDummyRow())
-    {
-      // this needs to do something different for xf groups
       foundThread->InsertMsgHdrAt(0, msgHdr);
-      // the previous code made it look like hashKey in this case was always an integer
-      foundThread->m_threadKey = atoi(NS_LossyConvertUTF16toASCII(hashKey).get());
-    }
+
+    // Calculate the (integer thread key); this really only needs to be done for
+    //  the byDate case where the expanded state of the groups can be easily
+    //  persisted and restored because of the bounded, consecutive value space
+    //  occupied.  We calculate an integer value in all cases mainly because
+    //  it's the sanest choice available...
+    // (The thread key needs to be an integer, so parse hash keys that are
+    //  stringified integers to real integers, and hash actual strings into
+    //  integers.)
+    if ((m_sortType == nsMsgViewSortType::byAttachments) ||
+        (m_sortType == nsMsgViewSortType::byFlagged) ||
+        (m_sortType == nsMsgViewSortType::byPriority) ||
+        (m_sortType == nsMsgViewSortType::byStatus) ||
+        (m_sortType == nsMsgViewSortType::byReceived) ||
+        (m_sortType == nsMsgViewSortType::byDate))
+      foundThread->m_threadKey =
+        atoi(NS_LossyConvertUTF16toASCII(hashKey).get());
+    else
+      foundThread->m_threadKey = (nsMsgKey)
+        PL_HashString(NS_LossyConvertUTF16toASCII(hashKey).get());
   }
-  else
-    viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(foundThread);
-  if (foundThread)
-    foundThread->AddChildFromGroupView(msgHdr, this);
-  // check if new hdr became thread root
-  if (!newThread && foundThread->m_keys[0] == msgKey)
+  else // find the view index of the root node of the thread in the view
   {
-    if (viewIndexOfThread != nsMsgKey_None)
-      m_keys[viewIndexOfThread] = msgKey;
+    // (indicate that we do want/accept the dummy node)
+    viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(foundThread,
+                                                            PR_TRUE);
+  }
+  // Add the message to the thread as an actual content-bearing header.
+  // (If we use dummy rows, it was already added to the thread during creation.)
+  threadInsertIndex = foundThread->AddChildFromGroupView(msgHdr, this);
+  // check if new hdr became thread root
+  if (!newThread && threadInsertIndex == 0)
+  {
+    // update the root node's header (in the view) to be the same as the root
+    //  node in the thread.
+    SetMsgHdrAt(msgHdr, viewIndexOfThread, msgKey,
+                (msgFlags & ~(nsMsgMessageFlags::Elided)) |
+                  // maintain elided flag and dummy flag
+                  (m_flags[viewIndexOfThread] & (nsMsgMessageFlags::Elided
+                                                 | MSG_VIEW_FLAG_DUMMY))
+                  // ensure thread and has-children flags are set
+                  | MSG_VIEW_FLAG_ISTHREAD | MSG_VIEW_FLAG_HASCHILDREN, 0);
+    // update the content-bearing copy in the thread to match.  (the root and
+    //  first nodes in the thread should always be the same header.)
+    // note: the guy who used to be the root will still exist.  If our list of
+    //  nodes was [A A], a new node B is introduced which sorts to be the first
+    //  node, giving us [B A A], our copy makes that [B B A], and things are
+    //  right in the world (since we want the first two headers to be the same
+    //  since one is our dummy and one is real.)
     if (GroupViewUsesDummyRow())
-      foundThread->m_keys[1] = msgKey; // replace the old duplicate dummy header.
+      foundThread->SetMsgHdrAt(1, msgHdr); // replace the old duplicate dummy header.
+    // we do not update the content-bearing copy in the view to match; we leave
+    //  that up to OnNewHeader, which is the piece of code who gets to care
+    //  about whether the thread's children are shown or not (elided)
   }
 
   return foundThread;
@@ -388,15 +443,15 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
     }
   }
   PRUint32 expandFlags = 0;
+  PRBool expandAll = m_viewFlags & nsMsgViewFlagsType::kExpandAll;
   PRUint32 viewFlag = (m_sortType == nsMsgViewSortType::byDate) ? MSG_VIEW_FLAG_DUMMY : 0;
-  if (viewFlag)
+  if (viewFlag && m_db)
   {
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
     nsresult rv = m_db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
     NS_ENSURE_SUCCESS(rv, rv);
     if (dbFolderInfo)
       dbFolderInfo->GetUint32Property("dateGroupFlags",  0, &expandFlags);
-
   }
   // go through the view updating the flags for threads with more than one message...
   // and if grouped by date, expanding threads that were expanded before.
@@ -410,10 +465,10 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
       thread->GetNumChildren(&numChildren);
       if (numChildren > 1 || viewFlag)
         OrExtraFlag(viewIndex, viewFlag | MSG_VIEW_FLAG_HASCHILDREN);
-      if (expandFlags)
+      if (expandAll || expandFlags)
       {
         nsMsgGroupThread *groupThread = static_cast<nsMsgGroupThread *>((nsIMsgThread *) thread);
-        if (expandFlags & (1 << groupThread->m_threadKey))
+        if (expandAll || expandFlags & (1 << groupThread->m_threadKey))
         {
           PRUint32 numExpanded;
           ExpandByIndex(viewIndex, &numExpanded);
@@ -517,60 +572,82 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
   nsMsgGroupThread *thread = AddHdrToThread(newHdr, &newThread);
   if (thread)
   {
-    nsMsgKey msgKey;
-    PRUint32 msgFlags;
-    newHdr->GetMessageKey(&msgKey);
-    newHdr->GetFlags(&msgFlags);
-
+    // find the view index of (the root node of) the thread
     nsMsgViewIndex threadIndex = ThreadIndexOfMsgHdr(newHdr);
-    PRInt32 numRowsInserted = 1;
-    if (newThread && GroupViewUsesDummyRow())
-      numRowsInserted++;
     // may need to fix thread counts
     if (threadIndex != nsMsgViewIndex_None)
     {
       if (newThread)
-        m_flags[threadIndex] &= ~nsMsgMessageFlags::Elided;
+      {
+        // AddHdrToThread creates the header elided, so we need to un-elide it
+        //  if we want it expanded.
+        if(m_viewFlags & nsMsgViewFlagsType::kExpandAll)
+          m_flags[threadIndex] &= ~nsMsgMessageFlags::Elided;
+      }
       else
-        m_flags[threadIndex] |= MSG_VIEW_FLAG_HASCHILDREN | MSG_VIEW_FLAG_ISTHREAD;
+      {
+        m_flags[threadIndex] |= MSG_VIEW_FLAG_HASCHILDREN
+                                | MSG_VIEW_FLAG_ISTHREAD;
+      }
 
       PRInt32 numRowsToInvalidate = 1;
+      // if the thread is expanded (not elided), we should add the header to
+      //  the view.
       if (! (m_flags[threadIndex] & nsMsgMessageFlags::Elided))
       {
-        PRUint32 msgIndexInThread = thread->m_keys.IndexOf(msgKey);
+        PRUint32 msgIndexInThread = thread->FindMsgHdr(newHdr);
         PRBool insertedAtThreadRoot = !msgIndexInThread;
-        if (!msgIndexInThread && GroupViewUsesDummyRow())
-          msgIndexInThread++;
-
+        // Add any new display node and potentially fix-up changes in the root.
+        // (If this is a new thread and we are not using a dummy row, the only
+        //  node to display is the root node which has already been added by
+        //  AddHdrToThread.  And since there is just the one, no change in root
+        //  could have occurred, so we have nothing to do.)
         if (!newThread || GroupViewUsesDummyRow())
         {
-          // this msg is the new parent of an expanded thread. AddHdrToThread already
-          // updated m_keys[threadIndex], so we need to insert the old parent as a child
-          // and update m_flags accordingly.
-          if (!newThread && (!msgIndexInThread || (msgIndexInThread == 1 && GroupViewUsesDummyRow())))
-          {
-            PRUint32 saveOldFlags = m_flags[threadIndex + msgIndexInThread] & ~(MSG_VIEW_FLAG_HASCHILDREN | MSG_VIEW_FLAG_ISTHREAD);
-            if (!msgIndexInThread)
-              msgFlags |= MSG_VIEW_FLAG_HASCHILDREN | MSG_VIEW_FLAG_ISTHREAD;
-
-            m_flags[threadIndex + msgIndexInThread] = msgFlags;
-            // this will cause us to insert the old header as the first child, with
-            // the right key and flags.
-            msgFlags = saveOldFlags;
+          // we never want to insert/update the root node, because
+          //  AddHdrToThread has already done that for us (in all cases).
+          if (insertedAtThreadRoot)
             msgIndexInThread++;
-            msgKey = thread->m_keys[msgIndexInThread];
-          }
+          // If this header is the new parent of the thread... AND
+          // If we are not using a dummy row, this means we need to append our
+          //  old node as the first child of the new root.
+          // (If we are using a dummy row, the old node's "content" node already
+          //  exists (at position threadIndex + 1) and we need to insert the
+          //  "content" copy of the new root node there, pushing our old
+          //  "content" node down.)
+          // Example mini-diagrams, wrapping the to-add thing with ()
+          //  No dummy row; we had: [A], now we have [B], we want [B (A)].
+          //  Dummy row; we had: [A A], now we have [B A], we want [B (B) A].
+          //  (Coming into this we're adding 'B')
+          if (!newThread && insertedAtThreadRoot && !GroupViewUsesDummyRow())
+          {
+            // grab a copy of the old root node ('A') from the thread so we can
+            //  insert it. (offset msgIndexInThread=1 is the right thing; we are
+            //  non-dummy.)
+            thread->GetChildAt(msgIndexInThread, &newHdr);
+          } // nothing to do for dummy case, we're already inserting 'B'.
+          nsMsgKey msgKey;
+          PRUint32 msgFlags;
+          newHdr->GetMessageKey(&msgKey);
+          newHdr->GetFlags(&msgFlags);
           InsertMsgHdrAt(threadIndex + msgIndexInThread, newHdr, msgKey,
-                         msgFlags, msgIndexInThread ? 1 : 0);
-          // if we inserted new header at level 0, bump old level 0 to 1
-          if (!msgIndexInThread)
-            m_levels[threadIndex + 1] = 1;
+                         msgFlags, 1);
         }
         // the call to NoteChange() has to happen after we add the key
         // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
-        NoteChange((insertedAtThreadRoot && GroupViewUsesDummyRow()) ? threadIndex + msgIndexInThread - 1 : threadIndex + msgIndexInThread,
-                      numRowsInserted, nsMsgViewNotificationCode::insertOrDelete);
+        // (msgIndexInThread states.  new thread: 0, old thread at root: 1)
+        if (newThread && GroupViewUsesDummyRow())
+          NoteChange(threadIndex, 2, nsMsgViewNotificationCode::insertOrDelete);
+        else
+          NoteChange(threadIndex + msgIndexInThread, 1,
+                     nsMsgViewNotificationCode::insertOrDelete);
         numRowsToInvalidate = msgIndexInThread;
+      }
+      // we still need the addition notification for new threads when elided
+      else if (newThread)
+      {
+        NoteChange(threadIndex, 1,
+                   nsMsgViewNotificationCode::insertOrDelete);
       }
       NoteChange(threadIndex, numRowsToInvalidate, nsMsgViewNotificationCode::changed);
     }
@@ -619,7 +696,8 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
 
   nsresult rv = GetThreadContainingMsgHdr(aHdrDeleted, getter_AddRefs(thread));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsMsgViewIndex viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(thread);
+  nsMsgViewIndex viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(
+                                       thread, PR_TRUE); // yes to dummy node
   thread->RemoveChildHdr(aHdrDeleted, nsnull);
 
   nsMsgGroupThread *groupThread = static_cast<nsMsgGroupThread *>((nsIMsgThread *) thread);
@@ -641,9 +719,12 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
     }
     else if (rootDeleted && viewIndexOfThread > 0)
     {
-      // ### what about cross-folder views?
-      m_keys[viewIndexOfThread - 1] = m_keys[viewIndexOfThread];
-      OrExtraFlag(viewIndexOfThread - 1, MSG_VIEW_FLAG_DUMMY | MSG_VIEW_FLAG_ISTHREAD);
+      nsIMsgDBHdr *hdr;
+      GetMsgHdrForViewIndex(viewIndexOfThread, &hdr);
+      SetMsgHdrAt(hdr, viewIndexOfThread - 1, m_keys[viewIndexOfThread - 1],
+                  m_flags[viewIndexOfThread - 1] | MSG_VIEW_FLAG_DUMMY
+                                                 | MSG_VIEW_FLAG_ISTHREAD,
+                  m_levels[viewIndexOfThread - 1]);
     }
   }
   if (!groupThread->m_keys.Length())
@@ -776,6 +857,22 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
             ? NS_LITERAL_STRING("groupFlagged").get()
             : NS_LITERAL_STRING("notFlagged").get()));
           break;
+        // byLocation is a special case; we don't want to have duplicate
+        //  all this logic in nsMsgSearchDBView, and its hash key is what we
+        //  want anyways, so just copy it across.
+        case nsMsgViewSortType::byLocation:
+          aValue = hashKey;
+          break;
+        case nsMsgViewSortType::byCustom:
+        {
+          nsIMsgCustomColumnHandler* colHandler =
+            GetCurColumnHandlerFromDBInfo();
+          if (colHandler)
+          {
+            rv = colHandler->GetSortStringForRow(msgHdr.get(), aValue);
+            break;
+          }
+        }
 
         default:
           NS_ASSERTION(PR_FALSE, "we don't sort by group for this type");

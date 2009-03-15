@@ -75,7 +75,7 @@ public:
 protected:
   virtual void InternalClose();
   nsMsgGroupThread *AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pNewThread);
-  nsresult HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey);
+  virtual nsresult HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey);
   nsresult GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket, PRBool rcvDate = PR_FALSE); // helper function to get the age bucket for a hdr, useful when grouped by date
   nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool /*ensureListed*/);
   virtual nsresult GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);

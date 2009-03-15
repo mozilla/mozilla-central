@@ -245,7 +245,7 @@ interface nsMsgNavigationType
 };
 
 
-[scriptable, uuid(cf0da6e5-2a95-4c30-9751-6646ee99b970)]
+[scriptable, uuid(03969356-7a74-4b78-bb17-0d56849c789f)]
 interface nsIMsgDBView : nsISupports
 {
   void open(in nsIMsgFolder folder, in nsMsgViewSortTypeValue sortType, in nsMsgViewSortOrderValue sortOrder, in nsMsgViewFlagsTypeValue viewFlags, out long count);
@@ -265,8 +265,26 @@ interface nsIMsgDBView : nsISupports
 
   readonly attribute nsMsgViewTypeValue viewType;
   attribute nsMsgViewFlagsTypeValue viewFlags;
+  /** Assigning to this value does not induce a sort; use the sort() method! */
   attribute nsMsgViewSortTypeValue sortType;
   readonly attribute nsMsgViewSortOrderValue sortOrder;
+  /**
+   * Reflects the current secondary sort when a secondary sort is in effect.
+   *  If the primary sort is by date or id, the value of this attribute is moot.
+   * Assigning to this value does not induce a sort; use the sort() method once
+   *  to set your secondary sort, then use it again to set your primary sort.
+   *  The only conceivable reason to write to this value is if you have a
+   *  grouped view where you want to affect the sort order of the (secondary)
+   *  date sort.  (Secondary sort is always by date for grouped views.)
+   */
+  attribute nsMsgViewSortTypeValue secondarySortType;
+  /**
+   * Reflects the current secondary sort order.
+   * Assigning to this value does not induce a sort; use the sort() method for
+   *  all primary and secondary sort needs.  The only reason to assign to this
+   *  value is to affect the secondary sort of a grouped view.
+   */
+  attribute nsMsgViewSortOrderValue secondarySortOrder;
   readonly attribute nsMsgKey keyForFirstSelectedMessage;
   readonly attribute nsMsgViewIndex viewIndexForFirstSelectedMsg;
   /**
@@ -389,6 +407,12 @@ interface nsIMsgDBView : nsISupports
   
   // returns the custom column handler attached to a specific column - if any
   nsIMsgCustomColumnHandler getColumnHandler(in AString aColumn);
+
+  /**
+   * The custom column to use for sorting purposes (when sort type is
+   *  nsMsgViewSortType.byCustom.)
+   */
+  attribute AString curCustomColumn;
 };
 
 /* this interface is rapidly morphing from a command updater interface into a more generic

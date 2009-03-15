@@ -133,6 +133,20 @@ void nsMsgGroupThread::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr)
   m_keys.InsertElementAt(index, msgKey);
 }
 
+void nsMsgGroupThread::SetMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr)
+{
+  nsMsgKey msgKey;
+  hdr->GetMessageKey(&msgKey);
+  m_keys[index] = msgKey;
+}
+
+nsMsgViewIndex nsMsgGroupThread::FindMsgHdr(nsIMsgDBHdr *hdr)
+{
+  nsMsgKey msgKey;
+  hdr->GetMessageKey(&msgKey);
+  return (nsMsgViewIndex)m_keys.IndexOf(msgKey);
+}
+
 NS_IMETHODIMP nsMsgGroupThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, PRBool threadInThread, 
                                     nsIDBChangeAnnouncer *announcer)
 {
@@ -153,10 +167,20 @@ nsMsgViewIndex nsMsgGroupThread::AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgD
     nsMsgViewSortOrderValue sortOrder;
     (void) view->GetSortType(&sortType);
     (void) view->GetSortOrder(&sortOrder);
+    // historical behavior is ascending date order unless our primary sort is
+    //  on date
     nsMsgViewSortOrderValue threadSortOrder = 
       (sortType == nsMsgViewSortType::byDate
         && sortOrder == nsMsgViewSortOrder::descending) ? 
           nsMsgViewSortOrder::descending : nsMsgViewSortOrder::ascending;
+    // new behavior is tricky and uses the secondary sort order if the secondary
+    //  sort is on the date
+    nsMsgViewSortTypeValue  secondarySortType;
+    nsMsgViewSortOrderValue secondarySortOrder;
+    (void) view->GetSecondarySortType(&secondarySortType);
+    (void) view->GetSecondarySortOrder(&secondarySortOrder);
+    if (secondarySortType == nsMsgViewSortType::byDate)
+      threadSortOrder = secondarySortOrder;
     // sort by date within group.
     insertIndex = GetInsertIndexFromView(view, child, threadSortOrder);
   }
@@ -174,7 +198,7 @@ nsMsgGroupThread::GetInsertIndexFromView(nsMsgDBView *view,
    return view->GetInsertIndexHelper(child, m_keys, nsnull, threadSortOrder, nsMsgViewSortType::byDate);
 }
 
-nsresult nsMsgGroupThread::AddChildFromGroupView(nsIMsgDBHdr *child, nsMsgDBView *view)
+nsMsgViewIndex nsMsgGroupThread::AddChildFromGroupView(nsIMsgDBHdr *child, nsMsgDBView *view)
 {
   PRUint32 newHdrFlags = 0;
   PRUint32 msgDate;
@@ -244,7 +268,6 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildAt(PRInt32 aIndex)
   return NS_OK;
 }
 
-
 nsresult nsMsgGroupThread::RemoveChild(nsMsgKey msgKey)
 {
   m_keys.RemoveElement(msgKey);
@@ -263,9 +286,6 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAn
   child->GetFlags(&flags);
   child->GetMessageKey(&key);
   
-  child->GetThreadParent(&threadParent);
-//  ReparentChildrenOf(key, threadParent, announcer);
-  
   // if this was the newest msg, clear the newest msg date so we'll recalc.
   PRUint32 date;
   child->GetDateInSeconds(&date);
@@ -274,14 +294,19 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAn
 
   if (!(flags & nsMsgMessageFlags::Read))
     ChangeUnreadChildCount(-1);
-  PRBool keyWasFirstKey = (m_keys[0] == key);
-  nsresult rv = RemoveChild(key);
- // if we're deleting the root of a dummy thread, need to update the threadKey
- // and the dummy header at position 0
- if (m_dummy && keyWasFirstKey && m_keys.Length() > 1)
-    m_keys[0] = m_keys[1];
+  nsMsgViewIndex threadIndex = FindMsgHdr(child);
+  PRBool wasFirstChild = threadIndex == 0;
+  nsresult rv = RemoveChildAt(threadIndex);
+  // if we're deleting the root of a dummy thread, need to update the threadKey
+  // and the dummy header at position 0
+  if (m_dummy && wasFirstChild && m_keys.Length() > 1)
+  {
+    nsIMsgDBHdr *newRootChild;
+    GetChildAt(1, &newRootChild);
+    SetMsgHdrAt(0, newRootChild);
+  }
 
- return rv;
+  return rv;
 }
 
 nsresult nsMsgGroupThread::ReparentChildrenOf(nsMsgKey oldParent, nsMsgKey newParent, nsIDBChangeAnnouncer *announcer)
@@ -817,12 +842,42 @@ NS_IMETHODIMP nsMsgXFGroupThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResul
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsMsgXFGroupThread::RemoveChildAt(PRInt32 aIndex)
+{
+  nsMsgGroupThread::RemoveChildAt(aIndex);
+  m_folders.RemoveObjectAt(aIndex);
+  return NS_OK;
+}
+
 void nsMsgXFGroupThread::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr)
 {
   nsCOMPtr<nsIMsgFolder> folder;
   hdr->GetFolder(getter_AddRefs(folder));
   m_folders.InsertObjectAt(folder, index);
   nsMsgGroupThread::InsertMsgHdrAt(index, hdr);
+}
+
+void nsMsgXFGroupThread::SetMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr)
+{
+  nsCOMPtr<nsIMsgFolder> folder;
+  hdr->GetFolder(getter_AddRefs(folder));
+  m_folders.ReplaceObjectAt(folder, index);
+  nsMsgGroupThread::SetMsgHdrAt(index, hdr);
+}
+
+nsMsgViewIndex nsMsgXFGroupThread::FindMsgHdr(nsIMsgDBHdr *hdr)
+{
+  nsMsgKey msgKey;
+  hdr->GetMessageKey(&msgKey);
+  nsCOMPtr<nsIMsgFolder> folder;
+  hdr->GetFolder(getter_AddRefs(folder));
+  PRUint32 index = 0;
+  while (index != -1) {
+    index = m_keys.IndexOf(msgKey, index);
+    if (m_folders[index] == folder)
+      break;
+  }
+  return (nsMsgViewIndex)index;
 }
 
 nsMsgViewIndex nsMsgXFGroupThread::AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView *view)

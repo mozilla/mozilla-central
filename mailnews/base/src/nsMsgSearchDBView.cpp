@@ -110,6 +110,22 @@ nsMsgSearchDBView::MsgHdrTableCloner(const nsAString &aKey, nsIMsgDBHdr* aMsgHdr
 }
 
 NS_IMETHODIMP
+nsMsgSearchDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval)
+{
+  nsMsgSearchDBView* newMsgDBView;
+
+  NS_NEWXPCOM(newMsgDBView, nsMsgSearchDBView);
+  if (!newMsgDBView)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  nsresult rv = CopyDBView(newMsgDBView, aMessengerInstance, aMsgWindow, aCmdUpdater);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  NS_IF_ADDREF(*_retval = newMsgDBView);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsMsgSearchDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance, 
                                        nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater)
 {
@@ -122,6 +138,7 @@ nsMsgSearchDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMesseng
   newMsgDBView->mTotalIndices = mTotalIndices;
   newMsgDBView->mCurIndex = mCurIndex; 
   newMsgDBView->m_folders.InsertObjectsAt(m_folders, 0);
+  newMsgDBView->m_curCustomColumn = m_curCustomColumn;
 
   if (m_hdrsForEachFolder)
     m_hdrsForEachFolder->Clone(getter_AddRefs(newMsgDBView->m_hdrsForEachFolder));
@@ -171,11 +188,26 @@ NS_IMETHODIMP nsMsgSearchDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, 
 {
   const PRUnichar* colID;
   aCol->GetIdConst(&colID);
+  // the only thing we contribute is location; dummy rows have no location, so
+  //  bail in that case.  otherwise, check if we are dealing with 'location'.
   // location, need to check for "lo" not just "l" to avoid "label" column
-  if (colID[0] == 'l' && colID[1] == 'o') 
+  if (!(m_flags[aRow] & MSG_VIEW_FLAG_DUMMY) &&
+      colID[0] == 'l' && colID[1] == 'o')
     return FetchLocation(aRow, aValue);
   else
     return nsMsgGroupView::GetCellText(aRow, aCol, aValue);
+}
+
+nsresult nsMsgSearchDBView::HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey)
+{
+  if (m_sortType == nsMsgViewSortType::byLocation)
+  {
+    aHashKey.Truncate();
+    nsCOMPtr<nsIMsgFolder> folder;
+    msgHdr->GetFolder(getter_AddRefs(folder));
+    return folder->GetPrettiestName(aHashKey);
+  }
+  return nsMsgGroupView::HashHdr(msgHdr, aHashKey);
 }
 
 nsresult nsMsgSearchDBView::FetchLocation(PRInt32 aRow, nsAString& aLocationString)
@@ -335,7 +367,7 @@ nsresult nsMsgSearchDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index,
                                                   nsIMsgDBHdr **msgHdr)
 {
   nsresult rv = NS_MSG_INVALID_DBVIEW_INDEX;
-  if (index == nsMsgViewIndex_None || index > (PRUint32) m_folders.Count())
+  if (index == nsMsgViewIndex_None || index >= (PRUint32) m_folders.Count())
     return rv;
   nsIMsgFolder *folder = m_folders[index];
   if (folder)
@@ -352,7 +384,7 @@ nsresult nsMsgSearchDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index,
 NS_IMETHODIMP nsMsgSearchDBView::GetFolderForViewIndex(nsMsgViewIndex index, nsIMsgFolder **aFolder)
 {
   NS_ENSURE_ARG_POINTER(aFolder);
-  if (index == nsMsgViewIndex_None || index > (PRUint32) m_folders.Count())
+  if (index == nsMsgViewIndex_None || index >= (PRUint32) m_folders.Count())
     return NS_MSG_INVALID_DBVIEW_INDEX;
   NS_IF_ADDREF(*aFolder = m_folders[index]);
   return NS_OK;
@@ -591,6 +623,16 @@ void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   nsMsgViewIndex highIndex = lowIndex == threadIndex ? newIndex : threadIndex;
   NoteChange(lowIndex, highIndex - lowIndex + childCount, 
               nsMsgViewNotificationCode::changed);
+}
+
+nsresult
+nsMsgSearchDBView::GetMessageEnumerator(nsISimpleEnumerator **enumerator)
+{
+  // We do not have an m_db, so the default behavior (in nsMsgDBView) is not
+  //  what we want (it will crash).  We just want someone to enumerate the
+  //  headers that we already have.  Conveniently, nsMsgDBView already knows
+  //  how to do this with its view enumerator, so we just use that.
+  return nsMsgDBView::GetViewEnumerator(enumerator);
 }
 
 NS_IMETHODIMP
@@ -1000,6 +1042,18 @@ nsresult nsMsgSearchDBView::ProcessRequestsInAllFolders(nsIMsgWindow *window)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgSearchDBView::SetCurCustomColumn(const nsAString& aColID)
+{
+  m_curCustomColumn = aColID;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgSearchDBView::GetCurCustomColumn(nsAString &result)
+{
+  result = m_curCustomColumn;
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgSearchDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder)
 {
     PRInt32 rowCountBeforeSort = GetSize();
@@ -1063,7 +1117,8 @@ nsMsgSearchDBView::GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFold
   return msgHdr->GetFolder(aFolder);
 }
 
-nsMsgViewIndex nsMsgSearchDBView::FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex)
+nsMsgViewIndex nsMsgSearchDBView::FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex,
+                                          PRBool allowDummy)
 {
   nsCOMPtr<nsIMsgDBHdr> curHdr;
   PRInt32 index;
@@ -1071,8 +1126,10 @@ nsMsgViewIndex nsMsgSearchDBView::FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex st
   for (index = startIndex; index < GetSize(); index++)
   {
     GetMsgHdrForViewIndex(index, getter_AddRefs(curHdr));
-    if (curHdr == msgHdr && (!(m_flags[index] & MSG_VIEW_FLAG_DUMMY) ||
-        (m_flags[index] & nsMsgMessageFlags::Elided)))
+    if (curHdr == msgHdr &&
+        (allowDummy ||
+         !(m_flags[index] & MSG_VIEW_FLAG_DUMMY) ||
+         (m_flags[index] & nsMsgMessageFlags::Elided)))
       break;
   }
   return index < GetSize() ? index : nsMsgViewIndex_None;

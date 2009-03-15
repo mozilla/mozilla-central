@@ -1718,20 +1718,34 @@ nsIMsgCustomColumnHandler* nsMsgDBView::GetCurColumnHandlerFromDBInfo()
   return GetColumnHandler(colID.get());
 }
 
-void nsMsgDBView::GetCurCustomColumn(nsString &colID)
+NS_IMETHODIMP nsMsgDBView::SetCurCustomColumn(const nsAString& aColID)
 {
   if (!m_db)
-    return;
-  
+    return NS_ERROR_FAILURE;
+
   nsCOMPtr<nsIDBFolderInfo>  dbInfo;
   m_db->GetDBFolderInfo(getter_AddRefs(dbInfo));
-  
+
   if (!dbInfo)
-    return;
-  
- dbInfo->GetProperty("customSortCol", colID);
-  
+    return NS_ERROR_FAILURE;
+
+  return dbInfo->SetProperty("customSortCol", aColID);
 }
+
+NS_IMETHODIMP nsMsgDBView::GetCurCustomColumn(nsAString &result)
+{
+  if (!m_db)
+    return NS_ERROR_FAILURE;
+
+  nsCOMPtr<nsIDBFolderInfo>  dbInfo;
+  m_db->GetDBFolderInfo(getter_AddRefs(dbInfo));
+
+  if (!dbInfo)
+    return NS_ERROR_FAILURE;
+
+  return dbInfo->GetProperty("customSortCol", result);
+}
+
 nsIMsgCustomColumnHandler* nsMsgDBView::GetColumnHandler(const PRUnichar *colID)
 {
   PRInt32 index = m_customColumnHandlerIDs.IndexOf(nsDependentString(colID));
@@ -3665,7 +3679,16 @@ nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortTyp
         NS_ASSERTION(NS_SUCCEEDED(rv),"failed to get sort string for custom row");
         nsAutoString strTemp(strKey);
 
-        rv = m_db->CreateCollationKey(strKey, result, len);
+        nsCOMPtr <nsIMsgDatabase> dbToUse = m_db;
+        if (!dbToUse) // probably search view
+        {
+          nsCOMPtr <nsIMsgFolder> folder;
+          rv = msgHdr->GetFolder(getter_AddRefs(folder));
+          NS_ENSURE_SUCCESS(rv,rv);
+          rv = folder->GetMsgDatabase(getter_AddRefs(dbToUse));
+          NS_ENSURE_SUCCESS(rv,rv);
+        }
+        rv = dbToUse->CreateCollationKey(strKey, result, len);
       }
       else
       {
@@ -4054,7 +4077,8 @@ void nsMsgDBView::FreeAll(nsVoidArray *ptrs)
   ptrs->Clear();
 }
 
-nsMsgViewIndex nsMsgDBView::GetIndexOfFirstDisplayedKeyInThread(nsIMsgThread *threadHdr)
+nsMsgViewIndex nsMsgDBView::GetIndexOfFirstDisplayedKeyInThread(
+    nsIMsgThread *threadHdr, PRBool allowDummy)
 {
   nsMsgViewIndex  retIndex = nsMsgViewIndex_None;
   PRUint32        childIndex = 0;
@@ -4069,7 +4093,7 @@ nsMsgViewIndex nsMsgDBView::GetIndexOfFirstDisplayedKeyInThread(nsIMsgThread *th
   {
     nsCOMPtr<nsIMsgDBHdr> childHdr;
     threadHdr->GetChildHdrAt(childIndex++, getter_AddRefs(childHdr));
-    retIndex = FindHdr(childHdr);
+    retIndex = FindHdr(childHdr, 0, allowDummy);
   }
   return retIndex;
 }
@@ -4132,7 +4156,7 @@ nsMsgDBView::ThreadIndexOfMsgHdr(nsIMsgDBHdr *msgHdr,
 
     if (msgIndex == nsMsgViewIndex_None)  // hdr is not in view, need to find by thread
     {
-      msgIndex = GetIndexOfFirstDisplayedKeyInThread(threadHdr);
+      msgIndex = GetIndexOfFirstDisplayedKeyInThread(threadHdr, PR_TRUE);
       //nsMsgKey    threadKey = (msgIndex == nsMsgViewIndex_None) ? nsMsgKey_None : GetAt(msgIndex);
       if (pFlags)
         threadHdr->GetFlags(pFlags);
@@ -4205,11 +4229,20 @@ NS_IMETHODIMP nsMsgDBView::GetMsgHdrAt(nsMsgViewIndex aIndex, nsIMsgDBHdr **aRes
   return GetMsgHdrForViewIndex(aIndex, aResult);
 }
 
-nsMsgViewIndex nsMsgDBView::FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex)
+nsMsgViewIndex nsMsgDBView::FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startIndex,
+                                    PRBool allowDummy)
 {
   nsMsgKey msgKey;
   msgHdr->GetMessageKey(&msgKey);
-  return (nsMsgViewIndex) m_keys.IndexOf(msgKey, startIndex);
+  nsMsgViewIndex viewIndex = m_keys.IndexOf(msgKey, startIndex);
+  // if we're supposed to allow dummies, and the previous index is a dummy that
+  //  is not elided, then it must be the dummy corresponding to our node and
+  //  we should return that instead.
+  if (allowDummy&& (viewIndex != nsMsgViewIndex_None) && viewIndex
+      && (m_flags[viewIndex-1] & MSG_VIEW_FLAG_DUMMY)
+      && !(m_flags[viewIndex-1] & nsMsgMessageFlags::Elided))
+    viewIndex--;
+  return viewIndex;
 }
 
 nsMsgViewIndex  nsMsgDBView::FindKey(nsMsgKey key, PRBool expand)
@@ -4425,14 +4458,14 @@ nsresult nsMsgDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThrea
 
 nsresult nsMsgDBView::ExpandByIndex(nsMsgViewIndex index, PRUint32 *pNumExpanded)
 {
+  if ((PRUint32) index >= m_keys.Length())
+    return NS_MSG_MESSAGE_NOT_FOUND;
+
   PRUint32      flags = m_flags[index];
   PRUint32      numExpanded = 0;
 
   NS_ASSERTION(flags & nsMsgMessageFlags::Elided, "can't expand an already expanded thread");
   flags &= ~nsMsgMessageFlags::Elided;
-
-  if ((PRUint32) index > m_keys.Length())
-    return NS_MSG_MESSAGE_NOT_FOUND;
 
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   nsCOMPtr <nsIMsgThread> pThread;
@@ -4664,7 +4697,8 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
   comparisonContext.view = this;
   comparisonContext.isSecondarySort = PR_FALSE;
   comparisonContext.ascendingSort = (sortOrder == nsMsgViewSortOrder::ascending);
-  comparisonContext.db = m_db.get();
+  EntryInfo1.folder->GetMsgDatabase(&comparisonContext.db);
+  comparisonContext.db->Release();
   switch (fieldType)
   {
     case kCollationKey:
@@ -5502,6 +5536,32 @@ NS_IMETHODIMP nsMsgDBView::GetViewType(nsMsgViewTypeValue *aViewType)
 {
     NS_ASSERTION(0,"you should be overriding this\n");
     return NS_ERROR_UNEXPECTED;
+}
+
+NS_IMETHODIMP nsMsgDBView::GetSecondarySortOrder(nsMsgViewSortOrderValue *aSortOrder)
+{
+    NS_ENSURE_ARG_POINTER(aSortOrder);
+    *aSortOrder = m_secondarySortOrder;
+    return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDBView::SetSecondarySortOrder(nsMsgViewSortOrderValue aSortOrder)
+{
+    m_secondarySortOrder = aSortOrder;
+    return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDBView::GetSecondarySortType(nsMsgViewSortTypeValue *aSortType)
+{
+    NS_ENSURE_ARG_POINTER(aSortType);
+    *aSortType = m_secondarySort;
+    return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDBView::SetSecondarySortType(nsMsgViewSortTypeValue aSortType)
+{
+    m_secondarySort = aSortType;
+    return NS_OK;
 }
 
 nsresult nsMsgDBView::PersistFolderInfo(nsIDBFolderInfo **dbFolderInfo)
@@ -6769,6 +6829,9 @@ nsresult nsMsgDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMess
   aNewMsgDBView->m_flags = m_flags;
   aNewMsgDBView->m_levels = m_levels;
   aNewMsgDBView->m_keys = m_keys;
+
+  aNewMsgDBView->m_customColumnHandlerIDs = m_customColumnHandlerIDs;
+  aNewMsgDBView->m_customColumnHandlers.AppendObjects(m_customColumnHandlers);
 
   return NS_OK;
 }

@@ -61,7 +61,7 @@ public:
 
 protected:
   void      Init();
-  nsresult  AddChildFromGroupView(nsIMsgDBHdr *child, nsMsgDBView *view);
+  nsMsgViewIndex AddChildFromGroupView(nsIMsgDBHdr *child, nsMsgDBView *view);
   nsresult  RemoveChild(nsMsgKey msgKey);
   nsresult  RerootThread(nsIMsgDBHdr *newParentOfOldRoot, nsIMsgDBHdr *oldRoot, nsIDBChangeAnnouncer *announcer);
 
@@ -77,6 +77,8 @@ protected:
   nsresult GetChildHdrForKey(nsMsgKey desiredKey, nsIMsgDBHdr **result, PRInt32 *resultIndex);
   PRUint32 NumRealChildren();
   virtual void InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);
+  virtual void SetMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);
+  virtual nsMsgViewIndex FindMsgHdr(nsIMsgDBHdr *hdr);
 
   nsMsgKey        m_threadKey; 
   PRUint32        m_numUnreadChildren;	
@@ -97,8 +99,11 @@ public:
   NS_IMETHOD GetNumChildren(PRUint32 *aNumChildren);
   NS_IMETHOD GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult);
   NS_IMETHOD GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResult);
+  NS_IMETHOD RemoveChildAt(PRInt32 aIndex);
 protected:
   virtual void InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);
+  virtual void SetMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);
+  virtual nsMsgViewIndex FindMsgHdr(nsIMsgDBHdr *hdr);
   virtual nsMsgViewIndex AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView *view);
   virtual nsMsgViewIndex GetInsertIndexFromView(nsMsgDBView *view, 
                                           nsIMsgDBHdr *child, 
