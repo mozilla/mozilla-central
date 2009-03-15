@@ -989,7 +989,7 @@ calDavCalendar.prototype = {
         httpchannel.setRequestHeader("Depth", "1", false);
 
         // Submit the request
-        let streamListener = new etagsHandler(this, requestUri, aChangeLogListener);
+        let streamListener = new etagsHandler(this, aUri, aChangeLogListener);
         httpchannel.asyncOpen(streamListener, httpchannel);
     },
 
