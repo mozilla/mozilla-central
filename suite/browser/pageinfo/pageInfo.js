@@ -873,13 +873,13 @@ function makePreview(row)
   setItemValue("imageurltext", url);
 
   if (item.hasAttribute("title") &&
-      !item instanceof SVGImageElement)
+      !(item instanceof SVGImageElement))
     setItemValue("imagetitletext", item.title);
   else
     setItemValue("imagetitletext", null);
 
   if (item.hasAttribute("longDesc") &&
-      !item instanceof SVGImageElement)
+      !(item instanceof SVGImageElement))
     setItemValue("imagelongdesctext", item.longDesc);
   else
     setItemValue("imagelongdesctext", null);
