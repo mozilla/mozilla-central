@@ -297,8 +297,8 @@
                             <menuseparator id="file-new-menuseparator1"
                                            class="lightning-only"/>
                             <menuitem id="file-new-address-menuitem"
-                                      label="&event.menu.file.new.address.label;"
-                                      accesskey="&event.menu.file.new.address.accesskey;"
+                                      label="&event.menu.file.new.contact.label;"
+                                      accesskey="&event.menu.file.new.contact.accesskey;"
                                       command="cmd_file_new_card"
                                       disable-on-readonly="true"
                                       class="lightning-only"/>
