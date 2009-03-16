@@ -267,6 +267,7 @@ protected:
   mdb_token     m_statusOffsetColumnToken;
   mdb_token     m_numLinesColumnToken;
   mdb_token     m_ccListColumnToken;
+  mdb_token     m_bccListColumnToken;
   mdb_token     m_threadFlagsColumnToken;
   mdb_token     m_threadIdColumnToken;
   mdb_token     m_threadChildrenColumnToken;

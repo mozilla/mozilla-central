@@ -855,6 +855,7 @@ nsMsgDatabase::nsMsgDatabase()
         m_statusOffsetColumnToken(0),
         m_numLinesColumnToken(0),
         m_ccListColumnToken(0),
+        m_bccListColumnToken(0),
         m_threadFlagsColumnToken(0),
         m_threadIdColumnToken(0),
         m_threadChildrenColumnToken(0),
@@ -1364,6 +1365,7 @@ const char *kLabelColumnName = "label";
 const char *kStatusOffsetColumnName = "statusOfset";
 const char *kNumLinesColumnName = "numLines";
 const char *kCCListColumnName = "ccList";
+const char *kBCCListColumnName = "bccList";
 const char *kMessageThreadIdColumnName = "msgThreadId";
 const char *kThreadFlagsColumnName = "threadFlags";
 const char *kThreadIdColumnName = "threadId";
@@ -1565,6 +1567,7 @@ nsresult nsMsgDatabase::InitMDBInfo()
       GetStore()->StringToToken(GetEnv(),  kStatusOffsetColumnName, &m_statusOffsetColumnToken);
       GetStore()->StringToToken(GetEnv(),  kNumLinesColumnName, &m_numLinesColumnToken);
       GetStore()->StringToToken(GetEnv(),  kCCListColumnName, &m_ccListColumnToken);
+      GetStore()->StringToToken(GetEnv(),  kBCCListColumnName, &m_bccListColumnToken);
       GetStore()->StringToToken(GetEnv(),  kMessageThreadIdColumnName, &m_messageThreadIdColumnToken);
       GetStore()->StringToToken(GetEnv(),  kThreadIdColumnName, &m_threadIdColumnToken);
       GetStore()->StringToToken(GetEnv(),  kThreadFlagsColumnName, &m_threadFlagsColumnToken);

@@ -128,6 +128,7 @@ public:
   struct message_header m_in_reply_to;
   struct message_header m_replyTo;
   struct message_header m_content_type;
+  struct message_header m_bccList;
 
   // Support for having multiple To or Cc header lines in a message
   nsVoidArray m_toList;

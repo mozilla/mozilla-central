@@ -499,6 +499,24 @@ NS_IMETHODIMP nsMsgHdr::SetCCListArray(const char *names, const char *addresses,
 	return ret;
 }
 
+NS_IMETHODIMP nsMsgHdr::SetBccList(const char *bccList)
+{
+  return SetStringColumn(bccList, m_mdb->m_bccListColumnToken);
+}
+
+NS_IMETHODIMP
+nsMsgHdr::SetBCCListArray(const char *names,
+                          const char *addresses,
+                          PRUint32 numAddresses)
+{
+  nsCAutoString allRecipients;
+
+  nsresult rv = BuildRecipientsFromArray(names, addresses, numAddresses,
+                                         allRecipients);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return SetBccList(allRecipients.get());
+}
 
 NS_IMETHODIMP nsMsgHdr::SetMessageSize(PRUint32 messageSize)
 {
@@ -672,6 +690,11 @@ NS_IMETHODIMP nsMsgHdr::GetRecipients(char* *resultRecipients)
 NS_IMETHODIMP nsMsgHdr::GetCcList(char * *resultCCList)
 {
   return m_mdb->RowCellColumnToCharPtr(GetMDBRow(), m_mdb->m_ccListColumnToken, resultCCList);
+}
+
+NS_IMETHODIMP nsMsgHdr::GetBccList(char * *resultBCCList)
+{
+  return m_mdb->RowCellColumnToCharPtr(GetMDBRow(), m_mdb->m_bccListColumnToken, resultBCCList);
 }
 
 NS_IMETHODIMP nsMsgHdr::GetMessageId(char * *resultMessageId)

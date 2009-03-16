@@ -47,7 +47,7 @@
 
 interface nsIMsgFolder;
 
-[scriptable, uuid(211b9eef-5f48-4135-aebb-0ac4e7738159)]
+[scriptable, uuid(EA75203B-2218-4e96-9979-567DFFBEACC2)]
 interface nsIMsgDBHdr : nsISupports
 {
     /* general property routines - I think this can retrieve any
@@ -96,6 +96,7 @@ interface nsIMsgDBHdr : nsISupports
     readonly attribute unsigned long dateInSeconds;
     attribute string messageId;
     attribute string ccList;
+    attribute string bccList;
     attribute string author;
     attribute string subject;
     attribute string recipients;
@@ -109,6 +110,8 @@ interface nsIMsgDBHdr : nsISupports
                             in unsigned long numAddresses);
     void setCCListArray(in string names, in string addresses,
                         in unsigned long numAddresses);
+    void setBCCListArray(in string names, in string addresses,
+                         in unsigned long numAddresses);
 
     readonly attribute AString mime2DecodedAuthor;
     readonly attribute AString mime2DecodedSubject;

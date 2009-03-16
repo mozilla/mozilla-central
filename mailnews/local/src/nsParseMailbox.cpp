@@ -600,6 +600,7 @@ NS_IMETHODIMP nsParseMailMessageState::Clear()
   m_replyTo.length = 0;
   m_content_type.length = 0;
   m_mdn_original_recipient.length = 0;
+  m_bccList.length = 0;
   m_body_lines = 0;
   m_newMsgHdr = nsnull;
   m_envelope_pos = 0;
@@ -955,6 +956,10 @@ int nsParseMailMessageState::ParseHeaders ()
 
     switch (buf [0])
     {
+    case 'B': case 'b':
+      if (!PL_strncasecmp ("BCC", buf, end - buf))
+        header = &m_bccList;
+      break;
     case 'C': case 'c':
       if (!PL_strncasecmp ("CC", buf, end - buf))
         header = GetNextHeaderInAggregate(m_ccList);
@@ -1249,6 +1254,7 @@ int nsParseMailMessageState::FinalizeHeaders()
   struct message_header *keywords;
   struct message_header *account_key;
   struct message_header *ccList;
+  struct message_header *bccList;
   struct message_header *mdn_dnt;
   struct message_header md5_header;
   struct message_header *content_type;
@@ -1267,6 +1273,8 @@ int nsParseMailMessageState::FinalizeHeaders()
   GetAggregateHeader (m_toList, &to);
   struct message_header cc;
   GetAggregateHeader (m_ccList, &cc);
+  // we don't aggregate bcc, as we only generate it locally,
+  // and we don't use multiple lines
 
   sender     = (m_from.length          ? &m_from :
   m_sender.length        ? &m_sender :
@@ -1277,6 +1285,7 @@ int nsParseMailMessageState::FinalizeHeaders()
   m_newsgroups.length ? &m_newsgroups :
   sender);
   ccList     = (cc.length ? &cc : 0);
+  bccList    = (m_bccList.length    ? &m_bccList    : 0);
   subject    = (m_subject.length    ? &m_subject    : 0);
   id         = (m_message_id.length ? &m_message_id : 0);
   references = (m_references.length ? &m_references : 0);
@@ -1455,6 +1464,26 @@ int nsParseMailMessageState::FinalizeHeaders()
         else  // hmm, should we just use the original string?
           m_newMsgHdr->SetCcList(ccList->value);
       }
+
+      if (bccList)
+      {
+        PRUint32 numAddresses;
+        char  *names;
+        char  *addresses;
+
+        ret = m_HeaderAddressParser->ParseHeaderAddresses(bccList->value,
+                                                          &names, &addresses,
+                                                          &numAddresses);
+        if (NS_SUCCEEDED(ret))
+        {
+          m_newMsgHdr->SetBCCListArray(names, addresses, numAddresses);
+          PR_Free(addresses);
+          PR_Free(names);
+        }
+        else  // hmm, should we just use the original string?
+          m_newMsgHdr->SetBccList(bccList->value);
+      }
+
       status = InternSubject (subject);
       if (status >= 0)
       {

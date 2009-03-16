@@ -3,6 +3,7 @@ X-Mozilla-Status: 0000
 X-Mozilla-Status2: 00000000
 X-Mozilla-Keys:                                                                                 
 FCC: mailbox://nobody@Local%20Folders/Sent
+BCC: Some User <u1@example.com>, Another Person <u2@example.com>
 X-Identity-Key: id2
 Message-ID: <4849BF7B.2030800@example.com>
 Date: Sat, 07 Jun 2008 04:23:42 +0530
