@@ -59,7 +59,7 @@
 #include "nsIWindowWatcher.h"
 #include "nsIUTF8ConverterService.h"
 #include "nsUConvCID.h"
-
+#include "nsAutoPtr.h"
 #include "nsComposeStrings.h"
 
 #define SERVER_DELIMITER ','
@@ -240,30 +240,23 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
 
 nsresult NS_MsgLoadSmtpUrl(nsIURI * aUrl, nsISupports * aConsumer, nsIRequest ** aRequest)
 {
-    // for now, assume the url is an smtp url and load it....
-    nsCOMPtr <nsISmtpUrl> smtpUrl;
-    nsSmtpProtocol *smtpProtocol = nsnull;
-    nsresult rv = NS_OK;
+  NS_ENSURE_ARG_POINTER(aUrl);
 
-    if (!aUrl)
-        return rv;
+  // For now, assume the url is an smtp url and load it.
+  nsresult rv;
+  nsCOMPtr<nsISmtpUrl> smtpUrl(do_QueryInterface(aUrl, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    // turn the url into an smtp url...
-    smtpUrl = do_QueryInterface(aUrl);
-    if (smtpUrl)
-    {
-        // almost there...now create a smtp protocol instance to run the url in...
-        smtpProtocol = new nsSmtpProtocol(aUrl);
-        if (smtpProtocol == nsnull)
-            return NS_ERROR_OUT_OF_MEMORY;
+  // Create a smtp protocol instance to run the url in.
+  nsRefPtr<nsSmtpProtocol> smtpProtocol = new nsSmtpProtocol(aUrl);
+  if (!smtpProtocol)
+    return NS_ERROR_OUT_OF_MEMORY;
 
-        NS_ADDREF(smtpProtocol);
-        rv = smtpProtocol->LoadUrl(aUrl, aConsumer); // protocol will get destroyed when url is completed...
-        smtpProtocol->QueryInterface(NS_GET_IID(nsIRequest), (void **) aRequest);
-        NS_RELEASE(smtpProtocol);
-    }
+  // Protocol will get destroyed when url is completed.
+  rv = smtpProtocol->LoadUrl(aUrl, aConsumer);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    return rv;
+  return CallQueryInterface(smtpProtocol.get(), aRequest);
 }
 
 NS_IMETHODIMP nsSmtpService::VerifyLogon(nsISmtpServer *aServer,
@@ -329,30 +322,29 @@ NS_IMETHODIMP nsSmtpService::NewURI(const nsACString &aSpec,
                                     nsIURI *aBaseURI,
                                     nsIURI **_retval)
 {
-  // get a new smtp url 
-
+  // get a new smtp url
   nsresult rv;
-  nsCOMPtr <nsIURI> mailtoUrl = do_CreateInstance(kCMailtoUrlCID, &rv);
-  if (NS_SUCCEEDED(rv))
-  {
-    nsCAutoString utf8Spec;
-    if (aOriginCharset)
-    {
-       nsCOMPtr<nsIUTF8ConverterService> 
-           utf8Converter(do_GetService(NS_UTF8CONVERTERSERVICE_CONTRACTID, &rv));
-       if (NS_SUCCEEDED(rv))
-          rv = utf8Converter->ConvertURISpecToUTF8(aSpec, aOriginCharset, utf8Spec);
-    }
+  nsCOMPtr<nsIURI> mailtoUrl = do_CreateInstance(kCMailtoUrlCID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    // utf8Spec is filled up only when aOriginCharset is specified and 
-    // the conversion is successful. Otherwise, fall back to aSpec.
-    if (aOriginCharset && NS_SUCCEEDED(rv))
-      mailtoUrl->SetSpec(utf8Spec);
-    else
-      mailtoUrl->SetSpec(aSpec);
-    rv = mailtoUrl->QueryInterface(NS_GET_IID(nsIURI), (void **) _retval);
+  nsCAutoString utf8Spec;
+  if (aOriginCharset)
+  {
+    nsCOMPtr<nsIUTF8ConverterService>
+      utf8Converter(do_GetService(NS_UTF8CONVERTERSERVICE_CONTRACTID, &rv));
+    if (NS_SUCCEEDED(rv))
+      rv = utf8Converter->ConvertURISpecToUTF8(aSpec, aOriginCharset, utf8Spec);
   }
-  return rv;
+
+  // utf8Spec is filled up only when aOriginCharset is specified and
+  // the conversion is successful. Otherwise, fall back to aSpec.
+  if (aOriginCharset && NS_SUCCEEDED(rv))
+    mailtoUrl->SetSpec(utf8Spec);
+  else
+    mailtoUrl->SetSpec(aSpec);
+
+  mailtoUrl.forget(_retval);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsSmtpService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
