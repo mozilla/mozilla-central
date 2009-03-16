@@ -96,7 +96,7 @@
             <treecols>
               <treecol id="domainCol" label="&treehead.cookiedomain.label;" flex="5"
                        onclick="CookieColumnSort('rawHost', true);" persist="width hidden"
-                       sortDirection="descending"/>
+                       sortDirection="ascending"/>
               <splitter class="tree-splitter"/>
               <treecol id="nameCol" label="&treehead.cookiename.label;" flex="5"
                        onclick="CookieColumnSort('name', true);" persist="width hidden"/>

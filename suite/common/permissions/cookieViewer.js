@@ -357,9 +357,9 @@ function CookieColumnSort(column) {
       break;
   }
   if (lastCookieSortAscending)
-    sortedCol.setAttribute("sortDirection", "descending");
-  else
     sortedCol.setAttribute("sortDirection", "ascending");
+  else
+    sortedCol.setAttribute("sortDirection", "descending");
 
   // clear out the sortDirection attribute on the rest of the columns
   var currentCol = sortedCol.parentNode.firstChild;
