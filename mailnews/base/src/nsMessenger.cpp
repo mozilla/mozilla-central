@@ -198,7 +198,7 @@ ConvertBufToPlainText(nsString &aConBuf)
   return rv;
 }
 
-nsresult ConvertAndSanitizeFileName(const char * displayName, PRUnichar ** unicodeResult, char ** result)
+static void ConvertAndSanitizeFileName(const char * displayName, nsString& aResult)
 {
   nsCString unescapedName;
 
@@ -206,23 +206,10 @@ nsresult ConvertAndSanitizeFileName(const char * displayName, PRUnichar ** unico
      The display name is in UTF-8 because it has been escaped from JS
   */
   MsgUnescapeString(nsDependentCString(displayName), 0, unescapedName);
-  NS_ConvertUTF8toUTF16 ucs2Str(unescapedName);
-
-  nsresult rv = NS_OK;
+  CopyUTF8toUTF16(unescapedName, aResult);
 
   // replace platform specific path separator and illegale characters to avoid any confusion
-  ucs2Str.ReplaceChar(FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS, '-');
-
-  if (result) {
-    nsCAutoString nativeStr;
-    rv =  NS_CopyUnicodeToNative(ucs2Str, nativeStr);
-    *result = ToNewCString(nativeStr);
-  }
-
-  if (unicodeResult)
-    *unicodeResult = ToNewUnicode(ucs2Str);
-
- return rv;
+  aResult.ReplaceChar(FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS, '-');
 }
 
 // ***************************************************
@@ -831,11 +818,9 @@ nsMessenger::SaveAttachmentToFolder(const nsACString& contentType, const nsACStr
 
   nsCOMPtr<nsILocalFile> attachmentDestination = do_QueryInterface(clone);
 
-  nsCString unescapedFileName;
-  rv = ConvertAndSanitizeFileName(PromiseFlatCString(displayName).get(), nsnull, getter_Copies(unescapedFileName));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = attachmentDestination->AppendNative(unescapedFileName);
+  nsString unescapedFileName;
+  ConvertAndSanitizeFileName(PromiseFlatCString(displayName).get(), unescapedFileName);
+  rv = attachmentDestination->Append(unescapedFileName);
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = SaveAttachment(attachmentDestination, url, messageUri, contentType, nsnull, nsnull);
@@ -863,8 +848,7 @@ nsMessenger::SaveAttachment(const nsACString& aContentType, const nsACString& aU
   nsCString filePath;
   nsString saveAttachmentStr;
   nsString defaultDisplayString;
-  rv = ConvertAndSanitizeFileName(PromiseFlatCString(aDisplayName).get(), getter_Copies(defaultDisplayString), nsnull);
-  NS_ENSURE_SUCCESS(rv, rv);
+  ConvertAndSanitizeFileName(PromiseFlatCString(aDisplayName).get(), defaultDisplayString);
 
   GetString(NS_LITERAL_STRING("SaveAttachment"), saveAttachmentStr);
   filePicker->Init(mWindow, saveAttachmentStr,
@@ -949,11 +933,11 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
                                             displayNameArray,
                                             messageUriArray,
                                             dirName.get(), detaching);
-  nsCString unescapedName;
-  rv = ConvertAndSanitizeFileName(displayNameArray[0], nsnull, getter_Copies(unescapedName));
+  nsString unescapedName;
+  ConvertAndSanitizeFileName(displayNameArray[0], unescapedName);
+  rv = localFile->Append(unescapedName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  localFile->AppendNative(unescapedName);
   rv = PromptIfFileExists(localFile);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1727,19 +1711,18 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
     {
       nsSaveAllAttachmentsState *state = m_saveAllAttachmentsState;
       PRUint32 i = state->m_curIndex;
-      nsCString unescapedName;
+      nsString unescapedName;
       nsCOMPtr<nsILocalFile> localFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
       if (NS_FAILED(rv)) goto done;
       rv = localFile->InitWithNativePath(nsDependentCString(state->m_directoryName));
       
       if (NS_FAILED(rv)) goto done;
       
-      rv = ConvertAndSanitizeFileName(state->m_displayNameArray[i], nsnull,
-                                      getter_Copies(unescapedName));
+      ConvertAndSanitizeFileName(state->m_displayNameArray[i], unescapedName);
+      rv = localFile->Append(unescapedName);
       if (NS_FAILED(rv))
         goto done;
       
-      localFile->AppendNative(unescapedName);
       rv = m_messenger->PromptIfFileExists(localFile);
       if (NS_FAILED(rv)) goto done;
       rv = m_messenger->SaveAttachment(localFile,
@@ -2872,8 +2855,7 @@ nsMessenger::PromptIfDeleteAttachments(PRBool aSaveFirst,
   nsString attachmentList;
   for (PRUint32 u = 0; u < aCount; ++u)
   {
-    rv = ConvertAndSanitizeFileName(aDisplayNameArray[u], getter_Copies(displayString), nsnull);
-    NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
+    ConvertAndSanitizeFileName(aDisplayNameArray[u], displayString);
     attachmentList.Append(displayString);
     attachmentList.Append(PRUnichar('\n'));
   }
