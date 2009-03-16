@@ -127,7 +127,7 @@ const gEmailAddressHeaderNames = ["from", "reply-to",
                                   "to", "cc", "bcc", "toCcBcc"];
 
 // Now, for each view the message pane can generate, we need a global table of headerEntries. These
-// header entry objects are generated dynamically based on the static date in the header lists (see above)
+// header entry objects are generated dynamically based on the static data in the header lists (see above)
 // and elements we find in the DOM based on properties in the header lists.
 var gCollapsedHeaderView = {};
 var gExpandedHeaderView  = {};
@@ -163,6 +163,7 @@ function createHeaderEntry(prefix, headerListInfo)
   var partialIDName = prefix + headerListInfo.name;
   this.enclosingBox = document.getElementById(partialIDName + 'Box');
   this.textNode = document.getElementById(partialIDName + 'Value');
+  this.isNewHeader = false;
   this.isValid = false;
 
   if ("useShortView" in headerListInfo)
@@ -833,19 +834,23 @@ function createNewHeaderView(headerName, label)
   topViewNode.appendChild(newHeader);
 
   this.enclosingBox = newHeader;
+  this.isNewHeader = true;
   this.isValid = false;
   this.useToggle = false;
-  this.isNewView = true;
   this.outputFunction = updateHeaderValue;
 }
 
-// remove all non-predefined header nodes from the view
-function removeNewHeaderViews(headerTable)
+/**
+ * Removes all non-predefined header nodes from the view.
+ *
+ * @param aHeaderTable Table of header entries.
+ */
+function removeNewHeaderViews(aHeaderTable)
 {
-  for (index in headerTable)
+  for (var index in aHeaderTable)
   {
-    var headerEntry = headerTable[index];
-    if (headerEntry.isNewView)
+    var headerEntry = aHeaderTable[index];
+    if (headerEntry.isNewHeader)
       headerEntry.enclosingBox.parentNode
                  .removeChild(headerEntry.enclosingBox);
   }
