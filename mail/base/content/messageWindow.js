@@ -777,6 +777,7 @@ var MessageWindowController =
       case "cmd_replyGroup":
       case "cmd_replyall":
       case "button_replyall":
+      case "cmd_archive":
       case "button_archive":
       case "cmd_forward":
       case "button_forward":
@@ -841,6 +842,7 @@ var MessageWindowController =
         return folder &&
           !(IsSpecialFolder(folder, Components.interfaces.nsMsgFolderFlags.Archive,
                             true));
+      case "cmd_archive":
       case "cmd_reply":
       case "button_reply":
       case "cmd_replySender":
@@ -960,6 +962,9 @@ var MessageWindowController =
           break;
         case "cmd_getNextNMessages":
         MsgGetNextNMessages();
+        break;
+      case "cmd_archive":
+        MsgArchiveSelectedMessages(null);
         break;
       case "cmd_reply":
         MsgReplyMessage(null);
