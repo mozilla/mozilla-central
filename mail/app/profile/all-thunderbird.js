@@ -359,17 +359,6 @@ pref("browser.download.manager.addToRecentDocs", true);
 
 pref("javascript.options.showInConsole",    true);
 
-pref("wallet.captureForms",                 true);
-pref("wallet.enabled",                      true);
-pref("wallet.crypto",                       false); 
-pref("wallet.crypto.autocompleteoverride",  false); // Ignore 'autocomplete=off' - available only when wallet.crypto is enabled. 
-pref("wallet.namePanel.hide",               false);
-pref("wallet.addressPanel.hide",            false);
-pref("wallet.phonePanel.hide",              false);
-pref("wallet.creditPanel.hide",             false);
-pref("wallet.employPanel.hide",             false);
-pref("wallet.miscPanel.hide",               false);
-
 // -- folders (Mac: these are binary aliases.)
 pref("mail.signature_file",             "");
 pref("mail.directory",                  "");

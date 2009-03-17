@@ -117,7 +117,6 @@
   locale/@AB_CD@/messenger/preferences/sendoptions.dtd                  (%chrome/messenger/preferences/sendoptions.dtd)
   locale/@AB_CD@/messenger/preferences/security.dtd                     (%chrome/messenger/preferences/security.dtd)
   locale/@AB_CD@/messenger/preferences/junkLog.dtd                      (%chrome/messenger/preferences/junkLog.dtd)
-  locale/@AB_CD@/messenger/preferences/viewpasswords.dtd                (%chrome/messenger/preferences/viewpasswords.dtd)
   locale/@AB_CD@/messenger/preferences/advanced.dtd                     (%chrome/messenger/preferences/advanced.dtd)
   locale/@AB_CD@/messenger/preferences/receipts.dtd                     (%chrome/messenger/preferences/receipts.dtd)
   locale/@AB_CD@/messenger/preferences/connection.dtd                   (%chrome/messenger/preferences/connection.dtd)
