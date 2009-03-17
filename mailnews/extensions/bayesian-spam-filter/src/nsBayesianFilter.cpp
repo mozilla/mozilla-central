@@ -1249,7 +1249,19 @@ void nsBayesianFilter::classifyMessage(
   nsIMsgTraitDetailListener* aDetailListener)
 {
     Token* tokens = tokenizer.copyTokens();
-    if (!tokens) return;
+    PRUint32 tokenCount;
+    if (!tokens)
+    {
+      // This can happen with problems with UTF conversion
+      NS_ERROR("Trying to classify a null or invalid message");
+      tokenCount = 0;
+      // don't return so that we still call the listeners
+    }
+    else
+    {
+      tokenCount = tokenizer.countTokens();
+    }
+
     if (aProTraits.Length() != aAntiTraits.Length())
     {
       NS_ERROR("Each Pro trait needs a matching Anti trait");
@@ -1257,7 +1269,6 @@ void nsBayesianFilter::classifyMessage(
     }
 
     /* this part is similar to the Graham algorithm with some adjustments. */
-    PRUint32 tokenCount = tokenizer.countTokens();
     PRUint32 traitCount = aProTraits.Length();
 
     // pro message counts per trait index
