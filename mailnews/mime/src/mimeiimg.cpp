@@ -99,7 +99,10 @@ MimeInlineImage_parse_begin (MimeObject *obj)
 
   if (!obj->output_p) return 0;
 
-  if (!obj->options || !obj->options->output_fn)
+  if (!obj->options || !obj->options->output_fn ||
+      // don't bother processing if the consumer doesn't want us
+      //  gunking the body up.
+      obj->options->write_pure_bodies)
     return 0;
 
   clazz = (MimeInlineImageClass *) obj->clazz;

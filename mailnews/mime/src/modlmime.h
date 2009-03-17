@@ -399,6 +399,13 @@ public:
    *  MimeMessage.
    */
   PRBool notify_nested_bodies;
+
+  /**
+   * When true, compels mime parts to only write the actual body
+   *  payload and not display-gunk like links to attachments. This was
+   *  primarily introduced for the benefit of the javascript emitter.
+   */
+  PRBool write_pure_bodies;
 };
 
 #endif /* _MODLMIME_H_ */

@@ -103,14 +103,20 @@ const SUBJECT_SUFFIXES = [
  */
 function SyntheticPart(aProperties) {
   if (aProperties) {
-    if (aProperties.charset)
+    if ("contentType" in aProperties)
+      this._contentType = aProperties.contentType;
+    if ("charset" in aProperties)
       this._charset = aProperties.charset;
-    if (aProperties.format)
+    if ("format" in aProperties)
       this._format = aProperties.format;
-    if (aProperties.filename)
+    if ("filename" in aProperties)
       this._filename = aProperties.filename;
-    if (aProperties.boundary)
+    if ("boundary" in aProperties)
       this._boundary = aProperties.boundary;
+    if ("encoding" in aProperties)
+      this._encoding = aProperties.encoding;
+    if ("contentId" in aProperties)
+      this._contentId = aProperties.contentId;
   }
 }
 SyntheticPart.prototype = {
@@ -121,7 +127,11 @@ SyntheticPart.prototype = {
     if (this._format)
       s += '; format=' + this._format;
     if (this._filename)
-      s += ';\r\n name="' + this._filename +'"'
+      s += ';\r\n name="' + this._filename +'"';
+    if (this._contentTypeExtra) {
+      for (let [key, value] in Iterator(this._contentTypeExtra))
+        s += ';\r\n ' + key + '="' + value + '"';
+    }
     if (this._boundary)
       s += ';\r\n boundary="' + this._boundary + '"';
     return s;
@@ -141,6 +151,12 @@ SyntheticPart.prototype = {
       s += 'attachment;\r\n filename="' + this._filename + '"';
     return s;
   },
+  get hasContentId() {
+    return this._contentId;
+  },
+  get contentIdHeaderValue() {
+    return '<' + this._contentId + '>';
+  },
 };
 
 /**
@@ -158,8 +174,11 @@ SyntheticPartLeaf.prototype = {
   _encoding: '7bit',
   toMessageString: function() {
     return this.body;
-  }
-}
+  },
+  prettyString: function MimeMessage_prettyString(aIndent) {
+    return "Leaf: " + this._contentType;
+  },
+};
 
 /**
  * Multipart (multipart/*) MIME part base class.
@@ -168,7 +187,7 @@ function SyntheticPartMulti(aParts, aProperties) {
   SyntheticPart.call(this, aProperties);
 
   this._boundary = '--------------CHOPCHOP' + this.BOUNDARY_COUNTER;
-  this.__proto__.BOUNDARY_COUNTER += 1;
+  this.BOUNDARY_COUNTER_HOME.BOUNDARY_COUNTER += 1;
   this.parts = (aParts != null) ? aParts : [];
 }
 SyntheticPartMulti.prototype = {
@@ -185,13 +204,28 @@ SyntheticPartMulti.prototype = {
       if (part.hasDisposition)
         s += 'Content-Disposition: ' + part.contentDispositionHeaderValue +
              '\r\n';
+      if (part.hasContentId)
+        s += 'Content-ID: ' + part.contentIdHeaderValue + '\r\n';
       s += '\r\n';
       s += part.toMessageString() + '\r\n\r\n';
     }
     s += "--" + this._boundary + '--';
     return s;
   },
+  prettyString: function(aIndent) {
+    let nextIndent = (aIndent != null) ? (aIndent + "  ") : "";
+
+    let s = "Container: " + this._contentType;
+
+    for (let iPart = 0; iPart < this.parts.length; iPart++) {
+      let part = this.parts[iPart];
+      s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(nextIndent);
+    }
+
+    return s;
+  }
 };
+SyntheticPartMulti.prototype.BOUNDARY_COUNTER_HOME = SyntheticPartMulti.prototype;
 
 /**
  * Multipart mixed (multipart/mixed) MIME part.
@@ -202,7 +236,80 @@ function SyntheticPartMultiMixed() {
 SyntheticPartMultiMixed.prototype = {
   __proto__: SyntheticPartMulti.prototype,
   _contentType: 'multipart/mixed',
+};
+
+/**
+ * Multipart mixed (multipart/mixed) MIME part.
+ */
+function SyntheticPartMultiParallel() {
+  SyntheticPartMulti.apply(this, arguments);
 }
+SyntheticPartMultiParallel.prototype = {
+  __proto__: SyntheticPartMulti.prototype,
+  _contentType: 'multipart/parallel',
+};
+
+/**
+ * Multipart digest (multipart/digest) MIME part.
+ */
+function SyntheticPartMultiDigest() {
+  SyntheticPartMulti.apply(this, arguments);
+}
+SyntheticPartMultiDigest.prototype = {
+  __proto__: SyntheticPartMulti.prototype,
+  _contentType: 'multipart/digest',
+};
+
+/**
+ * Multipart alternative (multipart/alternative) MIME part.
+ */
+function SyntheticPartMultiAlternative() {
+  SyntheticPartMulti.apply(this, arguments);
+}
+SyntheticPartMultiAlternative.prototype = {
+  __proto__: SyntheticPartMulti.prototype,
+  _contentType: 'multipart/alternative',
+};
+
+/**
+ * Multipart related (multipart/related) MIME part.
+ */
+function SyntheticPartMultiRelated() {
+  SyntheticPartMulti.apply(this, arguments);
+}
+SyntheticPartMultiRelated.prototype = {
+  __proto__: SyntheticPartMulti.prototype,
+  _contentType: 'multipart/related',
+};
+
+const PKCS_SIGNATURE_MIME_TYPE = 'application/x-pkcs7-signature';
+/**
+ * Multipart signed (multipart/signed) MIME part.  This is helperish and makes
+ *  up a gibberish signature.  We wrap the provided parts in the standard
+ *  signature idiom
+ *
+ * @param aPart The content part to wrap. Only one part!  Use a multipart if
+ *     you need to cram extra stuff in there.
+ * @param aProperties Properties, propagated to SyntheticPart, see that.
+ */
+function SyntheticPartMultiSigned(aPart, aProperties) {
+  SyntheticPartMulti.call(this, [aPart], aProperties);
+  this.parts.push(new SyntheticPartLeaf(
+    "I am not really a signature but let's hope no one figures it out.",
+    {
+      contentType: PKCS_SIGNATURE_MIME_TYPE,
+      name: 'smime.p7s',
+    }));
+}
+SyntheticPartMultiSigned.prototype = {
+  __proto__: SyntheticPartMulti.prototype,
+  _contentType: 'multipart/signed',
+  _contentTypeExtra: {
+    protocol: PKCS_SIGNATURE_MIME_TYPE,
+    micalg: 'SHA1'
+  },
+};
+
 
 /**
  * A synthetic message, created by the MessageGenerator.  Captures both the
@@ -210,11 +317,18 @@ SyntheticPartMultiMixed.prototype = {
  *  of the message.
  */
 function SyntheticMessage(aHeaders, aBodyPart) {
+  // we currently do not need to call SyntheticPart's constructor...
   this.headers = aHeaders || {};
   this.bodyPart = aBodyPart || new SyntheticPartLeaf("");
 }
 
 SyntheticMessage.prototype = {
+  __proto__: SyntheticPart.prototype,
+  _contentType: 'message/rfc822',
+  _charset: null,
+  _format: null,
+  _encoding: null,
+
   /** @returns the Message-Id header value. */
   get messageId() { return this._messageId; },
   /**
@@ -380,6 +494,25 @@ SyntheticMessage.prototype = {
   },
 
   /**
+   * Convert the message and its hierarchy into a "pretty string".  The message
+   *  and each MIME part get their own line.  The string never ends with a
+   *  newline.  For a non-multi-part message, only a single line will be
+   *  returned.
+   * Messages have their subject displayed, everyone else just shows their
+   *  content type.
+   */
+  prettyString: function MimeMessage_prettyString(aIndent) {
+    if (aIndent === undefined)
+      aIndent = "";
+    let nextIndent = aIndent + "  ";
+
+    let s = "Message: " + this.subject;
+    s += "\n" + nextIndent + "1 " + this.bodyPart.prettyString(nextIndent);
+
+    return s;
+  },
+
+  /**
    * @returns this messages in rfc822 format, or something close enough.
    */
   toMessageString: function() {
@@ -410,7 +543,7 @@ SyntheticMessage.prototype = {
       "\r\n";
     aStream.write(str, str.length);
   }
-}
+};
 
 /**
  * Write a list of messages in mbox format to a file
@@ -649,8 +782,8 @@ MessageGenerator.prototype = {
       msg.parent = null;
 
       msg.subject = aArgs.subject || this.makeSubject();
-      msg.from = this.makeNameAndAddress();
-      msg.to = this.makeNamesAndAddresses(aArgs.toCount || 1);
+      msg.from = aArgs.from || this.makeNameAndAddress();
+      msg.to = aArgs.to || this.makeNamesAndAddresses(aArgs.toCount || 1);
     }
 
     msg.children = [];
@@ -662,8 +795,8 @@ MessageGenerator.prototype = {
       bodyPart = aArgs.bodyPart;
     else if (aArgs.body)
       bodyPart = new SyntheticPartLeaf(aArgs.body.body, aArgs.body);
-    else
-      bodyPart = new SyntheticPartLeaf("I am an e-mail.");
+    else // different messages should have a chance at different bodies
+      bodyPart = new SyntheticPartLeaf("Hello " + msg.toName + "!");
 
     // if it has any attachments, create a multipart/mixed to be the body and
     //  have it be the parent of the existing body and all the attachments
@@ -680,7 +813,7 @@ MessageGenerator.prototype = {
 
     return msg;
   }
-}
+};
 
 /**
  * Repository of generative message scenarios.  Uses the magic bindMethods

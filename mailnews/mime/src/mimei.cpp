@@ -1564,8 +1564,22 @@ mime_parse_url_options(const char *url, MimeDisplayOptions *options)
     }
     else if (!PL_strncasecmp ("emitter", q, name_end - q))
     {
-      options->notify_nested_bodies = 
-        (end > value) && !PL_strncasecmp ("js", value, end - value);
+      if ((end > value) && !PL_strncasecmp ("js", value, end - value))
+      {
+        // the js emitter needs to hear about nested message bodies
+        //  in order to build a proper representation.
+        options->notify_nested_bodies = PR_TRUE;
+        // show_attachment_inline_p has the side-effect of letting the
+        //  emitter see all parts of a multipart/alternative, which it
+        //  really appreciates.
+        options->show_attachment_inline_p = PR_TRUE;
+        // however, show_attachment_inline_p also results in a few
+        //  subclasses writing junk into the body for display purposes.
+        // put a stop to these shenanigans by enabling write_pure_bodies.
+        //  current offenders are:
+        //  - MimeInlineImage
+        options->write_pure_bodies = PR_TRUE;
+      }
     }
 
     q = end;
@@ -1735,7 +1749,9 @@ MimeObject_write(MimeObject *obj, const char *output, PRInt32 length,
 int
 MimeObject_write_separator(MimeObject *obj)
 {
-  if (obj->options && obj->options->state)
+  if (obj->options && obj->options->state &&
+      // we never want separators if we are asking for pure bodies
+      !obj->options->write_pure_bodies)
     obj->options->state->separator_queued_p = PR_TRUE;
   return 0;
 }

@@ -1450,6 +1450,7 @@ MimeDisplayOptions::MimeDisplayOptions()
   show_attachment_inline_p = PR_FALSE;
   quote_attachment_inline_p = PR_FALSE;
   notify_nested_bodies = PR_FALSE;
+  write_pure_bodies = PR_FALSE;
 }
 
 MimeDisplayOptions::~MimeDisplayOptions()

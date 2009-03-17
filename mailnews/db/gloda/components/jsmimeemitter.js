@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 const Cc = Components.classes;
@@ -76,25 +76,12 @@ function MimeMessageEmitter() {
   Cu.import("resource://app/modules/gloda/mimemsg.js", this._mimeMsg);
 
   this._url = null;
-  this._channel = null;
 
-  this._inputStream = null;
-  this._outputStream = null;
-  
   this._outputListener = null;
-  
-  this._rootMsg = null;
-  this._messageStack = [];
-  this._parentMsg = null;
-  this._curMsg = null;
-  
-  this._messageIndex = 0;
-  this._allSubMessages = [];
-  
-  this._partMap = {};
+
   this._curPart = null;
-  this._curBodyPart = null;
-  
+  this._partMap = {};
+
   this._state = kStateUnknown;
 }
 
@@ -102,129 +89,141 @@ MimeMessageEmitter.prototype = {
   classDescription: "JS Mime Message Emitter",
   classID: Components.ID("{8cddbbbc-7ced-46b0-a936-8cddd1928c24}"),
   contractID: "@mozilla.org/gloda/jsmimeemitter;1",
-  
+
   _partRE: new RegExp("^[^?]+\?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
-  
+
   _xpcom_categories: [{
     category: "mime-emitter",
     entry:
       "@mozilla.org/messenger/mimeemitter;1?type=application/x-js-mime-message",
   }],
-  
+
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMimeEmitter]),
 
   initialize: function mime_emitter_initialize(aUrl, aChannel, aFormat) {
     this._url = aUrl;
-    this._curMsg = this._parentMsg = this._rootMsg = new this._mimeMsg.MimeMessage();
-    this._curMsg.partName = "";
-    this._partMap[""] = this._curMsg;
-    
+    this._curPart = new this._mimeMsg.MimeMessage();
+    // the partName is intentionally ""!  not a place-holder!
+    this._curPart.partName = "";
+    this._partMap[""] = this._curPart;
+
     this._mimeMsg.MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aUrl.spec] =
-      this._rootMsg;
-    
-    this._channel = aChannel;
+      this._curPart;
   },
-  
+
   complete: function mime_emitter_complete() {
-    // dump("!!!!\n!!!!\n!!!!\n" + this._rootMsg.prettyString() + "\n");
     this._url = null;
-    this._channel = null;
-    
-    this._inputStream = null;
-    this._outputStream = null;
-    
+
     this._outputListener = null;
 
-    this._curMsg = this._parentMsg = this._messageStack = this._rootMsg = null;
-    this._messageIndex = null;
-    this._allSubMessages = null;
-    
-    this._partMap = null;
     this._curPart = null;
-    this._curBodyPart = null;
+    this._partMap = null;
   },
-  
+
   setPipe: function mime_emitter_setPipe(aInputStream, aOutputStream) {
-    this._inputStream = aInputStream;
-    this._outputStream = aOutputStream;
+    // we do not care about these
   },
   set outputListener(aListener) {
     this._outputListener = aListener;
   },
   get outputListener() {
     return this._outputListener;
-  }, 
-  
-  _beginPayload: function mime_emitter__beginPayload(aContentType, aIsPart) {
-    aContentType = aContentType.toLowerCase();
+  },
+
+  _stripParams: function mime_emitter__stripParams(aValue) {
+    let indexSemi = aValue.indexOf(";");
+    if (indexSemi >= 0)
+        aValue = aValue.substring(0, indexSemi);
+    return aValue;
+  },
+
+  _beginPayload: function mime_emitter__beginPayload(aContentType) {
+    aContentType = this._stripParams(aContentType).toLowerCase();
     if (aContentType == "text/plain" || aContentType == "text/html") {
-      this._curBodyPart = new this._mimeMsg.MimeBody(aContentType, aIsPart);
-      this._parentMsg.bodyParts.push(this._curBodyPart);
-      this._curPart = aIsPart ? this._curBodyPart : null;
+      this._curPart = new this._mimeMsg.MimeBody(aContentType);
     }
     else if (aContentType == "message/rfc822") {
-      // startBody will take care of this
-      this._curPart = this._curBodyPart = null;
+      // startHeader will take care of this
+      this._curPart = new this._mimeMsg.MimeMessage();
     }
     // this is going to fall-down with TNEF encapsulation and such, we really
     //  need to just be consuming the object model.
     else if (aContentType.indexOf("multipart/") == 0) {
-      this._curBodyPart = null;
-      // alternatives are always parts for part numbering purposes
-      this._curPart = aIsPart ? new this._mimeMsg.MimeContainer(aContentType)
-                              : null;
+      this._curPart = new this._mimeMsg.MimeContainer(aContentType);
     }
     else {
-      this._curBodyPart = null;
-      this._curPart = aIsPart ?
-        new this._mimeMsg.MimeUnknown(aContentType, aIsPart) : null;
+      this._curPart = new this._mimeMsg.MimeUnknown(aContentType);
     }
   },
-  
+
   // ----- Header Routines
+  /**
+   * StartHeader provides the base case for our processing.  It is the first
+   *  notification we receive when processing begins on the outer rfc822
+   *  message.  We do not receive an x-jsemitter-part-path notification for the
+   *  message, but the aIsRootMailHeader tells us everything we need to know.
+   *  (Or it would if we hadn't already set everything up in initialize.)
+   *
+   * When dealing with nested RFC822 messages, we will receive the
+   *  addHeaderFields for the content-type and the x-jsemitter-part-path
+   *  prior to the startHeader call.  This is because the MIME multipart
+   *  container that holds the message is the one generating the notification.
+   *  For that reason, we do not process them here, but instead in
+   *  addHeaderField and _beginPayload.
+   *
+   * We do need to track our state for addHeaderField's benefit though.
+   */
   startHeader: function mime_emitter_startHeader(aIsRootMailHeader,
       aIsHeaderOnly, aMsgID, aOutputCharset) {
     this._state = kStateInHeaders;
-    if (aIsRootMailHeader) {
-      this.updateCharacterSet(aOutputCharset);
-      // nothing to do curMsg-wise, already initialized.
-    }
-    else {
-      this._curMsg = new this._mimeMsg.MimeMessage();
-      
-      this._curMsg.partName = this._savedPartPath;
-      this._placePart(this._curMsg);
-      delete this._savedPartPath;
-      
-      this._parentMsg.messages.push(this._curMsg);
-      this._allSubMessages.push(this._curMsg);
-    }
   },
+  /**
+   * Receives a header field name and value for the current MIME part, which
+   *  can be an rfc822/message or one of its sub-parts.
+   *
+   * The emitter architecture treats rfc822/messages as special because it was
+   *  architected around presentation.  In that case, the organizing concept
+   *  is the single top-level rfc822/message.  (It did not 'look into' nested
+   *  messages in most cases.)
+   * As a result the interface is biased towards being 'in the headers' or
+   *  'in the body', corresponding to calls to startHeader and startBody,
+   *  respectively.
+   * This information is interesting to us because the message itself is an
+   *  odd pseudo-mime-part.  Because it has only one child, its headers are,
+   *  in a way, its payload, but they also serve as the description of its
+   *  MIME child part.  This introduces a complication in that we see the
+   *  content-type for the message's "body" part before we actually see any
+   *  of the headers.  To deal with this, we punt on the construction of the
+   *  body part to the call to startBody() and predicate our logic on the
+   *  _state field.
+   */
   addHeaderField: function mime_emitter_addHeaderField(aField, aValue) {
     if (this._state == kStateInBody) {
       aField = aField.toLowerCase();
-      let indexSemi = aValue.indexOf(";");
-      if (indexSemi >= 0)
-        aValue = aValue.substring(0, indexSemi);
       if (aField == "content-type")
         this._beginPayload(aValue, true);
       else if (aField == "x-jsemitter-part-path") {
-        if (this._curPart) {
-          this._curPart.partName = aValue;
+        // This is either naming the current part, or referring to an already
+        //  existing part (in the case of multipart/related on its second pass).
+        // As such, check if the name already exists in our part map.
+        let partName = this._stripParams(aValue);
+        // if it does, then make the already-existing part at that path current
+        if (partName in this._partMap)
+          this._curPart = this._partMap[partName];
+        // otherwise, name the part we are holding onto and place it.
+        else {
+          this._curPart.partName = partName;
           this._placePart(this._curPart);
         }
-        else
-          this._savedPartPath = aValue;
       }
-      return;
     }
-    if (this._state != kStateInHeaders)
-      return;
-    let lowerField = aField.toLowerCase();
-    if (lowerField in this._curMsg.headers)
-      this._curMsg.headers[lowerField].push(aValue);
-    else
-      this._curMsg.headers[lowerField] = [aValue];
+    else if (this._state == kStateInHeaders) {
+      let lowerField = aField.toLowerCase();
+      if (lowerField in this._curPart.headers)
+        this._curPart.headers[lowerField].push(aValue);
+      else
+        this._curPart.headers[lowerField] = [aValue];
+    }
   },
   addAllHeaders: function mime_emitter_addAllHeaders(aAllHeaders, aHeaderSize) {
     // This is called by the parsing code after the calls to AddHeaderField (or
@@ -241,78 +240,66 @@ MimeMessageEmitter.prototype = {
   endHeader: function mime_emitter_endHeader() {
   },
   updateCharacterSet: function mime_emitter_updateCharacterSet(aCharset) {
-    // for non US-ASCII, ISO-8859-1, or UTF-8 charsets (case-insensitive),
-    //  nsMimeBaseEmitter grabs the channel's content type, nukes the "charset="
-    //  parameter if it exists, and tells the channel the updated content type
-    //  and new character set.
-    
-    // Disabling for now; we get a NS_ERROR_NOT_IMPLEMENTED from the channel
-    //  when we try and set the contentCharset... and I'm not totally up on the
-    //  intent of why we were doing this in the first place.
-    /*
-    let upperCharset = aCharset.toUpperCase();
-    
-    if ((upperCharset != "US-ASCII") && (upperCharset != "ISO-8859-1") &&
-        (upperCharset != "UTF-8")) {  
-    
-      let curContentType = this._channel.contentType;
-      let charsetIndex = curContentType.toLowerCase().indexOf("charset=");
-      if (charsetIndex >= 0) {
-        // assume a space or semicolon delimits
-        curContentType = curContentType.substring(0, charsetIndex-1);
-      }
-      
-      this._channel.contentType = curContentType;
-      this._channel.contentCharset = aCharset;
-    }
-    */
+    // we do not need to worry about this.  it turns out this notification is
+    //  exclusively for the benefit of the UI.  libmime, believe it or not,
+    //  is actually doing the right thing under the hood and handles all the
+    //  encoding issues for us.
+    // so, get ready for the only time you will ever hear this:
+    //  three cheers for libmime!
   },
-  
+
   /**
    * Place a part in its proper location; requires the parent to be present.
-   * 
+   * However, we no longer require in-order addition of children.  (This is
+   *  currently a hedge against extension code doing wacky things.  Our
+   *  motivating use-case is multipart/related which actually does generate
+   *  everything in order on its first pass, but has a wacky second pass. It
+   *  does not actually trigger the out-of-order code because we have
+   *  augmented the libmime code to generate its x-jsemitter-part-path info
+   *  a second time, in which case we reuse the part we already created.)
+   *
    * @param aPart Part to place.
    */
   _placePart: function(aPart) {
     let partName = aPart.partName;
     this._partMap[partName] = aPart;
-    let parentName = partName.substring(0, partName.lastIndexOf("."));
+    let lastDotIndex = partName.lastIndexOf(".");
+    let parentName = partName.substring(0, lastDotIndex);
     let parentPart = this._partMap[parentName];
-    if (parentPart)
-      parentPart.parts.push(aPart);
+    if (parentPart !== undefined) {
+      let indexInParent = parseInt(partName.substring(lastDotIndex+1)) - 1;
+      // handle out-of-order notification...
+      if (indexInParent < parentPart.parts.length)
+        parentPart.parts[indexInParent] = aPart;
+      else {
+        while (indexInParent > parentPart.parts.length)
+          parentPart.parts.push(null);
+        parentPart.parts.push(aPart);
+      }
+    }
   },
-  
+
   /**
    * In the case of attachments, we need to replace an existing part with a
    *  more representative part...
-   *  
+   *
    * @param aPart Part to place.
    */
   _replacePart: function(aPart) {
     let partName = aPart.partName;
     this._partMap[partName] = aPart;
-    
+
     let parentName = partName.substring(0, partName.lastIndexOf("."));
     let parentPart = this._partMap[parentName];
-    
+
     let childNamePart = partName.substring(partName.lastIndexOf(".")+1);
     let childIndex = parseInt(childNamePart) - 1;
-    
+
     let oldPart = parentPart.parts[childIndex];
     parentPart.parts[childIndex] = aPart;
     aPart.parts = oldPart.parts;
-
-    // - remove it if it was a body part.  This can happen for text/plain
-    //  attachments.  Like patches.
-    // (climb the parents until we find a message/bodyparts holder...)
-    while (parentPart.partName && !parentPart.bodyParts) {
-      parentName = parentName.substring(0, parentName.lastIndexOf("."));
-      parentPart = this._partMap[parentName];
-    }
-    if (parentPart.bodyParts && parentPart.bodyParts.indexOf(oldPart) >= 0)
-      parentPart.bodyParts.splice(parentPart.bodyParts.indexOf(oldPart), 1);
   },
-  
+
   // ----- Attachment Routines
   // The attachment processing happens after the initial streaming phase (during
   //  which time we receive the messages, both bodies and headers).  Our caller
@@ -321,7 +308,7 @@ MimeMessageEmitter.prototype = {
   startAttachment: function mime_emitter_startAttachment(aName, aContentType,
       aUrl, aIsExternalAttachment) {
     this._state = kStateInAttachment;
-    
+
     if (aContentType == "message/rfc822") {
       // we already have all we need to know about the message, ignore it
     }
@@ -358,36 +345,31 @@ MimeMessageEmitter.prototype = {
   endAllAttachments: function mime_emitter_endAllAttachments() {
     // nop
   },
-  
+
   // ----- Body Routines
+  /**
+   * We don't get an x-jsemitter-part-path for the message body, and we ignored
+   *  our body part's content-type in addHeaderField, so this serves as our
+   *  notice to set up the part (giving it a name).
+   */
   startBody: function mime_emitter_startBody(aIsBodyOnly, aMsgID, aOutCharset) {
     this._state = kStateInBody;
-    
-    this._messageStack.push(this._curMsg);
-    this._parentMsg = this._curMsg;
 
-    // begin payload processing
-    let contentType = this._curMsg.get("content-type", "text/plain");
-    let indexSemi = contentType.indexOf(";");
-    if (indexSemi >= 0)
-      contentType = contentType.substring(0, indexSemi);
-    this._beginPayload(contentType, true);
-    if (this._parentMsg.partName == "")
-      this._curPart.partName = "1";
-    else
-      this._curPart.partName = this._curMsg.partName + ".1";
+    let subPartName = (this._curPart.partName == "") ?
+                        "1" :
+                        this._curPart.partName + ".1";
+    this._beginPayload(this._curPart.get("content-type", "text/plain"));
+    this._curPart.partName = subPartName;
     this._placePart(this._curPart);
   },
-  
+
   writeBody: function mime_emitter_writeBody(aBuf, aSize, aOutAmountWritten) {
-    this._curBodyPart.body += aBuf;
+    this._curPart.body += aBuf;
   },
-  
+
   endBody: function mime_emitter_endBody() {
-    this._messageStack.pop();
-    this._parentMsg = this._messageStack[this._messageStack.length - 1];
   },
-  
+
   // ----- Generic Write (confusing)
   // (binary data writing...)
   write: function mime_emitter_write(aBuf, aSize, aOutAmountWritten) {
@@ -396,7 +378,7 @@ MimeMessageEmitter.prototype = {
     //  we did get called (otherwise the caller gets mad and throws exceptions).
     aOutAmountWritten.value = aSize;
   },
-  
+
   // (string writing)
   utilityWrite: function mime_emitter_utilityWrite(aBuf) {
     this.write(aBuf, aBuf.length, {});

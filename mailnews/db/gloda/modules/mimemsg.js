@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ['MsgHdrToMimeMessage',
@@ -72,19 +72,19 @@ let shutdownCleanupObserver = {
   ensureInitialized: function mimemsg_shutdownCleanupObserver_init() {
     if (this._initialized)
       return;
-    
+
     Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
       .addObserver(this, "quit-application", false);
 
     this._initialized = true;
   },
-  
+
   observe: function mimemsg_shutdownCleanupObserver_observe(
       aSubject, aTopic, aData) {
     if (aTopic == "quit-application") {
       Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
         .removeObserver(this, "quit-application");
-      
+
       for each (let [, streamListener] in
                 Iterator(activeStreamListeners.concat())) {
         streamListener._request.cancel(Cr.NS_BINDING_ABORTED);
@@ -117,19 +117,19 @@ CallbackStreamListener.prototype = {
   },
   onStopRequest: function (aRequest, aContext, aStatusCode) {
     activeStreamListeners.splice(activeStreamListeners.indexOf(this), 1);
-    
+
     aContext.QueryInterface(Ci.nsIURI);
     let message = MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
     if (message === undefined)
       message = null;
 
     delete MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
-    
+
     if (this._callbackThis)
       this._callback.call(this._callbackThis, this._msgHdr, message);
     else
       this._callback.call(null, this._msgHdr, message);
-    
+
     this._msgHdr = null;
     this._request = null;
     this._stream = null;
@@ -142,14 +142,14 @@ CallbackStreamListener.prototype = {
      notification. */
   // nsIStreamListener part
   onDataAvailable: function (aRequest,aContext,aInputStream,aOffset,aCount) {
-    dump("this should not be happening! arrgggggh!\n")
+    dump("this should not be happening! arrgggggh!\n");
     if (this._stream === null) {
       this._stream = Cc["@mozilla.org/scriptableinputstream;1"].
                     createInstance(Ci.nsIScriptableInputStream);
       this._stream.init(aInputStream);
     }
     this._stream.read(aCount);
-    
+
   },
 };
 
@@ -159,30 +159,30 @@ let gMessenger = Cc["@mozilla.org/messenger;1"].
 /**
  * Starts retrieval of a MimeMessage instance for the given message header.
  *  Your callback will be called with the message header you provide and the
- *  
+ *
  * @param aMsgHdr The message header to retrieve the body for and build a MIME
  *     representation of the message.
  * @param aCallbackThis The (optional) 'this' to use for your callback function.
  * @param aCallback The callback function to invoke on completion of message
  *     parsing or failure.  The first argument passed will be the nsIMsgDBHdr
  *     you passed to this function.  The second argument will be the MimeMessage
- *     instance resulting from the processing on success, and null on failure. 
+ *     instance resulting from the processing on success, and null on failure.
  */
 function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
   shutdownCleanupObserver.ensureInitialized();
-  
+
   let msgURI = aMsgHdr.folder.getUriForMsg(aMsgHdr);
   let msgService = gMessenger.messageServiceFromURI(msgURI);
-  
+
   let streamListener = new CallbackStreamListener(aMsgHdr,
                                                   aCallbackThis, aCallback);
-  
+
   let streamURI = msgService.streamMessage(msgURI,
                                            streamListener, // consumer
                                            null, // nsIMsgWindow
                                            dumbUrlListener, // nsIUrlListener
                                            true, // have them create the converter
-      // additional uri payload, note that "header=" is prepended automatically 
+      // additional uri payload, note that "header=" is prepended automatically
                                            "filter&emitter=js",
                                            true);
 }
@@ -209,35 +209,23 @@ MsgHdrToMimeMessage.RESULT_RENDEVOUZ = {};
  *     its first child's first child is "1.1.1", etc.
  * @ivar headers Maps lower-cased header field names to a list of the values
  *     seen for the given header.  Use get or getAll as convenience helpers.
- * 
- * @ivar bodyParts A list of the MimeBody instances that belong to this message.
- *     If there are nested messages, any bodies under the nested messages will
- *     belong to those messages.
- * 
- * @ivar messages A list of the sub-message children of this message.  Strict
- *     MIME part hierarchy is not maintained; a sub-message's parent is the
- *     closest sub-message above it.  Sub-messages can also be found in the
- *     parts list, if you want a more strict traversal.
  * @ivar parts The list of the MIME part children of this message.  Children
  *     will be either MimeMessage instances, MimeMessageAttachment instances,
  *     MimeContainer instances, or MimeUnknown instances.  The latter two are
- *     the result of limitations in the Javascript representation generation  
+ *     the result of limitations in the Javascript representation generation
  *     at this time, combined with the need to most accurately represent the
  *     MIME structure.
  */
 function MimeMessage() {
   this.partName = null;
   this.headers = {};
-  
-  this.bodyParts = [];
-
-  this.messages = [];
-  this.attachments = [];
 
   this.parts = [];
 }
 
 MimeMessage.prototype = {
+  contentType: "message/rfc822",
+
   /**
    * Look-up a header that should be present at most once.
    *
@@ -297,28 +285,12 @@ MimeMessage.prototype = {
     }
     return results;
   },
-  
-  /**
-   * @return A list of the MimeBody instances on this message with a content
-   *     type of text/plain.
-   */
-  get bodyPartsPlain() {
-    return [part for each ([, part] in Iterator(this.bodyParts)) if
-            (part.contentType == "text/plain")];
-  },
-  /**
-   * @return all of the plaintext body parts of this message (as provided by
-   *     bodyPartsPlain), concatenated together into a single string.
-   */
-  get bodyPlain() {
-    return [bodyPart.body for each
-            ([, bodyPart] in Iterator(this.bodyPartsPlain))].join("");
-  },
+
   /**
    * @param aMsgFolder A message folder, any message folder.  Because this is
    *    a hack.
-   * @return The concatenation of all of the bodyParts where parts
-   *    available as text/plain are pulled from there, and parts only available
+   * @return The concatenation of all of the body parts where parts
+   *    available as text/plain are pulled as-is, and parts only available
    *    as text/html are converted to plaintext form first.  In other words,
    *    if we see a multipart/alternative with a text/plain, we take the
    *    text/plain.  If we see a text/html without an alternative, we convert
@@ -339,23 +311,7 @@ MimeMessage.prototype = {
     else
       return "";
   },
-  /**
-   * @return a list of the MimeBody instances on this message with a content
-   *     type of text/html.
-   */
-  get bodyPartsHTML() {
-    return [part for each ([, part] in Iterator(this.bodyParts)) if
-        (part.contentType == "text/html")];
-  },
-  /**
-   * @return all of the HTML body parts of this message (as provided by
-   *     bodyPartsHTML), concatenated together into a single string.
-   */
-  get bodyHTML() {
-    return [bodyPart.body for each
-            ([, bodyPart] in Iterator(this.bodyPartsHTML))].join("");
-  },
-  
+
   /**
    * Convert the message and its hierarchy into a "pretty string".  The message
    *  and each MIME part get their own line.  The string never ends with a
@@ -367,16 +323,16 @@ MimeMessage.prototype = {
    */
   prettyString: function MimeMessage_prettyString(aIndent) {
     if (aIndent === undefined)
-      aIndent = ""; 
+      aIndent = "";
     let nextIndent = aIndent + "  ";
-  
+
     let s = "Message: " + this.headers.subject;
-    
+
     for (let iPart = 0; iPart < this.parts.length; iPart++) {
       let part = this.parts[iPart];
       s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(nextIndent);
     }
-    
+
     return s;
   },
 };
@@ -422,34 +378,33 @@ MimeContainer.prototype = {
   },
   prettyString: function MimeContainer_prettyString(aIndent) {
     let nextIndent = aIndent + "  ";
-  
+
     let s = "Container: " + this.contentType;
-    
+
     for (let iPart = 0; iPart < this.parts.length; iPart++) {
       let part = this.parts[iPart];
       s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(nextIndent);
     }
-    
+
     return s;
   },
   toString: function MimeContainer_toString() {
     return "Container: " + this.contentType;
   }
-}
+};
 
 /**
  * @class Represents a body portion that we understand and do not believe to be
  *  a proper attachment.  This means text/plain or text/html and it has no
  *  filename.  (A filename suggests an attachment.)
- *  
+ *
  * @ivar contentType The content type of this body materal; text/plain or
  *     text/html.
  * @ivar body The actual body content.
  */
-function MimeBody(aContentType, aIsPart) {
+function MimeBody(aContentType) {
   this.partName = null;
   this.contentType = aContentType;
-  this.isPart = aIsPart;
   this.body = "";
 }
 
@@ -471,7 +426,7 @@ MimeBody.prototype = {
   toString: function MimeBody_toString() {
     return "Body: " + this.contentType + " (" + this.body.length + " bytes)";
   }
-}
+};
 
 /**
  * @class A MIME Leaf node that doesn't have a filename so we assume it's not
@@ -480,13 +435,12 @@ MimeBody.prototype = {
  *  by hand or a bad client.  This class should probably be renamed or we should
  *  introduce a better named class that we try and use in preference to this
  *  class.
- * 
+ *
  * @ivar contentType The content type of this part.
  */
-function MimeUnknown(aContentType, aIsPart) {
+function MimeUnknown(aContentType) {
   this.partName = null;
   this.contentType = aContentType;
-  this.isPart = aIsPart;
 }
 
 MimeUnknown.prototype = {
@@ -499,12 +453,12 @@ MimeUnknown.prototype = {
   toString: function MimeUnknown_toString() {
     return "Unknown: " + this.contentType;
   }
-}
+};
 
 /**
  * @class An attachment proper.  We think it's an attachment because it has a
  *  filename that libmime was able to figure out.
- * 
+ *
  * @ivar partName @see{MimeMessage.partName}
  * @ivar name The filename of this attachment.
  * @ivar contentType The MIME content type of this part.
@@ -518,7 +472,7 @@ function MimeMessageAttachment(aPartName, aName, aContentType, aUrl,
   this.contentType = aContentType;
   this.url = aUrl;
   this.isExternal = aIsExternal;
-  
+
   this.fields = {};
 }
 

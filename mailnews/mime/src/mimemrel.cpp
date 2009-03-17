@@ -1059,6 +1059,19 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
   }
 #endif /* MIME_DRAFTS */
 
+  /* if the emitter wants to know about nested bodies, then it needs
+     to know that we jumped back to this body part. */
+  if (obj->options->notify_nested_bodies)
+  {
+    char *part_path = mime_part_address(body);
+    if (part_path)
+    {
+      mimeEmitterAddHeaderField(obj->options,
+                                "x-jsemitter-part-path",
+                                part_path);
+      PR_Free(part_path);
+    }
+  }
 
   /* Now that we've added this new object to our list of children,
      start its parser going. */
