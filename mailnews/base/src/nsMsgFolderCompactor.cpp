@@ -77,7 +77,7 @@ nsFolderCompactState::nsFolderCompactState()
   m_compactOfflineAlso = PR_FALSE;
   m_compactingOfflineFolders = PR_FALSE;
   m_parsingFolder=PR_FALSE;
-  m_folderIndex =0;
+  m_folderIndex = 0;
   m_startOfMsg = PR_TRUE;
   m_needStatusLine = PR_FALSE;
 }
@@ -484,6 +484,8 @@ nsFolderCompactState::FinishCompact()
 
 void nsFolderCompactState::CompactCompleted(nsresult exitCode)
 {
+  NS_WARN_IF_FALSE(NS_SUCCEEDED(exitCode),
+                   "nsFolderCompactState::CompactCompleted failed");
   if (m_listener)
     m_listener->OnStopRunningUrl(nsnull, exitCode);
   ShowDoneStatus();
@@ -519,10 +521,12 @@ nsFolderCompactState::CompactNextFolder()
   m_folderIndex++;
   PRUint32 cnt = 0;
   nsresult rv = m_folderArray->GetLength(&cnt);
-  NS_ENSURE_SUCCESS(rv,rv);
-  if (m_folderIndex == cnt)
+  NS_ENSURE_SUCCESS(rv, rv);
+  // m_folderIndex might be > cnt if we compact offline stores,
+  // and get back here from OnStopRunningUrl.
+  if (m_folderIndex >= cnt)
   {
-    if (!m_compactOfflineAlso)
+    if (!m_compactOfflineAlso || m_compactingOfflineFolders)
     {
       CompactCompleted(NS_OK);
       return rv;
@@ -531,7 +535,9 @@ nsFolderCompactState::CompactNextFolder()
     nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(m_folderArray,
                                                       m_folderIndex-1, &rv);
     if (NS_SUCCEEDED(rv) && folder)
-      folder->CompactAllOfflineStores(this, m_window, m_offlineFolderArray);
+      return folder->CompactAllOfflineStores(this, m_window, m_offlineFolderArray);
+    else
+      NS_WARNING("couldn't get folder to compact offline stores");
 
   }
   nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(m_folderArray,
@@ -600,23 +606,9 @@ done:
   return rv;
 }
 
-void nsFolderCompactState::AdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32 maxBufferOffset)
-{
-  for (; bufferOffset < maxBufferOffset; bufferOffset++)
-  {
-    if (buffer[bufferOffset] == '\r' || buffer[bufferOffset] == '\n')
-    {
-      bufferOffset++;
-      if (buffer[bufferOffset- 1] == '\r' && buffer[bufferOffset] == '\n')
-        bufferOffset++;
-      break;
-    }
-  }
-}
-
 NS_IMETHODIMP
 nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
-                                      nsIInputStream *inStr, 
+                                      nsIInputStream *inStr,
                                       PRUint32 sourceOffset, PRUint32 count)
 {
   if (!m_fileStream || !inStr) 
@@ -702,7 +694,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         {
           blockOffset = 5;
           // skip from line
-          AdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
+          MsgAdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
           char statusLine[50];
           m_fileStream->Write(m_dataBuffer, blockOffset, &writeCount);
           m_statusOffset = blockOffset;
@@ -737,8 +729,8 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         {
           blockOffset = statusOffset;
           // skip x-mozilla-status and status2 lines.
-          AdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
-          AdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
+          MsgAdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
+          MsgAdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
           // need to rewrite the headers up to and including the x-mozilla-status2 header
           m_fileStream->Write(m_dataBuffer, blockOffset, &writeCount);
         }
@@ -772,16 +764,16 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
       {
         blockOffset = statusOffset;
         if (!strncmp(m_dataBuffer + blockOffset, X_MOZILLA_STATUS, X_MOZILLA_STATUS_LEN))
-          AdvanceToNextLine(m_dataBuffer, blockOffset, readCount); // skip x-mozilla-status hdr
+          MsgAdvanceToNextLine(m_dataBuffer, blockOffset, readCount); // skip x-mozilla-status hdr
         if (!strncmp(m_dataBuffer + blockOffset, X_MOZILLA_STATUS2, X_MOZILLA_STATUS2_LEN))
-          AdvanceToNextLine(m_dataBuffer, blockOffset, readCount); // skip x-mozilla-status2 hdr
+          MsgAdvanceToNextLine(m_dataBuffer, blockOffset, readCount); // skip x-mozilla-status2 hdr
         PRUint32 preKeywordBlockOffset = blockOffset;
         if (!strncmp(m_dataBuffer + blockOffset, HEADER_X_MOZILLA_KEYWORDS, sizeof(HEADER_X_MOZILLA_KEYWORDS) - 1))
         {
           do
           {
             // skip x-mozilla-keywords hdr and any existing continuation headers
-            AdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
+            MsgAdvanceToNextLine(m_dataBuffer, blockOffset, readCount);
           }
           while (m_dataBuffer[blockOffset] == ' ');
         }
@@ -877,7 +869,10 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
   if (NS_FAILED(rv)) goto done;
 
   if (msgHdr)
+  {
     msgHdr->SetMessageOffset(m_startOfNewMsg);
+    msgHdr->SetOfflineMessageSize(m_offlineMsgSize);
+  }
 
   if (m_window)
   {
@@ -893,15 +888,16 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
     msgHdr = nsnull;
     newMsgHdr = nsnull;
     // no more to copy finish it up
-   FinishCompact();
+    FinishCompact();
     Release(); // kill self
   }
   else
   {
     m_messageUri.SetLength(0); // clear the previous message uri
     rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray[m_curIndex],
-                                m_messageUri);
+                         m_messageUri);
     if (NS_FAILED(rv)) goto done;
+    m_startOfMsg = PR_TRUE;
     rv = m_messageService->CopyMessage(m_messageUri.get(), this, PR_FALSE, nsnull,
                                        /* ### should get msg window! */ nsnull, nsnull);
    if (NS_FAILED(rv))
@@ -910,7 +906,6 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
      msgHdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
    }
   // if this fails, we should clear the offline flag on the source message.
-    
   }
 
 done:
@@ -927,14 +922,13 @@ done:
 nsresult
 nsOfflineStoreCompactState::FinishCompact()
 {
-    // All okay time to finish up the compact process
-  nsresult rv = NS_OK;
+  // All okay time to finish up the compact process
   nsCOMPtr<nsILocalFile> path;
   PRUint32 flags;
 
     // get leaf name and database name of the folder
   m_folder->GetFlags(&flags);
-  rv = m_folder->GetFilePath(getter_AddRefs(path));
+  nsresult rv = m_folder->GetFilePath(getter_AddRefs(path));
 
   nsCString leafName;
   path->GetNativeLeafName(leafName);
@@ -1054,19 +1048,73 @@ nsresult nsOfflineStoreCompactState::StartCompacting()
     AddRef(); // we own ourselves, until we're done, anyway.
     ShowCompactingStatusMsg();
     m_messageUri.SetLength(0); // clear the previous message uri
-    rv = BuildMessageURI(m_baseMessageUri.get(),
-                                m_keyArray[0],
-                                m_messageUri);
+    rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray[0], m_messageUri);
     if (NS_SUCCEEDED(rv))
-      rv = m_messageService->CopyMessage(
-        m_messageUri.get(), this, PR_FALSE, nsnull, m_window, nsnull);
-
+      rv = m_messageService->CopyMessage(m_messageUri.get(), this, PR_FALSE,
+                                         nsnull, m_window, nsnull);
   }
   else
   { // no messages to copy with
     ReleaseFolderLock();
     FinishCompact();
 //    Release(); // we don't "own" ourselves yet.
+  }
+  return rv;
+}
+
+NS_IMETHODIMP
+nsOfflineStoreCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
+                                            nsIInputStream *inStr,
+                                            PRUint32 sourceOffset, PRUint32 count)
+{
+  if (!m_fileStream || !inStr) 
+    return NS_ERROR_FAILURE;
+
+  nsresult rv = NS_OK;
+
+  if (m_startOfMsg)
+  {
+    m_statusOffset = 0;
+    m_offlineMsgSize = 0;
+    m_messageUri.SetLength(0); // clear the previous message uri
+    if (NS_SUCCEEDED(BuildMessageURI(m_baseMessageUri.get(), m_keyArray[m_curIndex],
+                                m_messageUri)))
+    {
+      rv = GetMessage(getter_AddRefs(m_curSrcHdr));
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+  }
+  PRUint32 maxReadCount, readCount, writeCount;
+  PRUint32 bytesWritten;
+
+  while (NS_SUCCEEDED(rv) && (PRInt32) count > 0)
+  {
+    maxReadCount = count > sizeof(m_dataBuffer) - 1 ? sizeof(m_dataBuffer) - 1 : count;
+    writeCount = 0;
+    rv = inStr->Read(m_dataBuffer, maxReadCount, &readCount);
+
+    if (NS_SUCCEEDED(rv))
+    {
+      if (m_startOfMsg)
+      {
+        m_startOfMsg = PR_FALSE;
+        // check if there's an envelope header; if not, write one.
+        if (strncmp(m_dataBuffer, "From ", 5))
+        {
+          m_fileStream->Write("From "CRLF, 7, &bytesWritten);
+          m_offlineMsgSize += bytesWritten;
+        }
+      }
+      m_fileStream->Write(m_dataBuffer, readCount, &bytesWritten);
+      m_offlineMsgSize += bytesWritten;
+      writeCount += bytesWritten;
+      count -= readCount;
+      if (writeCount != readCount)
+      {
+        m_folder->ThrowAlertMsg("compactFolderWriteFailed", m_window);
+        return NS_MSG_ERROR_WRITING_MAIL_FOLDER;
+      }
+    }
   }
   return rv;
 }

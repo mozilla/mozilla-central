@@ -98,7 +98,7 @@
 #include "nsAutoPtr.h"
 #include "nsIPK11TokenDB.h"
 #include "nsIPK11Token.h"
-
+#include "nsMsgLocalFolderHdrs.h"
 #define oneHour 3600000000U
 #include "nsMsgUtils.h"
 
@@ -763,6 +763,28 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineStoreInputStream(nsIInputStream **stream)
   return NS_NewLocalFileInputStream(stream, localStore);
 }
 
+PRBool nsMsgDBFolder::VerifyOfflineMessage(nsIMsgDBHdr *msgHdr, nsIInputStream *fileStream)
+{
+  nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(fileStream);
+  if (seekableStream)
+  {
+    PRUint32 offset;
+    msgHdr->GetMessageOffset(&offset);
+    nsresult rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, offset);
+    char startOfMsg[100];
+    PRUint32 bytesRead = 0;
+    PRUint32 bytesToRead = sizeof(startOfMsg) - 1;
+    if (NS_SUCCEEDED(rv))
+      rv = fileStream->Read(startOfMsg, bytesToRead, &bytesRead);
+    startOfMsg[bytesRead] = '\0';
+    // check if message starts with From, or is a draft and starts with FCC
+    if (NS_FAILED(rv) || bytesRead != bytesToRead ||
+      (strncmp(startOfMsg, "From ", 5) && (! (mFlags & nsMsgFolderFlags::Drafts) || strncmp(startOfMsg, "FCC", 3))))
+      return PR_FALSE;
+  }
+  return PR_TRUE;
+}
+
 NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint32 *offset, PRUint32 *size, nsIInputStream **aFileStream)
 {
   NS_ENSURE_ARG(aFileStream);
@@ -790,19 +812,41 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint32 *off
       // store by reading the first few bytes. If it doesn't, clear the offline
       // flag on the msg and return false, which will fall back to reading the message
       // from the server.
+      // We'll also advance the offset past the envelope header and
+      // X-Mozilla-Status lines.
       nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(*aFileStream);
       if (seekableStream)
       {
         rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, *offset);
-        char startOfMsg[10];
-        PRUint32 bytesRead;
+        char startOfMsg[100];
+        PRUint32 bytesRead = 0;
+        PRUint32 bytesToRead = sizeof(startOfMsg) - 1;
         if (NS_SUCCEEDED(rv))
-          rv = (*aFileStream)->Read(startOfMsg, sizeof(startOfMsg), &bytesRead);
-
+          rv = (*aFileStream)->Read(startOfMsg, bytesToRead, &bytesRead);
+        startOfMsg[bytesRead] = '\0';
         // check if message starts with From, or is a draft and starts with FCC
-        if (NS_FAILED(rv) || bytesRead != sizeof(startOfMsg) ||
+        if (NS_FAILED(rv) || bytesRead != bytesToRead ||
           (strncmp(startOfMsg, "From ", 5) && (! (mFlags & nsMsgFolderFlags::Drafts) || strncmp(startOfMsg, "FCC", 3))))
           rv = NS_ERROR_FAILURE;
+        else
+        {
+          PRUint32 msgOffset = 0;
+          // skip "From "/FCC line
+          PRBool foundNextLine = MsgAdvanceToNextLine(startOfMsg, msgOffset, bytesRead - 1);
+          if (foundNextLine && !strncmp(startOfMsg + msgOffset,
+                                        X_MOZILLA_STATUS, X_MOZILLA_STATUS_LEN))
+          {
+            // skip X-Mozilla-Status line
+            if (MsgAdvanceToNextLine(startOfMsg, msgOffset, bytesRead - 1))
+            {
+              if (!strncmp(startOfMsg + msgOffset,
+                           X_MOZILLA_STATUS2, X_MOZILLA_STATUS2_LEN))
+                 MsgAdvanceToNextLine(startOfMsg, msgOffset, bytesRead - 1);
+            }
+          }
+         *offset += msgOffset;
+         *size -= msgOffset;
+        }
       }
     }
     if (NS_FAILED(rv) && mDatabase)
@@ -1607,6 +1651,13 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
     m_offlineHeader->SetOfflineMessageSize(curStorePos);
     m_offlineHeader->SetLineCount(m_numOfflineMsgLines);
   }
+#ifdef _DEBUG
+  nsCOMPtr<nsIInputStream> inputStream;
+  GetOfflineStoreInputStream(getter_AddRefs(inputStream));
+  if (inputStream)
+    NS_ASSERTION(VerifyOfflineMessage(m_offlineHeader, inputStream),
+                 "offline message doesn't start with From ");
+#endif
   m_offlineHeader = nsnull;
   return NS_OK;
 }

@@ -167,6 +167,7 @@ protected:
   nsresult GetPromptPurgeThreshold(PRBool *aPrompt);
   nsresult GetPurgeThreshold(PRInt32 *aThreshold);
   nsresult ApplyRetentionSettings(PRBool deleteViaFolder);
+  PRBool   VerifyOfflineMessage(nsIMsgDBHdr *msgHdr, nsIInputStream *fileStream);
 
   nsresult PerformBiffNotifications(void); // if there are new, non spam messages, do biff
   nsresult CloseDBIfFolderNotOpen();

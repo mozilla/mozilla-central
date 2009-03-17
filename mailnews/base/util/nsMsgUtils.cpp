@@ -1864,6 +1864,23 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<n
   return rv;
 }
 
+PRBool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32 maxBufferOffset)
+{
+  PRBool result = PR_FALSE;
+  for (; bufferOffset < maxBufferOffset; bufferOffset++)
+  {
+    if (buffer[bufferOffset] == '\r' || buffer[bufferOffset] == '\n')
+    {
+      bufferOffset++;
+      if (buffer[bufferOffset- 1] == '\r' && buffer[bufferOffset] == '\n')
+        bufferOffset++;
+      result = PR_TRUE;
+      break;
+    }
+  }
+  return result;
+}
+
 #ifdef MOZILLA_1_9_1_BRANCH
 NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsTArray<nsCString>& array)
 {

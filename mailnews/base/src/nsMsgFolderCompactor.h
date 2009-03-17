@@ -81,8 +81,6 @@ protected:
   void     CompactCompleted(nsresult exitCode);
   void     ShowDoneStatus();
   nsresult CompactNextFolder();
-  void     AdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32 maxBufferOffset);
-  
 
   nsCString m_baseMessageUri; // base message uri
   nsCString m_messageUri; // current message uri being copy
@@ -122,11 +120,16 @@ public:
   virtual ~nsOfflineStoreCompactState(void);
   NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports *ctxt,
                                     nsresult status);
+  NS_IMETHODIMP OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
+                                nsIInputStream *inStr,
+                                PRUint32 sourceOffset, PRUint32 count);
 
 protected:
     virtual nsresult InitDB(nsIMsgDatabase *db);
     virtual nsresult StartCompacting();
     virtual nsresult FinishCompact();
+
+    PRUint32 m_offlineMsgSize;
 
 };
 

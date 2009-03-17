@@ -223,6 +223,12 @@ NS_MSG_BASE PRInt32 FindCharInSet(const nsString &aString,
                                   const char* aChars, PRUint32 aOffset = 0);
 
 
+// advances bufferOffset to the beginning of the next line, if we don't
+// get to maxBufferOffset first. Returns PR_FALSE if we didn't get to the
+// next line.
+NS_MSG_BASE PRBool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset,
+                                   PRUint32 maxBufferOffset);
+
 #ifdef MOZILLA_1_9_1_BRANCH
 /**
  * Parses a given string using the delimiter passed in. Items parsed from the
