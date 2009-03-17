@@ -237,10 +237,14 @@ function FillFolderPaneContextMenu()
   var isNewsgroup = !isServer && serverType == 'nntp';
   var isMailFolder = !isServer && serverType != 'nntp';
   var isVirtualFolder = (specialFolder == "Virtual");
+  const kTrashFlag = Components.interfaces.nsMsgFolderFlags.Trash;
+  var msgFolder =
+    folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+  var isChildOfTrash = IsSpecialFolder(msgFolder, kTrashFlag, true);
   var canGetMessages =
     (isServer && (serverType != "nntp") && (serverType != "none")) ||
     isNewsgroup ||
-    ((serverType == "rss") && (specialFolder != 'Trash'));
+    ((serverType == "rss") && !isChildOfTrash && !isVirtualFolder);
 
   if (!isServer)
   {

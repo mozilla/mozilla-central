@@ -438,12 +438,12 @@ Feed.prototype =
     item.store();
     item.markValid();
 
+    this.itemsToStoreIndex++;
+
     // if the listener is tracking progress for storing each item, report it here...
     if (item.feed.downloadCallback && item.feed.downloadCallback.onFeedItemStored)
       item.feed.downloadCallback.onFeedItemStored(item.feed, this.itemsToStoreIndex, this.itemsToStore.length);
  
-    this.itemsToStoreIndex++
-
     // eventually we'll report individual progress here....
 
     if (this.itemsToStoreIndex < this.itemsToStore.length)

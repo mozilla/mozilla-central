@@ -111,7 +111,7 @@ function renameFolder(folder, newName)
     resetStatusAndProceed();
 }
 
-function deleteFolder(folder)
+function deleteFolder(folder, child)
 {
   var array = Cc["@mozilla.org/array;1"]
                 .createInstance(Ci.nsIMutableArray);
@@ -120,9 +120,13 @@ function deleteFolder(folder)
   // XXX delete to trash should get one, but we'll need to pass the listener
   // somehow to deleteSubFolders
   gCurrStatus = kStatus.onStopCopyDone;
-  // If ancestor is trash, expect an itemDeleted, otherwise expect an itemMoveCopyCompleted
+  // If ancestor is trash, expect a folderDeleted, otherwise expect
+  // a folderMoveCopyCompleted.
   if (gLocalTrashFolder.isAncestorOf(folder))
-    gExpectedEvents = [[gMFNService.folderDeleted, [folder]]];
+    if (child)
+      gExpectedEvents = [[gMFNService.folderDeleted, [child]], [gMFNService.folderDeleted, [folder]]];
+    else
+      gExpectedEvents = [[gMFNService.folderDeleted, [folder]]];
   else
     gExpectedEvents = [[gMFNService.folderMoveCopyCompleted, true, [folder], gLocalTrashFolder]];
 
@@ -144,6 +148,11 @@ const gTestArray =
   function addFolder1() { addFolder(gRootFolder, "folder2", "gLocalFolder2"); },
   // Create a third folder for more testing.
   function addFolder2() { addFolder(gRootFolder, "folder3", "gLocalFolder3"); },
+  // Folder structure is now
+  // Inbox
+  // Trash
+  // folder2
+  // folder3
 
   // Copying messages from files
   function testCopyFileMessage1() { copyFileMessage(gMsgFile1, gLocalInboxFolder, false); },
@@ -166,6 +175,12 @@ const gTestArray =
   function testCopyFolder1() { copyFolders([gLocalFolder3], false, gLocalFolder2); },
   function testMoveFolder1() { copyFolders([gLocalFolder3], true, gLocalInboxFolder); },
   function testMoveFolder2() { copyFolders([gLocalFolder2], true, gLocalInboxFolder); },
+  // Folder structure should now be
+  // Inbox
+  // -folder2
+  // --folder3
+  // -folder3
+  // Trash
 
   // Deleting messages
   function testDeleteMessages1() { // delete to trash
@@ -195,13 +210,43 @@ const gTestArray =
   function testRename2() { renameFolder(gLocalFolder2.getChildNamed("folder4"), "folder3"); },
   function testRename3() { renameFolder(gLocalFolder2, "folder4"); },
   function testRename4() { renameFolder(gLocalInboxFolder.getChildNamed("folder4"), "folder2"); },
+  // Folder structure should still be
+  // Inbox
+  // -folder2
+  // --folder3
+  // -folder3
+  // Trash
 
   // Deleting folders (currently only one folder delete is supported through the UI)
-  function deleteFolder1() { deleteFolder(gLocalInboxFolder.getChildNamed("folder3")); },
-  function deleteFolder2() { deleteFolder(gLocalInboxFolder.getChildNamed("folder2")); },
-  function deleteFolder3() { deleteFolder(gLocalTrashFolder.getChildNamed("folder3")); },
-  function deleteFolder4() { deleteFolder(gLocalTrashFolder.getChildNamed("folder2")); }
+  function deleteFolder1() { deleteFolder(gLocalInboxFolder.getChildNamed("folder3"), null); },
+  // Folder structure should now be
+  // Inbox
+  // -folder2
+  // --folder3
+  // Trash
+  // -folder3
+  function deleteFolder2() { deleteFolder(gLocalInboxFolder.getChildNamed("folder2"), null); },
+  // Folder structure should now be
+  // Inbox
+  // Trash
+  // -folder2
+  // --folder3
+  // -folder3
+  function deleteFolder3() { deleteFolder(gLocalTrashFolder.getChildNamed("folder3"), null); },
+  // Folder structure should now be
+  // Inbox
+  // Trash
+  // -folder2
+  // --folder3
+  function deleteFolder4() {
+    // Let's take a moment to re-initialize stuff that got moved
+    gLocalFolder2 = gLocalTrashFolder.getChildNamed("folder2");
+    gLocalFolder3 = gLocalFolder2.getChildNamed("folder3");
+    deleteFolder(gLocalFolder2, gLocalFolder3); }
 ];
+  // Folder structure should just be
+  // Inbox
+  // Trash
 
 function run_test()
 {

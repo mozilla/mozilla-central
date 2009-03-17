@@ -22,6 +22,7 @@
  * Contributor(s):
  *  Myk Melez <myk@mozilla.org) (Original Author)
  *  David Bienvenu <bienvenu@nventure.com> 
+ *  Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -79,23 +80,26 @@ var nsNewsBlogFeedDownloader =
         catch (ex) {dump(ex);}
       }
     }
-    // aUrl may be a delimited list of feeds for a particular folder. We need to kick off a download
-    // for each feed.
 
-    var feedUrlArray = aUrl.split("|");
+    // Return if there is still nothing in aUrl or the folder is in Trash.
+    if (!aUrl.length || IsInTrashFolder(aFolder))
+      return;
 
-    // we might just pull all these args out of the aFolder DB, instead of passing them in...
+    // Maybe just pull all these args out of the aFolder DB,
+    // instead of passing them in...
     var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-        .getService(Components.interfaces.nsIRDFService);
-
+                        .getService(Components.interfaces.nsIRDFService);
     progressNotifier.init(aMsgWindow, false);
 
-    for (url in feedUrlArray)
+    // aUrl may be a delimited list of feeds for a particular folder.
+    // We need to kick off a download for each feed.
+    var feedUrlArray = aUrl.split("|");
+    for (var url in feedUrlArray)
     {
       if (feedUrlArray[url])
-      {        
-        id = rdf.GetResource(feedUrlArray[url]);
-        feed = new Feed(id, aFolder.server);
+      {
+        var id = rdf.GetResource(feedUrlArray[url]);
+        var feed = new Feed(id, aFolder.server);
         feed.folder = aFolder;
         gNumPendingFeedDownloads++; // bump our pending feed download count
         feed.download(true, progressNotifier);
@@ -202,32 +206,33 @@ var nsNewsBlogFeedDownloader =
     var msgdb = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder)
                        .msgDatabase;
     var folderInfo = msgdb.dBFolderInfo;
-    var feedurls = folderInfo.getCharProperty("feedUrl");
-    var feedUrlArray = feedurls.split("|");
+    var feedUrlArray = folderInfo.getCharProperty("feedUrl").split("|");
 
     var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
     var ds = getSubscriptionsDS(aFolder.server);
 
-    for (url in feedUrlArray)
+    for (var url in feedUrlArray)
     {
-      if (feedUrlArray[url])
-      {        
-        id = rdf.GetResource(feedUrlArray[url]);
-        // get the node for the current folder URI
-        var node = ds.GetTarget(id, FZ_DESTFOLDER, true);
-
-        // we need to check and see if the folder is a child of the trash...if it is, then we can
-        // treat this as an unsubscribe action
+      var newFeedUrl = feedUrlArray[url];
+      if (newFeedUrl)
+      {
+        var id = rdf.GetResource(newFeedUrl);
+        // We need to check and see if the folder is a child of the trash...
+        // if it is, then we can treat this as an unsubscribe action.
         if (aUnsubscribe)
         {
-          var feeds = getSubscriptionsList(aFolder.server);
-          var index = feeds.IndexOf(id);
-          if (index != -1)
-            feeds.RemoveElementAt(index, false);
-          removeAssertions(ds, id);
-        }  
+          deleteFeed(id, aFolder.server);
+        }
         else
-          ds.Change(id, FZ_DESTFOLDER, node, rdf.GetResource(aFolder.URI));
+        {
+          var resource = rdf.GetResource(aFolder.URI);
+          // get the node for the current folder URI
+          var node = ds.GetTarget(id, FZ_DESTFOLDER, true);
+          if (node)
+            ds.Change(id, FZ_DESTFOLDER, node, resource);
+          else
+            addFeed(newFeedUrl, resource.name, resource);
+        }
       }
     } // for each feed url in the folder property
 
@@ -250,7 +255,7 @@ var nsNewsBlogAcctMgrExtension =
   chromePackageName: "messenger-newsblog",
   showPanel: function (server)
   {
-    return server.type == "rss";
+    return false;
   },
   QueryInterface: function(aIID)
   {
@@ -512,4 +517,13 @@ function GetNewsBlogStringBundle(name)
   strBundleService = strBundleService.QueryInterface(Components.interfaces.nsIStringBundleService);
   var strBundle = strBundleService.createBundle("chrome://messenger-newsblog/locale/newsblog.properties"); 
   return strBundle;
+}
+
+function IsInTrashFolder(aFolder)
+{
+  if (!aFolder)
+    return false;
+  if (aFolder.flags & Components.interfaces.nsMsgFolderFlags.Trash)
+    return true;
+  return IsInTrashFolder(aFolder.parentMsgFolder);
 }

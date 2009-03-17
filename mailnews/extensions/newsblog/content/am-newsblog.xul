@@ -11,7 +11,7 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is News and Blogs Account Settings. 
+# The Original Code is News and Blogs Account Settings.
 #
 # The Initial Developer of the Original Code is
 # The Mozilla Foundation.
@@ -48,50 +48,63 @@
       title="&accountTitle.label;"
       onload="parent.onPanelLoaded('am-newsblog.xul');">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/x-javascript" src="chrome://messenger-newsblog/content/am-newsblog.js"/>
-  <script type="application/x-javascript" src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
+  <script type="application/x-javascript"
+          src="chrome://messenger/content/AccountManager.js"/>
+  <script type="application/x-javascript"
+          src="chrome://messenger-newsblog/content/am-newsblog.js"/>
+  <script type="application/x-javascript"
+          src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
 
   <dialogheader id="am-newsblog-title" defaultTitle="&accountTitle.label;"/>
 
     <hbox align="center">
-      <label value="&accountName.label;" control="server.prettyName"
-             accesskey="&accountName.accesskey;"/>
-      <textbox wsm_persist="true" size="30" id="server.prettyName"
+      <label value="&accountName.label;"
+             accesskey="&accountName.accesskey;"
+             control="server.prettyName"/>
+      <textbox id="server.prettyName"
+               wsm_persist="true"
+               size="30"
                prefstring="mail.server.%serverkey%.name"/>
     </hbox>
 
     <separator/>
 
-    <hbox align="center">
-      <checkbox wsm_persist="true" id="server.doBiff" label="&biffStart.label;"
-                accesskey="&biffStart.accesskey;"
-                prefattribute="value"
-                prefstring="mail.server.%serverkey%.check_new_mail"/>
-      <textbox wsm_persist="true" id="server.biffMinutes" size="3" 
-               aria-labelledby="server.doBiff server.biffMinutes biffEnd"
-               preftype="int"
-               prefstring="mail.server.%serverkey%.check_time"/>
-      <label id="biffEnd" control="server.biffMinutes" value="&biffEnd.label;"/>
-    </hbox>
-
-    <checkbox wsm_persist="true"
-              id="server.loginAtStartUp"
+    <checkbox id="server.loginAtStartUp"
+              wsm_persist="true"
               label="&loginAtStartup.label;"
               accesskey="&loginAtStartup.accesskey;"
               prefattribute="value"
               prefstring="mail.server.%serverkey%.login_at_startup"/>
 
-    <checkbox wsm_persist="true"
+    <hbox align="center">
+      <checkbox id="server.doBiff"
+                wsm_persist="true"
+                label="&biffStart.label;"
+                accesskey="&biffStart.accesskey;"
+                prefattribute="value"
+                prefstring="mail.server.%serverkey%.check_new_mail"/>
+      <textbox id="server.biffMinutes"
+               wsm_persist="true"
+               size="3"
+               preftype="int"
+               prefstring="mail.server.%serverkey%.check_time"
+               aria-labelledby="server.doBiff server.biffMinutes biffEnd"/>
+      <label id="biffEnd"
+             value="&biffEnd.label;"
+             control="server.biffMinutes"/>
+    </hbox>
+
+    <checkbox id="server.quickMode"
+              wsm_persist="true"
               genericattr="true"
-              id="server.quickMode"
               label="&useQuickMode.label;"
               accesskey="&useQuickMode.accesskey;"
               preftype="bool"
               prefattribute="value"
               prefstring="mail.server.%serverkey%.quickMode"/>
 
-    <checkbox wsm_persist="true" id="server.emptyTrashOnExit"
+    <checkbox id="server.emptyTrashOnExit"
+              wsm_persist="true"
               label="&emptyTrashOnExit.label;"
               accesskey="&emptyTrashOnExit.accesskey;"
               prefattribute="value"
@@ -102,7 +115,7 @@
     <hbox align="center">
       <spacer flex="1"/>
       <button label="&manageSubscriptions.label;"
-              oncommand="openSubscriptionsDialog(null, gIncomingServer);"
-              accesskey="&manageSubscriptions.accesskey;"/>
+              accesskey="&manageSubscriptions.accesskey;"
+              oncommand="openSubscriptionsDialog(null, gIncomingServer);"/>
     </hbox>
 </page>

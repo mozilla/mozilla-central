@@ -477,6 +477,8 @@ function fillFolderPaneContextMenu()
   var folder = folders[0];
   const kVirtualFlag = Components.interfaces.nsMsgFolderFlags.Virtual;
   var isVirtualFolder = folder ? folder.flags & kVirtualFlag : false;
+  const kTrashFlag = Components.interfaces.nsMsgFolderFlags.Trash;
+  var isChildOfTrash = IsSpecialFolder(folder, kTrashFlag, true);
 
   var isServer = folder.isServer;
   var serverType = folder.server.type;
@@ -489,7 +491,7 @@ function fillFolderPaneContextMenu()
   var canGetMessages =
     (isServer && (serverType != "nntp") && (serverType != "none")) ||
     isNewsgroup ||
-    ((serverType == "rss") && (specialFolder != 'Trash'));
+    ((serverType == "rss") && !isChildOfTrash && !isVirtualFolder);
 
   if (!isServer)
   {

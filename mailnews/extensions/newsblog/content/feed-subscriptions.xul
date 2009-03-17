@@ -78,15 +78,20 @@
 
     <separator class="thin"/>
 
-    <tree id="rssSubscriptionsList" flex="1" style="height: 10em;"
-        hidecolumnpicker="true"
-        onselect="gFeedSubscriptionsWindow.onSelect();"
-        onkeypress="gFeedSubscriptionsWindow.onKeyPress(event);"
-        seltype="single">
+    <tree id="rssSubscriptionsList"
+          treelines="true"
+          flex="1"
+          style="height: 10em;"
+          hidecolumnpicker="true"
+          onselect="gFeedSubscriptionsWindow.onSelect();"
+          onkeypress="gFeedSubscriptionsWindow.onKeyPress(event);"
+          seltype="single">
       <treecols>
         <treecol id="folderNameCol" flex="2" primary="true" hideheader="true"/>
       </treecols>
-      <treechildren id="subscriptionChildren" ondblclick="gFeedSubscriptionsWindow.editFeed();" ondraggesture="gFeedSubscriptionsWindow.beginDrag(event);"/>
+      <treechildren id="subscriptionChildren"
+                    ondblclick="if (event.button == 0) gFeedSubscriptionsWindow.editFeed();"
+                    ondraggesture="gFeedSubscriptionsWindow.beginDrag(event);"/>
     </tree>
 
     <hbox id="rssFeedInfoBox">
@@ -122,7 +127,7 @@
                 label="&button.addFeed.label;" accesskey="&button.addFeed.accesskey;"
                 oncommand="gFeedSubscriptionsWindow.addFeed();"/>
 
-        <button id="editFeed" disabled="true"
+        <button id="editFeed" disabled="true" default="true"
                 label="&button.editFeed.label;" accesskey="&button.editFeed.accesskey;"
                 oncommand="gFeedSubscriptionsWindow.editFeed();"/>
 

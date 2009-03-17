@@ -21,6 +21,7 @@
 #
 # Contributor(s):
 #  Scott MacGregor <mscott@mozilla.org>
+#  Ian Neal <iann_bugzilla@blueyonder.co.uk>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -358,9 +359,11 @@ var gFeedSubscriptionsWindow = {
 
     while (folderEnumerator.hasMoreElements())
     {
-      var folder =
-        folderEnumerator.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
-      folderObject.children.push(this.makeFolderObject(folder, aCurrentLevel + 1));
+      var folder = folderEnumerator.getNext();
+      if ((folder instanceof Components.interfaces.nsIMsgFolder) &&
+          !folder.getFlag(Components.interfaces.nsMsgFolderFlags.Virtual))
+        folderObject.children
+                    .push(this.makeFolderObject(folder, aCurrentLevel + 1));
     }
 
     var feeds = this.getFeedsInFolder(aFolder);
@@ -423,9 +426,10 @@ var gFeedSubscriptionsWindow = {
 
     while (folderEnumerator.hasMoreElements())
     {
-      var folder = folderEnumerator.getNext()
-        .QueryInterface(Components.interfaces.nsIMsgFolder);
-      if (!folder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash))
+      var folder = folderEnumerator.getNext();
+      if ((folder instanceof Components.interfaces.nsIMsgFolder) &&
+          !folder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash) &&
+          !folder.getFlag(Components.interfaces.nsMsgFolderFlags.Virtual))
       {
         this.mFeedContainers.push(this.makeFolderObject(folder, 0));
         numFolders++;
@@ -509,16 +513,14 @@ var gFeedSubscriptionsWindow = {
     for (var i = 0; i < ids.length; ++i)
       document.getElementById(ids[i]).disabled = !aItem || aItem.container;
   },
-  
+ 
   onKeyPress: function(aEvent)
-  { 
-    if (aEvent.keyCode == aEvent.DOM_VK_ENTER || aEvent.keyCode == aEvent.DOM_VK_RETURN)
-    {
-      var seln = this.mTree.view.selection;
-      item = this.mView.getItemAtIndex(seln.currentIndex);
-      if (item && !item.container)
-        this.editFeed();
-     }
+  {
+    if (aEvent.keyCode == aEvent.DOM_VK_ENTER ||
+        aEvent.keyCode == aEvent.DOM_VK_RETURN)
+      this.editFeed();
+    else if (aEvent.keyCode == aEvent.DOM_VK_DELETE)
+      this.removeFeed();
   },
 
   onSelect: function () 
@@ -526,21 +528,20 @@ var gFeedSubscriptionsWindow = {
     var properties, item;
     var seln = this.mTree.view.selection;
     item = this.mView.getItemAtIndex(seln.currentIndex);
-      
     this.updateFeedData(item);
-        
     document.getElementById("removeFeed").disabled = !item || item.container;
     document.getElementById("editFeed").disabled = !item || item.container;
   },
   
-  removeFeed: function () 
+  removeFeed: function ()
   { 
     var seln = this.mView.selection;
-    if (seln.count != 1) return;
+    if (seln.count != 1)
+      return;
 
     var itemToRemove = this.mView.getItemAtIndex(seln.currentIndex);
 
-    if (!itemToRemove)
+    if (!itemToRemove || itemToRemove.container)
       return;
 
     // ask the user if he really wants to unsubscribe from the feed
@@ -551,43 +552,7 @@ var gFeedSubscriptionsWindow = {
     if (abortRemoval)
       return;
 
-    var resource = rdf.GetResource(itemToRemove.url);
-    var feed = new Feed(resource, this.mRSSServer);
-    var ds = getSubscriptionsDS(this.mRSSServer);
-
-    if (feed && ds)
-    {
-      // remove the feed from the subscriptions ds
-      var feeds = getSubscriptionsList(this.mRSSServer);
-      var index = feeds.IndexOf(resource);
-      if (index != kRowIndexUndefined)
-        feeds.RemoveElementAt(index, false);
-
-      // remove the feed property string from the folder data base
-      var currentFolder = ds.GetTarget(resource, FZ_DESTFOLDER, true);
-      if (currentFolder) 
-      {
-        var currentFolderURI = currentFolder.QueryInterface(Components.interfaces.nsIRDFResource).Value;
-        currentFolder = rdf.GetResource(currentFolderURI).QueryInterface(Components.interfaces.nsIMsgFolder);
-    
-        var feedUrl = ds.GetTarget(resource, DC_IDENTIFIER, true);    
-        ds.Unassert(resource, DC_IDENTIFIER, feedUrl, true);
-
-        feedUrl = feedUrl ? feedUrl.QueryInterface(Components.interfaces.nsIRDFLiteral).Value : "";
-
-        updateFolderFeedUrl(currentFolder, feedUrl, true); // remove the old url
-      }
-
-      // Remove all assertions about the feed from the subscriptions database.
-      removeAssertions(ds, resource);
-      ds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Flush(); // flush any changes
-
-      // Remove all assertions about items in the feed from the items database.
-      var itemds = getItemsDS(this.mRSSServer);
-      feed.invalidateItems();
-      feed.removeInvalidItems();
-      itemds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Flush(); // flush any changes
-    }
+    deleteFeed(rdf.GetResource(itemToRemove.url), this.mRSSServer);
 
     // Now that we have removed the feed from the datasource, it is time to update our
     // view layer. Start by removing the child from its parent folder object
@@ -801,8 +766,8 @@ var gFeedSubscriptionsWindow = {
     if (!item || item.container)
       return;
 
-    event.dataTransfer.setData("text/x-moz-feed-index", seln.currentIndex.toString());
-    event.dataTransfer.effectAllowed = "move";
+    aEvent.dataTransfer.setData("text/x-moz-feed-index", seln.currentIndex.toString());
+    aEvent.dataTransfer.effectAllowed = "move";
   },
 
   mFeedDownloadCallback:
@@ -935,9 +900,10 @@ var gFeedSubscriptionsWindow = {
  
     while (folderEnumerator.hasMoreElements())
     {
-      var folder = folderEnumerator.getNext()
-        .QueryInterface(Components.interfaces.nsIMsgFolder);
-      if (!folder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash))
+      var folder = folderEnumerator.getNext();
+      if ((folder instanceof Components.interfaces.nsIMsgFolder) &&
+          !folder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash) &&
+          !folder.getFlag(Components.interfaces.nsMsgFolderFlags.Virtual))
       {
         var outline;
         if (folder.hasSubFolders)
@@ -1010,47 +976,8 @@ var gFeedSubscriptionsWindow = {
     var feedsAdded = false;
  
     for (var index = 0; index < outlines.length; index++)
-    {
-      var outline = outlines[index];
-     
-      // XXX only dealing with flat OPML files for now. 
-      // We still need to add support for grouped files.      
-      if(outline.hasAttribute("xmlUrl") || outline.hasAttribute("url"))
-      {
-        var userAddedFeed = false; 
-        var newFeedUrl = outline.getAttribute("xmlUrl") || outline.getAttribute("url")
-        var defaultQuickMode = this.mRSSServer.getBoolValue('quickMode');
-        var feedProperties = { feedName: this.findOutlineTitle(outline),
-                               feedLocation: newFeedUrl, 
-                               serverURI: this.mRSSServer.serverURI, 
-                               serverPrettyName: this.mRSSServer.prettyName,  
-                               folderURI: "", 
-                               quickMode: this.mRSSServer.getBoolValue('quickMode')};
-
-        debug("importing feed: "+ feedProperties.feedName);
-       
-        // Silently skip feeds that are already subscribed to. 
-        if (!feedAlreadyExists(feedProperties.feedLocation, this.mRSSServer))
-        {
-          var feed = this.storeFeed(feedProperties);
-       
-          if(feed)
-          {
-            feed.title = feedProperties.feedName;
-            if(outline.hasAttribute("htmlUrl"))
-              feed.link = outline.getAttribute("htmlUrl");
-
-            feed.createFolder();
-            updateFolderFeedUrl(feed.folder, feed.url, false);
-            
-            // add feed adds the feed we have validated and downloaded to our datasource
-            // it also flushes the subscription datasource
-            addFeed(feed.url, feed.name, feed.folder); 
-            feedsAdded = true;
-          }
-        }
-      }
-    }
+      if (this.importOutline(outlines[index]) && !feedsAdded)
+        feedsAdded = true;
 
     if (!outlines.length || !feedsAdded)
     {
@@ -1058,29 +985,60 @@ var gFeedSubscriptionsWindow = {
       return;
     }
 
-    //add the new feeds to our view
+    // add the new feeds to our view
     refreshSubscriptionView();
   },
-  
-  findOutlineTitle: function(anOutline)
+
+  importOutline: function(aOutline)
   {
-    var outlineTitle;
+    // XXX only dealing with flat OPML files for now.
+    // We still need to add support for grouped files.
+    var newFeedUrl = aOutline.getAttribute("xmlUrl") ||
+                     aOutline.getAttribute("url");
 
-    if (anOutline.hasAttribute("text"))
-      outlineTitle = anOutline.getAttribute("text");
-    else if (anOutline.hasAttribute("title"))
-      outlineTitle = anOutline.getAttribute("title");
-    else if (anOutline.hasAttribute("xmlUrl"))
-      outlineTitle = anOutline.getAttribute("xmlUrl");
+    // Silently skip feeds that are already subscribed to.
+    if (newFeedUrl && !feedAlreadyExists(newFeedUrl, this.mRSSServer))
+    {
+      var feedName = aOutline.getAttribute("text") ||
+                     aOutline.getAttribute("title") ||
+                     aOutline.getAttribute("xmlUrl");
 
-    return outlineTitle;
+      var defaultQuickMode = this.mRSSServer.getBoolValue('quickMode');
+      var feedProperties = { feedName: feedName,
+                             feedLocation: newFeedUrl,
+                             serverURI: this.mRSSServer.serverURI,
+                             serverPrettyName: this.mRSSServer.prettyName,
+                             folderURI: "",
+                             quickMode: defaultQuickMode};
+
+      debug("importing feed: "+ feedProperties.feedName);
+ 
+      var feed = this.storeFeed(feedProperties);
+      if (feed)
+      {
+        feed.title = feedProperties.feedName;
+        if (aOutline.hasAttribute("htmlUrl"))
+          feed.link = aOutline.getAttribute("htmlUrl");
+
+        feed.createFolder();
+        updateFolderFeedUrl(feed.folder, feed.url, false);
+ 
+        // addFeed adds the feed we have validated and downloaded to
+        // our datasource, it also flushes the subscription datasource.
+        addFeed(feed.url, feed.name, feed.folder);
+        return true;
+      }
+    }
+    return false;
   }
 };
 
 // opens the feed properties dialog
 function openFeedEditor(aFeedProperties)
 {
-  window.openDialog('chrome://messenger-newsblog/content/feed-properties.xul', 'feedproperties', 'modal,titlebar,chrome,center', aFeedProperties);
+  window.openDialog('chrome://messenger-newsblog/content/feed-properties.xul',
+                    'feedproperties', 'modal,titlebar,chrome,centerscreen',
+                    aFeedProperties);
   return aFeedProperties;
 } 
 

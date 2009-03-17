@@ -40,20 +40,20 @@
 #include "nsIRssIncomingServer.h"
 #include "nsILocalMailIncomingServer.h"
 #include "nsMsgIncomingServer.h"
-#include "nsIFolderListener.h"
+#include "nsIMsgFolderListener.h"
 #include "nsMailboxServer.h"
 
 class nsRssIncomingServer : public nsMailboxServer,
                             public nsIRssIncomingServer,
                             public nsILocalMailIncomingServer,
-                            public nsIFolderListener
+                            public nsIMsgFolderListener
 
 {
 public:
     NS_DECL_ISUPPORTS_INHERITED
     NS_DECL_NSIRSSINCOMINGSERVER
     NS_DECL_NSILOCALMAILINCOMINGSERVER
-    NS_DECL_NSIFOLDERLISTENER
+    NS_DECL_NSIMSGFOLDERLISTENER
 
     NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
     NS_IMETHOD GetSupportsDiskSpace(PRBool *aSupportsDiskSpace);
@@ -65,6 +65,7 @@ public:
     nsRssIncomingServer();
     virtual ~nsRssIncomingServer();
 protected:
+    nsresult FolderChanged(nsIMsgFolder *aFolder, PRBool aUnsubscribe);
     nsresult FillInDataSourcePath(const nsAString& aDataSourceName, nsILocalFile ** aLocation);
     static nsrefcnt gInstanceCount;
 };

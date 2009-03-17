@@ -22,6 +22,7 @@
 # Contributor(s):
 #  Myk Melez <myk@mozilla.org>
 #  Scott MacGregor <mscott@mozilla.org>
+#  Ian Neal <iann_bugzilla@blueyonder.co.uk>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -98,14 +99,15 @@ var fileHandler = Components.classes["@mozilla.org/network/io-service;1"].getSer
 // feed multiple times for the same server...
 function feedAlreadyExists(aUrl, aServer)
 {
-  var feeds = getSubscriptionsList(aServer);
+  var ds = getSubscriptionsDS(aServer);
+  var feeds = getSubscriptionsList(aServer, ds);
   return feeds.IndexOf(rdf.GetResource(aUrl)) != -1;
 }
 
 function addFeed(url, title, destFolder)
 {
   var ds = getSubscriptionsDS(destFolder.server);
-  var feeds = getSubscriptionsList(destFolder.server);
+  var feeds = getSubscriptionsList(destFolder.server, ds);
 
   // Generate a unique ID for the feed.
   var id = url;
@@ -125,6 +127,47 @@ function addFeed(url, title, destFolder)
   ds.Assert(id, FZ_DESTFOLDER, destFolder, true);
   ds = ds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource);
   ds.Flush();
+}
+
+function deleteFeed(aId, aServer)
+{
+  var feed = new Feed(aId, aServer);
+  var ds = getSubscriptionsDS(aServer);
+
+  if (feed && ds)
+  {
+    // remove the feed from the subscriptions ds
+    var feeds = getSubscriptionsList(aServer, ds);
+    var index = feeds.IndexOf(aId);
+    if (index != -1)
+      feeds.RemoveElementAt(index, false);
+
+    // remove the feed property string from the folder data base
+    var currentFolder = ds.GetTarget(aId, FZ_DESTFOLDER, true);
+    if (currentFolder)
+    {
+      var currentFolderURI = currentFolder.QueryInterface(Components.interfaces.nsIRDFResource).Value;
+      currentFolder = rdf.GetResource(currentFolderURI)
+                         .QueryInterface(Components.interfaces.nsIMsgFolder);
+
+      var feedUrl = ds.GetTarget(aId, DC_IDENTIFIER, true);
+      ds.Unassert(aId, DC_IDENTIFIER, feedUrl, true);
+
+      feedUrl = feedUrl ? feedUrl.QueryInterface(Components.interfaces.nsIRDFLiteral).Value : "";
+
+      updateFolderFeedUrl(currentFolder, feedUrl, true); // remove the old url
+    }
+
+    // Remove all assertions about the feed from the subscriptions database.
+    removeAssertions(ds, aId);
+    ds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Flush(); // flush any changes
+
+    // Remove all assertions about items in the feed from the items database.
+    var itemds = getItemsDS(aServer);
+    feed.invalidateItems();
+    feed.removeInvalidItems();
+    itemds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Flush(); // flush any changes
+  }
 }
 
 // updates the "feedUrl" property in the message database for the folder in question.
@@ -207,9 +250,8 @@ function getSubscriptionsDS(server)
   return ds;
 }
 
-function getSubscriptionsList(server)
+function getSubscriptionsList(server, ds)
 {
-  var ds = getSubscriptionsDS(server);
   var list = ds.GetTarget(FZ_ROOT, FZ_FEEDS, true);
   //list = feeds.QueryInterface(Components.interfaces.nsIRDFContainer);
   list = list.QueryInterface(Components.interfaces.nsIRDFResource);
