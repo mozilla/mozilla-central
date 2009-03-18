@@ -1203,12 +1203,14 @@ NS_IMETHODIMP nsAbManager::EscapedVCardToAbCard(const char *aEscapedVCardStr, ns
         MsgUnescapeString(nsDependentCString(aEscapedVCardStr), 0, unescapedData);
 
         VObject *vObj = parse_MIME(unescapedData.get(), unescapedData.Length());
-        NS_ASSERTION(vObj, "Parse of vCard failed");
-
-        convertFromVObject(vObj, cardFromVCard);
-
         if (vObj)
-            cleanVObject(vObj);
+        {
+          convertFromVObject(vObj, cardFromVCard);
+
+          cleanVObject(vObj);
+        }
+        else
+          NS_WARNING("Parse of vCard failed");
     }
 
     NS_IF_ADDREF(*aCard = cardFromVCard);
