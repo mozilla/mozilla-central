@@ -15,6 +15,7 @@ function check_correct_card(card) {
   do_check_eq(card.lastName, "LastName1");
   do_check_eq(card.displayName, "DisplayName1");
   do_check_eq(card.primaryEmail, "PrimaryEmail1@test.invalid");
+  do_check_eq(card.getProperty("SecondEmail", "BAD"), "SecondEmail1\u00D0@test.invalid");
 }
 
 function run_test() {
@@ -44,6 +45,21 @@ function run_test() {
   // Test - Check that we match this email and some of the fields
   // of the card are correct.
   var card = AB.cardForEmailAddress("PrimaryEmail1@test.invalid");
+
+  check_correct_card(card);
+
+  // Test - Check that we match with the primary email with insensitive case.
+  card = AB.cardForEmailAddress("pRimaryemAIL1@teST.invalid");
+
+  check_correct_card(card);
+
+  // Test - Check that we match with the second email.
+  card = AB.cardForEmailAddress("SecondEmail1\u00D0@test.invalid");
+
+  check_correct_card(card);
+
+  // Test - Check that we match with the second email with insensitive case.
+  card = AB.cardForEmailAddress("SECondEMail1\u00D0@TEST.inValid");
 
   check_correct_card(card);
 

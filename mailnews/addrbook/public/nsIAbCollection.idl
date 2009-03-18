@@ -71,6 +71,8 @@ interface nsIAbCollection : nsIAbItem {
    * If there are multiple cards with the given email address, this method will
    * return one of these cards in an implementation-defined manner.
    *
+   * Matching is performed in a case-insensitive manner.
+   *
    * This method performs a synchronous operation. If the collection cannot do
    * the search in such a manner, then it should throw NS_ERROR_NOT_IMPLEMENTED.
    *

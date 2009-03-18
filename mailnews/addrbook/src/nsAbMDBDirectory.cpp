@@ -63,6 +63,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsMemory.h"
 #include "nsArrayUtils.h"
+#include "nsUnicharUtils.h"
 
 nsAbMDBDirectory::nsAbMDBDirectory(void):
      nsAbDirectoryRDFResource(),
@@ -1053,17 +1054,19 @@ NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const nsACString &aEmailAddr
   }
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mDatabase->GetCardFromAttribute(this, kLowerPriEmailColumn /* see #196777 */, aEmailAddress, PR_TRUE /* caseInsensitive, see bug #191798 */, aAbCard);
-  if (!*aAbCard) 
-  {
-    // fix for bug #187239
-    // didn't find it as the primary email?  try again, with k2ndEmailColumn ("Additional Email")
-    // 
-    // TODO bug #198731
-    // unlike the kPriEmailColumn, we don't have kLower2ndEmailColumn
-    // so we will still suffer from bug #196777 for "additional emails"
-    mDatabase->GetCardFromAttribute(this, k2ndEmailProperty, aEmailAddress, PR_TRUE /* caseInsensitive, see bug #191798 */, aAbCard);
-  }
+  // Convert Email to lower case in UTF-16 format. This correctly lower-cases
+  // it and doing this change means that we can use a hash lookup in the
+  // database rather than searching and comparing each line individually.
+  NS_ConvertUTF8toUTF16 lowerEmail(aEmailAddress);
+  ToLowerCase(lowerEmail);
+
+  mDatabase->GetCardFromAttribute(this, kLowerPriEmailColumn, NS_ConvertUTF16toUTF8(lowerEmail),
+                                  PR_FALSE, aAbCard);
+  if (!*aAbCard)
+    // We don't have a lower case second email column, so we have to search
+    // case-sensitively here.
+    mDatabase->GetCardFromAttribute(this, k2ndEmailProperty, aEmailAddress,
+                                    PR_TRUE, aAbCard);
 
   return NS_OK;
 }
