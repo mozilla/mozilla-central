@@ -51,11 +51,15 @@ default export libs clean realclean distclean alldep maybe_clobber_profiledbuild
 	$(MAKE) -C mozilla $@
 
 # http://bugzilla.mozilla.org/show_bug.cgi?id=450485
-MAKE_SYM_STORE_PATH=..
+MAKE_SYM_STORE_PATH=dist/bin
 ifeq ($(OS_ARCH),Darwin)
 ifdef UNIVERSAL_BINARY
   MAKE_SYM_STORE_PATH=dist/universal
 endif
+endif
+ifeq ($(OS_ARCH),WINNT)
+  # PDB files don't get moved to dist, so we need to scan the whole objdir
+  MAKE_SYM_STORE_PATH=..
 endif
 
 buildsymbols ::
