@@ -1783,7 +1783,7 @@ PRBool nsImapProtocol::RetryUrl()
   if (m_imapServerSink)
   {
     nsresult rv = m_imapServerSink->PrepareToRetryUrl(kungFuGripImapUrl, getter_AddRefs(saveMockChannel));
-  // the channel might have gone away - we'll just not retry in that case.
+    // the channel might have gone away - we'll just not retry in that case.
     NS_ENSURE_SUCCESS(rv, PR_FALSE);
   }
   ReleaseUrlState(PR_TRUE);

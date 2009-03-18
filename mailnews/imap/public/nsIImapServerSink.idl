@@ -72,6 +72,7 @@ interface nsIImapServerSink : nsISupports {
    *            the ui thread.
    */
   nsIImapMockChannel prepareToRetryUrl(in nsIImapUrl aImapUrl);
+
   /*
    * Retry the current url
    * 
