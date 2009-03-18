@@ -1780,7 +1780,12 @@ PRBool nsImapProtocol::RetryUrl()
   nsAutoCMonitor mon(this);
   nsCOMPtr <nsIImapUrl> kungFuGripImapUrl = m_runningUrl;
   nsCOMPtr <nsIImapMockChannel> saveMockChannel;
-  m_runningUrl->GetMockChannel(getter_AddRefs(saveMockChannel));
+  if (m_imapServerSink)
+  {
+    nsresult rv = m_imapServerSink->PrepareToRetryUrl(kungFuGripImapUrl, getter_AddRefs(saveMockChannel));
+  // the channel might have gone away - we'll just not retry in that case.
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  }
   ReleaseUrlState(PR_TRUE);
   nsresult rv;
   nsCOMPtr<nsIImapIncomingServer> imapServer  = do_QueryReferent(m_server, &rv);
@@ -8136,6 +8141,7 @@ nsImapMockChannel::~nsImapMockChannel()
   // if we're offline, we may not get to close the channel correctly.
   // we need to do this to send the url state change notification in
   // the case of mem and disk cache reads.
+  NS_WARN_IF_FALSE(NS_IsMainThread(), "should only access mock channel on ui thread");
   if (!mChannelClosed)
     Close();
 }

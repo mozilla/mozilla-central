@@ -43,6 +43,7 @@
 #include "nsImapUrl.h"
 #include "nsIMsgMailSession.h"
 #include "nsIIMAPHostSessionList.h"
+#include "nsThreadUtils.h"
 #include "nsString.h"
 #include "prmem.h"
 #include "plstr.h"
@@ -1170,6 +1171,7 @@ nsImapUrl::GetMsgFile(nsIFile** aFile)
 NS_IMETHODIMP nsImapUrl::GetMockChannel(nsIImapMockChannel ** aChannel)
 {
   NS_ENSURE_ARG_POINTER(aChannel);
+  NS_WARN_IF_FALSE(NS_IsMainThread(), "should only access mock channel on ui thread");
   *aChannel = nsnull;
   nsCOMPtr<nsIImapMockChannel> channel(do_QueryReferent(m_channelWeakPtr));
   channel.swap(*aChannel);
@@ -1178,6 +1180,7 @@ NS_IMETHODIMP nsImapUrl::GetMockChannel(nsIImapMockChannel ** aChannel)
 
 NS_IMETHODIMP nsImapUrl::SetMockChannel(nsIImapMockChannel * aChannel)
 {
+  NS_WARN_IF_FALSE(NS_IsMainThread(), "should only access mock channel on ui thread");
   m_channelWeakPtr = do_GetWeakReference(aChannel);
   return NS_OK;
 }

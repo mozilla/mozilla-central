@@ -446,6 +446,16 @@ nsImapIncomingServer::GetImapConnectionAndLoadUrl(nsIEventTarget * aClientEventT
   return rv;
 }
 
+
+NS_IMETHODIMP
+nsImapIncomingServer::PrepareToRetryUrl(nsIImapUrl *aImapUrl, nsIImapMockChannel **aChannel)
+{
+  NS_ENSURE_ARG_POINTER(aChannel);
+  NS_ENSURE_ARG_POINTER(aImapUrl);
+  // maybe there's more we could do here, but this is all we need now.
+  return aImapUrl->GetMockChannel(aChannel);
+}
+
 NS_IMETHODIMP
 nsImapIncomingServer::RetryUrl(nsIImapUrl *aImapUrl, nsIImapMockChannel *aChannel)
 {
