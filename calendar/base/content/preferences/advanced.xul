@@ -67,16 +67,13 @@
                         type="bool"/>
 
             <!-- Advanced tab -->
+#ifdef MOZ_UPDATER
             <preference id="app.update.enabled"
                         name="app.update.enabled"
                         type="bool"
                         onchange="gAdvancedPane.updateAppUpdateItems();
                                   gAdvancedPane.updateAutoItems();
                                   gAdvancedPane.updateModeItems();"/>
-            <preference id="extensions.update.enabled"
-                        name="extensions.update.enabled"
-                        type="bool"
-                        onchange="gAdvancedPane.updateAddonUpdateUI();"/>
             <preference id="app.update.auto"
                         name="app.update.auto"
                         type="bool"
@@ -89,6 +86,11 @@
             <preference id="app.update.disable_button.showUpdateHistory"
                         name="app.update.disable_button.showUpdateHistory"
                         type="bool"/>
+#endif
+            <preference id="extensions.update.enabled"
+                        name="extensions.update.enabled"
+                        type="bool"
+                        onchange="gAdvancedPane.updateAddonUpdateUI();"/>
             <!-- Encryption tab -->
             <preference id="security.enable_ssl3" name="security.enable_ssl3" type="bool"/>
             <preference id="security.enable_tls" name="security.enable_tls" type="bool"/>
@@ -175,16 +177,19 @@
                 <tabpanel id="updatePanel" orient="vertical" align="start">
                     <label control="autoUpdateGroup">&pref.calendar.advanced.update.autoCheck.label;</label>
                     <vbox id="autoUpdateGroup" class="indent">
+#ifdef MOZ_UPDATER
                         <checkbox id="enableAppUpdate"
                                   label="&pref.calendar.advanced.update.enableAppUpdate.label;"
                                   accesskey="&pref.calendar.advanced.update.enableAppUpdate.accesskey;"
                                   preference="app.update.enabled"/>
+#endif
                         <checkbox id="enableAddonUpdate"
                                   label="&pref.calendar.advanced.update.enableAddonsUpdate.label;"
                                   accesskey="&pref.calendar.advanced.update.enableAddonsUpdate.accesskey;"
                                   preference="extensions.update.enabled"/>
                     </vbox>
 
+#ifdef MOZ_UPDATER
                     <separator id="updateSeparator1"/>
 
                     <label id="updateModeLabel"
@@ -219,6 +224,7 @@
                                 preference="app.update.disable_button.showUpdateHistory"
                                 oncommand="gAdvancedPane.showUpdates();"/>
                     </hbox>
+#endif
                 </tabpanel>
 
                 <!-- Encryption -->

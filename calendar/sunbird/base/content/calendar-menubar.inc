@@ -480,7 +480,11 @@
                      class="menuitem-iconic"
                      label="&updateCmd.label;"
                      accesskey="&updateCmd.accesskey;"
+#ifdef MOZ_UPDATER
                      oncommand="sbCheckForUpdates();"/>
+#else
+                     hidden="true"/>
+#endif
 
 # On Mac OS X, the "About Sunbird" menuitem belongs under the "Sunbird" menu.
 # We hide it (and its separator) here, but we don't ifdef the entire menuitem

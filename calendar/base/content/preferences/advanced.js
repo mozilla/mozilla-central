@@ -59,9 +59,11 @@ var gAdvancedPane = {
         }
         advancedPrefs.selectedIndex = preference.value;
 
+#ifdef MOZ_UPDATER
         this.updateAppUpdateItems();
         this.updateAutoItems();
         this.updateModeItems();
+#endif
     },
 
     /**
@@ -261,6 +263,7 @@ var gAdvancedPane = {
      *          true        iii   0/1/2   t
      *
      */
+#ifdef MOZ_UPDATER
     updateAppUpdateItems: function advPaneUpdateAppUpdateItems() {
         var aus = Components.classes["@mozilla.org/updates/update-service;1"]
                             .getService(Components.interfaces.nsIApplicationUpdateService);
@@ -304,17 +307,6 @@ var gAdvancedPane = {
                       autoPref.locked || !autoPref.value || modePref.locked;
 
         warnIncompatible.disabled = disable;
-    },
-
-    /**
-     * The Add-ons checkbox and button are disabled only if the enable
-     * add-on update preference is locked.
-     */
-    updateAddonUpdateUI: function advPaneUpdateAddonUpdateUI() {
-        var enabledPref = document.getElementById("extensions.update.enabled");
-        var enableAddonUpdate = document.getElementById("enableAddonUpdate");
-
-        enableAddonUpdate.disabled = enabledPref.locked;
     },
 
     /**
@@ -365,6 +357,19 @@ var gAdvancedPane = {
                                  .createInstance(Components.interfaces.nsIUpdatePrompt);
         prompter.showUpdateHistory(window);
     },
+#endif
+
+    /**
+     * The Add-ons checkbox and button are disabled only if the enable
+     * add-on update preference is locked.
+     */
+    updateAddonUpdateUI: function advPaneUpdateAddonUpdateUI() {
+        var enabledPref = document.getElementById("extensions.update.enabled");
+        var enableAddonUpdate = document.getElementById("enableAddonUpdate");
+
+        enableAddonUpdate.disabled = enabledPref.locked;
+    },
+
 
     // ENCRYPTION TAB
 

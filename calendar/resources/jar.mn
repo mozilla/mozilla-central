@@ -13,7 +13,7 @@ calendar.jar:
     content/calendar/sound.wav                             (content/sound.wav)
     content/calendar/datetimepickers/datetimepickers.css   (content/datetimepickers/datetimepickers.css)
 *   content/calendar/datetimepickers/datetimepickers.xml   (content/datetimepickers/datetimepickers.xml)
-    content/calendar/preferences/advanced.js               (/calendar/base/content/preferences/advanced.js)
+*   content/calendar/preferences/advanced.js               (/calendar/base/content/preferences/advanced.js)
 *   content/calendar/preferences/advanced.xul              (/calendar/base/content/preferences/advanced.xul)
 *   content/calendar/preferences/connection.xul            (/calendar/base/content/preferences/connection.xul)
     content/calendar/preferences/connection.js             (/calendar/base/content/preferences/connection.js)

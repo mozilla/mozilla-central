@@ -140,6 +140,7 @@ function sbOnViewToolbarCommand(aEvent)
     document.persist(toolbar.id, "collapsed");
 }
 
+#ifdef MOZ_UPDATER
 /**
  * Checks for available updates using AUS
  */
@@ -159,12 +160,14 @@ function sbCheckForUpdates()
         prompter.checkForUpdates();
     }
 }
+#endif
 
 /** 
  * Controls the update check menu item
  */
 function sbUpdateItem()
 {
+#ifdef MOZ_UPDATER
     var updateService = Components.classes["@mozilla.org/updates/update-service;1"]
                                   .getService(Components.interfaces.nsIApplicationUpdateService);
     var updateManager = Components.classes["@mozilla.org/updates/update-manager;1"]
@@ -213,4 +216,17 @@ function sbUpdateItem()
     else {
         checkForUpdates.removeAttribute("loading");
     }
+#else
+#ifndef XP_MACOSX
+  // Some extensions may rely on these being present so only hide the updates
+  // separator when there are no elements besides the check for updates menuitem
+  // in between the about separator and the updates separator.
+  var updatesSeparator = document.getElementById("menu_HelpUpdatesSeparator");
+  var aboutSeparator = document.getElementById("menu_HelpAboutSeparator");
+  var checkForUpdates = document.getElementById("checkForUpdates");
+  if (updatesSeparator.nextSibling === checkForUpdates &&
+      checkForUpdates.nextSibling === aboutSeparator)
+    updatesSeparator.hidden = true;
+#endif
+#endif
 }

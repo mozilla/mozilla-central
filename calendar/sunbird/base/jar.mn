@@ -7,7 +7,7 @@ sunbird.jar:
 *   content/sunbird/aboutDialog.css                        (content/aboutDialog.css)
     content/sunbird/aboutDialog.js                         (content/aboutDialog.js)
 *   content/sunbird/aboutDialog.xul                        (content/aboutDialog.xul)
-    content/sunbird/applicationUtil.js                     (content/applicationUtil.js)
+*   content/sunbird/applicationUtil.js                     (content/applicationUtil.js)
 *   content/sunbird/calendar.xul                           (content/calendar.xul)
     content/sunbird/calendar-gotodate-dialog.xul           (content/calendar-gotodate-dialog.xul)
     content/sunbird/calendar-offline.js                    (content/calendar-offline.js)
