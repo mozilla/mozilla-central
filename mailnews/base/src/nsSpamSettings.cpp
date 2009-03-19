@@ -459,7 +459,14 @@ NS_IMETHODIMP nsSpamSettings::GetSpamFolderURI(char **aSpamFolderURI)
   NS_ENSURE_SUCCESS(rv,rv);
 
   // see nsMsgFolder::SetPrettyName() for where the pretty name is set.
+
+  // Check for an existing junk folder - this will do a case-insensitive 
+  // search by URI - if we find a junk folder, use its URI.
+  nsCOMPtr<nsIMsgFolder> junkFolder;
   folderURI.Append("/Junk");
+  if (NS_SUCCEEDED(server->GetMsgFolderFromURI(folder, folderURI,
+                                               getter_AddRefs(junkFolder))))
+      junkFolder->GetURI(folderURI);
 
   // XXX todo
   // better not to make base depend in imap
