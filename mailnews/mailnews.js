@@ -667,7 +667,10 @@ pref("mail.biff.on_new_window", true);
 //   1= Content-Disposition: attachment
 pref("mail.content_disposition_type", 1);
 
-pref("mailnews.show_send_progress", true); //Will show a progress dialog when saving or sending a message
+// Experimental option to send message in the background - don't wait to close window.
+pref("mailnews.sendInBackground", false);
+// Will show a progress dialog when saving or sending a message
+pref("mailnews.show_send_progress", true);
 pref("mail.server.default.retainBy", 1);
 
 pref("mailnews.ui.junk.firstuse", true);

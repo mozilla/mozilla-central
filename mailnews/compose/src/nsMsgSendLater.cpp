@@ -58,11 +58,20 @@
 #include "nsComposeStrings.h"
 #include "nsIMutableArray.h"
 #include "nsArrayEnumerator.h"
+#include "nsIObserverService.h"
 
-NS_IMPL_ISUPPORTS3(nsMsgSendLater,
+// Consts for checking and sending mail in milliseconds
+
+// 1 second from mail into the unsent messages folder to initially trying to
+// send it.
+const PRUint32 kInitialMessageSendTime = 1000;
+
+NS_IMPL_ISUPPORTS5(nsMsgSendLater,
                    nsIMsgSendLater,
+                   nsIFolderListener,
                    nsIRequestObserver,
-                   nsIStreamListener)
+                   nsIStreamListener,
+                   nsIObserver)
 
 nsMsgSendLater::nsMsgSendLater()
 {
@@ -102,6 +111,72 @@ nsMsgSendLater::~nsMsgSendLater()
   PR_Free(mLeftoverBuffer);
   PR_Free(mIdentityKey);
   PR_Free(mAccountKey);
+}
+
+nsresult
+nsMsgSendLater::Init()
+{
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool sendInBackground;
+  rv = prefs->GetBoolPref("mailnews.sendInBackground", &sendInBackground);
+  // If we're not sending in the background, don't do anything else
+  if (NS_FAILED(rv) || !sendInBackground)
+    return NS_OK;
+
+  // We need to know when we're shutting down.
+  nsCOMPtr<nsIObserverService> observerService =
+    do_GetService("@mozilla.org/observer-service;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = observerService->AddObserver(this, "quit-application", PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Subscribe to the unsent messages folder
+  nsCOMPtr<nsIMsgFolder> unsentFolder;
+  rv = GetUnsentMessagesFolder(nsnull, getter_AddRefs(unsentFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = unsentFolder->AddFolderListener(this);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // XXX may want to send messages X seconds after startup if there are any.
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::Observe(nsISupports *aSubject, const char* aTopic,
+                        const PRUnichar *aData)
+{
+  if (aSubject == mTimer && !strcmp(aTopic, "timer-callback"))
+  {
+    SendUnsentMessages(nsnull);
+  }
+  else if (!strcmp(aTopic, "quit-application"))
+  {
+    // We're shutting down. Unsubscribe from the unsentFolder notifications
+    // they aren't any use to us now, we don't want to start sending more
+    // messages.
+    nsCOMPtr<nsIMsgFolder> unsentFolder;
+    nsresult rv = GetUnsentMessagesFolder(nsnull, getter_AddRefs(unsentFolder));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = unsentFolder->RemoveFolderListener(this);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Now remove ourselves from the observer service as well.
+    nsCOMPtr<nsIObserverService> observerService =
+      do_GetService("@mozilla.org/observer-service;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = observerService->RemoveObserver(this, "quit-application");
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -594,27 +669,17 @@ nsMsgSendLater::StartNextMailFileSend()
   m_headersSize = 0;
   PR_FREEIF(mLeftoverBuffer);
 
-  //
   // Now, get our stream listener interface and plug it into the DisplayMessage
   // operation
-  //
   NS_ADDREF(this);
 
-  nsCOMPtr<nsIStreamListener> convertedListener = do_QueryInterface(this);
-  if (convertedListener)
-  {
-    // Now, just plug the two together and get the hell out of the way!
-    rv = messageService->DisplayMessage(messageURI.get(), convertedListener, nsnull, nsnull, nsnull, nsnull);
-  }
-  else
-    rv = NS_ERROR_FAILURE;
+  rv = messageService->DisplayMessage(messageURI.get(),
+                                      static_cast<nsIStreamListener*>(this),
+                                      nsnull, nsnull, nsnull, nsnull);
 
   Release();
 
-  if (NS_FAILED(rv))
-    return rv;
-
-  return NS_OK;
+  return rv;
 }
 
 NS_IMETHODIMP 
@@ -1228,3 +1293,68 @@ nsMsgSendLater::GetIdentityFromKey(const char *aKey, nsIMsgIdentity  **aIdentity
   return rv;
 }
 
+NS_IMETHODIMP
+nsMsgSendLater::OnItemAdded(nsIMsgFolder *aParentItem, nsISupports *aItem)
+{
+  // Items from this function return NS_OK because the callee won't care about
+  // the result anyway.
+  nsresult rv;
+  mTimer = do_CreateInstance("@mozilla.org/timer;1", &rv);
+  NS_ENSURE_SUCCESS(rv, NS_OK);
+
+  rv = mTimer->Init(static_cast<nsIObserver*>(this), kInitialMessageSendTime,
+                    nsITimer::TYPE_ONE_SHOT);
+  NS_ENSURE_SUCCESS(rv, NS_OK);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::OnItemRemoved(nsIMsgFolder *aParentItem, nsISupports *aItem)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::OnItemPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty,
+                                      const char* aOldValue,
+                                      const char* aNewValue)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty,
+                                         PRInt32 aOldValue, PRInt32 aNewValue)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::OnItemBoolPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty,
+                                          PRBool aOldValue, PRBool aNewValue)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::OnItemUnicharPropertyChanged(nsIMsgFolder *aItem,
+                                             nsIAtom *aProperty,
+                                             const PRUnichar* aOldValue,
+                                             const PRUnichar* aNewValue)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::OnItemPropertyFlagChanged(nsIMsgDBHdr *aItem, nsIAtom *aProperty,
+                                          PRUint32 aOldValue, PRUint32 aNewValue)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::OnItemEvent(nsIMsgFolder* aItem, nsIAtom *aEvent)
+{
+  return NS_OK;
+}

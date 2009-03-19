@@ -45,6 +45,8 @@
 #include "nsIMsgSendLater.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsTObserverArray.h"
+#include "nsIObserver.h"
+#include "nsITimer.h"
 
 ////////////////////////////////////////////////////////////////////////////////////
 // This is the listener class for the send operation. We have to create this class 
@@ -71,20 +73,21 @@ private:
   nsMsgSendLater *mSendLater;
 };
 
-class nsMsgSendLater: public nsIMsgSendLater
+class nsMsgSendLater: public nsIMsgSendLater,
+                      public nsIFolderListener,
+                      public nsIObserver
 {
 public:
 	nsMsgSendLater();
 	virtual     ~nsMsgSendLater();
+  nsresult Init();
 
 	NS_DECL_ISUPPORTS
-
   NS_DECL_NSIMSGSENDLATER
-  // For nsIStreamListener interface...
+  NS_DECL_NSIFOLDERLISTENER
   NS_DECL_NSISTREAMLISTENER
-
-  // For nsIRequestObserver interface...
   NS_DECL_NSIREQUESTOBSERVER
+  NS_DECL_NSIOBSERVER
 
   // Methods needed for implementing interface...
   nsresult                  StartNextMailFileSend();
@@ -118,8 +121,8 @@ private:
   nsresult GetIdentityFromKey(const char *aKey, nsIMsgIdentity **aIdentity);
 
   nsTObserverArray<nsCOMPtr<nsIMsgSendLaterListener> > mListenerArray;
-
   nsCOMPtr<nsIMsgDBHdr>      mMessage;
+  nsCOMPtr<nsITimer> mTimer;
 
   //
   // File output stuff...

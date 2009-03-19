@@ -61,8 +61,7 @@ msll.prototype = {
       // Compare data file to what the server received
       do_check_eq(originalData, server._handler.post);
 
-      // Now wait till the copy is finished for the sent message
-      do_test_pending();
+      finished = true;
     } catch (e) {
       do_throw(e);
     } finally {
@@ -76,7 +75,7 @@ msll.prototype = {
 };
 
 function OnStopCopy(aStatus) {
-  do_test_finished();
+  dump("OnStopCopy()\n");
 
   try {
     do_check_eq(aStatus, 0);
@@ -104,7 +103,6 @@ function OnStopCopy(aStatus) {
     // Check the data is matching.
     do_check_eq(originalData, fileData);
 
-    do_test_pending();
     do_timeout(sendMessageLater(), 0);
   } catch (e) {
     do_throw(e);
@@ -122,8 +120,6 @@ function OnStopCopy(aStatus) {
 // This function does the actual send later
 function sendMessageLater()
 {
-  do_test_finished();
-
   // Set up the SMTP server.
   server = setupServerDaemon();
 
@@ -151,9 +147,6 @@ function sendMessageLater()
     transaction = server.playTransaction();
 
     do_timeout(10000, "if (!finished) do_throw('Notifications of message send/copy not received');");
-
-    do_test_pending();
-
   } catch (e) {
     do_throw(e);
   } finally {
