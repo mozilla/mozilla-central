@@ -170,17 +170,20 @@
                 label="&calendar.context.cutevent.label;"
                 accesskey="&calendar.context.cutevent.accesskey;"
                 key="key_cut"
-                observes="cmd_cut"/>
+                observes="cmd_cut"
+                command="cmd_cut"/>
       <menuitem id="calendar-item-context-menu-copy-menuitem"
                 label="&calendar.context.copyevent.label;"
                 accesskey="&calendar.context.copyevent.accesskey;"
                 key="key_copy"
-                observes="cmd_copy"/>
+                observes="cmd_copy"
+                command="cmd_copy"/>
       <menuitem id="calendar-item-context-menu-paste-menuitem"
                 label="&calendar.context.pasteevent.label;"
                 accesskey="&calendar.context.pasteevent.accesskey;"
                 key="key_paste"
-                observes="cmd_paste"/>
+                observes="cmd_paste"
+                command="cmd_paste"/>
       <menuseparator id="calendar-item-context-separator-cutcopypaste"/>
       <menu id="calendar-item-context-menu-convert-menu"
             label="&calendar.context.convertmenu.label;"
@@ -256,7 +259,8 @@
                 label="&calendar.context.pasteevent.label;"
                 accesskey="&calendar.context.pasteevent.accesskey;"
                 key="key_paste"
-                observes="cmd_paste"/>
+                observes="cmd_paste"
+                command="cmd_paste"/>
     </popup>
 
     <!-- TASK ITEM CONTEXT MENU -->
