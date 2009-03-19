@@ -5,6 +5,15 @@ do_import_script("../mailnews/test/fakeserver/nntpd.js");
 // Generic mailnews resource scripts
 do_import_script("../mailnews/test/resources/mailDirService.js");
 
+const kSimpleNewsArticle =
+  "From: John Doe <john.doe@example.com>\n"+
+  "Date: Sat, 24 Mar 1990 10:59:24 -0500\n"+
+  "Newsgroups: test.subscribe.simple\n"+
+  "Subject: H2G2 -- What does it mean?\n"+
+  "Message-ID: <TSS1@nntp.test>\n"+
+  "\n"+
+  "What does the acronym H2G2 stand for? I've seen it before...\n";
+
 // The groups to set up on the fake server.
 // It is an array of tuples, where the first element is the group name and the
 // second element is whether or not we should subscribe to it.
@@ -51,13 +60,7 @@ function setupNNTPDaemon() {
       daemon.addArticle(new newsArticle(post));
   });
 
-  var article = new newsArticle("From: John Doe <john.doe@example.com>\n"+
-      "Date: Sat, 24 Mar 1990 10:59:24 -0500\n"+
-      "Newsgroups: test.subscribe.simple\n"+
-      "Subject: H2G2 -- What does it mean?\n"+
-      "Message-ID: <TSS1@nntp.test>\n"+
-      "\n"+
-      "What does the acronym H2G2 stand for? I've seen it before...\n");
+  var article = new newsArticle(kSimpleNewsArticle);
   daemon.addArticleToGroup(article, "test.subscribe.simple", 1);
 
   return daemon;

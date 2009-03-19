@@ -297,11 +297,24 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
     rv = folder->GetServer(getter_AddRefs(server));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRInt32 socketType;
-    nsresult rv = server->GetSocketType(&socketType);
-    NS_ENSURE_SUCCESS(rv, rv);
-    url->SetPort((socketType == nsIMsgIncomingServer::useSSL) ?
-                 nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT);
+    PRInt32 port = 0;
+    rv = url->GetPort(&port);
+    if (NS_FAILED(rv) || (port <= 0))
+    {
+      rv = server->GetPort(&port);
+      if (NS_FAILED(rv) || (port <= 0))
+      {
+        PRInt32 socketType;
+        rv = server->GetSocketType(&socketType);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        port = (socketType == nsIMsgIncomingServer::useSSL) ?
+               nsINntpUrl::DEFAULT_NNTPS_PORT : nsINntpUrl::DEFAULT_NNTP_PORT;
+      }
+
+      rv = url->SetPort(port);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
 
     folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
 
