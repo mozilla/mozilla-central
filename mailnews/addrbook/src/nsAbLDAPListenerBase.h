@@ -76,6 +76,7 @@ protected:
   nsCOMPtr<nsILDAPOperation> mOperation;        // current ldap op
   nsILDAPConnection* mConnection;
   nsCString mLogin;
+  nsCString mSaslMechanism;
   PRInt32 mTimeOut;
   PRBool mBound;
   PRBool mInitialized;

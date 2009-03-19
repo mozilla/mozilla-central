@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *   Dan Mosedale <dmose@netscape.com> (Original Author)
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -49,7 +50,7 @@ interface nsIMutableArray;
  * Extends nsIAutoCompleteSession to have various LDAP-specific parameters.
  * and output format.
  */
-[scriptable, uuid(aced5f6f-013d-4e21-97a6-9da3779c8663)]
+[scriptable, uuid(d6a64827-6206-4070-9bf9-24578df0afe2)]
 interface nsILDAPAutoCompleteSession : nsIAutoCompleteSession {
 
     /**
@@ -125,6 +126,15 @@ interface nsILDAPAutoCompleteSession : nsIAutoCompleteSession {
      */
     attribute AUTF8String login;
 
+    /**
+     * SASL Mechanism to use to perform bind. If unset, a simple bind will
+     * be performed.
+     *
+     * @exception NS_ERROR_OUT_OF_MEMORY    Getter couldn't allocate string
+     * @exception NS_ERROR_NULL_POINTER   null pointer passed to getter
+     */
+    attribute ACString saslMechanism;
+    
     /**
      * What version of the LDAP protocol should be used?  Allowed version
      * number constants are defined in nsILDAPConnection.idl.

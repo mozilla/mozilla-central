@@ -166,6 +166,19 @@
                        control="search"/>
                  <textbox id="search" multiline="true" flex="1" disableiflocked="true"/>
               </row>
+              <row>
+                <label value="&saslMechanism.label;" control="saslMechanism" accesskey="&saslMechanism.accesskey;"/>
+                <menulist id="saslMechanism">
+                  <menupopup>
+                    <menuitem id="Simple" value="" 
+                              label="&saslOff.label;"
+                              accesskey="&saslOff.accesskey;"/>
+                    <menuitem id="GSSAPI" value="GSSAPI" 
+                              label="&saslGSSAPI.label;"
+                              accesskey="&saslGSSAPI.accesskey;"/>
+                  </menupopup>
+                </menulist>
+              </row>
             </rows>
           </grid>
       </tabpanels>

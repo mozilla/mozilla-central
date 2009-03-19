@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *   Dan Mosedale <dmose@mozilla.org>
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -50,6 +51,7 @@
 #include "nsLDAPControl.h"
 #include "nsILDAPErrors.h"
 #include "nsIClassInfoImpl.h"
+#include "nsIAuthModule.h"
 #include "nsArrayUtils.h"
 
 // Helper function
@@ -193,6 +195,100 @@ nsLDAPOperation::GetMessageListener(nsILDAPMessageListener **aMessageListener)
 
     return NS_OK;
 }
+
+NS_IMETHODIMP
+nsLDAPOperation::SaslBind(const nsACString &service, 
+                          const nsACString &mechanism, 
+                          nsIAuthModule *authModule)
+{
+  nsresult rv;
+  nsCAutoString bindName;
+  struct berval creds;
+  unsigned int credlen;
+
+  mAuthModule = authModule;
+  mMechanism.Assign(mechanism);
+
+  rv = mConnection->GetBindName(bindName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  creds.bv_val = NULL;
+  mAuthModule->Init(PromiseFlatCString(service).get(), 
+                    nsIAuthModule::REQ_DEFAULT, nsnull, 
+                    NS_ConvertUTF8toUTF16(bindName).get(), nsnull);
+
+  rv = mAuthModule->GetNextToken(nsnull, 0, (void **)&creds.bv_val, 
+                                 &credlen);
+  if (NS_FAILED(rv) || !creds.bv_val)
+    return rv;
+
+  creds.bv_len = credlen;
+  const int lderrno = ldap_sasl_bind(mConnectionHandle, bindName.get(),
+                                     mMechanism.get(), &creds, NULL, NULL,
+                                     &mMsgID);
+  nsMemory::Free(creds.bv_val);
+
+  if (lderrno != LDAP_SUCCESS)
+    return TranslateLDAPErrorToNSError(lderrno);
+  
+  // make sure the connection knows where to call back once the messages
+  // for this operation start coming in
+  rv = static_cast<nsLDAPConnection *>
+       (static_cast<nsILDAPConnection *>(mConnection.get()))
+       ->AddPendingOperation(this);
+
+  if (NS_FAILED(rv))
+    (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
+
+  return rv;
+}
+
+NS_IMETHODIMP
+nsLDAPOperation::SaslStep(const char *token, PRUint32 tokenLen)
+{
+  nsresult rv;
+  nsCAutoString bindName;
+  struct berval clientCreds;
+  struct berval serverCreds;
+  unsigned int credlen;
+
+  rv = static_cast<nsLDAPConnection *>
+       (static_cast<nsILDAPConnection *>(mConnection.get()))
+       ->RemovePendingOperation(this);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  serverCreds.bv_val = (char *) token;
+  serverCreds.bv_len = tokenLen;
+
+  rv = mConnection->GetBindName(bindName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = mAuthModule->GetNextToken(serverCreds.bv_val, serverCreds.bv_len, 
+                                 (void **) &clientCreds.bv_val, &credlen);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  clientCreds.bv_len = credlen;
+
+  const int lderrno = ldap_sasl_bind(mConnectionHandle, bindName.get(), 
+                                     mMechanism.get(), &clientCreds, NULL, 
+                                     NULL, &mMsgID);
+
+  nsMemory::Free(clientCreds.bv_val);
+
+  if (lderrno != LDAP_SUCCESS)
+    return TranslateLDAPErrorToNSError(lderrno);
+
+  // make sure the connection knows where to call back once the messages
+  // for this operation start coming in
+  rv = static_cast<nsLDAPConnection *>
+       (static_cast<nsILDAPConnection *>(mConnection.get()))
+       ->AddPendingOperation(this);
+  if (NS_FAILED(rv)) 
+    (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
+
+  return rv;
+}
+
 
 // wrapper for ldap_simple_bind()
 //

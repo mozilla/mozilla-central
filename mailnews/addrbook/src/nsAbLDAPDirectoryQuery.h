@@ -68,6 +68,7 @@ private:
   nsCOMPtr<nsILDAPURL> mDirectoryUrl;
   nsCOMArray<nsIAbDirSearchListener> mListeners;
   nsCString mCurrentLogin;
+  nsCString mCurrentMechanism;
   PRUint32 mCurrentProtocolVersion;
 
   PRBool mInitialized;

@@ -200,6 +200,16 @@ function fillSettings()
       sub.radioGroup.selectedItem = sub;
       break;
     }
+    
+    var sasl = document.getElementById("saslMechanism");
+    switch (gCurrentDirectory.saslMechanism) {
+    case "GSSAPI":
+      sasl.selectedItem = document.getElementById("GSSAPI");
+      break;
+    default:
+      sasl.selectedItem = document.getElementById("Simple");
+      break;
+    }
 
     var secure = ldapUrl.options & ldapUrl.OPT_SECURE
     if (secure)
@@ -297,6 +307,7 @@ function onAccept()
     var secure = document.getElementById("secure");
     var results = document.getElementById("results").value;
     var errorValue = null;
+    var saslMechanism = "";
     if ((!description) || hasOnlyWhitespaces(description))
       errorValue = "invalidName";
     else if ((!hostname) || hasOnlyWhitespaces(hostname))
@@ -314,7 +325,7 @@ function onAccept()
         .newURI((secure.checked ? "ldaps://" : "ldap://") + "localhost/dc=???",
                 null, null)
         .QueryInterface(Components.interfaces.nsILDAPURL);
-
+      
       ldapUrl.host = hostname;
       ldapUrl.port = port ? port :
                             (secure.checked ? kDefaultSecureLDAPPort :
@@ -325,6 +336,9 @@ function onAccept()
                       Components.interfaces.nsILDAPURL.SCOPE_SUBTREE;
 
       ldapUrl.filter = document.getElementById("search").value;
+      if (document.getElementById("GSSAPI").selected) {
+        saslMechanism = "GSSAPI";
+      }
 
       // check if we are modifying an existing directory or adding a new directory
       if (gCurrentDirectory) {
@@ -350,6 +364,7 @@ function onAccept()
 
       theDirectory.maxHits = results;
       theDirectory.authDn = document.getElementById("login").value;
+      theDirectory.saslMechanism = saslMechanism;
 
       window.opener.gNewServer = description;
       // set window.opener.gUpdate to true so that LDAP Directory Servers

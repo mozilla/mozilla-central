@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Dan Mosedale <dan.mosedale@oracle.com>
  *   Jeremy Laine <jeremy.laine@m4x.org>
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -54,7 +55,7 @@ interface nsILDAPURL;
  * XXX This should really inherit from nsIAbDirectory, and some day it will.
  * But for now, doing that complicates implementation.
  */
-[scriptable, uuid(2f689622-3d73-43aa-8580-6a7ba232be2b)]
+[scriptable, uuid(90dde295-e354-4d58-Add8-f9b29a95942d)]
 interface nsIAbLDAPDirectory : nsISupports
 {
   /**
@@ -74,6 +75,14 @@ interface nsIAbLDAPDirectory : nsISupports
    */
   attribute unsigned long protocolVersion;
 
+  /**
+   * The SASL mechanism to use to authenticate to the LDAP server
+   * If this is an empty string, then a simple bind will be performed
+   * A non-zero string is assumed to be the name of the SASL mechanism.
+   * Currently the only supported mechanism is GSSAPI
+   */
+  attribute ACString saslMechanism;
+  
   /**
    * The AuthDN to use to access the server.
    */

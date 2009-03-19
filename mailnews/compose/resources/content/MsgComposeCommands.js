@@ -849,6 +849,14 @@ function setupLdapAutocompleteSession()
             } catch (ex) {
                 // if we don't have this pref, no big deal
             }
+            
+            try {
+                LDAPSession.saslMechanism = sPrefs.getComplexValue(
+                    autocompleteDirectory + ".auth.saslmech",
+                    Components.interfaces.nsISupportsString).data;
+            } catch (ex) {
+                // don't care if we don't have this pref
+            } 
 
             // set the LDAP protocol version correctly
             var protocolVersion;

@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *   Dan Mosedale <dmose@mozilla.org>
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,6 +40,7 @@
 
 #include "nsISupports.idl"
 #include "nsILDAPConnection.idl"
+#include "nsIAuthModule.idl"
 
 interface nsILDAPMessage;
 interface nsILDAPMessageListener;
@@ -54,7 +56,7 @@ interface nsIArray;
 
 typedef PRUint32 PRIntervalTime;
 
-[scriptable, uuid(b9a7ed9d-adf9-4612-8cb7-cdb5c4ef16fd)]
+[scriptable, uuid(40cc61c6-539b-4157-b0f0-ed81ecd29b8e)]
 interface nsILDAPOperation : nsISupports
 {
     /**
@@ -128,6 +130,26 @@ interface nsILDAPOperation : nsISupports
      * @exception NS_ERROR_UNEXPECTED           internal error
      */
     void simpleBind(in AUTF8String passwd);
+
+    /**
+     * Asynchronously perform a SASL bind against the LDAP server
+     *
+     * @param service    the host name of the service being connected to
+     * @param mechanism  the name of the SASL mechanism in use
+     * @param authModule the nsIAuthModule to be used to perform the operation
+     *
+     */
+    void saslBind(in ACString service, in ACString mechanism, 
+                  in nsIAuthModule authModule);
+
+    /**
+     * Continue a SASL bind operation
+     *
+     * @param token     the next SASL token to send to the server
+     * @param tokenLen  the length of the token to send
+     *
+     */
+    void saslStep(in string token, in unsigned long tokenLen);
 
     /**
      * Kicks off an asynchronous add request.  The "ext" stands for 

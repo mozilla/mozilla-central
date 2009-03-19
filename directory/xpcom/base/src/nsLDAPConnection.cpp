@@ -27,6 +27,7 @@
  *   Warren Harris <warren@netscape.com>
  *   Dan Matejka <danm@netscape.com>
  *   David Bienvenu <bienvenu@mozilla.org>
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -718,6 +719,11 @@ CheckLDAPOperationResult(nsHashKey *aKey, void *aData, void* aClosure)
             //
             rv = rawMsg->Init(loop->mRawConn, msgHandle);
 
+            // now let the scoping mechanisms provided by nsCOMPtr manage
+            // the reference for us.
+            //
+            msg = rawMsg;
+            
             switch (rv) {
 
             case NS_OK: {
@@ -741,6 +747,25 @@ CheckLDAPOperationResult(nsHashKey *aKey, void *aData, void* aClosure)
                     if (NS_SUCCEEDED(rv)) {
                         operationFinished = PR_FALSE;
                         // we don't want to notify callers that we're done...
+                        return PR_TRUE;
+                    }
+                }
+                
+                // If we're midway through a SASL Bind, we need to continue
+                // without letting our caller know what we're up to!
+                //
+                if (errorCode == LDAP_SASL_BIND_IN_PROGRESS) {
+                    struct berval *creds;
+                    ldap_parse_sasl_bind_result(
+                      loop->mRawConn->mConnectionHandle, msgHandle, 
+                      &creds, 0);
+
+                    nsCOMPtr <nsILDAPOperation> operation =
+                      static_cast<nsILDAPOperation *>
+                      (static_cast<nsISupports *>(aData));
+
+                    rv = operation->SaslStep(creds->bv_val, creds->bv_len);
+                    if (NS_SUCCEEDED(rv)) {
                         return PR_TRUE;
                     }
                 }
@@ -769,11 +794,6 @@ CheckLDAPOperationResult(nsHashKey *aKey, void *aData, void* aClosure)
                 // punt and hope things work out better next time around
             return PR_TRUE;
             }
-
-            // now let the scoping mechanisms provided by nsCOMPtr manage
-            // the reference for us.
-            //
-            msg = rawMsg;
 
             // invoke the callback on the nsILDAPOperation corresponding to 
             // this message

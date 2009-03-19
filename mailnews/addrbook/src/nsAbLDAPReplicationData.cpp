@@ -22,6 +22,7 @@
  * Contributor(s):
  *  Dan Mosedale <dan.mosedale@oracle.com>
  *  Mark Banner <bugzilla@standard8.demon.co.uk>
+ *  Simon Willkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -98,6 +99,12 @@ NS_IMETHODIMP nsAbLDAPProcessReplicationData::Init(
   }
 
   rv = mDirectory->GetAuthDn(mLogin);
+  if (NS_FAILED(rv)) {
+    mQuery = nsnull;
+    return rv;
+  }
+  
+  rv = mDirectory->GetSaslMechanism(mSaslMechanism);
   if (NS_FAILED(rv)) {
     mQuery = nsnull;
     return rv;

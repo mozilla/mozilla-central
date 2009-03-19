@@ -25,6 +25,7 @@
  *   Paul Sandoz <paul.sandoz@sun.com>
  *   Mark Banner <bugzilla@standard8.plus.com>
  *   Jeremy Laine <jeremy.laine@m4x.org>
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -78,6 +79,7 @@ public:
                                nsIMutableArray* serverSearchControls,
                                nsIMutableArray* clientSearchControls,
                                const nsACString &login,
+                               const nsACString &mechanism,
                                const PRInt32 resultLimit = -1,
                                const PRInt32 timeOut = 0);
   virtual ~nsAbQueryLDAPMessageListener ();
@@ -121,6 +123,7 @@ nsAbQueryLDAPMessageListener::nsAbQueryLDAPMessageListener(
         nsIMutableArray* serverSearchControls,
         nsIMutableArray* clientSearchControls,
         const nsACString &login,
+        const nsACString &mechanism,
         const PRInt32 resultLimit,
         const PRInt32 timeOut) :
   nsAbLDAPListenerBase(directoryUrl, connection, login, timeOut),
@@ -134,6 +137,7 @@ nsAbQueryLDAPMessageListener::nsAbQueryLDAPMessageListener(
   mServerSearchControls(serverSearchControls),
   mClientSearchControls(clientSearchControls)
 {
+  mSaslMechanism.Assign(mechanism);
 }
 
 nsAbQueryLDAPMessageListener::~nsAbQueryLDAPMessageListener ()
@@ -380,6 +384,10 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   rv = directory->GetAuthDn(login);
   NS_ENSURE_SUCCESS(rv, rv);
   
+  nsCAutoString saslMechanism;
+  rv = directory->GetSaslMechanism(saslMechanism);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
   PRUint32 protocolVersion;
   rv = directory->GetProtocolVersion(&protocolVersion);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -395,6 +403,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   {
     mDirectoryUrl = currentUrl;
     mCurrentLogin = login;
+    mCurrentMechanism = saslMechanism;
     mCurrentProtocolVersion = protocolVersion;
     redoConnection = PR_TRUE;
   }
@@ -412,16 +421,20 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
     {
       mDirectoryUrl = currentUrl;
       mCurrentLogin = login;
+      mCurrentMechanism = saslMechanism;
       mCurrentProtocolVersion = protocolVersion;
       redoConnection = PR_TRUE;
     }
     else
     {
       // Has login or version changed?
-      if (login != mCurrentLogin || protocolVersion != mCurrentProtocolVersion)
+      if (login != mCurrentLogin ||
+          saslMechanism != mCurrentMechanism ||
+          protocolVersion != mCurrentProtocolVersion)
       {
         redoConnection = PR_TRUE;
         mCurrentLogin = login;
+        mCurrentMechanism = saslMechanism;
         mCurrentProtocolVersion = protocolVersion;
       }
     }
@@ -580,7 +593,8 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
     new nsAbQueryLDAPMessageListener(resultListener, mDirectoryUrl, url,
                                      mConnection, aArguments,
                                      serverSearchControls, clientSearchControls,
-                                     mCurrentLogin, aResultLimit, aTimeOut);
+                                     mCurrentLogin, mCurrentMechanism,
+                                     aResultLimit, aTimeOut);
   if (_messageListener == NULL)
     return NS_ERROR_OUT_OF_MEMORY;
   

@@ -23,6 +23,7 @@
 # Contributor(s):
 #   David Bienvenu <bienvenu@nventure.com>
 #   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
+#   Simon Wilkinson <simon@sxw.org.uk>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -863,6 +864,13 @@ function setupLdapAutocompleteSession()
                 // if we don't have this pref, no big deal
             }
 
+            try {
+                 LDAPSession.saslMechanism = getPref(autocompleteDirectory + 
+		    ".auth.saslmech", true);
+            } catch (ex) {
+                // don't care if we don't have this pref
+            }
+            
             // set the LDAP protocol version correctly
             var protocolVersion;
             try { 

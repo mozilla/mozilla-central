@@ -25,6 +25,7 @@
  *   Paul Sandoz <paul.sandoz@sun.com>
  *   Mark Banner <bugzilla@standard8.plus.com>
  *   Jeremy Laine <jeremy.laine@m4x.org>
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -644,6 +645,16 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetAuthDn(const nsACString &aAuthDn)
   // XXX We should cancel any existing LDAP connections here and
   // be ready to re-initialise them with the new auth details.
   return SetStringValue("auth.dn", aAuthDn);
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::GetSaslMechanism(nsACString &aSaslMechanism)
+{
+  return GetStringValue("auth.saslmech", EmptyCString(), aSaslMechanism);
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::SetSaslMechanism(const nsACString &aSaslMechanism)
+{
+  return SetStringValue("auth.saslmech", aSaslMechanism);
 }
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetLastChangeNumber(PRInt32 *aLastChangeNumber)

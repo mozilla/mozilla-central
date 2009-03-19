@@ -24,6 +24,7 @@
 # Contributor(s):
 #   Seth Spitzer <sspitzer@netscape.com>
 #   Mark Banner <mark@standard8.demon.co.uk>
+#   Simon Wilkinson <simon@sxw.org.uk>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -732,6 +733,14 @@ function setupLdapAutocompleteSession()
                     Components.interfaces.nsISupportsString).data;
             } catch (ex) {
                 // if we don't have this pref, no big deal
+            }
+            
+            try {
+                LDAPSession.saslMechanism = gPrefs.getComplexValue(
+                    autocompleteDirectory + ".auth.saslmech",
+                    Components.interfaces.nsISupportsString).data;
+            } catch (ex) {
+                // if we don't have a mechanism, we'll just use simple binds
             }
 
             // don't search on non-CJK strings shorter than this

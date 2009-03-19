@@ -23,6 +23,7 @@
  * Contributor(s):
  *   Dan Mosedale <dmose@netscape.com> (Original Author)
  *   Leif Hedstrom <leif@netscape.com>
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -1244,6 +1245,21 @@ NS_IMETHODIMP
 nsLDAPAutoCompleteSession::GetLogin(nsACString & aLogin) 
 {
     aLogin = mLogin;
+    return NS_OK;
+}
+
+// attribute ACString saslMechanism
+
+NS_IMETHODIMP
+nsLDAPAutoCompleteSession::SetSaslMechanism(const nsACString & aSaslMechanism)
+{
+    mSaslMechanism.Assign(aSaslMechanism);
+    return NS_OK;
+}
+NS_IMETHODIMP
+nsLDAPAutoCompleteSession::GetSaslMechanism(nsACString & aSaslMechanism)
+{
+    aSaslMechanism.Assign(mSaslMechanism);
     return NS_OK;
 }
 

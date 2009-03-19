@@ -23,6 +23,7 @@
  *   Paul Sandoz <paul.sandoz@sun.com>
  *   Dan Mosedale <dmose@mozilla.org>
  *   Mark Banner <mark@standard8.demon.co.uk>
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -107,7 +108,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
 
   // If mLogin is set, we're expected to use it to get a password.
   //
-  if (!mLogin.IsEmpty())
+  if (!mLogin.IsEmpty() && !mSaslMechanism.Equals(NS_LITERAL_CSTRING("GSSAPI")))
   {
     // get the string bundle service
     //
@@ -291,6 +292,30 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
   {
     NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to Initialise operation");
     InitFailed();
+    return rv;
+  }
+
+  // Try non-password mechanisms first
+  if (mSaslMechanism.Equals(NS_LITERAL_CSTRING("GSSAPI")))
+  {
+    nsCAutoString service;
+    rv = mDirectoryUrl->GetAsciiHost(service);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    service.Insert(NS_LITERAL_CSTRING("ldap@"), 0);
+
+    nsCOMPtr<nsIAuthModule> authModule =
+      do_CreateInstance(NS_AUTH_MODULE_CONTRACTID_PREFIX "sasl-gssapi", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = mOperation->SaslBind(service, mSaslMechanism, authModule);
+    if (NS_FAILED(rv))
+    {
+      NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): "
+               "failed to perform GSSAPI bind");
+      mOperation = 0; // Break Listener -> Operation -> Listener ref cycle
+      InitFailed();
+    }
     return rv;
   }
 

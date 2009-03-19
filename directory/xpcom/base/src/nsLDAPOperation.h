@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *   Dan Mosedale <dmose@mozilla.org>
+ *   Simon Wilkinson <simon@sxw.org.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -124,6 +125,8 @@ class nsLDAPOperation : public nsILDAPOperation
 
     LDAP *mConnectionHandle; // cache connection handle
     nsCString mSavePassword;
+    nsCString mMechanism;
+    nsCOMPtr<nsIAuthModule> mAuthModule;
     PRInt32 mMsgID;          // opaque handle to outbound message for this op
 
     nsCOMPtr<nsIMutableArray> mClientControls;
