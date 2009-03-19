@@ -4615,6 +4615,17 @@ NS_IMETHODIMP nsMsgDatabase::ApplyRetentionSettings(nsIMsgRetentionSettings *aMs
   NS_ENSURE_ARG_POINTER(aMsgRetentionSettings);
   nsresult rv = NS_OK;
 
+  if (!m_folder)
+    return NS_ERROR_NULL_POINTER;
+
+  PRBool isDraftsTemplatesOutbox;
+  PRUint32 dtoFlags = nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
+                        nsMsgFolderFlags::Queue;
+  (void) m_folder->IsSpecialFolder(dtoFlags, PR_TRUE, &isDraftsTemplatesOutbox);
+  // Never apply retention settings to Drafts/Templates/Outbox.
+  if (isDraftsTemplatesOutbox)
+    return NS_OK;
+
   nsCOMPtr <nsIMutableArray> msgHdrsToDelete;
   if (aDeleteViaFolder)
   {

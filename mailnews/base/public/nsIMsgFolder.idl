@@ -67,7 +67,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(D7A5322F-C720-45c2-AEC5-A23185FB3E60)]
+[scriptable, uuid(8e15538f-0510-42a3-aaae-39ccd436b7a7)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -353,6 +353,15 @@ interface nsIMsgFolder : nsISupports {
    */
   void listFoldersWithFlags(in unsigned long flags,
                             in nsIMutableArray folders);
+
+  /**
+   * Check if this folder (or one of its ancestors) is special.
+   *
+   * @param flags          The "special" flags to check.
+   * @param checkAncestors Should ancestors be checked too.
+   */
+  boolean isSpecialFolder(in unsigned long flags,
+                          [optional] in boolean checkAncestors);
 
   void getExpansionArray(in nsISupportsArray expansionArray);
 

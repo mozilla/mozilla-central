@@ -4171,6 +4171,33 @@ NS_IMETHODIMP nsMsgDBFolder::ListFoldersWithFlags(PRUint32 aFlags, nsIMutableArr
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgDBFolder::IsSpecialFolder(PRUint32 aFlags,
+                                             PRBool aCheckAncestors,
+                                             PRBool *aIsSpecial)
+{
+  NS_ENSURE_ARG_POINTER(aIsSpecial);
+
+  if ((mFlags & aFlags) == 0)
+  {
+    nsCOMPtr<nsIMsgFolder> parentMsgFolder;
+    GetParentMsgFolder(getter_AddRefs(parentMsgFolder));
+
+    if (parentMsgFolder && aCheckAncestors)
+      parentMsgFolder->IsSpecialFolder(aFlags, aCheckAncestors, aIsSpecial);
+    else
+      *aIsSpecial = PR_FALSE;
+  }
+  else
+  {
+    // The user can set their INBOX to be their SENT folder.
+    // in that case, we want this folder to act like an INBOX,
+    // and not a SENT folder
+    *aIsSpecial = !((aFlags & nsMsgFolderFlags::SentMail) &&
+                    (mFlags & nsMsgFolderFlags::Inbox));
+  }
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgDBFolder::GetExpansionArray(nsISupportsArray *expansionArray)
 {
   NS_ENSURE_ARG_POINTER(expansionArray);

@@ -328,15 +328,18 @@ function hideShowControls(serverType)
   }
   catch (ex) {}
 
-  // hide "check for new mail" checkbox if this is inbox
   if (gMsgFolder)
   {
-    if (gMsgFolder.flags & Components.interfaces.nsMsgFolderFlags.Inbox)
-    {
-      document.getElementById("folderCheckForNewMessages").setAttribute("hidden", "true");
-    }
+    const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+    // Hide "check for new mail" checkbox if this is an Inbox.
+    if (gMsgFolder.flags & nsMsgFolderFlags.Inbox)
+      document.getElementById("folderCheckForNewMessages").hidden = true;
+    // Retention policy doesn't apply to Drafts/Templates/Outbox.
+    if (gMsgFolder.isSpecialFolder(nsMsgFolderFlags.Drafts |
+                                   nsMsgFolderFlags.Templates |
+                                   nsMsgFolderFlags.Queue, true))
+      document.getElementById("Retention").hidden = true;
   }
-
 }
 
 function getEnclosingContainer(startNode) 
