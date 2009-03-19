@@ -1,17 +1,15 @@
 #!/usr/bin/python
 
-EXTENSION_CO_TAG = 'HEAD'
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6_RTM'
 
 CHATZILLA_CO_TAG = 'HEAD'
-VENKMAN_CO_TAG = 'HEAD'
 
 LDAPCSDK_DIRS = ('directory/c-sdk',)
 
 CHATZILLA_DIRS = ('extensions/irc',)
-VENKMAN_DIRS = ('extensions/venkman',)
 
 DEFAULT_COMM_REV = "default"
+
 # URL of the default hg repository to clone for Mozilla.
 DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/releases/mozilla-1.9.1/'
 DEFAULT_MOZILLA_REV = "default"
@@ -23,6 +21,10 @@ MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
 DEFAULT_INSPECTOR_REV = "default"
+
+# URL of the default hg repository to clone for Venkman.
+DEFAULT_VENKMAN_REPO = 'http://hg.mozilla.org/venkman/'
+DEFAULT_VENKMAN_REV = "default"
 
 import os
 import sys
@@ -112,6 +114,16 @@ def move_to_stable():
     finally:
       f.close()
 
+def backup_cvs_venkman():
+    venkmanpath = os.path.join(topsrcdir, 'mozilla', 'extensions', 'venkman')
+    # Do nothing if there is no Venkman cvs directory.
+    if not os.path.exists(os.path.join(venkmanpath, 'CVS')):
+        return
+
+    venkmancvspath = venkmanpath + '-cvs'
+    print "Moving venkman to venkman-cvs..."
+    os.rename(venkmanpath, venkmancvspath)
+
 def do_hg_pull(dir, repository, hg, rev):
     fulldir = os.path.join(topsrcdir, dir)
     # clone if the dir doesn't exist, pull if it does
@@ -136,7 +148,7 @@ def do_hg_pull(dir, repository, hg, rev):
                 '--template=Updated to revision {node}.\n'])
 
 def do_cvs_checkout(modules, tag, cvsroot, cvs, checkoutdir):
-    """Check out a CVS directory into the mozilla/ subdirectory.
+    """Check out a CVS directory into the checkoutdir subdirectory.
     modules is a list of directories to check out, e.g. ['extensions/irc']
     """
     for module in modules:
@@ -188,12 +200,20 @@ o.add_option("--inspector-rev", dest="inspector_rev",
 o.add_option("--skip-ldap", dest="skip_ldap",
              action="store_true", default=False,
              help="Skip pulling LDAP from the Mozilla CVS repository.")
+
 o.add_option("--skip-chatzilla", dest="skip_chatzilla",
              action="store_true", default=False,
              help="Skip pulling the ChatZilla repository.")
+
+o.add_option("--venkman-repo", dest = "venkman_repo",
+             default = None,
+             help = "URL of Venkman repository to pull from (default: use hg default in mozilla/extensions/venkman/.hg/hgrc; or if that file doesn't exist, use \"" + DEFAULT_VENKMAN_REPO + "\".)")
 o.add_option("--skip-venkman", dest="skip_venkman",
              action="store_true", default=False,
              help="Skip pulling the Venkman repository.")
+o.add_option("--venkman-rev", dest = "venkman_rev",
+             default = DEFAULT_VENKMAN_REV,
+             help = "Revision of Venkman repository to update to. Default: \"" + DEFAULT_VENKMAN_REV + "\"")
 
 o.add_option("--hg", dest="hg", default=os.environ.get('HG', 'hg'),
              help="The location of the hg binary")
@@ -235,6 +255,11 @@ def fixup_repo_options(options):
             and not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'inspector'))):
         options.inspector_repo = DEFAULT_INSPECTOR_REPO
 
+    # Handle special case: initial checkout of Venkman.
+    if (options.venkman_repo is None
+            and not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'venkman'))):
+        options.venkman_repo = DEFAULT_VENKMAN_REPO
+
 try:
     (options, (action,)) = o.parse_args()
 except ValueError:
@@ -243,6 +268,8 @@ except ValueError:
 
 move_to_stable()
 repo_config()
+
+backup_cvs_venkman()
 
 fixup_repo_options(options)
 
@@ -253,26 +280,31 @@ if action in ('checkout', 'co'):
     if not options.skip_mozilla:
         do_hg_pull('mozilla', options.mozilla_repo, options.hg, options.mozilla_rev)
 
+    # Check whether destination directory exists for these extensions.
+    if (not options.skip_chatzilla or not options.skip_inspector or \
+                not options.skip_venkman) and \
+            not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
+        # Don't create the directory: Mozilla repository should provide it...
+        print >>sys.stderr, "Warning: mozilla/extensions directory does not exist; ChatZilla, DOM Inspector and/or Venkman could not be checked out."
+        # Abort checking out dependent extensions.
+        options.skip_chatzilla = \
+        options.skip_inspector = \
+        options.skip_venkman = \
+            True
+
     if not options.skip_inspector:
+        # No cvs/hg check needed as DOM Inspector was part (and removed from)
+        # mozilla hg repository.
         do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg, options.inspector_rev)
 
     if not options.skip_ldap:
         do_cvs_checkout(LDAPCSDK_DIRS, LDAPCSDK_CO_TAG, options.cvsroot, options.cvs, '')
 
     if not options.skip_chatzilla:
-        if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
-          do_cvs_checkout(CHATZILLA_DIRS, CHATZILLA_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
-        else:
-          print >>sys.stderr, "Warning: mozilla/extensions does not exist, ChatZilla could not be checked out."
-          pass
+        do_cvs_checkout(CHATZILLA_DIRS, CHATZILLA_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
 
     if not options.skip_venkman:
-        if os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
-          do_cvs_checkout(VENKMAN_DIRS, VENKMAN_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
-        else:
-          print >>sys.stderr, "Warning: mozilla/extensions does not exist, Venkman could not be checked out."
-          pass
-
+        do_hg_pull(os.path.join('mozilla', 'extensions', 'venkman'), options.venkman_repo, options.hg, options.venkman_rev)
 else:
     o.print_help()
     sys.exit(2)
