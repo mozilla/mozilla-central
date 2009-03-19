@@ -1196,12 +1196,21 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   nsCOMPtr<nsISupports> listenerSupports;
   helper->QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(listenerSupports));
 
-  return msgService->StreamMessage(templateMsgHdrUri.get(), listenerSupports,
-                                   aMsgWindow, helper,
-                                   PR_FALSE, // convert data
-                                   EmptyCString(), PR_FALSE, nsnull);
-}
+  rv = msgService->StreamMessage(templateMsgHdrUri.get(), listenerSupports,
+                                 aMsgWindow, helper,
+                                 PR_FALSE, // convert data
+                                 EmptyCString(), PR_FALSE, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
 
+  nsCOMPtr<nsIMsgFolder> folder;
+  aMsgHdr->GetFolder(getter_AddRefs(folder));
+  if (!folder)
+    return NS_ERROR_NULL_POINTER;
+
+  // We're sending a new message. Conceptually it's a reply though, so mark the
+  // original message as replied.
+  return folder->AddMessageDispositionState(aMsgHdr, nsIMsgFolder::nsMsgDispositionState_Replied);
+}
 
 NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, nsIMsgDBHdr *aMsgHdr,
                                              nsIMsgWindow *aMsgWindow, nsIMsgIncomingServer *aServer)
@@ -1244,8 +1253,10 @@ NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, ns
   if (prefBranch)
     prefBranch->GetIntPref("mail.forward_message_mode", &forwardType);
 
-  nsCOMPtr <nsIMsgFolder> folder;
+  nsCOMPtr<nsIMsgFolder> folder;
   aMsgHdr->GetFolder(getter_AddRefs(folder));
+  if (!folder)
+    return NS_ERROR_NULL_POINTER;
   folder->GetUriForMsg(aMsgHdr, msgUri);
   // populate the compose params
   // right now, forward inline won't work, since that requires opening a compose window,
@@ -1263,9 +1274,16 @@ NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, ns
   rv = pMsgCompose->Initialize(parentWindow, pMsgComposeParams) ;
   NS_ENSURE_SUCCESS(rv,rv);
 
-  return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull) ;
-}
+  rv = pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
 
+  // nsMsgCompose::ProcessReplyFlags usually takes care of marking messages
+  // as forwarded. ProcessReplyFlags is normally called from
+  // nsMsgComposeSendListener::OnStopSending but for this case the msgCompose
+  // object is not set so ProcessReplyFlags wont get called.
+  // Therefore, lets just mark it here instead.
+  return folder->AddMessageDispositionState(aMsgHdr, nsIMsgFolder::nsMsgDispositionState_Forwarded);
+}
 
 nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindowInternal *aComposeWindow, PRBool aShow)
 {
@@ -1289,7 +1307,6 @@ nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindowInternal *aCom
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (treeOwner) {
-
     // the window need to be sticky before we hide it.
     nsCOMPtr<nsIContentViewer> contentViewer;
     rv = docShell->GetContentViewer(getter_AddRefs(contentViewer));

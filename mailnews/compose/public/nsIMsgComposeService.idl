@@ -96,11 +96,26 @@ interface nsIMsgComposeService : nsISupports {
    */
   nsIMsgComposeParams getParamsForMailto(in nsIURI aURI); 
 
-  void forwardMessage(in AString forwardTo, in nsIMsgDBHdr aMsgHdr, 
-                      in nsIMsgWindow aMsgWindow, in nsIMsgIncomingServer aServer);
+  /**
+   * Allow filters to automatically forward a message to the given address(es).
+   * @param forwardTo the address(es) to forward to
+   * @param msgHdr the header of the message being replied to
+   * @param msgWindow message window to use
+   * @param server server to use for determining which account to send from
+   */
+  void forwardMessage(in AString forwardTo, in nsIMsgDBHdr msgHdr,
+                      in nsIMsgWindow msgWindow, in nsIMsgIncomingServer server);
 
+  /**
+   * Allow filters to automatically reply to a message. The reply message is
+   * based on the given template.
+   * @param msgHdr the header of the message being replied to
+   * @param templateUri uri of the template to base ther reply on
+   * @param msgWindow message window to use
+   * @param server server to use for determining which account to send from
+   */
   void replyWithTemplate(in nsIMsgDBHdr msgHdr, in string templateUri,
-                         in nsIMsgWindow aMsgWindow, in nsIMsgIncomingServer server);
+                         in nsIMsgWindow msgWindow, in nsIMsgIncomingServer server);
 
   /** 
    * Every open compose window registers itself with the compose service 
