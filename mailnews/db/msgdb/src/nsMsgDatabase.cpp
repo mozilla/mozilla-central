@@ -81,7 +81,13 @@
 
 #define MSG_HASH_SIZE 512
 
-const PRInt32 kMaxHdrsInCache = 512;  // this will be used on discovery, since we don't know total
+// This will be used on discovery, since we don't know total.
+const PRInt32 kMaxHdrsInCache = 512;
+
+// Hopefully we're not opening up lots of databases at the same time, however
+// this will give us a buffer before we need to start reallocating the cache
+// array.
+const PRUint32 kInitialMsgDBCacheSize = 20;
 
 // special keys
 static const nsMsgKey kAllMsgHdrsTableKey = 1;
@@ -700,36 +706,30 @@ NS_IMETHODIMP nsMsgDatabase::NotifyAnnouncerGoingAway(void)
   return NS_OK;
 }
 
+// Apparently its not good for nsTArray to be allocated as static. Don't know
+// why it isn't but its not, so don't think about making it a static variable.
+// Maybe bz knows.
+nsTArray<nsMsgDatabase*>* nsMsgDatabase::m_dbCache;
 
-
-nsVoidArray *nsMsgDatabase::m_dbCache = NULL;
-
-//----------------------------------------------------------------------
-// GetDBCache
-//----------------------------------------------------------------------
-
-nsVoidArray/*<nsMsgDatabase>*/*
+nsTArray<nsMsgDatabase*>*
 nsMsgDatabase::GetDBCache()
 {
   if (!m_dbCache)
-    m_dbCache = new nsVoidArray();
+    m_dbCache = new nsAutoTArray<nsMsgDatabase*, kInitialMsgDBCacheSize>;
 
   return m_dbCache;
-
 }
 
 void
 nsMsgDatabase::CleanupCache()
 {
-  if (m_dbCache) // clean up memory leak (needed because some destructors
-                 // have user-visible effects, which they shouldn't)
+  if (m_dbCache)
   {
-    for (PRInt32 i = GetNumInCache() - 1;
-         i >= 0 && GetNumInCache() > 0;
-         // prior closes may have removed more than one element
-         i >= GetNumInCache() ? i = GetNumInCache() - 1 : i--)
+    for (PRUint32 i = m_dbCache->Length() - 1; i != 0 && m_dbCache->Length() > 0;
+     // prior closes may have removed more than one element
+         i >= m_dbCache->Length() ? i = m_dbCache->Length() - 1 : i--)
     {
-      nsMsgDatabase* pMessageDB = static_cast<nsMsgDatabase*>(GetDBCache()->ElementAt(i));
+      nsMsgDatabase* pMessageDB = m_dbCache->ElementAt(i);
       if (pMessageDB)
       {
         // hold onto the db until we're finished closing it.
@@ -744,13 +744,11 @@ nsMsgDatabase::CleanupCache()
     // If you hit this warning, it means that ForceClosed() did not
     // successfully remove all references to the db so that it can
     // be shutdown.
-    NS_WARN_IF_FALSE(!GetNumInCache(), "some msg dbs left open");
+    NS_WARN_IF_FALSE(!m_dbCache->Length(), "some msg dbs left open");
 #endif
     delete m_dbCache;
+    m_dbCache = nsnull;
   }
-  m_dbCache = nsnull; // Need to reset to NULL since it's a
-  // static global ptr and maybe referenced
-  // again in other places.
 }
 
 //----------------------------------------------------------------------
@@ -758,9 +756,11 @@ nsMsgDatabase::CleanupCache()
 //----------------------------------------------------------------------
 nsMsgDatabase* nsMsgDatabase::FindInCache(nsILocalFile *dbName)
 {
-  for (PRInt32 i = 0; i < GetDBCache()->Count(); i++)
+  nsTArray<nsMsgDatabase*>* dbCache = GetDBCache();
+  PRUint32 length = dbCache->Length();
+  for (PRUint32 i = 0; i < length; i++)
   {
-    nsMsgDatabase* pMessageDB = static_cast<nsMsgDatabase*>(GetDBCache()->ElementAt(i));
+    nsMsgDatabase* pMessageDB = dbCache->ElementAt(i);
     if (pMessageDB->MatchDbName(dbName))
     {
       if (pMessageDB->m_mdbStore)  // don't return db without store
@@ -790,19 +790,6 @@ nsIMsgDatabase* nsMsgDatabase::FindInCache(nsIMsgFolder *folder)
   return (nsIMsgDatabase *) FindInCache(summaryFile);
 }
 
-//----------------------------------------------------------------------
-// FindInCache
-//----------------------------------------------------------------------
-int nsMsgDatabase::FindInCache(nsMsgDatabase* pMessageDB)
-{
-  for (PRInt32 i = 0; i < GetDBCache()->Count(); i++)
-  {
-    if (GetDBCache()->ElementAt(i) == pMessageDB)
-      return(i);
-  }
-  return(-1);
-}
-
 PRBool nsMsgDatabase::MatchDbName(nsILocalFile *dbName)  // returns PR_TRUE if they match
 {
   nsCString dbPath;
@@ -815,20 +802,17 @@ PRBool nsMsgDatabase::MatchDbName(nsILocalFile *dbName)  // returns PR_TRUE if t
 //----------------------------------------------------------------------
 void nsMsgDatabase::RemoveFromCache(nsMsgDatabase* pMessageDB)
 {
-  int i = FindInCache(pMessageDB);
-  if (i != -1)
-    GetDBCache()->RemoveElementAt(i);
+  GetDBCache()->RemoveElement(pMessageDB);
 }
 
 
 #ifdef DEBUG
 void nsMsgDatabase::DumpCache()
 {
+  nsTArray<nsMsgDatabase*>* dbCache = GetDBCache();
   nsMsgDatabase* pMessageDB = nsnull;
-  for (PRInt32 i = 0; i < GetDBCache()->Count(); i++)
-  {
-    pMessageDB = static_cast<nsMsgDatabase*>(GetDBCache()->ElementAt(i));
-  }
+  for (PRUint32 i = 0; i < dbCache->Length(); i++)
+    pMessageDB = dbCache->ElementAt(i);
 }
 #endif /* DEBUG */
 

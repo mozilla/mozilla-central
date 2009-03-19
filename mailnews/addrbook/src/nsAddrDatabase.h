@@ -42,7 +42,6 @@
 
 #include "nsIAddrDatabase.h"
 #include "mdb.h"
-#include "nsVoidArray.h"
 #include "nsStringGlue.h"
 #include "nsIAddrDBListener.h"
 #include "nsCOMPtr.h"
@@ -311,9 +310,7 @@ public:
 
 protected:
 
-  static void    AddToCache(nsAddrDatabase* pAddrDB) {GetDBCache()->AppendElement(pAddrDB);}
-  static void    RemoveFromCache(nsAddrDatabase* pAddrDB);
-  static PRInt32  FindInCache(nsAddrDatabase* pAddrDB);
+  static void RemoveFromCache(nsAddrDatabase* pAddrDB);
   PRBool MatchDbName(nsIFile *dbName); // returns TRUE if they match
 
   void YarnToUInt32(struct mdbYarn *yarn, PRUint32 *pResult);
@@ -343,8 +340,8 @@ protected:
   nsresult GetRowFromAttribute(const char *aName, const nsACString &aUTF8Value,
                                PRBool aCaseInsensitive, nsIMdbRow  **aCardRow);
 
-  static nsVoidArray/*<nsAddrDatabase>*/ * GetDBCache();
-  static nsVoidArray/*<nsAddrDatabase>*/ * m_dbCache;
+  static nsTArray<nsAddrDatabase*>* m_dbCache;
+  static nsTArray<nsAddrDatabase*>* GetDBCache();
 
   // mdb bookkeeping stuff
   nsresult      InitExistingDB();

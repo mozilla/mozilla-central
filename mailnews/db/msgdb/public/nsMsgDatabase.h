@@ -155,7 +155,6 @@ public:
   static void YarnToUInt32(struct mdbYarn *yarn, PRUint32 *i);
   
   static void   CleanupCache();
-  static int    GetNumInCache(void) {return(GetDBCache()->Count());}
 #ifdef DEBUG
   static void   DumpCache();
   virtual nsresult DumpContents();
@@ -189,15 +188,17 @@ protected:
   virtual nsresult AddToThread(nsMsgHdr *newHdr, nsIMsgThread *thread, nsIMsgDBHdr *pMsgHdr, PRBool threadInThread);
   
   
-  // open db cache
+  static nsTArray<nsMsgDatabase*>* m_dbCache;
+  static nsTArray<nsMsgDatabase*>* GetDBCache();
+  
   static void    AddToCache(nsMsgDatabase* pMessageDB) 
   {
 #ifdef DEBUG_David_Bienvenu
-//    NS_ASSERTION(GetNumInCache() < 50, "50 or more open db's");
+//    NS_ASSERTION(GetDBCache()->Length() < 50, "50 or more open db's");
 #endif
-    GetDBCache()->AppendElement(pMessageDB);}
+    GetDBCache()->AppendElement(pMessageDB);
+  }
   static void    RemoveFromCache(nsMsgDatabase* pMessageDB);
-  static int    FindInCache(nsMsgDatabase* pMessageDB);
   PRBool  MatchDbName(nsILocalFile *dbName);  // returns TRUE if they match
   
   // Flag handling routines
@@ -214,11 +215,7 @@ protected:
   virtual nsresult RemoveHeaderFromDB(nsMsgHdr *msgHdr);
   virtual nsresult RemoveHeaderFromThread(nsMsgHdr *msgHdr);
   virtual nsresult AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr);
-  
-  
-  static nsVoidArray/*<nsMsgDatabase>*/* GetDBCache();
-  static nsVoidArray/*<nsMsgDatabase>*/* m_dbCache;
-  
+
   nsCOMPtr <nsICollation> m_collationKeyGenerator;
   nsCOMPtr <nsIMimeConverter> m_mimeConverter;
   nsCOMPtr <nsIMsgRetentionSettings> m_retentionSettings;

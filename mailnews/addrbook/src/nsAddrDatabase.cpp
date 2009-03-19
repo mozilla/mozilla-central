@@ -70,6 +70,11 @@
 #define ID_PAB_TABLE            1
 #define ID_DELETEDCARDS_TABLE           2
 
+// There's two books by default, although Mac may have one more, so set this
+// to three. Its not going to affect much, but will save us a few reallocations
+// when the cache is allocated.
+const PRUint32 kInitialAddrDBCacheSize = 3;
+
 const PRInt32 kAddressBookDBVersion = 1;
 
 static const char kPabTableKind[] = "ns:addrbk:db:table:kind:pab";
@@ -256,44 +261,35 @@ NS_IMETHODIMP nsAddrDatabase::NotifyAnnouncerGoingAway(void)
 }
 
 
+// Apparently its not good for nsTArray to be allocated as static. Don't know
+// why it isn't but its not, so don't think about making it a static variable.
+// Maybe bz knows.
+nsTArray<nsAddrDatabase*>* nsAddrDatabase::m_dbCache = nsnull;
 
-nsVoidArray *nsAddrDatabase::m_dbCache = NULL;
-
-//----------------------------------------------------------------------
-// GetDBCache
-//----------------------------------------------------------------------
-
-nsVoidArray/*<nsAddrDatabase>*/ *
+nsTArray<nsAddrDatabase*>*
 nsAddrDatabase::GetDBCache()
 {
-    if (!m_dbCache)
-        m_dbCache = new nsVoidArray();
+  if (!m_dbCache)
+    m_dbCache = new nsAutoTArray<nsAddrDatabase*, kInitialAddrDBCacheSize>;
 
-    return m_dbCache;
-
+  return m_dbCache;
 }
 
 void
 nsAddrDatabase::CleanupCache()
 {
-    if (m_dbCache) // clean up memory leak
+  if (m_dbCache)
+  {
+    for (PRInt32 i = m_dbCache->Length() - 1; i >= 0; --i)
     {
-        PRInt32 i;
-        for (i = 0; i < GetDBCache()->Count(); i++)
-        {
-            nsAddrDatabase* pAddrDB = static_cast<nsAddrDatabase*>(GetDBCache()->ElementAt(i));
-            if (pAddrDB)
-            {
-                pAddrDB->ForceClosed();
-                i--;    // back up array index, since closing removes db from cache.
-            }
-        }
-//        NS_ASSERTION(GetNumInCache() == 0, "some msg dbs left open");    // better not be any open db's.
-        delete m_dbCache;
+      nsAddrDatabase* pAddrDB = m_dbCache->ElementAt(i);
+      if (pAddrDB)
+        pAddrDB->ForceClosed();
     }
-    m_dbCache = nsnull; // Need to reset to NULL since it's a
-              // static global ptr and maybe referenced
-              // again in other places.
+    //        NS_ASSERTION(m_dbCache.Length() == 0, "some msg dbs left open");    // better not be any open db's.
+    delete m_dbCache;
+    m_dbCache = nsnull;
+  }
 }
 
 //----------------------------------------------------------------------
@@ -301,33 +297,18 @@ nsAddrDatabase::CleanupCache()
 //----------------------------------------------------------------------
 nsAddrDatabase* nsAddrDatabase::FindInCache(nsIFile *dbName)
 {
-    PRInt32 i;
-    for (i = 0; i < GetDBCache()->Count(); i++)
+  nsTArray<nsAddrDatabase*>* dbCache = GetDBCache();
+  PRUint32 length = dbCache->Length();
+  for (PRUint32 i = 0; i < length; ++i)
+  {
+    nsAddrDatabase* pAddrDB = dbCache->ElementAt(i);
+    if (pAddrDB->MatchDbName(dbName))
     {
-        nsAddrDatabase* pAddrDB = static_cast<nsAddrDatabase*>(GetDBCache()->ElementAt(i));
-        if (pAddrDB->MatchDbName(dbName))
-        {
-            NS_ADDREF(pAddrDB);
-            return pAddrDB;
-        }
+      NS_ADDREF(pAddrDB);
+      return pAddrDB;
     }
-    return nsnull;
-}
-
-//----------------------------------------------------------------------
-// FindInCache
-//----------------------------------------------------------------------
-PRInt32 nsAddrDatabase::FindInCache(nsAddrDatabase* pAddrDB)
-{
-    PRInt32 i;
-    for (i = 0; i < GetDBCache()->Count(); i++)
-    {
-        if (GetDBCache()->ElementAt(i) == pAddrDB)
-        {
-            return(i);
-        }
-    }
-    return(-1);
+  }
+  return nsnull;
 }
 
 PRBool nsAddrDatabase::MatchDbName(nsIFile* dbName)    // returns PR_TRUE if they match
@@ -346,11 +327,7 @@ PRBool nsAddrDatabase::MatchDbName(nsIFile* dbName)    // returns PR_TRUE if the
 //----------------------------------------------------------------------
 void nsAddrDatabase::RemoveFromCache(nsAddrDatabase* pAddrDB)
 {
-    PRInt32 i = FindInCache(pAddrDB);
-    if (i != -1)
-    {
-        GetDBCache()->RemoveElementAt(i);
-    }
+  GetDBCache()->RemoveElement(pAddrDB);
 }
 
 void nsAddrDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
