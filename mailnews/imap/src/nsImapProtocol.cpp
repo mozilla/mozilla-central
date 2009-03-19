@@ -1034,8 +1034,14 @@ NS_IMETHODIMP nsImapProtocol::Run()
   // call the platform specific main loop ....
   ImapThreadMainLoop();
 
-  m_runningUrl = nsnull;
-  
+  if (m_runningUrl)
+  {
+    nsCOMPtr<nsIThread> thread = do_GetMainThread();
+    nsIImapUrl *doomed = nsnull;
+    m_runningUrl.swap(doomed);
+    NS_ProxyRelease(thread, doomed);
+  }
+
   // close streams via UI thread if it's not already done
   if (m_imapProtocolSink)
     m_imapProtocolSink->CloseStreams();
