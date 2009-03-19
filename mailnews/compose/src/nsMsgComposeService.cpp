@@ -1280,8 +1280,8 @@ NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, ns
   // nsMsgCompose::ProcessReplyFlags usually takes care of marking messages
   // as forwarded. ProcessReplyFlags is normally called from
   // nsMsgComposeSendListener::OnStopSending but for this case the msgCompose
-  // object is not set so ProcessReplyFlags wont get called.
-  // Therefore, lets just mark it here instead.
+  // object is not set so ProcessReplyFlags won't get called.
+  // Therefore, let's just mark it here instead.
   return folder->AddMessageDispositionState(aMsgHdr, nsIMsgFolder::nsMsgDispositionState_Forwarded);
 }
 
