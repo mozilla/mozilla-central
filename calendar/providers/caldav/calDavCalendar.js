@@ -888,7 +888,8 @@ calDavCalendar.prototype = {
                 // ctag mismatch, need to fetch calendar-data
                 thisCalendar.mCtag = ctag;
                 thisCalendar.mTargetCalendar.setMetaData("ctag", ctag);
-                thisCalendar.getUpdatedItems(this.calendarUri, aChangeLogListener);
+                thisCalendar.getUpdatedItems(thisCalendar.calendarUri,
+                                             aChangeLogListener);
                 if (thisCalendar.verboseLogging()) {
                     cal.LOG("CalDAV: ctag mismatch on refresh, fetching data for " +
                             "calendar " + thisCalendar.name);
@@ -1085,7 +1086,16 @@ calDavCalendar.prototype = {
 
                     var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                            .createInstance(Components.interfaces.calIIcsParser);
-                    parser.parseString(calData, null);
+                    try {
+                        parser.parseString(calData, null);
+                    } catch (e) {
+                        // Warn and continue.
+                        // TODO As soon as we have activity manager integration,
+                        // this should be replace with logic to notify that a
+                        // certain event failed.
+                        cal.WARN("Failed to parse item: " + response.toXMLString());
+                        continue;
+                    }
                     // with CalDAV there really should only be one item here
                     var items = parser.getItems({});
                     var propertiesList = parser.getProperties({});
@@ -1099,12 +1109,8 @@ calDavCalendar.prototype = {
                     var isReply = (method == "REPLY");
                     var item = items[0];
                     if (!item) {
-                        thisCalendar.notifyOperationComplete(aListener,
-                                                             Components.results.NS_ERROR_FAILURE,
-                                                             Components.interfaces.calIOperationListener.GET,
-                                                             null,
-                                                             "failed to retrieve item");
-                        return;
+                        cal.WARN("Failed to parse item: " + response.toXMLString());
+                        continue;
                     }
 
                     item.calendar = thisCalendar.superCalendar;

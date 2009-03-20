@@ -277,9 +277,9 @@ etagsHandler.prototype = {
                 if (r.status.indexOf(" 200") > 0 &&
                     r.getetag && r.getetag.length &&
                     r.href && r.href.length &&
-                    !r.getcontenttype || r.getcontenttype.length) {
+                    r.getcontenttype && r.getcontenttype.length) {
                     let href;
-                    if (r.getcontenttype == "message/rfc822") {
+                    if (r.getcontenttype.substr(0, 14) == "message/rfc822") {
                         // workaround for a Scalix bug which causes incorrect
                         // contenttype to be returned.
                         r.getcontenttype = "text/calendar";
