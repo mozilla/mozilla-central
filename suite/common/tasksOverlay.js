@@ -48,8 +48,9 @@ function toNavigator()
 
 function toPasswordManager()
 {
-  toOpenWindowByType("Password:Manager",
-                     "chrome://communicator/content/passwordManager.xul");
+  toOpenWindowByType("Toolkit:PasswordManager",
+                     "chrome://communicator/content/passwordManager.xul",
+                     "resizable");
 }
 
 function ExpirePassword()
