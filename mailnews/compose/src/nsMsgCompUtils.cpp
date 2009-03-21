@@ -596,10 +596,8 @@ mime_generate_headers (nsMsgCompFields *fields,
         PL_strcpy(ptr+1, ptr2);
     }
 
-    PUSH_STRING ("Followup-To: ");
-    PUSH_STRING (n2);
+    ENCODE_AND_PUSH("Followup-To: ", PR_FALSE, n2, charset, PR_FALSE);
     PR_Free (duppedFollowup);
-    PUSH_NEWLINE ();
   }
 
   if (pTo && *pTo) {

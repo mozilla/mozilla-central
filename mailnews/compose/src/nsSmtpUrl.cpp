@@ -82,6 +82,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
   nsCString escapedOrganizationPart;
   nsCString escapedReplyToPart;
   nsCString escapedPriorityPart;
+
   // okay, first, free up all of our old search part state.....
   CleanupMailtoState();
   // m_toPart has the escaped address from before the query string, copy it
@@ -244,8 +245,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
                            m_toPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
-                           &decodedString))
-          && decodedString)
+                           &decodedString)) && decodedString)
         m_toPart.Adopt(decodedString);
     }
   }
@@ -256,8 +256,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
                            m_ccPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
-                           &decodedString))
-          && decodedString)
+                           &decodedString)) && decodedString)
         m_ccPart.Adopt(decodedString);
     }
   }
@@ -268,8 +267,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
                            m_bccPart.get(),"UTF-8", PR_FALSE, PR_TRUE,
-                           &decodedString))
-          && decodedString)
+                           &decodedString)) && decodedString)
         m_bccPart.Adopt(decodedString);
     }
   }
@@ -280,31 +278,103 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
                            m_subjectPart.get(),"UTF-8", PR_FALSE, PR_TRUE,
-                           &decodedString))
-          && decodedString)
+                           &decodedString)) && decodedString)
         m_subjectPart.Adopt(decodedString);
     }
   }
   if (!escapedNewsgroupPart.IsEmpty())
+  {
     MsgUnescapeString(escapedNewsgroupPart, 0, m_newsgroupPart);
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                         m_newsgroupPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         &decodedString)) && decodedString)
+        m_newsgroupPart.Adopt(decodedString);
+    }
+  }
   if (!escapedReferencePart.IsEmpty())
+  {
     MsgUnescapeString(escapedReferencePart, 0, m_referencePart);
+    // Mime encoding allowed, but only useless such (only ascii allowed).
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                         m_referencePart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         &decodedString)) && decodedString)
+        m_referencePart.Adopt(decodedString);
+    }
+  }
   if (!escapedBodyPart.IsEmpty())
     MsgUnescapeString(escapedBodyPart, 0, m_bodyPart);
   if (!escapedHtmlPart.IsEmpty())
     MsgUnescapeString(escapedHtmlPart, 0, m_htmlPart);
   if (!escapedNewsHostPart.IsEmpty())
+  {
     MsgUnescapeString(escapedNewsHostPart, 0, m_newsHostPart);
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                         m_newsHostPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         &decodedString)) && decodedString)
+        m_newsHostPart.Adopt(decodedString);
+    }
+  }
   if (!escapedFollowUpToPart.IsEmpty())
+  {
     MsgUnescapeString(escapedFollowUpToPart, 0, m_followUpToPart);
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                         m_followUpToPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         &decodedString)) && decodedString)
+        m_followUpToPart.Adopt(decodedString);
+    }
+  }
   if (!escapedFromPart.IsEmpty())
+  {
     MsgUnescapeString(escapedFromPart, 0, m_fromPart);
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                         m_fromPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         &decodedString)) && decodedString)
+        m_fromPart.Adopt(decodedString);
+    }
+  }
   if (!escapedOrganizationPart.IsEmpty())
+  {
     MsgUnescapeString(escapedOrganizationPart, 0, m_organizationPart);
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                         m_organizationPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         &decodedString)) && decodedString)
+        m_organizationPart.Adopt(decodedString);
+    }
+  }
   if (!escapedReplyToPart.IsEmpty())
+  {
     MsgUnescapeString(escapedReplyToPart, 0, m_replyToPart);
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                         m_replyToPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         &decodedString)) && decodedString)
+        m_replyToPart.Adopt(decodedString);
+    }
+  }
   if (!escapedPriorityPart.IsEmpty())
+  {
     MsgUnescapeString(escapedPriorityPart, 0, m_priorityPart);
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                         m_priorityPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         &decodedString)) && decodedString)
+        m_priorityPart.Adopt(decodedString);
+    }
+  }
 
   return NS_OK;
 }
