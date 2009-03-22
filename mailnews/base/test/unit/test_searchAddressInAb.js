@@ -73,17 +73,18 @@ const Keywords = nsMsgSearchAttrib.Keywords; // control entry that is not enable
  * Test emails may also include the address "invalid@example.com"
  *
  *
- * Map of test email contents: (P is "Prim...", I is "inva.." address)
+ * Map of test email contents: (P is "Prim...", I is "inva.." address, N is none)
  *
- *  Email      From       To      CC
- *    1         P         I       I
- *    2         P         P       P
- *    3         I         P       I
- *    4         I         I       P
- *    5         P         I       P
- *    6         I         I,P     P,I
- *    7         I         I       I
- *    8         I         P       P
+ *
+ *  Email      From       To      CC    BCC
+ *    1         P         I       I     N
+ *    2         P         P       P     N
+ *    3         I         P       I     N
+ *    4         I         I       P     N
+ *    5         P         I       P     N
+ *    6         I         I,P     P,I   N
+ *    7         I         I       I     P
+ *    8         I         P       P     N
  *
  */
  
@@ -104,7 +105,7 @@ var Tests =
   { value: ABUri,
     attrib: AllAddresses,
     op: IsInAB,
-    count: 7 },
+    count: 8 },
   { value: ABUri,
     attrib: CCopy,
     op: IsInAB,

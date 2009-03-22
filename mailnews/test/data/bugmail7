@@ -30,6 +30,7 @@ Message-Id: <bugmail7.m47LtAEf007542@mrapp51.mozilla.org>
 From: invalid@example.com
 To: invalid@example.com
 Cc: invalid@example.com
+Bcc: PrimaryEmail1@test.invalid
 Subject: [Bug 397009] A filter will let me tag, but not untag
 X-Bugzilla-Reason: None
 X-Bugzilla-Type: newchanged
