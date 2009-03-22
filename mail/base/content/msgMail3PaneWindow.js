@@ -668,7 +668,8 @@ function OnLoadMessenger()
   CreateMailWindowGlobals();
   GetMessagePane().collapsed = true;
   // verifyAccounts returns true if the callback won't be called
-  if (verifyAccounts(LoadPostAccountWizard))
+  // We also don't want the account wizard to open if any sort of account exists
+  if (verifyAccounts(LoadPostAccountWizard, false))
     LoadPostAccountWizard();
 
   // initialize tabmail system

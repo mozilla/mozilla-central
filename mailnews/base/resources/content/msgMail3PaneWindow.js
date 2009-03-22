@@ -703,7 +703,7 @@ function OnLoadMessenger()
   Create3PaneGlobals();
   AddToolBarPrefListener();
   ShowHideToolBarButtons();
-  verifyAccounts(null);
+  verifyAccounts(null, false);
 
   InitMsgWindow();
   messenger.setWindow(window, msgWindow);

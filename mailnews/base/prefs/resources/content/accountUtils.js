@@ -97,7 +97,7 @@ function showMailIntegrationDialog() {
   } catch (ex) {}
 }
 
-function verifyAccounts(wizardCallback) 
+function verifyAccounts(wizardCallback, needsIdentity) 
 {
 	var openWizard = false;
   var prefillAccount;
@@ -141,20 +141,21 @@ function verifyAccounts(wizardCallback)
         if ((newProfile  && !accountCount) || accountCount == invalidAccounts.length)
           openWizard = true;
 
-        //We are doing openWizard if  MessengerMigration returns some kind of error
-        //(including those cases where there is nothing to migrate).
-        //prefillAccount is valid, if there is an invalid account already 
-        //gAnyValidIdentity is true when you've got at least one *valid* identity,
-        //Since local folders is an identity-less account, if you only have
-        //local folders, it will be false.
-        //wizardCallback is true only when verifyAccounts is called from compose window or
-        //initial startup.
-        //the last condition in the if is so that we call account wizard only when the user
-        //has only a local folder and tries to compose mail.
+        // openWizard is true if messenger migration returns some kind of
+        // error (including those cases where there is nothing to migrate).
+        // prefillAccount is non-null if there is at least one invalid account.
+        // gAnyValidIdentity is true when you've got at least one *valid*
+        // identity. Since local and RSS folders are identity-less accounts, if you
+        // only have one of those, it will be false.
+        // needsIdentity is true only when verifyAccounts is called from the
+        // compose window. This last condition is so that we open the account
+        // wizard if the user does not have any identities defined and tries to
+        // compose mail.
 
-        if (openWizard || prefillAccount || ((!gAnyValidIdentity) && wizardCallback)) {
-            MsgAccountWizard(wizardCallback);
-            ret = false;
+        if (openWizard || prefillAccount || ((!gAnyValidIdentity) && needsIdentity))
+        {
+          MsgAccountWizard(wizardCallback);
+          ret = false;
         }
         else
         {

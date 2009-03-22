@@ -145,7 +145,7 @@ function OnLoadAddressBook()
 {
   gSearchInput = document.getElementById("searchInput");
 
-  verifyAccounts(null); 	// this will do migration, if we need to.
+  verifyAccounts(null, false); 	// this will do migration, if we need to.
 
   InitCommonJS();
 

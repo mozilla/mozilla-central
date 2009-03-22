@@ -1492,7 +1492,9 @@ function ComposeLoad()
 
   try {
     SetupCommandUpdateHandlers();
-    var state = verifyAccounts(WizCallback); // this will do migration, or create a new account if we need to.
+    // This will do migration, or create a new account if we need to.
+    // We also want to open the account wizard if no identities are found
+    var state = verifyAccounts(WizCallback, true);
 
     if (sOther_headers) {
       var selectNode = document.getElementById('addressCol1#1');
