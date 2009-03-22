@@ -138,33 +138,53 @@ var security = {
   /**
    * Open the cookie manager window
    */
-  viewCookies: windowOpener("Browser:Cookies",
-                            "chrome://communicator/content/permissions/cookieViewer.xul",
-                            "cookieManager"),
+  viewCookies : function()
+  {
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator);
+    var win = wm.getMostRecentWindow("mozilla:cookieviewer");
+    var eTLDService = Components.classes["@mozilla.org/network/effective-tld-service;1"].
+                      getService(Components.interfaces.nsIEffectiveTLDService);
+
+    var eTLD;
+    var uri = gDocument.documentURIObject;
+    try {
+      eTLD = eTLDService.getBaseDomain(uri);
+    }
+    catch (e) {
+      // getBaseDomain will fail if the host is an IP address or is empty
+      eTLD = uri.asciiHost;
+    }
+
+    if (win) {
+      win.setFilter(eTLD);
+      win.focus();
+    }
+    else
+      window.openDialog("chrome://communicator/content/permissions/cookieViewer.xul",
+                        "", "resizable", {filterString : eTLD});
+  },
   
   /**
    * Open the login manager window
    */
-  viewPasswords: windowOpener("Toolkit:PasswordManager",
-                              "chrome://communicator/content/wallet/SignonViewer.xul",
-                              "S"),
-
-  _cert : null
-};
-
-function windowOpener(class, url, args)
-{
-  return function()
+  viewPasswords : function()
   {
     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                        .getService(Components.interfaces.nsIWindowMediator);
-    var win = wm.getMostRecentWindow(class);
-    if (win)
+    var win = wm.getMostRecentWindow("Toolkit:PasswordManager");
+    if (win) {
+      win.setFilter(this._getSecurityInfo().hostName);
       win.focus();
+    }
     else
-      window.openDialog(url, class, "chrome,resizable", args);
-  }
-}
+      window.openDialog("chrome://communicator/content/passwordManager.xul",
+                        "", "resizable",
+                        {filterString : this._getSecurityInfo().hostName});
+  },
+
+  _cert : null
+};
 
 function securityOnLoad() {
   var info = security._getSecurityInfo();

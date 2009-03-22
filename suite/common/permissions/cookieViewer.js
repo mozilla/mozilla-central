@@ -95,6 +95,12 @@ function Startup() {
   kObserverService.addObserver(cookieReloadDisplay, "cookie-changed", false);
   kObserverService.addObserver(cookieReloadDisplay, "perm-changed", false);
 
+  // filter the table if requested by caller
+  if (window.arguments &&
+      window.arguments[0] &&
+      window.arguments[0].filterString)
+    setFilter(window.arguments[0].filterString);
+
   document.getElementById("filter").focus();
 }
 
@@ -607,6 +613,12 @@ function filter(filter)
   // if the view is filtered and not empty then select the first item
   if (filter && cookies.length)
     cookiesTreeView.selection.select(0);
+}
+
+function setFilter(aFilterString)
+{
+  document.getElementById("filter").value = aFilterString;
+  filter(aFilterString);
 }
 
 function focusFilterBox()
