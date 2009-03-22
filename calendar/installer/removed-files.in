@@ -434,3 +434,9 @@ modules/JSON.jsm
 calendar-js/calProviderBase.js
 calendar-js/calProviderUtils.js
 calendar-js/calAuthUtils.js
+
+#ifndef MOZILLA_1_9_1_BRANCH
+# Bug 420811 replace loading and broken image GIFs with PNGs
+res/broken-image.gif
+res/loading-image.gif
+#endif

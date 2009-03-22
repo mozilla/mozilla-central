@@ -248,6 +248,10 @@ components/myspell/en-US.aff
 regxpcom.exe
 components/xmlextras.xpt
 res/cmessage.txt
+#ifndef MOZILLA_1_9_1_BRANCH
+res/broken-image.gif
+res/loading-image.gif
+#endif
 res/html/gopher-audio.gif
 res/html/gopher-binary.gif
 res/html/gopher-find.gif

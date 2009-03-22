@@ -117,3 +117,7 @@ components/nsPostUpdateWin.js
 #else
 xpicleanup
 #endif
+#ifndef MOZILLA_1_9_1_BRANCH
+res/broken-image.gif
+res/loading-image.gif
+#endif
