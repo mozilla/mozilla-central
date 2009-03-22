@@ -88,8 +88,6 @@ var gHaveLoadedMessage;
 
 var gDisplayStartupPage = false;
 
-var gNotifyDefaultInboxLoadedOnStartup = false;
-
 function SelectAndScrollToKey(aMsgKey)
 {
   // select the desired message
@@ -232,16 +230,6 @@ var folderListener = {
             if (!scrolled && !(gMsgFolderSelected.flags & nsMsgFolderFlags.Virtual))
               ScrollToMessageAfterFolderLoad(msgFolder);
             SetBusyCursor(window, false);
-          }
-          if (gNotifyDefaultInboxLoadedOnStartup && (folder.flags & 0x1000))
-          {
-            var inboxFolder = GetInboxFolder(accountManager.defaultAccount
-                                                           .incomingServer);
-            if (inboxFolder && inboxFolder.URI == folder.URI)
-            {
-              NotifyObservers(null,"defaultInboxLoadedOnStartup",null);
-              gNotifyDefaultInboxLoadedOnStartup = false;
-            }
           }
           // Folder loading is over,
           // now issue quick search if there is an email address.
@@ -753,8 +741,6 @@ function OnLoadMessenger()
   OnLoadMsgHeaderPane();
 
   gHaveLoadedMessage = false;
-
-  gNotifyDefaultInboxLoadedOnStartup = true;
 
   //Set focus to the Thread Pane the first time the window is opened.
   SetFocusThreadPane();
