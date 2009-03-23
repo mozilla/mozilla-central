@@ -68,8 +68,7 @@
 }
 
 .tabmail-tab[busy] > .tab-image-middle > .tab-icon > .tab-icon-image {
-  list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif") !important;
-  opacity: 0.6;
+  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
 }
 
 .tabmail-tab[selected="true"] {
@@ -507,6 +506,5 @@ stack[chromedir="rtl"] > hbox > .tabs-alltabs-box-animate {
 }
 
 .alltabs-item[busy] > .menu-iconic-left > .menu-iconic-icon {
-  list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif");
-  opacity: 0.6;
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }

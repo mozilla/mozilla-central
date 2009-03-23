@@ -349,7 +349,7 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
 /* ..... update notifications ..... */
 
 #checkForUpdates[loading="true"] {
-  list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif");
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }
 
 #threadTree treechildren::-moz-tree-row(odd) {
