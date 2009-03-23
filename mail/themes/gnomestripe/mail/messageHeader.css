@@ -267,12 +267,13 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   min-height: 1ex;
 }
 
-/* had to set a silly attribute on the XUL element to make it so that this
-  rule overrides the rule above.  Better fix wanted! */
-.hdrTrashButton[trash="true"] { 
-  -moz-box-orient: vertical !important;
-  list-style-image: url("chrome://messenger/skin/icons/folder.png") !important;
-  -moz-image-region: rect(1px 142px 15px 126px);
+.hdrTrashButton {
+  -moz-box-orient: vertical;
+  list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
+}
+
+.hdrTrashButton > .button-box > .button-icon {
+  -moz-margin-end: 0px;
 }
 
 .msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button {

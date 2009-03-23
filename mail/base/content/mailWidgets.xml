@@ -2126,7 +2126,7 @@
                    observes="button_junk" class="msgHeaderView-button hdrJunkButton"
                    oncommand="goDoCommand('button_junk');RestoreFocusAfterHdrButton();"/>
        <xul:button anonid="hdrTrashButton" tooltiptext="&trashButton.tooltiptext;"
-                   observes="button_delete" trash="true"
+                   observes="button_delete"
                    class="msgHeaderView-button hdrTrashButton" 
                    oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' :
                               'cmd_delete');RestoreFocusAfterHdrButton();"/>
