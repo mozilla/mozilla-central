@@ -2198,11 +2198,20 @@ function MsgSynchronizeOffline()
 
 function SpaceHit(event)
 {
-  var contentWindow = window.top.content;
-  var rssiframe = contentWindow.document.getElementById('_mailrssiframe');
+  var contentWindow = document.commandDispatcher.focusedWindow;
+  // If focus is in chrome, we want to scroll the content window; if focus is
+  // on a non-link content element like a button, bail so we don't scroll when
+  // the element is going to do something else.
+  if (contentWindow.top == window)
+    contentWindow = content;
+  else if (document.commandDispatcher.focusedElement &&
+           !hRefForClickEvent(event))
+    return;
 
-  // if we are displaying an RSS article, we really want to scroll the nested iframe
-  if (rssiframe)
+  var rssiframe = contentWindow.document.getElementById('_mailrssiframe');
+  // If we are displaying an RSS article, we really want to scroll
+  // the nested iframe.
+  if (contentWindow == content && rssiframe)
     contentWindow = rssiframe.contentWindow;
 
   if (event && event.shiftKey) {
