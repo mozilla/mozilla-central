@@ -48,7 +48,6 @@ MODULE		= lightning
 
 export XPI_NAME = lightning
 export USE_EXTENSION_MANIFEST = 1
-export NO_JAR_AUTO_REG = 1
 XPI_PKGNAME = lightning
 
 STRIP_XPI = 1
@@ -119,8 +118,8 @@ GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $
 DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 
 libs-%:
-	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
-	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
+	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1
 
 # xxx todo: unless our packaging story is revised (bug 406579) we package up timezones.sqlite
 libs::

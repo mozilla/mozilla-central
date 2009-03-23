@@ -47,7 +47,6 @@ include $(DEPTH)/config/autoconf.mk
 MODULE                 = debugQA
 XPI_NAME               = debugQA
 USE_EXTENSION_MANIFEST = 1
-NO_JAR_AUTO_REG        = 1
 INSTALL_EXTENSION_ID   = debugQA@mozilla.org
 XPI_PKGNAME            = debugQA-$(MOZ_APP_VERSION)
 

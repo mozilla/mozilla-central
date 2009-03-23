@@ -45,7 +45,6 @@ relativesrcdir=suite/debugQA/locales
 
 XPI_NAME               = debugQA
 USE_EXTENSION_MANIFEST = 1
-NO_JAR_AUTO_REG        = 1
 
 # include config.mk before we override the AB_CD var it sets
 include $(topsrcdir)/config/config.mk

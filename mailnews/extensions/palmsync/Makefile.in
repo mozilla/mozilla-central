@@ -45,7 +45,6 @@ include $(DEPTH)/config/autoconf.mk
 MODULE			= palmsync
 XPI_NAME		= palmsync
 USE_EXTENSION_MANIFEST	= 1
-NO_JAR_AUTO_REG		= 1
 # make this id as short as possible due to a bug with the palm deskop and long path names.
 # Change installer/Makefile.in and nsPalmSyncSupport.cpp if this changes.
 INSTALL_EXTENSION_ID	= p@m
