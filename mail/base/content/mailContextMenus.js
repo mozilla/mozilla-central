@@ -139,12 +139,11 @@ function fillMailContextMenu(event)
     document.getElementById("mailContext-selectall").hidden = true;
     document.getElementById("mailContext-copy").hidden = true;
   }
-  ShowMenuItem("threadPaneContext-openNewTab", inThreadPane);
 
-  // Show the Open in New Window option if applicable, and enable it if there's
-  // exactly one message selected.
+  // Show the Open in New Window  and New Tab options if there is exactly one
+  // message selected.
   ShowMenuItem("mailContext-openNewWindow", single && inThreadPane);
-  EnableMenuItem("mailContext-openNewWindow", single);
+  ShowMenuItem("threadPaneContext-openNewTab", single && inThreadPane);
 
   /**
    * Most menu items are visible if there's 1 or 0 messages selected, and
