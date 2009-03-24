@@ -1786,12 +1786,11 @@ PRBool nsImapProtocol::RetryUrl()
   nsAutoCMonitor mon(this);
   nsCOMPtr <nsIImapUrl> kungFuGripImapUrl = m_runningUrl;
   nsCOMPtr <nsIImapMockChannel> saveMockChannel;
+  
+  // the mock channel might be null - that's OK.
   if (m_imapServerSink)
-  {
-    nsresult rv = m_imapServerSink->PrepareToRetryUrl(kungFuGripImapUrl, getter_AddRefs(saveMockChannel));
-    // the channel might have gone away - we'll just not retry in that case.
-    NS_ENSURE_SUCCESS(rv, PR_FALSE);
-  }
+    (void) m_imapServerSink->PrepareToRetryUrl(kungFuGripImapUrl, getter_AddRefs(saveMockChannel));
+  
   ReleaseUrlState(PR_TRUE);
   nsresult rv;
   nsCOMPtr<nsIImapIncomingServer> imapServer  = do_QueryReferent(m_server, &rv);
