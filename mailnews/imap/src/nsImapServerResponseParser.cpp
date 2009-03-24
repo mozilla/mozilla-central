@@ -1990,7 +1990,11 @@ void nsImapServerResponseParser::resp_text_code()
       fUseModSeq = PR_FALSE;
       skip_to_CRLF();
     }
-    else 	// just text
+    else if (!PL_strcasecmp(fNextToken, "CAPABILITY"))
+    {
+      capability_data();
+    }
+    else // just text
     {
       // do nothing but eat tokens until we see the ] or CRLF
       // we should see the ] but we don't want to go into an
@@ -2163,7 +2167,6 @@ void nsImapServerResponseParser::capability_data()
   fCapabilityFlag = kCapabilityDefined;
   do {
     AdvanceToNextToken();
-    // for now we only care about AUTH=LOGIN
     if (fNextToken) {
       if(! PL_strcasecmp(fNextToken, "AUTH=LOGIN"))
         fCapabilityFlag |= kHasAuthLoginCapability;
@@ -2219,12 +2222,9 @@ void nsImapServerResponseParser::capability_data()
         fCapabilityFlag |= kHasCondStoreCapability;
       else if (! PL_strcasecmp(fNextToken, "ENABLE"))
         fCapabilityFlag |= kHasEnableCapability;
-
     }
-  } while (fNextToken && 
-			 !fAtEndOfLine &&
-                         ContinueParse());
-  
+  } while (fNextToken && !fAtEndOfLine && ContinueParse());
+
   if (fHostSessionList)
     fHostSessionList->SetCapabilityForHost(
     fServerConnection.GetImapServerKey(), 
