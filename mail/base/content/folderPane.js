@@ -375,6 +375,10 @@ let gFolderTreeView = {
         // Don't allow to drop on itself.
         if (targetFolder == folder)
           return false;
+        // Don't copy within same server.
+        if ((folder.server == targetFolder.server) &&
+             (dt.dropEffect == 'copy'))
+          return false;
         // Don't allow immediate child to be dropped onto its parent.
         if (targetFolder == folder.parent)
           return false;
