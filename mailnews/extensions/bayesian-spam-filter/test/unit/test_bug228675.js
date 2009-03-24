@@ -43,8 +43,8 @@ do_import_script("../mailnews/extensions/bayesian-spam-filter/test/resources/tra
 const nsIPrefBranch = Cc["@mozilla.org/preferences-service;1"]
                         .getService(Ci.nsIPrefBranch);
 
-// before shrink, the trained messages have 78 tokens. Force shrink.
-nsIPrefBranch.setIntPref("mailnews.bayesian_spam_filter.junk_maxtokens", 77);
+// before shrink, the trained messages have 76 tokens. Force shrink.
+nsIPrefBranch.setIntPref("mailnews.bayesian_spam_filter.junk_maxtokens", 75);
 
 const nsIJunkMailPlugin = Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
                             .getService(Ci.nsIJunkMailPlugin);

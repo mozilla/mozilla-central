@@ -47,6 +47,7 @@
 #include "pldhash.h"
 #include "nsITimer.h"
 #include "nsTArray.h"
+#include "nsStringGlue.h"
 
 // XXX can't simply byte align arenas, must at least 2-byte align.
 #define PL_ARENA_CONST_ALIGN_MASK 1
@@ -166,12 +167,27 @@ public:
 
     void tokenizeAttachment(const char * aContentType, const char * aFileName);
 
+    nsCString mBodyDelimiters; // delimiters for body tokenization
+    nsCString mHeaderDelimiters; // delimiters for header tokenization
+
+    // arrays of extra headers to tokenize / to not tokenize
+    nsTArray<nsCString> mEnabledHeaders;
+    nsTArray<nsCString> mDisabledHeaders;
+    // Delimiters used in tokenizing a particular header.
+    // Parallel array to mEnabledHeaders
+    nsTArray<nsCString> mEnabledHeadersDelimiters;
+    PRBool mCustomHeaderTokenization; // Are there any preference-set tokenization customizations?
+    PRInt32 mMaxLengthForToken; // maximum length of a token
+
 private:
 
     void tokenize_ascii_word(char * word);
     void tokenize_japanese_word(char* chunk);
-    inline void addTokenForHeader(const char * aTokenPrefix, nsACString& aValue, PRBool aTokenizeValue = false);
+    inline void addTokenForHeader(const char * aTokenPrefix, nsACString& aValue,
+        PRBool aTokenizeValue = false, const char* aDelimiters = nsnull);
     nsresult stripHTML(const nsAString& inString, nsAString& outString);
+    // helper function to escape \n, \t, etc from a CString
+    void UnescapeCString(nsCString& aCString);
 
 private:
     nsCOMPtr<nsISemanticUnitScanner> mScanner;

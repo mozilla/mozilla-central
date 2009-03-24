@@ -320,8 +320,109 @@ inline TokenEnumeration TokenHash::getTokens()
 }
 
 Tokenizer::Tokenizer() :
-  TokenHash(sizeof(Token))
+  TokenHash(sizeof(Token)),
+  mCustomHeaderTokenization(PR_FALSE),
+  mBodyDelimiters(kBayesianFilterTokenDelimiters),
+  mHeaderDelimiters(kBayesianFilterTokenDelimiters),
+  mMaxLengthForToken(kMaxLengthForToken)
 {
+  nsresult rv;
+  nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, );
+
+  nsCOMPtr<nsIPrefBranch> prefBranch;
+  rv = prefs->GetBranch("mailnews.bayesian_spam_filter.", getter_AddRefs(prefBranch));
+  if (NS_FAILED(rv)) // no branch defined, just use defaults
+    return;
+
+  /*
+   * the list of delimiters used to tokenize the message and body
+   * defaults to the value in kBayesianFilterTokenDelimiters, but may be
+   * set with the following preferences for the body and header
+   * separately.
+   *
+   * \t, \n, \v, \f, \r, and \\ will be escaped to their normal
+   * C-library values, all other two-letter combinations beginning with \
+   * will be ignored.
+   */
+
+  prefBranch->GetCharPref("body_delimiters", getter_Copies(mBodyDelimiters));
+  if (!mBodyDelimiters.IsEmpty())
+    UnescapeCString(mBodyDelimiters);
+  else // prefBranch empties the result when it fails :(
+    mBodyDelimiters.Assign(kBayesianFilterTokenDelimiters);
+
+  prefBranch->GetCharPref("header_delimiters", getter_Copies(mHeaderDelimiters));
+  if (!mHeaderDelimiters.IsEmpty())
+    UnescapeCString(mHeaderDelimiters);
+  else
+    mHeaderDelimiters.Assign(kBayesianFilterTokenDelimiters);
+
+  /*
+   * Extensions may wish to enable or disable tokenization of certain headers.
+   * Define any headers to enable/disable in a string preference like this:
+   *   "mailnews.bayesian_spam_filter.tokenizeheader.headername"
+   *
+   * where "headername" is the header to tokenize. For example, to tokenize the
+   * header "x-spam-status" use the preference:
+   *
+   *   "mailnews.bayesian_spam_filter.tokenizeheader.x-spam-status"
+   *
+   * The value of the string preference will be interpreted in one of
+   * four ways, depending on the value:
+   *
+   *   If "false" then do not tokenize that header
+   *   If "full" then add the entire header value as a token,
+   *     without breaking up into subtokens using delimiters
+   *   If "standard" then tokenize the header using as delimiters the current
+   *     value of the generic header delimiters
+   *   Any other string is interpreted as a list of delimiters to use to parse
+   *     the header. \t, \n, \v, \f, \r, and \\ will be escaped to their normal
+   *     C-library values, all other two-letter combinations beginning with \
+   *     will be ignored.
+   *
+   * Header names in the preference should be all lower case
+   *
+   * Extensions may also set the maximum length of a token (default is
+   * kMaxLengthForToken) by setting the int preference:
+   *   "mailnews.bayesian_spam_filter.maxlengthfortoken"
+   */
+
+  char** headers;
+  PRUint32 count;
+
+  // get customized maximum token length
+  rv = prefBranch->GetIntPref("maxlengthfortoken", &mMaxLengthForToken);
+  if (NS_FAILED(rv))
+    mMaxLengthForToken = kMaxLengthForToken;
+
+  rv = prefs->GetBranch("mailnews.bayesian_spam_filter.tokenizeheader.", getter_AddRefs(prefBranch));
+  if (NS_SUCCEEDED(rv))
+    rv = prefBranch->GetChildList("", &count, &headers);
+
+  if (NS_SUCCEEDED(rv))
+  {
+    mCustomHeaderTokenization = PR_TRUE;
+    for (PRUint32 i = 0; i < count; i++)
+    {
+      nsCString value;
+      prefBranch->GetCharPref(headers[i], getter_Copies(value));
+      if (value.EqualsLiteral("false"))
+      {
+        mDisabledHeaders.AppendElement(headers[i]);
+        continue;
+      }
+      mEnabledHeaders.AppendElement(headers[i]);
+      if (value.EqualsLiteral("standard"))
+        value.SetIsVoid(PR_TRUE); // Void means use default delimiter
+      else if (value.EqualsLiteral("full"))
+        value.Truncate(); // Empty means add full header
+      else
+        UnescapeCString(value);
+      mEnabledHeadersDelimiters.AppendElement(value);
+    }
+    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(count, headers);
+  }
 }
 
 Tokenizer::~Tokenizer()
@@ -384,7 +485,8 @@ static char* toLowerCase(char* str)
     return str;
 }
 
-void Tokenizer::addTokenForHeader(const char * aTokenPrefix, nsACString& aValue, PRBool aTokenizeValue)
+void Tokenizer::addTokenForHeader(const char * aTokenPrefix, nsACString& aValue,
+                                  PRBool aTokenizeValue, const char* aDelimiters)
 {
   if (aValue.Length())
   {
@@ -403,10 +505,14 @@ void Tokenizer::addTokenForHeader(const char * aTokenPrefix, nsACString& aValue,
       char* word;
       nsCString str(aValue);
       char *next = str.BeginWriting();
-      while ((word = NS_strtok(kBayesianFilterTokenDelimiters, &next)) != NULL)
+      const char* delimiters = !aDelimiters ?
+          mHeaderDelimiters.get() : aDelimiters;
+      while ((word = NS_strtok(delimiters, &next)) != NULL)
       {
-        if (word[0] == '\0') continue;
-        if (isDecimalNumber(word)) continue;
+        if (strlen(word) < kMinLengthForToken)
+          continue;
+        if (isDecimalNumber(word))
+          continue;
         if (isASCII(word))
         {
           nsCString tmpStr;
@@ -439,13 +545,47 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
 {
   nsCString headerValue;
   nsCAutoString headerName; // we'll be normalizing all header names to lower case
-  PRBool hasMore = PR_TRUE;
-
-  while (hasMore)
+  PRBool hasMore;
+ 
+  while (aHeaderNames->HasMore(&hasMore), hasMore)
   {
     aHeaderNames->GetNext(headerName);
     ToLowerCase(headerName);
     aHeaderValues->GetNext(headerValue);
+
+    PRBool headerProcessed = PR_FALSE;
+    if (mCustomHeaderTokenization)
+    {
+      // Process any exceptions set from preferences
+      for (PRUint32 i = 0; i < mEnabledHeaders.Length(); i++)
+        if (headerName.Equals(mEnabledHeaders[i]))
+        {
+          if (mEnabledHeadersDelimiters[i].IsVoid())
+            // tokenize with standard delimiters for all headers
+            addTokenForHeader(headerName.get(), headerValue, PR_TRUE);
+          else if (mEnabledHeadersDelimiters[i].IsEmpty())
+            // do not break the header into tokens
+            addTokenForHeader(headerName.get(), headerValue);
+          else
+            // use the delimiter in mEnabledHeadersDelimiters
+            addTokenForHeader(headerName.get(), headerValue, PR_TRUE,
+                              mEnabledHeadersDelimiters[i].get());
+          headerProcessed = PR_TRUE;
+          break; // we found the header, no need to look for more custom values
+        }
+
+      for (PRUint32 i = 0; i < mDisabledHeaders.Length(); i++)
+      {
+        if (headerName.Equals(mDisabledHeaders[i]))
+        {
+          headerProcessed = PR_TRUE;
+          break;
+        }
+      }
+
+      if (headerProcessed)
+        continue;
+    }
 
     switch (headerName.First())
     {
@@ -504,7 +644,6 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
         break;
     } // end switch
 
-    aHeaderNames->HasMore(&hasMore);
   }
 }
 
@@ -515,9 +654,9 @@ void Tokenizer::tokenize_ascii_word(char * aWord)
   PRInt32 wordLength = strlen(aWord);
 
   // if the wordLength is within our accepted token limit, then add it
-  if (wordLength >= kMinLengthForToken && wordLength <= kMaxLengthForToken)
+  if (wordLength >= kMinLengthForToken && wordLength <= mMaxLengthForToken)
     add(aWord);
-  else if (wordLength > kMaxLengthForToken)
+  else if (wordLength > mMaxLengthForToken)
   {
     // don't skip over the word if it looks like an email address,
     // there is value in adding tokens for addresses
@@ -706,7 +845,7 @@ void Tokenizer::tokenize(const char* aText)
 
   char* word;
   char* next = strippedText;
-  while ((word = NS_strtok(kBayesianFilterTokenDelimiters, &next)) != NULL) {
+  while ((word = NS_strtok(mBodyDelimiters.get(), &next)) != NULL) {
     if (!*word) continue;
     if (isDecimalNumber(word)) continue;
     if (isASCII(word))
@@ -745,6 +884,58 @@ void Tokenizer::tokenize(const char* aText)
         }
     }
   }
+}
+
+// helper function to escape \n, \t, etc from a CString
+void Tokenizer::UnescapeCString(nsCString& aCString)
+{
+  nsCAutoString result;
+
+  const char* readEnd = aCString.EndReading();
+  char* writeStart = result.BeginWriting();
+  char* writeIter = writeStart;
+
+  PRBool inEscape = PR_FALSE;
+  for (const char* readIter = aCString.BeginReading(); readIter != readEnd; readIter++)
+  {
+    if (!inEscape)
+    {
+      if (*readIter == '\\')
+        inEscape = PR_TRUE;
+      else
+        *(writeIter++) = *readIter;
+    }
+    else
+    {
+      inEscape = PR_FALSE;
+      switch (*readIter)
+      {
+        case '\\':
+          *(writeIter++) = '\\';
+          break;
+        case 't':
+          *(writeIter++) = '\t';
+          break;
+        case 'n':
+          *(writeIter++) = '\n';
+          break;
+        case 'v':
+          *(writeIter++) = '\v';
+          break;
+        case 'f':
+          *(writeIter++) = '\f';
+          break;
+        case 'r':
+          *(writeIter++) = '\r';
+          break;
+        default:
+          // all other escapes are ignored
+          break;
+      }
+    }
+  }
+  result.SetLength(writeIter - writeStart);
+  aCString.Assign(result);
 }
 
 Token* Tokenizer::copyTokens()
@@ -935,7 +1126,7 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
         char* lastDelimiter = NULL;
         char* scan = buffer + totalCount;
         while (scan > buffer) {
-            if (strchr(kBayesianFilterTokenDelimiters, *--scan)) {
+            if (strchr(mTokenizer.mBodyDelimiters.get(), *--scan)) {
                 lastDelimiter = scan;
                 break;
             }

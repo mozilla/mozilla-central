@@ -54,6 +54,7 @@ MOZILLA_INTERNAL_API = 1
 REQUIRES	= xpcom \
 		  msgbase \
 		  lwbrk \
+		  string \
 		  $(NULL)
 
 ifeq ($(USE_SHORT_LIBNAME),1)

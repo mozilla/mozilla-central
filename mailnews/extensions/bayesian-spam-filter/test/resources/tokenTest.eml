@@ -1,0 +1,14 @@
+Date: Tue, 30 Apr 2008 00:12:17 -0700
+From: Mom <mother@example.com>
+To: Careful Reader <reader@example.org>
+Subject: eat your vegetables to live long
+Received: from c-1-2-3-4.hsd1.wa.example.net ([1.2.3.4] helo=theComputer)
+	by host301.example.com with esmtpa (Exim 4.69)
+	(envelope-from <someone@example.com>)
+	id 1LeEgH-0003GN-Rr
+	for reader@example.org; Mon, 02 Mar 2009 13:24:06 -0700
+MIME-Version: 1.0
+Message-Id: 14159
+Sender: Bugzilla Test Setup <noreply@example.org>
+
+This is a sentence. Important URL is http://www.example.org Check it out!
