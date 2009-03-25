@@ -199,12 +199,13 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
     nsAutoString arg;
     aCmdLine->GetArgument(0, arg);
 
-    rv = aCmdLine->RemoveArguments(0, 0);
-    NS_ENSURE_SUCCESS(rv, rv);
     mailPath = arg;
 #ifdef XP_WIN
     if (StringEndsWith(mailPath, NS_LITERAL_STRING(".wdseml"), nsCaseInsensitiveStringComparator()))
     {
+      rv = aCmdLine->RemoveArguments(0, 0);
+      NS_ENSURE_SUCCESS(rv, rv);
+
       rv = HandleIndexerResult(mailPath);
       // If we've found a search result, don't pop up a 3pane window
       if (NS_SUCCEEDED(rv))
@@ -215,6 +216,9 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
 
     if (StringEndsWith(mailPath, NS_LITERAL_STRING(".eml"), nsCaseInsensitiveStringComparator()))
     {
+      rv = aCmdLine->RemoveArguments(0, 0);
+      NS_ENSURE_SUCCESS(rv, rv);
+
       nsCOMPtr<nsIFile> file;
       rv = aCmdLine->ResolveFile(mailPath, getter_AddRefs(file));
       PRBool fileExists = PR_FALSE;
