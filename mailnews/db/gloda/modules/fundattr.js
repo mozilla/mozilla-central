@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ['GlodaFundAttr'];
@@ -64,7 +64,7 @@ var GlodaFundAttr = {
 
   init: function gloda_explattr_init() {
     this._log =  Log4Moz.repository.getLogger("gloda.fundattr");
-  
+
     try {
       this.defineAttributes();
     }
@@ -89,7 +89,7 @@ var GlodaFundAttr = {
   _attrCc: null,
   _attrCcMe: null,
   _attrDate: null,
-  
+
   defineAttributes: function() {
     /* ***** Conversations ***** */
     // conversation: subjectMatches
@@ -104,7 +104,7 @@ var GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_CONVERSATION],
       objectNoun: Gloda.NOUN_FULLTEXT,
       });
-  
+
     /* ***** Messages ***** */
     // folder
     this._attrFolder = Gloda.defineAttribute({
@@ -156,7 +156,7 @@ var GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FULLTEXT,
       }); // not-tested
-    
+
     // bodyMatches. super-synthetic full-text matching...
     this._attrBody = Gloda.defineAttribute({
       provider: this,
@@ -169,7 +169,7 @@ var GlodaFundAttr = {
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FULLTEXT,
       }); // not-tested
-    
+
     // attachmentNamesMatch
     this._attrAttachmentNames = Gloda.defineAttribute({
       provider: this,
@@ -194,11 +194,11 @@ var GlodaFundAttr = {
       special: Gloda.kSpecialColumnParent,
       specialColumnName: "conversationID",
       idStorageAttributeName: "_conversationID",
-      valueStorageAttributeName: "_conversation", 
+      valueStorageAttributeName: "_conversation",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_CONVERSATION,
       });
-  
+
     // --- Fundamental
     // From
     this._attrFrom = Gloda.defineAttribute({
@@ -243,7 +243,7 @@ var GlodaFundAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_DATE,
                         }); // tested-by: test_attributes_fundamental
-    
+
     // Attachment MIME Types
     this._attrAttachmentTypes = Gloda.defineAttribute({
       provider: this,
@@ -339,7 +339,7 @@ var GlodaFundAttr = {
                         objectNoun: Gloda.NOUN_IDENTITY,
                         }); // not-tested, not-implemented
   },
-  
+
   /**
    *
    * Specializations:
@@ -354,7 +354,7 @@ var GlodaFundAttr = {
                                            aIsNew, aCallbackHandle) {
     let aMsgHdr = aRawReps.header;
     let aMimeMsg = aRawReps.mime;
-    
+
     // -- From
     // Let's use replyTo if available.
     // er, since we are just dealing with mailing lists for now, forget the
@@ -370,7 +370,7 @@ var GlodaFundAttr = {
     */
     if (author == null || author == "")
       author = aMsgHdr.author;
-    
+
     let [authorIdentities, toIdentities, ccIdentities] =
       yield aCallbackHandle.pushAndGo(
         Gloda.getOrCreateMailIdentities(aCallbackHandle,
@@ -388,7 +388,7 @@ var GlodaFundAttr = {
     // -- To, Cc
     aGlodaMessage.to = toIdentities;
     aGlodaMessage.cc = ccIdentities;
-    
+
     // -- Attachments
     let attachmentTypes = [];
     for each (let attachment in aMimeMsg.allAttachments) {
@@ -399,21 +399,21 @@ var GlodaFundAttr = {
     if (attachmentTypes.length) {
       aGlodaMessage.attachmentTypes = attachmentTypes;
     }
-    
+
     // TODO: deal with mailing lists, including implicit-to.  this will require
     //  convincing the indexer to pass us in the previous message if it is
     //  available.  (which we'll simply pass to everyone... it can help body
     //  logic for quoting purposes, etc. too.)
-    
+
     yield Gloda.kWorkDone;
   },
-  
+
   optimize: function gloda_fundattr_process(aGlodaMessage, aRawReps,
       aIsNew, aCallbackHandle) {
 
     let involvesIdentities = {};
     let involves = aGlodaMessage.involves || [];
-    
+
     // me specialization optimizations
     let toMe = aGlodaMessage.toMe || [];
     let fromMeTo = aGlodaMessage.fromMeTo || [];
@@ -426,13 +426,13 @@ var GlodaFundAttr = {
 
     involves.push(authorIdentity);
     involvesIdentities[authorIdentity.id] = true;
-    
+
     for each (let [,toIdentity] in Iterator(aGlodaMessage.to)) {
       if (!(toIdentity.id in involvesIdentities)) {
         involves.push(toIdentity);
         involvesIdentities[toIdentity.id] = true;
       }
-      
+
       // optimization attribute to-me ('I' am the parameter)
       if (toIdentity.id in myIdentities) {
         toMe.push([toIdentity, authorIdentity]);
@@ -466,7 +466,7 @@ var GlodaFundAttr = {
           ccIdentity.contact.popularity += this.POPULARITY_FROM_ME_CC;
       }
     }
-    
+
     aGlodaMessage.involves = involves;
     if (toMe.length)
       aGlodaMessage.toMe = toMe;
@@ -476,7 +476,7 @@ var GlodaFundAttr = {
       aGlodaMessage.ccMe = ccMe;
     if (fromMeCc.length)
       aGlodaMessage.fromMeCc = fromMeCc;
-    
+
     if (aRawReps.bodyLines &&
         this.contentWhittle(aGlodaMessage, {}, aRawReps.bodyLines,
                             aRawReps.content)) {
@@ -485,12 +485,12 @@ var GlodaFundAttr = {
 
     yield Gloda.kWorkDone;
   },
-  
+
   _countQuoteDepthAndNormalize:
     function gloda_fundattr__countQuoteDepthAndNormalize(aLine) {
     let count = 0;
     let lastStartOffset = 0;
-    
+
     for (let i = 0; i < aLine.length; i++) {
       let c = aLine[i];
       if (c == ">") {
@@ -504,10 +504,10 @@ var GlodaFundAttr = {
                 lastStartOffset ? aLine.substring(lastStartOffset) : aLine];
       }
     }
-    
+
     return [count, lastStartOffset ? aLine.substring(lastStartOffset) : aLine];
   },
-  
+
   /**
    * Attempt to understand simple quoting constructs that use ">" with
    * obvious phrases to enter the quoting block.  No support for other types
@@ -518,16 +518,25 @@ var GlodaFundAttr = {
       aMeta, aBodyLines, aContent) {
     if (!aContent.volunteerContent(aContent.kPriorityBase))
       return false;
-    
+
     // duplicate the list; we mutate somewhat...
     let bodyLines = aBodyLines.concat();
-    
-    let rangeStart = 0, lastNonBlankLine = null;
+
+    // lastNonBlankLine originally was just for detecting quoting idioms where
+    //  the "wrote" line was separated from the quoted block by a blank line.
+    // Now we also use it for whitespace suppression at the boundaries of
+    //  quoted and un-quoted text.  (We keep blank lines within the same
+    //  'block' of quoted or non-quoted text.)
+    // Because we now have two goals for it, and we still want to suppress blank
+    //  lines when there is a 'wrote' line involved, we introduce...
+    //  prevLastNonBlankLine!  This arguably suggests refactoring should be the
+    //  next step, but things work for now.
+    let rangeStart = 0, lastNonBlankLine = null, prevLastNonBlankLine = null;
     let inQuoteDepth = 0;
     for each (let [iLine, line] in Iterator(bodyLines)) {
       if (!line)
         continue;
-      
+
       if (line[0] == ">") {
         if (!inQuoteDepth) {
           let rangeEnd = iLine - 1;
@@ -537,11 +546,17 @@ var GlodaFundAttr = {
             if (aBodyLines[lastNonBlankLine].indexOf("wrote") >= 0) {
               quoteRangeStart = lastNonBlankLine;
               rangeEnd = lastNonBlankLine - 1;
+              // we 'used up' lastNonBlankLine, let's promote the prev guy to
+              //  be the new lastNonBlankLine for the next logic block
+              lastNonBlankLine = prevLastNonBlankLine;
             }
+            // eat the trailing whitespace...
+            if (lastNonBlankLine != null)
+              rangeEnd = Math.min(rangeEnd, lastNonBlankLine);
           }
           if (rangeEnd >= rangeStart)
             aContent.content(aBodyLines.slice(rangeStart, rangeEnd+1));
-          
+
           [inQuoteDepth, line] = this._countQuoteDepthAndNormalize(line);
           bodyLines[iLine] = line;
           rangeStart = quoteRangeStart;
@@ -550,7 +565,7 @@ var GlodaFundAttr = {
           let curQuoteDepth;
           [curQuoteDepth, line] = this._countQuoteDepthAndNormalize(line);
           bodyLines[iLine] = line;
-          
+
           if (curQuoteDepth != inQuoteDepth) {
             // we could do some "wrote" compensation here, but it's not really
             //  as important.  let's wait for a more clever algorithm.
@@ -567,17 +582,18 @@ var GlodaFundAttr = {
           rangeStart = iLine;
         }
       }
-      
+
+      prevLastNonBlankLine = lastNonBlankLine;
       lastNonBlankLine = iLine;
     }
-    
+
     if (inQuoteDepth) {
       aContent.quoted(aBodyLines.slice(rangeStart), inQuoteDepth);
     }
     else {
-      aContent.content(aBodyLines.slice(rangeStart));
+      aContent.content(aBodyLines.slice(rangeStart, lastNonBlankLine+1));
     }
-    
+
     return true;
   },
 };

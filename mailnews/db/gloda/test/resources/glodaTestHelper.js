@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 // -- Pull in the POP3 fake-server / local account helper code
@@ -64,7 +64,7 @@ Log4Moz.repository.rootLogger.addAppender(throwingAppender);
 var LOG = Log4Moz.repository.getLogger("gloda.test");
 
 /**
- * davida's patented dump function for what ails you. 
+ * davida's patented dump function for what ails you.
  */
 function ddumpObject(obj, name, maxDepth, curDepth)
 {
@@ -210,29 +210,29 @@ function imsInit() {
     // Disable new mail notifications
     var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
       .getService(Components.interfaces.nsIPrefBranch);
-  
+
     prefSvc.setBoolPref("mail.biff.play_sound", false);
     prefSvc.setBoolPref("mail.biff.show_alert", false);
     prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
     prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
-  
+
     Gloda.addIndexerListener(messageIndexerListener.onIndexNotification);
     ims.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
     ims.catchAllCollection.listener = messageCollectionListener;
-    
+
     // Make the indexer be more verbose about indexing for us...
     GlodaIndexer._unitTestSuperVerbose = true;
-    // The indexer doesn't need to worry about load; zero his rescheduling time. 
+    // The indexer doesn't need to worry about load; zero his rescheduling time.
     GlodaIndexer._indexInterval = 0;
     // And it doesn't need to adjust its performance, either.
     GlodaIndexer._PERF_SAMPLE_RATE_MS = 24 * 60 * 60 * 1000;
-    
+
     if (ims.injectMechanism == INJECT_FAKE_SERVER) {
       // set up POP3 fakeserver to feed things in...
       [ims.daemon, ims.server] = setupServerDaemon();
       // (this will call loadLocalMailAccount())
       ims.incomingServer = createPop3ServerAndLocalFolders();
-  
+
       ims.pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
                           .getService(Ci.nsIPop3Service);
     }
@@ -240,7 +240,7 @@ function imsInit() {
       // we need a local account to stash the mboxes under.
       loadLocalMailAccount();
     }
-    
+
     ims.inited = true;
   }
 }
@@ -267,7 +267,7 @@ function imsInit() {
  */
 function indexMessages(aSynthMessages, aVerifier, aOnDone) {
   let ims = indexMessageState;
-  
+
   ims.inputMessages = aSynthMessages;
   ims.glodaMessages = [];
   ims.verifier = aVerifier;
@@ -315,9 +315,9 @@ var indexMessageState = {
   previousValue: undefined,
   /** the function to call once we have indexed all the messages */
   onDone: null,
-  
+
   injectMechanism: INJECT_FAKE_SERVER,
-  
+
   /* === Fake Server State === */
   /** nsMailServer instance with POP3_RFC1939 handler */
   server: null,
@@ -352,14 +352,14 @@ var indexMessageState = {
       catch (e) {
         // If we have an error, clean up nicely before we throw it.
         ims.server.stop();
-  
+
         var thread = gThreadManager.currentThread;
         while (thread.hasPendingEvents())
           thread.processNextEvent(true);
-  
+
         do_throw(e);
       }
-      
+
       // we are expecting the gloda indexer to receive some notification as the
       //  result of the new messages showing up, so we don't actually need to
       //  do anything here.
@@ -370,7 +370,7 @@ var indexMessageState = {
 
 /**
  * Indicate that we should expect some modified messages to be indexed.
- * 
+ *
  * @param aMessages The messages that will be modified and we should expect
  *   notifications about.  We currently don't do anything with these other than
  *   count them, so pass whatever you want and it will be the 'source message'
@@ -380,13 +380,13 @@ var indexMessageState = {
  */
 function expectModifiedMessages(aMessages, aVerifier, aOnDone) {
   let ims = indexMessageState;
-  
+
   ims.inputMessages = aMessages;
   ims.glodaMessages = [];
   ims.verifier = aVerifier;
   ims.previousValue = undefined;
   ims.onDone = aOnDone;
-  
+
   // we don't actually need to do anything.  the caller is going to be
   //  triggering a notification which will spur the indexer into action.  the
   //  indexer uses its own scheduling mechanism to drive itself, so as long
@@ -411,7 +411,7 @@ dump(">>> enter driveFakeServer\n");
       dump("  resetting fake server\n");
       ims.server.resetTest();
     }
-    
+
     // Now get the mail
     dump("  issuing GetNewMail\n");
     ims.pop3Service.GetNewMail(null, ims.urlListener, gLocalInboxFolder,
@@ -441,10 +441,10 @@ function killFakeServer() {
   let ims = indexMessageState;
 
   ims.incomingServer.closeCachedConnections();
-  
+
   // No more tests, let everything finish
   ims.server.stop();
-  
+
   var thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
@@ -463,13 +463,13 @@ var messageCollectionListener = {
     let ims = indexMessageState;
     ims.glodaMessages = ims.glodaMessages.concat(aItems);
   },
-  
+
   onItemsModified: function(aItems) {
     dump("@@@ messageCollectionListener.onItemsModified\n");
     let ims = indexMessageState;
     ims.glodaMessages = ims.glodaMessages.concat(aItems);
   },
-  
+
   onItemsRemoved: function(aItems) {
     dump("!!! messageCollectionListener.onItemsRemoved\n");
   }
@@ -477,10 +477,10 @@ var messageCollectionListener = {
 
 /**
  * Allow tests to register a callback to be invoked when the indexing completes.
- *   Only one at a time, etc.  
+ *   Only one at a time, etc.
  */
 function runOnIndexingComplete(aCallback) {
-  messageIndexerListener.callbackOnDone = aCallback; 
+  messageIndexerListener.callbackOnDone = aCallback;
 }
 
 /**
@@ -499,9 +499,9 @@ var messageIndexerListener = {
         messageIndexerListener.callbackOnDone = null;
         callback();
       }
-      
+
       let ims = indexMessageState;
-      
+
       // this is just the synthetic notification if inputMessages is null
       if (ims.inputMessages === null) {
         dump("((( ignoring indexing notification, assuming synthetic " +
@@ -518,12 +518,12 @@ var messageIndexerListener = {
              "more results, ignoring.\n");
         return;
       }
-      
-      dump("((( indexer notification (" + ims.glodaMessages.length + 
+
+      dump("((( indexer notification (" + ims.glodaMessages.length +
            " messages) about to verify: " +
            (ims.verifier ? ims.verifier.name : "none") + " and complete: " +
            (ims.onDone ? ims.onDone.name : "none") + "\n");
-    
+
       // call the verifier.  (we expect them to generate an exception if the
       //  verification fails, using do_check_*/do_throw; we don't care about
       //  the return value except to propagate forward to subsequent calls.)
@@ -548,7 +548,7 @@ var messageIndexerListener = {
           ims.onDone();
         }
         catch (ex) {
-          do_throw("Exception calling ims.onDone (" + ims.onDone.name + "): " + 
+          do_throw("Exception calling ims.onDone (" + ims.onDone.name + "): " +
               ex);
         }
       }
@@ -580,11 +580,11 @@ var messageIndexerListener = {
  *   processing.  Note that this handler is only called when there are no
  *   additional jobs to be queued.  So if you queue up 5 jobs, you can pass in
  *   the same aOnDone handler for all of them, confident in the knowledge that
- *   only the last job will result in the done handler being called.  
+ *   only the last job will result in the done handler being called.
  */
 function indexAndPermuteMessages(aScenarioMaker, aVerifier, aOnDone) {
   let mis = multiIndexState;
-  
+
   mis.queue.push([aScenarioMaker, aVerifier, aOnDone]);
 
   // start processing it immediately if we're not doing anything...
@@ -601,22 +601,22 @@ function indexAndPermuteMessages(aScenarioMaker, aVerifier, aOnDone) {
  */
 function _multiIndexNext() {
   let mis = multiIndexState;
-  
+
   if (mis.queue.length) {
     mis.active = true;
-    
+
     let [aScenarioMaker, aVerifier, aOnDone] = mis.queue.shift();
-  
+
     let firstSet = aScenarioMaker();
-    
+
     mis.scenarioMaker = aScenarioMaker;
     mis.verifier = aVerifier;
     // 32 permutations is probably too generous, not to mention an odd choice.
     mis.numPermutations = Math.min(factorial(firstSet.length), 32);
     mis.nextPermutationId = 1;
-    
+
     mis.onDone = aOnDone;
-    
+
     indexMessages(firstSet, mis.verifier, _permutationIndexed);
   }
   else {
@@ -630,7 +630,7 @@ function _multiIndexNext() {
  * The onDone handler for indexAndPermuteMessages/_multiIndexNext's use of
  *  indexMessages under the hood.  Generates and initiates processing of then
  *  next permutation if any remain, otherwise deferring to _multiIndexNext to
- *  de-queue the next call/job or close up shop. 
+ *  de-queue the next call/job or close up shop.
  */
 function _permutationIndexed() {
   let mis = multiIndexState;
@@ -642,7 +642,7 @@ function _permutationIndexed() {
 }
 
 /**
- * The state global for indexAndPermuteMessages / _multiIndexNext / 
+ * The state global for indexAndPermuteMessages / _multiIndexNext /
  *  _permutationIndexed.
  */
 var multiIndexState = {
@@ -677,7 +677,7 @@ function factorial(i, rv) {
 function permute(aArray, aPermutationId) {
   let out = [];
   for (let l=aArray.length; l > 0; l--) {
-    let offset = aPermutationId % l;  
+    let offset = aPermutationId % l;
     out.push(aArray[offset]);
     aArray.splice(offset, 1);
     aPermutationId = Math.floor(aPermutationId / l);
@@ -692,7 +692,7 @@ function permute(aArray, aPermutationId) {
  *  accordingly updated to reflect the change.
  * This method automatically calls next_test when aActionsAndTests has been
  *  fully processed.
- * 
+ *
  * @param aSynthMsg The synthetic message to index for testing.
  * @param aActionAndTests A list, where each sub-list is of the form [twiddle
  *     function, test function, twiddleValue, optionalTestValue].  The twiddle
@@ -709,10 +709,10 @@ function twiddleAndTest(aSynthMsg, aActionsAndTests) {
     let curTwiddling = aActionsAndTests[iTwiddling];
     let twiddleFunc = curTwiddling[0];
     let desiredState = curTwiddling[2];
-    
+
     // the underlying nsIMsgDBHdr should exist at this point...
     do_check_neq(gmsg.folderMessage, null);
-    // prepare 
+    // prepare
     expectModifiedMessages([gmsg.folderMessage], verify_next_attr);
     // tell the function to perform its mutation to the desired state
     dump("twiddling: " + twiddleFunc.name + ": " + desiredState + "\n");
@@ -724,13 +724,13 @@ function twiddleAndTest(aSynthMsg, aActionsAndTests) {
     let expectedVal = curTwiddling[curTwiddling.length == 3 ? 2 : 3];
     dump("verifying: " + verifyFunc.name + ": " + expectedVal + "\n");
     verifyFunc(smsg, gmsg, expectedVal);
-    
+
     if (++iTwiddling < aActionsAndTests.length)
       twiddle_next_attr(smsg, gmsg);
     else
       next_test();
   }
-  
+
   indexMessages([aSynthMsg], twiddle_next_attr);
 }
 
@@ -781,7 +781,7 @@ QueryExpectationListener.prototype = {
         do_throw("Gloda extractor threw during query expectation for item: " +
                  item + " exception: " + ex);
       }
-      
+
       // make sure we were expecting this guy
       if (glodaStringRep in this.expectedSet)
         delete this.expectedSet[glodaStringRep];
@@ -792,7 +792,7 @@ QueryExpectationListener.prototype = {
         do_throw("Query returned unexpected result! gloda rep:" +
                  glodaStringRep);
       }
-      
+
       // make sure the query's test method agrees with the database about this
       if (!aCollection.query.test(item))
         do_throw("Query test returned false when it should have been true on " +
@@ -809,12 +809,12 @@ QueryExpectationListener.prototype = {
     // we may continue to match newly added items if we leave our query as it
     //  is, so let's become explicit to avoid related troubles.
     aCollection.becomeExplicit();
-    
+
     // expectedSet should now be empty
     for each (let [key, value] in this.expectedSet) {
       do_throw("Query should have returned " + key + "(" + value + ")");
     }
-    
+
     dump(">>> queryCompleted, advancing to next test\n");
     next_test();
   },
@@ -832,7 +832,7 @@ QueryExpectationListener.prototype = {
  *  sufficient.
  * Calls next_test automatically once the query completes and the results are
  *  checked.
- * 
+ *
  * @param aQuery Either a query to execute, or a dict with the following keys:
  *     - queryFunc: The function to call that returns a function.
  *     - queryThis: The 'this' to use for the invocation of queryFunc.
@@ -873,7 +873,7 @@ function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
     else
       aExpectedExtractor = expectExtract_default_toString;
   }
-  
+
   // - build the expected set
   let expectedSet = {};
   for each (let [, item] in Iterator(aExpectedSet)) {
@@ -885,7 +885,7 @@ function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
                item + " exception: " + ex);
     }
   }
-  
+
   // - create the listener...
   aQuery.args.push(new QueryExpectationListener(expectedSet,
                                                 aGlodaExtractor));
@@ -939,7 +939,7 @@ function _gh_test_iterator() {
   }
 
   do_test_finished();
-  
+
   // once the control flow hits the root after do_test_finished, we're done,
   //  so let's just yield something to avoid callers having to deal with an
   //  exception indicating completion.
@@ -953,7 +953,7 @@ function next_test() {
     do_timeout(0, "next_test()");
     return;
   }
-  
+
   _next_test_currently_in_test = true;
   try {
     glodaHelperIterator.next();
@@ -982,9 +982,9 @@ function parameterizeTest(aTestFunc, aParameters) {
 /**
  * Test driving logic that takes a list of tests to run.  Every completed test
  *  needs to call (or cause to be called) next_test.
- * 
+ *
  * @param aTests A list of test functions to call.
- * @param aLongestTestRunTimeConceivableInSecs Optional parameter 
+ * @param aLongestTestRunTimeConceivableInSecs Optional parameter
  */
 function glodaHelperRunTests(aTests, aLongestTestRunTimeConceivableInSecs) {
   if (aLongestTestRunTimeConceivableInSecs == null)
@@ -992,7 +992,7 @@ function glodaHelperRunTests(aTests, aLongestTestRunTimeConceivableInSecs) {
         DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS;
   do_timeout(aLongestTestRunTimeConceivableInSecs * 1000,
       "do_throw('Timeout running test, and we want you to have the log.');");
-  
+
   imsInit();
   glodaHelperTests = aTests;
   glodaHelperIterator = _gh_test_iterator();
@@ -1023,7 +1023,7 @@ function nukeGlodaCachesAndCollections() {
     //  unit tests right now...
     do_throw("Try and remember to update the testing infrastructure when you " +
              "change things!");
-  
+
   // we can just blow away the known collections
   GlodaCollectionManager._collectionsByNoun = {};
   // but then we have to put the myContact / myIdentities junk back
@@ -1039,7 +1039,7 @@ function nukeGlodaCachesAndCollections() {
     GlodaCollectionManager.registerCollection(
         indexMessageState.catchAllCollection);
   }
-  
+
   // caches aren't intended to be cleared, but we also don't want to lose our
   //  caches, so we need to create new ones from the ashes of the old ones.
   let oldCaches = GlodaCollectionManager._cachesByNoun;
