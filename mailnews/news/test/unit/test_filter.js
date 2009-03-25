@@ -132,13 +132,15 @@ var actionResults = {
   // "2@regular.invalid" should not be in database
   "3@regular.invalid" : function (header, folder) {
     var flags = folder.msgDatabase.GetThreadContainingMsgHdr(header).flags;
+    var ignored = Ci.nsMsgMessageFlags.Ignored;
     // This is checking the thread's kill flag
-    return (flags & 0x40000) == 0x40000;
+    return (flags & ignored) == ignored;
   },
   "4@regular.invalid" : function (header, folder) {
     var flags = folder.msgDatabase.GetThreadContainingMsgHdr(header).flags;
+    var watched = Ci.nsMsgMessageFlags.Watched;
     // This is checking the thread's watch flag
-    return (flags & 0x100) == 0x100;
+    return (flags & watched) == watched;
   },
   "5@regular.invalid" : ["isFlagged", true],
   "6.odd@regular.invalid" : ["isRead", false],

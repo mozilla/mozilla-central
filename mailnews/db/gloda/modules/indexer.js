@@ -158,9 +158,6 @@ function MakeCleanMsgHdrCallback(aMsgHdr, aGlodaMessageID) {
   };
 }
 
-const MSG_FLAG_OFFLINE = 0x80;
-const MSG_FLAG_EXPUNGED = 0x08;
-
 /**
  * @class Capture the indexing batch concept explicitly.
  *
@@ -1632,8 +1629,9 @@ var GlodaIndexer = {
         yield this.kWorkSync;
       }
       
-      if ((isLocal || (msgHdr.flags & MSG_FLAG_OFFLINE)) &&
-          !(msgHdr.flags & MSG_FLAG_EXPUNGED)) {
+      if ((isLocal ||
+           (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Offline)) &&
+          !(msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Expunged)) {
         // this returns 0 when missing
         let glodaMessageId = msgHdr.getUint32Property(
                              this.GLODA_MESSAGE_ID_PROPERTY);
@@ -1703,8 +1701,9 @@ var GlodaIndexer = {
       // it needs a header, the header needs to not be expunged, plus, the
       //  message needs to be considered offline.
       if (msgHdr &&
-          !(msgHdr.flags&MSG_FLAG_EXPUNGED) &&
-          (folderIsLocal || (msgHdr.flags & MSG_FLAG_OFFLINE)))
+          !(msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Expunged) &&
+          (folderIsLocal ||
+           (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Offline)))
         yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
             this._callbackHandle));
       else

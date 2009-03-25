@@ -483,10 +483,10 @@ var messageHeaderSink = {
       }
 
       currentAttachments.push (new createNewAttachmentInfo(contentType, url, displayName, uri, isExternalAttachment));
-      // if we have an attachment, set the MSG_FLAG_ATTACH flag on the hdr
-      // this will cause the "message with attachment" icon to show up
-      // in the thread pane
-      // we only need to do this on the first attachment
+      // If we have an attachment, set the nsMsgMessageFlags.Attachment flag
+      // on the hdr to cause the "message with attachment" icon to show up
+      // in the thread pane.
+      // We only need to do this on the first attachment.
       var numAttachments = currentAttachments.length;
       if (numAttachments == 1) {
         // we also have to enable the Message/Attachments menuitem

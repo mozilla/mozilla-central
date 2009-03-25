@@ -208,7 +208,7 @@ function TestSearchx(aFolder, aValue, aAttrib, aOp, aHitCount, onDone)
   else if (aAttrib == Ci.nsMsgSearchAttrib.JunkStatus)
     value.junkStatus = aValue;
   else if (aAttrib == Ci.nsMsgSearchAttrib.HasAttachmentStatus)
-    value.status = 0x10000000;  // 0x10000000 is MSG_FLAG_ATTACHMENT
+    value.status = Ci.nsMsgMessageFlags.Attachment;
   else
     value.str = aValue;
   searchTerm.value = value;

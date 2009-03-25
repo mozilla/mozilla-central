@@ -46,9 +46,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-const MSG_FLAG_READ              = 0x000001;
-const MSG_FLAG_HAS_RE            = 0x000010;
-const MSG_FLAG_IMAP_DELETED      = 0x200000;
 const ADDR_DB_LARGE_COMMIT       = 1;
 
 const kClassicMailLayout = 0;
@@ -685,7 +682,7 @@ function populateHistoryMenu(menuPopup, isBackMenu)
       menuText = folder.prettyName + " - ";
 
     var subject = "";
-    if(msgHdr.flags & MSG_FLAG_HAS_RE)
+    if (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.HasRe)
       subject = "Re: ";
     if (msgHdr.mime2DecodedSubject)
       subject += msgHdr.mime2DecodedSubject;
@@ -775,7 +772,8 @@ function UpdateDeleteCommand()
 function SelectedMessagesAreDeleted()
 {
   return gDBView && gDBView.numSelected &&
-         (gDBView.hdrForFirstSelectedMessage.flags & MSG_FLAG_IMAP_DELETED);
+         (gDBView.hdrForFirstSelectedMessage.flags &
+          Components.interfaces.nsMsgMessageFlags.IMAPDeleted);
 }
 
 function SelectedMessagesAreJunk()
@@ -1453,7 +1451,7 @@ let mailTabType = {
         aTab.hdr = aMsgHdr;
 
         aTab.title = "";
-        if(aTab.hdr.flags & MSG_FLAG_HAS_RE)
+        if (aTab.hdr.flags & Components.interfaces.nsMsgMessageFlags.HasRe)
           aTab.title = "Re: ";
         if (aTab.hdr.mime2DecodedSubject)
           aTab.title += aTab.hdr.mime2DecodedSubject;
@@ -2846,9 +2844,9 @@ function HandleMDNResponse(aUrl)
 
   // After a msg is downloaded it's already marked READ at this point so we must check if
   // the msg has a "Disposition-Notification-To" header and no MDN report has been sent yet.
-  const MSG_FLAG_MDN_REPORT_SENT = 0x800000;
   var msgFlags = msgHdr.flags;
-  if ((msgFlags & MSG_FLAG_IMAP_DELETED) || (msgFlags & MSG_FLAG_MDN_REPORT_SENT))
+  if ((msgFlags & Components.interfaces.nsMsgMessageFlags.IMAPDeleted) ||
+      (msgFlags & Components.interfaces.nsMsgMessageFlags.MDNReportSent))
     return;
 
   var DNTHeader = mimeHdr.extractHeader("Disposition-Notification-To", false);
@@ -2864,9 +2862,9 @@ function HandleMDNResponse(aUrl)
                        msgHdr.messageKey, mimeHdr, false);
 
   // Reset mark msg MDN "Sent" and "Not Needed".
-  const MSG_FLAG_MDN_REPORT_NEEDED = 0x400000;
-  msgHdr.flags = (msgFlags & ~MSG_FLAG_MDN_REPORT_NEEDED);
-  msgHdr.OrFlags(MSG_FLAG_MDN_REPORT_SENT);
+  msgHdr.flags = (msgFlags &
+                  ~Components.interfaces.nsMsgMessageFlags.MDNReportNeeded);
+  msgHdr.OrFlags(Components.interfaces.nsMsgMessageFlags.MDNReportSent);
 
   // Commit db changes.
   var msgdb = msgFolder.msgDatabase;

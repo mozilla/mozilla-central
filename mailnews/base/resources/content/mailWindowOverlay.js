@@ -47,11 +47,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 // Flags from nsMsgMessageFlags.h
-const MSG_FLAG_READ              = 0x000001;
-const MSG_FLAG_HAS_RE            = 0x000010;
-const MSG_FLAG_IMAP_DELETED      = 0x200000;
-const MSG_FLAG_MDN_REPORT_NEEDED = 0x400000;
-const MSG_FLAG_MDN_REPORT_SENT   = 0x800000;
 const MDN_DISPOSE_TYPE_DISPLAYED = 0;
 const MSG_DB_LARGE_COMMIT        = 1;
 
@@ -709,7 +704,7 @@ function PopulateHistoryMenu(menuPopup, navOffset)
 
     var msgHdr = messenger.msgHdrFromURI(historyArray[i * 2]);
     var subject = "";
-    if (msgHdr.flags & MSG_FLAG_HAS_RE)
+    if (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.HasRe)
       subject = "Re: ";
     if (msgHdr.mime2DecodedSubject)
        subject += msgHdr.mime2DecodedSubject;
@@ -782,12 +777,9 @@ function UpdateDeleteCommand()
 
 function SelectedMessagesAreDeleted()
 {
-    try {
-        return gDBView.hdrForFirstSelectedMessage.flags & MSG_FLAG_IMAP_DELETED;
-    }
-    catch (ex) {
-        return 0;
-    }
+    return gDBView && gDBView.numSelected &&
+           (gDBView.hdrForFirstSelectedMessage.flags &
+            Components.interfaces.nsMsgMessageFlags.IMAPDeleted);
 }
 
 function SelectedMessagesAreJunk()
@@ -2590,7 +2582,8 @@ function HandleMDNResponse(aUrl)
   // After a msg is downloaded it's already marked READ at this point so we must check if
   // the msg has a "Disposition-Notification-To" header and no MDN report has been sent yet.
   var msgFlags = msgHdr.flags;
-  if ((msgFlags & MSG_FLAG_IMAP_DELETED) || (msgFlags & MSG_FLAG_MDN_REPORT_SENT))
+  if ((msgFlags & Components.interfaces.nsMsgMessageFlags.IMAPDeleted) ||
+      (msgFlags & Components.interfaces.nsMsgMessageFlags.MDNReportSent))
     return;
 
   var DNTHeader = mimeHdr.extractHeader("Disposition-Notification-To", false);
@@ -2604,8 +2597,9 @@ function HandleMDNResponse(aUrl)
   mdnGenerator.process(MDN_DISPOSE_TYPE_DISPLAYED, msgWindow, msgFolder, msgHdr.messageKey, mimeHdr, false);
 
   // Reset mark msg MDN "Sent" and "Not Needed".
-  msgHdr.flags = (msgFlags & ~MSG_FLAG_MDN_REPORT_NEEDED);
-  msgHdr.OrFlags(MSG_FLAG_MDN_REPORT_SENT);
+  msgHdr.flags = (msgFlags &
+                  ~Components.interfaces.nsMsgMessageFlags.MDNReportNeeded);
+  msgHdr.OrFlags(Components.interfaces.nsMsgMessageFlags.MDNReportSent);
 
   // Commit db changes.
   var msgdb = msgFolder.msgDatabase;

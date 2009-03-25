@@ -41,7 +41,6 @@
 var EXPORTED_SYMBOLS = ["SearchIntegration"];
 
 const MSG_DB_LARGE_COMMIT = 1;
-const MSG_FLAG_ATTACHMENT = 0x10000000;
 const CRLF="\r\n";
 
 /**
