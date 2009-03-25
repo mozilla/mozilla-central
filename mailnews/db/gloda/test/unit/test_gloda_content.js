@@ -102,7 +102,7 @@ function setup_create_message(info) {
  *  we can cram this in various places.
  */
 function glodaInfoStasher(aSynthMessage, aGlodaMessage) {
-  // let's not assume an ordering given the
+  // let's not assume an ordering
   for (let iMsg = 0; iMsg < messageInfos.length; iMsg++) {
     if (messageInfos[iMsg]._synMsg == aSynthMessage) {
       messageInfos[iMsg]._glodaMsg = aGlodaMessage;
