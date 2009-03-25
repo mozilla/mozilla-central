@@ -1882,8 +1882,13 @@ nsresult nsImapProtocol::SendData(const char * dataBuffer, PRBool aSuppressLoggi
       SetConnectionStatus(-1);
       if (m_runningUrl && !m_retryUrlOnError)
       {
-        m_runningUrl->SetRerunningUrl(PR_TRUE);
-        m_retryUrlOnError = PR_TRUE;
+        PRBool alreadyRerunningUrl;
+        m_runningUrl->GetRerunningUrl(&alreadyRerunningUrl);
+        if (!alreadyRerunningUrl)
+        {
+          m_runningUrl->SetRerunningUrl(PR_TRUE);
+          m_retryUrlOnError = PR_TRUE;
+        }
       }
     }
   }
@@ -4571,8 +4576,14 @@ char* nsImapProtocol::CreateNewLineFromSocket()
           if ((TestFlag(IMAP_RECEIVED_GREETING) || rv == NS_ERROR_NET_RESET) &&
               m_runningUrl && !m_retryUrlOnError)
           {
-            m_runningUrl->SetRerunningUrl(PR_TRUE);
-            m_retryUrlOnError = PR_TRUE;
+            PRBool rerunningUrl;
+            m_runningUrl->GetRerunningUrl(&rerunningUrl);
+            // don't rerun if we already were rerunning.
+            if (!rerunningUrl)
+            {
+              m_runningUrl->SetRerunningUrl(PR_TRUE);
+              m_retryUrlOnError = PR_TRUE;
+            }
           }
           else if (rv == NS_ERROR_NET_TIMEOUT)
             AlertUserEventUsingId(IMAP_NET_TIMEOUT_ERROR);
