@@ -3507,11 +3507,8 @@ void nsImapProtocol::PipelinedFetchMessageParts(nsCString &uid, nsIMAPMessagePar
 
 
 void
-nsImapProtocol::PostLineDownLoadEvent(msg_line_info *downloadLineDontDelete)
+nsImapProtocol::PostLineDownLoadEvent(const char *line, PRUint32 uidOfMessage)
 {
-    NS_ASSERTION(downloadLineDontDelete,
-                 "Oops... null msg line info not good");
-
   if (!GetServerStateParser().GetDownloadingHeaders())
   {
     PRBool echoLineToMessageSink = PR_TRUE;
@@ -3520,7 +3517,6 @@ nsImapProtocol::PostLineDownLoadEvent(msg_line_info *downloadLineDontDelete)
     if (m_channelListener)
     {
       PRUint32 count = 0;
-      const char * line = downloadLineDontDelete->adoptedMessageLine;
       if (m_channelOutputStream)
       {
         nsresult rv = m_channelOutputStream->Write(line, PL_strlen(line), &count);
@@ -3534,10 +3530,9 @@ nsImapProtocol::PostLineDownLoadEvent(msg_line_info *downloadLineDontDelete)
       if (m_imapMessageSink)
         m_imapMessageSink->GetNotifyDownloadedLines(&echoLineToMessageSink);
     }
-    if (m_imapMessageSink && downloadLineDontDelete && echoLineToMessageSink && !GetPseudoInterrupted())
+    if (m_imapMessageSink && line && echoLineToMessageSink && !GetPseudoInterrupted())
     {
-      m_imapMessageSink->ParseAdoptedMsgLine(downloadLineDontDelete->adoptedMessageLine,
-                                             downloadLineDontDelete->uidOfMessage);
+      m_imapMessageSink->ParseAdoptedMsgLine(line, uidOfMessage);
     }
   }
   // ***** We need to handle the pseudo interrupt here *****
@@ -3704,34 +3699,27 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
   }
   // if this line is for a different message, or the incoming line is too big
   if (((m_downloadLineCache->CurrentUID() != GetServerStateParser().CurrentResponseUID()) && !m_downloadLineCache->CacheEmpty()) ||
-    (m_downloadLineCache->SpaceAvailable() < lineLength + 1) )
-  {
-    if (!m_downloadLineCache->CacheEmpty())
-    {
-      msg_line_info *downloadLineDontDelete = m_downloadLineCache->GetCurrentLineInfo();
-      // post ODA lines....
-      PostLineDownLoadEvent(downloadLineDontDelete);
-    }
-    m_downloadLineCache->ResetCache();
-  }
+      (m_downloadLineCache->SpaceAvailable() < lineLength + 1) )
+    FlushDownloadCache();
 
   // so now the cache is flushed, but this string might still be to big
   if (m_downloadLineCache->SpaceAvailable() < lineLength + 1)
-  {
-    // has to be dynamic to pass to other win16 thread
-    msg_line_info *downLoadInfo = (msg_line_info *) PR_CALLOC(sizeof(msg_line_info));
-    if (downLoadInfo)
-    {
-      downLoadInfo->adoptedMessageLine = messageLine;
-      downLoadInfo->uidOfMessage = GetServerStateParser().CurrentResponseUID();
-      PostLineDownLoadEvent(downLoadInfo);
-      PR_Free(downLoadInfo);
-    }
-  }
+      PostLineDownLoadEvent(messageLine, GetServerStateParser().CurrentResponseUID());
   else
     m_downloadLineCache->CacheLine(messageLine, GetServerStateParser().CurrentResponseUID());
 
   PR_Free(localMessageLine);
+}
+
+void nsImapProtocol::FlushDownloadCache()
+{
+  if (!m_downloadLineCache->CacheEmpty())
+  {
+    msg_line_info *downloadLine = m_downloadLineCache->GetCurrentLineInfo();
+    PostLineDownLoadEvent(downloadLine->adoptedMessageLine,
+                          downloadLine->uidOfMessage);
+    m_downloadLineCache->ResetCache();
+  }  
 }
 
 void nsImapProtocol::NormalMessageEndDownload()
@@ -3753,12 +3741,7 @@ void nsImapProtocol::NormalMessageEndDownload()
       m_hdrDownloadCache->ResetAll();
     }
   }
-  if (!m_downloadLineCache->CacheEmpty())
-  {
-      msg_line_info *downloadLineDontDelete = m_downloadLineCache->GetCurrentLineInfo();
-      PostLineDownLoadEvent(downloadLineDontDelete);
-      m_downloadLineCache->ResetCache();
-    }
+  FlushDownloadCache();
 
   if (!GetServerStateParser().GetDownloadingHeaders())
   {
@@ -3798,13 +3781,7 @@ void nsImapProtocol::AbortMessageDownLoad()
 
   if (m_trackingTime)
     AdjustChunkSize();
-  if (!m_downloadLineCache->CacheEmpty())
-  {
-      msg_line_info *downloadLineDontDelete = m_downloadLineCache->GetCurrentLineInfo();
-      PostLineDownLoadEvent(downloadLineDontDelete);
-      m_downloadLineCache->ResetCache();
-    }
-
+  FlushDownloadCache();
   if (GetServerStateParser().GetDownloadingHeaders())
   {
     if (m_imapMailFolderSink)

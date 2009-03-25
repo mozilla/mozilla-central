@@ -207,7 +207,8 @@ public:
   virtual void HandleMessageDownLoadLine(const char *line, PRBool isPartialLine, char *lineCopy=nsnull);
   virtual void NormalMessageEndDownload();
   virtual void AbortMessageDownLoad();
-  virtual void PostLineDownLoadEvent(msg_line_info *downloadLineDontDelete);
+  virtual void PostLineDownLoadEvent(const char *line, PRUint32 uid);
+  void FlushDownloadCache();
 
   virtual void SetMailboxDiscoveryStatus(EMailboxDiscoverStatus status);
   virtual EMailboxDiscoverStatus GetMailboxDiscoveryStatus();
