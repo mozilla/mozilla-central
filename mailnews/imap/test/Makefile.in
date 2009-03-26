@@ -47,7 +47,9 @@ include $(DEPTH)/config/autoconf.mk
 # Module name for xpcshell tests.
 MODULE         = test_imap
 
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 
 REQUIRES = 	\
 		xpcom \

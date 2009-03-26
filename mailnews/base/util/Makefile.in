@@ -51,7 +51,9 @@ SHORT_LIBNAME	= msgbsutl
 else
 LIBRARY_NAME	= msgbsutl_s
 endif
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 
 META_COMPONENT = mail
 
@@ -123,15 +125,25 @@ EXPORTS		= \
 EXTRA_JS_MODULES = \
 		folderUtils.jsm \
 		iteratorUtils.jsm
-					
+
 ifndef MOZ_STATIC_MAIL_BUILD
 
+ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \
 	$(LIBS_DIR) \
 	$(MOZDEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
 	$(MOZ_UNICHARUTIL_LIBS) \
 	$(MOZ_COMPONENT_LIBS) \
 	$(NULL)
+else
+EXTRA_DSO_LDOPTS = \
+	$(LIBS_DIR) \
+	$(XPCOM_GLUE_LDOPTS) \
+	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
+	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \
+	$(NSPR_LIBS) \
+	$(NULL)
+endif
 
 else
 

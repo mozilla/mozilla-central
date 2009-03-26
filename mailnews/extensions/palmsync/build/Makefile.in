@@ -45,7 +45,9 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= PalmSyncProxy
 LIBRARY_NAME	= $(MODULE)
 DEFFILE		= $(win_srcdir)/PalmSyncProxy.def
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 USE_STATIC_LIBS = 1
 XPI_NAME	= palmsync
 

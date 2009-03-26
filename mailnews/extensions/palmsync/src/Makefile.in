@@ -47,7 +47,9 @@ LIBRARY_NAME		= $(MODULE)
 # Do not set EXPORT_LIBRARY as we do not want palmsync in the static libs list
 IS_COMPONENT		= 1
 FORCE_SHARED_LIB	= 1
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API	= 1
+endif
 XPI_NAME		= palmsync
 
 REQUIRES = \
@@ -97,6 +99,7 @@ else
 SHARED_LIBRARY_LIBS = ../../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX)
 endif
 
+ifdef MOZILLA_INTERAL_API
 EXTRA_DSO_LDOPTS= \
         ../../../addrbook/src/$(LIB_PREFIX)addrbook_s.$(LIB_SUFFIX) \
         $(EXTRA_DSO_LIBS) \
@@ -104,6 +107,16 @@ EXTRA_DSO_LDOPTS= \
         $(MOZ_UNICHARUTIL_LIBS) \
         $(NSPR_LIBS) \
         $(NULL)
+else
+EXTRA_DSO_LDOPTS= \
+        ../../../addrbook/src/$(LIB_PREFIX)addrbook_s.$(LIB_SUFFIX) \
+	$(LIBS_DIR) \
+	$(EXTRA_DSO_LIBS) \
+	$(XPCOM_GLUE_LDOPTS) \
+	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
+	$(NSPR_LIBS) \
+	$(NULL)
+endif
 
 OS_LIBS     += ole32.lib shell32.lib
 

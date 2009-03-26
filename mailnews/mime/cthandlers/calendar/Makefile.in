@@ -43,7 +43,9 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= calendar
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 
 ifndef MOZ_STATIC_MAIL_BUILD
 LIBRARY_NAME	= calendar
@@ -94,11 +96,21 @@ endif
 
 EXTRA_DSO_LIBS += mimecthglue_s
 
+ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \
 		$(LIBS_DIR) \
 		$(EXTRA_DSO_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
 		$(NULL)
+else
+EXTRA_DSO_LDOPTS = \
+	$(LIBS_DIR) \
+	$(EXTRA_DSO_LIBS) \
+	$(XPCOM_GLUE_LDOPTS) \
+	$(NSPR_LIBS) \
+	$(NULL)
+endif
+
 else
 
 # we don't want the shared lib, but we want to force the creation of a static lib.

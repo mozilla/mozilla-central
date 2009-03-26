@@ -45,7 +45,9 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= msgnews
 LIBRARY_NAME	= msgnews_s
 META_COMPONENT = mail
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 
 REQUIRES	= xpcom \
 		  string \
@@ -86,11 +88,6 @@ CPPSRCS		= \
 		nsNewsUtils.cpp \
 		nsNewsDownloadDialogArgs.cpp \
 		nsNewsDownloader.cpp \
-		$(NULL)
-
-EXTRA_DSO_LDOPTS = \
-		$(MOZ_COMPONENT_LIBS) \
-		$(MOZ_UNICHARUTIL_LIBS) \
 		$(NULL)
 
 # we don't want the shared lib, but we want to force the creation of a static lib.

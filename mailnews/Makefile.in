@@ -52,14 +52,6 @@ PARALLEL_DIRS	+= mapi/mapiDLL mapi/mapihook
 endif
 endif
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
- EXTRA_DSO_LDOPTS += \
-   $(TK_LIBS) \
-                       -framework Cocoa \
-  $(NULL)
-endif 
-
-
 ifdef MOZ_STATIC_MAIL_BUILD
 DIRS = build
 else

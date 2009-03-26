@@ -43,7 +43,9 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= vcard
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 
 ifndef MOZ_STATIC_MAIL_BUILD
 LIBRARY_NAME	= vcard
@@ -91,12 +93,23 @@ else
 EXTRA_DSO_LIBS = msgbaseutil
 endif
 
+ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \
 		$(LIBS_DIR) \
 		$(EXTRA_DSO_LIBS) \
 		../glue/$(LIB_PREFIX)mimecthglue_s.$(LIB_SUFFIX) \
 		$(MOZ_COMPONENT_LIBS) \
 		$(NULL)
+else
+EXTRA_DSO_LDOPTS = \
+	$(LIBS_DIR) \
+	$(EXTRA_DSO_LIBS) \
+	../glue/$(LIB_PREFIX)mimecthglue_s.$(LIB_SUFFIX) \
+	$(XPCOM_GLUE_LDOPTS) \
+	$(NSPR_LIBS) \
+	$(NULL)
+endif
+
 else
 
 # we don't want the shared lib, but we want to force the creation of a static lib.

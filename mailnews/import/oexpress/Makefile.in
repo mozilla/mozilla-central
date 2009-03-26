@@ -44,7 +44,9 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= importOE
 LIBRARY_NAME   = importOE_s
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 META_COMPONENT	= mail
 
 REQUIRES	= xpcom \

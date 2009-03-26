@@ -47,7 +47,9 @@ LIBRARY_NAME = import
 META_COMPONENT = mail
 EXPORT_LIBRARY = 1
 IS_COMPONENT	= 1
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 
 MODULE_NAME	= nsImportServiceModule
 
@@ -126,6 +128,7 @@ EXTRA_DSO_LIBS = msgbaseutil
 endif # ifeq
 endif # MOZ_STATIC_MAIL_BUILD
 
+ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS += \
 	$(LIBS_DIR) \
 	$(EXTRA_DSO_LIBS) \
@@ -133,6 +136,16 @@ EXTRA_DSO_LDOPTS += \
 	$(MOZDEPTH)/modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
 	$(MOZ_COMPONENT_LIBS) \
 	$(NULL)
+else
+EXTRA_DSO_LDOPTS = \
+	$(LIBS_DIR) \
+	$(EXTRA_DSO_LIBS) \
+	$(XPCOM_GLUE_LDOPTS) \
+	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
+	$(MOZDEPTH)/modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
+	$(NSPR_LIBS) \
+	$(NULL)
+endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 EXTRA_DSO_LDOPTS += -framework Cocoa  \

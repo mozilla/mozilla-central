@@ -45,7 +45,9 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= msgdb
 LIBRARY_NAME	= msgdb_s
 META_COMPONENT = mail
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 
 REQUIRES	= xpcom \
 		  string \

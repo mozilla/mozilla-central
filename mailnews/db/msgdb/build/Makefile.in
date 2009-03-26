@@ -48,7 +48,9 @@ META_COMPONENT = mail
 EXPORT_LIBRARY = 1
 IS_COMPONENT	= 1
 MODULE_NAME	= nsMsgDBModule
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 
 REQUIRES	= xpcom \
 		  string \
@@ -70,11 +72,20 @@ CPPSRCS		= nsMsgDBFactory.cpp
 
 SHARED_LIBRARY_LIBS = ../src/$(LIB_PREFIX)msgdb_s.$(LIB_SUFFIX)
 
+ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \
 		$(LIBS_DIR) \
 		$(EXTRA_DSO_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
 		$(NULL)
+else
+EXTRA_DSO_LDOPTS = \
+	$(LIBS_DIR) \
+	$(EXTRA_DSO_LIBS) \
+	$(XPCOM_GLUE_LDOPTS) \
+	$(NSPR_LIBS) \
+	$(NULL)
+endif
 
 include $(topsrcdir)/config/rules.mk
 

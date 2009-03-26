@@ -128,6 +128,7 @@ SHARED_LIBRARY_LIBS = \
                 ../mime/cthandlers/glue/$(LIB_PREFIX)mimecthglue_s.$(LIB_SUFFIX) \
                 $(NULL)
 
+ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \
 		$(MOZDEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
 		$(MOZDEPTH)/modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
@@ -135,6 +136,15 @@ EXTRA_DSO_LDOPTS = \
 		$(MOZ_UNICHARUTIL_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
 		$(NULL)
+else
+EXTRA_DSO_LDOPTS = \
+	$(LIBS_DIR) \
+	$(XPCOM_GLUE_LDOPTS) \
+	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
+	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \
+	$(NSPR_LIBS) \
+	$(NULL)
+endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 EXTRA_DSO_LDOPTS += \

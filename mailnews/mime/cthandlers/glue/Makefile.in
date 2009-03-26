@@ -46,7 +46,9 @@ MODULE		= mime
 LIBRARY_NAME	= mimecthglue_s
 META_COMPONENT = mail
 EXPORT_LIBRARY = 1
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
+endif
 
 REQUIRES	= xpcom \
 		  string \
