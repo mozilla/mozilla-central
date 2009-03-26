@@ -99,7 +99,7 @@ else
 SHARED_LIBRARY_LIBS = ../../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX)
 endif
 
-ifdef MOZILLA_INTERAL_API
+ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS= \
         ../../../addrbook/src/$(LIB_PREFIX)addrbook_s.$(LIB_SUFFIX) \
         $(EXTRA_DSO_LIBS) \
