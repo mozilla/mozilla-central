@@ -96,16 +96,11 @@ source-package::
 ifndef COMM_BUILD
 # mochitests need to be run from the Mozilla build system
 ifdef ENABLE_TESTS
-# Implemented in testing/testsuite-targets.mk
-
-ifdef TEST_PATH
-BROWSER_TEST_PATH = --test-path=$(TEST_PATH)
-else
-BROWSER_TEST_PATH =
-endif
+# Backend is implemented in mozilla/testing/testsuite-targets.mk.
+# This part is copied from mozilla/browser/build.mk.
 
 mochitest-browser-chrome:
-	$(RUN_MOCHITEST) --browser-chrome $(BROWSER_TEST_PATH)
+	$(RUN_MOCHITEST) --browser-chrome
 	$(CHECK_TEST_ERROR)
 
 mochitest:: mochitest-browser-chrome
