@@ -108,18 +108,10 @@ var gExpandedHeaderList = [ {name:"subject"},
                             {name:"cc", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"bcc", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"newsgroups", outputFunction:OutputNewsgroups},
+                            {name:"references", outputFunction:OutputMessageIds},
                             {name:"followup-to", outputFunction:OutputNewsgroups},
                             {name:"content-base"},
                             {name:"tags"} ];
-
-// XXXdmose need to decide if we want to keep the special elements for these
-// headers when users manually add them to their "display these extended
-// headers" pref.  If so, we'll need to write code that actually uses the below
-// array.  If not, we should get rid of the array as well as the XUL elements.
-// For the moment, display of those things when the user has touched that pref
-// is untested.  It might Just Work as a generic extended header.
-var extraExpandedHeaderList = [ {name:"sender", outputFunction:OutputEmailAddresses},                            
-                                {name:"references", outputFunction:OutputMessageIds} ];
 
 // These are all the items that use a mail-multi-emailHeaderField widget and
 // therefore may require updating if the address book changes.
@@ -238,6 +230,12 @@ function initializeHeaderViewTables()
    {
      var messageIdEntry = {name:"message-id", outputFunction:OutputMessageIds};
      gExpandedHeaderView[messageIdEntry.name] = new createHeaderEntry('expanded', messageIdEntry);
+  }
+
+   if (prefBranch.getBoolPref("mailnews.headers.showSender"))
+   {
+     var senderEntry = {name:"sender", outputFunction:OutputEmailAddresses};
+     gExpandedHeaderView[senderEntry.name] = new createHeaderEntry('expanded', senderEntry);
   }
 }
 
