@@ -52,7 +52,7 @@
     var href;
     var isKeyCommand = (aEvent.type == "command");
     var target =
-      isKeyCommand ? document.commandDispatcher.focusedElement : event.target;
+      isKeyCommand ? document.commandDispatcher.focusedElement : aEvent.target;
 
     if (target instanceof HTMLAnchorElement ||
         target instanceof HTMLAreaElement   ||
