@@ -47,7 +47,7 @@ include $(topsrcdir)/$(MOZ_BUILD_APP)/build.mk
 
 include $(topsrcdir)/config/config.mk
 
-default export libs clean realclean distclean alldep maybe_clobber_profiledbuild check rebase splitsymbols uploadsymbols signnss deliver mochitest mochitest-plain mochitest-chrome mochitest-browser-chrome mochitest-a11y::
+default export libs clean realclean distclean alldep maybe_clobber_profiledbuild check rebase uploadsymbols signnss deliver mochitest mochitest-plain mochitest-chrome mochitest-browser-chrome mochitest-a11y::
 	$(MAKE) -C mozilla $@
 
 # http://bugzilla.mozilla.org/show_bug.cgi?id=450485
