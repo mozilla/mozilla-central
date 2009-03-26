@@ -171,7 +171,7 @@ mime_dump_attachments ( nsMsgAttachmentData *attachData )
     printf("Desired Type      : %s\n", tmp->desired_type ? tmp->desired_type : "nsnull");
     printf("Real Type         : %s\n", tmp->real_type ? tmp->real_type : "nsnull");
     printf("Real Encoding     : %s\n", tmp->real_encoding ? tmp->real_encoding : "nsnull");
-    printf("Description       : %s\n", tmp->description) ? tmp->description : "nsnull";
+    printf("Description       : %s\n", tmp->description ? tmp->description : "nsnull");
     printf("Mac Type          : %s\n", tmp->x_mac_type ? tmp->x_mac_type : "nsnull");
     printf("Mac Creator       : %s\n", tmp->x_mac_creator ? tmp->x_mac_creator : "nsnull");
     i++;
@@ -1420,7 +1420,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
             nsAutoString tmpUnicodeBody;
             rv = ConvertToUnicode(bodyCharset, body, tmpUnicodeBody);
             if (NS_FAILED(rv)) // Tough luck, ASCII/ISO-8859-1 then...
-              CopyASCIItoUTF16(body, tmpUnicodeBody);
+              CopyASCIItoUTF16(nsDependentCString(body), tmpUnicodeBody);
 
             char *newBody = ToNewUTF8String(tmpUnicodeBody);
             if (newBody)

@@ -483,7 +483,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const nsACString &name,
     // upstream of us.  (Namely, mime_decode_filename has been called, deferring
     // to nsIMimeHeaderParam.decodeParameter.)
     nsString unicodeHeaderValue;
-    CopyUTF8toUTF16(nsDependentCString(name), unicodeHeaderValue);
+    CopyUTF8toUTF16(name, unicodeHeaderValue);
 
     headerSink->HandleAttachment(contentType, url /* was escapedUrl */,
                                  unicodeHeaderValue.get(), uriString.get(),

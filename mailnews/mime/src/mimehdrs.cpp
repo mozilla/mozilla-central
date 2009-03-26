@@ -590,9 +590,18 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
     }
 
     // MW Fixme: more?
+#ifdef MOZILLA_INTERNAL_API
     if (!(name.LowerCaseEqualsLiteral("to") || name.LowerCaseEqualsLiteral("from") ||
           name.LowerCaseEqualsLiteral("cc") || name.LowerCaseEqualsLiteral("bcc") ||
           name.LowerCaseEqualsLiteral("reply-to") || name.LowerCaseEqualsLiteral("sender")))
+#else
+    if (!(name.Equals("to", CaseInsensitiveCompare) ||
+          name.Equals("from", CaseInsensitiveCompare) ||
+          name.Equals("cc", CaseInsensitiveCompare) ||
+          name.Equals("bcc", CaseInsensitiveCompare) ||
+          name.Equals("reply-to", CaseInsensitiveCompare) ||
+          name.Equals("sender", CaseInsensitiveCompare)))
+#endif
           MimeHeaders_convert_header_value(opt, hdr_value);
     // if we're saving as html, we need to convert headers from utf8 to message charset, if any
     if (opt->format_out == nsMimeOutput::nsMimeMessageSaveAs && charset)
