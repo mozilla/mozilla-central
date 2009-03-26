@@ -316,17 +316,17 @@ GeolocationPrompt.prototype = {
 
       var buttons =
         [{
-          label: notificationBundle.GetStringFromName("geolocation.exactLocation.label"),
-          accessKey: notificationBundle.GetStringFromName("geolocation.exactLocation.accesskey"),
+          label: notificationBundle.GetStringFromName("geolocation.tellThem"),
+          accessKey: notificationBundle.GetStringFromName("geolocation.tellThemKey"),
           callback: function() { aRequest.allow() },
         }, {
-          label: notificationBundle.GetStringFromName("geolocation.nothingLocation.label"),
-          accessKey: notificationBundle.GetStringFromName("geolocation.nothingLocation.accesskey"),
+          label: notificationBundle.GetStringFromName("geolocation.dontTellThem"),
+          accessKey: notificationBundle.GetStringFromName("geolocation.dontTellThemKey"),
           callback: function() { aRequest.cancel() },
         }];
 
       var message =
-          notificationBundle.formatStringFromName("geolocation.requestMessage",
+          notificationBundle.formatStringFromName("geolocation.siteWantsToKnow",
                                                   [aRequest.requestingURI.spec], 1);
       notificationBox.appendNotification(message,
                                          "geolocation",
