@@ -347,21 +347,24 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
     dateFormatPrefs->SetBoolPref("date_senders_timezone", PR_TRUE);
 
   PRExplodedTime explodedMsgTime;
-  PR_ParseTimeStringToExplodedTime(dateString, PR_FALSE, &explodedMsgTime);
+  rv = PR_ParseTimeStringToExplodedTime(dateString, PR_FALSE, &explodedMsgTime);
   /**
-   * We need to make the message time comparable to current time. Due to the
-   * lack of generic PRTimeParamFn the comparison can't be in message time zone.
-   * If we don't have a use for explodedCompTime (i.e. if we're displaying
-   * time in senders timezone), compare in GMT, else in local timezone. That
-   * saves time since PR_LocalTimeParameters() is quite expensive.
+   * To determine the date format to use, comparison of current and message
+   * time has to be made. If displaying in local time, both timestamps have
+   * to be in local time. If displaying in senders time zone, leave the compare
+   * time in that time zone.
+   * Otherwise in TZ+0100 on 2009-03-12 a message from 2009-03-11T20:49-0700
+   * would be displayed as "20:49 -0700" though it in fact is not from the
+   * same day.
    */
-  PRTime compareTime = PR_ImplodeTime(&explodedMsgTime);
   PRExplodedTime explodedCompTime;
-  PR_ExplodeTime(compareTime, displaySenderTimezone ? PR_GMTParameters : PR_LocalTimeParameters, &explodedCompTime);
+  if (displaySenderTimezone)
+    explodedCompTime = explodedMsgTime;
+  else
+    PR_ExplodeTime(PR_ImplodeTime(&explodedMsgTime), PR_LocalTimeParameters, &explodedCompTime);
 
-  PRTime currentTime = PR_Now();
   PRExplodedTime explodedCurrentTime;
-  PR_ExplodeTime(currentTime, displaySenderTimezone ? PR_GMTParameters : PR_LocalTimeParameters, &explodedCurrentTime);
+  PR_ExplodeTime(PR_Now(), PR_LocalTimeParameters, &explodedCurrentTime);
 
   // if the message is from today, don't show the date, only the time. (i.e. 3:15 pm)
   // if the message is from the last week, show the day of the week.   (i.e. Mon 3:15 pm)
@@ -394,24 +397,28 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
 
   nsAutoString formattedDateString;
   if (NS_SUCCEEDED(rv))
+  {
     rv = mDateFormatter->FormatPRExplodedTime(nsnull /* nsILocale* locale */,
                                               dateFormat,
                                               kTimeFormatNoSeconds,
-                                              displaySenderTimezone ? &explodedMsgTime : &explodedCompTime,
+                                              &explodedCompTime,
                                               formattedDateString);
 
-  if (displaySenderTimezone)
-  {
-    // offset of local time from UTC in minutes
-    PRInt32 senderoffset = (explodedMsgTime.tm_params.tp_gmt_offset + explodedMsgTime.tm_params.tp_dst_offset) / 60;
-    // append offset to date string
-    PRUnichar *tzstring = nsTextFormatter::smprintf(NS_LITERAL_STRING(" %+05d").get(), (senderoffset / 60 * 100) + (senderoffset % 60));
-    formattedDateString.Append(tzstring);
-    nsTextFormatter::smprintf_free(tzstring);
-  }
+    if (NS_SUCCEEDED(rv))
+    {
+      if (displaySenderTimezone)
+      {
+        // offset of local time from UTC in minutes
+        PRInt32 senderoffset = (explodedMsgTime.tm_params.tp_gmt_offset + explodedMsgTime.tm_params.tp_dst_offset) / 60;
+        // append offset to date string
+        PRUnichar *tzstring = nsTextFormatter::smprintf(NS_LITERAL_STRING(" %+05d").get(), (senderoffset / 60 * 100) + (senderoffset % 60));
+        formattedDateString.Append(tzstring);
+        nsTextFormatter::smprintf_free(tzstring);
+      }
 
-  if (NS_SUCCEEDED(rv))
-    CopyUTF16toUTF8(formattedDateString, formattedDate);
+      CopyUTF16toUTF8(formattedDateString, formattedDate);
+    }
+  }
 
   return rv;
 }
