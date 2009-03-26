@@ -164,6 +164,9 @@ function FieldImportOKButton()
   var max = gListbox.getRowCount();
   var fIndex;
   var on;
+  // Ensure field map is the right size
+  top.fieldMap.SetFieldMapSize(max);
+
   for (var i = 0; i < max; i++) {
     fIndex = gListbox.getItemAtIndex(i).getAttribute( 'field-index');
     on = gListbox.getItemAtIndex(i).firstChild.getAttribute('checked');
