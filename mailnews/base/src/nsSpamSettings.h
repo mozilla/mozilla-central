@@ -48,6 +48,8 @@
 #include "nsIMsgIncomingServer.h"
 #include "nsIUrlListener.h"
 #include "nsIDateTimeFormat.h"
+#include "nsCOMArray.h"
+#include "nsIAbDirectory.h"
 
 class nsSpamSettings : public nsISpamSettings, public nsIUrlListener
 {
@@ -82,6 +84,11 @@ private:
   PRInt32  mServerFilterTrustFlags;
 
   nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
+
+  // array of address directories to use in junk whitelisting
+  nsCOMArray<nsIAbDirectory> mWhiteListDirArray;
+  // mail domains to use in junk whitelisting
+  nsCString mTrustedMailDomains;
 
   // helper routine used by Initialize which unsets the junk flag on the previous junk folder
   // for this account, and sets it on the new junk folder.

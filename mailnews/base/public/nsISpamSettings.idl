@@ -46,7 +46,7 @@ interface nsIMsgIncomingServer;
 interface nsIMsgDBHdr;
 interface nsIFile;
 
-[scriptable, uuid(60BF2B22-AA8C-4cb2-80C8-ADC8B508E425)]
+[scriptable, uuid(1772BE95-FDA9-4dfd-A663-8AF92C1E3024)]
 interface nsISpamSettings: nsISupports {
   /**
    * 0 for nothing, 100 for highest
@@ -108,4 +108,20 @@ interface nsISpamSettings: nsISupports {
 
   // aServer -> spam settings are associated with a particular server
   void initialize(in nsIMsgIncomingServer aServer);
+
+  /**
+   * check if junk processing for a message should be bypassed
+   *
+   * Typically this is determined by comparing message to: address
+   * to a whitelist of known good addresses or domains.
+   *
+   * @param aMsgHdr  database header representing the message.
+   *
+   * @return         true  if this message is whitelisted, and junk
+   *                       processing should be bypassed
+   *
+   *                 false otherwise (including in case of error)
+   */
+  boolean checkWhiteList(in nsIMsgDBHdr aMsgHdr);
+
 };

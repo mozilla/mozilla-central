@@ -63,6 +63,9 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsISimpleEnumerator.h"
 #include "nsIDirectoryEnumerator.h"
+#include "nsIMsgHeaderParser.h"
+#include "nsAbBaseCID.h"
+#include "nsIAbManager.h"
 
 nsSpamSettings::nsSpamSettings()
 {
@@ -340,6 +343,32 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetServerFilterTrustFlags(serverFilterTrustFlags);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  if (prefBranch)
+    prefBranch->GetCharPref("mail.trusteddomains",
+                            getter_Copies(mTrustedMailDomains));
+
+  mWhiteListDirArray.Clear();
+  if (!mWhiteListAbURI.IsEmpty())
+  {
+    nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsTArray<nsCString> whiteListArray;
+    ParseString(mWhiteListAbURI, ' ', whiteListArray);
+
+    for (PRUint32 index = 0; index < whiteListArray.Length(); index++)
+    {
+      nsCOMPtr<nsIAbDirectory> directory;
+      rv = abManager->GetDirectory(whiteListArray[index],
+                                   getter_AddRefs(directory));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      if (directory)
+        mWhiteListDirArray.AppendObject(directory);
+    }
+  }
 
   return UpdateJunkFolderState();
 }
@@ -706,4 +735,62 @@ NS_IMETHODIMP nsSpamSettings::OnStopRunningUrl(nsIURI* aURL, nsresult exitCode)
   rv = junkFolder->SetFlag(nsMsgFolderFlags::Junk);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
+}
+
+NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aMsgHdr);
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = PR_FALSE;  // default in case of error or no whitelisting
+
+  if (!mUseWhiteList || (!mWhiteListDirArray.Count() &&
+                          mTrustedMailDomains.IsEmpty()))
+    return NS_OK;
+
+  // do per-message processing
+
+  nsCString author;
+  aMsgHdr->GetAuthor(getter_Copies(author));
+  nsresult rv;
+  nsCOMPtr<nsIMsgHeaderParser> headerParser =
+    do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString authorEmailAddress;
+  rv = headerParser->ExtractHeaderAddressMailboxes(author, authorEmailAddress);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (authorEmailAddress.IsEmpty())
+    return NS_OK;
+
+  if (!mTrustedMailDomains.IsEmpty())
+  {
+    nsCAutoString domain;
+    PRInt32 atPos = authorEmailAddress.FindChar('@');
+    if (atPos >= 0)
+      domain = Substring(authorEmailAddress, atPos + 1);
+    if (!domain.IsEmpty() && MsgHostDomainIsTrusted(domain, mTrustedMailDomains))
+    {
+      *aResult = PR_TRUE;
+      return NS_OK;
+    }
+  }
+
+  if (mWhiteListDirArray.Count())
+  {
+    nsCOMPtr<nsIAbCard> cardForAddress;
+    for (PRInt32 index = 0;
+         index < mWhiteListDirArray.Count() && !cardForAddress;
+         index++)
+    {
+      mWhiteListDirArray[index]->CardForEmailAddress(authorEmailAddress,
+                                                     getter_AddRefs(cardForAddress));
+    }
+    if (cardForAddress)
+    {
+      *aResult = PR_TRUE;
+      return NS_OK;
+    }
+  }
+  return NS_OK; // default return is false
 }

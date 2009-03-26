@@ -2235,11 +2235,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   *aFiltersRun = PR_FALSE;
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsCOMPtr<nsISpamSettings> spamSettings;
-  nsCOMArray<nsIAbDirectory> whiteListDirArray;
-  nsCOMPtr<nsIMsgHeaderParser> headerParser;
-  PRBool useWhiteList = PR_FALSE;
   PRInt32 spamLevel = 0;
-  nsCString whiteListAbURI;
 
   nsresult rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -2340,44 +2336,6 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   if (newMessageKeys.IsEmpty())
     return NS_OK;
 
-  spamSettings->GetUseWhiteList(&useWhiteList);
-  if (useWhiteList)
-  {
-    spamSettings->GetWhiteListAbURI(getter_Copies(whiteListAbURI));
-    NS_ENSURE_SUCCESS(rv, rv);
-    if (!whiteListAbURI.IsEmpty())
-    {
-      nsCOMPtr <nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      nsTArray<nsCString> whiteListArray;
-      ParseString(whiteListAbURI, ' ', whiteListArray);
-
-      for (PRUint32 index = 0; index < whiteListArray.Length(); index++)
-      {
-        nsCOMPtr<nsIRDFResource> resource;
-        rv = rdfService->GetResource(whiteListArray[index], getter_AddRefs(resource));
-
-        nsCOMPtr<nsIAbDirectory> whiteListDirectory =
-          do_QueryInterface(resource, &rv);
-        if (whiteListDirectory)
-          whiteListDirArray.AppendObject(whiteListDirectory);
-      }
-    }
-    // if we can't get the db, we probably want to continue firing spam filters.
-  }
-
-  nsCString trustedMailDomains;
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (prefBranch)
-    prefBranch->GetCharPref("mail.trusteddomains", getter_Copies(trustedMailDomains));
-
-  if (whiteListDirArray.Count() != 0 || !trustedMailDomains.IsEmpty())
-  {
-    headerParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-
   // build up list of keys to classify
   nsCString uri;
   nsTArray<nsMsgKey> keysToClassify;
@@ -2394,55 +2352,21 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     while (filterForJunk)  // we'll break from this at the end
     {
       nsCString junkScore;
-      nsCString author;
-      nsCString authorEmailAddress;
-      if (whiteListDirArray.Count() != 0 || !trustedMailDomains.IsEmpty())
-      {
-        msgHdr->GetAuthor(getter_Copies(author));
-        rv = headerParser->ExtractHeaderAddressMailboxes(author, authorEmailAddress);
-      }
-
-      if (!trustedMailDomains.IsEmpty())
-      {
-        nsCAutoString domain;
-        PRInt32 atPos = authorEmailAddress.FindChar('@');
-        if (atPos >= 0)
-          domain = Substring(authorEmailAddress, atPos + 1);
-        if (!domain.IsEmpty() && MsgHostDomainIsTrusted(domain, trustedMailDomains))
-        {
-          // mark this msg as non-junk, because we whitelisted it.
-
-          nsCAutoString msgJunkScore;
-          msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
-          mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
-          mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
-          break; // skip this msg since it's in the white list
-        }
-      }
       msgHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
       if (!junkScore.IsEmpty()) // ignore already scored messages.
         break;
-      // check whitelist first:
-      if (NS_SUCCEEDED(rv) && whiteListDirArray.Count() != 0)
+
+      PRBool whiteListMessage = PR_FALSE;
+      spamSettings->CheckWhiteList(msgHdr, &whiteListMessage);
+      if (whiteListMessage)
       {
-        nsIAbCard* cardForAddress = nsnull;
-        // don't want to abort the rest of the scoring.
-        if (!authorEmailAddress.IsEmpty())
-        {
-          for (PRInt32 index = 0; index < whiteListDirArray.Count() && !cardForAddress; index++)
-            whiteListDirArray[index]->CardForEmailAddress(authorEmailAddress,
-                                                          &cardForAddress);
-        }
-        if (cardForAddress)
-        {
-          NS_RELEASE(cardForAddress);
-          // mark this msg as non-junk, because we whitelisted it.
-          nsCAutoString msgJunkScore;
-          msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
-          mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
-          mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
-          break; // skip this msg since it's in the white list
-          }
+        // mark this msg as non-junk, because we whitelisted it.
+
+        nsCAutoString msgJunkScore;
+        msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
+        mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
+        mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
+        break; // skip this msg since it's in the white list
       }
       filterMessageForJunk = PR_TRUE;
       break;
