@@ -201,7 +201,8 @@
                 onselect="PermissionSelected();">
             <treecols>
               <treecol id="siteCol" label="&treehead.sitename.label;" flex="5"
-                           onclick="PermissionColumnSort('rawHost', true);" persist="width"/>
+                           onclick="PermissionColumnSort('rawHost', true);" persist="width"
+                           sortDirection="ascending"/>
               <splitter class="tree-splitter"/>
               <treecol id="capabilityCol" label="&treehead.status.label;" flex="5"
                            onclick="PermissionColumnSort('capability', true);" persist="width"/>

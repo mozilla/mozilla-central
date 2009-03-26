@@ -118,9 +118,6 @@ var cookieReloadDisplay = {
       loadCookies();
     } else if (topic == "perm-changed") {
       permissions.length = 0;
-      if (lastPermissionSortColumn == "rawHost") {
-        lastPermissionSortAscending = !lastPermissionSortAscending; // prevents sort from being reversed
-      }
       loadPermissions();
     }
   }
@@ -343,10 +340,11 @@ function HandleCookieKeyPress(e) {
 var lastCookieSortColumn = "rawHost";
 var lastCookieSortAscending = true;
 
-function CookieColumnSort(column) {
+function CookieColumnSort(column, updateSelection) {
   lastCookieSortAscending =
       SortTree(cookiesTree, cookiesTreeView, cookies,
-               column, lastCookieSortColumn, lastCookieSortAscending);
+               column, lastCookieSortColumn, lastCookieSortAscending,
+               updateSelection);
   lastCookieSortColumn = column;
   // set the sortDirection attribute to get the styling going
   // first we need to get the right element
@@ -445,7 +443,10 @@ function loadPermissions() {
 
   // sort and display the table
   permissionsTree.treeBoxObject.view = permissionsTreeView;
-  PermissionColumnSort('rawHost', false);
+  permissionsTreeView.selection.select(-1);
+  SortTree(permissionsTree, permissionsTreeView, permissions,
+           lastPermissionSortColumn, lastPermissionSortColumn,
+           !lastPermissionSortAscending);
 
   // disable "remove all" button if there are no cookies
   if (permissions.length == 0) {
@@ -465,6 +466,16 @@ function PermissionSelected() {
 }
 
 function DeletePermission() {
+  if (permissionsTreeView.selection.count > 1) {
+    var title = cookieBundle.getString("deleteSelectedSitesTitle");
+    var msg = cookieBundle.getString("deleteSelectedCookiesSites");
+    var flags = ((promptservice.BUTTON_TITLE_IS_STRING * promptservice.BUTTON_POS_0) +
+                 (promptservice.BUTTON_TITLE_CANCEL * promptservice.BUTTON_POS_1) +
+                 promptservice.BUTTON_POS_1_DEFAULT)
+    var yes = cookieBundle.getString("deleteSelectedSitesYes");
+    if (promptservice.confirmEx(window, title, msg, flags, yes, null, null, null, {value:0}) == 1)
+      return;
+  }
   DeleteSelectedItemFromTree(permissionsTree, permissionsTreeView,
                                  permissions, deletedPermissions,
                                  "removePermission", "removeAllPermissions");
@@ -530,8 +541,8 @@ function HandlePermissionKeyPress(e) {
   }
 }
 
-var lastPermissionSortColumn = "";
-var lastPermissionSortAscending = false;
+var lastPermissionSortColumn = "rawHost";
+var lastPermissionSortAscending = true;
 
 function PermissionColumnSort(column, updateSelection) {
   lastPermissionSortAscending =
@@ -551,9 +562,9 @@ function PermissionColumnSort(column, updateSelection) {
       break;
   }
   if (lastPermissionSortAscending)
-    sortedCol.setAttribute("sortDirection", "descending");
-  else
     sortedCol.setAttribute("sortDirection", "ascending");
+  else
+    sortedCol.setAttribute("sortDirection", "descending");
 
   // clear out the sortDirection attribute on the rest of the columns
   var currentCol = sortedCol.parentNode.firstChild;
