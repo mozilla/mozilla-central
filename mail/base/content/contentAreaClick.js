@@ -49,9 +49,10 @@
    */
   function hRefForClickEvent(aEvent)
   {
-    var target = aEvent.target;
     var href;
-    var isKeyPress = (aEvent.type == "keypress");
+    var isKeyCommand = (aEvent.type == "command");
+    var target =
+      isKeyCommand ? document.commandDispatcher.focusedElement : event.target;
 
     if (target instanceof HTMLAnchorElement ||
         target instanceof HTMLAreaElement   ||
