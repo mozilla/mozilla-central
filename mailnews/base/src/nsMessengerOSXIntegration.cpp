@@ -59,7 +59,7 @@
 #include "nsIWidget.h"
 #include "nsIObserverService.h"
 #include "nsIPrefService.h"
-#include "nsIPrefBranch.h" 
+#include "nsIPrefBranch.h"
 #include "nsIMessengerWindowService.h"
 #include "prprf.h"
 #include "nsIWeakReference.h"
@@ -71,6 +71,9 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsISupportsPrimitives.h"
+#include "nsIWindowWatcher.h"
+#include "nsMsgLocalCID.h"
+#include "nsIMsgMailNewsUrl.h"
 
 #include <Carbon/Carbon.h>
 
@@ -92,7 +95,7 @@ nsresult FocusAppNative()
   return NS_OK;
 }
 
-static void openMailWindow(const nsACString& aFolderUri)
+static void openMailWindow(const nsCString& aUri)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgMailSession> mailSession ( do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv));
@@ -103,14 +106,39 @@ static void openMailWindow(const nsACString& aFolderUri)
   rv = mailSession->GetTopmostMsgWindow(getter_AddRefs(topMostMsgWindow));
   if (topMostMsgWindow)
   {
-    if (!aFolderUri.IsEmpty())
+    if (!aUri.IsEmpty())
     {
-      nsCOMPtr<nsIMsgWindowCommands> windowCommands;
-      topMostMsgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
-      if (windowCommands)
-        windowCommands->SelectFolder(aFolderUri);
+      nsCOMPtr<nsIMsgMailNewsUrl> msgUri(do_CreateInstance(NS_MAILBOXURL_CONTRACTID, &rv));
+      if (NS_FAILED(rv))
+        return;
+
+      rv = msgUri->SetSpec(aUri);
+      if (NS_FAILED(rv))
+        return;
+
+      PRBool isMessageUri = PR_FALSE;
+      msgUri->GetIsMessageUri(&isMessageUri);
+
+      if (isMessageUri)
+      {
+        nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv));
+        if (NS_FAILED(rv))
+          return;
+
+        nsCOMPtr<nsIDOMWindow> newWindow;
+        wwatch->OpenWindow(0, "chrome://messenger/content/messageWindow.xul",
+                           "_blank", "all,chrome,dialog=no,status,toolbar", msgUri,
+                           getter_AddRefs(newWindow));
+      }
+      else
+      {
+        nsCOMPtr<nsIMsgWindowCommands> windowCommands;
+        topMostMsgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
+        if (windowCommands)
+          windowCommands->SelectFolder(aUri);
+      }
     }
-    
+
     FocusAppNative();
     nsCOMPtr<nsIDOMWindowInternal> domWindow;
     topMostMsgWindow->GetDomWindow(getter_AddRefs(domWindow));
@@ -126,7 +154,7 @@ static void openMailWindow(const nsACString& aFolderUri)
     // (and add code to the messenger window service to make that work)
     if (messengerWindowService)
       messengerWindowService->OpenMessengerWindowWithUri(
-                                "mail:3pane", nsCString(aFolderUri).get(), nsMsgKey_None);
+                                "mail:3pane", aUri.get(), nsMsgKey_None);
   }
 }
 
@@ -196,10 +224,10 @@ NS_IMETHODIMP
 nsMessengerOSXIntegration::Observe(nsISupports* aSubject, const char* aTopic, const PRUnichar* aData)
 {
   if (!strcmp(aTopic, "alertfinished"))
-    return OnAlertFinished(nsnull);
+    return OnAlertFinished();
 
   if (!strcmp(aTopic, "alertclickcallback"))
-    return OnAlertClicked();
+    return OnAlertClicked(aData);
 
   // register named Growl notification for new mail alerts.
   if (!strcmp(aTopic, "before-growl-registration"))
@@ -212,10 +240,10 @@ nsMessengerOSXIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
     nsCOMPtr<nsINotificationsList> notifications = do_QueryInterface(aSubject, &rv);
     if (NS_SUCCEEDED(rv))
     {
-      nsCOMPtr<nsIStringBundle> bundle; 
+      nsCOMPtr<nsIStringBundle> bundle;
       GetStringBundle(getter_AddRefs(bundle));
       if (bundle)
-      { 
+      {
         nsString growlNotification;
         bundle->GetStringFromName(NS_LITERAL_STRING("growlNotification").get(), getter_Copies(growlNotification));
         notifications->AddNotification(growlNotification, PR_TRUE);
@@ -288,13 +316,15 @@ nsMessengerOSXIntegration::FillToolTipInfo(nsIMsgFolder *aFolder, PRInt32 aNewCo
     nsString accountName;
     rootFolder->GetPrettiestName(accountName);
 
-    nsCOMPtr<nsIStringBundle> bundle; 
+    nsCOMPtr<nsIStringBundle> bundle;
     GetStringBundle(getter_AddRefs(bundle));
     if (bundle)
-    { 
-      nsAutoString numNewMsgsText;     
+    {
+      nsAutoString numNewMsgsText;
       numNewMsgsText.AppendInt(aNewCount);
       nsString finalText;
+      nsCString uri;
+      aFolder->GetURI(uri);
 
       if (numNotDisplayed > 0)
       {
@@ -311,17 +341,37 @@ nsMessengerOSXIntegration::FillToolTipInfo(nsIMsgFolder *aFolder, PRInt32 aNewCo
         const PRUnichar *formatStrings[2] = { numNewMsgsText.get(), authors.get() };
 
         if (aNewCount == 1)
+        {
           bundle->FormatStringFromName(NS_LITERAL_STRING("macBiffNotification_message").get(),
                                        formatStrings,
                                        2,
                                        getter_Copies(finalText));
+          // Since there is only 1 message, use the most recent mail's URI instead of the folder's
+          nsCOMPtr<nsIMsgDatabase> db;
+          rv = aFolder->GetMsgDatabase(getter_AddRefs(db));
+          if (NS_SUCCEEDED(rv) && db)
+          {
+            PRUint32 numNewKeys;
+            PRUint32 *newMessageKeys;
+            rv = db->GetNewList(&numNewKeys, &newMessageKeys);
+            if (NS_SUCCEEDED(rv))
+            {
+              nsCOMPtr<nsIMsgDBHdr> hdr;
+              rv = db->GetMsgHdrForKey(newMessageKeys[numNewKeys - 1],
+                                       getter_AddRefs(hdr));
+              if (NS_SUCCEEDED(rv) && hdr)
+                aFolder->GetUriForMsg(hdr, uri);
+            }
+            NS_Free(newMessageKeys);
+          }
+        }
         else
           bundle->FormatStringFromName(NS_LITERAL_STRING("macBiffNotification_messages").get(),
                                        formatStrings,
                                        2,
                                        getter_Copies(finalText));
       }
-      ShowAlertMessage(accountName, finalText, EmptyCString());
+      ShowAlertMessage(accountName, finalText, uri);
     } // if we got a bundle
   } // if we got a folder
 }
@@ -347,9 +397,9 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
       nsCOMPtr<nsIStringBundle> bundle;
       GetStringBundle(getter_AddRefs(bundle));
       if (bundle)
-      { 
+      {
         nsString growlNotification;
-        bundle->GetStringFromName(NS_LITERAL_STRING("growlNotification").get(), 
+        bundle->GetStringFromName(NS_LITERAL_STRING("growlNotification").get(),
                                   getter_Copies(growlNotification));
         rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(kNewMailAlertIcon),
                                                   aAlertTitle,
@@ -360,7 +410,7 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
                                                   growlNotification);
       }
     }
-    
+
     PRBool bounceDockIcon = PR_FALSE;
     prefBranch->GetBoolPref("mail.biff.animate_dock_icon", &bounceDockIcon);
 
@@ -371,7 +421,7 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
   BadgeDockIcon();
 
   if (!showAlert || NS_FAILED(rv))
-    OnAlertFinished(nsnull);
+    OnAlertFinished();
 
   return rv;
 }
@@ -448,28 +498,14 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
 }
 
 nsresult
-nsMessengerOSXIntegration::OnAlertClicked()
+nsMessengerOSXIntegration::OnAlertClicked(const PRUnichar* aAlertCookie)
 {
-  NS_ENSURE_TRUE(mFoldersWithNewMail, NS_ERROR_FAILURE);
-
-  PRUint32 count = 0;
-  mFoldersWithNewMail->Count(&count);
-
-  if (!count)  // kick out if we don't have any folders with new mail
-    return NS_OK;
-
-  nsCOMPtr<nsIWeakReference> weakReference = do_QueryElementAt(mFoldersWithNewMail, 0);
-  nsCOMPtr<nsIMsgFolder> folder = do_QueryReferent(weakReference);
-
-  nsCString folderURI;
-  GetFirstFolderWithNewMail(folder, folderURI);
-  openMailWindow(folderURI);
-
+  openMailWindow(NS_ConvertUTF16toUTF8(aAlertCookie));
   return NS_OK;
 }
 
 nsresult
-nsMessengerOSXIntegration::OnAlertFinished(const PRUnichar * aAlertCookie)
+nsMessengerOSXIntegration::OnAlertFinished()
 {
   return NS_OK;
 }

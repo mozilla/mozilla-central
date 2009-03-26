@@ -77,8 +77,8 @@ private:
   nsCOMPtr<nsIAtom> mNewMailReceivedAtom;
   PRInt32 CountNewMessages();
   nsresult ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI);
-  nsresult OnAlertFinished(const PRUnichar * aAlertCookie);
-  nsresult OnAlertClicked();
+  nsresult OnAlertFinished();
+  nsresult OnAlertClicked(const PRUnichar * aAlertCookie);
   nsresult GetStringBundle(nsIStringBundle **aBundle);
   void FillToolTipInfo(nsIMsgFolder *aFolder, PRInt32 aNewCount);
   nsresult GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCString& aFolderURI);
