@@ -2253,7 +2253,21 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   nsCOMPtr <nsIJunkMailPlugin> junkMailPlugin = do_QueryInterface(filterPlugin);
   if (!junkMailPlugin) // we currently only support the junk mail plugin
     return NS_OK;
-  
+
+  // if it's a news folder, then we really don't support junk in the ui
+  // yet the legacy spamLevel seems to think we should analyze it.
+  // Maybe we should upgrade that, but for now let's not analyze. We'll
+  // use the preference "mail.filter_news_for_junk", and/or
+  // let an extension set an inherited property if they really want us to
+  // analyze this. We need that anyway to allow extension-based overrides.
+  // When we finalize adding junk in news to core, we'll deal with the
+  // spamLevel issue
+
+  PRBool filterNewsForJunk = PR_FALSE;
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  if (prefBranch)
+    prefBranch->GetBoolPref("mail.filter_news_for_junk", &filterNewsForJunk);
+
   // if this is the junk folder, or the trash folder
   // don't analyze for spam, because we don't care
   //
@@ -2265,28 +2279,43 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   // imap folder, don't analyze for spam, because
   // it's not ours to analyze
   //
-  // We'll use the same folder logic for traits as well. Maybe we'll
-  // reconsider that later.
-
-  if (serverType.EqualsLiteral("rss") ||
-     (mFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash |
-             nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Queue |
-             nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
-             nsMsgFolderFlags::ImapPublic | nsMsgFolderFlags::ImapOtherUser)
-     && !(mFlags & nsMsgFolderFlags::Inbox)))
-    return NS_OK;
 
   PRBool filterForJunk = PR_TRUE;
+  if (serverType.EqualsLiteral("rss") ||
+      (mFlags & nsMsgFolderFlags::Newsgroup && !filterNewsForJunk) ||
+      (mFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash |
+                 nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Queue |
+                 nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
+                 nsMsgFolderFlags::ImapPublic |
+                 nsMsgFolderFlags::ImapOtherUser) &&
+       !(mFlags & nsMsgFolderFlags::Inbox)))
+    filterForJunk = PR_FALSE;
+
+  spamSettings->GetLevel(&spamLevel);
+  if (!spamLevel)
+    filterForJunk = PR_FALSE;
+
+  /*
+   * We'll use inherited folder properties for the junk trait to override the
+   * standard server-based activation of junk processing. This provides a
+   * hook for extensions to customize the application of junk filtering.
+   * Set inherited property "dobayes.mailnews@mozilla.org#junk" to "true"
+   * to force junk processing, and "false" to skip junk processing.
+   */
+
+  nsCAutoString junkEnableOverride;
+  GetInheritedStringProperty("dobayes.mailnews@mozilla.org#junk", junkEnableOverride);
+  if (junkEnableOverride.EqualsLiteral("true"))
+    filterForJunk = PR_TRUE;
+  else if (junkEnableOverride.EqualsLiteral("false"))
+    filterForJunk = PR_FALSE;
+
   PRBool userHasClassified = PR_FALSE;
   // if the user has not classified any messages yet, then we shouldn't bother
   // running the junk mail controls. This creates a better first use experience.
   // See Bug #250084.
   junkMailPlugin->GetUserHasClassified(&userHasClassified);
   if (!userHasClassified)
-    filterForJunk = PR_FALSE;
-
-  spamSettings->GetLevel(&spamLevel);
-  if (!spamLevel)
     filterForJunk = PR_FALSE;
 
   if (!mDatabase)
@@ -2306,9 +2335,28 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   PRBool filterForOther = PR_FALSE;
   for (PRUint32 i = 0; i < count; ++i)
   {
+    // The trait service determines which traits are globally enabled or
+    // disabled. If a trait is enabled, it can still be made inactive
+    // on a particular folder using an inherited property. To do that,
+    // set "dobayes." + trait proID as an inherited folder property with
+    // the string value "false"
+    //
+    // If any non-junk traits are active on the folder, then the bayes
+    // processing will calculate probabilities for all enabled traits.
+
     if (proIndices[i] != nsIJunkMailPlugin::JUNK_TRAIT)
     {
       filterForOther = PR_TRUE;
+      nsCAutoString traitId;
+      nsCAutoString property("dobayes.");
+      traitService->GetId(proIndices[i], traitId);
+      property.Append(traitId);
+      nsCAutoString isEnabledOnFolder;
+      GetInheritedStringProperty(property.get(), isEnabledOnFolder);
+      if (isEnabledOnFolder.EqualsLiteral("false"))
+        filterForOther = PR_FALSE;
+      // We might have to allow a "true" override in the future, but
+      // for now there is no way for that to affect the processing
       break;
     }
   }

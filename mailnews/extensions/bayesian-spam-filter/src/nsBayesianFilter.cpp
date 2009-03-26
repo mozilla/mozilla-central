@@ -336,6 +336,15 @@ Tokenizer::Tokenizer() :
     return;
 
   /*
+   * RSS feeds store their summary as alternate content of an iframe. But due
+   * to bug 365953, this is not seen by the serializer. As a workaround, allow
+   * the tokenizer to replace the iframe with div for tokenization.
+   */
+  rv = prefBranch->GetBoolPref("iframe_to_div", &mIframeToDiv);
+  if (NS_FAILED(rv))
+    mIframeToDiv = PR_FALSE;
+
+  /*
    * the list of delimiters used to tokenize the message and body
    * defaults to the value in kBayesianFilterTokenDelimiters, but may be
    * set with the following preferences for the body and header
@@ -828,6 +837,21 @@ void Tokenizer::tokenize(const char* aText)
   // spoke the same language here..
   nsString text = NS_ConvertUTF8toUTF16(aText);
   nsString strippedUCS2;
+
+  // RSS feeds store their summary information as an iframe. But due to
+  // bug 365953, we can't see those in the plaintext serializer. As a
+  // workaround, allow an option to replace iframe with div in the message
+  // text. We disable by default, since most people won't be applying bayes
+  // to RSS
+
+  if (mIframeToDiv)
+  {
+    text.ReplaceSubstring(NS_LITERAL_STRING("<iframe"),
+                          NS_LITERAL_STRING("<div"));
+    text.ReplaceSubstring(NS_LITERAL_STRING("/iframe>"),
+                          NS_LITERAL_STRING("/div>"));
+  }
+
   stripHTML(text, strippedUCS2);
 
   // convert 0x3000(full width space) into 0x0020

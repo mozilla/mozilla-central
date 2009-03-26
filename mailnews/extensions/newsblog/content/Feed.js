@@ -459,7 +459,11 @@ Feed.prototype =
       // so the right RDF UI changes happen in the folder pane to indicate new mail.
 
       if (item.feed.folder.hasNewMessages)
+      {
         item.feed.folder.biffState = Components.interfaces.nsIMsgFolder.nsMsgBiffState_NewMail;
+        // run the bayesian spam filter, if enabled
+        item.feed.folder.callFilterPlugins(null);
+      }
       this.cleanupParsingState(item.feed);   
     }
   },

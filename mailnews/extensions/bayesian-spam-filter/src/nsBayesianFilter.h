@@ -178,6 +178,8 @@ public:
     nsTArray<nsCString> mEnabledHeadersDelimiters;
     PRBool mCustomHeaderTokenization; // Are there any preference-set tokenization customizations?
     PRInt32 mMaxLengthForToken; // maximum length of a token
+    // should we convert iframe to div during tokenization?
+    PRBool mIframeToDiv;
 
 private:
 

@@ -1804,6 +1804,10 @@ NS_IMETHODIMP nsMsgNewsFolder::NotifyFinishedDownloadinghdrs()
 {
   ChangeNumPendingTotalMessages(-GetNumPendingTotalMessages());
   ChangeNumPendingUnread(-GetNumPendingUnread());
+  PRBool filtersRun;
+  // run the bayesian spam filters, if enabled.
+  CallFilterPlugins(nsnull, &filtersRun);
+
   return NS_OK;
 }
 
