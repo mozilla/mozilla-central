@@ -210,7 +210,6 @@ etagsHandler.prototype = {
             this.calendar.getCalendarData(this.baseUri,
                                           multigetQueryString,
                                           null,
-                                          null,
                                           this.changelogListener);
         }
     },

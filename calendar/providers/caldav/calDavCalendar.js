@@ -781,7 +781,6 @@ calDavCalendar.prototype = {
 
         this.getCalendarData(this.calendarUri,
                              xmlHeader + multigetQueryXml.toXMLString(),
-                             aItem,
                              aListener,
                              aChangeLogListener);
     },
@@ -1002,13 +1001,12 @@ calDavCalendar.prototype = {
      *                                     params. They will be appended in this
      *                                     function. 
      * @param aQuery                The query data, i.e the xml body.
-     * @param aItem                 The item to get calendar data for.
      * @param aListener             The listener to notify when the operation
      *                                succeeded.
      * @param aChangeLogListener    (optional) The listener to notify for cached
      *                                         calendars.
      */
-    getCalendarData: function caldav_getCalendarData(aUri, aQuery, aItem, aListener, aChangeLogListener) {
+    getCalendarData: function caldav_getCalendarData(aUri, aQuery, aListener, aChangeLogListener) {
         this.ensureTargetCalendar();
 
         var thisCalendar = this;
@@ -1019,6 +1017,35 @@ calDavCalendar.prototype = {
         caldataListener.onStreamComplete =
             function getCalendarData_gCD_onStreamComplete(aLoader, aContext, aStatus,
                                                           aResultLength, aResult) {
+            function notifyFailed(errorMsg) {
+                if (thisCalendar.isCached && aChangeLogListener) {
+                    aChangeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
+                                                Components.results.NS_ERROR_FAILURE);
+                }
+
+                // Notify operation listener
+                thisCalendar.notifyOperationComplete(aListener,
+                                                     Components.results.NS_ERROR_FAILURE,
+                                                     Components.interfaces.calIOperationListener.GET,
+                                                     null,
+                                                     errorMsg);
+                // If an error occurrs here, we also need to unqueue the
+                // requests previously queued.
+                while (thisCalendar.mQueuedQueries.length) {
+                    let [,,,,listener] = thisCalendar.mQueuedQueries.pop();
+                    try {
+                        listener.onOperationComplete(thisCalendar.superCalendar,
+                                                     Components.results.NS_ERROR_FAILURE,
+                                                     Components.interfaces.calIOperationListener.GET,
+                                                     null,
+                                                     errorMsg);
+                    } catch(e) {
+                        cal.ERROR(e);
+                    }
+                }
+            }
+
+
             let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             let responseStatus;
             try {
@@ -1031,32 +1058,29 @@ calDavCalendar.prototype = {
                 responseStatus = "none";
             }
             if (responseStatus != 207) {
-                cal.LOG("error: got status " + responseStatus +
-                        " fetching calendar data for " + thisCalendar.name);
-                if (thisCalendar.isCached && aChangeLogListener)
-                    aChangeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
-                                                Components.results.NS_ERROR_FAILURE);
+                let errorMsg = "CalDAV: Error: got status " + responseStatus +
+                               " fetching calendar data for " + thisCalendar.name + aListener;
+                cal.LOG(errorMsg);
+                notifyFailed(errorMsg);
                 return;
             }
             let str = cal.convertByteArray(aResult, aResultLength);
             if (!str) {
-                cal.LOG("CalDAV: Failed to parse getCalendarData REPORT for" +
-                        " calendar " + thisCalendar.name);
-                if (thisCalendar.isCached && aChangeLogListener) {
-                    aChangeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
-                                                Components.results.NS_ERROR_FAILURE);
-                }
+                let errorMsg = "CalDAV: Failed to parse getCalendarData REPORT for" +
+                               " calendar " + thisCalendar.name;
+                cal.LOG(errorMsg);
+                notifyFailed(errorMsg);
                 return;
             } else if (thisCalendar.verboseLogging()) {
                 cal.LOG("CalDAV: recv: " + str);
-            }
-            if (thisCalendar.isCached) {
-                thisCalendar.superCalendar.startBatch();
             }
 
             // We need this later on, do so once to save some cycles.
             let uriPathComponentLength = aUri.path.split("/").length;
 
+            if (thisCalendar.isCached) {
+                thisCalendar.superCalendar.startBatch();
+            }
             try {
                 let multistatus = cal.safeNewXML(str);
                 for each (let response in multistatus.*::response) {
@@ -1152,7 +1176,7 @@ calDavCalendar.prototype = {
                         thisCalendar.setMetaData(item.id, resourcePath, etag, isInboxItem);
                     }
                 }
-                cal.LOG("refresh completed with status " + responseStatus + " at " +
+                cal.LOG("CalDAV: refresh completed with status " + responseStatus + " at " +
                         requestUri.spec);
             } finally {
                 if (thisCalendar.isCached) {
@@ -1169,7 +1193,7 @@ calDavCalendar.prototype = {
             }
             thisCalendar.mFirstRefreshDone = true;
             while (thisCalendar.mQueuedQueries.length) {
-                var query = thisCalendar.mQueuedQueries.pop();
+                let query = thisCalendar.mQueuedQueries.pop();
                 thisCalendar.mTargetCalendar.getItems
                             .apply(thisCalendar.mTargetCalendar, query);
             }
@@ -1923,7 +1947,7 @@ calDavCalendar.prototype = {
                         }
                     }
                 } catch (exc) {
-                    cal.LOG("Error parsing free-busy info.");
+                    cal.ERROR("CalDAV: Error parsing free-busy info.");
                 }
 
                 aListener.onResult(null, periodsToReturn);
@@ -2101,7 +2125,7 @@ calDavCalendar.prototype = {
                     }
 
                     if (status != 200) {
-                        cal.LOG("Sending iTIP failed with status " + status +
+                        cal.LOG("CalDAV: Sending iTIP failed with status " + status +
                                 " for " + thisCalendar.name);
                     }
 
