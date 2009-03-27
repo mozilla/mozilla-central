@@ -82,7 +82,7 @@ let SearchSupport =
   },
 
   /**
-   * Queue of message headers to index
+   * Queue of message headers to index, along with reindex times for each header
    */
   _msgHdrsToIndex: [],
 
@@ -107,6 +107,37 @@ let SearchSupport =
                             .getService(Ci.nsIPrefService)
                             .getBranch(this._prefBase);
     return this.__prefBranch;
+  },
+
+  /**
+   * Last global reindex time, used to check if reindexing is required.
+   * Kept in sync with the pref
+   */
+  _globalReindexTime: null,
+  set globalReindexTime(aTime)
+  {
+    this._globalReindexTime = aTime;
+    // Set the pref as well
+    this._prefBranch.setCharPref("global_reindex_time", "" + aTime);
+  },
+  get globalReindexTime()
+  {
+    if (!this._globalReindexTime)
+    {
+      // Try getting the time from the preferences
+      try {
+        this._globalReindexTime = parseInt(this._prefBranch
+                                    .getCharPref("global_reindex_time"));
+      }
+      catch (e)
+      {
+        // We don't have it defined, so set it (Unix time, in seconds)
+        this._globalReindexTime = parseInt(Date.now() / 1000);
+        this._prefBranch.setCharPref("global_reindex_time",
+                                     "" + this._globalReindexTime);
+      }
+    }
+    return this._globalReindexTime;
   },
 
   /**
@@ -240,13 +271,30 @@ let SearchSupport =
   /*
    * These functions are to index already existing messages
    */
-  _findNextFolderToIndex: function search_find_next_folder()
+
+  /**
+   * Generator to look for the next folder to index, and return it
+   *
+   * This first looks for folders that have their corresponding search results
+   * folders missing. If it finds such a folder first, it'll yield return that
+   * folder.
+   *
+   * Next, it looks for the next folder after the lastFolderIndexedUri. If it is
+   * in such a folder, it'll yield return that folder, then set the
+   * lastFolderIndexedUrl to the URI of that folder.
+   *
+   * It resets lastFolderIndexedUri to an empty string, then yield returns null
+   * once iteration across all folders is complete.
+   */
+  _foldersToIndexGenerator: function search_find_next_folder()
   {
     let accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
                            .getService(Ci.nsIMsgAccountManager);
     let servers = accountManager.allServers;
-    let foundFolder = false;
-    let useNextFolder = false;
+
+    // Stores whether we're after the last folder indexed or before that --
+    // if the last folder indexed is empty, this needs to be true initially
+    let afterLastFolderIndexed = (this._lastFolderIndexedUri.length == 0);
 
     for each (var server in fixIterator(servers, Ci.nsIMsgIncomingServer))
     {
@@ -259,23 +307,56 @@ let SearchSupport =
                       this._lastFolderIndexedUri);
       for each (var folder in fixIterator(allFolders, Ci.nsIMsgFolder))
       {
-        // if no folder was indexed (or the pref's not set), just use the first
-        // folder
-        if (!this._lastFolderIndexedUri.length || useNextFolder)
+        let searchPath = this._getSearchPathForFolder(folder);
+        searchPath.leafName = searchPath.leafName + ".mozmsgs";
+        // If after the last folder indexed, definitely index this
+        if (afterLastFolderIndexed)
         {
-          this._currentFolderToIndex = folder;
-          foundFolder = true;
-          break;
+          // Create the folder if it doesn't exist, so that we don't hit the
+          // condition below later
+          if (!searchPath.exists())
+            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, 0644);
+
+          yield folder;
+          // We're back after yielding -- set the last folder indexed
+          this._lastFolderIndexedUri = folder.URI;
         }
         else
         {
+          // If a folder's entire corresponding search results folder is
+          // missing, we need to index it, and force a reindex of all the
+          // messages in it
+          if (!searchPath.exists())
+          {
+            this._log.debug("using folder " + folder.URI + " because " +
+                            "corresponding search folder does not exist");
+            // Create the folder, so that next time we're checking we don't hit
+            // this
+            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, 0644);
+            folder.setStringProperty(this._hdrIndexedProperty,
+                                     "" + (Date.now() / 1000));
+            yield folder;
+          }
+
+          // Even if we yielded above, check if this is the last folder
+          // indexed
           if (this._lastFolderIndexedUri == folder.URI)
-            useNextFolder = true;
+            afterLastFolderIndexed = true;
         }
       }
     }
-    if (!foundFolder)
-      this._currentFolderToIndex = null;
+    // We're done with one iteration of all the folders; time to reset the
+    // lastFolderIndexedUri
+    this._lastFolderIndexedUri = "";
+    yield null;
+  },
+
+  __foldersToIndex: null,
+  get _foldersToIndex()
+  {
+    if (!this.__foldersToIndex)
+      this.__foldersToIndex = this._foldersToIndexGenerator();
+    return this.__foldersToIndex;
   },
 
   _findNextHdrToIndex: function search_find_next_header()
@@ -286,19 +367,60 @@ let SearchSupport =
         this._headerEnumerator = this._currentFolderToIndex.messages;
 
       // iterate over the folder finding the next message to index
+      let reindexTime = this._getLastReindexTime(this._currentFolderToIndex);
+      this._log.debug("Reindex time for this folder is " + reindexTime);
       while (this._headerEnumerator.hasMoreElements())
       {
         let msgHdr = this._headerEnumerator.getNext()
                          .QueryInterface(Ci.nsIMsgDBHdr);
-        if (!msgHdr.getUint32Property(this._hdrIndexedProperty))
-          return msgHdr;
+
+        if (msgHdr.getUint32Property(this._hdrIndexedProperty) < reindexTime)
+        {
+          // Check if the file exists. If it does, then assume indexing to be
+          // complete for this file
+          if (this._getSupportFile(msgHdr).exists())
+          {
+            this._log.debug("Message time not set but file exists; setting " +
+                            "time to " + reindexTime);
+            msgHdr.setUint32Property(this._hdrIndexedProperty, reindexTime);
+          }
+          else
+          {
+            return [msgHdr, reindexTime];
+          }
+        }
       }
     }
-    catch(ex) {}
+    catch(ex) { this._log.debug("Error while finding next header: " + ex); }
 
     // If we couldn't find any headers to index, null out the enumerator
     this._headerEnumerator = null;
     return null;
+  },
+
+  /**
+   * Get the last reindex time for this folder. This will be whichever's
+   * greater, the global reindex time or the folder reindex time
+   */
+  _getLastReindexTime: function search_get_last_reindex_time(aFolder)
+  {
+    let reindexTime = this.globalReindexTime;
+
+    // Check if this folder has a separate string property set
+    let folderReindexTime;
+    try {
+      folderReindexTime = this._currentFolderToIndex
+        .getStringProperty(this._hdrIndexedProperty);
+    }
+    catch (e) { folderReindexTime = ""; }
+
+    if (folderReindexTime.length > 0)
+    {
+      let folderReindexTimeInt = parseInt(folderReindexTime);
+      if (folderReindexTimeInt > reindexTime)
+        reindexTime = folderReindexTimeInt;
+    }
+    return reindexTime;
   },
 
   /**
@@ -314,38 +436,33 @@ let SearchSupport =
    */
   _continueSweep: function search_continue_sweep()
   {
-    let msgHdrToIndex = null;
+    let msgHdrAndReindexTime = null;
 
     if (this.__backgroundIndexingDone)
       return;
 
     // find the current folder we're working on
     if (!this._currentFolderToIndex)
-      this._findNextFolderToIndex();
+      this._currentFolderToIndex = this._foldersToIndex.next();
 
     // we'd like to index more than one message on each timer fire,
     // but since streaming is async, it's hard to know how long
     // it's going to take to stream any particular message.
     if (this._currentFolderToIndex)
-      msgHdrToIndex = this._findNextHdrToIndex();
+      msgHdrAndReindexTime = this._findNextHdrToIndex();
     else
-    {
       // we've cycled through all the folders, we should take a break
       // from indexing of existing messages
       this.__backgroundIndexingDone = true;
-      this._lastFolderIndexedUri = "";
-    }
-    if (!msgHdrToIndex)
+
+    if (!msgHdrAndReindexTime)
     {
       this._log.debug("reached end of folder");
       if (this._currentFolderToIndex)
-      {
-        this._lastFolderIndexedUri = this._currentFolderToIndex.URI;
         this._currentFolderToIndex = null;
-      }
     }
     else
-      this._queueMessage(msgHdrToIndex);
+      this._queueMessage(msgHdrAndReindexTime[0], msgHdrAndReindexTime[1]);
 
     // Restart the timer, and call ourselves
     this._cancelTimer();
@@ -384,12 +501,22 @@ let SearchSupport =
     {
       this._log.debug("topic = " + aTopic + " uri = " + aData);
       let msgHdr = this._messenger.msgHdrFromURI(aData);
-      let indexed = msgHdr.getUint32Property(this._hdrIndexedProperty);
-      if (!indexed)
+      let reindexTime = this._getLastReindexTime(msgHdr.folder);
+      this._log.debug("Reindex time for this folder is " + reindexTime);
+      if (msgHdr.getUint32Property(this._hdrIndexedProperty) < reindexTime)
       {
-        let file = this._getSupportFile(msgHdr);
-        if (!file.exists())
-          this._queueMessage(msgHdr);
+        // Check if the file exists. If it does, then assume indexing to be
+        // complete for this file
+        if (this._getSupportFile(msgHdr).exists())
+        {
+          this._log.debug("Message time not set but file exists; setting " +
+                          " time to " + reindexTime);
+          msgHdr.setUint32Property(this._hdrIndexedProperty, reindexTime);
+        }
+        else
+        {
+          this._queueMessage(msgHdr, reindexTime);
+        }
       }
     }
   },
@@ -404,7 +531,8 @@ let SearchSupport =
       // The message already being there is an expected case
       let file = SearchIntegration._getSupportFile(aMsg);
       if (!file.exists())
-        SearchIntegration._queueMessage(aMsg);
+        SearchIntegration._queueMessage(aMsg,
+          SearchIntegration._getLastReindexTime(aMsg.folder));
     },
 
     msgsDeleted: function(aMsgs)
@@ -515,12 +643,12 @@ let SearchSupport =
   /*
    * Support functions to queue/generate files
    */
-  _queueMessage: function search_queue_message(msgHdr)
+  _queueMessage: function search_queue_message(msgHdr, reindexTime)
   {
-    if (this._msgHdrsToIndex.push(msgHdr) == 1)
+    if (this._msgHdrsToIndex.push([msgHdr, reindexTime]) == 1)
     {
       this._log.info("generating support file for id = " + msgHdr.messageId);
-      this._streamListener.startStreaming(msgHdr);
+      this._streamListener.startStreaming(msgHdr, reindexTime);
     }
     else
       this._log.info("queueing support file generation for id = " +
@@ -567,6 +695,9 @@ let SearchSupport =
     /// Reference to message header
     _msgHdr: null,
 
+    /// Reindex time for this message header
+    _reindexTime: null,
+
     QueryInterface: function(aIId, instance) {
       if (aIId.equals(Ci.nsIStreamListener) || aIId.equals(Ci.nsISupports))
         return this;
@@ -588,11 +719,14 @@ let SearchSupport =
       SearchIntegration._msgHdrsToIndex.shift();
 
       if (SearchIntegration._msgHdrsToIndex.length > 0)
-        this.startStreaming(SearchIntegration._msgHdrsToIndex[0]);
+      {
+        [msgHdr, reindexTime] = SearchIntegration._msgHdrsToIndex[0];
+        this.startStreaming(msgHdr, reindexTime);
+      }
     },
 
     /// "Start" function
-    startStreaming: function search_start_streaming(msgHdr)
+    startStreaming: function search_start_streaming(msgHdr, reindexTime)
     {
       try
       {
@@ -623,6 +757,7 @@ let SearchSupport =
             .messageServiceFromURI(uri);
           this._msgHdr = msgHdr;
           this._outputFile = file;
+          this._reindexTime = reindexTime;
           try
           {
             // XXX For now, try getting the messages from the server. This has

@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -97,8 +97,9 @@ let SearchIntegration =
 {
   __proto__: SearchSupport,
 
-  /// The property of the header that's used to check if a message is indexed
-  _hdrIndexedProperty: "wds_indexed",
+  /// The property of the header and (sometimes) folders that's used to check
+  /// if a message is indexed
+  _hdrIndexedProperty: "winsearch_reindex_time",
 
   /// The file extension that is used for support files of this component
   _fileExt: ".wdseml",
@@ -311,7 +312,7 @@ let SearchIntegration =
         this._outputStream.writeString(text + CRLF + CRLF);
 
         this._msgHdr.setUint32Property(SearchIntegration._hdrIndexedProperty,
-                                       1);
+                                       this._reindexTime);
         folder.msgDatabase.Commit(MSG_DB_LARGE_COMMIT);
 
         this._message = "";
