@@ -279,10 +279,10 @@ var gDataMigrator = {
         if (win) {
             win.focus();
         } else {
-            openDialog(url, "migration", "centerscreen,chrome,resizable=no", DMs);
+            openDialog(url, "migration", "centerscreen,chrome,resizable=no,width=500,height=400", DMs);
         }
 #else
-        openDialog(url, "migration", "modal,centerscreen,chrome,resizable=no", DMs);
+        openDialog(url, "migration", "modal,centerscreen,chrome,resizable=no,width=500,height=400", DMs);
 #endif
     },
 
