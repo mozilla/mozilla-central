@@ -798,10 +798,8 @@ var toolbarDNDObserver =
 
       var direction = window.getComputedStyle(dropTarget.parentNode, null).direction;
       var dropTargetCenter = dropTarget.boxObject.x + (dropTarget.boxObject.width / 2);
-      if (direction == "ltr")
-        dragAfter = aEvent.clientX > dropTargetCenter;
-      else
-        dragAfter = aEvent.clientX < dropTargetCenter;
+      var dragAfter = direction == "ltr" ? aEvent.clientX > dropTargetCenter :
+                                           aEvent.clientX < dropTargetCenter;
 
       if (dragAfter) {
         gCurrentDragOverItem = dropTarget.nextSibling;
