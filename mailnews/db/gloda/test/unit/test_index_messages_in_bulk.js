@@ -3,12 +3,8 @@
  * are primarily concerned about memory utilization and processor load.
  */
 
-do_import_script("../mailnews/db/gloda/test/resources/messageGenerator.js");
-
-//these are imported by glodaTestHelper's import of head_maillocal
-// do_import_script("../mailnews/test/resources/mailDirService.js");
-// do_import_script("../mailnews/test/resources/mailTestUtils.js");
-do_import_script("../mailnews/db/gloda/test/resources/glodaTestHelper.js");
+load("../../mailnews/resources/messageGenerator.js");
+load("resources/glodaTestHelper.js");
 
 // Create a message generator
 var msgGen = new MessageGenerator();

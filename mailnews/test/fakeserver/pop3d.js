@@ -2,7 +2,7 @@
 // This file implements test POP3 servers
 
 function readFile(fileName) {
-  var file = do_get_file("../mailnews/local/test/unit/data/" + fileName);
+  var file = do_get_file("data/" + fileName);
 
   // If these fail, there is a problem with the test
   do_check_neq(file, null);

@@ -245,7 +245,7 @@ AbImportHelper.prototype =
   {
     if (!aName)
       do_throw("Error - getJSONAb requires an address book name");
-    var file = do_get_file("../mailnews/import/test/resources/addressbook.json");
+    var file = do_get_file("resources/addressbook.json");
     if (!file || !file.exists() || !file.isFile())
       do_throw("Unable to get JSON file");
 

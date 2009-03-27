@@ -118,7 +118,7 @@ function run_test() {
   type = "sendMessageFile";
 
   // Test file - for bug 429891
-  var testFile = do_get_file("../mailnews/compose/test/unit/data/429891_testcase.eml");
+  var testFile = do_get_file("data/429891_testcase.eml");
   originalData = loadFileToString(testFile);
 
   // Ensure we have at least one mail account

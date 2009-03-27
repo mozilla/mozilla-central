@@ -1,10 +1,10 @@
 // Import fakeserver
-do_import_script("../mailnews/test/fakeserver/maild.js");
-do_import_script("../mailnews/test/fakeserver/imapd.js");
+load("../../mailnews/fakeserver/maild.js");
+load("../../mailnews/fakeserver/imapd.js");
 
 // And mailnews scripts
-do_import_script("../mailnews/test/resources/mailDirService.js");
-do_import_script("../mailnews/test/resources/mailTestUtils.js");
+load("../../mailnews/resources/mailDirService.js");
+load("../../mailnews/resources/mailTestUtils.js");
 
 const IMAP_PORT = 1024 + 143;
 

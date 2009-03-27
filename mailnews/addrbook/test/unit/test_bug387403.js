@@ -3,7 +3,7 @@
  * Test for bug 387403 crash when opening e-mail with broken vcard.
  */
 
-do_import_script("../mailnews/test/resources/mailTestUtils.js");
+load("../../mailnews/resources/mailTestUtils.js");
 
 function run_test() {
   var abManager = Components.classes["@mozilla.org/abmanager;1"]

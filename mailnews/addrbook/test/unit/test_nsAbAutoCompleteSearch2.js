@@ -8,8 +8,62 @@
  * books.
  */
 
-// We import this to allow us to reuse the code of the results object.
-do_import_script("../mailnews/addrbook/src/nsAbAutoCompleteSearch.js");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
+// taken from nsAbAutoCompleteSearch.js
+const ACR = Components.interfaces.nsIAutoCompleteResult;
+const nsIAbAutoCompleteResult = Components.interfaces.nsIAbAutoCompleteResult;
+
+function nsAbAutoCompleteResult(aSearchString) {
+  // Can't create this in the prototype as we'd get the same array for
+  // all instances
+  this._searchResults = new Array();
+  this.searchString = aSearchString;
+}
+
+nsAbAutoCompleteResult.prototype = {
+  _searchResults: null,
+
+  // nsIAutoCompleteResult
+
+  searchString: null,
+  searchResult: ACR.RESULT_NOMATCH,
+  defaultIndex: -1,
+  errorDescription: null,
+
+  get matchCount() {
+    return this._searchResults.length;
+  },
+
+  getValueAt: function getValueAt(aIndex) {
+    return this._searchResults[aIndex].value;
+  },
+
+  getCommentAt: function getCommentAt(aIndex) {
+    return this._searchResults[aIndex].comment;
+  },
+
+  getStyleAt: function getStyleAt(aIndex) {
+    return "local-abook";
+  },
+
+  getImageAt: function getImageAt(aIndex) {
+    return "";
+  },
+
+  removeValueAt: function removeValueAt(aRowIndex, aRemoveFromDB) {
+  },
+
+  // nsIAbAutoCompleteResult
+
+  getCardAt: function getCardAt(aIndex) {
+    return this._searchResults[aIndex].card;
+  },
+
+  // nsISupports
+
+  QueryInterface: XPCOMUtils.generateQI([ACR, nsIAbAutoCompleteResult])
+}
 
 function createCard(chars, popularity) {
   var card = Components.classes["@mozilla.org/addressbook/cardproperty;1"]

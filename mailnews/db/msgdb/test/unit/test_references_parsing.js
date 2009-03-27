@@ -2,13 +2,9 @@
  * Test nsMsgHdr's In-Reply-To/References parsing logic.
  */
 
-// Import the main scripts that mailnews tests need to set up and tear down
-do_import_script("../mailnews/test/resources/mailDirService.js");
-do_import_script("../mailnews/test/resources/mailTestUtils.js");
-
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
-const anyOldMessage = do_get_file("../mailnews/test/data/bugmail1");
+const anyOldMessage = do_get_file("../../mailnews/data/bugmail1");
 
 var refsAndResults = [
   // an empty string is not a reference.

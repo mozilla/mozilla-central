@@ -7,9 +7,9 @@
  *  indexing logic.
  */
 
-do_import_script("../mailnews/db/gloda/test/resources/glodaTestHelper.js");
-do_import_script("../mailnews/db/gloda/test/resources/mockIndexer.js");
-do_import_script("../mailnews/db/gloda/test/resources/mockTimer.js");
+load("resources/glodaTestHelper.js");
+load("resources/mockIndexer.js");
+load("resources/mockTimer.js");
 
 /* ===== Mock Objects ==== */
 

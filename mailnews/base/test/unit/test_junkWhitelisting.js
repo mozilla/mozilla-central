@@ -39,7 +39,7 @@
  */
  
 // add address book setup
-do_import_script("../mailnews/addrbook/test/resources/abSetup.js");
+load("../../mailnews/resources/abSetup.js");
 
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
@@ -64,8 +64,8 @@ const prefs = Cc["@mozilla.org/preferences-service;1"]
 
 var Files = 
 [
-  "../mailnews/test/data/bugmail1",
-  "../mailnews/test/data/bugmail3"
+  "../../mailnews/data/bugmail1",
+  "../../mailnews/data/bugmail3"
 ]
 
 let hdrs = [];
@@ -75,7 +75,7 @@ function run_test()
   loadLocalMailAccount();
 
   // Test setup - copy the data file into place
-  var testAB = do_get_file("../mailnews/addrbook/test/unit/data/cardForEmail.mab");
+  var testAB = do_get_file("../../test_addbook/unit/data/cardForEmail.mab");
 
   // Copy the file to the profile directory for a PAB (this is the personal address book)
   testAB.copyTo(gProfileDir, kPABData.fileName);

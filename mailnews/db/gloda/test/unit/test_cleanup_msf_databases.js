@@ -6,8 +6,8 @@
  *  other tests unless you take care to fix all our meddling.
  */
 
-do_import_script("../mailnews/db/gloda/test/resources/messageGenerator.js");
-do_import_script("../mailnews/db/gloda/test/resources/glodaTestHelper.js");
+load("../../mailnews/resources/messageGenerator.js");
+load("resources/glodaTestHelper.js");
 
 // Create a message generator
 var msgGen = new MessageGenerator();

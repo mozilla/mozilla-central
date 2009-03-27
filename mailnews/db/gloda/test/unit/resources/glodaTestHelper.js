@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 // -- Pull in the POP3 fake-server / local account helper code
-do_import_script("../mailnews/local/test/unit/head_maillocal.js");
+load("../../test_mailnewslocal/unit/head_maillocal.js");
 
 // -- Set the gloda prefs
 const gPrefs = Cc["@mozilla.org/preferences-service;1"]

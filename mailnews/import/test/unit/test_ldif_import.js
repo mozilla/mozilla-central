@@ -14,7 +14,7 @@ function run_test()
   // to ensure that it is initialized before we start the main test.
   var abMgr = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
 
-  var file = do_get_file("../mailnews/import/test/resources/basic_ldif_addressbook.ldif");
+  var file = do_get_file("resources/basic_ldif_addressbook.ldif");
   new AbImportHelper(file, "LDIF", "basic_ldif_addressbook",
                      "basic_addressbook").beginImport();
 }

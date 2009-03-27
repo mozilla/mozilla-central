@@ -65,3 +65,8 @@ DEFINES += -DOS_ARCH=$(OS_ARCH) \
            $(NULL)
 
 include $(topsrcdir)/config/rules.mk
+
+libs::
+	$(INSTALL) $(wildcard $(srcdir)/test/resources/*.js) $(MOZDEPTH)/_tests/xpcshell/mailnews/resources
+	$(INSTALL) $(wildcard $(srcdir)/test/data/*) $(MOZDEPTH)/_tests/xpcshell/mailnews/data
+	$(INSTALL) $(wildcard $(srcdir)/test/fakeserver/*.js) $(MOZDEPTH)/_tests/xpcshell/mailnews/fakeserver

@@ -1,10 +1,10 @@
 // Import the main scripts that mailnews tests need to set up and tear down
-do_import_script("../mailnews/test/resources/mailDirService.js");
-do_import_script("../mailnews/test/resources/mailTestUtils.js");
+load("../../mailnews/resources/mailDirService.js");
+load("../../mailnews/resources/mailTestUtils.js");
 
 // Import the pop3 server scripts
-do_import_script("../mailnews/test/fakeserver/maild.js")
-do_import_script("../mailnews/test/fakeserver/pop3d.js")
+load("../../mailnews/fakeserver/maild.js")
+load("../../mailnews/fakeserver/pop3d.js")
 
 const POP3_PORT = 1024+110;
 

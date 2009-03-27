@@ -3,8 +3,6 @@
  * Test suite for msg database functions.
  */
 
-do_import_script("../mailnews/test/resources/mailTestUtils.js");
-
 function run_test() {
   loadLocalMailAccount();
   // Get the root folder

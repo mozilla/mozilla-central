@@ -1,9 +1,9 @@
 // Import the servers
-do_import_script("../mailnews/test/fakeserver/maild.js");
-do_import_script("../mailnews/test/fakeserver/nntpd.js");
+load("../../mailnews/fakeserver/maild.js");
+load("../../mailnews/fakeserver/nntpd.js");
 
 // Generic mailnews resource scripts
-do_import_script("../mailnews/test/resources/mailDirService.js");
+load("../../mailnews/resources/mailDirService.js");
 
 const kSimpleNewsArticle =
   "From: John Doe <john.doe@example.com>\n"+
@@ -31,7 +31,7 @@ function setupNNTPDaemon() {
     daemon.addGroup(element[0]);
   });
 
-  var auto_add = do_get_file("../mailnews/news/test/postings/auto-add/");
+  var auto_add = do_get_file("postings/auto-add/");
   var files = [];
   var enumerator = auto_add.directoryEntries;
   while (enumerator.hasMoreElements())

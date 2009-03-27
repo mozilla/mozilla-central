@@ -19,8 +19,8 @@ var originalData;
 var identity = null;
 var gMsgFile =
 [
-  do_get_file("../mailnews/compose/test/unit/data/message1.eml"),
-  do_get_file("../mailnews/compose/test/unit/data/429891_testcase.eml")
+  do_get_file("data/message1.eml"),
+  do_get_file("data/429891_testcase.eml")
 ];
 var gMsgFileData = [];
 var gMsgOrder = [];

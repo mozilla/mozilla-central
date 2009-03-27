@@ -83,13 +83,13 @@ function run_test() {
   server.setDebugLevel(fsDebugAll);
 
   // Passwords File (generated from Mozilla 1.8 branch).
-  var signons = do_get_file("../mailnews/compose/test/unit/data/signons-smtp.txt");
+  var signons = do_get_file("data/signons-smtp.txt");
 
   // Copy the file to the profile directory for a PAB
   signons.copyTo(gProfileDir, "signons.txt");
 
   // Test file
-  var testFile = do_get_file("../mailnews/compose/test/unit/data/message1.eml");
+  var testFile = do_get_file("data/message1.eml");
 
   // Ensure we have at least one mail account
   loadLocalMailAccount();

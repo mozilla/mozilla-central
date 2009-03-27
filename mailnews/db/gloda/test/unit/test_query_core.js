@@ -6,7 +6,7 @@
  *  to test for.)  
  */
 
-do_import_script("../mailnews/db/gloda/test/resources/glodaTestHelper.js");
+load("resources/glodaTestHelper.js");
 
 /* ===== Test Noun ===== */
 /*

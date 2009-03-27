@@ -49,7 +49,7 @@ const Contains = nsMsgSearchOp.Contains;
 const offlineMail = nsMsgSearchScope.offlineMail;
 const gArrayHdrs = ["X-Bugzilla-Who", "Sender"];
 const gFirstHeader = nsMsgSearchAttrib.OtherHeader + 1;
-const fileName = "../mailnews/test/data/SenderHeader";
+const fileName = "../../mailnews/data/SenderHeader";
 
 var Tests =
 [

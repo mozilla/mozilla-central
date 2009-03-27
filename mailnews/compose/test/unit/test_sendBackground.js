@@ -10,7 +10,7 @@ var transaction;
 var originalData;
 var finished = false;
 var identity = null;
-var testFile = do_get_file("../mailnews/compose/test/unit/data/429891_testcase.eml");
+var testFile = do_get_file("data/429891_testcase.eml");
 
 const kSender = "from@invalid.com";
 const kTo = "to@invalid.com";

@@ -8,8 +8,8 @@
  * - sun attachment
  */
 
-do_import_script("../mailnews/db/gloda/test/resources/messageGenerator.js");
-do_import_script("../mailnews/db/gloda/test/resources/glodaTestHelper.js");
+load("../../mailnews/resources/messageGenerator.js");
+load("resources/glodaTestHelper.js");
 
 Components.utils.import("resource://app/modules/gloda/mimemsg.js");
 

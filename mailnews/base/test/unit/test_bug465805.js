@@ -37,7 +37,7 @@
 // This tests that we do not crash when loading the email bodySearchCrash,
 // which was fixed in bug 465805
 
-do_import_script("../mailnews/test/resources/searchTestUtils.js");
+load("../../mailnews/resources/searchTestUtils.js");
 
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"].
                       getService(Ci.nsIMsgCopyService);
@@ -55,8 +55,8 @@ const Body = nsMsgSearchAttrib.Body;
 
 var Files = 
 [
-  "../mailnews/test/data/bugmail1",
-  "../mailnews/test/data/bodySearchCrash"
+  "../../mailnews/data/bugmail1",
+  "../../mailnews/data/bodySearchCrash"
 ]
 
 var Tests =

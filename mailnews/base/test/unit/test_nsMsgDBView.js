@@ -8,7 +8,7 @@
  */
 
 // this will be migrated out of gloda soon...
-do_import_script("../mailnews/db/gloda/test/resources/messageGenerator.js");
+load("../../mailnews/resources/messageGenerator.js");
 
 var gMessageGenerator;
 var gScenarioFactory;

@@ -42,7 +42,7 @@
  */
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
-const bugmail1 = do_get_file("../mailnews/test/data/bugmail1");
+const bugmail1 = do_get_file("../../mailnews/data/bugmail1");
 var gHdr; // header of test message in local folder
 
 loadLocalMailAccount();

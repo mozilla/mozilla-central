@@ -161,9 +161,9 @@ function run_test()
 {
   loadLocalMailAccount();
   // Load up some messages so that we can copy them in later.
-  gMsgFile1 = do_get_file("../mailnews/test/data/bugmail10");
-  gMsgFile2 = do_get_file("../mailnews/test/data/bugmail11");
-  gMsgFile3 = do_get_file("../mailnews/test/data/draft1");
+  gMsgFile1 = do_get_file("../../mailnews/data/bugmail10");
+  gMsgFile2 = do_get_file("../../mailnews/data/bugmail11");
+  gMsgFile3 = do_get_file("../../mailnews/data/draft1");
 
   // Create another folder to move and copy messages around, and force initialization.
   var rootFolder = gLocalIncomingServer.rootMsgFolder;

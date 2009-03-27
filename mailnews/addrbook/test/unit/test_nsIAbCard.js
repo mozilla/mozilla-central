@@ -11,7 +11,7 @@
 // collected books work correctly in an easy manner.
 function run_test() {
   // Test setup - copy the data file into place
-  var testAB = do_get_file("../mailnews/addrbook/test/unit/data/cardForEmail.mab");
+  var testAB = do_get_file("data/cardForEmail.mab");
 
   // Copy the file to the profile directory for a PAB
   testAB.copyTo(gProfileDir, kPABData.fileName);

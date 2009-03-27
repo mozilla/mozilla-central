@@ -127,76 +127,16 @@ endif
 testxpcobjdir = $(MOZDEPTH)/_tests/xpcshell
 
 # Test file installation
-ifdef MOZILLA_1_9_1_BRANCH
-
-libs::
-	@$(EXIT_ON_ERROR) \
-	for testdir in $(XPCSHELL_TESTS); do \
-	  $(INSTALL) \
-	    $(srcdir)/$$testdir/*.js \
-	    $(testxpcobjdir)/$(MODULE)/$$testdir; \
-	done
-
-# Path formats on Windows are hard.  We require a topsrcdir formatted so that
-# it may be passed to nsILocalFile.initWithPath (in other words, an absolute
-# path of the form X:\path\to\topsrcdir), which we store in NATIVE_TOPSRCDIR.
-# We require a forward-slashed path to topsrcdir so that it may be combined
-# with a relative forward-slashed path for loading scripts, both dynamically
-# and statically for head/test/tail JS files.  Of course, on non-Windows none
-# of this matters, and things will work correctly because everything's
-# forward-slashed, everywhere, always.
-ifdef CYGWIN_WRAPPER
-NATIVE_TOPSRCDIR   := `cygpath -wa $(MOZILLA_SRCDIR)`
-FWDSLASH_TOPSRCDIR := `cygpath -ma $(MOZILLA_SRCDIR)`
+ifdef NSINSTALL_BIN
+# nsinstall in moztools can't recursively copy directories, so use nsinstall.py
+TEST_INSTALLER = $(PYTHON) $(MOZILLA_SRCDIR)/config/nsinstall.py
 else
-FWDSLASH_TOPSRCDIR := $(MOZILLA_SRCDIR)
-ifeq ($(HOST_OS_ARCH),WINNT)
-NATIVE_TOPSRCDIR   := $(subst /,\\,$(WIN_TOP_SRC)/mozilla)
-else 
-NATIVE_TOPSRCDIR   := $(MOZILLA_SRCDIR)
+TEST_INSTALLER = $(INSTALL)
 endif
-endif # CYGWIN_WRAPPER
-
-testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
-
-# Test execution
-check::
-	@$(EXIT_ON_ERROR) \
-	for testdir in $(XPCSHELL_TESTS); do \
-	  $(RUN_TEST_PROGRAM) \
-	    $(testxpcsrcdir)/test_all.sh \
-	      $(DIST)/bin/xpcshell \
-	      $(FWDSLASH_TOPSRCDIR) \
-	      $(NATIVE_TOPSRCDIR) \
-	      $(testxpcobjdir)/$(MODULE)/$$testdir; \
-	done
-
-# Test execution
-check-interactive::
-	@$(EXIT_ON_ERROR) \
-	$(RUN_TEST_PROGRAM) \
-	  $(testxpcsrcdir)/test_one.sh \
-	    $(DIST)/bin/xpcshell \
-	    $(FWDSLASH_TOPSRCDIR) \
-	    $(NATIVE_TOPSRCDIR) \
-	    $(testxpcobjdir)/$(MODULE)/$$testdir \
-	    $(SOLO_FILE) 1;
-
-# Test execution
-check-one::
-	@$(EXIT_ON_ERROR) \
-	$(RUN_TEST_PROGRAM) \
-	  $(testxpcsrcdir)/test_one.sh \
-	    $(DIST)/bin/xpcshell \
-	    $(FWDSLASH_TOPSRCDIR) \
-	    $(NATIVE_TOPSRCDIR) \
-	    $(testxpcobjdir)/$(MODULE)/$$testdir \
-	    $(SOLO_FILE) 0;
-
-else # MOZILLA_1_9_1_BRANCH
 
 define _INSTALL_TESTS
-$(INSTALL) $(wildcard $(srcdir)/$(dir)/*.js) $(testxpcobjdir)/$(MODULE)/$(dir)
+$(TEST_INSTALLER) $(wildcard $(srcdir)/$(dir)/*) $(testxpcobjdir)/$(MODULE)/$(dir)
+@echo "$(MODULE)/$(dir)" >> $(testxpcobjdir)/all-test-dirs.list
 
 endef # do not remove the blank line!
 
@@ -204,6 +144,9 @@ SOLO_FILE ?= $(error Specify a test filename in SOLO_FILE when using check-inter
 
 libs::
 	$(foreach dir,$(XPCSHELL_TESTS),$(_INSTALL_TESTS))
+	$(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/build-list.pl \
+	  $(testxpcobjdir)/all-test-dirs.list \
+	  $(addprefix $(MODULE)/,$(XPCSHELL_TESTS))
 
 testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
 
@@ -212,7 +155,6 @@ check::
 	$(PYTHON) \
           $(testxpcsrcdir)/runxpcshelltests.py \
           $(DIST)/bin/xpcshell \
-          $(MOZILLA_SRCDIR) \
           $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
 
 # Execute a single test, specified in $(SOLO_FILE), but don't automatically
@@ -224,7 +166,6 @@ check-interactive::
           --test=$(SOLO_FILE) \
           --interactive \
           $(DIST)/bin/xpcshell \
-          $(MOZILLA_SRCDIR) \
           $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
 
 # Execute a single test, specified in $(SOLO_FILE)
@@ -233,10 +174,7 @@ check-one::
           $(testxpcsrcdir)/runxpcshelltests.py \
           --test=$(SOLO_FILE) \
           $(DIST)/bin/xpcshell \
-          $(MOZILLA_SRCDIR) \
           $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
-
-endif # MOZILLA_1_9_1_BRANCH
 
 endif # XPCSHELL_TESTS
 

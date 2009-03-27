@@ -91,11 +91,11 @@ acObserver.prototype = {
 
 function run_test() {
   // Copy the data files into place
-  var testAB = do_get_file("../mailnews/addrbook/test/unit/data/autocomplete.mab");
+  var testAB = do_get_file("data/autocomplete.mab");
 
   testAB.copyTo(gProfileDir, kPABData.fileName);
 
-  testAB = do_get_file("../mailnews/addrbook/test/unit/data/cardForEmail.mab");
+  testAB = do_get_file("data/cardForEmail.mab");
 
   testAB.copyTo(gProfileDir, kCABData.fileName);
 

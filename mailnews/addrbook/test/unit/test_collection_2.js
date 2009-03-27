@@ -28,7 +28,7 @@ function run_test()
 
   // For this test use an address book that isn't the one we're collecting
   // to.
-  var testAB = do_get_file("../mailnews/addrbook/test/unit/data/collect.mab");
+  var testAB = do_get_file("data/collect.mab");
 
   testAB.copyTo(gProfileDir, kPABData.fileName);
 

@@ -42,7 +42,7 @@ const tagService = Cc["@mozilla.org/messenger/tagservice;1"]
                      .getService(Ci.nsIMsgTagService);
 const dbviewContractId = "@mozilla.org/messenger/msgdbview;1?type=" + "quicksearch";
 const dbView = Cc[dbviewContractId].createInstance(Ci.nsIMsgDBView);
-const bugmail1 = do_get_file("../mailnews/test/data/bugmail1");
+const bugmail1 = do_get_file("../../mailnews/data/bugmail1");
 // I'm only loading msgDBService to help load symbols for debugging
 //const msgDBService = Cc["@mozilla.org/msgDatabase/msgDBService;1"]
 //                     .getService(Ci.nsIMsgDBService);

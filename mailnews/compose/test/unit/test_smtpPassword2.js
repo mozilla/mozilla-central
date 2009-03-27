@@ -15,7 +15,7 @@ function run_test()
   var loginMgr = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
 
   // Passwords File (generated from Mozilla 1.8 branch).
-  var signons = do_get_file("../mailnews/test/data/signons-mailnews1.8-multiple.txt");
+  var signons = do_get_file("../../mailnews/data/signons-mailnews1.8-multiple.txt");
 
   // Copy the file to the profile directory for a PAB
   signons.copyTo(gProfileDir, "signons.txt");

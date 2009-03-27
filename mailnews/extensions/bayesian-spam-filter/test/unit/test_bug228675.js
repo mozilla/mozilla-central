@@ -38,7 +38,7 @@
 
 // main setup
 
-do_import_script("../mailnews/extensions/bayesian-spam-filter/test/resources/trainingfile.js");
+load("resources/trainingfile.js");
 
 const nsIPrefBranch = Cc["@mozilla.org/preferences-service;1"]
                         .getService(Ci.nsIPrefBranch);

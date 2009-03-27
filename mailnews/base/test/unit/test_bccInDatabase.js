@@ -57,7 +57,7 @@ function run_test()
   };
 
   // Get a message into the local filestore.
-  var draft = do_get_file("../mailnews/test/data/draft1");
+  var draft = do_get_file("../../mailnews/data/draft1");
   do_test_pending();
   copyService.CopyFileMessage(draft, gLocalInboxFolder, null, false, 0,
                               "", copyListener, null);

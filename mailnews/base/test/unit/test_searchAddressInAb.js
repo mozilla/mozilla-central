@@ -37,10 +37,10 @@
 // Testing of to, cc, toorcc in addressbook search features added in bug 187768
 // Added testing of AllAddresses from bug 310359
 
-do_import_script("../mailnews/test/resources/searchTestUtils.js");
+load("../../mailnews/resources/searchTestUtils.js");
 
 // add address book setup
-do_import_script("../mailnews/addrbook/test/resources/abSetup.js");
+load("../../mailnews/resources/abSetup.js");
 
 const ABUri = kPABData.URI;
 
@@ -134,14 +134,14 @@ var Tests =
 
 var Files = 
 [
-  "../mailnews/test/data/bugmail1",
-  "../mailnews/test/data/bugmail2",
-  "../mailnews/test/data/bugmail3",
-  "../mailnews/test/data/bugmail4",
-  "../mailnews/test/data/bugmail5",
-  "../mailnews/test/data/bugmail6",
-  "../mailnews/test/data/bugmail7",
-  "../mailnews/test/data/bugmail8"
+  "../../mailnews/data/bugmail1",
+  "../../mailnews/data/bugmail2",
+  "../../mailnews/data/bugmail3",
+  "../../mailnews/data/bugmail4",
+  "../../mailnews/data/bugmail5",
+  "../../mailnews/data/bugmail6",
+  "../../mailnews/data/bugmail7",
+  "../../mailnews/data/bugmail8"
 ]
 
 var messageKey, hdr;
@@ -153,7 +153,7 @@ function run_test()
   loadLocalMailAccount();
     
     // Test setup - copy the data file into place
-  var testAB = do_get_file("../mailnews/addrbook/test/unit/data/cardForEmail.mab");
+  var testAB = do_get_file("../../test_addbook/unit/data/cardForEmail.mab");
 
   // Copy the file to the profile directory for a PAB
   testAB.copyTo(gProfileDir, kPABData.fileName);

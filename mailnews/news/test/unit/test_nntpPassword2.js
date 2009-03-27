@@ -46,7 +46,7 @@ function run_test() {
   type = "RFC 4643";
 
   // Passwords File (generated from Mozilla 1.8 branch).
-  var signons = do_get_file("../mailnews/test/data/signons-mailnews1.8-alt.txt");
+  var signons = do_get_file("../../mailnews/data/signons-mailnews1.8-alt.txt");
 
   // Copy the file to the profile directory
   signons.copyTo(gProfileDir, "signons.txt");

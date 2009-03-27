@@ -5,7 +5,7 @@
  * also the easy thing to do?)
  */
 
-do_import_script("../mailnews/db/gloda/test/resources/glodaTestHelper.js");
+load("resources/glodaTestHelper.js");
 
 Components.utils.import("resource://app/modules/gloda/noun_mimetype.js");
 
