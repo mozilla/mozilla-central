@@ -804,7 +804,8 @@ calItemBase.prototype = {
             } catch (e) {
                 cal.ERROR("Invalid alarm for item: " +
                           this.id + " (" +
-                          alarmComp.serializeToICS() + ")");
+                          alarmComp.serializeToICS() + ")" +
+                          " exception: " + e);
             }
         }
 

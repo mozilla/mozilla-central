@@ -531,8 +531,10 @@ calAlarm.prototype = {
         // Set up description
         this.description = (descriptionProp ? descriptionProp.value : null);
 
-        // Set up the alarm lastack
-        this.lastAck = (lastAckProp ? lastAckProp.valueAsDatetime : null);
+        // Set up the alarm lastack. We can't use valueAsDatetime here since
+        // the default for an X-Prop is TEXT and in older versions we didn't set
+        // VALUE=DATE-TIME.
+        this.lastAck = (lastAckProp ? cal.createDateTime(lastAckProp.valueAsIcalString) : null);
 
         this.mProperties = new calPropertyBag();
         this.mPropertyParams = {};
