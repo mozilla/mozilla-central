@@ -37,6 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 
 var itemConversion = {
@@ -102,7 +103,7 @@ var itemConversion = {
 
     /**
      * Copy base item properties from aItem to aTarget. This includes properties
-     * like title, location, description, priority, status, transparency,
+     * like title, location, description, priority, transparency,
      * attendees, categories, calendar, recurrence and possibly more.
      *
      * @param aItem     The item to copy from.
@@ -110,7 +111,7 @@ var itemConversion = {
      */
     copyItemBase: function iC_copyItemBase(aItem, aTarget) {
         const copyProps = ["SUMMARY", "LOCATION", "DESCRIPTION",
-                           "URL", "CLASS", "PRIORITY", "STATUS"];
+                           "URL", "CLASS", "PRIORITY"];
 
         for each (var prop in copyProps) {
             aTarget.setProperty(prop, aItem.getProperty(prop));
@@ -147,7 +148,7 @@ var itemConversion = {
      * @return          The resulting task.
      */
     taskFromEvent: function iC_taskFromEvent(aEvent) {
-        var item = createTodo();
+        let item = cal.createTodo();
 
         this.copyItemBase(aEvent, item);
 
@@ -165,6 +166,16 @@ var itemConversion = {
                                  aEvent.alarmLastAck.clone() :
                                  null);
         }
+
+        // Map Status values
+        let statusMap = {
+            "TENTATIVE": "NEEDS-ACTION",
+            "CONFIRMED": "IN-PROCESS",
+            "CANCELLED": "CANCELLED"
+        };
+        if (aEvent.getProperty("STATUS") in statusMap) {
+            item.setProperty("STATUS", statusMap[aEvent.getProperty("STATUS")]);
+        }
         return item;
     },
 
@@ -177,7 +188,7 @@ var itemConversion = {
      * @return          The resulting event.
      */
     eventFromTask: function iC_eventFromTask(aTask) {
-        var item = createEvent();
+        let item = cal.createEvent();
 
         this.copyItemBase(aTask, item);
 
@@ -202,6 +213,17 @@ var itemConversion = {
         item.alarmLastAck = (aTask.alarmLastAck ?
                              aTask.alarmLastAck.clone() :
                              null);
+
+        // Map Status values
+        let statusMap = {
+            "NEEDS-ACTION": "TENTATIVE",
+            "COMPLETED": "CONFIRMED",
+            "IN-PROCESS": "CONFIRMED",
+            "CANCELLED": "CANCELLED"
+        };
+        if (aTask.getProperty("STATUS") in statusMap) {
+            item.setProperty("STATUS", statusMap[aTask.getProperty("STATUS")]);
+        }
         return item;
     }
 };

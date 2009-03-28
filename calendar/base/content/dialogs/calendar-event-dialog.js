@@ -353,7 +353,13 @@ function loadDialog(item) {
             item.getProperty("STATUS") : "NONE";
         updateStatus();
     } else {
-        setElementValue("todo-status", item.getProperty("STATUS"));
+        let todoStatus = document.getElementById("todo-status");
+        setElementValue(todoStatus, item.getProperty("STATUS"));
+        if (!todoStatus.selectedItem) {
+            // No selected item means there was no <menuitem> that matches the
+            // value given. Select the "NONE" item by default.
+            setElementValue(todoStatus, "NONE");
+        }
     }
 
     // Task completed date
@@ -1442,17 +1448,25 @@ function editStatus(target) {
  * Update the dialog controls related related to status.
  */
 function updateStatus() {
+    let found = false;
     [ "cmd_status_none",
       "cmd_status_tentative",
       "cmd_status_confirmed",
       "cmd_status_cancelled" ].forEach(
           function(element, index, array) {
-              var node = document.getElementById(element);
-              node.setAttribute("checked",
-                  node.getAttribute("value") == gStatus ?
-                      "true" : "false");
+              let node = document.getElementById(element);
+              let matches = (node.getAttribute("value") == gStatus);
+              found = found || matches;
+
+              node.setAttribute("checked", matches ? "true" : "false");
           }
       );
+    if (!found) {
+        // The current Status value is invalid. Change the status to not
+        // specified and update the status again.
+        gStatus = "NONE";
+        updateStatus();
+    }
 }
 
 /**
