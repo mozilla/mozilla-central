@@ -88,13 +88,19 @@ var nsOfflineStartup =
     else if (gOfflineStartupMode == kAlwaysOnline)
     {
       ioService.manageOfflineStatus = manageOfflineStatus;
-      ioService.offline = false;
+      // If we're managing the offline status, don't force online here... it may
+      // be the network really is offline.
+      if (!manageOfflineStatus)
+        ioService.offline = false;
     }
     else if (gOfflineStartupMode == kRememberLastState)
     {
       var wasOffline = !prefs.getBoolPref("network.online");
       ioService.manageOfflineStatus = manageOfflineStatus && !wasOffline;
-      ioService.offline = wasOffline;        
+      // If we are meant to be online, and managing the offline status
+      // then don't force it - it may be the network really is offline.
+      if (!manageOfflineStatus || wasOffline)
+        ioService.offline = wasOffline;
     }
     else if (gOfflineStartupMode == kAskForOnlineState)
     {
