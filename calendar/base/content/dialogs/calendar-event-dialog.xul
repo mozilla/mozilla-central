@@ -1020,7 +1020,7 @@
                        class="groove"/>
 
             <!-- Description -->
-            <row id="description-row" flex="1">
+            <row id="event-grid-description-row" flex="1">
                 <label value="&event.description.label;"
                        accesskey="&event.description.accesskey;"
                        control="item-description"
