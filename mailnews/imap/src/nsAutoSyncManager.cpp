@@ -189,7 +189,11 @@ NS_IMETHODIMP
 nsDefaultAutoSyncFolderStrategy::IsExcluded(nsIMsgFolder *aFolder, PRBool *aDecision)
 {
   NS_ENSURE_ARG_POINTER(aDecision);
-  *aDecision = PR_FALSE;
+  NS_ENSURE_ARG_POINTER(aFolder);
+  PRUint32 folderFlags;
+  aFolder->GetFlags(&folderFlags);
+  // exclude saved search
+  *aDecision = (folderFlags & nsMsgFolderFlags::Virtual);
   return NS_OK;
 }
 
@@ -706,10 +710,11 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
         if (NS_FAILED(rv))
           continue;
         
-        PRBool isFolderOffline = PR_FALSE;
-        rv = folder->GetFlag(nsMsgFolderFlags::Offline, &isFolderOffline);
-        // skip this folder if not offline
-        if (NS_FAILED(rv) || !isFolderOffline)
+        PRUint32 folderFlags;
+        rv = folder->GetFlags(&folderFlags);
+        // skip this folder if not offline or is a saved search
+        if (NS_FAILED(rv) || !(folderFlags & nsMsgFolderFlags::Offline) ||
+            (folderFlags & nsMsgFolderFlags::Virtual))
           continue; 
         
         nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder, &rv);

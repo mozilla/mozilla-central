@@ -2781,8 +2781,9 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
   PRUint32 flags = 0;
   aFolder->GetFlags(&flags);
   if ((forceAllFolders &&
-    !(flags & (nsMsgFolderFlags::Inbox | nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk | nsMsgFolderFlags::ImapNoselect)))
-    || (flags & nsMsgFolderFlags::CheckNew))
+      !(flags & (nsMsgFolderFlags::Inbox | nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk |
+               nsMsgFolderFlags::ImapNoselect | nsMsgFolderFlags::Virtual))) ||
+      (flags & nsMsgFolderFlags::CheckNew))
   {
     // Get new messages for this folder.
     aFolder->SetGettingNewMessages(PR_TRUE);
