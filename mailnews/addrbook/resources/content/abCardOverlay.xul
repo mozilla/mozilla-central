@@ -81,7 +81,7 @@
               <spacer flex="1"/>
               <label control="&NameField1.id;" value="&NameField1.label;"
                      accesskey="&NameField1.accesskey;"/>
-              <hbox class="CardEditWidth">
+              <hbox class="CardEditWidth" align="center">
                 <textbox id="&NameField1.id;" flex="1"
                          oninput="GenerateDisplayName()"/>
 
@@ -100,7 +100,7 @@
               <spacer flex="1"/>
               <label control="&NameField2.id;" value="&NameField2.label;"
                      accesskey="&NameField2.accesskey;"/>
-              <hbox class="CardEditWidth">
+              <hbox class="CardEditWidth" align="center">
                 <textbox id="&NameField2.id;" flex="1"
                          oninput="GenerateDisplayName()"/>
 
