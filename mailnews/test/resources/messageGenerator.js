@@ -523,6 +523,10 @@ SyntheticMessage.prototype = {
       "\r\n";
   },
 
+  toMboxString: function() {
+    return "From " + this._from[1] + "\r\n" + this.toMessageString() + "\r\n";
+  },
+
   /**
    * @returns this message in rfc822 format in a string stream.
    */
@@ -539,8 +543,7 @@ SyntheticMessage.prototype = {
    *  and making sure we've got a trailing newline.
    */
   writeToMboxStream: function (aStream) {
-    let str = "From " + this._from[1] + "\r\n" + this.toMessageString() +
-      "\r\n";
+    let str = this.toMboxString();
     aStream.write(str, str.length);
   }
 };

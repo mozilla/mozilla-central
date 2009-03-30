@@ -189,10 +189,18 @@ function getObjectTree(o, recurse, compress, level)
 }
 
 
-/** Inject messages using a POP3 fake-server. */
+/**
+ * Inject messages using a POP3 fake-server.
+ *
+ * @deprecated because the fake-server sometimes does something crazy and we
+ *     never really needed it anyways.  I just didn't know about the local
+ *     folder addMessage method.  (so sad!)
+ */
 const INJECT_FAKE_SERVER = 1;
 /** Inject messages using freshly created mboxes. */
 const INJECT_MBOX = 2;
+/** Inject messages using addMessage. */
+const INJECT_ADDMESSAGE = 3;
 
 /**
  * Convert a list of synthetic messages to a form appropriate to feed to the
@@ -238,6 +246,10 @@ function imsInit() {
     }
     else if (ims.injectMechanism == INJECT_MBOX) {
       // we need a local account to stash the mboxes under.
+      loadLocalMailAccount();
+    }
+    else if (ims.injectMechanism == INJECT_ADDMESSAGE) {
+      // we need an inbox
       loadLocalMailAccount();
     }
 
@@ -293,6 +305,12 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
       GlodaIndexer.indexFolder(subFolder);
     });
   }
+  else if (ims.injectMechanism == INJECT_ADDMESSAGE) {
+    let localFolder = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+    for (let [, msg] in Iterator(aSynthMessages)) {
+      localFolder.addMessage(msg.toMboxString());
+    }
+  }
 
 }
 
@@ -316,7 +334,7 @@ var indexMessageState = {
   /** the function to call once we have indexed all the messages */
   onDone: null,
 
-  injectMechanism: INJECT_FAKE_SERVER,
+  injectMechanism: INJECT_ADDMESSAGE,
 
   /* === Fake Server State === */
   /** nsMailServer instance with POP3_RFC1939 handler */
