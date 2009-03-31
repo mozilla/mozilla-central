@@ -401,8 +401,9 @@ function NewCardOKButton()
       NotifySaveListeners();
       if ("arguments" in window && window.arguments[0] &&
           "allowRemoteContent" in window.arguments[0])
+        // getProperty may return a "1" or "0" string, we want a boolean
         window.arguments[0].allowRemoteContent =
-          gEditCard.card.getProperty("AllowRemoteContent", false);
+          gEditCard.card.getProperty("AllowRemoteContent", false) != false;
     }
   }
 
@@ -460,7 +461,8 @@ function GetCardValues(cardproperty, doc)
     
   var allowRemoteContentEl = document.getElementById("allowRemoteContent");
   if (allowRemoteContentEl)
-    allowRemoteContentEl.checked = cardproperty.getProperty("AllowRemoteContent", false);
+    // getProperty may return a "1" or "0" string, we want a boolean
+    allowRemoteContentEl.checked = cardproperty.getProperty("AllowRemoteContent", false) != false;
 
   // get phonetic fields if exist
   try {
