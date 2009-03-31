@@ -81,6 +81,7 @@ class nsMsgDatabase : public nsIMsgDatabase
 {
 public:
   friend class nsMsgDBService;
+  friend class nsMsgPropertyEnumerator; // accesses m_mdbEnv and m_mdbStore
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSIDBCHANGEANNOUNCER

@@ -46,8 +46,9 @@
 [ptr] native octetPtr(PRUint8);
 
 interface nsIMsgFolder;
+interface nsIUTF8StringEnumerator;
 
-[scriptable, uuid(EA75203B-2218-4e96-9979-567DFFBEACC2)]
+[scriptable, uuid(1CE98909-F83C-4f88-B660-A279850D3112)]
 interface nsIMsgDBHdr : nsISupports
 {
     /* general property routines - I think this can retrieve any
@@ -125,6 +126,9 @@ interface nsIMsgDBHdr : nsISupports
     attribute nsMsgLabelValue label;
     attribute string accountKey;
     readonly attribute nsIMsgFolder folder;
+
+    /// Enumerator for names of all database properties in the header.
+    readonly attribute nsIUTF8StringEnumerator propertyEnumerator;
 };
 /* *******************************************************************************/
 

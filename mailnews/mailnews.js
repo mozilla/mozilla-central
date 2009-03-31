@@ -821,6 +821,19 @@ pref("mail.compose.max_recycled_windows", 0);
 pref("mailnews.emptyJunk.dontAskAgain", false);
 pref("mailnews.emptyTrash.dontAskAgain", false);
 
+// -- Summary Database options
+// dontPreserveOnCopy: a space separated list of properties that are not
+//                     copied to the new nsIMsgHdr when a message is copied.
+//                     Allows extensions to control preservation of properties.
+pref("mailnews.database.summary.dontPreserveOnCopy",
+  "account msgOffset threadParent msgThreadId statusOfset flag size numLines ProtoThreadFlags label gloda-id gloda-dirty");
+
+// dontPreserveOnMove: a space separated list of properties that are not
+//                     copied to the new nsIMsgHdr when a message is moved.
+//                     Allows extensions to control preservation of properties.
+pref("mailnews.database.summary.dontPreserveOnMove",
+  "account msgOffset threadParent msgThreadId statusOfset flag size numLines ProtoThreadFlags label");
+
 // -- Global Database (gloda) options
 // Should the indexer be enabled?
 pref("mailnews.database.global.indexer.enabled", false);

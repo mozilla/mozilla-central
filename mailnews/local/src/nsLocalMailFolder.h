@@ -236,7 +236,8 @@ protected:
   virtual void GetIncomingServerType(nsCString& serverType);
   nsresult InitCopyState(nsISupports* aSupport, nsIArray* messages,
                          PRBool isMove, nsIMsgCopyServiceListener* listener, nsIMsgWindow *msgWindow, PRBool isMoveFolder, PRBool allowUndo);
-  void CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDBHdr *srcHdr);
+  // preserve message metadata when moving or copying messages
+  void CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDBHdr *srcHdr, PRBool isMove);
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
   nsresult ChangeKeywordForMessages(nsIArray *aMessages, const nsACString& aKeyword, PRBool add);
   PRBool GetDeleteFromServerOnMove();

@@ -1084,3 +1084,105 @@ NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
   *isKilled = IsAncestorKilled(numChildren - 1);
   return NS_OK;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+#include "nsIStringEnumerator.h"
+#include "nsAutoPtr.h"
+#define NULL_MORK_COLUMN 0
+class nsMsgPropertyEnumerator : public nsIUTF8StringEnumerator
+{
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIUTF8STRINGENUMERATOR
+
+  nsMsgPropertyEnumerator(nsMsgHdr* aHdr);
+  virtual ~nsMsgPropertyEnumerator();
+  void PrefetchNext();
+
+protected:
+  nsCOMPtr<nsIMdbRowCellCursor> mRowCellCursor;
+  nsCOMPtr<nsIMdbEnv> m_mdbEnv;
+  nsCOMPtr<nsIMdbStore> m_mdbStore;
+  PRBool mNextPrefetched;
+  mdb_column mNextColumn;
+};
+
+nsMsgPropertyEnumerator::nsMsgPropertyEnumerator(nsMsgHdr* aHdr)
+  :  mNextPrefetched(PR_FALSE),
+     mNextColumn(NULL_MORK_COLUMN)
+{
+  nsRefPtr<nsMsgDatabase> mdb;
+  nsCOMPtr<nsIMdbRow> mdbRow;
+
+  if (aHdr &&
+      (mdbRow = aHdr->GetMDBRow()) &&
+      (mdb = aHdr->m_mdb) &&
+      (m_mdbEnv = mdb->m_mdbEnv) &&
+      (m_mdbStore = mdb->m_mdbStore))
+  {
+    mdbRow->GetRowCellCursor(m_mdbEnv, -1, getter_AddRefs(mRowCellCursor));
+  }
+}
+
+nsMsgPropertyEnumerator::~nsMsgPropertyEnumerator()
+{
+}
+
+NS_IMPL_ISUPPORTS1(nsMsgPropertyEnumerator, nsIUTF8StringEnumerator)
+
+NS_IMETHODIMP nsMsgPropertyEnumerator::GetNext(nsACString& aItem)
+{
+  PrefetchNext();
+  if (mNextColumn == NULL_MORK_COLUMN)
+    return NS_ERROR_FAILURE; // call HasMore first
+  if (!m_mdbStore || !m_mdbEnv)
+    return NS_ERROR_NOT_INITIALIZED;
+  mNextPrefetched = PR_FALSE;
+  char columnName[100];
+  struct mdbYarn colYarn = {columnName, 0, sizeof(columnName), 0, 0, nsnull};
+  // Get the column of the cell
+  nsresult rv = m_mdbStore->TokenToString(m_mdbEnv, mNextColumn, &colYarn);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  aItem.Assign(static_cast<char *>(colYarn.mYarn_Buf), colYarn.mYarn_Fill);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgPropertyEnumerator::HasMore(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  PrefetchNext();
+  *aResult = (mNextColumn != NULL_MORK_COLUMN);
+  return NS_OK;
+}
+
+void nsMsgPropertyEnumerator::PrefetchNext(void)
+{
+  if (!mNextPrefetched && m_mdbEnv && mRowCellCursor)
+  {
+    mNextPrefetched = PR_TRUE;
+    nsCOMPtr<nsIMdbCell> cell;
+    mRowCellCursor->NextCell(m_mdbEnv, getter_AddRefs(cell), &mNextColumn, nsnull);
+    if (mNextColumn == NULL_MORK_COLUMN)
+    {
+      // free up references
+      m_mdbStore = nsnull;
+      m_mdbEnv = nsnull;
+      mRowCellCursor = nsnull;
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+NS_IMETHODIMP nsMsgHdr::GetPropertyEnumerator(nsIUTF8StringEnumerator** _result)
+{
+  nsMsgPropertyEnumerator* enumerator = new nsMsgPropertyEnumerator(this);
+  if (!enumerator)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  NS_ADDREF(*_result = enumerator);
+  return NS_OK;
+}

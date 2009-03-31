@@ -108,6 +108,7 @@
 #include "nsLocalStrings.h"
 #include "nsArrayUtils.h"
 #include "nsIMsgTraitService.h"
+#include "nsIStringEnumerator.h"
 
 static NS_DEFINE_CID(kMailboxServiceCID,          NS_MAILBOXSERVICE_CID);
 
@@ -2424,17 +2425,49 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CopyData(nsIInputStream *aIStream, PRInt32 a
   return rv;
 }
 
-void nsMsgLocalMailFolder::CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDBHdr *srcHdr)
+void nsMsgLocalMailFolder::CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr,
+                                                  nsIMsgDBHdr *srcHdr,
+                                                  PRBool aIsMove)
 {
+  nsCOMPtr<nsIUTF8StringEnumerator> propertyEnumerator;
+  nsresult rv = srcHdr->GetPropertyEnumerator(getter_AddRefs(propertyEnumerator));
+  NS_ENSURE_SUCCESS(rv, );
+
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, );
+
+  nsCString dontPreserve;
+
+  // These preferences exist so that extensions can control which properties
+  // are preserved in the database when a message is moved or copied. All
+  // properties are preserved except those listed in these preferences
+  if (aIsMove)
+    prefBranch->GetCharPref("mailnews.database.summary.dontPreserveOnMove",
+                            getter_Copies(dontPreserve));
+  else
+    prefBranch->GetCharPref("mailnews.database.summary.dontPreserveOnCopy",
+                            getter_Copies(dontPreserve));
+
+  // We'll add spaces at beginning and end so we can search for space-name-space
+  nsCString dontPreserveEx(NS_LITERAL_CSTRING(" "));
+  dontPreserveEx.Append(dontPreserve);
+  dontPreserveEx.AppendLiteral(" ");
+
+  nsCAutoString property;
   nsCString sourceString;
-  srcHdr->GetStringProperty("junkscore", getter_Copies(sourceString));
-  destHdr->SetStringProperty("junkscore", sourceString.get());
-  srcHdr->GetStringProperty("junkscoreorigin", getter_Copies(sourceString));
-  destHdr->SetStringProperty("junkscoreorigin", sourceString.get());
-  srcHdr->GetStringProperty("junkpercent", getter_Copies(sourceString));
-  destHdr->SetStringProperty("junkpercent", sourceString.get());
-  srcHdr->GetStringProperty("keywords", getter_Copies(sourceString));
-  destHdr->SetStringProperty("keywords", sourceString.get());
+  PRBool hasMore;
+  while (NS_SUCCEEDED(propertyEnumerator->HasMore(&hasMore)) && hasMore)
+  {
+    propertyEnumerator->GetNext(property);
+    nsCAutoString propertyEx(NS_LITERAL_CSTRING(" "));
+    propertyEx.Append(property);
+    propertyEx.AppendLiteral(" ");
+    if (dontPreserveEx.Find(propertyEx) != -1) // -1 is not found
+      continue;
+
+    srcHdr->GetStringProperty(property.get(), getter_Copies(sourceString));
+    destHdr->SetStringProperty(property.get(), sourceString.get());
+  }
 
   nsMsgLabelValue label = 0;
   srcHdr->GetLabel(&label);
@@ -2595,7 +2628,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
               }
             }
           }
-          CopyPropertiesToMsgHdr(newHdr, mCopyState->m_message);
+          CopyPropertiesToMsgHdr(newHdr, mCopyState->m_message, mCopyState->m_isMove);
         }
         msgDb->AddNewHdrToDB(newHdr, PR_TRUE);
         if (localUndoTxn)
@@ -2816,7 +2849,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndMessage(nsMsgKey key)
         nsCOMPtr <nsIMsgDBHdr> srcMsgHdr;
         srcDB->GetMsgHdrForKey(key, getter_AddRefs(srcMsgHdr));
         if (srcMsgHdr)
-          CopyPropertiesToMsgHdr(newHdr, srcMsgHdr);
+          CopyPropertiesToMsgHdr(newHdr, srcMsgHdr, mCopyState->m_isMove);
       }
       rv = GetDatabaseWOReparse(getter_AddRefs(msgDb));
       if (NS_SUCCEEDED(rv) && msgDb)
