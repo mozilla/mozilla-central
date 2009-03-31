@@ -172,7 +172,7 @@
           </rows>
         </grid>
         <separator class="thin"/>
-        <groupbox id="metaTags" flex="1" class="treebox">
+        <groupbox id="metaTags" flex="1">
           <caption id="metaTagsCaption" onclick="toggleGroupbox('metaTags');"/>
           <tree id="metatree" flex="1" hidecolumnpicker="true" contextmenu="picontext">
             <treecols>

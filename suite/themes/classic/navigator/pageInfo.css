@@ -74,15 +74,6 @@ textbox[disabled] {
 }
 
 /* General Tab */
-groupbox tree { 
-  margin: 0;
-  border: none;
-}
-
-groupbox.treebox .groupbox-body { 
-  padding-top: 0;
-}
-
 #general-security-identity {
   white-space: pre-wrap;
   line-height: 2em;
