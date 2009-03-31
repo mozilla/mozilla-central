@@ -3309,7 +3309,7 @@ NS_IMETHODIMP nsImapService::GetCacheSession(nsICacheSession **result)
     nsCOMPtr<nsICacheService> serv = do_GetService(kCacheServiceCID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     
-    rv = serv->CreateSession("IMAP-memory-only", nsICache::STORE_IN_MEMORY, nsICache::STREAM_BASED, getter_AddRefs(mCacheSession));
+    rv = serv->CreateSession("IMAP-anywhere", nsICache::STORE_ANYWHERE, nsICache::STREAM_BASED, getter_AddRefs(mCacheSession));
     NS_ENSURE_SUCCESS(rv, rv);
     rv = mCacheSession->SetDoomEntriesIfExpired(PR_FALSE);
   }
