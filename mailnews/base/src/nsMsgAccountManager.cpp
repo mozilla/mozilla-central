@@ -1456,6 +1456,9 @@ NS_IMETHODIMP
 nsMsgAccountManager::CleanupOnExit()
 {
   m_incomingServers.Enumerate(hashCleanupOnExit, nsnull);
+  // Try to do this early on in the shutdown process before
+  // necko shuts itself down.
+  CloseCachedConnections();
   return NS_OK;
 }
 
