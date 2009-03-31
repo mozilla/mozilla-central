@@ -1638,7 +1638,6 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
   if (m_tempMessageStream)
     seekable = do_QueryInterface(m_tempMessageStream);
 
-  mDatabase->MarkOffline(messageKey, PR_TRUE, nsnull);
   if (seekable)
   {
     seekable->Seek(PR_SEEK_CUR, 0); // seeking causes a flush, w/o syncing
@@ -1658,6 +1657,7 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
     NS_ASSERTION(VerifyOfflineMessage(m_offlineHeader, inputStream),
                  "offline message doesn't start with From ");
 #endif
+  mDatabase->MarkOffline(messageKey, PR_TRUE, nsnull);
   m_offlineHeader = nsnull;
   return NS_OK;
 }
