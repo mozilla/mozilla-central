@@ -1,4 +1,4 @@
-# -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+# -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -85,7 +85,6 @@ var gCurrentAutocompleteDirectory;
 var gSetupLdapAutocomplete;
 var gLDAPSession;
 var gSavedSendNowKey;
-var gSendInBackground;
 var gSendFormat;
 
 var gMsgIdentityElement;
@@ -143,10 +142,6 @@ function InitializeGlobalVariables()
   gReceiptOptionChanged = false;
   gDSNOptionChanged = false;
   gAttachVCardOptionChanged = false;
-
-  gSendInBackground = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefBranch)
-                                .getBoolPref("mailnews.sendInBackground");
 }
 InitializeGlobalVariables();
 
@@ -490,18 +485,13 @@ var defaultController =
       case "cmd_sendButton"         :
         if (defaultController.isCommandEnabled(command))
         {
-          if ((gIOService && gIOService.offline) || gSendInBackground)
+          if (gIOService && gIOService.offline)
             SendMessageLater();
           else
             SendMessage();
         }
         break;
-      case "cmd_sendNow"            :
-        if (defaultController.isCommandEnabled(command))
-        {
-          gSendInBackground ? SendMessageLater() : SendMessage();
-          break;
-        }
+      case "cmd_sendNow"            : if (defaultController.isCommandEnabled(command)) SendMessage();          break;
       case "cmd_sendWithCheck"   : if (defaultController.isCommandEnabled(command)) SendMessageWithCheck();          break;
       case "cmd_sendLater"          : if (defaultController.isCommandEnabled(command)) SendMessageLater();     break;
       case "cmd_printSetup"         : PrintUtils.showPageSetup(); break;
@@ -685,19 +675,6 @@ function AddMessageComposeOfflineObserver()
   gIsOffline = gIOService.offline;
   // set the initial state of the send button
   MessageComposeOfflineStateChanged(gIsOffline);
-
-  let sendNowMenuItem = document.getElementById("menu-item-send-now");
-  let sendLaterMenuItem = document.getElementById("menu-item-send-later");
-
-  // XXX Send in background is still WIP (bug 440794) whilst that is the case
-  // we need to check for it.
-  if (gSendInBackground) {
-    // We need to send-later, but show everything as "send"
-    sendNowMenuItem.setAttribute("command", "cmd_sendLater");
-    sendNowMenuItem.setAttribute("key", "key_sendLater");
-    sendLaterMenuItem.hidden = true;
-  }
-  // Else leave as default.
 }
 
 function RemoveMessageComposeOfflineObserver()
@@ -708,30 +685,33 @@ function RemoveMessageComposeOfflineObserver()
 
 function MessageComposeOfflineStateChanged(goingOffline)
 {
-  let sendButton = document.getElementById("button-send");
-  let sendNowMenuItem = document.getElementById("menu-item-send-now");
+  try {
+    var sendButton = document.getElementById("button-send");
+    var sendNowMenuItem = document.getElementById("menu-item-send-now");
 
-  if (!gSavedSendNowKey) {
-    gSavedSendNowKey = sendNowMenuItem.getAttribute('key');
-  }
+    if (!gSavedSendNowKey) {
+      gSavedSendNowKey = sendNowMenuItem.getAttribute('key');
+    }
 
-  // Don't use goUpdateCommand here ... the defaultController might not be
-  // installed yet.
-  goSetCommandEnabled("cmd_sendNow", defaultController.isCommandEnabled("cmd_sendNow"));
+    // don't use goUpdateCommand here ... the defaultController might not be installed yet
+    goSetCommandEnabled("cmd_sendNow", defaultController.isCommandEnabled("cmd_sendNow"));
 
-  if (goingOffline)
-  {
-    sendButton.label = sendButton.getAttribute('later_label');
-    sendButton.setAttribute('tooltiptext', sendButton.getAttribute('later_tooltiptext'));
-    sendNowMenuItem.removeAttribute('key');
-  }
-  else
-  {
-    sendButton.label = sendButton.getAttribute('now_label');
-    sendButton.setAttribute('tooltiptext', sendButton.getAttribute('now_tooltiptext'));
-    if (gSavedSendNowKey)
-      sendNowMenuItem.setAttribute('key', gSavedSendNowKey);
-  }
+    if (goingOffline)
+    {
+      sendButton.label = sendButton.getAttribute('later_label');
+      sendButton.setAttribute('tooltiptext', sendButton.getAttribute('later_tooltiptext'));
+      sendNowMenuItem.removeAttribute('key');
+    }
+    else
+    {
+      sendButton.label = sendButton.getAttribute('now_label');
+      sendButton.setAttribute('tooltiptext', sendButton.getAttribute('now_tooltiptext'));
+      if (gSavedSendNowKey) {
+        sendNowMenuItem.setAttribute('key', gSavedSendNowKey);
+      }
+    }
+
+  } catch(e) {}
 }
 
 var directoryServerObserver = {
@@ -1523,11 +1503,6 @@ function ComposeLoad()
   // Prevent resizing the subject and format toolbar over the addressswidget.
   var headerToolbar = document.getElementById("MsgHeadersToolbar");
   headerToolbar.minHeight = headerToolbar.boxObject.height;
-
-  // We don't do send in background by default yet, however if the pref is
-  // set (for testing), set up the UI so that we'll effectively send later
-  // anyway.
-  
 }
 
 function ComposeUnload()
@@ -1660,7 +1635,9 @@ function GenericSendMessage( msgType )
       msgCompFields.subject = subject;
       Attachments2CompFields(msgCompFields);
 
-      if (msgType == nsIMsgCompDeliverMode.Now || msgType == nsIMsgCompDeliverMode.Later)
+      if (msgType == nsIMsgCompDeliverMode.Now ||
+          msgType == nsIMsgCompDeliverMode.Later ||
+          msgType == nsIMsgCompDeliverMode.Background)
       {
         //Do we need to check the spelling?
         if (getPref("mail.SpellCheckBeforeSend"))
@@ -1799,6 +1776,7 @@ function GenericSendMessage( msgType )
       // Check if the headers of composing mail can be converted to a mail charset.
       if (msgType == nsIMsgCompDeliverMode.Now || 
         msgType == nsIMsgCompDeliverMode.Later ||
+        msgType == nsIMsgCompDeliverMode.Background ||
         msgType == nsIMsgCompDeliverMode.Save || 
         msgType == nsIMsgCompDeliverMode.SaveAsDraft || 
         msgType == nsIMsgCompDeliverMode.AutoSaveAsDraft || 
@@ -1900,7 +1878,14 @@ function CheckValidEmailAddress(to, cc, bcc)
 
 function SendMessage()
 {
-  GenericSendMessage(nsIMsgCompDeliverMode.Now);
+  let sendInBackground =
+    Components.classes["@mozilla.org/preferences-service;1"]
+              .getService(Components.interfaces.nsIPrefBranch)
+              .getBoolPref("mailnews.sendInBackground");
+
+  GenericSendMessage(sendInBackground ?
+                     nsIMsgCompDeliverMode.Background :
+                     nsIMsgCompDeliverMode.Now);
 }
 
 function SendMessageWithCheck()
@@ -1930,9 +1915,15 @@ function SendMessageWithCheck()
         }
     }
 
-  GenericSendMessage(gIsOffline || gSendInBackground ?
-                     nsIMsgCompDeliverMode.Later :
-                     nsIMsgCompDeliverMode.Now);
+  let sendInBackground =
+    Components.classes["@mozilla.org/preferences-service;1"]
+              .getService(Components.interfaces.nsIPrefBranch)
+              .getBoolPref("mailnews.sendInBackground");
+
+  GenericSendMessage(gIsOffline ? nsIMsgCompDeliverMode.Later :
+                     (sendInBackground ?
+                      nsIMsgCompDeliverMode.Background :
+                      nsIMsgCompDeliverMode.Now));
 }
 
 function SendMessageLater()

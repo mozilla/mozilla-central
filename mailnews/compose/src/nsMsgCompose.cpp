@@ -925,8 +925,12 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
 {
   nsresult rv = NS_OK;
 
+  printf("deliver mode: %d\n", deliverMode);
+
   // clear saved message id if sending, so we don't send out the same message-id.
-  if (deliverMode == nsIMsgCompDeliverMode::Now || deliverMode == nsIMsgCompDeliverMode::Later)
+  if (deliverMode == nsIMsgCompDeliverMode::Now ||
+      deliverMode == nsIMsgCompDeliverMode::Later ||
+      deliverMode == nsIMsgCompDeliverMode::Background)
     m_compFields->SetMessageId("");
 
   if (m_compFields && identity)
@@ -1175,7 +1179,10 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
   if (m_compFields)
       m_compFields->GetAttachVCard(&attachVCard);
 
-  if (attachVCard && identity && (deliverMode == nsIMsgCompDeliverMode::Now || deliverMode == nsIMsgCompDeliverMode::Later))
+  if (attachVCard && identity &&
+      (deliverMode == nsIMsgCompDeliverMode::Now ||
+       deliverMode == nsIMsgCompDeliverMode::Later ||
+       deliverMode == nsIMsgCompDeliverMode::Background))
   {
       nsCString escapedVCard;
       // make sure, if there is no card, this returns an empty string, or NS_ERROR_FAILURE
@@ -3457,6 +3464,7 @@ nsMsgComposeSendListener::OnStopCopy(nsresult aStatus)
   if (msgCompose)
   {
     if (mDeliverMode == nsIMsgSend::nsMsgQueueForLater ||
+        mDeliverMode == nsIMsgSend::nsMsgDeliverBackground ||
         mDeliverMode == nsIMsgSend::nsMsgSaveAsDraft)
     {
       msgCompose->RememberQueuedDisposition();
@@ -3495,7 +3503,8 @@ nsMsgComposeSendListener::OnStopCopy(nsresult aStatus)
       else
       {
         // Remove (possible) draft if we're in send later mode
-        if (mDeliverMode == nsIMsgSend::nsMsgQueueForLater) 
+        if (mDeliverMode == nsIMsgSend::nsMsgQueueForLater ||
+            mDeliverMode == nsIMsgSend::nsMsgDeliverBackground)
         {
           msgCompose->SetDeleteDraft(PR_TRUE);
           RemoveCurrentDraftMessage(msgCompose, PR_TRUE);

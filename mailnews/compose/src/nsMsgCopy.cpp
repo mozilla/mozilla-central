@@ -207,7 +207,10 @@ nsMsgCopy::StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
   //
   // Vars for implementation...
   //
-  if (aMode == nsIMsgSend::nsMsgQueueForLater)       // QueueForLater (Outbox)
+
+  // QueueForLater (Outbox)
+  if (aMode == nsIMsgSend::nsMsgQueueForLater ||
+      aMode == nsIMsgSend::nsMsgDeliverBackground)
   {
     rv = GetUnsentMessagesFolder(aUserIdentity, getter_AddRefs(dstFolder), &waitForUrl);
     isDraft = PR_FALSE;
@@ -504,8 +507,10 @@ LocateMessageFolder(nsIMsgIdentity   *userIdentity,
         continue;
 
       // use the defaults by getting the folder by flags
-      if (aFolderType == nsIMsgSend::nsMsgQueueForLater)       // QueueForLater (Outbox)
+      if (aFolderType == nsIMsgSend::nsMsgQueueForLater ||
+          aFolderType == nsIMsgSend::nsMsgDeliverBackground)
       {
+        // QueueForLater (Outbox)
         rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Queue, msgFolder);
       }
       else if (aFolderType == nsIMsgSend::nsMsgSaveAsDraft)    // SaveAsDraft (Drafts)

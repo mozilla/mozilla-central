@@ -10,7 +10,8 @@ var transaction;
 var originalData;
 var finished = false;
 var identity = null;
-var testFile = do_get_file("data/429891_testcase.eml");
+var testFile1 = do_get_file("data/429891_testcase.eml");
+var testFile2 = do_get_file("data/message1.eml");
 
 const kSender = "from@invalid.com";
 const kTo = "to@invalid.com";
@@ -29,6 +30,7 @@ msll.prototype = {
   onStartSending: function (aTotal) {
     this._initialTotal = 1;
     do_check_eq(gMsgSendLater.sendingMessages, true);
+    do_check_eq(aTotal, 1);
   },
   onProgress: function (aCurrentMessage, aTotal) {
     // XXX Enable this function
@@ -51,6 +53,10 @@ msll.prototype = {
 
       // Compare data file to what the server received
       do_check_eq(originalData, server._handler.post);
+
+      // check there's still one message left in the folder
+      do_check_eq(gMsgSendLater.getUnsentMessagesFolder(null)
+                               .getTotalMessages(false), 1);
 
       finished = true;
     } catch (e) {
@@ -82,7 +88,7 @@ function run_test() {
                     .getService(Ci.nsIMsgSendLater);
 
   // Test file - for bug 429891
-  originalData = loadFileToString(testFile);
+  originalData = loadFileToString(testFile1);
 
   // Check that the send later service thinks we don't have messages to send
   do_check_eq(gMsgSendLater.hasUnsentMessages(identity), false);
@@ -136,11 +142,16 @@ function run_test() {
 
     gMsgSendLater.addListener(messageListener);
 
+    // Send this message later - it shouldn't get sent
+    msgSend.sendMessageFile(identity, "", compFields, testFile2,
+                            false, false, Ci.nsIMsgSend.nsMsgQueueForLater,
+                            null, null, null, null);
+
     // Send the unsent message in the background, because we have
     // mailnews.sendInBackground set, nsMsgSendLater should just send it for
     // us.
-    msgSend.sendMessageFile(identity, "", compFields, testFile,
-                            false, false, Ci.nsIMsgSend.nsMsgQueueForLater,
+    msgSend.sendMessageFile(identity, "", compFields, testFile1,
+                            false, false, Ci.nsIMsgSend.nsMsgDeliverBackground,
                             null, null, null, null);
 
     server.performTest();

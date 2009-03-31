@@ -221,11 +221,7 @@ public:
 
   void        Clear();
 
-  NS_METHOD   SendToMagicFolder (nsMsgDeliverMode flag);
-  nsresult    QueueForLater();
-  nsresult    SaveAsDraft();
-  nsresult    SaveInSentFolder();
-  nsresult    SaveAsTemplate();
+  nsresult SendToMagicFolder(nsMsgDeliverMode flag);
 
   // Check to see if it's ok to save msgs to the configured folder.
   PRBool CanSaveMessagesToFolder(const char *folderURL);

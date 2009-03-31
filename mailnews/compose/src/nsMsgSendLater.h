@@ -119,6 +119,8 @@ public:
   // Private Information
 private:
   nsresult GetIdentityFromKey(const char *aKey, nsIMsgIdentity **aIdentity);
+  nsresult InternalSendMessages(PRBool aUserInitiated,
+                                nsIMsgIdentity *aIdentity);
 
   nsTObserverArray<nsCOMPtr<nsIMsgSendLaterListener> > mListenerArray;
   nsCOMPtr<nsIMsgDBHdr>      mMessage;

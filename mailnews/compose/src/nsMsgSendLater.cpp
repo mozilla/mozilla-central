@@ -153,7 +153,8 @@ nsMsgSendLater::Observe(nsISupports *aSubject, const char* aTopic,
 {
   if (aSubject == mTimer && !strcmp(aTopic, "timer-callback"))
   {
-    SendUnsentMessages(nsnull);
+    mTimer = nsnull;
+    InternalSendMessages(PR_FALSE, nsnull);
   }
   else if (!strcmp(aTopic, "quit-application"))
   {
@@ -734,6 +735,13 @@ nsMsgSendLater::HasUnsentMessages(nsIMsgIdentity *aIdentity, PRBool *aResult)
 NS_IMETHODIMP 
 nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity)
 {
+  return InternalSendMessages(PR_TRUE, aIdentity);
+}
+
+nsresult
+nsMsgSendLater::InternalSendMessages(PRBool aUserInitiated,
+                                     nsIMsgIdentity *aIdentity)
+{
   nsresult rv = GetUnsentMessagesFolder(aIdentity,
                                         getter_AddRefs(mMessageFolder));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -755,7 +763,19 @@ nsMsgSendLater::SendUnsentMessages(nsIMsgIdentity *aIdentity)
     {
       messageHeader = do_QueryInterface(currentItem, &rv);
       if (NS_SUCCEEDED(rv))
-        mMessagesToSend.AppendObject(messageHeader);
+      {
+        if (aUserInitiated)
+          // If the user initiated the send, add all messages
+          mMessagesToSend.AppendObject(messageHeader);
+        else
+        {
+          // Else just send those that are NOT marked as Queued.
+          PRUint32 flags;
+          rv = messageHeader->GetFlags(&flags);
+          if (NS_SUCCEEDED(rv) && !(flags & nsMsgMessageFlags::Queued))
+            mMessagesToSend.AppendObject(messageHeader);
+        }  
+      }
     }
   }
 
@@ -1296,6 +1316,12 @@ nsMsgSendLater::GetIdentityFromKey(const char *aKey, nsIMsgIdentity  **aIdentity
 NS_IMETHODIMP
 nsMsgSendLater::OnItemAdded(nsIMsgFolder *aParentItem, nsISupports *aItem)
 {
+  // No need to trigger if timer is already set
+  if (mTimer)
+    return NS_OK;
+
+  // XXX only trigger for non-queued headers
+
   // Items from this function return NS_OK because the callee won't care about
   // the result anyway.
   nsresult rv;

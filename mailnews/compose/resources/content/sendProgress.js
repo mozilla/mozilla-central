@@ -40,7 +40,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var msgCompDeliverMode = Components.interfaces.nsIMsgCompDeliverMode;
+var nsIMsgCompDeliverMode = Components.interfaces.nsIMsgCompDeliverMode;
 
 // dialog is just an array we'll use to store various properties from the dialog document...
 var dialog;
@@ -149,7 +149,7 @@ function onLoad()
       var progressParams = window.arguments[1].QueryInterface(Components.interfaces.nsIMsgComposeProgressParams)
       if (progressParams)
       {
-        itsASaveOperation = (progressParams.deliveryMode != msgCompDeliverMode.Now);
+        itsASaveOperation = (progressParams.deliveryMode != nsIMsgCompDeliverMode.Now);
         subject = progressParams.subject;
       }
     }

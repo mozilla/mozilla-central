@@ -161,7 +161,7 @@ typedef struct nsMsgAttachedFile
 [ptr] native nsMsgAttachedFile(nsMsgAttachedFile);
 [ptr] native nsMsgAttachmentHandler(nsMsgAttachmentHandler);
 
-[scriptable, uuid(435AD670-33E0-4759-96C5-772B6B62276B)]
+[scriptable, uuid(1313d4e4-3ac4-4fe7-bae5-e7049018c331)]
 interface nsIMsgSend : nsISupports 
 {
   //
@@ -173,14 +173,22 @@ interface nsIMsgSend : nsISupports
   // NOTE: when aEditor is non-null, a multipart related MHTML message will 
   // be created
   //
-    
-    const nsMsgDeliverMode nsMsgDeliverNow = 0;
-    const nsMsgDeliverMode nsMsgQueueForLater = 1;
-    const nsMsgDeliverMode nsMsgSave = 2;
-    const nsMsgDeliverMode nsMsgSaveAs = 3;
-    const nsMsgDeliverMode nsMsgSaveAsDraft = 4;
-    const nsMsgDeliverMode nsMsgSaveAsTemplate = 5;
-    const nsMsgDeliverMode nsMsgSendUnsent = 6;
+
+  /// Send the message straight away.
+  const nsMsgDeliverMode nsMsgDeliverNow = 0;
+  /**
+   * Queue the message for sending later, but then wait for the user to
+   * request to send it.
+   */
+  const nsMsgDeliverMode nsMsgQueueForLater = 1;
+  const nsMsgDeliverMode nsMsgSave = 2;
+  const nsMsgDeliverMode nsMsgSaveAs = 3;
+  const nsMsgDeliverMode nsMsgSaveAsDraft = 4;
+  const nsMsgDeliverMode nsMsgSaveAsTemplate = 5;
+  const nsMsgDeliverMode nsMsgSendUnsent = 6;
+
+  /// Queue the message in the unsent folder and send it in the background.
+  const nsMsgDeliverMode nsMsgDeliverBackground = 8;
 
     [noscript]
     void createAndSendMessage(in nsIEditor                    aEditor,

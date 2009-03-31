@@ -294,9 +294,10 @@ mime_generate_headers (nsMsgCompFields *fields,
   PRInt32 size = 0;
   char *buffer = 0, *buffer_tail = 0;
   PRBool isDraft =
-  deliver_mode == nsIMsgSend::nsMsgSaveAsDraft ||
-  deliver_mode == nsIMsgSend::nsMsgSaveAsTemplate ||
-  deliver_mode == nsIMsgSend::nsMsgQueueForLater;
+    deliver_mode == nsIMsgSend::nsMsgSaveAsDraft ||
+    deliver_mode == nsIMsgSend::nsMsgSaveAsTemplate ||
+    deliver_mode == nsIMsgSend::nsMsgQueueForLater ||
+    deliver_mode == nsIMsgSend::nsMsgDeliverBackground;
 
   const char* pFrom;
   const char* pTo;
@@ -1926,7 +1927,9 @@ GetFolderURIFromUserPrefs(nsMsgDeliverMode aMode, nsIMsgIdentity* identity, nsCS
   nsresult rv;
   uri.Truncate();
 
-  if (aMode == nsIMsgSend::nsMsgQueueForLater)       // QueueForLater (Outbox)
+  // QueueForLater (Outbox)
+  if (aMode == nsIMsgSend::nsMsgQueueForLater ||
+      aMode == nsIMsgSend::nsMsgDeliverBackground)
   {
     nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
     if (NS_FAILED(rv))

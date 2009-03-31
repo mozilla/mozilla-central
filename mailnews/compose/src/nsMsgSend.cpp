@@ -3588,12 +3588,11 @@ nsMsgComposeAndSend::DeliverMessage()
           (mCompFields->GetBcc() && *mCompFields->GetBcc()));
   PRBool news_p = mCompFields->GetNewsgroups() && *(mCompFields->GetNewsgroups());
   NS_ASSERTION(!( m_deliver_mode != nsMsgSaveAsDraft && m_deliver_mode != nsMsgSaveAsTemplate)  || (mail_p || news_p), "message without destination");
-  if (m_deliver_mode == nsMsgQueueForLater)
-    return QueueForLater();
-  else if (m_deliver_mode == nsMsgSaveAsDraft)
-    return SaveAsDraft();
-  else if (m_deliver_mode == nsMsgSaveAsTemplate)
-    return SaveAsTemplate();
+  if (m_deliver_mode == nsMsgQueueForLater ||
+      m_deliver_mode == nsMsgDeliverBackground ||
+      m_deliver_mode == nsMsgSaveAsDraft ||
+      m_deliver_mode == nsMsgSaveAsTemplate)
+    return SendToMagicFolder(m_deliver_mode);
 
   //
   // Ok, we are about to send the file that we have built up...but what
@@ -4480,42 +4479,6 @@ nsMsgComposeAndSend::SendToMagicFolder(nsMsgDeliverMode mode)
     return rv;
 }
 
-//
-// Queues the message for later delivery, and runs the completion/failure
-// callback.
-//
-nsresult
-nsMsgComposeAndSend::QueueForLater()
-{
-  return SendToMagicFolder(nsMsgQueueForLater);
-}
-
-//
-// Save the message to the Drafts folder, and runs the completion/failure
-// callback.
-//
-nsresult
-nsMsgComposeAndSend::SaveAsDraft()
-{
-  return SendToMagicFolder(nsMsgSaveAsDraft);
-}
-
-//
-// Save the message to the Template folder, and runs the completion/failure
-// callback.
-//
-nsresult
-nsMsgComposeAndSend::SaveAsTemplate()
-{
-  return SendToMagicFolder(nsMsgSaveAsTemplate);
-}
-
-nsresult
-nsMsgComposeAndSend::SaveInSentFolder()
-{
-  return SendToMagicFolder(nsMsgDeliverNow);
-}
-
 char*
 nsMsgGetEnvelopeLine(void)
 {
@@ -4711,18 +4674,21 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   //
   // Need to add these lines for POP3 ONLY! IMAP servers will handle
   // this status information for summary file regeneration for us.
-  if ( (mode == nsMsgQueueForLater  || mode == nsMsgSaveAsDraft ||
-        mode == nsMsgSaveAsTemplate || mode == nsMsgDeliverNow ||
-        mode == nsMsgSendUnsent) && folderIsLocal)
+  if ((mode == nsMsgQueueForLater || mode == nsMsgSaveAsDraft ||
+       mode == nsMsgSaveAsTemplate || mode == nsMsgDeliverNow ||
+       mode == nsMsgSendUnsent || mode == nsMsgDeliverBackground) &&
+      folderIsLocal)
   {
     char       *buf = 0;
     PRUint16   flags = 0;
 
     // for save as draft and send later, we want to leave the message as unread.
     // See Bug #198087
+    // Messages sent with mode nsMsgDeliverBackground must not have the Queued
+    // flag sent so that they get picked up by the background send function.
     if (mode == nsMsgQueueForLater)
       flags |= nsMsgMessageFlags::Queued;
-    else if (mode != nsMsgSaveAsDraft)
+    else if (mode != nsMsgSaveAsDraft && mode != nsMsgDeliverBackground)
       flags |= nsMsgMessageFlags::Read;
     buf = PR_smprintf(X_MOZILLA_STATUS_FORMAT CRLF, flags);
     if (buf)
@@ -4786,8 +4752,9 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   // folder, and that message is forwarded to someone, then the attachment
   // code will strip out the BCC header before forwarding it.)
   //
-  if ((mode == nsMsgQueueForLater || mode == nsMsgSaveAsDraft ||
-       mode == nsMsgSaveAsTemplate) && fcc_header && *fcc_header)
+  if ((mode == nsMsgQueueForLater || mode == nsMsgDeliverBackground ||
+       mode == nsMsgSaveAsDraft || mode == nsMsgSaveAsTemplate) &&
+      fcc_header && *fcc_header)
   {
     PRInt32 L = PL_strlen(fcc_header) + 20;
     char  *buf = (char *) PR_Malloc (L);
@@ -4812,12 +4779,9 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   // Ok, now I want to get the identity key and write it out if this is for a
   // nsMsgQueueForLater operation!
   //
-  if (  (  ( nsMsgQueueForLater == mode )
-        || ( nsMsgSaveAsDraft == mode )
-        || ( nsMsgSaveAsTemplate == mode )
-        )
-     && ( mUserIdentity )
-     )
+  if ((nsMsgQueueForLater == mode || nsMsgSaveAsDraft == mode ||
+       nsMsgDeliverBackground == mode || nsMsgSaveAsTemplate == mode) &&
+      mUserIdentity)
   {
     char *buf = nsnull;
     nsCString key;
@@ -4897,7 +4861,8 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   // or "news://user@host:222" to simply "host:222".
   //
   if ((mode == nsMsgQueueForLater || mode == nsMsgSaveAsDraft ||
-       mode == nsMsgSaveAsTemplate) && news_url && *news_url)
+       mode == nsMsgSaveAsTemplate || mode == nsMsgDeliverBackground) &&
+      news_url && *news_url)
   {
     PRBool secure_p = (news_url[0] == 's' || news_url[0] == 'S');
     char *orig_hap = nsMsgParseURLHost (news_url);
