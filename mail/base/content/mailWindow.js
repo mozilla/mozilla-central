@@ -38,6 +38,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
+Components.utils.import("resource://app/modules/appIdleManager.js");
+
 //This file stores variables common to mail windows
 var messenger;
 var pref;
@@ -91,6 +93,9 @@ function CreateMailWindowGlobals()
   pref = Components.classes["@mozilla.org/preferences-service;1"]
           .getService(Components.interfaces.nsIPrefBranch2);
 
+  window.addEventListener("blur", appIdleManager.onBlur, false);
+  window.addEventListener("focus", appIdleManager.onFocus, false);
+  
   //Create windows status feedback
   // set the JS implementation of status feedback before creating the c++ one..
   window.MsgStatusFeedback = new nsMsgStatusFeedback();

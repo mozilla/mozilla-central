@@ -159,7 +159,7 @@ class nsAutoSyncManager : public nsIObserver,
   static const PRInt32 kIdleTimeInSec = 10;
   static const PRUint32 kGroupRetryCount = 3;
   
-  enum IdleState { idle, back };
+  enum IdleState { systemIdle, appIdle, notIdle };
   enum UpdateState { initiated, completed };
       
   public:
@@ -175,6 +175,7 @@ class nsAutoSyncManager : public nsIObserver,
 
     void SetIdleState(IdleState st);    
     IdleState GetIdleState() const;
+    nsresult StartIdleProcessing();
     nsresult AutoUpdateFolders(); 
     void ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAutoSyncStateObj);
     nsresult DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj, PRUint32 aSizeLimit = 0);

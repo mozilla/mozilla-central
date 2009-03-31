@@ -50,6 +50,8 @@
 
 NS_IMPL_ISUPPORTS1(nsDefaultAutoSyncMsgStrategy, nsIAutoSyncMsgStrategy)
 
+const char* kAppIdleNotification = "mail:appIdle";
+
 nsDefaultAutoSyncMsgStrategy::nsDefaultAutoSyncMsgStrategy()
 {
 }
@@ -71,7 +73,7 @@ NS_IMETHODIMP nsDefaultAutoSyncMsgStrategy::Sort(nsIMsgFolder *aFolder,
     *aDecision = nsAutoSyncStrategyDecisions::Same;
     return NS_OK;
   }
-  
+
   aMsgHdr1->GetMessageSize(&msgSize1);
   aMsgHdr1->GetDate(&msgDate1);
   
@@ -148,7 +150,7 @@ NS_IMETHODIMP nsDefaultAutoSyncFolderStrategy::Sort(nsIMsgFolder *aFolderA,
   
   //Follow this order;
   // INBOX > DRAFTS > SUBFOLDERS > TRASH
-  
+
   // test whether the folder is opened by the user.
   // we give high priority to the folders explicitly opened by 
   // the user.
@@ -162,8 +164,7 @@ NS_IMETHODIMP nsDefaultAutoSyncFolderStrategy::Sort(nsIMsgFolder *aFolderA,
     session->IsFolderOpenInWindow(aFolderA, &folderAOpen);
     session->IsFolderOpenInWindow(aFolderB, &folderBOpen);
   }
-  //
-      
+
   if (folderAOpen == folderBOpen)
   {
     // if both of them or none of them are opened by the user 
@@ -213,23 +214,25 @@ nsDefaultAutoSyncFolderStrategy::IsExcluded(nsIMsgFolder *aFolder, PRBool *aDeci
 nsAutoSyncManager::nsAutoSyncManager()
 {
   mGroupSize = kDefaultGroupSize;
-  mIdleState = back;
+
+  mIdleState = notIdle;
   mStartupTime = PR_Now();
   mDownloadModel = dmChained;
   mUpdateState = completed;
-  
-  nsresult rv;    
+
+  nsresult rv;
   mIdleService = do_GetService("@mozilla.org/widget/idleservice;1", &rv);
   if (mIdleService)
     mIdleService->AddIdleObserver(this, kIdleTimeInSec);
-   
-  // Observe xpcom-shutdown event
+
+  // Observe xpcom-shutdown event and app-idle changes
   nsCOMPtr<nsIObserverService> observerService =
          do_GetService("@mozilla.org/observer-service;1", &rv);
-         
+
   rv = observerService->AddObserver(this,
                                     NS_XPCOM_SHUTDOWN_OBSERVER_ID,
                                     PR_FALSE);
+  observerService->AddObserver(this, kAppIdleNotification, PR_FALSE);
 }
 
 nsAutoSyncManager::~nsAutoSyncManager()
@@ -243,7 +246,7 @@ void nsAutoSyncManager::InitTimer()
     nsresult rv;
     mTimer = do_CreateInstance(NS_TIMER_CONTRACTID, &rv);
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create timer in nsAutoSyncManager");
-    
+
     mTimer->InitWithFuncCallback(TimerCallback, (void *) this, 
                                  kTimerIntervalInMs, nsITimer::TYPE_REPEATING_SLACK);
   }
@@ -270,7 +273,7 @@ void nsAutoSyncManager::TimerCallback(nsITimer *aTimer, void *aClosure)
     return;
   
   nsAutoSyncManager *autoSyncMgr = static_cast<nsAutoSyncManager*>(aClosure);
-  if (autoSyncMgr->GetIdleState() == back ||
+  if (autoSyncMgr->GetIdleState() == notIdle ||
     (autoSyncMgr->mDiscoveryQ.Count() <= 0 && autoSyncMgr->mUpdateQ.Count() <= 0))
   {
     // Idle will create a new timer automatically if discovery Q or update Q is not empty
@@ -482,7 +485,7 @@ PRBool nsAutoSyncManager::DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncS
     
   PRInt32 offset = 0;
   nsIAutoSyncState *autoSyncState;
-  while (autoSyncState = SearchQForSibling(aQueue, aAutoSyncStateObj, offset, &offset))
+  while ((autoSyncState = SearchQForSibling(aQueue, aAutoSyncStateObj, offset, &offset)))
   {
     PRInt32 state;
     nsresult rv = autoSyncState->GetState(&state);
@@ -526,46 +529,86 @@ NS_IMETHODIMP nsAutoSyncManager::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCo
 
 NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const PRUnichar *aSomeData)
 {
-  if (!PL_strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID)) 
+  if (!PL_strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
   {
-    nsCOMPtr<nsIObserverService> observerService = 
+    nsCOMPtr<nsIObserverService> observerService =
       do_GetService("@mozilla.org/observer-service;1");
-    if (observerService) 
+    if (observerService)
+    {
       observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
-      
+      observerService->RemoveObserver(this, kAppIdleNotification);
+    }
+
     // cancel and release the timer
     if (mTimer)
     {
-     mTimer->Cancel();
-     mTimer = nsnull;
+       mTimer->Cancel();
+       mTimer = nsnull;
     }
     // unsubscribe from idle service
     if (mIdleService)
-     mIdleService->RemoveIdleObserver(this, kIdleTimeInSec);
-     
+       mIdleService->RemoveIdleObserver(this, kIdleTimeInSec);
+
     return NS_OK;
   }
-
-  // Check topic here, idle or back
-  if (PL_strcmp(aTopic, "idle") != 0)
+  else if (!PL_strcmp(aTopic, kAppIdleNotification))
   {
-    SetIdleState(back);
+    if (nsDependentString(aSomeData).EqualsLiteral("idle"))
+    {
+      IdleState prevIdleState = GetIdleState();
+
+      // we were already idle (either system or app), so
+      // just remember that we're app idle and return.
+      SetIdleState(appIdle);
+      if (prevIdleState != notIdle)
+        return NS_OK;
+
+       return StartIdleProcessing();
+     }
+     // we're back from appIdle - if already notIdle, just return;
+     else if (GetIdleState() == notIdle)
+       return NS_OK;
+
+    SetIdleState(notIdle);
     NOTIFY_LISTENERS(OnStateChanged, (PR_FALSE));
     return NS_OK;
   }
-  else
+
+  // we're back from system idle
+  if (!PL_strcmp(aTopic, "back"))
   {
-    // although we don't expect to get idle notification while we are already
-    // idle, it is better to be defensive here to avoid platform specific idle
-    // service issues, if any. 
-    if (GetIdleState() == idle)
+    // if we're app idle when we get back from system idle, we ignore
+    // it, since we'll keep doing our idle stuff.
+    if (GetIdleState() != appIdle)
+    {
+      SetIdleState(notIdle);
+      NOTIFY_LISTENERS(OnStateChanged, (PR_FALSE));
+    }
+    return NS_OK;
+  }
+  else // we've gone system idle
+  {
+    // Check if we were already idle. We may have gotten
+    // multiple system idle notificatons. In that case,
+    // just remember that we're systemIdle and return;
+    if (GetIdleState() != notIdle)
       return NS_OK;
-    
-    SetIdleState(idle);
+
+    // we might want to remember if we were app idle, because
+    // coming back from system idle while app idle shouldn't stop
+    // app indexing. But I think it's OK for now just leave ourselves
+    // in appIdle state.
+    if (GetIdleState() != appIdle)
+      SetIdleState(systemIdle);
     if (WeAreOffline())
       return NS_OK;
-    StartTimerIfNeeded();
+    return StartIdleProcessing();
   }
+}
+
+nsresult nsAutoSyncManager::StartIdleProcessing()
+{
+  StartTimerIfNeeded();
   
   // TODO: Any better way to do it?  
   // to ignore idle events sent during the startup
@@ -1119,7 +1162,7 @@ NS_IMETHODIMP nsAutoSyncManager::OnDownloadQChanged(nsIAutoSyncState *aAutoSyncS
       // to ensure that we don't end up downloading a large single message in not-idle time, 
       // we enforce a limit. If there is no message fits into this limit we postpone the 
       // download until the next idle.
-      if (GetIdleState() != idle)
+      if (GetIdleState() == notIdle)
         rv =  DownloadMessagesForOffline(autoSyncStateObj, kFirstGroupSizeLimit);
       else
         rv = DownloadMessagesForOffline(autoSyncStateObj);
@@ -1159,7 +1202,7 @@ nsAutoSyncManager::OnDownloadCompleted(nsIAutoSyncState *aAutoSyncStateObj, nsre
     // retry the same group kGroupRetryCount times
     // try again if TB still idle, otherwise wait for the next idle time
     autoSyncStateObj->TryCurrentGroupAgain(kGroupRetryCount);
-    if (GetIdleState() == idle)
+    if (GetIdleState() != notIdle)
     {
       rv = DownloadMessagesForOffline(autoSyncStateObj);
       if (NS_FAILED(rv))
@@ -1222,7 +1265,7 @@ nsAutoSyncManager::OnDownloadCompleted(nsIAutoSyncState *aAutoSyncStateObj, nsre
   }//endif
   
   // continue downloading if TB is still in idle state
-  if (nextFolderToDownload && GetIdleState() == idle)
+  if (nextFolderToDownload && GetIdleState() != notIdle)
   {
     rv = DownloadMessagesForOffline(nextFolderToDownload);
     if (NS_FAILED(rv))

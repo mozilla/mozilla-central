@@ -69,5 +69,10 @@ EXTRA_COMPONENTS = \
 	aboutRights.js \
 	$(NULL)
 
+EXTRA_JS_MODULES = \
+  appIdleManager.js \
+  $(NULL)
+
+
 include $(topsrcdir)/config/rules.mk
 
