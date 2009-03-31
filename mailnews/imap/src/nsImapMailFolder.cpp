@@ -4168,12 +4168,9 @@ nsImapMailFolder::NormalEndMsgWriteStream(nsMsgKey uidOfMessage,
                                           PRBool markRead,
                                           nsIImapUrl *imapUrl)
 {
-  PRBool commit = PR_FALSE;
   if (m_offlineHeader)
     EndNewOfflineMessage();
   m_curMsgUid = uidOfMessage;
-  if (commit && mDatabase)
-    mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
   return NS_OK;
 }
 
