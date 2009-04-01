@@ -118,7 +118,7 @@ function onPreInit(account, accountValues)
     // 10 is OFFLINE_SUPPORT_LEVEL_REGULAR, see nsIMsgIncomingServer.idl
     // currently, there is no offline without diskspace
     var titleStringID = (gIncomingServer.offlineSupportLevel >= 10) ?
-     "prefPanel-syncing-and-diskspace" : "prefPanel-diskspace";
+     "prefPanel-synchronization" : "prefPanel-diskspace";
 
     var prefBundle = document.getElementById("bundle_prefs");
     var headertitle = document.getElementById("headertitle");

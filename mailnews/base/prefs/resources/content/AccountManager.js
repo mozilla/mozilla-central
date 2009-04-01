@@ -1045,7 +1045,7 @@ var gAccountTree = {
     function get(aString) { return bundle.getString(aString); }
     var panels = [{string: get("prefPanel-server"), src: "am-server.xul"},
                   {string: get("prefPanel-copies"), src: "am-copies.xul"},
-                  {string: get("prefPanel-syncing-and-diskspace"), src: "am-offline.xul"},
+                  {string: get("prefPanel-synchronization"), src: "am-offline.xul"},
                   {string: get("prefPanel-diskspace"), src: "am-offline.xul"},
                   {string: get("prefPanel-addressing"), src: "am-addressing.xul"},
                   {string: get("prefPanel-junk"), src: "am-junk.xul"}];

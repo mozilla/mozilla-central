@@ -67,7 +67,7 @@
   <tabs>
     <tab id="GeneralTab" label="&generalInfo.label;"/>
     <tab id="Retention" label="&retention.label;"/>
-    <tab hidefor="movemail,pop3,rss,none" hidable="true" id="OfflineTab" label="&folderOfflineTab.label;"/>
+    <tab hidefor="movemail,pop3,rss,none" hidable="true" id="SynchronizationTab" label="&folderSynchronizationTab.label;"/>
     <tab hidefor="movemail,pop3,rss,none,nntp" hidable="true" id="SharingTab" label="&folderSharingTab.label;"/>
     <tab hidefor="movemail,pop3,rss,none,nntp" hidable="true" id="QuotaTab" label="&folderQuotaTab.label;"/>
   </tabs>

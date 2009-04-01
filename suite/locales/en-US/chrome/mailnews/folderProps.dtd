@@ -68,7 +68,7 @@
 <!ENTITY retentionApplyToFlagged.label "Always keep flagged messages">
 <!ENTITY retentionApplyToFlagged.accesskey "e">
 
-<!ENTITY folderOfflineTab.label                  "Offline">
+<!ENTITY folderSynchronizationTab.label          "Synchronization">
 <!ENTITY folderCheckForNewMessages.label         "Check this folder for new messages">
 <!ENTITY folderCheckForNewMessages.accesskey     "C">
 

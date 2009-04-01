@@ -149,7 +149,7 @@ protected:
   static nsIRDFResource* kNC_PageTitleMain;
   static nsIRDFResource* kNC_PageTitleServer;
   static nsIRDFResource* kNC_PageTitleCopies;
-  static nsIRDFResource* kNC_PageTitleOfflineAndDiskSpace;
+  static nsIRDFResource* kNC_PageTitleSynchronization;
   static nsIRDFResource* kNC_PageTitleDiskSpace;
   static nsIRDFResource* kNC_PageTitleAddressing;
   static nsIRDFResource* kNC_PageTitleSMTP;

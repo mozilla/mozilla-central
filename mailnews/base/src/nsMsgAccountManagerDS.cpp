@@ -65,7 +65,7 @@
 #define NC_RDF_PAGETITLE_MAIN                 NC_RDF_PAGETITLE_PREFIX "Main"
 #define NC_RDF_PAGETITLE_SERVER               NC_RDF_PAGETITLE_PREFIX "Server"
 #define NC_RDF_PAGETITLE_COPIES               NC_RDF_PAGETITLE_PREFIX "Copies"
-#define NC_RDF_PAGETITLE_OFFLINEANDDISKSPACE  NC_RDF_PAGETITLE_PREFIX "OfflineAndDiskSpace"
+#define NC_RDF_PAGETITLE_SYNCHRONIZATION      NC_RDF_PAGETITLE_PREFIX "Synchronization"
 #define NC_RDF_PAGETITLE_DISKSPACE            NC_RDF_PAGETITLE_PREFIX "DiskSpace"
 #define NC_RDF_PAGETITLE_ADDRESSING           NC_RDF_PAGETITLE_PREFIX "Addressing"
 #define NC_RDF_PAGETITLE_SMTP                 NC_RDF_PAGETITLE_PREFIX "SMTP"
@@ -118,7 +118,7 @@ nsIRDFResource* nsMsgAccountManagerDataSource::kNC_Junk=nsnull;
 nsIRDFResource* nsMsgAccountManagerDataSource::kNC_PageTitleMain=nsnull;
 nsIRDFResource* nsMsgAccountManagerDataSource::kNC_PageTitleServer=nsnull;
 nsIRDFResource* nsMsgAccountManagerDataSource::kNC_PageTitleCopies=nsnull;
-nsIRDFResource* nsMsgAccountManagerDataSource::kNC_PageTitleOfflineAndDiskSpace=nsnull;
+nsIRDFResource* nsMsgAccountManagerDataSource::kNC_PageTitleSynchronization=nsnull;
 nsIRDFResource* nsMsgAccountManagerDataSource::kNC_PageTitleDiskSpace=nsnull;
 nsIRDFResource* nsMsgAccountManagerDataSource::kNC_PageTitleAddressing=nsnull;
 nsIRDFResource* nsMsgAccountManagerDataSource::kNC_PageTitleSMTP=nsnull;
@@ -185,8 +185,8 @@ nsMsgAccountManagerDataSource::nsMsgAccountManagerDataSource()
                                  &kNC_PageTitleServer);
     getRDFService()->GetResource(NS_LITERAL_CSTRING(NC_RDF_PAGETITLE_COPIES),
                                  &kNC_PageTitleCopies);
-    getRDFService()->GetResource(NS_LITERAL_CSTRING(NC_RDF_PAGETITLE_OFFLINEANDDISKSPACE),
-                                 &kNC_PageTitleOfflineAndDiskSpace);
+    getRDFService()->GetResource(NS_LITERAL_CSTRING(NC_RDF_PAGETITLE_SYNCHRONIZATION),
+                                 &kNC_PageTitleSynchronization);
     getRDFService()->GetResource(NS_LITERAL_CSTRING(NC_RDF_PAGETITLE_DISKSPACE),
                                  &kNC_PageTitleDiskSpace);
     getRDFService()->GetResource(NS_LITERAL_CSTRING(NC_RDF_PAGETITLE_ADDRESSING),
@@ -241,7 +241,7 @@ nsMsgAccountManagerDataSource::~nsMsgAccountManagerDataSource()
     NS_IF_RELEASE(kNC_PageTitleMain);
     NS_IF_RELEASE(kNC_PageTitleServer);
     NS_IF_RELEASE(kNC_PageTitleCopies);
-    NS_IF_RELEASE(kNC_PageTitleOfflineAndDiskSpace);
+    NS_IF_RELEASE(kNC_PageTitleSynchronization);
     NS_IF_RELEASE(kNC_PageTitleDiskSpace);
     NS_IF_RELEASE(kNC_PageTitleAddressing);
     NS_IF_RELEASE(kNC_PageTitleSMTP);
@@ -339,8 +339,8 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
     else if (source == kNC_PageTitleCopies)
       mStringBundle->GetStringFromName(NS_LITERAL_STRING("prefPanel-copies").get(),
                                        getter_Copies(pageTitle));
-    else if (source == kNC_PageTitleOfflineAndDiskSpace)
-      mStringBundle->GetStringFromName(NS_LITERAL_STRING("prefPanel-syncing-and-diskspace").get(),
+    else if (source == kNC_PageTitleSynchronization)
+      mStringBundle->GetStringFromName(NS_LITERAL_STRING("prefPanel-synchronization").get(),
                                        getter_Copies(pageTitle));
     else if (source == kNC_PageTitleDiskSpace)
       mStringBundle->GetStringFromName(NS_LITERAL_STRING("prefPanel-diskspace").get(),
@@ -431,7 +431,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
       str.AssignLiteral("am-server.xul");
     else if (source == kNC_PageTitleCopies)
       str.AssignLiteral("am-copies.xul");
-    else if ((source == kNC_PageTitleOfflineAndDiskSpace) ||
+    else if ((source == kNC_PageTitleSynchronization) ||
              (source == kNC_PageTitleDiskSpace))
       str.AssignLiteral("am-offline.xul");
     else if (source == kNC_PageTitleAddressing)
@@ -535,7 +535,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
           str.AssignLiteral("2");
         else if (source == kNC_PageTitleAddressing)
           str.AssignLiteral("3");
-        else if (source == kNC_PageTitleOfflineAndDiskSpace)
+        else if (source == kNC_PageTitleSynchronization)
           str.AssignLiteral("4");
         else if (source == kNC_PageTitleDiskSpace)
           str.AssignLiteral("4");
@@ -804,7 +804,7 @@ nsMsgAccountManagerDataSource::createSettingsResources(nsIRDFResource *aSource,
 
     // currently there is no offline without diskspace
     if (offlineSupportLevel >= OFFLINE_SUPPORT_LEVEL_REGULAR) 
-      aNodeArray->AppendElement(kNC_PageTitleOfflineAndDiskSpace);
+      aNodeArray->AppendElement(kNC_PageTitleSynchronization);
     else if (supportsDiskSpace)
       aNodeArray->AppendElement(kNC_PageTitleDiskSpace);
 
