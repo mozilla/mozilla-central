@@ -216,24 +216,6 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     } // while we still have part of the url to parse...
   } // if rest && *rest
 
-  // Ensure that References and In-Reply-To are consistent...
-  if (!escapedInReplyToPart.IsEmpty())
-  {
-    if (escapedReferencePart.IsEmpty())
-      escapedReferencePart = escapedInReplyToPart;
-    else
-    {
-      const char * lastRef = strrchr(escapedReferencePart.get(), '<');
-      nsCString lastReference;
-      lastReference = lastRef ? lastRef : escapedReferencePart.get();
-      if (lastReference != escapedInReplyToPart)
-      {
-        escapedReferencePart += " ";
-        escapedReferencePart += escapedInReplyToPart;
-      }
-    }
-  }
-
   nsCOMPtr<nsIMimeConverter> mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
   char *decodedString;
 
@@ -376,9 +358,49 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     }
   }
 
+  nsCString inReplyToPart; // Not a member like the others...
+  if (!escapedInReplyToPart.IsEmpty())
+  {
+    MsgUnescapeString(escapedInReplyToPart, 0, inReplyToPart);
+    // Mime encoding allowed, but only useless such (non ascii not allowed).
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                         inReplyToPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         &decodedString)) && decodedString)
+        inReplyToPart.Adopt(decodedString);
+    }
+  }
+
+  if (!inReplyToPart.IsEmpty())
+  {
+    // Ensure that References and In-Reply-To are consistent... The last
+    // reference will be used as In-Reply-To header.
+    if (m_referencePart.IsEmpty())
+    {
+      // If References is not set, set it to be the In-Reply-To.
+      m_referencePart = inReplyToPart;
+    }
+    else
+    {
+      // References is set. Add the In-Reply-To as last header unless it's
+      // set as last reference already.
+      PRInt32 lastRefStart = m_referencePart.RFindChar('<');
+      nsCAutoString lastReference;
+      if (lastRefStart != -1)
+        lastReference = StringTail(m_referencePart, lastRefStart);
+      else
+        lastReference = m_referencePart;
+
+      if (lastReference != inReplyToPart)
+      {
+        m_referencePart += " ";
+        m_referencePart += inReplyToPart;
+      }
+    }
+  }
   return NS_OK;
 }
-
 
 NS_IMETHODIMP nsMailtoUrl::SetSpec(const nsACString &aSpec)
 {

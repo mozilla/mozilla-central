@@ -423,6 +423,25 @@ const tests = [
     newshost: ""
   },
   {
+    url: "mailto:?references=%3Cref3%40example.com%3E%20%3Crepl3%40example.com%3E" +
+         "&in-reply-to=%3Crepl3%40example.com%3E",
+    to: "",
+    cc: "",
+    bcc: "",
+    subject: "",
+    body: "",
+    html: "",
+    reference: "<ref3@example.com> <repl3@example.com>",
+    newsgroup: "",
+    composeformat: COMPOSE_DEFAULT,
+    from: "",
+    followupto: "",
+    organization: "",
+    replyto: "",
+    priority: "",
+    newshost: ""
+  },
+  {
     url: "mailto:?newsgroups=mozilla.dev.apps.thunderbird",
     to: "",
     cc: "",
