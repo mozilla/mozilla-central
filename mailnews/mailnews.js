@@ -588,6 +588,8 @@ This option is mainly for the UI of html_as.
 
 pref("mail.forward_message_mode", 0); // 0=default as attachment 2=forward as inline with attachments, (obsolete 4.x value)1=forward as quoted (mapped to 2 in mozilla)
 pref("mail.forward_add_extension", true); // add .eml extension when forwarding as attachment
+// Prefix of for mail forwards. E.g. "Fwd" -> subject will be Fwd: <subject>
+pref("mail.forward_subject_prefix", "Fwd");
 
 pref("mail.startup.enabledMailCheckOnce", false);
 

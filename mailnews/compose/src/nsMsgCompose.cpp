@@ -1690,27 +1690,26 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   if (mOriginalMsgURI.IsEmpty())
     mOriginalMsgURI = originalMsgURI;
 
+  nsCOMPtr<nsIPrefBranch> prefs (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // If we are forwarding inline, mime did already setup the compose fields therefore we should stop now
   if (type == nsIMsgCompType::ForwardInline )
   {
-    // use send_default_charset if reply_in_default_charset is on.
-    nsCOMPtr<nsIPrefBranch> prefs (do_GetService(NS_PREFSERVICE_CONTRACTID));
-    if (prefs)
+    PRBool replyInDefault = PR_FALSE;
+    prefs->GetBoolPref("mailnews.reply_in_default_charset",
+                        &replyInDefault);
+    // Use send_default_charset if reply_in_default_charset is on.
+    if (replyInDefault)
     {
-      PRBool replyInDefault = PR_FALSE;
-      prefs->GetBoolPref("mailnews.reply_in_default_charset",
-                         &replyInDefault);
-      if (replyInDefault)
+      nsString str;
+      nsCString charset;
+      NS_GetLocalizedUnicharPreferenceWithDefault(prefs, "mailnews.send_default_charset",
+                                                  EmptyString(), str);
+      if (!str.IsEmpty())
       {
-        nsString str;
-        nsCString charset;
-        NS_GetLocalizedUnicharPreferenceWithDefault(prefs, "mailnews.send_default_charset",
-                                                    EmptyString(), str);
-        if (!str.IsEmpty())
-        {
-          LossyCopyUTF16toASCII(str, charset);
-          m_compFields->SetCharacterSet(charset.get());
-        }
+        LossyCopyUTF16toASCII(str, charset);
+        m_compFields->SetCharacterSet(charset.get());
       }
     }
     return rv;
@@ -1787,20 +1786,17 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       // with |charsetOverride == PR_TRUE|
       nsCAutoString originCharset(charset);
 
-      // use send_default_charset if reply_in_default_charset is on.
-      nsCOMPtr<nsIPrefBranch> prefs (do_GetService(NS_PREFSERVICE_CONTRACTID));
-      if (prefs)
+      PRBool replyInDefault = PR_FALSE;
+      prefs->GetBoolPref("mailnews.reply_in_default_charset",
+                          &replyInDefault);
+      // Use send_default_charset if reply_in_default_charset is on.
+      if (replyInDefault)
       {
-        PRBool replyInDefault = PR_FALSE;
-        prefs->GetBoolPref("mailnews.reply_in_default_charset",
-                           &replyInDefault);
-        if (replyInDefault) {
-          nsString str;
-          NS_GetLocalizedUnicharPreferenceWithDefault(prefs, "mailnews.send_default_charset",
-                                                      EmptyString(), str);
-          if (!str.IsEmpty())
-            LossyCopyUTF16toASCII(str, charset);
-        }
+        nsString str;
+        NS_GetLocalizedUnicharPreferenceWithDefault(prefs, "mailnews.send_default_charset",
+                                                    EmptyString(), str);
+        if (!str.IsEmpty())
+          LossyCopyUTF16toASCII(str, charset);
       }
 
       // No matter what, we should block x-windows-949 (our internal name)
@@ -1911,9 +1907,8 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             }
 
             PRBool replyToSelfCheckAll = PR_FALSE;
-            nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-            if (NS_SUCCEEDED(rv))
-              prefBranch->GetBoolPref("mailnews.reply_to_self_check_all_ident", &replyToSelfCheckAll);
+            prefs->GetBoolPref("mailnews.reply_to_self_check_all_ident",
+                               &replyToSelfCheckAll);
 
             nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
             NS_ENSURE_SUCCESS(rv,rv);
@@ -2024,9 +2019,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             {
               PRBool addExtension = PR_TRUE;
               nsString sanitizedSubj;
-
-              if (prefs)
-                prefs->GetBoolPref("mail.forward_add_extension", &addExtension);
+              prefs->GetBoolPref("mail.forward_add_extension", &addExtension);
 
               // copy subject string to sanitizedSubj, use default if empty
               if (subject.IsEmpty())
@@ -2053,8 +2046,19 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
             if (isFirstPass)
             {
-              subject.Insert(NS_LITERAL_STRING("[Fwd: ").get(), 0);
-              subject.Append(NS_LITERAL_STRING("]").get());
+              nsCString fwdPrefix;
+              prefs->GetCharPref("mail.forward_subject_prefix", getter_Copies(fwdPrefix));
+              if (!fwdPrefix.IsEmpty())
+              {
+                nsString unicodeFwdPrefix;
+                CopyUTF8toUTF16(fwdPrefix.get(), unicodeFwdPrefix);
+                unicodeFwdPrefix.AppendLiteral(": ");
+                subject.Insert(unicodeFwdPrefix.get(), 0);
+              }
+              else
+              {
+                subject.Insert(NS_LITERAL_STRING("Fwd: ").get(), 0);
+              }
               m_compFields->SetSubject(subject);
             }
             break;
@@ -4055,10 +4059,12 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   {
     // insert a line between the sig file and the pref sig text, if there was a sig file.
     if (!sigData.IsEmpty())
+    {
       if (m_composeHTML)
         sigOutput.AppendLiteral(htmlBreak);
       else
         sigOutput.AppendLiteral(CRLF);
+    }
 
     if (!m_composeHTML)
     {

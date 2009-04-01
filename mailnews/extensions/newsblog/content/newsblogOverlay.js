@@ -68,45 +68,51 @@ function openSubscriptionsDialog(aFolder, aServer)
 // an iframe. Bug #258278.
 function openComposeWindowForRSSArticle(msgHdr, type)
 {
-  // convert our messageId into a url..
-  var contentBase = msgHdr.messageId.replace("@localhost.localdomain", "");
-
   var params = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
                          .createInstance(Components.interfaces.nsIMsgComposeParams);
-  if (params)
-  {
-    params.composeFields = Components.classes['@mozilla.org/messengercompose/composefields;1']
-                                     .createInstance(Components.interfaces.nsIMsgCompFields);
-    if (params.composeFields)
-    {
-      params.composeFields.body = contentBase;
-      var subject = msgHdr.mime2DecodedSubject;
-      var msgComposeType = Components.interfaces.nsIMsgCompType;
-      if (type == msgComposeType.Reply ||
-          type == msgComposeType.ReplyAll ||
-          type == msgComposeType.ReplyToSender ||
-          type == msgComposeType.ReplyToGroup ||
-          type == msgComposeType.ReplyToSenderAndGroup)
-        subject = 'Re: ' + subject;
-      else if (type == msgComposeType.ForwardInline ||
-               type == msgComposeType.ForwardAsAttachment)
-        subject = '[Fwd: ' + subject + ']';
-      params.composeFields.subject = subject;
-      params.composeFields.characterSet = msgHdr.Charset;
-      params.bodyIsLink = true;
+  if (!params)
+    return;
 
-      if (msgComposeService)
+  params.composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
+                                   .createInstance(Components.interfaces.nsIMsgCompFields);
+  if (params.composeFields)
+  {
+    // convert our messageId into a url..
+    var contentBase = msgHdr.messageId.replace("@localhost.localdomain", "");
+    params.composeFields.body = contentBase;
+    var subject = msgHdr.mime2DecodedSubject;
+    var msgComposeType = Components.interfaces.nsIMsgCompType;
+    if (type == msgComposeType.Reply ||
+        type == msgComposeType.ReplyAll ||
+        type == msgComposeType.ReplyToSender ||
+        type == msgComposeType.ReplyToGroup ||
+        type == msgComposeType.ReplyToSenderAndGroup)
+    {
+      subject = "Re: " + subject;
+    }
+    else if (type == msgComposeType.ForwardInline ||
+              type == msgComposeType.ForwardAsAttachment)
+    {
+      var perf = Components.classes["@mozilla.org/preferences-service;1"]
+                            .getService(Components.interfaces.nsIPrefBranch);
+      var fwdPrefix = pref.getCharPref("mail.forward_subject_prefix");
+      subject = fwdPrefix + ": " + subject;
+    }
+    params.composeFields.subject = subject;
+    params.composeFields.characterSet = msgHdr.Charset;
+    params.bodyIsLink = true;
+
+    if (msgComposeService)
+    {
+      try
       {
-        try
-        {
-          params.identity = msgComposeService.defaultIdentity;
-        }
-        catch (ex)
-        {
-          params.identity = null;
-        }
-        msgComposeService.OpenComposeWindowWithParams(null, params);
+        params.identity = msgComposeService.defaultIdentity;
       }
+      catch (ex)
+      {
+        params.identity = null;
+      }
+      msgComposeService.OpenComposeWindowWithParams(null, params);
     }
   }
 }

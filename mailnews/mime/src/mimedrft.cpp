@@ -1255,11 +1255,20 @@ mime_parse_stream_complete (nsMIMESession *stream)
     {
       if (subj)
       {
-        char *newSubj = PR_smprintf("[Fwd: %s]", subj);
-        if (newSubj)
+        nsresult rv;
+        nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+        if (NS_SUCCEEDED(rv))
         {
-          PR_Free(subj);
-          subj = newSubj;
+          nsCAutoString fwdPrefix;
+          prefBranch->GetCharPref("mail.forward_subject_prefix",
+                                  getter_Copies(fwdPrefix));
+          char *newSubj = PR_smprintf("%s: %s", !fwdPrefix.IsEmpty() ?
+                                                fwdPrefix.get(): "Fwd", subj);
+          if (newSubj)
+          {
+            PR_Free(subj);
+            subj = newSubj;
+          }
         }
       }
     }
