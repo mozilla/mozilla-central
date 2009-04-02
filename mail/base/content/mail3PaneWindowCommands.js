@@ -468,7 +468,16 @@ var DefaultController =
       case "cmd_settingsOffline":
         return IsAccountOfflineEnabled();
       case "cmd_moveToFolderAgain":
-        return (pref.getCharPref("mail.last_msg_movecopy_target_uri") && GetNumSelectedMessages() > 0);
+        // Disable "Move to <folder> Again" for news and other read only
+        // folders since we can't really move messages from there - only copy.
+        if (pref.getBoolPref("mail.last_msg_movecopy_was_move"))
+        {
+          let loadedFolder = gFolderTreeView.getSelectedFolders()[0];
+          if (!loadedFolder.canDeleteMessages)
+            return false;
+        }
+        return pref.getCharPref("mail.last_msg_movecopy_target_uri") &&
+               GetNumSelectedMessages() > 0;
       default:
         return false;
     }
