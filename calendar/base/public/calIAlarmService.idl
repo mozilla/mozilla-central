@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -41,12 +42,17 @@ interface calIItemBase;
 interface calICalendar;
 interface calIDuration;
 interface calITimezone;
+interface calIAlarm;
+interface calIOperation;
 
 [scriptable,uuid(c9c97643-db45-4790-9441-05384ae5c272)]
 interface calIAlarmServiceObserver : nsISupports
 {
-  /* Alarm has fired -- Bring up a dialog or play a sound */
-  void onAlarm(in calIItemBase item);
+  /**
+   * Gets called when an alarm has fired. Depending on type of alarm, an
+   * observer could bring up a dialog or play a sound.
+   */
+  void onAlarm(in calIItemBase item, in calIAlarm alarm);
 
   /**
    * Called if alarm(s) of a specific item are to be removed from
@@ -91,19 +97,26 @@ interface calIAlarmService : nsISupports
   void addObserver(in calIAlarmServiceObserver observer);
   void removeObserver(in calIAlarmServiceObserver observer);
 
-  /* Call to reschedule an alarm to be notified at a later point.
-     This _will_ modify the event's alarmTime.  It will not currently
-     change the way the alarm time was initially computed.
-
-     The alarm will instead fire at "now + duration"
-
-     This will cause an event to be scheduled even if it was not
-     previously scheduled.
-  */
-  void snoozeAlarm(in calIItemBase item, in calIDuration duration);
+  /**
+   * Call to reschedule an alarm to be notified at a later point. The alarm will
+   * instead fire at "now + duration" This will cause an event to be scheduled
+   * even if it was not previously scheduled.
+   *
+   * @param item            The item the alarm belongs to.
+   * @param alarm           The alarm to snooze.
+   * @param duration        The duration in minutes to snooze for.
+   * @return                The operation that modifies the item to snooze the
+   *                        alarm.
+   */
+  calIOperation snoozeAlarm(in calIItemBase item, in calIAlarm alarm, in calIDuration duration);
 
   /**
-   * Dismisses an alarm corresponding to the passed item.
+   * Dismisses the given alarm for the passed occurrence.
+   *
+   * @param item            The item the alarm belongs to.
+   * @param alarm           The alarm to dismiss.
+   * @return                The operation that modifies the item to dismiss the
+   *                        alarm.
    */
-  void dismissAlarm(in calIItemBase item);
+  calIOperation dismissAlarm(in calIItemBase item, in calIAlarm alarm);
 };

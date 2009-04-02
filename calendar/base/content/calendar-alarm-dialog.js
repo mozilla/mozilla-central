@@ -63,7 +63,7 @@ function onSnoozeAlarm(event) {
                              .createInstance(Components.interfaces.calIDuration);
     duration.minutes = event.detail;
     duration.normalize();
-    getAlarmService().snoozeAlarm(event.target.item, duration);
+    getAlarmService().snoozeAlarm(event.target.item, event.target.alarm, duration);
 }
 
 /**
@@ -73,7 +73,7 @@ function onSnoozeAlarm(event) {
  * @param event     The snooze event
  */
 function onDismissAlarm(event) {
-    getAlarmService().dismissAlarm(event.target.item);
+    getAlarmService().dismissAlarm(event.target.item, event.target.alarm);
 }
 
 /**
@@ -86,8 +86,8 @@ function onDismissAllAlarms() {
     // Make a copy of the child nodes as they get modified live
     for each (let node in Array.slice(alarmRichlist.childNodes)) {
         // Check if the node is a valid alarm and is still part of DOM
-        if (node.item && node.parentNode) {
-            getAlarmService().dismissAlarm(node.item);
+        if (node.parentNode && node.item && node.alarm) {
+            getAlarmService().dismissAlarm(node.item, node.alarm);
         }
     }
 }
@@ -167,9 +167,9 @@ function onFocusWindow() {
  */
 function updateRelativeDates() {
     var alarmRichlist = document.getElementById("alarm-richlist");
-    for (var i = alarmRichlist.childNodes.length - 1; i >= 0; i--) {
-        if (alarmRichlist.childNodes[i].item) {
-            alarmRichlist.childNodes[i].updateRelativeDateLabel();
+    for each (let node in Array.slice(alarmRichlist.childNodes)) {
+        if (node.item && node.alarm) {
+            node.updateRelativeDateLabel();
         }
     }
 }
@@ -208,8 +208,8 @@ function snoozeAllItems(aDurationMinutes) {
     // Make a copy of the child nodes as they get modified live
     for each (let node in Array.slice(alarmRichlist.childNodes)) {
         // Check if the node is a valid alarm and is still part of DOM
-        if (node.item && node.parentNode) {
-            getAlarmService().snoozeAlarm(node.item, duration);
+        if (node.parentNode && node.item && node.alarm) {
+            getAlarmService().snoozeAlarm(node.item, node.alarm, duration);
         }
     }
 }
@@ -226,16 +226,18 @@ function setupTitle() {
 }
 
 /**
- * Add an alarm widget for the passed calendar item
+ * Add an alarm widget for the passed alarm and item.
  *
  * @param aItem       The calendar item to add a widget for.
+ * @param aAlarm      The alarm to add a widget for.
  */
-function addWidgetFor(aItem) {
-    var widget = document.createElement("calendar-alarm-widget");
-    var alarmRichlist = document.getElementById("alarm-richlist");
+function addWidgetFor(aItem, aAlarm) {
+    let widget = document.createElement("calendar-alarm-widget");
+    let alarmRichlist = document.getElementById("alarm-richlist");
     alarmRichlist.appendChild(widget);
 
     widget.item = aItem;
+    widget.alarm = aAlarm;
     widget.addEventListener("snooze", onSnoozeAlarm, false);
     widget.addEventListener("dismiss", onDismissAlarm, false);
     widget.addEventListener("itemdetails", onItemDetails, false);
@@ -251,17 +253,19 @@ function addWidgetFor(aItem) {
 }
 
 /**
- * Remove the alarm widget for the passed calendar item
+ * Remove the alarm widget for the passed alarm and item.
  *
  * @param aItem       The calendar item to remove the alarm widget for.
+ * @param aAlarm      The alarm to remove the widget for.
  */
-function removeWidgetFor(aItem) {
-    var hashId = aItem.hashId;
-    var alarmRichlist = document.getElementById("alarm-richlist");
-    var nodes = alarmRichlist.childNodes;
+function removeWidgetFor(aItem, aAlarm) {
+    let hashId = aItem.hashId;
+    let alarmRichlist = document.getElementById("alarm-richlist");
+    let nodes = alarmRichlist.childNodes;
     for (var i = nodes.length - 1; i >= 0; --i) {
         var widget = nodes[i];
-        if (widget.item && widget.item.hashId == hashId) {
+        if (widget.item && widget.item.hashId == hashId &&
+            widget.alarm && widget.alarm.icalString == aAlarm.icalString) {
 
             if (widget.selected) {
                 // Advance selection if needed

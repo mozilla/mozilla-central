@@ -174,10 +174,7 @@ function setupMaxReminders() {
     let args = window.arguments[0];
     let listbox = document.getElementById("reminder-listbox");
     let notificationbox = document.getElementById("reminder-notifications");
-    // TODO ALARMSUPPORT right now some of our backend still only supports one
-    // alarm. Limit this in the UI to not confuse users too much.
-    // let maxReminders = args.calendar.getProperty("capabilities.alarms.maxCount");
-    let maxReminders = 1;
+    let maxReminders = args.calendar.getProperty("capabilities.alarms.maxCount");
 
     // != null is needed here to ensure cond to be true/false, instead of
     // true/null. The former is needed for setElementValue.
@@ -205,7 +202,12 @@ function setupMaxReminders() {
     if (cond) {
         notificationbox.appendChild(setupMaxReminders.notification);
     } else {
-        notificationbox.removeNotification(setupMaxReminders.notification);
+        try {
+            notificationbox.removeNotification(setupMaxReminders.notification);
+        } catch (e if e.code == e.NOT_FOUND_ERR) {
+            // Its ok to swallow this, if the notification element hasn't been
+            // added then the call will throw a DOM NOT_FOUND_ERR.
+        }
     }
 }
 

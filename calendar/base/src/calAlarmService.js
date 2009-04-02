@@ -38,6 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 
 const kHoursBetweenUpdates = 6;
@@ -46,13 +47,13 @@ function nowUTC() {
     return jsDateToDateTime(new Date()).getInTimezone(UTC());
 }
 
-function newTimerWithCallback(callback, delay, repeating)
-{
-    var timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
-    
-    timer.initWithCallback(callback,
-                           delay,
-                           (repeating) ? timer.TYPE_REPEATING_PRECISE : timer.TYPE_ONE_SHOT);
+function newTimerWithCallback(aCallback, aDelay, aRepeating) {
+    let timer = Components.classes["@mozilla.org/timer;1"]
+                          .createInstance(Components.interfaces.nsITimer);
+
+    timer.initWithCallback(aCallback,
+                           aDelay,
+                           (aRepeating ? timer.TYPE_REPEATING_PRECISE : timer.TYPE_ONE_SHOT));
     return timer;
 }
 
@@ -60,7 +61,7 @@ function calAlarmService() {
     this.wrappedJSObject = this;
 
     this.mLoadedCalendars = {};
-    this.mTimerLookup = {};
+    this.mTimerMap = {};
     this.mObservers = new calListenerBag(Components.interfaces.calIAlarmServiceObserver);
 
     this.calendarObserver = {
@@ -77,10 +78,11 @@ function calAlarmService() {
                 this.alarmService.initAlarms([calendar]);
             }
         },
+
         onAddItem: function(aItem) {
-            var occs = [];
+            let occs = [];
             if (aItem.recurrenceInfo) {
-                var start = this.alarmService.mRangeEnd.clone();
+                let start = this.alarmService.mRangeEnd.clone();
                 // We search 1 month in each direction for alarms.  Therefore,
                 // we need to go back 2 months from the end to get this right.
                 start.month -= 2;
@@ -89,9 +91,9 @@ function calAlarmService() {
                 occs = [aItem];
             }
 
-            for each (var occ in occs) {
-                this.alarmService.addAlarm(occ);
-            }
+            // Add an alarm for each occurrence
+            occs.forEach(this.alarmService.addAlarmsForItem,
+                         this.alarmService);
         },
         onModifyItem: function(aNewItem, aOldItem) {
             if (!aNewItem.recurrenceId) {
@@ -103,7 +105,7 @@ function calAlarmService() {
             this.onAddItem(aNewItem);
         },
         onDeleteItem: function(aDeletedItem) {
-            this.alarmService.removeAlarm(aDeletedItem);
+            this.alarmService.removeAlarmsForItem(aDeletedItem);
         },
         onError: function(aCalendar, aErrNo, aMessage) {},
         onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
@@ -137,137 +139,133 @@ function calAlarmService() {
     };
 }
 
-var calAlarmServiceClassInfo = {
-    getInterfaces: function (count) {
-        var ifaces = [
+calAlarmService.prototype = {
+    mRangeEnd: null,
+    mUpdateTimer: null,
+    mStarted: false,
+    mTimerMap: null,
+    mObservers: null,
+    mTimezone: null,
+
+    getInterfaces: function cAS_getInterfaces(aCount) {
+        let ifaces = [
             Components.interfaces.nsISupports,
             Components.interfaces.calIAlarmService,
             Components.interfaces.nsIObserver,
             Components.interfaces.nsIClassInfo
         ];
-        count.value = ifaces.length;
+        aCount.value = ifaces.length;
         return ifaces;
     },
 
-    getHelperForLanguage: function (language) {
+    getHelperForLanguage: function cAS_getHelperForLanguage(language) {
         return null;
     },
 
+    /**
+     * nsIClassInfo
+     */
     contractID: "@mozilla.org/calendar/alarm-service;1",
     classDescription: "Calendar Alarm Service",
     classID: Components.ID("{7a9200dd-6a64-4fff-a798-c5802186e2cc}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON
-};
+    flags: Components.interfaces.nsIClassInfo.SINGLETON,
 
-calAlarmService.prototype = {
-    mRangeEnd: null,
-    mUpdateTimer: null,
-    mStarted: false,
-    mTimerLookup: null,
-    mObservers: null,
-
-    QueryInterface: function cas_QueryInterface(aIID) {
-        if (aIID.equals(Components.interfaces.nsIClassInfo))
-            return calAlarmServiceClassInfo;
-
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calIAlarmService) &&
-            !aIID.equals(Components.interfaces.nsIObserver))
-        {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
+    QueryInterface: function cAS_QueryInterface(aIID) {
+        return doQueryInterface(this, calAlarmService.prototype, aIID, null, this);
     },
 
-    /* nsIObserver */
-    // This will also be called on app-startup, but nothing is done yet, to
-    // prevent unwanted dialogs etc. See bug 325476 and 413296 
-    observe: function cas_observe(subject, topic, data) {
-        if (topic == "profile-after-change" || topic == "wake_notification") {
+    /**
+     * nsIObserver
+     */
+    observe: function cAS_observe(aSubject, aTopic, aData) {
+        // This will also be called on app-startup, but nothing is done yet, to
+        // prevent unwanted dialogs etc. See bug 325476 and 413296 
+        if (aTopic == "profile-after-change" || aTopic == "wake_notification") {
             this.shutdown();
             this.startup();
         }
-        if (topic == "xpcom-shutdown") {
+        if (aTopic == "xpcom-shutdown") {
             this.shutdown();
         }
     },
 
-    /* calIAlarmService APIs */
-    mTimezone: null,
-    get timezone() {
+    /**
+     * calIAlarmService APIs
+     */
+    get timezone cAS_get_timezone() {
+        // TODO Do we really need this? Do we ever set the timezone to something
+        // different than the default timezone?
         return this.mTimezone || calendarDefaultTimezone();
     },
 
-    set timezone(aTimezone) {
+    set timezone cAS_set_timezone(aTimezone) {
         return (this.mTimezone = aTimezone);
     },
 
-    snoozeAlarm: function cas_snoozeAlarm(event, duration) {
-        /* modify the event for a new alarm time */
+    snoozeAlarm: function cAS_snoozeAlarm(aItem, aAlarm, aDuration) {
+        // Right now we only support snoozing all alarms for the given item for
+        // aDuration.
+
         // Make sure we're working with the parent, otherwise we'll accidentally
         // create an exception
-        var newEvent = event.parentItem.clone();
-        var alarmTime = nowUTC();
+        let newEvent = aItem.parentItem.clone();
+        let alarmTime = nowUTC();
 
         // Set the last acknowledged time to now.
         newEvent.alarmLastAck = alarmTime;
 
         alarmTime = alarmTime.clone();
-        alarmTime.addDuration(duration);
+        alarmTime.addDuration(aDuration);
 
-        if (event.parentItem != event) {
+        if (aItem.parentItem != aItem) {
             // This is the *really* hard case where we've snoozed a single
             // instance of a recurring event.  We need to not only know that
             // there was a snooze, but also which occurrence was snoozed.  Part
             // of me just wants to create a local db of snoozes here...
-            newEvent.setProperty("X-MOZ-SNOOZE-TIME-" + event.recurrenceId.nativeTime,
+            newEvent.setProperty("X-MOZ-SNOOZE-TIME-" + aItem.recurrenceId.nativeTime,
                                  alarmTime.icalString);
         } else {
             newEvent.setProperty("X-MOZ-SNOOZE-TIME", alarmTime.icalString);
         }
         // calling modifyItem will cause us to get the right callback
         // and update the alarm properly
-        newEvent.calendar.modifyItem(newEvent, event.parentItem, null);
+        return newEvent.calendar.modifyItem(newEvent, aItem.parentItem, null);
     },
 
-    dismissAlarm: function cas_dismissAlarm(item) {
-        var now = nowUTC();
+    dismissAlarm: function cAS_dismissAlarm(aItem, aAlarm) {
+        let now = nowUTC();
         // We want the parent item, otherwise we're going to accidentally create an
         // exception.  We've relnoted (for 0.1) the slightly odd behavior this can
         // cause if you move an event after dismissing an alarm
-        var oldParent = item.parentItem;
-        var newParent = oldParent.clone();
+        let oldParent = aItem.parentItem;
+        let newParent = oldParent.clone();
         newParent.alarmLastAck = now;
         // Make sure to clear out any snoozes that were here.
-        if (item.recurrenceId) {
-            newParent.deleteProperty("X-MOZ-SNOOZE-TIME-" + item.recurrenceId.nativeTime);
+        if (aItem.recurrenceId) {
+            newParent.deleteProperty("X-MOZ-SNOOZE-TIME-" + aItem.recurrenceId.nativeTime);
         } else {
             newParent.deleteProperty("X-MOZ-SNOOZE-TIME");
         }
-        newParent.calendar.modifyItem(newParent, oldParent, null);
+        return newParent.calendar.modifyItem(newParent, oldParent, null);
     },
 
-    addObserver: function cas_addObserver(aObserver) {
+    addObserver: function cAS_addObserver(aObserver) {
         this.mObservers.add(aObserver);
     },
 
-    removeObserver: function cas_removeObserver(aObserver) {
+    removeObserver: function cAS_removeObserver(aObserver) {
         this.mObservers.remove(aObserver);
     },
 
-    notifyObservers: function cas_notifyObservers(functionName, args) {
-        this.mObservers.notify(functionName, args);
-    },
-
-    startup: function cas_startup() {
-        if (this.mStarted)
+    startup: function cAS_startup() {
+        if (this.mStarted) {
             return;
+        }
 
-        LOG("[calAlarmService] starting...");
+        cal.LOG("[calAlarmService] starting...");
 
-        var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
+        let observerSvc = Components.classes["@mozilla.org/observer-service;1"]
                           .getService
                           (Components.interfaces.nsIObserverService);
 
@@ -277,23 +275,22 @@ calAlarmService.prototype = {
 
         /* Tell people that we're alive so they can start monitoring alarms.
          */
-        this.notifier = Components.classes["@mozilla.org/embedcomp/appstartup-notifier;1"]
-                                  .getService(Components.interfaces.nsIObserver);
-        var notifier = this.notifier;
+        let notifier = Components.classes["@mozilla.org/embedcomp/appstartup-notifier;1"]
+                                 .getService(Components.interfaces.nsIObserver);
         notifier.observe(null, "alarm-service-startup", null);
 
         getCalendarManager().addObserver(this.calendarManagerObserver);
 
-        for each(var calendar in getCalendarManager().getCalendars({})) {
+        for each(let calendar in getCalendarManager().getCalendars({})) {
             this.observeCalendar(calendar);
         }
 
         /* set up a timer to update alarms every N hours */
-        var timerCallback = {
+        let timerCallback = {
             alarmService: this,
             notify: function timer_notify() {
-                var now = nowUTC();
-                var start;
+                let now = nowUTC();
+                let start;
                 if (!this.alarmService.mRangeEnd) {
                     // This is our first search for alarms.  We're going to look for
                     // alarms +/- 1 month from now.  If someone sets an alarm more than
@@ -305,11 +302,11 @@ calAlarmService.prototype = {
                     // This is a subsequent search, so we got all the past alarms before
                     start = this.alarmService.mRangeEnd.clone();
                 }
-                var until = now.clone();
+                let until = now.clone();
                 until.month += 1;
                 
                 // We don't set timers for every future alarm, only those within 6 hours
-                var end = now.clone();
+                let end = now.clone();
                 end.hour += kHoursBetweenUpdates;
                 this.alarmService.mRangeEnd = end.getInTimezone(UTC());
 
@@ -324,39 +321,38 @@ calAlarmService.prototype = {
         this.mStarted = true;
     },
 
-    shutdown: function cas_shutdown() {
+    shutdown: function cAS_shutdown() {
         /* tell people that we're no longer running */
-        var notifier = this.notifier;
+        let notifier = Components.classes["@mozilla.org/embedcomp/appstartup-notifier;1"]
+                                 .getService(Components.interfaces.nsIObserver);
         notifier.observe(null, "alarm-service-shutdown", null);
 
         if (this.mUpdateTimer) {
             this.mUpdateTimer.cancel();
             this.mUpdateTimer = null;
         }
+        let calmgr = cal.getCalendarManager();
         
-        getCalendarManager().removeObserver(this.calendarManagerObserver);
+        calmgr.removeObserver(this.calendarManagerObserver);
 
-        for each (var cal in this.mTimerLookup) {
-            for each (var itemTimers in cal) {
-                for each (var timer in itemTimers) {
-                    if (timer instanceof Components.interfaces.nsITimer) {
-                        timer.cancel();
-                    }
+        for each (let calendarItemMap in this.mTimerMap) {
+            for each (let alarmMap in calendarItemMap) {
+                for each (let timer in alarmMap) {
+                    timer.cancel();
                 }
             }
         }
-        this.mTimerLookup = {};
 
-        for each(var calendar in getCalendarManager().getCalendars({})) {
+        this.mTimerMap = {};
+
+        for each (let calendar in calmgr.getCalendars({})) {
             this.unobserveCalendar(calendar);
         }
 
-        this.notifier = null;
         this.mRangeEnd = null;
 
-        var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
-                          .getService
-                          (Components.interfaces.nsIObserverService);
+        let observerSvc = Components.classes["@mozilla.org/observer-service;1"]
+                          .getService(Components.interfaces.nsIObserverService);
 
         observerSvc.removeObserver(this, "profile-after-change");
         observerSvc.removeObserver(this, "xpcom-shutdown");
@@ -365,231 +361,225 @@ calAlarmService.prototype = {
         this.mStarted = false;
     },
 
-    observeCalendar: function cas_observeCalendar(calendar) {
+    observeCalendar: function cAS_observeCalendar(calendar) {
         calendar.addObserver(this.calendarObserver);
     },
 
-    unobserveCalendar: function cas_unobserveCalendar(calendar) {
+    unobserveCalendar: function cAS_unobserveCalendar(calendar) {
         calendar.removeObserver(this.calendarObserver);
         this.disposeCalendarTimers([calendar]);
-        this.notifyObservers("onRemoveAlarmsByCalendar", [calendar]);
+        this.mObservers.notify("onRemoveAlarmsByCalendar", [calendar]);
     },
 
-    getAlarmDate: function cas_getAlarmTime(aItem) {
-        var alarmDate = null;
-        // TODO ALARMSUPPORT This will change as soon as we support multiple
-        // alarms. Get the first DISPLAY alarm for now.
-        let alarms = aItem.getAlarms({}).filter(function(x) x.action == "DISPLAY");
-        let alarm = alarms[0];
-        if (!alarm) {
-            // No relative alarm available.
-            return null;
-        }
-        // END TODO ALARMSUPPORT
-        
-        let alarmDate = cal.alarms.calculateAlarmDate(aItem, alarm)
-        return (alarmDate ? alarmDate.getInTimezone(UTC()) : null);
-    },
-
-    addAlarm: function cas_addAlarm(aItem) {
-        // Get the alarm time
-        var alarmTime = this.getAlarmDate(aItem);
-        if (!alarmTime || (isToDo(aItem) && aItem.isCompleted)) {
-            // If there is no alarm time, don't add the alarm. Also, if the item
-            // is a task and it is completed, don't add the alarm.
+    addAlarmsForItem: function cAS_addAlarmsForItem(aItem) {
+        if (cal.isToDo(aItem) && aItem.isCompleted) {
+            // If this is a task and it is completed, don't add the alarm.
             return;
         }
 
-        // Check for snooze
-        var snoozeTime;
-        if (aItem.parentItem != aItem) {
-            snoozeTime = aItem.parentItem.getProperty("X-MOZ-SNOOZE-TIME-"+aItem.recurrenceId.nativeTime)
-        } else {
-            snoozeTime = aItem.getProperty("X-MOZ-SNOOZE-TIME");
-        }
+        let alarms = aItem.getAlarms({});
+        for each (let alarm in alarms) {
+            let alarmDate = cal.alarms.calculateAlarmDate(aItem, alarm);
 
-        if (snoozeTime && !(snoozeTime instanceof Components.interfaces.calIDateTime)) {
-            var time = createDateTime();
-            time.icalString = snoozeTime;
-            snoozeTime = time;
-        }
-        LOG("[calAlarmService] considering alarm for item: " + aItem.title +
-            " alarm time: " + alarmTime + " snooze time: " + snoozeTime);
+            if (!alarmDate || alarm.action != "DISPLAY") {
+                // Only take care of DISPLAY alarms with an alarm date.
+                continue;
+            }
 
-        // If the alarm was snoozed, the snooze time is more important.
-        alarmTime = snoozeTime || alarmTime;
+            // Handle all day events.  This is kinda weird, because they don't have
+            // a well defined startTime.  We just consider the start/end to be
+            // midnight in the user's timezone.
+            if (alarmDate.isDate) {
+                alarmDate = alarmDate.getInTimezone(this.timezone);
+                alarmDate.isDate = false;
+            }
+            alarmDate = alarmDate.getInTimezone(UTC());
 
-        var now = jsDateToDateTime(new Date());
-        if (alarmTime.timezone.isFloating) {
-            now = now.getInTimezone(calendarDefaultTimezone());
-            now.timezone = floating();
-        } else {
-            now = now.getInTimezone(UTC());
+            // Check for snooze
+            let snoozeDate;
+            if (aItem.parentItem != aItem) {
+                snoozeDate = aItem.parentItem.getProperty("X-MOZ-SNOOZE-TIME-" + aItem.recurrenceId.nativeTime)
+
+            } else {
+                snoozeDate = aItem.getProperty("X-MOZ-SNOOZE-TIME");
+            }
+
+            if (snoozeDate && !(snoozeDate instanceof Components.interfaces.calIDateTime)) {
+                snoozeDate = cal.createDateTime(snoozeDate);
+            }
+            cal.LOG("[calAlarmService] considering alarm for item: " + aItem.title +
+                " alarm time: " + alarmDate + " snooze time: " + snoozeDate);
+
+            // If the alarm was snoozed, the snooze time is more important.
+            alarmDate = snoozeDate || alarmDate;
+
+            let now = nowUTC();
+            if (alarmDate.timezone.isFloating) {
+                now = cal.now();
+                now.timezone = floating();
+            }
+
+            cal.LOG("[calAlarmService] now is " + now);
+            if (alarmDate.compare(now) >= 0) {
+                // We assume that future alarms haven't been acknowledged
+                cal.LOG("[calAlarmService] alarm is in the future.");
+
+                // Delay is in msec, so don't forget to multiply
+                let timeout = alarmDate.subtractDate(now).inSeconds * 1000;
+
+                // No sense in keeping an extra timeout for an alarm thats past
+                // our range.
+                let timeUntilRefresh = this.mRangeEnd.subtractDate(now).inSeconds * 1000;
+                if (timeUntilRefresh < timeout) {
+                    cal.LOG("[calAlarmService] alarm is too late.");
+                    continue;
+                }
+
+                this.addTimer(aItem, alarm, timeout);
+            } else {
+                // This alarm is in the past.  See if it has been previously ack'd
+                let lastAck = aItem.alarmLastAck || aItem.parentItem.alarmLastAck;
+                cal.LOG("[calAlarmService] last ack was: " + lastAck);
+
+                if (lastAck && lastAck.compare(alarmDate) >= 0) {
+                    // The alarm was previously dismissed or snoozed, no further
+                    // action required.
+                    cal.LOG("[calAlarmService] " + aItem.title + " - alarm previously ackd.");
+                    continue;
+                } else {
+                    // The alarm was not snoozed or dismissed, fire it now.
+                    cal.LOG("[calAlarmService] alarm is in the past and unack'd, firing now!");
+                    this.alarmFired(aItem, alarm);
+                }
+            }
         }
-        LOG("[calAlarmService] now is " + now);
-        var callbackObj = {
-            alarmService: this,
-            item: aItem,
-            notify: function(timer) {
-                this.alarmService.alarmFired(this.item);
-                this.alarmService.removeTimers(this.item);
+    },
+
+    removeAlarmsForItem: function cAS_removeAlarmsForItem(aItem) {
+        // make sure already fired alarms are purged out of the alarm window:
+        this.mObservers.notify("onRemoveAlarmsByItem", [aItem]);
+        // Purge alarms specifically for this item (i.e exception)
+        for each (let alarm in aItem.getAlarms({})) {
+            this.removeTimer(aItem, alarm);
+        }
+    },
+
+    addTimer: function cAS_addTimer(aItem, aAlarm, aTimeout) {
+        this.mTimerMap[aItem.calendar.id] =
+            this.mTimerMap[aItem.calendar.id] || {};
+        this.mTimerMap[aItem.calendar.id][aItem.hashId] =
+            this.mTimerMap[aItem.calendar.id][aItem.hashId] || {};
+
+        let self = this;
+        let alarmTimerCallback = {
+            notify: function aTC_notify() {
+                self.alarmFired(aItem, aAlarm);
             }
         };
 
-        if (alarmTime.compare(now) >= 0) {
-            LOG("[calAlarmService] alarm is in the future.");
-            // We assume that future alarms haven't been acknowledged
-
-            // delay is in msec, so don't forget to multiply
-            var timeout = alarmTime.subtractDate(now).inSeconds * 1000;
-
-            var timeUntilRefresh = this.mRangeEnd.subtractDate(now).inSeconds * 1000;
-            if (timeUntilRefresh < timeout) {
-                LOG("[calAlarmService] alarm is too late.");
-                // we'll get this alarm later.  No sense in keeping an extra timeout
-                return;
-            }
-
-            this.addTimer(aItem, newTimerWithCallback(callbackObj, timeout, false));
-            LOG("[calAlarmService] adding alarm timeout (" + timeout + ") for " + aItem);
-        } else {
-            var lastAck = aItem.alarmLastAck || aItem.parentItem.alarmLastAck;
-            LOG("[calAlarmService] last ack was: " + lastAck);
-            // This alarm is in the past.  See if it has been previously ack'd
-            if (lastAck && lastAck.compare(alarmTime) >= 0) {
-                LOG("[calAlarmService] " + aItem.title + " - alarm previously ackd.");
-                return;
-            } else { // Fire!
-                LOG("[calAlarmService] alarm is in the past and unack'd, firing now!");
-                this.alarmFired(aItem);
-            }
-        }
+        let timer = newTimerWithCallback(alarmTimerCallback, aTimeout, false);
+        this.mTimerMap[aItem.calendar.id][aItem.hashId][aAlarm.icalString] = timer;
     },
 
-    removeAlarm: function cas_removeAlarm(aItem) {
-        // make sure already fired alarms are purged out of the alarm window:
-        this.notifyObservers("onRemoveAlarmsByItem", [aItem]);
-        for each (var timer in this.removeTimers(aItem)) {
-            if (timer instanceof Components.interfaces.nsITimer) {
-                timer.cancel();
+    removeTimer: function cAS_removeTimers(aItem, aAlarm) {
+            /* Is the calendar in the timer map */
+        if (aItem.calendar.id in this.mTimerMap &&
+            /* ...and is the item in the calendar map */
+            aItem.hashId in this.mTimerMap[aItem.calendar.id] &&
+            /* ...and is the alarm in the item map ? */
+            aAlarm.icalString in this.mTimerMap[aItem.calendar.id][aItem.hashId]) {
+
+            let timer = this.mTimerMap[aItem.calendar.id][aItem.hashId][aAlarm.icalString];
+            timer.cancel();
+
+            // Remove the alarm from the item map
+            delete this.mTimerMap[aItem.calendar.id][aItem.hashId][aAlarm.icalString];
+
+            // If the item map is empty, remove it from the calendar map
+            if (this.mTimerMap[aItem.calendar.id][aItem.hashId].toSource() == "({})") {
+                delete this.mTimerMap[aItem.calendar.id][aItem.hashId];
+            }
+
+            // If the calendar map is empty, remove it from the timer map
+            if (this.mTimerMap[aItem.calendar.id].toSource() == "({})") {
+                delete this.mTimerMap[aItem.calendar.id];
             }
         }
     },
-
-    addTimer: function cas_addTimer(aItem, aTimer) {
-        var cal = this.mTimerLookup[aItem.calendar.id];
-        if (!cal) {
-            cal = {};
-            this.mTimerLookup[aItem.calendar.id] = cal;
-        }
-        var itemTimers = cal[aItem.id];
-        if (!itemTimers) {
-            itemTimers = { mCount: 0 };
-            cal[aItem.id] = itemTimers;
-        }
-        var rid = aItem.recurrenceId;
-        itemTimers[rid ? rid.getInTimezone(UTC()).icalString : "mTimer"] = aTimer;
-        ++itemTimers.mCount;
-    },
-
-    removeTimers: function cas_removeTimers(aItem) {
-        var cal = this.mTimerLookup[aItem.calendar.id];
-        if (cal) {
-            var itemTimers = cal[aItem.id];
-            if (itemTimers) {
-                var rid = aItem.recurrenceId;
-                if (rid) {
-                    rid = rid.getInTimezone(UTC()).icalString;
-                    var timer = itemTimers[rid];
-                    if (timer) {
-                        delete itemTimers[rid];
-                        --itemTimers.mCount;
-                        if (itemTimers.mCount == 0) {
-                            delete cal[aItem.id];
-                        }
-                        return { mTimer: timer };
-                    }
-                } else {
-                    delete cal[aItem.id];
-                    return itemTimers;
+                
+    disposeCalendarTimers: function cAS_removeCalendarTimers(aCalendars) {
+        for each (let calendar in aCalendars) {
+            for each (let itemTimerMap in this.mTimerMap[calendar.id]) {
+                for each (let timer in itemTimerMap) {
+                    timer.cancel();
                 }
             }
-        }
-        return {};
-    },
-
-    disposeCalendarTimers: function cas_removeCalendarTimers(aCalendars) {
-        for each (var cal in aCalendars) {
-            var calTimers = this.mTimerLookup[cal.id];
-            if (calTimers) {
-                for each (var itemTimers in calTimers) {
-                    for each (var timer in itemTimers) {
-                        if (timer instanceof Components.interfaces.nsITimer) {
-                            timer.cancel();
-                        }
-                    }
-                }
-                delete this.mTimerLookup[cal.id];
-            }
+            delete this.mTimerMap[calendar.id]
         }
     },
 
-    findAlarms: function cas_findAlarms(calendars, start, until) {
-        var getListener = {
+    findAlarms: function cAS_findAlarms(aCalendars, aStart, aUntil) {
+        let getListener = {
             alarmService: this,
-            onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDetail) {
+            onOperationComplete: function cAS_fA_onOperationComplete(aCalendar,
+                                                                     aStatus,
+                                                                     aOperationType,
+                                                                     aId,
+                                                                     aDetail) {
                 // calendar has been loaded, so until now, onLoad events can be ignored:
                 this.alarmService.mLoadedCalendars[aCalendar.id] = true;
             },
-            onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
-                for (var i = 0; i < aCount; ++i) {
-                    var item = aItems[i];
+            onGetResult: function cAS_fA_onGetResult(aCalendar,
+                                                     aStatus,
+                                                     aItemType,
+                                                     aDetail,
+                                                     aCount,
+                                                     aItems) {
+                for each (let item in aItems) {
                     // assure we don't fire alarms twice, handle removed alarms as far as we can:
                     // e.g. we cannot purge removed items from ics files. XXX todo.
-                    this.alarmService.removeAlarm(item);
-                    this.alarmService.addAlarm(item);
+                    this.alarmService.removeAlarmsForItem(item);
+                    this.alarmService.addAlarmsForItem(item);
                 }
             }
         };
 
         const calICalendar = Components.interfaces.calICalendar;
-        var filter = calICalendar.ITEM_FILTER_COMPLETED_ALL |
+        let filter = calICalendar.ITEM_FILTER_COMPLETED_ALL |
                      calICalendar.ITEM_FILTER_CLASS_OCCURRENCES |
                      calICalendar.ITEM_FILTER_TYPE_ALL;
 
-        for each(var calendar in calendars) {
+        for each (let calendar in aCalendars) {
             // assuming that suppressAlarms does not change anymore until refresh:
             if (!calendar.getProperty("suppressAlarms") &&
-                (calendar.getProperty("capabilities.alarms.popup.supported") !== false) &&
                 !calendar.getProperty("disabled")) {
-                calendar.getItems(filter, 0, start, until, getListener);
+                calendar.getItems(filter, 0, aStart, aUntil, getListener);
             }
         }
     },
 
-    initAlarms: function cas_initAlarms(calendars) {
+    initAlarms: function cAS_initAlarms(aCalendars) {
         // Purge out all alarm timers belonging to the refreshed/loaded calendar:
-        this.disposeCalendarTimers(calendars);
+        this.disposeCalendarTimers(aCalendars);
 
         // Purge out all alarms from dialog belonging to the refreshed/loaded calendar:
-        this.notifyObservers("onRemoveAlarmsByCalendar", calendars);
+        this.mObservers.notify("onRemoveAlarmsByCalendar", aCalendars);
 
         // Total refresh similar to startup.  We're going to look for
         // alarms +/- 1 month from now.  If someone sets an alarm more than
         // a month ahead of an event, or doesn't start Sunbird/Lightning
         // for a month, they'll miss some, but that's a slim chance
-        var start = nowUTC();
-        var until = start.clone();
+        let start = nowUTC();
+        let until = start.clone();
         start.month -= 1;
         until.month += 1;
-        this.findAlarms(calendars, start, until);
+        this.findAlarms(aCalendars, start, until);
     },
 
-    alarmFired: function cas_alarmFired(event) {
-        if (event.calendar.getProperty("suppressAlarms") ||
-            event.calendar.getProperty("capabilities.alarms.popup.supported") === false) {
-            return;
+    alarmFired: function cAS_alarmFired(aItem, aAlarm) {
+        if (!aItem.calendar.getProperty("suppressAlarms") &&
+            !aItem.calendar.getProperty("disabled")) {
+            this.mObservers.notify("onAlarm", [aItem, aAlarm]);
         }
-        this.notifyObservers("onAlarm", [event]);
     }
 };

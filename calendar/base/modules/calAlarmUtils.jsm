@@ -68,7 +68,7 @@ cal.alarms = {
      *
      * @param aItem     The item used to calculate the alarm date.
      * @param aAlarm    The alarm to calculate the date for.
-     * @return          The alarm offset.
+     * @return          The alarm date.
      */
     calculateAlarmDate: function cal_alarm_calculateAlarmDate(aItem, aAlarm) {
         if (aAlarm.related == aAlarm.ALARM_RELATED_ABSOLUTE) {

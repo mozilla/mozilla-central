@@ -90,28 +90,42 @@
     </content>
 
     <implementation>
+      <constructor><![CDATA[
+        Components.utils.import("resource://calendar/modules/calUtils.jsm");
+      ]]></constructor>
       <field name="mItem">null</field>
+      <field name="mAlarm">null</field>
 
-      <property name="item">
-        <getter><![CDATA[
-          return this.mItem;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mItem = val;
-          var formatter = getDateFormatter();
-          var titleLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-title-label");
-          var locationDescription = document.getAnonymousElementByAttribute(this, "anonid", "alarm-location-description");
-          var dateLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-date-label");
+      <property name="item"
+                onget="return this.mItem;"
+                onset="this.mItem = val; this.updateLabels(); return val;"/>
+      <property name="alarm"
+                onget="return this.mAlarm;"
+                onset="this.mAlarm = val; this.updateLabels(); return val;"/>
+
+      <method name="updateLabels">
+        <!--
+          -
+          -->
+        <body><![CDATA[
+          if (!this.mItem || !this.mAlarm) {
+              // Setup not complete, do nothing for now.
+          }
+
+          let formatter = cal.getDateFormatter();
+          let titleLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-title-label");
+          let locationDescription = document.getAnonymousElementByAttribute(this, "anonid", "alarm-location-description");
+          let dateLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-date-label");
 
           // Dates
           var startString = {};
           var endString = {};
 
-          if (isEvent(val)) {
-              dateLabel.textContent = formatter.formatItemInterval(val);
-          } else if (isToDo(val)) {
-              var startDate = val.entryDate || val.dueDate;
-              startDate = startDate.getInTimezone(calendarDefaultTimezone());
+          if (cal.isEvent(this.mItem)) {
+              dateLabel.textContent = formatter.formatItemInterval(this.mItem);
+          } else if (cal.isToDo(this.mItem)) {
+              let startDate = this.mItem.entryDate || this.mItem.dueDate;
+              startDate = startDate.getInTimezone(cal.calendarDefaultTimezone());
               dateLabel.textContent = calGetString("calendar",
                                                    "alarmStarts",
                                                    [formatter.formatDateTime(startDate)]);
@@ -123,24 +137,22 @@
           this.updateRelativeDateLabel();
 
           // Title, location
-          titleLabel.value = val.title || "";
-          locationDescription.value = val.getProperty("LOCATION") || "";
+          titleLabel.value = this.mItem.title || "";
+          locationDescription.value = this.mItem.getProperty("LOCATION") || "";
           locationDescription.hidden = (locationDescription.value.length < 1);
 
           document.getAnonymousElementByAttribute(this, "anonid", "alarm-location-label").hidden =
               (locationDescription.value.length < 1);
-
-          return val;
-        ]]></setter>
-      </property>
+        ]]></body>
+      </method>
 
       <method name="updateRelativeDateLabel">
         <body><![CDATA[
-          var formatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                    .getService(Components.interfaces.calIDateTimeFormatter);
-          var relativeDateLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-relative-date-label");
-          var relativeDateString;
-          var startDate = (this.mItem.startDate || this.mItem.entryDate || this.mItem.dueDate);
+          let formatter = cal.getDateFormatter();
+          let item = this.mItem;
+          let relativeDateLabel = document.getAnonymousElementByAttribute(this, "anonid", "alarm-relative-date-label");
+          let relativeDateString;
+          let startDate = item[calGetStartDateProp(item)] || item[calGetEndDateProp(item)];
           startDate = startDate.getInTimezone(calendarDefaultTimezone());
           var currentDate = now();
           var sinceDayStart = (currentDate.hour * 3600) + (currentDate.minute * 60);

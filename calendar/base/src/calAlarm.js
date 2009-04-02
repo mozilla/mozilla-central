@@ -42,6 +42,7 @@ const ALARM_RELATED_START = Components.interfaces.calIAlarm.ALARM_RELATED_START;
 const ALARM_RELATED_END = Components.interfaces.calIAlarm.ALARM_RELATED_END;
 
 function calAlarm() {
+    this.wrappedJSObject = this;
     this.mProperties = new calPropertyBag();
     this.mPropertyParams = {};
     this.mAttendees = [];
@@ -488,19 +489,15 @@ calAlarm.prototype = {
         if (triggerProp) {
             if (triggerProp.getParameter("VALUE") == "DATE-TIME")  {
                 this.mAbsoluteDate = triggerProp.valueAsDatetime;
+                this.related = ALARM_RELATED_ABSOLUTE;
             } else {
                 this.mOffset = cal.createDuration(triggerProp.valueAsIcalString);
+
+                let related = triggerProp.getParameter("RELATED");
+                this.related = (related == "END" ? ALARM_RELATED_END : ALARM_RELATED_START);
             }
         } else {
             throw Components.results.NS_ERROR_INVALID_ARG;
-        }
-
-        // Set up alarm relation
-        let related = triggerProp.getParameter("RELATED");
-        if (related && related == "END") {
-            this.related = ALARM_RELATED_END;
-        } else {
-            this.related = ALARM_RELATED_START;
         }
 
         if (durationProp && repeatProp) {
