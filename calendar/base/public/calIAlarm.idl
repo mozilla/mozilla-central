@@ -161,7 +161,7 @@ interface calIAlarm : nsISupports
      * 
      * @param aItem     The item to base the string on. Defaults to an event.
      */
-    AUTF8String toString(in calIItemBase aItem);
+    AUTF8String toString([optional] in calIItemBase aItem);
 
     /**
      * The ical representation of this VALARM
