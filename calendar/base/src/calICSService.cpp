@@ -95,15 +95,14 @@ calIcalProperty::ToString(nsACString& aResult)
 NS_IMETHODIMP
 calIcalProperty::GetValue(nsACString &str)
 {
-    icalvalue_kind kind = icalproperty_kind_to_value_kind(icalproperty_isa(mProperty));
+    icalvalue *value = icalproperty_get_value(mProperty);
+    icalvalue_kind valuekind = icalvalue_isa(value); 
 
     const char *icalstr;
-    if (kind == ICAL_TEXT_VALUE) {
-        icalvalue *v = icalproperty_get_value(mProperty);
-        icalstr = icalvalue_get_text(v);
-    } else if (kind == ICAL_X_VALUE) {
-        icalvalue *v = icalproperty_get_value(mProperty);
-        icalstr = icalvalue_get_x(v);
+    if (valuekind == ICAL_TEXT_VALUE) {
+        icalstr = icalvalue_get_text(value);
+    } else if (valuekind == ICAL_X_VALUE) {
+        icalstr = icalvalue_get_x(value);
     } else {
         icalstr = icalproperty_get_value_as_string(mProperty);
     }
