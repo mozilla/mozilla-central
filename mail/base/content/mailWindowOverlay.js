@@ -2599,8 +2599,13 @@ function allowRemoteContentForSender()
   {
     addrbook = enumerator.getNext()
                          .QueryInterface(Components.interfaces.nsIAbDirectory);
+    // Try/catch because some cardForEmailAddress functions may not be
+    // implemented.
     try {
-      cardForEmailAddress = addrbook.cardForEmailAddress(authorEmailAddress);
+      // If its a read-only book, don't find a card as we won't be able
+      // to modify the card.
+      if (!addrbook.readOnly)
+        cardForEmailAddress = addrbook.cardForEmailAddress(authorEmailAddress);
     } catch (e) {}
   }
 
