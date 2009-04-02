@@ -66,6 +66,8 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsAbBaseCID.h"
 #include "nsIAbManager.h"
+#include "nsIMsgAccountManager.h"
+#include "nsMsgBaseCID.h"
 
 nsSpamSettings::nsSpamSettings()
 {
@@ -367,6 +369,47 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
 
       if (directory)
         mWhiteListDirArray.AppendObject(directory);
+    }
+  }
+
+  // the next two preferences affect whether we try to whitelist our own
+  // address or domain. Spammers send emails with spoofed from address matching
+  // either the email address of the recipient, or the recipient's domain,
+  // hoping to get whitelisted.
+  //
+  // The terms to describe this get wrapped up in chains of negatives. A full
+  // definition of the boolean inhibitWhiteListingIdentityUser is "Suppress address
+  // book whitelisting if the sender matches an identity's email address"
+
+  rv = aServer->GetBoolValue("inhibitWhiteListingIdentityUser",
+                             &mInhibitWhiteListingIdentityUser);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = aServer->GetBoolValue("inhibitWhiteListingIdentityDomain",
+                             &mInhibitWhiteListingIdentityDomain);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // collect lists of identity users if needed
+  if (mInhibitWhiteListingIdentityDomain || mInhibitWhiteListingIdentityUser)
+  {
+    nsCOMPtr<nsIMsgAccountManager>
+      accountManager(do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsISupportsArray> identities;
+    rv = accountManager->GetIdentitiesForServer(aServer, getter_AddRefs(identities));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    PRUint32 count = 0;
+    identities->Count(&count);
+    mEmails.Clear();
+    mEmails.SetCapacity(count);
+    for (PRUint32 index = 0; index < count; ++index)
+    {
+      nsCOMPtr<nsIMsgIdentity> identity(do_QueryElementAt(identities, index));
+      if (!identity)
+        continue;
+      nsCAutoString email;
+      rv = identity->GetEmail(email);
+      mEmails.AppendElement(email);
     }
   }
 
@@ -763,16 +806,55 @@ NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, PRBool *aResu
   if (authorEmailAddress.IsEmpty())
     return NS_OK;
 
-  if (!mTrustedMailDomains.IsEmpty())
+  // should we skip whitelisting for the identity email?
+  if (mInhibitWhiteListingIdentityUser)
+  {
+    for (PRUint32 i = 0; i < mEmails.Length(); ++i)
+    {
+#ifdef MOZILLA_INTERNAL_API
+      if (mEmails[i].Equals(authorEmailAddress, nsCaseInsensitiveCStringComparator()))
+        return NS_OK;
+#else
+      if (mEmails[i].Equals(authorEmailAddress, CaseInsensitiveCompare))
+        return NS_OK;
+#endif
+    }
+  }
+
+  if (!mTrustedMailDomains.IsEmpty() || mInhibitWhiteListingIdentityDomain)
   {
     nsCAutoString domain;
     PRInt32 atPos = authorEmailAddress.FindChar('@');
     if (atPos >= 0)
       domain = Substring(authorEmailAddress, atPos + 1);
-    if (!domain.IsEmpty() && MsgHostDomainIsTrusted(domain, mTrustedMailDomains))
+    if (!domain.IsEmpty())
     {
-      *aResult = PR_TRUE;
-      return NS_OK;
+      if (!mTrustedMailDomains.IsEmpty() &&
+          MsgHostDomainIsTrusted(domain, mTrustedMailDomains))
+      {
+        *aResult = PR_TRUE;
+        return NS_OK;
+      }
+
+      if (mInhibitWhiteListingIdentityDomain)
+      {
+        for (PRUint32 i = 0; i < mEmails.Length(); ++i)
+        {
+          nsCAutoString identityDomain;
+          PRInt32 atPos = mEmails[i].FindChar('@');
+          if (atPos >= 0)
+          {
+            identityDomain = Substring(mEmails[i], atPos + 1);
+#ifdef MOZILLA_INTERNAL_API
+            if (identityDomain.Equals(domain, nsCaseInsensitiveCStringComparator()))
+              return NS_OK; // don't whitelist
+#else
+            if (identityDomain.Equals(domain, CaseInsensitiveCompare))
+              return NS_OK;
+#endif
+          }
+        }
+      }
     }
   }
 

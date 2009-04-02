@@ -86,7 +86,7 @@ function run_test()
     OnProgress: function(aProgress, aProgressMax) {},
     SetMessageKey: function(aKey) { hdrs.push(gLocalInboxFolder.GetMessageHeader(aKey));},
     SetMessageId: function(aMessageId) {},
-    OnStopCopy: function(aStatus)
+    OnStopCopy: function _OnStopCopy(aStatus)
     {
       var fileName = Files.shift();
       if (fileName)
@@ -167,6 +167,54 @@ function continueTest()
 
   // add back the Personal Address Book
   server.setCharValue("whiteListAbURI", kPABData.URI);
+  spamSettings.initialize(server);
+  do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
+
+  /*
+   * tests of whitelist suppression by identity
+   */
+
+  // setup
+  let accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
+                         .getService(Ci.nsIMsgAccountManager);
+  let account = accountManager.FindAccountForServer(server);
+  let identity = accountManager.createIdentity();
+  // start with an email that does not match
+  identity.email = "iAmNotTheSender@test.invalid";
+  account.addIdentity(identity);
+
+  // suppress whitelisting for sender
+  server.setBoolValue("inhibitWhiteListingIdentityUser", true);
+  spamSettings.initialize(server);
+  // (email does not match yet though)
+  do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
+
+  // add a matching email (mixing case)
+  identity.email = "PrimaryEMAIL1@test.INVALID";
+  spamSettings.initialize(server);
+  do_check_false(spamSettings.checkWhiteList(hdrs[kDomainTest]));
+
+  // stop suppressing identity users
+  server.setBoolValue("inhibitWhiteListingIdentityUser", false);
+  spamSettings.initialize(server);
+  do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
+
+  // add a fully non-matching domain to the identity
+  identity.email = "PrimaryEmail1@wrong.domain";
+
+  // suppress whitelist by matching domain
+  server.setBoolValue("inhibitWhiteListingIdentityDomain", true);
+  spamSettings.initialize(server);
+  // but domain still does not match
+  do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
+
+  // add a matching email to the identity, in the domain (mixing case)
+  identity.email = "iAmNotTheSender@TEST.invalid";
+  spamSettings.initialize(server);
+  do_check_false(spamSettings.checkWhiteList(hdrs[kDomainTest]));
+
+  // stop suppressing whitelist by domain
+  server.setBoolValue("inhibitWhiteListingIdentityDomain", false);
   spamSettings.initialize(server);
   do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
 

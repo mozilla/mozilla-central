@@ -50,6 +50,7 @@
 #include "nsIDateTimeFormat.h"
 #include "nsCOMArray.h"
 #include "nsIAbDirectory.h"
+#include "nsTArray.h"
 
 class nsSpamSettings : public nsISpamSettings, public nsIUrlListener
 {
@@ -89,6 +90,12 @@ private:
   nsCOMArray<nsIAbDirectory> mWhiteListDirArray;
   // mail domains to use in junk whitelisting
   nsCString mTrustedMailDomains;
+  // should we inhibit whitelisting address of identity?
+  PRBool mInhibitWhiteListingIdentityUser;
+  // should we inhibit whitelisting domain of identity?
+  PRBool mInhibitWhiteListingIdentityDomain;
+  // email addresses associated with this server
+  nsTArray<nsCString> mEmails;
 
   // helper routine used by Initialize which unsets the junk flag on the previous junk folder
   // for this account, and sets it on the new junk folder.
