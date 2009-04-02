@@ -106,6 +106,7 @@ const CAL_ITEM_FLAG_HAS_RECURRENCE = 16;
 const CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32;
 const CAL_ITEM_FLAG_HAS_ATTACHMENTS = 64;
 const CAL_ITEM_FLAG_HAS_RELATIONS = 128;
+const CAL_ITEM_FLAG_HAS_ALARMS = 256;
 
 const USECS_PER_SECOND = 1000000;
 
@@ -913,7 +914,7 @@ calStorageCalendar.prototype = {
         this.mDB.executeSimpleSQL("INSERT INTO cal_calendar_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
     },
 
-    DB_SCHEMA_VERSION: 15,
+    DB_SCHEMA_VERSION: 16,
 
     /** 
      * @return      db schema version
@@ -1319,6 +1320,98 @@ calStorageCalendar.prototype = {
             }
         }
 
+        if (oldVersion < 16) {
+            this.mDB.beginTransaction();
+            try {
+                this.mDB.createFunction("translateAlarm", 4, {
+                    onFunctionCall: function translateAlarm(storArgs) {
+                        let [aOffset, aRelated, aAlarmTime, aTzId] =
+                            [0,1,2,3].map(function(i) storArgs.getUTF8String(i));
+
+                        let alarm = cal.createAlarm();
+                        if (aOffset) {
+                            alarm.related = parseInt(aRelated, 10) + 1;
+                            alarm.offset = cal.createDuration();
+                            alarm.offset.inSeconds = aOffset;
+                        } else if (aAlarmTime) {
+                            alarm.related = alarm.ALARM_RELATED_ABSOLUTE;
+                            let alarmDate = cal.createDateTime();
+                            alarmDate.nativeTime = aAlarmTime;
+                            alarmDate.timezone = getTimezoneService().getTimezone(aTzId);
+                            alarm.alarmDate = alarmDate;
+                        }
+                        return alarm.icalString;
+                    }
+                });
+
+                let copyDataOver = function copyDataOver(tbl, db) {
+                    const transAlarm =  "translateAlarm(alarm_offset, alarm_related, alarm_time, alarm_time_tz)";
+                    db.executeSimpleSQL("INSERT INTO cal_alarms" +
+                        "(cal_id, item_id, icalString) SELECT " +
+                        "cal_id, id, " + transAlarm + " FROM " + tbl +
+                        " WHERE alarm_offset IS NOT NULL OR alarm_time IS NOT NULL;");
+
+                };
+                this.mDB.createTable("cal_alarms", sqlTables.cal_alarms);
+                copyDataOver("cal_events", this.mDB);
+                copyDataOver("cal_todos", this.mDB);
+                this.mDB.removeFunction("translateAlarm");
+
+                // Make sure the alarm flag is set on the item
+                this.mDB.executeSimpleSQL("UPDATE cal_events SET flags = flags | 256 WHERE id IN" +
+                                          " (SELECT item_id FROM cal_alarms WHERE cal_alarms.cal_id=cal_events.cal_id)");
+                this.mDB.executeSimpleSQL("UPDATE cal_todos SET flags = flags | 256 WHERE id IN" +
+                                          " (SELECT item_id FROM cal_alarms WHERE cal_alarms.cal_id=cal_todos.cal_id)");
+
+                // remove column. Not possible via ALTER TABLE.
+                this.mDB.createTable("cal_events_v16", sqlTables.cal_events);
+                this.mDB.createTable("cal_todos_v16", sqlTables.cal_todos);
+
+                let cal_events_cols = ["cal_id", "id", "time_created",
+                                       "last_modified", "title", "priority",
+                                       "privacy", "ical_status",
+                                       "recurrence_id", "recurrence_id_tz",
+                                       "flags", "event_start",
+                                       "event_start_tz", "event_end",
+                                       "event_end_tz", "event_stamp",
+                                       "alarm_last_ack"];
+
+                this.mDB.executeSimpleSQL("INSERT INTO cal_events_v16 (" +
+                                          cal_events_cols.join(",") + ") " +
+                                          "SELECT " + cal_events_cols.join(",") +
+                                          " FROM cal_events");
+
+                let cal_todos_cols = ["cal_id", "id", "time_created",
+                                      "last_modified", "title", "priority",
+                                      "privacy", "ical_status",
+                                      "recurrence_id", "recurrence_id_tz",
+                                      "flags", "todo_entry", "todo_entry_tz",
+                                      "todo_due", "todo_due_tz", "todo_stamp",
+                                      "todo_completed", "todo_completed_tz",
+                                      "todo_complete", "alarm_last_ack"];
+
+                this.mDB.executeSimpleSQL("INSERT INTO cal_todos_v16 (" +
+                                          cal_todos_cols.join(",") + ") " +
+                                          "SELECT " + cal_todos_cols.join(",") +
+                                          " FROM cal_todos");
+
+                this.mDB.executeSimpleSQL("DROP TABLE cal_events;" +
+                                          "ALTER TABLE cal_events_v16 RENAME TO cal_events;");
+                this.mDB.executeSimpleSQL("DROP TABLE cal_todos;" +
+                                          "ALTER TABLE cal_todos_v16 RENAME TO cal_todos;");
+
+                // update schema
+                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 16;");
+                this.mDB.commitTransaction();
+                oldVersion = 16;
+            } catch (e) {
+                cal.ERROR("Upgrade to v16 failed! DB Error: " +
+                          this.mDB.lastErrorString + " ex: " + e);
+                this.mDB.rollbackTransaction();
+                throw e;
+            }
+        }
+
         if (oldVersion != this.DB_SCHEMA_VERSION) {
             dump ("#######!!!!! calStorageCalendar Schema Update failed -- db version: " + oldVersion + " this version: " + this.DB_SCHEMA_VERSION + "\n");
             throw Components.results.NS_ERROR_FAILURE;
@@ -1356,12 +1449,10 @@ calStorageCalendar.prototype = {
                 "SELECT recurrence_id_tz AS zone FROM cal_events     WHERE recurrence_id_tz IS NOT NULL UNION " +
                 "SELECT event_start_tz   AS zone FROM cal_events     WHERE event_start_tz   IS NOT NULL UNION " +
                 "SELECT event_end_tz     AS zone FROM cal_events     WHERE event_end_tz     IS NOT NULL UNION " +
-                "SELECT alarm_time_tz    AS zone FROM cal_events     WHERE alarm_time_tz    IS NOT NULL UNION " +
                 "SELECT recurrence_id_tz AS zone FROM cal_properties WHERE recurrence_id_tz IS NOT NULL UNION " +
                 "SELECT recurrence_id_tz AS zone FROM cal_todos      WHERE recurrence_id_tz IS NOT NULL UNION " +
                 "SELECT todo_entry_tz    AS zone FROM cal_todos      WHERE todo_entry_tz    IS NOT NULL UNION " +
-                "SELECT todo_due_tz      AS zone FROM cal_todos      WHERE todo_due_tz      IS NOT NULL UNION " +
-                "SELECT alarm_time_tz    AS zone FROM cal_todos      WHERE alarm_time_tz    IS NOT NULL" +
+                "SELECT todo_due_tz      AS zone FROM cal_todos      WHERE todo_due_tz      IS NOT NULL" +
                 ");");
             try {
                 while (getZones.step()) {
@@ -1387,12 +1478,10 @@ calStorageCalendar.prototype = {
                         "UPDATE cal_events     SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
                         "UPDATE cal_events     SET event_start_tz   = '" + update.newTzId + "' WHERE event_start_tz   = '" + update.oldTzId + "'; " +
                         "UPDATE cal_events     SET event_end_tz     = '" + update.newTzId + "' WHERE event_end_tz     = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_events     SET alarm_time_tz    = '" + update.newTzId + "' WHERE alarm_time_tz    = '" + update.oldTzId + "'; " +
                         "UPDATE cal_properties SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
                         "UPDATE cal_todos      SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
                         "UPDATE cal_todos      SET todo_entry_tz    = '" + update.newTzId + "' WHERE todo_entry_tz    = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_todos      SET todo_due_tz      = '" + update.newTzId + "' WHERE todo_due_tz      = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_todos      SET alarm_time_tz    = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "';");
+                        "UPDATE cal_todos      SET todo_due_tz      = '" + update.newTzId + "' WHERE todo_due_tz      = '" + update.oldTzId + "';");
                 }
                 this.mDB.executeSimpleSQL("DELETE FROM cal_tz_version; INSERT INTO cal_tz_version VALUES ('" +
                                           cal.getTimezoneService().version + "');");
@@ -1609,6 +1698,12 @@ calStorageCalendar.prototype = {
             "SELECT * FROM cal_metadata"
             + " WHERE cal_id = " + this.mCalId);
 
+        this.mSelectAlarmsForItem = createStatement(
+            this.mDB,
+            "SELECT icalString FROM cal_alarms"
+            + " WHERE item_id = :item_id AND cal_id = " + this.mCalId
+            );
+
         // insert statements
         this.mInsertEvent = createStatement (
             this.mDB,
@@ -1616,13 +1711,11 @@ calStorageCalendar.prototype = {
             "  (cal_id, id, time_created, last_modified, " +
             "   title, priority, privacy, ical_status, flags, " +
             "   event_start, event_start_tz, event_end, event_end_tz, event_stamp, " +
-            "   alarm_time, alarm_time_tz, recurrence_id, recurrence_id_tz, " +
-            "   alarm_offset, alarm_related, alarm_last_ack) " +
+            "   recurrence_id, recurrence_id_tz, alarm_last_ack) " +
             "VALUES (" + this.mCalId + ", :id, :time_created, :last_modified, " +
             "        :title, :priority, :privacy, :ical_status, :flags, " +
             "        :event_start, :event_start_tz, :event_end, :event_end_tz, :event_stamp, " +
-            "        :alarm_time, :alarm_time_tz, :recurrence_id, :recurrence_id_tz," + 
-            "        :alarm_offset, :alarm_related, :alarm_last_ack)"
+            "        :recurrence_id, :recurrence_id_tz, :alarm_last_ack)"
             );
 
         this.mInsertTodo = createStatement (
@@ -1632,14 +1725,12 @@ calStorageCalendar.prototype = {
             "   title, priority, privacy, ical_status, flags, " +
             "   todo_entry, todo_entry_tz, todo_due, todo_due_tz, todo_stamp, " +
             "   todo_completed, todo_completed_tz, todo_complete, " +
-            "   alarm_time, alarm_time_tz, recurrence_id, recurrence_id_tz, " +
-            "   alarm_offset, alarm_related, alarm_last_ack)" +
+            "   recurrence_id, recurrence_id_tz, alarm_last_ack)" +
             "VALUES (" + this.mCalId + ", :id, :time_created, :last_modified, " +
             "        :title, :priority, :privacy, :ical_status, :flags, " +
             "        :todo_entry, :todo_entry_tz, :todo_due, :todo_due_tz, :todo_stamp, " +
             "        :todo_completed, :todo_completed_tz, :todo_complete, " +
-            "        :alarm_time, :alarm_time_tz, :recurrence_id, :recurrence_id_tz," + 
-            "        :alarm_offset, :alarm_related, :alarm_last_ack)"
+            "        :recurrence_id, :recurrence_id_tz, :alarm_last_ack)"
             );
         this.mInsertProperty = createStatement (
             this.mDB,
@@ -1679,6 +1770,13 @@ calStorageCalendar.prototype = {
             + " (cal_id, item_id, value)"
             + " VALUES (" + this.mCalId + ", :item_id, :value)");
 
+        this.mInsertAlarm = createStatement(
+            this.mDB,
+            "INSERT INTO cal_alarms " +
+            "  (cal_id, item_id, icalString) " +
+            "VALUES  (" + this.mCalId + ", :item_id, :icalString)  "
+            );
+
         // delete statements
         this.mDeleteEvent = createStatement (
             this.mDB,
@@ -1712,11 +1810,16 @@ calStorageCalendar.prototype = {
             this.mDB,
             "DELETE FROM cal_metadata WHERE item_id = :item_id AND cal_id = " + this.mCalId
             );
+        this.mDeleteAlarms = createStatement (
+            this.mDB,
+            "DELETE FROM cal_alarms WHERE item_id = :item_id AND cal_id = " + this.mCalId
+            );
 
         // These are only used when deleting an entire calendar
         var extrasTables = [ "cal_attendees", "cal_properties",
                              "cal_recurrence", "cal_attachments",
-                             "cal_metadata", "cal_relations" ];
+                             "cal_metadata", "cal_relations",
+                             "cal_alarms"];
 
         this.mDeleteEventExtras = new Array();
         this.mDeleteTodoExtras = new Array();
@@ -1772,39 +1875,6 @@ calStorageCalendar.prototype = {
         if (row.ical_status)
             item.status = row.ical_status;
 
-        if (row.alarm_time) {
-            // Old (schema version 4) data, need to convert this nicely to the
-            // new alarm interface.  Eventually, we're going to want to be able
-            // to deal with both types of data in a calIAlarm interface, but
-            // not yet.  Leaving this column around though may help ease that
-            // transition in the future.
-            let alarmDate = newDateTime(row.alarm_time, row.alarm_time_tz);
-            if (alarmDate) {
-                item.clearAlarms();
-                let alarm = cal.createAlarm();
-                alarm.related = alarm.ALARM_RELATED_ABSOLUTE;
-                alarm.alarmDate = alarmDate;
-                item.addAlarm(alarm);
-            } else {
-                Components.utils.reportError("WARNING! Couldn't do alarm conversion for item:"+
-                                             item.title+','+item.id+"!\n");
-            }
-        }
-
-        // Alarm offset could be 0, but this is ok, so compare with null
-        if (row.alarm_offset != null) {
-            let duration = cal.createDuration(); 
-            duration.inSeconds = row.alarm_offset;
-            duration.normalize();
-
-            // TODO ALARMSUPPORT for now just use the one relative alarm. Will
-            // change when supporting multiple alarms.
-            item.clearAlarms();
-            let alarm = cal.createAlarm();
-            alarm.related = row.alarm_related + 1;
-            alarm.offset = duration;
-            item.addAlarm(alarm);
-        }
         if (row.alarm_last_ack) {
             // alarm acks are always in utc
             item.alarmLastAck = newDateTime(row.alarm_last_ack, "UTC");
@@ -2197,6 +2267,26 @@ calStorageCalendar.prototype = {
             }
         }
 
+        if (flags & CAL_ITEM_FLAG_HAS_ALARMS) {
+            let selectAlarm = this.mSelectAlarmsForItem;
+            selectAlarm.params.item_id = item.id;
+
+            try { 
+                while (selectAlarm.step()) {
+                    let row = selectAlarm.row;
+                    let alarm = cal.createAlarm();
+                    alarm.icalString = row.icalString;
+                    item.addAlarm(alarm);
+                }
+            } catch (e) {
+                cal.ERROR("Error getting alarms for item '" +
+                          item.title + "' (" + item.id + ")!\n" + e +
+                          "\nDB Error: " + this.mDB.lastErrorString);
+            } finally {
+                selectAlarm.reset();
+            }
+        }
+
         // Restore the saved modification time
         item.setProperty("LAST-MODIFIED", savedLastModifiedTime);
     },
@@ -2345,6 +2435,7 @@ calStorageCalendar.prototype = {
         flags |= this.writeProperties(item, olditem);
         flags |= this.writeAttachments(item, olditem);
         flags |= this.writeRelations(item, olditem);
+        flags |= this.writeAlarms(item, olditem);
 
         if (isEvent(item))
             this.writeEvent(item, olditem, flags);
@@ -2413,18 +2504,6 @@ calStorageCalendar.prototype = {
         ip.privacy = item.getProperty("CLASS");
         ip.ical_status = item.getProperty("STATUS");
 
-        // TODO ALARMSUPPORT for now, just use the first alarm. This
-        // will change when supporting multiple alarms.
-        let alarms = item.getAlarms({})
-        if (alarms.length) {
-            let offset = cal.alarms.calculateAlarmOffset(item, alarms[0]);
-            ip.alarm_offset = (offset ? offset.inSeconds : null);
-            // Either start or end, for absolute assume start. Subtract one
-            // since the old scheme only has two values instead of three.
-            ip.alarm_related = (alarms[0].related == alarms[0].ALARM_RELATED_END ?
-                                alarms[0].ALARM_RELATED_END :
-                                alarms[0].ALARM_RELATED_START) - 1;
-        }
         if (item.alarmLastAck) {
             ip.alarm_last_ack = item.alarmLastAck.nativeTime;
         }
@@ -2646,6 +2725,30 @@ calStorageCalendar.prototype = {
         return 0;
     },          
 
+    writeAlarms: function cSC_writeAlarms(item, olditem) {
+        let alarms = item.getAlarms({});
+        if (alarms.length < 1) {
+            return 0;
+        }
+
+        for each (let alarm in alarms) {
+            let pp = this.mInsertAlarm.params;
+            try {
+                pp.item_id = item.id;
+                pp.icalString = alarm.icalString;
+                this.mInsertAlarm.execute();
+            } catch(e) {
+                cal.ERROR("Error writing alarm for item " + item.title + " (" + item.id + ")" +
+                          "\nDB Error: " + this.mDB.lastErrorString +
+                          "\nException: " + e);
+            } finally {
+                this.mInsertAlarm.reset();
+            }
+        }
+
+        return CAL_ITEM_FLAG_HAS_ALARMS;
+    },
+
     //
     // delete the item with the given uid
     //
@@ -2659,6 +2762,7 @@ calStorageCalendar.prototype = {
             this.mDeleteTodo(aID);
             this.mDeleteAttachments(aID);
             this.mDeleteMetaData(aID);
+            this.mDeleteAlarms(aID);
         } catch (e) {
             this.releaseTransaction(e);
             throw e;
@@ -2808,6 +2912,7 @@ var sqlTables = {
     /*  CAL_ITEM_FLAG_HAS_RECURRENCE = 16 */
     /*  CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32 */
     /*  CAL_ITEM_FLAG_HAS_ATTACHMENTS = 64 */
+    /*  CAL_ITEM_FLAG_HAS_ALARMS = 256 */
     "   flags           INTEGER," +
     /*  Event bits */
     "   event_start     INTEGER," +
@@ -2815,11 +2920,6 @@ var sqlTables = {
     "   event_end       INTEGER," +
     "   event_end_tz    TEXT," +
     "   event_stamp     INTEGER," +
-    /*  alarm time */
-    "   alarm_time      INTEGER," +
-    "   alarm_time_tz   TEXT," +
-    "   alarm_offset    INTEGER," +
-    "   alarm_related   INTEGER," +
     "   alarm_last_ack  INTEGER" +
     "",
 
@@ -2842,6 +2942,7 @@ var sqlTables = {
     /*  CAL_ITEM_FLAG_EVENT_ALLDAY = 8 */
     /*  CAL_ITEM_FLAG_HAS_RECURRENCE = 16 */
     /*  CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32 */
+    /*  CAL_ITEM_FLAG_HAS_ALARMS = 256 */
     "   flags           INTEGER," +
     /*  Todo bits */
     /*  date the todo is to be displayed */
@@ -2856,11 +2957,6 @@ var sqlTables = {
     "   todo_completed_tz TEXT," +
     /*  percent the todo is complete (0-100) */
     "   todo_complete   INTEGER," +
-    /*  alarm time */
-    "   alarm_time      INTEGER," +
-    "   alarm_time_tz   TEXT," +
-    "   alarm_offset    INTEGER," +
-    "   alarm_related   INTEGER," +
     "   alarm_last_ack  INTEGER" +
     "",
 
@@ -2938,5 +3034,10 @@ var sqlTables = {
     "   cal_id          INTEGER, " +
     "   item_id         TEXT," + 
     "   value           BLOB" + 
-    ""
+    "",
+
+  cal_alarms:
+    "   cal_id          INTEGER, " +
+    "   item_id         TEXT," +
+    "   icalString      TEXT"
 };
