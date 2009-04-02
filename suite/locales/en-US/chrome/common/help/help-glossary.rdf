@@ -67,6 +67,7 @@
         <rdf:li> <rdf:Description nc:name="misrepresentation" nc:link="glossary.xhtml#misrepresentation"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="Navigation Toolbar" nc:link="glossary.xhtml#navigation_toolbar"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="nonrepudiation" nc:link="glossary.xhtml#nonrepudiation"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="notification bar" nc:link="glossary.xhtml#notification_bar"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="object signing" nc:link="glossary.xhtml#object_signing"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="object-signing certificate" nc:link="glossary.xhtml#object-signing_certificate"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="OCSP" nc:link="glossary.xhtml#ocsp"/> </rdf:li>
