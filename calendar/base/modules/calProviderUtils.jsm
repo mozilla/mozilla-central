@@ -649,16 +649,14 @@ cal.ProviderBase.prototype = {
                 if (this.id) {
                     ret = cal.getCalendarManager().getCalendarPref_(this, aName);
                 }
-                if (ret !== null) {
-                    switch (aName) {
-                        case "suppressAlarms":
-                            if (this.getProperty("capabilities.alarms.popup.supported") === false) {
-                                // If popup alarms are not supported,
-                                // automatically suppress alarms
-                                ret = true;
-                            }
-                            break;
-                    }
+                switch (aName) {
+                    case "suppressAlarms":
+                        if (this.getProperty("capabilities.alarms.popup.supported") === false) {
+                            // If popup alarms are not supported,
+                            // automatically suppress alarms
+                            ret = true;
+                        }
+                        break;
                 }
             }
             this.mProperties[aName] = ret;

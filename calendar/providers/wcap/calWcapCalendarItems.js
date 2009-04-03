@@ -184,10 +184,9 @@ calWcapCalendar.prototype.encodeRecurrenceParams =
 calWcapCalendar.prototype.getAlarmParams =
 function calWcapCalendar_getAlarmParams(item) {
     let params = null;
-    // TODO ALARMSUPPORT check if WCAP supports multiple alarms
+    // xxx TODO ALARMSUPPORT check if WCAP supports multiple alarms
     let alarms = item.getAlarms({}).filter(function(x) x.action == "EMAIL");
-    let alarm = alarms[0];
-    // END TODO ALARMSUPPORT
+    let alarm = alarms.length > 0 && alarms[0];
 
     if (alarm) {
         let alarmStart = cal.alarms.calculateAlarmOffset(item, alarm);
@@ -462,19 +461,15 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
             params += ("&summary=" + encodeURIComponent(val));
         }
 
-        var categories = item.getCategories({});
-        if (categories.length > 0) {
-            function encodeCategories(cats) {
-                cats = cats.concat([]);
-                cats.sort();
-                return cats.join(";");
-            }
-            var catParam = encodeCategories(categories);
-            if (!oldItem || catParam != encodeCategories(oldItem.getCategories({}))) {
-                params += ("&categories=" + catParam);
-            }
-        } else {
-            params += "&categories=";
+        let categories = item.getCategories({});
+        function encodeCategories(cats) {
+            cats = cats.concat([]);
+            cats.sort();
+            return cats.join(";");
+        }
+        let catParam = encodeCategories(categories);
+        if (!oldItem || catParam != encodeCategories(oldItem.getCategories({}))) {
+            params += ("&categories=" + catParam);
         }
 
         val = diffProperty(item, oldItem, "DESCRIPTION");
