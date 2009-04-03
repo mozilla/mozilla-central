@@ -787,6 +787,9 @@ let gFolderTreeView = {
   _rebuild: function ftv__rebuild() {
     let oldCount = this._rowMap ? this._rowMap.length : null;
     this._rowMap = this._mapGenerators[this.mode]();
+    let evt = document.createEvent("Events");
+    evt.initEvent("mapRebuild", true, false);
+    this._treeElement.dispatchEvent(evt);
 
     if (oldCount !== null)
       this._tree.rowCountChanged(0, this._rowMap.length - oldCount);
