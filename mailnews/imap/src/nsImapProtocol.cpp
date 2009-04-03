@@ -3888,12 +3888,15 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
           }
         }
         PRInt32 numDeleted = m_flagState->NumberOfDeletedMessages();
-        // Don't do expunge when we are lite selecting folder because we could be doing undo.
-        // Do expunge if we've reached the threshold or we're using the IMAP Delete
-        // model (mark messages as deleted) and it's set to always expunge
+        // Don't do expunge when we are lite selecting folder because we
+        // could be doing undo.
+        // Do expunge if we're using the IMAP Delete model (mark messages
+        // as deleted) or if we're always expunging or if we've reached
+        // the expunge threshold.
         if (m_imapAction != nsIImapUrl::nsImapLiteSelectFolder &&
-              (numDeleted >= gExpungeThreshold ||
-                (GetShowDeletedMessages() && gExpungeOption == kAutoExpungeAlways)))
+            (!GetShowDeletedMessages() ||
+             (gExpungeOption == kAutoExpungeOnThreshold && numDeleted >= gExpungeThreshold) ||
+             (gExpungeOption == kAutoExpungeAlways)))
           Expunge();
       }
     }
