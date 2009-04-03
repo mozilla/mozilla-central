@@ -2051,13 +2051,13 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
               if (!fwdPrefix.IsEmpty())
               {
                 nsString unicodeFwdPrefix;
-                CopyUTF8toUTF16(fwdPrefix.get(), unicodeFwdPrefix);
+                CopyUTF8toUTF16(fwdPrefix, unicodeFwdPrefix);
                 unicodeFwdPrefix.AppendLiteral(": ");
-                subject.Insert(unicodeFwdPrefix.get(), 0);
+                subject.Insert(unicodeFwdPrefix, 0);
               }
               else
               {
-                subject.Insert(NS_LITERAL_STRING("Fwd: ").get(), 0);
+                subject.Insert(NS_LITERAL_STRING("Fwd: "), 0);
               }
               m_compFields->SetSubject(subject);
             }
