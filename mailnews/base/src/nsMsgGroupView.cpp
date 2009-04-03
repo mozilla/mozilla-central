@@ -712,19 +712,22 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
       thread->RemoveChildAt(0); // get rid of dummy
       if (viewIndexOfThread != nsMsgKey_None)
       {
-        RemoveByIndex(viewIndexOfThread - 1);
+        RemoveByIndex(viewIndexOfThread);
         if (m_deletingRows)
-          mIndicesToNoteChange.AppendElement(viewIndexOfThread - 1);
+          mIndicesToNoteChange.AppendElement(viewIndexOfThread);
       }
     }
-    else if (rootDeleted && viewIndexOfThread > 0)
+    else if (rootDeleted)
     {
-      nsIMsgDBHdr *hdr;
-      GetMsgHdrForViewIndex(viewIndexOfThread, &hdr);
-      SetMsgHdrAt(hdr, viewIndexOfThread - 1, m_keys[viewIndexOfThread - 1],
-                  m_flags[viewIndexOfThread - 1] | MSG_VIEW_FLAG_DUMMY
-                                                 | MSG_VIEW_FLAG_ISTHREAD,
-                  m_levels[viewIndexOfThread - 1]);
+      // reflect new thread root into view.dummy row.
+      nsCOMPtr<nsIMsgDBHdr> hdr;
+      thread->GetChildAt(0, getter_AddRefs(hdr));
+      if (hdr)
+      {
+        nsMsgKey msgKey;
+        hdr->GetMessageKey(&msgKey);
+        SetMsgHdrAt(hdr, viewIndexOfThread, msgKey, m_flags[viewIndexOfThread], 0);
+      }
     }
   }
   if (!groupThread->m_keys.Length())

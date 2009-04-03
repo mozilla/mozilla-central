@@ -4235,13 +4235,19 @@ nsMsgViewIndex nsMsgDBView::FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startInd
   nsMsgKey msgKey;
   msgHdr->GetMessageKey(&msgKey);
   nsMsgViewIndex viewIndex = m_keys.IndexOf(msgKey, startIndex);
+  if (viewIndex == nsMsgViewIndex_None)
+    return viewIndex;
   // if we're supposed to allow dummies, and the previous index is a dummy that
   //  is not elided, then it must be the dummy corresponding to our node and
   //  we should return that instead.
-  if (allowDummy&& (viewIndex != nsMsgViewIndex_None) && viewIndex
+  if (allowDummy && viewIndex
       && (m_flags[viewIndex-1] & MSG_VIEW_FLAG_DUMMY)
       && !(m_flags[viewIndex-1] & nsMsgMessageFlags::Elided))
     viewIndex--;
+  // else if we're not allowing dummies, and we found a dummy, look again
+  // one past the dummy.
+  else if (!allowDummy && m_flags[viewIndex] & MSG_VIEW_FLAG_DUMMY)
+    return m_keys.IndexOf(msgKey, viewIndex + 1);
   return viewIndex;
 }
 
