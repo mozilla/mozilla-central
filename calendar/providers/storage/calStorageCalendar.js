@@ -1880,8 +1880,12 @@ calStorageCalendar.prototype = {
             item.alarmLastAck = newDateTime(row.alarm_last_ack, "UTC");
         }
 
-        if (row.recurrence_id)
+        if (row.recurrence_id) {
             item.recurrenceId = newDateTime(row.recurrence_id, row.recurrence_id_tz);
+            if ((row.flags & CAL_ITEM_FLAG_EVENT_ALLDAY) != 0) {
+                item.recurrenceId.isDate = true;
+            }
+        }
 
         if (flags)
             flags.value = row.flags;
@@ -2479,6 +2483,11 @@ calStorageCalendar.prototype = {
         this.setDateParamHelper(ip, "todo_completed", item.getProperty("COMPLETED"));
 
         ip.todo_complete = item.getProperty("PERCENT-COMPLETED");
+
+        let someDate = (item.entryDate || item.dueDate);
+        if (someDate && someDate.isDate) {
+            flags |= CAL_ITEM_FLAG_EVENT_ALLDAY;
+        }
 
         ip.flags = flags;
 
