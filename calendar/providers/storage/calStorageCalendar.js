@@ -2796,7 +2796,7 @@ calStorageCalendar.prototype = {
         var uriKey = this.uri.spec;
         if (err) {
             cal.ERROR("DB error: " + this.mDB.lastErrorString + "\nexc: " + err);
-            gTransErr[uriKey] = exc;
+            gTransErr[uriKey] = err;
         }
 
         if (gTransCount[uriKey] > 0) {
