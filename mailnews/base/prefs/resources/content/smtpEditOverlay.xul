@@ -59,7 +59,7 @@
                                               control="smtp.description"/></hbox>
                        <textbox id="smtp.description" flex="1" preftype="string" prefstring="mail.smtpserver.%serverkey%.description"/>
                   </row>
-          
+
                   <row align="center">
                       <hbox pack="end"><label value="&serverName.label;" accesskey="&serverName.accesskey;" control="smtp.hostname"/></hbox>
                       <textbox id="smtp.hostname" flex="1" preftype="string" class="uri-element" prefstring="mail.smtpserver.%serverkey%.hostname"/>
@@ -77,7 +77,7 @@
                       </hbox>
                   </row>
               </rows>
-          </grid> 
+          </grid>
       </groupbox>
 
       <separator class="thin"/>
@@ -97,7 +97,7 @@
             </hbox>
             <vbox class="indent">
               <hbox align="center">
-                <label id="smtpusernamelabel" value="&userName.label;"
+                <label id="smtp.username.label" value="&userName.label;"
                        accesskey="&userName.accesskey;" control="smtp.username"/>
                 <textbox id="smtp.username" flex="1"
                          preftype="string"
@@ -117,7 +117,7 @@
           <label value="&connectionSecurity.label;"
                 accesskey="&connectionSecurity.accesskey;"
                 control="smtp.trySSL"/>
-          <menulist id="smtp.trySSL" oncommand="selectProtocol(false);"
+          <menulist id="smtp.trySSL" oncommand="selectProtocol(true);"
                     prefstring="mail.smtpserver.%serverkey%.try_ssl">
             <menupopup id="smtp.trySSLPopup">
               <menuitem value="0" label="&connectionSecurityType-0.label;"/>

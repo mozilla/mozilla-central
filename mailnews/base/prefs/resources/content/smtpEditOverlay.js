@@ -52,15 +52,14 @@ var gSmtpTrySSL;
 var gSmtpPrefBranch;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
 var gSmtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
-var gSavedUsername="";
+var gSavedUsername = "";
 var gPort;
 var gDefaultPort;
 
 function initSmtpSettings(server) {
-
     gSmtpUsername = document.getElementById("smtp.username");
     gSmtpDescription = document.getElementById("smtp.description");
-    gSmtpUsernameLabel = document.getElementById("smtpusernamelabel");
+    gSmtpUsernameLabel = document.getElementById("smtp.username.label");
     gSmtpHostname = document.getElementById("smtp.hostname");
     gSmtpPort = document.getElementById("smtp.port");
     gSmtpUseUsername = document.getElementById("smtp.useUsername");
@@ -91,7 +90,7 @@ function initSmtpSettings(server) {
     //dump("gSmtpAuthMethod.value = " + gSmtpAuthMethod.getAttribute("value") + "\n");
 
     onUseUsername(gSmtpUseUsername, false);
-    selectProtocol(true);
+    selectProtocol(false);
     if (gSmtpService.defaultServer)
       onLockPreference();
 
@@ -135,11 +134,7 @@ function disableIfLocked( prefstrArray )
 
 function saveSmtpSettings(server)
 {
-
-    if (gSmtpUseUsername.checked)
-        gSmtpAuthMethod.setAttribute("value", "1");
-    else
-        gSmtpAuthMethod.setAttribute("value", "0");
+    gSmtpAuthMethod.setAttribute("value", gSmtpUseUsername.checked ? "1" : "0");
 
     //dump("Saving to " + server + "\n");
     if (server) {
@@ -178,16 +173,34 @@ function onUseUsername(checkbox, dofocus)
     }
 }
 
-function selectProtocol(init) {
+/**
+ * Resets the default port to SMTP or SMTPS, dependending on |gSmtpTrySSL| value,
+ * and sets the port to use to this default, if that's appropriate.
+ *
+ * @param userAction false for dialog initialization,
+ *                   true for user action.
+ */
+function selectProtocol(userAction) {
+  const DEFAULT_SMTP_PORT = "25";
+  const DEFAULT_SMTPS_PORT = "465";
+
+  var otherDefaultPort;
   var prevDefaultPort = gDefaultPort.value;
 
   if (gSmtpTrySSL.value == 3) {
-    gDefaultPort.value = "465";
-    if(gPort.value == "" || (!init && gPort.value == "25" && prevDefaultPort != gDefaultPort.value))
-        gPort.value = gDefaultPort.value;
+    gDefaultPort.value = DEFAULT_SMTPS_PORT;
+    otherDefaultPort = DEFAULT_SMTP_PORT;
   } else {
-    gDefaultPort.value = "25";
-    if(gPort.value == "" || (!init && gPort.value == "465" && prevDefaultPort != gDefaultPort.value))
-        gPort.value = gDefaultPort.value;
+    gDefaultPort.value = DEFAULT_SMTP_PORT;
+    otherDefaultPort = DEFAULT_SMTPS_PORT;
   }
+
+  // If the port is not set,
+  // or the user is causing the default port to change,
+  //   and the port is set to the default for the other protocol,
+  // then set the port to the default for the new protocol.
+  if ((gPort.value == "") ||
+      (userAction && (gDefaultPort.value != prevDefaultPort) &&
+       (gPort.value == otherDefaultPort)))
+    gPort.value = gDefaultPort.value;
 }
