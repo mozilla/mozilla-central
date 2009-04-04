@@ -842,6 +842,10 @@ ifeq (,$(filter WINCE WINNT OS2,$(OS_ARCH)))
 RUN_TEST_PROGRAM = $(DIST)/bin/run-mozilla.sh
 endif
 
+ifeq ($(OS_ARCH),OS2)
+RUN_TEST_PROGRAM = $(MOZILLA_SRCDIR)/build/os2/test_os2.cmd "$(DIST)"
+endif
+
 ifdef TIERS
 DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_dirs))
 STATIC_DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_staticdirs))
