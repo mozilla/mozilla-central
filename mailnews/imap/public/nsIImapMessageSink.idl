@@ -41,7 +41,7 @@
 
 interface nsIMsgMailNewsUrl;
 
-[scriptable, uuid(271e0cb1-003b-4714-8fca-16a549a7c224)]
+[scriptable, uuid(F9D64900-F83B-4265-A774-C1E7006C7EC4)]
 
 interface nsIImapMessageSink : nsISupports {
   // set up messge download output stream
@@ -77,6 +77,17 @@ interface nsIImapMessageSink : nsISupports {
   void setContentModified(in nsIImapUrl aImapUrl, in nsImapContentModifiedType aModified);
   void setImageCacheSessionForUrl(in nsIMsgMailNewsUrl aMailUrl);
   
+  /**
+   * For a message stored in a file, get the message metadata needed to copy
+   * that message to an imap folder
+   *
+   * @param aRunningUrl  message URL
+   * @param aDate        message date
+   * @param aKeywords    message custom keywords (if supported by the server),
+   *                     including messages tags and junk status
+   *
+   * @return             message flags
+   */
   unsigned long getCurMoveCopyMessageInfo(in nsIImapUrl aRunningUrl, 
-                                          out PRTime aDate, out string aKeywords);
+                                          out PRTime aDate, out ACString aKeywords);
 };

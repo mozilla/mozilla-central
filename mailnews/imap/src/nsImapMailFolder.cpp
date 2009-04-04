@@ -4514,7 +4514,11 @@ nsImapMailFolder::SetImageCacheSessionForUrl(nsIMsgMailNewsUrl *mailurl)
   return rv;
 }
 
-NS_IMETHODIMP nsImapMailFolder::GetCurMoveCopyMessageInfo(nsIImapUrl *runningUrl, PRTime *aDate, char **aKeywords, PRUint32 *aResult)
+NS_IMETHODIMP
+nsImapMailFolder::GetCurMoveCopyMessageInfo(nsIImapUrl *runningUrl,
+                                            PRTime *aDate,
+                                            nsACString& aKeywords,
+                                            PRUint32* aResult)
 {
   nsCOMPtr <nsISupports> copyState;
   runningUrl->GetCopyState(getter_AddRefs(copyState));
@@ -4535,8 +4539,53 @@ NS_IMETHODIMP nsImapMailFolder::GetCurMoveCopyMessageInfo(nsIImapUrl *runningUrl
       }
       if (aDate)
         mailCopyState->m_message->GetDate(aDate);
-      if (aKeywords && (supportedFlags & (kImapMsgSupportUserFlag)))
-        mailCopyState->m_message->GetStringProperty("keywords", aKeywords);
+      if (supportedFlags & kImapMsgSupportUserFlag)
+      {
+        // setup the custom imap keywords, which includes the message keywords
+        // plus any junk status
+        nsCString junkscore;
+        mailCopyState->m_message->GetStringProperty("junkscore",
+                                                    getter_Copies(junkscore));
+        PRBool isJunk = PR_FALSE, isNotJunk = PR_FALSE;
+        if (!junkscore.IsEmpty())
+        {
+          if (junkscore.EqualsLiteral("0"))
+            isNotJunk = PR_TRUE;
+          else
+            isJunk = PR_TRUE;
+        }
+
+        nsCString keywords; // MsgFindKeyword can't use nsACString
+        mailCopyState->m_message->GetStringProperty("keywords",
+                                                    getter_Copies(keywords));
+        PRInt32 start;
+        PRInt32 length;
+        PRBool hasJunk = MsgFindKeyword(NS_LITERAL_CSTRING("junk"),
+                                        keywords, &start, &length);
+        if (hasJunk && !isJunk)
+          keywords.Cut(start, length);
+        else if (!hasJunk && isJunk)
+          keywords.AppendLiteral(" Junk");
+        PRBool hasNonJunk = MsgFindKeyword(NS_LITERAL_CSTRING("nonjunk"),
+                                           keywords, &start, &length);
+        if (!hasNonJunk)
+          hasNonJunk = MsgFindKeyword(NS_LITERAL_CSTRING("notjunk"),
+                                      keywords, &start, &length);
+        if (hasNonJunk && !isNotJunk)
+          keywords.Cut(start, length);
+        else if (!hasNonJunk && isNotJunk)
+          keywords.AppendLiteral(" NonJunk");
+
+        // Cleanup extra spaces
+        while (!keywords.IsEmpty() && keywords.First() == ' ')
+          keywords.Cut(0, 1);
+        while (!keywords.IsEmpty() && keywords.Last() == ' ')
+          keywords.Cut(keywords.Length() - 1, 1);
+        while (!keywords.IsEmpty() &&
+               (start = keywords.Find(NS_LITERAL_CSTRING("  "))) >= 0)
+          keywords.Cut(start, 1);
+        aKeywords.Assign(keywords);
+      }
     }
     // if we don't have a source header, and it's not the drafts folder,
     // then mark the message read, since it must be an append to the
@@ -4544,8 +4593,8 @@ NS_IMETHODIMP nsImapMailFolder::GetCurMoveCopyMessageInfo(nsIImapUrl *runningUrl
     else if (mailCopyState)
     {
       *aResult = mailCopyState->m_newMsgFlags;
-      if (aKeywords  && (supportedFlags & kImapMsgSupportUserFlag))
-        *aKeywords = ToNewCString(mailCopyState->m_newMsgKeywords);
+      if (supportedFlags & kImapMsgSupportUserFlag)
+        aKeywords.Assign(mailCopyState->m_newMsgKeywords);
     }
   }
   return NS_OK;

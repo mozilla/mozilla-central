@@ -5547,7 +5547,7 @@ void nsImapProtocol::OnAppendMsgFromFile()
       nsCString keywords;
       if (m_imapMessageSink)
         m_imapMessageSink->GetCurMoveCopyMessageInfo(m_runningUrl, &date,
-                                                    getter_Copies(keywords), &msgFlags);
+                                                     keywords, &msgFlags);
 
       if (msgFlags & nsMsgMessageFlags::Read)
         flagsToSet |= kImapMsgSeenFlag;
