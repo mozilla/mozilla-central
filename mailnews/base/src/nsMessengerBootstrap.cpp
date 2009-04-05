@@ -220,13 +220,26 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
       NS_ENSURE_SUCCESS(rv, rv);
 
       nsCOMPtr<nsIFile> file;
-      rv = aCmdLine->ResolveFile(mailPath, getter_AddRefs(file));
+      if (StringBeginsWith(mailPath, NS_LITERAL_STRING("file://"),
+                           nsCaseInsensitiveStringComparator()))
+      {
+        // Get the file from the file:// URL.
+        rv = NS_GetFileFromURLSpec(NS_ConvertUTF16toUTF8(mailPath),
+                                   getter_AddRefs(file));
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+      else
+      {
+        // Resolve the file from the relative or absolute path.
+        aCmdLine->ResolveFile(mailPath, getter_AddRefs(file));
+      }
+
       PRBool fileExists = PR_FALSE;
-      if (file) // Absolute paths always resolve, check if it exists too.
+      if (file) // Absolute paths always resolve a file, check if it exists too.
         file->Exists(&fileExists);
 
-      // If we couldn't resolve, or the file does not exist - shown an alert.
-      if (NS_FAILED(rv) || !fileExists)
+      // If the file does not exist - shown an alert.
+      if (!fileExists)
       {
         nsCOMPtr<nsIStringBundleService> bs = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
