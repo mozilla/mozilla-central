@@ -208,7 +208,17 @@ let moveCopyModule =
     displayText = displayText.replace('#1', aSrcFolder.prettiestName);
     displayText = displayText.replace('#2', aDestFolder.prettiestName);
 
-    let statusText = aFolder.server.prettyName
+    let statusText = '';
+    if (aSrcFolder.server != aDestFolder.server)
+    {
+      statusText = this.getString("fromServerToServer");
+      statusText = statusText.replace("#1", aSrcFolder.server.prettyName);
+      statusText = statusText.replace("#2", aDestFolder.server.prettyName);
+    }
+    else
+    {
+      statusText = aSrcFolder.server.prettyName;
+    }
     // create an activity event
     let event = new nsActEvent(displayText,
                                aSrcFolder.server,
