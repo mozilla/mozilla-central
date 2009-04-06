@@ -6880,14 +6880,16 @@ public:
   nsresult StartNextCopy();
   nsresult AdvanceToNextFolder(nsresult aStatus);
 protected:
-  nsCOMPtr <nsIMsgFolder> m_destParent;
-  nsCOMPtr <nsIMsgFolder> m_srcFolder;
+  nsRefPtr<nsImapMailFolder> m_newDestFolder;
+  nsCOMPtr<nsISupports> m_origSrcFolder;
+  nsCOMPtr<nsIMsgFolder> m_curDestParent;
+  nsCOMPtr<nsIMsgFolder> m_curSrcFolder;
   PRBool                  m_isMoveFolder;
-  nsCOMPtr <nsIMsgCopyServiceListener> m_copySrvcListener;
-  nsCOMPtr <nsIMsgWindow> m_msgWindow;
+  nsCOMPtr<nsIMsgCopyServiceListener> m_copySrvcListener;
+  nsCOMPtr<nsIMsgWindow> m_msgWindow;
   PRInt32                 m_childIndex;
-  nsCOMPtr <nsISupportsArray> m_srcChildFolders;
-  nsCOMPtr <nsISupportsArray> m_destParents;
+  nsCOMPtr<nsISupportsArray> m_srcChildFolders;
+  nsCOMPtr<nsISupportsArray> m_destParents;
 
 };
 
@@ -6896,8 +6898,9 @@ NS_IMPL_ISUPPORTS2(nsImapFolderCopyState, nsIUrlListener, nsIMsgCopyServiceListe
 nsImapFolderCopyState::nsImapFolderCopyState(nsIMsgFolder *destParent, nsIMsgFolder *srcFolder,
                                              PRBool isMoveFolder, nsIMsgWindow *msgWindow, nsIMsgCopyServiceListener *listener)
 {
-  m_destParent = destParent;
-  m_srcFolder = srcFolder;
+  m_origSrcFolder = do_QueryInterface(srcFolder);
+  m_curDestParent = destParent;
+  m_curSrcFolder = srcFolder;
   m_isMoveFolder = isMoveFolder;
   m_msgWindow = msgWindow;
   m_copySrvcListener = listener;
@@ -6918,10 +6921,10 @@ nsImapFolderCopyState::StartNextCopy()
   nsCOMPtr <nsIImapService> imapService = do_GetService (NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   nsString folderName;
-  m_srcFolder->GetName(folderName);
+  m_curSrcFolder->GetName(folderName);
 
   return imapService->EnsureFolderExists(NS_GetCurrentThread(),
-                                       m_destParent,
+                                       m_curDestParent,
                                        folderName,
                                        this, nsnull);
 }
@@ -6935,14 +6938,14 @@ nsresult nsImapFolderCopyState::AdvanceToNextFolder(nsresult aStatus)
     m_srcChildFolders->Count(&childCount);
   if (m_childIndex >= childCount)
   {
-    if (m_copySrvcListener)
-      rv = m_copySrvcListener->OnStopCopy(aStatus);
+    if (m_newDestFolder)
+      m_newDestFolder->OnCopyCompleted(m_origSrcFolder, aStatus);
     Release();
   }
   else
   {
-    m_destParent = do_QueryElementAt(m_destParents, m_childIndex, &rv);
-    m_srcFolder = do_QueryElementAt(m_srcChildFolders, m_childIndex, &rv);
+    m_curDestParent = do_QueryElementAt(m_destParents, m_childIndex, &rv);
+    m_curSrcFolder = do_QueryElementAt(m_srcChildFolders, m_childIndex, &rv);
     rv = StartNextCopy();
   }
   return rv;
@@ -6981,16 +6984,20 @@ nsImapFolderCopyState::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           nsCOMPtr<nsIMsgFolder> newMsgFolder;
           nsString folderName;
           nsCString utf7LeafName;
-          m_srcFolder->GetName(folderName);
+          m_curSrcFolder->GetName(folderName);
           rv = CopyUTF16toMUTF7(folderName, utf7LeafName);
-          rv = m_destParent->FindSubFolder(utf7LeafName, getter_AddRefs(newMsgFolder));
+          rv = m_curDestParent->FindSubFolder(utf7LeafName, getter_AddRefs(newMsgFolder));
           NS_ENSURE_SUCCESS(rv,rv);
+          // save the first new folder so we can send a notification to the
+          // copy service when this whole process is done.
+          if (!m_newDestFolder)
+            m_newDestFolder = static_cast<nsImapMailFolder*>(newMsgFolder.get());
 
           // check if the source folder has children. If it does, list them
           // into m_srcChildFolders, and set m_destParents for the
           // corresponding indexes to the newly created folder.
           nsCOMPtr<nsISimpleEnumerator> enumerator;
-          rv = m_srcFolder->GetSubFolders(getter_AddRefs(enumerator));
+          rv = m_curSrcFolder->GetSubFolders(getter_AddRefs(enumerator));
           NS_ENSURE_SUCCESS(rv, rv);
 
           PRBool hasMore;
@@ -7008,7 +7015,7 @@ nsImapFolderCopyState::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           }
 
           nsCOMPtr<nsISimpleEnumerator> messages;
-          rv = m_srcFolder->GetMessages(getter_AddRefs(messages));
+          rv = m_curSrcFolder->GetMessages(getter_AddRefs(messages));
           nsCOMPtr<nsIMutableArray> msgArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
           NS_ENSURE_TRUE(msgArray, rv);
           PRBool hasMoreElements;
@@ -7029,7 +7036,7 @@ nsImapFolderCopyState::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
 
           nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
           NS_ENSURE_SUCCESS(rv, rv);
-          rv = copyService->CopyMessages(m_srcFolder,
+          rv = copyService->CopyMessages(m_curSrcFolder,
                              msgArray, newMsgFolder,
                              m_isMoveFolder,
                              this,

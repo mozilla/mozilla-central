@@ -338,6 +338,9 @@ public:
                                   nsIMsgFilter *filter,
                                   nsIMsgWindow *msgWindow);
 
+  // send notification to copy service listener.
+  nsresult OnCopyCompleted(nsISupports *srcSupport, nsresult exitCode);
+
   static nsresult  AllocateUidStringFromKeys(nsMsgKey *keys, PRUint32 numKeys, nsCString &msgIds);
   static nsresult  BuildIdsAndKeyArray(nsIArray* messages, nsCString& msgIds, nsTArray<nsMsgKey>& keyArray);
 
@@ -413,7 +416,6 @@ protected:
                           nsIMsgCopyServiceListener* listener,
                           nsIMsgWindow *msgWindow,
                           PRBool allowUndo);
-  nsresult OnCopyCompleted(nsISupports *srcSupport, nsresult exitCode);
   nsresult GetMoveCoalescer();
   nsresult PlaybackCoalescedOperations();
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
