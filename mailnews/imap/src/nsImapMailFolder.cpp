@@ -2689,6 +2689,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxStatus(
   aSpec->GetNumRecentMessages(&m_numServerRecentMessages);
   PRInt32 prevNextUID = m_nextUID;
   aSpec->GetNextUID(&m_nextUID);
+  PRBool summaryChanged = PR_FALSE;
 
   // If m_numServerUnseenMessages is 0, it means
   // this is the first time we've done a Status.
@@ -2700,20 +2701,28 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxStatus(
     ? m_numServerUnseenMessages : GetNumPendingUnread() + mNumUnreadMessages;
   if (numUnread != previousUnreadMessages || m_nextUID != prevNextUID)
   {
-    // we're going to assume that recent messages are unread.
-    ChangeNumPendingUnread(numUnread - previousUnreadMessages);
-    ChangeNumPendingTotalMessages(numUnread - previousUnreadMessages);
-    if (numUnread > previousUnreadMessages)
+    PRInt32 unreadDelta = numUnread - (GetNumPendingUnread() + mNumUnreadMessages);
+    if (numUnread - previousUnreadMessages != unreadDelta)
+       NS_WARNING("unread count should match server count");
+    ChangeNumPendingUnread(unreadDelta);
+    if (unreadDelta > 0)
     {
       SetHasNewMessages(PR_TRUE);
-      SetNumNewMessages(numUnread - previousUnreadMessages);
+      SetNumNewMessages(unreadDelta);
       SetBiffState(nsMsgBiffState_NewMail);
     }
-    SummaryChanged();
+    summaryChanged = PR_TRUE;
   }
   SetPerformingBiff(PR_FALSE);
-  m_numServerUnseenMessages = numUnread;
-  m_numServerTotalMessages = numTotal;
+  if (m_numServerUnseenMessages != numUnread || m_numServerTotalMessages != numTotal)
+  {
+    summaryChanged = PR_TRUE;
+    m_numServerUnseenMessages = numUnread;
+    m_numServerTotalMessages = numTotal;
+  }
+  if (summaryChanged)
+    SummaryChanged();
+
   return NS_OK;
 }
 
