@@ -59,7 +59,7 @@ interface nsIURI;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(ECEBF1C5-C523-4096-89A7-FC1E8871EB81)]
+[scriptable, uuid(e3e27f1c-61de-414d-8b3d-ab9c033320e5)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -367,6 +367,14 @@ interface nsIMsgIncomingServer : nsISupports {
 
   /* does this server have disk space settings? */
   readonly attribute boolean supportsDiskSpace;
+
+  /**
+   * Hide this server/account from the UI - used for smart mailboxes.
+   * The server can be retrieved from the account manager by name using the
+   * various Find methods, but nsIMsgAccountManager's GetAccounts and 
+   * GetAllServers methods won't return the server/account.
+   */
+  attribute boolean hidden;
 
   /**
    * If the server supports Fcc/Sent/etc, default prefs can point to 

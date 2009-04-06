@@ -1067,7 +1067,24 @@ nsMsgAccountManager::GetAccounts(nsISupportsArray **_retval)
 
   nsCOMPtr<nsISupportsArray> accounts;
   NS_NewISupportsArray(getter_AddRefs(accounts));
-  accounts->AppendElements(m_accounts);
+  PRUint32 numAccounts;
+  m_accounts->Count(&numAccounts);
+  for (PRUint32 index = 0; index < numAccounts; index++) 
+  {
+    nsCOMPtr<nsIMsgAccount> existingAccount = do_QueryElementAt(m_accounts, index, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIMsgIncomingServer> server;
+    existingAccount->GetIncomingServer(getter_AddRefs(server));
+    if (server)
+    {
+      PRBool hidden = PR_FALSE;
+      server->GetHidden(&hidden);
+      if (hidden)
+        continue;
+    }
+    nsCOMPtr<nsISupports> accountsSupport = do_QueryInterface(existingAccount);
+    accounts->AppendElement(accountsSupport);
+  }
   accounts.swap(*_retval);
   return NS_OK;
 }
@@ -1161,12 +1178,47 @@ hashGetServersToArray(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingSer
   return PL_DHASH_NEXT;
 }
 
+
+static PLDHashOperator
+hashGetNonHiddenServersToArray(nsCStringHashKey::KeyType aKey,
+                               nsCOMPtr<nsIMsgIncomingServer>& aServer,
+                               void* aClosure)
+{
+  PRBool hidden = PR_FALSE;
+  aServer->GetHidden(&hidden);
+  if (!hidden)
+  {
+    nsISupportsArray *array = (nsISupportsArray*) aClosure;
+    nsCOMPtr<nsISupports> serverSupports = do_QueryInterface(aServer);
+    array->AppendElement(aServer);
+  }
+  return PL_DHASH_NEXT;
+}
+
 /* nsISupportsArray GetAllServers (); */
 NS_IMETHODIMP
 nsMsgAccountManager::GetAllServers(nsISupportsArray **_retval)
 {
   nsresult rv;
   rv = LoadAccounts();
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsISupportsArray> servers;
+  rv = NS_NewISupportsArray(getter_AddRefs(servers));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // enumerate by going through the list of accounts, so that we
+  // get the order correct
+  m_incomingServers.Enumerate(hashGetNonHiddenServersToArray,
+                              (void *)(nsISupportsArray*)servers);
+  servers.swap(*_retval);
+  return rv;
+}
+
+nsresult
+nsMsgAccountManager::GetAllServersInternal(nsISupportsArray **_retval)
+{
+  nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupportsArray> servers;
@@ -1718,7 +1770,7 @@ nsMsgAccountManager::findServerInternal(const nsACString& username,
   }
 
   nsCOMPtr<nsISupportsArray> servers;
-  nsresult rv = GetAllServers(getter_AddRefs(servers));
+  nsresult rv = GetAllServersInternal(getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv, rv);
 
   findServerEntry serverInfo(hostname, username, type, port, aRealFlag);
@@ -2839,7 +2891,7 @@ NS_IMETHODIMP nsMsgAccountManager::SaveVirtualFolders()
   if (!m_virtualFoldersLoaded)
     return NS_OK;
   nsCOMPtr<nsISupportsArray> allServers;
-  nsresult rv = GetAllServers(getter_AddRefs(allServers));
+  nsresult rv = GetAllServersInternal(getter_AddRefs(allServers));
   nsCOMPtr <nsILocalFile> file;
   if (allServers)
   {

@@ -1605,6 +1605,8 @@ NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, MaxMessageSize, "max_size")
 
 NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, IncomingDuplicateAction, "dup_action")
 
+NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, Hidden, "hidden")
+
 NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
 {
   if (!mPrefBranch)

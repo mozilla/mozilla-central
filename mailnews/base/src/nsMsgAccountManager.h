@@ -148,6 +148,9 @@ private:
   // ("element" is always an account)
   //
 
+  // get all servers, including hidden servers.
+  nsresult GetAllServersInternal(nsISupportsArray **_retval);
+
   // find the identities that correspond to the given server
   static PRBool findIdentitiesForServer(nsISupports *element, void *aData);
 
