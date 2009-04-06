@@ -107,7 +107,7 @@ interface nsIMsgAccountManager : nsISupports {
   attribute nsIMsgAccount defaultAccount;
 
   /**
-   * ordered list of all accounts, by the order they are in the prefs.
+   * Ordered list of all accounts, by the order they are in the prefs.
    * Accounts with hidden servers are not returned.
    * array of nsIMsgAccount
    */
