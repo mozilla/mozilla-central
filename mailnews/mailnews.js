@@ -491,6 +491,7 @@ pref("mail.server.default.empty_trash_on_exit", false);
 // 2 = Move Dupes to trash
 // 3 = Mark Dupes as Read
 pref("mail.server.default.dup_action", 0);
+pref("mail.server.default.hidden", false);
 
 pref("mail.server.default.using_subscription", true);
 pref("mail.server.default.dual_use_folders", true);
