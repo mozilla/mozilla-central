@@ -73,6 +73,9 @@ components/dom_events.xpt
 components/dom_html.xpt
 components/dom_offline.xpt
 components/dom_range.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
+components/dom_smil.xpt
+#endif
 components/dom_stylesheets.xpt
 components/dom_traversal.xpt
 components/dom_views.xpt
