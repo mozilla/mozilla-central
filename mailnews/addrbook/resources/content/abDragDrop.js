@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+
 var abResultsPaneObserver = {
   onDragStart: function (aEvent, aXferData, aDragAction)
     {
@@ -306,11 +308,12 @@ var abDirTreeObserver = {
       if (actionIsMoving) {
         // If we have moved the cards, then delete them as well.
         gAbView.deleteSelectedCards();
-        cardsTransferredText = (numrows == 1 ? gAddressBookBundle.getString("cardMoved")
-                                             : gAddressBookBundle.getFormattedString("cardsMoved", [numrows]));
+
+        cardsTransferredText = PluralForm.get(numrows,
+          gAddressBookBundle.getFormattedString("contactsMoved", [numrows]));
       } else {
-        cardsTransferredText = (numrows == 1 ? gAddressBookBundle.getString("cardCopied")
-                                             : gAddressBookBundle.getFormattedString("cardsCopied", [numrows]));
+        cardsTransferredText = PluralForm.get(numrows,
+          gAddressBookBundle.getFormattedString("contactsCopied", [numrows]));
       }
 
       document.getElementById("statusText").label = cardsTransferredText;

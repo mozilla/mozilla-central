@@ -623,7 +623,7 @@ void
 nsMsgPrintEngine::PrintMsgWindow()
 {
   const char* kMsgKeys[] = {"PrintingMessage",  "PrintPreviewMessage",
-                            "PrintingCard",     "PrintPreviewCard",
+                            "PrintingContact",  "PrintPreviewContact",
                             "PrintingAddrBook", "PrintPreviewAddrBook"};
 
   mDocShell->GetContentViewer(getter_AddRefs(mContentViewer));  

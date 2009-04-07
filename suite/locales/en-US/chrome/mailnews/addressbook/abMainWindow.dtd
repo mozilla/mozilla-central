@@ -57,7 +57,6 @@
 <!ENTITY printContactViewCmd.accesskey                  "p">
 <!ENTITY printPreviewContactViewCmd.label               "Print Preview Contact">
 <!ENTITY printPreviewContactViewCmd.accesskey           "v">
-<!-- LOCALIZATION NOTE (printCardViewCmd.key) : DONT_TRANSLATE -->  
 <!ENTITY printContactViewCmd.key                        "P">
 <!ENTITY printAddressBook.label                         "Print Address Book…"> 
 <!ENTITY printAddressBook.accesskey                     "A"> 
