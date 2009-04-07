@@ -86,7 +86,7 @@ public:
 private:
 
   PRBool m_accountsLoaded;
-  nsCOMPtr <nsIMsgFolderCache>	m_msgFolderCache;
+  nsCOMPtr <nsIMsgFolderCache> m_msgFolderCache;
   nsCOMPtr<nsIAtom> kDefaultServerAtom;
   nsCOMPtr<nsISupportsArray> m_accounts;
   nsInterfaceHashtable<nsCStringHashKey, nsIMsgIdentity> m_identities;
@@ -148,9 +148,6 @@ private:
   // ("element" is always an account)
   //
 
-  // get all servers, including hidden servers.
-  nsresult GetAllServersInternal(nsISupportsArray **_retval);
-
   // find the identities that correspond to the given server
   static PRBool findIdentitiesForServer(nsISupports *element, void *aData);
 
@@ -175,7 +172,14 @@ private:
   //
 
   // find the server given by {username, hostname, port, type}
-  static PRBool findServerUrl(nsISupports *aElement, void *data);
+  static PLDHashOperator findServerUrl(nsCStringHashKey::KeyType aKey,
+                                       nsCOMPtr<nsIMsgIncomingServer>& aServer,
+                                       void *data);
+
+  // save the server's saved searches to virtualFolders.dat
+  static PLDHashOperator saveVirtualFolders(nsCStringHashKey::KeyType aKey,
+                                       nsCOMPtr<nsIMsgIncomingServer>& aServer,
+                                       void *outputStream);
 
   nsresult findServerInternal(const nsACString& username,
                               const nsACString& hostname,
@@ -185,8 +189,8 @@ private:
                               nsIMsgIncomingServer** aResult);
 
   // handle virtual folders
-  nsresult GetVirtualFoldersFile(nsCOMPtr<nsILocalFile>& file);
-  nsresult WriteLineToOutputStream(const char *prefix, const char * line, nsIOutputStream *outputStream);
+  static nsresult GetVirtualFoldersFile(nsCOMPtr<nsILocalFile>& file);
+  static nsresult WriteLineToOutputStream(const char *prefix, const char * line, nsIOutputStream *outputStream);
   nsresult AddVFListenersForVF(nsIMsgFolder *virtualFolder, 
                                const nsCString& srchFolderUris,
                                nsIRDFService *rdf,

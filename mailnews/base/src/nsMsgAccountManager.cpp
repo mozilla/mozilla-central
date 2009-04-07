@@ -1170,16 +1170,6 @@ nsMsgAccountManager::getIdentitiesToArray(nsISupports *element, void *aData)
 }
 
 static PLDHashOperator
-hashGetServersToArray(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
-{
-  nsISupportsArray *array = (nsISupportsArray*) aClosure;
-  nsCOMPtr<nsISupports> serverSupports = do_QueryInterface(aServer);
-  array->AppendElement(aServer);
-  return PL_DHASH_NEXT;
-}
-
-
-static PLDHashOperator
 hashGetNonHiddenServersToArray(nsCStringHashKey::KeyType aKey,
                                nsCOMPtr<nsIMsgIncomingServer>& aServer,
                                void* aClosure)
@@ -1199,25 +1189,6 @@ hashGetNonHiddenServersToArray(nsCStringHashKey::KeyType aKey,
 NS_IMETHODIMP
 nsMsgAccountManager::GetAllServers(nsISupportsArray **_retval)
 {
-  nsresult rv;
-  rv = LoadAccounts();
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsISupportsArray> servers;
-  rv = NS_NewISupportsArray(getter_AddRefs(servers));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // enumerate by going through the list of accounts, so that we
-  // get the order correct
-  m_incomingServers.Enumerate(hashGetNonHiddenServersToArray,
-                              (void *)(nsISupportsArray*)servers);
-  servers.swap(*_retval);
-  return rv;
-}
-
-nsresult
-nsMsgAccountManager::GetAllServersInternal(nsISupportsArray **_retval)
-{
   nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1225,9 +1196,7 @@ nsMsgAccountManager::GetAllServersInternal(nsISupportsArray **_retval)
   rv = NS_NewISupportsArray(getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // enumerate by going through the list of accounts, so that we
-  // get the order correct
-  m_incomingServers.Enumerate(hashGetServersToArray,
+  m_incomingServers.Enumerate(hashGetNonHiddenServersToArray,
                               (void *)(nsISupportsArray*)servers);
   servers.swap(*_retval);
   return rv;
@@ -1704,7 +1673,8 @@ NS_IMETHODIMP
 nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
                                 nsIMsgIncomingServer** aResult)
 {
-  nsresult rv;
+  nsresult rv = LoadAccounts();
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // Get username and hostname and port so we can get the server
   nsCAutoString username;
@@ -1769,12 +1739,8 @@ nsMsgAccountManager::findServerInternal(const nsACString& username,
     return NS_OK;
   }
 
-  nsCOMPtr<nsISupportsArray> servers;
-  nsresult rv = GetAllServersInternal(getter_AddRefs(servers));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   findServerEntry serverInfo(hostname, username, type, port, aRealFlag);
-  servers->EnumerateForwards(findServerUrl, (void *)&serverInfo);
+  m_incomingServers.Enumerate(findServerUrl, (void *)&serverInfo);
 
   if (!serverInfo.server)
     return NS_ERROR_UNEXPECTED;
@@ -1867,15 +1833,16 @@ nsMsgAccountManager::FindAccountForServer(nsIMsgIncomingServer *server,
   return NS_OK;
 }
 
-// if the aElement matches the given hostname, add it to the given array
-PRBool
-nsMsgAccountManager::findServerUrl(nsISupports *aElement, void *data)
+// find matching server by user+host+type+port.
+PLDHashOperator
+nsMsgAccountManager::findServerUrl(nsCStringHashKey::KeyType key,
+                                   nsCOMPtr<nsIMsgIncomingServer>& server,
+                                   void *data)
 {
   nsresult rv;
 
-  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(aElement);
   if (!server)
-    return PR_TRUE;
+    return PL_DHASH_NEXT;
 
   findServerEntry *entry = (findServerEntry*) data;
 
@@ -1885,7 +1852,7 @@ nsMsgAccountManager::findServerUrl(nsISupports *aElement, void *data)
   else
     rv = server->GetHostName(thisHostname);
   if (NS_FAILED(rv))
-    return PR_TRUE;
+    return PL_DHASH_NEXT;
 
   nsCString thisUsername;
   if (entry->useRealSetting)
@@ -1893,19 +1860,19 @@ nsMsgAccountManager::findServerUrl(nsISupports *aElement, void *data)
   else
     rv = server->GetUsername(thisUsername);
   if (NS_FAILED(rv))
-    return PR_TRUE;
+    return PL_DHASH_NEXT;
 
   nsCString thisType;
   rv = server->GetType(thisType);
   if (NS_FAILED(rv))
-    return PR_TRUE;
+    return PL_DHASH_NEXT;
 
   PRInt32 thisPort = -1; // use the default port identifier
   // Don't try and get a port for the 'none' scheme
   if (!thisType.EqualsLiteral("none"))
   {
     rv = server->GetPort(&thisPort);
-    NS_ENSURE_TRUE(NS_SUCCEEDED(rv), PR_TRUE);
+    NS_ENSURE_TRUE(NS_SUCCEEDED(rv), PL_DHASH_NEXT);
   }
 
   // treat "" as a wild card, so if the caller passed in "" for the desired attribute
@@ -1916,9 +1883,9 @@ nsMsgAccountManager::findServerUrl(nsISupports *aElement, void *data)
       (entry->username.IsEmpty() || thisUsername.Equals(entry->username)))
   {
     entry->server = server;
-    return PR_FALSE; // stop on first find
+    return PL_DHASH_STOP; // stop on first find
   }
-  return PR_TRUE;
+  return PL_DHASH_NEXT;
 }
 
 NS_IMETHODIMP
@@ -1956,8 +1923,7 @@ nsMsgAccountManager::GetIdentitiesForServer(nsIMsgIncomingServer *server,
 {
   NS_ENSURE_ARG_POINTER(server);
   NS_ENSURE_ARG_POINTER(_retval);
-  nsresult rv;
-  rv = LoadAccounts();
+  nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupportsArray> identities;
@@ -2890,74 +2856,77 @@ NS_IMETHODIMP nsMsgAccountManager::SaveVirtualFolders()
 {
   if (!m_virtualFoldersLoaded)
     return NS_OK;
-  nsCOMPtr<nsISupportsArray> allServers;
-  nsresult rv = GetAllServersInternal(getter_AddRefs(allServers));
-  nsCOMPtr <nsILocalFile> file;
-  if (allServers)
-  {
-    PRUint32 count = 0;
-    allServers->Count(&count);
-    PRUint32 i;
-    nsCOMPtr <nsIOutputStream> outputStream;
-    for (i = 0; i < count; i++)
-    {
-      nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, i);
-      if (server)
-      {
-        nsCOMPtr <nsIMsgFolder> rootFolder;
-        server->GetRootFolder(getter_AddRefs(rootFolder));
-        if (rootFolder)
-        {
-          nsCOMPtr <nsIArray> virtualFolders;
-          rv = rootFolder->GetFoldersWithFlags(nsMsgFolderFlags::Virtual,
-                                               getter_AddRefs(virtualFolders));
-          NS_ENSURE_SUCCESS(rv, rv);
-          PRUint32 vfCount;
-          virtualFolders->GetLength(&vfCount);
-          if (!outputStream)
-          {
-            GetVirtualFoldersFile(file);
-            rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream),
-                                             file,
-                                             PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
-                                             0664);
-            NS_ENSURE_SUCCESS(rv, rv);
-            WriteLineToOutputStream("version=", "1", outputStream);
+  nsIOutputStream *outputStream = nsnull;
 
-          }
-          for (PRUint32 folderIndex = 0; folderIndex < vfCount; folderIndex++)
+  m_incomingServers.Enumerate(saveVirtualFolders, &outputStream);
+  if (outputStream)
+  {
+    outputStream->Close();
+    outputStream->Release();
+  }
+  return NS_OK;
+}
+
+PLDHashOperator
+nsMsgAccountManager::saveVirtualFolders(nsCStringHashKey::KeyType key,
+                                        nsCOMPtr<nsIMsgIncomingServer>& server,
+                                        void *data)
+{
+  if (server)
+  {
+    nsCOMPtr <nsIMsgFolder> rootFolder;
+    server->GetRootFolder(getter_AddRefs(rootFolder));
+    if (rootFolder)
+    {
+      nsCOMPtr <nsIArray> virtualFolders;
+      nsresult rv = rootFolder->GetFoldersWithFlags(nsMsgFolderFlags::Virtual,
+                                           getter_AddRefs(virtualFolders));
+      NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
+      PRUint32 vfCount;
+      virtualFolders->GetLength(&vfCount);
+      nsIOutputStream *outputStream = * (nsIOutputStream **) data;
+      if (!outputStream)
+      {
+        nsCOMPtr<nsILocalFile> file;
+        GetVirtualFoldersFile(file);
+        rv = NS_NewLocalFileOutputStream(&outputStream,
+                                         file,
+                                         PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
+                                         0664);
+        NS_ENSURE_SUCCESS(rv, PL_DHASH_STOP);
+        * (nsIOutputStream **) data = outputStream;
+        WriteLineToOutputStream("version=", "1", outputStream);
+
+      }
+      for (PRUint32 folderIndex = 0; folderIndex < vfCount; folderIndex++)
+      {
+        nsCOMPtr <nsIRDFResource> folderRes (do_QueryElementAt(virtualFolders, folderIndex));
+        nsCOMPtr <nsIMsgFolder> msgFolder = do_QueryInterface(folderRes);
+        const char *uri;
+        nsCOMPtr <nsIMsgDatabase> db;
+        nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
+        rv = msgFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(db)); // force db to get created.
+        if (dbFolderInfo)
+        {
+          nsCString srchFolderUri;
+          nsCString searchTerms;
+          PRBool searchOnline = PR_FALSE;
+          dbFolderInfo->GetBooleanProperty("searchOnline", PR_FALSE, &searchOnline);
+          dbFolderInfo->GetCharProperty("searchFolderUri", srchFolderUri);
+          dbFolderInfo->GetCharProperty("searchStr", searchTerms);
+          folderRes->GetValueConst(&uri);
+          if (!srchFolderUri.IsEmpty() && !searchTerms.IsEmpty())
           {
-            nsCOMPtr <nsIRDFResource> folderRes (do_QueryElementAt(virtualFolders, folderIndex));
-            nsCOMPtr <nsIMsgFolder> msgFolder = do_QueryInterface(folderRes);
-            const char *uri;
-            nsCOMPtr <nsIMsgDatabase> db;
-            nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
-            rv = msgFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(db)); // force db to get created.
-            if (dbFolderInfo)
-            {
-              nsCString srchFolderUri;
-              nsCString searchTerms;
-              PRBool searchOnline = PR_FALSE;
-              dbFolderInfo->GetBooleanProperty("searchOnline", PR_FALSE, &searchOnline);
-              dbFolderInfo->GetCharProperty("searchFolderUri", srchFolderUri);
-              dbFolderInfo->GetCharProperty("searchStr", searchTerms);
-              folderRes->GetValueConst(&uri);
-              if (!srchFolderUri.IsEmpty() && !searchTerms.IsEmpty())
-              {
-                WriteLineToOutputStream("uri=", uri, outputStream);
-                WriteLineToOutputStream("scope=", srchFolderUri.get(), outputStream);
-                WriteLineToOutputStream("terms=", searchTerms.get(), outputStream);
-                WriteLineToOutputStream("searchOnline=", searchOnline ? "true" : "false", outputStream);
-              }
-            }
+            WriteLineToOutputStream("uri=", uri, outputStream);
+            WriteLineToOutputStream("scope=", srchFolderUri.get(), outputStream);
+            WriteLineToOutputStream("terms=", searchTerms.get(), outputStream);
+            WriteLineToOutputStream("searchOnline=", searchOnline ? "true" : "false", outputStream);
           }
         }
       }
-   }
-   if (outputStream)
-    outputStream->Close();
+    }
   }
-  return rv;
+  return PL_DHASH_NEXT;
 }
 
 nsresult nsMsgAccountManager::WriteLineToOutputStream(const char *prefix, const char * line, nsIOutputStream *outputStream)
