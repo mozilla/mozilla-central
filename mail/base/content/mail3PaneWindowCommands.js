@@ -353,10 +353,12 @@ var DefaultController =
       case "cmd_archive":
         return (GetNumSelectedMessages() > 0 );
       case "button_archive":
+      {
         let folder = GetLoadedMsgFolder();
         return GetNumSelectedMessages() > 0 && folder &&
           !(IsSpecialFolder(folder, Components.interfaces.nsMsgFolderFlags.Archive,
                             true));
+      }
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
         // can't do news on junk yet.
@@ -449,9 +451,11 @@ var DefaultController =
       case "cmd_getNextNMessages":
         return IsGetNextNMessagesEnabled();
       case "cmd_emptyTrash":
-        var folder = GetSelectedMsgFolders()[0];
+      {
+        let folder = GetSelectedMsgFolders()[0];
         return folder && folder.server.canEmptyTrashOnExit ?
                          IsMailFolderSelected() : false;
+      }
       case "button_compact":
       case "cmd_compactFolder":
         return IsCompactFolderEnabled();
