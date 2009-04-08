@@ -77,7 +77,7 @@ testStripRe(const char *encodedInput, char *expectedOutput,
 
   // test passed
   return 0;
-};
+}
 
 // General note about return values:
 // return 1 for a setup or xpcom type failure, return 2 for a real test failure
