@@ -58,11 +58,18 @@ let alertHook =
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgUserFeedbackListener]),
 
-  onAlert: function (aMessage, aMsgWindow) {
+  onAlert: function (aMessage, aUrl) {
     // Create a new warning.
     let warning = new nsActWarning(aMessage, this.activityMgr, "");
 
-    warning.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_STANDALONE;
+    if (aUrl && aUrl.server && aUrl.server.prettyName) {
+      warning.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_BYCONTEXT;
+      warning.contextType = "incomingServer";
+      warning.contextDisplayText = aUrl.server.prettyName;
+      warning.contextObj = aUrl.server;
+    }
+    else
+      warning.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_STANDALONE;
 
     this.activityMgr.addActivity(warning);
 

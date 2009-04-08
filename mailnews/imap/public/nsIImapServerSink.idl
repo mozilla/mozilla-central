@@ -44,7 +44,7 @@ interface nsIImapProtocol;
 interface nsIImapUrl;
 interface nsIImapMockChannel;
 
-[scriptable, uuid(88c07d86-5083-4e46-9e85-6bae8a9bfaf5)]
+[scriptable, uuid(3ec99d5f-1355-4eb7-ad70-5bcadc4b8b33)]
 interface nsIImapServerSink : nsISupports {
   /* returns true if it's a new mailbox */
   boolean possibleImapMailbox(in ACString folderPath, in wchar hierarchyDelim, in long boxFlags);
@@ -84,8 +84,8 @@ interface nsIImapServerSink : nsISupports {
   void abortQueuedUrls(); 
   AString getImapStringByID(in long aMsgId);
   AString formatStringWithHostNameByID(in long aMsgId);
-  void fEAlert(in AString aString, in nsIMsgWindow aMsgWindow);
-  void fEAlertFromServer(in ACString aString, in nsIMsgWindow aMsgWindow);
+  void fEAlert(in AString aString, in nsIMsgMailNewsUrl aUrl);
+  void fEAlertFromServer(in ACString aString, in nsIMsgMailNewsUrl aUrl);
   void commitNamespaces();
   void promptForPassword(out ACString aString, in nsIMsgWindow aMsgWindow);
   attribute boolean userAuthenticated;

@@ -1738,17 +1738,18 @@ void nsImapIncomingServer::UnsubscribeFromAllDescendents(nsIMsgFolder *parentFol
 
 
 NS_IMETHODIMP
-nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgWindow * aMsgWindow)
+nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgMailNewsUrl *aUrl)
 {
   nsresult rv;
   nsCOMPtr <nsIMsgMailSession> mailSession =
     do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return mailSession->AlertUser(aString, aMsgWindow);
+  return mailSession->AlertUser(aString, aUrl);
 }
 
-NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString, nsIMsgWindow * aMsgWindow)
+NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString,
+                                                       nsIMsgMailNewsUrl *aUrl)
 {
   NS_ENSURE_TRUE(!aString.IsEmpty(), NS_OK);
   
@@ -1781,7 +1782,7 @@ NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString
   // The alert string from the server IS UTF-8!!! We must convert it to unicode
   // correctly before appending it to our error message string...
   AppendUTF8toUTF16(message, fullMessage);
-  return mailSession->AlertUser(fullMessage, aMsgWindow);
+  return mailSession->AlertUser(fullMessage, aUrl);
 }
 
 #define IMAP_MSGS_URL       "chrome://messenger/locale/imapMsgs.properties"

@@ -53,8 +53,9 @@
 
 interface nsIFile;
 interface nsIMsgUserFeedbackListener;
+interface nsIMsgMailNewsUrl;
 
-[scriptable, uuid(0dd3e1d2-608c-4bbc-a9fa-c70354424286)]
+[scriptable, uuid(577ead34-553e-4cd6-b484-76ff6662082d)]
 interface nsIMsgMailSession : nsISupports {
   void Shutdown();
 
@@ -96,11 +97,10 @@ interface nsIMsgMailSession : nsISupports {
    * the user with a modal dialog if aMsgWindow isn't null.
    *
    * @param aMessage    The localized message string to alert.
-   * @param aMsgWindow  Optional message window argument, if the original
-   *                    message window for the action which caused the alert
-   *                    is known.
+   * @param aUrl        Optional mailnews url which is relevant to the operation
+   *                    which caused the alert to be generated.
    */
-  void alertUser(in AString aMessage, [optional] in nsIMsgWindow aMsgWindow);
+  void alertUser(in AString aMessage, [optional] in nsIMsgMailNewsUrl aUrl);
 
   readonly attribute nsIMsgWindow topmostMsgWindow;
   void AddMsgWindow(in nsIMsgWindow msgWindow);

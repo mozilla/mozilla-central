@@ -54,6 +54,7 @@
 #include "nsAppShellCID.h"
 #include "nsIWindowMediator.h"
 #include "nsIWindowWatcher.h"
+#include "nsIMsgMailNewsUrl.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgMailSession)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgMailSession)
@@ -230,7 +231,7 @@ nsMsgMailSession::RemoveUserFeedbackListener(nsIMsgUserFeedbackListener *aListen
 }
 
 NS_IMETHODIMP
-nsMsgMailSession::AlertUser(const nsAString &aMessage, nsIMsgWindow *aMsgWindow)
+nsMsgMailSession::AlertUser(const nsAString &aMessage, nsIMsgMailNewsUrl *aUrl)
 {
   PRBool listenersNotified = PR_FALSE;
   nsTObserverArray<nsCOMPtr<nsIMsgUserFeedbackListener> >::ForwardIterator iter(mFeedbackListeners);
@@ -240,19 +241,26 @@ nsMsgMailSession::AlertUser(const nsAString &aMessage, nsIMsgWindow *aMsgWindow)
   {
     PRBool notified = PR_FALSE;
     listener = iter.GetNext();
-    listener->OnAlert(aMessage, aMsgWindow, &notified);
+    listener->OnAlert(aMessage, aUrl, &notified);
     listenersNotified = listenersNotified || notified;
   }
 
-  // If the listeners notified the user, then we don't need to.
-  // If we haven't got a message window, then the error was a generated as a
+  // If the listeners notified the user, then we don't need to. Also exit if
+  // aUrl is null because we won't have a nsIMsgWindow in that case.
+  if (listenersNotified || !aUrl)
+    return NS_OK;
+
+  // If the url hasn't got a message window, then the error was a generated as a
   // result of background activity (e.g. autosync, biff, etc), and hence we
   // shouldn't prompt either.
-  if (listenersNotified || !aMsgWindow)
+  nsCOMPtr<nsIMsgWindow> msgWindow;
+  aUrl->GetMsgWindow(getter_AddRefs(msgWindow));
+
+  if (!msgWindow)
     return NS_OK;
 
   nsCOMPtr<nsIPrompt> dialog;
-  aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
+  msgWindow->GetPromptDialog(getter_AddRefs(dialog));
 
   if (!dialog) // if we didn't get one, use the default....
   {

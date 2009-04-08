@@ -38,25 +38,24 @@
 
 #include "nsISupports.idl"
 
-interface nsIMsgWindow;
+interface nsIMsgMailNewsUrl;
 
 /**
  * Implement this interface to subscribe to errors and warnings passed out via
  * nsIMsgMailSession.
  */
-[scriptable, uuid(a52874d3-22ca-41da-9837-b9f9791234a9)]
+[scriptable, uuid(5e909ffa-77fe-4ce3-bf3c-06c54596d03d)]
 interface nsIMsgUserFeedbackListener : nsISupports {
   /**
    * Called when an alert from a protocol level implementation is generated.
    *
    * @param aMessage    The localized message string to alert.
-   * @param aMsgWindow  Optional message window argument, if the original
-   *                    message window for the action which caused the alert
-   *                    is known.
+   * @param aUrl        Optional mailnews url which is relevant to the operation
+   *                    which caused the alert to be generated.
    * @return            True if you serviced the alert and it does not need
    *                    to be prompted to the user separately.
-   *                    Note: The caller won't prompt if aMsgWindow is null,
-   *                    regardless of the value returned.
+   *                    Note: The caller won't prompt if msgWindow in aUrl is
+   *                    null, regardless of the value returned.
    */
-  boolean onAlert(in AString aMessage, [optional] in nsIMsgWindow aMsgWindow);
+  boolean onAlert(in AString aMessage, [optional] in nsIMsgMailNewsUrl aUrl);
 };

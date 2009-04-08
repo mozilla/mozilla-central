@@ -4,6 +4,8 @@
  * listeners.
  */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 // This allows us to check that we get alerts at the right time without
 // involking the UI.
 var prompts = {
@@ -45,13 +47,7 @@ var prompts = {
   select: function(aDialogTitle, aText, aCount, aSelectList,
 		   aOutSelection) {},
   
-  QueryInterface: function(iid) {
-    if (iid.equals(Components.interfaces.nsIPrompt)
-     || iid.equals(Components.interfaces.nsISupports))
-      return this;
-  
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  }
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIPrompt])
 };
 
 var WindowWatcher = {
@@ -63,13 +59,7 @@ var WindowWatcher = {
     return prompts;
   },
 
-  QueryInterface: function(iid) {
-    if (iid.equals(Ci.nsIWindowWatcher) || iid.equals(Ci.nsISupports)) {
-      return this;
-    }
-
-    throw Cr.NS_ERROR_NO_INTERFACE;
-  }
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIWindowWatcher])
 };
 
 var WindowWatcherFactory = {
@@ -91,13 +81,17 @@ var msgWindow = {
     return prompts;
   },
 
-  QueryInterface: function(iid) {
-    if (iid.equals(Ci.nsIMsgWindow) || iid.equals(Ci.nsISupports)) {
-      return this;
-    }
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow])
+};
 
-    throw Cr.NS_ERROR_NO_INTERFACE;
-  }
+var msgUrl = {
+  _msgWindow: null,
+
+  get msgWindow() {
+    return this._msgWindow;
+  },
+
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgMailNewsUrl])
 };
 
 function alertListener() {}
@@ -132,7 +126,9 @@ function run_test()
 
   prompts.reset();
 
-  mailSession.alertUser("test message", msgWindow);
+  msgUrl._msgWindow = msgWindow;
+
+  mailSession.alertUser("test message", msgUrl);
 
   // The dialog title doesn't get set at the moment.
   do_check_eq(prompts.mDialogTitle, null);
@@ -142,7 +138,9 @@ function run_test()
 
   prompts.reset();
 
-  mailSession.alertUser("test no message", null);
+  msgUrl._msgWindow = null;
+
+  mailSession.alertUser("test no message", msgUrl);
 
   // The dialog title doesn't get set at the moment.
   do_check_eq(prompts.mDialogTitle, null);
@@ -157,7 +155,9 @@ function run_test()
 
   mailSession.addUserFeedbackListener(listener1);
 
-  mailSession.alertUser("message test", msgWindow);
+  msgUrl._msgWindow = msgWindow;
+
+  mailSession.alertUser("message test", msgUrl);
 
   do_check_eq(prompts.mDialogTitle, null);
   do_check_eq(prompts.mText, "message test");
@@ -189,7 +189,9 @@ function run_test()
 
   mailSession.addUserFeedbackListener(listener2);
 
-  mailSession.alertUser("two listeners", msgWindow);
+  msgUrl._msgWindow = msgWindow;
+
+  mailSession.alertUser("two listeners", msgUrl);
 
   do_check_eq(prompts.mDialogTitle, null);
   do_check_eq(prompts.mText, "two listeners");
@@ -208,7 +210,9 @@ function run_test()
 
   listener2.mReturn = true;
 
-  mailSession.alertUser("no prompt", msgWindow);
+  msgUrl._msgWindow = msgWindow;
+
+  mailSession.alertUser("no prompt", msgUrl);
 
   do_check_eq(prompts.mDialogTitle, null);
   do_check_eq(prompts.mText, null);
@@ -227,7 +231,9 @@ function run_test()
 
   mailSession.removeUserFeedbackListener(listener1);
 
-  mailSession.alertUser("remove listener", msgWindow);
+  msgUrl._msgWindow = msgWindow;
+
+  mailSession.alertUser("remove listener", msgUrl);
 
   do_check_eq(prompts.mDialogTitle, null);
   do_check_eq(prompts.mText, null);
@@ -246,7 +252,9 @@ function run_test()
 
   mailSession.removeUserFeedbackListener(listener2);
 
-  mailSession.alertUser("no listeners", msgWindow);
+  msgUrl._msgWindow = msgWindow;
+
+  mailSession.alertUser("no listeners", msgUrl);
 
   do_check_eq(prompts.mDialogTitle, null);
   do_check_eq(prompts.mText, "no listeners");

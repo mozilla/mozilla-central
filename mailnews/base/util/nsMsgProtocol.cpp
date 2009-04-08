@@ -438,16 +438,11 @@ NS_IMETHODIMP nsMsgProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctx
           errorMsg.AppendLiteral("?]");
         }
 
-        nsCOMPtr <nsIMsgMailSession> mailSession =
+        nsCOMPtr<nsIMsgMailSession> mailSession =
           do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
 
-        nsCOMPtr<nsIMsgWindow> msgWindow;
-        // If we don't manage to get a msgWindow, that's fine, its optional
-        // for AlertUser.
-        msgUrl->GetMsgWindow(getter_AddRefs(msgWindow));
-
-        rv = mailSession->AlertUser(errorMsg, msgWindow);
+        rv = mailSession->AlertUser(errorMsg, msgUrl);
       }
     } // if we got an error code
   } // if we have a mailnews url.

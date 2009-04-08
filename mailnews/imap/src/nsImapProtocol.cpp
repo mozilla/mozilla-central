@@ -4839,9 +4839,7 @@ nsImapProtocol::AlertUserEventUsingId(PRUint32 aMessageId)
     {
       nsString progressString;
       m_imapServerSink->FormatStringWithHostNameByID(aMessageId, progressString);
-      nsCOMPtr<nsIMsgWindow> msgWindow;
-      GetMsgWindow(getter_AddRefs(msgWindow));
-      m_imapServerSink->FEAlert(progressString, msgWindow);
+      m_imapServerSink->FEAlert(progressString, mailnewsUrl);
     }
   }
 }
@@ -4858,11 +4856,7 @@ nsImapProtocol::AlertUserEvent(const char * message)
       mailnewsUrl->GetSuppressErrorMsgs(&suppressErrorMsg);
 
     if (!suppressErrorMsg)
-    {
-      nsCOMPtr<nsIMsgWindow> msgWindow;
-      GetMsgWindow(getter_AddRefs(msgWindow));
-      m_imapServerSink->FEAlert(NS_ConvertASCIItoUTF16(message), msgWindow);
-    }
+      m_imapServerSink->FEAlert(NS_ConvertASCIItoUTF16(message), mailnewsUrl);
   }
 }
 
@@ -4871,9 +4865,9 @@ nsImapProtocol::AlertUserEventFromServer(const char * aServerEvent)
 {
     if (m_imapServerSink && aServerEvent)
     {
-      nsCOMPtr<nsIMsgWindow> msgWindow;
-      GetMsgWindow(getter_AddRefs(msgWindow));
-      m_imapServerSink->FEAlertFromServer(nsDependentCString(aServerEvent), msgWindow);
+      nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningUrl);
+      m_imapServerSink->FEAlertFromServer(nsDependentCString(aServerEvent),
+                                          mailnewsUrl);
     }
 }
 
