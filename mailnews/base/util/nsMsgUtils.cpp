@@ -540,6 +540,16 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
   return NS_CopyUnicodeToNative(path, aPathCString);
 }
 
+/* Given a string and a length, removes any "Re:" strings from the front.
+   It also deals with that dumbass "Re[2]:" thing that some losing mailers do.
+
+   If mailnews.localizedRe is set, it will also remove localized "Re:" strings.
+
+   Returns PR_TRUE if it made a change, PR_FALSE otherwise.
+
+   The string is not altered: the pointer to its head is merely advanced,
+   and the length correspondingly decreased.
+ */
 PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject)
 {
   const char *s, *s_end;

@@ -86,22 +86,6 @@ NS_MSG_BASE nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
                                                          nsCString& aPathString,
                                                          PRBool aIsNewsFolder=PR_FALSE);
 
-/**
- * Given a string and a length, removes any "Re:" strings from the front.
- * It also deals with that dumbass "Re[2]:" thing that some losing mailers do.
- *
- * If mailnews.localizedRe is set, it will also remove localized "Re:" strings.
- *
- * @return PR_TRUE if it made a change (in which case the caller should look to
- *         modifiedSubject for the result) and PR_FALSE otherwise (in which
- *         case the caller should look at stringp/length for the result) 
- *
- * @note In the case of a PR_TRUE return value, the string is not altered:
- *       the pointer to its head is merely advanced, and the length
- *       correspondingly decreased.
- * 
- * @note This API is insane and should be fixed.
- */
 NS_MSG_BASE PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject=nsnull);
 
 NS_MSG_BASE char * NS_MsgSACopy(char **destination, const char *source);

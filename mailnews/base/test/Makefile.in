@@ -21,7 +21,6 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Dan Mosedale <dmose@mozillamessaging.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -47,42 +46,7 @@ include $(DEPTH)/config/autoconf.mk
 # Module name for xpcshell tests.
 MODULE         = test_mailnewsbase
 
-REQUIRES = msgbase msgbaseutil
-
 XPCSHELL_TESTS = unit
 
-CPP_UNIT_TESTS = \
-    TestMsgStripRE.cpp \
-    $(NULL)
-
-include $(topsrcdir)/config/config.mk
-    
 include $(topsrcdir)/config/rules.mk
 
-LOCAL_INCLUDES = \
-    -I$(MOZILLA_SRCDIR)/xpcom/tests \
-    $(NULL)
-
-ifndef MOZILLA_INTERNAL_API
-LIBS += $(XPCOM_GLUE_LDOPTS)
-endif
-
-LIBS +=   \
-    $(NULL)
-
-ifdef MOZ_STATIC_MAIL_BUILD
-LIBS +=   \
-    ../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX) \
-    $(NULL)
-else
-ifeq ($(USE_SHORT_LIBNAME), 1)
-LIBS +=   $(call EXPAND_LIBNAME_PATH,msgbsutl,../../base/util)
-else
-LIBS +=   $(call EXPAND_LIBNAME_PATH,msgbaseutil,../../base/util)
-endif
-endif
-
-LIBS +=   \
-  $(XPCOM_LIBS) \
-  $(NSPR_LIBS) \
-  $(NULL)
