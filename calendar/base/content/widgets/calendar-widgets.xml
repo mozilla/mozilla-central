@@ -368,9 +368,11 @@
       <handler event="dragover"><![CDATA[
          let session = cal.getDragService().getCurrentSession();
          if (!session || !session.sourceNode || !session.sourceNode.sourceObject) {
-            // No source node? Not our drag.
-            return false;
+            // No source item? Then this is not for us.
+            return;
          }
+
+         // We handled the event
          event.preventDefault();
       ]]></handler>
 
