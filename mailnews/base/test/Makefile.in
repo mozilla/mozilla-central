@@ -52,7 +52,7 @@ REQUIRES = msgbase msgbaseutil
 XPCSHELL_TESTS = unit
 
 CPP_UNIT_TESTS = \
-    TestMsgStripRE \
+    TestMsgStripRE.cpp \
     $(NULL)
 
 include $(topsrcdir)/config/config.mk
