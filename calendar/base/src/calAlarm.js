@@ -593,9 +593,11 @@ calAlarm.prototype = {
 
     toString: function cA_toString(aItem) {
         if (this.related == ALARM_RELATED_ABSOLUTE && this.mAbsoluteDate) {
-            // this is an absolute alarm
+            // this is an absolute alarm. Use the calendar default timezone and
+            // format it.
             let formatter = cal.getDateFormatter();
-            return formatter.formatDateTime(this.mAbsoluteDate);
+            let formatDate = this.mAbsoluteDate.getInTimezone(cal.calendarDefaultTimezone());
+            return formatter.formatDateTime(formatDate);
         } else if (this.related != ALARM_RELATED_ABSOLUTE && this.mOffset) {
             function getItemBundleStringName(aPrefix) {
                 if (!aItem || isEvent(aItem)) {
