@@ -366,6 +366,7 @@ let gFolderTreeView = {
         if (msgHdr.folder == targetFolder)
           return false;
       }
+      return true;
     }
     else if (Array.indexOf(types, "text/x-moz-folder") != -1) {
       if (aOrientation != Ci.nsITreeView.DROP_ON)
@@ -399,6 +400,7 @@ let gFolderTreeView = {
                                   folder.server == targetFolder.server))
           return false;
       }
+      return true;
     }
     else if (Array.indexOf(types, "text/x-moz-newsfolder") != -1) {
       // Don't allow dragging onto element.
@@ -423,8 +425,13 @@ let gFolderTreeView = {
             (gFolderTreeView._rowMap[row]._folder == folder))
           return false;
       }
+      return true;
     }
-    return true;
+    // allow subscribing to feeds by dragging an url to a feed account
+    else if (Array.indexOf(types, "text/x-moz-url") != -1 &&
+             targetFolder.server.type == "rss")
+      return true;
+    return false;
   },
   drop: function ftv_drop(aRow, aOrientation) {
     const Cc = Components.classes;
@@ -502,7 +509,7 @@ let gFolderTreeView = {
       let uri = Cc["@mozilla.org/network/io-service;1"]
                    .getService(Ci.nsIIOService).newURI(url, null, null);
       if (!(uri.schemeIs("http") || uri.schemeIs("https")) ||
-             targetFolder.server.type != 'rss')
+             targetFolder.server.type != "rss")
         return;
 
       Cc["@mozilla.org/newsblog-feed-downloader;1"]
