@@ -1,0 +1,53 @@
+<!ENTITY welcome.description             "Quick Account Setup">
+<!ENTITY autoconfigWizard.style          "width: 640px; height: 480px;">
+<!ENTITY name.description                "Your name">
+<!ENTITY email.description               "Email">
+<!ENTITY password.description            "Password">
+
+<!ENTITY username.label                  "username">
+<!ENTITY receivingserver.label           "receiving">
+<!ENTITY sendingserver.label             "sending">
+<!ENTITY noencryption.label              "None">
+<!ENTITY starttls.label                  "STARTTLS">
+<!ENTITY ssltls.label                    "SSL / TLS">
+
+<!ENTITY imap.label                      "IMAP">
+<!ENTITY pop.label                       "POP">
+<!ENTITY smtp.label                      "SMTP">
+
+<!ENTITY gotoadvanced.label              "Go to advanced settings">
+<!ENTITY cancel.label                    "Cancel">
+<!ENTITY stop.label                      "Stop">
+<!ENTITY go_button.label                 "Go">
+<!ENTITY edit.label                      "Edit">
+<!ENTITY createaccount.label             "Create Account">
+
+<!ENTITY rememberpassword.label          "Remember password">
+
+<!ENTITY warning.label                   "Warning!">
+<!ENTITY incoming_settings.label         "Incoming settings:">
+<!ENTITY outgoing_settings.label         "Outgoing settings:">
+<!ENTITY incoming_is_checked.label       "I've double-checked the incoming settings.">
+<!ENTITY outgoing_is_checked.label       "I've double-checked the outgoing settings.">
+<!ENTITY understood.label                "I know what I'm doing.">
+<!ENTITY getmeout.label                  "This is scary, let me out.">
+
+<!ENTITY lectureYourProvider.description "&brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
+<!ENTITY getcertinfo.label       "Get information on securing email servers.">
+<!ENTITY certinfo.url            "http://www.mozillamessaging.com/XXX/about/certs">
+
+<!ENTITY insecureCleartext.description   "Warning! This is an insecure server. Email is sent in clear-text, so your email could be read by attackers, etc. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
+<!ENTITY insecureSelfsigned.description  "Warning! This is an insecure server. The server uses a certificate that we can't trust, so we can't be sure that someone isn't intercepting the traffic between &brandShortName; and your server. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a trusted certificate.">
+<!ENTITY secureServer.description        "Congratulations! This is a secure server.">
+
+<!ENTITY customfields-header.label     "Additional information">
+<!ENTITY customfields-intro1.descr     "For your mail provider, there is additional information needed to configure your account.">
+<!ENTITY customfields-intro2.descr     "Please look up the information in the paper or email with your account details that the provider sent you, usually when you signed up there, and enter it below.">
+<!ENTITY customfields-cancel.label     "Back">
+<!ENTITY customfields-ok.label         "OK">
+
+<!ENTITY enableURLs-header.label       "Enable account for &brandShortName;">
+<!ENTITY enableURLs-intro1.descr       "Your provider asks you to do some additional action to activate your account for use with &brandShortName;.">
+<!ENTITY enableURLs-intro2.descr       "Please visit the web pages below, login to your account where needed, and then follow the action mentioned below or on the page.">
+<!ENTITY enableURLs-cancel.label       "Back">
+<!ENTITY enableURLs-ok.label           "I've done all that">

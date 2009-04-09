@@ -1,0 +1,212 @@
+/* ::::: BUTTONS ::::: */
+
+.larger-button {
+  font-weight: bold;
+  font-size: larger;
+}
+
+.smaller-button {
+  font-size: smaller;
+}
+
+#back_button {
+  color: GrayText;
+}
+
+#back_button:hover {
+  color: ButtonText;
+}
+
+.clickable_label:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.clickable_label {
+  color: blue;
+  width: 120px;
+  padding-top: 6px;
+  -moz-padding-start: 2px;
+  padding-bottom: 5px;
+  overflow: auto;
+}
+
+.errordescription {
+  -moz-padding-start: 4px;
+  padding-top: 4px;
+  color: rgb(244,50,50);
+}
+
+.edited_label {
+  width: 123px;
+  overflow: auto;
+}
+
+.protocol_label {
+  width: 73px;
+  -moz-padding-start: 6px;
+}
+
+#incoming_config {
+  width: 73px;
+  padding-top: 6px;
+  -moz-padding-start: 6px;
+}
+
+menulist[disabled="true"] {
+  -moz-appearance: none;
+  border: none;
+  background-color: #fff;
+  color: -moz-DialogText;
+}
+
+menulist[disabled="true"] > .menulist-editable-box,
+menulist[disabled="true"] > .menulist-editable-box > .menulist-editable-input,
+menulist[disabled="true"] > .menulist-dropmarker {
+  -moz-appearance: none;
+  color: -moz-DialogText;
+}
+
+#outgoing_protocol {
+  width: 73px;
+  padding-top: 5px;
+  -moz-padding-start: 6px;
+}
+
+#outgoing_config {
+  width: 73px;
+  padding-top: 5px;
+  -moz-padding-start: 6px;
+}
+
+.config_area {
+  padding: 6px;
+}
+
+.settingsbox {
+  min-height: 200px;
+}
+
+description.error_notice {
+  color: rgb(244,50,50);
+}
+
+description.heading {
+  font-size: larger;
+  padding-bottom: 1em;
+}
+
+description.explanation {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+#config_status_title {
+  font-size: larger;
+  font-weight: bold;
+}
+
+#config_status_subtitle {
+  font-size: smaller;
+  color: GrayText;
+  font-style: italic;
+}
+
+vbox.statusimage {
+  padding-top: 6px;
+}
+
+label.bignumber {
+  font-size: larger;
+  font-weight: bolder;
+  color: white;
+  background-color: rgb(140,140,140);
+  -moz-border-radius: 8px;
+  padding: 8px;
+}
+
+hbox.stepheading {
+  padding-bottom: 1em;
+}
+
+window {
+  -moz-appearance: none;
+  padding: 14px;
+}
+
+.wizard-header {
+  -moz-border-radius-topright: 15px;
+  -moz-border-radius-topleft: 15px;
+  margin-top: 70px;
+  -moz-margin-end: 0;
+  -moz-margin-start: 0;
+  border-bottom: none;
+  -moz-padding-start: 14px;
+  -moz-padding-end: 14px;
+  padding-top: 14px;
+}
+
+.wizard-page-box {
+  -moz-border-radius-bottomright: 15px;
+  -moz-border-radius-bottomleft: 15px;
+  margin-top: 0;
+  -moz-margin-end: 0;
+  -moz-margin-start: 0;
+  -moz-padding-start: 14px;
+  -moz-padding-end: 14px;
+  padding-bottom: 14px;
+}
+
+.wizard-header, .wizard-page-box {
+  -moz-appearance: none;
+  background-color: #FFFFFF;
+  opacity: 0.8;
+}
+
+.header {
+  font-weight: bold;
+}
+
+vbox.icon {
+  width: 22px;
+  height: 22px;
+  background-repeat: no-repeat;
+}
+
+image.insecureLarry  {
+  height: 64px;
+  width: 64px;
+  padding: 0;
+  list-style-image: url("chrome://global/skin/icons/sslWarning.png");
+}
+
+image.secureLarry  {
+  height: 64px;
+  width: 64px;
+  padding: 0;
+  list-style-image: url("chrome://messenger/skin/icons/identity.png");
+}
+
+vbox.mastervbox {
+  padding: 14px;
+}
+
+vbox.icon[state='strong'] {
+  background-image: url("chrome://messenger/skin/icons/secure.png");
+}
+
+vbox.icon[state='failed'] {
+  background-image: url("chrome://messenger/skin/icons/failed.png");
+}
+
+vbox.icon[state='probing'] {
+  background-image: url("chrome://messenger/skin/icons/probing.png");
+}
+
+vbox.icon[state='weak'] {
+  background-image: url("chrome://messenger/skin/icons/insecure.png");
+}
+
+vbox.settings {
+  padding: 1em;
+}
