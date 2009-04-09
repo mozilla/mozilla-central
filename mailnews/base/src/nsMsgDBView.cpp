@@ -2780,7 +2780,7 @@ nsresult nsMsgDBView::DownloadFlaggedForOffline(nsIMsgWindow *window)
   {
     PRBool hasMore;
 
-    while (NS_SUCCEEDED(rv = enumerator->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+    while (NS_SUCCEEDED(rv = enumerator->HasMoreElements(&hasMore)) && hasMore)
     {
       nsCOMPtr <nsIMsgDBHdr> pHeader;
       rv = enumerator->GetNext(getter_AddRefs(pHeader));

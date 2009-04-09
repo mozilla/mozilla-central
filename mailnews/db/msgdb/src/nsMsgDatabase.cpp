@@ -937,7 +937,7 @@ void nsMsgDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
   NS_IF_ADDREF(*aMdbFactory = mMdbFactory);
 }
 
-// caller passes in leaveInvalidDB==PR_TRUE if they want back a db even if the db is out of date.
+// aLeaveInvalidDB: PR_TRUE if caller wants back a db even out of date.
 // If so, they'll extract out the interesting info from the db, close it, delete it, and
 // then try to open the db again, prior to reparsing.
 NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRBool aLeaveInvalidDB)
@@ -1496,7 +1496,8 @@ nsresult nsMsgDatabase::InitExistingDB()
       {
         PRBool hasMore;
 
-        while (NS_SUCCEEDED(err = enumerator->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+        while (NS_SUCCEEDED(err = enumerator->HasMoreElements(&hasMore)) &&
+               hasMore)
         {
           nsCOMPtr <nsIMsgDBHdr> msgHdr;
           err = enumerator->GetNext(getter_AddRefs(msgHdr));
@@ -2346,7 +2347,7 @@ NS_IMETHODIMP nsMsgDatabase::MarkAllRead(nsTArray<nsMsgKey> *thoseMarked)
     return rv;
   PRBool hasMore = PR_FALSE;
 
-  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
   {
     rv = hdrs->GetNext((nsISupports**)&pHeader);
     NS_ASSERTION(NS_SUCCEEDED(rv), "nsMsgDBEnumerator broken");
@@ -2395,7 +2396,7 @@ NS_IMETHODIMP nsMsgDatabase::MarkReadByDate (PRTime startDate, PRTime endDate, n
 
   PRBool hasMore = PR_FALSE;
 
-  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
   {
     rv = hdrs->GetNext((nsISupports**)&pHeader);
     NS_ASSERTION(NS_SUCCEEDED(rv), "nsMsgDBEnumerator broken");
@@ -2667,7 +2668,7 @@ nsMsgDatabase::SyncCounts()
   else
     return NS_ERROR_NULL_POINTER;
 
-  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
   {
     rv = hdrs->GetNext(getter_AddRefs(pHeader));
     NS_ASSERTION(NS_SUCCEEDED(rv), "nsMsgDBEnumerator broken");
@@ -3723,7 +3724,7 @@ nsresult nsMsgDatabase::InitRefHash()
   // Populate table with references of existing messages
   PRBool hasMore;
   nsresult rv = NS_OK;
-  while (NS_SUCCEEDED(rv = enumerator->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE)) 
+  while (NS_SUCCEEDED(rv = enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
     rv = enumerator->GetNext(getter_AddRefs(msgHdr));
@@ -4230,7 +4231,7 @@ nsresult nsMsgDatabase::ListAllThreads(nsTArray<nsMsgKey> *threadIds)
   if (NS_FAILED(rv)) return rv;
   PRBool hasMore = PR_FALSE;
 
-  while (NS_SUCCEEDED(rv = threads->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+  while (NS_SUCCEEDED(rv = threads->HasMoreElements(&hasMore)) && hasMore)
   {
     rv = threads->GetNext((nsISupports**)&pThread);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -4428,7 +4429,8 @@ nsresult nsMsgDatabase::DumpThread(nsMsgKey threadId)
     {
       PRBool hasMore = PR_FALSE;
 
-      while (NS_SUCCEEDED(rv = enumerator->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+      while (NS_SUCCEEDED(rv = enumerator->HasMoreElements(&hasMore)) &&
+             hasMore)
       {
         nsCOMPtr <nsIMsgDBHdr> pMessage;
         rv = enumerator->GetNext(getter_AddRefs(pMessage));
@@ -4695,7 +4697,7 @@ nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
 
   LL_SUB(cutOffDay, now, microSecondsInDay); // = now - term->m_value.u.age * 60 * 60 * 24;
   // so now cutOffDay is the PRTime cut-off point. Any msg with a date less than that will get purged.
-  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
   {
     PRBool purgeHdr = PR_FALSE;
 
@@ -4770,7 +4772,7 @@ nsresult nsMsgDatabase::PurgeExcessMessages(PRUint32 numHeadersToKeep,
   else
     return NS_ERROR_NULL_POINTER;
 
-  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
   {
     PRBool purgeHdr = PR_FALSE;
     rv = hdrs->GetNext((nsISupports**)&pHeader);

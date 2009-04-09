@@ -389,7 +389,7 @@ void nsSmtpProtocol::AppendHelloArgument(nsACString& aResult)
               char ipAddressString[64];
               if (PR_NetAddrToString(&iaddr, ipAddressString, sizeof(ipAddressString)) == PR_SUCCESS)
               {
-                  NS_ASSERTION(PR_IsNetAddrType(&iaddr, PR_IpAddrV4Mapped) == PR_FALSE,
+                  NS_ASSERTION(!PR_IsNetAddrType(&iaddr, PR_IpAddrV4Mapped),
                                "unexpected IPv4-mapped IPv6 address");
 
                   if (iaddr.raw.family == PR_AF_INET6)   // IPv6 style address?

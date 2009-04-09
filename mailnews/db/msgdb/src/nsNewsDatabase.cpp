@@ -296,7 +296,7 @@ nsresult nsNewsDatabase::SyncWithReadSet()
   nsCOMPtr <nsIMsgThread> threadHdr;
 
   // Scan all messages in DB
-  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE))
+  while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
   {
       rv = hdrs->GetNext(getter_AddRefs(header));
       NS_ENSURE_SUCCESS(rv, rv);

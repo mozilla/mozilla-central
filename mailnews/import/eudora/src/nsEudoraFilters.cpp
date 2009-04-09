@@ -852,7 +852,8 @@ nsresult nsEudoraFilters::AddMailboxAction(const char* pMailboxPath, PRBool isTr
   PRInt32 index = filePath.RFindChar('\\');
   if (index >= 0)
     filePath.SetLength(index);
-  if (nsEudoraWin32::GetMailboxNameHierarchy(filePath, pMailboxPath, nameHierarchy) == PR_FALSE)
+  if (!nsEudoraWin32::GetMailboxNameHierarchy(filePath, pMailboxPath,
+                                              nameHierarchy))
     return NS_ERROR_INVALID_ARG;
 #endif
 #ifdef XP_MACOSX

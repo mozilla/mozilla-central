@@ -173,7 +173,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
     // Check For Profile Name
     if (aLogin != nsnull && aLogin[0] != '\0')
     {
-        if (nsMapiHook::VerifyUserName(nsString(aLogin), id_key) == PR_FALSE)
+        if (!nsMapiHook::VerifyUserName(nsString(aLogin), id_key))
         {
             *aSessionId = MAPI_E_LOGIN_FAILURE;
             PR_LOG(MAPI, PR_LOG_DEBUG, ("CMapiImp::Login failed for username %s\n", aLogin));

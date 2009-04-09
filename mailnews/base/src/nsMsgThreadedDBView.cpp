@@ -424,8 +424,9 @@ nsresult nsMsgThreadedDBView::ListThreadIds(nsMsgKey *startMsg, PRBool unreadOnl
   
   nsCOMPtr <nsIMsgThread> threadHdr ;
   PRInt32	threadsRemoved = 0;
-  for (numListed = 0; numListed < numToList
-    && NS_SUCCEEDED(rv = m_threadEnumerator->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE);)
+  while (numListed < numToList &&
+         NS_SUCCEEDED(rv = m_threadEnumerator->HasMoreElements(&hasMore)) &&
+         hasMore)
   {
     nsCOMPtr <nsISupports> supports;
     rv = m_threadEnumerator->GetNext(getter_AddRefs(supports));

@@ -556,7 +556,7 @@ nsImapProtocol::~nsImapProtocol()
   delete m_inputStreamBuffer;
 
   // **** We must be out of the thread main loop function
-  NS_ASSERTION(m_imapThreadIsRunning == PR_FALSE, "Oops, thread is still running.\n");
+  NS_ASSERTION(!m_imapThreadIsRunning, "Oops, thread is still running.\n");
 
   if (m_dataAvailableMonitor)
     PR_DestroyMonitor(m_dataAvailableMonitor);
@@ -1020,7 +1020,7 @@ private:
 NS_IMETHODIMP nsImapProtocol::Run()
 {
   PR_CEnterMonitor(this);
-  NS_ASSERTION(m_imapThreadIsRunning == PR_FALSE,
+  NS_ASSERTION(!m_imapThreadIsRunning,
                  "Oh. oh. thread is already running. What's wrong here?");
     if (m_imapThreadIsRunning)
     {
