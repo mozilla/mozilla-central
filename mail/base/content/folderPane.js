@@ -242,8 +242,12 @@ let gFolderTreeView = {
    */
   _mode: null,
   get mode() {
-    if (!this._mode)
+    if (!this._mode) {
       this._mode = this._treeElement.getAttribute("mode");
+      // this can happen when an extension is removed
+      if (!(this._mode in this._mapGenerators))
+        this._mode = "all";
+    }
     return this._mode;
   },
   set mode(aMode) {
