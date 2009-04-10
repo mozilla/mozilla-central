@@ -339,6 +339,9 @@ function onLoadPageInfo()
   initialTab = document.getElementById(initialTab) || document.getElementById("generalTab");
   tabbox.selectedTab = initialTab;
   tabbox.selectedTab.focus();
+  Components.classes["@mozilla.org/observer-service;1"]
+            .getService(Components.interfaces.nsIObserverService)
+            .notifyObservers(window, "page-info-dialog-loaded", null);
 }
 
 function onUnloadPageInfo()

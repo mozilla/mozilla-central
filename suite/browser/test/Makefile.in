@@ -49,5 +49,26 @@ _TEST_FILES =	test_feed_discovery.html \
 		bug395533-data.txt \
 		$(NULL)
 
+_BROWSER_FILES = browser_bug413915.js \
+                 browser_bug427559.js \
+                 browser_page_style_menu.js \
+                 page_style_sample.html \
+                 browser_feed_tab.js \
+                 feed_tab.html \
+                 browser_pluginnotification.js \
+                 plugin_unknown.html \
+                 plugin_test.html \
+                 plugin_both.html \
+                 plugin_both2.html \
+                 browser_scope.js \
+    $(NULL)
+
+ifeq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+_BROWSER_FILES += browser_bug462289.js
+endif
+
 libs:: $(addprefix mochitest/, $(_TEST_FILES))
 	$(INSTALL) $(foreach f,$^,"$f") $(MOZDEPTH)/_tests/testing/mochitest/tests/$(relativesrcdir)
+
+libs:: $(addprefix browser/, $(_BROWSER_FILES))
+	$(INSTALL) $(foreach f,$^,"$f") $(MOZDEPTH)/_tests/testing/mochitest/browser/$(relativesrcdir)
