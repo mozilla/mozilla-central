@@ -498,7 +498,7 @@ interface nsIActivityWarning : nsIActivity {
             in AString aRecoveryTip);
 };
 
-[scriptable, uuid(abfcfa8a-c127-40dc-ac64-64b1ffc024ec)]
+[scriptable, uuid(bd11519f-b297-4b34-a793-1861dc90d5e9)]
 interface nsIActivityListener : nsISupports {
   /**
    * Triggered after activity state is changed.
@@ -508,7 +508,7 @@ interface nsIActivityListener : nsISupports {
   /**
    * Triggered after the progress of the process activity is changed.
    */
-  void onProgressChanged(in nsIActivity aActivity, in long aPercentComplete,
+  void onProgressChanged(in nsIActivity aActivity,
                          in AString aStatusText,
                          in unsigned long aWorkUnitsCompleted,
                          in unsigned long aTotalWorkUnits);

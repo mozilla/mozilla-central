@@ -349,7 +349,7 @@
           // make sure that binding reflects the latest state of the process
           this.onStateChanged(this._activity.state,
                               Components.interfaces.nsIActivityProcess.STATE_NOTSTARTED);
-          this.onProgressChanged(this._activity, this._activity.percentComplete,
+          this.onProgressChanged(this._activity,
                                  this._activity.lastStatusText,
                                  this._activity.workUnitComplete,
                                  this._activity.totalWorkUnits);
