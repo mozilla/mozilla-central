@@ -111,14 +111,6 @@ treecol.threadColumnHeader {
   -moz-padding-end: 3px; 
 }
 
-treecol.threadColumnHeader[sortDirection="ascending"]  {
-  list-style-image: url("chrome://messenger/skin/icons/thread-col-sorta.png");
-}
-
-treecol.threadColumnHeader[sortDirection="descending"] {
-  list-style-image: url("chrome://messenger/skin/icons/thread-col-sortd.png");
-}
-
 treechildren::-moz-tree-image(threadCol, container) {
   list-style-image: url("chrome://messenger/skin/icons/thread.png");
 }
@@ -132,11 +124,12 @@ treecol.readColumnHeader {
 }
 
 treechildren::-moz-tree-image(unreadButtonColHeader) {
-  list-style-image: url("chrome://messenger/skin/icons/readmail.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-list.png");
+  -moz-image-region: rect(0px 16px 16px 0px); /* message-read.png */
 }
 
 treechildren::-moz-tree-image(unreadButtonColHeader, unread) {
-  list-style-image: url("chrome://messenger/skin/icons/unreadmail.png");
+  -moz-image-region: rect(16px 16px 32px 0px); /* message-unread.png */
 }
 
 /* ..... attachment column ..... */
@@ -147,7 +140,8 @@ treecol.attachmentColumnHeader {
 }
 
 treechildren::-moz-tree-image(attachmentCol, attach) {
-  list-style-image: url("chrome://messenger/skin/icons/attachment.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-list.png");
+  -moz-image-region: rect(160px 16px 176px 0px); /* message-attachment.png */
 }
 
 /* ..... flag column ..... */
@@ -158,11 +152,12 @@ treecol.flagColumnHeader {
 }
 
 treechildren::-moz-tree-image(flaggedCol) {
-  list-style-image: url("chrome://messenger/skin/icons/readmail.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-list.png");
+  -moz-image-region: rect(96px 16px 112px 0px); /* message-unstarred.png */
 }
 
 treechildren::-moz-tree-image(flaggedCol, flagged) {
-  list-style-image: url("chrome://messenger/skin/icons/flag.png");
+  -moz-image-region: rect(80px 16px 96px 0px); /* message-starred.png */
 }
 
 
@@ -175,17 +170,17 @@ treecol.junkStatusHeader {
 
 /* "unknown" now looks like "not junk".  see bug #182386 */
 treechildren::-moz-tree-image(junkStatusCol) {
-  list-style-image: url("chrome://messenger/skin/icons/readmail.png");
+  list-style-image: url("chrome://messenger/skin/icons/message-list.png");
+  -moz-image-region: rect(0px 16px 16px 0px); /* message-read.png */
   -moz-padding-start: 0px;
 }
 
 treechildren::-moz-tree-image(junkStatusCol, junk) {
-  list-style-image: url("chrome://messenger/skin/icons/folder.png");
-  -moz-image-region: rect(0 128px 16px 112px);
+  -moz-image-region: rect(32px 16px 48px 0px); /* message-junk.png */
 }
 
 treechildren::-moz-tree-image(junkStatusCol, notjunk) {
-  list-style-image: url("chrome://messenger/skin/icons/readmail.png");
+  -moz-image-region: rect(0px 16px 16px 0px); /* message-read.png */
   -moz-padding-start: 0px;
 }
 
@@ -193,27 +188,28 @@ treechildren::-moz-tree-image(junkStatusCol, notjunk) {
 
 treechildren::-moz-tree-image(subjectCol) {
   -moz-margin-end: 2px;
-  list-style-image: url("chrome://messenger/skin/icons/message.png");
-  -moz-image-region: rect(0 16px 16px 0);
+  list-style-image: url("chrome://messenger/skin/icons/message-list.png");
+  -moz-image-region: rect(48px 16px 64px 0px); /* message-blank.png */
 }
 
 treechildren::-moz-tree-image(subjectCol, forwarded) {
-  -moz-image-region: rect(0 48px 16px 32px);
+  -moz-image-region: rect(128px 16px 144px 0px); /* message-forwarded.png */
 }
 
 treechildren::-moz-tree-image(subjectCol, replied) {
-  -moz-image-region: rect(0 32px 16px 16px);
+  -moz-image-region: rect(112px 16px 128px 0px); /* message-replied.png */
 }
 
 treechildren::-moz-tree-image(subjectCol, replied, forwarded) {
-  -moz-image-region: rect(0 64px 16px 48px);
+  -moz-image-region: rect(144px 16px 160px 0px); /* message-replied-forwarded.png */
 }
 
 treechildren::-moz-tree-image(subjectCol, new) {
-  -moz-image-region: rect(0 96px 16px 80px);
+  -moz-image-region: rect(64px 16px 80px 0px); /* message-new.png */
 }
 
 treechildren::-moz-tree-image(subjectCol, imapdeleted) {
+  list-style-image: url("chrome://messenger/skin/icons/message.png");
   -moz-image-region: rect(0 80px 16px 64px);
 }
 
