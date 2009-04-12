@@ -60,6 +60,8 @@ messenger.jar:
 *   content/messenger/tabmail.xml                   (content/tabmail.xml)
 *   content/messenger/newmailalert.xul              (content/newmailalert.xul)
     content/messenger/newmailalert.js               (content/newmailalert.js)
+    content/messenger/newTagDialog.xul              (content/newTagDialog.xul)
+    content/messenger/newTagDialog.js               (content/newTagDialog.js)
 *   content/messenger/viewSourceOverlay.xul         (content/viewSourceOverlay.xul)
 *   content/messenger/configEditorOverlay.xul       (content/configEditorOverlay.xul)
     content/messenger/composerOverlay.css           (content/composerOverlay.css)
