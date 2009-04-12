@@ -177,7 +177,7 @@ translate : function(unchecked, mapping)
 
 function MalformedException(msgID, uncheckedBadValue)
 {
-  var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties");
+  var stringBundle = getStringBundle("chrome://messenger/content/accountCreationUtil.properties");
   this._message = stringBundle.GetStringFromName(msgID);
   if (kDebug)
     this._message += " (bad value: " + new String(uncheckedBadValue) + ")";

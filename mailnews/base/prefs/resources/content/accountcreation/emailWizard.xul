@@ -6,7 +6,7 @@
 <!DOCTYPE window [
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
   %brandDTD;
-  <!ENTITY % acDTD SYSTEM "chrome://messenger/locale/accountCreation.dtd">
+  <!ENTITY % acDTD SYSTEM "chrome://messenger/content/accountCreation.dtd">
   %acDTD;
 ]>
 
@@ -21,8 +21,8 @@
         >
 
   <stringbundleset>
-    <stringbundle id="strings" src="chrome://messenger/locale/accountCreation.properties"/>
-    <stringbundle id="utilstrings" src="chrome://messenger/locale/accountCreationUtil.properties"/>
+    <stringbundle id="strings" src="chrome://messenger/content/accountCreation.properties"/>
+    <stringbundle id="utilstrings" src="chrome://messenger/content/accountCreationUtil.properties"/>
   </stringbundleset>
   <script type="application/javascript"
           src="chrome://messenger/content/accountcreation/util.js"/>

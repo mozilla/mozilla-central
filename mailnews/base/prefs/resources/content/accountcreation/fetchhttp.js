@@ -183,7 +183,7 @@ FetchHTTP.prototype =
       catch (e)
       {
         success = false;
-        var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties");
+        var stringBundle = getStringBundle("chrome://messenger/content/accountCreationUtil.properties");
         errorStr = stringBundle.GetStringFromName("bad_response_content.error");
         errorCode = -4;
       }
@@ -197,13 +197,7 @@ FetchHTTP.prototype =
       } catch (e) {
         // If we can't resolve the hostname in DNS etc., .statusText throws
         errorCode = -2;
-/*        var stringBundle = document.getElementById("utilstrings");
-        errorStr = stringBundle.getString("cannot_contact_server.error");
-        ddump(errorStr);
-        errorStr = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties")
-                        .GetStringFromName("DefaultSaveFileName");
-        ddump(errorStr);*/
-        errorStr = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties")
+        errorStr = getStringBundle("chrome://messenger/content/accountCreationUtil.properties")
                         .GetStringFromName("cannot_contact_server.error");
         ddump(errorStr);
       }
