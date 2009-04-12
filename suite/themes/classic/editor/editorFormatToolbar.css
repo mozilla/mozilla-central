@@ -432,89 +432,68 @@
 
 /* ..... smiley menu ..... */
 
-.insert-smile > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smile_n.gif");
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-smile {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-smile.png");
 }
 
-.insert-tongue > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/tongue_n.gif");
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-frown {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-frown.png"); 
 }
 
-.insert-frown > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/frown_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-wink {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-wink.png");
 }
 
-.insert-wink > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/wink_n.gif");
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-tongue {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-tongue.png");
 }
 
-.insert-laughing > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/laughing_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-laughing {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-laughing.png"); 
 }
 
-.insert-embarrassed > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/embarrassed_n.gif");
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-embarrassed {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-embarrassed.png");
 }
 
-.insert-undecided > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/undecided_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-undecided {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-undecided.png"); 
 }
 
-.insert-surprise > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/surprise_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-surprise {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-surprise.png"); 
 }
 
-.insert-kiss > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/kiss_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-kiss {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-kiss.png"); 
 }
 
-.insert-yell > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/yell_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-yell {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-yell.png"); 
 }
 
-.insert-cool > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/cool_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-cool {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-cool.png"); 
 }
 
-.insert-undecided > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/undecided_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-money {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-money.png"); 
 }
 
-.insert-money > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/money_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-foot {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-foot.png"); 
 }
 
-.insert-foot > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/foot_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-innocent {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-innocent.png"); 
 }
 
-.insert-innocent > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/innocent_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-cry {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-cry.png"); 
 }
 
-.insert-cry > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/cry_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
-}
-
-.insert-sealed > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/sealed_n.gif"); 
-  -moz-image-region: auto; /* cut off inheritance */
+.insert-sealed {
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-sealed.png"); 
 }
 
 /* ::::: fg/bg color picker ::::: */

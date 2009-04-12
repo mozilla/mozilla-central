@@ -87,80 +87,80 @@ span.moz-smiley-s16 > span
 
 /* smile */
 span.moz-smiley-s1:before {
-  content: url("chrome://communicator/skin/icons/smileys/smile_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-smile.png");
 }
 
 /* frown */
 span.moz-smiley-s2:before {
-  content: url("chrome://communicator/skin/icons/smileys/frown_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-frown.png");
 }
 
 /* wink */
 span.moz-smiley-s3:before {
-  content: url("chrome://communicator/skin/icons/smileys/wink_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-wink.png");
 }
 
 /* tongue */
 span.moz-smiley-s4:before {
-  content: url("chrome://communicator/skin/icons/smileys/tongue_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-tongue.png");
 }
 
 /* laughing */
 span.moz-smiley-s5:before {
-  content: url("chrome://communicator/skin/icons/smileys/laughing_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-laughing.png");
 }
 
-/* embarassed */
+/* embarrassed */
 span.moz-smiley-s6:before {
-  content: url("chrome://communicator/skin/icons/smileys/embarrassed_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-embarrassed.png");
 }
 
 /* undecided */
 span.moz-smiley-s7:before {
-  content: url("chrome://communicator/skin/icons/smileys/undecided_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-undecided.png");
 }
 
 /* surprise */
 span.moz-smiley-s8:before {
-  content: url("chrome://communicator/skin/icons/smileys/surprise_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-surprise.png");
 }
 
 /* kiss */
 span.moz-smiley-s9:before {
-  content: url("chrome://communicator/skin/icons/smileys/kiss_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-kiss.png");
 }
 
 /* yell */
 span.moz-smiley-s10:before {
-  content: url("chrome://communicator/skin/icons/smileys/yell_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-yell.png");
 }
 
 /* cool */
 span.moz-smiley-s11:before {
-  content: url("chrome://communicator/skin/icons/smileys/cool_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-cool.png");
 }
 
 /* money */
 span.moz-smiley-s12:before {
-  content: url("chrome://communicator/skin/icons/smileys/money_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-money.png");
 }
 
 /* foot */
 span.moz-smiley-s13:before {
-  content: url("chrome://communicator/skin/icons/smileys/foot_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-foot.png");
 }
 
 /* innocent */
 span.moz-smiley-s14:before {
-  content: url("chrome://communicator/skin/icons/smileys/innocent_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-innocent.png");
 }
 
 /* cry */
 span.moz-smiley-s15:before {
-  content: url("chrome://communicator/skin/icons/smileys/cry_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-cry.png");
 }
 
 /* sealed */
 span.moz-smiley-s16:before {
-  content: url("chrome://communicator/skin/icons/smileys/sealed_n.gif");
+  content: url("chrome://communicator/skin/icons/smileys/smiley-sealed.png");
 }
