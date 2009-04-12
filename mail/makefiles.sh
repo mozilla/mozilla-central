@@ -53,6 +53,7 @@ mail/components/shell/Makefile
 mail/components/shell/public/Makefile
 mail/components/phishing/Makefile
 mail/extensions/Makefile
+mail/extensions/mailviews/Makefile
 mail/extensions/smime/Makefile
 mail/installer/Makefile
 mail/installer/windows/Makefile

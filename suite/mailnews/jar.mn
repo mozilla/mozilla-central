@@ -1,2 +1,112 @@
 messenger.jar:
-   content/messenger/mailWidgets.xml
+% content messagebody %content/messagebody/ contentaccessible=yes
+% content messenger %content/messenger/ xpcnativewrappers=yes
+% override chrome://messagebody/skin/messageBody.css chrome://messenger/skin/messageBody.css
+% content messenger-region %content/messenger-region/
+% overlay chrome://communicator/content/pref/preferences.xul                   chrome://messenger/content/mailPrefsOverlay.xul
+% overlay chrome://communicator/content/pref/pref-appearance.xul               chrome://messenger/content/mailPrefsOverlay.xul
+% overlay chrome://communicator/content/pref/pref-scripts.xul                  chrome://messenger/content/mailPrefsOverlay.xul
+% overlay chrome://communicator/content/pref/pref-cookies.xul                  chrome://messenger/content/mailPrefsOverlay.xul
+% overlay chrome://editor/content/editorTasksOverlay.xul                       chrome://messenger/content/mailTasksOverlay.xul
+% overlay chrome://navigator/content/navigatorOverlay.xul                      chrome://messenger/content/mailOverlay.xul
+% overlay chrome://messenger/content/messenger.xul                             chrome://messenger/content/mailMessengerOverlay.xul
+% overlay chrome://messenger/content/messengercompose/messengercompose.xul     chrome://messenger/content/mailMessengerComposeOverlay.xul
+% overlay chrome://messenger/content/addressbook/addressbook.xul               chrome://messenger/content/mailABOverlay.xul
+% overlay chrome://messenger/content/addressbook/abSelectAddressesDialog.xul   chrome://messenger/content/mailOverlay.xul
+% overlay chrome://editor/content/editor.xul                                   chrome://messenger/content/mailEditorOverlay.xul
+% overlay chrome://editor/content/EdImageOverlay.xul                           chrome://messenger/content/messengercompose/mailComposeEditorOverlay.xul
+% overlay chrome://editor/content/EdLinkProps.xul                              chrome://messenger/content/messengercompose/mailComposeEditorOverlay.xul
+% overlay chrome://messenger/content/mailWindowOverlay.xul                     chrome://messenger/content/msgViewPickerOverlay.xul
+    content/messenger/msgViewPickerOverlay.xul
+    content/messenger/msgViewPickerOverlay.js
+    content/messenger/mailViewSetup.js
+    content/messenger/mailViewSetup.xul
+    content/messenger/mailViewList.xul
+    content/messenger/mailViewList.js
+    content/messenger/mailWidgets.xml
+    content/messenger/messenger.css
+    content/messenger/messenger.xul
+    content/messenger/mailWindowOverlay.xul
+    content/messenger/mailWindowOverlay.js
+    content/messenger/msgSelectOffline.xul
+    content/messenger/mailWindow.js
+    content/messenger/messageWindow.xul
+    content/messenger/messageWindow.js
+    content/messenger/folderPane.xul
+    content/messenger/threadPane.xul
+    content/messenger/threadPane.js
+    content/messenger/msgHdrViewOverlay.xul
+    content/messenger/msgHdrViewOverlay.js
+    content/messenger/widgetglue.js
+    content/messenger/commandglue.js
+    content/messenger/mailCommands.js
+    content/messenger/subscribe.xul
+    content/messenger/subscribe.js
+    content/messenger/msgMail3PaneWindow.js
+    content/messenger/searchBar.js
+    content/messenger/mail3PaneWindowCommands.js
+    content/messenger/msgPrintEngine.xul
+    content/messenger/mailTasksOverlay.xul
+    content/messenger/mailTasksOverlay.js
+    content/messenger/mailEditorOverlay.xul
+    content/messenger/mailABOverlay.xul
+    content/messenger/mailMessengerOverlay.xul
+    content/messenger/mailMessengerComposeOverlay.xul
+    content/messenger/phishingDetector.js
+    content/messenger/mailOverlay.xul
+    content/messenger/mail-offline.js
+    content/messenger/mailContextMenus.js
+    content/messenger/msgFolderPickerOverlay.xul
+    content/messenger/mailPrefsOverlay.xul                                     (prefs/mailPrefsOverlay.xul)
+    content/messenger/pref-mailnews.xul                                        (prefs/pref-mailnews.xul)
+    content/messenger/pref-mailnews.js                                         (prefs/pref-mailnews.js)
+    content/messenger/pref-notifications.xul                                   (prefs/pref-notifications.xul)
+    content/messenger/pref-notifications.js                                    (prefs/pref-notifications.js)
+    content/messenger/pref-junk.xul                                            (prefs/pref-junk.xul)
+    content/messenger/pref-junk.js                                             (prefs/pref-junk.js)
+    content/messenger/pref-tags.xul                                            (prefs/pref-tags.xul)
+    content/messenger/pref-tags.js                                             (prefs/pref-tags.js)
+    content/messenger/pref-viewing_messages.xul                                (prefs/pref-viewing_messages.xul)
+    content/messenger/pref-viewing_messages.js                                 (prefs/pref-viewing_messages.js)
+    content/messenger/pref-receipts.xul                                        (prefs/pref-receipts.xul)
+    content/messenger/pref-receipts.js                                         (prefs/pref-receipts.js)
+    content/messenger/pref-character_encoding.xul                              (prefs/pref-character_encoding.xul)
+    content/messenger/pref-character_encoding.js                               (prefs/pref-character_encoding.js)
+    content/messenger/pref-offline.xul                                         (prefs/pref-offline.xul)
+    content/messenger/pref-offline.js                                          (prefs/pref-offline.js)
+    content/messenger/SearchDialog.xul                                         (search/SearchDialog.xul)
+    content/messenger/SearchDialog.js                                          (search/SearchDialog.js)
+    content/messenger/ABSearchDialog.xul                                       (search/ABSearchDialog.xul)
+    content/messenger/ABSearchDialog.js                                        (search/ABSearchDialog.js)
+    content/messenger/FilterListDialog.xul                                     (search/FilterListDialog.xul)
+    content/messenger/FilterListDialog.js                                      (search/FilterListDialog.js)
+    content/messenger/messengercompose/pref-composing_messages.xul             (compose/prefs/pref-composing_messages.xul)
+    content/messenger/messengercompose/pref-composing_messages.js              (compose/prefs/pref-composing_messages.js)
+    content/messenger/messengercompose/pref-formatting.xul                     (compose/prefs/pref-formatting.xul)
+    content/messenger/messengercompose/pref-formatting.js                      (compose/prefs/pref-formatting.js)
+    content/messenger/messengercompose/messengercompose.xul                    (compose/messengercompose.xul)
+    content/messenger/messengercompose/MsgComposeCommands.js                   (compose/MsgComposeCommands.js)
+    content/messenger/messengercompose/addressingWidgetOverlay.js              (compose/addressingWidgetOverlay.js)
+    content/messenger/messengercompose/addressingWidgetOverlay.xul             (compose/addressingWidgetOverlay.xul)
+    content/messenger/messengercompose/mailComposeExtrasOverlay.xul            (compose/mailComposeExtrasOverlay.xul)
+    content/messenger/addressbook/addressbook.js                               (addrbook/addressbook.js)
+    content/messenger/addressbook/addressbook.xul                              (addrbook/addressbook.xul)
+    content/messenger/addressbook/abCommon.js                                  (addrbook/abCommon.js)
+    content/messenger/addressbook/abCardOverlay.js                             (addrbook/abCardOverlay.js)
+    content/messenger/addressbook/abCardViewOverlay.js                         (addrbook/abCardViewOverlay.js)
+    content/messenger/addressbook/abMailListDialog.xul                         (addrbook/abMailListDialog.xul)
+    content/messenger/addressbook/abEditListDialog.xul                         (addrbook/abEditListDialog.xul)
+    content/messenger/addressbook/pref-addressing.js                           (addrbook/prefs/pref-addressing.js)
+    content/messenger/addressbook/pref-addressing.xul                          (addrbook/prefs/pref-addressing.xul)
+#ifdef XP_MACOSX
+    content/messenger/platformMailnewsOverlay.xul                              (mac/platformMailnewsOverlay.xul)
+#else
+#ifdef XP_WIN32
+    content/messenger/platformMailnewsOverlay.xul                              (win/platformMailnewsOverlay.xul)
+#else
+#ifdef XP_OS2
+    content/messenger/platformMailnewsOverlay.xul                              (win/platformMailnewsOverlay.xul)
+#else
+    content/messenger/platformMailnewsOverlay.xul                              (unix/platformMailnewsOverlay.xul)
+#endif
+#endif

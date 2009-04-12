@@ -1,0 +1,6 @@
+messenger.jar:
+    content/messenger/msgViewPickerOverlay.js    (content/msgViewPickerOverlay.js)
+    content/messenger/mailViewSetup.js           (content/mailViewSetup.js)
+    content/messenger/mailViewSetup.xul          (content/mailViewSetup.xul)
+    content/messenger/mailViewList.xul           (content/mailViewList.xul)
+    content/messenger/mailViewList.js            (content/mailViewList.js)
