@@ -68,7 +68,7 @@ treechildren::-moz-tree-image(Name, open) {
 }
 
 .bookmark-item[container="true"][open="true"][loading="true"] {
-  list-style-image: url("chrome://global/skin/loading.gif") !important;
+  list-style-image: url("chrome://communicator/skin/icons/loading.gif") !important;
 }
 
 .bookmark-item[status="new"],
