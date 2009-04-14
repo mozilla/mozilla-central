@@ -125,6 +125,7 @@
 #include "nsAutoSyncManager.h"
 #include "nsIMsgFilterCustomAction.h"
 #include "nsMsgReadStateTxn.h"
+#include "nsIStringEnumerator.h"
 
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -3501,7 +3502,7 @@ nsImapMailFolder::ReplayOfflineMoveCopy(nsMsgKey *aMsgKeys, PRUint32 aNumKeys,
             }
           }
         }
-        destImapFolder->SetPendingAttributes(messages);
+        destImapFolder->SetPendingAttributes(messages, isMove);
       }
     }
     // if we can't get the dst folder db, we should still try to playback
@@ -6652,7 +6653,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   return rv;
 }
 
-void nsImapMailFolder::SetPendingAttributes(nsIArray* messages)
+void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, PRBool aIsMove)
 {
 
   GetDatabase();
@@ -6662,9 +6663,38 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages)
   PRUint32 supportedUserFlags;
   GetSupportedUserFlags(&supportedUserFlags);
 
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, );
+
+  nsCString dontPreserve;
+
+  // These preferences exist so that extensions can control which properties
+  // are preserved in the database when a message is moved or copied. All
+  // properties are preserved except those listed in these preferences
+  if (aIsMove)
+    prefBranch->GetCharPref("mailnews.database.summary.dontPreserveOnMove",
+                            getter_Copies(dontPreserve));
+  else
+    prefBranch->GetCharPref("mailnews.database.summary.dontPreserveOnCopy",
+                            getter_Copies(dontPreserve));
+
+  // We'll add spaces at beginning and end so we can search for space-name-space
+  nsCString dontPreserveEx(NS_LITERAL_CSTRING(" "));
+  dontPreserveEx.Append(dontPreserve);
+  dontPreserveEx.AppendLiteral(" ");
+
+  // these properties are set as integers below, so don't set them again
+  // in the iteration through the properties
+  dontPreserveEx.AppendLiteral("offlineMsgSize msgOffset flags priority ");
+
+  // these fields are either copied separately when the server does not support
+  // custom IMAP flags, or managed directly through the flags
+  dontPreserveEx.AppendLiteral("keywords label junkscore ");
+
   PRUint32 i, count;
 
-  nsresult rv = messages->GetLength(&count);
+  rv = messages->GetLength(&count);
   if (NS_FAILED(rv)) 
     return;
 
@@ -6693,16 +6723,30 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages)
         msgDBHdr->GetStringProperty("keywords", getter_Copies(keywords));
         if (!keywords.IsEmpty())
           mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "keywords", keywords.get());
-      } 
+      }
+
       // do this even if the server supports user-defined flags.
-      
-      nsCString junkScoreOrigin, junkPercent;
-      msgDBHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
-      msgDBHdr->GetStringProperty("junkpercent", getter_Copies(junkPercent));
-      if (!junkScoreOrigin.IsEmpty())
-        mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get());
-      if (!junkPercent.IsEmpty())
-        mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get());
+      nsCOMPtr<nsIUTF8StringEnumerator> propertyEnumerator;
+      nsresult rv = msgDBHdr->GetPropertyEnumerator(getter_AddRefs(propertyEnumerator));
+      NS_ENSURE_SUCCESS(rv, );
+
+      nsCAutoString property;
+      nsCString sourceString;
+      PRBool hasMore;
+      while (NS_SUCCEEDED(propertyEnumerator->HasMore(&hasMore)) && hasMore)
+      {
+        propertyEnumerator->GetNext(property);
+        nsCAutoString propertyEx(NS_LITERAL_CSTRING(" "));
+        propertyEx.Append(property);
+        propertyEx.AppendLiteral(" ");
+        if (dontPreserveEx.Find(propertyEx) != -1) // -1 is not found
+          continue;
+
+        nsCString sourceString;
+        msgDBHdr->GetStringProperty(property.get(), getter_Copies(sourceString));
+        mDatabase->SetAttributeOnPendingHdr(msgDBHdr, property.get(), sourceString.get());
+      }
+
       PRUint32 messageSize;
       nsMsgKey messageOffset;
       msgDBHdr->GetMessageOffset(&messageOffset);
@@ -6811,7 +6855,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
     nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
     
-    SetPendingAttributes(messages);
+    SetPendingAttributes(messages, isMove);
     // if the folders aren't on the same server, do a stream base copy
     if (!sameServer)
     {
