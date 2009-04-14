@@ -6969,7 +6969,7 @@ AC_SUBST(MOZ_TREE_CAIRO)
 AC_SUBST(MOZ_CAIRO_CFLAGS)
 AC_SUBST(MOZ_CAIRO_LIBS)
 
-if test "$MOZILLA_1_9_1_BRANCH" == "1"; then   
+if test "$MOZILLA_1_9_1_BRANCH" = "1"; then   
 dnl ========================================================
 dnl Check for lcms
 dnl ========================================================
