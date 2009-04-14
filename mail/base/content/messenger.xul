@@ -341,9 +341,6 @@
             </vbox>
           </box>
         </box> <!-- end of mailContent -->
-        <vbox id="aboutPanel">
-          <iframe id="aboutPanelFrame" flex="1" type="content" src="about:blank"/>
-        </vbox>
       </tabpanels>
     </tabmail>
   </hbox>

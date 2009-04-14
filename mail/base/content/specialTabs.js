@@ -46,17 +46,52 @@ var specialTabs = {
     var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                           .getService(Components.interfaces.nsIPrefBranch);
 
-    // Show the "what's new" tab to the user
-    // if upgraded
-    if (this.isApplicationUpgraded(prefs)) {
-        tabmail.registerTabType(this.whatsnewTabType);
-        tabmail.openTab("whatsNew");
-    }
+    tabmail.registerTabType(this.contentTabType);
 
-    tabmail.registerTabType(this.aboutTabType);
+    // Show the "what's new" tab to the user, if we have upgraded.
+    if (this.isApplicationUpgraded(prefs))
+      this.showWhatsNewPage();
 
+    // Show the about rights notification if we need to.
     if (this.shouldShowAboutRightsNotification(prefs))
       this.showAboutRightsNotification(prefs);
+  },
+
+  /**
+   * A tab to show content pages.
+   */
+  contentTabType: {
+    name: "contentTab",
+    perTabPanel: "vbox",
+    modes: {
+      contentTab: {
+        type: "contentTab",
+        maxTabs: 10
+      }
+    },
+    // XXX it would be nice to have an onload listener and set the title
+    // after the load, however tabmail doesn't support that at the moment.
+    openTab: function onTabOpened(aTab, aContentPage, aTitle) {
+      // You can't dynamically change an iframe from a non-content to a content
+      // type, therefore we dynamically create the element instead.
+      let iframe = document.createElement("iframe");
+      iframe.setAttribute("type", "content");
+      iframe.setAttribute("flex", "1");
+
+      aTab.panel.appendChild(iframe);
+
+      iframe.setAttribute("src", aContentPage);
+
+      aTab.title = aTitle;
+    },
+    closeTab: function onTabClosed(aTab) {
+    },
+    saveTabState: function onSaveTabState(aTab) {
+    },
+    showTab: function onShowTab(aTab) {
+    },
+    onTitleChanged: function onTitleChanged(aTab) {
+    }
   },
 
   /**
@@ -87,64 +122,18 @@ var specialTabs = {
   },
 
   /**
-   * A tab to show the "what's new" page to the user at the very first start of
-   * an upgrade.
+   * Shows the what's new page in a content tab.
    */
-  whatsnewTabType: {
-    name: "whatsNew",
-    perTabPanel: "iframe",
-    modes: {
-      whatsNew: {
-        type: "whatsNew",
-        maxTabs: 1
-      }
-    },
-    openTab: function onTabOpened (aTab) {
-      let startpage =
+  showWhatsNewPage: function onShowWhatsNewPage() {
+    let startpage =
         Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
                   .getService(Components.interfaces.nsIURLFormatter)
                   .formatURLPref("mailnews.start_page.override_url");
-      aTab.panel.setAttribute("src", startpage);
 
-      let msgBundle = document.getElementById("bundle_messenger");
-      aTab.title = msgBundle.getString("whatsNew");
-    },
-    closeTab: function onTabClosed (aTab) {
-    },
-    saveTabState: function onSaveTabState (aTab) {
-    },
-    showTab: function onShowTab (aTab) {
-    }
-  },
+    let msgBundle = document.getElementById("bundle_messenger");
 
-  /**
-   * A tab to show items of the about: protocol variety.
-   */
-  aboutTabType: {
-    name: "about",
-    panelId: "aboutPanel",
-    modes: {
-      about: {
-        type: "about",
-        maxTabs: 1
-      }
-    },
-    openTab: function onTabOpened (aTab, aAboutPage) {
-      document.getElementById("aboutPanelFrame").setAttribute("src", aAboutPage);
-
-      var rightsBundle =
-        Components.classes["@mozilla.org/intl/stringbundle;1"]
-                  .getService(Components.interfaces.nsIStringBundleService)
-                  .createBundle("chrome://messenger/locale/aboutRights.properties");
-
-      aTab.title = rightsBundle.GetStringFromName("aboutRightsTitle");
-    },
-    closeTab: function onTabClosed (aTab) {
-    },
-    saveTabState: function onSaveTabState (aTab) {
-    },
-    showTab: function onShowTab (aTab) {
-    }
+    document.getElementById('tabmail').openTab("contentTab", startpage,
+                                               msgBundle.getString("whatsNew"));
   },
 
   /**
@@ -186,6 +175,7 @@ var specialTabs = {
     var productName = brandBundle.GetStringFromName("brandFullName");
     var notifyRightsText = rightsBundle.formatStringFromName("notifyRightsText",
                                                              [productName], 1);
+    var rightsTitle = rightsBundle.GetStringFromName("aboutRightsTitle");
 
     var buttons = [
       {
@@ -194,7 +184,9 @@ var specialTabs = {
         popup: null,
         callback: function(aNotificationBar, aButton) {
           // Show the about:rights tab
-          document.getElementById('tabmail').openTab("about", "about:rights");
+          document.getElementById('tabmail').openTab("contentTab",
+                                                     "about:rights",
+                                                     rightsTitle);
         }
       }
     ];
@@ -208,6 +200,4 @@ var specialTabs = {
     // Set the pref to say we've displayed the notification.
     prefs.setIntPref("mail.rights.version", this._kAboutRightsVersion);
   }
-
-
 }
