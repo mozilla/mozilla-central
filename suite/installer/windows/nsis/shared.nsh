@@ -674,7 +674,7 @@
   ${If} "$R9" == "true"
     ; An empty string is used for the 5th param because SeaMonkeyHTML is not a
     ; protocol handler.
-    ${AddHandlerValues} "SeaMonkeyHTML" "$5" \
+    ${AddHandlerValues} "$0\SeaMonkeyHTML" "$5" \
                         "$INSTDIR\chrome\icons\default\html-file.ico" \
                         "${AppRegName} Document" "" ""
   ${EndIf}
