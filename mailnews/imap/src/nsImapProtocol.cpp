@@ -884,7 +884,21 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
         // for things like APPEND, which should come back immediately.
         if (m_imapAction == nsIImapUrl::nsImapAppendMsgFromFile ||
             m_imapAction == nsIImapUrl::nsImapAppendDraftFromFile)
+        {
           readWriteTimeout = 20;
+        }
+        else if (m_imapAction == nsIImapUrl::nsImapOnlineMove ||
+                 m_imapAction == nsIImapUrl::nsImapOnlineCopy)
+        {
+          nsCString messageIdString;
+          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          PRUint32 copyCount = CountMessagesInIdString(messageIdString.get());
+          // If we're move/copying a large number of messages,
+          // which should be rare, increase the timeout based on number 
+          // of messages. 40 messages per second should be sufficiently slow.
+          if (copyCount > 2400) // 40 * 60, 60 is default read write timeout
+            readWriteTimeout = PR_MAX(readWriteTimeout, copyCount/40);
+        }
       }
       m_transport->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, readWriteTimeout);
       // set the security info for the mock channel to be the security status for our underlying transport.
