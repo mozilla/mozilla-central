@@ -57,6 +57,12 @@ def repo_config():
     import ConfigParser
     config = ConfigParser.ConfigParser()
     config.read([TREE_STATE_FILE])
+
+    # Do nothing if the current version is up to date.
+    if config.has_option('treestate', 'src_update_version') and \
+            config.get('treestate', 'src_update_version') == '1':
+        return
+
     if not config.has_section('treestate'):
       config.add_section('treestate')
     config.set('treestate', 'src_update_version', '1')
@@ -228,14 +234,13 @@ o.add_option("-v", "--verbose", dest="verbose",
 o.add_option("--hg-options", dest="hgopts",
              help="Pass arbitrary options to hg commands (i.e. --debug, --time)")
 
-def fixup_repo_options(options):
-    """ Check options.comm_repo and options.mozilla_repo values;
-    populate mozilla_repo if needed.
+def fixup_comm_repo_options(options):
+    """Check options.comm_repo value.
 
-    options.comm_repo and options.mozilla_repo are normally None.
-    This is fine-- our "hg pull" commands will omit the repo URL.
-    The exception is the initial checkout, which does an "hg clone"
-    for Mozilla.  That command requires a repository URL.
+    options.comm_repo is normally None.
+    This is fine -- our "hg pull" command will omit the repo URL.
+    The exception is the initial checkout, which does an "hg clone".
+    That command requires a repository URL.
     """
 
     if (options.comm_repo is None
@@ -245,17 +250,29 @@ def fixup_repo_options(options):
         print "*** The -m option is required for the initial checkout."
         sys.exit(2)
 
-    # Handle special case: initial checkout of Mozilla.
+def fixup_mozilla_repo_options(options):
+    """Handle special case: initial checkout of Mozilla.
+
+    See fixup_comm_repo_options().
+    """
     if (options.mozilla_repo is None
             and not os.path.exists(os.path.join(topsrcdir, 'mozilla'))):
         options.mozilla_repo = DEFAULT_MOZILLA_REPO
 
-    # Handle special case: initial checkout of inspector.
+def fixup_inspector_repo_options(options):
+    """Handle special case: initial checkout of inspector.
+
+    See fixup_comm_repo_options().
+    """
     if (options.inspector_repo is None
             and not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'inspector'))):
         options.inspector_repo = DEFAULT_INSPECTOR_REPO
 
-    # Handle special case: initial checkout of Venkman.
+def fixup_venkman_repo_options(options):
+    """Handle special case: initial checkout of Venkman.
+
+    See fixup_comm_repo_options().
+    """
     if (options.venkman_repo is None
             and not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'venkman'))):
         options.venkman_repo = DEFAULT_VENKMAN_REPO
@@ -271,13 +288,13 @@ repo_config()
 
 backup_cvs_venkman()
 
-fixup_repo_options(options)
-
 if action in ('checkout', 'co'):
     if not options.skip_comm:
+        fixup_comm_repo_options(options)
         do_hg_pull('.', options.comm_repo, options.hg, options.comm_rev)
 
     if not options.skip_mozilla:
+        fixup_mozilla_repo_options(options)
         do_hg_pull('mozilla', options.mozilla_repo, options.hg, options.mozilla_rev)
 
     # Check whether destination directory exists for these extensions.
@@ -295,6 +312,7 @@ if action in ('checkout', 'co'):
     if not options.skip_inspector:
         # No cvs/hg check needed as DOM Inspector was part (and removed from)
         # mozilla hg repository.
+        fixup_inspector_repo_options(options)
         do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg, options.inspector_rev)
 
     if not options.skip_ldap:
@@ -304,6 +322,7 @@ if action in ('checkout', 'co'):
         do_cvs_checkout(CHATZILLA_DIRS, CHATZILLA_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
 
     if not options.skip_venkman:
+        fixup_venkman_repo_options(options)
         do_hg_pull(os.path.join('mozilla', 'extensions', 'venkman'), options.venkman_repo, options.hg, options.venkman_rev)
 else:
     o.print_help()
