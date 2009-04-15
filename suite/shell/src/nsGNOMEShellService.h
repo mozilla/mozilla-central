@@ -19,9 +19,6 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *  Ben Goodger    <ben@mozilla.org>
- *  Aaron Kaluszka <ask@swva.net>
- *  Frank Wein     <mcsmurf@mcsmurf.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,47 +34,41 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nscore.h"
+#ifndef nsgnomeshellservice_h____
+#define nsgnomeshellservice_h____
+
 #include "nsIShellService.h"
+
+
 #include "nsStringGlue.h"
 
-#include <windows.h>
+/* This is temporary until nsGNOMEShellService implements all functions of
+   nsIShellService. Then this can be replaced with
+   "@mozilla.org/suite/shell-service;1" */
+#define NS_SUITEGNOMEFEED_CONTRACTID "@mozilla.org/suite/shell-feed-service;1"
 
-#define NS_SUITEWININTEGRATION_CONTRACTID "@mozilla.org/suite/shell-service;1"
+#define NS_SUITEGNOMEFEED_CID \
+{0xc16cfa25, 0xa74a, 0x420b, {0xa5, 0x45, 0x4b, 0xc0, 0x6b, 0x08, 0xa8, 0x65}}
 
-#define NS_SUITEWININTEGRATION_CID \
-{0x39b688ec, 0xe308, 0x49e5, {0xbe, 0x6b, 0x28, 0xdc, 0x7f, 0xcd, 0x61, 0x54}}
+struct ProtocolAssociation;
 
-#define NS_SUITEWINFEED_CONTRACTID "@mozilla.org/suite/shell-feed-service;1"
-
-#define NS_SUITEWINFEED_CID \
-{0xd5cbb2a1, 0xaa33, 0x478e, {0xa1, 0x2a, 0xd4, 0xb2, 0x2b, 0x4f, 0x19, 0xd8}}
-
-typedef struct {
-  char* keyName;
-  char* valueName;
-  char* valueData;
-
-  PRInt32 flags;
-} SETTING;
-
-class nsWindowsShellService : public nsIShellService
+class nsGNOMEShellService : public nsIShellService
 {
 public:
-  nsWindowsShellService() : mCheckedThisSessionClient(PR_FALSE) {};
-  ~nsWindowsShellService() {};
-  NS_HIDDEN_(nsresult) Init();
+  nsGNOMEShellService() : mCheckedThisSessionClient(PR_FALSE) { }
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSISHELLSERVICE
 
-protected:
-  PRBool IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient);
-  PRBool TestForDefault(SETTING aSettings[], PRInt32 aSize);
+  nsresult Init() NS_HIDDEN;
 
 private:
-  PRBool mCheckedThisSessionClient;
-  nsString mAppLongPath;
-  nsString mAppShortPath;
+  ~nsGNOMEShellService() {}
+
+  nsCString mAppPath;
+  PRPackedBool mUseLocaleFilenames;
+  PRPackedBool mCheckedThisSessionClient;
 };
+
+#endif // nsgnomeshellservice_h____
 

@@ -61,7 +61,6 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
-#include "nsCOMPtr.h"
 #include <mbstring.h>
 #include "nsIGenericFactory.h"
 
@@ -793,9 +792,82 @@ nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
                      0, REG_SZ, (const BYTE *)backColor.get(),
                      (backColor.Length() + 1) * sizeof(PRUnichar));
   }
-  
+
   // Close the key we opened.
   ::RegCloseKey(key);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsWindowsShellService::OpenApplicationWithURI(nsILocalFile* aApplication,
+                                              const nsACString& aURI)
+{
+  nsresult rv;
+  nsCOMPtr<nsIProcess> process = 
+    do_CreateInstance("@mozilla.org/process/util;1", &rv);
+  if (NS_FAILED(rv))
+    return rv;
+  
+  rv = process->Init(aApplication);
+  if (NS_FAILED(rv))
+    return rv;
+  
+  const nsCString& spec = PromiseFlatCString(aURI);
+  const char* specStr = spec.get();
+  return process->Run(PR_FALSE, &specStr, 1);
+}
+
+NS_IMETHODIMP
+nsWindowsShellService::GetDefaultFeedReader(nsILocalFile** _retval)
+{
+  *_retval = nsnull;
+
+  HKEY theKey;
+  nsresult rv = OpenKeyForReading(HKEY_CLASSES_ROOT, 
+                                  L"feed\\shell\\open\\command",
+                                  &theKey);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  DWORD buf;
+  LONG res = ::RegQueryValueExW(theKey, NULL, NULL, NULL, NULL, &buf);
+
+  if (REG_FAILED(res))
+    return NS_ERROR_FAILURE;
+
+  // Buffer size must be a multiple of 2
+  NS_ENSURE_STATE(buf % 2 == 0);
+  nsAutoString path;
+  path.SetLength(buf / 2 - 1);
+  res = ::RegQueryValueExW(theKey, NULL, NULL, NULL, (LPBYTE)path.BeginWriting(), &buf);
+  ::RegCloseKey(theKey);
+  if (REG_FAILED(res))
+    return NS_ERROR_FAILURE;
+
+  if (path.IsEmpty())
+    return NS_ERROR_FAILURE;
+
+  if (path.First() == '"') {
+    // Everything inside the quotes
+    path = Substring(path, 1, path.FindChar('"', 1) - 1);
+  } else {
+    // Everything up to the first space
+    path = Substring(path, 0, path.FindChar(' '));
+  }
+
+  nsCOMPtr<nsILocalFile> defaultReader =
+    do_CreateInstance("@mozilla.org/file/local;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = defaultReader->InitWithPath(path);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool exists;
+  rv = defaultReader->Exists(&exists);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (!exists)
+    return NS_ERROR_FAILURE;
+
+  NS_ADDREF(*_retval = defaultReader);
   return NS_OK;
 }
 
@@ -806,6 +878,10 @@ static const nsModuleComponentInfo components[] = {
   { "SeaMonkey Windows Integration",
     NS_SUITEWININTEGRATION_CID,
     NS_SUITEWININTEGRATION_CONTRACTID,
+    nsWindowsShellServiceConstructor },
+  { "SeaMonkey Windows Feed Integration",
+    NS_SUITEWINFEED_CID,
+    NS_SUITEWINFEED_CONTRACTID,
     nsWindowsShellServiceConstructor },
 };
 

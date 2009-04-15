@@ -20,8 +20,6 @@
  *
  * Contributor(s):
  *  Ben Goodger    <ben@mozilla.org>
- *  Aaron Kaluszka <ask@swva.net>
- *  Frank Wein     <mcsmurf@mcsmurf.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,47 +35,30 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nscore.h"
+#ifndef nsmacshellservice_h____
+#define nsmacshellservice_h____
+
 #include "nsIShellService.h"
-#include "nsStringGlue.h"
 
-#include <windows.h>
+/* This is temporary until nsMacShellService implements all functions of
+   nsIShellService. Then this can be replaced with
+   "@mozilla.org/suite/shell-service;1" */
+#define NS_SUITEMACFEED_CONTRACTID "@mozilla.org/suite/shell-feed-service;1"
 
-#define NS_SUITEWININTEGRATION_CONTRACTID "@mozilla.org/suite/shell-service;1"
+#define NS_SUITEMACFEED_CID \
+{0xac17e6f0, 0x50c9, 0x4901, {0xab, 0x08, 0xf8, 0x70, 0xbf, 0xcd, 0x12, 0xce}}
 
-#define NS_SUITEWININTEGRATION_CID \
-{0x39b688ec, 0xe308, 0x49e5, {0xbe, 0x6b, 0x28, 0xdc, 0x7f, 0xcd, 0x61, 0x54}}
-
-#define NS_SUITEWINFEED_CONTRACTID "@mozilla.org/suite/shell-feed-service;1"
-
-#define NS_SUITEWINFEED_CID \
-{0xd5cbb2a1, 0xaa33, 0x478e, {0xa1, 0x2a, 0xd4, 0xb2, 0x2b, 0x4f, 0x19, 0xd8}}
-
-typedef struct {
-  char* keyName;
-  char* valueName;
-  char* valueData;
-
-  PRInt32 flags;
-} SETTING;
-
-class nsWindowsShellService : public nsIShellService
+class nsMacShellService : public nsIShellService
 {
 public:
-  nsWindowsShellService() : mCheckedThisSessionClient(PR_FALSE) {};
-  ~nsWindowsShellService() {};
-  NS_HIDDEN_(nsresult) Init();
+  nsMacShellService() : mCheckedThisSessionClient(PR_FALSE) {};
+  virtual ~nsMacShellService() {};
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSISHELLSERVICE
 
-protected:
-  PRBool IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient);
-  PRBool TestForDefault(SETTING aSettings[], PRInt32 aSize);
-
 private:
-  PRBool mCheckedThisSessionClient;
-  nsString mAppLongPath;
-  nsString mAppShortPath;
+  PRPackedBool mCheckedThisSessionClient;
 };
 
+#endif

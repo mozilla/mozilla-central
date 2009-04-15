@@ -40,8 +40,9 @@
 #include "nsISupports.idl"
 
 interface nsIDOMElement;
+interface nsILocalFile;
 
-[scriptable, uuid(58E4B6D9-10CB-4DA0-AF44-E47C62365380)]
+[scriptable, uuid(BEBB8B6A-8AF4-4CF2-85AC-022F7C6A87A9)]
 interface nsIShellService : nsISupports
 {
   /**
@@ -120,4 +121,19 @@ interface nsIShellService : nsISupports
    * entire screen. An RGB value (r << 16 | g << 8 | b)
    */
   attribute unsigned long desktopBackgroundColor;
+
+  /**
+   * Opens an application with a specific URI to load.
+   * @param   application
+   *          The application file (or bundle directory, on OS X)
+   * @param   uri
+   *          The uri to be loaded by the application
+   */
+  void openApplicationWithURI(in nsILocalFile aApplication, in ACString aURI);
+
+  /**
+   * The default system handler for web feeds
+   */
+  readonly attribute nsILocalFile defaultFeedReader;
 };
+

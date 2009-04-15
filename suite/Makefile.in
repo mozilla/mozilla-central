@@ -61,11 +61,11 @@ PARALLEL_DIRS	+= \
 		profile \
 		security \
 		shell/public \
+		shell/src \
 		smile \
 		$(NULL)
 
 ifeq ($(OS_ARCH),WINNT)
-PARALLEL_DIRS += shell/src
 ifdef MOZ_INSTALLER
 PARALLEL_DIRS += installer/windows
 endif

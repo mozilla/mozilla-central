@@ -157,7 +157,7 @@ endif
 
 ifdef BUILD_STATIC_LIBS
 
-ifeq ($(OS_ARCH),WINNT)
+ifneq (,$(filter windows cocoa gtk2, $(MOZ_WIDGET_TOOLKIT)))
 LIBS += ../shell/src/$(LIB_PREFIX)shellservice_s.$(LIB_SUFFIX)
 endif
 
