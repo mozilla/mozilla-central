@@ -53,6 +53,8 @@ const kAlwaysOffline = 3;
 //   online/offline startup mode. If so, prompt the user. Also,
 //   check if the user wants to remember their offline state
 //   the next time they start up.
+//   If the user shutdown offline, and is now starting up in online
+//   mode, we will set the boolean pref "mailnews.playback_offline" to true.
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -79,6 +81,7 @@ var nsOfflineStartup =
                           .getService(Components.interfaces.nsIPrefBranch);
     var manageOfflineStatus = prefs.getBoolPref("offline.autoDetect");
     gOfflineStartupMode = prefs.getIntPref(kOfflineStartupPref);
+    let wasOffline = !prefs.getBoolPref("network.online");
 
     if (gOfflineStartupMode == kAlwaysOffline)
     {
@@ -88,6 +91,8 @@ var nsOfflineStartup =
     else if (gOfflineStartupMode == kAlwaysOnline)
     {
       ioService.manageOfflineStatus = manageOfflineStatus;
+      if (wasOffline)
+        prefs.setBoolPref("mailnews.playback_offline", true);
       // If we're managing the offline status, don't force online here... it may
       // be the network really is offline.
       if (!manageOfflineStatus)
@@ -95,7 +100,6 @@ var nsOfflineStartup =
     }
     else if (gOfflineStartupMode == kRememberLastState)
     {
-      var wasOffline = !prefs.getBoolPref("network.online");
       ioService.manageOfflineStatus = manageOfflineStatus && !wasOffline;
       // If we are meant to be online, and managing the offline status
       // then don't force it - it may be the network really is offline.
@@ -125,6 +129,8 @@ var nsOfflineStartup =
       debug ("result = " + result + "\n");
       ioService.manageOfflineStatus = manageOfflineStatus && result != 1;
       ioService.offline = result == 1;
+      if (result != 1 && wasOffline)
+        prefs.setBoolPref("mailnews.playback_offline", true);
     }
   },
 
