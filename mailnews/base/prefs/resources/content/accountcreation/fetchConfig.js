@@ -36,7 +36,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * Tries to find a configuration for this ISP on the local harddisk, in the TB install folder.
+ * Tries to find a configuration for this ISP on the local harddisk, in the
+ * application install directory's "isp" subdirectory.
  * Params @see fetchConfigFromISP()
  */
 
@@ -70,9 +71,11 @@ function fetchConfigFromDisk(domain, successCallback, errorCallback)
  *         The first paramter will be an exception object or error string.
  */
 
-function fetchConfigFromISP(domain, emailAddress, successCallback, errorCallback)
+function fetchConfigFromISP(domain, emailAddress, successCallback,
+                            errorCallback)
 {
-  let url = "https://autoconfig." + sanitize.hostname(domain) + "/mail/mozilla.xml";
+  let url = "https://autoconfig." + sanitize.hostname(domain) +
+            "/mail/mozilla.xml";
   let fetch = new FetchHTTP(url, { emailaddress: emailAddress }, false,
                             function(result)
                             {
@@ -84,7 +87,8 @@ function fetchConfigFromISP(domain, emailAddress, successCallback, errorCallback
 }
 
 /**
- * Tries to get a configuration for this ISP from a central database at Mozilla servers.
+ * Tries to get a configuration for this ISP from a central database at
+ * Mozilla servers.
  * Params @see fetchConfigFromISP()
  */
 
@@ -92,7 +96,8 @@ function fetchConfigFromDB(domain, successCallback, errorCallback)
 {
   let pref = Components.classes["@mozilla.org/preferences-service;1"]
                                .getService(Components.interfaces.nsIPrefBranch);
-  let url = pref.getCharPref("mailnews.auto_config_url") + sanitize.hostname(domain);
+  let url = pref.getCharPref("mailnews.auto_config_url") +
+            sanitize.hostname(domain);
   if (!url.length)
     return errorCallback("no fetch url set");
   let fetch = new FetchHTTP(url, null, false,

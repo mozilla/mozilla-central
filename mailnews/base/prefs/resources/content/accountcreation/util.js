@@ -53,7 +53,7 @@ function extend(child, supertype)
 
 function assert(test, errorMsg)
 {
-  if ( ! test)
+  if (!test)
     throw new Exception(errorMsg);
 }
 
@@ -93,7 +93,7 @@ function readURLasUTF8(uri)
   try {
     var chan = ioService().newChannelFromURI(uri);
     var is = Cc["@mozilla.org/intl/converter-input-stream;1"]
-      .createInstance(Ci.nsIConverterInputStream);
+             .createInstance(Ci.nsIConverterInputStream);
     is.init(chan.open(), "UTF-8", 1024,
             Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
 
@@ -109,8 +109,8 @@ function readURLasUTF8(uri)
 
     return content;
   } catch (e) {
-  // TODO this has a numeric error message. We need to ship translations
-  // into human language.
+    // TODO this has a numeric error message. We need to ship translations
+    // into human language.
     throw e;
   }
 }
@@ -143,7 +143,7 @@ function ioService()
     return _gIOServiceCached;
 
   _gIOServiceCached = Cc["@mozilla.org/network/io-service;1"]
-               .getService(Ci.nsIIOService);
+                      .getService(Ci.nsIIOService);
   return _gIOServiceCached;
 }
 var _gIOServiceCached;
@@ -156,8 +156,8 @@ function getStringBundle(bundleURI)
 {
   try {
     return Cc["@mozilla.org/intl/stringbundle;1"]
-                   .getService(Ci.nsIStringBundleService)
-                   .createBundle(bundleURI);
+           .getService(Ci.nsIStringBundleService)
+           .createBundle(bundleURI);
   } catch (e) {
     throw new Exception("Failed to get stringbundle URI <" + bundleURI + ">. Error: " + e);
   }
@@ -303,7 +303,7 @@ function ddumpObject(obj, name, maxDepth, curDepth)
       ddump(name + "." + prop + "-> Exception(" + e + ")");
     }
   }
-  if ( ! i)
+  if (!i)
     ddump(name + " is empty");
 }
 

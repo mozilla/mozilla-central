@@ -172,7 +172,7 @@ function createAccountInBackend(config)
 
   if (config.outgoing.existingServerKey)
     identity.smtpServerKey = config.outgoing.existingServerKey;
-  else if ( ! config.outgoing.useGlobalPreferredServer)
+  else if (!config.outgoing.useGlobalPreferredServer)
     identity.smtpServerKey = outServer.key;
 
   setFolders(identity, inServer);

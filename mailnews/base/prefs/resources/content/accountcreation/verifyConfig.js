@@ -66,33 +66,35 @@ function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
   assert(typeof(successCallback) == "function", "BUG: 'successCallback' is not a function");
   assert(typeof(errorCallback) == "function", "BUG: 'errorCallback' is not a function");
 
-  var accountManager =
-          Cc["@mozilla.org/messenger/account-manager;1"]
-          .getService(Ci.nsIMsgAccountManager);
+  var accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
+                       .getService(Ci.nsIMsgAccountManager);
 
   if (accountManager.findRealServer(config.incoming.username,
                                     config.incoming.hostname,
                                     sanitize.enum(config.incoming.type,
                                                   ["pop3", "imap", "nntp"]),
                                     config.incoming.port))
-    return errorCallback('Incoming server exists');
+    return errorCallback("Incoming server exists");
+
   // incoming server
-  var inServer = accountManager.createIncomingServer(
-      config.incoming.username,
-      config.incoming.hostname,
-      sanitize.enum(config.incoming.type, ["pop3", "imap", "nntp"]));
+  var inServer =
+    accountManager.createIncomingServer(config.incoming.username,
+                                        config.incoming.hostname,
+                                        sanitize.enum(config.incoming.type,
+                                                      ["pop3", "imap", "nntp"]));
   inServer.port = config.incoming.port;
   inServer.password = config.incoming.password;
   if (config.incoming.socketType == 1) // plain
-      inServer.socketType = Ci.nsIMsgIncomingServer.defaultSocket;
+    inServer.socketType = Ci.nsIMsgIncomingServer.defaultSocket;
   else if (config.incoming.socketType == 2) // SSL
-      inServer.socketType = Ci.nsIMsgIncomingServer.useSSL;
+    inServer.socketType = Ci.nsIMsgIncomingServer.useSSL;
   else if (config.incoming.socketType == 3) // TLS
-      inServer.socketType = Ci.nsIMsgIncomingServer.alwaysUseTLS;
+    inServer.socketType = Ci.nsIMsgIncomingServer.alwaysUseTLS;
+
   // auth
   if (config.incoming.auth == 2) // "secure" auth
-      inServer.useSecAuth = true;
-  //</copied>
+    inServer.useSecAuth = true;
+
   try {
     inServer.password = config.incoming.password;
     verifyLogon(config, inServer, alter, msgWindow, successCallback, errorCallback);
@@ -107,11 +109,11 @@ function verifyLogon(config, inServer, alter, msgWindow, successCallback,
                      errorCallback)
 {
   // hack - save away the old callbacks.
-  let saveCallbacks =   msgWindow.notificationCallbacks;
+  let saveCallbacks = msgWindow.notificationCallbacks;
   // set our own callbacks - this works because verifyLogon will
   // synchronously create the transport and use the notification callbacks.
   let listener = new urlListener(config, inServer, alter, msgWindow,
-                                       successCallback, errorCallback);
+                                 successCallback, errorCallback);
   // our listener listens both for the url and cert errors.
   msgWindow.notificationCallbacks = listener;
   // try to work around bug where backend is clearing password.
@@ -124,13 +126,14 @@ function verifyLogon(config, inServer, alter, msgWindow, successCallback,
 }
 
 /**
- * The url listener also implements nsIBadCertListener2.  Its job is to prevent "bad cert"
- * security dialogs from being shown to the user.  Currently it puts up the
- * cert override dialog, though we'd like to give the user more detailed
+ * The url listener also implements nsIBadCertListener2.  Its job is to prevent
+ * "bad cert" security dialogs from being shown to the user.  Currently it puts
+ * up the cert override dialog, though we'd like to give the user more detailed
  * information in the future.
  */
 
-function urlListener(config, server, alter, msgWindow, successCallback, errorCallback)
+function urlListener(config, server, alter, msgWindow, successCallback,
+                     errorCallback)
 {
   this.mConfig = config;
   this.mServer = server;
@@ -149,24 +152,24 @@ urlListener.prototype =
 
   OnStopRunningUrl: function(aUrl, aExitCode)
   {
-    if (! (aExitCode & 0x80000000)) // logon succeeded
+    if (Components.isSuccessCode(aExitCode))
     {
       this._cleanup();
       this.mSuccessCallback();
     }
-    // logon failed
-    else if ( !this.mAlter) // we were asked to not try other variations
+    // Logon failed, and we aren't supposed to try other variations.
+    else if (!this.mAlter)
     {
       this._cleanup();
       var stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
       var errorMsg = stringBundle.GetStringFromName("cannot_login.error");
       this.mErrorCallback(new Exception(errorMsg));
     }
-    // try other variations, unless there's a cert error, in which
+    // Try other variations, unless there's a cert error, in which
     // case we'll see what the user chooses.
     else if (!this.mCertError)
     {
-      dump("trying next logon\n");
+      ddump("trying next logon\n");
       this.tryNextLogon()
     }
   },
@@ -207,11 +210,12 @@ urlListener.prototype =
 
   _cleanup : function()
   {
-      // avoid pref pollution, clear out server prefs.
-      Cc["@mozilla.org/messenger/account-manager;1"]
-            .getService(Ci.nsIMsgAccountManager).
-                removeIncomingServer(this.mServer, true);
-      this.mServer = null;
+    // Avoid pref pollution, clear out server prefs.
+    Cc["@mozilla.org/messenger/account-manager;1"]
+    .getService(Ci.nsIMsgAccountManager)
+    .removeIncomingServer(this.mServer, true);
+
+    this.mServer = null;
   },
 
   // Suppress any certificate errors
@@ -220,7 +224,7 @@ urlListener.prototype =
       return true;
 
     this.mCertError = true;
-    dump("got cert error\n");
+    ddump("got cert error\n");
     setTimeout(this.informUserOfCertError, 0, socketInfo, targetSite, this);
     return true;
   },
@@ -229,19 +233,20 @@ urlListener.prototype =
     let params = { exceptionAdded : false };
     params.prefetchCert = true;
     params.location = targetSite;
-    window.openDialog('chrome://pippki/content/exceptionDialog.xul',
-                    '','chrome,centerscreen,modal', params);
-    dump("after exception dialog\n");
-    dump("exceptionAdded = " + params.exceptionAdded + "\n");
+    window.openDialog("chrome://pippki/content/exceptionDialog.xul",
+                      "","chrome,centerscreen,modal", params);
+    ddump("after exception dialog\n");
+    ddump("exceptionAdded = " + params.exceptionAdded + "\n");
     if (!params.exceptionAdded) {
       self._cleanup();
       let stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
       let errorMsg = stringBundle.GetStringFromName("cannot_login.error");
       self.mErrorCallback(new Exception(errorMsg));
     }
-    else { // retry the logon now that we've added the cert exception.
+    else {
+      // Retry the logon now that we've added the cert exception.
       verifyLogon(self.mConfig, self.mServer, self.mAlter, self.mMsgWindow,
-            self.mSuccessCallback, self.mErrorCallback);
+                  self.mSuccessCallback, self.mErrorCallback);
     }
   },
 
@@ -253,10 +258,11 @@ urlListener.prototype =
   // nsISupports
   QueryInterface: function(iid) {
     if (!iid.equals(Components.interfaces.nsIBadCertListener2) &&
-      !iid.equals(Components.interfaces.nsIInterfaceRequestor) &&
-      !iid.equals(Components.interfaces.nsIUrlListener) &&
-      !iid.equals(Components.interfaces.nsISupports))
+        !iid.equals(Components.interfaces.nsIInterfaceRequestor) &&
+        !iid.equals(Components.interfaces.nsIUrlListener) &&
+        !iid.equals(Components.interfaces.nsISupports))
       throw Components.results.NS_ERROR_NO_INTERFACE;
+
     return this;
   }
 }

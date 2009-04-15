@@ -357,7 +357,7 @@ EmailConfigWizard.prototype =
               config.incoming.hostname = hostname;
               config.incoming.port = port;
               config.incoming.socketType = ssl;
-              config.incoming._inprogress = ! done; // XXX not nice to change the AccountConfig object
+              config.incoming._inprogress = !done; // XXX not nice to change the AccountConfig object
             }
             else if (type == "smtp" && !me._userPickedOutgoingServer)
             {
@@ -1487,7 +1487,7 @@ var gCustomFieldsDialog = null;
 */
 function EnableURLsDialog(enableURLs, alreadyVisited)
 {
-  if ( ! alreadyVisited)
+  if (!alreadyVisited)
     alreadyVisited = {};
 
   this._visitedURLs = alreadyVisited;
@@ -1505,7 +1505,7 @@ EnableURLsDialog.prototype =
     for (var i = 0; i < this._enableURLs.length; i++)
     {
       let url = this._enableURLs[i].url;
-      if ( ! this._visitedURLs[url])
+      if (!this._visitedURLs[url])
         needVisits = true;
     }
     if (!needVisits)

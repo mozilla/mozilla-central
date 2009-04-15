@@ -51,7 +51,7 @@
  */
 function readFromXML(clientConfigXML)
 {
-  if ( ! "emailProvider" in clientConfigXML)
+  if (!"emailProvider" in clientConfigXML)
   {
     var stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
     throw stringBundle.GetStringFromName("no_emailProvider.error");
@@ -89,7 +89,7 @@ function readFromXML(clientConfigXML)
   // outgoing server
   var oX = xml.outgoingServer; // input (XML)
   var oO = d.outgoing; // output (object)
-  if ( ! oX.@type == "smtp")
+  if (!(oX.@type == "smtp"))
   {
     var stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
     throw stringBundle.GetStringFromName("outgoing_not_smtp.error");
@@ -98,10 +98,13 @@ function readFromXML(clientConfigXML)
   oO.port = sanitize.integerRange(oX.port, 1, 65535);
   if ("username" in oX)
     oO.username = sanitize.string(oX.username);
-  oO.socketType = sanitize.translate(oX.socketType, { plain : 1, SSL: 2, STARTTLS: 3 });
+
+  oO.socketType = sanitize.translate(oX.socketType,
+                                     { plain : 1, SSL: 2, STARTTLS: 3 });
   oO.auth = sanitize.translate(oX.authentication,
-          { none : 0 /* e.g. IP-address-based */, plain : 1, secure : 2,  // TODO "secure"
-            "smtp-after-pop" : 0 /* hope for the best */});
+                               { none : 0 /* e.g. IP-address-based */,
+                                 plain : 1, secure : 2,  // TODO "secure"
+                                 "smtp-after-pop" : 0 /* hope for the best */});
   if ("addThisServer" in oX)
     oO.addThisServer = sanitize.boolean(oX.addThisServer);
   if ("useGlobalPreferredServer" in oX)
@@ -109,7 +112,7 @@ function readFromXML(clientConfigXML)
 
   for each (var inputField in xml.inputField)
   {
-    if ( ! d.inputFields)
+    if (!d.inputFields)
       d.inputFields = new Array();
     var fieldset =
     {
@@ -122,7 +125,7 @@ function readFromXML(clientConfigXML)
 
   for each (var enableURL in xml.enableURL)
   {
-    if ( ! d.enableURLs)
+    if (!d.enableURLs)
       d.enableURLs = new Array();
     var fieldset =
     {

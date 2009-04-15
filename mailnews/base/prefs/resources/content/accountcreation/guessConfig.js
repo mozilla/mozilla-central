@@ -37,8 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var gOverrideService = Components.classes["@mozilla.org/security/certoverride;1"]
-                            .getService(Components.interfaces.nsICertOverrideService);
+var gOverrideService = Cc["@mozilla.org/security/certoverride;1"]
+                       .getService(Ci.nsICertOverrideService);
 Cu.import("resource://app/modules/gloda/log4moz.js");
 
 // Protocol Types
@@ -58,12 +58,11 @@ let IMAP4_CMDS = ["1 CAPABILITY\n", "2 LOGOUT\n"];
 let POP3_CMDS  = ["CAPA\n", "QUIT\n"];
 let SMTP_CMDS = ["EHLO\n", "QUIT\n"];
 
-// this is a bit ugly - we set outgoingDone to false
+// This is a bit ugly - we set outgoingDone to false
 // when emailWizard.js cancels the outgoing probe because the user picked
 // an outoing server. It does this by poking the probeAbortable object,
 // so we need outgoingDone to have global scope.
 var outgoingDone = false;
-
 
 /**
  * Try to guess the config, by:
@@ -71,7 +70,7 @@ var outgoingDone = false;
  *                       mail.<domain> etc.)
  * - probing known ports (143 for IMAP, 110 for POP3, 573 for SMTP, more for SSL)
  * - opening a connection via the right protocol and checking the
- *    protocol-specific CAPABILITIES like that the server returns.
+ *   protocol-specific CAPABILITIES like that the server returns.
  *
  * Final verification is not done here, but in verifyConfig().
  *
@@ -116,7 +115,6 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
                      incomingErrorCallback, outgoingErrorCallback,
                      resultConfig, which)
 {
-
   resultConfig.source = AccountConfig.kSourceGuess;
 
   var outgoingHostDetector = null;
@@ -127,6 +125,7 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
 
   if (which == 'incoming')
     outgoingDone = true;
+
   if (which == 'outgoing')
     incomingDone = true;
 
@@ -145,8 +144,10 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
   {
     if (outgoingEx)
       outgoingErrorCallback(outgoingEx, resultConfig);
+
     if (incomingEx)
       incomingErrorCallback(incomingEx, resultConfig);
+
     if (incomingEx && outgoingEx)
     {
       errorCallback(incomingEx, resultConfig);
@@ -184,8 +185,8 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
   var incomingSuccess = function(type, hostname, port, ssl, secureAuth, badCert,
                                  targetSite)
   {
-    dump("incomingSuccess outgoingDone = " + outgoingDone + "\n");
-    dump("incoming success username = " + resultConfig.incoming.username + "\n");
+    ddump("incomingSuccess outgoingDone = " + outgoingDone + "\n");
+    ddump("incoming success username = " + resultConfig.incoming.username + "\n");
     resultConfig.incoming.hostname = hostname;
     resultConfig.incoming.port = port;
     resultConfig.incoming.type = protocolToString(type);
@@ -208,28 +209,30 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
 
   let incomingHostDetector = null;
   let outgoingHostDetector = null;
-  incomingHostDetector = new IncomingHostDetector(
-    progress, incomingSuccess, incomingError);
-  outgoingHostDetector = new OutgoingHostDetector(
-      progress, outgoingSuccess, outgoingError);
+  incomingHostDetector = new IncomingHostDetector(progress, incomingSuccess,
+                                                  incomingError);
+  outgoingHostDetector = new OutgoingHostDetector(progress, outgoingSuccess,
+                                                  outgoingError);
   if (which == 'incoming' || which == 'both')
   {
     incomingHostDetector.autoDetect(domain,
-            resultConfig.incoming.hostname ? true : false,
-            resultConfig.incoming.protocol ? resultConfig.incoming.protocol : undefined,
-            resultConfig.incoming.port ? resultConfig.incoming.port : undefined);
+                                    resultConfig.incoming.hostname ? true : false,
+                                    resultConfig.incoming.protocol ? resultConfig.incoming.protocol : undefined,
+                                    resultConfig.incoming.port ? resultConfig.incoming.port : undefined);
   }
   if (which == 'outgoing' || which == 'both')
   {
     outgoingHostDetector.autoDetect(domain,
-            resultConfig.outgoing.hostname ? true : false,
-            resultConfig.outgoing.port ? resultConfig.outgoing.port : undefined);
+                                    resultConfig.outgoing.hostname ? true : false,
+                                    resultConfig.outgoing.port ? resultConfig.outgoing.port : undefined);
   }
 
-  return new GuessAbortable(incomingHostDetector, outgoingHostDetector, updateConfig);
+  return new GuessAbortable(incomingHostDetector, outgoingHostDetector,
+                            updateConfig);
 }
 
-function GuessAbortable(incomingHostDetector, outgoingHostDetector, updateConfig)
+function GuessAbortable(incomingHostDetector, outgoingHostDetector,
+                        updateConfig)
 {
   this._init(incomingHostDetector, outgoingHostDetector, updateConfig);
 }
@@ -256,17 +259,19 @@ GuessAbortable.prototype =
         {
           if (this._outgoingHostDetector)
             this._outgoingHostDetector.cancel();
-          dump("setting outgoingDone to true\n");
+
+          ddump("setting outgoingDone to true\n");
           outgoingDone = true;
         }
     }
   },
 
-  restart : function(domain, config, which /* 'incoming' or 'outgoing', default to both */,
+  restart : function(domain, config,
+                     which /* 'incoming' or 'outgoing', default to both */,
                      protocol, port)
   {
-    // calling code may have changed config (e.g., user may have changed username)
-    //  so put new values in resultConfig.
+    // Calling code may have changed config (e.g., user may have changed
+    // username) so put new values in resultConfig.
     this._updateConfig(config);
     switch (which)
     {
@@ -274,8 +279,7 @@ GuessAbortable.prototype =
         if (this._incomingHostDetector)
         {
           this._incomingHostDetector.cancel();
-          this._incomingHostDetector.autoDetect(domain, true,
-                                                protocol, port);
+          this._incomingHostDetector.autoDetect(domain, true, protocol, port);
         }
         else
         {
@@ -295,8 +299,7 @@ GuessAbortable.prototype =
         if (this._incomingHostDetector)
         {
           this._incomingHostDetector.cancel();
-          this._incomingHostDetector.autoDetect(domain, true,
-                                                protocol, port);
+          this._incomingHostDetector.autoDetect(domain, true, protocol, port);
         }
         if (this._outgoingHostDetector)
         {
@@ -306,7 +309,6 @@ GuessAbortable.prototype =
     }
   }
 }
-
 extend(GuessAbortable, Abortable);
 
 function sslConvertToSocketType(ssl)
@@ -383,7 +385,7 @@ HostDetector.prototype =
 
     if (this._hostIndex >= this._hostsToTry.length)
     {
-      // ran out of options
+      // Ran out of options.
       this._log.info("ran out of hosts");
       var stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
       var errorMsg = stringBundle.GetStringFromName("cannot_find_server.error");
@@ -403,7 +405,7 @@ HostDetector.prototype =
     var curTry = this.tryOrder[this._tryIndex];
 
     if (curTry === undefined) {
-      // ran out of options
+      // Ran out of options.
       this._log.info("ran out of tries");
       this._tryNextHost();
       return;
@@ -428,7 +430,7 @@ HostDetector.prototype =
     if (!status)
       return true;
 
-    let cert = status.QueryInterface(Components.interfaces.nsISSLStatus).serverCert;
+    let cert = status.QueryInterface(Ci.nsISSLStatus).serverCert;
     let flags = 0;
 
     if (status.isUntrusted)
@@ -442,7 +444,7 @@ HostDetector.prototype =
     let host = parts[0];
     let port = parts[1];
 
-    // if domain mismatch, then we shouldn't accept, and instead try the domain
+    // If domain mismatch, then we shouldn't accept, and instead try the domain
     // in the cert to the list of tries.
     // Not skipping mismatches for now because it's too common, and until we can
     // poke around the cert and find out what domain to try, best to live
@@ -460,7 +462,7 @@ HostDetector.prototype =
 
   processSSLError : function(socketInfo, status, targetSite)
   {
-    dump ("got SSL error\n");
+    ddump ("got SSL error\n");
     // XXX record that there was an SSL error, and tell the user
     // about it somehow
     // XXX test case?
@@ -549,7 +551,7 @@ HostDetector.prototype =
   _matchTLS : function(curTry, result)
   {
       return curTry != null && curTry[1] == TLS &&
-               hasTLS(result.join("\n"), curTry[0]);
+             hasTLS(result.join("\n"), curTry[0]);
   }
 }
 
@@ -560,9 +562,9 @@ function IncomingHostDetector(progressCallback, successCallback, errorCallback)
 
 IncomingHostDetector.prototype =
 {
-  __proto__: new HostDetector(),
+  __proto__ : new HostDetector(),
 
-  type: 'incoming',
+  type : 'incoming',
 
   _loggerName : "incominghostdetector",
 
@@ -611,9 +613,9 @@ IncomingHostDetector.prototype =
 
   _tryHost : function()
   {
-    // if the protocol was specified, trust that.
-    // same for the port number.
-    // otherwise, if the hostname starts with pop try POP3 protocols first
+    // If the protocol was specified, trust that.
+    // Same for the port number.
+    // Otherwise, if the hostname starts with pop try POP3 protocols first,
     // otherwise check IMAP4 protocols first.
 
     var lowerCaseHost = this._host.toLowerCase();
@@ -689,7 +691,9 @@ function OutgoingHostDetector(progressCallback, successCallback, errorCallback)
 OutgoingHostDetector.prototype =
 {
   __proto__: new HostDetector(),
+
   type: 'outgoing',
+
   _loggerName : "outgoinghostdetector",
 
   autoDetect : function(host, /* required */
@@ -808,24 +812,25 @@ function SocketUtil(host, port, useSSL, protocolData, timeout, listener, scope,
      //The timeout value plus 2 seconds
     setTimeout(timeoutFunc, (timeout * 1000) + 2000);
 
-    var transportService =
-         Components.classes["@mozilla.org/network/socket-transport-service;1"]
-               .getService(Components.interfaces.nsISocketTransportService);
+    var transportService = Cc["@mozilla.org/network/socket-transport-service;1"]
+                           .getService(Ci.nsISocketTransportService);
 
     var transport = transportService.createTransport(useSSL ? ['ssl'] : null,
-                             useSSL ? 1 : 0, host, port, null);
+                                                     useSSL ? 1 : 0, host,
+                                                     port, null);
 
     transport.setTimeout(Ci.nsISocketTransport.TIMEOUT_CONNECT, timeout);
     transport.setTimeout(Ci.nsISocketTransport.TIMEOUT_READ_WRITE, timeout);
     try {
       transport.securityCallbacks = new BadCertHandler(listener);
     } catch (e) {
+      // XXX TODO FIXME
       alert(e);
     }
     var outstream = transport.openOutputStream(0,0,0);
     var stream = transport.openInputStream(0,0,0);
-    var instream = Components.classes["@mozilla.org/scriptableinputstream;1"]
-              .createInstance(Components.interfaces.nsIScriptableInputStream);
+    var instream = Cc["@mozilla.org/scriptableinputstream;1"]
+                   .createInstance(Ci.nsIScriptableInputStream);
     instream.init(stream);
 
     var dataListener =
@@ -862,8 +867,8 @@ function SocketUtil(host, port, useSSL, protocolData, timeout, listener, scope,
         }
       }
     };
-    var pump = Components.classes["@mozilla.org/network/input-stream-pump;1"]
-             .createInstance(Components.interfaces.nsIInputStreamPump);
+    var pump = Cc["@mozilla.org/network/input-stream-pump;1"]
+               .createInstance(Ci.nsIInputStreamPump);
 
     pump.init(stream, -1, -1, 0, 0, false);
     pump.asyncRead(dataListener, null);
@@ -871,7 +876,7 @@ function SocketUtil(host, port, useSSL, protocolData, timeout, listener, scope,
    catch (ex)
    {
     callListener(null);
-    dump(ex);
+    ddump(ex);
    }
    return null;
 }

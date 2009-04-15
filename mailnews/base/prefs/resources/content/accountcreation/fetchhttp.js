@@ -99,14 +99,14 @@
  *   (sending XML).
  *   Usually, you have nothing to upload, so just pass |null|.
  */
-function FetchHTTP(url, urlArgs, post,
-                   successCallback, errorCallback)
+function FetchHTTP(url, urlArgs, post, successCallback, errorCallback)
 {
   assert(typeof(successCallback) == "function", "BUG: successCallback");
   assert(typeof(errorCallback) == "function", "BUG: errorCallback");
   this._url = sanitize.string(url);
-  if ( ! urlArgs)
+  if (!urlArgs)
     urlArgs = {};
+
   this._urlArgs = urlArgs;
   this._post = sanitize.boolean(post);
   this._successCallback = successCallback;
@@ -148,8 +148,8 @@ FetchHTTP.prototype =
   },
   _response : function(success, exStored)
   {
-    try {
-
+    try
+    {
     var errorCode = null;
     var errorStr = null;
 
@@ -160,7 +160,7 @@ FetchHTTP.prototype =
       {
         // response
         var mimetype = this._request.getResponseHeader("Content-Type");
-        if ( ! mimetype)
+        if (!mimetype)
           mimetype = "";
         mimetype = mimetype.split(";")[0];
         if (mimetype == "text/xml" ||
@@ -183,7 +183,7 @@ FetchHTTP.prototype =
       catch (e)
       {
         success = false;
-        var stringBundle = getStringBundle("chrome://messenger/content/accountCreationUtil.properties");
+        let stringBundle = getStringBundle("chrome://messenger/content/accountCreationUtil.properties");
         errorStr = stringBundle.GetStringFromName("bad_response_content.error");
         errorCode = -4;
       }
@@ -191,14 +191,15 @@ FetchHTTP.prototype =
     else
     {
       success = false;
-      try {
+      try
+      {
         errorCode = this._request.status;
         errorStr = this._request.statusText;
       } catch (e) {
         // If we can't resolve the hostname in DNS etc., .statusText throws
         errorCode = -2;
-        errorStr = getStringBundle("chrome://messenger/content/accountCreationUtil.properties")
-                        .GetStringFromName("cannot_contact_server.error");
+        let stringBundle = getStringBundle("chrome://messenger/content/accountCreationUtil.properties")
+        errorStr = stringBundle.GetStringFromName("cannot_contact_server.error");
         ddump(errorStr);
       }
     }
@@ -216,11 +217,13 @@ FetchHTTP.prototype =
 
     } catch (e) {
       // error in callback or our fetchhttp._response() code
-      try {
+      try
+      {
         ddump("Error in errorCallback or _response(): " + e);
         this._errorCallback(e);
       } catch (e) {
         //ddump("Error in errorCallback: " + e);
+        // XXX TODO FIXME BOGUS
         alert(e); // error in errorCallback, too!
         throw(e); // to error console
       }
@@ -231,7 +234,7 @@ FetchHTTP.prototype =
    */
   cancel : function(ex)
   {
-    assert( ! this.result, "Call already returned");
+    assert(!this.result, "Call already returned");
 
     this._request.abort();
 
@@ -244,7 +247,7 @@ FetchHTTP.prototype =
    * This is useful to enable and disable a Cancel button in the UI,
    * which allows to cancel the network request.
    */
-  setFinishedCallback : function (finishedCallback)
+  setFinishedCallback : function(finishedCallback)
   {
     this._finishedCallback = finishedCallback;
   }
@@ -255,7 +258,7 @@ function UserCancelledException(msg)
 {
   // The user knows they cancelled so I don't see a need
   // for a message to that effect.
-  if ( ! msg)
+  if (!msg)
     msg = "";
   Exception.call(this, msg);
 }
