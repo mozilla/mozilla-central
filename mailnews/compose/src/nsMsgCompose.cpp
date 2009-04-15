@@ -2187,7 +2187,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
         PRBool useSigFile = PR_FALSE;
         nsString prefSigText;
         mIdentity->GetSigBottom(&sig_bottom);
-        mIdentity->GetUnicharAttribute("htmlSigText", prefSigText);
+        mIdentity->GetHtmlSigText(prefSigText);
         rv = mIdentity->GetAttachSignature(&useSigFile);
         if (!sig_bottom && ((NS_SUCCEEDED(rv) && useSigFile) || !prefSigText.IsEmpty()))
           mCitePrefix.AppendLiteral("\n");
@@ -3923,7 +3923,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   //
   //    user_pref(".....sig_file", "y:\\sig.html");
   //    user_pref(".....attach_signature", true);
-  //    user_pref("...sigText", "unicode sig");
+  //    user_pref(".....htmlSigText", "unicode sig");
   //
   // Note: We will have intelligent signature behavior in that we
   // look at the signature file first...if the extension is .htm or
@@ -3933,12 +3933,12 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   // the file is an image file. If it is an image file, then we should
   // insert the correct HTML into the composer to have it work, but if we
   // are doing plain text compose, we should insert some sort of message
-  // saying "Image Signature Omitted" or something.
+  // saying "Image Signature Omitted" or something (not done yet).
   //
-  // If there's a sig pref, we will append its text after the sig file contents - we don't
-  // expect many users to use both, but when they do, I think it the pref text is more
-  // likely to be centrally controlled by MCD or a custom installation, and thus will
-  // be more general, and thus should probably go after the user's sig file.
+  // If there's a sig pref, it will only be used if there is no sig file defined,
+  // thus if attach_signature is checked, htmlSigText is ignored (bug 324495).
+  // Plain-text signatures may or may not have a trailing line break (bug 428040).
+
   nsCAutoString sigNativePath;
   PRBool        useSigFile = PR_FALSE;
   PRBool        htmlSig = PR_FALSE;
@@ -3987,10 +3987,12 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
     }
   }
 
+  // Unless a signature file is given, use preference value;
   // the pref sig is always going to be treated as html
+  // if any <> tag is found, otherwise it is considered text
   nsString prefSigText;
-  if (identity)
-    identity->GetUnicharAttribute("htmlSigText", prefSigText);
+  if (identity && !useSigFile)
+    identity->GetHtmlSigText(prefSigText);
   // Now, if they didn't even want to use a signature, we should
   // just return nicely.
   //
@@ -4044,38 +4046,49 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       ConvertHTMLToText(sigFile, sigData);
     else // We have a match...
       LoadDataFromFile(sigFile, sigData);  // Get the data!
-    // post-processing for plain-text signatures to ensure we end in CR, LF, or CRLF
-    if (!htmlSig && !m_composeHTML)
-    {
-      PRInt32 sigLength = sigData.Length();
-      if (sigLength > 0 && !(sigData.CharAt(sigLength - 1) == '\r')
-                        && !(sigData.CharAt(sigLength - 1) == '\n'))
-        sigData.AppendLiteral(CRLF);
-    }
   }
 
   // if we have a prefSigText, append it to sigData.
   if (!prefSigText.IsEmpty())
   {
-    // insert a line between the sig file and the pref sig text, if there was a sig file.
-    if (!sigData.IsEmpty())
-    {
-      if (m_composeHTML)
-        sigOutput.AppendLiteral(htmlBreak);
-      else
-        sigOutput.AppendLiteral(CRLF);
-    }
+    // set htmlSig if the pref is supposed to contain HTML code, defaults to false
+    rv = identity->GetHtmlSigFormat(&htmlSig);
+    if (NS_FAILED(rv))
+      htmlSig = PR_FALSE;
 
     if (!m_composeHTML)
     {
-      ConvertBufToPlainText(prefSigText, PR_FALSE);
+      if (htmlSig)
+        ConvertBufToPlainText(prefSigText, PR_FALSE);
       sigData.Append(prefSigText);
     }
     else
     {
-      sigData.Append(prefSigText);
+      if (!htmlSig)
+      {
+        PRUnichar* escaped = nsEscapeHTML2(prefSigText.get());
+        if (escaped)
+        {
+          sigData.Append(escaped);
+          NS_Free(escaped);
+        }
+        else
+          sigData.Append(prefSigText);
+      }
+      else
+        sigData.Append(prefSigText);
     }
   }
+
+  // post-processing for plain-text signatures to ensure we end in CR, LF, or CRLF
+  if (!htmlSig && !m_composeHTML)
+  {
+    PRInt32 sigLength = sigData.Length();
+    if (sigLength > 0 && !(sigData.CharAt(sigLength - 1) == '\r')
+                      && !(sigData.CharAt(sigLength - 1) == '\n'))
+      sigData.AppendLiteral(CRLF);
+  }
+
   // Now that sigData holds data...if any, append it to the body in a nice
   // looking manner
   if (!sigData.IsEmpty())

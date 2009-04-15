@@ -53,6 +53,10 @@
   -moz-margin-start: 20px;
 }
 
+.signatureBox {
+  font-family: -moz-fixed;
+}
+
 #am-main-title, dialogheader {
   display: none;
 }

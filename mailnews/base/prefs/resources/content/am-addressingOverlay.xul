@@ -51,6 +51,9 @@
     <checkbox hidden="true" wsm_persist="true" id="identity.attachSignature"
           pref="true" preftype="bool" prefattribute="value"
           prefstring="mail.identity.%identitykey%.attach_signature"/>
+    <textbox hidden="true" wsm_persist="true" id="identity.htmlSigText"
+          pref="true" preftype="string" prefattribute="value"
+          prefstring="mail.identity.%identitykey%.htmlSigText"/>
 
     <groupbox>
       <caption label="&compositionGroupTitle.label;"/>

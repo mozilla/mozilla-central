@@ -61,14 +61,24 @@
             <textbox wsm_persist="true" id="identity.organization"
                      prefstring="mail.identity.%identitykey%.organization"/>
           </row>
+          <separator class="thin"/>
+          <row align="center">
+            <label value="&signatureText.label;" control="identity.htmlSigText" accesskey="&signatureText.accesskey;"/>
+            <checkbox wsm_persist="true" id="identity.htmlSigFormat" label="&signatureHtml.label;"
+                      prefattribute="value" accesskey="&signatureHtml.accesskey;"
+                      prefstring="mail.identity.%identitykey%.htmlSigFormat"/>
+          </row>
         </rows>
       </grid>
-      
-      <separator class="thin"/>
+
+      <hbox align="center" class="indent">
+        <textbox wsm_persist="true" id="identity.htmlSigText" multiline="true" wrap="off" rows="4" flex="1"
+                 prefstring="mail.identity.%identitykey%.htmlSigText" class="signatureBox"/>
+      </hbox>
 
       <hbox align="center">
-        <checkbox wsm_persist="true" id="identity.attachSignature" label="&signature.label;" flex="1"
-                  accesskey="&signature.accesskey;"
+        <checkbox wsm_persist="true" id="identity.attachSignature" label="&signatureFile.label;" flex="1"
+                  accesskey="&signatureFile.accesskey;"
                   oncommand="setupSignatureItems();"
                   prefattribute="value"
                   prefstring="mail.identity.%identitykey%.attach_signature"/>

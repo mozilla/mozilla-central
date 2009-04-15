@@ -49,7 +49,7 @@
  */
 
 
-[scriptable, uuid(ca17fc07-f842-4ea1-936c-3a2756f99531)]
+[scriptable, uuid(592d1e34-acab-4817-8247-0299fdc55204)]
 interface nsIMsgIdentity : nsISupports {
   /* internal preferences ID */
   attribute ACString key;
@@ -90,9 +90,13 @@ interface nsIMsgIdentity : nsISupports {
   /* what should our signature be at the end of the quoted text when replying above it? */
   attribute boolean sigBottom;
 
-  /* the current signature */
+  /* the current signature if read from file */
   attribute nsILocalFile signature;
   attribute long signatureDate;
+
+  /* text (format=false) or HTML (format=true) signature if set by preference */
+  attribute AString htmlSigText;
+  attribute boolean htmlSigFormat;
 
   attribute ACString escapedVCard;
 

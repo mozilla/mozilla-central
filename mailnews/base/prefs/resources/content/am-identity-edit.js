@@ -67,6 +67,8 @@ function initIdentityValues(identity)
     document.getElementById('identity.replyTo').value = identity.replyTo;
     document.getElementById('identity.organization').value = identity.organization;
     document.getElementById('identity.attachSignature').checked = identity.attachSignature;
+    document.getElementById('identity.htmlSigText').value = identity.htmlSigText;
+    document.getElementById('identity.htmlSigFormat').checked = identity.htmlSigFormat;
 
     if (identity.signature)
       document.getElementById('identity.signature').value = identity.signature.path;
@@ -188,6 +190,8 @@ function saveIdentitySettings(identity)
     identity.replyTo = document.getElementById('identity.replyTo').value;
     identity.organization = document.getElementById('identity.organization').value;
     identity.attachSignature = document.getElementById('identity.attachSignature').checked;
+    identity.htmlSigText = document.getElementById('identity.htmlSigText').value;
+    identity.htmlSigFormat = document.getElementById('identity.htmlSigFormat').checked;
 
     identity.attachVCard = document.getElementById('identity.attachVCard').checked;
     identity.escapedVCard = document.getElementById('identity.escapedVCard').value;
@@ -288,6 +292,7 @@ function GetSigFolder()
   return sigFolder;
 }
 
+// Signature textbox is active unless option to select from file is checked.
 // If a signature is need to be attached, the associated items which
 // displays the absolute path to the signature (in a textbox) and the way
 // to select a new signature file (a button) are enabled. Otherwise, they
@@ -297,8 +302,21 @@ function setupSignatureItems()
 { 
   var signature = document.getElementById("identity.signature");
   var browse = document.getElementById("identity.sigbrowsebutton");
+  var htmlSigText = document.getElementById("identity.htmlSigText");
+  var htmlSigFormat = document.getElementById("identity.htmlSigFormat");
   var attachSignature = document.getElementById("identity.attachSignature");
   var checked = attachSignature.checked;
+
+  if (checked)
+  {
+    htmlSigText.setAttribute("disabled", "true");
+    htmlSigFormat.setAttribute("disabled", "true");
+  }
+  else
+  {
+    htmlSigText.removeAttribute("disabled");
+    htmlSigFormat.removeAttribute("disabled");
+  }
 
   if (checked && !getAccountValueIsLocked(signature))
     signature.removeAttribute("disabled");

@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
 <?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
 
 <!-- ***** BEGIN LICENSE BLOCK *****
  Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -107,14 +108,21 @@
               <label value="&organization.label;" control="identity.organization" accesskey="&organization.accesskey;"/>
               <textbox id="identity.organization"/>
             </row>
+            <separator class="thin"/>
+            <row align="center">
+              <label value="&signatureText.label;" control="identity.htmlSigText" accesskey="&signatureText.accesskey;"/>
+              <checkbox id="identity.htmlSigFormat" label="&signatureHtml.label;" accesskey="&signatureHtml.accesskey;"/>
+            </row>
           </rows>
         </grid>
-    
-        <separator class="thin"/>
+
+        <hbox align="center" class="indent">
+          <textbox id="identity.htmlSigText" flex="1" multiline="true" wrap="off" rows="4" class="signatureBox"/>
+        </hbox>
 
         <hbox align="center">
-          <checkbox id="identity.attachSignature" label="&signature.label;" flex="1"
-                    accesskey="&signature.accesskey;"
+          <checkbox id="identity.attachSignature" label="&signatureFile.label;" flex="1"
+                    accesskey="&signatureFile.accesskey;"
                     oncommand="setupSignatureItems();"/>
         </hbox>
 

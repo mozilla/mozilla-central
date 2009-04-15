@@ -13,8 +13,12 @@
 <!ENTITY replyTo.accesskey "s">
 <!ENTITY organization.label "Organization:">
 <!ENTITY organization.accesskey "O">
-<!ENTITY signature.label "Attach this signature:">
-<!ENTITY signature.accesskey "t">
+<!ENTITY signatureText.label "Signature text:">
+<!ENTITY signatureText.accesskey "x">
+<!ENTITY signatureHtml.label "Use HTML (e.g., &lt;b&gt;bold&lt;/b&gt;)">
+<!ENTITY signatureHtml.accesskey "L">
+<!ENTITY signatureFile.label "Attach the signature from a file instead (text, HTML, or image):">
+<!ENTITY signatureFile.accesskey "t">
 <!ENTITY edit.label "Edit…">
 <!ENTITY choose.label "Choose…">
 <!ENTITY choose.accesskey "C">

@@ -61,6 +61,10 @@
   margin: 0 4px;
 }
 
+.signatureBox {
+  font-family: -moz-fixed;
+}
+
 treechildren::-moz-tree-cell-text(isDefaultServer-true) {
   font-weight: bold;
 }
