@@ -349,16 +349,34 @@
             folders = aFolders;
           }
 
-          // I'm not entirely happy about having to hard-code this as an attr,
-          // but there doesn't seem to be a better way.
-          if (this.getAttribute("showFileHereLabel") == "true" &&
-              this._parentFolder && 
-              ((this._parentFolder.noSelect || this._parentFolder.canFileMessages) ||
-               mode == "newFolder")) {
+          /* This code block will do the following: Add a menu item that refers
+             back to the parent folder when there is a showFileHereLabel
+             attribute or no mode attribute. However the code won't add such a
+             menu item if one of the following conditions is met:
+             (*) There is no parent folder
+             (*) Current folder has a mode, the parent folder can be selected,
+                 no messages can be filed into the parent folder (e.g. when the
+                 parent folder is a news group or news server) and the folder
+                 mode is not equal to newFolder
+
+             The menu item will have the value of the fileHereLabel attribute as
+             label or if the attribute does not exist the name of the parent
+             folder instead.
+          */
+          if (this._parentFolder && (!mode ||
+              (this.getAttribute("showFileHereLabel") == "true" &&
+               (this._parentFolder.noSelect ||
+                this._parentFolder.canFileMessages || mode == "newFolder")))) {
             var menuitem = document.createElement("menuitem");
             menuitem._folder = this._parentFolder;
-            menuitem.setAttribute("label", this.getAttribute("fileHereLabel"));
-            menuitem.setAttribute("accesskey", this.getAttribute("fileHereAccessKey"));
+            if (this.hasAttribute("fileHereLabel")) {
+              menuitem.setAttribute("label", this.getAttribute("fileHereLabel"));
+              menuitem.setAttribute("accesskey", this.getAttribute("fileHereAccessKey"));
+            } else {
+              menuitem.setAttribute("label", this._parentFolder.prettyName);
+              menuitem.setAttribute("class", "folderMenuItem menuitem-iconic");
+              this._setCssSelectors(this._parentFolder, menuitem);
+            }
             // Eww. have to support some legacy code here...
             menuitem.setAttribute("id", this._parentFolder.URI);
             this.appendChild(menuitem);
