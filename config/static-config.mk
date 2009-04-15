@@ -71,12 +71,6 @@ STATIC_EXTRA_LIBS	+= \
 		$(ZLIB_LIBS) \
 		$(NULL)
 
-ifdef MOZILLA_1_9_1_BRANCH
-STATIC_EXTRA_LIBS += \
-		$(LCMS_LIBS) \
-		$(NULL)
-endif
-
 ifdef MOZ_PSM
 STATIC_EXTRA_LIBS	+= \
 		$(NSS_LIBS) \
@@ -91,9 +85,7 @@ endif
 
 STATIC_EXTRA_LIBS	+= $(MOZ_CAIRO_LIBS)
 
-ifndef MOZILLA_1_9_1_BRANCH
 STATIC_EXTRA_LIBS	+= $(QCMS_LIBS)
-endif
 
 ifdef MOZ_ENABLE_GTK2
 STATIC_EXTRA_LIBS	+= $(XLDFLAGS) $(XT_LIBS) -lgthread-2.0
