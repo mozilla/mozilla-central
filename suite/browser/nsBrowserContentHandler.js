@@ -345,6 +345,22 @@ var nsBrowserContentHandler = {
       }
     }
 
+    // If we don't have a profile selected yet (e.g. the Profile Manager is
+    // displayed) we will crash if we open an url and then select a profile. To
+    // prevent this handle all url command line flag and set the command line's
+    // preventDefault to true to prevent the display of the ui. The initial
+    // command line will be retained when nsAppRunner calls LaunchChild though
+    // urls launched after the initial launch will be lost.
+    try {
+      // This will throw when a profile has not been selected.
+      var fl = Components.classes["@mozilla.org/file/directory_service;1"]
+                         .getService(Components.interfaces.nsIProperties);
+      fl.get("ProfD", Components.interfaces.nsILocalFile);
+    } catch (e) {
+      cmdLine.preventDefault = true;
+      throw NS_ERROR_ABORT;
+    }
+
     try {
       var urlParam = cmdLine.handleFlagWithParam("url", false);
       if (urlParam) {
