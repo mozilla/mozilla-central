@@ -747,8 +747,20 @@ real_write(MimeMultipartRelated* relobj, const char* buf, PRInt32 size)
      obj->options->decompose_file_p &&
      obj->options->decompose_file_output_fn )
   {
-    return obj->options->decompose_file_output_fn
-    (buf, size, obj->options->stream_closure);
+
+    // the buf here has already been decoded, but we want to use general output
+    // functions here that permit decoded or encoded input, using the closure
+    // to tell the difference. We'll temporarily disable the closure's decoder, 
+    // then restore it when we are done. Not sure if we shouldn't just turn it off
+    // permanently though.
+
+    struct mime_draft_data *mdd = (struct mime_draft_data *) obj->options->stream_closure;
+    MimeDecoderData* old_decoder_data = mdd->decoder_data;
+    mdd->decoder_data = nsnull;
+    int status = obj->options->decompose_file_output_fn
+                 (buf, size, (void *)mdd);
+    mdd->decoder_data = old_decoder_data;
+    return status;
   }
   else
 #endif /* MIME_DRAFTS */
