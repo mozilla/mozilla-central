@@ -448,7 +448,8 @@
                     tooltiptext="&popupIcon.tooltiptext;"
                     context="popupBlockerMenu"/>
     <statusbarpanel class="statusbarpanel-iconic" id="offline-status"/>
-    <statusbarpanel class="statusbarpanel-iconic" id="security-button"
+    <statusbarpanel class="statusbarpanel-iconic-text"
+                    id="security-button" dir="reverse"
                     oncommand="BrowserPageInfo(null, 'securityTab')"/>
   </statusbar> 
   <popupset>

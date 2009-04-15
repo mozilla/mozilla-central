@@ -394,6 +394,15 @@ nsBrowserStatusHandler.prototype =
       this.securityButton.setAttribute("tooltiptext", securityUI.tooltipText);
     else
       this.securityButton.removeAttribute("tooltiptext");
+
+    if (aState & wpl.STATE_IDENTITY_EV_TOPLEVEL)
+      this.securityButton.setAttribute("label",
+          securityUI.QueryInterface(Components.interfaces.nsISSLStatusProvider)
+                    .SSLStatus
+                    .QueryInterface(Components.interfaces.nsISSLStatus)
+                    .serverCert.organization);
+    else
+      this.securityButton.removeAttribute("label");
   },
 
   startDocumentLoad : function(aRequest)
