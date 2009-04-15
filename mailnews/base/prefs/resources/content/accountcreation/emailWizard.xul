@@ -129,7 +129,8 @@
                              hidden="true"/>
               </row>
               <row align="center">
-                <textbox id="realname" class="padded"
+                <textbox id="realname"
+                         class="padded"
                          value="" emptytext="&name.description;"
                          onblur="gEmailConfigWizard.validateRealname();"/>
               </row>
@@ -139,7 +140,9 @@
                              hidden="true"/>
               </row>
               <row align="center">
-                <textbox emptytext="&email.description;" id="email" class="padded"
+                <textbox id="email"
+                         class="padded uri-element"
+                         emptytext="&email.description;"
                          onblur="gEmailConfigWizard.validateEmail();"/>
               </row>
               <spacer/>
@@ -150,8 +153,10 @@
               <row align="center">
                 <!-- this starts out as text so the emptytext shows, but then
                      changes to type=password for the life of the dialog -->
-                <textbox emptytext="&password.description;" id="password"
-                         class="padded" type="text"
+                <textbox id="password"
+                         class="padded"
+                         emptytext="&password.description;"
+                         type="text"
                          onfocus="this.type='password';"
                          onblur="gEmailConfigWizard.validatePassword();"/>
               </row>
@@ -227,7 +232,7 @@
                       <textbox id="incoming_server"
                                value=""
                                disabled="true"
-                               class="host"
+                               class="host uri-element"
                                onblur="gEmailConfigWizard.setHost('incoming_server')"
                                oninput="gEmailConfigWizard.stopProbing('incoming_server')"
                                onchange="gEmailConfigWizard.setHost('incoming_server')"/>
@@ -273,7 +278,7 @@
                     <vbox id="outgoing_status" class="icon" width="22"/>
                     <hbox>
                       <menulist id="outgoing_server"
-                                class="hostname"
+                                class="host uri-element"
                                 disabled="false"
                                 editable="true" >
                               <!-- oncommand, and onchange and onmousedown of menulist's inputfield, set in ctor -->
