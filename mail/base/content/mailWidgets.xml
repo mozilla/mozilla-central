@@ -778,35 +778,6 @@
 
       <property name="validityTable" readonly="true" onget="return this.validityManager.getTable(this.searchScope)"/>
 
-      <property name="valueStrings" readonly="true">
-        <getter>
-          <![CDATA[
-            var strings = new Array;
-            var ids = this.valueIds;
-            var pref = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-            var hdrsArray = null;
-            try
-            {
-              var hdrs = pref.getCharPref("mailnews.customHeaders");
-              hdrs = hdrs.replace(/\s+/g, "");  //remove white spaces before splitting
-              hdrsArray = hdrs.match(/[^:]+/g);
-            }
-            catch(ex)
-            {
-            }
-            var bundle = this.stringBundle;
-            var j=0;
-            for (var i=0; i<ids.length; i++)
-            {
-              if(ids[i] > Components.interfaces.nsMsgSearchAttrib.OtherHeader && hdrsArray)
-                strings[i] = hdrsArray[j++];
-              else
-                strings[i] = this.stringBundle.GetStringFromID(ids[i]);
-            }
-            return strings;
-          ]]>
-        </getter>
-      </property>
       <property name="targets" readonly="true">
         <getter>
           <![CDATA[
@@ -973,6 +944,37 @@
           ]]>
         </getter>
       </property>
+      <property name="valueStrings" readonly="true">
+        <getter>
+          <![CDATA[
+            let strings = new Array;
+            let ids = this.valueIds;
+            let hdrsArray = null;
+            try
+            {
+              let hdrs = Components.classes["@mozilla.org/preferences-service;1"]
+                                   .getService(Components.interfaces.nsIPrefBranch)
+                                   .getCharPref("mailnews.customHeaders");
+              hdrs = hdrs.replace(/\s+/g, "");  //remove white spaces before splitting
+              hdrsArray = hdrs.match(/[^:]+/g);
+            }
+            catch(ex)
+            {
+            }
+
+            let j = 0;
+            for (let i = 0; i < ids.length; i++)
+            {
+              if(ids[i] > Components.interfaces.nsMsgSearchAttrib.OtherHeader && hdrsArray)
+                strings[i] = hdrsArray[j++];
+              else
+                strings[i] = this.stringBundle.GetStringFromName(
+                               this.validityManager.getAttributeProperty(ids[i]));
+            }
+            return strings;
+          ]]>
+        </getter>
+      </property>
       <constructor>
       <![CDATA[
         initializeTermFromId(this.id);
@@ -998,6 +1000,17 @@
           <![CDATA[
             var length = new Object;
             return this.validityTable.getAvailableOperators(this.searchAttribute,length);
+          ]]>
+        </getter>
+      </property>
+      <property name="valueStrings" readonly="true">
+        <getter>
+          <![CDATA[
+            let strings = new Array;
+            let ids = this.valueIds;
+            for (let i = 0; i < ids.length; i++)
+              strings[i] = this.stringBundle.GetStringFromID(ids[i]);
+            return strings;
           ]]>
         </getter>
       </property>

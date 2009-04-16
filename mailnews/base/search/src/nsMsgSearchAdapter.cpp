@@ -1073,7 +1073,69 @@ NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearch
   return rv;
 }
 
+// mapping between ordered attribute values, and property strings
+// see search-attributes.properties
+struct
+{
+  nsMsgSearchAttribValue id;
+  const char* property;
+}
+nsMsgSearchAttribMap[] =
+{
+  nsMsgSearchAttrib::Subject, "Subject",
+  nsMsgSearchAttrib::Sender, "From",
+  nsMsgSearchAttrib::Body, "Body",
+  nsMsgSearchAttrib::Date, "Date",
+  nsMsgSearchAttrib::Priority, "Priority",
+  nsMsgSearchAttrib::MsgStatus, "Status",
+  nsMsgSearchAttrib::To, "To",
+  nsMsgSearchAttrib::CC, "Cc",
+  nsMsgSearchAttrib::ToOrCC, "ToOrCc",
+  nsMsgSearchAttrib::AgeInDays, "AgeInDays",
+  nsMsgSearchAttrib::Size, "SizeKB",
+  nsMsgSearchAttrib::Keywords, "Tags",
+  nsMsgSearchAttrib::Name, "AnyName",
+  nsMsgSearchAttrib::DisplayName, "DisplayName",
+  nsMsgSearchAttrib::Nickname, "Nickname",
+  nsMsgSearchAttrib::ScreenName, "ScreenName",
+  nsMsgSearchAttrib::Email, "Email",
+  nsMsgSearchAttrib::AdditionalEmail, "AdditionalEmail",
+  nsMsgSearchAttrib::PhoneNumber, "AnyNumber",
+  nsMsgSearchAttrib::WorkPhone, "WorkPhone",
+  nsMsgSearchAttrib::HomePhone, "HomePhone",
+  nsMsgSearchAttrib::Fax, "Fax",
+  nsMsgSearchAttrib::Pager, "Pager",
+  nsMsgSearchAttrib::Mobile, "Mobile",
+  nsMsgSearchAttrib::City, "City",
+  nsMsgSearchAttrib::Street, "Street",
+  nsMsgSearchAttrib::Title, "Title",
+  nsMsgSearchAttrib::Organization, "Organization",
+  nsMsgSearchAttrib::Department, "Department",
+  nsMsgSearchAttrib::AllAddresses, "FromToCcOrBcc",
+  nsMsgSearchAttrib::JunkScoreOrigin, "JunkScoreOrigin",
+  nsMsgSearchAttrib::JunkPercent, "JunkPercent",
+  nsMsgSearchAttrib::HasAttachmentStatus, "AttachmentStatus",
+  nsMsgSearchAttrib::JunkStatus, "JunkStatus",
+  nsMsgSearchAttrib::Label, "Label",
+  nsMsgSearchAttrib::OtherHeader, "Customize",
+  // the last id is -1 to denote end of table
+  -1, ""
+};
 
+NS_IMETHODIMP
+nsMsgSearchValidityManager::GetAttributeProperty(nsMsgSearchAttribValue aSearchAttribute,
+                                                 nsAString& aProperty)
+{
+  for (PRInt32 i = 0; nsMsgSearchAttribMap[i].id >= 0; ++i)
+  {
+    if (nsMsgSearchAttribMap[i].id == aSearchAttribute)
+    {
+      aProperty.Assign(NS_ConvertUTF8toUTF16(nsMsgSearchAttribMap[i].property));
+      return NS_OK;
+    }
+  }
+  return NS_ERROR_FAILURE;
+}
 
 nsresult
 nsMsgSearchValidityManager::NewTable(nsIMsgSearchValidityTable **aTable)

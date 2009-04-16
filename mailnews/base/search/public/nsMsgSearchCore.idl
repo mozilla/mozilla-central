@@ -66,6 +66,11 @@ interface nsMsgSearchScope {
 
 typedef long nsMsgSearchAttribValue;
 
+/**
+ * Definitions of search attribute types. The numerical order
+ * from here will also be used to determine the order that the
+ * attributes display in the filter editor.
+ */
 [scriptable, uuid(9ED17774-4748-46a6-9A18-E651E3B791F2)]
 interface nsMsgSearchAttrib {
     const nsMsgSearchAttribValue Default = -1;
@@ -79,39 +84,39 @@ interface nsMsgSearchAttrib {
     const nsMsgSearchAttribValue To = 6;
     const nsMsgSearchAttribValue CC = 7;
     const nsMsgSearchAttribValue ToOrCC = 8;
+    const nsMsgSearchAttribValue AllAddresses = 9;
 
-    const nsMsgSearchAttribValue Location = 9;          /* result list only */
-    const nsMsgSearchAttribValue MessageKey = 10;        /* message result elems */
-    const nsMsgSearchAttribValue AgeInDays = 11;
-    const nsMsgSearchAttribValue FolderInfo = 12;        /* for "view thread context" from result */
-    const nsMsgSearchAttribValue Size = 13;
-    const nsMsgSearchAttribValue AnyText = 14;
-    const nsMsgSearchAttribValue Keywords = 15; // keywords are the internal representation of tags.
+    const nsMsgSearchAttribValue Location = 10;          /* result list only */
+    const nsMsgSearchAttribValue MessageKey = 11;        /* message result elems */
+    const nsMsgSearchAttribValue AgeInDays = 12;
+    const nsMsgSearchAttribValue FolderInfo = 13;        /* for "view thread context" from result */
+    const nsMsgSearchAttribValue Size = 14;
+    const nsMsgSearchAttribValue AnyText = 15;
+    const nsMsgSearchAttribValue Keywords = 16; // keywords are the internal representation of tags.
 
-    const nsMsgSearchAttribValue Name = 16;
-    const nsMsgSearchAttribValue DisplayName = 17;
-    const nsMsgSearchAttribValue Nickname = 18;
-    const nsMsgSearchAttribValue ScreenName = 19;
-    const nsMsgSearchAttribValue Email = 20;
-    const nsMsgSearchAttribValue AdditionalEmail = 21;
-    const nsMsgSearchAttribValue PhoneNumber = 22;
-    const nsMsgSearchAttribValue WorkPhone = 23;
-    const nsMsgSearchAttribValue HomePhone = 24;
-    const nsMsgSearchAttribValue Fax = 25;
-    const nsMsgSearchAttribValue Pager = 26;
-    const nsMsgSearchAttribValue Mobile = 27;
-    const nsMsgSearchAttribValue City = 28;
-    const nsMsgSearchAttribValue Street = 29;
-    const nsMsgSearchAttribValue Title = 30;
-    const nsMsgSearchAttribValue Organization = 31;
-    const nsMsgSearchAttribValue Department = 32;
+    const nsMsgSearchAttribValue Name = 17;
+    const nsMsgSearchAttribValue DisplayName = 18;
+    const nsMsgSearchAttribValue Nickname = 19;
+    const nsMsgSearchAttribValue ScreenName = 20;
+    const nsMsgSearchAttribValue Email = 21;
+    const nsMsgSearchAttribValue AdditionalEmail = 22;
+    const nsMsgSearchAttribValue PhoneNumber = 23;
+    const nsMsgSearchAttribValue WorkPhone = 24;
+    const nsMsgSearchAttribValue HomePhone = 25;
+    const nsMsgSearchAttribValue Fax = 26;
+    const nsMsgSearchAttribValue Pager = 27;
+    const nsMsgSearchAttribValue Mobile = 28;
+    const nsMsgSearchAttribValue City = 29;
+    const nsMsgSearchAttribValue Street = 30;
+    const nsMsgSearchAttribValue Title = 31;
+    const nsMsgSearchAttribValue Organization = 32;
+    const nsMsgSearchAttribValue Department = 33;
 
-    // 33 - 42, reserved for ab / LDAP;
-    const nsMsgSearchAttribValue AllAddresses = 43;
-    const nsMsgSearchAttribValue JunkScoreOrigin = 44;
-    const nsMsgSearchAttribValue JunkPercent = 45;
-    const nsMsgSearchAttribValue HasAttachmentStatus = 46;
-    const nsMsgSearchAttribValue JunkStatus = 47;
+    // 34 - 43, reserved for ab / LDAP;
+    const nsMsgSearchAttribValue HasAttachmentStatus = 44;
+    const nsMsgSearchAttribValue JunkStatus = 45;
+    const nsMsgSearchAttribValue JunkPercent = 46;
+    const nsMsgSearchAttribValue JunkScoreOrigin = 47;
     const nsMsgSearchAttribValue Label = 48; /* mail only...can search by label */
     //49 is for showing customize... in ui headers start from 50 onwards up until 99.
     const nsMsgSearchAttribValue OtherHeader = 49;  /* for mail and news. MUST ALWAYS BE LAST attribute since we can have an arbitrary # of these... */

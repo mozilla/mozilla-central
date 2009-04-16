@@ -41,7 +41,19 @@
 
 typedef long nsMsgSearchValidityScope;
 
-[scriptable, uuid(98651499-6820-42e4-a2d7-e75277e01f7d)]
+[scriptable, uuid(6A352055-DE6E-49d2-A256-89E0B9EC405E)]
 interface nsIMsgSearchValidityManager : nsISupports {
     nsIMsgSearchValidityTable getTable(in nsMsgSearchValidityScope scope);
+
+    /**
+     * Given a search attribute (which is an internal numerical id), return
+     * the string name that you can use as a key to look up the localized
+     * string in the search-attributes.properties file.
+     *
+     * @param aSearchAttribute  attribute type from interface nsMsgSearchAttrib
+     *
+     * @return                  localization-friendly string representation
+     *                          of the attribute
+     */
+    AString getAttributeProperty(in nsMsgSearchAttribValue aSearchAttribute);
 };
