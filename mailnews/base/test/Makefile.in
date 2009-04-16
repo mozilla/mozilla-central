@@ -17,10 +17,11 @@
 # The Initial Developer of the Original Code is
 # Mark Banner <bugzilla@standard8.plus.com>
 #
-# Portions created by the Initial Developer are Copyright (C) 2007
+# Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Dan Mosedale <dmose@mozillamessaging.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -46,7 +47,52 @@ include $(DEPTH)/config/autoconf.mk
 # Module name for xpcshell tests.
 MODULE         = test_mailnewsbase
 
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
+MOZILLA_INTERNAL_API = 1
+endif
+
+REQUIRES = \
+	pref \
+	necko \
+	string \
+	msgbase \
+	msgbaseutil \
+	$(NULL)
+
+CPP_UNIT_TESTS = \
+    TestMsgStripRE.cpp \
+    $(NULL)
+
+include $(topsrcdir)/config/config.mk
+
 XPCSHELL_TESTS = unit
 
 include $(topsrcdir)/config/rules.mk
 
+LOCAL_INCLUDES = \
+    -I$(MOZILLA_SRCDIR)/xpcom/tests \
+    $(NULL)
+
+ifndef MOZILLA_INTERNAL_API
+LIBS += $(XPCOM_GLUE_LDOPTS)
+endif
+
+LIBS +=   \
+    $(NULL)
+
+ifdef MOZ_STATIC_MAIL_BUILD
+LIBS +=   \
+    ../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX) \
+    $(NULL)
+else
+ifeq ($(USE_SHORT_LIBNAME), 1)
+LIBS +=   $(call EXPAND_LIBNAME_PATH,msgbsutl,../../base/util)
+else
+LIBS +=   $(call EXPAND_LIBNAME_PATH,msgbaseutil,../../base/util)
+endif
+endif
+
+LIBS +=   \
+  $(XPCOM_LIBS) \
+  $(NSPR_LIBS) \
+  $(NULL)
