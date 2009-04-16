@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -59,41 +59,56 @@ interface nsICacheEntryDescriptor;
 [scriptable, uuid(5f173e8d-0046-4eec-b178-b850a7211654)]
 interface nsIMsgMessageService : nsISupports {
      
-     /////////////////////////////////////////////////////////////////
-     // If you want a handle on the running task, pass in a valid nsIURI 
-     // ptr. You can later interrupt this action by asking the netlib 
-     // service manager to interrupt the url you are given back. 
-     // Remember to release aURL when you are done with it. Pass nsnull
-     // in for aURL if you don't  care about the returned URL.
-     /////////////////////////////////////////////////////////////////
+  /**
+   * If you want a handle on the running task, pass in a valid nsIURI 
+   * ptr. You can later interrupt this action by asking the netlib 
+   * service manager to interrupt the url you are given back. 
+   * Remember to release aURL when you are done with it. Pass nsnull
+   * in for aURL if you don't care about the returned URL.
+   */
 
 
-     /////////////////////////////////////////////////////////////////
-     // CopyMessage: Pass in the URI for the message you want to have 
-     // copied.
-     // aCopyListener already knows about the destination folder. 
-     // Set aMoveMessage to PR_TRUE if you want the message to be moved.
-     // PR_FALSE leaves it as just a copy.
-     ///////////////////////////////////////////////////////////////
-  
+  /**
+   * Pass in the URI for the message you want to have copied.
+   *
+   * @param aSrcURI
+   * @param aCopyListener already knows about the destination folder. 
+   * @param aMoveMessage TRUE if you want the message to be moved.
+   *                     FALSE leaves it as just a copy.
+   * @param aUrlListener 
+   * @param aMsgWindow
+   * @param aURL
+   */
   void CopyMessage(in string aSrcURI, in nsIStreamListener aCopyListener, in boolean aMoveMessage,
                in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow, out nsIURI aURL);
 
-    /* copy multiple messages at a time */
+  /**
+   * Copy multiple messages at a time 
+   *
+   * @param keys
+   * @param srcFolder
+   * @param aCopyListener
+   * @param aMoveMessage
+   * @param aUrlListener
+   * @param aMsgWindow
+   * @param aURL
+   */
   [noscript] void CopyMessages(in nsMsgKeyArrayRef keys, in nsIMsgFolder srcFolder, in nsIStreamListener aCopyListener, in boolean aMoveMessage,
                in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow, out nsIURI aURL);
 
-    /////////////////////////////////////////////////////////////////////
-    //  DisplayMessage: When you want a message displayed....
-    //  aMessageURI    is a uri representing the message to display.
-    //  aDisplayConsumer is (for now) an nsIDocShell which we'll use to load 
-    //  the message into.
-    //  XXXbz Should it be an nsIWebNavigation or something?
-    //  aCharsetOverride  (optional) character set over ride to force the message to
-    //  use.
-    //
-    ///////////////////////////////////////////////////////////////////
-
+    
+  /**
+   * When you want a message displayed....
+   *
+   * @param aMessageURI Is a uri representing the message to display.
+   * @param aDisplayConsumer Is (for now) an nsIDocShell which we'll use to load 
+   *                         the message into.
+   *                         XXXbz Should it be an nsIWebNavigation or something?
+   * @param aMsgWindow
+   * @param aUrlListener
+   * @param aCharsetOverride (optional) character set over ride to force the message to use.
+   * @param aURL
+   */
   void DisplayMessage(in string aMessageURI, 
             in nsISupports aDisplayConsumer, 
             in nsIMsgWindow aMsgWindow,
@@ -101,15 +116,17 @@ interface nsIMsgMessageService : nsISupports {
             in string aCharsetOverride, 
             out nsIURI aURL);
 
-     /////////////////////////////////////////////////////////////////////
-     //  OpenAttachment: When you want an attachment downloaded
-     //  aContentType --> we need to know the content type of the attachment
-   //   aFileName --> the name of the attachment.
-   //   aUrl --> string representation of the original url associated with the msg.
-   //  aMessageUri --> RDF resource that describes the message
-   //   aMsgWindow --> message window
-     ///////////////////////////////////////////////////////////////////
-
+  /**
+   * When you want an attachment downloaded
+   *
+   * @param aContentType We need to know the content type of the attachment
+   * @param aFileName The name of the attachment.
+   * @param aUrl String representation of the original url associated with the msg.
+   * @param aMessageUri RDF resource that describes the message
+   * @param aDisplayConsumer
+   * @param aMsgWindow Message window
+   * @param aUrlListener
+   */
   void openAttachment(in string aContentType, 
             in string aFileName, 
             in string aUrl,
@@ -118,62 +135,82 @@ interface nsIMsgMessageService : nsISupports {
             in nsIMsgWindow aMsgWindow,
             in nsIUrlListener aUrlListener);
 
-     /////////////////////////////////////////////////////////////////////
-     // SaveMessageToDisk: When you want to spool a message out to a file
-   // on disk. This is an asynch operation of course. You must pass in a
-   // url listener in order to figure out when the operation is done.
-   // aMessageURI--> uri representing the message to spool out to disk.
-   // aFile - the file you want the message saved to
-   // aGenerateDummyEnvelope --> usually FALSE. Set to TRUE if you want the msg
-   //            appended at the end of the file. 
-     ///////////////////////////////////////////////////////////////////
-
+  /**
+   * When you want to spool a message out to a file on disk. 
+   * This is an asynch operation of course. You must pass in a
+   * url listener in order to figure out when the operation is done.
+   *
+   * @param aMessageURI The uri representing the message to spool out to disk.
+   * @param aFile The file you want the message saved to
+   * @param aGenerateDummyEnvelope Usually FALSE. Set to TRUE if you want the msg
+   *        appended at the end of the file.
+   * @param aUrlListener
+   * @param aURL
+   * @param canonicalLineEnding
+   * @param aMsgWindow
+   */
   void SaveMessageToDisk(in string aMessageURI, in nsIFile aFile,
                          in boolean aGenerateDummyEnvelope, 
                          in nsIUrlListener aUrlListener, out nsIURI aURL,
                          in boolean canonicalLineEnding, in nsIMsgWindow aMsgWindow);
 
-    /////////////////////////////////////////////////////////////////////
-  // GetUrlForUri: when you have a uri and you would like to convert that
-  // to a url which can be run through necko, you can use this method.
-  // the Uri MUST refer to a message and not a folder! 
-    /////////////////////////////////////////////////////////////////////
-    
+  /**
+   * When you have a uri and you would like to convert that
+   * to a url which can be run through necko, you can use this method.
+   * the Uri MUST refer to a message and not a folder! 
+   *
+   * @param aMessageURI A message uri to convert.
+   * @param aURL URL which can be run through necko.
+   * @param aMsgWindow    
+   */
   void GetUrlForUri(in string aMessageURI, out nsIURI aURL, in nsIMsgWindow aMsgWindow);
 
-     /////////////////////////////////////////////////////////////////////
-     //  DisplayMessageForPrinting: When you want a message displayed in a
-     //  format that is suitable for printing....
-     //  aMessageURI is a uri representing the message to display.
-     //  aDisplayConsumer is (for now) a nsIDocShell which we'll use to load 
-     //  the message into.
-     //  XXXbz should it be an nsIWebNavigation?
-     ///////////////////////////////////////////////////////////////////
-
+  /**
+   * When you want a message displayed in a format that is suitable for printing....
+   *
+   * @param aMessageURI A uri representing the message to display.
+   * @param aDisplayConsumer is (for now) a nsIDocShell which we'll use to load 
+   *        the message into. 
+   *        XXXbz should it be an nsIWebNavigation?
+   * @param aMsgWindow
+   * @param aUrlListener
+   * @param aURL 
+   */
   void DisplayMessageForPrinting(in string aMessageURI, in nsISupports aDisplayConsumer, 
             in nsIMsgWindow aMsgWindow,
             in nsIUrlListener aUrlListener, 
             out nsIURI aURL);
 
+  /**
+   *
+   *
+   * @param aSearchSession
+   * @param aMsgWindow
+   * @param aMsgFolder
+   * @param aSearchUri
+   */
   void Search(in nsIMsgSearchSession aSearchSession, in nsIMsgWindow aMsgWindow, in nsIMsgFolder aMsgFolder, in string aSearchUri);
 
-  // this method streams a message to the passed in consumer. If aConvertData is true, it
-  // will create a stream converter from message rfc822 to star/star. It will also tack
-  // aAdditionalHeader onto the url (e.g., "header=filter").
-  // @param aMessageURI  uri of message to stream
-  // @param aConsumer    generally, a stream listener listening to the message
-  // @param aMsgWindow   msgWindow for give progress and status feedback
-  // @param aUrlListener gets notified when url starts and stops
-  // @param aConvertData should we create a stream converter?
-  // @param aAdditionalHeader added to URI, e.g., "header=filter"
-  // @param aLocalOnly whether data should be retrieved only from local caches
-  //        If streaming over the network is required and this is true, then
-  //        an exception is thrown. This defaults to false.
-  //
-  // @note If we're offline, then even if aLocalOnly is false, we won't stream over the
-  //       network
-  //
-  // @return the URL that gets run
+  /** 
+   * This methot streams a message to the passed in consumer. If aConvertData is true, it
+   * will create a stream converter from message rfc822 to star/star. It will also tack
+   * aAdditionalHeader onto the url (e.g., "header=filter").
+   *
+   * @param aMessageURI  uri of message to stream
+   * @param aConsumer    generally, a stream listener listening to the message
+   * @param aMsgWindow   msgWindow for give progress and status feedback
+   * @param aUrlListener gets notified when url starts and stops
+   * @param aConvertData should we create a stream converter?
+   * @param aAdditionalHeader added to URI, e.g., "header=filter"
+   * @param aLocalOnly whether data should be retrieved only from local caches
+   *        If streaming over the network is required and this is true, then
+   *        an exception is thrown. This defaults to false.
+   *
+   * @note If we're offline, then even if aLocalOnly is false, we won't stream over the
+   *       network
+   *
+   * @return the URL that gets run
+   */
   nsIURI streamMessage(in string aMessageURI, in nsISupports aConsumer, 
                     in nsIMsgWindow aMsgWindow,
                     in nsIUrlListener aUrlListener, 
@@ -189,27 +226,43 @@ interface nsIMsgMessageService : nsISupports {
    * @param aUrl The URL of the message, possibly with an appropriate command in it
    * @param aFolder The folder this message is in
    * @param aCacheEntry If a cache entry is found, then a pointer to it
+   * 
+   * @return TRUE if the message is in mem cache; FALSE if it is not.
    */
   boolean isMsgInMemCache(in nsIURI aUrl,
                           in nsIMsgFolder aFolder,
                           out nsICacheEntryDescriptor aCacheEntry);
 
-    /**
-     * now the the message datasource is going away
-     * we need away to go from message uri to go nsIMsgDBHdr
-     */
-    nsIMsgDBHdr messageURIToMsgHdr(in string uri);
+  /**
+   * now the the message datasource is going away
+   * we need away to go from message uri to go nsIMsgDBHdr
+   *
+   * @param uri A message uri to get nsIMsgDBHdr for.
+   *
+   * @return nsIMsgDBHdr for specified uri or null if failed. 
+   */
+  nsIMsgDBHdr messageURIToMsgHdr(in string uri);
 };
 
-// Some mail protocols (like imap) allow you to fetch individual mime parts. We use this interface
-// to represent message services whose protocols support this. To use this interface, you should get
-// the message service then QI for this interface. If it's present, then can fetch a mime part.
+/** 
+ * Some mail protocols (like imap) allow you to fetch individual mime parts. We use this interface
+ * to represent message services whose protocols support this. To use this interface, you should get
+ * the message service then QI for this interface. If it's present, then can fetch a mime part.
+ */
 [scriptable, uuid(3728C255-480C-11d4-98D0-001083010E9B)]
 interface nsIMsgMessageFetchPartService : nsISupports 
 {
-  // FetchMimePart --> used to fetch an individual mime part
-  // aURI --> url representing the message
-  // aMessageURI --> RDF URI including the part to fetch
+  /**
+   * Used to fetch an individual mime part
+   *
+   * @param aURI url representing the message
+   * @param aMessageURI RDF URI including the part to fetch
+   * @param aDisplayConsumer
+   * @param aMsgWindow
+   * @param aUrlListener
+   *
+   * @return
+   */
   nsIURI fetchMimePart(in nsIURI aURI, in string aMessageUri, in nsISupports aDisplayConsumer, 
             in nsIMsgWindow aMsgWindow,
             in nsIUrlListener aUrlListener);  
