@@ -710,18 +710,27 @@ toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-i
   min-width: 1px;
 }
 
-#security-button {
-  list-style-image: url("chrome://communicator/skin/icons/lock-insecure.gif");
+#security-button > .statusbarpanel-icon {
+  list-style-image: url("chrome://communicator/skin/icons/lock-insecure.png");
 }
 
 /* |high| and |low| styles could be different, to better reflect the secure level... */
-#security-button[level="high"],
-#security-button[level="low"] {
-  list-style-image: url("chrome://communicator/skin/icons/lock-secure.gif");
+#security-button[level="high"] > .statusbarpanel-icon,
+#security-button[level="low"] > .statusbarpanel-icon {
+  list-style-image: url("chrome://communicator/skin/icons/lock-secure.png");
+  background-color: #E8DB99;
 }
 
-#security-button[level="broken"] {
-  list-style-image: url("chrome://communicator/skin/icons/lock-broken.gif");
+#security-button[level="broken"] > .statusbarpanel-icon {
+  list-style-image: url("chrome://communicator/skin/icons/lock-broken.png");
+  background-color: #E83404;
+}
+
+#security-button[label] > .statusbarpanel-icon,
+#security-button > .statusbarpanel-text {
+  margin: 0px;
+  background-color: #62C441;
+  color: #FFFFFF;
 }
 
 #popupIcon {
