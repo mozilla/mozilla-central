@@ -47,6 +47,7 @@
 #include "nsTObserverArray.h"
 #include "nsIObserver.h"
 #include "nsITimer.h"
+#include "nsIMsgShutdown.h"
 
 ////////////////////////////////////////////////////////////////////////////////////
 // This is the listener class for the send operation. We have to create this class 
@@ -61,21 +62,19 @@ public:
   SendOperationListener(nsMsgSendLater *aSendLater);
   virtual ~SendOperationListener();
 
-  // nsISupports interface
   NS_DECL_ISUPPORTS
-
-  // nsIMsgSendListener interface
   NS_DECL_NSIMSGSENDLISTENER
-
-  // nsIMsgCopyServiceListener interface
   NS_DECL_NSIMSGCOPYSERVICELISTENER
+
 private:
   nsMsgSendLater *mSendLater;
 };
 
 class nsMsgSendLater: public nsIMsgSendLater,
                       public nsIFolderListener,
-                      public nsIObserver
+                      public nsIObserver,
+                      public nsIMsgShutdownTask
+
 {
 public:
 	nsMsgSendLater();
@@ -88,6 +87,7 @@ public:
   NS_DECL_NSISTREAMLISTENER
   NS_DECL_NSIREQUESTOBSERVER
   NS_DECL_NSIOBSERVER
+  NS_DECL_NSIMSGSHUTDOWNTASK
 
   // Methods needed for implementing interface...
   nsresult                  StartNextMailFileSend();
@@ -105,8 +105,8 @@ public:
   void NotifyListenersOnStartSending(PRUint32 aTotalMessageCount);
   void NotifyListenersOnProgress(PRUint32 aCurrentMessage,
                                  PRUint32 aTotalMessage);
-  void NotifyListenersOnStopSending(nsresult aStatus, const PRUnichar *aMsg, 
-                                    PRUint32 aTotalTried, PRUint32 aSuccessful);
+  void EndSendMessages(nsresult aStatus, const PRUnichar *aMsg, 
+                       PRUint32 aTotalTried, PRUint32 aSuccessful);
 
   // counters and things for enumeration 
   PRUint32                  mTotalSentSuccessfully;
@@ -125,6 +125,7 @@ private:
   nsTObserverArray<nsCOMPtr<nsIMsgSendLaterListener> > mListenerArray;
   nsCOMPtr<nsIMsgDBHdr>      mMessage;
   nsCOMPtr<nsITimer> mTimer;
+  nsCOMPtr<nsIUrlListener> mShutdownListener;
 
   //
   // File output stuff...

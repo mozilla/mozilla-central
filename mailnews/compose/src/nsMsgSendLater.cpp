@@ -66,12 +66,13 @@
 // send it.
 const PRUint32 kInitialMessageSendTime = 1000;
 
-NS_IMPL_ISUPPORTS5(nsMsgSendLater,
+NS_IMPL_ISUPPORTS6(nsMsgSendLater,
                    nsIMsgSendLater,
                    nsIFolderListener,
                    nsIRequestObserver,
                    nsIStreamListener,
-                   nsIObserver)
+                   nsIObserver,
+                   nsIMsgShutdownTask)
 
 nsMsgSendLater::nsMsgSendLater()
 {
@@ -134,6 +135,9 @@ nsMsgSendLater::Init()
   rv = observerService->AddObserver(this, "quit-application", PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  rv = observerService->AddObserver(this, "msg-shutdown", PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // Subscribe to the unsent messages folder
   nsCOMPtr<nsIMsgFolder> unsentFolder;
   rv = GetUnsentMessagesFolder(nsnull, getter_AddRefs(unsentFolder));
@@ -153,8 +157,11 @@ nsMsgSendLater::Observe(nsISupports *aSubject, const char* aTopic,
 {
   if (aSubject == mTimer && !strcmp(aTopic, "timer-callback"))
   {
-    mTimer = nsnull;
-    InternalSendMessages(PR_FALSE, nsnull);
+    mTimer->Cancel();
+    // If we've already started a send since the timer fired, don't start
+    // another
+    if (!mSendingMessages)
+      InternalSendMessages(PR_FALSE, nsnull);
   }
   else if (!strcmp(aTopic, "quit-application"))
   {
@@ -174,6 +181,9 @@ nsMsgSendLater::Observe(nsISupports *aSubject, const char* aTopic,
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = observerService->RemoveObserver(this, "quit-application");
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = observerService->RemoveObserver(this, "msg-shutdown");
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
@@ -227,7 +237,7 @@ nsMsgSendLater::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult s
     {
       rv = StartNextMailFileSend();
       if (NS_FAILED(rv))
-        NotifyListenersOnStopSending(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
+        EndSendMessages(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
     }
   }
   else
@@ -250,7 +260,7 @@ nsMsgSendLater::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult s
     // Getting the data failed, but we will still keep trying to send the rest...
     rv = StartNextMailFileSend();
     if (NS_FAILED(rv))
-      NotifyListenersOnStopSending(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
+      EndSendMessages(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
   }
 
   return rv;
@@ -452,9 +462,9 @@ SendOperationListener::OnStopSending(const char *aMsgID, nsresult aStatus, const
     }
     else
     {
-      mSendLater->NotifyListenersOnStopSending(aStatus, nsnull,
-                                               mSendLater->mTotalSendCount, 
-                                               mSendLater->mTotalSentSuccessfully);
+      mSendLater->EndSendMessages(aStatus, nsnull,
+                                  mSendLater->mTotalSendCount, 
+                                  mSendLater->mTotalSentSuccessfully);
       NS_RELEASE(mSendLater);
     }
   }
@@ -500,9 +510,9 @@ SendOperationListener::OnStopCopy(nsresult aStatus)
     nsresult rv;
     rv = mSendLater->StartNextMailFileSend();
     if (NS_FAILED(rv))
-      mSendLater->NotifyListenersOnStopSending(rv, nsnull,
-                                               mSendLater->mTotalSendCount, 
-                                               mSendLater->mTotalSentSuccessfully);
+      mSendLater->EndSendMessages(rv, nsnull,
+                                  mSendLater->mTotalSendCount, 
+                                  mSendLater->mTotalSentSuccessfully);
     NS_RELEASE(mSendLater);
   }
 
@@ -622,14 +632,9 @@ nsMsgSendLater::StartNextMailFileSend()
       NS_FAILED(mEnumerator->HasMoreElements(&hasMoreElements)) ||
       !hasMoreElements)
   {
-    // Call any listeners on this operation and then exit cleanly
-#ifdef NS_DEBUG
-    printf("nsMsgSendLater: Finished \"Send Later\" operation.\n");
-#endif
+    // EndSendMessages resets everything for us
+    EndSendMessages(NS_OK, nsnull, mTotalSendCount, mTotalSentSuccessfully);
 
-    mMessagesToSend.Clear();
-    mSendingMessages = PR_FALSE;
-    NotifyListenersOnStopSending(NS_OK, nsnull, mTotalSendCount, mTotalSentSuccessfully);
     // XXX Should we be releasing references so that we don't hold onto items
     // unnecessarily.
     return NS_OK;
@@ -742,6 +747,13 @@ nsresult
 nsMsgSendLater::InternalSendMessages(PRBool aUserInitiated,
                                      nsIMsgIdentity *aIdentity)
 {
+  // Protect against being called whilst we're already sending.
+  if (mSendingMessages)
+  {
+    NS_ERROR("nsMsgSendLater is already sending messages\n");
+    return NS_ERROR_FAILURE;
+  }
+
   nsresult rv = GetUnsentMessagesFolder(aIdentity,
                                         getter_AddRefs(mMessageFolder));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1248,11 +1260,13 @@ nsMsgSendLater::NotifyListenersOnProgress(PRUint32 aCurrentMessage,
   NOTIFY_LISTENERS(OnProgress, (aCurrentMessage, aTotalMessage));
 }
 
+/**
+ * This function is called to end sending of messages, it resets the send later
+ * system and notifies the relevant parties that we have finished.
+ */
 void
-nsMsgSendLater::NotifyListenersOnStopSending(nsresult aStatus,
-                                             const PRUnichar *aMsg,
-                                             PRUint32 aTotalTried,
-                                             PRUint32 aSuccessful)
+nsMsgSendLater::EndSendMessages(nsresult aStatus, const PRUnichar *aMsg,
+                                PRUint32 aTotalTried, PRUint32 aSuccessful)
 {
   // Catch-all, we may have had an issue sending, so we may not be calling
   // StartNextMailFileSend to fully finish the sending. Therefore set
@@ -1260,7 +1274,17 @@ nsMsgSendLater::NotifyListenersOnStopSending(nsresult aStatus,
   // to send messages
   mSendingMessages = PR_FALSE;
 
+  // Clear out our array of messages.
+  mMessagesToSend.Clear();
+
   NOTIFY_LISTENERS(OnStopSending, (aStatus, aMsg, aTotalTried, aSuccessful));
+
+  // If we've got a shutdown listener, notify it that we've finished.
+  if (mShutdownListener)
+  {
+    mShutdownListener->OnStopRunningUrl(nsnull, NS_OK);
+    mShutdownListener = nsnull;
+  }
 }
 
 // XXX todo
@@ -1325,8 +1349,11 @@ nsMsgSendLater::OnItemAdded(nsIMsgFolder *aParentItem, nsISupports *aItem)
   // Items from this function return NS_OK because the callee won't care about
   // the result anyway.
   nsresult rv;
-  mTimer = do_CreateInstance("@mozilla.org/timer;1", &rv);
-  NS_ENSURE_SUCCESS(rv, NS_OK);
+  if (!mTimer)
+  {
+    mTimer = do_CreateInstance("@mozilla.org/timer;1", &rv);
+    NS_ENSURE_SUCCESS(rv, NS_OK);
+  }
 
   rv = mTimer->Init(static_cast<nsIObserver*>(this), kInitialMessageSendTime,
                     nsITimer::TYPE_ONE_SHOT);
@@ -1382,5 +1409,40 @@ nsMsgSendLater::OnItemPropertyFlagChanged(nsIMsgDBHdr *aItem, nsIAtom *aProperty
 NS_IMETHODIMP
 nsMsgSendLater::OnItemEvent(nsIMsgFolder* aItem, nsIAtom *aEvent)
 {
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::GetNeedsToRunTask(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = mSendingMessages;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::DoShutdownTask(nsIUrlListener *aListener, nsIMsgWindow *aWindow,
+                               PRBool *aResult)
+{
+  mTimer->Cancel();
+  // If we're already sending messages, nothing to do, but save the shutdown
+  // listener until we've finished.
+  if (mSendingMessages)
+  {
+    mShutdownListener = aListener;
+    return NS_OK;
+  }
+  // Else we have pending messages, we need to throw up a dialog to find out
+  // if to send them or not.
+
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+nsMsgSendLater::GetCurrentTaskName(nsAString &aResult)
+{
+  // XXX Bug 440794 will localize this, left as non-localized whilst we decide
+  // on the actual strings and try out the UI.
+  aResult = NS_LITERAL_STRING("Sending Messages");
   return NS_OK;
 }
