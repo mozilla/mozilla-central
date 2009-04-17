@@ -2094,11 +2094,11 @@ var GlodaIndexer = {
     folderDeleted: function gloda_indexer_folderDeleted(aFolder) {
       this.indexer._log.debug("folderDeleted notification");
       
-      delFunc = function(folder) {
-        if (this.indexer._datastore._folderKnown(aFolder)) {
+      delFunc = function(aFolder, indexer) {
+        if (indexer._datastore._folderKnown(aFolder)) {
           let folder = GlodaDatastore._mapFolder(aFolder);
-          this.indexer._datastore.markMessagesDeletedByID(folder.id);
-          this.indexer._datastore.deleteFolderByID(folder.id);
+          indexer._datastore.markMessagesDeletedByFolderID(folder.id);
+          indexer._datastore.deleteFolderByID(folder.id);
         }
       };
 
@@ -2108,10 +2108,10 @@ var GlodaIndexer = {
       
       // (the order of operations does not matter; child, non-child, whatever.)
       // delete the parent
-      delFunc(aFolder);
+      delFunc(aFolder, this.indexer);
       // delete all its descendents
       for (let folder in fixIterator(descendentFolders, Ci.nsIMsgFolder)) {
-        delFunc(folder);
+        delFunc(folder, this.indexer);
       }
         
       this.indexer.pendingDeletions = true;
