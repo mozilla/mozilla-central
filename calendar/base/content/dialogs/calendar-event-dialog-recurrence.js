@@ -174,7 +174,7 @@ function initializeControls(rule) {
             setElementValue("monthly-ordinal", ruleInfo.ordinal);
             setElementValue("monthly-weekday", ruleInfo.weekday);
         } else if (byMonthDayRuleComponent.length > 0) {
-            if (byMonthDayRuleComponent.length == 1 && byDayRuleComponent[0] == -1) {
+            if (byMonthDayRuleComponent.length == 1 && byMonthDayRuleComponent[0] == -1) {
                 document.getElementById("monthly-group").selectedIndex = 0;
                 setElementValue("monthly-ordinal", byMonthDayRuleComponent[0]);
                 setElementValue("monthly-weekday", byMonthDayRuleComponent[0]);
