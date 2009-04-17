@@ -278,7 +278,8 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
     else
     {
       nsCOMPtr<nsIMutableArray> srcMessages = do_CreateInstance(NS_ARRAY_CONTRACTID);
-      for (i=0; i<count; i++)
+      srcDB->StartBatch();
+      for (i = 0; i < count; i++)
       {
         rv = dstDB->GetMsgHdrForKey(m_dstKeyArray[i], 
                                     getter_AddRefs(oldHdr));
@@ -298,6 +299,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
           }
         }
       }
+      srcDB->EndBatch();
       nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(srcFolder);
       if (localFolder)
         localFolder->MarkMsgsOnPop3Server(srcMessages, POP3_NONE /*deleteMsgs*/);
