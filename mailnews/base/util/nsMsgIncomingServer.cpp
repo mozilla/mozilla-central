@@ -792,8 +792,13 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
       rv = GetUsername(temp);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      serverUri.Append(temp);
-      serverUri.AppendLiteral("@");
+      if (!temp.IsEmpty())
+      {
+        nsCString escapedUsername;
+        MsgEscapeString(temp, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
+        serverUri.Append(escapedUsername);
+        serverUri.Append('@');
+      }
 
       rv = GetHostName(temp);
       NS_ENSURE_SUCCESS(rv, rv);
