@@ -1487,6 +1487,23 @@ void nsImapProtocol::EstablishServerConnection()
 #undef ESC_CAPABILITY_GREETING_LEN
 }
 
+// This can get called from the UI thread or an imap thread.
+// It makes sure we don't get left with partial messages in
+// the memory cache.
+static void DoomCacheEntry(nsIMsgMailNewsUrl *url)
+{
+  PRBool readingFromMemCache = PR_FALSE;
+  nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(url);
+  imapUrl->GetMsgLoadingFromCache(&readingFromMemCache);
+  if (!readingFromMemCache)
+  {
+    nsCOMPtr<nsICacheEntryDescriptor>  cacheEntry;
+    url->GetMemCacheEntry(getter_AddRefs(cacheEntry));
+    if (cacheEntry)
+      cacheEntry->Doom();
+  }
+}
+
 // returns PR_TRUE if another url was run, PR_FALSE otherwise.
 PRBool nsImapProtocol::ProcessCurrentURL()
 {
@@ -1691,13 +1708,13 @@ PRBool nsImapProtocol::ProcessCurrentURL()
 
   if (mailnewsurl && m_imapMailFolderSink)
   {
-      rv = GetServerStateParser().LastCommandSuccessful() && !logonFailed
-            ? NS_OK : NS_ERROR_FAILURE;
-      // we are done with this url.
-      m_imapMailFolderSink->SetUrlState(this, mailnewsurl, PR_FALSE, rv);
-       // doom the cache entry
-      if (NS_FAILED(rv) && DeathSignalReceived() && m_mockChannel)
-        m_mockChannel->Cancel(rv);
+    rv = GetServerStateParser().LastCommandSuccessful() && !logonFailed ?
+          NS_OK : NS_ERROR_FAILURE;
+    // we are done with this url.
+    m_imapMailFolderSink->SetUrlState(this, mailnewsurl, PR_FALSE, rv);
+     // doom the cache entry
+    if (NS_FAILED(rv) && DeathSignalReceived() && m_mockChannel)
+      DoomCacheEntry(mailnewsurl);
   }
   else
     NS_ASSERTION(PR_FALSE, "missing url or sink");
@@ -8820,28 +8837,21 @@ NS_IMETHODIMP nsImapMockChannel::SetImapProtocol(nsIImapProtocol *aProtocol)
 
 NS_IMETHODIMP nsImapMockChannel::Cancel(nsresult status)
 {
+  NS_WARN_IF_FALSE(NS_IsMainThread(),
+                   "nsImapMockChannel::Cancel should only be called from UI thread");
   m_cancelStatus = status;
   nsCOMPtr<nsIImapProtocol> imapProtocol = do_QueryReferent(m_protocol);
 
   // if we aren't reading from the cache and we get canceled...doom our cache entry...
   if (m_url)
   {
-    PRBool readingFromMemCache = PR_FALSE;
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url);
-    nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(m_url);
-    imapUrl->GetMsgLoadingFromCache(&readingFromMemCache);
-    if (!readingFromMemCache)
-    {
-      nsCOMPtr<nsICacheEntryDescriptor>  cacheEntry;
-      mailnewsUrl->GetMemCacheEntry(getter_AddRefs(cacheEntry));
-      if (cacheEntry)
-        cacheEntry->Doom();
-    }
+    DoomCacheEntry(mailnewsUrl);
   }
 
   // ### Perhaps this can be removed, but I'm not at all convinced yet.
   if (imapProtocol)
-    static_cast<nsImapProtocol*>(imapProtocol.get())->TellThreadToDie();
+    imapProtocol->TellThreadToDie(PR_FALSE);
 
   return NS_OK;
 }
