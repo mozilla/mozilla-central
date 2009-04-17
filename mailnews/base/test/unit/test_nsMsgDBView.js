@@ -9,13 +9,14 @@
 
 // this will be migrated out of gloda soon...
 load("../../mailnews/resources/messageGenerator.js");
+load("../../mailnews/resources/asyncTestUtils.js");
 
 var gMessageGenerator;
 var gScenarioFactory;
 
 var gTestFolder;
 
-function setup_globals(aNextFunc, aNextThis, aNextArgs) {
+function setup_globals(aNextFunc) {
   loadLocalMailAccount();
   gMessageGenerator = new MessageGenerator();
   gScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
@@ -35,7 +36,8 @@ function setup_globals(aNextFunc, aNextThis, aNextArgs) {
   writeMessagesToMbox(messages, gProfileDir,
                       "Mail", "Local Folders", mboxName);
   gTestFolder = gLocalIncomingServer.rootMsgFolder.addSubfolder(mboxName);
-  updateFolderAndNotify(gTestFolder, aNextFunc, aNextThis, aNextArgs);
+  updateFolderAndNotify(gTestFolder, async_driver);
+  return false;
 }
 
 var gCommandUpdater = {
@@ -53,6 +55,140 @@ var gCommandUpdater = {
   {
   }
 };
+
+var gNextUniqueFolderId = 0;
+function make_empty_folder() {
+  let name = "gabba" + gNextUniqueFolderId++;
+  let testFolder = gLocalIncomingServer.rootMsgFolder.addSubfolder(name);
+  return testFolder;
+}
+
+/**
+ * Create a synthetic message by passing the provided aMessageArgs to
+ *  the message generator, then add the resulting message to the given
+ *  folder (or gTestFolder if no folder is provided).
+ */
+function make_and_add_message(aMessageArgs, aFolder) {
+  // create the message
+  let synMsg = gMessageGenerator.makeMessage(aMessageArgs);
+
+  // do it for the side-effect
+  if (aFolder == null)
+    aFolder = gTestFolder;
+  aFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  aFolder.addMessage(synMsg.toMboxString());
+
+  return synMsg;
+}
+
+var WHITESPACE = "                                              ";
+/**
+ * Print out the current db view as best we can.
+ *
+ * Because nsITreeColumns are hard (impossible?) to create in an xpcshell test
+ *  and GetCellText requires a real one (because it uses GetIdConst which is not
+ *  scriptable), we can't actually get at the column text.  So we approximate
+ *  it.  (The right thing to do is modify nsMsgDBView and children to provide a
+ *  more testable way to get at the data.)
+ */
+function dump_view_contents() {
+  dump("********* Current View State\n");
+  for (let iViewIndex = 0; iViewIndex < gTreeView.rowCount; iViewIndex++) {
+    let level = gTreeView.getLevel(iViewIndex);
+    let viewFlags = gDBView.viewFlags;
+    let flags = gDBView.getFlagsAt(iViewIndex);
+    let msgHdr = gDBView.getMsgHdrAt(iViewIndex);
+
+    let s = WHITESPACE.substr(0, level * 2);
+    if (gTreeView.isContainer(iViewIndex))
+      s += gTreeView.isContainerOpen(iViewIndex) ? "- " : "+ ";
+    else
+      s += ". ";
+    //s += gTreeView.getCellText(iViewIndex, )
+    if (flags & MSG_VIEW_FLAG_DUMMY)
+      s += "dummy: ";
+    s += msgHdr.mime2DecodedSubject;
+
+    dump(s + "\n");
+  }
+  dump("********* end view state\n");
+}
+
+function view_throw(why) {
+  dump_view_contents();
+  do_throw(why);
+}
+
+/**
+ * Throw if gDBView has any rows.
+ */
+function assert_view_empty() {
+  if (gTreeView.rowCount != 0)
+    view_throw("Expected view to be empty, but it was not! (" +
+             gTreeView.rowCount + " rows)");
+}
+
+/**
+ * Throw if gDBView does not have aCount rows.
+ */
+function assert_view_row_count(aCount) {
+  if (gTreeView.rowCount != aCount)
+    view_throw("Expected view to have " + aCount + " rows, but it had " +
+             gTreeView.rowCount + " rows!");
+}
+
+/**
+ * Throw if any of the arguments (as view indices) do not correspond to dummy
+ *  rows in gDBView.
+ */
+function assert_view_index_is_dummy() {
+  for each (let [, viewIndex] in Iterator(arguments)) {
+    let flags = gDBView.getFlagsAt(viewIndex);
+    if (!(flags & MSG_VIEW_FLAG_DUMMY))
+      view_throw("Expected index " + viewIndex + " to be a dummy!");
+  }
+}
+
+/**
+ * Throw if any of the arguments (as view indices) correspond to dummy rows in
+ *  gDBView.
+ */
+function assert_view_index_is_not_dummy() {
+  for each (let [, viewIndex] in Iterator(arguments)) {
+    let flags = gDBView.getFlagsAt(viewIndex);
+    if (flags & MSG_VIEW_FLAG_DUMMY)
+      view_throw("Expected index " + viewIndex + " to not be a dummy!");
+  }
+}
+
+/**
+ * Given a message, assert that it is present at the given indices.
+ *
+ * Usage:
+ *  assert_view_message_at_indices(synMsg, 0);
+ *  assert_view_message_at_indices(synMsg, 0, 1);
+ *  assert_view_message_at_indices(aMsg, 0, bMsg, 1);
+ */
+function assert_view_message_at_indices() {
+  let curHdr;
+  for each (let [, thing] in Iterator(arguments)) {
+    // index
+    if (typeof(thing) == "number") {
+      let hdrAt = gDBView.getMsgHdrAt(thing);
+      if (curHdr != hdrAt) {
+        view_throw("Expected hdr at " + thing + " to be " +
+                  curHdr.messageKey + ":" +
+                   curHdr.mime2DecodedSubject.substr(0, 30) + " not " +
+                  hdrAt.messageKey + ":" +
+                    hdrAt.mime2DecodedSubject.substr(0, 30));
+      }
+    }
+
+    // synthetic message, get the header...
+    else
+      curHdr = gTestFolder.msgDatabase.getMsgHdrForMessageID(thing.messageId);
+  }
+}
 
 var authorFirstLetterCustomColumn = {
   getCellText: function(row, col) {
@@ -80,11 +216,17 @@ var ViewType = Components.interfaces.nsMsgViewType;
 var SortType = Components.interfaces.nsMsgViewSortType;
 var SortOrder = Components.interfaces.nsMsgViewSortOrder;
 var ViewFlags = Components.interfaces.nsMsgViewFlagsType;
+var MsgFlags = Components.interfaces.nsMsgMessageFlags;
 
 var MSG_VIEW_FLAG_DUMMY = 0x20000000;
+var MSG_VIEW_FLAG_HASCHILDREN = 0x40000000;
+var MSG_VIEW_FLAG_ISTHREAD = 0x8000000;
 
-function setup_view(aViewType, aViewFlags) {
+function setup_view(aViewType, aViewFlags, aTestFolder) {
   let dbviewContractId = "@mozilla.org/messenger/msgdbview;1?type=" + aViewType;
+
+  if (aTestFolder == null)
+    aTestFolder = gTestFolder;
 
   // always start out fully expanded
   aViewFlags |= ViewFlags.kExpandAll;
@@ -93,16 +235,16 @@ function setup_view(aViewType, aViewFlags) {
                       .createInstance(Components.interfaces.nsIMsgDBView);
   gDBView.init(null, null, gCommandUpdater);
   var outCount = {};
-  gDBView.open(aViewType != "search" ? gTestFolder : null,
+  gDBView.open(aViewType != "search" ? aTestFolder : null,
                SortType.byDate, SortOrder.ascending, aViewFlags, outCount);
-  dump("View Out Count: " + outCount.value + "\n");
+  dump("  View Out Count: " + outCount.value + "\n");
 
   // we need to cram messages into the search via nsIMsgSearchNotify interface
   if (aViewType == "search") {
     let searchNotify = gDBView.QueryInterface(
       Components.interfaces.nsIMsgSearchNotify);
     searchNotify.onNewSearch();
-    let enumerator = gTestFolder.msgDatabase.EnumerateMessages();
+    let enumerator = aTestFolder.msgDatabase.EnumerateMessages();
     while (enumerator.hasMoreElements()) {
       let msgHdr = enumerator.getNext().QueryInterface(
         Components.interfaces.nsIMsgDBHdr);
@@ -160,9 +302,9 @@ function ensure_view_ordering(aSortBy, aDirection, aKeyOrValueGetter,
     aGetGroupValue) {
   if (!gTreeView.rowCount)
     do_throw("There are no rows in my folder! I can't test anything!");
-  dump("Ensuring sort order for " + aSortBy + " (Row count: "
+  dump("  Ensuring sort order for " + aSortBy + " (Row count: "
        + gTreeView.rowCount + ")\n");
-  dump(" cur view flags: " + gDBView.viewFlags + "\n");
+  dump("    cur view flags: " + gDBView.viewFlags + "\n");
 
   // standard grouping doesn't re-group when you sort.  so we need to actually
   //  re-initialize the view.
@@ -172,8 +314,9 @@ function ensure_view_ordering(aSortBy, aDirection, aKeyOrValueGetter,
   if ((gDBView.viewFlags & ViewFlags.kGroupBySort) &&
       (gDBView.viewType != ViewType.eShowSearch)) {
     // we must close to re-open (or we could just use a new view)
+    let msgFolder = gDBView.msgFolder;
     gDBView.close();
-    gDBView.open(gTestFolder, aSortBy, aDirection, gDBView.viewFlags, {});
+    gDBView.open(msgFolder, aSortBy, aDirection, gDBView.viewFlags, {});
   }
   else {
     gDBView.sort(aSortBy, aDirection);
@@ -295,8 +438,54 @@ function test_sort_columns() {
   // Received
 }
 
-function test_group_by_custom_column() {
+function test_group_dummies_under_mutation_by_date() {
+  // - start with an empty folder
+  gTestFolder = make_empty_folder();
 
+  // - create the view
+  setup_view("group", ViewFlags.kGroupBySort);
+  gDBView.sort(SortType.byDate, SortOrder.ascending);
+
+  // - ensure it's empty
+  assert_view_empty();
+
+  // - add a message from today
+  let smsg = make_and_add_message({age: {hours: 1}});
+
+  // - make sure the message and a dummy appear
+  assert_view_row_count(2);
+  assert_view_index_is_dummy(0);
+  assert_view_index_is_not_dummy(1);
+  assert_view_message_at_indices(smsg, 0, 1);
+
+  // - delete that message from today
+  yield async_delete_messages(smsg);
+
+  // - make sure the message and dummy disappear
+  assert_view_empty();
+
+  // - add two messages from today
+  let newer = make_and_add_message({age: {hours: 1}});
+  let older = make_and_add_message({age: {hours: 2}});
+
+  // - sanity check addition
+  assert_view_row_count(3); // 2 messages + 1 dummy
+  assert_view_index_is_dummy(0);
+  assert_view_index_is_not_dummy(1, 2);
+  // the dummy should be based off the newer guy
+  assert_view_message_at_indices(newer, 0, 1);
+  assert_view_message_at_indices(older, 2);
+
+  // - delete the message right under the dummy
+  // (this will be the newer one)
+  yield async_delete_messages(newer);
+
+  // - ensure we still have the dummy and the right child node
+  assert_view_row_count(2);
+  assert_view_index_is_dummy(0);
+  assert_view_index_is_not_dummy(1);
+  // now the dummy should be based off the remaining older one
+  assert_view_message_at_indices(older, 0, 1);
 }
 
 var view_types = [
@@ -312,7 +501,7 @@ var tests_for_all_views = [
 
 var tests_for_specific_views = {
   group: [
-    test_group_by_custom_column
+    test_group_dummies_under_mutation_by_date
   ],
   threaded: [
   ]
@@ -320,10 +509,13 @@ var tests_for_specific_views = {
 
 function run_test() {
   do_test_pending();
-  setup_globals(actually_run_test, null, []);
+  async_run({func: actually_run_test});
 }
 
 function actually_run_test() {
+  dump("in actually_run_test\n");
+  yield async_run({func: setup_globals});
+
   dump("Num Messages: " + gTestFolder.msgDatabase.dBFolderInfo.numMessages + "\n");
 
   // for each view type...
@@ -331,16 +523,19 @@ function actually_run_test() {
     let [view_type, view_flags] = view_type_and_flags;
     dump("===== Testing View Type: " + view_type + " flags: " + view_flags +
          "\n");
+
     // ... run each test
     setup_view(view_type, view_flags);
 
     for (let [, testFunc] in Iterator(tests_for_all_views)) {
-      testFunc();
+      dump("=== Running generic test: " + testFunc.name + "\n");
+      yield async_run({func: testFunc});
     }
 
     if (tests_for_specific_views[view_type]) {
       for (let [, testFunc] in Iterator(tests_for_specific_views[view_type])) {
-        testFunc();
+        dump("=== Running view-specific test: " + testFunc.name + "\n");
+        yield async_run({func: testFunc});
       }
     }
   }

@@ -740,6 +740,8 @@ MessageGenerator.prototype = {
    *  that has not been used before.
    *
    * @param aArgs An object with any of the following attributes provided:
+   *     age: A dictionary with potential attributes 'minutes', 'hours', 'days',
+   *         'weeks' to specify the message be created that far in the past.
    *     attachments: A list of dictionaries suitable for passing to
    *         syntheticPartLeaf, plus a 'body' attribute that has already been
    *         encoded.  Line chopping is on you FOR NOW.
@@ -791,7 +793,23 @@ MessageGenerator.prototype = {
 
     msg.children = [];
     msg.messageId = this.makeMessageId(msg);
-    msg.date = this.makeDate();
+    if (aArgs.age) {
+      let age = aArgs.age;
+      // start from 'now'
+      let ts = new Date().valueOf();
+      if (age.minutes)
+        ts -= age.minutes * 60 * 1000;
+      if (age.hours)
+        ts -= age.hours * 60 * 60 * 1000;
+      if (age.days)
+        ts -= age.days * 24 * 60 * 60 * 1000;
+      if (age.weeks)
+        ts -= age.weeks * 7 * 24 * 60 * 60 * 1000;
+      msg.date = new Date(ts);
+    }
+    else {
+      msg.date = this.makeDate();
+    }
 
     let bodyPart;
     if (aArgs.bodyPart)
