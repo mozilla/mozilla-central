@@ -278,7 +278,6 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAn
 {
   PRUint32 flags;
   nsMsgKey key;
-  nsMsgKey threadParent;
   
   if (!child)
     return NS_ERROR_NULL_POINTER;
