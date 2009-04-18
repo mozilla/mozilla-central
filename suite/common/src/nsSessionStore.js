@@ -2399,9 +2399,13 @@ SessionStoreService.prototype = {
   _needsRestorePage: function sss_needsRestorePage(aState, aRecentCrashes) {
     const SIX_HOURS_IN_MS = 6 * 60 * 60 * 1000;
 
+    // don't display the page when there's nothing to restore
+    if (!aState.windows || !aState.windows.length)
+      return false;
+
     // don't wrap a single about:sessionrestore page
-    let winData = aState.windows || null;
-    if (winData && winData.length == 1 && winData[0].tabs &&
+    let winData = aState.windows;
+    if (winData.length == 1 && winData[0].tabs &&
         winData[0].tabs.length == 1 && winData[0].tabs[0].entries &&
         winData[0].tabs[0].entries.length == 1 &&
         winData[0].tabs[0].entries[0].url == "about:sessionrestore")
