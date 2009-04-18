@@ -117,6 +117,8 @@ function initCompositionAndAddressing(identity)
   document.getElementById('identity.autoQuote').checked = addressingIdentity.autoQuote;
   document.getElementById('identity.replyOnTop').value = addressingIdentity.replyOnTop;
   document.getElementById('identity.sig_bottom').value = addressingIdentity.sigBottom;
+  document.getElementById('identity.sig_on_reply').checked = addressingIdentity.sigOnReply;
+  document.getElementById('identity.sig_on_fwd').checked = addressingIdentity.sigOnForward;
 
   onInitCompositionAndAddressing(); // am-addressing.js method
 }
@@ -134,7 +136,7 @@ function onOk()
     var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
         .getService(Components.interfaces.nsIMsgAccountManager);
     gIdentity = accountManager.createIdentity();
-    
+
     // copy in the default identity settings so we inherit lots of stuff like the defaul drafts folder, etc.
     gIdentity.copy(gAccount.defaultIdentity);
 
@@ -162,7 +164,7 @@ function onOk()
 function validEmailAddress()
 {
   var emailAddress = document.getElementById('identity.email').value;
-  
+
   // quickly test for an @ sign to test for an email address. We don't have
   // to be anymore precise than that.
   if (emailAddress.lastIndexOf("@") < 0)
@@ -199,7 +201,7 @@ function saveIdentitySettings(identity)
 
     var attachSignaturePath = document.getElementById('identity.signature').value;
     identity.signature = null; // this is important so we don't accidentally inherit the default
-    
+
     if (attachSignaturePath)
     {
       // convert signature path back into a nsIFile
@@ -241,7 +243,9 @@ function saveAddressingAndCompositionSettings(identity)
   identity.composeHtml = document.getElementById('identity.composeHtml').checked;
   identity.autoQuote = document.getElementById('identity.autoQuote').checked;
   identity.replyOnTop = document.getElementById('identity.replyOnTop').value;
-  identity.sigBottom = document.getElementById('identity.sig_bottom').value == 'true';  
+  identity.sigBottom = document.getElementById('identity.sig_bottom').value == 'true';
+  identity.sigOnReply = document.getElementById('identity.sig_on_reply').checked;
+  identity.sigOnForward = document.getElementById('identity.sig_on_fwd').checked;
 }
 
 function selectFile()
@@ -299,7 +303,7 @@ function GetSigFolder()
 // are disabled. Check to see if the attachSignature is locked to block
 // broadcasting events.
 function setupSignatureItems()
-{ 
+{
   var signature = document.getElementById("identity.signature");
   var browse = document.getElementById("identity.sigbrowsebutton");
   var htmlSigText = document.getElementById("identity.htmlSigText");
@@ -348,7 +352,7 @@ function editVCard()
 }
 
 function getAccountForFolderPickerState()
-{ 
+{
   return gAccount;
 }
 

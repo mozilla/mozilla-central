@@ -82,7 +82,7 @@
             <menuitem value="0" label="&belowQuote.label;"/>
             <menuitem value="2" label="&selectAndQuote.label;"/>
           </menupopup>
-        </menulist>        
+        </menulist>
       </hbox>
       <hbox class="indent" align="center" id="placeBox">
         <label value="&place.label;" accesskey="&place.accesskey;" control="identity.sig_bottom"/>
@@ -95,6 +95,19 @@
           </menupopup>
         </menulist>
       </hbox>
+
+      <checkbox id="identity.sig_on_reply" wsm_persist="true"
+                label="&includeSigOnReply.label;"
+                accesskey="&includeSigOnReply.accesskey;"
+                preftype="bool" genericattr="true"
+                prefstring="mail.identity.%identitykey%.sig_on_reply"/>
+
+      <checkbox id="identity.sig_on_fwd" wsm_persist="true"
+                label="&includeSigOnForward.label;"
+                accesskey="&includeSigOnForward.accesskey;"
+                preftype="bool" genericattr="true"
+                prefstring="mail.identity.%identitykey%.sig_on_fwd"/>
+
     </groupbox>
 
     <separator class="thin"/>

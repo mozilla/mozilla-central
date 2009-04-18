@@ -39,63 +39,101 @@
 #include "nsISupports.idl"
 #include "nsILocalFile.idl"
 
-/*
- * this interface contains all the personal outgoing mail information
+/**
+ * This interface contains all the personal outgoing mail information
  * for a given person.
- * each identity is identified by a key, which is the <id> string in
- * the identity preferences, such as in
- * mail.identity.<id>.replyTo
- *
+ * Each identity is identified by a key, which is the <id> string in
+ * the identity preferences, such as in mail.identity.<id>.replyTo.
  */
-
-
-[scriptable, uuid(592d1e34-acab-4817-8247-0299fdc55204)]
+[scriptable, uuid(2bf98491-1503-4a69-a862-ab6b8e5beb68)]
 interface nsIMsgIdentity : nsISupports {
-  /* internal preferences ID */
+  /**
+   * Internal preferences ID.
+   */
   attribute ACString key;
 
-  /*
-   *overriding display name for this identity. if this pref is not set
-   * then this will return some composed string from the fullname and email
+  /**
+   * Overriding display name for this identity. If this pref is not set
+   * then this will return some composed string from the fullname and email.
    */
   attribute AString identityName;
 
-  /* user's full name, i.e. John Doe */
+  /**
+   * User's full name, i.e. John Doe.
+   */
   attribute AString fullName;
 
-  /* user's e-mail address, i.e. john@doe.com */
+  /**
+   * User's e-mail address, i.e. john@doe.com.
+   */
   attribute ACString email;
 
-  /* optional replyTo address, i.e. johnNOSPAM@doe.com */
+  /**
+   * Optional replyTo address, i.e. johnNOSPAM@doe.com.
+   */
   attribute ACString replyTo;
 
-  /* optional organization */
+  /**
+   * Optional organization.
+   */
   attribute AString organization;
 
-  /* should we compose with HTML by default? */
+  /**
+   * Should we compose with HTML by default?
+   */
   attribute boolean composeHtml;
 
-  /* should we attach a signature by default? */
+  /**
+   * Should we attach a signature by default?
+   */
   attribute boolean attachSignature;
 
-  /* should we attach a vcard by default? */
+  /**
+   * Should we attach a vcard by default?
+   */
   attribute boolean attachVCard;
 
-  /* should we automatically quote the original message? */
+  /**
+   * Should we automatically quote the original message?
+   */
   attribute boolean autoQuote;
 
-  /* what should our quoting preference be? */
+  /**
+   * What should our quoting preference be?
+   */
   attribute long replyOnTop;
 
-  /* what should our signature be at the end of the quoted text when replying above it? */
+  /**
+   * Should our signature be at the end of the quoted text when replying
+   * above it?
+   */
   attribute boolean sigBottom;
 
-  /* the current signature if read from file */
+  /**
+   * Include a signature when forwarding a message?
+   */
+  attribute boolean sigOnForward;
+
+  /**
+   * Include a signature when replying to a message?
+   */
+  attribute boolean sigOnReply;
+
+  /**
+   * The current signature file.
+   */
   attribute nsILocalFile signature;
+
   attribute long signatureDate;
 
-  /* text (format=false) or HTML (format=true) signature if set by preference */
+  /**
+   * Signature text; plain text or HTML depending on htmlSigText.
+   */
   attribute AString htmlSigText;
+
+  /**
+   * Is the htmlSigText plain text or HTML?
+   */
   attribute boolean htmlSigFormat;
 
   attribute ACString escapedVCard;
@@ -104,7 +142,7 @@ interface nsIMsgIdentity : nsISupports {
   /// URI for the fcc (Sent) folder
   attribute ACString fccFolder;
   attribute boolean fccReplyFollowsParent;
-  
+
   /**
    * @{
    * these attributes control whether the special folder pickers for
@@ -172,7 +210,7 @@ interface nsIMsgIdentity : nsISupports {
    */
   readonly attribute boolean requestReturnReceipt;
   readonly attribute long receiptHeaderType;
-  
+
   /**
    * default request for DSN option for this identity
    * if this is set, the DSN menu item on the compose
@@ -189,7 +227,7 @@ interface nsIMsgIdentity : nsISupports {
    */
   AString getUnicharAttribute(in string name);
   void setUnicharAttribute(in string name, in AString value);
-  
+
   ACString getCharAttribute(in string name);
   void setCharAttribute(in string name, in ACString value);
 

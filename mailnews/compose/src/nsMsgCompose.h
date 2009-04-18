@@ -100,14 +100,7 @@ private:
                                                  PRBool aAllowUTF8 = PR_TRUE,
                                                  PRBool aAllowUTF16 = PR_TRUE);
 
-/*
-  nsresult                      GetCompFields(nsMsgCompFields **aCompFields) 
-                                {
-                                  if (aCompFields)
-                                    *aCompFields = m_compFields;
-                                  return NS_OK;
-                                }
- */
+  PRBool                        CheckIncludeSignaturePrefs(nsIMsgIdentity *identity);
   nsresult                      GetIdentity(nsIMsgIdentity **aIdentity)
                                 {
                                   *aIdentity = m_identity;

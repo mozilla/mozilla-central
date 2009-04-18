@@ -433,6 +433,8 @@ pref("mail.identity.default.overrideGlobal_Pref", false);
 pref("mail.identity.default.auto_quote", true);
 pref("mail.identity.default.reply_on_top", 0); // 0=bottom 1=top 2=select
 pref("mail.identity.default.sig_bottom", true); // true=below quoted false=above quoted
+pref("mail.identity.default.sig_on_fwd", false); // Include signature on fwd?
+pref("mail.identity.default.sig_on_reply", true); // Include signature on re?
 
 // default to archives folder on same server.
 pref("mail.identity.default.archives_folder_picker_mode", "0");

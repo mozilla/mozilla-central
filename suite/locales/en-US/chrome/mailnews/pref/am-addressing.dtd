@@ -33,3 +33,7 @@
 <!ENTITY place.accesskey                      "s">
 <!ENTITY belowText.label                      "below the quote (recommended)">
 <!ENTITY aboveText.label                      "below my reply (above the quote)">
+<!ENTITY includeSigOnReply.label              "Include signature for replies">
+<!ENTITY includeSigOnReply.accesskey          "s">
+<!ENTITY includeSigOnForward.label            "Include signature for forwards">
+<!ENTITY includeSigOnForward.accesskey        "w">

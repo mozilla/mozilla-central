@@ -583,6 +583,7 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
   PRBool sig_bottom = PR_TRUE;
   m_identity->GetReplyOnTop(&reply_on_top);
   m_identity->GetSigBottom(&sig_bottom);
+
   PRBool sigOnTop = (reply_on_top == 1 && !sig_bottom);
   if (aQuoted)
   {
@@ -613,7 +614,7 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
 
     (void)TagEmbeddedObjects(mailEditor);
 
-    if (!aSignature.IsEmpty() )
+    if (!aSignature.IsEmpty())
     {
       //we cannot add it on top earlier, because TagEmbeddedObjects will mark all images in the signature as "moz-do-not-send"
       if( sigOnTop )
@@ -756,6 +757,30 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
   composeService->TimeStamp("Finished inserting data into the editor. The window is finally ready!", PR_FALSE);
 #endif
   return NS_OK;
+}
+
+/**
+ * Check the identity pref to include signature on replies and forwards.
+ */
+PRBool nsMsgCompose::CheckIncludeSignaturePrefs(nsIMsgIdentity *identity)
+{
+  PRBool includeSignature = PR_TRUE;
+  switch (mType)
+  {
+    case nsIMsgCompType::ForwardInline:
+    case nsIMsgCompType::ForwardAsAttachment:
+      identity->GetSigOnForward(&includeSignature);
+      break;
+    case nsIMsgCompType::Reply:
+    case nsIMsgCompType::ReplyAll:
+    case nsIMsgCompType::ReplyToList:
+    case nsIMsgCompType::ReplyToGroup:
+    case nsIMsgCompType::ReplyToSender:
+    case nsIMsgCompType::ReplyToSenderAndGroup:
+      identity->GetSigOnReply(&includeSignature);
+      break;
+  }
+  return includeSignature;
 }
 
 nsresult
@@ -3951,6 +3976,9 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   nsCOMPtr<nsILocalFile> sigFile;
   if (identity)
   {
+    if (!CheckIncludeSignaturePrefs(identity))
+      return NS_OK;
+
     identity->GetReplyOnTop(&reply_on_top);
     identity->GetSigBottom(&sig_bottom);
     rv = identity->GetAttachSignature(&useSigFile);
@@ -4195,7 +4223,6 @@ nsMsgCompose::BuildBodyMessageAndSignature()
   }
 
   nsAutoString tSignature;
-
   if (addSignature)
     ProcessSignature(m_identity, addDashes, &tSignature);
 
@@ -5247,6 +5274,9 @@ nsresult nsMsgCompose::SetSignature(nsIMsgIdentity *identity)
       }
     }
   }
+
+  if (!CheckIncludeSignaturePrefs(identity))
+    return NS_OK;
 
   //Then add the new one if needed
   nsAutoString aSignature;
