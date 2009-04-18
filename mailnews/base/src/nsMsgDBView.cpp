@@ -6435,28 +6435,39 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
 {
   NS_ENSURE_ARG_POINTER(msgToSelectAfterDelete);
   *msgToSelectAfterDelete = nsMsgViewIndex_None;
+
+  PRBool isMultiSelect = PR_FALSE;
   if (!mTreeSelection)
   {
-    // if we don't have an tree selection then we must be in stand alone mode.
+    // If we don't have a tree selection then we must be in stand alone mode.
     // return the index of the current message key as the first selected index.
     *msgToSelectAfterDelete = FindViewIndex(m_currentlyDisplayedMsgKey);
-    return NS_OK;
+  }
+  else
+  {
+    PRInt32 selectionCount;
+    PRInt32 startRange;
+    PRInt32 endRange;
+    nsresult rv = mTreeSelection->GetRangeCount(&selectionCount);
+    for (PRUint32 i = 0; i < selectionCount; i++)
+    {
+      rv = mTreeSelection->GetRangeAt(i, &startRange, &endRange);
+      *msgToSelectAfterDelete = PR_MIN(*msgToSelectAfterDelete, startRange);
+    }
+
+    // Multiple selection either using Ctrl or Shift keys.
+    isMultiSelect = (selectionCount > 1 || (endRange-startRange) > 0);
   }
 
-  PRInt32 selectionCount;
-  PRInt32 startRange;
-  PRInt32 endRange;
-  nsresult rv = mTreeSelection->GetRangeCount(&selectionCount);
-  for (PRInt32 i = 0; i < selectionCount; i++)
-  {
-    rv = mTreeSelection->GetRangeAt(i, &startRange, &endRange);
-    *msgToSelectAfterDelete = PR_MIN(*msgToSelectAfterDelete, startRange);
-  }
+  if (*msgToSelectAfterDelete == nsMsgViewIndex_None)
+    return NS_OK;
+
   nsCOMPtr<nsIMsgFolder> folder;
   GetMsgFolder(getter_AddRefs(folder));
-  nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder);
+  nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder);
   PRBool thisIsImapFolder = (imapFolder != nsnull);
-  if (thisIsImapFolder) //need to update the imap-delete model, can change more than once in a session.
+  // Need to update the imap-delete model, can change more than once in a session.
+  if (thisIsImapFolder)
     GetImapDeleteModel(nsnull);
 
   // If mail.delete_matches_sort_order is true,
@@ -6465,6 +6476,7 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
   PRBool deleteMatchesSort = PR_FALSE;
   if (m_sortOrder == nsMsgViewSortOrder::descending && *msgToSelectAfterDelete)
   {
+    nsresult rv;
     nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
     prefBranch->GetBoolPref("mail.delete_matches_sort_order", &deleteMatchesSort);
@@ -6472,12 +6484,19 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
 
   if (mDeleteModel == nsMsgImapDeleteModels::IMAPDelete)
   {
-    if (selectionCount > 1 || (endRange-startRange) > 0)  //multiple selection either using Ctrl or Shift keys
+    if (isMultiSelect)
+    {
+      // Special behavior for this model since otherwise we'd select one of
+      // the deleted messages.
       *msgToSelectAfterDelete = nsMsgViewIndex_None;
-    else if(deleteMatchesSort)
-      *msgToSelectAfterDelete -= 1;
+    }
     else
-      *msgToSelectAfterDelete += 1;
+    {
+      if (deleteMatchesSort)
+        *msgToSelectAfterDelete -= 1;
+      else
+        *msgToSelectAfterDelete += 1;
+    }
   }
   else if (deleteMatchesSort)
   {
@@ -6617,7 +6636,7 @@ PRBool nsMsgDBView::NonDummyMsgSelected(nsMsgViewIndex * indices, PRInt32 numInd
 NS_IMETHODIMP nsMsgDBView::GetViewIndexForFirstSelectedMsg(nsMsgViewIndex *aViewIndex)
 {
   NS_ENSURE_ARG_POINTER(aViewIndex);
-  // if we don't have an tree selection we must be in stand alone mode....
+  // If we don't have a tree selection we must be in stand alone mode...
   if (!mTreeSelection)
   {
     *aViewIndex = m_currentlyDisplayedViewIndex;
@@ -6643,7 +6662,7 @@ NS_IMETHODIMP
 nsMsgDBView::GetKeyForFirstSelectedMessage(nsMsgKey *key)
 {
   NS_ENSURE_ARG_POINTER(key);
-  // if we don't have an tree selection we must be in stand alone mode....
+  // If we don't have a tree selection we must be in stand alone mode...
   if (!mTreeSelection)
   {
     *key = m_currentlyDisplayedMsgKey;

@@ -47,7 +47,6 @@ const nsMsgViewIndex_None = 0xFFFFFFFF;
 var gCurrentMessageUri;
 var gCurrentFolderUri;
 var gThreadPaneCommandUpdater = null;
-var gCurrentMessageIsDeleted = false;
 var gNextMessageViewIndexAfterDelete = -2;
 var gCurrentFolderToRerootForStandAlone;
 var gRerootOnFolderLoadForStandAlone = false;
@@ -58,15 +57,7 @@ var gMessageToLoad = nsMsgKey_None;
 var folderListener = {
   OnItemAdded: function(parentItem, item) {},
 
-  OnItemRemoved: function(parentItem, item) {
-    if (parentItem.URI != gCurrentFolderUri)
-      return;
-
-    if (item instanceof Components.interfaces.nsIMsgDBHdr &&
-        extractMsgKeyFromURI() == item.messageKey)
-      gCurrentMessageIsDeleted = true;
-  },
-
+  OnItemRemoved: function(parentItem, item) {},
   OnItemPropertyChanged: function(item, property, oldValue, newValue) {},
   OnItemIntPropertyChanged: function(item, property, oldValue, newValue) {
     if (item.URI == gCurrentFolderUri) {
@@ -206,10 +197,9 @@ nsMsgDBViewCommandUpdater.prototype =
 
 function HandleDeleteOrMoveMsgCompleted(folder)
 {
-  if ((folder.URI == gCurrentFolderUri) && gCurrentMessageIsDeleted)
+  if ((folder.URI == gCurrentFolderUri))
   {
     gDBView.onDeleteCompleted(true);
-    gCurrentMessageIsDeleted = false;
     if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None)
     {
       var nextMstKey = gDBView.getKeyAt(gNextMessageViewIndexAfterDelete);
@@ -231,8 +221,6 @@ function HandleDeleteOrMoveMsgCompleted(folder)
 function HandleDeleteOrMoveMsgFailed(folder)
 {
   gDBView.onDeleteCompleted(false);
-  if ((folder.URI == gCurrentFolderUri) && gCurrentMessageIsDeleted)
-    gCurrentMessageIsDeleted = false;
 }
 
 function IsCurrentLoadedFolder(folder)
@@ -713,11 +701,6 @@ function MsgDeleteMessageFromMessageWindow(reallyDelete, fromToolbar)
       gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
   else
       gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
-
-  // Need to update the toolbar for *this* message, since with the
-  // imap mark-as-deleted model delete in the standalone msg window
-  // doesn't (currently) advance to next.
-  UpdateDeleteToolbarButton();
 }
 
 // MessageWindowController object (handles commands when one of the trees does not have focus)

@@ -47,7 +47,6 @@ const nsMsgViewIndex_None = 0xFFFFFFFF;
 var gCurrentMessageUri;
 var gCurrentFolderUri;
 var gThreadPaneCommandUpdater = null;
-var gCurrentMessageIsDeleted = false;
 var gNextMessageViewIndexAfterDelete = -2;
 var gCurrentFolderToRerootForStandAlone;
 var gRerootOnFolderLoadForStandAlone = false;
@@ -57,15 +56,7 @@ var gNextMessageAfterLoad = null;
 var folderListener = {
   OnItemAdded: function(parentItem, item) {},
 
-  OnItemRemoved: function(parentItem, item) {
-    if (parentItem.URI != gCurrentFolderUri)
-      return;
-
-    if (item instanceof Components.interfaces.nsIMsgDBHdr &&
-        extractMsgKeyFromURI() == item.messageKey)
-      gCurrentMessageIsDeleted = true;
-  },
-
+  OnItemRemoved: function(parentItem, item) {},
   OnItemPropertyChanged: function(item, property, oldValue, newValue) {},
   OnItemIntPropertyChanged: function(item, property, oldValue, newValue) { 
     if (item.URI == gCurrentFolderUri) {
@@ -209,10 +200,9 @@ function HandleDeleteOrMoveMsgCompleted(folder)
 	if (!folderResource)
 		return;
 
-	if ((folderResource.Value == gCurrentFolderUri) && gCurrentMessageIsDeleted)
-	{
+  if ((folderResource.Value == gCurrentFolderUri))
+  {
     gDBView.onDeleteCompleted(true);
-    gCurrentMessageIsDeleted = false;
     if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None) 
     {
       var nextMstKey = gDBView.getKeyAt(gNextMessageViewIndexAfterDelete);
@@ -238,8 +228,6 @@ function HandleDeleteOrMoveMsgFailed(folder)
      return;
 
   gDBView.onDeleteCompleted(false);
-  if ((folderResource.Value == gCurrentFolderUri) && gCurrentMessageIsDeleted)
-    gCurrentMessageIsDeleted = false;
 }
 
 function IsCurrentLoadedFolder(folder)
