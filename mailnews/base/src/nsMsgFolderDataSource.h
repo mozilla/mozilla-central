@@ -373,6 +373,5 @@ protected:
   PRBool m_builtRecentFolders;
   virtual PRBool WantsThisFolder(nsIMsgFolder *folder);
   PRUint32 m_cutOffDate;
-  PRInt32 m_maxNumFolders;
+  PRUint32 m_maxNumFolders;
 };
-
