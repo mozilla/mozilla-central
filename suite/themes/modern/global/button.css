@@ -44,17 +44,16 @@
 /* :::::::::: button :::::::::: */
 
 button {
-  margin: 5px;
-  -moz-outline-radius: 4px;
-  outline: 2px solid transparent;
-  border: 3px solid;
-  -moz-border-top-colors: #000000 #BBC6D1 #B1BBC9;
-  -moz-border-right-colors: #000000 #A2AEBB #A7B4C1;
-  -moz-border-bottom-colors: #000000 #97A6B6 #9DAAB9;
-  -moz-border-left-colors: #000000 #BBC6D1 #B1BBC9;
-  -moz-border-radius: 2px;
-  min-width: 60px;
+  margin: 2px;
+  border: 6px solid;
+  -moz-border-top-colors: transparent transparent transparent #000000 #BBC6D1 #B1BBC9;
+  -moz-border-right-colors: transparent transparent transparent #000000 #A2AEBB #A7B4C1;
+  -moz-border-bottom-colors: transparent transparent transparent #000000 #97A6B6 #9DAAB9;
+  -moz-border-left-colors: transparent transparent transparent #000000 #BBC6D1 #B1BBC9;
+  -moz-border-radius: 5px;
+  min-width: 6em;
   background-color: #AAB6C4;
+  -moz-background-clip: padding;
   color: #000000;
   font: menu;
 }
@@ -74,7 +73,10 @@ button {
 /* .......... focused state .......... */
 
 button:focus {
-  outline: 2px solid #98A5B2;
+  -moz-border-top-colors: transparent #98A5B2 #98A5B2 #000000 #BBC6D1 #B1BBC9;
+  -moz-border-right-colors: transparent #98A5B2 #98A5B2 #000000 #A2AEBB #A7B4C1;
+  -moz-border-bottom-colors: transparent #98A5B2 #98A5B2 #000000 #97A6B6 #9DAAB9;
+  -moz-border-left-colors: transparent #98A5B2 #98A5B2 #000000 #BBC6D1 #B1BBC9;
 }
 
 /* .......... active/open/checked state .......... */
@@ -82,27 +84,30 @@ button:focus {
 button:hover:active,
 button[checked="true"],
 button[open="true"] {
-  -moz-border-top-colors: #000000 #8290A5 #899AAC;
-  -moz-border-right-colors: #000000 #8290A5 #899AAC;
-  -moz-border-bottom-colors: #000000 #8290A5 #899AAC;
-  -moz-border-left-colors: #000000 #8290A5 #899AAC;
+  -moz-border-top-colors: transparent transparent transparent #000000 #8290A5 #899AAC;
+  -moz-border-right-colors: transparent transparent transparent #000000 #8290A5 #899AAC;
+  -moz-border-bottom-colors: transparent transparent transparent #000000 #8290A5 #899AAC;
+  -moz-border-left-colors: transparent transparent transparent #000000 #8290A5 #899AAC;
   background-color: #90A1B3;
   color: #FFFFFF;
+}
+
+button:hover:active:focus,
+button[checked="true"]:focus,
+button[open="true"]:focus {
+  -moz-border-top-colors: transparent #98A5B2 #98A5B2 #000000 #8290A5 #899AAC;
+  -moz-border-right-colors: transparent #98A5B2 #98A5B2 #000000 #8290A5 #899AAC;
+  -moz-border-bottom-colors: transparent #98A5B2 #98A5B2 #000000 #8290A5 #899AAC;
+  -moz-border-left-colors: transparent #98A5B2 #98A5B2 #000000 #8290A5 #899AAC;
 }
 
 /* .......... disabled state .......... */
 
 button[disabled="true"] {
-  margin: 5px !important;
-  -moz-outline-radius: 4px !important;
-  outline: 2px solid transparent !important;
-  border: 3px solid !important;
-  -moz-border-top-colors: #8290A5 #C6CDD7 #BCC5D1 !important;
-  -moz-border-right-colors: #8290A5 #A9B5C1 #B2BAC7 !important;
-  -moz-border-bottom-colors: #8290A5 #A9B5C1 #B2BAC7 !important;
-  -moz-border-left-colors: #8290A5 #C6CDD7 #BCC5D1 !important;
-  -moz-border-radius: 2px !important;
-  min-width: 60px !important;
+  -moz-border-top-colors: transparent transparent transparent #8290A5 #C6CDD7 #BCC5D1 !important;
+  -moz-border-right-colors: transparent transparent transparent #8290A5 #A9B5C1 #B2BAC7 !important;
+  -moz-border-bottom-colors: transparent transparent transparent #8290A5 #A9B5C1 #B2BAC7 !important;
+  -moz-border-left-colors: transparent transparent transparent #8290A5 #C6CDD7 #BCC5D1 !important;
   background-color: #B7BFCB !important;
   color: #8C99AB !important;
 }
@@ -110,22 +115,32 @@ button[disabled="true"] {
 /* .......... default state .......... */
 
 button[default="true"] {
-  margin: 4px;
-  -moz-outline-radius: 5px;
-  border: 4px solid;
-  -moz-border-top-colors: #000000 #000000 #BBC6D1 #B1BBC9;
-  -moz-border-right-colors: #000000 #000000 #A2AEBB #A7B4C1;
-  -moz-border-bottom-colors: #000000 #000000 #97A6B6 #9DAAB9;
-  -moz-border-left-colors: #000000 #000000 #BBC6D1 #B1BBC9;
-  -moz-border-radius: 3px;
-  min-width: 62px;
+  -moz-border-top-colors: transparent transparent #000000 #000000 #BBC6D1 #B1BBC9;
+  -moz-border-right-colors: transparent transparent #000000 #000000 #A2AEBB #A7B4C1;
+  -moz-border-bottom-colors: transparent transparent #000000 #000000 #97A6B6 #9DAAB9;
+  -moz-border-left-colors: transparent transparent #000000 #000000 #BBC6D1 #B1BBC9;
 }
 
 button[default="true"]:hover:active {
-  -moz-border-top-colors: #000000 #000000 #8290A5 #899AAC;
-  -moz-border-right-colors: #000000 #000000 #8290A5 #899AAC;
-  -moz-border-bottom-colors: #000000 #000000 #8290A5 #899AAC;
-  -moz-border-left-colors: #000000 #000000 #8290A5 #899AAC;
+  -moz-border-top-colors: transparent transparent #000000 #000000 #8290A5 #899AAC;
+  -moz-border-right-colors: transparent transparent #000000 #000000 #8290A5 #899AAC;
+  -moz-border-bottom-colors: transparent transparent #000000 #000000 #8290A5 #899AAC;
+  -moz-border-left-colors: transparent transparent #000000 #000000 #8290A5 #899AAC;
+  -moz-border-radius: 4px;
+}
+
+button[default="true"]:hover:active:focus {
+  -moz-border-top-colors: #98A5B2 #98A5B2 #000000 #000000 #8290A5 #899AAC;
+  -moz-border-right-colors: #98A5B2 #98A5B2 #000000 #000000 #8290A5 #899AAC;
+  -moz-border-bottom-colors: #98A5B2 #98A5B2 #000000 #000000 #8290A5 #899AAC;
+  -moz-border-left-colors: #98A5B2 #98A5B2 #000000 #000000 #8290A5 #899AAC;
+}
+
+button[default="true"]:focus {
+  -moz-border-top-colors: #98A5B2 #98A5B2 #000000 #000000 #BBC6D1 #B1BBC9;
+  -moz-border-right-colors: #98A5B2 #98A5B2 #000000 #000000 #A2AEBB #A7B4C1;
+  -moz-border-bottom-colors: #98A5B2 #98A5B2 #000000 #000000 #97A6B6 #9DAAB9;
+  -moz-border-left-colors: #98A5B2 #98A5B2 #000000 #000000 #BBC6D1 #B1BBC9;
 }
 
 /* ::::: menu/menu-button buttons ::::: */
