@@ -199,6 +199,7 @@ EmailConfigWizard.prototype =
     // swap buttons back
     _show("next_button");
     _hide("back_button");
+    _hide("advanced_settings");
   },
 
   /* Helper method that enables or disabled all the account information inputs
@@ -249,6 +250,18 @@ EmailConfigWizard.prototype =
     else
       this.setError("nameerror", "name.error");
   },
+
+  /*
+   * This is called onInput, and just handles hiding/showing the next button
+   * based on whether there's a semi-reasonable e-mail address to start with.
+   */
+  onEmailInput : function()
+  {
+    let emailAddr = getElementById('email').value.toString();
+    let atPos = emailAddr.lastIndexOf("@");
+    if (atPos > 0 && atPos + 1 < emailAddr.length)
+      _show("next_button");
+   },
 
   /* This check is done on blur and is only done as an informative warning
    * we don't want to block the person if they've entered and email that
@@ -445,6 +458,7 @@ EmailConfigWizard.prototype =
   _foundConfig2 : function(config)
   {
     this._currentConfigFilledIn = config.copy();
+    _show("advanced_settings");
     replaceVariables(this._currentConfigFilledIn, this._realname, this._email,
                      this._password, this._customFields);
 
@@ -658,10 +672,16 @@ EmailConfigWizard.prototype =
 
   advancedSettings : function()
   {
+    let config = this._currentConfigFilledIn ? this._currentConfigFilledIn.copy()
+                                             : this.getUserConfig();
+    // call this to set the password
+    replaceVariables(config, this._realname, this._email,
+                     this._password, this._customFields);
+
     gEmailWizardLogger.info("creating account in backend");
-    this._currentConfigFilledIn.rememberPassword =
+    config.rememberPassword =
       getElementById("remember_password").checked;
-    var newAccount = createAccountInBackend(this._currentConfigFilledIn);
+    var newAccount = createAccountInBackend(config);
     var windowManager =
       Components.classes['@mozilla.org/appshell/window-mediator;1']
                 .getService(Components.interfaces.nsIWindowMediator);
@@ -875,6 +895,7 @@ EmailConfigWizard.prototype =
    */
   updateConfig : function(config)
   {
+    _show("advanced_settings");
     // if we have a username, set it.
     if (config.incoming.username)
     {

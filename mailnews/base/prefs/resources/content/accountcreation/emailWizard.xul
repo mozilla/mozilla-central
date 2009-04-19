@@ -143,6 +143,7 @@
                 <textbox id="email"
                          class="padded uri-element"
                          emptytext="&email.description;"
+                         oninput="gEmailConfigWizard.onEmailInput()"
                          onblur="gEmailConfigWizard.validateEmail();"/>
               </row>
               <spacer/>
@@ -166,6 +167,7 @@
               <row>
                 <hbox pack="end">
                   <button id="next_button"
+                          hidden="true"
                           oncommand="gEmailConfigWizard.onNext();"
                           label="Next &#187;" class="larger-button"/>
                   <button id="back_button" class="smaller-button"
@@ -325,7 +327,7 @@
                 onmousedown="gEmailConfigWizard.onCancel();"/>
         <label id="advanced_settings" value="&gotoadvanced.label;"
                onmousedown="gEmailConfigWizard.advancedSettings()"
-               class="clickable_label"/>
+               hidden="true" class="clickable_label"/>
       </hbox>
       <spacer flex="1"/>
       <hbox align="center">

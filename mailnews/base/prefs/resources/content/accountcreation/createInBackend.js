@@ -59,7 +59,7 @@ function createAccountInBackend(config)
       config.incoming.hostname,
       sanitize.enum(config.incoming.type, ["pop3", "imap", "nntp"]));
   inServer.port = config.incoming.port;
-  if (config.rememberPassword);
+  if (config.rememberPassword && config.incoming.password.length);
     rememberPassword(inServer, config.incoming.password);
 
   // SSL
@@ -128,7 +128,7 @@ function createAccountInBackend(config)
       outServer.useSecAuth = config.outgoing.auth == 2;
       outServer.username = config.outgoing.username;
       outServer.password = config.outgoing.password;
-      if (config.rememberPassword)
+      if (config.rememberPassword && config.outgoing.password.length)
         rememberPassword(outServer, config.outgoing.password);
     }
     else
