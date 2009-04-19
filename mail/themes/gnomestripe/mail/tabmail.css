@@ -48,6 +48,10 @@
   -moz-padding-start: 0px;
 }
 
+.tabmail-tabs > .tabmail-tab:first-child > .tab-close-button {
+  visibility: collapse;
+}
+
 /**
  * Tab
  */

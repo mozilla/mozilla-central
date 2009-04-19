@@ -183,7 +183,10 @@
                   ondragdrop="nsDragAndDrop.drop(event, this.parentNode.parentNode); event.stopPropagation();"
                   ondragexit="nsDragAndDrop.dragExit(event, this.parentNode.parentNode); event.stopPropagation();">
           <xul:tooltip onpopupshowing="return CreateToolbarTooltip(document, event);"/>
-          <xul:menupopup anonid="tabContextMenu">
+          <xul:menupopup anonid="tabContextMenu"
+                onpopupshowing="
+                  var tabmail = this.parentNode.parentNode.parentNode;
+                  return tabmail.onTabContextMenuShowing(document.popupNode);">
             <xul:menuitem label="&closeTabCmd.label;" accesskey="&closeTabCmd.accesskey;"
                           oncommand="var tabmail = this.parentNode.parentNode.parentNode.parentNode;
                                      tabmail.removeTabByNode(document.popupNode);"/>
@@ -542,6 +545,25 @@
                                     
               aTabNode.setAttribute("label", tab.title);
             }
+          ]]>
+        </body>
+      </method>
+      <method name="onTabContextMenuShowing">
+        <parameter name="aTabNode"/>
+        <body>
+          <![CDATA[
+            // To determine whether the 'Close Tab' context menu should be
+            // visible according to the tab node that was being clicked on.
+            // If the tab node is not closable, the context menu should not
+            // be shown.
+            if (aTabNode.localName != "tab")
+              return false;
+
+            for (let iTab = 0; iTab < this.tabContainer.childNodes.length; iTab++) {
+              if (this.tabContainer.childNodes[iTab] == aTabNode)
+                return this.tabInfo[iTab].canClose;
+            }
+            return false;
           ]]>
         </body>
       </method>

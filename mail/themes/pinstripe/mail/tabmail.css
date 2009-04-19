@@ -45,6 +45,10 @@
   -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tabs") !important;
 }
 
+.tabmail-tabs > .tabmail-tab:first-child > .tab-close-button {
+  visibility: collapse;
+}
+
 #messengerWindow:not([active="true"]) .tabmail-strip {
   background-color: #e2e2e2;
 }
