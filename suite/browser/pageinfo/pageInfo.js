@@ -357,6 +357,23 @@ function onUnloadPageInfo()
   onUnloadRegistry.map(function(func) { func(); });
 }
 
+function doHelpButton()
+{
+  const helpTopics = {
+    "generalTab":  "pageinfo_general",
+    "mediaTab":    "pageinfo_media",
+    // "feedTab":     "pageinfo_feed",
+    // "permTab":     "pageinfo_permissions",
+    "formsTab":    "pageinfo_forms",
+    "linksTab":    "pageinfo_links",
+    "securityTab": "pageinfo_security"
+  };
+
+  var tabbox = document.getElementById("tabbox");
+  var helpdoc = helpTopics[tabbox.selectedTab.id] || "nav-page-info";
+  openHelp(helpdoc, "chrome://communicator/locale/help/suitehelp.rdf");
+}
+
 function onClickMore()
 {
   var tabbox = document.getElementById("tabbox");
