@@ -5,7 +5,7 @@
 <!ENTITY password.description            "Password">
 
 <!ENTITY next.label                      "Next &#187;">
-<!ENTITY back.label                      "Back &#171;">
+<!ENTITY back.label                      "&#171; Back">
 
 <!ENTITY username.label                  "username">
 <!ENTITY receivingserver.label           "receiving">
