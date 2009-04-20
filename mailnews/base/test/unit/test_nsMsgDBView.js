@@ -449,8 +449,13 @@ function test_group_dummies_under_mutation_by_date() {
   // - ensure it's empty
   assert_view_empty();
 
-  // - add a message from today
-  let smsg = make_and_add_message({age: {hours: 1}});
+  // - add a message from this week
+  // (we want to make sure all the messages end up in the same bucket and that
+  //  the current day changing as we run the test does not change buckets
+  //  either. bucket 1 is same day, bucket 2 is yesterday, bucket 3 is last
+  //  week, so 2 days ago or older is always last week, even if we roll over
+  //  and it becomes 3 days ago.)
+  let smsg = make_and_add_message({age: {days: 2, hours: 1}});
 
   // - make sure the message and a dummy appear
   assert_view_row_count(2);
@@ -458,15 +463,15 @@ function test_group_dummies_under_mutation_by_date() {
   assert_view_index_is_not_dummy(1);
   assert_view_message_at_indices(smsg, 0, 1);
 
-  // - delete that message from today
+  // - delete the message
   yield async_delete_messages(smsg);
 
   // - make sure the message and dummy disappear
   assert_view_empty();
 
-  // - add two messages from today
-  let newer = make_and_add_message({age: {hours: 1}});
-  let older = make_and_add_message({age: {hours: 2}});
+  // - add two messages from this week (same date bucket concerns)
+  let newer = make_and_add_message({age: {days: 2, hours: 1}});
+  let older = make_and_add_message({age: {days: 2, hours: 2}});
 
   // - sanity check addition
   assert_view_row_count(3); // 2 messages + 1 dummy
