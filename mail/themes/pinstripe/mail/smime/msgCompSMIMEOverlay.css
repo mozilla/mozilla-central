@@ -38,8 +38,6 @@
   == Styles for the S/Mime in composer window.
   ======================================================================= */
 
-@import url("chrome://messenger/skin/");
-
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 #button-security {
