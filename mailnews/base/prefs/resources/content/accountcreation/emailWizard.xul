@@ -169,10 +169,10 @@
                   <button id="next_button"
                           hidden="true"
                           oncommand="gEmailConfigWizard.onNext();"
-                          label="Next &#187;" class="larger-button"/>
+                          label="&next.label;" class="larger-button"/>
                   <button id="back_button" class="smaller-button"
                           oncommand="gEmailConfigWizard.onBack();"
-                          label="&#171; Back" hidden="true"/>
+                          label="&back.label;" hidden="true"/>
                 </hbox>
               </row>
             </rows>

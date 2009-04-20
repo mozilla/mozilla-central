@@ -4,6 +4,9 @@
 <!ENTITY email.description               "Email">
 <!ENTITY password.description            "Password">
 
+<!ENTITY next.label                      "Next &#187;">
+<!ENTITY back.label                      "Back &#171;">
+
 <!ENTITY username.label                  "username">
 <!ENTITY receivingserver.label           "receiving">
 <!ENTITY sendingserver.label             "sending">
