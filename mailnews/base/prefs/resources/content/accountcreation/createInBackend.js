@@ -63,7 +63,6 @@ function createAccountInBackend(config)
     rememberPassword(inServer, config.incoming.password);
 
   // SSL
-  inServer.isSecureServer = config.incoming.socketType > 1;
   if (config.incoming.socketType == 1) // plain
     inServer.socketType = Ci.nsIMsgIncomingServer.defaultSocket;
   else if (config.incoming.socketType == 2) // SSL / TLS
