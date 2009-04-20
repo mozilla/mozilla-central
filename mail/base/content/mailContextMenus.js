@@ -173,20 +173,22 @@ function fillMailContextMenu(event)
 
   ShowMenuItem("mailContext-sep-reply", true);
 
+  var msgFolder = GetLoadedMsgFolder();
+
   // Set up the move menu. We can't move from newsgroups.
   ShowMenuItem("mailContext-moveMenu",
-               !isNewsgroup && !hideMailItems && numSelected);
-  var msgFolder = GetLoadedMsgFolder();
+               !isNewsgroup && !hideMailItems && numSelected && msgFolder);
+
   // disable move if we can't delete message(s) from this folder
   var canMove = (numSelected > 0) && msgFolder && msgFolder.canDeleteMessages;
   EnableMenuItem("mailContext-moveMenu", canMove);
 
   // Copy is available as long as something is selected.
-  ShowMenuItem("mailContext-copyMenu", numSelected && !hideMailItems);
+  ShowMenuItem("mailContext-copyMenu", numSelected && !hideMailItems && msgFolder);
   EnableMenuItem("mailContext-copyMenu", numSelected);
 
   ShowMenuItem("mailContext-moveToFolderAgain",
-               numSelected && !hideMailItems);
+               numSelected && !hideMailItems && msgFolder);
   if (numSelected && !hideMailItems) {
     initMoveToFolderAgainMenu(document.getElementById("mailContext-moveToFolderAgain"));
     goUpdateCommand("cmd_moveToFolderAgain");
@@ -194,9 +196,9 @@ function fillMailContextMenu(event)
 
   ShowMenuItem("paneContext-afterMove", !inThreadPane);
 
-  ShowMenuItem("mailContext-tags", !hideMailItems);
+  ShowMenuItem("mailContext-tags", !hideMailItems && msgFolder);
 
-  ShowMenuItem("mailContext-mark", !hideMailItems);
+  ShowMenuItem("mailContext-mark", !hideMailItems && msgFolder);
   EnableMenuItem("mailContext-mark", (numSelected >= 1));
 
   setSingleSelection("mailContext-saveAs");
@@ -209,7 +211,7 @@ function fillMailContextMenu(event)
   ShowMenuItem("mailContext-print", !hideMailItems);
   EnableMenuItem("mailContext-print", numSelected);
 
-  ShowMenuItem("mailContext-delete", !hideMailItems);
+  ShowMenuItem("mailContext-delete", !hideMailItems && (isNewsgroup || canMove));
   // This function is needed for the case where a folder is just loaded (while
   // there isn't a message loaded in the message pane), a right-click is done
   // in the thread pane.  This function will disable enable the 'Delete
