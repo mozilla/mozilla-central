@@ -5,7 +5,7 @@
 	 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <!-- Mac-specific key bindings -->
-<keyset id="editorKeySet" xulkey="meta">
+<keyset id="editorKeySet">
 
 <!-- replace the Windows/Unix xul-Y Redo binding with xul-shift-Z -->
 <key id="noWinRedo" key="y"   cancel="true" modifiers="accel"/>
@@ -48,4 +48,3 @@
 <!-- End Mac-specific key bindings -->
 
 </keybinding>
-

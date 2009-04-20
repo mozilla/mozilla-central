@@ -4,8 +4,8 @@
 <keybinding id="platformBrowserBindings"
 	 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<!-- xul key for Windows -->
-<keyset id="globalKeySet" xulkey="ctrl">
+<!-- Windows-specific keybindings -->
+<keyset id="globalKeySet">
 
 <!-- other keybindings for cut/copy/paste -->
 <key id="winAlternativeCutKey" keycode="VK_DELETE"   
@@ -35,9 +35,8 @@
         var controller =
         document.commandDispatcher.getControllerForCommand('cmd_selectBottom');
         controller.doCommand('cmd_selectBottom');" modifiers="shift, control"/>
-</keyset>
 
+</keyset>
 <!-- End Windows-specific keybindings -->
 
 </keybinding>
-

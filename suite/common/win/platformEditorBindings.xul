@@ -4,9 +4,8 @@
 <keybinding id="platformEditorBindings"
 	 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<!-- xul key for Windows -->
-<keyset id="editorKeySet" xulkey="ctrl">
-
+<!-- Windows-specific keybindings -->
+<keyset id="editorKeySet">
  
 <!-- alternate cut/copy/paste keys for Windows -->
 <key id="winAlternateCutKey" keycode="VK_DELETE"   
@@ -63,9 +62,8 @@
         var controller =
         document.commandDispatcher.getControllerForCommand('cmd_moveBottom');
         controller.doCommand('cmd_moveBottom');" modifiers="control"/>
-</keyset>
 
+</keyset>
 <!-- End Windows-specific keybindings -->
 
 </keybinding>
-

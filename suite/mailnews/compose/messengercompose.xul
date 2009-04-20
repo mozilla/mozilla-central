@@ -178,7 +178,7 @@
   <key keycode="&findPrevCmd.key2;"  command="cmd_findPrev" modifiers="shift"/>
 
   <!-- Options Menu -->
-  <!-- key id="key_selectAddresses" xulkey="true" key="&selectAddressCmd.key;" command="cmd_selectAddress"/ -->
+  <!-- key id="key_selectAddresses" key="&selectAddressCmd.key;" command="cmd_selectAddress"/ -->
   <key id="key_checkspelling"
        key="&checkSpellingCmd2.key;"
        command="cmd_spelling"
