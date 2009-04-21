@@ -40,6 +40,7 @@
 -->
 
 <?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-alarms.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/calendar-bindings.css"?>
@@ -130,98 +131,131 @@
           <separator id="item-main-separator" flex="1" class="groove" hidden="true"/>
           <row id="invitation-row" hidden="true" align="center">
             <label value="&read.only.reply.label;" control="item-participation"/>
-            <menulist id="item-participation" oncommand="updateInvitation()">
-              <menupopup>
-                <menuitem label="&read.only.accept.label;" value="ACCEPTED"/>
-                <menuitem label="&read.only.tentative.label;" value="TENTATIVE"/>
-                <menuitem label="&read.only.decline.label;" value="DECLINED"/>
-                <menuitem label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
-              </menupopup>
-            </menulist>
+            <hbox pack="start">
+              <menulist id="item-participation" oncommand="updateInvitation()">
+                <menupopup>
+                  <menuitem label="&read.only.accept.label;" value="ACCEPTED"/>
+                  <menuitem label="&read.only.tentative.label;" value="TENTATIVE"/>
+                  <menuitem label="&read.only.decline.label;" value="DECLINED"/>
+                  <menuitem label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
+                </menupopup>
+              </menulist>
+            </hbox>
           </row>
           <row id="reminder-row" hidden="true" align="center">
             <label value="&read.only.reminder.label;" control="item-alarm"/>
-            <box orient="vertical">
-              <menulist id="item-alarm" oncommand="updateReminder()">
-                <menupopup>
-                  <menuitem label="&event.reminder.none.label;"
-                            selected="true"
-                            value="none"/>
-                  <menuitem label="&event.reminder.5minutes.before.label;"
-                            length="5"
-                            origin="1"
-                            relation="START"
-                            unit="minutes"/>
-                  <menuitem label="&event.reminder.10minutes.before.label;"
-                            length="10"
-                            origin="1"
-                            relation="START"
-                            unit="minutes"/>
-                  <menuitem label="&event.reminder.15minutes.before.label;"
-                            length="15"
-                            origin="1"
-                            relation="START"
-                            unit="minutes"/>
-                  <menuitem label="&event.reminder.30minutes.before.label;"
-                            length="30"
-                            origin="1"
-                            relation="START"
-                            unit="minutes"/>
-                  <menuitem label="&event.reminder.45minutes.before.label;"
-                            length="45"
-                            origin="1"
-                            relation="START"
-                            unit="minutes"/>
-                  <menuseparator/>
-                  <menuitem label="&event.reminder.1hour.before.label;"
-                            length="1"
-                            origin="1"
-                            relation="START"
-                            unit="hours"/>
-                  <menuitem label="&event.reminder.2hours.before.label;"
-                            length="2"
-                            origin="1"
-                            relation="START"
-                            unit="hours"/>
-                  <menuitem label="&event.reminder.5hours.before.label;"
-                            length="5"
-                            origin="1"
-                            relation="START"
-                            unit="hours"/>
-                  <menuitem label="&event.reminder.15hours.before.label;"
-                            length="15"
-                            origin="1"
-                            relation="START"
-                            unit="hours"/>
-                  <menuseparator/>
-                  <menuitem label="&event.reminder.1day.before.label;"
-                            length="1"
-                            origin="1"
-                            relation="START"
-                            unit="days"/>
-                  <menuitem label="&event.reminder.2days.before.label;"
-                            length="2"
-                            origin="1"
-                            relation="START"
-                            unit="days"/>
-                  <menuitem label="&event.reminder.1week.before.label;"
-                            length="2"
-                            origin="1"
-                            relation="START"
-                            unit="days"/>
-                  <menuseparator/>
-                  <menuitem id="reminder-custom-menuitem"
-                            label="&event.reminder.custom.label;"
-                            value="custom"/>
-                </menupopup>
-              </menulist>
-              <vbox id="reminder-details">
-                <label class="text-link"
-                       crop="right"
-                       flex="1"
-                       onclick="updateReminder()"/>
-              </vbox>
-            </box>
+              <hbox id="event-grid-alarm-picker-box"
+                    align="center">
+                  <menulist id="item-alarm"
+                            disable-on-readonly="true"
+                            oncommand="updateReminder()">
+                      <menupopup id="item-alarm-menupopup">
+                          <menuitem id="reminder-none-menuitem"
+                                    label="&event.reminder.none.label;"
+                                    selected="true"
+                                    value="none"/>
+                          <menuitem id="reminder-5minutes-menuitem"
+                                    label="&event.reminder.5minutes.before.label;"
+                                    length="5"
+                                    origin="before"
+                                    relation="START"
+                                    unit="minutes"/>
+                          <menuitem id="reminder-10minutes-menuitem"
+                                    label="&event.reminder.10minutes.before.label;"
+                                    length="10"
+                                    origin="before"
+                                    relation="START"
+                                    unit="minutes"/>
+                          <menuitem id="reminder-15minutes-menuitem"
+                                    label="&event.reminder.15minutes.before.label;"
+                                    length="15"
+                                    origin="before"
+                                    relation="START"
+                                    unit="minutes"/>
+                          <menuitem id="reminder-30minutes-menuitem"
+                                    label="&event.reminder.30minutes.before.label;"
+                                    length="30"
+                                    origin="before"
+                                    relation="START"
+                                    unit="minutes"/>
+                          <menuitem id="reminder-45minutes-menuitem"
+                                    label="&event.reminder.45minutes.before.label;"
+                                    length="45"
+                                    origin="before"
+                                    relation="START"
+                                    unit="minutes"/>
+                          <menuseparator id="reminder-minutes-separator"/>
+                          <menuitem id="reminder-1hour-menuitem"
+                                    label="&event.reminder.1hour.before.label;"
+                                    length="1"
+                                    origin="before"
+                                    relation="START"
+                                    unit="hours"/>
+                          <menuitem id="reminder-2hours-menuitem"
+                                    label="&event.reminder.2hours.before.label;"
+                                    length="2"
+                                    origin="before"
+                                    relation="START"
+                                    unit="hours"/>
+                          <menuitem id="reminder-5hours-menuitem"
+                                    label="&event.reminder.5hours.before.label;"
+                                    length="5"
+                                    origin="before"
+                                    relation="START"
+                                    unit="hours"/>
+                          <menuitem id="reminder-15hours-menuitem"
+                                    label="&event.reminder.15hours.before.label;"
+                                    length="15"
+                                    origin="before"
+                                    relation="START"
+                                    unit="hours"/>
+                          <menuseparator id="reminder-hours-separator"/>
+                          <menuitem id="reminder-1day-menuitem"
+                                    label="&event.reminder.1day.before.label;"
+                                    length="1"
+                                    origin="before"
+                                    relation="START"
+                                    unit="days"/>
+                          <menuitem id="reminder-2days-menuitem"
+                                    label="&event.reminder.2days.before.label;"
+                                    length="2"
+                                    origin="before"
+                                    relation="START"
+                                    unit="days"/>
+                          <menuitem id="reminder-1week-menuitem"
+                                    label="&event.reminder.1week.before.label;"
+                                    length="7"
+                                    origin="before"
+                                    relation="START"
+                                    unit="days"/>
+                          <menuseparator id="reminder-custom-separator"/>
+                          <menuitem id="reminder-custom-menuitem"
+                                    label="&event.reminder.custom.label;"
+                                    value="custom"/>
+                      </menupopup>
+                  </menulist>
+                  <hbox id="reminder-details">
+                    <hbox id="reminder-icon-box"
+                          class="alarm-icons-box"
+                          align="center"/>
+                    <!-- TODO oncommand? onkeypress? -->
+                    <label id="reminder-multiple-alarms-label"
+                           hidden="true"
+                           value="&event.reminder.multiple.label;"
+                           class="text-link"
+                           disable-on-readonly="true"
+                           flex="1"
+                           hyperlink="true"
+                           onclick="updateReminder()"/>
+                    <label id="reminder-single-alarms-label"
+                           hidden="true"
+                           class="text-link"
+                           disable-on-readonly="true"
+                           flex="1"
+                           hyperlink="true"
+                           onclick="updateReminder()"/>
+                  </hbox>
+             </hbox>
           </row>
         </rows>
       </grid>

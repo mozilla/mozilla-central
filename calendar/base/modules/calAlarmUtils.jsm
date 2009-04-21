@@ -40,7 +40,8 @@ EXPORTED_SYMBOLS = ["cal"]; // even though it's defined in calUtils.jsm, import 
 cal.alarms = {
     /**
      * Read default alarm settings from user preferences and apply them to the
-     * event/todo passed in.
+     * event/todo passed in. The item's calendar should be set to ensure the
+     * correct alarm type is set.
      *
      * @param aItem     The item to apply the default alarm values to.
      */
@@ -59,6 +60,14 @@ cal.alarms = {
             }
             alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_START;
             alarm.offset = alarmOffset;
+
+            // Default to a display alarm, unless the calendar doesn't support
+            // it or we have no calendar yet. (Man this is hard to wrap)
+            let actionValues = ((aItem.calendar &&
+                                 aItem.calendar.getProperty("capabilities.alarms.actionValues")) ||
+                                ["DISPLAY"]);
+
+            alarm.action = (actionValues.indexOf("DISPLAY") < 0 ? actionValues[0] : "DISPLAY");
             aItem.addAlarm(alarm);
         }
     },

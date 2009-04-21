@@ -1486,7 +1486,12 @@
 
           if (dragState.dragType == "new") {
               col.mCreatedNewEvent = true;
-              col.calendarView.controller.createNewEvent(col.calendarView.displayCalendar,
+              // We won't pass a calendar, since the display calendar is the
+              // composite anyway. createNewEvent() will use the selected
+              // calendar.
+              // TODO We might want to get rid of the extra displayCalendar
+              // member.
+              col.calendarView.controller.createNewEvent(null,
                                                          newStart,
                                                          newEnd);
           } else if (dragState.dragType == "move" ||

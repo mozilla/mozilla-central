@@ -68,15 +68,13 @@ var calendarViewController = {
 
         // if we're given both times, skip the dialog
         if (aStartTime && aEndTime && !aStartTime.isDate && !aEndTime.isDate) {
-            var event = createEvent();
-            event.startDate = aStartTime;
-            event.endDate = aEndTime;
-            var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                .getService(Components.interfaces.nsIStringBundleService);
-            var props = sbs.createBundle("chrome://calendar/locale/calendar.properties");
-            event.title = props.GetStringFromName("newEvent");
-            cal.alarms.setDefaultValues(event);
-            doTransaction('add', event, aCalendar, null, null);
+            let item = cal.createEvent();
+            item.startDate = aStartTime;
+            item.endDate = aEndTime;
+            item.title = calGetString("calendar", "newEvent");
+            item.calendar = aCalendar;
+            cal.alarms.setDefaultValues(item);
+            doTransaction('add', item, aCalendar, null, null);
         } else {
             createEventWithDialog(aCalendar, aStartTime, null, null, null, aForceAllday);
         }

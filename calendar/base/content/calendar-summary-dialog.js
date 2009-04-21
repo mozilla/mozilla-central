@@ -49,7 +49,7 @@ function onLoad() {
     var item = args.calendarEvent;
     item = item.clone(); // use an own copy of the passed item
     var calendar = item.calendar;
-    window.item = item;
+    window.calendarItem = item;
 
     // the calling entity provides us with an object that is responsible
     // for recording details about the initiated modification. the 'finalize'-property
@@ -68,7 +68,7 @@ function onLoad() {
             // store any pending modifications...
             self.onAccept();
 
-            var item = window.item;
+            let item = window.calendarItem;
 
             // ...and close the window.
             window.close();
@@ -110,8 +110,8 @@ function onLoad() {
         (calendar.getProperty("capabilities.alarms.oninvitations.supported") !== false);
     if (!window.readOnly && supportsReminders) {
         document.getElementById("reminder-row").removeAttribute("hidden");
-        loadReminders(window.item.getAlarms({}));
-        updateReminderDetails();
+        loadReminders(window.calendarItem.getAlarms({}));
+        updateReminder();
     }
 
     updateRepeatDetails();
@@ -190,11 +190,11 @@ function onAccept() {
     }
     var args = window.arguments[0];
     var oldItem = args.calendarEvent;
-    var newItem = window.item;
+    var newItem = window.calendarItem;
     var calendar = newItem.calendar;
     saveReminder(newItem);
     args.onOk(newItem, calendar, oldItem);
-    window.item = newItem;
+    window.calendarItem = newItem;
     return true;
 }
 

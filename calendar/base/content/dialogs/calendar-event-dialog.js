@@ -799,8 +799,7 @@ function updateReminder() {
  */
 function saveDialog(item) {
     // Calendar
-    item.calendar = document.getElementById("item-calendar")
-                            .selectedItem.calendar;
+    item.calendar = getCurrentCalendar();
 
     setItemProperty(item, "title", getElementValue("item-title"));
     setItemProperty(item, "LOCATION", getElementValue("item-location"));
@@ -1165,9 +1164,8 @@ function setShowTimeAs(allDay) {
 }
 
 function editAttendees() {
-    var savedWindow = window;
-    var calendar = document.getElementById("item-calendar")
-                           .selectedItem.calendar;
+    let savedWindow = window;
+    let calendar = getCurrentCalendar();
 
     var callback = function(attendees, organizer, startTime, endTime) {
         savedWindow.attendees = attendees;
@@ -1260,9 +1258,8 @@ function editPrivacy(target) {
  * any time that gPrivacy is updated.
  */
 function updatePrivacy() {
-    var calendar = document.getElementById("item-calendar")
-                           .selectedItem.calendar;
-    var hasPrivacy = capSupported("privacy");
+    let calendar = getCurrentCalendar();
+    let hasPrivacy = capSupported("privacy");
 
     if (hasPrivacy) {
         var numChilds;
@@ -1756,9 +1753,8 @@ function attachmentLinkClicked(event) {
  * Update the dialog controls related related to the item's calendar.
  */
 function updateCalendar() {
-    var item = window.calendarItem;
-    var calendar = document.getElementById("item-calendar")
-                           .selectedItem.calendar;
+    let item = window.calendarItem;
+    let calendar = getCurrentCalendar();
 
     gIsReadOnly = calendar.readOnly;
 
@@ -1835,7 +1831,7 @@ function updateCalendar() {
         // If the item is a proxy occurrence/instance, a few things aren't
         // valid.
         if (item.parentItem != item) {
-            setElementValue("item-calendar", "true", "disabled");
+            disableElement("item-calendar");
 
             // don't allow to revoke the entrydate of recurring todo's.
             disableElementWithLock("todo-has-entrydate", "permanent-lock");
@@ -1851,7 +1847,6 @@ function updateCalendar() {
 
     // Make sure capabilties are reflected correctly
     updateCapabilities();
-
 }
 
 /**
@@ -2147,10 +2142,9 @@ function saveItem() {
  *                                save prompt just before the window is closing.
  */
 function onCommandSave(aIsClosing) {
-    var originalItem = window.calendarItem;
-    var item = saveItem();
-    var calendar = document.getElementById("item-calendar")
-                           .selectedItem.calendar;
+    let originalItem = window.calendarItem;
+    let item = saveItem();
+    let calendar = getCurrentCalendar();
 
     item.makeImmutable();
     // Set the item for now, the callback below will set the full item when the
@@ -2329,7 +2323,7 @@ function editTimezone(aElementId,aDateTime,aCallback) {
     // prepare the arguments that will be passed to the dialog
     var args = new Object();
     args.time = aDateTime;
-    args.calendar = document.getElementById("item-calendar").selectedItem.calendar;
+    args.calendar = getCurrentCalendar();
     args.onOk = aCallback;
 
     // open the dialog modally
@@ -2867,8 +2861,7 @@ function updateCapabilities() {
  * @param aCap      The capability from "capabilities.<aCap>.supported"
  */
 function capSupported(aCap) {
-    var calendar = document.getElementById("item-calendar")
-                           .selectedItem.calendar;
+    let calendar = getCurrentCalendar();
     return calendar.getProperty("capabilities." + aCap + ".supported") !== false;
 }
 
@@ -2879,8 +2872,7 @@ function capSupported(aCap) {
  * @return          The values for this capability
  */
 function capValues(aCap, aDefault) {
-    var calendar = document.getElementById("item-calendar")
-                           .selectedItem.calendar;
-    var vals = calendar.getProperty("capabilities." + aCap + ".values");
+    let calendar = getCurrentCalendar();
+    let vals = calendar.getProperty("capabilities." + aCap + ".values");
     return (vals === null ? aDefault : vals);
 }
