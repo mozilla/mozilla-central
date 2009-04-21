@@ -46,11 +46,11 @@ MODULE		= msgbase
 
 PARALLEL_DIRS	= public src util ispdata
 
-ifdef ENABLE_TESTS
-PARALLEL_DIRS += test
-endif
-
 DIRS		= search/public
+
+ifdef ENABLE_TESTS
+DIRS += test
+endif
 
 include $(topsrcdir)/config/rules.mk
 
