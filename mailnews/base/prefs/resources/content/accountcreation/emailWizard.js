@@ -278,15 +278,15 @@ EmailConfigWizard.prototype =
       this.setError("emailerror", "email.error");
   },
 
-  /* This check is done on blur and only done as an informative warning,
-   *  assuming empty passwords are in fact possible.
+  /* If the user just tabbed through the password input without entering
+   * anything, set the type back to text so we don't wind up showing the
+   * emptytext as bullet characters.
    */
-  validatePassword : function ()
+  onblurPassword : function ()
   {
-    if (getElementById('password').value.toString().length > 0)
-      this.clearError('passworderror');
-    else
-      this.setError("passworderror", "password.error");
+    let passwordElt = getElementById("password");
+    if (passwordElt.value.length < 1)
+      passwordElt.type = "text";
   },
 
   findConfig : function(domain, email)
@@ -613,10 +613,6 @@ EmailConfigWizard.prototype =
                   gStringsBundle.getString("outgoing_server_exists"));
       return;
     }
-
-    this.validatePassword();
-    if (!this._password)
-     return; // error already shown by validatePassword()
 
     getElementById('create_button').disabled = true;
     var me = this;

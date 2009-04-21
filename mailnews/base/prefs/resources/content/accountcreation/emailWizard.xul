@@ -153,13 +153,13 @@
               </row>
               <row align="center">
                 <!-- this starts out as text so the emptytext shows, but then
-                     changes to type=password for the life of the dialog -->
+                     changes to type=password once it's not empty -->
                 <textbox id="password"
                          class="padded"
                          emptytext="&password.description;"
                          type="text"
                          onfocus="this.type='password';"
-                         onblur="gEmailConfigWizard.validatePassword();"/>
+                         onblur="gEmailConfigWizard.onblurPassword();"/>
               </row>
               <row align="center">
                 <checkbox id="remember_password" label="&rememberpassword.label;" checked="true"/>
