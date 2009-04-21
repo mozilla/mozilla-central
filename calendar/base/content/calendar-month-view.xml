@@ -46,6 +46,8 @@
 
 <!-- Note that this file depends on helper functions in calUtils.js-->
 
+<!DOCTYPE bindings SYSTEM "chrome://global/locale/global.dtd" >
+
 <bindings id="calendar-month-view-bindings"
   xmlns="http://www.mozilla.org/xbl"
   xmlns:html="http://www.w3.org/1999/xhtml"
@@ -428,7 +430,10 @@
   <binding id="calendar-month-base-view" extends="chrome://calendar/content/calendar-base-view.xml#calendar-base-view">
     <content style="overflow: auto;" flex="1" xbl:inherits="context,item-context">
       <xul:vbox anonid="mainbox" flex="1">
-        <xul:hbox class="labeldaybox-container" anonid="labeldaybox" equalsize="always"/>
+        <xul:hbox class="labeldaybox-container"
+                  anonid="labeldaybox"
+                  chromedir="&locale.dir;"
+                  equalsize="always"/>
 
         <xul:grid anonid="monthgrid" flex="1">
           <xul:columns anonid="monthgridcolumns" equalsize="always">

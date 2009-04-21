@@ -85,35 +85,41 @@ treenode-checkbox > .checkbox-check {
   -moz-user-focus: normal;
 }
 
-.view-navigation-button[type="prev"] {
-  -moz-image-region: rect(0px, 10px, 11px, 0px);
+.view-navigation-button[type="prev"],
+.view-navigation-button[type="next"][chromedir="rtl"] {
+  -moz-image-region: rect(0px 10px 11px 0px);
 }
-.view-navigation-button[type="prev"]:hover {
-  -moz-image-region: rect(11px, 10px, 22px, 0px);
+.view-navigation-button[type="prev"]:hover,
+.view-navigation-button[type="next"][chromedir="rtl"]:hover {
+  -moz-image-region: rect(11px 10px 22px 0px);
 }
-.view-navigation-button[type="prev"][disabled="true"] {
-  -moz-image-region: rect(22px, 10px, 33px, 0px);
+.view-navigation-button[type="prev"][disabled="true"],
+.view-navigation-button[type="next"][disabled="true"][chromedir="rtl"] {
+  -moz-image-region: rect(22px 10px 33px 0px);
 }
 
 
 .view-navigation-button[type="today"] {
-  -moz-image-region: rect(0px, 22px, 11px, 10px);
+  -moz-image-region: rect(0px 22px 11px 10px);
 }
 .view-navigation-button[type="today"]:hover {
-  -moz-image-region: rect(11px, 22px, 22px, 10px);
+  -moz-image-region: rect(11px 22px 22px 10px);
 }
 .view-navigation-button[type="today"][disabled="true"] {
-  -moz-image-region: rect(22px, 22px, 33px, 10px);
+  -moz-image-region: rect(22px 22px 33px 10px);
 }
 
-.view-navigation-button[type="next"] {
-  -moz-image-region: rect(0px, 32px, 11px, 22px);
+.view-navigation-button[type="next"],
+.view-navigation-button[type="prev"][chromedir="rtl"] {
+  -moz-image-region: rect(0px 32px 11px 22px);
 }
-.view-navigation-button[type="next"]:hover {
-  -moz-image-region: rect(11px, 32px, 22px, 22px);
+.view-navigation-button[type="next"]:hover,
+.view-navigation-button[type="prev"][chromedir="rtl"]:hover {
+  -moz-image-region: rect(11px 32px 22px 22px);
 }
-.view-navigation-button[type="next"][disabled="true"] {
-  -moz-image-region: rect(22px, 32px, 33px, 22px);
+.view-navigation-button[type="next"][disabled="true"],
+.view-navigation-button[type="prev"][disabled="true"][chromedir="rtl"] {
+  -moz-image-region: rect(22px 32px 33px 22px);
 }
 
 .view-navigation-button > .toolbarbutton-icon {

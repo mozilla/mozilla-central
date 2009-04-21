@@ -221,6 +221,15 @@ calendar-event-box[selected="true"] .calendar-event-selection {
     background-color: #ffdb67 !important;
 }
 
+/* RTL styles for the mainbox and children */
+box[anonid="mainbox"] {
+    direction: ltr;
+}
+
+.calendar-label-day-box[chromedir="rtl"] {
+    direction: rtl;
+}
+
 /* headers horizontal, times vertical */
 box[anonid="labelbox"][orient="horizontal"] {
     height: 10px;

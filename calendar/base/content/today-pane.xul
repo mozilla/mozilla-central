@@ -45,6 +45,7 @@
     <!ENTITY % dtd2 SYSTEM "chrome://lightning/locale/lightning.dtd" > %dtd2;
     <!ENTITY % dtd3 SYSTEM "chrome://messenger/locale/messenger.dtd" > %dtd3;
     <!ENTITY % dtd4 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd4;
+    <!ENTITY % dtd5 SYSTEM "chrome://global/locale/global.dtd" > %dtd5;
 ]>
 
 <?xml-stylesheet href="chrome://calendar/skin/today-pane.css" type="text/css"?>
@@ -67,10 +68,14 @@
         <label id ="today-pane-header"/>
         <spacer flex="1"/>
         <modehbox mode="mail,calendar" broadcaster="modeBroadcaster">
-          <toolbarbutton id="folderview-cycler-left"
+          <toolbarbutton id="folderview-cycler-prev"
+                         chromedir="&locale.dir;"
+                         dir="prev"
                          class="folderview-cycler"
                          oncommand="TodayPane.cyclePaneView(-1);"/>
-          <toolbarbutton id="folderview-cycler-right"
+          <toolbarbutton id="folderview-cycler-next"
+                         chromedir="&locale.dir;"
+                         dir="next"
                          class="folderview-cycler"
                          oncommand="TodayPane.cyclePaneView(1);"/>
         </modehbox>
@@ -135,6 +140,7 @@
                         <hbox pack="end">
                           <toolbarbutton id="previous-day-button"
                                          class="miniday-nav-buttons"
+                                         chromedir="&locale.dir;"
                                          tooltiptext="&onedaybackward.tooltip;"
                                          oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
                                          dir="-1"/>
@@ -144,6 +150,7 @@
                                          oncommand="TodayPane.setDay(now());"/>
                           <toolbarbutton id="next-day-button"
                                          class="miniday-nav-buttons"
+                                         chromedir="&locale.dir;"
                                          tooltiptext="&onedayforward.tooltip;"
                                          oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
                                          dir="1"/>

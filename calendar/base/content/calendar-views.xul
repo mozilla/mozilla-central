@@ -39,7 +39,11 @@
 <?xml-stylesheet href="chrome://calendar/skin/widgets/calendar-widgets.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/widgets/calendar-widget-bindings.css" type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://calendar/locale/calendar.dtd" >
+<!DOCTYPE overlay
+[
+    <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd1;
+    <!ENTITY % dtd2 SYSTEM "chrome://global/locale/global.dtd" > %dtd2;
+]>
 
 
 <overlay id="calendar-views-overlay"
@@ -51,6 +55,7 @@
                <hbox flex="1" class="navigation-inner-box" align="end">
                   <toolbarbutton id="previous-view-button"
                                  class="view-navigation-button"
+                                 chromedir="&locale.dir;"
                                  type="prev"
                                  command="calendar_view_prev_command"/>
                   <toolbarbutton id="today-view-button"
@@ -59,6 +64,7 @@
                                  command="calendar_view_today_command"/>
                   <toolbarbutton id="next-view-button"
                                  class="view-navigation-button"
+                                 chromedir="&locale.dir;"
                                  type="next"
                                  command="calendar_view_next_command"/>
                   <label id="intervalDescription"

@@ -93,17 +93,21 @@
   list-style-image: url("chrome://calendar/skin/widgets/nav-buttons.png");
 }
 
-#previous-day-button {
+#previous-day-button,
+#next-day-button[chromedir="rtl"] {
   -moz-image-region: rect(0px 5px 13px 0px);
   -moz-user-focus: normal;
 }
 
 #previous-day-button:hover,
-#previous-day-button:hover:active {
+#previous-day-button:hover:active,
+#next-day-button[chromedir="rtl"]:hover,
+#next-day-button[chromedir="rtl"]:hover:active {
   -moz-image-region: rect(13px 5px 26px 0px);
 }
 
-#previous-day-button[disabled] {
+#previous-day-button[disabled],
+#next-day-button[disabled][chromedir="rtl"] {
   -moz-image-region: rect(26px 5px 39px 0px);
 }
 
@@ -122,16 +126,20 @@
   -moz-user-focus: normal;
 }
 
-#next-day-button {
+#next-day-button,
+#previous-day-button[chromedir="rtl"] {
   -moz-image-region: rect(0px 21px 13px 16px);
   -moz-user-focus: normal;
 }
 #next-day-button:hover,
-#next-day-button:hover:active {
+#next-day-button:hover:active,
+#previous-day-button[chromedir="rtl"]:hover,
+#previous-day-button[chromedir="rtl"]:hover:active {
   -moz-image-region: rect(13px 21px 26px 16px);
 }
 
-#next-day-button[disabled] {
+#next-day-button[disabled],
+#previous-day-button[disabled][chromedir="rtl"] {
   -moz-image-region: rect(26px 21px 39px 16px);
 }
 

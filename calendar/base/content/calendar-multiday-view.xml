@@ -46,6 +46,8 @@
 
 <!-- Note that this file depends on helper functions in calUtils.js-->
 
+<!DOCTYPE bindings SYSTEM "chrome://global/locale/global.dtd" >
+
 <bindings id="calendar-multiday-view-bindings"
   xmlns="http://www.mozilla.org/xbl"
   xmlns:html="http://www.w3.org/1999/xhtml"
@@ -2122,8 +2124,11 @@
         <!-- these boxes are tricky: width or height in CSS depend on orient -->
         <xul:box anonid="labelbox">
           <xul:box anonid="labeltimespacer"/>
-          <xul:box anonid="labeldaybox" class="calendar-label-day-box" flex="1"
-                   equalsize="always" />
+          <xul:box anonid="labeldaybox"
+                   class="calendar-label-day-box"
+                   flex="1"
+                   chromedir="&locale.dir;"
+                   equalsize="always"/>
           <xul:box anonid="labelscrollbarspacer"/>
         </xul:box>
         <xul:box anonid="headerbox">

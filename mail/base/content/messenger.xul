@@ -56,6 +56,7 @@
 <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
 %customizeToolbarDTD;
 #endif
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd"> %globalDTD;
 ]>
 
 <window id="messengerWindow"
@@ -190,9 +191,15 @@
               <sidebarheader id="folderPaneHeader" align="center">
                 <label id="folderpane-title"/>
                 <spacer flex="1"/>
-                <toolbarbutton id="folderview-cycler-left"  class="folderview-cycler"
+                <toolbarbutton id="folderview-cycler-prev"
+                               chromedir="&locale.dir;"
+                               dir="prev"
+                               class="folderview-cycler"
                                onclick="gFolderTreeView.cycleMode(false);"/>
-                <toolbarbutton id="folderview-cycler-right" class="folderview-cycler"
+                <toolbarbutton id="folderview-cycler-next"
+                               chromedir="&locale.dir;"
+                               dir="next"
+                               class="folderview-cycler"
                                onclick="gFolderTreeView.cycleMode(true);"/>
               </sidebarheader>
 

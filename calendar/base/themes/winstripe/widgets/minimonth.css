@@ -96,17 +96,20 @@ minimonth {
   display: none;
 }
 
-
-.minimonth-nav-btns[dir="-1"] {
+.minimonth-nav-btns[dir="-1"],
+.minimonth-nav-btns[dir="1"][chromedir="rtl"] {
   -moz-image-region: rect(0px 5px 13px 0px);
 }
 
 .minimonth-nav-btns[dir="-1"]:hover,
-.minimonth-nav-btns[dir="-1"]:hover:active {
+.minimonth-nav-btns[dir="-1"]:hover:active,
+.minimonth-nav-btns[dir="1"][chromedir="rtl"]:hover,
+.minimonth-nav-btns[dir="1"][chromedir="rtl"]:hover:active {
   -moz-image-region: rect(13px 5px 26px 0px);
 }
 
-.minimonth-nav-btns[dir="-1"][disabled] {
+.minimonth-nav-btns[dir="-1"][disabled],
+.minimonth-nav-btns[dir="1"][disabled][chromedir="rtl"] {
   -moz-image-region: rect(26px 5px 39px 0px);
 }
 
@@ -123,26 +126,24 @@ minimonth {
   -moz-image-region: rect(26px 16px 39px 5px);
 }
 
-.minimonth-nav-btns[dir="1"] {
+.minimonth-nav-btns[dir="1"],
+.minimonth-nav-btns[dir="-1"][chromedir="rtl"] {
   -moz-image-region: rect(0px 21px 13px 16px);
 }
 .minimonth-nav-btns[dir="1"]:hover,
-.minimonth-nav-btns[dir="1"]:hover:active {
+.minimonth-nav-btns[dir="1"]:hover:active,
+.minimonth-nav-btns[dir="-1"][chromedir="rtl"]:hover,
+.minimonth-nav-btns[dir="-1"][chromedir="rtl"]:hover:active {
   -moz-image-region: rect(13px 21px 26px 16px);
 }
 
-.minimonth-nav-btns[dir="1"][disabled] {
+.minimonth-nav-btns[dir="1"][disabled],
+.minimonth-nav-btns[dir="1"][disabled][chromedir="rtl"] {
   -moz-image-region: rect(26px 21px 39px 16px);
-}
-
-.minimonth-cal-box {
 }
 
 .minimonth-row-header {
   text-align: center;
-}
-
-.minimonth-row-body {
 }
 
 .minimonth-day {
