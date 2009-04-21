@@ -132,6 +132,7 @@
                 <textbox id="realname"
                          class="padded"
                          value="" emptytext="&name.description;"
+                         oninput="gEmailConfigWizard.onRealnameInput()"
                          onblur="gEmailConfigWizard.validateRealname();"/>
               </row>
               <spacer/>

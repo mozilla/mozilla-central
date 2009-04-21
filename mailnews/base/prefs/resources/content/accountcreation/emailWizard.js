@@ -245,22 +245,44 @@ EmailConfigWizard.prototype =
    */
   validateRealname : function ()
   {
-    if (getElementById('realname').value.toString().length > 0)
+    if (getElementById('realname').value.length > 0)
       this.clearError('nameerror');
     else
       this.setError("nameerror", "name.error");
   },
 
   /*
-   * This is called onInput, and just handles hiding/showing the next button
-   * based on whether there's a semi-reasonable e-mail address to start with.
+   * This checks if the email address is at least possibly valid, meaning it
+   * has an '@' before the last char.
+   */
+  emailAddrValidish : function ()
+  {
+    let emailAddr = getElementById('email').value;
+    let atPos = emailAddr.lastIndexOf("@");
+    return  atPos > 0 && atPos + 1 < emailAddr.length;
+  },
+
+  /*
+   * onEmailInput and onRealnameInput are called onInput, and just handle
+   * hiding/showing the next button based on whether there's a semi-reasonable
+   * e-mail address and nonblank realname to start with.
    */
   onEmailInput : function()
   {
-    let emailAddr = getElementById('email').value.toString();
-    let atPos = emailAddr.lastIndexOf("@");
-    if (atPos > 0 && atPos + 1 < emailAddr.length)
+    if (getElementById('realname').value.length > 0 &&
+        this.emailAddrValidish())
       _show("next_button");
+    else
+      _hide("next_button");
+   },
+
+  onRealnameInput : function()
+  {
+    if (getElementById('realname').value.length > 0 &&
+        this.emailAddrValidish())
+      _show("next_button");
+    else
+      _hide("next_button");
    },
 
   /* This check is done on blur and is only done as an informative warning
@@ -269,7 +291,7 @@ EmailConfigWizard.prototype =
    */
   validateEmail : function ()
   {
-    if (getElementById('email').value.toString().length <= 0)
+    if (getElementById('email').value.length <= 0)
       return;
 
     if (emailRE.test(getElementById('email').value))
