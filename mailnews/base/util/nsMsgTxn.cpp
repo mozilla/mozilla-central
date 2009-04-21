@@ -45,6 +45,7 @@
 #include "nsIVariant.h"
 #include "nsIProperty.h"
 #include "nsMsgMessageFlags.h"
+#include "nsIMsgFolder.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgTxn)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgTxn)

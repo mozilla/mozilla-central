@@ -52,6 +52,7 @@
 #include "nsTArray.h"
 #include "nsTObserverArray.h"
 #include "nsIMsgUserFeedbackListener.h"
+#include "nsIUrlListener.h"
 
 ///////////////////////////////////////////////////////////////////////////////////
 // The mail session is a replacement for the old 4.x MSG_Master object. It contains

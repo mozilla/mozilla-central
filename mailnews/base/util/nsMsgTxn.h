@@ -44,7 +44,7 @@
 #include "nsCOMPtr.h"
 #include "nsIMsgWindow.h"
 #include "nsInterfaceHashtable.h"
-
+#include "MailNewsTypes2.h"
 #include "nsIVariant.h"
 #include "nsIWritablePropertyBag.h"
 #include "nsIWritablePropertyBag2.h"

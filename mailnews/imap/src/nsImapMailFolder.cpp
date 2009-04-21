@@ -126,7 +126,7 @@
 #include "nsIMsgFilterCustomAction.h"
 #include "nsMsgReadStateTxn.h"
 #include "nsIStringEnumerator.h"
-
+#include "nsIMsgStatusFeedback.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);

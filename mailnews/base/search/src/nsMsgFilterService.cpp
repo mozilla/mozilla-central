@@ -49,7 +49,6 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsIPrompt.h"
 #include "nsIDocShell.h"
-#include "nsIMsgWindow.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIStringBundle.h"
@@ -74,6 +73,7 @@
 #include "nsIMsgFilterCustomAction.h"
 #include "nsArrayEnumerator.h"
 #include "nsMsgMessageFlags.h"
+#include "nsIMsgWindow.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgFilterService, nsIMsgFilterService)
 

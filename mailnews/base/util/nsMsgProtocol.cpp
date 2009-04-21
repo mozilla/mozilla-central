@@ -64,6 +64,7 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsMsgUtils.h"
 #include "nsILineInputStream.h"
+#include "nsIMsgIncomingServer.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgProtocol)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgProtocol)

@@ -86,6 +86,7 @@
 #include "nsIAsyncInputStream.h"
 #include "nsITimer.h"
 #include "nsAutoPtr.h"
+#include "nsIMsgFolder.h"
 
 class nsIMAPMessagePartIDArray;
 class nsIMsgIncomingServer;

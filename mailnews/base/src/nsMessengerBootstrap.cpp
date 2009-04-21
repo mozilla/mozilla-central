@@ -72,6 +72,7 @@
 #include "nsIMsgHdr.h"
 #include "nsMsgUtils.h"
 #include "nsEscape.h"
+#include "nsIMsgFolder.h"
 
 #ifdef XP_MACOSX
 #include "nsDirectoryServiceDefs.h"

@@ -44,6 +44,8 @@
 #include "nsCOMPtr.h"
 #include "MailNewsTypes.h"
 #include "nsTArray.h"
+#include "nsIUrlListener.h"
+#include "nsIMsgCopyServiceListener.h"
 
 // imap move coalescer class - in order to keep nsImapMailFolder from growing like Topsy
 // Logically, we want to keep track of an nsTArray<nsMsgKey> per nsIMsgFolder, and then

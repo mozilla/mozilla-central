@@ -40,7 +40,6 @@
 #include "nsIFolderListener.idl"
 #include "nsIMsgThread.idl"
 #include "nsIMsgIncomingServer.idl"
-#include "nsISupportsArray.idl"
 #include "nsIMsgCopyServiceListener.idl"
 #include "nsIUrlListener.idl"
 #include "nsISimpleEnumerator.idl"
@@ -62,6 +61,7 @@ interface nsILocalFile;
 interface nsIMsgIdentity;
 interface nsIArray;
 interface nsIMutableArray;
+interface nsISupportsArray;
 
 typedef long nsMsgBiffState;
 

@@ -39,11 +39,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsIMsgFilterList.idl"
-#include "nsIMsgWindow.idl"
+#include "nsMsgFilterCore.idl"
 
+interface nsIMsgFilterList;
+interface nsIMsgWindow;
 interface nsIMsgFilterCustomAction;
 interface nsISimpleEnumerator;
+interface nsILocalFile;
+interface nsIMsgFolder;
+interface nsISupportsArray;
 
 [scriptable, uuid(5D7DF40A-CD9C-4729-A715-D5666C3AA713)]
 interface nsIMsgFilterService : nsISupports {

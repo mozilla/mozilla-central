@@ -47,6 +47,7 @@
 #include "nsIMsgDatabase.h"
 #include "nsMemory.h"
 #include <ctype.h>
+#include "nsISupportsArray.h"
 
 // Implementation of search for IMAP mail folders
 

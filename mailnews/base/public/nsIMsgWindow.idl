@@ -36,9 +36,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsIMsgStatusFeedback.idl"
-#include "nsIMsgFolder.idl"
 
+interface nsIMsgStatusFeedback;
+interface nsIMsgFolder;
 interface nsITransactionManager;
 interface nsIDocShell;
 interface nsIDOMWindowInternal;

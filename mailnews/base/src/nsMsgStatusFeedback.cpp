@@ -54,6 +54,7 @@
 #include "nsIMsgWindow.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgHdr.h"
+#include "nsIMsgFolder.h"
 
 #define MSGFEEDBACK_TIMER_INTERVAL 500
 

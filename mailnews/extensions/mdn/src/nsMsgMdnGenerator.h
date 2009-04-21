@@ -48,6 +48,7 @@
 #include "nsIMsgIdentity.h"
 #include "nsIMsgWindow.h"
 #include "nsIMimeHeaders.h"
+#include "nsStringGlue.h"
 
 #define eNeverSendOp ((PRInt32) 0)
 #define eAutoSendOp ((PRInt32) 1)

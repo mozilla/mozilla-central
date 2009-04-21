@@ -60,6 +60,7 @@
 #include "nsIMsgDatabase.h"
 #include "nsArrayUtils.h"
 #include "nsMsgMessageFlags.h"
+#include "nsIMsgStatusFeedback.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // nsFolderCompactState

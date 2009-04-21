@@ -53,6 +53,7 @@
 #include "nsNetCID.h"
 #include "nsMsgNewsCID.h"
 #include "nsINntpService.h"
+#include "nsIMsgStatusFeedback.h"
 
 static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID); 
 
