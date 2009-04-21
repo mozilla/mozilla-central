@@ -2726,6 +2726,9 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
   if (!file)
     return NS_ERROR_FAILURE;
 
+  if (m_virtualFoldersLoaded)
+    return NS_OK;
+
   m_loadingVirtualFolders = PR_TRUE;
 
   nsresult rv;
