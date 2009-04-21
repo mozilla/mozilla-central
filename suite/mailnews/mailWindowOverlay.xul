@@ -138,6 +138,7 @@
   <command id="cmd_quit"/>
   <command id="cmd_createFilterFromPopup" oncommand="goDoCommand('cmd_createFilterFromPopup')"/>
   <command id="cmd_pageSetup"/>
+  <command id="cmd_CustomizeToolbars" oncommand="goCustomizeToolbar(getMailToolbox());"/>
 </commandset>
 
 <commandset id="mailViewMenuItems"
@@ -897,7 +898,26 @@
                                                     gContextMenu.linkText());"/>
   </popup>
 
-<menubar id="mail-menubar" grippytooltiptext="&menuBar.tooltip;">
+  <toolbar type="menubar"
+           id="mail-toolbar-menubar2"
+           class="chromeclass-menubar"
+           persist="collapsed"
+           grippytooltiptext="&menuBar.tooltip;"
+           customizable="true"
+           defaultset="menubar-items"
+           mode="icons"
+           iconsize="small"
+           defaultmode="icons"
+           defaulticonsize="small"
+           context="toolbar-context-menu">
+    <toolbaritem id="menubar-items"
+                 class="menubar-items"
+                 align="center">
+      <menubar id="mail-menubar"/>
+    </toolbaritem>
+  </toolbar>
+
+<menubar id="mail-menubar">
   <menu id="menu_File" >
     <menupopup id="menu_FilePopup" onpopupshowing="file_init();">
       <menu id="menu_New">
@@ -1757,7 +1777,9 @@
 <spacer flex="100%"/>
 </menubar>
 
-<toolbox id="mail-toolbox" mode="full" defaultmode="full">
+<toolbox id="mail-toolbox"
+         mode="full"
+         defaultmode="full">
   <toolbar class="toolbar-primary chromeclass-toolbar"
            id="msgToolbar"
            persist="collapsed"
@@ -1765,253 +1787,343 @@
            toolbarname="&showMessengerToolbarCmd.label;"
            accesskey="&showMessengerToolbarCmd.accesskey;"
            customizable="true"
+           defaultset="button-getmsg,button-newmsg,separator,button-reply,button-replyall,button-forward,separator,button-goback,button-goforward,button-next,button-junk,button-delete,button-mark,spring,throbber-box"
            togglemenuitem="menu_showMessengerToolbar"
            context="toolbar-context-menu">
-      <toolbarbutton type="menu-button" id="button-getmsg"
-                     class="toolbarbutton-1"
-                     label="&getMsgButton.label;"
-                     tooltiptext="&getMsgButton.tooltip;"
-                     sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-                     sortDirection="ascending"
-                     observes="button_getNewMessages" datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
-                     oncommand="goDoCommand('cmd_getNewMessages');"
-                     containment="http://home.netscape.com/NC-rdf#child"
-                     ref="msgaccounts:/">
-      <menupopup onpopupshowing="getMsgToolbarMenu_init();">
-        <menuitem label="&getAllNewMsgCmd.label;"
-                  command="cmd_getMsgsForAuthAccounts"/>
+  </toolbar>
+
+  <toolbarpalette id="MailToolbarPalette">
+    <toolbarbutton id="button-getmsg"
+                   class="toolbarbutton-1"
+                   type="menu-button"
+                   label="&getMsgButton.label;"
+                   tooltiptext="&getMsgButton.tooltip;"
+                   sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+                   sortDirection="ascending"
+                   observes="button_getNewMessages"
+                   datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+                   oncommand="goDoCommand('cmd_getNewMessages');"
+                   containment="http://home.netscape.com/NC-rdf#child"
+                   ref="msgaccounts:/">
+    <menupopup onpopupshowing="getMsgToolbarMenu_init();">
+      <menuitem label="&getAllNewMsgCmd.label;"
+                command="cmd_getMsgsForAuthAccounts"/>
+      <menuseparator/>
+    </menupopup>
+    <template>
+      <rule nc:IsServer="true" nc:CanGetMessages="true">
+        <menupopup>
+          <menuitem uri="..."
+                    value="..."
+                    label="rdf:http://home.netscape.com/NC-rdf#Name"
+                    oncommand="MsgGetMessagesForAccount(event);"/>
+          </menupopup>
+        </rule>
+      </template>
+    </toolbarbutton>
+    <toolbarbutton id="button-newmsg"
+                   class="toolbarbutton-1"
+                   label="&newMsgButton.label;"
+                   tooltiptext="&newMsgButton.tooltip;"
+                   oncommand="MsgNewMessage(event)"/>
+    <toolbarbutton id="button-reply"
+                   class="toolbarbutton-1"
+                   label="&replyButton.label;"
+                   tooltiptext="&replyButton.tooltip;"
+                   observes="button_reply"
+                   oncommand="MsgReplyMessage(event)">
+      <menupopup>
+        <menuitem label="&replySenderCmd.label;"
+                  accesskey="&replySenderCmd.accesskey;"
+                  command="cmd_replySender"/>
+        <menuitem label="&replyNewsgroupCmd.label;"
+                  accesskey="&replyNewsgroupCmd.accesskey;"
+                  command="cmd_replyGroup"
+                  default="true"/>
+      </menupopup>
+    </toolbarbutton>
+    <toolbarbutton id="button-replyall"
+                   class="toolbarbutton-1"
+                   label="&replyAllButton.label;"
+                   tooltiptext="&replyAllButton.tooltip;"
+                   tooltiptextmail="&replyAllButton.tooltip;"
+                   tooltiptextnews="&replyAllButtonNews.tooltip;"
+                   observes="button_replyall"
+                   oncommand="MsgReplyToAllMessage(event)">
+      <menupopup>
+        <menuitem label="&replyToSenderAndNewsgroupCmd.label;"
+                  accesskey="&replyToSenderAndNewsgroupCmd.accesskey;"
+                  command="cmd_replySenderAndGroup"
+                  default="true"/>
+        <menuitem label="&replyToAllRecipientsCmd.label;"
+                  accesskey="&replyToAllRecipientsCmd.accesskey;"
+                  command="cmd_replyAllRecipients"/>
+      </menupopup>
+    </toolbarbutton>
+    <toolbarbutton id="button-forward"
+                   class="toolbarbutton-1"
+                   type="menu-button"
+                   label="&forwardButton.label;"
+                   tooltiptext="&forwardButton.tooltip;"
+                   observes="button_forward"
+                   oncommand="MsgForwardMessage(event)">
+      <menupopup onpopupshowing="InitMessageForward(this);">
+        <menuitem label="&forwardAsInline.label;"
+                  accesskey="&forwardAsInline.accesskey;"
+                  command="cmd_forwardInline"/>
+        <menuitem label="&forwardAsAttachmentCmd.label;"
+                  accesskey="&forwardAsAttachmentCmd.accesskey;"
+                  command="cmd_forwardAttachment"/>
+      </menupopup>
+    </toolbarbutton>
+    <toolbarbutton type="menu"
+                   id="button-file"
+                   class="toolbarbutton-1"
+                   label="&fileButton.label;"
+                   observes="button_file"
+                   datasources="rdf:null"
+                   tooltiptext="&fileButton.tooltip;"
+                   sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+                   sortDirection="ascending">
+      <menupopup>
+        <menu label="&moveCopyMsgRecentMenu.label;"
+              accesskey="&moveCopyMsgRecentMenu.accesskey;"
+              sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+              sortDirection="ascending"
+              datasources="rdf:mailnewsrecentfolders"
+              ref="mailnewsrecentfolders:/">
+          <menupopup/>
+          <template>
+            <rule nc:CanFileMessages="true">
+              <menupopup>
+                <menuitem uri="..."
+                          class="folderMenuItem menuitem-iconic"
+                          label="rdf:http://home.netscape.com/NC-rdf#FolderTreeSimpleName"
+                          oncommand="MsgMoveMessage(event.target);"
+                          SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                          BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                          IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                          IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                          ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"/>
+              </menupopup>
+            </rule>
+          </template>
+        </menu>
         <menuseparator/>
       </menupopup>
       <template>
-        <rule nc:IsServer="true" nc:CanGetMessages="true">
-          <menupopup>
-            <menuitem uri="..."
-                      value="..."
-                      label="rdf:http://home.netscape.com/NC-rdf#Name"
-                      oncommand="MsgGetMessagesForAccount(event);"/>
+      <rule nc:NoSelect="true" iscontainer="true" isempty="false">
+        <menupopup>
+          <menu uri="..."
+                class="folderMenuItem menu-iconic"
+                label="rdf:http://home.netscape.com/NC-rdf#Name">
+            <menupopup>
+              <menuitem label="&fileHereMenu.label;"
+                        accesskey="&fileHereMenu.accesskey;"
+                        disabled="true"/>
+              <menuseparator/>
             </menupopup>
-          </rule>
-        </template>
-      </toolbarbutton>
-      <toolbarbutton id="button-newmsg" class="toolbarbutton-1" label="&newMsgButton.label;" tooltiptext="&newMsgButton.tooltip;" oncommand="MsgNewMessage(event)"/>
-      <toolbarseparator class="toolbarseparator-primary"/>
-      <toolbarbutton class="toolbarbutton-1" id="button-reply"
-                     label="&replyButton.label;"
-                     tooltiptext="&replyButton.tooltip;"
-                     observes="button_reply"
-                     oncommand="MsgReplyMessage(event)">
-        <menupopup>
-          <menuitem label="&replySenderCmd.label;"
-                    accesskey="&replySenderCmd.accesskey;"
-                    command="cmd_replySender"/>
-          <menuitem label="&replyNewsgroupCmd.label;"
-                    accesskey="&replyNewsgroupCmd.accesskey;"
-                    command="cmd_replyGroup" default="true"/>
-        </menupopup>
-      </toolbarbutton>
-      <toolbarbutton class="toolbarbutton-1" id="button-replyall"
-                     label="&replyAllButton.label;"
-                     tooltiptext="&replyAllButton.tooltip;"
-                     tooltiptextmail="&replyAllButton.tooltip;"
-                     tooltiptextnews="&replyAllButtonNews.tooltip;"
-                     observes="button_replyall"
-                     oncommand="MsgReplyToAllMessage(event)">
-        <menupopup>
-          <menuitem label="&replyToSenderAndNewsgroupCmd.label;"
-                    accesskey="&replyToSenderAndNewsgroupCmd.accesskey;"
-                    command="cmd_replySenderAndGroup" default="true"/>
-          <menuitem label="&replyToAllRecipientsCmd.label;"
-                    accesskey="&replyToAllRecipientsCmd.accesskey;"
-                    command="cmd_replyAllRecipients"/>
-        </menupopup>
-      </toolbarbutton>
-      <toolbarbutton class="toolbarbutton-1" id="button-forward"
-                     type="menu-button" label="&forwardButton.label;"
-                     tooltiptext="&forwardButton.tooltip;"
-                     observes="button_forward"
-                     oncommand="MsgForwardMessage(event)">
-        <menupopup onpopupshowing="InitMessageForward(this);">
-          <menuitem label="&forwardAsInline.label;"
-                    accesskey="&forwardAsInline.accesskey;"
-                    command="cmd_forwardInline"/>
-          <menuitem label="&forwardAsAttachmentCmd.label;"
-                    accesskey="&forwardAsAttachmentCmd.accesskey;"
-                    command="cmd_forwardAttachment"/>
-        </menupopup>
-      </toolbarbutton>
-      <toolbarseparator class="toolbarseparator-primary"/>
-      <toolbarbutton type="menu" id="button-file" class="toolbarbutton-1"
-                  label="&fileButton.label;" observes="button_file"
-                  datasources="rdf:null"
-                  tooltiptext="&fileButton.tooltip;"
-                  sortResource="http://home.netscape.com/NC-rdf#FolderTreeName" sortDirection="ascending">
-        <menupopup>
-          <menu label="&moveCopyMsgRecentMenu.label;"
-                accesskey="&moveCopyMsgRecentMenu.accesskey;"
-                sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-                sortDirection="ascending"
-                datasources="rdf:mailnewsrecentfolders"
-                ref="mailnewsrecentfolders:/">
-            <menupopup/>
-            <template>
-              <rule nc:CanFileMessages="true">
-                <menupopup>
-                  <menuitem uri="..." class="folderMenuItem menuitem-iconic"
-                            label="rdf:http://home.netscape.com/NC-rdf#FolderTreeSimpleName"
-                            oncommand="MsgMoveMessage(event.target);"
-                            SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-                            BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-                            IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                            IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                            ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"/>
-                </menupopup>
-              </rule>
-            </template>
           </menu>
-          <menuseparator/>
         </menupopup>
-        <template>
-        <rule nc:NoSelect="true" iscontainer="true" isempty="false">
+      </rule>
+      <rule nc:NoSelect="true">
+        <menupopup>
+          <menuitem uri="..."
+                    class="folderMenuItem menu-iconic"
+                    label="rdf:http://home.netscape.com/NC-rdf#Name"
+                    disabled="true"/>
+        </menupopup>
+      </rule>
+        <rule nc:CanFileMessages="true" iscontainer="true" isempty="false">
           <menupopup>
-            <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name">
+            <menu uri="..."
+                  class="folderMenuItem menu-iconic"
+                  label="rdf:http://home.netscape.com/NC-rdf#Name"
+                  SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                  BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                  IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                  IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                  ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
               <menupopup>
-                <menuitem label="&fileHereMenu.label;" accesskey="&fileHereMenu.accesskey;" disabled="true"/>
+                <menuitem label="&fileHereMenu.label;"
+                          accesskey="&fileHereMenu.accesskey;"
+                          oncommand="MsgMoveMessage(event.target.parentNode.parentNode)"/>
                 <menuseparator/>
               </menupopup>
             </menu>
           </menupopup>
         </rule>
-        <rule nc:NoSelect="true">
+        <rule nc:CanFileMessagesOnServer="false">
+          <!-- don't show servers (nntp & any others) which does not allow message filing -->
+          <!-- File, Move & Copy menus -->
+        </rule>
+        <rule nc:CanFileMessages="false" iscontainer="true" isempty="false">
+        <!-- note, there is no "file here" -->
           <menupopup>
-            <menuitem uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name" disabled="true"/>
+            <menu uri="..."
+                  class="folderMenuItem menu-iconic"
+                  label="rdf:http://home.netscape.com/NC-rdf#Name"
+                  SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                  BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                  IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                  IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                  ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
+              <menupopup/>
+            </menu>
           </menupopup>
         </rule>
-          <rule nc:CanFileMessages="true" iscontainer="true" isempty="false">
-            <menupopup>
-              <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-               SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-               BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-               IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-               IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-               ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
-                <menupopup>
-                  <menuitem label="&fileHereMenu.label;" accesskey="&fileHereMenu.accesskey;"
-                    oncommand="MsgMoveMessage(event.target.parentNode.parentNode)"/>
-                  <menuseparator/>
-                </menupopup>
-              </menu>
-            </menupopup>
-          </rule>
-          <rule nc:CanFileMessagesOnServer="false">
-            <!-- don't show servers (nntp & any others) which does not allow message filing -->
-            <!-- File, Move & Copy menus -->
-          </rule>
-          <rule nc:CanFileMessages="false" iscontainer="true" isempty="false">
-          <!-- note, there is no "file here" -->
-            <menupopup>
-              <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-               SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-               BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-               IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-               IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-               ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
-                <menupopup/>
-              </menu>
-            </menupopup>
-          </rule>
-          <rule nc:CanFileMessages="true">
-            <menupopup>
-              <menuitem uri="..." class="folderMenuItem menuitem-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name" oncommand="MsgMoveMessage(event.target)"
-               SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-               BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-               IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-               IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-               ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"/>
-            </menupopup>
-          </rule>
-        </template>
-      </toolbarbutton>
+        <rule nc:CanFileMessages="true">
+          <menupopup>
+            <menuitem uri="..."
+                      class="folderMenuItem menuitem-iconic"
+                      label="rdf:http://home.netscape.com/NC-rdf#Name"
+                      oncommand="MsgMoveMessage(event.target)"
+                      SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                      BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                      IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                      IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                      ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"/>
+          </menupopup>
+        </rule>
+      </template>
+    </toolbarbutton>
 
-      <toolbarbutton class="toolbarbutton-1" id="button-goback"
-                     type="menu-button" label="&goBackButton.label;"
-                     tooltiptext="&goBackButton.tooltip;"
-                     observes="button_goBack"
-                     oncommand="goDoCommand('cmd_goBack')"
-                     chromedir="&locale.dir;">
-        <menupopup onpopupshowing="InitBackToolbarMenu(this)"
-                   oncommand="NavigateToUri(event.target);"/>
-      </toolbarbutton>
+    <toolbarbutton id="button-goback"
+                   class="toolbarbutton-1"
+                   type="menu-button"
+                   label="&goBackButton.label;"
+                   tooltiptext="&goBackButton.tooltip;"
+                   observes="button_goBack"
+                   oncommand="goDoCommand('cmd_goBack')"
+                   chromedir="&locale.dir;">
+      <menupopup onpopupshowing="InitBackToolbarMenu(this)"
+                 oncommand="NavigateToUri(event.target);"/>
+    </toolbarbutton>
 
-      <toolbarbutton class="toolbarbutton-1" id="button-goforward"
-                     type="menu-button" label="&goForwardButton.label;"
-                     tooltiptext="&goForwardButton.tooltip;"
-                     observes="button_goForward"
-                     oncommand="goDoCommand('cmd_goForward')"
-                     chromedir="&locale.dir;">
-        <menupopup onpopupshowing="InitForwardToolbarMenu(this)"
-                   oncommand="NavigateToUri(event.target);"/>
-      </toolbarbutton>
+    <toolbarbutton id="button-goforward"
+                   class="toolbarbutton-1"
+                   type="menu-button"
+                   label="&goForwardButton.label;"
+                   tooltiptext="&goForwardButton.tooltip;"
+                   observes="button_goForward"
+                   oncommand="goDoCommand('cmd_goForward')"
+                   chromedir="&locale.dir;">
+      <menupopup onpopupshowing="InitForwardToolbarMenu(this)"
+                 oncommand="NavigateToUri(event.target);"/>
+    </toolbarbutton>
 
-      <toolbarbutton class="toolbarbutton-1" id="button-next"
-                     type="menu-button" label="&nextButton.label;"
-                     tooltiptext="&nextButton.tooltip;"
-                     observes="button_next"
-                     oncommand="goDoCommand('button_next')">
-        <menupopup onpopupshowing="InitGoMessagesMenu();">
-          <menuitem label="&nextMsgCmd.label;"
-                    accesskey="&nextMsgCmd.accesskey;"
-                    command="cmd_nextMsg"/>
-          <menuitem label="&nextUnreadMsgCmd.label;"
-                    accesskey="&nextUnreadMsgCmd.accesskey;"
-                    command="cmd_nextUnreadMsg" default="true"/>
-          <menuitem label="&nextFlaggedMsgCmd.label;"
-                    accesskey="&nextFlaggedMsgCmd.accesskey;"
-                    command="cmd_nextFlaggedMsg"/>
-          <menuseparator/>
-          <menuitem label="&nextUnreadThread.label;"
-                    accesskey="&nextUnreadThread.accesskey;"
-                    command="cmd_nextUnreadThread"/>
-        </menupopup>
-      </toolbarbutton>
+    <toolbarbutton id="button-next"
+                   class="toolbarbutton-1"
+                   type="menu-button"
+                   label="&nextButton.label;"
+                   tooltiptext="&nextButton.tooltip;"
+                   observes="button_next"
+                   oncommand="goDoCommand('button_next')">
+      <menupopup onpopupshowing="InitGoMessagesMenu();">
+        <menuitem label="&nextMsgCmd.label;"
+                  accesskey="&nextMsgCmd.accesskey;"
+                  command="cmd_nextMsg"/>
+        <menuitem label="&nextUnreadMsgCmd.label;"
+                  accesskey="&nextUnreadMsgCmd.accesskey;"
+                  command="cmd_nextUnreadMsg" default="true"/>
+        <menuitem label="&nextFlaggedMsgCmd.label;"
+                  accesskey="&nextFlaggedMsgCmd.accesskey;"
+                  command="cmd_nextFlaggedMsg"/>
+        <menuseparator/>
+        <menuitem label="&nextUnreadThread.label;"
+                  accesskey="&nextUnreadThread.accesskey;"
+                  command="cmd_nextUnreadThread"/>
+      </menupopup>
+    </toolbarbutton>
 
-      <deck id="button-junk" observes="button_junk"
+    <toolbaritem id="button-junk">
+      <deck id="junk-deck"
+            observes="button_junk"
             oncommand="goDoCommand('button_junk')">
-        <toolbarbutton class="toolbarbutton-1"
-                 label="&junkButton.label;"
-                 tooltiptext="&junkButton.tooltip;"
-                 observes="button_junk"/>
-
-        <toolbarbutton class="toolbarbutton-1"
-                 label="&notJunkButton.label;"
-                 tooltiptext="&notJunkButton.tooltip;"
-                 observes="button_junk"/>
+        <toolbarbutton id="button-isJunk"
+                       class="toolbarbutton-1"
+                       label="&junkButton.label;"
+                       tooltiptext="&junkButton.tooltip;"
+                       observes="button_junk"/>
+        <toolbarbutton id="button-notJunk"
+                       class="toolbarbutton-1"
+                       label="&notJunkButton.label;"
+                       tooltiptext="&notJunkButton.tooltip;"
+                       observes="button_junk"/>
       </deck>
+    </toolbaritem>
 
-      <toolbarbutton class="toolbarbutton-1" id="button-delete" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" observes="button_delete" oncommand="goDoCommand(event.shiftKey ? 'button_shiftDelete' : 'button_delete')"/>
-      <toolbarbutton type="menu-button" id="button-mark" class="toolbarbutton-1" label="&markButton.label;" hidden="true" oncommand="goDoCommand('button_mark')"
-                  observes="button_mark" tooltiptext="&markButton.tooltip;">
-            <menupopup onpopupshowing="InitMessageMark()">
-                <menuitem type="checkbox" key="key_toggleRead" id="markReadToolbarItem" label="&markAsReadCmd.label;" accesskey="&markAsReadCmd.accesskey;" command="cmd_markAsRead" default="true" />
-                <menuitem label="&markThreadAsReadCmd.label;" key="key_markThreadAsRead" accesskey="&markThreadAsReadCmd.accesskey;" command="cmd_markThreadAsRead"/>
-                <menuitem label="&markReadByDateCmd.label;" key="key_markReadByDate" accesskey="&markReadByDateCmd.accesskey;" command="cmd_markReadByDate"/>
-                <menuitem label="&markAllReadCmd.label;" key="key_markAllRead" accesskey="&markAllReadCmd.accesskey;" command="cmd_markAllRead"/>
-                <menuseparator/>
-                <menuitem type="checkbox" id="markFlaggedToolbarItem" label="&markFlaggedCmd.label;" accesskey="&markFlaggedCmd.accesskey;" command="cmd_markAsFlagged"/>
-            </menupopup>
-      </toolbarbutton>
-      <toolbarbutton id="button-print" type="menu-button" class="toolbarbutton-1" label="&printButton.label;"
-                  observes="button_print" oncommand="goDoCommand('cmd_print')" tooltiptext="&printButton.tooltip;">
-        <menupopup id="printMenu" onpopupshowing="goUpdateCommand('cmd_printpreview');">
-          <menuitem label="&printCmd.label;" accesskey="&printCmd.accesskey;" default="true"/>
-          <menuitem id="printPreviewMenuItemToolbar" label="&printPreviewCmd.label;" accesskey="&printPreviewCmd.accesskey;" command="cmd_printpreview"/>
-        </menupopup>
-      </toolbarbutton>
-      <toolbarbutton class="toolbarbutton-1" id="button-stop" label="&stopButton.label;" tooltiptext="&stopButton.tooltip;" command="cmd_stop"/>
-      <spacer flex="1"/>
-            <hbox id="throbber-box" align="center">
-                <button id="navigator-throbber" oncommand="goClickThrobber('messenger.throbber.url')" tooltiptext="&throbber.tooltip;"/>
-            </hbox>
-  </toolbar>
+    <toolbarbutton id="button-delete"
+                   class="toolbarbutton-1"
+                   label="&deleteButton.label;"
+                   tooltiptext="&deleteButton.tooltip;"
+                   observes="button_delete"
+                   oncommand="goDoCommand(event.shiftKey ? 'button_shiftDelete' : 'button_delete')"/>
+    <toolbarbutton id="button-mark"
+                   class="toolbarbutton-1"
+                   type="menu-button"
+                   label="&markButton.label;"
+                   oncommand="goDoCommand('button_mark')"
+                   observes="button_mark" tooltiptext="&markButton.tooltip;">
+          <menupopup onpopupshowing="InitMessageMark()">
+              <menuitem id="markReadToolbarItem"
+                        type="checkbox"
+                        label="&markAsReadCmd.label;"
+                        key="key_toggleRead"
+                        accesskey="&markAsReadCmd.accesskey;"
+                        command="cmd_markAsRead"
+                        default="true" />
+              <menuitem label="&markThreadAsReadCmd.label;"
+                        key="key_markThreadAsRead"
+                        accesskey="&markThreadAsReadCmd.accesskey;"
+                        command="cmd_markThreadAsRead"/>
+              <menuitem label="&markReadByDateCmd.label;"
+                        key="key_markReadByDate"
+                        accesskey="&markReadByDateCmd.accesskey;"
+                        command="cmd_markReadByDate"/>
+              <menuitem label="&markAllReadCmd.label;"
+                        key="key_markAllRead"
+                        accesskey="&markAllReadCmd.accesskey;"
+                        command="cmd_markAllRead"/>
+              <menuseparator/>
+              <menuitem id="markFlaggedToolbarItem"
+                        type="checkbox"
+                        label="&markFlaggedCmd.label;"
+                        accesskey="&markFlaggedCmd.accesskey;"
+                        command="cmd_markAsFlagged"/>
+          </menupopup>
+    </toolbarbutton>
+    <toolbarbutton id="button-print"
+                   class="toolbarbutton-1"
+                   type="menu-button"
+                   label="&printButton.label;"
+                   observes="button_print"
+                   oncommand="goDoCommand('cmd_print')"
+                   tooltiptext="&printButton.tooltip;">
+      <menupopup id="printMenu"
+                 onpopupshowing="goUpdateCommand('cmd_printpreview');">
+        <menuitem label="&printCmd.label;"
+                  accesskey="&printCmd.accesskey;"
+                  default="true"/>
+        <menuitem id="printPreviewMenuItemToolbar"
+                  label="&printPreviewCmd.label;"
+                  accesskey="&printPreviewCmd.accesskey;"
+                  command="cmd_printpreview"/>
+      </menupopup>
+    </toolbarbutton>
+    <toolbarbutton id="button-stop"
+                   class="toolbarbutton-1"
+                   label="&stopButton.label;"
+                   tooltiptext="&stopButton.tooltip;"
+                   command="cmd_stop"/>
+    <toolbaritem id="throbber-box"
+                 align="center">
+        <button id="navigator-throbber"
+                oncommand="goClickThrobber('messenger.throbber.url')"
+                tooltiptext="&throbber.tooltip;"/>
+    </toolbaritem>
+  </toolbarpalette>
+
 </toolbox>
 
 <toolbar id="msgLocationToolbar" collapsed="true" persist="collapsed" grippytooltiptext="&locationToolbar.tooltip;">

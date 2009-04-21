@@ -242,16 +242,14 @@ function IsCurrentLoadedFolder(folder)
 function OnLoadMessageWindow()
 {
   AddMailOfflineObserver();
-	CreateMailWindowGlobals();
-  AddToolBarPrefListener();
-  ShowHideToolBarButtons()
-	verifyAccounts(null);
+  CreateMailWindowGlobals();
+  verifyAccounts(null);
 
-	InitMsgWindow();
+  InitMsgWindow();
 
-	messenger.setWindow(window, msgWindow);
-	// FIX ME - later we will be able to use onload from the overlay
-	OnLoadMsgHeaderPane();
+  messenger.setWindow(window, msgWindow);
+  // FIX ME - later we will be able to use onload from the overlay
+  OnLoadMsgHeaderPane();
 
   try {
     var nsIFolderListener = Components.interfaces.nsIFolderListener;
@@ -303,6 +301,12 @@ function OnLoadMessageWindow()
   }
 
   CreateView(originalView);
+
+  // Before and after callbacks for the customizeToolbar code
+  var mailToolbox = getMailToolbox();
+  mailToolbox.customizeInit = MailToolboxCustomizeInit;
+  mailToolbox.customizeDone = MailToolboxCustomizeDone;
+  mailToolbox.customizeChange = MailToolboxCustomizeChange;
 
   setTimeout(OnLoadMessageWindowDelayed, 0, loadCustomMessage);
 
@@ -404,11 +408,10 @@ function OnUnloadMessageWindow()
 {
   UnloadCommandUpdateHandlers();
 
-  RemoveToolBarPrefListener();
-	// FIX ME - later we will be able to use onunload from the overlay
-	OnUnloadMsgHeaderPane();
+  // FIX ME - later we will be able to use onunload from the overlay
+  OnUnloadMsgHeaderPane();
 
-	OnMailWindowUnload();
+  OnMailWindowUnload();
 }
 
 function GetSelectedMsgFolders()

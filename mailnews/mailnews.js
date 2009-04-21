@@ -396,16 +396,6 @@ pref("mailnews.start_page.enabled", true);
 pref("mailnews.remember_selected_message", true);
 pref("mailnews.scroll_to_new_message", true);
 
-#ifdef MOZ_SUITE
-/* file, print, and stop hidden by default.
-   see http://bugzilla.mozilla.org/show_bug.cgi?id=197729#c3 */
-pref("mail.toolbars.showbutton.file", false);
-pref("mail.toolbars.showbutton.next", true);
-pref("mail.toolbars.showbutton.junk", true);
-pref("mail.toolbars.showbutton.print", false);
-pref("mail.toolbars.showbutton.stop", false);
-#endif
-
 // if true, any click on a column header other than the thread column will unthread the view
 pref("mailnews.thread_pane_column_unthreads", false);
 

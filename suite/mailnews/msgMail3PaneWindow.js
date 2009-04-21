@@ -690,8 +690,6 @@ function OnLoadMessenger()
   pref.addObserver("mail.pane_config.dynamic", MailPaneConfigObserver, false);
   UpdateMailPaneConfig();
   Create3PaneGlobals();
-  AddToolBarPrefListener();
-  ShowHideToolBarButtons();
   verifyAccounts(null, false);
 
   InitMsgWindow();
@@ -745,6 +743,12 @@ function OnLoadMessenger()
 
   //Set focus to the Thread Pane the first time the window is opened.
   SetFocusThreadPane();
+
+  // Before and after callbacks for the customizeToolbar code
+  var mailToolbox = getMailToolbox();
+  mailToolbox.customizeInit = MailToolboxCustomizeInit;
+  mailToolbox.customizeDone = MailToolboxCustomizeDone;
+  mailToolbox.customizeChange = MailToolboxCustomizeChange;
 }
 
 function OnUnloadMessenger()
@@ -753,7 +757,6 @@ function OnUnloadMessenger()
 
   OnLeavingFolder(gMsgFolderSelected);  // mark all read in current folder
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
-  RemoveToolBarPrefListener();
   // FIX ME - later we will be able to use onload from the overlay
   OnUnloadMsgHeaderPane();
 

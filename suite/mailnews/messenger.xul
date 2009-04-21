@@ -138,8 +138,9 @@
 <popup id="toolbar-context-menu"/>
 
   <toolbox id="mail-toolbox" class="toolbox-top">
-    <menubar id="mail-menubar"/>
+    <toolbar id="mail-toolbar-menubar2"/>
     <toolbar id="msgToolbar"/>
+    <toolbarset id="customToolbars" context="toolbar-context-menu"/>
     <toolbar id="msgLocationToolbar"/>
   </toolbox>
 
@@ -216,6 +217,7 @@
       </box>
     </box>
   </box>
+  <panel id="customizeToolbarSheetPopup"/>
 
   <statusbar id="status-bar" class="chromeclass-status mailwindow-statusbar"/>
 </window>

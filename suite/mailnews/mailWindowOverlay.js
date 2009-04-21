@@ -755,7 +755,7 @@ function InitMessageMark()
 
 function UpdateJunkToolbarButton()
 {
-  var junkButtonDeck = document.getElementById("button-junk");
+  var junkButtonDeck = document.getElementById("junk-deck");
   junkButtonDeck.selectedIndex = SelectedMessagesAreJunk() ? 1 : 0;
 }
 
@@ -1828,7 +1828,6 @@ function IsCompactFolderEnabled()
 var gReplyAllButton = null;
 var gReplyButton = null;
 var gDeleteButton = null;
-var gMarkButton = null;
 
 function SetUpToolbarButtons(uri)
 {
@@ -1838,34 +1837,20 @@ function SetUpToolbarButtons(uri)
     // pop, and news.  for now, just tweak it based on if it is news or not.
     var forNews = isNewsURI(uri);
 
-    if(!gMarkButton) gMarkButton = document.getElementById("button-mark");
     if(!gDeleteButton) gDeleteButton = document.getElementById("button-delete");
     if (!gReplyButton) gReplyButton = document.getElementById("button-reply");
     if (!gReplyAllButton) gReplyAllButton = document.getElementById("button-replyall");
 
-    var buttonToHide = null;
-    var buttonToShow = null;
-
+    gDeleteButton.hidden = forNews;
     if (forNews) {
         gReplyButton.setAttribute("type", "menu-button");
         gReplyAllButton.setAttribute("type", "menu-button");
         gReplyAllButton.setAttribute("tooltiptext", gReplyAllButton.getAttribute("tooltiptextnews"));
-        buttonToHide = gDeleteButton;
-        buttonToShow = gMarkButton;
     }
     else {
         gReplyButton.removeAttribute("type");
         gReplyAllButton.removeAttribute("type");
         gReplyAllButton.setAttribute("tooltiptext", gReplyAllButton.getAttribute("tooltiptextmail"));
-        buttonToHide = gMarkButton;
-        buttonToShow = gDeleteButton;
-    }
-
-    if (buttonToHide) {
-        buttonToHide.setAttribute('hidden',true);
-    }
-    if (buttonToShow) {
-        buttonToShow.removeAttribute('hidden');
     }
 }
 
@@ -2668,4 +2653,24 @@ function OpenOrFocusWindow(args, windowType, chromeURL)
   }
   else
     window.openDialog(chromeURL, "", "chrome,resizable,status,centerscreen,dialog=no", args);
+}
+
+function getMailToolbox()
+{
+  return document.getElementById("mail-toolbox");
+}
+
+function MailToolboxCustomizeInit()
+{
+  toolboxCustomizeInit("mail-menubar");
+}
+
+function MailToolboxCustomizeDone(aToolboxChanged)
+{
+  toolboxCustomizeDone("mail-menubar", getMailToolbox(), aToolboxChanged);
+}
+
+function MailToolboxCustomizeChange(event)
+{
+  toolboxCustomizeChange(getMailToolbox(), event);
 }

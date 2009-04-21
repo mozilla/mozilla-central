@@ -217,7 +217,11 @@
 
 #button-delete[disabled] {
   -moz-image-region: rect(0 119px 29px 90px) !important;
-} 
+}
+
+toolbarpaletteitem > #button-delete {
+  display: -moz-box;
+}
 
 #button-mark {
   list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
@@ -477,20 +481,20 @@ toolbar[iconsize="small"] > #button-mark[disabled] {
   -moz-image-region: rect(80px 79px 99px 60px) !important;
 }
 
-toolbar[iconsize="small"] > #button-junk > .toolbarbutton-1 {
+toolbar[iconsize="small"] > #button-junk > #junk-deck > .toolbarbutton-1 {
   list-style-image: url("chrome://messenger/skin/icons/messengericons-small.png");
   -moz-image-region: rect(240px 19px 259px 0);
 }
 
-toolbar[iconsize="small"] > #button-junk:hover > .toolbarbutton-1 {
+toolbar[iconsize="small"] > #button-junk > #junk-deck:hover > .toolbarbutton-1 {
   -moz-image-region: rect(240px 39px 259px 20px);
 }
 
-toolbar[iconsize="small"] > #button-junk:hover:active > .toolbarbutton-1 {
+toolbar[iconsize="small"] > #button-junk > #junk-deck:hover:active > .toolbarbutton-1 {
   -moz-image-region: rect(240px 59px 259px 40px);
 }
 
-toolbar[iconsize="small"] > #button-junk[disabled="true"] > .toolbarbutton-1 {
+toolbar[iconsize="small"] > #button-junk > #junk-deck[disabled="true"] > .toolbarbutton-1 {
   -moz-image-region: rect(240px 79px 259px 60px) !important;
 }
 

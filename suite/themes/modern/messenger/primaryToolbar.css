@@ -53,6 +53,7 @@
 
 .toolbarbutton-1 {
   list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
+  min-width: 0px !important;
 }
 
 #button-getmsg {
@@ -224,7 +225,11 @@
 
 #button-delete[disabled] {
   -moz-image-region: rect(0 199px 33px 150px) !important;
-} 
+}
+
+toolbarpaletteitem > #button-delete {
+  display: -moz-box;
+}
 
 #button-mark {
   list-style-image: url("chrome://messenger/skin/icons/btn1.gif");

@@ -120,10 +120,15 @@ toolbar[labelalign="end"] .toolbarbutton-1 .toolbarbutton-text {
 
 /* ::::: toolbar-primary separator ::::: */
 
+.toolbar-primary > toolbarseparator,
 .toolbarseparator-primary {
   margin: 0px;
   padding: 0px;
   border: none;
   width: 18px;
   background: none;
+}
+
+.toolbar-primary > toolbarpaletteitem > toolbarseparator {
+  margin: 0px 8px;
 }

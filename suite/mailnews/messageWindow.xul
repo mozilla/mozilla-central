@@ -125,7 +125,8 @@
   <popup id="toolbar-context-menu"/>
 
   <toolbox id="mail-toolbox">
-    <menubar id="mail-menubar"/>
+    <toolbar id="mail-toolbar-menubar2"/>
+    <toolbarset id="customToolbars" context="toolbar-context-menu"/>
   </toolbox>
 
   <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
@@ -159,6 +160,7 @@
   </vbox>  
 </vbox>
 
+  <panel id="customizeToolbarSheetPopup"/>
   <statusbar class="chromeclass-status" id="status-bar"/>
 
 </window>
