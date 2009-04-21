@@ -123,8 +123,9 @@ private:
                                 nsIMsgIdentity *aIdentity);
 
   nsTObserverArray<nsCOMPtr<nsIMsgSendLaterListener> > mListenerArray;
-  nsCOMPtr<nsIMsgDBHdr>      mMessage;
+  nsCOMPtr<nsIMsgDBHdr> mMessage;
   nsCOMPtr<nsITimer> mTimer;
+  PRBool mTimerSet;
   nsCOMPtr<nsIUrlListener> mShutdownListener;
 
   //

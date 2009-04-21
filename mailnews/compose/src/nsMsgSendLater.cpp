@@ -77,6 +77,7 @@ NS_IMPL_ISUPPORTS6(nsMsgSendLater,
 nsMsgSendLater::nsMsgSendLater()
 {
   mSendingMessages = PR_FALSE;
+  mTimerSet = PR_FALSE;
   mTotalSentSuccessfully = 0;
   mTotalSendCount = 0;
   mLeftoverBuffer = nsnull;
@@ -158,6 +159,7 @@ nsMsgSendLater::Observe(nsISupports *aSubject, const char* aTopic,
   if (aSubject == mTimer && !strcmp(aTopic, "timer-callback"))
   {
     mTimer->Cancel();
+    mTimerSet = PR_FALSE;
     // If we've already started a send since the timer fired, don't start
     // another
     if (!mSendingMessages)
@@ -1341,7 +1343,7 @@ NS_IMETHODIMP
 nsMsgSendLater::OnItemAdded(nsIMsgFolder *aParentItem, nsISupports *aItem)
 {
   // No need to trigger if timer is already set
-  if (mTimer)
+  if (mTimerSet)
     return NS_OK;
 
   // XXX only trigger for non-queued headers
@@ -1358,6 +1360,8 @@ nsMsgSendLater::OnItemAdded(nsIMsgFolder *aParentItem, nsISupports *aItem)
   rv = mTimer->Init(static_cast<nsIObserver*>(this), kInitialMessageSendTime,
                     nsITimer::TYPE_ONE_SHOT);
   NS_ENSURE_SUCCESS(rv, NS_OK);
+
+  mTimerSet = PR_TRUE;
 
   return NS_OK;
 }
