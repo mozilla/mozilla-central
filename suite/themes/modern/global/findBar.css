@@ -1,0 +1,95 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+.findbar-closebutton {
+  list-style-image: url("chrome://global/skin/icons/close.gif");
+  padding: 0 !important;
+  margin-top: 3px !important;
+  margin-bottom: 3px !important;
+  -moz-margin-start: 6px !important;
+  -moz-margin-end: 4px !important;
+  border: none;
+}
+
+.findbar-closebutton:hover {
+  list-style-image: url("chrome://global/skin/icons/close-hov.gif");
+}
+
+.findbar-closebutton:hover:active {
+  list-style-image: url("chrome://global/skin/icons/close-act.gif");
+}
+
+findbar {
+  min-width: 1px;
+  background-color: #C7D0D9;
+  border-top: 1px solid #EBF4FF;
+  border-right: 1px solid #95A0AD;
+  border-bottom: 1px solid #95A0AD;
+}
+
+/* find-next button */
+
+.findbar-find-next {
+  list-style-image: url("chrome://global/skin/icons/find.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
+}
+
+.findbar-find-next[disabled="true"] {
+  -moz-image-region: rect(16px, 16px, 32px, 0px) !important;
+}
+
+/* find-previous button */
+
+.findbar-find-previous {
+  list-style-image: url("chrome://global/skin/icons/find.png");
+  -moz-image-region: rect(0px, 32px, 16px, 16px);
+}
+
+.findbar-find-previous[disabled="true"] {
+  -moz-image-region: rect(16px, 32px, 32px, 16px) !important;
+}
+
+/* highlight button */
+
+.findbar-highlight {
+  list-style-image: url("chrome://global/skin/icons/find.png");
+  -moz-image-region: rect(0px, 48px, 16px, 32px);
+}
+
+.findbar-highlight[disabled="true"] {
+  -moz-image-region: rect(16px, 48px, 32px, 32px) !important;
+}
+
+.findbar-highlight:hover:active {
+  -moz-image-region: rect(32px, 48px, 48px, 32px);
+}
+
+.findbar-highlight[checked="true"] {
+  -moz-image-region: rect(32px, 48px, 48px, 32px);
+}
+
+.find-status-icon {
+  list-style-image: none;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  -moz-margin-start: 8px;
+  -moz-margin-end: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.find-status-icon[status="notfound"] {
+  list-style-image: url("chrome://global/skin/icons/notfound.png");
+}
+
+.findbar-textbox {
+  -moz-binding: url("chrome://global/content/bindings/findbar.xml#findbar-textbox");
+}
+
+
+.findbar-textbox[status="notfound"] {
+  background-color: #FFCCCC;
+}
+
+.find-status-icon[status="wrapped"] {
+  list-style-image: url("chrome://global/skin/icons/wrap.png");
+}
