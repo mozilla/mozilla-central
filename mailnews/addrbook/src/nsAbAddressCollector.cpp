@@ -69,7 +69,11 @@ nsAbAddressCollector::~nsAbAddressCollector()
     pPrefBranchInt->RemoveObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this);
 }
 
-nsIAbCard*
+/**
+ * Returns the first card found with a given property name/value pair. This
+ * returns an already addrefed pointer to the card if the card is found.
+ */
+already_AddRefed<nsIAbCard>
 nsAbAddressCollector::GetCardFromProperty(const char *aName,
                                           const nsACString &aValue,
                                           nsIAbDirectory **aDirectory)

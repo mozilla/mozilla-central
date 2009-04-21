@@ -61,9 +61,9 @@ public:
   nsresult Init();
 
 private:
-  nsIAbCard* GetCardFromProperty(const char *aName, const nsACString &aValue,
-                                 nsIAbDirectory **aDirectory);
-
+  already_AddRefed<nsIAbCard> GetCardFromProperty(const char *aName,
+                                                  const nsACString &aValue,
+                                                  nsIAbDirectory **aDirectory);
   void AutoCollectScreenName(nsIAbCard *aCard, const nsACString &aEmail);
   PRBool SetNamesForCard(nsIAbCard *aSenderCard, const nsACString &aFullName);
   void SplitFullName(const nsCString &aFullName, nsCString &aFirstName,
