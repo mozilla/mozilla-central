@@ -306,6 +306,7 @@ bin\components\dom_views.xpt
 bin\components\dom_xbl.xpt
 bin\components\dom_xul.xpt
 bin\components\dom_loadsave.xpt
+bin\components\NetworkGeolocationProvider.js
 
 ; editor / composer for HTML compose
 bin\components\editor.xpt
