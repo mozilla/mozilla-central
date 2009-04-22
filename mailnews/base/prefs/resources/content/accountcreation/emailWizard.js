@@ -493,6 +493,9 @@ EmailConfigWizard.prototype =
 
   checkOutgoingAccountIsNew : function()
   {
+    // if we're not going to add it, don't check.
+    if (!this._currentConfigFilledIn.outgoing.addThisServer)
+     return true;
     var smtpServers = gSmtpManager.smtpServers;
     while (smtpServers.hasMoreElements())
     {
@@ -508,11 +511,22 @@ EmailConfigWizard.prototype =
   checkIncomingAccountIsNew : function()
   {
     let incoming = this._currentConfigFilledIn.incoming;
-    return gAccountMgr.findRealServer(incoming.username,
-                                      incoming.hostname,
-                                      sanitize.enum(incoming.type,
-                                                    ["pop3", "imap", "nntp"]),
-                                      incoming.port) == null;
+    let isNew = gAccountMgr.findRealServer(incoming.username,
+                                          incoming.hostname,
+                                          sanitize.enum(incoming.type,
+                                                        ["pop3", "imap", "nntp"]),
+                                          incoming.port) == null;
+
+    // if username does not have an '@', also check the e-mail
+    // address form of the name.
+    if (isNew && incoming.username.indexOf("@") < 0) {
+      return gAccountMgr.findRealServer(this._email,
+                                        incoming.hostname,
+                                        sanitize.enum(incoming.type,
+                                                      ["pop3", "imap", "nntp"]),
+                                        incoming.port) == null;
+    }
+    return isNew;
   },
 
   toggleAcknowledgeIncoming : function()
