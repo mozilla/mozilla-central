@@ -43,7 +43,7 @@
 #include <mapi.h>
 #include "msgMapi.h"
 
-#define MAX_RECIPS  100
+#define MAX_RECIPS  2000
 #define MAX_FILES   100
 
 
