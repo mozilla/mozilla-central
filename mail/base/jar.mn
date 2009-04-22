@@ -70,9 +70,6 @@ messenger.jar:
     content/messenger/macMenuOverlay.xul            (content/macMenuOverlay.xul)
 #endif
 *   content/messenger/baseMenuOverlay.xul           (content/baseMenuOverlay.xul)
-#ifdef TOOLBAR_CUSTOMIZATION_SHEET
-*   content/messenger/customizeToolbarSheet.js      (content/customizeToolbarSheet.js)
-#endif
 
 comm.jar:
 % content communicator %content/communicator/ xpcnativewrappers=yes
@@ -80,8 +77,3 @@ comm.jar:
 *  content/communicator/utilityOverlay.xul          (content/utilityOverlay.xul)
 *  content/communicator/utilityOverlay.js           (content/utilityOverlay.js)
 *  content/communicator/nsContextMenu.js            (content/nsContextMenu.js)
-
-toolkit.jar:
-#ifdef TOOLBAR_CUSTOMIZATION_SHEET
-*+  content/global/customizeToolbar.xul             (content/customizeToolbarSheet.xul)
-#endif

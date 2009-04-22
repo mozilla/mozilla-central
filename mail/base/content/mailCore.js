@@ -58,6 +58,7 @@ function CustomizeMailToolbar(toolboxId, customizePopupId)
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
   var sheetFrame = document.getElementById("customizeToolbarSheetIFrame");
   sheetFrame.hidden = false;
+  sheetFrame.toolbox = toolbox;
 
   // The document might not have been loaded yet, if this is the first time.
   // If it is already loaded, reload it so that the onload intialization code
