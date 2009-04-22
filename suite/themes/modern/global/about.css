@@ -1,27 +1,30 @@
+@import url("chrome://global/skin/plugins.css");
+
 html {
   background: #FFF;
 }
 
 body {
-  margin: 0;
-  padding: 0 1em;
   color: #22262F;
   font: message-box;
-}
-
-#aboutPageContainer {
   position: relative;
   min-width: 330px;
   max-width: 50em;
-  margin: 2em auto;
-  border: 1px solid rgb(73, 79, 93);
+  margin: 4em auto;
+  border: 1px solid #494F5D;
   -moz-border-radius: 10px;
-  padding: 2em;
+  padding: 3em;
   -moz-padding-start: 30px;
   background: #C7D0D9;
+  text-align: left;
+}
+
+.aboutPageWideContainer {
+  max-width: 80%;
 }
 
 #aboutLogoContainer {
+  border: 1px solid #494F5D;
   width: 300px;
   margin-bottom: 2em;
 }
@@ -31,8 +34,9 @@ img {
 }
 
 #version {
+  font-weight: bold;
   color: #000;
-  margin-top: -40px;
+  margin-top: -24px;
   margin-bottom: 9px;
   -moz-margin-start: 10px;
   -moz-margin-end: 0px;
