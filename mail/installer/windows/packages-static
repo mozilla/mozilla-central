@@ -421,6 +421,7 @@ bin\res\language.properties
 bin\res\wincharset.properties
 bin\res\entityTables\*
 bin\res\dtd\*
+bin\res\fonts\*
 bin\res\arrow.gif
 bin\res\arrowd.gif
 bin\res\contenteditable.css
