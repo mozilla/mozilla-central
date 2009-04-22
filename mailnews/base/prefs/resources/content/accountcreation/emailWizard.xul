@@ -117,7 +117,7 @@
       <rows>
         <row class="heading">
           <hbox align="center">
-            <label class="heading">Account Information</label>
+            <label class="heading">&accountInformation.label;</label>
           </hbox>
           <hbox><spacer/></hbox>
         </row>
