@@ -265,6 +265,10 @@ var nsMailDefaultHandler = {
       }
     }
 
+    if (cmdLine.handleFlag("silent", false)) {
+      cmdLine.preventDefault = true;
+    }
+
     var count = cmdLine.length;
     if (count) {
       var i = 0;
