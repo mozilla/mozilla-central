@@ -37,8 +37,6 @@
 <!ENTITY getmeout.label                  "This is scary, let me out.">
 
 <!ENTITY lectureYourProvider.description "&brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
-<!ENTITY getcertinfo.label       "Get information on securing email servers.">
-<!ENTITY certinfo.url            "http://www.mozillamessaging.com/XXX/about/certs">
 
 <!ENTITY insecureCleartext.description   "Warning! This is an insecure server. Email is sent in clear-text, so your email could be read by attackers, etc. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
 <!ENTITY insecureSelfsigned.description  "Warning! This is an insecure server. The server uses a certificate that we can't trust, so we can't be sure that someone isn't intercepting the traffic between &brandShortName; and your server. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a trusted certificate.">

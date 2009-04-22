@@ -375,9 +375,6 @@
           </vbox>
           <spacer flex="1"/>
           <description id="findoutmore">&lectureYourProvider.description;</description>
-          <hbox class="highlightedlinkbox">
-            <label class="text-link" href="&certinfo.url;" value="&getcertinfo.label;"/>
-          </hbox>
         </vbox>
         <spacer flex="1"/>
         <hbox>

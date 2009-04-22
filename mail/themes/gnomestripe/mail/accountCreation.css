@@ -284,10 +284,6 @@ label.linklabel:hover {
   text-decoration: underline !important;
 }
 
-hbox.highlightedlinkbox {
-  padding: 1em;
-}
-
 checkbox.acknowledge_checkbox {
   padding-top: .5em;
 }
