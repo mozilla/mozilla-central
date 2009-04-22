@@ -757,13 +757,19 @@ function Shutdown()
   try {
     getBrowser().removeProgressListener(window.XULBrowserWindow);
   } catch (ex) {
+    // Perhaps we didn't get around to adding the progress listener
+  }
+
+  try {
+    controllers.removeController(BookmarksMenuController);
+  } catch (ex) {
+    // Perhaps we didn't get around to adding the controller
   }
 
   var bt = document.getElementById("bookmarks-ptf");
   if (bt) {
     bt.database.RemoveObserver(BookmarksToolbarRDFObserver);
   }
-  controllers.removeController(BookmarksMenuController);
 
   // remove the extension manager RDF datasource to prevent 'leaking' it
   // see bug 391318, the real cause of reporting leaks is probably bug 406914
