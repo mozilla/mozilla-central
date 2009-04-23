@@ -158,7 +158,11 @@ nsMsgSendLater::Observe(nsISupports *aSubject, const char* aTopic,
 {
   if (aSubject == mTimer && !strcmp(aTopic, "timer-callback"))
   {
-    mTimer->Cancel();
+    if (mTimer)
+      mTimer->Cancel();
+    else
+      NS_ERROR("mTimer was null in nsMsgSendLater::Observe");
+
     mTimerSet = PR_FALSE;
     // If we've already started a send since the timer fired, don't start
     // another
@@ -1428,7 +1432,8 @@ NS_IMETHODIMP
 nsMsgSendLater::DoShutdownTask(nsIUrlListener *aListener, nsIMsgWindow *aWindow,
                                PRBool *aResult)
 {
-  mTimer->Cancel();
+  if (mTimer)
+    mTimer->Cancel();
   // If we're already sending messages, nothing to do, but save the shutdown
   // listener until we've finished.
   if (mSendingMessages)
