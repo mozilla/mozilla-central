@@ -212,6 +212,14 @@ ltnMimeConverter.prototype = {
         let event = null;
         for each (var item in parser.getItems({})) {
             if (isEvent(item)) {
+                if (item.hasProperty("X-MOZ-FAKED-MASTER")) {
+                    // if it's a faked master, take any overridden item to get a real occurrence:
+                    let exc = item.recurrenceInfo.getExceptionFor(item.startDate);
+                    cal.ASSERT(exc, "unexpected!");
+                    if (exc) {
+                        item = exc;
+                    }
+                }
                 event = item;
                 break;
             }
