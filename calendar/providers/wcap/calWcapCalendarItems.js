@@ -547,7 +547,7 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
                 for each (var att in attachements) {
                     if (typeof(att) == "string") {
                         strings.push(encodeURIComponent(att));
-                    } else if (calInstanceOf(att, Components.interfaces.calIAttachment)) {
+                    } else if (calInstanceOf(att, Components.interfaces.calIAttachment) && att.uri) {
                         strings.push(encodeURIComponent(att.uri.spec));
                     } else { // xxx todo
                         logError("only URLs supported as attachment, not: " + att, this_);

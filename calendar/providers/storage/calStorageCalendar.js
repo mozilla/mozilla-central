@@ -2705,7 +2705,7 @@ calStorageCalendar.prototype = {
             for each (att in attachments) {
                 var ap = this.mInsertAttachment.params;
                 ap.item_id = item.id;
-                ap.data = att.uri.spec;
+                ap.data = (att.uri ? att.uri.spec : "");
                 ap.format_type = att.formatType;
                 ap.encoding = att.encoding;
 

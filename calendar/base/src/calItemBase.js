@@ -522,7 +522,7 @@ calItemBase.prototype = {
     removeAttachment: function cIB_removeAttachment(aAttachment) {
         this.modify();
         for (var attIndex in this.mAttachments) {
-            if (this.mAttachments[attIndex].uri.spec == aAttachment.uri.spec) {
+            if (cal.compareObjects(mAttachments[attIndex], aAttachment, Components.interfaces.calIAttachment)) {
                 this.modify();
                 this.mAttachments.splice(attIndex, 1);
                 break;
