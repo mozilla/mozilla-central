@@ -338,12 +338,13 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }
 
-#threadTree treechildren::-moz-tree-row(odd) {
-  background: -moz-oddtreerow;
+#threadTree > treechildren::-moz-tree-row(odd) {
+  background-color: -moz-oddtreerow;
 }
 
-#threadTree treechildren::-moz-tree-row(selected) {
-  background-color: Highlight;
+#threadTree > treechildren::-moz-tree-row(selected),
+#threadTree > treechildren::-moz-tree-row(selected, focus) {
+  background-color: -moz-cellhighlight;
 }
 
 .tabmail-tab[type="message"]  .tab-icon-image {
