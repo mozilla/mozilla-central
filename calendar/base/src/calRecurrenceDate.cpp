@@ -40,6 +40,7 @@
 #include "calRecurrenceDate.h"
 
 #include "calDateTime.h"
+#include "calPeriod.h"
 #include "calIItemBase.h"
 #include "calIEvent.h"
 #include "calIErrors.h"
@@ -225,9 +226,17 @@ calRecurrenceDate::SetIcalProperty(calIIcalProperty *aProp)
     nsresult rc = aProp->GetPropertyName(name);
     if (NS_FAILED(rc))
         return rc;
-    if (name.EqualsLiteral("RDATE"))
+    if (name.EqualsLiteral("RDATE")) {
         mIsNegative = PR_FALSE;
-    else if (name.EqualsLiteral("EXDATE"))
+        icalvalue * const value = icalproperty_get_value(aProp->GetIcalProperty());
+        if (icalvalue_isa(value) == ICAL_PERIOD_VALUE) {
+            icalperiodtype const period = icalvalue_get_period(value);
+            // take only period's start date and skip end date, but continue parsing;
+            // open bug 489747:
+            mDate = new calDateTime(&period.start, nsnull /* detect timezone */);
+            return NS_OK;
+        }
+    } else if (name.EqualsLiteral("EXDATE"))
         mIsNegative = PR_TRUE;
     else
         return NS_ERROR_INVALID_ARG;
