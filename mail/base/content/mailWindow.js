@@ -372,32 +372,33 @@ function startPageUrlPref()
   return prefForStartPageUrl;
 }
 
+/**
+ * Loads the mail start page.
+ */
 function loadStartPage()
 {
-  try
+  gMessageNotificationBar.clearMsgNotifications();
+  let startpage = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                            .getService(Components.interfaces.nsIURLFormatter)
+                            .formatURLPref(startPageUrlPref());
+  if (startpage)
   {
-    gMessageNotificationBar.clearMsgNotifications();
-    var startpage = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                              .getService(Components.interfaces.nsIURLFormatter)
-                              .formatURLPref(startPageUrlPref());
-
-    // Load about:blank as the start page if we are offline and uri.scheme
-    // is http / https or we don't have a start page url...
     try {
-      var scheme = makeURI(startpage).scheme;
-    } catch (ex) {}
-    if (startpage && (MailOfflineMgr.isOnline() || (!MailOfflineMgr.isOnline()
-                  && scheme != "http" && scheme != "https")))
-      GetMessagePaneFrame().location.href = startpage;
-    else
-      GetMessagePaneFrame().location.href = "about:blank";
-    ClearMessageSelection();
+      let urifixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
+                               .getService(Components.interfaces.nsIURIFixup);
+
+      let uri = urifixup.createFixupURI(startpage, 0);
+      GetMessagePaneFrame().location.href = uri.spec;
+    }
+    catch (e) {
+      Components.utils.reportError(e);
+    }
   }
-  catch (ex)
+  else
   {
-    dump("Error loading start page: " + ex + "\n");
-    return;
+    GetMessagePaneFrame().location.href = "about:blank";
   }
+  ClearThreadPaneSelection();
 }
 
 // When the ThreadPane is hidden via the displayDeck, we should collapse the
