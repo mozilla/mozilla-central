@@ -82,6 +82,10 @@ function OnMailWindowUnload()
   messenger.setWindow(null, null);
 
   msgWindow.closeWindow();
+
+  Components.classes["@mozilla.org/activity-manager;1"]
+            .getService(Components.interfaces.nsIActivityManager)
+            .removeListener(window.MsgStatusFeedback);
 }
 
 function CreateMailWindowGlobals()
@@ -110,6 +114,10 @@ function CreateMailWindowGlobals()
   statusFeedback = Components.classes["@mozilla.org/messenger/statusfeedback;1"]
                              .createInstance(Components.interfaces.nsIMsgStatusFeedback);
   statusFeedback.setWrappedStatusFeedback(window.MsgStatusFeedback);
+
+  Components.classes["@mozilla.org/activity-manager;1"]
+            .getService(Components.interfaces.nsIActivityManager)
+            .addListener(window.MsgStatusFeedback);
 
   //Create message window object
   msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
@@ -193,6 +201,7 @@ nsMsgStatusFeedback.prototype =
   QueryInterface: function(iid) {
     if (iid.equals(Components.interfaces.nsIMsgStatusFeedback) ||
         iid.equals(Components.interfaces.nsIXULBrowserWindow) ||
+        iid.equals(Components.interfaces.nsIActivityMgrListener) ||
         iid.equals(Components.interfaces.nsISupportsWeakReference) ||
         iid.equals(Components.interfaces.nsISupports))
       return this;
@@ -297,6 +306,15 @@ nsMsgStatusFeedback.prototype =
       this._progressBar.value = percentage;
       this._progressBar.label = Math.round(percentage) + "%";
     }
+  },
+
+  onAddedActivity: function(aID, aActivity) {
+    if (aActivity instanceof Components.interfaces.nsIActivityEvent) {
+      this.showStatusString(aActivity.displayText);
+    }
+  },
+
+  onRemovedActivity: function(aID) {
   }
 }
 
