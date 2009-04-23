@@ -75,7 +75,6 @@
 
 extern void         MacGetFileType(nsILocalFile *fs, PRBool *useDefault, char **type, char **encoding);
 
-#include "nsIInternetConfigService.h"
 #include "nsILocalFileMac.h"
 
 /* static */
@@ -821,59 +820,33 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
     m_x_mac_creator = PL_strdup(filetype);
   }
 
-  PRBool sendResourceFork = PR_TRUE;
-  PRBool icGaveNeededInfo = PR_FALSE;
-  nsCOMPtr<nsIInternetConfigService> icService (do_GetService(NS_INTERNETCONFIGSERVICE_CONTRACTID));
-  if (icService)
+  PRBool sendResourceFork = HasResourceFork(&fsSpec);
+
+  // if we have a resource fork, check the filename extension, maybe we don't need the resource fork!
+  if (sendResourceFork)
   {
-    PRInt32 icFlags;
-    // be sure to look up by extension first (so pass in PR_TRUE). See Bug #229855
-    nsresult rv = icService->GetFileMappingFlags(&fsSpec, PR_TRUE, &icFlags);
-    if (NS_SUCCEEDED(rv) && icFlags != -1 && !(icFlags & nsIInternetConfigService::eIICMapFlag_NotOutgoingMask))
+    nsCOMPtr<nsIURL> fileUrl(do_CreateInstance(NS_STANDARDURL_CONTRACTID));
+    if (fileUrl)
     {
-      sendResourceFork = (icFlags & nsIInternetConfigService::eIICMapFlag_ResourceForkMask);
-
-      // before deciding to send the resource fork along the data fork, check if we have one,
-      // else don't need to use apple double.
-      if (sendResourceFork)
-        sendResourceFork = HasResourceFork(&fsSpec);
-
-      icGaveNeededInfo = PR_TRUE;
-    }
-  }
-
-  if (! icGaveNeededInfo)
-  {
-    // If InternetConfig cannot help us, then just try our best...
-    // first check if we have a resource fork
-    sendResourceFork = HasResourceFork(&fsSpec);
-
-    // then, if we have a resource fork, check the filename extension, maybe we don't need the resource fork!
-    if (sendResourceFork)
-    {
-      nsCOMPtr<nsIURL> fileUrl(do_CreateInstance(NS_STANDARDURL_CONTRACTID));
-      if (fileUrl)
+      nsresult rv = fileUrl->SetSpec(aFileURI);
+      if (NS_SUCCEEDED(rv))
       {
-        nsresult rv = fileUrl->SetSpec(aFileURI);
-        if (NS_SUCCEEDED(rv))
+        nsCAutoString ext;
+        rv = fileUrl->GetFileExtension(ext);
+        if (NS_SUCCEEDED(rv) && !ext.IsEmpty())
         {
-          nsCAutoString ext;
-          rv = fileUrl->GetFileExtension(ext);
-          if (NS_SUCCEEDED(rv) && !ext.IsEmpty())
-          {
-            sendResourceFork =
-               PL_strcasecmp(ext.get(), "TXT") &&
-               PL_strcasecmp(ext.get(), "JPG") &&
-               PL_strcasecmp(ext.get(), "GIF") &&
-               PL_strcasecmp(ext.get(), "TIF") &&
-               PL_strcasecmp(ext.get(), "HTM") &&
-               PL_strcasecmp(ext.get(), "HTML") &&
-               PL_strcasecmp(ext.get(), "ART") &&
-               PL_strcasecmp(ext.get(), "XUL") &&
-               PL_strcasecmp(ext.get(), "XML") &&
-               PL_strcasecmp(ext.get(), "CSS") &&
-               PL_strcasecmp(ext.get(), "JS");
-          }
+          sendResourceFork =
+          PL_strcasecmp(ext.get(), "TXT") &&
+          PL_strcasecmp(ext.get(), "JPG") &&
+          PL_strcasecmp(ext.get(), "GIF") &&
+          PL_strcasecmp(ext.get(), "TIF") &&
+          PL_strcasecmp(ext.get(), "HTM") &&
+          PL_strcasecmp(ext.get(), "HTML") &&
+          PL_strcasecmp(ext.get(), "ART") &&
+          PL_strcasecmp(ext.get(), "XUL") &&
+          PL_strcasecmp(ext.get(), "XML") &&
+          PL_strcasecmp(ext.get(), "CSS") &&
+          PL_strcasecmp(ext.get(), "JS");
         }
       }
     }
