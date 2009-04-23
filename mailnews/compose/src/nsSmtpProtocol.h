@@ -55,27 +55,26 @@ SMTP_START_CONNECT,                                 // 1
 SMTP_FINISH_CONNECT,                                // 2
 SMTP_SEND_HELO_RESPONSE,                            // 3
 SMTP_SEND_EHLO_RESPONSE,                            // 4
-SMTP_SEND_VRFY_RESPONSE,                            // 5
-SMTP_SEND_MAIL_RESPONSE,                            // 6
-SMTP_SEND_RCPT_RESPONSE,                            // 7
-SMTP_SEND_DATA_RESPONSE,                            // 8
-SMTP_SEND_POST_DATA,                                // 9
-SMTP_SEND_MESSAGE_RESPONSE,                         // 10
-SMTP_DONE,                                          // 11
-SMTP_ERROR_DONE,                                    // 12
-SMTP_FREE,                                          // 13
-SMTP_AUTH_LOGIN_STEP0_RESPONSE,                     // 14
-SMTP_EXTN_LOGIN_RESPONSE,                           // 15
-SMTP_SEND_AUTH_LOGIN_STEP0,                         // 16
-SMTP_SEND_AUTH_LOGIN_STEP1,                         // 17
-SMTP_SEND_AUTH_LOGIN_STEP2,                         // 18
-SMTP_AUTH_LOGIN_RESPONSE,                           // 19
-SMTP_TLS_RESPONSE,                                  // 20
-SMTP_AUTH_EXTERNAL_RESPONSE,                        // 21
-SMTP_AUTH_PROCESS_STATE,                            // 22
-SMTP_AUTH_CRAM_MD5_CHALLENGE_RESPONSE,              // 23
-SMTP_SEND_AUTH_GSSAPI_FIRST,                        // 24
-SMTP_SEND_AUTH_GSSAPI_STEP                          // 25
+SMTP_SEND_MAIL_RESPONSE,                            // 5
+SMTP_SEND_RCPT_RESPONSE,                            // 6
+SMTP_SEND_DATA_RESPONSE,                            // 7
+SMTP_SEND_POST_DATA,                                // 8
+SMTP_SEND_MESSAGE_RESPONSE,                         // 9
+SMTP_DONE,                                          // 10
+SMTP_ERROR_DONE,                                    // 11
+SMTP_FREE,                                          // 12
+SMTP_AUTH_LOGIN_STEP0_RESPONSE,                     // 13
+SMTP_EXTN_LOGIN_RESPONSE,                           // 14
+SMTP_SEND_AUTH_LOGIN_STEP0,                         // 15
+SMTP_SEND_AUTH_LOGIN_STEP1,                         // 16
+SMTP_SEND_AUTH_LOGIN_STEP2,                         // 17
+SMTP_AUTH_LOGIN_RESPONSE,                           // 18
+SMTP_TLS_RESPONSE,                                  // 19
+SMTP_AUTH_EXTERNAL_RESPONSE,                        // 20
+SMTP_AUTH_PROCESS_STATE,                            // 21
+SMTP_AUTH_CRAM_MD5_CHALLENGE_RESPONSE,              // 22
+SMTP_SEND_AUTH_GSSAPI_FIRST,                        // 23
+SMTP_SEND_AUTH_GSSAPI_STEP                          // 24
 } SmtpState;
 
 // State Flags (Note, I use the word state in terms of storing 
@@ -164,7 +163,6 @@ private:
     char           *m_addressCopy;
     char           *m_addresses;
     PRUint32       m_addressesLeft;
-    char           *m_verifyAddress;
     nsCString m_mailAddr;
     nsCString m_helloArgument;
     PRInt32        m_sizelimit;
@@ -227,7 +225,6 @@ private:
     PRInt32 AuthLoginResponse(nsIInputStream * stream, PRUint32 length);
 
     PRInt32 SendTLSResponse();
-    PRInt32 SendVerifyResponse(); // mscott: this one is apparently unimplemented...
     PRInt32 SendMailResponse();
     PRInt32 SendRecipientResponse();
     PRInt32 SendDataResponse();

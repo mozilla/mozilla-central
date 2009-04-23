@@ -246,7 +246,6 @@ nsSmtpProtocol::~nsSmtpProtocol()
 {
   // free our local state
   PR_Free(m_addressCopy);
-  PR_Free(m_verifyAddress);
   PR_Free(m_dataBuf);
   delete m_lineStreamBuffer;
 }
@@ -291,7 +290,6 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     m_addresses = nsnull;
     m_addressesLeft = 0;
 
-    m_verifyAddress = nsnull;
 #ifdef UNREADY_CODE
     m_totalAmountWritten = 0;
 #endif /* UNREADY_CODE */
@@ -598,10 +596,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
     m_urlErrorState = NS_ERROR_COULD_NOT_GET_USERS_MAIL_ADDRESS;
     return(NS_ERROR_COULD_NOT_GET_USERS_MAIL_ADDRESS);
   }
-  else
-  {
-    senderIdentity->GetEmail(emailAddress);
-  }
+  senderIdentity->GetEmail(emailAddress);
 
   if (emailAddress.IsEmpty())
   {
@@ -609,80 +604,67 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
     return(NS_ERROR_COULD_NOT_GET_USERS_MAIL_ADDRESS);
   }
 
-  if(m_verifyAddress)
+  nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
+  nsCString fullAddress;
+  if (parser)
   {
-    buffer += "VRFY";
-    buffer += m_verifyAddress;
-    buffer += CRLF;
+    // pass nsnull for the name, since we just want the email.
+    //
+    // seems a little weird that we are passing in the emailAddress
+    // when that's the out parameter
+    parser->MakeFullAddressString(nsnull, emailAddress.get(),
+                                  getter_Copies(fullAddress));
   }
-  else
+
+  buffer = "MAIL FROM:<";
+  buffer += fullAddress;
+  buffer += ">";
+
+  if (TestFlag(SMTP_EHLO_DSN_ENABLED))
   {
-    /* else send the MAIL FROM: command */
-    nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
-    nsCString fullAddress;
-    if (parser)
+    PRBool requestDSN = PR_FALSE;
+    rv = m_runningURL->GetRequestDSN(&requestDSN);
+
+    if (requestDSN)
     {
-      // pass nsnull for the name, since we just want the email.
-      //
-      // seems a little weird that we are passing in the emailAddress
-      // when that's the out parameter
-      parser->MakeFullAddressString(nsnull, emailAddress.get(),
-                                    getter_Copies(fullAddress));
+      nsCOMPtr <nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      nsCOMPtr<nsIPrefBranch> prefBranch;
+      rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      PRBool requestRetFull = PR_FALSE;
+      rv = prefBranch->GetBoolPref("mail.dsn.ret_full_on", &requestRetFull);
+
+      buffer += requestRetFull ? " RET=FULL" : " RET=HDRS";
+
+      char* msgID = msg_generate_message_id(senderIdentity);
+      buffer += " ENVID=";
+      buffer += msgID;
+
+      PR_Free(msgID);
     }
-
-    buffer = "MAIL FROM:<";
-    buffer += fullAddress;
-    buffer += ">";
-
-    if (TestFlag(SMTP_EHLO_DSN_ENABLED))
-    {
-      PRBool requestDSN = PR_FALSE;
-      rv = m_runningURL->GetRequestDSN(&requestDSN);
-
-      if (requestDSN)
-      {
-        nsCOMPtr <nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-        NS_ENSURE_SUCCESS(rv,rv);
-
-        nsCOMPtr<nsIPrefBranch> prefBranch;
-        rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
-        NS_ENSURE_SUCCESS(rv,rv);
-
-        PRBool requestRetFull = PR_FALSE;
-        rv = prefBranch->GetBoolPref("mail.dsn.ret_full_on", &requestRetFull);
-
-        buffer += requestRetFull ? " RET=FULL" : " RET=HDRS";
-
-        char* msgID = msg_generate_message_id(senderIdentity);
-        buffer += " ENVID=";
-        buffer += msgID;
-
-        PR_Free(msgID);
-      }
-    }
-
-    if(TestFlag(SMTP_EHLO_SIZE_ENABLED))
-    {
-      buffer.Append(" SIZE=");
-      buffer.AppendInt(m_totalMessageSize);
-    }
-    buffer += CRLF;
   }
+
+  if(TestFlag(SMTP_EHLO_SIZE_ENABLED))
+  {
+    buffer.Append(" SIZE=");
+    buffer.AppendInt(m_totalMessageSize);
+  }
+  buffer += CRLF;
 
   nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
   status = SendData(url, buffer.get());
 
   m_nextState = SMTP_RESPONSE;
 
-  if(m_verifyAddress)
-    m_nextStateAfterResponse = SMTP_SEND_VRFY_RESPONSE;
-  else
-    m_nextStateAfterResponse = SMTP_SEND_MAIL_RESPONSE;
+
+  m_nextStateAfterResponse = SMTP_SEND_MAIL_RESPONSE;
   SetFlag(SMTP_PAUSE_FOR_READ);
 
   return(status);
 }
-
 
 PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 length)
 {
@@ -1314,21 +1296,6 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
   return -1;
 }
 
-PRInt32 nsSmtpProtocol::SendVerifyResponse()
-{
-#if 0
-  PRInt32 status = 0;
-  char buffer[512];
-
-  if(m_responseCode == 250 || m_responseCode == 251)
-    return(NS_USER_VERIFIED_BY_SMTP);
-  else
-    return(NS_USER_NOT_VERIFIED_BY_SMTP);
-#else
-  PR_ASSERT(0);
-  return(-1);
-#endif
-}
 
 PRInt32 nsSmtpProtocol::SendMailResponse()
 {
@@ -1779,12 +1746,6 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
         status = AuthLoginStep2();
         break;
 
-      case SMTP_SEND_VRFY_RESPONSE:
-        if (inputStream == nsnull)
-          SetFlag(SMTP_PAUSE_FOR_READ);
-        else
-          status = SendVerifyResponse();
-        break;
 
       case SMTP_SEND_MAIL_RESPONSE:
         if (inputStream == nsnull)
