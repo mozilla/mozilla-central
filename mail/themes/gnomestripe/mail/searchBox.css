@@ -58,7 +58,11 @@
 
 .quick-search-button-image {
   margin: 0px;
-  list-style-image: url("chrome://messenger/skin/icons/Search-bar.png");
+  list-style-image: url("chrome://global/skin/icons/Search-glass.png");
+}
+
+#quick-search-button[chromedir="rtl"] .quick-search-button-image {
+  -moz-transform: scaleX(-1);
 }
 
 .quick-search-clearbutton[clearButtonHidden="true"] {
@@ -66,9 +70,8 @@
 }
 
 .quick-search-button-dropmarker {
-  -moz-margin-start: 12px;
-  margin-top: 8px;
-  list-style-image: url("chrome://messenger/skin/icons/search-arrow.gif");
+  -moz-margin-start: 13px;
+  list-style-image: url("chrome://messenger/skin/icons/search-arrow.png");
 }
 
 .quick-search-clearbutton {
