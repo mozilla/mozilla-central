@@ -56,84 +56,56 @@
 
 #button-newcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 24px 24px 0px);
-}
-
-#button-newcard:hover {
-  -moz-image-region: rect(24px 24px 48px 0px);
-} 
-
-#button-newcard:hover:active {
-  -moz-image-region: rect(24px 24px 48px 0px);
+  -moz-image-region: rect(44px 22px 66px 0px); /* contact-add.png */
 }
 
 #button-newcard[disabled="true"] {
-  -moz-image-region: rect(48px 24px 72px 0px) !important;
+  -moz-image-region: rect(66px 22px 88px 0px); /* contact-add-disabled.png */
 } 
 
 #button-newlist {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 48px 24px 24px);
+  -moz-image-region: rect(88px 22px 110px 0px); /* contact-list-add.png */
 }
 
-#button-newlist:hover {
-  -moz-image-region: rect(24px 48px 48px 24px);
-} 
-
 #button-newlist[disabled="true"] {
-  -moz-image-region: rect(48px 48px 72px 24px) !important;
+  -moz-image-region: rect(110px 22px 132px 0px); /* contact-list-add-disabled.png */
 } 
 
 #button-editcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 72px 24px 48px);
-}
-
-#button-editcard:hover {
-  -moz-image-region: rect(24px 72px 48px 48px);
+  -moz-image-region: rect(132px 22px 154px 0px); /* contact-properties.png */
 }
 
 #button-editcard[disabled="true"] {
-  -moz-image-region: rect(48px 72px 72px 48px) !important;
+  -moz-image-region: rect(154px 22px 176px 0px); /* contact-properties-disabled.png */
 }
 
 #button-newmessage {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 96px 24px 72px);
+  -moz-image-region: rect(176px 22px 198px 0px); /* message-compose.png */
+
 }
 
-#button-newmessage:hover {
-   -moz-image-region: rect(24px 96px 48px 72px);
-} 
-
 #button-newmessage[disabled] {
-  -moz-image-region: rect(48px 96px 72px 72px) !important;
+  -moz-image-region: rect(198px 22px 220px 0px); /* message-compose-disabled.png */
 }
 
 #button-newim {
- list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
- -moz-image-region: rect(0px 120px 24px 96px);
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(0px 22px 22px 0px); /* chat-new.png */
 }
  
-#button-newim:hover {
- -moz-image-region: rect(24px 120px 48px 96px);
-} 
- 
 #button-newim[disabled] {
- -moz-image-region: rect(48px 120px 72px 96px) !important;
+  -moz-image-region: rect(22px 22px 44px 0px); /* chat-new-disabled.png */
 } 
 
 #button-abdelete {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 144px 24px 120px);
+  list-style-image: url("moz-icon://stock/gtk-delete?size=toolbar")
 }
 
-#button-abdelete:hover {
-  -moz-image-region: rect(24px 144px 48px 120px);
-} 
-
 #button-abdelete[disabled] {
-  -moz-image-region: rect(48px 144px 72px 120px) !important;
+  list-style-image: url("moz-icon://stock/gtk-delete?size=toolbar&state=disabled")
 }
 
 /* ::::: small primary toolbar buttons ::::: */
@@ -144,80 +116,55 @@ toolbar[iconsize="small"] .toolbarbutton-1 {
 
 toolbar[iconsize="small"] #button-newcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 16px 16px 0px);
+  -moz-image-region: rect(32px 16px 48px 0px); /* contact-add-small.png */
 }
 
-toolbar[iconsize="small"] #button-newcard:hover {
-  -moz-image-region: rect(16px 16px 32px 0px);
-} 
-
 toolbar[iconsize="small"] #button-newcard[disabled] {
-  -moz-image-region: rect(32px 16px 48px 0px) !important;
-} 
+  -moz-image-region: rect(48px 16px 64px 0px); /* contact-add-small-disabled.png */
+}
 
 toolbar[iconsize="small"] #button-newlist {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 32px 16px 16px);
+  -moz-image-region: rect(64px 16px 80px 0px); /* contact-list-add-small.png */
 }
 
-toolbar[iconsize="small"] #button-newlist:hover {
-  -moz-image-region: rect(16px 32px 32px 16px);
-} 
-
 toolbar[iconsize="small"] #button-newlist[disabled] {
-   -moz-image-region: rect(32px 32px 48px 16px) !important;
-} 
+  -moz-image-region: rect(80px 16px 96px 0px); /* contact-list-add-small-disabled.png */
+}
 
 toolbar[iconsize="small"] #button-editcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 48px 16px 32px);
+  -moz-image-region: rect(96px 16px 112px 0px); /* contact-properties-small.png */
 }
 
-toolbar[iconsize="small"] #button-editcard:hover {
-  -moz-image-region: rect(16px 48px 32px 32px);
-} 
-
 toolbar[iconsize="small"] #button-editcard[disabled="true"] {
-  -moz-image-region: rect(32px 48px 48px 32px) !important;
-} 
+  -moz-image-region: rect(112px 16px 128px 0px); /* contact-properties-small-disabled.png */
+}
 
 toolbar[iconsize="small"] #button-newmessage {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 64px 16px 48px);
+  -moz-image-region: rect(128px 16px 144px 0px); /* message-compose-small.png */
 }
 
-toolbar[iconsize="small"] #button-newmessage:hover {
-  -moz-image-region: rect(16px 64px 32px 48px);
-} 
-
 toolbar[iconsize="small"] #button-newmessage[disabled] {
-  -moz-image-region: rect(32px 64px 48px 48px) !important;
-} 
+  -moz-image-region: rect(144px 16px 160px 0px); /* message-compose-small-disabled.png */
+}
 
 toolbar[iconsize="small"] #button-newim {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 80px 16px 64px);
+  -moz-image-region: rect(0px 16px 16px 0px); /* chat-new-small.png */
 }
-
-toolbar[iconsize="small"] #button-newim:hover {
-  -moz-image-region: rect(16px 80px 32px 64px);
-} 
 
 toolbar[iconsize="small"] #button-newim[disabled] {
-  -moz-image-region: rect(32px 80px 48px 64px) !important;
-} 
-
-toolbar[iconsize="small"] #button-abdelete {
-   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 96px 16px 80px);
+  -moz-image-region: rect(16px 16px 32px 0px); /* chat-new-small-disabled.png */
 }
 
-toolbar[iconsize="small"] #button-abdelete:hover {
-  -moz-image-region: rect(16px 96px 32px 80px);
-} 
+toolbar[iconsize="small"] #button-abdelete {
+  list-style-image: url("moz-icon://stock/gtk-delete?size=menu")
+}
 
 toolbar[iconsize="small"] #button-abdelete[disabled] {
-  -moz-image-region: rect(32px 96px 48px 80px) !important;
+  list-style-image: url("moz-icon://stock/gtk-delete?size=menu&state=disabled")
 }
 
 #abContent {
@@ -388,8 +335,28 @@ html|p {
   list-style-image: url("moz-icon://stock/gtk-new?size=menu");
 }
 
+#menu_newContact {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
+  -moz-image-region: rect(32px 16px 48px 0px); /* contact-add-small.png */
+}
+
+#menu_newList {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
+  -moz-image-region: rect(64px 16px 80px 0px); /* contact-list-add-small.png */
+}
+
+#menu_newMessage {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
+  -moz-image-region: rect(128px 16px 144px 0px); /* message-compose-small.png */
+}
+
 #menu_search_addresses {
   list-style-image: url("moz-icon://stock/gtk-find?size=menu");
+}
+
+#menu_properties {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
+  -moz-image-region: rect(96px 16px 112px 0px); /* contact-properties-small.png */
 }
 
 #dirTreeContext-properties,
@@ -404,4 +371,14 @@ html|p {
 #dirTreeContext-delete,
 #abResultsTreeContext-delete {
   list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
+}
+
+#printPreviewMenuItem,
+#printPreviewAddressBook {
+  list-style-image: url("moz-icon://stock/gtk-print-preview?size=menu");
+}
+
+#printMenuItem,
+#printAddressBook {
+  list-style-image: url("moz-icon://stock/gtk-print?size=menu");
 }

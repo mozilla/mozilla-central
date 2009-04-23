@@ -113,12 +113,25 @@ menuitem:not([type]) {
   list-style-image: url("moz-icon://stock/gtk-new?size=menu");
 }
 
-#newMsgCmd {
-  list-style-image: url("moz-icon://stock/gtk-new?size=menu");
+/* Message -> New, File -> New -> Message */
+#newMsgCmd,
+#newNewMsgCmd {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 32px 16px 16px);
 }
 
 #menu_newFolder {
   list-style-image: url("moz-icon://stock/gtk-directory?size=menu");
+}
+
+#menu_newVirtualFolder {
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(128px 16px 144px 0px);
+}
+
+#menu_newCard {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(44px 22px 66px 0px); /* contact-add.png */
 }
 
 #openMessageFileMenuitem {
@@ -291,6 +304,10 @@ menuitem[command="cmd_goForward"][disabled][chromedir="rtl"] {
 
 #aboutName {
   list-style-image: url("moz-icon://stock/gtk-about?size=menu");
+}
+
+#addressBook {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addrbook.png");
 }
 
 #javascriptConsole {

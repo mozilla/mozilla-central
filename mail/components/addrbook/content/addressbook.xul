@@ -266,14 +266,27 @@
 #endif
                 <menu id="menu_New" label="&newMenu.label;" accesskey="&newMenu.accesskey;">
                     <menupopup id="menu_NewPopup">
-                      <menuitem label="&newContact.label;"
+                      <menuitem id="menu_newContact"
+                                label="&newContact.label;"
                                 accesskey="&newContact.accesskey;"
                                 key="key_newCard" oncommand="AbNewCard();"/>
-                      <menuitem label="&newListCmd.label;" accesskey="&newListCmd.accesskey;" command="cmd_newlist"/>
-                      <menuitem label="&newAddressBookCmd.label;" accesskey="&newAddressBookCmd.accesskey;" oncommand="AbNewAddressBook()"/>
-                      <menuitem label="&newLDAPDirectoryCmd.label;" id="addLDAP" accesskey="&newLDAPDirectoryCmd.accesskey;" oncommand="AbNewLDAPDirectory()"/>
+                      <menuitem id="menu_newList"
+                                label="&newListCmd.label;"
+                                accesskey="&newListCmd.accesskey;"
+                                command="cmd_newlist"/>
+                      <menuitem id="menu_newAddrbook"
+                                label="&newAddressBookCmd.label;"
+                                accesskey="&newAddressBookCmd.accesskey;"
+                                oncommand="AbNewAddressBook()"/>
+                      <menuitem id="addLDAP" label="&newLDAPDirectoryCmd.label;"
+                                accesskey="&newLDAPDirectoryCmd.accesskey;"
+                                oncommand="AbNewLDAPDirectory()"/>
                       <menuseparator/>
-                      <menuitem label="&newMessageCmd.label;" id="menu_newMessage" key="key_newMessage" accesskey="&newMessageCmd.accesskey;" oncommand="AbNewMessage()"/>
+                      <menuitem id="menu_newMessage"
+                                label="&newMessageCmd.label;"
+                                key="key_newMessage"
+                                accesskey="&newMessageCmd.accesskey;"
+                                oncommand="AbNewMessage()"/>
                     </menupopup>
                 </menu>
                 <menuseparator/>
@@ -285,18 +298,29 @@
                           checked="true" type="checkbox"/>
                 <menuseparator/>
 #endif
-                <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" oncommand="PrintUtils.showPageSetup()"/>
 #ifndef XP_MACOSX
                 <menuitem id="printPreviewMenuItem"
                           label="&printPreviewContactCmd.label;"
                           accesskey="&printPreviewContactCmd.accesskey;"
                           command="cmd_printcardpreview"/>
-                <menuitem id="printPreviewAddressBook" label="&printPreviewAddressBook.label;" accesskey="&printPreviewAddressBook.accesskey;" oncommand="AbPrintPreviewAddressBook()"/>
 #endif
                 <menuitem id="printMenuItem" label="&printContactCmd.label;"
                           accesskey="&printContactCmd.accesskey;"
                           key="key_printContact" command="cmd_printcard"/>
-                <menuitem id="printAddressBook" label="&printAddressBook.label;" accesskey="&printAddressBook.accesskey;" oncommand="AbPrintAddressBook()"/>
+                <menuseparator id="menu_PageSetupSeparator"/>
+                <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;"
+                          accesskey="&printSetupCmd.accesskey;"
+                          oncommand="PrintUtils.showPageSetup()"/>
+                <menuseparator id="menu_PrintAddrbookSeparator"/>
+#ifndef XP_MACOSX
+                <menuitem id="printPreviewAddressBook"
+                          label="&printPreviewAddressBook.label;"
+                          accesskey="&printPreviewAddressBook.accesskey;"
+                          oncommand="AbPrintPreviewAddressBook()"/>
+#endif
+                <menuitem id="printAddressBook" label="&printAddressBook.label;"
+                          accesskey="&printAddressBook.accesskey;"
+                          oncommand="AbPrintAddressBook()"/>
                 <menuseparator id="menu_FileCloseSeparator"/>
                 <menuitem id="menu_close"
                           label="&closeCmd.label;"
@@ -306,7 +330,8 @@
             </menupopup>
         </menu>
         
-        <menu id="menu_Edit" label="&editMenu.label;" accesskey="&editMenu.accesskey;">
+        <menu id="menu_Edit" label="&editMenu.label;"
+              accesskey="&editMenu.accesskey;">
           <menupopup id="menu_EditPopup">
             <menuitem id="menu_undo" 
                       label="&undoCmd.label;" 
@@ -347,8 +372,11 @@
                       command="cmd_selectAll"/>
 
             <menuseparator/>
-            <menuitem label="&searchAddressesCmd.label;" accesskey="&searchAddressesCmd.accesskey;"
-                          id="menu_search_addresses" key="key_searchAddresses"  oncommand="onAdvancedAbSearch();"/>
+            <menuitem id="menu_search_addresses"
+                      label="&searchAddressesCmd.label;"
+                      accesskey="&searchAddressesCmd.accesskey;"
+                      key="key_searchAddresses"
+                      oncommand="onAdvancedAbSearch();"/>
 
             <menuseparator/>
             <!-- LOCALIZATION NOTE: set "hideSwapFnLnUI" to false in .dtd to enable the UI -->
@@ -356,7 +384,8 @@
                       accesskey="&swapFirstNameLastNameCmd.accesskey;"
                       hidden="&hideSwapFnLnUI;"
                       oncommand="AbSwapFirstNameLastName()"/>
-            <menuitem label="&propertiesCmd.label;"
+            <menuitem id="menu_properties"
+                      label="&propertiesCmd.label;"
                       accesskey="&propertiesCmd.accesskey;"
                       key="key_properties"
                       command="cmd_properties"/>            
