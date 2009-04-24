@@ -43,11 +43,10 @@ var okCallback = null;
 var gChangeTable = {};
 var gServerURI = null;
 var gSubscribableServer = null;
-var gStatusBar = null;
 var gNameField = null;
 var gNameFieldLabel = null;
 var gFolderDelimiter = ".";
-var gStatusFeedback = new nsMsgStatusFeedback;
+var gStatusFeedback;
 var gMessengerBundle = null;
 var gSubscribeDeck = null;
 var gSearchView = null;
@@ -154,7 +153,6 @@ var MySubscribeListener = {
 
 function SetUpTree(forceToServer, getOnlyNew)
 {
-  gStatusBar = document.getElementById('statusbar-icon');
   if (!gServerURI)
     return;
 
@@ -237,6 +235,7 @@ function SubscribeOnLoad()
   msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
                         .createInstance(Components.interfaces.nsIMsgWindow);
   msgWindow.domWindow = window;
+  gStatusFeedback = new nsMsgStatusFeedback
   msgWindow.statusFeedback = gStatusFeedback;
   msgWindow.rootDocShell.allowAuth = true;
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;

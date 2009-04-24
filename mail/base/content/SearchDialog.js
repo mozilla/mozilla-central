@@ -49,8 +49,7 @@ var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
 
 var gFolderDatasource;
 var gFolderPicker;
-var gStatusBar = null;
-var gStatusFeedback = new nsMsgStatusFeedback();
+var gStatusFeedback;
 var gTimelineEnabled = false;
 var gMessengerBundle = null;
 var RDF;
@@ -312,13 +311,14 @@ function initializeSearchWindowWidgets()
 {
     gFolderPicker = document.getElementById("searchableFolders");
     gSearchStopButton = document.getElementById("search-button");
-    gStatusBar = document.getElementById('statusbar-icon');
     hideMatchAllItem();
     
     msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
                           .createInstance(nsIMsgWindow);
     msgWindow.domWindow = window;
     msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
+
+    gStatusFeedback = new nsMsgStatusFeedback();
     msgWindow.statusFeedback = gStatusFeedback;
 
     // functionality to enable/disable buttons using nsSearchResultsController

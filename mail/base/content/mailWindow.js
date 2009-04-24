@@ -161,6 +161,7 @@ function nsMsgStatusFeedback()
   this._progressBarContainer = document.getElementById("statusbar-progresspanel");
   this._throbber = document.getElementById("navigator-throbber");
   this._stopCmd = document.getElementById("cmd_stop");
+  this._activeProcesses = new Array();
 }
 
 nsMsgStatusFeedback.prototype =
@@ -180,6 +181,8 @@ nsMsgStatusFeedback.prototype =
   _meteorsSpinning: false,
   _defaultStatusText: null,
   _progressBarVisible: false,
+  _activeProcesses: null,
+  _statusFeedbackProgress: -1,
 
   // nsIXULBrowserWindow implementation.
   setJSStatus: function(status) {
@@ -202,6 +205,7 @@ nsMsgStatusFeedback.prototype =
     if (iid.equals(Components.interfaces.nsIMsgStatusFeedback) ||
         iid.equals(Components.interfaces.nsIXULBrowserWindow) ||
         iid.equals(Components.interfaces.nsIActivityMgrListener) ||
+        iid.equals(Components.interfaces.nsIActivityListener) ||
         iid.equals(Components.interfaces.nsISupportsWeakReference) ||
         iid.equals(Components.interfaces.nsISupports))
       return this;
@@ -221,13 +225,8 @@ nsMsgStatusFeedback.prototype =
     this._meteorsSpinning = true;
     this._startTimeoutID = null;
 
-    if (!this._progressBarVisible) {
-      this._progressBarContainer.removeAttribute('collapsed');
-      this._progressBarVisible = true;
-    }
-
     // Turn progress meter on.
-    this._progressBar.setAttribute("mode", "undetermined");
+    this.updateProgress();
 
     // Start the throbber.
     if (this._throbber)
@@ -243,7 +242,7 @@ nsMsgStatusFeedback.prototype =
     // If we don't already have a start meteor timeout pending
     // and the meteors aren't spinning, then kick off a start.
     if (!this._startTimeoutID && !this._meteorsSpinning &&
-        window.MsgStatusFeedback)
+        "MsgStatusFeedback" in window)
       this._startTimeoutID =
         setTimeout('window.MsgStatusFeedback._startMeteors();', 500);
 
@@ -262,22 +261,15 @@ nsMsgStatusFeedback.prototype =
     if (this._throbber)
       this._throbber.setAttribute("busy", false);
 
-    // Turn progress meter off.
-    /// XXX is this valid?
-    this._progressBar.setAttribute("mode", "normal");
-    this._progressBar.value = 0;  // be sure to clear the progress bar
-    this._progressBar.label = "";
-
-    if (this._progressBarVisible) {
-      this._progressBarContainer.collapsed = true;
-      this._progressBarVisible = false;
-    }
-
     if (this._stopCmd)
       this._stopCmd.setAttribute("disabled", "true");
 
     this._meteorsSpinning = false;
     this._stopTimeoutID = null;
+
+    // Turn progress meter off.
+    this._statusFeedbackProgress = -1;
+    this.updateProgress();
   },
 
   stopMeteors: function() {
@@ -294,27 +286,124 @@ nsMsgStatusFeedback.prototype =
     // already in progress AND the meteors are currently running then fire a
     // stop timeout to shut them down.
     if (this._startRequests == 0 && !this._stopTimeoutID &&
-        this._meteorsSpinning && window.MsgStatusFeedback) {
+        this._meteorsSpinning && "MsgStatusFeedback" in window) {
       this._stopTimeoutID =
         setTimeout('window.MsgStatusFeedback._stopMeteors();', 500);
     }
   },
 
   showProgress: function(percentage) {
-    if (percentage >= 0) {
-      this._progressBar.setAttribute("mode", "normal");
-      this._progressBar.value = percentage;
-      this._progressBar.label = Math.round(percentage) + "%";
+    this._statusFeedbackProgress = percentage;
+    this.updateProgress();
+  },
+
+  updateProgress: function() {
+    if (this._meteorsSpinning) {
+      // In this function, we expect that the maximum for each progress is 100,
+      // i.e. we are dealing with percentages. Hence we can combine several
+      // processes running at the same time.
+      let currentProgress = 0;
+      let progressCount = 0;
+
+      // For each activity that is in progress, get its status.
+      this._activeProcesses.forEach(function (element) {
+          if (element.state ==
+              Components.interfaces.nsIActivityProcess.STATE_INPROGRESS &&
+              element.percentComplete != -1) {
+            currentProgress += element.percentComplete;
+            ++progressCount;
+          }
+        });
+
+      // Add the generic progress that's fed to the status feedback object if
+      // we've got one.
+      if (this._statusFeedbackProgress != -1) {
+        currentProgress += this._statusFeedbackProgress;
+        ++progressCount;
+      }
+
+      let percentage = 0;
+      if (progressCount) {
+        percentage = currentProgress / progressCount;
+      }
+
+      if (!percentage)
+        this._progressBar.setAttribute("mode", "undetermined");
+      else {
+        this._progressBar.setAttribute("mode", "determined");
+        this._progressBar.value = percentage;
+        this._progressBar.label = Math.round(percentage) + "%";
+      }
+      if (!this._progressBarVisible) {
+        this._progressBarContainer.removeAttribute('collapsed');
+        this._progressBarVisible = true;
+      }
+    }
+    else {
+      // Stop the bar spinning as we're not doing anything now.
+      this._progressBar.setAttribute("mode", "determined");
+      this._progressBar.value = 0;
+      this._progressBar.label = ""; 
+
+      if (this._progressBarVisible) {
+        this._progressBarContainer.collapsed = true;
+        this._progressBarVisible = false;
+      }
     }
   },
 
+  // nsIActivityMgrListener
   onAddedActivity: function(aID, aActivity) {
     if (aActivity instanceof Components.interfaces.nsIActivityEvent) {
       this.showStatusString(aActivity.displayText);
     }
+    else if (aActivity instanceof Components.interfaces.nsIActivityProcess) {
+      this._activeProcesses.push(aActivity);
+      aActivity.addListener(this);
+      this.startMeteors();
+    }
   },
 
   onRemovedActivity: function(aID) {
+    this._activeProcesses =
+      this._activeProcesses.filter(function (element) {
+        if (element.id == aID) {
+          element.removeListener(this);
+          this.stopMeteors();
+          return false;
+        }
+        return true;
+      }, this);
+  },
+
+  // nsIActivityListener
+  onStateChanged: function(aActivity, aOldState) {
+  },
+
+  onProgressChanged: function(aActivity, aStatusText, aWorkUnitsCompleted,
+                              aTotalWorkUnits) {
+    let index = this._activeProcesses.indexOf(aActivity);
+
+    // Iterate through the list trying to find the first active process, but
+    // only go as far as our process.
+    for (var i = 0; i < index; ++i) {
+      if (this._activeProcesses[i].status ==
+          Components.interfaces.nsIActivityProcess.STATE_INPROGRESS)
+        break;
+    }
+
+    // If the found activity was the same as our activity, update the status
+    // text.
+    if (i == index)
+      // Use the display text if we haven't got any status text. I'm assuming
+      // that the status text will be generally what we want to see on the
+      // status bar.
+      this.showStatusString(aStatusText ? aStatusText : aActivity.displayText);
+
+    this.updateProgress();
+  },
+
+  onHandlerChanged: function(aActivity) {
   }
 }
 
