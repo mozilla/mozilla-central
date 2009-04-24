@@ -368,58 +368,44 @@ EmailConfigWizard.prototype =
       this._probeAbortable.cancel();
     }
     var me = this;
-    this._probeAbortable = fetchConfigFromDisk(domain,
-    function(config) // success
-    {
-      me.foundConfig(config);
-      me.stopSpinner("finished_with_success");
-      me.setSpinnerStatus("found_preconfig");
-      me._probeAbortable = null;
-    },
-    function(e) // fetchConfigFromDisk failed
-    {
-      gEmailWizardLogger.info("fetchConfigFromDisk failed: " + e);
-      me.startSpinner("searching_for_configs");
-      me.setSpinnerStatus("checking_config");
-      me._probeAbortable = fetchConfigFromISP(domain, email,
-      function(config) // success
-      {
-        me.foundConfig(config);
-        if ((me._incomingState != 'failed') && (me._outgoingState != 'failed'))
-        {
-          me.stopSpinner("finished_with_success");
-          me.setSpinnerStatus("found_config");
-          me.showEditButton();
-        }
-        me._probeAbortable = null;
-      },
-      function(e) // fetchConfigFromISP failed
-      {
-        gEmailWizardLogger.info("fetchConfigFromISP failed: " + e);
-        me.startSpinner("searching_for_configs");
-        me.setSpinnerStatus("checking_mozilla_config");
-        me._probeAbortable = fetchConfigFromDB(domain,
+    this._probeAbortable = 
+      fetchConfigFromDisk(
+        domain,
         function(config) // success
         {
           me.foundConfig(config);
           me.stopSpinner("finished_with_success");
-          me.setSpinnerStatus("found_isp_config");
-          me.showEditButton();
+          me.setSpinnerStatus("found_preconfig");
           me._probeAbortable = null;
         },
-        function(e) // fetchConfigFromDB failed
+        function(e) // fetchConfigFromDisk failed
         {
-          ddump("fetchConfigFromDB failed: " + e);
-          gEmailWizardLogger.info("fetchConfigFromDB failed: " + e);
-          me.setSpinnerStatus("probing_config");
-          var initialConfig = new AccountConfig();
-          me._prefillConfig(initialConfig);
-          me.startSpinner("searching_for_configs")
-          me.setSpinnerStatus("guessing_from_email");
-          me._guessConfig(domain, initialConfig, 'both');
-        });
-      });
-    });
+          gEmailWizardLogger.info("fetchConfigFromDisk failed: " + e);
+          me.startSpinner("searching_for_configs");
+          me.setSpinnerStatus("checking_mozilla_config");
+          me._probeAbortable = 
+            fetchConfigFromDB(
+              domain,
+              function(config) // success
+              {
+                me.foundConfig(config);
+                me.stopSpinner("finished_with_success");
+                me.setSpinnerStatus("found_isp_config");
+                me.showEditButton();
+                me._probeAbortable = null;
+              },
+              function(e) // fetchConfigFromDB failed
+              {
+                ddump("fetchConfigFromDB failed: " + e);
+                gEmailWizardLogger.info("fetchConfigFromDB failed: " + e);
+                me.setSpinnerStatus("probing_config");
+                var initialConfig = new AccountConfig();
+                me._prefillConfig(initialConfig);
+                me.startSpinner("searching_for_configs")
+                me.setSpinnerStatus("guessing_from_email");
+                me._guessConfig(domain, initialConfig, 'both');
+              });
+          });
   },
 
   _guessConfig : function(domain, initialConfig, which)
