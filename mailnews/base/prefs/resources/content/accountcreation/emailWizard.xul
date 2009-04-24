@@ -248,7 +248,7 @@
                                 value=""
                                 disabled="true"
                                 class="protocol">
-                        <menupopup onpopuphidden="gEmailConfigWizard.setProtocol('incoming_protocol')">
+                        <menupopup onpopuphidden="gEmailConfigWizard.setIncomingProtocol()">
                           <menuitem label="&imap.label;" value="1"/>
                           <menuitem label="&pop.label;" value="2"/>
                         </menupopup>
@@ -258,6 +258,7 @@
                       <textbox id="incoming_port"
                                value=""
                                disabled="true"
+                               oninput="gEmailConfigWizard.setPort('incoming_port')"
                                class="port"/>
                     </hbox>
                     <hbox>
@@ -299,6 +300,7 @@
                       <textbox id="outgoing_port"
                                value=""
                                disabled="true"
+                               oninput="gEmailConfigWizard.setPort('outgoing_port')"
                                class="port"/>
                     </hbox>
                     <hbox>

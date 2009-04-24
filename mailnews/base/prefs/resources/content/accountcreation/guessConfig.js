@@ -54,9 +54,9 @@ const SSL = 3; // SSL / TLS
 
 const TIMEOUT =  10; // in seconds
 
-let IMAP4_CMDS = ["1 CAPABILITY\n", "2 LOGOUT\n"];
-let POP3_CMDS  = ["CAPA\n", "QUIT\n"];
-let SMTP_CMDS = ["EHLO\n", "QUIT\n"];
+let IMAP4_CMDS = ["1 CAPABILITY\r\n", "2 LOGOUT\r\n"];
+let POP3_CMDS  = ["CAPA\r\n", "QUIT\r\n"];
+let SMTP_CMDS = ["EHLO\r\n", "QUIT\r\n"];
 
 // This is a bit ugly - we set outgoingDone to false
 // when emailWizard.js cancels the outgoing probe because the user picked
@@ -160,7 +160,8 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     }
   };
 
-  var outgoingSuccess = function(type, hostname, port, ssl, badCert)
+  var outgoingSuccess = function(type, hostname, port, ssl, secureAuth,
+                                  badCert, targetSite)
   {
     assert(type == SMTP, "I only know SMTP for outgoing");
     resultConfig.outgoing.hostname = hostname;
@@ -218,13 +219,15 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     incomingHostDetector.autoDetect(domain,
                                     resultConfig.incoming.hostname ? true : false,
                                     resultConfig.incoming.protocol ? resultConfig.incoming.protocol : undefined,
-                                    resultConfig.incoming.port ? resultConfig.incoming.port : undefined);
+                                    resultConfig.incoming.port ? resultConfig.incoming.port : undefined,
+                                    resultConfig.incoming.socketType ? resultConfig.incoming.socketType : undefined);
   }
   if (which == 'outgoing' || which == 'both')
   {
     outgoingHostDetector.autoDetect(domain,
                                     resultConfig.outgoing.hostname ? true : false,
-                                    resultConfig.outgoing.port ? resultConfig.outgoing.port : undefined);
+                                    resultConfig.outgoing.port ? resultConfig.outgoing.port : undefined,
+                                    resultConfig.outgoing.socketType ? resultConfig.outgoing.socketType : undefined);
   }
 
   return new GuessAbortable(incomingHostDetector, outgoingHostDetector,
@@ -268,7 +271,7 @@ GuessAbortable.prototype =
 
   restart : function(domain, config,
                      which /* 'incoming' or 'outgoing', default to both */,
-                     protocol, port)
+                     protocol, port, socketType)
   {
     // Calling code may have changed config (e.g., user may have changed
     // username) so put new values in resultConfig.
@@ -279,7 +282,7 @@ GuessAbortable.prototype =
         if (this._incomingHostDetector)
         {
           this._incomingHostDetector.cancel();
-          this._incomingHostDetector.autoDetect(domain, true, protocol, port);
+          this._incomingHostDetector.autoDetect(domain, true, protocol, port, socketType);
         }
         else
         {
@@ -290,7 +293,7 @@ GuessAbortable.prototype =
           if (this._outgoingHostDetector)
           {
             this._outgoingHostDetector.cancel();
-            this._outgoingHostDetector.autoDetect(domain, true, port);
+            this._outgoingHostDetector.autoDetect(domain, true, port, socketType);
           } else {
             ddump("no outgoing host detector!"); // TODO use assert()
           }
@@ -299,12 +302,13 @@ GuessAbortable.prototype =
         if (this._incomingHostDetector)
         {
           this._incomingHostDetector.cancel();
-          this._incomingHostDetector.autoDetect(domain, true, protocol, port);
+          this._incomingHostDetector.autoDetect(domain, true, protocol, port,
+                                                socketType);
         }
         if (this._outgoingHostDetector)
         {
           this._outgoingHostDetector.cancel();
-          this._outgoingHostDetector.autoDetect(domain, true, port);
+          this._outgoingHostDetector.autoDetect(domain, true, port, socketType);
         }
     }
   }
@@ -320,6 +324,18 @@ function sslConvertToSocketType(ssl)
   if (ssl == TLS)
     return 3;
   throw new NotReached("unexpected SSL type");
+}
+
+function ConvertSocketTypeToSSL(socketType)
+{
+  switch (socketType) {
+    case 1:
+      return NONE;
+    case 2:
+      return SSL;
+    case 3:
+      return TLS;
+  }
 }
 
 function protocolToString(type)
@@ -571,13 +587,16 @@ IncomingHostDetector.prototype =
   autoDetect : function(host, /* required */
                         hostIsPrecise /* false */,
                         protocol /* UNKNOWN */,
-                        port /* UNKNOWN */) {
+                        port /* UNKNOWN */,
+                        socketType /* UNKNOWN */) {
     if (hostIsPrecise === undefined)
       hostIsPrecise = false;
     if (protocol === undefined)
       protocol = UNKNOWN;
     if (port === undefined)
       port = UNKNOWN;
+    if (socketType === undefined)
+      socketType = UNKNOWN;
     this._cancel = false;
 
     this._log.info("doing autoDetectIncoming("+host+", "+hostIsPrecise+
@@ -587,6 +606,7 @@ IncomingHostDetector.prototype =
     this._hostsToTry = [];
     this._specifiedProtocol = protocol;
     this._specifiedPort = port;
+    this._specifiedSSL = ConvertSocketTypeToSSL(socketType);
 
     // if hostIsPrecise is true, it's because that's what the user input
     // explicitly, and we'll just try it, nothing else.
@@ -632,10 +652,14 @@ IncomingHostDetector.prototype =
       }
       else
       {
-        this.tryOrder = [
+        if (this._specifiedSSL == UNKNOWN)
+          this.tryOrder = [
               [POP, TLS, this._specifiedPort, POP3_CMDS],
               [POP, SSL, this._specifiedPort, POP3_CMDS],
               [POP, NONE, this._specifiedPort, POP3_CMDS]];
+         else
+           this.tryOrder = [
+               [POP, this._specifiedSSL, this._specifiedPort, POP3_CMDS]];
       }
     }
     else if ((this._specifiedProtocol == IMAP) ||
@@ -650,10 +674,14 @@ IncomingHostDetector.prototype =
       }
       else
       {
-        this.tryOrder = [
+        if (this._specifiedSSL == UNKNOWN)
+          this.tryOrder = [
             [IMAP, TLS, this._specifiedPort, IMAP4_CMDS],
             [IMAP, SSL, this._specifiedPort, IMAP4_CMDS],
             [IMAP, NONE, this._specifiedPort, IMAP4_CMDS]];
+        else
+          this.tryOrder = [
+            [IMAP, this._specifiedSSL, this._specifiedPort, IMAP4_CMDS]];
       }
     }
     else
@@ -698,7 +726,8 @@ OutgoingHostDetector.prototype =
 
   autoDetect : function(host, /* required */
                         hostIsPrecise /* false */,
-                        port /* UNKNOWN */)
+                        port /* UNKNOWN */,
+                        socketType /* UNKNOWN */)
   {
     if (hostIsPrecise === undefined)
       hostIsPrecise = false;
@@ -712,6 +741,7 @@ OutgoingHostDetector.prototype =
     this._hostsToTry = [];
     this._cancel = false;
     this._specifiedPort = port;
+    this._specifiedSocketType = socketType;
     this._hostsToTry = [];
     if (hostIsPrecise)
     {
@@ -732,10 +762,10 @@ OutgoingHostDetector.prototype =
     if (this._specifiedPort == UNKNOWN)
     {
       this.tryOrder = [
-             [SMTP, TLS, 573, SMTP_CMDS],
+             [SMTP, TLS, 587, SMTP_CMDS],
              [SMTP, SSL, 465, SMTP_CMDS],
              [SMTP, TLS, 25, SMTP_CMDS],
-             [SMTP, NONE, 573, SMTP_CMDS],
+             [SMTP, NONE, 587, SMTP_CMDS],
              [SMTP, NONE, 25, SMTP_CMDS]];
     } else {
       this.tryOrder = [

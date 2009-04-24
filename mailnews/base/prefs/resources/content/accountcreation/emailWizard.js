@@ -115,6 +115,12 @@ EmailConfigWizard.prototype =
     this._realname = "";
     this._password = "";
     this._verifiedConfig = false;
+    this._userChangedIncomingProtocol = false;
+    this._userChangedIncomingPort = false;
+    this._userChangedIncomingSocketType = false;
+    this._userChangedOutgoingPort = false;
+    this._userChangedOutgoingSocketType = false;
+
     this._incomingWarning = 'cleartext';
     this._outgoingWarning = 'cleartext';
     this._userPickedOutgoingServer = false;
@@ -151,8 +157,6 @@ EmailConfigWizard.prototype =
     var menulist = getElementById("outgoing_server");
     menulist.addEventListener("command",
       function() { gEmailConfigWizard.userChangedOutgoing(); }, true);
-    menulist.inputField.onmousedown =
-      function() { gEmailConfigWizard.clickOnOutgoingServer(); return true; };
     menulist.inputField.onchange =
       function() { gEmailConfigWizard.setHost("outgoing_server"); };
     menulist.inputField.oninput =
@@ -224,6 +228,10 @@ EmailConfigWizard.prototype =
       this._probeAbortable.cancel('outgoing');
 
     this._userPickedOutgoingServer = true;
+    _hide('outgoing_protocol');
+    _hide('outgoing_port');
+    _hide('outgoing_security');
+
     if (this._incomingState == 'done')
       this.foundConfig(this.getUserConfig());
   },
@@ -300,6 +308,41 @@ EmailConfigWizard.prototype =
       this.setError("emailerror", "email.error");
   },
 
+  // We use this to  prevent probing from forgetting the user's choice.
+  setSecurity : function(eltId)
+  {
+    switch (eltId) {
+      case 'incoming_security':
+        this._userChangedIncomingSocketType = true;
+        this._incomingState = "";
+        break;
+      case 'outgoing_security':
+        this._userChangedOutgoingSocketType = true;
+        this._outgoingState = "";
+        break;
+    }
+  },
+
+  setIncomingProtocol : function()
+  {
+    this._userChangedIncomingProtocol = true;
+    this._incomingState = "";
+  },
+
+  setPort : function(eltId)
+  {
+    switch (eltId) {
+      case 'incoming_port':
+        this._userChangedIncomingPort = true;
+        this._incomingState = "";
+        break;
+      case 'outgoing_port':
+        this._userChangedOutgoingPort = true;
+        this._outgoingState = "";
+        break;
+    }
+  },
+  
   /* If the user just tabbed through the password input without entering
    * anything, set the type back to text so we don't wind up showing the
    * emptytext as bullet characters.
@@ -759,6 +802,7 @@ EmailConfigWizard.prototype =
       config.outgoing.port =
         sanitize.integerRange(getElementById("outgoing_port").value, 1,
                               kHighestPort);
+      config.outgoing.socketType = parseInt(getElementById("outgoing_security").value);
     }
     config.incoming.username = getElementById("username").value;
     config.incoming.hostname = getElementById("incoming_server").value;
@@ -767,6 +811,9 @@ EmailConfigWizard.prototype =
                             kHighestPort);
     config.incoming.type =
       getElementById("incoming_protocol").value == 1 ? "imap" : "pop3";
+    // type is a string, "imap" or "pop3", protocol is a protocol type.
+    config.incoming.protocol = sanitize.translate(config.incoming.type, { "imap" : 0, "pop3" : 1});
+    config.incoming.socketType = parseInt(getElementById("incoming_security").value);
 
     return config;
   },
@@ -928,6 +975,7 @@ EmailConfigWizard.prototype =
   updateConfig : function(config)
   {
     _show("advanced_settings");
+    this._currentConfig = config;
     // if we have a username, set it.
     if (config.incoming.username)
     {
@@ -998,7 +1046,6 @@ EmailConfigWizard.prototype =
        */
       if (!gEmailConfigWizard._userPickedOutgoingServer)
       {
-        dump("setting menu to " + config.outgoing.hostname + "\n");
         getElementById("outgoing_server").value = config.outgoing.hostname;
         getElementById("outgoing_port").value = config.outgoing.port;
         getElementById("outgoing_security").value = config.outgoing.socketType;
@@ -1087,13 +1134,14 @@ EmailConfigWizard.prototype =
     _show("stop_button");
     this.goWithConfigDetails();
     var newConfig = this.getUserConfig();
-    // this prevents updateConfig from expecting the socketType to be set.
-    // Alternatively, maybe we shouldn't be calling updateConfig
-    newConfig.incoming._inprogress = true;
-    newConfig.outgoing._inprogress = true;
-    gEmailConfigWizard._startProbingIncoming(newConfig);
-    if (!this._userPickedOutgoingServer)
+    if (this._incomingState != "done") {
+      newConfig.incoming._inprogress = true;
+      gEmailConfigWizard._startProbingIncoming(newConfig);
+    }
+    if (!this._userPickedOutgoingServer && this._outgoingState != "done") {
+      newConfig.outgoing._inprogress = true;
       gEmailConfigWizard._startProbingOutgoing(newConfig);
+    }
   },
 
   onCancel : function()
@@ -1157,13 +1205,6 @@ EmailConfigWizard.prototype =
     subtitle.hidden = false;
     subtitle.textContent = msg;
     gEmailWizardLogger.info("show status subtitle: " + msg);
-  },
-
-  clickOnOutgoingServer: function()
-  {
-    _hide('outgoing_protocol');
-    _hide('outgoing_port');
-    _hide('outgoing_security');
   },
 
   setHost: function(eltId)
@@ -1243,16 +1284,20 @@ EmailConfigWizard.prototype =
                           "check_server_details" : "check_in_server_details");
 
     config.incoming._inprogress = true;
-    // User entered hostname, we want to probe port and protocol and socketType
-    config.incoming.protocol = undefined;
-    config.incoming.port = undefined;
-    config.incoming.socketType = undefined;
+    // User entered hostname, we may want to probe port and protocol and socketType
+    if (!this._userChangedIncomingProtocol)
+      config.incoming.protocol = undefined;
+    if (!this._userChangedIncomingPort)
+      config.incoming.port = undefined;
+    if (!this._userChangedIncomingSocketType)
+      config.incoming.socketType = undefined;
 
     if (this._probeAbortable)
     {
       gEmailWizardLogger.info("restarting probe: " + config.incoming.hostname);
-      this._probeAbortable.restart(config.incoming.hostname, config,
-                                   "incoming");
+      this._probeAbortable.restart(config.incoming.hostname, config, "incoming",
+                                   config.incoming.protocol, config.incoming.port,
+                                   config.incoming.socketType);
     }
     else
     {
@@ -1270,13 +1315,16 @@ EmailConfigWizard.prototype =
 
     config.outgoing._inprogress = true;
     // User entered hostname, we want to probe port and protocol and socketType
-    config.outgoing.port = undefined;
-    config.outgoing.socketType = undefined;
+    if (!this._userChangedOutgoingPort)
+      config.outgoing.port = undefined;
+    if (!this.userChangedOutgoingSocketType)
+      config.outgoing.socketType = undefined;
 
     if (this._probeAbortable)
     {
       gEmailWizardLogger.info("restarting probe: " + config.outgoing.hostname);
-      this._probeAbortable.restart(config.outgoing.hostname, config, "outgoing");
+      this._probeAbortable.restart(config.outgoing.hostname, config, "outgoing",
+                                   "smtp", config.outgoing.port);
     }
     else
     {
