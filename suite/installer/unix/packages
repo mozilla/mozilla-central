@@ -338,6 +338,9 @@ bin/chrome/icons/default/venkman-window48.png
 bin/chrome/toolkit.jar
 bin/chrome/toolkit.manifest
 
+; shell icons
+bin/icons/updater.png
+
 ; classic theme
 bin/chrome/classic.jar
 bin/chrome/classic.manifest
