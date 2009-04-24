@@ -183,6 +183,9 @@ EmailConfigWizard.prototype =
     // swap out buttons
     _hide("next_button");
     _show("back_button");
+    _show("stop_button");
+    _hide("edit_button");
+    _hide("go_button");
   },
 
   /* The back button can be clicked at anytime and should stop all probing of
@@ -455,23 +458,25 @@ EmailConfigWizard.prototype =
             {
               me.stopSpinner("finished_with_success");
               me.setSpinnerStatus("config_details_found");
+              _hide("stop_button");
+              _show("edit_button");
             }
             else if (me._incomingState == 'done' && me._outgoingState != 'probing')
             {
               me.stopSpinner("finished_with_success");
               me.setSpinnerStatus("incoming_found_specify_outgoing");
+              me.editConfigDetails();
             }
             else if (me._outgoingState == 'done' && me._incomingState != 'probing')
             {
               me.stopSpinner("finished_with_success");
               me.setSpinnerStatus("outgoing_found_specify_incoming");
+              me.editConfigDetails();
             }
             if (me._outgoingState != 'probing' &&
                 me._incomingState != 'probing')
               me._probeAbortable = null;
 
-            _hide("stop_button");
-            _show("edit_button");
           },
           function(e, config) // guessconfig failed
           {
@@ -488,7 +493,6 @@ EmailConfigWizard.prototype =
             me.setSpinnerStatus("incoming_failed_trying_outgoing");
             config.incoming.hostname = -1;
             me.updateConfig(config);
-            me.editConfigDetails();
           },
           function(e, config) // guessconfig failed for outgoing
           {
@@ -498,7 +502,6 @@ EmailConfigWizard.prototype =
               config.outgoing.hostname = -1;
 
             me.updateConfig(config);
-            me.editConfigDetails();
           },
     initialConfig, which);
   },
@@ -931,6 +934,9 @@ EmailConfigWizard.prototype =
     this._setOutgoingStatus('hidden');
     getElementById('create_button').disabled = true;
     _hide("create_button");
+    _hide("stop_button");
+    _hide("edit_button");
+    _show("go_button");
   },
 
   /* This _doesn't_ set create back to enabled, that needs to be done in a
@@ -979,14 +985,11 @@ EmailConfigWizard.prototype =
     // if we have a username, set it.
     if (config.incoming.username)
     {
-      dump("updating UI with username from found config" + config.incoming.username + "\n");
       getElementById("username").value = config.incoming.username;
     }
     else
     {
       // XXX needs more thought
-      this.editConfigDetails();
-      getElementById("username").value = "???";
     }
 
     // incoming server
@@ -1090,9 +1093,6 @@ EmailConfigWizard.prototype =
   onEdit : function()
   {
     this.editConfigDetails();
-    // swap out the buttons
-    _hide("edit_button");
-    _show("go_button");
   },
 
   // short hand so I didn't have to insert the swap functions in various places
@@ -1116,9 +1116,6 @@ EmailConfigWizard.prototype =
     }
     this.stopSpinner('manually_edit_config');
     this.editConfigDetails();
-    // swap the stop button for the config go (restart) button
-    _hide("stop_button");
-    _show("go_button");
   },
 
   /* (Go) button click handler.  Restarts the config guessing process after a
