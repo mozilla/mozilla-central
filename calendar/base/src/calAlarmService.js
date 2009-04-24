@@ -579,7 +579,7 @@ calAlarmService.prototype = {
     alarmFired: function cAS_alarmFired(aItem, aAlarm) {
         if (!aItem.calendar.getProperty("suppressAlarms") &&
             !aItem.calendar.getProperty("disabled") &&
-            aItem.getProperty("STATUS")!="CANCELLED") {
+            aItem.getProperty("STATUS") != "CANCELLED") {
             this.mObservers.notify("onAlarm", [aItem, aAlarm]);
         }
     }
