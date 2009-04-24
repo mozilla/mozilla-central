@@ -214,7 +214,7 @@ function setFolders(identity, server)
 function rememberPassword(server, password)
 {
   if (server instanceof Components.interfaces.nsIMsgIncomingServer)
-    var passwordURI = server.type + "://" + server.hostName;
+    var passwordURI = server.localStoreType + "://" + server.hostName;
   else if (server instanceof Components.interfaces.nsISmtpServer)
     var passwordURI = "smtp://" + server.hostname;
   else
