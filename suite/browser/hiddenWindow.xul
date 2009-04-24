@@ -64,7 +64,8 @@
   title="hidden"
   titlemodifier="&mainWindow.titlemodifier;" 
   titlemenuseparator="&mainWindow.titlemodifiermenuseparator;"
-  onload="hiddenWindowStartup();">
+  onload="hiddenWindowStartup();"
+  onunload="Shutdown();">
 
   <!-- JS from navigator.xul, to handle the menu commands -->
   <script type="application/x-javascript" src="chrome://navigator/content/browser.js"/>
