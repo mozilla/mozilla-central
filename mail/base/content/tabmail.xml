@@ -129,6 +129,12 @@
     -     If this limit is reached, any additional calls to openTab for this
     -     mode will simply result in the first existing tab of this mode being
     -     displayed.
+    - * shouldSwitchTo(arguments...): Optional function. Called when
+    -     openTab is called on the top-level tabmail binding. It is used to
+    -     decide if the openTab function should switch to an existing tab or
+    -     actually open a new tab.
+    -     If the openTab function should switch to an existing tab, return the
+    -     index of that tab; otherwise return -1.
     - * openTab(aTab, arguments...): Called when a tab of the given mode is
     -     in the process of being opened.  aTab will have its "mode" attribute
     -     set to the mode definition of the tab mode being opened.  You should
@@ -300,7 +306,21 @@
             this.tabContainer.selectedIndex = this.tabInfo.indexOf(desiredTab);
             return;
           }
-          
+
+          // If the mode wants us to, we should switch to an existing tab
+          // rather than open a new one.
+          let shouldSwitchToFunc = tabMode.shouldSwitchTo ||
+                                   tabMode.tabType.shouldSwitchTo;
+
+          if (shouldSwitchToFunc) {
+            let args = Array.prototype.slice.call(arguments, 1);
+            let tabIndex = shouldSwitchToFunc.apply(tabMode.tabType, args);
+            if (tabIndex >= 0) {
+              this.selectTabByIndex(null, tabIndex);
+              return;
+            }
+          }
+
           // we need to save the state before it gets corrupted
           this.saveCurrentTabState();
 

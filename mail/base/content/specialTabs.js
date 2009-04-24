@@ -69,6 +69,30 @@ var specialTabs = {
         maxTabs: 10
       }
     },
+    shouldSwitchTo: function onSwitchTo(aContentPage, aTitle) {
+      let tabmail = document.getElementById("tabmail");
+      let tabInfo = tabmail.tabInfo;
+
+      // Remove any anchors - especially for the about: pages, we just want
+      // to re-use the same tab.
+      let regEx = new RegExp("#.*");
+
+      let contentUrl = aContentPage.replace(regEx, "");
+
+      for (let selectedIndex = 0; selectedIndex < tabInfo.length;
+           ++selectedIndex) {
+        if (tabInfo[selectedIndex].mode.name == this.name &&
+            tabInfo[selectedIndex].panel.firstChild
+                                  .getAttribute("src")
+                                  .replace(regEx, "") == contentUrl) {
+          // Ensure we go to the correct location on the page.
+          tabInfo[selectedIndex].panel.firstChild
+                                .setAttribute("src", aContentPage);
+          return selectedIndex;
+        }
+      }
+      return -1;
+    },
     // XXX it would be nice to have an onload listener and set the title
     // after the load, however tabmail doesn't support that at the moment.
     openTab: function onTabOpened(aTab, aContentPage, aTitle) {
