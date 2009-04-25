@@ -1855,8 +1855,7 @@ function URLBarSetURI(aURI, aValid) {
     gURIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
                           .getService(Components.interfaces.nsIURIFixup);
   try {
-    aURI = gURIFixup.createExposableURI(aURI);
-    uri = aURI || getWebNavigation().currentURI;
+    uri = gURIFixup.createExposableURI(uri);
   } catch (ex) {}
 
   // Replace "about:blank" with an empty string
@@ -1871,7 +1870,7 @@ function URLBarSetURI(aURI, aValid) {
   // become set because of oninput, so reset it to null.
   getBrowser().userTypedValue = null;
 
-  SetPageProxyState((value && (!aURI || aValid)) ? "valid" : "invalid", null);
+  SetPageProxyState((value && (!aURI || aValid)) ? "valid" : "invalid", uri);
 }
 
 function losslessDecodeURI(aURI) {
