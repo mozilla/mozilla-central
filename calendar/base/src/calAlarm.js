@@ -377,6 +377,10 @@ calAlarm.prototype = {
             triggerProp.valueAsDatetime = this.mAbsoluteDate.getInTimezone(UTC());
         } else if (this.related != ALARM_RELATED_ABSOLUTE && this.mOffset) {
             triggerProp.valueAsIcalString = this.mOffset.icalString;
+            if (this.related == ALARM_RELATED_END) {
+                // An alarm related to the end of the event.
+                triggerProp.setParameter("RELATED", "END");
+            }
         } else {
             // No offset or absolute date is not valid.
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
