@@ -467,6 +467,7 @@ function startPageUrlPref()
 function loadStartPage()
 {
   gMessageNotificationBar.clearMsgNotifications();
+  ClearThreadPaneSelection();
   let startpage = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
                             .getService(Components.interfaces.nsIURLFormatter)
                             .formatURLPref(startPageUrlPref());
@@ -487,7 +488,6 @@ function loadStartPage()
   {
     GetMessagePaneFrame().location.href = "about:blank";
   }
-  ClearThreadPaneSelection();
 }
 
 // When the ThreadPane is hidden via the displayDeck, we should collapse the
