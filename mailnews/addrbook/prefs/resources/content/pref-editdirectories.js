@@ -39,28 +39,20 @@
 // Listener to refresh the list items if something changes. In all these
 // cases we just rebuild the list as it is easier than searching/adding in the
 // correct places an would be an infrequent operation.
-//
-// XXX For now we set window.opener.gRefresh to true so that the parent knows
-// something has changed. This will go away soon as the parent (aka TB prefs and
-// the account settings dialogs) will also listen for changes (as it should
-// really do).
 var gAddressBookAbListener = {
   onItemAdded: function(parentDir, item) {
     if (item instanceof Components.interfaces.nsIAbDirectory) {
       fillDirectoryList();
-      window.opener.gRefresh = true;
     }
   },
   onItemRemoved: function(parentDir, item) {
     if (item instanceof Components.interfaces.nsIAbDirectory) {
       fillDirectoryList();
-      window.opener.gRefresh = true;
     }
   },
   onItemPropertyChanged: function(item, property, oldValue, newValue) {
     if (item instanceof Components.interfaces.nsIAbDirectory) {
       fillDirectoryList();
-      window.opener.gRefresh = true;
     }
   }
 };

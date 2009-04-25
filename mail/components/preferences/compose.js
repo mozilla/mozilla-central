@@ -36,10 +36,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-const kLDAPPrefContractID="@mozilla.org/ldapprefs-service;1";
-
-var gRefresh = false; // leftover hack from the old preferences dialog
-
 var gComposePane = {
   mInitialized: false,
   mSpellChecker: null,
