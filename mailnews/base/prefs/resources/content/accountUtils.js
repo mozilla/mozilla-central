@@ -295,3 +295,24 @@ function migrateGlobalQuotingPrefs(allIdentities)
   }
   return migrated;
 }
+
+// we do this from a timer because if this is called from the onload=
+// handler, then the parent window doesn't appear until after the wizard
+// has closed, and this is confusing to the user
+function NewMailAccount(msgWindow)
+{
+  setTimeout(msgNewMailAccount, 0, msgWindow);
+}
+
+function msgNewMailAccount(msgWindow)
+{
+  let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService()
+                     .QueryInterface(Components.interfaces.nsIWindowMediator);
+  let existingWindow = wm.getMostRecentWindow("mail:autoconfig");
+  if (existingWindow)
+    existingWindow.focus();
+  else
+    window.openDialog("chrome://messenger/content/accountcreation/emailWizard.xul",
+                      "AccountSetup", "chrome,titlebar,centerscreen",{msgWindow:msgWindow});
+}

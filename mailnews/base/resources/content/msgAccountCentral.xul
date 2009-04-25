@@ -153,7 +153,17 @@
       <separator id="AccountSettings.separator" class="thin"/>
       <row id="CreateAccount" class="acctCentralRow">
         <hbox> 
-          <label class="acctCentralText acctCentralLinkText" value="&newAcctLink.label;" chromedir="&locale.dir;" onclick="CreateNewAccount();"/> 
+#ifdef MOZ_THUNDERBIRD
+          <label class="acctCentralText acctCentralLinkText"
+                 value="&newAcctLink.label;"
+                 chromedir="&locale.dir;"
+                 onclick="msgNewMailAccount();"/>
+#else
+          <label class="acctCentralText acctCentralLinkText"
+                 value="&newAcctLink.label;"
+                 chromedir="&locale.dir;"
+                 onclick="CreateNewAccount();"/>
+#endif
         </hbox> 
       </row>
       <separator id="CreateAccount.separator" class="thin"/>

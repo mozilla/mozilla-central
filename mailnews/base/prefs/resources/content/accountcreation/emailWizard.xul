@@ -47,6 +47,7 @@
 
 <window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         id="autoconfigWizard"
+        windowtype="mail:autoconfig"
         title="&welcome.description;"
         style="&autoconfigWizard.style;"
         onload="gEmailConfigWizard.onLoad();"

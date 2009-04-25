@@ -10,6 +10,10 @@ messenger.jar:
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/messengercompose/messengercompose.css
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/smime/msgCompSMIMEOverlay.css
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/primaryToolbar.css
+    content/messenger/accountCreation.dtd           (content/accountCreation.dtd)
+    content/messenger/accountCreation.properties    (content/accountCreation.properties)
+    content/messenger/accountCreationModel.properties (content/accountCreationModel.properties)
+    content/messenger/accountCreationUtil.properties  (content/accountCreationUtil.properties)
 *   content/messenger/mailWindow.js                 (content/mailWindow.js)
 *   content/messenger/mailWindowOverlay.js          (content/mailWindowOverlay.js)
 *   content/messenger/mailWindowOverlay.xul         (content/mailWindowOverlay.xul)

@@ -810,6 +810,10 @@
                         accesskey="&newNewMsgCmd.accesskey;"
                         key="key_newMessage2"
                         oncommand="MsgNewMessage(null);"/>
+              <menuitem id="newMailAccountMenuItem"
+                        label="&newMailAccountCmd.label;"
+                        accesskey="&newMailAccountCmd.accesskey;"
+                        oncommand="NewMailAccount(msgWindow);"/>
               <menuitem id="menu_newFolder" label="&newFolderCmd.label;"
                          oncommand="gFolderTreeController.newFolder();"
                          accesskey="&newFolderCmd.accesskey;"/>

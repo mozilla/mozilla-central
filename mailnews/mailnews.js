@@ -820,6 +820,9 @@ pref("mail.compose.max_recycled_windows", 0);
 pref("mailnews.emptyJunk.dontAskAgain", false);
 pref("mailnews.emptyTrash.dontAskAgain", false);
 
+// where to fetch auto config information from.
+pref("mailnews.auto_config_url", "https://live.mozillamessaging.com/autoconfig/");
+
 // -- Summary Database options
 // dontPreserveOnCopy: a space separated list of properties that are not
 //                     copied to the new nsIMsgHdr when a message is copied.
