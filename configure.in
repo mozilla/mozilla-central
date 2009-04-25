@@ -243,29 +243,48 @@ case "$target" in
 *wince)
 
     MOZ_ARG_WITH_STRING(wince-sdk,
-    [  --with-wince-sdk=WINCE_SDK
-                        The path to the windows mobile sdk],
-    WINCE_SDK=$withval)
+    [  --with-wince-sdk=WINCE_SDK_DIR
+                        The path to the Windows CE SDK],
+    WINCE_SDK_DIR=$withval)
+
+    dnl Default to Windows Mobile components enabled
+    WINCE_WINDOWS_MOBILE=1
+
+    MOZ_ARG_DISABLE_BOOL(windows-mobile-components,
+    [  --disable-windows-mobile-components
+         Disable Windows Mobile specific components from CE build],
+    WINCE_WINDOWS_MOBILE=,
+    WINCE_WINDOWS_MOBILE=1)
+
+    if test "$WINCE_WINDOWS_MOBILE"; then
+        AC_DEFINE(WINCE_WINDOWS_MOBILE)
+    fi
+
+    AC_SUBST(WINCE_WINDOWS_MOBILE)
 
     export WINCE=1
-    mk_add_options WINCE=1
 
     echo -----------------------------------------------------------------------------
     echo Building Windows CE Shunt Library and Tool Chain
     echo Using SDK in:
-    echo $WINCE_SDK
+    echo $WINCE_SDK_DIR
 
     ac_exeext=.exe
 
+    _pwdw=`pwd -W`
+    _pwd=`pwd`
+    make WINCE_SDK_DIR="$WINCE_SDK_DIR" TOPSRCDIR="$srcdir/mozilla" OBJDIR="$_pwdw/mozilla" -C $srcdir/mozilla/build/wince/tools
 
-    rm -f $srcdir/build/wince/shunt/include/windows.h
+    CC="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc"
+    CXX="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc"
+    CPP="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc -E -nologo"
+    CXXCPP="$_pwd/mozilla/dist/sdk/bin/arm-wince-gcc -TP -E -nologo"
+    LD="$_pwd/mozilla/dist/sdk/bin/arm-wince-link"
+    AR="$_pwd/mozilla/dist/sdk/bin/arm-wince-lib"
+    AS="$_pwd/mozilla/dist/sdk/bin/arm-wince-as"
+    RC="$_pwd/mozilla/dist/sdk/bin/arm-wince-res"
 
-    echo -n "#define TOPSRCDIR \"" > $srcdir/build/wince/tools/topsrcdir.h
-    echo `cd "$_topsrcdir" && pwd -W | tr '\n' '\"'` >> $srcdir/build/wince/tools/topsrcdir.h
-    make -C $srcdir/build/wince/tools
 
-    echo "#include \"$WINCE_SDK/windows.h\"" > $srcdir/build/wince/shunt/include/windows.h
-    echo "#define GetProcAddress GetProcAddressA" >> $srcdir/build/wince/shunt/include/windows.h
     echo -----------------------------------------------------------------------------
 
     ;;
@@ -1994,6 +2013,12 @@ case "$target" in
     USE_SHORT_LIBNAME=1
     MOZ_ENABLE_POSTSCRIPT=
     MOZ_USER_DIR="Mozilla"
+
+    # Sanity check for WINCE_WINDOWS_MOBILE
+    if test "$WINCE_WINDOWS_MOBILE"; then
+       AC_CHECK_HEADER(tpcshell.h, [],
+            AC_MSG_ERROR([Can't find tpcshell.h in your SDK; are you sure you don't need --disable-windos-mobile-components?]))
+    fi
 ;;
 
 
@@ -7165,7 +7190,7 @@ AC_SUBST(MOZ_POST_DSO_LIB_COMMAND)
 AC_SUBST(MOZ_POST_PROGRAM_COMMAND)
 AC_SUBST(MOZ_TIMELINE)
 AC_SUBST(WINCE)
-AC_SUBST(WINCE_SDK)
+AC_SUBST(WINCE_SDK_DIR)
 AC_SUBST(TARGET_DEVICE)
 
 AC_SUBST(MOZ_APP_NAME)
