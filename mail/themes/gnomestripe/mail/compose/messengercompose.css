@@ -681,12 +681,12 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 /** Stock icons for the menu items. */
 #menu_NewMessage {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");	
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
   -moz-image-region: rect(176px 22px 198px 0px); /* message-compose.png */
 }
 
 #menu_NewContact {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");	
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
   -moz-image-region: rect(44px 22px 66px 0px); /* contact-add.png */
 }
 
