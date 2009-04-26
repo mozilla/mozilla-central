@@ -60,6 +60,9 @@ let gFolderTreeView = {
     const Ci = Components.interfaces;
     this._treeElement = aTree;
 
+    let smartName = document.getElementById("bundle_messenger")
+                            .getString("folderPaneHeader_smart");
+    this.registerMode("smart", this._smartFoldersGenerator, smartName);
     // the folder pane can be used for other trees which may not have these elements. 
     if (document.getElementById("folderpane_splitter"))
       document.getElementById("folderpane_splitter").collapsed = false;
@@ -124,11 +127,6 @@ let gFolderTreeView = {
     let session = Cc["@mozilla.org/messenger/services/session;1"]
                      .getService(Ci.nsIMsgMailSession);
     session.AddFolderListener(this, Ci.nsIFolderListener.all);
-
-    // Listen for account creation/deletion
-    Cc["@mozilla.org/preferences-service;1"]
-                .getService(Ci.nsIPrefBranch2)
-                .addObserver("mail.accountmanager.", this, false);
   },
 
   /**
@@ -143,10 +141,6 @@ let gFolderTreeView = {
     let session = Cc["@mozilla.org/messenger/services/session;1"]
                      .getService(Ci.nsIMsgMailSession);
     session.RemoveFolderListener(this);
-
-    Cc["@mozilla.org/preferences-service;1"]
-                .getService(Ci.nsIPrefBranch2)
-                .removeObserver("mail.accountmanager.", this, false);
 
     if (aJSONFile) {
       // Write out our json file...
@@ -720,6 +714,162 @@ let gFolderTreeView = {
     }
   },
 
+  _allFoldersWithFlag: function ftv_getAllFolders(accounts, aFolderFlag, deep)
+  {
+    let nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+    let folders = [];
+    for each (acct in accounts) {
+     let folderWithFlag = acct.incomingServer.rootFolder.getFolderWithFlags(aFolderFlag);
+     if (folderWithFlag) {
+       folders.push(folderWithFlag);
+      // add sub-folders of Sent and Archive to the result.
+      if (deep && (aFolderFlag & (nsMsgFolderFlags.Sent | nsMsgFolderFlags.Archive)))
+        this.addSubFolders(folderWithFlag, folders);
+      }
+    }
+    return folders;
+  },
+
+  _smartFoldersGenerator: function ftv_smartFoldersGenerator(ftv)
+  {
+    let map = [];
+    let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                    .getService(Components.interfaces.nsIMsgAccountManager);
+    let smartServer;
+    try {
+      smartServer = acctMgr.FindServer("nobody", "smart mailboxes", "none");
+    } catch (ex) {
+      smartServer = acctMgr.createIncomingServer("nobody", "smart mailboxes", "none");
+      // We don't want the "smart" server/account leaking out into the ui in
+      // other places, so set it as hidden.
+      smartServer.hidden = true;
+      let account = acctMgr.createAccount();
+      account.incomingServer = smartServer;
+    }
+    smartServer.prettyName = document.getElementById("bundle_messenger")
+                             .getString("smartAccountName");
+
+    let accounts = gFolderTreeView._sortedAccounts();
+
+    let smartRoot = smartServer.rootFolder;
+    let smartRootItem = new ftvItem(smartRoot);
+    map.push(smartRootItem);
+    let nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+    let smartChildren = new Array;
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+                                            nsMsgFolderFlags.Inbox, "Inbox");
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+                                            nsMsgFolderFlags.Drafts, "Drafts");
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+                                            nsMsgFolderFlags.SentMail, "Sent");
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+                                            nsMsgFolderFlags.Trash, "Trash");
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+                                            nsMsgFolderFlags.Templates, "Templates");
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+                                            nsMsgFolderFlags.Archive, "Archives");
+
+    sortFolderItems(smartChildren);
+    smartRootItem._children = smartChildren;
+    for each (acct in accounts) {
+      // Bug 466311 Sometimes this can throw file not found, we're unsure
+      // why, but catch it and log the fact.
+      try {
+        acct.incomingServer.rootFolder.subFolders;
+      }
+      catch (ex) {
+        Components.classes["@mozilla.org/consoleservice;1"]
+                  .getService(Components.interfaces.nsIConsoleService)
+                  .logStringMessage("Discovering folders for account failed with exception: " + ex);
+      }
+    }
+    for each (acct in accounts)
+      map.push(new ftvItem(acct.incomingServer.rootFolder));
+
+    return map;
+  },
+
+  _addSmartFoldersForFlag: function ftv_addSmartFoldersForFlag(map, accounts, smartRootItem,
+                                                               flag, folderName)
+  {
+    let smartFolder;
+    try {
+      smartFolder = smartRootItem._folder.getChildNamed(folderName);
+    } catch (ex) {
+        smartFolder = null;
+    };
+    if (!smartFolder) {
+      let searchFolders = gFolderTreeView._allFoldersWithFlag(accounts, flag, true);
+      let searchFolderURIs = "";
+      for each (searchFolder in searchFolders) {
+        if (searchFolderURIs.length)
+          searchFolderURIs += '|';
+        searchFolderURIs +=  searchFolder.URI;
+      }
+      if (!searchFolderURIs.length)
+        return;
+      smartFolder = gFolderTreeView._createVFFolder(folderName, smartRootItem._folder,
+                                                    searchFolderURIs, flag);
+    }
+
+    let smartFolderItem = new ftvItem(smartFolder);
+    smartFolderItem._level = smartRootItem._level + 1;
+    smartFolderItem._parent = smartRootItem;
+    map.push(smartFolderItem);
+    let subFolders = gFolderTreeView._allFoldersWithFlag(accounts, flag, false);
+    // now add the actual inboxes as sub-folders of the saved search.
+    // By setting _children directly, we bypass the normal calculation
+    // of subfolders.
+    smartFolderItem._children = [new ftvItem(f) for each (f in subFolders)];
+
+    // sortFolderItems(this._children);
+    // Each child is a level one below the smartFolder
+    for each (let child in smartFolderItem._children) {
+      child._level = smartFolderItem._level + 1;
+      child._parent = smartFolderItem;
+      // don't show sub-folders of the inbox, but I think Archives/Sent, etc
+      // should have the sub-folders.
+      if (flag & Components.interfaces.nsMsgFolderFlags.Inbox)
+        child.__defineGetter__("children", function() []);
+      child.useServerNameOnly = true;
+      child.getProperties = function (aProps) {
+        // From folderUtils.jsm
+        setPropertyAtoms(this._folder, aProps);
+        aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
+                            .getService(Components.interfaces.nsIAtomService)
+                            .getAtom("specialFolder-Smart"));
+       };
+     }
+  },
+  _createVFFolder: function ftv_createVFFolder(newName, parentFolder,
+                                               searchFolderURIs, folderFlag)
+  {
+    let newFolder;
+    try {
+      newFolder = parentFolder.addSubfolder(newName);
+      newFolder.setFlag(Components.interfaces.nsMsgFolderFlags.Virtual);
+      let vfdb = newFolder.msgDatabase;
+      let dbFolderInfo = vfdb.dBFolderInfo;
+      // set the view string as a property of the db folder info
+      // set the original folder name as well.
+      dbFolderInfo.setCharProperty("searchStr", "ALL");
+      dbFolderInfo.setCharProperty("searchFolderUri", searchFolderURIs);
+      dbFolderInfo.setUint32Property("searchFolderFlag", folderFlag);
+      dbFolderInfo.setBooleanProperty("searchOnline", true);
+      vfdb.summaryValid = true;
+      vfdb.Close(true);
+      parentFolder.NotifyItemAdded(newFolder);
+      Components.classes["@mozilla.org/messenger/account-manager;1"]
+        .getService(Components.interfaces.nsIMsgAccountManager)
+        .saveVirtualFolders();
+    }
+    catch(e) {
+       throw(e);
+       dump ("Exception : creating virtual folder \n");
+    }
+    return newFolder;
+  },
+
   // We don't implement any of these at the moment
   performAction: function ftv_performAction(aAction) {},
   performActionOnCell: function ftv_performActionOnCell(aAction, aRow, aCol) {},
@@ -797,7 +947,7 @@ let gFolderTreeView = {
    */
   _rebuild: function ftv__rebuild() {
     let oldCount = this._rowMap ? this._rowMap.length : null;
-    this._rowMap = this._mapGenerators[this.mode]();
+    this._rowMap = this._mapGenerators[this.mode](this);
     let evt = document.createEvent("Events");
     evt.initEvent("mapRebuild", true, false);
     this._treeElement.dispatchEvent(evt);
@@ -808,20 +958,8 @@ let gFolderTreeView = {
     this._restoreOpenStates();
   },
 
-  /**
-   * This object holds the functions that actually build the tree for each mode.
-   * When the tree must be rebuilt, we call the function here for the current
-   * mode.  That function should return an array of ftvItems that should be
-   * displayed.
-   *
-   * Extensions should feel free to plug in here!
-   */
-  _mapGenerators: {
-
-    /**
-     * The all mode returns all folders, arranged in a hierarchy
-     */
-    all: function ftv__mg_all() {
+  _sortedAccounts: function ftv_getSortedAccounts()
+  {
       const Cc = Components.classes;
       const Ci = Components.interfaces;
       let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
@@ -859,18 +997,35 @@ let gFolderTreeView = {
         return 0;
       }
       accounts.sort(sortAccounts);
+      return accounts;
+  },
+  /**
+   * This object holds the functions that actually build the tree for each mode.
+   * When the tree must be rebuilt, we call the function here for the current
+   * mode.  That function should return an array of ftvItems that should be
+   * displayed.
+   *
+   * Extensions should feel free to plug in here!
+   */
+  _mapGenerators: {
+
+    /**
+     * The all mode returns all folders, arranged in a hierarchy
+     */
+    all: function ftv__mg_all() {
+      let accounts = gFolderTreeView._sortedAccounts();
       // force each root folder to do its local subfolder discovery.
       for each (acct in accounts) {
-	// Bug 466311 Sometimes this can through file not found, we're unsure
-	// why, but catch it and log the fact.
-	try {
-	  acct.incomingServer.rootFolder.subFolders;
-	}
-	catch (ex) {
-	  Components.classes["@mozilla.org/consoleservice;1"]
+        // Bug 466311 Sometimes this can throw file not found, we're unsure
+        // why, but catch it and log the fact.
+        try {
+          acct.incomingServer.rootFolder.subFolders;
+        }
+        catch (ex) {
+          Components.classes["@mozilla.org/consoleservice;1"]
                     .getService(Components.interfaces.nsIConsoleService)
                     .logStringMessage("Discovering folders for account failed with exception: " + ex);
-	}
+        }
       }
         
       return [new ftvItem(acct.incomingServer.rootFolder)
@@ -881,9 +1036,9 @@ let gFolderTreeView = {
      * The unread mode returns all folders that are not root-folders and that
      * have unread items
      */
-    unread: function ftv__mg_unread() {
+    unread: function ftv__mg_unread(ftv) {
       let map = [];
-      for each (let folder in this._enumerateFolders) {
+      for each (let folder in ftv._enumerateFolders) {
         if (!folder.isServer && folder.getNumUnread(false) > 0)
           map.push(new ftvItem(folder));
       }
@@ -891,7 +1046,7 @@ let gFolderTreeView = {
       // There are no children in this view!
       for each (let folder in map) {
         folder.__defineGetter__("children", function() []);
-        folder.useServerName = true;
+        folder.addServerName = true;
       }
       sortFolderItems(map);
       return map;
@@ -901,9 +1056,9 @@ let gFolderTreeView = {
      * The favorites mode returns all folders whose flags are set to include
      * the favorite flag
      */
-    favorite: function ftv__mg_unread() {
+    favorite: function ftv__mg_favorite(ftv) {
       let faves = [];
-      for each (let folder in this._enumerateFolders) {
+      for each (let folder in ftv._enumerateFolders) {
         if (folder.flags & Components.interfaces.nsMsgFolderFlags.Favorite)
           faves.push(new ftvItem(folder));
       }
@@ -913,7 +1068,7 @@ let gFolderTreeView = {
       // the same name.
       for each (let folder in faves) {
         folder.__defineGetter__("children", function() []);
-        folder.useServerName = true;
+        folder.addServerName = true;
       }
       sortFolderItems(faves);
       return faves;
@@ -922,7 +1077,7 @@ let gFolderTreeView = {
     /**
      * The recent mode is a flat view of the 15 most recently used folders
      */
-    recent: function ftv__mg_recent() {
+    recent: function ftv__mg_recent(ftv) {
       const MAXRECENT = 15;
 
       /**
@@ -943,7 +1098,7 @@ let gFolderTreeView = {
       let recentFolders = [];
       let oldestTime = 0;
       function addIfRecent(aFolder) {
-	let time;
+      let time;
         try {
           time = Number(aFolder.getStringProperty("MRUTime")) || 0;
         } catch (ex) {return;}
@@ -959,7 +1114,7 @@ let gFolderTreeView = {
         recentFolders.push(aFolder);
       }
 
-      for each (let folder in this._enumerateFolders)
+      for each (let folder in ftv._enumerateFolders)
         addIfRecent(folder);
 
       recentFolders.sort(sorter);
@@ -971,44 +1126,45 @@ let gFolderTreeView = {
       // the same name.
       for each (let folder in items) {
         folder.__defineGetter__("children", function() []);
-        folder.useServerName = true;
+        folder.addServerName = true;
       }
 
       return items;
-    },
+    }
+  },
 
-    /**
-     * This is a helper attribute that simply returns a flat list of all folders
-     */
-    get _enumerateFolders() {
-      const Cc = Components.classes;
-      const Ci = Components.interfaces;
-      let folders = [];
+  /**
+   * This is a helper attribute that simply returns a flat list of all folders
+   */
+  get _enumerateFolders() {
+    const Cc = Components.classes;
+    const Ci = Components.interfaces;
+    let folders = [];
 
-      /**
-       * This is a recursive function to add all subfolders to the array. It
-       * assumes that the passed in folder itself has already been added.
-       *
-       * @param aFolder  the folder whose subfolders should be added
-       */
-      function addSubFolders(aFolder) {
-        for each (let f in fixIterator(aFolder.subFolders, Ci.nsIMsgFolder)) {
-          folders.push(f);
-          addSubFolders(f);
-        }
-      }
+    let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
+                     .getService(Ci.nsIMsgAccountManager);
+    for each (let acct in fixIterator(acctMgr.accounts, Ci.nsIMsgAccount)) {
+      // Skip deferred accounts
+      if (acct.incomingServer instanceof Ci.nsIPop3IncomingServer &&
+          acct.incomingServer.deferredToAccount)
+        continue;
+      folders.push(acct.incomingServer.rootFolder);
+      this.addSubFolders(acct.incomingServer.rootFolder, folders);
+    }
+    return folders;
+  },
 
-      let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                       .getService(Ci.nsIMsgAccountManager);
-      for each (let acct in fixIterator(acctMgr.accounts, Ci.nsIMsgAccount)) {
-        // Skip deferred accounts
-        if (acct.incomingServer instanceof Ci.nsIPop3IncomingServer &&
-            acct.incomingServer.deferredToAccount)
-          continue;
-        folders.push(acct.incomingServer.rootFolder);
-        addSubFolders(acct.incomingServer.rootFolder);
-      }
-      return folders;
+  /**
+   * This is a recursive function to add all subfolders to the array. It
+   * assumes that the passed in folder itself has already been added.
+   *
+   * @param aFolder  the folder whose subfolders should be added
+   * @param folders  the array to add the folders to.
+   */
+  addSubFolders : function ftv_addSubFolders (folder, folders) {
+    for each (let f in fixIterator(folder.subFolders, Components.interfaces.nsIMsgFolder)) {
+      folders.push(f);
+      this.addSubFolders(f, folders);
     }
   },
 
@@ -1021,8 +1177,16 @@ let gFolderTreeView = {
         this.getIndexOfFolder(aItem))
       return;
 
+    // if no parent, this is an account, so let's rebuild.
+    if (!aParentItem) {
+      if (!aItem.server.hidden) // ignore hidden server items
+        this._rebuild();
+      return;
+    }
     let parentIndex = this.getIndexOfFolder(aParentItem);
     let parent = this._rowMap[parentIndex];
+    if (!parent)
+       return;
 
     // Getting these children might have triggered our parent to build its
     // array just now, in which case the added item will already exist
@@ -1086,7 +1250,8 @@ let gFolderTreeView = {
     if (!index)
       return;
     // forget our parent's children; they'll get rebuilt
-    this._rowMap[index]._parent._children = null;
+    if (aRDFParentItem)
+      this._rowMap[index]._parent._children = null;
     let kidCount = 1;
     let walker = Number(index) + 1;
     while (walker < this.rowCount &&
@@ -1116,17 +1281,6 @@ let gFolderTreeView = {
     let index = this.getIndexOfFolder(aFolder);
     if (index)
       this._tree.invalidateRow(index);
-  },
-
-  // Believe it or not, this is the simplest way to watch for account creation
-  observe: function ftv_observe(aSubject, aTopic, aPrefName) {
-    if (aPrefName != "mail.accountmanager.accounts")
-      return;
-    let view = this;
-    function wrapper() {
-      view._rebuild();
-    }
-    setTimeout(wrapper, 0);
   }
 };
 
@@ -1153,15 +1307,22 @@ function ftvItem(aFolder) {
 
 ftvItem.prototype = {
   open: false,
-  useServerName: false,
+  addServerName: false,
+  useServerNameOnly: false,
 
   get id() {
     return this._folder.URI;
   },
   get text() {
-    let text = this._folder.abbreviatedName;
-    if (this.useServerName)
-      text += " - " + this._folder.server.prettyName;
+    let text;
+    if (this.useServerNameOnly) {
+      text = this._folder.server.prettyName;
+    }
+    else {
+      text = this._folder.abbreviatedName;
+      if (this.addServerName)
+        text += " - " + this._folder.server.prettyName;
+    }
     // Yeah, we hard-code this, but so did the old code...
     let unread = this._folder.getNumUnread(false);
     if (unread > 0)
