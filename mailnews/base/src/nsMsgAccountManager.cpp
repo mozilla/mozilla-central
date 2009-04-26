@@ -79,6 +79,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
+#include "nsIMsgFolderNotificationService.h"
 #include "nsIImapIncomingServer.h"
 #include "nsIImapUrl.h"
 #include "nsIMessengerOSIntegration.h"
@@ -88,6 +89,7 @@
 #include "nsIMsgFilter.h"
 #include "nsIMsgSearchSession.h"
 #include "nsIDBChangeListener.h"
+#include "nsIMutableArray.h"
 #include "nsIDBFolderInfo.h"
 #include "nsIMsgHdr.h"
 #include "nsILineInputStream.h"
@@ -112,6 +114,11 @@
 
 static NS_DEFINE_CID(kMsgAccountCID, NS_MSGACCOUNT_CID);
 static NS_DEFINE_CID(kMsgFolderCacheCID, NS_MSGFOLDERCACHE_CID);
+
+#define SEARCH_FOLDER_FLAG "searchFolderFlag"
+#define SEARCH_FOLDER_FLAG_LEN (sizeof(SEARCH_FOLDER_FLAG) - 1)
+
+const char *kSearchFolderUriProp = "searchFolderUri";
 
 // use this to search for all servers with the given hostname/iid and
 // put them in "servers"
@@ -487,20 +494,41 @@ nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer,
 
   rv = aServer->GetRootFolder(getter_AddRefs(rootFolder));
   NS_ENSURE_SUCCESS(rv, rv);
+
   rv = NS_NewISupportsArray(getter_AddRefs(allDescendents));
   NS_ENSURE_SUCCESS(rv, rv);
+
   rootFolder->ListDescendents(allDescendents);
 
   PRUint32 cnt = 0;
   rv = allDescendents->Count(&cnt);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  nsCOMPtr<nsIMsgFolderNotificationService> notifier =
+           do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+  nsCOMPtr<nsIFolderListener> mailSession =
+           do_GetService(NS_MSGMAILSESSION_CONTRACTID);
+
   for (PRUint32 i = 0; i < cnt; i++)
   {
     nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
     if (folder)
+    {
       folder->ForceDBClosed();
+      if (notifier)
+        notifier->NotifyFolderDeleted(folder);
+      if (mailSession)
+      {
+        nsCOMPtr<nsIMsgFolder> parentFolder;
+        folder->GetParent(getter_AddRefs(parentFolder));
+        mailSession->OnItemRemoved(parentFolder, folder);
+      }
+    }
   }
+  if (notifier)
+    notifier->NotifyFolderDeleted(rootFolder);
+  if (mailSession)
+    mailSession->OnItemRemoved(nsnull, rootFolder);
 
   mFolderListeners->EnumerateForwards(removeListenerFromFolder, (void*)rootFolder);
   NotifyServerUnloaded(aServer);
@@ -632,15 +660,13 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   // (and only remove from hashtable then too!)
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = aAccount->GetIncomingServer(getter_AddRefs(server));
-  if (NS_SUCCEEDED(rv) && server) {
-    rv = RemoveIncomingServer(server, PR_FALSE);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
+  if (NS_SUCCEEDED(rv) && server)
+    RemoveIncomingServer(server, PR_FALSE);
 
   nsCOMPtr<nsISupportsArray> identityArray;
   rv = aAccount->GetIdentities(getter_AddRefs(identityArray));
   if (NS_SUCCEEDED(rv)) {
-    PRUint32 count=0;
+    PRUint32 count = 0;
     identityArray->Count(&count);
     PRUint32 i;
     for (i = 0; i < count; i++)
@@ -2751,11 +2777,12 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
     nsCOMPtr<nsIRDFResource> resource;
     nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
     NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIArray> allFolders;
 
     while (isMore &&
            NS_SUCCEEDED(lineInputStream->ReadLine(buffer, &isMore)))
     {
-      if (buffer.Length() > 0)
+      if (!buffer.IsEmpty())
       {
         if (version == -1)
         {
@@ -2826,15 +2853,46 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
         else if (dbFolderInfo && Substring(buffer, 0, 6).Equals("scope="))
         {
           buffer.Cut(0, 6);
+          // check if this is a smart mailbox - i.e., a saved search across
+          // all special folders of a particular type, like Inbox.
+          // If it is, recalculate its scope in case something has changed.
+          PRUint32 scopeFlag;
+          dbFolderInfo->GetUint32Property(SEARCH_FOLDER_FLAG, 0, &scopeFlag);
+          if (scopeFlag != 0)
+          {
+            if (!allFolders)
+            {
+              rv = GetAllFolders(getter_AddRefs(allFolders));
+              NS_ENSURE_SUCCESS(rv, rv);
+            }
+            // we're going to build up the scope in buffer.
+            buffer.Truncate();
+            PRUint32 folderCount;
+            allFolders->GetLength(&folderCount);
+            for (PRUint32 folderIndex = 0; folderIndex < folderCount; folderIndex++)
+            {
+              nsCOMPtr <nsIMsgFolder> msgFolder (do_QueryElementAt(allFolders, folderIndex));
+              PRBool isSpecialFolder = PR_FALSE;
+              msgFolder->IsSpecialFolder(scopeFlag, 
+                                         scopeFlag & (nsMsgFolderFlags::SentMail |
+                                                      nsMsgFolderFlags::Archive),
+                                         &isSpecialFolder);
+              if (isSpecialFolder)
+              {
+                if (!buffer.IsEmpty())
+                  buffer.Append('|');
+                nsCString folderURI;
+                msgFolder->GetURI(folderURI);
+                buffer.Append(folderURI);
+              }
+            }
+          }
           // if this is a cross folder virtual folder, we have a list of folders uris,
           // and we have to add a pending listener for each of them.
-          if (buffer.Length())
+          if (!buffer.IsEmpty())
           {
-            dbFolderInfo->SetCharProperty("searchFolderUri", buffer);
+            dbFolderInfo->SetCharProperty(kSearchFolderUriProp, buffer);
             AddVFListenersForVF(virtualFolder, buffer, rdf, msgDBService);
-          }
-          else // this folder is useless
-          {
           }
         }
         else if (dbFolderInfo && Substring(buffer, 0, 6).Equals("terms="))
@@ -2846,6 +2904,13 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
         {
           buffer.Cut(0, 13);
           dbFolderInfo->SetBooleanProperty("searchOnline", buffer.Equals("true"));
+        }
+        else if (dbFolderInfo &&
+                 Substring(buffer, 0, SEARCH_FOLDER_FLAG_LEN + 1)
+                   .Equals(SEARCH_FOLDER_FLAG"="))
+        {
+          buffer.Cut(0, SEARCH_FOLDER_FLAG_LEN + 1);
+          dbFolderInfo->SetCharProperty(SEARCH_FOLDER_FLAG, buffer);
         }
       }
     }
@@ -2914,14 +2979,21 @@ nsMsgAccountManager::saveVirtualFolders(nsCStringHashKey::KeyType key,
         {
           nsCString srchFolderUri;
           nsCString searchTerms;
+          nsCString regexScope;
+          nsCString vfFolderFlag;
           PRBool searchOnline = PR_FALSE;
           dbFolderInfo->GetBooleanProperty("searchOnline", PR_FALSE, &searchOnline);
-          dbFolderInfo->GetCharProperty("searchFolderUri", srchFolderUri);
+          dbFolderInfo->GetCharProperty(kSearchFolderUriProp, srchFolderUri);
           dbFolderInfo->GetCharProperty("searchStr", searchTerms);
+          // logically searchFolderFlag is an int, but since we want to
+          // write out a string, get it as a string.
+          dbFolderInfo->GetCharProperty(SEARCH_FOLDER_FLAG, vfFolderFlag);
           folderRes->GetValueConst(&uri);
           if (!srchFolderUri.IsEmpty() && !searchTerms.IsEmpty())
           {
             WriteLineToOutputStream("uri=", uri, outputStream);
+            if (!vfFolderFlag.IsEmpty())
+              WriteLineToOutputStream(SEARCH_FOLDER_FLAG"=", vfFolderFlag.get(), outputStream);
             WriteLineToOutputStream("scope=", srchFolderUri.get(), outputStream);
             WriteLineToOutputStream("terms=", searchTerms.get(), outputStream);
             WriteLineToOutputStream("searchOnline=", searchOnline ? "true" : "false", outputStream);
@@ -2942,6 +3014,7 @@ nsresult nsMsgAccountManager::WriteLineToOutputStream(const char *prefix, const 
   return NS_OK;
 }
 
+// This conveniently works to add a single folder as well.
 nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder,
                                                   const nsCString& srchFolderUris,
                                                   nsIRDFService *rdf,
@@ -2966,6 +3039,69 @@ nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder,
   return NS_OK;
 }
 
+// This is called if a folder that's part of the scope of a saved search
+// has gone away.
+nsresult nsMsgAccountManager::RemoveVFListenerForVF(nsIMsgFolder *virtualFolder,
+                                                    nsIMsgFolder *folder)
+{
+  PRInt32 numVFListeners = m_virtualFolderListeners.Count();
+  nsresult rv;
+  nsCOMPtr<nsIMsgDBService> msgDBService(do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  for (PRInt32 i = 0; i < numVFListeners; i++)
+  {
+    VirtualFolderChangeListener *listener =
+      static_cast<VirtualFolderChangeListener *>(m_virtualFolderListeners[i]);
+    if (listener->m_folderWatching == folder &&
+        listener->m_virtualFolder == virtualFolder)
+    {
+      msgDBService->UnregisterPendingListener(m_virtualFolderListeners[i]);
+      m_virtualFolderListeners.RemoveObjectAt(i);
+      break;
+    }
+  }
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgAccountManager::GetAllFolders(nsIArray **aAllFolders)
+{
+  NS_ENSURE_ARG_POINTER(aAllFolders);
+  nsCOMPtr<nsISupportsArray> servers;
+  nsresult rv = GetAllServers(getter_AddRefs(servers));
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRUint32 numServers = 0;
+  servers->Count(&numServers);
+  nsCOMPtr<nsISupportsArray> allDescendents;
+  rv = NS_NewISupportsArray(getter_AddRefs(allDescendents));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 i;
+  for (i = 0; i < numServers; i++)
+  {
+    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(servers, i);
+    if (server)
+    {
+      nsCOMPtr <nsIMsgFolder> rootFolder;
+      server->GetRootFolder(getter_AddRefs(rootFolder));
+      if (rootFolder)
+        rootFolder->ListDescendents(allDescendents);
+    }
+  }
+  PRUint32 folderCount;
+  rv = allDescendents->Count(&folderCount);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // Create an nsIMutableArray from the nsISupportsArray
+  for (i = 0; i < folderCount; i++)
+    folderArray->AppendElement(allDescendents->ElementAt(i), PR_FALSE);
+  NS_ADDREF(*aAllFolders = folderArray);
+  return rv;
+}
+
 NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
 {
   nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(item);
@@ -2975,6 +3111,43 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupp
   PRUint32 folderFlags;
   folder->GetFlags(&folderFlags);
   nsresult rv = NS_OK;
+  // if this is a special folder, check if we have a saved search over
+  // folders with this flag, and if so, add this folder to the scope.
+  if (folderFlags & (nsMsgFolderFlags::Inbox | nsMsgFolderFlags::SentMail |
+                     nsMsgFolderFlags::Trash | nsMsgFolderFlags::Archive |
+                     nsMsgFolderFlags::Templates | nsMsgFolderFlags::Drafts))
+  {
+    // quick way to enumerate the saved searches.
+    PRInt32 numVFListeners = m_virtualFolderListeners.Count();
+    for (PRInt32 i = 0; i < numVFListeners; i++)
+    {
+      VirtualFolderChangeListener *listener =
+        static_cast<VirtualFolderChangeListener *>(m_virtualFolderListeners[i]);
+      nsCOMPtr <nsIMsgDatabase> db;
+      nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
+      listener->m_virtualFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo),
+                                                      getter_AddRefs(db));
+      if (dbFolderInfo)
+      {
+        PRUint32 vfFolderFlag;
+        dbFolderInfo->GetUint32Property("searchFolderFlag", 0, & vfFolderFlag);
+        // found a saved search over folders w/ the same flag as the new folder.
+        if (vfFolderFlag & folderFlags)
+        {
+          nsCString searchURI;
+          dbFolderInfo->GetCharProperty(kSearchFolderUriProp, searchURI);
+
+          if (!searchURI.IsEmpty())
+            searchURI.Append('|');
+          nsCString folderURI;
+          folder->GetURI(folderURI);
+          searchURI.Append(folderURI);
+          dbFolderInfo->SetCharProperty(kSearchFolderUriProp, searchURI);
+          break;
+        }
+      }
+    }
+  }
   // need to make sure this isn't happening during loading of virtualfolders.dat
   if (folderFlags & nsMsgFolderFlags::Virtual && !m_loadingVirtualFolders)
   {
@@ -2987,7 +3160,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupp
       rv = folder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
       NS_ENSURE_SUCCESS(rv, rv);
       nsCString srchFolderUri;
-      dbFolderInfo->GetCharProperty("searchFolderUri", srchFolderUri);
+      dbFolderInfo->GetCharProperty(kSearchFolderUriProp, srchFolderUri);
       nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
       AddVFListenersForVF(folder, srchFolderUri, rdf, msgDBService);
     }
@@ -3011,11 +3184,67 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemRemoved(nsIMsgFolder *parentItem, nsISu
     // clear flags on deleted folder if it's a virtual folder, so that creating a new folder
     // with the same name doesn't cause confusion.
     folder->SetFlags(0);
+    return rv;
   }
-  // need to check if the underlying folder for a VF was removed, in which case we need to
-  // remove the virtual folder.
+  // need to update the saved searches to check for a few things:
+  // 1. Folder removed was in the scope of a saved search - if so, remove the
+  //    uri from the scope of the saved search.
+  // 2. If the scope is now empty, remove the saved search.
 
- return rv;
+  // build a "normalized" uri that we can do a find on.
+  nsCString removedFolderURI;
+  folder->GetURI(removedFolderURI);
+  removedFolderURI.Insert('|', 0);
+  removedFolderURI.Append('|');
+
+  // Enumerate the saved searches.
+  for (PRInt32 i = m_virtualFolderListeners.Count() - 1; i >= 0; i--)
+  {
+    VirtualFolderChangeListener *listener =
+      static_cast<VirtualFolderChangeListener *>(m_virtualFolderListeners[i]);
+    nsCOMPtr<nsIMsgDatabase> db;
+    nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
+    nsCOMPtr<nsIMsgFolder> savedSearch = listener->m_virtualFolder;
+    savedSearch->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo),
+                                      getter_AddRefs(db));
+    if (dbFolderInfo)
+    {
+      nsCString searchURI;
+      dbFolderInfo->GetCharProperty(kSearchFolderUriProp, searchURI);
+      // "normalize" searchURI so we can search for |folderURI|.
+      searchURI.Insert('|', 0);
+      searchURI.Append('|');
+      PRInt32 index = searchURI.Find(removedFolderURI);
+      if (index != -1)
+      {
+        RemoveVFListenerForVF(savedSearch, folder);
+
+        // remove |folderURI
+        searchURI.Cut(index, removedFolderURI.Length() - 1);
+        // remove last '|' we added
+        searchURI.SetLength(searchURI.Length() - 1);
+
+        // if saved search is empty now, delete it.
+        if (searchURI.IsEmpty())
+        {
+          nsCOMPtr<nsIMsgFolder> parent;
+          rv = savedSearch->GetParent(getter_AddRefs(parent));
+          NS_ENSURE_SUCCESS(rv, rv);
+          db = nsnull;
+          dbFolderInfo = nsnull;
+          parent->PropagateDelete(savedSearch, PR_TRUE, nsnull);
+        }
+        else
+        {
+        // remove leading '|' we added (or one after |folderURI, if first URI)
+          searchURI.Cut(0, 1);
+          dbFolderInfo->SetCharProperty(kSearchFolderUriProp, searchURI);
+        }
+      }
+    }
+  }
+
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgAccountManager::OnItemPropertyChanged(nsIMsgFolder *item, nsIAtom *property, const char *oldValue, const char *newValue)

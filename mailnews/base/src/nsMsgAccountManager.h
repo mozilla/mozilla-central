@@ -196,6 +196,9 @@ private:
                                nsIRDFService *rdf,
                                nsIMsgDBService *msgDBService);
 
+  nsresult RemoveVFListenerForVF(nsIMsgFolder *virtualFolder,
+                                 nsIMsgFolder *folder);
+
   static void getUniqueAccountKey(const char * prefix,
                                   nsISupportsArray *accounts,
                                   nsCString& aResult);

@@ -842,7 +842,8 @@ nsresult nsMsgFolderDataSource::OnItemAddedOrRemoved(nsIMsgFolder *parentItem, n
   if (itemNode)
   {
     nsCOMPtr<nsIRDFResource> parentResource(do_QueryInterface(parentItem));
-    NotifyObservers(parentResource, kNC_Child, itemNode, nsnull, added, PR_FALSE);
+    if (parentResource) // RDF is not happy about a null parent resource.
+      NotifyObservers(parentResource, kNC_Child, itemNode, nsnull, added, PR_FALSE);
   }
   return NS_OK;
 }

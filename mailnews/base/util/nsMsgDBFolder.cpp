@@ -3126,6 +3126,7 @@ NS_IMETHODIMP
 nsMsgDBFolder::GetChildNamed(const nsAString& aName, nsIMsgFolder **aChild)
 {
   NS_ENSURE_ARG_POINTER(aChild);
+  GetSubFolders(nsnull); // initialize mSubFolders
   *aChild = nsnull;
   PRInt32 count = mSubFolders.Count();
 

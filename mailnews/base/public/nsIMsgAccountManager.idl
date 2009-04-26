@@ -47,7 +47,7 @@ interface nsISupportsArray;
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 
-[scriptable, uuid(d0e03f59-ee44-40ab-a444-3d61aaf6da59)]
+[scriptable, uuid(41C568F8-1911-4995-AF2A-A51F9B7B165E)]
 interface nsIMsgAccountManager : nsISupports {
 
   nsIMsgAccount createAccount();
@@ -228,6 +228,9 @@ interface nsIMsgAccountManager : nsISupports {
   void saveAccountInfo();
 
   ACString getChromePackageName(in ACString aExtensionName);
+  
+  /// Enumerate all incoming servers and their folders and return in an array.
+  readonly attribute nsIArray allFolders;
 };
 
 %{C++

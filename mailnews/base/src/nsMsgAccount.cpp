@@ -45,6 +45,7 @@
 #include "nsCRTGlue.h"
 #include "nsCOMPtr.h"
 #include "nsReadableUtils.h"
+#include "nsIMsgFolderNotificationService.h"
 
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
@@ -140,10 +141,8 @@ nsMsgAccount::createIncomingServer()
 NS_IMETHODIMP
 nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer * aIncomingServer)
 {
-  nsresult rv;
-
   nsCString key;
-  rv = aIncomingServer->GetKey(key);
+  nsresult rv = aIncomingServer->GetKey(key);
 
   if (NS_SUCCEEDED(rv)) {
     nsCAutoString serverPrefName("mail.account.");
@@ -160,9 +159,41 @@ nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer * aIncomingServer)
   // account manager only gets told about finished accounts.
   if (serverValid)
   {
+    // this is the point at which we can notify listeners about the
+    // creation of the root folder, which implies creation of the new server.
+    nsCOMPtr<nsIMsgFolder> rootFolder;
+    rv = aIncomingServer->GetRootFolder(getter_AddRefs(rootFolder));
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIFolderListener> mailSession =
+             do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    mailSession->OnItemAdded(nsnull, rootFolder);
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    notifier->NotifyFolderAdded(rootFolder);
+
     nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
       accountManager->NotifyServerLoaded(aIncomingServer);
+
+    // Force built-in folders to be created and discovered. Then, notify listeners
+    // about them.
+    nsCOMPtr<nsISimpleEnumerator> enumerator;
+    rv = rootFolder->GetSubFolders(getter_AddRefs(enumerator));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    PRBool hasMore;
+    while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
+    {
+      nsCOMPtr<nsISupports> item;
+      enumerator->GetNext(getter_AddRefs(item));
+
+      nsCOMPtr<nsIMsgFolder> msgFolder(do_QueryInterface(item));
+      if (!msgFolder)
+        continue;
+      mailSession->OnItemAdded(rootFolder, msgFolder);
+      notifier->NotifyFolderAdded(msgFolder);
+    }
   }
   return NS_OK;
 }
