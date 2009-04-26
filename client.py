@@ -54,9 +54,19 @@ def check_call_noisy(cmd, *args, **kwargs):
     check_call(cmd, *args, **kwargs)
 
 def repo_config():
+    """Create/Update TREE_STATE_FILE as needed.
+
+    move_to_stable() is also called.
+    """
+
+    move_to_stable()
+
     import ConfigParser
     config = ConfigParser.ConfigParser()
     config.read([TREE_STATE_FILE])
+
+    # 'src_update_version' values:
+    #   '1': "move_to_stable() was successfully run".
 
     # Do nothing if the current version is up to date.
     if config.has_option('treestate', 'src_update_version') and \
@@ -75,31 +85,42 @@ def repo_config():
       f.close()
 
 def move_to_stable():
-    mozilla_path = os.path.join(topsrcdir, 'mozilla')
-    if not os.path.exists(mozilla_path):
-      return
+    """Backup (unused anymore) trunk checkout of Mozilla.
+
+    Also switch checkout to MOZILLA_BASE_REV of Mozilla 1.9.1.
+    """
+
+    # Do nothing if this function was already successfully run.
+    # Shortcut: checking file existence is enough.
     if os.path.exists(TREE_STATE_FILE):
+        return
+
+    mozilla_path = os.path.join(topsrcdir, 'mozilla')
+    # Do nothing if there is no Mozilla directory.
+    if not os.path.exists(mozilla_path):
       return
 
     import ConfigParser, re
     config = ConfigParser.ConfigParser()
     config.read([os.path.join(mozilla_path, '.hg', 'hgrc')])
-
     if not config.has_option('paths', 'default'):
-      return
+        # Abort, not to get into a possibly inconsistent state.
+        sys.exit("Error: default path in mozilla/.hg/hgrc is undefined!")
 
-    #Compile the m-c regex
+    # Compile the Mozilla trunk regex.
     m_c_regex = re.compile(MOZILLA_TRUNK_REPO_REGEXP, re.I)
     match = m_c_regex.match(config.get('paths', 'default'))
+    # Do nothing if not pulling from Mozilla trunk.
     if not match:
-      return # We are not pulling from m-c, do nothing
+        return
 
     config.set('paths', 'default',
                "%s://hg.mozilla.org/releases/mozilla-1.9.1/" % match.group(1) )
 
     if config.has_option('paths', 'default-push'):
       match = m_c_regex.match(config.get('paths', 'default-push'))
-      if match: # failure is ok
+      # Do not update this property if not pushing to Mozilla trunk.
+      if match:
         config.set('paths', 'default-push',
                    "%s://hg.mozilla.org/releases/mozilla-1.9.1/" % match.group(1) )
 
@@ -109,7 +130,14 @@ def move_to_stable():
 
     mozilla_trunk_path = os.path.join(topsrcdir, '.mozilla-trunk')
     print "Moving mozilla to .mozilla-trunk..."
-    os.rename(mozilla_path, mozilla_trunk_path)
+    try:
+        os.rename(mozilla_path, mozilla_trunk_path)
+    except:
+        # Print the exception without its traceback.
+        sys.excepthook(sys.exc_info()[0], sys.exc_info()[1], None)
+        sys.exit("Error: Mozilla directory renaming failed!")
+
+    # Locally clone common repository history.
     check_call_noisy([options.hg, 'clone', '-r', MOZILLA_BASE_REV] + hgopts + [mozilla_trunk_path, mozilla_path])
 
     #Rewrite hgrc for new local mozilla repo based on pre-existing hgrc
@@ -121,6 +149,9 @@ def move_to_stable():
       f.close()
 
 def backup_cvs_venkman():
+    """Backup (obsolete) Cvs checkout of Venkman.
+    """
+
     venkmanpath = os.path.join(topsrcdir, 'mozilla', 'extensions', 'venkman')
     # Do nothing if there is no Venkman cvs directory.
     if not os.path.exists(os.path.join(venkmanpath, 'CVS')):
@@ -128,7 +159,12 @@ def backup_cvs_venkman():
 
     venkmancvspath = venkmanpath + '-cvs'
     print "Moving venkman to venkman-cvs..."
-    os.rename(venkmanpath, venkmancvspath)
+    try:
+        os.rename(venkmanpath, venkmancvspath)
+    except:
+        # Print the exception without its traceback.
+        sys.excepthook(sys.exc_info()[0], sys.exc_info()[1], None)
+        sys.exit("Error: Venkman directory renaming failed!")
 
 def do_hg_pull(dir, repository, hg, rev):
     fulldir = os.path.join(topsrcdir, dir)
@@ -243,11 +279,11 @@ def fixup_comm_repo_options(options):
     That command requires a repository URL.
     """
 
-    if (options.comm_repo is None
-            and not os.path.exists(os.path.join(topsrcdir, '.hg'))):
+    if options.comm_repo is None and \
+            not os.path.exists(os.path.join(topsrcdir, '.hg')):
         o.print_help()
         print
-        print "*** The -m option is required for the initial checkout."
+        print "Error: the -m option is required for the initial checkout!"
         sys.exit(2)
 
 def fixup_mozilla_repo_options(options):
@@ -255,8 +291,8 @@ def fixup_mozilla_repo_options(options):
 
     See fixup_comm_repo_options().
     """
-    if (options.mozilla_repo is None
-            and not os.path.exists(os.path.join(topsrcdir, 'mozilla'))):
+    if options.mozilla_repo is None and \
+            not os.path.exists(os.path.join(topsrcdir, 'mozilla')):
         options.mozilla_repo = DEFAULT_MOZILLA_REPO
 
 def fixup_inspector_repo_options(options):
@@ -264,17 +300,24 @@ def fixup_inspector_repo_options(options):
 
     See fixup_comm_repo_options().
     """
-    if (options.inspector_repo is None
-            and not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'inspector'))):
+
+    # No cvs backup needed as DOM Inspector was part (and removed from)
+    # Mozilla hg repository.
+    if options.inspector_repo is None and \
+            not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'inspector')):
         options.inspector_repo = DEFAULT_INSPECTOR_REPO
 
 def fixup_venkman_repo_options(options):
-    """Handle special case: initial checkout of Venkman.
+    """Handle special case: initial hg checkout of Venkman.
 
     See fixup_comm_repo_options().
+    backup_cvs_venkman() is also called.
     """
-    if (options.venkman_repo is None
-            and not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'venkman'))):
+
+    backup_cvs_venkman()
+
+    if options.venkman_repo is None and \
+            not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'venkman')):
         options.venkman_repo = DEFAULT_VENKMAN_REPO
 
 try:
@@ -283,12 +326,10 @@ except ValueError:
     o.print_help()
     sys.exit(2)
 
-move_to_stable()
-repo_config()
-
-backup_cvs_venkman()
-
 if action in ('checkout', 'co'):
+    # Update Comm repository configuration.
+    repo_config()
+
     if not options.skip_comm:
         fixup_comm_repo_options(options)
         do_hg_pull('.', options.comm_repo, options.hg, options.comm_rev)
@@ -302,16 +343,10 @@ if action in ('checkout', 'co'):
                 not options.skip_venkman) and \
             not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions')):
         # Don't create the directory: Mozilla repository should provide it...
-        print >>sys.stderr, "Warning: mozilla/extensions directory does not exist; ChatZilla, DOM Inspector and/or Venkman could not be checked out."
-        # Abort checking out dependent extensions.
-        options.skip_chatzilla = \
-        options.skip_inspector = \
-        options.skip_venkman = \
-            True
+        sys.exit("Error: mozilla/extensions directory does not exist;" + \
+                 " ChatZilla, DOM Inspector and/or Venkman cannot be checked out!")
 
     if not options.skip_inspector:
-        # No cvs/hg check needed as DOM Inspector was part (and removed from)
-        # mozilla hg repository.
         fixup_inspector_repo_options(options)
         do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg, options.inspector_rev)
 
