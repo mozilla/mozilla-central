@@ -883,6 +883,10 @@
         signature between your reply and the quoted text.</li>
     </ul>
   </li>
+
+  <p><strong>Note</strong>: If you have created a signature, you can optionally
+    <a href="#addressing">omit it</a> when replying to a message.</p>
+
   <li>Click OK.</li>
 </ol>
 
@@ -912,6 +916,11 @@
     double-click Mail &amp; Newsgroups to expand the list.)</li>
   <li>For forwarding messages, choose Inline (in the message body) or As
     Attachment.</li>
+
+  <p><strong>Note</strong>: If you have created a signature and forward inline,
+    its placement depends on the respective reply setting. You can optionally
+    <a href="#addressing">omit the signature</a> when forwarding a message.</p>
+
   <li>Click OK.</li>
 </ol>
 
@@ -3521,7 +3530,11 @@ to filter unwanted mail, and how phishing detection works.</p>
   <li><strong>Attach the signature from a file instead</strong>: Lets you choose
     to attach the signature from a file (in text, HTML, or image format) rather
     than entering its text. Checking this option overrides any text entered into
-    the signature box. Click Choose to locate the signature file (optional).</li>
+    the signature box. Click Choose to locate the signature file (optional).
+
+    <p>More signature options are located in <a href="#addressing">Composition
+      &amp; Addressing</a>.</p>
+  </li>
   <li><strong>Attach my vCard to messages</strong>: Lets you choose if your
     vCard should be attached to your outgoing messages. Click Edit Card to edit
     the card information (optional).</li>
@@ -3863,8 +3876,18 @@ to filter unwanted mail, and how phishing detection works.</p>
 <h2 id="addressing">Mail &amp; Newsgroups Account Settings - Composition &amp;
   Addressing</h2>
 
-<p>You use Composition settings to choose how to format text and to handle
-  replies.</p>
+<p>You use Composition settings to choose how to format text, handle replies,
+  and how a signature you defined is included.</p>
+
+<p>If you are not already viewing the Composition settings, begin from the Mail
+  window:</p>
+
+<ol>
+  <li>Open the Edit menu and choose Mail &amp; Newsgroups Account Settings. You
+    see the Mail &amp; Newsgroups Account Settings dialog box.</li>
+  <li>Select the account and click the Composition &amp; Addressing
+    category.</li>
+</ol>
 
 <ul>
   <li><strong>Compose messages in HTML format</strong>: Use the HTML editor as
@@ -3885,10 +3908,21 @@ to filter unwanted mail, and how phishing detection works.</p>
     <ul>
       <li><strong>and place my signature</strong>: This drop-down list lets you
         choose where you want your signature to be placed. It&apos;s only
-        selectable if you decided to <a href="#account_settings">attach a
+        applicable if you decided to <a href="#account_settings">attach a
         signature</a> and to place the cursor above the quoted text.</li>
     </ul>
   </li>
+</ul>
+
+<ul>
+  <li><strong>Include signature for replies</strong>: If you have created a
+    signature, select this option to include it in your reply to a message.
+    The signature is added according to your settings for quote and signature
+    placement.</li>
+  <li><strong>Include signature for forwards</strong>: If you have created a
+    signature, select this option to include it when you forward a message.
+    The signature is placed according to your reply settings when
+    <a href="#composition">forwarding inline</a>.</li>
 </ul>
 
 <p>You use Addressing settings to override the global LDAP server settings
