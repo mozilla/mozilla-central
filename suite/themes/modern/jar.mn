@@ -117,7 +117,6 @@ modern.jar:
   skin/modern/editor/EditorDialog.css                              (editor/EditorDialog.css)
   skin/modern/editor/editor.css                                    (editor/editor.css)
   skin/modern/editor/editorModeToolbar.css                         (editor/editorModeToolbar.css)
-  skin/modern/editor/textEditor.css                                (editor/textEditor.css)
   skin/modern/editor/editorPrimaryToolbar.css                      (editor/editorPrimaryToolbar.css)
   skin/modern/editor/editorFormatToolbar.css                       (editor/editorFormatToolbar.css)
   skin/modern/editor/icons/editmode-html.gif                       (editor/icons/editmode-html.gif)

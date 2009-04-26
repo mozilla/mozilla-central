@@ -38,9 +38,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://editor/skin/editor.css" type="text/css"?> 
-<?xml-stylesheet href="chrome://editor/skin/textEditor.css" type="text/css"?> 
-
+<?xml-stylesheet href="chrome://editor/skin/editor.css" type="text/css"?>
 <?xml-stylesheet href="chrome://editor/skin/editorPrimaryToolbar.css" type="text/css"?> 
 <?xul-overlay href="chrome://editor/content/editorOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
@@ -72,8 +70,7 @@
         windowtype="composer:text"
         width="640" height="480"
         screenX="10" screenY="10"
-        persist="screenX screenY width height sizemode"
-        >
+        persist="screenX screenY width height sizemode">
 
   <script type="application/x-javascript" src="chrome://editor/content/editor.js"/>
   <script type="application/x-javascript" src="chrome://editor/content/ComposerCommands.js"/>
@@ -141,8 +138,8 @@ editor.xul has these - do we need them?
       <toolbarbutton id="newButton"/>
       <toolbarbutton id="openButton"/>
       <toolbarbutton id="saveButton"/>
-      <spacer class="separator-small"/>
       <toolbarbutton id="printButton"/>
+      <toolbarseparator class="toolbarseparator-primary"/>
       <toolbarbutton id="spellingButton"/>
       <spacer flex="1"/>
     </toolbar>    

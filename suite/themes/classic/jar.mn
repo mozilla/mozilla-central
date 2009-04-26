@@ -125,7 +125,6 @@ classic.jar:
   skin/classic/editor/EditorDialog.css                                  (editor/EditorDialog.css)
   skin/classic/editor/EdImageMap.css                                    (editor/EdImageMap.css)
   skin/classic/editor/editorModeToolbar.css                             (editor/editorModeToolbar.css)
-  skin/classic/editor/textEditor.css                                    (editor/textEditor.css)
   skin/classic/editor/editorPrimaryToolbar.css                          (editor/editorPrimaryToolbar.css)
   skin/classic/editor/editorFormatToolbar.css                           (editor/editorFormatToolbar.css)
   skin/classic/editor/icons/editmode-html.gif                           (editor/icons/editmode-html.gif)
