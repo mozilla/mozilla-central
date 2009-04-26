@@ -84,7 +84,7 @@ interface nsIMsgIdentity : nsISupports {
   attribute boolean composeHtml;
 
   /**
-   * Should we attach a signature by default?
+   * Should we attach a signature from file?
    */
   attribute boolean attachSignature;
 
@@ -124,18 +124,24 @@ interface nsIMsgIdentity : nsISupports {
    */
   attribute nsILocalFile signature;
 
+  /**
+   * Modification time of the signature file.
+   */
   attribute long signatureDate;
 
   /**
-   * Signature text; plain text or HTML depending on htmlSigText.
+   * Signature text if not read from file; format depends on htmlSigFormat.
    */
   attribute AString htmlSigText;
 
   /**
-   * Is the htmlSigText plain text or HTML?
+   * Does htmlSigText contain HTML? Use plain text if false.
    */
   attribute boolean htmlSigFormat;
 
+  /**
+   * The encoded string representing the vcard.
+   */
   attribute ACString escapedVCard;
 
   attribute boolean doFcc;
