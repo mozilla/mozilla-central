@@ -1083,43 +1083,54 @@ BatchMessageMover.prototype = {
       let batch = this._batches[key];
       let srcFolder = batch[0];
       let msgYear = batch[1];
-      let dstFolderName = batch[2];
+      let msgMonth = batch[2];
       let msgs = batch.slice(3,batch.length);
       let subFolder, dstFolder;
-
+      let Ci = Components.interfaces;
       // rss servers don't have an identity so we special case the archives URI
       let archiveFolderUri = (srcFolder.server.type == 'rss')
         ? srcFolder.server.serverURI + "/Archives"
-        : getIdentityForHeader(msgs[0], Components.interfaces.nsIMsgCompType
+        : getIdentityForHeader(msgs[0], Ci.nsIMsgCompType
                                         .ReplyAll).archiveFolder;
 
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      let granularity = archiveFolder.server.archiveGranularity;
       // for imap folders, we need to create the sub-folders asynchronously, 
       // so we chain the urls using the listener called back from 
       // createStorageIfMissing. For local, creatStorageIfMissing is
       // synchronous.
       let isImap = archiveFolder.server.type == "imap";
-      if (!archiveFolder.parent)
-      {
+      if (!archiveFolder.parent) {
         archiveFolder.createStorageIfMissing(this);
         if (isImap)
           return;
       }
-      archiveFolderUri += "/" + msgYear;
-      subFolder = GetMsgFolderFromUri(archiveFolderUri, false);
-      if (!subFolder.parent)
-      {
-        subFolder.createStorageIfMissing(this);
-        if (isImap)
-          return;
+      if (!archiveFolder.canCreateSubfolders)
+        granularity = Ci.nsIMsgIncomingServer.singleArchiveFolder;
+        
+      if (granularity >= Ci.nsIMsgIncomingServer.perYearArchiveFolders) {
+        archiveFolderUri += "/" + msgYear;
+        subFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+        if (!subFolder.parent) {
+          subFolder.createStorageIfMissing(this);
+          if (isImap)
+            return;
+        }
+        if (granularity >=  Ci.nsIMsgIncomingServer.perMonthArchiveFolders) {
+          archiveFolderUri += "/" + msgMonth;
+          dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+          if (!dstFolder.parent) {
+            dstFolder.createStorageIfMissing(this);
+            if (isImap)
+              return;
+          }
+        }
+        else {
+          dstFolder = subFolder;
+        }
       }
-      archiveFolderUri += "/" + dstFolderName;
-      dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);
-      if (!dstFolder.parent)
-      {
-        dstFolder.createStorageIfMissing(this);
-        if (isImap)
-          return;
+      else {
+        dstFolder = archiveFolder;
       }
       var mutablearray = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
       msgs.forEach(function (item) {

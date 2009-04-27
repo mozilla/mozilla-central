@@ -59,7 +59,7 @@ interface nsIURI;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(e3e27f1c-61de-414d-8b3d-ab9c033320e5)]
+[scriptable, uuid(ab7d1c04-2cad-4b51-b4cd-f151f1f1db9a)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -473,6 +473,20 @@ interface nsIMsgIncomingServer : nsISupports {
    * @return                  true if an empty inherited property should be returned
    */
   boolean getForcePropertyEmpty(in string propertyName);
+
+  /**
+   * @{
+   * This attribute and constants control the granularity of sub-folders of the
+   * Archives folder - either messages go in the single archive folder, or a
+   * yearly archive folder, or in a monthly archive folder with a yearly
+   * parent folder. If the server doesn't support folders that both contain
+   * messages and have sub-folders, we will ignore this setting.
+   */
+  const long singleArchiveFolder = 0;
+  const long perYearArchiveFolders = 1;
+  const long perMonthArchiveFolders = 2;
+  attribute long archiveGranularity;
+  /** @} */
 
 };
 

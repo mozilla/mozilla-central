@@ -1612,6 +1612,8 @@ NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, IncomingDuplicateAction, "dup_action
 
 NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, Hidden, "hidden")
 
+NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, ArchiveGranularity, "archive_granularity")
+
 NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
 {
   if (!mPrefBranch)

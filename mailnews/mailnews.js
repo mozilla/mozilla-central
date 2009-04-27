@@ -522,6 +522,7 @@ pref("mail.server.default.inhibitWhiteListingIdentityDomain", false);
 pref("mail.server.default.autosync_offline_stores",true);
 pref("mail.server.default.offline_download",true);
 
+pref("mail.server.default.archive_granularity", 1);
 // the probablilty threshold over which messages are classified as junk
 // this number is divided by 100 before it is used. The classifier can be fine tuned
 // by changing this pref. Typical values are .99, .95, .90, .5, etc.
