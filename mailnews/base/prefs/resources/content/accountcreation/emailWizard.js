@@ -124,8 +124,6 @@ EmailConfigWizard.prototype =
     this._incomingWarning = 'cleartext';
     this._outgoingWarning = 'cleartext';
     this._userPickedOutgoingServer = false;
-    this._userEnteredUsername = null;
-    this._userEnteredHostname = null;
     this._customFields = {}; // map of: field ID from config file {String} -> field value entered by user {String}
     this._visitedEnableURLs = {}; // map of: URL {String} -> visited {bool}
 
@@ -157,10 +155,6 @@ EmailConfigWizard.prototype =
     var menulist = getElementById("outgoing_server");
     menulist.addEventListener("command",
       function() { gEmailConfigWizard.userChangedOutgoing(); }, true);
-    menulist.inputField.onchange =
-      function() { gEmailConfigWizard.setHost("outgoing_server"); };
-    menulist.inputField.oninput =
-      function() { gEmailConfigWizard.stopProbing("outgoing_server"); };
   },
 
   /* When the next button is clicked we've moved from the initial account
@@ -237,17 +231,6 @@ EmailConfigWizard.prototype =
 
     if (this._incomingState == 'done')
       this.foundConfig(this.getUserConfig());
-  },
-
-  setUsername : function(eltId)
-  {
-    gEmailWizardLogger.info("doing setUsername: " + eltId);
-    let elt = getElementById(eltId);
-    this._userEnteredUsername = elt.value;
-    // if user edits the username, we should cancel the probing.
-    if (this._probeAbortable)
-      this._probeAbortable.cancel();
-    dump("in set username, username = " + this._userEnteredUsername + "\n");
   },
 
   /* This does very little other than to check that a name was entered at all
@@ -1188,61 +1171,6 @@ EmailConfigWizard.prototype =
     subtitle.hidden = false;
     subtitle.textContent = msg;
     gEmailWizardLogger.info("show status subtitle: " + msg);
-  },
-
-  setHost: function(eltId)
-  {
-    gEmailWizardLogger.info("doing setHost: " + eltId);
-    let elt = getElementById(eltId);
-    if (!domainRE.test(elt.value))
-      return; // it's not a domain yet
-
-    // since we're having the user press "Go" to result config,
-    // we don't want to do it here at this point.
-    // XXX TODO FIXME
-    return;
-
-    var newConfig = this.getUserConfig();
-    switch (eltId)
-    {
-      case 'incoming_server':
-        // only probe if the current hostname is different.
-        if (this._currentConfigFilledIn &&
-            this._currentConfigFilledIn.incoming.hostname == newConfig.incoming.hostname)
-          return;
-        // this prevents updateConfig from expecting the socketType to be set.
-        // Alternatively, maybe we shouldn't be calling updateConfig
-        newConfig.incoming._inprogress = true;
-        newConfig.outgoing._inprogress = true;
-        this.foundConfig(newConfig);
-        gEmailConfigWizard._startProbingIncoming(newConfig);
-        break;
-      case 'outgoing_server':
-        if (this._currentConfigFilledIn &&
-            this._currentConfigFilledIn.outgoing.hostname == newConfig.outgoing.hostname)
-          return;
-
-        this.foundConfig(newConfig);
-        gEmailConfigWizard._startProbingOutgoing(newConfig);
-        break;
-    }
-  },
-
-  stopProbing: function(eltId)
-  {
-    gEmailWizardLogger.info("stopping probing: " + eltId);
-    let elt = getElementById(eltId);
-    switch (eltId)
-    {
-    case 'incoming_server':
-      if (this._probeAbortable)
-        this._probeAbortable.cancel('incoming');
-      break;
-    case 'outgoing_server':
-      if (this._probeAbortable)
-        this._probeAbortable.cancel('outgoing');
-      break;
-    }
   },
 
   _prefillConfig: function(initialConfig)

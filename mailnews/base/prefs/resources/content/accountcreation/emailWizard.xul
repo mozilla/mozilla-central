@@ -222,9 +222,7 @@
                       <textbox id="username"
                                value=""
                                disabled="true"
-                               class="username"
-                               oninput="gEmailConfigWizard.setUsername('username')"
-                               onblur="gEmailConfigWizard.setUsername('username');"/>
+                               class="username"/>
                   </hbox>
                 </vbox>
                 <vbox id="incomingarea">
@@ -236,10 +234,7 @@
                       <textbox id="incoming_server"
                                value=""
                                disabled="true"
-                               class="host uri-element"
-                               onblur="gEmailConfigWizard.setHost('incoming_server')"
-                               oninput="gEmailConfigWizard.stopProbing('incoming_server')"
-                               onchange="gEmailConfigWizard.setHost('incoming_server')"/>
+                               class="host uri-element"/>
                     </hbox>
                   </hbox>
                   <hbox>
