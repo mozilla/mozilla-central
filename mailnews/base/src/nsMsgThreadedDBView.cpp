@@ -104,11 +104,12 @@ NS_IMETHODIMP nsMsgThreadedDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeV
   PRInt32 unreadMsgsInView = 0;
   if (!(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
   {
-    for (PRInt32 i = 0; i < m_flags.Length(); i++)
+    for (PRUint32 i = m_flags.Length(); i > 0; )
     {
-      if (! (m_flags[i] & nsMsgMessageFlags::Read))
-        unreadMsgsInView++;
+      if (!(m_flags[--i] & nsMsgMessageFlags::Read))
+        ++unreadMsgsInView;
     }
+
     if (unreadMessages != unreadMsgsInView)
       m_db->SyncCounts();
   }
