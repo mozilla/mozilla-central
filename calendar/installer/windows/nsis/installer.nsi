@@ -309,23 +309,6 @@ Section "-Application" APP_IDX
   ; specify that only empty keys will be deleted.
   ${SetAppKeys}
 
-  ; The following keys should only be set if we can write to HKLM
-  ${If} $TmpVal == "HKLM"
-    ; Uninstall keys can only exist under HKLM on some versions of windows.
-    ${SetUninstallKeys}
-
-    ; If we are writing to HKLM and create the quick launch and the desktop
-    ; shortcuts set IconsVisible to 1 otherwise to 0.
-    ${StrFilter} "${FileMainEXE}" "+" "" "" $R9
-    StrCpy $0 "Software\Clients\StartMenuInternet\$R9\InstallInfo"
-    ${If} $AddQuickLaunchSC == 1
-    ${OrIf} $AddDesktopSC == 1
-      WriteRegDWORD HKLM "$0" "IconsVisible" 1
-    ${Else}
-      WriteRegDWORD HKLM "$0" "IconsVisible" 0
-    ${EndIf}
-  ${EndIf}
-
   ; These need special handling on uninstall since they may be overwritten by
   ; an install into a different location.
   StrCpy $0 "Software\Microsoft\Windows\CurrentVersion\App Paths\${FileMainEXE}"
