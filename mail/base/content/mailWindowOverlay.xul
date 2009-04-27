@@ -259,6 +259,7 @@
   <command id="cmd_tag"/>
   <command id="button_getNewMessages"/>
   <command id="button_print"/>
+  <command id="button_previous"/>
   <command id="button_next"/>
   <command id="button_goBack"/>
   <command id="button_goForward"/>
