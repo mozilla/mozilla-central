@@ -438,7 +438,8 @@ nsresult nsMsgQuickSearchDBView::GetFirstMessageHdrToDisplayInThread(nsIMsgThrea
             nsMsgKey saveParentId = parentId;
             parent->GetThreadParent(&parentId);
             // message is it's own parent - bad, let's break out of here.
-            if (parentId == saveParentId)
+            // Or we've got some circular ancestry.
+            if (parentId == saveParentId || level > numChildren)
               break;
             level++;
           }
