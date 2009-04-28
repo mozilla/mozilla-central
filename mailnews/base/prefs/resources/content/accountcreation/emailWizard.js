@@ -1108,7 +1108,7 @@ EmailConfigWizard.prototype =
 
   onCancel : function()
   {
-    this.onWizardShutdown();
+    // The window onclose handler will call onWizardShutdown for us.
     window.close();
   },
 
@@ -1289,7 +1289,7 @@ EmailConfigWizard.prototype =
   },
 
   onWizardShutdown: function EmailConfigWizard_onWizardshutdown() {
-    if (this._probeAbortale)
+    if (this._probeAbortable)
       this._probeAbortable.cancel();
 
     gEmailWizardLogger.info("Shutting down email config dialog");
