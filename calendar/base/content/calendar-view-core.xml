@@ -194,13 +194,15 @@
 
           // Add alarm icons as needed.
           let alarms = item.getAlarms({});
-          let iconsBox = document.getAnonymousElementByAttribute(this, "anonid", "alarm-icons-box");
-          cal.alarms.addReminderImages(iconsBox, alarms);
+          if (alarms.length && getPrefSafe("calendar.alarms.indicator.show", true)) {
+              let iconsBox = document.getAnonymousElementByAttribute(this, "anonid", "alarm-icons-box");
+              cal.alarms.addReminderImages(iconsBox, alarms);
 
-          // Set suppressed status on the icons box
-          setElementValue(iconsBox,
-                          item.calendar.getProperty("suppressAlarms") || false,
-                          "suppressed");
+              // Set suppressed status on the icons box
+              setElementValue(iconsBox,
+                              item.calendar.getProperty("suppressAlarms") || false,
+                              "suppressed");
+          }
 
           // Set up event box attributes for use in css selectors. Note if
           // something is added here, it should also be xbl:inherited correctly
