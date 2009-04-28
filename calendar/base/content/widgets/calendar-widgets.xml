@@ -190,10 +190,16 @@
                 if (!display) {
                     if (modeIndex == -1) {
                         collapsedModes.push(this.currentMode);
+                        if (this.getAttribute("collapsedinmodes") == ",") {
+                            collapsedModes.splice(0,2);
+                        }
                     }
                 } else {
                     if (modeIndex > -1) {
                         collapsedModes.splice(modeIndex, 1);
+                        if (collapsedModes.join(",")  == "") {
+                            collapsedModes[0]=",";
+                        }
                     }
                 }
                 this.setAttribute("collapsedinmodes", collapsedModes.join(","));
