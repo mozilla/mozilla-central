@@ -379,7 +379,6 @@ EmailConfigWizard.prototype =
               },
               function(e) // fetchConfigFromDB failed
               {
-                ddump("fetchConfigFromDB failed: " + e);
                 gEmailWizardLogger.info("fetchConfigFromDB failed: " + e);
                 me.setSpinnerStatus("probing_config");
                 var initialConfig = new AccountConfig();
@@ -394,13 +393,12 @@ EmailConfigWizard.prototype =
   _guessConfig : function(domain, initialConfig, which)
   {
     let me = this;
-    //ddumpObject(initialConfig, "initial config", 3);
     // guessConfig takes several callback functions, which we define inline.
     me._probeAbortable = guessConfig(domain,
           function(type, hostname, port, ssl, done, config) // progress
           {
             gEmailWizardLogger.info("progress callback host " + hostname +
-                                    "port " +  port + " type " + type);
+                                    " port " +  port + " type " + type);
             if (type == "imap" || type == "pop3")
             {
               config.incoming.type = type;
@@ -411,7 +409,6 @@ EmailConfigWizard.prototype =
             }
             else if (type == "smtp" && !me._userPickedOutgoingServer)
             {
-              dump("setting outgoing hostname to " + hostname + "\n");
               config.outgoing.hostname = hostname;
               config.outgoing.port = port;
               config.outgoing.socketType = ssl;
@@ -422,7 +419,9 @@ EmailConfigWizard.prototype =
           function(config) // success
           {
             me.foundConfig(config);
-            dump("in success, incomingSTate = " + me._incomingState + "outgoing = " + me._outgoingState + "\n");
+            gEmailWizardLogger.info("in success, incomingState = " +
+                                    me._incomingState + " outgoingState = " +
+                                    me._outgoingState);
             if (me._incomingState == 'done' && me._outgoingState == 'done')
             {
               me.stopSpinner("finished_with_success");
@@ -770,7 +769,6 @@ EmailConfigWizard.prototype =
     {
       config.outgoing.username = getElementById("username").value;
       config.outgoing.hostname = getElementById("outgoing_server").value;
-      dump("in getUserConfig setting outgoing hostname to " + config.outgoing.hostname + "\n");
       config.outgoing.port =
         sanitize.integerRange(getElementById("outgoing_port").value, 1,
                               kHighestPort);
@@ -969,7 +967,6 @@ EmailConfigWizard.prototype =
         * the error handling behaviour needs to be done above
         */
       getElementById("incoming_server").value = config.incoming.hostname;
-      dump("config.incoming.type = " + config.incoming.type + "\n");
       getElementById("incoming_port").value = config.incoming.port;
       getElementById("incoming_security").value = config.incoming.socketType;
       getElementById("incoming_protocol").value =
@@ -1038,7 +1035,6 @@ EmailConfigWizard.prototype =
                 this._setOutgoingStatus('strong');
               break;
             case 1: // plain
-              ddump("setting outgoing security to weak\n");
               this._setOutgoingStatus('weak');
               break;
             default:
@@ -1076,12 +1072,12 @@ EmailConfigWizard.prototype =
   {
     if (!this._probeAbortable)
     {
-      ddump("nothing to abort");
+      gEmailWizardLogger.info("onStop without a _probeAbortable to cancel");
     }
     else
     {
       this._probeAbortable.cancel();
-      ddump("canceled probe");
+      gEmailWizardLogger.info("onStop cancelled _probeAbortable");
     }
     this.stopSpinner('manually_edit_config');
     this.editConfigDetails();
@@ -1147,7 +1143,7 @@ EmailConfigWizard.prototype =
     try {
       msg = msgName ? gStringsBundle.getString(msgName) : "";
     } catch(ex) {
-      ddump("missing string for " + msgName);
+      gEmailWizardLogger.error("missing string for " + msgName);
     }
 
     this._hideSpinner(success);
@@ -1164,7 +1160,7 @@ EmailConfigWizard.prototype =
     try {
       msg = msgName ? gStringsBundle.getString(msgName) : "";
     } catch(ex) {
-      ddump("missing string for " + msgName);
+      gEmailWizardLogger.error("missing string for " + msgName);
     }
 
     let subtitle = getElementById("config_status_subtitle");
