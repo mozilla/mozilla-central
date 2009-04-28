@@ -52,11 +52,10 @@
 %brandDTD;
 <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
 %messengerDTD;
-#ifdef TOOLBAR_CUSTOMIZATION_SHEET
 <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
 %customizeToolbarDTD;
-#endif
-<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd"> %globalDTD;
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
 ]>
 
 <window id="messengerWindow"
@@ -351,13 +350,11 @@
       </tabpanels>
     </tabmail>
   </hbox>
-#ifdef TOOLBAR_CUSTOMIZATION_SHEET
   <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"
             style="&dialog.style;"
             hidden="true"/>
   </panel>
-#endif
 
   <notificationbox id="mail-notification-box"/>
   <statusbar id="status-bar" class="chromeclass-status">

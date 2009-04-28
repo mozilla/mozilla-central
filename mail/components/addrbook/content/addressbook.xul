@@ -52,10 +52,8 @@
 %brandDTD;
 <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
 %globalDTD;
-#ifdef TOOLBAR_CUSTOMIZATION_SHEET
 <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
 %customizeToolbarDTD;
-#endif
 ]>
 
 <window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -840,13 +838,11 @@
       </hbox>
     </vbox>
   </hbox>
-#ifdef TOOLBAR_CUSTOMIZATION_SHEET
   <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"
             style="&dialog.style;"
             hidden="true"/>
   </panel>
-#endif
   
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="statusText" flex="1" value="&statusText.label;"/>            

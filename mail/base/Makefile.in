@@ -56,8 +56,4 @@ ifdef MOZ_UPDATER
 DEFINES += -DMOZ_UPDATER=1
 endif
 
-ifeq (cocoa, $(MOZ_WIDGET_TOOLKIT))
-DEFINES += -DTOOLBAR_CUSTOMIZATION_SHEET
-endif
-
 include $(topsrcdir)/config/rules.mk

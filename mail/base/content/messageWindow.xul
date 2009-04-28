@@ -50,10 +50,8 @@
 %brandDTD;
 <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
 %messengerDTD;
-#ifdef TOOLBAR_CUSTOMIZATION_SHEET
 <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
 %customizeToolbarDTD;
-#endif
 ]>
 
 <window id="messengerWindow"
@@ -178,13 +176,11 @@
     <hbox id="attachmentView"/>
     <findbar id="FindToolbar" browserid="messagepane"/>
   </vbox>
-#ifdef TOOLBAR_CUSTOMIZATION_SHEET
   <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"
             style="&dialog.style;"
             hidden="true"/>
   </panel>
-#endif
 
   <statusbar class="chromeclass-status" id="status-bar"/>
 </window>
