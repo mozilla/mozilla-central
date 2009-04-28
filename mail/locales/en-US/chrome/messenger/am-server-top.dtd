@@ -29,7 +29,7 @@
 <!ENTITY leaveOnServer.label "Leave messages on server">
 <!ENTITY leaveOnServer.accesskey "g">
 <!ENTITY headersOnly.label "Fetch headers only">
-<!ENTITY headersOnly.accesskey "f">
+<!ENTITY headersOnly.accesskey "e">
 <!ENTITY deleteByAgeFromServer.label "For at most">
 <!ENTITY deleteByAgeFromServer.accesskey "o">
 <!ENTITY daysEnd.label "days">
