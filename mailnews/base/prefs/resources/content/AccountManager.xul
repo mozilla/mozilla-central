@@ -7,11 +7,7 @@
         windowtype="mailnews:accountmanager"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         title="&accountManagerTitle.label;"
-#ifndef XP_MACOSX
         style="&accountManager.size;"
-#else
-        style="&macAccountManager.size;"
-#endif
         persist="screenX screenY"
         buttons="accept,cancel"
         onload="onLoad(event);"
@@ -34,7 +30,7 @@
         </treecols>
         <treechildren id="account-tree-children"/>
       </tree>
-      
+
       <button label="&addAccountButton.label;" oncommand="onAddAccount(event);" id="addAccountButton"
               prefstring="mail.disable_new_account_addition"
               accesskey="&addAccountButton.accesskey;"/>
@@ -45,8 +41,7 @@
               prefstring="mail.disable_button.delete_account"
               accesskey="&removeButton.accesskey;"/>
     </vbox>
-  
+
     <iframe id="contentFrame" name="contentFrame" flex="1"/>
   </hbox>
-
 </dialog>
