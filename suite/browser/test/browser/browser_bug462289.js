@@ -26,6 +26,11 @@ function step3()
   isnot(document.activeElement, tab1, "mouse on tab again activeElement");
 
   document.getElementById("urlbar").inputField.focus();
+  // give focus a chance to settle
+  setTimeout(step3_5, 0);
+}
+function step3_5()
+{
   EventUtils.synthesizeKey("VK_TAB", { });
 
   is(document.activeElement, tab1, "tab key to tab activeElement");
