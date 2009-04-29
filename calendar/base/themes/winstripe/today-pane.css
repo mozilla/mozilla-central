@@ -262,7 +262,7 @@ agenda-allday-richlist-item {
 .agenda-checkbox[selected="true"][disabled="true"] {
   background-image: none;
   color: -moz-dialogText;
-  background-color: white;
+  background-color: -moz-dialog;
 }
 
 .agenda-event-title {
