@@ -264,14 +264,19 @@ function doTest(test)
     gIMAPFolder2 = null;
     gIMAPFolder3 = null;
     gIMAPTrashFolder = null;
-    gServer.resetTest();
-    gIMAPIncomingServer.closeCachedConnections();
-    gServer.performTest();
-    gServer.stop();
-    let thread = gThreadManager.currentThread;
-    while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
-
-    do_test_finished(); // for the one in run_test()
+    do_timeout(1000, "endTest();");
   }
+}
+
+function endTest()
+{
+  gServer.resetTest();
+  gIMAPIncomingServer.closeCachedConnections();
+  gServer.performTest();
+  gServer.stop();
+  let thread = gThreadManager.currentThread;
+  while (thread.hasPendingEvents())
+    thread.processNextEvent(true);
+
+  do_test_finished(); // for the one in run_test()
 }

@@ -142,20 +142,7 @@ function doTest(test)
   }
   else
   {
-    // Cleanup, null out everything, close all cached connections and stop the
-    // server
-    gRootFolder = null;
-    gIMAPInbox = null;
-    gIMAPTrashFolder = null;
-    gServer.resetTest();
-    gIMAPIncomingServer.closeCachedConnections();
-    gServer.performTest();
-    gServer.stop();
-    let thread = gThreadManager.currentThread;
-    while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
-
-    do_test_finished(); // for the one in run_test()
+    do_timeout(1000, "endTest();");
   }
 }
 
@@ -182,3 +169,20 @@ var CopyListener =
   }
 };
 
+function endTest()
+{
+  // Cleanup, null out everything, close all cached connections and stop the
+  // server
+  gRootFolder = null;
+  gIMAPInbox = null;
+  gIMAPTrashFolder = null;
+  gServer.resetTest();
+  gIMAPIncomingServer.closeCachedConnections();
+  gServer.performTest();
+  gServer.stop();
+  let thread = gThreadManager.currentThread;
+  while (thread.hasPendingEvents())
+    thread.processNextEvent(true);
+
+  do_test_finished(); // for the one in run_test()
+}

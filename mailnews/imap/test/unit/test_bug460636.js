@@ -71,7 +71,14 @@ function run_test()
                                  false, UrlListener, {}, true, null);
 }
 
-function removeFile() {
+function endTest()
+{
+  gIMAPIncomingServer.closeCachedConnections();
+  gServer.stop();
+  var thread = gThreadManager.currentThread;
+  while (thread.hasPendingEvents())
+    thread.processNextEvent(true);
+
   try {
     gSavedMsgFile.remove(false);
   }
@@ -87,16 +94,11 @@ var UrlListener =
   OnStartRunningUrl: function(url) { },
   OnStopRunningUrl: function(url, rc)
   {
-    gIMAPIncomingServer.closeCachedConnections();
-    gServer.stop();
     do_check_eq(loadFileToString(gMsgFile), loadFileToString(gSavedMsgFile));
-    var thread = gThreadManager.currentThread;
-    while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
 
     // The file doesn't get closed straight away, but does after a little bit.
     // So wait, and then remove it. We need to test this to ensure we don't
     // indefinitely lock the file.
-    do_timeout(1000, "removeFile();");
+    do_timeout(1000, "endTest();");
   }
 };

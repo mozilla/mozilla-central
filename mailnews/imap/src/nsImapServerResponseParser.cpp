@@ -3220,13 +3220,6 @@ void nsImapServerResponseParser::SetHostSessionList(nsIImapHostSessionList*
     NS_IF_ADDREF (fHostSessionList);
 }
 
-nsIImapHostSessionList*
-nsImapServerResponseParser::GetHostSessionList()
-{
-    NS_IF_ADDREF(fHostSessionList);
-    return fHostSessionList;
-}
-
 void nsImapServerResponseParser::SetSyntaxError(PRBool error, const char *msg)
 {
   nsIMAPGenericParser::SetSyntaxError(error, msg);

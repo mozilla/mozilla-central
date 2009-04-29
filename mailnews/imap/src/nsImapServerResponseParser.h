@@ -152,7 +152,6 @@ public:
   PRBool GetFillingInShell();
   void UseCachedShell(nsIMAPBodyShell *cachedShell);
   void SetHostSessionList(nsIImapHostSessionList *aHostSession);
-  nsIImapHostSessionList *GetHostSessionList();
   char  *fAuthChallenge;    // the challenge returned by the server in
                             //response to authenticate using CRAM-MD5 or NTLM
   PRBool          fCondStoreEnabled;  

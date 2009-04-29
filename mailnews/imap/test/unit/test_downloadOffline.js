@@ -63,13 +63,18 @@ var UrlListener =
     // Check for ok status.
     do_check_eq(rc, 0);
 
-    gIMAPIncomingServer.closeCachedConnections();
-    gServer.stop();
-
-    var thread = gThreadManager.currentThread;
-    while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
-
-    do_timeout(1000, "do_test_finished();");
+    do_timeout(1000, "endTest();");
   }
 };
+
+function endTest()
+{
+  gIMAPIncomingServer.closeCachedConnections();
+  gServer.stop();
+
+  var thread = gThreadManager.currentThread;
+  while (thread.hasPendingEvents())
+    thread.processNextEvent(true);
+
+  do_test_finished();
+}
