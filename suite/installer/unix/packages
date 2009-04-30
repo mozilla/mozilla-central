@@ -200,6 +200,7 @@ bin/components/libstoragecomps.so
 bin/components/libsuite.so
 bin/components/suitebrowser.xpt
 bin/components/suitecommon.xpt
+bin/components/suitefeeds.xpt
 bin/components/suitemigration.xpt
 bin/components/libsystem-pref.so
 bin/components/libtkautocomplete.so
@@ -245,10 +246,14 @@ bin/components/zipwriter.xpt
 bin/components/libzipwriter.so
 
 ; JavaScript components
+bin/components/FeedConverter.js
 bin/components/FeedProcessor.js
+bin/components/FeedWriter.js
+bin/components/WebContentConverter.js
 bin/components/jsconsole-clhandler.js
 bin/components/nsAboutAbout.js
 bin/components/nsAboutCertError.js
+bin/components/nsAboutFeeds.js
 bin/components/nsAboutSessionRestore.js
 bin/components/nsAddonRepository.js
 bin/components/nsBadCertHandler.js

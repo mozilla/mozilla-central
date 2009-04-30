@@ -1245,11 +1245,31 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
   return w;
 }
 
-//XXXCallek only used until we implement Feed Preview
-// uri is a string!
-function subscribeToFeed(uri)
-{
-  Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
-            .getService(Components.interfaces.nsINewsBlogFeedDownloader)
-            .subscribeToFeed(uri, null, null);
+function subscribeToFeed(href, event) {
+  // Just load the feed in the content area to either subscribe or show the
+  // preview UI
+  var w = getTopWin();
+  var charset;
+  if (w) {
+    var browser = w.getBrowser();
+    charset = browser.characterSet;
+  }
+  else
+    // When calling this function without any open navigator window
+    charset = document.characterSet;
+  var feedURI = makeURI(href, charset);
+
+  // Use the feed scheme so X-Moz-Is-Feed will be set
+  // The value doesn't matter
+  if (/^https?/.test(feedURI.scheme))
+    href = "feed:" + href;
+  openUILink(href, event, false, true);
+}
+
+function subscribeToFeedMiddleClick(href, event) {
+  if (event.button == 1) {
+    this.subscribeToFeed(href, event);
+    // unlike for command events, we have to close the menus manually
+    closeMenus(event.target);
+  }
 }

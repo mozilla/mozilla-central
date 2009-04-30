@@ -127,6 +127,8 @@ comm.jar:
    content/communicator/directory/directory.html                    (directory/directory.html)
    content/communicator/directory/directory.js                      (directory/directory.js)
    content/communicator/directory/directory.xul                     (directory/directory.xul)
+   content/communicator/feeds/subscribe.xhtml                       (feeds/subscribe.xhtml)
+   content/communicator/feeds/subscribe.js                          (feeds/subscribe.js)
    content/communicator/history/controller.js                       (history/controller.js)
    content/communicator/history/history.js                          (history/history.js)
    content/communicator/history/history.xul                         (history/history.xul)

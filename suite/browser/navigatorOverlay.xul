@@ -487,7 +487,8 @@
         <menu id="feedsMenu" class="menu-iconic" disabled="true"
               label="&feedsMenu.label;" accesskey="&feedsMenu.accesskey;">
           <menupopup onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
-                     oncommand="subscribeToFeed('feed:' + event.target.statusText /*, gBrowser.currentURI*/);"/>
+                     oncommand="subscribeToFeed(event.target.statusText, event);"
+                     onclick="checkForMiddleClick(this, event);"/>
         </menu>
         <menuseparator/>
       </menupopup>

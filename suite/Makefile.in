@@ -50,6 +50,8 @@ PARALLEL_DIRS	+= \
 		branding \
 		browser \
 		common \
+		feeds/public \
+		feeds/src \
 		locales \
 		modules \
 		themes/classic \

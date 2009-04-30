@@ -73,10 +73,10 @@ function initFeedTab()
   document.getElementById("feedTab").hidden = feedListbox.getRowCount() == 0;
 }
 
-function onSubscribeFeed()
+function onSubscribeFeed(event)
 {
   var listbox = document.getElementById("feedListbox");
-  subscribeToFeed('feed:' + listbox.selectedItem.getAttribute("feedURL"));
+  subscribeToFeed(listbox.selectedItem.getAttribute("feedURL"), event);
 }
 
 function addRow(name, type, url)

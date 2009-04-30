@@ -46,6 +46,7 @@
 #include "nsIGenericFactory.h"
 #include "nsRDFCID.h"
 #include "nsBookmarksService.h"
+#include "nsFeedSniffer.h"
 
 #if defined(XP_WIN)
 #include "nsUrlWidget.h"
@@ -65,6 +66,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsThunderbirdProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(LocalSearchDataSource, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(InternetSearchDataSource, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsBookmarksService, Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsFeedSniffer)
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -133,7 +135,13 @@ static const nsModuleComponentInfo components[] = {
   { "Bookmarks",
     NS_BOOKMARKS_SERVICE_CID,
     NS_BOOKMARKS_DATASOURCE_CONTRACTID,
-    nsBookmarksServiceConstructor }
+    nsBookmarksServiceConstructor },
+
+  { "Feed Sniffer",
+    NS_FEEDSNIFFER_CID,
+    NS_FEEDSNIFFER_CONTRACTID,
+    nsFeedSnifferConstructor,
+    nsFeedSniffer::Register }
 };
 
 NS_IMPL_NSGETMODULE(SuiteModule, components)

@@ -1,0 +1,191 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * the Mozilla Organization.
+ * Portions created by the Initial Developer are Copyright (C) 1998-2002
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Caio Tiago Oliveira <asrail@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+html {
+  background-color: #FFFFFF;
+  font: message-box;
+}
+
+#feedBody {
+  border: 1px solid #2D3B49;
+  padding: 3em;
+  -moz-padding-start: 30px;
+  margin: 2em auto;
+  background-color: #C7D0D9;
+  color: #22262F;
+}
+
+#feedHeaderContainer {
+  border: 1px solid #2D3B49;
+  -moz-border-radius: 10px;
+  margin: -4em auto 0 auto;
+  background-color: #C7D0D9;
+}
+
+#feedHeader {
+  margin-top: 4.9em;
+  margin-bottom: 1em;
+  -moz-margin-start: 1.4em;
+  -moz-margin-end: 1em;
+  -moz-padding-start: 2.9em;
+  font-size: 110%;
+  color: #000000;
+}
+
+.feedBackground {
+  background: url("chrome://communicator/skin/icons/feedIcon.png") 0% 10% no-repeat transparent;
+}
+
+.videoPodcastBackground {
+  background: url("chrome://communicator/skin/icons/videoFeedIcon.png") 0% 10% no-repeat transparent;
+}
+
+.audioPodcastBackground {
+  background: url("chrome://communicator/skin/icons/audioFeedIcon.png") 0% 10% no-repeat transparent;
+}
+
+#feedHeader[dir="rtl"] {
+  background-position: 100% 10%;
+}
+
+#feedIntroText {
+  display: none;
+}
+
+#feedHeader[firstrun="true"] #feedIntroText {
+  padding-top: 0.1em;
+  -moz-padding-start: 0.6em;
+  display: block;
+}
+
+#feedHeader[firstrun="true"] > #feedSubscribeLine {
+  -moz-padding-start: 1.8em;
+}
+
+#feedSubscribeLine {
+  padding-top: 0.2em;
+}
+
+#messengerFeedsMenuItem {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
+}
+
+#feedHeader[dir="rtl"] #handlersMenuList > menupopup {
+  direction: rtl;
+}
+
+/* Don't print subscription UI */
+@media print {
+  #feedHeaderContainer {
+    display: none;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 0 3em;
+  color: -moz-fieldText;
+  font: message-box;
+}
+
+h1 {
+  font-size: 160%;
+  border-bottom: 2px solid #7A8490;
+  margin: 0 0 .2em 0;
+}
+
+h2 {
+  font-size: 110%;
+  font-weight: normal;
+  margin: 0 0 .6em 0;
+}
+
+#feedTitleLink {
+  float: right;
+  -moz-margin-start: .6em;
+  -moz-margin-end: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+a[href] img {
+  border: none;
+}
+
+#feedTitleContainer {
+  -moz-margin-start: 0;
+  -moz-margin-end: .6em;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#feedTitleImage {
+  -moz-margin-start: .6em;
+  -moz-margin-end: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  max-width: 300px;
+  max-height: 150px;
+}
+
+.feedEntryContent {
+  font-size: 110%;
+}
+
+.lastUpdated {
+  font-size: 85%;
+  font-weight: normal;
+}
+
+.type-icon {
+  vertical-align: bottom;
+  height: 16px;
+  width: 16px;
+}
+
+.enclosures {
+  border: 1px solid #2D3B49;
+  padding: 1em;
+  margin: 1em auto;
+  background-color: #90A1B3;
+  color: #000000;
+}
+
+.enclosure {
+  vertical-align: middle;
+  margin-left: 2px;
+}

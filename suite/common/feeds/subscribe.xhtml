@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE html [
+  <!ENTITY % htmlDTD
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "DTD/xhtml1-strict.dtd">
+  %htmlDTD;
+  <!ENTITY % globalDTD
+    SYSTEM "chrome://global/locale/global.dtd">
+  %globalDTD;
+  <!ENTITY % feedDTD
+    SYSTEM "chrome://communicator/locale/feeds/subscribe.dtd">
+  %feedDTD;
+]>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<html id="feedHandler"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <head>
+    <title>&feedPage.title;</title>
+    <link rel="stylesheet"
+          href="chrome://communicator/skin/feed-subscribe.css"
+          type="text/css"
+          media="all"/>
+    <script type="application/x-javascript"
+            src="chrome://communicator/content/feeds/subscribe.js"/>
+  </head>
+  <body onload="SubscribeHandler.writeContent();" onunload="SubscribeHandler.uninit();">
+    <div id="feedHeaderContainer">
+      <div id="feedHeader" dir="&locale.dir;">
+        <div id="feedIntroText">
+          <p id="feedSubscriptionInfo1" />
+          <p id="feedSubscriptionInfo2" />
+        </div>
+
+<!-- XXXmano this can't have any whitespace in it.  Otherwise you would see
+     how much XUL-in-XHTML sucks, see bug 348830 -->
+        <div id="feedSubscribeLine"
+          ><xul:vbox
+            ><xul:hbox align="center"
+              ><xul:description id="subscribeUsingDescription"
+              /><xul:menulist id="handlersMenuList" aria-labelledby="subscribeUsingDescription"
+                ><xul:menupopup menugenerated="true" id="handlersMenuPopup"
+                  ><xul:menuitem id="messengerFeedsMenuItem" label="&feedMessenger;" class="menuitem-iconic" image="chrome://communicator/skin/icons/feedIcon16.png" selected="true"
+                  /><xul:menuseparator
+                /></xul:menupopup
+              ></xul:menulist
+            ></xul:hbox
+            ><xul:hbox
+              ><xul:checkbox id="alwaysUse" checked="false"
+            /></xul:hbox
+            ><xul:hbox align="center"
+              ><xul:spacer flex="1"
+              /><xul:button label="&feedSubscribeNow;" id="subscribeButton"
+            /></xul:hbox
+          ></xul:vbox
+        ></div
+      ></div>
+    </div>
+
+    <script type="application/x-javascript">
+      SubscribeHandler.init();
+    </script>
+
+    <div id="feedBody">
+      <div id="feedTitle">
+        <a id="feedTitleLink">
+          <img id="feedTitleImage"/>
+        </a>
+        <div id="feedTitleContainer">
+          <h1 id="feedTitleText"/>
+          <h2 id="feedSubtitleText"/>
+        </div>
+      </div>
+      <div id="feedContent"/>
+    </div>
+  </body>
+</html>

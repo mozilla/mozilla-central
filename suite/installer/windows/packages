@@ -198,6 +198,7 @@ bin\components\strgcmps.dll
 bin\components\suite.dll
 bin\components\suitebrowser.xpt
 bin\components\suitecommon.xpt
+bin\components\suitefeeds.xpt
 bin\components\suitemigration.xpt
 bin\components\tkautoc.dll
 bin\components\tkitcmps.dll
@@ -246,10 +247,14 @@ bin\AccessibleMarshal.dll
 bin\sqlite3.dll
 
 ; JavaScript components
+bin\components\FeedConverter.js
 bin\components\FeedProcessor.js
+bin\components\FeedWriter.js
+bin\components\WebContentConverter.js
 bin\components\jsconsole-clhandler.js
 bin\components\nsAboutAbout.js
 bin\components\nsAboutCertError.js
+bin\components\nsAboutFeeds.js
 bin\components\nsAboutSessionRestore.js
 bin\components\nsAddonRepository.js
 bin\components\nsAxSecurityPolicy.js

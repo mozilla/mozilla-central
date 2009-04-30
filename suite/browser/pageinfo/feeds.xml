@@ -59,7 +59,7 @@
         <xul:hbox flex="1" class="feed-subscribe">
           <xul:spacer flex="1"/>
           <xul:button label="&feedSubscribe;" accesskey="&feedSubscribe.accesskey;"
-                      oncommand="onSubscribeFeed()"/>
+                      oncommand="onSubscribeFeed(event)"/>
         </xul:hbox>
       </xul:vbox>
     </content>

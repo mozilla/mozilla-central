@@ -56,8 +56,7 @@ const nsIHandlerApp = Components.interfaces.nsIHandlerApp;
 const nsIHandlerInfo = Components.interfaces.nsIHandlerInfo;
 const nsILocalHandlerApp = Components.interfaces.nsILocalHandlerApp;
 const nsIWebHandlerApp = Components.interfaces.nsIWebHandlerApp;
-// XXX-SeaMonkey: remove comment once we implement nsIWebContentHandlerInfo
-//const nsIWebContentHandlerInfo = Components.interfaces.nsIWebContentHandlerInfo;
+const nsIWebContentHandlerInfo = Components.interfaces.nsIWebContentHandlerInfo;
 const nsIFilePicker = Components.interfaces.nsIFilePicker;
 const nsIMIMEInfo = Components.interfaces.nsIMIMEInfo;
 const nsIPropertyBag = Components.interfaces.nsIPropertyBag;
@@ -73,10 +72,8 @@ var mimeSvc = Components.classes["@mozilla.org/mime;1"]
                         .getService(Components.interfaces.nsIMIMEService);
 var ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
                       .getService(Components.interfaces.nsIIOService);
-// XXX-SeaMonkey: remove null and comment once we implement nsIWebContentConverterService
-// var converterSvc = Components.classes["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"]
-//                              .getService(Components.interfaces.nsIWebContentConverterService);
-var converterSvc = null;
+var converterSvc = Components.classes["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"]
+                             .getService(Components.interfaces.nsIWebContentConverterService);
 #ifdef HAVE_SHELL_SERVICE
 var shellSvc = Components.classes["@mozilla.org/suite/shell-service;1"]
                          .getService(Components.interfaces.nsIShellService);
@@ -99,13 +96,13 @@ const PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS =
  * Preferences where we store handling information about the feed type.
  *
  * browser.feeds.handler
- * - "bookmarks", "reader" (clarified further using the .default preference),
+ * - "messenger", "reader" (clarified further using the .default preference),
  *   or "ask" -- indicates the default handler being used to process feeds;
- *   "bookmarks" is obsolete; to specify that the handler is bookmarks,
- *   set browser.feeds.handler.default to "bookmarks";
+ *   "messenger" is obsolete, use "reader" instead; to specify that the
+ *    handler is messenger, set browser.feeds.handler.default to "messenger";
  *
  * browser.feeds.handler.default
- * - "bookmarks", "client" or "web" -- indicates the chosen feed reader used
+ * - "messenger", "client" or "web" -- indicates the chosen feed reader used
  *   to display feeds, either transiently (i.e., when the "use as default"
  *   checkbox is unchecked, corresponds to when browser.feeds.handler=="ask")
  *   or more permanently (i.e., the item displayed in the dropdown in Feeds
@@ -544,9 +541,9 @@ FeedHandlerInfo.prototype = {
           return null;
         return converterSvc.getWebContentHandlerByURI(this.type, uri);
 
-      case "bookmarks":
+      case "messenger":
       default:
-        // When the pref is set to bookmarks, we handle feeds internally,
+        // When the pref is set to messenger, we handle feeds internally,
         // we don't forward them to a local or web handler app, so there is
         // no preferred handler.
         return null;
@@ -558,19 +555,17 @@ FeedHandlerInfo.prototype = {
       document.getElementById(this._prefSelectedApp).value = aNewValue.executable;
       document.getElementById(this._prefSelectedReader).value = "client";
     }
-    /* XXX-SeaMonkey: remove comment once we implement nsIWebContentHandlerInfo
     else if (aNewValue instanceof nsIWebContentHandlerInfo) {
       document.getElementById(this._prefSelectedWeb).value = aNewValue.uri;
       document.getElementById(this._prefSelectedReader).value = "web";
       // Make the web handler be the new "auto handler" for feeds.
       // Note: we don't have to unregister the auto handler when the user picks
-      // a non-web handler (local app, Live Bookmarks, etc.) because the service
+      // a non-web handler (local app, RSS News & Blogs, etc.) because the service
       // only uses the "auto handler" when the selected reader is a web handler.
       // We also don't have to unregister it when the user turns on "always ask"
       // (i.e. preview in browser), since that also overrides the auto handler.
       converterSvc.setAutoHandler(this.type, aNewValue);
     }
-    */
   },
 
   _possibleApplicationHandlers: null,
@@ -702,9 +697,6 @@ FeedHandlerInfo.prototype = {
   get preferredAction() {
     switch (document.getElementById(this._prefSelectedAction).value) {
 
-      case "bookmarks":
-        return nsIHandlerInfo.handleInternally;
-
       case "reader": {
         let preferredApp = this.preferredApplicationHandler;
         let defaultApp = this._defaultApplicationHandler;
@@ -729,6 +721,7 @@ FeedHandlerInfo.prototype = {
       // the action, so it doesn't matter what we say it is, it just has to be
       // something that doesn't cause the controller to hide the type.
       case "ask":
+      case "messenger":
       default:
         return nsIHandlerInfo.handleInternally;
     }
@@ -738,7 +731,7 @@ FeedHandlerInfo.prototype = {
     switch (aNewValue) {
 
       case nsIHandlerInfo.handleInternally:
-        document.getElementById(this._prefSelectedReader).value = "bookmarks";
+        document.getElementById(this._prefSelectedReader).value = "messenger";
         break;
 
       case nsIHandlerInfo.useHelperApp:
@@ -799,12 +792,10 @@ FeedHandlerInfo.prototype = {
             pref.reset();
         }
       }
-      /* XXX-SeaMonkey: remove comment once we implement nsIWebContentHandlerInfo
       else {
         app.QueryInterface(nsIWebContentHandlerInfo);
         converterSvc.removeContentHandler(app.contentType, app.uri);
       }
-      */
     }
     this._possibleApplicationHandlers._removed = [];
   },
@@ -1260,9 +1251,9 @@ var gApplicationsPane = {
         return this._prefsBundle.getFormattedString("useApp", [name]);
 
       case nsIHandlerInfo.handleInternally:
-        // For the feed type, handleInternally means live bookmarks.
-        if (isFeedType(aHandlerInfo.type)) 
-          return this._prefsBundle.getFormattedString("addLiveBookmarksInApp",
+        // For the feed type, handleInternally means News & Blogs.
+        if (isFeedType(aHandlerInfo.type))
+          return this._prefsBundle.getFormattedString("addNewsBlogsInApp",
                                                       [this._brandShortName]);
 
         // For other types, handleInternally looks like either useHelperApp
@@ -1307,10 +1298,8 @@ var gApplicationsPane = {
     if (aHandlerApp instanceof nsIWebHandlerApp)
       return aHandlerApp.uriTemplate;
 
-    /* XXX-SeaMonkey: remove comment once we implement nsIWebContentHandlerInfo
     if (aHandlerApp instanceof nsIWebContentHandlerInfo)
       return aHandlerApp.uri;
-    */
 
     return false;
   },
@@ -1384,13 +1373,12 @@ var gApplicationsPane = {
       menuPopup.appendChild(saveMenuItem);
     }
 
-    // If this is the feed type, add a Live Bookmarks item.
-    // XXX-SeaMonkey: remove the | && false| once we support live bookmarks!
-    if (isFeedType(handlerInfo.type) && false) {
+    // If this is the feed type, add a News & Blogs item.
+    if (isFeedType(handlerInfo.type)) {
       let internalMenuItem = document.createElement("menuitem");
       internalMenuItem.setAttribute("class", "handler-action");
       internalMenuItem.setAttribute("value", nsIHandlerInfo.handleInternally);
-      let label = this._prefsBundle.getFormattedString("addLiveBookmarksInApp",
+      let label = this._prefsBundle.getFormattedString("addNewsBlogsInApp",
                                                        [this._brandShortName]);
       internalMenuItem.setAttribute("label", label);
       internalMenuItem.setAttribute("tooltiptext", label);
@@ -1785,10 +1773,8 @@ var gApplicationsPane = {
     if (aHandlerApp instanceof nsIWebHandlerApp)
       return this._getIconURLForWebApp(aHandlerApp.uriTemplate);
 
-    /* XXX-SeaMonkey: remove comment once we implement nsIWebContentHandlerInfo
     if (aHandlerApp instanceof nsIWebContentHandlerInfo)
       return this._getIconURLForWebApp(aHandlerApp.uri)
-    */
 
     // We know nothing about other kinds of handler apps.
     return "";
