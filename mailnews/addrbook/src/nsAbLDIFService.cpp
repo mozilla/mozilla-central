@@ -97,7 +97,6 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
 {
   NS_ENSURE_ARG_POINTER(aSrc);
   NS_ENSURE_ARG_POINTER(aDb);
-  mDatabase = aDb;
 
   mStoreLocAsHome = aStoreLocAsHome;
 
@@ -127,7 +126,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
       while (NS_SUCCEEDED(GetLdifStringRecord(buf, len, startPos)))
       {
         if (mLdifLine.Find("groupOfNames") == -1)
-          AddLdifRowToDatabase(PR_FALSE);
+          AddLdifRowToDatabase(aDb, PR_FALSE);
         else
         {
           //keep file position for mailing list
@@ -144,7 +143,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
   }
   //last row
   if (!mLdifLine.IsEmpty() && mLdifLine.Find("groupOfNames") == -1)
-    AddLdifRowToDatabase(PR_FALSE); 
+    AddLdifRowToDatabase(aDb, PR_FALSE); 
 
   // mail Lists
   PRInt32 i, pos;
@@ -174,7 +173,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
         {
           if (mLdifLine.Find("groupOfNames") != -1)
           {
-            AddLdifRowToDatabase(PR_TRUE);
+            AddLdifRowToDatabase(aDb, PR_TRUE);
             if (NS_SUCCEEDED(seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, 0)))
               break;
           }
@@ -371,7 +370,8 @@ nsresult nsAbLDIFService::GetLdifStringRecord(char* buf, PRInt32 len, PRInt32& s
   return NS_ERROR_FAILURE;
 }
 
-void nsAbLDIFService::AddLdifRowToDatabase(PRBool bIsList)
+void nsAbLDIFService::AddLdifRowToDatabase(nsIAddrDatabase *aDatabase,
+                                           PRBool bIsList)
 {
   // If no data to process then reset CR/LF counters and return.
   if (mLdifLine.IsEmpty())
@@ -382,12 +382,12 @@ void nsAbLDIFService::AddLdifRowToDatabase(PRBool bIsList)
   }
 
   nsCOMPtr <nsIMdbRow> newRow;
-  if (mDatabase)
+  if (aDatabase)
   {
     if (bIsList)
-      mDatabase->GetNewListRow(getter_AddRefs(newRow)); 
+      aDatabase->GetNewListRow(getter_AddRefs(newRow)); 
     else
-      mDatabase->GetNewRow(getter_AddRefs(newRow)); 
+      aDatabase->GetNewRow(getter_AddRefs(newRow)); 
 
     if (!newRow)
       return;
@@ -404,22 +404,24 @@ void nsAbLDIFService::AddLdifRowToDatabase(PRBool bIsList)
   while ( (line = str_getline(&cursor)) != nsnull)
   {
     if ( str_parse_line(line, &typeSlot, &valueSlot, &length) == 0) {
-      AddLdifColToDatabase(newRow, typeSlot, valueSlot, bIsList);
+      AddLdifColToDatabase(aDatabase, newRow, typeSlot, valueSlot, bIsList);
     }
     else
       continue; // parse error: continue with next loop iteration
   }
   nsMemory::Free(saveCursor);
-  mDatabase->AddCardRowToDB(newRow);    
+  aDatabase->AddCardRowToDB(newRow);    
 
   if (bIsList)
-    mDatabase->AddListDirNode(newRow);
+    aDatabase->AddListDirNode(newRow);
         
   // Clear buffer for next record
   ClearLdifRecordBuffer();
 }
 
-void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, char* valueSlot, PRBool bIsList)
+void nsAbLDIFService::AddLdifColToDatabase(nsIAddrDatabase *aDatabase,
+                                           nsIMdbRow* newRow, char* typeSlot,
+                                           char* valueSlot, PRBool bIsList)
 {
   nsCAutoString colType(typeSlot);
   nsCAutoString column(valueSlot);
@@ -433,69 +435,69 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
   {
   case 'b':
     if (colType.EqualsLiteral("birthyear"))
-      mDatabase->AddBirthYear(newRow, column.get());
+      aDatabase->AddBirthYear(newRow, column.get());
     else if (colType.EqualsLiteral("birthmonth"))
-      mDatabase->AddBirthMonth(newRow, column.get());
+      aDatabase->AddBirthMonth(newRow, column.get());
     else if (colType.EqualsLiteral("birthday"))
-      mDatabase->AddBirthDay(newRow, column.get());
+      aDatabase->AddBirthDay(newRow, column.get());
     break; // 'b'
 
   case 'c':
     if (colType.EqualsLiteral("cn") || colType.EqualsLiteral("commonname"))
     {
       if (bIsList)
-        mDatabase->AddListName(newRow, column.get());
+        aDatabase->AddListName(newRow, column.get());
       else
-        mDatabase->AddDisplayName(newRow, column.get());
+        aDatabase->AddDisplayName(newRow, column.get());
     }
     else if (colType.EqualsLiteral("c") || colType.EqualsLiteral("countryname"))
     {
       if (mStoreLocAsHome )
-        mDatabase->AddHomeCountry(newRow, column.get());
+        aDatabase->AddHomeCountry(newRow, column.get());
       else
-        mDatabase->AddWorkCountry(newRow, column.get());
+        aDatabase->AddWorkCountry(newRow, column.get());
     }
 
     else if (colType.EqualsLiteral("cellphone") )
-      mDatabase->AddCellularNumber(newRow, column.get());
+      aDatabase->AddCellularNumber(newRow, column.get());
 
     else if (colType.EqualsLiteral("carphone"))
-      mDatabase->AddCellularNumber(newRow, column.get());
+      aDatabase->AddCellularNumber(newRow, column.get());
         
     else if (colType.EqualsLiteral("custom1"))
-      mDatabase->AddCustom1(newRow, column.get());
+      aDatabase->AddCustom1(newRow, column.get());
         
     else if (colType.EqualsLiteral("custom2"))
-      mDatabase->AddCustom2(newRow, column.get());
+      aDatabase->AddCustom2(newRow, column.get());
         
     else if (colType.EqualsLiteral("custom3"))
-      mDatabase->AddCustom3(newRow, column.get());
+      aDatabase->AddCustom3(newRow, column.get());
         
     else if (colType.EqualsLiteral("custom4"))
-      mDatabase->AddCustom4(newRow, column.get());
+      aDatabase->AddCustom4(newRow, column.get());
         
     else if (colType.EqualsLiteral("company"))
-      mDatabase->AddCompany(newRow, column.get());
+      aDatabase->AddCompany(newRow, column.get());
     break; // 'c'
 
   case 'd':
     if (colType.EqualsLiteral("description"))
     {
       if (bIsList)
-        mDatabase->AddListDescription(newRow, column.get());
+        aDatabase->AddListDescription(newRow, column.get());
       else
-        mDatabase->AddNotes(newRow, column.get());
+        aDatabase->AddNotes(newRow, column.get());
     }
 
     else if (colType.EqualsLiteral("department"))
-      mDatabase->AddDepartment(newRow, column.get());
+      aDatabase->AddDepartment(newRow, column.get());
 
     else if (colType.EqualsLiteral("displayname"))
     {
       if (bIsList)
-        mDatabase->AddListName(newRow, column.get());
+        aDatabase->AddListName(newRow, column.get());
       else
-        mDatabase->AddDisplayName(newRow, column.get());
+        aDatabase->AddDisplayName(newRow, column.get());
     }
     break; // 'd'
 
@@ -503,120 +505,120 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
 
     if (colType.EqualsLiteral("fax") ||
         colType.EqualsLiteral("facsimiletelephonenumber"))
-      mDatabase->AddFaxNumber(newRow, column.get());
+      aDatabase->AddFaxNumber(newRow, column.get());
     break; // 'f'
 
   case 'g':
     if (colType.EqualsLiteral("givenname"))
-      mDatabase->AddFirstName(newRow, column.get());
+      aDatabase->AddFirstName(newRow, column.get());
 
     break; // 'g'
 
   case 'h':
     if (colType.EqualsLiteral("homephone"))
-      mDatabase->AddHomePhone(newRow, column.get());
+      aDatabase->AddHomePhone(newRow, column.get());
 
     else if (colType.EqualsLiteral("homestreet"))
-      mDatabase->AddHomeAddress(newRow, column.get());
+      aDatabase->AddHomeAddress(newRow, column.get());
 
     else if (colType.EqualsLiteral("homeurl"))
-      mDatabase->AddWebPage2(newRow, column.get());
+      aDatabase->AddWebPage2(newRow, column.get());
     break; // 'h'
 
   case 'l':
     if (colType.EqualsLiteral("l") || colType.EqualsLiteral("locality"))
     {
       if (mStoreLocAsHome)
-        mDatabase->AddHomeCity(newRow, column.get());
+        aDatabase->AddHomeCity(newRow, column.get());
       else
-        mDatabase->AddWorkCity(newRow, column.get());
+        aDatabase->AddWorkCity(newRow, column.get());
     }
 
     break; // 'l'
 
   case 'm':
     if (colType.EqualsLiteral("mail"))
-      mDatabase->AddPrimaryEmail(newRow, column.get());
+      aDatabase->AddPrimaryEmail(newRow, column.get());
 
     else if (colType.EqualsLiteral("member") && bIsList)
-      mDatabase->AddLdifListMember(newRow, column.get());
+      aDatabase->AddLdifListMember(newRow, column.get());
 
     else if (colType.EqualsLiteral("mobile"))
-      mDatabase->AddCellularNumber(newRow, column.get());
+      aDatabase->AddCellularNumber(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozilla_aimscreenname"))
-      mDatabase->AddAimScreenName(newRow, column.get());
+      aDatabase->AddAimScreenName(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillacustom1"))
-      mDatabase->AddCustom1(newRow, column.get());
+      aDatabase->AddCustom1(newRow, column.get());
         
     else if (colType.EqualsLiteral("mozillacustom2"))
-      mDatabase->AddCustom2(newRow, column.get());
+      aDatabase->AddCustom2(newRow, column.get());
         
     else if (colType.EqualsLiteral("mozillacustom3"))
-      mDatabase->AddCustom3(newRow, column.get());
+      aDatabase->AddCustom3(newRow, column.get());
         
     else if (colType.EqualsLiteral("mozillacustom4"))
-      mDatabase->AddCustom4(newRow, column.get());
+      aDatabase->AddCustom4(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillahomecountryname"))
-      mDatabase->AddHomeCountry(newRow, column.get());
+      aDatabase->AddHomeCountry(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillahomelocalityname"))
-      mDatabase->AddHomeCity(newRow, column.get());
+      aDatabase->AddHomeCity(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillahomestate"))
-      mDatabase->AddHomeState(newRow, column.get());
+      aDatabase->AddHomeState(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillahomestreet"))
-      mDatabase->AddHomeAddress(newRow, column.get());
+      aDatabase->AddHomeAddress(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillahomestreet2"))
-      mDatabase->AddHomeAddress2(newRow, column.get());
+      aDatabase->AddHomeAddress2(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillahomepostalcode"))
-      mDatabase->AddHomeZipCode(newRow, column.get());
+      aDatabase->AddHomeZipCode(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillahomeurl"))
-      mDatabase->AddWebPage2(newRow, column.get());
+      aDatabase->AddWebPage2(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillanickname"))
     {
       if (bIsList)
-        mDatabase->AddListNickName(newRow, column.get());
+        aDatabase->AddListNickName(newRow, column.get());
       else
-        mDatabase->AddNickName(newRow, column.get());
+        aDatabase->AddNickName(newRow, column.get());
     }
 
     else if (colType.EqualsLiteral("mozillasecondemail"))
-      mDatabase->Add2ndEmail(newRow, column.get());
+      aDatabase->Add2ndEmail(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillausehtmlmail"))
     {
       ToLowerCase(column);
       if (-1 != column.Find("true"))
-        mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::html);
+        aDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::html);
       else if (-1 != column.Find("false"))
-        mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::plaintext);
+        aDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::plaintext);
       else
-        mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::unknown);
+        aDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::unknown);
     }
 
     else if (colType.EqualsLiteral("mozillaworkstreet2"))
-      mDatabase->AddWorkAddress2(newRow, column.get());
+      aDatabase->AddWorkAddress2(newRow, column.get());
 
     else if (colType.EqualsLiteral("mozillaworkurl"))
-      mDatabase->AddWebPage1(newRow, column.get());
+      aDatabase->AddWebPage1(newRow, column.get());
 
     break; // 'm'
 
   case 'n':
     if (colType.EqualsLiteral("notes"))
-      mDatabase->AddNotes(newRow, column.get());
+      aDatabase->AddNotes(newRow, column.get());
 
     else if (colType.EqualsLiteral("nscpaimscreenname") || 
              colType.EqualsLiteral("nsaimid"))
-      mDatabase->AddAimScreenName(newRow, column.get());
+      aDatabase->AddAimScreenName(newRow, column.get());
 
     break; // 'n'
 
@@ -625,10 +627,10 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
       break;
 
     else if (colType.EqualsLiteral("ou") || colType.EqualsLiteral("orgunit"))
-      mDatabase->AddDepartment(newRow, column.get());
+      aDatabase->AddDepartment(newRow, column.get());
 
     else if (colType.EqualsLiteral("o")) // organization
-      mDatabase->AddCompany(newRow, column.get());
+      aDatabase->AddCompany(newRow, column.get());
 
     break; // 'o'
 
@@ -636,20 +638,20 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
     if (colType.EqualsLiteral("postalcode"))
     {
       if (mStoreLocAsHome)
-        mDatabase->AddHomeZipCode(newRow, column.get());
+        aDatabase->AddHomeZipCode(newRow, column.get());
       else
-        mDatabase->AddWorkZipCode(newRow, column.get());
+        aDatabase->AddWorkZipCode(newRow, column.get());
     }
 
     else if (colType.EqualsLiteral("postofficebox"))
     {
       nsCAutoString workAddr1, workAddr2;
       SplitCRLFAddressField(column, workAddr1, workAddr2);
-      mDatabase->AddWorkAddress(newRow, workAddr1.get());
-      mDatabase->AddWorkAddress2(newRow, workAddr2.get());
+      aDatabase->AddWorkAddress(newRow, workAddr1.get());
+      aDatabase->AddWorkAddress2(newRow, workAddr2.get());
     }
     else if (colType.EqualsLiteral("pager") || colType.EqualsLiteral("pagerphone"))
-      mDatabase->AddPagerNumber(newRow, column.get());
+      aDatabase->AddPagerNumber(newRow, column.get());
 
     break; // 'p'
 
@@ -657,19 +659,19 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
     if (colType.EqualsLiteral("region"))
     {
       if (mStoreLocAsHome)
-        mDatabase->AddWorkState(newRow, column.get());
+        aDatabase->AddWorkState(newRow, column.get());
       else
-        mDatabase->AddWorkState(newRow, column.get());
+        aDatabase->AddWorkState(newRow, column.get());
     }
 
     break; // 'r'
 
   case 's':
     if (colType.EqualsLiteral("sn") || colType.EqualsLiteral("surname"))
-      mDatabase->AddLastName(newRow, column.get());
+      aDatabase->AddLastName(newRow, column.get());
 
     else if (colType.EqualsLiteral("street"))
-      mDatabase->AddWorkAddress(newRow, column.get());
+      aDatabase->AddWorkAddress(newRow, column.get());
 
     else if (colType.EqualsLiteral("streetaddress"))
     {
@@ -677,32 +679,32 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
       SplitCRLFAddressField(column, addr1, addr2);
       if (mStoreLocAsHome)
       {
-        mDatabase->AddHomeAddress(newRow, addr1.get());
-        mDatabase->AddHomeAddress2(newRow, addr2.get());
+        aDatabase->AddHomeAddress(newRow, addr1.get());
+        aDatabase->AddHomeAddress2(newRow, addr2.get());
       }
       else
       {
-        mDatabase->AddWorkAddress(newRow, addr1.get());
-        mDatabase->AddWorkAddress2(newRow, addr2.get());
+        aDatabase->AddWorkAddress(newRow, addr1.get());
+        aDatabase->AddWorkAddress2(newRow, addr2.get());
       }
     }
     else if (colType.EqualsLiteral("st"))
     {
     if (mStoreLocAsHome)
-      mDatabase->AddHomeState(newRow, column.get());
+      aDatabase->AddHomeState(newRow, column.get());
     else
-      mDatabase->AddWorkState(newRow, column.get());
+      aDatabase->AddWorkState(newRow, column.get());
     }
         
     break; // 's'
 
   case 't':
     if (colType.EqualsLiteral("title"))
-      mDatabase->AddJobTitle(newRow, column.get());
+      aDatabase->AddJobTitle(newRow, column.get());
 
     else if (colType.EqualsLiteral("telephonenumber") )
     {
-      mDatabase->AddWorkPhone(newRow, column.get());
+      aDatabase->AddWorkPhone(newRow, column.get());
     }
 
     break; // 't'
@@ -710,13 +712,13 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
   case 'u':
 
     if (colType.EqualsLiteral("uniquemember") && bIsList)
-      mDatabase->AddLdifListMember(newRow, column.get());
+      aDatabase->AddLdifListMember(newRow, column.get());
 
     break; // 'u'
 
   case 'w':
     if (colType.EqualsLiteral("workurl"))
-      mDatabase->AddWebPage1(newRow, column.get());
+      aDatabase->AddWebPage1(newRow, column.get());
 
     break; // 'w'
 
@@ -724,20 +726,20 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
     if (colType.EqualsLiteral("xmozillanickname"))
     {
       if (bIsList)
-        mDatabase->AddListNickName(newRow, column.get());
+        aDatabase->AddListNickName(newRow, column.get());
       else
-        mDatabase->AddNickName(newRow, column.get());
+        aDatabase->AddNickName(newRow, column.get());
     }
 
     else if (colType.EqualsLiteral("xmozillausehtmlmail"))
     {
       ToLowerCase(column);
       if (-1 != column.Find("true"))
-        mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::html);
+        aDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::html);
       else if (-1 != column.Find("false"))
-        mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::plaintext);
+        aDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::plaintext);
       else
-        mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::unknown);
+        aDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::unknown);
     }
 
     break; // 'x'
@@ -746,9 +748,9 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
     if (colType.EqualsLiteral("zip")) // alias for postalcode
     {
       if (mStoreLocAsHome)
-        mDatabase->AddHomeZipCode(newRow, column.get());
+        aDatabase->AddHomeZipCode(newRow, column.get());
       else
-        mDatabase->AddWorkZipCode(newRow, column.get());
+        aDatabase->AddWorkZipCode(newRow, column.get());
     }
 
     break; // 'z'

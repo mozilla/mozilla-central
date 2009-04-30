@@ -767,7 +767,7 @@ void AddressThreadData::DriverAbort()
 }
 
 
-nsIAddrDatabase *GetAddressBookFromUri(const char *pUri)
+already_AddRefed<nsIAddrDatabase> GetAddressBookFromUri(const char *pUri)
 {
   nsIAddrDatabase *  pDatabase = nsnull;
   if (pUri) {
@@ -805,7 +805,8 @@ nsIAddrDatabase *GetAddressBookFromUri(const char *pUri)
   return pDatabase;
 }
 
-nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
+already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
+                                                 PRBool makeNew)
 {
   nsresult      rv = NS_OK;
 
@@ -831,12 +832,12 @@ nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
   if (NS_FAILED(rv))
     return nsnull;
 
-  nsIAbManager *abManager = nsnull;
+  nsCOMPtr<nsIAbManager> abManager;
   rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
                                              NS_GET_IID(nsIAbManager),
                                              abMan,
                                              NS_PROXY_SYNC,
-                                             (void**)&abManager);
+                                             getter_AddRefs(abManager));
 
   if (NS_SUCCEEDED(rv))
     rv = abManager->GetUserProfileDirectory(getter_AddRefs(dbPath));
@@ -855,15 +856,24 @@ nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
             if (NS_FAILED(rv))
               return nsnull;
 
-            nsIAddrDatabase *addrDBFactory = nsnull;
+            nsCOMPtr<nsIAddrDatabase> addrDBFactory;
             rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
                                                        NS_GET_IID(nsIAddrDatabase),
                                                        addrDatabaseFactory,
                                                        NS_PROXY_SYNC,
-                                                       (void**)&addrDBFactory);
+                                                       getter_AddRefs(addrDBFactory));
             if (NS_SUCCEEDED(rv) && addrDBFactory) {
-          IMPORT_LOG0( "Opening the new address book\n");
-        rv = addrDBFactory->Open( dbPath, PR_TRUE, PR_TRUE, &pDatabase);
+              IMPORT_LOG0( "Opening the new address book\n");
+              nsCOMPtr<nsIAddrDatabase> nonProxyDatabase;
+              rv = addrDBFactory->Open(dbPath, PR_TRUE, PR_TRUE,
+                                       getter_AddRefs(nonProxyDatabase));
+              if (nonProxyDatabase)
+                rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                                           NS_GET_IID(nsIAddrDatabase),
+                                                           nonProxyDatabase,
+                                                           NS_PROXY_SYNC,
+                                                           (void**)&pDatabase);
+                
             }
           }
         }
@@ -878,62 +888,49 @@ nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
     // This is major bogosity again!  Why doesn't the address book
     // just handle this properly for me?  Uggggg...
 
-    nsCOMPtr<nsIRDFService> mainRdfService =
-      do_GetService(kRDFServiceCID, &rv);
-    if (NS_FAILED(rv))
-      return nsnull;
-
-    nsIRDFService *rdfService = nsnull;
+    nsCOMPtr<nsIAbDirectory> nonProxyParentDir;
+    abManager->GetDirectory(NS_LITERAL_CSTRING(kAllDirectoryRoot),
+                            getter_AddRefs(nonProxyParentDir));
+    nsCOMPtr<nsIAbDirectory> parentDir;
+    /*
+     * TODO
+     * This may not be required in the future since the
+     * primary listeners of the nsIAbDirectory will be
+     * RDF directory datasource which propagates events to
+     * RDF Observers. In the future the RDF directory datasource
+     * will proxy the observers because asynchronous directory
+     * implementations, such as LDAP, will assert results from
+     * a thread other than the UI thread.
+     *
+     */
     rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                               NS_GET_IID(nsIRDFService),
-                                               mainRdfService,
-                                               NS_PROXY_SYNC,
-                                               (void**)&rdfService);
-    if (NS_SUCCEEDED(rv)) {
-      nsCOMPtr<nsIRDFResource>  parentResource;
-      rv = rdfService->GetResource(NS_LITERAL_CSTRING(kAllDirectoryRoot),
-                                   getter_AddRefs(parentResource));
-      nsCOMPtr<nsIAbDirectory> parentDir;
-      /*
-       * TODO
-       * This may not be required in the future since the
-       * primary listeners of the nsIAbDirectory will be
-       * RDF directory datasource which propagates events to
-       * RDF Observers. In the future the RDF directory datasource
-       * will proxy the observers because asynchronous directory
-       * implementations, such as LDAP, will assert results from
-       * a thread other than the UI thread.
-       *
-       */
-      rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                                 NS_GET_IID(nsIAbDirectory),
-                                                 parentResource,
-                                                 NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                                 getter_AddRefs(parentDir));
-      if (parentDir)
-      {
-        nsCAutoString URI("moz-abmdbdirectory://");
-        nsCAutoString leafName;
-        rv = dbPath->GetNativeLeafName(leafName);
-        if (NS_FAILED(rv)) {
-          IMPORT_LOG0( "*** Error: Unable to get name of database file\n");
-        }
-        else {
-          URI.Append(leafName);
-          rv = parentDir->CreateDirectoryByURI(nsDependentString(name), URI);
-          if (NS_FAILED(rv))
-            IMPORT_LOG0( "*** Error: Unable to create address book directory\n");
-        }
-      }
-
-      if (NS_SUCCEEDED(rv))
-        IMPORT_LOG0( "Added new address book to the UI\n");
+                                               NS_GET_IID(nsIAbDirectory),
+                                               nonProxyParentDir,
+                                               NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+                                               getter_AddRefs(parentDir));
+    if (parentDir)
+    {
+      nsCAutoString URI("moz-abmdbdirectory://");
+      nsCAutoString leafName;
+      rv = dbPath->GetNativeLeafName(leafName);
+      if (NS_FAILED(rv))
+        IMPORT_LOG0( "*** Error: Unable to get name of database file\n");
       else
-        IMPORT_LOG0( "*** Error: An error occurred while adding the address book to the UI\n");
+      {
+        URI.Append(leafName);
+        rv = parentDir->CreateDirectoryByURI(nsDependentString(name), URI);
+        if (NS_FAILED(rv))
+          IMPORT_LOG0( "*** Error: Unable to create address book directory\n");
+      }
     }
+
+    if (NS_SUCCEEDED(rv))
+      IMPORT_LOG0( "Added new address book to the UI\n");
+    else
+      IMPORT_LOG0( "*** Error: An error occurred while adding the address book to the UI\n");
   }
 
-  return( pDatabase);
+  return pDatabase;
 }
 
 void nsImportGenericAddressBooks::ReportError(const PRUnichar *pName,

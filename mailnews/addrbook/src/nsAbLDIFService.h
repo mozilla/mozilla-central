@@ -55,8 +55,9 @@ private:
   nsresult        str_parse_line(char *line, char **type, char **value, int *vlen) const;
   char *          str_getline(char **next) const;
   nsresult        GetLdifStringRecord(char* buf, PRInt32 len, PRInt32& stopPos);
-  void            AddLdifRowToDatabase(PRBool aIsList);
-  void            AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, char* valueSlot, PRBool bIsList);
+  void AddLdifRowToDatabase(nsIAddrDatabase *aDatabase, PRBool aIsList);
+  void AddLdifColToDatabase(nsIAddrDatabase *aDatabase, nsIMdbRow* newRow,
+                            char* typeSlot, char* valueSlot, PRBool bIsList);
   void            ClearLdifRecordBuffer();
   void            SplitCRLFAddressField(nsCString &inputAddress, nsCString &outputLine1, nsCString &outputLine2) const;
 
@@ -64,7 +65,6 @@ private:
   nsCString       mLdifLine;
   PRInt32         mLFCount;
   PRInt32         mCRCount;
-  nsCOMPtr<nsIAddrDatabase> mDatabase;
 };
 
 #endif
