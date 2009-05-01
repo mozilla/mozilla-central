@@ -43,6 +43,6 @@ Do Not Edit! -->
             <DT><A HREF="http://forums.mozillazine.org/viewforum.php?f=40">@seamonkey_support@</A>
         </DL><p>
     </DL><p>
-#include more-bookmarks.inc
+#include bookmarks.extra
     <HR>
 </DL><p>

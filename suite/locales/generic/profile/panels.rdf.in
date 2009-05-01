@@ -38,5 +38,5 @@
     <NC:title>&sidebar.client-addressbook.label;</NC:title>
     <NC:content>chrome://messenger/content/addressbook/addressbook-panel.xul</NC:content>
   </RDF:Description>
-#include panels.inc
+#include panels.extra
 </RDF:RDF>

@@ -20,7 +20,7 @@ def test(mod, path, entity = None):
                 re.match(r"chrome\/common\/help\/images\/[A-Za-z-_]+\.[a-z]+", path))
   if path == "defines.inc":
     return entity != "MOZ_LANGPACK_CONTRIBUTORS"
-  if path == "profile/more-bookmarks.inc" or path == "profile/panels.inc":
+  if path == "profile/bookmarks.extra" or path == "profile/panels.extra":
     # ignore files for additional bookmarks and panels
     return False
   
