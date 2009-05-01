@@ -5244,6 +5244,7 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
       imapServer->GetAutoSyncOfflineStores(&autoSyncOfflineStores);
       imapServer->GetDownloadBodiesOnGetNewMail(&autoDownloadNewHeaders);
     }
+    PRBool notifiedBodies = PR_FALSE;
     if (m_downloadingFolderForOfflineUse || autoSyncOfflineStores ||
         autoDownloadNewHeaders)
     {
@@ -5256,6 +5257,7 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
         // this is the case when DownloadAllForOffline is called.
         if (m_downloadingFolderForOfflineUse)
         {
+          notifiedBodies = PR_TRUE;
           aProtocol->NotifyBodysToDownload(keysToDownload.Elements(), keysToDownload.Length());
         }
         else
@@ -5270,7 +5272,7 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
         }
       }
     }
-    if (!m_downloadingFolderForOfflineUse)
+    if (!notifiedBodies)
       aProtocol->NotifyBodysToDownload(nsnull, 0/*keysToFetch.Length() */);
    
     nsCOMPtr <nsIURI> runningUri;

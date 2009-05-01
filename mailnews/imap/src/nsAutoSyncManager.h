@@ -218,7 +218,11 @@ class nsAutoSyncManager : public nsIObserver,
     // contains the folders that will be updated in order
     // (see nsImapMailFolder::UpdateFolder for update operation)
     nsCOMArray<nsIAutoSyncState> mUpdateQ;
+    // this is the update state for the current folder.
     UpdateState mUpdateState;
+    
+    // This is set if auto sync has been completely paused.
+    PRBool mPaused;
    
   private:
     PRUint32 mGroupSize;

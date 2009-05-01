@@ -11,7 +11,9 @@ const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
 
 const gFileName = "bug460636";
 const gMsgFile = do_get_file("../../mailnews/data/" + gFileName);
-                     
+
+var gDownloadedOnce = false;
+
 function run_test()
 {
   loadLocalMailAccount();
@@ -63,6 +65,11 @@ var UrlListener =
     // Check for ok status.
     do_check_eq(rc, 0);
 
+    if (!gDownloadedOnce) {
+      gDownloadedOnce = true;
+      gIMAPInbox.downloadAllForOffline(UrlListener, null);
+      return;
+    }
     do_timeout(1000, "endTest();");
   }
 };

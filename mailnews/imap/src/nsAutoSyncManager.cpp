@@ -47,6 +47,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsImapIncomingServer.h"
 #include "nsMsgUtils.h"
+#include "nsIIOService.h"
 
 NS_IMPL_ISUPPORTS1(nsDefaultAutoSyncMsgStrategy, nsIAutoSyncMsgStrategy)
 
@@ -219,6 +220,7 @@ nsAutoSyncManager::nsAutoSyncManager()
   mStartupTime = PR_Now();
   mDownloadModel = dmChained;
   mUpdateState = completed;
+  mPaused = PR_FALSE;
 
   nsresult rv;
   mIdleService = do_GetService("@mozilla.org/widget/idleservice;1", &rv);
@@ -233,6 +235,8 @@ nsAutoSyncManager::nsAutoSyncManager()
                                     NS_XPCOM_SHUTDOWN_OBSERVER_ID,
                                     PR_FALSE);
   observerService->AddObserver(this, kAppIdleNotification, PR_FALSE);
+  observerService->AddObserver(this, NS_IOSERVICE_OFFLINE_STATUS_TOPIC, PR_FALSE);
+  observerService->AddObserver(this, NS_IOSERVICE_GOING_OFFLINE_TOPIC, PR_FALSE);
 }
 
 nsAutoSyncManager::~nsAutoSyncManager()
@@ -527,6 +531,20 @@ NS_IMETHODIMP nsAutoSyncManager::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCo
   return aExitCode;
 }
 
+NS_IMETHODIMP nsAutoSyncManager::Pause()
+{
+  StopTimer();
+  mPaused = PR_TRUE;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAutoSyncManager::Resume()
+{
+  mPaused = PR_FALSE;
+  StartTimerIfNeeded();
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const PRUnichar *aSomeData)
 {
   if (!PL_strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
@@ -537,6 +555,8 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
     {
       observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
       observerService->RemoveObserver(this, kAppIdleNotification);
+      observerService->RemoveObserver(this, NS_IOSERVICE_OFFLINE_STATUS_TOPIC);
+      observerService->RemoveObserver(this, NS_IOSERVICE_GOING_OFFLINE_TOPIC);
     }
 
     // cancel and release the timer
@@ -573,9 +593,17 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
     NOTIFY_LISTENERS(OnStateChanged, (PR_FALSE));
     return NS_OK;
   }
-
+  else if (!PL_strcmp(aTopic, NS_IOSERVICE_OFFLINE_STATUS_TOPIC))
+  {
+    if (nsDependentString(aSomeData).EqualsLiteral(NS_IOSERVICE_ONLINE))
+      Resume();
+  }
+  else if (!PL_strcmp(aTopic, NS_IOSERVICE_GOING_OFFLINE_TOPIC))
+  {
+    Pause();
+  }
   // we're back from system idle
-  if (!PL_strcmp(aTopic, "back"))
+  else if (!PL_strcmp(aTopic, "back"))
   {
     // if we're app idle when we get back from system idle, we ignore
     // it, since we'll keep doing our idle stuff.
@@ -608,6 +636,9 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
 
 nsresult nsAutoSyncManager::StartIdleProcessing()
 {
+  if (mPaused)
+    return NS_OK;
+    
   StartTimerIfNeeded();
   
   // TODO: Any better way to do it?  
@@ -1130,6 +1161,8 @@ NS_IMETHODIMP nsAutoSyncManager::OnDownloadQChanged(nsIAutoSyncState *aAutoSyncS
   if (!autoSyncStateObj)
     return NS_ERROR_INVALID_ARG;
   
+  if (mPaused)
+    return NS_OK;
   // we want to start downloading immediately
   
   // unless the folder is excluded

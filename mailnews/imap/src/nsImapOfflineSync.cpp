@@ -54,6 +54,7 @@
 #include "nsImapProtocol.h"
 #include "nsMsgUtils.h"
 #include "nsIMutableArray.h"
+#include "nsIAutoSyncManager.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -131,6 +132,8 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
     rv = AdvanceToNextFolder();
     if (NS_SUCCEEDED(rv))
       rv = ProcessNextOperation();
+    else if (m_listener)
+      m_listener->OnStopRunningUrl(url, rv);
   }
 
   return rv;
@@ -142,7 +145,7 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
 // Also, sets up m_serverEnumerator to enumerate over the server
 nsresult nsImapOfflineSync::AdvanceToNextServer()
 {
-  nsresult rv;
+  nsresult rv = NS_OK;
 
   if (!m_allServers)
   {
@@ -1085,6 +1088,11 @@ void nsImapOfflineSync::DeleteAllOfflineOpsForCurrentDB()
 
 nsImapOfflineDownloader::nsImapOfflineDownloader(nsIMsgWindow *aMsgWindow, nsIUrlListener *aListener) : nsImapOfflineSync(aMsgWindow, aListener)
 {
+  // pause auto-sync service
+  nsresult rv;
+  nsCOMPtr<nsIAutoSyncManager> autoSyncMgr = do_GetService(NS_AUTOSYNCMANAGER_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) 
+    autoSyncMgr->Pause();    
 }
 
 nsImapOfflineDownloader::~nsImapOfflineDownloader()

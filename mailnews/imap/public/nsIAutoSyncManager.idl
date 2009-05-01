@@ -113,7 +113,7 @@ interface nsIAutoSyncMgrListener : nsISupports {
 };
 
 
-[scriptable, uuid(C358C568-47B2-42b2-8146-3C0F8D1FAD6E)] 
+[scriptable, uuid(E8DC3FD2-E321-400B-B52D-416E39EF5335)] 
 interface nsIAutoSyncManager : nsISupports {
 
   /** 
@@ -197,6 +197,12 @@ interface nsIAutoSyncManager : nsISupports {
    * Active download model; Chained (serial), or Parallel
    */
   attribute long downloadModel;
+  
+  /// Pause autosync (e.g., we're downloading for offline).
+  void pause();
+  
+  /// Resume normal autosync activities (e.g., we've come back online).
+  void resume();
 };
 
 %{C++
