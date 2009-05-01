@@ -1,0 +1,48 @@
+#filter substitution
+#include bookmarks.inc
+<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file.
+It will be read and overwritten.
+Do Not Edit! -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>@bookmarks_title@</TITLE>
+<H1>@bookmarks_heading@</H1>
+
+<DL><p>
+    <DT><H3 PERSONAL_TOOLBAR_FOLDER="true" ID="NC:PersonalToolbarFolder">@personal_toolbarfolder@</H3>
+    <DL><p>
+        <DT><A HREF="http://www.seamonkey-project.org/">@seamonkey@</a>
+        @seamonkey_l10n@
+        <DT><A HREF="http://www.mozilla.org/">@mozilla_org@</A>
+        <DT><A HREF="http://www.mozillazine.org/">@mozillazine@</A>
+        <DT><A HREF="http://www.mozdev.org/">@mozdev@</A>
+    </DL><p>
+    <DT><H3>@seamonkey_and_mozilla@</H3>
+    <DL><p>
+        <DT><A HREF="http://www.seamonkey-project.org/">@seamonkey_long@</a>
+        @seamonkey_l10n_long@
+        <DT><H3>@mozilla_org@</H3>
+        <DL><p>
+            <DT><A HREF="http://www.mozilla.org/">@mozilla_org_long@</A>
+            <DT><A HREF="http://www.mozilla.org/projects/">@mozilla_projects@</A>
+            <DT><A HREF="http://www.mozilla.org/about/">@mozilla_about@</A>
+        </DL><p>
+        <DT><H3>@extend_seamonkey@</H3>
+        <DL><p>
+            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.org/@AB_CD@/seamonkey/">@seamonkey_addons@</a>
+            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.org/@AB_CD@/seamonkey/themes">@seamonkey_themes@</a>
+            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.org/@AB_CD@/seamonkey/dictionaries">@seamonkey_dictionaries@</a>
+            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.org/@AB_CD@/seamonkey/plugins">@seamonkey_plugins@</a>
+            <DT><A HREF="http://www.mozdev.org/">@mozdev@</A>
+            <DT><A HREF="http://www.mozdev.org/projects/applications/SeaMonkey.html">@mozdev_seamonkey@</A>
+        </DL><p>
+        <DT><H3>@community_support@</H3>
+        <DL><p>
+            <DT><A HREF="http://www.seamonkey-project.org/community">@seamonkey_community@</a>
+            <DT><A HREF="http://www.mozillazine.org/">@mozillazine@</A>
+            <DT><A HREF="http://forums.mozillazine.org/viewforum.php?f=40">@seamonkey_support@</A>
+        </DL><p>
+    </DL><p>
+#include more-bookmarks.inc
+    <HR>
+</DL><p>
