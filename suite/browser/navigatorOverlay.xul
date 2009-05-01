@@ -411,7 +411,7 @@
         <menuseparator />
   
         <!-- overlayed from viewZoomOverlay.xul -->
-        <menu id="menu_zoom" observes="isImage"/>
+        <menu id="menu_zoom"/>
 
         <menu id="menu_UseStyleSheet" label="&useStyleSheetMenu.label;" accesskey="&useStyleSheetMenu.accesskey;" disabled="false" observes="isImage">
           <menupopup onpopupshowing="stylesheetFillPopup(this);"
