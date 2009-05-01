@@ -47,7 +47,10 @@ else
   debug = function() {}
 
 Components.utils.import("resource://gre/modules/ISO8601DateUtils.jsm");
-var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
+var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                    .getService(Components.interfaces.nsIRDFService);
+var rsspref = Components.classes["@mozilla.org/preferences-service;1"]
+                        .getService(Components.interfaces.nsIPrefBranch);
 
 const RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 const RDF_TYPE = rdf.GetResource(RDF_NS + "type");
@@ -91,12 +94,14 @@ const ATOM_IETF_NS = "http://www.w3.org/2005/Atom";
 var containerUtils = Components.classes["@mozilla.org/rdf/container-utils;1"]
                                .getService(Components.interfaces.nsIRDFContainerUtils);
 
-var fileHandler = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService)
-                            .getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+var fileHandler = Components.classes["@mozilla.org/network/io-service;1"]
+                            .getService(Components.interfaces.nsIIOService)
+                            .getProtocolHandler("file")
+                            .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
-// helper routine that checks our subscriptions list array and returns true if the url
-// is already in our list. This is used to prevent the user from subscribing to the same
-// feed multiple times for the same server...
+// Helper routine that checks our subscriptions list array and returns
+// true if the url is already in our list. This is used to prevent the
+// user from subscribing to the same feed multiple times for the same server...
 function feedAlreadyExists(aUrl, aServer)
 {
   var ds = getSubscriptionsDS(aServer);
@@ -170,9 +175,12 @@ function deleteFeed(aId, aServer)
   }
 }
 
-// updates the "feedUrl" property in the message database for the folder in question.
+// Updates the "feedUrl" property in the message database for the folder
+// in question
 
-var kFeedUrlDelimiter = '|'; // the delimiter used to delimit feed urls in the msg folder database "feedUrl" property
+// The delimiter used to delimit feed urls in the msg folder database
+// "feedUrl" property
+var kFeedUrlDelimiter = '|';
 
 function updateFolderFeedUrl(aFolder, aFeedUrl, aRemoveUrl)
 {
@@ -183,14 +191,14 @@ function updateFolderFeedUrl(aFolder, aFeedUrl, aRemoveUrl)
 
   if (aRemoveUrl)
   {
-    // remove our feed url string from the list of feed urls
+    // Remove our feed url string from the list of feed urls
     var newFeedUrl = oldFeedUrl.replace(kFeedUrlDelimiter + aFeedUrl, "");
     folderInfo.setCharProperty("feedUrl", newFeedUrl);
   }
   else
     folderInfo.setCharProperty("feedUrl", oldFeedUrl + kFeedUrlDelimiter + aFeedUrl);
 
-  // commit the db to preserve our changes
+  // Commit the db to preserve our changes
   msgdb.Close(true);
 }
 
@@ -225,9 +233,9 @@ function getRDFTargetValue(ds, source, property)
       if (node)
         return node.Value;
     }catch(e){
-      // if the RDF was bogus, do nothing. rethrow if it's some other problem
-      if(!((e instanceof Components.interfaces.nsIXPCException)
-      && (e.result==Components.results.NS_ERROR_NO_INTERFACE)))
+      // If the RDF was bogus, do nothing. Rethrow if it's some other problem
+      if (!((e instanceof Components.interfaces.nsIXPCException) &&
+            (e.result==Components.results.NS_ERROR_NO_INTERFACE)))
         throw e;
     }
 
@@ -269,6 +277,32 @@ function getSubscriptionsFile(server)
     createSubscriptionsFile(file);
 
   return file;
+}
+
+// Generic get feed property, based on child value. Assumes 1 unique
+// child value with 1 unique parent, valid for feeds.rdf structure.
+function getParentTargetForChildResource(childResource, parentTarget, server)
+{
+  var ds = getSubscriptionsDS(server);
+  var childRes = rdf.GetResource(childResource);
+  var parent = null;
+
+  var arcsIn = ds.ArcLabelsIn(childRes);
+  while (arcsIn.hasMoreElements()){
+    var arc = arcsIn.getNext();
+    if (arc instanceof Components.interfaces.nsIRDFResource){
+      parent = ds.GetSource(arc, childRes, true);
+      parent = parent.QueryInterface(Components.interfaces.nsIRDFResource);
+      break;
+    }
+  }
+
+  if (parent) {
+    var resource = rdf.GetResource(parent.Value);
+    return ds.GetTarget(resource, parentTarget, true);
+  }
+
+  return null;
 }
 
 function createSubscriptionsFile(file)
@@ -362,18 +396,21 @@ function dateRescue(dateString)
 {
   // Deal with various kinds of invalid dates
   if(!isNaN(parseInt(dateString)))
-  { // It's an integer, so maybe it's a timestamp
+  {
+    // It's an integer, so maybe it's a timestamp
     var d = new Date(parseInt(dateString)*1000);
     var now = new Date();
     var yeardiff = now.getFullYear()-d.getFullYear();
-    debug("Rescue Timestamp date: " + d.toString() + "\nYear diff:" + yeardiff + "\n");
+    debug("Rescue Timestamp date: " + d.toString() + "\nYear diff:"
+        + yeardiff + "\n");
     if((yeardiff >= 0) && (yeardiff<3))
     {
-      // it's quite likely the correct date
+      // It's quite likely the correct date
       return d.toString();
     }
   }
-  if(dateString.search(/^\d\d\d\d/) != -1) //Could be a ISO8601/W3C date
+  if(dateString.search(/^\d\d\d\d/) != -1)
+    //Could be a ISO8601/W3C date
     return W3CToIETFDate(dateString);
 
   // Can't help. Set to current time.

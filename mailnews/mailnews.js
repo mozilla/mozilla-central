@@ -583,6 +583,24 @@ This option is mainly for the UI of html_as.
       This mode will limit the features available (e.g. uncommon
       attachment types and inline images) and is for paranoid users.
 */
+// RSS rendering options, see prior 4 prefs above.
+pref("rss.display.prefer_plaintext", false);
+pref("rss.display.html_as", 0);
+pref("rss.display.html_sanitizer.allowed_tags", "html head title body p br div(lang,title) h1 h2 h3 h4 h5 h6 ul(type,compact) ol(type,compact,start) li(type,value) dl dt dd blockquote(type,cite) pre noscript noframes strong em sub sup span(lang,title) acronym(title) abbr(title) del(title,cite,datetime) ins(title,cite,datetime) q(cite) a(href,name,title) img(alt,title,longdesc,src) base(href) area(alt) applet(alt) object(alt) var samp dfn address kbd code cite s strike tt b i table(align) caption tr(align,valign) td(rowspan,colspan,align,valign) th(rowspan,colspan,align,valign) wbr");
+pref("rss.display.disallow_mime_handlers", 0);
+
+// RSS message body preferences
+//0 - global no, load web page
+//1 - global yes, load summary
+//2 - use individual folder setting; if no setting default to 1
+pref("rss.show.summary", 1);
+
+// Action on double click or enter in threadpane for message with 
+// header 'content-base' url (rss)
+// 0 - open content-base url in new window
+// 1 - open summary in new window
+// 2 - toggle load summary and content-base url in message pane
+pref("rss.show.content-base", 0);
 
 pref("mail.forward_message_mode", 0); // 0=default as attachment 2=forward as inline with attachments, (obsolete 4.x value)1=forward as quoted (mapped to 2 in mozilla)
 pref("mail.forward_add_extension", true); // add .eml extension when forwarding as attachment

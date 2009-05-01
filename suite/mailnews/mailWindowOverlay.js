@@ -164,6 +164,8 @@ function InitGoMessagesMenu()
 
 function view_init()
 {
+  var isFeed = IsFeedItem();
+
   if (!gMessengerBundle)
       gMessengerBundle = document.getElementById("bundle_messenger");
 
@@ -188,6 +190,31 @@ function view_init()
   var threads_menuitem = document.getElementById('viewMessagesMenu');
   if (threads_menuitem) {
     threads_menuitem.setAttribute("disabled", gAccountCentralLoaded);
+  }
+
+  // Initialize the Message Body menuitem
+  document.getElementById('viewBodyMenu').hidden = isFeed;
+
+  // Initialize the Show Feed Summary menu
+  var viewFeedSummary = document.getElementById('viewFeedSummary');
+  var winType = document.documentElement.getAttribute('windowtype');
+  if (winType != "mail:3pane")
+    viewFeedSummary.hidden = !gShowFeedSummary;
+  else
+    viewFeedSummary.hidden = !isFeed;
+
+  var viewRssMenuItemIds = ["bodyFeedGlobalWebPage",
+                            "bodyFeedGlobalSummary",
+                            "bodyFeedPerFolderPref"];
+  var checked = gPrefBranch.getIntPref("rss.show.summary");
+  document.getElementById(viewRssMenuItemIds[checked])
+          .setAttribute("checked", true);
+
+  if (winType != "mail:3pane") {
+    document.getElementById("viewFeedSummarySeparator").hidden = true;
+    document.getElementById("bodyFeedGlobalWebPage").hidden = true;
+    document.getElementById("bodyFeedGlobalSummary").hidden = true;
+    document.getElementById("bodyFeedPerFolderPref").hidden = true;
   }
 
   // Initialize the Display Attachments Inline menu.
@@ -289,6 +316,7 @@ function InitMessageMenu()
   if(aMessage) {
       isNews = IsNewsMessage(aMessage);
   }
+  var isFeed = IsFeedItem();
 
   // We show Reply to Newsgroups only for news messages.
   var replyNewsgroupMenuItem = document.getElementById("replyNewsgroupMainMenu");
@@ -365,6 +393,20 @@ function InitMessageMenu()
   if(tagMenu)
       tagMenu.setAttribute("disabled", !aMessage);
 
+  // Initialize the Open Message menuitem
+  var winType = document.documentElement.getAttribute('windowtype');
+  if (winType == "mail:3pane")
+    document.getElementById('openMessageWindowMenuitem').hidden = isFeed;
+
+  // Initialize the Open Feed Message handler menu
+  var index = GetFeedOpenHandler();
+  document.getElementById("menu_openFeedMessage")
+          .childNodes[index].setAttribute("checked", true);
+  var openRssMenu = document.getElementById("openFeedMessage");
+  openRssMenu.hidden = !isFeed;
+  if (winType != "mail:3pane")
+    openRssMenu.hidden = true;
+
   // Disable the Mark menu when we're not in a folder.
   var markMenu = document.getElementById("markMenu");
   if(markMenu)
@@ -407,12 +449,29 @@ function InitViewBodyMenu()
   var html_as = 0;
   var prefer_plaintext = false;
   var disallow_classes = 0;
+  var isFeed = IsFeedItem();
+  const defaultIDs = ["bodyAllowHTML",
+                      "bodySanitized",
+                      "bodyAsPlaintext"];
+  const rssIDs = ["bodyFeedSummaryAllowHTML",
+                  "bodyFeedSummarySanitized",
+                  "bodyFeedSummaryAsPlaintext"];
+  var menuIDs = isFeed ? rssIDs : defaultIDs;
   try
   {
-    prefer_plaintext = pref.getBoolPref("mailnews.display.prefer_plaintext");
-    html_as = pref.getIntPref("mailnews.display.html_as");
-    disallow_classes =
+    // Get prefs
+    if (isFeed) {
+      prefer_plaintext = pref.getBoolPref("rss.display.prefer_plaintext");
+      html_as = pref.getIntPref("rss.display.html_as");
+      disallow_classes = pref.getIntPref("rss.display.disallow_mime_handlers");
+    }
+    else {
+      prefer_plaintext = pref.getBoolPref("mailnews.display.prefer_plaintext");
+      html_as = pref.getIntPref("mailnews.display.html_as");
+      disallow_classes =
                     pref.getIntPref("mailnews.display.disallow_mime_handlers");
+    }
+
     if (disallow_classes > 0)
       disallow_classes_no_html = disallow_classes;
     // else disallow_classes_no_html keeps its inital value (see top)
@@ -422,33 +481,27 @@ function InitViewBodyMenu()
     dump("failed to get the body plaintext vs. HTML prefs\n");
   }
 
-  var AllowHTML_checked = false;
-  var Sanitized_checked = false;
-  var AsPlaintext_checked = false;
-  if (prefer_plaintext == false && html_as == 0 && disallow_classes == 0)
-    AllowHTML_checked = true;
-  else if (prefer_plaintext == false && html_as == 3 && disallow_classes > 0)
-    Sanitized_checked = true;
-  else if (prefer_plaintext == true && html_as == 1 && disallow_classes > 0)
-    AsPlaintext_checked = true;
+  var AllowHTML_menuitem = document.getElementById(menuIDs[0]);
+  var Sanitized_menuitem = document.getElementById(menuIDs[1]);
+  var AsPlaintext_menuitem = document.getElementById(menuIDs[2]);
+
+  if (!prefer_plaintext && !html_as && !disallow_classes &&
+      AllowHTML_menuitem)
+    AllowHTML_menuitem.setAttribute("checked", true);
+  else if (!prefer_plaintext && html_as == 3 && disallow_classes > 0 &&
+      Sanitized_menuitem)
+    Sanitized_menuitem.setAttribute("checked", true);
+  else if (prefer_plaintext && html_as == 1 && disallow_classes > 0 &&
+      AsPlaintext_menuitem)
+    AsPlaintext_menuitem.setAttribute("checked", true);
   // else (the user edited prefs/user.js) check none of the radio menu items
 
-  var AllowHTML_menuitem = document.getElementById("bodyAllowHTML");
-  var Sanitized_menuitem = document.getElementById("bodySanitized");
-  var AsPlaintext_menuitem = document.getElementById("bodyAsPlaintext");
-  if (AllowHTML_menuitem
-      && Sanitized_menuitem
-      && AsPlaintext_menuitem)
-  {
-    AllowHTML_menuitem.setAttribute("checked",
-                                    AllowHTML_checked ? "true" : "false");
-    Sanitized_menuitem.setAttribute("checked",
-                                      Sanitized_checked ? "true" : "false");
-    AsPlaintext_menuitem.setAttribute("checked",
-                                      AsPlaintext_checked ? "true" : "false");
+  if (isFeed) {
+    AllowHTML_menuitem.hidden = !gShowFeedSummary;
+    Sanitized_menuitem.hidden = !gShowFeedSummary;
+    AsPlaintext_menuitem.hidden = !gShowFeedSummary;
+    document.getElementById("viewFeedSummarySeparator").hidden = !gShowFeedSummary;
   }
-  else
-    dump("Where is my View|Body menu?\n");
 }
 
 function IsNewsMessage(messageUri)
@@ -459,6 +512,14 @@ function IsNewsMessage(messageUri)
 function IsImapMessage(messageUri)
 {
   return (/^imap-message:/.test(messageUri));
+}
+
+function IsFeedItem()
+{
+  return (GetFirstSelectedMessage() &&
+          ((gMsgFolderSelected &&
+            gMsgFolderSelected.server.type == 'rss') ||
+           'content-base' in currentHeaderData));
 }
 
 function SetMenuItemLabel(menuItemId, customLabel)
@@ -1321,6 +1382,13 @@ function MsgOpenNewWindowForFolder(uri, key)
 // passing in the view, so this will work for search and the thread pane
 function MsgOpenSelectedMessages()
 {
+  // Toggle message body (rss summary) and content-base url in message
+  // pane per pref, otherwise open summary or web page in new window.
+  if (IsFeedItem() && GetFeedOpenHandler() == 2) {
+    FeedSetContentViewToggle();
+    return;
+  }
+
   var dbView = GetDBView();
 
   var indices = GetSelectedIndices(dbView);
@@ -1685,6 +1753,36 @@ function MsgBodyAsPlaintext()
                            disallow_classes_no_html);
     MsgReload();
     return true;
+}
+
+function MsgFeedBodyRenderPrefs(plaintext, html, mime)
+{
+  gPrefBranch.setBoolPref("rss.display.prefer_plaintext", plaintext);
+  gPrefBranch.setIntPref("rss.display.html_as", html);
+  gPrefBranch.setIntPref("rss.display.disallow_mime_handlers", mime);
+  // Reload only if showing rss summary; menuitem hidden if web page..
+  ReloadMessage();
+}
+
+//How to load message with content-base url on enter in threadpane
+function GetFeedOpenHandler()
+{
+  return gPrefBranch.getIntPref("rss.show.content-base");
+}
+
+function ChangeFeedOpenHandler(val)
+{
+  gPrefBranch.setIntPref("rss.show.content-base", val);
+}
+
+//Current state: load web page if 0, show summary if 1
+var gShowFeedSummary;
+var gShowFeedSummaryToggle = false;
+
+function ChangeFeedShowSummaryPref(val)
+{
+  pref.setIntPref("rss.show.summary", val);
+  ReloadMessage();
 }
 
 function ToggleInlineAttachment(target)
@@ -2410,6 +2508,10 @@ function ClearPendingReadTimer()
 
 function OnMsgParsed(aUrl)
 {
+  // If rss feed (has 'content-base' header), show summary or load web
+  // page per pref; earliest we have content DOM is here (onMsgParsed).
+  FeedSetContentView();
+
   gMessageNotificationBar.setPhishingMsg(aUrl);
 
   // scale any overflowing images
@@ -2653,6 +2755,148 @@ function OpenOrFocusWindow(args, windowType, chromeURL)
   }
   else
     window.openDialog(chromeURL, "", "chrome,resizable,status,centerscreen,dialog=no", args);
+}
+
+// Switch between message body (feed summary) and content-base url in
+// the Message Pane, called in MsgOpenSelectedMessages
+function FeedSetContentViewToggle()
+{
+  gShowFeedSummaryToggle = true;
+  FeedSetContentView(gShowFeedSummary ? 0 : 1);
+}
+
+// Check message format
+function FeedCheckContentFormat()
+{
+  var contentWindowDoc = window.top._content.document;
+
+  // Not an rss message
+  if (!IsFeedItem())
+    return false;
+
+  // Thunderbird 2 rss messages with 'Show article summary' not selected,
+  // ie message body constructed to show web page in an iframe, can't show
+  // a summary - notify user.
+  var rssIframe = contentWindowDoc.getElementById('_mailrssiframe');
+  if (rssIframe) {
+    if (gShowFeedSummaryToggle ||
+        pref.getIntPref("rss.show.summary") == 1) {
+      var titleMsg = gMessengerBundle.getString("feedNoSummaryTitle");
+      var dialogMsg = gMessengerBundle.getString("feedNoSummaryAlert");
+      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                    .getService(Components.interfaces.nsIPromptService);
+      promptService.alert(window, titleMsg, dialogMsg);
+      gShowFeedSummaryToggle = false;
+    }
+    return false;
+  }
+
+  return true;
+}
+
+// View summary or load web page for feeds
+function FeedSetContentView(val)
+{
+  // Check it..
+  if (!FeedCheckContentFormat())
+    return;
+
+  var showSummary;
+  var wintype = document.documentElement.getAttribute('windowtype');
+  var contentBase = currentHeaderData["content-base"];
+  var contentWindowDoc = window.top._content.document;
+  var divHTML = new XPCNativeWrapper(contentWindowDoc,
+                      "getElementsByClassName()")
+                      .getElementsByClassName("moz-text-html")[0];
+  var divPLAIN = new XPCNativeWrapper(contentWindowDoc,
+                      "getElementsByClassName()")
+                      .getElementsByClassName("moz-text-plain")[0];
+
+  if (val == null)
+    // Not passed a value, so generic select unless in toggle mode
+    if (!gShowFeedSummaryToggle)
+      // Not in toggle mode, get prefs
+      val = pref.getIntPref("rss.show.summary");
+    else {
+      // Coming in again from toggle, summary already 'reloadMessage'ed,
+      // just need to set display for summary on.
+      gShowFeedSummaryToggle = false;
+      if (divHTML)
+        divHTML.parentNode.setAttribute("selected", gShowFeedSummary);
+      if (divPLAIN)
+        divPLAIN.parentNode.setAttribute("selected", gShowFeedSummary);
+      return;
+    }
+
+  switch (val) {
+    case 0:
+      showSummary = false;
+      break;
+    case 1:
+      showSummary = true
+      break;
+    case 2:
+      if (wintype == "mail:3pane") {
+        // Get quickmode per feed pref from feeds.rdf
+        var quickMode, targetRes;
+        var scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+                           .getService(Components.interfaces.mozIJSSubScriptLoader);
+        if (scriptLoader && typeof FZ_NS == 'undefined')
+          scriptLoader.loadSubScript("chrome://messenger-newsblog/content/utils.js");
+        try
+        {
+          var targetRes = getParentTargetForChildResource(
+                          gMsgFolderSelected.URI,
+                          FZ_QUICKMODE,
+                          gMsgFolderSelected.server);
+        }
+        catch (ex) {};
+
+        if (targetRes)
+        {
+          quickMode = targetRes.QueryInterface(Components.interfaces
+                               .nsIRDFLiteral);
+          quickMode = quickMode.Value;
+          quickMode = eval(quickMode);
+        }
+        else
+          // Do not have this item's feed anymore in feeds.rdf though its
+          // message folder remains and its items exist in feeditems.rdf
+          // (Bug 309449), or the item has been moved to another folder,
+          // or some error on the file. Default to show summary.
+          quickMode = true;
+      }
+      showSummary = quickMode;
+      break;
+  }
+
+  gShowFeedSummary = showSummary;
+
+  // Message window - here only if GetFeedOpenHandler() = 0 or 1
+  if (wintype == "mail:messageWindow") {
+    // Set global var for message window
+    gShowFeedSummary = GetFeedOpenHandler();
+    // Get pref since may be reusable message window and changed in 3pane
+    showSummary = gShowFeedSummary == 0 ? false : true;
+  }
+
+  if (divHTML)
+    divHTML.parentNode.setAttribute("selected", showSummary);
+  if (divPLAIN)
+    divPLAIN.parentNode.setAttribute("selected", showSummary);
+
+  if (showSummary) {
+    if (gShowFeedSummaryToggle) {
+      if (gDBView && GetNumSelectedMessages() == 1) {
+        ReloadMessage();
+      }
+    }
+  }
+  else if(contentBase.headerValue) {
+    document.getElementById("messagepane")
+            .loadURI(contentBase.headerValue, null, null);
+    gShowFeedSummaryToggle = false;
+  }
 }
 
 function getMailToolbox()

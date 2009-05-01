@@ -228,7 +228,8 @@
 <!ENTITY watchedThreadsWithUnreadCmd.label "Watched Threads with Unread">
 <!ENTITY watchedThreadsWithUnreadCmd.accesskey "W">
 <!ENTITY ignoredThreadsCmd.label "Ignored Threads">
-<!ENTITY ignoredThreadsCmd.accesskey "i">  
+<!ENTITY ignoredThreadsCmd.accesskey "i">
+
 <!ENTITY headersMenu.label "Headers">
 <!ENTITY headersMenu.accesskey "H">
 <!ENTITY headersAllCmd.label "All">
@@ -243,6 +244,16 @@
 <!ENTITY bodySanitized.accesskey "S">
 <!ENTITY bodyAsPlaintext.label "Plain Text">
 <!ENTITY bodyAsPlaintext.accesskey "P">
+
+<!ENTITY bodyMenuFeed.label "Feed Message Body As">
+<!ENTITY bodyMenuFeed.accesskey "B">
+<!ENTITY viewFeedWebPage.label "Web Page">
+<!ENTITY viewFeedWebPage.accesskey "W">
+<!ENTITY viewFeedSummary.label "Summary">
+<!ENTITY viewFeedSummary.accesskey "m">
+<!ENTITY viewFeedSummaryFeedPropsPref.label "Default Format">
+<!ENTITY viewFeedSummaryFeedPropsPref.accesskey "D">
+
 <!ENTITY viewAttachmentsInlineCmd.label "Display Attachments Inline">
 <!ENTITY viewAttachmentsInlineCmd.accesskey "A">
 <!ENTITY reloadCmd.label "Reload">
@@ -300,6 +311,8 @@
 <!ENTITY prevFlaggedMsgCmd.accesskey "F">
 <!ENTITY startPageCmd.label "Mail Start Page">
 <!ENTITY startPageCmd.accesskey "S">
+
+<!-- Message Menu -->
 <!ENTITY msgMenu.label "Message">
 <!ENTITY msgMenu.accesskey "M">
 <!ENTITY newMsgCmd.label "New Message">
@@ -403,6 +416,14 @@
 <!ENTITY openMessageWindowCmd.label "Open Message">
 <!ENTITY openMessageWindowCmd.accesskey "O">
 <!ENTITY openMessageWindowCmd.key "o">
+<!ENTITY openFeedMessage.label "Open Feed Message">
+<!ENTITY openFeedMessage.accesskey "O">
+<!ENTITY openFeedWebPageInWindow.label "Web Page in New Window">
+<!ENTITY openFeedWebPageInWindow.accesskey "W">
+<!ENTITY openFeedSummaryInWindow.label "Summary in New Window">
+<!ENTITY openFeedSummaryInWindow.accesskey "S">
+<!ENTITY openFeedWebPageInMP.label "Toggle Web Page and Summary in Message Pane">
+<!ENTITY openFeedWebPageInMP.accesskey "T">
 
 <!-- Tools Menu -->
 <!ENTITY searchMailCmd.label "Search Messages…">

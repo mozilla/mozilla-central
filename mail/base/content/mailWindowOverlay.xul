@@ -1110,6 +1110,50 @@
                         accesskey="&bodyAsPlaintext.accesskey;" oncommand="MsgBodyAsPlaintext()"/>
             </menupopup>
           </menu>
+          <menu id="viewFeedSummary" 
+                label="&bodyMenuFeed.label;" 
+                accesskey="&bodyMenuFeed.accesskey;">
+            <menupopup id="viewFeedSummaryPopupMenu" 
+                       onpopupshowing="InitViewBodyMenu()">
+              <menuitem id="bodyFeedSummaryAllowHTML" 
+                        type="radio" 
+                        name="viewFeedBodyHTMLGroup"
+                        label="&bodyAllowHTML.label;" 
+                        accesskey="&bodyAllowHTML.accesskey;"
+                        oncommand="MsgFeedBodyRenderPrefs(false, 0, 0)"/>
+              <menuitem id="bodyFeedSummarySanitized" 
+                        type="radio" 
+                        name="viewFeedBodyHTMLGroup"
+                        label="&bodySanitized.label;" 
+                        accesskey="&bodySanitized.accesskey;"
+                        oncommand="MsgFeedBodyRenderPrefs(false, 3, gDisallow_classes_no_html)"/>
+              <menuitem id="bodyFeedSummaryAsPlaintext" 
+                        type="radio" 
+                        name="viewFeedBodyHTMLGroup"
+                        label="&bodyAsPlaintext.label;" 
+                        accesskey="&bodyAsPlaintext.accesskey;"
+                        oncommand="MsgFeedBodyRenderPrefs(true, 1, gDisallow_classes_no_html)"/>
+              <menuseparator id="viewFeedSummarySeparator"/>
+              <menuitem id="bodyFeedGlobalWebPage" 
+                        type="radio" 
+                        name="viewFeedSummaryGroup"
+                        label="&viewFeedWebPage.label;" 
+                        accesskey="&viewFeedWebPage.accesskey;"
+                        oncommand="ChangeFeedShowSummaryPref(0)"/>
+              <menuitem id="bodyFeedGlobalSummary" 
+                        type="radio" 
+                        name="viewFeedSummaryGroup"
+                        label="&viewFeedSummary.label;" 
+                        accesskey="&viewFeedSummary.accesskey;"
+                        oncommand="ChangeFeedShowSummaryPref(1)"/>
+              <menuitem id="bodyFeedPerFolderPref" 
+                        type="radio" 
+                        name="viewFeedSummaryGroup"
+                        label="&viewFeedSummaryFeedPropsPref.label;" 
+                        accesskey="&viewFeedSummaryFeedPropsPref.accesskey;"
+                        oncommand="ChangeFeedShowSummaryPref(2)"/>
+            </menupopup>
+          </menu>
           <menuitem id="viewAttachmentsInlineMenuitem" label="&viewAttachmentsInlineCmd.label;" accesskey="&viewAttachmentsInlineCmd.accesskey;"
             oncommand="ToggleInlineAttachment(event.target)" type="checkbox" checked="true"/>
           <menuseparator id="viewAfterAttachmentsSeparator"/>
@@ -1233,6 +1277,30 @@
               command="cmd_openMessage"
               accesskey="&openMessageWindowCmd.accesskey;"
               key="key_openMessage"/>
+            <menu id="openFeedMessage" 
+                  label="&openFeedMessage.label;" 
+                  accesskey="&openFeedMessage.accesskey;">
+              <menupopup id="menu_openFeedMessage">
+                <menuitem id="menu_openFeedWebPageInWindow" 
+                          type="radio"
+                          name="openFeedGroup" 
+                          label="&openFeedWebPageInWindow.label;"
+                          accesskey="&openFeedWebPageInWindow.accesskey;"
+                          oncommand="ChangeFeedOpenHandler(0);"/>
+                <menuitem id="menu_openFeedSummaryInWindow" 
+                          type="radio"
+                          name="openFeedGroup" 
+                          label="&openFeedSummaryInWindow.label;"
+                          accesskey="&openFeedSummaryInWindow.accesskey;"
+                          oncommand="ChangeFeedOpenHandler(1);"/>
+                <menuitem id="menu_openFeedWebPageInMessagePane" 
+                          type="radio"
+                          name="openFeedGroup" 
+                          label="&openFeedWebPageInMP.label;"
+                          accesskey="&openFeedWebPageInMP.accesskey;"
+                          oncommand="ChangeFeedOpenHandler(2);"/>
+              </menupopup>
+            </menu>
             <menuseparator id="messageAfterOpenMsgSeparator"/>
             <menu id="moveMenu"
                   label="&moveMsgToMenu.label;"

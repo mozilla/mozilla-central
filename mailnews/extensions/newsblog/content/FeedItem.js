@@ -49,71 +49,37 @@ const MESSAGE_TEMPLATE = "\n\
   <head>\n\
     <title>%TITLE%</title>\n\
     <base href=\"%BASE%\">\n\
-    <style type=\"text/css\">\n\
-      %STYLE%\n\
-    </style>\n\
   </head>\n\
-  <body>\n\
-    %CONTENT_TEMPLATE%\n\
+  <body id=\"msgBody\" selected=\"false\">\n\
+    <div id=\"msgSummary\">\n\
+      %CONTENT%\n\
+    </div>\n\
+    <iframe id=\"msgIframe\" selected=\"false\" src=\"\">\n\
   </body>\n\
 </html>\n\
 ";
-
-const REMOTE_CONTENT_TEMPLATE = "\n\
-    <iframe id =\"_mailrssiframe\" src=\"%URL%\">\n\
-      %DESCRIPTION%\n\
-    </iframe>\n\
-";
-
-const REMOTE_STYLE = "\n\
-      body {\n\
-        margin: 0;\n\
-        border: none;\n\
-        padding: 0;\n\
-      }\n\
-      iframe {\n\
-        position: fixed;\n\
-        top: 0;\n\
-        left: 0;\n\
-        width: 100%;\n\
-        height: 100%;\n\
-        border: none;\n\
-      }\n\
-";
-
-// Unlike remote content, which is locked within a fixed position iframe,
-// local content goes is positioned according to the normal rules of flow.
-// The problem with this is that the message pane itself provides a scrollbar
-// if necessary, and that scrollbar appears next to the toolbar as well as
-// the content being scrolled.  The solution is to lock local content within
-// a fixed position div and set its overflow property to auto so that the div
-// itself provides the scrollbar.  Unfortunately we can't do that because of
-// Mozilla bug 97283, which makes it hard to scroll an auto overflow div.
-
-const LOCAL_CONTENT_TEMPLATE = "\n\
-      %CONTENT%\n\
-";
-
-// no local style overrides at this time
-const LOCAL_STYLE = "\n";
 
 function FeedItem()
 {
   this.mDate = new Date().toString();
   this.mUnicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
-                          .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+                                     .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
 }
 
 FeedItem.prototype =
 {
-  isStoredWithId: false, // we currently only do this for IETF Atom. RSS2 with GUIDs should do this as well.
-  xmlContentBase: null, // only for IETF Atom
+  // Currently only for IETF Atom. RSS2 with GUIDs should do this as too.
+  isStoredWithId: false,
+  // Only for IETF Atom
+  xmlContentBase: null,
   id: null,
   feed: null,
   description: null,
   content: null,
-  enclosure: null,  // we currently only support one enclosure per feed item...
-  title: "(no subject)",  // TO DO: this needs to be localized
+  // Currently only support one enclosure per feed item...
+  enclosure: null,
+  // TO DO: this needs to be localized
+  title: "(no subject)",
   author: "anonymous",
   mURL: null,
   characterSet: "",
@@ -125,7 +91,8 @@ FeedItem.prototype =
 
   set url(aVal)
   {
-    var uri = Components.classes["@mozilla.org/network/standard-url;1"].getService(Components.interfaces["nsIStandardURL"]);
+    var uri = Components.classes["@mozilla.org/network/standard-url;1"]
+                        .getService(Components.interfaces["nsIStandardURL"]);
     uri.init(1, 80, aVal, null, null);
     var uri = uri.QueryInterface(Components.interfaces.nsIURI);
     this.mURL = uri.spec;
@@ -149,6 +116,11 @@ FeedItem.prototype =
   get messageID()
   {
     var messageID = this.id || this.mURL || this.title;
+
+    debug('messageID - id = ' + this.id);
+    debug('messageID - mURL = ' + this.mURL);
+    debug('messageID - title = ' + this.title);
+    debug('messageID - messageID = ' + messageID);
 
     // Escape occurrences of message ID meta characters <, >, and @.
     messageID.replace(/</g, "%3C");
@@ -185,47 +157,21 @@ FeedItem.prototype =
 
     if (this.isStored())
       debug(this.identity + " already stored; ignoring");
-    else if (this.content)
-    {
-      debug(this.identity + " has content; storing");
-      var content = MESSAGE_TEMPLATE;
-      content = content.replace(/%CONTENT_TEMPLATE%/, LOCAL_CONTENT_TEMPLATE);
-      content = content.replace(/%STYLE%/, LOCAL_STYLE);
-      content = content.replace(/%TITLE%/, this.title);
-      content = content.replace(/%BASE%/, htmlEscape(this.contentBase));
-      content = content.replace(/%URL%/g, htmlEscape(this.mURL));
-      content = content.replace(/%CONTENT%/, this.content);
-      this.content = content; // XXX store it elsewhere, f.e. this.page
-      this.writeToFolder();
-    }
-    else if (this.feed.quickMode || !this.mURL)
-    {
-      debug(this.identity + " in quick mode; storing");
-
-      this.content = this.description || this.title;
-
-      var content = MESSAGE_TEMPLATE;
-      content = content.replace(/%CONTENT_TEMPLATE%/, LOCAL_CONTENT_TEMPLATE);
-      content = content.replace(/%STYLE%/, LOCAL_STYLE);
-      content = content.replace(/%BASE%/, htmlEscape(this.contentBase));
-      content = content.replace(/%TITLE%/, this.title);
-      content = content.replace(/%URL%/g, htmlEscape(this.mURL));
-      content = content.replace(/%CONTENT%/, this.content);
-      this.content = content; // XXX store it elsewhere, f.e. this.page
-      this.writeToFolder();
-    }
     else
     {
-      //debug(this.identity + " needs content; downloading");
-      debug(this.identity + " needs content; creating and storing");
+      if (!this.content)
+      {
+        debug(this.identity + " no content; storing");
+        this.content = this.description || this.title;
+      }
+
+      debug(this.identity + " store both remote/no content and content items");
       var content = MESSAGE_TEMPLATE;
-      content = content.replace(/%CONTENT_TEMPLATE%/, REMOTE_CONTENT_TEMPLATE);
-      content = content.replace(/%STYLE%/, REMOTE_STYLE);
       content = content.replace(/%TITLE%/, this.title);
       content = content.replace(/%BASE%/, htmlEscape(this.contentBase));
-      content = content.replace(/%URL%/g, htmlEscape(this.mURL));
-      content = content.replace(/%DESCRIPTION%/, this.description || this.title);
-      this.content = content; // XXX store it elsewhere, f.e. this.page
+      content = content.replace(/%CONTENT%/, this.content);
+      // XXX store it elsewhere, f.e. this.page
+      this.content = content;
       this.writeToFolder();
     }
   },
@@ -242,7 +188,8 @@ FeedItem.prototype =
     if (!folder)
     {
       debug(this.feed.name + " folder doesn't exist; creating");
-      debug("creating " + this.feed.name + "as child of " + server.rootMsgFolder + "\n");
+      debug("creating " + this.feed.name + "as child of " +
+          server.rootMsgFolder + "\n");
       server.rootMsgFolder.createSubfolder(this.feed.name, null /* supposed to be a msg window */);
       folder = server.rootMsgFolder.findSubFolder(this.feed.name);
       debug(this.identity + " not stored (folder didn't exist)");
@@ -255,19 +202,21 @@ FeedItem.prototype =
 
     var downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
 
-    // Backward compatibility: we might have stored this item before isStoredWithId
-    // has been turned on for RSS 2.0 (bug 354345). Check whether this item has been
-    // stored with its URL.
+    // Backward compatibility: we might have stored this item before
+    // isStoredWithId has been turned on for RSS 2.0 (bug 354345).
+    // Check whether this item has been stored with its URL.
     if (!downloaded && this.mURL && itemURI != this.mURL)
     {
       itemResource = rdf.GetResource(this.mURL);
       downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
     }
 
-    if (!downloaded || downloaded.QueryInterface(Components.interfaces.nsIRDFLiteral).Value == "false")
+    if (!downloaded ||
+        downloaded.QueryInterface(Components.interfaces.nsIRDFLiteral)
+                  .Value == "false")
     {
-      // HACK ALERT: before we give up, try to work around an entity escaping bug in RDF
-      // See Bug #258465 for more details
+      // HACK ALERT: before we give up, try to work around an entity
+      // escaping bug in RDF. See Bug #258465 for more details
       itemURI = itemURI.replace(/&lt;/g, '<');
       itemURI = itemURI.replace(/&gt;/g, '>');
       itemURI = itemURI.replace(/&quot;/g, '"');
@@ -301,10 +250,11 @@ FeedItem.prototype =
     var itemURI = this.itemUniqueURI;
     var resource = rdf.GetResource(itemURI);
 
-    // Backward compatibility: we might have stored this item before isStoredWithId
-    // has been turned on for RSS 2.0 (bug 354345). Check whether this item has been
-    // stored with its URL.
-    if (!ds.GetTarget(resource, FZ_STORED, true) && this.mURL && itemURI != this.mURL)
+    // Backward compatibility: we might have stored this item before
+    // isStoredWithId has been turned on for RSS 2.0 (bug 354345).
+    // Check whether this item has been stored with its URL.
+    if (!ds.GetTarget(resource, FZ_STORED, true) &&
+        this.mURL && itemURI != this.mURL)
       resource = rdf.GetResource(this.mURL);
 
     if (!ds.HasAssertion(resource, FZ_FEED, rdf.GetResource(this.feed.url), true))
@@ -340,15 +290,18 @@ FeedItem.prototype =
 
   mimeEncodeSubject: function(aSubject, aCharset)
   {
-    // get the mime header encoder service
-    var mimeEncoder = Components.classes["@mozilla.org/messenger/mimeconverter;1"].getService(Components.interfaces.nsIMimeConverter);
+    // Get the mime header encoder service
+    var mimeEncoder = Components.classes["@mozilla.org/messenger/mimeconverter;1"]
+                                .getService(Components.interfaces.nsIMimeConverter);
 
-    // this routine sometimes throws exceptions for mis-encoded data so wrap it
-    // with a try catch for now..
+    // This routine sometimes throws exceptions for mis-encoded data so
+    // wrap it with a try catch for now..
     var newSubject;
     try
     {
-      newSubject = mimeEncoder.encodeMimePartIIStr(this.mUnicodeConverter.ConvertFromUnicode(aSubject), false, aCharset, 9, 72);
+      newSubject = mimeEncoder.encodeMimePartIIStr(
+          this.mUnicodeConverter.ConvertFromUnicode(aSubject),
+          false, aCharset, 9, 72);
     }
     catch (ex)
     {
@@ -369,8 +322,8 @@ FeedItem.prototype =
     if (this.author && this.author.indexOf('@') == -1)
       this.author = '<' + this.author + '>';
 
-    // Convert the title to UTF-16 before performing our HTML entity replacement
-    // reg expressions.
+    // Convert the title to UTF-16 before performing our HTML entity
+    // replacement reg expressions.
     var title = this.title;
 
     // the subject may contain HTML entities.
@@ -390,17 +343,18 @@ FeedItem.prototype =
     if (this.mDate.search(/^\d\d\d\d/) != -1)
       this.mDate = W3CToIETFDate(this.mDate);
 
-    // Escape occurrences of "From " at the beginning of lines of content
-    // per the mbox standard, since "From " denotes a new message, and add
-    // a line break so we know the last line has one.
+    // Escape occurrences of "From " at the beginning of lines of
+    // content per the mbox standard, since "From " denotes a new
+    // message, and add a line break so we know the last line has one.
     this.content = this.content.replace(/([\r\n]+)(>*From )/g, "$1>$2");
     this.content += "\n";
 
-    // The opening line of the message, mandated by standards to start with
-    // "From ".  It's useful to construct this separately because we not only
-    // need to write it into the message, we also need to use it to calculate
-    // the offset of the X-Mozilla-Status lines from the front of the message
-    // for the statusOffset property of the DB header object.
+    // The opening line of the message, mandated by standards to start
+    // with "From ".  It's useful to construct this separately because
+    // we not only need to write it into the message, we also need to
+    // use it to calculate the offset of the X-Mozilla-Status lines from
+    // the front of the message for the statusOffset property of the
+    // DB header object.
     var openingLine = 'From - ' + this.mDate + '\n';
 
     var source =
@@ -439,7 +393,8 @@ FeedItem.prototype =
     folder = this.feed.folder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
     var msgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
     msgFolder.gettingNewMessages = true;
-    // source is a unicode string, we want to save a char * string in the original charset. So convert back
+    // Source is a unicode string, we want to save a char * string in
+    // the original charset. So convert back
     folder.addMessage(this.mUnicodeConverter.ConvertFromUnicode(source));
     msgFolder.gettingNewMessages = false;
     this.markStored();
@@ -459,8 +414,10 @@ function FeedEnclosure(aURL, aContentType, aLength)
   // generate a fileName from the URL
   if (this.mURL)
   {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-    var enclosureURL  = ioService.newURI(this.mURL, null, null).QueryInterface(Components.interfaces.nsIURL);
+    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
+    var enclosureURL  = ioService.newURI(this.mURL, null, null)
+                                 .QueryInterface(Components.interfaces.nsIURL);
     if (enclosureURL)
       this.mFileName = enclosureURL.fileName;
   }
@@ -473,8 +430,8 @@ FeedEnclosure.prototype =
   mLength: 0,
   mFileName: "",
 
-  // returns a string that looks like an e-mail attachment
-  // which represents the enclosure.
+  // Returns a string that looks like an e-mail attachment which
+  // represents the enclosure.
   convertToAttachment: function(aBoundaryID)
   {
     return '\n' +
@@ -487,5 +444,3 @@ FeedEnclosure.prototype =
 
   }
 };
-
-

@@ -150,10 +150,17 @@ span.moz-txt-formfeed {
   outline: none;
 }
 
-/* Correct style for messages already converted from RSS to HTML email;
-   see bug 363154. */
-
-#\_mailrssiframe {
+/* Style new format rss summary vs web page */
+body[selected="false"],
+iframe[selected="false"] {
+  display: none;
+}
+ 
+#_mailrssiframe {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  border: none;
 }
