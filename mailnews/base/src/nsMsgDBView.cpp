@@ -4156,7 +4156,7 @@ nsMsgDBView::ThreadIndexOfMsgHdr(nsIMsgDBHdr *msgHdr,
   if (threadHdr != nsnull)
   {
     if (msgIndex == nsMsgViewIndex_None)
-      msgIndex = FindHdr(msgHdr);
+      msgIndex = FindHdr(msgHdr, 0, PR_TRUE);
 
     if (msgIndex == nsMsgViewIndex_None)  // hdr is not in view, need to find by thread
     {
