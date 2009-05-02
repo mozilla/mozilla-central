@@ -129,11 +129,17 @@ FeedParser.prototype =
       var link = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "link")[0]);
       var guidNode = this.childrenByTagNameNS(itemNode, nsURI, "guid")[0];
       var guid;
-      var isPermaLink;
+      var isPermaLink = false;
       if (guidNode) 
       {
         guid = getNodeValue(guidNode);
-        isPermaLink = guidNode.getAttribute('isPermaLink') == 'false' ? false : true;
+        // isPermaLink is true if the value is "true" or if the attribute is
+        // not present; all other values, including "false" and "False" and
+        // for that matter "TRuE" and "meatcake" are false.
+        if (!guidNode.hasAttribute("isPermaLink") ||
+            guidNode.getAttribute("isPermaLink") == "true")
+          isPermaLink = true;
+
         item.id = guid;
         item.isStoredWithId = true;
       }
