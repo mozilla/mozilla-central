@@ -358,7 +358,7 @@ var nsBrowserContentHandler = {
       fl.get("ProfD", Components.interfaces.nsILocalFile);
     } catch (e) {
       cmdLine.preventDefault = true;
-      throw NS_ERROR_ABORT;
+      throw Components.results.NS_ERROR_ABORT;
     }
 
     try {
