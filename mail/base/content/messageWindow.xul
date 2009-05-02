@@ -52,6 +52,10 @@
 %messengerDTD;
 <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
 %customizeToolbarDTD;
+#ifdef MOZILLA_1_9_1_BRANCH
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
+#endif
 ]>
 
 <window id="messengerWindow"
@@ -179,6 +183,9 @@
   <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"
             style="&dialog.style;"
+#ifdef MOZILLA_1_9_1_BRANCH
+            chromedir="&locale.dir;"
+#endif
             hidden="true"/>
   </panel>
 
