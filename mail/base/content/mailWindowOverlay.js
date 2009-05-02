@@ -1198,14 +1198,20 @@ BatchMessageMover.prototype = {
       else {
         dstFolder = archiveFolder;
       }
-      var mutablearray = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
-      msgs.forEach(function (item) {
-        mutablearray.appendElement(item, false);
-      });
-      gCopyService.CopyMessages(srcFolder, mutablearray,
-                                dstFolder, true, this, msgWindow, true);
-      this._currentKey = key;
-      break; // only do one.
+      if (dstFolder != srcFolder) {
+        var mutablearray = Components.classes["@mozilla.org/array;1"]
+                            .createInstance(Components.interfaces.nsIMutableArray);
+        msgs.forEach(function (item) {
+          mutablearray.appendElement(item, false);
+        });
+        gCopyService.CopyMessages(srcFolder, mutablearray,
+                                  dstFolder, true, this, msgWindow, true);
+        this._currentKey = key;
+        break; // only do one.
+      }
+      else {
+       delete this._batches[key];
+      }
     }
   },
 
