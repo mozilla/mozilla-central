@@ -162,20 +162,18 @@ function disableEditableFields()
 {
   gMsgCompose.editor.flags |= nsIPlaintextEditorMail.eEditorReadonlyMask;
   var disableElements = document.getElementsByAttribute("disableonsend", "true");
-  for (i=0;i<disableElements.length;i++)
-  {
+  for (let i = 0; i < disableElements.length; i++)
     disableElements[i].setAttribute('disabled', 'true');
-  }
+
 }
 
 function enableEditableFields()
 {
   gMsgCompose.editor.flags &= ~nsIPlaintextEditorMail.eEditorReadonlyMask;
   var enableElements = document.getElementsByAttribute("disableonsend", "true");
-  for (i=0;i<enableElements.length;i++)
-  {
+  for (let i = 0; i < enableElements.length; i++)
     enableElements[i].removeAttribute('disabled');
-  }
+
 }
 
 var gComposeRecyclingListener = {
@@ -348,7 +346,7 @@ var progressListener = {
       // Looks like it's possible that we get call while the document has been already delete!
       // therefore we need to protect ourself by using try/catch
       try {
-        statusText = document.getElementById("statusText");
+        let statusText = document.getElementById("statusText");
         if (statusText)
           statusText.setAttribute("label", aMessage);
       } catch (ex) {}
@@ -545,7 +543,7 @@ function QuoteSelectedMessage()
 {
   var selectedURIs = GetSelectedMessages();
   if (selectedURIs)
-    for (i = 0; i < selectedURIs.length; i++)
+    for (let i = 0; i < selectedURIs.length; i++)
       gMsgCompose.quoteMessage(selectedURIs[i]);
 }
 
@@ -782,7 +780,6 @@ function setupLdapAutocompleteSession()
     var autocompleteLdap = false;
     var autocompleteDirectory = null;
     var prevAutocompleteDirectory = gCurrentAutocompleteDirectory;
-    var i;
 
     autocompleteLdap = getPref("ldap_2.autoComplete.useDirectory");
     if (autocompleteLdap)
@@ -1001,10 +998,10 @@ function setupLdapAutocompleteSession()
                 // if we make it here, we know that session initialization has
                 // succeeded; add the session for all recipients, and 
                 // remember that we've done so
-                var autoCompleteWidget;
-                for (i=1; i <= awGetMaxRecipients(); i++)
+                let maxRecipients = awGetMaxRecipients();
+                for (let i = 1; i <= maxRecipients; i++)
                 {
-                    autoCompleteWidget = document.getElementById("addressCol2#" + i);
+                    let autoCompleteWidget = document.getElementById("addressCol2#" + i);
                     if (autoCompleteWidget)
                     {
                       autoCompleteWidget.addSession(LDAPSession);
@@ -1025,9 +1022,11 @@ function setupLdapAutocompleteSession()
         gCurrentAutocompleteDirectory = null;
       }
       if (gLDAPSession && gSessionAdded) {
-        for (i=1; i <= awGetMaxRecipients(); i++) 
-          document.getElementById("addressCol2#" + i).
-              removeSession(gLDAPSession);
+        let maxRecipients = awGetMaxRecipients();
+        for (let i = 1; i <= maxRecipients; i++)
+          document.getElementById("addressCol2#" + i)
+                  .removeSession(gLDAPSession);
+
         gSessionAdded = false;
       }
     }
@@ -1078,7 +1077,7 @@ function GetArgs(originalData)
   var quoteChar = "";
   var prevChar = "";
   var nextChar = "";
-  for (var i = 0; i < originalData.length; i ++, prevChar = aChar)
+  for (let i = 0; i < originalData.length; i++, prevChar = aChar)
   {
     var aChar = originalData.charAt(i)
     var aCharCode = originalData.charCodeAt(i)
@@ -1112,7 +1111,7 @@ function GetArgs(originalData)
   var pairs = data.split(separator);
 //  dump("Compose: argument: {" + data + "}\n");
 
-  for (i = pairs.length - 1; i >= 0; i--)
+  for (let i = pairs.length - 1; i >= 0; i--)
   {
     var pos = pairs[i].indexOf('=');
     if (pos == -1)
@@ -1234,7 +1233,7 @@ function ComposeStartup(recycled, aParams)
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]
         ioService = ioService.getService(Components.interfaces.nsIIOService);
         var fileHandler = ioService.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-        for (var i = 0; i < attachmentList.length; i ++)
+        for (let i = 0; i < attachmentList.length; i++)
         {
           var attachmentStr = attachmentList[i];
           attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"].createInstance(Components.interfaces.nsIMsgAttachment);
@@ -1474,7 +1473,7 @@ function ComposeLoad()
     if (other_headers) {
       var selectNode = document.getElementById('addressCol1#1');
       var other_headers_Array = other_headers.split(",");
-      for (var i = 0; i < other_headers_Array.length; i++)
+      for (let i = 0; i < other_headers_Array.length; i++)
         selectNode.appendItem(other_headers_Array[i] + ":", "addr_other");
     }
     if (state)
@@ -2065,11 +2064,11 @@ function addRecipientsToIgnoreList(aAddressesToAdd)
     for (name in names.value)
     {
       var splitNames = names.value[name].split(',');
-      for (var i=0; i < splitNames.length; i++)
+      for (let i = 0; i < splitNames.length; i++)
       {
         // now tokenize off of white space
         var splitNamesFromWhiteSpaceArray = splitNames[i].split(' ');
-        for (var whiteSpaceIndex = 0; whiteSpaceIndex < splitNamesFromWhiteSpaceArray.length; whiteSpaceIndex++)
+        for (let whiteSpaceIndex = 0; whiteSpaceIndex < splitNamesFromWhiteSpaceArray.length; whiteSpaceIndex++)
           if (splitNamesFromWhiteSpaceArray[whiteSpaceIndex])
             tokenizedNames.push(splitNamesFromWhiteSpaceArray[whiteSpaceIndex]);
       }
@@ -2111,9 +2110,8 @@ function InitLanguageMenu()
   var isoStrArray;
   var langId;
   var langLabel;
-  var i;
 
-  for (i = 0; i < count; i++)
+  for (let i = 0; i < count; i++)
   {
     try
     {
@@ -2158,7 +2156,7 @@ function InitLanguageMenu()
   while (languageMenuList.hasChildNodes())
     languageMenuList.removeChild(languageMenuList.firstChild);
 
-  for (i = 0; i < count; i++)
+  for (let i = 0; i < count; i++)
   {
     var item = document.createElement("menuitem");
     item.setAttribute("label", dictList[i][0]);
@@ -2237,10 +2235,10 @@ function ToggleAttachVCard(target)
 
 function queryISupportsArray(supportsArray, iid) {
     var result = new Array;
-    for (var i=0; i<supportsArray.Count(); i++) {
-      // dump(i + "," + result[i] + "\n");
+    let count = supportsArray.Count();
+    for (let i = 0; i < count; i++)
       result[i] = supportsArray.QueryElementAt(i, iid);
-    }
+
     return result;
 }
 
@@ -2463,7 +2461,8 @@ function SetContentAndBodyAsUnmodified()
 
 function ReleaseAutoCompleteState()
 {
-  for (i=1; i <= awGetMaxRecipients(); i++) 
+  let maxRecipients = awGetMaxRecipients();
+  for (let i = 1; i <= maxRecipients; i++)
     document.getElementById("addressCol2#" + i).removeSession(gLDAPSession);
 
   gSessionAdded = false;
@@ -2660,10 +2659,10 @@ function AttachPage()
 function DuplicateFileAlreadyAttached(fileURL)
 {
   var bucket = document.getElementById('attachmentBucket');
-  for (var index = 0; index < bucket.getRowCount(); index++)
+  let rowCount = bucket.getRowCount();
+  for (let i = 0; i < rowCount; i++)
   {
-    var item = bucket.getItemAtIndex(index);
-    var attachment = item.attachment;
+    let attachment = bucket.getItemAtIndex(i).attachment;
     if (attachment && attachment.url == fileURL)
       return true;
   }
@@ -2677,10 +2676,10 @@ function Attachments2CompFields(compFields)
   //First, we need to clear all attachment in the compose fields
   compFields.removeAttachments();
 
-  for (var index = 0; index < bucket.getRowCount(); index++)
+  let rowCount = bucket.getRowCount();
+  for (let i = 0; i < rowCount; i++)
   {
-    var item = bucket.getItemAtIndex(index);
-    var attachment = item.attachment;
+    let attachment = bucket.getItemAtIndex(i).attachment;
     if (attachment)
       compFields.addAttachment(attachment);
   }
@@ -2711,9 +2710,9 @@ function RemoveSelectedAttachment()
   var child;
   var bucket = document.getElementById("attachmentBucket");
   if (bucket.selectedItems.length > 0) {
-    for (var index = bucket.selectedCount - 1; index >= 0; index-- )
+    for (let i = bucket.selectedCount - 1; i >= 0; i--)
     {
-      child = bucket.removeItemAt(bucket.getIndexOfItem(bucket.getSelectedItem(index)));
+      child = bucket.removeItemAt(bucket.getIndexOfItem(bucket.getSelectedItem(i)));
       // Let's release the attachment object held by the node else it won't go away until the window is destroyed
       child.attachment = null;
     }
@@ -2956,7 +2955,8 @@ function LoadIdentity(startup)
         if (identityElement.selectedItem)
           identityElement.setAttribute('accountname', identityElement.selectedItem.getAttribute('accountname'));
 
-        for (var i = 1; i <= awGetMaxRecipients(); i++)
+        let maxRecipients = awGetMaxRecipients();
+        for (let i = 1; i <= maxRecipients; i++)
           awGetInputElement(i).setAttribute("autocompletesearchparam", idKey);
 
         if (!startup && prevIdentity && idKey != prevIdentity.key)
@@ -3134,7 +3134,7 @@ var envelopeDragObserver = {
       var attachment;
       var errorMsg;
 
-      for (var i = 0; i < dataListLength; i++) 
+      for (let i = 0; i < dataListLength; i++)
       {
         var item = dataList[i].first;
         var prettyName;
@@ -3240,12 +3240,14 @@ var envelopeDragObserver = {
 
 function DisplaySaveFolderDlg(folderURI)
 {
-  try{
-    showDialog = gCurrentIdentity.showSaveMsgDlg;
-  }//try
-  catch (e){
+  try
+  {
+    var showDialog = gCurrentIdentity.showSaveMsgDlg;
+  }
+  catch (e)
+  {
     return;
-  }//catch
+  }
 
   if (showDialog){
     var msgfolder = GetMsgFolderFromUri(folderURI, true);
