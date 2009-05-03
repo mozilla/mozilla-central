@@ -292,7 +292,7 @@ var Gloda = {
     // group the headers by the folder they are found in
     let headersByFolder = {};
     let iter;
-    for (let [, header] in fixIterator(aHeaders)) {
+    for (let header in fixIterator(aHeaders)) {
       let folderURI = header.folder.URI;
       let headersForFolder = headersByFolder[folderURI];
       if (headersForFolder === undefined)
