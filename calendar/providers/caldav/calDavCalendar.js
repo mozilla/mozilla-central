@@ -860,7 +860,27 @@ calDavCalendar.prototype = {
             } catch (ex) {
                 cal.LOG("CalDAV: Error without status on checking ctag for calendar " +
                         thisCalendar.name);
+                if (thisCalendar.isCached && aChangeLogListener) {
+                    aChangeLogListener.onResult({ status: Components.results.NS_OK },
+                                                Components.results.NS_OK);
+                }
+                return;
             }
+
+            if (request.responseStatus == 404) {
+                cal.LOG("CalDAV: Disabling calendar " + thisCalendar.name +
+                        " due to 404");
+                if (thisCalendar.isCached && aChangeLogListener) {
+                    aChangeLogListener.onResult({ status: Components.results.NS_ERROR_FAILURE },
+                                                Components.results.NS_ERROR_FAILURE);
+                }
+                return;
+            } else if (request.responseStatus == 207 && thisCalendar.mDisabled) {
+                // Looks like the calendar is there again, check its resouce
+                // type first.
+                this.checkDavResourceType(aChangelogListener);
+                return;
+             }
 
             let str = cal.convertByteArray(aResult, aResultLength);
             if (!str) {
@@ -1727,6 +1747,7 @@ calDavCalendar.prototype = {
         if (Components.isSuccessCode(aError)) {
             // "undefined" is a successcode, so all is good
             this.mCheckedServerInfo = true;
+            this.setProperty("currentStatus", Components.results.NS_OK);
 
             if (this.isCached) {
                 this.safeRefresh(aChangeLogListener);
