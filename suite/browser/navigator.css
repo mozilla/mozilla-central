@@ -37,14 +37,8 @@ panel[for="urlbar"] {
   -moz-box-align: center;
 }
 
+/* ::::: Wallpaper fix for Bug 435652. Remove when Bug 204743 is fixed ::::: */
 
-/* ::::::::::
-   :: Rules for 'hiding' portions of the chrome for special
-   :: kinds of browser-specific window toolbars. Other global
-   :: window rules are in xul.css
-   ::::: */
- 
-window[chromehidden~="toolbar"] #nav-bar-buttons,
-window[chromehidden~="toolbar"] #print-button {
-  display: none;
+.textbox-input-box {
+  overflow-x: hidden;
 }
