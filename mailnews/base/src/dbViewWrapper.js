@@ -970,7 +970,6 @@ DBViewWrapper.prototype = {
     this._sort = [[aSortType, aSortOrder]];
     if (aSecondaryType != null && aSecondaryOrder != null)
       this._sort.push([aSecondaryType, aSecondaryOrder]);
-dump ("SORT!: " + this._sort + "\n");
     // if we are not in a view update, invoke the sort.
     if ((this._viewUpdateDepth == 0) && this.dbView) {
       for (let iSort = this._sort.length - 1; iSort >=0; iSort--) {
