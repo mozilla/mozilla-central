@@ -122,23 +122,26 @@
   <keyset id="tasksKeys"/>
 </keyset>
 
+<popupset id="mainPopupSet"/>
+
 <popup id="mailContext"/>
 <popup id="folderPaneContext"/>
 <popup id="attachmentListContext"/>
 <tooltip id="attachmentListTooltip"/>
 
 <popup id="copyUrlPopup"/>
-
+<popup id="toolbar-context-menu"/>
 <popup id="messageIdContext"/>
-
 <popup id="emailAddressPopup"/>
 
 <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
 
-<popup id="toolbar-context-menu"/>
-
   <toolbox id="mail-toolbox" class="toolbox-top">
-    <toolbar id="mail-toolbar-menubar2"/>
+    <toolbar id="mail-toolbar-menubar2">
+      <toolbaritem id="menubar-items">
+        <menubar id="mail-menubar"/>
+      </toolbaritem>
+    </toolbar>
     <toolbar id="msgToolbar"/>
     <toolbarset id="customToolbars" context="toolbar-context-menu"/>
     <toolbar id="msgLocationToolbar"/>

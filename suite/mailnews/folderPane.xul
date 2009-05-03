@@ -138,7 +138,7 @@
         </action>
       </rule>
     </template>
-    <treecols>
+    <treecols id="folderPaneCols">
       <treecol id="folderNameCol"
                    flex="5"
                    label="&nameColumn.label;"

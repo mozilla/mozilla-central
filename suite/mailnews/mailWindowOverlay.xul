@@ -579,8 +579,8 @@
                  onpopupshowing="InitMessageTags(this)">
         <menuitem id="mailContext-tagRemoveAll"
                   oncommand="RemoveAllMessageTags();"/>
-        <menuseparator/>
-        <menuseparator/>
+        <menuseparator id="mailContext-sep-afterTagRemoveAll"/>
+        <menuseparator id="mailContext-sep-beforeAddNewTag"/>
         <menuitem id="mailContext-tagCustomize"
                   label="&tagCustomize.label;"
                   accesskey="&tagCustomize.accesskey;"
@@ -590,7 +590,8 @@
     <menu id="mailContext-mark"
           label="&markMenu.label;"
           accesskey="&markMenu.accesskey;">
-      <menupopup onpopupshowing="InitMessageMark()">
+      <menupopup id="mailContext-markPopup"
+                 onpopupshowing="InitMessageMark()">
         <menuitem id="mailContext-markRead"
                   type="checkbox"
                   label="&markAsReadCmd.label;"
@@ -608,13 +609,13 @@
                   label="&markAllReadCmd.label;"
                   accesskey="&markAllReadCmd.accesskey;"
                   command="cmd_markAllRead"/>
-        <menuseparator/>
+        <menuseparator id="mailContext-sep-afterMarkAllRead"/>
         <menuitem id="mailContext-markFlagged"
                   type="checkbox"
                   label="&markFlaggedCmd.label;"
                   accesskey="&markFlaggedCmd.accesskey;"
                   command="cmd_markAsFlagged"/>
-        <menuseparator/>
+        <menuseparator id="mailContext-sep-afterMarkFlagged"/>
         <menuitem id="mailContext-markAsJunk"
                   label="&markAsJunkCmd.label;"
                   accesskey="&markAsJunkCmd.accesskey;"
@@ -913,7 +914,6 @@
     <toolbaritem id="menubar-items"
                  class="menubar-items"
                  align="center">
-      <menubar id="mail-menubar"/>
     </toolbaritem>
   </toolbar>
 
@@ -1873,18 +1873,20 @@
                    oncommand="goDoCommand('cmd_getNewMessages');"
                    containment="http://home.netscape.com/NC-rdf#child"
                    ref="msgaccounts:/">
-    <menupopup onpopupshowing="getMsgToolbarMenu_init();">
-      <menuitem label="&getAllNewMsgCmd.label;"
-                command="cmd_getMsgsForAuthAccounts"/>
-      <menuseparator/>
-    </menupopup>
-    <template>
-      <rule nc:IsServer="true" nc:CanGetMessages="true">
-        <menupopup>
-          <menuitem uri="..."
-                    value="..."
-                    label="rdf:http://home.netscape.com/NC-rdf#Name"
-                    oncommand="MsgGetMessagesForAccount(event);"/>
+      <menupopup  id="button-getMsgPopup"
+                  onpopupshowing="getMsgToolbarMenu_init();">
+        <menuitem id="button-getAllNewMsg"
+                  label="&getAllNewMsgCmd.label;"
+                  command="cmd_getMsgsForAuthAccounts"/>
+        <menuseparator id="button-getAllNewMsgSeparator"/>
+      </menupopup>
+      <template>
+        <rule nc:IsServer="true" nc:CanGetMessages="true">
+          <menupopup>
+            <menuitem uri="..."
+                      value="..."
+                      label="rdf:http://home.netscape.com/NC-rdf#Name"
+                      oncommand="MsgGetMessagesForAccount(event);"/>
           </menupopup>
         </rule>
       </template>
@@ -1900,7 +1902,7 @@
                    tooltiptext="&replyButton.tooltip;"
                    observes="button_reply"
                    oncommand="MsgReplyMessage(event)">
-      <menupopup>
+      <menupopup id="button-replyPopup">
         <menuitem label="&replySenderCmd.label;"
                   accesskey="&replySenderCmd.accesskey;"
                   command="cmd_replySender"/>
@@ -1918,7 +1920,7 @@
                    tooltiptextnews="&replyAllButtonNews.tooltip;"
                    observes="button_replyall"
                    oncommand="MsgReplyToAllMessage(event)">
-      <menupopup>
+      <menupopup id="button-replyallPopup">
         <menuitem label="&replyToSenderAndNewsgroupCmd.label;"
                   accesskey="&replyToSenderAndNewsgroupCmd.accesskey;"
                   command="cmd_replySenderAndGroup"
@@ -1935,7 +1937,8 @@
                    tooltiptext="&forwardButton.tooltip;"
                    observes="button_forward"
                    oncommand="MsgForwardMessage(event)">
-      <menupopup onpopupshowing="InitMessageForward(this);">
+      <menupopup id="button-forwardPopup"
+                 onpopupshowing="InitMessageForward(this);">
         <menuitem label="&forwardAsInline.label;"
                   accesskey="&forwardAsInline.accesskey;"
                   command="cmd_forwardInline"/>
@@ -1944,8 +1947,8 @@
                   command="cmd_forwardAttachment"/>
       </menupopup>
     </toolbarbutton>
-    <toolbarbutton type="menu"
-                   id="button-file"
+    <toolbarbutton id="button-file"
+                   type="menu"
                    class="toolbarbutton-1"
                    label="&fileButton.label;"
                    observes="button_file"
@@ -1953,7 +1956,7 @@
                    tooltiptext="&fileButton.tooltip;"
                    sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
                    sortDirection="ascending">
-      <menupopup>
+      <menupopup id="button-filePopup">
         <menu label="&moveCopyMsgRecentMenu.label;"
               accesskey="&moveCopyMsgRecentMenu.accesskey;"
               sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
@@ -2064,7 +2067,8 @@
                    observes="button_goBack"
                    oncommand="goDoCommand('cmd_goBack')"
                    chromedir="&locale.dir;">
-      <menupopup onpopupshowing="InitBackToolbarMenu(this)"
+      <menupopup id="button-goBackPopup"
+                 onpopupshowing="InitBackToolbarMenu(this)"
                  oncommand="NavigateToUri(event.target);"/>
     </toolbarbutton>
 
@@ -2076,7 +2080,8 @@
                    observes="button_goForward"
                    oncommand="goDoCommand('cmd_goForward')"
                    chromedir="&locale.dir;">
-      <menupopup onpopupshowing="InitForwardToolbarMenu(this)"
+      <menupopup id="button-goForwardPopup"
+                 onpopupshowing="InitForwardToolbarMenu(this)"
                  oncommand="NavigateToUri(event.target);"/>
     </toolbarbutton>
 
@@ -2087,7 +2092,8 @@
                    tooltiptext="&nextButton.tooltip;"
                    observes="button_next"
                    oncommand="goDoCommand('button_next')">
-      <menupopup onpopupshowing="InitGoMessagesMenu();">
+      <menupopup id="button-nextPopup"
+                 onpopupshowing="InitGoMessagesMenu();">
         <menuitem label="&nextMsgCmd.label;"
                   accesskey="&nextMsgCmd.accesskey;"
                   command="cmd_nextMsg"/>
@@ -2133,7 +2139,8 @@
                    label="&markButton.label;"
                    oncommand="goDoCommand('button_mark')"
                    observes="button_mark" tooltiptext="&markButton.tooltip;">
-          <menupopup onpopupshowing="InitMessageMark()">
+          <menupopup id="button-markPopup"
+                     onpopupshowing="InitMessageMark()">
               <menuitem id="markReadToolbarItem"
                         type="checkbox"
                         label="&markAsReadCmd.label;"
@@ -2141,23 +2148,27 @@
                         accesskey="&markAsReadCmd.accesskey;"
                         command="cmd_markAsRead"
                         default="true" />
-              <menuitem label="&markThreadAsReadCmd.label;"
+              <menuitem id="button-markThreadAsRead"
+                        label="&markThreadAsReadCmd.label;"
                         key="key_markThreadAsRead"
                         accesskey="&markThreadAsReadCmd.accesskey;"
                         command="cmd_markThreadAsRead"/>
-              <menuitem label="&markReadByDateCmd.label;"
+              <menuitem id="button-markReadByDate"
+                        label="&markReadByDateCmd.label;"
                         key="key_markReadByDate"
                         accesskey="&markReadByDateCmd.accesskey;"
                         command="cmd_markReadByDate"/>
-              <menuitem label="&markAllReadCmd.label;"
+              <menuitem id="button-markAllRead"
+                        label="&markAllReadCmd.label;"
                         key="key_markAllRead"
                         accesskey="&markAllReadCmd.accesskey;"
                         command="cmd_markAllRead"/>
-              <menuseparator/>
+              <menuseparator id="button-markAllReadSeparator"/>
               <menuitem id="markFlaggedToolbarItem"
                         type="checkbox"
                         label="&markFlaggedCmd.label;"
                         accesskey="&markFlaggedCmd.accesskey;"
+                        key="key_toggleFlagged"
                         command="cmd_markAsFlagged"/>
           </menupopup>
     </toolbarbutton>
@@ -2170,10 +2181,11 @@
                    tooltiptext="&printButton.tooltip;">
       <menupopup id="printMenu"
                  onpopupshowing="goUpdateCommand('cmd_printpreview');">
-        <menuitem label="&printCmd.label;"
+        <menuitem id="button-printMenu"
+                  label="&printCmd.label;"
                   accesskey="&printCmd.accesskey;"
                   default="true"/>
-        <menuitem id="printPreviewMenuItemToolbar"
+        <menuitem id="button-printPreviewMenu"
                   label="&printPreviewCmd.label;"
                   accesskey="&printPreviewCmd.accesskey;"
                   command="cmd_printpreview"/>

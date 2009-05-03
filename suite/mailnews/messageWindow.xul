@@ -125,7 +125,11 @@
   <popup id="toolbar-context-menu"/>
 
   <toolbox id="mail-toolbox">
-    <toolbar id="mail-toolbar-menubar2"/>
+    <toolbar id="mail-toolbar-menubar2">
+      <toolbaritem id="menubar-items">
+        <menubar id="mail-menubar"/>
+      </toolbaritem>
+    </toolbar>
     <toolbarset id="customToolbars" context="toolbar-context-menu"/>
   </toolbox>
 
