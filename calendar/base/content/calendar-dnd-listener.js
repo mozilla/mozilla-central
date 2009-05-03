@@ -652,7 +652,15 @@ function invokeEventDragSession(aItem, aXULBox) {
                    .createInstance(Components.interfaces.nsISupportsArray);
     supArray.AppendElement(transfer);
     aXULBox.sourceObject = aItem;
-    cal.getDragService().invokeDragSession(aXULBox, supArray, null, action);
+    try {
+        cal.getDragService().invokeDragSession(aXULBox, supArray, null, action);
+    } catch (error) {
+        // Nothing done here because we only have to catch an exception that occurs when dragging
+        // is cancelled with ESC. This is an odd behaviour of the nativeDragService which we have
+        // have to cover.
+        // Therefore the DND API for calendar should be changed to the new DOM driven DND-API
+        // sometime.
+    }
 }
 
 var calendarViewDNDObserver = new calViewDNDObserver();
