@@ -47,9 +47,16 @@ include $(topsrcdir)/$(MOZ_BUILD_APP)/build.mk
 
 include $(topsrcdir)/config/config.mk
 
-default export libs clean realclean distclean alldep maybe_clobber_profiledbuild rebase uploadsymbols signnss deliver \
-check mochitest mochitest-plain mochitest-chrome mochitest-browser-chrome mochitest-a11y reftest crashtest xpcshell-tests::
+default export libs clean realclean distclean alldep maybe_clobber_profiledbuild rebase uploadsymbols signnss deliver::
 	$(MAKE) -C mozilla $@
+
+ifdef ENABLE_TESTS
+check \
+mochitest mochitest-plain mochitest-chrome mochitest-browser-chrome mochitest-a11y \
+reftest crashtest \
+xpcshell-tests::
+	$(MAKE) -C mozilla $@
+endif
 
 # http://bugzilla.mozilla.org/show_bug.cgi?id=450485
 MAKE_SYM_STORE_PATH=dist/bin
