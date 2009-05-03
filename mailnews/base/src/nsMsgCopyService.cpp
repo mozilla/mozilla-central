@@ -436,6 +436,11 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
   NS_ENSURE_ARG_POINTER(messages);
   NS_ENSURE_ARG_POINTER(dstFolder);
 
+  if (srcFolder == dstFolder)
+  {
+    NS_ERROR("src and dest folders for msg copy can't be the same");
+    return NS_ERROR_FAILURE;
+  }
   nsCopyRequest* copyRequest;
   nsCopySource* copySource = nsnull;
   nsCOMArray<nsIMsgDBHdr> msgArray;
