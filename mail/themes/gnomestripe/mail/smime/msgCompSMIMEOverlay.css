@@ -42,29 +42,22 @@
 
 #button-security {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
-  -moz-image-region: rect(0px 120px 24px 96px);
+  -moz-image-region: rect(154px 22px 176px 0px);
 }
 
-#button-security:hover {
-  -moz-image-region: rect(24px 120px 48px 96px);
-} 
+#button-security[disabled="true"] {
+  -moz-image-region: rect(132px 22px 154px 0px);
+}
 
-#button-security[disabled] {
-  -moz-image-region: rect(48px 120px 72px 96px) !important;
-} 
 
 toolbar[iconsize="small"] #button-security {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-  -moz-image-region: rect(0px 80px 16px 64px);
+  -moz-image-region: rect(112px 16px 128px 0px);
 }
 
-toolbar[iconsize="small"] #button-security:hover {
-  -moz-image-region: rect(16px 80px 32px 64px);
-} 
-
 toolbar[iconsize="small"] #button-security[disabled] {
-  -moz-image-region: rect(32px 80px 48px 64px) !important;
-} 
+  -moz-image-region: rect(96px 16px 112px 0px);
+}
 
 #msgcomposeWindow #signing-status {
   list-style-image: none;
