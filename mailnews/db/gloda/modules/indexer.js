@@ -65,6 +65,9 @@ Cu.import("resource://app/modules/gloda/mimemsg.js");
 // Components.results does not have mailnews error codes!
 const NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE = 0x80550005;
 
+const GLODA_MESSAGE_ID_PROPERTY = "gloda-id";
+const GLODA_DIRTY_PROPERTY = "gloda-dirty";
+
 // for list comprehension fun
 function range(begin, end) {
   for (let i = begin; i < end; ++i) {
@@ -142,17 +145,15 @@ function fixIterator(aEnum, aIface) {
 function MakeCleanMsgHdrCallback(aMsgHdr, aGlodaMessageID) {
   return function() {
     // Mark this message as indexed
-    aMsgHdr.setUint32Property(GlodaIndexer.GLODA_MESSAGE_ID_PROPERTY,
-                              aGlodaMessageID);
+    aMsgHdr.setUint32Property(GLODA_MESSAGE_ID_PROPERTY, aGlodaMessageID);
     // If there is a gloda-dirty flag on there, clear it by writing a 0.  (But
     //  don't do this if we didn't have a dirty flag on there in the first
     //  case.)  It sounds like we would actually prefer to "cut" the "cell",
     //  but I don't see any in-domain means of doing that.
     try {
-      let isDirty = aMsgHdr.getUint32Property(
-        GlodaIndexer.GLODA_DIRTY_PROPERTY);
+      let isDirty = aMsgHdr.getUint32Property(GLODA_DIRTY_PROPERTY);
       if (isDirty)
-        aMsgHdr.setUint32Property(GlodaIndexer.GLODA_DIRTY_PROPERTY, 0);
+        aMsgHdr.setUint32Property(GLODA_DIRTY_PROPERTY, 0);
     }
     catch (ex) {}
   };
@@ -768,8 +769,6 @@ var GlodaIndexer = {
    */
   pendingDeletions: null,
   
-  GLODA_MESSAGE_ID_PROPERTY: "gloda-id",
-  GLODA_DIRTY_PROPERTY: "gloda-dirty",
   /**
    * The message (or folder state) is believed up-to-date.
    */
@@ -1577,8 +1576,6 @@ var GlodaIndexer = {
     if (!this.shouldIndexFolder(this._indexingFolder))
       yield this.kWorkDone;
     
-    aJob.goal = this._indexingFolder.getTotalMessages(false);
-    
     // there is of course a cost to all this header investigation even if we
     //  don't do something.  so we will yield with kWorkSync for every block. 
     const HEADER_CHECK_BLOCK_SIZE = 10;
@@ -1607,11 +1604,10 @@ var GlodaIndexer = {
           yield this.kWorkSync;
         
         let glodaMessageId = msgHdr.getUint32Property(
-                             this.GLODA_MESSAGE_ID_PROPERTY);
+          GLODA_MESSAGE_ID_PROPERTY);
         // if it has a gloda message id, we need to mark it filthy
         if (glodaMessageId != 0)
-          msgHdr.setUint32Property(this.GLODA_DIRTY_PROPERTY,
-                                   this.kMessageFilthy);
+          msgHdr.setUint32Property(GLODA_DIRTY_PROPERTY, this.kMessageFilthy);
         // if it doesn't have a gloda message id, we will definitely index it,
         //  so no action is required.
       }
@@ -1622,31 +1618,60 @@ var GlodaIndexer = {
       this._indexerGetIterator();
     }
 
+    // Whether or not the given message should be indexed.  Messages should
+    // be indexed if they're indexable (local or offline and not expunged)
+    // and either haven't been indexed or are dirty.
+    let shouldIndexMessage = function(msgHdr) {
+      if ((!isLocal &&
+           !(msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Offline)) ||
+          (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Expunged))
+        return false;
+
+      // returns 0 when missing, which means this message hasn't been indexed
+      if (msgHdr.getUint32Property(GLODA_MESSAGE_ID_PROPERTY) == 0)
+        return true;
+
+      // returns 0 when missing, which means this message is clean
+      return (msgHdr.getUint32Property(GLODA_DIRTY_PROPERTY) != 0);
+    };
+
+    // Pass 1: count the number of messages to index.
+    //  We do this in order to be able to report to the user what we're doing.
+    // To avoid traversing the entire folder again in the second pass, we could
+    //  cache headers that need indexing here, which would work fine for sparse
+    //  indexing but might eat too much memory for dense indexing.  Perhaps we
+    //  could employ a hybrid approach where we cache up to a certain number
+    //  of headers before falling back to full traversal in the second pass.
+    // TODO: give up after reaching a certain number of messages in folders
+    //  with ridiculous numbers of messages and make the interface just say
+    //  something like "over N messages to go."
+    let count = 0;
+    let numMessagesToIndex = 0;
+    for (let msgHdr in this._indexingIterator) {
+      // we still need to avoid locking up the UI, pause periodically...
+      if (++count % HEADER_CHECK_BLOCK_SIZE == 0)
+        yield this.kWorkSync;
+
+      if (shouldIndexMessage(msgHdr))
+        ++numMessagesToIndex;
+    }
+
+    // We used up the iterator, get a new one.
+    this._indexerGetIterator();
+
+    aJob.goal = numMessagesToIndex;
+
+    // Pass 2: index the messages.
+    count = 0;
     for (let msgHdr in this._indexingIterator) {
       // per above, we want to periodically release control while doing all
       //  this header traversal/investigation.
-      if (++aJob.offset % HEADER_CHECK_BLOCK_SIZE == 0) {
+      if (++count % HEADER_CHECK_BLOCK_SIZE == 0) {
         yield this.kWorkSync;
       }
-      
-      if ((isLocal ||
-           (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Offline)) &&
-          !(msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Expunged)) {
-        // this returns 0 when missing
-        let glodaMessageId = msgHdr.getUint32Property(
-                             this.GLODA_MESSAGE_ID_PROPERTY);
-        
-        // if it has a gloda message id, it has been indexed, but it still
-        //  could be dirty.
-        if (glodaMessageId != 0) {
-          // (returns 0 when missing)
-          let isDirty = msgHdr.getUint32Property(this.GLODA_DIRTY_PROPERTY)!= 0;
 
-          // it's up to date if it's not dirty 
-          if (!isDirty)
-            continue;
-        }
-        
+      if (shouldIndexMessage(msgHdr)) {
+        ++aJob.offset;
         this._log.debug(">>>  _indexMessage");
         yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
             this._callbackHandle));
@@ -1967,7 +1992,7 @@ var GlodaIndexer = {
         let msgHdr = aMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
         try {
           glodaMessageIds.push(msgHdr.getUint32Property(
-            this.indexer.GLODA_MESSAGE_ID_PROPERTY));
+            GLODA_MESSAGE_ID_PROPERTY));
         }
         catch (ex) {}
       }
@@ -2031,7 +2056,7 @@ var GlodaIndexer = {
               if (matchingSrcHdr) {
                 try {
                   let glodaId = matchingSrcHdr.getUint32Property(
-                    this.indexer.GLODA_MESSAGE_ID_PROPERTY); 
+                    GLODA_MESSAGE_ID_PROPERTY);
                   glodaIds.push(glodaId);
                   newMessageKeys.push(destMsgHdr.messageKey);
                 }
@@ -2232,7 +2257,7 @@ var GlodaIndexer = {
       // (We could check for the presence of the gloda message id property
       //  first to know whether we technically need the dirty property.  I'm
       //  not sure whether it is worth the high-probability exception cost.) 
-      aMsgHdr.setUint32Property(this.indexer.GLODA_DIRTY_PROPERTY, 1);
+      aMsgHdr.setUint32Property(GLODA_DIRTY_PROPERTY, 1);
       // mark the folder dirty too, so we know to look inside
       let glodaFolder = GlodaDatastore._mapFolder(msgFolder);
       glodaFolder.dirtyStatus = true;
