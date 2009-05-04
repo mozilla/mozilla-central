@@ -721,7 +721,7 @@ void nsImapServerResponseParser::response_data()
       {
         // check if custom command
         nsCAutoString customCommand;
-        fServerConnection.GetCurrentUrl()->GetCommand(getter_Copies(customCommand));
+        fServerConnection.GetCurrentUrl()->GetCommand(customCommand);
         if (customCommand.Equals(fNextToken))
         {
           nsCAutoString customCommandResponse;
@@ -731,7 +731,7 @@ void nsImapServerResponseParser::response_data()
             customCommandResponse.Append(fNextToken);
             customCommandResponse.Append(" ");
           }
-          fServerConnection.GetCurrentUrl()->SetCustomCommandResult(customCommandResponse.get());
+          fServerConnection.GetCurrentUrl()->SetCustomCommandResult(customCommandResponse);
         }
         else
           SetSyntaxError(PR_TRUE);
@@ -1332,7 +1332,7 @@ void nsImapServerResponseParser::msg_fetch()
           return;
         fServerConnection.GetCurrentUrl()->GetImapAction(&imapAction);
         nsCAutoString userDefinedFetchAttribute;
-        fServerConnection.GetCurrentUrl()->GetCustomAttributeToFetch(getter_Copies(userDefinedFetchAttribute));
+        fServerConnection.GetCurrentUrl()->GetCustomAttributeToFetch(userDefinedFetchAttribute);
         if (imapAction == nsIImapUrl::nsImapUserDefinedFetchAttribute && !strcmp(userDefinedFetchAttribute.get(), fNextToken))
         {
           AdvanceToNextToken();
@@ -1340,7 +1340,7 @@ void nsImapServerResponseParser::msg_fetch()
           // look through the tokens until we find the closing ')'
           // we can have a result like the following:
           // ((A B) (C D) (E F))
-          fServerConnection.GetCurrentUrl()->SetCustomAttributeResult(fetchResult);
+          fServerConnection.GetCurrentUrl()->SetCustomAttributeResult(nsDependentCString(fetchResult));
           PR_Free(fetchResult);
           break;
         }

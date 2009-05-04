@@ -4209,7 +4209,7 @@ nsImapMailFolder::OnlineCopyCompleted(nsIImapProtocol *aProtocol, ImapOnlineCopy
     if (action != nsIImapUrl::nsImapOnlineToOfflineMove)
       return NS_ERROR_FAILURE; // don't assert here...
     nsCString messageIds;
-    rv = imapUrl->CreateListOfMessageIdsString(getter_Copies(messageIds));
+    rv = imapUrl->GetListOfMessageIds(messageIds);
     if (NS_FAILED(rv)) return rv;
     nsCOMPtr<nsIImapService> imapService =  do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -4796,15 +4796,11 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
             if (NS_SUCCEEDED(rv) && db)
             {
               nsTArray<nsMsgKey> keyArray;
-              char *keyString;
-              imapUrl->CreateListOfMessageIdsString(&keyString);
-              if (keyString)
-              {
-                ParseUidString(keyString, keyArray);
-                MarkMessagesImapDeleted(&keyArray, PR_FALSE, db);
-                db->Commit(nsMsgDBCommitType::kLargeCommit);
-                NS_Free(keyString);
-              }
+              nsCString keyString;
+              imapUrl->GetListOfMessageIds(keyString);
+              ParseUidString(keyString.get(), keyArray);
+              MarkMessagesImapDeleted(&keyArray, PR_FALSE, db);
+              db->Commit(nsMsgDBCommitType::kLargeCommit);
             }
           }
         }
@@ -4823,32 +4819,28 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
               if (NS_SUCCEEDED(rv) && db)
               {
                 nsTArray<nsMsgKey> keyArray;
-                char *keyString = nsnull;
-                imapUrl->CreateListOfMessageIdsString(&keyString);
-                if (keyString)
-                {
-                  ParseUidString(keyString, keyArray);
+                nsCString keyString;
+                imapUrl->GetListOfMessageIds(keyString);
+                ParseUidString(keyString.get(), keyArray);
                   
-                  // Notify listeners of delete.
-                  if (notifier)
-                  {
-                    nsCOMPtr<nsIMutableArray> msgHdrs(do_CreateInstance(NS_ARRAY_CONTRACTID));
-                    MsgGetHeadersFromKeys(db, keyArray, msgHdrs);
+                // Notify listeners of delete.
+                if (notifier)
+                {
+                  nsCOMPtr<nsIMutableArray> msgHdrs(do_CreateInstance(NS_ARRAY_CONTRACTID));
+                  MsgGetHeadersFromKeys(db, keyArray, msgHdrs);
 
-                    // XXX Currently, the DeleteMessages below gets executed twice on deletes.
-                    // Once in DeleteMessages, once here. The second time, it silently fails
-                    // to delete. This is why we're also checking whether the array is empty.
-                    PRUint32 numHdrs;
-                    msgHdrs->GetLength(&numHdrs);
-                    if (numHdrs)
-                      notifier->NotifyMsgsDeleted(msgHdrs);
-                  }
-
-                  db->DeleteMessages(&keyArray, nsnull);
-                  db->SetSummaryValid(PR_TRUE);
-                  db->Commit(nsMsgDBCommitType::kLargeCommit);
-                  NS_Free(keyString);
+                  // XXX Currently, the DeleteMessages below gets executed twice on deletes.
+                  // Once in DeleteMessages, once here. The second time, it silently fails
+                  // to delete. This is why we're also checking whether the array is empty.
+                  PRUint32 numHdrs;
+                  msgHdrs->GetLength(&numHdrs);
+                  if (numHdrs)
+                    notifier->NotifyMsgsDeleted(msgHdrs);
                 }
+
+                db->DeleteMessages(&keyArray, nsnull);
+                db->SetSummaryValid(PR_TRUE);
+                db->Commit(nsMsgDBCommitType::kLargeCommit);
               }
             }
           }
@@ -5059,7 +5051,7 @@ nsImapMailFolder::SetCopyResponseUid(const char* msgIdString,
   else if (aUrl && m_pendingOfflineMoves.Count())
   {
     nsCString urlSourceMsgIds, undoTxnSourceMsgIds;
-    aUrl->CreateListOfMessageIdsString(getter_Copies(urlSourceMsgIds));
+    aUrl->GetListOfMessageIds(urlSourceMsgIds);
     nsCOMPtr <nsITransaction> firstTransaction = m_pendingOfflineMoves[0];
     nsRefPtr<nsImapMoveCopyMsgTxn> imapUndo;
     firstTransaction->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(imapUndo));
@@ -6849,7 +6841,6 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
     nsTArray<nsMsgKey> srcKeyArray;
     nsCOMPtr<nsIUrlListener> urlListener;
     nsCOMPtr<nsISupports> copySupport;
-    PRUint32 count = 0; // needs to be inited before goto
     
     if (WeAreOffline())
       return CopyMessagesOffline(srcFolder, messages, isMove, msgWindow, listener);

@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -281,11 +281,10 @@ NS_IMETHODIMP nsImapUrl::CreateSearchCriteriaString(char ** aResult)
 }
 
 // this method gets called from the UI thread and the imap thread
-NS_IMETHODIMP nsImapUrl::CreateListOfMessageIdsString(char ** aResult)
+NS_IMETHODIMP nsImapUrl::GetListOfMessageIds(nsACString &aResult)
 {
   nsAutoCMonitor mon(this);
-  nsCAutoString newStr;
-  if (nsnull == aResult || !m_listOfMessageIds)
+  if (!m_listOfMessageIds)
     return  NS_ERROR_NULL_POINTER;
 
   PRInt32 bytesToCopy = strlen(m_listOfMessageIds);
@@ -306,64 +305,57 @@ NS_IMETHODIMP nsImapUrl::CreateListOfMessageIdsString(char ** aResult)
   if (wherePart)
     bytesToCopy = PR_MIN(bytesToCopy, wherePart - m_listOfMessageIds);
 
-  newStr.Assign(m_listOfMessageIds, bytesToCopy);
-  *aResult = ToNewCString(newStr);
+  aResult.Assign(m_listOfMessageIds, bytesToCopy);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::GetCommand(char **result)
+NS_IMETHODIMP nsImapUrl::GetCommand(nsACString &result)
 {
-  NS_ENSURE_ARG_POINTER(result);
-  *result = strdup(m_command.get());
-  return (*result) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  result = m_command;
+  return NS_OK;
 }
 
 
-NS_IMETHODIMP nsImapUrl::GetCustomAttributeToFetch(char **result)
+NS_IMETHODIMP nsImapUrl::GetCustomAttributeToFetch(nsACString &result)
 {
-  NS_ENSURE_ARG_POINTER(result);
-  *result = ToNewCString(m_msgFetchAttribute);
-  return (*result) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  result = m_msgFetchAttribute;
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::GetCustomAttributeResult(char **result)
+NS_IMETHODIMP nsImapUrl::GetCustomAttributeResult(nsACString &result)
 {
-  NS_ENSURE_ARG_POINTER(result);
-  *result = ToNewCString(m_customAttributeResult);
-  return (*result) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  result = m_customAttributeResult;
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::SetCustomAttributeResult(const char *result)
+NS_IMETHODIMP nsImapUrl::SetCustomAttributeResult(const nsACString &result)
 {
   m_customAttributeResult = result;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::GetCustomCommandResult(char **result)
+NS_IMETHODIMP nsImapUrl::GetCustomCommandResult(nsACString &result)
 {
-  NS_ENSURE_ARG_POINTER(result);
-  *result = strdup(m_customCommandResult.get());
-  return (*result) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  result = m_customCommandResult;
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::SetCustomCommandResult(const char *result)
+NS_IMETHODIMP nsImapUrl::SetCustomCommandResult(const nsACString &result)
 {
   m_customCommandResult = result;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::GetCustomAddFlags(char **aResult)
+NS_IMETHODIMP nsImapUrl::GetCustomAddFlags(nsACString &aResult)
 {
-  NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = ToNewCString(m_customAddFlags);
-  return (*aResult) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  aResult = m_customAddFlags;
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::GetCustomSubtractFlags(char **aResult)
+NS_IMETHODIMP nsImapUrl::GetCustomSubtractFlags(nsACString &aResult)
 {
-  NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = ToNewCString(m_customSubtractFlags);
-  return (*aResult) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  aResult = m_customSubtractFlags;
+  return NS_OK;
 }
 
 

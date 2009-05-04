@@ -2597,7 +2597,7 @@ NS_IMETHODIMP nsImapService::NewURI(const nsACString &aSpec,
         nsCAutoString msgKey;
 
          nsCString messageIdString;
-         aImapUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+         aImapUrl->GetListOfMessageIds(messageIdString);
          if (!messageIdString.IsEmpty())
         {
           PRBool useLocalCache = PR_FALSE;

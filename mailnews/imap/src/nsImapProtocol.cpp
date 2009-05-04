@@ -891,7 +891,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
                  m_imapAction == nsIImapUrl::nsImapOnlineCopy)
         {
           nsCString messageIdString;
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          m_runningUrl->GetListOfMessageIds(messageIdString);
           PRUint32 copyCount = CountMessagesInIdString(messageIdString.get());
           // If we're move/copying a large number of messages,
           // which should be rare, increase the timeout based on number 
@@ -2348,7 +2348,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapMsgPreview:
         {
           nsCString messageIdString;
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          m_runningUrl->GetListOfMessageIds(messageIdString);
           // we don't want to send the flags back in a group
           // GetServerStateParser().ResetFlagInfo(0);
           if (HandlingMultipleMessages(messageIdString) || m_imapAction == nsIImapUrl::nsImapMsgDownloadForOffline
@@ -2523,7 +2523,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapMsgHeader:
         {
           nsCString messageIds;
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIds));
+          m_runningUrl->GetListOfMessageIds(messageIds);
 
           // we don't want to send the flags back in a group
           //        GetServerStateParser().ResetFlagInfo(0);
@@ -2548,8 +2548,8 @@ void nsImapProtocol::ProcessSelectedStateURL()
           nsCString messageIdString;
           nsCString command;
           
-          m_runningUrl->GetCommand(getter_Copies(command));
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          m_runningUrl->GetCommand(command);
+          m_runningUrl->GetListOfMessageIds(messageIdString);
           IssueUserDefinedMsgCommand(command.get(), messageIdString.get());
         }
         break;
@@ -2558,8 +2558,8 @@ void nsImapProtocol::ProcessSelectedStateURL()
           nsCString messageIdString;
           nsCString attribute;
           
-          m_runningUrl->GetCustomAttributeToFetch(getter_Copies(attribute));
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          m_runningUrl->GetCustomAttributeToFetch(attribute);
+          m_runningUrl->GetListOfMessageIds(messageIdString);
           FetchMsgAttribute(messageIdString, attribute);
         }
         break;
@@ -2574,9 +2574,9 @@ void nsImapProtocol::ProcessSelectedStateURL()
           nsCString addFlags;
           nsCString subtractFlags;
           
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
-          m_runningUrl->GetCustomAddFlags(getter_Copies(addFlags));
-          m_runningUrl->GetCustomSubtractFlags(getter_Copies(subtractFlags));
+          m_runningUrl->GetListOfMessageIds(messageIdString);
+          m_runningUrl->GetCustomAddFlags(addFlags);
+          m_runningUrl->GetCustomSubtractFlags(subtractFlags);
           if (!addFlags.IsEmpty())
           {
             nsCAutoString storeString("+FLAGS (");
@@ -2596,7 +2596,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapDeleteMsg:
         {
           nsCString messageIdString;
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          m_runningUrl->GetListOfMessageIds(messageIdString);
           
           ProgressEventFunctionUsingId (HandlingMultipleMessages(messageIdString) ? 
                                       IMAP_DELETING_MESSAGES :IMAP_DELETING_MESSAGE);
@@ -2672,7 +2672,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapAddMsgFlags:
         {
           nsCString messageIdString;
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          m_runningUrl->GetListOfMessageIds(messageIdString);
 
           ProcessStoreFlags(messageIdString, bMessageIdsAreUids,
             msgFlags, PR_TRUE);
@@ -2681,7 +2681,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapSubtractMsgFlags:
         {
           nsCString messageIdString;
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          m_runningUrl->GetListOfMessageIds(messageIdString);
 
           ProcessStoreFlags(messageIdString, bMessageIdsAreUids,
             msgFlags, PR_FALSE);
@@ -2690,7 +2690,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapSetMsgFlags:
         {
           nsCString messageIdString;
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          m_runningUrl->GetListOfMessageIds(messageIdString);
 
           ProcessStoreFlags(messageIdString, bMessageIdsAreUids,
             msgFlags, PR_TRUE);
@@ -2705,7 +2705,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapOnlineMove:
         {
           nsCString messageIdString;
-          m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          m_runningUrl->GetListOfMessageIds(messageIdString);
           char *destinationMailbox = OnCreateServerDestinationFolderPathString();
 
           if (destinationMailbox)
@@ -2763,7 +2763,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
       case nsIImapUrl::nsImapOnlineToOfflineMove:
         {
           nsCString messageIdString;
-          nsresult rv = m_runningUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+          nsresult rv = m_runningUrl->GetListOfMessageIds(messageIdString);
           if (NS_SUCCEEDED(rv))
           {
             SetProgressString(IMAP_FOLDER_RECEIVING_MESSAGE_OF);
@@ -3853,7 +3853,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
       nsCString undoIdsStr;
       nsCAutoString undoIds;
 
-      GetCurrentUrl()->CreateListOfMessageIdsString(getter_Copies(undoIdsStr));
+      GetCurrentUrl()->GetListOfMessageIds(undoIdsStr);
       undoIds.Assign(undoIdsStr);
       if (!undoIds.IsEmpty())
       {
@@ -5735,7 +5735,7 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
               Noop();
 
           nsCString oldMsgId;
-          rv = m_runningUrl->CreateListOfMessageIdsString(getter_Copies(oldMsgId));
+          rv = m_runningUrl->GetListOfMessageIds(oldMsgId);
           if (NS_SUCCEEDED(rv) && !oldMsgId.IsEmpty())
           {
             PRBool idsAreUids = PR_TRUE;
@@ -8586,7 +8586,7 @@ PRBool nsImapMockChannel::ReadFromLocalCache()
 
     SetupPartExtractorListener(imapUrl, m_channelListener);
 
-    imapUrl->CreateListOfMessageIdsString(getter_Copies(messageIdString));
+    imapUrl->GetListOfMessageIds(messageIdString);
     nsCOMPtr <nsIMsgFolder> folder;
     rv = mailnewsUrl->GetFolder(getter_AddRefs(folder));
     if (folder && NS_SUCCEEDED(rv))

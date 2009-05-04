@@ -60,7 +60,7 @@ interface nsImapContentModifiedTypes
   const long IMAP_CONTENT_FORCE_CONTENT_NOT_MODIFIED = 3;
 } ;
 
-[scriptable, uuid(c9e4e0ab-f48b-4bba-b9a2-e889cbec364f)]
+[scriptable, uuid(5ea7ce41-9392-488f-a7ad-343cba15b3e4)]
 interface nsIImapUrl : nsISupports
 {
   ///////////////////////////////////////////////////////////////////////////////
@@ -76,12 +76,12 @@ interface nsIImapUrl : nsISupports
   attribute nsImapAction imapAction;
   readonly attribute nsImapState requiredImapState;
   readonly attribute string imapPartToFetch;
-  readonly attribute string customAttributeToFetch;
-  attribute string customAttributeResult;
-  readonly attribute string command;
-  attribute string customCommandResult;
-  readonly attribute string customAddFlags;
-  readonly attribute string customSubtractFlags;
+  readonly attribute ACString customAttributeToFetch;
+  attribute ACString customAttributeResult;
+  readonly attribute ACString command;
+  attribute ACString customCommandResult;
+  readonly attribute ACString customAddFlags;
+  readonly attribute ACString customSubtractFlags;
   void allocateCanonicalPath(in string aServerPath, in char aOnlineDelimiter, out string aAllocatedPath);
   void allocateServerPath(in string aCanonicalPath, in char aOnlineDelimiter, out string aAllocatedPath);
   string createServerSourceFolderPathString();
@@ -90,7 +90,7 @@ interface nsIImapUrl : nsISupports
 
   string addOnlineDirectoryIfNecessary(in string onlineMailboxName);
   void createSearchCriteriaString (out string aResult);
-  void createListOfMessageIdsString (out string aResult);
+  readonly attribute ACString listOfMessageIds;
 
   boolean messageIdsAreUids();
   readonly attribute imapMessageFlagsType msgFlags; // kAddMsgFlags or kSubtractMsgFlags only
