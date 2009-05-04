@@ -175,14 +175,6 @@ EXPORTS = \
 		nsMailDirServiceDefs.h \
 		$(NULL)
 
-EXTRA_JS_MODULES = \
-		dbViewWrapper.js \
-		mailViewManager.js \
-		quickSearchManager.js \
-		searchSpec.js \
-		virtualFolderWrapper.js \
-		$(NULL)
-
 # we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB = 1
 
