@@ -52,8 +52,7 @@ var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
 var rsspref = Components.classes["@mozilla.org/preferences-service;1"]
                         .getService(Components.interfaces.nsIPrefBranch);
 
-const RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-const RDF_TYPE = rdf.GetResource(RDF_NS + "type");
+const RDF_TYPE = rdf.GetResource("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
 
 const RSS_NS = "http://purl.org/rss/1.0/";
 const RSS_CHANNEL = rdf.GetResource(RSS_NS + "channel");
