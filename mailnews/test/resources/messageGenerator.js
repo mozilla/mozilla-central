@@ -747,11 +747,7 @@ MessageGenerator.prototype = {
    *         encoded.  Line chopping is on you FOR NOW.
    *     body: A dictionary suitable for passing to SyntheticPart plus a 'body'
    *         attribute that has already been encoded (if encoding is required).
-   *         Line chopping is on you FOR NOW.  Alternately, use bodyPart.
-   *     bodyPart: A SyntheticPart to uses as the body.  If you provide an
-   *         attachments value, this part will be wrapped in a multipart/mixed
-   *         to also hold your attachments.  (You can put attachments in the
-   *         bodyPart directly if you want and not use attachments.)
+   *         Line chopping is on you FOR NOW.
    *     callerData: A value to propagate to the callerData attribute on the
    *         resulting message.
    *     inReplyTo: the SyntheticMessage this message should be in reply-to.
@@ -793,8 +789,6 @@ MessageGenerator.prototype = {
       msg.subject = aArgs.subject || this.makeSubject();
       msg.from = aArgs.from || this.makeNameAndAddress();
       msg.to = aArgs.to || this.makeNamesAndAddresses(aArgs.toCount || 1);
-      if (aArgs.cc)
-        msg.cc = aArgs.cc;
     }
 
     msg.children = [];
@@ -839,61 +833,7 @@ MessageGenerator.prototype = {
     msg.callerData = aArgs.callerData;
 
     return msg;
-  },
-
-  MAKE_MESSAGES_DEFAULTS: {
-    count: 10,
-  },
-  MAKE_MESSAGES_PROPAGATE: ['attachments', 'body', 'cc', 'from', 'subject', 'to'],
-  /**
-   * Given a set definition, produce a list of synthetic messages.
-   *
-   * The set definition supports the following attributes:
-   *  count: The number of messages to create.
-   *  age: As used by makeMessage.
-   *  age_incr: Similar to age, but used to increment the values in the age
-   *      dictionary (assuming a value of zero if omitted).
-   *
-   * Also supported are the following attributes as defined by makeMessage:
-   *  attachments, body, from, subject, to
-   *
-   * If omitted, the following defaults are used:
-   *  count: 10
-   */
-  makeMessages: function MessageGenerator_makeMessages(aSetDef) {
-    let messages = [];
-
-    let args = {};
-    // zero out all the age_incr fields in age (if present)
-    if (aSetDef.age_incr) {
-      args.age = {};
-      for (let [unit, delta] in Iterator(aSetDef.age_incr))
-        args.age[unit] = 0;
-    }
-    // copy over the initial values from age (if present)
-    if (aSetDef.age) {
-      args.age = args.age || {};
-      for (let [unit, value] in Iterator(aSetDef.age))
-        args.age[unit] = value;
-    }
-    // just copy over any attributes found from MAKE_MESSAGES_PROPAGATE
-    for each (let [, propAttrName] in Iterator(this.MAKE_MESSAGES_PROPAGATE)) {
-      if (aSetDef[propAttrName])
-        args[propAttrName] = aSetDef[propAttrName];
-    }
-
-    let count = aSetDef.count || this.MAKE_MESSAGES_DEFAULTS.count;
-    for (let iMsg = 0; iMsg < count; iMsg++) {
-      messages.push(this.makeMessage(args));
-
-      if (aSetDef.age_incr) {
-        for (let [unit, delta] in Iterator(aSetDef.age_incr))
-          args.age[unit] += delta;
-      }
-    }
-
-    return messages;
-  },
+  }
 };
 
 /**
