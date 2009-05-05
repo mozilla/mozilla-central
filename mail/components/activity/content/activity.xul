@@ -128,12 +128,12 @@
                flex="1" onkeypress="processKeyEvent(event)">
   </richlistbox>
 
-  <hbox id="search" align="center">
+  <windowdragbox id="search" align="center">
     <button id="clearListButton" command="cmd_clearList"
             label="&cmd.clearList.label;"
             accesskey="&cmd.clearList.accesskey;"
             tooltiptext="&cmd.clearList.tooltip;"/>
     <spacer flex="1"/>
-  </hbox>
+  </windowdragbox>
 
 </window>
