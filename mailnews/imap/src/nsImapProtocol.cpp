@@ -323,10 +323,15 @@ static PRBool gExpungeAfterDelete = PR_FALSE;
 static PRBool gCheckDeletedBeforeExpunge = PR_FALSE; //bug 235004
 static PRInt32 gResponseTimeout = 60;
 
-static const PRInt32 kAutoExpungeNever = 0;
+// let delete model control expunging, i.e., don't ever expunge when the
+// user chooses the imap delete model, otherwise, expunge when over the
+// threshhold. This is the normal TB behavior.
+static const PRInt32 kAutoExpungeDeleteModel = 0;
+// Expunge whenever the folder is opened
 static const PRInt32 kAutoExpungeAlways = 1;
+// Expunge when over the threshhold, independent of the delete model.
 static const PRInt32 kAutoExpungeOnThreshold = 2;
-static PRInt32 gExpungeOption = 0;
+static PRInt32 gExpungeOption = kAutoExpungeDeleteModel;
 static PRInt32 gExpungeThreshold = 20;
 
 
@@ -3921,13 +3926,15 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
         PRInt32 numDeleted = m_flagState->NumberOfDeletedMessages();
         // Don't do expunge when we are lite selecting folder because we
         // could be doing undo.
-        // Do expunge if we're using the IMAP Delete model (mark messages
-        // as deleted) or if we're always expunging or if we've reached
-        // the expunge threshold.
+        // Expunge if we're always expunging, or the number of deleted messages
+        // is over the threshhold, and we're either always respecting the
+        // threshhold, or we're expunging based on the delete model, and
+        // the delete model is not the imap delete model.
         if (m_imapAction != nsIImapUrl::nsImapLiteSelectFolder &&
-            (!GetShowDeletedMessages() ||
-             (gExpungeOption == kAutoExpungeOnThreshold && numDeleted >= gExpungeThreshold) ||
-             (gExpungeOption == kAutoExpungeAlways)))
+          (gExpungeOption == kAutoExpungeAlways ||
+          (numDeleted >= gExpungeThreshold &&
+             (gExpungeOption == kAutoExpungeOnThreshold ||
+               (gExpungeOption == kAutoExpungeDeleteModel && !GetShowDeletedMessages())))))
           Expunge();
       }
     }
