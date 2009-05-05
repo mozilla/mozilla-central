@@ -273,16 +273,28 @@ toolbar[iconsize="small"] #button-abdelete[disabled] {
   border-right: 1px solid #bebebe;
 }
 
-#dirTree treechildren::-moz-tree-row(odd) {
-  background-color: #FFF;
+#dirTree treechildren::-moz-tree-row {
+  background-color: transparent;
 }
 
 #dirTree treechildren::-moz-tree-row(selected) {
-  background: url("chrome://messenger/skin/icons/foldertree-selected-unfocused.png") #676767 repeat-x !important;
+  background: url("chrome://messenger/skin/icons/sidebar-item.png") 0 0 repeat-x #90A0C0;
 }
 
 #dirTree treechildren::-moz-tree-row(selected, focus) {
-  background: url("chrome://messenger/skin/icons/foldertree-selected-background.png") #225ED0 repeat-x  !important;
+  background-position: 0 -18px;
+}
+
+#dirTree:-moz-system-metric(mac-graphite-theme) treechildren::-moz-tree-row(selected) {
+  background-position: 0 -36px;
+}
+
+#dirTree:-moz-system-metric(mac-graphite-theme) treechildren::-moz-tree-row(selected, focus) {
+  background-position: 0 -54px;
+}
+
+:root:not([active]) #dirTree treechildren::-moz-tree-row(selected) {
+  background-position: 0 -72px;
 }
 
 #dirTree treechildren::-moz-tree-cell-text(selected, focus), #dirTree treechildren::-moz-tree-cell-text(selected) {
