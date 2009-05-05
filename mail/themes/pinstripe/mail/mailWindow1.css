@@ -82,8 +82,8 @@ treechildren::-moz-tree-twisty {
   background-color: #e6edf7 !important;
 }
 
-.focusring > .tree-rows > .tree-bodybox {
-  border: none !important;
+.focusring > .tree-stack > .tree-rows > .tree-bodybox {
+  border: 0;
 }
 
 
