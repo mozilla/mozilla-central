@@ -78,7 +78,7 @@ nsActivity.prototype = {
   },
 
   removeListener: function(aListener) {
-    for (i = 0; i < this._listeners.length; i++) {
+    for (let i = 0; i < this._listeners.length; i++) {
       if (this._listeners[i] == aListener) {
         this._listeners.splice(i, 1);
         break;

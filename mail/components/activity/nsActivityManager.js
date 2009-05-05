@@ -191,7 +191,7 @@ nsActivityManager.prototype = {
 
   removeListener: function(aListener) {
     this.log.info("removeListener\n");
-    for (i = 0; i < this._listeners.length; i++) {
+    for (let i = 0; i < this._listeners.length; i++) {
       if (this._listeners[i] == aListener)
         this._listeners.splice(i, 1);
     }

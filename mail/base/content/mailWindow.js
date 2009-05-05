@@ -83,6 +83,7 @@ function OnMailWindowUnload()
 
   msgWindow.closeWindow();
 
+  window.MsgStatusFeedback.unload();
   Components.classes["@mozilla.org/activity-manager;1"]
             .getService(Components.interfaces.nsIActivityManager)
             .removeListener(window.MsgStatusFeedback);
@@ -183,6 +184,14 @@ nsMsgStatusFeedback.prototype =
   _progressBarVisible: false,
   _activeProcesses: null,
   _statusFeedbackProgress: -1,
+
+  // unload - call to remove links to listeners etc.
+  unload: function () {
+    // Remove listeners for any active processes we have hooked ourselves into.
+    this._activeProcesses.forEach(function (element) {
+        element.removeListener(this);
+      }, this);
+  },
 
   // nsIXULBrowserWindow implementation.
   setJSStatus: function(status) {
