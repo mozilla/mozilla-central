@@ -42,21 +42,18 @@
 }
 
 #quick-search-button {
-  min-width: 22px;
-  -moz-margin-start: 5px;
-  -moz-margin-end: 3px;
+  -moz-margin-start: -10px;
+  -moz-margin-end: 4px;
   margin-bottom: 0;
   margin-top: 0;
 }
 
 .quick-search-button-image {
   padding: 0px;
-  list-style-image: url("chrome://messenger/skin/icons/Search-bar.png");
 }
 
-
 .quick-search-button-dropmarker {
-  -moz-padding-start: 17px;
+  -moz-padding-start: 8px;
   -moz-padding-end: 0;
   padding-top: 6px;
   padding-bottom: 5px;
@@ -64,23 +61,17 @@
 }
 
 .quick-search-clearbutton {
-  background: url("chrome://messenger/skin/icons/SearchBarEnd.png") right center no-repeat;
   list-style-image: none;
   -moz-appearance: none;
   padding: 0px !important;
   border: none !important;
-  margin: 0px !important;
-  width: 20px;
-}
-
-.quick-search-clearbutton[chromedir="rtl"] {
-  background: url("chrome://messenger/skin/icons/SearchBarEnd-rtl.png") left center no-repeat;
+  margin: 0 0 1px !important;
+  width: 14px;
 }
 
 .quick-search-clearbutton[clearButtonHidden="false"] {
-  list-style-image: url("chrome://global/skin/icons/closetab.png") !important;
-  margin: 0px !important;
-  padding: 0px 3px;
+  list-style-image: url(chrome://global/skin/icons/searchfield-regular-cancel.png);
+  -moz-image-region: rect(0, 14px, 14px, 0);
 }
 
 .quick-search-clearbutton > .toolbarbutton-text {
@@ -88,26 +79,19 @@
 }
 
 .quick-search-clearbutton[clearButtonHidden="false"]:hover:active {
-  list-style-image: url("chrome://global/skin/icons/closetab-active.png") !important;
+  -moz-image-region: rect(0, 28px, 14px, 14px);
 }
 
 #searchInput {
-  background: url("chrome://messenger/skin/icons/SearchBarStart.png") left center no-repeat;
-  margin: 4px !important;
-  -moz-appearance: none;
+  margin: 3px 4px 4px !important;
+  -moz-appearance: searchfield;
   font: icon;
   height: 22px !important;
-  border: none !important;
-}
-
-#searchInput[chromedir="rtl"] {
-  background: url("chrome://messenger/skin/icons/SearchBarStart-rtl.png") right center no-repeat;
 }
 
 #searchInput > .textbox-input-box {
-  background: url("chrome://messenger/skin/icons/SearchBarMiddle.png") center repeat-x;
   border: none;
-  padding-top: 3px;
+  padding-top: 1px;
   height: 21px !important;
   margin: 0 !important;
 }
