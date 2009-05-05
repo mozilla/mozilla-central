@@ -2622,7 +2622,7 @@ var gMessageNotificationBar =
                                  .getService(Components.interfaces.nsIMsgHeaderParser);
     var emailAddress = headerParser.extractHeaderAddressMailboxes(aMsgHdr.author);
     document.getElementById('allowRemoteContentForAuthorDesc').value =
-      gMessengerBundle.getFormattedString('alwaysLoadRemoteContentForSender1',
+      gMessengerBundle.getFormattedString('alwaysLoadRemoteContentForSender2',
                          [emailAddress ? emailAddress : aMsgHdr.author]);
     this.updateMsgNotificationBar(kMsgNotificationRemoteImages, true);
   },
