@@ -20,6 +20,7 @@
         <rdf:li> <rdf:Description ID="profile-help" nc:name="Managing Profiles" nc:link="profiles_help.xhtml"/> </rdf:li>
         <rdf:li> <rdf:Description ID="shortcuts" nc:name="&brandShortName; Keyboard Shortcuts" nc:link="shortcuts.xhtml"/> </rdf:li>
         <rdf:li> <rdf:Description ID="tools" nc:name="Tools and Development" nc:link="developer_tools.xhtml"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="glossary" nc:name="Glossary" nc:link="glossary.xhtml"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
