@@ -404,6 +404,7 @@ var messageHeaderSink = {
 
     onEndHeaders: function()
     {
+      ShowMessageHeaderPane();
       // WARNING: This is the ONLY routine inside of the message Header Sink that should
       // trigger a reflow!
       ClearHeaderView(gCollapsedHeaderView);
@@ -411,7 +412,6 @@ var messageHeaderSink = {
 
       EnsureSubjectValue(); // make sure there is a subject even if it's empty so we'll show the subject and the twisty
 
-      ShowMessageHeaderPane();
       UpdateMessageHeaders();
       ShowEditMessageBox();
       UpdateJunkButton();
@@ -975,6 +975,16 @@ function HideMessageHeaderPane()
   document.getElementById("attachment-splitter").collapsed = true;
   
   ClearEditMessageBox();
+}
+
+// We do this as an alternative to hiding the message pane.
+// Clear out the values so it doesn't look like we've got one
+// message selected in the thread pane, and a different one
+// displayed in the message pane.
+function ClearMessageHeaderPane()
+{
+  ClearHeaderView(gCollapsedHeaderView);
+  ClearHeaderView(gExpandedHeaderView);
 }
 
 function OutputNewsgroups(headerEntry, headerValue)

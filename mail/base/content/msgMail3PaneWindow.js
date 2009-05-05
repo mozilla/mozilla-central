@@ -1152,14 +1152,14 @@ function ClearThreadPaneSelection()
 
 function ClearMessagePane()
 {
-  if(gHaveLoadedMessage)
+  if (gHaveLoadedMessage)
   {
     gHaveLoadedMessage = false;
     if (GetMessagePaneFrame().location.href != "about:blank")
         GetMessagePaneFrame().location.href = "about:blank";
 
-    // hide the message header view AND the message pane...
-    HideMessageHeaderPane();
+    // clear the message header view
+    ClearMessageHeaderPane();
     gMessageNotificationBar.clearMsgNotifications();
     ClearPendingReadTimer();
   }
