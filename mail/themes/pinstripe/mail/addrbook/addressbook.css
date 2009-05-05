@@ -271,7 +271,6 @@ toolbar[iconsize="small"] #button-abdelete[disabled] {
 
 #dirTree {
   border-right: 1px solid #bebebe;
-  border-bottom: 1px solid #bEbEbE;
 }
 
 #dirTree treechildren::-moz-tree-row(odd) {
@@ -372,7 +371,6 @@ treechildren::-moz-tree-image(GeneratedName, MailList) {
   padding: 0px;
   border-top: 1px solid #8E8E8E;
   border-left: 1px solid #BEBEBE;
-  border-bottom: 1px solid #BEBEBE;
 }
 
 #CardViewInnerBox {

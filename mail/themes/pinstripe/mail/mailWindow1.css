@@ -67,8 +67,7 @@ treechildren::-moz-tree-twisty {
 }
 
 #folderPaneBox {
-  border-right: 1px solid #9F9F9F;
-  border-bottom: 1px solid #a3a3a3;
+  border-right: 1px solid #8B8B8B;
   -moz-margin-end: -3px !important;
 }
 
@@ -344,10 +343,6 @@ treechildren::-moz-tree-image(news, threadCol, ignoreSubthread) {
   text-align: right;
 }
 
-#threadPaneBox {
-  border-bottom: 1px solid #919191;
-}
-
 /* ::::: group rows ::::: */
 
 treechildren::-moz-tree-row(dummy)  {
@@ -378,7 +373,6 @@ treechildren::-moz-tree-row(dummy, focus, selected)  {
   background-color: #FFFFFF;
   -moz-appearance: none;
   border-top: 1px solid #8E8E8E;
-  border-bottom: 1px solid #a3a3a3;
 }
 
 /* ::::: border adjustments for focus ring and joined splitters :::::
@@ -435,22 +429,17 @@ splitter {
 }
 
 #threadpane-splitter {
-  height: 7px !important;
-  min-height: 7px;
+  height: 8px !important;
+  min-height: 8px;
   background-image: url("chrome://messenger/skin/icons/threadpane-splitter-bg.gif");
   background-repeat: repeat-x;
+  border-top: 1px solid #919191;
 }
 
 #folderpane_splitter {
   background-image: none;
   width: 3px;
   min-width: 3px;
-}
-
-/* ..... tree adjustments ..... */
-
-#accountCentralBox {
-  border: 1px solid transparent;
 }
 
 /* ..... status bar adjustments ..... */
