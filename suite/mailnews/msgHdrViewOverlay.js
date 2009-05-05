@@ -1168,19 +1168,21 @@ createNewAttachmentInfo.prototype.viewAttachment = function viewAttachment()
 
 createNewAttachmentInfo.prototype.openAttachment = function openAttachment()
 {
-    var webNavigationInfo =
-          Components.classes["@mozilla.org/webnavigation-info;1"]
-                    .getService(Components.interfaces.nsIWebNavigationInfo);
+  if (this.contentType == "text/x-moz-deleted")
+    return;
 
-    if (webNavigationInfo.isTypeSupported(this.contentType, null))
-        openAsExternal(this.url);
-    else {
-        messenger.openAttachment(this.contentType, 
-                                 this.url, 
-                                 encodeURIComponent(this.displayName), 
-                                 this.uri,
-                                 this.isExternalAttachment);
-    }
+  var webNavigationInfo =
+        Components.classes["@mozilla.org/webnavigation-info;1"]
+                  .getService(Components.interfaces.nsIWebNavigationInfo);
+
+  if (webNavigationInfo.isTypeSupported(this.contentType, null))
+    openAsExternal(this.url);
+  else
+    messenger.openAttachment(this.contentType,
+                             this.url,
+                             encodeURIComponent(this.displayName),
+                             this.uri,
+                             this.isExternalAttachment);
 }
 
 createNewAttachmentInfo.prototype.printAttachment = function printAttachment()
@@ -1306,9 +1308,7 @@ function attachmentListClick(event)
     {
       var target = event.target;
       if (target.localName == "listitem")
-      {
         target.attachment.openAttachment();
-      }
     }
 }
 
@@ -1616,21 +1616,26 @@ var attachmentAreaDNDObserver = {
     var target = aEvent.target;
     if (target.localName == "listitem")
     {
-      var attachmentUrl = target.getAttribute("attachmentUrl");
-      var attachmentDisplayName = target.getAttribute("label");
-      var attachmentContentType = target.getAttribute("attachmentContentType");
-      var tmpurl = attachmentUrl;
-      var tmpurlWithExtraInfo = tmpurl + "&type=" + attachmentContentType + "&filename=" + attachmentDisplayName;
-      aAttachmentData.data = new TransferData();
-      if (attachmentUrl && attachmentDisplayName)
+      var attachment = target.attachment;
+      if (attachment.contentType == "text/x-moz-deleted")
+        return;
+
+      var data = new TransferData();
+      if (attachment.url && attachment.displayName)
       {
-        aAttachmentData.data.addDataForFlavour("text/x-moz-url", tmpurlWithExtraInfo + "\n" + attachmentDisplayName);
-        aAttachmentData.data.addDataForFlavour("text/x-moz-url-data", tmpurl);
-        aAttachmentData.data.addDataForFlavour("text/x-moz-url-desc", attachmentDisplayName);
-        
-        aAttachmentData.data.addDataForFlavour("application/x-moz-file-promise-url", tmpurl);   
-        aAttachmentData.data.addDataForFlavour("application/x-moz-file-promise", new nsFlavorDataProvider(), 0, Components.interfaces.nsISupports);     
+        var info = attachment.url + "&type=" + attachment.contentType +
+                   "&filename=" + encodeURIComponent(attachment.displayName);
+        data.addDataForFlavour("text/x-moz-url",
+                               info + "\n" + attachment.displayName);
+        data.addDataForFlavour("text/x-moz-url-data", attachment.url);
+        data.addDataForFlavour("text/x-moz-url-desc", attachment.displayName);
+        data.addDataForFlavour("application/x-moz-file-promise-url",
+                               attachment.url);
+        data.addDataForFlavour("application/x-moz-file-promise",
+                               new nsFlavorDataProvider(), 0,
+                               Components.interfaces.nsISupports);
       }
+      aAttachmentData.data = data;
     }
   }
 };
