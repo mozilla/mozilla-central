@@ -61,7 +61,6 @@
 #include "nsIProxyObjectManager.h"
 
 #include "nsIMsgAccountManager.h"
-#include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgFolder.h"
 #include "nsImportStringBundle.h"

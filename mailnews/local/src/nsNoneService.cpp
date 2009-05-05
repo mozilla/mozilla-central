@@ -43,7 +43,6 @@
 #include "nsINoIncomingServer.h"
 #include "nsINoneService.h"
 #include "nsIMsgProtocolInfo.h"
-#include "nsIMsgMailSession.h"
 
 #include "nsMsgLocalCID.h"
 #include "nsMsgBaseCID.h"

@@ -53,7 +53,6 @@
 #include "nsIMsgIncomingServer.h"
 #include "nsIMovemailIncomingServer.h"
 #include "nsIMsgProtocolInfo.h"
-#include "nsIMsgMailSession.h"
 #include "nsParseMailbox.h"
 #include "nsIMsgFolder.h"
 #include "nsIPrompt.h"

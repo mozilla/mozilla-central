@@ -80,7 +80,7 @@
 #include "nsCOMPtr.h"
 #include "mozITXTToHTMLConv.h"
 #include "nsIMsgStatusFeedback.h"
-#include "nsIMsgMailSession.h"
+#include "nsIMsgWindow.h"
 #include "nsTextFormatter.h"
 #include "nsIPrompt.h"
 #include "nsMailHeaders.h"

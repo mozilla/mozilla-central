@@ -40,7 +40,6 @@
 #include "nsCOMPtr.h"
 
 #include "nsMailboxService.h"
-#include "nsIMsgMailSession.h"
 #include "nsMailboxUrl.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsMailboxProtocol.h"

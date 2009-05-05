@@ -40,7 +40,6 @@
 
 #include "nsIImapService.h"
 #include "nsIMsgMessageService.h"
-#include "nsISupportsArray.h"
 #include "nsCOMPtr.h"
 #include "nsIFile.h"
 #include "nsIProtocolHandler.h"

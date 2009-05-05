@@ -86,7 +86,6 @@
 #include "nsNewsUtils.h"
 #include "nsMsgUtils.h"
 
-#include "nsIMsgMailSession.h"
 #include "nsIMsgIdentity.h"
 #include "nsIMsgAccountManager.h"
 

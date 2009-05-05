@@ -57,7 +57,6 @@
 #include "nsIMsgWindow.h"
 #include "nsIMsgFilterService.h"
 #include "nsIMsgProtocolInfo.h"
-#include "nsIMsgMailSession.h"
 #include "nsIPrefService.h"
 #include "nsIRelativeFilePref.h"
 #include "nsIDocShell.h"

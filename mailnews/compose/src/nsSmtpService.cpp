@@ -47,7 +47,6 @@
 #include "nsMsgUtils.h"
 #include "nsNetUtil.h"
 #include "nsSmtpService.h"
-#include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
 #include "nsArrayEnumerator.h"

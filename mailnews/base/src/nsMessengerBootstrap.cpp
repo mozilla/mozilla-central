@@ -47,7 +47,7 @@
 
 #include "nsDOMCID.h"
 #include "nsMsgBaseCID.h"
-#include "nsIMsgMailSession.h"
+#include "nsIMsgFolder.h"
 #include "nsIMsgFolderCache.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"

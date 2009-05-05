@@ -48,7 +48,6 @@
 #include "nsINntpUrl.h"
 #include "nsIMsgNewsFolder.h"
 #include "nsNNTPNewsgroupPost.h"
-#include "nsIMsgMailSession.h"
 #include "nsIMsgIdentity.h"
 #include "nsString.h"
 #include "nsReadableUtils.h"

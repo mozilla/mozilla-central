@@ -74,6 +74,7 @@
 #include "nsIWindowWatcher.h"
 #include "nsMsgLocalCID.h"
 #include "nsIMsgMailNewsUrl.h"
+#include "nsIMsgWindow.h"
 
 #include <Carbon/Carbon.h>
 

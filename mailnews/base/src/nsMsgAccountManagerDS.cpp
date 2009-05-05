@@ -47,7 +47,6 @@
 #include "nsIRDFDataSource.h"
 #include "nsEnumeratorUtils.h"
 #include "nsIServiceManager.h"
-#include "nsIMsgMailSession.h"
 #include "nsMsgRDFUtils.h"
 #include "nsIMsgFolder.h"
 #include "nsMsgBaseCID.h"

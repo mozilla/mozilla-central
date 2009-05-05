@@ -41,7 +41,6 @@
 
 #include "nsIURL.h"
 #include "nsImapUrl.h"
-#include "nsIMsgMailSession.h"
 #include "nsIIMAPHostSessionList.h"
 #include "nsThreadUtils.h"
 #include "nsString.h"

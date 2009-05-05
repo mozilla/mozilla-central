@@ -64,7 +64,6 @@
 #include "nsNewsUtils.h"
 
 #include "nsCOMPtr.h"
-#include "nsIMsgMailSession.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsINntpIncomingServer.h"
 #include "nsINewsDatabase.h"

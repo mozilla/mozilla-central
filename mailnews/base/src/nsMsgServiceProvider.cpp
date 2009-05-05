@@ -45,7 +45,6 @@
 
 #include "nsIFileChannel.h"
 #include "nsNetUtil.h"
-#include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
 
 #include "nsMailDirServiceDefs.h"

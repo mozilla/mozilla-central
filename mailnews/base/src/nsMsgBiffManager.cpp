@@ -40,7 +40,6 @@
 #endif
 
 #include "nsMsgBiffManager.h"
-#include "nsIMsgMailSession.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
 #include "nsStatusBarBiffManager.h"

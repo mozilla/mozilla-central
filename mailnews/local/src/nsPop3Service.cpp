@@ -41,7 +41,6 @@
 #include "nsPop3Service.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsIPop3IncomingServer.h"
-#include "nsIMsgMailSession.h"
 
 #include "nsPop3URL.h"
 #include "nsPop3Sink.h"

@@ -46,12 +46,10 @@
  * lot of cruft in it....
  */
 
-#include "nsISupports.idl"
 #include "nsIFolderListener.idl"
-#include "nsIMsgWindow.idl"
-#include "nsIAtom.idl"
 
 interface nsIFile;
+interface nsIMsgWindow;
 interface nsIMsgUserFeedbackListener;
 interface nsIMsgMailNewsUrl;
 

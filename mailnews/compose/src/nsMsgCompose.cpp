@@ -113,6 +113,7 @@
 #include "nsStringStream.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
+#include "nsIMsgWindow.h"
 
 static void GetReplyHeaderInfo(PRInt32* reply_header_type,
                                nsString& reply_header_locale,

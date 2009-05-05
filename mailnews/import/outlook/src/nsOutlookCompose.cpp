@@ -60,7 +60,6 @@
 #include "nsIMsgCompose.h"
 #include "nsIMsgCompFields.h"
 #include "nsIMsgSend.h"
-#include "nsIMsgMailSession.h"
 #include "nsIMsgAccountManager.h"
 
 #include "nsNetCID.h"

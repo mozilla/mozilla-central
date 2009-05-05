@@ -38,7 +38,6 @@
 #include "msgCore.h"
 #include "nsMsgMailNewsUrl.h"
 #include "nsMsgBaseCID.h"
-#include "nsIMsgMailSession.h"
 #include "nsIMsgAccountManager.h"
 #include "nsStringGlue.h"
 #include "nsILoadGroup.h"

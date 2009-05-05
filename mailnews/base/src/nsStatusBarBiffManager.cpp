@@ -43,11 +43,7 @@
 #include "nsMsgBaseCID.h"
 #include "nsIObserverService.h"
 #include "nsIWindowMediator.h"
-#include "nsIDOMDocument.h"
-#include "nsIDOMWindowInternal.h"
-#include "nsIDOMElement.h"
 #include "nsIMsgMailSession.h"
-#include "nsMsgFolderDataSource.h"
 #include "MailNewsTypes.h"
 #include "nsIMsgFolder.h" // TO include biffState enum. Change to bool later...
 #include "nsIFileChannel.h"
