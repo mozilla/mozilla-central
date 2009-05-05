@@ -641,7 +641,7 @@
     <vbox flex="1">  
     <toolbox id="headers-box" class="toolbox-top" mode="icons"> 
     <toolbar id="MsgHeadersToolbar" persist="collapsed" flex="1"
-             customizable="true"
+             customizable="true" nowindowdrag="true"
              ondragover="nsDragAndDrop.dragOver(event, envelopeDragObserver);"
              ondragdrop="nsDragAndDrop.drop(event, envelopeDragObserver);"
              ondragexit="nsDragAndDrop.dragExit(event, envelopeDragObserver);">
@@ -714,7 +714,8 @@
     </toolbar>   
 
     <!-- These toolbar items get filled out from the editorOverlay -->
-    <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed" customizable="true">
+    <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed"
+             customizable="true" nowindowdrag="true">
       <menulist id="ParagraphSelect"/>
       <menulist id="FontFaceSelect"/>
       <stack id="ColorButtons"/>

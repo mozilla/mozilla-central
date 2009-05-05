@@ -1684,7 +1684,7 @@
                  title="&throbberItem.title;"
                  align="center"
                  pack="center">
-      <button id="navigator-throbber" disabled="true"/>
+      <button id="navigator-throbber" disabled="true" mousethrough="always"/>
     </toolbaritem>
     <toolbarbutton id="button-stop"
                    class="toolbarbutton-1"
