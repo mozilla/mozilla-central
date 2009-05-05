@@ -48,6 +48,7 @@
     <stringbundleset id="stringbundleset"/>
   </window>
 
+  <command id="cmd_highlightSyntax" disabled="true"/>
   <menubar id="viewSource-main-menubar">
 #ifdef XP_MACOSX
     <menu id="windowMenu"/>
