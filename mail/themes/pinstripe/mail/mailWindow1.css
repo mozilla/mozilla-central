@@ -71,15 +71,18 @@ treechildren::-moz-tree-twisty {
   -moz-margin-end: -3px !important;
 }
 
-#folderPaneHeader {
-  background-color: #ebedf7 !important;
-}
-
 #folderTree {
   background-image: none !important;
   -moz-appearance: none !important;
+}
 
-  background-color: #e6edf7 !important;
+#folderPaneHeader, #folderTree {
+  background-color: #D6DDE5 !important;
+}
+
+:root:not([active]) #folderPaneHeader,
+:root:not([active]) #folderTree {
+  background-color: #E8E8E8 !important;
 }
 
 .focusring > .tree-stack > .tree-rows > .tree-bodybox {
@@ -93,12 +96,7 @@ treechildren::-moz-tree-twisty {
 
 #folderTree treechildren::-moz-tree-row {
   -moz-padding-start: 2px !important;
-}
-
-#folderTree treechildren::-moz-tree-row(odd),
-#folderTree treechildren::-moz-tree-row(even) {
-  background-color: #ebedf7;
-  border-color: #ebedf7;
+  background: transparent;
 }
 
 #folderTree treechildren::-moz-tree-row(selected) {
