@@ -3931,9 +3931,9 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
         // threshhold, or we're expunging based on the delete model, and
         // the delete model is not the imap delete model.
         if (m_imapAction != nsIImapUrl::nsImapLiteSelectFolder &&
-          (gExpungeOption == kAutoExpungeAlways ||
-          (numDeleted >= gExpungeThreshold &&
-             (gExpungeOption == kAutoExpungeOnThreshold ||
+            (gExpungeOption == kAutoExpungeAlways ||
+             (numDeleted >= gExpungeThreshold &&
+              (gExpungeOption == kAutoExpungeOnThreshold ||
                (gExpungeOption == kAutoExpungeDeleteModel && !GetShowDeletedMessages())))))
           Expunge();
       }
