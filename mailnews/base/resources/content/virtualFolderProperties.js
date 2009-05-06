@@ -37,8 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Component.utils.import("resource://app/modules/virtualFolderWrapper.js");
-
 var gPickedFolder;
 var gMailView = null;
 var msgWindow; // important, don't change the name of this variable. it's really a global used by commandglue.js
@@ -232,9 +230,7 @@ function onOK()
     }
     
     saveSearchTerms(gSearchTermSession.searchTerms, gSearchTermSession);
-    VirtualFolderHelper.createVirtualFolder(
-      name, parentFolder, gSearchFolderURIs, gSearchTermSession.searchTerms,
-      searchOnline);
+    CreateVirtualFolder(name, parentFolder, gSearchFolderURIs, gSearchTermSession.searchTerms, searchOnline);
   }
 
   return true;
