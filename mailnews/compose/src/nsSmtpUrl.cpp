@@ -722,8 +722,14 @@ NS_IMETHODIMP nsSmtpUrl::SetPostMessageFile(nsIFile * aFile)
 NS_IMETHODIMP nsSmtpUrl::GetPostMessageFile(nsIFile ** aFile)
 {
   NS_ENSURE_ARG_POINTER(aFile);
-  NS_IF_ADDREF(*aFile = m_fileName);
-  return NS_OK;
+  if (m_fileName)
+  {
+    // Clone the file so nsLocalFile stat caching doesn't make the caller get
+    // the wrong file size.
+    m_fileName->Clone(aFile);
+    return *aFile ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  }
+  return NS_ERROR_NULL_POINTER;
 }
 
 NS_IMPL_GETSET(nsSmtpUrl, RequestDSN, PRBool, m_requestDSN)
