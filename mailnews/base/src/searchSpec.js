@@ -157,6 +157,7 @@ SearchSpec.prototype = {
         cloneTerm.arbitraryHeader = term.arbitraryHeader;
         cloneTerm.op = term.op;
         cloneTerm.booleanAnd = term.booleanAnd;
+        cloneTerm.matchAll = term.matchAll;
         term = cloneTerm;
         outTerms.push(term);
       }

@@ -389,7 +389,7 @@ function test_virtual_folder_param_mail_view_and_quick_search(aNumFolders) {
 
 var tests = [
   // -- single-folder backed virtual folder
-  //test_virtual_folder_single_load_no_pred, // this virtual folder makes little sense and upsets OS X.
+  test_virtual_folder_single_load_no_pred,
   test_virtual_folder_single_load_simple_pred,
   test_virtual_folder_single_load_complex_pred,
   test_virtual_folder_single_load_after_load,
