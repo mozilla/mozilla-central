@@ -66,8 +66,8 @@ function fixIterator(aEnum, aIface) {
   //  Array instance.  So we test for .length
   if (aEnum.length) {
     if (!aIface)
-      return Iterator(aEnum);
-    else // use a cool generator expression
+      return (o for ([, o] in Iterator(aEnum)));
+    else
       return (o.QueryInterface(aIface) for ([,o] in Iterator(aEnum)));
   }
 
@@ -75,7 +75,7 @@ function fixIterator(aEnum, aIface) {
   if (aEnum.next) {
     if (!aIface)
       return aEnum;
-    else // use a cool generator expression
+    else
       return (o.QueryInterface(aIface) for (o in aEnum));
   }
 

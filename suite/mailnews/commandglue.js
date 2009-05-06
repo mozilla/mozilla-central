@@ -1012,40 +1012,6 @@ function getSearchTermString(searchTerms)
   return condition;
 }
 
-function  CreateVirtualFolder(newName, parentFolder, searchFolderURIs, searchTerms, searchOnline)
-{
-  // ### need to make sure view/folder doesn't exist.
-  if (searchFolderURIs && (searchFolderURIs != "") && newName && (newName != "")) 
-  {
-    try
-    {
-      var newFolder = parentFolder.addSubfolder(newName);
-      newFolder.setFlag(Components.interfaces.nsMsgFolderFlags.Virtual);
-      var vfdb = newFolder.msgDatabase;
-      var searchTermString = getSearchTermString(searchTerms);
-      var dbFolderInfo = vfdb.dBFolderInfo;
-      // set the view string as a property of the db folder info
-      // set the original folder name as well.
-      dbFolderInfo.setCharProperty("searchStr", searchTermString);
-      dbFolderInfo.setCharProperty("searchFolderUri", searchFolderURIs);
-      dbFolderInfo.setBooleanProperty("searchOnline", searchOnline);
-      vfdb.summaryValid = true;
-      vfdb.Close(true);
-      parentFolder.NotifyItemAdded(newFolder);
-      var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-      accountManager.saveVirtualFolders();
-    }
-    catch(e)
-    {
-      throw(e); // so that the dialog does not automatically close
-      dump ("Exception : creating virtual folder \n");
-    }
-  }
-  else 
-  {
-    dump("no name or nothing selected\n");
-  }   
-}
 
 var searchSessionContractID = "@mozilla.org/messenger/searchSession;1";
 var gSearchView;
