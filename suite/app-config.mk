@@ -38,6 +38,14 @@
 MOZ_SUITE = 1
 DEFINES += -DMOZ_SUITE=1
 
+# Make the whole tree rebuild if app-config.mk changes
+# Use MOZ_BUILD_APP to make life easy
+ifeq (,$(wildcard $(topsrcdir)/$(MOZ_BUILD_APP)/app-config.mk))
+#Fail if normal means of finding app-config.mk does not work
+$(error Somehow we got included but we can't find ourselves...)
+else
+GLOBAL_DEPS += $(topsrcdir)/$(MOZ_BUILD_APP)/app-config.mk
+endif
 # don't use the toolkit download manager (yet)
 SUITE_USING_XPFE_DM = 1
 DEFINES += -DSUITE_USING_XPFE_DM=1
