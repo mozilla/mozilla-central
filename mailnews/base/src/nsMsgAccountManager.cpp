@@ -1899,7 +1899,7 @@ nsMsgAccountManager::findServerUrl(nsCStringHashKey::KeyType key,
   if (!thisType.EqualsLiteral("none"))
   {
     rv = server->GetPort(&thisPort);
-    NS_ENSURE_TRUE(NS_SUCCEEDED(rv), PL_DHASH_NEXT);
+    NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
   }
 
   // treat "" as a wild card, so if the caller passed in "" for the desired attribute

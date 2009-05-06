@@ -1485,25 +1485,25 @@ PRUnichar *FormatStringWithHostNameByID(PRInt32 stringID, nsIMsgMailNewsUrl *msg
 
   nsCOMPtr<nsIStringBundleService> sBundleService =
           do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
   nsCOMPtr<nsIStringBundle> sBundle;
   rv = sBundleService->CreateBundle(MSGS_URL, getter_AddRefs(sBundle));
-  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
   PRUnichar *ptrv = nsnull;
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = msgUri->GetServer(getter_AddRefs(server));
-  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
   nsCString hostName;
   rv = server->GetRealHostName(hostName);
-  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
   NS_ConvertASCIItoUTF16 hostStr(hostName);
   const PRUnichar *params[] = { hostStr.get() };
   rv = sBundle->FormatStringFromID(stringID, params, 1, &ptrv);
-  NS_ENSURE_TRUE(NS_SUCCEEDED(rv), nsnull);
+  NS_ENSURE_SUCCESS(rv, nsnull);
 
   return ptrv;
 }
