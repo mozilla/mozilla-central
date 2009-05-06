@@ -212,7 +212,7 @@ function parameterizeTest(aTestFunc, aParameters) {
   return [aTestFunc, aParameters];
 }
 
-DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS = 60;
+DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS = 600;
 function async_run_tests(aTests, aLongestTestRunTimeConceivableInSecs) {
   if (aLongestTestRunTimeConceivableInSecs == null)
     aLongestTestRunTimeConceivableInSecs =

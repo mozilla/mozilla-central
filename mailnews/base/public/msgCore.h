@@ -119,6 +119,14 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 
 #define NS_MSG_PASSWORD_PROMPT_CANCELLED NS_MSG_GENERATE_SUCCESS(1)
 
+/**
+ * Indicates that a search is done/terminated because it was interrupted.
+ * Interrupting a search originally notified listeners with
+ * OnSearchDone(NS_OK), so we define a success value to continue doing this,
+ * and because the search was fine except for an explicit call to interrupt it.
+ */
+#define NS_MSG_SEARCH_INTERRUPTED NS_MSG_GENERATE_SUCCESS(2)
+
 /* This is where we define our errors. There has to be a central
    place so we don't use the same error codes for different errors.
 */

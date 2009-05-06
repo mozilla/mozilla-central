@@ -50,6 +50,8 @@ const nsIMsgSearchTerm = Ci.nsIMsgSearchTerm;
 const nsIMsgLocalMailFolder = Ci.nsIMsgLocalMailFolder;
 const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
 
+const NS_MSG_SEARCH_INTERRUPTED = 0x00550002;
+
 /**
  * Wrapper abstraction around a view's search session.  This is basically a
  *  friend class of FolderDisplayWidget and is privy to some of its internals.
@@ -123,6 +125,9 @@ SearchSpec.prototype = {
    *  is one).
    */
   dissociateView: function(aDBView) {
+    // If we are currently searching, interrupt the search.  This will
+    //  immediately notify the listeners that the search is done with and
+    //  clear the searching flag for us.
     if (this.owner.searching)
       this.session.interruptSearch();
 
@@ -392,5 +397,11 @@ SearchSpecListener.prototype = {
     }
 
     viewWrapper.searching = false;
+    // If we were not interrupted, it's okay to notify listeners that messages
+    //  were loaded.  If we were interrupted, no one wants to know; we are
+    //  only interrupted when we ourselves are dissociating a view.  In that
+    //  case, there is no view to refer to, so it doesn't make sense to notify.
+    if (aStatus != NS_MSG_SEARCH_INTERRUPTED)
+      viewWrapper.listener.onAllMessagesLoaded();
   },
 };

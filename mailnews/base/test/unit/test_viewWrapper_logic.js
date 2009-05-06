@@ -13,6 +13,8 @@ function test_threading_grouping_mutual_exclusion () {
   let folder = make_empty_folder();
 
   yield async_view_open(viewWrapper, folder);
+  // enter an update that will never conclude.  this is fine.
+  viewWrapper.beginViewUpdate();
   viewWrapper.showThreaded = true;
   assert_true(viewWrapper.showThreaded,
               "view should be threaded");
@@ -81,7 +83,7 @@ function test_sort_secondary_explicit() {
     assert_equals(viewWrapper.dbView.secondarySortOrder,
                   Ci.nsMsgViewSortOrder.descending,
                   "secondary sort order should be descending");
-    viewWrapper.refresh();
+    yield async_view_refresh(viewWrapper);
   }
 
 }
@@ -118,7 +120,7 @@ function test_sort_secondary_implicit() {
     assert_equals(viewWrapper.dbView.secondarySortOrder,
                   Ci.nsMsgViewSortOrder.descending,
                   "secondary sort order should be descending");
-    viewWrapper.refresh();
+    yield async_view_refresh(viewWrapper);
   }
 }
 

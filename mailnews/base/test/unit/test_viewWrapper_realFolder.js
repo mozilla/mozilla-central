@@ -81,7 +81,9 @@ function test_real_folder_threading_unthreaded() {
 
   // verify that we are not threaded (or grouped)
   yield async_view_open(viewWrapper, folder);
+  viewWrapper.beginViewUpdate();
   viewWrapper.showThreaded = false;
+  yield async_view_end_update(viewWrapper);
   verify_view_level_histogram({0: count}, viewWrapper);
 }
 
@@ -97,8 +99,10 @@ function test_real_folder_threading_threaded() {
 
   // verify that we are threaded (in such a way that we can't be grouped)
   yield async_view_open(viewWrapper, folder);
+  viewWrapper.beginViewUpdate();
   viewWrapper.showThreaded = true;
   view_expand_all(viewWrapper);
+  yield async_view_end_update(viewWrapper);
   let expectedHisto = {};
   for (let i = 0; i < count; i++)
     expectedHisto[i] = 1;
@@ -120,10 +124,9 @@ function test_real_folder_threading_grouped_by_sort() {
   viewWrapper.showGroupedBySort = true;
   viewWrapper.sort(Ci.nsMsgViewSortType.byDate,
                    Ci.nsMsgViewSortOrder.ascending);
-  viewWrapper.endViewUpdate();
-
   // expand everyone
   view_expand_all(viewWrapper);
+  yield async_view_end_update(viewWrapper);
 
   // make sure the level depths are correct
   verify_view_level_histogram({0: 1, 1: count}, viewWrapper);
@@ -151,7 +154,9 @@ function test_real_folder_flags_show_unread() {
 
   // everything is unread to start with! #1
   yield async_view_open(viewWrapper, folder);
+  viewWrapper.beginViewUpdate();
   viewWrapper.showUnreadOnly = true;
+  yield async_view_end_update(viewWrapper);
   verify_messages_in_view([setOne, setTwo], viewWrapper);
 
   // add some more things (unread!), make sure they appear. #2
@@ -160,12 +165,12 @@ function test_real_folder_flags_show_unread() {
 
   // make some things read, make sure they disappear. #3 (after refresh)
   setTwo.setRead(true);
-  viewWrapper.refresh(); // refresh to get the messages to disappear
+  yield async_view_refresh(viewWrapper); // refresh to get the messages to disappear
   verify_messages_in_view([setOne, setThree], viewWrapper);
 
   // make those things un-read again. #2
   setTwo.setRead(false);
-  viewWrapper.refresh(); // QUICKSEARCH-VIEW-LIMITATION-REMOVE or not?
+  yield async_view_refresh(viewWrapper); // QUICKSEARCH-VIEW-LIMITATION-REMOVE or not?
   verify_messages_in_view([setOne, setTwo, setThree], viewWrapper);
 }
 
@@ -204,12 +209,12 @@ function test_real_folder_mail_views_unread() {
 
   // make some things read, make sure they disappear. #3 (after refresh)
   setTwo.setRead(true);
-  viewWrapper.refresh(); // refresh to get the messages to disappear
+  yield async_view_refresh(viewWrapper); // refresh to get the messages to disappear
   verify_messages_in_view([setOne, setThree], viewWrapper);
 
   // make those things un-read again. #2
   setTwo.setRead(false);
-  viewWrapper.refresh(); // QUICKSEARCH-VIEW-LIMITATION-REMOVE
+  yield async_view_refresh(viewWrapper); // QUICKSEARCH-VIEW-LIMITATION-REMOVE
   verify_messages_in_view([setOne, setTwo, setThree], viewWrapper);
 }
 
@@ -229,7 +234,7 @@ function test_real_folder_mail_views_tags() {
   setTwo.addTag('$label1');
 
   // make sure they showed up
-  viewWrapper.refresh(); // QUICKSEARCH-VIEW-LIMITATION-REMOVE
+  yield async_view_refresh(viewWrapper); // QUICKSEARCH-VIEW-LIMITATION-REMOVE
   verify_messages_in_view([setOne, setTwo], viewWrapper);
 
   // remove them all
@@ -237,7 +242,7 @@ function test_real_folder_mail_views_tags() {
   setTwo.removeTag('$label1');
 
   // make sure they all disappeared. #3
-  viewWrapper.refresh();
+  yield async_view_refresh(viewWrapper);
   verify_empty_view(viewWrapper);
 }
 
@@ -322,12 +327,12 @@ function test_real_folder_mail_views_custom_not_junk() {
   // add some more messages, have them be non-junk for now. #2
   let [setFlippy] = make_new_sets_in_folder(folder, 1);
   setFlippy.setJunk(false);
-  viewWrapper.refresh(); // QUICKSEARCH-VIEW-LIMITATION-REMOVE
+  yield async_view_refresh(viewWrapper); // QUICKSEARCH-VIEW-LIMITATION-REMOVE
   verify_messages_in_view([setNotJunk, setFlippy], viewWrapper);
 
   // oops! they should be junk! #3
   setFlippy.setJunk(true);
-  viewWrapper.refresh();
+  yield async_view_refresh(viewWrapper);
   verify_messages_in_view(setNotJunk, viewWrapper);
 }
 
@@ -505,12 +510,12 @@ function test_real_folder_mail_view_and_quick_search() {
 
   // make some things read, make sure they disappear. #3 (after refresh)
   fooTwo.setRead(true);
-  viewWrapper.refresh(); // refresh to get the messages to disappear
+  yield async_view_refresh(viewWrapper); // refresh to get the messages to disappear
   verify_messages_in_view([fooOne, fooThree], viewWrapper);
 
   // make those things un-read again. #2
   fooTwo.setRead(false);
-  viewWrapper.refresh(); // QUICKSEARCH-VIEW-LIMITATION-REMOVE
+  yield async_view_refresh(viewWrapper); // QUICKSEARCH-VIEW-LIMITATION-REMOVE
   verify_messages_in_view([fooOne, fooTwo, fooThree], viewWrapper);
 }
 
@@ -530,8 +535,10 @@ function test_real_folder_special_views_threads_with_unread() {
 
   // open the view, set it to this special view
   yield async_view_open(viewWrapper, folder);
+  viewWrapper.beginViewUpdate();
   viewWrapper.specialViewThreadsWithUnread = true;
   view_expand_all(viewWrapper);
+  yield async_view_end_update(viewWrapper);
 
   // no one is read at this point, make sure both threads show up.
   verify_messages_in_view([setThreadOne, setThreadTwo], viewWrapper);
@@ -539,19 +546,20 @@ function test_real_folder_special_views_threads_with_unread() {
   // mark both threads read, make sure they disappear (after a refresh)
   setThreadOne.setRead(true);
   setThreadTwo.setRead(true);
-  viewWrapper.refresh();
+  yield async_view_refresh(viewWrapper);
   verify_empty_view(viewWrapper);
 
   // make the first thread visible by marking his last message unread
   setThreadOne.slice(-1).setRead(false);
-  viewWrapper.refresh();
+
   view_expand_all(viewWrapper);
+  yield async_view_refresh(viewWrapper);
   verify_messages_in_view(setThreadOne, viewWrapper);
 
   // make the second thread visible by marking some message in the middle
   setThreadTwo.slice(5, 6).setRead(false);
-  viewWrapper.refresh();
   view_expand_all(viewWrapper);
+  yield async_view_refresh(viewWrapper);
   verify_messages_in_view([setThreadOne, setThreadTwo], viewWrapper);
 }
 

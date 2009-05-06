@@ -87,13 +87,16 @@ var VWTU_testHelper = {
     if (IDBViewWrapperListener.prototype._FNH.haveListeners())
       do_throw("FolderNotificationHelper has listeners, but should not.");
     // force the folder to forget about the message database
+    this.active_virtual_folders.forEach(function (folder) {
+      folder.msgDatabase = null;
+    });
     this.active_real_folders.forEach(function (folder) {
       folder.msgDatabase = null;
     });
 
     this.active_view_wrappers.splice(0);
     this.active_real_folders.splice(0);
-    this.active_virtual_folders.splice();
+    this.active_virtual_folders.splice(0);
   },
   onTimeout: function () {
     dump("-----------------------------------------------------------\n");
@@ -172,17 +175,49 @@ function make_empty_folder() {
   return testFolder;
 }
 
-function delete_folder(aFolder) {
+/**
+ * The deletion is asynchronous from a view perspective because the view ends
+ *  up re-creating itself which triggers a new search.  This function is
+ *  nominally asynchronous because we refresh XFVF views when one of their
+ *  folders gets deleted.  In that case, you must pass the view wrapper you
+ *  expect to be affected so we can do our async thing.
+ * If, however, you are deleting the last folder that belongs to a view, you
+ *  should not pass a view wrapper, because you should expect the view wrapper
+ *  to close itself and destroy the view.  (Well, the view might do something
+ *  too, but we don't care what it does.)  We provide a |delete_folder| alias
+ *  so code can look clean.
+ *
+ * @param aViewWrapper Required when you want us to operate asynchronously.
+ */
+function async_delete_folder(aFolder, aViewWrapper) {
   VWTU_testHelper.active_real_folders.splice(
     VWTU_testHelper.active_real_folders.indexOf(aFolder), 1);
   // deleting tries to be helpful and move the folder to the trash...
   aFolder.parent.deleteSubFolders(
     toXPCOMArray([aFolder], Ci.nsIMutableArray), null);
+
+  // ugh.  So we have the problem where that move above just triggered a
+  //  re-computation of the view... which is an asynchronous operation
+  //  that we don't care about at all.  We don't need to wait for it to
+  //  complete, but if we don't, we have a race on enabling this next
+  //  notification.
+  // So we interrupt the search ourselves.  This problem is exclusively
+  //  limited to unit testing and is not something we would need to do
+  //  normally.  (Because things are single-threaded we are also
+  //  guaranteed that we can interrupt it without needing locks or anything.)
+  if (aViewWrapper) {
+    if (aViewWrapper.searching)
+      aViewWrapper.search.session.interruptSearch();
+    aViewWrapper.listener.pendingLoad = true;
+  }
+
   // ...so now the stupid folder is in the stupid trash
   // let's empty the trash, then, shall we?
   // (for local folders it doesn't matter who we call this on.)
   aFolder.emptyTrash(null, null);
+  return false;
 }
+var delete_folder = async_delete_folder;
 
 SEARCH_TERM_MAP_HELPER = {
   subject: Components.interfaces.nsMsgSearchAttrib.Subject,
@@ -442,12 +477,12 @@ function verify_view_row_at_index_is_dummy(aViewWrapper) {
 /**
  * Expand all nodes in the view wrapper.  This is a debug helper function
  *  because there's no good reason to have it be on the view wrapper at this
- *  time.
+ *  time.  You must call async_view_refresh or async_view_end_update (if you are
+ *  within a view update batch) after calling this!
  */
 function view_expand_all(aViewWrapper) {
   // we can't use the command because it has assertions about having a tree.
   aViewWrapper._viewFlags |= Ci.nsMsgViewFlagsType.kExpandAll;
-  aViewWrapper._applyViewChanges();
 }
 
 /**

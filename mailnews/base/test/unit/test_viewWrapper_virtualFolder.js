@@ -255,13 +255,14 @@ function test_virtual_folder_underlying_folder_deleted() {
                                        {subject: "foo"});
   yield async_view_open(viewWrapper, virtFolder);
 
-  // bam!
-  delete_folder(folderOne);
+  // this triggers the search (under the view's hood), so it's async
+  yield async_delete_folder(folderOne, viewWrapper);
 
   // only messages from the surviving folder should be present
   verify_messages_in_view([twoSubjFoo], viewWrapper);
 
-  // bam! bam!
+  // this one is not async though, because we are expecting to close the wrapper
+  //  and ignore the view entirely, so do not yield.
   delete_folder(folderTwo);
 
   // now the view wrapper should have closed itself.

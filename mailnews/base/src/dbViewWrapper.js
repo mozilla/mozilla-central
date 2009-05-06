@@ -555,7 +555,7 @@ DBViewWrapper.prototype = {
     this._enteredFolder = false;
 
     this.search = new SearchSpec(this);
-    this._sortOrder = [];
+    this._sort = [];
 
     if (aFolder.isServer) {
       this._showServer();
@@ -793,12 +793,6 @@ DBViewWrapper.prototype = {
     this.listener.onDisplayingFolder();
 
     this.endViewUpdate();
-    // Single folders get their notification immediately.  This covers both
-    //  folders that are non-virtual folder as well as virtual folders backed by
-    //  a single folder.  This leaves out cross-folder virtual folders and
-    //  synthetic searches.
-    if (this.isSingleFolder)
-      this.listener.onAllMessagesLoaded();
 
     this._enteredFolder = true;
   },
@@ -866,16 +860,26 @@ DBViewWrapper.prototype = {
     //  out to zero.
     if (this._viewUpdateDepth)
       return;
-
     // make the dbView stop being a search listener if it is one
-    if (this.dbView)
+    if (this.dbView) {
       this.search.dissociateView(this.dbView);
+      this.dbView.close();
+    }
 
     this.dbView = this._createView();
     this.listener.onCreatedView();
 
     // this ends up being a no-op if there are no search terms
     this.search.associateView(this.dbView);
+
+    // If we are searching, then the search will generate the all messages
+    //  loaded notification.  Although in some cases the search may have
+    //  completed by now, that is not a guarantee.  The search logic is
+    //  time-slicing, which is why this can vary.  (If it uses up its time
+    //  slices, it will re-schedule itself, returning to us before completing.)
+    //  Which is why we always defer to the search if one is active.
+    if (!this.searching)
+      this.listener.onAllMessagesLoaded();
   },
 
 
