@@ -184,7 +184,7 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
                            { FILE_NAME_JUNKTRAINING,
                              nsISuiteProfileMigrator::JUNKTRAINING,
                              PR_TRUE } };
-                                                                  
+
   GetMigrateDataFromArray(data, sizeof(data)/sizeof(MigrationData),
                           aReplace, mSourceProfile, aResult);
 
@@ -196,7 +196,7 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
     nsCOMPtr<nsIFile> sourcePasswordsFile;
     mSourceProfile->Clone(getter_AddRefs(sourcePasswordsFile));
     sourcePasswordsFile->AppendNative(signonsFileName);
-    
+
     PRBool exists;
     sourcePasswordsFile->Exists(&exists);
     if (exists)
@@ -236,13 +236,13 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromRegistry()
 #elif defined(XP_MACOSX)
   fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsILocalFile),
                    getter_AddRefs(seamonkeyRegistry));
-  
+
   seamonkeyRegistry->Append(NS_LITERAL_STRING("Mozilla"));
   seamonkeyRegistry->Append(NS_LITERAL_STRING("Application Registry"));
 #elif defined(XP_UNIX)
   fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile),
                    getter_AddRefs(seamonkeyRegistry));
-  
+
   seamonkeyRegistry->Append(NS_LITERAL_STRING(".mozilla"));
   seamonkeyRegistry->Append(NS_LITERAL_STRING("appreg"));
 #elif defined(XP_BEOS)
@@ -254,7 +254,7 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromRegistry()
 #elif defined(XP_OS2)
   fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsILocalFile),
                    getter_AddRefs(seamonkeyRegistry));
-  
+
   seamonkeyRegistry->Append(NS_LITERAL_STRING("Mozilla"));
   seamonkeyRegistry->Append(NS_LITERAL_STRING("registry.dat"));
 #endif
@@ -262,7 +262,6 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromRegistry()
   return GetProfileDataFromRegistry(seamonkeyRegistry, mProfileNames,
                                     mProfileLocations);
 }
-  //  MAKESAMETYPEPREFTRANSFORM(
 
 static
 nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
@@ -586,7 +585,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
 
   MAKESAMETYPEPREFTRANSFORM("slider.snapMultiplier",                   Int),
 
-#ifndef XP_MACOS
+#ifndef XP_MACOSX
 #ifdef XP_UNIX
   MAKESAMETYPEPREFTRANSFORM("ui.allow_platform_file_picker",           Bool),
 #endif
