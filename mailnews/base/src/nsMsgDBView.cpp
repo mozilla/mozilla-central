@@ -1497,8 +1497,15 @@ nsresult nsMsgDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDBHdr **
 }
 
 void nsMsgDBView::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,
-                              nsMsgKey msgKey, PRUint32 flags, PRUint32 level)
+                                 nsMsgKey msgKey, PRUint32 flags, PRUint32 level)
 {
+  if ((PRInt32) index < 0 || index > m_keys.Length())
+  {
+    // Something's gone wrong in a caller, but we have no clue why
+    // Return without adding the header to the view
+    NS_ERROR("Index for message header insertion out of array range!");
+    return;
+  }
   m_keys.InsertElementAt(index, msgKey);
   m_flags.InsertElementAt(index, flags);
   m_levels.InsertElementAt(index, level);
