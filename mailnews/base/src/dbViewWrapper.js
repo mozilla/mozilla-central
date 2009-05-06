@@ -656,11 +656,6 @@ DBViewWrapper.prototype = {
       return;
     this._searching = aSearching;
     this.listener.onSearching(aSearching);
-    // If we were searching but now are not, send an onAllMessagesLoaded
-    //  notification.  This is the first time a virtual folder will see
-    //  this message if this search is a result of opening the folder.
-    if (!aSearching)
-      this.listener.onAllMessagesLoaded();
   },
 
    /**

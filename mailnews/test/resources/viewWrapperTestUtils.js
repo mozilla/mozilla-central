@@ -52,13 +52,17 @@ var gMockViewWrapperListener = {
   msgWindow: null,
   threadPaneCommandUpdater: gFakeCommandUpdater,
   // event handlers
+  allMessagesLoadedEventCount: 0,
   onAllMessagesLoaded: function() {
     dump("ALL LOADED\n");
+    this.allMessagesLoadedEventCount++;
     if (this.pendingLoad) {
       this.pendingLoad = false;
       async_driver();
     }
   },
+
+
 };
 
 function punt() {
@@ -97,6 +101,8 @@ var VWTU_testHelper = {
     this.active_view_wrappers.splice(0);
     this.active_real_folders.splice(0);
     this.active_virtual_folders.splice(0);
+
+    gMockViewWrapperListener.allMessagesLoadedEventCount = 0;
   },
   onTimeout: function () {
     dump("-----------------------------------------------------------\n");
