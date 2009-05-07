@@ -70,3 +70,18 @@ libs::
 	$(INSTALL) $(wildcard $(srcdir)/test/resources/*.js) $(MOZDEPTH)/_tests/xpcshell/mailnews/resources
 	$(INSTALL) $(wildcard $(srcdir)/test/data/*) $(MOZDEPTH)/_tests/xpcshell/mailnews/data
 	$(INSTALL) $(wildcard $(srcdir)/test/fakeserver/*.js) $(MOZDEPTH)/_tests/xpcshell/mailnews/fakeserver
+
+# We provide an xpcshell-tests target here because the top-level target acts
+# differently to the specific directory one. We want our developers to be able
+# to run "make -C mailnews xpcshell-tests" so we do this short-cut here. This
+# list is kept in the same order as the effective DIRS just so things turn up
+# in the same order as the build.
+
+TEST_DIRS = base $(PARALLEL_DIRS) extensions/bayesian-spam-filter
+
+xpcshell-tests::
+	for dir in $(TEST_DIRS); do \
+	  if test -d $$dir/test; then \
+	    $(MAKE) -C $$dir/test xpcshell-tests; \
+	  fi; \
+	done
