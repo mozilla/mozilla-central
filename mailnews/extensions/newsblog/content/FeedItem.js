@@ -257,6 +257,13 @@ FeedItem.prototype =
         this.mURL && itemURI != this.mURL)
       resource = rdf.GetResource(this.mURL);
 
+    var newTimeStamp = rdf.GetLiteral(new Date().getTime());
+    var currentTimeStamp = ds.GetTarget(resource, FZ_LAST_SEEN_TIMESTAMP, true);
+    if (currentTimeStamp)
+      ds.Change(resource, FZ_LAST_SEEN_TIMESTAMP, currentTimeStamp, newTimeStamp);
+    else
+      ds.Assert(resource, FZ_LAST_SEEN_TIMESTAMP, newTimeStamp, true);
+
     if (!ds.HasAssertion(resource, FZ_FEED, rdf.GetResource(this.feed.url), true))
       ds.Assert(resource, FZ_FEED, rdf.GetResource(this.feed.url), true);
 

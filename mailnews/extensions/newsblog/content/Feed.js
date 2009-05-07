@@ -400,12 +400,23 @@ Feed.prototype =
     debug("removing invalid items for " + this.url);
     var items = ds.GetSources(FZ_FEED, this.resource, true);
     var item;
+    var currentTime = new Date().getTime();
     while (items.hasMoreElements()) 
     {
       item = items.getNext();
       item = item.QueryInterface(Components.interfaces.nsIRDFResource);
+
       if (ds.HasAssertion(item, FZ_VALID, RDF_LITERAL_TRUE, true))
         continue;
+
+      var lastSeenTime = ds.GetTarget(item, FZ_LAST_SEEN_TIMESTAMP, true);
+      lastSeenTime = lastSeenTime ?
+                     parseInt(lastSeenTime
+                              .QueryInterface(Components.interfaces.nsIRDFLiteral)
+                              .Value) : 0;
+      if ((currentTime - lastSeenTime) < INVALID_ITEM_PURGE_DELAY)
+        continue;
+
       debug("removing " + item.Value);
       ds.Unassert(item, FZ_FEED, this.resource, true);
       if (ds.hasArcOut(item, FZ_FEED))

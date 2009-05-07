@@ -81,6 +81,7 @@ const FZ_QUICKMODE = rdf.GetResource(FZ_NS + "quickMode");
 const FZ_DESTFOLDER = rdf.GetResource(FZ_NS + "destFolder");
 const FZ_STORED = rdf.GetResource(FZ_NS + "stored");
 const FZ_VALID = rdf.GetResource(FZ_NS + "valid");
+const FZ_LAST_SEEN_TIMESTAMP = rdf.GetResource(FZ_NS + "last-seen-timestamp");
 
 const RDF_LITERAL_TRUE = rdf.GetLiteral("true");
 const RDF_LITERAL_FALSE = rdf.GetLiteral("false");
@@ -88,6 +89,11 @@ const RDF_LITERAL_FALSE = rdf.GetLiteral("false");
 // Atom constants
 const ATOM_03_NS = "http://purl.org/atom/ns#";
 const ATOM_IETF_NS = "http://www.w3.org/2005/Atom";
+
+// The approximate amount of time, specified in milliseconds, to leave an item in the
+// RDF cache after the item has dissappeared from feeds.
+// The delay is currently one day.
+const INVALID_ITEM_PURGE_DELAY = 24 * 60 * 60 * 1000;
 
 // XXX There's a containerutils in forumzilla.js that this should be merged with.
 var containerUtils = Components.classes["@mozilla.org/rdf/container-utils;1"]
