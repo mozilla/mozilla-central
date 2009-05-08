@@ -69,3 +69,40 @@
 .ZipWidth {
   width: 14ch;
 }
+
+/* ::::: List dialogs ::::: */
+
+#addressingWidget {
+  -moz-user-focus: none;
+  width: 0;
+}
+
+#typecol-addressingWidget {
+  min-width: 9em;
+}
+
+.addressingWidgetItem,
+.dummy-row {
+  border: none !important;
+  background-color: inherit !important;
+  color: inherit !important;
+}
+
+.addressingWidgetCell {
+  border-bottom: 1px solid #DCDCDC;
+  padding: 0px;
+}
+
+.addressingWidgetCell:first-child {
+  border-top: none;
+}
+
+.dummy-row-cell:first-child {
+  border-top: none;
+  border-bottom: 1px solid #DCDCDC;
+}
+
+.person-icon {
+  margin: 0 3px;
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
+}
