@@ -760,7 +760,15 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
 
   nsMsgKey preservedKey;
   nsAutoTArray<nsMsgKey, 1> preservedSelection;
-  SaveAndClearSelection(&preservedKey, preservedSelection);
+  PRInt32 selectionCount;
+  PRInt32 currentIndex;
+  PRBool hasSelection = mTree && mTreeSelection &&
+                        (NS_SUCCEEDED(mTreeSelection->GetCurrentIndex(&currentIndex)) &&
+                         currentIndex >= 0 && currentIndex < GetSize()) ||
+                        (NS_SUCCEEDED(mTreeSelection->GetRangeCount(&selectionCount)) &&
+                         selectionCount > 0);
+  if (hasSelection)
+    SaveAndClearSelection(&preservedKey, preservedSelection);
   PRUint32 saveFlags = m_flags[threadIndex];
   PRBool threadIsExpanded = !(saveFlags & nsMsgMessageFlags::Elided);
 
@@ -805,7 +813,8 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   }
   m_flags[newIndex] = saveFlags;
   // unfreeze selection.
-  RestoreSelection(preservedKey, preservedSelection);
+  if (hasSelection)
+    RestoreSelection(preservedKey, preservedSelection);
 
   if (!changesDisabled)
     EnableChangeUpdates();
