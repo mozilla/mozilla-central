@@ -179,6 +179,8 @@ Feed.prototype =
     var request = aEvent.target;
     var url = request.channel.originalURI.spec;
     debug(url + " downloaded");
+    if (request.status < 200 || request.status >= 300)
+      return Feed.prototype.onDownloadError(aEvent);
     var feed = FeedCache.getFeed(url);
     if (!feed)
       throw("error after downloading " + url + ": couldn't retrieve feed from request");
@@ -226,17 +228,10 @@ Feed.prototype =
   {
     if (aFeed)
     {
-      var error;
-
-      if (aFeed.request && aFeed.request.status == 304)
-        error = kNewsBlogNoNewItems;
-      else {
-        error = kNewsBlogInvalidFeed;
-        aFeed.mInvalidFeed = true;
-      }
+      aFeed.mInvalidFeed = true;
 
       if (aFeed.downloadCallback)
-        aFeed.downloadCallback.downloaded(aFeed, error);
+        aFeed.downloadCallback.downloaded(aFeed, kNewsBlogInvalidFeed);
 
       FeedCache.removeFeed(aFeed.url);
     }
