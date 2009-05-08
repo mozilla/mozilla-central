@@ -977,16 +977,6 @@ function HideMessageHeaderPane()
   ClearEditMessageBox();
 }
 
-// We do this as an alternative to hiding the message pane.
-// Clear out the values so it doesn't look like we've got one
-// message selected in the thread pane, and a different one
-// displayed in the message pane.
-function ClearMessageHeaderPane()
-{
-  ClearHeaderView(gCollapsedHeaderView);
-  ClearHeaderView(gExpandedHeaderView);
-}
-
 function OutputNewsgroups(headerEntry, headerValue)
 {
   headerValue = headerValue.replace(/,/g,", ");
