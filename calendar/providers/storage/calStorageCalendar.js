@@ -768,6 +768,7 @@ calStorageCalendar.prototype = {
             }
 
             queueItems (expandedItems, theIID);
+            cal.processPendingEvent();
             return expandedItems.length;
         }
 

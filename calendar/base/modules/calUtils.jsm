@@ -44,6 +44,8 @@ let cal = {
     // and more code should be moved from calUtils.js into this object to avoid
     // clashes with other extensions
 
+    getThreadManager: generateServiceAccessor("@mozilla.org/thread-manager;1",
+                                              Components.interfaces.nsIThreadManager),
     getIOService: generateServiceAccessor("@mozilla.org/network/io-service;1",
                                           Components.interfaces.nsIIOService2),
     getObserverService: generateServiceAccessor("@mozilla.org/observer-service;1",
@@ -78,6 +80,14 @@ let cal = {
                 Components.utils.reportError(exc + " (" + scriptUrlSpec + ")");
             }
         }
+    },
+
+    /**
+     * Call this function regularly to process a pending event, e.g. UI.
+     */
+    processPendingEvent: function cal_processPendingEvent() {
+        let thread = cal.getThreadManager().currentThread;
+        thread.processNextEvent(false /* don't wait */);
     },
 
     /**

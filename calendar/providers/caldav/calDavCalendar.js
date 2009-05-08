@@ -1195,6 +1195,8 @@ calDavCalendar.prototype = {
                     if (thisCalendar.isCached) {
                         thisCalendar.setMetaData(item.id, resourcePath, etag, isInboxItem);
                     }
+
+                    cal.processPendingEvent();
                 }
                 cal.LOG("CalDAV: refresh completed with status " + responseStatus + " at " +
                         requestUri.spec);

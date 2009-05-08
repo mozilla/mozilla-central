@@ -974,6 +974,8 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                 items.push(item);
             }
         }
+
+        cal.processPendingEvent();
     }
 
     // tag "exceptions", i.e. items with rid:
@@ -1008,6 +1010,8 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
         }
 
         parent.recurrenceInfo.modifyException(item, true);
+
+        cal.processPendingEvent();
     }
 
     if (itemFilter & calICalendar.ITEM_FILTER_CLASS_OCCURRENCES) {
@@ -1054,6 +1058,8 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
             }
             // only proxies returned:
             items = items.concat(occurrences);
+
+            cal.processPendingEvent();
         }
 
     } else {

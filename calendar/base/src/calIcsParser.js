@@ -147,6 +147,8 @@ function ip_parseString(aICSString, aTzProvider) {
             }
         }
         calComp = rootComp.getNextSubcomponent("VCALENDAR");
+
+        cal.processPendingEvent();
     }
 
     // tag "exceptions", i.e. items with rid:
@@ -173,6 +175,8 @@ function ip_parseString(aICSString, aTzProvider) {
         }
 
         parent.recurrenceInfo.modifyException(item, true);
+
+        cal.processPendingEvent();
     }
     
     for (let e in tzErrors) { // if any error has occurred
