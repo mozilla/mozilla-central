@@ -330,9 +330,15 @@ ICON_FILES	= \
 
 libs::
 	$(INSTALL) $(IFLAGS1) $(ICON_FILES) $(DIST)/bin/icons
+	if test -e $(DIST)/branding/mozicon128.png; then \
+	  $(INSTALL) $(IFLAGS1) $(DIST)/branding/mozicon128.png $(DIST)/bin/icons; \
+	fi;
 
 install::
 	$(SYSINSTALL) $(IFLAGS1) $(ICON_FILES) $(DESTDIR)$(mozappdir)/icons
+	if test -e $(DIST)/branding/mozicon128.png; then \
+	  $(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/mozicon128.png $(DESTDIR)$(mozappdir)/icons; \
+	fi;
 endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),photon)

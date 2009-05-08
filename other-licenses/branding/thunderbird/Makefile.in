@@ -38,6 +38,7 @@ endif
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
 	cp $(srcdir)/mozicon16.xpm $(DIST)/branding/mozicon16.xpm
 	cp $(srcdir)/mozicon50.xpm $(DIST)/branding/mozicon50.xpm
+	cp $(srcdir)/mozicon128.png $(DIST)/branding/mozicon128.png
 	cp $(srcdir)/default.xpm   $(DIST)/branding/default.xpm	
 endif
 ifeq ($(OS_ARCH),OS2)
