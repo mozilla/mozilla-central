@@ -330,7 +330,7 @@ ICON_FILES	= \
 
 libs::
 	$(INSTALL) $(IFLAGS1) $(ICON_FILES) $(DIST)/bin/icons
-	if test -e $(DIST)/branding/mozicon128.png; then \
+	if test -f $(DIST)/branding/mozicon128.png; then \
 	  $(INSTALL) $(IFLAGS1) $(DIST)/branding/mozicon128.png $(DIST)/bin/icons; \
 	fi;
 
