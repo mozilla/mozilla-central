@@ -79,6 +79,11 @@ var gComposePane = {
     document.documentElement.openSubDialog("chrome://messenger/content/preferences/sendoptions.xul","", null);
   },
 
+  attachmentReminderOptionsDialog: function()
+  {
+    document.documentElement.openSubDialog("chrome://messenger/content/preferences/attachmentReminder.xul", "", null);
+  },
+
   htmlComposeDialog: function()
   {
     document.documentElement.openSubDialog("chrome://messenger/content/preferences/htmlcompose.xul","", null);

@@ -1678,6 +1678,54 @@ function GenericSendMessage( msgType )
           }
         }
 
+        // Attachment Reminder stuff...
+        var bucket = document.getElementById("attachmentBucket");
+        var warn = getPref("mail.compose.attachment_reminder");
+        if (warn && !bucket.itemCount)
+        {
+          var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                                .getService(Components.interfaces.nsIPrefBranch);
+          var keywordsInCsv = prefs.getComplexValue("mail.compose.attachment_reminder_keywords",
+                                                    Components.interfaces.nsIPrefLocalizedString).data;
+          // And empty string pref is still going to get split to an array of
+          // size 1. Avoid that...
+          var keywordsArray = (keywordsInCsv) ? keywordsInCsv.split(",") : [];
+
+          var mailBody = document.getElementById("content-frame")
+                                 .contentDocument.getElementsByTagName("body")[0];
+          var mailBodyNode = mailBody.cloneNode(true);
+
+          // Don't check quoted text from reply.
+          var blockquotes = mailBodyNode.getElementsByTagName("blockquote");
+          for (let i = 0; i < blockquotes.length; i++)
+          {
+            blockquotes[i].parentNode.removeChild(blockquotes[i]);
+          }
+          var mailData = mailBodyNode.innerHTML;
+          var keywordFound;
+          for (let i = 0; i < keywordsArray.length && !keywordFound; i++)
+          {
+            var re = new RegExp(keywordsArray[i], "i");
+            keywordFound = re.exec(mailData);
+          }
+
+          if (keywordFound)
+          {
+            var bundle = document.getElementById("bundle_composeMsgs");
+            var flags = gPromptService.BUTTON_POS_0 * gPromptService.BUTTON_TITLE_IS_STRING +
+                        gPromptService.BUTTON_POS_1 * gPromptService.BUTTON_TITLE_IS_STRING;
+            var hadForgotten = gPromptService.confirmEx(null,
+                                 bundle.getString("attachmentReminderTitle"),
+                                 bundle.getString("attachmentReminderMsg"),
+                                 flags,
+                                 bundle.getString("attachmentReminderFalseAlarm"),
+                                 bundle.getString("attachmentReminderYesIForgot"),
+                                 null, null, {value:0});
+            if (hadForgotten)
+              return;
+          }
+        } // End of Attachment Reminder.
+
         // check if the user tries to send a message to a newsgroup through a mail account
         var currentAccountKey = getCurrentAccountKey();
         var account = gAccountManager.getAccount(currentAccountKey);

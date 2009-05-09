@@ -19,6 +19,8 @@ messenger.jar:
 *   content/messenger/preferences/connection.xul
 *   content/messenger/preferences/downloads.js
 *   content/messenger/preferences/downloads.xul
+*   content/messenger/preferences/attachmentReminder.js
+*   content/messenger/preferences/attachmentReminder.xul
 *   content/messenger/preferences/downloadactions.js
 *   content/messenger/preferences/downloadactions.xul
 *   content/messenger/preferences/actionsshared.js

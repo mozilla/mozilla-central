@@ -455,3 +455,8 @@ pref("toolbar.customization.usesheet", true);
 #else
 pref("toolbar.customization.usesheet", false);
 #endif
+
+// Check for missing attachments?
+pref("mail.compose.attachment_reminder", true);
+// Words that should trigger a missing attachments warning.
+pref("mail.compose.attachment_reminder_keywords", "chrome://messenger/locale/messengercompose/composeMsgs.properties");

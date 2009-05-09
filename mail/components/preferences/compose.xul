@@ -79,6 +79,9 @@
       <preference id="msgcompose.font_size"      name="msgcompose.font_size" type="string"/>
       <preference id="msgcompose.text_color"     name="msgcompose.text_color" type="string"/>
       <preference id="msgcompose.background_color" name="msgcompose.background_color" type="string"/>      
+      <preference id="mail.compose.attachment_reminder"
+                  name="mail.compose.attachment_reminder"
+                  type="bool"/>
     </preferences>
 
     <tabbox id="composePrefs" flex="1" onselect="gComposePane.tabSelectionChanged();">
@@ -115,6 +118,18 @@
             <checkbox id="mailWarnOnSendAccelKey" label="&warnOnSendAccelKey.label;"
                       preference="mail.warn_on_send_accel_key"
                       accesskey="&warnOnSendAccelKey.accesskey;"/>
+
+            <hbox align="center">
+              <checkbox id="attachment_reminder_label"
+                        label="&attachmentReminder.label;"
+                        accesskey="&attachmentReminder.accesskey;"
+                        preference="mail.compose.attachment_reminder"
+                        flex="1"/>
+              <button label="&attachmentReminderOptions.label;"
+                      accesskey="&attachmentReminderOptions.accesskey;"
+                      oncommand="gComposePane.attachmentReminderOptionsDialog();"/>
+            </hbox>
+
           </groupbox>
 
           <groupbox>
