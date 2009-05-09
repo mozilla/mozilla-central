@@ -1496,13 +1496,21 @@ let gFolderTreeController = {
   },
 
   /**
-   * Deletes a folder from its parent
+   * Deletes a folder from its parent. Also handles unsubscribe from newsgroups
+   * if the selected folder/s happen to be nntp.
    *
    * @param aFolder (optional) the folder to delete, if not the selected one
    */
   deleteFolder: function ftc_delete(aFolder) {
     const Ci = Components.interfaces;
-    let folder = aFolder || gFolderTreeView.getSelectedFolders()[0];
+    let folders = aFolder ? [aFolder] : gFolderTreeView.getSelectedFolders();
+    let folder = folders[0];
+
+    // For newsgroups, "delete" means "unsubscribe".
+    if (folder.server.type == "nntp" && ConfirmUnsubscribe(folders)) {
+      Unsubscribe(folders);
+      return;
+    }
 
     const FLAGS = Ci.nsMsgFolderFlags;
     if (folder.flags & FLAGS.Inbox || folder.flags & FLAGS.Trash)
@@ -1525,12 +1533,6 @@ let gFolderTreeController = {
       Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                          .getService(Ci.nsIPromptService)
                          .alert(window, errorTitle, errorMessage);
-      return;
-    }
-
-    // handle news folder specially
-    if (isNewsURI(folder.URI) && confirmUnsubscribe(folder)) {
-      Unsubscribe(folder);
       return;
     }
 
@@ -1590,26 +1592,43 @@ let gFolderTreeController = {
   },
 
   /**
-   * Compacts either a particular folder, or all folders
+   * Compacts either particular folder/s, or selected folders.
    *
-   * @param aCompactAll - whether we should compact all folders
-   * @param aFolder (optional) the folder to compact, if different than the
-   *                           currently selected one
+   * @param aFolders (optional) the folders to compact, if different than the
+   *                            currently selected ones
    */
-  compactFolder: function ftc_compactFolder(aCompactAll, aFolder) {
-    let folder = aFolder || gFolderTreeView.getSelectedFolders()[0];
-    let isImapFolder = folder.server.type == "imap";
-    // Can't compact folders that have just been compacted
-    if (!isImapFolder && !folder.expungedBytes && !aCompactAll)
-      return;
+  compactFolders: function ftc_compactFolders(aFolders) {
+    let folders = aFolders || gFolderTreeView.getSelectedFolders();
+    for (let i = 0; i < folders.length; i++) {
+      // Can't compact folders that have just been compacted.
+      if (folders[i].server.type != "imap" && !folders[i].expungedBytes)
+        continue;
 
-    // reset thread pane for non-imap folders.
-    if (!isImapFolder && gDBView && (gDBView.msgFolder == folder || aCompactAll))
-      this._resetThreadPane();
-    if (aCompactAll)
-      folder.compactAll(null, msgWindow, isImapFolder || folder.server.type == "nntp");
-    else
-      folder.compact(null, msgWindow);
+      // Reset thread pane for non-imap folders if the folder is selected.
+      if (gDBView && gDBView.msgFolder == folders[i] && folders[i].server.type != "imap")
+        this._resetThreadPane();
+
+      folders[i].compact(null, msgWindow);
+    }
+  },
+
+  /**
+   * Compacts all folders for accounts that the given folders belong
+   * to, or all folders for accounts of the currently selected folders.
+   *
+   * @param aFolders (optional) the folders for whose accounts we should compact
+   *                            all folders, if different than the currently
+   *                            selected ones
+   */
+  compactAllFoldersForAccount: function ftc_compactAllFoldersOfAccount(aFolders) {
+    let folders = aFolders || gFolderTreeView.getSelectedFolders();
+    for (let i = 0; i < folders.length; i++) {
+      folders[i].compactAll(null, msgWindow, folders[i].server.type == "imap" ||
+                                             folders[i].server.type == "nntp");
+      // Reset thread pane for non-imap folders.
+      if (gDBView && folders[i].server.type != "imap")
+        this._resetThreadPane();
+    }
   },
 
   /**

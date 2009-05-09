@@ -81,28 +81,27 @@ var FolderPaneController =
       case "cmd_delete":
       case "cmd_shiftDelete":
       case "button_delete":
+      {
         // Make sure the button doesn't show "Undelete" for folders.
         UpdateDeleteToolbarButton();
-      case "button_compact":
-      if ( command == "cmd_delete" )
-        goSetMenuValue(command, 'valueFolder');
-      var folders = GetSelectedMsgFolders();
-
-      if (folders.length) {
-        var folder = folders[0];
-        var canDeleteThisFolder = CanDeleteFolder(folder);
-        if (folder.server.type == "nntp") {
-          if (command == "cmd_delete") {
-            goSetMenuValue(command, 'valueNewsgroup');
-            goSetAccessKey(command, 'valueNewsgroupAccessKey');
-          }
+        let folders = gFolderTreeView.getSelectedFolders();
+        if (folders.length) {
+          // XXX Figure out some better way/place to update the folder labels.
+          UpdateDeleteLabelsFromFolderCommand(folders[0], command);
+          return CanDeleteFolder(folders[0]) && isCommandEnabled(command);
         }
-        return (command != "button_compact") ?
-          canDeleteThisFolder && isCommandEnabled(command) :
-          !folder.isServer && IsCompactFolderEnabled();
+        else
+          return false;
       }
-      else
-        return false;
+      case "button_compact":
+      {
+        let folders = gFolderTreeView.getSelectedFolders();
+        function checkIsServer(folder) {
+          return folder.isServer;
+        }
+        let haveServersSelected = folders.some(checkIsServer);
+        return !haveServersSelected && IsCompactFolderEnabled();
+      }
       default:
         return false;
     }
@@ -127,10 +126,10 @@ var FolderPaneController =
           DefaultController.doCommand(command);
         break;
       case "cmd_deleteFolder":
-        gFolderTreeController.deleteFolder();
+        gFolderTreeController.deleteFolder(); 
         break;
       case "button_compact":
-        gFolderTreeController.compactFolder(false);
+        gFolderTreeController.compactFolders();
         break;
     }
   },
@@ -139,6 +138,20 @@ var FolderPaneController =
   {
   }
 };
+
+function UpdateDeleteLabelsFromFolderCommand(folder, command)
+{
+  if (command != "cmd_delete")
+    return;
+
+  if (folder.server.type == "nntp") {
+    goSetMenuValue(command, "valueNewsgroup");
+    goSetAccessKey(command, "valueNewsgroupAccessKey");
+  }
+  else {
+    goSetMenuValue(command, "valueFolder");
+  }
+}
 
 // DefaultController object (handles commands when one of the trees does not have focus)
 var DefaultController =
@@ -274,8 +287,8 @@ var DefaultController =
           gDBView.getCommandStatus(nsMsgViewCommandType.deleteNoTrash, enabled, checkStatus);
         return enabled.value;
       case "cmd_deleteFolder":
-        var folders = GetSelectedMsgFolders();
-        if (folders.length) {
+        var folders = gFolderTreeView.getSelectedFolders();
+        if (folders.length == 1) {
           var folder = folders[0];
           if (folder.server.type == "nntp")
             return false; // Just disable the command for news.
@@ -739,10 +752,10 @@ var DefaultController =
         gFolderTreeController.emptyTrash();
         return;
       case "cmd_compactFolder":
-        gFolderTreeController.compactFolder(true);
+        gFolderTreeController.compactAllFoldersForAccount();
         return;
       case "button_compact":
-        gFolderTreeController.compactFolder(false);
+        gFolderTreeController.compactFolders();
         return;
       case "cmd_downloadFlagged":
           gDBView.doCommand(nsMsgViewCommandType.downloadFlaggedForOffline);
@@ -905,7 +918,7 @@ function IsSendUnsentMsgsEnabled(unsentMsgsFolder)
 
 function IsRenameFolderEnabled()
 {
-  var folders = GetSelectedMsgFolders();
+  var folders = gFolderTreeView.getSelectedFolders();
   return folders.length == 1 && folders[0].canRename &&
          isCommandEnabled("cmd_renameFolder");
 }

@@ -21,6 +21,7 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Magnus Melin <mkmelin+mozilla@iki.fi>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,21 +40,17 @@
 var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                       .getService(Components.interfaces.nsIPromptService);
 
-function GetNewMessages(selectedFolders, server)
+function GetNewMessagesInFolders(selectedFolders)
 {
-  if (!selectedFolders.length)
-    return;
-
-  var msgFolder = selectedFolders[0];
-
-  // Whenever we do get new messages, clear the old new messages.
-  if (msgFolder)
+  const nsIMsgFolder = Components.interfaces.nsIMsgFolder;
+  for (let i = 0; i < selectedFolders.length; i++)
   {
-    var nsIMsgFolder = Components.interfaces.nsIMsgFolder;
+    let msgFolder = selectedFolders[i];
+    // Whenever we do get new messages, clear the old new messages.
     msgFolder.biffState = nsIMsgFolder.nsMsgBiffState_NoMail;
     msgFolder.clearNewMessages();
+    msgFolder.server.getNewMessages(msgFolder, msgWindow, null);
   }
-  server.getNewMessages(msgFolder, msgWindow, null);
 }
 
 function getBestIdentity(identities, optionalHint)

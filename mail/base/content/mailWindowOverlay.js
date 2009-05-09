@@ -86,35 +86,29 @@ var gDisallow_classes_no_html = 1;
 // dialog.
 function menu_new_init()
 {
+  var folders = gFolderTreeView.getSelectedFolders();
+  if (folders.length != 1)
+    return;
+
+  var folder = folders[0];
+
   if (!gMessengerBundle)
     gMessengerBundle = document.getElementById("bundle_messenger");
 
-  var newAccountItem = document.getElementById('newAccountMenuItem');
   if (gPrefBranch.prefIsLocked("mail.disable_new_account_addition"))
-    newAccountItem.setAttribute("disabled","true");
+    document.getElementById("newAccountMenuItem").setAttribute("disabled", "true");
 
-  // Change "New Folder..." menu according to the context
-  var folderArray = GetSelectedMsgFolders();
-  if (folderArray.length == 0)
-    return;
-  var msgFolder = folderArray[0];
-  var isServer = msgFolder.isServer;
-  var serverType = msgFolder.server.type;
-  var canCreateNew = msgFolder.canCreateSubfolders;
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-  var isInbox = IsSpecialFolder(msgFolder, nsMsgFolderFlags.Inbox, false);
-  var isIMAPFolder = serverType == "imap";
-  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                            .getService(Components.interfaces.nsIIOService);
-  var showNew = ((serverType != 'nntp') && canCreateNew) || isInbox;
+  var isInbox = folder.isSpecialFolder(nsMsgFolderFlags.Inbox);
+  var showNew = folder.canCreateSubfolders || isInbox;
   ShowMenuItem("menu_newFolder", showNew);
   ShowMenuItem("menu_newVirtualFolder", showNew);
 
-  EnableMenuItem("menu_newFolder", !isIMAPFolder || MailOfflineMgr.isOnline());
-  EnableMenuItem("menu_newVirtualFolder", true);
+  EnableMenuItem("menu_newFolder", folder.server.type != "imap" || MailOfflineMgr.isOnline());
   if (showNew)
+    // Change "New Folder..." menu according to the context.
     SetMenuItemLabel("menu_newFolder", gMessengerBundle.getString(
-      (isServer || isInbox) ? "newFolderMenuItem" : "newSubfolderMenuItem"));
+      (folder.isServer || isInbox) ? "newFolderMenuItem" : "newSubfolderMenuItem"));
 }
 
 function goUpdateMailMenuItems(commandset)
@@ -140,11 +134,20 @@ function InitEditMessagesMenu()
 
   // initialize the favorite Folder checkbox in the edit menu
   var favoriteFolderMenu = document.getElementById('menu_favoriteFolder');
-  if (favoriteFolderMenu && !favoriteFolderMenu.disabled)
+  if (!favoriteFolderMenu.disabled)
   {
-    var folders = GetSelectedMsgFolders();
-    if (folders.length)
-      SetupFavoritesMenuItem(folders[0], folders.length, folders[0].isServer, 'menu_favoriteFolder');
+    var folders = gFolderTreeView.getSelectedFolders();
+    if (folders.length == 1 && !folders[0].isServer)
+    {
+      const kFavoriteFlag = Components.interfaces.nsMsgFolderFlags.Favorite;
+      // Adjust the checked state on the menu item.
+      favoriteFolderMenu.setAttribute("checked", folders[0].getFlag(kFavoriteFlag));
+      favoriteFolderMenu.hidden = false;
+    }
+    else
+    {
+      favoriteFolderMenu.hidden = true;
+    }
   }
 }
 
@@ -896,7 +899,7 @@ function GetMessagesForInboxOnServer(server)
   if (!inboxFolder)
     inboxFolder = server.rootFolder;
 
-  GetNewMessages([inboxFolder], server);
+  GetNewMessagesInFolders([inboxFolder]);
 }
 
 function MsgGetMessage()
@@ -1412,25 +1415,36 @@ function MsgSubscribe()
     Subscribe(preselectedFolder); // open imap/nntp subscription dialog
 }
 
-function ConfirmUnsubscribe(folder)
+/**
+ * Show a confirmation dialog - check if the user really want to unsubscribe
+ * from the given newsgroup/s.
+ * @folders an array of newsgroup folders to unsubscribe from
+ * @return true if the user said it's ok to unsubscribe
+ */
+function ConfirmUnsubscribe(folders)
 {
   if (!gMessengerBundle)
     gMessengerBundle = document.getElementById("bundle_messenger");
 
   var titleMsg = gMessengerBundle.getString("confirmUnsubscribeTitle");
-  var dialogMsg = gMessengerBundle.getFormattedString("confirmUnsubscribeText",
-                                      [folder.name], 1);
+  var dialogMsg = (folders.length == 1) ?
+    gMessengerBundle.getFormattedString("confirmUnsubscribeText",
+                                        [folders[0].name], 1) :
+    gMessengerBundle.getString("confirmUnsubscribeManyText");
 
   var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                 .getService(Components.interfaces.nsIPromptService);
   return promptService.confirm(window, titleMsg, dialogMsg);
 }
 
+/**
+ * Unsubscribe from selected newsgroup/s.
+ */
 function MsgUnsubscribe()
 {
-  var folder = GetFirstSelectedMsgFolder();
-  if (ConfirmUnsubscribe(folder))
-    UnSubscribe(folder);
+  var folders = gFolderTreeView.getSelectedFolders();
+  if (ConfirmUnsubscribe(folders))
+    UnSubscribe(folders);
 }
 
 function ToggleFavoriteFolderFlag()
@@ -1450,23 +1464,6 @@ function MsgSaveAsTemplate()
   var folder = GetLoadedMsgFolder();
   if (GetNumSelectedMessages() == 1)
     SaveAsTemplate(GetFirstSelectedMessage(), folder);
-}
-
-function MsgOpenNewWindowForFolder(uri, key)
-{
-  var uriToOpen = uri;
-  var keyToSelect = key;
-
-  if (!uriToOpen)
-    // use GetSelectedMsgFolders() to find out which folder to open instead of
-    // GetLoadedMsgFolder().URI. This is required because on a right-click, the
-    // currentIndex value will be different from the actual row that is
-    // highlighted. GetSelectedMsgFolders() will return the folder that is
-    // highlighted.
-    uriToOpen = GetSelectedMsgFolders()[0].URI;
-
-  if (uriToOpen)
-    window.openDialog("chrome://messenger/content/", "_blank", "chrome,all,dialog=no", uriToOpen, keyToSelect);
 }
 
 function CreateToolbarTooltip(document, event)
@@ -1778,24 +1775,48 @@ let mailTabType = {
   }
 };
 
-function MsgOpenNewTabForFolder(uri, key)
+function MsgOpenNewWindowForFolder(folderURI, msgKeyToSelect)
 {
-  var uriToOpen = uri;
-  var keyToSelect = key;
+  if (folderURI) {
+    window.openDialog("chrome://messenger/content/", "_blank",
+                      "chrome,all,dialog=no", folderURI, msgKeyToSelect);
+    return;
+  }
 
-  if (!uriToOpen)
-    // Use GetSelectedMsgFolders() to find out which folder to open instead of
-    // GetLoadedMsgFolder().URI. This is required because on a right-click, the
-    // currentIndex value will be different from the actual row that is
-    // highlighted. GetSelectedMsgFolders() will return the message that is
-    // highlighted.
-    uriToOpen = GetSelectedMsgFolders()[0].URI;
-  
-  // set up the first tab, which was previously invisible.
-  // This assumes the first tab is always a 3-pane ui, which
-  // may not be right, especially if we have the ability
-  // to persist your tab setup.
-  document.getElementById('tabmail').openTab("folder", uriToOpen);
+  // Use gFolderTreeView.getSelectedFolders() to find out which folder to open
+  // instead of GetLoadedMsgFolder().URI. This is required because on a
+  // right-click, the currentIndex value will be different from the actual row
+  // that is highlighted. gFolderTreeView.getSelectedFolders() will return the
+  // folder that is highlighted.
+  let selectedFolders = gFolderTreeView.getSelectedFolders();
+  for (let i = 0; i < selectedFolders.length; i++) {
+    window.openDialog("chrome://messenger/content/", "_blank",
+                      "chrome,all,dialog=no",
+                      selectedFolders[i].URI, msgKeyToSelect);
+  }
+}
+
+function MsgOpenNewTabForFolder(folderURI, msgKeyToSelect)
+{
+  // XXX implement the usage of msgKeyToSelect...
+  if (folderURI) {
+    document.getElementById("tabmail").openTab("folder", folderURI);
+    return;
+  }
+
+  // Use gFolderTreeView.getSelectedFolders() to find out which folder to open
+  // instead of GetLoadedMsgFolder().URI. This is required because on a
+  // right-click, the currentIndex value will be different from the actual row
+  // that is highlighted. gFolderTreeView.getSelectedFolders() will return the
+  // folder that is highlighted.
+  let selectedFolders = gFolderTreeView.getSelectedFolders();
+  for (let i = 0; i < selectedFolders.length; i++) {
+    // Set up the first tab, which was previously invisible.
+    // This assumes the first tab is always a 3-pane ui, which
+    // may not be right, especially if we have the ability
+    // to persist your tab setup.
+    document.getElementById("tabmail").openTab("folder", selectedFolders[i].URI);
+  }
 }
 
 function MsgOpenNewTabForMessage(messageKey, folderUri)
@@ -2381,31 +2402,33 @@ function GetFolderMessages()
     return;
 
   // if nothing selected, use the default
-  var folder = selectedFolders.length ? selectedFolders[0] : defaultAccountRootFolder;
-
-  var serverType = folder.server.type;
-
-  if (folder.isServer && (serverType == "nntp")) {
-    // if we're doing "get msgs" on a news server
-    // update unread counts on this server
-    folder.server.performExpand(msgWindow);
-    return;
+  var folders = (selectedFolders.length) ? selectedFolders : [defaultAccountRootFolder];
+  var foldersToCheck = new Array();
+  for (var i = 0; i < folders.length; i++) {
+    var serverType = folders[i].server.type;
+    if (folders[i].isServer && (serverType == "nntp")) {
+      // If we're doing "get msgs" on a news server,
+      // update unread counts on this server.
+      folders[i].server.performExpand(msgWindow);
+    }
+    else if (serverType == "none") {
+      // If "Local Folders" is selected and the user does "Get Msgs" and
+      // LocalFolders is not deferred to, get new mail for the default account
+      //
+      // XXX TODO
+      // Should shift click get mail for all (authenticated) accounts?
+      // see bug #125885.
+      if (!folders[i].server.isDeferredTo)
+        foldersToCheck.push(defaultAccountRootFolder);
+      else
+        foldersToCheck.push(folders[i]);
+    }
+    else {
+      foldersToCheck.push(folders[i]);
+    }
   }
-  else if (serverType == "none") {
-    // If "Local Folders" is selected and the user does "Get Msgs" and
-    // LocalFolders is not deferred to, get new mail for the default account
-    //
-    // XXX TODO
-    // Should shift click get mail for all (authenticated) accounts?
-    // see bug #125885.
-    if (!folder.server.isDeferredTo)
-      folder = defaultAccountRootFolder;
-  }
 
-  var folders = new Array(1);
-  folders[0] = folder;
-
-  GetNewMessages(folders, folder.server);
+  GetNewMessagesInFolders(foldersToCheck);
 }
 
 function SendUnsentMessages()

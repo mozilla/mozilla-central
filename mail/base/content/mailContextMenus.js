@@ -25,6 +25,7 @@
 #   Jan Varga <varga@nixcorp.com>
 #   Hakan Waara <hwaara@chello.se>
 #   Markus Hossner <markushossner@gmx.de>
+#   Magnus Melin <mkmelin+mozilla@iki.fi>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -41,6 +42,8 @@
 # ***** END LICENSE BLOCK *****
 
 //NOTE: gMessengerBundle must be defined and set or this Overlay won't work
+
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
 const mailtolength = 7;
 
@@ -470,76 +473,193 @@ function folderPaneOnPopupHiding()
 
 function fillFolderPaneContextMenu()
 {
-  var folders = GetSelectedMsgFolders();
+  var folders = gFolderTreeView.getSelectedFolders();
   if (!folders.length)
     return false;
 
   var numSelected = folders.length;
-  var folder = folders[0];
-  const kVirtualFlag = Components.interfaces.nsMsgFolderFlags.Virtual;
-  var isVirtualFolder = folder ? folder.flags & kVirtualFlag : false;
-  const kTrashFlag = Components.interfaces.nsMsgFolderFlags.Trash;
-  var isChildOfTrash = IsSpecialFolder(folder, kTrashFlag, true);
 
-  var isServer = folder.isServer;
-  var serverType = folder.server.type;
-  var specialFolder = getSpecialFolderString(folder);
-  var canSubscribeToFolder = (serverType == "nntp") ||
-                             (serverType == "imap") ||
-                             (serverType == "rss");
-  var isNewsgroup = !isServer && serverType == 'nntp';
-  var isMailFolder = !isServer && serverType != 'nntp';
-  var canGetMessages =
-    (isServer && (serverType != "nntp") && (serverType != "none")) ||
-    isNewsgroup ||
-    ((serverType == "rss") && !isChildOfTrash && !isVirtualFolder);
+  function checkIsVirtualFolder(folder) {
+    const kVirtualFlag = Components.interfaces.nsMsgFolderFlags.Virtual;
+    return folder.flags & kVirtualFlag;
+  }
+  var haveAnyVirtualFolders = folders.some(checkIsVirtualFolder);
 
-  if (!isServer)
+  function checkIsServer(folder) {
+    return folder.isServer;
+  }
+  var selectedServers = folders.filter(checkIsServer);
+
+  var specialFolder;
+  if (numSelected == 1) {
+    specialFolder = getSpecialFolderString(folders[0]);
+  }
+
+  function checkCanSubscribeToFolder(folder) {
+    if (checkIsVirtualFolder(folder))
+      return false;
+    return folder.server.type == "nntp" ||
+           folder.server.type == "imap" ||
+           folder.server.type == "rss";
+  }
+  var haveOnlySubscribableFolders = folders.every(checkCanSubscribeToFolder);
+
+  function checkIsNewsgroup(folder) {
+    return !folder.isServer && folder.server.type == "nntp";
+  }
+  var haveOnlyNewsgroups = folders.every(checkIsNewsgroup);
+
+  function checkIsMailFolder(folder) {
+    return !folder.isServer && folder.server.type != "nntp";
+  }
+  var haveOnlyMailFolders = folders.every(checkIsMailFolder);
+
+  function checkCanGetMessages(folder) {
+    const kTrashFlag = Components.interfaces.nsMsgFolderFlags.Trash;
+    return (folder.isServer && (folder.server.type != "none")) ||
+           checkIsNewsgroup(folder) ||
+           ((folder.server.type == "rss") && !folder.isSpecialFolder(kTrashFlag, true) &&
+             !checkIsVirtualFolder(folder));
+  }
+  var selectedFoldersThatCanGetMessages = folders.filter(checkCanGetMessages);
+
+  // --- Set up folder properties / account settings menu item.
+  if (numSelected != 1) {
+    ShowMenuItem("folderPaneContext-settings", false);
+    ShowMenuItem("folderPaneContext-properties", false);
+  }
+  else if (selectedServers.length != 1)
   {
     ShowMenuItem("folderPaneContext-settings", false);
     ShowMenuItem("folderPaneContext-properties", true);
-    EnableMenuItem("folderPaneContext-properties", true);
   }
   else
   {
     ShowMenuItem("folderPaneContext-properties", false);
     ShowMenuItem("folderPaneContext-settings", true);
-    EnableMenuItem("folderPaneContext-settings", true);
   }
 
-  ShowMenuItem("folderPaneContext-getMessages", (numSelected <= 1) && canGetMessages);
-  EnableMenuItem("folderPaneContext-getMessages", true);
+  // --- Set up the get messages menu item.
+  // Show if only servers, or it's only newsgroups/feeds. We could mix,
+  // but it gets messy for situations where both server and a folder
+  // on the server are selected.
+  ShowMenuItem("folderPaneContext-getMessages",
+               (selectedServers.length > 0 &&
+                selectedFoldersThatCanGetMessages.length == numSelected &&
+                selectedServers.length == selectedFoldersThatCanGetMessages.length) ||
+               selectedFoldersThatCanGetMessages.length == numSelected);
 
-  SetupNewMenuItem(folder, numSelected, isServer, serverType, specialFolder);
-  SetupRenameMenuItem(folder, numSelected, isServer, serverType, specialFolder);
-  SetupRemoveMenuItem(folder, numSelected, isServer, serverType, specialFolder);
-  SetupCompactMenuItem(folder, numSelected);
-  SetupFavoritesMenuItem(folder, numSelected, isServer, 'folderPaneContext-favoriteFolder');
+  // --- Set up new sub/folder menu item.
+  if (numSelected == 1) {
+    let showNewFolderItem =
+      ((folders[0].server.type != "nntp") && folders[0].canCreateSubfolders) ||
+      (specialFolder == "Inbox");
+    ShowMenuItem("folderPaneContext-new", showNewFolderItem);
+    // XXX: Can't offline imap create folders nowadays?
+    EnableMenuItem("folderPaneContext-new", folders[0].server.type != "imap" ||
+                                            MailOfflineMgr.isOnline());
+    if (showNewFolderItem)
+    {
+      if (folders[0].isServer || specialFolder == "Inbox")
+        SetMenuItemLabel("folderPaneContext-new", gMessengerBundle.getString("newFolder"));
+      else
+        SetMenuItemLabel("folderPaneContext-new", gMessengerBundle.getString("newSubfolder"));
+    }
+  }
+  else {
+    ShowMenuItem("folderPaneContext-new", false);
+  }
 
-  ShowMenuItem("folderPaneContext-emptyTrash", (numSelected <= 1) && (specialFolder == 'Trash'));
-  EnableMenuItem("folderPaneContext-emptyTrash", true);
-  ShowMenuItem("folderPaneContext-emptyJunk", (numSelected <= 1) && (specialFolder == 'Junk'));
-  EnableMenuItem("folderPaneContext-emptyJunk", true);
+  // --- Set up rename menu item.
+  if (numSelected == 1) {
+    ShowMenuItem("folderPaneContext-rename",
+                 !folders[0].isServer && folders[0].canRename &&
+                 specialFolder == "none" || specialFolder == "Virtual" ||
+                 (specialFolder == "Junk" && CanRenameDeleteJunkMail(folders[0].URI)));
+    EnableMenuItem("folderPaneContext-rename",
+                   !folders[0].isServer && folders[0].isCommandEnabled("cmd_renameFolder"));
+  }
+  else {
+    ShowMenuItem("folderPaneContext-rename", false);
+  }
 
-  var showSendUnsentMessages = (numSelected <= 1) && (specialFolder == 'Outbox');
-  ShowMenuItem("folderPaneContext-sendUnsentMessages", showSendUnsentMessages);
-  if (showSendUnsentMessages) 
-    EnableMenuItem("folderPaneContext-sendUnsentMessages", IsSendUnsentMsgsEnabled(folder));
+  // --- Set up the delete folder menu item.
+  function checkCanDeleteFolder(folder) {
+    let specialFolder = getSpecialFolderString(folder);
+    return folder.server.type != "nntp" && !folder.isServer &&
+           (specialFolder == "none" || specialFolder == "Virtual" ||
+            (specialFolder == "Junk" && CanRenameDeleteJunkMail(folder.URI)));
+  }
+  var haveOnlyDeletableFolders = folders.every(checkCanDeleteFolder);
+  ShowMenuItem("folderPaneContext-remove", haveOnlyDeletableFolders && numSelected == 1);
 
-  ShowMenuItem("folderPaneContext-subscribe", (numSelected <= 1) && canSubscribeToFolder && !isVirtualFolder);
-  EnableMenuItem("folderPaneContext-subscribe", true);
+  function checkIsDeleteEnabled(folder) {
+    return folder.isCommandEnabled("cmd_delete");
+  }
+  var haveOnlyDeleteEnabledFolders = folders.every(checkIsDeleteEnabled);
+  EnableMenuItem("folderPaneContext-remove", haveOnlyDeleteEnabledFolders);
 
-  // News folder context menu =============================================
-  ShowMenuItem("folderPaneContext-newsUnsubscribe", (numSelected <= 1) && canSubscribeToFolder && isNewsgroup);
-  EnableMenuItem("folderPaneContext-newsUnsubscribe", true);
-  ShowMenuItem("folderPaneContext-markNewsgroupAllRead", (numSelected <= 1) && isNewsgroup);
-  EnableMenuItem("folderPaneContext-markNewsgroupAllRead", true);
-  // End of News folder context menu =======================================
+  // --- Set up the compact folder menu item.
+  function checkCanCompactFolder(folder) {
+    const kVirtualFlag = Components.interfaces.nsMsgFolderFlags.Virtual;
+    return folder.canCompact && !(folder.flags & kVirtualFlag) &&
+           folder.isCommandEnabled("cmd_compactFolder");
+  }
+  var haveOnlyCompactableFolders = folders.every(checkCanCompactFolder);
+  ShowMenuItem("folderPaneContext-compact", haveOnlyCompactableFolders);
 
-  ShowMenuItem("folderPaneContext-markMailFolderAllRead", (numSelected <= 1) && isMailFolder && !isVirtualFolder);
-  EnableMenuItem("folderPaneContext-markMailFolderAllRead", !isVirtualFolder);
+  function checkIsCompactEnabled(folder) {
+    return folder.isCommandEnabled("cmd_compactFolder");
+  }
+  var haveOnlyCompactEnabledFolders = folders.every(checkIsCompactEnabled);
+  EnableMenuItem("folderPaneContext-compact", haveOnlyCompactEnabledFolders);
 
-  ShowMenuItem("folderPaneContext-searchMessages", (numSelected<=1) && !isVirtualFolder);
+  // --- Set up favorite folder menu item.
+  ShowMenuItem("folderPaneContext-favoriteFolder",
+               numSelected == 1 && !folders[0].isServer);
+  if (numSelected == 1 && !folders[0].isServer)
+  {
+    const kFavoriteFlag = Components.interfaces.nsMsgFolderFlags.Favorite;
+     // Adjust the checked state on the menu item.
+    document.getElementById("folderPaneContext-favoriteFolder")
+            .setAttribute("checked", folders[0].getFlag(kFavoriteFlag));
+  }
+
+  // --- Set up the empty trash menu item.
+  ShowMenuItem("folderPaneContext-emptyTrash",
+               numSelected == 1 && specialFolder == "Trash");
+
+  // --- Set up the empty junk menu item.
+  ShowMenuItem("folderPaneContext-emptyJunk",
+               numSelected == 1 && specialFolder == "Junk");
+
+  // --- Set up the send unsent messages menu item.
+  ShowMenuItem("folderPaneContext-sendUnsentMessages",
+               numSelected == 1 && specialFolder == "Outbox");
+  EnableMenuItem("folderPaneContext-sendUnsentMessages",
+                 IsSendUnsentMsgsEnabled(folders[0]));
+
+  // --- Set up the subscribe menu item.
+  ShowMenuItem("folderPaneContext-subscribe",
+               numSelected == 1 && haveOnlySubscribableFolders);
+
+  // --- Set up the unsubscribe menu item.
+  ShowMenuItem("folderPaneContext-newsUnsubscribe", haveOnlyNewsgroups);
+
+  // --- Set up the mark newsgroup/s read menu item.
+  ShowMenuItem("folderPaneContext-markNewsgroupAllRead", haveOnlyNewsgroups);
+  SetMenuItemLabel("folderPaneContext-markNewsgroupAllRead",
+                   PluralForm.get(numSelected, gMessengerBundle.getString("markNewsgroupRead")));
+
+  // --- Set up the mark folder/s read menu item.
+  ShowMenuItem("folderPaneContext-markMailFolderAllRead",
+               haveOnlyMailFolders && !haveAnyVirtualFolders);
+  SetMenuItemLabel("folderPaneContext-markMailFolderAllRead",
+                  PluralForm.get(numSelected, gMessengerBundle.getString("markFolderRead")));
+
+  // Set up the search menu item.
+  ShowMenuItem("folderPaneContext-searchMessages",
+               numSelected == 1 && !haveAnyVirtualFolders);
   goUpdateCommand('cmd_search');
 
   // handle our separators
@@ -558,80 +678,12 @@ function fillFolderPaneContextMenu()
   }
 
   // Hide / Show our menu separators based on the menu items we are showing.
-  ShowMenuItem("folderPaneContext-sep1", (numSelected <= 1) && !isServer);
+  ShowMenuItem("folderPaneContext-sep1", selectedServers.length == 0);
+  hideIfAppropriate("folderPaneContext-sep1");
   hideIfAppropriate("folderPaneContext-sep2");
   hideIfAppropriate("folderPaneContext-sep3");
 
   return(true);
-}
-
-function SetupNewMenuItem(folder, numSelected, isServer, serverType, specialFolder)
-{
-  var canCreateNew = folder.canCreateSubfolders;
-  var isInbox = specialFolder == "Inbox";
-  var isIMAPFolder = (folder.server.type == "imap");
-
-  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService);
-
-  var showNew = ((numSelected <=1) && (serverType != 'nntp') && canCreateNew) || isInbox;
-  ShowMenuItem("folderPaneContext-new", showNew);
-
-  EnableMenuItem("folderPaneContext-new", !isIMAPFolder || MailOfflineMgr.isOnline());
-
-  if (showNew)
-  {
-    if (isServer || isInbox)
-      SetMenuItemLabel("folderPaneContext-new", gMessengerBundle.getString("newFolder"));
-    else
-      SetMenuItemLabel("folderPaneContext-new", gMessengerBundle.getString("newSubfolder"));
-  }
-}
-
-function SetupRenameMenuItem(msgFolder, numSelected, isServer, serverType, specialFolder)
-{
-  var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
-                                                  || (specialFolder == "Virtual") );
-  var canRename = msgFolder.canRename;
-  ShowMenuItem("folderPaneContext-rename", (numSelected <= 1) && !isServer && !isSpecialFolder && canRename);
-
-  EnableMenuItem("folderPaneContext-rename", !isServer && msgFolder.isCommandEnabled("cmd_renameFolder"));
-}
-
-function SetupRemoveMenuItem(msgFolder, numSelected, isServer, serverType, specialFolder)
-{
-  var isMail = serverType != 'nntp';
-  var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
-                                                  || (specialFolder == "Virtual") );
-  //Can't currently delete Accounts or special folders.
-  var showRemove = (numSelected <=1) && (isMail && !isSpecialFolder) && !isServer;
-
-  ShowMenuItem("folderPaneContext-remove", showRemove);
-  if(showRemove)
-  {
-    EnableMenuItem("folderPaneContext-remove", msgFolder.isCommandEnabled("cmd_delete"));
-  }
-}
-
-function SetupCompactMenuItem(folder, numSelected)
-{
-  const kVirtualFlag = Components.interfaces.nsMsgFolderFlags.Virtual;
-  ShowMenuItem("folderPaneContext-compact", (numSelected <= 1) && folder.canCompact && !(folder.flags & kVirtualFlag));
-  EnableMenuItem("folderPaneContext-compact", folder.isCommandEnabled("cmd_compactFolder") && !(folder.flags & kVirtualFlag));
-}
-
-function SetupFavoritesMenuItem(folder, numSelected, isServer, menuItemId)
-{
-  var showItem = !isServer && (numSelected <=1);
-  ShowMenuItem(menuItemId, showItem); 
-
-  // adjust the checked state on the menu
-  if (showItem)
-  {
-    const kFavoriteFlag = Components.interfaces.nsMsgFolderFlags.Favorite;
-    document.getElementById(menuItemId)
-            .setAttribute('checked', folder.getFlag(kFavoriteFlag));
-  }
 }
 
 function ShowMenuItem(id, showItem)
