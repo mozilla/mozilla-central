@@ -305,17 +305,17 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #DecreaseFontSizeButton {
-  -moz-image-region: rect(144px 16px 160px 0px);
+  -moz-image-region: rect(208px 16px 224px 0px);
 }
 #DecreaseFontSizeButton[disabled="true"] {
-  -moz-image-region: rect(128px 16px 144px 0px);
+  -moz-image-region: rect(192px 16px 208px 0px);
 }
 
 #IncreaseFontSizeButton {
-  -moz-image-region: rect(176px 16px 192px 0px);
+  -moz-image-region: rect(240px 16px 256px 0px);
 }
 #IncreaseFontSizeButton[disabled="true"] {
-  -moz-image-region: rect(160px 16px 176px 0px);
+  -moz-image-region: rect(224px 16px 240px 0px);
 }
 
 #boldButton {
@@ -340,17 +340,17 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #ulButton {
-  -moz-image-region: rect(112px 16px 128px 0px);
+  -moz-image-region: rect(160px 16px 176px 0px);
 }
 #ulButton[disabled="true"] {
-  -moz-image-region: rect(96px 16px 112px 0px);
+  -moz-image-region: rect(144px 16px 160px 0px);
 }
 
 #olButton {
-  -moz-image-region: rect(80px 16px 96px 0px);
+  -moz-image-region: rect(128px 16px 144px 0px);
 }
 #olButton[disabled="true"] {
-  -moz-image-region: rect(64px 16px 80px 0px);
+  -moz-image-region: rect(112px 16px 128px 0px);
 }
 
 #outdentButton {
@@ -375,39 +375,35 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #InsertPopupButton {
-  -moz-image-region: rect(48px 16px 64px 0px);
+  -moz-image-region: rect(80px 16px 96px 0px);
 }
 #InsertPopupButton[disabled="true"] {
-  -moz-image-region: rect(32px 16px 48px 0px);
+  -moz-image-region: rect(64px 16px 80px 0px);
 }
 
 
 #smileButtonMenu {
-  -moz-image-region: rect(16px 16px 32px 0px);
+  -moz-image-region: rect(32px 16px 48px 0px);
 }
 #smileButtonMenu[disabled="true"] {
-  -moz-image-region: rect(0px 16px 16px 0px);
+  -moz-image-region: rect(16px 16px 32px 0px);
 }
 /* ..... align menu ..... */
 
-#AlignPopup > menuitem {
-  list-style-image: url("chrome://messenger/skin/messengercompose/format-buttons.png");
-}
-
 #AlignLeftItem {
-  -moz-image-region: rect(0px 160px 16px 144px);
+  list-style-image: url("moz-icon://stock/gtk-justify-left?size=menu");
 }
 
 #AlignCenterItem {
-  -moz-image-region: rect(0px 176px 16px 160px);
+  list-style-image: url("moz-icon://stock/gtk-justify-center?size=menu");
 }
 
 #AlignRightItem {
-  -moz-image-region: rect(0px 192px 16px 176px);
+  list-style-image: url("moz-icon://stock/gtk-justify-right?size=menu");
 }
 
 #AlignJustifyItem {
-  -moz-image-region: rect(0px 208px 16px 192px);
+  list-style-image: url("moz-icon://stock/gtk-justify-fill?size=menu");
 }
 
 /* ..... insert menu ..... */
@@ -417,23 +413,23 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #InsertLinkItem {
-  -moz-image-region: rect(0px 224px 16px 208px);
+  -moz-image-region: rect(96px 16px 112px 0px);
 }
 
 #InsertAnchorItem {
-  -moz-image-region: rect(0px 240px 16px 224px);
+  -moz-image-region: rect(0px 16px 16px 0px);
 }
 
 #InsertImageItem {
-  -moz-image-region: rect(0px 256px 16px 240px);
+  -moz-image-region: rect(64px 16px 80px 0px);
 }
 
 #InsertHRuleItem {
-  -moz-image-region: rect(0px 272px 16px 256px);
+  -moz-image-region: rect(48px 16px 64px 0px);
 }
 
 #InsertTableItem {
-  -moz-image-region: rect(0px 288px 16px 272px);
+  -moz-image-region: rect(176px 16px 192px 0px);
 }
 
 /* ..... smiley menu ..... */
