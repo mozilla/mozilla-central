@@ -1,5 +1,5 @@
 <!ENTITY attachmentReminderDialog.title   "Attachment Reminder Keywords">
-<!ENTITY attachKeywordText.label          "&brandShortName; will warn you about missing attachments if the you're about to send an e-mail containing one of these keywords.">
+<!ENTITY attachKeywordText.label          "&brandShortName; will warn you about missing attachments if you're about to send an e-mail containing one of these keywords.">
 <!ENTITY addKeywordButton.label           "Add">
 <!ENTITY addKeywordButton.accesskey       "A">
 <!ENTITY editKeywordButton.label          "Edit">
