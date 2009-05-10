@@ -105,18 +105,49 @@ function RestoreSelectionWithoutContentLoad(tree)
     gRightMouseButtonDown = false;
 }
 
-function fillMailContextMenu(event)
+/**
+ * Function to clear out the global nsContextMenu, and in the case when we
+ * were a threadpane context menu, restore the selection so that a right-click
+ * on a non-selected row doesn't move the selection.
+ * @param event the onpopuphiding event
+ */
+function mailContextOnPopupHiding(aEvent)
 {
-  var inThreadPane = false;
+  // Don't do anything if it's a submenu's onpopuphiding that's just bubbling
+  // up to the top.
+  if (aEvent.target != aEvent.currentTarget)
+    return;
+
+  gContextMenu = null;
+  if (popupNodeIsInThreadPane())
+    RestoreSelectionWithoutContentLoad(GetThreadTree());
+}
+
+/**
+ * Determines whether the context menu was triggered by a node that's a child
+ * of the threadpane by looking for a parent node with id="threadTree".
+ * @return true if the popupNode is a child of the threadpane, otherwise false
+ */
+function popupNodeIsInThreadPane()
+{
   var node = document.popupNode;
-  while (node) {
-    if (node.id == "threadTree") {
-      inThreadPane = true;
-      break;
-    }
+  while (node)
+  {
+    if (node.id == "threadTree")
+      return true;
+
     node = node.parentNode;
   }
+  return false;
+}
 
+function fillMailContextMenu(event)
+{
+  // If the popupshowing was for a submenu, we don't need to do anything.
+  if (event.target != event.currentTarget)
+    return true;
+
+  var inThreadPane = popupNodeIsInThreadPane();
   gContextMenu = new nsContextMenu(event.target);
   var numSelected = GetNumSelectedMessages();
 
