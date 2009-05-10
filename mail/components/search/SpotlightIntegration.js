@@ -100,20 +100,7 @@ let SearchIntegration =
     /// Buffer to store the message
     _message: null,
 
-    /// Unicode converter -- used to convert strings to UTF-8
-    __unicodeConverter: null,
-    get _unicodeConverter()
-    {
-      if (!this.__unicodeConverter)
-      {
-        this.__unicodeConverter =
-          Cc["@mozilla.org/intl/scriptableunicodeconverter"]
-            .createInstance(Ci.nsIScriptableUnicodeConverter);
-        this.__unicodeConverter.charset = "UTF-8";
-      }
-      return this.__unicodeConverter;
-    },
-
+    /// Encodes reserved XML characters
     _xmlEscapeString: function spotlight_xml_escape_string(s)
     {
       return s.replace(/[<>&]/g, function(s) {
@@ -127,47 +114,43 @@ let SearchIntegration =
       );
     },
 
-    /// Converts to UTF-8, and encodes reserved XML characters
-    _convertToUTF8: function spotlight_convert_to_utf8(string)
-    {
-      let utf8String = this._unicodeConverter.ConvertFromUnicode(string);
-      utf8String += this._unicodeConverter.Finish();
-      return this._xmlEscapeString(utf8String);
-    },
-
     onStartRequest: function(request, context) {
       try {
         let outputFileStream = Cc["@mozilla.org/network/file-output-stream;1"]
                                .createInstance(Ci.nsIFileOutputStream);
         outputFileStream.init(this._outputFile, -1, -1, 0);
-        this._outputStream = outputFileStream.QueryInterface(Ci.nsIOutputStream);
-        this._outputStream.write(gFileHeader, gFileHeader.length);
-        this._outputStream.write("<key>kMDItemLastUsedDate</key><string>", 38);
+        this._outputStream = Cc["@mozilla.org/intl/converter-output-stream;1"]
+                               .createInstance(Ci.nsIConverterOutputStream);
+        this._outputStream.init(outputFileStream, "UTF-8", 0, 0x0000);
+
+        this._outputStream.writeString(gFileHeader);
+        this._outputStream.writeString(
+          "<key>kMDItemLastUsedDate</key><string>");
         // need to write the date as a string
         let curTimeStr = new Date().toLocaleString();
-        this._outputStream.write(curTimeStr, curTimeStr.length);
-        // need to write the subject in utf8 as the title
-        this._outputStream.write("</string>\n<key>kMDItemTitle</key>\n<string>",
-                                 42);
-
-        let utf8Subject = this._convertToUTF8(this._msgHdr.mime2DecodedSubject);
-        this._outputStream.write(utf8Subject, utf8Subject.length);
+        this._outputStream.writeString(curTimeStr);
 
         // need to write the subject in utf8 as the title
-        this._outputStream.write(
-          "</string>\n<key>kMDItemDisplayName</key>\n<string>", 48);
-        this._outputStream.write(utf8Subject, utf8Subject.length);
+        this._outputStream.writeString(
+          "</string>\n<key>kMDItemTitle</key>\n<string>");
 
-        this._outputStream.write(
-          "</string>\n<key>kMDItemTextContent</key>\n<string>", 48);
-        let utf8Author = this._convertToUTF8(this._msgHdr.mime2DecodedAuthor);
-        let utf8Recipients = this._convertToUTF8(
-                              this._msgHdr.mime2DecodedRecipients);
-        this._outputStream.write(utf8Author, utf8Author.length);
-        this._outputStream.write(utf8Recipients, utf8Recipients.length);
+        let escapedSubject = this._xmlEscapeString(
+          this._msgHdr.mime2DecodedSubject);
+        this._outputStream.writeString(escapedSubject);
 
-        this._outputStream.write(utf8Subject, utf8Subject.length);
-        this._outputStream.write(" ", 1);
+        this._outputStream.writeString(
+          "</string>\n<key>kMDItemDisplayName</key>\n<string>");
+        this._outputStream.writeString(escapedSubject);
+
+        this._outputStream.writeString(
+          "</string>\n<key>kMDItemTextContent</key>\n<string>");
+        this._outputStream.writeString(this._xmlEscapeString(
+          this._msgHdr.mime2DecodedAuthor));
+        this._outputStream.writeString(this._xmlEscapeString(
+          this._msgHdr.mime2DecodedRecipients));
+
+        this._outputStream.writeString(escapedSubject);
+        this._outputStream.writeString(" ");
       }
       catch (ex) { this._onDoneStreaming(false); }
     },
@@ -184,10 +167,10 @@ let SearchIntegration =
                                                this._msgHdr.Charset, 20000,
                                                20000, false, true, {});
         text = this._xmlEscapeString(text);
-        SearchIntegration._log.debug("utf8 text = *****************\n"+ text);
-        this._outputStream.write(text, text.length);
+        SearchIntegration._log.debug("escaped text = *****************\n" + text);
+        this._outputStream.writeString(text);
         // close out the content, dict, and plist
-        this._outputStream.write("</string>\n</dict>\n</plist>\n", 26);
+        this._outputStream.writeString("</string>\n</dict>\n</plist>\n");
 
         this._msgHdr.setUint32Property(SearchIntegration._hdrIndexedProperty,
                                        this._reindexTime);
