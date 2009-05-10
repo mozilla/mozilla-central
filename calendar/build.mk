@@ -77,3 +77,6 @@ package-compare:
 
 source-package::
 	@$(MAKE) -C calendar/installer source-package
+
+upload::
+	@$(MAKE) -C calendar/installer upload

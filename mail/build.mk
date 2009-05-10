@@ -95,3 +95,6 @@ install::
 
 source-package::
 	@$(MAKE) -C mail/installer source-package
+
+upload::
+	@$(MAKE) -C mail/installer upload
