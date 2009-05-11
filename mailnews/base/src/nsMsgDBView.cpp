@@ -2489,7 +2489,7 @@ nsMsgDBView::CopyMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32
     if (NS_SUCCEEDED(rv) && msgHdr)
     {
       messageArray->AppendElement(msgHdr, PR_FALSE);
-      // if we are deleting rows, save off the keys
+      // if we are deleting rows, save off the view indices
       if (m_deletingRows)
         mIndicesToNoteChange.AppendElement(indices[index]);
     }

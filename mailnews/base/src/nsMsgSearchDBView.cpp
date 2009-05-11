@@ -836,22 +836,28 @@ nsresult nsMsgSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex 
    GetFoldersAndHdrsForSelection(indices, numIndices);
    if (mDeleteModel != nsMsgImapDeleteModels::MoveToTrash)
      deleteStorage = PR_TRUE;
+  if (mDeleteModel != nsMsgImapDeleteModels::IMAPDelete)
+    m_deletingRows = PR_TRUE;
 
-   // remember the deleted messages in case the user undoes the delete,
-   // and we want to restore the hdr to the view, even if it no
-   // longer matches the search criteria.
-    for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++) 
-    {
-      nsCOMPtr<nsIMsgDBHdr> msgHdr; 
-      (void) GetMsgHdrForViewIndex(indices[i],getter_AddRefs(msgHdr));
-      if (msgHdr)
-        RememberDeletedMsgHdr(msgHdr);
-    }
-    if (!deleteStorage)
-      rv = ProcessRequestsInOneFolder(window);
-    else
-      rv = ProcessRequestsInAllFolders(window);
-    return rv;
+  // remember the deleted messages in case the user undoes the delete,
+  // and we want to restore the hdr to the view, even if it no
+  // longer matches the search criteria.
+  for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++) 
+  {
+    nsCOMPtr<nsIMsgDBHdr> msgHdr; 
+    (void) GetMsgHdrForViewIndex(indices[i], getter_AddRefs(msgHdr));
+    if (msgHdr)
+      RememberDeletedMsgHdr(msgHdr);
+    // if we are deleting rows, save off the view indices
+    if (m_deletingRows)
+      mIndicesToNoteChange.AppendElement(indices[i]);
+
+  }
+  rv = deleteStorage ? ProcessRequestsInAllFolders(window)
+                     : ProcessRequestsInOneFolder(window);
+  if (NS_FAILED(rv))
+    m_deletingRows = PR_FALSE;
+  return rv;
 }
 
 nsresult 
