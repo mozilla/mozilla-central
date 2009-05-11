@@ -514,7 +514,7 @@ pref("mail.server.default.serverFilterTrustFlags", 1); // 1 == trust positives, 
 pref("mail.server.default.purgeSpam", false);
 pref("mail.server.default.purgeSpamInterval", 14); // 14 days
 // should we inhibit whitelisting of the email addresses for a server's identities?
-pref("mail.server.default.inhibitWhiteListingIdentityUser", false);
+pref("mail.server.default.inhibitWhiteListingIdentityUser", true);
 // should we inhibit whitelisting of the domain for a server's identities?
 pref("mail.server.default.inhibitWhiteListingIdentityDomain", false);
 
