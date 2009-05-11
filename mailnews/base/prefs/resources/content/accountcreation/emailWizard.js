@@ -505,11 +505,12 @@ EmailConfigWizard.prototype =
 
   },
 
-  checkOutgoingAccountIsNew : function()
+  /*
+   * Returns either the nsISmtpServer.key for an existing account that matches
+   * our discovered hostname + port + username, or false if no match is found.
+   */
+  keyForExistingOutgoingAccount : function()
   {
-    // if we're not going to add it, don't check.
-    if (!this._currentConfigFilledIn.outgoing.addThisServer)
-     return true;
     var smtpServers = gSmtpManager.smtpServers;
     while (smtpServers.hasMoreElements())
     {
@@ -517,9 +518,9 @@ EmailConfigWizard.prototype =
       if (existingServer.hostname == this._currentConfigFilledIn.outgoing.hostname &&
           existingServer.port == this._currentConfigFilledIn.outgoing.port &&
           existingServer.username == this._currentConfigFilledIn.outgoing.username)
-        return false;
+        return existingServer.key;
     }
-    return true;
+    return false;
   },
 
   checkIncomingAccountIsNew : function()
@@ -657,11 +658,15 @@ EmailConfigWizard.prototype =
                   gStringsBundle.getString("incoming_server_exists"));
       return;
     }
-    if (!this.checkOutgoingAccountIsNew())
+    // No need to check if we aren't adding it.
+    if (this._currentConfigFilledIn.outgoing.addThisServer)
     {
-      alertPrompt(gStringsBundle.getString("error_creating_account"),
-                  gStringsBundle.getString("outgoing_server_exists"));
-      return;
+      let existingKey = this.keyForExistingOutgoingAccount();
+      if (existingKey)
+      {
+        this._currentConfigFilledIn.outgoing.addThisServer = false;
+        this._currentConfigFilledIn.outgoing.existingServerKey = existingKey;
+      }
     }
 
     getElementById('create_button').disabled = true;
