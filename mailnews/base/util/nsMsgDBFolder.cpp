@@ -2180,6 +2180,7 @@ nsMsgDBFolder::OnMessageClassified(const char *aMsgURI,
       //NS_ENSURE_SUCCESS(rv,rv);
     }
   }
+  return NS_OK;
 }
 
 NS_IMETHODIMP
