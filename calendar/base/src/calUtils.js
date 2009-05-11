@@ -1665,14 +1665,12 @@ calPropertyBag.prototype = {
         this.mData[aName] = aValue;
     },
     getProperty_: function cpb_getProperty(aName) {
-        return this.mData[aName];
+        // avoid strict undefined property warning
+        return (aName in this.mData ? this.mData[aName] : undefined);
     },
     getProperty: function cpb_getProperty(aName) {
-        var aValue = this.mData[aName];
-        if (aValue === undefined) {
-            aValue = null;
-        }
-        return aValue;
+        // avoid strict undefined property warning
+        return (aName in this.mData ? this.mData[aName] : null);      
     },
     getAllProperties: function cpb_getAllProperties(aOutKeys, aOutValues) {
         var keys = [];
