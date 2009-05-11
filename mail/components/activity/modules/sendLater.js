@@ -137,6 +137,7 @@ let sendLaterModule =
                                new Date());
 
     event.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_STANDALONE;
+    event.iconClass = "sendMail";
 
     this.activityMgr.addActivity(event);
   },

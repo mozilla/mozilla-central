@@ -156,6 +156,7 @@ let autosyncModule =
       event.contextDisplayText = this.bundle.formatStringFromName("autosyncContextDisplayText",
                                         [folder.server.prettyName], 1)
       event.contextObj = process.contextObj;
+      event.iconClass = "syncMail";
 
       // transfer all subjects.
       // same as above, not mandatory

@@ -115,6 +115,8 @@ let moveCopyModule =
                                statusText,
                                Date.now(),  // start time
                                Date.now()); // completion time
+
+    event.iconClass = "deleteMail";
           
     for (let i = 0; i < count; i++)
     {
@@ -166,6 +168,8 @@ let moveCopyModule =
                                  statusText,
                                  Date.now(),    // start time
                                  Date.now());   // completion time
+      event.iconClass = aMove ? "moveMail" : "copyMail";
+
       for (let i = 0; i < count; i++)
       {
         let msgHdr = aSrcMsgList.queryElementAt(i, Components.interfaces.nsIMsgDBHdr);
@@ -192,6 +196,7 @@ let moveCopyModule =
                                Date.now()); // completion time
 
     event.addSubject(aFolder);
+    event.iconClass = "deleteMail";
         
     this.activityMgr.addActivity(event);
   },
@@ -228,6 +233,7 @@ let moveCopyModule =
 
     event.addSubject(aSrcFolder);
     event.addSubject(aDestFolder);
+    event.iconClass = aMove ? "moveMail" : "copyMail";
 
     this.activityMgr.addActivity(event);
   },
