@@ -125,7 +125,6 @@ EmailConfigWizard.prototype =
     this._outgoingWarning = 'cleartext';
     this._userPickedOutgoingServer = false;
     this._customFields = {}; // map of: field ID from config file {String} -> field value entered by user {String}
-    this._visitedEnableURLs = {}; // map of: URL {String} -> visited {bool}
 
     if (window.arguments && window.arguments[0] &&
         window.arguments[0].msgWindow)
@@ -490,7 +489,7 @@ EmailConfigWizard.prototype =
 
     return this._foundConfig2(config);
   },
-  // Continuation of foundConfig2() after custom fields and enableURLs.
+  // Continuation of foundConfig2() after custom fields.
   _foundConfig2 : function(config)
   {
     this._currentConfigFilledIn = config.copy();
@@ -1458,155 +1457,3 @@ CustomFieldsDialog.prototype =
 }
 
 var gCustomFieldsDialog = null;
-
-
-/**
-* Called by dialog logic, if the user needs to visit certain pages and do stuff
-* in order for his account to work with Thunderbird.
-* The dialog just shows all these descriptions, and clickable links,
-* and tracks the clicks, and returns whether the URLs were opened.
-*
-* @param enableURLs {Array}   @see AccountConfig.enableURLs
-* @param alreadyVisited {Object}  Map of: URL {String} -> bool
-* URLs that the user has already visited in a previous run of the dialog.
-* May be null.
-*
-*/
-function EnableURLsDialog(enableURLs, alreadyVisited)
-{
-  if (!alreadyVisited)
-    alreadyVisited = {};
-
-  this._visitedURLs = alreadyVisited;
-}
-
-EnableURLsDialog.prototype =
-{
-  /**
-   * Open dialog, unless the needed data is already in |alreadyVisited|.
-   * @param successCallback, cancelCallback @see open()
-   */
-  openIfNeeded : function(successCallback, cancelCallback)
-  {
-    var needVisits = false;
-    for (var i = 0; i < this._enableURLs.length; i++)
-    {
-      let url = this._enableURLs[i].url;
-      if (!this._visitedURLs[url])
-        needVisits = true;
-    }
-    if (!needVisits)
-    {
-      successCallback(this._visitedURLs);
-      return;
-    }
-
-    this.open(successCallback, cancelCallback);
-  },
-  /**
-   * @param successCallback {Function(this._visitedEnableURLs)}
-   * Will be called when the user visited all URLs and clicked OK.
-   * The first parameter contains the URLs (as map URL {String} -> bool).
-   *
-   * @param cancelCallback {Function()}
-   * The user cancelled the dialog
-   */
-  open : function(successCallback, cancelCallback)
-  {
-    this._successCallback = successCallback;
-    this._cancelCallback = cancelCallback;
-
-    var rows = getElementById("enableURLs-rows");
-    var me = this;
-
-    // first, clear dialog from any possible previous use
-    while (rows.hasChildNodes())
-      rows.removeChild(rows.firstChild);
-
-    for (var i = 0; i < this._enableURLs.length; i++)
-    {
-      let url = this._enableURLs[i].url;
-      let instr = this._enableURLs[i].instruction;
-
-      // only 5 URLs allowed per spec, to cut down on dialog size and preserve sanity
-      if (i >= 5)
-        throw new Exception(gStringsBundle.getString("enableURLs_tooMany.error"));
-
-      // Create UI widgets
-      let row = document.createElement("row");
-      let descr = document.createElement("description");
-      let link = document.createElement("label");
-      let checkbox = document.createElement("checkbox");
-      row.appendChild(descr);
-      row.appendChild(link);
-      row.appendChild(checkbox);
-      rows.appendChild(row);
-      descr.setAttribute("class", "enableURLs-label");
-      link.setAttribute("class", "enableURLs-link text-link"); // class=text-link is the XUL magic which makes it a link
-      checkbox.setAttribute("class", "enableURLs-checkbox");
-      checkbox.disabled = true;
-      link.setAttribute("value", gStringsBundle.getString("enableURLs_openlink.label"));
-      link.addEventListener("click", function() { me.onLinkClick(link, checkbox); }, true );
-      // TODO accessibility Bug 475260: using onclick, because <label class="text-link"> does not send oncommand.
-
-      // Set labels and values
-      // URL was already sanitized in readFrom XML.js as loadable
-      descr.textContent = instr;
-      link.setAttribute("href", url);
-      checkbox.checked = this._visitedURLs[url] ? true : false;
-    }
-
-    _hide("mastervbox");
-    _show("enableURLs-box");
-  },
-
-  onLinkClick : function(linkLabel, checkbox)
-  {
-    var url = linkLabel.getAttribute("href");
-    this._visitedURLs[url] = true;
-    checkbox.setAttribute("checked", "true");
-  },
-
-  // UI button pressed
-  onCancel : function()
-  {
-    _show("mastervbox");
-    _hide("enableURLs-box");
-    gCustomFieldsDialog = null;
-    try {
-      this._cancelCallback();
-    } catch (e) {
-      // XXX TODO FIXME
-      alert(e.message); throw e; }
-  },
-
-  // UI button pressed
-  onOK : function()
-  {
-    try {
-      for (var i = 0; i < this._enableURLs.length; i++)
-      {
-        let url = this._enableURLs[i].url;
-        gEmailWizardLogger.info(url + "  has been visited: " + this._visitedURLs[url]);
-        if (!this._visitedURLs[url])
-        {
-          getElementById("enableURLs-error").textContent =
-            gStringsBundle.getString("enableURLs_notvisited.error");
-          return;
-        }
-      }
-
-      _show("mastervbox");
-      _hide("enableURLs-box");
-      gEnableURLsDialog = null;
-
-      this._successCallback(this._visitedURLs);
-
-    } catch (e) {
-      // XXX TODO FIXME
-      alert(e.message); throw e;
-    }
-  }
-}
-
-var gEnableURLsDialog = null;

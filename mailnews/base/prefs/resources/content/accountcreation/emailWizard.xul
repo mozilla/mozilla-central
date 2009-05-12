@@ -415,38 +415,4 @@
         <button label="&customfields-ok.label;" oncommand="gCustomFieldsDialog.onOK();"/>
     </hbox>
   </vbox>
-
-
-  <vbox id="enableURLs-box" hidden="true" flex="1">
-    <description class="header">&enableURLs-header.label;</description>
-    <description class="intro">&enableURLs-intro1.descr;</description>
-        <description class="intro">&enableURLs-intro2.descr;</description>
-    <spacer flex="1"/>
-    <grid>
-      <columns>
-        <column/>
-        <column flex="1"/>
-        <column/>
-      </columns>
-      <rows id="enableURLs-rows">
-        <!-- Generated N times by JS via DOM:
-        <row align="top">
-          <description class="enableURLs-label">Text from config file</description>
-          <label href="url" class="enableURLs-link text-link" value="Open" onclick="me.onLinkClick(...);"/>
-          <checkbox class="enableURLs-checkbox" disabled="true" checked="false"/>
-        </row>
-        -->
-      </rows>
-    </grid>
-    <spacer flex="1"/>
-    <description id="enableURLs-error" class="errordescription"/>
-    <spacer/>
-    <hbox>
-        <button label="&enableURLs-cancel.label;" oncommand="gEnableURLsDialog.onCancel();"/>
-        <spacer flex="1"/>
-        <button label="&enableURLs-ok.label;" oncommand="gEnableURLsDialog.onOK();"/>
-    </hbox>
-  </vbox>
-
-
 </window>

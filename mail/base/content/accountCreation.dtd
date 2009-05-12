@@ -47,9 +47,3 @@
 <!ENTITY customfields-intro2.descr     "Please look up the information in the paper or email with your account details that the provider sent you, usually when you signed up there, and enter it below.">
 <!ENTITY customfields-cancel.label     "Back">
 <!ENTITY customfields-ok.label         "OK">
-
-<!ENTITY enableURLs-header.label       "Enable account for &brandShortName;">
-<!ENTITY enableURLs-intro1.descr       "Your provider asks you to do some additional action to activate your account for use with &brandShortName;.">
-<!ENTITY enableURLs-intro2.descr       "Please visit the web pages below, login to your account where needed, and then follow the action mentioned below or on the page.">
-<!ENTITY enableURLs-cancel.label       "Back">
-<!ENTITY enableURLs-ok.label           "I've done all that">

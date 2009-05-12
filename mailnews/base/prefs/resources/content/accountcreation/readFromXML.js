@@ -123,17 +123,5 @@ function readFromXML(clientConfigXML)
     d.inputFields.push(fieldset);
   }
 
-  for each (var enableURL in xml.enableURL)
-  {
-    if (!d.enableURLs)
-      d.enableURLs = new Array();
-    var fieldset =
-    {
-      url : sanitize.url(sanitize.nonemptystring(enableURL.@url)),
-      instruction : sanitize.label(sanitize.nonemptystring(enableURL.@instruction))
-    };
-    d.enableURLs.push(fieldset);
-  }
-
   return d;
 }

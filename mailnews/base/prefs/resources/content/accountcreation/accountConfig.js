@@ -95,7 +95,6 @@ function AccountConfig()
     emailAddress : "%EMAILADDRESS%"
   };
   this.inputFields = [];
-  this.enableURLs = [];
   this.domains = [];
 };
 
@@ -109,8 +108,6 @@ AccountConfig.prototype =
   displayShortName : null,
   // Array of Objects with properties varname (value without %), displayName, exampleValue
   inputFields : null,
-  // Array of Objects with properties url {String}, instruction {String}
-  enableURLs : null,
   // Array of Strings - email address domains for which this config is applicable
   domains : null,
   /**
