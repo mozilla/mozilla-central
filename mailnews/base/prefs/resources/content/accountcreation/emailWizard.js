@@ -1244,32 +1244,6 @@ EmailConfigWizard.prototype =
     }
   },
 
-  switchToTwin: function(elt, twin)
-  {
-    twin.hidden = false;
-    elt.hidden = true;
-    switch (twin.tagName)
-    {
-      case 'textbox':
-        twin.value = elt.value; // comes from label
-        twin.select();
-        break;
-      case 'menulist':
-        twin.selected = elt.value;
-        twin.focus();
-        break;
-      case 'label':
-        switch (elt.tagName)
-        {
-          case 'menulist':
-            twin.value = elt.selectedItem.label;
-            break;
-          case 'textbox':
-            twin.value = elt.value;
-        }
-    }
-  },
-
   clearError: function(which) {
     _hide(which);
     getElementById(which).textContent = "";
