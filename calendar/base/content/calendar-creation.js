@@ -61,7 +61,6 @@ function openLocalCalendar() {
     }
 
     let openCalendar = calMgr.createCalendar("ics", fp.fileURL);
-    calMgr.registerCalendar(openCalendar);
 
     // Strip ".ics" from filename for use as calendar name, taken from
     // calendarCreation.js
@@ -74,6 +73,7 @@ function openLocalCalendar() {
     } else {
         name = calGetString("calendar", "untitledCalendarName");
     }
-
     openCalendar.name = name;
+
+    calMgr.registerCalendar(openCalendar);
 }

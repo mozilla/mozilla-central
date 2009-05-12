@@ -469,9 +469,18 @@ cal.ProviderBase.prototype = {
         }
         this.mID = aValue;
 
-//         cal.ASSERT(this.mProperties.toSource() == "({})", "setProperty calls before id has been set!");
-
         let calMgr = cal.getCalendarManager();
+
+        // make all properties persistent that have been set so far:
+        for (let aName in this.mProperties) {
+            if (!cal.ProviderBase.mTransientProperties[aName]) {
+                let aValue = this.mProperties[aName];
+                if (aValue !== null) {
+                    calMgr.setCalendarPref_(this, aName, aValue);
+                }
+            }
+        }
+
         let this_ = this;
         function takeOverIfNotPresent(oldPref, newPref, dontDeleteOldPref) {
             let val = calMgr.getCalendarPref_(this_, oldPref);

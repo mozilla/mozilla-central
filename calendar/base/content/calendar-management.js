@@ -100,11 +100,8 @@ function initHomeCalendar() {
     let composite = getCompositeCalendar();
     let url = makeURL("moz-profile-calendar://");
     let homeCalendar = calMgr.createCalendar("storage", url);
-
+    homeCalendar.name = calGetString("calendar", "homeCalendarName");
     calMgr.registerCalendar(homeCalendar);
-    let name = calGetString("calendar", "homeCalendarName");
-
-    homeCalendar.name = name;
     cal.setPref("calendar.list.sortOrder", homeCalendar.id);
     composite.addCalendar(homeCalendar);
 

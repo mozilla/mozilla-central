@@ -176,11 +176,12 @@ function(aContentType, aWindowTarget, aRequest)
                                     .getService(Components.interfaces.calICalendarManager);
 
     var newCalendar = calendarManager.createCalendar('ics', uri);
-    calendarManager.registerCalendar(newCalendar);
 
     // XXX Come up with a better name, like the filename or X-WR-CALNAME
     // XXX Also, make up a color
     newCalendar.name = "temp";
+
+    calendarManager.registerCalendar(newCalendar);
 
     // ... and open or focus a calendar window.
     var windowManager = Components.classes[MEDIATOR_CONTRACTID]

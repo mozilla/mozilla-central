@@ -120,7 +120,6 @@ function handleCommandLine(aComLine) {
     for (var i = 0; i < calurl.length; i++) {
         var uri = comLine.resolveURI(calurl[i]);
         var cal = getCalendarManager().createCalendar("ics", uri);
-        getCalendarManager().registerCalendar(cal);
 
         // Strip ".ics" from filename for use as calendar name
         var fullPathRegEx = new RegExp("([^/:]+)[.]ics$");
@@ -134,6 +133,8 @@ function handleCommandLine(aComLine) {
             name = calGetString("calendar", "untitledCalendarName");
         }
         cal.name = name;
+
+        getCalendarManager().registerCalendar(cal);
     }
 }
 

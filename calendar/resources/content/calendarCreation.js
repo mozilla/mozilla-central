@@ -130,8 +130,6 @@ function doCreateCalendar() {
     var cal_color = document.getElementById('calendar-color').color;
     var calManager = getCalendarManager();
 
-    calManager.registerCalendar(gCalendar);
-
     gCalendar.name = cal_name;
     gCalendar.setProperty('color', cal_color);
 
@@ -139,6 +137,7 @@ function doCreateCalendar() {
         gCalendar.setProperty('suppressAlarms', true);
     }
 
+    calManager.registerCalendar(gCalendar);
     return true;
 }
 
