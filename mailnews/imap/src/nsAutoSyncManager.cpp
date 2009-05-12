@@ -632,6 +632,7 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
       return NS_OK;
     return StartIdleProcessing();
   }
+  return NS_OK;
 }
 
 nsresult nsAutoSyncManager::StartIdleProcessing()
