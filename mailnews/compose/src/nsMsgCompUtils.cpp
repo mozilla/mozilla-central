@@ -771,8 +771,8 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
                    const char *language, const nsString& parmValue);
 
 static char *
-RFC2047ParmFolding(const nsCString& aCharset,
-                   const nsCString& aFileName, PRInt32 aParmFolding);
+LegacyParmFolding(const nsCString& aCharset,
+                  const nsCString& aFileName, PRInt32 aParmFolding);
 
 char *
 mime_generate_attachment_headers (const char *type,
@@ -817,20 +817,15 @@ mime_generate_attachment_headers (const char *type,
         charset.Assign("UTF-8"); // set to UTF-8 if fails again
     }
 
-    if (parmFolding == 2 || parmFolding == 3 || parmFolding == 4) {
-      encodedRealName = RFC2231ParmFolding("filename", charset, nsnull,
-                                           realName);
-      // somehow RFC2231ParamFolding failed. fall back to RFC 2047
-      if (!encodedRealName || !*encodedRealName) {
-        PR_FREEIF(encodedRealName);
-        parmFolding = 0;
-      }
-    }
-
-    // Not RFC 2231 style encoding (it's not standard-compliant)
-    if (parmFolding == 0 || parmFolding == 1) {
+    encodedRealName = RFC2231ParmFolding("filename", charset, nsnull,
+                                         realName);
+    // somehow RFC2231ParamFolding failed. fall back to legacy method
+    if (!encodedRealName || !*encodedRealName) {
+      PR_FREEIF(encodedRealName);
+      parmFolding = 0;
+      // Not RFC 2231 style encoding (it's not standard-compliant)
       encodedRealName =
-        RFC2047ParmFolding(charset, nsDependentCString(real_name), parmFolding);
+        LegacyParmFolding(charset, nsDependentCString(real_name), parmFolding);
     }
   }
 
@@ -927,10 +922,8 @@ mime_generate_attachment_headers (const char *type,
     // Note that we don't need to output the name field if the name encoding is
     // RFC 2231. If the MUA knows the RFC 2231, it should know the RFC 2183 too.
     if (parmFolding != 2) {
-      char *nameValue = nsnull;
-      if (parmFolding == 3 || parmFolding == 4)
-        nameValue = RFC2047ParmFolding(charset, nsDependentCString(real_name),
-                                       parmFolding);
+      char *nameValue = LegacyParmFolding(charset, nsDependentCString(real_name),
+                                          parmFolding);
       if (!nameValue || !*nameValue) {
         PR_FREEIF(nameValue);
         nameValue = encodedRealName;
@@ -997,17 +990,9 @@ mime_generate_attachment_headers (const char *type,
         else
           buf.Append("inline");
 
-    if (parmFolding == 0 || parmFolding == 1) {
-      buf.Append(";\r\n filename=\"");
-      buf.Append(encodedRealName);
-      buf.Append("\"" CRLF);
-    }
-    else // if (parmFolding == 2 || parmFolding == 3 || parmFolding == 4)
-    {
-      buf.Append(";\r\n ");
-      buf.Append(encodedRealName);
-      buf.Append(CRLF);
-    }
+    buf.Append(";\r\n ");
+    buf.Append(encodedRealName);
+    buf.Append(CRLF);
   }
   else
     if (type &&
@@ -1332,8 +1317,8 @@ done:
 }
 
 /*static */ char *
-RFC2047ParmFolding(const nsCString& aCharset,
-                   const nsCString& aFileName, PRInt32 aParmFolding)
+LegacyParmFolding(const nsCString& aCharset,
+                  const nsCString& aFileName, PRInt32 aParmFolding)
 {
   PRBool usemime = nsMsgMIMEGetConformToStandard();
   char *encodedRealName =
@@ -1349,8 +1334,7 @@ RFC2047ParmFolding(const nsCString& aCharset,
 
   // Now put backslashes before special characters per RFC 822
   char *qtextName =
-    msg_make_filename_qtext(encodedRealName,
-      aParmFolding == 0 || aParmFolding == 3 ? PR_TRUE : PR_FALSE);
+    msg_make_filename_qtext(encodedRealName, aParmFolding == 0);
   if (qtextName) {
     PR_FREEIF(encodedRealName);
     encodedRealName = qtextName;
@@ -1597,20 +1581,18 @@ msg_make_filename_qtext(const char *srcText, PRBool stripCRLFs)
       */
     if (*s == '\\' || *s == '"' ||
       (!stripCRLFs &&
-       (*s == '\r' && (*(s+1) != '\n' ||
-               (*(s+1) == '\n' && (s+2) < end && !IS_SPACE(*(s+2)))))))
+       (*s == '\r' && (s[1] != '\n' ||
+               (s[1] == '\n' && (s+2) < end && !IS_SPACE(s[2]))))))
       *d++ = '\\';
 
-    if (*s == '\r')
+    if (stripCRLFs && *s == '\r' && s[1] == '\n' && (s+2) < end && IS_SPACE(s[2]))
     {
-      if (stripCRLFs && *(s+1) == '\n' && (s+2) < end && IS_SPACE(*(s+2)))
-        s += 2;     // skip CRLFLWSP
+        s += 3;     // skip CRLFLWSP
     }
     else
     {
-      *d++ = *s;
+      *d++ = *s++;
     }
-    s++;
   }
   *d = 0;
 

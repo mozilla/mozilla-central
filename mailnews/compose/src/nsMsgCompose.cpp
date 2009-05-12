@@ -3591,7 +3591,7 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
   nsCOMPtr<nsIMsgFolder> msgFolder;
 
   rv = compFields->GetDraftId(getter_Copies(curDraftIdURL));
-  NS_ASSERTION((NS_SUCCEEDED(rv) && !curDraftIdURL.IsEmpty()), "RemoveCurrentDraftMessage can't get draft id");
+  NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get draft id");
 
   // Skip if no draft id (probably a new draft msg).
   if (NS_SUCCEEDED(rv) && !curDraftIdURL.IsEmpty())
