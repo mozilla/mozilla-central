@@ -1701,7 +1701,7 @@ function GenericSendMessage( msgType )
           {
             blockquotes[i].parentNode.removeChild(blockquotes[i]);
           }
-          var mailData = mailBodyNode.innerHTML;
+          var mailData = mailBodyNode.textContent;
           var keywordFound;
           for (let i = 0; i < keywordsArray.length && !keywordFound; i++)
           {
