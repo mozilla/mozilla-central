@@ -118,13 +118,6 @@ var FolderPaneController =
       case "cmd_delete":
       case "cmd_shiftDelete":
       case "button_delete":
-        // Even if the folder pane has focus, don't do a folder delete if
-        // we have a selected message, but delete the message instead.
-        if (GetNumSelectedMessages() == 0)
-          gFolderTreeController.deleteFolder();
-        else
-          DefaultController.doCommand(command);
-        break;
       case "cmd_deleteFolder":
         gFolderTreeController.deleteFolder(); 
         break;
