@@ -763,10 +763,10 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   PRInt32 selectionCount;
   PRInt32 currentIndex;
   PRBool hasSelection = mTree && mTreeSelection &&
-                        (NS_SUCCEEDED(mTreeSelection->GetCurrentIndex(&currentIndex)) &&
+                        ((NS_SUCCEEDED(mTreeSelection->GetCurrentIndex(&currentIndex)) &&
                          currentIndex >= 0 && currentIndex < GetSize()) ||
-                        (NS_SUCCEEDED(mTreeSelection->GetRangeCount(&selectionCount)) &&
-                         selectionCount > 0);
+                         (NS_SUCCEEDED(mTreeSelection->GetRangeCount(&selectionCount)) &&
+                          selectionCount > 0));
   if (hasSelection)
     SaveAndClearSelection(&preservedKey, preservedSelection);
   PRUint32 saveFlags = m_flags[threadIndex];
