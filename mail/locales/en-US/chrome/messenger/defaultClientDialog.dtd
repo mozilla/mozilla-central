@@ -1,4 +1,4 @@
-<!ENTITY systemIntegration.title  "System Integration">
+<!ENTITY defaultClient.title  "Default Client">
 <!ENTITY defaultClient.intro  "Use &brandShortName; as the default client for:">
 
 <!ENTITY email.label "E-Mail">
@@ -7,6 +7,3 @@
 
 <!ENTITY checkOnStartup.label "Always perform this check when starting &brandShortName;">
 <!ENTITY checkOnStartup.accesskey "A">
-
-<!ENTITY searchIntegration.label "Allow &searchIntegration.engineName; to search messages">
-<!ENTITY searchIntegration.accesskey "S">

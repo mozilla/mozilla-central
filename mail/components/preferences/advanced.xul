@@ -42,18 +42,6 @@
 <!ENTITY % advancedDTD SYSTEM "chrome://messenger/locale/preferences/advanced.dtd">
 %brandDTD;
 %advancedDTD;
-#ifdef XP_WIN
-<!ENTITY % searchIntegrationWinDTD SYSTEM "chrome://messenger/locale/searchIntegrationWin.dtd" >
-%searchIntegrationWinDTD;
-#else
-#ifdef XP_MACOSX
-<!ENTITY % searchIntegrationMacDTD SYSTEM "chrome://messenger/locale/searchIntegrationMac.dtd" >
-%searchIntegrationMacDTD;
-#else
-<!ENTITY % searchIntegrationDefaultDTD SYSTEM "chrome://messenger/locale/searchIntegrationDefault.dtd" >
-%searchIntegrationDefaultDTD;
-#endif
-#endif
 ]>
 
 <overlay id="AdvancedPaneOverlay"
@@ -77,19 +65,6 @@
                   name="pref.general.disable_button.default_mail"
                   type="bool"/>
 #endif
-      <!-- Keep one id, so that we don't have to do platform specific stuff later -->
-#ifdef XP_WIN
-      <preference id="search-enable"
-                  name="mail.winsearch.enable"
-                  type="bool"/>
-#else
-#ifdef XP_MACOSX
-      <preference id="search-enable"
-                  name="mail.spotlight.enable"
-                  type="bool"/>
-#endif
-#endif
-
       <!-- Display & Reading tab -->
       <preference id="mail.showCondensedAddresses" name="mail.showCondensedAddresses" type="bool"/>
       <preference id="mailnews.mark_message_read.auto"
@@ -158,8 +133,8 @@
           </hbox>
 
 #ifdef HAVE_SHELL_SERVICE
-          <groupbox id="systemDefaultsGroup" orient="vertical">
-            <caption label="&systemIntegration.label;"/>
+          <groupbox id="systemDefaultsGroup" orient="horizontal">
+            <caption label="&systemDefaults.label;"/>
             <hbox id="checkDefaultBox" align="center" flex="1">
               <checkbox id="alwaysCheckDefault"
                         preference="mail.shell.checkDefaultClient"
@@ -169,12 +144,6 @@
                       accesskey="&checkNow.accesskey;"
                       oncommand="gAdvancedPane.checkDefaultNow();"
                       preference="pref.general.disable_button.default_mail"/>
-            </hbox>
-            <hbox id="searchIntegrationContainer">
-              <checkbox id="searchIntegration"
-                        preference="search-enable"
-                        label="&searchIntegration.label;"
-                        accesskey="&searchIntegration.accesskey;"/>
             </hbox>
           </groupbox>
 #endif

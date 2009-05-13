@@ -34,4 +34,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/SearchIntegration.js");
+#ifdef XP_WIN
+Components.utils.import("resource://app/modules/WinSearchIntegration.js");
+#else
+#ifdef XP_MACOSX
+Components.utils.import("resource://app/modules/SpotlightIntegration.js");
+#endif
+#endif

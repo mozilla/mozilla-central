@@ -117,10 +117,17 @@ let SearchIntegration =
     return this.__winSearchHelper;
   },
 
-  /// Whether the folders are already in the crawl scope
+  /**
+   * Whether the folders are already in the crawl scope
+   * We'll be optimistic here and assume that once the folders are in the scope,
+   * they won't be removed from it, at least while Thunderbird is open
+   */
+  __foldersInCrawlScope: false,
   get _foldersInCrawlScope()
   {
-    return this._winSearchHelper.foldersInCrawlScope;
+    if (!this.__foldersInCrawlScope)
+      this.__foldersInCrawlScope = this._winSearchHelper.foldersInCrawlScope;
+    return this.__foldersInCrawlScope;
   },
 
   /**
@@ -170,9 +177,17 @@ let SearchIntegration =
     if (parseFloat(windowsVersion) < 6)
     {
       this._log.fatal("Windows version " + windowsVersion + " < 6.0");
-      this.osVersionTooLow = true;
       return;
     }
+
+    // enabled === undefined means that the first run hasn't occurred yet (pref
+    // isn't present).
+    // false or true means that the first run has occurred, and the user has
+    // made a decision.
+    let enabled;
+    try {
+      enabled = this._prefBranch.getBoolPref("enable");
+    } catch (ex) {}
 
     let serviceRunning = false;
     try {
@@ -183,65 +198,54 @@ let SearchIntegration =
     if (!serviceRunning)
     {
       this._log.info("Windows Search service not running");
-      this.osComponentsNotRunning = true;
       this._initSupport(false);
       return;
     }
- 
-    let enabled = this.prefEnabled;
+
+    if (enabled === undefined)
+      // First run has to be handled after the main mail window is open
+      return true;
 
     if (enabled)
       this._log.info("Initializing Windows Search integration");
     this._initSupport(enabled);
   },
 
-  /**
-   * Add necessary hooks to Windows
-   *
-   * @return false if registration did not succeed, because the elevation
-   * request was denied
-   */
-  register: function winsearch_register()
+  /// Handles first run, once the main mail window has popped up.
+  _firstRun: function winsearch_first_run(window)
   {
-    // If any of the two are not present, we need to elevate.
-    if (!this._foldersInCrawlScope || !this._regKeysPresent)
-    {
-      try {
-        this._winSearchHelper.runSetup(true);
-      }
-      catch (e) { return false; }
-    }
-
-    if (!this._winSearchHelper.isFileAssociationSet)
-    {
-      try {
-        this._winSearchHelper.setFileAssociation();
-      }
-      catch (e) { this._log.warn("File association not set"); }
-    }
-    // Also set the FANCI bit to 0 for the profile directory
-    let profD = Cc["@mozilla.org/file/directory_service;1"]
-                  .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
-    this._winSearchHelper.setFANCIBit(profD, false, true);
-
-    return true;
+    window.openDialog(
+      "chrome://messenger/content/search/searchIntegrationDialog.xul", "",
+      "chrome, dialog, resizable=no, centerscreen", this);
   },
 
   /**
-   * Remove integration from Windows. The only thing removed is the directory
-   * from the index list. This will ask for elevation.
+   * Callback from the first run dialog
    *
-   * @return false if deregistration did not succeed, because the elevation
-   * request was denied
+   * @param enable whether the user has chosen to enable integration
    */
-  deregister: function winsearch_deregister()
+  callback: function winsearch_first_run_callback(enable)
   {
-    try {
-      this._winSearchHelper.runSetup(false);
+    // If any of the two are not present, we need to elevate.
+    if (enable && (!this._foldersInCrawlScope || !this._regKeysPresent))
+    {
+      try { this._winSearchHelper.runSetup(true); }
+      catch (e) { enable = false; }
     }
-    catch (e) { return false; }
-    
-    return true;
+    if (enable)
+    {
+      if (!this._winSearchHelper.isFileAssociationSet)
+      {
+        try { this._winSearchHelper.setFileAssociation(); }
+        catch (e) { this._log.warn("File association not set"); }
+      }
+      // Also set the FANCI bit to 0 for the profile directory
+      let profD = Cc["@mozilla.org/file/directory_service;1"]
+                    .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
+      this._winSearchHelper.setFANCIBit(profD, false, true);
+    }
+    this._prefBranch.setBoolPref("enable", enable);
+    this._initSupport(enable);
   },
 
   /// The stream listener to read messages
@@ -346,4 +350,32 @@ let SearchIntegration =
   }
 };
 
-SearchIntegration._init();
+/**
+ * Observer for first run dialog
+ */
+let FirstRunObserver =
+{
+  observe: function(aSubject, aTopic, aData)
+  {
+    if (aTopic == "mail-startup-done")
+    {
+      aSubject.QueryInterface(Ci.nsIDOMWindowInternal);
+      Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
+        .removeObserver(this, "mail-startup-done");
+      try { SearchIntegration._firstRun(aSubject); }
+      catch(ex) { SearchIntegration._log.warn("First run unsuccessful"); }
+    }
+  }
+};
+
+/* Initialize the search integration object */
+try {
+  if (SearchIntegration._init())
+  {
+    Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
+      .addObserver(FirstRunObserver, "mail-startup-done", false);
+  }
+}
+catch (ex) {
+  SearchIntegration._log.error("Could not initialize winsearch component");
+}
