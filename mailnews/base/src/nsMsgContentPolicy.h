@@ -50,8 +50,8 @@
 #include "nsIContentPolicy.h"
 #include "nsIObserver.h"
 #include "nsWeakReference.h"
-#include "nsString.h"
-
+#include "nsStringGlue.h"
+#include "nsIMsgMailNewsUrl.h"
 #include "nsICookiePermission.h" 
 #include "nsIWebProgressListener.h"
 
@@ -86,14 +86,27 @@ protected:
   nsCString mTrustedMailDomains;
 
   PRBool IsTrustedDomain(nsIURI * aContentLocation);
-  nsresult AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, PRBool * aAllowForSender);
-  nsresult AllowRemoteContentForMsgHdr(nsIMsgDBHdr * aMsgHdr, nsIURI * aRequestingLocation, nsIURI * aContentLocation, PRInt16 *aDecision);
-  nsresult MailShouldLoad(nsIURI * aRequestingLocation, nsIURI * aContentLocation, PRInt16 * aDecision);
-  nsresult ComposeShouldLoad(nsIDocShell * aRootDocShell, nsISupports *aRequestingContext, 
-                             nsIURI * aContentLocation, PRInt16 * aDecision);
+  PRBool IsSafeRequestingLocation(nsIURI *aRequestingLocation);
+  PRBool IsExposedProtocol(nsIURI *aContentLocation);
+  PRBool IsExposedChromeProtocol(nsIURI *aContentLocation);
+  PRBool ShouldBlockUnexposedProtocol(nsIURI *aContentLocation);
 
-  nsresult GetRootDocShellForContext(nsISupports * aRequestingContext, nsIDocShell ** aDocShell);
-  nsresult GetMessagePaneURI(nsIDocShell * aRootDocShell, nsIURI ** aURI);
+  PRBool ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr);
+  PRInt16 ShouldAcceptRemoteContentForMsgHdr(nsIMsgDBHdr *aMsgHdr,
+                                             nsIURI *aRequestingLocation,
+                                             nsIURI *aContentLocation);
+  void ShouldAcceptContentForPotentialMsg(nsIURI *aOriginatorLocation,
+                                          nsIURI *aContentLocation,
+                                          PRInt16 *aDecision);
+  void ComposeShouldLoad(nsIDocShell *aRootDocShell,
+                         nsISupports *aRequestingContext, 
+                         nsIURI *aContentLocation, PRInt16 *aDecision);
+  nsresult IsComposeWindow(nsIDocShell *aAppDocShell, PRBool &isComposeWindow);
+
+  nsresult GetRootDocShellForContext(nsISupports *aRequestingContext,
+                                     nsIDocShell **aDocShell);
+  nsresult GetOriginatingURIForContext(nsISupports *aRequestingContext,
+                                       nsIURI **aURI);
   nsresult DisableJSOnMailNewsUrlDocshells(nsIURI *aContentLocation,
                                            nsISupports *aRequestingContext);
 };
