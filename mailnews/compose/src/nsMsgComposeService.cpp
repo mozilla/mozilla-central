@@ -568,7 +568,7 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDB
 
     return LoadDraftOrTemplate(uriToOpen, type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft ?
                                nsMimeOutput::nsMimeMessageDraftOrTemplate : nsMimeOutput::nsMimeMessageEditorTemplate,
-                               identity, originalMsgURI, origMsgHdr, type == nsIMsgCompType::ForwardInline, aMsgWindow);
+                               identity, originalMsgURI, origMsgHdr, type == nsIMsgCompType::ForwardInline, format, aMsgWindow);
   }
 
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
@@ -1517,7 +1517,9 @@ nsresult
 nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType,
                                          nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI,
                                          nsIMsgDBHdr * aOrigMsgHdr,
-                                         PRBool aAddInlineHeaders, nsIMsgWindow *aMsgWindow)
+                                         PRBool aAddInlineHeaders,
+                                         MSG_ComposeFormat format,
+                                         nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
   nsCOMPtr <nsIMsgMessageService> messageService;
@@ -1531,6 +1533,7 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
 
   mimeConverter->SetMimeOutputType(aOutType);  // Set the type of output for libmime
   mimeConverter->SetForwardInline(aAddInlineHeaders);
+  mimeConverter->SetOverrideComposeFormat(format == nsIMsgCompFormat::OppositeOfDefault);
   mimeConverter->SetIdentity(aIdentity);
   mimeConverter->SetOriginalMsgURI(aOriginalMsgURI);
   mimeConverter->SetOrigMsgHdr(aOrigMsgHdr);

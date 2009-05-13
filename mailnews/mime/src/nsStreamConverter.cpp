@@ -530,6 +530,7 @@ nsStreamConverter::nsStreamConverter()
   mOutputFormat = "text/html";
   mAlreadyKnowOutputType = PR_FALSE;
   mForwardInline = PR_FALSE;
+  mOverrideComposeFormat = PR_FALSE;
 
   mPendingRequest = nsnull;
   mPendingContext = nsnull;
@@ -789,6 +790,22 @@ NS_IMETHODIMP
 nsStreamConverter::SetForwardInline(PRBool forwardInline)
 {
   mForwardInline = forwardInline;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsStreamConverter::GetOverrideComposeFormat(PRBool *aResult)
+{
+  if (!aResult)
+    return NS_ERROR_NULL_POINTER;
+  *aResult = mOverrideComposeFormat;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsStreamConverter::SetOverrideComposeFormat(PRBool aOverrideComposeFormat)
+{
+  mOverrideComposeFormat = aOverrideComposeFormat;
   return NS_OK;
 }
 

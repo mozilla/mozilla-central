@@ -100,6 +100,7 @@ private:
 
   nsCOMPtr<nsIMimeStreamConverterListener>  mMimeStreamConverterListener;
   PRBool                        mForwardInline;
+  PRBool                        mOverrideComposeFormat;
   nsCOMPtr<nsIMsgIdentity>      mIdentity;
   nsCString                     mOriginalMsgURI;
   nsCOMPtr<nsIMsgDBHdr>         mOrigMsgHdr;

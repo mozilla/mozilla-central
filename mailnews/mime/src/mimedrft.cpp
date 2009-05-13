@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *   Eric Ballet Baz BT Global Services / Etat francais Ministere de la Defense
+ *   Magnus Melin <mkmelin+mozilla@iki.fi>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -191,7 +192,6 @@ CreateTheComposeWindow(nsIMsgCompFields *   compFields,
                        )
 {
   nsresult            rv;
-  MSG_ComposeFormat   format = nsIMsgCompFormat::Default;
 
 #ifdef NS_DEBUG
   mime_dump_attachments ( attachmentList );
@@ -232,22 +232,18 @@ CreateTheComposeWindow(nsIMsgCompFields *   compFields,
   if ((NS_FAILED(rv)) || (!msgComposeService))
     return rv;
 
+  MSG_ComposeFormat format = composeFormat; // Format to actually use.
   if (identity && composeType == nsIMsgCompType::ForwardInline)
   {
     PRBool composeHtml = PR_FALSE;
     identity->GetComposeHtml(&composeHtml);
     if (composeHtml)
-      format = nsIMsgCompFormat::HTML;
+      format = (composeFormat == nsIMsgCompFormat::OppositeOfDefault) ?
+                 nsIMsgCompFormat::PlainText : nsIMsgCompFormat::HTML;
     else
-    {
-      format = nsIMsgCompFormat::PlainText;
-      /* do we we need to convert the HTML body to plain text? */
-      if (composeFormat == nsIMsgCompFormat::HTML)
-        compFields->ConvertBodyToPlainText();
-    }
+      format = (composeFormat == nsIMsgCompFormat::OppositeOfDefault) ?
+                 nsIMsgCompFormat::HTML : nsIMsgCompFormat::PlainText;
   }
-  else
-    format = composeFormat;
 
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv) && pMsgComposeParams)
@@ -1443,21 +1439,22 @@ mime_parse_stream_complete (nsMIMESession *stream)
         }
       }
 
-      // Since we have body text, then we should set the compose fields with
-      // this data.
-      //       if (composeFormat == nsIMsgCompFormat::PlainText)
-      //         fields->SetTheForcePlainText(PR_TRUE);
-
+      PRBool convertToPlainText = PR_FALSE;
       if (forward_inline)
       {
         if (mdd->identity)
         {
-          PRBool bFormat;
-          mdd->identity->GetComposeHtml(&bFormat);
-          if (bFormat)
+          PRBool identityComposeHTML;
+          mdd->identity->GetComposeHtml(&identityComposeHTML);
+          if ((identityComposeHTML && !mdd->overrideComposeFormat) ||
+              (!identityComposeHTML && mdd->overrideComposeFormat))
           {
+            // In the end, we're going to compose in HTML mode...
+
             if (body && composeFormat == nsIMsgCompFormat::PlainText)
             {
+              // ... but the message body is currently plain text.
+
               //We need to convert the plain/text to HTML in order to escape any HTML markup
               char *escapedBody = MsgEscapeHTML(body);
               if (escapedBody)
@@ -1479,15 +1476,28 @@ mime_parse_stream_complete (nsMIMESession *stream)
                 body = newbody;
               }
             }
+            // Body is now HTML, set the format too (so headers are inserted in
+            // correct format).
             composeFormat = nsIMsgCompFormat::HTML;
+          }
+          else if ((identityComposeHTML && mdd->overrideComposeFormat) || !identityComposeHTML)
+          {
+            // In the end, we're going to compose in plain text mode...
+
+            if (composeFormat == nsIMsgCompFormat::HTML)
+            {
+              // ... but the message body is currently HTML.
+              // We'll do the conversion later on when headers have been
+              // inserted, body has been set and converted to unicode.
+              convertToPlainText = PR_TRUE;
+            }
           }
         }
 
         mime_insert_forwarded_message_headers(&body, mdd->headers, composeFormat,
           mdd->mailcharset);
+
       }
-      // setting the charset while we are creating the composition fields
-      //fields->SetCharacterSet(NS_ConvertASCIItoUTF16(mdd->mailcharset));
 
       // convert from UTF-8 to UTF-16
       if (body)
@@ -1515,7 +1525,13 @@ mime_parse_stream_complete (nsMIMESession *stream)
       else
       {
         if (mdd->forwardInline)
+        {
+          if (convertToPlainText)
+            fields->ConvertBodyToPlainText();
+          if (mdd->overrideComposeFormat)
+            composeFormat = nsIMsgCompFormat::OppositeOfDefault;
           CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::ForwardInline, composeFormat, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
+        }
         else
         {
           fields->SetDraftId(mdd->url_name);
@@ -1542,7 +1558,14 @@ mime_parse_stream_complete (nsMIMESession *stream)
         printf("Time to create the composition window WITHOUT a body!!!!\n");
 #endif
         if (mdd->forwardInline)
-          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::ForwardInline, nsIMsgCompFormat::Default, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
+        {
+          MSG_ComposeFormat composeFormat = (mdd->overrideComposeFormat) ?
+            nsIMsgCompFormat::OppositeOfDefault : nsIMsgCompFormat::Default;
+          CreateTheComposeWindow(fields, newAttachData,
+                                 nsIMsgCompType::ForwardInline, composeFormat,
+                                 mdd->identity, mdd->originalMsgURI,
+                                 mdd->origMsgHdr);
+        }
         else
         {
           fields->SetDraftId(mdd->url_name);
@@ -2018,6 +2041,7 @@ mime_bridge_create_draft_stream(
   }
 
   newPluginObj2->GetForwardInline(&mdd->forwardInline);
+  newPluginObj2->GetOverrideComposeFormat(&mdd->overrideComposeFormat);
   newPluginObj2->GetIdentity(getter_AddRefs(mdd->identity));
   newPluginObj2->GetOriginalMsgURI(&mdd->originalMsgURI);
   newPluginObj2->GetOrigMsgHdr(getter_AddRefs(mdd->origMsgHdr));

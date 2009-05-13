@@ -156,6 +156,7 @@ struct mime_draft_data
   MimeDecoderData     *decoder_data;
   char                *mailcharset;        // get it from CHARSET of Content-Type
   PRBool              forwardInline;
+  PRBool              overrideComposeFormat; // Override compose format (for forward inline).
   nsCOMPtr<nsIMsgIdentity>      identity;
   char                *originalMsgURI;     // the original URI of the message we are currently processing
   nsCOMPtr<nsIMsgDBHdr>         origMsgHdr;

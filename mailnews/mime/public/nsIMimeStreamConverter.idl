@@ -35,12 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/*
-  I've created this interface to contain mailnews mime specific information
-  for stream converters. Most of this code is just stuff that has been moved out
-  of nsIStreamConverter.idl to make it more generic.
-*/
-
 #include "nsISupports.idl"
 #include "nsrootidl.idl"
 #include "nsIMimeHeaders.idl"
@@ -76,36 +70,45 @@ interface nsIMimeStreamConverterListener : nsISupports{
       void onHeadersReady(in nsIMimeHeaders headers);
 };
 
-[scriptable, uuid(9b1d157b-4223-42f5-9bec-11c1ec34d609)]
+/**
+ * This interface contains mailnews mime specific information for stream
+ * converters. Most of the code is just stuff that has been moved out
+ * of nsIStreamConverter.idl to make it more generic.
+ */
+[scriptable, uuid(ed861e40-6901-4bb0-b9ec-7a8e7a79bb0e)]
 interface nsIMimeStreamConverter : nsISupports {
 
-    /*
-   * This is used to set the desired mime output type on the converer.
-     */
-
+  /**
+   * Set the desired mime output type on the converer.
+   */
   void SetMimeOutputType(in nsMimeOutputType aType);
 
   void GetMimeOutputType(out nsMimeOutputType aOutFormat);
 
-  /*
-  * This is needed by libmime for MHTML link processing...the url is the URL string associated
-  * with this input stream
-  */
+  /**
+   * This is needed by libmime for MHTML link processing...the url is the URL
+   * string associated with this input stream.
+   */
   void SetStreamURI(in nsIURI aURI);
 
-  /*
-  * This is used to extract headers while parsing a message
-  */
+  /**
+   * Used to extract headers while parsing a message.
+   */
   void SetMimeHeadersListener(in nsIMimeStreamConverterListener listener, in nsMimeOutputType aType);
 
-  /*
-  * This is used for forward inline
-  */
+  /**
+   * This is used for forward inline.
+   */
   attribute PRBool forwardInline;
 
-  /*
-  * This is used for OpenDraft, OpenEditorTemplate and Forward inline (which use OpenDraft)
-  */
+  /**
+   * Use the opposite compose format, used for forward inline.
+   */
+  attribute PRBool overrideComposeFormat;
+
+  /**
+   * This is used for OpenDraft, OpenEditorTemplate and Forward inline (which use OpenDraft)
+   */
   attribute nsIMsgIdentity identity;
   attribute string originalMsgURI;
   attribute nsIMsgDBHdr origMsgHdr;
