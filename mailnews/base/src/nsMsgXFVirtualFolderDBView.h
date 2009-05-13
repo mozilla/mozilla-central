@@ -77,7 +77,6 @@ public:
   NS_IMETHOD GetMsgFolder(nsIMsgFolder **aMsgFolder);
 
   virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, PRBool ensureListed);
-  virtual nsresult InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder);
   void UpdateCacheAndViewForPrevSearchedFolders(nsIMsgFolder *curSearchFolder);
   void UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, PRUint32 numNewHits);
   void RemovePendingDBListeners();

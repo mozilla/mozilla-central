@@ -199,24 +199,6 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdr
   return NS_OK;
 }
 
-nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder)
-{
-  nsMsgViewIndex insertIndex = GetInsertIndex(msgHdr);
-  if (insertIndex == nsMsgViewIndex_None)
-    return AddHdrFromFolder(msgHdr, folder);
-
-  nsMsgKey msgKey;
-  PRUint32 msgFlags;
-  msgHdr->GetMessageKey(&msgKey);
-  msgHdr->GetFlags(&msgFlags);
-  InsertMsgHdrAt(insertIndex, msgHdr, msgKey, msgFlags, 0);
-
-  // the call to NoteChange() has to happen after we add the key
-  // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
-  NoteChange(insertIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
-  return NS_OK;
-}
-
 void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, PRUint32 numNewHits)
 {
   nsCOMPtr <nsIMsgDatabase> db;

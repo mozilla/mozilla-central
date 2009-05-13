@@ -86,6 +86,9 @@ NS_IMETHODIMP nsMsgSearchDBView::Open(nsIMsgFolder *folder,
     NS_ENSURE_SUCCESS(rv, rv);
   prefBranch->GetBoolPref("mail.strict_threading", &gReferenceOnlyThreading);
 
+  // our sort is automatically valid because we have no contents at this point!
+  m_sortValid = PR_TRUE;
+
     if (pCount)
       *pCount = 0;
     m_folder = nsnull;
@@ -646,6 +649,24 @@ nsMsgSearchDBView::GetMessageEnumerator(nsISimpleEnumerator **enumerator)
   return nsMsgDBView::GetViewEnumerator(enumerator);
 }
 
+nsresult nsMsgSearchDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder)
+{
+  nsMsgViewIndex insertIndex = GetInsertIndex(msgHdr);
+  if (insertIndex == nsMsgViewIndex_None)
+    return AddHdrFromFolder(msgHdr, folder);
+
+  nsMsgKey msgKey;
+  PRUint32 msgFlags;
+  msgHdr->GetMessageKey(&msgKey);
+  msgHdr->GetFlags(&msgFlags);
+  InsertMsgHdrAt(insertIndex, msgHdr, msgKey, msgFlags, 0);
+
+  // the call to NoteChange() has to happen after we add the key
+  // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
+  NoteChange(insertIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
+  return NS_OK;
+}
+
 NS_IMETHODIMP
 nsMsgSearchDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *folder)
 {
@@ -663,7 +684,10 @@ nsMsgSearchDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *folder)
       m_dbToUseList.AppendObject(dbToUse);
     }
   }
-  return AddHdrFromFolder(aMsgHdr, folder);
+  if (m_sortValid)
+    return InsertHdrFromFolder(aMsgHdr, folder);
+  else
+    return AddHdrFromFolder(aMsgHdr, folder);
 }
 
 NS_IMETHODIMP

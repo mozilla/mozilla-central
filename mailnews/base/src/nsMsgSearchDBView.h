@@ -121,6 +121,7 @@ protected:
   void MoveThreadAt(nsMsgViewIndex threadIndex);
   
   virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
+  virtual nsresult InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder);
 
   nsCOMArray<nsIMsgFolder> m_folders;
   nsCOMPtr <nsISupportsArray> m_hdrsForEachFolder;
