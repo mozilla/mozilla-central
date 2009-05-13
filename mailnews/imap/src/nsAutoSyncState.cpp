@@ -480,6 +480,7 @@ NS_IMETHODIMP nsAutoSyncState::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCode
     }
     else
     {
+      ownerFolder->SetMsgDatabase(nsnull);
       // nothing more to do.
       mSyncState = nsAutoSyncState::stCompletedIdle;
       // autoSyncMgr needs this notification, so manufacture it.
