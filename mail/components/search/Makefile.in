@@ -55,6 +55,7 @@ endif
 ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
 EXTRA_PP_JS_MODULES = \
 	SpotlightIntegration.js \
+	SearchIntegration.js \
 	$(NULL)
 endif
 
@@ -85,6 +86,7 @@ DIRS += public
 # Windows Search component
 EXTRA_PP_JS_MODULES = \
   WinSearchIntegration.js \
+	SearchIntegration.js \
   $(NULL)
 
 FORCE_STATIC_LIB = 1

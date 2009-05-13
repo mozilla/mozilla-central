@@ -58,6 +58,32 @@ var gAdvancedPane = {
     this.updateAutoItems();
     this.updateModeItems();
 #endif
+
+    // Search integration -- check whether we should hide or disable integration
+    let hideSearchUI = false;
+    let disableSearchUI = false;
+    try {
+      Components.utils.import("resource://app/modules/SearchIntegration.js");
+      if (SearchIntegration.osVersionTooLow)
+        hideSearchUI = true;
+      else if (SearchIntegration.osComponentsNotRunning)
+        disableSearchUI = true;
+    }
+    catch (e) {
+      hideSearchUI = true;
+    }
+
+    if (hideSearchUI)
+    {
+      document.getElementById("searchIntegrationContainer").hidden = true;
+    }
+    else if (disableSearchUI)
+    {
+      let searchCheckbox = document.getElementById("searchIntegration");
+      searchCheckbox.checked = false;
+      document.getElementById("search-enable").disabled = true;
+    }
+
     this.mInitialized = true;
   },
 
@@ -106,8 +132,8 @@ var gAdvancedPane = {
     else
     {
       // otherwise, bring up the default client dialog
-      window.openDialog("chrome://messenger/content/defaultClientDialog.xul",
-                        "Default Client",
+      window.openDialog("chrome://messenger/content/systemIntegrationDialog.xul",
+                        "SystemIntegration",
                         "modal,centerscreen,chrome,resizable=no");
     }
   },
