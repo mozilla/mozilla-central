@@ -83,6 +83,15 @@ let cal = {
     },
 
     /**
+     * Schedules execution of the passed function to the current thread's queue.
+     * Do this to work around re-entrancy problems w.r.t. processPendingEvent(), e.g. on chrome startup.
+     */
+    postPone: function cal_postPone(func) {
+        cal.getThreadManager().currentThread.dispatch({ run: func },
+                                                      Components.interfaces.nsIEventTarget.DISPATCH_NORMAL);
+    },
+
+    /**
      * Call this function regularly to process a pending event, e.g. UI.
      */
     processPendingEvent: function cal_processPendingEvent() {

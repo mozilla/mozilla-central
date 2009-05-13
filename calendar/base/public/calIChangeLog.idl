@@ -41,7 +41,9 @@ interface calIGenericOperationListener;
 interface calIOperation;
 
 /**
- * Interface for synchronously working providers, e.g. storage, memory.
+ * Interface for synchronously working providers on storing items,
+ * e.g. storage, memory. All modifying commands return after the
+ * modification has been performed.
  *
  * @note
  *   This interface is used in conjunction with changelog-based synchronization
@@ -53,10 +55,10 @@ interface calIOperation;
  *   store meta data for individual overridden items, you need to store it
  *   along with the master item's meta data.
  *   Finally, keep in mind that the meta data is "calendar local" and not
- *   automatically transferred when storing the item on another calISyncCalendar.
+ *   automatically transferred when storing the item on another calISyncWriteCalendar.
  */
 [scriptable, uuid(cef78f0e-bdbe-4534-8546-29b3e85be148)]
-interface calISyncCalendar : calICalendar {
+interface calISyncWriteCalendar : calICalendar {
     /**
      * Adds or replaces meta data of an item.
      *
@@ -115,6 +117,6 @@ interface calIChangeLog : nsISupports {
      * @param aDestination      The calendar to sync changes into
      * @param aListener         The listener to notify when the operation completes.
      */
-    calIOperation replayChangesOn(in calISyncCalendar aDestination,
+    calIOperation replayChangesOn(in calISyncWriteCalendar aDestination,
                                   in calIGenericOperationListener aListener);
 };

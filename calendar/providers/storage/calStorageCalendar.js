@@ -283,7 +283,7 @@ calStorageCalendar.prototype = {
     QueryInterface: function (aIID) {
         return doQueryInterface(this, calStorageCalendar.prototype, aIID,
                                 [Components.interfaces.calICalendarProvider,
-                                 Components.interfaces.calISyncCalendar]);
+                                 Components.interfaces.calISyncWriteCalendar]);
     },
 
     //
@@ -659,7 +659,14 @@ calStorageCalendar.prototype = {
     //                in calIDateTime aRangeStart, in calIDateTime aRangeEnd,
     //                in calIOperationListener aListener );
     getItems: function (aItemFilter, aCount,
-                        aRangeStart, aRangeEnd, aListener)
+                        aRangeStart, aRangeEnd, aListener) {
+        let this_ = this;
+        cal.postPone(function() {
+                this_.getItems_(aItemFilter, aCount, aRangeStart, aRangeEnd, aListener);
+            });
+    },
+    getItems_: function (aItemFilter, aCount,
+                         aRangeStart, aRangeEnd, aListener)
     {
         //var profStartTime = Date.now();
         if (!aListener)
@@ -2824,7 +2831,7 @@ calStorageCalendar.prototype = {
     },
 
     //
-    // calISyncCalendar interface
+    // calISyncWriteCalendar interface
     //
 
     setMetaData: function stor_setMetaData(id, value) {

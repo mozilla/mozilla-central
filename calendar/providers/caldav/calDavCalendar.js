@@ -128,7 +128,7 @@ calDavCalendar.prototype = {
             // memory calendar to cache things.
             this.mTargetCalendar = Components
                                    .classes["@mozilla.org/calendar/calendar;1?type=memory"]
-                                   .createInstance(Components.interfaces.calISyncCalendar);
+                                   .createInstance(Components.interfaces.calISyncWriteCalendar);
 
             this.mTargetCalendar.superCalendar = this;
             this.mObserver = new calDavObserver(this);
@@ -172,7 +172,7 @@ calDavCalendar.prototype = {
         }
     },
 
-    // in calISyncCalendar aDestination,
+    // in calISyncWriteCalendar aDestination,
     // in calIGenericOperationListener aListener
     replayChangesOn: function caldav_replayChangesOn(aDestination, aChangeLogListener) {
         if (!this.mTargetCalendar) {

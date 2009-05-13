@@ -59,7 +59,7 @@ calMemoryCalendar.prototype = {
     // 
     QueryInterface: function (aIID) {
         return doQueryInterface(this, calMemoryCalendar.prototype, aIID,
-                                [Components.interfaces.calISyncCalendar,
+                                [Components.interfaces.calISyncWriteCalendar,
                                  Components.interfaces.calICalendarProvider]);
     },
 
@@ -345,7 +345,14 @@ calMemoryCalendar.prototype = {
     //                in calIDateTime aRangeStart, in calIDateTime aRangeEnd,
     //                in calIOperationListener aListener );
     getItems: function (aItemFilter, aCount,
-                        aRangeStart, aRangeEnd, aListener)
+                        aRangeStart, aRangeEnd, aListener) {
+        let this_ = this;
+        cal.postPone(function() {
+                this_.getItems_(aItemFilter, aCount, aRangeStart, aRangeEnd, aListener);
+            });
+    },
+    getItems_: function (aItemFilter, aCount,
+                         aRangeStart, aRangeEnd, aListener)
     {
         if (!aListener)
             return;
@@ -461,7 +468,7 @@ calMemoryCalendar.prototype = {
     },
 
     //
-    // calISyncCalendar interface
+    // calISyncWriteCalendar interface
     //
     setMetaData: function memory_setMetaData(id, value) {
         this.mMetaData.setProperty(id, value);

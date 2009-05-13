@@ -92,7 +92,7 @@ function createTodoFromIcalString(icalString) {
 function getMemoryCal() {
     // create memory calendar
     var cal = Cc["@mozilla.org/calendar/calendar;1?type=memory"]
-              .createInstance(Ci.calISyncCalendar);
+              .createInstance(Ci.calISyncWriteCalendar);
 
     // remove existing items
     var calendar = cal.QueryInterface(Ci.calICalendarProvider);
@@ -117,7 +117,7 @@ function getStorageCal() {
 
     // create storage calendar
     var cal = Cc["@mozilla.org/calendar/calendar;1?type=storage"]
-              .createInstance(Ci.calISyncCalendar);
+              .createInstance(Ci.calISyncWriteCalendar);
     cal.uri = uri;
 
     // remove existing items

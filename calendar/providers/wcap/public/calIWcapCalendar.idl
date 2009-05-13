@@ -38,9 +38,7 @@
 
 #include "calICalendar.idl"
 #include "calIDateTime.idl"
-interface calISyncCalendar;
 interface calIWcapSession;
-interface calIAttendee;
 
 /** Adds WCAP specific capabilities to calICalendar.
  */
