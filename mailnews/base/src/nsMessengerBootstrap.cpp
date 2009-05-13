@@ -78,6 +78,8 @@
 #include "nsDirectoryServiceDefs.h"
 #endif
 
+#define MAPI_STARTUP_ARG "MapiStartup"
+
 NS_IMPL_THREADSAFE_ADDREF(nsMessengerBootstrap)
 NS_IMPL_THREADSAFE_RELEASE(nsMessengerBootstrap)
 
@@ -174,7 +176,13 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
                        "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar,dialog=no", argsArray, getter_AddRefs(opened));
     aCmdLine->SetPreventDefault(PR_TRUE);
     return NS_OK;
-  } 
+  }
+
+#ifdef XP_WIN
+  // Handle MAPI startup -- do nothing
+  PRBool isMapiStartup = PR_FALSE;
+  aCmdLine->HandleFlag(NS_LITERAL_STRING(MAPI_STARTUP_ARG), PR_FALSE, &isMapiStartup);
+#endif
 
 #ifndef MOZ_SUITE
   PRInt32 numArgs;
