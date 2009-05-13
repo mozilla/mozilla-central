@@ -952,9 +952,12 @@ let gFolderTreeView = {
     evt.initEvent("mapRebuild", true, false);
     this._treeElement.dispatchEvent(evt);
 
-    if (oldCount !== null)
-      this._tree.rowCountChanged(0, this._rowMap.length - oldCount);
-
+    if (this._tree)
+    {
+      if (oldCount !== null)
+          this._tree.rowCountChanged(0, this._rowMap.length - oldCount);
+      this._tree.invalidate();
+    }
     this._restoreOpenStates();
   },
 
@@ -1034,12 +1037,20 @@ let gFolderTreeView = {
 
     /**
      * The unread mode returns all folders that are not root-folders and that
-     * have unread items
+     * have unread items.  Also always keep the currently selected folder
+     * so it doesn't disappear under the user.
      */
     unread: function ftv__mg_unread(ftv) {
       let map = [];
+      let currentFolder = gFolderTreeView.getSelectedFolders()[0];
+      const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+      const outFolderFlagMask = nsMsgFolderFlags.SentMail |
+        nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue |
+        nsMsgFolderFlags.Templates;
       for each (let folder in ftv._enumerateFolders) {
-        if (!folder.isServer && folder.getNumUnread(false) > 0)
+        if (!IsSpecialFolder(folder, outFolderFlagMask, true) &&
+            (!folder.isServer && folder.getNumUnread(false) > 0) ||
+            (folder == currentFolder))
           map.push(new ftvItem(folder));
       }
 
@@ -1266,6 +1277,13 @@ let gFolderTreeView = {
 
   OnItemPropertyChanged: function(aItem, aProperty, aOld, aNew) {},
   OnItemIntPropertyChanged: function(aItem, aProperty, aOld, aNew) {
+    // we want to rebuild only if:
+    if (this._mode == "unread" && // we're doing unread mode
+        aProperty == "TotalUnreadMessages" && aOld == 0 &&  // we have a new unread folder
+        !this.getIndexOfFolder(aItem)) // we don't already have it
+      this._rebuild();
+      return;
+
     if (aItem instanceof Components.interfaces.nsIMsgFolder)
     {
       let index = this.getIndexOfFolder(aItem);
