@@ -67,7 +67,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(8e15538f-0510-42a3-aaae-39ccd436b7a7)]
+[scriptable, uuid(b2ea737c-f9ff-4431-984e-babcdff15f6f)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -324,8 +324,6 @@ interface nsIMsgFolder : nsISupports {
    * Direct access to the set/get all the flags at once.
    */
   attribute unsigned long flags;
-
-  void setPrefFlag();
 
   /**
    * Gets the first folder that has the specified flags set.

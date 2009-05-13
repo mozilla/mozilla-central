@@ -308,12 +308,6 @@ NS_IMPL_SERVERPREF_INT(nsImapIncomingServer, MaximumConnectionsNumber,
 NS_IMPL_SERVERPREF_INT(nsImapIncomingServer, EmptyTrashThreshhold,
                        "empty_trash_threshhold")
 
-NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, StoreReadMailInPFC,
-                        "store_read_mail_in_pfc")
-
-NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, StoreSentMailInPFC,
-                        "store_sent_mail_in_pfc")
-
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, DownloadBodiesOnGetNewMail,
                         "download_bodies_on_get_new_mail")
 
@@ -325,6 +319,9 @@ NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseIdle,
 
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseCondStore,
                         "use_condstore")
+
+NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, IsGMailServer,
+                        "is_gmail");
 
 NS_IMETHODIMP
 nsImapIncomingServer::GetShuttingDown(PRBool *retval)
@@ -1103,6 +1100,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
 {
   NS_ENSURE_ARG_POINTER(aNewFolder);
   NS_ENSURE_TRUE(!folderPath.IsEmpty(), NS_ERROR_FAILURE);
+
   // folderPath is in canonical format, i.e., hierarchy separator has been replaced with '/'
   nsresult rv;
   PRBool found = PR_FALSE;
@@ -1239,10 +1237,6 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(child);
     if (imapFolder)
     {
-      PRBool isAOLServer = PR_FALSE;
-
-      GetIsAOLServer(&isAOLServer);
-     
       nsCAutoString onlineName;
       nsAutoString unicodeName;
       imapFolder->SetVerifiedAsOnlineFolder(PR_TRUE);
@@ -1254,6 +1248,10 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
         if (deleteModel == nsMsgImapDeleteModels::MoveToTrash)
           child->SetFlag(nsMsgFolderFlags::Trash);
       }
+      // only GMail will have an AllMail folder.
+      if (boxFlags & kImapAllMail)
+        SetIsGMailServer(PR_TRUE);
+
       imapFolder->SetBoxFlags(boxFlags);
       imapFolder->SetExplicitlyVerify(explicitlyVerify);
       imapFolder->GetOnlineName(onlineName);
@@ -1264,8 +1262,13 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       if (hierarchyDelimiter != '/')
         nsImapUrl::UnescapeSlashes(dupFolderPath.BeginWriting());
 
-      if (onlineName.IsEmpty() || !onlineName.Equals(dupFolderPath))
+    // GMail gives us a localized name for the inbox but doesn't let 
+    // us select that localized name.
+      if (boxFlags & kImapInbox)
+        imapFolder->SetOnlineName(NS_LITERAL_CSTRING("INBOX"));
+      else if (onlineName.IsEmpty() || !onlineName.Equals(dupFolderPath))
         imapFolder->SetOnlineName(dupFolderPath);
+
       if (hierarchyDelimiter != '/')
         nsImapUrl::UnescapeSlashes(folderName.BeginWriting());
       if (NS_SUCCEEDED(CopyMUTF7toUTF16(folderName, unicodeName)))
@@ -1486,19 +1489,71 @@ NS_IMETHODIMP  nsImapIncomingServer::FolderVerifiedOnline(const nsACString& fold
 
 NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
 {
-  nsresult rv = NS_ERROR_FAILURE;
-  //	m_haveDiscoveredAllFolders = PR_TRUE;
-
   if (mDoingSubscribeDialog)
     return NS_OK;
+
   nsCOMPtr<nsIMsgFolder> rootMsgFolder;
-  rv = GetRootFolder(getter_AddRefs(rootMsgFolder));
+  nsresult rv = GetRootFolder(getter_AddRefs(rootMsgFolder));
   if (NS_SUCCEEDED(rv) && rootMsgFolder)
   {
-    rootMsgFolder->SetPrefFlag();
+    // GetResource() may return a node which is not in the folder
+    // tree hierarchy but in the rdf cache in case of the non-existing default
+    // Sent, Drafts, and Templates folders. The resouce will be eventually
+    // released when the rdf service shuts down. When we create the default
+    // folders later on in the imap server, the subsequent GetResource() of the
+    // same uri will get us the cached rdf resource which should have the folder
+    // flag set appropriately.
+    nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1",
+                                              &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIMsgAccountManager> accountMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIMsgIdentity> identity;
+    rv = accountMgr->GetFirstIdentityForServer(this, getter_AddRefs(identity));
+    if (NS_SUCCEEDED(rv) && identity)
+    {
+      nsCString folderUri;
+      identity->GetFccFolder(folderUri);
+      nsCString existingUri;
+
+      if (CheckSpecialFolder(rdf, folderUri, nsMsgFolderFlags::SentMail,
+                             existingUri))
+      {
+        identity->SetFccFolder(existingUri);
+        identity->SetFccFolderPickerMode(NS_LITERAL_CSTRING("1"));
+      }
+      identity->GetDraftFolder(folderUri);
+      if (CheckSpecialFolder(rdf, folderUri, nsMsgFolderFlags::Drafts,
+                             existingUri))
+      {
+        identity->SetDraftFolder(existingUri);
+        identity->SetDraftsFolderPickerMode(NS_LITERAL_CSTRING("1"));
+      }
+      identity->GetArchiveFolder(folderUri);
+      if (CheckSpecialFolder(rdf, folderUri, nsMsgFolderFlags::Archive,
+                             existingUri))
+      {
+        identity->SetArchiveFolder(existingUri);
+        identity->SetArchivesFolderPickerMode(NS_LITERAL_CSTRING("1"));
+      }
+      identity->GetStationeryFolder(folderUri);
+      nsCOMPtr<nsIRDFResource> res;
+      if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+      {
+        nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(res, &rv));
+        if (NS_SUCCEEDED(rv))
+          rv = folder->SetFlag(nsMsgFolderFlags::Templates);
+      }
+    }
+
+    PRBool isGMailServer;
+    GetIsGMailServer(&isGMailServer);
 
     // Verify there is only one trash folder. Another might be present if
-    // the trash name has been changed.
+    // the trash name has been changed. Or we might be a gmail server and
+    // want to switch to gmail's trash folder.
     nsCOMPtr<nsIArray> trashFolders;
     rv = rootMsgFolder->GetFoldersWithFlags(nsMsgFolderFlags::Trash,
                                             getter_AddRefs(trashFolders));
@@ -1517,10 +1572,26 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
             nsCOMPtr<nsIMsgFolder> trashFolder(do_QueryElementAt(trashFolders, i));
             if (trashFolder)
             {
-              nsAutoString folderName;
-              if (NS_SUCCEEDED(trashFolder->GetName(folderName)))
-                if (!folderName.Equals(trashName))
-                  trashFolder->ClearFlag(nsMsgFolderFlags::Trash);
+              // if we're a gmail server, we clear the trash flags from folder(s)
+              // without the kImapXListTrash flag. For normal servers, we clear
+              // the trash folder flag if the folder name doesn't match the
+              // pref trash folder name.
+              PRBool clearFlag;
+              if (isGMailServer)
+              {
+                nsCOMPtr<nsIMsgImapMailFolder> imapFolder(do_QueryInterface(trashFolder));
+                PRInt32 boxFlags;
+                imapFolder->GetBoxFlags(&boxFlags);
+                clearFlag = !(boxFlags & kImapXListTrash);
+              }
+              else
+              {
+                nsAutoString folderName;
+                clearFlag = (NS_SUCCEEDED(trashFolder->GetName(folderName))) &&
+                 !folderName.Equals(trashName);
+              }
+              if (clearFlag)
+                trashFolder->ClearFlag(nsMsgFolderFlags::Trash);
             }
           }
         }
@@ -1576,6 +1647,51 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
   }
 
   return rv;
+}
+
+// Check if the special folder corresponding to the uri exists. If not, check
+// if there already exists a folder with the special folder flag (the server may
+// have told us about a folder to use through XLIST). If so, return the uri of
+// the existing special folder. If not, set the special flag on the folder so
+// it will be there if and when the folder is created.
+// Return true if we found an existing special folder different than
+// the one specified in prefs, and the one specified by prefs doesn't exist.
+PRBool nsImapIncomingServer::CheckSpecialFolder(nsIRDFService *rdf,
+                                                nsCString &folderUri,
+                                                PRUint32 folderFlag,
+                                                nsCString &existingUri)
+{
+  PRBool foundExistingFolder = PR_FALSE;
+  nsCOMPtr<nsIRDFResource> res;
+  nsCOMPtr<nsIMsgFolder> folder;
+  nsCOMPtr<nsIMsgFolder> rootMsgFolder;
+  nsresult rv = GetRootFolder(getter_AddRefs(rootMsgFolder));
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+  if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
+  {
+    folder = do_QueryInterface(res, &rv);
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCOMPtr<nsIMsgFolder> parent;
+      folder->GetParent(getter_AddRefs(parent));
+      // if the default folder doesn't really exist, check if the server
+      // told us about an existing one.
+      if (!parent)
+      {
+        nsCOMPtr<nsIMsgFolder> existingFolder;
+        rootMsgFolder->GetFolderWithFlags(folderFlag, getter_AddRefs(existingFolder));
+        if (existingFolder)
+        {
+          existingFolder->GetURI(existingUri);
+          foundExistingFolder = PR_TRUE;
+        }
+      }
+      if (!foundExistingFolder)
+        folder->SetFlag(folderFlag);
+    }
+  }
+  return foundExistingFolder;
 }
 
 nsresult nsImapIncomingServer::DeleteNonVerifiedFolders(nsIMsgFolder *curFolder)

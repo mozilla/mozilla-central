@@ -422,7 +422,8 @@ void nsImapServerResponseParser::ProcessOkCommand(const char *commandToken)
     PR_FREEIF( fSelectedMailboxName );
   }
   else if ((!PL_strcasecmp(commandToken, "LIST")) ||
-			 (!PL_strcasecmp(commandToken, "LSUB")))
+          (!PL_strcasecmp(commandToken, "LSUB")) ||
+          (!PL_strcasecmp(commandToken, "XLIST")))
   {
     //fServerConnection.MailboxDiscoveryFinished();
     // This used to be reporting that we were finished
@@ -543,19 +544,19 @@ void nsImapServerResponseParser::response_data()
     // pre-flight the possibilities based on the first letter of the token.
     switch (toupper(fNextToken[0]))
     {
-    case 'O':			// OK
+    case 'O':   // OK
       if (toupper(fNextToken[1]) == 'K')
         resp_cond_state(PR_FALSE);
       else SetSyntaxError(PR_TRUE);
       break;
-    case 'N':			// NO
+    case 'N':   // NO
       if (toupper(fNextToken[1]) == 'O')
         resp_cond_state(PR_FALSE);
       else if (!PL_strcasecmp(fNextToken, "NAMESPACE"))
         namespace_data();
       else SetSyntaxError(PR_TRUE);
       break;
-    case 'B':			// BAD
+    case 'B':   // BAD
       if (!PL_strcasecmp(fNextToken, "BAD"))
         resp_cond_state(PR_FALSE);
       else if (!PL_strcasecmp(fNextToken, "BYE"))
@@ -573,7 +574,7 @@ void nsImapServerResponseParser::response_data()
       else SetSyntaxError(PR_TRUE);
       break;
     case 'L':
-      if (!PL_strcasecmp(fNextToken, "LIST")  || !PL_strcasecmp(fNextToken, "LSUB"))
+      if (!PL_strcasecmp(fNextToken, "LIST") || !PL_strcasecmp(fNextToken, "LSUB"))
         mailbox_data();
       else if (!PL_strcasecmp(fNextToken, "LANGUAGE"))
         language_data();
@@ -717,6 +718,8 @@ void nsImapServerResponseParser::response_data()
         xmailboxinfo_data();
       else if (!PL_strcasecmp(fNextToken, "XAOL-OPTION"))
         skip_to_CRLF();
+      else if (!PL_strcasecmp(fNextToken, "XLIST"))
+        mailbox_data();
       else 
       {
         // check if custom command
@@ -777,6 +780,7 @@ void nsImapServerResponseParser::PostProcessEndOfLine()
  mailbox_data    ::=  "FLAGS" SPACE flag_list /
                                "LIST" SPACE mailbox_list /
                                "LSUB" SPACE mailbox_list /
+                               "XLIST" SPACE mailbox_list /
                                "MAILBOX" SPACE text /
                                "SEARCH" [SPACE 1#nz_number] /
                                number SPACE "EXISTS" / number SPACE "RECENT"
@@ -786,6 +790,7 @@ This production was changed to accomodate predictive parsing
  mailbox_data    ::=  "FLAGS" SPACE flag_list /
                                "LIST" SPACE mailbox_list /
                                "LSUB" SPACE mailbox_list /
+                               "XLIST" SPACE mailbox_list /
                                "MAILBOX" SPACE text /
                                "SEARCH" [SPACE 1#nz_number]
 */
@@ -800,7 +805,8 @@ void nsImapServerResponseParser::mailbox_data()
     else
       parse_folder_flags();
   }
-  else if (!PL_strcasecmp(fNextToken, "LIST"))
+  else if (!PL_strcasecmp(fNextToken, "LIST") ||
+           !PL_strcasecmp(fNextToken, "XLIST"))
   {
     AdvanceToNextToken();
     if (ContinueParse())
@@ -848,17 +854,29 @@ void nsImapServerResponseParser::mailbox_list(PRBool discoveredFromLsub)
     boxSpec->mBoxFlags &= ~kNameSpace;
     
     PRBool endOfFlags = PR_FALSE;
-    fNextToken++;	// eat the first "("
+    fNextToken++;// eat the first "("
     do {
       if (!PL_strncasecmp(fNextToken, "\\Marked", 7))
-        boxSpec->mBoxFlags |= kMarked;	
+        boxSpec->mBoxFlags |= kMarked;
       else if (!PL_strncasecmp(fNextToken, "\\Unmarked", 9))
-        boxSpec->mBoxFlags |= kUnmarked;	
+        boxSpec->mBoxFlags |= kUnmarked;
       else if (!PL_strncasecmp(fNextToken, "\\Noinferiors", 12))
-        boxSpec->mBoxFlags |= kNoinferiors;	
+        boxSpec->mBoxFlags |= kNoinferiors;
       else if (!PL_strncasecmp(fNextToken, "\\Noselect", 9))
-        boxSpec->mBoxFlags |= kNoselect;	
-      // we ignore flag extensions
+        boxSpec->mBoxFlags |= kNoselect;
+      else if (!PL_strncasecmp(fNextToken, "\\Drafts", 7))
+        boxSpec->mBoxFlags |= kImapDrafts;
+      else if (!PL_strncasecmp(fNextToken, "\\Trash", 6))
+        boxSpec->mBoxFlags |= kImapXListTrash;
+      else if (!PL_strncasecmp(fNextToken, "\\Sent", 5))
+        boxSpec->mBoxFlags |= kImapSent;
+      else if (!PL_strncasecmp(fNextToken, "\\Spam", 5))
+        boxSpec->mBoxFlags |= kImapSpam;
+      else if (!PL_strncasecmp(fNextToken, "\\AllMail", 8))
+        boxSpec->mBoxFlags |= kImapAllMail;
+      else if (!PL_strncasecmp(fNextToken, "\\Inbox", 6))
+        boxSpec->mBoxFlags |= kImapInbox;
+      // we ignore flag other extensions
       
       endOfFlags = *(fNextToken + strlen(fNextToken) - 1) == ')';
       AdvanceToNextToken();
@@ -869,14 +887,14 @@ void nsImapServerResponseParser::mailbox_list(PRBool discoveredFromLsub)
       if (*fNextToken == '"')
       {
         fNextToken++;
-        if (*fNextToken == '\\')	// handle escaped char
+        if (*fNextToken == '\\') // handle escaped char
           boxSpec->mHierarchySeparator = *(fNextToken + 1);
         else
           boxSpec->mHierarchySeparator = *fNextToken;
       }
       else	// likely NIL.  Discovered late in 4.02 that we do not handle literals here (e.g. {10} <10 chars>), although this is almost impossibly unlikely
         boxSpec->mHierarchySeparator = kOnlineHierarchySeparatorNil;
-      AdvanceToNextToken();	
+      AdvanceToNextToken();
       if (ContinueParse())
       {
         // nsImapProtocol::DiscoverMailboxSpec() eventually frees the
@@ -887,8 +905,7 @@ void nsImapServerResponseParser::mailbox_list(PRBool discoveredFromLsub)
     }
   }
   if (needsToFreeBoxSpec)
-    NS_RELEASE(boxSpec); // mscott - do we have any fields we need to
-  // release?
+    NS_RELEASE(boxSpec);
 }
 
 /* mailbox         ::= "INBOX" / astring
@@ -897,10 +914,13 @@ void nsImapServerResponseParser::mailbox(nsImapMailboxSpec *boxSpec)
 {
   char *boxname = nsnull;
   const char *serverKey = fServerConnection.GetImapServerKey();
-  
-  if (!PL_strcasecmp(fNextToken, "INBOX"))
+  PRBool xlistInbox = boxSpec->mBoxFlags & kImapInbox;
+
+  if (!PL_strcasecmp(fNextToken, "INBOX") || xlistInbox)
   {
     boxname = PL_strdup("INBOX");
+    if (xlistInbox)
+      PR_Free(CreateAstring());
     AdvanceToNextToken();
   }
   else 
@@ -2222,6 +2242,8 @@ void nsImapServerResponseParser::capability_data()
         fCapabilityFlag |= kHasCondStoreCapability;
       else if (! PL_strcasecmp(fNextToken, "ENABLE"))
         fCapabilityFlag |= kHasEnableCapability;
+      else if (! PL_strcasecmp(fNextToken, "XLIST"))
+        fCapabilityFlag |= kHasXListCapability;
     }
   } while (fNextToken && !fAtEndOfLine && ContinueParse());
 

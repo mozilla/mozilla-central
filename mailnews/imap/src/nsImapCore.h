@@ -52,18 +52,24 @@ class nsImapFlagAndUidState;
 typedef PRUint16 imapMessageFlagsType;
 
 /* used for communication between imap thread and event sinks */
-#define kNoFlags     0x00	/* RFC flags */
+#define kNoFlags     0x00 /* RFC flags */
 #define kMarked      0x01
 #define kUnmarked    0x02
 #define kNoinferiors 0x04
 #define kNoselect    0x08
-#define kImapTrash   0x10	/* Navigator flag */
-#define kJustExpunged 0x20	/* This update is a post expunge url update. */
-#define kPersonalMailbox	0x40	/* this mailbox is in the personal namespace */
-#define kPublicMailbox		0x80	/* this mailbox is in the public namespace */
-#define kOtherUsersMailbox	0x100	/* this mailbox is in the other users' namespace */
-#define kNameSpace			0x200	/* this mailbox IS a namespace */
-#define kNewlyCreatedFolder     0x400 /* this folder was just created */
+#define kImapTrash   0x10 /* Navigator flag */
+#define kJustExpunged 0x20 /* This update is a post expunge url update. */
+#define kPersonalMailbox 0x40 /* this mailbox is in the personal namespace */
+#define kPublicMailbox 0x80 /* this mailbox is in the public namespace */
+#define kOtherUsersMailbox 0x100 /* this mailbox is in the other users' namespace */
+#define kNameSpace 0x200 /* this mailbox IS a namespace */
+#define kNewlyCreatedFolder 0x400 /* this folder was just created */
+#define kImapDrafts 0x800 /* XLIST says this is the drafts folder */
+#define kImapSpam 0x1000 /* XLIST says this is the spam folder */
+#define kImapSent 0x2000 /* XLIST says this is the sent folder */
+#define kImapInbox 0x4000 /* XLIST says this is the INBOX folder */
+#define kImapAllMail 0x8000 /* XLIST says this is AllMail (GMail) */
+#define kImapXListTrash 0x10000 /* XLIST says this is the trash */
 
 /* flags for individual messages */
 /* currently the ui only offers \Seen and \Flagged */
@@ -80,6 +86,10 @@ typedef PRUint16 imapMessageFlagsType;
 #define kImapMsgLabelFlags            0x0E00            /* supports 5 labels only supported if the folder supports keywords */
 #define kImapMsgSupportMDNSentFlag    0x2000
 #define kImapMsgSupportForwardedFlag  0x4000
+/**
+ * We use a separate xlist trash flag so we can prefer the GMail trash
+ * over an existing Trash folder we may have created.
+ */
 #define kImapMsgSupportUserFlag       0x8000		
 /* This seems to be the most cost effective way of
 * piggying back the server support user flag info.
@@ -138,7 +148,8 @@ typedef enum {
     kLoginDisabled = 0x00800000,        /* login disabled */
     kHasAuthGssApiCapability = 0x01000000, /* GSSAPI AUTH */ 
     kHasCondStoreCapability =  0x02000000, /* RFC 3551 CondStore extension */
-    kHasEnableCapability    =  0x04000000  /* RFC 5161 ENABLE extension */
+    kHasEnableCapability    =  0x04000000, /* RFC 5161 ENABLE extension */
+    kHasXListCapability    =  0x08000000 /* XLIST extension */
 } eIMAPCapabilityFlag;
 
 // this used to be part of the connection object class - maybe we should move it into 

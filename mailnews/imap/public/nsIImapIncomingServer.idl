@@ -55,7 +55,7 @@ interface nsMsgImapDeleteModels
   const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(fb6595b7-3e51-4a28-b4a6-30a2ac1c9aef)]
+[scriptable, uuid(c13a5253-447f-47e2-966f-ad7d160ce329)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
@@ -76,11 +76,12 @@ interface nsIImapIncomingServer : nsISupports {
   attribute ACString manageMailAccountUrl;
   attribute boolean fetchByChunks;
   attribute boolean mimePartsOnDemand;
-  attribute boolean isAOLServer;       
+  attribute boolean isAOLServer;
   attribute boolean aOLMailboxView;
-  attribute boolean storeReadMailInPFC;
-  attribute boolean storeSentMailInPFC;
   attribute boolean useIdle;
+
+  /// Is this a GMail Server?
+  attribute boolean isGMailServer;
 
   /**
    * See IMAP RFC 4551

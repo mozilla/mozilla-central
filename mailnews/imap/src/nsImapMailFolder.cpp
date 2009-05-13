@@ -428,43 +428,36 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
   GetFlags ((PRUint32 *) &pFlags);
   PRBool isParentInbox = pFlags & nsMsgFolderFlags::Inbox;
 
+  nsCOMPtr<nsIImapIncomingServer> imapServer;
+  rv = GetImapIncomingServer(getter_AddRefs(imapServer));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   //Only set these if these are top level children or parent is inbox
-  if(NS_SUCCEEDED(rv))
+  if (isServer && name.LowerCaseEqualsLiteral("inbox"))
+    flags |= nsMsgFolderFlags::Inbox;
+  else if (isServer || isParentInbox)
   {
-    if(isServer && name.LowerCaseEqualsLiteral("inbox"))
-      flags |= nsMsgFolderFlags::Inbox;
-    else if (isServer || isParentInbox)
+    nsMsgImapDeleteModel deleteModel;
+    imapServer->GetDeleteModel(&deleteModel);
+    if (deleteModel == nsMsgImapDeleteModels::MoveToTrash)
     {
       nsAutoString trashName;
       GetTrashFolderName(trashName);
       if (name.Equals(trashName))
         flags |= nsMsgFolderFlags::Trash;
     }
-#if 0
-    else if(name.LowerCaseEqualsLiteral("sent"))
-      folder->SetFlag(nsMsgFolderFlags::SentMail);
-    else if(name.LowerCaseEqualsLiteral("drafts"))
-      folder->SetFlag(nsMsgFolderFlags::Drafts);
-    else if (name.LowerCaseEqualsLiteral("templates"))
-      folder->SetFlag(nsMsgFolderFlags::Templates);
-#endif
   }
-  
+
   //special case: 
   // Make the folder offline if it is newly created and offline_download pref is true 
   if (brandNew)
   {
-    nsCOMPtr<nsIImapIncomingServer> imapServer;
-    GetImapIncomingServer(getter_AddRefs(imapServer));
-    if (imapServer)
-    {
-      PRBool setNewFoldersForOffline = PR_FALSE;
-      nsresult rv = imapServer->GetOfflineDownload(&setNewFoldersForOffline);
-      if (NS_SUCCEEDED(rv) && setNewFoldersForOffline)
-        flags |= nsMsgFolderFlags::Offline;
-    }
+    PRBool setNewFoldersForOffline = PR_FALSE;
+    rv = imapServer->GetOfflineDownload(&setNewFoldersForOffline);
+    if (NS_SUCCEEDED(rv) && setNewFoldersForOffline)
+      flags |= nsMsgFolderFlags::Offline;
   }
-  
+
   folder->SetFlags(flags);
   //at this point we must be ok and we don't want to return failure in case GetIsServer failed.
   rv = NS_OK;
@@ -1125,24 +1118,45 @@ NS_IMETHODIMP nsImapMailFolder::SetBoxFlags(PRInt32 aBoxFlags)
     newFlags |= nsMsgFolderFlags::ImapNoinferiors;
   else
     newFlags &= ~nsMsgFolderFlags::ImapNoinferiors;
-    if (m_boxFlags & kNoselect)
-      newFlags |= nsMsgFolderFlags::ImapNoselect;
-    else
-      newFlags &= ~nsMsgFolderFlags::ImapNoselect;
-    if (m_boxFlags & kPublicMailbox)
-      newFlags |= nsMsgFolderFlags::ImapPublic;
-    else
-      newFlags &= ~nsMsgFolderFlags::ImapPublic;
-    if (m_boxFlags & kOtherUsersMailbox)
-      newFlags |= nsMsgFolderFlags::ImapOtherUser;
-    else
-      newFlags &= ~nsMsgFolderFlags::ImapOtherUser;
-    if (m_boxFlags & kPersonalMailbox)
-      newFlags |= nsMsgFolderFlags::ImapPersonal;
-    else
-      newFlags &= ~nsMsgFolderFlags::ImapPersonal;
+  if (m_boxFlags & kNoselect)
+    newFlags |= nsMsgFolderFlags::ImapNoselect;
+  else
+    newFlags &= ~nsMsgFolderFlags::ImapNoselect;
+  if (m_boxFlags & kPublicMailbox)
+    newFlags |= nsMsgFolderFlags::ImapPublic;
+  else
+    newFlags &= ~nsMsgFolderFlags::ImapPublic;
+  if (m_boxFlags & kOtherUsersMailbox)
+    newFlags |= nsMsgFolderFlags::ImapOtherUser;
+  else
+    newFlags &= ~nsMsgFolderFlags::ImapOtherUser;
+  if (m_boxFlags & kPersonalMailbox)
+    newFlags |= nsMsgFolderFlags::ImapPersonal;
+  else
+    newFlags &= ~nsMsgFolderFlags::ImapPersonal;
 
-    SetFlags(newFlags);
+  // The following are all flags returned by XLIST.
+  // nsImapIncomingServer::DiscoveryDone checks for these folders.
+  if (m_boxFlags & kImapDrafts)
+    newFlags |= nsMsgFolderFlags::Drafts;
+
+  if (m_boxFlags & kImapSpam)
+    newFlags |= nsMsgFolderFlags::Junk;
+
+  if (m_boxFlags & kImapSent)
+    newFlags |= nsMsgFolderFlags::SentMail;
+
+  if (m_boxFlags & kImapInbox)
+    newFlags |= nsMsgFolderFlags::Inbox;
+
+  if (m_boxFlags & kImapXListTrash)
+    newFlags |= nsMsgFolderFlags::Trash;
+
+  // Treat the GMail all mail folder as the archive folder.
+  if (m_boxFlags & kImapAllMail)
+    newFlags |= nsMsgFolderFlags::Archive;
+
+  SetFlags(newFlags);
   return NS_OK;
 }
 

@@ -495,8 +495,7 @@ pref("mail.server.default.canFileMessages", true);
 pref("mail.server.default.logon_fallback", true);
 
 // special enhancements for IMAP servers
-pref("mail.server.default.store_read_mail_in_pfc", false);
-pref("mail.server.default.store_sent_mail_in_pfc", false);
+pref("mail.server.default.is_gmail", false);
 pref("mail.server.default.use_idle", true);
 // in case client or server has bugs in condstore implementation
 pref("mail.server.default.use_condstore", true);

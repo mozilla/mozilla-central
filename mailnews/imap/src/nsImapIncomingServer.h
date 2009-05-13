@@ -50,6 +50,7 @@
 #include "nsCOMArray.h"
 
 class nsIEventTarget;
+class nsIRDFService;
 
 /* get some implementation from nsMsgIncomingServer */
 class nsImapIncomingServer : public nsMsgIncomingServer,
@@ -128,6 +129,8 @@ private:
   PRBool ConnectionTimeOut(nsIImapProtocol* aImapConnection);
   nsresult GetFormattedStringFromID(const nsAString& aValue, PRInt32 aID, nsAString& aResult);
   nsresult GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue);
+  PRBool CheckSpecialFolder(nsIRDFService *rdf, nsCString &folderUri,
+                            PRUint32 folderFlag, nsCString &existingUri);
 
   nsCOMArray<nsIImapProtocol> m_connectionCache;
   nsCOMArray<nsIImapUrl> m_urlQueue;

@@ -4720,7 +4720,8 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
   nsIMAPNamespace *ns = nsnull;
 
   NS_ASSERTION (m_hostSessionList, "fatal null host session list");
-  if (!m_hostSessionList) return;
+  if (!m_hostSessionList)
+    return;
 
   m_hostSessionList->GetDefaultNamespaceOfTypeForHost(
     GetImapServerKey(), kPersonalNamespace, ns);
@@ -4737,12 +4738,21 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
       {
         PRBool onlineTrashFolderExists = PR_FALSE;
         if (m_hostSessionList)
-          m_hostSessionList->GetOnlineTrashFolderExistsForHost(
-          GetImapServerKey(), onlineTrashFolderExists);
+        {
+          if (adoptedBoxSpec->mBoxFlags & (kImapTrash|kImapXListTrash))
+          {
+             m_hostSessionList->SetOnlineTrashFolderExistsForHost(GetImapServerKey(), PR_TRUE);
+             onlineTrashFolderExists = PR_TRUE;
+          }
+          else
+          {
+            m_hostSessionList->GetOnlineTrashFolderExistsForHost(
+                                  GetImapServerKey(), onlineTrashFolderExists);
+          }
+        }
 
-        if (GetDeleteIsMoveToTrash() && // don't set the Trash flag
-            // if not using the Trash model
-            !onlineTrashFolderExists &&
+        // Don't set the Trash flag if not using the Trash model
+        if (GetDeleteIsMoveToTrash() && !onlineTrashFolderExists &&
             adoptedBoxSpec->mAllocatedPathName.Find(GetTrashFolderName()) != -1)
         {
           PRBool trashExists = PR_FALSE;
@@ -4828,9 +4838,9 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
           }
         }
       }
-        }
-        NS_IF_RELEASE( adoptedBoxSpec);
-        break;
+      }
+      NS_IF_RELEASE( adoptedBoxSpec);
+      break;
     case kDiscoverBaseFolderInProgress:
       break;
     case kDeleteSubFoldersInProgress:
@@ -6874,6 +6884,10 @@ void nsImapProtocol::DiscoverMailboxList()
 {
   PRBool usingSubscription = PR_FALSE;
 
+  // should we check a pref here, to be able to turn off XList?
+  if (GetServerStateParser().GetCapabilityFlag() & kHasXListCapability)
+    m_hostSessionList->SetHostIsUsingSubscription(GetImapServerKey(), PR_FALSE);
+
   SetMailboxDiscoveryStatus(eContinue);
   if (GetServerStateParser().ServerHasACLCapability())
     m_hierarchyNameState = kListingForInfoAndDiscovery;
@@ -6973,8 +6987,6 @@ void nsImapProtocol::DiscoverMailboxList()
             // pattern2 = PR_smprintf("%s%%%c%%", prefix, delimiter);
           }
         }
-
-
         if (usingSubscription) // && !GetSubscribingNow())  should never get here from subscribe pane
           Lsub(pattern.get(), PR_TRUE);
         else
@@ -7263,7 +7275,8 @@ void nsImapProtocol::List(const char *mailboxPattern, PRBool addDirectoryIfNeces
                         mailboxPattern, escapedPattern);
 
   nsCString command (GetServerCommandTag());
-  command += " list \"\" \"";
+  command += GetServerStateParser().GetCapabilityFlag() & kHasXListCapability ?
+    " xlist \"\" \"" : " list \"\" \"";
   command += escapedPattern;
   command += "\""CRLF;
 
