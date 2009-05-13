@@ -122,12 +122,15 @@ public:
     
 protected:
   nsresult ProcessNextTask();
-  nsresult AttemptShutdown();
+  void AttemptShutdown();
   
 private:
   nsCOMArray<nsIMsgShutdownTask> mShutdownTasks;
   nsCOMPtr<nsIMsgProgress>       mMsgProgress;
   PRUint32                       mTaskIndex;
+  PRPackedBool mProcessedShutdown;
+  PRPackedBool mQuitForced;
+  PRPackedBool mReadyToQuit;
 };
 
 #endif /* nsMsgMailSession_h__ */

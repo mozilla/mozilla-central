@@ -133,6 +133,9 @@ nsMsgSendLater::Init()
     do_GetService("@mozilla.org/observer-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  rv = observerService->AddObserver(this, "xpcom-shutdown", PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   rv = observerService->AddObserver(this, "quit-application", PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -140,11 +143,12 @@ nsMsgSendLater::Init()
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Subscribe to the unsent messages folder
-  nsCOMPtr<nsIMsgFolder> unsentFolder;
-  rv = GetUnsentMessagesFolder(nsnull, getter_AddRefs(unsentFolder));
+  // XXX This code should be set up for multiple unsent folders, however we
+  // don't support that at the moment, so for now just assume one folder.
+  rv = GetUnsentMessagesFolder(nsnull, getter_AddRefs(mMessageFolder));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = unsentFolder->AddFolderListener(this);
+  rv = mMessageFolder->AddFolderListener(this);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // XXX may want to send messages X seconds after startup if there are any.
@@ -171,19 +175,31 @@ nsMsgSendLater::Observe(nsISupports *aSubject, const char* aTopic,
   }
   else if (!strcmp(aTopic, "quit-application"))
   {
+    // If the timer is set, cancel it - we're quitting, the shutdown service
+    // interfaces will sort out sending etc.
+    if (mTimer)
+      mTimer->Cancel();
+
+    mTimerSet = PR_FALSE;
+  }
+  else if (!strcmp(aTopic, "xpcom-shutdown"))
+  {
     // We're shutting down. Unsubscribe from the unsentFolder notifications
     // they aren't any use to us now, we don't want to start sending more
     // messages.
-    nsCOMPtr<nsIMsgFolder> unsentFolder;
-    nsresult rv = GetUnsentMessagesFolder(nsnull, getter_AddRefs(unsentFolder));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = unsentFolder->RemoveFolderListener(this);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsresult rv;
+    if (mMessageFolder)
+    {
+      rv = mMessageFolder->RemoveFolderListener(this);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
 
     // Now remove ourselves from the observer service as well.
     nsCOMPtr<nsIObserverService> observerService =
       do_GetService("@mozilla.org/observer-service;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = observerService->RemoveObserver(this, "xpcom-shutdown");
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = observerService->RemoveObserver(this, "quit-application");
@@ -659,6 +675,9 @@ nsMsgSendLater::StartNextMailFileSend()
   if (!mMessage)
     return NS_ERROR_NOT_AVAILABLE;
 
+  if (!mMessageFolder)
+    return NS_ERROR_UNEXPECTED;
+
   mMessageFolder->GetUriForMsg(mMessage, messageURI);
 
   rv = nsMsgCreateTempFile("nsqmail.tmp", getter_AddRefs(mTempFile)); 
@@ -707,13 +726,19 @@ NS_IMETHODIMP
 nsMsgSendLater::HasUnsentMessages(nsIMsgIdentity *aIdentity, PRBool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
+  nsresult rv;
 
-  nsCOMPtr<nsIMsgFolder> msgFolder;
-  nsresult rv = GetUnsentMessagesFolder(aIdentity, getter_AddRefs(msgFolder));
-  NS_ENSURE_SUCCESS(rv, rv);
+  // XXX This code should be set up for multiple unsent folders, however we
+  // don't support that at the moment, so for now just assume one folder.
+  if (!mMessageFolder)
+  {
+    rv = GetUnsentMessagesFolder(nsnull,
+                                 getter_AddRefs(mMessageFolder));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   PRInt32 totalMessages;
-  rv = msgFolder->GetTotalMessages(PR_FALSE, &totalMessages);
+  rv = mMessageFolder->GetTotalMessages(PR_FALSE, &totalMessages);
   NS_ENSURE_SUCCESS(rv, rv);
 
   *aResult = totalMessages > 0;
@@ -760,9 +785,16 @@ nsMsgSendLater::InternalSendMessages(PRBool aUserInitiated,
     return NS_ERROR_FAILURE;
   }
 
-  nsresult rv = GetUnsentMessagesFolder(aIdentity,
-                                        getter_AddRefs(mMessageFolder));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv;
+
+  // XXX This code should be set up for multiple unsent folders, however we
+  // don't support that at the moment, so for now just assume one folder.
+  if (!mMessageFolder)
+  {
+    rv = GetUnsentMessagesFolder(nsnull,
+                                 getter_AddRefs(mMessageFolder));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   // ### fix me - if we need to reparse the folder, this will be asynchronous
   nsCOMPtr<nsISimpleEnumerator> enumerator;
@@ -867,7 +899,11 @@ nsMsgSendLater::DeleteCurrentMessage()
   if (!msgArray)
     return NS_ERROR_FACTORY_NOT_LOADED;
 
+  if (!mMessageFolder)
+    return NS_ERROR_UNEXPECTED;
+
   msgArray->InsertElementAt(mMessage, 0, PR_FALSE);
+
   nsresult res = mMessageFolder->DeleteMessages(msgArray, nsnull, PR_TRUE, PR_FALSE, nsnull, PR_FALSE /*allowUndo*/);
   if (NS_FAILED(res))
     return NS_ERROR_FAILURE;
@@ -1282,6 +1318,14 @@ nsMsgSendLater::EndSendMessages(nsresult aStatus, const PRUnichar *aMsg,
 
   // Clear out our array of messages.
   mMessagesToSend.Clear();
+
+  // We don't need to keep hold of the database now we've finished sending.
+  (void)mMessageFolder->SetMsgDatabase(nsnull);
+
+  // or the enumerator, temp file or output stream
+  mEnumerator = nsnull;
+  mTempFile = nsnull;
+  mOutFile = nsnull;  
 
   NOTIFY_LISTENERS(OnStopSending, (aStatus, aMsg, aTotalTried, aSuccessful));
 

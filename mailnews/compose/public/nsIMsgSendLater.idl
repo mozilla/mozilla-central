@@ -50,8 +50,8 @@ interface nsIMsgFolder;
  * can be sent by calling sendUnsentMessages.
  *
  * Although the service supports passing identities as parameters, until bug
- * 317803 is fixed, all identities use the same folder, and hence currently it
- * has no effect.
+ * 317803 is fixed, all identities use the same folder, and hence the option
+ * currently doesn't work.
  */
 [scriptable, uuid(fa324a4b-4b87-4e9a-a3c0-af9071a358df)]
 interface nsIMsgSendLater : nsIStreamListener 

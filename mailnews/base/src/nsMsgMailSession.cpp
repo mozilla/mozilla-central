@@ -55,6 +55,8 @@
 #include "nsIWindowMediator.h"
 #include "nsIWindowWatcher.h"
 #include "nsIMsgMailNewsUrl.h"
+#include "prcmon.h"
+#include "nsThreadUtils.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgMailSession)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgMailSession)
@@ -525,17 +527,28 @@ nsMsgMailSession::GetDataFilesDir(const char* dirName, nsIFile **dataFilesDir)
 NS_IMPL_ISUPPORTS3(nsMsgShutdownService, nsIMsgShutdownService, nsIUrlListener, nsIObserver)
 
 nsMsgShutdownService::nsMsgShutdownService()
+: mProcessedShutdown(PR_FALSE),
+  mQuitForced(PR_FALSE),
+  mReadyToQuit(PR_FALSE)
 {
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
   if (observerService)
+  {
     observerService->AddObserver(this, "quit-application-requested", PR_FALSE);
+    observerService->AddObserver(this, "quit-application-granted", PR_FALSE);
+    observerService->AddObserver(this, "quit-application", PR_FALSE);
+  }
 }
 
 nsMsgShutdownService::~nsMsgShutdownService()
 {
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
   if (observerService)
+  {  
     observerService->RemoveObserver(this, "quit-application-requested");
+    observerService->RemoveObserver(this, "quit-application-granted");
+    observerService->RemoveObserver(this, "quit-application");
+  }
 }
 
 nsresult nsMsgShutdownService::ProcessNextTask()
@@ -578,11 +591,22 @@ nsresult nsMsgShutdownService::ProcessNextTask()
   return NS_OK;
 }
 
-nsresult nsMsgShutdownService::AttemptShutdown()
+void nsMsgShutdownService::AttemptShutdown()
 {
-  nsCOMPtr<nsIAppStartup> appStartup = do_GetService(NS_APPSTARTUP_CONTRACTID);
-  NS_ENSURE_TRUE(appStartup, NS_ERROR_FAILURE);
-  return appStartup->Quit(nsIAppStartup::eAttemptQuit);
+  if (mQuitForced)
+  {
+    PR_CEnterMonitor(this);
+    mReadyToQuit = PR_TRUE;
+    PR_CNotifyAll(this);
+    PR_CExitMonitor(this);
+  }
+  else
+  {
+    nsCOMPtr<nsIAppStartup> appStartup =
+      do_GetService(NS_APPSTARTUP_CONTRACTID);
+    NS_ENSURE_TRUE(appStartup, );
+    NS_ENSURE_SUCCESS(appStartup->Quit(nsIAppStartup::eAttemptQuit), );
+  }
 }
 
 NS_IMETHODIMP nsMsgShutdownService::SetShutdownListener(nsIWebProgressListener *inListener)
@@ -596,6 +620,27 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
                                             const char *aTopic,
                                             const PRUnichar *aData)
 {
+  // Due to bug 459376 we don't always get quit-application-requested and
+  // quit-application-granted. quit-application-requested is preferred, but if
+  // we don't then we have to hook onto quit-application, but we don't want
+  // to do the checking twice so we set some flags to prevent that.
+  if (!strcmp(aTopic, "quit-application-granted"))
+  {
+    // Quit application has been requested and granted, therefore we will shut
+    // down. 
+    mProcessedShutdown = PR_TRUE;
+    return NS_OK;
+  }
+
+  // If we've already processed a shutdown notification, no need to do it again.
+  if (!strcmp(aTopic, "quit-application"))
+  {
+    if (mProcessedShutdown)
+      return NS_OK;
+    else
+      mQuitForced = PR_TRUE;
+  }
+
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
   NS_ENSURE_STATE(observerService);
   
@@ -624,7 +669,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
       
       listenerEnum->HasMoreElements(&hasMore);
     }
-    
+
     if (mShutdownTasks.Count() < 1)
       return NS_ERROR_FAILURE;
     
@@ -657,13 +702,31 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
         NS_ENSURE_TRUE(internalDomWin, NS_ERROR_FAILURE);  // bail if we don't get a window.
       }
     }
-    
-    nsCOMPtr<nsISupportsPRBool> stopShutdown = do_QueryInterface(aSubject);
-    stopShutdown->SetData(PR_TRUE);
-    
+
+    if (!mQuitForced)
+    {
+      nsCOMPtr<nsISupportsPRBool> stopShutdown = do_QueryInterface(aSubject);
+      stopShutdown->SetData(PR_TRUE);
+    }
+
     mMsgProgress->OpenProgressDialog(internalDomWin, topMsgWindow, 
                                      "chrome://messenger/content/shutdownWindow.xul", 
                                      PR_FALSE, nsnull);
+
+    if (mQuitForced)
+    {
+      nsIThread *thread = NS_GetCurrentThread();
+
+      mReadyToQuit = PR_FALSE;
+      while (!mReadyToQuit)
+      {
+        PR_CEnterMonitor(this);
+        // Waiting for 50 milliseconds
+        PR_CWait(this, PR_MicrosecondsToInterval(50000UL));
+        PR_CExitMonitor(this);
+        NS_ProcessPendingEvents(thread);
+      }
+    }
   }
   
   return NS_OK;
@@ -700,7 +763,8 @@ NS_IMETHODIMP nsMsgShutdownService::StartShutdownTasks()
 
 NS_IMETHODIMP nsMsgShutdownService::CancelShutdownTasks()
 {
-  return AttemptShutdown();
+  AttemptShutdown();
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgShutdownService::SetStatusText(const nsAString & inStatusString)
