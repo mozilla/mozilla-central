@@ -794,7 +794,8 @@ let gFolderTreeView = {
   {
     let smartFolder;
     try {
-      smartFolder = smartRootItem._folder.getChildNamed(folderName);
+      let folderUri = smartRootItem._folder.URI + "/" + folderName;
+      smartFolder = smartRootItem._folder.getChildWithURI(folderUri, false, true);
     } catch (ex) {
         smartFolder = null;
     };
