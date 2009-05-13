@@ -2061,7 +2061,7 @@ NS_IMETHODIMP nsImapProtocol::CanHandleUrl(nsIImapUrl * aImapUrl,
     // otherwise, we've probably just not finished setting it so don't kill it!
     if (NS_FAILED(rv) || !isAlive)
     {
-      TellThreadToDie();
+      TellThreadToDie(PR_FALSE);
       return NS_ERROR_FAILURE;
     }
   }
