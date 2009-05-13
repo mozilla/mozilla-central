@@ -238,11 +238,11 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsg
     nsTArray<nsMsgKey> newHits;
     newHits.SetLength(count);
     for (PRUint32 i = 0; i < count; i++)
-    {
       m_hdrHits[i]->GetMessageKey(&newHits[i]);
-    }
+
     newHits.Sort();
     UpdateCacheAndViewForFolder(m_curFolderGettingHits, newHits.Elements(), newHits.Length());
+    m_foldersSearchingOver.RemoveObject(m_curFolderGettingHits);
   }
 
   while (m_foldersSearchingOver.Count() > 0)
@@ -254,7 +254,7 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsg
       m_foldersSearchingOver.RemoveObjectAt(0);
       break;
     }
-    else if (m_foldersSearchingOver[0] != m_curFolderGettingHits)
+    else
     {
       // this must be a folder that had no hits with the current search.
       // So all cached hits, if any, need to be removed.
