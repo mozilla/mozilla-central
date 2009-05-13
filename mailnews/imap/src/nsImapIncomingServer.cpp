@@ -1262,8 +1262,8 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       if (hierarchyDelimiter != '/')
         nsImapUrl::UnescapeSlashes(dupFolderPath.BeginWriting());
 
-    // GMail gives us a localized name for the inbox but doesn't let 
-    // us select that localized name.
+      // GMail gives us a localized name for the inbox but doesn't let 
+      // us select that localized name.
       if (boxFlags & kImapInbox)
         imapFolder->SetOnlineName(NS_LITERAL_CSTRING("INBOX"));
       else if (onlineName.IsEmpty() || !onlineName.Equals(dupFolderPath))
