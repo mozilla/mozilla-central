@@ -321,7 +321,7 @@ NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseCondStore,
                         "use_condstore")
 
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, IsGMailServer,
-                        "is_gmail");
+                        "is_gmail")
 
 NS_IMETHODIMP
 nsImapIncomingServer::GetShuttingDown(PRBool *retval)
