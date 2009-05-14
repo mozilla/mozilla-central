@@ -2307,18 +2307,6 @@ function IsGetNextNMessagesEnabled()
   return false;
 }
 
-function IsCompactFolderEnabled()
-{
-  var folder = GetSelectedMsgFolders()[0];
-  if (!folder)
-    return;
-  let server = folder.server;
-  return (server &&
-      (server.type != 'nntp') && // compact news folder is not supported
-      ((server.type != 'imap') || server.canCompactFoldersOnServer) &&
-      isCommandEnabled("cmd_compactFolder")); // checks e.g. if IMAP is offline
-}
-
 function SetUpToolbarButtons(uri)
 {
   var deleteButton = document.getElementById("button-delete");

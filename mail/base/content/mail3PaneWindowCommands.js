@@ -58,8 +58,6 @@ var FolderPaneController =
         if (GetNumSelectedMessages() != 0)
           return false;
         // else fall through
-      case "button_compact":
-      //case "cmd_selectAll": the folder pane currently only handles single selection
       case "cmd_cut":
       case "cmd_copy":
       case "cmd_paste":
@@ -88,19 +86,10 @@ var FolderPaneController =
         if (folders.length) {
           // XXX Figure out some better way/place to update the folder labels.
           UpdateDeleteLabelsFromFolderCommand(folders[0], command);
-          return CanDeleteFolder(folders[0]) && isCommandEnabled(command);
+          return CanDeleteFolder(folders[0]) && folders[0].isCommandEnabled(command);
         }
         else
           return false;
-      }
-      case "button_compact":
-      {
-        let folders = gFolderTreeView.getSelectedFolders();
-        function checkIsServer(folder) {
-          return folder.isServer;
-        }
-        let haveServersSelected = folders.some(checkIsServer);
-        return !haveServersSelected && IsCompactFolderEnabled();
       }
       default:
         return false;
@@ -120,9 +109,6 @@ var FolderPaneController =
       case "button_delete":
       case "cmd_deleteFolder":
         gFolderTreeController.deleteFolder(); 
-        break;
-      case "button_compact":
-        gFolderTreeController.compactFolders();
         break;
     }
   },
@@ -444,7 +430,11 @@ var DefaultController =
       case "cmd_redo":
           return SetupUndoRedoCommand(command);
       case "cmd_renameFolder":
-        return IsRenameFolderEnabled();
+      {
+        let folders = gFolderTreeView.getSelectedFolders();
+        return folders.length == 1 && folders[0].canRename &&
+               folders[0].isCommandEnabled("cmd_renameFolder");
+      }
       case "cmd_sendUnsentMsgs":
         return IsSendUnsentMsgsEnabled(null);
       case "cmd_properties":
@@ -463,8 +453,26 @@ var DefaultController =
                          IsMailFolderSelected() : false;
       }
       case "button_compact":
+      {
+        let folders = gFolderTreeView.getSelectedFolders();
+        function canCompact(folder) {
+          return !folder.isServer &&
+            !(folder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) &&
+            (folder.server.type != "imap" || folder.server.canCompactFoldersOnServer) &&
+            folder.isCommandEnabled("button_compact");
+        }
+        return folders && folders.every(canCompact);
+      }
       case "cmd_compactFolder":
-        return IsCompactFolderEnabled();
+      {
+        let folders = gFolderTreeView.getSelectedFolders();
+        function canCompactAll(folder) {
+          return (folder.server.type != "imap" ||
+                  folder.server.canCompactFoldersOnServer) &&
+                  folder.isCommandEnabled("cmd_compactFolder") ;
+        }
+        return folders && folders.every(canCompactAll);
+      }
       case "cmd_setFolderCharset":
         return IsFolderCharsetEnabled();
       case "cmd_close":
@@ -909,13 +917,6 @@ function IsSendUnsentMsgsEnabled(unsentMsgsFolder)
   return msgSendlater.hasUnsentMessages(identity);
 }
 
-function IsRenameFolderEnabled()
-{
-  var folders = gFolderTreeView.getSelectedFolders();
-  return folders.length == 1 && folders[0].canRename &&
-         isCommandEnabled("cmd_renameFolder");
-}
-
 function IsCanSearchMessagesEnabled()
 {
   var folder = GetSelectedMsgFolders()[0];
@@ -1017,21 +1018,6 @@ function SetFocusMessagePane()
   // pane looking like it has focus.
   GetMessagePane().focus();
   GetMessagePaneFrame().focus();
-}
-
-function isCommandEnabled(cmd)
-{
-  var selectedFolders = GetSelectedMsgFolders();
-  var numFolders = selectedFolders.length;
-  if(numFolders !=1)
-    return false;
-
-  var folder = selectedFolders[0];
-  if (!folder)
-    return false;
-  else
-    return folder.isCommandEnabled(cmd);
-
 }
 
 //
