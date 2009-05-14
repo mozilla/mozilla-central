@@ -1706,7 +1706,7 @@ function GenericSendMessage( msgType )
           for (let i = 0; i < keywordsArray.length && !keywordFound; i++)
           {
             var re = new RegExp(keywordsArray[i], "i");
-            keywordFound = re.exec(mailData);
+            keywordFound = re.test(mailData);
           }
 
           if (keywordFound)
