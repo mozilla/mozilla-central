@@ -1278,12 +1278,14 @@ let gFolderTreeView = {
 
   OnItemPropertyChanged: function(aItem, aProperty, aOld, aNew) {},
   OnItemIntPropertyChanged: function(aItem, aProperty, aOld, aNew) {
-    // we want to rebuild only if:
-    if (this._mode == "unread" && // we're doing unread mode
-        aProperty == "TotalUnreadMessages" && aOld == 0 &&  // we have a new unread folder
-        !this.getIndexOfFolder(aItem)) // we don't already have it
+    // we want to rebuild only if we're in unread mode, and we have a
+    // newly unread folder, and we didn't already have the folder.
+    if (this._mode == "unread" &&
+        aProperty == "TotalUnreadMessages" && aOld == 0 &&
+        !this.getIndexOfFolder(aItem)) {
       this._rebuild();
       return;
+    }
 
     if (aItem instanceof Components.interfaces.nsIMsgFolder)
     {
