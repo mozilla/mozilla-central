@@ -49,7 +49,7 @@ interface nsISimpleEnumerator;
 /* 
  * nsIMsgRFCParser Interface declaration 
  */ 
-[scriptable, uuid(392ba09d-5a3a-4f24-bd15-782cab25fdb2)]
+[scriptable, uuid(a67d4d96-e5cb-458d-9311-794d5d1a9832)]
 interface nsIMsgHeaderParser : nsISupports {
 
   void parseHeadersWithArray(in wstring aLine, 
@@ -134,16 +134,11 @@ interface nsIMsgHeaderParser : nsISupports {
    *                            process also checks for duplicates against.
    *                            Addresses in this list will not be added to the
    *                            result.
-   * @param aRemoveAliasesToMe  Allows the address parser to use the preference
-   *                            which contains regular expressions which also
-   *                            mean 'me' for the purpose of stripping the
-   *                            user's email address(es) out of addrs.
    * @return                    A string based on the original without the
    *                            duplicate addresses.
    */
-  [noscript] string removeDuplicateAddresses(in string aAddrs,
-                                             in string aOtherAddrs,
-                                             in boolean aRemoveAliasesToMe);
+  AUTF8String removeDuplicateAddresses(in AUTF8String aAddrs,
+                                       in AUTF8String aOtherAddrs);
 
   /**
    * Given an e-mail address and a person's name, cons them together into a

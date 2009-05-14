@@ -431,20 +431,13 @@ nsresult nsSMimeJSHelper::getMailboxList(nsIMsgCompFields *compFields, PRUint32 
     if (!ng.IsEmpty())
       all_recipients.Append(NS_ConvertUTF16toUTF8(ng));
 
-    char *unique_mailboxes = nsnull;
-
+    nsCString unique_mailboxes;
     nsCString all_mailboxes;
     parser->ExtractHeaderAddressMailboxes(all_recipients, all_mailboxes);
-    parser->RemoveDuplicateAddresses(all_mailboxes.get(), 0, PR_FALSE,
-                                     &unique_mailboxes);
-    if (unique_mailboxes)
-    {
-      parser->ParseHeaderAddresses(unique_mailboxes, 0, mailbox_list,
-                                   mailbox_count);
-    }
-    if (unique_mailboxes) {
-      nsMemory::Free(unique_mailboxes);
-    }
+    parser->RemoveDuplicateAddresses(all_mailboxes, EmptyCString(),
+                                     unique_mailboxes);
+    parser->ParseHeaderAddresses(unique_mailboxes.get(), 0, mailbox_list,
+                                 mailbox_count);
   }
 
   return NS_OK;

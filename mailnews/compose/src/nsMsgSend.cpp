@@ -3224,15 +3224,15 @@ nsMsgComposeAndSend::AddMailFollowupToHeader() {
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Remove duplicate addresses in recipients
-  nsCAutoString recipients_no_dups;
-  rv = headerParser->RemoveDuplicateAddresses(recipients.get(),
-    nsnull, PR_FALSE, getter_Copies(recipients_no_dups));
+  nsCString recipients_no_dups;
+  rv = headerParser->RemoveDuplicateAddresses(recipients, EmptyCString(),
+                                              recipients_no_dups);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Remove subscribed mailing lists from recipients...
-  nsCAutoString recipients_without_mailing_lists;
-  rv = headerParser->RemoveDuplicateAddresses(recipients_no_dups.get(),
-    mailing_lists.get(), PR_FALSE, getter_Copies(recipients_without_mailing_lists));
+  nsCString recipients_without_mailing_lists;
+  rv = headerParser->RemoveDuplicateAddresses(recipients_no_dups, mailing_lists,
+                                              recipients_without_mailing_lists);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // ... If the result is equal to the input, we don't write to a subscribed
@@ -3308,15 +3308,16 @@ nsMsgComposeAndSend::AddMailReplyToHeader() {
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Remove duplicate addresses in recipients
-    nsCAutoString recipients_no_dups;
-    rv = headerParser->RemoveDuplicateAddresses(recipients.get(),
-      nsnull, PR_FALSE, getter_Copies(recipients_no_dups));
+    nsCString recipients_no_dups;
+    rv = headerParser->RemoveDuplicateAddresses(recipients, EmptyCString(),
+                                                recipients_no_dups);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Remove reply-to mangling mailing lists from recipients...
-    nsCAutoString recipients_without_mailing_lists;
-    rv = headerParser->RemoveDuplicateAddresses(recipients_no_dups.get(),
-      mailing_lists.get(), PR_FALSE, getter_Copies(recipients_without_mailing_lists));
+    nsCString recipients_without_mailing_lists;
+    rv = headerParser->RemoveDuplicateAddresses(recipients_no_dups,
+                                                mailing_lists,
+                                                recipients_without_mailing_lists);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // ... If the result is equal to the input, none of the recipients

@@ -139,20 +139,6 @@ static void GetReplyHeaderInfo(PRInt32* reply_header_type,
   }
 }
 
-static nsresult RemoveDuplicateAddresses(const char * addresses, const char * anothersAddresses, PRBool removeAliasesToMe, char** newAddress)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
-  if (parser)
-    rv = parser->RemoveDuplicateAddresses(addresses, anothersAddresses,
-                                          removeAliasesToMe, newAddress);
-  else
-    rv = NS_ERROR_FAILURE;
-
-  return rv;
-}
-
 static void TranslateLineEnding(nsString& data)
 {
   PRUnichar* rPtr;   //Read pointer
@@ -1630,6 +1616,10 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       return NS_ERROR_OUT_OF_MEMORY;
   }
 
+  nsCOMPtr<nsIMsgHeaderParser> parser =
+    do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   if (m_identity)
   {
     /* Setup reply-to field */
@@ -1637,17 +1627,13 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
     m_identity->GetReplyTo(replyTo);
     if (!replyTo.IsEmpty())
     {
-      char *resultStr = nsnull;
-      rv = RemoveDuplicateAddresses(m_compFields->GetReplyTo(),
-                                    replyTo.get(), PR_TRUE, &resultStr);
-      if (NS_SUCCEEDED(rv) && resultStr)
+      nsCString resultStr;
+      rv = parser->RemoveDuplicateAddresses(nsDependentCString(m_compFields->GetReplyTo()),
+                                            replyTo, resultStr);
+      if (NS_SUCCEEDED(rv) && !resultStr.IsEmpty())
       {
-        if (*resultStr)
-        {
-          replyTo.Append(',');
-          replyTo.Append(resultStr);
-        }
-        PR_Free(resultStr);
+        replyTo.Append(',');
+        replyTo.Append(resultStr);
       }
       m_compFields->SetReplyTo(replyTo.get());
     }
@@ -1660,17 +1646,13 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       nsCString bccList;
       m_identity->GetDoBccList(bccList);
 
-      char *resultStr = nsnull;
-      rv = RemoveDuplicateAddresses(m_compFields->GetBcc(),
-                                    bccList.get(), PR_TRUE, &resultStr);
-      if (NS_SUCCEEDED(rv) && resultStr)
+      nsCString resultStr;
+      rv = parser->RemoveDuplicateAddresses(nsDependentCString(m_compFields->GetBcc()),
+                                            bccList, resultStr);
+      if (NS_SUCCEEDED(rv) && !resultStr.IsEmpty())
       {
-        if (*resultStr)
-        {
-          bccList.Append(',');
-          bccList.Append(resultStr);
-        }
-        PR_Free(resultStr);
+        bccList.Append(',');
+        bccList.Append(resultStr);
       }
       m_compFields->SetBcc(bccList.get());
     }
@@ -2617,37 +2599,34 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
 
         if (needToRemoveDup)
         {
-          //Remove duplicate addresses between TO && CC
-          char * resultStr;
-          nsMsgCompFields* _compFields = (nsMsgCompFields*)compFields.get();  // XXX what is this?
-          if (NS_SUCCEEDED(rv))
-          {
-            nsCString addressToBeRemoved(_compFields->GetTo());
-            if (mIdentity)
-            {
-              nsCString email;
-              mIdentity->GetEmail(email);
-              addressToBeRemoved.AppendLiteral(", ");
-              addressToBeRemoved.Append(email);
-              // Remove my own address if using Mail-Followup-To (see bug 325429)
-              if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
-              {
-                rv = RemoveDuplicateAddresses(_compFields->GetTo(), email.get(), PR_TRUE, &resultStr);
-                if (NS_SUCCEEDED(rv))
-                {
-                  _compFields->SetTo(resultStr);
-                  PR_Free(resultStr);
-                }
-              }
-            }
+          // Remove duplicate addresses between TO && CC
+          nsCString resultStr;
+          nsCOMPtr<nsIMsgHeaderParser> parser =
+            do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+          NS_ENSURE_SUCCESS(rv, rv);
 
-            rv= RemoveDuplicateAddresses(_compFields->GetCc(), addressToBeRemoved.get(), PR_TRUE, &resultStr);
-            if (NS_SUCCEEDED(rv))
+          nsMsgCompFields* _compFields = static_cast<nsMsgCompFields*>(compFields.get());  // XXX what is this?
+          nsCString addressToBeRemoved(_compFields->GetTo());
+          if (mIdentity)
+          {
+            nsCString email;
+            mIdentity->GetEmail(email);
+            addressToBeRemoved.AppendLiteral(", ");
+            addressToBeRemoved.Append(email);
+            // Remove my own address if using Mail-Followup-To (see bug 325429)
+            if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
             {
-              _compFields->SetCc(resultStr);
-              PR_Free(resultStr);
+              rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
+                                                    email, resultStr);
+              if (NS_SUCCEEDED(rv))
+                _compFields->SetTo(resultStr.get());
             }
           }
+
+          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetCc()),
+                                                addressToBeRemoved, resultStr);
+          if (NS_SUCCEEDED(rv))
+            _compFields->SetCc(resultStr.get());
         }
       }
     }

@@ -874,8 +874,8 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
                                                  PRBool aEncrypt,
                                                  PRBool aSign)
 {
-  char *mailboxes = 0, *mailbox_list = 0;
-  nsCString all_mailboxes;
+  char *mailbox_list = 0;
+  nsCString all_mailboxes, mailboxes;
   const char *mailbox = 0;
   PRUint32 count = 0;
   nsCOMPtr<nsIX509CertDB> certdb = do_GetService(NS_X509CERTDB_CONTRACTID);
@@ -907,13 +907,10 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
 
   pHeader->ExtractHeaderAddressMailboxes(nsDependentCString(aRecipients),
                                          all_mailboxes);
-  pHeader->RemoveDuplicateAddresses(all_mailboxes.get(), 0, PR_FALSE, &mailboxes);
+  pHeader->RemoveDuplicateAddresses(all_mailboxes, EmptyCString(), mailboxes);
 
-  if (mailboxes) {
-    pHeader->ParseHeaderAddresses(mailboxes, 0, &mailbox_list, &count);
-    nsMemory::Free(mailboxes);
-    mailboxes = nsnull;
-  }
+  pHeader->ParseHeaderAddresses(mailboxes.get(), 0, &mailbox_list, &count);
+
   if (count < 0) return count;
 
   if (aEncrypt && mSelfEncryptionCert) {

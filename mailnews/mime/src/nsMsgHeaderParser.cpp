@@ -76,8 +76,8 @@ static char *msg_format_Header_addresses(const char *addrs, int count,
 #endif
 static char *msg_reformat_Header_addresses(const char *line);
 
-static char *msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
-                                            PRBool removeAliasesToMe);
+static char *msg_remove_duplicate_addresses(const nsACString &addrs,
+                                            const nsACString &other_addrs);
 static char *msg_make_full_address(const char* name, const char* addr);
 
 /*
@@ -207,14 +207,11 @@ nsMsgHeaderParser::ReformatHeaderAddresses(const char *aLine,
 }
 
 NS_IMETHODIMP
-nsMsgHeaderParser::RemoveDuplicateAddresses(const char *aAddrs,
-                                            const char *aOtherAddrs,
-                                            PRBool aRemoveAliasesToMe,
-                                            char **aResult)
+nsMsgHeaderParser::RemoveDuplicateAddresses(const nsACString &aAddrs,
+                                            const nsACString &aOtherAddrs,
+                                            nsACString &aResult)
 {
-  NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = msg_remove_duplicate_addresses(aAddrs, aOtherAddrs,
-                                            aRemoveAliasesToMe);
+  aResult.Adopt(msg_remove_duplicate_addresses(aAddrs, aOtherAddrs));
   return NS_OK;
 }
 
@@ -1378,23 +1375,17 @@ msg_reformat_Header_addresses(const char *line)
  *
  * Addresses are considered to be the same if they contain the same mailbox
  * part (case-insensitive.)  Real names and other comments are not compared.
- *
- * removeAliasesToMe allows the address parser to use the preference which
- * contains regular expressions which also mean 'me' for the purpose of
- * stripping the user's email address(es) out of addrs
  */
 static char *
-msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
-                               PRBool removeAliasesToMe)
+msg_remove_duplicate_addresses(const nsACString &addrs,
+                               const nsACString &other_addrs)
 {
-  if (!addrs) return 0;
-
   /* This is probably way more complicated than it should be... */
   char *s1 = 0, *s2 = 0;
   char *output = 0, *out = 0;
   char *result = 0;
   int count1 = 0, count2 = 0, count3 = 0;
-  int size1 = 0, size2 = 0, size3 = 0;
+  int size3 = 0;
   char *names1 = 0, *names2 = 0;
   char *addrs1 = 0, *addrs2 = 0;
   char **a_array1 = 0, **a_array2 = 0, **a_array3 = 0;
@@ -1402,38 +1393,15 @@ msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
   int i, j;
   PRUint32 addedlen = 0;
 
-  count1 = msg_parse_Header_addresses(addrs, &names1, &addrs1);
+  count1 = msg_parse_Header_addresses(nsCString(addrs).get(), &names1, &addrs1);
   if (count1 < 0) goto FAIL;
   if (count1 == 0)
   {
     result = strdup("");
     goto FAIL;
   }
-  if (other_addrs)
-    count2 = msg_parse_Header_addresses(other_addrs, &names2, &addrs2);
+  count2 = msg_parse_Header_addresses(nsCString(other_addrs).get(), &names2, &addrs2);
   if (count2 < 0) goto FAIL;
-
-  s1 = names1;
-  s2 = addrs1;
-  for (i = 0; i < count1; i++)
-  {
-    PRUint32 len1 = strlen(s1);
-    PRUint32 len2 = strlen(s2);
-    s1 += len1 + 1;
-    s2 += len2 + 1;
-    size1 += len1 + len2 + 10;
-  }
-
-  s1 = names2;
-  s2 = addrs2;
-  for (i = 0; i < count2; i++)
-  {
-    PRUint32 len1 = strlen(s1);
-    PRUint32 len2 = strlen(s2);
-    s1 += len1 + 1;
-    s2 += len2 + 1;
-    size2 += len1 + len2 + 10;
-  }
 
   a_array1 = (char **)PR_Malloc(count1 * sizeof(char *));
   if (!a_array1) goto FAIL;
@@ -1491,15 +1459,7 @@ msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
           found = PR_TRUE;
           break;
         }
-/* HACK ALERT!!!! TEMPORARILY COMMENTING OUT UNTIL WE PORT MSG_PREFS INTO THE MOZILLA TREE!!!!!! */
-#if 0
-    if (!found && removeAliasesToMe)
-    {
-      found = MSG_Prefs::IsEmailAddressAnAliasForMe(a_array1[i]);
-      if (found)
-        break;
-    }
-#endif
+
     if (!found)
     {
       n_array3[count3] = n_array1[i];

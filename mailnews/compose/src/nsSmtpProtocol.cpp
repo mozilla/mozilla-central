@@ -1568,89 +1568,80 @@ PRInt32 nsSmtpProtocol::SendQuit()
 
 nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 {
-  nsresult rv = NS_OK;
+  if (!aURL)
+    return NS_OK;
 
-  PRInt32 status = 0;
-	m_continuationResponse = -1;  /* init */
-	if (aURL)
-	{
-		m_runningURL = do_QueryInterface(aURL);
+  m_continuationResponse = -1;  /* init */
+  m_runningURL = do_QueryInterface(aURL);
+  if (!m_runningURL)
+    return NS_ERROR_FAILURE;
 
-    // we had a bug where we failed to bring up an alert if the host
-    // name was empty....so throw up an alert saying we don't have
-    // a host name and inform the caller that we are not going to
-    // run the url...
-
-    nsCAutoString hostName;
-    aURL->GetHost(hostName);
-    if (hostName.IsEmpty())
+  // we had a bug where we failed to bring up an alert if the host
+  // name was empty....so throw up an alert saying we don't have
+  // a host name and inform the caller that we are not going to
+  // run the url...
+  nsCAutoString hostName;
+  aURL->GetHost(hostName);
+  if (hostName.IsEmpty())
+  {
+    nsCOMPtr <nsIMsgMailNewsUrl> aMsgUrl = do_QueryInterface(aURL);
+    if (aMsgUrl)
     {
-       nsCOMPtr <nsIMsgMailNewsUrl> aMsgUrl = do_QueryInterface(aURL);
-       if (aMsgUrl)
-       {
-           aMsgUrl->SetUrlState(PR_TRUE, NS_OK);
-           rv = aMsgUrl->SetUrlState(PR_FALSE /* we aren't running the url */, NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER); // set the url as a url currently being run...
-       }
-        return NS_ERROR_BUT_DONT_SHOW_ALERT;
+      aMsgUrl->SetUrlState(PR_TRUE, NS_OK);
+      // set the url as a url currently being run...
+      aMsgUrl->SetUrlState(PR_FALSE /* we aren't running the url */,
+                           NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER); 
     }
+    return NS_ERROR_BUT_DONT_SHOW_ALERT;
+  }
 
-		PRBool postMessage = PR_FALSE;
-		m_runningURL->GetPostMessage(&postMessage);
+  PRBool postMessage = PR_FALSE;
+  m_runningURL->GetPostMessage(&postMessage);
 
-		if(postMessage)
-		{
-			char *addrs1 = 0;
-			char *addrs2 = 0;
-            m_nextState = SMTP_RESPONSE;
-            m_nextStateAfterResponse = SMTP_EXTN_LOGIN_RESPONSE;
+  if (postMessage)
+  {
+    nsCString addrs1;
+    char *addrs2 = 0;
+    m_nextState = SMTP_RESPONSE;
+    m_nextStateAfterResponse = SMTP_EXTN_LOGIN_RESPONSE;
 
-			/* Remove duplicates from the list, to prevent people from getting
-				more than one copy (the SMTP host may do this too, or it may not.)
-				This causes the address list to be parsed twice; this probably
-				doesn't matter.
-			*/
+    // Remove duplicates from the list, to prevent people from getting
+    // more than one copy (the SMTP host may do this too, or it may not.)
+    // This causes the address list to be parsed twice; this probably
+    // doesn't matter.
+    nsCString addresses;
+    nsCOMPtr<nsIMsgHeaderParser> parser =
+      do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 
-			nsCString addresses;
-			nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
+    m_runningURL->GetRecipients(getter_Copies(addresses));
 
-			m_runningURL->GetRecipients(getter_Copies(addresses));
+    if (parser)
+    {
+      parser->RemoveDuplicateAddresses(addresses, EmptyCString(), addrs1);
 
-			if (NS_SUCCEEDED(rv) && parser)
-			{
-                parser->RemoveDuplicateAddresses(addresses.get(), nsnull,
-                                                 PR_FALSE, &addrs1);
+      // Extract just the mailboxes from the full RFC822 address list.
+      // This means that people can post to mailto: URLs which contain
+      // full RFC822 address specs, and we will still send the right
+      // thing in the SMTP RCPT command.
+      if (!addrs1.IsEmpty())
+        parser->ParseHeaderAddresses(addrs1.get(), nsnull, &addrs2,
+                                     &m_addressesLeft);
 
-				/* Extract just the mailboxes from the full RFC822 address list.
-				   This means that people can post to mailto: URLs which contain
-				   full RFC822 address specs, and we will still send the right
-				   thing in the SMTP RCPT command.
-				*/
-				if (addrs1 && *addrs1)
-				{
-                    rv = parser->ParseHeaderAddresses(addrs1, nsnull, &addrs2,
-                                                      &m_addressesLeft);
-					PR_FREEIF (addrs1);
-				}
+      // hmm no addresses to send message to...
+      if (m_addressesLeft == 0 || !addrs2)
+      {
+        m_nextState = SMTP_ERROR_DONE;
+        ClearFlag(SMTP_PAUSE_FOR_READ);
+        m_urlErrorState = NS_MSG_NO_RECIPIENTS;
+        return NS_MSG_NO_RECIPIENTS;
+      }
 
-        // hmm no addresses to send message to...
-				if (m_addressesLeft == 0 || addrs2 == nsnull)
-				{
-					m_nextState = SMTP_ERROR_DONE;
-					ClearFlag(SMTP_PAUSE_FOR_READ);
-					status = NS_MSG_NO_RECIPIENTS;
-          m_urlErrorState = NS_MSG_NO_RECIPIENTS;
-					return(status);
-				}
+      m_addressCopy = addrs2;
+      m_addresses = m_addressCopy;
+    } // if parser
+  } // if post message
 
-				m_addressCopy = addrs2;
-				m_addresses = m_addressCopy;
-			} // if parser
-		} // if post message
-
-		rv = nsMsgProtocol::LoadUrl(aURL, aConsumer);
-	} // if we received a url!
-
-	return rv;
+  return nsMsgProtocol::LoadUrl(aURL, aConsumer);
 }
 
 /*
