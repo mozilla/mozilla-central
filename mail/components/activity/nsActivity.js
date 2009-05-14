@@ -196,7 +196,7 @@ nsActivityProcess.prototype = {
   },
 
   setProgress: function(aStatusText, aWorkUnitsComplete, aTotalWorkUnits) {
-    this.percentComplete = 100.0 * aWorkUnitsComplete / aTotalWorkUnits;
+    this.percentComplete = parseInt(100 * aWorkUnitsComplete / aTotalWorkUnits);
     this.workUnitComplete = aWorkUnitsComplete;
     this.totalWorkUnits = aTotalWorkUnits;
     this.lastStatusText = aStatusText;

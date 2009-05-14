@@ -112,7 +112,6 @@ let Log4Moz = {
 
   getConfiguredLogger: function(loggername, level, consoleLevel, dumpLevel) {
     let log = Log4Moz.repository.getLogger(loggername);
-    let branch;
     if (log._configured)
       return log
 

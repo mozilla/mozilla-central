@@ -386,6 +386,10 @@ var GlodaIndexer = {
       this._perfTimer.cancel();
     } catch (ex) {}
     this._perfTimer = null;
+
+    // Remove listeners to avoid reference cycles on the off chance one of them
+    // holds a reference to the indexer object.
+    this._indexListeners = [];
     
     this._indexerIsShutdown = true;
     
@@ -946,8 +950,8 @@ var GlodaIndexer = {
       else
         status = Gloda.kIndexerRemoving;
         
-      let prettyName = (this._indexingFolder !== null) ?
-                       this._indexingFolder.prettiestName : null;
+      prettyName = (this._indexingFolder !== null) ?
+                   this._indexingFolder.prettiestName : null;
 
       jobIndex = this._indexingJobCount-1;
       jobTotal = this._indexingJobGoal;
@@ -966,8 +970,13 @@ var GlodaIndexer = {
     for (let iListener = this._indexListeners.length-1; iListener >= 0; 
          iListener--) {
       let listener = this._indexListeners[iListener];
-      listener(status, prettyName, jobIndex, jobTotal, jobItemIndex,
-               jobItemGoal);
+      try {
+        listener(status, prettyName, jobIndex, jobTotal, jobItemIndex,
+                 jobItemGoal);
+      }
+      catch(ex) {
+        this._log.error(ex);
+      }
     }
   },
   
@@ -1391,7 +1400,8 @@ var GlodaIndexer = {
     // try and get a job if we don't have one for the sake of the notification
     if (this.indexing && (this._actualWorker === null))
       this._hireJobWorker();
-    this._notifyListeners();
+    else
+      this._notifyListeners();
     
     yield this.kWorkDone;
   },
@@ -1454,7 +1464,9 @@ var GlodaIndexer = {
     else {
       this._log.warning("Unknown job type: " + job.jobType);
     }
-    
+
+    this._notifyListeners();
+
     if (generator) {
       this._callbackHandle.push(generator);
       return true;
@@ -1575,7 +1587,10 @@ var GlodaIndexer = {
     
     if (!this.shouldIndexFolder(this._indexingFolder))
       yield this.kWorkDone;
-    
+
+    // Make sure listeners get notified about this job.
+    this._notifyListeners();
+
     // there is of course a cost to all this header investigation even if we
     //  don't do something.  so we will yield with kWorkSync for every block. 
     const HEADER_CHECK_BLOCK_SIZE = 10;
@@ -1656,26 +1671,27 @@ var GlodaIndexer = {
         ++numMessagesToIndex;
     }
 
-    // We used up the iterator, get a new one.
-    this._indexerGetIterator();
-
     aJob.goal = numMessagesToIndex;
 
-    // Pass 2: index the messages.
-    count = 0;
-    for (let msgHdr in this._indexingIterator) {
-      // per above, we want to periodically release control while doing all
-      //  this header traversal/investigation.
-      if (++count % HEADER_CHECK_BLOCK_SIZE == 0) {
-        yield this.kWorkSync;
-      }
+    if (numMessagesToIndex > 0) {
+      // We used up the iterator, get a new one.
+      this._indexerGetIterator();
 
-      if (shouldIndexMessage(msgHdr)) {
-        ++aJob.offset;
-        this._log.debug(">>>  _indexMessage");
-        yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
-            this._callbackHandle));
-        this._log.debug("<<<  _indexMessage");
+      // Pass 2: index the messages.
+      let count = 0;
+      for (let msgHdr in this._indexingIterator) {
+        // per above, we want to periodically release control while doing all
+        // this header traversal/investigation.
+        if (++count % HEADER_CHECK_BLOCK_SIZE == 0)
+          yield this.kWorkSync;
+
+        if (shouldIndexMessage(msgHdr)) {
+          ++aJob.offset;
+          this._log.debug(">>>  _indexMessage");
+          yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
+              this._callbackHandle));
+          this._log.debug("<<<  _indexMessage");
+        }
       }
     }
     
