@@ -517,7 +517,9 @@
 
         <!-- Moving the messengerCmd menu item item to the Window menu on the Mac -->
 #ifndef XP_MACOSX
-            <menuitem accesskey="&messengerCmd.accesskey;" label="&messengerCmd.label;"  key="key_mail" oncommand="toMessengerWindow();" id="tasksMenuMail" class="menuitem-iconic icon-mail16 menu-iconic"/>
+            <menuitem id="tasksMenuMail" accesskey="&messengerCmd.accesskey;"
+                      label="&messengerCmd.label;" key="key_mail"
+                      oncommand="toMessengerWindow();"/>
             <menuseparator />  
 #endif
             <menuitem label="&importCmd.label;" accesskey="&importCmd.accesskey;" oncommand="toImport()"/>

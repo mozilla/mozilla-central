@@ -66,12 +66,6 @@ toolbar {
   background-image: none;
 }
 
-/* ::::: tools menu icon ::::: */
-
-.icon-mail16 {
-  list-style-image: url("chrome://messenger/skin/icons/mail-16.gif");
-}
-
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-1 {

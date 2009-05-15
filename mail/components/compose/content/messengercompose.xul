@@ -491,13 +491,14 @@
           <menupopup id="taskPopup">
             <!-- Moving the first two items to the Window menu on the Mac -->
 #ifndef XP_MACOSX
-            <menuitem accesskey="&messengerCmd.accesskey;" label="&messengerCmd.label;"  key="key_mail" oncommand="toMessengerWindow();" id="tasksMenuMail" class="menuitem-iconic icon-mail16 menu-iconic"/>
+            <menuitem id="tasksMenuMail" accesskey="&messengerCmd.accesskey;"
+                      label="&messengerCmd.label;" key="key_mail"
+                      oncommand="toMessengerWindow();"/>
             <menuitem id="tasksMenuAddressBook"
                       label="&addressBookCmd.label;"
                       accesskey="&addressBookCmd.accesskey;"
                       key="key_addressbook"
-                      oncommand="toAddressBook();"
-                      class="menuitem-iconic icon-addressbook16 menu-iconic"/>
+                      oncommand="toAddressBook();"/>
 #endif
 
 #ifndef XP_UNIX
