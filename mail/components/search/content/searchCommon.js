@@ -105,8 +105,50 @@ let SearchSupport =
     if (!this.__prefBranch)
       this.__prefBranch = Cc["@mozilla.org/preferences-service;1"]
                             .getService(Ci.nsIPrefService)
-                            .getBranch(this._prefBase);
+                            .getBranch(this._prefBase)
+                            .QueryInterface(Ci.nsIPrefBranch2);
     return this.__prefBranch;
+  },
+
+  /**
+   * If this is true, we won't show any UI because the OS doesn't have the
+   * support we need
+   */
+  osVersionTooLow: false,
+
+  /**
+   * If this is true, we'll show disabled UI, because while the OS does have
+   * the support we need, not all the OS components we need are running
+   */
+  osComponentsNotRunning: false,
+
+  /**
+   * Whether the preference is enabled. The module might be in a state where
+   * the preference is on but "enabled" is false, so take care of that.
+   */
+  get prefEnabled()
+  {
+    // Don't cache the value
+    return this._prefBranch.getBoolPref("enable");
+  },
+  set prefEnabled(aEnabled)
+  {
+    if (this.prefEnabled != aEnabled)
+      this._prefBranch.setBoolPref("enable", aEnabled);
+  },
+
+  /**
+   * Whether the first run has occurred. This will be used to determine if
+   * a dialog box needs to be displayed.
+   */
+  get firstRunDone()
+  {
+    // Don't cache this value either
+    return this._prefBranch.getBoolPref("firstRunDone");
+  },
+  set firstRunDone()
+  {
+    this._prefBranch.setBoolPref("firstRunDone", true);
   },
 
   /**
@@ -255,6 +297,9 @@ let SearchSupport =
     this._log.info("Search integration running in " +
                    (enabled ? "active" : "backoff") + " mode");
     this.enabled = enabled;
+
+    // Set up a pref observer
+    this._prefBranch.addObserver("enable", this, false);
   },
 
   /**
@@ -484,6 +529,7 @@ let SearchSupport =
    * - idle observer; starts running through folders when it receives an "idle"
    * notification, and cancels any timers when it receives a "back" notification
    * - msg displayed observer, queues the message if necessary
+   * - pref observer, to see if the preference has been poked
    */
   observe: function search_observe(aSubject, aTopic, aData)
   {
@@ -519,6 +565,39 @@ let SearchSupport =
         }
       }
     }
+    else if (aTopic == "nsPref:changed" && aData == "enable")
+    {
+      let prefEnabled = this.prefEnabled;
+      // Search integration turned on
+      if (prefEnabled && this.register())
+      {
+        this.enabled = true;
+      }
+      // Search integration turned off
+      else if (!prefEnabled && this.deregister())
+      {
+        this.enabled = false;
+      }
+      else
+      {
+        // The call to register or deregister has failed.
+        // This is a hack to handle this case
+        let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+        timer.initWithCallback(function() {
+          SearchIntegration._handleRegisterFailure(!prefEnabled);
+        }, 200, Ci.nsITimer.TYPE_ONE_SHOT);
+      }
+    }
+  },
+
+  /// Handle failure to register or deregister
+  _handleRegisterFailure: function search_handle_register_failure(enabled)
+  {
+    // Remove ourselves from the observer list, flip the pref,
+    // and add ourselves back
+    this._prefBranch.removeObserver("enable", this);
+    this.prefEnabled = enabled;
+    this._prefBranch.addObserver("enable", this, false);
   },
 
   /**

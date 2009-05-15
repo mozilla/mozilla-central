@@ -164,7 +164,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
           // This is simple, we just exclude the profile dir and override children
           std::wstring path = L"file:///";
           path.append(argv[1]);
-          path.append(L"\\*\\");
           hr = crawlScopeManager->AddUserScopeRule(path.c_str(), FALSE, TRUE, TRUE);
         }
         else

@@ -1,5 +1,4 @@
 messenger.jar:
 %   overlay chrome://messenger/content/messenger.xul            chrome://messenger/content/search/searchOverlay.xul
-*   content/messenger/search/searchIntegrationDialog.xul        (content/searchIntegrationDialog.xul)
     content/messenger/search/searchOverlay.xul                  (content/searchOverlay.xul)
 *   content/messenger/search/searchOverlay.js                   (content/searchOverlay.js)

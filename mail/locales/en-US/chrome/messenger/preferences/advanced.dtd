@@ -8,9 +8,11 @@
 
 <!ENTITY enableGlodaSearch.label       "Enable Global Search and Indexer">
 <!ENTITY enableGlodaSearch.accesskey   "E">
-<!ENTITY systemDefaults.label          "System Defaults">
+<!ENTITY systemIntegration.label       "System Integration">
 <!ENTITY alwaysCheckDefault.label      "Always check to see if &brandShortName; is the default mail client on startup">
 <!ENTITY alwaysCheckDefault.accesskey  "A">
+<!ENTITY searchIntegration.label       "Allow &searchIntegration.engineName; to search messages">
+<!ENTITY searchIntegration.accesskey   "S">
 <!ENTITY checkNow.label                "Check Now">
 <!ENTITY checkNow.accesskey            "N">
 <!ENTITY configEditDesc.label          "Advanced Configuration">

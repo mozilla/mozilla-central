@@ -79,6 +79,20 @@ let SearchIntegration =
     return searchPath;
   },
 
+  /**
+   * These two functions won't do anything, as Spotlight integration is handled
+   * using Info.plist files
+   */
+  register: function spotlight_register()
+  {
+    return true;
+  },
+
+  deregister: function spotlight_deregister()
+  {
+    return true;
+  },
+
   _init: function spotlight_init()
   {
     this._initLogging();
@@ -210,10 +224,4 @@ let SearchIntegration =
   }
 };
 
-/* Initialize the search integration object */
-try {
-  SearchIntegration._init();
-}
-catch (ex) {
-  SearchIntegration._log.error("Could not initialize spotlight component");
-}
+SearchIntegration._init();

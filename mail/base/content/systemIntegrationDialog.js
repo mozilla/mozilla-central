@@ -37,7 +37,10 @@
 
 // this dialog can only be opened if we have a shell service
 
-var gDefaultClientDialog = {
+var gSystemIntegrationDialog = {
+  /// Whether the search integration checkbox is disabled or hidden
+  _searchCheckboxInactive: false,
+  
   onLoad: function () 
   {
     var nsIShellService = Components.interfaces.nsIShellService;
@@ -59,7 +62,41 @@ var gDefaultClientDialog = {
     // read the raw pref value and not shellSvc.shouldCheckDefaultMail
     var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                 .getService(Components.interfaces.nsIPrefBranch);
-    document.getElementById('checkOnStartup').checked = prefs.getBoolPref("mail.shell.checkDefaultClient");    
+    document.getElementById('checkOnStartup').checked = prefs.getBoolPref("mail.shell.checkDefaultClient");
+
+    // Search integration -- check whether we should hide or disable integration
+    let hideSearchUI = false;
+    let disableSearchUI = false;
+    Components.utils.import("resource://app/modules/SearchIntegration.js");
+    if (SearchIntegration)
+    {
+      if (SearchIntegration.osVersionTooLow)
+        hideSearchUI = true;
+      else if (SearchIntegration.osComponentsNotRunning)
+        disableSearchUI = true;
+    }
+    else
+    {
+      hideSearchUI = true;
+    }
+
+    let searchCheckbox = document.getElementById("searchIntegration");
+
+    if (hideSearchUI)
+    {
+      this._searchCheckboxInactive = true;
+      document.getElementById("searchIntegrationContainer").hidden = true;
+    }
+    else if (disableSearchUI)
+    {
+      this._searchCheckboxInactive = true;
+      searchCheckbox.checked = false;
+      searchCheckbox.disabled = true;
+    }
+    else
+    {
+      searchCheckbox.checked = SearchIntegration.prefEnabled;
+    }
   },
   
   onAccept: function()
@@ -80,5 +117,13 @@ var gDefaultClientDialog = {
       shellSvc.setDefaultClient(false, appTypes);
 
     shellSvc.shouldCheckDefaultClient = document.getElementById('checkOnStartup').checked;
+    
+    // Set the search integration pref if it's changed
+    // The integration will handle the rest
+    if (!this._searchCheckboxInactive)
+    {
+      SearchIntegration.prefEnabled = document.getElementById("searchIntegration").checked;
+      SearchIntegration.firstRunDone = true;
+    }
   }
 };

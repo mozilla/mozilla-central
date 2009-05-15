@@ -42,7 +42,9 @@ VPATH   = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS    = compose preferences addrbook migration activity
+# Only Mac and Windows have search integration components, but we include at
+# least one module from search/ on all platforms
+DIRS    = compose preferences addrbook migration activity search
 
 ifneq (,$(filter windows gtk2 mac cocoa, $(MOZ_WIDGET_TOOLKIT)))
 DIRS += shell
@@ -50,16 +52,6 @@ endif
 
 ifdef MOZ_SAFE_BROWSING
 DIRS += phishing 
-endif
-
-# Mac and Windows have search integration components
-ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
-DIRS += search
-endif
-ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
-ifndef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
-DIRS += search
-endif
 endif
 
 DIRS += build

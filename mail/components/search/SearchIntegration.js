@@ -13,12 +13,13 @@
  *
  * The Original Code is Desktop search integration.
  *
- * The Initial Developer of the Original Code is
- *  Siddharth Agarwal <sid1337@gmail.com>
- * Portions created by the Initial Developer are Copyright (C) 2008
+ * The Initial Developer of the Original Code is mozilla.org code.
+ *
+ * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,4 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://app/modules/SearchIntegration.js");
+var EXPORTED_SYMBOLS = ["SearchIntegration"];
+
+#ifdef XP_WIN
+Components.utils.import("resource://app/modules/WinSearchIntegration.js");
+#else
+#ifdef XP_MACOSX
+Components.utils.import("resource://app/modules/SpotlightIntegration.js");
+#else
+// Set SearchIntegration to null, as we don't have it
+var SearchIntegration = null;
+#endif
+#endif

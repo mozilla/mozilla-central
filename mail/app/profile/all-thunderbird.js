@@ -430,8 +430,14 @@ pref("mail.tabs.closeButtons", 1);
 pref("breakpad.reportURL", "http://crash-stats.mozilla.com/report/index/");
 
 // OS Integrated Search and Indexing
+#ifdef XP_WIN
+pref("mail.winsearch.enable", false);
+pref("mail.winsearch.firstRunDone", false);
+#else
 #ifdef XP_MACOSX
 pref("mail.spotlight.enable", false);
+pref("mail.spotlight.firstRunDone", false);
+#endif
 #endif
 
 // -- Windows Search/Spotlight logging options

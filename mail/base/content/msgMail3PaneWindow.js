@@ -725,8 +725,10 @@ function LoadPostAccountWizard()
     gSearchEmailAddress = (window.arguments.length > 2) ? window.arguments[2] : null;
   }
 
-  function showDefaultClientDialog() {
+  function completeStartup() {
 #ifdef HAVE_SHELL_SERVICE
+    // Check whether we need to show the default client dialog
+    // First, check the shell service
     var nsIShellService = Components.interfaces.nsIShellService;
     var shellService;
     var defaultAccount;
@@ -735,15 +737,23 @@ function LoadPostAccountWizard()
       defaultAccount = accountManager.defaultAccount;
     } catch (ex) {}
 
-    // Show the default client dialog only if we have at least one account,
-    // we should check for the default client, and we aren't already the default
-    // for mail.
+    // Next, try loading the search integration module
+    // We'll get a null SearchIntegration if we don't have one
+    Components.utils.import("resource://app/modules/SearchIntegration.js");
+
+    // Show the default client dialog only if
+    // EITHER: we have at least one account, and we aren't already the default
+    // for mail,
+    // OR: we have the search integration module, the OS version is suitable,
+    // and the first run hasn't already been completed.
     // Needs to be shown outside the he normal load sequence so it doesn't appear
     // before any other displays, in the wrong place of the screen.
-    if (shellService && defaultAccount && shellService.shouldCheckDefaultClient
-        && !shellService.isDefaultClient(true, nsIShellService.MAIL))
-      window.openDialog("chrome://messenger/content/defaultClientDialog.xul",
-                        "DefaultClient", "modal,centerscreen,chrome,resizable=no");
+    if ((shellService && defaultAccount && shellService.shouldCheckDefaultClient
+         && !shellService.isDefaultClient(true, nsIShellService.MAIL)) ||
+        (SearchIntegration && !SearchIntegration.osVersionTooLow &&
+         !SearchIntegration.osComponentsNotRunning && !SearchIntegration.firstRunDone))
+      window.openDialog("chrome://messenger/content/systemIntegrationDialog.xul",
+                        "SystemIntegration", "modal,centerscreen,chrome,resizable=no");
 #endif
 
     // All core modal dialogs are done, the user can now interact with the 3-pane window
@@ -752,7 +762,7 @@ function LoadPostAccountWizard()
     obs.notifyObservers(window, "mail-startup-done", null);
   }
 
-  setTimeout(showDefaultClientDialog, 0);
+  setTimeout(completeStartup, 0);
 
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadMsgHeaderPane();

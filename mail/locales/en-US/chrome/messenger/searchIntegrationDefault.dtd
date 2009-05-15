@@ -1,0 +1,3 @@
+<!-- LOCALIZATION NOTE: This is the search engine name for platforms that don't
+     support it, and should be left blank -->
+<!ENTITY searchIntegration.engineName "">
