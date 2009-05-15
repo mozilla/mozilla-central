@@ -1106,8 +1106,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
     return rv;
   nsCOMPtr<nsIMsgFolder> parentFolder;
   rv = GetParentMsgFolder(getter_AddRefs(parentFolder));
-  if (NS_FAILED(rv))
-    return rv;
+  if (!parentFolder)
+    return NS_ERROR_NULL_POINTER;
   nsCOMPtr<nsISupports> parentSupport = do_QueryInterface(parentFolder);
 
   nsCOMPtr <nsILocalFile> oldSummaryFile;
