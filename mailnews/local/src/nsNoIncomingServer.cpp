@@ -166,6 +166,12 @@ NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDi
 NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
   NS_ENSURE_ARG_POINTER(aPath);
+  
+  PRBool isHidden = PR_FALSE;
+  GetHidden(&isHidden);
+  if (isHidden)
+    return NS_OK;
+    
   nsCOMPtr <nsIFile> path;
   nsresult rv = aPath->Clone(getter_AddRefs(path));
   NS_ENSURE_SUCCESS(rv, rv);
