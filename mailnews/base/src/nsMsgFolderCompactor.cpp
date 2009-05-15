@@ -300,7 +300,12 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);   //make sure we are not crunching existing nstmp file
   m_window = aMsgWindow;
   m_keyArray.Clear();
-  InitDB(db);
+  rv = InitDB(db);
+  if (NS_FAILED(rv))
+  {
+    CleanupTempFilesAfterError();
+    return rv;
+  }
 
   m_size = m_keyArray.Length();
   m_curIndex = 0;
@@ -409,9 +414,12 @@ nsFolderCompactState::FinishCompact()
 
   // make sure the new database is valid.
   // Close it so we can rename the .msf file.
-  m_db->SetSummaryValid(PR_TRUE);
-  m_db->ForceClosed();
-  m_db = nsnull;
+  if (m_db)
+  {
+    m_db->SetSummaryValid(PR_TRUE);
+    m_db->ForceClosed();
+    m_db = nsnull;
+  }
 
   nsCOMPtr <nsILocalFile> newSummaryFile;
   GetSummaryFileLocation(m_file, getter_AddRefs(newSummaryFile));
