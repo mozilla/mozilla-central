@@ -64,7 +64,9 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mail.shell.checkDefaultClient': False,
         # disable non-gloda indexing daemons
         'mail.winsearch.enable': False,
-        'mail.splotlight.enable': False,
+        'mail.winsearch.firstRunDone': True,
+        'mail.spotlight.enable': False,
+        'mail.spotlight.firstRunDone': True,
         # disable address books for undisclosed reasons
         'ldap_2.servers.osx.position': 0,
         'ldap_2.servers.oe.position': 0,
