@@ -131,6 +131,16 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Trash) {
   list-style-image: url("chrome://messenger/skin/icons/folder-blank.png");
 }
 
+/* ..... Archives ..... */
+
+.tabmail-tab[type="folder"][SpecialFolder="Archive"] > .tab-image-middle > .tab-icon > .tab-icon-image,
+treechildren::-moz-tree-image(folderNameCol, specialFolder-Archive) {
+  background-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  background-position: left -192px;
+  list-style-image: url("chrome://messenger/skin/icons/folder-blank.png");
+}
+
+
 /* ..... Shared folders .....
 
 treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
