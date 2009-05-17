@@ -95,18 +95,18 @@ function onLoadPermission()
 
     for (var i in gPermObj)
       initRow(i);
-    var os = Components.classes["@mozilla.org/observer-service;1"]
-                       .getService(Components.interfaces.nsIObserverService);
-    os.addObserver(permissionObserver, "perm-changed", false);
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .addObserver(permissionObserver, "perm-changed", false);
     onUnloadRegistry.push(onUnloadPermission);
   }
 }
 
 function onUnloadPermission()
 {
-  var os = Components.classes["@mozilla.org/observer-service;1"]
-                     .getService(Components.interfaces.nsIObserverService);
-  os.removeObserver(permissionObserver, "perm-changed");
+  Components.classes["@mozilla.org/observer-service;1"]
+            .getService(Components.interfaces.nsIObserverService)
+            .removeObserver(permissionObserver, "perm-changed");
 }
 
 function initRow(aPartId)

@@ -314,7 +314,7 @@
       <!-- Permissions -->
       <vbox id="permPanel">
         <hbox>
-          <label control="hosttext" value="&permissionsFor;"/>
+          <label control="hostText" value="&permissionsFor;"/>
           <textbox id="hostText" class="header" readonly="true"
                    crop="end" flex="1"/>
         </hbox>
@@ -326,8 +326,8 @@
         -->
         <richlistbox id="permList" class="inset" flex="1">
           <richlistitem orient="vertical">
-            <label value="&permImage;" control="imageRadioGroup"/>
-            <hbox>
+            <label id="permImageLabel" value="&permImage;" control="imageRadioGroup"/>
+            <hbox role="group" aria-labelledby="permImageLabel">
               <checkbox class="indent" id="imageDef" command="cmd_imageDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
               <radiogroup id="imageRadioGroup" orient="horizontal">
@@ -337,8 +337,8 @@
             </hbox>
           </richlistitem>
           <richlistitem orient="vertical">
-            <label value="&permPopup;" control="popupRadioGroup"/>
-            <hbox>
+            <label id="permPopupLabel" value="&permPopup;" control="popupRadioGroup"/>
+            <hbox role="group" aria-labelledby="permPopupLabel">
               <checkbox class="indent" id="popupDef" command="cmd_popupDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
               <radiogroup id="popupRadioGroup" orient="horizontal">
@@ -348,8 +348,8 @@
             </hbox>
           </richlistitem>
           <richlistitem orient="vertical">
-            <label value="&permCookie;" control="cookieRadioGroup"/>
-            <hbox>
+            <label id="permCookieLabel" value="&permCookie;" control="cookieRadioGroup"/>
+            <hbox role="group" aria-labelledby="permCookieLabel">
               <checkbox class="indent" id="cookieDef" command="cmd_cookieDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
               <radiogroup id="cookieRadioGroup" orient="horizontal">
@@ -360,8 +360,8 @@
             </hbox>
           </richlistitem>
           <richlistitem orient="vertical">
-            <label value="&permInstall;" control="installRadioGroup"/>
-            <hbox>
+            <label id="permInstallLabel" value="&permInstall;" control="installRadioGroup"/>
+            <hbox role="group" aria-labelledby="permInstallLabel">
               <checkbox class="indent" id="installDef" command="cmd_installDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
               <radiogroup id="installRadioGroup" orient="horizontal">
@@ -492,9 +492,7 @@
             </rows>
           </grid>
           <spacer flex="1"/>
-          <hbox><!-- Cert button -->
-            <description control="security-view-cert" id="security-view-text"
-                         class="fieldLabel" flex="1"/>
+          <hbox pack="end"><!-- Cert button -->
             <button id="security-view-cert" label="&securityView.certView;"
                     accesskey="&securityView.accesskey;"
                     oncommand="security.viewCert();"/>
@@ -510,20 +508,20 @@
               <column flex="1"/>
             </columns>
             <rows>
-              <row><!-- History -->
+              <row align="center"><!-- History -->
                 <label id="security-privacy-history-label"
-                             control="security-privacy-history-value"
-                             class="fieldLabel">&securityView.privacy.history;</label>
+                       control="security-privacy-history-value"
+                       class="fieldLabel">&securityView.privacy.history;</label>
                 <textbox id="security-privacy-history-value"
                          class="fieldValue"
                          value="&securityView.unknown;"
                          readonly="true"/>
               </row>
-              <row><!-- Cookies -->
+              <row align="center"><!-- Cookies -->
                 <label id="security-privacy-cookies-label"
-                             control="security-privacy-cookies-value"
-                             class="fieldLabel">&securityView.privacy.cookies;</label>
-                <hbox>
+                       control="security-privacy-cookies-value"
+                       class="fieldLabel">&securityView.privacy.cookies;</label>
+                <hbox align="center">
                   <textbox id="security-privacy-cookies-value"
                            class="fieldValue"
                            value="&securityView.unknown;"
@@ -535,11 +533,11 @@
                           oncommand="security.viewCookies();"/>
                 </hbox>
               </row>
-              <row><!-- Passwords -->
-                <label  id="security-privacy-passwords-label"
-                              control="security-privacy-passwords-value"
-                              class="fieldLabel">&securityView.privacy.passwords;</label>
-                <hbox>
+              <row align="center"><!-- Passwords -->
+                <label id="security-privacy-passwords-label"
+                       control="security-privacy-passwords-value"
+                       class="fieldLabel">&securityView.privacy.passwords;</label>
+                <hbox align="center">
                   <textbox id="security-privacy-passwords-value"
                            class="fieldValue"
                            value="&securityView.unknown;"

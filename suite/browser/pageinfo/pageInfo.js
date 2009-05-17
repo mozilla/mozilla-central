@@ -263,7 +263,7 @@ var onProcessFrame = [ ];
 var onProcessElement = [ ];
 
 // These functions are called once when all the elements in all of the target
-// document (and all of it's subframes, if any) have been processed
+// document (and all of its subframes, if any) have been processed
 var onFinished = [ ];
 
 // These functions are called once when the Page Info window is closed.
@@ -328,7 +328,7 @@ function onLoadPageInfo()
   onLoadPermission();
 
   /* Call registered overlay init functions */
-  onLoadRegistry.map(function(func) { func(); });
+  onLoadRegistry.forEach(function(func) { func(); });
 
   /* Select the requested tab, if the name is specified */
   var initialTab = "generalTab";
@@ -354,7 +354,7 @@ function onUnloadPageInfo()
   }
 
   /* Call registered overlay unload functions */
-  onUnloadRegistry.map(function(func) { func(); });
+  onUnloadRegistry.forEach(function(func) { func(); });
 }
 
 function doHelpButton()
@@ -473,13 +473,13 @@ function processFrames()
 {
   if (gFrameList.length) {
     var doc = gFrameList[0];
-    onProcessFrame.map(function(func) { func(doc); });
+    onProcessFrame.forEach(function(func) { func(doc); });
     var iterator = doc.createTreeWalker(doc, NodeFilter.SHOW_ELEMENT, grabAll, true);
     gFrameList.shift();
     setTimeout(doGrab, 16, iterator);
   }
   else
-    onFinished.map(function(func) { func(); });
+    onFinished.forEach(function(func) { func(); });
 }
 
 function doGrab(iterator)
@@ -620,7 +620,7 @@ function grabAll(elem)
   else if (elem instanceof HTMLScriptElement)
     gLinkView.addRow([elem.type || elem.language, elem.src || gStrings.linkScriptInline, gStrings.linkScript]);
 
-  onProcessElement.map(function(func) { func(elem); });
+  onProcessElement.forEach(function(func) { func(elem); });
 
   return NodeFilter.FILTER_ACCEPT;
 }
@@ -964,15 +964,39 @@ function makePreview(row)
   setItemValue("imagesizetext", sizeText);
 
   var mimeType;
+  var numFrames = 0;
   if (item instanceof HTMLObjectElement ||
       item instanceof HTMLEmbedElement ||
       item instanceof HTMLLinkElement)
     mimeType = item.type;
+  if (!mimeType && item instanceof nsIImageLoadingContent)
+    [mimeType, numFrames] = getContentTypeFromImgRequest(item);
   if (!mimeType)
-    mimeType = getContentTypeFromImgRequest(item) ||
-               getContentTypeFromHeaders(cacheEntryDescriptor);
+    mimeType = getContentTypeFromHeaders(cacheEntryDescriptor);
 
-  setItemValue("imagetypetext", mimeType);
+  var imageType;
+  if (mimeType) {
+    // We found the type, try to display it nicely
+    let imageMimeType = /^image\/(.*)/.exec(mimeType);
+    if (imageMimeType) {
+      imageType = imageMimeType[1].toUpperCase();
+      if (numFrames > 1)
+        imageType = gBundle.getFormattedString("mediaAnimatedImageType",
+                                               [imageType, numFrames]);
+      else
+        imageType = gBundle.getFormattedString("mediaImageType", [imageType]);
+    }
+    else {
+      // the MIME type doesn't begin with image/, display the raw type
+      imageType = mimeType;
+    }
+  }
+  else {
+    // We couldn't find the type, fall back to the value in the treeview
+    imageType = gImageView.data[row][COL_IMAGE_TYPE];
+  }
+
+  setItemValue("imagetypetext", imageType);
 
   var imageContainer = document.getElementById("theimagecontainer");
   var oldImage = document.getElementById("thepreviewimage");
@@ -1105,16 +1129,16 @@ function getContentTypeFromHeaders(cacheEntryDescriptor)
 function getContentTypeFromImgRequest(item)
 {
   var httpRequest;
+  var numFrames = 0;
 
-  try {
-    var imageItem = item.QueryInterface(nsIImageLoadingContent);
-    var imageRequest = imageItem.getRequest(nsIImageLoadingContent.CURRENT_REQUEST);
-    if (imageRequest)
-      httpRequest = imageRequest.mimeType;
+  var imageRequest = item.getRequest(nsIImageLoadingContent.CURRENT_REQUEST);
+  if (imageRequest) {
+    httpRequest = imageRequest.mimeType;
+    let image = imageRequest.image;
+    if (image)
+      numFrames = image.numFrames;
   }
-  catch (ex) { } // This never happened.  ;)
-
-  return httpRequest;
+  return [httpRequest, numFrames];
 }
 
 //******** Other Misc Stuff

@@ -51,6 +51,7 @@ var security = {
     const nsX509CertDB = "@mozilla.org/security/x509certdb;1";
     const nsISSLStatusProvider = Components.interfaces.nsISSLStatusProvider;
     const nsISSLStatus = Components.interfaces.nsISSLStatus;
+    const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
 
     // We don't have separate info for a frame, return null until further notice
     // (see bug 138479)
@@ -64,26 +65,20 @@ var security = {
     catch (exception) { }
 
     var ui = security._getSecurityUI();
-    var status = null;
-    var sp = null;
-    var isBroken = false;
-    if (ui) {
-      isBroken = (ui.state == Components.interfaces.nsIWebProgressListener.STATE_IS_BROKEN);
-      if (!(ui.state & Components.interfaces.nsIWebProgressListener.STATE_IS_INSECURE)) {
-        sp = ui.QueryInterface(nsISSLStatusProvider);
-        if (sp)
-          status = sp.SSLStatus;
-      }
-    }
-    if (status) {
-      status = status.QueryInterface(nsISSLStatus);
-    }
-    if (status) {
-      var cert = status.serverCert;
-      var issuerName;
 
-      issuerName = this.mapIssuerOrganization(cert.issuerOrganization);
-      if (!issuerName) issuerName = cert.issuerName;
+    var isBroken = ui &&
+      (ui.state & nsIWebProgressListener.STATE_IS_BROKEN);
+    var isInsecure = ui &&
+      (ui.state & nsIWebProgressListener.STATE_IS_INSECURE);
+    var isEV = ui &&
+      (ui.state & nsIWebProgressListener.STATE_IDENTITY_EV_TOPLEVEL);
+    var status = ui ? ui.QueryInterface(nsISSLStatusProvider).SSLStatus : null;
+
+    if (!isInsecure && status) {
+      status.QueryInterface(nsISSLStatus);
+      var cert = status.serverCert;
+      var issuerName =
+        this.mapIssuerOrganization(cert.issuerOrganization) || cert.issuerName;
 
       var retval = {
         hostName : hName,
@@ -91,6 +86,7 @@ var security = {
         encryptionAlgorithm : undefined,
         encryptionStrength : undefined,
         isBroken : isBroken,
+        isEV : isEV,
         cert : cert,
         fullLocation : gWindow.location
       };
@@ -110,6 +106,7 @@ var security = {
         encryptionAlgorithm : "",
         encryptionStrength : 0,
         isBroken : isBroken,
+        isEV : isEV,
         cert : null,
         fullLocation : gWindow.location        
       };
@@ -195,26 +192,35 @@ function securityOnLoad() {
 
   /* Set Identity section text */
   setText("security-identity-domain-value", info.hostName);
-  
-  // FIXME - Should only be showing the next two if the cert is EV.  Waiting on
-  // bug 374336
+
   var owner, verifier, generalPageIdentityString;
   if (info.cert && !info.isBroken) {
     // Try to pull out meaningful values.  Technically these fields are optional
     // so we'll employ fallbacks where appropriate.  The EV spec states that Org
-    // fields must be specified for subject and issuer so when 374336 lands, this
-    // code can be simplified.
-    owner = info.cert.organization || info.cert.commonName ||
-            info.cert.subjectName;
-    verifier = security.mapIssuerOrganization(info.cAName ||
-                                              info.cert.issuerCommonName ||
-                                              info.cert.issuerName);
-    generalPageIdentityString = pageInfoBundle.getFormattedString("generalSiteIdentity",
-                                                                  [owner, verifier]);
+    // fields must be specified for subject and issuer so that case is simpler.
+    if (info.isEV) {
+      owner = info.cert.organization;
+      verifier = security.mapIssuerOrganization(info.cAName);
+      generalPageIdentityString =
+        pageInfoBundle.getFormattedString("generalSiteIdentity",
+                                          [owner, verifier]);
+    }
+    else {
+      // Technically, a non-EV cert might specify an owner in the O field or not,
+      // depending on the CA's issuing policies.  However we don't have any programmatic
+      // way to tell those apart, and no policy way to establish which organization
+      // vetting standards are good enough (that's what EV is for) so we default to
+      // treating these certs as domain-validated only.
+      owner = pageInfoBundle.getString("securityNoOwner");
+      verifier = security.mapIssuerOrganization(info.cAName ||
+                                                info.cert.issuerCommonName ||
+                                                info.cert.issuerName);
+      generalPageIdentityString = owner;
+    }
   }
   else {
     // We don't have valid identity credentials.
-    owner = pageInfoBundle.getString("securityNoIdentity");
+    owner = pageInfoBundle.getString("securityNoOwner");
     verifier = pageInfoBundle.getString("notSet");
     generalPageIdentityString = owner;
   }
@@ -225,8 +231,6 @@ function securityOnLoad() {
 
   /* Manage the View Cert button*/
   if (info.cert) {
-    var viewText = pageInfoBundle.getString("securityCertText");
-    setText("security-view-text", viewText);
     security._cert = info.cert;
   }
   else {
@@ -348,11 +352,7 @@ function realmHasPasswords(location) {
   }
   catch (ex) { return false; }
 
-  var realm = makeURI(location).prePath;
-  var passwords = passwordManager.getAllLogins({});
-
-  // XXX untested
-  return passwords.some(function (login) { return (login.hostname == realm); });
+  return passwordManager.countLogins(makeURI(location).prePath, "", "") > 0;
 }
 
 /**
