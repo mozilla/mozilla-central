@@ -741,10 +741,11 @@ calRecurrenceInfo.prototype = {
 
     getExceptionFor: function cRI_getExceptionFor(aRecurrenceId) {
         this.ensureBaseItem();
-        // to avoid strict "reference to undefined property" warning, appending
-        // "|| undefined" gives explicit result in case where property undefined
-        // (or false, or null, or "", but here it should never be those values)
-        return this.mExceptionMap[getRidKey(aRecurrenceId)] || undefined;
+        // Interface calIRecurrenceInfo specifies result be null if not found.
+        // To avoid strict "reference to undefined property" warning, appending
+        // "|| null" gives explicit result in case where property undefined
+        // (or false, 0, null, or "", but here it should never be those values).
+        return this.mExceptionMap[getRidKey(aRecurrenceId)] || null;
     },
 
     removeExceptionFor: function cRI_removeExceptionFor(aRecurrenceId) {
