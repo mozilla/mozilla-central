@@ -57,7 +57,7 @@ interface calIOperation;
  *   Finally, keep in mind that the meta data is "calendar local" and not
  *   automatically transferred when storing the item on another calISyncWriteCalendar.
  */
-[scriptable, uuid(cef78f0e-bdbe-4534-8546-29b3e85be148)]
+[scriptable, uuid(651e137b-2f3a-4595-af89-da51b6a37f85)]
 interface calISyncWriteCalendar : calICalendar {
     /**
      * Adds or replaces meta data of an item.
