@@ -92,6 +92,7 @@ toolbar[mode="text"] #navigator-throbber[busy="true"] {
 }
 
 #offline-status {
+  -moz-padding-start: 3px;
   list-style-image: url("chrome://messenger/skin/icons/online.png");
 }
 
