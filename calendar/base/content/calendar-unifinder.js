@@ -99,7 +99,7 @@ var unifinderObserver = {
 
     QueryInterface: function uO_QueryInterface (aIID) {
         return cal.doQueryInterface(this,
-                                    unifinderObserver.prototype,
+                                    null, // this singleton has no prototype
                                     aIID,
                                     [Components.interfaces.calICompositeObserver,
                                      Components.interfaces.nsIObserver,
