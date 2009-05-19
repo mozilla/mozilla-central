@@ -147,21 +147,19 @@ function fillMailContextMenu(event)
   if (event.target != event.currentTarget)
     return true;
 
+  var numSelected = GetNumSelectedMessages();
+  if (numSelected == 0)
+    return false; // Don't show the context menu if no items are selected.
+
   var inThreadPane = popupNodeIsInThreadPane();
   gContextMenu = new nsContextMenu(event.target);
-  var numSelected = GetNumSelectedMessages();
 
-  var isNewsgroup = false;
-  var selectedMessage = null;
+  var selectedMessage = GetFirstSelectedMessage();
+  var isNewsgroup = IsNewsMessage(selectedMessage);
 
   // Clear the global var used to keep track if a 'Delete Message' or 'Move
   // To' command has been triggered via the thread pane context menu.
   gThreadPaneDeleteOrMoveOccurred = false;
-
-  if(numSelected >= 0) {
-    selectedMessage = GetFirstSelectedMessage();
-    isNewsgroup = IsNewsMessage(selectedMessage);
-  }
 
   // Don't show mail items for links/images, just show related items.
   var hideMailItems = !inThreadPane &&
@@ -203,7 +201,7 @@ function fillMailContextMenu(event)
 
   setSingleSelection("mailContext-copyMessageUrl", isNewsgroup);
 
-  ShowMenuItem("mailContext-sep-open", (numSelected <= 1));
+  ShowMenuItem("mailContext-sep-open", single);
 
   ShowMenuItem("mailContext-sep-reply", true);
 
@@ -211,19 +209,17 @@ function fillMailContextMenu(event)
 
   // Set up the move menu. We can't move from newsgroups.
   ShowMenuItem("mailContext-moveMenu",
-               !isNewsgroup && !hideMailItems && numSelected && msgFolder);
+               !isNewsgroup && !hideMailItems && msgFolder);
 
   // disable move if we can't delete message(s) from this folder
-  var canMove = (numSelected > 0) && msgFolder && msgFolder.canDeleteMessages;
+  var canMove = msgFolder && msgFolder.canDeleteMessages;
   EnableMenuItem("mailContext-moveMenu", canMove);
 
   // Copy is available as long as something is selected.
-  ShowMenuItem("mailContext-copyMenu", numSelected && !hideMailItems && msgFolder);
-  EnableMenuItem("mailContext-copyMenu", numSelected);
+  ShowMenuItem("mailContext-copyMenu", !hideMailItems && msgFolder);
 
-  ShowMenuItem("mailContext-moveToFolderAgain",
-               numSelected && !hideMailItems && msgFolder);
-  if (numSelected && !hideMailItems) {
+  ShowMenuItem("mailContext-moveToFolderAgain", !hideMailItems && msgFolder);
+  if (!hideMailItems) {
     initMoveToFolderAgainMenu(document.getElementById("mailContext-moveToFolderAgain"));
     goUpdateCommand("cmd_moveToFolderAgain");
   }
@@ -233,7 +229,6 @@ function fillMailContextMenu(event)
   ShowMenuItem("mailContext-tags", !hideMailItems && msgFolder);
 
   ShowMenuItem("mailContext-mark", !hideMailItems && msgFolder);
-  EnableMenuItem("mailContext-mark", (numSelected >= 1));
 
   setSingleSelection("mailContext-saveAs");
 #ifdef XP_MACOSX
@@ -243,7 +238,6 @@ function fillMailContextMenu(event)
 #endif
 
   ShowMenuItem("mailContext-print", !hideMailItems);
-  EnableMenuItem("mailContext-print", numSelected);
 
   ShowMenuItem("mailContext-delete", !hideMailItems && (isNewsgroup || canMove));
   // This function is needed for the case where a folder is just loaded (while
@@ -257,7 +251,7 @@ function fillMailContextMenu(event)
   setSingleSelection("mailContext-addemail",
                      gContextMenu.onMailtoLink && !inThreadPane);
 
-  ShowMenuItem("mailContext-sep-edit", (numSelected <= 1));
+  ShowMenuItem("mailContext-sep-edit", single);
 
   ShowMenuItem('downloadSelected', numSelected > 1 && !hideMailItems);
 

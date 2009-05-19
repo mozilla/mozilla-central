@@ -1181,6 +1181,11 @@ function ClearMessagePane()
 function ChangeSelectionWithoutContentLoad(event, tree)
 {
     var treeBoxObj = tree.treeBoxObject;
+    if (!treeBoxObj)
+    {
+      event.stopPropagation();
+      return;
+    }
     var treeSelection = treeBoxObj.view.selection;
 
     var row = treeBoxObj.getRowAt(event.clientX, event.clientY);
