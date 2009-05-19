@@ -115,6 +115,7 @@ classic.jar:
   skin/classic/messenger/icons/thread-watched.png             (mail/icons/thread-watched.png)
   skin/classic/messenger/icons/flag-col.png                   (mail/icons/flag-col.png)
   skin/classic/messenger/icons/flag.png                       (mail/icons/flag.png)
+  skin/classic/messenger/icons/flag-empty.png                 (mail/icons/flag-empty.png)
   skin/classic/messenger/icons/server.png                     (mail/icons/server.png)
   skin/classic/messenger/icons/readcol.png                    (mail/icons/readcol.png)
   skin/classic/messenger/icons/unreadmail.png                 (mail/icons/unreadmail.png)
