@@ -817,7 +817,8 @@ function InitMessageMark()
 function UpdateJunkToolbarButton()
 {
   var junkButtonDeck = document.getElementById("junk-deck");
-  junkButtonDeck.selectedIndex = SelectedMessagesAreJunk() ? 1 : 0;
+  // Wallpaper over Bug 491676 by using the attribute instead of the property.
+  junkButtonDeck.setAttribute("selectedIndex", SelectedMessagesAreJunk() ? 1 : 0);
 }
 
 function UpdateDeleteCommand()
