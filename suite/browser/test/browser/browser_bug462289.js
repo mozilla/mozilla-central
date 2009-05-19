@@ -9,33 +9,35 @@ function test() {
 }
 
 function step1() {
-  EventUtils.synthesizeMouse(tab1, 2, 2, {});
+  EventUtils.synthesizeMouse(tab1, 9, 9, {});
   setTimeout(step2, 0);
 }
 
 function step2()
 {
+  is(gBrowser.selectedTab, tab1, "mouse on tab selects tab");
   isnot(document.activeElement, tab1, "mouse on tab not activeElement");
 
-  EventUtils.synthesizeMouse(tab1, 2, 2, {});
+  EventUtils.synthesizeMouse(tab1, 9, 9, {});
   setTimeout(step3, 0);
 }
 
 function step3()
 {
-  isnot(document.activeElement, tab1, "mouse on tab again activeElement");
+  todo_is(document.activeElement, tab1, "mouse on tab again activeElement");
 
   document.getElementById("urlbar").inputField.focus();
   // give focus a chance to settle
   setTimeout(step3_5, 0);
 }
+
 function step3_5()
 {
   EventUtils.synthesizeKey("VK_TAB", { });
 
   is(document.activeElement, tab1, "tab key to tab activeElement");
 
-  EventUtils.synthesizeMouse(tab1, 2, 2, {});
+  EventUtils.synthesizeMouse(tab1, 9, 9, {});
   setTimeout(step4, 0);
 }
 
@@ -43,7 +45,7 @@ function step4()
 {
   is(document.activeElement, tab1, "mouse on tab while focused still activeElement");
 
-  EventUtils.synthesizeMouse(tab2, 2, 2, {});
+  EventUtils.synthesizeMouse(tab2, 9, 9, {});
   setTimeout(step5, 0);
 }
 
