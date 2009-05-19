@@ -72,3 +72,7 @@
 #menu_securityStatus {
   list-style-image: url("moz-icon://stock/gtk-info?size=menu");
 }
+
+#menu_securityStatus[disabled="true"] {
+  list-style-image: url("moz-icon://stock/gtk-info?size=menu&state=disabled");
+}
