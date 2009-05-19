@@ -203,7 +203,23 @@ function HandleDeleteOrMoveMsgCompleted(folder)
     if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None)
     {
       var nextMstKey = gDBView.getKeyAt(gNextMessageViewIndexAfterDelete);
-      if (nextMstKey != nsMsgKey_None) {
+
+      if (pref.getBoolPref("mail.close_message_window.on_delete")) {
+        // Tell the main window to select the next message since we
+        // won't be viewing it automatically in the standalone window.
+        var treeView = window.opener.document.getElementById("threadTree").view;
+        if (gDBView.removeRowOnMoveOrDelete && gNextMessageViewIndexAfterDelete >= 0) {
+          gDBView.suppressCommandUpdating = true;
+          treeView.selection.select(gNextMessageViewIndexAfterDelete);
+          treeView.selectionChanged();
+
+          window.opener.EnsureRowInThreadTreeIsVisible(gNextMessageViewIndexAfterDelete);
+          gDBView.suppressCommandUpdating = false;
+        }
+
+        window.close();
+      }
+      else if (nextMstKey != nsMsgKey_None) {
         LoadMessageByViewIndex(gNextMessageViewIndexAfterDelete);
       }
       else {

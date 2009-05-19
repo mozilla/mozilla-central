@@ -100,6 +100,8 @@
       <preference id="mailnews.mark_message_read.delay.interval"
                   name="mailnews.mark_message_read.delay.interval" type="int"/>
       <preference id="mailnews.reuse_message_window" name="mailnews.reuse_message_window" type="bool"/>
+      <preference id="mail.close_message_window.on_delete" 
+                  name="mail.close_message_window.on_delete" type="bool"/>
       <!-- Network tab -->
       <preference id="mail.prompt_purge_threshhold"          name="mail.prompt_purge_threshhold"    type="bool"/>
       <preference id="mail.purge_threshhold"                 name="mail.purge_threshhold"    type="int"/>
@@ -247,6 +249,12 @@
                          label="&reuseExpRadio1.label;"
                          accesskey="&reuseExpRadio1.accesskey;"/>
                 </radiogroup>
+              </hbox>
+              <hbox>
+                <checkbox id="closeMsgWindowOnDelete"
+                          label="&closeMsgWindowOnDelete.label;"
+                          accesskey="&closeMsgWindowOnDelete.accesskey;"
+                          preference="mail.close_message_window.on_delete"/>
               </hbox>
             </vbox>
 
