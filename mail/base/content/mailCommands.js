@@ -40,19 +40,6 @@
 var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                       .getService(Components.interfaces.nsIPromptService);
 
-function GetNewMessagesInFolders(selectedFolders)
-{
-  const nsIMsgFolder = Components.interfaces.nsIMsgFolder;
-  for (let i = 0; i < selectedFolders.length; i++)
-  {
-    let msgFolder = selectedFolders[i];
-    // Whenever we do get new messages, clear the old new messages.
-    msgFolder.biffState = nsIMsgFolder.nsMsgBiffState_NoMail;
-    msgFolder.clearNewMessages();
-    msgFolder.server.getNewMessages(msgFolder, msgWindow, null);
-  }
-}
-
 function getBestIdentity(identities, optionalHint)
 {
   var identity = null;

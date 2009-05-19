@@ -899,7 +899,7 @@ function GetMessagesForInboxOnServer(server)
   if (!inboxFolder)
     inboxFolder = server.rootFolder;
 
-  GetNewMessagesInFolders([inboxFolder]);
+  GetNewMsgs(server, inboxFolder);
 }
 
 function MsgGetMessage()
@@ -2384,6 +2384,10 @@ function GetDefaultAccountRootFolder()
   return null;
 }
 
+/**
+ * Check for new messages for all selected folders, or for the default account
+ * in case no folders are selected.
+ */
 function GetFolderMessages()
 {
   var selectedFolders = GetSelectedMsgFolders();
@@ -2396,7 +2400,6 @@ function GetFolderMessages()
 
   // if nothing selected, use the default
   var folders = (selectedFolders.length) ? selectedFolders : [defaultAccountRootFolder];
-  var foldersToCheck = new Array();
   for (var i = 0; i < folders.length; i++) {
     var serverType = folders[i].server.type;
     if (folders[i].isServer && (serverType == "nntp")) {
@@ -2412,16 +2415,31 @@ function GetFolderMessages()
       // Should shift click get mail for all (authenticated) accounts?
       // see bug #125885.
       if (!folders[i].server.isDeferredTo)
-        foldersToCheck.push(defaultAccountRootFolder);
+        GetNewMsgs(defaultAccountRootFolder.server, defaultAccountRootFolder);
       else
-        foldersToCheck.push(folders[i]);
+        GetNewMsgs(folders[i].server, folders[i]);
     }
     else {
-      foldersToCheck.push(folders[i]);
+      GetNewMsgs(folders[i].server, folders[i]);
     }
   }
+}
 
-  GetNewMessagesInFolders(foldersToCheck);
+/**
+ * Gets new messages for the given server, for the given folder.
+ * @param server which nsIMsgIncomingServer to check for new messages
+ * @param folder which nsIMsgFolder folder to check for new messages
+ */
+function GetNewMsgs(server, folder)
+{
+  // Note that for Global Inbox folder.server != server when we want to get
+  // messages for a specific account.
+
+  const nsIMsgFolder = Components.interfaces.nsIMsgFolder;
+  // Whenever we do get new messages, clear the old new messages.
+  folder.biffState = nsIMsgFolder.nsMsgBiffState_NoMail;
+  folder.clearNewMessages();
+  server.getNewMessages(folder, msgWindow, null);
 }
 
 function SendUnsentMessages()
