@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Daniel Boelzle <mozilla@boelzle.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,19 +46,35 @@ function calIcsParser() {
     this.mProperties = new Array();
 }
 
-calIcsParser.prototype.QueryInterface =
-function QueryInterface(aIID) {
-    if (!aIID.equals(Components.interfaces.nsISupports) &&
-        !aIID.equals(Components.interfaces.calIIcsParser)) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
+var gIcsParserClassInfo = {
+    getInterfaces: function (count) {
+        const ifaces = [
+            Components.interfaces.nsISupports,
+            Components.interfaces.calIIcsParser,
+            Components.interfaces.nsIClassInfo
+        ];
+        count.value = ifaces.length;
+        return ifaces;
+    },
 
-    return this;
+    getHelperForLanguage: function (language) {
+        return null;
+    },
+
+    contractID: "@mozilla.org/calendar/ics-parser;1",
+    classDescription: "Calendar ICS Parser",
+    classID: Components.ID("{6fe88047-75b6-4874-80e8-5f5800f14984}"),
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    flags: Components.interfaces.nsIClassInfo.THREADSAFE
 };
 
-calIcsParser.prototype.parseString =
-function ip_parseString(aICSString, aTzProvider) {
-    let rootComp = getIcsService().parseICS(aICSString, aTzProvider);
+calIcsParser.prototype.QueryInterface =
+function ip_QueryInterface(aIID) {
+    return doQueryInterface(this, calIcsParser.prototype, aIID, null, gIcsParserClassInfo);
+};
+
+calIcsParser.prototype.processIcalComponent =
+function ip_processIcalComponent(rootComp) {
     let calComp;
     // libical returns the vcalendar component if there is just one vcalendar.
     // If there are multiple vcalendars, it returns an xroot component, with
@@ -125,6 +142,7 @@ function ip_parseString(aICSString, aTzProvider) {
                     break;
                 default:
                     this.mComponents.push(subComp);
+                    break;
             }
 
             if (item) {
@@ -190,42 +208,79 @@ function ip_parseString(aICSString, aTzProvider) {
             notifier.showAlertNotification("", title, text, false, null, null, title);
         }
         break;
-     }
+    }
+};
+
+calIcsParser.prototype.parseString =
+function ip_parseString(aICSString, aTzProvider, aAsyncParsing) {
+    if (aAsyncParsing) {
+        let this_ = this;
+        let rootComp = null;
+        // Do the actual ical parsing on a thread, but process the parsed ical
+        // components on main/UI thread.
+        cal.execWorker(
+            function parseString_worker(responseThread) {
+                rootComp = cal.getIcsService().parseICS(aICSString, aTzProvider);
+            },
+            function parseString_done(exc) {
+                this_.processIcalComponent(rootComp);
+                aAsyncParsing.onParsingComplete(exc ? exc.result : Components.results.NS_OK, this_);
+            });
+    } else {
+        this.processIcalComponent(cal.getIcsService().parseICS(aICSString, aTzProvider));
+    }
 };
 
 calIcsParser.prototype.parseFromStream =
-function ip_parseFromStream(aStream, aTzProvider) {
-    // Read in the string. Note that it isn't a real string at this point, 
-    // because likely, the file is utf8. The multibyte chars show up as multiple
-    // 'chars' in this string. So call it an array of octets for now.
-    
-    var octetArray = [];
-    var binaryIS = Components.classes["@mozilla.org/binaryinputstream;1"]
-                             .createInstance(Components.interfaces.nsIBinaryInputStream);
-    binaryIS.setInputStream(aStream);
-    octetArray = binaryIS.readByteArray(binaryIS.available());
-    
-   
-    // Some other apps (most notably, sunbird 0.2) happily splits an UTF8
-    // character between the octets, and adds a newline and space between them,
-    // for ICS folding. Unfold manually before parsing the file as utf8.This is
-    // UTF8 safe, because octets with the first bit 0 are always one-octet
-    // characters. So the space or the newline never can be part of a multi-byte
-    // char.
-    for (var i = octetArray.length - 2; i >= 0; i--) {
-        if (octetArray[i] == "\n" && octetArray[i+1] == " ") {
-            octetArray = octetArray.splice(i, 2);
+function ip_parseFromStream(aStream, aTzProvider, aAsyncParsing) {
+    function readString(aStream_) {
+        // Read in the string. Note that it isn't a real string at this point, 
+        // because likely, the file is utf8. The multibyte chars show up as multiple
+        // 'chars' in this string. So call it an array of octets for now.
+
+        let octetArray = [];
+        let binaryIS = Components.classes["@mozilla.org/binaryinputstream;1"]
+                                 .createInstance(Components.interfaces.nsIBinaryInputStream);
+        binaryIS.setInputStream(aStream);
+        octetArray = binaryIS.readByteArray(binaryIS.available());
+
+        // Some other apps (most notably, sunbird 0.2) happily splits an UTF8
+        // character between the octets, and adds a newline and space between them,
+        // for ICS folding. Unfold manually before parsing the file as utf8.This is
+        // UTF8 safe, because octets with the first bit 0 are always one-octet
+        // characters. So the space or the newline never can be part of a multi-byte
+        // char.
+        for (var i = octetArray.length - 2; i >= 0; i--) {
+            if (octetArray[i] == "\n" && octetArray[i+1] == " ") {
+                octetArray = octetArray.splice(i, 2);
+            }
         }
+
+        // Interpret the byte-array as a UTF8-string, and convert into a
+        // javascript string.
+        let unicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                                         .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+        // ICS files are always UTF8
+        unicodeConverter.charset = "UTF-8";
+        return unicodeConverter.convertFromByteArray(octetArray, octetArray.length);
     }
 
-    // Interpret the byte-array as a UTF8-string, and convert into a
-    // javascript string.
-    var unicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
-                                     .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-    // ICS files are always UTF8
-    unicodeConverter.charset = "UTF-8";
-    var str = unicodeConverter.convertFromByteArray(octetArray, octetArray.length);
-    return this.parseString(str, aTzProvider);
+    if (aAsyncParsing) {
+        let this_ = this;
+        let rootComp = null;
+        // Do the actual string reading and ical parsing on a athread, but process the parsed ical
+        // components on main/UI thread.
+        cal.execWorker(
+            function parseString_worker(responseThread) {
+                rootComp = cal.getIcsService().parseICS(readString(aStream), aTzProvider);
+            },
+            function parseString_done(exc) {
+                this_.processIcalComponent(rootComp);
+                aAsyncParsing.onParsingComplete(exc ? exc.result : Components.results.NS_OK, this_);
+            });
+    } else {
+        this.processIcalComponent(cal.getIcsService().parseICS(readString(aStream), aTzProvider));
+    }
 }
 
 calIcsParser.prototype.getItems =

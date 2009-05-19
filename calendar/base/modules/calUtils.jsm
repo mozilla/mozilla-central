@@ -99,6 +99,77 @@ let cal = {
         thread.processNextEvent(false /* don't wait */);
     },
 
+    get threadingEnabled cal_threadingEnabled() {
+        if (cal_threadingEnabled.val === undefined) {
+            cal_threadingEnabled.val = !cal.getPrefSafe("calendar.threading.disabled", false);
+        }
+        return cal_threadingEnabled.val;
+    },
+
+    getWorkerThread: function cal_getWorkerThread() {
+        let threads = cal_getWorkerThread.mThreads;
+        switch (threads) {
+            case null:
+                return null; // during shutdown
+            case undefined: {
+                cal_getWorkerThread.mThreads = threads = Components.classes["@mozilla.org/thread-pool;1"]
+                                                                   .createInstance(Components.interfaces.nsIThreadPool);
+                cal.addShutdownObserver(function() {
+                        cal.LOG("cal.getWorkerThread() shutdown.");
+                        let threads = cal_getWorkerThread.mThreads;
+                        cal_getWorkerThread.mThreads = null;
+                        threads.shutdown();
+                    });
+                break;
+            }
+        }
+        return threads;
+    },
+
+    /**
+     * Executes the passed action function on a worker thread.
+     * Once the action function has been executed, respFunc is called
+     * on the same thread that execAsync() has been called on.
+     *
+     * xxx todo: think of leaks, ref cycles!
+     */
+    execWorker: function cal_execWorker(actionFunc, respFunc) {
+        // response executed on the calling thread:
+        let callingThread = cal.getThreadManager().currentThread;
+
+        let worker = { // nsIRunnable:
+            run: function worker_run() {
+                let res = null;
+                try {
+                    actionFunc(callingThread);
+                } catch (exc) {
+                    res = exc;
+                }
+
+                if (!respFunc) {
+                    return;
+                }
+
+                let response = { // nsIRunnable:
+                    run: function response_run() {
+                        respFunc(res);
+                    }
+                };
+                callingThread.dispatch(response, Components.interfaces.nsIEventTarget.DISPATCH_NORMAL);
+            }
+        };
+
+        if (cal.threadingEnabled) {
+            let thread = cal.getWorkerThread();
+            if (thread) {
+                thread.dispatch(worker, Components.interfaces.nsIEventTarget.DISPATCH_NORMAL);
+                return;
+            } // else shutdown ongoing
+        }
+
+        runnable.run(); // exec on current thread
+    },
+
     /**
      * Checks whether a timezone lacks a definition.
      */
@@ -474,6 +545,40 @@ let cal = {
     },
 
     /**
+     * Adds an observer listening for the topic.
+     *
+     * @param func function to execute on topic
+     * @param topic topic to listen for
+     * @param oneTime whether to listen only once
+     */
+    addObserver: function cal_addObserver(func, topic, oneTime) {
+        let observer = { // nsIObserver:
+            observe: function cal_addObserver_observe(subject, topic_, data) {
+                if (topic == topic_) {
+                    if (oneTime) {
+                        Components.classes["@mozilla.org/observer-service;1"]
+                                  .getService(Components.interfaces.nsIObserverService)
+                                  .removeObserver(this, topic);
+                    }
+                    func(subject, topic, data);
+                }
+            }
+        };
+        Components.classes["@mozilla.org/observer-service;1"]
+                  .getService(Components.interfaces.nsIObserverService)
+                  .addObserver(observer, topic, false /* don't hold weakly */);
+    },
+
+    /**
+     * Adds an xpcom shutdown observer.
+     *
+     * @param func function to execute
+     */
+    addShutdownObserver: function cal_addShutdownObserver(func) {
+        cal.addObserver(func, "xpcom-shutdown", true /* one time */);
+    },
+
+    /**
      * Due to wrapped js objects, some objects may have cyclic references.
      * You can register properties of objects to be cleaned up on xpcom-shutdown.
      *
@@ -488,28 +593,18 @@ let cal = {
 // will be used to clean up global objects on shutdown
 // some objects have cyclic references due to wrappers
 function shutdownCleanup(obj, prop) {
-    if (!shutdownCleanup.mObserver) {
+    if (!shutdownCleanup.mEntries) {
         shutdownCleanup.mEntries = [];
-        shutdownCleanup.mObserver = { // nsIObserver:
-            observe: function shutdownCleanup_observe(subject, topic, data) {
-                if (topic == "xpcom-shutdown") {
-                    Components.classes["@mozilla.org/observer-service;1"]
-                              .getService(Components.interfaces.nsIObserverService)
-                              .removeObserver(this, "xpcom-shutdown");
-                    for each (let entry in shutdownCleanup.mEntries) {
-                        if (entry.mProp) {
-                            delete entry.mObj[entry.mProp];
-                        } else {
-                            delete entry.mObj;
-                        }
+        cal.addShutdownObserver(function() {
+                for each (let entry in shutdownCleanup.mEntries) {
+                    if (entry.mProp) {
+                        delete entry.mObj[entry.mProp];
+                    } else {
+                        delete entry.mObj;
                     }
-                    delete shutdownCleanup.mEntries;
                 }
-            }
-        };
-        Components.classes["@mozilla.org/observer-service;1"]
-                  .getService(Components.interfaces.nsIObserverService)
-                  .addObserver(shutdownCleanup.mObserver, "xpcom-shutdown", false /* don't hold weakly */);
+                delete shutdownCleanup.mEntries;
+            });
     }
     shutdownCleanup.mEntries.push({ mObj: obj, mProp: prop });
 }
@@ -518,7 +613,7 @@ function shutdownCleanup(obj, prop) {
 // will be used to generate service accessor functions, getIOService()
 function generateServiceAccessor(id, iface) {
     return function this_() {
-        if (this_.mService === undefined) {
+        if (!("mService" in this_)) {
             this_.mService = Components.classes[id].getService(iface);
             shutdownCleanup(this_, "mService");
         }

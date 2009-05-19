@@ -292,7 +292,7 @@ calDNDBaseObserver.prototype = {
 #endif
                 var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                              .createInstance(Components.interfaces.calIIcsParser);
-                parser.parseString(data, null);
+                parser.parseString(data);
                 this.onDropItems(parser.getItems({}).concat(parser.getParentlessItems({})));
                 break;
             case "text/unicode":
@@ -357,7 +357,7 @@ calDNDBaseObserver.prototype = {
                             }
                             var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                          .createInstance(Components.interfaces.calIIcsParser);
-                            parser.parseString(str, null);
+                            parser.parseString(str);
                             self.onDropItems(parser.getItems({}).concat(parser.getParentlessItems({})));
                         }
                     }

@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -21,6 +20,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Daniel Boelzle <mozilla@boelzle.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,9 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsIGenericFactory.h"
-
-#include "nsIClassInfoImpl.h"
-
 #include "calDateTime.h"
 #include "calDuration.h"
 #include "calPeriod.h"
@@ -69,7 +66,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(calDateTime)
 NS_DECL_CLASSINFO(calDateTime)
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(calICSService)
-NS_DECL_CLASSINFO(calICSService)
 
 static const nsModuleComponentInfo components[] =
 {
@@ -109,13 +105,7 @@ static const nsModuleComponentInfo components[] =
     { "ICS parser/serializer",
       CAL_ICSSERVICE_CID,
       CAL_ICSSERVICE_CONTRACTID,
-      calICSServiceConstructor,
-      NULL,
-      NULL,
-      NULL,
-      NS_CI_INTERFACE_GETTER_NAME(calICSService),
-      NULL,
-      &NS_CLASSINFO_NAME(calICSService)
+      calICSServiceConstructor
     },
     { "Calendar Recurrence Rule",
       CAL_RECURRENCERULE_CID,

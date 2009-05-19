@@ -138,5 +138,8 @@ pref("calendar.categories.names", "");
 pref("mousewheel.withnokey.action", 0);
 pref("mousewheel.withshiftkey.action", 0);
 
+// Disable use of worker threads. Restart needed.
+pref("calendar.threading.disabled", false);
+
 // Set up user agent
 #expand pref("general.useragent.extra.lightning","Lightning/__LIGHTNING_VERSION__");

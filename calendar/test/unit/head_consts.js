@@ -71,7 +71,7 @@ function createEventFromIcalString(icalString) {
     if (/^BEGIN:VCALENDAR/.test(icalString)) {
         var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                .createInstance(Components.interfaces.calIIcsParser);
-        parser.parseString(icalString, null);
+        parser.parseString(icalString);
         var items = parser.getItems({});
         ASSERT(items.length == 1);
         return items[0];

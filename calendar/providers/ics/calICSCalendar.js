@@ -234,32 +234,34 @@ calICSCalendar.prototype = {
         // Wrap parsing in a try block. Will ignore errors. That's a good thing
         // for non-existing or empty files, but not good for invalid files.
         // That's why we put them in readOnly mode
-        try {
-            var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"].
-                                    createInstance(Components.interfaces.calIIcsParser);
-            parser.parseString(str, null);
-            var items = parser.getItems({});
-            
-            for each (var item in items) {
-                this.mMemoryCalendar.adoptItem(item, null);
+        let parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                               .createInstance(Components.interfaces.calIIcsParser);
+        let this_ = this;
+        let listener = { // calIIcsParsingListener
+            onParsingComplete: function ics_onParsingComplete(rc, parser_) {
+                try {
+                    for each (let item in parser_.getItems({})) {
+                        this_.mMemoryCalendar.adoptItem(item, null);
+                    }
+                    this_.unmappedComponents = parser_.getComponents({});
+                    this_.unmappedProperties = parser_.getProperties({});
+                } catch (exc) {
+                    cal.LOG("Parsing the file failed: " + exc);
+                    this_.mObserver.onError(this_.superCalendar, exc.result, exc.toString());
+                    this_.mObserver.onError(this_.superCalendar, calIErrors.READ_FAILED, "");
+                }
+                this_.mObserver.onEndBatch();
+                this_.mObserver.onLoad(this_);
+
+                // Now that all items have been stuffed into the memory calendar
+                // we should add ourselves as observer. It is important that this
+                // happens *after* the calls to adoptItem in the above loop to prevent
+                // the views from being notified.
+                this_.mMemoryCalendar.addObserver(this_.mObserver);
+                this_.unlock();
             }
-            this.unmappedComponents = parser.getComponents({});
-            this.unmappedProperties = parser.getProperties({});
-        } catch(e) {
-            LOG("Parsing the file failed:"+e);
-            this.mObserver.onError(this.superCalendar, e.result, e.toString());
-            this.mObserver.onError(this.superCalendar, calIErrors.READ_FAILED, "");
-        }
-        this.mObserver.onEndBatch();
-        this.mObserver.onLoad(this);
-        
-        // Now that all items have been stuffed into the memory calendar
-        // we should add ourselves as observer. It is important that this
-        // happens *after* the calls to adoptItem in the above loop to prevent
-        // the views from being notified.
-        this.mMemoryCalendar.addObserver(this.mObserver);
-        
-        this.unlock();
+        };
+        parser.parseString(str, null, listener);
     },
 
     writeICS: function () {

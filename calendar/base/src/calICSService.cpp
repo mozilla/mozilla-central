@@ -38,7 +38,6 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsStringStream.h"
 #include "nsComponentManagerUtils.h"
-#include "nsIClassInfoImpl.h"
 
 #include "calICSService.h"
 #include "calTimezone.h"
@@ -815,7 +814,7 @@ calIcalComponent::Get##Attrname(calIDuration **dtp)                     \
     return NS_OK;                                                       \
 }
 
-NS_IMPL_ISUPPORTS1(calIcalComponent, calIIcalComponent)
+NS_IMPL_THREADSAFE_ISUPPORTS1(calIcalComponent, calIIcalComponent)
 
 NS_IMETHODIMP_(icalcomponent *)
 calIcalComponent::GetIcalComponent()
@@ -1197,7 +1196,9 @@ calIcalComponent::AddProperty(calIIcalProperty * prop)
 //     return NS_OK;
 // }
 
-NS_IMPL_ISUPPORTS1_CI(calICSService, calIICSService)
+NS_IMPL_THREADSAFE_ISUPPORTS2(calICSService, calIICSService, nsIClassInfo)
+NS_IMPL_CI_INTERFACE_GETTER1(calICSService, calIICSService)
+NS_IMPL_THREADSAFE_CI(calICSService)
 
 calICSService::calICSService()
 {

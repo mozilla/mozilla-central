@@ -71,6 +71,9 @@ pref("calendar.view.visiblehours", 9);
 pref("calendar.weeks.inview", 4);
 pref("calendar.previousweeks.inview", 0);
 
+// Disable use of worker threads. Restart needed.
+pref("calendar.threading.disabled", false);
+
 // default transparency of allday items; could be switched to e.g. "OPAQUE":
 pref("calendar.allday.defaultTransparency", "TRANSPARENT");
 

@@ -49,12 +49,14 @@ extern "C" {
 }
 
 class calICSService : public calIICSService,
+                      public nsIClassInfo,
                       public cal::XpcomBase
 {
 public:
     calICSService();
 
     NS_DECL_ISUPPORTS
+    NS_DECL_NSICLASSINFO
     NS_DECL_CALIICSSERVICE
 };
 

@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Daniel Boelzle <mozilla@boelzle.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,6 +43,16 @@ interface calIIcalComponent;
 interface calIItemBase;
 interface nsIInputStream;
 interface calITimezoneProvider;
+interface calIIcsParser;
+
+/**
+ * Listener being called once asynchronous parsing is done.
+ */
+[scriptable, uuid(d22527da-b0e2-41b7-b6f4-ee9c243cd285)]
+interface calIIcsParsingListener : nsISupports
+{
+    void onParsingComplete(in nsresult rc, in calIIcsParser parser);
+};
 
 /**
  * An interface for parsing an ics string or stream into its items.
@@ -57,12 +68,16 @@ interface calIIcsParser : nsISupports
    *
    * @param aICSString
    *    The ICS string to parse
-   * @param aTzProvider
+   * @param optional aTzProvider
    *    The timezone provider used to resolve timezones not contained in the
    *    parent VCALENDAR or null (falls back to timezone service)
+   * @param optional aAsyncParsing
+   *    If non-null, parsing will be performed on a worker thread,
+   *    and the passed listener is called when it's done
    */
   void parseString(in AString aICSString,
-                   in calITimezoneProvider aTzProvider);
+                   [optional] in calITimezoneProvider aTzProvider,
+                   [optional] in calIIcsParsingListener aAsyncParsing);
 
   /**
    * Parse an input stream.
@@ -70,12 +85,16 @@ interface calIIcsParser : nsISupports
    * @see parseString
    * @param aICSString
    *    The stream to parse
-   * @param aTzProvider
+   * @param optional aTzProvider
    *    The timezone provider used to resolve timezones not contained in the
    *    parent VCALENDAR or null (falls back to timezone service)
+   * @param optional aAsyncParsing
+   *    If non-null, parsing will be performed on a worker thread,
+   *    and the passed listener is called when it's done
    */
   void parseFromStream(in nsIInputStream aStream,
-                       in calITimezoneProvider aTzProvider);
+                       [optional] in calITimezoneProvider aTzProvider,
+                       [optional] in calIIcsParsingListener aAsyncParsing);
 
   /**
    * Get the items that were in the string or stream. In case an item represents a

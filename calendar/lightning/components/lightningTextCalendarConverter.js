@@ -208,7 +208,7 @@ ltnMimeConverter.prototype = {
     convertToHTML: function lmcCTH(contentType, data) {
         let parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                .createInstance(Components.interfaces.calIIcsParser);
-        parser.parseString(data, null);
+        parser.parseString(data);
         let event = null;
         for each (var item in parser.getItems({})) {
             if (isEvent(item)) {

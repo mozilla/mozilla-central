@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -22,6 +21,7 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <mozilla@boelzle.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -51,8 +51,6 @@
 #include "nsIClassInfoImpl.h"
 
 #include "calBaseCID.h"
-
-static NS_DEFINE_CID(kCalICSService, CAL_ICSSERVICE_CID);
 
 extern "C" {
     #include "ical.h"

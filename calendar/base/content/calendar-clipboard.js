@@ -176,7 +176,7 @@ function pasteFromClipboard() {
             let icsParser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                       .createInstance(Components.interfaces.calIIcsParser);
             try {
-                icsParser.parseString(data, null);
+                icsParser.parseString(data);
             } catch(e) {}
 
             let items = icsParser.getItems({});

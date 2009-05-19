@@ -1133,7 +1133,7 @@ calDavCalendar.prototype = {
                     var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                            .createInstance(Components.interfaces.calIIcsParser);
                     try {
-                        parser.parseString(calData, null);
+                        parser.parseString(calData);
                     } catch (e) {
                         // Warn and continue.
                         // TODO As soon as we have activity manager integration,
