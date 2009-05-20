@@ -1871,28 +1871,6 @@ PRBool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32
   return result;
 }
 
-#ifdef MOZILLA_1_9_1_BRANCH
-NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsTArray<nsCString>& array)
-{
-  if (string.IsEmpty())
-    return PR_TRUE;
-
-  PRUint32 count = array.Length();
-  PRInt32 start = 0;
-  for (;;) {
-    PRInt32 end = string.FindChar(delimiter, start);
-    if (end != start && !array.AppendElement(Substring(string, start, end - start)))
-      break;
-    if (end == -1)
-      return PR_TRUE;
-    start = end + 1;
-  }
-
-  array.RemoveElementsAt(count, array.Length() - count);
-  return PR_FALSE;
-}
-#endif
-
 NS_MSG_BASE nsresult
 MsgExamineForProxy(const char *scheme, const char *host,
                    PRInt32 port, nsIProxyInfo **proxyInfo)

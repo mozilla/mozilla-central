@@ -245,21 +245,4 @@ NS_MSG_BASE PRInt32 FindCharInSet(const nsString &aString,
 NS_MSG_BASE PRBool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset,
                                    PRUint32 maxBufferOffset);
 
-#ifdef MOZILLA_1_9_1_BRANCH
-/**
- * Parses a given string using the delimiter passed in. Items parsed from the
- * string will be appended to the array. This version is only used on the
- * MOZILLA_1_9_1_BRANCH as the trunk already has a suitable function.
- *
- * @param string
- *        The string to parse.
- * @param delimiter
- *        A delimter character.
- * @param array
- *        The array to append tokens to.
- */
-NS_MSG_BASE PRBool ParseString(const nsACString& string, char delimiter, nsTArray<nsCString>& array);
 #endif
-
-#endif
-
