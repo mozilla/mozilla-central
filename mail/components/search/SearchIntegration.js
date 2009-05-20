@@ -38,12 +38,22 @@
 var EXPORTED_SYMBOLS = ["SearchIntegration"];
 
 #ifdef XP_WIN
-Components.utils.import("resource://app/modules/WinSearchIntegration.js");
+
+#ifdef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
+// Set SearchIntegration to null, as we don't have it
+var SearchIntegration = null;
 #else
+Components.utils.import("resource://app/modules/WinSearchIntegration.js");
+#endif
+
+#else
+
 #ifdef XP_MACOSX
 Components.utils.import("resource://app/modules/SpotlightIntegration.js");
+
 #else
 // Set SearchIntegration to null, as we don't have it
 var SearchIntegration = null;
 #endif
+
 #endif
