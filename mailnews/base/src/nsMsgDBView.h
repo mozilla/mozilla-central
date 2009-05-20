@@ -250,6 +250,8 @@ protected:
   virtual PRBool WantsThisThread(nsIMsgThread * thread);
   virtual nsresult AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex = nsnull);
   PRBool GetShowingIgnored() {return (m_viewFlags & nsMsgViewFlagsType::kShowIgnored) != 0;}
+  PRBool OperateOnMsgsInCollapsedThreads();
+
   virtual nsresult OnNewHeader(nsIMsgDBHdr *aNewHdr, nsMsgKey parentKey, PRBool ensureListed);
   virtual nsMsgViewIndex GetInsertIndex(nsIMsgDBHdr *msgHdr);
   nsMsgViewIndex GetIndexForThread(nsIMsgDBHdr *hdr);
@@ -333,25 +335,28 @@ protected:
   PRInt32  GetSize(void) {return(m_keys.Length());}
 
   // notification api's
-  void	EnableChangeUpdates();
-  void	DisableChangeUpdates();
-  void	NoteChange(nsMsgViewIndex firstlineChanged, PRInt32 numChanged, 
+  void  EnableChangeUpdates();
+  void  DisableChangeUpdates();
+  void  NoteChange(nsMsgViewIndex firstlineChanged, PRInt32 numChanged,
                     nsMsgViewNotificationCodeValue changeType);
-  void	NoteStartChange(nsMsgViewIndex firstlineChanged, PRInt32 numChanged, 
+  void  NoteStartChange(nsMsgViewIndex firstlineChanged, PRInt32 numChanged,
                         nsMsgViewNotificationCodeValue changeType);
-  void	NoteEndChange(nsMsgViewIndex firstlineChanged, PRInt32 numChanged, 
+  void  NoteEndChange(nsMsgViewIndex firstlineChanged, PRInt32 numChanged,
                         nsMsgViewNotificationCodeValue changeType);
 
   // for commands
   virtual nsresult ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewIndex* indices,
-					PRInt32 numIndices);
-  virtual nsresult ApplyCommandToIndicesWithFolder(nsMsgViewCommandTypeValue command, nsMsgViewIndex* indices, 
+                                         PRInt32 numIndices);
+  virtual nsresult ApplyCommandToIndicesWithFolder(nsMsgViewCommandTypeValue command, nsMsgViewIndex* indices,
                     PRInt32 numIndices, nsIMsgFolder *destFolder);
   virtual nsresult CopyMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool isMove, nsIMsgFolder *destFolder);
   virtual nsresult DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage);
-  nsresult SetStringPropertyByIndex(nsMsgViewIndex index, const char *aProperty, const char *aValue);
-  nsresult SetAsJunkByIndex(nsIJunkMailPlugin *aJunkPlugin, 
-                               nsMsgViewIndex aIndex,
+  nsresult GetHeadersFromSelection(PRUint32 *indices, PRUint32 numIndices, nsIMutableArray *messageArray);
+  virtual nsresult ListCollapsedChildren(nsMsgViewIndex viewIndex,
+                                         nsIMutableArray *messageArray);
+
+  nsresult SetMsgHdrJunkStatus(nsIJunkMailPlugin *aJunkPlugin,
+                               nsIMsgDBHdr *aMsgHdr,
                                nsMsgJunkStatus aNewClassification);
   nsresult ToggleReadByIndex(nsMsgViewIndex index);
   nsresult SetReadByIndex(nsMsgViewIndex index, PRBool read);
@@ -472,11 +477,10 @@ protected:
   // junk plugin batches
   PRUint32 mNumMessagesRemainingInBatch;
 
-  // these are the indices of the messages in the current
+  // these are the headers of the messages in the current
   // batch/series of batches of messages manually marked
   // as junk
-  nsMsgViewIndex *mJunkIndices;
-  PRUint32 mNumJunkIndices;
+  nsCOMPtr<nsIMutableArray> mJunkHdrs;
   
   nsTArray<PRUint32> mIndicesToNoteChange;
 
@@ -513,6 +517,7 @@ private:
 
   nsresult PerformActionsOnJunkMsgs(PRBool msgsAreJunk);
   nsresult DetermineActionsForJunkChange(PRBool msgsAreJunk,
+                                         nsIMsgFolder *srcFolder,
                                          PRBool &moveMessages,
                                          PRBool &changeReadState,
                                          nsIMsgFolder** targetFolder);

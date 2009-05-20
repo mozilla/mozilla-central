@@ -843,19 +843,19 @@ nsresult nsMsgThreadedDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, n
 nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
 {
   nsresult rv = NS_OK;
-  PRInt32	flags;
-  
+  PRInt32 flags;
+
   if (!IsValidIndex(index))
     return NS_MSG_INVALID_DBVIEW_INDEX;
   
   OnHeaderAddedOrDeleted();
-  
+
   flags = m_flags[index];
-  
+
   if (! (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)) 
     return nsMsgDBView::RemoveByIndex(index);
-  
-  nsCOMPtr <nsIMsgThread> threadHdr; 
+
+  nsCOMPtr<nsIMsgThread> threadHdr; 
   GetThreadContainingIndex(index, getter_AddRefs(threadHdr));
   NS_ENSURE_SUCCESS(rv, rv);
   PRUint32 numThreadChildren = 0; // if we can't get thread, it's already deleted and thus has 0 children
@@ -869,11 +869,11 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
     if (threadHdr)
     {
       nsMsgDBView::RemoveByIndex(index);
-      nsCOMPtr <nsIMsgThread> nextThreadHdr;
+      nsCOMPtr<nsIMsgThread> nextThreadHdr;
       if (numThreadChildren > 0)
       {
         // unreadOnly
-        nsCOMPtr <nsIMsgDBHdr> msgHdr;
+        nsCOMPtr<nsIMsgDBHdr> msgHdr;
         rv = threadHdr->GetChildHdrAt(0, getter_AddRefs(msgHdr));
         if (msgHdr != nsnull)
         {
@@ -908,7 +908,6 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
       }
       
     }
-    
     return nsMsgDBView::RemoveByIndex(index);
   }
   // deleting collapsed thread header is special case. Child will be promoted,
@@ -918,25 +917,24 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
     // change the id array and flags array to reflect the child header.
     // If we're not deleting the header, we want the second header,
     // Otherwise, the first one (which just got promoted).
-    nsCOMPtr <nsIMsgDBHdr> msgHdr;
+    nsCOMPtr<nsIMsgDBHdr> msgHdr;
     rv = threadHdr->GetChildHdrAt(0, getter_AddRefs(msgHdr));
     if (msgHdr != nsnull)
     {
       msgHdr->GetMessageKey(&m_keys[index]);
-      
+
       PRUint32 flag = 0;
       msgHdr->GetFlags(&flag);
-      //			CopyDBFlagsToExtraFlags(msgHdr->GetFlags(), &flag);
-      //			if (msgHdr->GetArticleNum() == msgHdr->GetThreadId())
       flag |= MSG_VIEW_FLAG_ISTHREAD;
-      
-      if (numThreadChildren == 1)	// if only hdr in thread (with one about to be deleted)
-        // adjust flags.
+
+      // if only hdr in thread (with one about to be deleted)
+      if (numThreadChildren == 1)
       {
+        // adjust flags.
         flag &=  ~MSG_VIEW_FLAG_HASCHILDREN;
         flag &= ~nsMsgMessageFlags::Elided;
         // tell FE that thread header needs to be repainted.
-        NoteChange(index, 1, nsMsgViewNotificationCode::changed);	
+        NoteChange(index, 1, nsMsgViewNotificationCode::changed);
       }
       else
       {
@@ -951,7 +949,13 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
     NoteChange(index, 1, nsMsgViewNotificationCode::changed);	
   }
   else
+  {
+    // we may have deleted a whole, collapsed thread - if so,
+    // ensure that the current index will be noted as changed.
+    if (!mIndicesToNoteChange.Contains(index))
+      mIndicesToNoteChange.AppendElement(index);
     rv = nsMsgDBView::RemoveByIndex(index);
+  }
   return rv;
 }
 

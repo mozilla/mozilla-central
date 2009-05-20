@@ -49,6 +49,7 @@
 #include "nsITreeColumns.h"
 #include "nsIMsgMessageService.h"
 #include "nsAutoPtr.h"
+#include "nsArrayUtils.h"
 #include "nsIMutableArray.h"
 #include "nsMsgGroupThread.h"
 #include "nsIPrefService.h"
@@ -856,8 +857,8 @@ nsresult nsMsgSearchDBView::RemoveByIndex(nsMsgViewIndex index)
 
 nsresult nsMsgSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage)
 {
-   nsresult rv;
-   GetFoldersAndHdrsForSelection(indices, numIndices);
+   nsresult rv = GetFoldersAndHdrsForSelection(indices, numIndices);
+   NS_ENSURE_SUCCESS(rv, rv);
    if (mDeleteModel != nsMsgImapDeleteModels::MoveToTrash)
      deleteStorage = PR_TRUE;
   if (mDeleteModel != nsMsgImapDeleteModels::IMAPDelete)
@@ -948,35 +949,51 @@ nsMsgSearchDBView::GetFoldersAndHdrsForSelection(nsMsgViewIndex *indices, PRInt3
   else
     m_hdrsForEachFolder->Clear();
 
+  nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = GetHeadersFromSelection(indices, numIndices, messages);
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRUint32 numMsgs;
+  messages->GetLength(&numMsgs);
+
+  PRUint32 i;
   // Build unique folder list based on headers selected by the user
-  for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++)
+  for (i = 0; i < numMsgs; i++)
   {
-     nsIMsgFolder *curFolder = m_folders[indices[i]];
-     if (m_uniqueFoldersSelected.IndexOf(curFolder) < 0)
-       m_uniqueFoldersSelected.AppendObject(curFolder);
+    nsCOMPtr<nsIMsgDBHdr> hdr = do_QueryElementAt(messages, i, &rv);
+    if (hdr)
+    {
+      nsCOMPtr<nsIMsgFolder> curFolder;
+      hdr->GetFolder(getter_AddRefs(curFolder));
+      if (m_uniqueFoldersSelected.IndexOf(curFolder) < 0)
+        m_uniqueFoldersSelected.AppendObject(curFolder);
+    }
   }
 
   // Group the headers selected by each folder
   PRUint32 numFolders = m_uniqueFoldersSelected.Count();
   for (PRUint32 folderIndex = 0; folderIndex < numFolders; folderIndex++)
   {
-     nsIMsgFolder *curFolder = m_uniqueFoldersSelected[folderIndex];
-     nsCOMPtr<nsIMutableArray> msgHdrsForOneFolder(do_CreateInstance(NS_ARRAY_CONTRACTID));
-     for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++) 
-     {
-       nsIMsgFolder *msgFolder = m_folders[indices[i]];
-       if (NS_SUCCEEDED(rv) && msgFolder && msgFolder == curFolder) 
-       {
-          nsCOMPtr<nsIMsgDBHdr> msgHdr; 
-          rv = GetMsgHdrForViewIndex(indices[i], getter_AddRefs(msgHdr));
-          NS_ENSURE_SUCCESS(rv,rv);
-          nsCOMPtr<nsISupports> hdrSupports = do_QueryInterface(msgHdr);
+    nsIMsgFolder *curFolder = m_uniqueFoldersSelected[folderIndex];
+    nsCOMPtr<nsIMutableArray> msgHdrsForOneFolder(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    for (i = 0; i < numMsgs; i++) 
+    {
+      nsCOMPtr<nsIMsgDBHdr> hdr = do_QueryElementAt(messages, i, &rv);
+      if (hdr)
+      {
+        nsCOMPtr<nsIMsgFolder> msgFolder;
+        hdr->GetFolder(getter_AddRefs(msgFolder));
+        if (NS_SUCCEEDED(rv) && msgFolder && msgFolder == curFolder) 
+        {
+          nsCOMPtr<nsISupports> hdrSupports = do_QueryInterface(hdr);
           msgHdrsForOneFolder->AppendElement(hdrSupports, PR_FALSE);
-       }
-     }
-     nsCOMPtr<nsISupports> supports = do_QueryInterface(msgHdrsForOneFolder, &rv);
-     if (NS_SUCCEEDED(rv) && supports)
-       m_hdrsForEachFolder->AppendElement(supports);
+        }
+      }
+    }
+    nsCOMPtr<nsISupports> supports = do_QueryInterface(msgHdrsForOneFolder, &rv);
+    if (NS_SUCCEEDED(rv) && supports)
+      m_hdrsForEachFolder->AppendElement(supports);
   }
   return rv;
 }

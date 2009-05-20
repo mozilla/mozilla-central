@@ -86,6 +86,8 @@ protected:
   virtual nsresult SortThreads(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder);
   virtual nsresult GetFirstMessageHdrToDisplayInThread(nsIMsgThread *threadHdr, nsIMsgDBHdr **result);
   virtual nsresult ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDelta);
+  virtual nsresult ListCollapsedChildren(nsMsgViewIndex viewIndex,
+                                         nsIMutableArray *messageArray);
   virtual nsresult ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, PRUint32 *pNumListed);
   virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
   void      SavePreSearchInfo();

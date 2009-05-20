@@ -288,6 +288,9 @@ pref("mailnews.reply_quoting_selection",               true);
 pref("mailnews.reply_quoting_selection.only_if_chars", "");
 pref("mailnews.reply_quoting_selection.multi_word",    true);
 
+pref("mail.operate_on_msgs_in_collapsed_threads", false);
+pref("mail.warn_on_collapsed_thread_operation", true);
+
 pref("mail.purge_threshhold",              100);
 pref("mail.prompt_purge_threshhold",       false);
 pref("mail.purge.ask",                     true);
@@ -499,6 +502,8 @@ pref("mail.server.default.is_gmail", false);
 pref("mail.server.default.use_idle", true);
 // in case client or server has bugs in condstore implementation
 pref("mail.server.default.use_condstore", true);
+// in case client or server has bugs in compress implementation
+pref("mail.server.default.use_compress_deflate", true);
 // for spam
 pref("mail.server.default.spamLevel", 100); // 0 off, 100 on.  not doing bool since we might have real levels one day.
 pref("mail.server.default.moveOnSpam", false);
