@@ -768,8 +768,8 @@ calCalendarManager.prototype = {
                             calendar.setProperty("auto-enabled", true);
                         }
                         calendar.setProperty("disabled", true);
-                     }
- 
+                    }
+
                     this.setupCalendar(calendar);
                 } catch (exc) {
                     cal.ERROR("Can't create calendar for " + id + " (" + ctype + ", " + curi + "): " + exc);

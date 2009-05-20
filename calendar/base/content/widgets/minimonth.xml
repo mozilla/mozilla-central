@@ -437,8 +437,8 @@
        <!--returns the first (inclusive) date of the minimonth as a calIDateTime object-->
       <property name="firstDate" readonly="true">
         <getter><![CDATA[
-            var calbox = document.getAnonymousElementByAttribute(this, "anonid", "minimonth-calendar");
-            date = calbox.childNodes[1].firstChild.date;
+            let calbox = document.getAnonymousElementByAttribute(this, "anonid", "minimonth-calendar");
+            let date = calbox.childNodes[1].firstChild.date;
             return jsDateToDateTime(date);
         ]]></getter>
       </property>
@@ -884,7 +884,7 @@
             var ymd = aJsDate.getFullYear() + "-" +
                       aJsDate.getMonth() + "-" +
                       aJsDate.getDate();
-            return this.mDayMap[ymd];
+            return this.mDayMap[ymd] || null;
         ]]></body>
       </method>
 

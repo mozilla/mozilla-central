@@ -114,7 +114,7 @@
             this.listTree.removeCalendar(aCalendar);
         },
 
-        onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) { },
+        onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) { }
       })
       ]]></field>
       <field name="compositeObserver"><![CDATA[

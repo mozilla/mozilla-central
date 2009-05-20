@@ -220,6 +220,7 @@ calStorageTimezone.prototype = {
 var gForeignTimezonesCache = {};
 
 function getTimezone(aTimezone) {
+    let tz = null;
     if (aTimezone.indexOf("BEGIN:VTIMEZONE") == 0) {
         tz = gForeignTimezonesCache[aTimezone]; // using full definition as key
         if (!tz) {
@@ -1927,7 +1928,7 @@ calStorageCalendar.prototype = {
         // build up recurring event and todo cache, because we need that on every query:
         // for recurring items, we need to query database-wide.. yuck
 
-        sp = this.mSelectEventsWithRecurrence.params;
+        let sp = this.mSelectEventsWithRecurrence.params;
         try {
             while (this.mSelectEventsWithRecurrence.step()) {
                 var row = this.mSelectEventsWithRecurrence.row;

@@ -353,19 +353,18 @@ function addItem(aItem) {
     if (periods.length == 0) {
         return null;
     }
+    let newlistItem = null;
     for (var i = 0; i < periods.length; i++) {
-        period = periods[i];
-        var complistItem = period.listItem;
-        var visible = complistItem.getCheckbox().checked;
-        var newlistItem = null;
+        let period = periods[i];
+        let complistItem = period.listItem;
+        let visible = complistItem.getCheckbox().checked;
         if ((aItem.startDate.isDate) && (period.duration == 1)) {
             if (this.getListItems(aItem, period).length == 0) {
                 this.addItemBefore(aItem, period.listItem.nextSibling, period, visible);
             }
         } else {
             do {
-                var prevlistItem = complistItem;
-                var complistItem = complistItem.nextSibling;
+                complistItem = complistItem.nextSibling;
                 if (!this.isEventListItem(complistItem)) {
                     newlistItem = this.addItemBefore(aItem, complistItem, period, visible);
                     break;
@@ -432,10 +431,10 @@ function getListItems(aItem, aPeriod) {
     }
     if (periods.length > 0) {
         for (var i = 0; i < periods.length; i++) {
-            period = periods[i];
-            var complistItem = period.listItem;
+            let period = periods[i];
+            let complistItem = period.listItem;
             do {
-                var complistItem = complistItem.nextSibling;
+                complistItem = complistItem.nextSibling;
                 var leaveloop = (!this.isEventListItem(complistItem));
                 if (!leaveloop) {
                     if (this.isSameEvent(aItem, complistItem.occurrence)){
