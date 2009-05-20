@@ -585,7 +585,7 @@ void nsImapServerResponseParser::response_data()
       if (!PL_strcasecmp(fNextToken, "MAILBOX"))
         mailbox_data();
       else if (!PL_strcasecmp(fNextToken, "MYRIGHTS"))
-        myrights_data();
+        myrights_data(PR_FALSE);
       else SetSyntaxError(PR_TRUE);
       break;
     case 'S':
@@ -2014,6 +2014,10 @@ void nsImapServerResponseParser::resp_text_code()
     {
       capability_data();
     }
+    else if (!PL_strcasecmp(fNextToken, "MYRIGHTS"))
+    {
+      myrights_data(PR_TRUE);      
+    }
     else // just text
     {
       // do nothing but eat tokens until we see the ] or CRLF
@@ -2461,22 +2465,33 @@ void nsImapServerResponseParser::namespace_data()
 	}
 }
 
-void nsImapServerResponseParser::myrights_data()
+void nsImapServerResponseParser::myrights_data(PRBool unsolicited)
 {
   AdvanceToNextToken();
   if (ContinueParse() && !fAtEndOfLine)
   {
-    char *mailboxName = CreateAstring(); // PL_strdup(fNextToken);
+    char *mailboxName;
+    // an unsolicited myrights response won't have the mailbox name in
+    // the response, so we use the selected mailbox name.
+    if (unsolicited)
+    {
+      mailboxName = strdup(fSelectedMailboxName);
+    }
+    else
+    {
+      mailboxName = CreateAstring();
+      if (mailboxName)
+        AdvanceToNextToken();
+    }
     if (mailboxName)
     {
-      AdvanceToNextToken();
       if (ContinueParse())
       {
-        char *myrights = CreateAstring(); // PL_strdup(fNextToken);
+        char *myrights = CreateAstring();
         if (myrights)
         {
           nsImapProtocol *navCon = &fServerConnection;
-          NS_ASSERTION(navCon, "null connection parsing my rights");	// we should always have this
+          NS_ASSERTION(navCon, "null connection parsing my rights"); // we should always have this
           if (navCon)
             navCon->AddFolderRightsForUser(mailboxName, nsnull /* means "me" */, myrights);
           PR_Free(myrights);

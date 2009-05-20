@@ -186,7 +186,7 @@ protected:
   virtual void    xserverinfo_data();
   virtual void    xmailboxinfo_data();
   virtual void    namespace_data();
-  virtual void    myrights_data();
+  virtual void    myrights_data(PRBool unsolicited);
   virtual void    acl_data();
   virtual void    bodystructure_data();
   nsIMAPBodypart  *bodystructure_part(char *partNum, nsIMAPBodypart *parentPart);
