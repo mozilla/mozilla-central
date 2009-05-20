@@ -723,7 +723,7 @@ let gFolderTreeView = {
      if (folderWithFlag) {
        folders.push(folderWithFlag);
       // add sub-folders of Sent and Archive to the result.
-      if (deep && (aFolderFlag & (nsMsgFolderFlags.Sent | nsMsgFolderFlags.Archive)))
+      if (deep && (aFolderFlag & (nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Archive)))
         this.addSubFolders(folderWithFlag, folders);
       }
     }
@@ -752,25 +752,27 @@ let gFolderTreeView = {
     let accounts = gFolderTreeView._sortedAccounts();
 
     let smartRoot = smartServer.rootFolder;
-    let smartRootItem = new ftvItem(smartRoot);
-    map.push(smartRootItem);
     let nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
     let smartChildren = new Array;
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
                                             nsMsgFolderFlags.Inbox, "Inbox");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
                                             nsMsgFolderFlags.Drafts, "Drafts");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
                                             nsMsgFolderFlags.SentMail, "Sent");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
                                             nsMsgFolderFlags.Trash, "Trash");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
                                             nsMsgFolderFlags.Templates, "Templates");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRootItem,
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
                                             nsMsgFolderFlags.Archive, "Archives");
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
+                                            nsMsgFolderFlags.Junk, "Junk");
 
     sortFolderItems(smartChildren);
-    smartRootItem._children = smartChildren;
+    for each (smartChild in smartChildren)
+      map.push(smartChild);
+      
     for each (acct in accounts) {
       // Bug 466311 Sometimes this can throw file not found, we're unsure
       // why, but catch it and log the fact.
@@ -784,18 +786,18 @@ let gFolderTreeView = {
       }
     }
     for each (acct in accounts)
-      map.push(new ftvItem(acct.incomingServer.rootFolder));
+      map.push(new ftv_SmartItem(acct.incomingServer.rootFolder));
 
     return map;
   },
 
-  _addSmartFoldersForFlag: function ftv_addSmartFoldersForFlag(map, accounts, smartRootItem,
+  _addSmartFoldersForFlag: function ftv_addSmartFoldersForFlag(map, accounts, smartRootFolder,
                                                                flag, folderName)
   {
     let smartFolder;
     try {
-      let folderUri = smartRootItem._folder.URI + "/" + folderName;
-      smartFolder = smartRootItem._folder.getChildWithURI(folderUri, false, true);
+      let folderUri = smartRootFolder.URI + "/" + folderName;
+      smartFolder = smartRootFolder.getChildWithURI(folderUri, false, true);
     } catch (ex) {
         smartFolder = null;
     };
@@ -809,13 +811,12 @@ let gFolderTreeView = {
       }
       if (!searchFolderURIs.length)
         return;
-      smartFolder = gFolderTreeView._createVFFolder(folderName, smartRootItem._folder,
+      smartFolder = gFolderTreeView._createVFFolder(folderName, smartRootFolder,
                                                     searchFolderURIs, flag);
     }
 
     let smartFolderItem = new ftvItem(smartFolder);
-    smartFolderItem._level = smartRootItem._level + 1;
-    smartFolderItem._parent = smartRootItem;
+    smartFolderItem._level = 0;
     map.push(smartFolderItem);
     let subFolders = gFolderTreeView._allFoldersWithFlag(accounts, flag, false);
     // now add the actual inboxes as sub-folders of the saved search.
@@ -1745,6 +1746,52 @@ let gFolderTreeController = {
   }
 };
 
+function ftv_SmartItem(aFolder)
+{
+  ftvItem.call(this, aFolder);
+  this._level = 0;
+}
+
+ftv_SmartItem.prototype =
+{  
+  get children() {
+    const Ci = Components.interfaces;
+    const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
+    let specialFlags = nsMsgFolderFlags.Inbox | nsMsgFolderFlags.Drafts |
+                       nsMsgFolderFlags.Trash | nsMsgFolderFlags.SentMail |
+                       nsMsgFolderFlags.Templates |
+                       nsMsgFolderFlags.Junk |
+                       nsMsgFolderFlags.Archive;
+
+    // We're caching our child list to save perf.
+    if (!this._children) {
+      this._children = [];
+      let iter = fixIterator(this._folder.subFolders, Ci.nsIMsgFolder);
+      for (let folder in iter) {
+        if (! (folder.flags & specialFlags)) {
+          this._children.push(new ftv_SmartItem(folder));
+        }
+        else if (folder.flags & nsMsgFolderFlags.Inbox) {
+          let subIter = fixIterator(folder.subFolders, Ci.nsIMsgFolder);
+          for (let subfolder in subIter) {
+            if (! (subfolder.flags & specialFlags))
+              this._children.push(new ftv_SmartItem(subfolder));
+          }
+        }
+      }
+      sortFolderItems(this._children);
+      // Each child is a level one below us
+      for each (let child in this._children) {
+        child._level = this._level + 1;
+        child._parent = this;
+      }
+    }
+    return this._children;
+  }
+}
+
+extend(ftv_SmartItem, ftvItem);
+
 /**
  * Sorts the passed in array of folder items using the folder sort key
  *
@@ -1758,4 +1805,12 @@ function sortFolderItems (aFtvItems) {
     return a.text.toLowerCase() > b.text.toLowerCase();
   }
   aFtvItems.sort(sorter);
+}
+
+/**
+ * Create a subtype - maybe this wants to be in a shared .jsm file somewhere.
+ */
+function extend(child, supertype)
+{
+  child.prototype.__proto__ = supertype.prototype;
 }
