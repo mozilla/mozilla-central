@@ -92,6 +92,7 @@ protected:
   nsCOMPtr<nsISupportsArray> m_cachedMemCacheEntries;
   nsCOMPtr<nsIMsgHeaderSink> mMsgHeaderSink;
   char *m_errorMessage;
+  PRInt64 mMaxProgress;
   PRBool m_runningUrl;
   PRBool m_updatingFolder;
   PRBool m_addContentToCache;

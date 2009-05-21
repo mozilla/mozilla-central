@@ -269,15 +269,14 @@ NS_IMETHODIMP nsNntpUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
   nsCOMPtr <nsIMsgMessageService> msgService = do_QueryInterface(nntpService, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  if (mOriginalSpec.IsEmpty()) {
-    // this can happen when viewing a news://host/message-id url
-    return NS_ERROR_FAILURE;
-  }
+  nsCAutoString spec(mOriginalSpec);
+  if (spec.IsEmpty())
+    // Handle the case where necko directly runs an internal news:// URL,
+    // one that looks like news://host/message-id?group=mozilla.announce&key=15
+    // Other sorts of URLs -- e.g. news://host/message-id -- will not succeed.
+    GetSpec(spec);
 
-  rv = msgService->MessageURIToMsgHdr(mOriginalSpec.get(), aMsgHdr);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  return NS_OK;
+  return msgService->MessageURIToMsgHdr(spec.get(), aMsgHdr);
 }
 
 NS_IMETHODIMP nsNntpUrl::IsUrlType(PRUint32 type, PRBool *isType)

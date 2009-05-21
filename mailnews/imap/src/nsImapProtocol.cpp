@@ -4984,9 +4984,8 @@ nsImapProtocol::ProgressEventFunctionUsingIdWithString(PRUint32 aMsgId, const
 }
 
 void
-nsImapProtocol::PercentProgressUpdateEvent(PRUnichar *message, PRInt32 currentProgress, PRInt32 maxProgress)
+nsImapProtocol::PercentProgressUpdateEvent(PRUnichar *message, PRInt64 currentProgress, PRInt64 maxProgress)
 {
-
   PRInt64 nowMS = LL_ZERO;
   PRInt32 percent = (100 * currentProgress) / maxProgress;
   if (percent == m_lastPercent)
@@ -5008,13 +5007,15 @@ nsImapProtocol::PercentProgressUpdateEvent(PRUnichar *message, PRInt32 currentPr
   m_lastPercent = percent;
   m_lastProgressTime = nowMS;
 
-  // set our max progress as the content length on the mock channel
-  if (m_mockChannel)
-      m_mockChannel->SetContentLength(maxProgress);
-
+  // set our max progress on the running URL
+  if (m_runningUrl)
+  {
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl(do_QueryInterface(m_runningUrl));
+    mailnewsUrl->SetMaxProgress(maxProgress);
+  }
 
   if (m_imapMailFolderSink)
-      m_imapMailFolderSink->PercentProgress(this, message, currentProgress, maxProgress);
+    m_imapMailFolderSink->PercentProgress(this, message, currentProgress, maxProgress);
 }
 
   // imap commands issued by the parser
@@ -5688,7 +5689,7 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
   IncrementCommandTagNumber();
 
   PRInt64 fileSize = 0;
-  PRInt32 totalSize;
+  PRInt64 totalSize;
   PRUint32 readCount;
   char *dataBuffer = nsnull;
   nsCString command(GetServerCommandTag());
@@ -8250,7 +8251,6 @@ nsImapMockChannel::nsImapMockChannel()
   mChannelClosed = PR_FALSE;
   mReadingFromCache = PR_FALSE;
   mTryingToReadPart = PR_FALSE;
-  mContentLength = -1;
 }
 
 nsImapMockChannel::~nsImapMockChannel()
@@ -8415,6 +8415,29 @@ NS_IMETHODIMP nsImapMockChannel::SetURI(nsIURI* aURI)
       nsCOMPtr<nsIMsgStatusFeedback> statusFeedback;
       mailnewsUrl->GetStatusFeedback(getter_AddRefs(statusFeedback));
       mProgressEventSink = do_QueryInterface(statusFeedback);
+    }
+    // If this is a fetch URL and we can, get the message size from the message
+    // header and set it to be the content length.
+    // Note that for an attachment URL, this will set the content length to be
+    // equal to the size of the entire message.
+    nsCOMPtr<nsIImapUrl> imapUrl(do_QueryInterface(m_url));
+    nsImapAction imapAction;
+    imapUrl->GetImapAction(&imapAction);
+    if (imapAction == nsIImapUrl::nsImapMsgFetch)
+    {
+      nsCOMPtr<nsIMsgMessageUrl> msgUrl(do_QueryInterface(m_url));
+      if (msgUrl)
+      {
+        nsCOMPtr<nsIMsgDBHdr> msgHdr;
+        // A failure to get a message header isn't an error
+        msgUrl->GetMessageHeader(getter_AddRefs(msgHdr));
+        if (msgHdr)
+        {
+          PRUint32 messageSize;
+          if (NS_SUCCEEDED(msgHdr->GetMessageSize(&messageSize)))
+            SetContentLength(messageSize);
+        }
+      }
     }
   }
   return NS_OK;

@@ -95,7 +95,6 @@ public:
 
   NS_IMETHOD OnStartRequest(nsIRequest *request, nsISupports *ctxt);
   NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult aStatus);
-  NS_IMETHOD GetContentLength(PRInt32 * aContentLength);
 
 private:
   nsCOMPtr<nsIMailboxUrl>  m_runningUrl; // the nsIMailboxURL that is currently running
@@ -113,7 +112,7 @@ private:
   MailboxStatesEnum  m_nextState;
   MailboxStatesEnum  m_initialState;
 
-  PRInt32 mCurrentProgress;
+  PRInt64   mCurrentProgress;
   PRUint32  m_messageID;
 
         // can we just use the base class m_tempMsgFile?

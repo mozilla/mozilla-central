@@ -53,7 +53,7 @@ interface nsIMsgFolder;
 interface nsIMsgHeaderSink;
 interface nsIMsgDBHdr;
 
-[scriptable, uuid(2FB327C2-00A3-4e3f-8CD6-93BED40BD621)]
+[scriptable, uuid(01850820-e382-4b0f-a109-23d69280876b)]
 interface nsIMsgMailNewsUrl : nsIURL {
   ///////////////////////////////////////////////////////////////////////////////
   // Eventually we'd like to push this type of functionality up into nsIURI.
@@ -84,6 +84,12 @@ interface nsIMsgMailNewsUrl : nsIURL {
   attribute nsIMsgFolder folder;
 
   attribute nsIMsgStatusFeedback statusFeedback;
+
+  /**
+   * The maximum progress for this URL. This might be a count, or it might
+   * be a number of bytes. A value of -1 indicates that this is unknown.
+   */
+  attribute long long maxProgress;
 
   attribute nsIMsgWindow msgWindow;
 
