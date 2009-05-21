@@ -24,6 +24,9 @@ bin\defaults\profile\prefs.js
 bin\defaults\profile\chrome\*
 bin\dictionaries\*
 bin\uninstall\helper.exe
+#ifndef MOZILLA_1_9_1_BRANCH
+bin\update.locale
+#endif
 bin\updater.ini
 
 [xpcom]
