@@ -22,9 +22,7 @@ bin\defaults\messenger\*
 bin\searchplugins\*
 bin\dictionaries\*
 bin\uninstall\helper.exe
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\update.locale
-#endif
 bin\updater.ini
 
 ; default files for en-US

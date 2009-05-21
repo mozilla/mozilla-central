@@ -10,9 +10,7 @@ bin\chrome\@AB_CD@.manifest
 bin\defaults\pref\all-l10n.js
 bin\dictionaries\*
 bin\uninstall\helper.exe
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\update.locale
-#endif
 bin\updater.ini
 bin\isp\@AB_CD@\*
 
