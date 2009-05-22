@@ -53,19 +53,32 @@
         <hbox id="calendar-nav-control">
             <vbox flex="1">
                <hbox flex="1" class="navigation-inner-box" align="end">
+                  <!-- If you are extending a view, add attributes to these
+                       nodes for your view. i.e if your view has the id
+                       "foobar-view", then you need to add the attribute
+                       tooltiptext-foobar="..." -->
                   <toolbarbutton id="previous-view-button"
                                  class="view-navigation-button"
                                  chromedir="&locale.dir;"
                                  type="prev"
+                                 tooltiptext-day="&calendar.navigation.prevday.tooltip;"
+                                 tooltiptext-week="&calendar.navigation.prevweek.tooltip;"
+                                 tooltiptext-multiweek="&calendar.navigation.prevweek.tooltip;"
+                                 tooltiptext-month="&calendar.navigation.prevmonth.tooltip;"
                                  command="calendar_view_prev_command"/>
                   <toolbarbutton id="today-view-button"
                                  class="today-navigation-button"
                                  label="&calendar.today.button.label;"
+                                 tooltiptext-all="&calendar.today.button.tooltip;"
                                  command="calendar_view_today_command"/>
                   <toolbarbutton id="next-view-button"
                                  class="view-navigation-button"
                                  chromedir="&locale.dir;"
                                  type="next"
+                                 tooltiptext-day="&calendar.navigation.nextday.tooltip;"
+                                 tooltiptext-week="&calendar.navigation.nextweek.tooltip;"
+                                 tooltiptext-multiweek="&calendar.navigation.nextweek.tooltip;"
+                                 tooltiptext-month="&calendar.navigation.nextmonth.tooltip;"
                                  command="calendar_view_next_command"/>
                   <label id="intervalDescription"
                                  class="view-header"

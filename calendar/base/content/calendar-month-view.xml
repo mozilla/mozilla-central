@@ -710,6 +710,9 @@
           this.mStartDate = getWeekInfoService().getStartOfWeek(aStartDate.getInTimezone(this.mTimezone))
           this.mEndDate = getWeekInfoService().getEndOfWeek(aEndDate.getInTimezone(this.mTimezone));
           this.refresh();
+
+          // Update the navigation bar.
+          cal.navigationBar.setDateRange(aStartDate, aEndDate);
         ]]></body>
       </method>
 

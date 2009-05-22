@@ -63,9 +63,6 @@
                 <body><![CDATA[
                     aDate = aDate.getInTimezone(this.timezone);
                     this.setDateRange(aDate, aDate);
-                    var toolTips = calGetStringArray("calendar",
-                                                      ["oneDayBack", "gotoToday", "oneDayForward"]);
-                    cal.navigationBar.setDateRange(aDate, aDate, toolTips);
                     this.selectedDay = aDate;
                 ]]></body>
             </method>
@@ -104,9 +101,6 @@
                     var d2 = d1.clone();
                     d2.day += 6;
                     this.setDateRange(d1, d2);
-                    var toolTips = calGetStringArray("calendar",
-                                                     ["oneWeekBack", "gotoToday", "oneWeekForward"]);
-                    cal.navigationBar.setDateRange(d1, d2, toolTips);
                     this.selectedDay = aDate;
                 ]]></body>
             </method>
@@ -170,9 +164,6 @@
                     let d2 = d1.clone();
                     d2.day += ((7 * this.mWeeksInView) - 1);
                     this.setDateRange(d1,d2);
-                    let toolTips = calGetStringArray("calendar",
-                                                     ["oneWeekBack", "gotoToday", "oneWeekForward"]);
-                    cal.navigationBar.setDateRange(d1,d2, toolTips);
                     this.selectedDay = aDate;
                 ]]></body>
             </method>
@@ -215,9 +206,6 @@
 
                     aDate = aDate.getInTimezone(this.timezone);
                     this.setDateRange(aDate.startOfMonth, aDate.endOfMonth);
-                    let toolTips = calGetStringArray("calendar",
-                                                      ["oneMonthBack", "gotoToday", "oneMonthForward"]);
-                    cal.navigationBar.setDateRange(aDate.startOfMonth, aDate.endOfMonth, toolTips);
                     this.showDate(aDate);
                     this.selectedDay = aDate;
                 ]]></body>

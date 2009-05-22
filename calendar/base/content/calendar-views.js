@@ -323,17 +323,37 @@ function switchToView(aViewType) {
         var command = document.getElementById(commandId);
         if (view.id == aViewType + "-view") {
             command.setAttribute("checked", "true");
-            document.getElementById("calendar-nav-control").setAttribute("selectedIndex", i);
         } else {
             command.removeAttribute("checked");
         }
     }
 
-    // Set the labels for the context-menu
-    var nextCommand = document.getElementById("calendar-view-context-menu-next");
-    nextCommand.setAttribute("label", nextCommand.getAttribute("label-"+aViewType));
-    var previousCommand = document.getElementById("calendar-view-context-menu-previous")
-    previousCommand.setAttribute("label", previousCommand.getAttribute("label-"+aViewType));
+    /**
+     * Sets up a node to use view specific attributes. If there is no view
+     * specific attribute, then <attr>-all is used instead.
+     *
+     * @param id        The id of the node to set up.
+     * @param attr      The view specific attribute to modify.
+     */
+    function setupViewNode(id, attr) {
+        let node = document.getElementById(id);
+        if (node.hasAttribute(attr + "-" + aViewType)) {
+            node.setAttribute(attr, node.getAttribute(attr + "-" + aViewType));
+        } else {
+            node.setAttribute(attr, node.getAttribute(attr + "-all"));
+        }
+    }
+
+    // Set up the labels for the context menu
+    ["calendar-view-context-menu-next",
+     "calendar-view-context-menu-previous"].forEach(function(x) setupViewNode(x, "label"));
+
+    // Set up the labels for the view navigation
+    ["previous-view-button",
+     "today-view-button",
+     "next-view-button"].forEach(function(x) setupViewNode(x, "tooltiptext"));
+    
+        
 
     // Disable the menuitem when not in day or week view.
     var rotated = document.getElementById("calendar_toggle_orientation_command");
@@ -356,10 +376,14 @@ function switchToView(aViewType) {
     }
 
     // Anyone wanting to plug in a view needs to follow this naming scheme
-    var view = document.getElementById(aViewType + "-view");
+    let view = document.getElementById(aViewType + "-view");
     viewDeck.selectedPanel = view;
 
-    var compositeCal = getCompositeCalendar();
+    // Select the corresponding tab
+    let viewTabs = document.getElementById("view-tabs");
+    viewTabs.selectedIndex = getViewDeck().selectedIndex;
+
+    let compositeCal = getCompositeCalendar();
     if (view.displayCalendar != compositeCal) {
         view.displayCalendar = compositeCal;
         view.timezone = calendarDefaultTimezone();
@@ -799,7 +823,7 @@ function selectAllEvents() {
 
 let cal = cal || {};
 cal.navigationBar = {
-    setDateRange: function setDateRange(aStartDate, aEndDate, aToolTipTexts) {
+    setDateRange: function setDateRange(aStartDate, aEndDate) {
         let docTitle = "";
         if (aStartDate) {
             let intervalLabel = document.getElementById("intervalDescription");
@@ -819,9 +843,6 @@ cal.navigationBar = {
                 weekLabel.value = calGetString("calendar", "severalShortCalendarWeeks", [firstWeekNo, secondWeekNo]);
                 weekLabel.tooltipText = calGetString("calendar", "severalLongCalendarWeeks", [firstWeekNo, secondWeekNo]);
             }
-            document.getElementById("previous-view-button").setAttribute("tooltiptext", aToolTipTexts[0]);
-            document.getElementById("today-view-button").setAttribute("tooltiptext", aToolTipTexts[1]);
-            document.getElementById("next-view-button").setAttribute("tooltiptext", aToolTipTexts[2]);
             docTitle = intervalLabel.value;
         }
         if (document.getElementById("modeBroadcaster").getAttribute("mode") == "calendar") {

@@ -933,8 +933,8 @@
                 if (this.mObservesComposite == false) {
                     getCompositeCalendar().addObserver(this);
                     this.mObservesComposite = true;
+                    this.getItems()
                  }
-                this.getItems()
             } else {
                 if (this.mObservesComposite == true) {
                     getCompositeCalendar().removeObserver(this);
@@ -1113,6 +1113,10 @@
      <handlers>
       <handler event="DOMMouseScroll">
         <![CDATA[
+          if (this.mIsReadOnly) {
+            // No scrolling on readonly months
+            return;
+          }
           var rows = event.detail;
           if (rows == NSUIEvent.SCROLL_PAGE_UP) {
             rows = -1;

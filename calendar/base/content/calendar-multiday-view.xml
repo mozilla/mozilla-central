@@ -2411,6 +2411,9 @@
             }
             this.setDateList(dateList.length, dateList);
           }
+
+          // Update the navigation bar.
+          cal.navigationBar.setDateRange(startDate, endDate);
         ]]></body>
       </method>
 

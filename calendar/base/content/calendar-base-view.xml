@@ -381,6 +381,10 @@
                 onget="return this.startDate;"/>
       <property name="endDay" readonly="true"
                 onget="return this.endDate;"/>
+      <property name="supportDisjointDates" readonly="true"
+                onget="return false;"/>
+      <property name="hasDisjointDates" readonly="true"
+                onget="return false;"/>
       <property name="rangeStartDate"
                 onget="return this.mRangeStartDate;"
                 onset="return (this.mRangeStartDate = val);"/>
@@ -665,20 +669,87 @@
             }
             this.daysOffArray = daysOff;
         ]]></body>
-       </method>
+      </method>
 
-       <method name="refreshView">
-         <body><![CDATA[
-           if (!this.startDay || !this.endDay) {
-               // don't refresh if we're not initialized
-               return;
-            }
-            // Just refresh, the goToDay function will notice
-            this.goToDay(this.selectedDay);
-          ]]></body>
-        </method>
+      <method name="refreshView">
+        <body><![CDATA[
+          if (!this.startDay || !this.endDay) {
+             // don't refresh if we're not initialized
+             return;
+          }
+          // Just refresh, the goToDay function will notice
+          this.goToDay(this.selectedDay);
+        ]]></body>
+      </method>
 
+      <!-- Default implementations follow, these make things easier for
+            extensions that don't need certain features. -->
+      <method name="handlePreference">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aPref"/>
+        <body><![CDATA[
+          // Do nothing by default
+        ]]></body>
+      </method>
+      <method name="setDateRange">
+        <parameter name="aStartDate"/>
+        <parameter name="aEndDate"/>
+        <body><![CDATA[
+          cal.navigationBar.setDateRange(aStartDate, aEndDate);
+        ]]></body>
+      </method>
+
+      <property name="selectedDay"
+                onget="return this.startDate"
+                onset="return this.startDate"/>
+       
+      <method name="getSelectedItems">
+        <parameter name="aCount"/>
+        <body><![CDATA[
+          aCount.value = this.mSelectedItems.length;
+          return this.mSelectedItems;
+        ]]></body>
+      </method>
+      <method name="setSelectedItems">
+        <parameter name="aCount"/>
+        <parameter name="aItems"/>
+        <body><![CDATA[
+          this.mSelectedItems = aItems.concat([]);
+          return this.mSelectedItems;
+        ]]></body>
+      </method>
+
+      <method name="setDateList">
+        <parameter name="aCount"/>
+        <parameter name="aDates"/>
+        <body><![CDATA[
+          throw Components.results.NS_ERROR_FAILURE;
+        ]]></body>
+      </method>
+      <method name="getDateList">
+        <parameter name="aCount"/>
+        <parameter name="aDates"/>
+        <body><![CDATA[
+          let start = this.startDate.clone();
+          while (start.compare(this.endDate) <= 0) {
+              dates.push(start);
+              start.day++;
+          }
+          aCount.value = dates.length;
+          return dates;
+        ]]></body>
+      </method>
+
+      <method name="flashAlarm">
+        <parameter name="aAlarmItem"/>
+        <parameter name="aStop"/>
+        <body><![CDATA[
+          // Do nothing by default
+        ]]></body>
+      </method>
     </implementation>
+
     <handlers>
       <handler event="move">
         <![CDATA[
