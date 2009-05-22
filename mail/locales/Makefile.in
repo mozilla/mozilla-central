@@ -307,7 +307,10 @@ ifeq ($(OS_ARCH), WINNT)
 endif
 
 ident:
-	@$(PYTHON) $(MOZ_SRCDIR)/config/printconfigsetting.py $(STAGEDIST)/application.ini App SourceStamp
+	@echo -n "comm_revision "
+	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(STAGEDIST)/application.ini App SourceStamp
+	@echo -n "moz_revision "
+	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(STAGEDIST)/platform.ini Build SourceStamp
 
 #These make targets call prepare-repackages by setting different UPLOAD_DIR
 prepare-upload-latest-%:
@@ -346,12 +349,12 @@ endif
 
 l10n-upload-%: AB_CD=$*
 l10n-upload-%:
-	$(PYTHON) $(MOZ_SRCDIR)/build/upload.py --base-path $(DIST) "$(DIST)/$(PACKAGE)" $(DIST)/$(LANGPACK)
+	$(PYTHON) $(MOZILLA_SRCDIR)/build/upload.py --base-path $(DIST) "$(DIST)/$(PACKAGE)" $(DIST)/$(LANGPACK)
 ifdef MOZ_MAKE_COMPLETE_MAR
-	$(PYTHON) $(MOZ_SRCDIR)/build/upload.py --base-path $(DIST) $(DIST)/$(COMPLETE_MAR);
+	$(PYTHON) $(MOZILLA_SRCDIR)/build/upload.py --base-path $(DIST) $(DIST)/$(COMPLETE_MAR);
 endif
 ifeq (WINNT, $(OS_ARCH))
-	$(PYTHON) $(MOZ_SRCDIR)/build/upload.py --base-path $(DIST) "$(INSTALLER_PACKAGE)"
+	$(PYTHON) $(MOZILLA_SRCDIR)/build/upload.py --base-path $(DIST) "$(INSTALLER_PACKAGE)"
 endif
 
 
