@@ -688,7 +688,7 @@
           // columns of type |progressmeter|.
           getProgressMode: function mTV_getProgressMode(aRow, aCol) {
               switch(aCol.element.getAttribute("itemproperty")) {
-                  case "percentcomplete":
+                  case "percentComplete":
                       var task = this.binding.mTaskArray[aRow];
                       if (aCol.element.boxObject.width > 75 &&
                           task.percentComplete > 0 ) {
