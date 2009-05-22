@@ -77,6 +77,13 @@ function onLoad() {
         }
     }
 
+    // set the dialog-id to enable the right window-icon to be loaded.
+    if (cal.isEvent(item)) {
+        setDialogId(document.documentElement, "calendar-event-summary-dialog");
+    } else if (cal.isToDo(item)) {
+        setDialogId(document.documentElement, "calendar-task-summary-dialog");
+    }
+
     window.readOnly = calendar.readOnly;
     if (!window.readOnly && calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
         var attendee = calendar.getInvitedAttendee(item);
@@ -170,8 +177,7 @@ function onLoad() {
     // If this item is read only we remove the 'cancel' button as users
     // can't modify anything, thus we go ahead with an 'ok' button only.
     if (window.readOnly) {
-        document.getElementById("calendar-summary-dialog")
-            .getButton("cancel").setAttribute("collapsed", "true");
+        document.documentElement.getButton("cancel").setAttribute("collapsed", "true");
     }
 
     window.focus();

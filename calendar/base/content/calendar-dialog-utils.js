@@ -24,6 +24,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *   Hubert Gajewski <hubert@hubertgajewski.com>, Aviary.pl
+ *   Markus Adrario <mozilla@adrario.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -360,6 +361,33 @@ function dispose() {
     if (args.job && args.job.dispose) {
         args.job.dispose();
     }
+    resetDialogId(document.documentElement);
+}
+
+/**
+ * Sets the id of a Dialog to another value to allow different window-icons to be displayed.
+ * The original name is stored as new Attribute of the Dialog to set it back later.
+ *
+ * @param aDialog               The Dialog to be changed.
+ * @param aNewId                The new ID as String.
+ */
+function setDialogId(aDialog, aNewId) {
+    aDialog.setAttribute("originalId", aDialog.getAttribute("id"));
+    aDialog.setAttribute("id", aNewId);
+}
+
+/**
+ * Sets the Dialog id back to previously stored one,
+ * so that the persisted values are correctly saved.
+ *
+ * @param aDialog               The Dialog which is to be restored.
+ */
+function resetDialogId(aDialog) {
+    let id = aDialog.getAttribute("originalId");
+    if (id != "") {
+        aDialog.setAttribute("id", id);
+    }
+    aDialog.removeAttribute("originalId");
 }
 
 /**

@@ -36,7 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#calendar-event-dialog {
+#calendar-event-dialog,
+#calendar-task-dialog {
     padding: 0px;
 }
 

@@ -151,6 +151,11 @@ function onLoad() {
     // arguments is the item we'll edit in the dialog.
     var item = args.calendarEvent;
 
+    // set the dialog-id to enable the right window-icon to be loaded.
+    if (!cal.isEvent(item)) {
+        setDialogId(document.documentElement, "calendar-task-dialog");
+    }
+
     // new items should have a non-empty title.
     if (item.isMutable && (!item.title || item.title.length <= 0)) {
         item.title = calGetString("calendar-event-dialog",
@@ -202,11 +207,11 @@ function onLoad() {
     }
     window.recurrenceInfo = parentItem.recurrenceInfo;
 
-    document.getElementById("calendar-event-dialog").getButton("accept")
+    document.documentElement.getButton("accept")
             .setAttribute("collapsed", "true");
-    document.getElementById("calendar-event-dialog").getButton("cancel")
+    document.documentElement.getButton("cancel")
             .setAttribute("collapsed", "true");
-    document.getElementById("calendar-event-dialog").getButton("cancel")
+    document.documentElement.getButton("cancel")
             .parentNode.setAttribute("collapsed", "true");
 
     loadDialog(window.calendarItem);

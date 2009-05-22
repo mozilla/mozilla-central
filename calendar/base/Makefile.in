@@ -21,6 +21,7 @@
 # Contributor(s):
 #   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
 #   Philipp Kewisch <mozilla@kewis.ch>
+#   Markus Adrario <mozilla@adrario.de>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -59,7 +60,13 @@ THEME = winstripe
 endif
 
 
-WINDOW_ICONS = calendar-alarm-dialog
+WINDOW_ICONS = calendar-alarm-dialog \
+               calendar-event-dialog \
+               calendar-event-summary-dialog \
+               calendar-task-dialog \
+               calendar-task-summary-dialog \
+               $(NULL)
+
 
 DEFINES += -DTHEME=$(THEME)
 

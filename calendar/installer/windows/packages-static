@@ -282,6 +282,10 @@ bin\chrome\toolkit.jar
 bin\chrome\toolkit.manifest
 ; [Calendar Chrome Icons]
 bin\chrome\icons\default\calendar-alarm-dialog.ico
+bin\chrome\icons\default\calendar-event-dialog.ico
+bin\chrome\icons\default\calendar-event-summary-dialog.ico
+bin\chrome\icons\default\calendar-task-dialog.ico
+bin\chrome\icons\default\calendar-task-summary-dialog.ico
 
 ; [calendar-timezones]
 bin\extensions\calendar-timezones@mozilla.org\install.rdf

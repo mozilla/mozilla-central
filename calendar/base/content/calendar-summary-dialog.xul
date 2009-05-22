@@ -56,6 +56,8 @@
   %brandDTD;
 ]>     
 
+<!-- Dialog id is changed during excution to allow different Window-icons
+     on this dialog. document.loadOverlay() will not work on this one. -->
 <dialog id="calendar-summary-dialog"
         windowtype="Calendar:EventSummaryDialog"
         onload="onLoad()"
