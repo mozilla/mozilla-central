@@ -1,4 +1,4 @@
-# -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -1654,27 +1654,22 @@ function GenericSendMessage( msgType )
             return;
         }
 
-        // Check if we have a subject, else ask user for confirmation
+        // Remind the person if there isn't a subject
         if (subject == "")
         {
-          if (gPromptService)
+          var bundle = document.getElementById("bundle_composeMsgs");
+          if (gPromptService.confirmEx(
+                window,
+                bundle.getString("subjectEmptyTitle"),
+                bundle.getString("subjectEmptyMessage"),
+                (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
+                (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_1),
+                bundle.getString("sendWithEmptySubjectButton"),
+                bundle.getString("cancelSendingButton"),
+                null, null, {value:0}) == 1)
           {
-            var bundle = document.getElementById("bundle_composeMsgs");
-            var result = {value: bundle.getString("defaultSubject")};
-            if (gPromptService.prompt(
-                    window,
-                    bundle.getString("sendMsgTitle"),
-                    bundle.getString("subjectDlogMessage"),
-                    result,
-                    null,
-                    {value:0}))
-            {
-              msgCompFields.subject = result.value;
-              var subjectInputElem = GetMsgSubjectElement();
-              subjectInputElem.value = result.value;
-            }
-            else
-              return;
+            GetMsgSubjectElement().focus();
+            return;
           }
         }
 
