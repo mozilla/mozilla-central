@@ -54,6 +54,16 @@ DEFINES += \
 	-DGRE_BUILDID=$(GRE_BUILDID) \
 	$(NULL)
 
+SOURCE_STAMP := $(shell cd $(topsrcdir) ; hg identify -i 2>/dev/null | cut -f1 -d' ')
+ifdef SOURCE_STAMP
+DEFINES += -DMOZ_SOURCE_STAMP="$(SOURCE_STAMP)"
+endif
+
+SOURCE_REPO := $(shell hg -R $(topsrcdir) showconfig paths.default 2>/dev/null | sed s/^ssh:/http:/)
+ifdef SOURCE_REPO
+DEFINES += -DMOZ_SOURCE_REPO="$(SOURCE_REPO)"
+endif
+
 ifeq ($(USE_SHORT_LIBNAME), 1)
 PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
 else
