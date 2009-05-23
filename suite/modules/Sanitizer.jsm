@@ -150,6 +150,14 @@ var Sanitizer = {
         var cookieMgr = Components.classes["@mozilla.org/cookiemanager;1"]
                                   .getService(Components.interfaces.nsICookieManager);
         cookieMgr.removeAll();
+
+        // clear any network geolocation provider sessions
+        var psvc = Components.classes["@mozilla.org/preferences-service;1"]
+                             .getService(Components.interfaces.nsIPrefService);
+        try {
+          var branch = psvc.getBranch("geo.wifi.access_token.");
+          branch.deleteBranch("");
+        } catch (e) {}
       },
 
       canClear: true

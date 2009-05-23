@@ -252,6 +252,7 @@ bin/components/FeedProcessor.js
 bin/components/FeedWriter.js
 bin/components/WebContentConverter.js
 bin/components/jsconsole-clhandler.js
+bin/components/NetworkGeolocationProvider.js
 bin/components/nsAboutAbout.js
 bin/components/nsAboutCertError.js
 bin/components/nsAboutFeeds.js

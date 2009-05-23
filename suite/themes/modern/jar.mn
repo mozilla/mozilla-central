@@ -48,6 +48,7 @@ modern.jar:
   skin/modern/communicator/icons/common-small.png                  (communicator/icons/common-small.png)
   skin/modern/communicator/icons/feedIcon.png                      (communicator/icons/feedIcon.png)
   skin/modern/communicator/icons/feedIcon16.png                    (communicator/icons/feedIcon16.png)
+  skin/modern/communicator/icons/geo.png                           (communicator/icons/geo.png)
   skin/modern/communicator/icons/loading.gif                       (communicator/icons/loading.gif)
   skin/modern/communicator/icons/lock-broken.png                   (communicator/icons/lock-broken.png)
   skin/modern/communicator/icons/lock-insecure.png                 (communicator/icons/lock-insecure.png)
