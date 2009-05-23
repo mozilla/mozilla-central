@@ -36,7 +36,7 @@ treechildren::-moz-tree-image(folderNameCol, serverType-nntp) {
 
 /* ..... Feed ..... */
 
-.tabmail-tab[type="folder"][ServerType="rss"] .tab-icon-image ,
+.tabmail-tab[type="folder"][ServerType="rss"] .tab-icon-image,
 treechildren::-moz-tree-image(folderNameCol, serverType-rss) {
   list-style-image: url("chrome://messenger-newsblog/skin/icons/rss-feed.png");
   -moz-image-region: rect(0 16px 16px 0);
@@ -208,6 +208,7 @@ treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-nntp, isS
 
 /* ..... Feed server ..... */
 
+.tabmail-tab[type="folder"][IsServer="true"][ServerType="rss"] .tab-icon-image,
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-rss) {
   list-style-image: url("chrome://messenger-newsblog/skin/icons/server-rss.png");
   -moz-image-region: rect(0 16px 16px 0);
