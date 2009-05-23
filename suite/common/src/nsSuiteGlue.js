@@ -334,7 +334,9 @@ GeolocationPrompt.prototype = {
             label: notificationBundle.GetStringFromName("geolocation.shareLocation"),
             accessKey: notificationBundle.GetStringFromName("geolocation.shareLocation.accesskey"),
             callback: function(notification) {
-              if (notification.getElementsByClassName("rememberChoice")[0].checked)
+              // in tests, click can be fast enough that our hack hasn't set up the checkbox yet
+              if (notification.getElementsByClassName("rememberChoice")[0] &&
+                  notification.getElementsByClassName("rememberChoice")[0].checked)
                 pm.add(aRequest.requestingURI, "geo",
                        nsIPermissionManager.ALLOW_ACTION);
               aRequest.allow();
@@ -343,7 +345,9 @@ GeolocationPrompt.prototype = {
             label: notificationBundle.GetStringFromName("geolocation.dontShareLocation"),
             accessKey: notificationBundle.GetStringFromName("geolocation.dontShareLocation.accesskey"),
             callback: function(notification) {
-              if (notification.getElementsByClassName("rememberChoice")[0].checked)
+              // in tests, click can be fast enough that our hack hasn't set up the checkbox yet
+              if (notification.getElementsByClassName("rememberChoice")[0] &&
+                  notification.getElementsByClassName("rememberChoice")[0].checked)
                 pm.add(aRequest.requestingURI, "geo",
                        nsIPermissionManager.DENY_ACTION);
               aRequest.cancel();
