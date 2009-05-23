@@ -305,10 +305,12 @@ ifeq ($(OS_ARCH), WINNT)
 endif
 
 ident:
-	@echo -n "comm_revision "
+	@printf "comm_revision "
 	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(STAGEDIST)/application.ini App SourceStamp
-	@echo -n "moz_revision "
+	@printf "moz_revision "
 	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(STAGEDIST)/platform.ini Build SourceStamp
+	@printf "build_id "
+	@$(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(STAGEDIST)/application.ini App BuildID
 
 #These make targets call prepare-repackages by setting different UPLOAD_DIR
 prepare-upload-latest-%:
