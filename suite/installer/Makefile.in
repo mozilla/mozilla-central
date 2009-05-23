@@ -96,7 +96,7 @@ MOZ_PKG_MAC_BACKGROUND=branding/background.png
 MOZ_PKG_MAC_ICON=branding/disk.icns
 MOZ_PKG_MAC_EXTRA=--format UDBZ \
                   --symlink "/Applications: " \
-                  --copy "bin/README.txt"
+                  --copy "$(call EXPAND_LOCALE_SRCDIR,suite/locales)/installer/mac/README.txt"
 endif
 
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk

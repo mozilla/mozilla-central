@@ -218,7 +218,7 @@ MOZ_PKG_MAC_BACKGROUND=$(_ABS_DIST)/branding/background.png
 MOZ_PKG_MAC_ICON=$(_ABS_DIST)/branding/disk.icns
 MOZ_PKG_MAC_EXTRA=--format UDBZ \
                   --symlink "/Applications: " \
-                  --copy "$(_ABS_DIST)/bin/README.txt"
+                  --copy "$(LOCALE_SRCDIR)/installer/mac/README.txt"
 endif
 
 PACKAGER_NO_LIBS = 1
