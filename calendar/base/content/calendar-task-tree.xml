@@ -501,7 +501,7 @@
 
               // Add calendar name and id atom
               var calendarNameAtom = "calendar-" + formatStringForCSSRule(item.calendar.name);
-              var calendarIdAtom = "calendarid-" +  item.calendar.id;
+              var calendarIdAtom = "calendarid-" +  formatStringForCSSRule(item.calendar.id);
               aProps.AppendElement(getAtomFromService(calendarNameAtom));
               aProps.AppendElement(getAtomFromService(calendarIdAtom));
 
