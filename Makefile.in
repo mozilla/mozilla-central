@@ -54,7 +54,8 @@ ifdef ENABLE_TESTS
 check \
 mochitest mochitest-plain mochitest-chrome mochitest-browser-chrome mochitest-a11y \
 reftest crashtest \
-xpcshell-tests::
+xpcshell-tests \
+package-tests::
 	$(MAKE) -C mozilla $@
 endif
 
