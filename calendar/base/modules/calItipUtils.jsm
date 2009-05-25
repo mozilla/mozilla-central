@@ -327,7 +327,9 @@ cal.itip = {
                 for each (let attendee in itemAtt) {
                     if (!isMinorUpdate) {
                         attendee = attendee.clone();
-                        attendee.role = "REQ-PARTICIPANT";
+                        if (!attendee.role) {
+                            attendee.role = "REQ-PARTICIPANT";
+                        }
                         attendee.participationStatus = "NEEDS-ACTION";
                         attendee.rsvp = "TRUE";
                         requestItem.addAttendee(attendee);
