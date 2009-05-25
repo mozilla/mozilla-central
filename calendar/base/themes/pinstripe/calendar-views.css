@@ -344,8 +344,6 @@ calendar-multiweek-view {
 }
 
 calendar-month-day-box {
-    -moz-padding-end: 1px !important;
-    padding-bottom: 1px !important;
     border:none !important;
     border-left: 1px solid #D2D2D2 !important;
     border-bottom: 1px solid #D2D2D2 !important;
