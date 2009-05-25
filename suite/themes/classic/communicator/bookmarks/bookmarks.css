@@ -86,7 +86,7 @@ treechildren::-moz-tree-twisty(group, hidetwisty) {
 }
 
 treechildren::-moz-tree-image(Name, container, group) {
-  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-group.gif");
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-group.png");
 }
 
 /* calendar icon for history grouping items by day */
