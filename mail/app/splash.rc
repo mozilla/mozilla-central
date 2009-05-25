@@ -46,9 +46,9 @@ IDI_APPLICATION ICON THUNDERBIRD_ICO
 STRINGTABLE DISCARDABLE
 BEGIN
 #ifdef DEBUG
-    IDS_STARTMENU_APPNAME,              "Thunderbird Debug"
+    IDS_STARTMENU_APPNAME,              "@MOZ_APP_DISPLAYNAME@ Debug"
 #else
-    IDS_STARTMENU_APPNAME,              "Thunderbird"
+    IDS_STARTMENU_APPNAME,              "@MOZ_APP_DISPLAYNAME@"
 #endif
 END
 
