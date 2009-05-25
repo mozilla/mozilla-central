@@ -139,7 +139,7 @@ separator.thin {
 }
 
 #SubscribeNewsgroups label {
-  background: url("chrome://messenger/skin/accountcentral/mailbox.png")  no-repeat !important;
+  background: url("chrome://messenger/skin/accountcentral/manage-subscriptions.png")  no-repeat !important;
   -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
