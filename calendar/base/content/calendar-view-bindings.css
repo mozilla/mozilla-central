@@ -94,10 +94,6 @@ calendar-month-day-box-item {
   -moz-binding: url(chrome://calendar/content/calendar-month-view.xml#calendar-month-day-box-item);
 }
 
-calendar-month-view-column-header {
-  -moz-binding: url(chrome://calendar/content/calendar-month-view.xml#calendar-month-view-column-header);
-}
-
 /* View core */
 calendar-editable-item { 
   -moz-binding: url(chrome://calendar/content/calendar-view-core.xml#calendar-editable-item);

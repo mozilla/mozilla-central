@@ -442,30 +442,8 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
     -moz-image-region: rect(0px 22px 11px 11px);
 }
 
-calendar-month-view-column-header {
-    color: black;
-    background-image: url("chrome://calendar/skin/calendar-day-label-back.png");
-    -moz-padding-end: 1px;
-    border-top: 1px solid #D2D2D2;
-    border-bottom: 1px solid #D2D2D2;
-    /* Allow overflow so long localized weekday names don't prevent narrow view */
-    overflow-x: hidden;
-}
-
 .labeldaybox-container {
     border-right: 1px solid #D2D2D2;
-}
-
-.calendar-month-view-column-header-container {
-    border-left: 1px solid #D2D2D2;
-}
-
-.calendar-month-view-column-header-label {
-    /* Override label margins to use full box width, for long localized weekday
-     names or for narrow screens. */
-    -moz-margin-start: 0px !important;
-    -moz-margin-end: 0px !important;
-    padding: 0px 1px;
 }
 
 calendar-editable-item[selected="true"] .calendar-event-selection {
