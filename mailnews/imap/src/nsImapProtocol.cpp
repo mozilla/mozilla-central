@@ -1323,18 +1323,16 @@ nsImapProtocol::ImapThreadMainLoop()
     {
       nsAutoMonitor mon(m_urlReadyToRunMonitor);
 
-      while (NS_SUCCEEDED(rv) && !DeathSignalReceived() && !m_nextUrlReadyToRun)
+      while (NS_SUCCEEDED(rv) && !DeathSignalReceived() &&
+             !m_nextUrlReadyToRun && !m_threadShouldDie)
         rv = mon.Wait(sleepTime);
 
-      // This will happen if the UI thread signals us to die
-      if (m_threadShouldDie)
-      {
-        TellThreadToDie();
-        break;
-      }
       readyToRun = m_nextUrlReadyToRun;
       m_nextUrlReadyToRun = PR_FALSE;
     }
+    // This will happen if the UI thread signals us to die
+    if (m_threadShouldDie)
+      TellThreadToDie();
 
     if (NS_FAILED(rv) && PR_PENDING_INTERRUPT_ERROR == PR_GetError())
     {
