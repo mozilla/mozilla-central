@@ -868,7 +868,13 @@ nsMsgDatabase::~nsMsgDatabase()
   ClearCachedObjects(PR_TRUE);
   delete m_cachedHeaders;
   delete m_headersInUse;
-  delete m_msgReferences;
+
+  if (m_msgReferences)
+  {
+    PL_DHashTableDestroy(m_msgReferences);
+    m_msgReferences = nsnull;
+  }
+
   RemoveFromCache(this);
 #ifdef DEBUG_bienvenu1
   if (GetNumInCache() != 0)
@@ -3708,7 +3714,8 @@ static nsresult nsReferencesOnlyFilter(nsIMsgDBHdr *msg, void *closure)
 nsresult nsMsgDatabase::InitRefHash()
 {
   // Delete an existing table just in case
-  delete m_msgReferences;
+  if (m_msgReferences)
+    PL_DHashTableDestroy(m_msgReferences);
 
   // Create new table
   m_msgReferences = PL_NewDHashTable(&gRefHashTableOps, (void *) nsnull, sizeof(struct RefHashElement), MSG_HASH_SIZE);
