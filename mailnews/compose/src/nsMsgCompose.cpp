@@ -1243,6 +1243,9 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
       }
   }
 
+  // Save the identity being sent for later use.
+  m_identity = identity;
+
   rv = _SendMsg(deliverMode, identity, accountKey, entityConversionDone);
   if (NS_FAILED(rv))
   {
@@ -5136,8 +5139,21 @@ nsresult nsMsgCompose::BodyConvertible(PRInt32 *_retval)
     return _BodyConvertible(node, _retval);
 }
 
-nsresult nsMsgCompose::SetSignature(nsIMsgIdentity *identity)
+NS_IMETHODIMP
+nsMsgCompose::GetIdentity(nsIMsgIdentity **aIdentity)
 {
+  NS_ENSURE_ARG_POINTER(aIdentity);
+  NS_IF_ADDREF(*aIdentity = m_identity);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
+{
+  NS_ENSURE_ARG_POINTER(aIdentity);
+
+  m_identity = aIdentity;
+
   nsresult rv;
 
   if (! m_editor)
@@ -5265,7 +5281,7 @@ nsresult nsMsgCompose::SetSignature(nsIMsgIdentity *identity)
     }
   }
 
-  if (!CheckIncludeSignaturePrefs(identity))
+  if (!CheckIncludeSignaturePrefs(aIdentity))
     return NS_OK;
 
   //Then add the new one if needed
@@ -5286,7 +5302,7 @@ nsresult nsMsgCompose::SetSignature(nsIMsgIdentity *identity)
       break;
   }
 
-  ProcessSignature(identity, noDelimiter, &aSignature);
+  ProcessSignature(aIdentity, noDelimiter, &aSignature);
 
   if (!aSignature.IsEmpty())
   {
@@ -5295,8 +5311,8 @@ nsresult nsMsgCompose::SetSignature(nsIMsgIdentity *identity)
     m_editor->BeginTransaction();
     PRInt32 reply_on_top = 0;
     PRBool sig_bottom = PR_TRUE;
-    identity->GetReplyOnTop(&reply_on_top);
-    identity->GetSigBottom(&sig_bottom);
+    aIdentity->GetReplyOnTop(&reply_on_top);
+    aIdentity->GetSigBottom(&sig_bottom);
     PRBool sigOnTop = (reply_on_top == 1 && !sig_bottom);
     if (sigOnTop && noDelimiter)
       m_editor->BeginningOfDocument();

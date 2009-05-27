@@ -101,11 +101,6 @@ private:
                                                  PRBool aAllowUTF16 = PR_TRUE);
 
   PRBool                        CheckIncludeSignaturePrefs(nsIMsgIdentity *identity);
-  nsresult                      GetIdentity(nsIMsgIdentity **aIdentity)
-                                {
-                                  *aIdentity = m_identity;
-                                  return NS_OK;
-                                }
   //m_folderName to store the value of the saved drafts folder.
   nsCString                     m_folderName;
 

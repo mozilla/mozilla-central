@@ -132,7 +132,7 @@ interface nsIMsgComposeRecyclingListener : nsISupports {
   void onReopen(in nsIMsgComposeParams params);
 };
 
-[scriptable, uuid(4e0bbbb8-4c9d-499e-ad8a-5e4c1866c0bb)]
+[scriptable, uuid(d06508a0-23b1-4f14-a29c-f61a478d5500)]
 interface nsIMsgCompose : nsIMsgSendListener {
 
   /* ... */
@@ -191,9 +191,13 @@ interface nsIMsgCompose : nsIMsgSendListener {
   */
   long bodyConvertible();
 
-  /* SetSignature: will replace the curr.
-  */
-  void SetSignature(in nsIMsgIdentity identity);
+  /**
+   * The identity currently selected for the message compose object. When set
+   * this may change the signature on a message being composed. Note that
+   * typically SendMsg will be called with the same identity as is set here, but
+   * if it is different the SendMsg version will overwrite this identity.
+   */
+  attribute nsIMsgIdentity identity;
 
   /* Check if the composing mail headers (and identity) can be converted to a mail charset.
   */

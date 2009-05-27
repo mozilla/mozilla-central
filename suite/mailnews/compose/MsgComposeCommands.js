@@ -2929,8 +2929,8 @@ function LoadIdentity(startup)
             awCleanupRows();
 
           try {
-            gMsgCompose.SetSignature(gCurrentIdentity);
-          } catch (ex) { dump("### Cannot set the signature: " + ex + "\n");}
+            gMsgCompose.identity = gCurrentIdentity;
+          } catch (ex) { dump("### Cannot change the identity: " + ex + "\n");}
 
           var event = document.createEvent('Events');
           event.initEvent('compose-from-changed', false, true);
