@@ -103,10 +103,21 @@ public:
 
   // methods for listener array processing...
   void NotifyListenersOnStartSending(PRUint32 aTotalMessageCount);
+  void NotifyListenersOnMessageStartSending(PRUint32 aCurrentMessage,
+                                            PRUint32 aTotalMessage,
+                                            nsIMsgIdentity *aIdentity);
   void NotifyListenersOnProgress(PRUint32 aCurrentMessage,
-                                 PRUint32 aTotalMessage);
+                                 PRUint32 aTotalMessage,
+                                 PRUint32 aSendPercent,
+                                 PRUint32 aCopyPercent);
+  void NotifyListenersOnMessageSendError(PRUint32 aCurrentMessage,
+                                         nsresult aStatus,
+                                         const PRUnichar *aMsg);
   void EndSendMessages(nsresult aStatus, const PRUnichar *aMsg, 
                        PRUint32 aTotalTried, PRUint32 aSuccessful);
+
+  PRBool OnSendStepFinished(nsresult aStatus);
+  void OnCopyStepFinished(nsresult aStatus);
 
   // counters and things for enumeration 
   PRUint32                  mTotalSentSuccessfully;

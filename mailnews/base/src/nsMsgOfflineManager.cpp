@@ -390,21 +390,47 @@ NS_IMETHODIMP nsMsgOfflineManager::Observe(nsISupports *aSubject, const char *aT
 }
 
 // nsIMsgSendLaterListener implementation 
-NS_IMETHODIMP nsMsgOfflineManager::OnStartSending(PRUint32 aTotalMessageCount)
+NS_IMETHODIMP
+nsMsgOfflineManager::OnStartSending(PRUint32 aTotalMessageCount)
 {
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgOfflineManager::OnProgress(PRUint32 aCurrentMessage, PRUint32 aTotalMessage)
+NS_IMETHODIMP
+nsMsgOfflineManager::OnMessageStartSending(PRUint32 aCurrentMessage,
+                                           PRUint32 aTotalMessageCount,
+                                           nsIMsgDBHdr *aMessageHeader,
+                                           nsIMsgIdentity *aIdentity)
 {
-  if (m_statusFeedback && aTotalMessage)
-    return m_statusFeedback->ShowProgress ((100 * aCurrentMessage) / aTotalMessage);
-  else
-    return NS_OK;
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgOfflineManager::OnStopSending(nsresult aStatus, const PRUnichar *aMsg, PRUint32 aTotalTried, 
-                                 PRUint32 aSuccessful) 
+NS_IMETHODIMP
+nsMsgOfflineManager::OnMessageSendProgress(PRUint32 aCurrentMessage,
+                                           PRUint32 aTotalMessageCount,
+                                           PRUint32 aMessageSendPercent,
+                                           PRUint32 aMessageCopyPercent)
+{
+  if (m_statusFeedback && aTotalMessageCount)
+    return m_statusFeedback->ShowProgress((100 * aCurrentMessage) /
+                                          aTotalMessageCount);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgOfflineManager::OnMessageSendError(PRUint32 aCurrentMessage,
+                                        nsIMsgDBHdr *aMessageHeader,
+                                        nsresult aStatus,
+                                        const PRUnichar *aMsg)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgOfflineManager::OnStopSending(nsresult aStatus,
+                                   const PRUnichar *aMsg, PRUint32 aTotalTried, 
+                                   PRUint32 aSuccessful)
 {
 #ifdef NS_DEBUG
   if (NS_SUCCEEDED(aStatus))

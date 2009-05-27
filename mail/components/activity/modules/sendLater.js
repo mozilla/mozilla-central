@@ -75,7 +75,7 @@ let sendMsgProgressListener = {
   },
 
   showProgress: function (aPercentage) {
-    sendLaterModule.onMsgProgress(aPercentage);
+    sendLaterModule.onMessageSendProgress(0, 0, aPercentage, 0);
   }
 };
 
@@ -83,7 +83,10 @@ let sendMsgProgressListener = {
 // manager.
 let sendLaterModule =
 {
-  _process: null,
+  _sendProcess: null,
+  _copyProcess: null,
+  _identity: null,
+  _subject: null,
 
   get log() {
     delete this.log;
@@ -107,131 +110,172 @@ let sendLaterModule =
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgSendLaterListener]),
 
-  _newProcess: function(aTo) {
-    let displayText;
+  _displayTextForHeader: function(aLocaleStringBase, aSubject) {
+    return aSubject ?
+           this.bundle.formatStringFromName(aLocaleStringBase + "WithSubject",
+                                            [aSubject], 1) :
+           this.bundle.GetStringFromName(aLocaleStringBase);
+  },
 
-    if (aTo) {
-      displayText = this.bundle.formatStringFromName("sendingMessageTo",
-                                                     [aTo], 1);
-    }
-    else {
-      displayText = this.bundle.GetStringFromName("sendingMessage");
-    }
-
-    let process = new nsActProcess(displayText, this.activityMgr);
+  _newProcess: function(aLocaleStringBase, aAddSubject) {
+    let process =
+      new nsActProcess(this._displayTextForHeader(aLocaleStringBase,
+                                                  aAddSubject ?
+                                                  this._subject :
+                                                  ""),
+                                   this.activityMgr);
 
     process.iconClass = "sendMail";
-    // XXX For now group these standalone, later we can group by identity or
-    // something more meaningful.
-    process.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_STANDALONE;
+    process.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_BYCONTEXT;
+    process.contextObj = this;
+    process.contextType = "SendLater";
+    process.contextDisplayText = this.bundle.GetStringFromName("sendingMessages");
 
     return process;
+  },
+
+  // Use this to group an activity by the identity if we have one.
+  _applyIdentityGrouping: function(aActivity) {
+    if (this._identity) {
+      aActivity.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_BYCONTEXT;
+      aActivity.contextType = this._identity.key;
+      aActivity.contextObj = this._identity;
+      let contextDisplayText = this._identity.identityName;
+      if (!contextDisplayText)
+        contextDisplayText = this._identity.email;
+
+      aActivity.contextDisplayText = contextDisplayText;
+
+    }
+    else
+      aActivity.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_STANDALONE;
   },
 
   // Replaces the process with an event that reflects a completed process.
   _replaceProcessWithEvent: function(aProcess) {
     this.activityMgr.removeActivity(aProcess.id);
 
-    let event = new nsActEvent(this.bundle.GetStringFromName("sentMessage"),
+    let event = new nsActEvent(this._displayTextForHeader("sentMessage",
+                                                          this._subject),
                                this.activityMgr, null, aProcess.startTime,
                                new Date());
 
-    event.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_STANDALONE;
     event.iconClass = "sendMail";
-
+    this._applyIdentityGrouping(event);
+ 
     this.activityMgr.addActivity(event);
   },
 
   // Replaces the process with a warning that reflects the failed process.
-  _replaceProcessWithWarning: function(aProcess, aStatus) {
+  _replaceProcessWithWarning: function(aProcess, aCopyOrSend, aStatus, aMsg,
+                                       aMessageHeader) {
     this.activityMgr.removeActivity(aProcess.id);
 
-    let warning = new nsActWarning(this.bundle.GetStringFromName("failedToSendMessage"),
-                                   this.activityMgr, "");
+    let warning =
+      new nsActWarning(this._displayTextForHeader("failedTo" + aCopyOrSend,
+                                                  this._subject),
+                       this.activityMgr, "");
 
     warning.groupingStyle = Ci.nsIActivity.GROUPING_STYLE_STANDALONE;
+    this._applyIdentityGrouping(warning);
 
     this.activityMgr.addActivity(warning);
   },
 
   onStartSending: function(aTotalMessageCount) {
-    try {
-      if (!aTotalMessageCount) {
-        this.log.error("onStartSending called with zero messages\n");
-        return;
-      }
-
-      this.currentMsg = 0;
-
-      // Create the first process for the sending
-      let process = this._newProcess("");
-
-      this._process = process;
-
-      this.activityMgr.addActivity(process);
-    }
-    catch (ex) {
-      dump(ex);
+    if (!aTotalMessageCount) {
+      this.log.error("onStartSending called with zero messages\n");
+      return;
     }
   },
 
-  onProgress: function(aCurrentMessage, aTotalMessages) {
-    if (this._process.state != Ci.nsIActivityProcess.STATE_COMPLETED) {
-      this.log.debug("Warning, last send did not reach 100%");
-      this._process.state = Ci.nsIActivityProcess.STATE_COMPLETED;
+  onMessageStartSending: function(aCurrentMessage, aTotalMessageCount,
+                                  aMessageHeader, aIdentity) {
+
+    // We want to use the identity and subject later, so store them for now.
+    this._identity = aIdentity;
+    if (aMessageHeader)
+      this._subject = aMessageHeader.subject;
+
+    // Create the process to display the send activity.
+    let process = this._newProcess("sendingMessage", true);
+    this._sendProcess = process;
+    this.activityMgr.addActivity(process);
+
+    // Now the one for the copy process.
+    process = this._newProcess("copyMessage", false);
+    this._copyProcess = process;
+    this.activityMgr.addActivity(process);
+  },
+
+  onMessageSendProgress: function(aCurrentMessage, aTotalMessageCount,
+                                  aMessageSendPercent,
+                                  aMessageCopyPercent) {
+    if (aMessageSendPercent < 100) {
+      // Ensure we are in progress...
+      if (this._sendProcess.state != Ci.nsIActivityProcess.STATE_INPROGRESS)
+        this._sendProcess.state = Ci.nsIActivityProcess.STATE_INPROGRESS;
+
+      // ... and update the progress.
+      this._sendProcess.setProgress(this._sendProcess.lastStatusText,
+                                    aMessageSendPercent, 100);
     }
+    else if (aMessageSendPercent == 100) {
+      if (aMessageCopyPercent == 0) {
+        // Set send state to completed
+        if (this._sendProcess.state != Ci.nsIActivityProcess.STATE_COMPLETED)
+          this._sendProcess.state = Ci.nsIActivityProcess.STATE_COMPLETED;
 
-    // When we get onProgress we always know we've been successful in sending
-    // the message.
-    this._replaceProcessWithEvent(this._process);
-    this._process = null;
+        // Set copy state to in progress.
+        if (this._copyProcess.state != Ci.nsIActivityProcess.STATE_INPROGRESS)
+          this._copyProcess.state = Ci.nsIActivityProcess.STATE_INPROGRESS;
 
-    if (aCurrentMessage < aTotalMessages) {
-      ++this.currentMsg;
+        // We don't know the progress of the copy, so just set to 0, and we'll
+        // display an undetermined progress meter.
+        this._copyProcess.setProgress(this._copyProcess.lastStatusText,
+                                      0, 0);
+      }
+      else if (aMessageCopyPercent < 100) {
+      }
+      else {
+        // We need to set this to completed otherwise activity manager
+        // complains.
+        if (this._copyProcess.state != Ci.nsIActivityProcess.STATE_COMPLETED)
+          this._copyProcess.state = Ci.nsIActivityProcess.STATE_COMPLETED;
 
-      // Create the first process for the sending
-      let process = this._newProcess("");
+        this._replaceProcessWithEvent(this._sendProcess);
+        // Just drop the copy process, we don't need it now.
+        this.activityMgr.removeActivity(this._copyProcess.id);
+        this._sendProcess = null;
+        this._copyProcess = null;
+      }
+    }
+  },
 
-      this._process = process;
+  onMessageSendError: function(aCurrentMessage, aMessageHeader, aStatus,
+                               aMsg) {
+    if (this._sendProcess &&
+        this._sendProcess.state != Ci.nsIActivityProcess.STATE_COMPLETED) {
+      this._sendProcess.state = Ci.nsIActivityProcess.STATE_COMPLETED;
+      this._replaceProcessWithWarning(this._sendProcess, "SendMessage", aStatus, aMsg,
+                                      aMessageHeader);
+      this._sendProcess = null;
 
-      this.activityMgr.addActivity(process);
+      if (this._copyProcess &&
+          this._copyProcess.state != Ci.nsIActivityProcess.STATE_COMPLETED) {
+        this._copyProcess.state = Ci.nsIActivityProcess.STATE_COMPLETED;
+        this.activityMgr.removeActivity(this._copyProcess.id);
+        this._copyProcess = null;
+      }
     }
   },
 
   onMsgStatus: function(aStatusText) {
-    this._process.setProgress(aStatusText, this._process.workUnitComplete,
-                              this._process.totalWorkUnits);
-  },
-
-  onMsgProgress: function(aCurrentProgress) {
-    // For some reason we never get 100%, but we do get 0!
-    if (aCurrentProgress == 0 && this._process.workUnitComplete > 0)
-      aCurrentProgress = 100;
-
-    if (aCurrentProgress < 100) {
-      if (this._process.state != Ci.nsIActivityProcess.STATE_INPROGRESS)
-        this._process.state = Ci.nsIActivityProcess.STATE_INPROGRESS;
-
-      this._process.setProgress(this._process.lastStatusText, aCurrentProgress,
-                                100);
-    }
-    else
-      this._process.state = Ci.nsIActivityProcess.STATE_COMPLETED;
+    this._sendProcess.setProgress(aStatusText, this._sendProcess.workUnitComplete,
+                                  this._sendProcess.totalWorkUnits);
   },
 
   onStopSending: function(aStatus, aMsg, aTotalTried, aSuccessful) {
-    if (this._process.state != Ci.nsIActivityProcess.STATE_COMPLETED) {
-      this.log.debug("Warning, last send did not reach 100%");
-      this._process.state = Ci.nsIActivityProcess.STATE_COMPLETED;
-    }
-
-    if (aStatus == 0)
-      this._replaceProcessWithEvent(this._process);
-    else
-      this._replaceProcessWithWarning(this._process, aStatus);
-    this._process = null;
-
-    this._process = null;
   },
 
   init: function() {

@@ -380,8 +380,10 @@ interface nsIActivityProcess : nsIActivity {
    *                          Activity Manager or default binding for any
    *                          purpose.
    * @param aTotalWorkUnits Total amount of work units. Not used by
-   *                          Activity Manager or default binding for any
-   *                          purpose.
+   *                        Activity Manager or default binding for any
+   *                        purpose. If set to zero, this indicates that the
+   *                        number of work units is unknown, and the percentage
+   *                        attribute will be set to -1.
    */
   void setProgress(in AString aStatusText,
                    in unsigned long aWorkUnitComplete,

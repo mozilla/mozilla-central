@@ -467,31 +467,10 @@ NS_IMETHODIMP
 SendOperationListener::OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg, 
                                      nsIFile *returnFile)
 {
-  nsresult rv = NS_OK;
-
-  if (mSendLater)
-  {
-    if (NS_SUCCEEDED(aStatus))
-    {
-#ifdef NS_DEBUG
-      printf("nsMsgSendLater: Success on the message send operation!\n");
-#endif
-
-      mSendLater->SetOrigMsgDisposition();
-      mSendLater->DeleteCurrentMessage();
-
-      ++(mSendLater->mTotalSentSuccessfully);
-    }
-    else
-    {
-      mSendLater->EndSendMessages(aStatus, nsnull,
-                                  mSendLater->mTotalSendCount, 
-                                  mSendLater->mTotalSentSuccessfully);
+  if (mSendLater && !mSendLater->OnSendStepFinished(aStatus))
       NS_RELEASE(mSendLater);
-    }
-  }
 
-  return rv;
+  return NS_OK;
 }
 
 // nsIMsgCopyServiceListener
@@ -525,16 +504,9 @@ SendOperationListener::GetMessageId(nsACString& messageId)
 NS_IMETHODIMP
 SendOperationListener::OnStopCopy(nsresult aStatus)
 {
-  if (mSendLater) 
+  if (mSendLater)
   {
-    // Regardless of the success of the copy we will still keep trying
-    // to send the rest...
-    nsresult rv;
-    rv = mSendLater->StartNextMailFileSend();
-    if (NS_FAILED(rv))
-      mSendLater->EndSendMessages(rv, nsnull,
-                                  mSendLater->mTotalSendCount, 
-                                  mSendLater->mTotalSentSuccessfully);
+    mSendLater->OnCopyStepFinished(aStatus);
     NS_RELEASE(mSendLater);
   }
 
@@ -646,14 +618,14 @@ nsMsgSendLater::CompleteMailFileSend()
 nsresult
 nsMsgSendLater::StartNextMailFileSend()
 {
-  nsresult      rv = NS_OK;
-  nsCString  messageURI;
-
   PRBool hasMoreElements = PR_FALSE;
   if ((!mEnumerator) ||
       NS_FAILED(mEnumerator->HasMoreElements(&hasMoreElements)) ||
       !hasMoreElements)
   {
+    // Notify that this message has finished being sent.
+    NotifyListenersOnProgress(mTotalSendCount, mMessagesToSend.Count(), 100, 100);
+
     // EndSendMessages resets everything for us
     EndSendMessages(NS_OK, nsnull, mTotalSendCount, mTotalSentSuccessfully);
 
@@ -662,13 +634,13 @@ nsMsgSendLater::StartNextMailFileSend()
     return NS_OK;
   }
 
-  // Let everyone know about our progress if we've already sent more than one
-  // message.
+  // If we've already sent a message, and are sending more, send out a progress
+  // update with 100% for both send and copy as we must have finished by now.
   if (mTotalSendCount)
-    NotifyListenersOnProgress(mTotalSendCount, mMessagesToSend.Count());
+    NotifyListenersOnProgress(mTotalSendCount, mMessagesToSend.Count(), 100, 100);
 
   nsCOMPtr<nsISupports> currentItem;
-  rv = mEnumerator->GetNext(getter_AddRefs(currentItem));
+  nsresult rv = mEnumerator->GetNext(getter_AddRefs(currentItem));
   NS_ENSURE_SUCCESS(rv, rv);
 
   mMessage = do_QueryInterface(currentItem); 
@@ -678,6 +650,7 @@ nsMsgSendLater::StartNextMailFileSend()
   if (!mMessageFolder)
     return NS_ERROR_UNEXPECTED;
 
+  nsCString messageURI;
   mMessageFolder->GetUriForMsg(mMessage, messageURI);
 
   rv = nsMsgCreateTempFile("nsqmail.tmp", getter_AddRefs(mTempFile)); 
@@ -689,6 +662,19 @@ nsMsgSendLater::StartNextMailFileSend()
     return NS_ERROR_FACTORY_NOT_LOADED;
 
   ++mTotalSendCount;
+
+  nsCString identityKey;
+  rv = mMessage->GetStringProperty(HEADER_X_MOZILLA_IDENTITY_KEY,
+                                   getter_Copies(identityKey));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgIdentity> identity;
+  rv = GetIdentityFromKey(identityKey.get(), getter_AddRefs(identity));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Notify that we're just about to start sending this message
+  NotifyListenersOnMessageStartSending(mTotalSendCount, mMessagesToSend.Count(),
+                                       identity);
 
   // Setup what we need to parse the data stream correctly
   m_inhead = PR_TRUE;
@@ -702,7 +688,7 @@ nsMsgSendLater::StartNextMailFileSend()
 
   // Now, get our stream listener interface and plug it into the DisplayMessage
   // operation
-  NS_ADDREF(this);
+  AddRef();
 
   rv = messageService->DisplayMessage(messageURI.get(),
                                       static_cast<nsIStreamListener*>(this),
@@ -1296,10 +1282,31 @@ nsMsgSendLater::NotifyListenersOnStartSending(PRUint32 aTotalMessageCount)
 }
 
 void
-nsMsgSendLater::NotifyListenersOnProgress(PRUint32 aCurrentMessage,
-                                          PRUint32 aTotalMessage)
+nsMsgSendLater::NotifyListenersOnMessageStartSending(PRUint32 aCurrentMessage,
+                                                     PRUint32 aTotalMessage,
+                                                     nsIMsgIdentity *aIdentity)
 {
-  NOTIFY_LISTENERS(OnProgress, (aCurrentMessage, aTotalMessage));
+  NOTIFY_LISTENERS(OnMessageStartSending, (aCurrentMessage, aTotalMessage,
+                                           mMessage, aIdentity));
+}
+
+void
+nsMsgSendLater::NotifyListenersOnProgress(PRUint32 aCurrentMessage,
+                                          PRUint32 aTotalMessage,
+                                          PRUint32 aSendPercent,
+                                          PRUint32 aCopyPercent)
+{
+  NOTIFY_LISTENERS(OnMessageSendProgress, (aCurrentMessage, aTotalMessage,
+                                           aSendPercent, aCopyPercent));
+}
+
+void
+nsMsgSendLater::NotifyListenersOnMessageSendError(PRUint32 aCurrentMessage,
+                                                  nsresult aStatus,
+                                                  const PRUnichar *aMsg)
+{
+  NOTIFY_LISTENERS(OnMessageSendError, (aCurrentMessage, mMessage,
+                                        aStatus, aMsg));
 }
 
 /**
@@ -1335,6 +1342,51 @@ nsMsgSendLater::EndSendMessages(nsresult aStatus, const PRUnichar *aMsg,
     mShutdownListener->OnStopRunningUrl(nsnull, NS_OK);
     mShutdownListener = nsnull;
   }
+}
+
+/**
+ * Called when the send part of sending a message is finished. This will set up
+ * for the next step or "end" depending on the status.
+ *
+ * @param aStatus  The success or fail result of the send step.
+ * @return         True if the copy process will continue, false otherwise.
+ */
+PRBool
+nsMsgSendLater::OnSendStepFinished(nsresult aStatus)
+{
+  if (NS_SUCCEEDED(aStatus))
+  {
+    SetOrigMsgDisposition();
+    DeleteCurrentMessage();
+
+    // Send finished, so that is now 100%, copy to proceed...
+    NotifyListenersOnProgress(mTotalSendCount, mMessagesToSend.Count(), 100, 0);
+
+    ++mTotalSentSuccessfully;
+    return PR_TRUE;
+  }
+  else
+    // XXX we don't currently get a message string from the send service.
+    NotifyListenersOnMessageSendError(mTotalSendCount, aStatus, nsnull);
+
+  EndSendMessages(aStatus, nsnull, mTotalSendCount, mTotalSentSuccessfully);
+  return PR_FALSE;
+}
+
+/**
+ * Called when the copy part of sending a message is finished. This will send
+ * the next message or handle failure as appropriate.
+ *
+ * @param aStatus  The success or fail result of the copy step.
+ */
+void
+nsMsgSendLater::OnCopyStepFinished(nsresult aStatus)
+{
+  // Regardless of the success of the copy we will still keep trying
+  // to send the rest...
+  nsresult rv = StartNextMailFileSend();
+  if (NS_FAILED(rv))
+    EndSendMessages(rv, nsnull, mTotalSendCount, mTotalSentSuccessfully);
 }
 
 // XXX todo

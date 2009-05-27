@@ -196,9 +196,16 @@ nsActivityProcess.prototype = {
   },
 
   setProgress: function(aStatusText, aWorkUnitsComplete, aTotalWorkUnits) {
-    this.percentComplete = parseInt(100 * aWorkUnitsComplete / aTotalWorkUnits);
-    this.workUnitComplete = aWorkUnitsComplete;
-    this.totalWorkUnits = aTotalWorkUnits;
+    if (aTotalWorkUnits == 0) {
+      this.percentComplete = -1;
+      this.workUnitComplete = 0;
+      this.totalWorkUnits = 0;
+    }
+    else {
+      this.percentComplete = parseInt(100.0 * aWorkUnitsComplete / aTotalWorkUnits);
+      this.workUnitComplete = aWorkUnitsComplete;
+      this.totalWorkUnits = aTotalWorkUnits;
+    }
     this.lastStatusText = aStatusText;
 
     // notify listeners

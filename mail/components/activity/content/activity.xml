@@ -504,6 +504,14 @@
           this.setVisibility("button_resume", !hideResumeBut);
           this.setVisibility("progressmeter", !hideProgressMeter);
 
+          // Ensure progress meter not active when hidden
+          if (hideProgressMeter) {
+            let meter = document.getAnonymousElementByAttribute(this, "anonid",
+                                                                "progressmeter");
+            meter.setAttribute("mode", "determined");
+            meter.setAttribute("value", 0);
+          }
+
           // Update Status text and Display Text Areas
           // In some states we need to modify Display Text area of
           // the process (e.g. Failure).
@@ -519,9 +527,19 @@
         <parameter name="aTotalWorkUnits"/>
         <body>
           <![CDATA[
-            let _percentComplete = 100.0 * aWorkUnitsComplete / aTotalWorkUnits;
-            document.getAnonymousElementByAttribute(this, "anonid","progressmeter")
-                    .setAttribute('value', _percentComplete);
+            let element =
+              document.getAnonymousElementByAttribute(this, "anonid",
+                                                      "progressmeter");
+            if (aTotalWorkUnits == 0) {
+              element.setAttribute("mode", "undetermined");
+              element.setAttribute("value", 0);
+            }
+            else {
+              let _percentComplete = 100.0 * aWorkUnitsComplete /
+                                     aTotalWorkUnits;
+              element.setAttribute("mode", "determined");
+              element.setAttribute('value', _percentComplete);
+            }
             this.statusText = aStatusText;
           ]]>
         </body>
