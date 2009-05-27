@@ -451,7 +451,12 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   if (tmp->real_name && !tmp->isExternalAttachment)
   {
     urlString.Append("&filename=");
-    urlString.Append(tmp->real_name);
+    nsCAutoString aResult;
+    if (NS_SUCCEEDED(MsgEscapeString(nsDependentCString(tmp->real_name),
+                                     nsINetUtil::ESCAPE_XALPHAS, aResult)))
+      urlString.Append(aResult);
+    else
+      urlString.Append(tmp->real_name);
 #ifdef MOZILLA_INTERNAL_API
     if (tmp->real_type && !strcmp(tmp->real_type, "message/rfc822") &&
            !StringEndsWith(urlString, NS_LITERAL_CSTRING(".eml"), nsCaseInsensitiveCStringComparator()))
