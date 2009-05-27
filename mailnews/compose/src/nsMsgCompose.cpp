@@ -3040,74 +3040,84 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
 {
   // need to find the msg hdr in the saved folder and then set a property on
   // the header that we then look at when we actually send the message.
+
+  const char *dispositionSetting = nsnull;
+
   if (mType == nsIMsgCompType::Reply ||
-    mType == nsIMsgCompType::ReplyAll ||
-    mType == nsIMsgCompType::ReplyToList ||
-    mType == nsIMsgCompType::ReplyToGroup ||
-    mType == nsIMsgCompType::ReplyToSender ||
-    mType == nsIMsgCompType::ReplyToSenderAndGroup ||
-    mType == nsIMsgCompType::ForwardAsAttachment ||
-    mType == nsIMsgCompType::ForwardInline)
+      mType == nsIMsgCompType::ReplyAll ||
+      mType == nsIMsgCompType::ReplyToList ||
+      mType == nsIMsgCompType::ReplyToGroup ||
+      mType == nsIMsgCompType::ReplyToSender ||
+      mType == nsIMsgCompType::ReplyToSenderAndGroup)
+    dispositionSetting = "replied";
+  else if (mType == nsIMsgCompType::ForwardAsAttachment ||
+           mType == nsIMsgCompType::ForwardInline)
+    dispositionSetting = "forwarded";
+
+  nsMsgKey msgKey;
+  if (mMsgSend)
   {
-    if (!mOriginalMsgURI.IsEmpty())
+    mMsgSend->GetMessageKey(&msgKey);
+    nsCAutoString msgUri(m_folderName);
+    nsCString identityKey;
+
+    m_identity->GetKey(identityKey);
+
+    PRInt32 insertIndex = StringBeginsWith(msgUri, NS_LITERAL_CSTRING("mailbox")) ? 7 : 4;
+    msgUri.Insert("-message", insertIndex); // "mailbox/imap: -> "mailbox/imap-message:"
+    msgUri.Append('#');
+    msgUri.AppendInt(msgKey);
+    nsCOMPtr <nsIMsgDBHdr> msgHdr;
+    nsresult rv = GetMsgDBHdrFromURI(msgUri.get(), getter_AddRefs(msgHdr));
+    NS_ENSURE_SUCCESS(rv, rv);
+    // If we did't find the msg hdr, and it's an IMAP message,
+    // we must not have downloaded the header. So we're going to set some 
+    // pending attributes on the header for the queued disposition, so that
+    // we can associate them with the header, once we've downloaded it from
+    // the imap server.
+    if (!msgHdr && insertIndex == 4)
     {
-      nsMsgKey msgKey;
-      if (mMsgSend)
+      nsCOMPtr<nsIRDFService> rdfService (do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCOMPtr <nsIRDFResource> resource;
+      rv = rdfService->GetResource(m_folderName, getter_AddRefs(resource));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCOMPtr <nsIMsgFolder> msgFolder(do_QueryInterface(resource));
+      if (msgFolder)
       {
-        mMsgSend->GetMessageKey(&msgKey);
-        const char *dispositionSetting = "replied";
-        if (mType == nsIMsgCompType::ForwardAsAttachment ||
-          mType == nsIMsgCompType::ForwardInline)
-          dispositionSetting = "forwarded";
-        nsCAutoString msgUri(m_folderName);
-
-        PRInt32 insertIndex = StringBeginsWith(msgUri, NS_LITERAL_CSTRING("mailbox")) ? 7 : 4;
-        msgUri.Insert("-message", insertIndex); // "mailbox/imap: -> "mailbox/imap-message:"
-        msgUri.Append('#');
-        msgUri.AppendInt(msgKey);
-        nsCOMPtr <nsIMsgDBHdr> msgHdr;
-        nsresult rv = GetMsgDBHdrFromURI(msgUri.get(), getter_AddRefs(msgHdr));
-        NS_ENSURE_SUCCESS(rv, rv);
-        // If we did't find the msg hdr, and it's an IMAP message,
-        // we must not have downloaded the header. So we're going to set some 
-        // pending attributes on the header for the queued disposition, so that
-        // we can associate them with the header, once we've downloaded it from
-        // the imap server.
-        if (!msgHdr && insertIndex == 4)
+        nsCOMPtr <nsIMsgDatabase> msgDB;
+        msgFolder->GetMsgDatabase(getter_AddRefs(msgDB));
+        if (msgDB)
         {
-          nsCOMPtr<nsIRDFService> rdfService (do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
-          NS_ENSURE_SUCCESS(rv, rv);
-
-          nsCOMPtr <nsIRDFResource> resource;
-          rv = rdfService->GetResource(m_folderName, getter_AddRefs(resource));
-          NS_ENSURE_SUCCESS(rv, rv);
-
-          nsCOMPtr <nsIMsgFolder> msgFolder(do_QueryInterface(resource));
-          if (msgFolder)
+          msgDB->CreateNewHdr(msgKey, getter_AddRefs(msgHdr));
+          if (msgHdr)
           {
-            nsCOMPtr <nsIMsgDatabase> msgDB;
-            msgFolder->GetMsgDatabase(getter_AddRefs(msgDB));
-            if (msgDB)
+            nsCString messageId;
+            mMsgSend->GetMessageId(messageId);
+            msgHdr->SetMessageId(messageId.get());
+            if (!mOriginalMsgURI.IsEmpty())
             {
-              msgDB->CreateNewHdr(msgKey, getter_AddRefs(msgHdr));
-              if (msgHdr)
-              {
-                nsCString messageId;
-                mMsgSend->GetMessageId(messageId);
-                msgHdr->SetMessageId(messageId.get());
-                msgDB->SetAttributeOnPendingHdr(msgHdr, ORIG_URI_PROPERTY, mOriginalMsgURI.get());
+              msgDB->SetAttributeOnPendingHdr(msgHdr, ORIG_URI_PROPERTY, mOriginalMsgURI.get());
+              if (dispositionSetting)
                 msgDB->SetAttributeOnPendingHdr(msgHdr, QUEUED_DISPOSITION_PROPERTY, dispositionSetting);
-                msgDB->RemoveHeaderMdbRow(msgHdr);
-              }
             }
+            msgDB->SetAttributeOnPendingHdr(msgHdr, HEADER_X_MOZILLA_IDENTITY_KEY, identityKey.get());
+            msgDB->RemoveHeaderMdbRow(msgHdr);
           }
         }
-        else if (msgHdr)
-        {
-          msgHdr->SetStringProperty(ORIG_URI_PROPERTY, mOriginalMsgURI.get());
-          msgHdr->SetStringProperty(QUEUED_DISPOSITION_PROPERTY, dispositionSetting);
-        }
       }
+    }
+    else if (msgHdr)
+    {
+      if (!mOriginalMsgURI.IsEmpty())
+      {
+        msgHdr->SetStringProperty(ORIG_URI_PROPERTY, mOriginalMsgURI.get());
+        if (dispositionSetting)
+          msgHdr->SetStringProperty(QUEUED_DISPOSITION_PROPERTY, dispositionSetting);
+      }
+      msgHdr->SetStringProperty(HEADER_X_MOZILLA_IDENTITY_KEY, identityKey.get());
     }
   }
   return NS_OK;
