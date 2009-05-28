@@ -155,6 +155,7 @@ function FillMailContextMenu(aTarget)
                showMailItems && single && isNewsgroup);
   ShowMenuItem("mailContext-replySenderAndNewsgroup",
                showMailItems && single && isNewsgroup);
+  ShowMenuItem("mailContext-archive", showMailItems && oneOrMore);
   ShowMenuItem("mailContext-replyAll", showMailItems && single);
   ShowMenuItem("mailContext-forward", showMailItems && single);
   ShowMenuItem("mailContext-forwardAsAttachment",

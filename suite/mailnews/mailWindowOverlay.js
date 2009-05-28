@@ -75,6 +75,8 @@ var gOfflinePromptsBundle;
 var gOfflineManager;
 var gWindowManagerInterface;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
+var gCopyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
+                             .getService(Components.interfaces.nsIMsgCopyService);
 var gWindowReuse  = 0;
 var gMarkViewedMessageAsReadTimer = null; // if the user has configured the app to mark a message as read if it is viewed for more than n seconds
 
@@ -1117,6 +1119,181 @@ function MsgReplyToSenderAndGroup(event)
     (event && event.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default,
     loadedFolder, messageArray);
 }
+
+
+// Message Archive function
+
+function BatchMessageMover()
+{
+  this._batches = {};
+  this._currentKey = null;
+}
+
+BatchMessageMover.prototype =
+{
+  ArchiveSelectedMessages: function()
+  {
+    let selectedMsgUris = GetSelectedMessages();
+    if (!selectedMsgUris.length)
+      return;
+
+    // We need to get the index of the message to select after archiving
+    // completes but reset the global variable to prevent the DBview from
+    // updating the selection; we'll do it manually at the end of
+    // ProcessNextBatch.
+    SetNextMessageAfterDelete();
+    this.messageToSelectAfterWereDone = gNextMessageViewIndexAfterDelete;
+    gNextMessageViewIndexAfterDelete = -2;
+
+    let messages = Components.classes["@mozilla.org/array;1"]
+                             .createInstance(Components.interfaces.nsIMutableArray);
+
+    for (let i = 0; i < selectedMsgUris.length; ++i)
+    {
+      let msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
+      let msgDate = new Date(msgHdr.date / 1000);  // convert date to JS date object
+      let msgYear = msgDate.getFullYear().toString();
+      let dstFolderName = msgDate.toLocaleFormat("%Y-%m");
+      let copyBatchKey = msgHdr.folder.URI + '\000' + dstFolderName;
+      if (!(copyBatchKey in this._batches))
+        this._batches[copyBatchKey] = [msgHdr.folder, msgYear, dstFolderName];
+      this._batches[copyBatchKey].push(msgHdr);
+    }
+    // Now we launch the code iterating over all message copies, one in turn.
+    this.ProcessNextBatch();
+  },
+
+  ProcessNextBatch: function()
+  {
+    for (let key in this._batches)
+    {
+      this._currentKey = key;
+      let batch = this._batches[key];
+      let srcFolder = batch[0];
+      let msgYear = batch[1];
+      let msgMonth = batch[2];
+      let msgs = batch.slice(3);
+      // RSS servers don't have an identity so we special case the archives URI.
+      let archiveFolderUri;
+      if (srcFolder.server.type == 'rss')
+        archiveFolderUri = srcFolder.server.serverURI + "/Archives";
+      else
+        archiveFolderUri = GetIdentityForHeader(msgs[0],
+          Components.interfaces.nsIMsgCompType.ReplyAll).archiveFolder;
+
+      let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      let dstFolder = archiveFolder;
+      let granularity = archiveFolder.server.archiveGranularity;
+      // For imap folders, we need to create the sub-folders asynchronously,
+      // so we chain the urls using the listener called back from 
+      // createStorageIfMissing. For local, createStorageIfMissing is
+      // synchronous.
+      let isImap = archiveFolder.server.type == "imap";
+      if (!archiveFolder.parent)
+      {
+        archiveFolder.createStorageIfMissing(this);
+        if (isImap)
+          return;
+      }
+      if (!archiveFolder.canCreateSubfolders)
+        granularity = Components.interfaces.nsIMsgIncomingServer.singleArchiveFolder;
+      if (granularity >= Components.interfaces.nsIMsgIncomingServer.perYearArchiveFolders)
+      {
+        archiveFolderUri += "/" + msgYear;
+        dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+        if (!dstFolder.parent)
+        {
+          dstFolder.createStorageIfMissing(this);
+          if (isImap)
+            return;
+        }
+      }
+      if (granularity >= Components.interfaces.nsIMsgIncomingServer.perMonthArchiveFolders)
+      {
+        archiveFolderUri += "/" + msgMonth;
+        dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+        if (!dstFolder.parent)
+        {
+          dstFolder.createStorageIfMissing(this);
+          if (isImap)
+            return;
+        }
+      }
+      if (dstFolder != srcFolder)
+      {
+        let array = Components.classes["@mozilla.org/array;1"]
+                              .createInstance(Components.interfaces.nsIMutableArray);
+        msgs.forEach(function(item){array.appendElement(item, false);});
+        gCopyService.CopyMessages(srcFolder, array, dstFolder, true, this,
+                                  msgWindow, true);
+        return; // only do one.
+      }
+      delete this._batches[key];
+    }
+
+    // We're just going to select the message now.
+    let treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
+    treeView.selection.select(this.messageToSelectAfterWereDone);
+    treeView.selectionChanged();
+  },
+
+  OnStartRunningUrl: function(aUrl)
+  {
+  },
+
+  OnStopRunningUrl: function(aUrl, aExitCode)
+  {
+    // This will always be a create folder url, afaik.
+    if (Components.isSuccessCode(aExitCode))
+      this.ProcessNextBatch();
+    else
+      this._batches = null;
+  },
+
+  // This also implements nsIMsgCopyServiceListener, but we only care
+  // about the OnStopCopy.
+  OnStartCopy: function()
+  {
+  },
+  OnProgress: function(aProgress, aProgressMax)
+  {
+  },
+  SetMessageKey: function(aKey)
+  {
+  },
+  GetMessageId: function()
+  {
+  },
+  OnStopCopy: function(aStatus)
+  {
+    if (Components.isSuccessCode(aStatus))
+    {
+      // remove batch we just finished and continue
+      delete this._batches[this._currentKey];
+      this._currentKey = null;
+      this.ProcessNextBatch();
+    }
+    else
+    {
+      this._batches = null;
+    }
+  },
+  QueryInterface: function(aIID)
+  {
+    if (aIID.equals(Components.interfaces.nsIUrlListener) ||
+        aIID.equals(Components.interfaces.nsIMsgCopyServiceListener) ||
+        aIID.equals(Components.interfaces.nsISupports))
+      return this;
+    throw Components.results.NS_ERROR_NO_INTERFACE;
+  }
+}
+
+function MsgArchiveSelectedMessages(event)
+{
+  let batchMover = new BatchMessageMover();
+  batchMover.ArchiveSelectedMessages();
+}
+
 
 function MsgForwardMessage(event)
 {

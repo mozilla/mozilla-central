@@ -133,6 +133,41 @@ function getIdentityForServer(server, optionalHint)
     return identity;
 }
 
+function GetIdentityForHeader(aMsgHdr, aType)
+{
+  // If we treat reply from sent specially, do we check for that folder flag here ?
+  var isTemplate = aType == Components.interfaces.nsIMsgCompType.Template;
+  var hintForIdentity = isTemplate ? aMsgHdr.author
+                                   : aMsgHdr.recipients + aMsgHdr.ccList;
+  var identity = null;
+  var server = null;
+
+  var folder = aMsgHdr.folder;
+  if (folder)
+  {
+    server = folder.server;
+    identity = folder.customIdentity;
+  }
+
+  if (!identity)
+  {
+    var accountKey = aMsgHdr.accountKey;
+    if (accountKey.length > 0)
+    {
+      let account = accountManager.getAccount(accountKey);
+      if (account)
+        server = account.incomingServer;
+    }
+
+    if (server)
+      identity = getIdentityForServer(server, hintForIdentity);
+
+    if (!identity)
+      identity = getBestIdentity(accountManager.allIdentities, hintForIdentity);
+  }
+  return identity;
+}
+
 function GetNextNMessages(folder)
 {
   if (folder) {

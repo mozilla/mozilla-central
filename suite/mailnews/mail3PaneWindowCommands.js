@@ -151,7 +151,7 @@ var DefaultController =
 		switch ( command )
 		{
       case "cmd_createFilterFromPopup":
-			case "cmd_close":
+      case "cmd_archive":
 			case "cmd_reply":
 			case "button_reply":
 			case "cmd_replySender":
@@ -346,6 +346,7 @@ var DefaultController =
       case "cmd_markAsFlagged":
       case "button_file":
       case "cmd_file":
+      case "cmd_archive":
         return (GetNumSelectedMessages() > 0);
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
@@ -481,6 +482,9 @@ var DefaultController =
         break;
 			case "cmd_getNextNMessages":
 				MsgGetNextNMessages();
+				break;
+			case "cmd_archive":
+				MsgArchiveSelectedMessages(null);
 				break;
 			case "cmd_reply":
 				MsgReplyMessage(null);
