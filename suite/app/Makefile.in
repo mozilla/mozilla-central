@@ -48,6 +48,7 @@ GRE_MILESTONE = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py
 GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
 
 DEFINES += \
+	-DSEAMONKEY_ICO=\"../branding/icons/windows/seamonkey.ico\" \
 	-DAB_CD=$(AB_CD) \
 	-DAPP_VERSION="$(MOZ_APP_VERSION)" \
 	-DGRE_MILESTONE=$(GRE_MILESTONE) \
