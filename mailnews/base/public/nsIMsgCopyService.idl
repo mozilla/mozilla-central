@@ -53,48 +53,89 @@ interface nsIArray;
 [scriptable, uuid(f21e428b-73c5-4607-993b-d37325b33722)]
 interface nsIMsgCopyService : nsISupports {
 
-    /**
-     *
-     */
-    void CopyMessages(in nsIMsgFolder srcFolder,
-                      in nsIArray messages,
-                      in nsIMsgFolder dstFolder,
-                      in boolean isMove,
-                      in nsIMsgCopyServiceListener listener,
-                      in nsIMsgWindow msgWindow,
-                      in boolean allowUndo);
+  /**
+   * Copies or moves existing messages from source folder to destination folder.
+   *
+   * @param srcFolder  Source folder of an operation.
+   * @param messages   The array of nsIMsgHdrs in source folder which will be moved/copied.
+   * @param dstFolder  Destination folder of operation.
+   * @param isMove     false for copy operation, true for move operation.
+   * @param listener   Listener which receive operation notifications
+   * @param msgWindow  Window for notification callbacks, can be null.
+   * @param allowUndo  Specifies if this operation will be done as an transaction
+   *                   that can be undone.
+   */
+  void CopyMessages(in nsIMsgFolder srcFolder,
+                    in nsIArray messages,
+                    in nsIMsgFolder dstFolder,
+                    in boolean isMove,
+                    in nsIMsgCopyServiceListener listener,
+                    in nsIMsgWindow msgWindow,
+                    in boolean allowUndo);
 
-    /**
-     *
-     */
-    void CopyFolders(in nsIArray folders,
-                     in nsIMsgFolder dstFolder,
-                     in boolean isMove,
-                     in nsIMsgCopyServiceListener listener,
-                     in nsIMsgWindow msgWindow);
+  /**
+   * Copies or moves existing folders do destination folder.
+   *
+   * @param folders    The array of nsIMsgFolders which will be moved/copied.
+   * @param dstFolder  The destination folder of operation.
+   * @param isMove     false for copy operation, true for move operation.
+   * @param listener   Listener which receive operation notifications.
+   * @param msgWindow  Window for notification callbacks, can be null.
+   */
+  void CopyFolders(in nsIArray folders,
+                   in nsIMsgFolder dstFolder,
+                   in boolean isMove,
+                    in nsIMsgCopyServiceListener listener,
+                    in nsIMsgWindow msgWindow);
 
-    void CopyFileMessage(in nsIFile aFile,
-                         in nsIMsgFolder dstFolder,
-                         in nsIMsgDBHdr msgToReplace,
-                         in boolean isDraftOrTemplate,
-                         in unsigned long aMsgFlags,
-                         in ACString aMsgKeywords,
-                         in nsIMsgCopyServiceListener listener,
-                         in nsIMsgWindow msgWindow);
+  /**
+   * Copies message in rfc format from file to folder.
+   *
+   * @param aFile             A file which contains message in rfc format which
+   *                          will copied to destFolder.
+   * @param dstFolder         Destination folder where a message will be copied.
+   * @param msgToReplace      Header which identifies message which will be
+   *                          replaced by newly copied message or null. It is
+   *                          used generally for drafts, when saving a new copy
+   *                          of a draft message should replace the old
+   *                          draft message.
+   * @param isDraftOrTemplate Specifies whether a message is a stored in draft
+   *                          folder or not. If is true listener should
+   *                          implement GetMessageId and return unique id for
+   *                          message in destination folder. This is important
+   *                          for IMAP servers which doesn't support uidplus.
+   *                          If destination folder contains message with the
+   *                          same message-id then it is possible that listener
+   *                          get wrong message key in callback
+   *                          nsIMsgCopyServiceListener::SetMessageKey.
+   * @param aMsgFlags         Message flags which will be set after message is
+   *                          copied
+   * @param aMsgKeywords      Keywords which will be set for newly copied
+   *                          message.
+   * @param listener          Listener which receive copy notifications.
+   * @param msgWindow         Window for notification callbacks, can be null.
+   */
+  void CopyFileMessage(in nsIFile aFile,
+                       in nsIMsgFolder dstFolder,
+                       in nsIMsgDBHdr msgToReplace,
+                       in boolean isDraftOrTemplate,
+                       in unsigned long aMsgFlags,
+                       in ACString aMsgKeywords,
+                       in nsIMsgCopyServiceListener listener,
+                       in nsIMsgWindow msgWindow);
 
-    /**
-     * Notify the message copy service that the destination folder has finished
-     * it's messages copying operation so that the copy service can continue
-     * copying the rest of the messages if there are more to copy with.
-     * aSupport and dstFolder uniquely identify a copy service request.
-     *
-     * aSupport -- the originator of CopyMessages or CopyFileMessage; it can
-     *             be either a nsIMsgFolder or a nsIFile
-     * dstFolder -- the destination folder which performs the copy operation
-     * result -- the result of the copy operation
-     */
+  /**
+   * Notify the message copy service that the destination folder has finished
+   * it's messages copying operation so that the copy service can continue
+   * copying the rest of the messages if there are more to copy with.
+   * aSupport and dstFolder uniquely identify a copy service request.
+   *
+   * @param aSupport   The originator of CopyMessages or CopyFileMessage; it can
+   *                   be either a nsIMsgFolder or a nsIFile
+   * @param dstFolder  The destination folder which performs the copy operation
+   * @param result     The result of the copy operation
+   */
   void NotifyCompletion(in nsISupports aSupport,
-                              in nsIMsgFolder dstFolder,
-                              in nsresult result);
-
+                        in nsIMsgFolder dstFolder,
+                        in nsresult result);
 };
