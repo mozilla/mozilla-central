@@ -116,12 +116,36 @@ nsMsgDBViewCommandUpdater.prototype =
     SetNextMessageAfterDelete();
   },
 
+  summarizeSelection: function()
+  {
+    let selectedMsgUris = GetSelectedMessages();
+    if (!selectedMsgUris || (selectedMsgUris.length == 1)) {
+      pickMessagePane("singlemessage");
+      return;
+    }
+
+    if (! gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads")) {
+      ClearMessagePane();
+      return;
+    }
+
+    let firstThreadId = messenger.msgHdrFromURI(selectedMsgUris[0]).threadId;
+    for (let i = 1; i < selectedMsgUris.length; ++i)
+    {
+      let msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
+      if (msgHdr.threadId != firstThreadId) // at least more than one thread
+        return summarizeMultipleSelection(selectedMsgUris);
+    }
+    // must be just one thread.
+    summarizeThread(selectedMsgUris);
+  },
+
   QueryInterface : function(iid)
    {
      if (iid.equals(Components.interfaces.nsIMsgDBViewCommandUpdater) ||
          iid.equals(Components.interfaces.nsISupports))
        return this;
-	  
+
      throw Components.results.NS_NOINTERFACE;
     }
 }

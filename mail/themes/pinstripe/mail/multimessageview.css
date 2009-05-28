@@ -1,0 +1,72 @@
+@import url("chrome://messenger/content/multimessageview.css");
+
+/* pinstripe-specific overrides for multimessageview.css*/
+
+.button {
+  vertical-align: middle;
+  margin: 0px 2px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 5px;
+  -moz-appearance: none;
+  border: 1px solid #5F5F5F;
+  -moz-border-radius: 4px;
+  background: url(chrome://global/skin/icons/white-gray-gradient.gif) #A09E9D repeat-x top center;
+  min-height: 0;
+  min-width: 0;
+  padding: 3px;
+  min-height: 16px;
+}
+
+.button:hover:active:not([disabled="true"]) {
+   background-image: url(chrome://global/skin/icons/white-gray-gradient-active.gif);
+}
+
+.dualButton { 
+  -moz-appearance: dualbutton;
+}
+
+.dualButton > .button-menubutton-button {
+  -moz-appearance: none;
+  padding: 0;
+  margin: 0;
+  -moz-padding-start: 0px;
+  -moz-padding-end: 0px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 0px;
+  min-width: 1em;
+  min-height: 1ex;
+}
+
+.multimessage {
+  min-height: 15px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+
+.starred .star {
+  background-image: url("chrome://messenger/skin/icons/flaggedmail.png");
+}
+
+.info {
+  color: GrayText;
+}
+
+.heading.info {
+  color: GrayText;
+}
+
+#trash {
+  min-height: 22px !important;
+  min-width: 28px !important;
+  padding-left: 3px;
+}
+
+.trashButton {
+  padding: 2px;
+  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
+  min-height: 16px !important;
+  min-width: 16px !important;
+  width: 16px;
+  height: 16px;
+}
+

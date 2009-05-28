@@ -25,6 +25,7 @@ classic.jar:
   skin/classic/messenger/searchDialog.css                     (mail/searchDialog.css)
   skin/classic/messenger/msgSelectOffline.css                 (mail/msgSelectOffline.css)
   skin/classic/messenger/filterDialog.css                     (mail/filterDialog.css)
+  skin/classic/messenger/multimessageview.css                 (mail/multimessageview.css)
   skin/classic/messenger/dialogs.css                          (mail/dialogs.css)
   skin/classic/messenger/newmailalert.css                     (mail/newmailalert.css)
 * skin/classic/messenger/tabmailBindings.xml                  (mail/tabmailBindings.xml)

@@ -1071,16 +1071,12 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
     m_currentlyDisplayedMsgKey = nsMsgKey_None;
     m_currentlyDisplayedMsgUri.Truncate();
     m_currentlyDisplayedViewIndex = nsMsgViewIndex_None;
-
-    // if we used to have one item selected, and now we have zero or more than one, we should clear the message pane.
-    nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
-    nsCOMPtr <nsIMsgWindowCommands> windowCommands;
-    if ((mNumSelectedRows == 1) && (numSelected != 1) && msgWindow
-        && NS_SUCCEEDED(msgWindow->GetWindowCommands(getter_AddRefs(windowCommands)))
-        && windowCommands) {
-      windowCommands->ClearMsgPane();
-    }
   }
+
+  // let the front-end adjust the message pane appropriately with either
+  // the message body, or a summary of the selection
+  if (mCommandUpdater)
+    mCommandUpdater->SummarizeSelection();
 
   // determine if we need to push command update notifications out to the UI or not.
 
@@ -2191,6 +2187,7 @@ NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(PRUint32 *length, char ***uris)
 
   NS_ENSURE_ARG_POINTER(length);
   *length = 0;
+  
   NS_ENSURE_ARG_POINTER(uris);
   *uris = nsnull;
 
@@ -4487,6 +4484,7 @@ nsresult nsMsgDBView::ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDel
 
 nsresult nsMsgDBView::ToggleExpansion(nsMsgViewIndex index, PRUint32 *numChanged)
 {
+  nsresult rv;
   NS_ENSURE_ARG(numChanged);
   *numChanged = 0;
   nsMsgViewIndex threadIndex = GetThreadIndex(index);
@@ -4502,10 +4500,13 @@ nsresult nsMsgDBView::ToggleExpansion(nsMsgViewIndex index, PRUint32 *numChanged
   if (!(flags & MSG_VIEW_FLAG_ISTHREAD) || !(flags & MSG_VIEW_FLAG_HASCHILDREN))
     return NS_MSG_MESSAGE_NOT_FOUND;
   if (flags & nsMsgMessageFlags::Elided)
-    return ExpandByIndex(threadIndex, numChanged);
+    rv = ExpandByIndex(threadIndex, numChanged);
   else
-    return CollapseByIndex(threadIndex, numChanged);
-
+    rv = CollapseByIndex(threadIndex, numChanged);
+    
+  // if we collaps/uncollapse a thread, this changes the selected URIs
+  SelectionChanged();
+  return rv;
 }
 
 nsresult nsMsgDBView::ExpandAndSelectThread()

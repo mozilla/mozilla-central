@@ -72,6 +72,7 @@
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   <stringbundle id="bundle_search" src="chrome://messenger/locale/search.properties"/>
+  <stringbundle id="bundle_multimessages" src="chrome://messenger/locale/multimessageview.properties"/>
 </stringbundleset>
 
 <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
@@ -80,6 +81,7 @@
 <script type="application/x-javascript" src="chrome://messenger/content/shareglue.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/msgViewNavigation.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mailWindow.js"/>
+<script type="application/x-javascript" src="chrome://messenger/content/selectionsummaries.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/specialTabs.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mail3PaneWindowCommands.js"/>
@@ -330,18 +332,29 @@
 
                 <vbox id="messagepanebox" flex="2" minheight="100" height="200"
                       minwidth="100" width="200" persist="height width">
-
-                  <hbox id="msgHeaderView"/>
-                  <hbox id="editMessageBox"/>
-                  <deck id="msgNotificationBar"/>
-                  <browser id="messagepane" context="mailContext" autofind="false"
-                           minheight="1" flex="1" name="messagepane" tooltip="aHTMLTooltip"
-                           disablehistory="true" type="content-primary" src="about:blank"
-                           onresize="return messagePaneOnResize(event);"
-                           disablesecurity="true" onclick="return contentAreaClick(event);"/>
-                  <splitter id="attachment-splitter" collapse="after" resizebefore="closest" resizeafter="closest" collapsed="true"/>
-                  <hbox id="attachmentView"/>
-                  <findbar id="FindToolbar" browserid="messagepane"/>
+                  
+                  <!-- This next iframe is used to display summaries of -->
+                  <!-- multiple selected messages or collapsed threads -->
+                  <iframe id="multimessage"
+                           style="height: 0px; min-height: 1px"
+                           flex="1" name="multimessage"
+                           hidden="true"
+                           disablesecurity="true" disablehistory="true"
+                           src="chrome://messenger/content/multimessageview.xhtml"
+                           autofind="false"/>
+                  <vbox id="singlemessage" flex="1">
+                    <hbox id="msgHeaderView"/>
+                    <hbox id="editMessageBox"/>
+                    <deck id="msgNotificationBar"/>
+                    <browser id="messagepane" context="mailContext" autofind="false"
+                             minheight="1" flex="1" name="messagepane" tooltip="aHTMLTooltip"
+                             disablehistory="true" type="content-primary" src="about:blank"
+                             onresize="return messagePaneOnResize(event);"
+                             disablesecurity="true" onclick="return contentAreaClick(event);"/>
+                    <splitter id="attachment-splitter" collapse="after" resizebefore="closest" resizeafter="closest" collapsed="true"/>
+                    <hbox id="attachmentView"/>
+                    <findbar id="FindToolbar" browserid="messagepane"/>
+                  </vbox>
                 </vbox>
               </box>
             </vbox>

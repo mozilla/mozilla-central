@@ -52,9 +52,12 @@ var accountManager;
 var gMessengerBundle;
 var gBrandBundle;
 
-var gContextMenu;
+Components.utils.import("resource://app/modules/gloda/log4moz.js");
 
+var gContextMenu;
+var gMailWindowLog = Log4Moz.getConfiguredLogger("mailWindow", Log4Moz.Level.Debug, Log4Moz.Level.Debug, Log4Moz.Level.Debug);
 var gAccountCentralLoaded = true;
+
 
 function OnMailWindowUnload()
 {
@@ -315,6 +318,7 @@ nsMsgStatusFeedback.prototype =
       let progressCount = 0;
 
       // For each activity that is in progress, get its status.
+
       this._activeProcesses.forEach(function (element) {
           if (element.state ==
               Components.interfaces.nsIActivityProcess.STATE_INPROGRESS &&

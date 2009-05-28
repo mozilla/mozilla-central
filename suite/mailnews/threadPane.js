@@ -116,6 +116,8 @@ nsMsgDBViewCommandUpdater.prototype =
     SetNextMessageAfterDelete();
   },
 
+  summarizeSelection: function() {},
+
   QueryInterface : function(iid)
    {
      if (iid.equals(Components.interfaces.nsIMsgDBViewCommandUpdater) ||

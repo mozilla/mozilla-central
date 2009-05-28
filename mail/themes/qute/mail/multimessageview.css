@@ -1,0 +1,55 @@
+@import url("chrome://messenger/content/multimessageview.css");
+
+/* qute-specific overrides for multimessageview.css*/
+
+/* mostly it's about CSS colors not being reliable */
+
+body {
+  background-color: white;
+}
+
+.heading.info {
+  color: ButtonText;
+}
+
+
+.info,
+.count, .date,
+.message > .header > .snippet,
+.message > .header > .senders {
+  color: GrayText;
+}
+
+/* buttons aren't reliable either */
+
+.button {
+  -moz-appearance: button;
+  font: message-box;
+  min-width: 32px !important;
+}
+
+
+/* and trash icon URLs aren't either */
+
+#trash {
+  min-height: 28px !important;
+  min-width: 32px !important;
+  padding: 0px;
+}
+
+.trashButton {
+  list-style-image: url("chrome://messenger/skin/icons/folder.png") !important;
+  -moz-image-region: rect(0px 144px 16px 128px);
+  width: 16px;
+  height: 16px;
+}
+
+.star {
+  width: 12px;
+  height: 12px;
+  margin-right: 0.5em;
+}
+
+.starred .star {
+  background-image: url("chrome://messenger/skin/icons/flag-col.png");
+}

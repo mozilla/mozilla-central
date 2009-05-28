@@ -53,7 +53,7 @@ interface nsIMsgWindowCommands : nsISupports {
   void clearMsgPane();
 };
 
-[scriptable, uuid(7e8fbaaa-d2f1-4751-af8e-8213fdb60a02)]
+[scriptable, uuid(7e8fbaaa-d2f1-4751-af8e-8213fdb60a03)]
 interface nsIMsgWindow : nsISupports {
   attribute nsIMsgStatusFeedback statusFeedback;
   attribute nsIMsgWindowCommands windowCommands;

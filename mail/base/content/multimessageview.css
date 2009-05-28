@@ -1,0 +1,301 @@
+/* Generic (cross-platform) multimessage view CSS.  Some bits will be overriden
+  by theme specific files */
+
+body {
+  font-family: sans-serif;
+  margin: 0px;
+  padding: 1ex 1em;
+}
+
+.star {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  margin-left: 1ex;
+}
+
+#markButton {
+  width: 5em;
+}
+
+#multimessageview {
+  font-size: small;
+}
+
+#messages {
+  -moz-border-radius: 0.4ex;
+  border: 1px solid ThreeDShadow;
+  padding: 1ex 1em;
+  margin: 0px;
+  font-size: small;
+}
+
+#messagelist {
+  width: 100%;
+  display: table;
+}
+
+.message {
+  display: table-row;
+}
+
+.message > .header {
+  display: table-cell;
+  padding: 0.6ex 0px;
+}
+
+.subject {
+  display: inline-block;
+}
+
+.sender {
+  display: inline-block;
+}
+
+.author {
+  display: inline;
+  color: grey;
+}
+
+.count, .date {
+  display: table-cell;
+  padding: 0px 1em;
+  white-space: nowrap;
+  text-align: right;
+  color: InactiveCaptionText;
+}
+
+.wrappedsender, .wrappedsubject {
+  padding-right: 18px;
+  padding-top: 6px;
+}
+
+.message.unread > .header > .wrappedsubject > .subject,
+.unread  .subject_and_author,
+.message.unread > .header > .wrappedsender > .sender  {
+  font-weight: bold;
+}
+
+.message > .header > .wrappedsender > .sender:hover,
+.message > .header > .wrappedsubject > .subject:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.message > .header > .snippet, .message .tags {
+  margin-left: 2em;
+}
+
+.message > .header > .snippet {
+  color: GrayText;
+}
+
+.message > .header > .senders {
+  color: GrayText;
+}
+
+.info {
+  font-size: small;
+}
+
+.heading.info {
+  font-size: medium;
+  font-weight: normal;
+}
+
+.tags {
+  padding-top: 2px;
+}
+
+.tag {
+  padding: 0.2ex 0.2em;
+  margin-right: 0.5em;
+  -moz-margin-start: 0px;
+  background-image: url("chrome://messenger/skin/tagbg.png");
+  color: InfoText;
+  -moz-border-radius: 2px;
+}
+
+
+#buttonbox {
+  display: table-cell;
+  text-align: right;
+  padding-bottom: 1ex;
+  font-size: 11px;
+  font-family: Lucida Grande;
+  border: 1px solid transparent; 
+}
+
+#headingwrappertable {
+  display: table;
+  width: 100%;
+}
+
+#headingwrapper {
+  display: table-row;
+  margin-bottom: 1em;
+  border: 1px solid transparent; 
+}
+
+.heading {
+  display: table-cell;
+  font-weight: bold;
+  font-size: medium;
+  margin: 0.5em;
+  border: 1px solid transparent;
+  padding-right: 1em;
+}
+
+
+.button {
+  display: inline;
+}
+
+#trash {
+  min-height: 16px !important;
+  min-width: 21px !important;
+  padding: 0px;
+}
+
+.hidden {
+  display: none;
+}
+
+
+#column {
+  float: right;
+  right: 1em;
+  top: 1em;
+}
+
+#foldericon {
+  z-index: -1;
+  min-width: 128px;
+  min-height: 128px;
+  background-image: url("chrome://messenger/skin/icons/largefolder.jpg"); 
+  background-repeat: no-repeat;
+}
+
+#tagpie {
+    display: block;
+}
+
+#tagdots {
+    display: block;
+    text-align: center;
+    padding: 1em;
+}
+
+ .section_heading {
+  font-weight: bold;
+  padding-bottom: .5em;
+  color: #555;
+}
+
+#header {
+  border: 1px solid transparent;
+}
+
+.stats {
+  padding: 1em;
+  padding-top: 3em;
+  text-align: center;
+  font-size: small;
+}
+
+#mozupdate {
+  clear: both;
+  -moz-border-radius: 0.4ex;
+  border: 1px solid #FFD8B9;
+  left: 1em;
+  right: 1em;
+  padding: 0.5em;
+}
+
+a {
+  color: darkblue;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline; 
+}
+
+#unread, #authors, #threads, #last_selected_wrapper {
+  display: inline-block; 
+  padding: 1ex 1em;
+  margin: 0px;
+  margin-right: 1em;
+  margin-bottom: 1em;
+  font-size: small;
+  -moz-border-radius: 0.4ex;
+  border: 1px solid ThreeDShadow;
+}
+
+#last_selected_wrapper, #unread {
+  min-width: 40em;
+}
+
+#authors, #threads {
+  vertical-align: top;
+}
+
+#topten {
+  vertical-align: top;
+}
+
+#remotecontent {
+  -moz-border-radius: 0.4ex;
+  border: 1px solid ThreeDShadow;
+  background-color: #fafafa;
+  padding: 1ex 1em;
+  margin: 0px;
+  font-size: smaller;
+}
+
+.messagecount {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.author, .subject {
+  display: inline;
+  overflow: hidden;
+  margin-right: 1em;
+}
+
+.subject_and_author {
+  white-space: nowrap;
+  overflow: hidden;
+  width: 38em;
+  margin-right: 1em;
+}
+
+.link:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sparkline {
+  margin-left: .5em;
+}
+
+#last_selected_wrapper {
+  border: 1px solid orange;
+}
+
+.last_selected {
+  font-weight: normal;
+  display: inline;
+}
+
+.hidden {
+  visibility: hidden;
+  display: none !important; 
+}
+
+.histogram {
+  display: inline;
+  padding-left: 1em;
+}

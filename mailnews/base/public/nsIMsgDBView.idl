@@ -419,7 +419,7 @@ interface nsIMsgDBView : nsISupports
    FE updater interface to handle changes in the view 
 */
 
-[scriptable, uuid(65FC9AD5-0912-11d5-9901-001083010E9B)]
+[scriptable, uuid(ce8f52ee-e742-4b31-8bdd-2b3a8168a117)]
 interface nsIMsgDBViewCommandUpdater : nsISupports
 {
   /* Eventually we'll flush this out into some kind of rich interface
@@ -439,4 +439,10 @@ interface nsIMsgDBViewCommandUpdater : nsISupports
   * which message we should selet after a delete or move
   */
   void updateNextMessageAfterDelete();
+  
+  /**
+  * tell the front end that the selection has changed, and may need to be
+  * resummarized
+  */
+  void summarizeSelection();
 };

@@ -176,6 +176,12 @@
              disablesecurity="true" disablehistory="true" type="content-primary"
              onresize="return messagePaneOnResize(event);" autofind="false"
              src="about:blank" onclick="return contentAreaClick(event);" />
+    <iframe id="htmlpane"
+             style="height: 0px; min-height: 1px" flex="1" name="htmlpane"
+             hidden="true"
+             disablesecurity="true" disablehistory="true"
+             onresize="return htmlPaneOnResize(event);" autofind="false"
+             src="about:blank"/>
     <splitter id="attachment-splitter" collapse="after" resizebefore="closest" resizeafter="closest" collapsed="true"/>
     <hbox id="attachmentView"/>
     <findbar id="FindToolbar" browserid="messagepane"/>

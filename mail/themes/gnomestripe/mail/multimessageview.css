@@ -1,0 +1,61 @@
+@import url("chrome://messenger/content/multimessageview.css");
+
+/* gnomestripe-specific overrides for multimessageview.css*/
+
+/* mostly it's about CSS colors not being reliable */
+
+body {
+  background-color: white;
+}
+
+.heading.info {
+  color: CaptionText;
+}
+
+.count, .date {
+  color: InactiveCaptionText;
+}
+
+.info,
+.message > .header > .snippet,
+.message > .header > .senders {
+  color: GrayText;
+}
+
+
+/* buttons are always tricky */
+
+
+.button {
+  -moz-appearance: button;
+  font: message-box;
+  min-width: 32px !important;
+  margin-bottom: 2em;
+}
+
+/* and every trash is different */
+
+#trash {
+  min-height: 28px !important;
+  min-width: 32px !important;
+  padding: 0px;
+}
+
+.trashButton {
+  padding: 2px;
+  list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
+  min-height: 16px !important;
+  min-width: 16px !important;
+  width: 16px;
+  height: 16px;
+}
+
+.star {
+  width: 12px;
+  height: 12px;
+  margin-right: 0.5em;
+}
+
+.starred .star {
+  background-image: url("chrome://messenger/skin/icons/flag-col.png");
+}
