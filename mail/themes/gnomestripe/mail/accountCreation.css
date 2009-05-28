@@ -90,20 +90,11 @@ menulist[disabled="true"] > .menulist-dropmarker {
 /* ::::: BUTTONS ::::: */
 
 .larger-button {
-  font-weight: bold;
-  font-size: larger;
+  font-size: 1.1em;
 }
 
 .smaller-button {
-  font-size: smaller;
-}
-
-#back_button {
-  color: GrayText;
-}
-
-#back_button:hover {
-  color: ButtonText;
+  font-size: 0.85em;
 }
 
 .clickable_label:hover {
