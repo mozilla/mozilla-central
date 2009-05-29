@@ -81,9 +81,6 @@ pref("browser.toolbars.showbutton.go",      false);
 pref("browser.toolbars.showbutton.search",  true);
 
 //XXXCallek sound is not implemented in new DLMGR yet
-pref("browser.download.progressDnldDialog.keepAlive", true); // keep the dnload progress dialog up after dnload is complete
-pref("browser.download.progressDnldDialog.enable_launch_reveal_buttons", true);
-pref("browser.download.progressDnlgDialog.dontAskForLaunch", false);
 pref("browser.download.finished_download_sound", false);
 pref("browser.download.finished_sound_url", "");
 pref("browser.download.useDownloadDir", false);
@@ -100,6 +97,7 @@ pref("browser.download.manager.flashCount", 2);
 pref("browser.download.manager.showWhenStarting", true);
 pref("browser.download.manager.focusWhenStarting", false);
 pref("browser.download.manager.closeWhenDone", false);
+pref("browser.download.progress.closeWhenDone", false);
 
 // various default search settings
 pref("browser.search.defaulturl", "chrome://navigator-region/locale/region.properties");

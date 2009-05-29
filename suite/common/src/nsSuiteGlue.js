@@ -296,6 +296,11 @@ SuiteGlue.prototype = {
       prefs.setIntPref("browser.download.manager.behavior",
                        prefs.getIntPref("browser.downloadmanager.behavior"));
     } catch (ex) {}
+
+    try {
+      prefs.setBoolPref("browser.download.progress.closeWhenDone",
+                        !prefs.getBoolPref("browser.download.progressDnldDialog.keepAlive"));
+    } catch (e) {}
   },
 
   // ------------------------------

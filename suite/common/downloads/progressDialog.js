@@ -74,7 +74,7 @@ function progressStartup() {
   // Insert as first controller on the whole window
   window.controllers.insertControllerAt(0, ProgressDlgController);
 
-  gCloseWhenDone.checked = gPrefService.getBoolPref("browser.download.manager.closeWhenDone");
+  gCloseWhenDone.checked = gPrefService.getBoolPref("browser.download.progress.closeWhenDone");
 
   switch (gDownload.state) {
     case nsIDownloadManager.DOWNLOAD_NOTSTARTED:
@@ -118,7 +118,7 @@ function progressStartup() {
 function progressShutdown() {
   gDownloadManager.removeListener(gDownloadListener);
   window.controllers.removeController(ProgressDlgController);
-  gPrefService.setBoolPref("browser.download.manager.closeWhenDone",
+  gPrefService.setBoolPref("browser.download.progress.closeWhenDone",
                            gCloseWhenDone.checked);
 }
 
