@@ -289,7 +289,7 @@ SuiteGlue.prototype = {
 
     try {
       prefs.setBoolPref("browser.download.useDownloadDir",
-                        prefs.getBoolPref("browser.download.autoDownload");
+                        prefs.getBoolPref("browser.download.autoDownload"));
     } catch (ex) {}
 
     try {
