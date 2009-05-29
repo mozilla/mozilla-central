@@ -442,6 +442,7 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
 
 .labeldaybox-container {
     border-right: 1px solid #D2D2D2;
+    border-bottom: 1px solid #D2D2D2;
 }
 
 calendar-editable-item[selected="true"] .calendar-event-selection {
