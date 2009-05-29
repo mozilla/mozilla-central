@@ -88,6 +88,7 @@ protected:
 };
 
 class calIcalComponent : public calIIcalComponent,
+                         public nsIClassInfo,
                          public cal::XpcomBase
 {
     friend class calIcalProperty;
@@ -105,6 +106,7 @@ public:
     }
     
     NS_DECL_ISUPPORTS
+    NS_DECL_NSICLASSINFO
     NS_DECL_CALIICALCOMPONENT
 
 protected:

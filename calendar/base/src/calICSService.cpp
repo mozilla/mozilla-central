@@ -814,7 +814,9 @@ calIcalComponent::Get##Attrname(calIDuration **dtp)                     \
     return NS_OK;                                                       \
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(calIcalComponent, calIIcalComponent)
+NS_IMPL_THREADSAFE_ISUPPORTS2(calIcalComponent, calIIcalComponent, nsIClassInfo)
+NS_IMPL_CI_INTERFACE_GETTER1(calIcalComponent, calIIcalComponent)
+NS_IMPL_THREADSAFE_CI(calIcalComponent)
 
 NS_IMETHODIMP_(icalcomponent *)
 calIcalComponent::GetIcalComponent()
