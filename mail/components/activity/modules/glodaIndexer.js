@@ -207,16 +207,19 @@ let glodaIndexerActivity =
 
     this.activityMgr.removeActivity(this.currentJob.process.id);
 
+    // this.currentJob.totalItemNum might still be null at this point
+    // if we were first notified about the job before the indexer determined
+    // the number of messages to index and then it didn't find any to index.
+    let totalItemNum = this.currentJob.totalItemNum || 0;
+
     // We only create activity events when specific folders get indexed,
-    // since event-driven indexing jobs are too numerous.
+    // since event-driven indexing jobs are too numerous.  We also only create
+    // them when we ended up indexing something in the folder, since otherwise
+    // we'd spam the activity manager with too many "indexed 0 messages" items
+    // that aren't useful enough to justify their presence in the manager.
     // TODO: Aggregate event-driven indexing jobs into batches significant
     // enough for us to create activity events for them.
-    if (this.currentJob.folder) {
-      // this.currentJob.totalItemNum might still be null at this point
-      // if we were first notified about the job before the indexer determined
-      // the number of messages to index and then it didn't find any to index.
-      let totalItemNum = this.currentJob.totalItemNum || 0;
-  
+    if (this.currentJob.folder && totalItemNum > 0) {
       // Note: we must replace the folder name placeholder last; otherwise,
       // if the name happens to contain another one of the placeholders, we'll
       // hork the name when replacing it.
@@ -232,11 +235,6 @@ let glodaIndexerActivity =
                                       this.getString("indexedFolderStatus"))
                          .replace("#1", secondsElapsed);
   
-      // XXX Should we really create an event for jobs that don't end up
-      // indexing any items?  Perhaps it's not worth notifying users that we
-      // "indexed 0 messages" in a particular folder.  On the other hand,
-      // maybe that is useful information (f.e. if they can't find a message
-      // in a folder and think it might be due to a bug in the indexer).
       let event = new nsActEvent(displayText,
                                  Gloda,
                                  statusText,
