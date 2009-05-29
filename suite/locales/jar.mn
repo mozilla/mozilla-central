@@ -47,6 +47,8 @@
   locale/@AB_CD@/communicator/bookmarks/findBookmark.dtd                    (%chrome/common/bookmarks/findBookmark.dtd)
   locale/@AB_CD@/communicator/bookmarks/sortFolder.dtd                      (%chrome/common/bookmarks/sortFolder.dtd)
   locale/@AB_CD@/communicator/directory/directory.dtd                       (%chrome/common/directory/directory.dtd)
+  locale/@AB_CD@/communicator/downloads/downloadmanager.dtd                 (%chrome/common/downloads/downloadmanager.dtd)
+  locale/@AB_CD@/communicator/downloads/downloadmanager.properties          (%chrome/common/downloads/downloadmanager.properties)
   locale/@AB_CD@/communicator/downloads/progressDialog.dtd                  (%chrome/common/downloads/progressDialog.dtd)
   locale/@AB_CD@/communicator/help/cert_dialog_help.xhtml                   (%chrome/common/help/cert_dialog_help.xhtml)
   locale/@AB_CD@/communicator/help/certs_help.xhtml                         (%chrome/common/help/certs_help.xhtml)

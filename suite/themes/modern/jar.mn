@@ -38,6 +38,8 @@ modern.jar:
   skin/modern/communicator/directory/file-folder-open.gif          (communicator/directory/file-folder-open.gif)
   skin/modern/communicator/directory/file-icon.gif                 (communicator/directory/file-icon.gif)
   skin/modern/communicator/directory/directory.css                 (communicator/directory/directory.css)
+  skin/modern/communicator/downloads/dl-remove.png                 (communicator/downloads/dl-remove.png)
+  skin/modern/communicator/downloads/downloadmanager.css           (communicator/downloads/downloadmanager.css)
   skin/modern/communicator/feed-subscribe.css                      (communicator/feed-subscribe.css)
   skin/modern/communicator/history/calendar.png                    (communicator/history/calendar.png)
   skin/modern/communicator/icons/alwaysAsk.png                     (communicator/icons/alwaysAsk.png)

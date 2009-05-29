@@ -1,0 +1,433 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the SeaMonkey internet suite code.
+   -
+   - The Initial Developer of the Original Code is
+   - the SeaMonkey project at mozilla.org.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Robert Kaiser <kairo@kairo.at>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://communicator/skin/downloads/downloadmanager.css" type="text/css"?>
+
+<?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
+<?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
+
+<!DOCTYPE window [
+<!ENTITY % downloadsDTD SYSTEM "chrome://communicator/locale/downloads/downloadmanager.dtd">
+%downloadsDTD;
+<!ENTITY % editMenuOverlayDTD SYSTEM "chrome://global/locale/editMenuOverlay.dtd">
+%editMenuOverlayDTD;
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
+]>
+
+<window id="downloads-window"
+        title="&downloadManager.title;" statictitle="&downloadManager.title;"
+        onload="dmStartup();" onunload="dmShutdown();"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        width="500" height="400" screenX="10" screenY="10"
+        persist="width height screenX screenY sizemode"
+        windowtype="Download:Manager">
+
+  <script type="application/x-javascript"
+          src="chrome://communicator/content/downloads/downloadmanager.js"/>
+  <script type="application/javascript"
+          src="chrome://communicator/content/downloads/DownloadProgressListener.js"/>
+  <script type="application/x-javascript"
+          src="chrome://communicator/content/downloads/treeView.js"/>
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="dmBundle"
+                  src="chrome://communicator/locale/downloads/downloadmanager.properties"/>
+    <stringbundle id="progDlgBundle"
+                  src="chrome://global/locale/nsProgressDialog.properties"/>
+  </stringbundleset>
+
+  <commandset id="dlWinCommands">
+    <commandset id="tasksCommands">
+      <!-- File Menu -->
+      <command id="cmd_close" oncommand="window.close()"/>
+      <command id="cmd_quit"/>
+      <!-- Search Box -->
+      <command id="cmd_search_focus"
+               oncommand="gSearchBox.focus();"/>
+    </commandset>
+    <commandset id="editMenuCommands"/>
+    <commandset id="commandUpdate_Downloads"
+                commandupdater="true"
+                events="focus,tree-select"
+                oncommandupdate="dlTreeController.onCommandUpdate()"/>
+
+    <commandset id="downloadCommands">
+      <command id="cmd_pause"
+               oncommand="goDoCommand('cmd_pause');"/>
+      <command id="cmd_resume"
+               oncommand="goDoCommand('cmd_resume');"/>
+      <command id="cmd_retry"
+               oncommand="goDoCommand('cmd_retry');"/>
+      <command id="cmd_cancel"
+               oncommand="goDoCommand('cmd_cancel');"/>
+      <command id="cmd_remove"
+               oncommand="goDoCommand('cmd_remove');"/>
+      <command id="cmd_open"
+               oncommand="goDoCommand('cmd_open');"/>
+      <command id="cmd_show"
+               oncommand="goDoCommand('cmd_show');"/>
+      <command id="cmd_openReferrer"
+               oncommand="goDoCommand('cmd_openReferrer');"/>
+      <command id="cmd_copyLocation"
+               oncommand="goDoCommand('cmd_copyLocation');"/>
+      <command id="cmd_clearList"
+               oncommand="goDoCommand('cmd_clearList');"/>
+    </commandset>
+  </commandset>
+
+  <keyset id="tasksKeys">
+    <!-- File Menu -->
+    <key id="key_close"/>
+    <key id="key_quit"/>
+    <!-- Edit Menu -->
+    <key id="key_cut"/>
+    <key id="key_copy"/>
+    <key id="key_delete"/>
+    <key id="key_delete2"/>
+    <key id="key_selectAll"/>
+    <!-- Search Box -->
+    <key id="key_search_focus"
+         command="cmd_search_focus"
+         key="&search.key;"
+         modifiers="accel"/>
+  </keyset>
+
+  <popupset id="downloadPopupset">
+    <popup id="downloadContext">
+      <menuitem id="dlContext-pause"
+                label="&cmd.pause.label;"
+                accesskey="&cmd.pause.accesskey;"
+                command="cmd_pause"/>
+      <menuitem id="dlContext-resume"
+                label="&cmd.resume.label;"
+                accesskey="&cmd.resume.accesskey;"
+                command="cmd_resume"/>
+      <menuitem id="dlContext-retry"
+                label="&cmd.retry.label;"
+                accesskey="&cmd.retry.accesskey;"
+                command="cmd_retry"/>
+      <menuitem id="dlContext-cancel"
+                label="&cmd.cancel.label;"
+                accesskey="&cmd.cancel.accesskey;"
+                command="cmd_cancel"/>
+      <menuitem id="dlContext-remove"
+                label="&cmd.remove.label;"
+                accesskey="&cmd.remove.accesskey;"
+                command="cmd_remove"/>
+      <menuseparator/>
+      <menuitem id="dlContext-open"
+                label="&cmd.open.label;"
+                accesskey="&cmd.open.accesskey;"
+                command="cmd_open"/>
+      <menuitem id="dlContext-show"
+                label="&cmd.show.label;"
+                accesskey="&cmd.show.accesskey;"
+                command="cmd_show"/>
+      <menuitem id="dlContext-openReferrer"
+                label="&cmd.goToDownloadPage.label;"
+                accesskey="&cmd.goToDownloadPage.accesskey;"
+                command="cmd_openReferrer"/>
+      <menuitem id="dlContext-copyLocation"
+                label="&cmd.copyDownloadLink.label;"
+                accesskey="&cmd.copyDownloadLink.accesskey;"
+                command="cmd_copyLocation"/>
+      <menuitem id="cMenu_selectAll"/>
+    </popup>
+  </popupset>
+
+  <toolbox id="download-toolbox">
+    <menubar id="download-menubar"
+             grippytooltiptext="&menuBar.tooltip;"
+             chromedir="&locale.dir;">
+      <menu id="menu_File">
+        <menupopup id="menu_FilePopup">
+          <menuitem id="dlMenu_open"
+                    label="&cmd.open.label;"
+                    accesskey="&cmd.open.accesskey;"
+                    command="cmd_open"/>
+          <menuitem id="dlMenu_show"
+                    label="&cmd.show.label;"
+                    accesskey="&cmd.show.accesskey;"
+                    command="cmd_show"/>
+          <menuitem id="dlMenu_openReferrer"
+                    label="&cmd.goToDownloadPage.label;"
+                    accesskey="&cmd.goToDownloadPage.accesskey;"
+                    command="cmd_openReferrer"/>
+          <menuseparator/>
+          <menuitem id="menu_close"/>
+        </menupopup>
+      </menu>
+      <menu id="menu_Edit">
+        <menupopup id="menu_EditPopup">
+          <menuitem id="dlMenu_pause"
+                    label="&cmd.pause.label;"
+                    accesskey="&cmd.pause.accesskey;"
+                    command="cmd_pause"/>
+          <menuitem id="dlMenu_resume"
+                    label="&cmd.resume.label;"
+                    accesskey="&cmd.resume.accesskey;"
+                    command="cmd_resume"/>
+          <menuitem id="dlMenu_retry"
+                    label="&cmd.retry.label;"
+                    accesskey="&cmd.retry.accesskey;"
+                    command="cmd_retry"/>
+          <menuitem id="dlMenu_cancel"
+                    label="&cmd.cancel.label;"
+                    accesskey="&cmd.cancel.accesskey;"
+                    command="cmd_cancel"/>
+          <menuseparator/>
+          <menuitem id="dlMenu_remove"
+                    label="&cmd.remove.label;"
+                    accesskey="&cmd.remove.accesskey;"
+                    command="cmd_remove"/>
+          <menuitem id="dlMenu_copyLocation"
+                    label="&cmd.copyDownloadLink.label;"
+                    accesskey="&cmd.copyDownloadLink.accesskey;"
+                    command="cmd_copyLocation"/>
+          <menuseparator/>
+          <menuitem id="dlMenu_clearList"
+                    label="&cmd.clearList.label;"
+                    accesskey="&cmd.clearList.accesskey;"
+                    command="cmd_clearList"/>
+          <menuitem id="menu_selectAll"/>
+        </menupopup>
+      </menu>
+      <menu id="menu_View">
+        <menupopup id="menu_ViewPopup">
+          <menu id="menu_ViewColumns"
+                label="&view.columns.label;"
+                accesskey="&view.columns.accesskey;">
+            <menupopup onpopupshowing="onUpdateViewColumns(this.firstChild);"
+                       oncommand="toggleColumn(event.target);">
+              <menuitem id="menu_ToggleName" type="checkbox" disabled="true"
+                        label="&col.name.label;"
+                        accesskey="&col.name.accesskey;"/>
+              <menuitem id="menu_ToggleStatus" type="checkbox"
+                        label="&col.status.label;"
+                        accesskey="&col.status.accesskey;"/>
+              <menuitem id="menu_ToggleActionPlay" type="checkbox"
+                        label="&col.actionPlay.label;"
+                        accesskey="&col.actionPlay.accesskey;"/>
+              <menuitem id="menu_ToggleActionStop" type="checkbox"
+                        label="&col.actionStop.label;"
+                        accesskey="&col.actionStop.accesskey;"/>
+              <menuitem id="menu_ToggleProgress" type="checkbox"
+                        label="&col.progress.label;"
+                        accesskey="&col.progress.accesskey;"/>
+              <menuitem id="menu_ToggleTimeRemaining" type="checkbox"
+                        label="&col.timeremaining.label;"
+                        accesskey="&col.timeremaining.accesskey;"/>
+              <menuitem id="menu_ToggleTransferred" type="checkbox"
+                        label="&col.transferred.label;"
+                        accesskey="&col.transferred.accesskey;"/>
+              <menuitem id="menu_ToggleTransferRate" type="checkbox"
+                        label="&col.transferrate.label;"
+                        accesskey="&col.transferrate.accesskey;"/>
+              <menuitem id="menu_ToggleTimeElapsed" type="checkbox"
+                        label="&col.timeelapsed.label;"
+                        accesskey="&col.timeelapsed.accesskey;"/>
+              <menuitem id="menu_ToggleProgressPercent" type="checkbox"
+                        label="&col.progresstext.label;"
+                        accesskey="&col.progresstext.accesskey;"/>
+              <menuitem id="menu_ToggleSource" type="checkbox"
+                        label="&col.source.label;"
+                        accesskey="&col.source.accesskey;"/>
+            </menupopup>
+          </menu>
+          <menu id="menu_ViewSortBy" label="&view.sortBy.label;"
+                accesskey="&view.sortBy.accesskey;">
+            <menupopup onpopupshowing="onUpdateViewSort(this.firstChild);"
+                       oncommand="sortDownloads(event.target);">
+              <menuitem id="menu_Unsorted" type="radio" name="columns"
+                        label="&view.unsorted.label;"
+                        accesskey="&view.unsorted.accesskey;"/>
+              <menuseparator/>
+              <menuitem id="menu_SortByName" type="radio" name="columns"
+                        label="&col.name.label;"
+                        accesskey="&col.name.accesskey;"/>
+              <menuitem id="menu_SortByStatus" type="radio" name="columns"
+                        label="&col.status.label;"
+                        accesskey="&col.status.accesskey;"/>
+              <menuitem id="menu_SortByProgress" type="radio" name="columns"
+                        label="&col.progress.label;"
+                        accesskey="&col.progress.accesskey;"/>
+              <menuitem id="menu_SortByTimeRemaining" type="radio" name="columns"
+                        label="&col.timeremaining.label;"
+                        accesskey="&col.timeremaining.accesskey;"/>
+              <menuitem id="menu_SortByTransferred" type="radio" name="columns"
+                        label="&col.transferred.label;"
+                        accesskey="&col.transferred.accesskey;"/>
+              <menuitem id="menu_SortByTransferRate" type="radio" name="columns"
+                        label="&col.transferrate.label;"
+                        accesskey="&col.transferrate.accesskey;"/>
+              <menuitem id="menu_SortByTimeElapsed" type="radio" name="columns"
+                        label="&col.timeelapsed.label;"
+                        accesskey="&col.timeelapsed.accesskey;"/>
+              <menuitem id="menu_SortByProgressPercent" type="radio" name="columns"
+                        label="&col.progresstext.label;"
+                        accesskey="&col.progresstext.accesskey;"/>
+              <menuitem id="menu_SortBySource" type="radio" name="columns"
+                        label="&col.source.label;"
+                        accesskey="&col.source.accesskey;"/>
+              <menuseparator/>
+              <menuitem id="menu_SortAscending" type="radio" name="direction"
+                        label="&view.sortAscending.label;"
+                        accesskey="&view.sortAscending.accesskey;"/>
+              <menuitem id="menu_SortDescending" type="radio" name="direction"
+                        label="&view.sortDescending.label;"
+                        accesskey="&view.sortDescending.accesskey;"/>
+            </menupopup>
+          </menu>
+        </menupopup>
+      </menu>
+      <menu id="tasksMenu">
+        <menupopup id="taskPopup">
+          <menuitem id="dlMenu_find"
+                    label="&search.label;"
+                    accesskey="&search.accesskey;"
+                    command="cmd_search_focus"
+                    key="key_search_focus"/>
+          <menuseparator/>
+        </menupopup>
+      </menu>
+      <menu id="windowMenu"/>
+      <menu id="menu_Help"/>
+    </menubar>
+    <toolbar class="chromeclass-toolbar"
+             id="downloadToolbar"
+             align="center"
+             grippytooltiptext="&searchBar.tooltip;"
+             chromedir="&locale.dir;">
+      <textbox id="search-box"
+               clickSelectsAll="true"
+               type="search"
+               emptytext="&search.emptytext;"
+               oncommand="searchDownloads(this.value);"/>
+      <spacer flex="1"/>
+      <button id="clearListButton" command="cmd_clearList"
+              label="&cmd.clearList.label;"
+              accesskey="&cmd.clearList.accesskey;"
+              tooltiptext="&cmd.clearList.tooltip;"/>
+    </toolbar>
+  </toolbox>
+
+  <tree id="downloadTree"
+        flex="1" type="downloads"
+        class="plain"
+        context="downloadContext"
+        enableColumnDrag="true"
+        onselect="onTreeSelect(event);">
+    <treecols context="" onclick="sortDownloads(event.target)">
+      <treecol id="Name"
+               label="&col.name.label;"
+               tooltiptext="&col.name.tooltip;"
+               class="sortDirectionIndicator" flex="3"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="Status" hidden="true"
+               label="&col.status.label;"
+               tooltiptext="&col.status.tooltip;"
+               class="sortDirectionIndicator" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="ActionPlay" cycler="true"
+               label="&col.actionPlay.label;"
+               tooltiptext="&col.actionPlay.tooltip;"
+               class="treecol-image" fixed="true"
+               persist="hidden ordinal"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="ActionStop" cycler="true"
+               label="&col.actionStop.label;"
+               tooltiptext="&col.actionStop.tooltip;"
+               class="treecol-image" fixed="true"
+               persist="hidden ordinal"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="Progress" type="progressmeter"
+               label="&col.progress.label;"
+               tooltiptext="&col.progress.tooltip;"
+               class="sortDirectionIndicator" flex="3"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="ProgressPercent" hidden="true"
+               label="&col.progresstext.label;"
+               tooltiptext="&col.progresstext.tooltip;"
+               class="sortDirectionIndicator" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="TimeRemaining"
+               label="&col.timeremaining.label;"
+               tooltiptext="&col.timeremaining.tooltip;"
+               class="sortDirectionIndicator" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="Transferred"
+               label="&col.transferred.label;"
+               tooltiptext="&col.transferred.tooltip;"
+               class="sortDirectionIndicator" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="TransferRate"
+               label="&col.transferrate.label;"
+               tooltiptext="&col.transferrate.tooltip;"
+               class="sortDirectionIndicator" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="TimeElapsed" hidden="true"
+               label="&col.timeelapsed.label;"
+               tooltiptext="&col.timeelapsed.tooltip;"
+               class="sortDirectionIndicator" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="Source" hidden="true"
+               label="&col.source.label;"
+               tooltiptext="&col.source.tooltip;"
+               class="sortDirectionIndicator" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+    </treecols>
+    <treechildren/>
+  </tree>
+  <statusbar id="status-bar" class="chromeclass-status">
+    <statusbarpanel id="statusbar-display" flex="1"/>
+    <statusbarpanel class="statusbarpanel-iconic" id="offline-status"/>
+  </statusbar>
+
+</window>
