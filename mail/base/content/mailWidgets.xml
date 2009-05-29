@@ -2120,11 +2120,62 @@
                    class="msgHeaderView-button hdrReplyButton"
                    type="menu-button">
          <xul:menupopup anonid="hdrReplyDropdown">
-           <xul:menuitem anonid="hdrReplyAllButton"
+           <xul:menuitem anonid="hdrReplySubButton"
+                         label="&hdrReplyButton.label;"
+                         tooltiptext="&replyButton.tooltip;"
+                         observes="button_reply"/>
+           <xul:menuseparator anonid="hdrReplyAllSubButtonSep"/>
+           <xul:menuitem anonid="hdrReplyAllSubButton"
                          label="&hdrReplyAllButton.label;"
                          tooltiptext="&replyAllButton.tooltip;"
                          observes="button_replyall"
                          oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
+                         RestoreFocusAfterHdrButton();"/>
+         </xul:menupopup>
+       </xul:button>
+       <xul:button anonid="hdrReplyAllButton" label="&hdrReplyAllButton.label;"
+                   oncommand="MsgReplyToAllMessage(event);RestoreFocusAfterHdrButton();"
+                   observes="button_replyall"
+                   class="msgHeaderView-button hdrReplyButton"
+                   type="menu-button"
+                   hidden="true">
+         <xul:menupopup anonid="hdrReplyAllDropdown">
+           <xul:menuitem anonid="hdrReplyAllSubButton"
+                         label="&hdrReplyAllButton.label;"
+                         tooltiptext="&replyAllButton.tooltip;"
+                         observes="button_replyall"/>
+           <xul:menuseparator/>
+           <xul:menuitem anonid="hdrReplySubButton"
+                         label="&hdrReplyButton.label;"
+                         tooltiptext="&replyButton.tooltip;"
+                         observes="button_reply"
+                         oncommand="MsgReplyMessage(event); event.stopPropagation();
+                         RestoreFocusAfterHdrButton();"/>
+         </xul:menupopup>
+       </xul:button>
+       <xul:button anonid="hdrReplyListButton" label="&hdrReplyListButton.label;"
+                   oncommand="MsgReplyToListMessage(event);RestoreFocusAfterHdrButton();"
+                   observes="button_replylist"
+                   class="msgHeaderView-button hdrReplyButton"
+                   type="menu-button"
+                   hidden="true">
+         <xul:menupopup anonid="hdrReplyListDropdown">
+           <xul:menuitem anonid="hdrReplyListSubButton"
+                         label="&hdrReplyListButton.label;"
+                         tooltiptext="&replyListButton.tooltip;"
+                         observes="button_replylist"/>
+           <xul:menuseparator/>
+           <xul:menuitem anonid="hdrReplyAllSubButton"
+                         label="&hdrReplyAllButton.label;"
+                         tooltiptext="&replyAllButton.tooltip;"
+                         observes="button_replyall"
+                         oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
+                         RestoreFocusAfterHdrButton();"/>
+           <xul:menuitem anonid="hdrReplySubButton"
+                         label="&hdrReplyButton.label;"
+                         tooltiptext="&replyButton.tooltip;"
+                         observes="button_reply"
+                         oncommand="MsgReplyMessage(event); event.stopPropagation();
                          RestoreFocusAfterHdrButton();"/>
          </xul:menupopup>
        </xul:button>

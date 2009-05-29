@@ -60,6 +60,7 @@
 <!ENTITY archiveButton.label "archive">
 <!ENTITY hdrReplyButton.label "reply">
 <!ENTITY hdrReplyAllButton.label "reply all">
+<!ENTITY hdrReplyListButton.label "reply list">
 <!ENTITY hdrForwardButton.label "forward">
 <!ENTITY hdrJunkButton.label "junk">
 <!ENTITY trashButton.tooltiptext "delete">

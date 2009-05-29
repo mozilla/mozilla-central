@@ -53,7 +53,7 @@ function hiddenWindowStartup()
              'goNextMenu', 'menu_nextMsg', 'menu_nextUnreadMsg', 'menu_nextUnreadThread',
              'goPreviousMenu', 'menu_prevMsg', 'menu_prevUnreadMsg', 'menu_goForward', 'menu_goBack',
              'goStartPage', 'newMsgCmd', 'replyMainMenu', 'replySenderMainMenu', 'replyNewsgroupMainMenu',
-             'menu_replyToAll', 'menu_forwardMsg', 'forwardAsMenu', 'menu_editMsgAsNew', 'openMessageWindowMenuitem',
+             'menu_replyToAll', 'menu_replyToList', 'menu_forwardMsg', 'forwardAsMenu', 'menu_editMsgAsNew', 'openMessageWindowMenuitem',
              'moveMenu', 'copyMenu', 'moveToFolderAgain', 'tagMenu', 'markMenu',
              'markReadMenuItem', 'menu_markThreadAsRead', 'menu_markReadByDate', 'menu_markAllRead',
              'markFlaggedMenuItem', 'menu_markAsJunk', 'menu_markAsNotJunk', 'createFilter',

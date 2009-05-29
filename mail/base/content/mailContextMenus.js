@@ -195,6 +195,7 @@ function fillMailContextMenu(event)
   setSingleSelection("mailContext-editAsNew");
   setSingleSelection("mailContext-replyNewsgroup", isNewsgroup);
   setSingleSelection("mailContext-replyAll");
+  setSingleSelection("mailContext-replyList");
   setSingleSelection("mailContext-forward");
   ShowMenuItem("mailContext-forwardAsAttachment",
                numSelected > 1 && inThreadPane && !hideMailItems);

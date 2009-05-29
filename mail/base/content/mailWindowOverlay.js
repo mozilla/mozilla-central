@@ -807,6 +807,99 @@ function UpdateJunkToolbarButton()
     junkButtonDeck.selectedIndex = SelectedMessagesAreJunk() ? 1 : 0;
 }
 
+function UpdateReplyButtons()
+{
+  let msgHdr = messenger.msgHdrFromURI(GetLoadedMessage());
+
+  let myEmail = getIdentityForHeader(msgHdr).email;
+  let recipients = msgHdr.recipients + "," + msgHdr.ccList;
+
+  // If my email address isn't in the to or cc list, then I've been bcc-ed.
+  let imBcced = recipients.indexOf(myEmail) == -1;
+
+  // Now, let's get the number of unique recipients
+  let hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                            .getService(Components.interfaces.nsIMsgHeaderParser);
+  let uniqueRecipients = hdrParser.removeDuplicateAddresses(recipients, {});
+  let numAddresses = hdrParser.parseHeadersWithArray(uniqueRecipients, {}, {}, {});
+
+  // If I've been bcc-ed, then add 1 to the number of addresses to compensate.
+  if (imBcced)
+    numAddresses++
+
+  // By default, ReplyAll if there is more than 1 person to reply to.
+  let showReplyAll = numAddresses > 1;
+
+  // And ReplyToList if there is a List-Post header.
+  let showReplyList = currentHeaderData["list-post"];
+
+  // Get the server type.
+  let serverType = null;
+  try
+  {
+    serverType = msgHdr.folder.server.type;
+  }
+  catch (ex)
+  {
+    // This empty catch block needs to be here because msgHdr.folder will
+    // throw an exception when you try to access it on a .eml file.
+  }
+
+  // But, if we're in a news item, we should default to Reply.
+  if (serverType == "nntp")
+  {
+    showReplyAll = false;
+    showReplyList = false;
+  }
+
+  let buttonToShow = "reply";
+  if (showReplyList)
+    buttonToShow = "replyList";
+  else if (showReplyAll)
+    buttonToShow = "replyAll";
+
+  let buttonBox = document.getElementById(gCollapsedHeaderViewMode ?
+    "collapsedButtonBox" : "expandedButtonBox");
+
+  let replyButton = buttonBox.getButton("hdrReplyButton");
+  let replyAllButton = buttonBox.getButton("hdrReplyAllButton");
+  let replyAllSubButton = buttonBox.getButton("hdrReplyAllSubButton");
+  let replyAllSubButtonSep = buttonBox.getButton("hdrReplyAllSubButtonSep");
+  let replyListButton = buttonBox.getButton("hdrReplyListButton");
+
+  replyButton.hidden = (buttonToShow != "reply");
+  replyAllButton.hidden = (buttonToShow != "replyAll");
+  replyListButton.hidden = (buttonToShow != "replyList");
+
+  let replyListMenu = document.getElementById("menu_replyToList");
+  replyListMenu.hidden = !showReplyList;
+
+  let replyListCommand = document.getElementById("cmd_replylist");
+  replyListCommand.disabled = !showReplyList;
+
+  if (serverType == "nntp")
+  {
+    // If it's a news item, show the ReplyAll sub-button and separator.
+    replyAllSubButton.hidden = false;
+    replyAllSubButtonSep.hidden = false;
+  }
+  else if (serverType == "rss")
+  {
+    // otherwise, if it's an rss item, hide all the Reply buttons.
+    replyButton.hidden = true;
+    replyAllButton.hidden = true;
+    replyListButton.hidden = true;
+    replyAllSubButton.hidden = true;
+    replyAllSubButtonSep.hidden = true;
+  }
+  else
+  {
+    // otherwise, hide the ReplyAll sub-buttons.
+    replyAllSubButton.hidden = true;
+    replyAllSubButtonSep.hidden = true;
+  }
+}
+
 function UpdateDeleteToolbarButton()
 {
   var deleteButtonDeck = document.getElementById("delete-deck");
@@ -1097,6 +1190,10 @@ function MsgReplyToAllMessage(event)
   composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyAll, event);
 }
 
+function MsgReplyToListMessage(event)
+{
+  composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyToList, event);
+}
 
 // Message Archive function
 

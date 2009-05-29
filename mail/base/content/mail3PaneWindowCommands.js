@@ -148,6 +148,8 @@ var DefaultController =
       case "cmd_replyGroup":
       case "cmd_replyall":
       case "button_replyall":
+      case "cmd_replylist":
+      case "button_replylist":
       case "cmd_forward":
       case "button_forward":
       case "cmd_forwardInline":
@@ -300,6 +302,8 @@ var DefaultController =
       case "cmd_replyGroup":
       case "cmd_replyall":
       case "button_replyall":
+      case "cmd_replylist":
+      case "button_replylist":
       case "cmd_forward":
       case "button_forward":
       case "cmd_forwardInline":
@@ -530,6 +534,9 @@ var DefaultController =
         break;
       case "cmd_replyall":
         MsgReplyToAllMessage(null);
+        break;
+      case "cmd_replylist":
+        MsgReplyToListMessage(null);
         break;
       case "cmd_forward":
         MsgForwardMessage(null);

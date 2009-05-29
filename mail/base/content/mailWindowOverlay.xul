@@ -232,6 +232,7 @@
   <command id="cmd_replySender" oncommand="goDoCommand('cmd_replySender')"/>
   <command id="cmd_replyGroup" oncommand="goDoCommand('cmd_replyGroup')"/>
   <command id="cmd_replyall" oncommand="goDoCommand('cmd_replyall')"/>
+  <command id="cmd_replylist" oncommand="goDoCommand('cmd_replylist')"/>
   <command id="cmd_forward" oncommand="goDoCommand('cmd_forward')"/>
   <command id="cmd_forwardInline" oncommand="goDoCommand('cmd_forwardInline')"/>
   <command id="cmd_forwardAttachment" oncommand="goDoCommand('cmd_forwardAttachment')"/>
@@ -251,6 +252,7 @@
 
   <command id="button_reply"/>
   <command id="button_replyall"/>
+  <command id="button_replylist"/>
   <command id="button_archive"/>
   <command id="button_forward"/>
   <command id="button_delete"/>
@@ -376,6 +378,7 @@
   <key id="key_goStartPage" keycode="VK_HOME"                        oncommand="goDoCommand('cmd_goStartPage')" modifiers="alt"/>
   <key id="key_reply" key="&replyMsgCmd.key;"                        oncommand="goDoCommand('cmd_reply')" modifiers="accel"/>
   <key id="key_replyall" key="&replyToAllMsgCmd.key;"                oncommand="goDoCommand('cmd_replyall')" modifiers="accel, shift"/>
+  <key id="key_replylist" key="&replyToListMsgCmd.key;"              oncommand="goDoCommand('cmd_replylist')" modifiers="accel, shift"/>
   <key id="key_forward" key="&forwardMsgCmd.key;"                    oncommand="goDoCommand('cmd_forward')" modifiers="accel"/>
   <key id="key_editAsNew" key="&editMsgAsNewCmd.key;"                oncommand="goDoCommand('cmd_editAsNew')" modifiers="accel"/>
   <key id="key_watchThread" key="&watchThreadMenu.key;"              oncommand="goDoCommand('cmd_watchThread')" />
@@ -536,6 +539,10 @@
               label="&contextReplyAll.label;"
               accesskey="&contextReplyAll.accesskey;"
               oncommand="MsgReplyToAllMessage(event);"/>
+    <menuitem id="mailContext-replyList"
+              label="&contextReplyList.label;"
+              accesskey="&contextReplyList.accesskey;"
+              oncommand="MsgReplyToListMessage(event);"/>
     <menuitem id="mailContext-forward"
               label="&contextForward.label;"
               accesskey="&contextForward.accesskey;"
@@ -1230,32 +1237,36 @@
         <menu id="messageMenu" label="&msgMenu.label;" accesskey="&msgMenu.accesskey;">
           <menupopup id="messageMenuPopup" onpopupshowing="InitMessageMenu();">
             <menuitem id="newMsgCmd" label="&newMsgCmd.label;"
-              accesskey="&newMsgCmd.accesskey;"
-              key="key_newMessage2"
-              oncommand="MsgNewMessage(null);"/>
+                      accesskey="&newMsgCmd.accesskey;"
+                      key="key_newMessage2"
+                      oncommand="MsgNewMessage(null);"/>
             <menuitem id="archiveMainMenu" label="&archiveMsgCmd.label;"
-              accesskey="&archiveMsgCmd.accesskey;"
-              key="key_archive"
-              command="cmd_archive"/>
+                      accesskey="&archiveMsgCmd.accesskey;"
+                      key="key_archive"
+                      command="cmd_archive"/>
             <menuitem id="replyMainMenu" label="&replyMsgCmd.label;"
-              accesskey="&replyMsgCmd.accesskey;"
-              key="key_reply"
-              command="cmd_reply"/>
+                      accesskey="&replyMsgCmd.accesskey;"
+                      key="key_reply"
+                      command="cmd_reply"/>
             <menuitem id="replySenderMainMenu" label="&replySenderCmd.label;"
-              accesskey="&replySenderCmd.accesskey;"
-              command="cmd_replySender"/>
+                      accesskey="&replySenderCmd.accesskey;"
+                      command="cmd_replySender"/>
             <menuitem id="replyNewsgroupMainMenu" label="&replyNewsgroupCmd.label;"
-              accesskey="&replyNewsgroupCmd.accesskey;"
-              key="key_reply"
-              command="cmd_replyGroup"/>
+                      accesskey="&replyNewsgroupCmd.accesskey;"
+                      key="key_reply"
+                      command="cmd_replyGroup"/>
             <menuitem id="menu_replyToAll" label="&replyToAllMsgCmd.label;"
-              accesskey="&replyToAllMsgCmd.accesskey;"
-              key="key_replyall"
-              command="cmd_replyall"/>
+                      accesskey="&replyToAllMsgCmd.accesskey;"
+                      key="key_replyall"
+                      command="cmd_replyall"/>
+            <menuitem id="menu_replyToList" label="&replyToListMsgCmd.label;"
+                      accesskey="&replyToListMsgCmd.accesskey;"
+                      key="key_replylist"
+                      command="cmd_replylist"/>
             <menuitem id="menu_forwardMsg" label="&forwardMsgCmd.label;"
-              accesskey="&forwardMsgCmd.accesskey;"
-              key="key_forward"
-              command="cmd_forward"/>
+                      accesskey="&forwardMsgCmd.accesskey;"
+                      key="key_forward"
+                      command="cmd_forward"/>
             <menu id="forwardAsMenu" label="&forwardAsMenu.label;" accesskey="&forwardAsMenu.accesskey;">
               <menupopup id="menu_forwardAsPopup">
                 <menuitem id="menu_forwardAsInline"
@@ -1269,13 +1280,13 @@
               </menupopup>
             </menu>
             <menuitem id="menu_editMsgAsNew" label="&editMsgAsNewCmd.label;"
-                accesskey="&editMsgAsNewCmd.accesskey;"
-                key="key_editAsNew"
-                command="cmd_editAsNew"/>
+                      accesskey="&editMsgAsNewCmd.accesskey;"
+                      key="key_editAsNew"
+                      command="cmd_editAsNew"/>
             <menuitem id="openMessageWindowMenuitem" label="&openMessageWindowCmd.label;"
-              command="cmd_openMessage"
-              accesskey="&openMessageWindowCmd.accesskey;"
-              key="key_openMessage"/>
+                      command="cmd_openMessage"
+                      accesskey="&openMessageWindowCmd.accesskey;"
+                      key="key_openMessage"/>
             <menu id="openFeedMessage" 
                   label="&openFeedMessage.label;" 
                   accesskey="&openFeedMessage.accesskey;">
@@ -1497,6 +1508,12 @@
                    tooltiptext="&replyAllButton.tooltip;"
                    observes="button_replyall"
                    oncommand="MsgReplyToAllMessage(event)"/>
+    <toolbarbutton id="button-replylist"
+                   class="toolbarbutton-1"
+                   label="&replyListButton.label;"
+                   tooltiptext="&replyListButton.tooltip;"
+                   observes="button_replylist"
+                   oncommand="MsgReplyToListMessage(event)"/>
     <toolbarbutton id="button-forward"
                    class="toolbarbutton-1"
                    label="&forwardButton.label;"
@@ -1703,9 +1720,9 @@
            customizable="true"
            context="toolbar-context-menu"
 #ifdef XP_MACOSX
-           defaultset="button-getmsg,button-newmsg,button-address,spacer,button-reply,button-replyall,button-forward,spacer,button-tag,button-delete,button-junk,button-print,spacer,button-goback,button-goforward,spring,search-container,throbber-box">
+           defaultset="button-getmsg,button-newmsg,button-address,spacer,button-reply,button-replyall,button-replylist,button-forward,spacer,button-tag,button-delete,button-junk,button-print,spacer,button-goback,button-goforward,spring,search-container,throbber-box">
 #else
-           defaultset="button-getmsg,button-newmsg,button-address,separator,button-reply,button-replyall,button-forward,separator,button-tag,button-delete,button-junk,button-print,separator,button-goback,button-goforward,spring,search-container">
+           defaultset="button-getmsg,button-newmsg,button-address,separator,button-reply,button-replyall,button-replylist,button-forward,separator,button-tag,button-delete,button-junk,button-print,separator,button-goback,button-goforward,spring,search-container">
 #endif
   </toolbar>
   <toolbarset id="customToolbars" context="toolbar-context-menu"/>

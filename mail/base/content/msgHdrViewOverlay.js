@@ -415,6 +415,7 @@ var messageHeaderSink = {
       UpdateMessageHeaders();
       ShowEditMessageBox();
       UpdateJunkButton();
+      UpdateReplyButtons();
 
       for (index in gMessageListeners)
         gMessageListeners[index].onEndHeaders();
@@ -455,6 +456,8 @@ var messageHeaderSink = {
             this.mDummyMsgHeader.replyTo = header.headerValue;
           else if (lowerCaseHeaderName == "message-id")
             this.mDummyMsgHeader.messageId = header.headerValue;
+          else if (lowerCaseHeaderName == "list-post")
+            this.mDummyMsgHeader.listPost = header.headerValue;
 
         }
         // according to RFC 2822, certain headers
@@ -786,6 +789,7 @@ function updateHeaderViews()
     showHeaderView(gExpandedHeaderView);
   }
   UpdateJunkButton();
+  UpdateReplyButtons();
   displayAttachmentsForExpandedView();
 }
 
@@ -1996,6 +2000,7 @@ nsDummyMsgHeader.prototype =
   from : null,
   subject : null,
   ccList : null,
+  listPost : null,
   messageId : null,
   accountKey : "",
   folder : null

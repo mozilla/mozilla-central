@@ -178,6 +178,9 @@ nsMsgDBViewCommandUpdater.prototype =
     goUpdateCommand("button_junk");
     goUpdateCommand("button_goBack");
     goUpdateCommand("button_goForward");
+    goUpdateCommand("button_reply");
+    goUpdateCommand("button_replyall");
+    goUpdateCommand("button_replylist");
   },
 
   updateNextMessageAfterDelete : function()
@@ -778,6 +781,8 @@ var MessageWindowController =
       case "cmd_replyGroup":
       case "cmd_replyall":
       case "button_replyall":
+      case "cmd_replylist":
+      case "button_replylist":
       case "cmd_archive":
       case "button_archive":
       case "cmd_forward":
@@ -849,6 +854,8 @@ var MessageWindowController =
       case "cmd_replyGroup":
       case "cmd_replyall":
       case "button_replyall":
+      case "cmd_replylist":
+      case "button_replylist":
       case "cmd_forward":
       case "button_forward":
       case "cmd_forwardInline":
@@ -973,6 +980,9 @@ var MessageWindowController =
         break;
       case "cmd_replyall":
         MsgReplyToAllMessage(null);
+        break;
+      case "cmd_replylist":
+        MsgReplyToListMessage(null);
         break;
       case "cmd_forward":
         MsgForwardMessage(null);

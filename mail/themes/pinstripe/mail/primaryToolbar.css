@@ -139,6 +139,18 @@ toolbar[mode="text"] .toolbarbutton-menubutton-button > .toolbarbutton-text {
   -moz-image-region: rect(64px 160px 96px 128px) !important;
 } 
 
+#button-replylist {
+  -moz-image-region: rect(0px 160px 32px 128px);
+}
+
+#button-replylist:hover:active {
+  -moz-image-region: rect(32px 160px 64px 128px);
+}
+
+#button-replylist[disabled] {
+  -moz-image-region: rect(64px 160px 96px 128px) !important;
+}
+
 #button-forward {
   -moz-image-region: rect(0px 192px 32px 160px);
 }
@@ -363,9 +375,21 @@ toolbar[iconsize="small"] #button-replyall {
 
 toolbar[iconsize="small"] #button-replyall:hover:active {
   -moz-image-region: rect(24px 120px 48px 96px);
-} 
+}
 
 toolbar[iconsize="small"] #button-replyall[disabled] {
+  -moz-image-region: rect(48px 120px 72px 96px) !important;
+}
+
+toolbar[iconsize="small"] #button-replylist {
+  -moz-image-region: rect(0px 120px 24px 96px);
+}
+
+toolbar[iconsize="small"] #button-replylist:hover:active {
+  -moz-image-region: rect(24px 120px 48px 96px);
+} 
+
+toolbar[iconsize="small"] #button-replylist[disabled] {
   -moz-image-region: rect(48px 120px 72px 96px) !important;
 } 
 

@@ -112,6 +112,18 @@
   -moz-image-region: rect(48px 120px 72px 96px) !important;
 } 
 
+#button-replylist {
+  -moz-image-region: rect(0px 120px 24px 96px);
+}
+
+#button-replylist:hover {
+  -moz-image-region: rect(24px 120px 48px 96px);
+}
+
+#button-replylist[disabled] {
+  -moz-image-region: rect(48px 120px 72px 96px) !important;
+}
+
 #button-forward {
   -moz-image-region: rect(0px 144px 24px 120px);
 }
@@ -334,6 +346,18 @@ toolbar[iconsize="small"] #button-replyall:hover {
 toolbar[iconsize="small"] #button-replyall[disabled] {
   -moz-image-region: rect(32px 80px 48px 64px) !important;
 } 
+
+toolbar[iconsize="small"] #button-replylist {
+  -moz-image-region: rect(0px 80px 16px 64px);
+}
+
+toolbar[iconsize="small"] #button-replylist:hover {
+  -moz-image-region: rect(16px 80px 32px 64px);
+}
+
+toolbar[iconsize="small"] #button-replylist[disabled] {
+  -moz-image-region: rect(32px 80px 48px 64px) !important;
+}
 
 toolbar[iconsize="small"] #button-forward {
   -moz-image-region: rect(0px 96px 16px 80px);
