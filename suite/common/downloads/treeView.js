@@ -365,6 +365,8 @@ DownloadTreeView.prototype = {
   },
 
   initTree: function() {
+    if (!this._tree)
+      return
     // We're resetting the whole list, either because we're creating the tree
     // or because we need to recreate it
     this._tree.beginUpdateBatch();

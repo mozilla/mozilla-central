@@ -1,0 +1,241 @@
+<?xml version="1.0"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Download Manager UI Test Code.
+ *
+ * The Initial Developer of the Original Code is
+ * Edward Lee <edward.lee@engineering.uiuc.edu>.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/**
+ * Test bug 228842 to make sure multiple selections work in the download
+ * manager by making sure commands work as expected for both single and doubly
+ * selected items.
+ */
+-->
+
+<window title="Download Manager Test"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="test();">
+
+  <script type="application/javascript"
+          src="chrome://mochikit/content/MochiKit/packed.js"/>
+  <script type="application/javascript"
+          src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
+  <script type="application/javascript"
+          src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
+
+  <script type="application/javascript">
+  <![CDATA[
+
+function test()
+{
+  var dm = Components.classes["@mozilla.org/download-manager;1"]
+                     .getService(Components.interfaces.nsIDownloadManager);
+  var db = dm.DBConnection;
+
+  // Empty any old downloads
+  db.executeSimpleSQL("DELETE FROM moz_downloads");
+
+  var stmt = db.createStatement(
+    "INSERT INTO moz_downloads (source, state, target, referrer) " +
+    "VALUES (?1, ?2, ?3, ?4)");
+
+  try {
+    for each (let site in ["ed.agadak.net", "mozilla.org", "mozilla.com", "mozilla.net"]) {
+      let file = Components.classes["@mozilla.org/file/directory_service;1"]
+                  .getService(Components.interfaces.nsIProperties)
+                  .get("TmpD", Components.interfaces.nsIFile);
+      file.append(site);
+      let fileSpec = Components.classes["@mozilla.org/network/io-service;1"]
+                  .getService(Components.interfaces.nsIIOService)
+                  .newFileURI(file).spec;
+
+      stmt.bindStringParameter(0, "http://" + site + "/file");
+      stmt.bindInt32Parameter(1, dm.DOWNLOAD_FINISHED);
+      stmt.bindStringParameter(2, fileSpec);
+      stmt.bindStringParameter(3, "http://referrer/");
+
+      // Add it!
+      stmt.execute();
+    }
+  }
+  finally {
+    stmt.reset();
+    stmt.finalize();
+  }
+
+  // Close the UI if necessary
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator);
+  var win = wm.getMostRecentWindow("Download:Manager");
+  if (win) win.close();
+
+  var obs = Components.classes["@mozilla.org/observer-service;1"]
+                      .getService(Components.interfaces.nsIObserverService);
+  const DLMGR_UI_DONE = "download-manager-ui-done";
+
+  var testPhase = 0;
+  var testObs = {
+    observe: function(aSubject, aTopic, aData) {
+      if (aTopic != DLMGR_UI_DONE)
+        return;
+
+      var win = aSubject;
+      var downloadView = win.document.getElementById("downloadTree").view;
+
+      // Default test/check for invocations
+      var invokeCount = 0;
+      var counter = function() invokeCount++;
+
+      // Accessors for returning a value for various properties
+      var getItems = function() downloadView.rowCount;
+      var getSelected = function() downloadView.selection.count;
+      var getClipboard = function() {
+        var clip = Components.classes["@mozilla.org/widget/clipboard;1"]
+                             .getService(Components.interfaces.nsIClipboard);
+        var trans = Components.classes["@mozilla.org/widget/transferable;1"]
+                              .createInstance(Components.interfaces.nsITransferable);
+        trans.addDataFlavor("text/unicode");
+        clip.getData(trans, clip.kGlobalClipboard);
+        var str = {};
+        var strLen = {};
+        trans.getTransferData("text/unicode", str, strLen);
+        return str.value.QueryInterface(Components.interfaces.nsISupportsString)
+                  .data.substring(0, strLen.value / 2);
+      };
+
+      // Array of tests that consist of the command name, download manager
+      // function to temporarily replace, method to use in its place, value to
+      // use when checking correctness
+      var commandTests = [
+        ["pause", "pauseDownload", counter, counter],
+        ["resume", "resumeDownload", counter, counter],
+        ["cancel", "cancelDownload", counter, counter],
+        ["open", "openDownload", counter, counter],
+        ["show", "showDownload", counter, counter],
+        ["retry", "retryDownload", counter, counter],
+        ["openReferrer", "openUILink", counter, counter],
+        ["copyLocation", null, null, getClipboard],
+        ["remove", null, null, getItems],
+        ["selectAll", null, null, getSelected],
+      ];
+
+      // All the expected results for both single and double selections
+      var allExpected = {
+        single: {
+          pause: [0, "Paused no downloads"],
+          resume: [0, "Resumed no downloads"],
+          cancel: [0, "Canceled no downloads"],
+          open: [0, "Opened no downloads"],
+          show: [0, "Showed no downloads"],
+          retry: [0, "Retried no downloads"],
+          openReferrer: [1, "Opened one referrer"],
+          copyLocation: ["http://ed.agadak.net/file", "Copied one location"],
+          remove: [3, "Removed one download, remaining 3"],
+          selectAll: [3, "Selected all 3 remaining downloads"],
+        },
+        double: {
+          pause: [0, "Paused neither download"],
+          resume: [0, "Resumed neither download"],
+          cancel: [0, "Canceled neither download"],
+          open: [0, "Opened neither download"],
+          show: [0, "Showed neither download"],
+          retry: [0, "Retried neither download"],
+          openReferrer: [0, "Opened neither referrer"],
+          copyLocation: ["http://mozilla.org/file\nhttp://mozilla.com/file", "Copied both locations"],
+          remove: [3, "Removed no downloads, remaining 3"],
+          selectAll: [3, "Selected the 3 remaining downloads"],
+        },
+      };
+
+      var cmdName;
+
+      // Run two tests: single selected, double selected
+      for each (let whichTest in ["single", "double"]) {
+        let expected = allExpected[whichTest];
+
+        if (whichTest == "double")
+          // Select the first 2 downloads for double
+          downloadView.selection.rangedSelect(0, 1, false);
+        else
+          // Select the first download for single
+          downloadView.selection.select(0);
+
+        for each (let [command, func, test, value] in commandTests) {
+          // Make a copy of the original function and replace it with a test
+          let copy;
+          [copy, win[func]] = [win[func], test];
+
+          // Run the command from the menu
+          if (command == "selectAll")
+            cmdName = "menu_" + command;
+          else
+            cmdName = "dlMenu_" + command;
+
+          win.document.getElementById(cmdName).doCommand();
+
+          // Make sure the value is as expected
+          let [correct, message] = expected[command];
+          is(value(), correct, message);
+
+          // Restore original values
+          invokeCount = 0;
+          win[func] = copy;
+        }
+      }
+
+      // We're done!
+      win.close();
+      obs.removeObserver(testObs, DLMGR_UI_DONE);
+      SimpleTest.finish();
+    }
+  };
+  obs.addObserver(testObs, DLMGR_UI_DONE, false);
+
+  // Show the Download Manager UI
+  Components.classes["@mozilla.org/download-manager-ui;1"]
+            .getService(Components.interfaces.nsISuiteDownloadManagerUI)
+            .showManager();
+
+  SimpleTest.waitForExplicitFinish();
+}
+
+  ]]>
+  </script>
+
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <p id="display"></p>
+    <div id="content" style="display:none;"></div>
+    <pre id="test"></pre>
+  </body>
+</window>
