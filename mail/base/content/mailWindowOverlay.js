@@ -1228,7 +1228,7 @@ BatchMessageMover.prototype = {
   OnStopRunningUrl: function(url, exitCode)
   {
     // this will always be a create folder url, afaik.
-    if (exitCode >= 0)
+    if (Components.isSuccessCode(exitCode))
       this.processNextBatch();
     else
       this._batches = null;
