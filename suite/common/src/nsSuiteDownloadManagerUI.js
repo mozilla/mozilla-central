@@ -42,9 +42,11 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const DOWNLOAD_MANAGER_URL = "chrome://mozapps/content/downloads/downloads.xul";
+const TOOLKIT_MANAGER_URL = "chrome://mozapps/content/downloads/downloads.xul";
+const DOWNLOAD_MANAGER_URL = "chrome://communicator/content/downloads/downloadmanager.xul";
 const PREF_FLASH_COUNT = "browser.download.manager.flashCount";
 const PREF_DM_BEHAVIOR = "browser.download.manager.behavior";
+const PREF_FORCE_TOOLKIT_UI = "browser.download.manager.useToolkitUI";
 
 ////////////////////////////////////////////////////////////////////////////////
 //// nsDownloadManagerUI class
@@ -67,6 +69,8 @@ nsDownloadManagerUI.prototype = {
         var prefs = Cc["@mozilla.org/preferences-service;1"].
                     getService(Ci.nsIPrefBranch);
         behavior = prefs.getIntPref(PREF_DM_BEHAVIOR);
+        if (prefs.getBoolPref(PREF_FORCE_TOOLKIT_UI))
+          behavior = 0; //We are forcing toolkit UI, force manager behavior
       } catch (e) { }
     }
 
@@ -154,10 +158,18 @@ nsDownloadManagerUI.prototype = {
     reason.data = aReason;
     params.appendElement(reason, false);
 
+    var manager = DOWNLOAD_MANAGER_URL;
+    try {
+      let prefs = Cc["@mozilla.org/preferences-service;1"].
+                  getService(Ci.nsIPrefBranch);
+      if (prefs.getBoolPref(PREF_FORCE_TOOLKIT_UI))
+        manager = TOOLKIT_MANAGER_URL;
+    } catch(ex) {}
+
     var ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].
              getService(Ci.nsIWindowWatcher);
     ww.openWindow(parent,
-                  DOWNLOAD_MANAGER_URL,
+                  manager,
                   null,
                   "all,dialog=no",
                   params);
