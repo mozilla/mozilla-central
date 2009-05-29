@@ -598,8 +598,8 @@
         <body><![CDATA[
           if (this.mLongWeekdayTotalPixels <= 0) {
               let maxDayWidth = 0;
-              for each(label in this.labeldaybox.childNodes) {
-                  if (label.localName == "calendar-day-label") { // xxx todo Warning: reference to undefined property label.localName
+              for each(let label in this.labeldaybox.childNodes) {
+                  if (label.localName == "calendar-day-label") {
                       label.shortWeekNames = false;
                       let curPixelLength = label.getLongWeekdayPixels();
                       maxDayWidth = Math.max(maxDayWidth, curPixelLength);
