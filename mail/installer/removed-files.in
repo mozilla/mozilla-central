@@ -350,6 +350,20 @@ chrome/offline.jar
 chrome/offline.manifest
 chrome/en-US-mail.jar
 chrome/overlayinfo/
+#ifdef MOZ_WIDGET_GTK2
+chrome/icons/default/abcardWindow.xpm
+chrome/icons/default/abcardWindow16.xpm
+chrome/icons/default/addressbookWindow.xpm
+chrome/icons/default/addressbookWindow16.xpm
+chrome/icons/default/msgcomposeWindow.xpm
+chrome/icons/default/msgcomposeWindow16.xpm
+chrome/icons/default/messengerWindow.xpm
+chrome/icons/default/messengerWindow16.xpm
+chrome/icons/default/default.xpm
+icons/mozicon128.png
+icons/mozicon16.xpm
+icons/mozicon50.xpm
+#endif
 defaults/pref/all.js
 defaults/pref/security-prefs.js
 defaults/pref/winpref.js

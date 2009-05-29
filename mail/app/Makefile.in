@@ -264,18 +264,8 @@ endif
 
 $(PROGRAM): $(MOZDEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
 
-ifneq (,$(filter windows os2 gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
 ifneq (,$(filter windows os2,$(MOZ_WIDGET_TOOLKIT)))
 ICON_SUFFIX=.ico
-else
-ICON_SUFFIX=.xpm
-endif
-
-ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
-ICON_DIR=gtk
-else
-ICON_DIR=$(MOZ_WIDGET_TOOLKIT)
-endif
 
 DESKTOP_ICONS = \
 	abcardWindow \
@@ -287,21 +277,17 @@ BRANDED_ICONS = \
 	messengerWindow \
 	$(NULL)
 
-ifeq ($(ICON_DIR),gtk)
-DESKTOP_ICONS_SMALL=$(patsubst %,%16,$(DESKTOP_ICONS))
-BRANDED_ICONS_SMALL=$(patsubst %,%16,$(BRANDED_ICONS))
-endif
 
 DESKTOP_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(DESKTOP_ICONS) $(DESKTOP_ICONS_SMALL))
 BRANDED_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(BRANDED_ICONS) $(BRANDED_ICONS_SMALL))
 
-libs:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
+libs:: $(addprefix icons/$(MOZ_WIDGET_TOOLKIT)/,$(DESKTOP_ICON_FILES))
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/chrome/icons/default
 
 libs:: $(addprefix $(DIST)/branding/,$(BRANDED_ICON_FILES))
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/chrome/icons/default
 
-install:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
+install:: $(addprefix icons/$(MOZ_WIDGET_TOOLKIT)/,$(DESKTOP_ICON_FILES))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/chrome/icons/default
 
 install:: $(addprefix $(DIST)/branding,$(BRANDED_ICON_FILES))
@@ -310,10 +296,10 @@ endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
 libs::
-	$(INSTALL) $(IFLAGS1) $(DIST)/branding/default.xpm $(DIST)/bin/chrome/icons/default
+	$(INSTALL) $(IFLAGS1) $(DIST)/branding/default* $(DIST)/bin/chrome/icons/default
 
 install::
-	$(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/default.xpm $(DESTDIR)$(mozappdir)/chrome/icons/default
+	$(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/default* $(DESTDIR)$(mozappdir)/chrome/icons/default
 endif
 
 ifneq (,$(filter-out OS2 WINNT Darwin,$(OS_ARCH)))
@@ -330,25 +316,6 @@ install:: thunderbird
 
 GARBAGE += thunderbird
 GARBAGE += $(addprefix $(DIST)/bin/defaults/pref/, all.js all-thunderbird.js channel-prefs.js mailnews.js)
-endif
-
-ifneq (,$(filter gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
-ICON_FILES	= \
-		$(DIST)/branding/mozicon50.xpm \
-		$(DIST)/branding/mozicon16.xpm \
-		$(NULL)
-
-libs::
-	$(INSTALL) $(IFLAGS1) $(ICON_FILES) $(DIST)/bin/icons
-	if test -f $(DIST)/branding/mozicon128.png; then \
-	  $(INSTALL) $(IFLAGS1) $(DIST)/branding/mozicon128.png $(DIST)/bin/icons; \
-	fi;
-
-install::
-	$(SYSINSTALL) $(IFLAGS1) $(ICON_FILES) $(DESTDIR)$(mozappdir)/icons
-	if test -e $(DIST)/branding/mozicon128.png; then \
-	  $(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/mozicon128.png $(DESTDIR)$(mozappdir)/icons; \
-	fi;
 endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),photon)

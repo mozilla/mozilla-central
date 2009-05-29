@@ -69,17 +69,16 @@ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	cp $(srcdir)/thunderbird.icns  $(DIST)/branding/thunderbird.icns
 endif
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
-	cp $(srcdir)/mozicon16.xpm $(DIST)/branding/mozicon16.xpm
-	cp $(srcdir)/mozicon50.xpm $(DIST)/branding/mozicon50.xpm
-	cp $(srcdir)/default.xpm   $(DIST)/branding/default.xpm	
+	cp $(srcdir)/mailicon16.png  $(DIST)/branding/default16.png
+	cp $(srcdir)/mailicon22.png  $(DIST)/branding/default22.png
+	cp $(srcdir)/mailicon24.png  $(DIST)/branding/default24.png
+	cp $(srcdir)/mailicon32.png  $(DIST)/branding/default32.png
+	cp $(srcdir)/mailicon48.png  $(DIST)/branding/default48.png
+	cp $(srcdir)/mailicon256.png $(DIST)/branding/default256.png
 endif
 # Now sort out the branding specific icons
 ifeq ($(OS_ARCH),WINNT)
 	cp $(srcdir)/windows/messengerWindow.ico  $(DIST)/branding/messengerWindow.ico
-endif
-ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
-	cp $(srcdir)/gtk/messengerWindow.xpm  $(DIST)/branding/messengerWindow.xpm
-	cp $(srcdir)/gtk/messengerWindow16.xpm  $(DIST)/branding/messengerWindow16.xpm
 endif
 ifeq ($(OS_ARCH),OS2)
 	cp $(srcdir)/os2/messengerWindow.ico  $(DIST)/branding/messengerWindow.ico
