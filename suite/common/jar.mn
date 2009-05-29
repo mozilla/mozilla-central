@@ -128,6 +128,7 @@ comm.jar:
    content/communicator/downloads/downloadmanager.xul               (downloads/downloadmanager.xul)
    content/communicator/downloads/DownloadProgressListener.js       (downloads/DownloadProgressListener.js)
    content/communicator/downloads/progressDialog.xul                (downloads/progressDialog.xul)
+   content/communicator/downloads/progressDialog.js                 (downloads/progressDialog.js)
    content/communicator/downloads/treeView.js                       (downloads/treeView.js)
    content/communicator/feeds/subscribe.xhtml                       (feeds/subscribe.xhtml)
    content/communicator/feeds/subscribe.js                          (feeds/subscribe.js)

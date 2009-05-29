@@ -173,12 +173,10 @@ DownloadTreeView.prototype = {
       case "TimeRemaining":
         if (dl.isActive) {
           var dld = this._dm.getDownload(dl.dlid);
-          var maxBytes = (dl.maxBytes == null) ? -1 : dl.maxBytes;
-          var speed = (dld.speed == null) ? -1 : dld.speed;
           var lastSec = (dl.lastSec == null) ? Infinity : dl.lastSec;
           // Calculate the time remaining if we have valid values
-          var seconds = (speed > 0) && (maxBytes > 0)
-                        ? (maxBytes - dl.currBytes) / speed
+          var seconds = (dld.speed > 0) && (dl.maxBytes > 0)
+                        ? (dl.maxBytes - dl.currBytes) / dld.speed
                         : -1;
           var [timeLeft, newLast] = DownloadUtils.getTimeLeft(seconds, lastSec);
           this._dlList[aRow].lastSec = newLast;
@@ -246,7 +244,9 @@ DownloadTreeView.prototype = {
         break;
       case "ActionStop":
         if (dl.isActive)
-          cancelDownload(dl);
+          // fake an nsIDownload with the properties needed by that function
+          cancelDownload({id: dl.dlid,
+                          targetFile: getLocalFileFromNativePathOrUrl(dl.file)});
         else
           removeDownload(dl.dlid);
         break;

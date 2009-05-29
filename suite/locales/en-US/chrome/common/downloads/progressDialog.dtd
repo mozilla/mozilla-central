@@ -20,6 +20,7 @@
    -
    - Contributor(s):
    -   Justin Wood <Callek@gmail.com>
+   -  Robert Kaiser <kairo@kairo.at>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,7 +36,19 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!ENTITY cancelLabel          "Close">
-<!ENTITY acceptLabel          "Open Download Manager">
-<!ENTITY progressTitle        "Download in Progress…">
-<!ENTITY tempDescription      "We're sorry, but progress dialogs in downloads are currently not implemented. Your download has started.">
+<!ENTITY progress.title                  "Download in Progress…">
+<!ENTITY closeWindow.key                 "w">
+<!ENTITY cmd.pause.tooltip               "Pause">
+<!ENTITY cmd.resume.tooltip              "Resume">
+<!ENTITY cmd.retry.tooltip               "Retry">
+<!ENTITY cmd.cancel.tooltip              "Cancel">
+<!ENTITY cmd.open.label                  "Open">
+<!ENTITY cmd.open.accesskey              "O">
+<!ENTITY cmd.show.label                  "Open Containing Folder">
+<!ENTITY cmd.show.accesskey              "F">
+<!ENTITY cmd.goToDownloadPage.label      "Go to Download Page">
+<!ENTITY cmd.goToDownloadPage.accesskey  "G">
+<!ENTITY cmd.copyDownloadLink.label      "Copy Download Link">
+<!ENTITY cmd.copyDownloadLink.accesskey  "L">
+<!ENTITY closeWhenDone.label             "Close this window when the download is complete.">
+<!ENTITY closeWhenDone.accesskey         "w">

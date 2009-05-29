@@ -169,14 +169,15 @@ function resumeDownload(aDownloadID)
 function retryDownload(aDownloadID)
 {
   gDownloadManager.retryDownload(aDownloadID);
-  gDownloadTreeView.removeDownload(aDownloadID);
+  if (gDownloadTreeView)
+    gDownloadTreeView.removeDownload(aDownloadID);
 }
 
-function cancelDownload(aDownloadData)
+function cancelDownload(aDownload)
 {
-  gDownloadManager.cancelDownload(aDownloadData.dlid);
+  gDownloadManager.cancelDownload(aDownload.id);
   // delete the file if it exists
-  var file = getLocalFileFromNativePathOrUrl(aDownloadData.file);
+  var file = aDownload.targetFile;
   if (file.exists())
     file.remove(false);
 }
@@ -186,9 +187,11 @@ function removeDownload(aDownloadID)
   gDownloadManager.removeDownload(aDownloadID);
 }
 
-function openDownload(aDownloadData)
+function openDownload(aDownload)
 {
-  var file = getLocalFileFromNativePathOrUrl(aDownloadData.file);
+  var name = aDownload.displayName;
+  var file = aDownload.targetFile;
+
   if (file.isExecutable()) {
     var alertOnEXEOpen = true;
     try {
@@ -207,7 +210,6 @@ function openDownload(aDownloadData)
 
     if (alertOnEXEOpen) {
       var dlbundle = document.getElementById("dmBundle");
-      var name = aDownloadData.target;
       var message = dlbundle.getFormattedString("fileExecutableSecurityWarning", [name, name]);
 
       var title = dlbundle.getString("fileExecutableSecurityWarningTitle");
@@ -237,9 +239,9 @@ function openDownload(aDownloadData)
   }
 }
 
-function showDownload(aDownloadData)
+function showDownload(aDownload)
 {
-  var file = getLocalFileFromNativePathOrUrl(aDownloadData.file);
+  var file = aDownload.targetFile;
 
   try {
     // Show the directory containing the file and select the file
@@ -528,16 +530,21 @@ var dlTreeController = {
         retryDownload(selItemData.dlid);
         break;
       case "cmd_cancel":
-        cancelDownload(selItemData);
+        // fake an nsIDownload with the properties needed by that function
+        cancelDownload({id: selItemData.dlid,
+                        targetFile: getLocalFileFromNativePathOrUrl(selItemData.file)});
         break;
       case "cmd_remove":
         removeDownload(selItemData.dlid);
         break;
       case "cmd_open":
-        openDownload(selItemData);
+        // fake an nsIDownload with the properties needed by that function
+        openDownload({displayName: selItemData.target,
+                      targetFile: getLocalFileFromNativePathOrUrl(selItemData.file)});
         break;
       case "cmd_show":
-        showDownload(selItemData);
+        // fake an nsIDownload with the properties needed by that function
+        showDownload({targetFile: getLocalFileFromNativePathOrUrl(selItemData.file)});
         break;
       case "cmd_openReferrer":
         openUILink(selItemData.referrer);
