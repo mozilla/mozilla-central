@@ -90,7 +90,7 @@ MimeMessageEmitter.prototype = {
   classID: Components.ID("{8cddbbbc-7ced-46b0-a936-8cddd1928c24}"),
   contractID: "@mozilla.org/gloda/jsmimeemitter;1",
 
-  _partRE: new RegExp("^[^?]+\?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
+  _partRE: new RegExp("^[^?]+\\?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
 
   _xpcom_categories: [{
     category: "mime-emitter",
