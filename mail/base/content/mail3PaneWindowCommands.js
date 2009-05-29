@@ -140,7 +140,6 @@ var DefaultController =
     switch ( command )
     {
       case "cmd_createFilterFromPopup":
-      case "cmd_close":
       case "cmd_archive":
       case "button_archive":
       case "cmd_reply":
@@ -224,7 +223,6 @@ var DefaultController =
       case "cmd_compactFolder":
       case "button_compact":
       case "cmd_settingsOffline":
-      case "cmd_close":
       case "cmd_selectAll":
       case "cmd_selectThread":
       case "cmd_moveToFolderAgain":
@@ -475,8 +473,6 @@ var DefaultController =
       }
       case "cmd_setFolderCharset":
         return IsFolderCharsetEnabled();
-      case "cmd_close":
-        return true;
       case "cmd_downloadFlagged":
         return(IsFolderSelected() && MailOfflineMgr.isOnline());
       case "cmd_downloadSelected":
@@ -510,18 +506,6 @@ var DefaultController =
 
     switch ( command )
     {
-      case "cmd_close":
-        let tabmail = document.getElementById('tabmail');
-        if (tabmail.tabInfo.length == 1)
-        {
-          if (pref.getBoolPref("mail.tabs.closeWindowWithLastTab"))
-            window.close();
-        }
-        else
-        {
-          tabmail.removeCurrentTab();
-        }
-        break;
       case "button_getNewMessages":
       case "cmd_getNewMessages":
         MsgGetMessage();
@@ -806,6 +790,18 @@ var DefaultController =
     }
   }
 };
+
+function CloseTabOrWindow()
+{
+  let tabmail = document.getElementById('tabmail');
+  if (tabmail.tabInfo.length == 1) {
+    if (pref.getBoolPref("mail.tabs.closeWindowWithLastTab"))
+      window.close();
+  }
+  else {
+    tabmail.removeCurrentTab();
+  }
+}
 
 function GetNumSelectedMessages()
 {

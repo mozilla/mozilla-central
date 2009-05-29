@@ -97,7 +97,6 @@
             oncommandupdate="goUpdateMailMenuItems(this)">
 
     <command id="cmd_getNewMessages" oncommand="goDoCommand('cmd_getNewMessages')" disabled="true"/>
-    <command id="cmd_close" oncommand="goDoCommand('cmd_close')"/>
     <command id="cmd_open" oncommand="goDoCommand('cmd_open')"/>
 
     <command id="cmd_file" disabled="true"/>

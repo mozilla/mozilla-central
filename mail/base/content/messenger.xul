@@ -123,6 +123,7 @@
 #ifdef XP_MACOSX
   <commandset id="macWindowMenuItems"/>
 #endif
+  <command id="cmd_close" oncommand="CloseTabOrWindow();"/>
 </commandset>
 
 <keyset id="mailKeys">
