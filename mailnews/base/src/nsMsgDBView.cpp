@@ -4595,6 +4595,7 @@ nsresult nsMsgDBView::ExpandAll()
   }
   if (mTree)
     mTree->EndUpdateBatch();
+  SelectionChanged();
   return NS_OK;
 }
 
@@ -4645,6 +4646,7 @@ nsresult nsMsgDBView::CollapseAll()
     if (!(flags & nsMsgMessageFlags::Elided) && (flags & MSG_VIEW_FLAG_HASCHILDREN))
       CollapseByIndex(i, &numExpanded);
   }
+  SelectionChanged();
   return NS_OK;
 }
 
