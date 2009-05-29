@@ -80,14 +80,26 @@ pref("browser.chrome.load_toolbar_icons", 0);
 pref("browser.toolbars.showbutton.go",      false);
 pref("browser.toolbars.showbutton.search",  true);
 
+//XXXCallek sound is not implemented in new DLMGR yet
 pref("browser.download.progressDnldDialog.keepAlive", true); // keep the dnload progress dialog up after dnload is complete
 pref("browser.download.progressDnldDialog.enable_launch_reveal_buttons", true);
 pref("browser.download.progressDnlgDialog.dontAskForLaunch", false);
 pref("browser.download.finished_download_sound", false);
-pref("browser.download.finished_download_alert", false);
 pref("browser.download.finished_sound_url", "");
-pref("browser.download.autoDownload", false);
-pref("browser.download.lastLocation", true);
+pref("browser.download.useDownloadDir", false);
+pref("browser.download.folderList", 2);
+
+pref("browser.download.manager.showAlertOnComplete", true);
+pref("browser.download.manager.showAlertInterval", 2000);
+pref("browser.download.manager.retention", 2);
+pref("browser.download.manager.quitBehavior", 0);
+pref("browser.download.manager.addToRecentDocs", true);
+pref("browser.download.manager.scanWhenDone", true);
+pref("browser.download.manager.resumeOnWakeDelay", 10000);
+pref("browser.download.manager.flashCount", 2);
+pref("browser.download.manager.showWhenStarting", true);
+pref("browser.download.manager.focusWhenStarting", false);
+pref("browser.download.manager.closeWhenDone", false);
 
 // various default search settings
 pref("browser.search.defaulturl", "chrome://navigator-region/locale/region.properties");
@@ -474,7 +486,7 @@ pref("alerts.totalOpenTime", 4000);
 // 0 opens the download manager
 // 1 opens a progress dialog
 // 2 and other values, no download manager, no progress dialog. 
-pref("browser.downloadmanager.behavior", 0);
+pref("browser.download.manager.behavior", 0);
 
 pref("privacy.popups.sound_enabled",              false);
 pref("privacy.popups.sound_type",                 1);
@@ -485,11 +497,10 @@ pref("privacy.popups.remove_blacklist",           true);
 pref("privacy.popups.showBrowserMessage",         true);
 
 // sanitize (clear private data) options
-// XXX: turn on sanitize for downloads once we support toolkit' download manager
 pref("privacy.item.history",     true);
 pref("privacy.item.formdata",    true);
 pref("privacy.item.passwords",   false);
-pref("privacy.item.downloads",   false);
+pref("privacy.item.downloads",   true);
 pref("privacy.item.cookies",     false);
 pref("privacy.item.cache",       true);
 pref("privacy.item.sessions",    true);
@@ -527,7 +538,7 @@ pref("plugins.hide_infobar_for_missing_plugin", false);
 //  1 - open a progress dialog
 //  2 - do nothing
 
-pref("browser.downloadmanager.behavior", 1);
+pref("browser.download.manager.behavior", 1);
 
 // Turn on click-and-hold contextual menus
 pref("ui.click_hold_context_menus", true);

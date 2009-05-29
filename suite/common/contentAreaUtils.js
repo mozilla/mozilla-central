@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Ben Goodger <ben@netscape.com> (Save File)
+ *   Justin Wood <Callek@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -323,7 +324,7 @@ const kSaveAsType_Text     = 2; // Save document, converting to plain text.
  *        (see below) which holds pre-determined data so that the user does not
  *        need to be prompted for a target filename.
  * @param aReferrer the referrer URI object (not URL string) to use, or null
-          if no referrer should be sent.
+ *        if no referrer should be sent.
  */
 function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
                       aContentType, aShouldBypassCache, aFilePickerTitleKey,
@@ -359,7 +360,7 @@ function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
       fileURL: fileURL
     };
 
-    if (!poseFilePicker(fpParams))
+    if (!getTargetFile(fpParams))
       // If the method returned false this is because the user cancelled from
       // the save file picker dialog.
       return;
@@ -534,40 +535,52 @@ function initFileInfo(aFI, aURL, aURLCharset, aDocument,
  * @return true if the user confirmed a filename in the picker; false if they
  *         dismissed the picker.
  */
-function poseFilePicker(aFpP)
+function getTargetFile(aFpP)
 {
+  var prefs = getPrefsBrowserDownload("browser.download.");
+  var useDownloadDir = prefs.getBoolPref("useDownloadDir");
   const nsILocalFile = Components.interfaces.nsILocalFile;
-  const kDownloadDirPref = "dir";
 
-  var branch = getPrefsBrowserDownload("browser.download.");
-  var dir = null;
+  // Default to the user's default downloads directory configured
+  // through download prefs.
+  var dlMgr = Components.classes["@mozilla.org/download-manager;1"]
+                        .getService(Components.interfaces.nsIDownloadManager);
+  var dir = dlMgr.userDownloadsDirectory;
+  var dirExists = dir && dir.exists();
 
-  // Try and pull in download directory pref
-  try {
-    dir = branch.getComplexValue(kDownloadDirPref, nsILocalFile);
-  } catch (e) {
-  }
-
-  var autoDownload = branch.getBoolPref("autoDownload");
-  if (autoDownload && dir && dir.exists()) {
-    dir.append(getNormalizedLeafName(aFpP.fileInfo.fileName, aFpP.fileInfo.fileExt));
+  if (useDownloadDir && dirExists) {
+    dir.append(getNormalizedLeafName(aFpP.fileInfo.fileName,
+                                     aFpP.fileInfo.fileExt));
     aFpP.file = uniqueFile(dir);
     return true;
   }
+  // Must Prompt
 
-  // Show the file picker that allows the user to confirm the target filename:
+  // Default to lastDir if we must prompt, and lastDir
+  // is configured and valid. Otherwise, keep the default of
+  // the user's default downloads directory.
+  if (!useDownloadDir) try {
+    var lastDir = prefs.getComplexValue("lastDir", nsILocalFile);
+    if (lastDir.exists()) {
+      dir = lastDir;
+      dirExists = true;
+    }
+  } catch(e) {}
+
+  if (!dirExists) {
+    // Default to desktop.
+    var fileLocator = Components.classes["@mozilla.org/file/directory_service;1"]
+                                .getService(Components.interfaces.nsIProperties);
+    dir = fileLocator.get("Desk", nsILocalFile);
+  }
+
   var fp = makeFilePicker();
   var titleKey = aFpP.fpTitleKey || "SaveLinkTitle";
   var bundle = getStringBundle();
   fp.init(window, bundle.GetStringFromName(titleKey),
           Components.interfaces.nsIFilePicker.modeSave);
 
-  try {
-    if (dir.exists())
-      fp.displayDirectory = dir;
-  } catch (e) {
-  }
-
+  fp.displayDirectory = dir;
   fp.defaultExtension = aFpP.fileInfo.fileExt;
   fp.defaultString = getNormalizedLeafName(aFpP.fileInfo.fileName,
                                            aFpP.fileInfo.fileExt);
@@ -576,7 +589,7 @@ function poseFilePicker(aFpP)
 
   if (aFpP.isDocument) {
     try {
-      fp.filterIndex = branch.getIntPref("save_converter_index");
+      fp.filterIndex = prefs.getIntPref("save_converter_index");
     }
     catch (e) {
     }
@@ -585,17 +598,14 @@ function poseFilePicker(aFpP)
   if (fp.show() == Components.interfaces.nsIFilePicker.returnCancel || !fp.file)
     return false;
 
-  if (aFpP.isDocument) 
-    branch.setIntPref("save_converter_index", fp.filterIndex);
+  if (aFpP.isDocument)
+    prefs.setIntPref("save_converter_index", fp.filterIndex);
 
-  // Now that the user has had a chance to change the directory and/or filename,
-  // re-read those values...
-  if (branch.getBoolPref("lastLocation") || autoDownload) {
-    var directory = fp.file.parent.QueryInterface(nsILocalFile);
-    branch.setComplexValue(kDownloadDirPref, nsILocalFile, directory);
-  }
+  var directory = fp.file.parent.QueryInterface(nsILocalFile);
+  prefs.setComplexValue("lastDir", nsILocalFile, directory);
+
   fp.file.leafName = validateFileName(fp.file.leafName);
-
+  
   aFpP.saveAsType = fp.filterIndex;
   aFpP.file = fp.file;
   aFpP.fileURL = fp.fileURL;
@@ -605,15 +615,27 @@ function poseFilePicker(aFpP)
 // Since we're automatically downloading, we don't get the file picker's
 // logic to check for existing files, so we need to do that here.
 //
-// Note - this code is identical to that in nsHelperAppDlg.js.
+// Note - this code is identical to that in
+//   mozilla/toolkit/mozapps/downloads/src/nsHelperAppDlg.js.in
 // If you are updating this code, update that code too! We can't share code
 // here since that code is called in a js component.
-
 function uniqueFile(aLocalFile)
 {
+  var collisionCount = 0;
   while (aLocalFile.exists()) {
-    parts = /(-\d+)?(\.[^.]+)?$/.test(aLocalFile.leafName);
-    aLocalFile.leafName = RegExp.leftContext + (RegExp.$1 - 1) + RegExp.$2;
+    collisionCount++;
+    if (collisionCount == 1) {
+      // Append "(2)" before the last dot in (or at the end of) the filename
+      // special case .ext.gz etc files so we don't wind up with .tar(2).gz
+      if (aLocalFile.leafName.match(/\.[^\.]{1,3}\.(gz|bz2|Z)$/i))
+        aLocalFile.leafName = aLocalFile.leafName.replace(/\.[^\.]{1,3}\.(gz|bz2|Z)$/i, "(2)$&");
+      else
+        aLocalFile.leafName = aLocalFile.leafName.replace(/(\.[^\.]*)?$/, "(2)$&");
+    }
+    else {
+      // replace the last (n) in the filename with (n+1)
+      aLocalFile.leafName = aLocalFile.leafName.replace(/^(.*\()\d+\)/, "$1" + (collisionCount + 1) + ")");
+    }
   }
   return aLocalFile;
 }

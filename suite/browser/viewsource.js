@@ -653,7 +653,7 @@ function BrowserSetForcedCharacterSet(aCharset)
 
 function updateSavePageItems()
 {
-  var autoDownload = gPrefs.getBoolPref("browser.download.autoDownload");
+  var autoDownload = gPrefs.getBoolPref("browser.download.useDownloadDir");
   goSetMenuValue("savepage", autoDownload ? "valueSave" : "valueSaveAs");
 }
 

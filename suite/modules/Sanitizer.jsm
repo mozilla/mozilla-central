@@ -215,21 +215,16 @@ var Sanitizer = {
 
     downloads: {
       clear: function() {
-        /* XXX: commented out as long as we aren't using toolkit's download manager
         var dlMgr = Components.classes["@mozilla.org/download-manager;1"]
                               .getService(Components.interfaces.nsIDownloadManager);
         dlMgr.cleanUp();
-        */
       },
 
-      canClear: false
-      /* XXX: use code below (instead of above line) once we are using toolkit's download manager
       get canClear() {
         var dlMgr = Components.classes["@mozilla.org/download-manager;1"]
                               .getService(Components.interfaces.nsIDownloadManager);
         return dlMgr.canCleanUp;
       }
-      */
     },
 
     passwords: {

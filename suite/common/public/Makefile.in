@@ -49,6 +49,7 @@ XPIDLSRCS = \
 	nsISuiteGlue.idl \
 	nsISessionStartup.idl \
 	nsISessionStore.idl \
+	nsISuiteDownloadManagerUI.idl \
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk

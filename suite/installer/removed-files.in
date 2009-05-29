@@ -63,6 +63,8 @@ components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
 components/chatzilla-service.js
 components/crashreporter.xpt
+components/downloadmanager.xpt
+components/nsDownloadProgressListener.js
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
 components/nsDictionary.js

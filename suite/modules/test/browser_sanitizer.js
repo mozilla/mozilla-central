@@ -174,7 +174,6 @@ var sanTests = {
     }
   },
 
-  /* XXX: commented out as long as we aren't using toolkit's download manager
   downloads: {
     desc: "Download",
     setup: function() {
@@ -206,7 +205,6 @@ var sanTests = {
       return (dl && dl.displayName == "Sanitizer!");
     }
   },
-  */
 
   passwords: {
     desc: "Login manager",

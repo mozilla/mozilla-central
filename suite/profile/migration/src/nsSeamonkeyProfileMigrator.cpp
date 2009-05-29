@@ -280,24 +280,8 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.cache.disk.capacity",             Int),
   MAKESAMETYPEPREFTRANSFORM("browser.cache.check_doc_frequency",       Int),
 
-  // XXX Bug 381157 When suite uses Toolkit's DM backend, we need to
-  // activate this code.
-#ifdef SUITE_USING_TOOLKIT_DM
-  MAKEPREFTRANSFORM("browser.downloadmanager.behavior", 0, Int,
-                    DownloadManager),
-#else
-  // Note browser.download.progressDnldDialog.* prefs are covered below.
+  // Note browser.download.* prefs are covered below.
   MAKESAMETYPEPREFTRANSFORM("browser.downloadmanager.behavior",        Int),
-  MAKESAMETYPEPREFTRANSFORM("browser.download.save_converter_index",   Int),
-  MAKESAMETYPEPREFTRANSFORM("browser.download.autoDownload",           Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.download.lastLocation",           Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.download.finished_download_alert", Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.download.finished_download_sound", Bool),
-  MAKEPREFTRANSFORM("browser.download.finished_sound_url", 0, String, File),
-#endif
-  MAKESAMETYPEPREFTRANSFORM("browser.download.dir",                    String),
-  MAKESAMETYPEPREFTRANSFORM("browser.download.show_plugins_in_list",   Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.download.hide_plugins_without_extensions", Bool),
 
   MAKESAMETYPEPREFTRANSFORM("browser.enable_automatic_image_resizing", Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.fixup.alternate.enabled",         Bool),
@@ -637,11 +621,7 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName
     "bidi.",
     "browser.chrome.",
     "browser.display.",
-  // XXX Bug 381157 When suite does not use Toolkit's DM backend,
-  // we need to activate this code.
-#ifndef SUITE_USING_TOOLKIT_DM
-    "browser.download.progressDnldDialog.",
-#endif
+    "browser.download.",
     "browser.search.",
     "browser.tabs.",
     "browser.urlbar.",

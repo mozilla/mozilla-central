@@ -227,7 +227,7 @@ function getContentAreaFrameCount()
   if (!content || !content.frames.length || !isContentFrame(document.commandDispatcher.focusedWindow))
     saveFrameItem.setAttribute("hidden", "true");
   else {
-    var autoDownload = pref.getBoolPref("browser.download.autoDownload");
+    var autoDownload = pref.getBoolPref("browser.download.useDownloadDir");
     goSetMenuValue("saveframe", autoDownload ? "valueSave" : "valueSaveAs");
     saveFrameItem.removeAttribute("hidden");
   }
@@ -2492,7 +2492,7 @@ function SwitchDocumentDirection(aWindow)
 
 function updateSavePageItems()
 {
-  var autoDownload = pref.getBoolPref("browser.download.autoDownload");
+  var autoDownload = pref.getBoolPref("browser.download.useDownloadDir");
   goSetMenuValue("savepage", autoDownload ? "valueSave" : "valueSaveAs");
 }
 

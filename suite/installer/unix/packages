@@ -118,7 +118,7 @@ bin/components/dom_views.xpt
 bin/components/dom_xbl.xpt
 bin/components/dom_xpath.xpt
 bin/components/dom_xul.xpt
-bin/components/downloadmanager.xpt
+bin/components/downloads.xpt
 bin/components/editor.xpt
 bin/components/embed_base.xpt
 bin/components/libembedcomponents.so
@@ -265,7 +265,6 @@ bin/components/nsComposerCmdLineHandler.js
 bin/components/nsContentDispatchChooser.js
 bin/components/nsContentPrefService.js
 bin/components/nsDefaultCLH.js
-bin/components/nsDownloadProgressListener.js
 bin/components/nsExtensionManager.js
 bin/components/nsFilePicker.js
 bin/components/nsLivemarkService.js
@@ -280,6 +279,7 @@ bin/components/nsProxyAutoConfig.js
 bin/components/nsSessionStartup.js
 bin/components/nsSessionStore.js
 bin/components/nsSidebar.js
+bin/components/nsSuiteDownloadManagerUI.js
 bin/components/nsSuiteGlue.js
 bin/components/nsTaggingService.js
 bin/components/nsTypeAheadFind.js

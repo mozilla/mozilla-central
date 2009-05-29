@@ -340,38 +340,6 @@ nsNetscapeProfileMigratorBase::SetCookie(PrefTransform* aTransform,
   return NS_OK;
 }
 
-// XXX Bug 381157 When suite uses Toolkit's DM backend, we need to
-// activate this code.
-#ifdef SUITE_USING_TOOLKIT_DM
-nsresult
-nsNetscapeProfileMigratorBase::SetDownloadManager(PrefTransform* aTransform,
-                                                  nsIPrefBranch* aBranch)
-{
-  if (aTransform->prefHasValue) {
-    nsresult rv = NS_OK;
-
-    // Seamonkey's download manager uses a single pref to control behavior:
-    // 0 - show download manager window
-    // 1 - show individual progress dialogs
-    // 2 - show nothing
-    //
-    // Firefox has only a download manager window, but it can behave like
-    // a progress dialog, thus:
-    // 0 || 1  -> show downloads window when a download starts
-    // 2       -> don't show anything when a download starts
-    // 1       -> close the downloads window as if it were a progress
-    // window when downloads complete.
-    //
-    rv |= aBranch->SetBoolPref("browser.download.manager.showWhenStarting",
-                               aTransform->intValue != 2);
-    rv |= aBranch->SetBoolPref("browser.download.manager.closeWhenDone",
-                               aTransform->intValue == 1);
-    return rv;
-  }
-  return NS_OK;
-}
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////
 // General Utility Methods
 

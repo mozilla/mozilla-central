@@ -356,7 +356,7 @@ nsContextMenu.prototype = {
 
         this.autoDownload = Components.classes["@mozilla.org/preferences-service;1"]
                                       .getService(Components.interfaces.nsIPrefBranch)
-                                      .getBoolPref("browser.download.autoDownload");
+                                      .getBoolPref("browser.download.useDownloadDir");
 
         // Clear any old spellchecking items from the menu, this used to
         // be in the menu hiding code but wasn't getting called in all

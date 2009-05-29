@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Peter Annema <disttsc@bart.nl>
+ *   Justin Wood <Callek@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -68,18 +69,14 @@ function ExpirePassword()
 
 function toDownloadManager()
 {
-  var dlmgr = Components.classes['@mozilla.org/download-manager;1'].getService();
-  dlmgr = dlmgr.QueryInterface(Components.interfaces.nsIDownloadManager);
-
-  var windowMediator = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-  windowMediator = windowMediator.QueryInterface(nsIWindowMediator);
-
-  var dlmgrWindow = windowMediator.getMostRecentWindow("Download:Manager");
-  if (dlmgrWindow) {
-    dlmgrWindow.focus();
-  }
-  else {
-    dlmgr.open(window, null);
+  //Ported extensions may only implement the Basic toolkit Interface
+  //and not our progress dialogs.
+  var dlUI = Components.classes["@mozilla.org/download-manager-ui;1"]
+                       .getService(Components.interfaces.nsIDownloadManagerUI);
+  if (dlUI instanceof Components.interfaces.nsISuiteDownloadManagerUI) {
+    dlUI.showManager(window);
+  } else {
+    dlUI.show(window);
   }
 }
   

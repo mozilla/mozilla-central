@@ -128,12 +128,6 @@ public:
   static nsresult SetFile(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetImage(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetCookie(PrefTransform* aTransform, nsIPrefBranch* aBranch);
-  // XXX Bug 381157 When suite uses Toolkit's DM backend, we need to
-  // activate this code.
-#ifdef SUITE_USING_TOOLKIT_DM
-  static nsresult SetDownloadManager(PrefTransform* aTransform,
-                                     nsIPrefBranch* aBranch);
-#endif
 
 protected:
   // This function is designed to be overriden by derived classes so that

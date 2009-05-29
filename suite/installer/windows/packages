@@ -125,7 +125,7 @@ bin\components\dom_views.xpt
 bin\components\dom_xbl.xpt
 bin\components\dom_xpath.xpt
 bin\components\dom_xul.xpt
-bin\components\downloadmanager.xpt
+bin\components\downloads.xpt
 bin\components\editor.xpt
 bin\components\embed_base.xpt
 bin\components\embedcomponents.dll
@@ -282,6 +282,7 @@ bin\components\nsSessionStartup.js
 bin\components\nsSessionStore.js
 bin\components\nsSetDefault.js
 bin\components\nsSidebar.js
+bin\components\nsSuiteDownloadManagerUI.js
 bin\components\nsSuiteGlue.js
 bin\components\nsTaggingService.js
 bin\components\nsTypeAheadFind.js
@@ -434,7 +435,6 @@ bin\res\fonts\mathfontSymbol.properties
 ; download progress
 bin\components\nsProgressDialog.js
 bin\components\nsHelperAppDlg.js
-bin\components\nsDownloadProgressListener.js
 
 ; spellcheck
 bin\components\spellchk.dll

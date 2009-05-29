@@ -128,6 +128,8 @@ SuiteGlue.prototype = {
   // profile startup handler (contains profile initialization routines)
   _onProfileStartup: function()
   {
+    this._updatePrefs();
+
     Sanitizer.checkAndSanitize();
 
     const prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
@@ -262,6 +264,39 @@ SuiteGlue.prototype = {
     }
   },
 
+  _updatePrefs: function()
+  {
+    // Get the preferences service
+    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                          .getService(Components.interfaces.nsIPrefService)
+                          .getBranch(null);
+    const PREF_INVALID = Components.interfaces.nsIPrefBranch.PREF_INVALID;
+    if (prefs.getPrefType("browser.download.dir") == PREF_INVALID ||
+        prefs.getPrefType("browser.download.lastDir") != PREF_INVALID)
+      return; //Do nothing if .dir does not exist, or if it exists and lastDir does not
+
+    try {
+      prefs.setComplexValue("browser.download.lastDir",
+                            Components.interfaces.nsILocalFile,
+                            prefs.getComplexValue("browser.download.dir",
+                                                  Components.interfaces.nsILocalFile));
+    } catch (ex) {
+      // Ensure that even if we don't end up migrating to a lastDir that we
+      // don't attempt another update. This will throw when QI'ed to
+      // nsILocalFile, but it does fallback gracefully.
+      prefs.setCharPref("browser.download.lastDir", "");
+    }
+
+    try {
+      prefs.setBoolPref("browser.download.useDownloadDir",
+                        prefs.getBoolPref("browser.download.autoDownload");
+    } catch (ex) {}
+
+    try {
+      prefs.setIntPref("browser.download.manager.behavior",
+                       prefs.getIntPref("browser.downloadmanager.behavior"));
+    } catch (ex) {}
+  },
 
   // ------------------------------
   // public nsISuiteGlue members
