@@ -13,37 +13,33 @@
 bin/.autoreg
 
 [@AB_CD@]
-;
-; en-US
-; If you add a new directory you must explicitly call addDirectory in langenus.jst
 bin\chrome\@AB_CD@.jar
 bin\chrome\@AB_CD@.manifest
-bin\defaults\messenger\*
-bin\searchplugins\*
+bin\defaults\messenger\mailViews.dat
+bin\defaults\profile\bookmarks.html
+bin\defaults\profile\localstore.rdf
+bin\defaults\profile\mimeTypes.rdf
+bin\defaults\profile\panels.rdf
+bin\defaults\profile\search.rdf
+bin\defaults\profile\chrome\*
 bin\dictionaries\*
+bin\searchplugins\*
 bin\uninstall\helper.exe
 bin\update.locale
 bin\updater.ini
 
-; default files for en-US
-bin\defaults\profile\bookmarks.html
-bin\defaults\profile\panels.rdf
-bin\defaults\profile\localstore.rdf
-bin\defaults\profile\search.rdf
-bin\defaults\profile\mimeTypes.rdf
-bin\defaults\profile\chrome\*
-bin\defaults\messenger\mailViews.dat
-
 [xpcom]
 bin\js3250.dll
-bin\mozz.dll
+bin\nspr4.dll
 bin\plc4.dll
 bin\plds4.dll
 bin\xpcom.dll
 bin\xpcom_core.dll
-bin\nspr4.dll
-bin\xul.dll
 bin\components\jar50.dll
+#ifndef MOZ_STATIC_BUILD
+bin\mozz.dll
+bin\xul.dll
+#endif
 #ifndef MOZ_MEMORY
 bin\Microsoft.VC80.CRT.manifest
 bin\msvcm80.dll
@@ -57,40 +53,82 @@ bin\mozcrt19.dll
 ; files listed in xpcom (missing in this section) will be installed as part of the browser
 bin\README.txt,bin\readme.txt
 bin\license.txt
-bin\seamonkey.exe
+bin\@MOZ_APP_NAME@.exe
 bin\application.ini
 bin\platform.ini
-bin\regxpcom.exe
-bin\jsj3250.dll
-; GFX files
-bin\thebes.dll
+
+bin\plugins\npnul32.dll
+bin\AccessibleMarshal.dll
+bin\sqlite3.dll
+#ifndef MOZ_STATIC_BUILD
 bin\gkgfx.dll
-bin\mozlcms.dll
-bin\components\gkgfxthebes.dll
-bin\components\gkwidget.dll
-bin\components\gfx.xpt
-; components
+bin\gksvggdiplus.dll
+bin\jsj3250.dll
+bin\thebes.dll
+
+; component binaries
 bin\components\accessibility.dll
+bin\components\appcomps.dll
+bin\components\appshell.dll
+bin\components\auth.dll
+bin\components\autoconfig.dll
+bin\components\caps.dll
+bin\components\chardet.dll
+bin\components\chrome.dll
+bin\components\cmdlines.dll
+bin\components\composer.dll
+bin\components\cookie.dll
+bin\components\docshell.dll
+bin\components\embedcomponents.dll
+bin\components\gkgfxthebes.dll
+bin\components\gklayout.dll
+bin\components\gkparser.dll
+bin\components\gkplugin.dll
+bin\components\gkwidget.dll
+bin\components\i18n.dll
+bin\components\imgicon.dll
+bin\components\imglib2.dll
+bin\components\intlapp.dll
+bin\components\mork.dll
+bin\components\mozfind.dll
+bin\components\necko.dll
+#ifdef MOZILLA_1_9_1_BRANCH
+bin\components\oji.dll
+#endif
+bin\components\perms.dll
+bin\components\places.dll
+bin\components\rdf.dll
+bin\components\satchel.dll
+bin\components\spellchk.dll
+bin\components\strgcmps.dll
+bin\components\tkautoc.dll
+bin\components\tkitcmps.dll
+bin\components\txmgr.dll
+bin\components\uconv.dll
+bin\components\ucvmath.dll
+bin\components\universalchardet.dll
+bin\components\webbrwsr.dll
+bin\components\windowds.dll
+bin\components\xpautoc.dll
+bin\components\xpc3250.dll
+bin\components\xppref32.dll
+bin\components\zipwriter.dll
+#endif
+bin\components\suite.dll
+bin\components\xpinstal.dll
+; component xpts
 bin\components\accessibility.xpt
 bin\components\accessibility-msaa.xpt
 bin\components\alerts.xpt
-bin\components\appcomps.dll
-bin\components\appshell.dll
 bin\components\appshell.xpt
 bin\components\appstartup.xpt
 bin\components\autocomplete.xpt
-bin\components\autoconfig.dll
 bin\components\autoconfig.xpt
-bin\components\caps.dll
 bin\components\caps.xpt
-bin\components\chrome.dll
-bin\components\chrome.xpt
-bin\components\chardet.dll
 bin\components\chardet.xpt
-bin\components\cmdlines.dll
+bin\components\chrome.xpt
 bin\components\commandhandler.xpt
 bin\components\commandlines.xpt
-bin\components\composer.dll
 bin\components\composer.xpt
 bin\components\content_base.xpt
 bin\components\content_html.xpt
@@ -99,10 +137,8 @@ bin\components\content_xmldoc.xpt
 bin\components\content_xslt.xpt
 bin\components\content_xtf.xpt
 bin\components\contentprefs.xpt
-bin\components\cookie.dll
 bin\components\cookie.xpt
 bin\components\directory.xpt
-bin\components\docshell.dll
 bin\components\docshell_base.xpt
 bin\components\dom.xpt
 bin\components\dom_base.xpt
@@ -117,8 +153,12 @@ bin\components\dom_loadsave.xpt
 bin\components\dom_offline.xpt
 bin\components\dom_range.xpt
 bin\components\dom_sidebar.xpt
+#ifndef MOZILLA_1_9_1_BRANCH
+bin\components\dom_smil.xpt
+#endif
 bin\components\dom_storage.xpt
 bin\components\dom_stylesheets.xpt
+bin\components\dom_svg.xpt
 bin\components\dom_threads.xpt
 bin\components\dom_traversal.xpt
 bin\components\dom_views.xpt
@@ -128,25 +168,18 @@ bin\components\dom_xul.xpt
 bin\components\downloads.xpt
 bin\components\editor.xpt
 bin\components\embed_base.xpt
-bin\components\embedcomponents.dll
 bin\components\extensions.xpt
 bin\components\exthandler.xpt
 bin\components\exthelper.xpt
 bin\components\fastfind.xpt
 bin\components\feeds.xpt
 bin\components\find.xpt
-bin\components\gklayout.dll
-bin\components\gkparser.dll
-bin\components\gkplugin.dll
+bin\components\gfx.xpt
 bin\components\htmlparser.xpt
-bin\components\i18n.dll
-bin\components\imgicon.dll
 bin\components\imgicon.xpt
-bin\components\imglib2.dll
 bin\components\imglib2.xpt
 bin\components\inspector.xpt
 bin\components\intl.xpt
-bin\components\intlapp.dll
 bin\components\jar.xpt
 bin\components\jsd3250.dll
 bin\components\jsdservice.xpt
@@ -158,11 +191,8 @@ bin\components\locale.xpt
 bin\components\loginmgr.xpt
 bin\components\lwbrk.xpt
 bin\components\mimetype.xpt
-bin\components\mork.dll
 bin\components\mozbrwsr.xpt
-bin\components\mozfind.dll
 bin\components\mozfind.xpt
-bin\components\necko.dll
 bin\components\necko.xpt
 bin\components\necko_about.xpt
 bin\components\necko_cache.xpt
@@ -175,57 +205,43 @@ bin\components\necko_res.xpt
 bin\components\necko_socket.xpt
 bin\components\necko_strconv.xpt
 bin\components\necko_viewsource.xpt
-bin\components\oji.dll
+bin\components\necko_wifi.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\components\oji.xpt
+#endif
 bin\components\parentalcontrols.xpt
-bin\components\perms.dll
-bin\components\places.dll
 bin\components\places.xpt
 bin\components\plugin.xpt
 bin\components\pref.xpt
 bin\components\prefetch.xpt
 bin\components\profile.xpt
 bin\components\proxyObject.xpt
-bin\components\rdf.dll
 bin\components\rdf.xpt
-bin\components\satchel.dll
 bin\components\satchel.xpt
 bin\components\saxparser.xpt
-bin\components\sessionstore.xpt
 bin\components\shellservice.xpt
 bin\components\shistory.xpt
+bin\components\spellchecker.xpt
 bin\components\storage.xpt
-bin\components\strgcmps.dll
-bin\components\suite.dll
 bin\components\suitebrowser.xpt
 bin\components\suitecommon.xpt
 bin\components\suitefeeds.xpt
 bin\components\suitemigration.xpt
-bin\components\tkautoc.dll
-bin\components\tkitcmps.dll
 bin\components\toolkitprofile.xpt
-bin\components\txmgr.dll
 bin\components\txmgr.xpt
 bin\components\txtsvc.xpt
-bin\components\uconv.dll
 bin\components\uconv.xpt
 bin\components\unicharutil.xpt
-bin\components\universalchardet.dll
 bin\components\update.xpt
 bin\components\uriloader.xpt
 bin\components\urlformatter.xpt
 bin\components\webBrowser_core.xpt
 bin\components\webbrowserpersist.xpt
-bin\components\webbrwsr.dll
 bin\components\webshell_idls.xpt
 bin\components\widget.xpt
-bin\components\windowds.dll
 bin\components\windowds.xpt
 bin\components\windowwatcher.xpt
-bin\components\wlltvwrs.dll
-bin\components\xpautoc.dll
 bin\components\xpautocomplete.xpt
-bin\components\xpc3250.dll
 bin\components\xpcom_base.xpt
 bin\components\xpcom_components.xpt
 bin\components\xpcom_ds.xpt
@@ -234,24 +250,16 @@ bin\components\xpcom_system.xpt
 bin\components\xpcom_thread.xpt
 bin\components\xpcom_xpti.xpt
 bin\components\xpconnect.xpt
-bin\components\xpinstal.dll
 bin\components\xpinstall.xpt
-bin\components\xppref32.dll
 bin\components\xulapp.xpt
 bin\components\xuldoc.xpt
 bin\components\xultmpl.xpt
 bin\components\zipwriter.xpt
-bin\components\zipwriter.dll
-bin\plugins\npnul32.dll
-bin\components\helperAppDlg.xpt
-bin\AccessibleMarshal.dll
-bin\sqlite3.dll
 
 ; JavaScript components
 bin\components\FeedConverter.js
 bin\components\FeedProcessor.js
 bin\components\FeedWriter.js
-bin\components\WebContentConverter.js
 bin\components\jsconsole-clhandler.js
 bin\components\NetworkGeolocationProvider.js
 bin\components\nsAboutAbout.js
@@ -273,10 +281,12 @@ bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
 bin\components\nsHandlerService.js
+bin\components\nsHelperAppDlg.js
 bin\components\nsPlacesDBFlush.js
 #ifdef MOZILLA_1_9_1_BRANCH
 bin\components\nsPostUpdateWin.js
 #endif
+bin\components\nsProgressDialog.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsSessionStartup.js
 bin\components\nsSessionStore.js
@@ -294,42 +304,16 @@ bin\components\pluginGlue.js
 bin\components\storage-Legacy.js
 bin\components\storage-mozStorage.js
 bin\components\txEXSLTRegExFunctions.js
+bin\components\WebContentConverter.js
 
 ; Modules
 bin\modules\*
-bin\modules\gloda\*
 
-; NegotiateAuth
-bin\components\auth.dll
-
-; LDAP components need to be in the browser for AutoConfig
-bin\components\mozldap.dll
-bin\components\mozldap.xpt
-bin\components\nsLDAPProtocolHandler.js
-bin\nsldap32v60.dll
-bin\nsldappr32v60.dll
-bin\nsldif32v60.dll
-
-; classic theme
-bin\chrome\classic.jar
-bin\chrome\classic.manifest
-bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\icon.png
-bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\install.rdf
-bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\preview.png
-
-; modern theme
-bin\extensions\modern@themes.mozilla.org\chrome\modern.jar
-bin\extensions\modern@themes.mozilla.org\chrome.manifest
-bin\extensions\modern@themes.mozilla.org\icon.png
-bin\extensions\modern@themes.mozilla.org\install.rdf
-bin\extensions\modern@themes.mozilla.org\preview.png
-
-; chrome stuff
+; Browser Chrome Files
 bin\chrome\comm.jar
 bin\chrome\comm.manifest
 bin\chrome\toolkit.jar
 bin\chrome\toolkit.manifest
-bin\chrome\chromelist.txt
 bin\chrome\icons\default\bmPropsWindow.ico
 bin\chrome\icons\default\bookmark-window.ico
 bin\chrome\icons\default\downloadManager.ico
@@ -349,39 +333,49 @@ bin\chrome\icons\default\xml-file.ico
 bin\chrome\icons\default\xul-file.ico
 ; Although venkman-window is an extension, its icon is still suite-specific
 bin\chrome\icons\default\venkman-window.ico
-;-bin\chrome\comm\content\editor\EditorInitPage.html
-;-bin\chrome\comm\editor\content\EditorInitPagePlain.html
-;Include this for "debug" testing - remove for actual beta release:
-;-bin\chrome\comm\content\editor\TextEditorAppShell.xul
-;-bin\chrome\comm\content\editor\sb-bookmarks-panel.xul
-;-bin\chrome\comm\content\editor\sb-bookmarks.js
-;-bin\chrome\comm\content\editor\sb-file-contextMenu.js
-;-bin\chrome\comm\content\editor\sb-file-panel.js
-;-bin\chrome\comm\content\editor\sb-file-panel.xul
-;-bin\chrome\comm\content\editor\sb-FileWidgetFileHandler.js
-;-bin\chrome\comm\content\editor\viewsource.js
-;-bin\chrome\comm\content\editor\viewsource.xul
-;-bin\chrome\comm\content\communicator\domviewer
+
+; classic theme
+bin\chrome\classic.jar
+bin\chrome\classic.manifest
+bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\icon.png
+bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\install.rdf
+bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\preview.png
+
+; modern theme
+bin\extensions\modern@themes.mozilla.org\chrome\modern.jar
+bin\extensions\modern@themes.mozilla.org\chrome.manifest
+bin\extensions\modern@themes.mozilla.org\icon.png
+bin\extensions\modern@themes.mozilla.org\install.rdf
+bin\extensions\modern@themes.mozilla.org\preview.png
 
 ; all the pref files must be part of base
 ; to prevent migration bugs
 bin\defaults\pref\*
 bin\greprefs\*
 bin\defaults\autoconfig\*
+
 ; [Layout Engine Resources]
 ; Style Sheets, Graphics and other Resources used by the layout engine.
-bin\res\hiddenWindow.html
-bin\res\ua.css
-bin\res\html.css
-bin\res\quirk.css
-bin\res\forms.css
-bin\res\contenteditable.css
-bin\res\designmode.css
-bin\res\viewsource.css
-bin\res\EditorOverride.css
-bin\res\grabber.gif
 bin\res\arrow.gif
 bin\res\arrowd.gif
+bin\res\charsetalias.properties
+bin\res\charsetData.properties
+bin\res\contenteditable.css
+bin\res\dtd\*
+bin\res\designmode.css
+bin\res\EditorOverride.css
+bin\res\entityTables\*
+bin\res\fonts\*
+bin\res\forms.css
+bin\res\grabber.gif
+bin\res\hiddenWindow.html
+bin\res\html.css
+bin\res\html\*
+bin\res\langGroups.properties
+bin\res\language.properties
+bin\res\mathml.css
+bin\res\quirk.css
+bin\res\svg.css
 bin\res\table-add-column-after-active.gif
 bin\res\table-add-column-after-hover.gif
 bin\res\table-add-column-after.gif
@@ -400,15 +394,9 @@ bin\res\table-remove-column.gif
 bin\res\table-remove-row-active.gif
 bin\res\table-remove-row-hover.gif
 bin\res\table-remove-row.gif
-bin\res\charsetalias.properties
-bin\res\charsetData.properties
-bin\res\langGroups.properties
-bin\res\language.properties
+bin\res\ua.css
+bin\res\viewsource.css
 bin\res\wincharset.properties
-bin\res\entityTables\*
-bin\res\dtd\*
-bin\res\fonts\*
-bin\res\html\*
 #ifdef MOZILLA_1_9_1_BRANCH
 bin\res\broken-image.gif
 bin\res\loading-image.gif
@@ -417,56 +405,37 @@ bin\res\broken-image.png
 bin\res\loading-image.png
 #endif
 
-; MathML, optional for MathML charset conversion
-bin\components\ucvmath.dll
-bin\res\mathml.css
-bin\res\entityTables\mathml20.properties
-bin\res\fonts\mathfont.properties
-bin\res\fonts\mathfontCMEX10.properties
-bin\res\fonts\mathfontCMSY10.properties
-bin\res\fonts\mathfontMath1.properties
-bin\res\fonts\mathfontMath2.properties
-bin\res\fonts\mathfontMath4.properties
-bin\res\fonts\mathfontMTExtra.properties
-bin\res\fonts\mathfontPUA.properties
-bin\res\fonts\mathfontSymbol.properties
-
-
-; download progress
-bin\components\nsProgressDialog.js
-bin\components\nsHelperAppDlg.js
-
-; spellcheck
-bin\components\spellchk.dll
-bin\components\spellchecker.xpt
-
-; svg
-bin\gksvggdiplus.dll
-bin\res\svg.css
-bin\components\dom_svg.xpt
-#ifdef MOZ_SMIL
-bin\components\dom_smil.xpt
-#endif
-
-; PSM
+; Personal Security Manager
+#ifndef MOZ_STATIC_BUILD
 bin\components\pipboot.dll
-bin\components\pipboot.xpt
 bin\components\pipnss.dll
-bin\components\pipnss.xpt
 bin\components\pippki.dll
+#endif
+bin\components\pipboot.xpt
+bin\components\pipnss.xpt
 bin\components\pippki.xpt
+bin\freebl3.chk
+bin\freebl3.dll
 bin\nss3.dll
+bin\nssckbi.dll
+bin\nssdbm3.dll
 bin\nssutil3.dll
 bin\smime3.dll
 bin\softokn3.chk
 bin\softokn3.dll
-bin\freebl3.chk
-bin\freebl3.dll
 bin\ssl3.dll
-bin\nssckbi.dll
-bin\nssdbm3.dll
 bin\chrome\pippki.jar
 bin\chrome\pippki.manifest
+
+; LDAP components need to be in the browser for AutoConfig
+#ifndef MOZ_STATIC_BUILD
+bin\components\mozldap.dll
+#endif
+bin\components\mozldap.xpt
+bin\components\nsLDAPProtocolHandler.js
+bin\nsldap32v60.dll
+bin\nsldappr32v60.dll
+bin\nsldif32v60.dll
 
 ; crashreporter
 bin\crashreporter.exe
@@ -476,17 +445,19 @@ bin\crashreporter.ini
 bin\updater.exe
 
 [mail]
-; MOZ_XUL_APP=1 addition
+#ifndef MOZ_STATIC_BUILD
+; component binaries
+bin\components\import.dll
 bin\components\mail.dll
-
-bin\isp\rss.rdf
-bin\isp\SpamAssassin.sfd
-bin\isp\SpamPal.sfd
-
-; Original items (pre MOZ_XUL_APP=1)
-bin\msgbsutl.dll
+bin\components\msgMapi.dll
+bin\components\msgsmime.dll
+#endif
+; component xpts
 bin\components\addrbook.xpt
-bin\components\mailnews.xpt
+bin\components\import.xpt
+bin\components\impComm4xMail.xpt
+bin\components\mailview.xpt
+bin\components\mapihook.xpt
 bin\components\mime.xpt
 bin\components\msgbase.xpt
 bin\components\msgcompo.xpt
@@ -495,37 +466,38 @@ bin\components\msgimap.xpt
 bin\components\msglocal.xpt
 bin\components\msgnews.xpt
 bin\components\msgsearch.xpt
-;bin\components\signed.dll
-bin\components\import.dll
-bin\components\import.xpt
-bin\components\impComm4xMail.xpt
+bin\components\msgsmime.xpt
+; JS components
+bin\components\mdn-service.js
+bin\components\newsblog.js
 bin\components\nsAbAutoCompleteMyDomain.js
 bin\components\nsAbAutoCompleteSearch.js
 bin\components\nsAbLDAPAttributeMap.js
+bin\components\nsMsgTraitService.js
+bin\components\nsSMTPProtocolHandler.js
+bin\components\offlineStartup.js
+bin\components\smime-service.js
+
+; chrome
 bin\chrome\messenger.jar
 bin\chrome\messenger.manifest
+bin\chrome\newsblog.jar
+bin\chrome\newsblog.manifest
 bin\chrome\icons\default\abcardWindow.ico
 bin\chrome\icons\default\ablistWindow.ico
 bin\chrome\icons\default\addressbookWindow.ico
 bin\chrome\icons\default\messengerWindow.ico
 bin\chrome\icons\default\msgcomposeWindow.ico
-bin\components\mailview.xpt
-bin\components\msgsmime.dll
-bin\components\msgsmime.xpt
-bin\components\smime-service.js
+
 bin\MapiProxy.dll
 bin\mozMapi32.dll
-bin\components\msgMapi.dll
-bin\components\mapihook.xpt
-bin\components\mdn-service.js
-bin\components\offlineStartup.js
-bin\chrome\newsblog.jar
-bin\chrome\newsblog.manifest
-bin\components\newsblog.js
-bin\components\nsMsgTraitService.js
-bin\components\nsSMTPProtocolHandler.js
+
+bin\isp\rss.rdf
+bin\isp\SpamAssassin.sfd
+bin\isp\SpamPal.sfd
 
 ; Gloda
+bin\modules\gloda\*
 bin\chrome\gloda.jar
 bin\chrome\gloda.manifest
 bin\components\glautocomp.js

@@ -1,4 +1,4 @@
-; Package file for Linux static SeaMonkey build.
+; Package file for Linux
 ;
 ; File format:
 ;
@@ -29,57 +29,106 @@ bin/updater.ini
 
 [xpcom]
 bin/libmozjs.so
-bin/libmozlcms.so
-bin/libmozz.so
 bin/libplc4.so
 bin/libplds4.so
-bin/libthebes.so
 bin/libxpcom.so
 bin/libxpcom_core.so
 bin/libnspr4.so
-bin/libxul.so
-bin/components/libxpinstall.so
 bin/components/libjar50.so
+#ifndef MOZ_STATIC_BUILD
+bin/libmozz.so
+bin/libxul.so
+#endif
 
 [browser]
+bin/README
+bin/license.txt
 bin/@MOZ_APP_NAME@-bin
 bin/@MOZ_APP_NAME@
-bin/application.ini
-bin/license.txt
-bin/mozilla-xremote-client
-bin/platform.ini
-bin/plugins/libnullplugin.so
-bin/README
 bin/run-mozilla.sh
+bin/application.ini
+bin/platform.ini
 
-; shared libraries
+bin/mozilla-xremote-client
+bin/plugins/libnullplugin.so
+bin/libsqlite3.so
+#ifndef MOZ_STATIC_BUILD
 bin/libgfxpsshar.so
 bin/libgkgfx.so
 bin/libgtkxtbin.so
 bin/libjsj.so
-bin/libsqlite3.so
+bin/libthebes.so
 
-; Components
+; component binaries
 bin/components/libaccessibility.so
-bin/components/accessibility.xpt
-bin/components/alerts.xpt
 bin/components/libappcomps.so
-bin/components/appshell.xpt
-bin/components/libnsappshell.so
-bin/components/appstartup.xpt
-bin/components/autocomplete.xpt
+bin/components/libauth.so
 bin/components/libautoconfig.so
-bin/components/autoconfig.xpt
 bin/components/libcaps.so
-bin/components/caps.xpt
-bin/components/chardet.xpt
 bin/components/libchardet.so
-bin/components/chrome.xpt
 bin/components/libchrome.so
-bin/components/commandhandler.xpt
-bin/components/commandlines.xpt
 bin/components/libcommandlines.so
 bin/components/libcomposer.so
+bin/components/libcookie.so
+bin/components/libdocshell.so
+bin/components/libembedcomponents.so
+bin/components/libfileview.so
+bin/components/libgkgfxthebes.so
+bin/components/libgklayout.so
+bin/components/libgkplugin.so
+bin/components/libhtmlpars.so
+bin/components/libi18n.so
+bin/components/libimglib2.so
+bin/components/libintlapp.so
+bin/components/libmork.so
+bin/components/libmozfind.so
+bin/components/libnecko.so
+bin/components/libnsappshell.so
+#ifdef MOZILLA_1_9_1_BRANCH
+bin/components/liboji.so
+#endif
+bin/components/libpermissions.so
+bin/components/libplaces.so
+bin/components/libpref.so
+bin/components/librdf.so
+bin/components/libremoteservice.so
+bin/components/libsatchel.so
+bin/components/libspellchecker.so
+bin/components/libstoragecomps.so
+bin/components/libsystem-pref.so
+bin/components/libtkautocomplete.so
+bin/components/libtoolkitcomps.so
+bin/components/libtxmgr.so
+bin/components/libuconv.so
+bin/components/libucvmath.so
+bin/components/libuniversalchardet.so
+bin/components/libunixproxy.so
+bin/components/libwebbrwsr.so
+bin/components/libwidget_gtk2.so
+bin/components/libwindowds.so
+bin/components/libxpautocomplete.so
+bin/components/libxpconnect.so
+bin/components/libzipwriter.so
+#endif
+bin/components/libdbusservice.so
+bin/components/libimgicon.so
+bin/components/libjsd.so
+bin/components/libmozgnome.so
+bin/components/libnkgnomevfs.so
+bin/components/libsuite.so
+bin/components/libxpinstall.so
+; component xpts
+bin/components/accessibility.xpt
+bin/components/alerts.xpt
+bin/components/appshell.xpt
+bin/components/appstartup.xpt
+bin/components/autocomplete.xpt
+bin/components/autoconfig.xpt
+bin/components/caps.xpt
+bin/components/chardet.xpt
+bin/components/chrome.xpt
+bin/components/commandhandler.xpt
+bin/components/commandlines.xpt
 bin/components/composer.xpt
 bin/components/content_base.xpt
 bin/components/content_html.xpt
@@ -88,10 +137,8 @@ bin/components/content_xmldoc.xpt
 bin/components/content_xslt.xpt
 bin/components/content_xtf.xpt
 bin/components/contentprefs.xpt
-bin/components/libcookie.so
 bin/components/cookie.xpt
 bin/components/directory.xpt
-bin/components/libdocshell.so
 bin/components/docshell.xpt
 bin/components/dom.xpt
 bin/components/dom_base.xpt
@@ -106,7 +153,7 @@ bin/components/dom_loadsave.xpt
 bin/components/dom_offline.xpt
 bin/components/dom_range.xpt
 bin/components/dom_sidebar.xpt
-#ifdef MOZ_SMIL
+#ifndef MOZILLA_1_9_1_BRANCH
 bin/components/dom_smil.xpt
 #endif
 bin/components/dom_storage.xpt
@@ -121,31 +168,20 @@ bin/components/dom_xul.xpt
 bin/components/downloads.xpt
 bin/components/editor.xpt
 bin/components/embed_base.xpt
-bin/components/libembedcomponents.so
 bin/components/extensions.xpt
 bin/components/exthandler.xpt
 bin/components/exthelper.xpt
 bin/components/fastfind.xpt
 bin/components/feeds.xpt
 bin/components/filepicker.xpt
-bin/components/libfileview.so
 bin/components/find.xpt
 bin/components/gfx.xpt
-bin/components/libgkgfxthebes.so
 bin/components/htmlparser.xpt
-bin/components/libgklayout.so
-bin/components/libgkplugin.so
-bin/components/libhtmlpars.so
-bin/components/libi18n.so
-bin/components/libimgicon.so
 bin/components/imgicon.xpt
-bin/components/libimglib2.so
 bin/components/imglib2.xpt
 bin/components/inspector.xpt
 bin/components/intl.xpt
-bin/components/libintlapp.so
 bin/components/jar.xpt
-bin/components/libjsd.so
 bin/components/jsdservice.xpt
 bin/components/layout_base.xpt
 bin/components/layout_printing.xpt
@@ -155,11 +191,8 @@ bin/components/locale.xpt
 bin/components/loginmgr.xpt
 bin/components/lwbrk.xpt
 bin/components/mimetype.xpt
-bin/components/libmork.so
 bin/components/mozbrwsr.xpt
-bin/components/libmozfind.so
 bin/components/mozfind.xpt
-bin/components/libnecko.so
 bin/components/necko.xpt
 bin/components/necko_about.xpt
 bin/components/necko_cache.xpt
@@ -172,63 +205,43 @@ bin/components/necko_res.xpt
 bin/components/necko_socket.xpt
 bin/components/necko_strconv.xpt
 bin/components/necko_viewsource.xpt
-bin/components/liboji.so
+bin/components/necko_wifi.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
 bin/components/oji.xpt
+#endif
 bin/components/parentalcontrols.xpt
-bin/components/libpermissions.so
 bin/components/places.xpt
-bin/components/libplaces.so
 bin/components/plugin.xpt
-bin/components/libpref.so
 bin/components/pref.xpt
 bin/components/prefetch.xpt
 bin/components/profile.xpt
 bin/components/proxyObjInst.xpt
-bin/components/libunixproxy.so
-bin/components/libremoteservice.so
-bin/components/librdf.so
 bin/components/rdf.xpt
-bin/components/libsatchel.so
-bin/components/libspellchecker.so
 bin/components/satchel.xpt
 bin/components/saxparser.xpt
-bin/components/sessionstore.xpt
 bin/components/shistory.xpt
 bin/components/shellservice.xpt
 bin/components/spellchecker.xpt
 bin/components/storage.xpt
-bin/components/libstoragecomps.so
-bin/components/libsuite.so
 bin/components/suitebrowser.xpt
 bin/components/suitecommon.xpt
 bin/components/suitefeeds.xpt
 bin/components/suitemigration.xpt
-bin/components/libsystem-pref.so
-bin/components/libtkautocomplete.so
-bin/components/libtoolkitcomps.so
 bin/components/toolkitprofile.xpt
 bin/components/toolkitremote.xpt
-bin/components/libtxmgr.so
 bin/components/txmgr.xpt
 bin/components/txtsvc.xpt
-bin/components/libuconv.so
 bin/components/uconv.xpt
 bin/components/unicharutil.xpt
-bin/components/libucvmath.so
-bin/components/libuniversalchardet.so
 bin/components/update.xpt
 bin/components/uriloader.xpt
 bin/components/urlformatter.xpt
 bin/components/webBrowser_core.xpt
 bin/components/webbrowserpersist.xpt
-bin/components/libwebbrwsr.so
 bin/components/webshell_idls.xpt
 bin/components/widget.xpt
-bin/components/libwidget_gtk2.so
-bin/components/libwindowds.so
 bin/components/windowds.xpt
 bin/components/windowwatcher.xpt
-bin/components/libxpautocomplete.so
 bin/components/xpautocomplete.xpt
 bin/components/xpcom_base.xpt
 bin/components/xpcom_components.xpt
@@ -238,19 +251,16 @@ bin/components/xpcom_system.xpt
 bin/components/xpcom_threads.xpt
 bin/components/xpcom_xpti.xpt
 bin/components/xpconnect.xpt
-bin/components/libxpconnect.so
 bin/components/xpinstall.xpt
 bin/components/xulapp.xpt
 bin/components/xuldoc.xpt
 bin/components/xultmpl.xpt
 bin/components/zipwriter.xpt
-bin/components/libzipwriter.so
 
 ; JavaScript components
 bin/components/FeedConverter.js
 bin/components/FeedProcessor.js
 bin/components/FeedWriter.js
-bin/components/WebContentConverter.js
 bin/components/jsconsole-clhandler.js
 bin/components/NetworkGeolocationProvider.js
 bin/components/nsAboutAbout.js
@@ -291,22 +301,16 @@ bin/components/pluginGlue.js
 bin/components/storage-Legacy.js
 bin/components/storage-mozStorage.js
 bin/components/txEXSLTRegExFunctions.js
+bin/components/WebContentConverter.js
 
 ; Modules
 bin/modules/*
-bin/modules/gloda/*
-
-; Safe Browsing
-
-; Kerberos NegotiateAuth
-bin/components/libauth.so
-
-; GNOME hooks
-bin/components/libmozgnome.so
 
 ; Browser Chrome Files
 bin/chrome/comm.jar
 bin/chrome/comm.manifest
+bin/chrome/toolkit.jar
+bin/chrome/toolkit.manifest
 bin/chrome/icons/default/bmPropsWindow.png
 bin/chrome/icons/default/bmPropsWindow16.png
 bin/chrome/icons/default/bmPropsWindow48.png
@@ -342,8 +346,6 @@ bin/chrome/icons/default/seamonkey.png
 bin/chrome/icons/default/venkman-window.png
 bin/chrome/icons/default/venkman-window16.png
 bin/chrome/icons/default/venkman-window48.png
-bin/chrome/toolkit.jar
-bin/chrome/toolkit.manifest
 
 ; shell icons
 bin/icons/updater.png
@@ -367,14 +369,6 @@ bin/extensions/modern@themes.mozilla.org/preview.png
 bin/defaults/autoconfig/*
 bin/defaults/pref/*
 bin/greprefs/*
-
-; LDAP components need to be in the browser for AutoConfig
-bin/libldap60.so
-bin/libldif60.so
-bin/libprldap60.so
-bin/components/libmozldap.so
-bin/components/mozldap.xpt
-bin/components/nsLDAPProtocolHandler.js
 
 ; [Layout Engine Resources]
 ; Style Sheets, Graphics and other Resources used by the layout engine.
@@ -428,26 +422,26 @@ bin/res/loading-image.png
 #endif
 
 ; Personal Security Manager
-bin/libnssckbi.so
+#ifndef MOZ_STATIC_BUILD
 bin/components/libpipboot.so
-bin/components/pipboot.xpt
 bin/components/libpipnss.so
-bin/components/pipnss.xpt
 bin/components/libpippki.so
+#endif
+bin/components/pipboot.xpt
+bin/components/pipnss.xpt
 bin/components/pippki.xpt
-
+bin/libfreebl3.chk
+bin/libfreebl3.so
 bin/libnss3.so
+bin/libnssckbi.so
+bin/libnssdbm3.so
 bin/libnssutil3.so
 bin/libsmime3.so
 bin/libsoftokn3.chk
 bin/libsoftokn3.so
-bin/libfreebl3.chk
-bin/libfreebl3.so
 bin/libssl3.so
-bin/libnssdbm3.so
 bin/chrome/pippki.jar
 bin/chrome/pippki.manifest
-
 ; for Solaris SPARC
 bin/libfreebl_32fpu_3.chk
 bin/libfreebl_32fpu_3.so
@@ -455,6 +449,16 @@ bin/libfreebl_32int_3.chk
 bin/libfreebl_32int_3.so
 bin/libfreebl_32int64_3.chk
 bin/libfreebl_32int64_3.so
+
+; LDAP components need to be in the browser for AutoConfig
+#ifndef MOZ_STATIC_BUILD
+bin/components/libmozldap.so
+#endif
+bin/components/mozldap.xpt
+bin/components/nsLDAPProtocolHandler.js
+bin/libldap60.so
+bin/libldif60.so
+bin/libprldap60.so
 
 ; Crash Reporter
 bin/crashreporter
@@ -464,13 +468,42 @@ bin/Throbber-small.gif
 ; Updater
 bin/updater
 
-; Extensions
-bin/components/libnkgnomevfs.so
-
-; DBUS Integration
-bin/components/libdbusservice.so
-
 [mail]
+#ifndef MOZ_STATIC_BUILD
+; component binaries
+bin/components/libimport.so
+bin/components/libmail.so
+bin/components/libmsgsmime.so
+#endif
+; component xpts
+bin/components/addrbook.xpt
+bin/components/import.xpt
+bin/components/impComm4xMail.xpt
+bin/components/mailview.xpt
+bin/components/mime.xpt
+bin/components/msgbase.xpt
+bin/components/msgcompose.xpt
+bin/components/msgdb.xpt
+bin/components/msgimap.xpt
+bin/components/msglocal.xpt
+bin/components/msgnews.xpt
+bin/components/msgsearch.xpt
+bin/components/msgsmime.xpt
+; JS components
+bin/components/mdn-service.js
+bin/components/newsblog.js
+bin/components/nsAbAutoCompleteMyDomain.js
+bin/components/nsAbAutoCompleteSearch.js
+bin/components/nsAbLDAPAttributeMap.js
+bin/components/nsMsgTraitService.js
+bin/components/nsSMTPProtocolHandler.js
+bin/components/offlineStartup.js
+bin/components/smime-service.js
+
+bin/chrome/messenger.jar
+bin/chrome/messenger.manifest
+bin/chrome/newsblog.jar
+bin/chrome/newsblog.manifest
 bin/chrome/icons/default/abcardWindow.png
 bin/chrome/icons/default/abcardWindow16.png
 bin/chrome/icons/default/abcardWindow48.png
@@ -486,47 +519,18 @@ bin/chrome/icons/default/messengerWindow48.png
 bin/chrome/icons/default/msgcomposeWindow.png
 bin/chrome/icons/default/msgcomposeWindow16.png
 bin/chrome/icons/default/msgcomposeWindow48.png
-bin/chrome/messenger.jar
-bin/chrome/messenger.manifest
-bin/components/addrbook.xpt
-bin/components/libimport.so
-bin/components/import.xpt
-bin/components/impComm4xMail.xpt
-bin/components/mailnews.xpt
-bin/components/mailview.xpt
-bin/components/libmail.so
-bin/components/mime.xpt
-bin/components/msgbase.xpt
-bin/components/msgcompose.xpt
-bin/components/msgdb.xpt
-bin/components/msgimap.xpt
-bin/components/msglocal.xpt
-bin/components/msgnews.xpt
-bin/components/msgsearch.xpt
-bin/components/libmsgsmime.so
-bin/components/msgsmime.xpt
-bin/components/nsAbAutoCompleteMyDomain.js
-bin/components/nsAbAutoCompleteSearch.js
-bin/components/nsAbLDAPAttributeMap.js
-bin/components/smime-service.js
-bin/components/mdn-service.js
-bin/components/offlineStartup.js
-bin/chrome/newsblog.jar
-bin/chrome/newsblog.manifest
-bin/components/newsblog.js
-bin/components/nsMsgTraitService.js
-bin/components/nsSMTPProtocolHandler.js
-
-; Gloda
-bin/chrome/gloda.jar
-bin/chrome/gloda.manifest
-bin/components/glautocomp.js
-bin/components/jsmimeemitter.js
 
 bin/isp/movemail.rdf
 bin/isp/rss.rdf
 bin/isp/SpamAssassin.sfd
 bin/isp/SpamPal.sfd
+
+; Gloda
+bin/modules/gloda/*
+bin/chrome/gloda.jar
+bin/chrome/gloda.manifest
+bin/components/glautocomp.js
+bin/components/jsmimeemitter.js
 
 [chatzilla]
 bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/chatzilla-service.js
