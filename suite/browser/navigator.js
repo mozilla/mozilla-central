@@ -2418,7 +2418,7 @@ function uploadFile(fileURL)
   // parameter since we want the URI to inherit the origin charset
   // property from targetBaseURI.
 
-  var leafName = fileURL.file.leafName;
+  var leafName = fileURL.QueryInterface(CI.nsIFileURL).file.leafName;
 
   const IOS = Components.classes["@mozilla.org/network/io-service;1"]
                         .getService(CI.nsIIOService);
