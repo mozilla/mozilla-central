@@ -66,8 +66,7 @@ MimeInlineTextRichtextClassInitialize(MimeInlineTextRichtextClass *clazz)
  */
 int
 MimeRichtextConvert (const char *line, PRInt32 length,
-           int (*output_fn) (const char *buf, PRInt32 size, void *closure),
-           void *closure,
+           MimeObject *obj,
            char **obufferP,
            PRInt32 *obuffer_sizeP,
            PRBool enriched_p)
@@ -122,7 +121,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
     if (this_start >= line + length) /* blank line */
     {
       PL_strncpyz (*obufferP, "<BR>", *obuffer_sizeP);
-      return output_fn (*obufferP, strlen(*obufferP), closure);
+      return MimeObject_write(obj, *obufferP, strlen(*obufferP), PR_TRUE);
     }
   }
 
@@ -345,7 +344,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
   }
   *out = 0;
 
-  return output_fn (*obufferP, out - *obufferP, closure);
+  return MimeObject_write(obj, *obufferP, out - *obufferP, PR_TRUE);
 }
 
 
@@ -356,8 +355,7 @@ MimeInlineTextRichtext_parse_line (const char *line, PRInt32 length, MimeObject 
             ->enriched_p);
 
   return MimeRichtextConvert (line, length,
-                obj->options->output_fn,
-                obj->options->stream_closure,
+                obj,
                 &obj->obuffer, &obj->obuffer_size,
                 enriched_p);
 }

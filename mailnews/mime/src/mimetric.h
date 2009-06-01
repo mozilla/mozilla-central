@@ -59,13 +59,4 @@ struct MimeInlineTextRichtext {
   MimeInlineText text;
 };
 
-
-extern int
-MimeRichtextConvert (char *line, PRInt32 length,
-           int (*output_fn) (const char *buf, PRInt32 size, void *closure),
-           void *closure,
-           char **obufferP,
-           PRInt32 *obuffer_sizeP,
-           PRBool enriched_p);
-
 #endif /* _MIMETRIC_H_ */
