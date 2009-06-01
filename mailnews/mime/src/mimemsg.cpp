@@ -150,7 +150,7 @@ MimeMessage_parse_line (const char *aLine, PRInt32 aLength, MimeObject *obj)
   MimeMessage *msg = (MimeMessage *) obj;
   int status = 0;
 
-  PR_ASSERT(line && *line);
+  NS_ASSERTION(line && *line, "empty line in mime msg parse_line");
   if (!line || !*line) return -1;
 
   if (msg->grabSubject)

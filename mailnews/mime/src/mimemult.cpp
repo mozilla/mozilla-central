@@ -152,10 +152,10 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
   int status = 0;
   MimeMultipartBoundaryType boundary;
 
-  PR_ASSERT(line && *line);
+  NS_ASSERTION(line && *line, "empty line in multipart parse_line");
   if (!line || !*line) return -1;
 
-  PR_ASSERT(!obj->closed_p);
+  NS_ASSERTION(!obj->closed_p, "obj shouldn't already be closed");
   if (obj->closed_p) return -1;
 
   /* If we're supposed to write this object, but aren't supposed to convert
@@ -192,7 +192,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       mult->state = MimeMultipartHeaders;
       
       /* Reset the header parser for this upcoming part. */
-      PR_ASSERT(!mult->hdrs);
+      NS_ASSERTION(!mult->hdrs, "mult->hdrs should be null here");
       if (mult->hdrs)
         MimeHeaders_free(mult->hdrs);
       mult->hdrs = MimeHeaders_new();
@@ -307,7 +307,8 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
         }
         status = ((MimeMultipartClass *) obj->clazz)->create_child(obj);
         if (status < 0) return status;
-        PR_ASSERT(mult->state != MimeMultipartHeaders);
+        NS_ASSERTION(mult->state != MimeMultipartHeaders,
+                     "mult->state shouldn't be MimeMultipartHeaders");
 
         // Ok, at this point, we need to examine the headers and see if there
         // is a special charset (i.e. non US-ASCII) for this message. If so, 
@@ -429,7 +430,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       break;
 
     default:
-      PR_ASSERT(0);
+      NS_ERROR("unexpected state in parse line");
       return -1;
   }
 
@@ -760,7 +761,7 @@ MimeMultipart_parse_eof (MimeObject *obj, PRBool abort_p)
      mult->state == MimeMultipartPartFirstLine))
   {
     MimeObject *kid = cont->children[cont->nchildren-1];
-    PR_ASSERT(kid);
+    NS_ASSERTION(kid, "not expecting null kid");
     if (kid)
     {
       int status = kid->clazz->parse_eof(kid, abort_p);

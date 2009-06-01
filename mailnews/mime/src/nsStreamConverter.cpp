@@ -259,11 +259,11 @@ mime_headers_callback ( void *closure, MimeHeaders *headers )
   // We get away with this because this doesn't get called on draft operations.
   struct mime_stream_data *msd = (struct mime_stream_data *)closure;
 
-  PR_ASSERT ( msd && headers );
+  NS_ASSERTION(msd && headers, "null mime stream data or headers");
   if ( !msd || ! headers )
     return 0;
 
-  PR_ASSERT ( msd->headers == NULL );
+  NS_ASSERTION(!msd->headers, "non-null mime stream data headers");
   msd->headers = MimeHeaders_copy ( headers );
   return 0;
 }

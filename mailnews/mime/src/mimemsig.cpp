@@ -258,7 +258,7 @@ MimeMultipartSigned_parse_line (const char *line, PRInt32 length, MimeObject *ob
       break;
 
     default:  /* bad state */
-      PR_ASSERT(0);
+      NS_ERROR("bad state in MultipartSigned parse line");
       return -1;
       break;
     }
@@ -278,8 +278,8 @@ MimeMultipartSigned_parse_line (const char *line, PRInt32 length, MimeObject *ob
     /* We have just moved out of the MimeMultipartSignedBodyHeaders
      state, so cache away the headers that apply only to the body part.
      */
-    PR_ASSERT(mult->hdrs);
-    PR_ASSERT(!sig->body_hdrs);
+    NS_ASSERTION(mult->hdrs, "null multipart hdrs");
+    NS_ASSERTION(!sig->body_hdrs, "signed part shouldn't have already have body_hdrs");
     sig->body_hdrs = mult->hdrs;
     mult->hdrs = 0;
 
@@ -299,8 +299,9 @@ MimeMultipartSigned_parse_line (const char *line, PRInt32 length, MimeObject *ob
       if (!sig->crypto_closure)
       {
         status = PR_GetError();
-        PR_ASSERT(status < 0);
-        if (status >= 0) status = -1;
+        NS_ASSERTION(status < 0, "got non-negative status");
+        if (status >= 0)
+          status = -1;
         return status;
       }
     }
@@ -522,7 +523,8 @@ MimeMultipartSigned_parse_child_line (MimeObject *obj,
   case MimeMultipartSignedPreamble:
   case MimeMultipartSignedBodyFirstHeader:
   case MimeMultipartSignedBodyHeaders:
-    PR_ASSERT(0);  /* How'd we get here?  Oh well, fall through. */
+    // How'd we get here?  Oh well, fall through.
+    NS_ERROR("wrong state in parse child line");
 
   case MimeMultipartSignedBodyFirstLine:
     PR_ASSERT(first_line_p);
@@ -575,7 +577,8 @@ MimeMultipartSigned_parse_child_line (MimeObject *obj,
   break;
 
   case MimeMultipartSignedSignatureHeaders:
-    PR_ASSERT(0);  /* How'd we get here?  Oh well, fall through. */
+    // How'd we get here?  Oh well, fall through.
+    NS_ERROR("should have already parse sig hdrs");
 
   case MimeMultipartSignedSignatureFirstLine:
   case MimeMultipartSignedSignatureLine:
@@ -587,12 +590,12 @@ MimeMultipartSigned_parse_child_line (MimeObject *obj,
   case MimeMultipartSignedEpilogue:
     /* Too many kids?  MimeMultipartSigned_create_child() should have
      prevented us from getting here. */
-    PR_ASSERT(0);
+    NS_ERROR("too many kids?");
     return -1;
     break;
 
   default: /* bad state */
-    PR_ASSERT(0);
+    NS_ERROR("bad state in multipart signed parse line");
     return -1;
     break;
   }
@@ -645,7 +648,8 @@ MimeMultipartSigned_emit_child (MimeObject *obj)
       MimeObject *p;
       for (p = obj; p->parent; p = p->parent)
       outer_headers = p->headers;
-      PR_ASSERT(obj->options->state->first_data_written_p);
+      NS_ASSERTION(obj->options->state->first_data_written_p,
+                   "should have already written some data");
       html = obj->options->generate_post_header_html_fn(NULL,
                           obj->options->html_closure,
                               outer_headers);
@@ -669,7 +673,7 @@ MimeMultipartSigned_emit_child (MimeObject *obj)
 
   /* The superclass method expects to find the headers for the part that it's
    to create in mult->hdrs, so ensure that they're there. */
-  PR_ASSERT(!mult->hdrs);
+  NS_ASSERTION(!mult->hdrs, "shouldn't already have hdrs for multipart");
   if (mult->hdrs) MimeHeaders_free(mult->hdrs);
   mult->hdrs = sig->body_hdrs;
   sig->body_hdrs = 0;
@@ -738,11 +742,13 @@ MimeMultipartSigned_emit_child (MimeObject *obj)
 
   /* Retrieve the child that it created.
    */
-  PR_ASSERT(cont->nchildren == 1);
-  if (cont->nchildren != 1) return -1;
+  NS_ASSERTION(cont->nchildren == 1, "should only have one child");
+  if (cont->nchildren != 1)
+    return -1;
   body = cont->children[0];
-  PR_ASSERT(body);
-  if (!body) return -1;
+  NS_ASSERTION(body, "missing body");
+  if (!body)
+    return -1;
 
 #ifdef MIME_DRAFTS
   if (body->options->decompose_file_p) {
