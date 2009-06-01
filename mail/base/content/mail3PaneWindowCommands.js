@@ -878,13 +878,10 @@ function SetupCommandUpdateHandlers()
   var widget = document.getElementById("folderTree");
   if ( widget )
     widget.controllers.appendController(FolderPaneController);
-
-  top.controllers.insertControllerAt(0, DefaultController);
 }
 
 function UnloadCommandUpdateHandlers()
 {
-  top.controllers.removeController(DefaultController);
 }
 
 function IsSendUnsentMsgsEnabled(unsentMsgsFolder)

@@ -1873,6 +1873,22 @@ let mailTabType = {
       // Load AccountCentral page here.
       ShowAccountCentral();
     }
+  },
+
+  supportsCommand: function(aTab, aCommand) {
+    return DefaultController.supportsCommand(aCommand);
+  },
+
+  isCommandEnabled: function(aTab, aCommand) {
+    return DefaultController.isCommandEnabled(aCommand);
+  },
+
+  doCommand: function(aTab, aCommand) {
+    DefaultController.doCommand(aCommand);
+  },
+
+  onEvent: function(aTab, aEvent) {
+    DefaultController.onEvent(aEvent);
   }
 };
 

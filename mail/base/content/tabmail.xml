@@ -157,6 +157,17 @@
     - * onTitleChanged(aTab): Called when someone calls tabmail.setTabTitle() to
     -     hint that the tab's title needs to be updated.  This function should
     -     update aTab.title if it can.
+    - Mode definition functions to do with menu/toolbar commands:
+    - * supportsCommand(aTab, aCommand): Called when a menu or toolbar needs to
+    -     be updated. Return true if you support that command in
+    -     isCommandEnabled and doCommand, return false otherwise.
+    - * isCommandEnabled(aTab, aCommand): Called when a menu or toolbar needs
+    -     to be updated. Return true if the command can be executed at the
+    -     current time, false otherwise.
+    - * doCommand(aTab, aCommand): Called when a menu or toolbar command is to
+    -     be executed. Perform the action appropriate to the command.
+    - * onEvent(aTab, aEvent): This can be used to handle different events on
+    -     the window.
     -
     - Tab monitoring code is expected to be used for widgets on the screen
     -  outside of the tab box that need to update themselves as the active tab
@@ -212,7 +223,13 @@
       </xul:tabbox>
     </content>
 
-    <implementation>
+    <implementation implements="nsIController">
+      <constructor>
+        window.controllers.insertControllerAt(0, this);
+      </constructor>
+      <destructor>
+        window.controllers.removeController(this);
+      </destructor>
       <field name="currentTabInfo">
         null
       </field>
@@ -505,6 +522,10 @@
               docTitle += " - " + gBrandBundle.getString("brandFullName");
 #endif
               document.title = docTitle;
+
+              // Update the toolbar status - we don't need to do menus as they
+              // do themselves when we open them.
+              UpdateMailToolbar("tabmail");
             }
           ]]>
         </body>
@@ -585,6 +606,84 @@
             }
             return false;
           ]]>
+        </body>
+      </method>
+      <method name="supportsCommand">
+        <parameter name="aCommand"/>
+        <body>
+           <![CDATA[
+             let tab = this.currentTabInfo;
+
+             // This can happen if we're starting up and haven't got a tab
+             // loaded yet.
+             if (!tab)
+               return false;
+
+             let supportsCommandFunc = tab.mode.supportsCommand ||
+                                       tab.mode.tabType.supportsCommand;
+             if (supportsCommandFunc)
+               return supportsCommandFunc.call(tab.mode.tabType, tab, aCommand);
+
+             return false;
+           ]]>
+        </body>
+      </method>
+      <method name="isCommandEnabled">
+        <parameter name="aCommand"/>
+        <body>
+           <![CDATA[
+             let tab = this.currentTabInfo;
+
+             // This can happen if we're starting up and haven't got a tab
+             // loaded yet.
+             if (!tab)
+               return false;
+
+             let isCommandEnabledFunc = tab.mode.isCommandEnabled ||
+                                        tab.mode.tabType.isCommandEnabled;
+             if (isCommandEnabledFunc)
+               return isCommandEnabledFunc.call(tab.mode.tabType, tab, aCommand);
+
+             return false;
+           ]]>
+        </body>
+      </method>
+      <method name="doCommand">
+        <parameter name="aCommand"/>
+        <body>
+           <![CDATA[
+             let tab = this.currentTabInfo;
+
+             // This can happen if we're starting up and haven't got a tab
+             // loaded yet.
+             if (!tab)
+               return;
+
+             let doCommandFunc = tab.mode.doCommand ||
+                                 tab.mode.tabType.doCommand;
+             if (doCommandFunc)
+               doCommandFunc.call(tab.mode.tabType, tab, aCommand);
+           ]]>
+        </body>
+      </method>
+      <method name="onEvent">
+        <parameter name="aEvent"/>
+        <body>
+           <![CDATA[
+             let tab = this.currentTabInfo;
+
+             // This can happen if we're starting up and haven't got a tab
+             // loaded yet.
+             if (!tab)
+               return;
+
+             let onEventFunc = tab.mode.onEvent ||
+                               tab.mode.tabType.onEvent;
+             if (onEventFunc)
+               return onEventFunc.call(tab.mode.tabType, tab, aEvent);
+
+             return false;
+           ]]>
         </body>
       </method>
     </implementation>
