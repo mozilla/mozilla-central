@@ -662,11 +662,8 @@ nsresult nsMsgQuickSearchDBView::ExpansionDelta(nsMsgViewIndex index, PRInt32 *e
       }
     }
   }
-  return NS_OK;
-
-
-  *expansionDelta = (flags & nsMsgMessageFlags::Elided) ?
-                    numChildren - 1 : - (PRInt32) (numChildren - 1);
+  if (! (flags & nsMsgMessageFlags::Elided))
+    *expansionDelta = - (*expansionDelta);
   return NS_OK;
 }
 
