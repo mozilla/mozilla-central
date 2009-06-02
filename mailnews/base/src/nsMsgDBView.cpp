@@ -1045,8 +1045,14 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
     if (!NonDummyMsgSelected(indices, numSelected))
       commandsNeedDisablingBecauseOfSelection = PR_TRUE;
   }
+  PRBool selectionSummarized = PR_FALSE;
+  // let the front-end adjust the message pane appropriately with either
+  // the message body, or a summary of the selection
+  if (mCommandUpdater)
+    mCommandUpdater->SummarizeSelection(&selectionSummarized);
+
   // if only one item is selected then we want to display a message
-  if (numSelected == 1)
+  if (numSelected == 1 && !selectionSummarized)
   {
     PRInt32 startRange;
     PRInt32 endRange;
@@ -1072,11 +1078,6 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
     m_currentlyDisplayedMsgUri.Truncate();
     m_currentlyDisplayedViewIndex = nsMsgViewIndex_None;
   }
-
-  // let the front-end adjust the message pane appropriately with either
-  // the message body, or a summary of the selection
-  if (mCommandUpdater)
-    mCommandUpdater->SummarizeSelection();
 
   // determine if we need to push command update notifications out to the UI or not.
 

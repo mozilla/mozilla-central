@@ -442,7 +442,9 @@ interface nsIMsgDBViewCommandUpdater : nsISupports
   
   /**
   * tell the front end that the selection has changed, and may need to be
-  * resummarized
+  * resummarized.
+  * 
+  * @return   true if we did summarize, false otherwise.
   */
-  void summarizeSelection();
+  boolean summarizeSelection();
 };

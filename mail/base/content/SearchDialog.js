@@ -527,7 +527,7 @@ nsMsgSearchCommandUpdater.prototype =
     SetNextMessageAfterDelete();
   },
 
-  summarizeSelection : function() {},
+  summarizeSelection : function() {return false},
 
   QueryInterface : function(iid)
   {

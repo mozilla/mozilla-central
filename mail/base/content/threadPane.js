@@ -121,12 +121,12 @@ nsMsgDBViewCommandUpdater.prototype =
     let selectedMsgUris = GetSelectedMessages();
     if (!selectedMsgUris || (selectedMsgUris.length == 1)) {
       pickMessagePane("singlemessage");
-      return;
+      return false;
     }
 
     if (! gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads")) {
       ClearMessagePane();
-      return;
+      return false;
     }
 
     let firstThreadId = messenger.msgHdrFromURI(selectedMsgUris[0]).threadId;
@@ -138,6 +138,7 @@ nsMsgDBViewCommandUpdater.prototype =
     }
     // must be just one thread.
     summarizeThread(selectedMsgUris);
+    return true;
   },
 
   QueryInterface : function(iid)
