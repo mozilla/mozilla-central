@@ -480,7 +480,7 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
   nsCAutoString charsOnlyIf;
   prefs->GetBoolPref(PREF_MAILNEWS_REPLY_QUOTING_SELECTION_MULTI_WORD, &requireMultipleWords);
   prefs->GetCharPref(PREF_MAILNEWS_REPLY_QUOTING_SELECTION_ONLY_IF, getter_Copies(charsOnlyIf));
-  if (requireMultipleWords || !charsOnlyIf.IsEmpty())
+  if (sel && requireMultipleWords || !charsOnlyIf.IsEmpty())
   {
     nsAutoString selPlain;
     rv = sel->ToString(getter_Copies(selPlain));
