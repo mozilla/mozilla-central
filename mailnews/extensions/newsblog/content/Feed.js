@@ -180,7 +180,10 @@ Feed.prototype =
     var url = request.channel.originalURI.spec;
     debug(url + " downloaded");
     if (request.status < 200 || request.status >= 300)
-      return Feed.prototype.onDownloadError(aEvent);
+    {
+      Feed.prototype.onDownloadError(aEvent);
+      return;
+    }
     var feed = FeedCache.getFeed(url);
     if (!feed)
       throw("error after downloading " + url + ": couldn't retrieve feed from request");
