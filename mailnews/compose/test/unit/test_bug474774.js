@@ -28,19 +28,27 @@ msll.prototype = {
   _initialTotal: 0,
 
   // nsIMsgSendLaterListener
-  onStartSending: function (aTotal) {
+  onStartSending: function (aTotalMessageCount) {
     this._initialTotal = 1;
     do_check_eq(msgSendLater.sendingMessages, true);
   },
-  onProgress: function (aCurrentMessage, aTotal) {
+  onMessageStartSending: function (aCurrentMessage, aTotalMessageCount,
+                                   aMessageHeader, aIdentity) {
+  },
+  onMessageSendProgress: function (aCurrentMessage, aTotalMessageCount,
+                                   aMessageSendPercent, aMessageCopyPercent) {
     // XXX Enable this function
   },
-  onStopSending: function (aStatus, aMsg, aTotal, aSuccessful) {
+  onMessageSendError: function (aCurrentMessage, aMessageHeader, aStatus,
+                                aMsg) {
+    do_throw("onMessageSendError should not have been called, status: " + aStatus);
+  },
+  onStopSending: function (aStatus, aMsg, aTotalTried, aSuccessful) {
     do_test_finished();
     print("msll onStopSending\n");
     try {
       do_check_eq(aStatus, 0);
-      do_check_eq(aTotal, 1);
+      do_check_eq(aTotalTried, 1);
       do_check_eq(aSuccessful, 1);
       do_check_eq(this._initialTotal, 1);
       do_check_eq(msgSendLater.sendingMessages, false);

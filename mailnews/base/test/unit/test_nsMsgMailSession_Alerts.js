@@ -5,80 +5,27 @@
  */
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+load("../../mailnews/resources/alertTestUtils.js");
 
-// This allows us to check that we get alerts at the right time without
-// involking the UI.
-var prompts = {
-  mDialogTitle: null,
-  mText: null,
+var gDialogTitle = null;
+var gText = null;
 
-  // not part of the nsIPrompt interface, just makes it easier to test.
-  reset: function() {
-    this.mDialogTitle = null;
-    this.mText = null;
-  },
+function reset() {
+  gDialogTitle = null;
+  gText = null;
+}
 
-  // nsIPrompt
-  alert: function(aDialogTitle, aText) {
-    do_check_eq(this.mDialogTitle, null);
-    do_check_eq(this.mText, null);
+function alert(aDialogTitle, aText) {
+  do_check_eq(gDialogTitle, null);
+  do_check_eq(gText, null);
 
-    this.mDialogTitle = aDialogTitle;
-    this.mText = aText;
-  },
-  
-  alertCheck: function(aDialogTitle, aText, aCheckMsg, aCheckState) {},
-  
-  confirm: function(aDialogTitle, aText) {},
-  
-  confirmCheck: function(aDialogTitle, aText, aCheckMsg, aCheckState) {},
-  
-  confirmEx: function(aDialogTitle, aText, aButtonFlags, aButton0Title,
-		      aButton1Title, aButton2Title, aCheckMsg, aCheckState) {},
-  
-  prompt: function(aDialogTitle, aText, aValue, aCheckMsg, aCheckState) {},
-  
-  promptUsernameAndPassword: function(aDialogTitle, aText, aUsername,
-				      aPassword, aCheckMsg, aCheckState) {},
-
-  promptPassword: function(aDialogTitle, aText, aPassword, aCheckMsg,
-			   aCheckState) {},
-  
-  select: function(aDialogTitle, aText, aCount, aSelectList,
-		   aOutSelection) {},
-  
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIPrompt])
-};
-
-var WindowWatcher = {
-  getNewPrompter: function(aParent) {
-    return prompts;
-  },
-
-  getNewAuthPrompter: function(aParent) {
-    return prompts;
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIWindowWatcher])
-};
-
-var WindowWatcherFactory = {
-  createInstance: function createInstance(outer, iid) {
-    if (outer != null)
-      throw Components.results.NS_ERROR_NO_AGGREGATION;
-    return WindowWatcher.QueryInterface(iid);
-  }
-};
-
-Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar)
-          .registerFactory(Components.ID("{1dfeb90a-2193-45d5-9cb8-864928b2af55}"),
-			   "Fake Window Watcher",
-			   "@mozilla.org/embedcomp/window-watcher;1",
-			   WindowWatcherFactory);
+  gDialogTitle = aDialogTitle;
+  gText = aText;
+}
 
 var msgWindow = {
   get promptDialog() {
-    return prompts;
+    return alertUtilsPrompts;
   },
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow])
@@ -124,31 +71,31 @@ function run_test()
 
   // Test - No listeners, check alert tries to alert the user.
 
-  prompts.reset();
+  reset();
 
   msgUrl._msgWindow = msgWindow;
 
   mailSession.alertUser("test message", msgUrl);
 
   // The dialog title doesn't get set at the moment.
-  do_check_eq(prompts.mDialogTitle, null);
-  do_check_eq(prompts.mText, "test message");
+  do_check_eq(gDialogTitle, null);
+  do_check_eq(gText, "test message");
 
   // Test - No listeners and no msgWindow, check no alerts.
 
-  prompts.reset();
+  reset();
 
   msgUrl._msgWindow = null;
 
   mailSession.alertUser("test no message", msgUrl);
 
   // The dialog title doesn't get set at the moment.
-  do_check_eq(prompts.mDialogTitle, null);
-  do_check_eq(prompts.mText, null);
+  do_check_eq(gDialogTitle, null);
+  do_check_eq(gText, null);
 
   // Test - One listener, returning false (prompt should still happen).
 
-  prompts.reset();
+  reset();
 
   var listener1 = new alertListener();
   listener1.mReturn = false;
@@ -159,8 +106,8 @@ function run_test()
 
   mailSession.alertUser("message test", msgUrl);
 
-  do_check_eq(prompts.mDialogTitle, null);
-  do_check_eq(prompts.mText, "message test");
+  do_check_eq(gDialogTitle, null);
+  do_check_eq(gText, "message test");
 
   do_check_eq(listener1.mMessage, "message test");
   do_check_neq(listener1.mMsgWindow, null);
@@ -168,20 +115,20 @@ function run_test()
   // Test - One listener, returning false, no msg window (prompt shouldn't
   //        happen).
 
-  prompts.reset();
+  reset();
   listener1.reset();
 
   mailSession.alertUser("message test no prompt", null);
 
-  do_check_eq(prompts.mDialogTitle, null);
-  do_check_eq(prompts.mText, null);
+  do_check_eq(gDialogTitle, null);
+  do_check_eq(gText, null);
 
   do_check_eq(listener1.mMessage, "message test no prompt");
   do_check_eq(listener1.mMsgWindow, null);
 
   // Test - Two listeners, both returning false (prompt should happen).
 
-  prompts.reset();
+  reset();
   listener1.reset();
 
   var listener2 = new alertListener();
@@ -193,8 +140,8 @@ function run_test()
 
   mailSession.alertUser("two listeners", msgUrl);
 
-  do_check_eq(prompts.mDialogTitle, null);
-  do_check_eq(prompts.mText, "two listeners");
+  do_check_eq(gDialogTitle, null);
+  do_check_eq(gText, "two listeners");
 
   do_check_eq(listener1.mMessage, "two listeners");
   do_check_neq(listener1.mMsgWindow, null);
@@ -204,7 +151,7 @@ function run_test()
 
   // Test - Two listeners, one returning true (prompt shouldn't happen).
 
-  prompts.reset();
+  reset();
   listener1.reset();
   listener2.reset();
 
@@ -214,8 +161,8 @@ function run_test()
 
   mailSession.alertUser("no prompt", msgUrl);
 
-  do_check_eq(prompts.mDialogTitle, null);
-  do_check_eq(prompts.mText, null);
+  do_check_eq(gDialogTitle, null);
+  do_check_eq(gText, null);
 
   do_check_eq(listener1.mMessage, "no prompt");
   do_check_neq(listener1.mMsgWindow, null);
@@ -225,7 +172,7 @@ function run_test()
 
   // Test - Remove a listener.
 
-  prompts.reset();
+  reset();
   listener1.reset();
   listener2.reset();
 
@@ -235,8 +182,8 @@ function run_test()
 
   mailSession.alertUser("remove listener", msgUrl);
 
-  do_check_eq(prompts.mDialogTitle, null);
-  do_check_eq(prompts.mText, null);
+  do_check_eq(gDialogTitle, null);
+  do_check_eq(gText, null);
 
   do_check_eq(listener1.mMessage, null);
   do_check_eq(listener1.mMsgWindow, null);
@@ -246,7 +193,7 @@ function run_test()
 
   // Test - Remove the other listener.
 
-  prompts.reset();
+  reset();
   listener1.reset();
   listener2.reset();
 
@@ -256,8 +203,8 @@ function run_test()
 
   mailSession.alertUser("no listeners", msgUrl);
 
-  do_check_eq(prompts.mDialogTitle, null);
-  do_check_eq(prompts.mText, "no listeners");
+  do_check_eq(gDialogTitle, null);
+  do_check_eq(gText, "no listeners");
 
   do_check_eq(listener1.mMessage, null);
   do_check_eq(listener1.mMsgWindow, null);

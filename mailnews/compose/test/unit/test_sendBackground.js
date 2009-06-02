@@ -32,15 +32,22 @@ msll.prototype = {
     do_check_eq(gMsgSendLater.sendingMessages, true);
     do_check_eq(aTotal, 1);
   },
-  onProgress: function (aCurrentMessage, aTotal) {
-    // XXX Enable this function
+  onMessageStartSending: function (aCurrentMessage, aTotalMessageCount,
+                                   aMessageHeader, aIdentity) {
   },
-  onStopSending: function (aStatus, aMsg, aTotal, aSuccessful) {
+  onMessageSendProgress: function (aCurrentMessage, aTotalMessageCount,
+                                   aMessageSendPercent, aMessageCopyPercent) {
+  }, 
+  onMessageSendError: function (aCurrentMessage, aMessageHeader, aStatus,
+                                aMsg) {
+    do_throw("onMessageSendError should not have been called, status: " + aStatus);
+  },
+  onStopSending: function (aStatus, aMsg, aTotalTried, aSuccessful) {
     do_test_finished();
     print("msll onStopSending\n");
     try {
       do_check_eq(aStatus, 0);
-      do_check_eq(aTotal, 1);
+      do_check_eq(aTotalTried, 1);
       do_check_eq(aSuccessful, 1);
       do_check_eq(this._initialTotal, 1);
       do_check_eq(gMsgSendLater.sendingMessages, false);

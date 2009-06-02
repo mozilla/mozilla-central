@@ -64,7 +64,8 @@ function do_check_transaction(real, expected) {
 
 // This listener is designed just to call OnStopCopy() when its OnStopCopy
 // function is called - the rest of the functions are unneeded for a lot of
-// tests.
+// tests (but we can't use asyncCopyListener because we need the
+// nsIMsgSendListener interface as well).
 var copyListener = {
   // nsIMsgSendListener
   onStartSending: function (aMsgID, aMsgSize) {},

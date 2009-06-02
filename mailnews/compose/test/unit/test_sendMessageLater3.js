@@ -7,6 +7,9 @@
  *   - A correct status response.
  *   - A correct state at the end of attempting to send.
  */
+
+load("../../mailnews/resources/alertTestUtils.js");
+
 var type = null;
 var test = null;
 var server;
@@ -23,73 +26,9 @@ const kTo = "to@invalid.com";
 var msgSendLater = Cc["@mozilla.org/messengercompose/sendlater;1"]
   .getService(Ci.nsIMsgSendLater);
 
-// This allows the send code to attempt to display errors to the user without
-// failing.
-var prompts = {
-  alert: function(aDialogTitle, aText) {
-    dump("Hiding Alert {\n" + aText + "\n} End Alert\n");
-  },
-  
-  alertCheck: function(aDialogTitle, aText, aCheckMsg, aCheckState) {},
-  
-  confirm: function(aDialogTitle, aText) {},
-  
-  confirmCheck: function(aDialogTitle, aText, aCheckMsg, aCheckState) {},
-  
-  confirmEx: function(aDialogTitle, aText, aButtonFlags, aButton0Title,
-		      aButton1Title, aButton2Title, aCheckMsg, aCheckState) {},
-  
-  prompt: function(aDialogTitle, aText, aValue, aCheckMsg, aCheckState) {},
-  
-  promptUsernameAndPassword: function(aDialogTitle, aText, aUsername,
-				      aPassword, aCheckMsg, aCheckState) {},
-
-  promptPassword: function(aDialogTitle, aText, aPassword, aCheckMsg,
-			   aCheckState) {},
-  
-  select: function(aDialogTitle, aText, aCount, aSelectList,
-		   aOutSelection) {},
-  
-  QueryInterface: function(iid) {
-    if (iid.equals(Components.interfaces.nsIPrompt)
-     || iid.equals(Components.interfaces.nsISupports))
-      return this;
-  
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  }
-};
-
-var WindowWatcher = {
-  getNewPrompter: function(aParent) {
-    return prompts;
-  },
-
-  getNewAuthPrompter: function(aParent) {
-    return prompts;
-  },
-
-  QueryInterface: function(iid) {
-    if (iid.equals(Ci.nsIWindowWatcher) || iid.equals(Ci.nsISupports)) {
-      return this;
-    }
-
-    throw Cr.NS_ERROR_NO_INTERFACE;
-  }
-};
-
-var WindowWatcherFactory = {
-  createInstance: function createInstance(outer, iid) {
-    if (outer != null)
-      throw Components.results.NS_ERROR_NO_AGGREGATION;
-    return WindowWatcher.QueryInterface(iid);
-  }
-};
-
-Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar)
-          .registerFactory(Components.ID("{1dfeb90a-2193-45d5-9cb8-864928b2af55}"),
-			   "Fake Window Watcher",
-			   "@mozilla.org/embedcomp/window-watcher;1",
-			   WindowWatcherFactory);
+function alert(aDialogTitle, aText) {
+  dump("Hiding Alert {\n" + aText + "\n} End Alert\n");
+}
 
 // This listener handles the post-sending of the actual message and checks the
 // sequence and ensures the data is correct.
@@ -98,13 +37,22 @@ function msll() {
 
 msll.prototype = {
   _initialTotal: 0,
+  _errorRaised: false,
 
   // nsIMsgSendLaterListener
   onStartSending: function (aTotal) {
     this._initialTotal = 1;
     do_check_eq(msgSendLater.sendingMessages, true);
   },
-  onProgress: function (aCurrentMessage, aTotal) {
+  onMessageStartSending: function (aCurrentMessage, aTotalMessageCount,
+                                   aMessageHeader, aIdentity) {
+  },
+  onMessageSendProgress: function (aCurrentMessage, aTotalMessageCount,
+                                   aMessageSendPercent, aMessageCopyPercent) {
+  },
+  onMessageSendError: function (aCurrentMessage, aMessageHeader, aStatus,
+                                aMsg) {
+    this._errorRaised = true;
   },
   onStopSending: function (aStatus, aMsg, aTotal, aSuccessful) {
     print("msll onStopSending\n");
@@ -114,6 +62,7 @@ msll.prototype = {
     do_check_eq(aTotal, 1);
     do_check_eq(aSuccessful, 0);
     do_check_eq(this._initialTotal, 1);
+    do_check_eq(this._errorRaised, true);
     do_check_eq(msgSendLater.sendingMessages, false);
     // Check that the send later service still thinks we have messages to send.
     do_check_eq(msgSendLater.hasUnsentMessages(identity), true);
@@ -164,6 +113,8 @@ function sendMessageLater()
 }
 
 function run_test() {
+  registerAlertTestUtils();
+
   // Test file - for bug 429891
   originalData = loadFileToString(testFile);
 

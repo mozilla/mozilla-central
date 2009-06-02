@@ -11,6 +11,9 @@
  * required), when we fix bug 136871 we should be able to enable the multiple
  * messages option. 
  */
+
+load("../../mailnews/resources/asyncTestUtils.js");
+
 var test = "sendMessageLater";
 var server = null;
 var gSentFolder;
@@ -27,6 +30,12 @@ var gMsgOrder = [];
 var gCurTestNum = 0;
 var gLastSentMessage = 0;
 
+// gMessageSendStatus
+// 0 = initial value
+// 1 = send completed before exiting sendUnsentMessages
+// 2 = sendUnsentMessages has exited.
+var gMessageSendStatus = 0;
+
 const kSender = "from@invalid.com";
 const kTo = "to@invalid.com";
 
@@ -39,57 +48,44 @@ function msll() {
 }
 
 msll.prototype = {
+  checkMessageSend: function(aCurrentMessage) {
+    do_check_transaction(transaction,
+                         ["EHLO test",
+                          "MAIL FROM:<" + kSender + "> SIZE=" + gMsgFileData[gMsgOrder[aCurrentMessage - 1]].length,
+                          "RCPT TO:<" + kTo + ">",
+                          "DATA"]);
+    transaction = null;
+
+    // Compare data file to what the server received
+    do_check_eq(gMsgFileData[gMsgOrder[aCurrentMessage - 1]], server._handler.post);
+  },
+
   // nsIMsgSendLaterListener
-  onStartSending: function (aTotal) {
+  onStartSending: function (aTotalMessageCount) {
     do_check_eq(aTotal, gMsgOrder.length);
     do_check_eq(msgSendLater.sendingMessages, true);
   },
-  onProgress: function (aCurrentMessage, aTotal) {
-    try {
-      do_check_eq(aTotal, gMsgOrder.length);
-      do_check_eq(gLastSentMessage + 1, aCurrentMessage);
-      gLastSentMessage = aCurrentMessage;
-      do_check_eq(msgSendLater.sendingMessages, true);
-
-      do_check_transaction(transaction,
-                           ["EHLO test",
-                            "MAIL FROM:<" + kSender + "> SIZE=" + gMsgFileData[gMsgOrder[aCurrentMessage - 1]].length,
-                            "RCPT TO:<" + kTo + ">",
-                            "DATA"]);
-      transaction = null;
-
-      // Compare data file to what the server received
-      do_check_eq(gMsgFileData[gMsgOrder[aCurrentMessage - 1]], server._handler.post);
-
-      // XXX We've got more messages to receive so restart the server for the
-      // new connection, at least until bug 136871 is fixed - we reset and stop
-      // the server on exit, the next test runs the server for the next message.
-      do_timeout(0, "doTest(++gCurTestNum)");
-    } catch (e) {
-      do_throw(e);
-    } finally {
-      // Reset
-      server.resetTest();
-
-      // XXX This is the way we currently try and restart the server which
-      // doesn't always work, once we fix bug 136871 just calling resetTest and
-      // ensuring we play the transaction should be enough.
-      server.stop();
-      
-      var thread = gThreadManager.currentThread;
-      while (thread.hasPendingEvents())
-        thread.processNextEvent(true);
-      server.start(SMTP_PORT);
-
-      var thread = gThreadManager.currentThread;
-      while (thread.hasPendingEvents())
-        thread.processNextEvent(true);
-    }
+  onMessageStartSending: function (aCurrentMessage, aTotalMessageCount,
+                                   aMessageHeader, aIdentity) {
+    if (gLastSentMessage > 0)
+      this.checkMessageSend(aCurrentMessage);
+    do_check_eq(gLastSentMessage + 1, aCurrentMessage);
+    gLastSentMessage = aCurrentMessage;
   },
-  onStopSending: function (aStatus, aMsg, aTotal, aSuccessful) {
+  onMessageSendProgress: function (aCurrentMessage, aTotalMessageCount,
+                                   aMessageSendPercent, aMessageCopyPercent) {
+    do_check_eq(aTotalMessageCount, gMsgOrder.length);
+    do_check_eq(gLastSentMessage, aCurrentMessage);
+    do_check_eq(msgSendLater.sendingMessages, true);
+  },
+  onMessageSendError: function (aCurrentMessage, aMessageHeader, aStatus,
+                                aMsg) {
+    do_throw("onMessageSendError should not have been called, status: " + aStatus);
+  },
+  onStopSending: function (aStatus, aMsg, aTotalTried, aSuccessful) {
     try {
       do_check_eq(aStatus, 0);
-      do_check_eq(aTotal, aSuccessful);
+      do_check_eq(aTotalTried, aSuccessful);
       do_check_eq(msgSendLater.sendingMessages, false);
 
       // Check that the send later service now thinks we don't have messages to
@@ -102,17 +98,7 @@ msll.prototype = {
         transaction = server.playTransaction();
       }
 
-      do_check_transaction(transaction,
-                           ["EHLO test",
-                            "MAIL FROM:<" + kSender + "> SIZE=" + gMsgFileData[gMsgOrder[aTotal - 1]].length,
-                            "RCPT TO:<" + kTo + ">",
-                            "DATA"]);
-      transaction = null;
-
-      // Compare data file to what the server received
-      do_check_eq(gMsgFileData[gMsgOrder[aTotal - 1]], server._handler.post);
-
-      do_timeout(0, "doTest(++gCurTestNum)");
+      this.checkMessageSend(gLastSentMessage);
     } catch (e) {
       dump(e);
       do_throw(e);
@@ -122,7 +108,15 @@ msll.prototype = {
 
       var thread = gThreadManager.currentThread;
       while (thread.hasPendingEvents())
-        thread.processNextEvent(true);
+      thread.processNextEvent(true);
+    }
+    if (gMessageSendStatus == 0) {
+      dump("gMessageSendStatus to 1\n");
+      gMessageSendStatus = 1;
+    }
+    else if (gMessageSendStatus == 2) {
+      dump("next driver\n");
+      async_driver();
     }
   }
 };
@@ -145,7 +139,7 @@ function OnStopCopy(aStatus)
 
   // Start the next step after a brief time so that functions can finish
   // properly
-  do_timeout(0, "doTest(++gCurTestNum);");
+  async_driver();
 }
 
 function sendMessageLater(aTestFileIndex)
@@ -167,18 +161,19 @@ function sendMessageLater(aTestFileIndex)
   msgSend.sendMessageFile(identity, "", compFields, gMsgFile[aTestFileIndex],
                           false, false, Ci.nsIMsgSend.nsMsgQueueForLater,
                           null, copyListener, null, null);
+  return false;
 }
 
 function resetCounts()
 {
   gMsgOrder = [];
   gLastSentMessage = 0;
-  do_timeout(0, "doTest(++gCurTestNum);");
 }
 
 // This function does the actual send later
 function sendUnsentMessages()
 {
+  gMessageSendStatus = 0;
   // Handle the server in a try/catch/finally loop so that we always will stop
   // the server if something fails.
   try {
@@ -187,7 +182,6 @@ function sendUnsentMessages()
 
     // Send the unsent message
     msgSendLater.sendUnsentMessages(identity);
-
     server.performTest();
 
     transaction = server.playTransaction();
@@ -200,6 +194,10 @@ function sendUnsentMessages()
     while (thread.hasPendingEvents())
       thread.processNextEvent(true);
   }
+  if (!gMessageSendStatus)
+    gMessageSendStatus = 2;
+
+  return gMessageSendStatus == 1;
 }
 
 function runServerTest()
@@ -209,38 +207,33 @@ function runServerTest()
   transaction = server.playTransaction();
 }
 
-// Beware before commenting out a test
-// -- later tests might just depend on earlier ones
-const gTestArray =
-[
-  // Copying message from file to folder.
-  function testSendLater1() { sendMessageLater(0); },
+function actually_run_test() {
+  dump("in actually_run_test\n");
 
-  // Now send unsent message
-  function testSendUnsentMessages1() { sendUnsentMessages(); },
+  dump("Copy Mesage from file to folder\n");
+  yield async_run({func: sendMessageLater, args: [0]});
 
-  function testSentEmpty() {
-    do_check_eq(gSentFolder.getTotalMessages(false), 0);
-    doTest(++gCurTestNum);
-  },
+  dump("Send unsent message\n");
+  yield async_run({func: sendUnsentMessages});
 
-  // This function just resets a few counts where necessary.
-  function testResetCounts() { resetCounts(); },
+  // Check sent folder is now empty.
+  do_check_eq(gSentFolder.getTotalMessages(false), 0);
 
-  // Now copy more messages...
-  function testCopyFileMessage2() {
-    sendMessageLater(1);
-    // XXX Only do one the second time round, as described at the start of the
-    // file.
-    //    sendMessageLater(0);
-  },
-  // ...and send again
-  function testSendUnsentMessages2() { sendUnsentMessages(); },
+  // and reset counts
+  resetCounts();
 
-  // XXX This may be needed if sending more than one message in the second
-  // stage.
-  //  function testRunServer() { runServerTest(); }
-];
+  dump("Copy more messages\n");
+  yield async_run({func: sendMessageLater, args: [1]});
+
+  // XXX Only do one the second time round, as described at the start of the
+  // file.
+  // yield async_run({func: sendMessageLater, args: [0]});
+
+  dump("Test send again\n");
+  yield async_run({func: sendUnsentMessages});
+
+  do_test_finished();
+}
 
 function run_test() {
   // Load in the test files so we have a record of length and their data.
@@ -290,28 +283,5 @@ function run_test() {
   do_test_pending();
 
   // Do the test
-  doTest(1);
-}
-
-function doTest(test)
-{
-  dump("doTest " + test + "\n");
-  if (test <= gTestArray.length) {
-    gCurTestNum = test;
-
-    var testFn = gTestArray[test-1];
-
-    // Set a limit in case the notifications haven't arrived (i.e. a problem)
-    do_timeout(10000, "if (gCurTestNum == "+test+")               \
-               do_throw('Notifications not received in 10000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
-    try {
-      testFn();
-    } catch(ex) {
-      dump(ex);
-      do_throw(ex);
-    }
-  }
-  else {
-    do_test_finished(); // for the one in run_test()
-  }
+  async_run({func: actually_run_test});
 }
