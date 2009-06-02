@@ -387,6 +387,16 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   -moz-padding-start: 15px;
 }
 
+.autocomplete-search-box {
+  border-top: 2px groove -moz-Dialog;
+  background-color: -moz-Dialog;
+  color: ButtonText;
+}
+
+panel[nomatch="true"] > .autocomplete-search-box {
+  border-top: 1px solid ThreeDHighlight;
+}
+
 .autocomplete-search-engine {
   padding: 2px;
 }
