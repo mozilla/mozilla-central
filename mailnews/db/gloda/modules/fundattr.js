@@ -478,8 +478,7 @@ var GlodaFundAttr = {
       aGlodaMessage.fromMeCc = fromMeCc;
 
     if (aRawReps.bodyLines &&
-        this.contentWhittle(aGlodaMessage, {}, aRawReps.bodyLines,
-                            aRawReps.content)) {
+        this.contentWhittle({}, aRawReps.bodyLines, aRawReps.content)) {
       // we were going to do something here?
     }
 
@@ -514,8 +513,8 @@ var GlodaFundAttr = {
    * of quoting at this time.  Also no support for piercing the wrapper of
    * forwarded messages to actually be the content of the forwarded message.
    */
-  contentWhittle: function gloda_fundattr_contentWhittle(aGlodaMessage,
-      aMeta, aBodyLines, aContent) {
+  contentWhittle: function gloda_fundattr_contentWhittle(aMeta,
+      aBodyLines, aContent) {
     if (!aContent.volunteerContent(aContent.kPriorityBase))
       return false;
 

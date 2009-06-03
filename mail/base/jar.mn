@@ -76,6 +76,7 @@ messenger.jar:
 *   content/messenger/baseMenuOverlay.xul           (content/baseMenuOverlay.xul)
     content/messenger/selectionsummaries.js         (content/selectionsummaries.js)
     content/messenger/multimessageview.css          (content/multimessageview.css)
+    content/messenger/sharedsummary.css             (content/sharedsummary.css)
     content/messenger/multimessageview.xhtml        (content/multimessageview.xhtml)
 
 comm.jar:

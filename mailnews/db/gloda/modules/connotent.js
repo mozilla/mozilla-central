@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Andrew Sutherland <asutherland@asutherland.org>
+ *   David Ascerh <dascher@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,7 +36,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['GlodaContent'];
+EXPORTED_SYMBOLS = ['GlodaContent', 'whittlerRegistry',
+                    'mimeMsgToContentAndMeta', 'mimeMsgToContentSnippetAndMeta'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -45,6 +47,82 @@ const Cu = Components.utils;
 Cu.import("resource://app/modules/gloda/log4moz.js");
 
 const LOG = Log4Moz.repository.getLogger("gloda.connotent");
+
+
+
+/**
+ * Given a MimeMsg and the corresponding folder, return the GlodaContent object.
+ *
+ * @param aMimeMsg: the MimeMessage instance
+ * @param folder: the nsIMsgDBFolder
+ * @return an array containing the GlodaContent instance, and the meta dictionary
+ * that the Gloda content providers may have filled with useful data.
+ */
+
+function mimeMsgToContentAndMeta(aMimeMsg, folder) {
+  let content = new GlodaContent();
+  let meta = {subject: aMimeMsg.get("subject")};
+  let bodyLines = aMimeMsg.coerceBodyToPlaintext(folder).split(/\r?\n/);
+
+  for each (let [, whittler] in Iterator(whittlerRegistry.getWhittlers()))
+    whittler.contentWhittle(meta, bodyLines, content);
+
+  return [content, meta];
+}
+
+
+/**
+ * Given a MimeMsg, return the whittled content string, suitable for summarizing
+ * a message.
+ *
+ * @param aMimeMsg: the MimeMessage instance
+ * @param folder: the nsIMsgDBFolder
+ * @param length: optional number of characters to trim the whittled content.
+ * If the actual length of the message is greater than |length|, then the return
+ * value is the first (length-1) characters with an ellipsis appended.
+ * @return an array containing the text of the snippet, and the meta dictionary
+ * that the Gloda content providers may have filled with useful data.
+ */
+
+function mimeMsgToContentSnippetAndMeta(aMimeMsg, folder, length) {
+  let [content, meta] = mimeMsgToContentAndMeta(aMimeMsg, folder);
+  
+  let text = content.getContentSnippet(length);
+  if (length && text.length > length)
+    text = text.substring(0, length-1) + "\u2026"; // ellipsis
+
+  return [text, meta];
+}
+
+
+/**
+ * A registry of gloda providers that have contentWhittle() functions.
+ * used by mimeMsgToContentSnippet, but populated by the Gloda object as it's
+ * processing providers.
+ */
+function WhittlerRegistry() {
+  this._whittlers = [];
+}
+
+WhittlerRegistry.prototype = {
+  /**
+   * Add a provider as a content whittler.
+   */
+  registerWhittler: function whittler_registry_registerWhittler(provider) {
+    this._whittlers.push(provider);
+  },
+  /**
+   * get the list of content whittlers, sorted from the most specific to
+   * the most generic
+   */
+  getWhittlers: function whittler_registry_getWhittlers() {
+    // Use the concat() trick to avoid mutating the internal object and
+    // leaking an internal representation.
+    return this._whittlers.concat().reverse();
+  }
+}
+
+whittlerRegistry = new WhittlerRegistry();
 
 function GlodaContent() {
   this._contentPriority = null;

@@ -61,27 +61,25 @@
         <title>&window.title;</title>
     </head>
 <body>
-    <div id="multimessageview">
-        <div id="headingwrappertable">
-            <div id="headingwrapper">
-                <div class="heading" id="heading">&selectedmessages.label;</div>
-                <div id="buttonbox"
-                     xmlns:html="http://www.w3.org/1999/xhtml"
-                     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-                    <hbox id="buttonhbox" align="start">
-                        <button id="archive" class="multimessage button"
-                                onclick="window.top.MsgArchiveSelectedMessages(null)" label="&archive.label;"></button>
-                        <button id="trash" class="multimessage button trashButton"
-                                onclick="window.top.DefaultController.doCommand('cmd_delete');"/>
-                    </hbox>
-                </div>
+    <div id="headingwrappertable">
+        <div id="headingwrapper">
+            <div id="buttonbox"
+                 xmlns:html="http://www.w3.org/1999/xhtml"
+                 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+                <hbox id="buttonhbox" align="start">
+                    <button id="archive" class="multimessage button"
+                            onclick="window.top.MsgArchiveSelectedMessages(null)" label="&archive.label;"></button>
+                    <button id="trash" class="multimessage button trashButton"
+                            onclick="window.top.DefaultController.doCommand('cmd_delete');"/>
+                </hbox>
             </div>
+            <div class="heading" id="heading">&selectedmessages.label;</div>
         </div>
-        <div id="messages">
-            <div id="messagelist"/>
-            <p>
-                <span class="info" id="size"></span> <span class="info" id="notice"></span>
-            </p>
+    </div>
+    <div id="content">
+        <div id="messagelist"/>
+        <div class="notice">
+            <span class="info" id="size"></span> <span class="info" id="notice"></span>
         </div>
     </div>
 </body>

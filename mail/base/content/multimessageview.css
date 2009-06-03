@@ -1,96 +1,124 @@
 /* Generic (cross-platform) multimessage view CSS.  Some bits will be overriden
   by theme specific files */
 
-body {
-  font-family: sans-serif;
-  margin: 0px;
-  padding: 1ex 1em;
+@import url("chrome://messenger/content/sharedsummary.css");
+
+
+#headingwrapper {
+  background-color: #729fcf;
+  position: relative;
+}
+
+
+#headingwrappertable {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.heading {
+  font-weight: bold;
+  font-size: medium;
+  margin: 0.5em;
+  border: 1px solid transparent;
+  padding-right: 1em;
+}
+
+.header {
+  margin-left: 19px;
+  padding: 0.3ex 0px;
+}
+
+#heading {
+  font-size: large;
+  color: #fff;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  margin: 0;
 }
 
 .star {
   width: 16px;
   height: 16px;
+  position: absolute;
+  left: -4px;
+  top: 6px;
   display: inline-block;
   margin-left: 1ex;
+  margin-right: 1ex;
+  background-repeat: no-repeat;
 }
 
-#markButton {
-  width: 5em;
-}
-
-#multimessageview {
-  font-size: small;
-}
-
-#messages {
-  -moz-border-radius: 0.4ex;
-  border: 1px solid ThreeDShadow;
+#content {
+  position: absolute;
+  top: 4em;
+  right: 0;
+  left: 0;
+  padding: 1em;
+  z-index: -1;
   padding: 1ex 1em;
   margin: 0px;
   font-size: small;
 }
 
-#messagelist {
-  width: 100%;
-  display: table;
+.row {
+  position: relative;
 }
 
 .message {
-  display: table-row;
+  margin-bottom: 1ex;
+  border-left: 3px solid transparent;
 }
 
-.message > .header {
-  display: table-cell;
-  padding: 0.6ex 0px;
+.thread {
+  -moz-border-radius: 4px;
+  border: 2px solid lightgrey; 
 }
 
 .subject {
-  display: inline-block;
+  display: inline;
 }
 
 .sender {
-  display: inline-block;
+  display: inline;
 }
 
 .author {
-  display: inline;
-  color: grey;
+  float: right;
 }
 
-.count, .date {
-  display: table-cell;
-  padding: 0px 1em;
+.count {
+  display: inline;
   white-space: nowrap;
-  text-align: right;
   color: InactiveCaptionText;
+}
+
+.date {
+  float: right;
+  padding: 0px 1em;
 }
 
 .wrappedsender, .wrappedsubject {
   padding-right: 18px;
   padding-top: 6px;
+  padding-bottom: 6px;
 }
 
-.message.unread > .header > .wrappedsubject > .subject,
-.unread  .subject_and_author,
-.message.unread > .header > .wrappedsender > .sender  {
+.message.unread .subject,
+.message.unread .sender  {
   font-weight: bold;
 }
 
-.message > .header > .wrappedsender > .sender:hover,
-.message > .header > .wrappedsubject > .subject:hover {
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.message > .header > .snippet, .message .tags {
-  margin-left: 2em;
-}
-
-.message > .header > .snippet {
+.snippet {
   color: GrayText;
+  padding-right: 1.5em;
+  padding-bottom: 1ex;
 }
 
-.message > .header > .senders {
+.senders {
   color: GrayText;
 }
 
@@ -103,49 +131,19 @@ body {
   font-weight: normal;
 }
 
-.tags {
-  padding-top: 2px;
-}
-
 .tag {
-  padding: 0.2ex 0.2em;
-  margin-right: 0.5em;
-  -moz-margin-start: 0px;
-  background-image: url("chrome://messenger/skin/tagbg.png");
-  color: InfoText;
-  -moz-border-radius: 2px;
+  display: inline;
+  white-space: nowrap; /* for tags like "To Do" */
 }
-
 
 #buttonbox {
-  display: table-cell;
-  text-align: right;
+  float: right;
+  padding-top: 1ex;
   padding-bottom: 1ex;
   font-size: 11px;
   font-family: Lucida Grande;
   border: 1px solid transparent; 
 }
-
-#headingwrappertable {
-  display: table;
-  width: 100%;
-}
-
-#headingwrapper {
-  display: table-row;
-  margin-bottom: 1em;
-  border: 1px solid transparent; 
-}
-
-.heading {
-  display: table-cell;
-  font-weight: bold;
-  font-size: medium;
-  margin: 0.5em;
-  border: 1px solid transparent;
-  padding-right: 1em;
-}
-
 
 .button {
   display: inline;
@@ -157,43 +155,20 @@ body {
   padding: 0px;
 }
 
-.hidden {
-  display: none;
-}
-
-
 #column {
   float: right;
   right: 1em;
   top: 1em;
 }
 
-#foldericon {
-  z-index: -1;
-  min-width: 128px;
-  min-height: 128px;
-  background-image: url("chrome://messenger/skin/icons/largefolder.jpg"); 
-  background-repeat: no-repeat;
-}
-
-#tagpie {
-    display: block;
-}
-
-#tagdots {
-    display: block;
-    text-align: center;
-    padding: 1em;
+#header {
+  border: 1px solid transparent;
 }
 
  .section_heading {
   font-weight: bold;
   padding-bottom: .5em;
   color: #555;
-}
-
-#header {
-  border: 1px solid transparent;
 }
 
 .stats {
@@ -203,99 +178,30 @@ body {
   font-size: small;
 }
 
-#mozupdate {
-  clear: both;
-  -moz-border-radius: 0.4ex;
-  border: 1px solid #FFD8B9;
-  left: 1em;
-  right: 1em;
-  padding: 0.5em;
-}
-
-a {
-  color: darkblue;
-  font-weight: bold;
-}
-
-a:hover {
-  text-decoration: underline; 
-}
-
-#unread, #authors, #threads, #last_selected_wrapper {
-  display: inline-block; 
-  padding: 1ex 1em;
-  margin: 0px;
-  margin-right: 1em;
-  margin-bottom: 1em;
-  font-size: small;
-  -moz-border-radius: 0.4ex;
-  border: 1px solid ThreeDShadow;
-}
-
-#last_selected_wrapper, #unread {
-  min-width: 40em;
-}
-
-#authors, #threads {
-  vertical-align: top;
-}
-
-#topten {
-  vertical-align: top;
-}
-
-#remotecontent {
-  -moz-border-radius: 0.4ex;
-  border: 1px solid ThreeDShadow;
-  background-color: #fafafa;
-  padding: 1ex 1em;
-  margin: 0px;
-  font-size: smaller;
-}
-
 .messagecount {
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
 }
 
-.author, .subject {
+.tags {
   display: inline;
-  overflow: hidden;
-  margin-right: 1em;
+  padding-top: 4px;
 }
 
-.subject_and_author {
-  white-space: nowrap;
-  overflow: hidden;
-  width: 38em;
-  margin-right: 1em;
+.snippet {
+  color: #888a85;
+  font-size: 95%;
 }
 
-.link:hover {
-  text-decoration: underline;
-  cursor: pointer;
+.tag {
+  color: #fff;
+  padding: 0.2ex 0.4em;
+  margin-right: 0.5em;
+  -moz-border-radius: 3px;
 }
 
-.sparkline {
-  margin-left: .5em;
-}
-
-#last_selected_wrapper {
-  border: 1px solid orange;
-}
-
-.last_selected {
-  font-weight: normal;
-  display: inline;
-}
-
-.hidden {
-  visibility: hidden;
-  display: none !important; 
-}
-
-.histogram {
-  display: inline;
+.notice {
   padding-left: 1em;
 }
+

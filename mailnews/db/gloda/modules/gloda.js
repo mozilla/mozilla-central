@@ -320,32 +320,8 @@ var Gloda = {
     return query.getCollection(aListener, aData);
   },
 
-  getMessageContent: function gloda_ns_getMessageContent(aGlodaMessage,
-      aMimeMsg) {
-    let content = new GlodaContent();
-
-    let meta = {subject: aMimeMsg.get("subject")};
-
-    let bodyLines = aMimeMsg.coerceBodyToPlaintext(
-                      aGlodaMessage.folderMessage.folder).split(/\r?\n/);
-
-    // get the provider list in reverse order, mainly because we want more
-    //  specific content processors to get a chance before the default one
-    let attributeProviders =
-      this._attrProviderOrderByNoun[this.NOUN_MESSAGE].concat().reverse();
-    for each (let [, attrProvider] in Iterator(attributeProviders)) {
-      if (attrProvider.contentWhittle) {
-        try {
-          attrProvider.contentWhittle(aGlodaMessage, meta, bodyLines, content);
-        }
-        catch (ex) {
-          this._log.warn("Content whittler exception " + ex.fileName + ":" +
-            ex.lineNumber + ": " + ex);
-        }
-      }
-    }
-
-    return content;
+  getMessageContent: function gloda_ns_getMessageContent(aGlodaMessage, aMimeMsg) {
+    return mimeMsgToContentAndMeta(aMimeMsg, aGlodaMessage.folderMessage.folder)[0];
   },
 
   getFolderForFolder: function gloda_ns_getFolderForFolder(aMsgFolder) {
@@ -1416,6 +1392,9 @@ var Gloda = {
         subjectNounDef.hasObjDependencies = true;
       }
     }
+
+    if (aAttrDef.provider.contentWhittle)
+      whittlerRegistry.registerWhittler(aAttrDef.provider)
 
     this._attrProviders[aAttrDef.provider.providerName].push(aAttrDef);
     return aAttrDef;

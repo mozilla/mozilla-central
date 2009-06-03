@@ -39,10 +39,10 @@
 Components.utils.import("resource://gre/modules/DownloadUtils.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource://app/modules/gloda/mimemsg.js");
+Components.utils.import("resource://app/modules/gloda/connotent.js");
 
 let gSelectionSummaryStrings = {
-  selectedNMessages: "selectedNMessages",
-  acrossNThreads: "acrossNThreads",
+  NConversations: "NConversations",
   numMsgs: "numMsgs",
   countUnread: "countUnread",
   Nmessages: "Nmessages",
@@ -57,8 +57,7 @@ let gSelectionSummaryStrings = {
  * strings, populating the gSelectionSummaryStrings array based on the current
  * locale.
  */
-function loadSelectionSummaryStrings()
-{
+function loadSelectionSummaryStrings() {
   // convert strings to those in the string bundle
   let getStr = function(string) document.getElementById("bundle_multimessages").getString(string);
   var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService();
@@ -80,8 +79,7 @@ loadSelectionSummaryStrings();
  * @return the DOM element corresponding to the selected pane.
  *
  */
-function pickMessagePane(visiblePaneId)
-{
+function pickMessagePane(visiblePaneId) {
   var paneIds = ['singlemessage', 'multimessage'];
   // when we want to do folder and account summaries, we just need to add
   // XUL elements for them, and add them to this list.
@@ -102,8 +100,7 @@ function pickMessagePane(visiblePaneId)
  * @param classname
  *        a string, which will be added as a CSS class
  */
-function _mm_addClass(node, classname)
-{
+function _mm_addClass(node, classname) {
   let classes = [];
   if (node.hasAttribute('class'))
     classes = node.getAttribute('class').split(' ');
@@ -125,8 +122,7 @@ function _mm_addClass(node, classname)
  * @param classname
  *        a string, which will be removed from the class set.
  */
-function _mm_removeClass(node, classname)
-{
+function _mm_removeClass(node, classname) {
   if (! node.hasAttribute('class'))
     return;
   let classes = node.getAttribute('class').split(' ');
@@ -162,15 +158,43 @@ function MultiMessageSummary(msgURIs) {
 
 MultiMessageSummary.prototype = {
   init: function() {
+    this._msgTagService = Components.classes["@mozilla.org/messenger/tagservice;1"].
+                          getService(Components.interfaces.nsIMsgTagService);
     this._msgHdrs = new Array();
     this._glodaQueries = [];
-    this._headerNodes = {};
-    this._snippetNodes = {};
-    this._tagsNodes = {};
+    this._msgNodes = {};
     for (var i = 0; i < this._msgURIs.length; ++i)
       this._msgHdrs.push(messenger.msgHdrFromURI(this._msgURIs[i]));
 
     this.summarize();
+  },
+
+  /**
+   * Given a msgHdr, return a list of tag objects. This function
+   * just does the messy work of understanding how tags are
+   * stored in nsIMsgDBHdrs.  It would be a good candidate for
+   * a utility library.
+   *
+   * @param aMsgHdr: the msgHdr whose tags we want
+   * @return a list of tag objects.
+   */
+  getTagsForMsg: function(aMsgHdr) {
+    let keywords = aMsgHdr.getStringProperty("keywords");
+    let keywordList = keywords.split(' ');
+    let keywordMap = {};
+    for (let iKeyword = 0; iKeyword < keywordList.length; iKeyword++) {
+      let keyword = keywordList[iKeyword];
+      keywordMap[keyword] = true;
+    }
+
+    let tagArray = this._msgTagService.getAllTags({});
+    let tags = [];
+    for (let iTag = 0; iTag < tagArray.length; iTag++) {
+      let tag = tagArray[iTag];
+      if (tag.key in keywordMap)
+        tags.push(tag);
+    }
+    return tags;
   },
 
   /**
@@ -198,14 +222,15 @@ MultiMessageSummary.prototype = {
     // count threads
     let threads = {};
     let numThreads = 0;
+    let headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"].
+                         getService(Components.interfaces.nsIMsgHeaderParser);
     for (let [,msgHdr] in Iterator(this._msgHdrs))
     {
       if (! threads[msgHdr.threadId]) {
         threads[msgHdr.threadId] = [msgHdr];
         numThreads += 1;
       }
-      else
-      {
+      else {
         threads[msgHdr.threadId].push(msgHdr);
       }
     }
@@ -216,8 +241,7 @@ MultiMessageSummary.prototype = {
     _mm_addClass(heading, "info");
 
     let numMessages = this._msgURIs.length;
-    let messagesTitle = PluralForm.get(numMessages, gSelectionSummaryStrings["selectedNMessages"]).replace('#1', numMessages);
-    messagesTitle +=  PluralForm.get(numThreads, gSelectionSummaryStrings["acrossNThreads"]).replace('#1', numThreads);
+    let messagesTitle = PluralForm.get(numMessages, gSelectionSummaryStrings["NConversations"]).replace('#1', numThreads);
 
     heading.innerHTML = messagesTitle;
 
@@ -229,9 +253,9 @@ MultiMessageSummary.prototype = {
     let MAXCOUNT = 100;
     let count = 0;
     let maxCountExceeded = false;
-    // we could consider sorting differently someday
-    for (let [thread,msgs] in Iterator(threads))
-    {
+    var parser = new DOMParser();
+
+    for (let [thread,msgs] in Iterator(threads)) {
       count += 1;
       if (count > MAXCOUNT) {
         maxCountExceeded = true;
@@ -239,11 +263,9 @@ MultiMessageSummary.prototype = {
       }
       let countUnread = 0;
       let countStarred = 0;
-      let header, subject, tags, countNode;
-      let msg = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(msg, "message");
+      let header, countNode;
+      
       // we'll mark the thread unread if any messages in it are unread
-
       for (let [, msgHdr] in Iterator(msgs)) {
         if (! msgHdr.isRead)
           countUnread += 1;
@@ -251,91 +273,111 @@ MultiMessageSummary.prototype = {
           countStarred += 1;
       }
 
-      if (countUnread)
-        _mm_addClass(msg, 'unread');
-
-      header = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(header, "header");
-
-      if (countStarred) {
-        _mm_addClass(msg, "starred");
-      }
-
-      let subjectText = msgs[0].mime2DecodedSubject || gSelectionSummaryStrings['noSubject'];
-      // Someday, we might want to handle multi-subject threads
-      subject = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(subject, "subject");
-      subject.innerHTML = escapeXMLchars(subjectText);
-
-
-      let authorText = " " + msgs[0].mime2DecodedAuthor;
-      // Someday, we might want to handle multi-subject threads
-      let author = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(author, "author");
-      author.innerHTML = escapeXMLchars(authorText);
-
-      let wrappedsubject = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(wrappedsubject, 'wrappedsubject');
-      let star = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(star, "star");
-      wrappedsubject.appendChild(subject);
-      wrappedsubject.appendChild(author);
-
-      header.appendChild(wrappedsubject);
-
-      // this feels ugly -- is there a better way to pass in data?
-      subject.msgs = msgs;
-      subject.addEventListener("click", function() {
-        selectMultipleMessagesByMsgHdr(this.msgs)
-      }, true);
-      _mm_addClass(subject, "link");
-
-      msg.appendChild(header);
-
-      let snippet = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(snippet, "snippet");
-      header.appendChild(snippet);
-
-      tags = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(tags, "tags");
-      header.appendChild(tags);
-
-      // use the first msgHdr in the thread for key purposes for snippets
-      this._snippetNodes[msgs[0].messageKey + msgs[0].folder.URI] = snippet;
-      // for tags, stars, and read/unread status, we want to map
-      // from all messages to one node
-      for each (msgHdr in msgs) {
-        this._headerNodes[msgHdr.messageKey + msgHdr.folder.URI] = header;
-        this._tagsNodes[msgHdr.messageKey + msgHdr.folder.URI] = tags;
-      }
-
       let numMsgs = msgs.length;
-      countNode = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(countNode, 'count');
+      let msg_classes = "message ";
+      if (numMsgs > 1)
+        msg_classes += " thread";
+      if (countUnread)
+        msg_classes += " unread";
+      if (countStarred)
+        msg_classes += " starred";
+
+      let subject = msgs[0].mime2DecodedSubject || gSelectionSummaryStrings['noSubject'];
+      let author = headerParser.extractHeaderAddressName(msgs[0].mime2DecodedAuthor);
+
+      let countstring = "";
       if (numMsgs > 1) {
-        let label = "(";
-        label += PluralForm.get(numMsgs, gSelectionSummaryStrings["numMsgs"]).replace('#1', numMsgs);
+        countstring += "(";
+        countstring += PluralForm.get(numMsgs, gSelectionSummaryStrings["numMsgs"]).replace('#1', numMsgs);
         if (countUnread)
-          label += PluralForm.get(numMsgs, gSelectionSummaryStrings["countUnread"]).replace('#1', countUnread);
-        label += ")";
-        countNode.innerHTML = label;
+          countstring += PluralForm.get(numMsgs, gSelectionSummaryStrings["countUnread"]).replace('#1', countUnread);
+        countstring += ")";
       }
-      msg.appendChild(countNode);
-      countNode.appendChild(star);
-      messagesElt.appendChild(msg);
+
+      let msgContents = <div class="row">
+                          <div class="star"/>
+                          <div class="header">
+                            <div class="wrappedsubject">
+                              <div class="author">{author}</div>
+                              <div class="subject link">{subject}</div>
+                              <div class="count">{countstring}</div>
+                              <div class="tags"></div>
+                            </div>
+                            <div class="snippet"></div>
+                          </div>
+                        </div>;
+
+      let msgNode = htmlpane.contentDocument.createElement("div");
+      msgNode.innerHTML = msgContents.toXMLString();
+      _mm_addClass(msgNode, msg_classes);
+      messagesElt.appendChild(msgNode);
+
+      let snippetNode = msgNode.getElementsByClassName("snippet")[0];
+      let authorNode = msgNode.getElementsByClassName("author")[0];
+      MsgHdrToMimeMessage(msgs[0], null, function(aMsgHdr, aMimeMsg) {
+        if (aMimeMsg == null) /* shouldn't happen, but sometimes does? */
+          return;
+
+        let [text, meta] = mimeMsgToContentSnippetAndMeta(aMimeMsg,
+                                                          aMsgHdr.folder, 200);
+        snippetNode.innerHTML = escapeXMLchars(text);
+        if (meta.author)
+          authorNode.innerHTML = escapeXMLchars(meta.author);
+      });
+
+      // get the subject node.
+      let subjectNode = msgNode.getElementsByClassName("subject")[0];
+      subjectNode.msgs = msgs;
+      subjectNode.addEventListener("click", function() {
+        selectMultipleMessagesByMsgHdr(this.msgs);
+      }, true);
+
+      let tagsNode = msgNode.getElementsByClassName("tags")[0];
+      while (tagsNode.firstChild)
+        tagsNode.removeChild(tagsNode.firstChild);
+      this._addTagNodes(msgs, tagsNode);
+      for each (msgHdr in msgs) {
+        this._msgNodes[msgHdr.messageKey + msgHdr.folder.URI] = msgNode;
+      }
+      messagesElt.appendChild(msgNode);
     }
-    this.computeSize();
+    this.computeSize(htmlpane);
     this.notifyMaxCountExceeded(numMessages, MAXCOUNT);
 
     this._glodaQueries.push(Gloda.getMessageCollectionForHeaders(this._msgHdrs, this));
   },
 
   /**
+   * clear out the tagsnode, and fill in appropriately for the union of
+   * tags in the specified messags
+   */
+  _addTagNodes: function(msgs, tagsNode) {
+      // for tags, stars, and read/unread status, we want to map
+      // from all messages to one node
+      let tags = {};
+      for each (let [, msgHdr] in Iterator(msgs)) {
+        let msgTags = this.getTagsForMsg(msgHdr);
+        for each (let [,tag] in Iterator(msgTags)) {
+          if (!(tag.key in tags)) {
+            tags[tag.key] = tag;
+          }
+        }
+      }
+      for each (let [, tag] in Iterator(tags)) {
+        let tagNode = tagsNode.ownerDocument.createElement('span');
+        // see tagColors.css
+        let colorClass = "blc-" + this._msgTagService.getColorForKey(tag.key).substr(1);
+        _mm_addClass(tagNode, "tag " + tag.tag + " " + colorClass);
+        tagNode.innerHTML = tag.tag;
+        tagsNode.appendChild(tagNode);
+      }
+  },
+
+  /**
    * compute the size of the messages in the selection and display it
    * in the element of id "size"
   **/
-  computeSize: function() {
-    let htmlpane = pickMessagePane('multimessage');
+  computeSize: function(htmlpane) {
     let numThreads = 0;
     let numBytes = 0;
 
@@ -382,83 +424,56 @@ MultiMessageSummary.prototype = {
    *        contents of a gloda collection
   **/
   processItems: function(aItems) {
-    var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                     .getService(Components.interfaces.nsIMsgTagService);
+    let knownMessageNodes = [];
 
-    let seenTagNode = {};
     for (let [,glodaMsg] in Iterator(aItems)) {
       let messageKey = glodaMsg.messageKey;
       let domkey = messageKey + glodaMsg.folder.uri;
 
-      if (this._headerNodes) {
-        let headerNode = this._headerNodes[domkey];
-        // unread and starred will get set if any of the messages in a
-        // collapsed thread qualify
-        if (headerNode) {
-          if (! glodaMsg.read)
-            _mm_addClass(headerNode, "unread");
-          else
-            _mm_removeClass(headerNode, "unread");
-          if (glodaMsg.starred)
-            _mm_addClass(headerNode, "starred");
-          else
-            _mm_removeClass(headerNode, "starred");
-        }
+      // Unread and starred will get set if any of the messages in a
+      // collapsed thread qualify
+      // The trick here is that we may get multiple items corresponding to the same
+      // thread (and hence DOM node), so we need to detect when we get the first
+      // item for a particular DOM node, stash the preexisting status of that DOM
+      // node, an only do transitions if the items warrant it.
+      let headerNode = this._msgNodes[domkey];
+      if (! headerNode.flags) {
+        headerNode.flags = {};
+        knownMessageNodes.push(headerNode);
       }
-      if (this._snippetNodes) {
-        let snippetNode = this._snippetNodes[domkey];
+      
+      if (! glodaMsg.read)
+        headerNode.flags['unread'] = true;
+      if (glodaMsg.starred)
+        headerNode.flags['starred'] = true;
 
-        MsgHdrToMimeMessage(glodaMsg.folderMessage, null, function(aMsgHdr, aMimeMsg) {
-          if (aMimeMsg == null)
-            return;
+      // for tags, there's a minor problem in that if _some_ of the items in a
+      // thread got modified 
+      let key = messageKey + glodaMsg.folder.uri;
+      let tagsNode = headerNode.getElementsByClassName('tags')[0];
+      while (tagsNode.firstChild)
+        tagsNode.removeChild(tagsNode.firstChild);
+      this._addTagNodes([msg.folderMessage for each ([i,msg] in Iterator(aItems))],
+                        tagsNode);
+    }
 
-          let text = Gloda.getMessageContent(glodaMsg, aMimeMsg).getContentSnippet(101);
-          if (snippetNode && text)
-          {
-            let kSnippetLength = 100;
-            if (text.length > kSnippetLength)
-              text = text.substring(0, kSnippetLength) + "\u2026"; // ellipsis
-            snippetNode.innerHTML = escapeXMLchars(text);
-          }
-        });
-
-      }
-      if (this._tagsNodes) {
-        // for tags, we need to do some fancy stuff, to figure out the set
-        // of tags that correspond to all of the messages in a collapsed
-        // thread.
-        let key = messageKey + glodaMsg.folder.uri;
-        let tagsNode = this._tagsNodes[key];
-        if (tagsNode) {
-          if (! seenTagNode[tagsNode]) {
-            // We haven't processed a message from this thread before
-            while (tagsNode.childNodes.length) {
-              // get rid of all tags
-              tagsNode.removeChild(tagsNode.firstChild);
-            }
-            seenTagNode[tagsNode] = {};
-          }
-          for each (let [,tag] in Iterator(glodaMsg.tags)) {
-            // have we already added this tag to the thread?
-            if (!(seenTagNode[tagsNode][tag.tag])) {
-              let tagNode = tagsNode.ownerDocument.createElement('span');
-              // see tagColors.css
-              let colorClass = "blc-" + tagService.getColorForKey(tag.key).substr(1);
-              _mm_addClass(tagNode, "tag " + tag.tag + " " + colorClass);
-              tagNode.innerHTML = tag.tag;
-              tagsNode.appendChild(tagNode);
-              seenTagNode[tagsNode][tag.tag] = true;
-            }
-          }
-        }
-      }
+    for ([, headerNode] in Iterator(knownMessageNodes)) {
+      if (headerNode.flags['unread'])
+        _mm_addClass(headerNode, "unread");
+      else
+        _mm_removeClass(headerNode, "unread");
+      if (headerNode.flags['starred'])
+        _mm_addClass(headerNode, "starred");
+      else
+        _mm_removeClass(headerNode, "starred");
+      headerNode.flags = null;
     }
   },
 
   onQueryCompleted: function(aCollection) {
-    if (aCollection.items.length) {
-      this.processItems(aCollection.items);
-    }
+    /* if we need something that's just available from GlodaMessages,
+      this is where we'll get it initially */
+    return; 
   }
 }
 
@@ -489,8 +504,7 @@ ThreadSummary.prototype = {
   __proto__: MultiMessageSummary.prototype,
 
   summarize: function() {
-    this._headerNodes = {};
-    this._snippetNodes = {};
+    this._msgNodes = {};
 
     let htmlpane = pickMessagePane('multimessage');
 
@@ -513,34 +527,67 @@ ThreadSummary.prototype = {
     let count = 0;
     const MAXCOUNT = 100;
     let maxCountExceeded = false;
-    for (var i = 0; i < this._msgURIs.length; ++i)
-    {
+    for (let i = 0; i < this._msgURIs.length; ++i) {
       count += 1;
       if (count > MAXCOUNT) {
         maxCountExceeded = true;
         break;
       }
-      let msgHdr, msg, header, sender, snippet, tags;
-      msgHdr = messenger.msgHdrFromURI(this._msgURIs[i]);
+      let msgHdr = messenger.msgHdrFromURI(this._msgURIs[i]);
       msgHdrs.push(msgHdr);
-      msg = htmlpane.contentDocument.createElement("div");
-      let key = msgHdr.messageKey + msgHdr.folder.URI;
 
-      _mm_addClass(msg, "message");
-
+      let msg_classes = "message ";
       if (! msgHdr.isRead)
-        _mm_addClass(msg, "unread");
-
-      header = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(header, "header");
+        msg_classes += " unread";
       if (msgHdr.isFlagged)
-        _mm_addClass(msg, "starred");
+        msg_classes += " starred";
 
-      let senderName = headerParser.extractHeaderAddressNames(msgHdr.mime2DecodedAuthor);
-      senderName = this.stripQuotes(senderName);
-      sender = htmlpane.contentDocument.createElement("div");
+      let senderName = headerParser.extractHeaderAddressName(msgHdr.mime2DecodedAuthor);
+      let date = makeFriendlyDateAgo(new Date(msgHdr.date/1000));
+
+      let msgContents = <div class="row">
+                          <div class="star"/>
+                          <div class="header">
+                            <div class="wrappedsender">
+                              <div class="sender link">{senderName}</div>
+                              <div class="date">{date}</div>
+                              <div class="tags"></div>
+                            </div>
+                            <div class="snippet"></div>
+                          </div>
+                        </div>;
+
+      let msgNode = htmlpane.contentDocument.createElement("div");
+      msgNode.innerHTML = msgContents.toXMLString();
+      _mm_addClass(msgNode, msg_classes);
+      messagesElt.appendChild(msgNode);
+
+      let key = msgHdr.messageKey + msgHdr.folder.URI;
+      let snippetNode = msgNode.getElementsByClassName("snippet")[0];
+      let senderNode = msgNode.getElementsByClassName("sender")[0];
+      MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
+          if (aMimeMsg == null) /* shouldn't happen, but sometimes does? */
+            return;
+          let [text, meta] = mimeMsgToContentSnippetAndMeta(aMimeMsg,
+                                                            aMsgHdr.folder, 200);
+          snippetNode.innerHTML = escapeXMLchars(text);
+          if (meta.author)
+            senderNode.innerHTML = escapeXMLchars(meta.author);
+      });
+
+      let tagsNode = msgNode.getElementsByClassName("tags")[0];
+      let tags = this.getTagsForMsg(msgHdr);
+      for each (let [,tag] in Iterator(tags)) {
+        let tagNode = tagsNode.ownerDocument.createElement('span');
+        // see tagColors.css
+        let colorClass = "blc-" + this._msgTagService.getColorForKey(tag.key).substr(1);
+        _mm_addClass(tagNode, "tag " + tag.tag + " " + colorClass);
+        tagNode.innerHTML = tag.tag;
+        tagsNode.appendChild(tagNode);
+      }
+      
+      let sender = msgNode.getElementsByClassName("sender")[0];
       sender.msgHdr = msgHdr;
-      _mm_addClass(sender, "sender");
       sender.addEventListener("click", function(e) {
         // if the msg is the first message in a collapsed thread, we need to
         // uncollapse it.
@@ -550,44 +597,19 @@ ThreadSummary.prototype = {
         if (gDBView.rowCount != origRowCount)
           gDBView.selectionChanged();
       }, true);
-      _mm_addClass(sender, "link");
-      sender.innerHTML = escapeXMLchars(senderName); // escape?
       sender.folder = msgHdr.folder;
       sender.msgKey = msgHdr.messageKey;
 
-      let wrappedsender = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(wrappedsender, "wrappedsender");
-      let star = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(star, "star");
-      wrappedsender.appendChild(sender);
+      this._msgNodes[key] = msgNode;
 
-      header.appendChild(wrappedsender);
-
-      snippet = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(snippet, "snippet");
-      header.appendChild(snippet);
-
-      tags = htmlpane.contentDocument.createElement("div");
-      _mm_addClass(tags, "tags");
-      header.appendChild(tags);
-
-      this._headerNodes[key] = msg;
-      this._snippetNodes[key] = snippet;
-      this._tagsNodes[key] = tags;
-
-      msg.appendChild(header);
-      let dateNode = htmlpane.contentDocument.createElement("div");
-      dateNode.innerHTML = makeFriendlyDateAgo(new Date(msgHdr.date/1000));
-      dateNode.appendChild(star);
-      _mm_addClass(dateNode, "date");
-      msg.appendChild(dateNode);
-      messagesElt.appendChild(msg);
+      messagesElt.appendChild(msgNode);
     }
+    
     // stash somewhere so it doesn't get GC'ed
     this._glodaQueries.push(Gloda.getMessageCollectionForHeaders(msgHdrs, this));
     this.notifyMaxCountExceeded(numMessages, MAXCOUNT);
 
-    this.computeSize();
+    this.computeSize(htmlpane);
   }
 }
 
@@ -746,14 +768,13 @@ function replaceInsert(aText, aIndex, aValue)
  */
 function escapeXMLchars(s)
 {
-    return s.replace(/[<>&]/g, function(s) {
-        switch (s) {
-            case "<": return "&lt;";
-            case ">": return "&gt;";
-            case "&": return "&amp;";
-            default: throw Error("Unexpected match");
-            }
-        }
-    );
+  return s.replace(/[<>&]/g, function(s) {
+      switch (s) {
+          case "<": return "&lt;";
+          case ">": return "&gt;";
+          case "&": return "&amp;";
+          default: throw Error("Unexpected match");
+          }
+      }
+  );
 }
-

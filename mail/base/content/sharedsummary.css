@@ -1,0 +1,39 @@
+/* Generic (cross-platform) multimessage view CSS.  Some bits will be overriden
+  by theme specific files */
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+}
+
+.hidden {
+  visibility: hidden;
+  display: none !important; /* need to override the display property that sets inline-block */
+}
+
+
+#mozupdate {
+  clear: both;
+  -moz-border-radius: 0.4ex;
+  border: 1px solid #FFD8B9;
+  left: 1em;
+  right: 1em;
+  padding: 0.5em;
+}
+
+
+a {
+  color: darkblue;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline; 
+}
+
+.link:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
