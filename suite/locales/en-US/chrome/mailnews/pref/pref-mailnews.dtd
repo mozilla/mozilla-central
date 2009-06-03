@@ -41,6 +41,8 @@
 <!ENTITY confirmMove.accesskey            "C">
 <!ENTITY preserveThreading.label          "Preserve threading when sorting messages">
 <!ENTITY preserveThreading.accesskey      "v">
+<!ENTITY mailBiffOnNewWindow.label        "Only check for new mail after opening Mail &amp; Newsgroups">
+<!ENTITY mailBiffOnNewWindow.accesskey    "O">
 
 <!ENTITY defaultMailSettings.description  "Make &brandShortName; the default application for:">
 <!ENTITY setDefaultMail.label             "Mail">

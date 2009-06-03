@@ -67,6 +67,8 @@
                   name="mailnews.start_page.enabled" type="bool"/>
       <preference id="mailnews.start_page.url"
                   name="mailnews.start_page.url" type="wstring"/>
+      <preference id="mail.biff.on_new_window"
+                  name="mail.biff.on_new_window" inverted="true" type="bool"/>
       <preference id="mail.toolbars.showbutton.file"
                   name="mail.toolbars.showbutton.file" type="bool"/>
       <preference id="mail.toolbars.showbutton.next"
@@ -106,6 +108,14 @@
                   accesskey="&preserveThreading.accesskey;"
                   preference="mailnews.thread_pane_column_unthreads"/>
       </hbox>
+
+      <hbox align="center">
+        <checkbox id="mailBiffOnNewWindow"
+                  label="&mailBiffOnNewWindow.label;"
+                  accesskey="&mailBiffOnNewWindow.accesskey;"
+                  preference="mail.biff.on_new_window"/>
+      </hbox>
+
       <vbox id="defaultMailPrefs" hidden="true">
         <separator class="thin"/>
 
