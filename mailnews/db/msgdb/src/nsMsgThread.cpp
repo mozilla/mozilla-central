@@ -103,7 +103,7 @@ nsresult nsMsgThread::InitCachedValues()
   {
     err = m_mdbDB->RowCellColumnToUInt32(m_metaRow, m_mdbDB->m_threadFlagsColumnToken, &m_flags);
     err = m_mdbDB->RowCellColumnToUInt32(m_metaRow, m_mdbDB->m_threadChildrenColumnToken, &m_numChildren);
-    err = m_mdbDB->RowCellColumnToUInt32(m_metaRow, m_mdbDB->m_threadIdColumnToken, &m_threadKey);
+    err = m_mdbDB->RowCellColumnToUInt32(m_metaRow, m_mdbDB->m_threadIdColumnToken, &m_threadKey, nsMsgKey_None);
     err = m_mdbDB->RowCellColumnToUInt32(m_metaRow, m_mdbDB->m_threadUnreadChildrenColumnToken, &m_numUnreadChildren);
     err = m_mdbDB->RowCellColumnToUInt32(m_metaRow, m_mdbDB->m_threadRootKeyColumnToken, &m_threadRootKey, nsMsgKey_None);
     err = m_mdbDB->RowCellColumnToUInt32(m_metaRow, m_mdbDB->m_threadNewestMsgDateColumnToken, &m_newestMsgDate, 0);
@@ -124,6 +124,8 @@ nsresult nsMsgThread::InitCachedValues()
 
 NS_IMETHODIMP nsMsgThread::SetThreadKey(nsMsgKey threadKey)
 {
+  NS_ASSERTION(m_threadKey == nsMsgKey_None || m_threadKey == threadKey,
+               "shouldn't be changing thread key");
   m_threadKey = threadKey;
   // by definition, the initial thread key is also the thread root key.
   SetThreadRootKey(threadKey);
@@ -408,7 +410,11 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   child->GetIsKilled(&isKilled);
   if ((m_flags & nsMsgMessageFlags::Ignored || isKilled) && m_mdbDB)
     m_mdbDB->MarkHdrRead(child, PR_TRUE, nsnull);
-
+#ifdef DEBUG_David_Bienvenu
+  nsMsgKey msgHdrThreadKey;
+  child->GetThreadId(&msgHdrThreadKey);
+  NS_ASSERTION(msgHdrThreadKey == m_threadKey, "adding msg to thread it doesn't belong to");
+#endif
 #ifdef DEBUG_bienvenu1
   nsMsgDatabase *msgDB = static_cast<nsMsgDatabase*>(m_mdbDB);
   msgDB->DumpThread(m_threadRootKey);
@@ -553,7 +559,7 @@ nsresult nsMsgThread::RemoveChild(nsMsgKey msgKey)
 {
   nsresult rv;
 
-  mdbOid		rowObjectId;
+  mdbOid  rowObjectId;
   rowObjectId.mOid_Id = msgKey;
   rowObjectId.mOid_Scope = m_mdbDB->m_hdrRowScopeToken;
   rv = m_mdbTable->CutOid(m_mdbDB->GetEnv(), &rowObjectId);
@@ -1076,6 +1082,7 @@ nsresult nsMsgThread::GetChildHdrForKey(nsMsgKey desiredKey, nsIMsgDBHdr **resul
         (*result)->GetThreadId(&threadKey);
         if (threadKey != m_threadKey) // this msg isn't in this thread
         {
+          NS_WARNING("msg in wrong thread - this shouldn't happen");
           PRUint32 msgSize;
           (*result)->GetMessageSize(&msgSize);
           if (msgSize == 0) // this is a phantom message - let's get rid of it.
@@ -1085,9 +1092,29 @@ nsresult nsMsgThread::GetChildHdrForKey(nsMsgKey desiredKey, nsIMsgDBHdr **resul
           }
           else
           {
-            // otherwise, this message really appears to be in this
-            // thread, so fix up its thread id.
-            (*result)->SetThreadId(threadKey);
+            // otherwise, let's try to figure out which thread
+            // this message really belongs to.
+            nsCOMPtr<nsIMsgThread> threadKeyThread = 
+                  dont_AddRef(m_mdbDB->GetThreadForThreadId(threadKey));
+            if (threadKeyThread)
+            {
+              nsCOMPtr<nsIMsgDBHdr> otherThreadHdr;
+              threadKeyThread->GetChild(msgKey, getter_AddRefs(otherThreadHdr));
+              if (otherThreadHdr)
+              {
+                // Message is in one thread but has a different thread id.
+                // Remove it from the thread and then rethread it.
+                RemoveChild(msgKey);
+                threadKeyThread->RemoveChildHdr(otherThreadHdr, nsnull);
+                PRBool newThread;
+                nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(otherThreadHdr.get());
+                m_mdbDB->ThreadNewHdr(msgHdr, newThread);
+              }
+              else
+              {
+                (*result)->SetThreadId(m_threadKey);
+              }
+            }
           }
         }
         break;

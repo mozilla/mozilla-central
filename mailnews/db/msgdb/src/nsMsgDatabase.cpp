@@ -3782,6 +3782,20 @@ nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, 
       threadRow->Release();
     }
   }
+  else
+  {
+#ifdef DEBUG_David_Bienvenu
+    NS_WARNING("odd that thread row already exists");
+#endif
+    threadRow->CutAllColumns(GetEnv());
+    nsCOMPtr<nsIMdbRow> metaRow;
+    threadTable->GetMetaRow(GetEnv(), nsnull, nsnull, getter_AddRefs(metaRow));
+    if (metaRow)
+      metaRow->CutAllColumns(GetEnv());
+
+    CharPtrToRowCellColumn(threadRow, m_threadSubjectColumnToken, subject);
+  }
+
 
   *pnewThread = new nsMsgThread(this, threadTable);
   if (*pnewThread)
