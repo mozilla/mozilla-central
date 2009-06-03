@@ -229,6 +229,31 @@ if test ! -z "$L10NBASEDIR"; then
 fi
 AC_SUBST(L10NBASEDIR)
 
+dnl Check for Perl first -- needed for win32 SDK checks
+AC_PATH_PROGS(PERL, $PERL perl5 perl)
+if test -z "$PERL" || test "$PERL" = ":"; then
+    AC_MSG_ERROR([perl not found in \$PATH])
+fi
+
+
+dnl Get mozilla version from central milestone file
+MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
+
+changequote(,)
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
+changequote([,])
+
+MOZILLA_1_9_1_BRANCH=
+
+dnl Set the Gecko 1.9.1 branch version
+if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
+    MOZILLA_1_9_1_BRANCH=1
+    AC_DEFINE(MOZILLA_1_9_1_BRANCH)
+fi
+
+AC_SUBST(MOZILLA_1_9_1_BRANCH)
+
+
 dnl ========================================================
 dnl Checks for compilers.
 dnl ========================================================
@@ -468,6 +493,8 @@ case "$target" in
     ;;
 esac
 
+if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
+
 MOZ_ARG_WITH_STRING(windows-version,
 [  --with-windows-version=WINVER
                           Minimum Windows version (WINVER) to support
@@ -485,6 +512,57 @@ case "$WINVER" in
     ;;
 
 esac
+
+dnl MOZILLA_1_9_1_BRANCH.
+else
+dnl Not MOZILLA_1_9_1_BRANCH.
+
+dnl Target the Windows Vista SDK by default
+WINSDK_TARGETVER=600
+
+MOZ_ARG_WITH_STRING(windows-version,
+[  --with-windows-version=WINSDK_TARGETVER
+                          Highest Windows version to target using this SDK
+                              502: Windows Server 2003
+                              600: Windows Vista
+                              601: Windows 7],
+  WINSDK_TARGETVER=$withval)
+
+case "$WINSDK_TARGETVER" in
+502|600|601)
+    MOZ_WINSDK_TARGETVER=0${WINSDK_TARGETVER}0000
+    ;;
+
+*)
+    AC_MSG_ERROR([Invalid value for --with-windows-version ($WINSDK_TARGETVER), must be 502, 600 or 601]);
+    ;;
+
+esac
+
+dnl Vista SDK specific api (deprecated)
+MOZ_ARG_DISABLE_BOOL(vista-sdk-requirements,
+[  --disable-vista-sdk-requirements
+                           Do not build Vista SDK specific code],
+   MOZ_DISABLE_VISTA_SDK_REQUIREMENTS=1,
+   MOZ_DISABLE_VISTA_SDK_REQUIREMENTS=)
+if test -n "$COMPILE_ENVIRONMENT"; then
+if test -n "$MOZ_DISABLE_VISTA_SDK_REQUIREMENTS"; then
+    AC_MSG_WARN([--disable-vista-sdk-requirements is deprecated, use --with-windows-version=502 instead])
+    MOZ_WINSDK_TARGETVER=05020000
+fi
+
+if test "$MOZ_WINSDK_TARGETVER" -lt "06000000"; then
+    MOZ_DISABLE_VISTA_SDK_REQUIREMENTS=1
+    AC_DEFINE(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
+    # We can't build parental controls either
+    MOZ_DISABLE_PARENTAL_CONTROLS=1
+fi
+fi
+
+AC_SUBST(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
+
+dnl Not MOZILLA_1_9_1_BRANCH.
+fi
 
 case "$target" in
 *-cygwin*|*-mingw*|*-msvc*|*-mks*|*-wince)
@@ -699,6 +777,24 @@ EOF
     AC_DEFINE_UNQUOTED(_WIN32_WINNT,0x$WINVER)
     # Require OS features provided by IE 5.0
     AC_DEFINE_UNQUOTED(_WIN32_IE,0x0500)
+
+    if test "$MOZILLA_1_9_1_BRANCH" != "1"; then
+
+    # If the maximum version supported by this SDK is lower than the target
+    # version, error out
+    AC_MSG_CHECKING([for Windows SDK being recent enough])
+    if $PERL -e "exit(0x$MOZ_WINSDK_TARGETVER > $MOZ_WINSDK_MAXVER)"; then
+        AC_MSG_RESULT("yes")
+    else
+        AC_MSG_RESULT("no")
+        AC_MSG_ERROR([You are targeting Windows version 0x$MOZ_WINSDK_TARGETVER, but your SDK only supports up to version $MOZ_WINSDK_MAXVER. Install and use an updated SDK, or target a lower version using --with-windows-version. See https://developer.mozilla.org/En/Windows_SDK_versions for more details on fixing this.])
+    fi
+
+    AC_DEFINE_UNQUOTED(MOZ_WINSDK_TARGETVER,0x$MOZ_WINSDK_TARGETVER)
+
+    # Not MOZILLA_1_9_1_BRANCH.
+    fi
+
     ;;
 esac
 
@@ -740,10 +836,6 @@ dnl Checks for programs.
 dnl ========================================================
 AC_PROG_INSTALL
 AC_PROG_LN_S
-AC_PATH_PROGS(PERL, $PERL perl5 perl )
-if test -z "$PERL" || test "$PERL" = ":"; then
-    AC_MSG_ERROR([perl not found in \$PATH])
-fi
 
 if test -z "$TINDERBOX_SKIP_PERL_VERSION_CHECK"; then
 AC_MSG_CHECKING([for minimum required perl version >= $PERL_VERSION])
@@ -1667,23 +1759,6 @@ case "$host" in
     HOST_OPTIMIZE_FLAGS="${HOST_OPTIMIZE_FLAGS=-O2}"
     ;;
 esac
-
-dnl Get mozilla version from central milestone file
-MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
-
-changequote(,)
-MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
-changequote([,])
-
-MOZILLA_1_9_1_BRANCH=
-
-dnl Set the Gecko 1.9.1 branch version
-if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
-    MOZILLA_1_9_1_BRANCH=1
-    AC_DEFINE(MOZILLA_1_9_1_BRANCH)
-fi
-
-AC_SUBST(MOZILLA_1_9_1_BRANCH)
 
 dnl Get version of various core apps from the version files.
 SUNBIRD_VERSION=`cat $topsrcdir/calendar/sunbird/config/version.txt`
@@ -5521,6 +5596,8 @@ if test -n "$MOZ_DISABLE_PARENTAL_CONTROLS"; then
     AC_DEFINE(MOZ_DISABLE_PARENTAL_CONTROLS)
 fi
 
+if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
+
 dnl ========================================================
 dnl Vista SDK specific api
 dnl ========================================================
@@ -5547,8 +5624,11 @@ case "$target" in
 esac
 fi
 fi
-AC_SUBST(MOZ_DISABLE_PARENTAL_CONTROLS)
 AC_SUBST(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
+
+dnl MOZILLA_1_9_1_BRANCH.
+fi
+AC_SUBST(MOZ_DISABLE_PARENTAL_CONTROLS)
 
 dnl ========================================================
 dnl =
