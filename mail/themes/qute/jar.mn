@@ -402,8 +402,8 @@ classic.jar:
   skin/classic/aero/messenger/icons/croppedchevron.png             (mail/icons/croppedchevron.png)
   skin/classic/aero/messenger/tagbg.png                            (mail/tagbg.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/aero/messenger-newsblog/ os=WINNT osversion>=6
-  skin/classic/messenger-newsblog/feed-subscriptions.css      (mail/newsblog/feed-subscriptions.css)
-  skin/classic/messenger-newsblog/icons/rss-feed.png          (mail/newsblog/rss-feed.png)
-  skin/classic/messenger-newsblog/icons/server-rss.png        (mail/newsblog/server-rss.png)
+  skin/classic/aero/messenger-newsblog/feed-subscriptions.css      (mail/newsblog/feed-subscriptions.css)
+  skin/classic/aero/messenger-newsblog/icons/rss-feed.png          (mail/newsblog/rss-feed.png)
+  skin/classic/aero/messenger-newsblog/icons/server-rss.png        (mail/newsblog/server-rss.png)
 
 #endif
