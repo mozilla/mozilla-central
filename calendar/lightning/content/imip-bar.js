@@ -136,7 +136,7 @@ const ltnOnItipItem = {
             } catch (e) {
                 // This will throw on every message viewed that doesn't have the
                 // itipItem property set on it. So we eat the errors and move on.
-                
+
                 // XXX TODO: Only swallow the errors we need to. Throw all others.
             }
             if (!itipItem) {
@@ -230,7 +230,6 @@ function ltnImipOnUnload() {
     removeEventListener("messagepane-unloaded", ltnImipOnUnload, true);
 
     gItipItem = null;
-    gCalItemsArrayFound = [];
     cal.getObserverService().removeObserver(ltnOnItipItem, "onItipItemCreation");
 }
 
