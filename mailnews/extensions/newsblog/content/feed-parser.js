@@ -499,8 +499,7 @@ FeedParser.prototype =
         // Atom links are interpreted relative to xml:base
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                                    .getService(Components.interfaces.nsIIOService);
-        url = ioService.newURI(alink.baseURI, null, null);
-        return url.resolve(alink.getAttribute('href'));
+        return ioService.newURI(alink.baseURI, null, null).resolve(alink.getAttribute('href'));
       }
     }
     return null;
