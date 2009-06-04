@@ -1104,6 +1104,10 @@ protected:
   nsCOMPtr<nsIMdbRowCellCursor> mRowCellCursor;
   nsCOMPtr<nsIMdbEnv> m_mdbEnv;
   nsCOMPtr<nsIMdbStore> m_mdbStore;
+  // Hold a reference to the hdr so it will hold an xpcom reference to the
+  // underlying mdb row. The row cell cursor will crash if the underlying
+  // row goes away.
+  nsRefPtr<nsMsgHdr> m_hdr;
   PRBool mNextPrefetched;
   mdb_column mNextColumn;
 };
@@ -1117,6 +1121,7 @@ nsMsgPropertyEnumerator::nsMsgPropertyEnumerator(nsMsgHdr* aHdr)
 
   if (aHdr &&
       (mdbRow = aHdr->GetMDBRow()) &&
+      (m_hdr = aHdr) &&
       (mdb = aHdr->m_mdb) &&
       (m_mdbEnv = mdb->m_mdbEnv) &&
       (m_mdbStore = mdb->m_mdbStore))
@@ -1127,6 +1132,9 @@ nsMsgPropertyEnumerator::nsMsgPropertyEnumerator(nsMsgHdr* aHdr)
 
 nsMsgPropertyEnumerator::~nsMsgPropertyEnumerator()
 {
+  // Need to clear this before the nsMsgHdr and its corresponding
+  // nsIMdbRow potentially go away.
+  mRowCellCursor = nsnull;
 }
 
 NS_IMPL_ISUPPORTS1(nsMsgPropertyEnumerator, nsIUTF8StringEnumerator)
