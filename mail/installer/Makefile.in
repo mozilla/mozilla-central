@@ -52,7 +52,6 @@ NO_PKG_FILES = \
 	xpt_link* \
 	plugins \
 	res/bloatcycle.html \
-	PalmSyncInstall.exe \
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk

@@ -71,10 +71,8 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'ldap_2.servers.osx.position': 0,
         'ldap_2.servers.oe.position': 0,
         # other unknown voodoo
-        'extensions.palmsync.conduitRegistered': True,
 	'dom.max_chrome_script_run_time' :  200,
 	'dom.max_script_run_time' :  0,
-	'extensions.palmsync.conduitRegistered' :  True,
         'mail.account.account1.server' :  "server1",
         'mail.account.account2.identities' :  "id1",
         'mail.account.account2.server' :  "server2",
