@@ -112,7 +112,6 @@ EXTRA_COMPONENTS += \
 		$(NULL)
 
 EXPORTS		= \
-		nsAbCardProperty.h \
                 nsVCardObj.h \
 		$(NULL)
 

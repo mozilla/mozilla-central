@@ -4,7 +4,6 @@ user_pref("browser.dom.window.dump.enabled", true);
 // no slow script dialogs
 user_pref("dom.max_chrome_script_run_time", 200);
 user_pref("dom.max_script_run_time", 0);
-user_pref("extensions.palmsync.conduitRegistered", true);
 user_pref("mail.account.account1.server", "server1");
 user_pref("mail.account.account2.identities", "id1");
 user_pref("mail.account.account2.server", "server2");

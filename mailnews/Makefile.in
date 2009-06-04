@@ -44,10 +44,7 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE       = mailnews
 
-PARALLEL_DIRS	+= base/search/src db/msgdb db/gloda news local mime compose imap addrbook import
-
-# extensions (e.g. palmsync) can depend of things built in other dirs
-DIRS	+= extensions
+PARALLEL_DIRS	+= base/search/src db/msgdb db/gloda news local mime compose imap addrbook import extensions
 
 ifeq ($(OS_ARCH),WINNT)
 ifndef GNU_CC
