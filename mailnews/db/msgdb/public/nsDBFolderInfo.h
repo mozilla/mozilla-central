@@ -74,7 +74,7 @@ public:
   
   PRBool    TestFlag(PRInt32 flags);
   PRInt16   GetIMAPHierarchySeparator() ;
-  void      SetIMAPHierarchySeparator(PRInt16 hierarchySeparator) ;
+  void      SetIMAPHierarchySeparator(PRInt16 hierarchyDelimiter) ;
   void      ChangeImapTotalPendingMessages(PRInt32 delta);
   void      ChangeImapUnreadPendingMessages(PRInt32 delta) ;
   

@@ -73,8 +73,6 @@ class nsIMsgOfflineImapOperation;
 
 #define COPY_BUFFER_SIZE 16384
 
-/* b64534f0-3d53-11d3-ac2a-00805f8ac968 */
-
 #define NS_IMAPMAILCOPYSTATE_IID \
 { 0xb64534f0, 0x3d53, 0x11d3, \
     { 0xac, 0x2a, 0x00, 0x80, 0x5f, 0x8a, 0xc9, 0x68 } }
@@ -476,7 +474,7 @@ protected:
   nsRefPtr<nsMsgTxn> m_pendingUndoTxn;
   nsCOMPtr<nsImapMailCopyState> m_copyState;
   PRMonitor *m_appendMsgMonitor;
-  PRUnichar m_hierarchyDelimiter;
+  char m_hierarchyDelimiter;
   PRInt32 m_boxFlags;
   nsCString m_onlineFolderName;
   nsCString m_ownerUserName;  // username of the "other user," as in

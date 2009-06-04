@@ -64,7 +64,7 @@ class nsImapService : public nsIImapService,
 public:
   nsImapService();
   virtual ~nsImapService();
-	
+
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGPROTOCOLINFO
   NS_DECL_NSIIMAPSERVICE
@@ -72,10 +72,10 @@ public:
   NS_DECL_NSIPROTOCOLHANDLER
   NS_DECL_NSIMSGMESSAGEFETCHPARTSERVICE
   NS_DECL_NSICONTENTHANDLER
-    
+
 protected:
-  PRUnichar GetHierarchyDelimiter(nsIMsgFolder *aMsgFolder);
-  
+  char GetHierarchyDelimiter(nsIMsgFolder *aMsgFolder);
+
   nsresult GetFolderName(nsIMsgFolder *aImapFolder, nsACString &aFolderName);
 
   // This is called by both FetchMessage and StreamMessage
@@ -93,15 +93,15 @@ protected:
                                 nsIMsgFolder *aImapFolder,
                                 nsIUrlListener *aUrlListener,
                                 nsACString &urlSpec,
-								                PRUnichar &hierarchyDelimiter);
-  
+                                char &hierarchyDelimiter);
+
   nsresult GetImapConnectionAndLoadUrl(nsIEventTarget *aClientEventTarget, 
                                        nsIImapUrl *aImapUrl,
                                        nsISupports *aConsumer,
                                        nsIURI **aURL);
-  
+
   nsresult SetImapUrlSink(nsIMsgFolder *aMsgFolder, nsIImapUrl *aImapUrl);
-  
+
   nsresult FetchMimePart(nsIImapUrl *aImapUrl,
                          nsImapAction aImapAction,
                          nsIMsgFolder *aImapMailFolder, 
@@ -110,7 +110,7 @@ protected:
                          nsISupports *aDisplayConsumer, 
                          const nsACString &messageIdentifierList,
                          const nsACString &mimePart);
-  
+
   nsresult FolderCommand(nsIEventTarget *clientEventTarget, 
                          nsIMsgFolder *imapMailFolder,
                          nsIUrlListener *urlListener,
@@ -118,14 +118,14 @@ protected:
                          nsImapAction imapAction,
                          nsIMsgWindow *msgWindow,
                          nsIURI **url);
-  
+
   nsresult ChangeFolderSubscription(nsIEventTarget *eventTarget, 
                                     nsIMsgFolder *folder,
                                     const nsAString &folderName, 
                                     const char *aCommand,
                                     nsIUrlListener *urlListener,
                                     nsIURI **url);
-  
+
   nsresult DiddleFlags(nsIEventTarget *aClientEventTarget,
                        nsIMsgFolder *aImapMailFolder, 
                        nsIUrlListener *aUrlListener, 
@@ -134,7 +134,7 @@ protected:
                        const char *howToDiddle,
                        imapMessageFlagsType flags,
                        PRBool messageIdsAreUID);
-  
+
   nsresult OfflineAppendFromFile(nsIFile *aFile,
                                  nsIURI *aUrl,
                                  nsIMsgFolder *aDstFolder,
@@ -143,9 +143,9 @@ protected:
                                  nsIUrlListener *aListener,
                                  nsIURI **aURL,
                                  nsISupports *aCopyState);
-  
+
   nsresult GetServerFromUrl(nsIImapUrl *aImapUrl, nsIMsgIncomingServer **aServer);
-  
+
   // just a little helper method...maybe it should be a macro? which helps break down a imap message uri
   // into the folder and message key equivalents
   nsresult DecomposeImapURI(const nsACString &aMessageURI, nsIMsgFolder **aFolder, nsACString &msgKey);

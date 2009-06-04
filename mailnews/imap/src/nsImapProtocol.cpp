@@ -5837,7 +5837,7 @@ char * nsImapProtocol::GetFolderPathString()
 {
   char *sourceMailbox = nsnull;
   char onlineSubDirDelimiter = 0;
-  PRUnichar hierarchyDelimiter = 0;
+  char hierarchyDelimiter = 0;
   nsCOMPtr <nsIMsgFolder> msgFolder;
 
   m_runningUrl->GetOnlineSubDirSeparator(&onlineSubDirDelimiter);
@@ -5849,9 +5849,9 @@ char * nsImapProtocol::GetFolderPathString()
     if (imapFolder)
     {
       imapFolder->GetHierarchyDelimiter(&hierarchyDelimiter);
-      if (hierarchyDelimiter != kOnlineHierarchySeparatorUnknown
-          && onlineSubDirDelimiter != (char) hierarchyDelimiter)
-          m_runningUrl->SetOnlineSubDirSeparator ((char) hierarchyDelimiter);
+      if (hierarchyDelimiter != kOnlineHierarchySeparatorUnknown &&
+          onlineSubDirDelimiter != hierarchyDelimiter)
+          m_runningUrl->SetOnlineSubDirSeparator(hierarchyDelimiter);
     }
   }
   m_runningUrl->CreateServerSourceFolderPathString(&sourceMailbox);

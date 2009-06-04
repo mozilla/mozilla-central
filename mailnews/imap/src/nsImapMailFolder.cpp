@@ -555,7 +555,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
         if (NS_SUCCEEDED(rv) && !onlineFullUtf7Name.IsEmpty())
         {
           CopyMUTF7toUTF16(onlineFullUtf7Name, currentFolderNameStr);
-          PRUnichar delimiter = 0;
+          char delimiter = 0;
           GetHierarchyDelimiter(&delimiter);
           PRInt32 leafPos = currentFolderNameStr.RFindChar(delimiter);
           if (leafPos > 0)
@@ -842,7 +842,10 @@ NS_IMETHODIMP nsImapMailFolder::CreateSubfolder(const nsAString& folderName, nsI
   return imapService->CreateFolder(m_thread, this, folderName, this, nsnull);
 }
 
-NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& folderName, PRUnichar hierarchyDelimiter, PRInt32 flags, PRBool suppressNotification)
+NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& folderName,
+                                                          char hierarchyDelimiter,
+                                                          PRInt32 flags,
+                                                          PRBool suppressNotification)
 {
   nsresult rv = NS_OK;
 
@@ -916,7 +919,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
     {
       nsCAutoString onlineName(m_onlineFolderName);
       if (!onlineName.IsEmpty())
-        onlineName.Append(char(hierarchyDelimiter));
+        onlineName.Append(hierarchyDelimiter);
       LossyAppendUTF16toASCII(folderNameStr, onlineName);
       imapFolder->SetVerifiedAsOnlineFolder(PR_TRUE);
       imapFolder->SetOnlineName(onlineName);
@@ -1067,20 +1070,20 @@ NS_IMETHODIMP nsImapMailFolder::SetVerifiedAsOnlineFolder(PRBool aVerifiedAsOnli
 NS_IMETHODIMP nsImapMailFolder::GetOnlineDelimiter(char** onlineDelimiter)
 {
   NS_ENSURE_ARG_POINTER(onlineDelimiter);
-  PRUnichar delimiter = 0;
+  char delimiter = 0;
   GetHierarchyDelimiter(&delimiter);
   nsAutoString str(delimiter);
   *onlineDelimiter = ToNewCString(str);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapMailFolder::SetHierarchyDelimiter(PRUnichar aHierarchyDelimiter)
+NS_IMETHODIMP nsImapMailFolder::SetHierarchyDelimiter(char aHierarchyDelimiter)
 {
   m_hierarchyDelimiter = aHierarchyDelimiter;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapMailFolder::GetHierarchyDelimiter(PRUnichar *aHierarchyDelimiter)
+NS_IMETHODIMP nsImapMailFolder::GetHierarchyDelimiter(char *aHierarchyDelimiter)
 {
   NS_ENSURE_ARG_POINTER(aHierarchyDelimiter);
   if (mIsServer)
@@ -1823,7 +1826,7 @@ NS_IMETHODIMP nsImapMailFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement
   element->GetInt32Property("boxFlags", &m_boxFlags);
   if (NS_SUCCEEDED(element->GetInt32Property("hierDelim", &hierarchyDelimiter))
       && hierarchyDelimiter != kOnlineHierarchySeparatorUnknown)
-    m_hierarchyDelimiter = (PRUnichar) hierarchyDelimiter;
+    m_hierarchyDelimiter = (char) hierarchyDelimiter;
   rv = element->GetStringProperty("onlineName", onlineName);
   if (NS_SUCCEEDED(rv) && !onlineName.IsEmpty())
     m_onlineFolderName.Assign(onlineName);
@@ -1958,7 +1961,7 @@ nsImapMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatab
       nsCString onlineCName;
       rv = nsImapURI2FullName(kImapRootURI, hostname.get(), uri.get(), getter_Copies(onlineCName));
       if (m_hierarchyDelimiter != '/')
-        onlineCName.ReplaceChar('/',  char(m_hierarchyDelimiter));
+        onlineCName.ReplaceChar('/',  m_hierarchyDelimiter);
       m_onlineFolderName.Assign(onlineCName);
       CopyASCIItoUTF16(onlineCName, autoOnlineName);
     }
@@ -3630,15 +3633,18 @@ nsIMAPNamespace *nsImapMailFolder::GetNamespaceForFolder()
     nsCString onlineName;
     GetServerKey(serverKey);
     GetOnlineName(onlineName);
-    PRUnichar hierarchyDelimiter;
+    char hierarchyDelimiter;
     GetHierarchyDelimiter(&hierarchyDelimiter);
 
-    m_namespace = nsIMAPNamespaceList::GetNamespaceForFolder(serverKey.get(), onlineName.get(), (char) hierarchyDelimiter);
+    m_namespace = nsIMAPNamespaceList::GetNamespaceForFolder(
+                    serverKey.get(), onlineName.get(), hierarchyDelimiter);
     NS_ASSERTION(m_namespace, "didn't get namespace for folder");
     if (m_namespace)
     {
-      nsIMAPNamespaceList::SuggestHierarchySeparatorForNamespace(m_namespace, (char) hierarchyDelimiter);
-      m_folderIsNamespace = nsIMAPNamespaceList::GetFolderIsNamespace(serverKey.get(), onlineName.get(), (char) hierarchyDelimiter, m_namespace);
+      nsIMAPNamespaceList::SuggestHierarchySeparatorForNamespace(m_namespace, hierarchyDelimiter);
+      m_folderIsNamespace = nsIMAPNamespaceList::GetFolderIsNamespace(
+                              serverKey.get(), onlineName.get(),
+                              hierarchyDelimiter, m_namespace);
     }
   }
   return m_namespace;
@@ -7592,12 +7598,13 @@ NS_IMETHODIMP nsImapMailFolder::GetIsNamespace(PRBool *aResult)
     nsCString onlineName, serverKey;
     GetServerKey(serverKey);
     GetOnlineName(onlineName);
-    PRUnichar hierarchyDelimiter;
+    char hierarchyDelimiter;
     GetHierarchyDelimiter(&hierarchyDelimiter);
 
     nsCOMPtr<nsIImapHostSessionList> hostSession = do_GetService(kCImapHostSessionList, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    m_namespace = nsIMAPNamespaceList::GetNamespaceForFolder(serverKey.get(), onlineName.get(), (char) hierarchyDelimiter);
+    m_namespace = nsIMAPNamespaceList::GetNamespaceForFolder(
+                    serverKey.get(), onlineName.get(), hierarchyDelimiter);
     if (m_namespace == nsnull)
     {
       if (mFlags & nsMsgFolderFlags::ImapOtherUser)
@@ -7610,8 +7617,11 @@ NS_IMETHODIMP nsImapMailFolder::GetIsNamespace(PRBool *aResult)
     NS_ASSERTION(m_namespace, "failed to get namespace");
     if (m_namespace)
     {
-      nsIMAPNamespaceList::SuggestHierarchySeparatorForNamespace(m_namespace, (char) hierarchyDelimiter);
-      m_folderIsNamespace = nsIMAPNamespaceList::GetFolderIsNamespace(serverKey.get(), onlineName.get(), (char) hierarchyDelimiter, m_namespace);
+      nsIMAPNamespaceList::SuggestHierarchySeparatorForNamespace(m_namespace,
+                                                                 hierarchyDelimiter);
+      m_folderIsNamespace = nsIMAPNamespaceList::GetFolderIsNamespace(
+                              serverKey.get(), onlineName.get(),
+                              hierarchyDelimiter, m_namespace);
     }
   }
   *aResult = m_folderIsNamespace;
@@ -7630,12 +7640,14 @@ NS_IMETHODIMP nsImapMailFolder::ResetNamespaceReferences()
   nsCString onlineName;
   GetServerKey(serverKey);
   GetOnlineName(onlineName);
-  PRUnichar hierarchyDelimiter;
+  char hierarchyDelimiter;
   GetHierarchyDelimiter(&hierarchyDelimiter);
-  m_namespace = nsIMAPNamespaceList::GetNamespaceForFolder(serverKey.get(), onlineName.get(), (char) hierarchyDelimiter);
-//  NS_ASSERTION(m_namespace, "resetting null namespace");
-  m_folderIsNamespace = m_namespace ? nsIMAPNamespaceList::GetFolderIsNamespace(serverKey.get(), onlineName.get(), 
-                                                                                (char) hierarchyDelimiter, m_namespace) : PR_FALSE;
+  m_namespace = nsIMAPNamespaceList::GetNamespaceForFolder(serverKey.get(),
+                                                           onlineName.get(),
+                                                           hierarchyDelimiter);
+  m_folderIsNamespace = m_namespace ? nsIMAPNamespaceList::GetFolderIsNamespace(
+                                        serverKey.get(), onlineName.get(),
+                                        hierarchyDelimiter, m_namespace) : PR_FALSE;
 
   nsCOMPtr<nsISimpleEnumerator> enumerator;
   GetSubFolders(getter_AddRefs(enumerator));
@@ -7772,11 +7784,11 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
   nsCOMPtr<nsIMsgImapMailFolder> oldImapFolder = do_QueryInterface(msgFolder, &rv);
   if (NS_FAILED(rv)) return rv;
 
-  PRUnichar hierarchyDelimiter = '/';
+  char hierarchyDelimiter = '/';
   oldImapFolder->GetHierarchyDelimiter(&hierarchyDelimiter);
   PRInt32 boxflags=0;
   oldImapFolder->GetBoxFlags(&boxflags);
-  
+
   nsAutoString newLeafName;
   nsAutoString newNameString;
   CopyASCIItoUTF16(newName, newNameString);
@@ -7826,7 +7838,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     {
       nsCAutoString onlineName(m_onlineFolderName);
       if (!onlineName.IsEmpty())
-      onlineName.Append(char(hierarchyDelimiter));
+      onlineName.Append(hierarchyDelimiter);
       LossyAppendUTF16toASCII(folderNameStr, onlineName);
       imapFolder->SetVerifiedAsOnlineFolder(PR_TRUE);
       imapFolder->SetOnlineName(onlineName);
@@ -7889,7 +7901,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
     if (NS_FAILED(rv))
       return rv;
 
-    PRUnichar hierarchyDelimiter = '/';
+    char hierarchyDelimiter = '/';
     folder->GetHierarchyDelimiter(&hierarchyDelimiter);
 
     PRInt32 boxflags;
@@ -7942,7 +7954,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
     nsCString onlineName;
     GetOnlineName(onlineName);
     nsCAutoString onlineCName(onlineName);
-    onlineCName.Append(char(hierarchyDelimiter));
+    onlineCName.Append(hierarchyDelimiter);
     onlineCName.Append(utf7LeafName);
     if (imapFolder)
     {

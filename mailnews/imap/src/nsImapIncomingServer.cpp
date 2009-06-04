@@ -1095,7 +1095,8 @@ nsImapIncomingServer::CreateRootFolderFromUri(const nsCString &serverUri,
 
 // nsIImapServerSink impl
 // aNewFolder will not be set if we're listing for the subscribe UI, since that's the way 4.x worked.
-NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folderPath, PRUnichar hierarchyDelimiter,
+NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folderPath,
+                                                        char hierarchyDelimiter,
                                                         PRInt32 boxFlags, PRBool *aNewFolder)
 {
   NS_ENSURE_ARG_POINTER(aNewFolder);

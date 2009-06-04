@@ -95,7 +95,7 @@ typedef PRUint16 imapMessageFlagsType;
 * piggying back the server support user flag info.
 */
 
-/* if a url creator does not know the hierarchySeparator, use this */
+/* if a url creator does not know the hierarchyDelimiter, use this */
 #define kOnlineHierarchySeparatorUnknown '^'
 #define kOnlineHierarchySeparatorNil '|'
 

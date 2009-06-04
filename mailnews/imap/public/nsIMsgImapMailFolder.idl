@@ -44,9 +44,11 @@ interface nsIImapIncomingServer;
 interface nsIMsgParseMailMsgState;
 interface nsIAutoSyncState;
 
-// this is a simple interface which allows the imap folder to update some values
-// that the folder props js code will use to update the sharing and quota tabs in the folder props.
-                 
+/**
+ * This is a simple interface which allows the IMAP folder to update some
+ * values that the folder props js code will use to update the sharing and
+ * quota tabs in the folder properties.
+ */
 [scriptable, uuid(09D99F2C-3E23-4f8c-A536-5C277BAA9585)] 
 interface nsIMsgImapFolderProps : nsISupports {
 
@@ -60,7 +62,7 @@ interface nsIMsgImapFolderProps : nsISupports {
      * If on, the quota root, usage, and percentage used are displayed.
      * If off, a status message is displayed. The status message can be set with setQuotaStatus().
      * @param showData If true, display the quota root, usage information and usage percentage bar.
-     * If false, display the status message.
+     *                 If false, display the status message.
      */
     void showQuotaData(in boolean showData);
 
@@ -76,10 +78,11 @@ interface nsIMsgImapFolderProps : nsISupports {
     void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
 };
 
-[scriptable, uuid(a18390ec-f21a-40e0-8d77-a55dc0591698)]
+[scriptable, uuid(dbee3096-941c-4fd6-91f7-2cc80527b857)]
 interface nsIMsgImapMailFolder : nsISupports {
   void removeSubFolder(in nsIMsgFolder folder);
-  void createClientSubfolderInfo(in ACString folderName, in wchar hierarchyDelimiter, in long flags, in boolean suppressNotification);
+  void createClientSubfolderInfo(in ACString folderName, in char hierarchyDelimiter,
+                                 in long flags, in boolean suppressNotification);
   void list();
   void renameLocal(in ACString newname, in nsIMsgFolder parent);
   void prepareToRename();
@@ -115,12 +118,12 @@ interface nsIMsgImapMailFolder : nsISupports {
                       in unsigned long aNumKeys);
 
   void notifyIfNewMail();
-  
+
   void initiateAutoSync(in nsIUrlListener aUrlListener);
 
   attribute boolean verifiedAsOnlineFolder;
   attribute boolean explicitlyVerify;
-  attribute wchar hierarchyDelimiter;
+  attribute char hierarchyDelimiter;
   attribute long boxFlags;
   attribute ACString onlineName;
   attribute boolean isNamespace;
@@ -155,6 +158,7 @@ interface nsIMsgImapMailFolder : nsISupports {
    * Lotus Notes sends us maxKB = 0, usedKB > 0 for unlimited quota.
    */
   void getQuota(out boolean valid, out unsigned long usedKB, out unsigned long maxKB);
+
   /**
    * Change the number of "pending" messages in a folder,
    *  messages we know about, but don't have the headers for yet
@@ -162,6 +166,7 @@ interface nsIMsgImapMailFolder : nsISupports {
    * @param aDelta amount to change total by.
    */
   void changePendingTotal(in long aDelta);
+
   /**
    * Change the number of "pending" unread messages in a folder,
    * unread messages we know about, but don't have the headers for yet
@@ -169,5 +174,4 @@ interface nsIMsgImapMailFolder : nsISupports {
    * @param aDelta amount to change the unread count by.
    */
   void changePendingUnread(in long aDelta);
-  
 };

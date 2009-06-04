@@ -44,50 +44,59 @@ interface nsIImapProtocol;
 interface nsIImapUrl;
 interface nsIImapMockChannel;
 
-[scriptable, uuid(3ec99d5f-1355-4eb7-ad70-5bcadc4b8b33)]
+[scriptable, uuid(a5f8db71-35a5-4143-b59b-abd067138912)]
 interface nsIImapServerSink : nsISupports {
-  /* returns true if it's a new mailbox */
-  boolean possibleImapMailbox(in ACString folderPath, in wchar hierarchyDelim, in long boxFlags);
+  /**
+   * Check if the given folder path is a possible IMAP mailbox.
+   * @param folderPath folder path to check
+   * @param hierarchyDelimiter IMAP hierarchy delimiter in canonical format,
+   *                           i.e., hierarchy delimiter has been replaced
+   *                           with '/'
+   * @param boxFlags IMAP folder flags (for subscription, namespaces etc.)
+   * @return true if it's a new mailbox
+   */
+  boolean possibleImapMailbox(in ACString folderPath,
+                              in char hierarchyDelimiter, in long boxFlags);
   boolean folderNeedsACLInitialized(in ACString folderPath);
   void addFolderRights(in ACString folderPath, in ACString userName, in ACString rights);
   void refreshFolderRights(in ACString folderPath);
   void discoveryDone();
-  void onlineFolderDelete(in ACString aFolderName);
+  void onlineFolderDelete(in ACString folderName);
   void onlineFolderCreateFailed(in ACString aFolderName);
   void onlineFolderRename(in nsIMsgWindow msgWindow, in ACString oldName, in ACString newName);
-  boolean folderIsNoSelect(in ACString aFolderName);
-  void setFolderAdminURL(in ACString aFolderName, in ACString adminUrl);
-  boolean folderVerifiedOnline(in ACString aFolderName);
+  boolean folderIsNoSelect(in ACString folderName);
+  void setFolderAdminURL(in ACString folderName, in ACString adminUrl);
+  boolean folderVerifiedOnline(in ACString folderName);
 
   void setCapability(in unsigned long capability);
-  boolean loadNextQueuedUrl(in nsIImapProtocol aProtocol);
+  boolean loadNextQueuedUrl(in nsIImapProtocol protocol);
 
-  /*
-   * Prepare to retry the current url
-   *
-   * @param  aImapUrl - url we're going to retry
-   *
-   * @returns - channel to associate with the url. We return this
-   *            because access to the channel should only happen on
-   *            the ui thread.
+  /**
+   * Prepare to retry the given URL.
+   * @param imapUrl the url we're going to retry
+   * @return channel to associate with the url. We return this because access
+   *         to the channel should only happen on the ui thread.
    */
-  nsIImapMockChannel prepareToRetryUrl(in nsIImapUrl aImapUrl);
+  nsIImapMockChannel prepareToRetryUrl(in nsIImapUrl imapUrl);
 
-  /*
-   * Retry the current url
-   * 
-   * @param  aImapUrl - url to retry
-   * @param  aChannel - channel to associate with the url 
+  /**
+   * Retry the given URL.
+   * @param imapUrl url to retry
+   * @param channel the channel to associate with the url
    */
-  void retryUrl(in nsIImapUrl aImapUrl, in nsIImapMockChannel aChannel);
-  // if previous url failed, this gives server chance to abort urls with same mock channel
-  void abortQueuedUrls(); 
-  AString getImapStringByID(in long aMsgId);
-  AString formatStringWithHostNameByID(in long aMsgId);
-  void fEAlert(in AString aString, in nsIMsgMailNewsUrl aUrl);
-  void fEAlertFromServer(in ACString aString, in nsIMsgMailNewsUrl aUrl);
+  void retryUrl(in nsIImapUrl imapUrl, in nsIImapMockChannel channel);
+
+  /**
+   * If previous URL failed, this gives server chance to abort URLs with same
+   * mock channel.
+   */
+  void abortQueuedUrls();
+  AString getImapStringByID(in long msgId);
+  AString formatStringWithHostNameByID(in long msgId);
+  void fEAlert(in AString alertSring, in nsIMsgMailNewsUrl url);
+  void fEAlertFromServer(in ACString alertSring, in nsIMsgMailNewsUrl url);
   void commitNamespaces();
-  void promptForPassword(out ACString aString, in nsIMsgWindow aMsgWindow);
+  void promptForPassword(out ACString promptString, in nsIMsgWindow msgWindow);
   attribute boolean userAuthenticated;
   void setMailServerUrls(in ACString manageMailAccount, in ACString manageLists, in ACString manageFilters);
 
@@ -97,4 +106,3 @@ interface nsIImapServerSink : nsISupports {
   readonly attribute boolean showAttachmentsInline;
   string cramMD5Hash(in string decodedChallenge, in string key);
 };
-
