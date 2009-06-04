@@ -120,8 +120,8 @@
     <key id="searchInternetKb" key="&searchInternet.commandKey;" modifiers="accel,shift" command="Browser:SearchInternet"/>
 
     <!-- Misc -->
-          <!-- the amazing fishcam dept. -->
-    <key key="f" modifiers="control,alt" oncommand="loadURI('http://www.fishcam.com/');"/>
+    <!-- the amazing fishcam, suppress warning by ',' at the beginning of modifiers, see bug 496322 -->
+    <key key="f" modifiers=",control,alt" oncommand="loadURI('http://www.fishcam.com/');"/>
     <key id="goUpKb" keycode="VK_UP" command="Browser:Up" modifiers="alt"/>
     <key id="key_gotoHistory"  key="&history.commandKey;"        oncommand="toHistory();" modifiers="accel"/>
     <keyset id="viewZoomKeys"/>
