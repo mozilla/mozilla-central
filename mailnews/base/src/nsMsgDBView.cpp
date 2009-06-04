@@ -2585,9 +2585,6 @@ nsMsgDBView::ApplyCommandToIndicesWithFolder(nsMsgViewCommandTypeValue command, 
   nsresult rv = NS_OK;
   NS_ENSURE_ARG_POINTER(destFolder);
 
-  if (!m_folder)
-    return NS_ERROR_NOT_INITIALIZED;
-
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
   switch (command) {
     case nsMsgViewCommandType::copyMessages:

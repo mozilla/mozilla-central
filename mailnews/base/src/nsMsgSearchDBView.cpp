@@ -1056,6 +1056,10 @@ nsresult nsMsgSearchDBView::ProcessRequestsInOneFolder(nsIMsgWindow *window)
 {
     nsresult rv = NS_OK;
 
+    // Folder operations like copy/move are not implemented for .eml files.
+    if (m_uniqueFoldersSelected.Count() == 0)
+      return NS_ERROR_NOT_IMPLEMENTED;
+
     nsIMsgFolder *curFolder = m_uniqueFoldersSelected[mCurIndex];
     NS_ASSERTION(curFolder, "curFolder is null");
     nsCOMPtr<nsIMutableArray> messageArray =
