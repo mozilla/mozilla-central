@@ -77,6 +77,9 @@ var FolderPaneController =
 			case "cmd_delete":
 			case "cmd_shiftDelete":
 			case "button_delete":
+        // Make sure the button doesn't show "Undelete" for folders.
+        if (command == "button_delete")
+          UpdateDeleteToolbarButton(true);
 			case "button_shiftDelete":
 			if ( command == "cmd_delete" )
 				goSetMenuValue(command, 'valueFolder');
@@ -269,6 +272,8 @@ var DefaultController =
         UpdateDeleteCommand();
         // fall through
       case "button_delete":
+        if (command == "button_delete")
+          UpdateDeleteToolbarButton(false);
         if (gDBView)
           gDBView.getCommandStatus(nsMsgViewCommandType.deleteMsg, enabled, checkStatus);
         return enabled.value;
@@ -525,10 +530,12 @@ var DefaultController =
       case "cmd_delete":
       case "button_delete":
         MsgDeleteMessage(false);
+        UpdateDeleteToolbarButton(false);
         break;
       case "cmd_shiftDelete":
       case "button_shiftDelete":
         MsgDeleteMessage(true);
+        UpdateDeleteToolbarButton(false);
         break;
       case "cmd_killThread":
         /* kill thread kills the thread and then does a next unread */

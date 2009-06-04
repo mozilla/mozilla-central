@@ -465,6 +465,7 @@
 <!ENTITY goBackButton.label "Go Back">
 <!ENTITY goForwardButton.label "Go Forward">
 <!ENTITY deleteButton.label "Delete">
+<!ENTITY undeleteButton.label "Undelete">
 <!ENTITY markButton.label "Mark">
 <!ENTITY printButton.label "Print">
 <!ENTITY stopButton.label "Stop">
@@ -487,6 +488,7 @@
 <!ENTITY goBackButton.tooltip "Go back one message">
 <!ENTITY goForwardButton.tooltip "Go forward one message">
 <!ENTITY deleteButton.tooltip "Delete selected message or folder">
+<!ENTITY undeleteButton.tooltip "Undelete selected message">
 <!ENTITY markButton.tooltip "Mark messages">
 <!ENTITY printButton.tooltip "Print this message">
 <!ENTITY stopButton.tooltip "Stop the current transfer">

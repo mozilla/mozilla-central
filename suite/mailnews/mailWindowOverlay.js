@@ -823,6 +823,20 @@ function UpdateJunkToolbarButton()
   junkButtonDeck.setAttribute("selectedIndex", SelectedMessagesAreJunk() ? 1 : 0);
 }
 
+function UpdateDeleteToolbarButton(aFolderPaneHasFocus)
+{
+  var deleteButtonDeck = document.getElementById("delete-deck");
+  var selectedIndex = 0;
+
+  // Never show "Undelete" in the 3-pane for folders, when delete would
+  // apply to the selected folder.
+  if (!aFolderPaneHasFocus && SelectedMessagesAreDeleted())
+    selectedIndex = 1;
+
+  // Wallpaper over Bug 491676 by using the attribute instead of the property.
+  deleteButtonDeck.setAttribute("selectedIndex", selectedIndex);
+}
+
 function UpdateDeleteCommand()
 {
   var value = "value";
@@ -996,16 +1010,25 @@ function MsgGetNextNMessages()
   }
 }
 
-function MsgDeleteMessage(reallyDelete)
+function MsgDeleteMessage(aReallyDelete)
 {
-    // if the user deletes a message before its mark as read timer goes off, we should mark it as read
-    // this ensures that we clear the biff indicator from the system tray when the user deletes the new message
-    MarkSelectedMessagesRead(true);
-    SetNextMessageAfterDelete();
-    if (reallyDelete)
-      gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
-    else
-      gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
+  // if the user deletes a message before its mark as read timer goes off,
+  // we should mark it as read this ensures that we clear the biff indicator
+  // from the system tray when the user deletes the new message
+  MarkSelectedMessagesRead(true);
+  SetNextMessageAfterDelete();
+
+  // determine if we're using the IMAP delete model
+  var server = GetFirstSelectedMsgFolder().server;
+  const kIMAPDelete = Components.interfaces.nsMsgImapDeleteModels.IMAPDelete;
+  var imapDeleteModelUsed = server instanceof Components.interfaces.nsIImapIncomingServer &&
+                            server.deleteModel == kIMAPDelete;
+
+  // execute deleteNoTrash only if IMAP delete model is not used
+  if (aReallyDelete && !imapDeleteModelUsed)
+    gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
+  else
+    gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
 }
 
 function MsgCopyMessage(destFolder)

@@ -174,6 +174,7 @@ nsMsgDBViewCommandUpdater.prototype =
     gCurrentMessageUri = gDBView.URIForFirstSelectedMessage;
     UpdateStandAloneMessageCounts();
     SetKeywords(aKeywords);
+    goUpdateCommand("button_delete");
     goUpdateCommand("button_junk");
     goUpdateCommand("button_goBack");
     goUpdateCommand("button_goForward");
@@ -672,6 +673,9 @@ var MessageWindowController =
         UpdateDeleteCommand();
         // fall through
       case "button_delete":
+        if (command == "button_delete")
+          UpdateDeleteToolbarButton(false);
+        // fall through
       case "cmd_shiftDelete":
       case "button_shiftDelete":
         loadedFolder = GetLoadedMsgFolder();
@@ -835,6 +839,7 @@ var MessageWindowController =
       case "cmd_delete":
       case "button_delete":
         MsgDeleteMessage(false);
+        UpdateDeleteToolbarButton(false);
         break;
       case "cmd_shiftDelete":
       case "button_shiftDelete":

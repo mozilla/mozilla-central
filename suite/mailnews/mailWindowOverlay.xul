@@ -2138,12 +2138,23 @@
       </deck>
     </toolbaritem>
 
-    <toolbarbutton id="button-delete"
-                   class="toolbarbutton-1"
-                   label="&deleteButton.label;"
-                   tooltiptext="&deleteButton.tooltip;"
-                   observes="button_delete"
-                   oncommand="goDoCommand(event.shiftKey ? 'button_shiftDelete' : 'button_delete')"/>
+    <toolbaritem id="button-delete">
+      <deck id="delete-deck" observes="button_delete">
+        <toolbarbutton id="button-mark-deleted"
+                       class="toolbarbutton-1"
+                       label="&deleteButton.label;"
+                       tooltiptext="&deleteButton.tooltip;"
+                       observes="button_delete"
+                       oncommand="goDoCommand(event.shiftKey ? 'button_shiftDelete' : 'button_delete')"/>
+        <toolbarbutton id="button-mark-undelete"
+                       class="toolbarbutton-1"
+                       label="&undeleteButton.label;"
+                       tooltiptext="&undeleteButton.tooltip;"
+                       observes="button_delete"
+                       oncommand="goDoCommand('button_delete')"/>
+      </deck>
+    </toolbaritem>
+
     <toolbarbutton id="button-mark"
                    class="toolbarbutton-1"
                    type="menu-button"
