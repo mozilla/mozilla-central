@@ -2406,11 +2406,10 @@ function IsGetNextNMessagesEnabled()
   var folder = selectedFolders.length ? selectedFolders[0] : null;
 
   var menuItem = document.getElementById("menu_getnextnmsg");
-  var server = folder.server;
   if (folder && !folder.isServer &&
-      server instanceof Components.interfaces.nsINntpIncomingServer) {
+      folder.server instanceof Components.interfaces.nsINntpIncomingServer) {
     var menuLabel = gMessengerBundle.getFormattedString("getNextNMessages",
-                                                        [server.maxArticles]);
+                                                        [folder.server.maxArticles]);
     menuItem.setAttribute("label", menuLabel);
     menuItem.removeAttribute("hidden");
     return true;
