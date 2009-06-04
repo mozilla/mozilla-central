@@ -40,7 +40,6 @@
   ${Unless} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
   ${AndUnless} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
   ${AndUnless} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
-  ${AndUnless} ${FileExists} "$EXEDIR\optional\extensions\p@m"
   ${AndUnless} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
     Abort
   ${EndUnless}
@@ -124,25 +123,6 @@
     SectionSetText ${DEBUG_IDX} ""
   ${EndIf}
 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Type   "checkbox"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Text   "$(PALMSYNC_TITLE)"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Left   "15"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Right  "-1"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Top    "$R2"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Bottom "$R3"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" State  "1"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Flags  "GROUP"
-    ${GetSize} "$EXEDIR\optional\extensions\p@m" "/S=0K" $0 $8 $9
-    SectionSetSize ${PALM_IDX} $0
-    IntOp $R1 $R1 + 1
-    IntOp $R2 $R2 + $R4
-    IntOp $R3 $R3 + $R4
-  ${Else}
-    ; Hide Palm Sync in the components page if it isn't available.
-    SectionSetText ${PALM_IDX} ""
-  ${EndIf}
-
   ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Type   "checkbox"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Text   "$(VENKMAN_TITLE)"
@@ -199,18 +179,6 @@
   ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Type   "label"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Text   "$(DEBUGQA_TEXT)"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Left   "30"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Right  "-1"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Top    "$R2"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Bottom "$R3"
-    IntOp $R1 $R1 + 1
-    IntOp $R2 $R2 + $R4
-    IntOp $R3 $R3 + $R4
-  ${EndIf}
-
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Type   "label"
-    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Text   "$(PALMSYNC_TEXT)"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Left   "30"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Right  "-1"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Top    "$R2"

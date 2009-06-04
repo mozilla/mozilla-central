@@ -249,14 +249,6 @@ Section "-InstallStartCleanup"
       RmDir /r "$INSTDIR\extensions\debugQA@mozilla.org"
     ${EndIf}
 
-    ; If PalmSync is installed and this install includes PalmSync remove it
-    ; from the installation directory. This will remove it if the user
-    ; deselected PalmSync on the components page.
-    ${If} ${FileExists} "$INSTDIR\extensions\p@m"
-    ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\p@m"
-      RmDir /r "$INSTDIR\extensions\p@m"
-    ${EndIf}
-
     ; If Venkman is installed and this install includes Venkman remove it
     ; from the installation directory. This will remove it if the user
     ; deselected Venkman on the components page.
@@ -547,22 +539,6 @@ Section /o "Debug and QA Tools" DEBUG_IDX
   ${EndIf}
 SectionEnd
 
-Section /o "Palm Address Book Synchronization Tool" PALM_IDX 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
-    SetDetailsPrint both
-    DetailPrint $(STATUS_INSTALL_OPTIONAL)
-    SetDetailsPrint none
-
-    ${RemoveDir} "$INSTDIR\extensions\p@m"
-    ClearErrors
-    ${LogHeader} "Installing Palm Address Book Synchronization Tool"
-    ${CopyFilesFromDir} "$EXEDIR\optional\extensions\p@m" \
-                        "$INSTDIR\extensions\p@m" \
-                        "$(ERROR_CREATE_DIRECTORY_PREFIX)" \
-                        "$(ERROR_CREATE_DIRECTORY_SUFFIX)"
-  ${EndIf}
-SectionEnd
-
 Section /o "JavaScript Debugger" VENKMAN_IDX 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
     SetDetailsPrint both 
@@ -789,16 +765,6 @@ Function leaveComponents
     IntOp $R1 $R1 + 1
   ${Else}
     SectionSetFlags ${DEBUG_IDX} 0 ; Disable install for debugQA
-  ${EndIf}
-
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
-    ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
-    ; State will be 1 for checked and 0 for unchecked so we can use that to set
-    ; the section flags for installation.
-    SectionSetFlags ${PALM_IDX} $R0
-    IntOp $R1 $R1 + 1
-  ${Else}
-    SectionSetFlags ${PALM_IDX} 0 ; Disable install for palmsync
   ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"

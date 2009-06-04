@@ -116,6 +116,15 @@ xpicleanup
 res/broken-image.gif
 res/loading-image.gif
 #endif
+#ifdef XP_WIN
+extensions/p@m/install.rdf
+extensions/p@m/mozABConduit.dll
+extensions/p@m/PalmSyncInstall.exe
+extensions/p@m/PalmSyncProxy.dll
+extensions/p@m/components/palmsync.dll
+extensions/p@m/components/palmsync.xpt
+extensions/p@m/defaults/preferences/palmsync.js
+#endif
 #ifdef MOZ_STATIC_BUILD
 components/@DLL_PREFIX@accessibility@DLL_SUFFIX@
 components/@DLL_PREFIX@appcomps@DLL_SUFFIX@

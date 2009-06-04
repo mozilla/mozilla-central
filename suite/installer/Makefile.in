@@ -77,7 +77,6 @@ MOZ_OPTIONAL_PKG_LIST = \
 	chatzilla \
 	debugqa \
 	inspector \
-	palmsync \
 	venkman \
 	$(NULL)
 
