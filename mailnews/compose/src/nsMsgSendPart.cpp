@@ -61,8 +61,6 @@ PRInt32 nsMsgSendPart::M_counter = 0;
 
 nsMsgSendPart::nsMsgSendPart(nsIMsgSend* state, const char *part_charset)
 {
-  m_state = nsnull;
-
   PL_strncpy(m_charset_name, (part_charset ? part_charset : "us-ascii"), sizeof(m_charset_name)-1);
   m_charset_name[sizeof(m_charset_name)-1] = '\0';
   m_children = nsnull;

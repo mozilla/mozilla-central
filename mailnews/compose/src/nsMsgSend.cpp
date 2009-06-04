@@ -285,17 +285,11 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgComposeAndSend, nsIMsgSend)
 nsMsgComposeAndSend::nsMsgComposeAndSend() :
     m_messageKey(0xffffffff)
 {
-#if defined(DEBUG_ducarroz)
-  printf("CREATE nsMsgComposeAndSend: %x\n", this);
-#endif
   mGUINotificationEnabled = PR_TRUE;
   mAbortInProcess = PR_FALSE;
   mLastErrorReported = NS_OK;
-  mEditor = nsnull;
   mMultipartRelatedAttachmentCount = -1;
-  mCompFields = nsnull;     /* Where to send the message once it's done */
   mSendMailAlso = PR_FALSE;
-  mOutputFile = nsnull;
 
   m_dont_deliver_p = PR_FALSE;
   m_deliver_mode = nsMsgDeliverNow;
@@ -304,7 +298,6 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
   m_pre_snarfed_attachments_p = PR_FALSE;
   m_digest_p = PR_FALSE;
   m_be_synchronous_p = PR_FALSE;
-  m_crypto_closure = nsnull;
   m_attachment1_type = 0;
   m_attachment1_encoding = 0;
   m_attachment1_encoder_data = nsnull;
@@ -320,13 +313,6 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
   m_related_body_part = nsnull;
   mOriginalHTMLBody = nsnull;
 
-  // These are for temp file creation and return
-  mReturnFile = nsnull;
-  mTempFile = nsnull;
-  mHTMLFile = nsnull;
-  mCopyFile = nsnull;
-  mCopyFile2 = nsnull;
-  mCopyObj = nsnull;
   mNeedToPerformSecondFCC = PR_FALSE;
 
   mPreloadedAttachmentCount = 0;
@@ -340,11 +326,48 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
 
 nsMsgComposeAndSend::~nsMsgComposeAndSend()
 {
-#if defined(DEBUG_ducarroz)
-  printf("DISPOSE nsMsgComposeAndSend: %x\n", this);
+#ifdef NS_DEBUG
+  printf("\nTHE DESTRUCTOR FOR nsMsgComposeAndSend() WAS CALLED\n");
 #endif
-  mSendReport = nsnull;
-  Clear();
+  PR_Free(m_attachment1_type);
+  PR_Free(m_attachment1_encoding);
+  PR_Free(m_attachment1_body);
+  PR_Free(mOriginalHTMLBody);
+
+  if (m_attachment1_encoder_data)
+    MIME_EncoderDestroy(m_attachment1_encoder_data, PR_TRUE);
+
+  if (m_plaintext)
+  {
+    if (m_plaintext->mTmpFile)
+      m_plaintext->mTmpFile->Remove(PR_FALSE);
+
+    delete m_plaintext;
+  }
+
+  if (mHTMLFile)
+    mHTMLFile->Remove(PR_FALSE);
+
+  if (mCopyFile)
+    mCopyFile->Remove(PR_FALSE);
+
+  if (mCopyFile2)
+    mCopyFile2->Remove(PR_FALSE);
+
+  if (mTempFile && !mReturnFile)
+    mTempFile->Remove(PR_FALSE);
+
+  if (m_attachments)
+  {
+    PRUint32 i;
+    for (i = 0; i < m_attachment_count; i++)
+    {
+      if (m_attachments [i].m_encoder_data)
+        MIME_EncoderDestroy(m_attachments[i].m_encoder_data, PR_TRUE);
+    }
+
+    delete[] m_attachments;
+  }
 }
 
 NS_IMETHODIMP nsMsgComposeAndSend::GetDefaultPrompt(nsIPrompt ** aPrompt)
@@ -406,90 +429,6 @@ nsresult nsMsgComposeAndSend::GetNotificationCallbacks(nsIInterfaceRequestor** a
   return NS_ERROR_FAILURE;
 }
 
-void
-nsMsgComposeAndSend::Clear()
-{
-#ifdef NS_DEBUG
-  printf("\nTHE CLEANUP ROUTINE FOR nsMsgComposeAndSend() WAS CALLED\n");
-#endif
-  PR_FREEIF (m_attachment1_type);
-  PR_FREEIF (m_attachment1_encoding);
-  PR_FREEIF (m_attachment1_body);
-  PR_FREEIF (mOriginalHTMLBody);
-
-  if (m_attachment1_encoder_data)
-  {
-    MIME_EncoderDestroy(m_attachment1_encoder_data, PR_TRUE);
-    m_attachment1_encoder_data = 0;
-  }
-
-  if (m_plaintext)
-  {
-    if (m_plaintext->mTmpFile)
-    {
-      m_plaintext->mTmpFile->Remove(PR_FALSE);
-      m_plaintext->mTmpFile = nsnull;
-    }
-    delete m_plaintext;
-    m_plaintext = nsnull;
-  }
-
-  if (mHTMLFile)
-  {
-    mHTMLFile->Remove(PR_FALSE);
-    mHTMLFile = nsnull;
-  }
-
-  if (mOutputFile)
-    mOutputFile = nsnull;
-
-  if (mCopyFile)
-  {
-    mCopyFile->Remove(PR_FALSE);
-
-    // jt -- *don't* use delete someone may still holding the nsIFile
-    // pointer
-    mCopyFile = nsnull;
-  }
-
-  if (mCopyFile2)
-  {
-    mCopyFile2->Remove(PR_FALSE);
-
-    // jt -- *don't* use delete someone may still holding the nsIFile
-    // pointer
-    mCopyFile2 = nsnull;
-  }
-
-  if (mTempFile)
-  {
-    if (mReturnFile == nsnull)
-    {
-      mTempFile->Remove(PR_FALSE);
-      mTempFile = nsnull;
-    }
-  }
-
-  if (m_attachments)
-  {
-    PRUint32 i;
-    for (i = 0; i < m_attachment_count; i++)
-    {
-      if (m_attachments [i].m_encoder_data)
-      {
-        MIME_EncoderDestroy(m_attachments[i].m_encoder_data, PR_TRUE);
-        m_attachments [i].m_encoder_data = 0;
-      }
-    }
-
-    delete[] m_attachments;
-    m_attachment_count = m_attachment_pending_count = 0;
-    m_attachments = 0;
-  }
-
-  // Cleanup listener
-  mListener = nsnull;
-}
 
 static char *mime_mailto_stream_read_buffer = 0;
 static char *mime_mailto_stream_write_buffer = 0;
@@ -4198,11 +4137,7 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
   nsCOMPtr<nsIMsgCopyServiceListener> copyListener;
 
   // This is one per copy so make sure we clean this up first.
-  if (mCopyObj)
-  {
-    NS_RELEASE(mCopyObj);
-    mCopyObj = nsnull;
-  }
+  mCopyObj = nsnull;
 
   // Set a status message...
   nsString msg;
@@ -4985,7 +4920,7 @@ nsMsgComposeAndSend::StartMessageCopyOperation(nsIFile          *aFile,
   mCopyObj = new nsMsgCopy();
   if (!mCopyObj)
     return NS_ERROR_OUT_OF_MEMORY;
-  NS_ADDREF(mCopyObj);
+
   //
   // Actually, we need to pick up the proper folder from the prefs and not
   // default to the default "Flagged" folder choices

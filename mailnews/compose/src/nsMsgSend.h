@@ -219,7 +219,6 @@ public:
                                         nsMsgDeliverMode mode,
                                         const nsCString& dest_uri);
 
-  void        Clear();
 
   nsresult SendToMagicFolder(nsMsgDeliverMode flag);
 
@@ -332,7 +331,7 @@ public:
   //
   nsCOMPtr<nsIFile>         mCopyFile;
   nsCOMPtr<nsIFile>         mCopyFile2;
-  nsMsgCopy                 *mCopyObj;
+  nsRefPtr<nsMsgCopy>       mCopyObj;
   PRBool                    mNeedToPerformSecondFCC;
 
   // For MHTML message creation
