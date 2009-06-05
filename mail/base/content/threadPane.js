@@ -91,7 +91,10 @@ function ThreadPaneOnClick(event)
 }
 
 function nsMsgDBViewCommandUpdater()
-{}
+{
+  _selectionSummarized: false;
+  _selectionTimeout: null;
+}
 
 nsMsgDBViewCommandUpdater.prototype = 
 {
@@ -116,28 +119,62 @@ nsMsgDBViewCommandUpdater.prototype =
     SetNextMessageAfterDelete();
   },
 
-  summarizeSelection: function()
+ /**
+  * This method either handles the selection, or sets a timer to handle
+  * it once it stops changing.
+  */
+  showSummary: function(aThis, aSelCount)
   {
+    aThis._selectionSummarized = true;
     let selectedMsgUris = GetSelectedMessages();
-    if (!selectedMsgUris || (selectedMsgUris.length == 1)) {
-      pickMessagePane("singlemessage");
-      return false;
+    let selCount = selectedMsgUris ? selectedMsgUris.length : 0;
+    if (selCount < 2) {
+      aThis.summarizeSelection();
+      return;
     }
-
-    if (! gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads")) {
-      ClearMessagePane();
-      return false;
+    if (selCount != aSelCount) {
+      clearTimeout(aThis._selectionTimeout);
+      aThis._selectionTimeout = setTimeout(aThis.showSummary, 100, aThis, selCount);
+      return;
     }
 
     let firstThreadId = messenger.msgHdrFromURI(selectedMsgUris[0]).threadId;
     for (let i = 1; i < selectedMsgUris.length; ++i)
     {
       let msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
-      if (msgHdr.threadId != firstThreadId) // at least more than one thread
-        return summarizeMultipleSelection(selectedMsgUris);
+      if (msgHdr.threadId != firstThreadId) { // at least more than one thread
+        summarizeMultipleSelection(selectedMsgUris);
+        return;
+      }
     }
     // must be just one thread.
     summarizeThread(selectedMsgUris);
+  },
+
+  summarizeSelection: function()
+  {
+    // First handle immediately the cases where we're not going to summarize.
+    let selectedMsgUris = GetSelectedMessages();
+    if (!selectedMsgUris || (selectedMsgUris.length == 1)) {
+      pickMessagePane("singlemessage");
+      this._selectionSummarized = false;
+      return false;
+    }
+
+    if (! gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads")) {
+      ClearMessagePane();
+      this._selectionSummarized = false;
+      return false;
+    }
+
+    // If we are already summarized, let's make sure the selection count
+    // isn't changing rapidly, by checking again in 100 msec.
+    if (this._selectionSummarized) {
+      clearTimeout(this._selectionTimeout);
+      this._selectionTimeout = setTimeout(this.showSummary, 100, this, selectedMsgUris.length);
+      return true;
+    }
+    this.showSummary(this, selectedMsgUris.length);
     return true;
   },
 
