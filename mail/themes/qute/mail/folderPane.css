@@ -108,6 +108,13 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Trash) {
   -moz-image-region: rect(0 144px 16px 128px);
 }
 
+/* ..... Archives ..... */
+
+.tabmail-tab[type="folder"][SpecialFolder="Archive"] .tab-icon-image,
+treechildren::-moz-tree-image(folderNameCol, specialFolder-Archive) {
+  -moz-image-region: rect(0 208px 16px 192px);
+}
+
 /* ..... Shared folders .....
 
 treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
