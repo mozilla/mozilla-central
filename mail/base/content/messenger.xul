@@ -206,7 +206,6 @@
               </sidebarheader>
 
               <tree id="folderTree" class="plain focusring" flex="1"
-                    treelines="true"
                     hidecolumnpicker="true" persist="mode" mode="all"
                     keepcurrentinview="true"
                     context="folderPaneContext"

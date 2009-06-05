@@ -317,7 +317,3 @@ treechildren::-moz-tree-twisty {
 treechildren::-moz-tree-twisty(open) {
   -moz-appearance: treetwistyopen;
 }
-
-treechildren::-moz-tree-line {
-  visibility: hidden;
-}
