@@ -55,7 +55,7 @@ interface nsMsgImapDeleteModels
   const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(c13a5253-447f-47e2-966f-ad7d160ce329)]
+[scriptable, uuid(99599429-f9ea-48d9-ab4a-a05ec2395f5c)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
@@ -87,6 +87,11 @@ interface nsIImapIncomingServer : nsISupports {
    * See IMAP RFC 4551
    **/
   attribute boolean useCondStore;
+
+  /**
+   * See IMAP RFC 4978
+   */
+  attribute boolean useCompressDeflate;
 
   attribute AString trashFolderName;
 

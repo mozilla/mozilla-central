@@ -149,7 +149,8 @@ typedef enum {
     kHasAuthGssApiCapability = 0x01000000, /* GSSAPI AUTH */ 
     kHasCondStoreCapability =  0x02000000, /* RFC 3551 CondStore extension */
     kHasEnableCapability    =  0x04000000, /* RFC 5161 ENABLE extension */
-    kHasXListCapability    =  0x08000000 /* XLIST extension */
+    kHasXListCapability    =  0x08000000,  /* XLIST extension */
+    kHasCompressDeflateCapability  =  0x10000000  /* RFC 4978 COMPRESS extension */
 } eIMAPCapabilityFlag;
 
 // this used to be part of the connection object class - maybe we should move it into 

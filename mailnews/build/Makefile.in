@@ -94,6 +94,7 @@ REQUIRES	= xpcom \
 		  webbrwsr \
 		  uconv \
 		  uriloader \
+		  $(ZLIB_REQUIRES) \
 		  $(NULL)
 
 ifeq ($(OS_TARGET),Darwin)
@@ -105,6 +106,10 @@ REQUIRES	+= mozldap \
                $(NULL)
 
 DEFINES		+= -DMOZ_LDAP_XPCOM
+endif
+
+ifeq ($(OS_ARCH),WINNT)
+DEFINES		+= -DZLIB_DLL
 endif
 
 CPPSRCS		= nsMailModule.cpp
@@ -135,10 +140,12 @@ EXTRA_DSO_LDOPTS = \
 		$(MOZ_JS_LIBS) \
 		$(MOZ_UNICHARUTIL_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
+		$(ZLIB_LIBS) \
 		$(NULL)
 else
 EXTRA_DSO_LDOPTS = \
 	$(LIBS_DIR) \
+	$(ZLIB_LIBS) \
 	$(XPCOM_GLUE_LDOPTS) \
 	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
 	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \

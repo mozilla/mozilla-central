@@ -2248,6 +2248,8 @@ void nsImapServerResponseParser::capability_data()
         fCapabilityFlag |= kHasEnableCapability;
       else if (! PL_strcasecmp(fNextToken, "XLIST"))
         fCapabilityFlag |= kHasXListCapability;
+      else if (! PL_strcasecmp(fNextToken, "COMPRESS=DEFLATE"))
+        fCapabilityFlag |= kHasCompressDeflateCapability;
     }
   } while (fNextToken && !fAtEndOfLine && ContinueParse());
 

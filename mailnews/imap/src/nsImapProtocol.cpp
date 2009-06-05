@@ -112,6 +112,8 @@ PRLogModuleInfo *IMAP;
 #include "nsISSLSocketControl.h"
 #include "nsProxyRelease.h"
 #include "nsDebug.h"
+#include "nsMsgCompressIStream.h"
+#include "nsMsgCompressOStream.h"
 
 #define ONE_SECOND ((PRUint32)1000)    // one second
 
@@ -373,6 +375,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_retryUrlOnError = PR_FALSE;
   m_useIdle = PR_TRUE; // by default, use it
   m_useCondStore = PR_TRUE;
+  m_useCompressDeflate = PR_TRUE;
   m_ignoreExpunges = PR_FALSE;
   m_useSecAuth = PR_FALSE;
   m_socketType = nsIMsgIncomingServer::tryTLS;
@@ -515,6 +518,7 @@ nsresult nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList, n
 
   aServer->GetUseIdle(&m_useIdle);
   aServer->GetUseCondStore(&m_useCondStore);
+  aServer->GetUseCompressDeflate(&m_useCompressDeflate);
   NS_ADDREF(m_flagState);
 
   m_sinkEventTarget = aSinkEventTarget;
@@ -5254,6 +5258,62 @@ void nsImapProtocol::EnableCondStore()
     ParseIMAPandCheckForNewMail();  
 }
 
+void nsImapProtocol::StartCompressDeflate()
+{
+  // only issue a compression request if we haven't already
+  if (!TestFlag(IMAP_ISSUED_COMPRESS_REQUEST))
+  {
+    SetFlag(IMAP_ISSUED_COMPRESS_REQUEST);
+    IncrementCommandTagNumber();
+    nsCString command(GetServerCommandTag());
+  
+    command.Append(" COMPRESS DEFLATE" CRLF);
+  
+    nsresult rv = SendData(command.get());
+    if (NS_SUCCEEDED(rv))
+    {
+      ParseIMAPandCheckForNewMail();
+      if (GetServerStateParser().LastCommandSuccessful())
+      {
+        rv = BeginCompressing();
+        if (NS_FAILED(rv))
+        {
+          Log("CompressDeflate", nsnull, "failed to enable compression");
+          // we can't use this connection without compression any more, so die
+          ClearFlag(IMAP_CONNECTION_IS_OPEN);
+          TellThreadToDie();
+          SetConnectionStatus(-1);
+          return;
+        }
+      }
+    }
+  }
+}
+
+nsresult nsImapProtocol::BeginCompressing()
+{
+  // wrap the streams in compression layers that compress or decompress
+  // all traffic.
+  nsRefPtr<nsMsgCompressIStream> new_in = new nsMsgCompressIStream();
+  if (!new_in)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  nsresult rv = new_in->InitInputStream(m_inputStream);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  m_inputStream = new_in;
+
+  nsRefPtr<nsMsgCompressOStream> new_out = new nsMsgCompressOStream();
+  if (!new_out)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  rv = new_out->InitOutputStream(m_outputStream);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  m_outputStream = new_out;
+  return rv;
+}
+
 void nsImapProtocol::Language()
 {
   // only issue the language request if we haven't done so already...
@@ -7634,6 +7694,16 @@ void nsImapProtocol::ProcessAfterAuthenticated()
     if (nameSpacesOverridable && !haveNameSpacesForHost)
       Namespace();
   }
+
+  // If the server supports compression, turn it on now.
+  // Choosing this spot (after login has finished) because
+  // many proxies (e.g. perdition, nginx) talk IMAP to the
+  // client until login is finished, then hand off to the
+  // backend.  If we enable compression early the proxy
+  // will be confused.
+  if (UseCompressDeflate())
+    StartCompressDeflate();
+
   if ((GetServerStateParser().GetCapabilityFlag() & kHasEnableCapability) &&
        UseCondStore())
     EnableCondStore();
@@ -8065,6 +8135,14 @@ PRBool nsImapProtocol::UseCondStore()
   return m_useCondStore &&
          GetServerStateParser().GetCapabilityFlag() & kHasCondStoreCapability &&
          GetServerStateParser().fUseModSeq;
+}
+
+PRBool nsImapProtocol::UseCompressDeflate()
+{
+  // Check that the server is capable of compression, and the user
+  // hasn't disabled the use of compression for this server.
+  return m_useCompressDeflate &&
+         GetServerStateParser().GetCapabilityFlag() & kHasCompressDeflateCapability;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

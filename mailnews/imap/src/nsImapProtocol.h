@@ -152,6 +152,7 @@ private:
 #define IMAP_WAITING_FOR_DATA         0x00000008
 #define IMAP_CLEAN_UP_URL_STATE       0x00000010 // processing clean up url state
 #define IMAP_ISSUED_LANGUAGE_REQUEST  0x00000020 // make sure we only issue the language request once per connection...
+#define IMAP_ISSUED_COMPRESS_REQUEST  0x00000040 // make sure we only request compression once
 
 class nsImapProtocol : public nsIImapProtocol, public nsIRunnable, public nsIInputStreamCallback,
  public nsSupportsWeakReference, public nsMsgProtocol, public nsIImapProtocolSink
@@ -475,6 +476,8 @@ private:
   // All of these methods actually issue protocol
   void Capability(); // query host for capabilities.
   void EnableCondStore(); 
+  void StartCompressDeflate();
+  nsresult BeginCompressing();
   void Language(); // set the language on the server if it supports it
   void Namespace();
   void InsecureLogin(const char *userName, const nsCString &password);
@@ -565,6 +568,10 @@ private:
   PRBool UseCondStore();
   // false if pref "mail.server.serverxxx.use_condstore" is false;
   PRBool m_useCondStore; 
+  // COMPRESS=DEFLATE support - true if server supports it, and the user hasn't disabled it.
+  PRBool UseCompressDeflate();
+  // false if pref "mail.server.serverxxx.use_compress_deflate" is false;
+  PRBool m_useCompressDeflate; 
   // these come from the nsIDBFolderInfo in the msgDatabase and
   // are initialized in nsImapProtocol::SetupWithUrl.
   PRUint64 mFolderLastModSeq;

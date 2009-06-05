@@ -100,4 +100,5 @@ endif
 LIBS +=		\
 		$(XPCOM_LIBS) \
 		$(NSPR_LIBS) \
+		$(ZLIB_LIBS) \
 		$(NULL)

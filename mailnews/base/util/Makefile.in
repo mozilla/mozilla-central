@@ -88,6 +88,7 @@ REQUIRES	= xpcom \
 		  layout \
 		  loginmgr \
 		  pipnss \
+		  $(ZLIB_REQUIRES) \
 		  $(NULL)
 
 CPPSRCS		= \
@@ -103,6 +104,8 @@ CPPSRCS		= \
 		nsMsgI18N.cpp \
 		nsImapMoveCoalescer.cpp \
 		nsMsgFileStream.cpp \
+		nsMsgCompressIStream.cpp \
+		nsMsgCompressOStream.cpp \
 		nsMsgReadStateTxn.cpp \
 		nsStopwatch.cpp \
 		$(NULL)
@@ -116,6 +119,8 @@ EXPORTS		= \
 		nsMsgUtils.h \
 		nsMsgProtocol.h \
 		nsMsgMailNewsUrl.h \
+		nsMsgCompressIStream.h \
+		nsMsgCompressOStream.h \
 		nsMsgTxn.h \
 		nsMsgI18N.h \
 		nsImapMoveCoalescer.h \
@@ -134,10 +139,12 @@ EXTRA_DSO_LDOPTS = \
 	$(MOZDEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
 	$(MOZ_UNICHARUTIL_LIBS) \
 	$(MOZ_COMPONENT_LIBS) \
+	$(ZLIB_LIBS) \
 	$(NULL)
 else
 EXTRA_DSO_LDOPTS = \
 	$(LIBS_DIR) \
+	$(ZLIB_LIBS) \
 	$(XPCOM_GLUE_LDOPTS) \
 	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
 	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \
@@ -152,8 +159,11 @@ FORCE_STATIC_LIB = 1
 
 endif
 
-
 DEFINES		+= -D_IMPL_NS_MSG_BASE
+
+ifeq ($(OS_ARCH),WINNT)
+DEFINES		+= -DZLIB_DLL
+endif
 
 include $(topsrcdir)/config/rules.mk
 

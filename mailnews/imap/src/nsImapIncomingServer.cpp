@@ -323,6 +323,9 @@ NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseCondStore,
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, IsGMailServer,
                         "is_gmail")
 
+NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseCompressDeflate,
+                        "use_compress_deflate")
+
 NS_IMETHODIMP
 nsImapIncomingServer::GetShuttingDown(PRBool *retval)
 {
