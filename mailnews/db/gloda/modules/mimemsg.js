@@ -65,7 +65,7 @@ let dumbUrlListener = {
  *  from C++ after the various XPConnect contexts have already begun their
  *  teardown process.
  */
-let activeStreamListeners = [];
+let activeStreamListeners = {};
 
 let shutdownCleanupObserver = {
   _initialized: false,
@@ -86,8 +86,9 @@ let shutdownCleanupObserver = {
         .removeObserver(this, "quit-application");
 
       for each (let [, streamListener] in
-                Iterator(activeStreamListeners.concat())) {
-        streamListener._request.cancel(Cr.NS_BINDING_ABORTED);
+                Iterator(activeStreamListeners)) {
+        if (streamListener._request)
+          streamListener._request.cancel(Cr.NS_BINDING_ABORTED);
       }
     }
   }
@@ -95,16 +96,18 @@ let shutdownCleanupObserver = {
 
 function CallbackStreamListener(aMsgHdr, aCallbackThis, aCallback) {
   this._msgHdr = aMsgHdr;
+  let hdrURI = aMsgHdr.folder.getUriForMsg(aMsgHdr);
   this._request = null;
   this._stream = null;
   if (aCallback === undefined) {
-    this._callbackThis = null;
-    this._callback = aCallbackThis;
+    this._callbacksThis = [null];
+    this._callbacks = [aCallbackThis];
   }
   else {
-    this._callbackThis = aCallbackThis;
-    this._callback = aCallback;
+    this._callbacksThis = [aCallbackThis];
+    this._callbacks =[aCallback];
   }
+  activeStreamListeners[hdrURI] = this;
 }
 
 CallbackStreamListener.prototype = {
@@ -113,10 +116,10 @@ CallbackStreamListener.prototype = {
   // nsIRequestObserver part
   onStartRequest: function (aRequest, aContext) {
     this._request = aRequest;
-    activeStreamListeners.push(this);
   },
   onStopRequest: function (aRequest, aContext, aStatusCode) {
-    activeStreamListeners.splice(activeStreamListeners.indexOf(this), 1);
+    let msgURI = this._msgHdr.folder.getUriForMsg(this._msgHdr);
+    delete activeStreamListeners[msgURI];
 
     aContext.QueryInterface(Ci.nsIURI);
     let message = MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
@@ -125,16 +128,14 @@ CallbackStreamListener.prototype = {
 
     delete MsgHdrToMimeMessage.RESULT_RENDEVOUZ[aContext.spec];
 
-    if (this._callbackThis)
-      this._callback.call(this._callbackThis, this._msgHdr, message);
-    else
-      this._callback.call(null, this._msgHdr, message);
+    for (let i = 0; i < this._callbacksThis.length; i++)
+      this._callbacks[i].call(this._callbacksThis[i], this._msgHdr, message);
 
     this._msgHdr = null;
     this._request = null;
     this._stream = null;
-    this._callbackThis = null;
-    this._callback = null;
+    this._callbacksThis = null;
+    this._callbacks = null;
   },
 
   /* okay, our onDataAvailable should actually never be called.  the stream
@@ -174,6 +175,14 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
   let msgURI = aMsgHdr.folder.getUriForMsg(aMsgHdr);
   let msgService = gMessenger.messageServiceFromURI(msgURI);
 
+  // if we're already streaming this msg, just add the callback
+  // to the listener.
+  let listenerForURI = activeStreamListeners[msgURI];
+  if (listenerForURI != undefined) {
+    listenerForURI._callbacks.push(aCallback ? aCallback : aCallbackThis);
+    listenerForURI._callbacksThis.push(aCallback ? aCallbackThis : null);
+    return;
+  }
   let streamListener = new CallbackStreamListener(aMsgHdr,
                                                   aCallbackThis, aCallback);
 
