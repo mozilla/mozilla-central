@@ -276,10 +276,31 @@ function ScrollToMessage(type, wrap, selectMessage)
     var resultIndex = new Object;
     var threadIndex = new Object;
 
-    gDBView.viewNavigate(type, resultId, resultIndex, threadIndex, true /* wrap */);
+    let elidedFlag = Components.interfaces.nsMsgMessageFlags.Elided;
+    let summarizeSelection =
+      gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads");
+
+    // if we're doing next unread, and a collapsed thread is selected, and
+    // the top level message is unread, just set the result manually to
+    // the top level message, without using gDBView.viewNavigate.
+    if (summarizeSelection && type == nsMsgNavigationType.nextUnreadMessage &&
+        currentIndex != -1 &&
+        gDBView.getFlagsAt(currentIndex) & elidedFlag &&
+        gDBView.isContainer(currentIndex) &&
+        ! (gDBView.getFlagsAt(currentIndex) &
+           Components.interfaces.nsMsgMessageFlags.Read)) {
+      resultIndex.value = currentIndex;
+      resultId.value = gDBView.getKeyAt(currentIndex);
+    } else {
+      gDBView.viewNavigate(type, resultId, resultIndex, threadIndex, true /* wrap */);
+    }
 
     // only scroll and select if we found something
     if ((resultId.value != nsMsgViewIndex_None) && (resultIndex.value != nsMsgViewIndex_None)) {
+      if (gDBView.getFlagsAt(resultIndex.value) & elidedFlag &&
+          summarizeSelection)
+        gDBView.toggleOpenState(resultIndex.value);
+
         if (selectMessage){
             treeSelection.select(resultIndex.value);
         }
