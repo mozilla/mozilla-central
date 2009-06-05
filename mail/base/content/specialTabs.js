@@ -63,6 +63,7 @@ var specialTabs = {
   contentTabType: {
     name: "contentTab",
     perTabPanel: "vbox",
+    lastBrowserId: 0,
     modes: {
       contentTab: {
         type: "contentTab",
@@ -98,23 +99,89 @@ var specialTabs = {
     openTab: function onTabOpened(aTab, aContentPage, aTitle) {
       // You can't dynamically change an iframe from a non-content to a content
       // type, therefore we dynamically create the element instead.
-      let iframe = document.createElement("iframe");
-      iframe.setAttribute("type", "content");
+      let iframe = document.createElement("browser");
+      iframe.setAttribute("type", "content-primary");
       iframe.setAttribute("flex", "1");
+      iframe.setAttribute("autocompleteenabled", false);
+      iframe.setAttribute("disablehistory", true);
+      iframe.setAttribute("id", "contentTabType" + this.lastBrowserId);
 
       aTab.panel.appendChild(iframe);
 
       iframe.setAttribute("src", aContentPage);
 
       aTab.title = aTitle;
+
+      let findbar = document.createElement("findbar");
+      findbar.setAttribute("browserid", "contentTabType" + this.lastBrowserId);
+      aTab.panel.appendChild(findbar);
+      this.lastBrowserId++;
     },
     closeTab: function onTabClosed(aTab) {
     },
     saveTabState: function onSaveTabState(aTab) {
+      aTab.panel.firstChild.setAttribute("type", "content-targetable");
     },
     showTab: function onShowTab(aTab) {
+      aTab.panel.firstChild.setAttribute("type", "content-primary");
     },
     onTitleChanged: function onTitleChanged(aTab) {
+    },
+    supportsCommand: function supportsCommand(aTab, aCommand) {
+      switch (aCommand) {
+        case "cmd_fullZoomReduce":
+        case "cmd_fullZoomEnlarge":
+        case "cmd_fullZoomReset":
+        case "cmd_fullZoomToggle":
+        case "cmd_find":
+        case "cmd_findAgain":
+        case "cmd_findPrevious":
+          return true;
+        default:
+          return false;
+      }
+    },
+    isCommandEnabled: function isCommandEnabled(aTab, aCommand) {
+      switch (aCommand) {
+        case "cmd_fullZoomReduce":
+        case "cmd_fullZoomEnlarge":
+        case "cmd_fullZoomReset":
+        case "cmd_fullZoomToggle":
+        case "cmd_find":
+        case "cmd_findAgain":
+        case "cmd_findPrevious":
+          return true;
+        default:
+          return false;
+      }
+    },
+    doCommand: function isCommandEnabled(aTab, aCommand) {
+      switch (aCommand) {
+        case "cmd_fullZoomReduce":
+          ZoomManager.reduce();
+          break;
+        case "cmd_fullZoomEnlarge":
+          ZoomManager.enlarge();
+          break;
+        case "cmd_fullZoomReset":
+          ZoomManager.reset();
+          break;
+        case "cmd_fullZoomToggle":
+          ZoomManager.toggleZoom();
+          break;
+        case "cmd_find":
+          aTab.panel.childNodes[1].onFindCommand();
+          break;
+        case "cmd_findAgain":
+          aTab.panel.childNodes[1].onFindAgainCommand(false);
+          break;
+        case "cmd_findPrevious":
+          aTab.panel.childNodes[1].onFindAgainCommand(true);
+          break;
+      }
+    },
+    getBrowser: function getBrowser(aTab) {
+      return aTab.panel.firstChild;
     }
   },
 

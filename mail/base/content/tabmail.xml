@@ -168,6 +168,10 @@
     -     be executed. Perform the action appropriate to the command.
     - * onEvent(aTab, aEvent): This can be used to handle different events on
     -     the window.
+    - * getBrowser(aTab): This function should return the browser element for
+    -     your tab if there is one (return null or don't define this function
+    -     otherwise). It is used for some toolkit functions that require a
+    -     global "getBrowser" function, e.g. ZoomManager.
     -
     - Tab monitoring code is expected to be used for widgets on the screen
     -  outside of the tab box that need to update themselves as the active tab
@@ -485,6 +489,22 @@
               this.tabContainer.collapsed = true;
           ]]>
         </body>
+      </method>
+      <!-- getBrowserForSelectedTab is required as some toolkit functions
+           require a getBrowser() function. -->
+      <method name="getBrowserForSelectedTab">
+        <body><![CDATA[
+          if (!this.currentTabInfo)
+            this.currentTabInfo = this.tabInfo[0];
+
+          let tab = this.currentTabInfo;
+
+          let browserFunc = tab.mode.getBrowser || tab.mode.tabType.getBrowser;
+          if (browserFunc)
+            return browserFunc.call(tab.mode.tabType, tab);
+
+          return null;
+        ]]></body>
       </method>
       <method name="removeCurrentTab">
         <body><![CDATA[

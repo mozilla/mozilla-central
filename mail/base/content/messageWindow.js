@@ -806,6 +806,10 @@ var MessageWindowController =
       case "cmd_createFilterFromPopup":
       case "cmd_createFilterFromMenu":
       case "cmd_moveToFolderAgain":
+      case "cmd_fullZoomReduce":
+      case "cmd_fullZoomEnlarge":
+      case "cmd_fullZoomReset":
+      case "cmd_fullZoomToggle":
         return true;
       case "cmd_synchronizeOffline":
       case "cmd_downloadFlagged":
@@ -909,6 +913,10 @@ var MessageWindowController =
       case "cmd_goForward":
       case "cmd_goBack":
       case "cmd_applyFiltersToSelection":
+      case "cmd_fullZoomReduce":
+      case "cmd_fullZoomEnlarge":
+      case "cmd_fullZoomReset":
+      case "cmd_fullZoomToggle":
         return true;
       case "button_goForward":
       case "button_goBack":
@@ -1122,6 +1130,18 @@ var MessageWindowController =
         break;
       case "cmd_applyFiltersToSelection":
         MsgApplyFiltersToSelection();
+        break;
+      case "cmd_fullZoomReduce":
+        ZoomManager.reduce();
+        break;
+      case "cmd_fullZoomEnlarge":
+        ZoomManager.enlarge();
+        break;
+      case "cmd_fullZoomReset":
+        ZoomManager.reset();
+        break;
+      case "cmd_fullZoomToggle":
+        ZoomManager.toggleZoom();
         break;
       }
   },

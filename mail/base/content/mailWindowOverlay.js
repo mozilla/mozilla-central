@@ -1732,6 +1732,10 @@ let mailTabType = {
     }
     if (aTab.msgSelectedFolder)
       aTab.mailView = GetMailViewForFolder(aTab.msgSelectedFolder);
+
+    // Now let other tabs have a primary browser if they want.
+    document.getElementById("messagepane").setAttribute("type",
+                                                        "content-targetable");
   },
 
   _displayFolderAndThreadPane: function(show) {
@@ -1804,6 +1808,10 @@ let mailTabType = {
   },
 
   showTab: function(aTab) {
+    // Set the messagepane as the primary browser for content.
+    document.getElementById("messagepane").setAttribute("type",
+                                                        "content-primary");
+
     // restore globals
     messenger = aTab.messenger;
     gDBView = aTab.dbView;
@@ -1889,6 +1897,11 @@ let mailTabType = {
 
   onEvent: function(aTab, aEvent) {
     DefaultController.onEvent(aEvent);
+  },
+
+  getBrowser: function(aTab) {
+    // We currently use the messagepane element for all tab types.
+    return document.getElementById("messagepane");
   }
 };
 

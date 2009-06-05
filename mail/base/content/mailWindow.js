@@ -148,7 +148,7 @@ function InitMsgWindow()
   Components.classes["@mozilla.org/messenger/services/session;1"]
             .getService(Components.interfaces.nsIMsgMailSession)
             .AddMsgWindow(msgWindow);
-  getBrowser().docShell.allowAuth = false;
+  document.getElementById("messagepane").docShell.allowAuth = false;
   msgWindow.rootDocShell.allowAuth = true;
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
   // Ensure we don't load xul error pages into the main window
@@ -545,10 +545,13 @@ function HidingThreadPane()
   document.getElementById("key_toggleMessagePane").setAttribute("disabled", "true");
 }
 
-// the find toolbar needs a method called getBrowser
+// The zoom manager, view source and possibly some other functions still rely
+// on the getBrowser function.
 function getBrowser()
 {
-  return document.getElementById("messagepane");
+  let tabmail = document.getElementById('tabmail');
+  return tabmail ? tabmail.getBrowserForSelectedTab() :
+                   document.getElementById("messagepane");
 }
 
 var gCurrentDisplayDeckId = "";

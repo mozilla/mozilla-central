@@ -1095,7 +1095,10 @@ function GetMessagePane()
 
 function GetMessagePaneFrame()
 {
-  return window.content;
+  // We must use the message pane element directly here, as other tabs can
+  // have browser elements as well (which could be set to content-primary,
+  // which would confuse things with a window.content return).
+  return document.getElementById("messagepane").contentWindow;
 }
 
 function getMailToolbox()

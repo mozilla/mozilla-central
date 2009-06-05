@@ -229,6 +229,10 @@ var DefaultController =
       case "cmd_selectThread":
       case "cmd_moveToFolderAgain":
       case "cmd_selectFlagged":
+      case "cmd_fullZoomReduce":
+      case "cmd_fullZoomEnlarge":
+      case "cmd_fullZoomReset":
+      case "cmd_fullZoomToggle":
         return true;
       case "cmd_downloadFlagged":
       case "cmd_downloadSelected":
@@ -496,6 +500,11 @@ var DefaultController =
         }
         return pref.getCharPref("mail.last_msg_movecopy_target_uri") &&
                GetNumSelectedMessages() > 0;
+      case "cmd_fullZoomReduce":
+      case "cmd_fullZoomEnlarge":
+      case "cmd_fullZoomReset":
+      case "cmd_fullZoomToggle":
+        return IsFolderSelected() && !IsMessagePaneCollapsed();
       default:
         return false;
     }
@@ -783,6 +792,18 @@ var DefaultController =
           break;
       case "cmd_selectFlagged":
         gDBView.doCommand(nsMsgViewCommandType.selectFlagged);
+        break;
+      case "cmd_fullZoomReduce":
+        ZoomManager.reduce();
+        break;
+      case "cmd_fullZoomEnlarge":
+        ZoomManager.enlarge();
+        break;
+      case "cmd_fullZoomReset":
+        ZoomManager.reset();
+        break;
+      case "cmd_fullZoomToggle":
+        ZoomManager.toggleZoom();
         break;
     }
   },
