@@ -52,7 +52,7 @@
             style="width: &window.width; !important;">
 
   <prefpane id="ConnectionsDialogPane">
-    <preferences>
+    <preferences id="ConnectionPreferences">
       <preference id="network.proxy.type"         name="network.proxy.type"         type="int" onchange="gConnectionsDialog.proxyTypeChanged();"/>
       <preference id="network.proxy.http"         name="network.proxy.http"         type="string"/>
       <preference id="network.proxy.http_port"    name="network.proxy.http_port"    type="int"/>

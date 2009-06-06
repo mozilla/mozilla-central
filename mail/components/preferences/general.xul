@@ -50,7 +50,7 @@
   <prefpane id="paneGeneral" onpaneload="gGeneralPane.init();">
     <script type="application/x-javascript" src="chrome://messenger/content/preferences/general.js"/>
 
-    <preferences>
+    <preferences id="generalPreferences">
       <preference id="mail.pane_config.dynamic" name="mail.pane_config.dynamic" type="int"/>
       <preference id="mailnews.reuse_message_window" name="mailnews.reuse_message_window" type="bool"/>
       <preference id="mailnews.start_page.enabled" name="mailnews.start_page.enabled" type="bool"/>

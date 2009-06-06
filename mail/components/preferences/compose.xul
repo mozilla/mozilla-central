@@ -56,7 +56,7 @@
     <stringbundle id="regionBundle" src="chrome://global/locale/regionNames.properties"/>
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
 
-    <preferences>
+    <preferences is="composePreferences">
       <preference id="mail.preferences.compose.selectedTabIndex" name="mail.preferences.compose.selectedTabIndex" type="int"/>
       <preference id="mail.forward_message_mode" name="mail.forward_message_mode" type="int"/>     
       <preference id="mail.forward_add_extension" name="mail.forward_add_extension" type="bool"/>

@@ -61,7 +61,7 @@
 
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
 
-    <preferences>
+    <preferences id="SendOptionsPreferences">
       <preference id="mail.default_html_action"      name="mail.default_html_action" type="int"/>
       <preference id="mailnews.html_domains"         name="mailnews.html_domains" type="string"/>
       <preference id="mailnews.plaintext_domains"    name="mailnews.plaintext_domains"    type="string"/>

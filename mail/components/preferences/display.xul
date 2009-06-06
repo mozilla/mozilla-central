@@ -50,7 +50,7 @@
   <prefpane id="paneDisplay" onpaneload="gDisplayPane.init();">
     <script type="application/x-javascript" src="chrome://messenger/content/preferences/display.js"/>
 
-    <preferences>
+    <preferences id="displayPreferences">
       <preference id="mail.preferences.display.selectedTabIndex" name="mail.preferences.display.selectedTabIndex" type="int"/>
       <preference id="mail.fixed_width_messages" name="mail.fixed_width_messages" type="bool"/>
       <preference id="mail.quoted_style" name="mail.quoted_style" type="int"/>

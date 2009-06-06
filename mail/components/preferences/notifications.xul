@@ -53,7 +53,7 @@
             title="&notificationsDialog2.title;">
 
   <prefpane id="NotificationsDialogPane">
-    <preferences>
+    <preferences id="NotificationsPreferences">
       <preference id="mail.biff.alert.show_preview" name="mail.biff.alert.show_preview" type="bool"/>
       <preference id="mail.biff.alert.show_subject" name="mail.biff.alert.show_subject" type="bool"/>
       <preference id="mail.biff.alert.show_sender" name="mail.biff.alert.show_sender" type="bool"/>

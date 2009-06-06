@@ -53,7 +53,7 @@
   <script type="application/x-javascript" src="chrome://messenger/content/preferences/dsn.js"/>
         
   <prefpane id="DSNDialogPane" onpaneload="onInit();">
-    <preferences>
+    <preferences id="DSNPreferences">
       <preference id="mail.dsn.request_on_success_on"
                   name="mail.dsn.request_on_success_on"
                   type="bool"/>

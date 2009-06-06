@@ -50,7 +50,7 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <prefpane id="paneDownloads">
-    <preferences>
+    <preferences id="downloadsPreferences">
       <preference id="browser.download.useDownloadDir"    name="browser.download.useDownloadDir"    type="bool"/>
       <preference id="browser.download.folderList"        name="browser.download.folderList"        type="int"/>
       <preference id="browser.download.downloadDir"       name="browser.download.downloadDir"       type="file"/>

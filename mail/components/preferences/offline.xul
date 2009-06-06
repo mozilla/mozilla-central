@@ -52,7 +52,7 @@
             title="&offlineDialog.title;">
 
   <prefpane id="OfflineSettingsDialogPane">
-    <preferences>
+    <preferences id="OfflineSettingsPreferences">
       <preference id="offline.startup_state"                 name="offline.startup_state"     type="int"/>
       <preference id="offline.send.unsent_messages"          name="offline.send.unsent_messages" type="int"/>
       <preference id="offline.download.download_messages"    name="offline.download.download_messages"    type="int"/>

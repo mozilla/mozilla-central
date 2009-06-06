@@ -62,7 +62,7 @@
   <prefpane id="paneAdvanced" onpaneload="gAdvancedPane.init();">
     <script type="application/x-javascript" src="chrome://messenger/content/preferences/advanced.js"/>
 
-    <preferences>
+    <preferences id="advancedPreferences">
       <preference id="mail.preferences.advanced.selectedTabIndex"
                   name="mail.preferences.advanced.selectedTabIndex" type="int"/>
       <!-- General tab -->

@@ -52,7 +52,7 @@
 
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
 
-    <preferences>
+    <preferences id="securityPreferences">
       <preference id="mail.preferences.security.selectedTabIndex"
                   name="mail.preferences.security.selectedTabIndex" type="int"/>
       <preference id="mail.spam.manualMark" 

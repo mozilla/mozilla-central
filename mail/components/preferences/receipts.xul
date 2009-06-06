@@ -54,7 +54,7 @@
             title="&dialog.title;">
 
   <prefpane id="ReturnReceiptsDialogPane">
-    <preferences>
+    <preferences id="ReturnReceiptsPreferences">
       <preference id="mail.receipt.request_return_receipt_on" name="mail.receipt.request_return_receipt_on" type="bool"/>
       <preference id="mail.incorporate.return_receipt" name="mail.incorporate.return_receipt" type="int"/>
       <preference id="mail.mdn.report.enabled"     name="mail.mdn.report.enabled" type="bool"/>
