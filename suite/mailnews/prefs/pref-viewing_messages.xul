@@ -54,6 +54,9 @@
       <preference id="mailnews.reuse_message_window"
                   name="mailnews.reuse_message_window"
                   type="bool"/>
+      <preference id="mail.close_message_window.on_delete"
+                  name="mail.close_message_window.on_delete"
+                  type="bool"/>
       <preference id="mailnews.message_display.disable_remote_image"
                   name="mailnews.message_display.disable_remote_image"
                   type="bool"/>
@@ -94,17 +97,24 @@
     <groupbox align="start">
       <caption label="&generalMessageDisplay.caption;"/>
       <label value="&openingMessages.label;" control="reuseMessageWindow"/>
-      <hbox class="indent" align="center">
-        <radiogroup id="reuseMessageWindow" orient="horizontal"
+      <vbox class="indent">
+        <radiogroup id="reuseMessageWindow"
+                    orient="horizontal"
                     preference="mailnews.reuse_message_window">
-          <radio value="false" label="&newWindowRadio.label;"
-                 accesskey="&newWindowRadio.accesskey;" id="new"/>
-          <radio value="true" label="&existingWindowRadio.label;"
-                 accesskey="&existingWindowRadio.accesskey;" id="existing"/>
-        </radiogroup>
-      </hbox>
-
-      <separator class="thin"/>
+           <radio id="new"
+                  label="&newWindowRadio.label;"
+                  accesskey="&newWindowRadio.accesskey;"
+                  value="false"/>
+           <radio id="existing"
+                  label="&existingWindowRadio.label;"
+                  accesskey="&existingWindowRadio.accesskey;"
+                  value="true"/>
+         </radiogroup>
+         <checkbox id="closeMsgWindowOnDelete"
+                   label="&closeMsgWindowOnDelete.label;"
+                   accesskey="&closeMsgWindowOnDelete.accesskey;"
+                   preference="mail.close_message_window.on_delete"/>
+      </vbox>
 
       <checkbox id="disableContent" label="&disableContent.label;"
                 accesskey="&disableContent.accesskey;"
@@ -154,16 +164,17 @@
         <label value="&fontPlainText.label;"
                accesskey="&fontPlainText.accesskey;"
                control="mailFixedWidthMessages"/>
-        <menulist id="mailFixedWidthMessages"
-                  preference="mail.fixed_width_messages">
-          <menupopup>
-            <menuitem value="true" label="&fontFixedWidth.label;"/>
-            <menuitem value="false" label="&fontVarWidth.label;"/>
-          </menupopup>
-        </menulist>
+        <radiogroup id="mailFixedWidthMessages"
+                    orient="horizontal"
+                    preference="mail.fixed_width_messages">
+          <radio label="&fontFixedWidth.label;"
+                 accesskey="&fontFixedWidth.accesskey;"
+                 value="true"/>
+          <radio label="&fontVarWidth.label;"
+                 accesskey="&fontVarWidth.accesskey;"
+                 value="false"/>
+        </radiogroup>
       </hbox>
-
-      <separator class="thin"/>
 
       <vbox align="start">
         <checkbox id="wrapLongLines" label="&wrapInMsg.label;"

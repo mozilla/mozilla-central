@@ -390,6 +390,9 @@ pref("mailnews.confirm.moveFoldersToTrash", true);
 // space-delimited list of extra headers to add to .msf file
 pref("mailnews.customDBHeaders", "");
 
+// close standalone message window when deleting the displayed message
+pref("mail.close_message_window.on_delete", false);
+
 pref("mailnews.reuse_message_window", true);
 pref("mailnews.reuse_thread_window2", false);
 pref("mailnews.open_window_warning", 10); // warn user if they attempt to open more than this many messages at once

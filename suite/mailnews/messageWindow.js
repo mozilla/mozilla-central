@@ -199,29 +199,24 @@ nsMsgDBViewCommandUpdater.prototype =
 
 function HandleDeleteOrMoveMsgCompleted(folder)
 {
-	var folderResource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-	if (!folderResource)
-		return;
-
-  if ((folderResource.Value == gCurrentFolderUri))
+  if (folder.URI == gCurrentFolderUri)
   {
     gDBView.onDeleteCompleted(true);
     if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None) 
     {
       var nextMstKey = gDBView.getKeyAt(gNextMessageViewIndexAfterDelete);
-      if (nextMstKey != nsMsgKey_None) {
+      if (nextMstKey != nsMsgKey_None &&
+          !pref.getBoolPref("mail.close_message_window.on_delete"))
         LoadMessageByViewIndex(gNextMessageViewIndexAfterDelete);
-      }
-      else {
+      else
         window.close();
-      }
     }
     else
     {
       // close the stand alone window because there are no more messages in the folder
       window.close();
     }
-	}
+  }
 }
 
 function HandleDeleteOrMoveMsgFailed(folder)

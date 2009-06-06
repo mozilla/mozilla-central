@@ -79,3 +79,5 @@
 <!ENTITY disableContent.accesskey         "B">
 <!ENTITY showCondensedAddresses.label     "Show only display name for people in my address book">
 <!ENTITY showCondensedAddresses.accesskey "o">
+<!ENTITY closeMsgWindowOnDelete.label     "Close message window when deleting the message">
+<!ENTITY closeMsgWindowOnDelete.accesskey "l">
