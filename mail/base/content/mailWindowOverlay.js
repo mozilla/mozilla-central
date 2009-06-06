@@ -1671,6 +1671,10 @@ let mailTabType = {
    *  contract is that we leave the tab in the selected state.
    */
   openTab: function(aTab) {
+    // Set the messagepane as the primary browser for content.
+    document.getElementById("messagepane").setAttribute("type",
+                                                        "content-primary");
+
     ClearThreadPaneSelection();
 
     // Each tab gets its own messenger instance; I assume this is so each one
@@ -3244,11 +3248,11 @@ function FeedSetContentViewToggle()
 // Check message format
 function FeedCheckContentFormat()
 {
-  var contentWindowDoc = window.top._content.document;
-
   // Not an rss message
   if (!IsFeedItem())
     return false;
+
+  var contentWindowDoc = window.top.content.document;
 
   // Thunderbird 2 rss messages with 'Show article summary' not selected,
   // ie message body constructed to show web page in an iframe, can't show
@@ -3280,7 +3284,7 @@ function FeedSetContentView(val)
   var showSummary;
   var wintype = document.documentElement.getAttribute('windowtype');
   var contentBase = currentHeaderData["content-base"];
-  var contentWindowDoc = window.top._content.document;
+  var contentWindowDoc = window.top.content.document;
   var divHTML = new XPCNativeWrapper(contentWindowDoc,
                       "getElementsByClassName()")
                       .getElementsByClassName("moz-text-html")[0];

@@ -2969,7 +2969,7 @@ function FeedSetContentViewToggle()
 // Check message format
 function FeedCheckContentFormat()
 {
-  var contentWindowDoc = window.top._content.document;
+  var contentWindowDoc = window.top.content.document;
 
   // Not an rss message
   if (!IsFeedItem())
@@ -3005,7 +3005,7 @@ function FeedSetContentView(val)
   var showSummary;
   var wintype = document.documentElement.getAttribute('windowtype');
   var contentBase = currentHeaderData["content-base"];
-  var contentWindowDoc = window.top._content.document;
+  var contentWindowDoc = window.top.content.document;
   var divHTML = new XPCNativeWrapper(contentWindowDoc,
                       "getElementsByClassName()")
                       .getElementsByClassName("moz-text-html")[0];
