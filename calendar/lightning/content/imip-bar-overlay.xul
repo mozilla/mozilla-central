@@ -64,7 +64,7 @@
             src="chrome://calendar/content/calendar-ui-utils.js"/>
 
     <vbox id="messagepanebox">
-      <vbox id="singlemessage">
+      <vbox id="singlemessage" insertbefore="msgHeaderView">
         <lightning-notification-bar id="imip-bar"
                                     collapsed="true"
                                     insertbefore="msgHeaderView"
