@@ -552,6 +552,8 @@
             let hideCancelBut = !this.canCancel;
             let hidePauseBut = !this.canPause;
             let hideRetryBut = !this.canRetry;
+            let hideResumeBut = !this.canPause ||
+                this._activity.state == Components.interfaces.nsIActivityProcess.STATE_PAUSED;
 
             this.setVisibility("button_cancel", !hideCancelBut);
             this.setVisibility("button_retry", !hideRetryBut);
