@@ -1692,13 +1692,33 @@ function BrowserViewSourceOfURL(url, charset, pageCookie)
              url, charset, pageCookie);
 }
 
-// doc=null for regular page info, doc=owner document for frame info.
+// doc - document to use for source, or null for the current tab
+// initialTab - id of the initial tab to display, or null for the first tab
 function BrowserPageInfo(doc, initialTab)
 {
+  if (!doc)
+    doc = window.content.document;
+  var relatedUrl = doc.location.toString();
+  var args = {doc: doc, initialTab: initialTab};
+
+  var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                     .getService(Components.interfaces.nsIWindowMediator);
+  var enumerator = wm.getEnumerator("Browser:page-info");
+  // Check for windows matching the url
+  while (enumerator.hasMoreElements()) {
+    let win = enumerator.getNext();
+    if (win.document.documentElement
+           .getAttribute("relatedUrl") == relatedUrl) {
+      win.focus();
+      win.resetPageInfo(args);
+      return win;
+    }
+  }
+  // We didn't find a matching window, so open a new one.
   return window.openDialog("chrome://navigator/content/pageinfo/pageInfo.xul",
                            "_blank",
                            "chrome,dialog=no",
-                           {doc: doc, initialTab: initialTab});
+                           args);
 }
 
 function hiddenWindowStartup()
