@@ -251,8 +251,15 @@ const XHTMLre = RegExp(XHTMLNSre + "|" + XHTML2NSre, "");
  * invoked as "XXXLoadFunc();"
  */
 
-// These functions are called once when the Page Info window is opened.
+// These functions are called to build the data displayed in the Page
+// Info window. The global variables gDocument and gWindow are set.
 var onLoadRegistry = [ ];
+
+// These functions are called to remove old data still displayed in
+// the window when the document whose information is displayed
+// changes. For example, the list of images in the Media tab
+// is cleared.
+var onResetRegistry = [ ];
 
 // These are called once for each subframe of the target document and
 // the target document itself. The frame is passed as an argument.
@@ -301,15 +308,6 @@ function onLoadPageInfo()
     gDocument = gWindow.document;
   }
 
-  var titleFormat = gWindow != gWindow.top ? "pageInfo.frame.title"
-                                           : "pageInfo.page.title";
-  document.title = gBundle.getFormattedString(titleFormat, [gDocument.location]);
-
-  document.getElementById("main-window").setAttribute("relatedUrl", gDocument.location);
-
-  // do the easy stuff first
-  makeGeneralTab();
-
   // init views
   function initView(treeid, view)
   {
@@ -320,6 +318,32 @@ function onLoadPageInfo()
   initView("formtree", gFormView);
   initView("formpreview", gFieldView);
   initView("linktree", gLinkView);
+  initPermission();
+
+  // build the content
+  loadPageInfo();
+
+  /* Select the requested tab, if the name is specified */
+  var initialTab = "generalTab";
+  if ("arguments" in window && window.arguments.length >= 1 &&
+       window.arguments[0] && window.arguments[0].initialTab)
+    initialTab = window.arguments[0].initialTab;
+  showTab(initialTab);
+  Components.classes["@mozilla.org/observer-service;1"]
+            .getService(Components.interfaces.nsIObserverService)
+            .notifyObservers(window, "page-info-dialog-loaded", null);
+}
+
+function loadPageInfo()
+{
+  var titleFormat = gWindow != gWindow.top ? "pageInfo.frame.title"
+                                           : "pageInfo.page.title";
+  document.title = gBundle.getFormattedString(titleFormat, [gDocument.location]);
+
+  document.getElementById("main-window").setAttribute("relatedUrl", gDocument.location);
+
+  // do the easy stuff first
+  makeGeneralTab();
 
   // and then the hard stuff
   makeTabs(gDocument, gWindow);
@@ -329,19 +353,47 @@ function onLoadPageInfo()
 
   /* Call registered overlay init functions */
   onLoadRegistry.forEach(function(func) { func(); });
+}
 
-  /* Select the requested tab, if the name is specified */
-  var initialTab = "generalTab";
-  if ("arguments" in window && window.arguments.length >= 1 &&
-       window.arguments[0] && window.arguments[0].initialTab)
-    initialTab = window.arguments[0].initialTab;
-  var tabbox = document.getElementById("tabbox");
-  initialTab = document.getElementById(initialTab) || document.getElementById("generalTab");
-  tabbox.selectedTab = initialTab;
-  tabbox.selectedTab.focus();
+function resetPageInfo(args)
+{
+  /* Reset Media tab */
+  // Remove the observer, only if there is at least 1 image.
+  if (gImageView.data.length != 0) {
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .removeObserver(imagePermissionObserver, "perm-changed");
+  }
+
+  /* Reset tree views */
+  gMetaView.clear();
+  gFormView.clear();
+  gFieldView.clear();
+  gLinkView.clear();
+  gImageView.clear();
+  gImageHash = {};
+
+  /* Reset Feeds Tab */
+  var feedListbox = document.getElementById("feedListbox");
+  while (feedListbox.hasChildNodes())
+    feedListbox.removeChild(feedListbox.lastChild);
+
+  /* Call registered overlay reset functions */
+  onResetRegistry.forEach(function(func) { func(); });
+
+  if (args && args.doc) {
+    gDocument = args.doc;
+    gWindow = gDocument.defaultView;
+  }
+
+  /* Rebuild the data */
+  loadPageInfo();
+
+  if (args && args.initialTab)
+    showTab(args.initialTab);
   Components.classes["@mozilla.org/observer-service;1"]
             .getService(Components.interfaces.nsIObserverService)
-            .notifyObservers(window, "page-info-dialog-loaded", null);
+            .notifyObservers(window, "page-info-dialog-reset", null);
 }
 
 function onUnloadPageInfo()
@@ -374,11 +426,19 @@ function doHelpButton()
   openHelp(helpdoc, "chrome://communicator/locale/help/suitehelp.rdf");
 }
 
-function onClickMore()
+function showTab(id)
 {
   var tabbox = document.getElementById("tabbox");
-  var tab = document.getElementById("securityTab");
-  tabbox.selectedTab = tab;
+  var selectedTab = document.getElementById(id) ||
+                    document.getElementById(id + "Tab") || // Firefox compatibility sillyness
+                    document.getElementById("generalTab");
+  tabbox.selectedTab = selectedTab;
+  selectedTab.focus();
+}
+
+function onClickMore()
+{
+  showTab("securityTab");
 }
 
 function makeGeneralTab()

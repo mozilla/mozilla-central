@@ -39,7 +39,8 @@ const ALLOW = nsIPermissionManager.ALLOW_ACTION;   // 1
 const BLOCK = nsIPermissionManager.DENY_ACTION;    // 2
 const SESSION = nsICookiePermission.ACCESS_SESSION;// 8
 var gPermURI;
-var gPrefs;
+var gPrefs = Components.classes[PREFERENCES_CONTRACTID]
+                       .getService(Components.interfaces.nsIPrefBranch2);
 
 var gPermObj = {
   image: function getImageDefaultPermission()
@@ -76,37 +77,40 @@ var permissionObserver = {
   {
     if (aTopic == "perm-changed") {
       var permission = aSubject.QueryInterface(Components.interfaces.nsIPermission);
-      if (permission.host == gPermURI.host && permission.type in gPermObj)
+      if (/^https?/.test(gPermURI.scheme) &&
+          permission.host == gPermURI.host && permission.type in gPermObj)
         initRow(permission.type);
     }
   }
 };
 
+function initPermission()
+{
+  onUnloadRegistry.push(onUnloadPermission);
+  onResetRegistry.push(onUnloadPermission);
+}
+
 function onLoadPermission()
 {
-  gPrefs = Components.classes[PREFERENCES_CONTRACTID]
-                     .getService(Components.interfaces.nsIPrefBranch2);
-
-  var uri = gDocument.documentURIObject;
-  if(/^https?/.test(uri.scheme)) {
-    gPermURI = uri;
+  gPermURI = gDocument.documentURIObject;
+  if (/^https?/.test(gPermURI.scheme)) {
     var hostText = document.getElementById("hostText");
     hostText.value = gPermURI.host;
-
-    for (var i in gPermObj)
-      initRow(i);
     Components.classes["@mozilla.org/observer-service;1"]
               .getService(Components.interfaces.nsIObserverService)
               .addObserver(permissionObserver, "perm-changed", false);
-    onUnloadRegistry.push(onUnloadPermission);
   }
+  for (var i in gPermObj)
+    initRow(i);
 }
 
 function onUnloadPermission()
 {
-  Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService)
-            .removeObserver(permissionObserver, "perm-changed");
+  if (/^https?/.test(gPermURI.scheme)) {
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .removeObserver(permissionObserver, "perm-changed");
+  }
 }
 
 function initRow(aPartId)
@@ -116,6 +120,14 @@ function initRow(aPartId)
 
   var checkbox = document.getElementById(aPartId + "Def");
   var command  = document.getElementById("cmd_" + aPartId + "Toggle");
+  if (!/^https?/.test(gPermURI.scheme)) {
+    checkbox.checked = false;
+    checkbox.setAttribute("disabled", "true");
+    command.setAttribute("disabled", "true");
+    document.getElementById(aPartId + "RadioGroup").selectedItem = null;
+    return;
+  }
+  checkbox.removeAttribute("disabled");
   var perm = permissionManager.testPermission(gPermURI, aPartId);
   if (perm) {
     checkbox.checked = false;

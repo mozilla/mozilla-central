@@ -230,13 +230,9 @@ function securityOnLoad() {
   setText("general-security-identity", generalPageIdentityString);
 
   /* Manage the View Cert button*/
-  if (info.cert) {
+  if (info.cert)
     security._cert = info.cert;
-  }
-  else {
-    var viewCert = document.getElementById("security-view-cert");
-    viewCert.collapsed = true;
-  }
+  document.getElementById("security-view-cert").collapsed = !info.cert;
 
   /* Set Privacy & History section text */
   var yesStr = pageInfoBundle.getString("yes");
