@@ -602,7 +602,8 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
         clazz = (MimeObjectClass *)&mimeInlineTextPlainClass;
 
         if (opts && opts->format_out != nsMimeOutput::nsMimeMessageFilterSniffer
-          && opts->format_out != nsMimeOutput::nsMimeMessageAttach)
+          && opts->format_out != nsMimeOutput::nsMimeMessageAttach
+          && opts->format_out != nsMimeOutput::nsMimeMessageRaw)
         {
           PRBool disable_format_flowed = PR_FALSE;
           if (prefBranch)
