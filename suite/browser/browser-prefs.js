@@ -99,6 +99,12 @@ pref("browser.download.manager.focusWhenStarting", false);
 pref("browser.download.manager.closeWhenDone", false);
 pref("browser.download.progress.closeWhenDone", false);
 
+// Number of milliseconds to wait for the http headers (and thus
+// the Content-Disposition filename) before giving up and falling back to
+// picking a filename without that info in hand so that the user sees some
+// feedback from their action.
+pref("browser.download.saveLinkAsFilenameTimeout", 1000);
+
 // various default search settings
 pref("browser.search.defaulturl", "chrome://navigator-region/locale/region.properties");
 pref("browser.search.opensidebarsearchpanel", true);

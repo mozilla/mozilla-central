@@ -758,8 +758,118 @@ nsContextMenu.prototype = {
     },
     // Save URL of clicked-on link.
     saveLink : function () {
-        saveURL( this.linkURL(), this.linkText(), null, true,
-                 this.target.ownerDocument.documentURIObject );
+        // canonical def in nsURILoader.h
+        const NS_ERROR_SAVE_LINK_AS_TIMEOUT = 0x805d0020;
+
+        var doc = this.target.ownerDocument;
+        urlSecurityCheck(this.linkURL(), this.target.nodePrincipal);
+        var linkText = this.linkText();
+        var linkURL = this.linkURL();
+
+        // an object to proxy the data through to
+        // nsIExternalHelperAppService.doContent, which will wait for the
+        // appropriate MIME-type headers and then prompt the user with a
+        // file picker
+        function SaveAsListener() {}
+        SaveAsListener.prototype = {
+          extListener: null,
+
+          onStartRequest: function onStartRequest(aRequest, aContext) {
+            // If the timer fired, the error status will have been caused by that,
+            // and we'll be restarting in onStopRequest, so no reason to notify
+            // the user.
+            if (aRequest.status == NS_ERROR_SAVE_LINK_AS_TIMEOUT)
+              return;
+
+            clearTimeout(timer);
+
+            // some other error occured; notify the user...
+            if (!Components.isSuccessCode(aRequest.status)) {
+              try {
+                const sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                                      .getService(Components.interfaces.nsIStringBundleService);
+                const bundle = sbs.createBundle(
+                        "chrome://mozapps/locale/downloads/downloads.properties");
+
+                const title = bundle.GetStringFromName("downloadErrorAlertTitle");
+                const msg = bundle.GetStringFromName("downloadErrorGeneric");
+
+                const promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                            .getService(Components.interfaces.nsIPromptService);
+                promptSvc.alert(doc.defaultView, title, msg);
+              } catch (ex) {}
+              return;
+            }
+
+            var extHelperAppSvc =
+              Components.classes["@mozilla.org/uriloader/external-helper-app-service;1"]
+                        .getService(Components.interfaces.nsIExternalHelperAppService);
+            var channel = aRequest.QueryInterface(Components.interfaces.nsIChannel);
+            this.extListener =
+              extHelperAppSvc.doContent(channel.contentType, aRequest,
+                                        doc.defaultView, true);
+            this.extListener.onStartRequest(aRequest, aContext);
+          },
+
+          onStopRequest: function onStopRequest(aRequest, aContext,
+                                                aStatusCode) {
+            if (aStatusCode == NS_ERROR_SAVE_LINK_AS_TIMEOUT) {
+              // Do it the old fashioned way, which will pick the best filename
+              // it can without waiting.
+              saveURL(linkURL, linkText, null, true, false, doc.documentURIObject);
+            }
+            if (this.extListener)
+              this.extListener.onStopRequest(aRequest, aContext, aStatusCode);
+          },
+
+          onDataAvailable: function onDataAvailable(aRequest, aContext,
+                                                    aInputStream, aOffset,
+                                                    aCount) {
+            this.extListener.onDataAvailable(aRequest, aContext, aInputStream,
+                                             aOffset, aCount);
+          }
+        }
+
+        // in case we need to prompt the user for authentication
+        function Callbacks() {}
+        Callbacks.prototype = {
+          getInterface: function getInterface(aIID) {
+            if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
+                aIID.equals(Components.interfaces.nsIAuthPrompt2)) {
+              var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                                 .getService(Components.interfaces.nsIPromptFactory);
+              return ww.getPrompt(doc.defaultView, aIID);
+            }
+            throw Components.results.NS_ERROR_NO_INTERFACE;
+          }
+        }
+
+        // If we don't have the headers after a short time the user won't have
+        // received any feedback from the click. That's bad, so we give up
+        // waiting for the filename.
+        function timerCallback() {
+          channel.cancel(NS_ERROR_SAVE_LINK_AS_TIMEOUT);
+        }
+
+        // set up a channel to do the saving
+        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                  .getService(Components.interfaces.nsIIOService);
+        var channel = ioService.newChannel(linkURL, null, null);
+        channel.notificationCallbacks = new Callbacks();
+        channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE |
+                             Components.interfaces.nsIChannel.LOAD_CALL_CONTENT_SNIFFERS;
+        if (channel instanceof Components.interfaces.nsIHttpChannel)
+          channel.referrer = doc.documentURIObject;
+
+        // fallback to the old way if we don't see the headers quickly
+        var timeToWait =
+                Components.classes["@mozilla.org/preferences-service;1"]
+                          .getService(Components.interfaces.nsIPrefBranch)
+                          .getIntPref("browser.download.saveLinkAsFilenameTimeout");
+        var timer = setTimeout(timerCallback, timeToWait);
+
+        // kick off the channel with our proxy object as the listener
+        channel.asyncOpen(new SaveAsListener(), null);
     },
     // Save URL of clicked-on image, video, or audio.
     saveMedia : function () {
