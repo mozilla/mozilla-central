@@ -39,6 +39,7 @@ modern.jar:
   skin/modern/communicator/directory/file-icon.gif                 (communicator/directory/file-icon.gif)
   skin/modern/communicator/directory/directory.css                 (communicator/directory/directory.css)
   skin/modern/communicator/downloads/dl-remove.png                 (communicator/downloads/dl-remove.png)
+  skin/modern/communicator/downloads/downloadButtons.png           (communicator/downloads/downloadButtons.png)
   skin/modern/communicator/downloads/downloadmanager.css           (communicator/downloads/downloadmanager.css)
   skin/modern/communicator/feed-subscribe.css                      (communicator/feed-subscribe.css)
   skin/modern/communicator/history/calendar.png                    (communicator/history/calendar.png)

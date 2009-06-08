@@ -49,6 +49,11 @@ classic.jar:
   skin/classic/communicator/directory/folder-open.gif                   (communicator/directory/folder-open.gif)
   skin/classic/communicator/directory/file.gif                          (communicator/directory/file.gif)
   skin/classic/communicator/downloads/dl-remove.png                     (communicator/downloads/dl-remove.png)
+#ifdef XP_MACOSX
+  skin/classic/communicator/downloads/downloadButtons.png               (mac/communicator/downloads/downloadButtons.png)
+#else
+  skin/classic/communicator/downloads/downloadButtons.png               (communicator/downloads/downloadButtons.png)
+#endif
   skin/classic/communicator/downloads/downloadmanager.css               (communicator/downloads/downloadmanager.css)
   skin/classic/communicator/history/calendar.png                        (communicator/history/calendar.png)
   skin/classic/communicator/profile/migrate.gif                         (communicator/profile/migrate.gif)

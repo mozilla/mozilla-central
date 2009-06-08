@@ -43,21 +43,21 @@
 */
 
 #ActionPlay {
-  list-style-image: url("chrome://mozapps/skin/downloads/downloadButtons.png");
+  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
 
 treechildren::-moz-tree-image(ActionPlay, downloading, resumable),
 #pauseButton {
   /* pause */
-  list-style-image: url("chrome://mozapps/skin/downloads/downloadButtons.png");
+  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 48px, 16px, 32px);
 }
 
 treechildren::-moz-tree-image(ActionPlay, paused, resumable),
 #resumeButton {
   /* resume */
-  list-style-image: url("chrome://mozapps/skin/downloads/downloadButtons.png");
+  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
 
@@ -65,19 +65,19 @@ treechildren::-moz-tree-image(ActionPlay, failed),
 treechildren::-moz-tree-image(ActionPlay, canceled),
 #retryButton {
   /* retry */
-  list-style-image: url("chrome://mozapps/skin/downloads/downloadButtons.png");
+  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 64px, 16px, 48px);
 }
 
 #ActionStop {
-  list-style-image: url("chrome://mozapps/skin/downloads/downloadButtons.png");
+  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 32px, 16px, 16px);
 }
 
 treechildren::-moz-tree-image(ActionStop, active),
 #cancelButton {
   /* cancel */
-  list-style-image: url("chrome://mozapps/skin/downloads/downloadButtons.png");
+  list-style-image: url("chrome://communicator/skin/downloads/downloadButtons.png");
   -moz-image-region: rect(0px, 32px, 16px, 16px);
 }
 
