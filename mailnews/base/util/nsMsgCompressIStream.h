@@ -2,7 +2,7 @@
 #include "nsIAsyncInputStream.h"
 #include "nsIInputStream.h"
 #include "nsCOMPtr.h"
-#include "nsAutoPtr.h"`
+#include "nsAutoPtr.h"
 #include "zlib.h"
 
 class NS_MSG_BASE nsMsgCompressIStream : public nsIAsyncInputStream
