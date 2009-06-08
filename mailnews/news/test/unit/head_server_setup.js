@@ -172,6 +172,7 @@ function resetFolder(folder) {
   for each (var header in headers) {
     db.DeleteHeader(header, null, true, false);
   }
+  folder.msgDatabase = null;
 }
 
 function do_check_transaction(real, expected) {
