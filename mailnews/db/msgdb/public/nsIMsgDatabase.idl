@@ -232,7 +232,7 @@ interface nsIMsgDBService : nsISupports
   void unregisterPendingListener(in nsIDBChangeListener aListener);
 };
 
-[scriptable, uuid(d9dd4a8d-6a75-4564-8bbd-9c0260e6cbc7)]
+[scriptable, uuid(51fd11c9-5be6-4cad-af6b-fb18d6232be4)]
 interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   /**
    * Opens a database folder.
@@ -283,6 +283,7 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   [noscript] void ListAllKeys(in nsMsgKeyArrayRef outputKeys);
 
   nsISimpleEnumerator EnumerateMessages();
+  nsISimpleEnumerator ReverseEnumerateMessages();
   nsISimpleEnumerator EnumerateThreads();
 
   // count the total and unread msgs, and adjust global count if needed

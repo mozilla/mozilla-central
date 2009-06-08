@@ -2505,7 +2505,8 @@ public:
     typedef nsresult (*nsMsgDBEnumeratorFilter)(nsIMsgDBHdr* hdr, void* closure);
 
     nsMsgDBEnumerator(nsMsgDatabase* db, nsIMdbTable *table,
-                      nsMsgDBEnumeratorFilter filter, void* closure);
+                      nsMsgDBEnumeratorFilter filter, void* closure,
+                      PRBool iterateForwards = PR_TRUE);
     virtual ~nsMsgDBEnumerator();
 
 protected:
@@ -2515,18 +2516,21 @@ protected:
     nsIMdbTableRowCursor*       mRowCursor;
     nsIMsgDBHdr*                 mResultHdr;
     PRBool                      mDone;
-    PRBool            mNextPrefetched;
+    PRBool                      mNextPrefetched;
+    PRBool                      mIterateForwards;
     nsMsgDBEnumeratorFilter     mFilter;
     nsCOMPtr <nsIMdbTable>      mTable;
     void*                       mClosure;
+
 };
 
 nsMsgDBEnumerator::nsMsgDBEnumerator(nsMsgDatabase* db,
                                      nsIMdbTable *table,
                                      nsMsgDBEnumeratorFilter filter,
-                                     void* closure)
+                                     void* closure,
+                                     PRBool iterateForwards)
     : mDB(db), mRowCursor(nsnull), mResultHdr(nsnull), mDone(PR_FALSE),
-      mFilter(filter), mClosure(closure)
+      mFilter(filter), mClosure(closure), mIterateForwards(iterateForwards)
 {
     NS_ADDREF(mDB);
     mNextPrefetched = PR_FALSE;
@@ -2551,14 +2555,25 @@ nsresult nsMsgDBEnumerator::GetRowCursor()
   if (!mDB || !mTable)
     return NS_ERROR_NULL_POINTER;
 
-  return mTable->GetTableRowCursor(mDB->GetEnv(), -1, &mRowCursor);
+  mdb_pos startPos;
+  if (mIterateForwards)
+  {
+    startPos = -1;
+  }
+  else
+  {
+    mdb_count numRows;
+    mTable->GetCount(mDB->GetEnv(), &numRows);
+    startPos = numRows; // startPos is 0 relative.
+  }
+  return mTable->GetTableRowCursor(mDB->GetEnv(), startPos, &mRowCursor);
 }
 
 NS_IMETHODIMP nsMsgDBEnumerator::GetNext(nsISupports **aItem)
 {
   if (!aItem)
     return NS_ERROR_NULL_POINTER;
-  nsresult rv=NS_OK;
+  nsresult rv = NS_OK;
   if (!mNextPrefetched)
     rv = PrefetchNext();
   if (NS_SUCCEEDED(rv))
@@ -2591,7 +2606,10 @@ nsresult nsMsgDBEnumerator::PrefetchNext()
   {
     NS_IF_RELEASE(mResultHdr);
     mResultHdr = nsnull;
-    rv = mRowCursor->NextRow(mDB->GetEnv(), &hdrRow, &rowPos);
+    if (mIterateForwards)
+      rv = mRowCursor->NextRow(mDB->GetEnv(), &hdrRow, &rowPos);
+    else
+      rv = mRowCursor->PrevRow(mDB->GetEnv(), &hdrRow, &rowPos);
     if (!hdrRow)
     {
       mDone = PR_TRUE;
@@ -2647,12 +2665,25 @@ NS_IMETHODIMP nsMsgDBEnumerator::HasMoreElements(PRBool *aResult)
 NS_IMETHODIMP
 nsMsgDatabase::EnumerateMessages(nsISimpleEnumerator* *result)
 {
-    nsMsgDBEnumerator* e = new nsMsgDBEnumerator(this, m_mdbAllMsgHeadersTable, nsnull, nsnull);
-    if (e == nsnull)
-        return NS_ERROR_OUT_OF_MEMORY;
-    NS_ADDREF(e);
-    *result = e;
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(result);
+  nsMsgDBEnumerator* e = new nsMsgDBEnumerator(this, m_mdbAllMsgHeadersTable,
+                                               nsnull, nsnull);
+  if (!e)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(*result = e);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgDatabase::ReverseEnumerateMessages(nsISimpleEnumerator* *result)
+{
+  NS_ENSURE_ARG_POINTER(result);
+  nsMsgDBEnumerator* e = new nsMsgDBEnumerator(this, m_mdbAllMsgHeadersTable,
+                                               nsnull, nsnull, PR_FALSE);
+  if (!e)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(*result = e);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
