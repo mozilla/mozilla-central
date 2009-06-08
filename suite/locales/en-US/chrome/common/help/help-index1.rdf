@@ -1063,9 +1063,9 @@
          nc:link="mail_help.xhtml#creating_html_mail_messages"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="Mail_and_Newsgroups:Disk_Space_settings"
-         nc:name="Disk Space settings"
-         nc:link="mail_help.xhtml#offline_and_disk_space"/>
+       <rdf:Description ID="Mail_and_Newsgroups:disk_space_and_storage_settings"
+         nc:name="disk space and storage settings"
+         nc:link="mail_help.xhtml#synchronization_and_storage"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:filing_messages"
@@ -1116,6 +1116,11 @@
        <rdf:Description ID="Mail_and_Newsgroups:message_searching"
          nc:name="message searching"
          nc:link="mail_help.xhtml#searching_through_messages"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="Mail_and_Newsgroups:offline_synchronization_settings"
+         nc:name="offline synchronization settings"
+         nc:link="mail_help.xhtml#synchronization_and_storage"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:POP_settings"

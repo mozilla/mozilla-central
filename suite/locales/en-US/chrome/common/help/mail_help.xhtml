@@ -278,14 +278,14 @@
         specified for all address books in the Preferences dialog box. For more
         information, see <a href="#addressing">Mail &amp; Newsgroups Account
         Settings - Composition &amp; Addressing</a>.</li>
-      <li><strong>Offline &amp; Disk Space (IMAP and News accounts
+      <li><strong>Synchronization &amp; Storage (IMAP and News accounts
         only)</strong>: These settings apply when you are working offline
         (disconnected from the Internet) or need to save download time and
         conserve disk space. For more information, see
-        <a href="#offline_and_disk_space_settings_imap">Offline and Disk Space
-        Settings (IMAP)</a> or
-        <a href="#offline_and_disk_space_settings_nntp">Offline and Disk Space
-        Settings (News)</a>.</li>
+        <a href="#synchronization_and_storage_settings_imap">Synchronization
+        &amp; Storage Settings (IMAP)</a> or
+        <a href="#synchronization_and_storage_settings_nntp">Synchronization
+        &amp; Storage Settings (News)</a>.</li>
       <li><strong>Disk Space (POP accounts only)</strong>: This setting
         determines the maximum size of messages that you are willing to
         download to your hard disk. For more information, see
@@ -3012,8 +3012,8 @@ to filter unwanted mail, and how phishing detection works.</p>
   <ul>
     <li><a href="#setting_up_mozilla_mail_and_newsgroups_to_work_offline">Setting
       Up &brandShortName; Mail &amp; Newsgroups to Work Offline</a></li>
-    <li><a href="#downloading_your_inbox_for_offline_use">Downloading Your
-      Inbox for Offline Use</a></li>
+    <li><a href="#downloading_all_messages_for_offline_use">Downloading All
+      Messages for Offline Use</a></li>
     <li><a href="#downloading_an_individual_folder_for_offline_use">Downloading
       an Individual Folder for Offline Use</a></li>
     <li><a href="#downloading_selected_or_flagged_messages_for_offline_use">Downloading
@@ -3067,37 +3067,39 @@ to filter unwanted mail, and how phishing detection works.</p>
 
 <p>[<a href="#working_offline">Return to beginning of section</a>]</p>
 
-<h2 id="downloading_your_inbox_for_offline_use">Downloading Your Inbox for
+<h2 id="downloading_all_messages_for_offline_use">Downloading All Messages for
   Offline Use</h2>
 
 <p>You can tell &brandShortName; Mail &amp; Newsgroups to automatically
-  download your Inbox messages for offline use. Later, when you go back online,
-  &brandShortName; Mail &amp; Newsgroups automatically synchronizes your Inbox
+  download your messages for offline use. Later, when you go back online,
+  &brandShortName; Mail &amp; Newsgroups automatically synchronizes your
   messages with the server.</p>
 
 <p>Note that the Inbox for POP accounts is downloaded by default, so this
   section does not apply for POP accounts.</p>
 
-<p>To automatically download your Inbox for offline use, begin from the Mail
+<p>To automatically download your messages for offline use, begin from the Mail
   window:</p>
 
 <ol>
   <li>Open the Edit menu and choose Mail &amp; Newsgroups Account Settings. You
     see the Mail &amp; Newsgroups Account Settings dialog box.</li>
   <li>In the left side of the dialog box, under the name of the account you
-    want to use offline, select Offline &amp; Disk Space. (This category is not
-    available for POP accounts.)</li>
-  <li>Check the box labeled <q>Make the messages in my Inbox available when I
-    am working offline</q>.</li>
+    want to use offline, select Synchronization &amp; Storage. (This category
+    is not available for POP accounts.)</li>
+  <li>Check the box labeled <q>Keep messages for this account on this
+    computer</q>.</li>
   <li>Click OK.</li>
-  <li>In the folder pane, under the name of the account you want to use
-    offline, click any folder other than the Inbox. For example, click the Sent
-    or the Drafts folder. Then click the Inbox folder to start downloading its
-    messages.</li>
   <li>Once downloading is complete, click the Online/Offline indicator
     <img src="images/online.png" alt=""/> in the lower right corner of the
     Mail window (to the left of the Cookie icon) to go offline.</li>
 </ol>
+
+<p><strong>Note</strong>: This setting also applies to any new folders
+  created. While the per-account setting can be overridden for an
+  <a href="#downloading_an_individual_folder_for_offline_use">individual
+  folder</a>, those per-folder settings are <em>removed</em> when the
+  <q>Keep messages</q> box is toggled.</p>
 
 <p>&brandShortName; Mail &amp; Newsgroups automatically downloads all messages
   in your Inbox so you can read and respond to them while working offline.
@@ -3141,7 +3143,7 @@ to filter unwanted mail, and how phishing detection works.</p>
     download for offline use.</li>
   <li>Open the Edit menu, and choose Folder Properties. You see the Properties
     dialog box.</li>
-  <li>Click the Offline tab.</li>
+  <li>Click the Synchronization tab.</li>
   <li>Check <q>Select this folder for offline use</q>.</li>
   <li>Click Download Now if you want to immediately begin downloading the
     folder&apos;s messages. Alternatively, you can continue working, and when
@@ -3304,22 +3306,22 @@ to filter unwanted mail, and how phishing detection works.</p>
 
 <ol>
   <li>For each account that you want to work with while offline, use the Mail
-    &amp; Newsgroups Account Settings dialog box to set the Offline &amp; Disk
-    Space preferences for that account. You must select the items (folders and
-    newsgroups) that you want to download for offline use. See
+    &amp; Newsgroups Account Settings dialog box to set the Synchronization
+    &amp; Storage preferences for that account. You must select the items
+    (folders and newsgroups) that you want to download for offline use. See
     <a href="#selecting_items_for_offline_viewing">Selecting Items for Offline
     Viewing</a> for more information.
 
     <p>Once set, you don&apos;t need to change these settings. See the sections
       below for information on setting offline and disk space preferences for
-      <a href="#offline_and_disk_space_settings_imap">IMAP</a>,
+      <a href="#synchronization_and_storage_settings_imap">IMAP</a>,
       <a href="#disk_space_settings">POP</a>, and
-      <a href="#offline_and_disk_space_settings_nntp">Newsgroup</a>
+      <a href="#synchronization_and_storage_settings_nntp">Newsgroup</a>
       accounts.</p>
 
-    <p><strong>Tip</strong>: To set the Offline &amp; Disk Space preferences
-      for the current account, open the File menu, choose Offline, and then
-      choose Offline Settings.</p>
+    <p><strong>Tip</strong>: To set the Synchronization &amp; Storage
+      preferences for the current account, open the File menu, choose Offline,
+      and then choose Offline Settings.</p>
   </li>
   <li>Open the File menu, choose Offline, and then choose Download/Sync Now
     from the submenu.</li>
@@ -3356,10 +3358,10 @@ to filter unwanted mail, and how phishing detection works.</p>
 <ol>
   <li>Open the Edit menu, choose Mail &amp; Newsgroups Account Settings. You
     see the Mail &amp; Newsgroups Account Settings dialog box.</li>
-  <li>Choose the Offline &amp; Disk Space category for the account you want to
-    change.</li>
-  <li>Click Select. You see your IMAP accounts, mail folders, and subscribed
-    newsgroups.
+  <li>Choose the Synchronization &amp; Storage category for the account you
+    want to change.</li>
+  <li>Click <q>Advanced</q> to see your IMAP folders, or <q>Select newsgroups
+    for offline use</q> for your subscribed newsgroups.
 
     <p><strong>Note</strong>: You see only the newsgroups and folders that
       you&apos;ve already <a href="#subscribing_to_newsgroups">subscribed</a>
@@ -3445,7 +3447,7 @@ to filter unwanted mail, and how phishing detection works.</p>
 <p><strong>Tip</strong>: To set &brandShortName; Mail &amp; Newsgroups&apos;
   download behavior when going offline, open the
   <span class="mac">&brandShortName;</span> <span class="noMac">Edit</span>
-  menu, choose Preferences, and then click the Offline &amp; Disk Space
+  menu, choose Preferences, and then click the Synchronization &amp; Storage
   category. You can choose to have &brandShortName; Mail &amp; Newsgroups
   prompt you to download messages when going offline, to automatically
   download messages, or to not download any messages.</p>
@@ -3465,7 +3467,7 @@ to filter unwanted mail, and how phishing detection works.</p>
 <p><strong>Tip</strong>: To set &brandShortName; Mail &amp; Newsgroups&apos;
   behavior when going online, open the
   <span class="mac">&brandShortName;</span> <span class="noMac">Edit</span>
-  menu, choose Preferences, and then choose the Offline &amp; Disk Space
+  menu, choose Preferences, and then choose the Synchronization &amp; Storage
   category. You can choose to have &brandShortName; Mail &amp; Newsgroups
   prompt you to send unsent messages, to automatically send unsent messages,
   or to not send unsent messages.</p>
@@ -3497,7 +3499,7 @@ to filter unwanted mail, and how phishing detection works.</p>
     <li><a href="#server_settings">Server Settings</a></li>
     <li><a href="#copies_and_folders">Copies &amp; Folders</a></li>
     <li><a href="#addressing">Composition &amp; Addressing</a></li>
-    <li><a href="#offline_and_disk_space">Offline &amp; Disk Space</a></li>
+    <li><a href="#synchronization_and_storage">Synchronization &amp; Storage</a></li>
     <li><a href="#junk_settings">Junk Settings</a></li>
     <li><a href="#return_receipts">Return Receipts</a></li>
     <li><a href="#security">Security</a></li>
@@ -3968,57 +3970,61 @@ to filter unwanted mail, and how phishing detection works.</p>
 <p>[<a href="#mail_and_newsgroups_account_settings">Return to beginning of
   section</a>]</p>
 
-<h2 id="offline_and_disk_space">Mail &amp; Newsgroups Account Settings -
-  Offline &amp; Disk Space</h2>
+<h2 id="synchronization_and_storage">Mail &amp; Newsgroups Account Settings -
+  Synchronization &amp; Storage</h2>
 
-<p>Offline &amp; Disk Space settings let you conserve disk space or set up an
-  account so that you can use it while offline (disconnected from the
+<p>Synchronization &amp; Storage settings let you conserve disk space or set
+  up an account so that you can use it while offline (disconnected from the
   Internet). The settings available depend on the mail server type (IMAP, POP,
   or News) associated with the account.</p>
 
 <div class="contentsBox">
   <ul>
-    <li><a href="#offline_and_disk_space_settings_imap">Offline and Disk Space
-      Settings (IMAP)</a></li>
+    <li><a href="#synchronization_and_storage_settings_imap">Synchronization
+      &amp; Storage Settings (IMAP)</a></li>
     <li><a href="#disk_space_settings">Disk Space Settings (POP)</a></li>
-    <li><a href="#offline_and_disk_space_settings_nntp">Offline and Disk Space
-      Settings (News)</a></li>
+    <li><a href="#synchronization_and_storage_settings_nntp">Synchronization
+      &amp; Storage Settings (News)</a></li>
+    <li><a href="#retention_policy">Common Retention Policy Settings</a></li>
   </ul>
 </div>
 
 <p>[<a href="#mail_and_newsgroups_account_settings">Return to beginning of
   section</a>]</p>
 
-<h3 id="offline_and_disk_space_settings_imap">Offline and Disk Space Settings
-  (IMAP)</h3>
+<h3 id="synchronization_and_storage_settings_imap">Synchronization &amp;
+  Storage Settings (IMAP)</h3>
 
-<p>If you are not already viewing the offline and disk space preferences for an
-  IMAP account, begin from the Mail window:</p>
+<p>If you are not already viewing the synchronization and storage preferences
+  for an IMAP account, begin from the Mail window:</p>
 
 <ol>
   <li>Open the Edit menu and choose Mail &amp; Newsgroups Account Settings. You
     see the Mail &amp; Newsgroups Account Settings dialog box.</li>
-  <li>Choose the Offline &amp; Disk Space category for an IMAP account.</li>
+  <li>Choose the Synchronization &amp; Storage category for an IMAP
+    account.</li>
 </ol>
 
 <ul>
-  <li><strong>Make the messages in my Inbox available when I am working
-    offline</strong>: Select this option so that messages in your Inbox will be
-    available when you are working offline.</li>
-  <li><strong>When I create new folders, select them for offline use</strong>:
-    Select this option so that new folders you create are automatically
-    selected for offline use. If left unchecked, new folders won&apos;t be
-    automatically selected for offline use. You can manually select folders for
-    offline by choosing the Download/Sync Now command (available from the File
-    menu, under Offline). Click the Select button in the Download/Sync Messages
-    dialog box to select the folders.</li>
-  <li><strong>Select folders for offline use</strong>: Click to select the
+  <li><strong>Keep messages for this account on this computer</strong>: Select
+    this option so that messages in your folders will be available when you
+    are working offline. This setting also applies to any new folders
+    created or subscribed to.</li>
+  <li><strong>Advanced</strong>: Click to open a dialog to select the
     folders that you want to make available for offline use. See
     <a href="#selecting_items_for_offline_viewing">Selecting Items for Offline
-    Viewing</a> for more information.</li>
+    Viewing</a> for more information.
+
+    <p><strong>Note</strong>: While the default setting can be overridden for
+      an individual folder, those per-folder settings are <em>removed</em>
+      whenever the <q>Keep messages for this account</q> box is toggled.</p>
+  </li>
   <li><strong>Messages larger than [__] KB</strong>: Select this option to
     conserve disk space by preventing large messages from being downloaded.
     Enter the maximum size for downloaded messages.</li>
+  <li>The <a href="#retention_policy">retention settings</a> can be used to
+    free up space by deleting old messages. Note that these settings apply
+    to <em>both</em> local copies and their originals on the server.</li>
 </ul>
 
 <p>[<a href="#mail_and_newsgroups_account_settings">Return to beginning of
@@ -4045,13 +4051,20 @@ to filter unwanted mail, and how phishing detection works.</p>
   <li><strong>Messages larger than [__] KB</strong>: Select this option to
     conserve disk space by preventing large messages from being downloaded.
     Enter the maximum size for downloaded messages.</li>
+  <li>The <a href="#retention_policy">retention settings</a> can be used to
+    free up space by deleting old messages. Note that these settings apply
+    to <em>both</em> local copies and their originals on the server.
+
+    <p><strong>Note</strong>: If your POP account is set up to use a Global
+      Inbox, the retention period settings of the target Inbox apply.</p>
+  </li>
 </ul>
 
 <p>[<a href="#mail_and_newsgroups_account_settings">Return to beginning of
   section</a>]</p>
 
-<h3 id="offline_and_disk_space_settings_nntp">Offline and Disk Space Settings
-  (News)</h3>
+<h3 id="synchronization_and_storage_settings_nntp">Synchronization &amp;
+  Storage Settings (News)</h3>
 
 <p>If you are not already viewing the offline and disk space settings for a
   News account, begin from the Mail window:</p>
@@ -4059,7 +4072,7 @@ to filter unwanted mail, and how phishing detection works.</p>
 <ol>
   <li>Open the Edit menu, and choose Mail &amp; Newsgroups Account Settings.
     You see the Mail &amp; Newsgroups Account Settings dialog box.</li>
-  <li>Choose the Offline &amp; Disk Space category for a News account.</li>
+  <li>Choose the Synchronization &amp; Storage category for a News account.</li>
 </ol>
 
 <ul>
@@ -4083,31 +4096,46 @@ to filter unwanted mail, and how phishing detection works.</p>
     here.</li>
 </ul>
 
-<p>&brandShortName; can automatically delete newsgroup messages for you. You
+<p>[<a href="#mail_and_newsgroups_account_settings">Return to beginning of
+  section</a>]</p>
+
+<h3 id="retention_policy">Common Retention Policy Settings</h3>
+
+<p>&brandShortName; can automatically delete old messages for you. You
   can configure this process with the options listed below
-  <strong>Keep</strong>:</p>
+  <strong>To recover disk space, old messages can be permanently
+  deleted</strong>:</p>
 
 <ul>
-  <li><strong>All messages</strong>: Keep all messages. Never delete messages 
-    automatically.</li>
-  <li><strong>The newest [__] messages</strong>: Enter the number of messages
-    to keep. With this setting only messages older than these messages are
-    deleted.</li>
-  <li><strong>Messages which have arrived within the last [__] days</strong>:
+  <li><strong>Don't delete any messages</strong>: Keep all messages. Never
+    delete messages automatically.</li>
+  <li><strong>Delete all but the last [__] messages</strong>: Enter the number
+    of messages to keep. With this setting only messages older than these
+    messages are deleted.</li>
+  <li><strong>Delete messages more than [__] days old </strong>:
     Keep all messages that arrived within the given number of days.</li>
 </ul>
 
-<p>With the last two settings you can further constrain the three options to
+<p>With the following settings you can further constrain the three options to
   delete messages automatically. This is especially useful in combination with
   the option to keep all messages.</p> 
 
 <ul>
-  <li><strong>Only unread messages</strong>: Select this option to deny
-    &brandShortName; the deletion of unread messages.</li>
+  <li><strong>Always delete read messages</strong>: Select this option to
+    remove read messages.</li>
+  <li><strong>Always keep flagged messages</strong>: Use this option to deny
+    &brandShortName; to delete any messages you have flagged.</li>
   <li><strong>Only message bodies less than [__] days old</strong>: Select this
     option to deny &brandShortName; the deletion of messages that are newer
-    than the number of days you specify here.</li>
+    than the number of days you specify here (news accounts only).</li>
 </ul>
+
+<p>This policy can be overridden for an individual folder in the Folder
+  Properties, Retention Policy tab.</p>
+
+<p><strong>Note:</strong> If message synchronization is enabled (for IMAP), or
+  messages are left on the server for POP accounts), the settings apply to
+  <em>both</em> local copies and their originals on the server.</p>
 
 <p>[<a href="#mail_and_newsgroups_account_settings">Return to beginning of
   section</a>]</p>
