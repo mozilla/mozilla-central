@@ -126,10 +126,14 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         # XXX tidy up
         if automation.IS_MAC:
             self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', 'ShredderDebug.app', 'Contents', 'MacOS')
+            appname = 'thunderbird-bin'
         else:
             self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', 'bin')
+            appname = 'thunderbird'
+            if automation.IS_WIN32:
+                appname += '.exe'
 
-        self.app_path = os.path.join(self.bin_dir, 'thunderbird-bin')
+        self.app_path = os.path.join(self.bin_dir, appname)
 
         self.base_test_dir = os.getcwd()
 
@@ -149,7 +153,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
             mozconfig_path = os.path.join(self.src_dir, '.mozconfig.mk')
 
         guess_path = os.path.join(self.src_dir, 'mozilla/build/autoconf/config.guess')
-        config_guess = os.popen(guess_path).read()
+        config_guess = os.popen("sh " + guess_path).read()
         config_guess = config_guess.strip()
         f = open(mozconfig_path, 'rt')
         for line in f:
