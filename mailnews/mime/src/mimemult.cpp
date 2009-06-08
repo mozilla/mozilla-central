@@ -198,7 +198,8 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       mult->hdrs = MimeHeaders_new();
       if (!mult->hdrs)
         return MIME_OUT_OF_MEMORY;
-      if (obj->options->state->partsToStrip.Length() > 0)
+      if (obj->options && obj->options->state &&
+          obj->options->state->partsToStrip.Length() > 0)
       {
         nsCAutoString newPart(mime_part_address(obj));
         MimeContainer *container = (MimeContainer*) obj; 
@@ -257,7 +258,8 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       //
       if (*line == '\r' || *line == '\n')
       {
-        if (obj->options->state->strippingPart)
+        if (obj->options && obj->options->state &&
+            obj->options->state->strippingPart)
         {
           PRBool detachingPart = obj->options->state->detachedFilePath.Length() > 0;
 
@@ -324,7 +326,8 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
         {
           MimeObject *kid = container->children[container->nchildren-1];
           if (kid->output_p)
-            kid->output_p = !obj->options->state->strippingPart;
+            kid->output_p = !(obj->options && obj->options->state &&
+                              obj->options->state->strippingPart);
         }
         if (container->children && container->nchildren == 1)
         {
@@ -434,8 +437,10 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       return -1;
   }
 
-  if (obj->options->format_out == nsMimeOutput::nsMimeMessageAttach && 
-      (!obj->options->state->strippingPart && mult->state != MimeMultipartPartLine))
+  if (obj->options &&
+      obj->options->format_out == nsMimeOutput::nsMimeMessageAttach &&
+      (!(obj->options->state && obj->options->state->strippingPart) &&
+      mult->state != MimeMultipartPartLine))
       return MimeObject_write(obj, line, length, PR_FALSE);
   return 0;
 }
