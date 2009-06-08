@@ -85,6 +85,9 @@ nsMsgOfflineImapOperation::nsMsgOfflineImapOperation(nsMsgDatabase *db, nsIMdbRo
 
 nsMsgOfflineImapOperation::~nsMsgOfflineImapOperation()
 {
+  // clear the row first, in case we're holding the last reference
+  // to the db.
+  m_mdbRow = nsnull;
   NS_IF_RELEASE(m_mdb);
 }
 

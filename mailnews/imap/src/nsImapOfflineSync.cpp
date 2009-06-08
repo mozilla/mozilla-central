@@ -483,10 +483,16 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
 void nsImapOfflineSync::ClearCurrentOps()
 {
   PRInt32 opCount = m_currentOpsToClear.Count();
-  for (PRInt32 i = 0; i < opCount; i++)
+  for (PRInt32 i = opCount - 1; i >= 0; i--)
   {
     m_currentOpsToClear[i]->SetPlayingBack(PR_FALSE);
     m_currentOpsToClear[i]->ClearOperation(mCurrentPlaybackOpType);
+    // if that was the last operation left for this object,
+    // remove the object from the array.
+    nsOfflineImapOperationType opsLeft;
+    m_currentOpsToClear[i]->GetOperation(&opsLeft);
+    if (!opsLeft)
+      m_currentOpsToClear.RemoveObjectAt(i);
   }
 }
 
