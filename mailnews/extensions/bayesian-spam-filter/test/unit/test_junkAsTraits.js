@@ -60,12 +60,13 @@ const kClassJ = 2;  // classify using junk method
 const kClassT = 3;  // classify using trait method
 const kForgetJ = 4; // forget training using junk method
 const kForgetT = 5; // forget training using trait method
+const kCounts = 6;  // test token and message counts
 
 var gProArray = [], gAntiArray = []; // traits arrays, pro is junk, anti is good
 var gTest; // currently active test
 
 // The tests array defines the tests to attempt. Format of
-// an element "test" of this array:
+// an element "test" of this array (except for kCounts):
 //
 //   test.command: function to perform, see definitions above
 //   test.fileName: file containing message to test
@@ -173,6 +174,10 @@ var tests =
    junkPercent: 100,
    traitListener: true,
    junkListener: true},
+  {command: kCounts,
+   tokenCount: 66,  // count of tokens in the corpus
+   junkCount: 2,    // count of junk messages in the corpus
+   goodCount: 1},   // count of good messages in the corpus
   {command: kForgetT,
    fileName: "spam4.eml",
    junkPercent: 100,
@@ -510,6 +515,21 @@ function startCommand()
         null,        // in nsIMsgWindow aMsgWindow
         jListener ? junkListener :
           null);     // in nsIJunkMailClassificationListener aJunkListener
+      break;
+
+    case kCounts:
+      // test counts
+      let msgCount = {};
+      let tokenCount = nsIJunkMailPlugin.corpusCounts(null, {});
+      nsIJunkMailPlugin.corpusCounts(kJunkTrait, msgCount);
+      let junkCount = msgCount.value;
+      nsIJunkMailPlugin.corpusCounts(kGoodTrait, msgCount);
+      let goodCount = msgCount.value;
+      print("tokenCount, junkCount, goodCount is " + tokenCount, junkCount, goodCount);
+      do_check_eq(tokenCount, gTest.tokenCount);
+      do_check_eq(junkCount, gTest.junkCount);
+      do_check_eq(goodCount, gTest.goodCount);
+      do_timeout(0, "startCommand();");
       break;
   }
 }

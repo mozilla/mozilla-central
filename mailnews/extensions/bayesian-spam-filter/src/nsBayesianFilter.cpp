@@ -2122,6 +2122,21 @@ NS_IMETHODIMP nsBayesianFilter::DetailMessage(const char *aMsgURI,
   return tokenizeMessage(aMsgURI, aMsgWindow, analyzer);
 }
 
+NS_IMETHODIMP nsBayesianFilter::CorpusCounts(PRUint32 aTrait,
+                                             PRUint32 *aMessageCount,
+                                             PRUint32 *aTokenCount)
+{
+  NS_ENSURE_ARG_POINTER(aTokenCount);
+  if (mCorpus)
+  {
+    *aTokenCount = mCorpus.countTokens();
+    if (aTrait && aMessageCount)
+      *aMessageCount = mCorpus.getMessageCount(aTrait);
+    return NS_OK;
+  }
+  return NS_ERROR_FAILURE;
+}
+
 /* Corpus Store */
 
 /*

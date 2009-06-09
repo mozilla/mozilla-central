@@ -145,7 +145,7 @@ interface nsIMsgTraitDetailListener : nsISupports
     [array, size_is(tokenCount)] in unsigned long runningPercents);
 };
 
-[scriptable, uuid(59BA2A0D-2C87-44a0-8ADD-83266A9EA474)]
+[scriptable, uuid(EDB05079-3F8A-46a6-A596-E7FD8E12216B)]
 interface nsIJunkMailPlugin : nsIMsgFilterPlugin
 {
     /**
@@ -306,4 +306,16 @@ interface nsIJunkMailPlugin : nsIMsgFilterPlugin
         in unsigned long aAntiTrait,
         in nsIMsgTraitDetailListener aListener,
         [optional] in nsIMsgWindow aMsgWindow);
+
+    /**
+     * Gives information on token and message count information in the
+     * training data corpus
+     *
+     * @param aTrait           trait id (may be null)
+     * @param aMessageCount    count of messages that have been trained with aTrait
+     *
+     * @return                 token count for all traits
+     */
+
+    unsigned long corpusCounts(in unsigned long aTrait, out unsigned long aMessageCount);
 };
