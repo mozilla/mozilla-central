@@ -77,11 +77,14 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIUTF8STRINGENUMERATOR
 
+  nsMimeStringEnumerator() : mCurrentIndex(0) {}
+
   template<class T>
-  nsCString* Append(T value) { return values.AppendElement(value); }
+  nsCString* Append(T value) { return mValues.AppendElement(value); }
 
 protected:
-  nsTArray<nsCString> values;
+  nsTArray<nsCString> mValues;
+  PRUint32 mCurrentIndex; // consumers expect first-in first-out enumeration
 };
 
 NS_IMPL_ISUPPORTS1(nsMimeStringEnumerator, nsIUTF8StringEnumerator)
@@ -90,19 +93,17 @@ NS_IMETHODIMP
 nsMimeStringEnumerator::HasMore(PRBool *result)
 {
   NS_ENSURE_ARG_POINTER(result);
-  *result = values.Length() != 0;
+  *result = mCurrentIndex < mValues.Length();
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMimeStringEnumerator::GetNext(nsACString& result)
+NS_IMETHODIMP
+nsMimeStringEnumerator::GetNext(nsACString& result)
 {
-  PRUint32 length = values.Length();
-  if (!length)
+  if (mCurrentIndex >= mValues.Length())
     return NS_ERROR_UNEXPECTED;
 
-  length--;
-  result = values[length];
-  values.RemoveElementAt(length);
+  result = mValues[mCurrentIndex++];
   return NS_OK;
 }
 
