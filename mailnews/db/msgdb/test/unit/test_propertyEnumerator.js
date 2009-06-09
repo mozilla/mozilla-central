@@ -93,5 +93,6 @@ function continue_test()
   do_check_true(properties.indexOf("iamnew") >= 0);
   do_check_true(properties.indexOf("idonotexist") < 0);
 
+  gHdr = null;
   do_test_finished();
 }

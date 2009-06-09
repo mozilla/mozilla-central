@@ -194,7 +194,10 @@ function testVirtualFolder()
   gLocalInboxFolder.removeKeywordsFromMessages(message1, tag1);
   do_check_eq(3, virtualFolder.getTotalMessages(false));
   do_check_eq(1, virtualFolder.getNumUnread(false));
-  
+
+  // End of test, so release our header references
+  hdrs = null;
+
   do_test_finished();
   return true;
 }
@@ -260,4 +263,3 @@ function makeSearchTerm(aFolder, aStrValue, aAttrib, aOp)
   searchSession = null;
   return searchTerm;
 }
-

@@ -71,6 +71,7 @@ function continueTest()
   do_check_true(hdr.bccList.indexOf("Another Person") >= 0);
   do_check_true(hdr.bccList.indexOf("<u1@example.com>") >= 0);
   do_check_false(hdr.bccList.indexOf("IDoNotExist") >=0);
+  hdr = null;
   do_test_finished();
 }
 

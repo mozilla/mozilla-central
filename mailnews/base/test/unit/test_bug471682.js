@@ -121,6 +121,8 @@ var step5 =
     var size = filePath.fileSize;
     do_check_eq(size, dbSize);
     do_check_eq(date, dbDate);
+    // End of test, so release our header reference
+    gHdr = null;
     do_test_finished();
   }
 }
