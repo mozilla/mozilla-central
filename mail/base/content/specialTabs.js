@@ -64,6 +64,12 @@ var specialTabs = {
     name: "contentTab",
     perTabPanel: "vbox",
     lastBrowserId: 0,
+    get loadingTabString() {
+      delete this.loadingTabString;
+      return this.loadingTabString = document.getElementById("bundle_messenger")
+                                             .getString("loadingTab");
+    },
+
     modes: {
       contentTab: {
         type: "contentTab",
@@ -94,9 +100,7 @@ var specialTabs = {
       }
       return -1;
     },
-    // XXX it would be nice to have an onload listener and set the title
-    // after the load, however tabmail doesn't support that at the moment.
-    openTab: function onTabOpened(aTab, aContentPage, aTitle) {
+    openTab: function onTabOpened(aTab, aContentPage) {
       // You can't dynamically change an iframe from a non-content to a content
       // type, therefore we dynamically create the element instead.
       let iframe = document.createElement("browser");
@@ -106,11 +110,20 @@ var specialTabs = {
       iframe.setAttribute("disablehistory", true);
       iframe.setAttribute("id", "contentTabType" + this.lastBrowserId);
 
+      function onDOMTitleChanged(aEvent) {
+        document.getElementById("tabmail").setTabTitle(aTab);
+      }
+      // Save the function we'll use as listener so we can remove it later.
+      aTab.contentTabType = { titleListener: onDOMTitleChanged };
+      // Add the listener.
+      iframe.addEventListener("DOMTitleChanged",
+                              aTab.contentTabType.titleListener, true);
+
+      aTab.title = this.loadingTabString;
+
       aTab.panel.appendChild(iframe);
 
       iframe.setAttribute("src", aContentPage);
-
-      aTab.title = aTitle;
 
       let findbar = document.createElement("findbar");
       findbar.setAttribute("browserid", "contentTabType" + this.lastBrowserId);
@@ -118,6 +131,8 @@ var specialTabs = {
       this.lastBrowserId++;
     },
     closeTab: function onTabClosed(aTab) {
+      aTab.panel.firstChild.removeEventListener("DOMTitleChanged",
+                                                aTab.contentTabType.titleListener, true);
     },
     saveTabState: function onSaveTabState(aTab) {
       aTab.panel.firstChild.setAttribute("type", "content-targetable");
@@ -126,6 +141,7 @@ var specialTabs = {
       aTab.panel.firstChild.setAttribute("type", "content-primary");
     },
     onTitleChanged: function onTitleChanged(aTab) {
+      aTab.title = aTab.panel.firstChild.contentDocument.title;
     },
     supportsCommand: function supportsCommand(aTab, aCommand) {
       switch (aCommand) {
@@ -221,10 +237,7 @@ var specialTabs = {
                   .getService(Components.interfaces.nsIURLFormatter)
                   .formatURLPref("mailnews.start_page.override_url");
 
-    let msgBundle = document.getElementById("bundle_messenger");
-
-    document.getElementById('tabmail').openTab("contentTab", startpage,
-                                               msgBundle.getString("whatsNew"));
+    document.getElementById('tabmail').openTab("contentTab", startpage);
   },
 
   /**
@@ -266,7 +279,6 @@ var specialTabs = {
     var productName = brandBundle.GetStringFromName("brandFullName");
     var notifyRightsText = rightsBundle.formatStringFromName("notifyRightsText",
                                                              [productName], 1);
-    var rightsTitle = rightsBundle.GetStringFromName("aboutRightsTitle");
 
     var buttons = [
       {
@@ -276,8 +288,7 @@ var specialTabs = {
         callback: function(aNotificationBar, aButton) {
           // Show the about:rights tab
           document.getElementById('tabmail').openTab("contentTab",
-                                                     "about:rights",
-                                                     rightsTitle);
+                                                     "about:rights");
         }
       }
     ];

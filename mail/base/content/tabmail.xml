@@ -76,7 +76,7 @@
     - * openTab(aTabModeName, arguments...): Open a tab of the given "mode",
     -   passing the provided arguments.  The tab type author should tell you
     -   the modes they implement and the required/optional arguments.
-    - * setTabTitle([aOptionalTabNode]): Tells us that the title of the current
+    - * setTabTitle([aOptionalTabInfo]): Tells us that the title of the current
     -   tab (if no argument is provided) or provided tab needs to be updated.
     -   This will result in a call to the tab mode's logic to update the title.
     -   In the event this is not for the current tab, the caller is responsible
@@ -303,11 +303,10 @@
           //  contents will set themselves up correctly.
           if (this.tabInfo.length == 0) {
             let firstTab = {mode: this.defaultTabMode, canClose: false};
-            let firstTabNode = this.tabContainer.firstChild;
             firstTab.mode.tabs.push(firstTab);
            
             this.tabInfo[0] = this.currentTabInfo = firstTab;
-            this.setTabTitle(firstTabNode);
+            this.setTabTitle(firstTab);
 
             if (this.tabMonitors.length) {
               for each (let [i, tabMonitor] in Iterator(this.tabMonitors))
@@ -577,34 +576,50 @@
         </body>
       </method>
       <method name="setTabTitle">
-        <parameter name="aTabNode"/>
+        <parameter name="aTab"/>
         <body>
           <![CDATA[
-            if (!aTabNode)
-              aTabNode =
-                this.tabContainer.childNodes[this.tabContainer.selectedIndex];
-                
-            // get the owner for the tab...
-            var i;
-            var numTabs = this.tabContainer.childNodes.length;
-            for (i = 0; i < numTabs; i++)
-              if (this.tabContainer.childNodes[i] == aTabNode)
-                break;
+            // First find the tab and its index.
+            let tab;
+            let index;
+            if (aTab) {
+              tab = aTab;
+              for (index = 0; index < this.tabInfo.length; ++index) {
+                if (tab == this.tabInfo[index])
+                  break;
+              }
+            }
+            else {
+              index = this.tabContainer.selectedIndex;
+              tab = this.tabInfo[index];
+            }
+
             // on startup, we may not have a tab...
-            let tab = this.tabInfo[i];
             if (tab)
             {
+              let tabNode =
+                this.tabContainer.childNodes[index];
+
               let titleChangeFunc = tab.mode.onTitleChanged ||
                                     tab.mode.tabType.onTitleChanged;
               if (titleChangeFunc)
-                titleChangeFunc.call(tab.mode.tabType, tab, aTabNode);
+                titleChangeFunc.call(tab.mode.tabType, tab, tabNode);
 
               if (this.tabMonitors.length) {
-                for each (let [i, tabMonitor] in Iterator(this.tabMonitors))
+                for each (let [index, tabMonitor] in Iterator(this.tabMonitors))
                   tabMonitor.onTabTitleChanged(tab);
               }
-                                    
-              aTabNode.setAttribute("label", tab.title);
+
+              tabNode.setAttribute("label", tab.title);
+
+              // Update the window title if we're the displayed tab.
+              if (index == this.tabContainer.selectedIndex) {
+                let docTitle = tab.title;
+#ifndef XP_MACOSX
+                docTitle += " - " + gBrandBundle.getString("brandFullName");
+#endif
+                document.title = docTitle;
+              }
             }
           ]]>
         </body>
