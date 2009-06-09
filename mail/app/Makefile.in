@@ -322,6 +322,37 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),photon)
 LIBS += -lphexlib
 endif
 
+libs:: $(srcdir)/profile/prefs.js
+	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/defaults/profile
+
+$(MAIL_LICENSE_HTML_FILE): $(PLATFORM_LICENSE_FILE) $(MAIL_APP_LICENSE_FILE)
+	$(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $< | \
+	sed -e "s/about:license\#/\#/" > $@
+
+libs:: $(MAIL_LICENSE_TXT_FILE) $(MAIL_LICENSE_HTML_FILE)
+ifeq ($(OS_ARCH),WINNT)
+	$(EXIT_ON_ERROR) \
+	for file in $^; do \
+	$(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $$file > $(FINAL_TARGET)/`basename $$file`; \
+	done
+else
+	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
+endif
+
+# Disable these tests due to bug 431125
+TEST_COOKIES_FILES = \
+	$(DIST)/../_tests/xpcshell/test_cookies/unit/test_bug468700.js \
+	$(DIST)/../_tests/xpcshell/test_cookies/unit/test_cookies.js \
+	$(DIST)/../_tests/xpcshell/test_necko/unit/test_cookie_header.js \
+	$(NULL)
+
+libs::
+	for file in $(TEST_COOKIES_FILES); do \
+		if test -f $$file; then $(RM) $$file; echo "function run_test() {dump('disabled for bug 431125');}" >$$file; fi; \
+	done
+	$(RM) $(DIST)/bin/TestCookie
+	if test -f $(DIST)/bin/TestTArray; then cp $(DIST)/bin/TestTArray $(DIST)/bin/TestCookie; fi;
+
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 
 AB := $(firstword $(subst -, ,$(AB_CD)))
@@ -355,36 +386,5 @@ clean clobber::
 	rm -rf $(DIST)/$(APP_NAME).app
 endif
 
-$(MAIL_LICENSE_HTML_FILE): $(PLATFORM_LICENSE_FILE) $(MAIL_APP_LICENSE_FILE)
-	$(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $< | \
-	sed -e "s/about:license\#/\#/" > $@
-
-libs:: $(MAIL_LICENSE_TXT_FILE) $(MAIL_LICENSE_HTML_FILE)
-ifeq ($(OS_ARCH),WINNT)
-	$(EXIT_ON_ERROR) \
-	for file in $^; do \
-	$(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $$file > $(FINAL_TARGET)/`basename $$file`; \
-	done
-else
-	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
-endif
-
-libs:: $(srcdir)/profile/prefs.js
-	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/defaults/profile
-
-install:: $(srcdir)/profile/prefs.js
-	$(SYSINSTALL) $(IFLAGS1) $^  $(DESTDIR)$(mozappdir)/defaults/profile
-
-# Disable these tests due to bug 431125
-TEST_COOKIES_FILES = \
-	$(DIST)/../_tests/xpcshell/test_cookies/unit/test_bug468700.js \
-	$(DIST)/../_tests/xpcshell/test_cookies/unit/test_cookies.js \
-	$(DIST)/../_tests/xpcshell/test_necko/unit/test_cookie_header.js \
-	$(NULL)
-
-libs::
-	for file in $(TEST_COOKIES_FILES); do \
-		if test -f $$file; then $(RM) $$file; echo "function run_test() {dump('disabled for bug 431125');}" >$$file; fi; \
-	done
-	$(RM) $(DIST)/bin/TestCookie
-	if test -f $(DIST)/bin/TestTArray; then cp $(DIST)/bin/TestTArray $(DIST)/bin/TestCookie; fi;
+# Note that anything you do to dist/ down here isn't going to make it into the
+# Mac build, since it's already been copied over to the .app, above.
