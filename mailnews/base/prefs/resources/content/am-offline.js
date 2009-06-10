@@ -133,8 +133,6 @@ function onPreInit(account, accountValues)
       {
         var retentionRadio = document.getElementById("retention.keepMsg");
         retentionRadio.setAttribute("hidden", "true");
-        var retentionCheckbox = document.getElementById("retention.keepUnread");
-        retentionCheckbox.setAttribute("hidden", "true");
         var retentionLabel = document.getElementById("retentionDescriptionPop");
         retentionLabel.setAttribute("hidden", "true");
         var applyToFlaggedCheckbox = document.getElementById("retention.applyToFlagged");
@@ -230,7 +228,6 @@ function onLockPreference()
       { prefstring:"retainBy", id:"retention.keepMsg"},
       { prefstring:"daysToKeepHdrs", id:"retention.keepOldMsgMin"},
       { prefstring:"numHdrsToKeep", id:"retention.keepNewMsgMin"},
-      { prefstring:"keepUnreadOnly", id:"retention.keepUnread"},
       { prefstring:"daysToKeepBodies", id:"nntp.removeBodyMin"},
       { prefstring:"cleanupBodies", id:"nntp.removeBody" },
       { prefstring:"applyToFlagged", id:"retention.applyToFlagged"},

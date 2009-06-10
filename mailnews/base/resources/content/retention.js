@@ -40,7 +40,6 @@
 
 function initCommonRetentionSettings(retentionSettings)
 {
-  document.getElementById("retention.keepUnread").checked =  retentionSettings.keepUnreadMessagesOnly;
   document.getElementById("retention.keepMsg").value = retentionSettings.retainByPreference;
   if(retentionSettings.daysToKeepHdrs > 0)
     document.getElementById("retention.keepOldMsgMin").value = 
@@ -62,7 +61,6 @@ function saveCommonRetentionSettings()
 
   retentionSettings.daysToKeepHdrs = document.getElementById("retention.keepOldMsgMin").value;
   retentionSettings.numHeadersToKeep = document.getElementById("retention.keepNewMsgMin").value;
-  retentionSettings.keepUnreadMessagesOnly = document.getElementById("retention.keepUnread").checked;
 
   retentionSettings.applyToFlaggedMessages =
     !document.getElementById("retention.applyToFlagged").checked;
