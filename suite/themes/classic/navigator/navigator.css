@@ -487,6 +487,10 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   color: #FFFFFF;
 }
 
+#ev-button {
+  list-style-image: url("chrome://communicator/skin/icons/identity.png");
+}
+
 #popupIcon {
   list-style-image: url("chrome://navigator/skin/icons/popup-blocked.png");
 }

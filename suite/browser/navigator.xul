@@ -284,6 +284,8 @@
           <hbox id="urlbar-icons"
                 class="urlbar-icons">
             <image id="feedsButton" hidden="true" popup="feedsPopup"/>
+            <image id="ev-button" hidden="true"
+                   onclick="if (event.button == 0) BrowserPageInfo(null, 'securityTab');"/>
           </hbox>
           <menupopup id="ubhist-popup" class="autocomplete-history-popup"
                      popupalign="topleft" popupanchor="bottomleft"
