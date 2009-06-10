@@ -61,8 +61,10 @@
 <!ENTITY retentionDeleteMsg.accesskey "m">
 <!ENTITY retentionKeepAll.label "Don't delete any messages">
 <!ENTITY retentionKeepAll.accesskey "A">
-<!ENTITY retentionKeepRecent.label "Delete all but the most recent">
-<!ENTITY retentionKeepRecent.accesskey "l">
+<!ENTITY retentionKeepNew.label "Delete all but the last">
+<!ENTITY retentionKeepNew.accesskey "l">
+<!ENTITY retentionKeepUnread.label "Always delete read messages">
+<!ENTITY retentionKeepUnread.accesskey "r">
 <!ENTITY retentionApplyToFlagged.label "Always keep starred messages">
 <!ENTITY retentionApplyToFlagged.accesskey "e">
 

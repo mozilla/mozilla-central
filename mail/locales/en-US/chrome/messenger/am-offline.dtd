@@ -18,12 +18,14 @@
 <!ENTITY retentionKeepMsg.accesskey "t">
 <!ENTITY retentionKeepAll.label "Don't delete any messages">
 <!ENTITY retentionKeepAll.accesskey "n">
-<!ENTITY retentionKeepRecent.label "Delete all but the most recent">
-<!ENTITY retentionKeepRecent.accesskey "b">
+<!ENTITY retentionKeepNew.label "Delete all but the last">
+<!ENTITY retentionKeepNew.accesskey "b">
+<!ENTITY retentionKeepUnread.label "Always delete read messages">
+<!ENTITY retentionKeepUnread.accesskey "w">
 <!ENTITY retentionApplyToFlagged.label "Always keep starred messages">
 <!ENTITY retentionApplyToFlagged.accesskey "k">
-<!ENTITY nntpRemoveMsgBody.label "Remove bodies from messages more than">
-<!ENTITY nntpRemoveMsgBody.accesskey "o">
+<!ENTITY nntpRemoveBody.label "Only message bodies less than">
+<!ENTITY nntpRemoveBody.accesskey "O">
 <!ENTITY offlineSelectNntp.label "Select newsgroups for offline use…">
 <!ENTITY offlineSelectNntp.accesskey "S">
 <!ENTITY offlineImapAdvancedOffline.label "Advanced…">

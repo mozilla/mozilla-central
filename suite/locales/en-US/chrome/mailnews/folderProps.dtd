@@ -61,8 +61,10 @@
 <!ENTITY retentionDeleteMsg.accesskey "m">
 <!ENTITY retentionKeepAll.label "All messages">
 <!ENTITY retentionKeepAll.accesskey "A">
-<!ENTITY retentionKeepRecent.label "The newest">
-<!ENTITY retentionKeepRecent.accesskey "n">
+<!ENTITY retentionKeepNew.label "The newest">
+<!ENTITY retentionKeepNew.accesskey "n">
+<!ENTITY retentionKeepUnread.label "Only unread messages">
+<!ENTITY retentionKeepUnread.accesskey "u">
 <!ENTITY retentionApplyToFlagged.label "Always keep flagged messages">
 <!ENTITY retentionApplyToFlagged.accesskey "e">
 
