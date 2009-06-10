@@ -1916,11 +1916,20 @@ nsMsgDBFolder::MatchOrChangeFilterDestination(nsIMsgFolder *newFolder, PRBool ca
       rv = server->GetCanHaveFilters(&canHaveFilters);
       if (NS_SUCCEEDED(rv) && canHaveFilters)
       {
+        // update the filterlist to match the new folder name
         rv = server->GetFilterList(nsnull, getter_AddRefs(filterList));
-        if (filterList)
+        if (NS_SUCCEEDED(rv) && filterList)
         {
           rv = filterList->MatchOrChangeFilterTarget(oldUri, newUri, caseInsensitive, found);
-          if (found && newFolder && !newUri.IsEmpty())
+          if (NS_SUCCEEDED(rv) && found && newFolder && !newUri.IsEmpty())
+            rv = filterList->SaveToDefaultFile();
+        }
+        // update the editable filterlist to match the new folder name
+        rv = server->GetEditableFilterList(nsnull, getter_AddRefs(filterList));
+        if (NS_SUCCEEDED(rv) && filterList)
+        {
+          rv = filterList->MatchOrChangeFilterTarget(oldUri, newUri, caseInsensitive, found);
+          if (NS_SUCCEEDED(rv) && found && newFolder && !newUri.IsEmpty())
             rv = filterList->SaveToDefaultFile();
         }
       }
@@ -4736,6 +4745,25 @@ nsMsgDBFolder::SetFilterList(nsIMsgFilterList *aFilterList)
   nsresult rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
   return server->SetFilterList(aFilterList);
+}
+
+NS_IMETHODIMP
+nsMsgDBFolder::GetEditableFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  nsresult rv = GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return server->GetEditableFilterList(aMsgWindow, aResult);
+}
+
+NS_IMETHODIMP
+nsMsgDBFolder::SetEditableFilterList(nsIMsgFilterList *aFilterList)
+{
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  nsresult rv = GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return server->SetEditableFilterList(aFilterList);
 }
 
 /* void enableNotifications (in long notificationType, in boolean enable); */

@@ -194,11 +194,53 @@ interface nsIMsgIncomingServer : nsISupports {
   /* empty trash on exit */
   attribute boolean emptyTrashOnExit;
 
-  /* get filter list */
+  /**
+   * Get the server's list of filters.
+   *
+   * This SHOULD be the same filter list as the root folder's, if the server
+   * supports per-folder filters. Furthermore, this list SHOULD be used for all
+   * incoming messages.
+   *
+   * Since the returned nsIMsgFilterList is mutable, it is not necessary to call
+   * setFilterList after the filters have been changed.
+   *
+   * @param aMsgWindow  @ref msgwindow "The standard message window"
+   * @return            The list of filters.
+   */
   nsIMsgFilterList getFilterList(in nsIMsgWindow aMsgWindow);
 
-  /* set filter list */
+  /**
+   * Set the server's list of filters.
+   *
+   * Note that this does not persist the filter list. To change the contents
+   * of the existing filters, use getFilterList and mutate the values as
+   * appopriate.
+   *
+   * @param aFilterList The new list of filters.
+   */
   void setFilterList(in nsIMsgFilterList aFilterList);
+
+  /**
+   * Get user editable filter list. This does not have to be the same as
+   * the filterlist above, typically depending on the users preferences.
+   * The filters in this list are not processed, but only to be edited by
+   * the user.
+   * @see getFilterList
+   *
+   * @param aMsgWindow  @ref msgwindow "The standard message window"
+   * @return            The list of filters.
+   */
+  nsIMsgFilterList getEditableFilterList(in nsIMsgWindow aMsgWindow);
+
+  /**
+   * Set user editable filter list.
+   * This does not persist the filterlist, @see setFilterList
+   * @see getEditableFilterList
+   * @see setFilterList
+   *
+   * @param aFilterList The new list of filters.
+   */
+  void setEditableFilterList(in nsIMsgFilterList aFilterList);
 
   /* we use this to set the default local path.  we use this when migrating prefs */
   void setDefaultLocalPath(in nsILocalFile aDefaultLocalPath);
