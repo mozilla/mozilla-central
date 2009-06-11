@@ -2121,9 +2121,9 @@
       </menupopup>
     </toolbarbutton>
 
-    <toolbaritem id="button-junk">
+    <toolbaritem id="button-junk"
+                 observes="button_junk">
       <deck id="junk-deck"
-            observes="button_junk"
             oncommand="goDoCommand('button_junk')">
         <toolbarbutton id="button-isJunk"
                        class="toolbarbutton-1"
@@ -2138,8 +2138,9 @@
       </deck>
     </toolbaritem>
 
-    <toolbaritem id="button-delete">
-      <deck id="delete-deck" observes="button_delete">
+    <toolbaritem id="button-delete"
+                 observes="button_delete">
+      <deck id="delete-deck">
         <toolbarbutton id="button-mark-deleted"
                        class="toolbarbutton-1"
                        label="&deleteButton.label;"

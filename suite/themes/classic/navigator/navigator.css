@@ -44,10 +44,6 @@
 
 /* ::::: primary toolbar buttons ::::: */
 
-.toolbarbutton-1 {
-  list-style-image: url("chrome://navigator/skin/icons/navigatoricons.png");
-}
-
 #back-button {
   list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
   -moz-image-region: rect(60px 29px 89px 0);

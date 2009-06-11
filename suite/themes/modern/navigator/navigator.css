@@ -44,7 +44,6 @@
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-1 {
-  list-style-image: url("chrome://communicator/skin/icons/common.png");
   min-width: 0px;
 }
 
@@ -159,11 +158,6 @@ toolbox {
 }
 
 /* ::::: small primary toolbar buttons ::::: */
-
-toolbar[iconsize="small"] > toolbarpaletteitem > .toolbarbutton-1,
-toolbar[iconsize="small"] > .toolbarbutton-1 {
-  list-style-image: url("chrome://communicator/skin/icons/common-small.png");
-}
 
 toolbar[iconsize="small"] > toolbarpaletteitem > #back-button,
 toolbar[iconsize="small"] > #back-button {
