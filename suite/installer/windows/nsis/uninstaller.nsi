@@ -338,6 +338,15 @@ Section "Uninstall"
     Delete /REBOOTOK "$INSTDIR\removed-files"
   ${EndIf}
 
+  ; Application update won't add these files to the uninstall log so delete
+  ; them if they still exist.
+  ${If} ${FileExists} "$INSTDIR\MapiProxy_InUse.dll"
+    Delete /REBOOTOK "$INSTDIR\MapiProxy_InUse.dll"
+  ${EndIf}
+  ${If} ${FileExists} "$INSTDIR\mozMapi32_InUse.dll"
+    Delete /REBOOTOK "$INSTDIR\mozMapi32_InUse.dll"
+  ${EndIf}
+
   ; Remove the updates directory for Vista and above
   ${un.CleanUpdatesDir} "Mozilla\SeaMonkey"
 
