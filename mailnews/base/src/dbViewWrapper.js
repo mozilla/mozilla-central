@@ -50,6 +50,10 @@ const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
 const nsMsgViewType = Ci.nsMsgViewType;
 const nsMsgViewFlagsType = Ci.nsMsgViewFlagsType;
 const nsMsgViewSortType = Ci.nsMsgViewSortType;
+const nsMsgViewSortOrder = Ci.nsMsgViewSortOrder;
+const nsMsgMessageFlags = Ci.nsMsgMessageFlags;
+
+const MSG_VIEW_FLAG_DUMMY = 0x20000000;
 
 /**
  * Helper singleton for DBViewWrapper that tells instances when something
@@ -80,17 +84,13 @@ var FolderNotificationHelper = {
    *  us for as long as their application so shall live.
    */
   _init: function FolderNotificationHelper__init() {
-    let atomService =
-      Cc["@mozilla.org/atom-service;1"]
-        .getService(Ci.nsIAtomService);
-      this._kFolderLoadedAtom = atomService.getAtom("FolderLoaded");
-
     // register with the session for our folded loaded notifications
     let mailSession =
       Cc["@mozilla.org/messenger/services/session;1"]
         .getService(Ci.nsIMsgMailSession);
     mailSession.AddFolderListener(this,
-                                  Ci.nsIFolderListener.event);
+                                  Ci.nsIFolderListener.event |
+                                  Ci.nsIFolderListener.intPropertyChanged);
 
     // register with the notification service for deleted folder notifications
     let notificationService =
@@ -143,7 +143,7 @@ var FolderNotificationHelper = {
     let folders = aFolders.concat();
     if (aNotherFolder && folders.indexOf(aNotherFolder) == -1)
       folders.push(aNotherFolder);
-    for each (let [, folder] in Iterator(aFolders)) {
+    for each (let [, folder] in Iterator(folders)) {
       let wrappers = this._interestedWrappers[folder.URI];
       if (wrappers == null)
         wrappers = this._interestedWrappers[folder.URI] = [];
@@ -200,10 +200,21 @@ var FolderNotificationHelper = {
   },
 
   /* ***** Notifications ***** */
+  _notifyHelper: function FolderNotificationHelper__notifyHelper(aFolder,
+                                                                 aHandlerName) {
+    let wrappers = this._interestedWrappers[aFolder.URI];
+    if (wrappers) {
+      // clone the list to avoid confusing mutation by listeners
+      for each (let [, wrapper] in Iterator(wrappers.concat())) {
+        wrapper[aHandlerName](aFolder);
+      }
+    }
+  },
 
   OnItemEvent: function FolderNotificationHelper_OnItemEvent(
       aFolder, aEvent) {
-    if (aEvent == this._kFolderLoadedAtom) {
+    let eventType = aEvent.toString();
+    if (eventType == "FolderLoaded") {
       let folderURI = aFolder.URI;
       let widgets = this._pendingFolderUriToViewWrapperLists[folderURI];
       if (widgets) {
@@ -222,6 +233,26 @@ var FolderNotificationHelper = {
         delete this._pendingFolderUriToViewWrapperLists[folderURI];
       }
     }
+    else if (eventType == "AboutToCompact") {
+      this._notifyHelper(aFolder, "_aboutToCompactFolder");
+    }
+    else if (eventType == "CompactCompleted") {
+      this._notifyHelper(aFolder, "_compactedFolder");
+    }
+    else if (eventType == "DeleteOrMoveMsgCompleted") {
+      this._notifyHelper(aFolder, "_deleteCompleted");
+    }
+    else if (eventType == "DeleteOrMoveMsgFailed") {
+      this._notifyHelper(aFolder, "_deleteFailed");
+    }
+
+  },
+
+  OnItemIntPropertyChanged: function(aFolder, aProperty, aOldValue, aNewValue) {
+    let propertyString = aProperty.toString();
+    if ((propertyString == "TotalMessages") ||
+        (propertyString == "TotalUnreadMessages"))
+      this._notifyHelper(aFolder, "_messageCountsChanged");
   },
 
   _folderMoveHelper: function(aOldFolder, aNewFolder) {
@@ -276,7 +307,7 @@ var FolderNotificationHelper = {
       for each (let [, wrapper] in Iterator(wrappers.concat())) {
         wrapper._folderDeleted(aFolder);
       }
-      // if the folder is deleted, it's not going to get deleted again.
+      // if the folder is deleted, it's not going to ever do anything again
       delete this._interestedWrappers[aFolder.URI];
     }
   },
@@ -369,6 +400,17 @@ IDBViewWrapperListener.prototype = {
   },
 
   /**
+   * This event is generated just before we close/destroy a message view.
+   *
+   * @param aFolderIsComingBack Indicates whether we are planning to create a
+   *     new view to display the same folder after we destroy this view.  This
+   *     will be the case unless we are switching to display a new folder or
+   *     closing the view wrapper entirely.
+   */
+  onDestroyingView: function(aFolderIsComingBack) {
+  },
+
+  /**
    * Generated when the folder is being entered for display.  This is the chance
    *  for the listener to affect any UI-related changes to the folder required.
    *  Currently, this just means setting the header cache size (which needs to
@@ -376,6 +418,12 @@ IDBViewWrapperListener.prototype = {
    *  UI issue.)
    */
   onDisplayingFolder: function() {
+  },
+
+  /**
+   * Generated when we are leaving a folder.
+   */
+  onLeavingFolder: function() {
   },
 
   /**
@@ -390,16 +438,50 @@ IDBViewWrapperListener.prototype = {
   /**
    * The mail view changed.  The mail view widget is likely to care about this.
    */
-  onMailViewChanged: function () {
-
+  onMailViewChanged: function() {
   },
 
+  /**
+   * The active sort changed, and that is all that changed.  If the sort is
+   *  changing because the view is being destroyed and re-created, this event
+   *  will not be generated.
+   */
+  onSortChanged: function() {
+  },
 
+  /**
+   * This event is generated when messages in one of the folders backing the
+   *  view have been removed by message moves / deletion.  If there is a search
+   *  in effect, it is possible that the removed messages were not visible in
+   *  the view in the first place.
+   */
+  onMessagesRemoved: function () {
+  },
+
+  /**
+   * Like onMessagesRemoved, but something went awry in the move/deletion and
+   *  it failed.  Although this is not a very interesting event on its own,
+   *  it is useful in cases where the listener was expecting an
+   *  onMessagesRemoved and might need to clean some state up.
+   */
+  onMessageRemovalFailed: function () {
+  },
+
+  /**
+   * The total message count or total unread message counts changed.
+   */
+  onMessageCountsChanged: function () {
+  },
 };
 
 /**
  * Encapsulates everything related to working with our nsIMsgDBView
  *  implementations.
+ *
+ * Things we do not do and why we do not do them:
+ * - Selection.  This depends on having an nsITreeSelection object and we choose
+ *   to avoid entanglement with XUL/layout code.  Selection accordingly must be
+ *   handled a layer up in the FolderDisplayWidget.
  */
 function DBViewWrapper(aListener) {
   this.displayedFolder = null;
@@ -407,6 +489,7 @@ function DBViewWrapper(aListener) {
 
   this._underlyingData = this.kUnderlyingNone;
   this._underlyingFolders = null;
+  this._syntheticView = null;
 
   this._viewUpdateDepth = 0;
 
@@ -416,7 +499,8 @@ function DBViewWrapper(aListener) {
   this._specialView = null;
 
   this._sort = [];
-  this._viewFlags = 0;
+  // see the _viewFlags getter and setter for info on our use of __viewFlags.
+  this.__viewFlags = null;
 
   this.dbView = null;
   this.search = null;
@@ -441,9 +525,16 @@ DBViewWrapper.prototype = {
   kUnderlyingMultipleFolder: 2,
   /**
    * Our data source is transient, most likely a gloda search that crammed the
-   *  results into us.
+   *  results into us.  This is different from a search view.
    */
   kUnderlyingSynthetic: 3,
+  /**
+   * We are a search view, which translates into a search that has underlying
+   *  folders, just like kUnderlyingMultipleFolder, but we have no
+   *  displayedFolder.  We differ from kUnderlyingSynthetic in that we are
+   *  not just a bunch of message headers randomly crammed in.
+   */
+  kUnderlyingSearchView: 4,
 
   /**
    * @return true if the folder being displayed is backed by a single 'real'
@@ -456,11 +547,12 @@ DBViewWrapper.prototype = {
 
   /**
    * @return true if the folder being displayed is a virtual folder backed by
-   *     multiple 'real' folders.  This corresponds to a cross-folder saved
-   *     search.
+   *     multiple 'real' folders or a search view.  This corresponds to a
+   *     cross-folder saved search.
    */
   get isMultiFolder() {
-    return this._underlyingData == this.kUnderlyingMultipleFolder;
+    return (this._underlyingData == this.kUnderlyingMultipleFolder) ||
+           (this._underlyingData == this.kUnderlyingSearchView);;
   },
 
   /**
@@ -469,6 +561,22 @@ DBViewWrapper.prototype = {
    */
   get isSynthetic() {
     return this._underlyingData == this.kUnderlyingSynthetic;
+  },
+
+  /**
+   * Check if the folder in question backs the currently displayed folder.  For
+   *  a virtual folder, this is a test of whether the virtual folder includes
+   *  messages from the given folder.  For a 'real' single folder, this is
+   *  effectively a test against displayedFolder.
+   * If you want to see if the displayed folder is a folder, just compare
+   *  against the displayedFolder attribute.
+   */
+  isUnderlyingFolder: function DBViewWrapper_isUnderlyingFolder(aFolder) {
+    for each (let [i,underlyingFolder] in Iterator(this._underlyingFolders)) {
+      if (aFolder == underlyingFolder)
+        return true;
+    }
+    return false;
   },
 
   /**
@@ -486,6 +594,75 @@ DBViewWrapper.prototype = {
   },
 
   /**
+   * Null out the folder's database to avoid memory bloat if we don't have a
+   *  reason to keep the database around.  Currently, we keep all Inboxes
+   *  around and null out everyone else.  This is a standard stopgap measure
+   *  until we have something more clever going on.
+   * In general, there is little potential downside to nulling out the message
+   *  database reference when it is in use.  As long as someone is holding onto
+   *  a message header from the database, the database will be kept open, and
+   *  therefore the database service will still have a reference to the db.
+   *  When the folder goes to ask for the database again, the service will have
+   *  it, and it will not need to be re-opened.
+   *
+   * Another heuristic we could theoretically use is use the mail session's
+   *  isFolderOpenInWindow call, except that uses the outmoded concept that each
+   *  window will have at most one folder open.  So nuts to that.
+   *
+   * Note: regrettably a unit test cannot verify that we did this; msgDatabase
+   *  is a getter that will always try and load the message database!
+   */
+  _releaseFolderDatabase: function DBViewWrapper__nullFolderDatabase(aFolder) {
+    if (!this._isSpecialFolder(aFolder, nsMsgFolderFlags.Inbox, false))
+      aFolder.msgDatabase = null;
+  },
+
+  /**
+   * Clone this DBViewWrapper and its underlying nsIMsgDBView.
+   *
+   * @param aListener {IDBViewWrapperListener} The listener to use on the new view.
+   */
+  clone: function DBViewWrapper_clone(aListener) {
+    let doppel = new DBViewWrapper(aListener);
+
+    // -- copy attributes
+    doppel.displayedFolder = this.displayedFolder;
+    doppel._underlyingData = this._underlyingData;
+    doppel._underlyingFolders = this._underlyingFolders ?
+                                  this._underlyingFolders.concat() : null;
+    doppel._syntheticView = this._syntheticView;
+
+    // _viewUpdateDepth should stay at its initial value of zero
+    doppel._mailViewIndex = this._mailViewIndex;
+    doppel._mailViewData = this._mailViewData;
+
+    doppel._specialView = this._specialView;
+    // a shallow copy is all that is required for sort; we do not mutate entries
+    doppel._sort = this._sort.concat();
+
+    // -- register listeners...
+    // note: this does not get us a folder loaded notification.  Our expected
+    //  use case for cloning is displaying a single message already visible in
+    //  the original view, which implies we don't need to hang about for folder
+    //  loaded notification messages.
+    FolderNotificationHelper.stalkFolders(doppel._underlyingFolders,
+                                          doppel.displayedFolder,
+                                          doppel);
+
+    // -- clone the view
+    if (this.dbView)
+      doppel.dbView = this.dbView.cloneDBView(aListener.messenger,
+                                              aListener.msgWindow,
+                                              aListener.threadPaneCommandUpdater)
+                          .QueryInterface(Components.interfaces.nsITreeView);
+    // -- clone the search
+    if (this.search)
+      doppel.search = this.search.clone(doppel);
+
+    return doppel;
+  },
+
+  /**
    * Close the current view.  You would only do this if you want to clean up all
    *  the resources associated with this view wrapper.  You would not do this
    *  for UI reasons like the user de-selecting the node in the tree; we should
@@ -496,22 +673,39 @@ DBViewWrapper.prototype = {
    *     messed with.
    */
   close: function DBViewWrapper_close(aFolderIsDead) {
-    if (this._underlyingFolders)
-      FolderNotificationHelper.removeNotifications(this._underlyingFolders,
-                                                   this);
-
     if (this.displayedFolder != null) {
       // onLeavingFolder does all the application-level stuff related to leaving
       //  the folder (marking as read, etc.)  We only do this when the folder
       //  is not dead (for obvious reasons).
-      if (!aFolderIsDead)
-        this.onLeavingFolder();
-      this.displayedFolder = null;
+      if (!aFolderIsDead) {
+        // onLeavingFolder must be called before we potentially null out its
+        //  msgDatabase, which we will do in the upcoming underlyingFolders loop
+        this.onLeavingFolder(); // application logic
+        this.listener.onLeavingFolder(); // display logic
+      }
+      // (potentially) zero out the display folder if we are dealing with a
+      //  virtual folder and so the next loop won't take care of it.
+      if (this.isVirtual) {
+        FolderNotificationHelper.removeNotifications([this.displayedFolder],
+                                                     this);
+        this._releaseFolderDatabase(this.displayedFolder);
+      }
+
       this.folderLoading = false;
+      this.displayedFolder = null;
+    }
+
+    if (this._underlyingFolders) {
+      FolderNotificationHelper.removeNotifications(this._underlyingFolders,
+                                                   this);
+      // (potentially) zero out the underlying msgDatabase references
+      for each (let [, folder] in Iterator(this._underlyingFolders))
+        this._releaseFolderDatabase(folder);
     }
 
     // kill off the view and its search association
     if (this.dbView) {
+      this.listener.onDestroyingView(false);
       this.search.dissociateView(this.dbView);
       this.dbView.close();
       this.dbView = null;
@@ -519,6 +713,7 @@ DBViewWrapper.prototype = {
 
     this._underlyingData = this.kUnderlyingNone;
     this._underlyingFolders = null;
+    this._syntheticView = null;
 
     this._mailViewIndex = MailViewConstants.kViewItemAll;
     this._mailViewData = null;
@@ -526,13 +721,14 @@ DBViewWrapper.prototype = {
     this._specialView = null;
 
     this._sort = [];
-    this._viewFlags = 0;
+    this.__viewFlags = null;
 
     this.search = null;
   },
 
   /**
-   * Open the passed-in folder.
+   * Open the passed-in nsIMsgFolder folder.  Use openSynthetic for synthetic
+   *  view providers.
    */
   open: function DBViewWrapper_open(aFolder) {
     if (aFolder == null) {
@@ -570,12 +766,22 @@ DBViewWrapper.prototype = {
       this._sort = [[dbFolderInfo.sortType, dbFolderInfo.sortOrder]];
 
       // - retrieve persisted display settings
-      this._viewFlags = dbFolderInfo.viewFlags;
+      this.__viewFlags = dbFolderInfo.viewFlags;
+      // Make sure the threaded bit is set if group-by-sort is set.  The views
+      //  encode 3 states in 2-bits, and we want to avoid that odd-man-out
+      //  state.
+      if (this.__viewFlags & nsMsgViewFlagsType.kGroupBySort) {
+        this.__viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
+        this._ensureValidSort();
+      }
 
       // - retrieve virtual folder configuration
       if (aFolder.flags & nsMsgFolderFlags.Virtual) {
         let virtFolder = VirtualFolderHelper.wrapVirtualFolder(aFolder);
-        this._underlyingFolders = virtFolder.searchFolders;
+        // Filter out the server roots; they only exist for UI reasons.
+        this._underlyingFolders =
+          [folder for each ([, folder] in Iterator(virtFolder.searchFolders))
+                  if (!folder.isServer)];
         this._underlyingData = (this._underlyingFolders.length > 1) ?
                                this.kUnderlyingMultipleFolder :
                                this.kUnderlyingRealFolder;
@@ -629,13 +835,62 @@ DBViewWrapper.prototype = {
       }
     }
 
-    if (this.shouldShowMessagesForFolderImmediately())
-      this._enterFolder();
-
-    this.folderLoading = true;
-    if (!this.isVirtual)
+    if (!this.isVirtual) {
+      this.folderLoading = true;
       FolderNotificationHelper.updateFolderAndNotifyOnLoad(
         this.displayedFolder, this, this.listener.msgWindow);
+    }
+
+    // we do this after kicking off the update because this could initiate a
+    //  search which could fight our explicit updateFolder call if the search
+    //  is already outstanding.
+    if (this.shouldShowMessagesForFolderImmediately())
+      this._enterFolder();
+  },
+
+  /**
+   * Open a synthetic view provider as backing our view.
+   */
+  openSynthetic: function DBViewWrapper_openSynthetic(aSyntheticView) {
+    this.close();
+
+    this._underlyingData = this.kUnderlyingSynthetic;
+    this._syntheticView = aSyntheticView;
+
+    this.search = new SearchSpec(this);
+    this._sort = this._syntheticView.defaultSort.concat();
+
+    this._applyViewChanges();
+  },
+
+  /**
+   * Makes us irrevocavbly be a search view, for use in search windows.
+   *  Once you call this, you are not allowed to use us for anything
+   *  but a search view!
+   * We add a 'searchFolders' property that allows you to control what
+   *  folders we are searching over.
+   */
+  openSearchView: function DBViewWrapper_openSearchView() {
+    this.close();
+
+    this._underlyingData = this.kUnderlyingSearchView;
+    this._underlyingFolders = [];
+
+    let dis = this;
+    this.__defineGetter__('searchFolders', function() {
+                            return dis._underlyingFolders;
+                          });
+    this.__defineSetter__('searchFolders', function(aSearchFolders) {
+                            dis._underlyingFolders = aSearchFolders;
+                            dis._applyViewChanges();
+                          });
+
+    this.search = new SearchSpec(this);
+    // the search view uses the order in which messages are added as the
+    //  order by default.
+    this._sort = [[nsMsgViewSortType.byNone, nsMsgViewSortOrder.ascending]];
+
+    this._applyViewChanges();
   },
 
   get folderLoading() {
@@ -645,6 +900,12 @@ DBViewWrapper.prototype = {
     if (this._folderLoading == aFolderLoading)
       return;
     this._folderLoading = aFolderLoading;
+    // tell the folder about what is going on so it can remove its db change
+    //  listener and restore it, respectively.
+    if (aFolderLoading)
+      this.displayedFolder.startFolderLoading();
+    else
+      this.displayedFolder.endFolderLoading();
     this.listener.onFolderLoading(aFolderLoading);
   },
 
@@ -697,7 +958,8 @@ DBViewWrapper.prototype = {
   _createView: function DBViewWrapper__createView() {
     let dbviewContractId = "@mozilla.org/messenger/msgdbview;1?type=";
 
-    let viewFlags = this._viewFlags;
+    // we will have saved these off when closing our view
+    let viewFlags = this.__viewFlags || 0;
 
     // real folders are subject to the most interest set of possibilities...
     if (this._underlyingData == this.kUnderlyingRealFolder) {
@@ -718,9 +980,12 @@ DBViewWrapper.prototype = {
     else if (this._underlyingData == this.kUnderlyingMultipleFolder) {
       dbviewContractId += "xfvf";
     }
-    else if (this._underlyingData == this.kUnderlyingSynthetic) {
+    else { // kUnderlyingSynthetic or kUnderlyingSearchView
       dbviewContractId += "search";
     }
+
+    // and now zero the saved-off flags.
+    this.__viewFlags = null;
 
     let dbView = Cc[dbviewContractId]
                    .createInstance(Ci.nsIMsgDBView);
@@ -728,7 +993,8 @@ DBViewWrapper.prototype = {
                 this.listener.threadPaneCommandUpdater);
     // use the least-specific sort so we can clock them back through to build up
     //  the correct sort order...
-    let [sortType, sortOrder] = this._sort[this._sort.length-1];
+    let [sortType, sortOrder, sortCustomCol] =
+      this._getSortDetails(this._sort.length-1);
     let outCount = {};
     // when the underlying folder is a single real folder (virtual or no), we
     //  tell the view about the underlying folder.
@@ -745,14 +1011,23 @@ DBViewWrapper.prototype = {
     // when we're dealing with a multi-folder virtual folder, we just tell the
     //  db view about the display folder.  (It gets its own XFVF view, so it
     //  knows what to do.)
+    // and for a synthetic folder, displayedFolder is null anyways
     else {
       dbView.open(this.displayedFolder, sortType, sortOrder, viewFlags,
                   outCount);
     }
+    if (sortCustomCol)
+      dbView.curCustomColumn = sortCustomCol;
+
+    // we all know it's a tree view, make sure the interface is available
+    //  so no one else has to do this.
+    dbView.QueryInterface(Ci.nsITreeView);
 
     // clock through the rest of the sorts, if there are any
     for (let iSort = this._sort.length - 2; iSort >=0; iSort--) {
-      [sortType, sortOrder] = this._sort[iSort];
+      [sortType, sortOrder, sortCustomCol] = this._getSortDetails(iSort);
+      if (sortCustomCol)
+        dbView.curCustomColumn = sortCustomCol;
       dbView.sort(sortType, sortOrder);
     }
 
@@ -768,6 +1043,7 @@ DBViewWrapper.prototype = {
     if (aFolder == this.displayedFolder) {
       this.folderLoading = false;
       this._enterFolder();
+      this.listener.onAllMessagesLoaded();
     }
   },
 
@@ -785,9 +1061,9 @@ DBViewWrapper.prototype = {
     this.displayedFolder.biffState =
       Ci.nsIMsgFolder.nsMsgBiffState_NoMail;
 
-    this.listener.onDisplayingFolder();
-
     this.endViewUpdate();
+
+    this.listener.onDisplayingFolder();
 
     this._enteredFolder = true;
   },
@@ -847,6 +1123,119 @@ DBViewWrapper.prototype = {
   },
 
   /**
+   * Compacting a local folder nukes its message keys, requiring the view to be
+   *  rebuilt.  If the folder is IMAP, it doesn't matter because the UIDs are
+   *  the message keys and we can ignore it.  In the local case we want to
+   *  notify our listener so they have a chance to save the selected messages.
+   */
+  _aboutToCompactFolder: function DBViewWrapper__aboutToCompactFolder(aFolder) {
+    // IMAP compaction does not affect us unless we are holding headers
+    if (aFolder.server.type == "imap")
+      return;
+
+    // we will have to re-create the view, so nuke the view now.
+    if (this.dbView) {
+      this.listener.onDestroyingView(true);
+      this.search.dissociateView(this.dbView);
+      this.dbView.close();
+      this.dbView = null;
+    }
+  },
+
+  /**
+   * Compaction is all done, let's re-create the view!  (Unless the folder is
+   *  IMAP, in which case we are ignoring this event sequence.)
+   */
+  _compactedFolder: function DBViewWrapper__compactedFolder(aFolder) {
+    // IMAP compaction does not affect us unless we are holding headers
+    if (aFolder.server.type == "imap")
+      return;
+
+    this.refresh();
+  },
+
+  /**
+   * DB Views need help to know when their move / deletion operations complete.
+   *  This happens in both single-folder and multiple-folder backed searches.
+   *  In the latter case, there is potential danger that we tell a view that did
+   *  not initiate the move / deletion but has kicked off its own about the
+   *  completion and confuse it.  However, that's on the view code.
+   */
+  _deleteCompleted: function DBViewWrapper__deleteCompleted(aFolder) {
+    if (this.dbView)
+      this.dbView.onDeleteCompleted(true);
+    this.listener.onMessagesRemoved();
+  },
+
+  /**
+   * See _deleteCompleted for an explanation of what is going on.
+   */
+  _deleteFailed: function DBViewWrapper__deleteFailed(aFolder) {
+    if (this.dbView)
+      this.dbView.onDeleteCompleted(false);
+    this.listener.onMessageRemovalFailed();
+  },
+
+  /**
+   * If the displayed folder had its total message count or total unread message
+   *  count change, notify the listener.  (Note: only for the display folder;
+   *  not the underlying folders!)
+   */
+  _messageCountsChanged: function DBViewWrapper__messageCountsChanged(aFolder) {
+    if (aFolder == this.displayedFolder)
+      this.listener.onMessageCountsChanged();
+  },
+
+  /**
+   * @return the current set of viewFlags.  This may be:
+   * - A modified set of flags that are pending application because a view
+   *    update is in effect and we don't want to modify the view when it's just
+   *    going to get destroyed.
+   * - The live set of flags from the current dbView.
+   * - The 'limbo' set of flags because we currently lack a view but will have
+   *    one soon (and then we will apply the flags).
+   */
+  get _viewFlags DBViewWrapper_get__viewFlags() {
+    if (this.__viewFlags != null)
+      return this.__viewFlags;
+    if (this.dbView)
+      return this.dbView.viewFlags;
+    return 0;
+  },
+  /**
+   * Update the view flags to use on the view.  If we are in a view update or
+   *  currently don't have a view, we save the view flags for later usage when
+   *  the view gets (re)built.  If we have a view, depending on what's happening
+   *  we may re-create the view or just set the bits.  The rules/reasons are:
+   * - XFVF views can handle the flag changes, just set the flags.
+   * - Single-folder threaded/unthreaded can handle a change to/from unthreaded/
+   *    threaded, so set it.
+   * - Single-folder can _not_ handle a change between grouped and not-grouped,
+   *    so re-generate the view.
+   */
+  set _viewFlags DBViewWrapper_set__viewFlags(aViewFlags) {
+    if (this._viewUpdateDepth || !this.dbView)
+      this.__viewFlags = aViewFlags;
+    else {
+      let oldFlags = this.dbView.viewFlags;
+      let changedFlags = oldFlags ^ aViewFlags;
+      if ((this.isVirtual && this.isMultiFolder) ||
+          (this.isSingleFolder &&
+           !(changedFlags & nsMsgViewFlagsType.kGroupBySort))) {
+        this.dbView.viewFlags = aViewFlags;
+        // ugh, and the single folder case needs us to re-apply his sort...
+        if (this.isSingleFolder)
+          this.dbView.sort(this.dbView.sortType, this.dbView.sortOrder);
+        this.listener.onSortChanged();
+      }
+      else {
+        this.__viewFlags = aViewFlags;
+        this._applyViewChanges();
+      }
+    }
+  },
+
+  /**
    * Apply accumulated changes to the view.  If we are in a batch, we do
    *  nothing, relying on endDisplayUpdate to call us.
    */
@@ -857,11 +1246,24 @@ DBViewWrapper.prototype = {
       return;
     // make the dbView stop being a search listener if it is one
     if (this.dbView) {
+      // save the view's flags if it has any and we haven't already overridden
+      //  them.
+      if (this.__viewFlags == null)
+        this.__viewFlags = this.dbView.viewFlags;
+      this.listener.onDestroyingView(true); // we will re-create it!
       this.search.dissociateView(this.dbView);
       this.dbView.close();
+      this.dbView = null;
     }
 
     this.dbView = this._createView();
+    // if the synthetic view defines columns, add those for it
+    if (this.isSynthetic) {
+      for (let [, customCol] in Iterator(this._syntheticView.customColumns)) {
+        customCol.bindToView(this.dbView);
+        this.dbView.addColumnHandler(customCol.id, customCol);
+      }
+    }
     this.listener.onCreatedView();
 
     // this ends up being a no-op if there are no search terms
@@ -873,10 +1275,11 @@ DBViewWrapper.prototype = {
     //  time-slicing, which is why this can vary.  (If it uses up its time
     //  slices, it will re-schedule itself, returning to us before completing.)
     //  Which is why we always defer to the search if one is active.
-    if (!this.searching)
+    // If we are loading the folder, the load completion will also notify us,
+    //  so we should not generate all messages loaded right now.
+    if (!this.searching && !this.folderLoading)
       this.listener.onAllMessagesLoaded();
   },
-
 
   /**
    * Check if the folder or (optionally) one of its ancestors has any one of the
@@ -917,18 +1320,28 @@ DBViewWrapper.prototype = {
   },
 
 
+  get isMailFolder() {
+    return this.displayedFolder &&
+           (this.displayedFolder.flags & nsMsgFolderFlags.Mail);
+  },
+
+  get isNewsFolder() {
+    return this.displayedFolder &&
+           (this.displayedFolder.flags & nsMsgFolderFlags.Newsgroup);
+  },
+
   OUTGOING_FOLDER_FLAGS: nsMsgFolderFlags.SentMail |
                          nsMsgFolderFlags.Drafts |
                          nsMsgFolderFlags.Queue |
-                         nsMsgFolderFlags.Template,
+                         nsMsgFolderFlags.Templates,
   /**
    * @return true if the folder is not known to be a special outgoing folder
    *     or the descendent of a special outgoing folder.
    */
   get isIncomingFolder() {
     return !this._isSpecialFolder(this.displayedFolder,
-                                  this.OUTGOING_FOLDER_FLAGS,
-                                  true);
+                                 this.OUTGOING_FOLDER_FLAGS,
+                                 true);
   },
   /**
    * @return true if the folder is an outgoing folder by virtue of being a
@@ -936,9 +1349,9 @@ DBViewWrapper.prototype = {
    *     or being a sub-folder of one of those types of folders.
    */
   get isOutgoingFolder() {
-    return !this._isSpecialFolder(this.displayedFolder,
-                                  this.OUTGOING_FOLDER_FLAGS,
-                                  true);
+    return this._isSpecialFolder(this.displayedFolder,
+                                 this.OUTGOING_FOLDER_FLAGS,
+                                 true);
   },
 
   get isVirtual() {
@@ -957,6 +1370,60 @@ DBViewWrapper.prototype = {
   },
 
   /**
+   * @return the primary sort type (as one of the numeric constants from
+   *      nsMsgViewSortType).
+   */
+  get primarySortType() {
+    return this._sort[0][0];
+  },
+
+  /**
+   * @return the primary sort order (as one of the numeric constants from
+   *     nsMsgViewSortOrder.)
+   */
+  get primarySortOrder() {
+    return this._sort[0][1];
+  },
+
+  /**
+   * @return true if the dominant sort is ascending.
+   */
+  get isSortedAscending() {
+    return this._sort.length &&
+           this._sort[0][1] == nsMsgViewSortOrder.ascending;
+  },
+  /**
+   * @return true if the dominant sort is descending.
+   */
+  get isSortedDescending() {
+    return this._sort.length &&
+           this._sort[0][1] == nsMsgViewSortOrder.descending;
+  },
+  /**
+   * Indicate if we are sorting by time or something correlated with time.
+   *
+   * @return true if the dominant sort is by time.
+   */
+  get sortImpliesTemporalOrdering() {
+    if (!this._sort.length)
+      return false;
+    let sortType = this._sort[0][0];
+    return sortType == nsMsgViewSortType.byDate ||
+           sortType == nsMsgViewSortType.byReceived ||
+           sortType == nsMsgViewSortType.byId ||
+           sortType == nsMsgViewSortType.byThread;
+  },
+
+  sortAscending: function() {
+    if (!this.isSortedAscending)
+      this.magicSort(this._sort[0][0], nsMsgViewSortOrder.ascending);
+  },
+  sortDescending: function() {
+    if (!this.isSortedDescending)
+      this.magicSort(this._sort[0][0], nsMsgViewSortOrder.descending);
+  },
+
+  /**
    * Explicit sort command.  We ignore all previous sort state and only apply
    *  what you tell us.  If you want implied secondary sort, use |magicSort|.
    * You must use this sort command, and never directly call the sort commands
@@ -969,6 +1436,8 @@ DBViewWrapper.prototype = {
     this._sort = [[aSortType, aSortOrder]];
     if (aSecondaryType != null && aSecondaryOrder != null)
       this._sort.push([aSecondaryType, aSecondaryOrder]);
+    // make sure the sort won't make the view angry...
+    this._ensureValidSort();
     // if we are not in a view update, invoke the sort.
     if ((this._viewUpdateDepth == 0) && this.dbView) {
       for (let iSort = this._sort.length - 1; iSort >=0; iSort--) {
@@ -976,9 +1445,29 @@ DBViewWrapper.prototype = {
         let [sortType, sortOrder] = this._sort[iSort];
         this.dbView.sort(sortType, sortOrder);
       }
+      // (only generate the event since we're not in a update batch)
+      this.listener.onSortChanged();
     }
     // (if we are in a view update, then a new view will be created when the
     //  update ends, and it will just use the new sort order anyways.)
+  },
+
+  /**
+   * Logic that compensates for custom column identifiers being provided as
+   *  sort types.
+   *
+   * @return [sort type, sort order, sort custom column name]
+   */
+  _getSortDetails: function(aIndex) {
+    let [sortType, sortOrder] = this._sort[aIndex];
+    let sortCustomColumn = null;
+    let sortTypeType = typeof(sortType);
+    if (sortTypeType != "number") {
+      sortCustomColumn = (sortTypeType == "string") ? sortType : sortType.id;
+      sortType = nsMsgViewSortType.byCustom;
+    }
+
+    return [sortType, sortOrder, sortCustomColumn];
   },
 
   /**
@@ -990,70 +1479,168 @@ DBViewWrapper.prototype = {
    */
   magicSort: function DBViewWrapper_magicSort(aSortType, aSortOrder) {
     if (this.dbView) {
-      this.dbView.sort(aSortType, aSortOrder);
       // so, the thing we just set obviously will be there
       this._sort = [[aSortType, aSortOrder]];
+      // (make sure it is valid...)
+      this._ensureValidSort();
+      // apply the sort to see what happens secondary-wise
+      this.dbView.sort(aSortType, aSortOrder);
       // there is only a secondary sort if it's not none and not the same.
       if (this.dbView.secondarySortType != nsMsgViewSortType.byNone &&
           this.dbView.secondarySortType != aSortType)
         this._sort.push([this.dbView.secondarySortType,
                          this.dbView.secondarySortOrder]);
+      // only tell our listener if we're not in a view update batch
+      if (this._viewUpdateDepth == 0)
+        this.listener.onSortChanged();
     }
   },
 
+  /**
+   * Make sure the current sort is valid under our other constraints, make it
+   *  safe if it is not.  Most specifically, some sorts are illegal when
+   *  grouping by sort, and we reset the sort to date in those cases.
+   *
+   * @param aViewFlags Optional set of view flags to consider instead of the
+   *     potentially live view flags.
+   */
+  _ensureValidSort: function DBViewWrapper_ensureValidSort(aViewFlags) {
+    if ((aViewFlags != null ? aViewFlags : this._viewFlags) &
+        nsMsgViewFlagsType.kGroupBySort) {
+      // We cannot be sorting by thread, id, none, or size.  If we are, switch
+      //  to sorting by date.
+      let sortType = this._sort[0][0];
+      if (sortType == nsMsgViewSortType.byThread ||
+          sortType == nsMsgViewSortType.byId ||
+          sortType == nsMsgViewSortType.byNone ||
+          sortType == nsMsgViewSortType.bySize)
+        this._sort = [nsMsgViewSortType.byDate, this._sort[0][1]];
+    }
+  },
+
+  /**
+   * @return true if we are grouped-by-sort, false if not.  If we are not
+   *     grouped by sort, then we are either threaded or unthreaded; check
+   *     the showThreaded property to find out which of those it is.
+   */
   get showGroupedBySort() {
     return Boolean(this._viewFlags & nsMsgViewFlagsType.kGroupBySort);
   },
+  /**
+   * Enable grouped-by-sort which is mutually exclusive with threaded display
+   *  (as controlled/exposed by showThreaded).  Grouped-by-sort is not legal
+   *  for sorts by thread/id/size/none and enabling this will cause us to change
+   *  our sort to by date in those cases.
+   */
   set showGroupedBySort(aShowGroupBySort) {
     if (this.showGroupedBySort != aShowGroupBySort) {
-      if (aShowGroupBySort)
-        this._viewFlags |= nsMsgViewFlagsType.kGroupBySort;
+      if (aShowGroupBySort) {
+        // do not apply the flag change until we have made the sort safe
+        let viewFlags = this._viewFlags |
+                        nsMsgViewFlagsType.kGroupBySort |
+                         nsMsgViewFlagsType.kThreadedDisplay;
+        this._ensureValidSort(viewFlags);
+        this._viewFlags = viewFlags;
+      }
+      // maybe we shouldn't do anything in this case?
       else
-        this._viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-      // lose the threading bit...
-      this._viewFlags &= ~nsMsgViewFlagsType.kThreadedDisplay;
-      this._applyViewChanges();
+        this._viewFlags &= ~(nsMsgViewFlagsType.kGroupBySort |
+                             nsMsgViewFlagsType.kThreadedDisplay);
     }
   },
 
+  /**
+   * Are we showing ignored/killed threads?  Only meaningful for newsgroups.
+   */
   get showIgnored() {
     return Boolean(this._viewFlags & nsMsgViewFlagsType.kShowIgnored);
   },
+  /**
+   * Set whether we are showing ignored/killed threads.  Only meaningful for
+   *  newsgroups.
+   */
   set showIgnored(aShowIgnored) {
     if (this.showIgnored != aShowIgnored) {
       if (aShowIgnored)
         this._viewFlags |= nsMsgViewFlagsType.kShowIgnored;
       else
         this._viewFlags &= ~nsMsgViewFlagsType.kShowIgnored;
-      this._applyViewChanges();
     }
   },
 
+  /**
+   * @return true if we are in threaded display (as opposed to grouped or
+   *     unthreaded.)
+   */
   get showThreaded() {
-    return Boolean(this._viewFlags & nsMsgViewFlagsType.kThreadedDisplay);
+    return (this._viewFlags & nsMsgViewFlagsType.kThreadedDisplay) &&
+           !(this._viewFlags & nsMsgViewFlagsType.kGroupBySort);
   },
+  /**
+   * Set us to threaded display mode when set to true.  If we are already in
+   *  threaded display mode, we do nothing.  If you want to set us to unthreaded
+   *  mode, set |showUnthreaded| to true.  (Because we have three modes of
+   *  operation: unthreaded, threaded, and grouped-by-sort, we are a tri-state
+   *  and setting us to false is ambiguous.  We should probably be using a
+   *  single attribute with three constants...)
+   */
   set showThreaded(aShowThreaded) {
     if (this.showThreaded != aShowThreaded) {
+      let viewFlags = this._viewFlags;
       if (aShowThreaded)
-        this._viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
+        viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
+      // maybe we shouldn't do anything in this case?
       else
-        this._viewFlags &= ~nsMsgViewFlagsType.kThreadedDisplay;
+        viewFlags &= ~nsMsgViewFlagsType.kThreadedDisplay;
       // lose the group bit...
-      this._viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-      this._applyViewChanges();
+      viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
+      this._viewFlags = viewFlags;
     }
   },
 
+  /**
+   * @return true if we are in unthreaded mode (which means not threaded and
+   *     not grouped by sort).
+   */
+  get showUnthreaded() {
+    return Boolean(!(this._viewFlags & (nsMsgViewFlagsType.kGroupBySort |
+                                        nsMsgViewFlagsType.kThreadedDisplay)));
+  },
+  /**
+   * Set to true to put us in unthreaded mode (which means not threaded and
+   *  not grouped by sort).
+   */
+  set showUnthreaded(aShowUnthreaded) {
+    if (this.showUnthreaded != aShowUnthreaded) {
+      if (aShowUnthreaded)
+        this._viewFlags &= ~(nsMsgViewFlagsType.kGroupBySort |
+                             nsMsgViewFlagsType.kThreadedDisplay);
+      // maybe we shouldn't do anything in this case?
+      else
+        this._viewFlags = (this._viewFlags & ~nsMsgViewFlagsType.kGroupBySort) |
+                            nsMsgViewFlagsType.kThreadedDisplay;
+    }
+  },
+
+  /**
+   * @return true if we are showing only unread messages.
+   */
   get showUnreadOnly() {
     return Boolean(this._viewFlags & nsMsgViewFlagsType.kUnreadOnly);
   },
+  /**
+   * Enable/disable showing only unread messages using the view's flag-based
+   *  mechanism.  This functionality can also be approximated using a mail
+   *  view (or other search) for unread messages.  There also exist special
+   *  views for showing messages with unread threads which is different and
+   *  has serious limitations because of its nature.
+   */
   set showUnreadOnly(aShowUnreadOnly) {
     if (this.showUnreadOnly != aShowUnreadOnly) {
       if (aShowUnreadOnly)
         this._viewFlags |= nsMsgViewFlagsType.kUnreadOnly;
       else
         this._viewFlags &= ~nsMsgViewFlagsType.kUnreadOnly;
-      this._applyViewChanges();
     }
   },
 
@@ -1148,7 +1735,8 @@ DBViewWrapper.prototype = {
     this._mailViewIndex = aMailViewIndex;
     this._mailViewData = aData;
 
-    // - update the search terms (this triggers the view update)
+    // - update the search terms
+    // (this triggers a view update if we are not in a batch)
     this.search.viewTerms = mailViewDef.makeTerms(this.search.session,
                                                   aData);
 
@@ -1170,10 +1758,21 @@ DBViewWrapper.prototype = {
       }
     }
 
-    // we don't need to notify the view picker to update because the makeActive that
-    //  cascades out of the view update will do it for us.
+    // we don't need to notify the view picker to update because the makeActive
+    //  that cascades out of the view update will do it for us.
   },
 
+  /**
+   * @return true if the row at the given index contains a collapsed thread,
+   *     false if the row is a collapsed group or anything else.
+   */
+  isCollapsedThreadAtIndex:
+      function DBViewWrapper_isCollapsedThreadAtIndex(aViewIndex) {
+    let flags = this.dbView.getFlagsAt(aViewIndex);
+    return (flags & nsMsgMessageFlags.Elided) &&
+           !(flags & MSG_VIEW_FLAG_DUMMY) &&
+           this.dbView.isContainer(aViewIndex);
+  },
 
   /**
    * Perform application-level behaviors related to leaving a folder that have
@@ -1201,5 +1800,35 @@ DBViewWrapper.prototype = {
         this.dbView.doCommand(nsMsgViewCommandType.markAllRead);
     }
     catch(e){/* ignore */}
+  },
+
+  /**
+   * Convenience function to retrieve the first nsIMsgDBHdr in any of the
+   *  folders backing this view with the given message-id header.  This
+   *  is for the benefit of FolderDisplayWidget's selection logic.
+   * When thinking about using this, please keep in mind that, currently, this
+   *  is O(n) for the total number of messages across all the backing folders.
+   *  Since the folder database should already be in memory, this should
+   *  ideally not involve any disk I/O.
+   * Additionally, duplicate message-ids can and will happen, but since we
+   *  are using the message database's getMsgHdrForMessageID method to be fast,
+   *  our semantics are limited to telling you about only the first one we find.
+   *
+   * @param aMessageId The message-id of the message you want.
+   * @return The first nsIMsgDBHdr found in any of the underlying folders with
+   *     the given message header, null if none are found.  The fact that we
+   *     return something does not guarantee that it is actually visible in the
+   *     view.  (The search may be filtering it out.)
+   */
+  getMsgHdrForMessageID: function DBViewWrapper_getMsgHdrForMessageID(
+      aMessageId) {
+    if (!this._underlyingFolders)
+      return null;
+    for (let [, folder] in Iterator(this._underlyingFolders)) {
+      let msgHdr = folder.msgDatabase.getMsgHdrForMessageID(aMessageId);
+      if (msgHdr)
+        return msgHdr;
+    }
+    return null;
   },
 };

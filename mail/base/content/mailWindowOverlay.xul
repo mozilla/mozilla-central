@@ -62,6 +62,8 @@
 <script type="application/x-javascript" src="chrome://messenger/content/mailCommands.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/junkCommands.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
+<script type="application/x-javascript" src="chrome://messenger/content/messageDisplay.js"/>
+<script type="application/x-javascript" src="chrome://messenger/content/folderDisplay.js"/>
 <script type="application/x-javascript" src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mail-offline.js"/>
 <script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
@@ -727,7 +729,7 @@
     <menuitem id="folderPaneContext-openNewTab"
               label="&folderContextOpenNewTab.label;"
               accesskey="&folderContextOpenNewTab.accesskey;"
-              oncommand="MsgOpenNewTabForFolder(null,-1);"/>
+              oncommand="MsgOpenNewTabForFolder();"/>
     <menuitem id="folderPaneContext-searchMessages"
               label="&folderContextSearchMessages.label;"
               accesskey="&folderContextSearchMessages.accesskey;"

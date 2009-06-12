@@ -1,43 +1,42 @@
-# -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-1999
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Markus Hossner <markushossner@gmx.de>
-#   Mark Banner <bugzilla@standard8.plus.com>
-#   David Ascher <dascher@mozillamessaging.com>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Markus Hossner <markushossner@gmx.de>
+ *   Mark Banner <bugzilla@standard8.plus.com>
+ *   David Ascher <dascher@mozillamessaging.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 
 /* This is where functions related to displaying the headers for a selected message in the
@@ -503,12 +502,8 @@ var messageHeaderSink = {
       // presentation level change....don't show vcards as external attachments in the UI.
       // libmime already renders them inline.
 
-      try
-      {
-        if (!this.mSaveHdr)
-          this.mSaveHdr = messenger.messageServiceFromURI(uri).messageURIToMsgHdr(uri);
-      }
-      catch (ex) {}
+      if (!this.mSaveHdr)
+        this.mSaveHdr = messenger.messageServiceFromURI(uri).messageURIToMsgHdr(uri);
       if (contentType == "text/x-vcard")
       {
         var inlineAttachments = pref.getBoolPref("mail.inline_attachments");
@@ -531,13 +526,8 @@ var messageHeaderSink = {
         if (node)
           node.removeAttribute("disabled");
 
-        try {
-          // convert the uri into a hdr
-          this.mSaveHdr.markHasAttachments(true);
-        }
-        catch (ex) {
-          dump("ex = " + ex + "\n");
-        }
+        // convert the uri into a hdr
+        this.mSaveHdr.markHasAttachments(true);
       }
     },
 
@@ -557,12 +547,7 @@ var messageHeaderSink = {
       if (!this.mSaveHdr)
       {
         var messageUrl = url.QueryInterface(Components.interfaces.nsIMsgMessageUrl);
-        try
-        {
-          this.mSaveHdr = messenger.msgHdrFromURI(messageUrl.uri);
-        }
-        catch (ex) {}
-
+        this.mSaveHdr = messenger.msgHdrFromURI(messageUrl.uri);
       }
       if (!currentAttachments.length && this.mSaveHdr)
         this.mSaveHdr.markHasAttachments(false);
@@ -596,6 +581,11 @@ var messageHeaderSink = {
     {
       if (!this.mDummyMsgHeader)
         this.mDummyMsgHeader = new nsDummyMsgHeader();
+      // The URI resolution will never work on the dummy header;
+      // save it now... we know it will be needed eventually.
+      // (And save it every time we come through here, not just when
+      // we create it; the onStartHeaders might come after creation!)
+      this.mSaveHdr = this.mDummyMsgHeader;
       return this.mDummyMsgHeader;
     },
     mProperties: null,
@@ -611,15 +601,9 @@ var messageHeaderSink = {
 function SetTagHeader()
 {
   // it would be nice if we passed in the msgHdr from the back end
-  var msgHdr;
-  try
-  {
-    msgHdr = gDBView.hdrForFirstSelectedMessage;
-  }
-  catch (ex)
-  {
+  var msgHdr = gFolderDisplay.selectedMessage;
+  if (!msgHdr)
     return; // no msgHdr to add our tags to
-  }
 
   // get the list of known tags
   var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
@@ -877,19 +861,6 @@ function UpdateMessageHeaders()
     var headerField = currentHeaderData[headerName];
     var headerEntry = null;
 
-    if (headerName == "subject")
-    {
-      try {
-        if (gDBView.keyForFirstSelectedMessage == nsMsgKey_None)
-        {
-          var folder = null;
-          if (gCurrentFolderUri)
-            folder = GetMsgFolderFromUri(gCurrentFolderUri);
-          setTitleFromFolder(folder, headerField.headerValue);
-        }
-      } catch (ex) {}
-    }
-
     if (gCollapsedHeaderViewMode && !gBuiltCollapsedView)
     {
       if (headerName == "cc" || headerName == "to" || headerName == "bcc")
@@ -926,7 +897,7 @@ function UpdateMessageHeaders()
     {
       if (headerName == "references" &&
           !(gViewAllHeaders || gHeadersShowReferences ||
-            (gDBView.msgFolder && gDBView.msgFolder.server.type == "nntp")))
+            gFolderDisplay.view.isNewsFolder))
       {
         // hide references header if view all headers mode isn't selected, the pref show references is
         // deactivated and the currently displayed message isn't a newsgroup posting
@@ -959,13 +930,18 @@ function ShowMessageHeaderPane()
 {
   document.getElementById('msgHeaderView').collapsed = false;
 
-  /* workaround for 39655 */
-  if (gFolderJustSwitched)
-  {
-    var el = document.getElementById("msgHeaderView");
-    el.setAttribute("style", el.getAttribute("style"));
-    gFolderJustSwitched = false;
-  }
+  // We used to do this as a work-around for long-ago bug 39655
+  // there apparently was a layout bug where the message pane
+  // 'toolbar' was being hidden as a result of the folder change,
+  // then re-shown, but the layout would glitch and not show it.
+  // As much as I love cargo-culting, I am commenting this out
+  // because I have great respect for our layout ninjas and little
+  // respect for random global variables such as the one that
+  // controlled this.
+  //
+  //var el = document.getElementById("msgHeaderView");
+  //el.setAttribute("style", el.getAttribute("style"));
+  //
 }
 
 function HideMessageHeaderPane()
@@ -1417,8 +1393,8 @@ function detachAttachment(aAttachment, aSaveFirst)
  */
 function CanDetachAttachments()
 {
-  var uri = GetLoadedMessage();
-  var canDetach = !IsNewsMessage(uri) && (!IsImapMessage(uri) || MailOfflineMgr.isOnline());
+  var canDetach = !gFolderDisplay.selectedMessageIsNews &&
+                  (!gFolderDisplay.selectedMessageIsImap || MailOfflineMgr.isOnline());
   if (canDetach && ("content-type" in currentHeaderData))
     canDetach = !ContentTypeIsSMIME(currentHeaderData["content-type"].headerValue);
   return canDetach;
@@ -1865,15 +1841,9 @@ function ClearAttachmentList()
 function ShowEditMessageBox()
 {
   // it would be nice if we passed in the msgHdr from the back end
-  var msgHdr;
-  try
-  {
-    msgHdr = gDBView.hdrForFirstSelectedMessage;
-  }
-  catch (ex)
-  {
+  var msgHdr = gFolderDisplay.selectedMessage;
+  if (!msgHdr && !msgHdr.folder)
     return;
-  }
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
   if (IsSpecialFolder(msgHdr.folder, nsMsgFolderFlags.Drafts, true))
     document.getElementById("editMessageBox").collapsed = false;
@@ -1992,17 +1962,34 @@ function nsDummyMsgHeader()
 nsDummyMsgHeader.prototype =
 {
   mProperties : new Array,
-  getStringProperty : function(property) {return this.mProperties[property];},
-  setStringProperty : function(property, val) {this.mProperties[property] = val;},
+  getStringProperty : function(aProperty) {
+    if (aProperty in this.mProperties)
+      return this.mProperties[property];
+    return "";
+  },
+  setStringProperty : function(aProperty, aVal) {
+    this.mProperties[aProperty] = aVal;
+  },
+  getUint32Property : function(aProperty) {
+    if (aProperty in this.mProperties)
+      return parseInt(this.mProperties[aProperty]);
+    return 0;
+  },
+  setUint32Property: function(aProperty, aVal) {
+    this.mProperties[aProperty] = aVal.toString();
+  },
   markHasAttachments : function(hasAttachments) {},
   messageSize : 0,
   recipients : null,
   from : null,
   subject : null,
+  get mime2DecodedSubject() { return this.subject; },
   ccList : null,
   listPost : null,
   messageId : null,
   accountKey : "",
+  // if you change us to return a fake folder, please update
+  // folderDisplay.js's FolderDisplayWidget's selectedMessageIsExternal getter.
   folder : null
 };
 

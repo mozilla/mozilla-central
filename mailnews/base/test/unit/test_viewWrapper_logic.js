@@ -3,6 +3,7 @@ load("../../mailnews/resources/messageModifier.js");
 load("../../mailnews/resources/asyncTestUtils.js");
 
 load("../../mailnews/resources/viewWrapperTestUtils.js");
+initViewWrapperTestUtils();
 
 /**
  * Verify that flipping between threading and grouped by sort settings properly

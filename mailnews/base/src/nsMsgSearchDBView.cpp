@@ -55,6 +55,7 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsMsgMessageFlags.h"
+#include "nsIMsgSearchSession.h"
 
 static PRBool gReferenceOnlyThreading;
 
@@ -734,6 +735,13 @@ NS_IMETHODIMP nsMsgSearchDBView::GetViewType(nsMsgViewTypeValue *aViewType)
     NS_ENSURE_ARG_POINTER(aViewType);
     *aViewType = nsMsgViewType::eShowSearch;
     return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSearchDBView::SetSearchSession(nsIMsgSearchSession *aSession)
+{
+  m_searchSession = do_GetWeakReference(aSession);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgSearchDBView::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)

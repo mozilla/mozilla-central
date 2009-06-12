@@ -264,7 +264,6 @@ var MailOfflineMgr = {
    */ 
   mailOfflineStateChanged: function (aGoingOffline)
   {
-    gFolderJustSwitched = true;
     this.updateOfflineUI(aGoingOffline);
   }
 };

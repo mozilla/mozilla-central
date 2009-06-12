@@ -2182,6 +2182,21 @@ NS_IMETHODIMP nsMsgDBView::GetIndicesForSelection(PRUint32 *length, nsMsgViewInd
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgDBView::GetMsgHdrsForSelection(nsIMutableArray **aResult)
+{
+  nsMsgViewIndexArray selection;
+  GetSelectedIndices(selection);
+  PRUint32 numIndices = selection.Length();
+
+  nsresult rv;
+  nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = GetHeadersFromSelection(selection.Elements(), numIndices, messages);
+  NS_ENSURE_SUCCESS(rv, rv);
+  messages.forget(aResult);
+  return rv;
+}
+
 NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(PRUint32 *length, char ***uris)
 {
   nsresult rv = NS_OK;

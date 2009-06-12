@@ -63,7 +63,7 @@ let gFolderTreeView = {
     let smartName = document.getElementById("bundle_messenger")
                             .getString("folderPaneHeader_smart");
     this.registerMode("smart", this._smartFoldersGenerator, smartName);
-    // the folder pane can be used for other trees which may not have these elements. 
+    // the folder pane can be used for other trees which may not have these elements.
     if (document.getElementById("folderpane_splitter"))
       document.getElementById("folderpane_splitter").collapsed = false;
     if (document.getElementById("folderPaneBox"))
@@ -110,7 +110,7 @@ let gFolderTreeView = {
 
         while (sstream.available())
           data += sstream.read(4096);
-        
+
         sstream.close();
         fstream.close();
         let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
@@ -216,7 +216,7 @@ let gFolderTreeView = {
     let row = gFolderTreeView._treeElement.treeBoxObject.getRowAt(aEvent.clientX,
                                                                   aEvent.clientY);
     let folderItem = gFolderTreeView._rowMap[row];
-    if (folderItem)                                                   
+    if (folderItem)
       folderItem.command();
 
     // Don't let the double-click toggle the open state of the folder here
@@ -270,7 +270,7 @@ let gFolderTreeView = {
   selectFolder: function ftv_selectFolder(aFolder) {
     // "this" inside the nested function refers to the function...
     // Also note that openIfNot is recursive.
-    let tree = this; 
+    let tree = this;
     function openIfNot(aFolderToOpen) {
       let index = tree.getIndexOfFolder(aFolderToOpen);
       if (index) {
@@ -449,7 +449,7 @@ let gFolderTreeView = {
                       (folders[0].server == targetFolder.server), null,
                        msgWindow);
       }
-    } 
+    }
     else if (Array.indexOf(types, "text/x-moz-newsfolder") != -1) {
       // Start by getting folders into order.
       let folders = new Array;
@@ -1032,7 +1032,7 @@ let gFolderTreeView = {
                     .logStringMessage("Discovering folders for account failed with exception: " + ex);
         }
       }
-        
+
       return [new ftvItem(acct.incomingServer.rootFolder)
               for each (acct in accounts)];
     },
@@ -1134,7 +1134,7 @@ let gFolderTreeView = {
 
       let items = [new ftvItem(f) for each (f in recentFolders)];
 
-      // There are no children in this view! 
+      // There are no children in this view!
       // And we want to display the account name to distinguish folders w/
       // the same name.
       for each (let folder in items) {
@@ -1258,7 +1258,7 @@ let gFolderTreeView = {
     let persistMapIndex = this._persistOpenMap[this.mode].indexOf(aItem.URI);
     if (persistMapIndex != -1)
       this._persistOpenMap[this.mode].splice(persistMapIndex, 1);
-    
+
     let index = this.getIndexOfFolder(aItem);
     if (!index)
       return;
@@ -1470,13 +1470,6 @@ let gFolderTreeController = {
         // In a failure, proceed anyway since we're dealing with problems
         folder.ForceDBClosed();
       }
-      // these lines will cause the thread pane to get reloaded when the
-      // download/reparse is finished. Only do this if the selected folder is
-      // loaded (i.e., not thru the context menu on a non-loaded folder).
-      if (folder == GetLoadedMsgFolder()) {
-        gRerootOnFolderLoad = true;
-        gCurrentFolderToReroot = folder.URI;
-      }
       folder.updateFolder(msgWindow);
     }
 
@@ -1505,7 +1498,6 @@ let gFolderTreeController = {
       if (aUri != folder.URI)
         Components.utils.reportError("got back a different folder to rename!");
 
-      controller._resetThreadPane();
       controller._tree.view.selection.clearSelection();
 
       // Actually do the rename
@@ -1564,11 +1556,9 @@ let gFolderTreeController = {
       let IPS = Components.interfaces.nsIPromptService;
       if (Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
             .getService(IPS)
-            .confirmEx(window, title, confirmation, IPS.STD_YES_NO_BUTTONS + IPS.BUTTON_POS_1_DEFAULT, 
+            .confirmEx(window, title, confirmation, IPS.STD_YES_NO_BUTTONS + IPS.BUTTON_POS_1_DEFAULT,
                        "", "", "", "", {}) != 0) /* the yes button is in position 0 */
         return;
-      if (gCurrentVirtualFolderUri == folder.URI)
-        gCurrentVirtualFolderUri = null;
     }
 
     let array = toXPCOMArray([folder], Ci.nsIMutableArray);
@@ -1625,10 +1615,6 @@ let gFolderTreeController = {
       // Can't compact folders that have just been compacted.
       if (folders[i].server.type != "imap" && !folders[i].expungedBytes)
         continue;
-
-      // Reset thread pane for non-imap folders if the folder is selected.
-      if (gDBView && gDBView.msgFolder == folders[i] && folders[i].server.type != "imap")
-        this._resetThreadPane();
 
       folders[i].compact(null, msgWindow);
     }
@@ -1688,19 +1674,6 @@ let gFolderTreeController = {
                       {folder: folder, editExistingFolder: true,
                        onOKCallback: editVirtualCallback,
                        msgWindow: msgWindow});
-  },
-
-  /**
-   * For certain folder commands, the thread pane needs to be invalidated, this
-   * takes care of doing so.
-   */
-  _resetThreadPane: function ftc_resetThreadPane() {
-    if (gDBView)
-      gCurrentlyDisplayedMessage = gDBView.currentlyDisplayedMessage;
-
-    ClearThreadPaneSelection();
-    ClearThreadPane();
-    ClearMessagePane();
   },
 
   /**

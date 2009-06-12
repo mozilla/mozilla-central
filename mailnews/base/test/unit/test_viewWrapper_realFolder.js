@@ -9,6 +9,7 @@ load("../../mailnews/resources/messageModifier.js");
 load("../../mailnews/resources/asyncTestUtils.js");
 
 load("../../mailnews/resources/viewWrapperTestUtils.js");
+initViewWrapperTestUtils();
 
 /* ===== Real Folder, no features ===== */
 
@@ -69,6 +70,16 @@ function test_real_folder_load_after_real_folder_load() {
 }
 
 /* ===== Real Folder, Threading Modes ==== */
+/*
+ * The first three tests that verify setting the threading flags has the
+ *  expected outcome do this by creating the view from scratch with the view
+ *  flags applied.  The view threading persistence test handles making sure
+ *  that changes in threading on-the-fly work from the perspective of the
+ *  bits and what not.  None of these are tests of the view implementation's
+ *  threading/grouping logic, just sanity checking that we are doing the right
+ *  thing.
+ */
+
 function test_real_folder_threading_unthreaded() {
   let viewWrapper = make_view_wrapper();
   let folder = make_empty_folder();
@@ -82,7 +93,14 @@ function test_real_folder_threading_unthreaded() {
   // verify that we are not threaded (or grouped)
   yield async_view_open(viewWrapper, folder);
   viewWrapper.beginViewUpdate();
-  viewWrapper.showThreaded = false;
+  viewWrapper.showUnthreaded = true;
+  // whitebox test view flags (we've gotten them wrong before...)
+  assert_bit_not_set(viewWrapper._viewFlags,
+                     Ci.nsMsgViewFlagsType.kThreadedDisplay,
+                     "View threaded bit should not be set.");
+  assert_bit_not_set(viewWrapper._viewFlags,
+                     Ci.nsMsgViewFlagsType.kGroupBySort,
+                     "View group-by-sort bit should not be set.");
   yield async_view_end_update(viewWrapper);
   verify_view_level_histogram({0: count}, viewWrapper);
 }
@@ -101,8 +119,19 @@ function test_real_folder_threading_threaded() {
   yield async_view_open(viewWrapper, folder);
   viewWrapper.beginViewUpdate();
   viewWrapper.showThreaded = true;
+  // whitebox test view flags (we've gotten them wrong before...)
+  assert_bit_set(viewWrapper._viewFlags,
+                 Ci.nsMsgViewFlagsType.kThreadedDisplay,
+                 "View threaded bit should be set.");
+  assert_bit_not_set(viewWrapper._viewFlags,
+                     Ci.nsMsgViewFlagsType.kGroupBySort,
+                     "View group-by-sort bit should not be set.");
+  // expand everything so our logic below works.
   view_expand_all(viewWrapper);
   yield async_view_end_update(viewWrapper);
+  // blackbox test view flags: make sure IsContainer is true for the root
+  verify_view_row_at_index_is_container(viewWrapper, 0);
+  // do the histogram test to verify threading...
   let expectedHisto = {};
   for (let i = 0; i < count; i++)
     expectedHisto[i] = 1;
@@ -122,6 +151,13 @@ function test_real_folder_threading_grouped_by_sort() {
   yield async_view_open(viewWrapper, folder);
   viewWrapper.beginViewUpdate();
   viewWrapper.showGroupedBySort = true;
+  // whitebox test view flags (we've gotten them wrong before...)
+  assert_bit_set(viewWrapper._viewFlags,
+                 Ci.nsMsgViewFlagsType.kThreadedDisplay,
+                 "View threaded bit should be set.");
+  assert_bit_set(viewWrapper._viewFlags,
+                 Ci.nsMsgViewFlagsType.kGroupBySort,
+                 "View group-by-sort bit should be set.");
   viewWrapper.sort(Ci.nsMsgViewSortType.byDate,
                    Ci.nsMsgViewSortOrder.ascending);
   // expand everyone
@@ -132,6 +168,86 @@ function test_real_folder_threading_grouped_by_sort() {
   verify_view_level_histogram({0: 1, 1: count}, viewWrapper);
   // and make sure the first dude is a dummy
   verify_view_row_at_index_is_dummy(viewWrapper, 0);
+}
+
+/**
+ * Verify that we the threading modes are persisted.  We are only checking
+ *  flags here; we trust the previous tests to have done their job.
+ */
+function test_real_folder_threading_persistence() {
+  let viewWrapper = make_view_wrapper();
+  let folder = make_empty_folder();
+
+  // create a single maximally nested thread.
+  const count = 10;
+  let messageSet =
+    new SyntheticMessageSet(gMessageScenarioFactory.directReply(count));
+  add_sets_to_folder(folder, [messageSet]);
+
+  // open the folder, set threaded mode, close it
+  yield async_view_open(viewWrapper, folder);
+  viewWrapper.showThreaded = true; // should be instantaneous
+  verify_view_row_at_index_is_container(viewWrapper, 0);
+  assert_bit_set(viewWrapper._viewFlags,
+                 Ci.nsMsgViewFlagsType.kThreadedDisplay,
+                 "View threaded bit should be set.");
+  assert_bit_not_set(viewWrapper._viewFlags,
+                     Ci.nsMsgViewFlagsType.kGroupBySort,
+                     "View group-by-sort bit should not be set.");
+  viewWrapper.close();
+
+  // open it again, make sure we're threaded, go unthreaded, close
+  yield async_view_open(viewWrapper, folder);
+  assert_true(viewWrapper.showThreaded, "view should be threaded");
+  assert_false(viewWrapper.showUnthreaded, "view is lying about threading");
+  assert_false(viewWrapper.showGroupedBySort, "view is lying about threading");
+  verify_view_row_at_index_is_container(viewWrapper, 0);
+  assert_bit_set(viewWrapper._viewFlags,
+                 Ci.nsMsgViewFlagsType.kThreadedDisplay,
+                 "View threaded bit should be set.");
+  assert_bit_not_set(viewWrapper._viewFlags,
+                     Ci.nsMsgViewFlagsType.kGroupBySort,
+                     "View group-by-sort bit should not be set.");
+
+  viewWrapper.showUnthreaded = true;
+  assert_bit_not_set(viewWrapper._viewFlags,
+                     Ci.nsMsgViewFlagsType.kThreadedDisplay,
+                     "View threaded bit should not be set.");
+  assert_bit_not_set(viewWrapper._viewFlags,
+                     Ci.nsMsgViewFlagsType.kGroupBySort,
+                     "View group-by-sort bit should not be set.");
+  viewWrapper.close();
+
+  // open it again, make sure we're unthreaded, go grouped, close
+  yield async_view_open(viewWrapper, folder);
+  assert_true(viewWrapper.showUnthreaded, "view should be unthreaded");
+  assert_false(viewWrapper.showThreaded, "view is lying about threading");
+  assert_false(viewWrapper.showGroupedBySort, "view is lying about threading");
+  assert_bit_not_set(viewWrapper._viewFlags,
+                     Ci.nsMsgViewFlagsType.kThreadedDisplay,
+                     "View threaded bit should not be set.");
+  assert_bit_not_set(viewWrapper._viewFlags,
+                     Ci.nsMsgViewFlagsType.kGroupBySort,
+                     "View group-by-sort bit should not be set.");
+
+  viewWrapper.showGroupedBySort = true;
+  assert_bit_set(viewWrapper._viewFlags,
+                 Ci.nsMsgViewFlagsType.kThreadedDisplay,
+                 "View threaded bit should be set.");
+  assert_bit_set(viewWrapper._viewFlags, Ci.nsMsgViewFlagsType.kGroupBySort,
+                 "View group-by-sort bit should be set.");
+  viewWrapper.close();
+
+  // open it again, make sure we're grouped.
+  yield async_view_open(viewWrapper, folder);
+  assert_true(viewWrapper.showGroupedBySort, "view should be grouped");
+  assert_false(viewWrapper.showThreaded, "view is lying about threading");
+  assert_false(viewWrapper.showUnthreaded, "view is lying about threading");
+  assert_bit_set(viewWrapper._viewFlags,
+                 Ci.nsMsgViewFlagsType.kThreadedDisplay,
+                 "View threaded bit should be set.");
+  assert_bit_set(viewWrapper._viewFlags, Ci.nsMsgViewFlagsType.kGroupBySort,
+                 "View group-by-sort bit should be set.");
 }
 
 /* ===== Real Folder, View Flags ===== */
@@ -571,6 +687,7 @@ var tests = [
   test_real_folder_threading_unthreaded,
   test_real_folder_threading_threaded,
   test_real_folder_threading_grouped_by_sort,
+  test_real_folder_threading_persistence,
   // - view flags
   // (we cannot test ignored flags in local folders)
   test_real_folder_flags_show_unread,

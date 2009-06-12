@@ -1,43 +1,43 @@
-# -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-1999
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   David Bienvenu <bienvenu@nventure.com>
-#   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
-#   Simon Wilkinson <simon@sxw.org.uk>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/* -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+ * ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   David Bienvenu <bienvenu@nventure.com>
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
+ *   Simon Wilkinson <simon@sxw.org.uk>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 // Ensure the activity modules are loaded for this window.
 Components.utils.import("resource://app/modules/activity/activityModules.js");
@@ -57,7 +57,7 @@ const mozISpellCheckingEngine = Components.interfaces.mozISpellCheckingEngine;
 
 var sDictCount = 0;
 
-/* Create message window object. This is use by mail-offline.js and therefore should not be renamed. We need to avoid doing 
+/* Create message window object. This is use by mail-offline.js and therefore should not be renamed. We need to avoid doing
    this kind of cross file global stuff in the future and instead pass this object as parameter when needed by function
    in the other js file.
 */
@@ -116,7 +116,7 @@ function InitializeGlobalVariables()
   gAccountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
   gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
   gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-  
+
   gMsgCompose = null;
   gWindowLocked = false;
   gContentChanged = false;
@@ -183,10 +183,10 @@ var gComposeRecyclingListener = {
     awResetAllRows();
     RemoveAllAttachments();
 
-    // We need to clear the identity popup menu in case the user will change them. 
+    // We need to clear the identity popup menu in case the user will change them.
     // It will be rebuilt later in ComposeStartup
     ClearIdentityListPopup(document.getElementById("msgIdentityPopup"));
- 
+
     //Clear the subject
     GetMsgSubjectElement().value = "";
     // be sure to clear the transaction manager for the subject
@@ -200,7 +200,7 @@ var gComposeRecyclingListener = {
     // Clear the focus
     awGetInputElement(1).removeAttribute('focused');
 
-    //Reset Boxes size    
+    //Reset Boxes size
     document.getElementById("headers-box").removeAttribute("height");
     document.getElementById("appcontent").removeAttribute("height");
     document.getElementById("addresses-box").removeAttribute("width");
@@ -224,7 +224,7 @@ var gComposeRecyclingListener = {
     enableInlineSpellCheck(false);
     // clear any suggestions in the context menu
     InlineSpellCheckerUI.clearSuggestionsFromMenu();
-           
+
     //Reset editor
     EditorResetFontAndColorAttributes();
     EditorCleanup();
@@ -270,7 +270,7 @@ var stateListener = {
     {
       if (!gAutoSaving)
         SetContentAndBodyAsUnmodified();
-     
+
       if (gCloseWindowAfterSave)
       {
         // Notify the SendListener that Send has been aborted and Stopped
@@ -284,7 +284,7 @@ var stateListener = {
     // as changed, so that we won't lose the changes.
     else if (gAutoSaving)
     {
-      gMsgCompose.bodyModified = true; 
+      gMsgCompose.bodyModified = true;
       gContentChanged = true;
     }
     gAutoSaving = false;
@@ -304,7 +304,7 @@ var progressListener = {
       {
         document.getElementById('compose-progressmeter').setAttribute( "mode", "undetermined" );
       }
-      
+
       if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP)
       {
         gSendOrSaveOperationInProgress = false;
@@ -313,23 +313,23 @@ var progressListener = {
         document.getElementById('statusText').setAttribute('label', '');
       }
     },
-    
+
     onProgressChange: function(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress)
     {
       // Calculate percentage.
       var percent;
-      if ( aMaxTotalProgress > 0 ) 
+      if ( aMaxTotalProgress > 0 )
       {
         percent = Math.round( (aCurTotalProgress*100)/aMaxTotalProgress );
         if ( percent > 100 )
           percent = 100;
-        
+
         document.getElementById('compose-progressmeter').removeAttribute("mode");
-        
+
         // Advance progress meter.
         document.getElementById('compose-progressmeter').setAttribute( "value", percent );
-      } 
-      else 
+      }
+      else
       {
         // Progress meter should be barber-pole in this case.
         document.getElementById('compose-progressmeter').setAttribute( "mode", "undetermined" );
@@ -363,7 +363,7 @@ var progressListener = {
           iid.equals(Components.interfaces.nsISupportsWeakReference) ||
           iid.equals(Components.interfaces.nsISupports))
         return this;
-     
+
       throw Components.results.NS_NOINTERFACE;
     }
 };
@@ -469,7 +469,7 @@ var defaultController =
   },
 
   doCommand: function(command)
-  { 
+  {
     switch (command)
     {
       //File Menu
@@ -554,7 +554,7 @@ function GetSelectedMessages()
                      .QueryInterface(Components.interfaces.nsIWindowMediator)
                      .getMostRecentWindow("mail:3pane");
     if (mailWindow) {
-      return mailWindow.GetSelectedMessages();
+      return mailWindow.gFolderDisplay.selectedMessageUris;
     }
   }
 
@@ -584,7 +584,7 @@ function CommandUpdate_MsgCompose()
   gLastWindowToHaveFocus = focusedWindow;
 
   //dump("XXX update, focus on " + focusedWindow + "\n");
-  
+
   updateComposeItems();
 }
 
@@ -646,12 +646,12 @@ function updateEditItems()
   goUpdateCommand("cmd_findPrev");
 }
 
-var messageComposeOfflineObserver = 
+var messageComposeOfflineObserver =
 {
-  observe: function(subject, topic, state) 
+  observe: function(subject, topic, state)
   {
     // sanity checks
-    if (topic != "network:offline-status-changed") 
+    if (topic != "network:offline-status-changed")
       return;
     gIsOffline = state == "offline";
     MessageComposeOfflineStateChanged(gIsOffline);
@@ -659,7 +659,7 @@ var messageComposeOfflineObserver =
     try {
       setupLdapAutocompleteSession();
     } catch (ex) {
-      // catch the exception and ignore it, so that if LDAP setup 
+      // catch the exception and ignore it, so that if LDAP setup
       // fails, the entire compose window stuff doesn't get aborted
     }
   }
@@ -669,7 +669,7 @@ function AddMessageComposeOfflineObserver()
 {
   var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
   observerService.addObserver(messageComposeOfflineObserver, "network:offline-status-changed", false);
-  
+
   gIsOffline = gIOService.offline;
   // set the initial state of the send button
   MessageComposeOfflineStateChanged(gIsOffline);
@@ -717,7 +717,7 @@ var directoryServerObserver = {
       try {
           setupLdapAutocompleteSession();
       } catch (ex) {
-          // catch the exception and ignore it, so that if LDAP setup 
+          // catch the exception and ignore it, so that if LDAP setup
           // fails, the entire compose window doesn't get horked
       }
   }
@@ -807,21 +807,21 @@ function setupLdapAutocompleteSession()
           } catch (ex) {dump ("ERROR: Cannot get the LDAP autocomplete session\n" + ex + "\n");}
         }
     }
-            
-    if (autocompleteDirectory && !gIsOffline) { 
+
+    if (autocompleteDirectory && !gIsOffline) {
         // Add observer on the directory server we are autocompleting against
         // only if current server is different from previous.
-        // Remove observer if current server is different from previous       
+        // Remove observer if current server is different from previous
         gCurrentAutocompleteDirectory = autocompleteDirectory;
         if (prevAutocompleteDirectory) {
-          if (prevAutocompleteDirectory != gCurrentAutocompleteDirectory) { 
+          if (prevAutocompleteDirectory != gCurrentAutocompleteDirectory) {
             RemoveDirectorySettingsObserver(prevAutocompleteDirectory);
             AddDirectorySettingsObserver();
           }
         }
         else
           AddDirectorySettingsObserver();
-        
+
         // fill in the session params if there is a session
         //
         if (LDAPSession) {
@@ -842,28 +842,28 @@ function setupLdapAutocompleteSession()
             }
 
             try {
-                 LDAPSession.saslMechanism = getPref(autocompleteDirectory + 
+                 LDAPSession.saslMechanism = getPref(autocompleteDirectory +
 		    ".auth.saslmech", true);
             } catch (ex) {
                 // don't care if we don't have this pref
             }
-            
+
             // set the LDAP protocol version correctly
             var protocolVersion;
-            try { 
+            try {
                 protocolVersion = getPref(autocompleteDirectory +
                                           ".protocolVersion");
             } catch (ex) {
                 // if we don't have this pref, no big deal
             }
             if (protocolVersion == "2") {
-                LDAPSession.version = 
+                LDAPSession.version =
                     Components.interfaces.nsILDAPConnection.VERSION2;
             }
 
             // don't search on non-CJK strings shorter than this
             //
-            try { 
+            try {
                 LDAPSession.minStringLength = getPref(
                     autocompleteDirectory + ".autoComplete.minStringLength");
             } catch (ex) {
@@ -873,7 +873,7 @@ function setupLdapAutocompleteSession()
 
             // don't search on CJK strings shorter than this
             //
-            try { 
+            try {
                 LDAPSession.cjkMinStringLength = getPref(
                   autocompleteDirectory + ".autoComplete.cjkMinStringLength");
             } catch (ex) {
@@ -932,7 +932,7 @@ function setupLdapAutocompleteSession()
                     // override ldap-specific autocomplete entry?
                     //
                     try {
-                        ldapFormatter.commentFormat = 
+                        ldapFormatter.commentFormat =
                             getPref(autocompleteDirectory +
                                     ".autoComplete.commentFormat", true);
                     } catch (innerException) {
@@ -972,7 +972,7 @@ function setupLdapAutocompleteSession()
 
             // override default search filter template?
             //
-            try { 
+            try {
                 LDAPSession.filterTemplate = getPref(
                     autocompleteDirectory + ".autoComplete.filterTemplate",
                     true);
@@ -984,19 +984,19 @@ function setupLdapAutocompleteSession()
 
             // override default maxHits (currently 100)
             //
-            try { 
+            try {
                 // XXXdmose should really use .autocomplete.maxHits,
                 // but there's no UI for that yet
-                // 
+                //
                 LDAPSession.maxHits = getPref(autocompleteDirectory + ".maxHits");
             } catch (ex) {
-                // if this pref isn't there, or is out of range, no big deal. 
+                // if this pref isn't there, or is out of range, no big deal.
                 // just let nsLDAPAutoCompleteSession use its default.
             }
 
             if (!gSessionAdded) {
                 // if we make it here, we know that session initialization has
-                // succeeded; add the session for all recipients, and 
+                // succeeded; add the session for all recipients, and
                 // remember that we've done so
                 let maxRecipients = awGetMaxRecipients();
                 for (let i = 1; i <= maxRecipients; i++)
@@ -1006,7 +1006,7 @@ function setupLdapAutocompleteSession()
                     {
                       autoCompleteWidget.addSession(LDAPSession);
                       // ldap searches don't insert a default entry with the default domain appended to it
-                      // so reduce the minimum results for a popup to 2 in this case. 
+                      // so reduce the minimum results for a popup to 2 in this case.
                       autoCompleteWidget.minResultsForPopup = 2;
 
                     }
@@ -1170,7 +1170,7 @@ function ComposeStartup(recycled, aParams)
 {
   var params = null; // New way to pass parameters to the compose window as a nsIMsgComposeParameters object
   var args = null;   // old way, parameters are passed as a string
-  
+
   if (aParams)
     params = aParams;
   else if (window.arguments && window.arguments[0]) {
@@ -1387,7 +1387,7 @@ function ComposeStartup(recycled, aParams)
 
   gEditingDraft = gMsgCompose.compFields.draftId;
 
-  // finally, see if we need to auto open the address sidebar. 
+  // finally, see if we need to auto open the address sidebar.
   var sideBarBox = document.getElementById('sidebar-box');
   if (sideBarBox.getAttribute("sidebarVisible") == "true")
   {
@@ -1406,7 +1406,7 @@ function ComposeStartup(recycled, aParams)
 
 // The new, nice, simple way of getting notified when a new editor has been created
 var gMsgEditorCreationObserver =
-{ 
+{
   observe: function(aSubject, aTopic, aData)
   {
     if (aTopic == "obs_documentCreated")
@@ -1454,13 +1454,13 @@ function ComposeLoad()
   AddDirectoryServerObserver(true);
 
   try {
-    // XXX: We used to set commentColumn on the initial auto complete column after the document has loaded 
+    // XXX: We used to set commentColumn on the initial auto complete column after the document has loaded
     // inside of setupAutocomplete. But this happens too late for the first widget and it was never showing
     // the comment field. Try to set it before the document finishes loading:
     if (getPref("mail.autoComplete.commentColumn"))
       document.getElementById('addressCol2#1').showCommentColumn = true;
-  } 
-  catch (ex) { 
+  }
+  catch (ex) {
     // do nothing...
   }
 
@@ -1552,7 +1552,7 @@ function UpdateMailEditCharset()
 
   // charset may have been set implicitly in case of reply/forward
   // or use pref default otherwise
-  var menuitem = document.getElementById(send_default_charset == compFieldsCharset ? 
+  var menuitem = document.getElementById(send_default_charset == compFieldsCharset ?
                                          send_default_charset : compFieldsCharset);
   if (menuitem)
     menuitem.setAttribute('checked', 'true');
@@ -1816,13 +1816,13 @@ function GenericSendMessage( msgType )
 
       var originalCharset = gMsgCompose.compFields.characterSet;
       // Check if the headers of composing mail can be converted to a mail charset.
-      if (msgType == nsIMsgCompDeliverMode.Now || 
+      if (msgType == nsIMsgCompDeliverMode.Now ||
         msgType == nsIMsgCompDeliverMode.Later ||
         msgType == nsIMsgCompDeliverMode.Background ||
-        msgType == nsIMsgCompDeliverMode.Save || 
-        msgType == nsIMsgCompDeliverMode.SaveAsDraft || 
-        msgType == nsIMsgCompDeliverMode.AutoSaveAsDraft || 
-        msgType == nsIMsgCompDeliverMode.SaveAsTemplate) 
+        msgType == nsIMsgCompDeliverMode.Save ||
+        msgType == nsIMsgCompDeliverMode.SaveAsDraft ||
+        msgType == nsIMsgCompDeliverMode.AutoSaveAsDraft ||
+        msgType == nsIMsgCompDeliverMode.SaveAsTemplate)
       {
         var fallbackCharset = new Object;
         // Check encoding, switch to UTF-8 if the default encoding doesn't fit
@@ -1841,7 +1841,7 @@ function GenericSendMessage( msgType )
             fallbackCharset.value = "UTF-8";
         }
 
-        if (fallbackCharset && 
+        if (fallbackCharset &&
             fallbackCharset.value && fallbackCharset.value != "")
           gMsgCompose.SetDocumentCharset(fallbackCharset.value);
       }
@@ -1868,7 +1868,7 @@ function GenericSendMessage( msgType )
         // if we're auto saving, mark the body as not changed here, and not
         // when the save is done, because the user might change it between now
         // and when the save is done.
-        else 
+        else
           SetContentAndBodyAsUnmodified();
 
         var progress = Components.classes["@mozilla.org/messenger/progress;1"].createInstance(Components.interfaces.nsIMsgProgress);
@@ -1914,7 +1914,7 @@ function CheckValidEmailAddress(to, cc, bcc)
     if (gPromptService)
       gPromptService.alert(window, errorTitle, errorMsg);
     return false;
-  } 
+  }
   return true;
 }
 
@@ -1937,7 +1937,7 @@ function SendMessageWithCheck()
     if (warn) {
         var checkValue = {value:false};
         var bundle = document.getElementById("bundle_composeMsgs");
-        var buttonPressed = gPromptService.confirmEx(window, 
+        var buttonPressed = gPromptService.confirmEx(window,
               bundle.getString('sendMessageCheckWindowTitle'),
               bundle.getString('sendMessageCheckLabel'),
               (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
@@ -2035,7 +2035,7 @@ function updatePriorityMenu()
     var msgCompFields = gMsgCompose.compFields;
     if (msgCompFields && msgCompFields.priority)
     {
-      var priorityMenu = document.getElementById('priorityMenu' ); 
+      var priorityMenu = document.getElementById('priorityMenu' );
       priorityMenu.getElementsByAttribute( "checked", 'true' )[0].removeAttribute('checked');
       priorityMenu.getElementsByAttribute( "value", msgCompFields.priority )[0].setAttribute('checked', 'true');
     }
@@ -2194,7 +2194,7 @@ function InitLanguageMenu()
       return a[0].localeCompare(b[0]);
     }
   );
- 
+
   // Remove any languages from the list.
   while (languageMenuList.hasChildNodes())
     languageMenuList.removeChild(languageMenuList.firstChild);
@@ -2206,7 +2206,7 @@ function InitLanguageMenu()
     item.setAttribute("value", dictList[i][1]);
     item.setAttribute('type', 'radio');
     languageMenuList.appendChild(item);
-  }      
+  }
 }
 
 function OnShowDictionaryMenu(aTarget)
@@ -2498,7 +2498,7 @@ function RemoveDraft()
 
 function SetContentAndBodyAsUnmodified()
 {
-  gMsgCompose.bodyModified = false; 
+  gMsgCompose.bodyModified = false;
   gContentChanged = false;
 }
 
@@ -2509,7 +2509,7 @@ function ReleaseAutoCompleteState()
     document.getElementById("addressCol2#" + i).removeSession(gLDAPSession);
 
   gSessionAdded = false;
-  gLDAPSession = null;  
+  gLDAPSession = null;
 }
 
 function MsgComposeCloseWindow(recycleIt)
@@ -2738,14 +2738,14 @@ function RemoveAllAttachments()
     // Let's release the attachment object hold by the node else it won't go away until the window is destroyed
     child.attachment = null;
   }
-  
+
   ChangeAttachmentBucketVisibility(true);
 }
 
 function ChangeAttachmentBucketVisibility(aHideBucket)
 {
   document.getElementById("attachments-box").collapsed = aHideBucket;
-  document.getElementById("attachmentbucket-sizer").collapsed = aHideBucket;   
+  document.getElementById("attachmentbucket-sizer").collapsed = aHideBucket;
 }
 
 function RemoveSelectedAttachment()
@@ -2802,13 +2802,13 @@ function AttachmentElementHasItems()
 {
   var element = document.getElementById("attachmentBucket");
   return element ? element.getRowCount() : 0;
-}  
+}
 
 function OpenSelectedAttachment()
 {
   var child;
   var bucket = document.getElementById("attachmentBucket");
-  if (bucket.selectedItems.length == 1) 
+  if (bucket.selectedItems.length == 1)
   {
     var attachmentUrl = bucket.getSelectedItem(0).attachment.url;
 
@@ -2822,7 +2822,7 @@ function OpenSelectedAttachment()
       if (msgHdr)
       {
         var folderUri = msgHdr.folder.folderURL;
-        window.openDialog("chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar", 
+        window.openDialog("chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar",
                           attachmentUrl, folderUri, null );
       }
     }
@@ -2841,7 +2841,7 @@ function OpenSelectedAttachment()
           var uriLoader = Components.classes["@mozilla.org/uriloader;1"].getService(Components.interfaces.nsIURILoader);
           uriLoader.openURI(channel, true, new nsAttachmentOpener());
         } // if channel
-      } // if url 
+      } // if url
     }
   } // if one attachment selected
 }
@@ -2989,7 +2989,7 @@ function LoadIdentity(startup)
 {
     var identityElement = document.getElementById("msgIdentity");
     var prevIdentity = gCurrentIdentity;
-    
+
     if (identityElement) {
         var idKey = identityElement.value;
         gCurrentIdentity = gAccountManager.getIdentity(idKey);
@@ -3022,7 +3022,7 @@ function LoadIdentity(startup)
           var newAttachVCard = gCurrentIdentity.attachVCard;
 
           if (gCurrentIdentity.doBcc)
-            newBcc += gCurrentIdentity.doBccList;          
+            newBcc += gCurrentIdentity.doBccList;
 
           var needToCleanUp = false;
           var msgCompFields = gMsgCompose.compFields;
@@ -3089,7 +3089,7 @@ function LoadIdentity(startup)
           try {
               setupLdapAutocompleteSession();
           } catch (ex) {
-              // catch the exception and ignore it, so that if LDAP setup 
+              // catch the exception and ignore it, so that if LDAP setup
               // fails, the entire compose window doesn't end up horked
           }
 
@@ -3107,37 +3107,37 @@ function setupAutocomplete()
     autoCompleteWidget.minResultsForPopup = 2;
 
   // if the pref is set to turn on the comment column, honor it here.
-  // this element then gets cloned for subsequent rows, so they should 
+  // this element then gets cloned for subsequent rows, so they should
   // honor it as well
   //
-  try 
+  try
   {
     if (getPref("mail.autoComplete.highlightNonMatches"))
       autoCompleteWidget.highlightNonMatches = true;
 
     if (getPref("mail.autoComplete.commentColumn"))
       autoCompleteWidget.showCommentColumn = true;
-  } catch (ex) 
+  } catch (ex)
   {
       // if we can't get this pref, then don't show the columns (which is
       // what the XUL defaults to)
   }
-  
-  if (!gSetupLdapAutocomplete) 
+
+  if (!gSetupLdapAutocomplete)
   {
-    try 
+    try
     {
           setupLdapAutocompleteSession();
-    } catch (ex) 
+    } catch (ex)
     {
-          // catch the exception and ignore it, so that if LDAP setup 
+          // catch the exception and ignore it, so that if LDAP setup
           // fails, the entire compose window doesn't end up horked
       }
   }
 }
 
 function subjectKeyPress(event)
-{  
+{
   switch(event.keyCode) {
   case KeyEvent.DOM_VK_TAB:
     if (!event.shiftKey) {
@@ -3161,7 +3161,7 @@ function AttachmentBucketClicked(event)
   if (event.originalTarget.localName == "listboxbody")
     goDoCommand('cmd_attachFile');
   else if (event.originalTarget.localName == "listitem" && event.detail == 2)
-    OpenSelectedAttachment();    
+    OpenSelectedAttachment();
 }
 
 // we can drag and drop addresses, files, messages and urls into the compose envelope
@@ -3200,7 +3200,7 @@ var envelopeDragObserver = {
           else
           {
             var separator = rawData.indexOf("\n");
-            if (separator != -1) 
+            if (separator != -1)
             {
               prettyName = rawData.substr(separator+1);
               rawData = rawData.substr(0,separator);
@@ -3216,7 +3216,7 @@ var envelopeDragObserver = {
             var isValid = true;
             if (item.flavour.contentType == "text/x-moz-url") {
               // if this is a url (or selected text)
-              // see if it's a valid url by checking 
+              // see if it's a valid url by checking
               // if we can extract a scheme
               // using the ioservice
               //
@@ -3276,7 +3276,7 @@ var envelopeDragObserver = {
       flavourSet.appendFlavour("text/x-moz-url");
       flavourSet.appendFlavour("text/x-moz-message");
       flavourSet.appendFlavour("application/x-moz-file", "nsIFile");
-      flavourSet.appendFlavour("text/x-moz-address");      
+      flavourSet.appendFlavour("text/x-moz-address");
       return flavourSet;
     }
 };
@@ -3411,7 +3411,7 @@ function WhichElementHasFocus()
   return null;
 }
 
-// Function that performs the logic of switching focus from 
+// Function that performs the logic of switching focus from
 // one element to another in the mail compose window.
 // The default element to switch to when going in either
 // direction (shift or no shift key pressed), is the
@@ -3471,7 +3471,7 @@ function toggleAddressPicker()
   var sidebarBox = document.getElementById("sidebar-box");
   var sidebarSplitter = document.getElementById("sidebar-splitter");
   var elt = document.getElementById("viewAddressPicker");
-  if (sidebarBox.hidden) 
+  if (sidebarBox.hidden)
   {
     sidebarBox.hidden = false;
     sidebarSplitter.hidden = false;
@@ -3508,31 +3508,31 @@ function loadHTMLMsgPrefs()
   var fontSize;
   var textColor;
   var bgColor;
-  
-  try { 
+
+  try {
     fontFace = getPref("msgcompose.font_face", true);
     doStatefulCommand('cmd_fontFace', fontFace);
   } catch (e) {}
 
-  try { 
+  try {
     fontSize = getPref("msgcompose.font_size");
     EditorSetFontSize(fontSize);
   } catch (e) {}
 
   var bodyElement = GetBodyElement();
 
-  try { 
+  try {
     textColor = getPref("msgcompose.text_color");
     if (!bodyElement.getAttribute("text"))
     {
     bodyElement.setAttribute("text", textColor);
     gDefaultTextColor = textColor;
-    document.getElementById("cmd_fontColor").setAttribute("state", textColor);    
+    document.getElementById("cmd_fontColor").setAttribute("state", textColor);
     onFontColorChange();
     }
   } catch (e) {}
 
-  try { 
+  try {
     bgColor = getPref("msgcompose.background_color");
     if (!bodyElement.getAttribute("bgcolor"))
     {
@@ -3546,7 +3546,7 @@ function loadHTMLMsgPrefs()
 
 function AutoSave()
 {
-  if (gMsgCompose.editor && (gContentChanged || gMsgCompose.bodyModified) 
+  if (gMsgCompose.editor && (gContentChanged || gMsgCompose.bodyModified)
       && !gSendOrSaveOperationInProgress)
   {
     GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
@@ -3562,7 +3562,7 @@ function InitEditor()
   editor.QueryInterface(nsIEditorStyleSheets);
   editor.addOverrideStyleSheet("chrome://messenger/content/composerOverlay.css");
   gMsgCompose.initEditor(editor, window.content);
-  
+
   InlineSpellCheckerUI.init(editor);
   enableInlineSpellCheck(getPref("mail.spellcheck.inline"));
   document.getElementById('menu_inlineSpellCheck').setAttribute('disabled', !InlineSpellCheckerUI.canSpellCheck);

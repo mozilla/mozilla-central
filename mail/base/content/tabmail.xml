@@ -1,41 +1,41 @@
 <?xml version="1.0"?>
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is tab email
-#
-# The Initial Developer of the Original Code is
-#   David Bienvenu <bienvenu@nventure.com>.
-# Portions created by the Initial Developer are Copyright (C) 2007
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#  Scott MacGregor <mscott@mozilla.org>
-#  Andrew Sutherland <asutherland@asutherland.org>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+<!-- ***** BEGIN LICENSE BLOCK *****
+  - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+  -
+  - The contents of this file are subject to the Mozilla Public License Version
+  - 1.1 (the "License"); you may not use this file except in compliance with
+  - the License. You may obtain a copy of the License at
+  - http://www.mozilla.org/MPL/
+  -
+  - Software distributed under the License is distributed on an "AS IS" basis,
+  - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  - for the specific language governing rights and limitations under the
+  - License.
+  -
+  - The Original Code is tab email
+  -
+  - The Initial Developer of the Original Code is
+  -   David Bienvenu <bienvenu@nventure.com>.
+  - Portions created by the Initial Developer are Copyright (C) 2007
+  - the Initial Developer. All Rights Reserved.
+  -
+  - Contributor(s):
+  -  Scott MacGregor <mscott@mozilla.org>
+  -  Andrew Sutherland <asutherland@asutherland.org>
+  -
+  - Alternatively, the contents of this file may be used under the terms of
+  - either the GNU General Public License Version 2 or later (the "GPL"), or
+  - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+  - in which case the provisions of the GPL or the LGPL are applicable instead
+  - of those above. If you wish to allow use of your version of this file only
+  - under the terms of either the GPL or the LGPL, and not to allow others to
+  - use your version of this file under the terms of the MPL, indicate your
+  - decision by deleting the provisions above and replace them with the notice
+  - and other provisions required by the GPL or the LGPL. If you do not delete
+  - the provisions above, a recipient may use your version of this file under
+  - the terms of any one of the MPL, the GPL or the LGPL.
+  -
+  - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE bindings [
 <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
@@ -76,6 +76,23 @@
     - * openTab(aTabModeName, arguments...): Open a tab of the given "mode",
     -   passing the provided arguments.  The tab type author should tell you
     -   the modes they implement and the required/optional arguments.
+    - * closeTab(aOptionalTabIndexInfoOrTabNode): If no argument is provided,
+    -   the current tab is closed.  If an argument is provided, it can be
+    -   a tab index, a tab info object, or the tabmail-tab bound element
+    -   that _is_ the tab.  Some tabs cannot be closed, in which case this
+    -   will do nothing.
+    - * switchToTab(aTabIndexInfoOrTabNode): Switch to the tab by providing
+    -   a tab index, tab info object, or tab node (tabmail-tab bound
+    -   element.)  You can also just poke at tabmail.tabContainer and its
+    -   selectedIndex and selectedItem properties.
+    - Less-friendly consumer methods:
+    - * removeCurrentTab(): Close the current tab.
+    - * removeTabByNode(aTabElement): Close the tab whose tabmail-tab bound
+    -   element is passed in.
+    - Changing the currently displayed tab is accomplished by changing
+    -  tabmail.tabContainer's selectedIndex or selectedItem property.
+    -
+    - Code that lives in a tab should use the following methods:
     - * setTabTitle([aOptionalTabInfo]): Tells us that the title of the current
     -   tab (if no argument is provided) or provided tab needs to be updated.
     -   This will result in a call to the tab mode's logic to update the title.
@@ -83,11 +100,18 @@
     -   for ensuring that the underlying tab mode is capable of providing a tab
     -   title when it is in the background.  (The is currently not the case for
     -   "folder" and "mail" modes because of their implementation.)
-    - * removeCurrentTab(): Close the current tab.
-    - * removeTabByNode(aTabElement): Close the tab whose tabmail-tab bound
-    -   element is passed in.
-    - Changing the currently displayed tab is accomplished by changing
-    -  tabmail.tabContainer's selectedIndex or selectedItem property.
+    - * setTabBusy(aTabNode, aBusyState): Tells us that the tab in question
+    -   is now busy or not busy.  "Busy" means that it is occupied and
+    -   will not be able to respond to you until it is no longer busy.
+    -   This impacts the cursor display, as well as potentially
+    -   providing tab display hints.
+    - * setTabThinking(aTabNode, aThinkingState): Tells us that the
+    -   tab in question is now thinking or not thinking.  "Thinking" means
+    -   that the tab is involved in some ongoing process but you can still
+    -   interact with the tab while it is thinking.  A search would be an
+    -   example of thinking.  This impacts spinny-thing feedback as well as
+    -   potential providing tab display hints.  aThinkingState may be a
+    -   boolean or a localized string explaining what you are thinking about.
     -
     - Tab contributing code should define a tab type object and register it
     -  with us by calling registerTabType.  Each tab type can provide multiple
@@ -237,6 +261,12 @@
       <field name="currentTabInfo">
         null
       </field>
+      <!-- Temporary field that only has a non-null value during a call to
+           openTab, and whose value is the currentTabInfo of the tab that was
+           open when we received the call to openTab. -->
+      <field name="_mostRecentTabInfo">
+        null
+      </field>
       <field name="tabTypes" readonly="true">
         new Object()
       </field>
@@ -294,6 +324,44 @@
             this.tabMonitors.splice(this.tabMonitors.indexOf(aTabMonitor), 1);
         ]]></body>
       </method>
+      <!-- Given an index, tab node or tab info object, return a tuple of
+           [iTab, tab info dictionary, tab DOM node].  If
+           aTabIndexNodeOrInfo is not specified and aDefaultToCurrent is
+           true, the current tab will be returned.  Otherwise, an
+           exception will be thrown.
+        -->
+      <method name="_getTabContextForTabbyThing">
+        <parameter name="aTabIndexNodeOrInfo"/>
+        <parameter name="aDefaultToCurrent"/>
+        <body><![CDATA[
+          let iTab, tab, tabNode;
+          if (!aTabIndexNodeOrInfo) {
+            if (!aDefaultToCurrent)
+              throw Exception("You need to specify a tab!");
+            iTab = this.tabContainer.selectedIndex;
+            return [iTab, this.tabInfo[iTab],
+                    this.tabContainer.childNodes[iTab]];
+          }
+
+          if (typeof(aTabIndexNodeOrInfo) == "number") {
+            iTab = aTabIndexNodeOrInfo;
+            tabNode = this.tabContainer.childNodes[iTab];
+            tab = this.tabInfo[iTab];
+          }
+          else if (aTabIndexNodeOrInfo.tagName == "tab") {
+            tabNode = aTabIndexNodeOrInfo;
+            iTab = this.tabContainer.getIndexOfItem(tabNode);
+            tab = this.tabInfo[iTab];
+          }
+          else {
+            tab = aTabIndexNodeOrInfo;
+            iTab = this.tabInfo.indexOf(tab);
+            tabNode = (iTab >= 0) ? this.tabContainer.childNodes[iTab] : null;
+          }
+
+          return [iTab, tab, tabNode];
+        ]]></body>
+      </method>
       <method name="openFirstTab">
         <body><![CDATA[
           // From the moment of creation, our XBL binding already has a visible
@@ -302,15 +370,20 @@
           //  event to ensure we have an accurate title.  We assume the tab
           //  contents will set themselves up correctly.
           if (this.tabInfo.length == 0) {
-            let firstTab = {mode: this.defaultTabMode, canClose: false};
+            let firstTab = {mode: this.defaultTabMode, busy: false,
+                            canClose: false};
             firstTab.mode.tabs.push(firstTab);
-           
+
             this.tabInfo[0] = this.currentTabInfo = firstTab;
-            this.setTabTitle(firstTab);
+
+            let tabOpenFirstFunc = firstTab.mode.openFirstTab ||
+                                   firstTab.mode.tabType.openFirstTab;
+            tabOpenFirstFunc.call(firstTab.mode.tabType, firstTab);
+            this.setTabTitle(null);
 
             if (this.tabMonitors.length) {
               for each (let [i, tabMonitor] in Iterator(this.tabMonitors))
-                tabMonitor.onTabSwitched(tab, null);
+                tabMonitor.onTabSwitched(firstTab, null);
             }
           }
         ]]></body>
@@ -344,7 +417,7 @@
           // we need to save the state before it gets corrupted
           this.saveCurrentTabState();
 
-          let tab = {mode: tabMode, canClose: true};
+          let tab = {mode: tabMode, busy: false, canClose: true};
           tabMode.tabs.push(tab);
 
           var t = document.createElementNS(
@@ -358,13 +431,12 @@
           t.setAttribute("validate", "never");
           t.className = "tabmail-tab";
           this.tabContainer.appendChild(t);
-          this.tabContainer.appendChild(t);
           if (this.tabContainer.collapsed) {
             this.tabContainer.collapsed = false;
             this.tabContainer.adjustTabstrip();
           }
 
-          let oldTab = this.currentTabInfo;
+          let oldTab = this._mostRecentTabInfo = this.currentTabInfo;
 
           // the order of the following statements is important
           this.currentTabInfo = tab;
@@ -400,12 +472,15 @@
               tabMonitor.onTabSwitched(tab, oldTab);
           }
           
+          // clear _mostRecentTabInfo; we only needed it during the call to
+          //  openTab.
+          this._mostRecentTabInfo = null;
+          
           t.setAttribute("label", tab.title);
           
           let docTitle = tab.title;
-#ifndef XP_MACOSX
-          docTitle += " - " + gBrandBundle.getString("brandFullName");
-#endif
+          if (!gPlatformOSX)
+            docTitle += " - " + gBrandBundle.getString("brandFullName");
           document.title = docTitle;
           
           // for styling purposes, apply the type to the tab...
@@ -442,6 +517,66 @@
           }
         ]]></body>
       </method>
+      <method name="getTabInfoForCurrentOrFirstModeInstance">
+        <parameter name="aTabMode"/>
+        <body><![CDATA[
+        /**
+         * If the current/most recent tab is of mode aTabModeName, return its
+         *  tab info, otherwise return the tab info for the first tab of the
+         *  given mode.
+         * You would want to use this method when you would like to mimic the
+         *  settings of an existing instance of your mode.  In such a case,
+         *  it is reasonable to assume that if the 'current' tab was of the
+         *  same mode that its settings should be used.  Otherwise, we must
+         *  fall back to another tab.  We currently choose the first tab of
+         *  the instance, because for the "folder" tab, it is the canonical tab.
+         *  In other cases, having an MRU order and choosing the MRU tab might
+         *  be more appropriate.
+         *
+         * @return the tab info object for the tab meeting the above criteria,
+         *     or null if no such tab exists.
+         */
+          if (this._mostRecentTabInfo &&
+              this._mostRecentTabInfo.mode == aTabMode)
+            return this._mostRecentTabInfo;
+          else if (aTabMode.tabs.length)
+            return aTabMode.tabs[0];
+          else
+            return null;
+        ]]></body>
+      </method>
+      <method name="closeTab">
+        <parameter name="aOptTabIndexNodeOrInfo"/>
+        <body>
+          <![CDATA[
+            let [iTab, tab, tabNode] =
+              this._getTabContextForTabbyThing(aOptTabIndexNodeOrInfo, true);
+
+            if (!tab.canClose)
+              return;
+            
+            let closeFunc = tab.mode.closeTab || tab.mode.tabType.closeTab;
+            closeFunc.call(tab.mode.tabType, tab);
+             
+            this.tabInfo.splice(iTab, 1);
+            tab.mode.tabs.splice(tab.mode.tabs.indexOf(tab), 1);
+            this.tabContainer.removeChild(tabNode);
+            if (this.tabContainer.selectedIndex == -1)
+              this.tabContainer.selectedIndex =
+                (iTab == this.tabContainer.childNodes.length) ? iTab - 1 : iTab;
+            if (this.currentTabInfo == tab)
+              this.updateCurrentTab();
+              
+            if (tab.panel) {
+              this.panelContainer.removeChild(tab.panel);
+              delete tab.panel;
+            }
+            if (this.tabContainer.childNodes.length == 1 &&
+                this.tabContainer.mAutoHide)
+              this.tabContainer.collapsed = true;
+          ]]>
+        </body>
+      </method>
       <method name="closeTabs">
         <body>
           <![CDATA[
@@ -458,34 +593,7 @@
         <parameter name="aTabNode"/>
         <body>
           <![CDATA[
-            // Find and locate the tab in our list.
-            let iTab, numTabs = this.tabContainer.childNodes.length;
-            for (iTab = 0; iTab < numTabs; iTab++)
-              if (this.tabContainer.childNodes[iTab] == aTabNode)
-                break;
-            let tab = this.tabInfo[iTab];
-
-            if (!tab.canClose)
-              return;
-            
-            let closeFunc = tab.mode.closeTab || tab.mode.tabType.closeTab;
-            closeFunc.call(tab.mode.tabType, tab);
-             
-            this.tabInfo.splice(iTab, 1);
-            tab.mode.tabs.splice(tab.mode.tabs.indexOf(tab), 1);
-            this.tabContainer.removeChild(aTabNode);
-            if (this.tabContainer.selectedIndex == -1)
-              this.tabContainer.selectedIndex = (iTab == --numTabs) ?
-                iTab - 1 : iTab;
-            if (this.currentTabInfo == tab)
-              this.updateCurrentTab();
-              
-            if (tab.panel) {
-              this.panelContainer.removeChild(tab.panel);
-              delete tab.panel;
-            }
-            if (numTabs == 1 && this.tabContainer.mAutoHide)
-              this.tabContainer.collapsed = true;
+            this.closeTab(aTabNode);
           ]]>
         </body>
       </method>
@@ -511,6 +619,17 @@
             this.tabContainer.childNodes[this.tabContainer.selectedIndex]);
         ]]></body>
       </method>
+      <method name="switchToTab">
+        <parameter name="aTabIndexNodeOrInfo"/>
+        <body>
+          <![CDATA[
+            let [iTab, tab, tabNode] =
+              this._getTabContextForTabbyThing(aTabIndexNodeOrInfo, false);
+
+            this.tabContainer.selectedIndex = iTab;
+          ]]>
+        </body>
+      </method>
       <!--  UpdateCurrentTab - called in response to changing the current tab -->
       <method name="updateCurrentTab">
         <body>
@@ -535,11 +654,19 @@
                   tabMonitor.onTabSwitched(tab, oldTab);
               }
 
+              // always update the cursor status when we switch tabs
+              SetBusyCursor(window, tab.busy);
+              // active tabs should not have the wasBusy attribute
+              this.tabContainer.selectedItem.removeAttribute("wasBusy");
+
+              // update the thinking status when we switch tabs
+              this._setActiveThinkingState(tab.thinking);
+              // active tabs should not have the wasThinking attribute
+              this.tabContainer.selectedItem.removeAttribute("wasThinking");
 
               let docTitle = tab.title;
-#ifndef XP_MACOSX
-              docTitle += " - " + gBrandBundle.getString("brandFullName");
-#endif
+              if (!gPlatformOSX)
+                docTitle += " - " + gBrandBundle.getString("brandFullName");
               document.title = docTitle;
 
               // Update the toolbar status - we don't need to do menus as they
@@ -576,29 +703,16 @@
         </body>
       </method>
       <method name="setTabTitle">
-        <parameter name="aTab"/>
+        <parameter name="aTabNodeOrInfo"/>
         <body>
           <![CDATA[
-            // First find the tab and its index.
-            let tab;
-            let index;
-            if (aTab) {
-              tab = aTab;
-              for (index = 0; index < this.tabInfo.length; ++index) {
-                if (tab == this.tabInfo[index])
-                  break;
-              }
-            }
-            else {
-              index = this.tabContainer.selectedIndex;
-              tab = this.tabInfo[index];
-            }
+            let [iTab, tab, tabNode] =
+              this._getTabContextForTabbyThing(aTabNodeOrInfo, true);
 
-            // on startup, we may not have a tab...
             if (tab)
             {
               let tabNode =
-                this.tabContainer.childNodes[index];
+                this.tabContainer.childNodes[iTab];
 
               let titleChangeFunc = tab.mode.onTitleChanged ||
                                     tab.mode.tabType.onTitleChanged;
@@ -606,21 +720,99 @@
                 titleChangeFunc.call(tab.mode.tabType, tab, tabNode);
 
               if (this.tabMonitors.length) {
-                for each (let [index, tabMonitor] in Iterator(this.tabMonitors))
+                for each (let [, tabMonitor] in Iterator(this.tabMonitors))
                   tabMonitor.onTabTitleChanged(tab);
               }
 
               tabNode.setAttribute("label", tab.title);
 
               // Update the window title if we're the displayed tab.
-              if (index == this.tabContainer.selectedIndex) {
+              if (iTab == this.tabContainer.selectedIndex) {
                 let docTitle = tab.title;
-#ifndef XP_MACOSX
-                docTitle += " - " + gBrandBundle.getString("brandFullName");
-#endif
+                if (!gPlatformOSX)
+                  docTitle += " - " + gBrandBundle.getString("brandFullName");
                 document.title = docTitle;
               }
             }
+          ]]>
+        </body>
+      </method>
+      <!--
+        - Updates the global state to reflect the active tab's thinking
+        -   state (which the caller provides).
+        -->
+      <method name="_setActiveThinkingState">
+        <parameter name="aThinkingState"/>
+        <body><![CDATA[
+          if (aThinkingState) {
+            statusFeedback.showProgress(0);
+            if (typeof(aThinkingState) == "string")
+              statusFeedback.showStatusString(aThinkingState);
+            gStatusBar.setAttribute("mode","undetermined");
+          }
+          else {
+            statusFeedback.showProgress(0);
+            gStatusBar.setAttribute("mode", "normal");
+          }
+        ]]></body>
+      </method>
+      <method name="setTabThinking">
+        <parameter name="aTabNodeOrInfo"/>
+        <parameter name="aThinking"/>
+        <body>
+          <![CDATA[
+            let [iTab, tab, tabNode] = this._getTabContextForTabbyThing(
+                                         aTabNodeOrInfo, false);
+            let isSelected = (iTab == this.tabContainer.selectedIndex);
+
+            // if we are the current tab, update the cursor
+            if (isSelected)
+              this._setActiveThinkingState(aThinking);
+
+            // if we are busy, hint our tab
+            if (aThinking) {
+              tabNode.setAttribute("thinking", "true");
+            }
+            else {
+              // if we were thinking and are not selected, set the
+              //  "wasThinking" attribute.
+              if (tab.thinking && !isSelected)
+                tabNode.setAttribute("wasThinking", "true");
+              tabNode.removeAttribute("thinking");
+            }
+
+            // update the tab info to store the busy state.
+            tab.thinking = aThinking;
+          ]]>
+        </body>
+      </method>
+      <method name="setTabBusy">
+        <parameter name="aTabNodeOrInfo"/>
+        <parameter name="aBusy"/>
+        <body>
+          <![CDATA[
+            let [iTab, tab, tabNode] = this._getTabContextForTabbyThing(
+                                         aTabNodeOrInfo, false);
+            let isSelected = (iTab == this.tabContainer.selectedIndex);
+
+            // if we are the current tab, update the cursor
+            if (isSelected)
+              SetBusyCursor(window, aBusy);
+
+            // if we are busy, hint our tab
+            if (aBusy) {
+              tabNode.setAttribute("busy", "true");
+            }
+            else {
+              // if we were busy and are not selected, set the
+              //  "wasBusy" attribute.
+              if (tab.busy && !isSelected)
+                tabNode.setAttribute("wasBusy", "true");
+              tabNode.removeAttribute("busy");
+            }
+
+            // update the tab info to store the busy state.
+            tab.busy = aBusy;
           ]]>
         </body>
       </method>

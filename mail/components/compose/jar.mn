@@ -2,7 +2,7 @@ messenger.jar:
 % overlay chrome://editor/content/EdImageOverlay.xul chrome://messenger/content/messengercompose/mailComposeEditorOverlay.xul
 % overlay chrome://editor/content/EdLinkProps.xul chrome://messenger/content/messengercompose/mailComposeEditorOverlay.xul
 *   content/messenger/messengercompose/messengercompose.xul        (content/messengercompose.xul)
-*   content/messenger/messengercompose/MsgComposeCommands.js       (content/MsgComposeCommands.js)
+    content/messenger/messengercompose/MsgComposeCommands.js       (content/MsgComposeCommands.js)
 *   content/messenger/messengercompose/addressingWidgetOverlay.js  (content/addressingWidgetOverlay.js)
 
 comm.jar:

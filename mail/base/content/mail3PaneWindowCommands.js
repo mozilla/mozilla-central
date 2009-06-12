@@ -1,43 +1,42 @@
-# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-2000
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Jan Varga <varga@nixcorp.com>
-#   Håkan Waara <hwaara@gmail.com>
-#   Magnus Melin <mkmelin+mozilla@iki.fi>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-2000
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Jan Varga <varga@nixcorp.com>
+ *   Håkan Waara <hwaara@gmail.com>
+ *   Magnus Melin <mkmelin+mozilla@iki.fi>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 var gMessengerBundle = document.getElementById("bundle_messenger");
 
@@ -108,7 +107,7 @@ var FolderPaneController =
       case "cmd_shiftDelete":
       case "button_delete":
       case "cmd_deleteFolder":
-        gFolderTreeController.deleteFolder(); 
+        gFolderTreeController.deleteFolder();
         break;
     }
   },
@@ -242,7 +241,7 @@ var DefaultController =
       case "cmd_watchThread":
       case "cmd_killThread":
       case "cmd_killSubthread":
-        return(isNewsURI(GetFirstSelectedMessage()));
+        return(gFolderDisplay.selectedMessageIsNews);
 
       default:
         return false;
@@ -262,13 +261,9 @@ var DefaultController =
         // fall through
       case "button_delete":
         UpdateDeleteToolbarButton();
-        if (gDBView)
-          gDBView.getCommandStatus(nsMsgViewCommandType.deleteMsg, enabled, checkStatus);
-        return enabled.value;
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteMsg);
       case "cmd_shiftDelete":
-        if (gDBView)
-          gDBView.getCommandStatus(nsMsgViewCommandType.deleteNoTrash, enabled, checkStatus);
-        return enabled.value;
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteNoTrash);
       case "cmd_deleteFolder":
         var folders = gFolderTreeView.getSelectedFolders();
         if (folders.length == 1) {
@@ -281,16 +276,12 @@ var DefaultController =
         return false;
       case "button_junk":
         UpdateJunkToolbarButton();
-        if (gDBView)
-          gDBView.getCommandStatus(nsMsgViewCommandType.junk, enabled, checkStatus);
-        return enabled.value;
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk);
       case "cmd_killThread":
       case "cmd_killSubthread":
         return GetNumSelectedMessages() > 0;
       case "cmd_watchThread":
-        if (gDBView)
-          gDBView.getCommandStatus(nsMsgViewCommandType.toggleThreadWatched, enabled, checkStatus);
-        return enabled.value;
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.toggleThreadWatched);
       case "cmd_createFilterFromPopup":
       case "cmd_createFilterFromMenu":
         var loadedFolder = GetLoadedMsgFolder();
@@ -328,20 +319,11 @@ var DefaultController =
           goSetAccessKey(command, whichText + "AccessKey");
         }
         if (GetNumSelectedMessages() > 0)
-        {
-          if (gDBView)
-          {
-            gDBView.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody, enabled, checkStatus);
-            return enabled.value;
-          }
-        }
+          return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody);
         return false;
       case "cmd_printpreview":
-        if ( GetNumSelectedMessages() == 1 && gDBView)
-        {
-           gDBView.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody, enabled, checkStatus);
-           return enabled.value;
-        }
+        if (GetNumSelectedMessages() == 1)
+          return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody);
         return false;
       case "cmd_printSetup":
         return true;
@@ -360,23 +342,17 @@ var DefaultController =
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
         // can't do news on junk yet.
-        return (GetNumSelectedMessages() > 0 && !isNewsURI(GetFirstSelectedMessage()));
+        return (GetNumSelectedMessages() > 0 && !gFolderDisplay.selectedMessageIsNews);
       case "cmd_recalculateJunkScore":
         if (GetNumSelectedMessages() > 0)
-          gDBView.getCommandStatus(nsMsgViewCommandType.runJunkControls, enabled, checkStatus);
-        return enabled.value;
+          return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
+        return false;
       case "cmd_applyFilters":
-        if (gDBView)
-          gDBView.getCommandStatus(nsMsgViewCommandType.applyFilters, enabled, checkStatus);
-        return enabled.value;
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.applyFilters);
       case "cmd_runJunkControls":
-        if (gDBView)
-          gDBView.getCommandStatus(nsMsgViewCommandType.runJunkControls, enabled, checkStatus);
-        return enabled.value;
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
       case "cmd_deleteJunk":
-        if (gDBView)
-          gDBView.getCommandStatus(nsMsgViewCommandType.deleteJunk, enabled, checkStatus);
-        return enabled.value;
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteJunk);
       case "button_mark":
       case "cmd_tag":
       case "cmd_markAsRead":
@@ -418,7 +394,7 @@ var DefaultController =
         if (GetNumSelectedMessages() <= 0) return false;
       case "cmd_expandAllThreads":
       case "cmd_collapseAllThreads":
-        return gDBView && (gDBView.viewFlags & nsMsgViewFlagsType.kThreadedDisplay);
+        return gFolderDisplay.view.showThreaded;
       case "cmd_nextFlaggedMsg":
       case "cmd_previousFlaggedMsg":
         return IsViewNavigationItemEnabled();
@@ -428,8 +404,7 @@ var DefaultController =
         return gDBView;
       case "cmd_viewThreadsWithUnread":
       case "cmd_viewWatchedThreadsWithUnread":
-        return gDBView && !(GetSelectedMsgFolders()[0].flags & 
-                            Components.interfaces.nsMsgFolderFlags.Virtual);
+        return !gFolderDisplay.view.isVirtual;
       case "cmd_stop":
         return true;
       case "cmd_undo":
@@ -569,13 +544,18 @@ var DefaultController =
          // if the user deletes a message before its mark as read timer goes off, we should mark it as read
          // this ensures that we clear the biff indicator from the system tray when the user deletes the new message
         MarkSelectedMessagesRead(true);
-        SetNextMessageAfterDelete();
-        gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
+        // If this is a right-click triggered delete, then do not hint about
+        //  the deletion.  Note: The code that swaps the selection back in will
+        //  take care of ensuring that this deletion does not make the saved
+        //  selection incorrect.
+        if (!gRightMouseButtonSavedSelection)
+          gFolderDisplay.hintAboutToDeleteMessages();
+        gFolderDisplay.doCommand(nsMsgViewCommandType.deleteMsg);
         break;
       case "cmd_shiftDelete":
         MarkSelectedMessagesRead(true);
-        SetNextMessageAfterDelete();
-        gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
+        gFolderDisplay.hintAboutToDeleteMessages();
+        gFolderDisplay.doCommand(nsMsgViewCommandType.deleteNoTrash);
         break;
       case "cmd_deleteFolder":
         gFolderTreeController.deleteFolder();
@@ -588,7 +568,7 @@ var DefaultController =
         GoNextMessage(nsMsgNavigationType.toggleSubthreadKilled, true);
         break;
       case "cmd_watchThread":
-        gDBView.doCommand(nsMsgViewCommandType.toggleThreadWatched);
+        gFolderDisplay.doCommand(nsMsgViewCommandType.toggleThreadWatched);
         break;
       case "button_next":
       case "cmd_nextUnreadMsg":
@@ -639,10 +619,13 @@ var DefaultController =
         messenger.redo(msgWindow);
         break;
       case "cmd_expandAllThreads":
-        gDBView.doCommand(nsMsgViewCommandType.expandAll);
+        gFolderDisplay.doCommand(nsMsgViewCommandType.expandAll);
+        gFolderDisplay.ensureSelectionIsVisible();
         break;
       case "cmd_collapseAllThreads":
-        gDBView.doCommand(nsMsgViewCommandType.collapseAll);
+        gFolderDisplay.selectSelectedThreadRoots();
+        gFolderDisplay.doCommand(nsMsgViewCommandType.collapseAll);
+        gFolderDisplay.ensureSelectionIsVisible();
         break;
       case "cmd_renameFolder":
         gFolderTreeController.renameFolder();
@@ -673,7 +656,7 @@ var DefaultController =
         MsgSaveAsTemplate();
         return;
       case "cmd_viewPageSource":
-        ViewPageSource(GetSelectedMessages());
+        ViewPageSource(gFolderDisplay.selectedMessageUris);
         return;
       case "cmd_setFolderCharset":
         gFolderTreeController.editFolder();
@@ -714,10 +697,10 @@ var DefaultController =
         return;
       case "cmd_markThreadAsRead":
         ClearPendingReadTimer();
-        gDBView.doCommand(nsMsgViewCommandType.markThreadRead);
+        gFolderDisplay.doCommand(nsMsgViewCommandType.markThreadRead);
         return;
       case "cmd_markAllRead":
-        gDBView.doCommand(nsMsgViewCommandType.markAllRead);
+        gFolderDisplay.doCommand(nsMsgViewCommandType.markAllRead);
         return;
       case "button_junk":
         MsgJunk();
@@ -759,10 +742,10 @@ var DefaultController =
         gFolderTreeController.compactFolders();
         return;
       case "cmd_downloadFlagged":
-          gDBView.doCommand(nsMsgViewCommandType.downloadFlaggedForOffline);
+          gFolderDisplay.doCommand(nsMsgViewCommandType.downloadFlaggedForOffline);
           break;
       case "cmd_downloadSelected":
-          gDBView.doCommand(nsMsgViewCommandType.downloadSelectedForOffline);
+          gFolderDisplay.doCommand(nsMsgViewCommandType.downloadSelectedForOffline);
           break;
       case "cmd_synchronizeOffline":
           MsgSynchronizeOffline();
@@ -781,17 +764,13 @@ var DefaultController =
           // move the focus so the user can delete the newly selected messages, not the folder
           SetFocusThreadPane();
           // if in threaded mode, the view will expand all before selecting all
-          gDBView.doCommand(nsMsgViewCommandType.selectAll)
-          if (gDBView.numSelected != 1) {
-              setTitleFromFolder(gDBView.msgFolder,null);
-              ClearMessagePane();
-          }
+          gFolderDisplay.doCommand(nsMsgViewCommandType.selectAll);
           break;
       case "cmd_selectThread":
-          gDBView.doCommand(nsMsgViewCommandType.selectThread);
+          gFolderDisplay.doCommand(nsMsgViewCommandType.selectThread);
           break;
       case "cmd_selectFlagged":
-        gDBView.doCommand(nsMsgViewCommandType.selectFlagged);
+        gFolderDisplay.doCommand(nsMsgViewCommandType.selectFlagged);
         break;
       case "cmd_fullZoomReduce":
         ZoomManager.reduce();

@@ -181,6 +181,6 @@ var QuickSearchManager = {
       }
     }
 
-    return searchTerms;
+    return searchTerms.length ? searchTerms : null;
   }
 };

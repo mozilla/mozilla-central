@@ -1,45 +1,43 @@
-# -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-#
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 2000
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Jan Varga <varga@nixcorp.com>
-#   Hakan Waara <hwaara@chello.se>
-#   Markus Hossner <markushossner@gmx.de>
-#   Magnus Melin <mkmelin+mozilla@iki.fi>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2000
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Jan Varga <varga@nixcorp.com>
+ *   Hakan Waara <hwaara@chello.se>
+ *   Markus Hossner <markushossner@gmx.de>
+ *   Magnus Melin <mkmelin+mozilla@iki.fi>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 //NOTE: gMessengerBundle must be defined and set or this Overlay won't work
 
@@ -56,53 +54,19 @@ const mailtolength = 7;
  */
 function RestoreSelectionWithoutContentLoad(tree)
 {
-    if (!tree)
-      return;
+  if (gRightMouseButtonSavedSelection) {
+    let view = gRightMouseButtonSavedSelection.view;
+    // restore the selection
+    let transientSelection = gRightMouseButtonSavedSelection.transientSelection;
+    let realSelection = gRightMouseButtonSavedSelection.realSelection;
+    view.selection = realSelection;
+    // replay any calls to adjustSelection, this handles suppression.
+    transientSelection.replayAdjustSelectionLog(realSelection);
+    gRightMouseButtonSavedSelection = null;
 
-    // If a delete or move command had been issued, then we should
-    // reset gRightMouseButtonDown and gThreadPaneDeleteOrMoveOccurred
-    // and return (see bug 142065).
-    if(gThreadPaneDeleteOrMoveOccurred)
-    {
-      gRightMouseButtonDown = false;
-      gThreadPaneDeleteOrMoveOccurred = false;
-      return;
-    }
-
-    var treeSelection = tree.view.selection;
-
-    // make sure that currentIndex is valid so that we don't try to restore
-    // a selection of an invalid row.
-    if((!treeSelection.isSelected(treeSelection.currentIndex)) &&
-       (treeSelection.currentIndex >= 0))
-    {
-        treeSelection.selectEventsSuppressed = true;
-        treeSelection.select(treeSelection.currentIndex);
-        treeSelection.selectEventsSuppressed = false;
-
-        // Keep track of which row in the thread pane is currently selected.
-        // This is currently only needed when deleting messages.  See
-        // declaration of var in msgMail3PaneWindow.js.
-        if(tree.id == "threadTree")
-          gThreadPaneCurrentSelectedIndex = treeSelection.currentIndex;
-    }
-    else if(treeSelection.currentIndex < 0)
-        // Clear the selection in the case of when a folder has just been
-        // loaded where the message pane does not have a message loaded yet.
-        // When right-clicking a message in this case and dismissing the
-        // popup menu (by either executing a menu command or clicking
-        // somewhere else),  the selection needs to be cleared.
-        // However, if the 'Delete Message' or 'Move To' menu item has been
-        // selected, DO NOT clear the selection, else it will prevent the
-        // tree view from refreshing.
-        treeSelection.clearSelection();
-
-    // Need to reset gRightMouseButtonDown to false here because
-    // TreeOnMouseDown() is only called on a mousedown, not on a key down.
-    // So resetting it here allows the loading of messages in the messagepane
-    // when navigating via the keyboard or the toolbar buttons *after*
-    // the context menu has been dismissed.
-    gRightMouseButtonDown = false;
+    if (tree)
+      tree.treeBoxObject.invalidate();
+  }
 }
 
 /**
@@ -154,8 +118,8 @@ function fillMailContextMenu(event)
   var inThreadPane = popupNodeIsInThreadPane();
   gContextMenu = new nsContextMenu(event.target);
 
-  var selectedMessage = GetFirstSelectedMessage();
-  var isNewsgroup = IsNewsMessage(selectedMessage);
+  var selectedMessage = gFolderDisplay.selectedMessage;
+  var isNewsgroup = gFolderDisplay.selectedMessageIsNews;
 
   // Clear the global var used to keep track if a 'Delete Message' or 'Move
   // To' command has been triggered via the thread pane context menu.
@@ -232,11 +196,10 @@ function fillMailContextMenu(event)
   ShowMenuItem("mailContext-mark", !hideMailItems && msgFolder);
 
   setSingleSelection("mailContext-saveAs");
-#ifdef XP_MACOSX
-  ShowMenuItem("mailContext-printpreview", false);
-#else
-  setSingleSelection("mailContext-printpreview");
-#endif
+  if (gPlatformOSX)
+    ShowMenuItem("mailContext-printpreview", false);
+  else
+    setSingleSelection("mailContext-printpreview");
 
   ShowMenuItem("mailContext-print", !hideMailItems);
 
@@ -395,11 +358,9 @@ function OpenMessageByHeader(messageHeader, openInNewWindow)
 
   if (openInNewWindow)
   {
-    var messageURI = folder.getUriForMsg(messageHeader);
-
     window.openDialog("chrome://messenger/content/messageWindow.xul",
                       "_blank", "all,chrome,dialog=no,status,toolbar",
-                      messageURI, folderURI, null);
+                      messageHeader);
   }
   else
   {
@@ -733,7 +694,7 @@ function hasAVisibleNextSibling(aNode)
   var sibling = aNode.nextSibling;
   while (sibling)
   {
-    if (sibling.getAttribute("hidden") != "true" 
+    if (sibling.getAttribute("hidden") != "true"
         && sibling.localName != "menuseparator")
       return true;
     sibling = sibling.nextSibling;
@@ -775,14 +736,14 @@ function composeEmailTo ()
 }
 
 // Extracts email address from url string
-function getEmail (url) 
+function getEmail (url)
 {
   var qmark = url.indexOf( "?" );
   var addresses;
 
-  if ( qmark > mailtolength ) 
+  if ( qmark > mailtolength )
       addresses = url.substring( mailtolength, qmark );
-  else 
+  else
      addresses = url.substr( mailtolength );
   // Let's try to unescape it using a character set
   try {
