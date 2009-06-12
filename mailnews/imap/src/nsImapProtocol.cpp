@@ -5778,6 +5778,9 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
     while(NS_SUCCEEDED(rv) && !eof && totalSize > 0)
     {
       rv = fileInputStream->Read(dataBuffer, COPY_BUFFER_SIZE, &readCount);
+      if (NS_SUCCEEDED(rv) && !readCount)
+        rv = NS_ERROR_FAILURE;
+
       if (NS_SUCCEEDED(rv))
       {
         NS_ASSERTION(readCount <= (PRUint32) totalSize, "got more bytes than there should be");
