@@ -1023,7 +1023,7 @@ IMAP_RFC3501_handler.prototype = {
       }
       parts.push(line);
     }
-    return "* STATUS " + args[0] + " (" + parts.join(' ') +
+    return "* STATUS \"" + args[0] + "\" (" + parts.join(' ') +
            ")\0OK STATUS completed";
   },
   APPEND : function (args) {
