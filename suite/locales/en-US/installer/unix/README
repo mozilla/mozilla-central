@@ -130,8 +130,8 @@ Installation Instructions
 
   4. Click the icon button and type in the following as the icon's location:
 
-       directory_name/chrome/icons/default/default.xpm
+       directory_name/chrome/icons/default/default.png
 
      where directory_name is the directory where you installed SeaMonkey.
      For example, the default directory is
-     /usr/local/seamonkey/chrome/icons/default/default.xpm.
+     /usr/local/seamonkey/chrome/icons/default/default.png.
