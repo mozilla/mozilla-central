@@ -225,7 +225,7 @@ var messagepaneObserver = {
   onDrop: function (aEvent, aData, aDragSession)
   {
     var sourceUri = aData.data;
-    if (!gFolderDisplay.selectedMessaage ||
+    if (!gFolderDisplay.selectedMessage ||
         sourceUri != gFolderDisplay.selectedMessageUris[0])
     {
       var msgHdr = messenger.msgHdrFromURI(sourceUri);
