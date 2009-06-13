@@ -395,7 +395,7 @@ var progressNotifier = {
   mSubscribeMode: false,
   mMsgWindow: null, 
   mStatusFeedback: null,
-  mFeeds: new Array,
+  mFeeds: {},
 
   init: function(aMsgWindow, aSubscribeMode)
   {
@@ -445,11 +445,9 @@ var progressNotifier = {
       this.mStatusFeedback.stopMeteors();
     }
 
-    gNumPendingFeedDownloads--;
-
-    if (!gNumPendingFeedDownloads)
+    if (!--gNumPendingFeedDownloads)
     {
-      this.mFeeds = new Array;
+      this.mFeeds = {};
 
       this.mSubscribeMode = false;
 
