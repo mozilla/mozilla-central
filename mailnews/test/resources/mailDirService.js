@@ -17,6 +17,8 @@ var Ci = Components.interfaces;
 var Cr = Components.results;
 var CC = Components.Constructor;
 
+var gProfileDirProvider = null;
+
 // keep things out of global scope where possible.
 function initializeDirServer() {
   const NS_APP_USER_PROFILE_50_DIR = "ProfD";
@@ -70,8 +72,8 @@ function initializeDirServer() {
         QueryInterface:
           XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider])
       };
-
-      dirSvc.QueryInterface(Ci.nsIDirectoryService).registerProvider(provider);
+      gProfileDirProvider = provider;
+      dirSvc.QueryInterface(Ci.nsIDirectoryService).registerProvider(gProfileDirProvider);
     }
   };
 
