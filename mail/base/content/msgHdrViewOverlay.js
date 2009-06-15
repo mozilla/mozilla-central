@@ -414,7 +414,6 @@ var messageHeaderSink = {
       UpdateMessageHeaders();
       ShowEditMessageBox();
       UpdateJunkButton();
-      UpdateReplyButtons();
 
       for (index in gMessageListeners)
         gMessageListeners[index].onEndHeaders();

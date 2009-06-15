@@ -668,15 +668,18 @@ var MessageWindowController =
         return folder &&
           !(IsSpecialFolder(folder, Components.interfaces.nsMsgFolderFlags.Archive,
                             true));
-      case "cmd_archive":
       case "cmd_reply":
       case "button_reply":
-      case "cmd_replySender":
-      case "cmd_replyGroup":
+        return gFolderDisplay.selectedMessage && IsReplyEnabled();
       case "cmd_replyall":
       case "button_replyall":
+        return gFolderDisplay.selectedMessage && IsReplyAllEnabled();
       case "cmd_replylist":
       case "button_replylist":
+        return gFolderDisplay.selectedMessage && IsReplyListEnabled();
+      case "cmd_archive":
+      case "cmd_replySender":
+      case "cmd_replyGroup":
       case "cmd_forward":
       case "button_forward":
       case "cmd_forwardInline":

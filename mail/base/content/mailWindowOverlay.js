@@ -805,8 +805,34 @@ function UpdateJunkToolbarButton()
     junkButtonDeck.selectedIndex = SelectedMessagesAreJunk() ? 1 : 0;
 }
 
-function UpdateReplyButtons()
+/**
+ * Should the reply command/button be enabled?
+ *
+ * @return whether the reply command/button should be enabled.
+ */
+function IsReplyEnabled()
 {
+  // If we're in an rss item, we never want to Reply, because there's
+  // usually no-one useful to reply to.
+  return !gFolderDisplay.selectedMessageIsFeed;
+}
+
+/**
+ * Should the reply-all command/button be enabled?
+ *
+ * @return whether the reply-all command/button should be enabled.
+ */
+function IsReplyAllEnabled()
+{
+  if (gFolderDisplay.selectedMessageIsNews)
+    // If we're in a news item, we always want ReplyAll, because we can
+    // reply to the sender and the newsgroup.
+    return true;
+  if (gFolderDisplay.selectedMessageIsFeed)
+    // If we're in an rss item, we never want to ReplyAll, because there's
+    // usually no-one useful to reply to.
+    return false;
+
   let msgHdr = gFolderDisplay.selectedMessage;
 
   let myEmail = getIdentityForHeader(msgHdr).email;
@@ -825,26 +851,33 @@ function UpdateReplyButtons()
   if (imBcced)
     numAddresses++;
 
-  // By default, ReplyAll if there is more than 1 person to reply to.
-  let showReplyAll = numAddresses > 1;
+  // ReplyAll is enabled if there is more than 1 person to reply to.
+  return numAddresses > 1;
+}
 
-  // And ReplyToList if there is a List-Post header.
-  let showReplyList = currentHeaderData["list-post"];
+/**
+ * Should the reply-list command/button be enabled?
+ *
+ * @return whether the reply-list command/button should be enabled.
+ */
+function IsReplyListEnabled()
+{
+  // ReplyToList is enabled if there is a List-Post header.
+  return currentHeaderData["list-post"] != null;
+}
 
-  // Get the server type.
-  let serverType = null;
-  try
-  {
-    serverType = msgHdr.folder.server.type;
-  }
-  catch (ex)
-  {
-    // This empty catch block needs to be here because msgHdr.folder will
-    // throw an exception when you try to access it on a .eml file.
-  }
+/**
+ * Update the enabled/disabled states of the Reply, Reply-All, and
+ * Reply-List buttons.  (After this function runs, one of the buttons
+ * should be shown, and the others should be hidden.)
+ */
+function UpdateReplyButtons()
+{
+  let showReplyAll = IsReplyAllEnabled();
+  let showReplyList = IsReplyListEnabled();
 
-  // But, if we're in a news item, we should default to Reply.
-  if (serverType == "nntp")
+  // If we're in a news item, we should default to Reply.
+  if (gFolderDisplay.selectedMessageIsNews)
   {
     showReplyAll = false;
     showReplyList = false;
@@ -869,19 +902,13 @@ function UpdateReplyButtons()
   replyAllButton.hidden = (buttonToShow != "replyAll");
   replyListButton.hidden = (buttonToShow != "replyList");
 
-  let replyListMenu = document.getElementById("menu_replyToList");
-  replyListMenu.hidden = !showReplyList;
-
-  let replyListCommand = document.getElementById("cmd_replylist");
-  replyListCommand.disabled = !showReplyList;
-
-  if (serverType == "nntp")
+  if (gFolderDisplay.selectedMessageIsNews)
   {
     // If it's a news item, show the ReplyAll sub-button and separator.
     replyAllSubButton.hidden = false;
     replyAllSubButtonSep.hidden = false;
   }
-  else if (serverType == "rss")
+  else if (gFolderDisplay.selectedMessageIsFeed)
   {
     // otherwise, if it's an rss item, hide all the Reply buttons.
     replyButton.hidden = true;
@@ -896,6 +923,10 @@ function UpdateReplyButtons()
     replyAllSubButton.hidden = true;
     replyAllSubButtonSep.hidden = true;
   }
+
+  goUpdateCommand("button_reply");
+  goUpdateCommand("button_replyall");
+  goUpdateCommand("button_replylist");
 }
 
 function UpdateDeleteToolbarButton()

@@ -319,7 +319,17 @@ var DefaultController =
           goSetAccessKey(command, whichText + "AccessKey");
         }
         if (GetNumSelectedMessages() > 0)
-          return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody);
+        {
+          if (!gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody))
+            return false;
+          if (command == "cmd_reply" || command == "button_reply")
+            return IsReplyEnabled();
+          if (command == "cmd_replyall" || command == "button_replyall")
+            return IsReplyAllEnabled();
+          if (command == "cmd_replylist" || command == "button_replylist")
+            return IsReplyListEnabled();
+          return true;
+        }
         return false;
       case "cmd_printpreview":
         if (GetNumSelectedMessages() == 1)
