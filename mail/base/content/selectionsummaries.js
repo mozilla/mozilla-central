@@ -216,8 +216,9 @@ MultiMessageSummary.prototype = {
     _mm_addClass(heading, "heading");
     _mm_addClass(heading, "info");
 
-    let numMessages = this._msgHdrs.length;
-    let messagesTitle = PluralForm.get(numMessages, gSelectionSummaryStrings["NConversations"]).replace('#1', numThreads);
+    let messagesTitle =
+      PluralForm.get(numThreads, gSelectionSummaryStrings["NConversations"])
+                .replace("#1", numThreads);
 
     heading.innerHTML = messagesTitle;
 
@@ -318,7 +319,7 @@ MultiMessageSummary.prototype = {
       messagesElt.appendChild(msgNode);
     }
     this.computeSize(htmlpane);
-    this.notifyMaxCountExceeded(numMessages, MAXCOUNT);
+    this.notifyMaxCountExceeded(this._msgHdrs.length, MAXCOUNT);
 
     this._glodaQueries.push(Gloda.getMessageCollectionForHeaders(this._msgHdrs, this));
   },
