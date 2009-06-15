@@ -88,17 +88,20 @@
                                  wrap="true"/>
                     <xul:spacer flex="1"/>
                   </xul:vbox>
-                  <xul:hbox anonid="alarm-icons-box"
-                            class="alarm-icons-box"
-                            align="center"
-                            xbl:inherits="flashing"/>
+                  <xul:stack>
+                    <xul:calendar-category-box anonid="category-box" xbl:inherits="categories" pack="end"/>
+                    <xul:hbox anonid="alarm-icons-box"
+                              class="alarm-icons-box"
+                              align="center"
+                              pack="end"
+                              xbl:inherits="flashing"/>
+                  </xul:stack>
                 </xul:hbox>
                 <xul:image anonid="gradient"
                            class="calendar-event-box-gradient"
                            height="1px"/>
               </xul:stack>
             </xul:box>
-            <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
           </xul:box>
         </xul:hbox>
       </xul:vbox>
