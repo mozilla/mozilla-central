@@ -1,6 +1,5 @@
 #filter substitution
 lightning.jar:
-% content messagebody %content/messagebody/ contentaccessible=yes
 % override chrome://messagebody/skin/imip.css chrome://lightning/skin/imip.css
 % overlay chrome://messenger/content/messenger.xul chrome://lightning/content/lightning-migration.xul
 % overlay chrome://messenger/content/msgAccountCentral.xul chrome://lightning/content/messenger-overlay-accountCentral.xul
