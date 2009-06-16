@@ -68,7 +68,9 @@
                     <xul:label anonid="event-name"
                                crop="end"
                                flex="1"
-                               style="margin: 0;"/>
+                               style="margin: 0;">
+                      <html:div anonid="event-name-div"/>
+                    </xul:label>
                     <xul:textbox anonid="event-name-textbox"
                                  class="plain"
                                  crop="end"
@@ -176,13 +178,13 @@
 
       <method name="setEditableLabel">
         <body><![CDATA[
-          var evl = this.eventNameLabel;
-          var item = this.mOccurrence;
+          let evldiv = document.getAnonymousElementByAttribute(this, "anonid", "event-name-div");
+          let item = this.mOccurrence;
 
           if (item.title && item.title != "") {
-            evl.value = item.title;
+            evldiv.textContent = item.title;
           } else {
-            evl.value = calGetString("calendar", "eventUntitled")
+            evldiv.textContent = calGetString("calendar", "eventUntitled");
           }
         ]]></body>
       </method>
@@ -242,7 +244,7 @@
 
           // status attribute
           if (item.status) {
-              this.setAttribute("status", item.status.toLowerCase());
+              this.setAttribute("status", item.status.toUpperCase());
           }
 
           // calendar name
