@@ -42,6 +42,6 @@ var messageHeaderGetterListener = {
   SetMessageKey: function(aKey) {
   },
   OnStopCopy: function(aStatus) {
-    test_enumerator_cleanup();
+    do_timeout(0, "test_enumerator_cleanup();");
   }
 }

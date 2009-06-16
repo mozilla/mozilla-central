@@ -283,7 +283,9 @@ function doTest(test)
   }
   else
   {
-    do_test_finished(); // for the one in run_test()
+    gHdrsReceived = null;
+    gMsgHdrs = null;
     gMFNService.removeListener(gMFListener);
+    do_test_finished(); // for the one in run_test()
   }
 }
