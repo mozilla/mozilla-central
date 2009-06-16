@@ -123,8 +123,12 @@ function setupModule() {
   // viewWrapperTestUtils wants a gMessageGenerator (and so do we)
   msgGen = new messageGenerator.MessageGenerator();
   viewWrapperTestUtils.gMessageGenerator = msgGen;
+  viewWrapperTestUtils.gMessageScenarioFactory =
+    new messageGenerator.MessageScenarioFactory(msgGen);
+
   make_new_sets_in_folders = make_new_sets_in_folder =
     viewWrapperTestUtils.make_new_sets_in_folders;
+  add_sets_to_folders = viewWrapperTestUtils.add_sets_to_folders;
   viewWrapperTestUtils.Ci = Ci;
   viewWrapperTestUtils.Cu = Cu;
   viewWrapperTestUtils.Cc = Cc;
@@ -193,6 +197,13 @@ function create_folder(aFolderName) {
   let folder = rootFolder.addSubfolder(aFolderName);
   mc.folderTreeView.mode = "all";
   return folder;
+}
+
+/**
+ * Create a thread with the specified number of messages in it.
+ */
+function create_thread(aCount) {
+  return new viewWrapperTestUtils.SyntheticMessageSet(viewWrapperTestUtils.gMessageScenarioFactory.directReply(aCount));
 }
 
 /**
@@ -341,7 +352,7 @@ function _normalize_view_index(aViewIndex) {
 }
 
 /**
- * Pretend we are click on a row with our mouse.
+ * Pretend we are clicking on a row with our mouse.
  *
  * @param aViewIndex If >= 0, the view index provided, if < 0, a reference to
  *     a view index counting from the last row in the tree.  -1 indicates the
@@ -357,6 +368,22 @@ function select_click_row(aViewIndex) {
   wait_for_message_display_completion(mc, true);
   return mc.dbView.getMsgHdrAt(aViewIndex);
 }
+
+/**
+ * Pretend we are toggling the thread specified by a row.
+ *
+ * @param aViewIndex If >= 0, the view index provided, if < 0, a reference to
+ *     a view index counting from the last row in the tree.  -1 indicates the
+ *     last message in the tree, -2 the second to last, etc.
+ *
+ */
+function toggle_thread_row(aViewIndex) {
+  wait_for_message_display_completion();
+  aViewIndex = _normalize_view_index(aViewIndex);
+  mc.dbView.toggleOpenState(aViewIndex);
+  wait_for_message_display_completion(mc, true);
+}
+
 
 /**
  * Pretend we are clicking on a row with our mouse with the control key pressed,
@@ -878,10 +905,10 @@ function assert_selected_and_displayed() {
  *     really just lists of nsIMsgDBHdrs with cool names.
  */
 function _verify_message_sets_equivalent(aSetOne, aSetTwo) {
-  let uniqy1 = [msgHdr.folder.URI + msgHdr.folder.messageKey for each
+  let uniqy1 = [msgHdr.folder.URI + msgHdr.messageKey for each
                  ([, msgHdr] in Iterator(aSetOne))];
   uniqy1.sort();
-  let uniqy2 = [msgHdr.folder.URI + msgHdr.folder.messageKey for each
+  let uniqy2 = [msgHdr.folder.URI + msgHdr.messageKey for each
                  ([, msgHdr] in Iterator(aSetTwo))];
   uniqy2.sort();
   // stringified versions should now be equal...
@@ -910,6 +937,12 @@ function assert_selection_summarized(aController, aSelectedMessages) {
     aSelectedMessages = aController.folderDisplay.selectedMessages;
 
   let summary = aController.window.gSummary;
+  if (aSelectedMessages.length != summary._msgHdrs.length) {
+    let elaboration = "Summary contains " + summary._msgHdrs.length +
+                      " messages, expected " + aSelectedMessages.length + ".";
+    throw new Error("Summary does not contain the right set of messages. " +
+                    elaboration);
+  }
   if (!_verify_message_sets_equivalent(summary._msgHdrs, aSelectedMessages)) {
     let elaboration = "Summary: " + summary._msgHdrs + "  Selected: " +
                       aSelectedMessages + ".";
@@ -971,6 +1004,23 @@ function make_display_grouped() {
   mc.sleep(0);
 }
 
+/**
+ * assert that the multimessage/thread summary view contains
+ * the specified number of elements of the specified class.
+ *
+ * @param aClassName: the class to use to select
+ * @param aNumElts: the number of expected elements that have that class
+ */
+
+function assert_summary_contains_N_divs(aClassName, aNumElts) {
+  let htmlframe = mc.e('multimessage');
+  let matches = htmlframe.contentDocument.getElementsByClassName(aClassName);
+  if (matches.length != aNumElts)
+    throw new Error("Expected to find " + aNumElts + " elements with class " +
+                    aClassName + ", found: " + matches.length);
+}
+
+
 function throw_and_dump_view_state(aMessage, aController) {
   if (aController == null)
     aController = mc;
@@ -983,6 +1033,7 @@ function throw_and_dump_view_state(aMessage, aController) {
 /** exported from viewWrapperTestUtils */
 var make_new_sets_in_folders;
 var make_new_sets_in_folder;
+var add_sets_to_folders;
 
 /**
  * Load a file in its own 'module'.

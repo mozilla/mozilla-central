@@ -56,13 +56,18 @@ var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers'];
 
 var folder;
+var thread1, thread2, msg1, msg2;
 
 var setupModule = function(module) {
   let fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
 
   folder = create_folder("SummarizationA");
-  make_new_sets_in_folder(folder, [{count: 10}]);
+  thread1 = create_thread(10);
+  msg1 = create_thread(1);
+  thread2 = create_thread(10);
+  msg2 = create_thread(1);
+  add_sets_to_folders([folder], [thread1, msg1, thread2, msg2]);
 };
 
 function test_basic_summarization() {
@@ -189,4 +194,28 @@ function test_selection_stabilization_logic() {
 
   // - the summary should now be up-to-date
   assert_selected_and_displayed([0, 2]);
+}
+
+
+function test_summarization_thread_detection() {
+  select_none();
+  assert_nothing_selected();
+  make_display_threaded();
+  select_click_row(0);
+  select_shift_click_row(9);
+  let messages = mc.folderDisplay.selectedMessages;
+  toggle_thread_row(0);
+  assert_selection_summarized(mc, messages);
+  // count the number of messages represented
+  assert_summary_contains_N_divs('wrappedsender', 10);
+  select_shift_click_row(1);
+  // this should have shifted to the multi-message view
+  assert_summary_contains_N_divs('wrappedsender', 0);
+  assert_summary_contains_N_divs('wrappedsubject', 2);
+  select_none();
+  assert_nothing_selected();
+  select_click_row(1); // select a single message
+  select_shift_click_row(2); // add a thread
+  assert_summary_contains_N_divs('wrappedsender', 0);
+  assert_summary_contains_N_divs('wrappedsubject', 2);
 }

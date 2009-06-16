@@ -295,10 +295,18 @@ MessageDisplayWidget.prototype = {
 
     // figure out if we're looking at one thread or more than one thread
     let selectedMessages = this.folderDisplay.selectedMessages;
-    if (selectedMessages[0].threadId != selectedMessages[1].threadId)
-      summarizeMultipleSelection(selectedMessages);
-    else
+    let firstThreadId = selectedMessages[0].threadId;
+    let oneThread = true;
+    for (i = 0; i < selectedMessages.length; i++) {
+      if (selectedMessages[i].threadId != firstThreadId) {
+        oneThread = false;
+        break;
+      }
+    }
+    if (oneThread)
       summarizeThread(selectedMessages);
+    else
+      summarizeMultipleSelection(selectedMessages);
     this.singleMessageDisplay = false;
   },
   _wrapShowSummary: function MessageDisplayWidget__wrapShowSummary(aThis) {
