@@ -49,15 +49,19 @@
 <!ENTITY newevent.to.label                  "To" >
 <!ENTITY newevent.attendees.notify.label    "Notify attendees">
 
-<!ENTITY newevent.status.label              "Status" >
-<!ENTITY newevent.status.accesskey          "S" >
-<!ENTITY newevent.status.none.label         "Not specified" >
-<!ENTITY newevent.status.cancelled.label    "Cancelled" >
-<!ENTITY newevent.status.tentative.label    "Tentative" >
-<!ENTITY newevent.status.confirmed.label    "Confirmed" >
-<!ENTITY newevent.status.needsaction.label  "Needs Action" >
-<!ENTITY newevent.status.inprogress.label   "In Process" >
-<!ENTITY newevent.status.completed.label    "Completed on" >
+<!ENTITY newevent.status.label                "Status" >
+<!ENTITY newevent.status.accesskey            "S" >
+<!ENTITY newevent.status.none.label           "Not specified" >
+<!ENTITY newevent.status.none.accesskey       "o" >
+<!ENTITY newevent.status.cancelled.label      "Cancelled" >
+<!ENTITY newevent.status.cancelled.accesskey  "n" >
+<!ENTITY newevent.status.tentative.label      "Tentative" >
+<!ENTITY newevent.status.tentative.accesskey  "T" >
+<!ENTITY newevent.status.confirmed.label      "Confirmed" >
+<!ENTITY newevent.status.confirmed.accesskey  "C" >
+<!ENTITY newevent.status.needsaction.label    "Needs Action" >
+<!ENTITY newevent.status.inprogress.label     "In Process" >
+<!ENTITY newevent.status.completed.label      "Completed on" >
 
 <!-- The following entity is for New Task dialog only -->
 <!ENTITY newtodo.percentcomplete.label      "&#37; complete">
