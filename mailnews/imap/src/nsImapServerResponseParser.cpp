@@ -139,6 +139,11 @@ PRBool	nsImapServerResponseParser::CommandFailed()
   return fCurrentCommandFailed;
 }
 
+void nsImapServerResponseParser::SetCommandFailed(PRBool failed)
+{
+  fCurrentCommandFailed = failed;
+}
+
 void nsImapServerResponseParser::SetFlagState(nsIImapFlagAndUidState *state)
 {
   fFlagState = state;
