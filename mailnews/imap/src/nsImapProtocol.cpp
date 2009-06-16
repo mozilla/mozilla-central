@@ -7215,6 +7215,24 @@ void nsImapProtocol::CreateMailbox(const char *mailboxName)
   nsresult rv = SendData(command.get());
   if(NS_SUCCEEDED(rv))
     ParseIMAPandCheckForNewMail();
+  // If that failed, let's list the parent folder to see if
+  // it allows inferiors, so we won't try to create sub-folders
+  // of the parent folder again in the current session.
+  if (GetServerStateParser().CommandFailed())
+  {
+    // Figure out parent folder name.
+    nsCString parentName(mailboxName);
+    char hierarchyDelimiter;
+    m_runningUrl->GetOnlineSubDirSeparator(&hierarchyDelimiter);
+    PRInt32 leafPos = parentName.RFindChar(hierarchyDelimiter);
+    if (leafPos > 0)
+    {
+      parentName.Truncate(leafPos);
+      List(parentName.get(), PR_FALSE);
+      // We still want the caller to know the create failed, so restore that.
+      GetServerStateParser().SetCommandFailed(PR_TRUE);
+    }
+  }
 }
 
 void nsImapProtocol::DeleteMailbox(const char *mailboxName)
