@@ -727,6 +727,10 @@ toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-i
   color: #FFFFFF;
 }
 
+#ev-button {
+  list-style-image: url("chrome://communicator/skin/icons/identity.png");
+}
+
 #popupIcon {
   list-style-image: url("chrome://navigator/skin/icons/popup-blocked.png");
 }
