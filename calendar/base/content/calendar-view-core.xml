@@ -23,6 +23,7 @@
    - Contributor(s):
    -   Michael Büttner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,7 +49,7 @@
     xmlns:xbl="http://www.mozilla.org/xbl">
 
   <binding id="calendar-editable-item">
-    <content tooltip="itemTooltip">
+    <content mousethrough="never" tooltip="itemTooltip">
       <xul:vbox flex="1">
         <xul:hbox>
           <xul:box anonid="event-container"
@@ -88,7 +89,8 @@
                 </xul:hbox>
                 <xul:image anonid="gradient"
                            class="calendar-event-box-gradient"
-                           height="1px"/>
+                           height="1px"
+                           mousethrough="always"/>
               </xul:stack>
             </xul:box>
           </xul:box>
@@ -100,9 +102,11 @@
       <constructor><![CDATA[
          Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 
-         var self = this;
-         this.eventNameInput.onblur = function onBlur() { self.stopEditing(true); };
-         this.eventNameInput.onkeypress = function onKeyPress(event) {
+         let self = this;
+         this.eventNameTextbox.onblur = function onBlur() {
+             self.stopEditing(true);
+         };
+         this.eventNameTextbox.onkeypress = function onKeyPress(event) {
              // save on enter
              if (event.keyCode == 13)
                  self.stopEditing(true);
@@ -116,12 +120,12 @@
            }
          }
          // while editing, single click positions cursor, so don't propagate.
-         this.eventNameInput.onclick = stopPropagationIfEditing;
+         this.eventNameTextbox.onclick = stopPropagationIfEditing;
          // while editing, double click selects words, so don't propagate.
-         this.eventNameInput.ondblclick = stopPropagationIfEditing;
+         this.eventNameTextbox.ondblclick = stopPropagationIfEditing;
          // while editing, don't propagate mousedown/up (selects calEvent).
-         this.eventNameInput.onmousedown = stopPropagationIfEditing;
-         this.eventNameInput.onmouseup = stopPropagationIfEditing;
+         this.eventNameTextbox.onmousedown = stopPropagationIfEditing;
+         this.eventNameTextbox.onmouseup = stopPropagationIfEditing;
       ]]></constructor>
 
       <field name="mOccurrence">null</field>
@@ -169,13 +173,11 @@
         onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'event-name');"/>
       <property name="eventNameTextbox" readonly="true"
         onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'event-name-textbox');"/>
-      <property name="eventNameInput" readonly="true"
-        onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'event-name-textbox').inputField;"/>
+
       <method name="setEditableLabel">
         <body><![CDATA[
           var evl = this.eventNameLabel;
           var item = this.mOccurrence;
-
 
           if (item.title && item.title != "") {
             evl.value = item.title;
@@ -268,8 +270,7 @@
 
           this.eventNameTextbox.value = this.mOriginalTextLabel;
           this.eventNameTextbox.removeAttribute("hidden");
-          this.eventNameInput.focus();
-          this.eventNameInput.select();
+          this.eventNameTextbox.select();
         ]]></body>
       </method>
       <method name="select">
@@ -333,7 +334,7 @@
             if (this.editingTimer) {
                 clearTimeout(this.editingTimer);
             }
-            this.editingTimer = setTimeout(function alldayTimeout() { self.startEditing(); }, 350);
+            this.editingTimer = setTimeout(function editingTimeout() { self.startEditing(); }, 350);
         } else {
             this.select(event);
             event.stopPropagation();

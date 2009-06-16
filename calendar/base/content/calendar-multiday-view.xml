@@ -28,6 +28,7 @@
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Markus Adrario <MarkusAdrario@web.de>
    -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1896,7 +1897,7 @@
      -  An individual event box, to be inserted into a column.
     -->
   <binding id="calendar-event-box" extends="chrome://calendar/content/calendar-view-core.xml#calendar-editable-item">
-    <content tooltip="itemTooltip" mousethrough="never">
+    <content mousethrough="never" tooltip="itemTooltip">
         <xul:box xbl:inherits="orient,width,height" flex="1">
           <xul:box anonid="event-container"
                    class="calendar-color-box"
@@ -1917,7 +1918,7 @@
                                hidden="true"
                                wrap="true"/>
                 </xul:vbox>
-                <xul:stack>
+                <xul:stack mousethrough="always">
                   <xul:calendar-category-box anonid="category-box" xbl:inherits="categories" pack="end" />
                   <xul:hbox anonid="alarm-icons-box"
                             class="alarm-icons-box"
@@ -1928,11 +1929,13 @@
                 <xul:box xbl:inherits="orient">
                   <xul:calendar-event-gripbar anonid="gripbar1"
                                               class="calendar-event-box-grippy-top"
+                                              mousethrough="never"
                                               whichside="start"
                                               xbl:inherits="parentorient=orient"/>
-                  <xul:spacer flex="1"/>
+                  <xul:spacer mousethrough="always" flex="1"/>
                   <xul:calendar-event-gripbar anonid="gripbar2"
                                               class="calendar-event-box-grippy-bottom"
+                                              mousethrough="never"
                                               whichside="end"
                                               xbl:inherits="parentorient=orient"/>
                 </xul:box>

@@ -24,10 +24,11 @@
    -   Vladimir Vukicevic <vladimir@pobox.com>
    -   Stefan Sitter <ssitter@googlemail.com>
    -   Clint Talbert <cmtalbert@myfastmail.com>
-   -   Michael Büttner <michael.buettner@sun.com>
+   -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Markus Adrario <MarkusAdrario@web.de>
    -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -55,7 +56,7 @@
   xmlns:xbl="http://www.mozilla.org/xbl">
 
   <binding id="calendar-month-day-box-item" extends="chrome://calendar/content/calendar-view-core.xml#calendar-editable-item">
-    <content tooltip="itemTooltip">
+    <content mousethrough="never" tooltip="itemTooltip">
       <xul:vbox flex="1">
         <xul:hbox>
           <xul:box anonid="event-container"
@@ -99,7 +100,8 @@
                 </xul:hbox>
                 <xul:image anonid="gradient"
                            class="calendar-event-box-gradient"
-                           height="1px"/>
+                           height="1px"
+                           mousethrough="always"/>
               </xul:stack>
             </xul:box>
           </xul:box>
