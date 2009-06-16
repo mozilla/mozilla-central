@@ -21,6 +21,7 @@
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
    -   Simon Vaillancourt <simon.at.orcl@gmail.com>   
+   -   Stefan Sitter <ssitter@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -127,80 +128,97 @@
   </hbox>
   <hbox>
     <vbox>
-      <hbox align="center">
-        <box class="legend" status="FREE"/>
-        <label value="&event.freebusy.legend.free;"/>
-      </hbox>
-      <hbox align="center">
-        <box class="legend" status="BUSY_TENTATIVE"/>
-        <label value="&event.freebusy.legend.busy_tentative;"/>
-      </hbox>        
-      <hbox align="center">
-        <box class="legend" status="BUSY"/>
-        <label value="&event.freebusy.legend.busy;"/>
-      </hbox>
       <hbox>
-        <button label="&event.freebusy.minus;"
-                oncommand="onMinus();"/>
-        <button label="&event.freebusy.plus;"
-                oncommand="onPlus();"/>
+        <grid>
+          <columns>
+            <column/><!-- role icon -->
+            <column/><!-- role description -->
+            <column/><!-- status color -->
+            <column/><!-- status description -->
+            <column/><!-- status color -->
+            <column/><!-- status description -->
+          </columns>
+          <rows>
+            <row align="center">
+              <image class="role-icon" role="REQ-PARTICIPANT"/>
+              <label value="&event.attendee.role.required;"/>
+              <box class="legend" status="FREE"/>
+              <label value="&event.freebusy.legend.free;"/>
+              <box class="legend" status="BUSY_UNAVAILABLE"/>
+              <label value="&event.freebusy.legend.busy_unavailable;"/>
+            </row>
+            <row align="center">
+              <image class="role-icon" role="OPT-PARTICIPANT"/>
+              <label value="&event.attendee.role.optional;"/>
+              <box class="legend" status="BUSY_TENTATIVE"/>
+              <label value="&event.freebusy.legend.busy_tentative;"/>
+              <box class="legend" status="UNKNOWN"/>
+              <label value="&event.freebusy.legend.unknown;"/>
+            </row>
+            <row align="center">
+              <image class="role-icon" role="CHAIR"/>
+              <label value="&event.attendee.role.chair;"/>
+              <box class="legend" status="BUSY"/>
+              <label value="&event.freebusy.legend.busy;"/>
+            </row>
+          </rows>
+        </grid>
       </hbox>
-      <hbox collapsed="true">
-        <label value="&event.organizer.label;" disabled="true" control="event-organizer"/>
-        <textbox id="event-organizer"
+      <hbox align="center">
+          <button label="&event.freebusy.minus;" oncommand="onMinus();"/>
+          <button label="&event.freebusy.plus;"  oncommand="onPlus();"/>
+          <spacer/>
+          <label value="&event.organizer.label;"
+                 collapsed="true"
                  disabled="true"
-                 flex="true"/>
+                 control="event-organizer"/>
+          <textbox id="event-organizer"
+                   collapsed="true"
+                   disabled="true"
+                   flex="true"/>
       </hbox>
     </vbox>
-    <vbox>
-      <hbox align="center">
-        <box class="legend" status="BUSY_UNAVAILABLE"/>
-        <label value="&event.freebusy.legend.busy_unavailable;"/>
-      </hbox>
-      <hbox align="center">
-        <box class="legend" status="UNKNOWN"/>
-        <label value="&event.freebusy.legend.unknown;"/>
-      </hbox>
-    </vbox>      
     <spacer flex="1"/>
-    <grid>
-      <columns>
-        <column/>
-        <column flex="1"/>
-      </columns>
-      <rows>
-        <row align="center">
-          <spacer/>
-          <checkbox id="all-day"
-                    oncommand="changeAllDay();"
-                    label="&event.alldayevent.label;"/>
-        </row>
-        <row align="center">
-          <label value="&newevent.from.label;" control="event-starttime"/>
-          <datetimepicker id="event-starttime"
-                          onchange="updateStartTime();"/>
-          <label id="timezone-starttime"
-                 crop="right"
-                 class="text-link"
-                 flex="1"
-                 collapsed="true"
-                 hyperlink="true"
-                 onclick="editStartTimezone()"/>
-        </row>
-        <row align="center">
-          <label value="&newevent.to.label;" control="event-endtime"/>
-          <datetimepicker id="event-endtime"
-                          onchange="updateEndTime();"/>
-          <label id="timezone-endtime"
-                 crop="right"
-                 class="text-link"
-                 flex="1"
-                 collapsed="true"
-                 hyperlink="true"
-                 onclick="editEndTimezone()"/>
-        </row>
-      </rows>
-    </grid>
+    <vbox>
+      <grid>
+        <columns>
+          <column/>
+          <column flex="1"/>
+        </columns>
+        <rows>
+          <row align="center">
+            <spacer/>
+            <checkbox id="all-day"
+                      oncommand="changeAllDay();"
+                      label="&event.alldayevent.label;"/>
+          </row>
+          <row align="center">
+            <label value="&newevent.from.label;" control="event-starttime"/>
+            <datetimepicker id="event-starttime"
+                            onchange="updateStartTime();"/>
+            <label id="timezone-starttime"
+                   crop="right"
+                   class="text-link"
+                   flex="1"
+                   collapsed="true"
+                   hyperlink="true"
+                   onclick="editStartTimezone()"/>
+          </row>
+          <row align="center">
+            <label value="&newevent.to.label;" control="event-endtime"/>
+            <datetimepicker id="event-endtime"
+                            onchange="updateEndTime();"/>
+            <label id="timezone-endtime"
+                   crop="right"
+                   class="text-link"
+                   flex="1"
+                   collapsed="true"
+                   hyperlink="true"
+                   onclick="editEndTimezone()"/>
+          </row>
+        </rows>
+      </grid>
+    </vbox>
   </hbox>
   <separator class="groove"/>
 </dialog>
