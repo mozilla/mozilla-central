@@ -793,7 +793,9 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
         end--;      // move back and examine the previous character....
       }
 
-      if (headerValue < buf_end && *headerValue) // make sure buf has info besides just the header
+      // Make sure buf has info besides just the header.
+      // Otherwise, it's just an empty header.
+      if (headerValue < buf_end && *headerValue)
       {
         PRBool result2;
         err = MatchRfc2047String(headerValue, charset, charsetOverride, &result2);  // match value with the other info...
@@ -803,8 +805,6 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
           result = result2;
         }
       }
-      else
-        NS_ASSERTION(PR_FALSE, "error matching arbitrary headers"); // mscott --> i'd be curious if there is a case where this fails....
     }
     if (EMPTY_MESSAGE_LINE(buf))
       searchingHeaders = PR_FALSE;
