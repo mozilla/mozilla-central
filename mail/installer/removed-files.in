@@ -25,9 +25,12 @@ chrome/icons/default/msgcomposeWindow16.xpm
 #endif
 components/airbag.xpt
 components/compreg.dat
+components/history.xpt
+components/mailnews.xpt
 components/myspell.dll
 components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
+components/nsComposerCmdLineHandler.js
 components/nsDownloadProgressListener.js
 components/nsLDAPPrefsService.js
 #ifdef XP_WIN
@@ -44,6 +47,7 @@ components/nsUrlClassifierTable.js
 #ifdef XP_WIN
 components/nsWinSearchIntegration.js
 #endif
+components/signonviewer.xpt
 components/spellchk.dll
 components/@DLL_PREFIX@wallet@DLL_SUFFIX@
 components/wallet.xpt
@@ -65,6 +69,7 @@ defaults/isp/en-US/
 defaults/isp/
 defaults/messenger/SpamAssassin.sfd
 defaults/messenger/SpamPal.sfd
+defaults/messenger/en-US/mailViews.dat
 defaults/pref/all.js
 defaults/pref/security-prefs.js
 defaults/pref/thunderbird.js
@@ -91,10 +96,17 @@ icons/mozicon16.xpm
 icons/mozicon50.xpm
 #endif
 isp/gmail.rdf
+modules/JSON.jsm
 res/cmessage.txt
 #ifndef MOZILLA_1_9_1_BRANCH
 res/broken-image.gif
 res/loading-image.gif
+#endif
+#ifdef XP_MACOSX
+res/cursors/CVS/Entries
+res/cursors/CVS/Repository
+res/cursors/CVS/Root
+res/cursors/CVS/Tag
 #endif
 res/html/gopher-audio.gif
 res/html/gopher-binary.gif
@@ -106,6 +118,13 @@ res/html/gopher-sound.gif
 res/html/gopher-telnet.gif
 res/html/gopher-text.gif
 res/html/gopher-unknown.gif
+#ifdef XP_MACOSX
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Info.plist
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/MacOS/Thunderbird
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Resources/schema.xml
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Resources/English.lproj/InfoPlist.strings
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Resources/English.lproj/schema.strings
+#endif
 uninstall/UninstallThunderbird.exe
 uninstall/uninst.exe
 uninstall/uninstall.exe
@@ -113,6 +132,7 @@ uninstall/uninstall.exe
 updater.app/Contents/MacOS/updater.ini
 #endif
 component.reg
+@DLL_PREFIX@jemalloc@DLL_SUFFIX@
 #ifdef XP_WIN
 #ifdef MOZ_MEMORY
 Microsoft.VC80.CRT.manifest
@@ -341,7 +361,6 @@ components/layout_xul.xpt
 components/layout_xul_tree.xpt
 components/locale.xpt
 components/lwbrk.xpt
-components/mailnews.xpt
 components/mailview.xpt
 components/mapihook.xpt
 components/mime.xpt
@@ -376,7 +395,6 @@ components/profile.xpt
 components/progressDlg.xpt
 components/proxyObject.xpt
 components/rdf.xpt
-components/signonviewer.xpt
 components/spellchecker.xpt
 components/txmgr.xpt
 components/txtsvc.xpt
@@ -476,7 +494,6 @@ components/feeds.xpt
 components/filepicker.xpt
 components/find.xpt
 components/gfx.xpt
-components/history.xpt
 components/htmlparser.xpt
 components/imgicon.xpt
 components/imglib2.xpt
@@ -494,7 +511,6 @@ components/layout_xul.xpt
 components/locale.xpt
 components/loginmgr.xpt
 components/lwbrk.xpt
-components/mailnews.xpt
 components/mailprofilemigration.xpt
 components/mailview.xpt
 components/mimetype.xpt
@@ -539,7 +555,6 @@ components/rdf.xpt
 components/saxparser.xpt
 components/shellservice.xpt
 components/shistory.xpt
-components/signonviewer.xpt
 components/spellchecker.xpt
 components/storage.xpt
 components/toolkitprofile.xpt
