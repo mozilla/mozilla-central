@@ -12,6 +12,7 @@ chrome/offline.jar
 chrome/offline.manifest
 chrome/overlayinfo/
 chrome/qute.jar
+chrome/US.jar
 #ifdef MOZ_WIDGET_GTK2
 chrome/icons/default/abcardWindow.xpm
 chrome/icons/default/abcardWindow16.xpm
@@ -23,15 +24,26 @@ chrome/icons/default/messengerWindow16.xpm
 chrome/icons/default/msgcomposeWindow.xpm
 chrome/icons/default/msgcomposeWindow16.xpm
 #endif
+#ifdef XP_MACOSX
+#ifndef ACCESSIBILITY
+components/accessibility.xpt
+#endif
+#endif
+components/accessibility-atk.xpt
 components/airbag.xpt
+components/bookmarks.xpt
 components/compreg.dat
 components/history.xpt
+components/jsconsole.xpt
 components/mailnews.xpt
-components/myspell.dll
+components/mozgnome.xpt
+components/@DLL_PREFIX@myspell@DLL_SUFFIX@
+components/necko_data.xpt
 components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
 components/nsComposerCmdLineHandler.js
 components/nsDownloadProgressListener.js
+components/nsInterfaceInfoToIDL.js
 components/nsLDAPPrefsService.js
 #ifdef XP_WIN
 #ifndef MOZILLA_1_9_1_BRANCH
@@ -47,14 +59,23 @@ components/nsUrlClassifierTable.js
 #ifdef XP_WIN
 components/nsWinSearchIntegration.js
 #endif
+components/progressDlg.xpt
 components/signonviewer.xpt
+components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
 components/spellchk.dll
 components/@DLL_PREFIX@wallet@DLL_SUFFIX@
 components/wallet.xpt
 components/walleteditor.xpt
 components/walletpreview.xpt
 components/@DLL_PREFIX@walletviewers@DLL_SUFFIX@
+#ifndef MOZ_WEBSERVICES
+components/websrvcs.xpt
+#endif
+#ifdef XP_MACOSX
+components/widget_mac.xpt
+#endif
 components/@DLL_PREFIX@xpcom_compat_c@DLL_SUFFIX@
+components/xpcom_obsolete.xpt
 components/xpti.dat
 components/xptitemp.dat
 components/myspell/en-US.dic
@@ -70,6 +91,7 @@ defaults/isp/
 defaults/messenger/SpamAssassin.sfd
 defaults/messenger/SpamPal.sfd
 defaults/messenger/en-US/mailViews.dat
+defaults/messenger/US/mailViews.dat
 defaults/pref/all.js
 defaults/pref/security-prefs.js
 defaults/pref/thunderbird.js
@@ -95,6 +117,7 @@ icons/mozicon128.png
 icons/mozicon16.xpm
 icons/mozicon50.xpm
 #endif
+init.d/README
 isp/gmail.rdf
 modules/JSON.jsm
 res/cmessage.txt
@@ -102,12 +125,15 @@ res/cmessage.txt
 res/broken-image.gif
 res/loading-image.gif
 #endif
+res/sample.unixpsfonts.properties
 #ifdef XP_MACOSX
 res/cursors/CVS/Entries
 res/cursors/CVS/Repository
 res/cursors/CVS/Root
 res/cursors/CVS/Tag
 #endif
+res/fonts/fontEncoding.properties
+res/fonts/pangoFontEncoding.properties
 res/html/gopher-audio.gif
 res/html/gopher-binary.gif
 res/html/gopher-find.gif
@@ -143,8 +169,12 @@ msvcr80.dll
 mozcrt19.dll
 #endif
 #endif
+mozilla-installer-bin
 nsldap32v50.dll
+@DLL_PREFIX@ldap50@DLL_SUFFIX@
 nsldappr32v50.dll
+@DLL_PREFIX@prldap50@DLL_SUFFIX@
+redo-prebinding.sh
 regxpcom.exe
 #ifdef XP_WIN
 xpicleanup.exe
@@ -230,8 +260,8 @@ extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resour
 #else
 extensions/talkback@mozilla.org/components/talkback/talkback
 extensions/talkback@mozilla.org/components/talkback/XTalkback.ad
-extensions/talkback@mozilla.org/components/master.ini
-extensions/talkback@mozilla.org/components/talkback.so
+extensions/talkback@mozilla.org/components/talkback/master.ini
+extensions/talkback@mozilla.org/components/talkback/talkback.so
 #endif
 #endif
 # ****************************************************************************
@@ -379,7 +409,6 @@ components/msgsmime.xpt
 components/necko.xpt
 components/necko_cache.xpt
 components/necko_cookie.xpt
-components/necko_data.xpt
 components/necko_dns.xpt
 components/necko_file.xpt
 components/necko_http.xpt
@@ -392,7 +421,6 @@ components/pippki.xpt
 components/pref.xpt
 components/prefmigr.xpt
 components/profile.xpt
-components/progressDlg.xpt
 components/proxyObject.xpt
 components/rdf.xpt
 components/spellchecker.xpt
@@ -413,7 +441,6 @@ components/xpcom_base.xpt
 components/xpcom_components.xpt
 components/xpcom_ds.xpt
 components/xpcom_io.xpt
-components/xpcom_obsolete.xpt
 components/xpcom_thread.xpt
 components/xpcom_xpti.xpt
 components/xpcom.xpt
@@ -435,7 +462,6 @@ components/downloadmanager.xpt
 #ifndef MOZILLA_1_9_1_BRANCH
 #ifdef XP_UNIX
 #ifndef XP_MACOSX
-components/accessibility-atk.xpt
 components/accessibility.xpt
 components/activity.xpt
 components/addrbook.xpt
@@ -444,7 +470,6 @@ components/appshell.xpt
 components/appstartup.xpt
 components/autocomplete.xpt
 components/autoconfig.xpt
-components/bookmarks.xpt
 components/caps.xpt
 components/chardet.xpt
 components/chrome.xpt
@@ -502,7 +527,6 @@ components/import.xpt
 components/inspector.xpt
 components/intl.xpt
 components/jar.xpt
-components/jsconsole.xpt
 components/jsdservice.xpt
 components/layout_base.xpt
 components/layout_printing.xpt
@@ -517,7 +541,6 @@ components/mimetype.xpt
 components/mime.xpt
 components/mozbrwsr.xpt
 components/mozfind.xpt
-components/mozgnome.xpt
 components/mozldap.xpt
 components/msgbase.xpt
 components/msgcompose.xpt
@@ -530,7 +553,6 @@ components/msgsmime.xpt
 components/necko_about.xpt
 components/necko_cache.xpt
 components/necko_cookie.xpt
-components/necko_data.xpt
 components/necko_dns.xpt
 components/necko_file.xpt
 components/necko_ftp.xpt
@@ -549,7 +571,6 @@ components/plugin.xpt
 components/prefetch.xpt
 components/pref.xpt
 components/profile.xpt
-components/progressDlg.xpt
 components/proxyObjInst.xpt
 components/rdf.xpt
 components/saxparser.xpt
@@ -579,7 +600,6 @@ components/xpcom_base.xpt
 components/xpcom_components.xpt
 components/xpcom_ds.xpt
 components/xpcom_io.xpt
-components/xpcom_obsolete.xpt
 components/xpcom_system.xpt
 components/xpcom_threads.xpt
 components/xpcom_xpti.xpt
