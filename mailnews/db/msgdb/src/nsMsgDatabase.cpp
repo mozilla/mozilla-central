@@ -286,6 +286,14 @@ NS_IMETHODIMP nsMsgDBService::UnregisterPendingListener(nsIDBChangeListener *aLi
   return NS_ERROR_FAILURE;
 }
 
+NS_IMETHODIMP nsMsgDBService::CachedDBForFolder(nsIMsgFolder *aFolder, nsIMsgDatabase **aRetDB)
+{
+  NS_ENSURE_ARG_POINTER(aFolder);
+  NS_ENSURE_ARG_POINTER(aRetDB);
+  *aRetDB = nsMsgDatabase::FindInCache(aFolder);
+  return NS_OK;
+}
+
 static PRBool gGotGlobalPrefs = PR_FALSE;
 static PRBool gThreadWithoutRe = PR_TRUE;
 static PRBool gStrictThreading = PR_FALSE;

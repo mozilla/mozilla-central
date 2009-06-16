@@ -968,7 +968,10 @@ nsresult nsMsgLocalMailFolder::IsChildOfTrash(PRBool *result)
 NS_IMETHODIMP nsMsgLocalMailFolder::Delete()
 {
   nsresult rv;
-  if(mDatabase)
+  nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  msgDBService->CachedDBForFolder(this, getter_AddRefs(mDatabase));
+  if (mDatabase)
   {
     mDatabase->ForceClosed();
     mDatabase = nsnull;
