@@ -124,7 +124,11 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
                                         '_tests', 'leakprofile')
         # XXX tidy up
         if automation.IS_MAC:
-            self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', 'ShredderDebug.app', 'Contents', 'MacOS')
+            if automation.IS_DEBUG_BUILD:
+              appName = 'ShredderDebug.app'
+            else:
+              appName = 'Shredder.app'
+            self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', appName, 'Contents', 'MacOS')
             appname = 'thunderbird-bin'
         else:
             self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', 'bin')
@@ -143,7 +147,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
             curdir, olddir = os.path.split(curdir)
             if curdir == '':
                 raise Exception("unable to figure out src_dir")
-        return curdir
+        return os.path.expanduser(os.path.expandvars(curdir))
 
     def find_obj_dir(self):
         if 'MOZCONFIG' in os.environ:
@@ -161,7 +165,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
                 varpath = varpath.replace('@TOPSRCDIR@', self.src_dir)
                 varpath = varpath.replace('$(TOPSRCDIR)', self.src_dir)
                 varpath = varpath.replace('@CONFIG_GUESS@',config_guess)
-                return varpath
+                return os.path.expanduser(os.path.expandvars(varpath))
         f.close()
 
         raise Exception("unable to figure out obj_dir")
