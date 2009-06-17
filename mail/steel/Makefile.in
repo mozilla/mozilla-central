@@ -1,4 +1,3 @@
-#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,14 +11,15 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is FUEL.
 #
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+# The Initial Developer of the Original Code is Mozilla Corporation.
+# Portions created by the Initial Developer are Copyright (C) 2006
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Mark Finkle <mfinkle@mozilla.com>
+#   John Resig  <jresig@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,32 +35,18 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
+DEPTH     = ../..
+topsrcdir = @top_srcdir@
+srcdir    = @srcdir@
+VPATH     = @srcdir@
 
-include $(topsrcdir)/config/config.mk
+include $(DEPTH)/config/autoconf.mk
 
-# app is always last as it packages up the built files on mac
-DIRS		= base locales components extensions steel themes app
+MODULE        = steel
+XPIDL_MODULE  = steel
 
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-# though some lasts are more last than others
-DIRS += installer/windows
-endif
-endif
+XPIDLSRCS = steelIApplication.idl
+
+EXTRA_PP_COMPONENTS = steelApplication.js
 
 include $(topsrcdir)/config/rules.mk
-
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-
-# For Windows build the uninstaller during the application build since the
-# uninstaller is included with the application for mar file generation.
-libs::
-	$(MAKE) -C installer/windows uninstaller
-
-endif
-endif

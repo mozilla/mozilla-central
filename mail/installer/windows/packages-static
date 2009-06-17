@@ -68,6 +68,7 @@ bin\components\aboutRights.js
 bin\components\activity.xpt
 bin\components\addrbook.xpt
 bin\components\mime.xpt
+bin\components\steel.xpt
 bin\components\msgbase.xpt
 bin\components\msgcompo.xpt
 bin\components\msgdb.xpt
@@ -119,6 +120,7 @@ bin\components\mapihook.xpt
 bin\components\nsSetDefaultMail.js
 bin\components\offlineStartup.js
 bin\components\nsMailDefaultHandler.js
+bin\components\steelApplication.js
 
 
 bin\components\mdn-service.js
