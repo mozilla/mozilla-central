@@ -836,20 +836,39 @@ function IsReplyAllEnabled()
   let msgHdr = gFolderDisplay.selectedMessage;
 
   let myEmail = getIdentityForHeader(msgHdr).email;
-  let recipients = msgHdr.recipients + "," + msgHdr.ccList;
+  let addresses = msgHdr.author + "," + msgHdr.recipients + "," + msgHdr.ccList;
 
-  // If my email address isn't in the to or cc list, then I've been bcc-ed.
-  let imBcced = recipients.indexOf(myEmail) == -1;
+  // If we've got any BCCed addresses (because we sent the message), add
+  // them as well.
+  if ("bcc" in currentHeaderData)
+    addresses += currentHeaderData.bcc.headerValue;
 
-  // Now, let's get the number of unique recipients
+  // Check to see if my email address is in the list of addresses.
+  let imInAddresses = addresses.indexOf(myEmail) != -1;
+
+  // Now, let's get the number of unique addresses.
   let hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                             .getService(Components.interfaces.nsIMsgHeaderParser);
-  let uniqueRecipients = hdrParser.removeDuplicateAddresses(recipients, {});
-  let numAddresses = hdrParser.parseHeadersWithArray(uniqueRecipients, {}, {}, {});
+  let uniqueAddresses = hdrParser.removeDuplicateAddresses(addresses, "");
+  let emailAddresses = {};
+  let numAddresses = hdrParser.parseHeadersWithArray(uniqueAddresses,
+                                                     emailAddresses, {}, {});
 
-  // If I've been bcc-ed, then add 1 to the number of addresses to compensate.
-  if (imBcced)
-    numAddresses++;
+  // XXX: This should be handled by the nsIMsgHeaderParser.  See Bug 498480.
+  // Remove addresses that look like email groups, because we don't support
+  // those yet.  (Any address with a : in it will be an empty email group,
+  // or the colon and the groupname would be set as the first name, and not
+  // show up in the address at all.)
+  for (var i in emailAddresses.value)
+  {
+    if (/:/.test(emailAddresses.value[i]))
+      numAddresses--;
+  }
+
+  // I don't want to count my address in the number of addresses to reply
+  // to, since I won't be emailing myself.
+  if (imInAddresses)
+    numAddresses--;
 
   // ReplyAll is enabled if there is more than 1 person to reply to.
   return numAddresses > 1;
