@@ -684,10 +684,10 @@ nsresult nsImapMailFolder::GetDatabase()
 
 NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow * inMsgWindow)
 {
-  return UpdateFolder(inMsgWindow, nsnull);
+  return UpdateFolderWithListener(inMsgWindow, nsnull);
 }
 
-NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlListener *aUrlListener)
+NS_IMETHODIMP nsImapMailFolder::UpdateFolderWithListener(nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlListener)
 {
   nsresult rv;
   PRBool selectFolder = PR_FALSE;
@@ -695,10 +695,10 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   if (mFlags & nsMsgFolderFlags::Inbox)
   {
     if (!m_filterList)
-      rv = GetFilterList(msgWindow, getter_AddRefs(m_filterList));
+      rv = GetFilterList(aMsgWindow, getter_AddRefs(m_filterList));
     // if there's no msg window, but someone is updating the inbox, we're
     // doing something biff-like, and may download headers, so make biff notify.
-    if (!msgWindow)
+    if (!aMsgWindow)
       SetPerformingBiff(PR_TRUE);
   }
 
@@ -742,7 +742,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   rv = GetDatabase();
   if (NS_FAILED(rv))
   {
-    ThrowAlertMsg("errorGettingDB", msgWindow);
+    ThrowAlertMsg("errorGettingDB", aMsgWindow);
     return rv;
   }
   PRBool canOpenThisFolder = PR_TRUE;
@@ -755,7 +755,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   {
     if (hasOfflineEvents)
     {
-      nsImapOfflineSync *goOnline = new nsImapOfflineSync(msgWindow, this, this);
+      nsImapOfflineSync *goOnline = new nsImapOfflineSync(aMsgWindow, this, this);
       if (goOnline)
         return goOnline->ProcessNextOperation();
     }
@@ -774,7 +774,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr <nsIURI> url;
-    rv = imapService->SelectFolder(m_thread, this, m_urlListener, msgWindow, getter_AddRefs(url));
+    rv = imapService->SelectFolder(m_thread, this, m_urlListener, aMsgWindow, getter_AddRefs(url));
     if (NS_SUCCEEDED(rv))
     {
       m_urlRunning = PR_TRUE;
@@ -790,8 +790,8 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
     switch (rv)
     {
       case NS_MSG_ERROR_OFFLINE:
-        if (msgWindow)
-          AutoCompact(msgWindow);
+        if (aMsgWindow)
+          AutoCompact(aMsgWindow);
         // note fall through to next case.
       case NS_BINDING_ABORTED:
         rv = NS_OK;

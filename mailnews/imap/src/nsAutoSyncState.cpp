@@ -476,7 +476,7 @@ NS_IMETHODIMP nsAutoSyncState::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCode
         serverTotal, mLastServerTotal, serverRecent, mLastServerRecent);
 #endif
       mSyncState = nsAutoSyncState::stUpdateIssued;
-      return imapFolder->UpdateFolder(nsnull, autoSyncMgrListener);
+      return imapFolder->UpdateFolderWithListener(nsnull, autoSyncMgrListener);
     }
     else
     {
