@@ -52,6 +52,34 @@ const gTestArray =
     do_check_neq(folder2, null);
     do_check_neq(folder3, null);
     doTest(++gCurTestNum);
+  },
+  function moveImapFolder1() {
+    let folders = new Array;
+    let folder1 = gIMAPInbox.getChildNamed("empty 1");
+    let folder2 = gIMAPInbox.getChildNamed("empty 2");
+    folders.push(folder2.QueryInterface(Ci.nsIMsgFolder));
+    let array = toXPCOMArray(folders, Ci.nsIMutableArray);
+    gCopyService.CopyFolders(array, folder1, true, CopyListener, null);
+  },
+  function moveImapFolder2() {
+    let folders = new Array;
+    let folder1 = gIMAPInbox.getChildNamed("empty 1");
+    let folder3 = gIMAPInbox.getChildNamed("empty 3");
+    folders.push(folder3.QueryInterface(Ci.nsIMsgFolder));
+    let array = toXPCOMArray(folders, Ci.nsIMutableArray);
+    gCopyService.CopyFolders(array, folder1, true, CopyListener, null);
+  },
+  function verifyImapFolders() {
+    let folder1 = gIMAPInbox.getChildNamed("empty 1");
+    dump("found folder1\n");
+    let folder2 = folder1.getChildNamed("empty 2");
+    dump("found folder2\n");
+    let folder3 = folder1.getChildNamed("empty 3");
+    dump("found folder3\n");
+    do_check_neq(folder1, null);
+    do_check_neq(folder2, null);
+    do_check_neq(folder3, null);
+    doTest(++gCurTestNum);
   }
 ];
 
