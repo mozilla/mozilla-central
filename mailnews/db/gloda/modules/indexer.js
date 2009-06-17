@@ -2172,6 +2172,7 @@ var GlodaIndexer = {
       this.indexer._log.debug("folderMoveCopy notification (Move: " + aMove
                               + ")");
       if (aMove) {
+        let srcURI = aSrcFolder.URI;
         let targetURI = aDestFolder.URI +
                         srcURI.substring(srcURI.lastIndexOf("/"));
         return this._folderRenameHelper(aSrcFolder, targetURI);
