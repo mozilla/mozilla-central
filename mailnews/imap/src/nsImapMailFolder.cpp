@@ -4903,6 +4903,24 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
               (void) OnCopyCompleted(m_copyState->m_srcSupport, aExitCode);
           }
           break;
+      case nsIImapUrl::nsImapMoveFolderHierarchy:
+        if (m_copyState) // delete folder gets here, but w/o an m_copyState
+        {
+          nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
+          NS_ENSURE_SUCCESS(rv, rv);
+          nsCOMPtr<nsIMsgFolder> srcFolder = do_QueryInterface(m_copyState->m_srcSupport);
+          if (srcFolder)
+          {
+            nsCOMPtr<nsIMsgFolder> destFolder;
+            nsString srcName;
+            srcFolder->GetName(srcName);
+            GetChildNamed(srcName, getter_AddRefs(destFolder));
+            if (destFolder)
+              copyService->NotifyCompletion(m_copyState->m_srcSupport, destFolder, aExitCode);
+          }
+          m_copyState = nsnull;
+        }
+        break;
       case nsIImapUrl::nsImapRenameFolder:
         if (NS_FAILED(aExitCode))
         {
@@ -7240,7 +7258,7 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
     {
       nsCOMPtr <nsIImapService> imapService = do_GetService (NS_IMAPSERVICE_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
-      nsCOMPtr <nsIUrlListener> urlListener = do_QueryInterface(srcFolder);
+      nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(srcFolder);
       PRBool match = PR_FALSE;
       PRBool confirmed = PR_FALSE;
       if (mFlags & nsMsgFolderFlags::Trash)
@@ -7255,10 +7273,16 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
             return NS_OK;
         }
       }
+      rv = InitCopyState(srcSupport, nsnull, PR_FALSE, nsnull,
+                         PR_FALSE, 0, EmptyCString(), listener, 
+                         msgWindow, PR_FALSE);
+      if (NS_FAILED(rv))
+        return OnCopyCompleted(srcSupport, rv);
+
       rv = imapService->MoveFolder(m_thread,
                                    srcFolder,
                                    this,
-                                   urlListener,
+                                   this,
                                    msgWindow,
                                    nsnull);
     }
@@ -7451,7 +7475,6 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
                                 PRBool allowUndo)
 {
   NS_ENSURE_ARG_POINTER(srcSupport);
-  NS_ENSURE_ARG_POINTER(messages);
   NS_ENSURE_TRUE(!m_copyState, NS_ERROR_FAILURE);
   nsresult rv;
 
@@ -7464,7 +7487,8 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
   NS_ENSURE_SUCCESS(rv, rv);
 
   m_copyState->m_messages = messages;
-  rv = messages->GetLength(&m_copyState->m_totalCount);
+  if (messages)
+    rv = messages->GetLength(&m_copyState->m_totalCount);
   if (!m_copyState->m_isCrossServerOp)
   {
     if (NS_SUCCEEDED(rv))
