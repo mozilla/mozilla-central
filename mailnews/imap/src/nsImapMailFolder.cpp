@@ -6703,7 +6703,7 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, PRBool aIsMove)
 
   // these fields are either copied separately when the server does not support
   // custom IMAP flags, or managed directly through the flags
-  dontPreserveEx.AppendLiteral("keywords label junkscore ");
+  dontPreserveEx.AppendLiteral("keywords label ");
 
   PRUint32 i, count;
 
@@ -6721,10 +6721,6 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, PRBool aIsMove)
       if (!(supportedUserFlags & kImapMsgSupportUserFlag))
       {
         nsMsgLabelValue label;
-        nsCString junkScore;
-        msgDBHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
-        if (!junkScore.IsEmpty()) // ignore already scored messages.
-          mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "junkscore", junkScore.get());
         msgDBHdr->GetLabel(&label);
         if (label != 0)
         {
@@ -7305,10 +7301,21 @@ nsImapMailFolder::CopyFileMessage(nsIFile* file,
     {
         rv = msgToReplace->GetMessageKey(&key);
         if (NS_SUCCEEDED(rv))
-            messageId.AppendInt((PRInt32) key);
+        {
+          messageId.AppendInt((PRInt32) key);
+          // Perhaps we have the message offline, but even if we do it is
+          // not valid, since the only time we do a file copy for an
+          // existing message is when we are changing the message.
+          // So set the offline size to 0 to force SetPendingAttributes to
+          // clear the offline message flag.
+          msgToReplace->SetOfflineMessageSize(0);
+          messages->AppendElement(msgToReplace, PR_FALSE);
+          SetPendingAttributes(messages, PR_FALSE);
+        }
     }
 
-    rv = InitCopyState(srcSupport, messages, PR_FALSE, isDraftOrTemplate,
+    PRBool isMove = (msgToReplace ? PR_TRUE : PR_FALSE);
+    rv = InitCopyState(srcSupport, messages, isMove, isDraftOrTemplate,
                        PR_FALSE, aNewMsgFlags, aNewMsgKeywords, listener, 
                        msgWindow, PR_FALSE);
     if (NS_FAILED(rv))

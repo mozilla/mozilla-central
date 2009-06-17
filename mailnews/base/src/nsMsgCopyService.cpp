@@ -605,7 +605,10 @@ nsMsgCopyService::CopyFileMessage(nsIFile* file,
 
   if (msgToReplace)
   {
-    copySource = copyRequest->AddNewCopySource(dstFolder);
+    // The actual source of the message is a file not a folder, but
+    // we still need an nsCopySource to reference the old message header
+    // which will be used to recover message metadata.
+    copySource = copyRequest->AddNewCopySource(nsnull);
     if (!copySource)
     {
         rv = NS_ERROR_OUT_OF_MEMORY;

@@ -94,11 +94,12 @@ interface nsIMsgCopyService : nsISupports {
    * @param aFile             A file which contains message in rfc format which
    *                          will copied to destFolder.
    * @param dstFolder         Destination folder where a message will be copied.
-   * @param msgToReplace      Header which identifies message which will be
-   *                          replaced by newly copied message or null. It is
-   *                          used generally for drafts, when saving a new copy
-   *                          of a draft message should replace the old
-   *                          draft message.
+   * @param msgToReplace      Header which identifies a message to use as a source
+   *                          of message properties, or null. For example, when
+   *                          deleting an attachment, the processed message is
+   *                          stored in a file, but the metadata should be copied
+   *                          from the original message. This method will NOT delete
+   *                          the original message.
    * @param isDraftOrTemplate Specifies whether a message is a stored in draft
    *                          folder or not. If is true listener should
    *                          implement GetMessageId and return unique id for

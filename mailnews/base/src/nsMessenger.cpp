@@ -2428,8 +2428,8 @@ nsDelAttachListener::OnStopRequest(nsIRequest * aRequest, nsISupports * aContext
   // This is called before OnStopRunningUrl().
   nsresult rv;
 
-  // copy the file back into the folder. Note: if we set msgToReplace then
-  // CopyFileMessage() fails, do the delete ourselves
+  // copy the file back into the folder. Note: setting msgToReplace only copies
+  // metadata, so we do the delete ourselves
   nsCOMPtr<nsIMsgCopyServiceListener> listenerCopyService;
   rv = this->QueryInterface( NS_GET_IID(nsIMsgCopyServiceListener), getter_AddRefs(listenerCopyService) );
   NS_ENSURE_SUCCESS(rv,rv);
@@ -2446,7 +2446,7 @@ nsDelAttachListener::OnStopRequest(nsIRequest * aRequest, nsISupports * aContext
   {
     nsCString originalKeys;
     mOriginalMessage->GetStringProperty("keywords", getter_Copies(originalKeys));
-    rv = copyService->CopyFileMessage(clone, mMessageFolder, nsnull, PR_FALSE,
+    rv = copyService->CopyFileMessage(clone, mMessageFolder, mOriginalMessage, PR_FALSE,
                                       mOrigMsgFlags, originalKeys, listenerCopyService, mMsgWindow);
   }
   return rv;
