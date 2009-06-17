@@ -52,8 +52,35 @@ Cu.import('resource://app/modules/iteratorUtils.jsm');
 
 const MODULE_NAME = 'window-helpers';
 
-const NORMAL_TIMEOUT = 6000;
-const FAST_INTERVAL = 100;
+/**
+ * Timeout to use when waiting for the first window ever to load.  This is
+ *  long because we are basically waiting for the entire app startup process.
+ */
+const FIRST_WINDOW_EVER_TIMEOUT_MS = 30000;
+/**
+ * Interval to check if the window has shown up for the first window ever to
+ *  load.  The check interval is longer because it's less likely the window
+ *  is going to show up quickly and there is a cost to the check.
+ */
+const FIRST_WINDOW_CHECK_INTERVAL_MS = 300;
+
+/**
+ * Timeout for opening a window.
+ */
+const WINDOW_OPEN_TIMEOUT_MS = 10000;
+/**
+ * Check interval for opening a window.
+ */
+const WINDOW_OPEN_CHECK_INTERVAL_MS = 100;
+
+/**
+ * Timeout for closing a window.
+ */
+const WINDOW_CLOSE_TIMEOUT_MS = 10000;
+/**
+ * Check interval for closing a window.
+ */
+const WINDOW_CLOSE_CHECK_INTERVAL_MS = 100;
 
 function setupModule() {
   // do nothing
@@ -73,6 +100,7 @@ function installInto(module) {
 
 var WindowWatcher = {
   _inited: false,
+  _firstWindowOpened: false,
   ensureInited: function WindowWatcher_ensureInited() {
     if (this._inited)
       return;
@@ -138,8 +166,13 @@ var WindowWatcher = {
    */
   waitForWindowOpen: function WindowWatcher_waitForWindowOpen(aWindowType) {
     this.waitingForOpen = aWindowType;
-    controller.waitForEval('subject.monitorizeOpen()', NORMAL_TIMEOUT,
-                           FAST_INTERVAL, this);
+    controller.waitForEval(
+      'subject.monitorizeOpen()',
+      this._firstWindowOpened ? WINDOW_OPEN_TIMEOUT_MS
+                              : FIRST_WINDOW_EVER_TIMEOUT_MS,
+      this._firstWindowOpened ? WINDOW_OPEN_CHECK_INTERVAL_MS
+                              : FIRST_WINDOW_CHECK_INTERVAL_MS,
+      this);
     this.waitingForOpen = null;
     let xulWindow = this.waitingList[aWindowType];
 dump("### XUL window: " + xulWindow + "\n");
@@ -150,6 +183,7 @@ dump("domWindow: " + domWindow + "\n");
     // spin the event loop to make sure any setTimeout 0 calls have gotten their
     //  time in the sun.
     controller.sleep(0);
+    this._firstWindowOpened = true;
     return new controller.MozMillController(domWindow);
   },
 
@@ -177,7 +211,7 @@ dump("domWindow: " + domWindow + "\n");
     this.waitingList[aWindowType] = null;
 
     this._timerRuntimeSoFar = 0;
-    this._timer.initWithCallback(this, FAST_INTERVAL,
+    this._timer.initWithCallback(this, WINDOW_OPEN_CHECK_INTERVAL_MS,
                                  Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
 
@@ -224,8 +258,10 @@ dump("canceled!\n");
       // so just close it no matter what.
       troller.window.close();
     }
-    this._timerRuntimeSoFar += FAST_INTERVAL;
-    if (this._timerRuntimeSoFar >= NORMAL_TIMEOUT) {
+    // notify is only used for modal dialogs, which are never the first window,
+    //  so we can always just use this set of timeouts/intervals.
+    this._timerRuntimeSoFar += WINDOW_OPEN_CHECK_INTERVAL_MS;
+    if (this._timerRuntimeSoFar >= WINDOW_OPEN_TIMEOUT_MS) {
       dump("!!! TIMEOUT WHILE WAITING FOR MODAL DIALOG !!!\n");
       this._timer.cancel();
       throw new Error("Timeout while waiting for modal dialog.\n");
@@ -243,7 +279,7 @@ dump("canceled!\n");
     // spin the event loop until we the window has come and gone.
     controller.waitForEval(
       'subject.waitingForOpen == null && subject.waitingForClose == null',
-      NORMAL_TIMEOUT, FAST_INTERVAL, this);
+      WINDOW_OPEN_TIMEOUT_MS, WINDOW_OPEN_CHECK_INTERVAL_MS, this);
     this.waitingForClose = null;
   },
 
@@ -260,8 +296,9 @@ dump("canceled!\n");
    */
   waitingForClose: null,
   waitForWindowClose: function WindowWatcher_waitForWindowClose() {
-    controller.waitForEval('subject.monitorizeClose()', NORMAL_TIMEOUT,
-                           FAST_INTERVAL, this);
+    controller.waitForEval('subject.monitorizeClose()',
+                           WINDOW_CLOSE_TIMEOUT_MS,
+                           WINDOW_CLOSE_CHECK_INTERVAL_MS, this);
     let didDisappear = this.waitingList[this.waitingForClose] == null;
     delete this.waitingList[windowType];
     let windowType = this.waitingForClose;

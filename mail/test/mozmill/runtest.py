@@ -278,7 +278,4 @@ import atexit
 atexit.register(prettyPrintResults)
 
 if __name__ == '__main__':
-    try:
-        ThunderTestCLI().run()
-    except Exception, e:
-        print 'There was an exception', e
+    ThunderTestCLI().run()
