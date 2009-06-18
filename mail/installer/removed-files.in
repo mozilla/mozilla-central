@@ -32,6 +32,7 @@ components/accessibility.xpt
 components/accessibility-atk.xpt
 components/airbag.xpt
 components/bookmarks.xpt
+components/downloadmanager.xpt
 components/compreg.dat
 components/history.xpt
 components/jsconsole.xpt
@@ -60,6 +61,7 @@ components/nsUrlClassifierTable.js
 components/nsWinSearchIntegration.js
 #endif
 components/progressDlg.xpt
+components/sidebar.xpt
 components/signonviewer.xpt
 components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
 components/spellchk.dll
@@ -80,6 +82,7 @@ components/xpti.dat
 components/xptitemp.dat
 components/myspell/en-US.dic
 components/myspell/en-US.aff
+components/myspell/
 defaults/isp/dotmac.rdf
 defaults/isp/movemail.rdf
 defaults/isp/rss.rdf
@@ -87,6 +90,9 @@ defaults/isp/en-US/dotmac.rdf
 defaults/isp/en-US/movemail.rdf
 defaults/isp/en-US/rss.rdf
 defaults/isp/en-US/
+defaults/isp/US/movemail.rdf
+defaults/isp/US/rss.rdf
+defaults/isp/US/
 defaults/isp/
 defaults/messenger/SpamAssassin.sfd
 defaults/messenger/SpamPal.sfd
@@ -105,6 +111,11 @@ defaults/profile/extensions/
 defaults/profile/US/localstore.rdf
 defaults/profile/US/mimeTypes.rdf
 defaults/profile/US/
+#ifdef XP_WIN
+defaults/shortcuts/Mozilla Thunderbird.lnk
+defaults/shortcuts/Mozilla Thunderbird (No Extensions).lnk
+defaults/shortcuts/
+#endif
 defaults/wallet/VcardSchema.tbl
 defaults/wallet/FieldSchema.tbl
 defaults/wallet/SchemaConcat.tbl
@@ -120,6 +131,8 @@ icons/mozicon50.xpm
 init.d/README
 isp/gmail.rdf
 modules/JSON.jsm
+plugins/
+res/bloatcycle.html
 res/cmessage.txt
 #ifndef MOZILLA_1_9_1_BRANCH
 res/broken-image.gif
@@ -157,6 +170,7 @@ uninstall/uninstall.exe
 #ifdef XP_MACOSX
 updater.app/Contents/MacOS/updater.ini
 #endif
+.autoreg
 component.reg
 @DLL_PREFIX@jemalloc@DLL_SUFFIX@
 #ifdef XP_WIN
@@ -369,7 +383,6 @@ components/dom_views.xpt
 components/dom_xbl.xpt
 components/dom_xpath.xpt
 components/dom_xul.xpt
-components/downloadmanager.xpt
 components/editor.xpt
 components/embed_base.xpt
 components/exthandler.xpt
@@ -448,7 +461,6 @@ components/xpconnect.xpt
 components/xpinstall.xpt
 components/xuldoc.xpt
 components/xultmpl.xpt
-components/downloadmanager.xpt
 #endif
 # ****************************************************************************
 # * End of XPTs at the time we started linking them on Windows.              *
