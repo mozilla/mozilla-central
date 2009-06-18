@@ -1697,11 +1697,22 @@ function GenericSendMessage( msgType )
             blockquotes[i].parentNode.removeChild(blockquotes[i]);
           }
           var mailData = mailBodyNode.textContent;
+
+          function escapeRegxpSpecials(inputString) {
+            const specials = [ ".", "\\", "^", "$", "*", "+", "?", , "|",
+                               "(", ")" , "[", "]", "{", "}" ];
+            var re = new RegExp("(\\"+specials.join("|\\")+")", "g");
+            return inputString.replace(re, "\\$1");
+          }
+
           var keywordFound;
           for (let i = 0; i < keywordsArray.length && !keywordFound; i++)
           {
-            var re = new RegExp(keywordsArray[i], "i");
-            keywordFound = re.test(mailData);
+            let kw = escapeRegxpSpecials(keywordsArray[i]);
+            let re = new RegExp("(([^\\s]*)\\b|\\s*)" + kw + "\\b", "i");
+            let matching = re.exec(mailData);
+            // Ignore the match if it was a URL.
+            keywordFound = matching && !(/^http|^ftp/i.test(matching[0]));
           }
 
           if (keywordFound)
@@ -1709,7 +1720,7 @@ function GenericSendMessage( msgType )
             var bundle = document.getElementById("bundle_composeMsgs");
             var flags = gPromptService.BUTTON_POS_0 * gPromptService.BUTTON_TITLE_IS_STRING +
                         gPromptService.BUTTON_POS_1 * gPromptService.BUTTON_TITLE_IS_STRING;
-            var hadForgotten = gPromptService.confirmEx(null,
+            var hadForgotten = gPromptService.confirmEx(window,
                                  bundle.getString("attachmentReminderTitle"),
                                  bundle.getString("attachmentReminderMsg"),
                                  flags,
