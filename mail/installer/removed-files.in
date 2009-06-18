@@ -6,6 +6,9 @@
 chrome/app-chrome.manifest
 chrome/chrome.rdf
 chrome/en-US-mail.jar
+#ifdef XP_WIN
+chrome/en-win.jar
+#endif
 chrome/installed-chrome.txt
 chrome/mail.jar
 chrome/offline.jar
@@ -138,7 +141,11 @@ res/cmessage.txt
 res/broken-image.gif
 res/loading-image.gif
 #endif
+res/platform-forms.css
 res/sample.unixpsfonts.properties
+res/builtin/htmlBindings.xml
+res/builtin/platformHTMLBindings.xml
+res/builtin/
 #ifdef XP_MACOSX
 res/cursors/CVS/Entries
 res/cursors/CVS/Repository
