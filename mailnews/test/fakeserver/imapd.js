@@ -257,8 +257,6 @@ imapMailbox.prototype = {
         return true;
       });
     }
-    if (matching[0] == this)
-      matching.shift();
     return matching;
   },
   get fullName () {
@@ -274,7 +272,12 @@ imapMailbox.prototype = {
   },
   get allChildren() {
     return this._children.reduce(function (arr, elem) {
-      return arr.concat(elem.allChildren);
+      return arr.concat(elem._allChildrenInternal);
+    }, []);
+  },
+  get _allChildrenInternal() {
+    return this._children.reduce(function (arr, elem) {
+      return arr.concat(elem._allChildrenInternal);
     }, [this]);
   },
   addMessage : function (message) {
