@@ -1,7 +1,4 @@
 classic.jar:
-+ skin/classic/global/tree.css                                (mail/tree.css)
-+ skin/classic/global/tree/sort-asc.gif                       (mail/icons/sort-asc.gif)
-+ skin/classic/global/tree/sort-dsc.gif                       (mail/icons/sort-dsc.gif)
   icon.png                                                    (mail/icon.png)
   preview.png                                                 (mail/preview.png)
 % skin communicator classic/1.0 %skin/classic/communicator/

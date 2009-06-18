@@ -205,7 +205,7 @@
                                onclick="gFolderTreeView.cycleMode(true);"/>
               </sidebarheader>
 
-              <tree id="folderTree" class="plain focusring" flex="1"
+              <tree id="folderTree" class="plain" flex="1"
                     hidecolumnpicker="true" persist="mode" mode="all"
                     keepcurrentinview="true"
                     context="folderPaneContext"
@@ -252,7 +252,7 @@
                           flex="2"
                           enableColumnDrag="true"
                           _selectDelay="250"
-                          class="plain focusring"
+                          class="plain"
                           lastfoldersent="false"
                           keepcurrentinview="true"
                           disableKeyNavigation="true"
