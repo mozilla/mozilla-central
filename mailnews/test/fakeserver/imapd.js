@@ -137,9 +137,11 @@ imapDaemon.prototype = {
     // If this is an imapMailbox...
     if (oldBox && oldBox._children) {
       // Only delete now so we don't screw ourselves up if creation fails
-      this._deleteMailbox(oldBox);
-      mailbox._parent = box == this.root ? null : box;
-      box.addMailbox(oldBox);
+      this.deleteMailbox(oldBox);
+      oldBox._parent = box == this.root ? null : box;
+      let newBox = new imapMailbox(oldBox.name, box, this.uidvalidity++);
+      newBox._messages = oldBox._messages;
+      box.addMailbox(newBox);
 
       // And if oldBox is an INBOX, we need to recreate that
       if (oldBox.name == "INBOX") {
@@ -958,17 +960,16 @@ IMAP_RFC3501_handler.prototype = {
   },
   SUBSCRIBE : function (args) {
     var mailbox = this._daemon.getMailbox(args[0]);
-    if (!mailbox || mailbox.subscribed)
+    if (!mailbox)
       return "NO error in subscribing";
     mailbox.subscribed = true;
     return "OK SUBSCRIBE completed";
   },
   UNSUBSCRIBE : function (args) {
     var mailbox = this._daemon.getMailbox(args[0]);
-    if (!mailbox || !mailbox.subscribed)
-      return "NO error in unsubscribing";
-    mailbox.subscribed = false;
-    return "OK SUBSCRIBE completed";
+    if (mailbox)
+      mailbox.subscribed = false;
+    return "OK UNSUBSCRIBE completed";
   },
   LIST : function (args) {
     var base = this._daemon.getMailbox(args[0]);
