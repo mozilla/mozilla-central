@@ -2171,10 +2171,9 @@ function MsgMarkReadByDate()
 
 function MsgMarkAllRead()
 {
-  var folder = GetSelectedMsgFolders()[0];
-
-  if (folder)
-    folder.markAllMessagesRead(msgWindow);
+  let folders = gFolderTreeView.getSelectedFolders();
+  for (let i = 0; i < folders.length; i++)
+    folders[i].markAllMessagesRead(msgWindow);
 }
 
 function MsgFilters(emailAddress, folder)
