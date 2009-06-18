@@ -188,6 +188,8 @@ StandaloneMessageDisplayWidget.prototype = {
   },
 
   clearDisplay: function () {
+    this.messageLoading = false;
+    this.messageLoaded = false;
     window.close();
   },
   _updateActiveMessagePane: function() {

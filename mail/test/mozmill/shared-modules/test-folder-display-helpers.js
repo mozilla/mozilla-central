@@ -569,20 +569,49 @@ function wait_for_all_messages_to_load(aController) {
  *     message be loaded.  If you call us before the message loading is
  *     initiated, you will need to pass true for this so that we don't see
  *     that a load hasn't started and assume none is required.  Defaults to
- *     false.
+ *     false.  This relies on aController.messageDisplay.messageLoaded to
+ *     be reliable; make sure it is false when entering this function.
  */
 function wait_for_message_display_completion(aController, aLoadDemanded) {
   if (aController === undefined)
     aController = mc;
-  if ((!aLoadDemanded && !aController.messageDisplay.messageLoading) ||
-      aController.messageDisplay.messageLoaded) {
-    // even though we're taking the fast-path out, let's give the event loop a
-    //  chance to drain.
-    aController.sleep(0);
-    return;
-  }
-  controller.waitForEval('subject.messageLoaded', NORMAL_TIMEOUT,
-                         FAST_INTERVAL, aController.messageDisplay);
+  let contentPane = aController.contentPane;
+  let oldHref = null;
+
+  // There are a couple possible states the universe can be in:
+  // 1) No message load happened or is going to happen.
+  // 2) The only message load that is going to happened has happened.
+  // 3) A message load is happening right now.
+  // 4) A message load should happen in the near future.
+  //
+  // We have nothing that needs to be done in cases 1 and 2.  Case 3 is pretty
+  //  easy for us.  The question is differentiating between case 4 and (1, 2).
+  //  We rely on MessageDisplayWidget.messageLoaded to differentiate this case
+  //  for us.
+  let isLoadedChecker = function() {
+    // If a load is demanded, first require that MessageDisplayWidget think
+    //  that the message is loaded.  Because the notification is imperfect,
+    //  this will strictly happen before the URL finishes running.
+    if (aLoadDemanded && !aController.messageDisplay.messageLoaded)
+      return false;
+
+    let docShell = contentPane.docShell;
+    if (!docShell)
+      return false;
+    let uri = docShell.currentURI;
+    // the URL will tell us if it is running, saves us from potential error
+    if (uri && (uri instanceof Components.interfaces.nsIMsgMailNewsUrl)) {
+      let urlRunningObj = {};
+      uri.GetUrlState(urlRunningObj);
+      // GetUrlState returns true if the url is still running
+      return !urlRunningObj.value;
+    }
+    // not a mailnews URL, just check the busy flags...
+    return !docShell.busyFlags;
+  };
+  controller.waitForEval('subject()',
+                         NORMAL_TIMEOUT,
+                         FAST_INTERVAL, isLoadedChecker);
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);

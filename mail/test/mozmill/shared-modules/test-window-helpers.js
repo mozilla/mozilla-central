@@ -672,6 +672,9 @@ var PerWindowTypeAugmentations = {
       dbView: function () {
         return this.threadTree.view.QueryInterface(Ci.nsIMsgDBView);
       },
+      contentPane: function () {
+        return this.tabmail.getBrowserForSelectedTab();
+      },
     },
 
     /**
@@ -693,6 +696,9 @@ var PerWindowTypeAugmentations = {
    * Standalone message window.
    */
   "mail:messageWindow": {
+    elementsToExpose: {
+      contentPane: "messagepane",
+    },
     // the load is deferred, so use a getter.
     globalsToExposeViaGetters: {
       folderDisplay: "gFolderDisplay",

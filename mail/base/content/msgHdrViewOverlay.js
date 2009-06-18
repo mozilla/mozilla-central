@@ -265,7 +265,7 @@ function OnLoadMsgHeaderPane()
 
   var deckHeaderView = document.getElementById("msgHeaderViewDeck");
   gCollapsedHeaderViewMode = deckHeaderView.selectedIndex == 0;
-  
+
   // work around XUL deck bug where collapsed header view, if it's the persisted
   // default, wouldn't be sized properly because of the larger expanded
   // view "stretches" the deck.
@@ -533,6 +533,9 @@ var messageHeaderSink = {
     onEndAllAttachments: function()
     {
       displayAttachmentsForExpandedView();
+
+      gMessageDisplay.messageLoading = false;
+      gMessageDisplay.messageLoaded = true;
 
       for (index in gMessageListeners) {
         if ("onEndAttachments" in gMessageListeners[index])
@@ -883,8 +886,8 @@ function UpdateMessageHeaders()
         }
         else
         {
-          gExpandedHeaderView[headerName] = 
-            new createNewHeaderView(headerName, 
+          gExpandedHeaderView[headerName] =
+            new createNewHeaderView(headerName,
                                     currentHeaderData[headerName].headerName);
         }
 
@@ -952,7 +955,7 @@ function HideMessageHeaderPane()
   // disable the attachment box
   document.getElementById("attachmentView").collapsed = true;
   document.getElementById("attachment-splitter").collapsed = true;
-  
+
   ClearEditMessageBox();
 }
 
@@ -1088,12 +1091,12 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
   if (cardDetails.card) {
     displayName = cardDetails.card.displayName;
     aDocumentNode.setAttribute("hascard", "true");
-    aDocumentNode.setAttribute("tooltipstar", 
+    aDocumentNode.setAttribute("tooltipstar",
                                document.getElementById("editContactItem").label);
   }
   else {
     aDocumentNode.setAttribute("hascard", "false");
-    aDocumentNode.setAttribute("tooltipstar", 
+    aDocumentNode.setAttribute("tooltipstar",
                                document.getElementById("addToAddressBookItem").label);
   }
 
@@ -1185,7 +1188,7 @@ function findEmailNodeFromPopupNode(elt, popup)
   // the user clicks on the label, then popupNode is set to it, rather than
   // the description.  So we have walk up the parent until we find the
   // element with the popup set, and then return its parent.
-  
+
   while (elt.getAttribute("popup") != popup)
   {
     elt = elt.parentNode;

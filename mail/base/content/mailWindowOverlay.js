@@ -3016,9 +3016,6 @@ function OnMsgLoaded(aUrl)
   catch (ex) {}
 
   var msgHdr = gMessageDisplay.displayedMessage;
-  gMessageDisplay.messageLoading = false;
-  gMessageDisplay.messageLoaded = true;
-
   if (!folder || !msgHdr)
     return;
 
