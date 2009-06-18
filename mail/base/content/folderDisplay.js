@@ -739,11 +739,12 @@ FolderDisplayWidget.prototype = {
    * What we do:
    * - Any scrolling required!
    */
-  onAllMessagesLoaded: function() {
+  onAllMessagesLoaded: function FolderDisplayWidget_onAllMessagesLoaded() {
     this._allMessagesLoaded = true;
     this._notifyWhenActive(this._activeAllMessagesLoaded);
   },
-  _activeAllMessagesLoaded: function() {
+  _activeAllMessagesLoaded:
+      function FolderDisplayWidget__activeAllMessagesLoaded() {
     // - restore selection
     // Attempt to restore the selection (if we saved it because the view was
     //  being destroyed or otherwise manipulated in a fashion that the normal
@@ -1147,7 +1148,8 @@ FolderDisplayWidget.prototype = {
    *  If a new call ordering is required, the list of notifications should
    *  probably be reset by the 'big bang' event (new view creation?).
    */
-  _notifyWhenActive: function (aNotificationFunc) {
+  _notifyWhenActive:
+      function FolderDisplayWidget__notifyWhenActive(aNotificationFunc) {
     if (this._active) {
       aNotificationFunc.call(this);
     }

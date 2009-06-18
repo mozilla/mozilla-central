@@ -228,6 +228,9 @@ var FolderNotificationHelper = {
           catch (ex) {
             dump("``` EXCEPTION DURING NOTIFY: " + ex.fileName + ":" +
                  ex.lineNumber + ": " + ex + "\n");
+            if (ex.stack)
+              dump("STACK: " + ex.stack + "\n");
+            Cu.reportError(ex);
           }
         }
         delete this._pendingFolderUriToViewWrapperLists[folderURI];
@@ -711,6 +714,12 @@ DBViewWrapper.prototype = {
       this.dbView = null;
     }
 
+    // zero out the view update depth here.  We don't do it on open because it's
+    //  theoretically be nice to be able to start a view update before you open
+    //  something so you can defer the open.  In practice, that is not yet
+    //  tested.
+    this._viewUpdateDepth = 0;
+
     this._underlyingData = this.kUnderlyingNone;
     this._underlyingFolders = null;
     this._syntheticView = null;
@@ -1061,7 +1070,9 @@ DBViewWrapper.prototype = {
     this.displayedFolder.biffState =
       Ci.nsIMsgFolder.nsMsgBiffState_NoMail;
 
-    this.endViewUpdate();
+    // we definitely want a view at this point; force the view.
+    this._viewUpdateDepth = 0;
+    this._applyViewChanges();
 
     this.listener.onDisplayingFolder();
 
@@ -1359,14 +1370,32 @@ DBViewWrapper.prototype = {
                    (this.displayedFolder.flags & nsMsgFolderFlags.Virtual));
   },
 
+  /**
+   * Prevent view updates from running until a paired |endViewUpdate| call is
+   *  made.  This is an advisory method intended to aid us in performing
+   *  redundant view re-computations and does not forbid us from building the
+   *  view earlier if we have a good reason.
+   * Since calling endViewUpdate will compel a view update when the update
+   *  depth reaches 0, you should only call this method if you are sure that
+   *  you will need the view to be re-built.  If you are doing things like
+   *  changing to/from threaded mode that do not cause the view to be rebuilt,
+   *  you should just set those attributes directly.
+   */
   beginViewUpdate: function DBViewWrapper_beginViewUpdate() {
     this._viewUpdateDepth++;
   },
 
-  endViewUpdate: function DBViewWrapper_endViewUpdate() {
-    if (--this._viewUpdateDepth == 0) {
+  /**
+   * Conclude a paired call to |endViewUpdate|.  Assuming the view depth has
+   *  reached 0 with this call, the view will be re-created with the current
+   *  settings.
+   */
+  endViewUpdate: function DBViewWrapper_endViewUpdate(aForceLevel) {
+    if (--this._viewUpdateDepth == 0)
       this._applyViewChanges();
-    }
+    // Avoid pathological situations.
+    if (this._viewUpdateDepth < 0)
+      this._viewUpdateDepth = 0;
   },
 
   /**
