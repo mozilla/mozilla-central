@@ -1855,8 +1855,6 @@ PRUint32  nsMsgDatabase::GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags)
   (void)msgHdr->GetMessageKey(&key);
   if (!m_newSet.IsEmpty() && m_newSet[m_newSet.Length() - 1] == key || m_newSet.BinaryIndexOf(key) != -1)
     statusFlags |= nsMsgMessageFlags::New;
-  else
-    statusFlags &= ~nsMsgMessageFlags::New;
   if (IsHeaderRead(msgHdr, &isRead) == NS_OK && isRead)
     statusFlags |= nsMsgMessageFlags::Read;
   return statusFlags;
@@ -2479,7 +2477,10 @@ NS_IMETHODIMP nsMsgDatabase::ClearNewList(PRBool notify /* = FALSE */)
         (void)msgHdr->GetFlags(&flags);
 
         if ((flags | nsMsgMessageFlags::New) != flags)
+        {
+          msgHdr->AndFlags(~nsMsgMessageFlags::New, &flags);
           NotifyHdrChangeAll(msgHdr, flags | nsMsgMessageFlags::New, flags, nsnull);
+        }
       }
       if (elementIndex == 0)
         break;
