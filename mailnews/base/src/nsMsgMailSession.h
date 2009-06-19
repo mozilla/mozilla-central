@@ -128,6 +128,7 @@ private:
   nsCOMArray<nsIMsgShutdownTask> mShutdownTasks;
   nsCOMPtr<nsIMsgProgress>       mMsgProgress;
   PRUint32                       mTaskIndex;
+  PRUint32                       mQuitMode;
   PRPackedBool mProcessedShutdown;
   PRPackedBool mQuitForced;
   PRPackedBool mReadyToQuit;
