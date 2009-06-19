@@ -377,13 +377,6 @@ NS_IMETHODIMP nsMsgComposeAndSend::GetDefaultPrompt(nsIPrompt ** aPrompt)
 
   nsresult rv = NS_OK;
 
-  if (mSendProgress)
-  {
-    rv = mSendProgress->GetPrompter(aPrompt);
-    if (NS_SUCCEEDED(rv) && *aPrompt)
-      return NS_OK;
-  }
-
   if (mParentWindow)
   {
     rv = mParentWindow->GetPrompter(aPrompt);

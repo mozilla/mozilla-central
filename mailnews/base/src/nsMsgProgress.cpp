@@ -88,7 +88,6 @@ NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindowInternal *parent,
     aMsgWindow->SetStatusFeedback(this);
   }
   
-  NS_ENSURE_TRUE(!m_dialog, NS_ERROR_ALREADY_INITIALIZED);
   NS_ENSURE_ARG_POINTER(dialogURL);
   NS_ENSURE_ARG_POINTER(parent);
   
@@ -125,14 +124,6 @@ NS_IMETHODIMP nsMsgProgress::CloseProgressDialog(PRBool forceClose)
 {
   m_closeProgress = PR_TRUE;
   return OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, forceClose ? NS_ERROR_FAILURE : NS_OK);
-}
-
-/* nsIPrompt GetPrompter (); */
-NS_IMETHODIMP nsMsgProgress::GetPrompter(nsIPrompt **_retval)
-{
-  NS_ENSURE_ARG_POINTER(_retval);
-  *_retval = nsnull;
-  return (! m_closeProgress && m_dialog) ? m_dialog->GetPrompter(_retval) : NS_ERROR_FAILURE;
 }
 
 /* attribute boolean processCanceledByUser; */
