@@ -30,6 +30,7 @@
  *   Christopher Thomas <cst@yecc.com>
  *   Jeremy Morton <bugzilla@game-point.net>
  *   Andrew Sutherland <asutherland@asutherland.org>
+ *   Dan Mosedale <dmose@mozilla.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -908,8 +909,7 @@ function UpdateReplyButtons()
   else if (showReplyAll)
     buttonToShow = "replyAll";
 
-  let buttonBox = document.getElementById(gCollapsedHeaderViewMode ?
-    "collapsedButtonBox" : "expandedButtonBox");
+  let buttonBox = getCurrentMsgHdrButtonBox();
 
   let replyButton = buttonBox.getButton("hdrReplyButton");
   let replyAllButton = buttonBox.getButton("hdrReplyAllButton");
@@ -2144,12 +2144,8 @@ function UpdateJunkButton()
   let hideJunk = (junkScore != "") && (junkScore != "0");
   if (gFolderDisplay.selectedMessageIsNews)
     hideJunk = true;
-  // which DOM node is the current junk button in the
-  // message reader depends on whether it's the collapsed or
-  // expanded header
-  let buttonBox = document.getElementById(gCollapsedHeaderViewMode ?
-                     "collapsedButtonBox" : "expandedButtonBox");
-  buttonBox.getButton('hdrJunkButton').disabled = hideJunk;
+
+  getCurrentMsgHdrButtonBox().getButton('hdrJunkButton').disabled = hideJunk;
 }
 
 function MsgMarkMsgAsRead()

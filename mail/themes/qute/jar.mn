@@ -208,8 +208,6 @@ classic.jar:
   skin/classic/messenger/icons/arrow/arrow-right-dim.png      (mail/icons/arrow/arrow-right-dim.png)
   skin/classic/messenger/icons/arrow/arrow-up-dim.png         (mail/icons/arrow/arrow-up-dim.png)
   skin/classic/messenger/icons/arrow/arrow-down-dim.png       (mail/icons/arrow/arrow-down-dim.png)
-  skin/classic/messenger/icons/chevron.png                    (mail/icons/chevron.png)
-  skin/classic/messenger/icons/croppedchevron.png             (mail/icons/croppedchevron.png)
   skin/classic/messenger/tagbg.png                            (mail/tagbg.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/ os=WINNT osversion<6
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/ os!=WINNT
@@ -395,8 +393,6 @@ classic.jar:
   skin/classic/aero/messenger/icons/arrow/arrow-right-dim.png      (mail/icons/arrow/arrow-right-dim.png)
   skin/classic/aero/messenger/icons/arrow/arrow-up-dim.png         (mail/icons/arrow/arrow-up-dim.png)
   skin/classic/aero/messenger/icons/arrow/arrow-down-dim.png       (mail/icons/arrow/arrow-down-dim.png)
-  skin/classic/aero/messenger/icons/chevron.png                    (mail/icons/chevron.png)
-  skin/classic/aero/messenger/icons/croppedchevron.png             (mail/icons/croppedchevron.png)
   skin/classic/aero/messenger/tagbg.png                            (mail/tagbg.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/aero/messenger-newsblog/ os=WINNT osversion>=6
   skin/classic/aero/messenger-newsblog/feed-subscriptions.css      (mail/newsblog/feed-subscriptions.css)

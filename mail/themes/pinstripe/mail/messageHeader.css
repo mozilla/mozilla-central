@@ -50,10 +50,6 @@
 }
 
 /* ::::: msg header toolbars ::::: */
-#collapsedHeaderView {
-  min-width: 1px;
-}
-
 #expandedHeaderView {
   overflow-x: hidden;
   overflow-y: visible;
@@ -62,10 +58,6 @@
 
 #variousHeadersBox{
   padding-bottom: 1em;
-}
-
-#collapsedHeaderDisplayName {
-  text-align: left;
 }
 
 /* ::::: msg header buttons ::::: */
@@ -104,49 +96,6 @@
 .msgHeaderView-flat-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
 .msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
-}
-
-#hideDetailsButton {
-  font-weight: normal;
-  font-size: 100%;
-  background: none;
-  color: #41413F; /* higher contrast */
-  border: 2px solid transparent;
-  font-size: 100%;
-}
-
-#hideDetailsButton:hover {
-  color: black;
-  background-color: rgb(230,231,227);
-  border: 2px solid #C0C3C6;
-}
-
-#collapsedsubjectValue {
-  -moz-margin-start: 3px !important;
-  -moz-box-align: stretch;
-  font-weight: bold;
-}
-
-#collapseddateValue {
-  -moz-box-align: stretch;
-  text-align: right;
-  -moz-padding-end: 0.5em !important;
-}
-
-#showDetailsButton {
-  -moz-appearance: none !important;
-  border: 2px solid transparent;
-  background-color: transparent;
-  width: 22px;
-  padding-bottom: 0px !important;
-  background-image: url("chrome://messenger/skin/icons/chevron.png");
-  background-repeat: no-repeat;
-  background-position: center center;
-}
-
-#showDetailsButton:hover {
-  background-color: rgb(230,231,227);
-  border: 2px solid #C0C3C6;
 }
 
 .hdrTrashButton {
@@ -442,29 +391,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   color: inherit;
 }
 
-#collapsedsubjectBox {
-  margin: 0px;
-  padding: 0px;
-}
-
-#collapsedfromValue > .headerNameBox {
-  display: none;
-}
-
-#collapsedtoCcBccValue > .headerNameBox {
-  display: none;
-}
-
-#collapsedtoCcBccValue > .headerValueBox[singleline] {
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-#collapsedtoCcBccValue > .headerValueBox:not([singleline]) {
-  padding-top: 0.5em;
-  padding-bottom: 0;
-}
-
 .moreIndicator {
   font-weight: bold;
   font-size: small;
@@ -622,10 +548,6 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 
 .expandHeaderViewButton {
   list-style-image:url("chrome://messenger/skin/icons/twisty-open.gif");
-}
-
-.collapsedHeaderViewButton  {
-  list-style-image:url("chrome://messenger/skin/icons/twisty-closed.gif");
 }
 
 /* ::::: collapsed view styles ::::: */
