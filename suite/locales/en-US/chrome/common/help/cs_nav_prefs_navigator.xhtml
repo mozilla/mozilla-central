@@ -136,21 +136,35 @@
     visible, double-click Browser to expand the list.)</li>
 </ol>
 
-<p>The History preferences panel allows you to configure three history settings
+<p>The History preferences panel allows you to configure the history settings
   for the browser.</p>
 
 <ul>
   <li><strong>Browsing History</strong>:
     <ul>
-      <li><strong>Remember visited pages for the last [__] days</strong>: Type
-        the number of days you want &brandShortName; to keep track of the web
-        pages you have previously visited. For example, if you set this number
-        to 10 days, pages 10 days old or less will be kept in the history
-        list.</li>
+      <li><strong>Clear History</strong>: Click this to delete the list of
+        sites visited.</li>
+      <li><strong>Always remember visited pages for at least [__]
+        days</strong>: Type the minimum number of days for which
+        &brandShortName; should remember pages you have previously visited.
+        Unless you manually delete entries from the history, &brandShortName;
+        will always remember visited pages for at least as many days as you
+        specify here, no matter what the other Browsing History preferences
+        say. After that time, &brandShortName; may delete entries from the
+        history, depending on the next two preferences.</li>
+      <li><strong>Remember visited pages for up to [__] days</strong>: Type the
+        maximum number of days you want &brandShortName; to keep track of the
+        web pages you have previously visited. For example, if you set this
+        number to 180 days, pages 180 days old or less will be kept in the
+        history list unless you manually delete them from the history or the
+        maximum number of visited pages (see next point) has been reached.</li>
+      <li><strong>Remember up to [__] visited pages</strong>: Type the maximum
+        number of visited pages &brandShortName; should remember. When the
+        actual number of visited pages exceeds the number specified here,
+        &brandShortName; will delete as many of the oldest history entries as
+        needed to get down to that number again.</li>
     </ul>
   </li>
-  <li><strong>Clear History</strong>: Click this to delete the list of sites
-    visited.</li>
   <li><strong>Location Bar History</strong>:
     <ul>
       <li><strong>Clear Location Bar</strong>: Click this to clear the list of
@@ -293,10 +307,37 @@
         Select this to let &brandShortName; automatically show suggestions from
         your browsing history when you type in the Location Bar.
         <ul>
-          <li><strong>Match only website&apos;s you&apos;ve typed
-            previously</strong>: Shows only websites that you&apos;ve typed in
-            the Location Bar and not sites that were opened in other ways, such
-            as clicking a link on a web page.</li>
+          <li><strong>Match only websites you&apos;ve typed previously</strong>:
+            Shows only websites that you&apos;ve typed in the Location Bar and
+            not sites that were opened in other ways, such as clicking a link on
+            a web page.</li>
+          <li><strong>Only match locations, not website titles</strong>: Shows
+            only websites where the location matches what you typed. Websites
+            where the title matches what you typed will not show up as
+            autocomplete suggestions unless their location matches, too.</li>
+          <li><strong>Match</strong>:
+            <ul>
+              <li><strong>Anywhere in the location or title</strong>: The
+                autocomplete suggestions will include all websites where what
+                you typed matches any part of the website&apos;s location or
+                title.</li>
+              <li><strong>Anywhere but preferring word boundaries</strong>: The
+                autocomplete suggestions will include all websites where what
+                you typed matches any part of the website&apos;s location or
+                title but matches at word boundaries (see next point) are
+                preferred. This is the default setting.</li>
+              <li><strong>Only on word boundaries</strong>: The autocomplete
+                suggestions will include all websites where what you typed
+                matches the beginning of any word contained in the
+                website&apos;s location or title. Matches may also be found
+                inside a word if it contains medial capital letters (as in
+                CamelCase) since all non-lowercase characters are treated as
+                word boundaries.</li>
+              <li><strong>Only at the beginning of the location or
+                title</strong>: The autocomplete suggestions will include all
+                websites where what you typed matches the beginning of the
+                website&apos;s location or title.</li>
+            </ul></li>
           <li><strong>Automatically prefill the best match</strong>: As you
             type in the Location Bar, &brandShortName; will automatically
             complete your web address using the visited website it most closely

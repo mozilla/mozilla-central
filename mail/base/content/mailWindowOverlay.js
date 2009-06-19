@@ -1,50 +1,50 @@
-# -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-1999
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   timeless
-#   slucy@objectivesw.co.uk
-#   Håkan Waara <hwaara@chello.se>
-#   Jan Varga <varga@nixcorp.com>
-#   Seth Spitzer <sspitzer@netscape.com>
-#   David Bienvenu <bienvenu@nventure.com>
-#   Karsten Düsterloh <mnyromyr@tprac.de>
-#   Christopher Thomas <cst@yecc.com>
-#   Jeremy Morton <bugzilla@game-point.net>
-#   Andrew Sutherland <asutherland@asutherland.org>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   timeless
+ *   slucy@objectivesw.co.uk
+ *   Håkan Waara <hwaara@chello.se>
+ *   Jan Varga <varga@nixcorp.com>
+ *   Seth Spitzer <sspitzer@netscape.com>
+ *   David Bienvenu <bienvenu@nventure.com>
+ *   Karsten Düsterloh <mnyromyr@tprac.de>
+ *   Christopher Thomas <cst@yecc.com>
+ *   Jeremy Morton <bugzilla@game-point.net>
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *   Dan Mosedale <dmose@mozilla.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 const ADDR_DB_LARGE_COMMIT       = 1;
 
@@ -158,7 +158,7 @@ function InitGoMessagesMenu()
 
 function view_init()
 {
-  var isFeed = IsFeedItem();
+  var isFeed = gFolderDisplay.selectedMessageIsFeed;
 
   if (!gMessengerBundle)
     gMessengerBundle = document.getElementById("bundle_messenger");
@@ -237,9 +237,13 @@ function setSortByMenuItemCheckState(id, value)
     menuitem.setAttribute("checked", value);
 }
 
+/**
+ * Called when showing the menu_viewSortPopup menupopup, so it should always
+ * be up-to-date.
+ */
 function InitViewSortByMenu()
 {
-  var sortType = gDBView.sortType;
+  var sortType = gFolderDisplay.view.primarySortType;
 
   setSortByMenuItemCheckState("sortByDateMenuitem", (sortType == nsMsgViewSortType.byDate));
   setSortByMenuItemCheckState("sortByReceivedMenuitem", (sortType == nsMsgViewSortType.byReceived));
@@ -256,7 +260,7 @@ function InitViewSortByMenu()
   setSortByMenuItemCheckState("sortByRecipientMenuitem", (sortType == nsMsgViewSortType.byRecipient));
   setSortByMenuItemCheckState("sortByAttachmentsMenuitem", (sortType == nsMsgViewSortType.byAttachments));
 
-  var sortOrder = gDBView.sortOrder;
+  var sortOrder = gFolderDisplay.view.primarySortOrder;
   var sortTypeSupportsGrouping = (sortType == nsMsgViewSortType.byAuthor ||
       sortType == nsMsgViewSortType.byDate || sortType == nsMsgViewSortType.byReceived ||
       sortType == nsMsgViewSortType.byPriority ||
@@ -268,8 +272,8 @@ function InitViewSortByMenu()
   setSortByMenuItemCheckState("sortAscending", (sortOrder == nsMsgViewSortOrder.ascending));
   setSortByMenuItemCheckState("sortDescending", (sortOrder == nsMsgViewSortOrder.descending));
 
-  var grouped = ((gDBView.viewFlags & nsMsgViewFlagsType.kGroupBySort) != 0);
-  var threaded = ((gDBView.viewFlags & nsMsgViewFlagsType.kThreadedDisplay) != 0 && !grouped);
+  var grouped = gFolderDisplay.view.showGroupedBySort;
+  var threaded = gFolderDisplay.view.showThreaded;
   var sortThreadedMenuItem = document.getElementById("sortThreaded");
   var sortUnthreadedMenuItem = document.getElementById("sortUnthreaded");
 
@@ -284,31 +288,28 @@ function InitViewSortByMenu()
 
 function InitViewMessagesMenu()
 {
-  var viewFlags = (gDBView) ? gDBView.viewFlags : 0;
-  var viewType = (gDBView) ? gDBView.viewType : 0;
-
   document.getElementById("viewAllMessagesMenuItem").setAttribute("checked",
-    (viewFlags & nsMsgViewFlagsType.kUnreadOnly) == 0 &&
-    (viewType == nsMsgViewType.eShowAllThreads));
+    !gFolderDisplay.view.showUnreadOnly &&
+    !gFolderDisplay.view.specialView);
 
   document.getElementById("viewUnreadMessagesMenuItem").setAttribute("checked",
-    (viewFlags & nsMsgViewFlagsType.kUnreadOnly) != 0);
+    gFolderDisplay.view.showUnreadOnly);
 
   document.getElementById("viewThreadsWithUnreadMenuItem").setAttribute("checked",
-    viewType == nsMsgViewType.eShowThreadsWithUnread);
+    gFolderDisplay.view.specialViewThreadsWithUnread);
 
   document.getElementById("viewWatchedThreadsWithUnreadMenuItem").setAttribute("checked",
-    viewType == nsMsgViewType.eShowWatchedThreadsWithUnread);
+    gFolderDisplay.view.specialViewWatchedThreadsWithUnread);
 
   document.getElementById("viewIgnoredThreadsMenuItem").setAttribute("checked",
-    (viewFlags & nsMsgViewFlagsType.kShowIgnored) != 0);
+    gFolderDisplay.view.showIgnored);
 }
 
 function InitMessageMenu()
 {
-  var selectedMsg = GetFirstSelectedMessage();
-  var isNews = IsNewsMessage(selectedMsg);
-  var isFeed = IsFeedItem();
+  var selectedMsg = gFolderDisplay.selectedMessage;
+  var isNews = gFolderDisplay.selectedMessageIsNews;
+  var isFeed = gFolderDisplay.selectedMessageIsFeed;
 
   // We show reply to Newsgroups only for news messages.
   document.getElementById("replyNewsgroupMainMenu").hidden = !isNews;
@@ -325,7 +326,7 @@ function InitMessageMenu()
 
   // Disable the move and copy menus if there are no messages selected.
   // Disable the move menu if we can't delete msgs from the folder.
-  var msgFolder = GetLoadedMsgFolder();
+  var msgFolder = gFolderDisplay.displayedFolder;
   var enableMenuItem = selectedMsg && msgFolder && msgFolder.canDeleteMessages;
   document.getElementById("moveMenu").disabled = !enableMenuItem;
 
@@ -416,7 +417,7 @@ function InitViewBodyMenu()
   var html_as = 0;
   var prefer_plaintext = false;
   var disallow_classes = 0;
-  var isFeed = IsFeedItem();
+  var isFeed = gFolderDisplay.selectedMessageIsFeed;
   const defaultIDs = ["bodyAllowHTML",
                       "bodySanitized",
                       "bodyAsPlaintext"];
@@ -470,24 +471,6 @@ function InitViewBodyMenu()
   }
 }
 
-function IsNewsMessage(messageUri)
-{
-  return (/^news-message:/.test(messageUri));
-}
-
-function IsImapMessage(messageUri)
-{
-  return (/^imap-message:/.test(messageUri));
-}
-
-function IsFeedItem()
-{
-  return (GetFirstSelectedMessage() &&
-          ((gMsgFolderSelected &&
-            gMsgFolderSelected.server.type == 'rss') ||
-           'content-base' in currentHeaderData));
-}
-
 function SetMenuItemLabel(menuItemId, customLabel)
 {
   var menuItem = document.getElementById(menuItemId);
@@ -497,8 +480,8 @@ function SetMenuItemLabel(menuItemId, customLabel)
 
 function RemoveAllMessageTags()
 {
-  var selectedMsgUris = GetSelectedMessages();
-  if (!selectedMsgUris.length)
+  var selectedMessages = gFolderDisplay.selectedMessages;
+  if (!selectedMessages.length)
     return;
 
   var messages = Components.classes["@mozilla.org/array;1"]
@@ -523,9 +506,9 @@ function RemoveAllMessageTags()
   // key argument. Furthermore, we only delete legacy labels and known tags,
   // keeping other keywords like (non)junk intact.
 
-  for (var i = 0; i < selectedMsgUris.length; ++i)
+  for (var i = 0; i < selectedMessages.length; ++i)
   {
-    var msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
+    var msgHdr = selectedMessages[i];
     msgHdr.label = 0; // remove legacy label
     if (prevHdrFolder != msgHdr.folder)
     {
@@ -547,7 +530,7 @@ function ToggleMessageTagKey(index)
     return;
   // set the tag state based upon that of the first selected message,
   // just like we do for markAsRead etc.
-  var msgHdr = gDBView.hdrForFirstSelectedMessage;
+  var msgHdr = gFolderDisplay.selectedMessage;
   var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
                              .getService(Components.interfaces.nsIMsgTagService);
   var tagArray = tagService.getAllTags({});
@@ -580,7 +563,7 @@ function ToggleMessageTag(key, addKey)
                            .createInstance(Components.interfaces.nsIMutableArray);
   var msg = Components.classes["@mozilla.org/array;1"]
                       .createInstance(Components.interfaces.nsIMutableArray);
-  var selectedMsgUris = GetSelectedMessages();
+  var selectedMessages = gFolderDisplay.selectedMessages;
   var toggler = addKey ? "addKeywordsToMessages" : "removeKeywordsFromMessages";
   var prevHdrFolder = null;
   // this crudely handles cross-folder virtual folders with selected messages
@@ -588,9 +571,9 @@ function ToggleMessageTag(key, addKey)
   // that happen to be in the same folder. nsMsgSearchDBView does this
   // better, but nsIMsgDBView doesn't handle commands with arguments,
   // and (un)tag takes a key argument.
-  for (var i = 0; i < selectedMsgUris.length; ++i)
+  for (var i = 0; i < selectedMessages.length; ++i)
   {
-    var msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
+    var msgHdr = selectedMessages[i];
     if (msgHdr.label)
     {
       // Since we touch all these messages anyway, migrate the label now.
@@ -648,7 +631,7 @@ function SetMessageTagLabel(menuitem, index, name)
   var accesskey = shortcutkey ? shortcutkey.getAttribute("key") : "";
   if (accesskey)
     menuitem.setAttribute("accesskey", accesskey);
-  var label = gMessengerBundle.getFormattedString("mailnews.tags.format", 
+  var label = gMessengerBundle.getFormattedString("mailnews.tags.format",
                                                   [accesskey, name]);
   menuitem.setAttribute("label", label);
 }
@@ -673,7 +656,7 @@ function InitMessageTags(menuPopup)
   SetMessageTagLabel(menuPopup.firstChild, 0, tagRemoveLabel);
 
   // now rebuild the list
-  var msgHdr = gDBView.hdrForFirstSelectedMessage;
+  var msgHdr = gFolderDisplay.selectedMessage;
   var curKeys = msgHdr.getStringProperty("keywords");
   if (msgHdr.label)
     curKeys += " $label" + msgHdr.label;
@@ -691,7 +674,7 @@ function InitMessageTags(menuPopup)
     newMenuItem.setAttribute('oncommand', 'ToggleMessageTagMenu(event.target);');
     var color = taginfo.color;
     if (color)
-      newMenuItem.setAttribute("class", "lc-" + color.substr(1));    
+      newMenuItem.setAttribute("class", "lc-" + color.substr(1));
     menuPopup.insertBefore(newMenuItem, menuseparator);
   }
 }
@@ -727,7 +710,7 @@ function populateHistoryMenu(menuPopup, isBackMenu)
   var historyArray = historyEntries.value;
   var folder;
   var newMenuItem;
-  if (GetLoadedMessage())
+  if (gFolderDisplay.selectedMessage)
   {
     if (!isBackMenu)
       curPos.value += 2;
@@ -742,13 +725,18 @@ function populateHistoryMenu(menuPopup, isBackMenu)
   {
     navDebug("history[" + i + "] = " + historyArray[i] + "\n");
     navDebug("history[" + i + "] = " + historyArray[i + 1] + "\n");
-    folder = GetMsgFolderFromUri(historyArray[i + 1])
+    folder = GetMsgFolderFromUri(historyArray[i + 1]);
     navDebug("folder URI = " + folder.URI + "pretty name " + folder.prettyName + "\n");
     var menuText = "";
 
-    var msgHdr = messenger.msgHdrFromURI(historyArray[i]);
-    if (!IsCurrentLoadedFolder(folder))
+    // If the message was not being displayed via the current folder, prepend
+    //  the folder name.  We do not need to check underlying folders for
+    //  virtual folders because 'folder' is the display folder, not the
+    //  underlying one.
+    if (folder != gFolderDisplay.displayedFolder)
       menuText = folder.prettyName + " - ";
+
+    var msgHdr = messenger.msgHdrFromURI(historyArray[i]);
 
     var subject = "";
     if (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.HasRe)
@@ -771,6 +759,10 @@ function populateHistoryMenu(menuPopup, isBackMenu)
   }
 }
 
+/**
+ * This is triggered by the history navigation menu options, as created by
+ *  populateHistoryMenu above.
+ */
 function NavigateToUri(target)
 {
   var historyIndex = target.getAttribute('value');
@@ -781,7 +773,14 @@ function NavigateToUri(target)
 
   // this "- 0" seems to ensure that historyIndex is treated as an int, not a string.
   messenger.navigatePos += (historyIndex - 0);
-  LoadNavigatedToMessage(msgHdr, folder, folder.URI);
+
+  if (gFolderDisplay.displayedFolder != folder) {
+    if (gFolderTreeView)
+      gFolderTreeView.selectFolder(folder);
+    else
+      gFolderDisplay.show(folder);
+  }
+  gFolderDisplay.selectMessage(msgHdr);
 }
 
 function forwardToolbarMenu_init(menuPopup)
@@ -807,46 +806,98 @@ function UpdateJunkToolbarButton()
     junkButtonDeck.selectedIndex = SelectedMessagesAreJunk() ? 1 : 0;
 }
 
-function UpdateReplyButtons()
+/**
+ * Should the reply command/button be enabled?
+ *
+ * @return whether the reply command/button should be enabled.
+ */
+function IsReplyEnabled()
 {
-  let msgHdr = messenger.msgHdrFromURI(GetLoadedMessage());
+  // If we're in an rss item, we never want to Reply, because there's
+  // usually no-one useful to reply to.
+  return !gFolderDisplay.selectedMessageIsFeed;
+}
+
+/**
+ * Should the reply-all command/button be enabled?
+ *
+ * @return whether the reply-all command/button should be enabled.
+ */
+function IsReplyAllEnabled()
+{
+  if (gFolderDisplay.selectedMessageIsNews)
+    // If we're in a news item, we always want ReplyAll, because we can
+    // reply to the sender and the newsgroup.
+    return true;
+  if (gFolderDisplay.selectedMessageIsFeed)
+    // If we're in an rss item, we never want to ReplyAll, because there's
+    // usually no-one useful to reply to.
+    return false;
+
+  let msgHdr = gFolderDisplay.selectedMessage;
 
   let myEmail = getIdentityForHeader(msgHdr).email;
-  let recipients = msgHdr.recipients + "," + msgHdr.ccList;
+  let addresses = msgHdr.author + "," + msgHdr.recipients + "," + msgHdr.ccList;
 
-  // If my email address isn't in the to or cc list, then I've been bcc-ed.
-  let imBcced = recipients.indexOf(myEmail) == -1;
+  // If we've got any BCCed addresses (because we sent the message), add
+  // them as well.
+  if ("bcc" in currentHeaderData)
+    addresses += currentHeaderData.bcc.headerValue;
 
-  // Now, let's get the number of unique recipients
+  // Check to see if my email address is in the list of addresses.
+  let imInAddresses = addresses.indexOf(myEmail) != -1;
+
+  // Now, let's get the number of unique addresses.
   let hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                             .getService(Components.interfaces.nsIMsgHeaderParser);
-  let uniqueRecipients = hdrParser.removeDuplicateAddresses(recipients, {});
-  let numAddresses = hdrParser.parseHeadersWithArray(uniqueRecipients, {}, {}, {});
+  let uniqueAddresses = hdrParser.removeDuplicateAddresses(addresses, "");
+  let emailAddresses = {};
+  let numAddresses = hdrParser.parseHeadersWithArray(uniqueAddresses,
+                                                     emailAddresses, {}, {});
 
-  // If I've been bcc-ed, then add 1 to the number of addresses to compensate.
-  if (imBcced)
-    numAddresses++
-
-  // By default, ReplyAll if there is more than 1 person to reply to.
-  let showReplyAll = numAddresses > 1;
-
-  // And ReplyToList if there is a List-Post header.
-  let showReplyList = currentHeaderData["list-post"];
-
-  // Get the server type.
-  let serverType = null;
-  try
+  // XXX: This should be handled by the nsIMsgHeaderParser.  See Bug 498480.
+  // Remove addresses that look like email groups, because we don't support
+  // those yet.  (Any address with a : in it will be an empty email group,
+  // or the colon and the groupname would be set as the first name, and not
+  // show up in the address at all.)
+  for (var i in emailAddresses.value)
   {
-    serverType = msgHdr.folder.server.type;
-  }
-  catch (ex)
-  {
-    // This empty catch block needs to be here because msgHdr.folder will
-    // throw an exception when you try to access it on a .eml file.
+    if (/:/.test(emailAddresses.value[i]))
+      numAddresses--;
   }
 
-  // But, if we're in a news item, we should default to Reply.
-  if (serverType == "nntp")
+  // I don't want to count my address in the number of addresses to reply
+  // to, since I won't be emailing myself.
+  if (imInAddresses)
+    numAddresses--;
+
+  // ReplyAll is enabled if there is more than 1 person to reply to.
+  return numAddresses > 1;
+}
+
+/**
+ * Should the reply-list command/button be enabled?
+ *
+ * @return whether the reply-list command/button should be enabled.
+ */
+function IsReplyListEnabled()
+{
+  // ReplyToList is enabled if there is a List-Post header.
+  return currentHeaderData["list-post"] != null;
+}
+
+/**
+ * Update the enabled/disabled states of the Reply, Reply-All, and
+ * Reply-List buttons.  (After this function runs, one of the buttons
+ * should be shown, and the others should be hidden.)
+ */
+function UpdateReplyButtons()
+{
+  let showReplyAll = IsReplyAllEnabled();
+  let showReplyList = IsReplyListEnabled();
+
+  // If we're in a news item, we should default to Reply.
+  if (gFolderDisplay.selectedMessageIsNews)
   {
     showReplyAll = false;
     showReplyList = false;
@@ -858,8 +909,7 @@ function UpdateReplyButtons()
   else if (showReplyAll)
     buttonToShow = "replyAll";
 
-  let buttonBox = document.getElementById(gCollapsedHeaderViewMode ?
-    "collapsedButtonBox" : "expandedButtonBox");
+  let buttonBox = getCurrentMsgHdrButtonBox();
 
   let replyButton = buttonBox.getButton("hdrReplyButton");
   let replyAllButton = buttonBox.getButton("hdrReplyAllButton");
@@ -871,19 +921,13 @@ function UpdateReplyButtons()
   replyAllButton.hidden = (buttonToShow != "replyAll");
   replyListButton.hidden = (buttonToShow != "replyList");
 
-  let replyListMenu = document.getElementById("menu_replyToList");
-  replyListMenu.hidden = !showReplyList;
-
-  let replyListCommand = document.getElementById("cmd_replylist");
-  replyListCommand.disabled = !showReplyList;
-
-  if (serverType == "nntp")
+  if (gFolderDisplay.selectedMessageIsNews)
   {
     // If it's a news item, show the ReplyAll sub-button and separator.
     replyAllSubButton.hidden = false;
     replyAllSubButtonSep.hidden = false;
   }
-  else if (serverType == "rss")
+  else if (gFolderDisplay.selectedMessageIsFeed)
   {
     // otherwise, if it's an rss item, hide all the Reply buttons.
     replyButton.hidden = true;
@@ -898,6 +942,10 @@ function UpdateReplyButtons()
     replyAllSubButton.hidden = true;
     replyAllSubButtonSep.hidden = true;
   }
+
+  goUpdateCommand("button_reply");
+  goUpdateCommand("button_replyall");
+  goUpdateCommand("button_replylist");
 }
 
 function UpdateDeleteToolbarButton()
@@ -918,8 +966,7 @@ function UpdateDeleteToolbarButton()
 function UpdateDeleteCommand()
 {
   var value = "value";
-  var uri = GetFirstSelectedMessage();
-  if (IsNewsMessage(uri))
+  if (gFolderDisplay.selectedMessageIsNews)
     value += "News";
   else if (SelectedMessagesAreDeleted())
     value += "IMAPDeleted";
@@ -933,15 +980,16 @@ function UpdateDeleteCommand()
 
 function SelectedMessagesAreDeleted()
 {
-  return gDBView && gDBView.numSelected &&
-         (gDBView.hdrForFirstSelectedMessage.flags &
+  let firstSelectedMessage = gFolderDisplay.selectedMessage;
+  return firstSelectedMessage &&
+         (firstSelectedMessage.flags &
           Components.interfaces.nsMsgMessageFlags.IMAPDeleted);
 }
 
 function SelectedMessagesAreJunk()
 {
   try {
-    var junkScore = gDBView.hdrForFirstSelectedMessage.getStringProperty("junkscore");
+    var junkScore = gFolderDisplay.selectedMessage.getStringProperty("junkscore");
     return (junkScore != "") && (junkScore != "0");
   }
   catch (ex) {
@@ -951,14 +999,14 @@ function SelectedMessagesAreJunk()
 
 function SelectedMessagesAreRead()
 {
-  return gDBView && gDBView.numSelected &&
-         gDBView.hdrForFirstSelectedMessage.isRead;
+  let firstSelectedMessage = gFolderDisplay.selectedMessage;
+  return firstSelectedMessage && firstSelectedMessage.isRead;
 }
 
 function SelectedMessagesAreFlagged()
 {
-  return gDBView && gDBView.numSelected &&
-         gDBView.hdrForFirstSelectedMessage.isFlagged;
+  let firstSelectedMessage = gFolderDisplay.selectedMessage;
+  return firstSelectedMessage && firstSelectedMessage.isFlagged;
 }
 
 function GetFirstSelectedMsgFolder()
@@ -1097,10 +1145,10 @@ function MsgDeleteMessage(reallyDelete, fromToolbar)
 {
   // If from the toolbar, return right away if this is a news message
   // only allow cancel from the menu:  "Edit | Cancel / Delete Message".
-  if (fromToolbar && isNewsURI(GetLoadedMsgFolder().URI))
+  if (fromToolbar && gFolderDisplay.view.isNewsFolder)
     return;
 
-  SetNextMessageAfterDelete();
+  gFolderDisplay.hintAboutToDeleteMessages();
   if (reallyDelete)
     gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
   else
@@ -1129,7 +1177,7 @@ function MsgMoveMessage(aDestFolder)
     gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, aDestFolder);
   else
   {
-    SetNextMessageAfterDelete();
+    gFolderDisplay.hintAboutToDeleteMessages();
     gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, aDestFolder);
   }
   pref.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolder.URI);
@@ -1147,11 +1195,13 @@ function composeMsgByType(aCompType, aEvent) {
   if (aEvent && aEvent.shiftKey) {
     ComposeMessage(aCompType,
                    Components.interfaces.nsIMsgCompFormat.OppositeOfDefault,
-                   GetFirstSelectedMsgFolder(), GetSelectedMessages());
+                   GetFirstSelectedMsgFolder(),
+                   gFolderDisplay.selectedMessageUris);
   }
   else {
     ComposeMessage(aCompType, Components.interfaces.nsIMsgCompFormat.Default,
-                   GetFirstSelectedMsgFolder(), GetSelectedMessages());
+                   GetFirstSelectedMsgFolder(),
+                   gFolderDisplay.selectedMessageUris);
   }
 }
 
@@ -1162,7 +1212,7 @@ function MsgNewMessage(event)
 
 function MsgReplyMessage(event)
 {
-  var loadedFolder = GetLoadedMsgFolder();
+  var loadedFolder = gFolderDisplay.displayedFolder;
   if (loadedFolder)
   {
     var server = loadedFolder.server;
@@ -1207,24 +1257,21 @@ BatchMessageMover.prototype = {
 
   archiveSelectedMessages: function()
   {
-    // subtle:
-    SetNextMessageAfterDelete(); // we're just pretending
-    this.messageToSelectAfterWereDone = gNextMessageViewIndexAfterDelete;
-    gNextMessageViewIndexAfterDelete = -2;
+    gFolderDisplay.hintMassMoveStarting();
 
-    let selectedMsgUris = GetSelectedMessages();
-    if (!selectedMsgUris.length)
+    let selectedMessages = gFolderDisplay.selectedMessages;
+    if (!selectedMessages.length)
       return;
-    
+
     let messages = Components.classes["@mozilla.org/array;1"]
                              .createInstance(Components.interfaces.nsIMutableArray);
-    
-    for (let i = 0; i < selectedMsgUris.length; ++i)
+
+    for (let i = 0; i < selectedMessages.length; ++i)
     {
-      let msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
-  
+      let msgHdr = selectedMessages[i];
+
       let rootFolder = msgHdr.folder.server.rootFolder;
-  
+
       let msgDate = new Date(msgHdr.date / 1000);  // convert date to JS date object
       let msgYear = msgDate.getFullYear().toString();
       let monthFolderName = msgDate.toLocaleFormat("%Y-%m")
@@ -1240,7 +1287,7 @@ BatchMessageMover.prototype = {
     // one in turn
     this.processNextBatch();
   },
-  
+
   processNextBatch: function()
   {
     for (let key in this._batches)
@@ -1261,8 +1308,8 @@ BatchMessageMover.prototype = {
 
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
       let granularity = archiveFolder.server.archiveGranularity;
-      // for imap folders, we need to create the sub-folders asynchronously, 
-      // so we chain the urls using the listener called back from 
+      // for imap folders, we need to create the sub-folders asynchronously,
+      // so we chain the urls using the listener called back from
       // createStorageIfMissing. For local, creatStorageIfMissing is
       // synchronous.
       let isImap = archiveFolder.server.type == "imap";
@@ -1354,18 +1401,10 @@ BatchMessageMover.prototype = {
         empty = false;
       }
 
-      if (empty)
-      {
-        // we're just going to select the message now
-        var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
-        var treeSelection = treeView.selection;
-        treeSelection.select(this.messageToSelectAfterWereDone);
-        treeView.selectionChanged();
-      }
-      else
-      {
+      if (!empty)
         this.processNextBatch();
-      }
+      else // this will select the appropriate next message
+        gFolderDisplay.hintMassMoveCompleted();
     }
   },
   QueryInterface: function(iid) {
@@ -1420,18 +1459,16 @@ function MsgEditMessageAsNew()
 
 function MsgComposeDraftMessage()
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
   ComposeMessage(Components.interfaces.nsIMsgCompType.Draft,
                  Components.interfaces.nsIMsgCompFormat.Default,
-                 loadedFolder, messageArray);
+                 gFolderDisplay.displayedFolder,
+                 gFolderDisplay.selectedMessageUris);
 }
 
 function MsgCreateFilter()
 {
   // retrieve Sender direct from selected message's headers
-  var msgHdr = gDBView.hdrForFirstSelectedMessage;
+  var msgHdr = gFolderDisplay.selectedMessage;
   var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                                .getService(Components.interfaces.nsIMsgHeaderParser);
   var emailAddress = headerParser.extractHeaderAddressMailboxes(msgHdr.author);
@@ -1557,14 +1594,14 @@ function ToggleFavoriteFolderFlag()
 function MsgSaveAsFile()
 {
   if (GetNumSelectedMessages() == 1)
-    SaveAsFile(GetFirstSelectedMessage());
+    SaveAsFile(gFolderDisplay.selectedMessageUris[0]);
 }
 
 function MsgSaveAsTemplate()
 {
-  var folder = GetLoadedMsgFolder();
   if (GetNumSelectedMessages() == 1)
-    SaveAsTemplate(GetFirstSelectedMessage(), folder);
+    SaveAsTemplate(gFolderDisplay.selectedMessageUris[0],
+                   gFolderDisplay.displayedFolder);
 }
 
 function CreateToolbarTooltip(document, event)
@@ -1585,75 +1622,162 @@ function CreateToolbarTooltip(document, event)
 }
 
 /**
- * mailTabType provides both "folder" and "message" tab modes. Under the
- * previous TabOwner framework, their logic was separated into two 'classes'
- * which called common helper methods and had similar boilerplate logic.
+ * Displays message "folder"s, mail "message"s, and "glodaSearch" results.  The
+ *  commonality is that they all use the "mailContent" panel's folder tree,
+ *  thread tree, and message pane objects.  This happens for historical reasons,
+ *  likely involving the fact that prior to the introduction of this
+ *  abstraction, everything was always stored in global objects.  For the 3.0
+ *  release cycle we considered avoiding this 'multiplexed' style of operation
+ *  but decided against moving to making each tab be indepdendent because of
+ *  presumed complexity.
+ *
+ * The tab info objects (as tabmail's currentTabInfo/tabInfo fields contain)
+ *  have the following attributes specific to our implementation:
+ *
+ *
+ * @property {string} uriToOpen
+ * @property {nsIMsgFolder} msgSelectedFolder Preserves gMsgFolderSelected
+ *     global.
+ * @property {nsIMsgDBView} dbView The database view to use with the thread tree
+ *     when this tab is displayed.  The value will be assigned to the global
+ *     gDBView in the process.
+ * @property {nsIMessenger} messenger Used to preserve "messenger" global value.
+ *     The messenger object is the keeper of the 'undo' state and navigation
+ *     history, which is why we do this.
+ *
+ * @property {boolean} folderPaneCollapsed In "folder" mode, has the user
+ *     intentionally collapsed the folder pane.
+ * @property {boolean} messagePaneCollapsed In "folder" or "glodaSearch" mode,
+ *     has the user intentionally collapsed the message pane.
+ *
+ * @property {nsIMsgDBHdr} hdr In "message" mode, the header of the message
+ *     being displayed.
+ * @property {nsIMsgSearchSession} searchSession Used to preserve gSearchSession
+ *     global value.
+ *
  */
 let mailTabType = {
   name: "mail",
   panelId: "mailContent",
   modes: {
+    /**
+     * The folder view displays the contents of an nsIMsgDBFolder, with the
+     *  folder pane (potentially), thread pane (always), and message pane
+     *  (potentially) displayed.
+     *
+     * The actual nsMsgDBView can be any of the following types of things:
+     *  - A single folder.
+     *    - A quicksearch on a single folder.
+     *  - A virtual folder potentially containing messages from multiple
+     *    folders. (eShowVirtualFolderResults)
+     */
     folder: {
       isDefault: true,
       type: "folder",
-      openTab: function(aTab, aFolderUri) {
-        aTab.uriToOpen = aFolderUri;
-
-        this.openTab(aTab); // call superclass logic
+      /// The set of panes that are legal to be displayed in this mode
+      legalPanes: {
+        folder: true,
+        thread: true,
+        message: true
       },
-      showTab: function(aTab) {
-        this.folderAndThreadPaneVisible = true;
-        ClearMessagePane();
+      openFirstTab: function(aTab) {
+        this.openTab(aTab, true, new MessagePaneDisplayWidget());
+        aTab.folderDisplay.makeActive();
+      },
+      /**
+       * @param aFolder The nsIMsgFolder to display.
+       * @param aMsgHdr Optional message header to display.
+       */
+      openTab: function(aTab, aFolder, aMsgHdr) {
+        // Get a tab that we can initialize our user preferences from.
+        // (We don't want to assume that our immediate predecessor was a
+        //  "folder" tab.)
+        let modelTab = document.getElementById("tabmail")
+                         .getTabInfoForCurrentOrFirstModeInstance(aTab.mode);
+        // copy its state
+        aTab.folderPaneCollapsed = modelTab.folderPaneCollapsed;
+        aTab.messagePaneCollapsed = modelTab.messagePaneCollapsed;
 
-        this.showTab(aTab);
+        this.openTab(aTab, false,  new MessagePaneDisplayWidget());
+
+        // Clear selection, because context clicking on a folder and opening in a
+        // new tab needs to have SelectFolder think the selection has changed.
+        // We also need to clear these globals to subvert the code that prevents
+        // folder loads when things haven't changed.
+        var folderTree = document.getElementById("folderTree");
+        folderTree.view.selection.clearSelection();
+        folderTree.view.selection.currentIndex = -1;
+
+        aTab.folderDisplay.makeActive();
+
+        // selecting the folder effectively calls
+        //  aTab.folderDisplay.show(aFolder)
+        gFolderTreeView.selectFolder(aFolder);
+        if(aMsgHdr)
+          aTab.folderDisplay.selectMessage(aMsgHdr);
       },
       onTitleChanged: function(aTab, aTabNode) {
-        if (!gMsgFolderSelected) {
+        if (!aTab.folderDisplay || !aTab.folderDisplay.displayedFolder) {
           // Don't show "undefined" as title when there is no account.
           aTab.title = " ";
           return;
         }
-        aTab.title = gMsgFolderSelected.prettyName;
-        if (!gMsgFolderSelected.isServer && this._getNumberOfRealAccounts() > 1)
-          aTab.title += " - " + gMsgFolderSelected.server.prettyName;
+        // The user may have changed folders, triggering our onTitleChanged
+        // callback.
+        let folder = aTab.folderDisplay.displayedFolder;
+        aTab.title = folder.prettyName;
+        if (!folder.isServer && this._getNumberOfRealAccounts() > 1)
+          aTab.title += " - " + folder.server.prettyName;
 
-        // The user may have changed folders, triggering our onTitleChanged callback.
         // Update the appropriate attributes on the tab.
-        aTabNode.setAttribute('SpecialFolder', getSpecialFolderString(gMsgFolderSelected));
-        aTabNode.setAttribute('ServerType', gMsgFolderSelected.server.type);
-        aTabNode.setAttribute('IsServer', gMsgFolderSelected.isServer);
-        aTabNode.setAttribute('IsSecure', gMsgFolderSelected.server.isSecure);
+        aTabNode.setAttribute('SpecialFolder',
+                              getSpecialFolderString(folder));
+        aTabNode.setAttribute('ServerType', folder.server.type);
+        aTabNode.setAttribute('IsServer', folder.isServer);
+        aTabNode.setAttribute('IsSecure', folder.server.isSecure);
       }
     },
+    /**
+     * The message view displays a single message.  In this view, the folder
+     *  pane and thread pane are forced hidden and only the message pane is
+     *  displayed.
+     */
     message: {
       type: "message",
-      openTab: function(aTab, aFolderUri, aMsgHdr) {
-        aTab.uriToOpen = aFolderUri;
-        aTab.hdr = aMsgHdr;
-
-        aTab.title = "";
-        if (aTab.hdr.flags & Components.interfaces.nsMsgMessageFlags.HasRe)
-          aTab.title = "Re: ";
-        if (aTab.hdr.mime2DecodedSubject)
-          aTab.title += aTab.hdr.mime2DecodedSubject;
-
-        aTab.title += " - " + aTab.hdr.folder.prettyName;
-        if (this._getNumberOfRealAccounts() > 1)
-          aTab.title += " - " + aTab.hdr.folder.server.prettyName;
-
-        // let's try hiding the thread pane and folder pane
-        this.folderAndThreadPaneVisible = false;
-
-        this.openTab(aTab); // call superclass logic
-
-        gCurrentlyDisplayedMessage = nsMsgViewIndex_None;
-        ClearThreadPaneSelection();
-        setTimeout(gDBView.selectFolderMsgByKey, 0, aTab.hdr.folder,
-                   aTab.hdr.messageKey);
+      /// The set of panes that are legal to be displayed in this mode
+      legalPanes: {
+        folder: false,
+        thread: false,
+        message: true
       },
-      showTab: function(aTab) {
-        this.folderAndThreadPaneVisible = false;
-        this.showTab(aTab);
+      openTab: function(aTab, aMsgHdr, aViewWrapperToClone) {
+        aTab.mode.onTitleChanged.call(this, aTab, null, aMsgHdr);
+
+        this.openTab(aTab, false, new MessageTabDisplayWidget());
+
+        if (aViewWrapperToClone)
+          aTab.folderDisplay.cloneView(aViewWrapperToClone);
+        else
+          aTab.folderDisplay.show(aMsgHdr.folder);
+
+        aTab.folderDisplay.selectMessage(aMsgHdr);
+
+        // we only want to make it active after setting up the view and the message
+        //  to avoid generating bogus summarization events.
+        aTab.folderDisplay.makeActive();
+      },
+      onTitleChanged: function(aTab, aTabNode, aMsgHdr) {
+        if (aMsgHdr == null)
+          aMsgHdr = aTab.folderDisplay.selectedMessage;
+        aTab.title = "";
+        if (aMsgHdr.flags & Components.interfaces.nsMsgMessageFlags.HasRe)
+          aTab.title = "Re: ";
+        if (aMsgHdr.mime2DecodedSubject)
+          aTab.title += aMsgHdr.mime2DecodedSubject;
+
+        aTab.title += " - " + aMsgHdr.folder.prettyName;
+        if (this._getNumberOfRealAccounts() > 1)
+          aTab.title += " - " + aMsgHdr.folder.server.prettyName;
       }
     }
   },
@@ -1667,148 +1791,138 @@ let mailTabType = {
   },
 
   /**
-   * Create the new tab's state, which engenders some side effects.  Part of our
-   *  contract is that we leave the tab in the selected state.
+   * Common tab opening code shared by the various tab modes.
    */
-  openTab: function(aTab) {
+  openTab: function(aTab, aIsFirstTab, aMessageDisplay) {
     // Set the messagepane as the primary browser for content.
     document.getElementById("messagepane").setAttribute("type",
                                                         "content-primary");
 
-    ClearThreadPaneSelection();
+    aTab.messageDisplay = aMessageDisplay;
+    aTab.folderDisplay = new FolderDisplayWidget(aTab, aTab.messageDisplay);
+    aTab.folderDisplay.msgWindow = msgWindow;
+    aTab.folderDisplay.tree = document.getElementById("threadTree");
+    aTab.folderDisplay.treeBox = aTab.folderDisplay.tree.boxObject.QueryInterface(
+                                   Components.interfaces.nsITreeBoxObject);
 
-    // Each tab gets its own messenger instance; I assume this is so each one
-    // gets its own undo/redo stack?
-    messenger = Components.classes["@mozilla.org/messenger;1"]
-                          .createInstance(Components.interfaces.nsIMessenger);
-    messenger.setWindow(window, msgWindow);
-    aTab.messenger = messenger;
-
-    aTab.msgSelectedFolder = gMsgFolderSelected;
-
-    // Clear selection, because context clicking on a folder and opening in a
-    // new tab needs to have SelectFolder think the selection has changed.
-    // We also need to clear these globals to subvert the code that prevents
-    // folder loads when things haven't changed.
-    var folderTree = document.getElementById("folderTree");
-    folderTree.view.selection.clearSelection();
-    folderTree.view.selection.currentIndex = -1;
-    gMsgFolderSelected = null;
-    msgWindow.openFolder = null;
-
-    // Clear thread pane selection - otherwise, the tree tries to impose the
-    // the current selection on the new view.
-    gDBView = null; // clear gDBView so we won't try to close it.
-    gFolderTreeView.selectFolder(GetMsgFolderFromUri(aTab.uriToOpen));
-    aTab.dbView = gDBView;
+    if (aIsFirstTab) {
+      aTab.folderDisplay.messenger = messenger;
+    }
+    else {
+      // Each tab gets its own messenger instance; this provides each tab with
+      // its own undo/redo stack and back/forward navigation history.
+      messenger = Components.classes["@mozilla.org/messenger;1"]
+                            .createInstance(Components.interfaces.nsIMessenger);
+      messenger.setWindow(window, msgWindow);
+      aTab.folderDisplay.messenger = messenger;
+    }
   },
 
   closeTab: function(aTab) {
-    if (aTab.dbView)
-      aTab.dbView.close();
-    if (aTab.messenger)
-      aTab.messenger.setWindow(null, null);
+    aTab.folderDisplay.close();
   },
 
   saveTabState: function(aTab) {
-    aTab.messenger = messenger;
-    aTab.dbView = gDBView;
-    aTab.searchSession = gSearchSession;
-    aTab.msgSelectedFolder = gMsgFolderSelected;
-    if (!gDBView)
-      return;
-
-    aTab.firstVisibleRow = document.getElementById("threadTree").treeBoxObject.getFirstVisibleRow();
-
-    if (gDBView.currentlyDisplayedMessage != nsMsgViewIndex_None)
-    {
-      try // there may not be a selected message.
-      {
-        var curMsgHdr = gDBView.hdrForFirstSelectedMessage;
-        aTab.selectedMsgId = curMsgHdr.messageId;
-      }
-      catch (ex) {}
-    }
-    else
-    {
-      aTab.selectedMsgId = null;
-      aTab.msgSelectedFolder = gDBView.msgFolder;
-    }
-    if (aTab.msgSelectedFolder)
-      aTab.mailView = GetMailViewForFolder(aTab.msgSelectedFolder);
-
     // Now let other tabs have a primary browser if they want.
     document.getElementById("messagepane").setAttribute("type",
                                                         "content-targetable");
+
+    aTab.folderDisplay.makeInactive();
   },
 
-  _displayFolderAndThreadPane: function(show) {
-    let collapse = !show;
+  /**
+   * Some panes simply are illegal in certain views, and some panes are legal
+   *  but the user may have collapsed/hidden them.  If that was not enough, we
+   *  have three different layouts that are possible, each of which requires a
+   *  slightly different DOM configuration, and accordingly for us to poke at
+   *  different DOM nodes.  Things are made somewhat simpler by our decision
+   *  that all tabs share the same layout.
+   * This method takes the legal states and current display states and attempts
+   *  to apply the appropriate logic to make it all work out.  This method is
+   *  not in charge of figuring out or preserving display states.
+   *
+   * We take a dictionary of desired visibility booleans as our argument because
+   * it is both readable and scalable.
+   *
+   * @param aLegalStates A dictionary where each key and value indicates whether
+   *     the pane in question (key) is legal to be displayed in this mode.  If
+   *     the value is true, then the pane is legal.  Omitted pane keys imply
+   *     that the pane is illegal.  Keys are:
+   *     - folder: The folder (tree) pane.
+   *     - thread: The thread pane.
+   *     - message: The message pane.  Required/assumed to be true for now.
+   *     - glodaFacets: The gloda search facets pane.
+   * @param aVisibleStates A dictionary where each value indicates whether the
+   *     pane should be 'visible' (not collapsed).  Only panes that are governed
+   *     by splitters are options here.  Keys are:
+   *     - folder: The folder (tree) pane.
+   *     - message: The message pane.
+   */
+  _setPaneStates: function mailTabType_setPaneStates(aLegalStates,
+                                                     aVisibleStates) {
     let layout = pref.getIntPref("mail.pane_config.dynamic");
     if (layout == kWidePaneConfig)
     {
-      document.getElementById("messengerBox").collapsed = collapse;
-      // If opening a standalone message, need to give the messagepanebox flex.
-      if (collapse)
+      // in the "wide" configuration, the #messengerBox is left holding the
+      //  folder pane and thread pane, and the message pane has migrated to be
+      //  its sibling (under #mailContent).
+      // Accordingly, if both the folder and thread panes are illegal, we
+      //  want to collapse the #messengerBox and make sure the #messagepanebox
+      //  fills up the screen.  (For example, when in "message" mode.)
+      let collapseMessengerBox = !aLegalStates.folder && !aLegalStates.thread;
+      document.getElementById("messengerBox").collapsed = collapseMessengerBox;
+      if (collapseMessengerBox)
         document.getElementById("messagepanebox").flex = 1;
     }
 
-    if (layout == kVerticalPaneConfig)
-      document.getElementById("threadTree").collapsed = collapse;
-    else
-      document.getElementById("displayDeck").collapsed = collapse;
+    // -- folder pane
+    // collapse the splitter when not legal
+    document.getElementById("folderpane_splitter").collapsed =
+      !aLegalStates.folder;
+    // collapse the folder pane when not visible
+    document.getElementById("folderPaneBox").collapsed =
+      !aLegalStates.folder || !aVisibleStates.folder;
 
-    let fpSplitter = document.getElementById("folderpane_splitter");
-    if (show && fpSplitter.getAttribute("state") == "collapsed")
-    {
-      // If we're showing everything but the folder pane splitter was
-      // previously collapsed, then keep it collapsed.
-      // However, in the case of it being collapsed from showing a
-      // a full message in a tab, then uncollapse just the splitter.
-      if (fpSplitter.getAttribute("substate"))
-        fpSplitter.collapsed = false;
-    }
+    // -- thread pane
+    // in a vertical view, the threadContentArea sits in the #threadPaneBox
+    //  next to the message pane and its splitter.
+    if (layout == kVerticalMailLayout)
+      document.getElementById("threadContentArea").collapsed =
+        !aLegalStates.thread;
+    // whereas in the default view, the displayDeck is the one next to the
+    //  message pane and its splitter
     else
-    {
-      fpSplitter.collapsed = collapse;
-      document.getElementById("folderPaneBox").collapsed = collapse;
-    }
+      document.getElementById("displayDeck").collapsed =
+        !aLegalStates.thread;
 
-    let tpSplitter = document.getElementById("threadpane-splitter");
-    if (show && tpSplitter.getAttribute("state") == "collapsed")
-    {
-      // If we're showing everything but the thread pane splitter was
-      // previously collapsed, then keep it collapsed.
-      // However, in the case of it being collapsed from showing a
-      // a full message in a tab, then uncollapse just the splitter.
-      tpSplitter.collapsed = tpSplitter.getAttribute("substate") ? false : true;
-      document.getElementById("messagepanebox").collapsed = true;
-    }
-    else
-    {
-      tpSplitter.collapsed = collapse;
-      document.getElementById("messagepanebox").collapsed = false;
-    }
-    // Need to call ChangeMessagePaneVisibility() a little later after the
-    // message was selected so that the tab state data gets the message key
-    // saved off, which happens below in showTab().
-    setTimeout(ChangeMessagePaneVisibility, 0, IsMessagePaneCollapsed());
+    // the threadpane-splitter collapses the message pane (arguably a misnomer),
+    //  but it only needs to exist when the thread-pane is legal
+    document.getElementById("threadpane-splitter").collapsed =
+      !aLegalStates.thread;
 
+    // Some things do not make sense if the thread pane is not legal.
+    // (This is likely an example of something that should be using the command
+    //  mechanism to update the UI elements as to the state of what the user
+    //  is looking at, rather than home-brewing it in here.)
     try {
-      document.getElementById("search-container").collapsed = collapse;
+      // you can't quick-search if you don't have a collection of messages
+      document.getElementById("search-container").collapsed =
+        !aLegalStates.thread;
     } catch (ex) {}
     try {
-      document.getElementById("mailviews-container").collapsed = collapse;
+      // views only work on the thread pane; no thread pane, no views
+      document.getElementById("mailviews-container").collapsed =
+        !aLegalStates.thread;
     } catch (ex) {}
-  },
 
-  _folderAndThreadPaneVisible: true,
-  get folderAndThreadPaneVisible() { return this._folderAndThreadPaneVisible; },
-  set folderAndThreadPaneVisible(aDesiredVisible) {
-    if (aDesiredVisible != this._folderAndThreadPaneVisible) {
-      this._displayFolderAndThreadPane(aDesiredVisible);
-      this._folderAndThreadPaneVisible = aDesiredVisible;
-    }
+    // -- message pane
+    // the message pane can only be collapsed when the thread pane is legal
+    document.getElementById("messagepanebox").collapsed =
+      aLegalStates.thread && !aVisibleStates.message;
+
+    // -- gloda facets
+    //document.getElementById("glodaSearchFacets").hidden =
+    //  !aLegalStates.glodaFacets;
   },
 
   showTab: function(aTab) {
@@ -1816,74 +1930,19 @@ let mailTabType = {
     document.getElementById("messagepane").setAttribute("type",
                                                         "content-primary");
 
-    // restore globals
-    messenger = aTab.messenger;
-    gDBView = aTab.dbView;
-    gSearchSession = aTab.searchSession;
+    aTab.folderDisplay.makeActive();
 
-    // restore selection in folder pane;
-    let folderToSelect = gDBView ? gDBView.msgFolder : aTab.msgSelectedFolder;
-    // restore view state if we had one
-    var row = gFolderTreeView.getIndexOfFolder(folderToSelect);
-
-    var treeBoxObj = document.getElementById("folderTree").treeBoxObject;
-    var folderTreeSelection = treeBoxObj.view.selection;
-    // make sure that row.value is valid so that it doesn't mess up
-    // the call to ensureRowIsVisible().
-    if ((row >= 0) && !folderTreeSelection.isSelected(row))
-    {
-      gMsgFolderSelected = folderToSelect;
-      folderTreeSelection.selectEventsSuppressed = true;
-      folderTreeSelection.select(row);
-      treeBoxObj.ensureRowIsVisible(row);
-      folderTreeSelection.selectEventsSuppressed = false;
-    }
-    if (gDBView)
-    {
-      UpdateColumnsForView(gMsgFolderSelected, gDBView.viewType);
-      UpdateSortIndicators(gDBView.sortType, gDBView.sortOrder);
-      // This sets the thread pane tree's view to the gDBView view.
-      RerootThreadPane();
-      // Only refresh the view picker if the views toolbar is visible.
-      if (document.getElementById("mailviews-container")) 
-        UpdateViewPickerByValue(aTab.mailView);
-
-      // We need to restore the selection to what it was when we switched away
-      // from this tab. We need to remember the selected keys, instead of the
-      // selected indices, since the view might have changed. But maybe the
-      // selectedIndices adjust as items are added/removed from the (hidden)
-      // view.
-      try
-      {
-        if (aTab.selectedMsgId && aTab.msgSelectedFolder)
-        {
-          // We clear the selection in order to generate an event when we
-          // re-select our message.
-          ClearThreadPaneSelection();
-
-          var msgDB = aTab.msgSelectedFolder.msgDatabase;
-          var msgHdr = msgDB.getMsgHdrForMessageID(aTab.selectedMsgId);
-          setTimeout(gDBView.selectFolderMsgByKey, 0, aTab.msgSelectedFolder,
-                     msgHdr.messageKey);
-        }
-        // We do not clear the selection if there was more than one message
-        // displayed.  this leaves our selection intact. there was originally
-        // some claim that the selection might lose synchronization with the
-        // view, but this is unsubstantiated.  said comment came from the
-        // original code that stored information on the selected rows, but
-        // then failed to do anything with it, probably because there is no
-        // existing API call that accomplishes it.
+    // - restore folder pane/tree selection
+    if (aTab.folderDisplay.displayedFolder) {
+      // but don't generate any events while doing so!
+      gFolderTreeView.selection.selectEventsSuppressed = true;
+      try {
+        gFolderTreeView.selectFolder(aTab.folderDisplay.displayedFolder);
       }
-      catch (ex) {dump(ex);}
-
-      document.getElementById("threadTree").treeBoxObject.scrollToRow(aTab.firstVisibleRow);
-      ShowThreadPane();
-    }
-    else if (gMsgFolderSelected.isServer)
-    {
-      UpdateStatusQuota(null);
-      // Load AccountCentral page here.
-      ShowAccountCentral();
+      finally {
+        gIgnoreSyntheticFolderPaneSelectionChange = true;
+        gFolderTreeView.selection.selectEventsSuppressed = false;
+      }
     }
   },
 
@@ -1917,11 +1976,9 @@ function MsgOpenNewWindowForFolder(folderURI, msgKeyToSelect)
     return;
   }
 
-  // Use gFolderTreeView.getSelectedFolders() to find out which folder to open
-  // instead of GetLoadedMsgFolder().URI. This is required because on a
-  // right-click, the currentIndex value will be different from the actual row
-  // that is highlighted. gFolderTreeView.getSelectedFolders() will return the
-  // folder that is highlighted.
+  // If there is a right-click happening, gFolderTreeView.getSelectedFolders()
+  // will tell us about it (while the selection's currentIndex would reflect
+  // the node that was selected/displayed before the right-click.)
   let selectedFolders = gFolderTreeView.getSelectedFolders();
   for (let i = 0; i < selectedFolders.length; i++) {
     window.openDialog("chrome://messenger/content/", "_blank",
@@ -1930,67 +1987,43 @@ function MsgOpenNewWindowForFolder(folderURI, msgKeyToSelect)
   }
 }
 
-function MsgOpenNewTabForFolder(folderURI, msgKeyToSelect)
+/**
+ * UI-triggered command to open the currently selected folder(s) in new tabs.
+ */
+function MsgOpenNewTabForFolder()
 {
-  // XXX implement the usage of msgKeyToSelect...
-  if (folderURI) {
-    document.getElementById("tabmail").openTab("folder", folderURI);
-    return;
-  }
-
-  // Use gFolderTreeView.getSelectedFolders() to find out which folder to open
-  // instead of GetLoadedMsgFolder().URI. This is required because on a
-  // right-click, the currentIndex value will be different from the actual row
-  // that is highlighted. gFolderTreeView.getSelectedFolders() will return the
-  // folder that is highlighted.
+  // If there is a right-click happening, gFolderTreeView.getSelectedFolders()
+  // will tell us about it (while the selection's currentIndex would reflect
+  // the node that was selected/displayed before the right-click.)
   let selectedFolders = gFolderTreeView.getSelectedFolders();
   for (let i = 0; i < selectedFolders.length; i++) {
-    // Set up the first tab, which was previously invisible.
-    // This assumes the first tab is always a 3-pane ui, which
-    // may not be right, especially if we have the ability
-    // to persist your tab setup.
-    document.getElementById("tabmail").openTab("folder", selectedFolders[i].URI);
+    document.getElementById("tabmail").openTab("folder", selectedFolders[i]);
   }
 }
 
-function MsgOpenNewTabForMessage(messageKey, folderUri)
+/**
+ * UI-triggered command to open the currently selected message in a new tab.
+ */
+function MsgOpenNewTabForMessage()
 {
-  var hdr;
-
-  // messageKey can be 0 for an actual message (first message in the folder)  
-  if (folderUri)
-  {
-    hdr = GetMsgFolderFromUri(folderUri).GetMessageHeader(messageKey);
-  }
-  else
-  {
-    hdr = gDBView.hdrForFirstSelectedMessage;
-    // Use the header's folder - this will open a msg in a virtual folder view
-    // in its real folder, which is needed if the msg wouldn't be in a new
-    // view with the same terms - e.g., it's read and the view is unread only.
-    // If we cloned the view, we wouldn't have to do this.
-    folderUri = hdr.folder.URI;
-  }
-  
-  // Fix it so we won't try to load the previously loaded message.
-  hdr.folder.lastMessageLoaded = nsMsgKey_None;
-
-  document.getElementById('tabmail').openTab("message", folderUri, hdr);
+  if (!gFolderDisplay.selectedMessage)
+    return;
+  document.getElementById('tabmail').openTab("message",
+                                             gFolderDisplay.selectedMessage,
+                                             gFolderDisplay.view);
 }
 
 function MsgOpenSelectedMessages()
 {
   // Toggle message body (rss summary) and content-base url in message
   // pane per pref, otherwise open summary or web page in new window.
-  if (IsFeedItem() && GetFeedOpenHandler() == 2) {
+  if (gFolderDisplay.selectedMessageIsFeed && GetFeedOpenHandler() == 2) {
     FeedSetContentViewToggle();
     return;
   }
 
-  var dbView = GetDBView();
-
-  var indices = GetSelectedIndices(dbView);
-  var numMessages = indices.length;
+  let selectedMessages = gFolderDisplay.selectedMessages;
+  var numMessages = selectedMessages.length;
 
   var windowReuse = gPrefBranch.getBoolPref("mailnews.reuse_message_window");
   // This is a radio type button pref, currently with only 2 buttons.
@@ -2018,8 +2051,7 @@ function MsgOpenSelectedMessages()
   }
 
   for (var i = 0; i < numMessages; i++) {
-    MsgOpenNewWindowForMessage(dbView.getURIForViewIndex(indices[i]),
-                               dbView.getFolderForViewIndex(indices[i]).URI);
+    MsgOpenNewWindowForMessage(selectedMessages[i]);
   }
 }
 
@@ -2029,34 +2061,17 @@ function MsgOpenSelectedMessageInExistingWindow()
   if (!windowID)
     return false;
 
-  try {
-    var messageURI = gDBView.URIForFirstSelectedMessage;
-    var msgHdr = gDBView.hdrForFirstSelectedMessage;
+  var msgHdr = gFolderDisplay.selectedMessage;
 
-    // Reset the window's message uri and folder uri vars, and
-    // update the command handlers to what's going to be used.
-    // This has to be done before the call to CreateView().
-    windowID.gCurrentMessageUri = messageURI;
-    windowID.gCurrentFolderUri = msgHdr.folder.URI;
-    windowID.UpdateMailToolbar('MsgOpenExistingWindowForMessage');
+  // (future work: perhaps make the window have a method we can call to do this)
+  // make the window's folder clone our view
+  windowID.gFolderDisplay.cloneView(gFolderDisplay.view);
+  // boss the window into showing our message
+  windowID.gFolderDisplay.selectMessage(msgHdr);
 
-    // Even if the folder uri's match, we can't use the existing view
-    // (msgHdr.folder.URI == windowID.gCurrentFolderUri)
-    // - the reason is quick search and mail views. See bug #187673.
-    //
-    // For the sake of simplicity, let's always call CreateView(gDBView);
-    // which will clone gDBView.
-    windowID.CreateView(gDBView);
-    windowID.LoadMessageByMsgKey(msgHdr.messageKey);
-
-    // bring existing window to front
-    windowID.focus();
-    return true;
-  }
-  catch (ex) {
-    dump("reusing existing standalone message window failed: " + ex + "\n");
-  }
-  return false;
+  // bring existing window to front
+  windowID.focus();
+  return true;
 }
 
 function MsgOpenFromFile()
@@ -2091,35 +2106,23 @@ function MsgOpenFromFile()
   uri.query = "type=application/x-message-display";
 
   window.openDialog("chrome://messenger/content/messageWindow.xul", "_blank",
-                    "all,chrome,dialog=no,status,toolbar", uri, null, null);
+                    "all,chrome,dialog=no,status,toolbar", uri);
 }
 
-function MsgOpenNewWindowForMessage(messageUri, folderUri)
+function MsgOpenNewWindowForMessage(aMsgHdr)
 {
-  if (!messageUri)
-    // Use GetFirstSelectedMessage() to find out which message to open
-    // instead of gDBView.getURIForViewIndex(currentIndex). This is
-    // required because on a right-click, the currentIndex value will be
-    // different from the actual row that is highlighted.
-    // GetFirstSelectedMessage() will return the message that is
-    // highlighted.
-    messageUri = GetFirstSelectedMessage();
+  // no message header provided?  get the selected message (this will give us
+  //  the right-click selected message if that's what is going down.)
+  if (!aMsgHdr)
+    aMsgHdr = gFolderDisplay.selectedMessage;
 
-    if (!folderUri)
-      // Use GetSelectedMsgFolders() to find out which message to open
-      // instead of gDBView.getURIForViewIndex(currentIndex).  This is
-      // required because on a right-click, the currentIndex value will be
-      // different from the actual row that is highlighted.
-      // GetSelectedMsgFolders() will return the message that is
-      // highlighted.
-      folderUri = GetSelectedMsgFolders()[0].URI;
-
-  // be sure to pass in the current view....
-  if (messageUri && folderUri) {
+  // (there might not have been a selected message, so check...)
+  if (aMsgHdr)
+    // we also need to tell the window about our current view so that it can
+    //  clone it.  This enables advancing through the messages, etc.
     window.openDialog("chrome://messenger/content/messageWindow.xul", "_blank",
                       "all,chrome,dialog=no,status,toolbar",
-                      messageUri, folderUri, gDBView);
-  }
+                      aMsgHdr, gFolderDisplay.view);
 }
 
 function MsgJunk()
@@ -2131,19 +2134,18 @@ function MsgJunk()
 
 function UpdateJunkButton()
 {
-  let hdr = msgHdrForCurrentMessage();
-  if (!hdr) // .eml file
+  // The junk message should slave off the selected message, as the preview pane
+  //  may not be visible
+  let hdr = gFolderDisplay.selectedMessage;
+  // But only the message display knows if we are dealing with a dummy.
+  if (gMessageDisplay.isDummy) // .eml file
     return;
   let junkScore = hdr.getStringProperty("junkscore");
   let hideJunk = (junkScore != "") && (junkScore != "0");
-  if (isNewsURI(hdr.folder.URI))
+  if (gFolderDisplay.selectedMessageIsNews)
     hideJunk = true;
-  // which DOM node is the current junk button in the
-  // message reader depends on whether it's the collapsed or
-  // expanded header
-  let buttonBox = document.getElementById(gCollapsedHeaderViewMode ?
-                     "collapsedButtonBox" : "expandedButtonBox");
-  buttonBox.getButton('hdrJunkButton').disabled = hideJunk;
+
+  getCurrentMsgHdrButtonBox().getButton('hdrJunkButton').disabled = hideJunk;
 }
 
 function MsgMarkMsgAsRead()
@@ -2160,15 +2162,14 @@ function MsgMarkReadByDate()
 {
   window.openDialog("chrome://messenger/content/markByDate.xul","",
                     "chrome,modal,titlebar,centerscreen",
-                    GetLoadedMsgFolder());
+                    gFolderDisplay.displayedFolder);
 }
 
 function MsgMarkAllRead()
 {
-  var folder = GetSelectedMsgFolders()[0];
-
-  if (folder)
-    folder.markAllMessagesRead(msgWindow);
+  let folders = gFolderTreeView.getSelectedFolders();
+  for (let i = 0; i < folders.length; i++)
+    folders[i].markAllMessagesRead(msgWindow);
 }
 
 function MsgFilters(emailAddress, folder)
@@ -2180,7 +2181,7 @@ function MsgFilters(emailAddress, folder)
     {
       try
       {
-        var msgHdr = gDBView.hdrForFirstSelectedMessage;
+        var msgHdr = gFolderDisplay.selectedMessage;
         var accountKey = msgHdr.accountKey;
         if (accountKey.length > 0)
         {
@@ -2214,7 +2215,7 @@ function MsgFilters(emailAddress, folder)
   {
     // We have to do prefill filter so we are going to launch the
     // filterEditor dialog and prefill that with the emailAddress.
-    args = { filterList: folder.getFilterList(msgWindow) };
+    args = { filterList: folder.getEditableFilterList(msgWindow) };
     args.filterName = emailAddress;
     window.openDialog("chrome://messenger/content/FilterEditor.xul", "",
                       "chrome, modal, resizable,centerscreen,dialog=yes", args);
@@ -2272,33 +2273,20 @@ function MsgApplyFilters()
 
 function MsgApplyFiltersToSelection()
 {
-  var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"]
-                                .getService(Components.interfaces.nsIMsgFilterService);
+  // bail if we're dealing with a dummy header
+  if (gMessageDisplay.isDummy)
+    return;
 
-  var folder = gDBView.msgFolder;
-  var indices = GetSelectedIndices(gDBView);
-  if (indices && indices.length)
-  {
-    var selectedMsgs = Components.classes["@mozilla.org/array;1"]
-                                 .createInstance(Components.interfaces.nsIMutableArray);
-    for (var i = 0; i < indices.length; i++)
-    {
-      try
-      {
-        // Getting the URI will tell us if the item is real or a dummy header
-        var uri = gDBView.getURIForViewIndex(indices[i]);
-        if (uri)
-        {
-          var msgHdr = folder.GetMessageHeader(gDBView.getKeyAt(indices[i]));
-          if (msgHdr)
-            selectedMsgs.appendElement(msgHdr, false);
-        }
-      } catch (ex) {}
-    }
+  var selectedMessages = gFolderDisplay.selectedMessages;
+  if (selectedMessages.length) {
+    var filterService =
+      Components.classes["@mozilla.org/messenger/services/filters;1"]
+                .getService(Components.interfaces.nsIMsgFilterService);
 
     filterService.applyFilters(Components.interfaces.nsMsgFilterType.Manual,
-                               selectedMsgs,
-                               folder,
+                               toXPCOMArray(selectedMessages,
+                                            Components.interfaces.nsIMutableArray),
+                               gFolderDisplay.displayedFolder,
                                msgWindow);
   }
 }
@@ -2386,8 +2374,8 @@ function ToggleInlineAttachment(target)
 
 function PrintEnginePrintInternal(doPrintPreview, msgType)
 {
-  var messageList = GetSelectedMessages();
-  if (messageList.length == 0) {
+  var messageList = gFolderDisplay.selectedMessageUris;
+  if (!messageList) {
     dump("PrintEnginePrintInternal(): No messages selected.\n");
     return;
   }
@@ -2675,7 +2663,7 @@ function SetupUndoRedoCommand(command)
 {
   // If we have selected a server, and are viewing account central
   // there is no loaded folder.
-  var loadedFolder = GetLoadedMsgFolder();
+  var loadedFolder = gFolderDisplay.displayedFolder;
   if (!loadedFolder || !loadedFolder.server.canUndoDeleteOnServer)
     return false;
 
@@ -2694,7 +2682,7 @@ function SetupUndoRedoCommand(command)
 
   if (canUndoOrRedo)
   {
-    var commands = 
+    var commands =
       ['valueDefault', 'valueDeleteMsg', 'valueMoveMsg', 'valueCopyMsg', 'valueUnmarkAllMsgs'];
     goSetMenuValue(command, commands[txnType]);
   }
@@ -2705,20 +2693,36 @@ function SetupUndoRedoCommand(command)
   return canUndoOrRedo;
 }
 
+/**
+ * Triggered by the global JunkStatusChanged notification, we handle updating
+ *  the message display if our displayed message might have had its junk status
+ *  change.  This primarily entails updating the notification bar (that thing
+ *  that appears above the message and says "this message might be junk") and
+ *  (potentially) reloading the message because junk status affects the form of
+ *  HTML display used (sanitized vs not).
+ * When our tab implementation is no longer multiplexed (reusing the same
+ *  display widget), this must be moved into the MessageDisplayWidget or
+ *  otherwise be scoped to the tab.
+ */
 function HandleJunkStatusChanged(folder)
 {
+  // We have nothing to do (and should bail) if:
+  // - There is no currently displayed message.
+  // - The displayed message is an .eml file from disk or an attachment.
+  // - The folder that has had a junk change is not backing the display folder.
+
   // This might be the stand alone window, open to a message that was
   // and attachment (or on disk), in which case, we want to ignore it.
-  var loadedMessage = GetLoadedMessage();
-  if (!loadedMessage || (/type=application\/x-message-display/.test(loadedMessage)) ||
-      !IsCurrentLoadedFolder(folder))
+  if (!gMessageDisplay.displayedMessage ||
+      gMessageDisplay.isDummy ||
+      gFolderDisplay.displayedFolder != folder)
     return;
 
   // If multiple message are selected and we change the junk status
   // we don't want to show the junk bar (since the message pane is blank).
   var msgHdr = null;
   if (GetNumSelectedMessages() == 1)
-    msgHdr = messenger.msgHdrFromURI(loadedMessage);
+    msgHdr = gMessageDisplay.displayedMessage;
   var junkBarWasDisplayed = gMessageNotificationBar.isFlagSet(kMsgNotificationJunkBar);
   gMessageNotificationBar.setJunkMsg(msgHdr);
 
@@ -2769,7 +2773,7 @@ var gMessageNotificationBar =
 
     if (aMsgHdr)
     {
-      var junkScore = aMsgHdr.getStringProperty("junkscore"); 
+      var junkScore = aMsgHdr.getStringProperty("junkscore");
       isJunk = ((junkScore != "") && (junkScore != "0"));
     }
 
@@ -2839,24 +2843,15 @@ function LoadMsgWithRemoteContent()
 }
 
 /**
- * Returns the msg hdr associated with the current loaded message.
- */
-function msgHdrForCurrentMessage()
-{
-  var msgURI = GetLoadedMessage();
-  return (msgURI && !(/type=application\/x-message-display/.test(msgURI))) ? messenger.msgHdrFromURI(msgURI) : null;
-}
-
-/**
  *  Reloads the message after adjusting the remote content policy for the sender.
- *  Iterate through the local address books looking for a card with the same e-mail address as the 
+ *  Iterate through the local address books looking for a card with the same e-mail address as the
  *  sender of the current loaded message. If we find a card, update the allow remote content field.
  *  If we can't find a card, prompt the user with a new AB card dialog, pre-selecting the remote content field.
  */
 function allowRemoteContentForSender()
 {
   // get the sender of the msg hdr
-  var msgHdr = msgHdrForCurrentMessage();
+  var msgHdr = gMessageDisplay.displayedMessage;
   if (!msgHdr)
     return;
 
@@ -2930,7 +2925,7 @@ function setMsgHdrPropertyAndReload(aProperty, aValue)
 {
   // we want to get the msg hdr for the currently selected message
   // change the appropiate property on it then reload the message
-  var msgHdr = msgHdrForCurrentMessage();
+  var msgHdr = gMessageDisplay.displayedMessage;
   if (msgHdr)
   {
     msgHdr.setUint32Property(aProperty, aValue);
@@ -2960,7 +2955,7 @@ function ClearPendingReadTimer()
   }
 }
 
-// this is called when layout is actually finished rendering a 
+// this is called when layout is actually finished rendering a
 // mail message. OnMsgLoaded is called when libmime is done parsing the message
 function OnMsgParsed(aUrl)
 {
@@ -2969,7 +2964,7 @@ function OnMsgParsed(aUrl)
   FeedSetContentView();
 
   // browser doesn't do this, but I thought it could be a useful thing to test out...
-  // If the find bar is visible and we just loaded a new message, re-run 
+  // If the find bar is visible and we just loaded a new message, re-run
   // the find command. This means the new message will get highlighted and
   // we'll scroll to the first word in the message that matches the find text.
   var findBar = document.getElementById("FindToolbar");
@@ -2978,12 +2973,12 @@ function OnMsgParsed(aUrl)
 
   // Run the phishing detector on the message if it hasn't been marked as not
   // a scam already.
-  var msgHdr = msgHdrForCurrentMessage();
+  var msgHdr = gMessageDisplay.displayedMessage;
   if (msgHdr && !msgHdr.getUint32Property("notAPhishMessage"))
     gPhishingDetector.analyzeMsgForPhishingURLs(aUrl);
 
   // notify anyone (e.g., extensions) who's interested in when a message is loaded.
-  var msgURI = GetLoadedMessage();
+  var msgURI = gFolderDisplay.selectedMessageUris[0];
   var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                   .getService(Components.interfaces.nsIObserverService);
   observerService.notifyObservers(msgWindow.msgHeaderSink, "MsgMsgDisplayed", msgURI);
@@ -3015,23 +3010,12 @@ function OnMsgLoaded(aUrl)
   }
   catch (ex) {}
 
-  var msgURI = GetLoadedMessage();
-
-  if (!folder || !msgURI)
+  var msgHdr = gMessageDisplay.displayedMessage;
+  if (!folder || !msgHdr)
     return;
 
-  // If we are in the middle of a delete or move operation, make sure that
-  // if the user clicks on another message then that message stays selected
-  // and the selection does not "snap back" to the message chosen by
-  // SetNextMessageAfterDelete() when the operation completes (bug 243532).
-  // But the just loaded message might be getting deleted, if the user
-  // deletes it before the message is loaded (bug 183394).
   var wintype = document.documentElement.getAttribute('windowtype');
-  if (wintype == "mail:messageWindow" ||
-      GetThreadTree().view.selection.currentIndex != gSelectedIndexWhenDeleting)
-    gNextMessageViewIndexAfterDelete = -2;
 
-  var msgHdr = msgHdrForCurrentMessage();
   gMessageNotificationBar.setJunkMsg(msgHdr);
 
   goUpdateCommand('button_delete');
@@ -3067,7 +3051,7 @@ function OnMsgLoaded(aUrl)
   // See if MDN was requested but has not been sent.
   HandleMDNResponse(aUrl);
 
-  if (!IsImapMessage(msgURI))
+  if (!gFolderDisplay.selectedMessageIsImap)
     return;
 
   var imapServer = folder.server.QueryInterface(Components.interfaces.nsIImapIncomingServer);
@@ -3105,8 +3089,8 @@ function HandleMDNResponse(aUrl)
     return;
 
   var msgFolder = aUrl.folder;
-  var msgURI = GetLoadedMessage();
-  if (!msgFolder || !msgURI || IsNewsMessage(msgURI))
+  var msgHdr = gFolderDisplay.selectedMessage;
+  if (!msgFolder || !msgHdr || gFolderDisplay.selectedMessageIsNews)
     return;
 
   // if the message is marked as junk, do NOT attempt to process a return receipt
@@ -3114,7 +3098,6 @@ function HandleMDNResponse(aUrl)
   if (SelectedMessagesAreJunk())
     return;
 
-  var msgHdr = messenger.msgHdrFromURI(msgURI);
   var mimeHdr;
 
   try {
@@ -3164,7 +3147,7 @@ function HandleMDNResponse(aUrl)
     msgdb.Commit(ADDR_DB_LARGE_COMMIT);
 }
 
-function QuickSearchFocus() 
+function QuickSearchFocus()
 {
   var quickSearchTextBox = document.getElementById('searchInput');
   if (quickSearchTextBox)
@@ -3173,11 +3156,7 @@ function QuickSearchFocus()
 
 function MsgSearchMessages()
 {
-  var preselectedFolder = null;
-  if ("GetFirstSelectedMsgFolder" in window)
-    preselectedFolder = GetFirstSelectedMsgFolder();
-
-  var args = { folder: preselectedFolder };
+  var args = { folder: gFolderDisplay.displayedFolder };
   OpenOrFocusWindow(args, "mailnews:search", "chrome://messenger/content/SearchDialog.xul");
 }
 
@@ -3211,7 +3190,7 @@ function MsgSearchAddresses()
   var args = { directory: null };
   OpenOrFocusWindow(args, "mailnews:absearch", "chrome://messenger/content/ABSearchDialog.xul");
 }
- 
+
 function MsgFilterList(args)
 {
   OpenOrFocusWindow(args, "mailnews:filterlist", "chrome://messenger/content/FilterListDialog.xul");
@@ -3249,7 +3228,7 @@ function FeedSetContentViewToggle()
 function FeedCheckContentFormat()
 {
   // Not an rss message
-  if (!IsFeedItem())
+  if (!gFolderDisplay.selectedMessageIsFeed)
     return false;
 
   var contentWindowDoc = window.top.content.document;

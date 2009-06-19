@@ -97,31 +97,6 @@ nsMailboxProtocol::~nsMailboxProtocol()
   delete m_lineStreamBuffer;
 }
 
-NS_IMETHODIMP nsMailboxProtocol::GetContentLength(PRInt32 * aContentLength)
-{
-  *aContentLength = -1;
-  if (m_mailboxAction == nsIMailboxUrl::ActionParseMailbox)
-  {
-    // our file transport knows the entire length of the berkley mail folder
-    // so get it from there.
-    if (!m_request)
-      return NS_OK;
-
-    nsCOMPtr<nsIChannel> info = do_QueryInterface(m_request);
-    if (info) info->GetContentLength(aContentLength);
-    return NS_OK;
-
-  }
-  else if (m_runningUrl)
-  {
-    PRUint32 msgSize = 0;
-    m_runningUrl->GetMessageSize(&msgSize);
-    *aContentLength = (PRInt32) msgSize;
-  }
-
-  return NS_OK;
-}
-
 nsresult nsMailboxProtocol::OpenMultipleMsgTransport(PRUint32 offset, PRInt32 size)
 {
   nsresult rv;
@@ -183,8 +158,21 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
         if (window)
           window->SetStopped(PR_FALSE);
       }
+
       if (m_mailboxAction == nsIMailboxUrl::ActionParseMailbox)
+      {
+        // Set the length of the file equal to the max progress
+        nsCOMPtr<nsIFile> file;
+        GetFileFromURL(aURL, getter_AddRefs(file));
+        if (file)
+        {
+          PRInt64 fileSize = 0;
+          file->GetFileSize(&fileSize);
+          mailnewsUrl->SetMaxProgress(fileSize);
+        }
+
         rv = OpenFileSocket(aURL, 0, -1 /* read in all the bytes in the file */);
+      }
       else
       {
         // we need to specify a byte range to read in so we read in JUST the message we want.
@@ -196,6 +184,9 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
         NS_ASSERTION(NS_SUCCEEDED(rv), "oops....i messed something up");
         rv = m_runningUrl->GetMessageSize(&aMsgSize);
         NS_ASSERTION(NS_SUCCEEDED(rv), "oops....i messed something up");
+        SetContentLength(aMsgSize);
+        mailnewsUrl->SetMaxProgress(aMsgSize);
+
         if (RunningMultipleMsgUrl())
         {
           rv = OpenFileSocketForReuse(aURL, (PRUint32) aMsgKey, aMsgSize);
@@ -652,14 +643,14 @@ PRInt32 nsMailboxProtocol::ReadMessageResponse(nsIInputStream * inputStream, PRU
   }
   
   SetFlag(MAILBOX_PAUSE_FOR_READ); // wait for more data to become available...
-  if (mProgressEventSink)
+  if (mProgressEventSink && m_runningUrl)
   {
-    PRInt32 contentLength = 0;
-    GetContentLength(&contentLength);
-    // XXX 64-bit
+    PRInt64 maxProgress;
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl(do_QueryInterface(m_runningUrl));
+    mailnewsUrl->GetMaxProgress(&maxProgress);
     mProgressEventSink->OnProgress(this, m_channelContext,
-                                   nsUint64(mCurrentProgress),
-                                   nsUint64(contentLength));
+                                   mCurrentProgress,
+                                   maxProgress);
   }
   
   if (NS_FAILED(rv)) return -1;

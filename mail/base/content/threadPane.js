@@ -90,104 +90,6 @@ function ThreadPaneOnClick(event)
     }
 }
 
-function nsMsgDBViewCommandUpdater()
-{
-  _selectionSummarized: false;
-  _selectionTimeout: null;
-}
-
-nsMsgDBViewCommandUpdater.prototype = 
-{
-  updateCommandStatus : function()
-    {
-      // the back end is smart and is only telling us to update command status
-      // when the # of items in the selection has actually changed.
-      UpdateMailToolbar("dbview driven, thread pane");
-    },
-
-  displayMessageChanged : function(aFolder, aSubject, aKeywords)
-  {
-    if (!gDBView.suppressMsgDisplay)
-      setTitleFromFolder(aFolder, aSubject);
-    ClearPendingReadTimer(); // we are loading / selecting a new message so kill the mark as read timer for the currently viewed message
-    gHaveLoadedMessage = true;
-    goUpdateCommand("button_junk");
-  },
-
-  updateNextMessageAfterDelete : function()
-  {
-    SetNextMessageAfterDelete();
-  },
-
- /**
-  * This method either handles the selection, or sets a timer to handle
-  * it once it stops changing.
-  */
-  showSummary: function(aThis, aSelCount)
-  {
-    aThis._selectionSummarized = true;
-    let selectedMsgUris = GetSelectedMessages();
-    let selCount = selectedMsgUris ? selectedMsgUris.length : 0;
-    if (selCount < 2) {
-      aThis.summarizeSelection();
-      return;
-    }
-    if (selCount != aSelCount) {
-      clearTimeout(aThis._selectionTimeout);
-      aThis._selectionTimeout = setTimeout(aThis.showSummary, 100, aThis, selCount);
-      return;
-    }
-
-    let firstThreadId = messenger.msgHdrFromURI(selectedMsgUris[0]).threadId;
-    for (let i = 1; i < selectedMsgUris.length; ++i)
-    {
-      let msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
-      if (msgHdr.threadId != firstThreadId) { // at least more than one thread
-        summarizeMultipleSelection(selectedMsgUris);
-        return;
-      }
-    }
-    // must be just one thread.
-    summarizeThread(selectedMsgUris);
-  },
-
-  summarizeSelection: function()
-  {
-    // First handle immediately the cases where we're not going to summarize.
-    let selectedMsgUris = GetSelectedMessages();
-    if (!selectedMsgUris || (selectedMsgUris.length == 1)) {
-      pickMessagePane("singlemessage");
-      this._selectionSummarized = false;
-      return false;
-    }
-
-    if (! gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads")) {
-      ClearMessagePane();
-      this._selectionSummarized = false;
-      return false;
-    }
-
-    // If we are already summarized, let's make sure the selection count
-    // isn't changing rapidly, by checking again in 100 msec.
-    if (this._selectionSummarized) {
-      clearTimeout(this._selectionTimeout);
-      this._selectionTimeout = setTimeout(this.showSummary, 100, this, selectedMsgUris.length);
-      return true;
-    }
-    this.showSummary(this, selectedMsgUris.length);
-    return true;
-  },
-
-  QueryInterface : function(iid)
-   {
-     if (iid.equals(Components.interfaces.nsIMsgDBViewCommandUpdater) ||
-         iid.equals(Components.interfaces.nsISupports))
-       return this;
-
-     throw Components.results.NS_NOINTERFACE;
-    }
-}
-
 function HandleColumnClick(columnID)
 {
   const columnMap = {dateCol: 'byDate',
@@ -218,9 +120,8 @@ function HandleColumnClick(columnID)
       // try to grab the columnHandler (an error is thrown if it does not exist)
       columnHandler = gDBView.getColumnHandler(columnID);
 
-      // it exists - save this column ID in the customSortCol property of
-      // dbFolderInfo for later use (see nsIMsgDBView.cpp)
-      gDBView.db.dBFolderInfo.setProperty('customSortCol', columnID);
+      // it exists - set it to be the current custom column
+      gDBView.curCustomColumn = columnID;
         
       sortType = "byCustom";
     } catch(err) {
@@ -229,7 +130,7 @@ function HandleColumnClick(columnID)
     }
   }
 
-  var dbview = GetDBView();
+  let viewWrapper = gFolderDisplay.view;
   var simpleColumns = false;
   try {
     simpleColumns = !pref.getBoolPref("mailnews.thread_pane_column_unthreads");
@@ -239,17 +140,17 @@ function HandleColumnClick(columnID)
   if (sortType == "byThread") {
     if (simpleColumns)
       MsgToggleThreaded();
-    else if (dbview.viewFlags & nsMsgViewFlagsType.kThreadedDisplay)
+    else if (viewWrapper.showThreaded)
       MsgReverseSortThreadPane();
     else
       MsgSortByThread();
   }
   else {
-    if (!simpleColumns && (dbview.viewFlags & nsMsgViewFlagsType.kThreadedDisplay)) {
-      dbview.viewFlags &= ~nsMsgViewFlagsType.kThreadedDisplay;
+    if (!simpleColumns && viewWrapper.showThreaded) {
+      viewWrapper.showUnthreaded = true;
       MsgSortThreadPane(sortType);
     }
-    else if (dbview.sortType == nsMsgViewSortType[sortType]) {
+    else if (viewWrapper.primarySortType == nsMsgViewSortType[sortType]) {
       MsgReverseSortThreadPane();
     }
     else {
@@ -265,12 +166,10 @@ function ThreadPaneDoubleClick()
     MsgComposeDraftMessage();
   }
   else if(IsSpecialFolderSelected(nsMsgFolderFlags.Templates, true)) {
-    var loadedFolder = GetLoadedMsgFolder();
-    var messageArray = GetSelectedMessages();
-
     ComposeMessage(Components.interfaces.nsIMsgCompType.Template,
                    Components.interfaces.nsIMsgCompFormat.Default,
-                   loadedFolder, messageArray);
+                   gFolderDisplay.displayedFolder,
+                   gFolderDisplay.selectedMessageUris);
   }
   else {
     MsgOpenSelectedMessages();
@@ -285,193 +184,98 @@ function ThreadPaneKeyPress(event)
 
 function MsgSortByThread()
 {
-  var dbview = GetDBView();
-  dbview.viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
-  dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
+  gFolderDisplay.view.showThreaded = true;
   MsgSortThreadPane('byDate');
 }
 
 function MsgSortThreadPane(sortName)
 {
   var sortType = nsMsgViewSortType[sortName];
-  var dbview = GetDBView();
-
-  // turn off grouping
-  dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-
-  dbview.sort(sortType, nsMsgViewSortOrder.ascending);
-  UpdateSortIndicators(sortType, nsMsgViewSortOrder.ascending);
+  // legacy behavior dictates we un-group-by-sort if we were.  this probably
+  //  deserves a UX call...
+  gFolderDisplay.view.showGroupedBySort = false;
+  gFolderDisplay.view.sort(sortType, nsMsgViewSortOrder.ascending)
 }
 
 function MsgReverseSortThreadPane()
 {
-  var dbview = GetDBView();
-  if (dbview.sortOrder == nsMsgViewSortOrder.ascending) {
-    MsgSortDescending();
-  }
-  else {
-    MsgSortAscending();
-  }
+  if (gFolderDisplay.view.isSortedAscending)
+    gFolderDisplay.view.sortDescending();
+  else
+    gFolderDisplay.view.sortAscending();
 }
 
 function MsgToggleThreaded()
 {
-    var dbview = GetDBView();
-    var newViewFlags = dbview.viewFlags ^ nsMsgViewFlagsType.kThreadedDisplay;
-    newViewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-    dbview.viewFlags = newViewFlags;
-
-    dbview.sort(dbview.sortType, dbview.sortOrder);
-    UpdateSortIndicators(dbview.sortType, dbview.sortOrder);
+  if (gFolderDisplay.view.showThreaded)
+    gFolderDisplay.view.showUnthreaded = true;
+  else
+    gFolderDisplay.view.showThreaded = true;
 }
 
 function MsgSortThreaded()
 {
-    var dbview = GetDBView();
-    var viewFlags = dbview.viewFlags;
-    let wasGrouped = viewFlags & nsMsgViewFlagsType.kGroupBySort;
-    dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-    // if we were grouped, and not a saved search, just rebuild the view
-    if (wasGrouped && !(gMsgFolderSelected.flags & 
-                       Components.interfaces.nsMsgFolderFlags.Virtual))
-      SwitchView("cmd_viewAllMsgs");
-    // Toggle if not already threaded.
-    else if ((viewFlags & nsMsgViewFlagsType.kThreadedDisplay) == 0)
-        MsgToggleThreaded();
+  gFolderDisplay.view.showThreaded = true;
 }
 
 function MsgGroupBySort()
 {
-  var dbview = GetDBView();
-  var viewFlags = dbview.viewFlags;
-  var sortOrder = dbview.sortOrder;
-  var sortType = dbview.sortType;
-  var count = new Object;
-  var msgFolder = dbview.msgFolder;
-
-  var sortTypeSupportsGrouping = (sortType == nsMsgViewSortType.byAuthor 
-         || sortType == nsMsgViewSortType.byDate || sortType == nsMsgViewSortType.byReceived || sortType == nsMsgViewSortType.byPriority
-         || sortType == nsMsgViewSortType.bySubject || sortType == nsMsgViewSortType.byTags
-         || sortType == nsMsgViewSortType.byStatus  || sortType == nsMsgViewSortType.byRecipient
-         || sortType == nsMsgViewSortType.byAccount || sortType == nsMsgViewSortType.byFlagged
-         || sortType == nsMsgViewSortType.byAttachments);
-
-  if (!sortTypeSupportsGrouping)
-    return; // we shouldn't be trying to group something we don't support grouping for...
-
-  viewFlags |= nsMsgViewFlagsType.kThreadedDisplay | nsMsgViewFlagsType.kGroupBySort;
-  if (gDBView &&
-      gMsgFolderSelected.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
-  {
-    gDBView.viewFlags = viewFlags;
-    UpdateSortIndicators(sortType, nsMsgViewSortOrder.ascending);
-    return;
-  }
-  // null this out, so we don't try sort.
-  if (gDBView) {
-    gDBView.close();
-    gDBView = null;
-  }
-  gDBView = Components.classes["@mozilla.org/messenger/msgdbview;1?type=group"]
-                                .createInstance(Components.interfaces.nsIMsgDBView);
-
-  if (!gThreadPaneCommandUpdater)
-    gThreadPaneCommandUpdater = new nsMsgDBViewCommandUpdater();
-
-
-  gDBView.init(messenger, msgWindow, gThreadPaneCommandUpdater);
-  gDBView.open(msgFolder, sortType, sortOrder, viewFlags, count);
-  RerootThreadPane();
-  UpdateSortIndicators(sortType, nsMsgViewSortOrder.ascending);
-  Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService)
-            .notifyObservers(msgFolder, "MsgCreateDBView",
-             Components.interfaces.nsMsgViewType.eShowAllThreads + ":" + viewFlags);
+  gFolderDisplay.view.showGroupedBySort = true;
 }
 
 function MsgSortUnthreaded()
 {
-    // Toggle if not already unthreaded.
-    if ((GetDBView().viewFlags & nsMsgViewFlagsType.kThreadedDisplay) != 0)
-        MsgToggleThreaded();
+  gFolderDisplay.view.showUnthreaded = true;
 }
 
 function MsgSortAscending()
 {
-  var dbview = GetDBView();
-  dbview.sort(dbview.sortType, nsMsgViewSortOrder.ascending);
-  UpdateSortIndicators(dbview.sortType, nsMsgViewSortOrder.ascending);
+  gFolderDisplay.view.sortAscending();
 }
 
 function MsgSortDescending()
 {
-  var dbview = GetDBView();
-  dbview.sort(dbview.sortType, nsMsgViewSortOrder.descending);
-  UpdateSortIndicators(dbview.sortType, nsMsgViewSortOrder.descending);
+  gFolderDisplay.view.sortDescending();
 }
 
-function groupedBySortUsingDummyRow()
-{
-  return (gDBView.viewFlags & nsMsgViewFlagsType.kGroupBySort) && 
-         (gDBView.sortType != nsMsgViewSortType.bySubject);
-}
-
+// XXX this should probably migrate into FolderDisplayWidget, or whatever
+//  FolderDisplayWidget ends up using if it refactors column management out.
 function UpdateSortIndicators(sortType, sortOrder)
 {
   // Remove the sort indicator from all the columns
   var treeColumns = document.getElementById('threadCols').childNodes;
   for (var i = 0; i < treeColumns.length; i++)
-    treeColumns[i].removeAttribute('sortDirection');
+    treeColumns[i].removeAttribute("sortDirection");
 
   // show the twisties if the view is threaded
   var threadCol = document.getElementById("threadCol");
+  var subjectCol = document.getElementById("subjectCol");
   var sortedColumn;
   // set the sort indicator on the column we are sorted by
   var colID = ConvertSortTypeToColumnID(sortType);
   if (colID)
     sortedColumn = document.getElementById(colID);
 
-  var dbview = GetDBView();
-  var currCol = dbview.viewFlags & nsMsgViewFlagsType.kGroupBySort 
-    ? sortedColumn : document.getElementById("subjectCol");
+  var viewWrapper = gFolderDisplay.view;
 
-  if (dbview.viewFlags & nsMsgViewFlagsType.kGroupBySort)
-  {
-    var threadTree = document.getElementById("threadTree");  
-    var subjectCol = document.getElementById("subjectCol");
+  // the thread column is not visible when we are grouped by sort
+  document.getElementById("threadCol").collapsed = viewWrapper.showGroupedBySort;
 
-    if (groupedBySortUsingDummyRow())
-    {
-      currCol.removeAttribute("primary");
-      subjectCol.setAttribute("primary", "true");
-    }
+  // show twisties only when grouping or threading
+  if (viewWrapper.showGroupedBySort || viewWrapper.showThreaded)
+    subjectCol.setAttribute("primary", "true");
+  else
+    subjectCol.removeAttribute("primary");
 
-    // hide the threaded column when in grouped view since you can't do 
-    // threads inside of a group.
-    document.getElementById("threadCol").collapsed = true;
-  }
-
-  // clear primary attribute from group column if going to a non-grouped view.
-  if (!(dbview.viewFlags & nsMsgViewFlagsType.kGroupBySort))
-    document.getElementById("threadCol").collapsed = false;
-
-  if ((dbview.viewFlags & nsMsgViewFlagsType.kThreadedDisplay) && !groupedBySortUsingDummyRow()) {
+  // If threading, set the sort direction on the thread column which causes it
+  //  to be able to 'light up' or otherwise indicate threading is active.
+  if (viewWrapper.showThreaded)
     threadCol.setAttribute("sortDirection", "ascending");
-    currCol.setAttribute("primary", "true");
-  }
-  else {
-    threadCol.removeAttribute("sortDirection");
-    currCol.removeAttribute("primary");
-  }
 
-  if (sortedColumn) {
-    if (sortOrder == nsMsgViewSortOrder.ascending) {
-      sortedColumn.setAttribute("sortDirection","ascending");
-    }
-    else {
-      sortedColumn.setAttribute("sortDirection","descending");
-    }
-  }
+  if (sortedColumn)
+    sortedColumn.setAttribute("sortDirection",
+                              sortOrder == nsMsgViewSortOrder.ascending ?
+                                "ascending" : "descending");
 }
 
 function IsSpecialFolderSelected(flags, checkAncestors)
@@ -492,27 +296,6 @@ function GetThreadPaneFolder()
   }
   catch (ex) {
     return null;
-  }
-}
-
-function EnsureRowInThreadTreeIsVisible(index)
-{
-  if (index < 0)
-    return;
-
-  var tree = GetThreadTree();
-  tree.treeBoxObject.ensureRowIsVisible(index); 
-}
-
-function RerootThreadPane()
-{
-  SetNewsFolderColumns();
-
-  var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
-  if (treeView)
-  {
-    var tree = GetThreadTree();
-    tree.boxObject.QueryInterface(Components.interfaces.nsITreeBoxObject).view = treeView;
   }
 }
 
@@ -538,8 +321,7 @@ function ThreadPaneOnLoad()
 function ThreadPaneSelectionChanged()
 {
   UpdateStatusMessageCounts(gMsgFolderSelected);
-  if (!gRightMouseButtonDown)
-    GetThreadTree().view.selectionChanged();
+  GetThreadTree().view.selectionChanged();
 }
 
 addEventListener("load",ThreadPaneOnLoad,true);

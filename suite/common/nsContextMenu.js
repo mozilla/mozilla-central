@@ -1162,14 +1162,18 @@ nsContextMenu.prototype = {
             break;
         }
     },
-
     copyMediaLocation : function () {
         var clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
                         .getService(Components.interfaces.nsIClipboardHelper);
         clipboard.copyString(this.mediaURL);
+    },
+
+    get imageURL() {
+        if (this.onImage)
+            return this.mediaURL;
+        return "";
     }
 };
-
 /*************************************************************************
  *
  *   nsDefaultEngine : nsIObserver

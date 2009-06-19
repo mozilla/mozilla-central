@@ -1,7 +1,4 @@
 classic.jar:
-+ skin/classic/global/tree.css                                (mail/tree.css)
-+ skin/classic/global/tree/sort-asc.gif                       (mail/icons/sort-asc.gif)
-+ skin/classic/global/tree/sort-dsc.gif                       (mail/icons/sort-dsc.gif)
   skin/classic/communicator/smileys.css                       (mail/smileys.css)
 % skin messenger classic/1.0 %skin/classic/messenger/
   skin/classic/messenger/primaryToolbar.css                   (mail/primaryToolbar.css)
@@ -199,7 +196,6 @@ classic.jar:
   skin/classic/messenger/icons/arrow/arrow-right-dim.png      (mail/icons/arrow/arrow-right-dim.png)
   skin/classic/messenger/icons/arrow/arrow-up-dim.png         (mail/icons/arrow/arrow-up-dim.png)
   skin/classic/messenger/icons/arrow/arrow-down-dim.png       (mail/icons/arrow/arrow-down-dim.png)
-  skin/classic/messenger/icons/chevron.png                    (mail/icons/chevron.png)
   skin/classic/messenger/tagbg.png                            (mail/tagbg.png)
   icon.png                                                    (mail/icon.png)
   preview.png                                                 (mail/preview.png)

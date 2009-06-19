@@ -47,7 +47,7 @@ const kNewsBlogNoNewItems = 4; // there are no new articles for this feed
 // can access the Feed objects after it finishes downloading the feed.
 var FeedCache = 
 {
-  mFeeds: new Array(),
+  mFeeds: {},
 
   putFeed: function (aFeed)
   {
@@ -56,12 +56,17 @@ var FeedCache =
 
   getFeed: function (aUrl)
   {
-    return this.mFeeds[this.normalizeHost(aUrl)];
+    var index = this.normalizeHost(aUrl);
+    if (index in this.mFeeds)
+      return this.mFeeds[index];
+    return null;
   },
 
   removeFeed: function (aUrl)
   {
-    delete this.mFeeds[this.normalizeHost(aUrl)];
+    var index = this.normalizeHost(aUrl);
+    if (index in this.mFeeds)
+      delete this.mFeeds[index];
   },
 
   normalizeHost: function (aUrl)

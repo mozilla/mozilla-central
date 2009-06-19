@@ -64,7 +64,7 @@ interface ImapOnlineCopyStateType
    const long kFailedMove = 9;
 };
 
-[scriptable, uuid(471adbb6-95c2-4a5f-b98e-0055804fce48)]
+[scriptable, uuid(531d4a3a-4921-4b7d-a46d-c66be8bec781)]
 interface nsIImapMailFolderSink : nsISupports {
   attribute boolean folderNeedsACLListed;
   attribute boolean folderNeedsSubscribing;
@@ -113,7 +113,7 @@ interface nsIImapMailFolderSink : nsISupports {
   void setBiffStateAndUpdate(in long biffState);
   void progressStatus(in nsIImapProtocol aProtocol, in unsigned long aMsgId, in wstring extraInfo);
   void percentProgress(in nsIImapProtocol aProtocol, in wstring aMessage, 
-                       in long aCurrentProgress, in long aMaxProgressProgressInfo);
+                       in long long aCurrentProgress, in long long aMaxProgressProgressInfo);
 
   void clearFolderRights();
   void setCopyResponseUid(in string msgIdString,

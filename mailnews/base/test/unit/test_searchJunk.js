@@ -257,6 +257,7 @@ function testJunkSearch()
   else
   {
     testObject = null;
+    hdr = null;
     do_test_finished();
   }
 }

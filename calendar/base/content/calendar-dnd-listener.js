@@ -22,6 +22,7 @@
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,60 +46,40 @@ var itemConversion = {
     /**
      * Converts an email message to a calendar item.
      *
-     * XXX Currently, only the title is taken from the passed message. Aside
-     * from that, the currently visible message in the preview pane is used.
-     *
      * @param aItem     The target calIItemBase.
-     * @param aMessage  The message  to convert from
+     * @param aMessage  The nsIMsgHdr to convert from.
      */
-    calendarItemFromMessage: function iC_calendarItemFromMessage(aItem, aMessage) {
-        aItem.calendar = getSelectedCalendar();
-        aItem.title = aMessage.mime2DecodedSubject;
+    calendarItemFromMessage: function iC_calendarItemFromMessage(aItem, aMsgHdr) {
+        let msgFolder = aMsgHdr.folder;
+        let msgUri = msgFolder.getUriForMsg(aMsgHdr);
 
-        setDefaultStartEndHour(aItem);
+        aItem.calendar = getSelectedCalendar();
+        aItem.title = aMsgHdr.mime2DecodedSubject;
+
+        cal.setDefaultStartEndHour(aItem);
         cal.alarms.setDefaultValues(aItem);
 
-        // XXX It would be great if nsPlainTextParser could take care of this.
-        function htmlToPlainText(html) {
-          var texts = html.split(/(<\/?[^>]+>)/);
-          var text = texts.map(function hTPT_map(string) {
-              if (string.length > 0 && string[0] == '<') {
-                  var regExpRes = string.match(/^<img.*?alt\s*=\s*['"](.*)["']/i)
-                  if (regExpRes) {
-                      return regExpRes[1];
-                  } else {
-                      return "";
-                  }
-              } else {
-                  return string.replace(/&([^;]+);/g, function hTPT_replace(str, p1) {
-                        switch (p1) {
-                            case "nbsp": return " ";
-                            case "amp": return "&";
-                            case "lt": return "<";
-                            case "gt": return ">";
-                            case "quot": return '\"';
-                        }
-                        return " ";
-                    });
-              }
-          }).join("");
+        let messenger = Components.classes["@mozilla.org/messenger;1"]
+                                  .createInstance(Components.interfaces.nsIMessenger);
+        let streamListener = Components.classes["@mozilla.org/network/sync-stream-listener;1"]
+                                       .createInstance(Components.interfaces.nsISyncStreamListener);
+        messenger.messageServiceFromURI(msgUri).streamMessage(msgUri,
+                                                              streamListener,
+                                                              null,
+                                                              null,
+                                                              false,
+                                                              "",
+                                                              false);
 
-          return text;
-        }
-
-        var content = document.getElementById("messagepane");
-        if (content) {
-            var messagePrefix = /^mailbox-message:|^imap-message:|^news-message:/i;
-            if (messagePrefix.test(GetLoadedMessage())) {
-                var message = content.contentDocument;
-                var body = message.body;
-                if (body) {
-                    aItem.setProperty(
-                        "DESCRIPTION",
-                        htmlToPlainText(body.innerHTML));
-                }
-            }
-        }
+        let plainTextMessage = "";
+        plainTextMessage = msgFolder.getMsgTextFromStream(streamListener.inputStream,
+                                                          aMsgHdr.Charset,
+                                                          65536,
+                                                          32768,
+                                                          false,
+                                                          true,
+                                                          {});
+        aItem.setProperty("DESCRIPTION", plainTextMessage);
     },
 
     /**

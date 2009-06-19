@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6B_MOZILLA_RTM'
 

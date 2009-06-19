@@ -527,7 +527,8 @@ nsMsgMailSession::GetDataFilesDir(const char* dirName, nsIFile **dataFilesDir)
 NS_IMPL_ISUPPORTS3(nsMsgShutdownService, nsIMsgShutdownService, nsIUrlListener, nsIObserver)
 
 nsMsgShutdownService::nsMsgShutdownService()
-: mProcessedShutdown(PR_FALSE),
+: mQuitMode(nsIAppStartup::eAttemptQuit),
+  mProcessedShutdown(PR_FALSE),
   mQuitForced(PR_FALSE),
   mReadyToQuit(PR_FALSE)
 {
@@ -605,7 +606,7 @@ void nsMsgShutdownService::AttemptShutdown()
     nsCOMPtr<nsIAppStartup> appStartup =
       do_GetService(NS_APPSTARTUP_CONTRACTID);
     NS_ENSURE_TRUE(appStartup, );
-    NS_ENSURE_SUCCESS(appStartup->Quit(nsIAppStartup::eAttemptQuit), );
+    NS_ENSURE_SUCCESS(appStartup->Quit(mQuitMode), );
   }
 }
 
@@ -707,6 +708,12 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
     {
       nsCOMPtr<nsISupportsPRBool> stopShutdown = do_QueryInterface(aSubject);
       stopShutdown->SetData(PR_TRUE);
+
+      // If the attempted quit was a restart, be sure to restart the app once
+      // the tasks have been run. This is usually the case when addons or
+      // updates are going to be installed.
+      if (nsDependentString(aData).EqualsLiteral("restart"))
+        mQuitMode |= nsIAppStartup::eRestart;
     }
 
     mMsgProgress->OpenProgressDialog(internalDomWin, topMsgWindow, 

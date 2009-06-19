@@ -1,8 +1,57 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Thunderbird Mail Client.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2009
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://app/modules/dbViewWrapper.js");
 Components.utils.import("resource://app/modules/mailViewManager.js");
 Components.utils.import("resource://app/modules/quickSearchManager.js");
 Components.utils.import("resource://app/modules/virtualFolderWrapper.js");
+
+var gMessageGenerator, gMessageScenarioFactory;
+
+/**
+ * Do initialization for xpcshell-tests; not used by
+ *  test-folder-display-helpers.js, our friendly mozmill test helper.
+ */
+function initViewWrapperTestUtils() {
+  gMessageGenerator = new MessageGenerator();
+  gMessageScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
+
+  async_test_runner_register_helper(VWTU_testHelper);
+}
 
 // something less sucky than do_check_true
 function assert_true(aBeTrue, aWhy, aDumpView) {
@@ -29,17 +78,27 @@ function assert_equals(aA, aB, aWhy, aDumpView) {
   }
 }
 
+function assert_bit_set(aWhat, aBit, aWhy) {
+  if (!(aWhat & aBit))
+    do_throw(aWhy);
+}
+
+function assert_bit_not_set(aWhat, aBit, aWhy) {
+  if (aWhat & aBit)
+    do_throw(aWhy);
+}
+
 var gFakeCommandUpdater = {
-  updateCommandStatus : function()
-  {
+  updateCommandStatus : function() {
   },
 
-  displayMessageChanged : function(aFolder, aSubject, aKeywords)
-  {
+  displayMessageChanged : function(aFolder, aSubject, aKeywords) {
   },
 
-  updateNextMessageAfterDelete : function()
-  {
+  summarizeSelection: function () {
+  },
+
+  updateNextMessageAfterDelete : function() {
   }
 };
 
@@ -88,8 +147,24 @@ var VWTU_testHelper = {
       wrapper.close();
     });
     // verify that the notification helper has no outstanding listeners.
-    if (IDBViewWrapperListener.prototype._FNH.haveListeners())
-      do_throw("FolderNotificationHelper has listeners, but should not.");
+    if (IDBViewWrapperListener.prototype._FNH.haveListeners()) {
+      let msg = "FolderNotificationHelper has listeners, but should not.";
+      dump("*** " + msg + "\n");
+      dump("Pending URIs:\n");
+      for each (let [folderURI, wrappers] in
+                Iterator(IDBViewWrapperListener.prototype._FNH
+                           ._pendingFolderUriToViewWrapperLists)) {
+        dump("  " + folderURI + "\n");
+      }
+      dump("Interested wrappers:\n");
+      for each (let [folderURI, wrappers] in
+                Iterator(IDBViewWrapperListener.prototype._FNH
+                           ._interestedWrappers)) {
+        dump("  " + folderURI + "\n");
+      }
+      dump("***\n");
+      do_throw(msg);
+    }
     // force the folder to forget about the message database
     this.active_virtual_folders.forEach(function (folder) {
       folder.msgDatabase = null;
@@ -120,7 +195,6 @@ var VWTU_testHelper = {
     }
   }
 };
-async_test_runner_register_helper(VWTU_testHelper);
 
 function make_view_wrapper() {
   let wrapper = new DBViewWrapper(gMockViewWrapperListener);
@@ -462,6 +536,24 @@ function verify_view_level_histogram(aExpectedHisto, aViewWrapper) {
 }
 
 /**
+ * Given a view wrapper and one or more view indices, verify that the row
+ *  returns true for isContainer.
+ *
+ * @param aViewWrapper The view wrapper in question
+ * @param ... View indices to check.
+ */
+function verify_view_row_at_index_is_container(aViewWrapper) {
+  let treeView = aViewWrapper.dbView.QueryInterface(Ci.nsITreeView);
+  for (let iArg = 1; iArg < arguments.length; iArg++) {
+    let viewIndex = arguments[iArg];
+    if (!treeView.isContainer(viewIndex)) {
+      dump_view_state(aViewWrapper);
+      do_throw("Expected isContainer to be true at view index " + viewIndex);
+    }
+  }
+}
+
+/**
  * Given a view wrapper and one or more view indices, verify that there is a
  *  dummy header at each provided index.
  *
@@ -530,8 +622,6 @@ function make_folders_with_sets(aFolderCount, aSynSetDefs) {
   return results;
 }
 
-var gMessageGenerator = new MessageGenerator();
-var gMessageScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
 /**
  * Given one or more existing local folder, create new message sets and add them
  *  to the folders using
@@ -630,6 +720,7 @@ function add_sets_to_folders(aMsgFolders, aMessageSets) {
     for each (let [, messageSet] in Iterator(aMessageSets)) {
       if (iPerSet < messageSet.synMessages.length) {
         messageSet.addMessageToFolderByIndex(folder, iPerSet);
+        folder.hasNewMessages = true;
         didSomething = true;
       }
     }

@@ -266,7 +266,7 @@ public:
   void ProgressEventFunctionUsingId(PRUint32 aMsgId);
   void ProgressEventFunctionUsingIdWithString(PRUint32 aMsgId, const char *
     aExtraInfo);
-  void PercentProgressUpdateEvent(PRUnichar *message, PRInt32 currentProgress, PRInt32 maxProgress);
+  void PercentProgressUpdateEvent(PRUnichar *message, PRInt64 currentProgress, PRInt64 maxProgress);
   void ShowProgress();
 
   // utility function calls made by the server

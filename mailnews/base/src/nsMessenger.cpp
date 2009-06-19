@@ -258,13 +258,13 @@ public:
   nsCOMPtr<nsITransfer> mTransfer;
   nsCOMPtr<nsIUrlListener> mListener;
   nsCOMPtr<nsIURI> mListenerUri;
-  PRInt32 mProgress;
-  PRInt32 mContentLength;
+  PRInt64 mProgress;
+  PRInt64 mMaxProgress;
   PRBool  mCanceled;
   PRBool  mInitialized;
   PRBool  mUrlHasStopped;
   PRBool  mRequestHasStopped;
-  nsresult InitializeDownload(nsIRequest * aRequest, PRInt32 aBytesDownloaded);
+  nsresult InitializeDownload(nsIRequest * aRequest, PRUint32 aBytesDownloaded);
 };
 
 class nsSaveAllAttachmentsState
@@ -1437,7 +1437,7 @@ nsSaveMsgListener::nsSaveMsgListener(nsIFile* aFile, nsMessenger *aMessenger, ns
   m_doCharsetConversion = PR_FALSE;
   m_saveAllAttachmentsState = nsnull;
   mProgress = 0;
-  mContentLength = -1;
+  mMaxProgress = -1;
   mCanceled = PR_FALSE;
   m_outputFormat = eUnknown;
   mInitialized = PR_FALSE;
@@ -1564,7 +1564,7 @@ nsSaveMsgListener::OnStopCopy(nsresult aStatus)
 
 // initializes the progress window if we are going to show one
 // and for OSX, sets creator flags on the output file
-nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRInt32 aBytesDownloaded)
+nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRUint32 aBytesDownloaded)
 {
   nsresult rv = NS_OK;
   
@@ -1574,9 +1574,15 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRInt32 aB
   if (!channel)
     return rv;
   
-  // Set content length if we haven't already got it.
-  if (mContentLength == -1)
-    channel->GetContentLength(&mContentLength);
+  // Get the max progress from the URL if we haven't already got it.
+  if (mMaxProgress == -1)
+  {
+    nsCOMPtr<nsIURI> uri;
+    channel->GetURI(getter_AddRefs(uri));
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl(do_QueryInterface(uri));
+    if (mailnewsUrl)
+      mailnewsUrl->GetMaxProgress(&mMaxProgress);
+  }
   
   if (!m_contentType.IsEmpty())
   {
@@ -1587,11 +1593,12 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRInt32 aB
     
     nsCOMPtr<nsILocalFile> outputFile = do_QueryInterface(m_file);
     
-      // create a download progress window
-      // XXX: we don't want to show the progress dialog if the download is really small.
-      // but what is a small download? Well that's kind of arbitrary
-      // so make an arbitrary decision based on the content length of the attachment
-    if (mContentLength != -1 && mContentLength > aBytesDownloaded * 2)
+    // create a download progress window
+    // We don't want to show the progress dialog if the download is really small.
+    // but what is a small download? Well that's kind of arbitrary
+    // so make an arbitrary decision based on the content length of the
+    // attachment -- show it if less than half of the download has completed
+    if (mMaxProgress != -1 && mMaxProgress > aBytesDownloaded * 2)
     {
       nsCOMPtr<nsITransfer> tr = do_CreateInstance(NS_TRANSFER_CONTRACTID, &rv);
       if (tr && outputFile)
@@ -1758,7 +1765,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
 
   if(mTransfer)
   {
-    mTransfer->OnProgressChange(nsnull, nsnull, mContentLength, mContentLength, mContentLength, mContentLength);
+    mTransfer->OnProgressChange64(nsnull, nsnull, mMaxProgress, mMaxProgress, mMaxProgress, mMaxProgress);
     mTransfer->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP |
       nsIWebProgressListener::STATE_IS_NETWORK, NS_OK);
     mTransfer = nsnull; // break any circular dependencies between the progress dialog and use
@@ -1816,7 +1823,7 @@ nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
     }
 
     if (NS_SUCCEEDED(rv) && mTransfer) // Send progress notification.
-      mTransfer->OnProgressChange(nsnull, request, mProgress, mContentLength, mProgress, mContentLength);
+      mTransfer->OnProgressChange64(nsnull, request, mProgress, mMaxProgress, mProgress, mMaxProgress);
   }
   return rv;
 }
@@ -2421,8 +2428,8 @@ nsDelAttachListener::OnStopRequest(nsIRequest * aRequest, nsISupports * aContext
   // This is called before OnStopRunningUrl().
   nsresult rv;
 
-  // copy the file back into the folder. Note: if we set msgToReplace then
-  // CopyFileMessage() fails, do the delete ourselves
+  // copy the file back into the folder. Note: setting msgToReplace only copies
+  // metadata, so we do the delete ourselves
   nsCOMPtr<nsIMsgCopyServiceListener> listenerCopyService;
   rv = this->QueryInterface( NS_GET_IID(nsIMsgCopyServiceListener), getter_AddRefs(listenerCopyService) );
   NS_ENSURE_SUCCESS(rv,rv);
@@ -2439,7 +2446,7 @@ nsDelAttachListener::OnStopRequest(nsIRequest * aRequest, nsISupports * aContext
   {
     nsCString originalKeys;
     mOriginalMessage->GetStringProperty("keywords", getter_Copies(originalKeys));
-    rv = copyService->CopyFileMessage(clone, mMessageFolder, nsnull, PR_FALSE,
+    rv = copyService->CopyFileMessage(clone, mMessageFolder, mOriginalMessage, PR_FALSE,
                                       mOrigMsgFlags, originalKeys, listenerCopyService, mMsgWindow);
   }
   return rv;

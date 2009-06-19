@@ -57,6 +57,8 @@ public:
   NS_DECL_NSIMSGSEARCHNOTIFY
   NS_DECL_NSIMSGCOPYSERVICELISTENER
 
+  NS_IMETHOD SetSearchSession(nsIMsgSearchSession *aSearchSession);
+
   virtual const char * GetViewName(void) {return "SearchView"; }
   NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, 
         nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount);
@@ -135,6 +137,7 @@ protected:
   nsMsgViewCommandTypeValue mCommand;
   nsCOMPtr <nsIMsgFolder> mDestFolder;
   nsString m_curCustomColumn;
+  nsWeakPtr m_searchSession;
 
   nsresult ProcessRequestsInOneFolder(nsIMsgWindow *window);
   nsresult ProcessRequestsInAllFolders(nsIMsgWindow *window);

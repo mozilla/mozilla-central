@@ -1,42 +1,41 @@
-# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-1999
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Jan Varga <varga@nixcorp.com>
-#   Håkan Waara <hwaara@gmail.com>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/** ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Jan Varga <varga@nixcorp.com>
+ *   Håkan Waara <hwaara@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://app/modules/appIdleManager.js");
 
@@ -59,30 +58,35 @@ var gMailWindowLog = Log4Moz.getConfiguredLogger("mailWindow", Log4Moz.Level.Deb
 var gAccountCentralLoaded = true;
 
 
+/**
+ * Indicate whether we are running on Mac OS X.  Our code is currently littered
+ *  with #ifdef/#ifndef XP_MACOSX's that do not need to exist in js code.  Use
+ *  of preprocessing makes error line numbers misleading, complicates
+ *  development because preprocessed files can't be symlinked when using
+ *  --enable-chrome-format=symlink, etc.
+ */
+var gPlatformOSX =
+  (window.navigator.oscpu.substring(0, 3).toLowerCase() == "mac");
+
+/**
+ * Called by messageWindow.xul:onunload,  the 'single message display window'.
+ *
+ * Also called by messenger.xul:onunload's (the 3-pane window inside of tabs
+ *  window) unload function, OnUnloadMessenger.
+ */
 function OnMailWindowUnload()
 {
   MailOfflineMgr.uninit();
   ClearPendingReadTimer();
 
-  var searchSession = GetSearchSession();
-  if (searchSession)
-  {
-    removeGlobalListeners();
-    if (gPreQuickSearchView)     //close the cached pre quick search view
-      gPreQuickSearchView.close();
-  }
-
-  var dbview = GetDBView();
-  if (dbview) {
-    dbview.close();
-  }
+  // all dbview closing is handled by OnUnloadMessenger for the 3-pane (it closes
+  //  the tabs which close their views) and OnUnloadMessageWindow for the
+  //  standalone message window.
 
   var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
                               .getService(Components.interfaces.nsIMsgMailSession);
-  mailSession.RemoveFolderListener(folderListener);
-
   mailSession.RemoveMsgWindow(msgWindow);
-  messenger.setWindow(null, null);
+  // the tabs have the FolderDisplayWidget close their 'messenger' instances for us
 
   msgWindow.closeWindow();
 
@@ -103,7 +107,7 @@ function CreateMailWindowGlobals()
 
   window.addEventListener("blur", appIdleManager.onBlur, false);
   window.addEventListener("focus", appIdleManager.onFocus, false);
-  
+
   //Create windows status feedback
   // set the JS implementation of status feedback before creating the c++ one..
   window.MsgStatusFeedback = new nsMsgStatusFeedback();
@@ -161,7 +165,7 @@ function InitMsgWindow()
 function nsMsgStatusFeedback()
 {
   this._statusText = document.getElementById("statusText");
-  this._progressBar = document.getElementById("statusbar-icon"); 
+  this._progressBar = document.getElementById("statusbar-icon");
   this._progressBarContainer = document.getElementById("statusbar-progresspanel");
   this._throbber = document.getElementById("navigator-throbber");
   this._stopCmd = document.getElementById("cmd_stop");
@@ -356,7 +360,7 @@ nsMsgStatusFeedback.prototype =
       // Stop the bar spinning as we're not doing anything now.
       this._progressBar.setAttribute("mode", "determined");
       this._progressBar.value = 0;
-      this._progressBar.label = ""; 
+      this._progressBar.label = "";
 
       if (this._progressBarVisible) {
         this._progressBarContainer.collapsed = true;
@@ -442,15 +446,16 @@ nsMsgWindowCommands.prototype =
 
   selectMessage: function(messageUri)
   {
-    SelectMessage(messageUri);
+    let msgHdr = messenger.msgHdrFromURI(messageUri);
+    gFolderDisplay.selectMessage(msgHdr);
   },
 
   clearMsgPane: function()
   {
-    if (gDBView)
-      setTitleFromFolder(gDBView.msgFolder,null);
-    else
-      setTitleFromFolder(null,null);
+    // This call happens as part of a display decision made by the nsMsgDBView
+    //  instance.  Strictly speaking, we don't want this.  I think davida's
+    //  patch will change this, so we can figure it out after that lands if
+    //  there are issues.
     ClearMessagePane();
   }
 }
@@ -480,7 +485,6 @@ function startPageUrlPref()
 function loadStartPage()
 {
   gMessageNotificationBar.clearMsgNotifications();
-  ClearThreadPaneSelection();
   let startpage = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
                             .getService(Components.interfaces.nsIURLFormatter)
                             .formatURLPref(startPageUrlPref());
@@ -503,27 +507,6 @@ function loadStartPage()
   }
 }
 
-// When the ThreadPane is hidden via the displayDeck, we should collapse the
-// elements that are only meaningful to the thread pane. When AccountCentral is
-// shown via the displayDeck, we need to switch the displayDeck to show the
-// accountCentralBox, and load the iframe in the AccountCentral box with
-// corresponding page.
-function ShowAccountCentral()
-{
-  var accountBox = document.getElementById("accountCentralBox");
-  document.getElementById("displayDeck").selectedPanel = accountBox;
-  var prefName = "mailnews.account_central_page.url";
-  var acctCentralPage = pref.getComplexValue(prefName,
-                                             Components.interfaces.nsIPrefLocalizedString).data;
-  window.frames["accountCentralPane"].location.href = acctCentralPage;
-}
-
-function ShowThreadPane()
-{
-  document.getElementById("displayDeck").selectedPanel =
-    document.getElementById("threadPaneBox");
-}
-
 function ShowingThreadPane()
 {
   var threadPaneSplitter = document.getElementById("threadpane-splitter");
@@ -537,7 +520,6 @@ function ShowingThreadPane()
 
 function HidingThreadPane()
 {
-  ClearThreadPane();
   GetUnreadCountElement().hidden = true;
   GetTotalCountElement().hidden = true;
   GetMessagePane().collapsed = true;
@@ -554,6 +536,11 @@ function getBrowser()
                    document.getElementById("messagepane");
 }
 
+// When the ThreadPane is hidden via the displayDeck, we should collapse the
+// elements that are only meaningful to the thread pane. When AccountCentral is
+// shown via the displayDeck, we need to switch the displayDeck to show the
+// accountCentralBox, and load the iframe in the AccountCentral box with
+// corresponding page.
 var gCurrentDisplayDeckId = "";
 function ObserveDisplayDeckChange(event)
 {
@@ -584,21 +571,12 @@ function ObserveDisplayDeckChange(event)
 // prompt if offline.
 function OpenInboxForServer(server)
 {
-  ShowThreadPane();
   gFolderTreeView.selectFolder(GetInboxFolder(server));
 
   if (MailOfflineMgr.isOnline() || MailOfflineMgr.getNewMail()) {
     if (server.type != "imap")
       GetMessagesForInboxOnServer(server);
   }
-}
-
-function GetSearchSession()
-{
-  if (("gSearchSession" in top) && gSearchSession)
-    return gSearchSession;
-  else
-    return null;
 }
 
 /** Update state of zoom type (text vs. full) menu item. */

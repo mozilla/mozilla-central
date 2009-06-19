@@ -51,10 +51,6 @@
 
 /* ::::: msg header toolbars ::::: */
 
-#collapsedHeaderView {
-  min-width: 1px;
-}
-
 #expandedHeaderView {
   overflow-y: auto;
   overflow-x: hidden;
@@ -63,10 +59,6 @@
 
 #variousHeadersBox{
   padding-bottom: 1em;
-}
-
-#collapsedHeaderDisplayName {
-  text-align: left;
 }
 
 /* ::::: msg header buttons ::::: */
@@ -94,28 +86,6 @@
 .msgHeaderView-flat-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
 .msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
-}
-
-#collapsedsubjectValue {
-  -moz-margin-start: 3px !important;
-  -moz-box-align: stretch;
-  font-weight: bold;
-}
-
-#collapseddateValue {
-  -moz-box-align: stretch;
-  text-align: right;
-  -moz-padding-end: 0.5em !important;
-}
-
-#showDetailsButton {
-  -moz-appearance: none !important;
-  width: 22px;
-  padding-bottom: 0px !important;
-  height: 22px;
-  background-image: url("chrome://messenger/skin/icons/chevron.png");
-  background-repeat: no-repeat;
-  background-position: center center;
 }
 
 /* ::::: expanded header pane ::::: */
@@ -385,33 +355,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   color: inherit;
 }
 
-#collapsedsubjectBox {
-  margin: 0px;
-  padding: 0px;
-}
-
-#collapsedfromBox {
-  padding-top: 0.5em;
-}
-
-#collapsedfromValue > .headerNameBox {
-  display: none;
-}
-
-#collapsedtoCcBccValue > .headerNameBox {
-  display: none;
-}
-
-#collapsedtoCcBccValue > .headerValueBox[singleline] {
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-#collapsedtoCcBccValue > .headerValueBox:not([singleline]) {
-  padding-top: 0.5em;
-  padding-bottom: 0;
-}
-
 .moreIndicator {
   font-weight: bold;
 }
@@ -559,14 +502,10 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
   list-style-image:url("chrome://messenger/skin/icons/arrow/arrow-down.png");
 }
 
-/* ::::: view expand and collapse twisties  ::::: */
+/* ::::: view expand twisty  ::::: */
 
 .expandHeaderViewButton {
   list-style-image: url("chrome://global/skin/tree/twisty-open.png");
-}
-
-.collapsedHeaderViewButton  {
-  list-style-image: url("chrome://global/skin/tree/twisty-clsd.png");
 }
 
 mail-multi-emailHeaderField,

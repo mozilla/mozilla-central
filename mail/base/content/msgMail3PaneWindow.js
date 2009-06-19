@@ -1,50 +1,50 @@
-# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-1999
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Jan Varga (varga@nixcorp.com)
-#   Håkan Waara (hwaara@chello.se)
-#   Neil Rashbrook (neil@parkwaycc.co.uk)
-#   Seth Spitzer <sspitzer@netscape.com>
-#   David Bienvenu <bienvenu@nventure.com>
-#   Jeremy Morton <bugzilla@game-point.net>
-#   Steffen Wilberg <steffen.wilberg@web.de>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/** ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Jan Varga (varga@nixcorp.com)
+ *   Håkan Waara (hwaara@chello.se)
+ *   Neil Rashbrook (neil@parkwaycc.co.uk)
+ *   Seth Spitzer <sspitzer@netscape.com>
+ *   David Bienvenu <bienvenu@nventure.com>
+ *   Jeremy Morton <bugzilla@game-point.net>
+ *   Steffen Wilberg <steffen.wilberg@web.de>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/folderUtils.jsm");
 Components.utils.import("resource://app/modules/activity/activityModules.js");
+Components.utils.import("resource://app/modules/jsTreeSelection.js");
 
 /* This is where functions related to the 3 pane window are kept */
 
@@ -59,33 +59,29 @@ const kVerticalPaneConfig = 2;
 
 const kNumFolderViews = 4; // total number of folder views
 
+/** widget with id=messagepanebox, initialized by GetMessagePane() */
 var gMessagePane;
+/** widget with id=searchInput, initialized by GetSearchInput() */
 var gSearchInput;
 
 var gThreadAndMessagePaneSplitter = null;
+/** widget with id=unreadMessageCount, initialized by GetUnreadCountElement() */
 var gUnreadCount = null;
+/** widget with id=totalMessageCount, initialized by GetTotalCountElement() */
 var gTotalCount = null;
 var gCurrentFolderView;
-var gCurrentLoadingFolderURI;
-var gCurrentFolderToReroot;
-var gCurrentLoadingFolderSortType = 0;
-var gCurrentLoadingFolderSortOrder = 0;
-var gCurrentLoadingFolderViewType = 0;
-var gCurrentLoadingFolderViewFlags = 0;
-var gRerootOnFolderLoad = false;
-var gNextMessageAfterDelete = null;
-var gNextMessageAfterLoad = null;
-var gNextMessageViewIndexAfterDelete = -2;
-var gSelectedIndexWhenDeleting = -1;
-var gCurrentlyDisplayedMessage=nsMsgViewIndex_None;
 var gStartFolderUri = null;
-var gStartMsgKey = nsMsgKey_None;
-var gSearchEmailAddress = null;
-var gRightMouseButtonDown = false;
-// Global var to keep track of which row in the thread pane has been selected
-// This is used to make sure that the row with the currentIndex has the selection
-// after a Delete or Move of a message that has a row index less than currentIndex.
-var gThreadPaneCurrentSelectedIndex = -1;
+/**
+ * Tracks whether the right mouse button changed the selection or not.  If the
+ * user right clicks on the selection, it stays the same.  If they click outside
+ * of it, we alter the selection (but not the current index) to be the row they
+ * clicked on.
+ *
+ * The value of this variable is an object with "view" and "selection" keys
+ * and values.  The view value is the view whose selection we saved off, and
+ * the selection value is the selection object we saved off.
+ */
+var gRightMouseButtonSavedSelection = null;
 var gLoadStartFolder = true;
 var gNewAccountToLoad = null;
 
@@ -94,68 +90,7 @@ var gNewAccountToLoad = null;
 // not updating on one of those menu item commands.
 var gThreadPaneDeleteOrMoveOccurred = false;
 
-//If we've loaded a message, set to true.  Helps us keep the start page around.
-var gHaveLoadedMessage;
-
 var gDisplayStartupPage = false;
-
-function SelectAndScrollToKey(aMsgKey)
-{
-  // select the desired message
-  // if the key isn't found, we won't select anything
-  gDBView.selectMsgByKey(aMsgKey);
-
-  // is there a selection?
-  // if not, bail out.
-  var indicies = GetSelectedIndices(gDBView);
-  if (!indicies || !indicies.length)
-    return false;
-
-  // now scroll to it
-  EnsureRowInThreadTreeIsVisible(indicies[0]);
-  return true;
-}
-
-// A helper routine called after a folder is loaded to make sure
-// we select and scroll to the correct message (could be the first new message,
-// could be the last displayed message, etc.)
-function ScrollToMessageAfterFolderLoad(folder)
-{
-  var scrolled = gPrefBranch.getBoolPref("mailnews.scroll_to_new_message") &&
-      ScrollToMessage(nsMsgNavigationType.firstNew, true, false /* selectMessage */);
-  if (!scrolled && folder && gPrefBranch.getBoolPref("mailnews.remember_selected_message"))
-  {
-    // If we failed to scroll to a new message,
-    // reselect the last selected message
-    var lastMessageLoaded = folder.lastMessageLoaded;
-    if (lastMessageLoaded != nsMsgKey_None)
-      scrolled = SelectAndScrollToKey(lastMessageLoaded);
-  }
-
-  if (!scrolled)
-  {
-    // if we still haven't scrolled,
-    // scroll to the newest, which might be the top or the bottom
-    // depending on our sort order and sort type
-    if (gDBView.sortOrder == nsMsgViewSortOrder.ascending)
-    {
-      switch (gDBView.sortType)
-      {
-        case nsMsgViewSortType.byDate:
-        case nsMsgViewSortType.byReceived:
-        case nsMsgViewSortType.byId:
-        case nsMsgViewSortType.byThread:
-         scrolled = ScrollToMessage(nsMsgNavigationType.lastMessage, true, false /* selectMessage */);
-         break;
-      }
-    }
-
-    // if still we haven't scrolled,
-    // scroll to the top.
-    if (!scrolled)
-      EnsureRowInThreadTreeIsVisible(0);
-  }
-}
 
 // the folderListener object
 var folderListener = {
@@ -180,121 +115,7 @@ var folderListener = {
 
     OnItemEvent: function(folder, event) {
       var eventType = event.toString();
-      if (eventType == "FolderLoaded") {
-        if (folder) {
-          var scrolled = false;
-          var msgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
-          var uri = folder.URI;
-          var rerootingFolder = (uri == gCurrentFolderToReroot);
-          if (rerootingFolder) {
-            viewDebug("uri = gCurrentFolderToReroot, setting gQSViewIsDirty\n");
-            gQSViewIsDirty = true;
-            gCurrentFolderToReroot = null;
-            if (msgFolder) {
-              msgFolder.endFolderLoading();
-              UpdateStatusQuota(msgFolder);
-              // Suppress command updating when rerooting the folder.
-              // When rerooting, we'll be clearing the selection
-              // which will cause us to update commands.
-              if (gDBView) {
-                gDBView.suppressCommandUpdating = true;
-                // If the db's view isn't set, something went wrong and we
-                // should reroot the folder, which will re-open the view.
-                if (!gDBView.db)
-                  gRerootOnFolderLoad = true;
-              }
-              if (gRerootOnFolderLoad)
-                RerootFolder(uri, msgFolder, gCurrentLoadingFolderViewType, gCurrentLoadingFolderViewFlags, gCurrentLoadingFolderSortType, gCurrentLoadingFolderSortOrder);
-
-              var db = msgFolder.msgDatabase;
-              if (db)
-                db.resetHdrCacheSize(100);
-
-              if (gDBView) {
-                gDBView.suppressCommandUpdating = false;
-              }
-
-              gCurrentLoadingFolderSortType = 0;
-              gCurrentLoadingFolderSortOrder = 0;
-              gCurrentLoadingFolderViewType = 0;
-              gCurrentLoadingFolderViewFlags = 0;
-
-              // Used for rename folder msg loading after folder is loaded.
-              scrolled = LoadCurrentlyDisplayedMessage();
-
-              if (gStartMsgKey != nsMsgKey_None) {
-                scrolled = SelectAndScrollToKey(gStartMsgKey);
-                gStartMsgKey = nsMsgKey_None;
-              }
-
-              if (gNextMessageAfterLoad) {
-                var type = gNextMessageAfterLoad;
-                gNextMessageAfterLoad = null;
-
-                // Scroll to and select the proper message.
-                scrolled = ScrollToMessage(type, true, true /* selectMessage */);
-              }
-            }
-          }
-          const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-          if (uri == gCurrentLoadingFolderURI) {
-            viewDebug("uri == current loading folder uri\n");
-            gCurrentLoadingFolderURI = "";
-            // Scroll to message for virtual folders is done in
-            // gSearchNotificationListener.OnSearchDone (see searchBar.js).
-            if (!scrolled && gMsgFolderSelected &&
-                !(gMsgFolderSelected.flags & nsMsgFolderFlags.Virtual))
-              ScrollToMessageAfterFolderLoad(msgFolder);
-            SetBusyCursor(window, false);
-          }
-          // Folder loading is over,
-          // now issue quick search if there is an email address.
-          viewDebug("in folder loaded gVirtualFolderTerms = " + gVirtualFolderTerms + "\n");
-          viewDebug("in folder loaded gMsgFolderSelected = " + gMsgFolderSelected.URI + "\n");
-          if (rerootingFolder)
-          {
-            if (gSearchEmailAddress)
-            {
-              Search(gSearchEmailAddress);
-              gSearchEmailAddress = null;
-            }
-            else if (gVirtualFolderTerms)
-            {
-              gDefaultSearchViewTerms = null;
-              viewDebug("searching gVirtualFolderTerms\n");
-              gDBView.viewFolder = gMsgFolderSelected;
-              ViewChangeByFolder(gMsgFolderSelected);
-            }
-            else if (gMsgFolderSelected.flags & nsMsgFolderFlags.Virtual)
-            {
-              viewDebug("selected folder is virtual\n");
-              gDefaultSearchViewTerms = null;
-            }
-            else
-            {
-              // Get the view value from the folder.
-              if (msgFolder)
-              {
-                // If our new view is the same as the old view and we already
-                // have the list of search terms built up for the old view,
-                // just re-use it.
-                var result = GetMailViewForFolder(msgFolder);
-                if (GetSearchInput() && gCurrentViewValue == result && gDefaultSearchViewTerms)
-                {
-                  viewDebug("searching gDefaultSearchViewTerms and rerootingFolder\n");
-                  Search("");
-                }
-                else if (document.getElementById("mailviews-container")) // Only load the folder view if the views toolbar is visible.
-                {
-                  viewDebug("changing view by value\n");
-                  ViewChangeByValue(result);
-                }
-              }
-            }
-          }
-        }
-      }
-      else if (eventType == "ImapHdrDownloaded") {
+      if (eventType == "ImapHdrDownloaded") {
         if (folder) {
           var imapFolder = folder.QueryInterface(Components.interfaces.nsIMsgImapMailFolder);
           if (imapFolder) {
@@ -316,220 +137,10 @@ var folderListener = {
           }
         }
       }
-      else if (eventType == "DeleteOrMoveMsgCompleted") {
-        HandleDeleteOrMoveMsgCompleted(folder);
-      }
-      else if (eventType == "DeleteOrMoveMsgFailed") {
-        HandleDeleteOrMoveMsgFailed(folder);
-      }
-      else if (eventType == "AboutToCompact") {
-        if (gDBView)
-          gCurrentlyDisplayedMessage = gDBView.currentlyDisplayedMessage;
-      }
-      else if (eventType == "CompactCompleted") {
-        HandleCompactCompleted(folder);
-      }
-      else if (eventType == "RenameCompleted") {
-        gFolderTreeView.selectFolder(folder);
-      }
       else if (eventType == "JunkStatusChanged") {
         HandleJunkStatusChanged(folder);
       }
     }
-}
-
-function HandleDeleteOrMoveMsgFailed(folder)
-{
-  gDBView.onDeleteCompleted(false);
-  if(IsCurrentLoadedFolder(folder)) {
-    if(gNextMessageAfterDelete) {
-      gNextMessageAfterDelete = null;
-      gNextMessageViewIndexAfterDelete = -2;
-    }
-  }
-
-  // fix me???
-  // ThreadPaneSelectionChange(true);
-}
-
-// WARNING
-// this is a fragile and complicated function.
-// be careful when hacking on it.
-// Don't forget about things like different imap
-// delete models, multiple views (from multiple thread panes,
-// search windows, stand alone message windows)
-function HandleDeleteOrMoveMsgCompleted(folder)
-{
-  // you might not have a db view.  this can happen if
-  // biff fires when the 3 pane is set to account central.
-  if (!gDBView)
-    return;
-
-  gDBView.onDeleteCompleted(true);
-
-  if (!IsCurrentLoadedFolder(folder)) {
-    // default value after delete/move/copy is over
-    gNextMessageViewIndexAfterDelete = -2;
-    return;
-  }
-
-  var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
-  var treeSelection = treeView.selection;
-
-  if (gNextMessageViewIndexAfterDelete == -2) {
-    // a move or delete can cause our selection can change underneath us.
-    // this can happen when the user
-    // deletes message from the stand alone msg window
-    // or the search view, or another 3 pane
-    if (treeSelection.count == 0) {
-      // this can happen if you double clicked a message
-      // in the thread pane, and deleted it from the stand alone msg window
-      // see bug #172392
-      treeSelection.clearSelection();
-      setTitleFromFolder(folder, null);
-      ClearMessagePane();
-      UpdateMailToolbar("delete from another view, 0 rows now selected");
-    }
-    else if (treeSelection.count == 1) {
-      // this can happen if you had two messages selected
-      // in the thread pane, and you deleted one of them from another view
-      // (like the view in the stand alone msg window)
-      // since one item is selected, we should load it.
-      var startIndex = {};
-      var endIndex = {};
-      treeSelection.getRangeAt(0, startIndex, endIndex);
-
-      // select the selected item, so we'll load it
-      treeSelection.select(startIndex.value);
-      treeView.selectionChanged();
-
-      EnsureRowInThreadTreeIsVisible(startIndex.value);
-
-      UpdateMailToolbar("delete from another view, 1 row now selected");
-    }
-    else {
-      // this can happen if you have more than 2 messages selected
-      // in the thread pane, and you deleted one of them from another view
-      // (like the view in the stand alone msg window)
-      // since multiple messages are still selected, do nothing.
-    }
-  }
-  else {
-    if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None)
-    {
-      var viewSize = treeView.rowCount;
-      if (gNextMessageViewIndexAfterDelete >= viewSize)
-      {
-        if (viewSize > 0)
-          gNextMessageViewIndexAfterDelete = viewSize - 1;
-        else
-        {
-          gNextMessageViewIndexAfterDelete = nsMsgViewIndex_None;
-
-          // there is nothing to select since viewSize is 0
-          treeSelection.clearSelection();
-          setTitleFromFolder(folder, null);
-          ClearMessagePane();
-          UpdateMailToolbar("delete from current view, 0 rows left");
-        }
-      }
-    }
-
-    // if we are about to set the selection with a new element then DON'T clear
-    // the selection then add the next message to select. This just generates
-    // an extra round of command updating notifications that we are trying to
-    // optimize away.
-    if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None)
-    {
-      // When deleting a message we don't update the commands
-      // when the selection goes to 0
-      // (we have a hack in nsMsgDBView which prevents that update)
-      // so there is no need to
-      // update commands when we select the next message after the delete;
-      // the commands already
-      // have the right update state...
-      gDBView.suppressCommandUpdating = true;
-
-      // This check makes sure that the tree does not perform a
-      // selection on a non selected row (row < 0), else assertions will
-      // be thrown.
-      if (gNextMessageViewIndexAfterDelete >= 0)
-        treeSelection.select(gNextMessageViewIndexAfterDelete);
-
-      // If gNextMessageViewIndexAfterDelete has the same value
-      // as the last index we had selected, the tree won't generate a
-      // selectionChanged notification for the tree view. So force a manual
-      // selection changed call.
-      // (don't worry it's cheap if we end up calling it twice).
-      if (treeView)
-        treeView.selectionChanged();
-
-      EnsureRowInThreadTreeIsVisible(gNextMessageViewIndexAfterDelete);
-      gDBView.suppressCommandUpdating = false;
-
-      // hook for extra toolbar items
-      // XXX TODO
-      // I think there is a bug in the suppression code above.
-      // What if I have two rows selected, and I hit delete,
-      // and so we load the next row.
-      // What if I have commands that only enable where
-      // exactly one row is selected?
-      UpdateMailToolbar("delete from current view, at least one row selected");
-    }
-  }
-
-  // default value after delete/move/copy is over
-  gNextMessageViewIndexAfterDelete = -2;
-}
-
-function HandleCompactCompleted(folder)
-{
-  if (folder && folder.server.type != "imap")
-  {
-    var msgFolder = msgWindow.openFolder;
-    if (msgFolder && folder.URI == msgFolder.URI)
-    {
-      // pretend the selection changed, to reselect the current folder+view.
-      gMsgFolderSelected = null;
-      msgWindow.openFolder = null;
-      FolderPaneSelectionChange();
-      LoadCurrentlyDisplayedMessage();
-    }
-  }
-}
-
-function LoadCurrentlyDisplayedMessage()
-{
-  var scrolled = (gCurrentlyDisplayedMessage != nsMsgViewIndex_None);
-  if (scrolled)
-  {
-    var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
-    var treeSelection = treeView.selection;
-    treeSelection.select(gCurrentlyDisplayedMessage);
-    if (treeView)
-      treeView.selectionChanged();
-    EnsureRowInThreadTreeIsVisible(gCurrentlyDisplayedMessage);
-    SetFocusThreadPane();
-    gCurrentlyDisplayedMessage = nsMsgViewIndex_None; //reset
-  }
-  return scrolled;
-}
-
-function IsCurrentLoadedFolder(folder)
-{
-  var msgfolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
-  var currentLoadedFolder = GetThreadPaneFolder();
-  if (currentLoadedFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
-  {
-    var dbFolderInfo = currentLoadedFolder.msgDatabase.dBFolderInfo;
-    var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
-    var re = new RegExp("^" + msgfolder.URI + "$|^" + msgfolder.URI + "\||\|" +
-                        msgfolder.URI + "$|\|" + msgfolder.URI +"\|");
-
-    return currentLoadedFolder.URI.match(re);
-  }
-
-  return (currentLoadedFolder.URI == folder.URI);
 }
 
 function ServerContainsFolder(server, folder)
@@ -668,19 +279,27 @@ function OnLoadMessenger()
   MailOfflineMgr.init();
   CreateMailWindowGlobals();
   GetMessagePane().collapsed = true;
+
+  // - initialize tabmail system
+  // Do this before LoadPostAccountWizard since that code selects the first
+  //  folder for display, and we want gFolderDisplay setup and ready to handle
+  //  that event chain.
+  // Also, we definitely need to register the tab type prior to the call to
+  //  specialTabs.openSpecialTabsOnStartup below.
+  let tabmail = document.getElementById('tabmail');
+  if (tabmail)
+  {
+    tabmail.registerTabType(mailTabType);
+    tabmail.registerTabMonitor(QuickSearchTabMonitor);
+    tabmail.openFirstTab();
+  }
+
   // verifyAccounts returns true if the callback won't be called
   // We also don't want the account wizard to open if any sort of account exists
   if (verifyAccounts(LoadPostAccountWizard, false))
     LoadPostAccountWizard();
 
-  // initialize tabmail system
-  let tabmail = document.getElementById('tabmail');
-  if (tabmail)
-  {
-    tabmail.registerTabType(mailTabType);
-    tabmail.openFirstTab();
-  }
-
+  // This also registers the contentTabType ("contentTab")
   specialTabs.openSpecialTabsOnStartup();
 
   window.addEventListener("AppCommand", HandleAppCommandEvent, true);
@@ -707,8 +326,6 @@ function LoadPostAccountWizard()
   //need to add to session before trying to load start folder otherwise listeners aren't
   //set up correctly.
   // argument[0] --> folder uri
-  // argument[1] --> optional message key
-  // argument[2] --> optional email address; // Will come from aim; needs to show msgs from buddy's email address.
   if ("arguments" in window)
   {
     // filter our any feed urls that came in as arguments to the new window...
@@ -721,40 +338,38 @@ function LoadPostAccountWizard()
     }
     else
       gStartFolderUri = (window.arguments.length > 0) ? window.arguments[0] : null;
-    gStartMsgKey = (window.arguments.length > 1) ? window.arguments[1]: nsMsgKey_None;
-    gSearchEmailAddress = (window.arguments.length > 2) ? window.arguments[2] : null;
   }
 
   function completeStartup() {
-#ifdef HAVE_SHELL_SERVICE
     // Check whether we need to show the default client dialog
     // First, check the shell service
     var nsIShellService = Components.interfaces.nsIShellService;
-    var shellService;
-    var defaultAccount;
-    try {
-      shellService = Components.classes["@mozilla.org/mail/shell-service;1"].getService(nsIShellService);
-      defaultAccount = accountManager.defaultAccount;
-    } catch (ex) {}
+    if (nsIShellService) {
+      var shellService;
+      var defaultAccount;
+      try {
+        shellService = Components.classes["@mozilla.org/mail/shell-service;1"].getService(nsIShellService);
+        defaultAccount = accountManager.defaultAccount;
+      } catch (ex) {}
 
-    // Next, try loading the search integration module
-    // We'll get a null SearchIntegration if we don't have one
-    Components.utils.import("resource://app/modules/SearchIntegration.js");
+      // Next, try loading the search integration module
+      // We'll get a null SearchIntegration if we don't have one
+      Components.utils.import("resource://app/modules/SearchIntegration.js");
 
-    // Show the default client dialog only if
-    // EITHER: we have at least one account, and we aren't already the default
-    // for mail,
-    // OR: we have the search integration module, the OS version is suitable,
-    // and the first run hasn't already been completed.
-    // Needs to be shown outside the he normal load sequence so it doesn't appear
-    // before any other displays, in the wrong place of the screen.
-    if ((shellService && defaultAccount && shellService.shouldCheckDefaultClient
-         && !shellService.isDefaultClient(true, nsIShellService.MAIL)) ||
+      // Show the default client dialog only if
+      // EITHER: we have at least one account, and we aren't already the default
+      // for mail,
+      // OR: we have the search integration module, the OS version is suitable,
+      // and the first run hasn't already been completed.
+      // Needs to be shown outside the he normal load sequence so it doesn't appear
+      // before any other displays, in the wrong place of the screen.
+      if ((shellService && defaultAccount && shellService.shouldCheckDefaultClient
+           && !shellService.isDefaultClient(true, nsIShellService.MAIL)) ||
         (SearchIntegration && !SearchIntegration.osVersionTooLow &&
          !SearchIntegration.osComponentsNotRunning && !SearchIntegration.firstRunDone))
-      window.openDialog("chrome://messenger/content/systemIntegrationDialog.xul",
-                        "SystemIntegration", "modal,centerscreen,chrome,resizable=no");
-#endif
+        window.openDialog("chrome://messenger/content/systemIntegrationDialog.xul",
+                          "SystemIntegration", "modal,centerscreen,chrome,resizable=no");
+    }
 
     // All core modal dialogs are done, the user can now interact with the 3-pane window
     var obs = Components.classes["@mozilla.org/observer-service;1"]
@@ -767,8 +382,6 @@ function LoadPostAccountWizard()
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadMsgHeaderPane();
 
-  gHaveLoadedMessage = false;
-
   //Set focus to the Thread Pane the first time the window is opened.
   SetFocusThreadPane();
 
@@ -779,7 +392,12 @@ function LoadPostAccountWizard()
   var toolbarset = document.getElementById('customToolbars');
   toolbox.toolbarset = toolbarset;
 
-  loadStartFolder(gStartFolderUri);
+  // XXX Do not select the folder until the window displays or the threadpane
+  //  will be at minimum size.  We used to have
+  //  gFolderDisplay.ensureRowIsVisible use settimeout itself to defer that
+  //  calculation, but that was ugly.  Also, in theory we will open the window
+  //  faster if we let the event loop start doing things sooner.
+  window.setTimeout(loadStartFolder, 0, gStartFolderUri);
 }
 
 function HandleAppCommandEvent(evt)
@@ -808,13 +426,20 @@ function HandleAppCommandEvent(evt)
   }
 }
 
+/**
+ * Called by messenger.xul:onunload, the 3-pane window inside of tabs window.
+ *  It's being unloaded!  Right now!
+ */
 function OnUnloadMessenger()
 {
-  OnLeavingFolder(gMsgFolderSelected);  // mark all read in current folder
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
   document.getElementById('tabmail').closeTabs();
+
+  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
+                              .getService(Components.interfaces.nsIMsgMailSession);
+  mailSession.RemoveFolderListener(folderListener);
 
   gPhishingDetector.shutdown();
 
@@ -973,7 +598,7 @@ function InitPanes()
   folderTree.addEventListener("mousedown",TreeOnMouseDown,true);
   var threadTree = document.getElementById("threadTree");
   threadTree.addEventListener("click",ThreadTreeOnClick,true);
-                       
+
   OnLoadThreadPane();
   SetupCommandUpdateHandlers();
 }
@@ -1009,19 +634,19 @@ function UpgradeThreadPaneUI()
       // We use the threadpane ui version to determine TB profile version
       let servers = Components.classes["@mozilla.org/messenger/account-manager;1"]
                       .getService(Components.interfaces.nsIMsgAccountManager).allServers;
-      
+
       for each (let server in fixIterator(servers, Components.interfaces.nsIMsgIncomingServer))
       {
         if (server.type != "imap")
           continue;
-        
+
         let allFolders = Components.classes["@mozilla.org/supports-array;1"]
                           .createInstance(Components.interfaces.nsISupportsArray);
         server.rootFolder.ListDescendents(allFolders);
         for each (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder))
           folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
       }
-      
+
       // Note: threadTree._reorderColumn will throw an ERROR if the columns specified are already in the same order!
       if (threadPaneUIVersion < 6)
       {
@@ -1029,43 +654,43 @@ function UpgradeThreadPaneUI()
         var dateCol = document.getElementById("dateCol");
         var receivedCol = document.getElementById("receivedCol");
         var junkCol = document.getElementById("junkStatusCol");
-  
+
         if (threadPaneUIVersion < 5)
         {
           if (threadPaneUIVersion < 4)
           {
             if (threadPaneUIVersion < 3)
             {
-  
+
               // in thunderbird, we are inserting the junk column just before the
               // date column.
               threadTree._reorderColumn(junkCol, dateCol, true);
             }
-  
+
             var senderCol = document.getElementById("senderCol");
             var recipientCol = document.getElementById("recipientCol");
             threadTree._reorderColumn(recipientCol, junkCol, true);
             threadTree._reorderColumn(senderCol, recipientCol, true);
-  
+
           } // version 4 upgrades
-  
+
           // version 5 adds a new column called attachments
           var attachmentCol = document.getElementById("attachmentCol");
           var subjectCol = document.getElementById("subjectCol");
-  
+
           threadTree._reorderColumn(attachmentCol, subjectCol, true);
-  
+
         } // version 5 upgrades
-  
+
         if (dateCol)
           threadTree._reorderColumn(receivedCol, dateCol, true);
         else
           threadTree._reorderColumn(receivedCol, junkCol, false);
-   
+
       } // version 6 upgrades
-      
+
       gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 7);
- 
+
     } // version 7 upgrades
   }
   catch (ex) {
@@ -1150,64 +775,84 @@ function IsMessagePaneCollapsed()
 
 function ClearThreadPaneSelection()
 {
-  try {
-    if (gDBView) {
-      var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
-      var treeSelection = treeView.selection;
-      if (treeSelection)
-        treeSelection.clearSelection();
-    }
-  }
-  catch (ex) {
-    dump("ClearThreadPaneSelection: ex = " + ex + "\n");
-  }
+  gFolderDisplay.clearSelection();
 }
 
 function ClearMessagePane()
 {
-  if(gHaveLoadedMessage)
-  {
-    gHaveLoadedMessage = false;
-    if (GetMessagePaneFrame().location.href != "about:blank")
-        GetMessagePaneFrame().location.href = "about:blank";
-
-    // hide the message header view AND the message pane...
-    HideMessageHeaderPane();
-    gMessageNotificationBar.clearMsgNotifications();
-    ClearPendingReadTimer();
-  }
+  // hide the message header view AND the message pane...
+  HideMessageHeaderPane();
+  gMessageNotificationBar.clearMsgNotifications();
+  ClearPendingReadTimer();
+  GetMessagePaneFrame().location.href = "about:blank";
 }
 
-// Function to change the highlighted row to where the mouse was clicked
-// without loading the contents of the selected row.
-// It will also keep the outline/dotted line in the original row.
-function ChangeSelectionWithoutContentLoad(event, tree)
+/**
+ * When right-clicks happen, we do not want to corrupt the underlying
+ * selection.  The right-click is a transient selection.  So, unless the
+ * user is right-clicking on the current selection, we create a new
+ * selection object (thanks to JSTreeSelection) and set that as the
+ * current/transient selection.
+ *
+ * It is up you to call RestoreSelectionWithoutContentLoad to clean up when we
+ * are done.
+ *
+ * @param aSingleSelect Should the selection we create be a single selection?
+ *     This is relevant if the row being clicked on is already part of the
+ *     selection.  If it is part of the selection and !aSingleSelect, then we
+ *     leave the selection as is.  If it is part of the selection and
+ *     aSingleSelect then we create a transient single-row selection.
+ */
+function ChangeSelectionWithoutContentLoad(event, tree, aSingleSelect)
 {
-    var treeBoxObj = tree.treeBoxObject;
-    if (!treeBoxObj)
-    {
-      event.stopPropagation();
-      return;
-    }
-    var treeSelection = treeBoxObj.view.selection;
-
-    var row = treeBoxObj.getRowAt(event.clientX, event.clientY);
-    // make sure that row.value is valid so that it doesn't mess up
-    // the call to ensureRowIsVisible().
-    if((row >= 0) && !treeSelection.isSelected(row))
-    {
-        var saveCurrentIndex = treeSelection.currentIndex;
-        treeSelection.selectEventsSuppressed = true;
-        treeSelection.select(row);
-        treeSelection.currentIndex = saveCurrentIndex;
-        treeBoxObj.ensureRowIsVisible(row);
-        treeSelection.selectEventsSuppressed = false;
-
-        // Keep track of which row in the thread pane is currently selected.
-        if(tree.id == "threadTree")
-          gThreadPaneCurrentSelectedIndex = row;
-    }
+  var treeBoxObj = tree.treeBoxObject;
+  if (!treeBoxObj) {
     event.stopPropagation();
+    return;
+  }
+
+  var treeSelection = treeBoxObj.view.selection;
+
+  var row = treeBoxObj.getRowAt(event.clientX, event.clientY);
+  // Only do something if:
+  // - the row is valid
+  // - it's not already selected (or we want a single selection)
+  if (row >= 0 &&
+      (aSingleSelect || !treeSelection.isSelected(row))) {
+    // Check if the row is exactly the existing selection.  In that case
+    //  there is no need to create a bogus selection.
+    if (treeSelection.count == 1) {
+      let minObj = {};
+      treeSelection.getRangeAt(0, minObj, {});
+      if (minObj.value == row) {
+        event.stopPropagation();
+        return;
+      }
+    }
+
+    let transientSelection = new JSTreeSelection(treeBoxObj);
+    transientSelection.logAdjustSelectionForReplay();
+
+    gRightMouseButtonSavedSelection = {
+      view: treeBoxObj.view,
+      realSelection: treeSelection,
+      transientSelection: transientSelection
+    };
+
+    var saveCurrentIndex = treeSelection.currentIndex;
+
+    // tell it to log calls to adjustSelection
+    // attach it to the view
+    treeBoxObj.view.selection = transientSelection;
+    // Don't generate any selection events! (we never set this to false, because
+    //  that would generate an event, and we never need one of those from this
+    //  selection object.
+    transientSelection.selectEventsSuppressed = true;
+    transientSelection.select(row);
+    transientSelection.currentIndex = saveCurrentIndex;
+    treeBoxObj.ensureRowIsVisible(row);
+  }
+  event.stopPropagation();
 }
 
 function TreeOnMouseDown(event)
@@ -1218,17 +863,16 @@ function TreeOnMouseDown(event)
     // Same for middle click, which will open the folder/message in a tab.
     if (event.button == 2 || event.button == 1)
     {
-      gRightMouseButtonDown = true;
-      ChangeSelectionWithoutContentLoad(event, event.target.parentNode);
+      // We want a single selection if this is a middle-click (button 1)
+      ChangeSelectionWithoutContentLoad(event, event.target.parentNode,
+                                        event.button == 1);
     }
-    else
-      gRightMouseButtonDown = false;
 }
 
 function FolderPaneOnClick(event)
 {
   var folderTree = document.getElementById("folderTree");
-  
+
   // Middle click on a folder opens the folder in a tab
   if (event.button == 1)
   {
@@ -1258,7 +902,7 @@ function FolderPaneOnClick(event)
 function ThreadTreeOnClick(event)
 {
   var threadTree = document.getElementById("threadTree");
-  
+
   // Middle click on a message opens the message in a tab
   if (event.button == 1)
   {
@@ -1272,101 +916,9 @@ function GetSelectedMsgFolders()
   return gFolderTreeView.getSelectedFolders();
 }
 
-function GetFirstSelectedMessage()
-{
-    try {
-        return gDBView.URIForFirstSelectedMessage;
-    }
-    catch (ex) {
-        return null;
-    }
-}
-
-function GetSelectedIndices(dbView)
-{
-  try {
-    return dbView.getIndicesForSelection({});
-  }
-  catch (ex) {
-    dump("ex = " + ex + "\n");
-    return null;
-  }
-}
-
-function GetSelectedMessages()
-{
-  if (!GetDBView())
-    return null;
-
-  var messageArray = GetDBView().getURIsForSelection({});
-  return messageArray.length ? messageArray : null;
-}
-
 function GetLoadedMsgFolder()
 {
-    if (!gDBView) return null;
-    return gDBView.msgFolder;
-}
-
-function GetLoadedMessage()
-{
-    try {
-        return gDBView.URIForFirstSelectedMessage;
-    }
-    catch (ex) {
-        return null;
-    }
-}
-
-//Clear everything related to the current message. called after load start page.
-function ClearMessageSelection()
-{
-  ClearThreadPaneSelection();
-}
-
-// Figures out how many messages are selected (hilighted - does not necessarily
-// have the dotted outline) above a given index row value in the thread pane.
-function NumberOfSelectedMessagesAboveCurrentIndex(index)
-{
-  var numberOfMessages = 0;
-  var indicies = GetSelectedIndices(gDBView);
-
-  if (indicies && indicies.length)
-  {
-    for (var i = 0; i < indicies.length; i++)
-    {
-      if (indicies[i] < index)
-        ++numberOfMessages;
-      else
-        break;
-    }
-  }
-  return numberOfMessages;
-}
-
-function SetNextMessageAfterDelete()
-{
-  var treeSelection = GetThreadTree().view.selection;
-
-  if (treeSelection.isSelected(treeSelection.currentIndex))
-  {
-    gNextMessageViewIndexAfterDelete = gDBView.msgToSelectAfterDelete;
-    gSelectedIndexWhenDeleting = treeSelection.currentIndex;
-  }
-  else if(gDBView.removeRowOnMoveOrDelete)
-  {
-    // Only set gThreadPaneDeleteOrMoveOccurred to true if the message was
-    // truly moved to the trash or deleted, as opposed to an IMAP delete
-    // (where it is only "marked as deleted".  This will prevent bug 142065.
-    //
-    // If it's an IMAP delete, then just set gNextMessageViewIndexAfterDelete
-    // to treeSelection.currentIndex (where the outline is at) because nothing
-    // was moved or deleted from the folder.
-    gThreadPaneDeleteOrMoveOccurred = true;
-    gNextMessageViewIndexAfterDelete = treeSelection.currentIndex - NumberOfSelectedMessagesAboveCurrentIndex(treeSelection.currentIndex);
-  }
-  else
-    gNextMessageViewIndexAfterDelete = treeSelection.currentIndex;
+  return gFolderDisplay.displayedFolder;
 }
 
 function SelectFolder(folderUri)
@@ -1374,34 +926,9 @@ function SelectFolder(folderUri)
   gFolderTreeView.selectFolder(GetMsgFolderFromUri(folderUri));
 }
 
-function SelectMessage(messageUri)
-{
-  var msgHdr = messenger.messageServiceFromURI(messageUri).messageURIToMsgHdr(messageUri);
-  if (msgHdr)
-    gDBView.selectMsgByKey(msgHdr.messageKey);
-}
-
 function ReloadMessage()
 {
-  gDBView.reloadMessage();
-}
-
-function GetDBView()
-{
-  return gDBView;
-}
-
-function LoadNavigatedToMessage(msgHdr, folder, folderUri)
-{
-  if (IsCurrentLoadedFolder(folder))
-  {
-    gDBView.selectMsgByKey(msgHdr.messageKey);
-  }
-  else
-  {
-    gStartMsgKey = msgHdr.messageKey;
-    SelectFolder(folderUri);
-  }
+  gFolderDisplay.view.dbView.reloadMessage();
 }
 
 // Some of the per account junk mail settings have been
@@ -1484,11 +1011,11 @@ function threadPaneOnDragStart(aEvent) {
   if (aEvent.originalTarget.localName != "treechildren")
     return;
 
-  var messages = GetSelectedMessages();
+  var messages = gFolderDisplay.selectedMessageUris;
   if (!messages)
     return;
 
-  SetNextMessageAfterDelete()
+  gFolderDisplay.hintAboutToDeleteMessages();
   for (let i in messages)
     aEvent.dataTransfer.mozSetDataAt("text/x-moz-message", messages[i], i);
   aEvent.dataTransfer.effectAllowed = "copyMove";

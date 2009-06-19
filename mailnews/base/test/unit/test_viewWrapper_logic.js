@@ -3,6 +3,7 @@ load("../../mailnews/resources/messageModifier.js");
 load("../../mailnews/resources/asyncTestUtils.js");
 
 load("../../mailnews/resources/viewWrapperTestUtils.js");
+initViewWrapperTestUtils();
 
 /**
  * Verify that flipping between threading and grouped by sort settings properly
@@ -158,12 +159,56 @@ function test_mailviews_persistence() {
   gMockViewWrapperListener.shouldUseMailViews = true;
 }
 
+/**
+ * Make sure:
+ * - View update depth increments / decrements as expected, and triggers a
+ *    view rebuild when expected.
+ * - View update depth can't go below zero resulting in odd happenings.
+ * - That the view update depth is zeroed by a close so that we don't
+ *    get into awkward states.
+ *
+ * @bug 498145
+ */
+function test_view_update_depth_logic() {
+  let viewWrapper = make_view_wrapper();
+
+  // create an instance-specific dummy method that counts calls t
+  //  _applyViewChanges
+  let applyViewCount = 0;
+  viewWrapper._applyViewChanges = function() { applyViewCount++; };
+
+  // - view update depth basics
+  do_check_eq(viewWrapper._viewUpdateDepth, 0);
+  viewWrapper.beginViewUpdate();
+  do_check_eq(viewWrapper._viewUpdateDepth, 1);
+  viewWrapper.beginViewUpdate();
+  do_check_eq(viewWrapper._viewUpdateDepth, 2);
+  viewWrapper.endViewUpdate();
+  do_check_eq(applyViewCount, 0);
+  do_check_eq(viewWrapper._viewUpdateDepth, 1);
+  viewWrapper.endViewUpdate();
+  do_check_eq(applyViewCount, 1);
+  do_check_eq(viewWrapper._viewUpdateDepth, 0);
+
+  // - don't go below zero! (and don't trigger.)
+  applyViewCount = 0;
+  viewWrapper.endViewUpdate();
+  do_check_eq(applyViewCount, 0);
+  do_check_eq(viewWrapper._viewUpdateDepth, 0);
+
+  // - depth zeroed on clear
+  viewWrapper.beginViewUpdate();
+  viewWrapper.close(); // this does little else because there is nothing open
+  do_check_eq(viewWrapper._viewUpdateDepth, 0);
+}
+
 var tests = [
   test_threading_grouping_mutual_exclusion,
   test_sort_primary,
   test_sort_secondary_explicit,
   test_sort_secondary_implicit,
   test_mailviews_persistence,
+  test_view_update_depth_logic,
 ];
 
 function run_test() {

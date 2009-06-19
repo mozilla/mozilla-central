@@ -74,6 +74,7 @@ public:
                                        char *aGreetingWithCapability = NULL);
   virtual void InitializeState();
   PRBool  CommandFailed();
+  void    SetCommandFailed(PRBool failed);
 
     enum eIMAPstate {
         kNonAuthenticated,

@@ -1,5 +1,314 @@
-components/xpti.dat
+# ****************************************************************************
+# * Generic removals section: this is almost certainly where you want to add *
+# * anything that isn't a connected chunk of files with related and shared   *
+# * ifdef conditions.                                                        *
+# ****************************************************************************
+chrome/app-chrome.manifest
+chrome/chrome.rdf
+chrome/en-US-mail.jar
+#ifdef XP_WIN
+chrome/en-win.jar
+#endif
+chrome/installed-chrome.txt
+chrome/mail.jar
+chrome/offline.jar
+chrome/offline.manifest
+chrome/overlayinfo/
+chrome/qute.jar
+chrome/US.jar
+#ifdef MOZ_WIDGET_GTK2
+chrome/icons/default/abcardWindow.xpm
+chrome/icons/default/abcardWindow16.xpm
+chrome/icons/default/addressbookWindow.xpm
+chrome/icons/default/addressbookWindow16.xpm
+chrome/icons/default/default.xpm
+chrome/icons/default/messengerWindow.xpm
+chrome/icons/default/messengerWindow16.xpm
+chrome/icons/default/msgcomposeWindow.xpm
+chrome/icons/default/msgcomposeWindow16.xpm
+#endif
+#ifdef XP_MACOSX
+#ifndef ACCESSIBILITY
+components/accessibility.xpt
+#endif
+#endif
+components/accessibility-atk.xpt
+components/airbag.xpt
+components/bookmarks.xpt
+components/downloadmanager.xpt
 components/compreg.dat
+components/history.xpt
+components/jsconsole.xpt
+components/mailnews.xpt
+components/mozgnome.xpt
+components/@DLL_PREFIX@myspell@DLL_SUFFIX@
+components/necko_data.xpt
+components/nsBackgroundUpdateService.js
+components/nsCloseAllWindows.js
+components/nsComposerCmdLineHandler.js
+components/nsDownloadProgressListener.js
+components/nsInterfaceInfoToIDL.js
+components/nsLDAPPrefsService.js
+#ifdef XP_WIN
+#ifndef MOZILLA_1_9_1_BRANCH
+components/nsPostUpdateWin.js
+#endif
+#endif
+components/nsScriptableIO.js
+#ifdef XP_MACOSX
+components/nsSpotlightIntegration.js
+#endif
+components/nsUnsetDefaultMail.js
+components/nsUrlClassifierTable.js
+#ifdef XP_WIN
+components/nsWinSearchIntegration.js
+#endif
+components/progressDlg.xpt
+components/sidebar.xpt
+components/signonviewer.xpt
+components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
+components/spellchk.dll
+components/@DLL_PREFIX@wallet@DLL_SUFFIX@
+components/wallet.xpt
+components/walleteditor.xpt
+components/walletpreview.xpt
+components/@DLL_PREFIX@walletviewers@DLL_SUFFIX@
+#ifndef MOZ_WEBSERVICES
+components/websrvcs.xpt
+#endif
+#ifdef XP_MACOSX
+components/widget_mac.xpt
+#endif
+components/@DLL_PREFIX@xpcom_compat_c@DLL_SUFFIX@
+components/xpcom_obsolete.xpt
+components/xpti.dat
+components/xptitemp.dat
+components/myspell/en-US.dic
+components/myspell/en-US.aff
+components/myspell/
+defaults/isp/dotmac.rdf
+defaults/isp/movemail.rdf
+defaults/isp/rss.rdf
+defaults/isp/en-US/dotmac.rdf
+defaults/isp/en-US/movemail.rdf
+defaults/isp/en-US/rss.rdf
+defaults/isp/en-US/
+defaults/isp/US/movemail.rdf
+defaults/isp/US/rss.rdf
+defaults/isp/US/
+defaults/isp/
+defaults/messenger/SpamAssassin.sfd
+defaults/messenger/SpamPal.sfd
+defaults/messenger/en-US/mailViews.dat
+defaults/messenger/US/mailViews.dat
+defaults/pref/all.js
+defaults/pref/editor.js
+defaults/pref/inspector.js
+defaults/pref/non-shared.txt
+defaults/pref/security-prefs.js
+defaults/pref/thunderbird.js
+defaults/pref/winpref.js
+defaults/pref/xpinstall.js
+defaults/profile/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/install.rdf
+defaults/profile/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/
+defaults/profile/extensions/Extensions.rdf
+defaults/profile/extensions/installed-extensions.txt
+defaults/profile/extensions/
+defaults/profile/US/localstore.rdf
+defaults/profile/US/mimeTypes.rdf
+defaults/profile/US/
+#ifdef XP_WIN
+defaults/shortcuts/Mozilla Thunderbird.lnk
+defaults/shortcuts/Mozilla Thunderbird (No Extensions).lnk
+defaults/shortcuts/
+#endif
+defaults/wallet/VcardSchema.tbl
+defaults/wallet/FieldSchema.tbl
+defaults/wallet/SchemaConcat.tbl
+defaults/wallet/DistinguishedSchema.tbl
+defaults/wallet/SchemaStrings.tbl
+defaults/wallet/PositionalSchema.tbl
+defaults/wallet/StateSchema.tbl
+#ifdef MOZ_WIDGET_GTK2
+icons/mozicon128.png
+icons/mozicon16.xpm
+icons/mozicon50.xpm
+#endif
+init.d/README
+isp/gmail.rdf
+modules/JSON.jsm
+plugins/
+res/bloatcycle.html
+res/cmessage.txt
+#ifndef MOZILLA_1_9_1_BRANCH
+res/broken-image.gif
+res/loading-image.gif
+#endif
+res/platform-forms.css
+res/sample.unixpsfonts.properties
+res/builtin/htmlBindings.xml
+res/builtin/platformHTMLBindings.xml
+res/builtin/
+#ifdef XP_MACOSX
+res/cursors/CVS/Entries
+res/cursors/CVS/Repository
+res/cursors/CVS/Root
+res/cursors/CVS/Tag
+#endif
+res/fonts/fontEncoding.properties
+res/fonts/pangoFontEncoding.properties
+res/html/gopher-audio.gif
+res/html/gopher-binary.gif
+res/html/gopher-find.gif
+res/html/gopher-image.gif
+res/html/gopher-menu.gif
+res/html/gopher-movie.gif
+res/html/gopher-sound.gif
+res/html/gopher-telnet.gif
+res/html/gopher-text.gif
+res/html/gopher-unknown.gif
+#ifdef XP_MACOSX
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Info.plist
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/MacOS/Thunderbird
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Resources/schema.xml
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Resources/English.lproj/InfoPlist.strings
+Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Resources/English.lproj/schema.strings
+#endif
+uninstall/UninstallThunderbird.exe
+uninstall/uninst.exe
+uninstall/uninstall.exe
+#ifdef XP_MACOSX
+updater.app/Contents/MacOS/updater.ini
+#endif
+.autoreg
+component.reg
+@DLL_PREFIX@jemalloc@DLL_SUFFIX@
+#ifdef XP_WIN
+#ifdef MOZ_MEMORY
+Microsoft.VC80.CRT.manifest
+msvcm80.dll
+msvcp80.dll
+msvcr80.dll
+#else
+mozcrt19.dll
+#endif
+#endif
+mozilla-installer-bin
+nsldap32v50.dll
+@DLL_PREFIX@ldap50@DLL_SUFFIX@
+nsldappr32v50.dll
+@DLL_PREFIX@prldap50@DLL_SUFFIX@
+redo-prebinding.sh
+regxpcom.exe
+#ifdef XP_WIN
+xpicleanup.exe
+#else
+xpicleanup
+#endif
+@DLL_PREFIX@xpcom_compat@DLL_SUFFIX@
+@DLL_PREFIX@xpistub@DLL_SUFFIX@
+@DLL_PREFIX@zlib@DLL_SUFFIX@
+# ****************************************************************************
+# * End generic removals section.                                            *
+# ****************************************************************************
+
+# ****************************************************************************
+# * Remove Talkback files from old location, where they were in 1.0.x        *
+# ****************************************************************************
+components/BrandRes.dll
+components/fullsoft.dll
+components/master.ini
+components/qfaservices.dll
+components/qfaservices.xpt
+components/talkback-l10n.ini
+components/talkback.cnt
+components/talkback.exe
+components/talkback.hlp
+components/libqfaservices.so
+components/talkback/master.ini
+components/talkback/talkback
+components/talkback/talkback.so
+components/talkback/XTalkback.ad
+# **************************************************************************##
+# * Remove Talkback files from new location, where they were in 1.5.x and    *
+# * 2.0.x.                                                                   *
+# ****************************************************************************
+extensions/talkback@mozilla.org/
+extensions/talkback@mozilla.org/install.rdf
+extensions/talkback@mozilla.org/chrome.manifest
+extensions/talkback@mozilla.org/components/qfaservices.xpt
+extensions/talkback@mozilla.org/components/@DLL_PREFIX@qfaservices@DLL_SUFFIX@
+#ifdef XP_WIN
+extensions/talkback@mozilla.org/components/BrandRes.dll
+extensions/talkback@mozilla.org/components/fullsoft.dll
+extensions/talkback@mozilla.org/components/master.ini
+extensions/talkback@mozilla.org/components/talkback-l10n.ini
+extensions/talkback@mozilla.org/components/talkback.cnt
+extensions/talkback@mozilla.org/components/talkback.exe
+extensions/talkback@mozilla.org/components/talkback.hlp
+extensions/talkback@mozilla.org/InstallDisabled
+#else
+#ifdef XP_MACOSX
+extensions/talkback@mozilla.org/components/talkback/master.ini
+extensions/talkback@mozilla.org/components/talkback/talkback@DLL_SUFFIX@
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Info.plist
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/MacOS/Talkback
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/pbdevelopment.plist
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/PkgInfo
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/delete.tiff
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/disable.tiff
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/enable.tiff
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ArchivingSettings.nib/classes.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ArchivingSettings.nib/info.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ArchivingSettings.nib/objects.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/InfoPlist.strings
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/IntroWizard.nib/classes.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/IntroWizard.nib/info.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/IntroWizard.nib/objects.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/Localizable.strings
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/MainMenu.nib/classes.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/MainMenu.nib/info.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/MainMenu.nib/objects.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ProxySettings.nib/classes.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ProxySettings.nib/info.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ProxySettings.nib/objects.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/SendingSettings.nib/classes.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/SendingSettings.nib/info.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/SendingSettings.nib/objects.nib
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/KeyInfoKeys.plist
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/KeyInfoSections.plist
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/send.tiff
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/sort_ascending.tiff
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/sort_descending.tiff
+extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/Talkback.icns
+#else
+extensions/talkback@mozilla.org/components/talkback/talkback
+extensions/talkback@mozilla.org/components/talkback/XTalkback.ad
+extensions/talkback@mozilla.org/components/talkback/master.ini
+extensions/talkback@mozilla.org/components/talkback/talkback.so
+#endif
+#endif
+# ****************************************************************************
+# * End removing Talkback.                                                   *
+# ****************************************************************************
+
+# ****************************************************************************
+# * Remove pre-extension PalmSync files.                                     *
+# ****************************************************************************
+HSAPI.dll
+CondMgr.dll
+mozABConduit.dll
+components/palmsync.dll
+components/palmSync.xpt
+# ****************************************************************************
+# * End pre-extensions PalmSync files.                                       *
+# ****************************************************************************
+
+# ****************************************************************************
+# * Remove the DLLs that were present at the time (2004-05) when we started  *
+# * shipping static builds on Windows. You almost certainly don't want to    *
+# * add anything to this section.                                            *
+# ****************************************************************************
 components/accessibility.dll
 components/appcomps.dll
 components/appshell.dll
@@ -17,13 +326,13 @@ components/i18n.dll
 components/imgicon.dll
 components/imglib2.dll
 components/import.dll
+components/jsdom.dll
 components/mail.dll
 components/mork.dll
 components/mozfind.dll
 components/mozldap.dll
 components/msgMapi.dll
 components/msgsmime.dll
-components/myspell.dll
 components/necko.dll
 components/necko2.dll
 components/nsprefm.dll
@@ -33,29 +342,36 @@ components/pippki.dll
 components/profile.dll
 components/profilemigration.dll
 components/rdf.dll
-components/spellchk.dll
 components/txmgr.dll
 components/uconv.dll
-components/@DLL_PREFIX@wallet@DLL_SUFFIX@
-components/@DLL_PREFIX@walletviewers@DLL_SUFFIX@
 components/webbrwsr.dll
 components/wlltvwrs.dll
 components/xmlextras.dll
+components/xmlextras.xpt
 components/xpc3250.dll
 components/xppref32.dll
-nsldap32v50.dll
-nsldappr32v50.dll
-components/wallet.xpt
-components/walleteditor.xpt
-components/walletpreview.xpt
+gkgfx.dll
+mozz.dll
+# ****************************************************************************
+# * End removing old shared dlls.                                            *
+# ****************************************************************************
+
+
+# ****************************************************************************
+# * Remove the XPTs that were present at the time (2004-09) when we started  *
+# * linking XPTs on Windows. You almost certainly don't want to add anything *
+# * to this section.                                                         *
+# ****************************************************************************
 #ifdef XP_WIN
 components/accessibility-msaa.xpt
 components/accessibility.xpt
 components/addrbook.xpt
 components/alerts.xpt
 components/appshell.xpt
+components/autocomplete.xpt
 components/caps.xpt
 components/chardet.xpt
+components/chrome.xpt
 components/commandhandler.xpt
 components/composer.xpt
 components/content_base.xpt
@@ -73,18 +389,15 @@ components/dom_events.xpt
 components/dom_html.xpt
 components/dom_offline.xpt
 components/dom_range.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
-components/dom_smil.xpt
-#endif
 components/dom_stylesheets.xpt
 components/dom_traversal.xpt
 components/dom_views.xpt
 components/dom_xbl.xpt
 components/dom_xpath.xpt
 components/dom_xul.xpt
-components/downloadmanager.xpt
 components/editor.xpt
 components/embed_base.xpt
+components/extensions.xpt
 components/exthandler.xpt
 components/find.xpt
 components/gfx.xpt
@@ -104,7 +417,6 @@ components/layout_xul.xpt
 components/layout_xul_tree.xpt
 components/locale.xpt
 components/lwbrk.xpt
-components/mailnews.xpt
 components/mailview.xpt
 components/mapihook.xpt
 components/mime.xpt
@@ -121,11 +433,12 @@ components/msgnews.xpt
 components/msgsearch.xpt
 components/msgsmime.xpt
 components/necko.xpt
+components/necko_about.xpt
 components/necko_cache.xpt
 components/necko_cookie.xpt
-components/necko_data.xpt
 components/necko_dns.xpt
 components/necko_file.xpt
+components/necko_ftp.xpt
 components/necko_http.xpt
 components/necko_jar.xpt
 components/necko_res.xpt
@@ -136,16 +449,18 @@ components/pippki.xpt
 components/pref.xpt
 components/prefmigr.xpt
 components/profile.xpt
-components/progressDlg.xpt
 components/proxyObject.xpt
 components/rdf.xpt
-components/signonviewer.xpt
 components/spellchecker.xpt
+components/toolkitprofile.xpt
 components/txmgr.xpt
 components/txtsvc.xpt
 components/uconv.xpt
+components/ucnative.xpt
 components/unicharutil.xpt
+components/update.xpt
 components/uriloader.xpt
+components/util.xpt
 components/webbrowserpersist.xpt
 components/webBrowser_core.xpt
 components/webshell_idls.xpt
@@ -158,7 +473,6 @@ components/xpcom_base.xpt
 components/xpcom_components.xpt
 components/xpcom_ds.xpt
 components/xpcom_io.xpt
-components/xpcom_obsolete.xpt
 components/xpcom_thread.xpt
 components/xpcom_xpti.xpt
 components/xpcom.xpt
@@ -166,15 +480,19 @@ components/xpconnect.xpt
 components/xpinstall.xpt
 components/xuldoc.xpt
 components/xultmpl.xpt
-components/downloadmanager.xpt
-#ifndef MOZILLA_1_9_1_BRANCH
-components/nsPostUpdateWin.js
 #endif
-#endif
+# ****************************************************************************
+# * End of XPTs at the time we started linking them on Windows.              *
+# ****************************************************************************
+
+# ****************************************************************************
+# * Remove the XPTs that were present at the time (2009-04) when we started  *
+# * linking XPTs on Linux. You almost certainly don't want to add anything   *
+# * to this section.                                                         *
+# ****************************************************************************
 #ifndef MOZILLA_1_9_1_BRANCH
 #ifdef XP_UNIX
 #ifndef XP_MACOSX
-components/accessibility-atk.xpt
 components/accessibility.xpt
 components/activity.xpt
 components/addrbook.xpt
@@ -183,7 +501,6 @@ components/appshell.xpt
 components/appstartup.xpt
 components/autocomplete.xpt
 components/autoconfig.xpt
-components/bookmarks.xpt
 components/caps.xpt
 components/chardet.xpt
 components/chrome.xpt
@@ -233,7 +550,6 @@ components/feeds.xpt
 components/filepicker.xpt
 components/find.xpt
 components/gfx.xpt
-components/history.xpt
 components/htmlparser.xpt
 components/imgicon.xpt
 components/imglib2.xpt
@@ -242,7 +558,6 @@ components/import.xpt
 components/inspector.xpt
 components/intl.xpt
 components/jar.xpt
-components/jsconsole.xpt
 components/jsdservice.xpt
 components/layout_base.xpt
 components/layout_printing.xpt
@@ -251,14 +566,12 @@ components/layout_xul.xpt
 components/locale.xpt
 components/loginmgr.xpt
 components/lwbrk.xpt
-components/mailnews.xpt
 components/mailprofilemigration.xpt
 components/mailview.xpt
 components/mimetype.xpt
 components/mime.xpt
 components/mozbrwsr.xpt
 components/mozfind.xpt
-components/mozgnome.xpt
 components/mozldap.xpt
 components/msgbase.xpt
 components/msgcompose.xpt
@@ -271,7 +584,6 @@ components/msgsmime.xpt
 components/necko_about.xpt
 components/necko_cache.xpt
 components/necko_cookie.xpt
-components/necko_data.xpt
 components/necko_dns.xpt
 components/necko_file.xpt
 components/necko_ftp.xpt
@@ -290,13 +602,11 @@ components/plugin.xpt
 components/prefetch.xpt
 components/pref.xpt
 components/profile.xpt
-components/progressDlg.xpt
 components/proxyObjInst.xpt
 components/rdf.xpt
 components/saxparser.xpt
 components/shellservice.xpt
 components/shistory.xpt
-components/signonviewer.xpt
 components/spellchecker.xpt
 components/storage.xpt
 components/toolkitprofile.xpt
@@ -321,7 +631,6 @@ components/xpcom_base.xpt
 components/xpcom_components.xpt
 components/xpcom_ds.xpt
 components/xpcom_io.xpt
-components/xpcom_obsolete.xpt
 components/xpcom_system.xpt
 components/xpcom_threads.xpt
 components/xpcom_xpti.xpt
@@ -334,192 +643,6 @@ components/zipwriter.xpt
 #endif
 #endif
 #endif
-components/nsUnsetDefaultMail.js
-components/nsBackgroundUpdateService.js
-components/nsCloseAllWindows.js
-components/nsDownloadProgressListener.js
-components/nsLDAPPrefsService.js
-components/xptitemp.dat
-component.reg
-chrome/installed-chrome.txt
-chrome/chrome.rdf
-chrome/app-chrome.manifest
-chrome/mail.jar
-chrome/qute.jar
-chrome/offline.jar
-chrome/offline.manifest
-chrome/en-US-mail.jar
-chrome/overlayinfo/
-#ifdef MOZ_WIDGET_GTK2
-chrome/icons/default/abcardWindow.xpm
-chrome/icons/default/abcardWindow16.xpm
-chrome/icons/default/addressbookWindow.xpm
-chrome/icons/default/addressbookWindow16.xpm
-chrome/icons/default/msgcomposeWindow.xpm
-chrome/icons/default/msgcomposeWindow16.xpm
-chrome/icons/default/messengerWindow.xpm
-chrome/icons/default/messengerWindow16.xpm
-chrome/icons/default/default.xpm
-icons/mozicon128.png
-icons/mozicon16.xpm
-icons/mozicon50.xpm
-#endif
-defaults/pref/all.js
-defaults/pref/security-prefs.js
-defaults/pref/winpref.js
-defaults/pref/xpinstall.js
-defaults/pref/thunderbird.js
-defaults/profile/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/install.rdf
-defaults/profile/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/
-defaults/profile/extensions/Extensions.rdf
-defaults/profile/extensions/installed-extensions.txt
-defaults/profile/extensions/
-defaults/profile/US/localstore.rdf
-defaults/profile/US/mimeTypes.rdf
-defaults/profile/US/
-defaults/messenger/SpamAssassin.sfd
-defaults/messenger/SpamPal.sfd
-defaults/isp/rss.rdf
-defaults/isp/movemail.rdf
-defaults/isp/dotmac.rdf
-defaults/isp/en-US/rss.rdf
-defaults/isp/en-US/movemail.rdf
-defaults/isp/en-US/dotmac.rdf
-defaults/isp/en-US/
-defaults/isp/
-defaults/wallet/VcardSchema.tbl
-defaults/wallet/FieldSchema.tbl
-defaults/wallet/SchemaConcat.tbl
-defaults/wallet/DistinguishedSchema.tbl
-defaults/wallet/SchemaStrings.tbl
-defaults/wallet/PositionalSchema.tbl
-defaults/wallet/StateSchema.tbl
-isp/gmail.rdf
-
-components/@DLL_PREFIX@xpcom_compat_c@DLL_SUFFIX@
-@DLL_PREFIX@xpcom_compat@DLL_SUFFIX@
-@DLL_PREFIX@zlib@DLL_SUFFIX@
-@DLL_PREFIX@xpistub@DLL_SUFFIX@
-#Remove Talkback files from old location (in case user updates from 1.0.x)
-components/BrandRes.dll
-components/fullsoft.dll
-components/master.ini
-components/qfaservices.dll
-components/qfaservices.xpt
-components/talkback-l10n.ini
-components/talkback.cnt
-components/talkback.exe
-components/talkback.hlp
-components/libqfaservices.so
-components/talkback/master.ini
-components/talkback/talkback
-components/talkback/talkback.so
-components/talkback/XTalkback.ad
-HSAPI.dll
-CondMgr.dll
-mozABConduit.dll
-components/palmsync.dll
-components/palmSync.xpt
-uninstall/UninstallThunderbird.exe
-uninstall/uninst.exe
-uninstall/uninstall.exe
-components/myspell/en-US.dic
-components/myspell/en-US.aff
-regxpcom.exe
-components/xmlextras.xpt
-res/cmessage.txt
-#ifndef MOZILLA_1_9_1_BRANCH
-res/broken-image.gif
-res/loading-image.gif
-#endif
-res/html/gopher-audio.gif
-res/html/gopher-binary.gif
-res/html/gopher-find.gif
-res/html/gopher-image.gif
-res/html/gopher-menu.gif
-res/html/gopher-movie.gif
-res/html/gopher-sound.gif
-res/html/gopher-telnet.gif
-res/html/gopher-text.gif
-res/html/gopher-unknown.gif
-extensions/talkback@mozilla.org/
-extensions/talkback@mozilla.org/install.rdf
-extensions/talkback@mozilla.org/chrome.manifest
-extensions/talkback@mozilla.org/components/qfaservices.xpt
-extensions/talkback@mozilla.org/components/@DLL_PREFIX@qfaservices@DLL_SUFFIX@
-#ifdef XP_WIN
-extensions/talkback@mozilla.org/components/BrandRes.dll
-extensions/talkback@mozilla.org/components/fullsoft.dll
-extensions/talkback@mozilla.org/components/master.ini
-extensions/talkback@mozilla.org/components/talkback-l10n.ini
-extensions/talkback@mozilla.org/components/talkback.cnt
-extensions/talkback@mozilla.org/components/talkback.exe
-extensions/talkback@mozilla.org/components/talkback.hlp
-extensions/talkback@mozilla.org/InstallDisabled
-#else
-#ifdef XP_MACOSX
-extensions/talkback@mozilla.org/components/talkback/master.ini
-extensions/talkback@mozilla.org/components/talkback/talkback@DLL_SUFFIX@
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Info.plist
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/MacOS/Talkback
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/pbdevelopment.plist
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/PkgInfo
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/delete.tiff
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/disable.tiff
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/enable.tiff
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ArchivingSettings.nib/classes.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ArchivingSettings.nib/info.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ArchivingSettings.nib/objects.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/InfoPlist.strings
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/IntroWizard.nib/classes.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/IntroWizard.nib/info.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/IntroWizard.nib/objects.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/Localizable.strings
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/MainMenu.nib/classes.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/MainMenu.nib/info.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/MainMenu.nib/objects.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ProxySettings.nib/classes.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ProxySettings.nib/info.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/ProxySettings.nib/objects.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/SendingSettings.nib/classes.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/SendingSettings.nib/info.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/English.lproj/SendingSettings.nib/objects.nib
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/KeyInfoKeys.plist
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/KeyInfoSections.plist
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/send.tiff
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/sort_ascending.tiff
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/sort_descending.tiff
-extensions/talkback@mozilla.org/components/talkback/Talkback.app/Contents/Resources/Talkback.icns
-updater.app/Contents/MacOS/updater.ini
-#else
-extensions/talkback@mozilla.org/components/talkback/talkback
-extensions/talkback@mozilla.org/components/talkback/XTalkback.ad
-extensions/talkback@mozilla.org/components/master.ini
-extensions/talkback@mozilla.org/components/talkback.so
-#endif
-#endif
-components/airbag.xpt
-components/nsUrlClassifierTable.js
-components/nsScriptableIO.js
-#ifdef XP_WIN
-#ifdef MOZ_MEMORY
-Microsoft.VC80.CRT.manifest
-msvcm80.dll
-msvcp80.dll
-msvcr80.dll
-#else
-mozcrt19.dll
-#endif
-#endif
-#ifdef XP_WIN
-xpicleanup.exe
-#else
-xpicleanup
-#endif
-#ifdef XP_WIN
-components/nsWinSearchIntegration.js
-#else
-#ifdef XP_MACOSX
-components/nsSpotlightIntegration.js
-#endif
-#endif
+# ****************************************************************************
+# * End of XPTs at the time we started linking them on Linux.                *
+# ****************************************************************************

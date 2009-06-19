@@ -286,6 +286,14 @@ NS_IMETHODIMP nsMsgDBService::UnregisterPendingListener(nsIDBChangeListener *aLi
   return NS_ERROR_FAILURE;
 }
 
+NS_IMETHODIMP nsMsgDBService::CachedDBForFolder(nsIMsgFolder *aFolder, nsIMsgDatabase **aRetDB)
+{
+  NS_ENSURE_ARG_POINTER(aFolder);
+  NS_ENSURE_ARG_POINTER(aRetDB);
+  *aRetDB = nsMsgDatabase::FindInCache(aFolder);
+  return NS_OK;
+}
+
 static PRBool gGotGlobalPrefs = PR_FALSE;
 static PRBool gThreadWithoutRe = PR_TRUE;
 static PRBool gStrictThreading = PR_FALSE;
@@ -427,6 +435,13 @@ void nsMsgDatabase::ClearCachedObjects(PRBool dbGoingAway)
     ClearUseHdrCache();
   m_cachedThread = nsnull;
   m_cachedThreadId = nsMsgKey_None;
+  // clean out existing enumerators
+  nsTArray<nsMsgDBEnumerator *> copyEnumerators;
+  copyEnumerators.SwapElements(m_enumerators);
+
+  PRInt32 numEnums = copyEnumerators.Length();
+  for (PRUint32 i = 0; i < numEnums; i++)
+    copyEnumerators[i]->Clear();
 }
 
 nsresult nsMsgDatabase::ClearHdrCache(PRBool reInit)
@@ -1840,8 +1855,6 @@ PRUint32  nsMsgDatabase::GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags)
   (void)msgHdr->GetMessageKey(&key);
   if (!m_newSet.IsEmpty() && m_newSet[m_newSet.Length() - 1] == key || m_newSet.BinaryIndexOf(key) != -1)
     statusFlags |= nsMsgMessageFlags::New;
-  else
-    statusFlags &= ~nsMsgMessageFlags::New;
   if (IsHeaderRead(msgHdr, &isRead) == NS_OK && isRead)
     statusFlags |= nsMsgMessageFlags::Read;
   return statusFlags;
@@ -2464,7 +2477,10 @@ NS_IMETHODIMP nsMsgDatabase::ClearNewList(PRBool notify /* = FALSE */)
         (void)msgHdr->GetFlags(&flags);
 
         if ((flags | nsMsgMessageFlags::New) != flags)
+        {
+          msgHdr->AndFlags(~nsMsgMessageFlags::New, &flags);
           NotifyHdrChangeAll(msgHdr, flags | nsMsgMessageFlags::New, flags, nsnull);
+        }
       }
       if (elementIndex == 0)
         break;
@@ -2493,57 +2509,32 @@ NS_IMETHODIMP nsMsgDatabase::GetFirstNew(nsMsgKey *result)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-class nsMsgDBEnumerator : public nsISimpleEnumerator {
-public:
-    NS_DECL_ISUPPORTS
-
-    // nsISimpleEnumerator methods:
-    NS_DECL_NSISIMPLEENUMERATOR
-
-    // nsMsgDBEnumerator methods:
-    typedef nsresult (*nsMsgDBEnumeratorFilter)(nsIMsgDBHdr* hdr, void* closure);
-
-    nsMsgDBEnumerator(nsMsgDatabase* db, nsIMdbTable *table,
-                      nsMsgDBEnumeratorFilter filter, void* closure,
-                      PRBool iterateForwards = PR_TRUE);
-    virtual ~nsMsgDBEnumerator();
-
-protected:
-    nsresult          GetRowCursor();
-    nsresult          PrefetchNext();
-    nsMsgDatabase*              mDB;
-    nsIMdbTableRowCursor*       mRowCursor;
-    nsIMsgDBHdr*                 mResultHdr;
-    PRBool                      mDone;
-    PRBool                      mNextPrefetched;
-    PRBool                      mIterateForwards;
-    nsMsgDBEnumeratorFilter     mFilter;
-    nsCOMPtr <nsIMdbTable>      mTable;
-    void*                       mClosure;
-
-};
-
 nsMsgDBEnumerator::nsMsgDBEnumerator(nsMsgDatabase* db,
                                      nsIMdbTable *table,
                                      nsMsgDBEnumeratorFilter filter,
                                      void* closure,
                                      PRBool iterateForwards)
-    : mDB(db), mRowCursor(nsnull), mResultHdr(nsnull), mDone(PR_FALSE),
-      mFilter(filter), mClosure(closure), mIterateForwards(iterateForwards)
+    : mDB(db), mDone(PR_FALSE), mFilter(filter),
+      mClosure(closure), mIterateForwards(iterateForwards)
 {
-    NS_ADDREF(mDB);
-    mNextPrefetched = PR_FALSE;
-    mTable = table;
+  mNextPrefetched = PR_FALSE;
+  mTable = table;
+  mDB->m_enumerators.AppendElement(this);
 }
 
 nsMsgDBEnumerator::~nsMsgDBEnumerator()
 {
-  if (mRowCursor)
-    mRowCursor->Release();
+  Clear();
+}
+
+void nsMsgDBEnumerator::Clear()
+{
+  mRowCursor = nsnull;
   mTable = nsnull;
-  NS_IF_RELEASE(mResultHdr);
-  NS_RELEASE(mDB);
+  mResultHdr = nsnull;
+  if (mDB)
+    mDB->m_enumerators.RemoveElement(this);
+  mDB = nsnull;
 }
 
 NS_IMPL_ISUPPORTS1(nsMsgDBEnumerator, nsISimpleEnumerator)
@@ -2566,7 +2557,7 @@ nsresult nsMsgDBEnumerator::GetRowCursor()
     mTable->GetCount(mDB->GetEnv(), &numRows);
     startPos = numRows; // startPos is 0 relative.
   }
-  return mTable->GetTableRowCursor(mDB->GetEnv(), startPos, &mRowCursor);
+  return mTable->GetTableRowCursor(mDB->GetEnv(), startPos, getter_AddRefs(mRowCursor));
 }
 
 NS_IMETHODIMP nsMsgDBEnumerator::GetNext(nsISupports **aItem)
@@ -2581,7 +2572,7 @@ NS_IMETHODIMP nsMsgDBEnumerator::GetNext(nsISupports **aItem)
     if (mResultHdr)
     {
       *aItem = mResultHdr;
-      NS_ADDREF(mResultHdr);
+      NS_ADDREF(*aItem);
       mNextPrefetched = PR_FALSE;
     }
   }
@@ -2604,7 +2595,6 @@ nsresult nsMsgDBEnumerator::PrefetchNext()
 
   do
   {
-    NS_IF_RELEASE(mResultHdr);
     mResultHdr = nsnull;
     if (mIterateForwards)
       rv = mRowCursor->NextRow(mDB->GetEnv(), &hdrRow, &rowPos);
@@ -2626,11 +2616,11 @@ nsresult nsMsgDBEnumerator::PrefetchNext()
     if (hdrRow->GetOid(mDB->GetEnv(), &outOid) == NS_OK)
       key = outOid.mOid_Id;
 
-    rv = mDB->GetHdrFromUseCache(key, &mResultHdr);
+    rv = mDB->GetHdrFromUseCache(key, getter_AddRefs(mResultHdr));
     if (NS_SUCCEEDED(rv) && mResultHdr)
       hdrRow->Release();
     else
-      rv = mDB->CreateMsgHdr(hdrRow, key, &mResultHdr);
+      rv = mDB->CreateMsgHdr(hdrRow, key, getter_AddRefs(mResultHdr));
     if (NS_FAILED(rv))
       return rv;
 
@@ -2654,8 +2644,8 @@ NS_IMETHODIMP nsMsgDBEnumerator::HasMoreElements(PRBool *aResult)
   if (!aResult)
     return NS_ERROR_NULL_POINTER;
 
-  if (!mNextPrefetched)
-    PrefetchNext();
+  if (!mNextPrefetched && (NS_FAILED(PrefetchNext())))
+    mDone = PR_TRUE;
   *aResult = !mDone;
   return NS_OK;
 }
@@ -3825,6 +3815,7 @@ nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, 
       metaRow->CutAllColumns(GetEnv());
 
     CharPtrToRowCellColumn(threadRow, m_threadSubjectColumnToken, subject);
+    threadRow->Release();
   }
 
 

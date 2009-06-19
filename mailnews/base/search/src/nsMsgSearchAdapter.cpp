@@ -719,9 +719,13 @@ nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray 
   for (i = 0; i < termCount && NS_SUCCEEDED(err); i++)
   {
     char *termEncoding;
+    PRBool matchAll;
     nsCOMPtr<nsIMsgSearchTerm> pTerm;
     searchTerms->QueryElementAt(i, NS_GET_IID(nsIMsgSearchTerm),
       (void **)getter_AddRefs(pTerm));
+    pTerm->GetMatchAll(&matchAll);
+    if (matchAll)
+      continue;
     err = EncodeImapTerm (pTerm, reallyDredd, srcCharset, destCharset, &termEncoding);
     if (NS_SUCCEEDED(err) && nsnull != termEncoding)
     {

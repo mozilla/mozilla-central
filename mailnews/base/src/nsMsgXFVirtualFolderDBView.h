@@ -52,7 +52,6 @@ public:
   nsMsgXFVirtualFolderDBView();
   virtual ~nsMsgXFVirtualFolderDBView();
 
-  NS_IMETHOD SetSearchSession(nsIMsgSearchSession *aSearchSession);
   // we override all the methods, currently. Might change...
   NS_DECL_NSIMSGSEARCHNOTIFY
 
@@ -92,7 +91,6 @@ protected:
   PRUint32 m_curFolderStartKeyIndex; // keeps track of the index of the first hit from the cur folder
   PRBool m_curFolderHasCachedHits;
   PRBool m_doingSearch;
-  nsWeakPtr m_searchSession;
 };
 
 #endif

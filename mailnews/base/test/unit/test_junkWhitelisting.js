@@ -218,6 +218,9 @@ function continueTest()
   spamSettings.initialize(server);
   do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
 
+  // Free our globals
+  hdrs = null;
+
   do_test_finished();
 }
 

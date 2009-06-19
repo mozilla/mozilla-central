@@ -177,6 +177,7 @@
   locale/@AB_CD@/communicator/search/search-editor.properties               (%chrome/common/search/search-editor.properties)
   locale/@AB_CD@/communicator/search/search-panel.dtd                       (%chrome/common/search/search-panel.dtd)
   locale/@AB_CD@/communicator/search/search-panel.properties                (%chrome/common/search/search-panel.properties)
+  locale/@AB_CD@/communicator/search/search-rdf.dtd                         (%chrome/common/search/search-rdf.dtd)
   locale/@AB_CD@/communicator/sidebar/customize.dtd                         (%chrome/common/sidebar/customize.dtd)
   locale/@AB_CD@/communicator/sidebar/local-panels.dtd                      (%chrome/common/sidebar/local-panels.dtd)
   locale/@AB_CD@/communicator/sidebar/preview.dtd                           (%chrome/common/sidebar/preview.dtd)

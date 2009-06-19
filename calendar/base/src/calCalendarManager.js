@@ -421,6 +421,9 @@ calCalendarManager.prototype = {
                         case "uniquenum":
                             cal.setPref(getPrefBranchFor(id) + name, Number(value));
                             break;
+                        case "name":
+                            cal.setLocalizedPref(getPrefBranchFor(id) + name, value);
+                            break;
                         default: // keep as string
                             cal.setPref(getPrefBranchFor(id) + name, value);
                             break;
@@ -791,7 +794,12 @@ calCalendarManager.prototype = {
         cal.ASSERT(calendar.id !== null, "Calendar id needs to be set!");
         cal.ASSERT(name && name.length > 0, "Pref Name must be non-empty!");
 
-        return cal.getPrefSafe(getPrefBranchFor(calendar.id) + name, null);
+        let branch = (getPrefBranchFor(calendar.id) + name);
+
+        if ( name === "name" ) {
+            return cal.getLocalizedPref(branch, null);
+        }
+        return cal.getPrefSafe(branch, null);
     },
 
     setCalendarPref_: function(calendar, name, value) {
@@ -805,7 +813,12 @@ calCalendarManager.prototype = {
                                     .getService(Components.interfaces.nsIPrefBranch);
         // delete before to allow pref-type changes:
         prefService.deleteBranch(branch);
-        cal.setPref(branch, value);
+
+        if ( name === "name" ) {
+            cal.setLocalizedPref(branch, value);
+        } else {
+            cal.setPref(branch, value);
+        }
     },
 
     deleteCalendarPref_: function(calendar, name) {

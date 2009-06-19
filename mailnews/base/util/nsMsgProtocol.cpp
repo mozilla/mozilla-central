@@ -87,6 +87,7 @@ nsMsgProtocol::nsMsgProtocol(nsIURI * aURL)
   m_readCount = 0;
   mLoadFlags = 0;
   m_socketIsOpen = PR_FALSE;
+  mContentLength = -1;
 
   GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR, "tempMessage.eml",
                                   getter_AddRefs(m_tempMsgFile));
@@ -639,7 +640,13 @@ NS_IMETHODIMP nsMsgProtocol::SetContentCharset(const nsACString &aContentCharset
 
 NS_IMETHODIMP nsMsgProtocol::GetContentLength(PRInt32 * aContentLength)
 {
-  *aContentLength = -1;
+  *aContentLength = mContentLength;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgProtocol::SetContentLength(PRInt32 aContentLength)
+{
+  mContentLength = aContentLength;
   return NS_OK;
 }
 
@@ -655,13 +662,6 @@ NS_IMETHODIMP nsMsgProtocol::GetName(nsACString &result)
     return m_url->GetSpec(result);
   result.Truncate();
   return NS_OK;
-}
-
-
-NS_IMETHODIMP
-nsMsgProtocol::SetContentLength(PRInt32 aContentLength)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMsgProtocol::GetOwner(nsISupports * *aPrincipal)

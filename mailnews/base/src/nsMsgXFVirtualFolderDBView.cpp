@@ -124,13 +124,6 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::GetViewType(nsMsgViewTypeValue *aViewT
     return NS_OK;
 }
 
-NS_IMETHODIMP
-nsMsgXFVirtualFolderDBView::SetSearchSession(nsIMsgSearchSession *aSession)
-{
-  m_searchSession = do_GetWeakReference(aSession);
-  return NS_OK;
-}
-
 nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool /*ensureListed*/)
 {
   if (newHdr)

@@ -205,7 +205,7 @@
                                onclick="gFolderTreeView.cycleMode(true);"/>
               </sidebarheader>
 
-              <tree id="folderTree" class="plain focusring" flex="1"
+              <tree id="folderTree" class="plain" flex="1"
                     hidecolumnpicker="true" persist="mode" mode="all"
                     keepcurrentinview="true"
                     context="folderPaneContext"
@@ -242,19 +242,24 @@
                   </vbox>
                   <!-- second panel is the threadPane -->
                   <hbox id="threadPaneBox">
+                   <!-- The threadContentArea was specially created to be a place for
+                        things that want to be above/below the thread pane, regardless
+                        of where the message reader ("messagepane") gets off to. -->
+                   <vbox id="threadContentArea" flex="1">
                     <tree id="threadTree"
                           persist="lastfoldersent width"
                           treelines="true"
                           flex="2"
                           enableColumnDrag="true"
                           _selectDelay="250"
-                          class="plain focusring"
+                          class="plain"
                           lastfoldersent="false"
                           keepcurrentinview="true"
                           disableKeyNavigation="true"
                           context="mailContext"
                           onkeypress="ThreadPaneKeyPress(event);"
-                          onselect="ThreadPaneSelectionChanged();">
+                          onselect="ThreadPaneSelectionChanged();"
+                          >
                       <treecols id="threadCols" pickertooltiptext="&columnChooser.tooltip;">
                         <treecol id="threadCol" persist="hidden ordinal" fixed="true" cycler="true"
                                  class="treecol-image threadColumnHeader" currentView="unthreaded"
@@ -322,7 +327,8 @@
                       </treecols>
                     <treechildren ondraggesture="threadPaneOnDragStart(event);"/>
                   </tree>
-                  </hbox>
+                 </vbox>
+                </hbox>
                 <!-- extensions may overlay in additional panels; don't assume that there are only 2! -->
                 </deck> <!-- displayDeck -->
 

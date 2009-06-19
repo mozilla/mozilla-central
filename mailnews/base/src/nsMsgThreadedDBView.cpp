@@ -141,11 +141,11 @@ nsresult nsMsgThreadedDBView::InitThreadedView(PRInt32 *pCount)
   do
   {
     const PRInt32 kIdChunkSize = 400;
-    PRInt32			numListed = 0;
-    nsMsgKey	idArray[kIdChunkSize];
-    PRInt32		flagArray[kIdChunkSize];
-    char		levelArray[kIdChunkSize];
-    
+    PRInt32  numListed = 0;
+    nsMsgKey idArray[kIdChunkSize];
+    PRInt32  flagArray[kIdChunkSize];
+    char     levelArray[kIdChunkSize];
+
     rv = ListThreadIds(&startMsg, (m_viewFlags & nsMsgViewFlagsType::kUnreadOnly) != 0, idArray, flagArray, 
       levelArray, kIdChunkSize, &numListed, nsnull);
     if (NS_SUCCEEDED(rv))
@@ -608,12 +608,12 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
     // We used to check if this was the first header in the thread, but that's
     // a bit harder in the unreadOnly view. But we'll catch it below.
 
-    // for search view we don't support threaded display so just add it to the view.   
-    if (!(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)) // || msgHdr->GetMessageKey() == m_messageDB->GetKeyOfFirstMsgInThread(msgHdr->GetMessageKey()))
+    // for search view we don't support threaded display so just add it to the view.
+    if (!(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
       rv = AddHdr(newHdr);
-    else	// need to find the thread we added this to so we can change the hasnew flag
-      // added message to existing thread, but not to view
-    {	// Fix flags on thread header.
+    else // need to find the thread we added this to so we can change the hasnew flag
+         // added message to existing thread, but not to view
+    {    // Fix flags on thread header.
       PRInt32 threadCount;
       PRUint32 threadFlags;
       PRBool moveThread = PR_FALSE;
@@ -629,7 +629,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
       }
       if (threadIndex != nsMsgViewIndex_None)
       {
-        PRUint32	flags = m_flags[threadIndex];
+        PRUint32 flags = m_flags[threadIndex];
         if (!(flags & MSG_VIEW_FLAG_HASCHILDREN))
         {
           flags |= MSG_VIEW_FLAG_HASCHILDREN | MSG_VIEW_FLAG_ISTHREAD;
@@ -637,10 +637,10 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
             flags |= nsMsgMessageFlags::Elided;
           m_flags[threadIndex] = flags;
         }
-        if (!(flags & nsMsgMessageFlags::Elided))	// thread is expanded
-        {								// insert child into thread
+        if (!(flags & nsMsgMessageFlags::Elided)) // thread is expanded
+        {  // insert child into thread
           // levels of other hdrs may have changed!
-          PRUint32	newFlags = msgFlags;
+          PRUint32 newFlags = msgFlags;
           PRInt32 level = 0;
           nsMsgViewIndex insertIndex = threadIndex;
           if (aParentKey == nsMsgKey_None)
@@ -664,7 +664,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
             // removing it, installing this header as king, and expanding it.
             CollapseByIndex(threadIndex, nsnull);
             // call base class, so child won't get promoted.
-            // nsMsgDBView::RemoveByIndex(threadIndex);	
+            // nsMsgDBView::RemoveByIndex(threadIndex);
             ExpandByIndex(threadIndex, nsnull);
           }
         }
@@ -679,6 +679,10 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
         else
         // note change, to update the parent thread's unread and total counts
           NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
+        // if this message is new, and the thread is collapsed, expand it.
+        if (msgFlags & nsMsgMessageFlags::New &&
+            m_flags[threadIndex] & nsMsgMessageFlags::Elided)
+          ExpandByIndex(threadIndex, nsnull);
       }
       else // adding msg to thread that's not in view.
       {

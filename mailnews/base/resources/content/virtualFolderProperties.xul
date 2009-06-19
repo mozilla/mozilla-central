@@ -57,7 +57,8 @@
         onload="onLoad();"
         buttons="accept,cancel"
         style="width: 50em; height: 28em;"
-	      ondialogaccept="return onOK();">
+        windowtype="mailnews:virtualFolderProperties"
+        ondialogaccept="return onOK();">
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_search"    src="chrome://messenger/locale/search.properties"/>

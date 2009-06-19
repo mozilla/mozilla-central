@@ -112,8 +112,8 @@ const jsMsgBody = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN
 '</body>\n' +
 '</html>\n';
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
+var Cc = Components.classes;
+var Ci = Components.interfaces;
 
 const kTestFolderName = "testFolder";
 

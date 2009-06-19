@@ -43,7 +43,7 @@ VPATH		= @srcdir@
 include $(topsrcdir)/config/config.mk
 
 # app is always last as it packages up the built files on mac
-DIRS		= base locales components extensions themes app
+DIRS		= base locales components extensions steel themes app
 
 ifeq ($(OS_ARCH),WINNT)
 ifdef MOZ_INSTALLER
