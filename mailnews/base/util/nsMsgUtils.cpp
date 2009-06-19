@@ -82,6 +82,7 @@
 #include "nsIMsgDatabase.h"
 #include "nsIMutableArray.h"
 #include "nsIMsgMailNewsUrl.h"
+#include "nsArrayUtils.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -1404,66 +1405,38 @@ PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
 
 nsresult FolderUriFromDirInProfile(nsILocalFile *aLocalPath, nsACString &mailboxUri)
 {
-
   nsresult rv;
 
   nsCOMPtr<nsIMsgAccountManager> accountManager =
     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr<nsISupportsArray> serverArray;
-  accountManager->GetAllServers(getter_AddRefs(serverArray));
 
-  PRUint32 cnt;
-  rv = serverArray->Count(&cnt);
+  nsCOMPtr<nsIArray> folderArray;
+  rv = accountManager->GetAllFolders(getter_AddRefs(folderArray));
   NS_ENSURE_SUCCESS(rv, rv);
-  PRInt32 count = cnt;
-  PRInt32 i;
 
-  for (i = 0; i < count; i++)
+  PRUint32 count;
+  rv = folderArray->GetLength(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  for (PRUint32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(serverArray, i);
-    if (!server) continue;
+    nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(folderArray, i, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    // get the base directory
-    nsCOMPtr<nsILocalFile> serverPath;
-    rv = server->GetLocalPath(getter_AddRefs(serverPath));
-    if (NS_FAILED(rv)) continue;
+    nsCOMPtr<nsILocalFile> folderPath;
+    rv = folder->GetFilePath(getter_AddRefs(folderPath));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    // compare, getting the relative descriptor
-    nsCAutoString pathStr;
-    aLocalPath->GetRelativeDescriptor(serverPath, pathStr);
+    // Check if we're equal
+    PRBool isEqual;
+    rv = folderPath->Equals(aLocalPath, &isEqual);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    // if the argument directory is inside the main server directory
-    if (!StringBeginsWith(pathStr, NS_LITERAL_CSTRING("../")))
-    {
-      nsCString serverURI;
-      rv = server->GetServerURI(serverURI);
-      if (NS_FAILED(rv)) continue;
-
-      PRInt32 sbdIndex;
-      while((sbdIndex = pathStr.Find(".sbd", PR_TRUE)) != -1)
-        pathStr.Cut(sbdIndex, 4);
-
-      mailboxUri = serverURI;
-      mailboxUri.Append('/');
-
-      // If it's a local folder, escape the folder name
-      nsCAutoString localStoreType;
-      server->GetLocalStoreType(localStoreType);
-      if (localStoreType.Equals(NS_LITERAL_CSTRING("mailbox")))
-      {
-        nsCAutoString escapedPathStr;
-        MsgEscapeURL(pathStr, nsINetUtil::ESCAPE_URL_MINIMAL, escapedPathStr);
-        mailboxUri.Append(escapedPathStr);
-      }
-      else
-        mailboxUri.Append(pathStr);
-
-      break;
-    }
+    if (isEqual)
+      return folder->GetURI(mailboxUri);
   }
-  return mailboxUri.IsEmpty() ? NS_ERROR_FAILURE : NS_OK;
+  return NS_ERROR_FAILURE;
 }
 
 nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILocalFile **aFile)
