@@ -347,6 +347,8 @@ components/xmlextras.dll
 components/xmlextras.xpt
 components/xpc3250.dll
 components/xppref32.dll
+gkgfx.dll
+mozz.dll
 # ****************************************************************************
 # * End removing old shared dlls.                                            *
 # ****************************************************************************
