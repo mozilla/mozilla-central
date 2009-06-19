@@ -4108,9 +4108,9 @@ to filter unwanted mail, and how phishing detection works.</p>
 
 <ul>
   <li><strong>Don't delete any messages</strong>: Keep all messages. Never
-    delete messages automatically.</li>
-  <li><strong>Delete all but the last [__] messages</strong>: Enter the number
-    of messages to keep. With this setting only messages older than these
+    delete messages automatically based on their age.</li>
+  <li><strong>Delete all but the most recent [__] messages</strong>: Enter the
+    number of messages to keep. With this setting only messages older than these
     messages are deleted.</li>
   <li><strong>Delete messages more than [__] days old </strong>:
     Keep all messages that arrived within the given number of days.</li>
@@ -4121,13 +4121,12 @@ to filter unwanted mail, and how phishing detection works.</p>
   the option to keep all messages.</p> 
 
 <ul>
-  <li><strong>Always delete read messages</strong>: Select this option to
-    remove read messages.</li>
   <li><strong>Always keep flagged messages</strong>: Use this option to deny
     &brandShortName; to delete any messages you have flagged.</li>
-  <li><strong>Only message bodies less than [__] days old</strong>: Select this
-    option to deny &brandShortName; the deletion of messages that are newer
-    than the number of days you specify here (news accounts only).</li>
+  <li><strong>Remove bodies from message more than [__] days old</strong>:
+    Select this option to retain all headers but to delete message bodies that
+    are older than the number of days you specify here (news accounts only).
+    Any option to delete the entire message based on age still applies.</li>
 </ul>
 
 <p>This policy can be overridden for an individual folder in the Folder
