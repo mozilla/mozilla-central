@@ -102,6 +102,7 @@ defaults/messenger/SpamPal.sfd
 defaults/messenger/en-US/mailViews.dat
 defaults/messenger/US/mailViews.dat
 defaults/pref/all.js
+defaults/pref/inspector.js
 defaults/pref/security-prefs.js
 defaults/pref/thunderbird.js
 defaults/pref/winpref.js
@@ -362,6 +363,7 @@ components/accessibility.xpt
 components/addrbook.xpt
 components/alerts.xpt
 components/appshell.xpt
+components/autocomplete.xpt
 components/caps.xpt
 components/chardet.xpt
 components/commandhandler.xpt
@@ -381,9 +383,6 @@ components/dom_events.xpt
 components/dom_html.xpt
 components/dom_offline.xpt
 components/dom_range.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
-components/dom_smil.xpt
-#endif
 components/dom_stylesheets.xpt
 components/dom_traversal.xpt
 components/dom_views.xpt
@@ -392,6 +391,7 @@ components/dom_xpath.xpt
 components/dom_xul.xpt
 components/editor.xpt
 components/embed_base.xpt
+components/extensions.xpt
 components/exthandler.xpt
 components/find.xpt
 components/gfx.xpt
@@ -444,10 +444,12 @@ components/profile.xpt
 components/proxyObject.xpt
 components/rdf.xpt
 components/spellchecker.xpt
+components/toolkitprofile.xpt
 components/txmgr.xpt
 components/txtsvc.xpt
 components/uconv.xpt
 components/unicharutil.xpt
+components/update.xpt
 components/uriloader.xpt
 components/webbrowserpersist.xpt
 components/webBrowser_core.xpt
