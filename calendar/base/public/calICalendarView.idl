@@ -81,7 +81,12 @@ interface calICalendarView : nsISupports
    */
   attribute calICalendarViewController controller;
 
-/**
+  /**
+   * If true, the view supports workdays only
+   */
+  readonly attribute boolean supportsWorkdaysOnly;
+
+  /**
    * If this is set to 'true', the view should not display days specified to be
    * non-workdays.  The implementor is responsible for obtaining what those
    * days are on its own.
@@ -97,6 +102,11 @@ interface calICalendarView : nsISupports
    * If set, the view will be rotated (i.e time on top, date at left)
    */
   attribute boolean rotated;
+
+  /**
+   * If true, the view is rotatable
+   */
+  readonly attribute boolean supportsRotation;
 
   /**
    * Whether or not completed tasks are shown in the calICalendarView

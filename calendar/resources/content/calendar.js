@@ -245,10 +245,4 @@ function sbSwitchToView(newView) {
 
   // Call the common view switching code in calendar-views.js
   switchToView(newView);
-
-  var labelAttribute = "label-" + newView + "-view";
-  var prevCommand = document.getElementById("calendar-go-menu-previous");
-  prevCommand.setAttribute("label", prevCommand.getAttribute(labelAttribute));
-  var nextCommand = document.getElementById("calendar-go-menu-next");
-  nextCommand.setAttribute("label", nextCommand.getAttribute(labelAttribute));
 }

@@ -163,8 +163,8 @@
                       type="menu-button"
                       label="&calendar.context.markcompleted.label;"
                       tooltiptext="&calendar.task.complete.button.tooltip;"
-                      command="calendar_percentComplete-100_command2"
-                      observes="calendar_percentComplete-100_command2"
+                      command="calendar_toggle_completed_command"
+                      observes="calendar_toggle_completed_command"
                       class="msgHeaderView-button">
                 <menupopup id="task-actions-markcompleted-menupopup" type="task-progress"/>
               </button>

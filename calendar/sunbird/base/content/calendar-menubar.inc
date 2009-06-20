@@ -90,8 +90,8 @@
                      accesskey="&calendar.export.selection.accesskey;"
                      observes="calendar_export_selection_command"/>
            <menuitem id="calendar-export-calendar-menu"
-                     label="&calendar.export.calendar.label;"
-                     accesskey="&calendar.export.calendar.accesskey;"
+                     label="&sunbird.export.calendar.label;"
+                     accesskey="&sunbird.export.calendar.accesskey;"
                      observes="calendar_export_command"/>
            <menuseparator id="calendar-importexport-sep"/>
            <menuitem id="calendar-publish-menu"
@@ -350,22 +350,23 @@
                      accesskey="&goDateCmd.accesskey;"
                      observes="go_date_command"/>
            <menuseparator/>
-           <!-- Label is set appropriate to the variable newView in 
-                sbSwitchToView(newView) of calendar.js -->
+           <!-- Label is set up automatically using the view id. When writing a
+                view extension, overlay this menuitem and add a label-<myviewtype>
+                attribute with the correct label -->
            <menuitem id="calendar-go-menu-previous"
                      label=""
-                     label-day-view="&goPreviousCmd.day.label;"
-                     label-week-view="&goPreviousCmd.week.label;"
-                     label-multiweek-view="&goPreviousCmd.week.label;"
-                     label-month-view="&goPreviousCmd.month.label;"
+                     label-day="&goPreviousCmd.day.label;"
+                     label-week="&goPreviousCmd.week.label;"
+                     label-multiweek="&goPreviousCmd.week.label;"
+                     label-month="&goPreviousCmd.month.label;"
                      accesskey="&goPreviousCmd.accesskey;"
                      observes="calendar_view_prev_command"/>
            <menuitem id="calendar-go-menu-next"
                      label=""
-                     label-day-view="&goNextCmd.day.label;"
-                     label-week-view="&goNextCmd.week.label;"
-                     label-multiweek-view="&goNextCmd.week.label;"
-                     label-month-view="&goNextCmd.month.label;"
+                     label-day="&goNextCmd.day.label;"
+                     label-week="&goNextCmd.week.label;"
+                     label-multiweek="&goNextCmd.week.label;"
+                     label-month="&goNextCmd.month.label;"
                      accesskey="&goNextCmd.all.accesskey;"
                      observes="calendar_view_next_command"/>
          </menupopup>

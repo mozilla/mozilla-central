@@ -40,7 +40,6 @@ lightning.jar:
 *   content/lightning/messenger-overlay-sidebar.xul        (content/messenger-overlay-sidebar.xul)
     content/lightning/messenger-overlay-preferences.js     (content/messenger-overlay-preferences.js)
     content/lightning/messenger-overlay-preferences.xul    (content/messenger-overlay-preferences.xul)
-    content/lightning/messenger-overlay-toolbar.js         (content/messenger-overlay-toolbar.js)
 *   content/lightning/messenger-overlay-toolbar.xul        (content/messenger-overlay-toolbar.xul)
 % skin lightning classic/1.0 %skin/lightning/
     skin/lightning/imip.css                                (themes/@THEME@/imip.css)

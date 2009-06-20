@@ -164,6 +164,9 @@
 <!ENTITY updateCmd.label                                   "Check for Updates…">
 <!ENTITY updateCmd.accesskey                               "o">
 
+<!ENTITY sunbird.export.calendar.label                     "Export Calendar…">
+<!ENTITY sunbird.export.calendar.accesskey                 "E">
+
 <!-- Mac OS X "Window" menu items -->
 <!ENTITY windowMenu.label                                  "Window">
 <!ENTITY minimizeWindow.label                              "Minimize">

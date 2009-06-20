@@ -130,9 +130,10 @@ function ltnOnLoad(event) {
     scheduleInvitationsUpdate(FIRST_DELAY_STARTUP);
     getCalendarManager().addObserver(gInvitationsCalendarManagerObserver);
 
-    var filter = document.getElementById("task-tree-filtergroup");
+    let filter = document.getElementById("task-tree-filtergroup");
     filter.value = filter.value || "all";
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
+    document.getElementById("modeBroadcaster").setAttribute("checked", "true");
 
     let mailContextPopup = document.getElementById("mailContext");
     if (mailContextPopup)
@@ -264,280 +265,6 @@ function findMailSearchBox() {
     return null;
 }
 
-var calendarpopuplist = new Array();
-var taskpopuplist = new Array();
-var mailpopuplist = new Array();
-var menulist = new Array();
-#ifdef XP_MACOSX
-    var quitMenu = null;
-    var prefMenu = null;
-#endif
-
-function ltnInitializeMenus(){
-#ifdef XP_MACOSX
-    // The following Mac specific code-lines became necessary due to bug 409845
-    prefMenu = document.getElementById("menu_preferences");
-    prefMenu.setAttribute("mode", "system");
-    quitMenu = document.getElementById("menu_FileQuitItem");
-    quitMenu.setAttribute("mode", "system");
-#endif
-    copyPopupMenus();
-    ltnRemoveMailOnlyItems(calendarpopuplist, "calendar");
-    ltnRemoveMailOnlyItems(taskpopuplist, "task");
-    document.getElementById("modeBroadcaster").setAttribute("checked", true);
-}
-
-function getMenuElementById(aElementId, aMenuPopup) {
-        var element = null;
-        var elements = aMenuPopup.getElementsByAttribute("id", aElementId);
-        if (elements.length > 0) {
-            element = elements[0];
-        }
-        return element;
-    }
-
-/**  removes all succeedingmenu elements of a container up to the next
-*    menuseparator that thus denotes the end of the section. Elements with the
-*    attribute mode == 'calendar' are ignored
-*/
-function removeMenuElementsInSection(aElement, aExcludeMode) {
-    var element = aElement;
-    if (element) {
-        var bleaveloop = false;
-        while (!bleaveloop) {
-            var ignore = false;
-            bleaveloop = element.localName == "menuseparator";
-            if (bleaveloop) {
-                // we delete the menuseparator only if it's the last element
-                // within its container
-                bleaveloop = (element.nextSibling != null);
-            }
-            if (element.hasAttribute("mode")) {
-            ignore = element.getAttribute("mode") == aExcludeMode ||
-                     element.getAttribute("mode") == "calendar,task";
-            }
-            var nextMenuElement = element.nextSibling;
-            if (!ignore) {
-                try {
-                    element.parentNode.removeChild(element);
-                } catch (e) {
-                    dump("Element '" + element.getAttribute("id") + "' could not be removed\n");
-                }
-            }
-            if (!bleaveloop) {
-                element = nextMenuElement;
-                bleaveloop = (element == null);
-            }
-        }
-    }
-}
-
-function removeElements(aElementList) {
-    aElementList.forEach(function(element) {
-        try {
-            if (element) {
-                element.parentNode.removeChild(element);
-            }
-        } catch (e) {
-            dump("Element '" + element.getAttribute("id") + "' could not be removed\n");
-        }
-    });
-}
-
-function addToPopupList(aMenuElement, aNewPopupMenu, aPopupList, aExcludedModes, aClone, aRemovePopupShowing) {
-    var child = aMenuElement.firstChild;
-    if (child) {
-        if (child.localName == "menupopup") {
-            if (aNewPopupMenu) {
-                var newPopupMenu = aNewPopupMenu;
-            } else {
-                var newPopupMenu = child;
-            }
-            if (aClone) {
-                newPopupMenu = newPopupMenu.cloneNode(true);
-                if (aRemovePopupShowing) {
-                    newPopupMenu.removeAttribute("onpopupshowing");
-                }
-            }
-            removeMenuElements(newPopupMenu, aExcludedModes);
-            aPopupList.push(newPopupMenu);
-        }
-    }
-}
-
-function copyPopupMenus() {
-    // define menuList...
-    menulist.push(document.getElementById("menu_File"));
-    menulist.push(document.getElementById("menu_Edit"));
-    var menuView = document.getElementById("menu_View");
-    menulist.push(menuView);
-    menulist.push(menuView.nextSibling); // id-less menu_Go
-    menulist.push(document.getElementById("messageMenu"));
-    menulist.push(document.getElementById("tasksMenu"));
-
-    // define PopupMenus for calendar mode...
-    var excludeList = new Array("mail", "task", "system");
-    addToPopupList(menulist[0], null, calendarpopuplist, excludeList, true, true);
-    addToPopupList(menulist[1], null, calendarpopuplist, excludeList, true, false);
-    addToPopupList(menulist[2], null, calendarpopuplist, excludeList, true, true);
-    addToPopupList(menulist[3], document.getElementById("calendar-GoPopupMenu"), calendarpopuplist, excludeList, true, false);
-    addToPopupList(menulist[4], document.getElementById("calendarCalendarPopupMenu"), calendarpopuplist, excludeList, true, false);
-    addToPopupList(menulist[5], null, calendarpopuplist, excludeList, true, false);
-
-    // define PopupMenus for task mode...
-    var excludeList = new Array("mail", "calendar", "system");
-    addToPopupList(menulist[0], null, taskpopuplist, excludeList, true, true);
-    addToPopupList(menulist[1], null, taskpopuplist, excludeList, true, false);
-    addToPopupList(menulist[2], null, taskpopuplist, excludeList, true, true);
-    addToPopupList(menulist[3], document.getElementById("calendar-GoPopupMenu"), taskpopuplist, excludeList, true, false);
-    var tasksViewMenuPopup = clonePopupMenu("taskitem-context-menu", "taskitem-menu", "menu-");
-    tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-modify", tasksViewMenuPopup));
-    tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-delete", tasksViewMenuPopup));
-    addToPopupList(menulist[4], tasksViewMenuPopup, taskpopuplist, excludeList, false, false);
-    addToPopupList(menulist[5], null, taskpopuplist, excludeList, true, true);
-
-    // define PopupMenus for mail mode...
-    var excludeList = new Array("calendar", "task", "calendar,task");
-    addToPopupList(menulist[0], null, mailpopuplist, excludeList, false, false);
-    addToPopupList(menulist[1], null, mailpopuplist, excludeList, false, false);
-    addToPopupList(menulist[2], null, mailpopuplist, excludeList, false, false);
-    // copy calendar-GoPopupMenu into Thunderbird's GoPopupMenu to switch modes
-    var tbGoPopupMenu = menulist[3].lastChild;
-    var calGoPopupMenu = document.getElementById("calendar-GoPopupMenu").cloneNode(true);
-    var calGoItem;
-    while ((calGoItem = calGoPopupMenu.firstChild)) {
-        tbGoPopupMenu.appendChild(calGoPopupMenu.removeChild(calGoItem));
-    }
-    addToPopupList(menulist[3], null, mailpopuplist, excludeList, false, false);
-    addToPopupList(menulist[4], null, mailpopuplist, excludeList, false, false);
-    addToPopupList(menulist[5], null, mailpopuplist, excludeList, false, false);
-}
-
-function removeNeedlessSeparators(aMenuPopupList) {
-    aMenuPopupList.forEach(function(aMenuPopup) {
-        var child = aMenuPopup.firstChild;
-        if (child) {
-            if (child.localName == "menuseparator") {
-                try {
-                    aMenuPopup.removeChild(child)
-                } catch (e) {
-                    dump("Element '" + child.getAttribute("id") + "' could not be removed\n");
-                }
-            }
-        }
-        child = aMenuPopup.lastChild;
-        if (child) {
-            if (child.localName == "menuseparator") {
-                try {
-                    aMenuPopup.removeChild(child)
-                } catch (e) {
-                    dump("Element '" + child.getAttribute("id") + "' could not be removed\n");
-                }
-            }
-        }
-    });
-}
-
-function ltnRemoveMailOnlyItems(aMenuPopupList, aExcludeMode) {
-    removeElements(
-// "File" - menu
-    [getMenuElementById("openMessageFileMenuitem", aMenuPopupList[0]),
-     getMenuElementById("newAccountMenuItem", aMenuPopupList[0]),
-     getMenuElementById("fileAttachmentMenu", aMenuPopupList[0]),
-     getAdjacentSibling(getMenuElementById("menu_saveAs", aMenuPopupList[0]), 2),
-
-// "Edit" - menu
-     getMenuElementById("menu_find", aMenuPopupList[1]),
-     getMenuElementById("menu_favoriteFolder", aMenuPopupList[1]),
-     getMenuElementById("menu_properties", aMenuPopupList[1]),
-     getMenuElementById("menu_accountmgr", aMenuPopupList[1]),
-
-// "View"-menu
-     getMenuElementById("menu_showMessengerToolbar", aMenuPopupList[2]),
-
-// "Tools"-menu
-     getMenuElementById("tasksMenuMail", aMenuPopupList[5]),
-     getMenuElementById("menu_import", aMenuPopupList[5])]);
-
-     removeNeedlessSeparators(aMenuPopupList);
-
-// "File" - menu
-    [getMenuElementById("menu_newFolder", aMenuPopupList[0]),
-     getMenuElementById("menu_saveAs", aMenuPopupList[0]),
-     getMenuElementById("menu_getnextnmsg", aMenuPopupList[0]),
-     getMenuElementById("menu_renameFolder", aMenuPopupList[0]),
-//     getMenuElementById("offlineMenuItem", aMenuPopupList[0]),
-
-// "Edit" - menu
-     getMenuElementById("menu_delete", aMenuPopupList[1]),
-     getMenuElementById("menu_select", aMenuPopupList[1]),
-
-// "View"-menu
-     getMenuElementById("menu_MessagePaneLayout", aMenuPopupList[2]),
-     getMenuElementById("viewSortMenu", aMenuPopupList[2]),
-     getMenuElementById("viewheadersmenu", aMenuPopupList[2]),
-     getMenuElementById("viewTextSizeMenu", aMenuPopupList[2]),
-     getMenuElementById("pageSourceMenuItem", aMenuPopupList[2]),
-
-// "Tools"-menu
-     getMenuElementById("filtersCmd", aMenuPopupList[5]),
-     getMenuElementById("runJunkControls", aMenuPopupList[5])].forEach(function(element){
-        removeMenuElementsInSection(element, aExcludeMode);
-    });
-}
-
-function swapPopupMenus() {
-    var showStatusbar = document.getElementById("menu_showTaskbar").getAttribute("checked");
-    var newmenupopuplist = null;
-    if (gCurrentMode == "mail") {
-        newmenupopuplist = mailpopuplist;
-    } else if (gCurrentMode == "calendar") {
-        newmenupopuplist = calendarpopuplist;
-    } else if (gCurrentMode == "task") {
-        newmenupopuplist = taskpopuplist;
-    }
-    for (var i = 0; i < menulist.length; i++) {
-        var menu = menulist[i];
-        var oldmenupopup = menu.firstChild;
-        if (oldmenupopup) {
-            menu.replaceChild(newmenupopuplist[i], oldmenupopup);
-        }
-    }
-#ifdef XP_MACOSX
-    document.getElementById("menu_File").firstChild.appendChild(quitMenu);
-    document.getElementById("tasksMenu").firstChild.appendChild(prefMenu);
-#endif
-    document.getElementById("menu_showTaskbar").setAttribute("checked", showStatusbar);
-    var messageMenu = document.getElementById("messageMenu");
-    if (gCurrentMode == "mail") {
-        messageMenu.setAttribute("label", messagemenulabel);
-        messageMenu.setAttribute("accesskey", messagemenuaccesskey);
-    } else if (gCurrentMode == "calendar"){
-        messageMenu.setAttribute("label", calendarmenulabel);
-        messageMenu.setAttribute("accesskey", calendarmenuaccesskey);
-    } else if (gCurrentMode == "task"){
-        messageMenu.setAttribute("label", tasksmenulabel);
-        messageMenu.setAttribute("accesskey", tasksmenuaccesskey);
-    }
-}
-
-function removeMenuElements(aRoot, aModeValue) {
-    for (var n = 0; n < aModeValue.length; n++) {
-        var modeElements = aRoot.getElementsByAttribute("mode", aModeValue[n]);
-        if (modeElements.length > 0) {
-            for (var i = modeElements.length-1; i >=0; i--) {
-                var element = modeElements[i];
-                if (element) {
-                    var localName = element.localName;
-                    if (localName =="menuitem" || localName == "menuseparator" || localName == "menu"){
-                        element.parentNode.removeChild(element);
-                    }
-                }
-            }
-        }
-    }
-}
-
 // == invitations link
 const FIRST_DELAY_STARTUP = 100;
 const FIRST_DELAY_RESCHEDULE = 100;
@@ -610,5 +337,113 @@ function openInvitationsDialog() {
             scheduleInvitationsUpdate(FIRST_DELAY_RESCHEDULE);
         });
 }
+
+/**
+ * the current mode is set to a string defining the current
+ * mode we're in. allowed values are:
+ *  - 'mode'
+ *  - 'mail'
+ *  - 'calendar'
+ *  - 'task'
+ */
+var gCurrentMode = 'mail';
+
+/**
+ * ltnSwitch2Mail() switches to the mail mode
+ */
+
+function ltnSwitch2Mail() {
+  if (gCurrentMode != 'mail') {
+    var switch2mail = document.getElementById("switch2mail");
+    var switch2calendar = document.getElementById("switch2calendar");
+    var switch2task = document.getElementById("switch2task");
+    switch2mail.setAttribute("checked", "true");
+    switch2calendar.removeAttribute("checked");
+    switch2task.removeAttribute("checked");
+
+    gCurrentMode = 'mail';
+    document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
+
+    document.commandDispatcher.updateCommands('calendar_commands');
+    window.setCursor("auto");
+  }
+}
+
+/**
+ * ltnSwitch2Calendar() switches to the calendar mode
+ */
+
+function ltnSwitch2Calendar() {
+  if (gCurrentMode != 'calendar') {
+    var switch2mail = document.getElementById("switch2mail");
+    var switch2calendar = document.getElementById("switch2calendar");
+    var switch2task = document.getElementById("switch2task");
+    switch2mail.removeAttribute("checked");
+    switch2calendar.setAttribute("checked", "true");
+    switch2task.removeAttribute("checked");
+
+    gCurrentMode = 'calendar';    
+    document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);    
+
+    // display the calendar panel on the display deck
+    var viewBox = document.getElementById("calendar-view-box");
+    uncollapseElement(viewBox);
+    var deck = document.getElementById("calendarDisplayDeck");
+    deck.selectedPanel = viewBox;
+
+    // show the last displayed type of calendar view
+    showCalendarView(gLastShownCalendarView);
+
+    document.commandDispatcher.updateCommands('calendar_commands');
+    window.setCursor("auto");
+  }
+}
+
+/**
+ * ltnSwitch2Task() switches to the task mode
+ */
+
+function ltnSwitch2Task() {
+  if (gCurrentMode != 'task') {
+    var switch2mail = document.getElementById("switch2mail");
+    var switch2calendar = document.getElementById("switch2calendar");
+    var switch2task = document.getElementById("switch2task");
+    switch2mail.removeAttribute("checked");
+    switch2calendar.removeAttribute("checked");
+    switch2task.setAttribute("checked", "true");
+
+    gCurrentMode = 'task';
+    document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);    
+
+    // display the task panel on the display deck
+    var taskBox = document.getElementById("calendar-task-box");
+    uncollapseElement(taskBox);
+    var deck = document.getElementById("calendarDisplayDeck");
+    deck.selectedPanel = taskBox;
+
+    document.commandDispatcher.updateCommands('calendar_commands');
+    window.setCursor("auto");
+  }
+}
+
+const gCalSetupMailContext = {
+    popup: function gCalSetupMailContext_popup() {
+        var hasSelection = (GetFirstSelectedMessage() != null);
+        // Disable the convert menu altogether.
+        setElementValue("mailContext-calendar-convert-menu",
+                        !hasSelection && "true", "hidden");
+    }
+};
+
+// Overwrite the InitMessageMenu function, since we never know in which order
+// the popupshowing event will be processed. This function takes care of
+// disabling the message menu when in calendar or task mode.
+function calInitMessageMenu() {
+    calInitMessageMenu.origFunc();
+
+    document.getElementById("markMenu").disabled = (gCurrentMode != 'mail');
+}
+calInitMessageMenu.origFunc = InitMessageMenu;
+InitMessageMenu = calInitMessageMenu;
 
 document.addEventListener("load", ltnOnLoad, true);

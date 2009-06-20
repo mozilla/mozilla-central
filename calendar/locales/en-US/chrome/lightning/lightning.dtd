@@ -61,11 +61,15 @@
 <!ENTITY lightning.menupopup.open.calendar.label      "Calendar File…">
 <!ENTITY lightning.menupopup.open.calendar.accesskey  "C">
 
-<!-- Messenger Sidebar -->
-<!ENTITY lightning.calendar.label            "Calendar">
-<!ENTITY lightning.calendar.accesskey        "C">
-<!ENTITY lightning.tasks.label               "Tasks">
-<!ENTITY lightning.tasks.accesskey           "T">
+<!-- View Menu -->
+<!ENTITY lightning.menu.view.calendar.label            "Calendar">
+<!ENTITY lightning.menu.view.calendar.accesskey        "n">
+<!ENTITY lightning.menu.view.tasks.label               "Tasks">
+<!ENTITY lightning.menu.view.tasks.accesskey           "k">
+
+<!-- Events and Tasks menu -->
+<!ENTITY lightning.menu.eventtask.label                "Events and Tasks">
+<!ENTITY lightning.menu.eventtask.accesskey            "n">
 
 <!-- Mode Toolbar -->
 <!ENTITY lightning.toolbar.mail.label         "Mail">

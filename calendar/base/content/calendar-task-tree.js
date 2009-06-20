@@ -96,31 +96,28 @@ function addCategoryNames(aEvent) {
  * @param aEvent    The popupshowing event of the opening menu.
  */
 function changeContextMenuForTask(aEvent) {
-    var tasks = getSelectedTasks(aEvent);
-    var task = null;
-    var tasksSelected = (tasks.length > 0);
+    let tasksSelected = (getSelectedTasks(aEvent).length > 0);
     applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
     document.getElementById("calendar_new_todo_command").removeAttribute("disabled");
-    if (tasksSelected) {
-        if (isPropertyValueSame(tasks, "isCompleted")) {
-            setBooleanAttribute(document.getElementById("calendar-context-markcompleted"), "checked", tasks[0].isCompleted);
-        } else {
-            document.getElementById("calendar-context-markcompleted").setAttribute("checked", false);
-        }
-    }
+    changeMenuForTask(aEvent);
 }
 
 /**
- * Handler function to mark selected tasks as completed.
+ * Change the opening menu for the selected tasks.
  *
- * XXXberend Please explain more and rename to something easier to understand.
- *
- * @param aEvent      The DOM event that triggered this command.
- * @param aProgress   The progress percentage to set.
+ * @param aEvent    The popupshowing event of the opening menu.
  */
-function contextChangeTaskProgress2(aEvent, aProgress) {
-    contextChangeTaskProgress(aEvent, aProgress);
-    document.getElementById("calendar_percentComplete-100_command2").checked = false;
+function changeMenuForTask(aEvent) {
+    let tasks = getSelectedTasks(aEvent);
+    let tasksSelected = (tasks.length > 0);
+    if (tasksSelected) {
+        let cmd = document.getElementById("calendar_toggle_completed_command");
+        if (isPropertyValueSame(tasks, "isCompleted")) {
+            setBooleanAttribute(cmd, "checked", tasks[0].isCompleted);
+        } else {
+            setBooleanAttribute(cmd, "checked", false);
+        }
+    }
 }
 
 /**
@@ -286,16 +283,14 @@ function tasksToEvents(aEvent) {
 }
 
 /**
- * Toggle the completed state on tasks retrieved from the given event.
+ * Toggle the completed state on selected tasks.
  *
- * XXXberend Please clarify if this is correct and describe more clearly.
- *
- * @param aEvent    The command event that holds information about the tasks.
+ * @param aEvent    The originating event, can be null.
  */
 function toggleCompleted(aEvent) {
     if (aEvent.target.getAttribute("checked") == "true") {
-        contextChangeTaskProgress(aEvent, 100);
-    } else {
         contextChangeTaskProgress(aEvent, 0);
+    } else {
+        contextChangeTaskProgress(aEvent, 100);
     }
 }

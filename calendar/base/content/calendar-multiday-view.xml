@@ -2192,6 +2192,9 @@
         ]]></getter>
       </property>
 
+      <property name="supportsRotation" readonly="true"
+                onget="return true"/>
+
       <method name="handlePreference">
         <parameter name="aSubject"/>
         <parameter name="aTopic"/>

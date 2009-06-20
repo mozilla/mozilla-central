@@ -56,6 +56,9 @@
                     return "day-view-observer";
                 ]]></getter>
             </property>
+            <property name="supportsWorkdaysOnly"
+                      readonly="true"
+                      onget="return false;"/>
 
             <!--Public methods-->
             <method name="goToDay">

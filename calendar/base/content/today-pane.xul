@@ -96,7 +96,7 @@
                        mode="mail,calendar,task"
                        collapsedinmodes="mail,calendar,task"
                        broadcaster="modeBroadcaster"
-                       refcontrol="today-pane-displaynone"
+                       refcontrol="ltnTodayPaneDisplayNone"
                        persist="collapsedinmodes"/>
               <modehbox id="today-minimonth-box"
                         pack="center"
@@ -104,14 +104,14 @@
                         mode="mail,calendar,task"
                         broadcaster="modeBroadcaster"
                         collapsedinmodes="mail,calendar,task"
-                        refcontrol="today-pane-displayminimonth"
+                        refcontrol="ltnTodayPaneDisplayMinimonth"
                         persist="collapsedinmodes">
                 <minimonth id="today-Minimonth" freebusy="true" onchange="TodayPane.setDaywithjsDate(this.value);"/>
               </modehbox>
               <modebox id="mini-day-box"
                        mode="mail,calendar,task"
                        class="today-subpane"
-                       refcontrol="today-pane-displayminiday"
+                       refcontrol="ltnTodayPaneDisplayMiniday"
                        broadcaster="modeBroadcaster"
                        collapsedinmodes=""
                        persist="collapsedinmodes">
