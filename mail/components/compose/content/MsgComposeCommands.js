@@ -1659,6 +1659,17 @@ function GenericSendMessage( msgType )
             return;
         }
 
+        // Strip trailing spaces and long consecutive WSP sequences from the
+        // subject line to prevent getting only WSP chars on a folded line.
+        var fixedSubject = subject.replace(/\s{74,}/g, "    ")
+                                  .replace(/\s*$/, "");
+        if (fixedSubject != subject)
+        {
+          subject = fixedSubject;
+          msgCompFields.subject = fixedSubject;
+          GetMsgSubjectElement().value = fixedSubject;
+        }
+
         // Remind the person if there isn't a subject
         if (subject == "")
         {
