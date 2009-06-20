@@ -386,6 +386,7 @@ nsresult nsMsgDatabase::AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key) // do we w
     nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(element->mHdr);  // closed system, so this is ok
     // clear out m_mdbRow member variable - the db is going away, which means that this member
     // variable might very well point to a mork db that is gone.
+    NS_IF_RELEASE(msgHdr->m_mdbRow);
     msgHdr->m_mdbRow = nsnull;
   }
   return PL_DHASH_NEXT;
@@ -421,7 +422,7 @@ NS_IMETHODIMP nsMsgDatabase::ClearCachedHdrs()
 void nsMsgDatabase::ClearCachedObjects(PRBool dbGoingAway)
 {
   ClearHdrCache(PR_FALSE);
-#ifdef DEBUG_bienvenu1
+#ifdef DEBUG_DavidBienvenu
   if (m_headersInUse && m_headersInUse->entryCount > 0)
   {
         NS_ASSERTION(PR_FALSE, "leaking headers");
