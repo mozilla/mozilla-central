@@ -1,3 +1,7 @@
+/* Because this sheet is loaded synchronously while the user is waiting for the
+   compose window to appear, it must not @import a ton of other things, and
+   especially must not trigger network access. */
+
 /* ===== messageQuotes.css =================================================
   == Shared styles such as block quote colors and signature style
   == between the message body during

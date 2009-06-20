@@ -1415,7 +1415,12 @@ var gMsgEditorCreationObserver =
       if (editor && GetCurrentCommandManager() == aSubject)
       {
         var editorStyle = editor.QueryInterface(Components.interfaces.nsIEditorStyleSheets);
-        editorStyle.addStyleSheet("chrome://messenger/skin/messageQuotes.css");
+        // We use addOverrideStyleSheet rather than addStyleSheet so that we get
+        // a synchronous load, rather than having a late-finishing async load
+        // mark our editor as modified when the user hasn't typed anything yet,
+        // but that means the sheet must not @import slow things, especially
+        // not over the network.
+        editorStyle.addOverrideStyleSheet("chrome://messenger/skin/messageQuotes.css");
         InitEditor();
       }
       // Now that we know this document is an editor, update commands now if
@@ -3571,6 +3576,11 @@ function InitEditor()
 {
   var editor = GetCurrentEditor();
   editor.QueryInterface(nsIEditorStyleSheets);
+  // We use addOverrideStyleSheet rather than addStyleSheet so that we get
+  // a synchronous load, rather than having a late-finishing async load
+  // mark our editor as modified when the user hasn't typed anything yet,
+  // but that means the sheet must not @import slow things, especially
+  // not over the network.
   editor.addOverrideStyleSheet("chrome://messenger/content/composerOverlay.css");
   gMsgCompose.initEditor(editor, window.content);
 
