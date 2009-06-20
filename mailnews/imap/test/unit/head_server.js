@@ -30,7 +30,7 @@ function createLocalIMAPServer() {
   var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);
   
-  var server = acctmgr.createIncomingServer(null, "localhost", "imap");
+  var server = acctmgr.createIncomingServer("user", "localhost", "imap");
   server.port = IMAP_PORT;
   server.username = "user";
   server.password = "password";

@@ -231,8 +231,8 @@ function run_test()
   // We get these notifications on initial discovery
   gRootFolder = gIMAPIncomingServer.rootFolder;
   gIMAPInbox = gRootFolder.getChildNamed("Inbox");
-  gExpectedEvents = [[gMFNService.folderAdded, gRootFolder, "Trash", "gIMAPTrashFolder"],
-                     [gMFNService.folderDeleted, [gIMAPInbox]]];
+  gExpectedEvents = [[gMFNService.folderAdded, gRootFolder, "Trash", 
+                     "gIMAPTrashFolder"]];
   gCurrStatus |= kStatus.onStopCopyDone | kStatus.functionCallDone;
 
   gServer.performTest("SUBSCRIBE");
