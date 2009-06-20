@@ -18,8 +18,10 @@
    - Portions created by the Initial Developer are Copyright (C) 2006
    - the Initial Developer. All Rights Reserved.
    -
-   - Contributor(s): Thomas Benisch <thomas.benisch@sun.com>
+   - Contributor(s):
+   -   Thomas Benisch <thomas.benisch@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -79,12 +81,12 @@
             class="calendar-invitations-richlistitem-accept-button
             calendar-invitations-richlistitem-button"
             label="&calendar.invitations.list.accept.button.label;"
-            hidden="true" oncommand="accept();"/>
+            oncommand="accept();"/>
           <xul:button anonid="decline"
             class="calendar-invitations-richlistitem-decline-button
             calendar-invitations-richlistitem-button"
             label="&calendar.invitations.list.decline.button.label;"
-            hidden="true" oncommand="decline();"/>
+            oncommand="decline();"/>
         </xul:vbox>
       </xul:hbox>
     </content>
@@ -243,26 +245,5 @@
         ]]></body>
       </method>
     </implementation>
-
-    <handlers>
-      <handler event="DOMAttrModified"><![CDATA[
-        if (event.attrName != "selected" ||
-            event.originalTarget.getAttribute("anonid") !=
-            "invitations-listitem") {
-          return;
-        }
-        var acceptButton = document.getAnonymousElementByAttribute(
-            this, "anonid", "accept");
-        var declineButton = document.getAnonymousElementByAttribute(
-            this, "anonid", "decline");
-        if (event.newValue == "true") {
-            acceptButton.removeAttribute("hidden");
-            declineButton.removeAttribute("hidden");
-        } else if (event.newValue == "false") {
-            acceptButton.setAttribute("hidden", "true");
-            declineButton.setAttribute("hidden", "true");
-        }
-      ]]></handler>
-    </handlers>
   </binding>
 </bindings>
