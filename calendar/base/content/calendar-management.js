@@ -39,7 +39,7 @@
 
 /**
  * Get this window's currently selected calendar.
- * 
+ *
  * @return      The currently selected calendar.
  */
 function getSelectedCalendar() {
@@ -54,24 +54,22 @@ function getSelectedCalendar() {
  * @param aCalendar     The calendar to delete.
  */
 function promptDeleteCalendar(aCalendar) {
-    var calendars = getCalendarManager().getCalendars({});
+    let calendars = getCalendarManager().getCalendars({});
     if (calendars.length <= 1) {
         // If this is the last calendar, don't delete it.
         return;
     }
 
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                        .getService(Components.interfaces.nsIPromptService);
-    var ok = promptService.confirm(
-        window,
-        calGetString("calendar", "unsubscribeCalendarTitle"),
-        calGetString("calendar",
-                     "unsubscribeCalendarMessage",
-                     [aCalendar.name]),
-        {});
+    let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                  .getService(Components.interfaces.nsIPromptService);
+    let ok = promptService.confirm(window,
+                                   calGetString("calendar", "unsubscribeCalendarTitle"),
+                                   calGetString("calendar", "unsubscribeCalendarMessage",
+                                                [aCalendar.name]),
+                                   {});
 
     if (ok) {
-        var calMgr = getCalendarManager();
+        let calMgr = cal.getCalendarManager();
         calMgr.unregisterCalendar(aCalendar);
         calMgr.deleteCalendar(aCalendar);
     }
@@ -122,8 +120,7 @@ function initHomeCalendar() {
  * Called to clean up the calendar manager for a window.
  */
 function unloadCalendarManager() {
-    var composite = getCompositeCalendar();
-    composite.setStatusObserver(null, null);
+    getCompositeCalendar().setStatusObserver(null, null);
 }
 
 /**
@@ -253,15 +250,16 @@ function openCalendarSubscriptionsDialog() {
  */
 var calendarOfflineManager = {
     QueryInterface: function cOM_QueryInterface(aIID) {
-        return doQueryInterface(this, calendarOfflineManager.prototype, aIID,
-                                [Components.interfaces.nsIObserver, Components.interfaces.nsISupports]);
+        return cal.doQueryInterface(this, null, aIID,
+                                    [Components.interfaces.nsIObserver,
+                                     Components.interfaces.nsISupports]);
     },
 
     init: function cOM_init() {
         if (this.initialized) {
             throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
         }
-        var os = Components.classes["@mozilla.org/observer-service;1"]
+        let os = Components.classes["@mozilla.org/observer-service;1"]
                            .getService(Components.interfaces.nsIObserverService);
         os.addObserver(this, "network:offline-status-changed", false);
 
@@ -273,7 +271,7 @@ var calendarOfflineManager = {
         if (!this.initialized) {
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
         }
-        var os = Components.classes["@mozilla.org/observer-service;1"]
+        let os = Components.classes["@mozilla.org/observer-service;1"]
                            .getService(Components.interfaces.nsIObserverService);
         os.removeObserver(this, "network:offline-status-changed", false);
         this.initialized = false;

@@ -1286,7 +1286,7 @@
 
           // check if we need to jump a column
           if (dragState.dragType == "move") {
-              newcol = col.calendarView.findColumnForClientPoint(event.screenX, event.screenY);
+              let newcol = col.calendarView.findColumnForClientPoint(event.screenX, event.screenY);
               if (newcol && newcol != col) {
                   // kill our drag state
                   col.fgboxes.dragbox.removeAttribute("dragging");

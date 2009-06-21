@@ -44,7 +44,7 @@ Components.utils.import("resource://gre/modules/PluralForm.jsm");
  * @return The alarm service component
  */
 function getAlarmService() {
-    if (!window.mAlarmService) {
+    if (!("mAlarmService" in window)) {
         window.mAlarmService = Components.classes["@mozilla.org/calendar/alarm-service;1"]
                                          .getService(Components.interfaces.calIAlarmService);
     }

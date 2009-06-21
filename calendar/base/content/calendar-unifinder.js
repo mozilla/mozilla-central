@@ -217,7 +217,7 @@ var unifinderObserver = {
         }
         // XXX: do we really still need this, we are always checking it in the refreshInternal
         unifinderTreeView.removeItems(items.filter(filter.isItemInFilters, filter));
-    }, 
+    },
 
     observe: function uO_observe(aSubject, aTopic, aPrefName) {
         switch (aPrefName) {
@@ -443,13 +443,10 @@ function unifinderKeyPress(aEvent) {
  * Tree controller for unifinder search results
  */
 var unifinderTreeView = {
-
     tree: null,
     treeElement: null,
     doingSelection: false,
     mFilter: null,
-    
-
     mSelectedColumn: null,
     sortDirection: null,
 
@@ -459,7 +456,7 @@ var unifinderTreeView = {
     get selectedColumn uTV_getSelectedColumn() {
         return this.mSelectedColumn;
     },
-    
+
     /**
      * Sets the currently selected column in the unifinder (used for sorting).
      */
@@ -547,7 +544,7 @@ var unifinderTreeView = {
         if (this.tree) {
             this.tree.rowCountChanged(0, (this.eventArray.length - oldCount));
         }
-       
+
         if (aDontSort) {
             this.calculateIndexMap();
         } else {
@@ -782,7 +779,7 @@ var unifinderTreeView = {
     },
 
     getCellText: function uTV_getCellText(row, column) {
-        calendarEvent = this.eventArray[row];
+        let calendarEvent = this.eventArray[row];
 
         switch (column.element.getAttribute("itemproperty")) {
             case "title":

@@ -121,7 +121,7 @@ calTodo.prototype = {
                this.percentComplete == 100 ||
                this.status == "COMPLETED";
     },
-    
+
     set isCompleted(v) {
         if (v) {
             if (!this.completedDate)
@@ -215,12 +215,13 @@ calTodo.prototype = {
     },
 
     isPropertyPromoted: function (name) {
-        return (this.todoPromotedProps[name]);
+        // avoid strict undefined property warning
+        return (this.todoPromotedProps[name] || false);
     },
 
     set entryDate(value) {
         this.modify();
-        
+
         // We're about to change the start date of an item which probably
         // could break the associated calIRecurrenceInfo. We're calling
         // the appropriate method here to adjust the internal structure in

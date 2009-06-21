@@ -140,7 +140,7 @@ calEvent.prototype = {
         var icalcomp = icssvc.createIcalComponent("VEVENT");
         this.fillIcalComponentFromBase(icalcomp);
         this.mapPropsToICS(icalcomp, this.icsEventPropMap);
-        
+
         var bagenum = this.propertyEnumerator;
         while (bagenum.hasMoreElements()) {
             var iprop = bagenum.getNext().
@@ -186,7 +186,8 @@ calEvent.prototype = {
     },
 
     isPropertyPromoted: function (name) {
-        return (this.eventPromotedProps[name]);
+        // avoid strict undefined property warning
+        return (this.eventPromotedProps[name] || false);
     },
 
     set startDate(value) {

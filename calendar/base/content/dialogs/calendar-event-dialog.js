@@ -181,6 +181,7 @@ function onLoad() {
         }
     }
 
+    window.organizer = null;
     if (item.organizer) {
         window.organizer = item.organizer.clone();
     } else if (item.getAttendees({}).length > 0) {
@@ -537,7 +538,7 @@ function dateTimeControls2State(aKeepDuration) {
             getElementValue(startWidgetId),
             (menuItem.getAttribute('checked') == 'true') ? gStartTimezone : kDefaultTimezone);
     }
-    
+
     if (gEndTime) {
         if (aKeepDuration) {
             gEndTime = gStartTime.clone();
@@ -1512,7 +1513,7 @@ function attachURL() {
                                  result,
                                  null,
                                  { value: 0 })) {
-            
+
             try {
                 // If something bogus was entered, makeURL may fail.
                 var attachment = createAttachment();
@@ -1540,21 +1541,21 @@ function attachFile() {
         fp.init(window,
                 calGetString("calendar-event-dialog", "selectAFile"),
                 nsIFilePicker.modeOpenMultiple);
-  
-        // Check for the last directory 
+
+        // Check for the last directory
         var lastDir = lastDirectory();
         if (lastDir) {
             fp.displayDirectory = lastDir;
         }
- 
+
         // Get the attachment
         if (fp.show() == nsIFilePicker.returnOK) {
             files = fp.files;
         }
     } catch (ex) {
-        dump("failed to get attachments: " +ex+ "\n");  
+        dump("failed to get attachments: " +ex+ "\n");
     }
-  
+
     // Check if something has to be done
     if (!files || !files.hasMoreElements()) {
         return;
@@ -1580,7 +1581,7 @@ function attachFile() {
             // a type sensitive dialog to start files.
             addAttachment(attachment);
         }
-    } 
+    }
 }
 
 /**
@@ -1600,7 +1601,7 @@ function lastDirectory(aFileUri) {
         var file = uri.QueryInterface(Components.interfaces.nsIFileURL).file;
         lastDirectory.mValue = file.parent.QueryInterface(Components.interfaces.nsILocalFile);
     }
-    
+
     // In any case, return the value
     return (lastDirectory.mValue !== undefined ? lastDirectory.mValue : null);
 }
@@ -1616,7 +1617,7 @@ function lastDirectory(aFileUri) {
 function makePrettyName(aUri){
     var name = aUri.spec;
     if (aUri.schemeIs("file")) {
-        name = aUri.spec.split("/").pop(); 
+        name = aUri.spec.split("/").pop();
     } else if (aUri.schemeIs("http")) {
         name = aUri.spec.replace(/\/$/, "").replace(/^http:\/\//, "");
     }
@@ -1649,7 +1650,7 @@ function addAttachment(attachment) {
     }
 
     // full attachment object is stored here
-    item.attachment = attachment; 
+    item.attachment = attachment;
 
     // Update the number of rows and save our attachment globally
     documentLink.rows = documentLink.getRowCount();
@@ -1690,8 +1691,8 @@ function deleteAllAttachments() {
     }
 
     if (ok) {
-        var child;  
-        var documentLink = document.getElementById("attachment-link");
+        let child;
+        let documentLink = document.getElementById("attachment-link");
         while (documentLink.hasChildNodes()) {
             child = documentLink.removeChild(documentLink.lastChild);
             child.attachment = null;
@@ -1713,7 +1714,7 @@ function openAttachment() {
         var externalLoader = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                                        .getService(Components.interfaces.nsIExternalProtocolService);
         // TODO There should be a nicer dialog
-        externalLoader.loadUrl(attURI);   
+        externalLoader.loadUrl(attURI);
     }
 }
 
@@ -2217,7 +2218,7 @@ function DialogToolboxCustomizeDone(aToolboxChanged) {
     for (var i = 0; i < menubar.childNodes.length; ++i) {
         menubar.childNodes[i].removeAttribute("disabled");
     }
-  
+
     // make sure our toolbar buttons have the correct enabled state restored to them...
     document.commandDispatcher.updateCommands('itemCommands');
 
@@ -2243,7 +2244,7 @@ function onCommandCustomize() {
     for (var i = 0; i < menubar.childNodes.length; ++i) {
         menubar.childNodes[i].setAttribute("disabled", true);
     }
-      
+
     // Disable the toolbar context menu items
     document.getElementById("cmd_customize").setAttribute("disabled", "true");
 
@@ -2554,7 +2555,7 @@ function updateTimezone() {
                 }
             }
         }
-        
+
         updateTimezoneElement(startTimezone,
                               'timezone-starttime',
                               gStartTime,
@@ -2664,14 +2665,14 @@ function updateRepeatDetails() {
     var recurrenceInfo = window.recurrenceInfo;
     var itemRepeat = document.getElementById("item-repeat");
     if (itemRepeat.value == "custom" && recurrenceInfo) {
-        
+
         // First of all collapse the details text. If we fail to
         // create a details string, we simply don't show anything.
         // this could happen if the repeat rule is something exotic
         // we don't have any strings prepared for.
         var repeatDetails = document.getElementById("repeat-details");
         repeatDetails.setAttribute("collapsed", "true");
-        
+
         // Try to create a descriptive string from the rule(s).
         var kDefaultTimezone = calendarDefaultTimezone();
         var startDate = jsDateToDateTime(getElementValue("event-starttime"), kDefaultTimezone);
@@ -2679,7 +2680,7 @@ function updateRepeatDetails() {
         var allDay = getElementValue("event-all-day", "checked");
         var detailsString = recurrenceRule2String(
             recurrenceInfo, startDate, endDate, allDay);
-            
+
         // Now display the string...
         if (detailsString) {
             var lines = detailsString.split("\n");

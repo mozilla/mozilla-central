@@ -620,8 +620,8 @@ function onResize() {
  * @param calendar      The calendar to change to.
  */
 function onChangeCalendar(calendar) {
-    var args = window.arguments[0];
-    var organizer = args.organizer;
+    let args = window.arguments[0];
+    let organizer = args.organizer;
 
     // set 'mIsReadOnly' if the calendar is read-only
     if (calendar && calendar.readOnly) {
@@ -642,7 +642,7 @@ function onChangeCalendar(calendar) {
             .setAttribute('disabled', 'true');
     }
 
-    var freebusy = document.getElementById("freebusy-grid");
+    let freebusy = document.getElementById("freebusy-grid");
     freebusy.onChangeCalendar(calendar);
 }
 
@@ -879,7 +879,6 @@ function initTimeRange() {
 function onModify(event) {
     onResize();
     document.getElementById("freebusy-grid").onModify(event);
-            
 }
 
 /**

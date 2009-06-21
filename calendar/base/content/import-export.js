@@ -255,7 +255,7 @@ function saveEventsToFile(calendarEventArray, aDefaultFileName) {
     let catman = Components.classes["@mozilla.org/categorymanager;1"]
                            .getService(Components.interfaces.nsICategoryManager);
     let catenum = catman.enumerateCategory('cal-exporters');
-    currentListLength = 0;
+    let currentListLength = 0;
     while (catenum.hasMoreElements()) {
         let entry = catenum.getNext();
         entry = entry.QueryInterface(Components.interfaces.nsISupportsCString);
