@@ -1073,10 +1073,12 @@
 
     <handlers>
       <handler event="DOMMouseScroll"><![CDATA[
+        let scrollEnabled = getPrefSafe('calendar.view.mousescroll', true);
         if (!event.ctrlKey &&
             !event.shiftKey &&
             !event.altKey &&
-            !event.metaKey) {
+            !event.metaKey &&
+            scrollEnabled) {
             // In the month view, the only thing that can be scrolled
             // is the month the user is in. calendar-base-view takes care
             // of the shift key, so only move the view when no modifier

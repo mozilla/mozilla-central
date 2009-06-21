@@ -126,6 +126,9 @@ pref("calendar.view.dayendhour", 17);
 // number of visible hours for day and week views
 pref("calendar.view.visiblehours", 9);
 
+// If true, mouse scrolling via shift+wheel will be enabled
+pref("calendar.view.mousescroll", true);
+
 // Do not set this!  If it's not there, then we guess the system timezone
 //pref("calendar.timezone.local", "");
 

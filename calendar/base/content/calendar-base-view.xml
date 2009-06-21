@@ -772,7 +772,7 @@
         }
       ]]></handler>
       <handler event="DOMMouseScroll"><![CDATA[
-        if (event.shiftKey) {
+        if (event.shiftKey && getPrefSafe('calendar.view.mousescroll', true)) {
             this.moveView(event.detail < 0 ? -1 : 1);
         }
 
