@@ -29,6 +29,7 @@
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -104,7 +105,7 @@ var calendarTabType = {
     ltnSwitch2Mail();
   },
 };
-window.addEventListener("load", function(e) { 
+window.addEventListener("load", function(e) {
   document.getElementById('tabmail').registerTabType(calendarTabType); }, false);
 
 
@@ -382,8 +383,8 @@ function ltnSwitch2Calendar() {
     switch2calendar.setAttribute("checked", "true");
     switch2task.removeAttribute("checked");
 
-    gCurrentMode = 'calendar';    
-    document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);    
+    gCurrentMode = 'calendar';
+    document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
 
     // display the calendar panel on the display deck
     var viewBox = document.getElementById("calendar-view-box");
@@ -413,7 +414,7 @@ function ltnSwitch2Task() {
     switch2task.setAttribute("checked", "true");
 
     gCurrentMode = 'task';
-    document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);    
+    document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
 
     // display the task panel on the display deck
     var taskBox = document.getElementById("calendar-task-box");
@@ -428,7 +429,7 @@ function ltnSwitch2Task() {
 
 const gCalSetupMailContext = {
     popup: function gCalSetupMailContext_popup() {
-        var hasSelection = (GetFirstSelectedMessage() != null);
+        let hasSelection = (gFolderDisplay.selectedMessage != null);
         // Disable the convert menu altogether.
         setElementValue("mailContext-calendar-convert-menu",
                         !hasSelection && "true", "hidden");

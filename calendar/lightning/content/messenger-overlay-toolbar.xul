@@ -19,12 +19,13 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
-   -   Mike Shaver        <shaver@mozilla.org>
-   -   Stuart Parmenter   <stuart.parmenter@oracle.com>
+   -   Mike Shaver <shaver@mozilla.org>
+   -   Stuart Parmenter <stuart.parmenter@oracle.com>
    -   Vladimir Vukicevic <vladimir@pobox.com>
-   -   Simon Paquet       <bugzilla@babylonsounds.com>
-   -   Berend Cornelius   <berend.cornelius@sun.com>
+   -   Simon Paquet <bugzilla@babylonsounds.com>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -62,11 +63,11 @@
         <menuitem id="mailContext-calendar-convert-event-menuitem"
                   label="&calendar.context.convertmenu.event.label;"
                   accesskey="&calendar.context.convertmenu.event.accesskey;"
-                  oncommand="calendarCalendarButtonDNDObserver.onDropMessage(messenger.msgHdrFromURI(GetFirstSelectedMessage()))"/>
+                  oncommand="calendarCalendarButtonDNDObserver.onDropMessage(gFolderDisplay.selectedMessage)"/>
         <menuitem id="mailContext-calendar-convert-task-menuitem"
                   label="&calendar.context.convertmenu.task.label;"
                   accesskey="&calendar.context.convertmenu.task.accesskey;"
-                  oncommand="calendarTaskButtonDNDObserver.onDropMessage(messenger.msgHdrFromURI(GetFirstSelectedMessage()))"/>
+                  oncommand="calendarTaskButtonDNDObserver.onDropMessage(gFolderDisplay.selectedMessage)"/>
       </menupopup>
     </menu>
   </popup>
