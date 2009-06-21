@@ -22,6 +22,7 @@
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,8 +47,7 @@ Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
  */
 
 function ltnGetMsgRecipient() {
-    var msgURI = GetLoadedMessage();
-    var msgHdr = messenger.msgHdrFromURI(msgURI);
+    let msgHdr = gMessageDisplay.displayedMessage;
     if (!msgHdr) {
         return null;
     }
@@ -153,7 +153,7 @@ const ltnOnItipItem = {
             // XXX Get these from preferences
             itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
 
-            let imipMethod = messenger.msgHdrFromURI(GetLoadedMessage()).getStringProperty("imip_method");
+            let imipMethod = gMessageDisplay.displayedMessage.getStringProperty("imip_method");
             if (imipMethod && imipMethod.length != 0 && imipMethod.toLowerCase() != "nomethod") {
                 itipItem.receivedMethod = imipMethod.toUpperCase();
             } else { // There is no METHOD in the content-type header (spec violation).
