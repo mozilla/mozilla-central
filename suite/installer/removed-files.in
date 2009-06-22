@@ -96,6 +96,7 @@ defaults/wallet/PositionalSchema.tbl
 defaults/wallet/StateSchema.tbl
 modules/JSON.jsm
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
+@DLL_PREFIX@mozlcms@DLL_SUFFIX@
 res/cmessage.txt
 LICENSE
 #ifdef XP_WIN
@@ -106,6 +107,7 @@ msvcp80.dll
 msvcr80.dll
 #endif
 xpicleanup.exe
+regxpcom.exe
 #ifndef MOZILLA_1_9_1_BRANCH
 components/nsPostUpdateWin.js
 #endif
@@ -187,6 +189,13 @@ components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
 @DLL_PREFIX@mozz@DLL_SUFFIX@
 @DLL_PREFIX@thebes@DLL_SUFFIX@
 @DLL_PREFIX@xul@DLL_SUFFIX@
+#ifdef XP_MACOSX
+XUL
+components/libimgicon.dylib
+components/libjar50.dylib
+components/libosxproxy.dylib
+components/libwidget_mac.dylib
+#endif
 #ifdef XP_WIN
 gksvggdiplus.dll
 jsj3250.dll
