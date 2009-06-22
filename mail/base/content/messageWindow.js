@@ -102,6 +102,7 @@ StandaloneFolderDisplayWidget.prototype = {
   onCreatedView:
       function StandaloneMessageDisplayWidget_onCreatedView() {
     this._fakeTreeBox.view = this.view.dbView;
+    this._magicTreeSelection.view = this.view.dbView;
     // only if we're not dealing with a dummy message (from .eml file /
     //  attachment should we try and hook up the selection object.)  Otherwise
     //  the view will not operate in stand alone message mode.

@@ -116,6 +116,10 @@ JSTreeSelection.prototype = {
    */
   _count: 0,
 
+  // In the case of the stand-alone message window, there's no tree, but
+  // there's a view.
+  _view: null,
+  
   get tree JSTreeSelection_get_treeBoxObject() {
     return this._treeBoxObject;
   },
@@ -123,6 +127,9 @@ JSTreeSelection.prototype = {
     this._treeBoxObject = aTreeBoxObject;
   },
 
+  set view JSTreeSelection_set_view(aView) {
+    this._view = aView;
+  },
   /**
    * Although the nsITreeSelection documentation doesn't say, what this method
    *  is supposed to do is check if the seltype attribute on the XUL tree is any
@@ -607,14 +614,13 @@ JSTreeSelection.prototype = {
     // don't fire if we are suppressed; we will fire when un-suppressed
     if (this.selectEventsSuppressed)
       return;
-    // we need a box object to get at the view
-    if (!this._treeBoxObject)
-      return;
-    // we need a view to have a view...
-    if (!this._treeBoxObject.view)
-      return;
+    let view;
+    if (this._treeBoxObject && this._treeBoxObject.view)
+      view = this._treeBoxObject.view;
+    else 
+      view = this._view;
 
-    let view = this._treeBoxObject.view.QueryInterface(Ci.nsITreeView);
+    view = view.QueryInterface(Ci.nsITreeView);
     view.selectionChanged();
   },
 

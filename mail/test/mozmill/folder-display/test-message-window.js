@@ -45,6 +45,7 @@ var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 var folder;
+var msgSet;
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -53,8 +54,8 @@ function setupModule(module) {
   wh.installInto(module);
 
   folder = create_folder("MessageWindowA");
-  // create a single message in the folder to display
-  make_new_sets_in_folder(folder, [{count: 1}]);
+  // create three messages in the folder to display
+  [msgSet] = make_new_sets_in_folder(folder, [{count: 3}]);
 }
 
 /** The message window controller. */
@@ -69,6 +70,16 @@ function test_open_message_window() {
   // display it
   msgc = open_selected_message_in_new_window();
   assert_selected_and_displayed(msgc, curMessage);
+}
+
+/**
+ * Use the "f" keyboard accelerator to navigate to the next message,
+ * and verify that it is indeed loaded.
+ */
+function test_navigate_to_next_message() {
+  msgc.keypress(null, "f", {});
+  wait_for_message_display_completion(msgc, true);
+  assert_selected_and_displayed(msgc, 1);
 }
 
 /**
