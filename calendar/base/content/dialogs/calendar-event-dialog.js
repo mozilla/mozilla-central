@@ -2167,7 +2167,17 @@ function onCommandSave(aIsClosing) {
     var listener = {
         onOperationComplete: function(aCalendar, aStatus, aOpType, aId, aItem) {
             if (Components.isSuccessCode(aStatus)) {
-                window.calendarItem = aItem;
+                if (window.calendarItem.recurrenceId) {
+                    // TODO This workaround needs to be removed in bug 396182
+                    // We are editing an occurrence. Make sure that the returned
+                    // item is the same occurrence, not its parent item.
+                    let occ = aItem.recurrenceInfo
+                                   .getOccurrenceFor(window.calendarItem.recurrenceId);
+                    window.calendarItem = occ;
+                } else {
+                    // We are editing the parent item, no workarounds needed
+                    window.calendarItem = aItem;
+                }
             }
         }
     };
