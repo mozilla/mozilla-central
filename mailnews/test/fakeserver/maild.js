@@ -456,6 +456,7 @@ nsMailReader.prototype = {
   },
   _realCloseSocket : function () {
     this._isRunning = false;
+    this._output.close();
     this._transport.close(Cr.NS_OK);
     this._server.stopTest();
   },
