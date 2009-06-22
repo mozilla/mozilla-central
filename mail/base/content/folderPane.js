@@ -425,6 +425,21 @@ let gFolderTreeView = {
     else if (Array.indexOf(types, "text/x-moz-url") != -1 &&
              targetFolder.server.type == "rss")
       return true;
+    else if (Array.indexOf(types, "application/x-moz-file") != -1) {
+      if (aOrientation != Ci.nsITreeView.DROP_ON)
+        return false;
+      // Don't allow drop onto server itself.
+      if (targetFolder.isServer)
+        return false;
+      // Don't allow drop into a folder that cannot take messages.
+      if (!targetFolder.canFileMessages)
+        return false;
+      for (let i = 0; i < dt.mozItemCount; i++) {
+        let extFile = dt.mozGetDataAt("application/x-moz-file", i)
+                        .QueryInterface(Ci.nsILocalFile);
+        return extFile.isFile();
+      }
+    }
     return false;
   },
   drop: function ftv_drop(aRow, aOrientation) {
@@ -495,6 +510,17 @@ let gFolderTreeView = {
       // really need to partition the messages by folder.
       cs.CopyMessages(sourceFolder, array, targetFolder, isMove, null,
                         msgWindow, true);
+    }
+    else if (Array.indexOf(types, "application/x-moz-file") != -1) {
+      for (let i = 0; i < count; i++) {
+        let extFile = dt.mozGetDataAt("application/x-moz-file", i)
+                        .QueryInterface(Ci.nsILocalFile);
+        if (extFile.isFile()) {
+          let len = extFile.leafName.length;
+          if (len > 4 && extFile.leafName.substr(len - 4).toLowerCase() == ".eml")
+            cs.CopyFileMessage(extFile, targetFolder, null, false, 1, "", null, msgWindow);
+        }
+      }
     }
     else if (Array.indexOf(types, "text/x-moz-url") != -1) {
       // This is a potential rss feed to subscribe to
