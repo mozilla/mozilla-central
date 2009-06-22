@@ -894,7 +894,7 @@ nsresult nsMsgCompose::SetDocumentCharset(const char *charset)
   m_compFields->SetCharacterSet(charset);
 
   // notify the change to editor
-  m_editor->SetDocumentCharacterSet(nsDependentCString(charset));
+  m_editor->SetDocumentCharacterSet(charset ? nsDependentCString(charset): EmptyCString());
 
   return NS_OK;
 }
