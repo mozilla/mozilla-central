@@ -178,14 +178,27 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
         msgDatabase->SyncCounts();
     }
   }
+  HookupPendingListeners(msgDB, aFolder);
+  return rv;
+}
 
-  for (PRInt32 listenerIndex = 0; listenerIndex < m_foldersPendingListeners.Count(); listenerIndex++)
+/**
+ * When a db is opened, we need to hook up any pending listeners for 
+ * that db, and notify them.
+ */
+void nsMsgDBService::HookupPendingListeners(nsIMsgDatabase *db,
+                                            nsIMsgFolder *folder)
+{
+  for (PRInt32 listenerIndex = 0;
+       listenerIndex < m_foldersPendingListeners.Count(); listenerIndex++)
   {
   //  check if we have a pending listener on this db, and if so, add it.
-    if (m_foldersPendingListeners[listenerIndex] == aFolder)
-      (*_retval)->AddListener(m_pendingListeners.ObjectAt(listenerIndex));
+    if (m_foldersPendingListeners[listenerIndex] == folder)
+    {
+      db->AddListener(m_pendingListeners.ObjectAt(listenerIndex));
+      m_pendingListeners.ObjectAt(listenerIndex)->OnEvent(db, "DBOpened");
+    }
   }
-  return rv;
 }
 
 // This method is called when the caller is trying to create a db without
@@ -244,13 +257,8 @@ NS_IMETHODIMP nsMsgDBService::CreateNewDB(nsIMsgFolder *aFolder,
   nsMsgDatabase *msgDatabase = static_cast<nsMsgDatabase *>(*_retval);
   msgDatabase->m_folder = aFolder;
 
-  // Add all pending listeners to the database
-  for (PRInt32 listenerIndex = 0;
-       listenerIndex < m_foldersPendingListeners.Count(); listenerIndex++)
-  {
-    if (m_foldersPendingListeners[listenerIndex] == aFolder)
-      msgDatabase->AddListener(m_pendingListeners.ObjectAt(listenerIndex));
-  }
+  HookupPendingListeners(msgDB, aFolder);
+
   return NS_OK;
 }
 
@@ -2834,6 +2842,11 @@ NS_IMETHODIMP nsMsgDBThreadEnumerator::OnAnnouncerGoingAway(nsIDBChangeAnnouncer
   NS_IF_RELEASE(mResultThread);
   mDB->RemoveListener(this);
   mDB = nsnull;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDBThreadEnumerator::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
   return NS_OK;
 }
 

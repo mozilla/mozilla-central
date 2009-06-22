@@ -2724,6 +2724,13 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnAnnouncerGoingAway(nsIDBChangeAnnou
   return NS_OK;
 }
 
+NS_IMETHODIMP
+VirtualFolderChangeListener::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
+  return NS_OK;
+}
+
+
 NS_IMETHODIMP VirtualFolderChangeListener::OnReadChanged(nsIDBChangeListener *aInstigator)
 {
   return NS_OK;

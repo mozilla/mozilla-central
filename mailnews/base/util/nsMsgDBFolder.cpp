@@ -1117,6 +1117,11 @@ NS_IMETHODIMP nsMsgDBFolder::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigat
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgDBFolder::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgDBFolder::GetManyHeadersToDownload(PRBool *retval)
 {
   NS_ENSURE_ARG_POINTER(retval);

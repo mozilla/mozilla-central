@@ -74,6 +74,8 @@ public:
   nsMsgDBService();
   ~nsMsgDBService();
 protected:
+  void HookupPendingListeners(nsIMsgDatabase *db, nsIMsgFolder *folder);
+
   nsCOMArray <nsIMsgFolder> m_foldersPendingListeners;
   nsCOMArray <nsIDBChangeListener> m_pendingListeners;
 };
@@ -233,7 +235,7 @@ protected:
   }
   static void    RemoveFromCache(nsMsgDatabase* pMessageDB);
   PRBool  MatchDbName(nsILocalFile *dbName);  // returns TRUE if they match
-  
+
   // Flag handling routines
   virtual nsresult SetKeyFlag(nsMsgKey key, PRBool set, PRUint32 flag,
                               nsIDBChangeListener *instigator = NULL);

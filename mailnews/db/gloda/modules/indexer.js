@@ -2365,6 +2365,7 @@ var GlodaIndexer = {
     onJunkScoreChanged: function(aInstigator) {},
     onHdrPropertyChanged: function (aHdrToChange, aPreChange, aStatus,
                                     aInstigator) {},
+    onEvent: function (aDB, aEvent) {},
   },
   
   _indexMessage: function gloda_indexMessage(aMsgHdr, aCallbackHandle) {

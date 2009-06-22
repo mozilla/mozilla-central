@@ -75,6 +75,7 @@
 #include "nsMsgMessageFlags.h"
 #include "nsIPrompt.h"
 #include "nsIWindowWatcher.h"
+#include "nsMsgDBCID.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 
@@ -2022,8 +2023,10 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
   {
     nsCOMPtr <nsIDBFolderInfo> folderInfo;
     rv = folder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(m_db));
-    NS_ENSURE_SUCCESS(rv,rv);
-    m_db->AddListener(this);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    msgDBService->RegisterPendingListener(folder, this);
     m_folder = folder;
     m_viewFolder = folder;
 
@@ -2089,6 +2092,13 @@ NS_IMETHODIMP nsMsgDBView::Close()
   {
     m_db->RemoveListener(this);
     m_db = nsnull;
+  }
+  if (m_folder)
+  {
+    nsresult rv;
+    nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    msgDBService->UnregisterPendingListener(this);
   }
   return NS_OK;
 }
@@ -5608,6 +5618,14 @@ NS_IMETHODIMP nsMsgDBView::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator
   if (mTree)
     mTree->RowCountChanged(0, -saveSize);
 
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgDBView::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
+  if (!strcmp(aEvent, "DBOpened"))
+    m_db = aDB;
   return NS_OK;
 }
 

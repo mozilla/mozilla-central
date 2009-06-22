@@ -270,6 +270,11 @@ nsParseMailMessageState::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsParseMailMessageState::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
+  return NS_OK;
+}
+
 /* void OnReadChanged (in nsIDBChangeListener instigator); */
 NS_IMETHODIMP
 nsParseMailMessageState::OnReadChanged(nsIDBChangeListener *instigator)

@@ -40,12 +40,13 @@
 
 interface nsIDBChangeAnnouncer;
 interface nsIMsgDBHdr;
+interface nsIMsgDatabase;
 
 /**
  * These callbacks are provided to allow listeners to the message database
- * to update their status when message changes occur.
+ * to update their status when changes occur.
  */
-[scriptable, uuid(F2E12285-79D4-4692-AFEF-92415FCC6C5E)]
+[scriptable, uuid(21c56d34-71b9-42bb-9606-331a6a5f8210)]
 
 interface  nsIDBChangeListener : nsISupports {
   /*
@@ -84,5 +85,19 @@ interface  nsIDBChangeListener : nsISupports {
    */   
   void onHdrPropertyChanged(in nsIMsgDBHdr aHdrToChange, in PRBool aPreChange, inout PRUint32 aStatus,
                        in nsIDBChangeListener aInstigator);
+
+  /**
+   * Generic notification for extensibility. Common events should be documented
+   * here so we have a hope of keeping the documentation up to date.
+   * Current events are:
+   * "DBOpened" - When a pending listener becomes real. This can happen when
+   *              the existing db is force closed and a new one opened. Only
+   *              registered pending listeners are notified.
+   *
+   * @param aDB      the db for this event.
+   * @param aEvent   type of event. 
+   *
+   */
+  void onEvent(in nsIMsgDatabase aDB, in string aEvent);
 };
 
