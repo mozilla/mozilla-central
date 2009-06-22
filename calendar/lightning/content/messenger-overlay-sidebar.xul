@@ -99,14 +99,14 @@
     <menuitem id="ltnNewEvent"
               label="&lightning.menupopup.new.event.label;"
               insertbefore="menu_newFolder"
-              accesskey="&event.new.event.accesskey;"
+              accesskey="&lightning.menupopup.new.event.accesskey;"
               key="calendar-new-event-key"
               command="calendar_new_event_command"
               observes="calendar_new_event_command"/>
     <menuitem id="ltnNewTask"
               label="&lightning.menupopup.new.task.label;"
               insertbefore="menu_newFolder"
-              accesskey="&event.new.todo.accesskey;"
+              accesskey="&lightning.menupopup.new.task.accesskey;"
               key="calendar-new-todo-key"
               command="calendar_new_todo_command"
               observes="calendar_new_todo_command"/>
@@ -118,7 +118,7 @@
     <menuitem id="ltnNewCalendar" label="&lightning.menupopup.new.calendar.label;"
                command="calendar_new_calendar_command"
                observes="calendar_new_calendar_command"
-               accesskey="&calendar.new.server.accesskey;"
+               accesskey="&lightning.menupopup.new.calendar.accesskey;"
                insertafter="newAccountMenuItem"/>
   </menupopup>
 
