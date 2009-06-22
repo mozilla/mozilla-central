@@ -136,7 +136,7 @@
                 ]]></getter>
                 <setter><![CDATA[
                     this.mWeeksInView = val;
-                    setPref("calendar.weeks.inview", val);
+                    setPref("calendar.weeks.inview", Number(val));
                     this.refreshView();
                     return val;
                 ]]></setter>
