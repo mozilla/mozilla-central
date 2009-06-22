@@ -3950,12 +3950,14 @@ void nsMsgDBFolder::ChangeNumPendingTotalMessages(PRInt32 delta)
 
 NS_IMETHODIMP nsMsgDBFolder::SetFlag(PRUint32 flag)
 {
+  // If calling this function causes us to open the db (i.e., it was not
+  // open before), we're going to close the db before returning.
+  PRBool dbWasOpen = mDatabase != nsnull;
+
   ReadDBFolderInfo(PR_FALSE);
   // OnFlagChange can be expensive, so don't call it if we don't need to
   PRBool flagSet;
   nsresult rv;
-
-  PRBool dbWasOpen = mDatabase != nsnull;
 
   if (NS_FAILED(rv = GetFlag(flag, &flagSet)))
     return rv;
