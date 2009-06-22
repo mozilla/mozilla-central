@@ -2723,7 +2723,8 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxStatus(
     if (numUnread - previousUnreadMessages != unreadDelta)
        NS_WARNING("unread count should match server count");
     ChangeNumPendingUnread(unreadDelta);
-    if (unreadDelta > 0)
+    if (unreadDelta > 0 &&
+        !(mFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk)))
     {
       SetHasNewMessages(PR_TRUE);
       SetNumNewMessages(unreadDelta);
