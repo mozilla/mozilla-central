@@ -59,7 +59,7 @@ interface nsIURI;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(ab7d1c04-2cad-4b51-b4cd-f151f1f1db9a)]
+[scriptable, uuid(0af3f1fd-a290-41ff-b0ba-266a8797627f)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
