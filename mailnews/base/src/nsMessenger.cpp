@@ -1631,23 +1631,6 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRUint32 a
           m_outputStream = do_QueryInterface(appleFileDecoder, &rv);
       }
     }
-    else
-    {
-      if (mimeinfo)
-      {
-        PRUint32 aMacType;
-        PRUint32 aMacCreator;
-        if (NS_SUCCEEDED(mimeinfo->GetMacType(&aMacType)) && NS_SUCCEEDED(mimeinfo->GetMacCreator(&aMacCreator)))
-        {
-          nsCOMPtr<nsILocalFileMac> macFile =  do_QueryInterface(outputFile, &rv);
-          if (NS_SUCCEEDED(rv) && macFile)
-          {
-            macFile->SetFileCreator((OSType)aMacCreator);
-            macFile->SetFileType((OSType)aMacType);
-          }
-        }
-      }
-    }
 #endif // XP_MACOSX
   }
   return rv;
