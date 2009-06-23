@@ -471,7 +471,7 @@ var DefaultController =
       case "cmd_downloadSelected":
         return (IsFolderSelected() && MailOfflineMgr.isOnline() && GetNumSelectedMessages() > 0);
       case "cmd_synchronizeOffline":
-        return MailOfflineMgr.isOnline() && IsAccountOfflineEnabled();
+        return MailOfflineMgr.isOnline();
       case "cmd_settingsOffline":
         return IsAccountOfflineEnabled();
       case "cmd_moveToFolderAgain":

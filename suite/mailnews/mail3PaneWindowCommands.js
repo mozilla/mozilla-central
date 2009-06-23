@@ -458,7 +458,7 @@ var DefaultController =
       case "cmd_downloadSelected":
         return (IsFolderSelected() && CheckOnline() && GetNumSelectedMessages() > 0);
       case "cmd_synchronizeOffline":
-        return CheckOnline() && IsAccountOfflineEnabled();       
+        return CheckOnline();
       case "cmd_settingsOffline":
         return IsAccountOfflineEnabled();
       default:
