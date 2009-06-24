@@ -55,7 +55,14 @@
                        class="feedTitle"/>
           <xul:label xbl:inherits="value=type"/>
         </xul:hbox>
-        <xul:textbox xbl:inherits="value=feedURL" readonly="true"/>
+        <xul:vbox align="start" flex="1">
+          <xul:hbox>
+            <xul:label xbl:inherits="value=feedURL,tooltiptext=feedURL"
+                       class="text-link"
+                       flex="1"
+                       onclick="openUILink(this.value, event);" crop="end"/>
+          </xul:hbox>
+        </xul:vbox>
         <xul:hbox flex="1" class="feed-subscribe">
           <xul:spacer flex="1"/>
           <xul:button label="&feedSubscribe;" accesskey="&feedSubscribe.accesskey;"
