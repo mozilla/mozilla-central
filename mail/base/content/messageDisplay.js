@@ -297,7 +297,7 @@ MessageDisplayWidget.prototype = {
     let selectedMessages = this.folderDisplay.selectedMessages;
     let firstThreadId = selectedMessages[0].threadId;
     let oneThread = true;
-    for (i = 0; i < selectedMessages.length; i++) {
+    for (let i = 0; i < selectedMessages.length; i++) {
       if (selectedMessages[i].threadId != firstThreadId) {
         oneThread = false;
         break;
