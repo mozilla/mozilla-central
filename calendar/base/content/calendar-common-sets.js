@@ -181,14 +181,10 @@ var calendarController = {
             case "calendar_export_selection_command":
                 return this.item_selected;
             case "calendar_toggle_orientation_command":
-                return this.isCalendarInForeground() &&
-                       gCurrentMode &&
-                       gCurrentMode == "calendar" &&
+                return this.isInMode("calendar") &&
                        currentView().supportsRotation;
             case "calendar_toggle_workdays_only_command":
-                return this.isCalendarInForeground() &&
-                       gCurrentMode &&
-                       gCurrentMode == "calendar" &&
+                return this.isInMode("calendar") &&
                        currentView().supportsWorkdaysOnly;
             case "calendar_publish_selected_events_command":
                 return this.item_selected;
@@ -209,14 +205,11 @@ var calendarController = {
             // changing things.
             case "calendar_show_unifinder_command":
             case "calendar_mode_calendar":
-                return this.isCalendarInForeground() &&
-                       gCurrentMode &&
-                       gCurrentMode == "calendar";
+                return this.isInMode("calendar");
 
             case "calendar_mode_task":
-                return this.isCalendarInForeground() &&
-                       gCurrentMode &&
-                       gCurrentMode == "task";
+                return this.isInMode("task");
+
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {
                     // The delete-button demands a special handling in mail-mode
@@ -443,6 +436,17 @@ var calendarController = {
         // For sunbird, calendar is always in foreground. Otherwise check if
         // we are in the correct mode.
         return isSunbird() || (gCurrentMode && gCurrentMode != "mail");
+    },
+
+    isInMode: function cC_isInMode(mode) {
+        switch (mode) {
+            case "mail":
+                return !isCalendarInForeground();
+            case "calendar":
+                return isSunbird() || (gCurrentMode && gCurrentMode == "calendar");
+            case "task":
+                return !isSunbird() && (gCurrentMode && gCurrentMode == "task");
+       }
     },
 
     onSelectionChanged: function cC_onSelectionChanged(aEvent) {
