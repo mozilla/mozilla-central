@@ -51,10 +51,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource://app/modules/gloda/log4moz.js");
 
-let gActivityMgrListener = null;
-let gActivitiesView = null;
-let gActivityLogger = Log4Moz.getConfiguredLogger("activitymgr");
-
 const nsActProcess = Components.Constructor("@mozilla.org/activity-process;1",
                                             "nsIActivityProcess", "init");
 const nsActEvent = Components.Constructor("@mozilla.org/activity-event;1",
@@ -62,270 +58,302 @@ const nsActEvent = Components.Constructor("@mozilla.org/activity-event;1",
 const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
                                             "nsIActivityWarning", "init");
 
-////////////////////////////////////////////////////////////////////////////////
-//// An object to monitor nsActivityManager operations. This class acts as
-//// binding layer between nsActivityManager and nsActivityManagerUI objects.
+var activityObject =
+{
 
-function ActivityMgrListener()
-{}
+  _activityMgrListener: null,
+  _activitiesView: null,
+  _activityLogger: Log4Moz.getConfiguredLogger("activitymgr"),
+  _ignoreNotifications: false,
 
-ActivityMgrListener.prototype = {
-
-  onAddedActivity: function(aID, aActivity) {
-    gActivityLogger.info("added activity: " + aID + " " + aActivity)
-    addActivityBinding(aID, aActivity);
+  selectAll: function() {
+    this._activitiesView.selectAll();
   },
-  
-  onRemovedActivity: function(aID) {
-    removeActivityBinding(aID);
-  }
-};
 
-////////////////////////////////////////////////////////////////////////////////
-//// Utility Functions for Activity binding management
+  //////////////////////////////////////////////////////////////////////////////
+  //// An object to monitor nsActivityManager operations. This class acts as
+  //// binding layer between nsActivityManager and nsActivityManagerUI objects.
 
-/**
- * Creates the proper binding for the given activity
- */
-function createActivityBinding(aActivity)
-{
-  let bindingName = aActivity.bindingName;
-  let binding = document.createElement(bindingName);
-  
-  if (binding)
-    binding.setAttribute('actID', aActivity.id);
-    
-  return binding;
-}
+  /**
+   * Note: The prototype for this function is set at the bottom of this file.
+   */
+  ActivityMgrListener: function() {},
 
-/**
- * Returns the activity group binding that matches the context_type
- * and context of the given activity, if any.
- */
-function getActivityGroupBindingByContext(aContextType, aContextObj)
-{
-  for (let i = 0; i < gActivitiesView.itemCount; i++) {
-    let item = gActivitiesView.getItemAtIndex(i)
-    if (item.isGroup &&
-        item.contextType == aContextType &&
-        item.contextObj == aContextObj) {
-      return item;
-    }
-  }
-  return null;
-}
+  //////////////////////////////////////////////////////////////////////////////
+  //// Utility Functions for Activity binding management
 
-/**
- * Inserts the given binding into the correct position on the
- * activity manager window.
- */
-function placeActivityBinding(aBinding)
-{
-  if (aBinding.isGroup || aBinding.isProcess)
-    gActivitiesView.insertBefore(aBinding, gActivitiesView.firstChild);
-  else {
-    let next = gActivitiesView.firstChild;
-    while (next && (next.isWarning || next.isProcess || next.isGroup))
-      next = next.nextSibling;
-    if (next)
-      gActivitiesView.insertBefore(aBinding, next);
-    else
-      gActivitiesView.appendChild(aBinding);
-  }
-}
+  /**
+   * Creates the proper binding for the given activity
+   */
+  createActivityBinding: function(aActivity) {
+    let bindingName = aActivity.bindingName;
+    let binding = document.createElement(bindingName);
 
-/**
- * Adds a new binding to activity manager window for the
- * given activity. It is called by ActivityMgrListener when
- * a new activity is added into the activity manager's internal
- * list.
- */
-function addActivityBinding(aID, aActivity)
-{
-  try {
-    gActivityLogger.info("Adding ActivityBinding: " + aID + ", " + aActivity)
-    // get |groupingStyle| of the activity. Grouping style determines whether we
-    // show the activity standalone or grouped by context in the activity manager
-    // window.
-    let isGroupByContext = (aActivity.groupingStyle ==
-                            Components.interfaces.nsIActivity.GROUPING_STYLE_BYCONTEXT);
-  
-    // find out if an activity group has already been created for this context
-    let group = null;
-    if (isGroupByContext) {
-      group = getActivityGroupBindingByContext(aActivity.contextType,
-                                               aActivity.contextObj);
-      // create a group if it's not already created.
-      if (!group) {
-        group = document.createElement("activity-group");
-        gActivityLogger.info("created group element")
-        // Set the context type and object of the newly created group
-        group.contextType = aActivity.contextType;
-        group.contextObj = aActivity.contextObj;
-        group.contextDisplayText = aActivity.contextDisplayText;
-      
-        // add group into the list
-        placeActivityBinding(group);
+    if (binding)
+      binding.setAttribute('actID', aActivity.id);
+
+    return binding;
+  },
+
+  /**
+   * Returns the activity group binding that matches the context_type
+   * and context of the given activity, if any.
+   */
+  getActivityGroupBindingByContext: function(aContextType, aContextObj) {
+    for (let i = 0; i < this._activitiesView.itemCount; i++) {
+      let item = this._activitiesView.getItemAtIndex(i)
+      if (item.isGroup &&
+          item.contextType == aContextType &&
+          item.contextObj == aContextObj) {
+        return item;
       }
     }
-     
-    // create the appropriate binding for the activity
-    let actBinding = createActivityBinding(aActivity);
-    gActivityLogger.info("created activity binding")
-  
-    if (group) {
-      // get the inner list element of the group
-      let groupView = document.getAnonymousElementByAttribute(group, "anonid",
-                                                             "activityGroupView");
-      groupView.appendChild(actBinding);
-    }
+    return null;
+  },
+
+  /**
+   * Inserts the given binding into the correct position on the
+   * activity manager window.
+   */
+  placeActivityBinding: function(aBinding) {
+    if (aBinding.isGroup || aBinding.isProcess)
+      this._activitiesView.insertBefore(aBinding,
+                                        this._activitiesView.firstChild);
     else {
-      placeActivityBinding(actBinding);
+      let next = this._activitiesView.firstChild;
+      while (next && (next.isWarning || next.isProcess || next.isGroup))
+        next = next.nextSibling;
+      if (next)
+        this._activitiesView.insertBefore(aBinding, next);
+      else
+        this._activitiesView.appendChild(aBinding);
     }
-  } catch (e) {
-    log.error("addActivityBinding: " + e);
-    throw(e);
-  }
-}
+  },
 
-/**
- * Removes the activity binding from the activity manager window.
- * It is called by ActivityMgrListener when the activity in question
- * is removed from the activity manager's internal list.
- */
-function removeActivityBinding(aID)
-{
-  // Note: document.getAnonymousNodes(gActivitiesView); didn't work
-  gActivityLogger.info("removing Activity ID: " + aID);
-  for (let i = 0; i < gActivitiesView.itemCount; i++) {
-    let item = gActivitiesView.getItemAtIndex(i);
-    if (!item) {
-      gActivityLogger.debug("returning as empty")
-      return;
-    }
+  /**
+   * Adds a new binding to activity manager window for the
+   * given activity. It is called by ActivityMgrListener when
+   * a new activity is added into the activity manager's internal
+   * list.
+   */
+  addActivityBinding: function(aID, aActivity) {
+    try {
+      this._activityLogger.info("Adding ActivityBinding: " + aID + ", " +
+                                aActivity)
+      // get |groupingStyle| of the activity. Grouping style determines
+      // whether we show the activity standalone or grouped by context in
+      // the activity manager window.
+      let isGroupByContext = (aActivity.groupingStyle ==
+                              Components.interfaces.nsIActivity
+                                        .GROUPING_STYLE_BYCONTEXT);
 
-    if (!item.isGroup) {
-      gActivityLogger.debug("is not a group, ")
-      if (item.getAttribute('actID') == aID) {
-        // since XBL dtors are not working properly when we remove the element,
-        // we have to explicitly remove the binding from activities' listeners
-        // list. See bug 230086 for details.
-        item.detachFromActivity();
-        gActivitiesView.removeChild(item);
-        break;
+      // find out if an activity group has already been created for this context
+      let group = null;
+      if (isGroupByContext) {
+        group = this.getActivityGroupBindingByContext(aActivity.contextType,
+                                                 aActivity.contextObj);
+        // create a group if it's not already created.
+        if (!group) {
+          group = document.createElement("activity-group");
+          this._activityLogger.info("created group element")
+          // Set the context type and object of the newly created group
+          group.contextType = aActivity.contextType;
+          group.contextObj = aActivity.contextObj;
+          group.contextDisplayText = aActivity.contextDisplayText;
+
+          // add group into the list
+          this.placeActivityBinding(group);
+        }
       }
-    }
-    else {
-      let actbinding = document.getAnonymousElementByAttribute(item, 'actID',
-                                                               aID);
-      if (actbinding) {
-        let groupView = document.getAnonymousElementByAttribute(item, "anonid",
+
+      // create the appropriate binding for the activity
+      let actBinding = this.createActivityBinding(aActivity);
+      this._activityLogger.info("created activity binding")
+
+      if (group) {
+        // get the inner list element of the group
+        let groupView = document.getAnonymousElementByAttribute(group, "anonid",
                                                            "activityGroupView");
-        // since XBL dtors are not working properly when we remove the element,
-        // we have to explicitly remove the binding from activities' listeners
-        // list. See bug 230086 for details.
-        actbinding.detachFromActivity();
-        groupView.removeChild(actbinding);
-                
-        // if the group becomes empty after the removal,
-        // get rid of the group as well
-        if (groupView.getRowCount() == 0)
-          gActivitiesView.removeChild(item);
-        
-        break;
+        groupView.appendChild(actBinding);
+      }
+      else {
+        this.placeActivityBinding(actBinding);
+      }
+    } catch (e) {
+      this._activityLogger.error("addActivityBinding: " + e);
+      throw(e);
+    }
+  },
+
+  /**
+   * Removes the activity binding from the activity manager window.
+   * It is called by ActivityMgrListener when the activity in question
+   * is removed from the activity manager's internal list.
+   */
+  removeActivityBinding: function(aID) {
+    // Note: document.getAnonymousNodes(_activitiesView); didn't work
+    this._activityLogger.info("removing Activity ID: " + aID);
+    for (let i = 0; i < this._activitiesView.itemCount; i++) {
+      let item = this._activitiesView.getItemAtIndex(i);
+      if (!item) {
+        this._activityLogger.debug("returning as empty")
+        return;
+      }
+
+      if (!item.isGroup) {
+        this._activityLogger.debug("is not a group, ")
+        if (item.getAttribute('actID') == aID) {
+          // since XBL dtors are not working properly when we remove the
+          // element, we have to explicitly remove the binding from
+          // activities' listeners list. See bug 230086 for details.
+          item.detachFromActivity();
+          this._activitiesView.removeChild(item);
+          break;
+        }
+      }
+      else {
+        let actbinding = document.getAnonymousElementByAttribute(item, 'actID',
+                                                                 aID);
+        if (actbinding) {
+          let groupView = document.getAnonymousElementByAttribute(item,
+                                                 "anonid", "activityGroupView");
+          // since XBL dtors are not working properly when we remove the
+          // element, we have to explicitly remove the binding from
+          // activities' listeners list. See bug 230086 for details.
+          actbinding.detachFromActivity();
+          groupView.removeChild(actbinding);
+
+          // if the group becomes empty after the removal,
+          // get rid of the group as well
+          if (groupView.getRowCount() == 0)
+            this._activitiesView.removeChild(item);
+
+          break;
+        }
       }
     }
-  }
-}
+  },
 
-////////////////////////////////////////////////////////////////////////////////
-//// Startup, Shutdown
+  //////////////////////////////////////////////////////////////////////////////
+  //// Startup, Shutdown
 
-function Startup()
-{
-  try {
-    gActivitiesView = document.getElementById("activityView");
+  startup: function() {
+    try {
+      this._activitiesView = document.getElementById("activityView");
 
+      let activityManager = Components
+                         .classes["@mozilla.org/activity-manager;1"]
+                         .getService(Components.interfaces.nsIActivityManager);
+      let activities = activityManager.getActivities({});
+      for each (let [, activity] in Iterator(activities)) {
+        this.addActivityBinding(activity.id, activity);
+      }
+
+      // start listening changes in the activity manager's
+      // internal list
+      this._activityMgrListener = new this.ActivityMgrListener();
+      activityManager.addListener(this._activityMgrListener);
+
+    } catch (e) {
+      this._activityLogger.error("Exception: " + e )
+    }
+  },
+
+  rebuild: function() {
     let activityManager = Components.classes["@mozilla.org/activity-manager;1"]
       .getService(Components.interfaces.nsIActivityManager);
     let activities = activityManager.getActivities({});
-    for each (let [, activity] in Iterator(activities)) {
-      addActivityBinding(activity.id, activity);
+    for each (let [, activity] in Iterator(activities))
+      this.addActivityBinding(activity.id, activity);
+  },
+
+  shutdown: function() {
+    let activityManager = Components.classes["@mozilla.org/activity-manager;1"]
+      .getService(Components.interfaces.nsIActivityManager);
+    activityManager.removeListener(this._activityMgrListener);
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  //// Utility Functions
+
+  /**
+   * Remove all activities not in-progress from the activity list.
+   */
+  clearActivityList: function() {
+    this._activityLogger.debug("clearActivityList");
+
+    this._ignoreNotifications = true;
+    // If/when we implement search, we'll want to remove just the items
+    // that are on the search display, however for now, we'll just clear up
+    // everything.
+    Components.classes["@mozilla.org/activity-manager;1"]
+              .getService(Components.interfaces.nsIActivityManager)
+              .cleanUp();
+
+    // since XBL dtors are not working properly when we remove the element,
+    // we have to explicitly remove the binding from activities' listeners
+    // list. See bug 230086 for details.
+    for (let i = 0; i < this._activitiesView.itemCount; i++) {
+      let item = this._activitiesView.getItemAtIndex(i);
+      if (!item.isGroup)
+        item.detachFromActivity();
+      else {
+        let actbinding = document.getAnonymousElementByAttribute(item,
+                                                                 'actID', '*');
+        while (actbinding) {
+          actbinding.detachFromActivity();
+          actbinding.parentNode.removeChild(actbinding);
+          actbinding = document.getAnonymousElementByAttribute(item,
+                                                               'actID', '*');
+        }
+      }
     }
 
-    // start listening changes in the activity manager's
-    // internal list
-    gActivityMgrListener = new ActivityMgrListener();
-    activityManager.addListener(gActivityMgrListener);
+    let (empty = this._activitiesView.cloneNode(false)) {
+      this._activitiesView.parentNode.replaceChild(empty, this._activitiesView);
+      this._activitiesView = empty;
+    }
+    this.rebuild();
+    this._ignoreNotifications = false;
+    this._activitiesView.focus();
+  },
 
-  } catch (e) {
-    gActivityLogger.error("Exception: " + e )
-  }
-}
-
-function Shutdown()
-{
-  let activityManager = Components.classes["@mozilla.org/activity-manager;1"]
-    .getService(Components.interfaces.nsIActivityManager);
-  activityManager.removeListener(gActivityMgrListener);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//// Utility Functions
-
-/**
- * Helper function to replace a placeholder string with a real string
- *
- * @param aText
- *        Source text containing placeholder (e.g., #1)
- * @param aIndex
- *        Index number of placeholder to replace
- * @param aValue
- *        New string to put in place of placeholder
- * @return The string with placeholder replaced with the new string
- */
-function replaceInsert(aText, aIndex, aValue)
-{
-  return aText.replace("#" + aIndex, aValue);
-}
-
-/**
- * Remove all activities not in-progress from the activity list.
- */
-function clearActivityList()
-{
-  gActivityLogger.debug("clearActivityList");
-
-  // If/when we implement search, we'll want to remove just the items that
-  // are on the search display, however for now, we'll just clear up everything.
-  Components.classes["@mozilla.org/activity-manager;1"]
-            .getService(Components.interfaces.nsIActivityManager)
-            .cleanUp();
-
-  gActivitiesView.focus();
-}
-
-function processKeyEvent(event)
-{
-  switch (event.keyCode) {
-    case event.DOM_VK_RIGHT:
-      if (event.target.tagName == 'richlistbox') {
-        let richlistbox = event.target.selectedItem.processes;
-        if (richlistbox.tagName == 'xul:richlistbox') {
-          richlistbox.focus();
-          richlistbox.selectItem(richlistbox.getItemAtIndex(0));
+  processKeyEvent: function(event) {
+    switch (event.keyCode) {
+      case event.DOM_VK_RIGHT:
+        if (event.target.tagName == 'richlistbox') {
+          let richlistbox = event.target.selectedItem.processes;
+          if (richlistbox.tagName == 'xul:richlistbox') {
+            richlistbox.focus();
+            richlistbox.selectItem(richlistbox.getItemAtIndex(0));
+          }
         }
-      }
-      break;
-    case event.DOM_VK_LEFT:
-      if (event.target.tagName == 'activity-group') {
-        var parent = event.target.parentNode;
-        if (parent.tagName == 'richlistbox') {
-          event.target.processes.clearSelection();
-          parent.selectItem(event.target);
-          parent.focus();
+        break;
+      case event.DOM_VK_LEFT:
+        if (event.target.tagName == 'activity-group') {
+          var parent = event.target.parentNode;
+          if (parent.tagName == 'richlistbox') {
+            event.target.processes.clearSelection();
+            parent.selectItem(event.target);
+            parent.focus();
+          }
         }
-      }
-      break;
+        break;
+    }
+  },
+};
+
+activityObject.ActivityMgrListener.prototype = {
+
+  onAddedActivity: function(aID, aActivity) {
+    activityObject._activityLogger.info("added activity: " + aID + " " +
+                                        aActivity)
+    if (!activityObject._ignoreNotifications)
+      activityObject.addActivityBinding(aID, aActivity);
+  },
+
+  onRemovedActivity: function(aID) {
+    if (!activityObject._ignoreNotifications)
+      activityObject.removeActivityBinding(aID);
   }
-}
+};

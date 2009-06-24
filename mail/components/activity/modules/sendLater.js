@@ -225,6 +225,7 @@ let sendLaterModule =
         // Set send state to completed
         if (this._sendProcess.state != Ci.nsIActivityProcess.STATE_COMPLETED)
           this._sendProcess.state = Ci.nsIActivityProcess.STATE_COMPLETED;
+        this._replaceProcessWithEvent(this._sendProcess);
 
         // Set copy state to in progress.
         if (this._copyProcess.state != Ci.nsIActivityProcess.STATE_INPROGRESS)
@@ -243,7 +244,6 @@ let sendLaterModule =
         if (this._copyProcess.state != Ci.nsIActivityProcess.STATE_COMPLETED)
           this._copyProcess.state = Ci.nsIActivityProcess.STATE_COMPLETED;
 
-        this._replaceProcessWithEvent(this._sendProcess);
         // Just drop the copy process, we don't need it now.
         this.activityMgr.removeActivity(this._copyProcess.id);
         this._sendProcess = null;

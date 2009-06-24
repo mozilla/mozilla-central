@@ -68,7 +68,8 @@
         width="&window.width2;" height="&window.height;"
         screenX="10" screenY="10"
         persist="width height screenX screenY sizemode"
-        onload="Startup();" onunload="Shutdown();"
+        onload="activityObject.startup();"
+        onunload="activityObject.shutdown();"
         onclose="return closeWindow(false);">
       
   <script type="application/javascript"
@@ -91,8 +92,8 @@
        selection -->
   <commandset id="generalCommands">
     <command id="cmd_selectAllActivities"
-             oncommand="gActivitiesView.selectAll();"/>
-    <command id="cmd_clearList" oncommand="clearActivityList();"/>
+             oncommand="activityObject.selectAll();"/>
+    <command id="cmd_clearList" oncommand="activityObject.clearActivityList();"/>
   </commandset>
 
   <keyset id="activityKeys">
@@ -125,7 +126,7 @@
   
 
   <richlistbox id="activityView" class="activityview" seltype="multiple"
-               flex="1" onkeypress="processKeyEvent(event)">
+               flex="1" onkeypress="activityObject.processKeyEvent(event)">
   </richlistbox>
 
   <windowdragbox id="search" align="center">
