@@ -154,12 +154,12 @@ span.moz-txt-formfeed {
   outline: none;
 }
 
-/* Style new format rss summary vs web page */
-body[selected="false"],
-iframe[selected="false"] {
+/* New style feed summary body. */
+body[selected="false"] {
   display: none;
 }
 
+/* Old style feeds. */
 #_mailrssiframe {
   position: fixed;
   top: 0;
