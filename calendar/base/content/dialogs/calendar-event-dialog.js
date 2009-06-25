@@ -23,6 +23,7 @@
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *   Fred Jendrzejewski <fred.jen@web.de>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Markus Adrario <Mozilla@Adrario.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -55,6 +56,7 @@ var gPrivacy = null;
 var gAttachMap = {};
 var gPriority = 0;
 var gStatus = "NONE";
+var gConfirmCancel = "true";
 var gLastRepeatSelection = 0;
 var gIgnoreUpdate = false;
 var gShowTimeAs = null;
@@ -163,6 +165,7 @@ function onLoad() {
     }
 
     window.onAcceptCallback = args.onOk;
+    window.mode = args.mode
 
     // we store the item in the window to be able
     // to access this from any location. please note
@@ -243,21 +246,7 @@ function onAccept() {
  * @return    Returns true if the window should be closed.
  */
 function onCommandCancel() {
-    // find out if we should bring up the 'do you want to save?' question...
-    var newItem = saveItem();
-    var oldItem = window.calendarItem.clone();
-
-    // we need to guide the description text through the text-field since
-    // newlines are getting converted which would indicate changes to the
-    // text.
-    setElementValue("item-description", oldItem.getProperty("DESCRIPTION"));
-    setItemProperty(oldItem,
-                    "DESCRIPTION",
-                    getElementValue("item-description"));
-    setElementValue("item-description", newItem.getProperty("DESCRIPTION"));
-
-    if ((newItem.calendar.id == oldItem.calendar.id) &&
-        compareItemContent(newItem, oldItem)) {
+    if (isItemChanged() == false) {
         return true;
     }
 
@@ -305,11 +294,16 @@ function onCommandCancel() {
  *
  */
 function onCancel() {
-    var result = onCommandCancel();
-    if (result == true) {
+    if (gConfirmCancel == "true") {
+        var result = onCommandCancel();
+        if (result == true) {
+            dispose();
+        }
+        return result;
+    } else {
         dispose();
+        return true;
     }
-    return result;
 }
 
 /**
@@ -2190,6 +2184,63 @@ function onCommandSave(aIsClosing) {
 }
 
 /**
+ * This function is called when the user chooses to delete an Item
+ * from the Event/Task dialog
+ *
+ */
+function onCommandDeleteItem() {
+    // only ask for confirmation, if the User changed anything on a new item or we modify an existing item
+    if (isItemChanged() == true || window.mode != "new") {
+        let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                    .getService(Components.interfaces.nsIPromptService);
+        let promptTitle = "";
+        let promptMessage = "";
+
+        if (cal.isEvent(window.calendarItem)) {
+            promptTitle = calGetString("calendar", "deleteEventLabel");
+            promptMessage = calGetString("calendar", "deleteEventMessage");
+        } else if (cal.isToDo(window.calendarItem)) {
+            promptTitle = calGetString("calendar", "deleteTaskLabel");
+            promptMessage = calGetString("calendar", "deleteTaskMessage");
+        }
+
+        let answerDelete = promptService.confirm(
+                                    null,
+                                    promptTitle,
+                                    promptMessage);
+        if (answerDelete == false) {
+            return;
+        }
+    }
+
+    if (window.mode != "new") {
+        let deleteListener = {
+            // when deletion of item is complete, close the dialog
+            onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDetail) {
+                if (aId == window.calendarItem.id && aStatus == 0) {
+                    gConfirmCancel = "false";
+                    document.documentElement.cancelDialog();
+                }
+            }
+        };
+
+        if (window.calendarItem.parentItem.recurrenceInfo && window.calendarItem.recurrenceId) {
+            // if this is a single occurrence of a recurring item
+            let newItem = window.calendarItem.parentItem.clone();
+            newItem.recurrenceInfo.removeOccurrenceAt(window.calendarItem.recurrenceId);
+
+            window.opener.doTransaction("modify", newItem, newItem.calendar, 
+                                        window.calendarItem.parentItem, deleteListener);
+        } else {
+            window.calendarItem.calendar.deleteItem(window.calendarItem, deleteListener);
+        }
+    } else {
+        gConfirmCancel = "false";
+        document.documentElement.cancelDialog();
+    }
+}
+
+/**
  * Handler function to toggle toolbar visibility.
  *
  * @param aToolbarId        The id of the XUL toolbar node to toggle.
@@ -2869,6 +2920,31 @@ function updateCapabilities() {
     updatePriority();
     updatePrivacy();
     updateReminderDetails();
+}
+
+/**
+ * find out if the User already changed values in the Dialog
+ *
+ * @return:    true if the values in the Dialog have changed. False otherwise.
+ */
+function isItemChanged() {
+    let newItem = saveItem();
+    let oldItem = window.calendarItem.clone();
+
+    // we need to guide the description text through the text-field since
+    // newlines are getting converted which would indicate changes to the
+    // text.
+    setElementValue("item-description", oldItem.getProperty("DESCRIPTION"));
+    setItemProperty(oldItem,
+                    "DESCRIPTION",
+                    getElementValue("item-description"));
+    setElementValue("item-description", newItem.getProperty("DESCRIPTION"));
+
+    if ((newItem.calendar.id == oldItem.calendar.id) &&
+        compareItemContent(newItem, oldItem)) {
+        return false;
+    }
+    return true;
 }
 
 /**
