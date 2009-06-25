@@ -14,15 +14,18 @@
    -
    - The Original Code is Mozilla Calendar Code.
    -
-   - The Initial Developer of the Original Code is Stuart Parmenter.
+   - The Initial Developer of the Original Code is
+   - Stuart Parmenter.
    - Portions created by the Initial Developer are Copyright (C) 2005
    - the Initial Developer. All Rights Reserved.
    -
-   - Contributor(s): Mike Shaver <shaver@mozilla.org> 
-   -                 Michiel van Leeuwen <mvl@exedo.nl>
-   -                 Simon Paquet <bugzilla@babylonsounds.com>
-   -                 Gary van der Merwe <garyvdm@gmail.com>
-   -                 Philipp Kewisch <mozilla@kewis.ch>
+   - Contributor(s):
+   -   Mike Shaver <shaver@mozilla.org>
+   -   Michiel van Leeuwen <mvl@exedo.nl>
+   -   Simon Paquet <bugzilla@babylonsounds.com>
+   -   Gary van der Merwe <garyvdm@gmail.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,17 +41,13 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!-- Style sheets -->
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar-creation-wizard.css" type="text/css"?>
 
-<!DOCTYPE dialog 
-[
+<!DOCTYPE dialog [
     <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/calendarCreation.dtd" > %dtd1;
     <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
 ]>
-
-<!-- The Window  -->
 
 <wizard id="calendar-wizard"
         title="&wizard.title;"
@@ -60,7 +59,7 @@
    <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
    <script type="application/javascript" src="chrome://calendar/content/calendarCreation.js"/>
 
-   <wizardpage pageid="initialPage" 
+   <wizardpage pageid="initialPage"
                next="locationPage"
                label="&wizard.label;"
                description="&wizard.description;"
@@ -77,7 +76,7 @@
                next="customizePage"
                label="&wizard.label;"
                onpageshow="initLocationPage();"
-               onpageadvanced="return prepareCreateCalendar()"
+               onpageadvanced="return prepareCreateCalendar();"
                description="&wizard.description;">
         <description>&locationpage.description;</description>
         <grid>
@@ -103,7 +102,7 @@
                     <textbox id="calendar-uri"
                              required="true"
                              oninput="checkRequired();"
-                             ondragexit="checkRequired()"/>
+                             ondragexit="checkRequired();"/>
                 </row>
                 <!--
                 <description>&locationpage.login.description;</description>
@@ -124,7 +123,7 @@
                description="&custompage.shortdescription;"
                label="&wizard.label;"
                next="finishPage"
-               onpageshow="initCustomizePage()"
+               onpageshow="initCustomizePage();"
                onpageadvanced="doCreateCalendar();">
         <description>&custompage.longdescription;</description>
         <grid>
@@ -149,13 +148,13 @@
                 </row>
                 <row id="customize-suppressAlarms-row" align="center">
                     <label value="&calendarproperties.firealarms.label;:" control="fire-alarms"/>
-                    <checkbox id="fire-alarms" checked="true"/>
+                    <checkbox id="fire-alarms" checked="true" class="checkbox-no-label"/>
                 </row>
             </rows>
         </grid>
    </wizardpage>
 
-   <wizardpage pageid="finishPage" 
+   <wizardpage pageid="finishPage"
                description="&finishpage.shortdescription;"
                label="&wizard.label;"
                onpageshow="setCanRewindFalse();">
