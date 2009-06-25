@@ -174,7 +174,18 @@ function initializeControls(rule) {
             setElementValue("monthly-ordinal", ruleInfo.ordinal);
             setElementValue("monthly-weekday", ruleInfo.weekday);
         } else if (byMonthDayRuleComponent.length > 0) {
-            if (byMonthDayRuleComponent.length == 1 && byMonthDayRuleComponent[0] == -1) {
+            if (byMonthDayRuleComponent.length == 31 &&
+                byMonthDayRuleComponent.every(function (element, index, array) {
+                                                  for (let i = 0; i < array.length; i++) {
+                                                      if ((index + 1) == array[i]) {
+                                                          return true;
+                                                      }
+                                                  }
+                                                  return false;
+                                              })) {
+                setElementValue("monthly-ordinal", 0);
+                setElementValue("monthly-weekday", -1);
+            } else if (byMonthDayRuleComponent.length == 1 && byMonthDayRuleComponent[0] == -1) {
                 document.getElementById("monthly-group").selectedIndex = 0;
                 setElementValue("monthly-ordinal", byMonthDayRuleComponent[0]);
                 setElementValue("monthly-weekday", byMonthDayRuleComponent[0]);
@@ -294,7 +305,16 @@ function onSave(item) {
             var ordinal = Number(getElementValue("monthly-ordinal"));
             var day_of_week = Number(getElementValue("monthly-weekday"));
             if (day_of_week < 0) {
-                recRule.setComponent("BYMONTHDAY", 1, [ ordinal ]);
+                if (ordinal == 0) {
+                    // monthly rule "every day of the month"
+                    let onDays = [];
+                    for (let i = 0; i < 31; i++) {
+                        onDays[i] = i + 1;
+                    }
+                    recRule.setComponent("BYMONTHDAY", onDays.length, onDays);
+                } else {
+                    recRule.setComponent("BYMONTHDAY", 1, [ ordinal ]);
+                }
             } else {
                 var sign = ordinal < 0 ? -1 : 1;
                 var onDays = [ (Math.abs(ordinal) * 8 + day_of_week) * sign ];
