@@ -415,6 +415,15 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
     background-color: #ffdb67 !important;
 }
 
+.calendar-color-box {
+    /* This rule should be adopted if the alarm image size is changed */
+    min-height: 13px;
+}
+
+calendar-month-day-box-item[selected="true"] .calendar-color-box {
+    color: #000000;
+}
+
 .calendar-month-day-box-item-label {
     padding: 0px;
     margin: 0px;
@@ -426,7 +435,6 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
 
 .calendar-month-day-box-item-image {
     list-style-image: url("chrome://calendar/skin/day-box-item-image.png");
-    margin: 2px;
     -moz-margin-end: 4px;
     display: none;
 }
@@ -586,14 +594,24 @@ calendar-month-day-box-item[invitation-status="NEEDS-ACTION"] {
 
 calendar-event-box[invitation-status="TENTATIVE"],
 calendar-editable-item[invitation-status="TENTATIVE"],
-calendar-month-day-box-item[invitation-status="TENTATIVE"] {
+calendar-month-day-box-item[invitation-status="TENTATIVE"],
+calendar-event-box[status="TENTATIVE"],
+calendar-editable-item[status="TENTATIVE"],
+calendar-month-day-box-item[status="TENTATIVE"] {
     opacity: 0.5;
 }
 
 calendar-event-box[invitation-status="DECLINED"],
 calendar-editable-item[invitation-status="DECLINED"],
-calendar-month-day-box-item[invitation-status="DECLINED"] {
-    opacity: 0.3;
+calendar-month-day-box-item[invitation-status="DECLINED"],
+calendar-event-box[status="CANCELLED"],
+calendar-editable-item[status="CANCELLED"],
+calendar-month-day-box-item[status="CANCELLED"] {
+    opacity: 0.5;
+ }
+
+.calendar-event-box-container[status="CANCELLED"] div {
+    text-decoration: line-through;
 }
 
 /* Navigation controls for the views */

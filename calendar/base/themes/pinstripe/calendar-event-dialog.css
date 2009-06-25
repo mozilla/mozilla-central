@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Markus Adrario <Mozilla@Adrario.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -145,6 +146,24 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
   -moz-image-region: rect(32px 192px 64px 160px);
 }
 #button-save:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   delete button
+ *-------------------------------------------------------------------*/
+
+#button-delete {
+    -moz-image-region: rect(0px 544px 32px 512px);
+}
+#button-delete[disabled="true"],
+#button-delete[disabled="true"]:hover,
+#button-delete[disabled="true"]:hover:active {
+    -moz-image-region: rect(64px 544px 96px 512px);
+}
+#button-delete:hover {
+    -moz-image-region: rect(32px 544px 64px 512px);
+}
+#button-delete:hover:active {
 }
 
 /*--------------------------------------------------------------------

@@ -354,6 +354,8 @@
       <property name="rotated"
                 onget="return (this.orient == 'horizontal')"
                 onset="return (this.orient = (val ? 'horizontal' : 'vertical'))"/>
+      <property name="supportsRotation" readonly="true"
+                onget="return false"/>
       <property name="displayDaysOff"
                 onget="return this.mDisplayDaysOff;"
                 onset="return (this.mDisplayDaysOff = val);"/>
@@ -375,6 +377,8 @@
       <property name="workdaysOnly"
                 onget="return this.mWorkdaysOnly;"
                 onset="return (this.mWorkdaysOnly = val);"/>
+      <property name="supportsWorkdaysOnly" readonly="true"
+                onget="return true;"/>
       <property name="selectionObserver" readonly="true"
                 onget="return this.mSelectionObserver;"/>
       <property name="startDay" readonly="true"
@@ -768,7 +772,7 @@
         }
       ]]></handler>
       <handler event="DOMMouseScroll"><![CDATA[
-        if (event.shiftKey) {
+        if (event.shiftKey && getPrefSafe('calendar.view.mousescroll', true)) {
             this.moveView(event.detail < 0 ? -1 : 1);
         }
 

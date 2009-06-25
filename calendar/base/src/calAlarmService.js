@@ -180,7 +180,7 @@ calAlarmService.prototype = {
      */
     observe: function cAS_observe(aSubject, aTopic, aData) {
         // This will also be called on app-startup, but nothing is done yet, to
-        // prevent unwanted dialogs etc. See bug 325476 and 413296 
+        // prevent unwanted dialogs etc. See bug 325476 and 413296
         if (aTopic == "profile-after-change" || aTopic == "wake_notification") {
             this.shutdown();
             this.startup();
@@ -304,7 +304,7 @@ calAlarmService.prototype = {
                 }
                 let until = now.clone();
                 until.month += 1;
-                
+
                 // We don't set timers for every future alarm, only those within 6 hours
                 let end = now.clone();
                 end.hour += kHoursBetweenUpdates;
@@ -331,8 +331,8 @@ calAlarmService.prototype = {
             this.mUpdateTimer.cancel();
             this.mUpdateTimer = null;
         }
+
         let calmgr = cal.getCalendarManager();
-        
         calmgr.removeObserver(this.calendarManagerObserver);
 
         for each (let calendarItemMap in this.mTimerMap) {
@@ -506,15 +506,17 @@ calAlarmService.prototype = {
             }
         }
     },
-                
+
     disposeCalendarTimers: function cAS_removeCalendarTimers(aCalendars) {
         for each (let calendar in aCalendars) {
-            for each (let itemTimerMap in this.mTimerMap[calendar.id]) {
-                for each (let timer in itemTimerMap) {
-                    timer.cancel();
+            if (calendar.id in this.mTimerMap) {
+                for each (let itemTimerMap in this.mTimerMap[calendar.id]) {
+                    for each (let timer in itemTimerMap) {
+                        timer.cancel();
+                    }
                 }
+                delete this.mTimerMap[calendar.id]
             }
-            delete this.mTimerMap[calendar.id]
         }
     },
 

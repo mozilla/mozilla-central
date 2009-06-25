@@ -258,28 +258,6 @@ pref("mail.default_html_action", 3);
 // Overrides for generic app behavior from the seamonkey suite's all.js
 /////////////////////////////////////////////////////////////////
 
-// l12n and i18n
-pref("intl.charsetmenu.mailedit", "chrome://global/locale/intl.properties");
-pref("intl.accept_languages", "chrome://global/locale/intl.properties");
-pref("intl.charsetmenu.browser.static", "chrome://global/locale/intl.properties");
-pref("intl.charsetmenu.browser.more1",  "chrome://global/locale/intl.properties");
-pref("intl.charsetmenu.browser.more2",  "chrome://global/locale/intl.properties");
-pref("intl.charsetmenu.browser.more3",  "chrome://global/locale/intl.properties");
-pref("intl.charsetmenu.browser.more4",  "chrome://global/locale/intl.properties");
-pref("intl.charsetmenu.browser.more5",  "chrome://global/locale/intl.properties");
-pref("intl.charsetmenu.browser.unicode",  "chrome://global/locale/intl.properties");
-pref("intl.charset.detector", "chrome://global/locale/intl.properties");
-pref("intl.charset.default",  "chrome://global-platform/locale/intl.properties");
-pref("font.language.group", "chrome://global/locale/intl.properties");
-pref("intl.menuitems.alwaysappendaccesskeys","chrome://global/locale/intl.properties");
-pref("intl.menuitems.insertseparatorbeforeaccesskeys","chrome://global/locale/intl.properties");
-
-pref("signon.rememberSignons",              true);
-pref("signon.expireMasterPassword",         false);
-pref("signon.SignonFileName",               "signons.txt");
-pref("signon.SignonFileName2",              "signons2.txt");
-pref("signon.SignonFileName3",              "signons3.txt");
-
 pref("browser.hiddenWindowChromeURL", "chrome://messenger/content/hiddenWindow.xul");
 
 pref("offline.startup_state",            2);

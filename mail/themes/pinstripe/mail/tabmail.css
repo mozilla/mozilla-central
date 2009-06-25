@@ -76,6 +76,10 @@
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
 }
 
+.tabmail-tab[thinking] > .tab-icon {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+}
+
 .tabmail-tab:hover > .tab-icon,
 .tabmail-tab[selected="true"] > .tab-icon {
   opacity: 1;

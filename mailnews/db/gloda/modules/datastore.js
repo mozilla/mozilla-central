@@ -2219,7 +2219,6 @@ var GlodaDatastore = {
     let statement = this._updateMessagesMarkDeletedByFolderID;
     statement.bindInt64Parameter(0, aFolderID);
     statement.executeAsync(this.trackAsync());
-    statement.finalize();
   },
 
   markMessagesDeletedByIDs: function gloda_ds_markMessagesDeletedByIDs(

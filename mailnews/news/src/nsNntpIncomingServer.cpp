@@ -1905,13 +1905,26 @@ nsNntpIncomingServer::IsSorted(PRBool *_retval)
 }
 
 NS_IMETHODIMP
+#ifdef MOZILLA_1_9_1_BRANCH
 nsNntpIncomingServer::CanDrop(PRInt32 index, PRInt32 orientation, PRBool *_retval)
+#else
+nsNntpIncomingServer::CanDrop(PRInt32 index,
+                              PRInt32 orientation,
+                              nsIDOMDataTransfer *dataTransfer,
+                              PRBool *_retval)
+#endif
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
+#ifdef MOZILLA_1_9_1_BRANCH
 nsNntpIncomingServer::Drop(PRInt32 row, PRInt32 orientation)
+#else
+nsNntpIncomingServer::Drop(PRInt32 row,
+                           PRInt32 orientation,
+                           nsIDOMDataTransfer *dataTransfer)
+#endif
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

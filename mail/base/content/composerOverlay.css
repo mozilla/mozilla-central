@@ -34,6 +34,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/* Because this sheet is loaded synchronously while the user is waiting for the
+   compose window to appear, it must not @import a ton of other things, and
+   especially must not trigger network access. */
+
 .moz-email-headers-table,
 .moz-email-headers-table > tbody > tr > th,
 .moz-email-headers-table > tbody > tr > td,

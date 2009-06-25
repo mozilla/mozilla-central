@@ -50,11 +50,8 @@ const MESSAGE_TEMPLATE = "\n\
     <title>%TITLE%</title>\n\
     <base href=\"%BASE%\">\n\
   </head>\n\
-  <body id=\"msgBody\" selected=\"false\">\n\
-    <div id=\"msgSummary\">\n\
-      %CONTENT%\n\
-    </div>\n\
-    <iframe id=\"msgIframe\" selected=\"false\" src=\"\">\n\
+  <body id=\"msgFeedSummaryBody\" selected=\"false\">\n\
+    %CONTENT%\n\
   </body>\n\
 </html>\n\
 ";
@@ -397,7 +394,7 @@ FeedItem.prototype =
     debug(this.identity + " is " + source.length + " characters long");
 
     // Get the folder and database storing the feed's messages and headers.
-    folder = this.feed.folder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
+    var folder = this.feed.folder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
     var msgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
     msgFolder.gettingNewMessages = true;
     // Source is a unicode string, we want to save a char * string in

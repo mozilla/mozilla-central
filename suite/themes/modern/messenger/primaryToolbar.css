@@ -52,7 +52,6 @@
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-1 {
-  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
   min-width: 0px !important;
 }
 
@@ -212,11 +211,11 @@
 
 #button-delete {
   list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
-  -moz-image-region: rect(0, 49px 33px 0);
+  -moz-image-region: rect(0 49px 33px 0);
 }
 
 #button-delete:hover {
-  -moz-image-region: rect(0, 99px 33px 50px);
+  -moz-image-region: rect(0 99px 33px 50px);
 } 
 
 #button-delete:hover:active {

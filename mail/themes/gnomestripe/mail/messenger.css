@@ -19,6 +19,18 @@ toolbar[printpreview="true"] {
   -moz-binding: url("chrome://global/content/printPreviewBindings.xml#printpreviewtoolbar");
 }
 
+/*
+ * Override the menulist icon forbidding in menu.css so that we can show
+ * check-marks. bug 443516
+ */
+.menulist-menupopup > menuitem > .menu-iconic-left,
+menulist > menupopup > menuitem > .menu-iconic-left,
+.menulist-menupopup > menu > .menu-iconic-left,
+menulist > menupopup > menu > .menu-iconic-left {
+  display: -moz-box;
+}
+
+
 /* ::::: throbber ::::: */
 
 #navigator-throbber {

@@ -184,20 +184,35 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                             return getRString("ruleTooComplex");
                         }
                     } else {
-                        let day_string = "";
-                        for (let i = 0; i < component.length; i++) {
-                            day_string += component[i];
-                            if (component.length > 1 &&
-                                i == (component.length - 2)) {
-                                day_string += ' ' + getRString("repeatDetailsAnd") + ' ';
-                            } else if (i < component.length-1) {
-                                day_string += ', ';
+                        if (component.length == 31 &&
+                            component.every(function (element, index, array) {
+                                                for (let i = 0; i < array.length; i++) {
+                                                    if ((index + 1) == array[i]) {
+                                                        return true;
+                                                    }
+                                                }
+                                                return false;
+                                            })) {
+                            // i.e. every day every N months
+                            ruleString = getRString("monthlyEveryDayOfNth");
+                            ruleString = PluralForm.get(rule.interval, ruleString)
+                                                   .replace("#2", rule.interval);
+                        } else {
+                            // i.e. one or more monthdays every N months
+                            let day_string = "";
+                            for (let i = 0; i < component.length; i++) {
+                                day_string += component[i];
+                                if (component.length > 1 &&
+                                    i == (component.length - 2)) {
+                                    day_string += ' ' + getRString("repeatDetailsAnd") + ' ';
+                                } else if (i < component.length-1) {
+                                    day_string += ', ';
+                                }
                             }
+                            let monthlyString = getRString("monthlyDayOfNth", [day_string]);
+                            ruleString = PluralForm.get(rule.interval, monthlyString)
+                                                   .replace("#2", rule.interval);
                         }
-                        let monthlyString = getRString("monthlyDayOfNth", [day_string]);
-                        ruleString = PluralForm.get(rule.interval, monthlyString)
-                                               .replace("#2", rule.interval);
-
                     }
                 } else {
                     let monthlyString = getRString("monthlyDayOfNth", [startDate.day]);

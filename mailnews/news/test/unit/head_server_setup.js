@@ -172,6 +172,7 @@ function resetFolder(folder) {
   for each (var header in headers) {
     db.DeleteHeader(header, null, true, false);
   }
+  dump("resetting folder\n");
   folder.msgDatabase = null;
 }
 

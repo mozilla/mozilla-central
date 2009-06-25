@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Thomas Benisch <thomas.benisch@sun.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,12 +37,10 @@
 
 calendar-invitations-richlistbox {
   -moz-binding: url(chrome://calendar/content/calendar-invitations-list.xml#calendar-invitations-richlistbox);
-  -moz-user-focus: normal;
 }
 
 calendar-invitations-richlistitem {
   -moz-binding: url(chrome://calendar/content/calendar-invitations-list.xml#calendar-invitations-richlistitem);
-  -moz-user-focus: none;
 }
 
 calendar-invitations-richlistitem[selected="true"] {

@@ -156,11 +156,18 @@ nsActivityManager.prototype = {
     // Get the list of aIDs.
     this.log.info("cleanUp\n");
     for (var id in this._activities) {
-      let state = this._activities[id].state;
-      if (state != Ci.nsIActivityProcess.STATE_INPROGRESS ||
-          state != Ci.nsIActivityProcess.STATE_PAUSED ||
-          state != Ci.nsIActivityProcess.STATE_WAITINGFORINPUT ||
-          state != Ci.nsIActivityProcess.STATE_WAITINGFORRETRY)
+      let activity = this._activities[id];
+      if (activity instanceof Ci.nsIActivityProcess) {
+        // Note: The .state property will return undefined if you aren't in
+        //       this if-instanceof block.
+        let state = activity.state;
+        if (state != Ci.nsIActivityProcess.STATE_INPROGRESS &&
+            state != Ci.nsIActivityProcess.STATE_PAUSED &&
+            state != Ci.nsIActivityProcess.STATE_WAITINGFORINPUT &&
+            state != Ci.nsIActivityProcess.STATE_WAITINGFORRETRY)
+          this.removeActivity(id);
+      }
+      else
         this.removeActivity(id);
     }
   },

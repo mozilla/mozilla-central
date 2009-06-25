@@ -57,7 +57,6 @@
 
 <?xml-stylesheet href="chrome://calendar/content/calendar-view-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar-views.css" type="text/css"?>
-<?xml-stylesheet href="chrome://global/skin/menu.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/calendar-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/widgets/minimonth.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/widgets/calendar-widget-bindings.css" type="text/css"?>
@@ -76,266 +75,373 @@
 #include ../../base/content/calendar-scripts.inc
 #include lightning-scripts.inc
 
-<menupopup id="menu_FilePopup">
-  <menu id="menu_Open"
-        mode="calendar"
-        label="&lightning.menupopup.open.label;"
-        accesskey="&lightning.menupopup.open.accesskey;"
-        insertafter="menu_New">
-    <menupopup id="menu_OpenPopup">
-      <menuitem id="ltnOpenMessageFileMenuitem"
-                mode="calendar"
-                label="&lightning.menupopup.open.message.label;"
-                accesskey="&lightning.menupopup.open.message.accesskey;"
-                oncommand="MsgOpenFromFile();"/>
-      <menuitem id="ltnOpenCalendarFileMenuitem"
-                mode="calendar"
-                label="&lightning.menupopup.open.calendar.label;"
-                accesskey="&lightning.menupopup.open.calendar.accesskey;"
-                oncommand="openLocalCalendar();"/>
-    </menupopup>
-  </menu>
-  <menuitem id="calendar-export-selection-menu"
-             mode="calendar"
-             label="&calendar.export.selection.label;"
-             accesskey="&calendar.export.selection.accesskey;"
-             command="calendar_export_selection_command"
-             observes="calendar_export_selection_command"
-             insertafter="menu_close"/>
-  <menuitem id="calendar-export-menu"
-             mode="calendar"
-             label="&calendar.export.calendar;"
-             accesskey="&calendar.export.calendar.accesskey;"
-             command="calendar_export_command"
-             observes="calendar_export_command"
-             insertafter="menu_close"/>
-  <menuitem id="calendar-import-menu"
-             label="&calendar.importcalendar.label;"
-             accesskey="&calendar.import.accesskey;"
-             command="calendar_import_command"
-             observes="calendar_import_command"
-             mode="calendar"
-             insertafter="menu_close"/>
-  <menuseparator id="afterMenu_close"
-             mode="calendar"
-             insertafter="menu_close"/>
-</menupopup>
+  <menupopup id="menu_FilePopup">
+    <menu id="menu_Open"
+          mode="calendar"
+          label="&lightning.menupopup.open.label;"
+          accesskey="&lightning.menupopup.open.accesskey;"
+          insertafter="menu_New">
+      <menupopup id="menu_OpenPopup">
+        <menuitem id="ltnOpenMessageFileMenuitem"
+                  label="&lightning.menupopup.open.message.label;"
+                  accesskey="&lightning.menupopup.open.message.accesskey;"
+                  oncommand="MsgOpenFromFile();"/>
+        <menuitem id="ltnOpenCalendarFileMenuitem"
+                  label="&lightning.menupopup.open.calendar.label;"
+                  accesskey="&lightning.menupopup.open.calendar.accesskey;"
+                  oncommand="openLocalCalendar();"/>
+      </menupopup>
+    </menu>
+  </menupopup>
+  <menuitem id="openMessageFileMenuitem" hidden="true"/>
 
   <menupopup id="menu_NewPopup">
-    <menuitem id="ltnNewEvent" label="&lightning.menupopup.new.event.label;"
-               accesskey="&event.new.event.accesskey;"
-               key="calendar-new-event-key"
-               command="calendar_new_event_command"
-               observes="calendar_new_event_command"
-               position="2"/>
-    <menuitem id="ltnNewTask" label="&lightning.menupopup.new.task.label;"
-               accesskey="&event.new.todo.accesskey;"
-               key="calendar-new-todo-key"
-               command="calendar_new_todo_command"
-               observes="calendar_new_todo_command"
-               position="3"/>
-    <menuseparator id="afterltnNewTask" position="4"/>
+    <menuitem id="ltnNewEvent"
+              label="&lightning.menupopup.new.event.label;"
+              insertbefore="menu_newFolder"
+              accesskey="&lightning.menupopup.new.event.accesskey;"
+              key="calendar-new-event-key"
+              command="calendar_new_event_command"
+              observes="calendar_new_event_command"/>
+    <menuitem id="ltnNewTask"
+              label="&lightning.menupopup.new.task.label;"
+              insertbefore="menu_newFolder"
+              accesskey="&lightning.menupopup.new.task.accesskey;"
+              key="calendar-new-todo-key"
+              command="calendar_new_todo_command"
+              observes="calendar_new_todo_command"/>
+    <menuseparator id="afterltnNewTask"
+                   insertbefore="menu_newFolder"/>
+
     <menuseparator id="beforenewAccountMenuItem"
-                   mode="mail"
                    insertbefore="newAccountMenuItem"/>
     <menuitem id="ltnNewCalendar" label="&lightning.menupopup.new.calendar.label;"
                command="calendar_new_calendar_command"
                observes="calendar_new_calendar_command"
-               accesskey="&calendar.new.server.accesskey;"
+               accesskey="&lightning.menupopup.new.calendar.accesskey;"
                insertafter="newAccountMenuItem"/>
   </menupopup>
+
+  <menupopup id="menu_EditPopup">
+    <menuitem id="ltnCalendarProperties"
+              insertafter="menu_properties"
+              label="&calendar.properties.label;"
+              accesskey="&calendar.properties.accesskey;"
+              command="calendar_edit_calendar_command"
+              observes="calendar_edit_calendar_command"/>
+  </menupopup>
+
   <menupopup id="menu_View_Popup">
-    <menu label="&showCurrentView.label;"
-          mode="calendar,task"
-          accesskey="&showCurrentView.accesskey;">
-      <menupopup>
-        <menuitem type="checkbox"
-                  id="ltn-workdays-only-menuitem"
-                  label="&calendar.onlyworkday.checkbox.label;"
-                  accesskey="&calendar.onlyworkday.checkbox.accesskey;"
-                  mode="calendar"
-                  observes="calendar_toggle_workdays_only_command"/>
-        <menuitem type="checkbox"
-                  id="ltn-tasks-in-view-menuitem"
-                  label="&calendar.displaytodos.checkbox.label;"
-                  accesskey="&calendar.displaytodos.checkbox.accesskey;"
-                  mode="calendar"
-                  observes="calendar_toggle_tasks_in_view_command"/>
-        <menuitem type="checkbox"
-                  id="ltn-show-completed-in-view"
-                  persist="checked"
-                  label="&calendar.completedtasks.checkbox.label;"
-                  accesskey="&calendar.completedtasks.checkbox.accesskey;"
-                  mode="calendar"
-                  observes="calendar_toggle_show_completed_in_view_command"/>
-        <menuitem type="checkbox"
-                  id="ltn-multiday-rotated"
-                  label="&calendar.orientation.label;"
-                  accesskey="&calendar.orientation.accesskey;"
-                  mode="calendar"
-                  command="calendar_toggle_orientation_command"
-                  observes="calendar_toggle_orientation_command"/>
-        <observes element="filterBroadcaster" attribute="value" onbroadcast="checkRadioControl(this.parentNode, document.getElementById(this.getAttribute('element')).getAttribute('value'));"/>
-        <menuitem id="tasks-view-filter-all"
-                  name="filtergroup"
-                  value="all"
-                  type="radio"
-                  command="calendar_task_filter_command"
-                  mode="task"
-                  label="&calendar.task.filter.all.label;"
-                  accesskey="&calendar.task.filter.all.accesskey;"/>
-        <menuitem id="tasks-view-filter-today"
-                  name="filtergroup"
-                  value="today"
-                  type="radio"
-                  command="calendar_task_filter_command"
-                  mode="task"
-                  label="&calendar.task.filter.today.label;"
-                  accesskey="&calendar.task.filter.today.accesskey;"/>
-        <menuitem id="tasks-view-filter-next7days"
-                  name="filtergroup"
-                  value="next7days"
-                  type="radio"
-                  command="calendar_task_filter_command"
-                  mode="task"
-                  label="&calendar.task.filter.next7days.label;"
-                  accesskey="&calendar.task.filter.next7days.accesskey;"/>
-        <menuitem id="tasks-view-filter-notstartedtasks"
-                  name="filtergroup"
-                  value="notstarted"
-                  type="radio"
-                  command="calendar_task_filter_command"
-                  mode="task"
-                  label="&calendar.task.filter.notstarted.label;"
-                  accesskey="&calendar.task.filter.notstarted.accesskey;"/>
-        <menuitem id="tasks-view-filter-overdue"
-                  name="filtergroup"
-                  value="overdue"
-                  type="radio"
-                  command="calendar_task_filter_command"
-                  mode="task"
-                  label="&calendar.task.filter.overdue.label;"
-                  accesskey="&calendar.task.filter.overdue.accesskey;"/>
-        <menuitem id="tasks-view-filter-completed"
-                  name="filtergroup"
-                  type="radio"
-                  value="completed"
-                  command="calendar_task_filter_command"
-                  mode="task"
-                  label="&calendar.task.filter.completed.label;"
-                  accesskey="&calendar.task.filter.completed.accesskey;"/>
-        <menuitem id="tasks-view-filter-open"
-                  name="filtergroup"
-                  type="radio"
-                  value="open"
-                  command="calendar_task_filter_command"
-                  mode="task"
-                  label="&calendar.task.filter.open.label;"
-                  accesskey="&calendar.task.filter.open.accesskey;"/>
-      </menupopup>
-    </menu>
-    <menuseparator id="before-Unifinder-Section" mode="calendar"/>
-    <menuitem id="calendar-show-unifinder-menu"
-              type="checkbox"
-              checked="true"
-              label="&showUnifinderCmd.label;"
-              accesskey="&showUnifinderCmd.accesskey;"
-              mode="calendar"
-              command="calendar_show_unifinder_command"/>
-    <menuseparator id="before-Calendar-View-Section" mode="calendar"/>
-    <menuitem id="ltnChangeViewDay"
-              label="&lightning.toolbar.day.label;"
-              accesskey="&lightning.toolbar.day.accesskey;"
-              type="radio"
-              name="calendarMenuViews"
-              mode="calendar"
-              key="calendar-day-view-key"
-              observes="calendar_day-view_command"/>
-    <menuitem id="ltnChangeViewWeek"
-              label="&lightning.toolbar.week.label;"
-              accesskey="&lightning.toolbar.week.accesskey;"
-              type="radio"
-              name="calendarMenuViews"
-              mode="calendar"
-              key="calendar-week-view-key"
-              observes="calendar_week-view_command"/>
-    <menuitem id="ltnChangeViewMultiweek"
-              label="&lightning.toolbar.multiweek.label;"
-              accesskey="&lightning.toolbar.multiweek.accesskey;"
-              type="radio"
-              name="calendarMenuViews"
-              mode="calendar"
-              key="calendar-multiweek-view-key"
-              observes="calendar_multiweek-view_command"/>
-    <menuitem id="ltnChangeViewMonth"
-              label="&lightning.toolbar.month.label;"
-              accesskey="&lightning.toolbar.month.accesskey;"
-              type="radio"
-              name="calendarMenuViews"
-              mode="calendar"
-              key="calendar-month-view-key"
-              observes="calendar_month-view_command"/>
-    <menuseparator id="before-task-View-Section" mode="mail,calendar,task"/>
-    <menuitem id="tasks-view-minimonth"
-              type="checkbox"
-              mode="calendar,task"
-              label="&calendar.tasks.view.minimonth.label;"
-              accesskey="&calendar.tasks.view.minimonth.accesskey;"
-              command="calendar_toggle_minimonthpane_command"/>
-    <menuitem id="tasks-view-filtertasks"
-              type="checkbox"
-              mode="task"
-              label="&calendar.tasks.view.filtertasks.label;"
-              accesskey="&calendar.tasks.view.filtertasks.accesskey;"
-              command="calendar_toggle_filter_command"/>
-    <menuitem id="tasks-view-calendarlist"
-              type="checkbox"
-              mode="calendar,task"
-              label="&calendar.tasks.view.calendarlist.label;"
-              accesskey="&calendar.tasks.view.calendarlist.accesskey;"
-              command="calendar_toggle_calendarlist_command"/>
-    <menuseparator id="before-today-pane"/>
-    <menu id="today-pane-menu"
+    <menuseparator id="ltnViewMenuSeparator"
+                   insertbefore="viewSortMenuSeparator"/>
+    <menu id="ltnTodayPaneMenu"
+          observes="calendar_in_foreground"
+          insertbefore="viewSortMenuSeparator"
           label="&calendar.context.button.label;"
           accesskey="&calendar.context.button.accesskey;">
-      <menupopup>
+      <menupopup id="ltnTodayPaneMenuPopup">
         <menuitem id="ltnShowTodayPane-2"
                   label="&todaypane.showTodayPane.label;"
                   accesskey="&todaypane.showTodayPane.accesskey;"
                   type="checkbox"
                   key="todaypanekey"
                   command="calendar_toggle_todaypane_command"/>
-        <menuseparator id="before-displayminiday"/>
-        <menuitem id="today-pane-displayminiday"
+        <menuseparator id="ltnSeparatorBeforeDisplayMiniday"/>
+        <menuitem id="ltnTodayPaneDisplayMiniday"
                   name="minidisplay"
                   value="miniday"
                   type="radio"
-                  oncommand="TodayPane.displayMiniSection(1)"
+                  oncommand="TodayPane.displayMiniSection('miniday')"
                   label="&todaypane.showMiniday.label;"
                   accesskey="&todaypane.showMiniday.accesskey;"/>
-        <menuitem id="today-pane-displayminimonth"
+        <menuitem id="ltnTodayPaneDisplayMinimonth"
                   name="minidisplay"
                   value="minimonth"
                   type="radio"
-                  oncommand="TodayPane.displayMiniSection(2)"
+                  oncommand="TodayPane.displayMiniSection('minimonth')"
                   label="&todaypane.showMinimonth.label;"
                   accesskey="&todaypane.showMinimonth.accesskey;"/>
-        <menuitem id="today-pane-displaynone"
+        <menuitem id="ltnTodayPaneDisplayNone"
                   name="minidisplay"
                   value="none"
                   type="radio"
-                  oncommand="TodayPane.displayMiniSection(3)"
+                  oncommand="TodayPane.displayMiniSection('none')"
                   label="&todaypane.showNone.label;"
                   accesskey="&todaypane.showNone.accesskey;"/>
       </menupopup>
     </menu>
+    <menu id="ltnCalendarMenu"
+          insertbefore="viewSortMenuSeparator"
+          label="&lightning.menu.view.calendar.label;"
+          accesskey="&lightning.menu.view.calendar.accesskey;">
+      <menupopup id="ltnTasksMenuPopup">
+        <menuitem id="ltnChangeViewDay"
+                  label="&lightning.toolbar.day.label;"
+                  accesskey="&lightning.toolbar.day.accesskey;"
+                  type="radio"
+                  name="calendarMenuViews"
+                  key="calendar-day-view-key"
+                  observes="calendar_day-view_command"/>
+        <menuitem id="ltnChangeViewWeek"
+                  label="&lightning.toolbar.week.label;"
+                  accesskey="&lightning.toolbar.week.accesskey;"
+                  type="radio"
+                  name="calendarMenuViews"
+                  key="calendar-week-view-key"
+                  observes="calendar_week-view_command"/>
+        <menuitem id="ltnChangeViewMultiweek"
+                  label="&lightning.toolbar.multiweek.label;"
+                  accesskey="&lightning.toolbar.multiweek.accesskey;"
+                  type="radio"
+                  name="calendarMenuViews"
+                  key="calendar-multiweek-view-key"
+                  observes="calendar_multiweek-view_command"/>
+        <menuitem id="ltnChangeViewMonth"
+                  label="&lightning.toolbar.month.label;"
+                  accesskey="&lightning.toolbar.month.accesskey;"
+                  type="radio"
+                  name="calendarMenuViews"
+                  key="calendar-month-view-key"
+                  observes="calendar_month-view_command"/>
+        <menuseparator id="ltnBeforeCalendarViewSection"/>
+        <menuitem id="ltnTasksViewMinimonth"
+                  type="checkbox"
+                  label="&calendar.tasks.view.minimonth.label;"
+                  accesskey="&calendar.tasks.view.minimonth.accesskey;"
+                  command="calendar_toggle_minimonthpane_command"/>
+        <menuitem id="ltnTasksViewCalendarlist"
+                  type="checkbox"
+                  label="&calendar.tasks.view.calendarlist.label;"
+                  accesskey="&calendar.tasks.view.calendarlist.accesskey;"
+                  command="calendar_toggle_calendarlist_command"/>
+        <menuseparator id="ltnBeforeCurrentViewMenu"/>
+        <menu id="ltnCalendarCurrentViewMenu"
+              observes="calendar_mode_calendar"
+              label="&showCurrentView.label;"
+              accesskey="&showCurrentView.accesskey;">
+          <menupopup id="ltnCalendarCurrentViewMenuPopup">
+            <menuitem type="checkbox"
+                      id="ltnWorkdaysOnlyMenuitem"
+                      label="&calendar.onlyworkday.checkbox.label;"
+                      accesskey="&calendar.onlyworkday.checkbox.accesskey;"
+                      observes="calendar_toggle_workdays_only_command"/>
+            <menuitem type="checkbox"
+                      id="ltnTasksInViewMenuitem"
+                      label="&calendar.displaytodos.checkbox.label;"
+                      accesskey="&calendar.displaytodos.checkbox.accesskey;"
+                      observes="calendar_toggle_tasks_in_view_command"/>
+            <menuitem type="checkbox"
+                      id="ltnShowCompletedInViewMenuItem"
+                      label="&calendar.completedtasks.checkbox.label;"
+                      accesskey="&calendar.completedtasks.checkbox.accesskey;"
+                      observes="calendar_toggle_show_completed_in_view_command"/>
+            <menuitem type="checkbox"
+                      id="ltnViewRotated"
+                      label="&calendar.orientation.label;"
+                      accesskey="&calendar.orientation.accesskey;"
+                      command="calendar_toggle_orientation_command"
+                      observes="calendar_toggle_orientation_command"/>
+          </menupopup>
+        </menu>
+      </menupopup>
+    </menu>
+    <menu id="ltnTasksMenu"
+          observes="calendar_mode_task"
+          insertbefore="viewSortMenuSeparator"
+          label="&lightning.menu.view.tasks.label;"
+          accesskey="&lightning.menu.view.tasks.accesskey;">
+      <menupopup id="ltnTasksMenuPopup">
+        <observes element="filterBroadcaster"
+                  attribute="value"
+                  onbroadcast="checkRadioControl(this.parentNode, document.getElementById(this.getAttribute('element')).getAttribute('value'));"/>
+        <menuitem id="ltnTasksViewFilterTasks"
+                  type="checkbox"
+                  label="&calendar.tasks.view.filtertasks.label;"
+                  accesskey="&calendar.tasks.view.filtertasks.accesskey;"
+                  command="calendar_toggle_filter_command"/>
+        <menuseparator id="ltnTasksViewSeparator"/>
+        <menuitem id="ltnTasksViewFilterAll"
+                  name="filtergroup"
+                  value="all"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.all.label;"
+                  accesskey="&calendar.task.filter.all.accesskey;"/>
+        <menuitem id="ltnTasksViewFilterToday"
+                  name="filtergroup"
+                  value="today"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.today.label;"
+                  accesskey="&calendar.task.filter.today.accesskey;"/>
+        <menuitem id="ltnTasksViewFilterNext7days"
+                  name="filtergroup"
+                  value="next7days"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.next7days.label;"
+                  accesskey="&calendar.task.filter.next7days.accesskey;"/>
+        <menuitem id="ltnTasksViewFilterNotstartedtasks"
+                  name="filtergroup"
+                  value="notstarted"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.notstarted.label;"
+                  accesskey="&calendar.task.filter.notstarted.accesskey;"/>
+        <menuitem id="ltnTasksViewFilterOverdue"
+                  name="filtergroup"
+                  value="overdue"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.overdue.label;"
+                  accesskey="&calendar.task.filter.overdue.accesskey;"/>
+        <menuitem id="ltnTasksViewFilterCompleted"
+                  name="filtergroup"
+                  type="radio"
+                  value="completed"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.completed.label;"
+                  accesskey="&calendar.task.filter.completed.accesskey;"/>
+        <menuitem id="ltnTasksViewFilterOpen"
+                  name="filtergroup"
+                  type="radio"
+                  value="open"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.open.label;"
+                  accesskey="&calendar.task.filter.open.accesskey;"/>
+      </menupopup>
+    </menu>
   </menupopup>
 
-  <window id="messengerWindow">
+  <menupopup id="menu_GoPopup">
+    <menuitem id="ltnGoToToday"
+              insertafter="goNextSeparator"
+              label="&goTodayCmd.label;"
+              accesskey="&goTodayCmd.accesskey;"
+              observes="calendar_go_to_today_command"
+              key="calendar-go-to-today-key"/>
+  </menupopup>
 
-    <broadcasterset id="calendar_broadcasters">
-      <broadcaster id="filterBroadcaster" value="all"/>
-    </broadcasterset>
+  <menupopup id="menu_GoNextPopup">
+    <menuseparator id="ltnGoNextSeparator"/>
+    <!-- Label is set up automatically using the view id. When writing a
+         view extension, overlay this menuitem and add a label-<myviewtype>
+         attribute with the correct label -->
+    <menuitem id="calendar-go-menu-next"
+              label=""
+              label-day="&lightning.toolbar.day.label;"
+              label-week="&lightning.toolbar.week.label;"
+              label-multiweek="&lightning.toolbar.week.label;"
+              label-month="&lightning.toolbar.month.label;"
+              accesskey-day="&lightning.toolbar.day.accesskey;"
+              accesskey-week="&lightning.toolbar.week.accesskey;"
+              accesskey-multiweek="&lightning.toolbar.week.accesskey;"
+              accesskey-month="&lightning.toolbar.month.accesskey;"
+              observes="calendar_view_next_command"/>
+  </menupopup>
+  <menupopup id="menu_GoPreviousPopup">
+    <menuseparator id="ltnGoPreviousSeparator"/>
+    <!-- Label is set up automatically using the view id. When writing a
+         view extension, overlay this menuitem and add a label-<myviewtype>
+         attribute with the correct label -->
+    <menuitem id="calendar-go-menu-previous"
+              label=""
+              label-day="&lightning.toolbar.day.label;"
+              label-week="&lightning.toolbar.week.label;"
+              label-multiweek="&lightning.toolbar.week.label;"
+              label-month="&lightning.toolbar.month.label;"
+              accesskey-day="&lightning.toolbar.day.accesskey;"
+              accesskey-week="&lightning.toolbar.week.accesskey;"
+              accesskey-multiweek="&lightning.toolbar.week.accesskey;"
+              accesskey-month="&lightning.toolbar.month.accesskey;"
+              observes="calendar_view_prev_command"/>
+  </menupopup>
+
+  <menubar id="mail-menubar">
+    <menu id="menu_Event_Task"
+          label="&lightning.menu.eventtask.label;"
+          accesskey="&lightning.menu.eventtask.accesskey;"
+          insertafter="messageMenu">
+      <menupopup id="menu_Event_Task_Popup" onpopupshowing="changeMenuForTask(event)">
+        <menuitem id="ltnNewEvent2"
+                  label="&event.new.event;"
+                  accesskey="&event.new.event.accesskey;"
+                  key="calendar-new-event-key"
+                  command="calendar_new_event_command"
+                  observes="calendar_new_event_command"/>
+        <menuitem id="ltnNewTask2"
+                  label="&event.new.todo;"
+                  accesskey="&event.new.todo.accesskey;"
+                  key="calendar-new-todo-key"
+                  command="calendar_new_todo_command"
+                  observes="calendar_new_todo_command"/>
+        <menuseparator id="before-Calendar-Mode-Section"/>
+        <menuitem id="ltnMenuSwitchToCalendar"
+                  label="&lightning.toolbar.calendar.label;"
+                  accesskey="&lightning.toolbar.calendar.accesskey;"
+                  command="switch2calendar"
+                  key="openLightningKey"/>
+        <menuitem id="ltnMenuSwitchToTask"
+                  label="&lightning.toolbar.task.label;"
+                  accesskey="&lightning.toolbar.task.accesskey;"
+                  command="switch2task"
+                  key="openTasksKey"/>
+        <menuseparator id="ltnBeforeCalendarSection"/>
+        <!-- Menuitems have different schema just to match sunbird -->
+        <menuitem id="calendar-export-menu"
+                  label="&calendar.export.label;"
+                  accesskey="&calendar.export.accesskey;"
+                  command="calendar_export_command"
+                  observes="calendar_export_command"/>
+        <menuitem id="calendar-import-menu"
+                  label="&calendar.import.label;"
+                  accesskey="&calendar.import.accesskey;"
+                  command="calendar_import_command"
+                  observes="calendar_import_command"/>
+        <menuitem id="ltnPublishCalendar"
+                  label="&calendar.publish.label;"
+                  accesskey="&calendar.publish.accesskey;"
+                  commmand="calendar_publish_calendar_command"
+                  observes="calendar_publish_calendar_command"/>
+        <menuitem id="ltnDeleteSelectedCalendar"
+                  label="&calendar.deletecalendar.label;"
+                  accesskey="&calendar.deletecalendar.accesskey;"
+                  command="calendar_delete_calendar_command"
+                  observes="calendar_delete_calendar_command"/>
+        <menuseparator id="ltnBeforeTaskActions"/>
+        <menuitem id="ltnTaskActionsMarkCompletedMenuitem"
+                  type="checkbox"
+                  label="&calendar.context.markcompleted.label;"
+                  accesskey="&calendar.context.markcompleted.accesskey;"
+                  command="calendar_toggle_completed_command"
+                  observes="calendar_toggle_completed_command"/>
+        <menu id="ltnTaskActionsPriorityMenuitem"
+              label="&calendar.context.priority.label;"
+              accesskey="&calendar.context.priority.accesskey;"
+              command="calendar_general-priority_command"
+              observes="calendar_general-priority_command">
+          <menupopup type="task-priority"/>
+        </menu>
+        <menu id="ltnTaskActionsProgressMenuitem"
+              label="&calendar.context.progress.label;"
+              accesskey="&calendar.context.progress.accesskey;"
+              command="calendar_general-progress_command"
+              observes="calendar_general-progress_command">
+          <menupopup type="task-progress"/>
+        </menu>
+        <menuseparator id="ltnBeforeUnifinderSection" />
+        <!-- menuitem has different schema just to match sunbird -->
+        <menuitem id="calendar-show-unifinder-menu"
+                  type="checkbox"
+                  checked="true"
+                  label="&showUnifinderCmd.label;"
+                  accesskey="&showUnifinderCmd.accesskey;"
+                  command="calendar_show_unifinder_command"/>
+      </menupopup>
+    </menu>
+  </menubar>
+
+  <window id="messengerWindow">
 
     <!-- Be sure to keep these sets, since they will be overlayed by
          calendar/base/content/calendar-common-sets.xul -->
@@ -352,6 +458,8 @@
         oncommand="document.getElementById('tabmail').openTab('calendar', document.getElementById('calendar-tab-button').getAttribute('tooltiptext'))"/>
       <command id="new_task_tab"
         oncommand="document.getElementById('tabmail').openTab('tasks', document.getElementById('task-tab-button').getAttribute('tooltiptext'))"/>
+      <command id="calendar_go_to_today_command"
+               oncommand="document.getElementById('tabmail').openTab('calendar', document.getElementById('calendar-tab-button').getAttribute('tooltiptext')); goToDate(now())"/>
     </commandset>
 
     <keyset id="calendar-keys">
@@ -362,80 +470,11 @@
       <key id="calendar-new-todo-key" key="&lightning.keys.todo.new;" modifiers="accel" command="calendar_new_todo_command"/>
     </keyset>
 
-    <popupset id="calendar-popupset">
-      <menupopup id="calendar-GoPopupMenu">
-         <menuitem id="ltnGoToToday"
-                   label="&goTodayCmd.label;"
-                   accesskey="&goTodayCmd.accesskey;"
-                   mode="calendar"
-                   observes="calendar_go_to_today_command"
-                   key="calendar-go-to-today-key"/>
-         <menuseparator id="before-ModeMenuItems"/>
-         <menuitem id="ltnMenu_mail"
-                   type="radio"
-                   name="modemenu"
-                   label="&lightning.toolbar.mail.label;"
-                   accesskey="&lightning.toolbar.mail.accesskey;"
-                   command="switch2mail"
-                   key="key_mail" modifiers="accel"/>
-         <menuitem id="ltnMenu_calendar"
-                   type="radio"
-                   name="modemenu"
-                   label="&lightning.toolbar.calendar.label;"
-                   accesskey="&lightning.toolbar.calendar.accesskey;"
-                   command="switch2calendar"
-                   key="openLightningKey"/>
-         <menuitem id="ltnMenu_tasks"
-                   type="radio"
-                   name="modemenu"
-                   label="&lightning.toolbar.task.label;"
-                   accesskey="&lightning.toolbar.task.accesskey;"
-                   command="switch2task"
-                   key="openTasksKey"/>
-         <menuseparator id="before-AddressBook"/>
-         <menuitem id="addressBook-calendar" label="&addressBookCmd.label;"
-                   accesskey="&addressBookCmd.accesskey;"
-                   key="key_addressbook"
-                   oncommand="toAddressBook();"/>
-      </menupopup>
-      <menupopup id="calendarCalendarPopupMenu">
-          <menuitem id="ltnNewEvent2" label="&event.new.event;"
-               accesskey="&event.new.event.accesskey;"
-               key="calendar-new-event-key"
-               observes="calendar_new_event_command"
-               command="calendar_new_event_command"
-               position="2"/>
-          <menuitem id="ltnNewTask2" label="&event.new.todo;"
-               accesskey="&event.new.todo.accesskey;"
-               key="calendar-new-todo-key"
-               observes="calendar_new_todo_command"
-               command="calendar_new_todo_command"
-               position="3"/>
-         <menuseparator id="firstCalendarSeparator" mode="calendar"/>
-         <menuitem id="publishCalendar"
-                   label="&calendar.publish.label;"
-                   accesskey="&calendar.publish.accesskey;"
-                   commmand="calendar_publish_calendar_command"
-                   observes="calendar_publish_calendar_command"/>
-         <menuseparator id="afterSubscription"/>
-         <menuitem label="&calendar.context.newserver.label;"
-                   id="calpopup-new"
-                   accesskey="&calendar.context.newserver.accesskey;"
-                   command="calendar_new_calendar_command"
-                   observes="calendar_new_calendar_command"/>
-        <menuitem id="ltnDeleteSelectedCalendar"
-                  label="&calendar.context.deleteserver.label;"
-                  accesskey="&calendar.context.deleteserver.accesskey;"
-                  command="calendar_delete_calendar_command"
-                  observes="calendar_delete_calendar_command"/>
-        <menuseparator id="beforeProperties"/>
-         <menuitem label="&calendar.properties.label;"
-                   id="calendarproperties"
-                   accesskey="&calendar.properties.accesskey;"
-                   command="calendar_edit_calendar_command"
-                   observes="calendar_edit_calendar_command"/>
-      </menupopup>
-    </popupset>
+    <broadcasterset id="calendar_broadcasters">
+      <broadcaster id="filterBroadcaster" value="all"/>
+    </broadcasterset>
+
+    <popupset id="calendar-popupset"/>
   </window>
 
   <hbox id="tabmail-buttons">
@@ -444,6 +483,7 @@
     <toolbarbutton id="task-tab-button" command="new_task_tab"
       tooltiptext="&lightning.toolbar.task.label;"/>
   </hbox>
+
   <tabpanels id="tabpanelcontainer">
     <vbox id="calendarTabPanel">
       <hbox id="calendarContent" flex="1">

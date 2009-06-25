@@ -46,6 +46,7 @@ interface nsIMsgThread;
 interface nsIMsgDBViewCommandUpdater;
 interface nsIMsgDatabase;
 interface nsIMsgSearchSession;
+interface nsIMutableArray;
 interface nsISimpleEnumerator;
 interface nsITreeView;
 interface nsIMsgCustomColumnHandler;
@@ -245,7 +246,7 @@ interface nsMsgNavigationType
 };
 
 
-[scriptable, uuid(03969356-7a74-4b78-bb17-0d56849c789f)]
+[scriptable, uuid(7b6f1f8f-f27a-409b-955b-ab40d46194e1)]
 interface nsIMsgDBView : nsISupports
 {
   void open(in nsIMsgFolder folder, in nsMsgViewSortTypeValue sortType, in nsMsgViewSortOrderValue sortOrder, in nsMsgViewFlagsTypeValue viewFlags, out long count);
@@ -325,6 +326,23 @@ interface nsIMsgDBView : nsISupports
   nsIMsgFolder getFolderForViewIndex(in nsMsgViewIndex index); // mainly for search
   ACString getURIForViewIndex(in nsMsgViewIndex index);
   nsIMsgDBView cloneDBView(in nsIMessenger aMessengerInstance, in nsIMsgWindow aMsgWindow, in nsIMsgDBViewCommandUpdater aCommandUpdater);
+
+  /**
+   * Provides a list of the message headers for the currently selected messages.
+   *  If the "mail.operate_on_msgs_in_collapsed_threads" preference is enabled,
+   *  then any collapsed thread roots that are selected will also (conceptually)
+   *  have all of the messages in that thread selected and they will be included
+   *  in the returned list.
+   *
+   * If the user has right-clicked on a message, this will return that message
+   *  (and any collapsed children if so enabled) and not the selection prior to
+   *  the right-click.
+   *
+   * @return an nsIMutableArray containing the selected message headers.  You
+   *     are free to mutate the array; it will not affect the underlying
+   *     selection.
+   */
+  nsIMutableArray getMsgHdrsForSelection();
   void getURIsForSelection(out unsigned long count, [retval, array, size_is(count)] out string uris);
   void getIndicesForSelection(out unsigned long count, [retval, array, size_is(count)] out nsMsgViewIndex indices);
 
@@ -336,6 +354,12 @@ interface nsIMsgDBView : nsISupports
   void reloadMessage();
   void reloadMessageWithAllParts();
 
+  /**
+   * The number of selected messages.  If the
+   *  "mail.operate_on_msgs_in_collapsed_threads" preference is enabled, then
+   *  any collapsed thread roots that are selected will also conceptually have
+   *  all of the messages in that thread selected.
+   */
   readonly attribute unsigned long numSelected;
   readonly attribute nsMsgViewIndex msgToSelectAfterDelete; 
   readonly attribute nsMsgViewIndex currentlyDisplayedMessage; 

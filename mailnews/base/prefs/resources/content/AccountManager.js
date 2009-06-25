@@ -331,7 +331,7 @@ function checkUserServerChanges(showAlert) {
       var filterList;
       if (account && (newType != "nntp")) {
         var server = account.incomingServer;
-        filterList = server.getFilterList(null);
+        filterList = server.getEditableFilterList(null);
       }
       var userChangeText, serverChangeText;
       var bundle = document.getElementById("bundle_prefs");

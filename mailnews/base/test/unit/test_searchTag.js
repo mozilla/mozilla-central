@@ -407,6 +407,7 @@ function testKeywordSearch()
   else
   {
     testObject = null;
+    hdr = null;
     do_test_finished();
   }
 }

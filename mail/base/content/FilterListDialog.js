@@ -150,7 +150,7 @@ function setFolder(msgFolder)
      return;
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
-   var filterList = msgFolder.getFilterList(gFilterListMsgWindow);
+   var filterList = msgFolder.getEditableFilterList(gFilterListMsgWindow);
    rebuildFilterList(filterList);
 
    // Select the first item in the list, if there is one.

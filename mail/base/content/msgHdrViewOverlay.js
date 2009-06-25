@@ -1,43 +1,43 @@
-# -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-1999
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Markus Hossner <markushossner@gmx.de>
-#   Mark Banner <bugzilla@standard8.plus.com>
-#   David Ascher <dascher@mozillamessaging.com>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Markus Hossner <markushossner@gmx.de>
+ *   Mark Banner <bugzilla@standard8.plus.com>
+ *   David Ascher <dascher@mozillamessaging.com>
+ *   Dan Mosedale <dmose@mozillamessagin.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 
 /* This is where functions related to displaying the headers for a selected message in the
@@ -56,13 +56,10 @@
 var gViewAllHeaders = false;
 var gMinNumberOfHeaders = 0;
 var gDummyHeaderIdIndex = 0;
-var gCollapsedHeaderViewMode = false;
 var gBuildAttachmentsForCurrentMsg = false;
 var gBuildAttachmentPopupForCurrentMsg = true;
 var gBuiltExpandedView = false;
-var gBuiltCollapsedView = false;
 var gMessengerBundle;
-var gProfileDirURL;
 var gHeadersShowReferences = false;
 var gShowCondensedEmailAddresses = true; // show the friendly display names for people I know instead of the name + email address
 
@@ -90,16 +87,7 @@ var gMessageListeners = new Array();
 //                 This allows you to provide your own methods for actually determining how the header value
 //                 is displayed. (DEFAULT: updateHeaderValue which just sets the header value on the text node)
 
-// Our first view is the collapsed view. This is very light weight view of the data. We only show a couple
-// fields.
-var gCollapsedHeaderList = [ {name:"subject", outputFunction:updateHeaderValueInTextNode},
-                             {name:"from", useToggle:true, useShortView:true, outputFunction:OutputEmailAddresses},
-                             {name:"toCcBcc", useToggle:true,
-                              useShortView:true,
-                              outputFunction: OutputEmailAddresses},
-                             {name:"date", outputFunction:OutputDate}];
-
-// We also have an expanded header view. This shows many of your more common (and useful) headers.
+// This expanded header view shows many of the more common (and useful) headers.
 var gExpandedHeaderList = [ {name:"subject"},
                             {name:"from", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"reply-to", useToggle:true, outputFunction:OutputEmailAddresses},
@@ -121,7 +109,6 @@ const gEmailAddressHeaderNames = ["from", "reply-to",
 // Now, for each view the message pane can generate, we need a global table of headerEntries. These
 // header entry objects are generated dynamically based on the static data in the header lists (see above)
 // and elements we find in the DOM based on properties in the header lists.
-var gCollapsedHeaderView = {};
 var gExpandedHeaderView  = {};
 
 // currentHeaderData --> this is an array of header name and value pairs for the currently displayed message.
@@ -147,7 +134,7 @@ const nsIAbCard = Components.interfaces.nsIAbCard;
 // based on an entry in one of the header lists. A header entry is different from a header list.
 // a header list just describes how you want a particular header to be presented. The header entry
 // actually has knowledge about the DOM and the actual DOM elements associated with the header.
-// prefix --> the name of the view (i.e. "collapsed", "expanded")
+// prefix --> the name of the view (e.g. "expanded")
 // headerListInfo --> entry from a header list.
 function createHeaderEntry(prefix, headerListInfo)
 {
@@ -196,12 +183,6 @@ function initializeHeaderViewTables()
   // iterate over each header in our header list arrays and create header entries
   // for each one. These header entries are then stored in the appropriate header table
   var index;
-  for (index = 0; index < gCollapsedHeaderList.length; index++)
-    {
-      gCollapsedHeaderView[gCollapsedHeaderList[index].name] =
-        new createHeaderEntry('collapsed', gCollapsedHeaderList[index]);
-    }
-
     for (index = 0; index < gExpandedHeaderList.length; index++)
     {
       var headerName = gExpandedHeaderList[index].name;
@@ -264,16 +245,15 @@ function OnLoadMsgHeaderPane()
             .addAddressBookListener(AddressBookListener,
                                     Components.interfaces.nsIAbListener.all);
 
-  var deckHeaderView = document.getElementById("msgHeaderViewDeck");
-  gCollapsedHeaderViewMode = deckHeaderView.selectedIndex == 0;
-  
-  // work around XUL deck bug where collapsed header view, if it's the persisted
-  // default, wouldn't be sized properly because of the larger expanded
-  // view "stretches" the deck.
-  if (gCollapsedHeaderViewMode)
-    document.getElementById('expandedHeaderView').collapsed = true;
-  else
-    document.getElementById('collapsedHeaderView').collapsed = true;
+  // if an invalid index is selected; reset to 0.  One way this can happen
+  // is if a value of 1 was persisted to localStore.rdf by Tb2 (when there were
+  // two panels), and then the user upgraded to Tb3, which only has one.
+  // Presumably this can also catch cases of extension uninstalls as well.
+  let deckElement = document.getElementById('msgHeaderViewDeck')
+  if (deckElement.selectedIndex < 0 ||
+      deckElement.selectedIndex >= deckElement.childElementCount) {
+    deckElement.selectedIndex = 0;
+  }
 
   // dispatch an event letting any listeners know that we have loaded the message pane
   var event = document.createEvent('Events');
@@ -343,15 +323,6 @@ function OnAddressBookDataChanged(aAction, aParentDir, aItem) {
   gEmailAddressHeaderNames.forEach(function (headerName) {
       var headerEntry = null;
 
-      // Ensure both collapsed and expanded are updated in case we toggle
-      // between the two.
-      if (headerName in gCollapsedHeaderView) {
-        headerEntry = gCollapsedHeaderView[headerName];
-        if (headerEntry)
-          headerEntry.enclosingBox.updateExtraAddressProcessing(aAction,
-                                                                aParentDir,
-                                                                aItem);
-      }
       if (headerName in gExpandedHeaderView) {
         headerEntry = gExpandedHeaderView[headerName];
         if (headerEntry)
@@ -391,14 +362,13 @@ var messageHeaderSink = {
 
       ClearCurrentHeaders();
       gBuiltExpandedView = false;
-      gBuiltCollapsedView = false;
       gBuildAttachmentsForCurrentMsg = false;
       gBuildAttachmentPopupForCurrentMsg = true;
       ClearAttachmentList();
       ClearEditMessageBox();
       gMessageNotificationBar.clearMsgNotifications();
 
-      for (index in gMessageListeners)
+      for (let index in gMessageListeners)
         gMessageListeners[index].onStartHeaders();
     },
 
@@ -407,15 +377,19 @@ var messageHeaderSink = {
       ShowMessageHeaderPane();
       // WARNING: This is the ONLY routine inside of the message Header Sink that should
       // trigger a reflow!
-      ClearHeaderView(gCollapsedHeaderView);
       ClearHeaderView(gExpandedHeaderView);
 
       EnsureSubjectValue(); // make sure there is a subject even if it's empty so we'll show the subject and the twisty
 
-      UpdateMessageHeaders();
+      // Only update the expanded view if it's actually selected (an
+      // extension-provided panel could be visible instead) and needs updating.
+      if (document.getElementById('msgHeaderViewDeck').selectedIndex == 0 &&
+          !gBuiltExpandedView) {
+        UpdateExpandedMessageHeaders();
+      }
+
       ShowEditMessageBox();
       UpdateJunkButton();
-      UpdateReplyButtons();
 
       for (index in gMessageListeners)
         gMessageListeners[index].onEndHeaders();
@@ -503,12 +477,8 @@ var messageHeaderSink = {
       // presentation level change....don't show vcards as external attachments in the UI.
       // libmime already renders them inline.
 
-      try
-      {
-        if (!this.mSaveHdr)
-          this.mSaveHdr = messenger.messageServiceFromURI(uri).messageURIToMsgHdr(uri);
-      }
-      catch (ex) {}
+      if (!this.mSaveHdr)
+        this.mSaveHdr = messenger.messageServiceFromURI(uri).messageURIToMsgHdr(uri);
       if (contentType == "text/x-vcard")
       {
         var inlineAttachments = pref.getBoolPref("mail.inline_attachments");
@@ -531,19 +501,17 @@ var messageHeaderSink = {
         if (node)
           node.removeAttribute("disabled");
 
-        try {
-          // convert the uri into a hdr
-          this.mSaveHdr.markHasAttachments(true);
-        }
-        catch (ex) {
-          dump("ex = " + ex + "\n");
-        }
+        // convert the uri into a hdr
+        this.mSaveHdr.markHasAttachments(true);
       }
     },
 
     onEndAllAttachments: function()
     {
       displayAttachmentsForExpandedView();
+
+      gMessageDisplay.messageLoading = false;
+      gMessageDisplay.messageLoaded = true;
 
       for (index in gMessageListeners) {
         if ("onEndAttachments" in gMessageListeners[index])
@@ -557,12 +525,7 @@ var messageHeaderSink = {
       if (!this.mSaveHdr)
       {
         var messageUrl = url.QueryInterface(Components.interfaces.nsIMsgMessageUrl);
-        try
-        {
-          this.mSaveHdr = messenger.msgHdrFromURI(messageUrl.uri);
-        }
-        catch (ex) {}
-
+        this.mSaveHdr = messenger.msgHdrFromURI(messageUrl.uri);
       }
       if (!currentAttachments.length && this.mSaveHdr)
         this.mSaveHdr.markHasAttachments(false);
@@ -596,6 +559,11 @@ var messageHeaderSink = {
     {
       if (!this.mDummyMsgHeader)
         this.mDummyMsgHeader = new nsDummyMsgHeader();
+      // The URI resolution will never work on the dummy header;
+      // save it now... we know it will be needed eventually.
+      // (And save it every time we come through here, not just when
+      // we create it; the onStartHeaders might come after creation!)
+      this.mSaveHdr = this.mDummyMsgHeader;
       return this.mDummyMsgHeader;
     },
     mProperties: null,
@@ -611,15 +579,9 @@ var messageHeaderSink = {
 function SetTagHeader()
 {
   // it would be nice if we passed in the msgHdr from the back end
-  var msgHdr;
-  try
-  {
-    msgHdr = gDBView.hdrForFirstSelectedMessage;
-  }
-  catch (ex)
-  {
+  var msgHdr = gFolderDisplay.selectedMessage;
+  if (!msgHdr)
     return; // no msgHdr to add our tags to
-  }
 
   // get the list of known tags
   var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
@@ -683,10 +645,8 @@ function OnTagsChange()
       if (headerEntry.valid)
         headerEntry.outputFunction(headerEntry, currentHeaderData.tags.headerValue);
 
-      // if we are showing the expanded header view then we may need to collapse or
-      // show the tag header box...
-      if (!gCollapsedHeaderViewMode)
-        headerEntry.enclosingBox.collapsed = !headerEntry.valid;
+      // we may need to collapse or show the tag header box...
+      headerEntry.enclosingBox.collapsed = !headerEntry.valid;
     }
   }
 }
@@ -776,48 +736,27 @@ function EnsureMinimumNumberOfHeaders (headerTable)
   }
 }
 
-// make sure the appropriate fields within the currently displayed view header mode
-// are collapsed or visible...
-function updateHeaderViews()
+// make sure the appropriate fields in the expanded header view are collapsed
+// or visible...
+function updateExpandedView()
 {
-  if (gCollapsedHeaderViewMode)
-    showHeaderView(gCollapsedHeaderView);
-  else
-  {
-    if (gMinNumberOfHeaders)
+  // if the expanded view isn't selected, don't bother updating it
+  if (document.getElementById('msgHeaderViewDeck').selectedIndex != 0)
+    return;
+
+  if (gMinNumberOfHeaders)
       EnsureMinimumNumberOfHeaders(gExpandedHeaderView);
-    showHeaderView(gExpandedHeaderView);
-  }
+  showHeaderView(gExpandedHeaderView);
+
   UpdateJunkButton();
   UpdateReplyButtons();
   displayAttachmentsForExpandedView();
-}
-
-function ToggleHeaderView ()
-{
-  gCollapsedHeaderViewMode = !gCollapsedHeaderViewMode;
-  // Work around a xul deck bug where the height of the deck is determined by the tallest panel in the deck
-  // even if that panel is not selected...
-  document.getElementById('msgHeaderViewDeck').selectedPanel.collapsed = true;
-  UpdateMessageHeaders();
-
-  // select the new panel.
-  document.getElementById('msgHeaderViewDeck').selectedIndex = gCollapsedHeaderViewMode ? 0 : 1;
-
-  // Work around a xul deck bug where the height of the deck is determined by the tallest panel in the deck
-  // even if that panel is not selected...
-  document.getElementById('msgHeaderViewDeck').selectedPanel.collapsed = false;
 }
 
 // default method for updating a header value into a header entry
 function updateHeaderValue(headerEntry, headerValue)
 {
   headerEntry.enclosingBox.headerValue = headerValue;
-}
-
-function updateHeaderValueInTextNode(headerEntry, headerValue)
-{
-  headerEntry.textNode.value = headerValue;
 }
 
 function createNewHeaderView(headerName, label)
@@ -858,78 +797,54 @@ function removeNewHeaderViews(aHeaderTable)
   }
 }
 
-// UpdateMessageHeaders: Iterate through all the current header data we received from mime for this message
-// for each header entry table, see if we have a corresponding entry for that header. i.e. does the particular
-// view care about this header value. if it does then call updateHeaderEntry
-function UpdateMessageHeaders()
-{
+// UpdateExpandedMessageHeaders: Iterate through all the current header data
+// we received from mime for this message for the expanded header entry table,
+// and see if we have a corresponding entry for that header (i.e.
+// whether the expanded header view cares about this header value)
+// If so, then call updateHeaderEntry
+function UpdateExpandedMessageHeaders() {
   // iterate over each header we received and see if we have a matching entry in each
   // header view table...
-
   var headerName;
 
   // Remove the height attr so that it redraws correctly. Works around a problem that
   // attachment-splitter causes if it's moved high enough to affect the header box:
   document.getElementById('msgHeaderView').removeAttribute('height');
 
-  for (headerName in currentHeaderData)
-  {
+  for (headerName in currentHeaderData) {
     var headerField = currentHeaderData[headerName];
     var headerEntry = null;
 
-    if (headerName == "subject")
-    {
-      try {
-        if (gDBView.keyForFirstSelectedMessage == nsMsgKey_None)
-        {
-          var folder = null;
-          if (gCurrentFolderUri)
-            folder = GetMsgFolderFromUri(gCurrentFolderUri);
-          setTitleFromFolder(folder, headerField.headerValue);
-        }
-      } catch (ex) {}
-    }
-
-    if (gCollapsedHeaderViewMode && !gBuiltCollapsedView)
-    {
-      if (headerName == "cc" || headerName == "to" || headerName == "bcc")
-        headerEntry = gCollapsedHeaderView["toCcBcc"];
-      else if (headerName in gCollapsedHeaderView)
-        headerEntry = gCollapsedHeaderView[headerName];
-    }
-    else if (!gCollapsedHeaderViewMode && !gBuiltExpandedView)
-    {
-      if (headerName in gExpandedHeaderView)
-       headerEntry = gExpandedHeaderView[headerName];
-
-      if (!headerEntry && gViewAllHeaders)
-      {
-        // for view all headers, if we don't have a header field for this value....cheat and create one....then
-        // fill in a headerEntry
-        if (headerName == "message-id" || headerName == "in-reply-to")
-        {
-          var messageIdEntry = {name:headerName, outputFunction:OutputMessageIds};
-          gExpandedHeaderView[headerName] = new createHeaderEntry('expanded', messageIdEntry);
-        }
-        else
-        {
-          gExpandedHeaderView[headerName] = 
-            new createNewHeaderView(headerName, 
-                                    currentHeaderData[headerName].headerName);
-        }
-
+    if (headerName in gExpandedHeaderView)
         headerEntry = gExpandedHeaderView[headerName];
-      }
-    } // if we are in expanded view....
 
-    if (headerEntry)
-    {
+    if (!headerEntry && gViewAllHeaders) {
+      // for view all headers, if we don't have a header field for this
+      // value....cheat and create one....then fill in a headerEntry
+      if (headerName == "message-id" || headerName == "in-reply-to") {
+        var messageIdEntry = {
+          name: headerName,
+          outputFunction: OutputMessageIds
+        };
+        gExpandedHeaderView[headerName] = new createHeaderEntry('expanded',
+                                                                messageIdEntry);
+      }
+      else {
+        gExpandedHeaderView[headerName] =
+          new createNewHeaderView(headerName,
+                                  currentHeaderData[headerName].headerName);
+      }
+
+      headerEntry = gExpandedHeaderView[headerName];
+    }
+
+    if (headerEntry) {
       if (headerName == "references" &&
           !(gViewAllHeaders || gHeadersShowReferences ||
-            (gDBView.msgFolder && gDBView.msgFolder.server.type == "nntp")))
-      {
-        // hide references header if view all headers mode isn't selected, the pref show references is
-        // deactivated and the currently displayed message isn't a newsgroup posting
+            gFolderDisplay.view.isNewsFolder)) {
+        // hide references header if view all headers mode isn't selected, the
+        // pref show references is deactivated and the currently displayed
+        // message isn't a newsgroup posting
         headerEntry.valid = false;
       }
       else
@@ -940,13 +855,10 @@ function UpdateMessageHeaders()
     }
   }
 
-  if (gCollapsedHeaderViewMode)
-   gBuiltCollapsedView = true;
-  else
-   gBuiltExpandedView = true;
+  gBuiltExpandedView = true;
 
   // now update the view to make sure the right elements are visible
-  updateHeaderViews();
+  updateExpandedView();
 }
 
 function ClearCurrentHeaders()
@@ -959,13 +871,18 @@ function ShowMessageHeaderPane()
 {
   document.getElementById('msgHeaderView').collapsed = false;
 
-  /* workaround for 39655 */
-  if (gFolderJustSwitched)
-  {
-    var el = document.getElementById("msgHeaderView");
-    el.setAttribute("style", el.getAttribute("style"));
-    gFolderJustSwitched = false;
-  }
+  // We used to do this as a work-around for long-ago bug 39655
+  // there apparently was a layout bug where the message pane
+  // 'toolbar' was being hidden as a result of the folder change,
+  // then re-shown, but the layout would glitch and not show it.
+  // As much as I love cargo-culting, I am commenting this out
+  // because I have great respect for our layout ninjas and little
+  // respect for random global variables such as the one that
+  // controlled this.
+  //
+  //var el = document.getElementById("msgHeaderView");
+  //el.setAttribute("style", el.getAttribute("style"));
+  //
 }
 
 function HideMessageHeaderPane()
@@ -977,7 +894,7 @@ function HideMessageHeaderPane()
   // disable the attachment box
   document.getElementById("attachmentView").collapsed = true;
   document.getElementById("attachment-splitter").collapsed = true;
-  
+
   ClearEditMessageBox();
 }
 
@@ -1113,12 +1030,12 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
   if (cardDetails.card) {
     displayName = cardDetails.card.displayName;
     aDocumentNode.setAttribute("hascard", "true");
-    aDocumentNode.setAttribute("tooltipstar", 
+    aDocumentNode.setAttribute("tooltipstar",
                                document.getElementById("editContactItem").label);
   }
   else {
     aDocumentNode.setAttribute("hascard", "false");
-    aDocumentNode.setAttribute("tooltipstar", 
+    aDocumentNode.setAttribute("tooltipstar",
                                document.getElementById("addToAddressBookItem").label);
   }
 
@@ -1210,7 +1127,7 @@ function findEmailNodeFromPopupNode(elt, popup)
   // the user clicks on the label, then popupNode is set to it, rather than
   // the description.  So we have walk up the parent until we find the
   // element with the popup set, and then return its parent.
-  
+
   while (elt.getAttribute("popup") != popup)
   {
     elt = elt.parentNode;
@@ -1295,6 +1212,19 @@ function onClickEmailStar(event, emailAddressNode)
     EditContact(emailAddressNode);
   else
     AddContact(emailAddressNode);
+}
+
+/**
+ * @return the DOM node for the header-view-button-box in the currently
+ * selected panel of the message header
+ *
+ * @note that this assumes that the first such button box is the only one
+ * worth caring about (having more than one per panel is not supported).
+ */
+function getCurrentMsgHdrButtonBox() {
+
+  return document.getElementById('msgHeaderViewDeck').selectedPanel
+                 .getElementsByTagName("header-view-button-box").item(0);
 }
 
 function AddContact(emailAddressNode)
@@ -1417,8 +1347,8 @@ function detachAttachment(aAttachment, aSaveFirst)
  */
 function CanDetachAttachments()
 {
-  var uri = GetLoadedMessage();
-  var canDetach = !IsNewsMessage(uri) && (!IsImapMessage(uri) || MailOfflineMgr.isOnline());
+  var canDetach = !gFolderDisplay.selectedMessageIsNews &&
+                  (!gFolderDisplay.selectedMessageIsImap || MailOfflineMgr.isOnline());
   if (canDetach && ("content-type" in currentHeaderData))
     canDetach = !ContentTypeIsSMIME(currentHeaderData["content-type"].headerValue);
   return canDetach;
@@ -1865,15 +1795,9 @@ function ClearAttachmentList()
 function ShowEditMessageBox()
 {
   // it would be nice if we passed in the msgHdr from the back end
-  var msgHdr;
-  try
-  {
-    msgHdr = gDBView.hdrForFirstSelectedMessage;
-  }
-  catch (ex)
-  {
+  var msgHdr = gFolderDisplay.selectedMessage;
+  if (!msgHdr && !msgHdr.folder)
     return;
-  }
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
   if (IsSpecialFolder(msgHdr.folder, nsMsgFolderFlags.Drafts, true))
     document.getElementById("editMessageBox").collapsed = false;
@@ -1992,17 +1916,34 @@ function nsDummyMsgHeader()
 nsDummyMsgHeader.prototype =
 {
   mProperties : new Array,
-  getStringProperty : function(property) {return this.mProperties[property];},
-  setStringProperty : function(property, val) {this.mProperties[property] = val;},
+  getStringProperty : function(aProperty) {
+    if (aProperty in this.mProperties)
+      return this.mProperties[property];
+    return "";
+  },
+  setStringProperty : function(aProperty, aVal) {
+    this.mProperties[aProperty] = aVal;
+  },
+  getUint32Property : function(aProperty) {
+    if (aProperty in this.mProperties)
+      return parseInt(this.mProperties[aProperty]);
+    return 0;
+  },
+  setUint32Property: function(aProperty, aVal) {
+    this.mProperties[aProperty] = aVal.toString();
+  },
   markHasAttachments : function(hasAttachments) {},
   messageSize : 0,
   recipients : null,
   from : null,
   subject : null,
+  get mime2DecodedSubject() { return this.subject; },
   ccList : null,
   listPost : null,
   messageId : null,
   accountKey : "",
+  // if you change us to return a fake folder, please update
+  // folderDisplay.js's FolderDisplayWidget's selectedMessageIsExternal getter.
   folder : null
 };
 

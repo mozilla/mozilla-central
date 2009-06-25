@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Thomas Benisch <thomas.benisch@sun.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,7 +46,8 @@
 }
 
 calendar-invitations-richlistbox {
-  background-color: white;
+  background-color: -moz-Field;
+  color: -moz-FieldText;
   border: 1px solid #7F9DB9;
 }
 
@@ -59,7 +61,9 @@ calendar-invitations-richlistitem {
 }
 
 calendar-invitations-richlistitem[selected="true"] {
-  background-image: url("chrome://mozapps/skin/downloads/downloadSelected.png") !important;
+  background-image: url("chrome://mozapps/skin/extensions/itemEnabledFader.png");
+  background-color: Highlight;
+  color: HighlightText;
   border-bottom: 1px dotted #7F9DB9;
 }
 
@@ -84,6 +88,11 @@ calendar-invitations-richlistitem[selected="true"] {
 
 .calendar-invitations-richlistitem-button {
   margin-bottom: 10px;
+  visibility: hidden;
+}
+
+calendar-invitations-richlistitem[selected="true"] .calendar-invitations-richlistitem-button {
+  visibility: visible;
 }
 
 .calendar-invitations-richlistitem-button .button-icon {

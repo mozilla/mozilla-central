@@ -894,7 +894,7 @@ nsresult nsMsgCompose::SetDocumentCharset(const char *charset)
   m_compFields->SetCharacterSet(charset);
 
   // notify the change to editor
-  m_editor->SetDocumentCharacterSet(nsDependentCString(charset));
+  m_editor->SetDocumentCharacterSet(charset ? nsDependentCString(charset): EmptyCString());
 
   return NS_OK;
 }
@@ -1178,8 +1178,6 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
           mProgress->OpenProgressDialog(m_window, aMsgWindow, 
                                         "chrome://messenger/content/messengercompose/sendProgress.xul", 
                                         PR_FALSE, params);
-          
-          mProgress->GetPrompter(getter_AddRefs(prompt));
         }
       }
     }

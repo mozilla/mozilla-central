@@ -291,7 +291,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
             if (status < 0) 
               return status;
             status = MimeWriteAString(obj, NS_LITERAL_CSTRING("\""MSG_LINEBREAK"Content-Transfer-Encoding: 8bit"MSG_LINEBREAK));
-            MimeWriteAString(obj, NS_LITERAL_CSTRING("Content-Disposition: inline; filename=\"Deleted:"));
+            MimeWriteAString(obj, NS_LITERAL_CSTRING("Content-Disposition: inline; filename=\"Deleted: "));
             MimeWriteAString(obj, fileName);
             MimeWriteAString(obj, NS_LITERAL_CSTRING("\""MSG_LINEBREAK"X-Mozilla-Altered: AttachmentDeleted; date=\""));
           }
@@ -304,7 +304,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
                                  &now);
           MimeWriteAString(obj, nsDependentCString(timeBuffer));
           MimeWriteAString(obj, NS_LITERAL_CSTRING("\""MSG_LINEBREAK));
-          MimeWriteAString(obj, NS_LITERAL_CSTRING(MSG_LINEBREAK"The original MIME headers for this attachment are:"MSG_LINEBREAK));
+          MimeWriteAString(obj, NS_LITERAL_CSTRING(MSG_LINEBREAK"You deleted an attachment from this message. The original MIME headers for the attachment were:"MSG_LINEBREAK));
           MimeHeaders_write_raw_headers(mult->hdrs, obj->options, PR_FALSE);
         }
         status = ((MimeMultipartClass *) obj->clazz)->create_child(obj);

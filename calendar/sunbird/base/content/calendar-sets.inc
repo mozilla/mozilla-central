@@ -71,6 +71,7 @@
   <command id="cmd_quitApplication"     oncommand="goQuitApplication()"/>
 	
   <command id="close_calendar_command" oncommand="closeCalendar()"/>
+  <command id="calendar_go_to_today_command" oncommand="goToDate(now())"/>
 
 #ifdef XP_MACOSX
   <command id="minimizeWindowCmd" oncommand="window.minimize();"/>

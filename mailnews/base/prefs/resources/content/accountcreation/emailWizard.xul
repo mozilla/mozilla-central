@@ -185,7 +185,7 @@
                 <vbox id="configarea">
                   <hbox>
                     <hbox flex="1">
-                      <description id="config_status_title"/>
+                      <description id="config_status_title" flex="1"/>
                     </hbox>
                     <hbox pack="end">
                       <button id="stop_button"

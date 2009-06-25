@@ -24,10 +24,11 @@
    -   Vladimir Vukicevic <vladimir@pobox.com>
    -   Stefan Sitter <ssitter@googlemail.com>
    -   Clint Talbert <cmtalbert@myfastmail.com>
-   -   Michael Büttner <michael.buettner@sun.com>
+   -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Markus Adrario <MarkusAdrario@web.de>
    -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -55,7 +56,7 @@
   xmlns:xbl="http://www.mozilla.org/xbl">
 
   <binding id="calendar-month-day-box-item" extends="chrome://calendar/content/calendar-view-core.xml#calendar-editable-item">
-    <content tooltip="itemTooltip">
+    <content mousethrough="never" tooltip="itemTooltip">
       <xul:vbox flex="1">
         <xul:hbox>
           <xul:box anonid="event-container"
@@ -68,9 +69,11 @@
                          xbl:inherits="readonly,flashing,alarm,allday,priority,progress,status,calendar,categories"
                          flex="1">
                 <xul:hbox class="calendar-event-details">
-                  <xul:image anonid="item-icon"
-                             class="calendar-month-day-box-item-image"
-                             xbl:inherits="progress,allday"/>
+                  <xul:vbox pack="center">
+                    <xul:image anonid="item-icon"
+                               class="calendar-month-day-box-item-image"
+                               xbl:inherits="progress,allday"/>
+                  </xul:vbox>
                   <xul:label anonid="item-label"
                              class="calendar-month-day-box-item-label"
                              xbl:inherits="context"/>
@@ -80,7 +83,9 @@
                     <xul:label anonid="event-name"
                                crop="end"
                                flex="1"
-                               style="margin: 0;"/>
+                               style="margin: 0;">
+                        <html:div anonid="event-name-div"/>
+                    </xul:label>
                     <xul:textbox anonid="event-name-textbox"
                                  class="plain calendar-event-name-textbox"
                                  crop="end"
@@ -88,17 +93,21 @@
                                  wrap="true"/>
                     <xul:spacer flex="1"/>
                   </xul:vbox>
-                  <xul:hbox anonid="alarm-icons-box"
-                            class="alarm-icons-box"
-                            align="center"
-                            xbl:inherits="flashing"/>
+                  <xul:stack>
+                    <xul:calendar-category-box anonid="category-box" xbl:inherits="categories" pack="end"/>
+                    <xul:hbox anonid="alarm-icons-box"
+                              class="alarm-icons-box"
+                              align="center"
+                              pack="end"
+                              xbl:inherits="flashing"/>
+                  </xul:stack>
                 </xul:hbox>
                 <xul:image anonid="gradient"
                            class="calendar-event-box-gradient"
-                           height="1px"/>
+                           height="1px"
+                           mousethrough="always"/>
               </xul:stack>
             </xul:box>
-            <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
           </xul:box>
         </xul:hbox>
       </xul:vbox>
@@ -1064,10 +1073,12 @@
 
     <handlers>
       <handler event="DOMMouseScroll"><![CDATA[
+        let scrollEnabled = getPrefSafe('calendar.view.mousescroll', true);
         if (!event.ctrlKey &&
             !event.shiftKey &&
             !event.altKey &&
-            !event.metaKey) {
+            !event.metaKey &&
+            scrollEnabled) {
             // In the month view, the only thing that can be scrolled
             // is the month the user is in. calendar-base-view takes care
             // of the shift key, so only move the view when no modifier

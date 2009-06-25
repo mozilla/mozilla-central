@@ -129,7 +129,10 @@ EXPORTS		= \
 
 EXTRA_JS_MODULES = \
 		folderUtils.jsm \
-		iteratorUtils.jsm
+		iteratorUtils.jsm \
+		jsTreeSelection.js \
+		traceHelper.js \
+		$(NULL)
 
 ifndef MOZ_STATIC_MAIL_BUILD
 

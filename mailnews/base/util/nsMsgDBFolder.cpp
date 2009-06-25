@@ -1117,6 +1117,11 @@ NS_IMETHODIMP nsMsgDBFolder::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigat
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgDBFolder::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgDBFolder::GetManyHeadersToDownload(PRBool *retval)
 {
   NS_ENSURE_ARG_POINTER(retval);
@@ -1916,11 +1921,20 @@ nsMsgDBFolder::MatchOrChangeFilterDestination(nsIMsgFolder *newFolder, PRBool ca
       rv = server->GetCanHaveFilters(&canHaveFilters);
       if (NS_SUCCEEDED(rv) && canHaveFilters)
       {
+        // update the filterlist to match the new folder name
         rv = server->GetFilterList(nsnull, getter_AddRefs(filterList));
-        if (filterList)
+        if (NS_SUCCEEDED(rv) && filterList)
         {
           rv = filterList->MatchOrChangeFilterTarget(oldUri, newUri, caseInsensitive, found);
-          if (found && newFolder && !newUri.IsEmpty())
+          if (NS_SUCCEEDED(rv) && found && newFolder && !newUri.IsEmpty())
+            rv = filterList->SaveToDefaultFile();
+        }
+        // update the editable filterlist to match the new folder name
+        rv = server->GetEditableFilterList(nsnull, getter_AddRefs(filterList));
+        if (NS_SUCCEEDED(rv) && filterList)
+        {
+          rv = filterList->MatchOrChangeFilterTarget(oldUri, newUri, caseInsensitive, found);
+          if (NS_SUCCEEDED(rv) && found && newFolder && !newUri.IsEmpty())
             rv = filterList->SaveToDefaultFile();
         }
       }
@@ -3941,12 +3955,14 @@ void nsMsgDBFolder::ChangeNumPendingTotalMessages(PRInt32 delta)
 
 NS_IMETHODIMP nsMsgDBFolder::SetFlag(PRUint32 flag)
 {
+  // If calling this function causes us to open the db (i.e., it was not
+  // open before), we're going to close the db before returning.
+  PRBool dbWasOpen = mDatabase != nsnull;
+
   ReadDBFolderInfo(PR_FALSE);
   // OnFlagChange can be expensive, so don't call it if we don't need to
   PRBool flagSet;
   nsresult rv;
-
-  PRBool dbWasOpen = mDatabase != nsnull;
 
   if (NS_FAILED(rv = GetFlag(flag, &flagSet)))
     return rv;
@@ -4736,6 +4752,25 @@ nsMsgDBFolder::SetFilterList(nsIMsgFilterList *aFilterList)
   nsresult rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
   return server->SetFilterList(aFilterList);
+}
+
+NS_IMETHODIMP
+nsMsgDBFolder::GetEditableFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  nsresult rv = GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return server->GetEditableFilterList(aMsgWindow, aResult);
+}
+
+NS_IMETHODIMP
+nsMsgDBFolder::SetEditableFilterList(nsIMsgFilterList *aFilterList)
+{
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  nsresult rv = GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return server->SetEditableFilterList(aFilterList);
 }
 
 /* void enableNotifications (in long notificationType, in boolean enable); */

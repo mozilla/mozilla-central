@@ -148,7 +148,7 @@ function ip_processIcalComponent(rootComp) {
             if (item) {
                 // Only try to fix ICS from Sunbird 0.2 (and earlier) if it
                 // has an EXDATE.
-                hasExdate = subComp.getFirstProperty("EXDATE");
+                let hasExdate = subComp.getFirstProperty("EXDATE");
                 if (isFromOldSunbird && hasExdate) {
                     item = fixOldSunbirdExceptions(item);
                 }

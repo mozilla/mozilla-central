@@ -185,7 +185,8 @@
             if ((aVisible === true) && (pushModeCollapsedAttribute == false)){
                 display = (aVisible === true) && (!collapsedInMode);
             }
-            setBooleanAttribute(this, "collapsed", (!display));
+
+            setBooleanAttribute(this, "collapsed", (!display || !this.isVisibleInMode()));
             if (pushModeCollapsedAttribute) {
                 if (!display) {
                     if (modeIndex == -1) {
@@ -213,6 +214,7 @@
                     var command =  document.getElementById(this.getAttribute("refcontrol"))
                     if (command) {
                         command.setAttribute("checked", display);
+                        setBooleanAttribute(command, "disabled", !this.isVisibleInMode());
                     }
                 }
             }

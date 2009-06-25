@@ -109,9 +109,6 @@ static MimeHeadersState MIME_HeaderType;
 static PRBool MIME_WrapLongLines;
 static PRBool MIME_VariableWidthPlaintext;
 
-// For string bundle access routines...
-static nsCOMPtr<nsIStringBundle>   stringBundle = nsnull;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Attachment handling routines
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1990,28 +1987,20 @@ extern "C"
 char *
 MimeGetStringByID(PRInt32 stringID)
 {
-  char          *tempString = nsnull;
-  const char    *resultString = "???";
-  nsresult      res = NS_OK;
+  char *tempString = nsnull;
+  const char *resultString = "???";
+  const char* propertyURL = MIME_URL;
 
-  if (!stringBundle)
-  {
-    const char* propertyURL = MIME_URL;
+  nsCOMPtr<nsIStringBundleService> stringBundleService =
+    do_GetService(NS_STRINGBUNDLE_CONTRACTID);
 
-    nsCOMPtr<nsIStringBundleService> sBundleService =
-             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
-    if (NS_SUCCEEDED(res) && (nsnull != sBundleService))
-    {
-      res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(stringBundle));
-    }
-  }
+  nsCOMPtr<nsIStringBundle> stringBundle;
+  stringBundleService->CreateBundle(MIME_URL, getter_AddRefs(stringBundle));
 
   if (stringBundle)
   {
     nsString v;
-    res = stringBundle->GetStringFromID(stringID, getter_Copies(v));
-
-    if (NS_SUCCEEDED(res))
+    if (NS_SUCCEEDED(stringBundle->GetStringFromID(stringID, getter_Copies(v))))
       tempString = ToNewUTF8String(v);
   }
 

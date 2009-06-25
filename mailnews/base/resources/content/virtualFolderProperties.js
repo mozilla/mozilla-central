@@ -43,6 +43,11 @@ var msgWindow; // important, don't change the name of this variable. it's really
 var gSearchTermSession; // really an in memory temporary filter we use to read in and write out the search terms
 var gSearchFolderURIs = "";
 
+var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
+
+Components.utils.import("resource://app/modules/virtualFolderWrapper.js");
+Components.utils.import("resource://app/modules/iteratorUtils.jsm");
+
 function onLoad()
 {
   var arguments = window.arguments[0];
@@ -56,7 +61,7 @@ function onLoad()
   setSearchScope(nsMsgSearchScope.offlineMail);
 
   if (arguments.editExistingFolder)
-    InitDialogWithVirtualFolder(arguments.folder ? arguments.folder.URI : null);
+    InitDialogWithVirtualFolder(arguments.folder);
   else // we are creating a new virtual folder
   {
     // it is possible that we were given arguments to pre-fill the dialog with...
@@ -65,9 +70,9 @@ function onLoad()
 
     if (arguments.searchTerms) // then add them to our search session
     {
-      var count = arguments.searchTerms.Count();
-      for (var searchIndex = 0; searchIndex < count; )
-        gSearchTermSession.appendTerm(arguments.searchTerms.QueryElementAt(searchIndex++, Components.interfaces.nsIMsgSearchTerm));
+      for each (let searchTerm in fixIterator(arguments.searchTerms,
+                                              Components.interfaces.nsIMsgSearchTerm))
+        gSearchTermSession.appendTerm(searchTerm);
     }
     if (arguments.folder)
     {
@@ -126,34 +131,29 @@ function updateOnlineSearchState()
   }
 }
 
-function InitDialogWithVirtualFolder(aVirtualFolderURI)
+function InitDialogWithVirtualFolder(aVirtualFolder)
 {
+  let virtualFolderWrapper =
+    VirtualFolderHelper.wrapVirtualFolder(window.arguments[0].folder);
+
   // when editing an existing folder, hide the folder picker that stores the parent location of the folder
   document.getElementById("chooseFolderLocationRow").collapsed = true;
   var folderNameField = document.getElementById("name");
   folderNameField.disabled = true;
 
-  var msgFolder = GetMsgFolderFromUri(aVirtualFolderURI);
-  var dbFolderInfo = msgFolder.msgDatabase.dBFolderInfo;
-
-  gSearchFolderURIs = dbFolderInfo.getCharProperty("searchFolderUri");
-  var searchTermString = dbFolderInfo.getCharProperty("searchStr");
-  document.getElementById('searchOnline').checked = dbFolderInfo.getBooleanProperty("searchOnline", false);
-
-  // work around to get our search term string converted into a real array of search terms
-  var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"].getService(Components.interfaces.nsIMsgFilterService);
-  var filterList = filterService.getTempFilterList(msgFolder);
-  gSearchTermSession = filterList.createFilter("temp");
-  filterList.parseCondition(gSearchTermSession, searchTermString);
+  gSearchFolderURIs = virtualFolderWrapper.searchFolderURIs;
+  document.getElementById('searchOnline').checked = virtualFolderWrapper.onlineSearch;
+  gSearchTermSession = virtualFolderWrapper.searchTermsSession;
 
   setupSearchRows(gSearchTermSession.searchTerms);
 
   // set the name of the folder
-  folderNameField.value = msgFolder.prettyName;
+  folderNameField.value = aVirtualFolder.prettyName;
 
   // update the window title based on the name of the saved search
   var messengerBundle = document.getElementById("bundle_messenger");
-  document.title = messengerBundle.getFormattedString('editVirtualFolderPropertiesTitle', [msgFolder.prettyName]);
+  document.title = messengerBundle.getFormattedString('editVirtualFolderPropertiesTitle',
+                                                      [aVirtualFolder.prettyName]);
 }
 
 function onFolderPick(aEvent) {
@@ -182,24 +182,19 @@ function onOK()
   {
     // update the search terms
     saveSearchTerms(gSearchTermSession.searchTerms, gSearchTermSession);
-    var searchTermString = getSearchTermString(gSearchTermSession.searchTerms);
-
-    var msgFolder = window.arguments[0].folder;
-    var msgDatabase = msgFolder.msgDatabase;
-    var dbFolderInfo = msgDatabase.dBFolderInfo;
-
-    // set the view string as a property of the db folder info
-    // set the original folder name as well.
-    dbFolderInfo.setCharProperty("searchStr", searchTermString);
-    dbFolderInfo.setCharProperty("searchFolderUri", gSearchFolderURIs);
-    dbFolderInfo.setBooleanProperty("searchOnline", searchOnline);
-    msgDatabase.Close(true);
+    // save the settings
+    let virtualFolderWrapper =
+      VirtualFolderHelper.wrapVirtualFolder(window.arguments[0].folder);
+    virtualFolderWrapper.searchTerms = gSearchTermSession.searchTerms;
+    virtualFolderWrapper.searchFolders = gSearchFolderURIs;
+    virtualFolderWrapper.onlineSearch = searchOnline;
+    virtualFolderWrapper.cleanUpMessageDatabase();
 
     var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
     accountManager.saveVirtualFolders();
 
     if (window.arguments[0].onOKCallback)
-      window.arguments[0].onOKCallback(msgFolder.URI);
+      window.arguments[0].onOKCallback(virtualFolderWrapper.virtualFolder.URI);
     return true;
   }
   var uri = gPickedFolder.URI;
@@ -230,7 +225,9 @@ function onOK()
     }
     
     saveSearchTerms(gSearchTermSession.searchTerms, gSearchTermSession);
-    CreateVirtualFolder(name, parentFolder, gSearchFolderURIs, gSearchTermSession.searchTerms, searchOnline);
+    VirtualFolderHelper.createNewVirtualFolder(name, parentFolder, gSearchFolderURIs,
+                                               gSearchTermSession.searchTerms,
+                                               searchOnline);
   }
 
   return true;

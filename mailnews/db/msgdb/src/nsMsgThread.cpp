@@ -47,7 +47,6 @@ NS_IMPL_ISUPPORTS1(nsMsgThread, nsIMsgThread)
 
 nsMsgThread::nsMsgThread()
 {
-
   MOZ_COUNT_CTOR(nsMsgThread);
   Init();
 }
@@ -87,10 +86,10 @@ nsMsgThread::~nsMsgThread()
   MOZ_COUNT_DTOR(nsMsgThread);
   if (m_mdbTable)
     m_mdbTable->Release();
-  if (m_mdbDB)
-    m_mdbDB->Release();
   if (m_metaRow)
     m_metaRow->Release();
+  if (m_mdbDB)
+    m_mdbDB->Release();
 }
 
 nsresult nsMsgThread::InitCachedValues()

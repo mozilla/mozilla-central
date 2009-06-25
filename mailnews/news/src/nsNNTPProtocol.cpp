@@ -465,7 +465,24 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
 
       m_runningURL->GetNewsAction(&m_newsAction);
       if (m_newsAction == nsINntpUrl::ActionFetchArticle || m_newsAction == nsINntpUrl::ActionFetchPart
-        || m_newsAction == nsINntpUrl::ActionSaveMessageToDisk) {
+          || m_newsAction == nsINntpUrl::ActionSaveMessageToDisk)
+      {
+        // Look for the content length
+        nsCOMPtr<nsIMsgMessageUrl> msgUrl(do_QueryInterface(m_runningURL));
+        if (msgUrl)
+        {
+          nsCOMPtr<nsIMsgDBHdr> msgHdr;
+          msgUrl->GetMessageHeader(getter_AddRefs(msgHdr));
+          if (msgHdr)
+          {
+            // Note that for attachments, the messageSize is going to be the
+            // size of the entire message
+            PRUint32 messageSize;
+            msgHdr->GetMessageSize(&messageSize);
+            SetContentLength(messageSize);
+          }
+        }
+
         PRBool msgIsInLocalCache = PR_FALSE;
         mailnewsUrl->GetMsgIsInLocalCache(&msgIsInLocalCache);
         if (msgIsInLocalCache || WeAreOffline())

@@ -65,6 +65,7 @@ nsMsgMailNewsUrl::nsMsgMailNewsUrl()
   m_addContentToCache = PR_FALSE;
   m_msgIsInLocalCache = PR_FALSE;
   m_suppressErrorMsgs = PR_FALSE;
+  mMaxProgress = -1;
   
   m_baseURL = do_CreateInstance(NS_STANDARDURL_CONTRACTID);
 }
@@ -250,6 +251,18 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SetStatusFeedback(nsIMsgStatusFeedback *aMsgFeed
 {
   if (aMsgFeedback)
     m_statusFeedbackWeak = do_GetWeakReference(aMsgFeedback);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgMailNewsUrl::GetMaxProgress(PRInt64 *aMaxProgress)
+{
+  *aMaxProgress = mMaxProgress;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgMailNewsUrl::SetMaxProgress(PRInt64 aMaxProgress)
+{
+  mMaxProgress = aMaxProgress;
   return NS_OK;
 }
 

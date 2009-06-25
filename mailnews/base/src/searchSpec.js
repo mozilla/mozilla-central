@@ -49,6 +49,7 @@ const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsIMsgSearchTerm = Ci.nsIMsgSearchTerm;
 const nsIMsgLocalMailFolder = Ci.nsIMsgLocalMailFolder;
 const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
+const nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
 
 const NS_MSG_SEARCH_INTERRUPTED = 0x00550002;
 
@@ -56,8 +57,8 @@ const NS_MSG_SEARCH_INTERRUPTED = 0x00550002;
  * Wrapper abstraction around a view's search session.  This is basically a
  *  friend class of FolderDisplayWidget and is privy to some of its internals.
  */
-function SearchSpec(aFolderDisplayWidget) {
-  this.owner = aFolderDisplayWidget;
+function SearchSpec(aViewWrapper) {
+  this.owner = aViewWrapper;
 
   this._viewTerms = null;
   this._virtualFolderTerms = null;
@@ -66,8 +67,28 @@ function SearchSpec(aFolderDisplayWidget) {
   this._session = null;
   this._sessionListener = null;
   this._listenersRegistered = false;
+
+  this._onlineSearch = false;
 }
 SearchSpec.prototype = {
+  /**
+   * Clone this SearchSpec; intended to be used by DBViewWrapper.clone().
+   */
+  clone: function SearchSpec_clone(aViewWrapper) {
+    let doppel = new SearchSpec(aViewWrapper);
+
+    // we can just copy the terms since we never mutate them
+    doppel._viewTerms = this._viewTerms;
+    doppel._virtualFolderTerms = this._viewTerms;
+    doppel._userTerms = this._viewTerms;
+
+    // _session can stay null
+    // no listener is required, so we can keep _sessionListener and
+    //  _listenersRegistered at their default values
+
+    return doppel;
+  },
+
   get hasSearchTerms() {
     return this._viewTerms || this._virtualFolderTerms || this._userTerms;
   },
@@ -104,7 +125,7 @@ SearchSpec.prototype = {
    *  caused us to introduce this method.  (We want the DB View's OnDone method
    *  to run before our listener, as it may do important work.)
    */
-  associateView: function(aDBView) {
+  associateView: function SearchSpec_associateView(aDBView) {
     if (this.hasSearchTerms) {
       this.updateSession();
 
@@ -124,7 +145,7 @@ SearchSpec.prototype = {
    * Stop any active search and stop the db view being a search listener (if it
    *  is one).
    */
-  dissociateView: function(aDBView) {
+  dissociateView: function SearchSpec_dissociateView(aDBView) {
     // If we are currently searching, interrupt the search.  This will
     //  immediately notify the listeners that the search is done with and
     //  clear the searching flag for us.
@@ -188,6 +209,12 @@ SearchSpec.prototype = {
     this.owner._applyViewChanges();
   },
   /**
+   * @return the view terms currently in effect.  Do not mutate this.
+   */
+  get viewTerms() {
+    return this._viewTerms;
+  },
+  /**
    * Set search terms that are defined by the 'virtual folder' definition.  This
    *  could also be thought of as the 'saved search' part of a saved search.
    *
@@ -203,6 +230,12 @@ SearchSpec.prototype = {
     else
       this._virtualFolderTerms = null;
     this.owner._applyViewChanges();
+  },
+  /**
+   * @return the Virtual folder terms currently in effect.  Do not mutate this.
+   */
+  get virtualFolderTerms() {
+    return this._virtualFolderTerms;
   },
 
   /**
@@ -220,6 +253,13 @@ SearchSpec.prototype = {
     this.owner._applyViewChanges();
   },
   /**
+   * @return the user terms currently in effect as set via the |userTerms|
+   *     attribute or via the |quickSearch| method.  Do not mutate this.
+   */
+  get userTerms() {
+    return this._userTerms;
+  },
+  /**
    * Apply a quick-search for the given search mode using the given search
    *  string.  All of the hard work is done by
    *  QuickSearchManager.createSearchTerms; we mainly just assign the result to
@@ -234,7 +274,7 @@ SearchSpec.prototype = {
    */
   quickSearch: function SearchSpec_quickSearch(aSearchMode, aSearchString) {
     this.userTerms = QuickSearchManager.createSearchTerms(
-      this._session, aSearchMode, aSearchString);
+      this.session, aSearchMode, aSearchString);
   },
 
   clear: function SearchSpec_clear() {
@@ -249,6 +289,19 @@ SearchSpec.prototype = {
   get onlineSearch() {
     return this._onlineSearch;
   },
+  /**
+   * Virtual folders have a concept of 'online search' which affects the logic
+   *  in updateSession that builds our search scopes.  If onlineSearch is false,
+   *  then when displaying the virtual folder unaffected by mail views or quick
+   *  searches, we will most definitely perform an offline search.  If
+   *  onlineSearch is true, we will perform an online search only for folders
+   *  which are not available offline and for which the server is configured
+   *  to have an online 'searchScope'.
+   * When mail views or quick searches are in effect our search is always
+   *  offline unless the only way to satisfy the needs of the constraints is an
+   *  online search (read: the message body is required but not available
+   *  offline.)
+   */
   set onlineSearch(aOnlineSearch) {
     this._onlineSearch = aOnlineSearch;
   },
@@ -266,10 +319,15 @@ SearchSpec.prototype = {
     session.searchTerms.QueryInterface(Ci.nsISupportsArray).Clear();
     session.clearScopes();
 
+    // the scope logic needs to know if any terms look at the body attribute.
+    let haveBodyTerm = false;
+
     // -- apply terms
     if (this._virtualFolderTerms) {
       for each (let term in fixIterator(this._virtualFolderTerms,
                                         nsIMsgSearchTerm)) {
+        if (term.attrib == nsMsgSearchAttrib.Body)
+          haveBodyTerm = true;
         session.appendTerm(term);
       }
     }
@@ -277,6 +335,8 @@ SearchSpec.prototype = {
     if (this._viewTerms) {
       for each (let term in fixIterator(this._viewTerms,
                                         nsIMsgSearchTerm)) {
+        if (term.attrib == nsMsgSearchAttrib.Body)
+          haveBodyTerm = true;
         session.appendTerm(term);
       }
     }
@@ -284,25 +344,47 @@ SearchSpec.prototype = {
     if (this._userTerms) {
       for each (let term in fixIterator(this._userTerms,
                                         nsIMsgSearchTerm)) {
+        if (term.attrib == nsMsgSearchAttrib.Body)
+          haveBodyTerm = true;
         session.appendTerm(term);
       }
     }
 
     // -- apply scopes
-    // if the folder is local, the folder is marked for offline access, or we
-    //  are offline, then perform an offline search.
-    // otherwise, rely on the server's search scope. if we were more thorough,
-    //  we could try and figure out what operands cause us to fall back toward
-    //  online usage.  (quick search previously specialized this by virtue of
-    //  having a very limited set of terms in use.)
+    // We are filtering if we have mail view terms or user terms.  When
+    //  filtering, we bias towards offline search.  The only time we would use
+    //  an online search when filtering is if one of the constraints uses the
+    //  body attribute and the folder is not marked for offline access.
+    // We are not filtering if we only have virtual folder terms, in which case
+    //  we honor the onlineSearch attribute.  This means that we use the
+    //  folder's server's searchScope if the folder is not explicitly marked
+    //  offline.
+    // For further discussion on this choice of logic, please read from:
+    //  https://bugzilla.mozilla.org/show_bug.cgi?id=474701#c73
+    let filtering = this._virtualFolderTerms == null &&
+                    this._viewTerms == null;
+
     let ioService = Cc["@mozilla.org/network/io-service;1"]
                       .getService(Ci.nsIIOService);
     for each (let [, folder] in Iterator(this.owner._underlyingFolders)) {
+      // we do not need to check isServer here because _underlyingFolders
+      //  filtered it out when it was initialized.
+
       let scope;
-      if ((folder instanceof nsIMsgLocalMailFolder) ||
-        (folder.flags & nsMsgFolderFlags.Offline) ||
-          ioService.offline)
+      let folderIsOffline = (folder instanceof nsIMsgLocalMailFolder) ||
+                            (folder.flags & nsMsgFolderFlags.Offline) ||
+                            ioService.offline;
+      // To restate the above logic into simpler rules, the scope is definitely
+      //  offline if:
+      // - Folders available offline always use offline search.
+      // - If we are filtering and don't have a body term, use offline search.
+      // - If we are not filtering and our virtual folder is not marked for
+      //   onlineSearch.
+      if (folderIsOffline ||
+          (filtering && !haveBodyTerm) ||
+          (!filtering && !this.onlineSearch))
         scope = nsMsgSearchScope.offlineMail;
+      // Otherwise, it's up to the folder's sever's searchScope.
       else
         scope = folder.server.searchScope;
       session.addScopeTerm(scope, folder);

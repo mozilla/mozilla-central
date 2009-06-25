@@ -346,23 +346,18 @@ function switchToView(aViewType) {
 
     // Set up the labels for the context menu
     ["calendar-view-context-menu-next",
-     "calendar-view-context-menu-previous"].forEach(function(x) setupViewNode(x, "label"));
+     "calendar-view-context-menu-previous",
+     "calendar-go-menu-next",
+     "calendar-go-menu-previous"].forEach(function(x) setupViewNode(x, "label"));
+
+    ["calendar-go-menu-next",
+     "calendar-go-menu-previous"].forEach(function(x) setupViewNode(x, "accesskey"));
 
     // Set up the labels for the view navigation
     ["previous-view-button",
      "today-view-button",
      "next-view-button"].forEach(function(x) setupViewNode(x, "tooltiptext"));
     
-        
-
-    // Disable the menuitem when not in day or week view.
-    var rotated = document.getElementById("calendar_toggle_orientation_command");
-    if (aViewType == "day" || aViewType == "week") {
-        rotated.removeAttribute("disabled");
-    } else {
-        rotated.setAttribute("disabled", "true");
-    }
-
     try {
         selectedDay = viewDeck.selectedPanel.selectedDay;
         currentSelection = viewDeck.selectedPanel.getSelectedItems({});

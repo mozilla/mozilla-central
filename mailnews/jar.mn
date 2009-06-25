@@ -88,7 +88,6 @@ messenger.jar:
     content/messenger/shareglue.js                                             (base/resources/content/shareglue.js)
     content/messenger/newFolderDialog.xul                                      (base/resources/content/newFolderDialog.xul)
     content/messenger/newFolderDialog.js                                       (base/resources/content/newFolderDialog.js)
-    content/messenger/msgViewNavigation.js                                     (base/resources/content/msgViewNavigation.js)
 *   content/messenger/msgAccountCentral.xul                                    (base/resources/content/msgAccountCentral.xul)
     content/messenger/msgAccountCentral.js                                     (base/resources/content/msgAccountCentral.js)
     content/messenger/msgFolderPickerOverlay.js                                (base/resources/content/msgFolderPickerOverlay.js)

@@ -65,9 +65,17 @@ pref("calendar.date.format", 0);
 pref("calendar.event.defaultlength", 60);
 // Do NOT set this.  If it is unset, we guess the timezone from the system
 //pref("calendar.timezone.local", "America/New_York);
+
+// start and end work hour for day and week views
 pref("calendar.view.daystarthour", 8);
 pref("calendar.view.dayendhour", 17);
+
+// number of visible hours for day and week views
 pref("calendar.view.visiblehours", 9);
+
+// If true, mouse scrolling via shift+wheel will be enabled
+pref("calendar.view.mousescroll", true);
+
 pref("calendar.weeks.inview", 4);
 pref("calendar.previousweeks.inview", 0);
 

@@ -49,15 +49,19 @@
 <!ENTITY newevent.to.label                  "To" >
 <!ENTITY newevent.attendees.notify.label    "Notify attendees">
 
-<!ENTITY newevent.status.label              "Status" >
-<!ENTITY newevent.status.accesskey          "S" >
-<!ENTITY newevent.status.none.label         "Not specified" >
-<!ENTITY newevent.status.cancelled.label    "Cancelled" >
-<!ENTITY newevent.status.tentative.label    "Tentative" >
-<!ENTITY newevent.status.confirmed.label    "Confirmed" >
-<!ENTITY newevent.status.needsaction.label  "Needs Action" >
-<!ENTITY newevent.status.inprogress.label   "In Process" >
-<!ENTITY newevent.status.completed.label    "Completed on" >
+<!ENTITY newevent.status.label                "Status" >
+<!ENTITY newevent.status.accesskey            "S" >
+<!ENTITY newevent.status.none.label           "Not specified" >
+<!ENTITY newevent.status.none.accesskey       "o" >
+<!ENTITY newevent.status.cancelled.label      "Cancelled" >
+<!ENTITY newevent.status.cancelled.accesskey  "n" >
+<!ENTITY newevent.status.tentative.label      "Tentative" >
+<!ENTITY newevent.status.tentative.accesskey  "T" >
+<!ENTITY newevent.status.confirmed.label      "Confirmed" >
+<!ENTITY newevent.status.confirmed.accesskey  "C" >
+<!ENTITY newevent.status.needsaction.label    "Needs Action" >
+<!ENTITY newevent.status.inprogress.label     "In Process" >
+<!ENTITY newevent.status.completed.label      "Completed on" >
 
 <!-- The following entity is for New Task dialog only -->
 <!ENTITY newtodo.percentcomplete.label      "&#37; complete">
@@ -77,6 +81,8 @@
 <!ENTITY  event.menu.file.close.accesskey                 "C">
 <!ENTITY  event.menu.file.save.label                      "Save">
 <!ENTITY  event.menu.file.save.accesskey                  "S">
+<!ENTITY  event.menu.item.delete.label                    "Delete…">
+<!ENTITY  event.menu.item.delete.accesskey                "D">
 <!ENTITY  event.menu.file.page.setup.label                "Page Setup">
 <!ENTITY  event.menu.file.page.setup.accesskey            "u">
 <!ENTITY  event.menu.file.print.label                     "Print">
@@ -165,6 +171,7 @@
 
 <!-- Toolbar -->
 <!ENTITY  event.toolbar.save.label                        "Save and Close">
+<!ENTITY  event.toolbar.delete.label                      "Delete">
 <!ENTITY  event.toolbar.attendees.label                   "Invite Attendees">
 <!ENTITY  event.toolbar.spellcheck.label                  "Spellcheck">
 <!ENTITY  event.toolbar.privacy.label                     "Privacy">
@@ -349,6 +356,9 @@
 <!ENTITY event.freebusy.legend.busy_tentative   "Tentative" >
 <!ENTITY event.freebusy.legend.busy_unavailable "Out of Office" >
 <!ENTITY event.freebusy.legend.unknown          "No Information" >
+<!ENTITY event.attendee.role.required           "Required Attendee">
+<!ENTITY event.attendee.role.optional           "Optional Attendee">
+<!ENTITY event.attendee.role.chair              "Chair">
 
 <!-- Timezone dialog -->
 <!ENTITY timezone.title.label            "Please Specify the Timezone">

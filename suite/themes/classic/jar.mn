@@ -78,6 +78,7 @@ classic.jar:
   skin/classic/communicator/icons/offline.png                           (communicator/icons/offline.png)
   skin/classic/communicator/icons/online.png                            (communicator/icons/online.png)
   skin/classic/communicator/icons/search.png                            (communicator/icons/search.png)
+  skin/classic/communicator/icons/identity.png                          (communicator/icons/identity.png)
   skin/classic/communicator/icons/lock-secure.png                       (communicator/icons/lock-secure.png)
   skin/classic/communicator/icons/lock-broken.png                       (communicator/icons/lock-broken.png)
   skin/classic/communicator/icons/lock-insecure.png                     (communicator/icons/lock-insecure.png)

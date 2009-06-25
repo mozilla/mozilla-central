@@ -136,7 +136,7 @@ interface nsMsgDBCommitType
  * The contract ID for this component is
  * <tt>\@mozilla.org/msgDatabase/msgDBService;1</tt>.
  */
-[scriptable, uuid(26cb7242-a4ba-4811-ad7b-ff993450aae3)]
+[scriptable, uuid(959d0a27-9a00-4ce8-b01d-180ff2387b6a)]
 interface nsIMsgDBService : nsISupports
 {
   /**
@@ -230,6 +230,15 @@ interface nsIMsgDBService : nsISupports
    *                        The listener is not registered.
    */
   void unregisterPendingListener(in nsIDBChangeListener aListener);
+
+  /**
+   * Get the db for a folder, if already open.
+   *
+   * @param aFolder   The folder to get the cached (open) db for.
+   *
+   * @returns         null if the db isn't open, otherwise the db.
+   */
+  nsIMsgDatabase cachedDBForFolder(in nsIMsgFolder aFolder);
 };
 
 [scriptable, uuid(51fd11c9-5be6-4cad-af6b-fb18d6232be4)]

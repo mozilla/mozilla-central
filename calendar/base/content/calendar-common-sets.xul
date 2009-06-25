@@ -84,42 +84,51 @@
 
     <command id="calendar_reload_remote_calendars" oncommand="goDoCommand('calendar_reload_remote_calendars')"/>
 
-    <command id="calendar_show_unifinder_command" oncommand="toggleUnifinder()"/>
+    <command id="calendar_show_unifinder_command" oncommand="goDoCommand('calendar_show_unifinder_command')"/>
     <!-- The dash instead of the underscore is intended. the 'xxx-view' part should be the id of the view in the deck -->
     <command id="calendar_day-view_command" oncommand="showCalendarView('day')"/>
     <command id="calendar_week-view_command" oncommand="showCalendarView('week')"/>
     <command id="calendar_multiweek-view_command" oncommand="showCalendarView('multiweek')"/>
     <command id="calendar_month-view_command" oncommand="showCalendarView('month')"/>
     <command id="calendar_task_category_command" oncommand="contextChangeTaskCategory(event);"/>
+    <command id="calendar_toggle_completed_command" oncommand="toggleCompleted(event)"/>
     <command id="calendar_percentComplete-0_command" oncommand="contextChangeTaskProgress(event, 0)"/>
     <command id="calendar_percentComplete-25_command" oncommand="contextChangeTaskProgress(event, 25)"/>
     <command id="calendar_percentComplete-50_command" oncommand="contextChangeTaskProgress(event, 50)"/>
     <command id="calendar_percentComplete-75_command" oncommand="contextChangeTaskProgress(event, 75)"/>
     <command id="calendar_percentComplete-100_command" oncommand="contextChangeTaskProgress(event, 100)"/>
-    <command id="calendar_percentComplete-100_command2" oncommand="contextChangeTaskProgress2(event, 100)"/>
     <command id="calendar_priority-0_command" oncommand="contextChangeTaskPriority(event, 0)"/>
     <command id="calendar_priority-9_command" oncommand="contextChangeTaskPriority(event, 9)"/>
     <command id="calendar_priority-5_command" oncommand="contextChangeTaskPriority(event, 5)"/>
     <command id="calendar_priority-1_command" oncommand="contextChangeTaskPriority(event, 1)"/>
     <command id="calendar_general-priority_command" oncommand="goDoCommand('calendar_general-priority_command')"/>
-    <command id="calendar_toggle_orientation_command" persist="checked" oncommand="toggleOrientation()" disabled="true"/>
-    <command id="calendar_toggle_workdays_only_command" persist="checked" oncommand="toggleWorkdaysOnly()"/>
+    <command id="calendar_general-progress_command" oncommand="goDoCommand('calendar_general-priority_command')"/>
+    <command id="calendar_toggle_orientation_command" persist="checked" oncommand="goDoCommand('calendar_toggle_orientation_command')"/>
+    <command id="calendar_toggle_workdays_only_command" persist="checked" oncommand="goDoCommand('calendar_toggle_workdays_only_command')"/>
     <command id="calendar_toggle_tasks_in_view_command" persist="checked" oncommand="toggleTasksInView()"/>
     <command id="calendar_toggle_show_completed_in_view_command" persist="checked" oncommand="toggleShowCompletedInView()"/>
     <command id="calendar_toggle_minimonthpane_command" oncommand="document.getElementById('minimonth-pane').togglePane(event)"/>
     <command id="calendar_toggle_calendarlist_command" oncommand="document.getElementById('calendar-list-pane').togglePane(event)"/>
     <command id="calendar_task_filter_command" oncommand="taskViewUpdate(event.explicitOriginalTarget.getAttribute('value'))"/>
     <command id="calendar_toggle_filter_command" oncommand="document.getElementById('task-filter-pane').togglePane(event)"/>
-    <command id="calendar_view_next_command" oncommand="currentView().moveView(1)"/>
+    <command id="calendar_view_next_command" oncommand="goDoCommand('calendar_view_next_command')"/>
     <command id="calendar_view_today_command" oncommand="currentView().moveView()"/>
-    <command id="calendar_view_prev_command" oncommand="currentView().moveView(-1)"/>
-    <command id="calendar_go_to_today_command" oncommand="goToDate(now())"/>
+    <command id="calendar_view_prev_command" oncommand="goDoCommand('calendar_view_prev_command')"/>
+
+    <!-- this is a pseudo-command that is disabled when in calendar mode -->
+    <command id="calendar_in_foreground"/>
+    <!-- this is a pseudo-command that is disabled when not in calendar mode -->
+    <command id="calendar_in_background"/>
+
+    <!-- These commands are enabled when in calendar or task mode, respectively -->
+    <command id="calendar_mode_calendar"/>
+    <command id="calendar_mode_task"/>
   </commandset>
 
   <keyset id="calendar-keys">
 #ifdef XP_MACOSX
-    // The following Mac specific code-lines are necessary, because you can't 
-    // just use the OPTION key on Mac OSX. So we will use SHIFT+OPTION on the 
+    // The following Mac specific code-lines are necessary, because you can't
+    // just use the OPTION key on Mac OSX. So we will use SHIFT+OPTION on the
     // Mac, but just ALT on all other platforms. See bug 448946.
     <key id="calendar-day-view-key" key="&calendar.dayView.key;" observes="calendar_day-view_command" modifiers="shift alt"/>
     <key id="calendar-week-view-key" key="&calendar.weekView.key;" observes="calendar_week-view_command" modifiers="shift alt"/>
@@ -281,7 +290,8 @@
                 type="checkbox"
                 label="&calendar.context.markcompleted.label;"
                 accesskey="&calendar.context.markcompleted.accesskey;"
-                oncommand="toggleCompleted(event)"/>
+                observes="calendar_toggle_completed_command"
+                command="calendar_toggle_completed_command"/>
       <menu id="task-context-menu-progress"
             label="&calendar.context.progress.label;"
             accesskey="&calendar.context.progress.accesskey;">

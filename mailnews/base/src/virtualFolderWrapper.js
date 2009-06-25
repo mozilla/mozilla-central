@@ -66,7 +66,9 @@ var VirtualFolderHelper = {
    * @param aSearchFolders A list of nsIMsgFolders that you want to use as the
    *     sources for the virtual folder OR a string that is the already '|'
    *     delimited list of folder URIs to use.
-   * @param aSearchTerms The search terms to use for the virtual folder.
+   * @param aSearchTerms The search terms to use for the virtual folder.  This
+   *     should be a JS list/nsIMutableArray/nsISupportsArray of
+   *     nsIMsgSearchTermbs.
    * @param aOnlineSearch Should the search attempt to use the server's search
    *     capabilities when possible and appropriate?
    *
@@ -165,20 +167,44 @@ VirtualFolderWrapper.prototype = {
     }
     return folders;
   },
+  /**
+   * Set the search folders that back this virtual folder.
+   *
+   * @param aFolders Either a "|"-delimited string of folder URIs or a list of
+   *     nsIMsgFolders that fixIterator can traverse (JS array/nsIMutableArray/
+   *     nsISupportsArray).
+   */
   set searchFolders(aFolders) {
     if (typeof(aFolders) == "string") {
       this.dbFolderInfo.setCharProperty("searchFolderUri", aFolders);
     }
     else {
-      let uris = [folder.URI for each ([, folder] in Iterator(aFolders))];
+      let uris = [folder.URI for each (folder in fixIterator(aFolders,
+                                                             Ci.nsIMsgFolder))];
       this.dbFolderInfo.setCharProperty("searchFolderUri", uris.join("|"));
     }
+  },
+
+  /**
+   * @return a "|"-delimited string containing the URIs of the folders that back
+   *     this virtual folder.
+   */
+  get searchFolderURIs() {
+    return this.dbFolderInfo.getCharProperty("searchFolderUri");
   },
 
   /**
    * @return the list of search terms that define this virtual folder.
    */
   get searchTerms() {
+    return this.searchTermsSession.searchTerms;
+  },
+  /**
+   * @return a newly created filter with the search terms loaded into it that
+   *     define this virtual folder.  The filter is apparently useful as an
+   *     nsIMsgSearchSession stand-in to some code.
+   */
+  get searchTermsSession() {
     let filterService =
       Cc["@mozilla.org/messenger/services/filters;1"]
         .getService(Ci.nsIMsgFilterService);
@@ -188,11 +214,17 @@ VirtualFolderWrapper.prototype = {
     let filterList = filterService.getTempFilterList(this.virtualFolder);
     let tempFilter = filterList.createFilter("temp");
     filterList.parseCondition(tempFilter, this.searchString);
-    return tempFilter.searchTerms;
+    return tempFilter;
   },
+
   /**
    * Set the search string for this virtual folder to the stringified version of
-   *  the provided list of search terms.
+   *  the provided list of nsIMsgSearchTerm search terms.  If you already have
+   *  a strinigified version of the search constraint, just set |searchString|
+   *  directly.
+   *
+   * @param aTerms Some collection that fixIterator can traverse.  A JS list or
+   *     XPCOM array (nsIMutableArray or nsISupportsArray) should work.
    */
   set searchTerms(aTerms) {
     let condition = "";
@@ -209,21 +241,56 @@ VirtualFolderWrapper.prototype = {
     this.searchString = condition;
   },
 
+  /**
+   * @return the set of search terms that define this virtual folder as a
+   *     string.  You may prefer to use |searchTerms| which converts them
+   *     into a list of nsIMsgSearchTerms instead.
+   */
   get searchString() {
     return this.dbFolderInfo.getCharProperty("searchStr");
   },
+  /**
+   * Set the search that defines this virtual folder from a string.  If you have
+   *  a list of nsIMsgSearchTerms, you should use |searchTerms| instead.
+   */
   set searchString(aSearchString) {
     this.dbFolderInfo.setCharProperty("searchStr", aSearchString);
   },
 
+  /**
+   * @return whether the virtual folder is configured for online search.
+   */
   get onlineSearch() {
     return this.dbFolderInfo.getBooleanProperty("searchOnline", false);
   },
+  /**
+   * Set whether the virtual folder is configured for online search.
+   */
   set onlineSearch(aOnlineSearch) {
     this.dbFolderInfo.setBooleanProperty("searchOnline", aOnlineSearch);
   },
 
+  /**
+   * @return the dBFolderInfo associated with the virtual folder directly.  May
+   *     be null.  Will cause the message database to be opened, which may have
+   *     memory bloat/leak ramifications, so make sure the folder's database was
+   *     already going to be opened anyways or that you call
+   *     |cleanUpMessageDatabase|.
+   */
   get dbFolderInfo() {
-    return this.virtualFolder.msgDatabase.dBFolderInfo;
+    let msgDatabase = this.virtualFolder.msgDatabase;
+    return (msgDatabase && msgDatabase.dBFolderInfo);
+  },
+
+  /**
+   * Avoid memory bloat by making the virtual folder forget about its database.
+   *  If the database is actually in use (read: someone is keeping it alive by
+   *  having references to it from places other than the nsIMsgFolder), the
+   *  folder will be able to re-establish the reference for minimal cost.
+   */
+  cleanUpMessageDatabase:
+      function VirtualFolderWrapper_cleanUpMessageDatabase() {
+    this.virtualFolder.msgDatabase.Close(true);
+    this.virtualFolder.msgDatabase = null;
   }
 };

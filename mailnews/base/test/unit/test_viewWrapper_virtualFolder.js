@@ -16,6 +16,7 @@ load("../../mailnews/resources/messageModifier.js");
 load("../../mailnews/resources/asyncTestUtils.js");
 
 load("../../mailnews/resources/viewWrapperTestUtils.js");
+initViewWrapperTestUtils();
 
 /**
  * Make sure we open a virtual folder backed by a single underlying folder
@@ -243,6 +244,22 @@ function test_virtual_folder_combo_load_after_load() {
 }
 
 /**
+ * Make sure that if a server is listed in a virtual folder's search Uris that
+ *  it does not get into our list of _underlyingFolders.
+ */
+function test_virtual_folder_filters_out_servers() {
+  let viewWrapper = make_view_wrapper();
+
+  let [folders] = make_folders_with_sets(2, []);
+  folders.push(folders[0].rootFolder);
+  let virtFolder = make_virtual_folder(folders, {});
+  yield async_view_open(viewWrapper, virtFolder);
+
+  assert_equals(viewWrapper._underlyingFolders.length, 2,
+                "Server folder should have been filtered out.");
+}
+
+/**
  * Verify that if one of the folders backing our virtual folder is deleted that
  *  we do not explode.  Then verify that if we remove the rest of them that the
  *  view wrapper closes itself.
@@ -402,6 +419,8 @@ var tests = [
   test_virtual_folder_multi_load_after_load,
   // -- mixture of single-backed and multi-backed
   test_virtual_folder_combo_load_after_load,
+  // -- ignore things we should ignore
+  test_virtual_folder_filters_out_servers,
   // -- rare/edge cases!
   test_virtual_folder_underlying_folder_deleted,
   // -- mail views (parameterized)

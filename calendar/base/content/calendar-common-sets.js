@@ -66,19 +66,27 @@ var calendarController = {
         "calendar_publish_calendar_command": true,
         "calendar_publish_selected_events_command": true,
 
+        "calendar_view_next_command": true,
+        "calendar_view_prev_command": true,
+
+        "calendar_toggle_orientation_command": true,
+        "calendar_toggle_workdays_only_command": true,
+
         "calendar_task_filter_command": true,
         "calendar_reload_remote_calendars": true,
+        "calendar_show_unifinder_command": true,
+        "calendar_toggle_completed_command": true,
         "calendar_percentComplete-0_command": true,
         "calendar_percentComplete-25_command": true,
         "calendar_percentComplete-50_command": true,
         "calendar_percentComplete-75_command": true,
         "calendar_percentComplete-100_command": true,
-        "calendar_percentComplete-100_command2": true,
         "calendar_priority-0_command": true,
         "calendar_priority-9_command": true,
         "calendar_priority-5_command": true,
         "calendar_priority-1_command": true,
         "calendar_general-priority_command": true,
+        "calendar_general-progress_command": true,
         "calendar_task_category_command": true,
         "cmd_cut": true,
         "cmd_copy": true,
@@ -93,7 +101,20 @@ var calendarController = {
         "cmd_printpreview": true,
         "button_print": true,
         "button_delete": true,
-        "cmd_delete": true
+        "cmd_delete": true,
+        "cmd_properties": true,
+        "cmd_runJunkControls": true,
+        "cmd_deleteJunk": true,
+        "cmd_applyFilters": true,
+        "cmd_applyFiltersToSelection": true,
+        "cmd_goForward": true,
+        "cmd_goBack": true,
+
+        // Pseudo commands
+        "calendar_in_foreground": true,
+        "calendar_in_background": true,
+        "calendar_mode_calendar": true,
+        "calendar_mode_task": true
     },
 
     updateCommands: function cC_updateCommands() {
@@ -131,37 +152,64 @@ var calendarController = {
                  // This code is temporarily commented out due to
                  // bug 469684 Unifinder-todo: raising of the context menu fires blur-event
                  // this.todo_tasktree_focused;
+            case "calendar_edit_calendar_command":
+                return this.isCalendarInForeground();
             case "calendar_task_filter_command":
                 return true;
             case "calendar_delete_todo_command":
+            case "calendar_toggle_completed_command":
             case "calendar_percentComplete-0_command":
             case "calendar_percentComplete-25_command":
             case "calendar_percentComplete-50_command":
             case "calendar_percentComplete-75_command":
             case "calendar_percentComplete-100_command":
-            case "calendar_percentComplete-100_command2":
             case "calendar_priority-0_command":
             case "calendar_priority-9_command":
             case "calendar_priority-5_command":
             case "calendar_priority-1_command":
             case "calendar_task_category_command":
+            case "calendar_general-progress_command":
             case "calendar_general-priority_command":
-                return this.writable &&
+                return this.isCalendarInForeground() &&
+                       this.writable &&
                        this.todo_items_selected &&
                        this.todo_items_writable;
             case "calendar_delete_calendar_command":
-                return !this.last_calendar;
-
+                return this.isCalendarInForeground() && !this.last_calendar;
             case "calendar_import_command":
                 return this.writable;
             case "calendar_export_selection_command":
                 return this.item_selected;
-
+            case "calendar_toggle_orientation_command":
+                return this.isInMode("calendar") &&
+                       currentView().supportsRotation;
+            case "calendar_toggle_workdays_only_command":
+                return this.isInMode("calendar") &&
+                       currentView().supportsWorkdaysOnly;
             case "calendar_publish_selected_events_command":
                 return this.item_selected;
 
             case "calendar_reload_remote_calendar":
                 return !this.no_network_calendars && !this.offline;
+
+            // The following commands all just need the calendar in foreground,
+            // make sure you take care when changing things here.
+            case "calendar_view_next_command":
+            case "calendar_view_prev_command":
+            case "calendar_in_foreground":
+                return this.isCalendarInForeground();
+            case "calendar_in_background":
+                return !this.isCalendarInForeground();
+
+            // The following commands need calendar mode, be careful when
+            // changing things.
+            case "calendar_show_unifinder_command":
+            case "calendar_mode_calendar":
+                return this.isInMode("calendar");
+
+            case "calendar_mode_task":
+                return this.isInMode("task");
+
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {
                     // The delete-button demands a special handling in mail-mode
@@ -205,6 +253,12 @@ var calendarController = {
                     case "button_delete":
                     case "cmd_delete":
                         return this.item_selected;
+                    case "cmd_properties":
+                    case "cmd_runJunkControls":
+                    case "cmd_deleteJunk":
+                    case "cmd_applyFilters":
+                    case "cmd_applyFiltersToSelection":
+                        return false;
                 }
                 if (aCommand in this.commands) {
                     // All other commands we support should be enabled by default
@@ -305,6 +359,21 @@ var calendarController = {
             case "calendar_reload_remote_calendars":
                 getCompositeCalendar().refresh();
                 break;
+            case "calendar_show_unifinder_command":
+                toggleUnifinder();
+                break;
+            case "calendar_view_next_command":
+                currentView().moveView(1);
+                break;
+            case "calendar_view_prev_command":
+                currentView().moveView(-1);
+                break;
+            case "calendar_toggle_orientation_command":
+                toggleOrientation();
+                break;
+            case "calendar_toggle_workdays_only_command":
+                toggleWorkdaysOnly();
+                break;
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {
                     // If calendar is not in foreground, let the default controller take
@@ -342,6 +411,13 @@ var calendarController = {
                         break;
 
                     // Thunderbird commands
+                    case "cmd_goForward":
+                        currentView().moveView(1);
+                        break;
+                    case "cmd_goBack":
+                        currentView().moveView(-1);
+                        break;
+
                     // For these commands, nothing should happen in calendar mode.
                     case "cmd_printpreview":
                     case "button_delete":
@@ -360,6 +436,17 @@ var calendarController = {
         // For sunbird, calendar is always in foreground. Otherwise check if
         // we are in the correct mode.
         return isSunbird() || (gCurrentMode && gCurrentMode != "mail");
+    },
+
+    isInMode: function cC_isInMode(mode) {
+        switch (mode) {
+            case "mail":
+                return !isCalendarInForeground();
+            case "calendar":
+                return isSunbird() || (gCurrentMode && gCurrentMode == "calendar");
+            case "task":
+                return !isSunbird() && (gCurrentMode && gCurrentMode == "task");
+       }
     },
 
     onSelectionChanged: function cC_onSelectionChanged(aEvent) {
@@ -554,7 +641,6 @@ function injectCalendarCommandController() {
             return;
         } else {
             calendarController.defaultController = tbController;
-            ltnInitializeMenus();
         }
     }
     top.controllers.insertControllerAt(0, calendarController);

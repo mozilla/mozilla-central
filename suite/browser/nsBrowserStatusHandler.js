@@ -74,6 +74,7 @@ nsBrowserStatusHandler.prototype =
     this.statusTextField = document.getElementById("statusbar-display");
     this.isImage         = document.getElementById("isImage");
     this.securityButton  = document.getElementById("security-button");
+    this.evButton        = document.getElementById("ev-button");
     this.feedsMenu       = document.getElementById("feedsMenu");
     this.feedsButton     = document.getElementById("feedsButton");
 
@@ -95,6 +96,7 @@ nsBrowserStatusHandler.prototype =
     this.statusTextField = null;
     this.isImage         = null;
     this.securityButton  = null;
+    this.evButton        = null;
     this.feedsButton     = null;
     this.feedsMenu       = null;
   },
@@ -395,14 +397,19 @@ nsBrowserStatusHandler.prototype =
     else
       this.securityButton.removeAttribute("tooltiptext");
 
-    if (aState & wpl.STATE_IDENTITY_EV_TOPLEVEL)
-      this.securityButton.setAttribute("label",
+    if (aState & wpl.STATE_IDENTITY_EV_TOPLEVEL) {
+      var organization =
           securityUI.QueryInterface(Components.interfaces.nsISSLStatusProvider)
                     .SSLStatus
                     .QueryInterface(Components.interfaces.nsISSLStatus)
-                    .serverCert.organization);
-    else
+                    .serverCert.organization;
+      this.securityButton.setAttribute("label", organization);
+      this.evButton.setAttribute("tooltiptext", organization);
+      this.evButton.hidden = false;
+    } else {
       this.securityButton.removeAttribute("label");
+      this.evButton.hidden = true;
+    }
   },
 
   startDocumentLoad : function(aRequest)

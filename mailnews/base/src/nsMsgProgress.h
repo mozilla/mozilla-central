@@ -73,7 +73,6 @@ private:
   nsString                           m_pendingStatus;
   PRInt32                            m_pendingStateFlags;
   PRInt32                            m_pendingStateValue;
-  nsCOMPtr<nsIDOMWindowInternal>     m_dialog;
   nsWeakPtr                          m_msgWindow;
   nsCOMArray<nsIWebProgressListener> m_listenerList;
 };

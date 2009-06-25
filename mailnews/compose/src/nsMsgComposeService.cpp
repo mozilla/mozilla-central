@@ -1084,7 +1084,7 @@ nsMsgTemplateReplyHelper::OnDataAvailable(nsIRequest* request,
   rv = inStream->Available(&available);
   while (NS_SUCCEEDED(rv) && available > 0)
   {
-    PRInt32 bodyOffset = 0, readOffset = 0;
+    PRUint32 bodyOffset = 0, readOffset = 0;
     if (!mInMsgBody && mLastBlockChars[0])
     {
       memcpy(readBuf, mLastBlockChars, 3);
@@ -1102,7 +1102,7 @@ nsMsgTemplateReplyHelper::OnDataAvailable(nsIRequest* request,
     // looks like <CR><CR>, <LF><LF>, or <CRLF><CRLF>
     if (!mInMsgBody)
     {
-      for (PRInt32 charIndex = 0; charIndex < readCount && !bodyOffset; charIndex++)
+      for (PRUint32 charIndex = 0; charIndex < readCount && !bodyOffset; charIndex++)
       {
         if (readBuf[charIndex] == '\r' || readBuf[charIndex] == '\n')
         {

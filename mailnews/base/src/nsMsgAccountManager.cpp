@@ -2724,6 +2724,13 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnAnnouncerGoingAway(nsIDBChangeAnnou
   return NS_OK;
 }
 
+NS_IMETHODIMP
+VirtualFolderChangeListener::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
+  return NS_OK;
+}
+
+
 NS_IMETHODIMP VirtualFolderChangeListener::OnReadChanged(nsIDBChangeListener *aInstigator)
 {
   return NS_OK;
@@ -3096,8 +3103,12 @@ NS_IMETHODIMP nsMsgAccountManager::GetAllFolders(nsIArray **aAllFolders)
   NS_ENSURE_SUCCESS(rv, rv);
   
   // Create an nsIMutableArray from the nsISupportsArray
+  nsCOMPtr<nsIMsgFolder> folder;
   for (i = 0; i < folderCount; i++)
-    folderArray->AppendElement(allDescendents->ElementAt(i), PR_FALSE);
+  {
+    folder = do_QueryElementAt(allDescendents, i);
+    folderArray->AppendElement(folder, PR_FALSE);
+  }
   NS_ADDREF(*aAllFolders = folderArray);
   return rv;
 }

@@ -101,8 +101,8 @@
   </keyset>
 
   <menupopup id="picontext">
-    <menuitem label="&selectall.label;" command="cmd_selectall" accesskey="&selectall.accesskey;"/>
-    <menuitem label="&copy.label;"      command="cmd_copy"      accesskey="&copy.accesskey;"/>
+    <menuitem id="menu_selectall" label="&selectall.label;" command="cmd_selectall" accesskey="&selectall.accesskey;"/>
+    <menuitem id="menu_copy"      label="&copy.label;"      command="cmd_copy"      accesskey="&copy.accesskey;"/>
   </menupopup>
 
   <tabbox id="tabbox" flex="1">
@@ -190,8 +190,8 @@
           <description id="general-security-identity" class="indent header"/>
           <description id="general-security-privacy"  class="indent header"/>
           <hbox align="right">
-            <button id="security-view-more" label="&generalSecurityMore;"
-                    accesskey="&generalSecurityMore.accesskey;"
+            <button id="security-view-details" label="&generalSecurityDetails;"
+                    accesskey="&generalSecurityDetails.accesskey;"
                     oncommand="onClickMore();"/>
           </hbox>
         </groupbox>

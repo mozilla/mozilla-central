@@ -133,8 +133,6 @@ function onPreInit(account, accountValues)
       {
         var retentionRadio = document.getElementById("retention.keepMsg");
         retentionRadio.setAttribute("hidden", "true");
-        var retentionCheckbox = document.getElementById("retention.keepUnread");
-        retentionCheckbox.setAttribute("hidden", "true");
         var retentionLabel = document.getElementById("retentionDescriptionPop");
         retentionLabel.setAttribute("hidden", "true");
         var applyToFlaggedCheckbox = document.getElementById("retention.applyToFlagged");

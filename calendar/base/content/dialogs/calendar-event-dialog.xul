@@ -23,6 +23,7 @@
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Stefan Sitter <ssitter@gmail.com>
    -   Fred Jendrzejewski <fred.jen@web.de>
+   -   Markus Adrario <Mozilla@Adrario.de>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -122,6 +123,9 @@
         <command id="cmd_save"
                  disable-on-readonly="true"
                  oncommand="onCommandSave()"/>
+        <command id="cmd_item_delete"
+                 disable-on-readonly="true"
+                 oncommand="onCommandDeleteItem()"/>
         <command id="cmd_printSetup"
                  oncommand="PrintUtils.showPageSetup()"/>
         <command id="cmd_print"
@@ -232,6 +236,10 @@
              modifiers="accel"
              key="S"
              command="cmd_save"/>
+        <key id="delete-key"
+             modifiers="accel"
+             key="D"
+             command="cmd_item_delete"/>
         <key id="print-key"
              modifiers="accel"
              key="P"
@@ -312,6 +320,12 @@
                               accesskey="&event.menu.file.save.accesskey;"
                               key="save-key"
                               command="cmd_save"/>
+                    <menuitem id="item-delete-menuitem"
+                              label="&event.menu.item.delete.label;"
+                              accesskey="&event.menu.item.delete.accesskey;"
+                              key="delete-key"
+                              command="cmd_item_delete"
+                              disable-on-readonly="true"/>
                     <menuitem id="file-pagesetup-menuitem"
                               label="&event.menu.file.page.setup.label;"
                               accesskey="&event.menu.file.page.setup.accesskey;"
@@ -498,21 +512,25 @@
                     <menupopup id="options-status-menupopup">
                       <menuitem id="options-status-none-menuitem"
                                 label="&newevent.status.none.label;"
+                                accesskey="&newevent.status.none.accesskey;"
                                 type="checkbox"
                                 command="cmd_status_none"
                                 disable-on-readonly="true"/>
                       <menuitem id="options-status-tentative-menuitem"
                                 label="&newevent.status.tentative.label;"
+                                accesskey="&newevent.status.tentative.accesskey;"
                                 type="checkbox"
                                 command="cmd_status_tentative"
                                 disable-on-readonly="true"/>
                       <menuitem id="options-status-confirmed-menuitem"
                                 label="&newevent.status.confirmed.label;"
+                                accesskey="&newevent.status.confirmed.accesskey;"
                                 type="checkbox"
                                 command="cmd_status_confirmed"
                                 disable-on-readonly="true"/>
                       <menuitem id="options-status-canceled-menuitem"
                                 label="&newevent.status.cancelled.label;"
+                                accesskey="&newevent.status.cancelled.accesskey;"
                                 type="checkbox"
                                 command="cmd_status_cancelled"
                                 disable-on-readonly="true"/>
@@ -610,13 +628,19 @@
                            label="&event.toolbar.attachments.label;"
                            command="cmd_attach_url"
                            disable-on-readonly="true"/>
+            <toolbarbutton id="button-delete"
+                           mode="dialog"
+                           class="cal-toolbarbutton-2"
+                           label="&event.toolbar.delete.label;"
+                           command="cmd_item_delete"
+                           disable-on-readonly="true"/>
         </toolbarpalette>
 
         <toolbar id="event-toolbar"
                  class="chromeclass-toolbar"
                  customizable="true"
                  context="event-dialog-toolbar-context-menu"
-                 defaultset="button-save,button-attendees,button-privacy,button-url"/>
+                 defaultset="button-save,button-attendees,button-privacy,button-url,button-delete"/>
         <toolbarset id="custom-toolbars"/>
 
     </toolbox>

@@ -268,16 +268,13 @@ var TodayPane = {
   /**
    * Display a certain section in the minday/minimonth part of the todaypane.
    *
-   * @param aIndex      A numeric value:
-   *                     - 1: Show the miniday
-   *                     - 2: show the minimonth
-   *                     - 3: show none of both
+   * @param aSection      The section to display
    */
-  displayMiniSection: function displayMiniSection(aIndex) {
-      document.getElementById("today-minimonth-box").setVisible(aIndex == 2);
-      document.getElementById("mini-day-box").setVisible(aIndex == 1);
-      document.getElementById("today-none-box").setVisible(aIndex == 3);
-      setBooleanAttribute(document.getElementById("today-Minimonth"), "freebusy", aIndex == 2);
+  displayMiniSection: function displayMiniSection(aSection) {
+      document.getElementById("today-minimonth-box").setVisible(aSection == 'minimonth');
+      document.getElementById("mini-day-box").setVisible(aSection == 'miniday');
+      document.getElementById("today-none-box").setVisible(aSection == 'none');
+      setBooleanAttribute(document.getElementById("today-Minimonth"), "freebusy", aSection == 'minimonth');
   },
 
   /**
@@ -287,9 +284,9 @@ var TodayPane = {
    * @param disable         If true, items will be disabled, otherwise enabled.
    */
   disableMenuItems: function disableMenuItems(disable) {
-       var menu = document.getElementById("today-pane-menu");
+       let menu = document.getElementById("ltnTodayPaneMenuPopup");
        if (menu) {
-           setAttributeToChildren(menu.firstChild, "disabled", disable, "name", "minidisplay");
+           setAttributeToChildren(menu, "disabled", disable, "name", "minidisplay");
        }
   },
 

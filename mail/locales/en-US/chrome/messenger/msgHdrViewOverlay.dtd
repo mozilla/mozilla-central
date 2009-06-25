@@ -71,9 +71,6 @@
 <!ENTITY viewSourceMenuItem.label "view source…">
 <!ENTITY viewSourceMenuItem.accesskey "V">
 
-<!ENTITY hideDetailsButton.label "hide details">
-<!ENTITY showDetailsButton.label "show details">
-
 <!ENTITY openAttachmentCmd.label    "Open">
 <!ENTITY openAttachmentCmd.accesskey    "O">
 <!ENTITY saveAsAttachmentCmd.label    "Save As…">

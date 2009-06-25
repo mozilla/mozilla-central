@@ -43,7 +43,7 @@
 interface nsIDOMWindowInternal;
 interface nsIMsgWindow;
 
-[scriptable, uuid(892A9E47-853A-454A-8B02-94A7521D046D)]
+[scriptable, uuid(5aae7f1b-95f1-422e-86d5-2b1d599e2ccf)]
 interface nsIMsgProgress: nsIWebProgressListener {
 
   /** 
@@ -64,9 +64,6 @@ interface nsIMsgProgress: nsIWebProgressListener {
   /* Unregister a Web Progress Listener */
   void unregisterListener(in nsIWebProgressListener listener);
   
-  /* Retrieve the prompter, needed to display modal dialog on top of progress dialog */
-  nsIPrompt getPrompter();
-
   /* Indicated if the user asked to cancel the current process */
   attribute boolean processCanceledByUser;
 

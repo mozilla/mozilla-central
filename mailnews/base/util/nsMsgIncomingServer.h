@@ -100,6 +100,7 @@ protected:
   nsresult getProtocolInfo(nsIMsgProtocolInfo **aResult);
   nsCOMPtr <nsILocalFile> mFilterFile;
   nsCOMPtr <nsIMsgFilterList> mFilterList;
+  nsCOMPtr <nsIMsgFilterList> mEditableFilterList;
   nsCOMPtr<nsIPrefBranch> mPrefBranch;
   nsCOMPtr<nsIPrefBranch> mDefPrefBranch;
 

@@ -49,6 +49,11 @@
 
 function MsgToggleMessagePane()
 {
+  // Bail without doing anything if we are not a folder tab.
+  let currentTabInfo = document.getElementById("tabmail").currentTabInfo;
+  if (currentTabInfo.mode.name != "folder")
+    return;
+
   var splitter = document.getElementById("threadpane-splitter");
   var state = splitter.getAttribute("state");
   if (state == "collapsed")

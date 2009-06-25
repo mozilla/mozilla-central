@@ -1037,6 +1037,7 @@ nsMsgIncomingServer::SetFilterList(nsIMsgFilterList *aFilterList)
 NS_IMETHODIMP
 nsMsgIncomingServer::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aResult)
 {
+  NS_ENSURE_ARG_POINTER(aResult);
   if (!mFilterList)
   {
       nsCOMPtr<nsIMsgFolder> msgFolder;
@@ -1045,6 +1046,28 @@ nsMsgIncomingServer::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **
       // so that filters will still be per-server.
       nsresult rv = GetRootFolder(getter_AddRefs(msgFolder));
       NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCString filterType;
+      rv = GetCharValue("filter.type", filterType);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      if (!filterType.IsEmpty() && !filterType.EqualsLiteral("default"))
+      {
+        nsCAutoString contractID("@mozilla.org/filterlist;1?type=");
+        contractID += filterType;
+        ToLowerCase(contractID);
+        mFilterList = do_CreateInstance(contractID.get(), &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        rv = mFilterList->SetFolder(msgFolder);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        NS_ADDREF(*aResult = mFilterList);
+        return NS_OK;
+      }
+
+      // The default case, a local folder, is a bit special. It requires
+      // more initialization.
 
       nsCOMPtr<nsILocalFile> thisFolder;
       rv = msgFolder->GetFilePath(getter_AddRefs(thisFolder));
@@ -1084,7 +1107,52 @@ nsMsgIncomingServer::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **
 
   NS_IF_ADDREF(*aResult = mFilterList);
   return NS_OK;
+}
 
+NS_IMETHODIMP
+nsMsgIncomingServer::SetEditableFilterList(nsIMsgFilterList *aEditableFilterList)
+{
+  mEditableFilterList = aEditableFilterList;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgIncomingServer::GetEditableFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  if (!mEditableFilterList)
+  {
+    PRBool editSeparate;
+    nsresult rv = GetBoolValue("filter.editable.separate", &editSeparate);
+    if (NS_FAILED(rv) || !editSeparate)
+      return GetFilterList(aMsgWindow, aResult);
+
+    nsCString filterType;
+    rv = GetCharValue("filter.editable.type", filterType);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCAutoString contractID("@mozilla.org/filterlist;1?type=");
+    contractID += filterType;
+    ToLowerCase(contractID);
+    mEditableFilterList = do_CreateInstance(contractID.get(), &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIMsgFolder> msgFolder;
+    // use GetRootFolder so for deferred pop3 accounts, we'll get the filters
+    // file from the deferred account, not the deferred to account,
+    // so that filters will still be per-server.
+    rv = GetRootFolder(getter_AddRefs(msgFolder));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = mEditableFilterList->SetFolder(msgFolder);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    NS_ADDREF(*aResult = mEditableFilterList);
+    return NS_OK;
+  }
+
+  NS_IF_ADDREF(*aResult = mEditableFilterList);
+  return NS_OK;
 }
 
 // If the hostname contains ':' (like hostname:1431)

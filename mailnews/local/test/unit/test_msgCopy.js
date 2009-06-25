@@ -72,7 +72,8 @@ var copyListener =
   OnStopCopy: function(aStatus)
   {
     var copiedMessage = gLocalInboxFolder.GetMessageHeader(hdrs[0]);
-    do_check_eq(copiedMessage.getStringProperty("keywords"), tag1);    
+    do_check_eq(copiedMessage.getStringProperty("keywords"), tag1);
+    hdrs = null;
     do_test_finished();
   }
 };

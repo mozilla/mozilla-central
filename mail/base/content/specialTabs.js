@@ -152,6 +152,11 @@ var specialTabs = {
         case "cmd_find":
         case "cmd_findAgain":
         case "cmd_findPrevious":
+        case "cmd_printSetup":
+        case "cmd_print":
+        case "button_print":
+        // XXX print preview not currently supported - bug 497994 to implement.
+        // case "cmd_printpreview":
           return true;
         default:
           return false;
@@ -166,6 +171,11 @@ var specialTabs = {
         case "cmd_find":
         case "cmd_findAgain":
         case "cmd_findPrevious":
+        case "cmd_printSetup":
+        case "cmd_print":
+        case "button_print":
+        // XXX print preview not currently supported - bug 497994 to implement.
+        // case "cmd_printpreview":
           return true;
         default:
           return false;
@@ -194,6 +204,16 @@ var specialTabs = {
         case "cmd_findPrevious":
           aTab.panel.childNodes[1].onFindAgainCommand(true);
           break;
+        case "cmd_printSetup":
+          PrintUtils.showPageSetup();
+          break;
+        case "cmd_print":
+          PrintUtils.print();
+          break;
+        // XXX print preview not currently supported - bug 497994 to implement.
+        //case "cmd_printpreview":
+        //  PrintUtils.printPreview();
+        //  break;
       }
     },
     getBrowser: function getBrowser(aTab) {

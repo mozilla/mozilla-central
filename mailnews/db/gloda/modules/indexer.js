@@ -2172,6 +2172,7 @@ var GlodaIndexer = {
       this.indexer._log.debug("folderMoveCopy notification (Move: " + aMove
                               + ")");
       if (aMove) {
+        let srcURI = aSrcFolder.URI;
         let targetURI = aDestFolder.URI +
                         srcURI.substring(srcURI.lastIndexOf("/"));
         return this._folderRenameHelper(aSrcFolder, targetURI);
@@ -2364,6 +2365,7 @@ var GlodaIndexer = {
     onJunkScoreChanged: function(aInstigator) {},
     onHdrPropertyChanged: function (aHdrToChange, aPreChange, aStatus,
                                     aInstigator) {},
+    onEvent: function (aDB, aEvent) {},
   },
   
   _indexMessage: function gloda_indexMessage(aMsgHdr, aCallbackHandle) {

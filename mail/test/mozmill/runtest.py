@@ -71,39 +71,38 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'ldap_2.servers.osx.position': 0,
         'ldap_2.servers.oe.position': 0,
         # other unknown voodoo
-	'dom.max_chrome_script_run_time' :  200,
-	'dom.max_script_run_time' :  0,
+        # -- dummied up local accounts to stop the account wizard
         'mail.account.account1.server' :  "server1",
         'mail.account.account2.identities' :  "id1",
         'mail.account.account2.server' :  "server2",
         'mail.accountmanager.accounts' :  "account1,account2",
         'mail.accountmanager.defaultaccount' :  "account2",
         'mail.accountmanager.localfoldersserver' :  "server1",
-       	'mail.identity.id1.fullName' :  "Tinderbox",
+        'mail.identity.id1.fullName' :  "Tinderbox",
         'mail.identity.id1.smtpServer' :  "smtp1",
-       	'mail.identity.id1.useremail' :  "tinderbox@invalid.com",
+        'mail.identity.id1.useremail' :  "tinderbox@invalid.com",
         'mail.identity.id1.valid' :  True,
-       	'mail.root.none-rel' :  "[ProfD]Mail",
+        'mail.root.none-rel' :  "[ProfD]Mail",
         'mail.root.pop3-rel' :  "[ProfD]Mail",
         'mail.server.server1.directory-rel' :  "[ProfD]Mail/Local Folders",
         'mail.server.server1.hostname' :  "Local Folders",
-       	'mail.server.server1.name' :  "Local Folders",
+        'mail.server.server1.name' :  "Local Folders",
         'mail.server.server1.type' :  "none",
         'mail.server.server1.userName' :  "nobody",
         'mail.server.server2.check_new_mail' :  False,
         'mail.server.server2.directory-rel' :  "[ProfD]Mail/tinderbox",
         'mail.server.server2.download_on_biff' :  True,
-       	'mail.server.server2.hostname' :  "tinderbox",
-       	'mail.server.server2.login_at_startup' :  False,
-       	'mail.server.server2.name' :  "tinderbox@invalid.com",
-       	'mail.server.server2.type' :  "pop3",
-       	'mail.server.server2.userName' :  "tinderbox",
-       	'mail.smtp.defaultserver' :  "smtp1",
-       	'mail.smtpserver.smtp1.hostname' :  "tinderbox",
-       	'mail.smtpserver.smtp1.username' :  "tinderbox",
-       	'mail.smtpservers' :  "smtp1",
-       	'mail.startup.enabledMailCheckOnce' :  True,
-       	'mailnews.start_page_override.mstone' :  "ignore",
+        'mail.server.server2.hostname' :  "tinderbox",
+        'mail.server.server2.login_at_startup' :  False,
+        'mail.server.server2.name' :  "tinderbox@invalid.com",
+        'mail.server.server2.type' :  "pop3",
+        'mail.server.server2.userName' :  "tinderbox",
+        'mail.smtp.defaultserver' :  "smtp1",
+        'mail.smtpserver.smtp1.hostname' :  "tinderbox",
+        'mail.smtpserver.smtp1.username' :  "tinderbox",
+        'mail.smtpservers' :  "smtp1",
+        'mail.startup.enabledMailCheckOnce' :  True,
+        'mailnews.start_page_override.mstone' :  "ignore",
         }
 
     def __init__(self, default_profile=None, profile=None, create_new=True,
@@ -125,7 +124,11 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
                                         '_tests', 'leakprofile')
         # XXX tidy up
         if automation.IS_MAC:
-            self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', 'ShredderDebug.app', 'Contents', 'MacOS')
+            if automation.IS_DEBUG_BUILD:
+              appName = 'ShredderDebug.app'
+            else:
+              appName = 'Shredder.app'
+            self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', appName, 'Contents', 'MacOS')
             appname = 'thunderbird-bin'
         else:
             self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', 'bin')
@@ -144,7 +147,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
             curdir, olddir = os.path.split(curdir)
             if curdir == '':
                 raise Exception("unable to figure out src_dir")
-        return curdir
+        return os.path.expanduser(os.path.expandvars(curdir))
 
     def find_obj_dir(self):
         if 'MOZCONFIG' in os.environ:
@@ -162,7 +165,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
                 varpath = varpath.replace('@TOPSRCDIR@', self.src_dir)
                 varpath = varpath.replace('$(TOPSRCDIR)', self.src_dir)
                 varpath = varpath.replace('@CONFIG_GUESS@',config_guess)
-                return varpath
+                return os.path.expanduser(os.path.expandvars(varpath))
         f.close()
 
         raise Exception("unable to figure out obj_dir")
@@ -171,7 +174,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         self.base_env = dict(os.environ)
         # note, we do NOT want to set NO_EM_RESTART or jsbridge wouldn't work
         # avoid dialogs on windows
-        self.base_env['XPCOM_DEBUG_BREAK'] = 'warn'
+        self.base_env['XPCOM_DEBUG_BREAK'] = 'stack'
         # do not reuse an existing instance
         self.base_env['MOZ_NO_REMOTE'] = '1'
 
@@ -217,6 +220,62 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
 class ThunderTestCLI(mozmill.CLI):
     profile_class = ThunderTestProfile
     runner_class = ThunderTestRunner
+
+TEST_RESULTS = []
+# override mozmill's default logging case, which I hate.
+def logFailure(obj):
+    FAILURE_LIST.append(obj)
+def logEndTest(obj):
+    TEST_RESULTS.append(obj)
+#mozmill.LoggerListener.cases['mozmill.fail'] = logFailure
+mozmill.LoggerListener.cases['mozmill.endTest'] = logEndTest
+
+def prettifyFilename(path):
+    lslash = path.rfind('/')
+    if lslash != -1:
+        return path[lslash+1:]
+    else:
+        return path
+
+def prettyPrintException(e):
+    print '  EXCEPTION:', e.get('message', 'no message!')
+    print '    at:', prettifyFilename(e.get('fileName', 'nonesuch')), 'line', e.get('lineNumber', 0)
+    if 'stack' in e:
+        for line in e['stack'].splitlines():
+            if not line:
+                continue
+            if line[0] == "(":
+                funcname = None
+            elif line[0] == "@":
+                # this is probably the root, don't care
+                continue
+            else:
+                funcname = line[:line.find('@')]
+            pathAndLine = line[line.rfind('@')+1:]
+            rcolon = pathAndLine.rfind(':')
+            if rcolon != -1:
+                path = pathAndLine[:rcolon]
+                line = pathAndLine[rcolon+1:]
+            else:
+                path = pathAndLine
+                line = 0
+            if funcname:
+                print '      ', funcname, prettifyFilename(path), line
+            else:
+                print '           ', prettifyFilename(path), line
+
+
+import pprint
+def prettyPrintResults():
+    for result in TEST_RESULTS:
+        #pprint.pprint(result)
+        print 'TEST', result['name'], len(result['fails']) and "FAILED" or "PASSED"
+        for failure in result['fails']:
+            if 'exception' in failure:
+                prettyPrintException(failure['exception'])
+
+import atexit
+atexit.register(prettyPrintResults)
 
 if __name__ == '__main__':
     ThunderTestCLI().run()

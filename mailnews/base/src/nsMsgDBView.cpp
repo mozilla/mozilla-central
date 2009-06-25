@@ -75,6 +75,7 @@
 #include "nsMsgMessageFlags.h"
 #include "nsIPrompt.h"
 #include "nsIWindowWatcher.h"
+#include "nsMsgDBCID.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 
@@ -2022,8 +2023,10 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
   {
     nsCOMPtr <nsIDBFolderInfo> folderInfo;
     rv = folder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(m_db));
-    NS_ENSURE_SUCCESS(rv,rv);
-    m_db->AddListener(this);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    msgDBService->RegisterPendingListener(folder, this);
     m_folder = folder;
     m_viewFolder = folder;
 
@@ -2089,6 +2092,13 @@ NS_IMETHODIMP nsMsgDBView::Close()
   {
     m_db->RemoveListener(this);
     m_db = nsnull;
+  }
+  if (m_folder)
+  {
+    nsresult rv;
+    nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    msgDBService->UnregisterPendingListener(this);
   }
   return NS_OK;
 }
@@ -2180,6 +2190,21 @@ NS_IMETHODIMP nsMsgDBView::GetIndicesForSelection(PRUint32 *length, nsMsgViewInd
   if (!*indices) return NS_ERROR_OUT_OF_MEMORY;
   memcpy(*indices, selection.Elements(), datalen);
   return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDBView::GetMsgHdrsForSelection(nsIMutableArray **aResult)
+{
+  nsMsgViewIndexArray selection;
+  GetSelectedIndices(selection);
+  PRUint32 numIndices = selection.Length();
+
+  nsresult rv;
+  nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = GetHeadersFromSelection(selection.Elements(), numIndices, messages);
+  NS_ENSURE_SUCCESS(rv, rv);
+  messages.forget(aResult);
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(PRUint32 *length, char ***uris)
@@ -5596,6 +5621,14 @@ NS_IMETHODIMP nsMsgDBView::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsMsgDBView::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
+  if (!strcmp(aEvent, "DBOpened"))
+    m_db = aDB;
+  return NS_OK;
+}
+
 
 NS_IMETHODIMP nsMsgDBView::OnReadChanged(nsIDBChangeListener *aInstigator)
 {
@@ -6895,7 +6928,14 @@ nsresult nsMsgDBView::GetImapDeleteModel(nsIMsgFolder *folder)
 //
 // Can't drop on the thread pane.
 //
+#ifdef MOZILLA_1_9_1_BRANCH
 NS_IMETHODIMP nsMsgDBView::CanDrop(PRInt32 index, PRInt32 orient, PRBool *_retval)
+#else
+NS_IMETHODIMP nsMsgDBView::CanDrop(PRInt32 index,
+                                   PRInt32 orient,
+                                   nsIDOMDataTransfer *dataTransfer,
+                                   PRBool *_retval)
+#endif
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = PR_FALSE;
@@ -6909,7 +6949,13 @@ NS_IMETHODIMP nsMsgDBView::CanDrop(PRInt32 index, PRInt32 orient, PRBool *_retva
 //
 // Can't drop on the thread pane.
 //
+#ifdef MOZILLA_1_9_1_BRANCH
 NS_IMETHODIMP nsMsgDBView::Drop(PRInt32 row, PRInt32 orient)
+#else
+NS_IMETHODIMP nsMsgDBView::Drop(PRInt32 row,
+                                PRInt32 orient,
+                                nsIDOMDataTransfer *dataTransfer)
+#endif
 {
   return NS_OK;
 }

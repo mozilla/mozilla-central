@@ -140,8 +140,7 @@ calCachedCalendar.prototype = {
             }
         }
         return doQueryInterface(this, calCachedCalendar.prototype, aIID,
-                                [Components.interfaces.calICachedCalendar,
-                                 Components.interfaces.calICalendar,
+                                [Components.interfaces.calICalendar,
                                  Components.interfaces.nsISupports]);
     },
 
@@ -183,13 +182,13 @@ calCachedCalendar.prototype = {
                     this.mUncachedCalendar.resetLog();
                 }
             } else {
-                var calType = getPrefSafe("calendar.cache.type", "storage");
+                let calType = getPrefSafe("calendar.cache.type", "storage");
                 // While technically, the above deleteCalendar should delete the
                 // whole calendar, this is nothing more than deleting all events
                 // todos and properties. Therefore the initialization can be
                 // skipped.
-                cachedCalendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + calType]
-                                           .createInstance(Components.interfaces.calICalendar);
+                let cachedCalendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + calType]
+                                               .createInstance(Components.interfaces.calICalendar);
                 switch (calType) {
                     case "memory":
                         if (this.supportsChangeLog) {

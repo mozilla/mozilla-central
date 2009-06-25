@@ -67,7 +67,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(b2ea737c-f9ff-4431-984e-babcdff15f6f)]
+[scriptable, uuid(2848f8f2-8af5-4a4e-b095-cb8f30aada94)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -132,11 +132,50 @@ interface nsIMsgFolder : nsISupports {
   readonly attribute nsIMsgFolder rootFolder;
 
   /**
-   * function to get the filter list on folder's server
-   * (or in the case of news, the filter list for this newsgroup)'
+   * Get the server's list of filters. (Or in the case of news, the 
+   * filter list for this newsgroup)
+   * This list SHOULD be used for all incoming messages.
+   *
+   * Since the returned nsIMsgFilterList is mutable, it is not necessary to call
+   * setFilterList after the filters have been changed.
+   *
+   * @param aMsgWindow  @ref msgwindow "The standard message window"
+   * @return            The list of filters
    */
   nsIMsgFilterList getFilterList(in nsIMsgWindow msgWindow);
+
+  /**
+   * Set the server's list of filters.
+   *
+   * Note that this does not persist the filter list. To change the contents
+   * of the existing filters, use getFilterList and mutate the values as
+   * appopriate.
+   *
+   * @param aFilterList The new list of filters.
+   */
   void setFilterList(in nsIMsgFilterList filterList);
+
+  /**
+   * Get user editable filter list. This does not have to be the same as
+   * the filterlist above, typically depending on the users preferences.
+   * The filters in this list are not processed, but only to be edited by
+   * the user.
+   * @see getFilterList
+   *
+   * @param aMsgWindow  @ref msgwindow "The standard message window"
+   * @return            The list of filters
+   */
+  nsIMsgFilterList getEditableFilterList(in nsIMsgWindow aMsgWindow);
+
+  /**
+   * Set user editable filter list.
+   * This does not persist the filterlist, @see setFilterList
+   * @see getEditableFilterList
+   * @see setFilterList
+   *
+   * @param aFilterList The new list of filters.
+   */
+  void setEditableFilterList(in nsIMsgFilterList aFilterList);
 
   void ForceDBClosed ();
   /**

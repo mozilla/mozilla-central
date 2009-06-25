@@ -1,5 +1,4 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -22,6 +21,7 @@
  *
  * Contributor(s):
  *   Håkan Waara <hwaara@chello.se>
+ *   Andrew Sutherland <asutherland@asutherland.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -37,24 +37,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var searchSessionContractID = "@mozilla.org/messenger/searchSession;1";
-var gSearchView;
-var gSearchSession;
 var gCurrentFolder;
 
-var nsIMsgFolder = Components.interfaces.nsIMsgFolder;
-var nsIMsgWindow = Components.interfaces.nsIMsgWindow;
-var nsIMsgRDFDataSource = Components.interfaces.nsIMsgRDFDataSource;
-var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
+var gFolderDisplay;
+// Although we don't display messages, we have a message display object to
+//  simplify our code.  It's just always disabled.
+var gMessageDisplay;
 
-var gFolderDatasource;
+var nsIMsgWindow = Components.interfaces.nsIMsgWindow;
+
 var gFolderPicker;
 var gStatusFeedback;
 var gTimelineEnabled = false;
 var gMessengerBundle = null;
 var RDF;
 var gSearchBundle;
-var gNextMessageViewIndexAfterDelete = -2;
 
 // Datasource search listener -- made global as it has to be registered
 // and unregistered in different functions.
@@ -89,8 +86,8 @@ var nsSearchResultsController =
     isCommandEnabled: function(command)
     {
         var enabled = true;
-        
-        switch (command) { 
+
+        switch (command) {
           case "goto_folder_button":
             if (GetNumSelectedMessages() != 1)
               enabled = false;
@@ -99,14 +96,15 @@ var nsSearchResultsController =
           case "cmd_shiftDelete":
           case "button_delete":
             // this assumes that advanced searches don't cross accounts
-            if (GetNumSelectedMessages() <= 0 || isNewsURI(gSearchView.getURIForViewIndex(0)))
+            if (GetNumSelectedMessages() <= 0 ||
+                isNewsURI(gFolderDisplay.view.dbView.getURIForViewIndex(0)))
               enabled = false;
             break;
           case "saveas_vf_button":
               // need someway to see if there are any search criteria...
               return true;
           case "cmd_selectAll":
-            return GetDBView() != null;              
+            return true;
           default:
             if (GetNumSelectedMessages() <= 0)
               enabled = false;
@@ -142,9 +140,9 @@ var nsSearchResultsController =
         case "cmd_selectAll":
             // move the focus to the search results pane
             GetThreadTree().focus();
-            GetDBView().doCommand(nsMsgViewCommandType.selectAll)
+            gFolderDisplay.doCommand(nsMsgViewCommandType.selectAll);
             return true;
-                            
+
         default:
             return false;
         }
@@ -158,98 +156,97 @@ var nsSearchResultsController =
 
 function UpdateMailSearch(caller)
 {
-  //dump("XXX update mail-search " + caller + "\n");
   document.commandDispatcher.updateCommands('mail-search');
+}
+/**
+ * FolderDisplayWidget currently calls this function when the command updater
+ *  notification for updateCommandStatus is called.  We don't have a toolbar,
+ *  but our 'mail-search' command set serves the same purpose.
+ */
+var UpdateMailToolbar = UpdateMailSearch;
+
+/**
+ * No-op clear message pane function for FolderDisplayWidget.
+ */
+function ClearMessagePane() {
 }
 
 function SetAdvancedSearchStatusText(aNumHits)
 {
-  var statusMsg;
-  // if there are no hits, it means no matches were found in the search.
-  if (aNumHits == 0)
-    statusMsg = gSearchBundle.getString("searchFailureMessage");
-  else 
-  {
-    if (aNumHits == 1) 
+}
+
+/**
+ * Subclass the FolderDisplayWidget to deal with UI specific to the search
+ *  window.
+ */
+function SearchFolderDisplayWidget(aMessageDisplay) {
+  FolderDisplayWidget.call(this, /* no tab info */ null, aMessageDisplay);
+}
+
+SearchFolderDisplayWidget.prototype = {
+  __proto__: FolderDisplayWidget.prototype,
+
+  /// folder display will want to show the thread pane; we need do nothing
+  _showThreadPane: function () {},
+
+  onSearching: function SearchFolderDisplayWidget_onSearch(aIsSearching) {
+    if (aIsSearching) {
+      // Search button becomes the "stop" button
+      gSearchStopButton.setAttribute(
+        "label", gSearchBundle.getString("labelForStopButton"));
+      gSearchStopButton.setAttribute(
+        "accesskey", gSearchBundle.getString("labelForStopButton.accesskey"));
+
+      // update our toolbar equivalent
+      UpdateMailSearch("new-search");
+      // spin the meteors
+      gStatusFeedback._startMeteors();
+      // tell the user that we're searching
+      gStatusFeedback.showStatusString(
+        gSearchBundle.getString("searchingMessage"));
+    }
+    else {
+      // Stop button resumes being the "search" button
+      gSearchStopButton.setAttribute(
+        "label", gSearchBundle.getString("labelForSearchButton"));
+      gSearchStopButton.setAttribute(
+        "accesskey", gSearchBundle.getString("labelForSearchButton.accesskey"));
+
+      // update our toolbar equivalent
+      UpdateMailSearch("done-search");
+      // stop spining the meteors
+      gStatusFeedback._stopMeteors();
+      // set the result test
+      this.updateStatusResultText();
+    }
+  },
+
+  /**
+   * If messages were removed, we might have lost some search results and so
+   *  should update our search result text.  Also, defer to our super-class.
+   */
+  onMessagesRemoved: function SearchFolderDisplayWidget_onMessagesRemoved() {
+    // result text is only for when we are not searching
+    if (!this.view.searching)
+      this.updateStatusResultText();
+    this.__proto__.__proto__.onMessagesRemoved.call(this);
+  },
+
+  updateStatusResultText: function() {
+    let statusMsg, rowCount = this.view.dbView.rowCount;
+    // if there are no hits, it means no matches were found in the search.
+    if (rowCount == 0)
+      statusMsg = gSearchBundle.getString("searchFailureMessage");
+    else if (rowCount == 1)
       statusMsg = gSearchBundle.getString("searchSuccessMessage");
     else
-      statusMsg = gSearchBundle.getFormattedString("searchSuccessMessages", [aNumHits]);
-  }
+      statusMsg = gSearchBundle.getFormattedString("searchSuccessMessages",
+                                                   [rowCount]);
 
-  gStatusFeedback.showStatusString(statusMsg);
-}
+    gStatusFeedback.showStatusString(statusMsg);
+  },
+};
 
-// nsIMsgSearchNotify object
-var gSearchNotificationListener =
-{
-    onSearchHit: function(header, folder)
-    {
-        // XXX TODO
-        // update status text?
-    },
-
-    onSearchDone: function(status)
-    {
-        gSearchStopButton.setAttribute("label", gSearchBundle.getString("labelForSearchButton"));
-        gSearchStopButton.setAttribute("accesskey", gSearchBundle.getString("labelForSearchButton.accesskey"));
-        gStatusFeedback._stopMeteors();
-        SetAdvancedSearchStatusText(gSearchView.QueryInterface(Components.interfaces.nsITreeView).rowCount);
-    },
-
-    onNewSearch: function()
-    {
-      gSearchStopButton.setAttribute("label", gSearchBundle.getString("labelForStopButton"));
-      gSearchStopButton.setAttribute("accesskey", gSearchBundle.getString("labelForStopButton.accesskey"));
-      UpdateMailSearch("new-search");	
-      gStatusFeedback._startMeteors();
-      gStatusFeedback.showStatusString(gSearchBundle.getString("searchingMessage"));
-    }
-}
-
-// the folderListener object
-var gFolderListener = {
-    OnItemAdded: function(parentItem, item) {},
-
-    OnItemRemoved: function(parentItem, item){},
-
-    OnItemPropertyChanged: function(item, property, oldValue, newValue) {},
-
-    OnItemIntPropertyChanged: function(item, property, oldValue, newValue) {},
-
-    OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) {},
-
-    OnItemUnicharPropertyChanged: function(item, property, oldValue, newValue){},
-    OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) {},
-
-    OnItemEvent: function(folder, event) {
-        var eventType = event.toString();
-        
-        if (eventType == "DeleteOrMoveMsgCompleted") {
-            HandleDeleteOrMoveMessageCompleted(folder);
-        }     
-        else if (eventType == "DeleteOrMoveMsgFailed") {
-            HandleDeleteOrMoveMessageFailed(folder);
-        }
-    }
-}
-
-function HideSearchColumn(id)
-{
-  var col = document.getElementById(id);
-  if (col) {
-    col.setAttribute("hidden","true");
-    col.setAttribute("ignoreincolumnpicker","true");
-  }
-}
-
-function ShowSearchColumn(id)
-{
-  var col = document.getElementById(id);
-  if (col) {
-    col.removeAttribute("hidden");
-    col.removeAttribute("ignoreincolumnpicker");
-  }
-}
 
 function searchOnLoad()
 {
@@ -262,49 +259,39 @@ function searchOnLoad()
   gSearchStopButton.setAttribute("label", gSearchBundle.getString("labelForSearchButton"));
   gSearchStopButton.setAttribute("accesskey", gSearchBundle.getString("labelForSearchButton.accesskey"));
   gMessengerBundle = document.getElementById("bundle_messenger");
-  setupDatasource();
-  setupSearchListener();
+
+  gMessageDisplay = new NeverVisisbleMessageDisplayWidget();
+  gFolderDisplay = new SearchFolderDisplayWidget(gMessageDisplay);
+  gFolderDisplay.messenger = messenger;
+  gFolderDisplay.msgWindow = msgWindow;
+  gFolderDisplay.tree = document.getElementById("threadTree");
+  gFolderDisplay.treeBox = gFolderDisplay.tree.boxObject.QueryInterface(
+                             Components.interfaces.nsITreeBoxObject);
+  gFolderDisplay.view.openSearchView();
+  gFolderDisplay.makeActive();
+
+  gFolderDisplay.setVisibleColumns({subjectCol: true,
+                                    senderCol: true,
+                                    dateCol: true,
+                                    locationCol: true,
+                                    });
 
   if (window.arguments && window.arguments[0])
       selectFolder(window.arguments[0].folder);
 
+  // trigger searchTermOverlay.js to create the first criterion
   onMore(null);
+  // make sure all the buttons are configured
   UpdateMailSearch("onload");
-  
-  // hide and remove these columns from the column picker.  you can't thread search results
-  HideSearchColumn("threadCol"); // since you can't thread search results
-  HideSearchColumn("totalCol"); // since you can't thread search results
-  HideSearchColumn("unreadCol"); // since you can't thread search results
-  HideSearchColumn("unreadButtonColHeader");
-  HideSearchColumn("statusCol");
-  HideSearchColumn("flaggedCol");
-  HideSearchColumn("idCol");
-  HideSearchColumn("junkStatusCol");
-  HideSearchColumn("accountCol");
-  
-  // we want to show the location column for search
-  ShowSearchColumn("locationCol");
 }
 
 function searchOnUnload()
 {
-    // unregister listeners
-    gSearchSession.unregisterListener(gViewSearchListener);
-    gSearchSession.unregisterListener(gSearchNotificationListener);
+  gFolderDisplay.close();
+  top.controllers.removeController(nsSearchResultsController);
 
-    Components.classes["@mozilla.org/messenger/services/session;1"]
-              .getService(Components.interfaces.nsIMsgMailSession)
-              .RemoveFolderListener(gFolderListener);
-	
-    if (gSearchView) {
-	gSearchView.close();
-	gSearchView = null;
-    }
-
-    top.controllers.removeController(nsSearchResultsController);
-
-    // release this early because msgWindow holds a weak reference
-    msgWindow.rootDocShell = null;
+  // release this early because msgWindow holds a weak reference
+  msgWindow.rootDocShell = null;
 }
 
 function initializeSearchWindowWidgets()
@@ -312,7 +299,7 @@ function initializeSearchWindowWidgets()
     gFolderPicker = document.getElementById("searchableFolders");
     gSearchStopButton = document.getElementById("search-button");
     hideMatchAllItem();
-    
+
     msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
                           .createInstance(nsIMsgWindow);
     msgWindow.domWindow = window;
@@ -328,18 +315,17 @@ function initializeSearchWindowWidgets()
 
 
 function onSearchStop() {
-    gSearchSession.interruptSearch();
+  gFolderDisplay.view.search.session.interruptSearch();
 }
 
 function onResetSearch(event) {
-    onReset(event);
-    
-    var tree = GetThreadTree();
-    tree.treeBoxObject.view = null;
-    gStatusFeedback.showStatusString("");
+  onReset(event);
+  gFolderDisplay.view.search.clear();
+
+  gStatusFeedback.showStatusString("");
 }
 
-function selectFolder(folder) 
+function selectFolder(folder)
 {
     var folderURI;
 
@@ -354,8 +340,8 @@ function selectFolder(folder)
     updateSearchFolderPicker(folderURI);
 }
 
-function updateSearchFolderPicker(folderURI) 
-{ 
+function updateSearchFolderPicker(folderURI)
+{
     SetFolderPicker(folderURI, gFolderPicker.id);
 
     // use the URI to get the real folder
@@ -389,8 +375,8 @@ function onEnterInSearchTerm()
   // on enter
   // if not searching, start the search
   // if searching, stop and then start again
-  if (gSearchStopButton.getAttribute("label") == gSearchBundle.getString("labelForSearchButton")) { 
-     onSearch(); 
+  if (gSearchStopButton.getAttribute("label") == gSearchBundle.getString("labelForSearchButton")) {
+     onSearch();
   }
   else {
      onSearchStop();
@@ -400,59 +386,75 @@ function onEnterInSearchTerm()
 
 function onSearch()
 {
-    // set the view.  do this on every search, to
-    // allow the tree to reset itself
-    var treeView = gSearchView.QueryInterface(Components.interfaces.nsITreeView);
-    if (treeView)
-    {
-      var tree = GetThreadTree();
-      tree.treeBoxObject.view = treeView;
-    }
+  let viewWrapper = gFolderDisplay.view;
+  let searchTerms = getSearchTerms();
 
-    gSearchSession.clearScopes();
-    // tell the search session what the new scope is
-    if (!gCurrentFolder.isServer && !gCurrentFolder.noSelect)
-        gSearchSession.addScopeTerm(GetScopeForFolder(gCurrentFolder),
-                                    gCurrentFolder);
-
-    var searchSubfolders = document.getElementById("checkSearchSubFolders").checked;
-    if (gCurrentFolder && (searchSubfolders || gCurrentFolder.isServer || gCurrentFolder.noSelect))
-    {
-        AddSubFolders(gCurrentFolder);
-    }
-    // reflect the search widgets back into the search session
-    saveSearchTerms(gSearchSession.searchTerms, gSearchSession);
-
-    try
-    {
-      gSearchSession.search(msgWindow);
-    }
-    catch(ex)
-    {
-       dump("Search Exception\n");
-    }
-    // refresh the tree after the search starts, because initiating the
-    // search will cause the datasource to clear itself
+  viewWrapper.beginViewUpdate();
+  viewWrapper.search.userTerms = searchTerms.length ? searchTerms : null;
+  viewWrapper.searchFolders = getSearchFolders();
+  viewWrapper.endViewUpdate();
 }
 
-function AddSubFolders(folder) {
+/**
+ * Get the current set of search terms, returning them as a list.  We filter out
+ *  dangerous and insane predicates.
+ */
+function getSearchTerms() {
+  let termCreator = gFolderDisplay.view.search.session;
+
+  let searchTerms = [];
+  // searchTermOverlay stores wrapper objects in its gSearchTerms array.  Pluck
+  //  them.
+  for (let iTerm = 0; iTerm < gSearchTerms.length; iTerm++) {
+    let termWrapper = gSearchTerms[iTerm].obj;
+    let realTerm = termCreator.createTerm();
+    termWrapper.saveTo(realTerm);
+    // A header search of "" is illegal for IMAP and will cause us to
+    //  explode.  You don't want that and I don't want that.  So let's check
+    //  if the bloody term is a subject search on a blank string, and if it
+    //  is, let's secretly not add the term.  Everyone wins!
+    if ((realTerm.attrib != Components.interfaces.nsMsgSearchAttrib.Subject) ||
+        (realTerm.value.str != ""))
+      searchTerms.push(realTerm);
+  }
+
+  return searchTerms;
+}
+
+/**
+ * @return the list of folders the search should cover.
+ */
+function getSearchFolders() {
+  let searchFolders = [];
+
+  if (!gCurrentFolder.isServer && !gCurrentFolder.noSelect)
+    searchFolders.push(gCurrentFolder);
+
+  var searchSubfolders =
+    document.getElementById("checkSearchSubFolders").checked;
+  if (gCurrentFolder &&
+      (searchSubfolders || gCurrentFolder.isServer || gCurrentFolder.noSelect))
+    AddSubFolders(gCurrentFolder, searchFolders);
+
+  return searchFolders;
+}
+
+function AddSubFolders(folder, outFolders) {
   var subFolders = folder.subFolders;
-  while (subFolders.hasMoreElements())
-  {
+  while (subFolders.hasMoreElements()) {
     var nextFolder =
       subFolders.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
 
-    if (!(nextFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual))
-    {
+    if (!(nextFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)) {
       if (!nextFolder.noSelect)
-        gSearchSession.addScopeTerm(GetScopeForFolder(nextFolder), nextFolder);
+        outFolders.push(nextFolder);
 
-      AddSubFolders(nextFolder);
+      AddSubFolders(nextFolder, outFolders);
     }
   }
 }
 
-function AddSubFoldersToURI(folder) 
+function AddSubFoldersToURI(folder)
 {
   var returnString = "";
 
@@ -484,7 +486,7 @@ function AddSubFoldersToURI(folder)
 }
 
 
-function GetScopeForFolder(folder) 
+function GetScopeForFolder(folder)
 {
   var searchLocalSystem = document.getElementById("checkSearchLocalSystem");
   return searchLocalSystem && searchLocalSystem.checked ? nsMsgSearchScope.offlineMail : folder.server.searchScope;
@@ -507,84 +509,6 @@ function goUpdateSearchItems(commandset)
   }
 }
 
-function nsMsgSearchCommandUpdater()
-{}
-
-nsMsgSearchCommandUpdater.prototype =
-{
-  updateCommandStatus : function()
-  {
-    // the back end is smart and is only telling us to update command status
-    // when the # of items in the selection has actually changed.
-    document.commandDispatcher.updateCommands('mail-search');
-  },
-  displayMessageChanged : function(aFolder, aSubject, aKeywords)
-  {
-  },
-
-  updateNextMessageAfterDelete : function()
-  {
-    SetNextMessageAfterDelete();
-  },
-
-  summarizeSelection : function() {return false},
-
-  QueryInterface : function(iid)
-  {
-    if (iid.equals(Components.interfaces.nsIMsgDBViewCommandUpdater) ||
-        iid.equals(Components.interfaces.nsISupports))
-      return this;
-
-    throw Components.results.NS_NOINTERFACE;
-  }
-}
-
-function setupDatasource() {
-    gSearchView = Components.classes["@mozilla.org/messenger/msgdbview;1?type=search"].createInstance(Components.interfaces.nsIMsgDBView);
-    var count = new Object;
-    var cmdupdator = new nsMsgSearchCommandUpdater();
-
-    gSearchView.init(messenger, msgWindow, cmdupdator);
-    gSearchView.open(null, nsMsgViewSortType.byId, nsMsgViewSortOrder.ascending, nsMsgViewFlagsType.kNone, count);
-
-    // the thread pane needs to use the search datasource (to get the
-    // actual list of messages) and the message datasource (to get any
-    // attributes about each message)
-    gSearchSession = Components.classes[searchSessionContractID].createInstance(Components.interfaces.nsIMsgSearchSession);
-
-    var nsIFolderListener = Components.interfaces.nsIFolderListener;
-    var notifyFlags = nsIFolderListener.event;
-    Components.classes["@mozilla.org/messenger/services/session;1"]
-              .getService(Components.interfaces.nsIMsgMailSession)
-              .AddFolderListener(gFolderListener, notifyFlags);
-
-    // the datasource is a listener on the search results
-    gViewSearchListener = gSearchView.QueryInterface(Components.interfaces.nsIMsgSearchNotify);
-    gSearchSession.registerListener(gViewSearchListener);
-}
-
-
-function setupSearchListener()
-{
-    // Setup the javascript object as a listener on the search results
-    gSearchSession.registerListener(gSearchNotificationListener);
-}
-
-// stuff after this is implemented to make the thread pane work
-function GetFolderDatasource()
-{
-    if (!gFolderDatasource)
-        gFolderDatasource = Components.classes["@mozilla.org/rdf/datasource;1?name=mailnewsfolders"]
-                                      .getService(Components.interfaces.nsIRDFDataSource);
-    return gFolderDatasource;
-}
-
-// used to determine if we should try to load a message
-function IsThreadAndMessagePaneSplitterCollapsed()
-{
-    return true;
-}
-
 // used to toggle functionality for Search/Stop button.
 function onSearchButton(event)
 {
@@ -597,168 +521,47 @@ function onSearchButton(event)
 // threadPane.js will be needing this, too
 function GetNumSelectedMessages()
 {
-   try {
-       return gSearchView.numSelected;
-   }
-   catch (ex) {
-       return 0;
-   }
-}
-
-function GetDBView()
-{
-    return gSearchView;
+  return gFolderDisplay.treeSelection.count;
 }
 
 function MsgDeleteSelectedMessages(aCommandType)
 {
     // we don't delete news messages, we just return in that case
-    if (isNewsURI(gSearchView.getURIForViewIndex(0))) 
+    if (gFolderDisplay.selectedMessageIsNews)
         return;
 
     // if mail messages delete
-    SetNextMessageAfterDelete();
-    gSearchView.doCommand(aCommandType);
-}
-
-function SetNextMessageAfterDelete()
-{
-  gNextMessageViewIndexAfterDelete = gSearchView.msgToSelectAfterDelete;
-}
-
-function HandleDeleteOrMoveMessageFailed(folder)
-{
-  gNextMessageViewIndexAfterDelete = -2;
-}
-
-function HandleDeleteOrMoveMessageCompleted(folder)
-{
-  var treeView = gSearchView.QueryInterface(Components.interfaces.nsITreeView);
-  var treeSelection = treeView.selection;
-  var viewSize = treeView.rowCount;
-
-  if (gNextMessageViewIndexAfterDelete == -2) {
-    // a move or delete can cause our selection can change underneath us.
-    // this can happen when the user
-    // deletes message from the stand alone msg window
-    // or the three pane
-    if (!treeSelection) {
-      // this can happen if you open the search window
-      // and before you do any searches
-      // and you do delete from another mail window
-      return;
-    }
-    else if (treeSelection.count == 0) {
-      // this can happen if you double clicked a message
-      // in the thread pane, and deleted it from the stand alone msg window
-      // see bug #185147
-      treeSelection.clearSelection();
-
-      UpdateMailSearch("delete from another view, 0 rows now selected");
-    }
-    else if (treeSelection.count == 1) {
-      // this can happen if you had two messages selected
-      // in the search results pane, and you deleted one of them from another view
-      // (like the view in the stand alone msg window or the three pane)
-      // since one item is selected, we should load it.
-      var startIndex = {};
-      var endIndex = {};
-      treeSelection.getRangeAt(0, startIndex, endIndex);
-        
-      // select the selected item, so we'll load it
-      treeSelection.select(startIndex.value); 
-      treeView.selectionChanged();
-
-      EnsureRowInThreadTreeIsVisible(startIndex.value); 
-      UpdateMailSearch("delete from another view, 1 row now selected");
-    }
-    else {
-      // this can happen if you have more than 2 messages selected
-      // in the search results pane, and you deleted one of them from another view
-      // (like the view in the stand alone msg window or the three pane)
-      // since multiple messages are still selected, do nothing.
-    }
-  }
-  else {
-    if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None && gNextMessageViewIndexAfterDelete >= viewSize) 
-    {
-      if (viewSize > 0)
-        gNextMessageViewIndexAfterDelete = viewSize - 1;
-      else
-      {           
-        gNextMessageViewIndexAfterDelete = nsMsgViewIndex_None;
-
-        // there is nothing to select since viewSize is 0
-        treeSelection.clearSelection();
-
-        UpdateMailSearch("delete from current view, 0 rows left");
-      }
-    }
-
-    // if we are about to set the selection with a new element then DON'T clear
-    // the selection then add the next message to select. This just generates
-    // an extra round of command updating notifications that we are trying to
-    // optimize away.
-    if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None) 
-    {
-      treeSelection.select(gNextMessageViewIndexAfterDelete);
-      // since gNextMessageViewIndexAfterDelete probably has the same value
-      // as the last index we had selected, the tree isn't generating a new
-      // selectionChanged notification for the tree view. So we aren't loading the 
-      // next message. to fix this, force the selection changed update.
-      if (treeView)
-        treeView.selectionChanged();
-
-      EnsureRowInThreadTreeIsVisible(gNextMessageViewIndexAfterDelete); 
-
-      // XXX TODO
-      // I think there is a bug in the suppression code above.
-      // what if I have two rows selected, and I hit delete, 
-      // and so we load the next row.
-      // what if I have commands that only enable where 
-      // exactly one row is selected?
-      UpdateMailSearch("delete from current view, at least one row selected");
-    }
-  }
-
-  // default value after delete/move/copy is over
-  gNextMessageViewIndexAfterDelete = -2;
-
-  // something might have been deleted, so update the status text
-  SetAdvancedSearchStatusText(viewSize);
+    gFolderDisplay.hintAboutToDeleteMessages();
+    gFolderDisplay.doCommand(aCommandType);
 }
 
 function MoveMessageInSearch(destFolder)
 {
-    try {
-        // get the msg folder we're moving messages into
-        // if the id (uri) is not set, use file-uri which is set for
-        // "File Here"
-        var destUri = destFolder.getAttribute('id');
-        if (destUri.length == 0) { 
-          destUri = destFolder.getAttribute('file-uri')
-        }
+  // Get the msg folder we're moving messages into.
+  // If the id (uri) is not set, use file-uri which is set for
+  // "File Here".
+  let destUri = destFolder.getAttribute('id');
+  if (destUri.length == 0)
+    destUri = destFolder.getAttribute('file-uri');
 
-        var destMsgFolder = GetMsgFolderFromUri(destUri).QueryInterface(Components.interfaces.nsIMsgFolder);
+  let destMsgFolder = GetMsgFolderFromUri(destUri).QueryInterface(
+                        Components.interfaces.nsIMsgFolder);
 
-        // we don't move news messages, we copy them
-        if (isNewsURI(gSearchView.getURIForViewIndex(0))) {
-          gSearchView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, destMsgFolder);
-        }
-        else {
-            SetNextMessageAfterDelete();
-            gSearchView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, destMsgFolder);
-        } 
-    }
-    catch (ex) {
-        dump("MsgMoveMessage failed: " + ex + "\n");
-    }   
+  // we don't move news messages, we copy them
+  if (gFolderDisplay.selectedMessageIsNews) {
+    gFolderDisplay.doCommandWithFolder(nsMsgViewCommandType.copyMessages,
+                                       destMsgFolder);
+  }
+  else {
+    gFolderDisplay.hintAboutToDeleteMessages();
+    gFolderDisplay.doCommandWithFolder(nsMsgViewCommandType.moveMessages,
+                                       destMsgFolder);
+  }
 }
 
 function GoToFolder()
 {
-  var hdr = gSearchView.hdrForFirstSelectedMessage;
-  MsgOpenNewWindowForFolder(hdr.folder.URI, hdr.messageKey);
+  MsgOpenNewWindowForFolder(gFolderDisplay.selectedMessage);
 }
 
 function BeginDragThreadPane(event)
@@ -769,7 +572,7 @@ function BeginDragThreadPane(event)
 
 function saveAsVirtualFolder()
 {
-  searchFolderURIs = window.arguments[0].folder.URI;
+  var searchFolderURIs = window.arguments[0].folder.URI;
 
   var searchSubfolders = document.getElementById("checkSearchSubFolders").checked;
   if (gCurrentFolder && (searchSubfolders || gCurrentFolder.isServer || gCurrentFolder.noSelect))
@@ -781,8 +584,9 @@ function saveAsVirtualFolder()
 
   var dialog = window.openDialog("chrome://messenger/content/virtualFolderProperties.xul", "",
                                  "chrome,titlebar,modal,centerscreen",
-                                 {folder:window.arguments[0].folder,
-                                  searchTerms:gSearchSession.searchTerms,
+                                 {folder: window.arguments[0].folder,
+                                  searchTerms: toXPCOMArray(getSearchTerms(),
+                                                            Components.interfaces.nsISupportsArray),
                                   searchFolderURIs: searchFolderURIs});
 }
 

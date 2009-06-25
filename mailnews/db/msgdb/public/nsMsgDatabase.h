@@ -55,6 +55,7 @@
 #include "pldhash.h"
 #include "nsTArray.h"
 #include "nsTObserverArray.h"
+#include "nsAutoPtr.h"
 class ListContext;
 class nsMsgKeySet;
 class nsMsgThread;
@@ -73,9 +74,43 @@ public:
   nsMsgDBService();
   ~nsMsgDBService();
 protected:
+  void HookupPendingListeners(nsIMsgDatabase *db, nsIMsgFolder *folder);
+
   nsCOMArray <nsIMsgFolder> m_foldersPendingListeners;
   nsCOMArray <nsIDBChangeListener> m_pendingListeners;
 };
+
+class nsMsgDBEnumerator : public nsISimpleEnumerator {
+public:
+    NS_DECL_ISUPPORTS
+
+    // nsISimpleEnumerator methods:
+    NS_DECL_NSISIMPLEENUMERATOR
+
+    // nsMsgDBEnumerator methods:
+    typedef nsresult (*nsMsgDBEnumeratorFilter)(nsIMsgDBHdr* hdr, void* closure);
+
+    nsMsgDBEnumerator(nsMsgDatabase* db, nsIMdbTable *table,
+                      nsMsgDBEnumeratorFilter filter, void* closure,
+                      PRBool iterateForwards = PR_TRUE);
+    virtual ~nsMsgDBEnumerator();
+
+    void Clear();
+
+protected:
+    nsresult                        GetRowCursor();
+    nsresult                        PrefetchNext();
+    nsRefPtr<nsMsgDatabase>         mDB;
+    nsCOMPtr<nsIMdbTableRowCursor>  mRowCursor;
+    nsCOMPtr<nsIMsgDBHdr>           mResultHdr;
+    PRBool                          mDone;
+    PRBool                          mNextPrefetched;
+    PRBool                          mIterateForwards;
+    nsMsgDBEnumeratorFilter         mFilter;
+    nsCOMPtr <nsIMdbTable>          mTable;
+    void*                           mClosure;
+};
+
 
 class nsMsgDatabase : public nsIMsgDatabase
 {
@@ -187,8 +222,7 @@ protected:
   virtual nsresult ThreadNewHdr(nsMsgHdr* hdr, PRBool &newThread);
   virtual nsresult AddNewThread(nsMsgHdr *msgHdr);
   virtual nsresult AddToThread(nsMsgHdr *newHdr, nsIMsgThread *thread, nsIMsgDBHdr *pMsgHdr, PRBool threadInThread);
-  
-  
+
   static nsTArray<nsMsgDatabase*>* m_dbCache;
   static nsTArray<nsMsgDatabase*>* GetDBCache();
   
@@ -201,7 +235,7 @@ protected:
   }
   static void    RemoveFromCache(nsMsgDatabase* pMessageDB);
   PRBool  MatchDbName(nsILocalFile *dbName);  // returns TRUE if they match
-  
+
   // Flag handling routines
   virtual nsresult SetKeyFlag(nsMsgKey key, PRBool set, PRUint32 flag,
                               nsIDBChangeListener *instigator = NULL);
@@ -332,6 +366,9 @@ protected:
   nsresult RemoveMsgRefsFromHash(nsIMsgDBHdr *msgHdr);
   nsresult InitRefHash();
 
+  // not-reference holding array of enumerators we've handed out.
+  // If a db goes away, it will clean up the outstanding enumerators.
+  nsTArray<nsMsgDBEnumerator *> m_enumerators;
 private:
   PRUint32 m_cacheSize;
 };

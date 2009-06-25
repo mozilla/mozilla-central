@@ -37,3 +37,7 @@
 #customize-rows > row {
     min-height: 26px;
 }
+
+.checkbox-no-label > .checkbox-label-box {
+    display: none;
+}

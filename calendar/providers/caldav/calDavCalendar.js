@@ -1303,6 +1303,7 @@ calDavCalendar.prototype = {
                         thisCalendar.name);
                 thisCalendar.completeCheckServerInfo(aChangeLogListener,
                                                      Components.interfaces.calIErrors.DAV_NOT_DAV);
+                return;
             }
             var wwwauth;
             try {

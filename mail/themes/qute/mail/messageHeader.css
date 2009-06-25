@@ -51,10 +51,6 @@
 
 /* ::::: msg header toolbars ::::: */
 
-#collapsedHeaderView {
-  min-width: 1px;
-}
-
 #expandedHeaderView {
   overflow-y: auto;
   overflow-x: hidden;
@@ -63,10 +59,6 @@
 
 #variousHeadersBox{
   padding-bottom: 1em;
-}
-
-#collapsedHeaderDisplayName {
-  text-align: left;
 }
 
 /* ::::: msg header buttons ::::: */
@@ -78,35 +70,6 @@
 #otherActionsButton {
   margin-bottom: .1em;
   padding-top: 0px;
-}
-
-#collapsedsubjectValue {
-  -moz-margin-start: 3px !important;
-  -moz-box-align: stretch;
-  font-weight: bold;
-}
-
-#collapseddateValue {
-  -moz-box-align: stretch;
-  text-align: right;
-  -moz-padding-end: 0.5em !important;
-}
-
-#showDetailsButton {
-  width: 26px;
-  padding-bottom: 0px;
-  height: 23px;
-  border: solid 3px transparent;
-  margin: 0;
-  text-align: center;
-  list-style-image: url("chrome://messenger/skin/icons/croppedchevron.png");
-}
-
-#showDetailsButton > .button-box,
-#showDetailsButton > .button-box > .button-icon,
-#showDetailsButton > .button-box > .button-text{
-  margin: 0;
-  padding: 0;
 }
 
 /* ::::: expanded header pane ::::: */
@@ -362,33 +325,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   color: inherit;
 }
 
-#collapsedsubjectBox {
-  margin: 0px;
-  padding: 0px;
-}
-
-#collapsedfromBox {
-  padding-top: 0.5em;
-}
-
-#collapsedfromValue > .headerNameBox {
-  display: none;
-}
-
-#collapsedtoCcBccValue > .headerNameBox {
-  display: none;
-}
-
-#collapsedtoCcBccValue > .headerValueBox[singleline] {
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-#collapsedtoCcBccValue > .headerValueBox:not([singleline]) {
-  padding-top: 0.5em;
-  padding-bottom: 0;
-}
-
 .moreIndicator {
   font-weight: bold;
 }
@@ -540,10 +476,6 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 
 .expandHeaderViewButton {
   list-style-image: url("chrome://global/skin/tree/twisty-open.png");
-}
-
-.collapsedHeaderViewButton  {
-  list-style-image: url("chrome://global/skin/tree/twisty-clsd.png");
 }
 
 mail-multi-emailHeaderField,

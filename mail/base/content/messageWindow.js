@@ -1,42 +1,44 @@
-# -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-1999
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/** ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 /* This is where functions related to the standalone message window are kept */
+
+Components.utils.import("resource://app/modules/jsTreeSelection.js");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // from MailNewsTypes.h
 const nsMsgKey_None = 0xFFFFFFFF;
@@ -44,56 +46,180 @@ const nsMsgViewIndex_None = 0xFFFFFFFF;
 
 /* globals for a particular window */
 
-var gCurrentMessageUri;
-var gCurrentFolderUri;
-var gThreadPaneCommandUpdater = null;
-var gNextMessageViewIndexAfterDelete = -2;
-var gCurrentFolderToRerootForStandAlone;
-var gRerootOnFolderLoadForStandAlone = false;
-var gNextMessageAfterLoad = null;
-var gMessageToLoad = nsMsgKey_None;
+/// we have no tree view; let people know that.
+var gFolderTreeView = null;
 
-// the folderListener object
-var folderListener = {
-  OnItemAdded: function(parentItem, item) {},
+var gFolderDisplay;
+var gMessageDisplay;
 
-  OnItemRemoved: function(parentItem, item) {},
-  OnItemPropertyChanged: function(item, property, oldValue, newValue) {},
-  OnItemIntPropertyChanged: function(item, property, oldValue, newValue) {
-    if (item.URI == gCurrentFolderUri) {
-      if (property.toString() == "TotalMessages" || property.toString() == "TotalUnreadMessages") {
-        UpdateStandAloneMessageCounts();
-      }
-    }
-  },
-  OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) {},
-  OnItemUnicharPropertyChanged: function(item, property, oldValue, newValue){},
-  OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) {},
-
-  OnItemEvent: function(folder, event) {
-    var eventType = event.toString();
-
-    if (eventType == "DeleteOrMoveMsgCompleted")
-      HandleDeleteOrMoveMsgCompleted(folder);
-    else if (eventType == "DeleteOrMoveMsgFailed")
-      HandleDeleteOrMoveMsgFailed(folder);
-    else if (eventType == "FolderLoaded") {
-      if (folder) {
-        var uri = folder.URI;
-        if (uri == gCurrentFolderToRerootForStandAlone) {
-          gCurrentFolderToRerootForStandAlone = null;
-          folder.endFolderLoading();
-          if (gRerootOnFolderLoadForStandAlone) {
-            RerootFolderForStandAlone(uri);
-          }
-        }
-      }
-    }
-    else if (eventType == "JunkStatusChanged") {
-      HandleJunkStatusChanged(folder);
-    }
-  }
+/**
+ * We subclass FolderDisplayWidget:
+ * - Because it assumes some thread-pane things that do not apply to us and we
+ *    want to no-op those things out.
+ * - To intercept queries about the selected message so that we can do the
+ *    .eml file thing.  We were originally trying to avoid involving the
+ *    nsMsgDBView, but that might not be important anymore. (future work)
+ */
+function StandaloneFolderDisplayWidget(aMessageDisplayWidget) {
+  FolderDisplayWidget.call(this, null, aMessageDisplayWidget);
+  // do not set the actual treeBox variable or our superclass might try and do
+  //  weird rooting things we don't want to have to think about right now.
+  this._magicTreeSelection = new JSTreeSelection(this.treeBox);
 }
+StandaloneFolderDisplayWidget.prototype = {
+  __proto__: FolderDisplayWidget.prototype,
+
+  /**
+   * If we have a displayed message, then we've got 1 message, otherwise 0.
+   */
+  get selectedCount() {
+    return this.messageDisplay.displayedMessage ? 1 : 0;
+  },
+
+  /**
+   * If we have a selected message, it's the one displayed!  This is more
+   *  straight-forward than having you trace through the tree selection and
+   *  db view logic.
+   */
+  get selectedMessage() {
+    return this.messageDisplay.displayedMessage;
+  },
+
+  /**
+   * If we have a selected message, it's the one displayed!  This is more
+   *  straight-forward than having you trace through the tree selection and
+   *  db view logic.
+   */
+  get selectedMessages() {
+    return this.messageDisplay.displayedMessage ?
+             [this.messageDisplay.displayedMessage] : [];
+  },
+
+  /**
+   * We never have a real treeview, so we always want to tell the view about
+   *  the fake tree box so it will actually do something in NoteChange.
+   */
+  onCreatedView:
+      function StandaloneMessageDisplayWidget_onCreatedView() {
+    this._fakeTreeBox.view = this.view.dbView;
+    this._magicTreeSelection.view = this.view.dbView;
+    // only if we're not dealing with a dummy message (from .eml file /
+    //  attachment should we try and hook up the selection object.)  Otherwise
+    //  the view will not operate in stand alone message mode.
+    // XXX the sequencing here may break re-using a message window that is
+    //  showing an .eml file to go to a real message, at least in terms of
+    //  having the selection object properly associated with the tree.
+    if (!this.messageDisplay.isDummy) {
+      this.view.dbView.setTree(this._fakeTreeBox);
+      this.view.dbView.selection = this._magicTreeSelection;
+    }
+    this.__proto__.__proto__.onCreatedView.call(this);
+  },
+
+  _superSelectedMessageUrisGetter:
+    FolderDisplayWidget.prototype.__lookupGetter__('selectedMessageUris'),
+  /**
+   * Check with the message display widget to see if it has a dummy; if so, just
+   *  return the dummy's URI, as the nsMsgDBView logic that our superclass uses
+   *  falls down in that case.
+   */
+  get selectedMessageUris() {
+    if (this.messageDisplay.displayedUri)
+      return [this.messageDisplay.displayedUri];
+    return this._superSelectedMessageUrisGetter.call(this);
+  },
+
+  /// folder display will want to show the thread pane; we need do nothing
+  _showThreadPane: function () {},
+  _showAccountCentral: function () {},
+
+  _updateThreadDisplay: function () {},
+
+  onMessageCountsChanged:
+      function StandaloneFolderDisplayWidget_onMessageCountsChaned() {
+    UpdateStatusMessageCounts();
+  },
+};
+
+
+/**
+ * Display widget abstraction for a standalone message display.  Right now
+ *  I think this means the standalone message window, and not the 'message in a
+ *  tab' thing, which is really just a perverted configuration of the 3-pane
+ *  format.
+ */
+function StandaloneMessageDisplayWidget() {
+  MessageDisplayWidget.call(this);
+  /**
+   * Indicate whether the message being displayed is a 'dummy' because it is
+   *  backed not by an nsIMsgDBHdr but instead by a file on disk or an
+   *  attachment on some mail message.
+   */
+  this.isDummy = false;
+  /**
+   * When displaying a dummy message, this is the URI of the message that we are
+   *  displaying.  If we are not displaying a dummy message, this is null.
+   */
+  this.displayedUri = null;
+}
+StandaloneMessageDisplayWidget.prototype = {
+  __proto__: MessageDisplayWidget.prototype,
+
+  /**
+   * The message pane is a standalone display widget is always visible.
+   */
+  get visible() {
+    return true;
+  },
+  set visible(aIgnored) {
+  },
+
+  /**
+   * Display the external message (from disk or attachment) named by the URI.
+   */
+  displayExternalMessage:
+      function StandaloneMessageDisplayWidget_displayExternalMessage(aUri) {
+    this.isDummy = true;
+    this.displayedUri = aUri;
+    this.onDisplayingMessage(messageHeaderSink.dummyMsgHeader);
+    UpdateMailToolbar("external message display");
+    // null out the selection on the view so it operates in stand alone mode
+    this.folderDisplay.view.dbView.selection = null;
+    this.folderDisplay.view.dbView.loadMessageByUrl(aUri);
+  },
+
+  clearDisplay: function () {
+    this.messageLoading = false;
+    this.messageLoaded = false;
+    window.close();
+  },
+  _updateActiveMessagePane: function() {
+    // no-op.  the message pane is always visible.
+  },
+
+  onDisplayingMessage:
+      function StandaloneMessageDisplayWidget_onDisplayingMessage(aMsgHdr) {
+    this.__proto__.__proto__.onDisplayingMessage.call(this, aMsgHdr);
+
+    // - set the window title to the message subject (and maybe the app name)
+    let title = aMsgHdr.mime2DecodedSubject;
+    if (!gPlatformOSX)
+      title += " - " + gBrandBundle.getString("brandFullName");
+    document.title = title;
+
+    this.isDummy = aMsgHdr.folder == null;
+    if (!this.isDummy)
+      this.displayedUri = null;
+  },
+
+  onSelectedMessagesChanged: function () {
+    if (this.folderDisplay.treeSelection.count == 0) {
+      window.close();
+      return true;
+    }
+    return false;
+  },
+};
 
 var messagepaneObserver = {
 
@@ -102,23 +228,13 @@ var messagepaneObserver = {
   onDrop: function (aEvent, aData, aDragSession)
   {
     var sourceUri = aData.data;
-    if (sourceUri != gCurrentMessageUri)
+    if (!gFolderDisplay.selectedMessage ||
+        sourceUri != gFolderDisplay.selectedMessageUris[0])
     {
-      var msgHdr = GetMsgHdrFromUri(sourceUri);
-
-      // Reset the window's message uri and folder uri vars, and
-      // update the command handlers to what's going to be used.
-      // This has to be done before the call to CreateView().
-      gCurrentMessageUri = sourceUri;
-      gCurrentFolderUri = msgHdr.folder.URI;
-      UpdateMailToolbar('onDrop');
-
-      // even if the folder uri's match, we can't use the existing view
-      // (msgHdr.folder.URI == windowID.gCurrentFolderUri)
-      // the reason is quick search and mail views.
-      // see bug #187673
-      CreateView(aDragSession.sourceNode.ownerDocument.defaultView.gDBView);
-      LoadMessageByMsgKey(msgHdr.messageKey);
+      var msgHdr = messenger.msgHdrFromURI(sourceUri);
+      let originGlobal = aDragSession.sourceNode.ownerDocument.defaultValue;
+      gFolderDisplay.cloneView(originGlobal.gFolderDisplay.view);
+      gFolderDisplay.selectMessage(msgHdr);
     }
   },
 
@@ -149,106 +265,12 @@ var messagepaneObserver = {
   }
 };
 
-function nsMsgDBViewCommandUpdater()
-{}
-
-function UpdateStandAloneMessageCounts()
+function UpdateStatusMessageCounts()
 {
   // hook for extra toolbar items
   var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
   observerService.notifyObservers(window, "mail:updateStandAloneMessageCounts", "");
 }
-
-nsMsgDBViewCommandUpdater.prototype =
-{
-  updateCommandStatus : function()
-    {
-      // the back end is smart and is only telling us to update command status
-      // when the # of items in the selection has actually changed.
-      UpdateMailToolbar("dbview, std alone window");
-    },
-
-  displayMessageChanged : function(aFolder, aSubject, aKeywords)
-  {
-    setTitleFromFolder(aFolder, aSubject);
-    ClearPendingReadTimer(); // we are loading / selecting a new message so kill the mark as read timer for the currently viewed message
-    gCurrentMessageUri = gDBView.URIForFirstSelectedMessage;
-    UpdateStandAloneMessageCounts();
-    goUpdateCommand("button_delete");
-    goUpdateCommand("button_junk");
-    goUpdateCommand("button_goBack");
-    goUpdateCommand("button_goForward");
-    goUpdateCommand("button_reply");
-    goUpdateCommand("button_replyall");
-    goUpdateCommand("button_replylist");
-  },
-
-  updateNextMessageAfterDelete : function()
-  {
-    SetNextMessageAfterDelete();
-  },
-
-  summarizeSelection : function() {return false},
-
-  QueryInterface : function(iid)
-  {
-    if (iid.equals(Components.interfaces.nsIMsgDBViewCommandUpdater) ||
-        iid.equals(Components.interfaces.nsISupports))
-      return this;
-
-    throw Components.results.NS_NOINTERFACE;
-  }
-}
-
-function HandleDeleteOrMoveMsgCompleted(folder)
-{
-  if ((folder.URI == gCurrentFolderUri))
-  {
-    gDBView.onDeleteCompleted(true);
-    if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None)
-    {
-      var nextMstKey = gDBView.getKeyAt(gNextMessageViewIndexAfterDelete);
-
-      if (pref.getBoolPref("mail.close_message_window.on_delete")) {
-        // Tell the main window to select the next message since we
-        // won't be viewing it automatically in the standalone window.
-        var treeView = window.opener.document.getElementById("threadTree").view;
-        if (gDBView.removeRowOnMoveOrDelete && gNextMessageViewIndexAfterDelete >= 0) {
-          gDBView.suppressCommandUpdating = true;
-          treeView.selection.select(gNextMessageViewIndexAfterDelete);
-          treeView.selectionChanged();
-
-          window.opener.EnsureRowInThreadTreeIsVisible(gNextMessageViewIndexAfterDelete);
-          gDBView.suppressCommandUpdating = false;
-        }
-
-        window.close();
-      }
-      else if (nextMstKey != nsMsgKey_None) {
-        LoadMessageByViewIndex(gNextMessageViewIndexAfterDelete);
-      }
-      else {
-        window.close();
-      }
-    }
-    else
-    {
-      // close the stand alone window because there are no more messages in the folder
-      window.close();
-    }
-  }
-}
-
-function HandleDeleteOrMoveMsgFailed(folder)
-{
-  gDBView.onDeleteCompleted(false);
-}
-
-function IsCurrentLoadedFolder(folder)
-{
-  return (folder.URI == gCurrentFolderUri);
-}
-
 
 // we won't show the window until the onload() handler is finished
 // so we do this trick (suggested by hyatt / blaker)
@@ -265,60 +287,25 @@ function delayedOnLoadMessageWindow()
   CreateMailWindowGlobals();
   verifyAccounts(null);
 
+  /**
+   * Create a message listener so that we can update the title once the message
+   *  finishes streaming when it's a dummy.
+   */
+  gMessageListeners.push({
+    onStartHeaders: function () {},
+    onEndHeaders: function() {
+      if (gMessageDisplay.isDummy)
+        gMessageDisplay.onDisplayingMessage(messageHeaderSink.dummyMsgHeader);
+      UpdateMailToolbar(".eml/message from attachment finished loading");
+    },
+    onEndAttachments: function () {},
+  });
+
   InitMsgWindow();
 
   messenger.setWindow(window, msgWindow);
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadMsgHeaderPane();
-
-  var nsIFolderListener = Components.interfaces.nsIFolderListener;
-  var notifyFlags = nsIFolderListener.removed | nsIFolderListener.event | nsIFolderListener.intPropertyChanged;
-  Components.classes["@mozilla.org/messenger/services/session;1"]
-            .getService(Components.interfaces.nsIMsgMailSession)
-            .AddFolderListener(folderListener, notifyFlags);
-
-  var originalView = null;
-  var folder = null;
-  var messageUri;
-  var loadCustomMessage = false;       //set to true when either loading a message/rfc822 attachment or a .eml file
-  if (window.arguments)
-  {
-    if (window.arguments[0])
-    {
-      try
-      {
-        messageUri = window.arguments[0];
-        if (messageUri instanceof Components.interfaces.nsIURI)
-        {
-          loadCustomMessage = /type=application\/x-message-display/.test(messageUri.spec);
-          gCurrentMessageUri = messageUri.spec;
-          if (messageUri.folder && messageUri instanceof Components.interfaces.nsIMsgMailNewsUrl)
-            folder = messageUri.folder;
-        }
-      }
-      catch(ex)
-      {
-        folder = null;
-        dump("## ex=" + ex + "\n");
-      }
-
-      if (!gCurrentMessageUri)
-        gCurrentMessageUri = window.arguments[0];
-    }
-    else
-      gCurrentMessageUri = null;
-
-    if (window.arguments[1])
-      gCurrentFolderUri = window.arguments[1];
-    else
-      gCurrentFolderUri = folder ? folder.URI : null;
-
-    if (window.arguments[2])
-      originalView = window.arguments[2];
-
-  }
-
-  CreateView(originalView);
 
   gPhishingDetector.init();
 
@@ -329,105 +316,83 @@ function delayedOnLoadMessageWindow()
   var toolbarset = document.getElementById('customToolbars');
   toolbox.toolbarset = toolbarset;
 
-  setTimeout(OnLoadMessageWindowDelayed, 0, loadCustomMessage);
-
   SetupCommandUpdateHandlers();
+
+  gMessageDisplay = new StandaloneMessageDisplayWidget();
+  gFolderDisplay = new StandaloneFolderDisplayWidget(gMessageDisplay);
+  gFolderDisplay.msgWindow = msgWindow;
+  gFolderDisplay.messenger = messenger;
+
+  setTimeout(actuallyLoadMessage, 0);
 }
 
-function OnLoadMessageWindowDelayed(loadCustomMessage)
-{
-  if (loadCustomMessage)
+function actuallyLoadMessage() {
+  /*
+   * Our actual use cases that drive the arguments we take are:
+   * 1) Displaying a message from disk or that was an attachment on a message.
+   *    Such messages have no (real) message header and must come in the form of
+   *    a URI.  (The message display code creates a 'dummy' header.)
+   * 2) Displaying a message that has a header available, either as a result of
+   *    the user selecting a message in another window to spawn us or through
+   *    some indirection like displaying a message by message-id.  (The
+   *    newsgroup UI exposes this, as well as the spotlight/vista indexers.)
+   *
+   * We clone views when possible for:
+   * - Consistency of navigation within the message display.  Users would find
+   *   it odd if they showed a message from a cross-folder view but ended up
+   *   navigating around the message's actual folder.
+   * - Efficiency.  It's faster to clone a view than open a new one.
+   *
+   * Our argument idioms for the use cases are thus:
+   * 1) [A Message URI] where the URI is an nsIURL corresponding to a message
+   *     on disk or that is an attachment part on another message.
+   * 2) [A Message header, (optional) the origin DBViewWraper]
+   *
+   * Our original set of arguments, in case these get passed in and you're
+   *  wondering why we explode, was:
+   *   0: A message URI, string or nsIURI.
+   *   1: A folder URI.  If arg 0 was an nsIURI, it may have had a folder attribute.
+   *   2: The nsIMsgDBView used to open us.
+   */
+  if (window.arguments && window.arguments.length)
   {
-    gDBView.suppressMsgDisplay = false;
-    gDBView.loadMessageByUrl(gCurrentMessageUri);
+    // message header?
+    if (window.arguments[0] instanceof Components.interfaces.nsIMsgDBHdr) {
+      let msgHdr = window.arguments[0];
+      let originViewWrapper = window.arguments.length > 1 ?
+        window.arguments[1] : null;
+      if (originViewWrapper)
+        gFolderDisplay.cloneView(originViewWrapper);
+      else
+        gFolderDisplay.show(msgHdr.folder);
+      gFolderDisplay.selectMessage(msgHdr);
+    }
+    // it must be a URI for a message lacking a backing header
+    else {
+      // Here's how this goes.  nsMessenger::LoadURL checks out the URL we
+      //  pass it, and if it sees that the URI starts with "file:" or contains
+      //  "type=application/x-message-display" then it knows it needs to
+      //  create a dummy header.  It gets the 'dummyMsgHeader' property from
+      //  the js message header sink.
+      // Additionally, nsMessenger::MsgHdrFromURI checks the URI we pass it
+      //  and if it meets either of those same constraints (assuming it has a
+      //  msgWindow), it will retrieve the header sink off the msgWindow, get
+      //  the dummy header, and return that.
+      // so...
+      // - create a search view for the standalone dude
+      gFolderDisplay.view.openSearchView();
+      // - load the message
+      let messageURI = window.arguments[0];
+      if (messageURI instanceof Components.interfaces.nsIURI)
+        messageURI = messageURI.spec;
+      gMessageDisplay.displayExternalMessage(messageURI);
+    }
   }
-  else
-  {
-    var msgKey = extractMsgKeyFromURI(gCurrentMessageUri);
-    var viewIndex = gDBView.findIndexFromKey(msgKey, true);
-    // the message may not appear in the view if loaded from a search dialog
-    if (viewIndex != nsMsgViewIndex_None)
-      LoadMessageByViewIndex(viewIndex);
-    else
-      messenger.openURL(gCurrentMessageUri);
-  }
-  gNextMessageViewIndexAfterDelete = gDBView.msgToSelectAfterDelete;
-  UpdateStandAloneMessageCounts();
+
+  gFolderDisplay.makeActive();
 
   // set focus to the message pane
   window.content.focus();
-
-  // since we just changed the pane with focus we need to update the toolbar to reflect this
-  // XXX TODO
-  // can we optimize
-  // and just update cmd_delete and button_delete?
-  UpdateMailToolbar("focus");
-}
-
-function CreateView(originalView)
-{
-  var msgFolder = GetLoadedMsgFolder();
-
-  // extract the sort type, the sort order,
-  var sortType;
-  var sortOrder;
-  var viewFlags;
-  var viewType;
-
-  if (originalView)
-  {
-    viewType = originalView.viewType;
-    viewFlags = originalView.viewFlags;
-    sortType = originalView.sortType;
-    sortOrder = originalView.sortOrder;
-  }
-  else if (msgFolder)
-  {
-    var msgDatabase = msgFolder.msgDatabase;
-    if (msgDatabase)
-    {
-      var dbFolderInfo = msgDatabase.dBFolderInfo;
-      sortType = dbFolderInfo.sortType;
-      sortOrder = dbFolderInfo.sortOrder;
-      viewFlags = dbFolderInfo.viewFlags;
-      viewType = dbFolderInfo.viewType;
-      msgDatabase = null;
-      dbFolderInfo = null;
-   }
-  }
-  else
-  {
-    // this is a hack to make opening a stand-alone msg window on a
-    // .eml file work. We use a search view since its much more tolerant
-    // of not having a folder.
-    viewType = nsMsgViewType.eShowSearch;
-  }
-
-  // create a db view
-  CreateBareDBView(originalView, msgFolder, viewType, viewFlags, sortType, sortOrder);
-
-  var uri;
-  if (gCurrentMessageUri)
-    uri = gCurrentMessageUri;
-  else if (gCurrentFolderUri)
-    uri = gCurrentFolderUri;
-  else
-    uri = null;
-
-  SetUpToolbarButtons(uri);
-
-  // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:setupToolbarItems", uri);
-}
-
-function extractMsgKeyFromURI()
-{
-  var msgKey = -1;
-  var msgHdr =   messenger.msgHdrFromURI(gCurrentMessageUri);
-  if (msgHdr)
-    msgKey = msgHdr.messageKey;
-  return msgKey;
 }
 
 function ShowMenus()
@@ -534,6 +499,7 @@ function HideMenus()
 
 function OnUnloadMessageWindow()
 {
+  gFolderDisplay.close();
   UnloadCommandUpdateHandlers();
   // FIX ME - later we will be able to use onunload from the overlay
   OnUnloadMsgHeaderPane();
@@ -543,185 +509,34 @@ function OnUnloadMessageWindow()
 
 function GetSelectedMsgFolders()
 {
-  var folderArray = [];
-  var msgFolder = GetLoadedMsgFolder();
-  if (msgFolder)
-    folderArray[0] = msgFolder;
-
-  return folderArray;
-}
-
-function GetFirstSelectedMessage()
-{
-  return GetLoadedMessage();
+  if (gFolderDisplay.displayedFolder)
+    return [gFolderDisplay.displayedFolder];
+  return [];
 }
 
 function GetNumSelectedMessages()
 {
-  if (gCurrentMessageUri)
-    return 1;
-  else
-    return 0;
-}
-
-function GetSelectedMessages()
-{
-  var messageArray = new Array(1);
-  var message = GetLoadedMessage();
-  if (message)
-    messageArray[0] = message;
-
-  return messageArray;
-}
-
-function GetSelectedIndices(dbView)
-{
-  try {
-    return dbView.getIndicesForSelection({});
-  }
-  catch (ex) {
-    dump("ex = " + ex + "\n");
-    return null;
-  }
-}
-
-function GetLoadedMsgFolder()
-{
-  return (gCurrentFolderUri) ? GetMsgFolderFromUri(gCurrentFolderUri) : null;
-}
-
-function GetSelectedFolderURI()
-{
-  return gCurrentFolderUri;
-}
-
-function GetLoadedMessage()
-{
-  return gCurrentMessageUri;
-}
-
-//Clear everything related to the current message. called after load start page.
-function ClearMessageSelection()
-{
-  gCurrentMessageUri = null;
-  gCurrentFolderUri = null;
-  UpdateMailToolbar("clear msg, std alone window");
-}
-
-function SetNextMessageAfterDelete()
-{
-  gNextMessageViewIndexAfterDelete = gDBView.msgToSelectAfterDelete;
-}
-
-function SelectFolder(folderUri)
-{
-  if (folderUri == gCurrentFolderUri)
-    return;
-
-  var msgfolder = GetMsgFolderFromUri(folderUri)
-  if (!msgfolder || msgfolder.isServer)
-    return;
-
-  // close old folder view
-  var dbview = GetDBView();
-  if (dbview)
-    dbview.close();
-
-  gCurrentFolderToRerootForStandAlone = folderUri;
-  msgWindow.openFolder = msgfolder;
-
-  if (msgfolder.manyHeadersToDownload)
-  {
-    gRerootOnFolderLoadForStandAlone = true;
-    try
-    {
-      // accessing the db causes the folder loaded notification to get sent
-      // for local folders.
-      var db = msgfolder.msgDatabase;
-      msgfolder.startFolderLoading();
-      msgfolder.updateFolder(msgWindow);
-    }
-    catch(ex)
-    {
-      dump("Error loading with many headers to download: " + ex + "\n");
-    }
-  }
-  else
-  {
-    RerootFolderForStandAlone(folderUri);
-    gRerootOnFolderLoadForStandAlone = false;
-    msgfolder.startFolderLoading();
-
-    //Need to do this after rerooting folder.  Otherwise possibility of receiving folder loaded
-    //notification before folder has actually changed.
-    msgfolder.updateFolder(msgWindow);
-  }
-}
-
-function RerootFolderForStandAlone(uri)
-{
-  gCurrentFolderUri = uri;
-
-  // create new folder view
-  CreateView(null);
-
-  if (gMessageToLoad != nsMsgKey_None)
-  {
-    LoadMessageByMsgKey(gMessageToLoad);
-    gMessageToLoad = nsMsgKey_None;
-  }
-  // now do the work to load the appropriate message
-  else if (gNextMessageAfterLoad) {
-    var type = gNextMessageAfterLoad;
-    gNextMessageAfterLoad = null;
-    LoadMessageByNavigationType(type);
-  }
-
-  SetUpToolbarButtons(gCurrentFolderUri);
-
-  UpdateMailToolbar("reroot folder in stand alone window");
-
-  // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:setupToolbarItems", uri);
-}
-
-function GetMsgHdrFromUri(messageUri)
-{
-  return messenger.msgHdrFromURI(messageUri);
-}
-
-function SelectMessage(messageUri)
-{
-  var msgHdr = GetMsgHdrFromUri(messageUri);
-  LoadMessageByMsgKey(msgHdr.messageKey);
+  return gFolderDisplay.treeSelection.count;
 }
 
 function ReloadMessage()
 {
-  gDBView.reloadMessage();
+  gFolderDisplay.view.dbView.reloadMessage();
 }
 
 function MsgDeleteMessageFromMessageWindow(reallyDelete, fromToolbar)
 {
   // if from the toolbar, return right away if this is a news message
   // only allow cancel from the menu:  "Edit | Cancel / Delete Message"
-  if (fromToolbar)
-  {
-    if (isNewsURI(gCurrentFolderUri))
-    {
-        // if news, don't delete
-        return;
-    }
-  }
+  if (fromToolbar && gDisplayFolder.view.isNewsFolder)
+      return;
 
-  // before we delete
-  SetNextMessageAfterDelete();
+  gFolderDisplay.hintAboutToDeleteMessages();
 
   if (reallyDelete)
-      gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
+    gFolderDisplay.doCommand(nsMsgViewCommandType.deleteNoTrash);
   else
-      gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
+    gFolderDisplay.doCommand(nsMsgViewCommandType.deleteMsg);
 }
 
 // MessageWindowController object (handles commands when one of the trees does not have focus)
@@ -731,19 +546,14 @@ var MessageWindowController =
   {
     switch ( command )
     {
+      // external messages cannot be deleted, mutated, or subjected to filtering
       case "cmd_delete":
-      case "cmd_undo":
-      case "cmd_redo":
       case "cmd_killThread":
       case "cmd_killSubthread":
       case "cmd_watchThread":
       case "button_delete":
       case "button_junk":
       case "cmd_shiftDelete":
-      case "cmd_saveAsFile":
-      case "cmd_saveAsTemplate":
-      case "cmd_viewPageSource":
-      case "cmd_getMsgsForAuthAccounts":
       case "cmd_tag":
       case "button_mark":
       case "cmd_markAsRead":
@@ -751,8 +561,6 @@ var MessageWindowController =
       case "cmd_markThreadAsRead":
       case "cmd_markReadByDate":
       case "cmd_markAsFlagged":
-      case "button_file":
-      case "cmd_file":
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
       case "cmd_recalculateJunkScore":
@@ -760,6 +568,15 @@ var MessageWindowController =
       case "cmd_applyFilters":
       case "cmd_runJunkControls":
       case "cmd_deleteJunk":
+        return !gMessageDisplay.isDummy;
+      case "cmd_undo":
+      case "cmd_redo":
+      case "cmd_saveAsFile":
+      case "cmd_saveAsTemplate":
+      case "cmd_viewPageSource":
+      case "cmd_getMsgsForAuthAccounts":
+      case "button_file":
+      case "cmd_file":
       case "cmd_nextMsg":
       case "button_next":
       case "button_previous":
@@ -773,7 +590,7 @@ var MessageWindowController =
       case "cmd_goBack":
       case "button_goForward":
       case "button_goBack":
-        return !(gDBView.keyForFirstSelectedMessage == nsMsgKey_None);
+        return gFolderDisplay.selectedMessage != null;
 
       case "cmd_reply":
       case "button_reply":
@@ -822,11 +639,12 @@ var MessageWindowController =
 
   isCommandEnabled: function(command)
   {
+    let loadedFolder;
     switch ( command )
     {
       case "cmd_createFilterFromPopup":
       case "cmd_createFilterFromMenu":
-        var loadedFolder = GetLoadedMsgFolder();
+        loadedFolder = gFolderDisplay.displayedFolder;
         if (!(loadedFolder && loadedFolder.server.canHaveFilters))
           return false;
       case "cmd_delete":
@@ -836,8 +654,10 @@ var MessageWindowController =
         UpdateDeleteToolbarButton();
         // fall through
       case "cmd_shiftDelete":
-        var loadedFolder = GetLoadedMsgFolder();
-        return gCurrentMessageUri && loadedFolder && (loadedFolder.canDeleteMessages || isNewsURI(gCurrentFolderUri));
+        return gFolderDisplay.selectedMessage &&
+               gFolderDisplay.displayedFolder &&
+               (gFolderDisplay.displayedFolder.canDeleteMessages ||
+                gFolderDisplay.view.isNewsFolder);
       case "button_junk":
         UpdateJunkToolbarButton();
         // fall through
@@ -845,21 +665,24 @@ var MessageWindowController =
       case "cmd_markAsNotJunk":
       case "cmd_recalculateJunkScore":
         // can't do junk on news yet
-        return (!isNewsURI(gCurrentFolderUri));
+        return (!gFolderDisplay.view.isNewsFolder);
       case "button_archive":
-        var folder = GetLoadedMsgFolder();
+        var folder = gFolderDisplay.displayedFolder;
         return folder &&
           !(IsSpecialFolder(folder, Components.interfaces.nsMsgFolderFlags.Archive,
                             true));
-      case "cmd_archive":
       case "cmd_reply":
       case "button_reply":
-      case "cmd_replySender":
-      case "cmd_replyGroup":
+        return gFolderDisplay.selectedMessage && IsReplyEnabled();
       case "cmd_replyall":
       case "button_replyall":
+        return gFolderDisplay.selectedMessage && IsReplyAllEnabled();
       case "cmd_replylist":
       case "button_replylist":
+        return gFolderDisplay.selectedMessage && IsReplyListEnabled();
+      case "cmd_archive":
+      case "cmd_replySender":
+      case "cmd_replyGroup":
       case "cmd_forward":
       case "button_forward":
       case "cmd_forwardInline":
@@ -883,7 +706,7 @@ var MessageWindowController =
       case "cmd_markAsFlagged":
       case "button_file":
       case "cmd_file":
-        return ( gCurrentMessageUri != null);
+        return ( gFolderDisplay.selectedMessage != null);
       case "cmd_printSetup":
         return true;
       case "cmd_getNewMessages":
@@ -922,12 +745,11 @@ var MessageWindowController =
       case "button_goBack":
       case "cmd_goForward":
       case "cmd_goBack":
-        return gDBView &&
-            gDBView.navigateStatus((command == "cmd_goBack" ||
-                                    command == "button_goBack")
-                                    ? nsMsgNavigationType.back : nsMsgNavigationType.forward);
+        return gFolderDisplay.navigateStatus(
+          (command == "cmd_goBack" || command == "button_goBack") ?
+            nsMsgNavigationType.back : nsMsgNavigationType.forward);
       case "cmd_search":
-        var loadedFolder = GetLoadedMsgFolder();
+        loadedFolder = gFolderDisplay.displayedFolder;
         if (!loadedFolder)
           return false;
         return loadedFolder.server.canSearchMessages;
@@ -935,7 +757,7 @@ var MessageWindowController =
       case "cmd_redo":
         return SetupUndoRedoCommand(command);
       case "cmd_moveToFolderAgain":
-        var loadedFolder = GetLoadedMsgFolder();
+        loadedFolder = gFolderDisplay.displayedFolder;
         if (!loadedFolder || (pref.getBoolPref("mail.last_msg_movecopy_was_move") &&
             !loadedFolder.canDeleteMessages))
           return false;
@@ -1044,7 +866,7 @@ var MessageWindowController =
         MsgSaveAsTemplate();
         break;
       case "cmd_viewPageSource":
-        ViewPageSource(GetSelectedMessages());
+        ViewPageSource(gFolderDisplay.selectedMessageUris);
         break;
       case "cmd_reload":
         ReloadMessage();
@@ -1067,7 +889,7 @@ var MessageWindowController =
         return;
       case "cmd_markThreadAsRead":
         ClearPendingReadTimer();
-        gDBView.doCommand(nsMsgViewCommandType.markThreadRead);
+        gFolderDisplay.doCommand(nsMsgViewCommandType.markThreadRead);
         return;
       case "cmd_markAllRead":
         MsgMarkAllRead();
@@ -1088,10 +910,12 @@ var MessageWindowController =
         analyzeMessagesForJunk();
         return;
       case "cmd_downloadFlagged":
-        gDBView.doCommand(nsMsgViewCommandType.downloadFlaggedForOffline);
+        gFolderDisplay.doCommand(
+          nsMsgViewCommandType.downloadFlaggedForOffline);
         return;
       case "cmd_downloadSelected":
-        gDBView.doCommand(nsMsgViewCommandType.downloadSelectedForOffline);
+        gFolderDisplay.doCommand(
+          nsMsgViewCommandType.downloadSelectedForOffline);
         return;
       case "cmd_synchronizeOffline":
         MsgSynchronizeOffline();
@@ -1151,35 +975,11 @@ var MessageWindowController =
   }
 };
 
-function LoadMessageByNavigationType(type)
-{
-  var resultId = new Object;
-  var resultIndex = new Object;
-  var threadIndex = new Object;
-
-  gDBView.viewNavigate(type, resultId, resultIndex, threadIndex, true /* wrap */);
-
-  // if we found something....display it.
-  if ((resultId.value != nsMsgKey_None) && (resultIndex.value != nsMsgKey_None))
-  {
-    // load the message key
-    LoadMessageByMsgKey(resultId.value);
-    // if we changed folders, the message counts changed.
-    UpdateStandAloneMessageCounts();
-
-    // new message has been loaded
-    return true;
-  }
-
-  // no message found to load
-  return false;
-}
-
 function performNavigation(type)
 {
   // Try to load a message by navigation type if we can find
   // the message in the same folder.
-  if (LoadMessageByNavigationType(type))
+  if (gFolderDisplay.navigate(type))
     return;
 
   CrossFolderNavigation(type);
@@ -1193,37 +993,6 @@ function SetupCommandUpdateHandlers()
 function UnloadCommandUpdateHandlers()
 {
   top.controllers.removeController(MessageWindowController);
-}
-
-function GetDBView()
-{
-  return gDBView;
-}
-
-function LoadMessageByMsgKey(messageKey)
-{
-  LoadMessageByViewIndex(gDBView.findIndexFromKey(messageKey, true));
-}
-
-function LoadMessageByViewIndex(viewIndex)
-{
-  gDBView.loadMessageByViewIndex(viewIndex);
-  // we only want to update the toolbar if there was no previous selected message.
-  if (nsMsgKey_None == gDBView.keyForFirstSelectedMessage)
-    UpdateMailToolbar("update toolbar for message Window");
-}
-
-function LoadNavigatedToMessage(msgHdr, folder, folderUri)
-{
-  if (IsCurrentLoadedFolder(folder))
-  {
-    LoadMessageByMsgKey(msgHdr.messageKey);
-  }
-  else
-  {
-    gMessageToLoad = msgHdr.messageKey;
-    SelectFolder(folderUri);
-  }
 }
 
 function getMailToolbox ()

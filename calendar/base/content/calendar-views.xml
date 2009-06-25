@@ -56,6 +56,9 @@
                     return "day-view-observer";
                 ]]></getter>
             </property>
+            <property name="supportsWorkdaysOnly"
+                      readonly="true"
+                      onget="return false;"/>
 
             <!--Public methods-->
             <method name="goToDay">
@@ -133,7 +136,7 @@
                 ]]></getter>
                 <setter><![CDATA[
                     this.mWeeksInView = val;
-                    setPref("calendar.weeks.inview", val);
+                    setPref("calendar.weeks.inview", Number(val));
                     this.refreshView();
                     return val;
                 ]]></setter>

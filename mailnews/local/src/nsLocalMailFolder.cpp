@@ -968,7 +968,10 @@ nsresult nsMsgLocalMailFolder::IsChildOfTrash(PRBool *result)
 NS_IMETHODIMP nsMsgLocalMailFolder::Delete()
 {
   nsresult rv;
-  if(mDatabase)
+  nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  msgDBService->CachedDBForFolder(this, getter_AddRefs(mDatabase));
+  if (mDatabase)
   {
     mDatabase->ForceClosed();
     mDatabase = nsnull;
@@ -2182,8 +2185,11 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile,
       rv = EndCopy(PR_TRUE);
 
     //mDatabase should have been initialized above - if we got msgDb
+    // If we were going to delete, here is where we would do it. But because
+    // existing code already supports doing those deletes, we are just going
+    // to end the copy.
     if (NS_SUCCEEDED(rv) && msgToReplace && mDatabase)
-      rv = DeleteMessage(msgToReplace, msgWindow, PR_TRUE, PR_TRUE);
+      rv = OnCopyCompleted(fileSupport, PR_TRUE);
 
     if (inputStream)
       inputStream->Close();
@@ -2530,8 +2536,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
   //Copy the header to the new database
   if (copySucceeded && mCopyState->m_message)
   {
-    //  CopyMessages() goes here; CopyFileMessage() never gets in here because
-    //  the mCopyState->m_message will be always null for file message
+    //  CopyMessages() goes here, and CopyFileMessages() with metadata to save;
     nsCOMPtr<nsIMsgDBHdr> newHdr;
     if(!mCopyState->m_parseMsgState)
     {

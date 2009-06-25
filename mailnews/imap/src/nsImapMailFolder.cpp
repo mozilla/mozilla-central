@@ -684,10 +684,10 @@ nsresult nsImapMailFolder::GetDatabase()
 
 NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow * inMsgWindow)
 {
-  return UpdateFolder(inMsgWindow, nsnull);
+  return UpdateFolderWithListener(inMsgWindow, nsnull);
 }
 
-NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlListener *aUrlListener)
+NS_IMETHODIMP nsImapMailFolder::UpdateFolderWithListener(nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlListener)
 {
   nsresult rv;
   PRBool selectFolder = PR_FALSE;
@@ -695,10 +695,10 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   if (mFlags & nsMsgFolderFlags::Inbox)
   {
     if (!m_filterList)
-      rv = GetFilterList(msgWindow, getter_AddRefs(m_filterList));
+      rv = GetFilterList(aMsgWindow, getter_AddRefs(m_filterList));
     // if there's no msg window, but someone is updating the inbox, we're
     // doing something biff-like, and may download headers, so make biff notify.
-    if (!msgWindow)
+    if (!aMsgWindow)
       SetPerformingBiff(PR_TRUE);
   }
 
@@ -742,7 +742,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   rv = GetDatabase();
   if (NS_FAILED(rv))
   {
-    ThrowAlertMsg("errorGettingDB", msgWindow);
+    ThrowAlertMsg("errorGettingDB", aMsgWindow);
     return rv;
   }
   PRBool canOpenThisFolder = PR_TRUE;
@@ -755,7 +755,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   {
     if (hasOfflineEvents)
     {
-      nsImapOfflineSync *goOnline = new nsImapOfflineSync(msgWindow, this, this);
+      nsImapOfflineSync *goOnline = new nsImapOfflineSync(aMsgWindow, this, this);
       if (goOnline)
         return goOnline->ProcessNextOperation();
     }
@@ -774,7 +774,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr <nsIURI> url;
-    rv = imapService->SelectFolder(m_thread, this, m_urlListener, msgWindow, getter_AddRefs(url));
+    rv = imapService->SelectFolder(m_thread, this, m_urlListener, aMsgWindow, getter_AddRefs(url));
     if (NS_SUCCEEDED(rv))
     {
       m_urlRunning = PR_TRUE;
@@ -790,8 +790,8 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
     switch (rv)
     {
       case NS_MSG_ERROR_OFFLINE:
-        if (msgWindow)
-          AutoCompact(msgWindow);
+        if (aMsgWindow)
+          AutoCompact(aMsgWindow);
         // note fall through to next case.
       case NS_BINDING_ABORTED:
         rv = NS_OK;
@@ -2723,7 +2723,8 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxStatus(
     if (numUnread - previousUnreadMessages != unreadDelta)
        NS_WARNING("unread count should match server count");
     ChangeNumPendingUnread(unreadDelta);
-    if (unreadDelta > 0)
+    if (unreadDelta > 0 &&
+        !(mFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk)))
     {
       SetHasNewMessages(PR_TRUE);
       SetNumNewMessages(unreadDelta);
@@ -4903,6 +4904,24 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
               (void) OnCopyCompleted(m_copyState->m_srcSupport, aExitCode);
           }
           break;
+      case nsIImapUrl::nsImapMoveFolderHierarchy:
+        if (m_copyState) // delete folder gets here, but w/o an m_copyState
+        {
+          nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
+          NS_ENSURE_SUCCESS(rv, rv);
+          nsCOMPtr<nsIMsgFolder> srcFolder = do_QueryInterface(m_copyState->m_srcSupport);
+          if (srcFolder)
+          {
+            nsCOMPtr<nsIMsgFolder> destFolder;
+            nsString srcName;
+            srcFolder->GetName(srcName);
+            GetChildNamed(srcName, getter_AddRefs(destFolder));
+            if (destFolder)
+              copyService->NotifyCompletion(m_copyState->m_srcSupport, destFolder, aExitCode);
+          }
+          m_copyState = nsnull;
+        }
+        break;
       case nsIImapUrl::nsImapRenameFolder:
         if (NS_FAILED(aExitCode))
         {
@@ -6064,7 +6083,7 @@ nsImapMailFolder::ProgressStatus(nsIImapProtocol* aProtocol,
 NS_IMETHODIMP
 nsImapMailFolder::PercentProgress(nsIImapProtocol* aProtocol,
                                   const PRUnichar * aMessage,
-                                  PRInt32 aCurrentProgress, PRInt32 aMaxProgress)
+                                  PRInt64 aCurrentProgress, PRInt64 aMaxProgress)
 {
   if (aProtocol)
   {
@@ -6082,10 +6101,9 @@ nsImapMailFolder::PercentProgress(nsIImapProtocol* aProtocol,
         {
             nsCOMPtr<nsIRequest> request = do_QueryInterface(mockChannel);
             if (!request) return NS_ERROR_FAILURE;
-            // XXX handle 64-bit ints for real
             progressSink->OnProgress(request, nsnull,
-                                     nsUint64(aCurrentProgress),
-                                     nsUint64(aMaxProgress));
+                                     aCurrentProgress,
+                                     aMaxProgress);
             if (aMessage)
               progressSink->OnStatus(request, nsnull, NS_OK, aMessage); // XXX i18n message
         }
@@ -6704,7 +6722,7 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, PRBool aIsMove)
 
   // these fields are either copied separately when the server does not support
   // custom IMAP flags, or managed directly through the flags
-  dontPreserveEx.AppendLiteral("keywords label junkscore ");
+  dontPreserveEx.AppendLiteral("keywords label ");
 
   PRUint32 i, count;
 
@@ -6722,10 +6740,6 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, PRBool aIsMove)
       if (!(supportedUserFlags & kImapMsgSupportUserFlag))
       {
         nsMsgLabelValue label;
-        nsCString junkScore;
-        msgDBHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
-        if (!junkScore.IsEmpty()) // ignore already scored messages.
-          mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "junkscore", junkScore.get());
         msgDBHdr->GetLabel(&label);
         if (label != 0)
         {
@@ -7245,7 +7259,7 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
     {
       nsCOMPtr <nsIImapService> imapService = do_GetService (NS_IMAPSERVICE_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
-      nsCOMPtr <nsIUrlListener> urlListener = do_QueryInterface(srcFolder);
+      nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(srcFolder);
       PRBool match = PR_FALSE;
       PRBool confirmed = PR_FALSE;
       if (mFlags & nsMsgFolderFlags::Trash)
@@ -7260,10 +7274,16 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
             return NS_OK;
         }
       }
+      rv = InitCopyState(srcSupport, nsnull, PR_FALSE, nsnull,
+                         PR_FALSE, 0, EmptyCString(), listener, 
+                         msgWindow, PR_FALSE);
+      if (NS_FAILED(rv))
+        return OnCopyCompleted(srcSupport, rv);
+
       rv = imapService->MoveFolder(m_thread,
                                    srcFolder,
                                    this,
-                                   urlListener,
+                                   this,
                                    msgWindow,
                                    nsnull);
     }
@@ -7306,10 +7326,21 @@ nsImapMailFolder::CopyFileMessage(nsIFile* file,
     {
         rv = msgToReplace->GetMessageKey(&key);
         if (NS_SUCCEEDED(rv))
-            messageId.AppendInt((PRInt32) key);
+        {
+          messageId.AppendInt((PRInt32) key);
+          // Perhaps we have the message offline, but even if we do it is
+          // not valid, since the only time we do a file copy for an
+          // existing message is when we are changing the message.
+          // So set the offline size to 0 to force SetPendingAttributes to
+          // clear the offline message flag.
+          msgToReplace->SetOfflineMessageSize(0);
+          messages->AppendElement(msgToReplace, PR_FALSE);
+          SetPendingAttributes(messages, PR_FALSE);
+        }
     }
 
-    rv = InitCopyState(srcSupport, messages, PR_FALSE, isDraftOrTemplate,
+    PRBool isMove = (msgToReplace ? PR_TRUE : PR_FALSE);
+    rv = InitCopyState(srcSupport, messages, isMove, isDraftOrTemplate,
                        PR_FALSE, aNewMsgFlags, aNewMsgKeywords, listener, 
                        msgWindow, PR_FALSE);
     if (NS_FAILED(rv))
@@ -7445,7 +7476,6 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
                                 PRBool allowUndo)
 {
   NS_ENSURE_ARG_POINTER(srcSupport);
-  NS_ENSURE_ARG_POINTER(messages);
   NS_ENSURE_TRUE(!m_copyState, NS_ERROR_FAILURE);
   nsresult rv;
 
@@ -7458,7 +7488,8 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
   NS_ENSURE_SUCCESS(rv, rv);
 
   m_copyState->m_messages = messages;
-  rv = messages->GetLength(&m_copyState->m_totalCount);
+  if (messages)
+    rv = messages->GetLength(&m_copyState->m_totalCount);
   if (!m_copyState->m_isCrossServerOp)
   {
     if (NS_SUCCEEDED(rv))

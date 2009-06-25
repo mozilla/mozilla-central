@@ -142,7 +142,6 @@ pref("mail.check_all_imap_folders_for_new", false);
 
 pref("mail.imap.server_sub_directory",      "");
 pref("mail.imap.max_cached_connections",    10);
-pref("mail.imap.fetch_by_chunks",           true);
 pref("mail.imap.chunk_size",                65536);
 pref("mail.imap.min_chunk_size_threshold",  98304);
 pref("mail.imap.chunk_fast",                2);

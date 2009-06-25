@@ -238,10 +238,10 @@
           <xul:description class="headerValue" containsEmail="true"
                            anonid="emailAddresses" flex="1"
                            orient="vertical" pack="start" />
-          <xul:label class="moreIndicator" value="&more.label;" anonid="more"
-                     collapsed="true"
-                     onclick="this.parentNode.parentNode.toggleWrap()"/>
         </xul:hbox>
+        <xul:label class="moreIndicator" value="&more.label;" anonid="more"
+                   collapsed="true"
+                   onclick="this.parentNode.toggleWrap()"/>
     </content>
 
     <implementation>

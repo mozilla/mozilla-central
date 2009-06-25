@@ -386,12 +386,25 @@ NS_IMETHODIMP nsAbView::IsSorted(PRBool *_retval)
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+#ifdef MOZILLA_1_9_1_BRANCH
 NS_IMETHODIMP nsAbView::CanDrop(PRInt32 index, PRInt32 orientation, PRBool *_retval)
+#else
+NS_IMETHODIMP nsAbView::CanDrop(PRInt32 index,
+                                PRInt32 orientation,
+                                nsIDOMDataTransfer *dataTransfer,
+                                PRBool *_retval)
+#endif
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+#ifdef MOZILLA_1_9_1_BRANCH
 NS_IMETHODIMP nsAbView::Drop(PRInt32 row, PRInt32 orientation)
+#else
+NS_IMETHODIMP nsAbView::Drop(PRInt32 row,
+                             PRInt32 orientation,
+                             nsIDOMDataTransfer *dataTransfer)
+#endif
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

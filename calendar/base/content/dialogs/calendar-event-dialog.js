@@ -23,6 +23,7 @@
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *   Fred Jendrzejewski <fred.jen@web.de>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Markus Adrario <Mozilla@Adrario.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -55,6 +56,7 @@ var gPrivacy = null;
 var gAttachMap = {};
 var gPriority = 0;
 var gStatus = "NONE";
+var gConfirmCancel = "true";
 var gLastRepeatSelection = 0;
 var gIgnoreUpdate = false;
 var gShowTimeAs = null;
@@ -163,6 +165,7 @@ function onLoad() {
     }
 
     window.onAcceptCallback = args.onOk;
+    window.mode = args.mode
 
     // we store the item in the window to be able
     // to access this from any location. please note
@@ -181,6 +184,7 @@ function onLoad() {
         }
     }
 
+    window.organizer = null;
     if (item.organizer) {
         window.organizer = item.organizer.clone();
     } else if (item.getAttendees({}).length > 0) {
@@ -242,21 +246,7 @@ function onAccept() {
  * @return    Returns true if the window should be closed.
  */
 function onCommandCancel() {
-    // find out if we should bring up the 'do you want to save?' question...
-    var newItem = saveItem();
-    var oldItem = window.calendarItem.clone();
-
-    // we need to guide the description text through the text-field since
-    // newlines are getting converted which would indicate changes to the
-    // text.
-    setElementValue("item-description", oldItem.getProperty("DESCRIPTION"));
-    setItemProperty(oldItem,
-                    "DESCRIPTION",
-                    getElementValue("item-description"));
-    setElementValue("item-description", newItem.getProperty("DESCRIPTION"));
-
-    if ((newItem.calendar.id == oldItem.calendar.id) &&
-        compareItemContent(newItem, oldItem)) {
+    if (isItemChanged() == false) {
         return true;
     }
 
@@ -304,11 +294,16 @@ function onCommandCancel() {
  *
  */
 function onCancel() {
-    var result = onCommandCancel();
-    if (result == true) {
+    if (gConfirmCancel == "true") {
+        var result = onCommandCancel();
+        if (result == true) {
+            dispose();
+        }
+        return result;
+    } else {
         dispose();
+        return true;
     }
-    return result;
 }
 
 /**
@@ -537,7 +532,7 @@ function dateTimeControls2State(aKeepDuration) {
             getElementValue(startWidgetId),
             (menuItem.getAttribute('checked') == 'true') ? gStartTimezone : kDefaultTimezone);
     }
-    
+
     if (gEndTime) {
         if (aKeepDuration) {
             gEndTime = gStartTime.clone();
@@ -1512,7 +1507,7 @@ function attachURL() {
                                  result,
                                  null,
                                  { value: 0 })) {
-            
+
             try {
                 // If something bogus was entered, makeURL may fail.
                 var attachment = createAttachment();
@@ -1540,21 +1535,21 @@ function attachFile() {
         fp.init(window,
                 calGetString("calendar-event-dialog", "selectAFile"),
                 nsIFilePicker.modeOpenMultiple);
-  
-        // Check for the last directory 
+
+        // Check for the last directory
         var lastDir = lastDirectory();
         if (lastDir) {
             fp.displayDirectory = lastDir;
         }
- 
+
         // Get the attachment
         if (fp.show() == nsIFilePicker.returnOK) {
             files = fp.files;
         }
     } catch (ex) {
-        dump("failed to get attachments: " +ex+ "\n");  
+        dump("failed to get attachments: " +ex+ "\n");
     }
-  
+
     // Check if something has to be done
     if (!files || !files.hasMoreElements()) {
         return;
@@ -1580,7 +1575,7 @@ function attachFile() {
             // a type sensitive dialog to start files.
             addAttachment(attachment);
         }
-    } 
+    }
 }
 
 /**
@@ -1600,7 +1595,7 @@ function lastDirectory(aFileUri) {
         var file = uri.QueryInterface(Components.interfaces.nsIFileURL).file;
         lastDirectory.mValue = file.parent.QueryInterface(Components.interfaces.nsILocalFile);
     }
-    
+
     // In any case, return the value
     return (lastDirectory.mValue !== undefined ? lastDirectory.mValue : null);
 }
@@ -1616,7 +1611,7 @@ function lastDirectory(aFileUri) {
 function makePrettyName(aUri){
     var name = aUri.spec;
     if (aUri.schemeIs("file")) {
-        name = aUri.spec.split("/").pop(); 
+        name = aUri.spec.split("/").pop();
     } else if (aUri.schemeIs("http")) {
         name = aUri.spec.replace(/\/$/, "").replace(/^http:\/\//, "");
     }
@@ -1649,7 +1644,7 @@ function addAttachment(attachment) {
     }
 
     // full attachment object is stored here
-    item.attachment = attachment; 
+    item.attachment = attachment;
 
     // Update the number of rows and save our attachment globally
     documentLink.rows = documentLink.getRowCount();
@@ -1690,8 +1685,8 @@ function deleteAllAttachments() {
     }
 
     if (ok) {
-        var child;  
-        var documentLink = document.getElementById("attachment-link");
+        let child;
+        let documentLink = document.getElementById("attachment-link");
         while (documentLink.hasChildNodes()) {
             child = documentLink.removeChild(documentLink.lastChild);
             child.attachment = null;
@@ -1713,7 +1708,7 @@ function openAttachment() {
         var externalLoader = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                                        .getService(Components.interfaces.nsIExternalProtocolService);
         // TODO There should be a nicer dialog
-        externalLoader.loadUrl(attURI);   
+        externalLoader.loadUrl(attURI);
     }
 }
 
@@ -2166,7 +2161,17 @@ function onCommandSave(aIsClosing) {
     var listener = {
         onOperationComplete: function(aCalendar, aStatus, aOpType, aId, aItem) {
             if (Components.isSuccessCode(aStatus)) {
-                window.calendarItem = aItem;
+                if (window.calendarItem.recurrenceId) {
+                    // TODO This workaround needs to be removed in bug 396182
+                    // We are editing an occurrence. Make sure that the returned
+                    // item is the same occurrence, not its parent item.
+                    let occ = aItem.recurrenceInfo
+                                   .getOccurrenceFor(window.calendarItem.recurrenceId);
+                    window.calendarItem = occ;
+                } else {
+                    // We are editing the parent item, no workarounds needed
+                    window.calendarItem = aItem;
+                }
             }
         }
     };
@@ -2176,6 +2181,63 @@ function onCommandSave(aIsClosing) {
     // missing its window afterwards.
     window.onAcceptCallback(item, calendar, originalItem, !aIsClosing && listener);
 
+}
+
+/**
+ * This function is called when the user chooses to delete an Item
+ * from the Event/Task dialog
+ *
+ */
+function onCommandDeleteItem() {
+    // only ask for confirmation, if the User changed anything on a new item or we modify an existing item
+    if (isItemChanged() == true || window.mode != "new") {
+        let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                    .getService(Components.interfaces.nsIPromptService);
+        let promptTitle = "";
+        let promptMessage = "";
+
+        if (cal.isEvent(window.calendarItem)) {
+            promptTitle = calGetString("calendar", "deleteEventLabel");
+            promptMessage = calGetString("calendar", "deleteEventMessage");
+        } else if (cal.isToDo(window.calendarItem)) {
+            promptTitle = calGetString("calendar", "deleteTaskLabel");
+            promptMessage = calGetString("calendar", "deleteTaskMessage");
+        }
+
+        let answerDelete = promptService.confirm(
+                                    null,
+                                    promptTitle,
+                                    promptMessage);
+        if (answerDelete == false) {
+            return;
+        }
+    }
+
+    if (window.mode != "new") {
+        let deleteListener = {
+            // when deletion of item is complete, close the dialog
+            onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDetail) {
+                if (aId == window.calendarItem.id && aStatus == 0) {
+                    gConfirmCancel = "false";
+                    document.documentElement.cancelDialog();
+                }
+            }
+        };
+
+        if (window.calendarItem.parentItem.recurrenceInfo && window.calendarItem.recurrenceId) {
+            // if this is a single occurrence of a recurring item
+            let newItem = window.calendarItem.parentItem.clone();
+            newItem.recurrenceInfo.removeOccurrenceAt(window.calendarItem.recurrenceId);
+
+            window.opener.doTransaction("modify", newItem, newItem.calendar, 
+                                        window.calendarItem.parentItem, deleteListener);
+        } else {
+            window.calendarItem.calendar.deleteItem(window.calendarItem, deleteListener);
+        }
+    } else {
+        gConfirmCancel = "false";
+        document.documentElement.cancelDialog();
+    }
 }
 
 /**
@@ -2217,7 +2279,7 @@ function DialogToolboxCustomizeDone(aToolboxChanged) {
     for (var i = 0; i < menubar.childNodes.length; ++i) {
         menubar.childNodes[i].removeAttribute("disabled");
     }
-  
+
     // make sure our toolbar buttons have the correct enabled state restored to them...
     document.commandDispatcher.updateCommands('itemCommands');
 
@@ -2243,7 +2305,7 @@ function onCommandCustomize() {
     for (var i = 0; i < menubar.childNodes.length; ++i) {
         menubar.childNodes[i].setAttribute("disabled", true);
     }
-      
+
     // Disable the toolbar context menu items
     document.getElementById("cmd_customize").setAttribute("disabled", "true");
 
@@ -2554,7 +2616,7 @@ function updateTimezone() {
                 }
             }
         }
-        
+
         updateTimezoneElement(startTimezone,
                               'timezone-starttime',
                               gStartTime,
@@ -2664,14 +2726,14 @@ function updateRepeatDetails() {
     var recurrenceInfo = window.recurrenceInfo;
     var itemRepeat = document.getElementById("item-repeat");
     if (itemRepeat.value == "custom" && recurrenceInfo) {
-        
+
         // First of all collapse the details text. If we fail to
         // create a details string, we simply don't show anything.
         // this could happen if the repeat rule is something exotic
         // we don't have any strings prepared for.
         var repeatDetails = document.getElementById("repeat-details");
         repeatDetails.setAttribute("collapsed", "true");
-        
+
         // Try to create a descriptive string from the rule(s).
         var kDefaultTimezone = calendarDefaultTimezone();
         var startDate = jsDateToDateTime(getElementValue("event-starttime"), kDefaultTimezone);
@@ -2679,7 +2741,7 @@ function updateRepeatDetails() {
         var allDay = getElementValue("event-all-day", "checked");
         var detailsString = recurrenceRule2String(
             recurrenceInfo, startDate, endDate, allDay);
-            
+
         // Now display the string...
         if (detailsString) {
             var lines = detailsString.split("\n");
@@ -2858,6 +2920,31 @@ function updateCapabilities() {
     updatePriority();
     updatePrivacy();
     updateReminderDetails();
+}
+
+/**
+ * find out if the User already changed values in the Dialog
+ *
+ * @return:    true if the values in the Dialog have changed. False otherwise.
+ */
+function isItemChanged() {
+    let newItem = saveItem();
+    let oldItem = window.calendarItem.clone();
+
+    // we need to guide the description text through the text-field since
+    // newlines are getting converted which would indicate changes to the
+    // text.
+    setElementValue("item-description", oldItem.getProperty("DESCRIPTION"));
+    setItemProperty(oldItem,
+                    "DESCRIPTION",
+                    getElementValue("item-description"));
+    setElementValue("item-description", newItem.getProperty("DESCRIPTION"));
+
+    if ((newItem.calendar.id == oldItem.calendar.id) &&
+        compareItemContent(newItem, oldItem)) {
+        return false;
+    }
+    return true;
 }
 
 /**

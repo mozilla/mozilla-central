@@ -270,6 +270,11 @@ nsParseMailMessageState::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsParseMailMessageState::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
+  return NS_OK;
+}
+
 /* void OnReadChanged (in nsIDBChangeListener instigator); */
 NS_IMETHODIMP
 nsParseMailMessageState::OnReadChanged(nsIDBChangeListener *instigator)
@@ -1788,6 +1793,11 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
 
   if (m_newMsgHdr)
   {
+    PRUint32 newFlags, oldFlags;
+    m_newMsgHdr->GetFlags(&oldFlags);
+    if (!(oldFlags & nsMsgMessageFlags::Read)) // don't mark read messages as new.
+      m_newMsgHdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
+
     if (!m_disableFilters)
     {
       // seems like the code that's writing to disk should do
@@ -1841,6 +1851,8 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
                 GetTrashFolder(getter_AddRefs(trash));
                 if (trash)
                 {
+                  PRUint32 newFlags;
+                  m_newMsgHdr->AndFlags(~nsMsgMessageFlags::New, &newFlags);
                   // save off m_newMsgHdr because MoveIncorporatedMessage 
                   // clears it by calling nsParseMailMessageState::Init
                   nsCOMPtr<nsIMsgDBHdr> msgHdr = m_newMsgHdr;
@@ -1870,11 +1882,6 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
     {
       if (m_mailDB)
       {
-        PRUint32 newFlags, oldFlags;
-        m_newMsgHdr->GetFlags(&oldFlags);
-        if (!(oldFlags & nsMsgMessageFlags::Read)) // don't mark read messages as new.
-          m_newMsgHdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
-
         m_mailDB->AddNewHdrToDB(m_newMsgHdr, PR_TRUE);
         nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
         if (notifier)
@@ -2295,9 +2302,14 @@ int nsParseNewMailState::MarkFilteredMessageRead(nsIMsgDBHdr *msgHdr)
 {
   PRUint32 newFlags;
   if (m_mailDB)
+  {
     m_mailDB->MarkHdrRead(msgHdr, PR_TRUE, nsnull);
+  }
   else
+  {
     msgHdr->OrFlags(nsMsgMessageFlags::Read, &newFlags);
+    msgHdr->AndFlags(~nsMsgMessageFlags::New, &newFlags);
+  }
   return 0;
 }
 

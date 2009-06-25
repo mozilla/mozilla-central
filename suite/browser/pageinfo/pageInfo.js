@@ -1034,6 +1034,13 @@ function makePreview(row)
   if (!mimeType)
     mimeType = getContentTypeFromHeaders(cacheEntryDescriptor);
 
+  // if we have a data url, get the MIME type from the url
+  if (!mimeType) {
+    var dataMimeType = /^data:(image\/.*?)[;,]/i.exec(url);
+    if (dataMimeType)
+      mimeType = dataMimeType[1].toLowerCase();
+  }
+
   var imageType;
   if (mimeType) {
     // We found the type, try to display it nicely
@@ -1063,7 +1070,8 @@ function makePreview(row)
 
   const regex = /^(https?|ftp|file|gopher|about|chrome|resource):/;
   var isProtocolAllowed = regex.test(url);
-  if (/^data:/.test(url) && /^image\//.test(mimeType))
+  var isImageType = /^image\//.test(mimeType);
+  if (/^data:/.test(url) && isImageType)
     isProtocolAllowed = true;
 
   var newImage = new Image();
@@ -1075,7 +1083,9 @@ function makePreview(row)
        item instanceof HTMLInputElement ||
        item instanceof HTMLImageElement ||
        item instanceof SVGImageElement ||
-      (item instanceof HTMLObjectElement && /^image\//.test(mimeType)) || isBG) && isProtocolAllowed) {
+      (item instanceof HTMLObjectElement && isImageType) ||
+      (item instanceof HTMLEmbedElement && isImageType) ||
+       isBG) && isProtocolAllowed) {
     newImage.setAttribute("src", url);
     physWidth = newImage.width || 0;
     physHeight = newImage.height || 0;

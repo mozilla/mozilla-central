@@ -719,9 +719,13 @@ nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray 
   for (i = 0; i < termCount && NS_SUCCEEDED(err); i++)
   {
     char *termEncoding;
+    PRBool matchAll;
     nsCOMPtr<nsIMsgSearchTerm> pTerm;
     searchTerms->QueryElementAt(i, NS_GET_IID(nsIMsgSearchTerm),
       (void **)getter_AddRefs(pTerm));
+    pTerm->GetMatchAll(&matchAll);
+    if (matchAll)
+      continue;
     err = EncodeImapTerm (pTerm, reallyDredd, srcCharset, destCharset, &termEncoding);
     if (NS_SUCCEEDED(err) && nsnull != termEncoding)
     {
@@ -1083,44 +1087,44 @@ struct
 }
 nsMsgSearchAttribMap[] =
 {
-  nsMsgSearchAttrib::Subject, "Subject",
-  nsMsgSearchAttrib::Sender, "From",
-  nsMsgSearchAttrib::Body, "Body",
-  nsMsgSearchAttrib::Date, "Date",
-  nsMsgSearchAttrib::Priority, "Priority",
-  nsMsgSearchAttrib::MsgStatus, "Status",
-  nsMsgSearchAttrib::To, "To",
-  nsMsgSearchAttrib::CC, "Cc",
-  nsMsgSearchAttrib::ToOrCC, "ToOrCc",
-  nsMsgSearchAttrib::AgeInDays, "AgeInDays",
-  nsMsgSearchAttrib::Size, "SizeKB",
-  nsMsgSearchAttrib::Keywords, "Tags",
-  nsMsgSearchAttrib::Name, "AnyName",
-  nsMsgSearchAttrib::DisplayName, "DisplayName",
-  nsMsgSearchAttrib::Nickname, "Nickname",
-  nsMsgSearchAttrib::ScreenName, "ScreenName",
-  nsMsgSearchAttrib::Email, "Email",
-  nsMsgSearchAttrib::AdditionalEmail, "AdditionalEmail",
-  nsMsgSearchAttrib::PhoneNumber, "AnyNumber",
-  nsMsgSearchAttrib::WorkPhone, "WorkPhone",
-  nsMsgSearchAttrib::HomePhone, "HomePhone",
-  nsMsgSearchAttrib::Fax, "Fax",
-  nsMsgSearchAttrib::Pager, "Pager",
-  nsMsgSearchAttrib::Mobile, "Mobile",
-  nsMsgSearchAttrib::City, "City",
-  nsMsgSearchAttrib::Street, "Street",
-  nsMsgSearchAttrib::Title, "Title",
-  nsMsgSearchAttrib::Organization, "Organization",
-  nsMsgSearchAttrib::Department, "Department",
-  nsMsgSearchAttrib::AllAddresses, "FromToCcOrBcc",
-  nsMsgSearchAttrib::JunkScoreOrigin, "JunkScoreOrigin",
-  nsMsgSearchAttrib::JunkPercent, "JunkPercent",
-  nsMsgSearchAttrib::HasAttachmentStatus, "AttachmentStatus",
-  nsMsgSearchAttrib::JunkStatus, "JunkStatus",
-  nsMsgSearchAttrib::Label, "Label",
-  nsMsgSearchAttrib::OtherHeader, "Customize",
+  {nsMsgSearchAttrib::Subject, "Subject"},
+  {nsMsgSearchAttrib::Sender, "From"},
+  {nsMsgSearchAttrib::Body, "Body"},
+  {nsMsgSearchAttrib::Date, "Date"},
+  {nsMsgSearchAttrib::Priority, "Priority"},
+  {nsMsgSearchAttrib::MsgStatus, "Status"},
+  {nsMsgSearchAttrib::To, "To"},
+  {nsMsgSearchAttrib::CC, "Cc"},
+  {nsMsgSearchAttrib::ToOrCC, "ToOrCc"},
+  {nsMsgSearchAttrib::AgeInDays, "AgeInDays"},
+  {nsMsgSearchAttrib::Size, "SizeKB"},
+  {nsMsgSearchAttrib::Keywords, "Tags"},
+  {nsMsgSearchAttrib::Name, "AnyName"},
+  {nsMsgSearchAttrib::DisplayName, "DisplayName"},
+  {nsMsgSearchAttrib::Nickname, "Nickname"},
+  {nsMsgSearchAttrib::ScreenName, "ScreenName"},
+  {nsMsgSearchAttrib::Email, "Email"},
+  {nsMsgSearchAttrib::AdditionalEmail, "AdditionalEmail"},
+  {nsMsgSearchAttrib::PhoneNumber, "AnyNumber"},
+  {nsMsgSearchAttrib::WorkPhone, "WorkPhone"},
+  {nsMsgSearchAttrib::HomePhone, "HomePhone"},
+  {nsMsgSearchAttrib::Fax, "Fax"},
+  {nsMsgSearchAttrib::Pager, "Pager"},
+  {nsMsgSearchAttrib::Mobile, "Mobile"},
+  {nsMsgSearchAttrib::City, "City"},
+  {nsMsgSearchAttrib::Street, "Street"},
+  {nsMsgSearchAttrib::Title, "Title"},
+  {nsMsgSearchAttrib::Organization, "Organization"},
+  {nsMsgSearchAttrib::Department, "Department"},
+  {nsMsgSearchAttrib::AllAddresses, "FromToCcOrBcc"},
+  {nsMsgSearchAttrib::JunkScoreOrigin, "JunkScoreOrigin"},
+  {nsMsgSearchAttrib::JunkPercent, "JunkPercent"},
+  {nsMsgSearchAttrib::HasAttachmentStatus, "AttachmentStatus"},
+  {nsMsgSearchAttrib::JunkStatus, "JunkStatus"},
+  {nsMsgSearchAttrib::Label, "Label"},
+  {nsMsgSearchAttrib::OtherHeader, "Customize"},
   // the last id is -1 to denote end of table
-  -1, ""
+  {-1, ""}
 };
 
 NS_IMETHODIMP

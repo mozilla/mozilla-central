@@ -37,6 +37,7 @@ messenger.jar:
     content/messenger/threadPane.js
     content/messenger/msgHdrViewOverlay.xul
     content/messenger/msgHdrViewOverlay.js
+    content/messenger/msgViewNavigation.js
     content/messenger/widgetglue.js
     content/messenger/commandglue.js
     content/messenger/mailCommands.js

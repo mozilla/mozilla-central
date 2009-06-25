@@ -178,53 +178,6 @@ MimeInlineTextVCard_parse_line (const char *line, PRInt32 length, MimeObject *ob
 
 
 ////////////////////////////////////////////////////////////////////////////////
-static PRInt32 INTL_ConvertCharset(const char* from_charset, const char* to_charset,
-                                   const char* inBuffer, const PRInt32 inLength,
-                                   char** outBuffer, PRInt32* outLength)
-{
-  nsresult res;
-
-  // invalid input
-  if (nsnull == from_charset || nsnull == to_charset ||
-      '\0' == *from_charset || '\0' == *to_charset || nsnull == inBuffer)
-    return -1;
-
-  // from to identical
-  if (!PL_strcasecmp(from_charset, to_charset))
-    return -1;
-
-  // us-ascii is a subset of utf-8
-  if ((!PL_strcasecmp(from_charset, "us-ascii") && !PL_strcasecmp(to_charset, "UTF-8")) ||
-      (!PL_strcasecmp(from_charset, "UTF-8") && !PL_strcasecmp(to_charset, "us-ascii")))
-    return -1;
-
-
-  nsAutoString outString;
-
-  res = ConvertToUnicode(from_charset, inBuffer, outString);
-
-  // known bug in 4.x, it mixes Shift_JIS (or EUC-JP) and ISO-2022-JP in vCard fields
-  if (NS_ERROR_MODULE_UCONV == NS_ERROR_GET_MODULE(res)) {
-    if (!PL_strcasecmp("ISO-2022-JP", from_charset)) {
-      res = ConvertToUnicode("Shift_JIS", inBuffer, outString);
-      if (NS_ERROR_MODULE_UCONV == NS_ERROR_GET_MODULE(res)) {
-        res = ConvertToUnicode("EUC-JP", inBuffer, outString);
-      }
-    }
-  }
-
-  if (NS_SUCCEEDED(res)) {
-    nsCAutoString result;
-    res = ConvertFromUnicode(to_charset, outString, result);
-    if (NS_SUCCEEDED(res)) {
-      *outLength = result.Length();
-      *outBuffer = PL_strdup(result.get());
-    }
-  }
-
-  return NS_SUCCEEDED(res) ? 0 : -1;
-}
-////////////////////////////////////////////////////////////////////////////////
 static int
 MimeInlineTextVCard_parse_eof (MimeObject *obj, PRBool abort_p)
 {
