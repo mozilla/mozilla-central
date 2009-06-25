@@ -1642,6 +1642,7 @@
         <menuitem id="button-printPreviewMenu"
                   label="&printPreviewCmd.label;"
                   accesskey="&printPreviewCmd.accesskey;"
+                  observes="cmd_printpreview"
                   command="cmd_printpreview"/>
       </menupopup>
     </toolbarbutton>

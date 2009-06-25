@@ -485,6 +485,10 @@
           
           // for styling purposes, apply the type to the tab...
           t.setAttribute('type', tab.mode.type);
+
+          // Update the toolbar status - we don't need to do menus as they
+          // do themselves when we open them.
+          UpdateMailToolbar("tabmail");
         ]]></body>
       </method>
       <method name="selectTabByMode">
