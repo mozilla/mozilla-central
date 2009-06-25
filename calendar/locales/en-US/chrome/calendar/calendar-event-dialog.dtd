@@ -81,6 +81,8 @@
 <!ENTITY  event.menu.file.close.accesskey                 "C">
 <!ENTITY  event.menu.file.save.label                      "Save">
 <!ENTITY  event.menu.file.save.accesskey                  "S">
+<!ENTITY  event.menu.item.delete.label                    "Delete…">
+<!ENTITY  event.menu.item.delete.accesskey                "D">
 <!ENTITY  event.menu.file.page.setup.label                "Page Setup">
 <!ENTITY  event.menu.file.page.setup.accesskey            "u">
 <!ENTITY  event.menu.file.print.label                     "Print">
@@ -169,6 +171,7 @@
 
 <!-- Toolbar -->
 <!ENTITY  event.toolbar.save.label                        "Save and Close">
+<!ENTITY  event.toolbar.delete.label                      "Delete">
 <!ENTITY  event.toolbar.attendees.label                   "Invite Attendees">
 <!ENTITY  event.toolbar.spellcheck.label                  "Spellcheck">
 <!ENTITY  event.toolbar.privacy.label                     "Privacy">
