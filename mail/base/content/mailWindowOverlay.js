@@ -46,6 +46,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://app/modules/gloda/dbview.js");
+
 const ADDR_DB_LARGE_COMMIT       = 1;
 
 const kClassicMailLayout = 0;
@@ -1779,7 +1781,59 @@ let mailTabType = {
         if (this._getNumberOfRealAccounts() > 1)
           aTab.title += " - " + aMsgHdr.folder.server.prettyName;
       }
-    }
+    },
+    /**
+     * The glodaSearch view displays a gloda-backed nsMsgDBView with only the
+     *  thread pane and (potentially) the message pane displayed; the folder
+     *  pane is forced hidden.
+     */
+    glodaSearch: {
+      type: "glodaSearch",
+      /// The set of panes that are legal to be displayed in this mode
+      legalPanes: {
+        folder: false,
+        thread: true,
+        message: true,
+        glodaFacets: false,
+      },
+      desiredColumns: {
+        flaggedCol: true,
+        subjectCol: true,
+        senderCol: true,
+        dateCol: true,
+      },
+      /**
+       * Open a new tab whose view is backed by a gloda search.
+       *
+       * @param searchString
+       * @param facetString
+       *     - everything:
+       *     - subject:
+       *     - involves:
+       *     - to:
+       *     - from:
+       *     - body:
+       * @param location Either a GlodaFolder or the string "everywhere".
+       */
+      openTab: function(aTab, searchString, facetString, location) {
+        // make sure the search string bundle is loaded
+        getDocumentElements();
+        aTab.title = gSearchBundle.getFormattedString("glodaSearchTabTitle",
+                                                      [searchString]);
+        aTab.glodaSearchInputValue = searchString;
+        aTab.searchString = searchString;
+        aTab.facetString = facetString;
+
+        aTab.glodaSynView = new GlodaSyntheticSearchView(searchString,
+                                                         facetString,
+                                                         location);
+
+        this.openTab(aTab, false, new MessagePaneDisplayWidget());
+        aTab.folderDisplay.show(aTab.glodaSynView);
+        aTab.folderDisplay.setVisibleColumns(aTab.mode.desiredColumns);
+        aTab.folderDisplay.makeActive();
+      },
+    },
   },
 
   _getNumberOfRealAccounts : function() {
@@ -1921,8 +1975,8 @@ let mailTabType = {
       aLegalStates.thread && !aVisibleStates.message;
 
     // -- gloda facets
-    //document.getElementById("glodaSearchFacets").hidden =
-    //  !aLegalStates.glodaFacets;
+    document.getElementById("glodaSearchFacets").hidden =
+      !aLegalStates.glodaFacets;
   },
 
   showTab: function(aTab) {
@@ -1967,6 +2021,43 @@ let mailTabType = {
     return document.getElementById("messagepane");
   }
 };
+/**
+ * The glodaSearch tab mode has a UI widget outside of the mailTabType's
+ *  display panel, the #glodaSearchInput textbox.  This means we need to use a
+ *  tab monitor so that we can appropriately update the contents of the textbox.
+ * Every time a tab is changed, we save the state of the text box and restore
+ *  its previous value for the tab we are switching to, as well as whether this
+ *  value is a change to the currently-used value (if it is a glodaSearch) tab.
+ *  The behaviour rationale for this is that the glodaSearchInput is like the
+ *  URL bar.  When you are on a glodaSearch tab, we need to show you your
+ *  current value, including any "uncommitted" (you haven't hit enter yet)
+ *  changes.  It's not entirely clear that imitating this behaviour on
+ *  non-glodaSearch tabs makes a lot of sense, but it is consistent, so we do
+ *  so.  The counter-example to this choice is the search box in firefox, but
+ *  it never updates when you switch tabs, so it is arguably less of a fit.
+ */
+var glodaSearchTabMonitor = {
+  onTabTitleChanged: function() {},
+  onTabSwitched: function glodaSearchTabMonitor_onTabSwitch(aTab, aOldTab) {
+    let inputNode = document.getElementById("glodaSearchInput");
+    if (!inputNode)
+      return;
+
+    // save the current search field value
+    if (aOldTab)
+      aOldTab.glodaSearchInputValue = inputNode.value;
+    // load (or clear if there is none) the persisted search field value
+    inputNode.value = aTab.glodaSearchInputValue || "";
+
+    // If the mode is glodaSearch and the search is unchanged, then we want to
+    //  set the icon state of the input box to be the 'clear' icon.
+    if (aTab.mode.name == "glodaSearch") {
+      if (aTab.searchString == aTab.glodaSearchInputValue)
+        inputNode._searchIcons.selectedIndex = 1;
+    }
+  }
+};
+
 
 function MsgOpenNewWindowForFolder(folderURI, msgKeyToSelect)
 {

@@ -1,46 +1,47 @@
 <?xml version="1.0"?>
 
-# -*- Mode: HTML -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998-1999
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Scott MacGregor <mscott@mozilla.org>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either of the GNU General Public License Version 2 or later (the "GPL"),
-# or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-# ***** END LICENSE BLOCK *****
+<!-- ***** BEGIN LICENSE BLOCK *****
+  - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+  -
+  - The contents of this file are subject to the Mozilla Public License Version
+  - 1.1 (the "License"); you may not use this file except in compliance with
+  - the License. You may obtain a copy of the License at
+  - http://www.mozilla.org/MPL/
+  -
+  - Software distributed under the License is distributed on an "AS IS" basis,
+  - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  - for the specific language governing rights and limitations under the
+  - License.
+  -
+  - The Original Code is Mozilla Communicator client code, released
+  - March 31, 1998.
+  -
+  - The Initial Developer of the Original Code is
+  - Netscape Communications Corporation.
+  - Portions created by the Initial Developer are Copyright (C) 1998-1999
+  - the Initial Developer. All Rights Reserved.
+  -
+  - Contributor(s):
+  -   Scott MacGregor <mscott@mozilla.org>
+  -
+  - Alternatively, the contents of this file may be used under the terms of
+  - either of the GNU General Public License Version 2 or later (the "GPL"),
+  - or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+  - in which case the provisions of the GPL or the LGPL are applicable instead
+  - of those above. If you wish to allow use of your version of this file only
+  - under the terms of either the GPL or the LGPL, and not to allow others to
+  - use your version of this file under the terms of the MPL, indicate your
+  - decision by deleting the provisions above and replace them with the notice
+  - and other provisions required by the GPL or the LGPL. If you do not delete
+  - the provisions above, a recipient may use your version of this file under
+  - the terms of any one of the MPL, the GPL or the LGPL.
+  - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE bindings [
 <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
 %globalDTD;
+<!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
+%messengerDTD;
 ]>
 
 <bindings id="SearchBindings"
@@ -48,6 +49,178 @@
    xmlns:html="http://www.w3.org/1999/xhtml"
    xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
    xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <!--
+    - The glodaSearch binding implements a gloda-backed search mechanism.  The
+    -  actual search logic comes from the glodaSearch tab mode in the
+    -  mailTabType definition.  This binding serves as a means to display and 
+    -  alter the current search query if a "glodaSearch" tab is displayed, or
+    -  enter a search query and spawn a new "glodaSearch" tab if one is
+    -  currently not displayed.  The "glodaFacets" binding also is used to
+    -  display/modify the parameters of the search when on a "glodaSearch" tab.
+    -->
+  <binding id="glodaSearch" extends="chrome://global/content/bindings/textbox.xml#search-textbox">
+    <resources>
+      <stylesheet src="chrome://messenger/skin/searchBox.css"/>
+    </resources>
+
+    <handlers>
+      <handler event="command"><![CDATA[
+        if (this.value) {
+          let searchString = this.value;
+          let tabmail = document.getElementById("tabmail");
+          // If the current tab is a gloda search tab, reset the value
+          //  to the initial search value.  Otherwise, clear it.  This
+          //  is the value that is going to be saved with the current
+          //  tab when we switch back to it next.
+          if (tabmail.currentTabInfo.mode.name == "glodaSearch")
+            this.value = tabmail.currentTabInfo.searchString;
+          else
+            this.value = "";
+          // open a new tab with our dude
+          tabmail.openTab("glodaSearch", searchString, "everything", "everywhere");
+        }
+      ]]></handler>
+    </handlers>
+    
+  </binding>
+
+  <!--
+    - The glodaFacets binding is used to display additional search constraints
+    -  on a "glodaSearch" tab's gloda-backed search.  Because we live in the
+    -  "mailContent" panel reused by the "glodaSearch" tab mode, we are always
+    -  present, even when we should not be displayed (namely for "folder" and
+    -  "message" tab modes).  We leave it up to the mailTabType and glodaSearch
+    -  tab mode to ensure that we are shown/hidden at the right times.  (We
+    -  could do this ourselves as a tabmail tab monitor, but it is more
+    -  intuitive to have our behaviour/relationship made explicit.)
+    -->
+  <binding id="glodaFacets">
+    <resources>
+      <stylesheet src="chrome://messenger/skin/searchBox.css"/>
+    </resources>
+    <content orientation="horizontal" hidden="true">
+      <xul:label control="glodaFacetType" value="&glodaSearchBar.facet.label;"/>
+      <xul:menulist id="glodaFacetType">
+        <xul:menupopup>
+          <xul:menuitem label="&glodaSearchFacet.everything.label;"
+                        value="everything"/>
+          <xul:menuitem label="&glodaSearchFacet.subject.label;"
+                        value="subject"/>
+          <xul:menuitem label="&glodaSearchFacet.involves.label;"
+                        value="involves"/>
+          <xul:menuitem label="&glodaSearchFacet.to.label;"
+                        value="to"/>
+          <xul:menuitem label="&glodaSearchFacet.from.label;"
+                        value="from"/>
+          <xul:menuitem label="&glodaSearchFacet.body.label;"
+                        value="body"/>
+        </xul:menupopup>
+      </xul:menulist>
+      <xul:label control="glodaFacetLocation"
+                 value="&glodaSearchBar.location.label;"/>
+      <xul:menulist id="glodaFacetLocation" anonid="glodaFacetLocation">
+        <xul:menupopup>
+          <xul:menuitem label="&glodaSearchFacet.everywhere.label;" value="everywhere"/>
+          <xul:menuitem anonid="currentFolder" label="" value="currentFolder" hidden="true"/>
+          <xul:menu label="&glodaSearchFacet.folder.label;">
+            <xul:menupopup type="folder"/>
+          </xul:menu>
+        </xul:menupopup>
+      </xul:menulist>
+    </content>
+
+    <implementation>
+      <constructor>
+        <![CDATA[
+          this._facetTypeNode =
+            document.getAnonymousElementByAttribute(this, "id",
+                                                    "glodaFacetType");
+          this._facetLocationNode =
+            document.getAnonymousElementByAttribute(this, "id",
+                                                    "glodaFacetLocation");
+          this._currentFolderNode =
+            document.getAnonymousElementByAttribute(this, "anonid",
+                                                    "currentFolder");
+        ]]>
+      </constructor>
+      <method name="updateStateFromCurrentTab">
+        <body><![CDATA[
+        /**
+         * Update our display state to match the state of the current tab.
+         */
+          let tabmail = document.getElementById("tabmail");
+          let tabInfo = tabMail.currentTabInfo;
+          
+          this._facetTypeNode.value = tabInfo.facetString;
+          if (typeof(tabInfo.location) == "string")
+            this._facetLocationNode.value = tabInfo.location;
+          else {
+          
+          }
+        ]]></body>
+      </method>
+      <method name="setLocationFacetToFolder">
+        <body><![CDATA[
+        /**
+         * Update our display state to match the state of the current tab.
+         */
+          let tabmail = document.getElementById("tabmail");
+          let tabInfo = tabMail.currentTabInfo;
+          
+          this._facetTypeNode.value = tabInfo.facetString;
+          if (typeof(tabInfo.location) == "string")
+            this._facetLocationNode.value = tabInfo.location;
+          else {
+          
+          }
+        ]]></body>
+
+      </method>
+    </implementation>
+    
+    <handlers>
+      <handler event="command" phase="bubble"><![CDATA[
+        // Have widgetNode be our immediate child, with nodes being a list of
+        //  the descendent nodes between eventNode and the actual target.
+        // This allows us to know which of our widgets actually got clicked on,
+        //  plus makes subsequent processing easier.  (Alternatively, we could
+        //  register a command listener on each of our widgets, but that is
+        //  arguably just as ugly.) 
+        let nodes = [];
+        let widgetNode = event.originalTarget;
+        while (widgetNode.parentNode != this) {
+          nodes.unshift(widgetNode);
+          widgetNode = widgetNode.parentNode;
+        }
+        
+        // -- Type Facet
+        if (widgetNode == this._facetTypeNode) {
+        
+        }
+        // -- Location Facet
+        else if (widgetNode == this._facetLocationNode) {
+          if (event.originalTarget._folder) {
+            let folder = event.originalTarget._folder;
+            this._currentFolderNode.label =
+              [node._folder.prettiestName
+               for each ([, node] in Iterator(nodes))
+               if (node._folder)].join("/");
+            this._currentFolderNode.hidden = false;
+            this._facetLocationNode.selectedItem = this._currentFolderNode;
+          }
+        }
+        
+        dump("Selected folder: " + event.originalTarget._folder + "\n");
+        dump("event: " + event + "\n");
+        dump("target: " + event.originalTarget + "\n");
+        dump("event target id: " + event.originalTarget.id + "\n");
+        dump("event tag: " + event.originalTarget.tagName + "\n");
+      ]]></handler>
+    </handlers>
+    
+  </binding>
+
 
   <binding id="searchbar" extends="chrome://global/content/bindings/textbox.xml#timed-textbox">
     <resources>
@@ -195,9 +368,10 @@
         <handler event="keypress" keycode="VK_DOWN" modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
         <handler event="keypress" keycode="VK_UP"   modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
 
-#ifndef XP_MACOSX
-      <handler event="keypress" keycode="VK_F4" phase="capturing" action="return this.openmenupopup();"/>
-#endif
+      <handler event="keypress" keycode="VK_F4" phase="capturing"><![CDATA[
+        if (window.navigator.oscpu.substring(0, 3).toLowerCase() != "mac")
+          return this.openmenupopup();
+      ]]></handler>
 
       <handler event="dragdrop" phase="capturing">
         nsDragAndDrop.drop(event, this.searchInputDNDObserver);

@@ -290,6 +290,7 @@ function OnLoadMessenger()
   if (tabmail)
   {
     tabmail.registerTabType(mailTabType);
+    tabmail.registerTabMonitor(glodaSearchTabMonitor);
     tabmail.registerTabMonitor(QuickSearchTabMonitor);
     tabmail.openFirstTab();
   }

@@ -58,6 +58,10 @@
 %globalDTD;
 ]>
 
+<!--
+  - The 'what you think of when you think of thunderbird' window;
+  -  3-pane view inside of tabs.
+  -->
 <window id="messengerWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         title="&titledefault.label;"
@@ -186,6 +190,12 @@
     <tabmail id="tabmail" flex="1" panelcontainer="tabpanelcontainer">
       <hbox id="tabmail-buttons"/>
       <tabpanels id="tabpanelcontainer" flex="1" class="plain" selectedIndex="0">
+        <!-- mailContent is the container used for the "wide" layout. Normally,
+             all it contains is the "messengerBox" box.  However, in "wide" mode
+             the message pane and its splitter transplant themselves into the box
+             (respectively, messagepanebox and threadpane-splitter).  This gives us
+             the folder pane next to the thread view, with the message pane/reader
+             beneath both of them. -->
         <box id="mailContent" orient="vertical" flex="1">
           <box id="messengerBox" orient="horizontal" flex="1" minheight="100" height="100" persist="height">
             <vbox id="folderPaneBox" minwidth="100" width="200" persist="collapsed width">
@@ -240,12 +250,20 @@
                   <vbox id="accountCentralBox" flex="1">
                     <iframe name="accountCentralPane" width="150" flex="1" src="about:blank"/>
                   </vbox>
+                  <!-- The threadPaneBox is the basis for the vertical view and you
+                       should not put anything in it, because the messagepane will
+                       get transplanted in there. (In the vertical view, the elements
+                       end up being: threadPaneBox, threadpane-splitter, messagepanebox)
+                    -->
                   <!-- second panel is the threadPane -->
                   <hbox id="threadPaneBox">
                    <!-- The threadContentArea was specially created to be a place for
                         things that want to be above/below the thread pane, regardless
                         of where the message reader ("messagepane") gets off to. -->
                    <vbox id="threadContentArea" flex="1">
+                    <!-- Gloda search facets UI for use when dealing with a gloda-backed
+                         search view, implemented by glodaFacets XBL in search.xml. -->
+                    <box id="glodaSearchFacets"/>
                     <tree id="threadTree"
                           persist="lastfoldersent width"
                           treelines="true"
@@ -324,6 +342,16 @@
                         <splitter class="tree-splitter"/>
                         <treecol id="idCol" persist="hidden ordinal width" flex="1" hidden="true"
                                  label="&idColumn.label;" tooltiptext="&idColumn.tooltip;"/>
+                        <splitter class="tree-splitter"/>
+                        <treecol id="glodaWhyCol" persist="ordinal width" flex="1"
+                                 hidden="true" ignoreincolumnpicker="true"
+                                 label="&glodaWhyColumn.label;"
+                                 tooltiptext="&glodaWhyColumn.tooltip;"/>
+                        <splitter class="tree-splitter"/>
+                        <treecol id="glodaScoreCol" persist="ordinal width" flex="1"
+                                 hidden="true" ignoreincolumnpicker="true"
+                                 label="&glodaScoreColumn.label;"
+                                 tooltiptext="&glodaScoreColumn.tooltip;"/>
                       </treecols>
                     <treechildren ondraggesture="threadPaneOnDragStart(event);"/>
                   </tree>

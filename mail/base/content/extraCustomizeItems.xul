@@ -53,6 +53,16 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <toolbarpalette id="MailToolbarPalette">
+    <!-- gloda search widget; provides global (message) searching.  -->
+    <toolbaritem id="gloda-search" insertafter="search-container"
+                 title="&glodaSearch.title;"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <textbox id="glodaSearchInput" flex="1" type="search"
+               searchbutton="true"
+               emptytext="&glodaSearchBar.emptyText;"/>
+    </toolbaritem>
+
     <toolbaritem id="search-container" insertafter="button-stop"
                  title="&searchItem.title;"
                  align="center"

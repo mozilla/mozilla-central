@@ -262,6 +262,8 @@ var Gloda = {
    *     collection.
    *
    * @return The collection that will receive the results.
+   *
+   * @testpoint gloda.ns.getMessageCollectionForHeader()
    */
   getMessageCollectionForHeader: function gloda_ns_getMessageForHeader(aMsgHdr,
       aListener, aData) {
@@ -286,6 +288,8 @@ var Gloda = {
    *     collection.
    *
    * @return The collection that will receive the results.
+   *
+   * @testpoint gloda.ns.getMessageCollectionForHeaders()
    */
   getMessageCollectionForHeaders: function gloda_ns_getMessagesForHeaders(
       aHeaders, aListener, aData) {
@@ -320,6 +324,9 @@ var Gloda = {
     return query.getCollection(aListener, aData);
   },
 
+  /**
+   * @testpoint gloda.ns.getMessageContent
+   */
   getMessageContent: function gloda_ns_getMessageContent(aGlodaMessage, aMimeMsg) {
     return mimeMsgToContentAndMeta(aMimeMsg, aGlodaMessage.folderMessage.folder)[0];
   },
@@ -823,6 +830,11 @@ var Gloda = {
       aNounID = this._nextNounID++;
     aNounDef.id = aNounID;
 
+    // Let people whose editors get angry about illegal attribute names use
+    //  clazz instead of class.
+    if (aNounDef.clazz)
+      aNounDef.class = aNounDef.clazz;
+
     // We allow nouns to have data tables associated with them where we do all
     //  the legwork.  The schema attribute is the gateway to this magical world
     //  of functionality.  Said door is officially unsupported.
@@ -848,6 +860,7 @@ var Gloda = {
        aNounDef.explicitQueryClass, aNounDef.wildcardQueryClass] =
           GlodaQueryClassFactory(aNounDef);
       aNounDef._dbMeta = {};
+      aNounDef.class.prototype.NOUN_ID = aNounDef.id;
       aNounDef.class.prototype.NOUN_DEF = aNounDef;
       aNounDef.toJSON = this._managedToJSON;
 
@@ -991,31 +1004,31 @@ var Gloda = {
   _initAttributes: function gloda_ns_initAttributes() {
     this.defineNoun({
       name: "bool",
-      class: Boolean, allowsArbitraryAttrs: false,
+      clazz: Boolean, allowsArbitraryAttrs: false,
       toParamAndValue: function(aBool) {
         return [null, aBool ? 1 : 0];
       }}, this.NOUN_BOOLEAN);
     this.defineNoun({
       name: "number",
-      class: Number, allowsArbitraryAttrs: false, continuous: true,
+      clazz: Number, allowsArbitraryAttrs: false, continuous: true,
       toParamAndValue: function(aNum) {
         return [null, aNum];
       }}, this.NOUN_NUMBER);
     this.defineNoun({
       name: "string",
-      class: String, allowsArbitraryAttrs: false,
+      clazz: String, allowsArbitraryAttrs: false,
       toParamAndValue: function(aString) {
         return [null, aString];
       }}, this.NOUN_STRING);
     this.defineNoun({
       name: "date",
-      class: Date, allowsArbitraryAttrs: false, continuous: true,
+      clazz: Date, allowsArbitraryAttrs: false, continuous: true,
       toParamAndValue: function(aDate) {
         return [null, aDate.valueOf() * 1000];
       }}, this.NOUN_DATE);
     this.defineNoun({
       name: "fulltext",
-      class: String, allowsArbitraryAttrs: false, continuous: false,
+      clazz: String, allowsArbitraryAttrs: false, continuous: false,
       // as noted on NOUN_FULLTEXT, we just pass the string around.  it never
       //  hits the database, so it's okay.
       toParamAndValue: function(aString) {
@@ -1024,7 +1037,7 @@ var Gloda = {
 
     this.defineNoun({
       name: "folder",
-      class: GlodaFolder,
+      clazz: GlodaFolder,
       allowsArbitraryAttrs: false,
       toParamAndValue: function(aFolderOrGlodaFolder) {
         if (aFolderOrGlodaFolder instanceof GlodaFolder)
@@ -1034,7 +1047,7 @@ var Gloda = {
       }}, this.NOUN_FOLDER);
     this.defineNoun({
       name: "conversation",
-      class: GlodaConversation,
+      clazz: GlodaConversation,
       allowsArbitraryAttrs: false,
       cache: true, cacheCost: 512,
       tableName: "conversations",
@@ -1049,7 +1062,7 @@ var Gloda = {
       }}, this.NOUN_CONVERSATION);
     this.defineNoun({
       name: "message",
-      class: GlodaMessage,
+      clazz: GlodaMessage,
       allowsArbitraryAttrs: true,
       cache: true, cacheCost: 2048,
       tableName: "messages",
@@ -1061,7 +1074,7 @@ var Gloda = {
       datastore: GlodaDatastore, objFromRow: GlodaDatastore._messageFromRow,
       dbAttribAdjuster: GlodaDatastore.adjustMessageAttributes,
       dbQueryValidityConstraintSuffix:
-        " AND deleted = 0 AND folderID IS NOT NULL AND messageKey IS NOT NULL",
+        " AND +deleted = 0 AND +folderID IS NOT NULL AND +messageKey IS NOT NULL",
       objInsert: GlodaDatastore.insertMessage,
       objUpdate: GlodaDatastore.updateMessage,
       toParamAndValue: function(aMessage) {
@@ -1072,7 +1085,7 @@ var Gloda = {
       }}, this.NOUN_MESSAGE);
     this.defineNoun({
       name: "contact",
-      class: GlodaContact,
+      clazz: GlodaContact,
       allowsArbitraryAttrs: true,
       cache: true, cacheCost: 128,
       tableName: "contacts",
@@ -1089,7 +1102,7 @@ var Gloda = {
       }}, this.NOUN_CONTACT);
     this.defineNoun({
       name: "identity",
-      class: GlodaIdentity,
+      clazz: GlodaIdentity,
       allowsArbitraryAttrs: false,
       cache: true, cacheCost: 128,
       usesUniqueValue: true,
@@ -1108,7 +1121,7 @@ var Gloda = {
     //  as the value.
     this.defineNoun({
       name: "parameterized-identity",
-      class: null,
+      clazz: null,
       allowsArbitraryAttrs: false,
       computeDelta: function(aCurValues, aOldValues) {
         let oldMap = {};
@@ -1144,7 +1157,7 @@ var Gloda = {
         if (aJsonValues.length == 0)
           return false;
 
-        let nounIdentityDef = Gloda._nounIDToDef[Gloda.NOUN_IDENTITY]
+        let nounIdentityDef = Gloda._nounIDToDef[Gloda.NOUN_IDENTITY];
         let references = aReferencesByNounID[nounIdentityDef.id];
         if (references === undefined)
           references = aReferencesByNounID[nounIdentityDef.id] = {};
@@ -1232,7 +1245,7 @@ var Gloda = {
           }
           this._constraints.push(constraint);
           return this;
-        }
+        };
 
         aSubjectNounDef.queryClass.prototype[aAttrDef.boundName + "Range"] =
           rangedConstrainer;
@@ -1249,7 +1262,7 @@ var Gloda = {
           }
           this._constraints.push(constraint);
           return this;
-        }
+        };
 
         aSubjectNounDef.queryClass.prototype[aAttrDef.boundName + "Like"] =
           likeConstrainer;
@@ -1447,10 +1460,14 @@ var Gloda = {
    * There are also full-text constraint columns.  In a nutshell, their
    *  arguments are the strings that should be passed to the SQLite FTS3
    *  MATCH clause.
+   *
+   * @param aNounID The (integer) noun-id of the noun you want to query on.
+   * @param aOptions an optional dictionary of query options, see the GlodaQuery
+   *     class documentation.
    */
-  newQuery: function gloda_ns_newQuery(aNounID) {
+  newQuery: function gloda_ns_newQuery(aNounID, aOptions) {
     let nounDef = this._nounIDToDef[aNounID];
-    return new nounDef.queryClass();
+    return new nounDef.queryClass(aOptions);
   },
 
   /**
@@ -1460,7 +1477,7 @@ var Gloda = {
    */
   explicitCollection: function gloda_ns_explicitCollection(aNounID, aItems) {
     let nounDef = this._nounIDToDef[aNounID];
-    let collection = new GlodaCollection(nounDef, aItems, null, null)
+    let collection = new GlodaCollection(nounDef, aItems, null, null);
     let query = new nounDef.explicitQueryClass(collection);
     collection.query = query;
     GlodaCollectionManager.registerCollection(collection);
@@ -1480,7 +1497,7 @@ var Gloda = {
    */
   _wildcardCollection: function gloda_ns_wildcardCollection(aNounID, aItems) {
     let nounDef = this._nounIDToDef[aNounID];
-    let collection = new GlodaCollection(nounDef, aItems, null, null)
+    let collection = new GlodaCollection(nounDef, aItems, null, null);
     let query = new nounDef.wildcardQueryClass(collection);
     collection.query = query;
     GlodaCollectionManager.registerCollection(collection);
@@ -1520,7 +1537,7 @@ var Gloda = {
    */
   grokNounItem: function gloda_ns_grokNounItem(aItem, aRawReps,
       aIsConceptuallyNew, aIsRecordNew, aCallbackHandle, aDoCache) {
-    let itemNounDef = this._nounIDToDef[aItem.NOUN_ID];
+    let itemNounDef = aItem.NOUN_DEF;
     let attribsByBoundName = itemNounDef.attribsByBoundName;
 
     this._log.info(" ** grokNounItem: " + itemNounDef.name);
@@ -1541,7 +1558,7 @@ var Gloda = {
     }
 
     // Have the attribute providers directly set properties on the aItem
-    let attrProviders = this._attrProviderOrderByNoun[aItem.NOUN_ID];
+    let attrProviders = this._attrProviderOrderByNoun[itemNounDef.id];
     for (let iProvider = 0; iProvider < attrProviders.length; iProvider++) {
       this._log.info("  * provider: " + attrProviders[iProvider].providerName);
       yield aCallbackHandle.pushAndGo(
@@ -1549,7 +1566,7 @@ var Gloda = {
                                          aCallbackHandle));
     }
 
-    let attrOptimizers = this._attrOptimizerOrderByNoun[aItem.NOUN_ID];
+    let attrOptimizers = this._attrOptimizerOrderByNoun[itemNounDef.id];
     for (let iProvider = 0; iProvider < attrOptimizers.length; iProvider++) {
       this._log.info("  * optimizer: " + attrOptimizers[iProvider].providerName);
       yield aCallbackHandle.pushAndGo(
@@ -1720,6 +1737,40 @@ var Gloda = {
 
     yield this.kWorkDone;
   },
+
+  /**
+   * Processes a list of noun instances for their score within a given context.
+   *  This is primarily intended for use by search ranking mechanisms, but could
+   *  be used elsewhere too.  (It does, however, depend on the complicity of the
+   *  score method implementations to not get confused.)
+   *
+   * @param aItems The non-empty list of items to score.
+   * @param aContext A noun-specific dictionary that we just pass to the funcs.
+   * @param aExtraScoreFuncs A list of extra scoring functions to apply.
+   * @returns A list of integer scores equal in length to aItems.
+   */
+  scoreNounItems: function gloda_ns_grokNounItem(aItems, aContext,
+                                                 aExtraScoreFuncs) {
+    let itemNounDef = aItems[0].NOUN_DEF;
+    let scores = [];
+    if (aExtraScoreFuncs == null)
+      aExtraScoreFuncs = [];
+
+    for each (let [, item] in Iterator(aItems)) {
+      let score = 0;
+      let attrProviders = this._attrProviderOrderByNoun[itemNounDef.id];
+      for (let iProvider = 0; iProvider < attrProviders.length; iProvider++) {
+        let provider = attrProviders[iProvider];
+        if (provider.score)
+          score += provider.score(item);
+      }
+      for (let [, extraScoreFunc] in Iterator(aExtraScoreFuncs))
+        score += extraScoreFunc(item, aContext);
+      scores.push(score);
+    }
+
+    return scores;
+  }
 };
 
 /* and initialize the Gloda object/NS before we return... */

@@ -129,16 +129,30 @@ SearchSpec.prototype = {
     if (this.hasSearchTerms) {
       this.updateSession();
 
-      if (!this._sessionListener)
-        this._sessionListener = new SearchSpecListener(this);
+      if (this.owner.isSynthetic) {
+        this.owner._syntheticView.search(new FilteringSyntheticListener(this));
+      }
+      else {
+        if (!this._sessionListener)
+          this._sessionListener = new SearchSpecListener(this);
 
-      this.session.registerListener(aDBView);
-      aDBView.searchSession = this._session;
-      this._session.registerListener(this._sessionListener);
-      this._listenersRegistered = true;
+        this.session.registerListener(aDBView);
+        aDBView.searchSession = this._session;
+        this._session.registerListener(this._sessionListener);
+        this._listenersRegistered = true;
 
-      this.owner.searching = true;
-      this.session.search(this.owner.listener.msgWindow);
+        this.owner.searching = true;
+        this.session.search(this.owner.listener.msgWindow);
+      }
+    }
+    // if it's synthetic but we have no search terms, hook the output of the
+    //  synthetic view directly up to the search nsIMsgDBView
+    else if (this.owner.isSynthetic) {
+      let owner = this.owner;
+      owner.searching = true;
+      this.owner._syntheticView.search(
+        aDBView.QueryInterface(Ci.nsIMsgSearchNotify),
+        function() { owner.searching = false; });
     }
   },
   /**
@@ -149,8 +163,12 @@ SearchSpec.prototype = {
     // If we are currently searching, interrupt the search.  This will
     //  immediately notify the listeners that the search is done with and
     //  clear the searching flag for us.
-    if (this.owner.searching)
-      this.session.interruptSearch();
+    if (this.owner.searching) {
+      if (this.owner.isSynthetic)
+        this.owner._syntheticView.abortSearch();
+      else
+        this.session.interruptSearch();
+    }
 
     if (this._listenersRegistered) {
       this._session.unregisterListener(this._sessionListener);
@@ -351,6 +369,15 @@ SearchSpec.prototype = {
     }
 
     // -- apply scopes
+    // If it is a synthetic view, create a single bogus scope so that we can use
+    //  MatchHdr.
+    if (this.owner.isSynthetic) {
+      // We don't want to pass in a folder, and we don't want to use the
+      //  allSearchableGroups scope, so we cheat and use AddDirectoryScopeTerm.
+      session.addDirectoryScopeTerm(nsMsgSearchScope.offlineMail);
+      return;
+    }
+
     // We are filtering if we have mail view terms or user terms.  When
     //  filtering, we bias towards offline search.  The only time we would use
     //  an online search when filtering is if one of the constraints uses the
@@ -487,4 +514,36 @@ SearchSpecListener.prototype = {
     if (aStatus != NS_MSG_SEARCH_INTERRUPTED)
       viewWrapper.listener.onAllMessagesLoaded();
   },
+};
+
+/**
+ * Pretend to implement the nsIMsgSearchNotify interface, checking all matches
+ *  we are given against the search session on the search spec.  If they pass,
+ *  relay them to the underlying db view, otherwise quietly eat them.
+ * This is what allows us to use mail-views and quick searches against
+ *  gloda-backed searches.
+ */
+function FilteringSyntheticListener(aSearchSpec) {
+  this.searchSpec = aSearchSpec;
+  this.session = this.searchSpec.session;
+  this.dbView =
+    this.searchSpec.owner.dbView.QueryInterface(Ci.nsIMsgSearchNotify);
+}
+FilteringSyntheticListener.prototype = {
+  onNewSearch: function FilteringSyntheticListener_onNewSearch() {
+    this.searchSpec.owner.searching = true;
+    this.dbView.onNewSearch();
+  },
+  onSearchHit:
+      function FilteringSyntheticListener_onSearchHit(aMsgHdr, aFolder) {
+    // We don't need to worry about msgDatabase opening the database.
+    // It is (obviously) already open, and presumably gloda is already on the
+    //  hook to perform the cleanup (assuming gloda is backing this search).
+    if (this.session.MatchHdr(aMsgHdr, aFolder.msgDatabase))
+      this.dbView.onSearchHit(aMsgHdr, aFolder);
+  },
+  onSearchDone: function FilteringSyntheticListener_OnSearchDone(aStatus) {
+    this.searchSpec.owner.searching = false;
+    this.dbView.onSearchDone(aStatus);
+  }
 };

@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ["GlodaDatabind"];
@@ -52,7 +52,7 @@ function GlodaDatabind(aNounDef, aDatastore) {
   this._tableDef = aNounDef.schema;
   this._datastore = aDatastore;
   this._log = Log4Moz.repository.getLogger("gloda.databind." + this._tableName);
-  
+
   // process the column definitions and make sure they have an attribute mapping
   for each (let [, coldef] in Iterator(this._tableDef.columns)) {
     // default to the other dude's thing.
@@ -69,7 +69,7 @@ function GlodaDatabind(aNounDef, aDatastore) {
     this._nextId = stmt.getInt64(0) + 1;
   }
   stmt.finalize();
-  
+
   let insertSql = "INSERT INTO " + this._tableName + " (" +
     [coldef[0] for each
      ([, coldef] in Iterator(this._tableDef.columns))].join(", ") +
@@ -81,13 +81,36 @@ function GlodaDatabind(aNounDef, aDatastore) {
   // For the update, we want the 'id' to be a constraint and not a value
   //  that gets set...
   let updateSql = "UPDATE " + this._tableName + " SET " +
-    [(coldef[0] + "= ? ") for each
+    [(coldef[0] + "= :" + coldef[0]) for each
      ([, coldef] in Iterator(this._tableDef.columns)) if
      (coldef[0] != "id")].join(", ") +
     " WHERE id = :id";
-  
+
   this._insertStmt = aDatastore._createAsyncStatement(insertSql);
   this._updateStmt = aDatastore._createAsyncStatement(updateSql);
+
+  if (this._tableDef.fulltextColumns) {
+    let insertFulltextSql = "INSERT INTO " + this._tableName + "Text (docid," +
+      [coldef[0] for each
+       ([, coldef] in Iterator(this._tableDef.fulltextColumns))].join(", ") +
+      ") VALUES (:id," +
+      [(":" + coldef[0]) for each
+       ([, coldef] in Iterator(this._tableDef.fulltextColumns))].join(", ") +
+      ")";
+
+    // For the update, we want the 'id' to be a constraint and not a value
+    //  that gets set...
+    let updateFulltextSql = "UPDATE " + this._tableName + "Text SET " +
+      [(coldef[0] + "= :" + coldef[0]) for each
+       ([, coldef] in Iterator(this._tableDef.fulltextColumns)) if
+       (coldef[0] != "id")].join(", ") +
+      " WHERE docid = :id";
+
+    this._insertFulltextStmt =
+      aDatastore._createAsyncStatement(insertFulltextSql);
+    this._updateFulltextStmt =
+      aDatastore._createAsyncStatement(updateFulltextSql);
+  }
 }
 
 GlodaDatabind.prototype = {
@@ -99,18 +122,29 @@ GlodaDatabind.prototype = {
     }
     return obj;
   },
-  
+
   objInsert: function(aThing) {
     if (!aThing[this._idAttr])
       aThing[this._idAttr] = this._nextId++;
-    
+
     let stmt = this._insertStmt;
     for each (let [iColDef, colDef] in Iterator(this._tableDef.columns)) {
       stmt.params[colDef[0]] = aThing[colDef[2]];
     }
+
     stmt.executeAsync(this._datastore.trackAsync());
+
+    if (this._insertFulltextStmt) {
+      stmt = this._insertFulltextStmt;
+      stmt.params.id = aThing[this._idAttr];
+      for each (let [iColDef, colDef] in
+                Iterator(this._tableDef.fulltextColumns)) {
+        stmt.params[colDef[0]] = aThing[colDef[2]];
+      }
+      stmt.executeAsync(this._datastore.trackAsync());
+    }
   },
-  
+
   objUpdate: function(aThing) {
     let stmt = this._insertStmt;
     // note, we specially bound the location of 'id' for the insert, but since
@@ -119,8 +153,19 @@ GlodaDatabind.prototype = {
       stmt.params[colDef[0]] = aThing[colDef[2]];
     }
     stmt.executeAsync(this._datastore.trackAsync());
+
+    if (this._updateFulltextStmt) {
+      stmt = this._updateFulltextStmt;
+      // fulltextColumns does't include id/docid, need to explicitly set it
+      stmt.params.id = aThing[this._idAttr];
+      for each (let [iColDef, colDef] in
+                Iterator(this._tableDef.fulltextColumns)) {
+        stmt.params[colDef[0]] = aThing[colDef[2]];
+      }
+      stmt.executeAsync(this._datastore.trackAsync());
+    }
   },
-  
+
   adjustAttributes: function() {
     // just proxy the call over to the datastore... we have to do this for
     //  'this' reasons.  we don't refactor things to avoid this because it does
@@ -128,7 +173,7 @@ GlodaDatabind.prototype = {
     //  even if the implementation does live elsewhere.
     return this._datastore.adjustAttributes.apply(this._datastore, arguments);
   },
-  
+
   // also proxied...
   queryFromQuery: function() {
     return this._datastore.queryFromQuery.apply(this._datastore, arguments);

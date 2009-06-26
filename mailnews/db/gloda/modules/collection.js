@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ['GlodaCollection', 'GlodaCollectionManager'];
@@ -47,7 +47,7 @@ Cu.import("resource://app/modules/gloda/log4moz.js");
 const LOG = Log4Moz.repository.getLogger("gloda.collection");
 
 /**
- * @namespace Central registry and logic for all collections. 
+ * @namespace Central registry and logic for all collections.
  *
  * The collection manager is a singleton that has the following tasks:
  * - Let views of objects (nouns) know when their objects have changed.  For
@@ -82,11 +82,11 @@ var GlodaCollectionManager = {
     }
     collections.push(Cu.getWeakReference(aCollection));
   },
-  
+
   getCollectionsForNounID: function gloda_colm_getCollectionsForNounID(aNounID){
     if (!(aNounID in this._collectionsByNoun))
       return [];
-    
+
     // generator would be nice, but I suspect get() is too expensive to use
     //  twice (guard/predicate and value)
     let weakCollections = this._collectionsByNoun[aNounID];
@@ -98,12 +98,12 @@ var GlodaCollectionManager = {
     }
     return collections;
   },
-  
+
   defineCache: function gloda_colm_defineCache(aNounDef, aCacheSize) {
     this._cachesByNoun[aNounDef.id] = new GlodaLRUCacheCollection(aNounDef,
                                                                    aCacheSize);
   },
-  
+
   /**
    * Attempt to locate an instance of the object of the given noun type with the
    *  given id.  Counts as a cache hit if found.  (And if it was't in a cache,
@@ -111,17 +111,17 @@ var GlodaCollectionManager = {
    */
   cacheLookupOne: function gloda_colm_cacheLookupOne(aNounID, aID, aDoCache) {
     let cache = this._cachesByNoun[aNounID];
-    
+
     if (cache) {
       if (aID in cache._idMap) {
         let item = cache._idMap[aID];
         return cache.hit(item);
       }
     }
-    
+
     if (aDoCache === false)
       cache = null;
-  
+
     for each (let [iCollection, collection] in
               Iterator(this.getCollectionsForNounID(aNounID))) {
       if (aID in collection._idMap) {
@@ -131,7 +131,7 @@ var GlodaCollectionManager = {
         return item;
       }
     }
-    
+
     return null;
   },
 
@@ -142,9 +142,9 @@ var GlodaCollectionManager = {
   cacheLookupMany: function gloda_colm_cacheLookupMany(aNounID, aIDMap,
       aTargetMap, aDoCache) {
     let foundCount = 0, notFoundCount = 0, notFound = {};
-    
+
     let cache = this._cachesByNoun[aNounID];
-    
+
     if (cache) {
       for (let key in aIDMap) {
         let cacheValue = cache._idMap[key];
@@ -162,7 +162,7 @@ var GlodaCollectionManager = {
 
     if (aDoCache === false)
       cache = null;
-    
+
     for each (let [iCollection, collection] in
               Iterator(this.getCollectionsForNounID(aNounID))) {
       for (let key in notFound) {
@@ -177,10 +177,10 @@ var GlodaCollectionManager = {
         }
       }
     }
-    
+
     return [foundCount, notFoundCount, notFound];
   },
-  
+
   /**
    * Attempt to locate an instance of the object of the given noun type with the
    *  given id.  Counts as a cache hit if found.  (And if it was't in a cache,
@@ -190,17 +190,17 @@ var GlodaCollectionManager = {
       function gloda_colm_cacheLookupOneByUniqueValue(aNounID, aUniqueValue,
                                                       aDoCache) {
     let cache = this._cachesByNoun[aNounID];
-    
+
     if (cache) {
       if (aUniqueValue in cache._uniqueValueMap) {
         let item = cache._uniqueValueMap[aUniqueValue];
         return cache.hit(item);
       }
     }
-    
+
     if (aDoCache === false)
       cache = null;
-  
+
     for each (let [iCollection, collection] in
               Iterator(this.getCollectionsForNounID(aNounID))) {
       if (aUniqueValue in collection._uniqueValueMap) {
@@ -210,10 +210,10 @@ var GlodaCollectionManager = {
         return item;
       }
     }
-    
+
     return null;
   },
-  
+
   /**
    * Checks whether the provided item with the given id is actually a duplicate
    *  of an instance that already exists in the cache/a collection.  If it is,
@@ -237,8 +237,8 @@ var GlodaCollectionManager = {
       aCacheIfMissing) {
     let cache = this._cachesByNoun[aNounID];
     if (aCacheIfMissing === undefined)
-      aCacheIfMissing = true; 
-    
+      aCacheIfMissing = true;
+
     // track the items we haven't yet found in a cache/collection (value) and
     //  their index in aItems (key).  We're somewhat abusing the dictionary
     //  metaphor with the intent of storing tuples here.  We also do it because
@@ -247,11 +247,11 @@ var GlodaCollectionManager = {
     //  semantics still work?)
     let unresolvedIndexToItem = {};
     let numUnresolved = 0;
-    
+
     if (cache) {
       for (let iItem = 0; iItem < aItems.length; iItem++) {
         let item = aItems[iItem];
-        
+
         if (item.id in cache._idMap) {
           let realItem = cache._idMap[item.id];
           // update the caller's array with the reference to the 'real' item
@@ -263,7 +263,7 @@ var GlodaCollectionManager = {
           numUnresolved++;
         }
       }
-      
+
       // we're done if everyone was a hit.
       if (numUnresolved == 0)
         return;
@@ -274,7 +274,7 @@ var GlodaCollectionManager = {
       }
       numUnresolved = aItems.length;
     }
-  
+
     let needToCache = [];
     // next, let's fall back to our collections
     for each (let [iCollection, collection] in
@@ -294,17 +294,17 @@ var GlodaCollectionManager = {
         }
       }
     }
-    
+
     // anything left in unresolvedIndexToItem should be added to the cache
     //  unless !aCacheIfMissing.  plus, we already have 'needToCache'
     if (cache && aCacheIfMissing) {
       cache.add(needToCache.concat([val for each
                                     (val in unresolvedIndexToItem)]));
     }
-    
+
     return aItems;
   },
-  
+
   cacheCommitDirty: function glod_colm_cacheCommitDirty() {
     for each (let cache in this._cachesByNoun) {
       cache.commitDirty();
@@ -314,7 +314,7 @@ var GlodaCollectionManager = {
   /**
    * Notifies the collection manager that an item has been loaded and should
    *  be cached, assuming caching is active.
-   */    
+   */
   itemLoaded: function gloda_colm_itemsLoaded(aItem) {
     let cache = this._cachesByNoun[aItem.NOUN_ID];
     if (cache) {
@@ -325,14 +325,14 @@ var GlodaCollectionManager = {
   /**
    * Notifies the collection manager that multiple items has been loaded and
    *  should be cached, assuming caching is active.
-   */  
+   */
   itemsLoaded: function gloda_colm_itemsLoaded(aNounID, aItems) {
     let cache = this._cachesByNoun[aNounID];
     if (cache) {
       cache.add(aItems);
     }
   },
-  
+
   /**
    * This should be called when items are added to the global database.  This
    *  should generally mean during indexing by indexers or an attribute
@@ -429,7 +429,7 @@ var GlodaCollectionManager = {
  *  the query, or existing objects have experienced a change in attributes that
  *  does not affect their ability to be present (but the listener may care about
  *  because it is exposing those attributes).
- * @constructor 
+ * @constructor
  */
 function GlodaCollection(aNounDef, aItems, aQuery, aListener,
       aMasterCollection) {
@@ -446,21 +446,24 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener,
   this._pendingIdMap = {};
   this.items = [];
   this._idMap = {};
-  
+
   // force the listener to null for our call to _onItemsAdded; no events for
   //  the initial load-out.
   this._listener = null;
   if (aItems && aItems.length)
     this._onItemsAdded(aItems);
-  
+
   this.query = aQuery || null;
-  if (this.query)
+  if (this.query) {
     this.query.collection = this;
+    if (this.query.options.stashColumns)
+      this.stashedColumns = {};
+  }
   this._listener = aListener || null;
-  
+
   this.deferredCount = 0;
   this.resolvedCount = 0;
-  
+
   if (aMasterCollection) {
     this.masterCollection = aMasterCollection.masterCollection;
   }
@@ -469,14 +472,14 @@ function GlodaCollection(aNounDef, aItems, aQuery, aListener,
     /** a dictionary of dictionaries. at the top level, the keys are noun IDs.
      * each of these sub-dictionaries maps the IDs of desired noun instances to
      * the actual instance, or null if it has not yet been loaded.
-     */ 
+     */
     this.referencesByNounID = {};
     /**
      * a dictionary of dictionaries. at the top level, the keys are noun IDs.
      * each of the sub-dictionaries maps the IDs of the _recognized parent
      * noun_ to the list of children, or null if the list has not yet been
      * populated.
-     * 
+     *
      * So if we have a noun definition A with ID 1 who is the recognized parent
      *  noun of noun definition B with ID 2, AND we have an instance A(1) with
      *  two children B(10), B(11), then an example might be: {2: {1: [10, 11]}}.
@@ -505,7 +508,7 @@ GlodaCollection.prototype = {
       this.query = new this._nounDef.explicitQueryClass(this);
     }
   },
-  
+
   /**
    * Clear the contents of this collection.  This only makes sense for explicit
    *  collections or wildcard collections.  (Actual query-based collections
@@ -537,24 +540,24 @@ GlodaCollection.prototype = {
         this._listener.onItemsAdded(aItems, this);
       }
       catch (ex) {
-        LOG.error("caught exception from listener in onItemsAdded: " + 
+        LOG.error("caught exception from listener in onItemsAdded: " +
             ex.fileName + ":" + ex.lineNumber + ": " + ex);
       }
     }
   },
-  
+
   _onItemsModified: function gloda_coll_onItemsModified(aItems) {
     if (this._listener) {
       try {
         this._listener.onItemsModified(aItems, this);
       }
       catch (ex) {
-        LOG.error("caught exception from listener in onItemsModified: " + 
+        LOG.error("caught exception from listener in onItemsModified: " +
             ex.fileName + ":" + ex.lineNumber + ": " + ex);
       }
     }
   },
-  
+
   /**
    * Given a list of items that definitely no longer belong in this collection,
    *  remove them from the collection and notify the listener.  The 'tricky'
@@ -581,13 +584,13 @@ GlodaCollection.prototype = {
         items[iWrite++] = item;
     }
     items.slice(iWrite);
-    
+
     if (this._listener) {
       try {
         this._listener.onItemsRemoved(aItems, this);
       }
       catch (ex) {
-        LOG.error("caught exception from listener in onItemsRemoved: " + 
+        LOG.error("caught exception from listener in onItemsRemoved: " +
             ex.fileName + ":" + ex.lineNumber + ": " + ex);
       }
     }
@@ -605,7 +608,7 @@ GlodaCollection.prototype = {
  */
 function GlodaLRUCacheCollection(aNounDef, aCacheSize) {
   GlodaCollection.call(this, aNounDef, null, null, null);
-  
+
   this._head = null; // aka oldest!
   this._tail = null; // aka newest!
   this._size = 0;
@@ -632,7 +635,7 @@ GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
     this._idMap[item.id] = item;
     if (this._uniqueValueMap)
       this._uniqueValueMap[item.uniqueValue] = item;
-    
+
     item._lruPrev = this._tail;
     // we do have to make sure that we will set _head the first time we insert
     //  something
@@ -642,13 +645,13 @@ GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
       this._head = item;
     item._lruNext = null;
     this._tail = item;
-    
+
     this._size++;
   }
-  
+
   while (this._size > this._maxCacheSize) {
     let item = this._head;
-    
+
     // we never have to deal with the possibility of needing to make _head/_tail
     //  null.
     this._head = item._lruNext;
@@ -656,19 +659,19 @@ GlodaLRUCacheCollection.prototype.add = function cache_add(aItems) {
     // (because we are nice, we will delete the properties...)
     delete item._lruNext;
     delete item._lruPrev;
-    
+
     // nuke from our id map
     delete this._idMap[item.id];
     if (this._uniqueValueMap)
       delete this._uniqueValueMap[item.uniqueValue];
-    
+
     // flush dirty items to disk (they may not have this attribute, in which
     //  case, this returns false, which is fine.)
     if (item.dirty) {
       this._nounDef.objUpdate.call(this._nounDef.datastore, item);
       delete item.dirty;
     }
-    
+
     this._size--;
   }
 };
@@ -679,7 +682,7 @@ GlodaLRUCacheCollection.prototype.hit = function cache_hit(aItem) {
   if ((this._head === this._tail) || (this._tail === aItem))
     return aItem;
 
-  // - unlink the item  
+  // - unlink the item
   if (aItem._lruPrev !== null)
     aItem._lruPrev._lruNext = aItem._lruNext;
   else
@@ -687,17 +690,17 @@ GlodaLRUCacheCollection.prototype.hit = function cache_hit(aItem) {
   // (_lruNext cannot be null)
   aItem._lruNext._lruPrev = aItem._lruPrev;
   // - link it in to the end
-  this._tail._lruNext = aItem; 
+  this._tail._lruNext = aItem;
   aItem._lruPrev = this._tail;
   aItem._lruNext = null;
   // update tail tracking
   this._tail = aItem;
-  
+
   return aItem;
 };
 
 GlodaLRUCacheCollection.prototype.deleted = function cache_deleted(aItem) {
-  // unlink the item  
+  // unlink the item
   if (aItem._lruPrev !== null)
     aItem._lruPrev._lruNext = aItem._lruNext;
   else
@@ -710,12 +713,12 @@ GlodaLRUCacheCollection.prototype.deleted = function cache_deleted(aItem) {
   // (because we are nice, we will delete the properties...)
   delete aItem._lruNext;
   delete aItem._lruPrev;
-    
+
   // nuke from our id map
   delete this._idMap[aItem.id];
   if (this._uniqueValueMap)
     delete this._uniqueValueMap[aItem.uniqueValue];
-  
+
   this._size--;
 }
 

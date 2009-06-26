@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ["GlodaQueryClassFactory"];
@@ -51,7 +51,29 @@ Cu.import("resource://app/modules/gloda/datastore.js");
 /**
  * @class Query class core; each noun gets its own sub-class where attributes
  *  have helper methods bound.
- * 
+ *
+ * @param aOptions A dictionary of options.  Current legal options are:
+ *     - noMagic: Indicates that the noun's dbQueryJoinMagic should be ignored.
+ *                Currently, this means that messages will not have their
+ *                full-text indexed values re-attached.  This is planned to be
+ *                offset by having queries/cache lookups that do not request
+ *                noMagic to ensure that their data does get loaded.
+ *     - explicitSQL: A hand-rolled alternate representation for the core
+ *           SELECT portion of the SQL query.  The queryFromQuery logic still
+ *           generates its normal query, we just ignore its result in favor of
+ *           your provided value.  This means that the positional parameter
+ *           list is still built and you should/must rely on those bound
+ *           parameters (using '?').  The replacement occurs prior to the
+ *           outerWrapColumns, ORDER BY, and LIMIT contributions to the query.
+ *     - outerWrapColumns: If provided, wraps the query in a "SELECT *,blah
+ *           FROM (actual query)" where blah is your list of outerWrapColumns
+ *           made comma-delimited.  The idea is that this allows you to
+ *           reference the result of expressions inside the query using their
+ *           names rather than having to duplicate the logic.  In practice,
+ *           this makes things more readable but is unlikely to improve
+ *           performance.  (Namely, my use of 'offsets' for full-text stuff
+ *           ends up in the EXPLAIN plan twice despite this.)
+ *
  * @property _owner The query instance that holds the list of unions...
  * @property _constraints A list of (lists of OR constraints) that are ANDed
  *     together.  For example [[FROM bob, FROM jim], [DATE last week]] would
@@ -61,7 +83,9 @@ Cu.import("resource://app/modules/gloda/datastore.js");
  *     own.  There is no concept of nesting or sub-queries apart from this
  *     mechanism.
  */
-function GlodaQueryClass() {
+function GlodaQueryClass(aOptions) {
+  this.options = (aOptions != null) ? aOptions : {};
+
   // if we are an 'or' clause, who is our parent whom other 'or' clauses should
   //  spawn from...
   this._owner = null;
@@ -69,18 +93,18 @@ function GlodaQueryClass() {
   this._constraints = [];
   // the other instances we union with
   this._unions = [];
-  
+
   this._order = [];
   this._limit = 0;
 }
 
 GlodaQueryClass.prototype = {
   WILDCARD: {},
-  
+
   get constraintCount() {
     return this._constraints.length;
   },
-  
+
   or: function gloda_query_or() {
     let owner = this._owner || this;
     let orQuery = new this._queryClass();
@@ -88,7 +112,7 @@ GlodaQueryClass.prototype = {
     owner._unions.push(orQuery);
     return orQuery;
   },
-  
+
   orderBy: function gloda_query_orderBy() {
     for (let iArg = 0; iArg < arguments.length; iArg++) {
       let arg = arguments[iArg];
@@ -96,12 +120,12 @@ GlodaQueryClass.prototype = {
     }
     return this;
   },
-  
+
   limit: function gloda_query_limit(aLimit) {
     this._limit = aLimit;
     return this;
   },
-  
+
   /**
    * Return a collection asynchronously populated by this collection.  You must
    *  provide a listener to receive notifications from the collection as it
@@ -113,22 +137,23 @@ GlodaQueryClass.prototype = {
   getCollection: function gloda_query_getCollection(aListener, aData) {
     return this._nounDef.datastore.queryFromQuery(this, aListener, aData);
   },
-  
+
   /**
    * Test whether the given first-class noun instance satisfies this query.
-   * 
+   *
+   * @testpoint gloda.query.test
    */
   test: function gloda_query_test(aObj) {
     // when changing this method, be sure that GlodaDatastore's queryFromQuery
-    //  method likewise has any required changes made. 
+    //  method likewise has any required changes made.
     let unionQueries = [this].concat(this._unions);
-    
+
     for (let iUnion = 0; iUnion < unionQueries.length; iUnion++) {
       let curQuery = unionQueries[iUnion];
 
       // assume success until a specific (or) constraint proves us wrong
       let querySatisfied = true;
-      for (let iConstraint = 0; iConstraint < curQuery._constraints.length; 
+      for (let iConstraint = 0; iConstraint < curQuery._constraints.length;
            iConstraint++) {
         let constraint = curQuery._constraints[iConstraint];
         let [constraintType, attrDef] = constraint;
@@ -140,10 +165,11 @@ GlodaQueryClass.prototype = {
             break;
           }
         }
+        // @testpoint gloda.query.test.kConstraintIn
         else if ((constraintType === GlodaDatastore.kConstraintIn) ||
                  (constraintType === GlodaDatastore.kConstraintEquals)) {
           let objectNounDef = attrDef.objectNounDef;
-          
+
           // if they provide an equals comparator, use that.
           // (note: the next case has better optimization possibilities than
           //  this mechanism, but of course has higher initialization costs or
@@ -202,9 +228,10 @@ GlodaQueryClass.prototype = {
             }
           }
         }
+        // @testpoint gloda.query.test.kConstraintRanges
         else if (constraintType === GlodaDatastore.kConstraintRanges) {
           let objectNounDef = attrDef.objectNounDef;
-          
+
           let testValues;
           if (attrDef.singular)
             testValues = [aObj[attrDef.boundName]];
@@ -252,6 +279,7 @@ GlodaQueryClass.prototype = {
             break;
           }
         }
+        // @testpoint gloda.query.test.kConstraintStringLike
         else if (constraintType === GlodaDatastore.kConstraintStringLike) {
           let curIndex = 0;
           let value = aObj[attrDef.boundName];
@@ -283,15 +311,22 @@ GlodaQueryClass.prototype = {
           if (querySatisfied && curIndex !== null && curIndex != value.length)
             querySatisfied = false;
         }
+        // @testpoint gloda.query.test.kConstraintFulltext
         else if (constraintType === GlodaDatastore.kConstraintFulltext) {
-          // this is beyond our powers.  don't match.
-          querySatisfied = false;
+          // this is beyond our powers. Even if we have the fulltext content in
+          //  memory, which we may not, the tokenization and such to perform
+          //  the testing gets very complicated in the face of i18n, etc.
+          // so, let's fail if the item is not already in the collection, and
+          //  let the testing continue if it is.  (some other constraint may no
+          //  longer apply...)
+          if (!(aObj.id in this.collection._idMap))
+            querySatisfied = false;
         }
-        
+
         if (!querySatisfied)
           break;
       }
-      
+
       if (querySatisfied)
         return true;
     }
@@ -301,7 +336,7 @@ GlodaQueryClass.prototype = {
 
 /**
  * @class A query that never matches anything.
- * 
+ *
  * Collections corresponding to this query are intentionally frozen in time and
  *  do not want to be notified of any updates.  We need the collection to be
  *  registered with the collection manager so that the noun instances in the
@@ -324,23 +359,29 @@ function GlodaNullQueryClass() {
 
 GlodaNullQueryClass.prototype = {
   /**
+   * No options; they are currently only needed for SQL query generation, which
+   *  does not happen for null queries.
+   */
+  options: {},
+
+  /**
    * Provide a duck-typing way of indicating to GlodaCollectionManager that our
    *  associated collection just doesn't want anything to change.  Our test
    *  function is able to convey most of it, but special-casing has to happen
    *  somewhere, so it happens here.
    */
   frozen: true,
-  
+
   /**
    * Since our query never matches anything, it doesn't make sense to let
    *  someone attempt to construct a boolean OR involving us.
-   *  
+   *
    * @returns null
    */
   or: function() {
     return null;
   },
-  
+
   /**
    * Return nothing (null) because it does not make sense to create a collection
    *  based on a null query.  This method is normally used (on a normal query)
@@ -350,16 +391,16 @@ GlodaNullQueryClass.prototype = {
    *  appropriate.  It may turn out that it makes sense for us to return an
    *  empty collection in the future for sentinel value purposes, but we'll
    *  cross that bridge when we come to it.
-   *  
-   * @returns null  
+   *
+   * @returns null
    */
   getCollection: function() {
     return null;
   },
-  
+
   /**
    * Never matches anything.
-   * 
+   *
    * @param aObj The object someone wants us to test for relevance to our
    *     associated collection.  But we don't care!  Not a fig!
    * @returns false
@@ -371,12 +412,12 @@ GlodaNullQueryClass.prototype = {
 
 /**
  * @class A query that only 'tests' for already belonging to the collection.
- * 
+ *
  * This type of collection is useful for when you (or rather your listener)
  *  are interested in hearing about modifications to your collection or removals
  *  from your collection because of deletion, but do not want to be notified
- *  about newly indexed items matching your normal query constraints. 
- * 
+ *  about newly indexed items matching your normal query constraints.
+ *
  * @param aCollection The collection this query belongs to.  This needs to be
  *     passed-in here or the collection should set the attribute directly when
  *     the query is passed in to a collection's constructor.
@@ -387,10 +428,16 @@ function GlodaExplicitQueryClass(aCollection) {
 
 GlodaExplicitQueryClass.prototype = {
   /**
+   * No options; they are currently only needed for SQL query generation, which
+   *  does not happen for explicit queries.
+   */
+  options: {},
+
+  /**
    * Since our query is intended to only match the contents of our collection,
    *  it doesn't make sense to let someone attempt to construct a boolean OR
    *  involving us.
-   *  
+   *
    * @returns null
    */
   or: function() {
@@ -406,17 +453,17 @@ GlodaExplicitQueryClass.prototype = {
    *  immediately converted into an explicit query.  In all likelihood, calling
    *  this method on an instance of this type is an error, so it is helpful to
    *  return null because people will error hard.
-   *  
-   * @returns null  
+   *
+   * @returns null
    */
   getCollection: function() {
     return null;
   },
-  
+
   /**
    * Matches only items that are already in the collection associated with this
    *  query (by id).
-   * 
+   *
    * @param aObj The object/item to test for already being in the associated
    *     collection.
    * @returns true when the object is in the associated collection, otherwise
@@ -435,6 +482,11 @@ function GlodaWildcardQueryClass() {
 }
 
 GlodaWildcardQueryClass.prototype = {
+  /**
+   * No options; they are currently only needed for SQL query generation.
+   */
+  options: {},
+
   // don't let people try and mess with us
   or: function() { return null; },
   // don't let people try and query on us (until we have a real use case for
@@ -456,9 +508,9 @@ GlodaWildcardQueryClass.prototype = {
  *  the 'class'.
  */
 function GlodaQueryClassFactory(aNounDef) {
-  let newQueryClass = function() {
-    GlodaQueryClass.call(this);
-  }; 
+  let newQueryClass = function(aOptions) {
+    GlodaQueryClass.call(this, aOptions);
+  };
   newQueryClass.prototype = new GlodaQueryClass();
   newQueryClass.prototype._queryClass = newQueryClass;
   newQueryClass.prototype._nounDef = aNounDef;
@@ -470,7 +522,7 @@ function GlodaQueryClassFactory(aNounDef) {
   newNullClass.prototype = new GlodaNullQueryClass();
   newNullClass.prototype._queryClass = newNullClass;
   newNullClass.prototype._nounDef = aNounDef;
-  
+
   let newExplicitClass = function(aCollection) {
     GlodaExplicitQueryClass.call(this);
     this.collection = aCollection;
@@ -486,6 +538,6 @@ function GlodaQueryClassFactory(aNounDef) {
   newWildcardClass.prototype = new GlodaWildcardQueryClass();
   newWildcardClass.prototype._queryClass = newWildcardClass;
   newWildcardClass.prototype._nounDef = aNounDef;
-  
+
   return [newQueryClass, newNullClass, newExplicitClass, newWildcardClass];
 }

@@ -79,6 +79,17 @@ var GlodaFundAttr = {
   POPULARITY_TO_ME: 5,
   POPULARITY_CC_ME: 1,
 
+  /** Boost for messages 'I' sent */
+  NOTABILITY_FROM_ME: 10,
+  /** Boost for messages involving 'me'. */
+  NOTABILITY_INVOLVING_ME: 1,
+  /** Boost for message from someone in 'my' address book. */
+  NOTABILITY_FROM_IN_ADDR_BOOK: 10,
+  /** Boost for the first person involved in my address book. */
+  NOTABILITY_INVOLVING_ADDR_BOOK_FIRST: 8,
+  /** Boost for each additional person involved in my address book. */
+  NOTABILITY_INVOLVING_ADDR_BOOK_ADDL: 2,
+
   _attrConvSubject: null,
   _attrFolder: null,
   _attrBody: null,
@@ -132,6 +143,7 @@ var GlodaFundAttr = {
 
     // -- fulltext search helpers
     // fulltextMatches.  Match over message subject, body, and attachments
+    // @testpoint gloda.noun.message.attr.fulltextMatches
     this._attrFulltext = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -142,9 +154,10 @@ var GlodaFundAttr = {
       specialColumnName: "messagesText",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FULLTEXT,
-      }); // not-tested
+      });
 
     // subjectMatches.  Fulltext match on subject
+    // @testpoint gloda.noun.message.attr.subjectMatches
     this._attrSubjectText = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -155,9 +168,10 @@ var GlodaFundAttr = {
       specialColumnName: "subject",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FULLTEXT,
-      }); // not-tested
+      });
 
     // bodyMatches. super-synthetic full-text matching...
+    // @testpoint gloda.noun.message.attr.bodyMatches
     this._attrBody = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -168,9 +182,10 @@ var GlodaFundAttr = {
       specialColumnName: "body",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FULLTEXT,
-      }); // not-tested
+      });
 
     // attachmentNamesMatch
+    // @testpoint gloda.noun.message.attr.attachmentNamesMatch
     this._attrAttachmentNames = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -181,10 +196,37 @@ var GlodaFundAttr = {
       specialColumnName: "attachmentNames",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FULLTEXT,
-      }); // not-tested
+      });
+
+    // @testpoint gloda.noun.message.attr.authorMatches
+    this._attrAuthorFulltext = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "authorMatches",
+      singular: true,
+      special: Gloda.kSpecialFulltext,
+      specialColumnName: "author",
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_FULLTEXT,
+      });
+
+    // @testpoint gloda.noun.message.attr.recipientsMatch
+    this._attrRecipientsFulltext = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "recipientsMatch",
+      singular: true,
+      special: Gloda.kSpecialFulltext,
+      specialColumnName: "recipients",
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_FULLTEXT,
+      });
 
     // --- synthetic stuff for some reason
     // conversation
+    // @testpoint gloda.noun.message.attr.conversation
     this._attrConversation = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
@@ -369,12 +411,12 @@ var GlodaFundAttr = {
     }
     */
     if (author == null || author == "")
-      author = aMsgHdr.author;
+      author = aMsgHdr.mime2DecodedAuthor;
 
     let [authorIdentities, toIdentities, ccIdentities] =
       yield aCallbackHandle.pushAndGo(
         Gloda.getOrCreateMailIdentities(aCallbackHandle,
-                                        author, aMsgHdr.recipients,
+                                        author, aMsgHdr.mime2DecodedRecipients,
                                         aMsgHdr.ccList));
 
     if (authorIdentities.length == 0) {
@@ -408,8 +450,10 @@ var GlodaFundAttr = {
     yield Gloda.kWorkDone;
   },
 
-  optimize: function gloda_fundattr_process(aGlodaMessage, aRawReps,
+  optimize: function gloda_fundattr_optimize(aGlodaMessage, aRawReps,
       aIsNew, aCallbackHandle) {
+
+    let aMsgHdr = aRawReps.header;
 
     let involvesIdentities = {};
     let involves = aGlodaMessage.involves || [];
@@ -424,13 +468,40 @@ var GlodaFundAttr = {
     let authorIdentity = aGlodaMessage.from;
     let isFromMe = authorIdentity.id in myIdentities;
 
+    // The fulltext search column for the author.  We want to have in here:
+    // - The e-mail address and display name as enclosed on the message.
+    // - The name per the address book card for this e-mail address, if we have
+    //   one.
+    aGlodaMessage._indexAuthor = aMsgHdr.mime2DecodedAuthor;
+    // The fulltext search column for the recipients. (same deal)
+    aGlodaMessage._indexRecipients = aMsgHdr.mime2DecodedRecipients;
+
+    if (isFromMe)
+      aGlodaMessage.notability += this.NOTABILITY_FROM_ME;
+    else {
+      let authorCard = authorIdentity.abCard;
+      if (authorCard) {
+        aGlodaMessage.notability += this.NOTABILITY_FROM_IN_ADDR_BOOK;
+        // @testpoint gloda.noun.message.attr.authorMatches
+        aGlodaMessage._indexAuthor += ' ' + authorCard.displayName;
+      }
+    }
+
     involves.push(authorIdentity);
     involvesIdentities[authorIdentity.id] = true;
+
+    let involvedAddrBookCount = 0;
 
     for each (let [,toIdentity] in Iterator(aGlodaMessage.to)) {
       if (!(toIdentity.id in involvesIdentities)) {
         involves.push(toIdentity);
         involvesIdentities[toIdentity.id] = true;
+        let toCard = toIdentity.abCard;
+        if (toCard) {
+          involvedAddrBookCount++;
+          // @testpoint gloda.noun.message.attr.recipientsMatch
+          aGlodaMessage._indexRecipients += ' ' + toCard.displayName;
+        }
       }
 
       // optimization attribute to-me ('I' am the parameter)
@@ -451,6 +522,12 @@ var GlodaFundAttr = {
       if (!(ccIdentity.id in involvesIdentities)) {
         involves.push(ccIdentity);
         involvesIdentities[ccIdentity.id] = true;
+        let ccCard = ccIdentity.abCard;
+        if (ccCard) {
+          involvedAddrBookCount++;
+          // @testpoint gloda.noun.message.attr.recipientsMatch
+          aGlodaMessage._indexRecipients += ' ' + ccCard.displayName;
+        }
       }
       // optimization attribute cc-me ('I' am the parameter)
       if (ccIdentity.id in myIdentities) {
@@ -467,9 +544,15 @@ var GlodaFundAttr = {
       }
     }
 
+    if (involvedAddrBookCount)
+      aGlodaMessage.notability += this.NOTABILITY_INVOLVING_ADDR_BOOK_FIRST +
+        (involvedAddrBookCount - 1) * this.NOTABILITY_INVOLVING_ADDR_BOOK_ADDL;
+
     aGlodaMessage.involves = involves;
-    if (toMe.length)
+    if (toMe.length) {
       aGlodaMessage.toMe = toMe;
+      aGlodaMessage.notability += this.NOTABILITY_INVOLVING_ME;
+    }
     if (fromMeTo.length)
       aGlodaMessage.fromMeTo = fromMeTo;
     if (ccMe.length)
@@ -483,6 +566,35 @@ var GlodaFundAttr = {
     }
 
     yield Gloda.kWorkDone;
+  },
+
+  /**
+   * Duplicates the notability logic from optimize().  Arguably optimize should
+   *  be factored to call us, grokNounItem should be factored to call us, or we
+   *  should get sufficiently fancy that our code wildly diverges.
+   */
+  score: function gloda_fundattr_score(aMessage, aContext) {
+    let score = 0;
+
+    let authorIdentity = aMessage.from;
+    if (authorIdentity.id in Gloda.myIdentities)
+      score += this.NOTABILITY_FROM_ME;
+    else if (authorIdentity.inAddressBook)
+      score += this.NOTABILITY_FROM_IN_ADDR_BOOK;
+    if (aMessage.toMe)
+      score += this.NOTABILITY_INVOLVING_ME;
+
+    let involvedAddrBookCount = 0;
+    for (let [, identity] in Iterator(aMessage.to))
+      if (identity.inAddressBook)
+        involvedAddrBookCount++;
+    for (let [, identity] in Iterator(aMessage.cc))
+      if (identity.inAddressBook)
+        involvedAddrBookCount++;
+    if (involvedAddrBookCount)
+      score += this.NOTABILITY_INVOLVING_ADDR_BOOK_FIRST +
+        (involvedAddrBookCount - 1) * this.NOTABILITY_INVOLVING_ADDR_BOOK_ADDL;
+    return score;
   },
 
   _countQuoteDepthAndNormalize:

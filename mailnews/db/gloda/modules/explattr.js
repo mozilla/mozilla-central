@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 /*
@@ -64,7 +64,7 @@ const FA_READ = "READ";
 /**
  * @namespace Explicit attribute provider.  Indexes/defines attributes that are
  *  explicitly a result of user action.  This dubiously includes marking a
- *  message as read. 
+ *  message as read.
  */
 var GlodaExplicitAttr = {
   providerName: "gloda.explattr",
@@ -76,7 +76,7 @@ var GlodaExplicitAttr = {
 
     this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
                           getService(Ci.nsIMsgTagService);
-  
+
     try {
       this.defineAttributes();
     }
@@ -86,10 +86,17 @@ var GlodaExplicitAttr = {
     }
   },
 
+  /** Boost for starred messages. */
+  NOTABILITY_STARRED: 16,
+  /** Boost for tagged messages, first tag. */
+  NOTABILITY_TAGGED_FIRST: 8,
+  /** Boost for tagged messages, each additional tag. */
+  NOTABILITY_TAGGED_ADDL: 1,
+
   _attrTag: null,
   _attrStar: null,
   _attrRead: null,
-  
+
   defineAttributes: function() {
     // Tag
     this._attrTag = Gloda.defineAttribute({
@@ -129,18 +136,21 @@ var GlodaExplicitAttr = {
                         objectNoun: Gloda.NOUN_BOOLEAN,
                         parameterNoun: null,
                         }); // tested-by: test_attributes_explicit
-    
+
   },
-  
+
   process: function Gloda_explattr_process(aGlodaMessage, aRawReps, aIsNew,
                                            aCallbackHandle) {
     let aMsgHdr = aRawReps.header;
-    
+
     aGlodaMessage.starred = aMsgHdr.isFlagged;
+    if (aGlodaMessage.starred)
+      aGlodaMessage.notability += this.NOTABILITY_STARRED;
+
     aGlodaMessage.read = aMsgHdr.isRead;
-    
+
     let tags = aGlodaMessage.tags = [];
-    
+
     // -- Tag
     // build a map of the keywords
     let keywords = aMsgHdr.getStringProperty("keywords");
@@ -157,7 +167,26 @@ var GlodaExplicitAttr = {
       if (tag.key in keywordMap)
         tags.push(tag);
     }
-    
+
+    if (tags.length)
+      aGlodaMessage.notability += this.NOTABILITY_TAGGED_FIRST +
+        (tags.length - 1) * this.NOTABILITY_TAGGED_ADDL;
+
     yield Gloda.kWorkDone;
+  },
+
+  /**
+   * Duplicates the notability logic from process().  Arguably process should
+   *  be factored to call us, grokNounItem should be factored to call us, or we
+   *  should get sufficiently fancy that our code wildly diverges.
+   */
+  score: function Gloda_explattr_score(aMessage, aContext) {
+    let score = 0;
+    if (aMessage.starred)
+      score += this.NOTABILITY_STARRED;
+    if (aMessage.tags.length)
+      score += this.NOTABILITY_TAGGED_FIRST +
+        (aMessage.tags.length - 1) * this.NOTABILITY_TAGGED_ADDL;
+    return score;
   },
 };

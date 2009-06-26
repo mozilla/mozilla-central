@@ -64,34 +64,43 @@ function test_attributes_fundamental() {
   let smsg = msgGen.makeMessage();
   // save it off for test_attributes_fundamental_from_disk
   fundamentalSyntheticMessage = smsg;
-  
+
   indexMessages([smsg], verify_attributes_fundamental, next_test);
 }
 
 function verify_attributes_fundamental(smsg, gmsg) {
-  // save off the message id for test_attributes_fundamental_from_disk
-  fundamentalGlodaMessageId = gmsg.id;
-  
-  do_check_eq(gmsg.folderURI, gLocalInboxFolder.URI);
-  
-  // -- subject
-  do_check_eq(smsg.subject, gmsg.conversation.subject);
-  do_check_eq(smsg.subject, gmsg.subject);
-  
-  // -- contact/identity information
-  // - from
-  // check the e-mail address
-  do_check_eq(gmsg.from.kind, "email");
-  do_check_eq(smsg.fromAddress, gmsg.from.value);
-  // check the name
-  do_check_eq(smsg.fromName, gmsg.from.contact.name);
-  
-  // - to
-  do_check_eq(smsg.toAddress, gmsg.to[0].value);
-  do_check_eq(smsg.toName, gmsg.to[0].contact.name);
-  
-  // date
-  do_check_eq(smsg.date.valueOf(), gmsg.date.valueOf());
+  try {
+    // save off the message id for test_attributes_fundamental_from_disk
+    fundamentalGlodaMessageId = gmsg.id;
+
+    do_check_eq(gmsg.folderURI, gLocalInboxFolder.URI);
+
+    // -- subject
+    do_check_eq(smsg.subject, gmsg.conversation.subject);
+    do_check_eq(smsg.subject, gmsg.subject);
+
+    // -- contact/identity information
+    // - from
+    // check the e-mail address
+    do_check_eq(gmsg.from.kind, "email");
+    do_check_eq(smsg.fromAddress, gmsg.from.value);
+    // check the name
+    do_check_eq(smsg.fromName, gmsg.from.contact.name);
+
+    // - to
+    do_check_eq(smsg.toAddress, gmsg.to[0].value);
+    do_check_eq(smsg.toName, gmsg.to[0].contact.name);
+
+    // date
+    do_check_eq(smsg.date.valueOf(), gmsg.date.valueOf());
+  }
+  catch (ex) {
+    // print out some info on the various states of the messages...
+    dump("***** FUNDAMENTAL ATTRIBUTE NON-MATCH\n");
+    ddumpObject(smsg, "smsg", 0);
+    ddumpObject(gmsg, "gmsg", 0);
+    throw ex;
+  }
 }
 
 /**
@@ -103,7 +112,7 @@ function verify_attributes_fundamental(smsg, gmsg) {
  */
 function test_attributes_fundamental_from_disk() {
   nukeGlodaCachesAndCollections();
-  
+
   let query = Gloda.newQuery(Gloda.NOUN_MESSAGE).id(fundamentalGlodaMessageId);
   queryExpect(query, [fundamentalSyntheticMessage],
       verify_attributes_fundamental_from_disk,
@@ -113,7 +122,7 @@ function test_attributes_fundamental_from_disk() {
 /**
  * We are just a wrapper around verify_attributes_fundamental, adapting the
  *  return callback from getMessagesByMessageID.
- * 
+ *
  * @param aGlodaMessageLists This should be [[theGlodaMessage]].
  */
 function verify_attributes_fundamental_from_disk(aGlodaMessage) {
@@ -182,7 +191,7 @@ function do_moveMessage(aMsgHdr, aDestFolder) {
 }
 
 function verify_messageLocation(aMsgHdr, aMessage, aDestFolder) {
-  do_check_eq(aMessage.folderURI, aDestFolder.URI); 
+  do_check_eq(aMessage.folderURI, aDestFolder.URI);
 }
 
 /* ===== Message Moving ===== */
@@ -192,12 +201,12 @@ const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
 function test_message_moving() {
   let rootFolder = gLocalIncomingServer.rootMsgFolder;
   let destFolder = rootFolder.addSubfolder("move1");
-  
+
   let moveTestActions = [
     [do_moveMessage, verify_messageLocation, destFolder],
     [do_moveMessage, verify_messageLocation, gLocalInboxFolder],
   ];
-  
+
   let smsg = msgGen.makeMessage();
   twiddleAndTest(smsg, moveTestActions);
 }

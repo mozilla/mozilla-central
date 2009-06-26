@@ -54,7 +54,7 @@ Cu.import("resource://app/modules/gloda/utils.js");
  *  stores the information in the database relating to this attribute
  *  definition.  Access its attrDef attribute to get at the realy juicy data.
  *  This main interesting thing this class does is serve as the keeper of the
- *  mapping from parameters to attribute ids in the database if this is a 
+ *  mapping from parameters to attribute ids in the database if this is a
  *  parameterized attribute.
  */
 function GlodaAttributeDBDef(aDatastore, aID, aCompoundName, aAttrType,
@@ -65,7 +65,7 @@ function GlodaAttributeDBDef(aDatastore, aID, aCompoundName, aAttrType,
   this._attrType = aAttrType;
   this._pluginName = aPluginName;
   this._attrName = aAttrName;
-  
+
   this.attrDef = null;
 
   /** Map parameter values to the underlying database id. */
@@ -77,7 +77,7 @@ GlodaAttributeDBDef.prototype = {
   get attributeName() { return this._attrName; },
 
   get parameterBindings() { return this._parameterBindings; },
-  
+
   /**
    * Bind a parameter value to the attribute definition, allowing use of the
    *  attribute-parameter as an attribute.
@@ -164,7 +164,7 @@ let GlodaHasAttributesMixIn = {
       }
     }
   },
-  
+
   domContribute: function gloda_attrix_domContribute(aDomNode) {
     let nounDef = this.NOUN_DEF;
     for each (let [attrName, attr] in
@@ -203,7 +203,7 @@ GlodaConversation.prototype = {
   get subject() { return this._subject; },
   get oldestMessageDate() { return this._oldestMessageDate; },
   get newestMessageDate() { return this._newestMessageDate; },
-  
+
   getMessagesCollection: function gloda_conversation_getMessagesCollection(
     aListener, aData) {
     let query = new GlodaMessage.prototype.NOUN_DEF.queryClass();
@@ -216,7 +216,8 @@ GlodaConversation.prototype = {
   },
 };
 
-function GlodaFolder(aDatastore, aID, aURI, aDirtyStatus, aPrettyName) {
+function GlodaFolder(aDatastore, aID, aURI, aDirtyStatus, aPrettyName,
+                     aIndexingPriority) {
   this._datastore = aDatastore;
   this._id = aID;
   this._uri = aURI;
@@ -225,11 +226,13 @@ function GlodaFolder(aDatastore, aID, aURI, aDirtyStatus, aPrettyName) {
   this._xpcomFolder = null;
   this._activeIndexing = false;
   this._activeHeaderRetrievalLastStamp = 0;
+  this._indexingPriority = aIndexingPriority;
+  this._deleted = false;
 }
 
 GlodaFolder.prototype = {
   NOUN_ID: 100,
-  
+
   /** The folder is believed to be up-to-date */
   kFolderClean: 0,
   /** The folder has some un-indexed or dirty messages */
@@ -237,7 +240,25 @@ GlodaFolder.prototype = {
   /** The folder needs to be entirely re-indexed, regardless of the flags on
    * the messages in the folder. This state will be downgraded to dirty */
   kFolderFilthy: 2,
-  
+
+  /** The folder should never be indexed. */
+  kIndexingNeverPriority: -1,
+  /** The lowest priority assigned to a folder. */
+  kIndexingLowestPriority: 0,
+  /** The highest priority assigned to a folder. */
+  kIndexingHighestPriority: 100,
+
+  /** The indexing priority for a folder if no other priority is assigned. */
+  kIndexingDefaultPriority: 20,
+  /** Folders marked check new are slightly more important I guess. */
+  kIndexingCheckNewPriority: 30,
+  /** Favorite folders are more interesting to the user, presumably. */
+  kIndexingFavoritePriority: 40,
+  /** The indexing priority for inboxes. */
+  kIndexingInboxPriority: 50,
+  /** The indexing priority for sent mail folders. */
+  kIndexingSentMailPriority: 60,
+
   get id() { return this._id; },
   get uri() { return this._uri; },
   get dirtyStatus() { return this._dirtyStatus; },
@@ -252,11 +273,15 @@ GlodaFolder.prototype = {
     return "Folder:" + this._id;
   },
 
+  get indexingPriority() {
+    return this._indexingPriority;
+  },
+
   /** We are going to index this folder. */
   kActivityIndexing: 0,
   /** Asking for the folder to perform header retrievals. */
   kActivityHeaderRetrieval: 1,
-  
+
   /** Is this folder known to be actively used for indexing? */
   _activeIndexing: false,
   /** Get our indexing status. */
@@ -270,7 +295,7 @@ GlodaFolder.prototype = {
    * When disabling indexing, we will call forgetFolderIfUnused to take care of
    *  shutting things down.
    * We are not responsible for committing changes to the message database!
-   *  That is on you! 
+   *  That is on you!
    */
   set indexing(aIndexing) {
     this._activeIndexing = aIndexing;
@@ -279,11 +304,11 @@ GlodaFolder.prototype = {
   },
   /** When was this folder last used for header retrieval purposes? */
   _activeHeaderRetrievalLastStamp: 0,
-  
+
   /**
    * Retrieve the nsIMsgFolder instance corresponding to this folder, providing
    *  an explanation of why you are requesting it for tracking/cleanup purposes.
-   * 
+   *
    * @param aActivity One of the kActivity* constants.  If you pass
    *     kActivityIndexing, we will set indexing for you, but you will need to
    *     clear it when you are done.
@@ -308,16 +333,16 @@ GlodaFolder.prototype = {
         this._activeHeaderRetrievalLastStamp = Date.now();
         break;
     }
-    
+
     return this._xpcomFolder;
   },
-  
+
   /**
    * How many milliseconds must a folder have not had any header retrieval
    *  activity before it's okay to lose the database reference?
    */
   ACCEPTABLY_OLD_THRESHOLD: 10000,
-  
+
   /**
    * Cleans up our nsIMsgFolder reference if we have one and it's not "in use".
    * In use, from our perspective, means that it is not being used for indexing
@@ -329,7 +354,7 @@ GlodaFolder.prototype = {
    *  idempotent fashion.  (It is possible for disabling indexing's call to us
    *  to cause us to return true but for the datastore's timer call to have not
    *  yet triggered.)
-   * 
+   *
    * @returns true if we are cleaned up and can be considered 'dead', false if
    *     we should still be considered alive and this method should be called
    *     again in the future.
@@ -338,7 +363,7 @@ GlodaFolder.prototype = {
     // we are not cleaning/cleaned up if we are indexing
     if (this._activeIndexing)
       return false;
-    
+
     // set a point in the past as the threshold.  the timestamp must be older
     //  than this to be eligible for cleanup.
     let acceptablyOld = Date.now() - this.ACCEPTABLY_OLD_THRESHOLD;
@@ -346,7 +371,7 @@ GlodaFolder.prototype = {
     //  recently than the acceptably old threshold.
     if (this._activeHeaderRetrievalLastStamp > acceptablyOld)
       return false;
-    
+
     if (this._xpcomFolder) {
       // This is the key action we take; the nsIMsgFolder will continue to
       //  exist, but we want it to forget about its database so that it can
@@ -357,10 +382,10 @@ GlodaFolder.prototype = {
       //  not, this needs to be reset to 0 too.
       this._activeHeaderRetrievalLastStamp = 0;
     }
-    
+
     return true;
   },
-}
+};
 
 /**
  * @class A message representation.
@@ -368,6 +393,7 @@ GlodaFolder.prototype = {
 function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
                       aConversationID, aConversation, aDate,
                       aHeaderMessageID, aDeleted, aJsonText,
+                      aNotability,
                       aSubject, aIndexedBodyText, aAttachmentNames) {
   this._datastore = aDatastore;
   this._id = aID;
@@ -378,6 +404,7 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
   this._date = aDate;
   this._headerMessageID = aHeaderMessageID;
   this._jsonText = aJsonText;
+  this._notability = aNotability;
   this._subject = aSubject;
   this._indexedBodyText = aIndexedBodyText;
   this._attachmentNames = aAttachmentNames;
@@ -396,11 +423,13 @@ GlodaMessage.prototype = {
   get conversationID() { return this._conversationID; },
   // conversation is special
   get headerMessageID() { return this._headerMessageID; },
-  
+  get notability() { return this._notability; },
+  set notability(aNotability) { this._notability = aNotability; },
+
   get subject() { return this._subject; },
   get indexedBodyText() { return this._indexedBodyText; },
   get attachmentNames() { return this._attachmentNames; },
-  
+
   get date() { return this._date; },
   set date(aNewDate) { this._date = aNewDate; },
 
@@ -408,7 +437,7 @@ GlodaMessage.prototype = {
     if (this._folderID != null)
       return this._datastore._mapFolderID(this._folderID);
     else
-      return null;    
+      return null;
   },
   get folderURI() {
     if (this._folderID != null)
@@ -452,7 +481,7 @@ GlodaMessage.prototype = {
    * Return the underlying nsIMsgDBHdr from the folder storage for this, or
    *  null if the message does not exist for one reason or another.  We may log
    *  to our logger in the failure cases.
-   *  
+   *
    * This method no longer caches the result, so if you need to hold onto it,
    *  hold onto it.
    *
@@ -462,19 +491,25 @@ GlodaMessage.prototype = {
    *  an alternate way to initiate the load before calling us.
    * We provide hinting to the GlodaDatastore via the GlodaFolder so that it
    *  knows when it's a good time for it to go and detach from the database.
-   * 
+   *
    * @returns The nsIMsgDBHdr associated with this message if available, null on
    *     failure.
    */
   get folderMessage() {
     if (this._folderID === null || this._messageKey === null)
       return null;
-    
+
     let glodaFolder = this._datastore._mapFolderID(this._folderID);
     let folder = glodaFolder.getXPCOMFolder(
                    glodaFolder.kActivityHeaderRetrieval);
     if (folder) {
-      let folderMessage = folder.GetMessageHeader(this._messageKey);
+      let folderMessage;
+      try {
+        folderMessage = folder.GetMessageHeader(this._messageKey);
+      }
+      catch (ex) {
+        folderMessage = null;
+      }
       if (folderMessage !== null) {
         // verify the message-id header matches what we expect...
         if (folderMessage.messageId != this._headerMessageID) {
@@ -551,7 +586,7 @@ GlodaContact.prototype = {
   toString: function gloda_contact_toString() {
     return "Contact:" + this._id;
   },
-  
+
   get accessibleLabel() {
     return "Contact: " + this._name;
   },
@@ -577,6 +612,10 @@ function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue,
   this._value = aValue;
   this._description = aDescription;
   this._isRelay = aIsRelay;
+  /// cached positive indicator of a card.  false means we don't know, not that
+  ///  we are confident there is no card.  (Users may star contacts with
+  ///  frequency, we don't want to latch on an erroneous value.)
+  this._hasAddressBookCard = false;
 }
 
 GlodaIdentity.prototype = {
@@ -598,9 +637,28 @@ GlodaIdentity.prototype = {
   },
 
   get abCard() {
-    return GlodaUtils.getCardForEmail(this._value);
+    // for our purposes, the address book only speaks email
+    if (this._kind != "email")
+      return false;
+    let card = GlodaUtils.getCardForEmail(this._value);
+    if (card)
+      this._hasAddressBookCard = true;
+    return card;
   },
-  
+
+  /**
+   * Indicate whether this person is in the user's address book. This differs
+   *  from abCard in that its semantics are cheaper.  We can cache/flag that
+   *  the identity is in the address book on disk whereas we can't keep the
+   *  card reference live easily right now (until UUIDs happen...)
+   * However, we currently don't cache the value, lest it screw us.
+   */
+  get inAddressBook() {
+    if (this._hasAddressBookCard)
+      return true;
+    return this.abCard && true;
+  },
+
   pictureURL: function(aSize) {
     let md5hash = GlodaUtils.md5HashString(this._value);
     let gravURL = "http://www.gravatar.com/avatar/" + md5hash +

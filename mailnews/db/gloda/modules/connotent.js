@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -33,7 +33,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ['GlodaContent', 'whittlerRegistry',
@@ -133,27 +133,27 @@ function GlodaContent() {
 GlodaContent.prototype = {
   kPriorityBase: 0,
   kPriorityPerfect: 100,
-  
+
   kHunkMeta: 1,
   kHunkQuoted: 2,
   kHunkContent: 3,
-  
+
   _resetContent: function gloda_content__resetContent() {
     this._keysAndValues = [];
     this._keysAndDeltaValues = [];
     this._hunks = [];
     this._curHunk = null;
   },
-  
+
   /* ===== Consumer API ===== */
   hasContent: function gloda_content_hasContent() {
     return (this._contentPriority != null);
   },
-  
+
   /**
    * Return content suitable for snippet display.  This means that no quoting
    *  or meta-data should be returned.
-   * 
+   *
    * @param aMaxLength The maximum snippet length desired.
    */
   getContentSnippet: function gloda_content_getContentSnippet(aMaxLength) {
@@ -162,7 +162,7 @@ GlodaContent.prototype = {
       content = content.substring(0, aMaxLength);
     return content;
   },
-  
+
   getContentString: function gloda_content_getContent(aIndexingPurposes) {
     let data = "";
     for each (let [, hunk] in Iterator(this._hunks)) {
@@ -173,7 +173,7 @@ GlodaContent.prototype = {
           data = hunk.data;
       }
     }
-    
+
     if (aIndexingPurposes) {
       // append the values for indexing.  we assume the keywords are cruft.
       // this may be crazy, but things that aren't a science aren't an exact
@@ -185,15 +185,15 @@ GlodaContent.prototype = {
         data += "\n" + kon[1] + "\n" + kon[2];
       }
     }
-    
+
     return data;
   },
-  
+
   /* ===== Producer API ===== */
   /**
    * Called by a producer with the priority they believe their interpretation
    *  of the content comes in at.
-   * 
+   *
    * @returns true if we believe the producer's interpretation will be
    *     interesting and they should go ahead and generate events.  We return
    *     false if we don't think they are interesting, in which case they should
@@ -211,7 +211,7 @@ GlodaContent.prototype = {
     this._producing = false;
     return false;
   },
-  
+
   keyValue: function gloda_content_keyValue(aKey, aValue) {
     if (!this._producing)
       return;
@@ -225,7 +225,7 @@ GlodaContent.prototype = {
 
     this._keysAndDeltaValues.push([aKey, aOldValue, aNewValue]);
   },
-  
+
   /**
    * Meta lines are lines that have to do with the content but are not the
    *  content and can generally be related to an attribute that has been derived
@@ -233,7 +233,7 @@ GlodaContent.prototype = {
    * For example, a bugzilla bug may note that an attachment was created; this
    *  is not content and wouldn't be desired in a snippet, but is still
    *  potentially interesting meta-data.
-   * 
+   *
    * @param aLineOrLines The line or list of lines that are meta-data.
    * @param aAttr The attribute this meta-data is associated with.
    * @param aIndex If the attribute is non-singular, indicate the specific
@@ -243,32 +243,32 @@ GlodaContent.prototype = {
   meta: function gloda_content_meta(aLineOrLines, aAttr, aIndex) {
     if (!this._producing)
       return;
-    
+
     let data;
     if (typeof(aLineOrLines) == "string")
       data = aLineOrLines;
     else
       data = aLineOrLines.join("\n");
-    
+
     this._curHunk = {hunkType: this.kHunkMeta, attr: aAttr, index: aIndex,
                      data: data};
     this._hunks.push(this._curHunk);
   },
   /**
    * Quoted lines reference previous messages or what not.
-   * 
+   *
    * @param aLineOrLiens The line or list of lines that are quoted.
    * @param aDepth The depth of the quoting.
    * @param aOrigin The item that originated the original content, if known.
    *     For example, perhaps a GlodaMessage?
    * @param aTarget A reference to the location in the original content, if
-   *     known.  For example, the index of a line in a message or something?  
+   *     known.  For example, the index of a line in a message or something?
    */
   quoted: function gloda_content_quoted(aLineOrLines, aDepth, aOrigin,
       aTarget) {
     if (!this._producing)
       return;
-    
+
     let data;
     if (typeof(aLineOrLines) == "string")
       data = aLineOrLines;
@@ -284,9 +284,9 @@ GlodaContent.prototype = {
       this._hunks.push(this._curHunk);
     }
     else
-      this._curHunk.data += "\n" + data; 
+      this._curHunk.data += "\n" + data;
   },
-  
+
   content: function gloda_content_content(aLineOrLines) {
     if (!this._producing)
       return;
@@ -296,7 +296,7 @@ GlodaContent.prototype = {
       data = aLineOrLines;
     else
       data = aLineOrLines.join("\n");
-    
+
     if (!this._curHunk || this._curHunk.hunkType != this.kHunkContent) {
       this._curHunk = {hunkType: this.kHunkContent, data: data};
       this._hunks.push(this._curHunk);
@@ -304,4 +304,4 @@ GlodaContent.prototype = {
     else
       this._curHunk.data += "\n" + data;
   },
-}
+};

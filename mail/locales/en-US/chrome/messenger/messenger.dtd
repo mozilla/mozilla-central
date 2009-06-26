@@ -622,6 +622,11 @@ you can use these alternative items. Otherwise, their values should be empty.  -
      present in the gloda search results.  The values can be found in
      messenger.properties with a prefix of "glodaSearch_results_why_". -->
 <!ENTITY glodaWhyColumn.label "Why">
+<!-- LOCALIZATION NOTE (glodaScoreColumn.label): provides the numerical
+     score assigned to the message as a result of the search.  The column
+     primarily exists to be sorted by, and its contents will probably have
+     little meaning for most users. -->
+<!ENTITY glodaScoreColumn.label "Score">
 
 <!-- Thread Pane Tooltips -->
 <!ENTITY columnChooser.tooltip "Click to select columns to display">
@@ -645,6 +650,7 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY idColumn.tooltip "Click to sort by order received">
 <!ENTITY attachmentColumn.tooltip "Click to sort by attachments">
 <!ENTITY glodaWhyColumn.tooltip "Click to sort by why the message is in your search results">
+<!ENTITY glodaScoreColumn.tooltip "Click to sort by the search score">
 
 <!-- Thread Pane Context Menu -->
 <!ENTITY contextOpenNewWindow.label "Open Message in New Window">

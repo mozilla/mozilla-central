@@ -38,6 +38,22 @@
 // -- Pull in the POP3 fake-server / local account helper code
 load("../../test_mailnewslocal/unit/head_maillocal.js");
 
+/**
+ * Create a 'me' identity of "me@localhost" for the benefit of Gloda.  At the
+ *  time of this writing, Gloda only initializes Gloda.myIdentities and
+ *  Gloda.myContact at startup with no event-driven updates.  As such, this
+ *  function needs to be called prior to gloda startup.
+ */
+function createMeIdentity() {
+  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
+                  .getService(Ci.nsIMsgAccountManager);
+  let identity = acctMgr.createIdentity;
+  identity.email = "me@localhost";
+  identity.fullName = "Me";
+}
+// and run it now...
+createMeIdentity();
+
 // -- Set the gloda prefs
 const gPrefs = Cc["@mozilla.org/preferences-service;1"]
                  .getService(Ci.nsIPrefBranch);
@@ -752,7 +768,7 @@ function twiddleAndTest(aSynthMsg, aActionsAndTests) {
   indexMessages([aSynthMsg], twiddle_next_attr);
 }
 
-_defaultExpectationExtractors = {};
+var _defaultExpectationExtractors = {};
 _defaultExpectationExtractors[Gloda.NOUN_MESSAGE] = [
   function expectExtract_message_gloda(aGlodaMessage) {
     return aGlodaMessage.headerMessageID;
@@ -782,10 +798,15 @@ function expectExtract_default_toString(aThing) {
   return aThing.toString();
 }
 
-function QueryExpectationListener(aExpectedSet, aGlodaExtractor) {
+/// see {queryExpect} for info on what we do
+function QueryExpectationListener(aExpectedSet, aGlodaExtractor, aOrderVerifier) {
   this.expectedSet = aExpectedSet;
   this.glodaExtractor = aGlodaExtractor;
+  this.orderVerifier = aOrderVerifier;
   this.completed = false;
+  // track our current 'index' in the results for the (optional) order verifier,
+  //  but also so we can provide slightly more useful debug output
+  this.nextIndex = 0;
 }
 
 QueryExpectationListener.prototype = {
@@ -811,6 +832,25 @@ QueryExpectationListener.prototype = {
                  glodaStringRep);
       }
 
+      if (this.orderVerifier) {
+        try {
+          this.orderVerifier(this.nextIndex, item, aCollection);
+        }
+        catch (ex) {
+          // if the order was wrong, we could probably go for an output of what
+          //  we actually got...
+          dump("!!! ORDER PROBLEM, SO ORDER DUMP!\n");
+          for each (let [iThing, thing] in Iterator(aItems)) {
+            dump(iThing + ": " + thing +
+                 (aCollection.stashedColumns ?
+                  (". " + aCollection.stashedColumns[thing.id].join(", ")) :
+                  "") + "\n");
+          }
+          throw ex;
+        }
+      }
+      this.nextIndex++;
+
       // make sure the query's test method agrees with the database about this
       if (!aCollection.query.test(item))
         do_throw("Query test returned false when it should have been true on " +
@@ -829,8 +869,9 @@ QueryExpectationListener.prototype = {
     aCollection.becomeExplicit();
 
     // expectedSet should now be empty
-    for each (let [key, value] in this.expectedSet) {
-      do_throw("Query should have returned " + key + "(" + value + ")");
+    for each (let [key, value] in Iterator(this.expectedSet)) {
+      dump("I have seen " + this.nextIndex + " results, but not:\n");
+      do_throw("Query should have returned " + key + " (" + value + ")");
     }
 
     dump(">>> queryCompleted, advancing to next test\n");
@@ -863,17 +904,21 @@ QueryExpectationListener.prototype = {
  *     against that returned by the expected extractor (against the input
  *     instance in aExpectedSet.)  The value returned must be unique for all
  *     of the expected gloda representations of the expected set.  If omitted,
- *     the default extractor for the gloda noun type is used.
+ *     the default extractor for the gloda noun type is used.  If no default
+ *     extractor exists, toString is called on the item.
  * @param aExpectedExtractor The extractor function to take an instance from the
  *     values in the aExpectedSet and return a string for comparison/equivalence
  *     against that returned by the gloda extractor.  The value returned must
  *     be unique for all of the values in the expected set.  If omitted, the
  *     default extractor for the presumed input type based on the gloda noun
- *     type used for the query is used.
+ *     type used for the query is used, failing over to toString.
+ * @param aOrderVerifier Optional function to verify the order the results are
+ *     received in.  Function signature should be of the form (aZeroBasedIndex,
+ *     aItem, aCollectionResultIsFor).
  * @returns The collection created from the query.
  */
 function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
-    aExpectedExtractor) {
+    aExpectedExtractor, aOrderVerifier) {
   if (aQuery.test)
     aQuery = {queryFunc: aQuery.getCollection, queryThis: aQuery, args: [],
               nounId: aQuery._nounDef.id};
@@ -906,7 +951,8 @@ function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
 
   // - create the listener...
   aQuery.args.push(new QueryExpectationListener(expectedSet,
-                                                aGlodaExtractor));
+                                                aGlodaExtractor,
+                                                aOrderVerifier));
   return aQuery.queryFunc.apply(aQuery.queryThis, aQuery.args);
 }
 

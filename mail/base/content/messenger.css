@@ -164,6 +164,14 @@ dummy.usesMailWidgets {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#dummy");
 }
 
+#glodaSearchInput {
+  -moz-binding: url("chrome://messenger/content/search.xml#glodaSearch");
+}
+
+#glodaSearchFacets {
+  -moz-binding: url("chrome://messenger/content/search.xml#glodaFacets");
+}
+
 #searchInput {
   -moz-binding: url("chrome://messenger/content/search.xml#searchbar");
 }
