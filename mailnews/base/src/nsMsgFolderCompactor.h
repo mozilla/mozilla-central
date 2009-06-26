@@ -90,6 +90,10 @@ protected:
   nsCOMPtr <nsIOutputStream> m_fileStream; // output file stream for writing
   nsTArray<nsMsgKey> m_keyArray; // all message keys need to be copied over
   PRInt32 m_size; // size of the message key array
+  
+   // sum of the sizes of the messages, accumulated as we visit each msg.
+  PRUint32 m_totalMsgSize;
+  
   PRInt32 m_curIndex; // index of the current copied message key in key array
   nsMsgKey m_startOfNewMsg; // offset in mailbox of new message
   char m_dataBuffer[COMPACTOR_READ_BUFF_SIZE + 1]; // temp data buffer for copying message

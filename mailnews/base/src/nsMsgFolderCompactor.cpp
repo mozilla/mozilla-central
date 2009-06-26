@@ -300,6 +300,7 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);   //make sure we are not crunching existing nstmp file
   m_window = aMsgWindow;
   m_keyArray.Clear();
+  m_totalMsgSize = 0;
   rv = InitDB(db);
   if (NS_FAILED(rv))
   {
@@ -427,37 +428,46 @@ nsFolderCompactState::FinishCompact()
   nsCOMPtr <nsIDBFolderInfo> transferInfo;
   m_folder->GetDBTransferInfo(getter_AddRefs(transferInfo));
 
-  // close down database of the original folder and remove the folder node
-  // and all it's message node from the tree
+  // close down database of the original folder
   m_folder->ForceDBClosed();
 
+  nsCOMPtr<nsIFile> cloneFile;
+  PRInt64 fileSize;
+  m_file->Clone(getter_AddRefs(cloneFile));
+  cloneFile->GetFileSize(&fileSize);
+  PRBool tempFileRightSize = (fileSize == m_totalMsgSize);
+  NS_ASSERTION(tempFileRightSize, "temp file not of expected size in compact");
+  
   PRBool folderRenameSucceeded = PR_FALSE;
   PRBool msfRenameSucceeded = PR_FALSE;
-  PRBool summaryFileExists;
-    // remove the old folder and database
-  rv = summaryFile->Remove(PR_FALSE);
-  summaryFile->Exists(&summaryFileExists);
-  if (NS_SUCCEEDED(rv) && !summaryFileExists)
+  if (tempFileRightSize)
   {
-    PRBool folderPathExists;
-    rv = folderPath->Remove(PR_FALSE);
-    folderPath->Exists(&folderPathExists);
-    if (NS_SUCCEEDED(rv) && !folderPathExists)
+    PRBool summaryFileExists;
+    // remove the old folder and database
+    rv = summaryFile->Remove(PR_FALSE);
+    summaryFile->Exists(&summaryFileExists);
+    if (NS_SUCCEEDED(rv) && !summaryFileExists)
     {
-      // rename the copied folder and database to be the original folder and
-      // database 
-      rv = m_file->MoveToNative((nsIFile *) nsnull, leafName);
-      NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder");
-      if (NS_SUCCEEDED(rv))
+      PRBool folderPathExists;
+      rv = folderPath->Remove(PR_FALSE);
+      folderPath->Exists(&folderPathExists);
+      if (NS_SUCCEEDED(rv) && !folderPathExists)
       {
-        folderRenameSucceeded = PR_TRUE;
-        rv = newSummaryFile->MoveToNative((nsIFile *) nsnull, dbName);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder's db");
-        msfRenameSucceeded = NS_SUCCEEDED(rv);
+        // rename the copied folder and database to be the original folder and
+        // database 
+        rv = m_file->MoveToNative((nsIFile *) nsnull, leafName);
+        NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder");
+        if (NS_SUCCEEDED(rv))
+        {
+          folderRenameSucceeded = PR_TRUE;
+          rv = newSummaryFile->MoveToNative((nsIFile *) nsnull, dbName);
+          NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder's db");
+          msfRenameSucceeded = NS_SUCCEEDED(rv);
+        }
       }
     }
+    NS_ASSERTION(msfRenameSucceeded && folderRenameSucceeded, "rename failed in compact");
   }
-  NS_ASSERTION(msfRenameSucceeded && folderRenameSucceeded, "rename failed in compact");
   if (!folderRenameSucceeded)
     m_file->Remove(PR_FALSE);
   if (!msfRenameSucceeded)
@@ -1027,12 +1037,15 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
   {
     if ( m_statusOffset != 0)
       newMsgHdr->SetStatusOffset(m_statusOffset);
-    if (m_addedHeaderSize != 0)
+      
+    PRUint32 msgSize;
+    (void) newMsgHdr->GetMessageSize(&msgSize);
+    if (m_addedHeaderSize)
     {
-      PRUint32 oldMsgSize;
-      (void) newMsgHdr->GetMessageSize(&oldMsgSize);
-      newMsgHdr->SetMessageSize(oldMsgSize + m_addedHeaderSize);
+      msgSize += m_addedHeaderSize;
+      newMsgHdr->SetMessageSize(msgSize);
     }
+    m_totalMsgSize += msgSize;
   }
 
 //  m_db->Commit(nsMsgDBCommitType::kLargeCommit);  // no sense commiting until the end
