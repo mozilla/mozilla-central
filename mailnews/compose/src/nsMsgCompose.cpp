@@ -2193,12 +2193,12 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
       {
         // add one newline if a signature comes before the quote, two otherwise
         PRBool sig_bottom = PR_TRUE;
-        PRBool useSigFile = PR_FALSE;
+        PRBool attachFile = PR_FALSE;
         nsString prefSigText;
         mIdentity->GetSigBottom(&sig_bottom);
         mIdentity->GetHtmlSigText(prefSigText);
-        rv = mIdentity->GetAttachSignature(&useSigFile);
-        if (!sig_bottom && ((NS_SUCCEEDED(rv) && useSigFile) || !prefSigText.IsEmpty()))
+        rv = mIdentity->GetAttachSignature(&attachFile);
+        if (!sig_bottom && ((NS_SUCCEEDED(rv) && attachFile) || !prefSigText.IsEmpty()))
           mCitePrefix.AppendLiteral("\n");
         else
           mCitePrefix.AppendLiteral("\n\n");
@@ -3956,6 +3956,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   // Plain-text signatures may or may not have a trailing line break (bug 428040).
 
   nsCAutoString sigNativePath;
+  PRBool        attachFile = PR_FALSE;
   PRBool        useSigFile = PR_FALSE;
   PRBool        htmlSig = PR_FALSE;
   PRBool        imageSig = PR_FALSE;
@@ -3972,11 +3973,9 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
 
     identity->GetReplyOnTop(&reply_on_top);
     identity->GetSigBottom(&sig_bottom);
-    rv = identity->GetAttachSignature(&useSigFile);
-    if (NS_SUCCEEDED(rv) && useSigFile)
+    rv = identity->GetAttachSignature(&attachFile);
+    if (NS_SUCCEEDED(rv) && attachFile)
     {
-      useSigFile = PR_FALSE;  // by default, assume no signature file!
-
       rv = identity->GetSignature(getter_AddRefs(sigFile));
       if (NS_SUCCEEDED(rv) && sigFile) {
         rv = sigFile->GetNativePath(sigNativePath);
@@ -4006,11 +4005,11 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
     }
   }
 
-  // Unless a signature file is given, use preference value;
-  // the pref sig is always going to be treated as html
-  // if any <> tag is found, otherwise it is considered text
+  // Unless signature to be attached from file, use preference value;
+  // the htmlSigText value is always going to be treated as html if
+  // the htmlSigFormat pref is true, otherwise it is considered text
   nsString prefSigText;
-  if (identity && !useSigFile)
+  if (identity && !attachFile)
     identity->GetHtmlSigText(prefSigText);
   // Now, if they didn't even want to use a signature, we should
   // just return nicely.
