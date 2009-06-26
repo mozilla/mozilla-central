@@ -425,6 +425,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_folderNeedsSubscribing = PR_FALSE;
   m_folderNeedsACLRefreshed = PR_FALSE;
   m_threadShouldDie = PR_FALSE;
+  m_inThreadShouldDie = PR_FALSE;
   m_pseudoInterrupted = PR_FALSE;
   m_nextUrlReadyToRun = PR_FALSE;
   m_trackingTime = PR_FALSE;
@@ -1201,6 +1202,11 @@ nsImapProtocol::TellThreadToDie()
   nsresult rv = NS_OK;
   NS_WARN_IF_FALSE(!NS_IsMainThread(),
                    "TellThreadToDie() should not be called from UI thread");
+
+  // prevent re-entering this method because it may lock the UI.
+  if (m_inThreadShouldDie)
+    return;
+  m_inThreadShouldDie = PR_TRUE;
 
   // This routine is called only from the imap protocol thread.
   // The UI thread causes this to be called by calling TellThreadToDie.

@@ -456,6 +456,9 @@ private:
   PRBool m_folderNeedsACLRefreshed;
 
   PRBool m_threadShouldDie;
+
+  // use to prevent re-entering TellThreadToDie.
+  PRBool m_inThreadShouldDie;
   // if the UI thread has signalled the IMAP thread to die, and the
   // connection has timed out, this will be set to FALSE.
   PRBool m_safeToCloseConnection;
