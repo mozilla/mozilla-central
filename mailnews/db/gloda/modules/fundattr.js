@@ -645,7 +645,7 @@ var GlodaFundAttr = {
     let rangeStart = 0, lastNonBlankLine = null, prevLastNonBlankLine = null;
     let inQuoteDepth = 0;
     for each (let [iLine, line] in Iterator(bodyLines)) {
-      if (!line)
+      if (!line || (line == "\xa0")) /* unicode non breaking space */
         continue;
 
       if (line[0] == ">") {
