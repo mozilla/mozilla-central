@@ -364,9 +364,9 @@ MessageDisplayWidget.prototype = {
  * Display widget abstraction for the 3-pane message view's preview pane/message
  *  pane. Like the DisplayWidget, it is multiplexed.
  */
-function MessagePaneDisplayWidget() {
+function MessagePaneDisplayWidget(aBeVisible) {
   MessageDisplayWidget.call(this);
-  this._visible = true;
+  this._visible = aBeVisible == undefined ? true : aBeVisible;
 }
 MessagePaneDisplayWidget.prototype = {
   __proto__: MessageDisplayWidget.prototype,

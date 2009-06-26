@@ -365,7 +365,7 @@ function select_click_row(aViewIndex) {
   aViewIndex = _normalize_view_index(aViewIndex);
   // this should set the current index as well as setting the selection.
   mc.dbView.selection.select(aViewIndex);
-  wait_for_message_display_completion(mc, true);
+  wait_for_message_display_completion(mc, mc.messageDisplay.visible);
   return mc.dbView.getMsgHdrAt(aViewIndex);
 }
 
@@ -381,7 +381,7 @@ function toggle_thread_row(aViewIndex) {
   wait_for_message_display_completion();
   aViewIndex = _normalize_view_index(aViewIndex);
   mc.dbView.toggleOpenState(aViewIndex);
-  wait_for_message_display_completion(mc, true);
+  wait_for_message_display_completion(mc, mc.messageDisplay.visible);
 }
 
 

@@ -1249,7 +1249,7 @@ FolderDisplayWidget.prototype = {
       if (this._tabInfo)
         mailTabType._setPaneStates(this._tabInfo.mode.legalPanes,
           {folder: !this._tabInfo.folderPaneCollapsed,
-           message: !this._tabInfo.messagePaneCollapsed});
+           message: this.messageDisplay.visible});
 
       // update the columns and such that live inside the thread pane
       this._updateThreadDisplay();
@@ -1260,9 +1260,8 @@ FolderDisplayWidget.prototype = {
     else {
       this._showAccountCentral();
       if (this._tabInfo)
-        mailTabType._setPaneStates(this._tabInfo.mode.legalPanes,
-                                   {folder: !this._tabInfo.folderPaneCollapsed,
-                                    message: false});
+        mailTabType._setPaneStates(this._tabInfo.mode.accountCentralLegalPanes,
+          {folder: !this._tabInfo.folderPaneCollapsed});
     }
 
     this._updateContextDisplay();
@@ -1380,7 +1379,13 @@ FolderDisplayWidget.prototype = {
            this.view.dbView.doCommandWithFolder(aCommandName, aFolder);
   },
 
-
+  /**
+   * @return true when account central is being displayed.
+   */
+  get isAccountCentralDisplayed
+      FolderDisplayWidget_isAccountCentralDisplayed() {
+    return (this.view.dbView == null);
+  },
 
   /**
    * Navigate using nsMsgNavigationType rules and ensuring the resulting row is

@@ -82,7 +82,6 @@ var gStartFolderUri = null;
  * the selection value is the selection object we saved off.
  */
 var gRightMouseButtonSavedSelection = null;
-var gLoadStartFolder = true;
 var gNewAccountToLoad = null;
 
 // Global var to keep track of if the 'Delete Message' or 'Move To' thread pane
@@ -436,7 +435,33 @@ function OnUnloadMessenger()
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
-  document.getElementById('tabmail').closeTabs();
+
+  // - Persist the tab state and then close the tabs.
+  // XXX do not assume there is only ever one 3-pane.
+  let tabmail = document.getElementById('tabmail');
+  let tabsState = tabmail.persistTabs();
+  // build the state like we aren't assuming a single 3-pane
+  let state = {
+    rev: 0,
+    windows: [{
+        type: "3pane",
+        tabs: tabsState
+      }
+    ]
+  };
+  let data = JSON.stringify(state);
+  let file = Components.classes["@mozilla.org/file/directory_service;1"]
+                       .getService(Components.interfaces.nsIProperties)
+                       .get("ProfD", Components.interfaces.nsIFile);
+  file.append("session.json");
+  let foStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
+                   .createInstance(Components.interfaces.nsIFileOutputStream);
+  foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
+  foStream.write(data, data.length);
+  foStream.close();
+
+  tabmail.closeTabs();
+
 
   var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
                               .getService(Components.interfaces.nsIMsgMailSession);
@@ -452,11 +477,48 @@ function OnUnloadMessenger()
   OnMailWindowUnload();
 }
 
+// XXX provides GlodaUtils, remove once we migrate loadFileToString
+Components.utils.import("resource://app/modules/gloda/utils.js");
+
+/**
+ * Attempt to restore our tab states.  This should only be called by
+ *  loadStartFolder.
+ */
+function atStartupRestoreTabs() {
+  let file = Components.classes["@mozilla.org/file/directory_service;1"]
+                       .getService(Components.interfaces.nsIProperties)
+                       .get("ProfD", Components.interfaces.nsIFile);
+  file.append("session.json");
+  if (!file.exists())
+    return false;
+
+  // XXX migrate loadFileToString to MessengerUtils once it exists (it's in
+  //  another patch)
+  let data = GlodaUtils.loadFileToString(file);
+
+  // delete the file before restoring state in case there is something
+  //  crash-inducing about the restoration process.  Also, this avoids weird
+  //  3pane behavior if you open any additional 3panes.
+  file.remove(false);
+
+  let state = JSON.parse(data);
+  let tabsState = state.windows[0].tabs;
+  let tabmail = document.getElementById('tabmail');
+  tabmail.restoreTabs(tabsState);
+
+  return true;
+}
+
 function loadStartFolder(initialUri)
 {
     var defaultServer = null;
     var startFolder;
     var isLoginAtStartUpEnabled = false;
+
+    let loadFolder = !atStartupRestoreTabs();
+    // If a URI was explicitly specified, we'll just clobber the default tab
+    if (initialUri)
+      loadFolder = true;
 
     //First get default account
     try
@@ -523,17 +585,19 @@ function loadStartFolder(initialUri)
         // Perform biff on the server to check for new mail, except for imap
         // or a pop3 account that is deferred or deferred to,
         // or the case where initialUri is non-null (non-startup)
-        if (!initialUri && isLoginAtStartUpEnabled && gLoadStartFolder
+        if (!initialUri && isLoginAtStartUpEnabled
             && !defaultServer.isDeferredTo &&
             defaultServer.rootFolder == defaultServer.rootMsgFolder)
           defaultServer.performBiff(msgWindow);
-        try {
-          gFolderTreeView.selectFolder(startFolder);
-        } catch(ex) {
-          // This means we tried to select a folder that isn't in the current
-          // view. Just select the first one in the view then.
-          if (gFolderTreeView._rowMap.length)
-            gFolderTreeView.selectFolder(gFolderTreeView._rowMap[0]._folder);
+        if (loadFolder) {
+          try {
+            gFolderTreeView.selectFolder(startFolder);
+          } catch(ex) {
+            // This means we tried to select a folder that isn't in the current
+            // view. Just select the first one in the view then.
+            if (gFolderTreeView._rowMap.length)
+              gFolderTreeView.selectFolder(gFolderTreeView._rowMap[0]._folder);
+          }
         }
     }
     catch(ex)
@@ -551,10 +615,7 @@ function loadStartFolder(initialUri)
       dump('Exception in LoadStartFolder caused by no default account.  We know about this\n');
     }
 
-    // if gLoadStartFolder is true, then we must have just created a POP3 account
-    // and we aren't supposed to initially download mail. (Bug #270743)
-    if (gLoadStartFolder)
-      MsgGetMessagesForAllServers(defaultServer);
+    MsgGetMessagesForAllServers(defaultServer);
 
     if (MailOfflineMgr.isOnline()) {
       // Check if we shut down offline, and restarted online, in which case
@@ -771,7 +832,8 @@ function GetTotalCountElement()
 
 function IsMessagePaneCollapsed()
 {
-  return GetMessagePane().collapsed;
+  return document.getElementById("threadpane-splitter")
+                 .getAttribute("state") == "collapsed";
 }
 
 function ClearThreadPaneSelection()

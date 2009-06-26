@@ -158,6 +158,10 @@ function InitGoMessagesMenu()
   document.commandDispatcher.updateCommands('create-menu-go');
 }
 
+/**
+ * This is called every time the view menu popup is displayed.  It is
+ *  responsible for updating the menu items' state to reflect reality.
+ */
 function view_init()
 {
   var isFeed = gFolderDisplay.selectedMessageIsFeed;
@@ -165,16 +169,18 @@ function view_init()
   if (!gMessengerBundle)
     gMessengerBundle = document.getElementById("bundle_messenger");
 
+  let accountCentralDisplayed = gFolderDisplay.isAccountCentralDisplayed;
   var messagePaneMenuItem = document.getElementById("menu_showMessage");
   if (!messagePaneMenuItem.hidden) { // Hidden in the standalone msg window.
-    messagePaneMenuItem.setAttribute("checked", !IsMessagePaneCollapsed());
-    messagePaneMenuItem.disabled = gAccountCentralLoaded;
+    messagePaneMenuItem.setAttribute("checked",
+      accountCentralDisplayed ? false : gMessageDisplay.visible);
+    messagePaneMenuItem.disabled = accountCentralDisplayed;
   }
 
   // Disable some menus if account manager is showing
-  document.getElementById("viewSortMenu").disabled = gAccountCentralLoaded;
-  document.getElementById("viewMessageViewMenu").disabled = gAccountCentralLoaded;
-  document.getElementById("viewMessagesMenu").disabled = gAccountCentralLoaded;
+  document.getElementById("viewSortMenu").disabled = accountCentralDisplayed;
+  document.getElementById("viewMessageViewMenu").disabled = accountCentralDisplayed;
+  document.getElementById("viewMessagesMenu").disabled = accountCentralDisplayed;
 
   // Hide the views menu item if the user doesn't have the views toolbar button
   // visible.
@@ -1647,11 +1653,6 @@ function CreateToolbarTooltip(document, event)
  *     The messenger object is the keeper of the 'undo' state and navigation
  *     history, which is why we do this.
  *
- * @property {boolean} folderPaneCollapsed In "folder" mode, has the user
- *     intentionally collapsed the folder pane.
- * @property {boolean} messagePaneCollapsed In "folder" or "glodaSearch" mode,
- *     has the user intentionally collapsed the message pane.
- *
  * @property {nsIMsgDBHdr} hdr In "message" mode, the header of the message
  *     being displayed.
  * @property {nsIMsgSearchSession} searchSession Used to preserve gSearchSession
@@ -1682,25 +1683,52 @@ let mailTabType = {
         thread: true,
         message: true
       },
+      /// The set of panes that are legal when we are showing account central
+      accountCentralLegalPanes: {
+        folder: true,
+        accountCentral: true,
+        message: false
+      },
       openFirstTab: function(aTab) {
         this.openTab(aTab, true, new MessagePaneDisplayWidget());
+        // persistence and restoreTab wants to know if we are the magic first tab
+        aTab.firstTab = true;
         aTab.folderDisplay.makeActive();
       },
       /**
        * @param aFolder The nsIMsgFolder to display.
        * @param aMsgHdr Optional message header to display.
        */
-      openTab: function(aTab, aFolder, aMsgHdr) {
+      openTab: function(aTab, aFolder, aMsgHdr, aOptions) {
+        if (aOptions === undefined)
+          aOptions = {};
+
+        // persistence and restoreTab wants to know if we are the magic first tab
+        aTab.firstTab = false;
+
         // Get a tab that we can initialize our user preferences from.
         // (We don't want to assume that our immediate predecessor was a
         //  "folder" tab.)
         let modelTab = document.getElementById("tabmail")
                          .getTabInfoForCurrentOrFirstModeInstance(aTab.mode);
-        // copy its state
-        aTab.folderPaneCollapsed = modelTab.folderPaneCollapsed;
-        aTab.messagePaneCollapsed = modelTab.messagePaneCollapsed;
 
-        this.openTab(aTab, false,  new MessagePaneDisplayWidget());
+        if (modelTab)
+          aTab.folderPaneCollapsed = modelTab.folderPaneCollapsed;
+
+        // - figure out whether to show the message pane
+        let messagePaneShouldBeVisible;
+        // explicitly told to us?
+        if ("messagePaneVisible" in aOptions)
+          messagePaneShouldBeVisible = aOptions.messagePaneVisible;
+        // inherit from the previous tab (if we've got one)
+        else if (modelTab)
+          messagePaneShouldBeVisible = modelTab.messageDisplay.visible;
+        // who does't love a message pane?
+        else
+          messagePaneShouldBeVisible = true;
+
+        this.openTab(aTab, false,
+                     new MessagePaneDisplayWidget(messagePaneShouldBeVisible));
 
         // Clear selection, because context clicking on a folder and opening in a
         // new tab needs to have SelectFolder think the selection has changed.
@@ -1717,6 +1745,45 @@ let mailTabType = {
         gFolderTreeView.selectFolder(aFolder);
         if(aMsgHdr)
           aTab.folderDisplay.selectMessage(aMsgHdr);
+
+        aTab.mode.onTitleChanged.call(this, aTab, aTab.tabNode);
+      },
+      persistTab: function(aTab) {
+        if (!aTab.folderDisplay.displayedFolder)
+          return null;
+        return {
+          folderURI: aTab.folderDisplay.displayedFolder.URI,
+          messagePaneVisible: aTab.messageDisplay.visible,
+          firstTab: aTab.firstTab
+        };
+      },
+      restoreTab: function(aTabmail, aPersistedState) {
+        let rdfService = Components.classes['@mozilla.org/rdf/rdf-service;1']
+                           .getService(Components.interfaces.nsIRDFService);
+        let folder = rdfService.GetResource(aPersistedState.folderURI)
+                       .QueryInterface(Components.interfaces.nsIMsgFolder);
+        // if the folder no longer exists, we can't restore the tab
+        if (folder) {
+          // If we are talking about the first tab, it already exists and we
+          //  should poke it.  We are assuming it is the currently displayed
+          //  tab because we are privvy to the implementation details and know
+          //  it to be true.
+          if (aPersistedState.firstTab) {
+            if (gMessageDisplay.visible != aPersistedState.messagePaneVisible) {
+              MsgToggleMessagePane();
+              // For reasons that are not immediately obvious, sometimes the
+              //  message display is not active at this time.  In that case, we
+              //  need to explicitly set the _visible value because otherwise it
+              //  misses out on the toggle event.
+              if (!gMessageDisplay._active)
+                gMessageDisplay._visible = aPersistedState.messagePaneVisible;
+            }
+            gFolderTreeView.selectFolder(folder);
+          }
+          else {
+            aTabmail.openTab("folder", folder, null, aPersistedState);
+          }
+        }
       },
       onTitleChanged: function(aTab, aTabNode) {
         if (!aTab.folderDisplay || !aTab.folderDisplay.displayedFolder) {
@@ -1731,7 +1798,7 @@ let mailTabType = {
         if (!folder.isServer && this._getNumberOfRealAccounts() > 1)
           aTab.title += " - " + folder.server.prettyName;
 
-        // Update the appropriate attributes on the tab.
+        // Update the appropriate attributes on the tab
         aTabNode.setAttribute('SpecialFolder',
                               getSpecialFolderString(folder));
         aTabNode.setAttribute('ServerType', folder.server.type);
@@ -1768,10 +1835,27 @@ let mailTabType = {
         //  to avoid generating bogus summarization events.
         aTab.folderDisplay.makeActive();
       },
+      persistTab: function(aTab) {
+        let msgHdr = aTab.messageDisplay.displayedMessage;
+        return {
+          messageURI: msgHdr.folder.getUriForMsg(msgHdr)
+        };
+      },
+      restoreTab: function(aTabmail, aPersistedState) {
+        let msgHdr = messenger.msgHdrFromURI(aPersistedState.messageURI);
+        // if the message no longer exists, we can't restore the tab
+        if (msgHdr)
+          aTabmail.openTab("message", msgHdr);
+      },
       onTitleChanged: function(aTab, aTabNode, aMsgHdr) {
+        // Try and figure out the selected message if one was not provided.
+        // It is possible that the folder has yet to load, so it may still be
+        //  null.
         if (aMsgHdr == null)
           aMsgHdr = aTab.folderDisplay.selectedMessage;
         aTab.title = "";
+        if (aMsgHdr == null)
+          return;
         if (aMsgHdr.flags & Components.interfaces.nsMsgMessageFlags.HasRe)
           aTab.title = "Re: ";
         if (aMsgHdr.mime2DecodedSubject)
@@ -1895,8 +1979,12 @@ let mailTabType = {
    *  to apply the appropriate logic to make it all work out.  This method is
    *  not in charge of figuring out or preserving display states.
    *
-   * We take a dictionary of desired visibility booleans as our argument because
-   * it is both readable and scalable.
+   * A brief primer on splitters and friends:
+   * - A collapsed splitter is not visible (and otherwise it is visible).
+   * - A collapsed node is not visible (and otherwise it is visible).
+   * - A splitter whose "state" is "collapsed" collapses the widget implied by
+   *    the value of the "collapse" attribute.  The splitter itself will be
+   *    visible unless "collapsed".
    *
    * @param aLegalStates A dictionary where each key and value indicates whether
    *     the pane in question (key) is legal to be displayed in this mode.  If
@@ -1904,6 +1992,9 @@ let mailTabType = {
    *     that the pane is illegal.  Keys are:
    *     - folder: The folder (tree) pane.
    *     - thread: The thread pane.
+   *     - accountCentral: While it's in a deck with the thread pane, this
+   *        is distinct from the thread pane because some other things depend
+   *        on whether it's actually the thread pane we are showing.
    *     - message: The message pane.  Required/assumed to be true for now.
    *     - glodaFacets: The gloda search facets pane.
    * @param aVisibleStates A dictionary where each value indicates whether the
@@ -1914,6 +2005,10 @@ let mailTabType = {
    */
   _setPaneStates: function mailTabType_setPaneStates(aLegalStates,
                                                      aVisibleStates) {
+    // The display deck hosts both the thread pane and account central.
+    let displayDeckLegal = aLegalStates.thread ||
+                           aLegalStates.accountCentral;
+
     let layout = pref.getIntPref("mail.pane_config.dynamic");
     if (layout == kWidePaneConfig)
     {
@@ -1923,7 +2018,7 @@ let mailTabType = {
       // Accordingly, if both the folder and thread panes are illegal, we
       //  want to collapse the #messengerBox and make sure the #messagepanebox
       //  fills up the screen.  (For example, when in "message" mode.)
-      let collapseMessengerBox = !aLegalStates.folder && !aLegalStates.thread;
+      let collapseMessengerBox = !aLegalStates.folder && !displayDeckLegal;
       document.getElementById("messengerBox").collapsed = collapseMessengerBox;
       if (collapseMessengerBox)
         document.getElementById("messagepanebox").flex = 1;
@@ -1937,22 +2032,26 @@ let mailTabType = {
     document.getElementById("folderPaneBox").collapsed =
       !aLegalStates.folder || !aVisibleStates.folder;
 
-    // -- thread pane
+    // -- display deck (thread pane / account central)
     // in a vertical view, the threadContentArea sits in the #threadPaneBox
     //  next to the message pane and its splitter.
     if (layout == kVerticalMailLayout)
       document.getElementById("threadContentArea").collapsed =
-        !aLegalStates.thread;
+        !displayDeckLegal;
     // whereas in the default view, the displayDeck is the one next to the
     //  message pane and its splitter
     else
       document.getElementById("displayDeck").collapsed =
-        !aLegalStates.thread;
+        !displayDeckLegal;
 
+    // -- thread pane
     // the threadpane-splitter collapses the message pane (arguably a misnomer),
     //  but it only needs to exist when the thread-pane is legal
     document.getElementById("threadpane-splitter").collapsed =
       !aLegalStates.thread;
+    if (aLegalStates.thread && aLegalStates.message)
+      document.getElementById("threadpane-splitter").setAttribute("state",
+        aVisibleStates.message ? "open" : "collapsed");
 
     // Some things do not make sense if the thread pane is not legal.
     // (This is likely an example of something that should be using the command
@@ -1969,10 +2068,21 @@ let mailTabType = {
         !aLegalStates.thread;
     } catch (ex) {}
 
+    // -- thread pane status bar helpers
+    GetUnreadCountElement().hidden = !aLegalStates.thread;
+    GetTotalCountElement().hidden = !aLegalStates.thread;
+
     // -- message pane
-    // the message pane can only be collapsed when the thread pane is legal
     document.getElementById("messagepanebox").collapsed =
-      aLegalStates.thread && !aVisibleStates.message;
+      !aLegalStates.message || !aVisibleStates.message;
+
+    // we are responsible for updating the keybinding; view_init takes care of
+    //  updating the menu item (on demand)
+    let messagePaneToggleKey = document.getElementById("key_toggleMessagePane");
+    if (aLegalStates.thread)
+      messagePaneToggleKey.removeAttribute("disabled");
+    else
+      messagePaneToggleKey.setAttribute("disabled", "true");
 
     // -- gloda facets
     document.getElementById("glodaSearchFacets").hidden =
@@ -2229,7 +2339,7 @@ function UpdateJunkButton()
   //  may not be visible
   let hdr = gFolderDisplay.selectedMessage;
   // But only the message display knows if we are dealing with a dummy.
-  if (gMessageDisplay.isDummy) // .eml file
+  if (!hdr || gMessageDisplay.isDummy) // .eml file
     return;
   let junkScore = hdr.getStringProperty("junkscore");
   let hideJunk = (junkScore != "") && (junkScore != "0");

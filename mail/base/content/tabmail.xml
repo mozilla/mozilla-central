@@ -178,6 +178,25 @@
     -     tab has its own tab panel.
     - * showTab(aTab): Called when aTab is being displayed and you should
     -     restore its state (if required).
+    - * persistTab(aTab): Called when we want to persist the tab because we are
+    -     saving the session state.  You should return an object suitable for
+    -     JSON serialization.  The object will be provided to your restoreTab
+    -     method when we attempt to restore the session.  If your code is
+    -     unable or unwilling to persist the tab (some of the time), you should
+    -     return null in that case.  If your code never wants to persist the tab
+    -     you should not implement this method.  You must implement restoreTab
+    -     if you implement this method.
+    - * restoreTab(aTabmail, aPersistedState): Called when we are restoring a
+    -     tab session and a tab with your mode was previously persisted via a
+    -     call to your persistTab implementation.  You are provided with a
+    -     reference to this tabmail instance and the (deserialized) state object
+    -     you returned from your persistTab implementation.  It is your
+    -     function's job to determine if you can restore the tab, and if so,
+    -     you should invoke aTabmail.openTab to actually cause your tab to be
+    -     opened.  This may seem odd, but it should help keep your code simple
+    -     while letting you do whatever you want.  Since openTab is synchronous
+    -     and returns the tabInfo structure built for the tab, you can perform
+    -     any additional work you need after the call to openTab.
     - * onTitleChanged(aTab): Called when someone calls tabmail.setTabTitle() to
     -     hint that the tab's title needs to be updated.  This function should
     -     update aTab.title if it can.
@@ -335,9 +354,9 @@
         <parameter name="aDefaultToCurrent"/>
         <body><![CDATA[
           let iTab, tab, tabNode;
-          if (!aTabIndexNodeOrInfo) {
+          if (aTabIndexNodeOrInfo == null) {
             if (!aDefaultToCurrent)
-              throw Exception("You need to specify a tab!");
+              throw Error("You need to specify a tab!");
             iTab = this.tabContainer.selectedIndex;
             return [iTab, this.tabInfo[iTab],
                     this.tabContainer.childNodes[iTab]];
@@ -423,6 +442,7 @@
           var t = document.createElementNS(
             "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
             "tab");
+          tab.tabNode = t;
           t.setAttribute("crop", "end");
           t.maxWidth = this.tabContainer.mTabMaxWidth;
           t.minWidth = this.tabContainer.mTabMinWidth;
@@ -489,6 +509,8 @@
           // Update the toolbar status - we don't need to do menus as they
           // do themselves when we open them.
           UpdateMailToolbar("tabmail");
+
+          return tab;
         ]]></body>
       </method>
       <method name="selectTabByMode">
@@ -601,6 +623,85 @@
           ]]>
         </body>
       </method>
+      <method name="persistTabs">
+        <body><![CDATA[
+          /**
+           * Persist the state of all tab modes implementing persistTab methods
+           *  to a JSON-serializable object representation and return it.  Call
+           *  restoreTabs with the result to restore the tab state.
+           * Calling this method should have no side effects; tabs will not be
+           *  closed, displays will not change, etc.  This means the method is
+           *  safe to use in an auto-save style so that if we crash we can
+           *  restore the (approximate) state at the time of the crash.
+           *
+           * @return {Object} The persisted tab states.
+           */
+          let state = {
+            // Explicitly specify a revision so we don't wish we had later.
+            rev: 0,
+            // If our currently selected tab gets persisted, we will update this
+            selectedIndex: null,
+          };
+          let tabs = state.tabs = [];
+
+          for each (let [iTab, tab] in Iterator(this.tabInfo)) {
+            let persistFunc = tab.mode.persistTab ||
+                              tab.mode.tabType.persistTab;
+            if (!persistFunc)
+              continue;
+            let tabState = persistFunc.call(tab.mode.tabType, tab);
+            // If there is a non-null tab-state, then persisting succeeded and
+            //  we should store it.  We store the tab's persisted state in its
+            //  own distinct object rather than mixing things up in a dictionary
+            //  to avoid bugs and because we may eventually let extensions store
+            //  per-tab information in the persisted state.
+            if (tabState != null) {
+              tabs.push({
+                mode: tab.mode.name,
+                state: tabState
+              });
+              // Mark this persisted tab as selected
+              if (iTab == this.tabContainer.selectedIndex)
+                state.selectedIndex = tabs.length - 1;
+            }
+          }
+
+          return state;
+        ]]></body>
+      </method>
+      <method name="restoreTabs">
+        <parameter name="aPersistedState"/>
+        <body><![CDATA[
+          /**
+           * Attempts to restore tabs persisted from a prior call to
+           *  |persistTabs|.  This is currently a synchronous operation, but in
+           *  the future this may kick off an asynchronous mechanism to restore
+           *  the tabs one-by-one.
+           */
+          let tabs = aPersistedState.tabs;
+          let indexToSelect = null;
+          for each (let [iTab, tabState] in Iterator(tabs)) {
+            // if we no longer know about the mode, we can't restore the tab
+            if (!(tabState.mode in this.tabModes))
+              continue;
+
+            let mode = this.tabModes[tabState.mode];
+            let restoreFunc = mode.restoreTab || mode.tabType.restoreTab;
+            if (!restoreFunc)
+              continue;
+
+            restoreFunc.call(mode.tabType, this, tabState.state);
+
+            // If this persisted tab was the selected one, then mark the newest
+            //  tab as the guy to select.
+            if (iTab == aPersistedState.selectedIndex)
+              indexToSelect = this.tabInfo.length - 1;
+          }
+          if (indexToSelect != null)
+            this.tabContainer.selectedIndex = indexToSelect;
+        ]]></body>
+      </method>
+
       <!-- getBrowserForSelectedTab is required as some toolkit functions
            require a getBrowser() function. -->
       <method name="getBrowserForSelectedTab">

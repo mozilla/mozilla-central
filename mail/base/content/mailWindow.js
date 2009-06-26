@@ -55,8 +55,6 @@ Components.utils.import("resource://app/modules/gloda/log4moz.js");
 
 var gContextMenu;
 var gMailWindowLog = Log4Moz.getConfiguredLogger("mailWindow", Log4Moz.Level.Debug, Log4Moz.Level.Debug, Log4Moz.Level.Debug);
-var gAccountCentralLoaded = true;
-
 
 /**
  * Indicate whether we are running on Mac OS X.  Our code is currently littered
@@ -507,26 +505,6 @@ function loadStartPage()
   }
 }
 
-function ShowingThreadPane()
-{
-  var threadPaneSplitter = document.getElementById("threadpane-splitter");
-  threadPaneSplitter.collapsed = false;
-  GetMessagePane().collapsed = (threadPaneSplitter.getAttribute("state") == "collapsed");
-  // XXX We need to force the tree to refresh its new height
-  // so that it will correctly scroll to the newest message
-  GetThreadTree().boxObject.height;
-  document.getElementById("key_toggleMessagePane").removeAttribute("disabled");
-}
-
-function HidingThreadPane()
-{
-  GetUnreadCountElement().hidden = true;
-  GetTotalCountElement().hidden = true;
-  GetMessagePane().collapsed = true;
-  document.getElementById("threadpane-splitter").collapsed = true;
-  document.getElementById("key_toggleMessagePane").setAttribute("disabled", "true");
-}
-
 // The zoom manager, view source and possibly some other functions still rely
 // on the getBrowser function.
 function getBrowser()
@@ -534,36 +512,6 @@ function getBrowser()
   let tabmail = document.getElementById('tabmail');
   return tabmail ? tabmail.getBrowserForSelectedTab() :
                    document.getElementById("messagepane");
-}
-
-// When the ThreadPane is hidden via the displayDeck, we should collapse the
-// elements that are only meaningful to the thread pane. When AccountCentral is
-// shown via the displayDeck, we need to switch the displayDeck to show the
-// accountCentralBox, and load the iframe in the AccountCentral box with
-// corresponding page.
-var gCurrentDisplayDeckId = "";
-function ObserveDisplayDeckChange(event)
-{
-  var selectedPanel = document.getElementById("displayDeck").selectedPanel;
-  var nowSelected = selectedPanel ? selectedPanel.id : null;
-  // onselect fires for every mouse click inside the deck, so ObserveDisplayDeckChange is getting called every time we click
-  // on a message in the thread pane. Only show / Hide elements if the selected deck is actually changing.
-  if (nowSelected != gCurrentDisplayDeckId)
-  {
-    if (nowSelected == "threadPaneBox")
-      ShowingThreadPane();
-    else
-      HidingThreadPane();
-
-    if (nowSelected == "accountCentralBox") {
-      if (!document.getElementById("folderPaneBox").collapsed)
-        document.getElementById("folderTree").focus();
-
-      gAccountCentralLoaded = true;
-    } else
-      gAccountCentralLoaded = false;
-    gCurrentDisplayDeckId = nowSelected;
-  }
 }
 
 // Given the server, open the twisty and the set the selection
