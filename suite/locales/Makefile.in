@@ -205,8 +205,12 @@ libs-%:
 	$(NSINSTALL) -D $(DIST)/install
 	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
+ifneq (,$(filter irc,$(MOZ_EXTENSIONS)))
 	@$(MAKE) -C ../../mozilla/extensions/irc/locales libs-$* BOTH_MANIFESTS=1
+endif
+ifneq (,$(filter venkman,$(MOZ_EXTENSIONS)))
 	@$(MAKE) -C ../../mozilla/extensions/venkman/locales libs-$* BOTH_MANIFESTS=1
+endif
 	@$(MAKE) -C ../../mozilla/extensions/reporter/locales libs AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
@@ -240,8 +244,12 @@ repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 # those are just for language packs
 	cp -r $(DIST)/xpi-stage/locale-$(AB_CD) l10n-stage/localized
 	$(RM) l10n-stage/localized/install.rdf l10n-stage/localized/chrome.manifest
+ifneq (,$(filter irc,$(MOZ_EXTENSIONS)))
 	$(MAKE) -C ../../mozilla/extensions/irc/locales repackage-win32-installer-$(AB_CD) STAGEDIST=$(shell pwd)/l10n-stage
+endif
+ifneq (,$(filter venkman,$(MOZ_EXTENSIONS)))
 	$(MAKE) -C ../../mozilla/extensions/venkman/locales repackage-win32-installer-$(AB_CD) STAGEDIST=$(shell pwd)/l10n-stage
+endif
 	$(MAKE) -C ../installer/windows CONFIG_DIR=l10ngen l10ngen/setup.exe l10ngen/7zSD.sfx
 	cp ../installer/windows/l10ngen/setup.exe l10n-stage
 	$(NSINSTALL) -D l10n-stage/localized/uninstall
@@ -313,8 +321,12 @@ endif
 # those are just for language packs
 	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
 	  tar --exclude=install.rdf --exclude=chrome.manifest $(TAR_CREATE_FLAGS) - * | ( cd $(STAGEDIST) && tar -xf - )
+ifneq (,$(filter irc,$(MOZ_EXTENSIONS)))
 	$(MAKE) -C ../../mozilla/extensions/irc/locales repackage-zip-$(AB_CD) STAGEDIST=$(STAGEDIST)
+endif
+ifneq (,$(filter venkman,$(MOZ_EXTENSIONS)))
 	$(MAKE) -C ../../mozilla/extensions/venkman/locales repackage-zip-$(AB_CD) STAGEDIST=$(STAGEDIST)
+endif
 ifneq (en,$(AB))
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj
