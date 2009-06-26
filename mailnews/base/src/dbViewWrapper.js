@@ -79,6 +79,12 @@ var FolderNotificationHelper = {
   _interestedWrappers: {},
 
   /**
+   * Array of wrappers that are interested in all folders, used for
+   * search results wrappers.
+   */
+   _curiousWrappers: [],
+   
+  /**
    * Initialize our listeners.  We currently don't bother cleaning these up
    *  because we are a singleton and if anyone imports us, they probably want
    *  us for as long as their application so shall live.
@@ -152,6 +158,16 @@ var FolderNotificationHelper = {
   },
 
   /**
+   * Request notification of every little thing every folder does.
+   *
+   * @param aViewWrapper - the viewWrapper interested in every notification.
+   *                       This will be a search results view of some sort.
+   */
+  noteCuriosity: function FolderNotificationHelper_noteCuriosity(aViewWrapper) {
+    this._curiousWrappers.push(aViewWrapper);
+  },
+  
+  /**
    * Removal helper for use by removeNotifications.
    *
    * @param aTable The table mapping URIs to list of view wrappers.
@@ -174,6 +190,10 @@ var FolderNotificationHelper = {
    */
   removeNotifications: function FolderNotificationHelper_removeNotifications(
       aFolders, aViewWrapper) {
+    if (!aFolders) {
+      this._curiousWrappers.splice(this._curiousWrappers.indexOf(aViewWrapper), 1);
+      return;
+    }
     for each (let [, folder] in Iterator(aFolders)) {
       this._removeWrapperFromListener(
         this._interestedWrappers, folder, aViewWrapper);
@@ -196,7 +216,7 @@ var FolderNotificationHelper = {
               Iterator(this._interestedWrappers)) {
       return true;
     }
-    return false;
+    return this._curiousWrappers.length != 0;
   },
 
   /* ***** Notifications ***** */
@@ -208,6 +228,8 @@ var FolderNotificationHelper = {
       for each (let [, wrapper] in Iterator(wrappers.concat())) {
         wrapper[aHandlerName](aFolder);
       }
+      for each (let wrapper in this._curiousWrappers)
+        wrapper[aHandlerName](aFolder);
     }
   },
 
@@ -698,9 +720,9 @@ DBViewWrapper.prototype = {
       this.displayedFolder = null;
     }
 
+    FolderNotificationHelper.removeNotifications(this._underlyingFolders,
+                                                 this);
     if (this._underlyingFolders) {
-      FolderNotificationHelper.removeNotifications(this._underlyingFolders,
-                                                   this);
       // (potentially) zero out the underlying msgDatabase references
       for each (let [, folder] in Iterator(this._underlyingFolders))
         this._releaseFolderDatabase(folder);
@@ -870,6 +892,7 @@ DBViewWrapper.prototype = {
     this._sort = this._syntheticView.defaultSort.concat();
 
     this._applyViewChanges();
+    FolderNotificationHelper.noteCuriosity(this);
   },
 
   /**
@@ -899,6 +922,7 @@ DBViewWrapper.prototype = {
     //  order by default.
     this._sort = [[nsMsgViewSortType.byNone, nsMsgViewSortOrder.ascending]];
 
+    FolderNotificationHelper.noteCuriosity(this);
     this._applyViewChanges();
   },
 

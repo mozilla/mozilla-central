@@ -191,6 +191,9 @@ void nsMsgSearchDBView::InternalClose()
 
 NS_IMETHODIMP nsMsgSearchDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
 {
+  if (!IsValidIndex(aRow))
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+
   const PRUnichar* colID;
   aCol->GetIdConst(&colID);
   // the only thing we contribute is location; dummy rows have no location, so
@@ -283,7 +286,8 @@ nsMsgSearchDBView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey,
             msgFlags |= MSG_VIEW_FLAG_ISTHREAD | nsMsgMessageFlags::Elided | 
                         MSG_VIEW_FLAG_HASCHILDREN;
           InsertMsgHdrAt(deletedIndex, rootHdr, msgKey, msgFlags, 0);
-          NoteChange(deletedIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
+          if (!m_deletingRows)
+            NoteChange(deletedIndex, 1, nsMsgViewNotificationCode::insertOrDelete);
         }
         else if (viewThread->MsgCount() > 1)
         {
