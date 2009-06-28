@@ -1794,7 +1794,8 @@ FolderDisplayWidget.prototype = {
       treeSelection.select(aViewIndex);
     }
 
-    this.ensureRowIsVisible(aViewIndex);
+    if (this._active)
+      this.ensureRowIsVisible(aViewIndex);
   },
 
   /**

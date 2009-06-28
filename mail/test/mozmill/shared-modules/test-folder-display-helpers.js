@@ -408,6 +408,17 @@ function close_message_window(aController) {
 }
 
 /**
+ * Close a standalone message window.
+ *
+ * @param aController The message window controller
+ */
+function close_message_window(aController) {
+  windowHelper.plan_for_window_close(aController);
+  aController.window.close();
+  windowHelper.wait_for_window_close(aController);
+}
+
+/**
  * Clear the selection.  I'm not sure how we're pretending we did that.
  */
 function select_none() {
@@ -1120,6 +1131,26 @@ function make_display_threaded() {
 function make_display_grouped() {
   wait_for_message_display_completion();
   mc.folderDisplay.view.showGroupedBySort = true;
+  // drain event queue
+  mc.sleep(0);
+}
+
+/**
+ * Collapse all threads in the current view.
+ */
+function collapse_all_threads() {
+  wait_for_message_display_completion();
+  mc.folderDisplay.doCommand(Ci.nsMsgViewCommandType.collapseAll);
+  // drain event queue
+  mc.sleep(0);
+}
+
+/**
+ * Expand all threads in the current view.
+ */
+function expand_all_threads() {
+  wait_for_message_display_completion();
+  mc.folderDisplay.doCommand(Ci.nsMsgViewCommandType.expandAll);
   // drain event queue
   mc.sleep(0);
 }
