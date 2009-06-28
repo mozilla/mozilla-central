@@ -64,7 +64,9 @@ function StandaloneFolderDisplayWidget(aMessageDisplayWidget) {
   FolderDisplayWidget.call(this, null, aMessageDisplayWidget);
   // do not set the actual treeBox variable or our superclass might try and do
   //  weird rooting things we don't want to have to think about right now.
-  this._magicTreeSelection = new JSTreeSelection(this.treeBox);
+  //  Oh, and since we don't have a real tree selection, the fake tree
+  //  selection is going to be our real one. :)
+  this._magicTreeSelection = this._fakeTreeSelection;
 }
 StandaloneFolderDisplayWidget.prototype = {
   __proto__: FolderDisplayWidget.prototype,
@@ -116,6 +118,24 @@ StandaloneFolderDisplayWidget.prototype = {
     this.__proto__.__proto__.onCreatedView.call(this);
   },
 
+  /**
+   * Override this to make sure that we don't try to do stuff with
+   * quick-search.
+   *
+   * XXX This should ideally be the default behavior, with a 3pane subclass
+   * implementing the quick-search stuff.
+   */
+  onDisplayingFolder:
+      function StandaloneFolderDisplayWidget_onDisplayingFolder() {
+    let msgDatabase = this.view.displayedFolder.msgDatabase;
+    if (msgDatabase) {
+      msgDatabase.resetHdrCacheSize(this.PERF_HEADER_CACHE_SIZE);
+    }
+
+    if (this.active)
+      this.makeActive();
+  },
+
   _superSelectedMessageUrisGetter:
     FolderDisplayWidget.prototype.__lookupGetter__('selectedMessageUris'),
   /**
@@ -161,6 +181,16 @@ function StandaloneMessageDisplayWidget() {
    *  displaying.  If we are not displaying a dummy message, this is null.
    */
   this.displayedUri = null;
+  /**
+   * This is supposed to be true when we know we're going to load another message
+   * shortly, so clearDisplay et al shouldn't close the window. It is the
+   * responsibility of calling code to set this to true when needed. This is
+   * automatically set to false once a message has been loaded.
+   *
+   * This is true initially, because we know we're going to load another message
+   * shortly.
+   */
+  this.aboutToLoadMessage = true;
 }
 StandaloneMessageDisplayWidget.prototype = {
   __proto__: MessageDisplayWidget.prototype,
@@ -172,6 +202,18 @@ StandaloneMessageDisplayWidget.prototype = {
     return true;
   },
   set visible(aIgnored) {
+  },
+  /// We're always active
+  _active: true,
+  active: true,
+  /**
+   * Since we're always active, there's no reason for us to do anything with
+   * makeActive or makeInactive.
+   */
+  makeActive: function StandaloneMessageDisplayWidget_makeActive() {
+  },
+
+  makeInactive: function StandaloneMessageDisplayWidget_makeInactive() {
   },
 
   /**
@@ -191,7 +233,10 @@ StandaloneMessageDisplayWidget.prototype = {
   clearDisplay: function () {
     this.messageLoading = false;
     this.messageLoaded = false;
-    window.close();
+    // XXX we should figure out why we're calling window.close() both from here
+    // and from onSelectedMessagesChanged.
+    if (!this.aboutToLoadMessage)
+      window.close();
   },
   _updateActiveMessagePane: function() {
     // no-op.  the message pane is always visible.
@@ -210,10 +255,15 @@ StandaloneMessageDisplayWidget.prototype = {
     this.isDummy = aMsgHdr.folder == null;
     if (!this.isDummy)
       this.displayedUri = null;
+
+    // We've loaded a message, so this should be set to false
+    this.aboutToLoadMessage = false;
   },
 
   onSelectedMessagesChanged: function () {
-    if (this.folderDisplay.treeSelection.count == 0) {
+    // XXX we should figure out why we're calling window.close() both from here
+    // and from clearDisplay.
+    if (!this.aboutToLoadMessage && this.folderDisplay.treeSelection.count == 0) {
       window.close();
       return true;
     }
@@ -393,6 +443,33 @@ function actuallyLoadMessage() {
 
   // set focus to the message pane
   window.content.focus();
+}
+
+/**
+ * Load the given message into this window, and bring it to the front. This is
+ * supposed to be called whenever a message is supposed to be displayed in this
+ * window.
+ *
+ * @param aMsgHdr the message to display
+ * @param aViewWrapperToClone [optional] a DB view wrapper to clone for the
+ *                            message window
+ */
+function displayMessage(aMsgHdr, aViewWrapperToClone)
+{
+  // We're about to load another message, so make sure we don't close this
+  // window
+  gMessageDisplay.aboutToLoadMessage = true;
+
+  if (aViewWrapperToClone)
+    gFolderDisplay.cloneView(aViewWrapperToClone);
+  else
+    gFolderDisplay.show(aMsgHdr.folder);
+
+  // show the message
+  gFolderDisplay.selectMessage(aMsgHdr);
+
+  // bring this window to the front
+  window.focus();
 }
 
 function ShowMenus()

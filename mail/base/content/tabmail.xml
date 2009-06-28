@@ -73,9 +73,12 @@
     - 3) Code that wants to monitor to know when the active tab changes.
     -
     - Consumer code should use the following methods:
-    - * openTab(aTabModeName, arguments...): Open a tab of the given "mode",
-    -   passing the provided arguments.  The tab type author should tell you
-    -   the modes they implement and the required/optional arguments.
+    - * openTab(aTabModeName, aArgs): Open a tab of the given "mode",
+    -   passing the provided arguments as an object.  The tab type author
+    -   should tell you the modes they implement and the required/optional
+    -   arguments.
+    -   One of the arguments you can pass is "background": if this is true,
+    -   the tab will be loaded in the background.
     - * closeTab(aOptionalTabIndexInfoOrTabNode): If no argument is provided,
     -   the current tab is closed.  If an argument is provided, it can be
     -   a tab index, a tab info object, or the tabmail-tab bound element
@@ -153,14 +156,15 @@
     -     If this limit is reached, any additional calls to openTab for this
     -     mode will simply result in the first existing tab of this mode being
     -     displayed.
-    - * shouldSwitchTo(arguments...): Optional function. Called when
-    -     openTab is called on the top-level tabmail binding. It is used to
-    -     decide if the openTab function should switch to an existing tab or
-    -     actually open a new tab.
+    - * shouldSwitchTo(aArgs): Optional function. Called when openTab is called
+    -     on the top-level tabmail binding. It is used to decide if the openTab
+    -     function should switch to an existing tab or actually open a new tab.
     -     If the openTab function should switch to an existing tab, return the
     -     index of that tab; otherwise return -1.
-    - * openTab(aTab, arguments...): Called when a tab of the given mode is
-    -     in the process of being opened.  aTab will have its "mode" attribute
+    -     aArgs is a set of named parameters (the ones that are later passed to
+    -     openTab).
+    - * openTab(aTab, aArgs): Called when a tab of the given mode is in the
+    -     process of being opened.  aTab will have its "mode" attribute
     -     set to the mode definition of the tab mode being opened.  You should
     -     set the "title" attribute on it, and may set any other attributes
     -     you wish for your own use in subsequent functions.  Note that 'this'
@@ -168,7 +172,7 @@
     -     might expect.  This allows you to place common logic code on the
     -     tab type for use by multiple modes and to defer to it.  Any arguments
     -     provided to the caller of tabmail.openTab will be passed to your
-    -     function as well.
+    -     function as well, including background.
     - * closeTab(aTab): Called when aTab is being closed.  The tab need not be
     -     currently displayed.  You are responsible for properly cleaning up
     -     any state you preserved in aTab.
@@ -409,6 +413,7 @@
       </method>
       <method name="openTab">
         <parameter name="aTabModeName"/>
+        <parameter name="aArgs"/>
         <body>
             <![CDATA[
           let tabMode = this.tabModes[aTabModeName];
@@ -419,22 +424,27 @@
             return;
           }
 
+          // Do this so that we don't generate strict warnings
+          let background = ("background" in aArgs) && aArgs.background;
+
           // If the mode wants us to, we should switch to an existing tab
-          // rather than open a new one.
+          // rather than open a new one. We shouldn't switch to the tab if
+          // we're opening it in the background, though.
           let shouldSwitchToFunc = tabMode.shouldSwitchTo ||
                                    tabMode.tabType.shouldSwitchTo;
 
           if (shouldSwitchToFunc) {
-            let args = Array.prototype.slice.call(arguments, 1);
-            let tabIndex = shouldSwitchToFunc.apply(tabMode.tabType, args);
+            let tabIndex = shouldSwitchToFunc.apply(tabMode.tabType, [aArgs]);
             if (tabIndex >= 0) {
-              this.selectTabByIndex(null, tabIndex);
+              if (!background)
+                this.selectTabByIndex(null, tabIndex);
               return;
             }
           }
 
-          // we need to save the state before it gets corrupted
-          this.saveCurrentTabState();
+          if (!background)
+            // we need to save the state before it gets corrupted
+            this.saveCurrentTabState();
 
           let tab = {mode: tabMode, busy: false, canClose: true};
           tabMode.tabs.push(tab);
@@ -459,12 +469,14 @@
           let oldTab = this._mostRecentTabInfo = this.currentTabInfo;
 
           // the order of the following statements is important
-          this.currentTabInfo = tab;
           this.tabInfo[this.tabContainer.childNodes.length - 1] = tab;
-          // this has a side effect of calling updateCurrentTab, but our
-          //  setting currentTabInfo above will cause it to take no action.
-          this.tabContainer.selectedIndex =
-            this.tabContainer.childNodes.length - 1;
+          if (!background) {
+            this.currentTabInfo = tab;
+            // this has a side effect of calling updateCurrentTab, but our
+            //  setting currentTabInfo above will cause it to take no action.
+            this.tabContainer.selectedIndex =
+              this.tabContainer.childNodes.length - 1;
+          }
 
           // make sure we are on the right panel
           if (tab.mode.tabType.perTabPanel) {
@@ -478,16 +490,16 @@
               tab.panel = tab.mode.tabType.perTabPanel(tab);
             }
             this.panelContainer.appendChild(tab.panel);
-            this.panelContainer.selectedPanel = tab.panel;
+            if (!background)
+              this.panelContainer.selectedPanel = tab.panel;
           }
-          else
+          else if (!background)
             this.panelContainer.selectedPanel = tab.mode.tabType.panel;
-            
+
           let tabOpenFunc = tab.mode.openTab || tab.mode.tabType.openTab;
-          let args = [tab].concat(Array.prototype.slice.call(arguments, 1));
-          tabOpenFunc.apply(tab.mode.tabType, args);
-          
-          if (this.tabMonitors.length) {
+          tabOpenFunc.apply(tab.mode.tabType, [tab, aArgs]);
+
+          if (!background && this.tabMonitors.length) {
             for each (let [i, tabMonitor] in Iterator(this.tabMonitors))
               tabMonitor.onTabSwitched(tab, oldTab);
           }
@@ -497,12 +509,14 @@
           this._mostRecentTabInfo = null;
           
           t.setAttribute("label", tab.title);
-          
-          let docTitle = tab.title;
-          if (!gPlatformOSX)
-            docTitle += " - " + gBrandBundle.getString("brandFullName");
-          document.title = docTitle;
-          
+
+          if (!background) {
+            let docTitle = tab.title;
+            if (!gPlatformOSX)
+              docTitle += " - " + gBrandBundle.getString("brandFullName");
+            document.title = docTitle;
+          }
+
           // for styling purposes, apply the type to the tab...
           t.setAttribute('type', tab.mode.type);
 

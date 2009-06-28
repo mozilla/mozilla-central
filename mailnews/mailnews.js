@@ -392,7 +392,10 @@ pref("mailnews.customDBHeaders", "");
 // close standalone message window when deleting the displayed message
 pref("mail.close_message_window.on_delete", false);
 
+#ifdef MOZ_SUITE
 pref("mailnews.reuse_message_window", true);
+#endif
+
 pref("mailnews.reuse_thread_window2", false);
 pref("mailnews.open_window_warning", 10); // warn user if they attempt to open more than this many messages at once
 

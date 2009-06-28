@@ -47,6 +47,8 @@
 //The eventual goal is for this file to go away and its contents to be brought into
 //mailWindowOverlay.js.  This is currently being done.
 
+Components.utils.import("resource://app/modules/MailUtils.js");
+
 //NOTE: gMessengerBundle must be defined and set or this Overlay won't work
 
 function ConvertDOMListToResourceArray(nodeList)
@@ -321,21 +323,7 @@ function MsgSetFolderCharset()
 // on demand and hence needs to prior check of existence.
 function GetMsgFolderFromUri(uri, checkFolderAttributes)
 {
-    //dump("GetMsgFolderFromUri of " + uri + "\n");
-    var msgfolder = null;
-    try {
-        var resource = GetResourceFromUri(uri);
-        msgfolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        if (checkFolderAttributes) {
-            if (!(msgfolder && (msgfolder.parent || msgfolder.isServer))) {
-                msgfolder = null;
-            }
-        }
-    }
-    catch (ex) {
-        //dump("failed to get the folder resource\n");
-    }
-    return msgfolder;
+  return MailUtils.getFolderForURI(uri, checkFolderAttributes);
 }
 
 function GetResourceFromUri(uri)
@@ -346,4 +334,3 @@ function GetResourceFromUri(uri)
 
     return resource;
 }  
-

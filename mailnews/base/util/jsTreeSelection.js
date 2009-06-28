@@ -188,7 +188,12 @@ JSTreeSelection.prototype = {
 
   toggleSelect: function JSTreeSelection_toggleSelect(aIndex) {
     this.currentIndex = aIndex;
-    for each (let [iTupe, [low, high]] in Iterator(this._ranges)) {
+    // If nothing's selected, select aIndex
+    if (this._count == 0) {
+      this._count = 1;
+      this._ranges = [[aIndex, aIndex]];
+    }
+    else for each (let [iTupe, [low, high]] in Iterator(this._ranges)) {
       // below the range? add it to the existing range or create a new one
       if (aIndex < low) {
         this._count++;
@@ -617,11 +622,14 @@ JSTreeSelection.prototype = {
     let view;
     if (this._treeBoxObject && this._treeBoxObject.view)
       view = this._treeBoxObject.view;
-    else 
+    else
       view = this._view;
 
-    view = view.QueryInterface(Ci.nsITreeView);
-    view.selectionChanged();
+    // We might not have a view if we're in the middle of setting up things
+    if (view) {
+      view = view.QueryInterface(Ci.nsITreeView);
+      view.selectionChanged();
+    }
   },
 
   get currentIndex JSTreeSelection_get_currentIndex() {
@@ -651,4 +659,29 @@ JSTreeSelection.prototype = {
 
   QueryInterface: XPCOMUtils.generateQI(
     [Ci.nsITreeSelection]),
+
+  /*
+   * Functions after this aren't part of the nsITreeSelection interface.
+   */
+
+  /**
+   * Duplicate this selection on another nsITreeSelection. This is useful
+   * when you would like to discard this selection for a real tree selection.
+   * We assume that both selections are for the same tree.
+   *
+   * @note We don't transfer the correct shiftSelectPivot over.
+   * @note This will fire a selectionChanged event on the tree view.
+   *
+   * @param aSelection an nsITreeSelection to duplicate this selection onto
+   */
+  duplicateSelection: function JSTreeSelection_duplicateSelection(aSelection) {
+    aSelection.selectEventsSuppressed = true;
+    aSelection.clearSelection();
+    for each (let [iTupe, [low, high]] in Iterator(this._ranges))
+      aSelection.rangedSelect(low, high, iTupe > 0);
+
+    aSelection.currentIndex = this.currentIndex;
+    // This will fire a selectionChanged event
+    aSelection.selectEventsSuppressed = false;
+  },
 };

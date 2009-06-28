@@ -83,6 +83,7 @@ bin\components\mailprofilemigration.xpt
 bin\components\nsActivity.js
 bin\components\nsActivityManager.js
 bin\components\nsActivityManagerUI.js
+bin\components\nsMailNewsCommandLineHandler.js
 bin\components\shellservice.xpt
 bin\components\xpcom_base.xpt
 bin\components\xpcom_system.xpt

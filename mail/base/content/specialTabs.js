@@ -76,7 +76,7 @@ var specialTabs = {
         maxTabs: 10
       }
     },
-    shouldSwitchTo: function onSwitchTo(aContentPage, aTitle) {
+    shouldSwitchTo: function onSwitchTo({contentPage: aContentPage}) {
       let tabmail = document.getElementById("tabmail");
       let tabInfo = tabmail.tabInfo;
 
@@ -100,7 +100,7 @@ var specialTabs = {
       }
       return -1;
     },
-    openTab: function onTabOpened(aTab, aContentPage) {
+    openTab: function onTabOpened(aTab, {contentPage: aContentPage}) {
       // You can't dynamically change an iframe from a non-content to a content
       // type, therefore we dynamically create the element instead.
       let iframe = document.createElement("browser");

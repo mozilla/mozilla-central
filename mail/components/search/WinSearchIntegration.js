@@ -160,6 +160,12 @@ let SearchIntegration =
     return aFolder.filePath;
   },
 
+  /// Use the search path as is
+  _getFolderForSearchPath: function winsearch_get_folder_for_search_path(aDir)
+  {
+    return MailUtils.getFolderForFileInProfile(aDir);
+  },
+
   _init: function winsearch_init()
   {
     this._initLogging();

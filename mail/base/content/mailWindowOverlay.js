@@ -66,6 +66,9 @@ const kMsgNotificationPhishingBar = 1;
 const kMsgNotificationJunkBar = 2;
 const kMsgNotificationRemoteImages = 3;
 
+Components.utils.import("resource://app/modules/MailUtils.js");
+Components.utils.import("resource://app/modules/MailConsts.js");
+
 var gMessengerBundle;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                             .getService(Components.interfaces.nsIPrefService)
@@ -1699,10 +1702,7 @@ let mailTabType = {
        * @param aFolder The nsIMsgFolder to display.
        * @param aMsgHdr Optional message header to display.
        */
-      openTab: function(aTab, aFolder, aMsgHdr, aOptions) {
-        if (aOptions === undefined)
-          aOptions = {};
-
+      openTab: function(aTab, aArgs) {
         // persistence and restoreTab wants to know if we are the magic first tab
         aTab.firstTab = false;
 
@@ -1718,8 +1718,8 @@ let mailTabType = {
         // - figure out whether to show the message pane
         let messagePaneShouldBeVisible;
         // explicitly told to us?
-        if ("messagePaneVisible" in aOptions)
-          messagePaneShouldBeVisible = aOptions.messagePaneVisible;
+        if ("messagePaneVisible" in aArgs)
+          messagePaneShouldBeVisible = aArgs.messagePaneVisible;
         // inherit from the previous tab (if we've got one)
         else if (modelTab)
           messagePaneShouldBeVisible = modelTab.messageDisplay.visible;
@@ -1730,21 +1730,30 @@ let mailTabType = {
         this.openTab(aTab, false,
                      new MessagePaneDisplayWidget(messagePaneShouldBeVisible));
 
-        // Clear selection, because context clicking on a folder and opening in a
-        // new tab needs to have SelectFolder think the selection has changed.
-        // We also need to clear these globals to subvert the code that prevents
-        // folder loads when things haven't changed.
-        var folderTree = document.getElementById("folderTree");
-        folderTree.view.selection.clearSelection();
-        folderTree.view.selection.currentIndex = -1;
+        let background = ("background" in aArgs) && aArgs.background;
+        let msgHdr = ("msgHdr" in aArgs) && aArgs.msgHdr;
 
-        aTab.folderDisplay.makeActive();
+        if (!background) {
+          // Clear selection, because context clicking on a folder and opening in a
+          // new tab needs to have SelectFolder think the selection has changed.
+          // We also need to clear these globals to subvert the code that prevents
+          // folder loads when things haven't changed.
+          let folderTree = document.getElementById("folderTree");
+          folderTree.view.selection.clearSelection();
+          folderTree.view.selection.currentIndex = -1;
 
-        // selecting the folder effectively calls
-        //  aTab.folderDisplay.show(aFolder)
-        gFolderTreeView.selectFolder(aFolder);
-        if(aMsgHdr)
-          aTab.folderDisplay.selectMessage(aMsgHdr);
+          aTab.folderDisplay.makeActive();
+          // This will call aTab.folderDisplay.show(aArgs.folder), which takes
+          // care of the tab title and other stuff
+          gFolderTreeView.selectFolder(aArgs.folder);
+          if (msgHdr)
+            aTab.folderDisplay.selectMessage(msgHdr);
+        }
+        else {
+          // Since we can't call gFolderTreeView.selectFolder, we need to make the folder
+          // display believe it's showing this folder
+          aTab.folderDisplay.show(aArgs.folder);
+        }
 
         aTab.mode.onTitleChanged.call(this, aTab, aTab.tabNode);
       },
@@ -1781,7 +1790,9 @@ let mailTabType = {
             gFolderTreeView.selectFolder(folder);
           }
           else {
-            aTabmail.openTab("folder", folder, null, aPersistedState);
+            aTabmail.openTab("folder", {folder: folder,
+                messagePaneVisible: aPersistedState.messagePaneVisible,
+                background: true});
           }
         }
       },
@@ -1819,24 +1830,36 @@ let mailTabType = {
         thread: false,
         message: true
       },
-      openTab: function(aTab, aMsgHdr, aViewWrapperToClone) {
-        aTab.mode.onTitleChanged.call(this, aTab, null, aMsgHdr);
-
+      openTab: function(aTab, aArgs) {
         this.openTab(aTab, false, new MessageTabDisplayWidget());
 
-        if (aViewWrapperToClone)
-          aTab.folderDisplay.cloneView(aViewWrapperToClone);
-        else
-          aTab.folderDisplay.show(aMsgHdr.folder);
+        let viewWrapperToClone = ("viewWrapperToClone" in aArgs) &&
+                                 aArgs.viewWrapperToClone;
+        let background = ("background" in aArgs) && aArgs.background;
 
-        aTab.folderDisplay.selectMessage(aMsgHdr);
+        if (viewWrapperToClone)
+          aTab.folderDisplay.cloneView(viewWrapperToClone);
+        else
+          aTab.folderDisplay.show(aArgs.msgHdr.folder);
+
+        // folderDisplay.show is going to try to set the title itself, but we
+        // wouldn't have selected a message at that point, so set the title
+        // here
+        aTab.mode.onTitleChanged.call(this, aTab, null, aArgs.msgHdr);
+
+        aTab.folderDisplay.selectMessage(aArgs.msgHdr);
 
         // we only want to make it active after setting up the view and the message
         //  to avoid generating bogus summarization events.
-        aTab.folderDisplay.makeActive();
+        if (!background)
+          aTab.folderDisplay.makeActive();
+        else
+          // We don't want to null out the real tree box view, as that
+          // corresponds to the _current_ tab, not the new one
+          aTab.folderDisplay.hookUpFakeTreeBox(false);
       },
       persistTab: function(aTab) {
-        let msgHdr = aTab.messageDisplay.displayedMessage;
+        let msgHdr = aTab.folderDisplay.selectedMessage;
         return {
           messageURI: msgHdr.folder.getUriForMsg(msgHdr)
         };
@@ -1845,7 +1868,7 @@ let mailTabType = {
         let msgHdr = messenger.msgHdrFromURI(aPersistedState.messageURI);
         // if the message no longer exists, we can't restore the tab
         if (msgHdr)
-          aTabmail.openTab("message", msgHdr);
+          aTabmail.openTab("message", {msgHdr: msgHdr, background: true});
       },
       onTitleChanged: function(aTab, aTabNode, aMsgHdr) {
         // Try and figure out the selected message if one was not provided.
@@ -1898,19 +1921,21 @@ let mailTabType = {
        *     - from:
        *     - body:
        * @param location Either a GlodaFolder or the string "everywhere".
+       * 
+       * XXX This needs to handle opening in the background
        */
-      openTab: function(aTab, searchString, facetString, location) {
+      openTab: function(aTab, aArgs) {
         // make sure the search string bundle is loaded
         getDocumentElements();
         aTab.title = gSearchBundle.getFormattedString("glodaSearchTabTitle",
-                                                      [searchString]);
-        aTab.glodaSearchInputValue = searchString;
-        aTab.searchString = searchString;
-        aTab.facetString = facetString;
+                                                      [aArgs.searchString]);
+        aTab.glodaSearchInputValue = aArgs.searchString;
+        aTab.searchString = aArgs.searchString;
+        aTab.facetString = aArgs.facetString;
 
-        aTab.glodaSynView = new GlodaSyntheticSearchView(searchString,
-                                                         facetString,
-                                                         location);
+        aTab.glodaSynView = new GlodaSyntheticSearchView(aArgs.searchString,
+                                                         aArgs.facetString,
+                                                         aArgs.location);
 
         this.openTab(aTab, false, new MessagePaneDisplayWidget());
         aTab.folderDisplay.show(aTab.glodaSynView);
@@ -1949,10 +1974,12 @@ let mailTabType = {
     else {
       // Each tab gets its own messenger instance; this provides each tab with
       // its own undo/redo stack and back/forward navigation history.
-      messenger = Components.classes["@mozilla.org/messenger;1"]
-                            .createInstance(Components.interfaces.nsIMessenger);
-      messenger.setWindow(window, msgWindow);
-      aTab.folderDisplay.messenger = messenger;
+      // If this is a foreground tab, folderDisplay.makeActive() is going to
+      // set it as the global messenger, so there's no need to do it here
+      let tabMessenger = Components.classes["@mozilla.org/messenger;1"]
+                                   .createInstance(Components.interfaces.nsIMessenger);
+      tabMessenger.setWindow(window, msgWindow);
+      aTab.folderDisplay.messenger = tabMessenger;
     }
   },
 
@@ -2190,28 +2217,20 @@ function MsgOpenNewWindowForFolder(folderURI, msgKeyToSelect)
 
 /**
  * UI-triggered command to open the currently selected folder(s) in new tabs.
+ * @param aBackground [optional] if true, then the folder tab is opened in the
+ *                    background. If false or not given, then the folder tab is
+ *                    opened in the foreground.
  */
-function MsgOpenNewTabForFolder()
+function MsgOpenNewTabForFolder(aBackground)
 {
   // If there is a right-click happening, gFolderTreeView.getSelectedFolders()
   // will tell us about it (while the selection's currentIndex would reflect
   // the node that was selected/displayed before the right-click.)
   let selectedFolders = gFolderTreeView.getSelectedFolders();
   for (let i = 0; i < selectedFolders.length; i++) {
-    document.getElementById("tabmail").openTab("folder", selectedFolders[i]);
+    document.getElementById("tabmail").openTab("folder",
+      {folder: selectedFolders[i], background: aBackground});
   }
-}
-
-/**
- * UI-triggered command to open the currently selected message in a new tab.
- */
-function MsgOpenNewTabForMessage()
-{
-  if (!gFolderDisplay.selectedMessage)
-    return;
-  document.getElementById('tabmail').openTab("message",
-                                             gFolderDisplay.selectedMessage,
-                                             gFolderDisplay.view);
 }
 
 function MsgOpenSelectedMessages()
@@ -2224,19 +2243,22 @@ function MsgOpenSelectedMessages()
   }
 
   let selectedMessages = gFolderDisplay.selectedMessages;
-  var numMessages = selectedMessages.length;
+  let numMessages = selectedMessages.length;
 
-  var windowReuse = gPrefBranch.getBoolPref("mailnews.reuse_message_window");
-  // This is a radio type button pref, currently with only 2 buttons.
-  // We need to keep the pref type as 'bool' for backwards compatibility
-  // with 4.x migrated prefs.  For future radio button(s), please use another
-  // pref (either 'bool' or 'int' type) to describe it.
-  //
-  // windowReuse values: false, true
-  //    false: open new standalone message window for each message
-  //    true : reuse existing standalone message window for each message
-  if (windowReuse && numMessages == 1 &&
-      MsgOpenSelectedMessageInExistingWindow())
+  let openMessageBehavior = gPrefBranch.getIntPref("mail.openMessageBehavior");
+  if (openMessageBehavior == MailConsts.OpenMessageBehavior.NEW_TAB) {
+    // Open all the tabs in the background, except for the last one
+    let tabmail = document.getElementById("tabmail");
+    for (let i = 0; i < numMessages; i++)
+      tabmail.openTab("message", {msgHdr: selectedMessages[i],
+          viewWrapperToClone: gFolderDisplay.view,
+          background: (i < (numMessages - 1))});
+    return;
+  }
+
+  if (openMessageBehavior == MailConsts.OpenMessageBehavior.EXISTING_WINDOW &&
+      numMessages == 1 && MailUtils.openMessageInExistingWindow(
+          gFolderDisplay.selectedMessage, gFolderDisplay.view))
     return;
 
   var openWindowWarning = gPrefBranch.getIntPref("mailnews.open_window_warning");
@@ -2254,25 +2276,6 @@ function MsgOpenSelectedMessages()
   for (var i = 0; i < numMessages; i++) {
     MsgOpenNewWindowForMessage(selectedMessages[i]);
   }
-}
-
-function MsgOpenSelectedMessageInExistingWindow()
-{
-  var windowID = GetWindowByWindowType("mail:messageWindow");
-  if (!windowID)
-    return false;
-
-  var msgHdr = gFolderDisplay.selectedMessage;
-
-  // (future work: perhaps make the window have a method we can call to do this)
-  // make the window's folder clone our view
-  windowID.gFolderDisplay.cloneView(gFolderDisplay.view);
-  // boss the window into showing our message
-  windowID.gFolderDisplay.selectMessage(msgHdr);
-
-  // bring existing window to front
-  windowID.focus();
-  return true;
 }
 
 function MsgOpenFromFile()

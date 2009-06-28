@@ -78,7 +78,8 @@
           else
             this.value = "";
           // open a new tab with our dude
-          tabmail.openTab("glodaSearch", searchString, "everything", "everywhere");
+          tabmail.openTab("glodaSearch", {searchString: searchString,
+              facetString: "everything", locationString: "everywhere"});
         }
       ]]></handler>
     </handlers>

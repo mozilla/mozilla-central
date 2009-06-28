@@ -627,9 +627,6 @@ RegisterCommandLineHandlers(nsIComponentManager* compMgr, nsIFile* path,
   nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
   NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
 
-  rv  = catMan->AddCategoryEntry("command-line-handler", "m-mail",
-                                 NS_MESSENGERBOOTSTRAP_CONTRACTID,
-                                 PR_TRUE, PR_TRUE, nsnull);
   rv |= catMan->AddCategoryEntry("command-line-handler", "m-addressbook",
                                  NS_ABMANAGER_CONTRACTID,
                                  PR_TRUE, PR_TRUE, nsnull);
@@ -653,8 +650,6 @@ UnregisterCommandLineHandlers(nsIComponentManager* compMgr, nsIFile* path,
   nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
   NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
 
-  catMan->DeleteCategoryEntry("command-line-handler", "m-mail",
-                              PR_TRUE);
   catMan->DeleteCategoryEntry("command-line-handler", "m-addressbook",
                               PR_TRUE);
   catMan->DeleteCategoryEntry("command-line-handler", "m-compose",

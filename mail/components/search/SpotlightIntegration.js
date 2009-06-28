@@ -66,17 +66,41 @@ let SearchIntegration =
                                 .get("ProfD", Ci.nsIFile);
   },
 
+  get _metadataDir()
+  {
+    delete this._metadataDir;
+    let metadataDir = Cc["@mozilla.org/file/directory_service;1"]
+                        .getService(Ci.nsIProperties)
+                        .get("Home", Ci.nsIFile);
+    metadataDir.append("Library");
+    metadataDir.append("Caches");
+    metadataDir.append("Metadata");
+    metadataDir.append("Thunderbird");
+    return this._metadataDir = metadataDir;
+  },
+
   /// Spotlight won't index files in the profile dir, but will use ~/Library/Caches/Metadata
   _getSearchPathForFolder: function spotlight_get_search_path(aFolder)
   {
     // Swap the metadata dir for the profile dir prefix in the folder's path
     let folderPath = aFolder.filePath.path;
     let fixedPath = folderPath.replace(this._profileDir.path,
-                                       "~/Library/Caches/Metadata/Thunderbird");
+                                       this._metadataDir.path);
     let searchPath = Cc["@mozilla.org/file/local;1"]
                        .createInstance(Ci.nsILocalFile);
     searchPath.initWithPath(fixedPath);
     return searchPath;
+  },
+
+  /// Replace ~/Library/Caches/Metadata with the profile directory, then convert
+  _getFolderForSearchPath: function spotlight_get_folder_for_search_path(aPath)
+  {
+    let folderPath = aPath.path.replace(this._metadataDir.path,
+                                        this._profileDir.path);
+    let folderFile = Cc["@mozilla.org/file/local;1"]
+                      .createInstance(Ci.nsILocalFile);
+    folderFile.initWithPath(folderPath);
+    return MailUtils.getFolderForFileInProfile(folderFile);
   },
 
   /**

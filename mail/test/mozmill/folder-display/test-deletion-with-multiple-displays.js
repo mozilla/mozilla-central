@@ -38,7 +38,9 @@
 /*
  * Test that deleting a message in a given tab or window properly updates both
  *  that tab/window as well as all other tabs/windows.  We also test that the
- *  message tab title updates appropriately through all of this.
+ *  message tab title updates appropriately through all of this. We do all of
+ *  this both for tabs that have ever been opened in the foreground, and tabs
+ *  that haven't (and thus might have fake selections).
  */
 var MODULE_NAME = 'test-deletion-with-multiple-displays';
 
@@ -61,7 +63,7 @@ function setupModule(module) {
 }
 
 
-var tabFolder, tabMessage, curMessage, nextMessage;
+var tabFolder, tabMessage, tabMessageBackground, curMessage, nextMessage;
 
 /**
  * The message window controller.  Short names because controllers get used a
@@ -85,6 +87,13 @@ function test_open_message_in_all_three_display_mechanisms() {
   tabMessage = open_selected_message_in_new_tab();
   assert_selected_and_displayed(curMessage);
   assert_tab_titled_from(tabMessage, curMessage);
+
+  // go back to the folder tab
+  switch_tab(tabFolder);
+
+  // - Open another tab with the message, this time in the background
+  tabMessageBackground = open_selected_message_in_new_tab(true);
+  assert_tab_titled_from(tabMessageBackground, curMessage);
 
   // - Open the window with the message
   // need to go back to the folder tab.  (well, should.)
@@ -115,6 +124,9 @@ function test_delete_in_folder_tab() {
   switch_tab(tabMessage);
   assert_selected_and_displayed(curMessage);
 
+  // - make sure the background message tab updated its title
+  assert_tab_titled_from(tabMessageBackground, curMessage);
+
   // - check the window
   assert_selected_and_displayed(msgc, curMessage);
 }
@@ -130,6 +142,9 @@ function test_delete_in_message_tab() {
   curMessage = nextMessage;
   assert_selected_and_displayed(curMessage);
   assert_tab_titled_from(tabMessage, curMessage);
+
+  // - check the background message tab
+  assert_tab_titled_from(tabMessageBackground, curMessage);
 
   // - switch to the folder tab and make sure he is on the right guy and at 0
   switch_tab(tabFolder);
@@ -162,18 +177,18 @@ function test_delete_in_message_window() {
   switch_tab(tabMessage);
   assert_selected_and_displayed(curMessage);
   assert_tab_titled_from(tabMessage, curMessage);
+
+  // - verify in the background message tab
+  assert_tab_titled_from(tabMessageBackground, curMessage);
 }
 
 /**
  * Delete the last message in that folder, which should close all message
- *  displays.  For comprehensiveness, first open an additional message tab
- *  of the message so that we can test foreground and background closing at the
- *  same time.
+ *  displays.
  */
 function test_delete_last_message_closes_message_displays() {
-  // - open the additional message tab
-  switch_tab(tabFolder);
-  let tabMessage2 = open_selected_message_in_new_tab();
+  // - since we have both foreground and background message tabs, we don't need
+  // to open yet another tab to test
 
   // - prep for the message window disappearing
   plan_for_window_close(msgc);

@@ -59,7 +59,7 @@ const RELATIVE_ROOT = '../shared-modules';
 const MODULES_REQUIRES = ['window-helpers'];
 
 const nsMsgViewIndex_None = 0xffffffff;
-
+Cu.import('resource://app/modules/MailConsts.js');
 
 const DO_NOT_EXPORT = {
   // magic globals
@@ -69,7 +69,7 @@ const DO_NOT_EXPORT = {
   // convenience constants
   Ci: true, Cc: true, Cu: true, Cr: true,
   // useful constants
-  nsMsgViewIndex_None: true,
+  nsMsgViewIndex_None: true, MailConsts: true,
   // internal setup functions
   setupModule: true, setupAccountStuff: true,
   // internal setup flags
@@ -242,33 +242,54 @@ function be_in_folder(aFolder) {
 function open_folder_in_new_tab(aFolder) {
   // save the current tab as the 'other' tab
   otherTab = mc.tabmail.currentTabInfo;
-  mc.tabmail.openTab("folder", aFolder);
+  mc.tabmail.openTab("folder", {folder: aFolder});
   wait_for_all_messages_to_load();
   return mc.tabmail.currentTabInfo;
 }
 
 /**
+ * Open the selected message(s) by pressing Enter. The mail.openMessageBehavior
+ * pref is supposed to determine how the messages are opened.
+ */
+function open_selected_messages() {
+  // Focus the thread tree
+  mc.threadTree.focus();
+  // Open whatever's selected
+  press_enter();
+}
+
+var open_selected_message = open_selected_messages;
+
+/**
  * Create a new tab displaying the currently selected message, making that tab
  *  the current tab.  We block until the message finishes loading.
  *
- * @return The tab info of the current tab (a more persistent identifier for
- *     tabs than the index, which will change as tabs open/close).
+ * @param aBackground [optional] If true, then the tab is opened in the
+ *                    background. If false or not given, then the tab is opened
+ *                    in the foreground.
+ *
+ * @return The tab info of the new tab (a more persistent identifier for tabs
+ *     than the index, which will change as tabs open/close).
  */
-function open_selected_message_in_new_tab() {
+function open_selected_message_in_new_tab(aBackground) {
   // get the current tab count so we can make sure the tab actually opened.
   let preCount = mc.tabmail.tabContainer.childNodes.length;
 
   // save the current tab as the 'other' tab
   otherTab = mc.tabmail.currentTabInfo;
 
-  mc.window.MsgOpenNewTabForMessage();
-  wait_for_message_display_completion(mc, true);
+  mc.tabmail.openTab("message", {msgHdr: mc.folderDisplay.selectedMessage,
+      viewWrapperToClone: mc.folderDisplay.view,
+      background: aBackground});
+  // We won't trigger a new message load if we're in the background
+  wait_for_message_display_completion(mc, !aBackground);
 
   // check that the tab count increased
   if (mc.tabmail.tabContainer.childNodes.length != preCount + 1)
     throw new Error("The tab never actually got opened!");
 
-  return mc.tabmail.currentTabInfo;
+  // We append new tabs at the end, so return the last tab
+  return mc.tabmail.tabInfo[mc.tabmail.tabContainer.childNodes.length - 1];
 }
 
 /**
@@ -298,6 +319,46 @@ function switch_tab(aNewTab) {
   otherTab = mc.tabmail.currentTabInfo;
   mc.tabmail.switchToTab(targetTab);
   wait_for_message_display_completion();
+}
+
+/**
+ * Assert that the currently selected tab is the given one.
+ *
+ * @param aTab The tab that should currently be selected.
+ */
+function assert_selected_tab(aTab) {
+  if (mc.tabmail.currentTabInfo != aTab)
+    throw new Error("The currently selected tab should be at index " +
+        mc.tabmail.tabInfo.indexOf(aTab) + ", but is actually at index " +
+        mc.tabmail.tabInfo.indexOf(mc.tabmail.currentTabInfo));
+}
+
+/**
+ * Assert that the given tab has the given mode name. Valid mode names include
+ * "message" and "folder".
+ *
+ * @param aTab A Tab. The currently selected tab if null.
+ * @param aModeName A string that should match the mode name of the tab.
+ */
+function assert_tab_mode_name(aTab, aModeName) {
+  if (!aTab)
+    aTab = mc.tabmail.currentTabInfo;
+
+  if (aTab.mode.type != aModeName)
+    throw new Error("Tab should be of type " + aModeName +
+                    ", but is actually of type " + aTab.mode.type + ".");
+}
+
+/**
+ * Assert that the number of tabs open matches the value given.
+ *
+ * @param aNumber The number of tabs that should be open.
+ */
+function assert_number_of_tabs_open(aNumber) {
+  let actualNumber = mc.tabmail.tabContainer.childNodes.length;
+  if (actualNumber != aNumber)
+    throw new Error("There should be " + aNumber + " tabs open, but there " +
+                    "are actually " + actualNumber + " tabs open.");
 }
 
 /**
@@ -333,6 +394,17 @@ function close_tab(aTabToClose) {
   // check that the tab count decreased
   if (mc.tabmail.tabContainer.childNodes.length != preCount - 1)
     throw new Error("The tab never actually got closed!");
+}
+
+/**
+ * Close a standalone message window.
+ *
+ * @param aController The message window controller
+ */
+function close_message_window(aController) {
+  windowHelper.plan_for_window_close(aController);
+  aController.window.close();
+  windowHelper.wait_for_window_close(aController);
 }
 
 /**
@@ -488,7 +560,9 @@ function right_click_on_row(aViewIndex) {
 function middle_click_on_row(aViewIndex) {
   let msgHdr = mc.dbView.getMsgHdrAt(aViewIndex);
   _row_click_helper(aViewIndex, 1);
-  return [mc.tabmail.currentTabInfo, msgHdr];
+  // We append new tabs at the end, so return the last tab
+  return [mc.tabmail.tabInfo[mc.tabmail.tabContainer.childNodes.length - 1],
+          msgHdr];
 }
 
 /**
@@ -532,6 +606,23 @@ function press_delete(aController) {
   aController.keypress(aController == mc ? mc.eThreadTree : null,
                        "VK_DELETE", {});
   wait_for_folder_events();
+}
+
+/**
+ * Pretend we are pressing the Enter key, triggering opening selected messages.
+ *
+ * @param aController The controller in whose context to do this, defaults to
+ *     |mc| if omitted.
+ */
+function press_enter(aController) {
+  if (aController === undefined)
+    aController = mc;
+  // if something is loading, make sure it finishes loading...
+  wait_for_message_display_completion(aController);
+  aController.keypress(aController == mc ? mc.eThreadTree : null,
+                       "VK_RETURN", {});
+  // this is always going to cause a message load, so wait for that
+  wait_for_message_display_completion(aController);
 }
 
 /**
@@ -1031,6 +1122,49 @@ function make_display_grouped() {
   mc.folderDisplay.view.showGroupedBySort = true;
   // drain event queue
   mc.sleep(0);
+}
+
+/**
+ * Set the mail.openMessageBehavior pref.
+ *
+ * @param aPref One of "NEW_WINDOW", "EXISTING_WINDOW" or "NEW_TAB"
+ */
+function set_open_message_behavior(aPref) {
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+                     .getService(Ci.nsIPrefService).getBranch(null);
+  prefBranch.setIntPref("mail.openMessageBehavior",
+                        MailConsts.OpenMessageBehavior[aPref]);
+}
+
+/**
+ * Reset the mail.openMessageBehavior pref.
+ */
+function reset_open_message_behavior() {
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+                     .getService(Ci.nsIPrefService).getBranch(null);
+  if (prefBranch.prefHasUserValue("mail.openMessageBehavior"))
+    prefBranch.clearUserPref("mail.openMessageBehavior");
+}
+
+/**
+ * Set the mail.contextMenuBackgroundTabs pref.
+ *
+ * @param aPref true/false.
+ */
+function set_context_menu_background_tabs(aPref) {
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+                     .getService(Ci.nsIPrefService).getBranch(null);
+  prefBranch.setBoolPref("mail.contextMenuBackgroundTabs", aPref);
+}
+
+/**
+ * Reset the mail.contextMenuBackgroundTabs pref.
+ */
+function reset_context_menu_background_tabs() {
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+                     .getService(Ci.nsIPrefService).getBranch(null);
+  if (prefBranch.prefHasUserValue("mail.contextMenuBackgroundTabs"))
+    prefBranch.clearUserPref("mail.contextMenuBackgroundTabs");
 }
 
 /**

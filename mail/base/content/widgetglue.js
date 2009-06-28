@@ -44,6 +44,8 @@
  * and then calls a function/command in commandglue
  */
 
+Components.utils.import("resource://app/modules/MailUtils.js");
+
 //The eventual goal is for this file to go away and its contents to be brought into
 //mailWindowOverlay.js.  This is currently being done.
 
@@ -71,21 +73,13 @@ function MsgToggleMessagePane()
 // same and then this routine will simply return a msgfolder. This scenario
 // applies to a new imap account creation where special folders are created
 // on demand and hence needs to prior check of existence.
+
+/**
+ * Gets the message folder for this URI.
+ *
+ * @deprecated Use |MailUtils.getFolderForURI| instead.
+ */
 function GetMsgFolderFromUri(uri, checkFolderAttributes)
 {
-    var msgfolder = null;
-    try {
-        var rdfService = Components.classes['@mozilla.org/rdf/rdf-service;1']
-                                   .getService(Components.interfaces.nsIRDFService);
-        var resource = rdfService.GetResource(uri);
-        msgfolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        if (checkFolderAttributes) {
-            if (!(msgfolder && (msgfolder.parent || msgfolder.isServer))) {
-                msgfolder = null;
-            }
-        }
-    }
-    catch (ex) {
-    }
-    return msgfolder;
+  return MailUtils.getFolderForURI(uri, checkFolderAttributes);
 }

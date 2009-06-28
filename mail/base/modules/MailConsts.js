@@ -11,7 +11,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Thunderbird Mail Client.
+ * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
  * Mozilla Messaging, Inc.
@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Andrew Sutherland <asutherland@asutherland.org>
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,58 +35,39 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/*
- * Test that we can open and close a standalone message display window from the
- *  folder pane.
- */
-var MODULE_NAME = 'test-message-window';
-
-var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
-
-var folder;
-var msgSet;
-
-function setupModule(module) {
-  let fdh = collector.getModule('folder-display-helpers');
-  fdh.installInto(module);
-  let wh = collector.getModule('window-helpers');
-  wh.installInto(module);
-
-  folder = create_folder("MessageWindowA");
-  // create three messages in the folder to display
-  [msgSet] = make_new_sets_in_folder(folder, [{count: 3}]);
-}
-
-/** The message window controller. */
-var msgc;
-
-function test_open_message_window() {
-  be_in_folder(folder);
-
-  // select the one and only message
-  let curMessage = select_click_row(0);
-
-  // display it
-  msgc = open_selected_message_in_new_window();
-  assert_selected_and_displayed(msgc, curMessage);
-}
-
 /**
- * Use the "f" keyboard accelerator to navigate to the next message,
- * and verify that it is indeed loaded.
+ * This is a place to store constants and enumerations that are needed only by
+ * JavaScript code, especially component/module code.
  */
-function test_navigate_to_next_message() {
-  msgc.keypress(null, "f", {});
-  wait_for_message_display_completion(msgc, true);
-  assert_selected_and_displayed(msgc, 1);
-}
 
-/**
- * Close the window by hitting escape.
- */
-function test_close_message_window() {
-  plan_for_window_close(msgc);
-  msgc.keypress(null, "VK_ESCAPE", {});
-  wait_for_window_close(msgc);
-}
+var EXPORTED_SYMBOLS = ["MailConsts"];
+
+var MailConsts =
+{
+  /**
+   * Determine how to open a message when it is double-clicked or selected and
+   * Enter pressed. The preference to set this is mail.openMessageBehavior.
+   */
+  OpenMessageBehavior: {
+    /**
+     * Open the message in a new window. If multiple messages are selected, all
+     * of them are opened in separate windows.
+     */
+    NEW_WINDOW: 0,
+
+    /**
+     * Open the message in an existing window. If multiple messages are
+     * selected, the fallback is to "new window" behavior. If no standalone
+     * windows are open, the message is opened in a new standalone window.
+     */
+    EXISTING_WINDOW: 1,
+
+    /**
+     * Open the message in a new tab. If multiple messages are selected, all of
+     * them are opened as tabs, with the last tab in the foreground and all the
+     * rest in the background. If no 3-pane window is open, the message is
+     * opened in a new standalone window.
+     */
+    NEW_TAB: 2
+  }
+};

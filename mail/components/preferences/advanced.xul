@@ -99,7 +99,7 @@
                   onchange="gAdvancedPane.updateMarkAsReadTextbox(this.value);"/>
       <preference id="mailnews.mark_message_read.delay.interval"
                   name="mailnews.mark_message_read.delay.interval" type="int"/>
-      <preference id="mailnews.reuse_message_window" name="mailnews.reuse_message_window" type="bool"/>
+      <preference id="mail.openMessageBehavior" name="mail.openMessageBehavior" type="int"/>
       <preference id="mail.close_message_window.on_delete" 
                   name="mail.close_message_window.on_delete" type="bool"/>
       <!-- Network tab -->
@@ -236,16 +236,18 @@
             <vbox>
               <hbox>
                 <label value="&openMsgIn.label;"
-                       control="mailnewsDoubleClick2NewWindow"/>
+                       control="mailOpenMessageBehavior"/>
               </hbox>
 
               <hbox>
-                <radiogroup id="mailnewsDoubleClick2NewWindow" class="indent"
-                            preference="mailnews.reuse_message_window"
+                <radiogroup id="mailOpenMessageBehavior" class="indent"
+                            preference="mail.openMessageBehavior"
                             orient="horizontal">
-                  <radio id="new" value="false" label="&reuseExpRadio0.label;"
+                  <radio id="newTab" value="2" label="&openMsgInNewTab.label;"
+                         accesskey="&openMsgInNewTab.accesskey;"/>
+                  <radio id="newWindow" value="0" label="&reuseExpRadio0.label;"
                          accesskey="&reuseExpRadio0.accesskey;"/>
-                  <radio id="existing" value="true"
+                  <radio id="existingWindow" value="1"
                          label="&reuseExpRadio1.label;"
                          accesskey="&reuseExpRadio1.accesskey;"/>
                 </radiogroup>

@@ -149,16 +149,19 @@ function test_right_click_on_existing_multi_selection() {
 /**
  * Middle clicking should open a message in a tab, but not affect our selection.
  */
-function test_middle_click_with_nothing_selected() {
+function _middle_click_with_nothing_selected_helper(aBackground) {
   be_in_folder(folder);
 
   select_none();
   assert_nothing_selected();
-
+  let folderTab = mc.tabmail.currentTabInfo;
   let [tabMessage, curMessage] = middle_click_on_row(1);
-  // as of immediately right now, the tab opens in the foreground, but soon
-  //  it will open in the background, so prepare the test for that...
-  switch_tab(tabMessage);
+  if (aBackground) {
+    // Make sure we haven't switched to the new tab.
+    assert_selected_tab(folderTab);
+    // Now switch to the new tab and check
+    switch_tab(tabMessage);
+  }
   assert_selected_and_displayed(curMessage);
   close_tab(tabMessage);
 
@@ -168,14 +171,20 @@ function test_middle_click_with_nothing_selected() {
 /**
  * One-thing selected, middle-click on something else.
  */
-function test_middle_click_with_one_thing_selected() {
+function _middle_click_with_one_thing_selected_helper(aBackground) {
   be_in_folder(folder);
 
   select_click_row(0);
   assert_selected_and_displayed(0);
 
+  let folderTab = mc.tabmail.currentTabInfo;
   let [tabMessage, curMessage] = middle_click_on_row(1);
-  switch_tab(tabMessage);
+  if (aBackground) {
+    // Make sure we haven't switched to the new tab.
+    assert_selected_tab(folderTab);
+    // Now switch to the new tab and check
+    switch_tab(tabMessage);
+  }
   assert_selected_and_displayed(curMessage);
   close_tab(tabMessage);
 
@@ -186,15 +195,21 @@ function test_middle_click_with_one_thing_selected() {
  * Many things selected, middle-click on something that is not in that
  *  selection.
  */
-function test_middle_click_with_many_things_selected() {
+function _middle_click_with_many_things_selected_helper(aBackground) {
   be_in_folder(folder);
 
   select_click_row(0);
   select_shift_click_row(5);
   assert_selected_and_displayed([0, 5]);
 
+  let folderTab = mc.tabmail.currentTabInfo;
   let [tabMessage, curMessage] = middle_click_on_row(1);
-  switch_tab(tabMessage);
+  if (aBackground) {
+    // Make sure we haven't switched to the new tab.
+    assert_selected_tab(folderTab);
+    // Now switch to the new tab and check
+    switch_tab(tabMessage);
+  }
   assert_selected_and_displayed(curMessage);
   close_tab(tabMessage);
 
@@ -204,14 +219,20 @@ function test_middle_click_with_many_things_selected() {
 /**
  * One thing selected, middle-click on that.
  */
-function test_middle_click_on_existing_single_selection() {
+function _middle_click_on_existing_single_selection_helper(aBackground) {
   be_in_folder(folder);
 
   select_click_row(3);
   assert_selected_and_displayed(3);
 
+  let folderTab = mc.tabmail.currentTabInfo;
   let [tabMessage, curMessage] = middle_click_on_row(3);
-  switch_tab(tabMessage);
+  if (aBackground) {
+    // Make sure we haven't switched to the new tab.
+    assert_selected_tab(folderTab);
+    // Now switch to the new tab and check
+    switch_tab(tabMessage);
+  }
   assert_selected_and_displayed(curMessage);
   close_tab(tabMessage);
 
@@ -221,20 +242,56 @@ function test_middle_click_on_existing_single_selection() {
 /**
  * Many things selected, right-click somewhere in the selection.
  */
-function test_middle_click_on_existing_multi_selection() {
+function _middle_click_on_existing_multi_selection_helper(aBackground) {
   be_in_folder(folder);
 
   select_click_row(3);
   select_shift_click_row(6);
   assert_selected_and_displayed([3, 6]);
 
+  let folderTab = mc.tabmail.currentTabInfo;
   let [tabMessage, curMessage] = middle_click_on_row(5);
-  switch_tab(tabMessage);
+  if (aBackground) {
+    // Make sure we haven't switched to the new tab.
+    assert_selected_tab(folderTab);
+    // Now switch to the new tab and check
+    switch_tab(tabMessage);
+  }
   assert_selected_and_displayed(curMessage);
   close_tab(tabMessage);
 
   assert_selected_and_displayed([3, 6]);
 }
+
+/**
+ * Generate background and foreground tests for each middle click test.
+ *
+ * @param aTests an array of test names
+ */
+function _generate_background_foreground_tests(aTests) {
+  let self = this;
+  for each (let [, test] in Iterator(aTests)) {
+    let helperFunc = this["_" + test + "_helper"];
+    this["test_" + test + "_background"] = function() {
+      set_context_menu_background_tabs(true);
+      helperFunc.apply(self, [true]);
+      reset_context_menu_background_tabs();
+    };
+    this["test_" + test + "_foreground"] = function() {
+      set_context_menu_background_tabs(false);
+      helperFunc.apply(self, [false]);
+      reset_context_menu_background_tabs();
+    };
+  }
+}
+
+_generate_background_foreground_tests([
+  "middle_click_with_nothing_selected",
+  "middle_click_with_one_thing_selected",
+  "middle_click_with_many_things_selected",
+  "middle_click_on_existing_single_selection",
+  "middle_click_on_existing_multi_selection"
+]);
 
 /**
  * Right-click on something and delete it, having no selection previously.

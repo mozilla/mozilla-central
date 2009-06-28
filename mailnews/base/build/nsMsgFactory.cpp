@@ -243,33 +243,6 @@ UnregisterMailnewsContentPolicy(nsIComponentManager *aCompMgr, nsIFile *aPath,
                                      PR_TRUE);
 }
 
-static NS_METHOD
-RegisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
-                           const char *location, const char *type,
-                           const nsModuleComponentInfo *info)
-{
-  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
-  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
-
-  return catMan->AddCategoryEntry("command-line-handler", "m-mail",
-                                  NS_MAILSTARTUPHANDLER_CONTRACTID,
-                                  PR_TRUE, PR_TRUE, nsnull);
-}
-
-static NS_METHOD
-UnregisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
-                             const char *location,
-                             const nsModuleComponentInfo *info)
-{
-  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
-  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
-
-  catMan->DeleteCategoryEntry("command-line-handler", "m-mail",
-                              PR_TRUE);
-
-  return NS_OK;
-}
-
 #ifdef XP_MACOSX
 static NS_METHOD RegisterOSXIntegration(nsIComponentManager *aCompMgr,
                                         nsIFile *aPath,
@@ -318,8 +291,6 @@ static const nsModuleComponentInfo gComponents[] = {
     { "Mail Startup Handler", NS_MESSENGERBOOTSTRAP_CID,
       NS_MAILSTARTUPHANDLER_CONTRACTID,
       nsMessengerBootstrapConstructor,
-      RegisterCommandLineHandler,
-      UnregisterCommandLineHandler,
     },
     { "Mail Session", NS_MSGMAILSESSION_CID,
       NS_MSGMAILSESSION_CONTRACTID,

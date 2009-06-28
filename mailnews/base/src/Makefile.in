@@ -175,6 +175,10 @@ EXPORTS = \
 		nsMailDirServiceDefs.h \
 		$(NULL)
 
+EXTRA_COMPONENTS = \
+		nsMailNewsCommandLineHandler.js \
+		$(NULL)
+
 EXTRA_JS_MODULES = \
 		dbViewWrapper.js \
 		mailViewManager.js \

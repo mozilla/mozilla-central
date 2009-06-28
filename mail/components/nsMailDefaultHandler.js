@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -87,6 +88,24 @@ function resolveURIInternal(aCmdLine, aArgument) {
   }
 
   return uri;
+}
+
+function handleIndexerResult(aFile) {
+  // Do this here because xpcshell isn't too happy with this at startup
+  Components.utils.import("resource://app/modules/MailUtils.js");
+  // Make sure the folder tree is initialized
+  MailUtils.discoverFolders();
+
+  // Use the search integration module to convert the indexer result into a
+  // message header
+  Components.utils.import("resource://app/modules/SearchIntegration.js");
+  let msgHdr = SearchIntegration.handleResult(aFile);
+
+  // If we found a message header, open it, otherwise throw an exception
+  if (msgHdr)
+    MailUtils.displayMessage(msgHdr);
+  else
+    throw Components.results.NS_ERROR_FAILURE;
 }
 
 function mayOpenURI(uri)
@@ -269,6 +288,18 @@ var nsMailDefaultHandler = {
       cmdLine.preventDefault = true;
     }
 
+    if (cmdLine.handleFlag("options", false)) {
+      // Open the options window
+      var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                             .getService(nsIWindowWatcher);
+      wwatch.openWindow(null,
+          "chrome://messenger/content/preferences/preferences.xul", "_blank",
+          "chrome,dialog=no,all", null);
+    }
+
+    // The URI might be passed as the argument to the file parameter
+    uri = cmdLine.handleFlagWithParam("file", false);
+
     var count = cmdLine.length;
     if (count) {
       var i = 0;
@@ -331,7 +362,52 @@ var nsMailDefaultHandler = {
         catch (e) {
           // If feed handling is not installed, do nothing
         }
-      } else {
+      }
+      else if (/\.mozeml$/i.test(uri) || /\.wdseml$/i.test(uri)) {
+        handleIndexerResult(cmdLine.resolveFile(uri));
+        cmdLine.preventDefault = true;
+      }
+      else if (/\.eml$/i.test(uri)) {
+        // Open this eml in a new message window
+        let file = cmdLine.resolveFile(uri);
+        // No point in trying to open a file if it doesn't exist or is empty
+        if (file.exists() && file.fileSize > 0) {
+          // Get the URL for this file
+          let ios = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
+          let fileURL = ios.newFileURI(file)
+                           .QueryInterface(Components.interfaces.nsIFileURL);
+          fileURL.query = "?type=application/x-message-display";
+
+          let wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                                 .getService(nsIWindowWatcher);
+          wwatch.openWindow(null,
+                            "chrome://messenger/content/messageWindow.xul",
+                            "_blank", "all,chrome,dialog=no,status,toolbar",
+                            fileURL);
+          cmdLine.preventDefault = true;
+        }
+        else {
+          let bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                                 .getService(Components.interfaces.nsIStringBundleService)
+                                 .createBundle("chrome://messenger/locale/messenger.properties");
+          let title, message;
+          if (!file.exists()) {
+            title = bundle.GetStringFromName("fileNotFoundTitle");
+            message = bundle.formatStringFromName("fileNotFoundMsg", [file.path], 1);
+          }
+          else {
+            // The file is empty
+            title = bundle.GetStringFromName("fileEmptyTitle");
+            message = bundle.formatStringFromName("fileEmptyMsg", [file.path], 1);
+          }
+
+          let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                        .getService(Components.interfaces.nsIPromptService);
+          promptService.alert(null, title, message);
+        }
+      }
+      else {
         openURI(cmdLine.resolveURI(uri));
         // XXX: add error-handling here! (error dialog, if nothing else)
       }
@@ -376,7 +452,8 @@ var nsMailDefaultHandler = {
     }
   },
 
-  helpInfo : "",
+  helpInfo : "  -options             Open the options dialog.\n" +
+             "  -file                Open the specified email file.\n",
 
   /* nsIFactory */
 

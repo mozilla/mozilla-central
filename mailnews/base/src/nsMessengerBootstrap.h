@@ -40,12 +40,7 @@
 #define __nsMessenger_h
 
 #include "nscore.h"
-#include "nsIServiceManager.h"
 #include "nsIMessengerWindowService.h"
-#include "nsICommandLineHandler.h"
-#include "nsString.h"
-
-class nsIMsgFolder;
 
 #define NS_MESSENGERBOOTSTRAP_CID                 \
 { /* 4a85a5d0-cddd-11d2-b7f6-00805f05ffa5 */      \
@@ -53,20 +48,14 @@ class nsIMsgFolder;
   {0xb7, 0xf6, 0x00, 0x80, 0x5f, 0x05, 0xff, 0xa5}}
 
 class nsMessengerBootstrap :
-    public nsICommandLineHandler,
     public nsIMessengerWindowService
 {
-  
 public:
   nsMessengerBootstrap();
   virtual ~nsMessengerBootstrap();
-  nsresult DiscoverFoldersIfNeeded(nsIMsgFolder *folder);
-  nsresult OpenMessengerWindowForMessageId(nsCString &folderUri, nsCString &messageId);
-  nsresult HandleIndexerResult(const nsString &aPath);
-  
+
   NS_DECL_ISUPPORTS  
   NS_DECL_NSIMESSENGERWINDOWSERVICE
-  NS_DECL_NSICOMMANDLINEHANDLER
 };
 
 #endif

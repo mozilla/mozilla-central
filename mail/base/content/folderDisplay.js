@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://app/modules/dbViewWrapper.js");
+Components.utils.import("resource://app/modules/jsTreeSelection.js");
 
 var gFolderDisplay = null;
 var gMessageDisplay = null;
@@ -142,6 +143,13 @@ function FolderDisplayWidget(aTabInfo, aMessageDisplayWidget) {
   this._fakeTreeBox = dummyDOMNode ?
                         new FakeTreeBoxObject(dummyDOMNode.boxObject) : null;
 
+  /**
+   * Create a fake tree selection for cases where we have opened a background
+   * tab. We'll get rid of this as soon as we've switched to the tab for the
+   * first time, and have a real tree selection.
+   */
+  this._fakeTreeSelection = new JSTreeSelection(this._fakeTreeBox);
+
   this._mostRecentSelectionCounts = [];
   this._mostRecentCurrentIndices = [];
 }
@@ -155,10 +163,15 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
-   * @return the nsITreeSelection object for our tree view if there is one,
-   *     null otherwise.
+   * @return the nsITreeSelection object for our tree view.  This exists for
+   *     the benefit of message tabs that haven't been switched to yet.
+   *     We provide a fake tree selection in those cases.
    */
   get treeSelection() {
+    // If we haven't switched to this tab yet, dbView will exist but
+    // dbView.selection won't, so use the fake tree selection instead.
+    if (this._fakeTreeSelection)
+      return this._fakeTreeSelection;
     if (this.view.dbView)
       return this.view.dbView.selection;
     else
@@ -547,6 +560,7 @@ FolderDisplayWidget.prototype = {
     this.messenger.setWindow(null, null);
     this.messenger = null;
     this._fakeTreeBox = null;
+    this._fakeTreeSelection = null;
   },
 
   /*   ===============================   */
@@ -769,29 +783,6 @@ FolderDisplayWidget.prototype = {
     if (gPrefBranch.getBoolPref("mailnews.scroll_to_new_message") &&
         this.navigate(nsMsgNavigationType.firstNew, /* select */ false))
       return;
-
-    // - last selected message
-    // if configured to load the last selected message (this is currently more
-    //  persistent than our saveSelection/restoreSelection stuff), and the view
-    //  is backed by a single underlying folder (the only way having just a
-    //  message key works out), try that
-    if (gPrefBranch.getBoolPref("mailnews.remember_selected_message") &&
-        this.view.isSingleFolder) {
-      // use the displayed folder; nsMsgDBView goes to the effort to save the
-      //  state to the viewFolder, so this is the correct course of action.
-      let lastLoadedMessageKey = this.view.displayedFolder.lastMessageLoaded;
-      if (lastLoadedMessageKey != nsMsgKey_None) {
-        this.view.dbView.selectMsgByKey(lastLoadedMessageKey);
-        // The message key may not be present in the view for a variety of
-        //  reasons.  Beyond message deletion, it simply may not match the
-        //  active mail view or quick search, for example.
-        if (this.view.dbView.numSelected) {
-          this.ensureRowIsVisible(
-            this.view.dbView.viewIndexForFirstSelectedMsg);
-          return;
-        }
-      }
-    }
 
     // - towards the newest messages, but don't select
     if (this.view.isSortedAscending && this.view.sortImpliesTemporalOrdering &&
@@ -1202,8 +1193,17 @@ FolderDisplayWidget.prototype = {
     this._active = true;
     this._runNotificationsPendingActivation();
 
+    // Make sure we get rid of this._fakeTreeSelection, whether we use it below
+    // or not.
+    let fakeTreeSelection = this._fakeTreeSelection;
+    this._fakeTreeSelection = null;
+
     // -- UI
 
+    // We're going to set this to true if we've already caused a
+    // selectionChanged event, so that the message display doesn't cause
+    // another.
+    let dontReloadMessage = false;
     // thread pane if we have a db view
     if (this.view.dbView) {
       // Make sure said thread pane is visible.  If we do this after we re-root
@@ -1214,15 +1214,34 @@ FolderDisplayWidget.prototype = {
       // some things only need to happen if we are transitioning from inactive
       //  to active
       if (wasInactive) {
-        // Setting the 'view' attribute on treeBox results in the following
-        //  effective calls, noting that in makeInactive we made sure to null
-        //  out its view so that it won't try and clean up any views or their
-        //  selections.  (The actual actions happen in nsTreeBodyFrame::SetView)
-        // - this.view.dbView.selection.tree = this.treeBox
-        // - this.view.dbView.setTree(this.treeBox)
-        // - this.treeBox.view = this.view.dbView (in nsTreeBodyObject::SetView)
         if (this.treeBox) {
+          // We might have assigned our JS tree selection to
+          //  this.view.dbView.selection back in _hookUpFakeTreeBox. If we've
+          //  done so, null the selection out so that the line after this
+          //  causes a real selection to be created.
+          // If we haven't done so, we're fine as selection would be null here
+          //  anyway. (The fake tree selection should persist only till the
+          //  first time the tab is switched to.)
+          if (fakeTreeSelection)
+            this.view.dbView.selection = null;
+
+          // Setting the 'view' attribute on treeBox results in the following
+          //  effective calls, noting that in makeInactive we made sure to null
+          //  out its view so that it won't try and clean up any views or their
+          //  selections.  (The actual actions happen in
+          //  nsTreeBodyFrame::SetView)
+          // - this.view.dbView.selection.tree = this.treeBox
+          // - this.view.dbView.setTree(this.treeBox)
+          // - this.treeBox.view = this.view.dbView (in
+          //   nsTreeBodyObject::SetView)
           this.treeBox.view = this.view.dbView;
+
+          if (fakeTreeSelection) {
+            fakeTreeSelection.duplicateSelection(this.view.dbView.selection);
+            // Since duplicateSelection will fire a selectionChanged event,
+            // which will try to reload the message, we shouldn't do the same.
+            dontReloadMessage = true;
+          }
           if (this._savedFirstVisibleRow != null)
             this.treeBox.scrollToRow(this._savedFirstVisibleRow);
 
@@ -1254,7 +1273,7 @@ FolderDisplayWidget.prototype = {
       // update the columns and such that live inside the thread pane
       this._updateThreadDisplay();
 
-      this.messageDisplay.makeActive();
+      this.messageDisplay.makeActive(dontReloadMessage);
     }
     // account central stuff when we don't have a dbview
     else {
@@ -1319,25 +1338,41 @@ FolderDisplayWidget.prototype = {
         };
       }
 
-      // save off the tree selection object.  the nsTreeBodyFrame will make the
-      //  view forget about it when our view is removed, so it's up to us to
-      //  save it.
-      let treeViewSelection = this.view.dbView.selection;
-      // make the tree forget about the view right now so we can tell the db
-      //  view about its selection object so it can try and keep it up-to-date
-      //  even while hidden in the background
-      if (this.treeBox)
-        this.treeBox.view = null;
-      // (and tell the db view about its selection again...)
-      this.view.dbView.selection = treeViewSelection;
-
-      // hook the dbview up to the fake tree box
-      this._fakeTreeBox.view = this.view.dbView;
-      this.view.dbView.setTree(this._fakeTreeBox);
-      treeViewSelection.tree = this._fakeTreeBox;
+      this.hookUpFakeTreeBox(true);
     }
 
     this.messageDisplay.makeInactive();
+  },
+
+  /**
+   * Called when we want to "disable" the real treeBox for a while and hook up
+   * the fake tree box to the db view. This also takes care of our
+   * treeSelection object.
+   *
+   * @param aNullRealTreeBoxView true if we want to null out the real tree box.
+   *          We don't want to null out the view if we're opening a background
+   *          tab, for example.
+   */
+  hookUpFakeTreeBox: function FolderDisplayWidget_hookUpFakeTreeBox(
+                         aNullRealTreeBoxView) {
+    // save off the tree selection object.  the nsTreeBodyFrame will make the
+    //  view forget about it when our view is removed, so it's up to us to
+    //  save it.
+    // We use this.treeSelection instead of this.view.dbView.selection here,
+    //  so that we get the fake tree selection if we have it.
+    let treeSelection = this.treeSelection;
+    // if we want to, make the tree forget about the view right now so we can
+    //  tell the db view about its selection object so it can try and keep it
+    //  up-to-date even while hidden in the background
+    if (aNullRealTreeBoxView && this.treeBox)
+      this.treeBox.view = null;
+    // (and tell the db view about its selection again...)
+    this.view.dbView.selection = treeSelection;
+
+    // hook the dbview up to the fake tree box
+    this._fakeTreeBox.view = this.view.dbView;
+    this.view.dbView.setTree(this._fakeTreeBox);
+    treeSelection.tree = this._fakeTreeBox;
   },
 
   /**
@@ -1631,36 +1666,34 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
-   * Select a message for display by header.  If the view is active, attempt
-   *  to select the message right now.  If the view is not active or we were
-   *  unable to find it, update our saved selection to want to display the
-   *  message.  Threads are expanded to find the header.
+   * Select a message for display by header.  Attempt to select the message
+   *  right now.  If we were unable to find it, update our saved selection
+   *  to want to display the message.  Threads are expanded to find the header.
    *
    * @param aMsgHdr The message header to select for display.
    */
   selectMessage: function FolderDisplayWidget_selectMessage(aMsgHdr,
       aForceNotification) {
-    if (this.active) {
-      let viewIndex = this.view.dbView.findIndexOfMsgHdr(aMsgHdr, true);
-      if (viewIndex != nsMsgViewIndex_None) {
-        this.selectViewIndex(viewIndex);
-        return;
-      }
+    let viewIndex = this.view.dbView.findIndexOfMsgHdr(aMsgHdr, true);
+    if (viewIndex != nsMsgViewIndex_None) {
+      this.selectViewIndex(viewIndex);
     }
-    this._savedSelection = [{messageId: aMsgHdr.messageId}];
-    // queue the selection to be restored once we become active if we are not
-    //  active.
-    if (!this.active)
-      this._notifyWhenActive(this._restoreSelection);
+    else {
+      this._savedSelection = [{messageId: aMsgHdr.messageId}];
+      // queue the selection to be restored once we become active if we are not
+      //  active.
+      if (!this.active)
+        this._notifyWhenActive(this._restoreSelection);
+    }
   },
 
   /**
    * Select all of the provided nsIMsgDBHdrs in the aMessages array, expanding
-   *  threads as required.  If the view is not active, or we were not able to
-   *  find all of the messages, update our saved selection to want to display
-   *  the messages.  The messages will then be selected when we are made active
-   *  or all messages in the folder complete loading.  This is to accomodate the
-   *  use-case where we are backed by an in-progress search and no
+   *  threads as required.  If we were not able to find all of the messages,
+   *  update our saved selection to want to display the messages.  The messages
+   *  will then be selected when we are made active or all messages in the
+   *  folder complete loading.  This is to accomodate the use-case where we
+   *  are backed by an in-progress search and no
    *
    * @param aMessages An array of nsIMsgDBHdr instances.
    * @param aDoNotNeedToFindAll If true (can be omitted and left undefined), we
@@ -1670,10 +1703,10 @@ FolderDisplayWidget.prototype = {
    *     should have already been loaded.)
    */
   selectMessages: function FolderDisplayWidget_selectMessages(
-    aMessages, aDoNotNeedToFindAll) {
-    if (this.active && this.treeSelection) {
+      aMessages, aDoNotNeedToFindAll) {
+    let treeSelection = this.treeSelection; // potentially magic getter
+    if (treeSelection) {
       let foundAll = true;
-      let treeSelection = this.treeSelection;
       let dbView = this.view.dbView;
       let minRow = null, maxRow = null;
 
@@ -1973,6 +2006,9 @@ function FakeTreeBoxObject(aDummyBoxObject) {
 }
 FakeTreeBoxObject.prototype = {
   view: null,
+  ensureRowIsVisible: function FakeTreeBoxObject_ensureRowIsVisible() {
+    // NOP
+  },
   /**
    * No need to actually invalidate, as when we re-root the view this will
    *  happen.
@@ -2060,7 +2096,6 @@ FTBO_stubOutMethods(FakeTreeBoxObject.prototype, [
   "getFirstVisibleRow",
   "getLastVisibleRow",
   "getPageLength",
-  "ensureRowIsVisible",
   "ensureCellIsVisible",
   "scrollToRow",
   "scrollByLines",
@@ -2069,7 +2104,6 @@ FTBO_stubOutMethods(FakeTreeBoxObject.prototype, [
   "scrollToColumn",
   "scrollToHorizontalPosition",
   "invalidateColumn",
-  "invalidateRow",
   "invalidateCell",
   "invalidateColumnRange",
   "getRowAt",

@@ -45,6 +45,7 @@
 Components.utils.import("resource://gre/modules/folderUtils.jsm");
 Components.utils.import("resource://app/modules/activity/activityModules.js");
 Components.utils.import("resource://app/modules/jsTreeSelection.js");
+Components.utils.import("resource://app/modules/MailConsts.js");
 
 /* This is where functions related to the 3 pane window are kept */
 
@@ -314,6 +315,7 @@ function LoadPostAccountWizard()
   MigrateAttachmentDownloadStore();
   MigrateJunkMailSettings();
   MigrateFolderViews();
+  MigrateOpenMessageBehavior();
 
   accountManager.setSpecialFolders();
   accountManager.loadVirtualFolders();
@@ -932,6 +934,11 @@ function TreeOnMouseDown(event)
     }
 }
 
+function FolderPaneContextMenuNewTab()
+{
+  MsgOpenNewTabForFolder(gPrefBranch.getBoolPref("mail.contextMenuBackgroundTabs"));
+}
+
 function FolderPaneOnClick(event)
 {
   var folderTree = document.getElementById("folderTree");
@@ -939,7 +946,7 @@ function FolderPaneOnClick(event)
   // Middle click on a folder opens the folder in a tab
   if (event.button == 1)
   {
-    MsgOpenNewTabForFolder();
+    FolderPaneContextMenuNewTab();
     RestoreSelectionWithoutContentLoad(folderTree);
   }
   else if (event.button == 0)
@@ -962,6 +969,14 @@ function FolderPaneOnClick(event)
   }
 }
 
+function ThreadTreeContextMenuNewTab()
+{
+  document.getElementById('tabmail').openTab("message",
+      {msgHdr: gFolderDisplay.selectedMessage,
+       viewWrapperToClone: gFolderDisplay.view,
+       background: gPrefBranch.getBoolPref("mail.contextMenuBackgroundTabs")});
+}
+
 function ThreadTreeOnClick(event)
 {
   var threadTree = document.getElementById("threadTree");
@@ -969,7 +984,7 @@ function ThreadTreeOnClick(event)
   // Middle click on a message opens the message in a tab
   if (event.button == 1)
   {
-    MsgOpenNewTabForMessage();
+    ThreadTreeContextMenuNewTab();
     RestoreSelectionWithoutContentLoad(threadTree);
   }
 }
@@ -1067,6 +1082,34 @@ function MigrateAttachmentDownloadStore()
 
     // bump the version so we don't bother doing this again.
     gPrefBranch.setIntPref("mail.attachment.store.version", 1);
+  }
+}
+
+// Do a one-time migration of the old mailnews.reuse_message_window pref to the
+// newer mail.openMessageBehavior. This does the migration only if the old pref
+// is defined.
+function MigrateOpenMessageBehavior()
+{
+  let openMessageBehaviorVersion = gPrefBranch.getIntPref(
+                                     "mail.openMessageBehavior.version");
+  if (!openMessageBehaviorVersion)
+  {
+    let reuseMessageWindow;
+    try {
+      reuseMessageWindow = gPrefBranch.getBoolPref(
+                             "mailnews.reuse_message_window");
+    }
+    catch (e) {}
+
+    // Don't touch this if it isn't defined
+    if (reuseMessageWindow === true)
+      gPrefBranch.setIntPref("mail.openMessageBehavior",
+          MailConsts.OpenMessageBehavior.EXISTING_WINDOW);
+    else if (reuseMessageWindow === false)
+      gPrefBranch.setIntPref("mail.openMessageBehavior",
+          MailConsts.OpenMessageBehavior.NEW_TAB);
+
+    gPrefBranch.setIntPref("mail.openMessageBehavior.version", 1);
   }
 }
 

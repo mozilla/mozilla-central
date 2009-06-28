@@ -141,6 +141,12 @@ function run_test() {
   aci(2); // should still be the same...
 
   // -- toggleSelect
+  // start from nothing
+  sel.clearSelection();
+  sel.toggleSelect(1);
+  asr([1, 1]);
+  aci(1);
+
   // lower fusion
   sel.select(2);
   sel.toggleSelect(1);
@@ -441,4 +447,33 @@ function run_test() {
   asr();
   asp(-1);
   aci(-1);
+
+  // duplicateSelection (please keep this right at the end, as this modifies
+  // sel)
+  // no guarantees for the shift pivot yet, so don't test that
+  let oldSel = sel;
+  let newSel = new JSTreeSelection(fakeBox);
+  // multiple selections
+  oldSel.rangedSelect(1, 3, false);
+  oldSel.rangedSelect(5, 5, true);
+  oldSel.rangedSelect(10, 10, true);
+  oldSel.rangedSelect(6, 7, true);
+
+  oldSel.duplicateSelection(newSel);
+  // from now on we're only going to be checking newSel
+  sel = newSel;
+  asr([1, 3], [5, 7], [10, 10]);
+  aci(7);
+
+  // single selection
+  oldSel.select(4);
+  oldSel.duplicateSelection(newSel);
+  asr([4, 4]);
+  aci(4);
+
+  // nothing selected
+  oldSel.clearSelection();
+  oldSel.duplicateSelection(newSel);
+  asr();
+  aci(4);
 }

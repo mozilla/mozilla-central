@@ -324,8 +324,14 @@ MessageDisplayWidget.prototype = {
    * Called by the FolderDisplayWidget when it is being made active again and
    *  it's time for us to step up and re-display or clear the message as
    *  demanded by our multiplexed tab implementation.
+   *  
+   *  @param aDontReloadMessage [optional] true if you don't want to make us
+   *                            call reloadMessage even if the conditions are
+   *                            right for doing so. Use only when you're sure
+   *                            that you've already triggered a message load,
+   *                            and that a message reload would be harmful.
    */
-  makeActive: function MessageDisplayWidget_makeActive() {
+  makeActive: function MessageDisplayWidget_makeActive(aDontReloadMessage) {
     let wasInactive = !this._active;
     this._active = true;
 
@@ -343,8 +349,9 @@ MessageDisplayWidget.prototype = {
       //  value during this call (because we will receive a onDisplayingMessage
       //  notification).  If we should be displaying a single message but the
       //  value does not change, we need to force a re-display.
-      if (this.singleMessageDisplay && this.displayedMessage &&
-          (this.displayedMessage == preDisplayedMessage))
+      if (!aDontReloadMessage && this.singleMessageDisplay &&
+          this.displayedMessage && (this.displayedMessage ==
+                                    preDisplayedMessage))
         this.folderDisplay.view.dbView.reloadMessage();
     }
 

@@ -473,6 +473,7 @@ bin\components\newsblog.js
 bin\components\nsAbAutoCompleteMyDomain.js
 bin\components\nsAbAutoCompleteSearch.js
 bin\components\nsAbLDAPAttributeMap.js
+bin\components\nsMailNewsCommandLineHandler.js
 bin\components\nsMsgTraitService.js
 bin\components\nsSMTPProtocolHandler.js
 bin\components\offlineStartup.js

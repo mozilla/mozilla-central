@@ -395,6 +395,16 @@ pref("dom.disable_window_status_change",          true);
 pref("mail.emptyJunk.dontAskAgain", false);
 pref("mail.emptyTrash.dontAskAgain", false);
 
+// If a message is opened using Enter or a double click, what should we do?
+// 0 - open it in a new window
+// 1 - open it in an existing window
+// 2 - open it in a new tab
+pref("mail.openMessageBehavior", 2);
+pref("mail.openMessageBehavior.version", 0);
+// If messages or folders are opened using the context menu or a middle click,
+// should we open them in the foreground or in the background?
+pref("mail.contextMenuBackgroundTabs", true);
+
 // Tabs
 pref("mail.tabs.tabMinWidth", 100);
 pref("mail.tabs.tabMaxWidth", 250);

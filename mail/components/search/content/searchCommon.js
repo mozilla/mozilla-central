@@ -55,6 +55,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/iteratorUtils.jsm");
 Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource://app/modules/MailUtils.js");
 
 let SearchSupport =
 {
@@ -732,6 +733,30 @@ let SearchSupport =
     else
       this._log.info("queueing support file generation for id = " +
                      msgHdr.messageId);
+  },
+
+  /**
+   * Handle results from the command line. This method is the inverse of the
+   * _getSupportFile method below.
+   *
+   * @param aFile the file passed in by the command line
+   * @return the nsIMsgDBHdr corresponding to the file passed in
+   */
+  handleResult: function search_handle_result(aFile)
+  {
+    // The file path has two components -- the search path, which needs to be
+    // converted into a folder, and the message ID.
+    let searchPath = aFile.parent;
+    // Strip off ".mozmsgs" from the end (8 characters)
+    searchPath.leafName = searchPath.leafName.slice(0, -8);
+
+    let folder = this._getFolderForSearchPath(searchPath);
+
+    // Get rid of the file extension at the end (7 characters), and unescape
+    let messageID = decodeURIComponent(aFile.leafName.slice(0, -7));
+
+    // Look for the message ID in the folder
+    return folder.msgDatabase.getMsgHdrForMessageID(messageID);
   },
 
   _getSupportFile: function search_get_support_file(msgHdr)
