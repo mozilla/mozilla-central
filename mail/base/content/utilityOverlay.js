@@ -252,25 +252,33 @@ function buildHelpMenu()
     return strings.getString(key + "Fallback");
   }
 
-  // By default, show "Check for Updates..."
+  // By default, show "Check for Updates..." from updatesItem_default or
+  // updatesItem_defaultFallback
   var key = "default";
   if (activeUpdate) {
     switch (activeUpdate.state) {
     case "downloading":
       // If we're downloading an update at present, show the text:
-      // "Downloading Thunderbird x.x..." otherwise we're paused, and show
-      // "Resume Downloading Thunderbird x.x..."
+      // "Downloading Thunderbird x.x..." from updatesItem_downloading or
+      // updatesItem_downloadingFallback, otherwise we're paused, and show
+      // "Resume Downloading Thunderbird x.x..." from updatesItem_resume or
+      // updatesItem_resumeFallback
       key = updates.isDownloading ? "downloading" : "resume";
       break;
     case "pending":
       // If we're waiting for the user to restart, show: "Apply Downloaded
-      // Updates Now..."
+      // Updates Now..." from updatesItem_pending or
+      // updatesItem_pendingFallback
       key = "pending";
       break;
     }
   }
 
   checkForUpdates.label = getStringWithUpdateName("updatesItem_" + key);
+  // updatesItem_default.accesskey, updatesItem_downloading.accesskey,
+  // updatesItem_resume.accesskey or updatesItem_pending.accesskey
+  checkForUpdates.accessKey = strings.getString("updatesItem_" + key +
+                                                ".accesskey");
   if (um.activeUpdate && updates.isDownloading)
     checkForUpdates.setAttribute("loading", "true");
   else

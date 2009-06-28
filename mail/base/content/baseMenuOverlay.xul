@@ -76,7 +76,7 @@
       <menuseparator id="menu_HelpAboutSeparator"/>
       <menuitem id="checkForUpdates" class="menuitem-iconic"
 #ifdef MOZ_UPDATER
-                label="&updateCmd.label;" accesskey="&updateCmd.accesskey;"
+                label="&updateCmd.label;"
                 oncommand="checkForUpdates();"/>
 #else
                 hidden="true"/>
