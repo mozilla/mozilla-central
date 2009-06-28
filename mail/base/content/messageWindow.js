@@ -460,6 +460,11 @@ function displayMessage(aMsgHdr, aViewWrapperToClone)
   // window
   gMessageDisplay.aboutToLoadMessage = true;
 
+  // Clear our old selection, so that we don't load the old URL onCreatedView.
+  // Setting aboutToLoadMessage = true above means that we won't close the
+  // window because of this.
+  gFolderDisplay.clearSelection();
+
   if (aViewWrapperToClone)
     gFolderDisplay.cloneView(aViewWrapperToClone);
   else

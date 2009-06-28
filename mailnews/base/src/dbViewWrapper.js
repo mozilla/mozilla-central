@@ -146,7 +146,7 @@ var FolderNotificationHelper = {
    */
   stalkFolders: function FolderNotificationHelper_stalkFolders(
       aFolders, aNotherFolder, aViewWrapper) {
-    let folders = aFolders.concat();
+    let folders = aFolders ? aFolders.concat() : [];
     if (aNotherFolder && folders.indexOf(aNotherFolder) == -1)
       folders.push(aNotherFolder);
     for each (let [, folder] in Iterator(folders)) {
