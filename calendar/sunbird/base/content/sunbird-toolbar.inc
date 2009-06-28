@@ -125,4 +125,5 @@
                checked="true"
                label="&sunbird.unifinder.button.label;"
                tooltiptext="&sunbird.unifinder.button.tooltip;"
+               observes="calendar_show_unifinder_command"
                command="calendar_show_unifinder_command"/>

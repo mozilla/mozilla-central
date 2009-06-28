@@ -436,6 +436,7 @@
                   checked="true"
                   label="&showUnifinderCmd.label;"
                   accesskey="&showUnifinderCmd.accesskey;"
+                  observes="calendar_show_unifinder_command"
                   command="calendar_show_unifinder_command"/>
       </menupopup>
     </menu>
