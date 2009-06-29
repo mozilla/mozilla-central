@@ -196,7 +196,7 @@ activity-warning button {
 .activitygroupbox activity-event,
 .activitygroupbox activity-warning,
 .activitygroupbox activity-process {
-  -moz-padding-start: 2em;
+  -moz-padding-start: 3px;
 }
 
 activity-group button {
@@ -313,7 +313,7 @@ image.compactMail {
 /* these are copied from richlistbox.css, to give us a starting point on selection */
 
 .activityitem {
-  padding: 2px 4px;
+  padding: 6px 4px;
   background-color: -moz-Field;
   color: -moz-FieldText;
 }
