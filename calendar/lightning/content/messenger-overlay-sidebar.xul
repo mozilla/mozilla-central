@@ -443,22 +443,22 @@
   </menubar>
 
   <window id="messengerWindow">
-
     <!-- Be sure to keep these sets, since they will be overlayed by
          calendar/base/content/calendar-common-sets.xul -->
     <commandset id="calendar_commands">
       <command id="agenda_delete_event_command" oncommand="agendaListbox.deleteSelectedItem(false);"/>
       <command id="agenda_edit_event_command" oncommand="agendaListbox.editSelectedItem(event);"/>
-      <command id="switch2mail" checked="true"
-        oncommand="document.getElementById('tabmail').selectTabByMode('folder')"/>
+      <command id="switch2mail"
+               checked="true"
+               oncommand="document.getElementById('tabmail').selectTabByMode('folder')"/>
       <command id="switch2calendar"
-        oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') })"/>
+               oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') })"/>
       <command id="switch2task"
-        oncommand="document.getElementById('tabmail').openTab('tasks', { title: document.getElementById('task-tab-button').getAttribute('tooltiptext') })"/>
+               oncommand="document.getElementById('tabmail').openTab('tasks', { title: document.getElementById('task-tab-button').getAttribute('tooltiptext') })"/>
       <command id="new_calendar_tab"
-        oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') })"/>
+               oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') })"/>
       <command id="new_task_tab"
-        oncommand="document.getElementById('tabmail').openTab('tasks', { title: document.getElementById('task-tab-button').getAttribute('tooltiptext') })"/>
+               oncommand="document.getElementById('tabmail').openTab('tasks', { title: document.getElementById('task-tab-button').getAttribute('tooltiptext') })"/>
       <command id="calendar_go_to_today_command"
                oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') }); goToDate(now())"/>
     </commandset>
