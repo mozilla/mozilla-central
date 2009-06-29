@@ -52,11 +52,20 @@ radio[pane=paneCompose] {
 radio[pane=paneSecurity] {
   list-style-image: url("chrome://messenger/skin/preferences/security.png");
 }
-radio[pane=paneDownloads] {
+radio[pane=paneApplications] {
   list-style-image: url("chrome://messenger/skin/preferences/attachments.png");
 }
 radio[pane=paneAdvanced] {
   list-style-image: url("chrome://messenger/skin/preferences/advanced.png");
+}
+
+/* Attachments Pane */
+#MailPreferences[animated="true"] #handlersView {
+  height: 25em;
+}
+
+#MailPreferences[animated="false"] #handlersView {
+  -moz-box-flex: 1;
 }
 
 /* File Field Widget */
@@ -108,79 +117,6 @@ filefield[disabled="true"] .fileFieldIcon {
 
 .actionButtons {
   margin: 0px 3px 6px !important;
-}
-
-/* Download Actions Manager */
-#fileExtension {
-  width: 5em; 
-}
-
-#extensionChildren::-moz-tree-image(fileExtension) {
-  margin-top: 0px;
-  margin-bottom: 0px;
-  -moz-margin-start: 0px;
-  -moz-margin-end: 5px;
-}
-
-#typeField {
-  font-weight: bold; 
-}
-
-/* Change Action Dialog */
-#typeIcon {
-  width: 32px;
-  height: 32px;
-  -moz-margin-end: 3px;
-}
-
-#typeField {
-  background-color: transparent;
-  margin-top: 1px !important;
-  margin-bottom: 2px !important;
-  -moz-margin-start: 6px !important;
-  -moz-margin-end: 5px !important;
-}
-
-#extensionField {
-  color: GrayText;
-  font-weight: bold;
-}
-
-#ChangeActionDialog {
-  padding: 0px;
-}
-
-#ChangeActionDialog .dialog-button-box {
-  padding-top: 8px;
-  padding-bottom: 10px;
-  -moz-padding-start: 8px;
-  -moz-padding-end: 10px;
-}
-
-#changeActionHeader {
-  border-bottom: 2px groove ThreeDFace;
-  margin: 0px;
-  padding: 10px;
-  background-color: -moz-Field;
-  color: -moz-FieldText;  
-}
-
-#changeActionContent {
-  padding-top: 8px;
-  padding-bottom: 10px;
-  -moz-padding-start: 9px;
-  -moz-padding-end: 10px;
-}
-
-#defaultAppIcon {
-  width: 16px;
-  height: 16px;
-  -moz-margin-start: 2px;
-}
-
-#defaultAppName {
-  -moz-margin-start: 6px !important; 
-  font-weight: bold;
 }
 
 /* override the color style for tag items when they 

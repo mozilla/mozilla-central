@@ -206,6 +206,9 @@ pref("browser.preferences.animateFadeIn", true);
 pref("browser.preferences.animateFadeIn", false);
 #endif
 
+pref("browser.download.show_plugins_in_list", false);
+pref("browser.download.hide_plugins_without_extensions", true);
+
 pref("accessibility.typeaheadfind", false);
 pref("accessibility.typeaheadfind.timeout", 5000);
 pref("accessibility.typeaheadfind.linksonly", false);

@@ -22,7 +22,8 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Scott MacGregor <mscott@mozilla.org
+#   Scott MacGregor <mscott@mozilla.org>
+#   Magnus Melin <mkmelin+mozilla@iki.fi>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,6 +43,14 @@
 <?xml-stylesheet href="chrome://messenger/skin/preferences/preferences.css"?>
 <?xml-stylesheet href="chrome://mozapps/content/preferences/preferences.css"?>
 <?xml-stylesheet href="chrome://messenger/content/messenger.css"?>
+
+<!-- XXX This should be in applications.xul, but bug 393953 means putting it
+   - there causes the Applications pane not to work the first time you open
+   - the Preferences dialog in a browsing session, so we work around the problem
+   - by putting it here instead.
+   -->
+<?xml-stylesheet href="chrome://messenger/content/preferences/handlers.css"?>
+<?xml-stylesheet href="chrome://messenger/skin/preferences/applications.css"?>
 
 <!DOCTYPE prefwindow [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
@@ -79,7 +88,10 @@
             style="&prefWindow.styleGNOME;">
 #endif
 #endif
-  
+  <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
+  <stringbundle id="bundlePreferences"
+                src="chrome://messenger/locale/preferences/preferences.properties"/>
+
   <prefpane id="paneGeneral" label="&paneGeneral.title;"
             src="chrome://messenger/content/preferences/general.xul"/>
   <prefpane id="paneDisplay" label="&paneDisplay.title;"
@@ -88,8 +100,8 @@
             src="chrome://messenger/content/preferences/compose.xul"/>
   <prefpane id="paneSecurity" label="&paneSecurity.title;"
             src="chrome://messenger/content/preferences/security.xul"/>
-  <prefpane id="paneDownloads" label="&paneAttachments.title;"
-            src="chrome://messenger/content/preferences/downloads.xul"/>
+  <prefpane id="paneApplications" label="&paneAttachments.title;"
+            src="chrome://messenger/content/preferences/applications.xul"/>
   <prefpane id="paneAdvanced" label="&paneAdvanced.title;"
             src="chrome://messenger/content/preferences/advanced.xul"/>
 </prefwindow>

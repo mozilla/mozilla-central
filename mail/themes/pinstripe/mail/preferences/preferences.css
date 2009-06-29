@@ -108,11 +108,11 @@ radio[pane=paneSecurity]:active {
   -moz-image-region: rect(32px 128px 64px 96px);
 }
 
-radio[pane=paneDownloads] {
+radio[pane=paneApplications] {
   -moz-image-region: rect(0px 160px 32px 128px);
 }
 
-radio[pane=paneDownloads]:active {
+radio[pane=paneApplications]:active {
   -moz-image-region: rect(32px 160px 64px 128px);
 }
 
@@ -122,6 +122,15 @@ radio[pane=paneAdvanced] {
 
 radio[pane=paneAdvanced]:active {
   -moz-image-region: rect(32px, 256px, 64px, 224px)
+}
+
+/* Attachments Pane */
+#MailPreferences[animated="true"] #handlersView {
+  height: 25em;
+}
+
+#MailPreferences[animated="false"] #handlersView {
+  -moz-box-flex: 1;
 }
 
 #browserStartupHomepage {
@@ -134,24 +143,6 @@ radio[pane=paneAdvanced]:active {
 #downloadFolderIcon {
   width: 16px;
   height: 16px;
-}
-
-#downloadFolderContainer {
-  margin-top: 2px;
-  margin-bottom: 2px;
-  -moz-margin-start: 27px;
-  -moz-margin-end: 4px;
-  -moz-appearance: textfield;
-}
-
-#downloadFolderContainer2 {
-  background-color: -moz-Dialog;
-  color: -moz-DialogText;
-  margin: 1px;
-  padding-top: 0px;
-  padding-bottom: 0px;
-  -moz-padding-start: 3px;
-  -moz-padding-end: 0px;
 }
 
 #downloadFolder {

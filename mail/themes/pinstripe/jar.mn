@@ -94,7 +94,11 @@ classic.jar:
   skin/classic/messenger/messengercompose/small-button-pressed.png         (mail/compose/small-button-pressed.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/
   skin/classic/messenger-newsblog/feed-subscriptions.css         (mail/newsblog/feed-subscriptions.css)
+  skin/classic/messenger/preferences/alwaysAsk.png               (mail/preferences/alwaysAsk.png)
+  skin/classic/messenger/preferences/application.png             (mail/preferences/application.png)
+  skin/classic/messenger/preferences/saveFile.png                (mail/preferences/saveFile.png)
   skin/classic/messenger/preferences/preferences.css             (mail/preferences/preferences.css)
+  skin/classic/messenger/preferences/applications.css            (mail/preferences/applications.css)
   skin/classic/messenger/preferences/mail-options.png            (mail/preferences/mail-options.png)
   skin/classic/messenger/preferences/radio-selected-bg.png       (mail/preferences/radio-selected-bg.png)
   skin/classic/messenger/smime/msgCompSMIMEOverlay.css           (mail/smime/msgCompSMIMEOverlay.css)

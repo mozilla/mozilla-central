@@ -22,6 +22,7 @@
 # Contributor(s):
 #   Ben Goodger <ben@mozilla.org>
 #   Dan Mosedale <dmose@mozilla.org>
+#   Magnus Melin <mkmelin+mozilla@iki.fi>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,16 +38,16 @@
 #
 # ***** END LICENSE BLOCK *****
 
-var gDownloadsPane = {
+var gDownloadDirSection = {
   chooseFolder: function ()
   {
     const nsIFilePicker = Components.interfaces.nsIFilePicker;
     var fp = Components.classes["@mozilla.org/filepicker;1"]
                        .createInstance(nsIFilePicker);
     var bundlePreferences = document.getElementById("bundlePreferences");
-    var title = bundlePreferences.getString("chooseDownloadFolderTitle");
+    var title = bundlePreferences.getString("chooseAttachmentsFolderTitle");
     fp.init(window, title, nsIFilePicker.modeGetFolder);
-    
+
     const nsILocalFile = Components.interfaces.nsILocalFile;
     var customDirPref = document.getElementById("browser.download.dir");
     if (customDirPref.value)
@@ -60,26 +61,26 @@ var gDownloadsPane = {
       folderListPref.value = this._fileToIndex(file);
     }
   },
-  
+
   onReadUseDownloadDir: function ()
   {
     var downloadFolder = document.getElementById("downloadFolder");
     var chooseFolder = document.getElementById("chooseFolder");
     var preference = document.getElementById("browser.download.useDownloadDir");
     downloadFolder.disabled = !preference.value;
-    chooseFolder.disabled = !preference.value;      
+    chooseFolder.disabled = !preference.value;
     return undefined;
   },
-  
+
   _fileToIndex: function (aFile)
-  { 
+  {
     if (!aFile || aFile.equals(this._getDownloadsFolder("Desktop")))
       return 0;
     else if (aFile.equals(this._getDownloadsFolder("Downloads")))
       return 1;
     return 2;
   },
-  
+
   _indexToFile: function (aIndex)
   {
     switch (aIndex) {
@@ -91,7 +92,7 @@ var gDownloadsPane = {
     var customDirPref = document.getElementById("browser.download.dir");
     return customDirPref.value;
   },
-  
+
   _getSpecialFolderKey: function (aFolderType)
   {
     if (aFolderType == "Desktop")
@@ -115,21 +116,14 @@ var gDownloadsPane = {
   {
     var fileLocator = Components.classes["@mozilla.org/file/directory_service;1"]
                                 .getService(Components.interfaces.nsIProperties);
-    var dir = fileLocator.get(this._getSpecialFolderKey(aFolder), 
+    var dir = fileLocator.get(this._getSpecialFolderKey(aFolder),
                               Components.interfaces.nsILocalFile);
     if (aFolder != "Desktop")
       dir.append("My Downloads");
-      
+
     return dir;
   },
-  
-  _getDisplayNameOfFile: function (aFolder)
-  {
-    // TODO: would like to add support for 'Downloads on Macintosh HD' 
-    //       for OS X users.
-    return aFolder ? aFolder.path : "";
-  },
-  
+
   readDownloadDirPref: function ()
   {
     var folderListPref = document.getElementById("browser.download.folderList");
@@ -143,8 +137,8 @@ var gDownloadsPane = {
     else if (folderListPref.value == 1 || customIndex == 1) 
       downloadFolder.label = bundlePreferences.getString("myDownloadsFolderName");
     else
-      downloadFolder.label = this._getDisplayNameOfFile(customDirPref.value);
-    
+      downloadFolder.label = customDirPref.value ? customDirPref.value.path : "";
+
     var ios = Components.classes["@mozilla.org/network/io-service;1"]
                         .getService(Components.interfaces.nsIIOService);
     var fph = ios.getProtocolHandler("file")
@@ -153,32 +147,13 @@ var gDownloadsPane = {
     var downloadDir = currentDirPref.value || this._indexToFile(folderListPref.value);
     var urlspec = fph.getURLSpecFromFile(downloadDir);
     downloadFolder.image = "moz-icon://" + urlspec + "?size=16";
-    
+
     return undefined;
   },
-  
+
   writeFolderList: function ()
   {
     var currentDirPref = document.getElementById("browser.download.downloadDir");
     return this._fileToIndex(currentDirPref.value);
-  },
-  
-  showWhenStartingPrefChanged: function ()
-  {
-    document.getElementById("browser.download.manager.closeWhenDone")
-            .disabled = !document.getElementById("browser.download.manager.showWhenStarting").value;
-  },
-  
-  readShowWhenStartingPref: function ()
-  {
-    this.showWhenStartingPrefChanged();
-    return undefined;
-  },
-  
-  showFileTypeActions: function ()
-  {
-    document.documentElement.openWindow("Preferences:DownloadActions",
-                                        "chrome://messenger/content/preferences/downloadactions.xul",
-                                        "", null);
   }
 };
