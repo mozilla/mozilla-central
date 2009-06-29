@@ -133,9 +133,9 @@ PR_END_EXTERN_C
 #define	IMAP_OUT_OF_MEMORY                          5100
 #define IMAP_AUTH_SECURE_NOTSUPPORTED               5102
 #define IMAP_COPYING_MESSAGE_OF                     5103
-#define IMAP_LOGIN_DISABLED                         5104
 #define IMAP_MOVE_FOLDER_TO_TRASH                   5105
 #define IMAP_DELETE_NO_TRASH                        5106
 #define IMAP_DELETE_FOLDER_DIALOG_TITLE             5107
 #define IMAP_DELETE_FOLDER_BUTTON_LABEL             5108
+#define IMAP_LOGIN_DISABLED                         5109
 #endif /* _nsImapStringBundle_H__ */
