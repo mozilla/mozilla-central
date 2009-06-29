@@ -623,7 +623,7 @@ RegisterCommandLineHandlers(nsIComponentManager* compMgr, nsIFile* path,
                             const char *location, const char *type,
                             const nsModuleComponentInfo *info)
 {
-  nsresult rv;
+  nsresult rv = NS_OK;
   nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
   NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
 
