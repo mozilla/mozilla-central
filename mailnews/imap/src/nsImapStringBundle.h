@@ -63,17 +63,10 @@ PR_END_EXTERN_C
 #define	IMAP_STATUS_SENDING_LOGIN                                  5013
 #define	IMAP_STATUS_SENDING_AUTH_LOGIN                                  5014
 #define	IMAP_DOWNLOADING_MESSAGE                                  5015
-#define	IMAP_STATUS_GETTING_NAMESPACE                                  5020
-#define	IMAP_UPGRADE_NO_PERSONAL_NAMESPACE                                  5021
-#define	IMAP_UPGRADE_PROMPT_USER_2                                  5024
-#define	IMAP_UPGRADE_CUSTOM                                  5026
-#define	IMAP_UPGRADE_SUCCESSFUL                                  5028
 #define	IMAP_GETTING_ACL_FOR_FOLDER                                  5029
 #define	IMAP_GETTING_SERVER_INFO                                  5030
 #define	IMAP_GETTING_MAILBOX_INFO                                  5031
 #define	IMAP_EMPTY_MIME_PART                                  5032
-#define	IMAP_UNABLE_TO_SAVE_MESSAGE                                  5033
-#define	IMAP_NO_ONLINE_FOLDER                                  5034
 #define	IMAP_LOGIN_FAILED                                  5035
 #define	IMAP_RECEIVING_MESSAGE_HEADERS_OF                                  5036
 #define	IMAP_RECEIVING_MESSAGE_FLAGS_OF                                  5037
@@ -83,7 +76,6 @@ PR_END_EXTERN_C
 #define	IMAP_MOVING_MESSAGE_TO                  5041
 #define	IMAP_COPYING_MESSAGES_TO                5042
 #define	IMAP_COPYING_MESSAGE_TO                 5043
-#define	IMAP_SELECTING_MAILBOX                  5044
 #define IMAP_FOLDER_RECEIVING_MESSAGE_OF	5045
 #define IMAP_DISCOVERING_MAILBOX		5046
 #define IMAP_ENTER_PASSWORD_PROMPT		5047
@@ -96,8 +88,6 @@ PR_END_EXTERN_C
 #define IMAP_NET_TIMEOUT_ERROR                      5054
 #define IMAP_NO_NEW_MESSAGES                        5056
 #define IMAP_DEFAULT_ACCOUNT_NAME                   5057
-#define IMAP_HTML_NO_CACHED_BODY_TITLE              5059
-#define IMAP_HTML_NO_CACHED_BODY_BODY               5060
 #define IMAP_EMPTY_TRASH_CONFIRM                    5061
 #define IMAP_PERSONAL_FILING_CABINET                5062
 #define IMAP_PFC_READ_MAIL                          5063
@@ -120,11 +110,9 @@ PR_END_EXTERN_C
 #define IMAP_ACL_CREATE_RIGHT                       5080
 #define IMAP_ACL_DELETE_RIGHT                       5081
 #define IMAP_ACL_ADMINISTER_RIGHT                   5082
-#define IMAP_UNKNOWN_USER                           5083
 #define IMAP_SERVER_DOESNT_SUPPORT_ACL              5084
 #define IMAP_ACL_EXPUNGE_RIGHT                      5085
 #define IMAP_SERVER_DISCONNECTED                    5090
-#define IMAP_REDIRECT_LOGIN_FAILED                  5091
 #define IMAP_SUBSCRIBE_PROMPT                       5092
 #define IMAP_SERVER_DROPPED_CONNECTION              5093
 #define IMAP_QUOTA_STATUS_FOLDERNOTOPEN             5095
