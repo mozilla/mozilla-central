@@ -1712,6 +1712,27 @@ function GenericSendMessage( msgType )
           {
             blockquotes[i].parentNode.removeChild(blockquotes[i]);
           }
+          // For plaintext composition the quotes we need to find and exclude are
+          // normally <span _moz_quote="true">. If editor.quotesPreformatted is
+          // set we should exclude <pre _moz_quote="true"> nodes instead.
+          if (!getPref("editor.quotesPreformatted"))
+          {
+            let spans = mailBodyNode.getElementsByTagName("span");
+            for (let i = 0; i < spans.length; i++)
+            {
+              if (spans[i].hasAttribute("_moz_quote"))
+                spans[i].parentNode.removeChild(spans[i]);
+            }
+          }
+          else
+          {
+            let pres = mailBodyNode.getElementsByTagName("pre");
+            for (let i = 0; i < pres.length; i++)
+            {
+              if (pres[i].hasAttribute("_moz_quote"))
+                pres[i].parentNode.removeChild(pres[i]);
+            }
+          }
           var mailData = mailBodyNode.textContent;
 
           function escapeRegxpSpecials(inputString) {
