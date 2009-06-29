@@ -1487,10 +1487,8 @@ function ComposeLoad()
   catch (ex) {
     dump("EX: = " + ex + "\n");
     var bundle = document.getElementById("bundle_composeMsgs");
-    var errorTitle = bundle.getString("initErrorDlogTitle");
-    var errorMsg = bundle.getFormattedString("initErrorDlogMessage", [""]);
-
-    gPromptService.alert(window, errorTitle, errorMsg);
+    gPromptService.alert(window, bundle.getString("initErrorDlogTitle"),
+                         bundle.getFormattedString("initErrorDlogMessage", [""]));
 
     MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
     return;
@@ -1783,14 +1781,13 @@ function GenericSendMessage( msgType )
         {
           // default to ask user if the pref is not set
           var dontAskAgain = getPref("mail.compose.dontWarnMail2Newsgroup");
-
           if (!dontAskAgain)
           {
             var checkbox = {value:false};
             var bundle = document.getElementById("bundle_composeMsgs");
             var okToProceed = gPromptService.confirmCheck(
                                   window,
-                                  bundle.getString("sendMsgTitle"),
+                                  bundle.getString("noNewsgroupSupportTitle"),
                                   bundle.getString("recipientDlogMessage"),
                                   bundle.getString("CheckMsg"),
                                   checkbox);
@@ -1957,10 +1954,10 @@ function CheckValidEmailAddress(to, cc, bcc)
   if (invalidStr)
   {
     var bundle = document.getElementById("bundle_composeMsgs");
-    var errorTitle = bundle.getString("sendMsgTitle");
-    var errorMsg = bundle.getFormattedString("addressInvalid", [invalidStr], 1);
     if (gPromptService)
-      gPromptService.alert(window, errorTitle, errorMsg);
+      gPromptService.alert(window, bundle.getString("addressInvalidTitle"),
+                           bundle.getFormattedString("addressInvalid",
+                                                     [invalidStr], 1));
     return false;
   }
   return true;
