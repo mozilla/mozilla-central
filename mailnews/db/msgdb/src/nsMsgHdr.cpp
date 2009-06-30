@@ -281,37 +281,49 @@ NS_IMETHODIMP nsMsgHdr::MarkFlagged(PRBool bFlagged)
 NS_IMETHODIMP nsMsgHdr::GetProperty(const char *propertyName, nsAString &resultProperty)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
-  return m_mdb->GetPropertyAsNSString(GetMDBRow(), propertyName, resultProperty);
+  if (!m_mdb || !m_mdbRow)
+    return NS_ERROR_NULL_POINTER;
+  return m_mdb->GetPropertyAsNSString(m_mdbRow, propertyName, resultProperty);
 }
 
 NS_IMETHODIMP nsMsgHdr::SetProperty(const char *propertyName, const nsAString &propertyStr)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
+  if (!m_mdb || !m_mdbRow)
+    return NS_ERROR_NULL_POINTER;
   return m_mdb->SetPropertyFromNSString(m_mdbRow, propertyName, propertyStr);
 }
 
 NS_IMETHODIMP nsMsgHdr::SetStringProperty(const char *propertyName, const char *propertyValue)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
+  if (!m_mdb || !m_mdbRow)
+    return NS_ERROR_NULL_POINTER;
   return m_mdb->SetProperty(m_mdbRow, propertyName, propertyValue);
 }
 
 NS_IMETHODIMP nsMsgHdr::GetStringProperty(const char *propertyName, char **aPropertyValue)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
+  if (!m_mdb || !m_mdbRow)
+    return NS_ERROR_NULL_POINTER;
   return m_mdb->GetProperty(m_mdbRow, propertyName, aPropertyValue);
 }
 
 NS_IMETHODIMP nsMsgHdr::GetUint32Property(const char *propertyName, PRUint32 *pResult)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
-  return m_mdb->GetUint32Property(GetMDBRow(), propertyName, pResult);
+  if (!m_mdb || !m_mdbRow)
+    return NS_ERROR_NULL_POINTER;
+  return m_mdb->GetUint32Property(m_mdbRow, propertyName, pResult);
 }
 
 NS_IMETHODIMP nsMsgHdr::SetUint32Property(const char *propertyName, PRUint32 value)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
-  return m_mdb->SetUint32Property(GetMDBRow(), propertyName, value);
+  if (!m_mdb || !m_mdbRow)
+    return NS_ERROR_NULL_POINTER;
+  return m_mdb->SetUint32Property(m_mdbRow, propertyName, value);
 }
 
 
