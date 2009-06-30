@@ -815,6 +815,11 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
     m_flags.InsertElementsAt(newIndex + 1, threadFlags);
     m_levels.InsertElementsAt(newIndex + 1, threadLevels);
   }
+  if (newIndex == nsMsgViewIndex_None)
+  {
+     NS_WARNING("newIndex=-1 in MoveThreadAt");
+     newIndex = 0;
+  }
   m_flags[newIndex] = saveFlags;
   // unfreeze selection.
   if (hasSelection)
