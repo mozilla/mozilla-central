@@ -7822,7 +7822,8 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
 
   nsAutoString newLeafName;
   nsAutoString newNameString;
-  CopyASCIItoUTF16(newName, newNameString);
+  rv = CopyMUTF7toUTF16(PromiseFlatCString(newName), newNameString);
+  NS_ENSURE_SUCCESS(rv, rv);
   newLeafName = newNameString;
   nsAutoString parentName;
   nsAutoString folderNameStr;
