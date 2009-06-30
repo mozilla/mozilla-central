@@ -790,81 +790,14 @@ DBViewWrapper.prototype = {
     }
 
     this.beginViewUpdate();
-    let msgDatabase = this.displayedFolder.msgDatabase;
-    if (msgDatabase) {
-      let dbFolderInfo = msgDatabase.dBFolderInfo;
-      // - retrieve persisted sort information
-      this._sort = [[dbFolderInfo.sortType, dbFolderInfo.sortOrder]];
-
-      // - retrieve persisted display settings
-      this.__viewFlags = dbFolderInfo.viewFlags;
-      // Make sure the threaded bit is set if group-by-sort is set.  The views
-      //  encode 3 states in 2-bits, and we want to avoid that odd-man-out
-      //  state.
-      if (this.__viewFlags & nsMsgViewFlagsType.kGroupBySort) {
-        this.__viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
-        this._ensureValidSort();
-      }
-
-      // - retrieve virtual folder configuration
-      if (aFolder.flags & nsMsgFolderFlags.Virtual) {
-        let virtFolder = VirtualFolderHelper.wrapVirtualFolder(aFolder);
-        // Filter out the server roots; they only exist for UI reasons.
-        this._underlyingFolders =
-          [folder for each ([, folder] in Iterator(virtFolder.searchFolders))
-                  if (!folder.isServer)];
-        this._underlyingData = (this._underlyingFolders.length > 1) ?
-                               this.kUnderlyingMultipleFolder :
-                               this.kUnderlyingRealFolder;
-
-        // figure out if we are using online IMAP searching
-        this.search.onlineSearch = virtFolder.onlineSearch;
-
-        // retrieve and chew the search query
-        this.search.virtualFolderTerms = virtFolder.searchTerms;
-      }
-      else {
-        this._underlyingData = this.kUnderlyingRealFolder;
-        this._underlyingFolders = [this.displayedFolder];
-      }
-
-      FolderNotificationHelper.stalkFolders(this._underlyingFolders,
-                                            this.displayedFolder,
-                                            this);
-
-      // - retrieve mail view configuration
-      if (this.listener.shouldUseMailViews) {
-        // if there is a view tag (basically ":tagname"), then it's a
-        //  mailview tag.  clearly.
-        let mailViewTag = dbFolderInfo.getCharProperty(
-                            MailViewConstants.kViewCurrentTag);
-        if (mailViewTag && mailViewTag != "0") {
-          // the tag gets stored with a ":" on the front, presumably done
-          //  as a means of name-spacing that was never subsequently leveraged.
-          if (mailViewTag[0] == ":")
-            mailViewTag = mailViewTag.substr(1);
-          // (the true is so we don't persist)
-          this.setMailView(MailViewConstants.kViewItemTags, mailViewTag, true);
-        }
-        // otherwise it's just an index. we kinda-sorta migrate from old-school
-        //  $label tags, except someone reused one of the indices for
-        //  kViewItemNotDeleted, which means that $label2 can no longer be
-        //  migrated.
-        else {
-          let mailViewIndex = dbFolderInfo.getUint32Property(
-                                MailViewConstants.kViewCurrent,
-                                MailViewConstants.kViewItemAll);
-          // label migration per above
-          if ((mailViewIndex == MailViewConstants.kViewItemTags) ||
-              ((MailViewConstants.kViewItemTags + 2 <= mailViewIndex) &&
-               (mailViewIndex < MailViewConstants.kViewItemVirtual)))
-            this.setMailView(MailViewConstants.kViewItemTags,
-                             "$label" + (mailViewIndex-1));
-          else
-            this.setMailView(mailViewIndex);
-        }
-      }
-    }
+    let msgDatabase;
+    try {
+      // This will throw an exception if the .msf file is missing,
+      // out of date (e.g., the local folder has changed), or corrupted.
+      msgDatabase = this.displayedFolder.msgDatabase;
+    } catch (e) {}
+    if (msgDatabase)
+      this._prepareToLoadView(msgDatabase, aFolder);
 
     if (!this.isVirtual) {
       this.folderLoading = true;
@@ -963,6 +896,9 @@ DBViewWrapper.prototype = {
    *   database exists and the number of total messages (current and pending)
    *   is <= 0 (which I presume means no messages or a bunch pending
    *   deletion?)
+   *   If _underlyingFolders == null, we failed to open the database,
+   *   so we need to wait for UpdateFolder to reparse the folder (in the
+   *   local folder case).
    * - Wait on updateFolder if our poor man's security via
    *   "mail.password_protect_local_cache" preference is enabled and the
    *   server requires a password to login.  This is accomplished by asking our
@@ -979,9 +915,88 @@ DBViewWrapper.prototype = {
       function DBViewWrapper_showShowMessagesForFolderImmediately() {
     return (this.isVirtual ||
             !(this.displayedFolder.manyHeadersToDownload ||
+              this._underlyingFolders == null ||
               this.listener.shouldDeferMessageDisplayUntilAfterServerConnect));
   },
+  /**
+   * Extract information about the view from the dbFolderInfo (e.g., sort type,
+   * sort order, current view flags, etc), and save in the view wrapper.
+   */
+  _prepareToLoadView:
+      function DBViewWrapper_prepareToLoadView(msgDatabase, aFolder) {
+    let dbFolderInfo = msgDatabase.dBFolderInfo;
+    // - retrieve persisted sort information
+    this._sort = [[dbFolderInfo.sortType, dbFolderInfo.sortOrder]];
 
+    // - retrieve persisted display settings
+    this.__viewFlags = dbFolderInfo.viewFlags;
+    // Make sure the threaded bit is set if group-by-sort is set.  The views
+    //  encode 3 states in 2-bits, and we want to avoid that odd-man-out
+    //  state.
+    if (this.__viewFlags & nsMsgViewFlagsType.kGroupBySort) {
+      this.__viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
+      this._ensureValidSort();
+    }
+
+    // - retrieve virtual folder configuration
+    if (aFolder.flags & nsMsgFolderFlags.Virtual) {
+      let virtFolder = VirtualFolderHelper.wrapVirtualFolder(aFolder);
+      // Filter out the server roots; they only exist for UI reasons.
+      this._underlyingFolders =
+        [folder for each ([, folder] in Iterator(virtFolder.searchFolders))
+                if (!folder.isServer)];
+      this._underlyingData = (this._underlyingFolders.length > 1) ?
+                             this.kUnderlyingMultipleFolder :
+                             this.kUnderlyingRealFolder;
+
+      // figure out if we are using online IMAP searching
+      this.search.onlineSearch = virtFolder.onlineSearch;
+
+      // retrieve and chew the search query
+      this.search.virtualFolderTerms = virtFolder.searchTerms;
+    }
+    else {
+      this._underlyingData = this.kUnderlyingRealFolder;
+      this._underlyingFolders = [this.displayedFolder];
+    }
+
+    FolderNotificationHelper.stalkFolders(this._underlyingFolders,
+                                          this.displayedFolder,
+                                          this);
+
+    // - retrieve mail view configuration
+    if (this.listener.shouldUseMailViews) {
+      // if there is a view tag (basically ":tagname"), then it's a
+      //  mailview tag.  clearly.
+      let mailViewTag = dbFolderInfo.getCharProperty(
+                          MailViewConstants.kViewCurrentTag);
+      if (mailViewTag && mailViewTag != "0") {
+        // the tag gets stored with a ":" on the front, presumably done
+        //  as a means of name-spacing that was never subsequently leveraged.
+        if (mailViewTag[0] == ":")
+          mailViewTag = mailViewTag.substr(1);
+        // (the true is so we don't persist)
+        this.setMailView(MailViewConstants.kViewItemTags, mailViewTag, true);
+      }
+      // otherwise it's just an index. we kinda-sorta migrate from old-school
+      //  $label tags, except someone reused one of the indices for
+      //  kViewItemNotDeleted, which means that $label2 can no longer be
+      //  migrated.
+      else {
+        let mailViewIndex = dbFolderInfo.getUint32Property(
+                              MailViewConstants.kViewCurrent,
+                              MailViewConstants.kViewItemAll);
+        // label migration per above
+        if ((mailViewIndex == MailViewConstants.kViewItemTags) ||
+            ((MailViewConstants.kViewItemTags + 2 <= mailViewIndex) &&
+             (mailViewIndex < MailViewConstants.kViewItemVirtual)))
+          this.setMailView(MailViewConstants.kViewItemTags,
+                           "$label" + (mailViewIndex-1));
+        else
+          this.setMailView(mailViewIndex);
+      }
+    }
+  },
 
   /**
    * Creates a view appropriate to the current settings of the folder display
@@ -1075,6 +1090,13 @@ DBViewWrapper.prototype = {
   _folderLoaded: function DBViewWrapper__folderLoaded(aFolder) {
     if (aFolder == this.displayedFolder) {
       this.folderLoading = false;
+      // If _underlyingFolders is null, DBViewWrapper_open probably got
+      // an exception trying to open the db, but after reparsing the local
+      // folder, we should have a db, so set up the view based on info 
+      // from the db.
+      if (this._underlyingFolders == null) {
+        this._prepareToLoadView(aFolder.msgDatabase, aFolder);
+      }
       this._enterFolder();
       this.listener.onAllMessagesLoaded();
     }
