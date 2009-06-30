@@ -310,17 +310,6 @@ function NewFolder(name, folder)
   folder.createSubfolder(name, msgWindow);
 }
 
-function UnSubscribe(folder)
-{
-  // Unsubscribe the current folder from the newsserver, this assumes any confirmation has already
-  // been made by the user  SPL
-
-  var server = folder.server;
-  var subscribableServer = server.QueryInterface(Components.interfaces.nsISubscribableServer);
-  subscribableServer.unsubscribe(folder.name);
-  subscribableServer.commitSubscribeChanges();
-}
-
 function Subscribe(preselectedMsgFolder)
 {
   window.openDialog("chrome://messenger/content/subscribe.xul",

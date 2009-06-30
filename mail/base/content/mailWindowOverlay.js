@@ -1597,13 +1597,21 @@ function ConfirmUnsubscribe(folders)
 }
 
 /**
- * Unsubscribe from selected newsgroup/s.
+ * Unsubscribe from selected or passed in newsgroup/s.
+ * @param newsgroups (optional param) the newsgroup folders to unsubscribe from
  */
-function MsgUnsubscribe()
+function MsgUnsubscribe(newsgroups)
 {
-  var folders = gFolderTreeView.getSelectedFolders();
-  if (ConfirmUnsubscribe(folders))
-    UnSubscribe(folders);
+  var folders = newsgroups || gFolderTreeView.getSelectedFolders();
+  if (!ConfirmUnsubscribe(folders))
+    return;
+
+  for (let i = 0; i < folders.length; i++) {
+    let subscribableServer = folders[i].server.QueryInterface(
+      Components.interfaces.nsISubscribableServer);
+    subscribableServer.unsubscribe(folders[i].name);
+    subscribableServer.commitSubscribeChanges();
+  }
 }
 
 function ToggleFavoriteFolderFlag()
