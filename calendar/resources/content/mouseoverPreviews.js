@@ -18,16 +18,18 @@
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Garth Smedley <garths@oeone.com>
- *                 Mike Potter <mikep@oeone.com>
- *                 Chris Charabaruk <coldacid@meldstar.com>
- *                 Colin Phillips <colinp@oeone.com>
- *                 Karl Guertin <grayrest@grayrest.com>
- *                 Mike Norton <xor@ivwnet.com>
- *                 ArentJan Banck <ajbanck@planet.nl>
- *                 Eric Belhaire <belhaire@ief.u-psud.fr>
- *                 Philipp Kewisch <mozilla@kewis.ch>
- *                 Berend Cornelius <berend.cornelius@sun.com>
+ * Contributor(s):
+ *   Garth Smedley <garths@oeone.com>
+ *   Mike Potter <mikep@oeone.com>
+ *   Chris Charabaruk <coldacid@meldstar.com>
+ *   Colin Phillips <colinp@oeone.com>
+ *   Karl Guertin <grayrest@grayrest.com>
+ *   Mike Norton <xor@ivwnet.com>
+ *   ArentJan Banck <ajbanck@planet.nl>
+ *   Eric Belhaire <belhaire@ief.u-psud.fr>
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -79,42 +81,12 @@ function showToolTip(aToolTip, aItem) {
             holderBox = getPreviewForTask(aItem);
         }
         if (holderBox) {
-            setToolTipContent(aToolTip, holderBox);
+            removeChildren(aToolTip);
+            aToolTip.appendChild(holderBox);
             return true;
         }
     }
     return false;
-}
-
-/**
- * Removes old content from tooltip, adds new content box to tooltip,
- * then resizes the tooltip to the size of the new content box.
- *
- * @param tooltip       The tooltip to modify.
- * @param holderBox     The box element containing the new content.
- */
-function setToolTipContent(toolTip, holderBox)
-{
-  while (toolTip.hasChildNodes()) {
-    toolTip.removeChild( toolTip.firstChild );
-  }
-
-  // workaround bug 369225 (aspect: tooltip may not shrink height)
-  toolTip.sizeTo(0, 0);
-
-  toolTip.appendChild( holderBox );
-  var width = holderBox.boxObject.width;
-  var height = holderBox.boxObject.height;
-
-  // workaround bug 369225 (aspect: tooltip height too short)
-  // Add top and bottom border and padding to workaround bug where bottom
-  // tooltip border disappears if wrapped description below header grid.
-  height += 1 + 2 + 2 + 1;
-
-  // workaround bug 390313 (aspect: tooltip width too short)
-  width += 6;
-
-  toolTip.sizeTo(width, height);
 }
 
 /**
