@@ -250,9 +250,6 @@
       <toolbaritem id="nav-bar-inner" align="center" flex="1" persist="width"
                  class="chromeclass-location"
                  title="&locationBar.title;">
-        <!-- Need hidden label on textbox for accessibility, because what
-             receives focus needs a text name -->
-        <label control="urlbar" hidden="true" value="&locationBar.title;"/>
         <textbox id="urlbar" class="chromeclass-location uri-element" flex="1"
                  type="autocomplete" autocompletesearch="history file"
                  timeout="50" maxrows="6"
@@ -261,6 +258,7 @@
                  showcommentcolumn="true"
                  inputtooltiptext="&locationBar.tooltip;"
                  newlines="stripsurroundingwhitespace"
+                 aria-label="&locationBar.title;"
                  oninput="gBrowser.userTypedValue = this.value;"
                  ontextentered="return handleURLBarCommand(eventParam, domEvent);"
                  ontextreverted="return handleURLBarRevert();"
