@@ -23,6 +23,7 @@
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -66,16 +67,9 @@ calItipEmailTransport.prototype = {
     },
 
     mHasXpcomMail: false,
-    mAccountMgrSvc: null,
     mDefaultAccount: null,
-    mDefaultSmtpServer: null,
-
-    // we need to reconsider whether we should tie the used identity/account to the itip transport
-
     mDefaultIdentity: null,
-    get defaultIdentity() {
-        return this.mDefaultIdentity.email;
-    },
+    mDefaultSmtpServer: null,
 
     get scheme() {
         return "mailto";
@@ -168,22 +162,20 @@ calItipEmailTransport.prototype = {
         this.mHasXpcomMail = true;
 
         try {
-            this.mAccountMgrSvc =
-                 Components.classes["@mozilla.org/messenger/account-manager;1"].
-                 getService(Components.interfaces.nsIMsgAccountManager);
-
-            var smtpSvc = Components.classes["@mozilla.org/messengercompose/smtp;1"].
-                          getService(Components.interfaces.nsISmtpService);
+            let smtpSvc = Components.classes["@mozilla.org/messengercompose/smtp;1"]
+                                    .getService(Components.interfaces.nsISmtpService);
             this.mSmtpServer = smtpSvc.defaultServer;
 
-            this.mDefaultAccount = this.mAccountMgrSvc.defaultAccount;
+            let accountMgrSvc = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                                          .getService(Components.interfaces.nsIMsgAccountManager);
+            this.mDefaultAccount = accountMgrSvc.defaultAccount;
             this.mDefaultIdentity = this.mDefaultAccount.defaultIdentity;
 
             if (!this.mDefaultIdentity) {
                 // If there isn't a default identity (i.e Local Folders is your
                 // default identity, then go ahead and use the first available
                 // identity.
-                var allIdentities = this.mAccountMgrSvc.allIdentities;
+                let allIdentities = accountMgrSvc.allIdentities;
                 if (allIdentities.Count() > 0) {
                     this.mDefaultIdentity = allIdentities.GetElementAt(0)
                                                          .QueryInterface(Components.interfaces.nsIMsgIdentity);

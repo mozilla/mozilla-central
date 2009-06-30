@@ -1,4 +1,3 @@
-/* -*- Mode: idl; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -14,13 +13,15 @@
  *
  * The Original Code is Simdesk Technologies code.
  *
- * The Initial Developer of the Original Code is Simdesk Technologies Inc.
+ * The Initial Developer of the Original Code is
+ * Simdesk Technologies Inc.
  * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,22 +47,12 @@ interface calIDateTime;
  * calIItipTransport is a generic transport interface that is implemented
  * by transports (eg: email, XMPP, etc.) wishing to send calIItipItems
  */
-[scriptable, uuid(d9e439da-1014-42f9-be40-aa7e878b8a7d)]
+[scriptable, uuid(be4aceee-63dc-11de-a8d5-95f255d89593)]
 interface calIItipTransport : nsISupports
 {
     /**
-     * Default identity for me within this transport. For example, this is
-     * your default email address in Thunderbird.
-     *
-     * XXX This should probably go away, using the default identity is far
-     * from practical. Only user right now is calUtils's sendItipInvitation.
-     * See bug 431126.
-     */
-    readonly attribute AUTF8String defaultIdentity;
-
-    /**
      * Scheme to be used to prefix attendees. For example, the Email transport
-     * should reuturn "mailto".
+     * should return "mailto".
      */
     readonly attribute AUTF8String scheme;
 

@@ -2087,10 +2087,6 @@ calDavCalendar.prototype = {
     // calIItipTransport interface
     //
 
-    get defaultIdentity caldav_get_defaultIdentity() {
-        return this.calendarUserAddress;
-    },
-
     get scheme caldav_get_scheme() {
         return "mailto";
     },
