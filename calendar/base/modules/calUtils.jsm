@@ -414,9 +414,11 @@ let cal = {
     },
 
     createLocaleCollator: function cal_createLocaleCollator() {
-      var localeService = generateServiceAccessor("@mozilla.org/intl/nslocaleservice;1");
-      return generateServiceAccessor("@mozilla.org/intl/collation-factory;1")
-            .CreateCollation(localeService.getApplicationLocale());
+        let localeService = Components.classes["@mozilla.org/intl/nslocaleservice;1"]
+                                      .getService(Components.interfaces.nsILocaleService);
+        return Components.classes["@mozilla.org/intl/collation-factory;1"]
+                         .getService(Components.interfaces.nsICollationFactory)
+                         .CreateCollation(localeService.getApplicationLocale());
      },
 
     /**

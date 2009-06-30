@@ -126,16 +126,6 @@ function createRelation() {
     return Components.classes["@mozilla.org/calendar/relation;1"].
            createInstance(Components.interfaces.calIRelation);
 }
-
-function createLocaleCollator() {
-  var localeService = Components
-        .classes["@mozilla.org/intl/nslocaleservice;1"]
-        .getService(Components.interfaces.nsILocaleService);
-  return Components
-        .classes["@mozilla.org/intl/collation-factory;1"]
-        .getService(Components.interfaces.nsICollationFactory)
-        .CreateCollation(localeService.getApplicationLocale());
- }
  
 /* Shortcut to the console service */
 function getConsoleService() {
