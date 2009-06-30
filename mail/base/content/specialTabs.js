@@ -257,7 +257,8 @@ var specialTabs = {
                   .getService(Components.interfaces.nsIURLFormatter)
                   .formatURLPref("mailnews.start_page.override_url");
 
-    document.getElementById('tabmail').openTab("contentTab", startpage);
+    document.getElementById('tabmail').openTab("contentTab",
+                                               { contentPage: startpage });
   },
 
   /**
@@ -307,8 +308,8 @@ var specialTabs = {
         popup: null,
         callback: function(aNotificationBar, aButton) {
           // Show the about:rights tab
-          document.getElementById('tabmail').openTab("contentTab",
-                                                     "about:rights");
+          document.getElementById('tabmail')
+                  .openTab("contentTab", { contentPage: "about:rights" });
         }
       }
     ];
