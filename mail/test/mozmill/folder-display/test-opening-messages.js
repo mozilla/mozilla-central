@@ -81,6 +81,8 @@ function test_open_single_message_in_tab() {
   let msgHdr = select_click_row(1);
   // Open it
   open_selected_message();
+  // This is going to trigger a message display in the main 3pane window
+  wait_for_message_display_completion(mc);
   // Check that the tab count has increased by 1
   assert_number_of_tabs_open(preCount + 1);
   // Check that the currently displayed tab is a message tab (i.e. our newly
@@ -108,6 +110,8 @@ function test_open_multiple_messages_in_tabs() {
   let selectedMessages = select_shift_click_row(NUM_MESSAGES_TO_OPEN);
   // Open them
   open_selected_messages();
+  // This is going to trigger a message display in the main 3pane window
+  wait_for_message_display_completion(mc);
   // Check that the tab count has increased by the correct number
   assert_number_of_tabs_open(preCount + NUM_MESSAGES_TO_OPEN);
   // Check that the currently displayed tab is a message tab (i.e. one of our

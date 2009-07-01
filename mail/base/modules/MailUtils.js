@@ -129,42 +129,88 @@ var MailUtils =
   },
 
   /**
-   * Displays this message header in a new tab, a new window or an existing
+   * Display this message header in a new tab, a new window or an existing
    * window, depending on the preference and whether a 3pane or standalone
    * window is already open. This function should be called when you'd like to
    * display a message to the user according to the pref set.
    *
+   * @note Do not use this if you want to open multiple messages at once. Use
+   *       |displayMessages| instead.
+   *
    * @param aMsgHdr the message header to display
+   * @param [aViewWrapperToClone] a view wrapper to clone. If null or not
+   *                              given, the message header's folder's default
+   *                              view will be used
+   * @param [aTabmail] a tabmail element to use in case we need to open tabs.
+   *                   If null or not given:
+   *                   - if one or more 3pane windows are open, the most recent
+   *                     one's tabmail is used
+   *                   - if no 3pane windows are open, a standalone window is
+   *                     opened instead of a tab
    */
-  displayMessage: function MailUtils_displayMessage(aMsgHdr) {
+  displayMessage: function MailUtils_displayMessage(aMsgHdr,
+                      aViewWrapperToClone, aTabmail) {
+    this.displayMessages([aMsgHdr], aViewWrapperToClone, aTabmail);
+  },
+
+  /**
+   * Display these message headers in new tabs, new windows or existing
+   * windows, depending on the preference, the number of messages, and whether
+   * a 3pane or standalone window is already open. This function should be
+   * called when you'd like to display multiple messages to the user according
+   * to the pref set.
+   *
+   * @param aMsgHdrs an array containing the message headers to display. The
+   *                 array should contain at least one message header
+   * @param [aViewWrapperToClone] a DB view wrapper to clone for each of the
+   *                              tabs or windows
+   * @param [aTabmail] a tabmail element to use in case we need to open tabs.
+   *                   If given, the window containing the tabmail is assumed
+   *                   to be in front. If null or not given:
+   *                   - if one or more 3pane windows are open, the most recent
+   *                     one's tabmail is used, and the window is brought to the
+   *                     front
+   *                   - if no 3pane windows are open, standalone windows are
+   *                     opened instead of tabs
+   */
+  displayMessages: function MailUtils_displayMessages(aMsgHdrs,
+                       aViewWrapperToClone, aTabmail) {
     let openMessageBehavior = this._prefBranch.getIntPref(
                                   "mail.openMessageBehavior");
 
     if (openMessageBehavior == MC.OpenMessageBehavior.NEW_WINDOW) {
-      this.openMessageInNewWindow(aMsgHdr);
+      this.openMessagesInNewWindows(aMsgHdrs, aViewWrapperToClone);
     }
     else if (openMessageBehavior == MC.OpenMessageBehavior.EXISTING_WINDOW) {
-      // Try reusing an existing window. If we can't, fall back to opening a
-      // new window
-      if (!this.openMessageInExistingWindow(aMsgHdr))
-        this.openMessageInNewWindow(aMsgHdr);
+      // Try reusing an existing window. If we can't, fall back to opening new
+      // windows
+      if (aMsgHdrs.length > 1 || !this.openMessageInExistingWindow(aMsgHdrs[0]))
+        this.openMessagesInNewWindows(aMsgHdrs, aViewWrapperToClone);
     }
     else if (openMessageBehavior == MC.OpenMessageBehavior.NEW_TAB) {
-      // Try opening a new tab in a 3pane window. If we can't, fall back to
-      // opening a new window
-      let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                             .getService(Ci.nsIWindowMediator);
-      let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
-      // Do this directly instead of calling MsgOpenNewTabForMessage, because
-      // that passes in gFolderDisplay.view to be cloned, and we don't want
-      // that
-      if (mail3PaneWindow) {
-        mail3PaneWindow.document.getElementById("tabmail").openTab("message",
-            {msgHdr: aMsgHdr, background: false});
-        mail3PaneWindow.focus();
+      let mail3PaneWindow = null;
+      if (!aTabmail) {
+        // Try opening new tabs in a 3pane window
+        let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
+                               .getService(Ci.nsIWindowMediator);
+        mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+        if (mail3PaneWindow)
+          aTabmail = mail3PaneWindow.document.getElementById("tabmail");
+      }
+      
+      if (aTabmail) {
+        for each (let [i, msgHdr] in Iterator(aMsgHdrs))
+          // Open all the tabs in the background, except for the last one
+          aTabmail.openTab("message", {msgHdr: msgHdr,
+              viewWrapperToClone: aViewWrapperToClone,
+              background: (i < (aMsgHdrs.length - 1))});
+
+        if (mail3PaneWindow)
+          mail3PaneWindow.focus();
       }
       else {
-        this.openMessageInNewWindow(aMsgHdr);
+        // We still haven't found a tabmail, so we'll need to open new windows
+        this.openMessagesInNewWindows(aMsgHdrs, aViewWrapperToClone);
       }
     }
   },
@@ -173,8 +219,8 @@ var MailUtils =
    * Show this message in an existing window.
    *
    * @param aMsgHdr the message header to display
-   * @param aViewWrapperToClone [optional] a DB view wrapper to clone for the
-   *                            message window
+   * @param [aViewWrapperToClone] a DB view wrapper to clone for the message
+   *                              window
    * @returns true if an existing window was found and the message header was
    *          displayed, false otherwise
    */
@@ -195,12 +241,52 @@ var MailUtils =
    * Open a new standalone message window with this header.
    *
    * @param aMsgHdr the message header to display
+   * @param [aViewWrapperToClone] a DB view wrapper to clone for the message
+   *                              window
    */
-  openMessageInNewWindow: function MailUtils_openMessageInNewWindow(aMsgHdr) {
+  openMessageInNewWindow:
+      function MailUtils_openMessageInNewWindow(aMsgHdr, aViewWrapperToClone) {
+    // It sucks that we have to go through XPCOM for this
+    let args = {msgHdr: aMsgHdr, viewWrapperToClone: aViewWrapperToClone};
+    args.wrappedJSObject = args;
+
     let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"]
                           .getService(Ci.nsIWindowWatcher);
     windowWatcher.openWindow(null,
         "chrome://messenger/content/messageWindow.xul", "_blank",
-        "all,chrome,dialog=no,status,toolbar", aMsgHdr);
+        "all,chrome,dialog=no,status,toolbar", args);
+  },
+
+  /**
+   * Open new standalone message windows for these headers. This will prompt
+   * for confirmation if the number of windows to be opened is greater than the
+   * value of the mailnews.open_window_warning preference.
+   *
+   * @param aMsgHdrs an array containing the message headers to display
+   * @param [aViewWrapperToClone] a DB view wrapper to clone for each message
+   *                              window
+   */
+   openMessagesInNewWindows:
+       function MailUtils_openMessagesInNewWindows(aMsgHdrs,
+                                                   aViewWrapperToClone) {
+    let openWindowWarning = this._prefBranch.getIntPref(
+                                "mailnews.open_window_warning");
+    let numMessages = aMsgHdrs.length;
+
+    if ((openWindowWarning > 1) && (numMessages >= openWindowWarning)) {
+      let bundle = Cc["@mozilla.org/intl/stringbundle;1"]
+                     .getService(Ci.nsIStringBundleService).createBundle(
+                         "chrome://messenger/locale/messenger.properties");
+
+      let title = bundle.getString("openWindowWarningTitle");
+      let message = bundle.getFormattedString("openWindowWarningText", [numMessages]);
+      let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
+                            .getService(Ci.nsIPromptService);
+      if (!promptService.confirm(null, title, text))
+        return;
+    }
+
+    for each (let [, msgHdr] in Iterator(aMsgHdrs))
+      this.openMessageInNewWindow(msgHdr, aViewWrapperToClone);
   }
 };

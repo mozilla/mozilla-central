@@ -2260,40 +2260,13 @@ function MsgOpenSelectedMessages()
     return;
   }
 
-  let selectedMessages = gFolderDisplay.selectedMessages;
-  let numMessages = selectedMessages.length;
-
-  let openMessageBehavior = gPrefBranch.getIntPref("mail.openMessageBehavior");
-  if (openMessageBehavior == MailConsts.OpenMessageBehavior.NEW_TAB) {
-    // Open all the tabs in the background, except for the last one
-    let tabmail = document.getElementById("tabmail");
-    for (let i = 0; i < numMessages; i++)
-      tabmail.openTab("message", {msgHdr: selectedMessages[i],
-          viewWrapperToClone: gFolderDisplay.view,
-          background: (i < (numMessages - 1))});
-    return;
-  }
-
-  if (openMessageBehavior == MailConsts.OpenMessageBehavior.EXISTING_WINDOW &&
-      numMessages == 1 && MailUtils.openMessageInExistingWindow(
-          gFolderDisplay.selectedMessage, gFolderDisplay.view))
-    return;
-
-  var openWindowWarning = gPrefBranch.getIntPref("mailnews.open_window_warning");
-  if ((openWindowWarning > 1) && (numMessages >= openWindowWarning)) {
-    if (!gMessengerBundle)
-        gMessengerBundle = document.getElementById("bundle_messenger");
-    var title = gMessengerBundle.getString("openWindowWarningTitle");
-    var text = gMessengerBundle.getFormattedString("openWindowWarningText", [numMessages]);
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
-    if (!promptService.confirm(window, title, text))
-      return;
-  }
-
-  for (var i = 0; i < numMessages; i++) {
-    MsgOpenNewWindowForMessage(selectedMessages[i]);
-  }
+  // This is somewhat evil. If we're in a 3pane window, we'd have a tabmail
+  // element and would pass it in here, ensuring that if we open tabs, we use
+  // this tabmail to open them. If we aren't, then we wouldn't, so
+  // displayMessages would look for a 3pane window and open tabs there.
+  MailUtils.displayMessages(gFolderDisplay.selectedMessages,
+                            gFolderDisplay.view,
+                            document.getElementById("tabmail"));
 }
 
 function MsgOpenFromFile()

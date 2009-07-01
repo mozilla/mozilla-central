@@ -250,12 +250,20 @@ function open_folder_in_new_tab(aFolder) {
 /**
  * Open the selected message(s) by pressing Enter. The mail.openMessageBehavior
  * pref is supposed to determine how the messages are opened.
+ *
+ * Since we don't know where this is going to trigger a message load, you're
+ * going to have to wait for message display completion yourself.
+ *
+ * @param aController The controller in whose context to do this, defaults to
+ *     |mc| if omitted.
  */
-function open_selected_messages() {
+function open_selected_messages(aController) {
+  if (aController === undefined)
+    aController = mc;
   // Focus the thread tree
-  mc.threadTree.focus();
+  aController.threadTree.focus();
   // Open whatever's selected
-  press_enter();
+  press_enter(aController);
 }
 
 var open_selected_message = open_selected_messages;
@@ -428,9 +436,12 @@ function select_none() {
   controller.sleep(0);
 }
 
-function _normalize_view_index(aViewIndex) {
+function _normalize_view_index(aViewIndex, aController) {
+  if (aController === undefined)
+    aController = mc;
   if (aViewIndex < 0)
-    return mc.dbView.QueryInterface(Ci.nsITreeView).rowCount + aViewIndex;
+    return aController.dbView.QueryInterface(Ci.nsITreeView).rowCount +
+      aViewIndex;
   return aViewIndex;
 }
 
@@ -440,16 +451,25 @@ function _normalize_view_index(aViewIndex) {
  * @param aViewIndex If >= 0, the view index provided, if < 0, a reference to
  *     a view index counting from the last row in the tree.  -1 indicates the
  *     last message in the tree, -2 the second to last, etc.
+ * @param aController The controller in whose context to do this, defaults to
+ *     |mc| if omitted.
  *
  * @return The message header selected.
  */
-function select_click_row(aViewIndex) {
-  wait_for_message_display_completion();
-  aViewIndex = _normalize_view_index(aViewIndex);
+function select_click_row(aViewIndex, aController) {
+  if (aController === undefined)
+    aController = mc;
+  let hasMessageDisplay = "messageDisplay" in aController;
+  if (hasMessageDisplay)
+    wait_for_message_display_completion(aController);
+  aViewIndex = _normalize_view_index(aViewIndex, aController);
+
   // this should set the current index as well as setting the selection.
-  mc.dbView.selection.select(aViewIndex);
-  wait_for_message_display_completion(mc, mc.messageDisplay.visible);
-  return mc.dbView.getMsgHdrAt(aViewIndex);
+  aController.dbView.selection.select(aViewIndex);
+  if (hasMessageDisplay)
+    wait_for_message_display_completion(aController,
+                                        aController.messageDisplay.visible);
+  return aController.dbView.getMsgHdrAt(aViewIndex);
 }
 
 /**
@@ -500,22 +520,30 @@ function select_control_click_row(aViewIndex) {
  * @param aViewIndex If >= 0, the view index provided, if < 0, a reference to
  *     a view index counting from the last row in the tree.  -1 indicates the
  *     last message in the tree, -2 the second to last, etc.
+ * @param aController The controller in whose context to do this, defaults to
+ *     |mc| if omitted.
  *
  * @return The message headers for all messages that are now selected.
  */
-function select_shift_click_row(aViewIndex) {
-  wait_for_message_display_completion();
-  aViewIndex = _normalize_view_index(aViewIndex);
+function select_shift_click_row(aViewIndex, aController) {
+  if (aController === undefined)
+    aController = mc;
+  let hasMessageDisplay = "messageDisplay" in aController;
+  if (hasMessageDisplay)
+    wait_for_message_display_completion(aController);
+  aViewIndex = _normalize_view_index(aViewIndex, aController);
+
   // Passing -1 as the start range checks the shift-pivot, which should be -1,
   //  so it should fall over to the current index, which is what we want.  It
   //  will then set the shift-pivot to the previously-current-index and update
   //  the current index to be what we shift-clicked on.  All matches user
   //  interaction.
-  mc.dbView.selection.rangedSelect(-1, aViewIndex, false);
+  aController.dbView.selection.rangedSelect(-1, aViewIndex, false);
   // give the event queue a chance to drain...
   controller.sleep(0);
-  wait_for_message_display_completion();
-  return mc.folderDisplay.selectedMessages;
+  if (hasMessageDisplay)
+    wait_for_message_display_completion(aController);
+  return aController.folderDisplay.selectedMessages;
 }
 
 /**
@@ -621,6 +649,8 @@ function press_delete(aController) {
 
 /**
  * Pretend we are pressing the Enter key, triggering opening selected messages.
+ * Note that since we don't know where this is going to trigger a message load,
+ * you're going to have to wait for message display completion yourself.
  *
  * @param aController The controller in whose context to do this, defaults to
  *     |mc| if omitted.
@@ -629,11 +659,11 @@ function press_enter(aController) {
   if (aController === undefined)
     aController = mc;
   // if something is loading, make sure it finishes loading...
-  wait_for_message_display_completion(aController);
+  if ("messageDisplay" in aController)
+    wait_for_message_display_completion(aController);
   aController.keypress(aController == mc ? mc.eThreadTree : null,
                        "VK_RETURN", {});
-  // this is always going to cause a message load, so wait for that
-  wait_for_message_display_completion(aController);
+  // The caller's going to have to wait for message display completion
 }
 
 /**

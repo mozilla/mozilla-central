@@ -715,8 +715,16 @@ var PerWindowTypeAugmentations = {
    * The search window, via control-shift-F.
    */
   "mailnews:search": {
+    elementsToExpose: {
+      threadTree: "threadTree",
+    },
     globalsToExposeAtStartup: {
       folderDisplay: "gFolderDisplay",
+    },
+    getters: {
+      dbView: function () {
+        return this.folderDisplay.view.dbView;
+      }
     }
   }
 };

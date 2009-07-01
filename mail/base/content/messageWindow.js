@@ -394,9 +394,11 @@ function actuallyLoadMessage() {
    * - Efficiency.  It's faster to clone a view than open a new one.
    *
    * Our argument idioms for the use cases are thus:
-   * 1) [A Message URI] where the URI is an nsIURL corresponding to a message
-   *     on disk or that is an attachment part on another message.
+   * 1) [{msgHdr: A message header, viewWrapperToClone: (optional) a view
+   *    wrapper to clone}]
    * 2) [A Message header, (optional) the origin DBViewWraper]
+   * 3) [A Message URI] where the URI is an nsIURL corresponding to a message
+   *     on disk or that is an attachment part on another message.
    *
    * Our original set of arguments, in case these get passed in and you're
    *  wondering why we explode, was:
@@ -406,11 +408,23 @@ function actuallyLoadMessage() {
    */
   if (window.arguments && window.arguments.length)
   {
-    // message header?
-    if (window.arguments[0] instanceof Components.interfaces.nsIMsgDBHdr) {
-      let msgHdr = window.arguments[0];
-      let originViewWrapper = window.arguments.length > 1 ?
+    let msgHdr = null, originViewWrapper = null;
+    // message header as an object?
+    if ("wrappedJSObject" in window.arguments[0]) {
+      let hdrObject = window.arguments[0].wrappedJSObject;
+      msgHdr = hdrObject.msgHdr;
+      if ("viewWrapperToClone" in hdrObject)
+        originViewWrapper = hdrObject.viewWrapperToClone;
+    }
+    // message header as a separate param?
+    else if (window.arguments[0] instanceof Components.interfaces.nsIMsgDBHdr) {
+      msgHdr = window.arguments[0];
+      originViewWrapper = window.arguments.length > 1 ?
         window.arguments[1] : null;
+    }
+
+    // this is a message header, so show it
+    if (msgHdr) {
       if (originViewWrapper)
         gFolderDisplay.cloneView(originViewWrapper);
       else
