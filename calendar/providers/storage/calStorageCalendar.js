@@ -298,11 +298,11 @@ calStorageCalendar.prototype = {
         return calGetString("calendar", "storageName");
     },
 
-    createCalendar: function stor_createCal() {
+    createCalendar: function cSC_createCalendar() {
         throw NS_ERROR_NOT_IMPLEMENTED;
     },
 
-    deleteCalendar: function stor_deleteCal(cal, listener) {
+    deleteCalendar: function cSC_deleteCalendar(cal, listener) {
         cal = cal.wrappedJSObject;
 
         for (var i in this.mDeleteEventExtras) {
@@ -341,7 +341,7 @@ calStorageCalendar.prototype = {
     // calICalendar interface
     //
 
-    getProperty: function stor_getProperty(aName) {
+    getProperty: function cSC_getProperty(aName) {
         switch (aName) {
             case "cache.supported":
                 return false;
@@ -437,18 +437,18 @@ calStorageCalendar.prototype = {
         this.initDB();
     },
 
-    refresh: function() {
+    refresh: function cSC_refresh() {
         // no-op
     },
 
     // void addItem( in calIItemBase aItem, in calIOperationListener aListener );
-    addItem: function (aItem, aListener) {
+    addItem: function cSC_addItem(aItem, aListener) {
         var newItem = aItem.clone();
         return this.adoptItem(newItem, aListener);
     },
 
     // void adoptItem( in calIItemBase aItem, in calIOperationListener aListener );
-    adoptItem: function (aItem, aListener) {
+    adoptItem: function cSC_adoptItem(aItem, aListener) {
         if (this.readOnly) {
             this.notifyOperationComplete(aListener,
                                          Components.interfaces.calIErrors.CAL_IS_READONLY,
@@ -500,7 +500,7 @@ calStorageCalendar.prototype = {
     },
 
     // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );
-    modifyItem: function (aNewItem, aOldItem, aListener) {
+    modifyItem: function cSC_modifyItem(aNewItem, aOldItem, aListener) {
         if (this.readOnly) {
             this.notifyOperationComplete(aListener,
                                          Components.interfaces.calIErrors.CAL_IS_READONLY,
@@ -577,7 +577,7 @@ calStorageCalendar.prototype = {
     },
 
     // void deleteItem( in string id, in calIOperationListener aListener );
-    deleteItem: function (aItem, aListener) {
+    deleteItem: function cSC_deleteItem(aItem, aListener) {
         if (this.readOnly) {
             this.notifyOperationComplete(aListener,
                                          Components.interfaces.calIErrors.CAL_IS_READONLY,
@@ -615,7 +615,7 @@ calStorageCalendar.prototype = {
     },
 
     // void getItem( in string id, in calIOperationListener aListener );
-    getItem: function (aId, aListener) {
+    getItem: function cSC_getItem(aId, aListener) {
         if (!aListener)
             return;
 
@@ -659,15 +659,15 @@ calStorageCalendar.prototype = {
     // void getItems( in unsigned long aItemFilter, in unsigned long aCount, 
     //                in calIDateTime aRangeStart, in calIDateTime aRangeEnd,
     //                in calIOperationListener aListener );
-    getItems: function (aItemFilter, aCount,
-                        aRangeStart, aRangeEnd, aListener) {
+    getItems: function cSC_getItems(aItemFilter, aCount,
+                                    aRangeStart, aRangeEnd, aListener) {
         let this_ = this;
         cal.postPone(function() {
                 this_.getItems_(aItemFilter, aCount, aRangeStart, aRangeEnd, aListener);
             });
     },
-    getItems_: function (aItemFilter, aCount,
-                         aRangeStart, aRangeEnd, aListener)
+    getItems_: function cSC_getItems_(aItemFilter, aCount,
+                                      aRangeStart, aRangeEnd, aListener)
     {
         //var profStartTime = Date.now();
         if (!aListener)
@@ -911,7 +911,7 @@ calStorageCalendar.prototype = {
 
     // initialize the database schema.
     // needs to do some version checking
-    initDBSchema: function () {
+    initDBSchema: function cSC_initDBSchema() {
         for (table in sqlTables) {
             try {
                 this.mDB.executeSimpleSQL("DROP TABLE " + table);
@@ -961,7 +961,7 @@ calStorageCalendar.prototype = {
         throw "cal_calendar_schema_version SELECT returned no results";
     },
 
-    upgradeDB: function (oldVersion) {
+    upgradeDB: function cSC_upgradeDB(oldVersion) {
         // some common helpers
         function addColumn(db, tableName, colName, colType) {
             db.executeSimpleSQL("ALTER TABLE " + tableName + " ADD COLUMN " + colName + " " + colType);
@@ -1427,7 +1427,7 @@ calStorageCalendar.prototype = {
         }
     },
 
-    ensureUpdatedTimezones: function stor_ensureUpdatedTimezones() {
+    ensureUpdatedTimezones: function cSC_ensureUpdatedTimezones() {
         // check if timezone version has changed:
         var selectTzVersion = createStatement(this.mDB, "SELECT version FROM cal_tz_version LIMIT 1");
         var version;
@@ -1506,7 +1506,7 @@ calStorageCalendar.prototype = {
     // database initialization
     // assumes mDB is valid
 
-    initDB: function () {
+    initDB: function cSC_initDB() {
         ASSERT(this.mDB, "Database has not been opened!", true);
         if (!this.mDB.tableExists("cal_calendar_schema_version")) {
             this.initDBSchema();
@@ -1872,7 +1872,7 @@ calStorageCalendar.prototype = {
 
     // read in the common ItemBase attributes from aDBRow, and stick
     // them on item
-    getItemBaseFromRow: function (row, flags, item) {
+    getItemBaseFromRow: function cSC_getItemBaseFromRow(row, flags, item) {
         item.calendar = this.superCalendar;
         item.id = row.id;
         if (row.title)
@@ -1910,7 +1910,7 @@ calStorageCalendar.prototype = {
         }
     },
 
-    cacheItem: function stor_cacheItem(item) {
+    cacheItem: function cSC_cacheItem(item) {
         this.mItemCache[item.id] = item;
         if (item.recurrenceInfo) {
             if (isEvent(item)) {
@@ -1921,7 +1921,7 @@ calStorageCalendar.prototype = {
         }
     },
 
-    assureRecurringItemCaches: function stor_assureRecurringItemCaches() {
+    assureRecurringItemCaches: function cSC_assureRecurringItemCaches() {
         if (this.mRecItemCacheInited) {
             return;
         }
@@ -1960,7 +1960,7 @@ calStorageCalendar.prototype = {
     },
 
     // xxx todo: consider removing flags parameter
-    getEventFromRow: function stor_getEventFromRow(row, flags, isException) {
+    getEventFromRow: function cSC_getEventFromRow(row, flags, isException) {
         var item;
         if (!isException) { // only parent items are cached
             item = this.mItemCache[row.id];
@@ -1993,7 +1993,7 @@ calStorageCalendar.prototype = {
         return item;
     },
 
-    getTodoFromRow: function stor_getTodoFromRow(row, flags, isException) {
+    getTodoFromRow: function cSC_getTodoFromRow(row, flags, isException) {
         var item;
         if (!isException) { // only parent items are cached
             item = this.mItemCache[row.id];
@@ -2032,7 +2032,7 @@ calStorageCalendar.prototype = {
     // We used to use mDBTwo for this, so this can be run while a
     // select is executing but this no longer seems to be required.
     
-    getAdditionalDataForItem: function (item, flags) {
+    getAdditionalDataForItem: function cSC_getAdditionalDataForItem(item, flags) {
         // This is needed to keep the modification time intact.
         var savedLastModifiedTime = item.lastModifiedTime;
 
@@ -2304,7 +2304,7 @@ calStorageCalendar.prototype = {
         item.setProperty("LAST-MODIFIED", savedLastModifiedTime);
     },
 
-    getAttendeeFromRow: function (row) {
+    getAttendeeFromRow: function cSC_getAttendeeFromRow(row) {
         var a = CalAttendee();
 
         a.id = row.attendee_id;
@@ -2333,7 +2333,7 @@ calStorageCalendar.prototype = {
         return a;
     },
 
-    getAttachmentFromRow: function (row) {
+    getAttachmentFromRow: function cSC_getAttachmentFromRow(row) {
         var a = createAttachment();
        
         // TODO we don't support binary data here, libical doesn't either.
@@ -2344,7 +2344,7 @@ calStorageCalendar.prototype = {
         return a;
     },
 
-    getRelationFromRow: function (row) {
+    getRelationFromRow: function cSC_getRelationFromRow(row) {
         var r = createRelation();
         r.relType = row.rel_type;
         r.relId = row.rel_id;
@@ -2354,7 +2354,7 @@ calStorageCalendar.prototype = {
     //
     // get item from db or from cache with given iid
     //
-    getItemById: function (aID) {
+    getItemById: function cSC_getItemById(aID) {
         this.assureRecurringItemCaches();
 
         // cached?
@@ -2401,7 +2401,7 @@ calStorageCalendar.prototype = {
     // database writing functions
     //
 
-    setDateParamHelper: function (params, entryname, cdt) {
+    setDateParamHelper: function cSC_setDateParamHelper(params, entryname, cdt) {
         if (cdt) {
             params[entryname] = cdt.nativeTime;
             var tz = cdt.timezone;
@@ -2417,7 +2417,7 @@ calStorageCalendar.prototype = {
         }
     },
 
-    flushItem: function (item, olditem) {
+    flushItem: function cSC_flushItem(item, olditem) {
         ASSERT(!item.recurrenceId, "no parent item passed!", true);
 
         this.acquireTransaction();
@@ -2440,7 +2440,7 @@ calStorageCalendar.prototype = {
     // to writeEvent/writeTodo to actually do the writing.
     //
 
-    writeItem: function (item, olditem) {
+    writeItem: function cSC_writeItem(item, olditem) {
         var flags = 0;
 
         flags |= this.writeAttendees(item, olditem);
@@ -2458,7 +2458,7 @@ calStorageCalendar.prototype = {
             throw Components.results.NS_ERROR_UNEXPECTED;
     },
 
-    writeEvent: function (item, olditem, flags) {
+    writeEvent: function cSC_writeEvent(item, olditem, flags) {
         var ip = this.mInsertEvent.params;
         this.setupItemBaseParams(item, olditem,ip);
 
@@ -2478,7 +2478,7 @@ calStorageCalendar.prototype = {
         this.mInsertEvent.reset();
     },
 
-    writeTodo: function (item, olditem, flags) {
+    writeTodo: function cSC_writeTodo(item, olditem, flags) {
         var ip = this.mInsertTodo.params;
 
         this.setupItemBaseParams(item, olditem,ip);
@@ -2504,7 +2504,7 @@ calStorageCalendar.prototype = {
         this.mInsertTodo.reset();
     },
 
-    setupItemBaseParams: function (item, olditem, ip) {
+    setupItemBaseParams: function cSC_setupItemBaseParams(item, olditem, ip) {
         ip.id = item.id;
 
         if (item.recurrenceId)
@@ -2527,7 +2527,7 @@ calStorageCalendar.prototype = {
         }
     },
 
-    writeAttendees: function (item, olditem) {
+    writeAttendees: function cSC_writeAttendees(item, olditem) {
         var attendees = item.getAttendees({});
         if (item.organizer) {
             attendees = attendees.concat([]);
@@ -2581,7 +2581,7 @@ calStorageCalendar.prototype = {
         return 0;
     },
 
-    writeProperty: function stor_writeProperty(item, propName, propValue) {
+    writeProperty: function cSC_writeProperty(item, propName, propValue) {
         var pp = this.mInsertProperty.params;
         pp.key = propName;
         if (calInstanceOf(propValue, Components.interfaces.calIDateTime)) {
@@ -2603,7 +2603,8 @@ calStorageCalendar.prototype = {
         this.mInsertProperty.execute();
         this.mInsertProperty.reset();
     },
-    writeProperties: function (item, olditem) {
+
+    writeProperties: function cSC_writeProperties(item, olditem) {
         var ret = 0;
         var propEnumerator = item.propertyEnumerator;
         while (propEnumerator.hasMoreElements()) {
@@ -2623,7 +2624,7 @@ calStorageCalendar.prototype = {
         return ret;
     },
 
-    writeRecurrence: function (item, olditem) {
+    writeRecurrence: function cSC_writeRecurrence(item, olditem) {
         var flags = 0;
 
         var rec = item.recurrenceInfo;
@@ -2708,7 +2709,7 @@ calStorageCalendar.prototype = {
         return flags;
     },
 
-    writeAttachments: function (item, olditem) {
+    writeAttachments: function cSC_writeAttachments(item, olditem) {
         var attachments = item.getAttachments({});
         if (attachments && attachments.length > 0) {
             for each (att in attachments) {
@@ -2726,7 +2727,7 @@ calStorageCalendar.prototype = {
         return 0;
     },
 
-    writeRelations: function (item, olditem) {
+    writeRelations: function cSC_writeRelations(item, olditem) {
         var relations = item.getRelations({});
         if (relations && relations.length > 0) {
             for each (var rel in relations) {
@@ -2770,7 +2771,7 @@ calStorageCalendar.prototype = {
     //
     // delete the item with the given uid
     //
-    deleteItemById: function stor_deleteItemById(aID) {
+    deleteItemById: function cSC_deleteItemById(aID) {
         this.acquireTransaction();
         try {
             this.mDeleteAttendees(aID);
@@ -2792,7 +2793,7 @@ calStorageCalendar.prototype = {
         delete this.mRecTodoCache[aID];
     },
 
-    acquireTransaction: function stor_acquireTransaction() {
+    acquireTransaction: function cSC_acquireTransaction() {
         var uriKey = this.uri.spec;
         if (!(uriKey in gTransCount)) {
             gTransCount[uriKey] = 0;
@@ -2801,7 +2802,7 @@ calStorageCalendar.prototype = {
             this.mDB.beginTransaction();
         }
     },
-    releaseTransaction: function stor_releaseTransaction(err) {
+    releaseTransaction: function cSC_releaseTransaction(err) {
         var uriKey = this.uri.spec;
         if (err) {
             cal.ERROR("DB error: " + this.mDB.lastErrorString + "\nexc: " + err);
@@ -2822,11 +2823,11 @@ calStorageCalendar.prototype = {
         }
     },
 
-    startBatch: function stor_startBatch() {
+    startBatch: function cSC_startBatch() {
         this.acquireTransaction();
         this.__proto__.__proto__.startBatch.apply(this, arguments);
     },
-    endBatch: function stor_endBatch() {
+    endBatch: function cSC_endBatch() {
         this.releaseTransaction();
         this.__proto__.__proto__.endBatch.apply(this, arguments);
     },
@@ -2835,7 +2836,7 @@ calStorageCalendar.prototype = {
     // calISyncWriteCalendar interface
     //
 
-    setMetaData: function stor_setMetaData(id, value) {
+    setMetaData: function cSC_setMetaData(id, value) {
         this.mDeleteMetaData(id);
         var sp = this.mInsertMetaData.params;
         sp.item_id = id;
@@ -2853,11 +2854,11 @@ calStorageCalendar.prototype = {
         this.mInsertMetaData.reset();
     },
 
-    deleteMetaData: function stor_deleteMetaData(id) {
+    deleteMetaData: function cSC_deleteMetaData(id) {
         this.mDeleteMetaData(id);
     },
 
-    getMetaData: function stor_getMetaData(id) {
+    getMetaData: function cSC_getMetaData(id) {
         let query = this.mSelectMetaData;
         query.params.item_id = id;
         let value = null;
@@ -2874,7 +2875,7 @@ calStorageCalendar.prototype = {
         return value;
     },
 
-    getAllMetaData: function stor_getAllMetaData(out_count,
+    getAllMetaData: function cSC_getAllMetaData(out_count,
                                                  out_ids,
                                                  out_values) {
         var query = this.mSelectAllMetaData;
