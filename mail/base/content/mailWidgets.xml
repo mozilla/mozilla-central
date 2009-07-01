@@ -164,8 +164,8 @@
 
   <!-- mail-toggle-headerfield: Non-email addrs headers which have a toggle
        associated with them (i.e. the subject).
-         Use label to set the header name.
-         Use headerValue to set the header value. -->
+       Use label to set the header name.
+       Use headerValue to set the header value. -->
   <binding id="mail-toggle-headerfield">
     <content>
       <xul:hbox class="headerNameBox" align="baseline">
@@ -226,22 +226,22 @@
   <!-- multi-emailHeaderField: presents multiple emailheaderfields with a toggle -->
   <binding id="mail-multi-emailHeaderField">
     <content>
-        <xul:hbox class="headerNameBox" align="baseline" pack="end">
-          <xul:label class="headerName" xbl:inherits="value=label"/>
-        </xul:hbox>
+      <xul:hbox class="headerNameBox" align="baseline" pack="end">
+        <xul:label class="headerName" xbl:inherits="value=label"/>
+      </xul:hbox>
 
-        <xul:hbox class="headerValueBox" anonid="longEmailAddresses" flex="1"
-                  singleline="true"
-                  align="baseline"
-                  onoverflow="this.parentNode.overflow(event)"
-                  onunderflow="this.parentNode.underflow(event)">
-          <xul:description class="headerValue" containsEmail="true"
-                           anonid="emailAddresses" flex="1"
-                           orient="vertical" pack="start" />
-        </xul:hbox>
-        <xul:label class="moreIndicator" value="&more.label;" anonid="more"
-                   collapsed="true"
-                   onclick="this.parentNode.toggleWrap()"/>
+      <xul:hbox class="headerValueBox" anonid="longEmailAddresses" flex="1"
+                singleline="true"
+                align="baseline"
+                onoverflow="this.parentNode.overflow(event)"
+                onunderflow="this.parentNode.underflow(event)">
+        <xul:description class="headerValue" containsEmail="true"
+                         anonid="emailAddresses" flex="1"
+                         orient="vertical" pack="start" />
+      </xul:hbox>
+      <xul:label class="moreIndicator" value="&more.label;" anonid="more"
+                 collapsed="true"
+                 onclick="this.parentNode.toggleWrap()"/>
     </content>
 
     <implementation>
@@ -309,7 +309,7 @@
             aEmailNode.setAttribute("displayName", aAddress.displayName);
 
             // Add aria-label with header field type and header field content
-            // for better accessibility
+            // for better accessibility.
             var ariaLabel = this.getAttribute("label") + ": " +
                             aEmailNode.getAttribute("label");
             aEmailNode.setAttribute("aria-label", ariaLabel);
@@ -438,15 +438,15 @@
         <body>
           <![CDATA[
             if (UpdateExtraAddressProcessing) {
-	      var childNodes = this.emailAddresses.childNodes;
-	      for (var i = 0; i < this.mAddresses.length; ++i) {
-	        UpdateExtraAddressProcessing(this.mAddresses[i],
+              var childNodes = this.emailAddresses.childNodes;
+              for (let i = 0; i < this.mAddresses.length; i++) {
+                UpdateExtraAddressProcessing(this.mAddresses[i],
                                              childNodes[i * 2],
                                              aParam1, aParam2, aParam3);
               }
             }
           ]]>
-	</body>
+        </body>
       </method>
 
       <method name="toggleWrap">
@@ -787,8 +787,7 @@
             if (targetIds.length == 0) return null;
 
             var targets = new Array;
-            var j=0;
-            for (var i=0; i<targetIds.length;i++) {
+            for (let j = 0, i = 0; i < targetIds.length; i++) {
               var target = document.getElementById(targetIds[i]);
               if (target) targets[j++] = target;
             }
@@ -1455,7 +1454,7 @@
       </constructor>
     </implementation>
     <handlers>
-	<handler event="keypress" keycode="VK_RETURN" action="onEnterInSearchTerm();"/>
+      <handler event="keypress" keycode="VK_RETURN" action="onEnterInSearchTerm();"/>
     </handlers>
   </binding>
   <binding id="searchterm" name="searchTerm" extends="xul:box">
