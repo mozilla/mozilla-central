@@ -2,7 +2,10 @@
 // This file implements test POP3 servers
 
 function readFile(fileName) {
-  var file = do_get_file("data/" + fileName);
+  var file = do_get_file("data/" + fileName, true); // allow nonexistent
+  // also allow files from general locations
+  if (!file || !file.exists())
+    file = do_get_file(fileName);
 
   // If these fail, there is a problem with the test
   do_check_neq(file, null);
