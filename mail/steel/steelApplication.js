@@ -77,8 +77,10 @@ Application.prototype = {
     let interfaces = [Ci.steelIApplication, Ci.extIApplication, Ci.nsIObserver, Ci.nsIClassInfo];
     aCount.value = interfaces.length;
     return interfaces;
-  }
+  },
 
+  // for steelIApplication
+  platformIsMac: "nsILocalFileMac" in Components.interfaces
 };
 
 //module initialization

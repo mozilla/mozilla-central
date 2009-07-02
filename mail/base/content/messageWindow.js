@@ -248,7 +248,7 @@ StandaloneMessageDisplayWidget.prototype = {
 
     // - set the window title to the message subject (and maybe the app name)
     let title = aMsgHdr.mime2DecodedSubject;
-    if (!gPlatformOSX)
+    if (!Application.platformIsMac)
       title += " - " + gBrandBundle.getString("brandFullName");
     document.title = title;
 

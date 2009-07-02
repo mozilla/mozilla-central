@@ -39,7 +39,13 @@
 /**
  * The core STEEL object, available in the global scope
  */
-[scriptable, uuid(f265021a-7f1d-4b4b-bdc6-9aedca4d8f13)]
+[scriptable, uuid(90211d2e-3083-46a8-ae4d-75a244fd802a)]
 interface steelIApplication : extIApplication {
-  //xxx place-holder for now
+  /**
+   * Returns true if the application is running on a Mac OS X. This is intended
+   * for situations where Mac does things differently, e.g. The application
+   * doesn't support print preview on Mac because Mac provides a preview option
+   * in the print dialog.
+   */
+  readonly attribute boolean platformIsMac;
 };

@@ -196,7 +196,7 @@ function fillMailContextMenu(event)
   ShowMenuItem("mailContext-mark", !hideMailItems && msgFolder);
 
   setSingleSelection("mailContext-saveAs");
-  if (gPlatformOSX)
+  if (Application.platformIsMac)
     ShowMenuItem("mailContext-printpreview", false);
   else
     setSingleSelection("mailContext-printpreview");

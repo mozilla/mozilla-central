@@ -57,16 +57,6 @@ var gContextMenu;
 var gMailWindowLog = Log4Moz.getConfiguredLogger("mailWindow", Log4Moz.Level.Debug, Log4Moz.Level.Debug, Log4Moz.Level.Debug);
 
 /**
- * Indicate whether we are running on Mac OS X.  Our code is currently littered
- *  with #ifdef/#ifndef XP_MACOSX's that do not need to exist in js code.  Use
- *  of preprocessing makes error line numbers misleading, complicates
- *  development because preprocessed files can't be symlinked when using
- *  --enable-chrome-format=symlink, etc.
- */
-var gPlatformOSX =
-  (window.navigator.oscpu.substring(0, 3).toLowerCase() == "mac");
-
-/**
  * Called by messageWindow.xul:onunload,  the 'single message display window'.
  *
  * Also called by messenger.xul:onunload's (the 3-pane window inside of tabs

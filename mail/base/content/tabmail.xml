@@ -510,12 +510,8 @@
           
           t.setAttribute("label", tab.title);
 
-          if (!background) {
-            let docTitle = tab.title;
-            if (!gPlatformOSX)
-              docTitle += " - " + gBrandBundle.getString("brandFullName");
-            document.title = docTitle;
-          }
+          if (!background)
+            this.setDocumentTitle(tab);
 
           // for styling purposes, apply the type to the tab...
           t.setAttribute('type', tab.mode.type);
@@ -783,10 +779,7 @@
               // active tabs should not have the wasThinking attribute
               this.tabContainer.selectedItem.removeAttribute("wasThinking");
 
-              let docTitle = tab.title;
-              if (!gPlatformOSX)
-                docTitle += " - " + gBrandBundle.getString("brandFullName");
-              document.title = docTitle;
+              this.setDocumentTitle(tab);
 
               // Update the toolbar status - we don't need to do menus as they
               // do themselves when we open them.
@@ -846,12 +839,8 @@
               tabNode.setAttribute("label", tab.title);
 
               // Update the window title if we're the displayed tab.
-              if (iTab == this.tabContainer.selectedIndex) {
-                let docTitle = tab.title;
-                if (!gPlatformOSX)
-                  docTitle += " - " + gBrandBundle.getString("brandFullName");
-                document.title = docTitle;
-              }
+              if (iTab == this.tabContainer.selectedIndex)
+                this.setDocumentTitle(tab);
             }
           ]]>
         </body>
@@ -1030,6 +1019,18 @@
 
              return false;
            ]]>
+        </body>
+      </method>
+      <!-- Set the document title based on the tab title -->
+      <method name="setDocumentTitle">
+        <parameter name="aTab"/>
+        <body>
+          <![CDATA[
+            let docTitle = aTab.title;
+            if (!Application.platformIsMac)
+              docTitle += " - " + gBrandBundle.getString("brandFullName");
+            document.title = docTitle;
+          ]]>
         </body>
       </method>
     </implementation>
