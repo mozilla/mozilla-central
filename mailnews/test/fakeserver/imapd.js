@@ -702,11 +702,18 @@ IMAP_RFC3501_handler.prototype = {
         this._multiline = false;
         return this._tag + " BAD okay, I won't authenticate you.";
       }
-      // Challenge handling?
-      this._authenticating = undefined;
-      this._state = IMAP_STATE_AUTHED;
-      this._multiline = false;
-      return this._tag + " OK I just authenticated you. Happy now?";
+      // base64 encoded <nul>user<nul>password
+      if (line == atob("AHVzZXIAcGFzc3dvcmQ=")) {
+        this._authenticating = undefined;
+        this._state = IMAP_STATE_AUTHED;
+        this._multiline = false;
+        return this._tag + " OK I just authenticated you. Happy now?";
+      }
+      else {
+        this._authenticating = undefined;
+        this._multiline = false;
+        return this._tag + " BAD invalid password, I won't authenticate you.";
+      }
     }
     return undefined;
   },
@@ -874,8 +881,12 @@ IMAP_RFC3501_handler.prototype = {
     return "+";
   },
   LOGIN : function (args) {
-    this._state = IMAP_STATE_AUTHED;
-    return "OK authenticated";
+    if (args == "\"user\" \"password\"") {
+      this._state = IMAP_STATE_AUTHED;
+      return "OK authenticated";
+    }
+    else
+      return "BAD invalid password, I won't authenticate you";
   },
 
   SELECT : function (args) {
