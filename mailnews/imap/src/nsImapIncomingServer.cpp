@@ -1856,6 +1856,49 @@ void nsImapIncomingServer::UnsubscribeFromAllDescendents(nsIMsgFolder *parentFol
 }
 #endif // 0
 
+NS_IMETHODIMP
+nsImapIncomingServer::PromptLoginFailed(nsIMsgWindow *aMsgWindow,
+                                        PRInt32 *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aMsgWindow);
+  nsCOMPtr<nsIPrompt> dialog;
+  aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
+
+  nsresult rv;
+
+  // If we haven't got one, use the default.
+  if (!dialog)
+  {
+    nsCOMPtr<nsIWindowWatcher> wwatch =
+      do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  rv = GetStringBundle();
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString hostName;
+  GetRealHostName(hostName);
+
+  nsString message(
+    GetFormattedStringFromName(NS_LITERAL_STRING("imapLoginFailed"),
+                               NS_ConvertUTF8toUTF16(hostName)));
+
+  PRBool dummyValue;
+  return dialog->ConfirmEx(
+    GetImapStringByName(NS_LITERAL_STRING("imapLoginFailedTitle")).get(),
+    message.get(),
+    (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
+    (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1) +
+    (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_2),
+    GetImapStringByName(NS_LITERAL_STRING("imapLoginFailedRetryButton")).get(),
+    nsnull,
+    GetImapStringByName(NS_LITERAL_STRING("imapLoginFailedEnterNewPasswordButton")).get(),
+    nsnull, &dummyValue, aResult);
+}
 
 NS_IMETHODIMP
 nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgMailNewsUrl *aUrl)
@@ -1866,6 +1909,35 @@ nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgMailNewsUrl *aUrl)
   NS_ENSURE_SUCCESS(rv, rv);
 
   return mailSession->AlertUser(aString, aUrl);
+}
+
+NS_IMETHODIMP
+nsImapIncomingServer::FEAlertWithID(PRInt32 aMsgId, nsIMsgMailNewsUrl *aUrl)
+{
+  GetStringBundle();
+
+  nsString message;
+
+  if (m_stringBundle)
+  {
+    nsCAutoString hostName;
+    nsresult rv = GetRealHostName(hostName);
+    if (NS_SUCCEEDED(rv))
+    {
+      NS_ConvertASCIItoUTF16 hostStr(hostName);
+      const PRUnichar *params[] = { hostStr.get() };
+      rv = m_stringBundle->FormatStringFromID(aMsgId, params, 1,
+                                              getter_Copies(message));
+      if (NS_SUCCEEDED(rv))
+        return FEAlert(message, aUrl);
+    }
+  }
+
+  // Error condition
+  message.AssignLiteral("String ID ");
+  message.AppendInt(aMsgId);
+  FEAlert(message, aUrl);
+  return NS_OK;
 }
 
 NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString,
@@ -1920,7 +1992,8 @@ nsresult nsImapIncomingServer::GetStringBundle()
   return (m_stringBundle) ? NS_OK : res;
 }
 
-NS_IMETHODIMP  nsImapIncomingServer::GetImapStringByID(PRInt32 aMsgId, nsAString& aString)
+NS_IMETHODIMP
+nsImapIncomingServer::GetImapStringByID(PRInt32 aMsgId, nsAString& aString)
 {
   nsresult res = NS_OK;
   GetStringBundle();
@@ -1938,29 +2011,24 @@ NS_IMETHODIMP  nsImapIncomingServer::GetImapStringByID(PRInt32 aMsgId, nsAString
   return NS_OK;
 }
 
-NS_IMETHODIMP  nsImapIncomingServer::FormatStringWithHostNameByID(PRInt32 aMsgId, nsAString& aString)
+nsString
+nsImapIncomingServer::GetImapStringByName(const nsString &aName)
 {
-  nsresult res = NS_OK;
+  nsString result;
+
   GetStringBundle();
+
   if (m_stringBundle)
   {
-    nsCAutoString hostName;
-    res = GetRealHostName(hostName);
-    if (NS_SUCCEEDED(res))
-    {
-      NS_ConvertASCIItoUTF16 hostStr (hostName);
-      const PRUnichar *params[] = { hostStr.get() };
-      res = m_stringBundle->FormatStringFromID(aMsgId, params, 1, getter_Copies(aString));
-      if (NS_SUCCEEDED(res))
-        return res;
-    }
+    nsresult rv = m_stringBundle->GetStringFromName(aName.get(),
+                                                    getter_Copies(result));
+    if (NS_SUCCEEDED(rv))
+      return result;
   }
-  aString.AssignLiteral("String ID ");
-  // mscott: FIX ME!!!
-  nsString tmpIntStr;
-  tmpIntStr.AppendInt(aMsgId);
-  aString.Append(tmpIntStr);
-  return NS_OK;
+
+  result.AssignLiteral("Failed to get string named ");
+  result.Append(aName);
+  return result;
 }
 
 nsresult nsImapIncomingServer::ResetFoldersToUnverified(nsIMsgFolder *parentFolder)
@@ -2823,6 +2891,28 @@ nsImapIncomingServer::GetFormattedStringFromID(const nsAString& aValue, PRInt32 
                                 getter_Copies(aResult));
   }
   return rv;
+}
+
+nsString
+nsImapIncomingServer::GetFormattedStringFromName(const nsString &aName,
+                                                 const nsString &aValue)
+{
+  nsString result;
+  GetStringBundle();
+  if (m_stringBundle)
+  {
+    const PRUnichar *formatStrings[] = { aValue.get() };
+
+    nsresult rv = m_stringBundle->FormatStringFromName(aName.get(),
+                                                       formatStrings, 1,
+                                                       getter_Copies(result));
+    if (NS_SUCCEEDED(rv))
+      return result;
+  }
+
+  result.AssignLiteral("Failed to format string named ");
+  result.Append(aName);
+  return result;
 }
 
 nsresult

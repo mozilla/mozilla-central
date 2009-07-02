@@ -67,7 +67,6 @@ PR_END_EXTERN_C
 #define	IMAP_GETTING_SERVER_INFO                                  5030
 #define	IMAP_GETTING_MAILBOX_INFO                                  5031
 #define	IMAP_EMPTY_MIME_PART                                  5032
-#define	IMAP_LOGIN_FAILED                                  5035
 #define	IMAP_RECEIVING_MESSAGE_HEADERS_OF                                  5036
 #define	IMAP_RECEIVING_MESSAGE_FLAGS_OF                                  5037
 #define	IMAP_DELETING_MESSAGES                                  5038

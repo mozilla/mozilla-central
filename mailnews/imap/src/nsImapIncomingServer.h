@@ -114,6 +114,8 @@ protected:
   PRBool AllDescendentsAreNoSelect(nsIMsgFolder *parentFolder);
 
   nsresult GetStringBundle();
+  nsString GetImapStringByName(const nsString &aName);
+
   void     GetPFCName(nsACString&); 
   nsresult GetPFCForStringId(PRBool createIfMissing, PRInt32 stringId, nsIMsgFolder **aFolder);
 private:
@@ -128,6 +130,8 @@ private:
   nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, PRBool *urlDoomed);
   PRBool ConnectionTimeOut(nsIImapProtocol* aImapConnection);
   nsresult GetFormattedStringFromID(const nsAString& aValue, PRInt32 aID, nsAString& aResult);
+  nsString GetFormattedStringFromName(const nsString &aName,
+                                      const nsString &aValue);
   nsresult GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue);
   PRBool CheckSpecialFolder(nsIRDFService *rdf, nsCString &folderUri,
                             PRUint32 folderFlag, nsCString &existingUri);

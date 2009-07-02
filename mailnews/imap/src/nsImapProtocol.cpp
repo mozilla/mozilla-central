@@ -4892,11 +4892,7 @@ nsImapProtocol::AlertUserEventUsingId(PRUint32 aMessageId)
       mailnewsUrl->GetSuppressErrorMsgs(&suppressErrorMsg);
 
     if (!suppressErrorMsg)
-    {
-      nsString progressString;
-      m_imapServerSink->FormatStringWithHostNameByID(aMessageId, progressString);
-      m_imapServerSink->FEAlert(progressString, mailnewsUrl);
-    }
+      m_imapServerSink->FEAlertWithID(aMessageId, mailnewsUrl);
   }
 }
 
@@ -7894,6 +7890,7 @@ nsresult nsImapProtocol::GetPassword(nsCString &password)
 PRBool nsImapProtocol::TryToLogon()
 {
   PRInt32 logonTries = 0;
+  const PRInt32 maxLogonTries = 4;
   PRBool loginSucceeded = PR_FALSE;
   PRBool clientSucceeded = PR_TRUE;
   nsCAutoString password;
@@ -7995,24 +7992,46 @@ PRBool nsImapProtocol::TryToLogon()
 
       if (!clientSucceeded || !GetServerStateParser().LastCommandSuccessful())
       {
+        if (!DeathSignalReceived() && clientSucceeded)
+        {
           // login failed!
           // if we failed because of an interrupt, then do not bother the user
           // similarly - if we failed due to a local error, don't bug them
-          if (m_imapServerSink && !DeathSignalReceived() && clientSucceeded)
+          if (m_imapServerSink)
           {
             nsCOMPtr<nsIMsgWindow> msgWindow;
             GetMsgWindow(getter_AddRefs(msgWindow));
             // if there's no msg window, don't forget the password
             if (msgWindow)
-              rv = m_imapServerSink->ForgetPassword();
+            {
+              PRInt32 buttonPressed = 0;
+              rv = m_imapServerSink->PromptLoginFailed(msgWindow,
+                                                       &buttonPressed);
+              if (NS_SUCCEEDED(rv))
+              {
+                if (buttonPressed == 2)
+                {
+                  // Change password was pressed. For now, forget the
+                  // stored password and we'll prompt for a new one next time
+                  // around.
+                  m_imapServerSink->ForgetPassword();
+                  // Reset logon tries to allow the user to have some failed
+                  // attempts even if they have already pressed retry a few
+                  // times.
+                  logonTries = 0;
+                }
+                else if (buttonPressed == 1)
+                  // Cancel button pressed, abort quickly by exiting the loop
+                  // this time.
+                  logonTries = maxLogonTries;
+              }
+            }
           }
-          if (!DeathSignalReceived() && clientSucceeded)
-          {
-            AlertUserEventUsingId(IMAP_LOGIN_FAILED);
-            m_hostSessionList->SetPasswordForHost(GetImapServerKey(), nsnull);
-            m_currentBiffState = nsIMsgFolder::nsMsgBiffState_Unknown;
-            SendSetBiffIndicatorEvent(m_currentBiffState);
-            password.Truncate();
+
+          m_hostSessionList->SetPasswordForHost(GetImapServerKey(), nsnull);
+          m_currentBiffState = nsIMsgFolder::nsMsgBiffState_Unknown;
+          SendSetBiffIndicatorEvent(m_currentBiffState);
+          password.Truncate();
         } // if we didn't receive the death signal...
       } // if login failed
       else  // login succeeded
@@ -8061,7 +8080,7 @@ PRBool nsImapProtocol::TryToLogon()
       }
   }
 
-  while (!loginSucceeded && ++logonTries < 4);
+  while (!loginSucceeded && ++logonTries < maxLogonTries);
 
   if (!loginSucceeded)
   {
