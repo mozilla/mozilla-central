@@ -60,6 +60,7 @@ Components.utils.import("resource://app/modules/gloda/log4moz.js");
 // manager.
 let moveCopyModule =
 {
+  lastMessage: {},
 
   get log() {
     delete this.log;
@@ -100,12 +101,26 @@ let moveCopyModule =
     if (count <= 0)
       return;
 
+    let displayCount = count;
     // get the folder of the deleted messages
     let folder = aMsgList.queryElementAt(0, Components.interfaces.nsIMsgDBHdr).folder;
 
-    let displayText = PluralForm.get(count, this.getString("deletedMessages"));
-    displayText = displayText.replace("#1", count)
+    let activities = this.activityMgr.getActivities({})
+    if (activities.length > 0 &&
+        activities[activities.length-1].id == this.lastMessage.id &&
+        this.lastMessage.type == "deleteMail" &&
+        this.lastMessage.folder == folder.prettiestName)
+    {
+      displayCount += this.lastMessage.count;
+      this.activityMgr.removeActivity(this.lastMessage.id);
+    }
+
+    this.lastMessage = {};
+    let displayText = PluralForm.get(displayCount, this.getString("deletedMessages2"));
+    displayText = displayText.replace("#1", displayCount)
+    this.lastMessage.count = displayCount;
     displayText = displayText.replace("#2", folder.prettiestName)
+    this.lastMessage.folder = folder.prettiestName;
 
     let statusText = folder.server.prettyName;
 
@@ -117,14 +132,15 @@ let moveCopyModule =
                                Date.now()); // completion time
 
     event.iconClass = "deleteMail";
-          
+    this.lastMessage.type = event.iconClass;
+
     for (let i = 0; i < count; i++)
     {
       let msgHdr = aMsgList.queryElementAt(i, Components.interfaces.nsIMsgDBHdr);
       event.addSubject(msgHdr.messageId);
     }
 
-    this.activityMgr.addActivity(event);
+    this.lastMessage.id = this.activityMgr.addActivity(event);
   },
 
   msgsMoveCopyCompleted : function(aMove, aSrcMsgList, aDestFolder) {
@@ -139,8 +155,20 @@ let moveCopyModule =
       let folder = aSrcMsgList.queryElementAt(0, Components.interfaces.nsIMsgDBHdr).folder;
       this.log.info("got folder");
 
+      let displayCount = count;
+
+      let activities = this.activityMgr.getActivities({})
+      if (activities.length > 0 &&
+          activities[activities.length-1].id == this.lastMessage.id &&
+          this.lastMessage.type == aMove ? "moveMail" : "copyMail" &&
+          this.lastMessage.sourceFolder == folder.prettiestName &&
+          this.lastMessage.destFolder == aDestFolder.prettiestName)
+      {
+        displayCount += this.lastMessage.count;
+        this.activityMgr.removeActivity(this.lastMessage.id);
+      }
+
       let statusText = '';
-      // TODO: localize this string
       if (folder.server != aDestFolder.server)
       {
         statusText = this.getString("fromServerToServer");
@@ -152,15 +180,21 @@ let moveCopyModule =
         statusText = folder.server.prettyName;
       }
 
+      this.lastMessage = {};
       let displayText;
       if (aMove)
-        displayText = PluralForm.get(count, this.getString("movedMessages"));
+        displayText = PluralForm.get(displayCount,
+                                     this.getString("movedMessages"));
       else
-        displayText = PluralForm.get(count, this.getString("copiedMessages"));
+        displayText = PluralForm.get(displayCount,
+                                     this.getString("copiedMessages"));
 
-      displayText = displayText.replace("#1", count)
+      displayText = displayText.replace("#1", displayCount)
+      this.lastMessage.count = displayCount;
       displayText = displayText.replace("#2", folder.prettiestName)
+      this.lastMessage.sourceFolder = folder.prettiestName;
       displayText = displayText.replace("#3", aDestFolder.prettiestName)
+      this.lastMessage.destFolder = aDestFolder.prettiestName;
 
       // create an activity event
       let event = new nsActEvent(displayText,
@@ -169,13 +203,14 @@ let moveCopyModule =
                                  Date.now(),    // start time
                                  Date.now());   // completion time
       event.iconClass = aMove ? "moveMail" : "copyMail";
+      this.lastMessage.type = event.iconClass;
 
       for (let i = 0; i < count; i++)
       {
         let msgHdr = aSrcMsgList.queryElementAt(i, Components.interfaces.nsIMsgDBHdr);
         event.addSubject(msgHdr.messageId);
       }
-      this.activityMgr.addActivity(event);
+      this.lastMessage.id = this.activityMgr.addActivity(event);
     } catch (e) {
       this.log.error("Exception: " + e)
     }
