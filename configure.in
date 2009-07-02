@@ -44,6 +44,7 @@ dnl   MSVC l10n compatible version check
 dnl   Ben Turner <mozilla@songbirdnest.com>
 dnl   comm-central adaptations
 dnl   Robert Kaiser <kairo@kairo.at>
+dnl   Serge Gautherie <sgautherie.bz@free.fr>
 dnl
 dnl Alternatively, the contents of this file may be used under the terms of
 dnl either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -141,7 +142,7 @@ LIBGNOME_VERSION=2.0
 STARTUP_NOTIFICATION_VERSION=0.8
 DBUS_VERSION=0.60
 LCMS_VERSION=1.17
-SQLITE_VERSION=3.6.7
+SQLITE_VERSION=3.6.10
 
 MSMANIFEST_TOOL=
 
