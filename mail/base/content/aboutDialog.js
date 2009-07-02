@@ -84,3 +84,11 @@ function switchPage(aEvent) {
   }
   document.getElementById("modes").setAttribute("selectedIndex", gSelectedPage);
 }
+
+function loadAbout(type)
+{
+  window.openDialog("chrome://messenger/content/", "_blank",
+                    "chrome,dialog=no,all", null,
+                    { tabType: "contentTab",
+                      tabParams: { contentPage: "about:" + type } });
+}

@@ -511,8 +511,18 @@ function atStartupRestoreTabs() {
   return true;
 }
 
+function loadExtraTabs()
+{
+  if ("arguments" in window && window.arguments.length >= 2) {
+    if ("tabType" in window.arguments[1]) {
+      document.getElementById('tabmail').openTab(window.arguments[1].tabType, window.arguments[1].tabParams);
+    }
+  }
+}
+
 function loadStartFolder(initialUri)
 {
+  setTimeout(loadExtraTabs, 0);
     var defaultServer = null;
     var startFolder;
     var isLoginAtStartUpEnabled = false;

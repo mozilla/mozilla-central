@@ -57,7 +57,7 @@
         onload="onLoad();" onunload="onUnload(event);"
         title="&aboutDialog.title;"
         creditslabel="&credits.label;" creditsaccesskey="&credits.accesskey;"
-        aboutlabel="&aboutLink.label;" aboutaccesskey="&aboutLink.accesskey;">
+        aboutlabel="&aboutButton.label;" aboutaccesskey="&aboutButton.accesskey;">
 
     <script type="application/x-javascript"
             src="chrome://messenger/content/aboutDialog.js"/>
@@ -74,6 +74,26 @@
       </vbox>
     </deck>
     <separator class="groove" id="groove"/>
+    <hbox>
+      <!-- dialog.xml has these buttons as extra 2 then accept on all platforms.
+           So we'll just insert our menu in-between. -->
+      <button dlgtype="extra2" class="dialog-button"/>
+      <button id="aboutMenu" type="menu" label="&aboutMenu.label;"
+              accesskey="&aboutMenu.accesskey;" class="dialog-button"
+              oncommand="event.preventDefault();">
+        <menupopup id="aboutRightsMenu">
+          <menuitem label="&aboutRights.label;"
+                    accesskey="&aboutRights.accesskey;"
+                    oncommand="loadAbout('rights');"/>
+          <menuitem label="&aboutContributors.label;"
+                    accesskey="&aboutContributors.accesskey;"
+                    oncommand="loadAbout('credits');"/>
+        </menupopup>
+      </button>
+#ifndef XP_MACOSX
+      <button dlgtype="accept" class="dialog-button"/>
+#endif
+    </hbox>
 #ifdef XP_MACOSX
     <keyset id="mainKeyset">
       <key id="key_close" modifiers="accel" key="&cmdCloseMac.commandKey;"
