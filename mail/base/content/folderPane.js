@@ -1690,10 +1690,9 @@ let gFolderTreeController = {
     //xxx should pass the folder object
     function editVirtualCallback(aURI) {
       // we need to reload the folder if it is the currently loaded folder...
-      if (gMsgFolderSelected && aURI == gMsgFolderSelected.URI) {
-        gMsgFolderSelected = null;
+      if (gFolderDisplay.displayedFolder &&
+          aURI == gFolderDisplay.displayedFolder.URI)
         FolderPaneSelectionChange();
-      }
     }
     window.openDialog("chrome://messenger/content/virtualFolderProperties.xul",
                       "", "chrome,titlebar,modal,centerscreen",

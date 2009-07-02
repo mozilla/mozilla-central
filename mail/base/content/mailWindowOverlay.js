@@ -1663,10 +1663,7 @@ function CreateToolbarTooltip(document, event)
  * The tab info objects (as tabmail's currentTabInfo/tabInfo fields contain)
  *  have the following attributes specific to our implementation:
  *
- *
  * @property {string} uriToOpen
- * @property {nsIMsgFolder} msgSelectedFolder Preserves gMsgFolderSelected
- *     global.
  * @property {nsIMsgDBView} dbView The database view to use with the thread tree
  *     when this tab is displayed.  The value will be assigned to the global
  *     gDBView in the process.
@@ -3500,9 +3497,9 @@ function FeedSetContentView(val)
         try
         {
           var targetRes = getParentTargetForChildResource(
-                          gMsgFolderSelected.URI,
+                          gFolderDisplay.displayedFolder.URI,
                           FZ_QUICKMODE,
-                          gMsgFolderSelected.server);
+                          gFolderDisplay.displayedFolder.server);
         }
         catch (ex) {};
 

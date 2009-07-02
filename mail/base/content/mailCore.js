@@ -122,7 +122,7 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
   if (document.getElementById("folder-location-container"))
   {
     loadFolderViewForTree(gCurrentFolderView, document.getElementById('folderLocationPopup').tree);
-    UpdateFolderLocationPicker(gMsgFolderSelected);
+    UpdateFolderLocationPicker(gFolderDisplay.displayedFolder);
   }
 
   gSearchInput = null;

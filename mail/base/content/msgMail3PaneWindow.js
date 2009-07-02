@@ -101,9 +101,9 @@ var folderListener = {
     OnItemPropertyChanged: function(item, property, oldValue, newValue) { },
 
     OnItemIntPropertyChanged: function(item, property, oldValue, newValue) {
-      if (item == gMsgFolderSelected) {
+      if (item == gFolderDisplay.displayedFolder) {
         if(property.toString() == "TotalMessages" || property.toString() == "TotalUnreadMessages") {
-          UpdateStatusMessageCounts(gMsgFolderSelected);
+          UpdateStatusMessageCounts(gFolderDisplay.displayedFolder);
         }
       }
     },

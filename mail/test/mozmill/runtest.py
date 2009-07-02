@@ -70,6 +70,8 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         # disable address books for undisclosed reasons
         'ldap_2.servers.osx.position': 0,
         'ldap_2.servers.oe.position': 0,
+        # disable the first use junk dialog
+        'mailnews.ui.junk.firstuse': False,
         # other unknown voodoo
         # -- dummied up local accounts to stop the account wizard
         'mail.account.account1.server' :  "server1",

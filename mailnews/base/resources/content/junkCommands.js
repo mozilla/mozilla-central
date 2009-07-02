@@ -48,7 +48,7 @@
   *   messenger
   *   gMessengerBundle
   *   gDBView
-  *   gMsgFolderSelected
+  *   either gMsgFolderSelected or gFolderDisplay
   *   MsgJunkMailInfo(aCheckFirstUse)
   *   SetNextMessageAfterDelete()
   *   pref
@@ -394,7 +394,9 @@ function deleteJunkInFolder()
   MsgJunkMailInfo(true);
 
   // use direct folder commands if possible so we don't mess with the selection
-  if ( !(gMsgFolderSelected.flags & Components.interfaces.nsMsgFolderFlags.Virtual) )
+  let selectedFolder = ("gFolderDisplay" in window) ?
+                       gFolderDisplay.displayedFolder : gMsgFolderSelected;
+  if ( !(selectedFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) )
   {
     var junkMsgHdrs = Components.classes["@mozilla.org/array;1"]
                                 .createInstance(Components.interfaces.nsIMutableArray);

@@ -320,7 +320,7 @@ function ThreadPaneOnLoad()
 
 function ThreadPaneSelectionChanged()
 {
-  UpdateStatusMessageCounts(gMsgFolderSelected);
+  UpdateStatusMessageCounts(gFolderDisplay.displayedFolder);
   GetThreadTree().view.selectionChanged();
 }
 

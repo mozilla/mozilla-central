@@ -49,8 +49,6 @@ Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 //NOTE: gMessengerBundle and gBrandBundle must be defined and set
 //      for this Overlay to work properly
 
-var gMsgFolderSelected;
-
 function UpdateMailToolbar(caller)
 {
   //dump("XXX update mail-toolbar " + caller + "\n");
