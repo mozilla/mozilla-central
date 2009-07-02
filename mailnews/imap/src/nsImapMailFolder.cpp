@@ -222,7 +222,8 @@ nsImapMailFolder::nsImapMailFolder() :
     m_downloadMessageForOfflineUse(PR_FALSE),
     m_downloadingFolderForOfflineUse(PR_FALSE),
     m_folderQuotaUsedKB(0),
-    m_folderQuotaMaxKB(0)
+    m_folderQuotaMaxKB(0),
+    m_applyIncomingFilters(PR_FALSE)
 {
   MOZ_COUNT_CTOR(nsImapMailFolder); // double count these for now.
 
@@ -692,13 +693,21 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolderWithListener(nsIMsgWindow *aMsgWindo
   nsresult rv;
   PRBool selectFolder = PR_FALSE;
 
-  if (mFlags & nsMsgFolderFlags::Inbox)
+  // If this is the inbox, filters will be applied. Otherwise, we test the
+  // inherited folder property "applyIncomingFilters" (which defaults to empty).
+  // If this inherited property has the string value "true", we will apply
+  // filters even if this is not the inbox folder.
+  nsCString applyIncomingFilters;
+  GetInheritedStringProperty("applyIncomingFilters", applyIncomingFilters);
+  m_applyIncomingFilters = applyIncomingFilters.EqualsLiteral("true");
+
+  if (mFlags & nsMsgFolderFlags::Inbox || m_applyIncomingFilters)
   {
     if (!m_filterList)
       rv = GetFilterList(aMsgWindow, getter_AddRefs(m_filterList));
     // if there's no msg window, but someone is updating the inbox, we're
     // doing something biff-like, and may download headers, so make biff notify.
-    if (!aMsgWindow)
+    if (!aMsgWindow && mFlags & nsMsgFolderFlags::Inbox)
       SetPerformingBiff(PR_TRUE);
   }
 
@@ -2891,8 +2900,12 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
   if (NS_SUCCEEDED(newMsgHdr->GetMessageSize(&messageSize)))
     mFolderSize += messageSize;
   m_msgMovedByFilter = PR_FALSE;
-  // If this is the inbox, try to apply filters.
-  if (mFlags & nsMsgFolderFlags::Inbox)
+
+  // If this is the inbox, try to apply filters. Otherwise, test the inherited
+  // folder property "applyIncomingFilters" (which defaults to empty). If this
+  // inherited property has the string value "true", then apply filters even
+  // if this is not the Inbox folder.
+  if (mFlags & nsMsgFolderFlags::Inbox || m_applyIncomingFilters)
   {
     PRUint32 msgFlags;
     newMsgHdr->GetFlags(&msgFlags);
@@ -2901,7 +2914,8 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
       PRInt32 duplicateAction = nsIMsgIncomingServer::keepDups;
       if (server)
         server->GetIncomingDuplicateAction(&duplicateAction);
-      if (duplicateAction != nsIMsgIncomingServer::keepDups)
+      if ((duplicateAction != nsIMsgIncomingServer::keepDups) &&
+          mFlags & nsMsgFolderFlags::Inbox)
       {
         PRBool isDup;
         server->IsNewHdrDuplicate(newMsgHdr, &isDup);

@@ -492,6 +492,7 @@ protected:
   PRPackedBool m_folderQuotaCommandIssued;
   PRPackedBool m_folderQuotaDataIsValid;
   PRPackedBool m_updatingFolder;
+  PRPackedBool m_applyIncomingFilters; // apply filters to this folder, even if not the inbox
   nsMsgIMAPFolderACL *m_folderACL;
   PRUint32     m_aclFlags;
   PRUint32     m_supportedUserFlags;
@@ -514,5 +515,6 @@ protected:
   nsPlaybackRequest *m_pendingPlaybackReq;
   nsCOMPtr<nsITimer> m_playbackTimer;
   nsCOMArray<nsITransaction> m_pendingOfflineMoves;
+
 };
 #endif
