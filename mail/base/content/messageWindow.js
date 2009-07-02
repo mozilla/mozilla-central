@@ -769,10 +769,9 @@ var MessageWindowController =
                             true));
       case "cmd_reply":
       case "button_reply":
-        return gFolderDisplay.selectedMessage && IsReplyEnabled();
       case "cmd_replyall":
       case "button_replyall":
-        return gFolderDisplay.selectedMessage && IsReplyAllEnabled();
+        return gFolderDisplay.selectedMessage && IsReplyEnabled();
       case "cmd_replylist":
       case "button_replylist":
         return gFolderDisplay.selectedMessage && IsReplyListEnabled();

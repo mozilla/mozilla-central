@@ -322,10 +322,9 @@ var DefaultController =
         {
           if (!gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody))
             return false;
-          if (command == "cmd_reply" || command == "button_reply")
+          if (command == "cmd_reply" || command == "button_reply" ||
+              command == "cmd_replyall" ||command == "button_replyall")
             return IsReplyEnabled();
-          if (command == "cmd_replyall" || command == "button_replyall")
-            return IsReplyAllEnabled();
           if (command == "cmd_replylist" || command == "button_replylist")
             return IsReplyListEnabled();
           return true;
