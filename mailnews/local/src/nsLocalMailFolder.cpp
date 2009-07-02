@@ -2211,7 +2211,11 @@ nsresult nsMsgLocalMailFolder::DeleteMessage(nsISupports *message,
     nsCOMPtr <nsIMsgDBHdr> msgDBHdr(do_QueryInterface(message, &rv));
 
     if(NS_SUCCEEDED(rv))
-      rv = mDatabase->DeleteHeader(msgDBHdr, nsnull, commit, PR_TRUE);
+    {
+      GetDatabase();
+      if (mDatabase)
+        rv = mDatabase->DeleteHeader(msgDBHdr, nsnull, commit, PR_TRUE);
+    }
   }
   return rv;
 }
@@ -3107,6 +3111,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteDownloadMsg(nsIMsgDBHdr *aMsgHdr, PRBo
       // Delete the first match and remove it from the array
       if (!PL_strcmp(newMsgId, oldMsgId))
       {
+        rv = GetDatabase();
+        if (!mDatabase)
+          return rv;
 #if DOWNLOAD_NOTIFY_STYLE == DOWNLOAD_NOTIFY_LAST
         msgDBHdr->GetMessageKey(&mDownloadOldKey);
         msgDBHdr->GetThreadParent(&mDownloadOldParent);
@@ -3135,7 +3142,13 @@ NS_IMETHODIMP nsMsgLocalMailFolder::SelectDownloadMsg()
 
 #if DOWNLOAD_NOTIFY_STYLE == DOWNLOAD_NOTIFY_LAST
   if (mDownloadState >= DOWNLOAD_STATE_GOTMSG)
+  {
+    nsresult rv = GetDatabase();
+    if (!mDatabase)
+      return rv;
+    }
     mDatabase->NotifyKeyDeletedAll(mDownloadOldKey, mDownloadOldParent, mDownloadOldFlags, nsnull);
+  }
 #endif
 
   if (mDownloadState == DOWNLOAD_STATE_GOTMSG && mDownloadWindow)
@@ -3310,7 +3323,12 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
           nsCOMPtr <nsIMsgDBHdr> msgDBHdr;
           rv = GetMsgDBHdrFromURI(messageuri.get(), getter_AddRefs(msgDBHdr));
           if(NS_SUCCEEDED(rv))
-              rv = mDatabase->DeleteHeader(msgDBHdr, nsnull, PR_TRUE, PR_TRUE);
+          {
+            GetDatabase();
+            if (mDatabase)
+              mDatabase->DeleteHeader(msgDBHdr, nsnull, PR_TRUE, PR_TRUE);
+          }
+
           nsCOMPtr<nsIPop3Sink> pop3sink;
           nsCString newMessageUri;
           rv = popurl->GetPop3Sink(getter_AddRefs(pop3sink));
@@ -3838,7 +3856,8 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
   if (NS_SUCCEEDED(rv))
   {
     rv = GetDatabase();
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (!mDatabase)
+      return rv;
     // this will fail if the folder is locked.
     rv = mDatabase->StartBatch();
     NS_ENSURE_SUCCESS(rv, rv);
