@@ -679,6 +679,25 @@ function test_real_folder_special_views_threads_with_unread() {
   verify_messages_in_view([setThreadOne, setThreadTwo], viewWrapper);
 }
 
+/**
+ * Make sure that we restore special views from their persisted state when
+ *  opening the view.
+ */
+function test_real_folder_special_views_persist() {
+  let viewWrapper = make_view_wrapper();
+  let folder = make_empty_folder();
+
+  yield async_view_open(viewWrapper, folder);
+  viewWrapper.beginViewUpdate();
+  viewWrapper.specialViewThreadsWithUnread = true;
+  yield async_view_end_update(viewWrapper);
+  viewWrapper.close();
+
+  yield async_view_open(viewWrapper, folder);
+  assert_true(viewWrapper.specialViewThreadsWithUnread,
+              "We should be in threads-with-unread special view mode.");
+}
+
 var tests = [
   test_real_folder_load,
   test_real_folder_update,
@@ -711,6 +730,7 @@ var tests = [
   test_real_folder_mail_view_and_quick_search,
   // - special views
   test_real_folder_special_views_threads_with_unread,
+  test_real_folder_special_views_persist,
   // (we cannot test the watched threads with unread case in local folders)
 ];
 

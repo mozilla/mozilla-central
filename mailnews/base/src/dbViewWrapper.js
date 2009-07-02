@@ -83,7 +83,7 @@ var FolderNotificationHelper = {
    * search results wrappers.
    */
    _curiousWrappers: [],
-   
+
   /**
    * Initialize our listeners.  We currently don't bother cleaning these up
    *  because we are a singleton and if anyone imports us, they probably want
@@ -166,7 +166,7 @@ var FolderNotificationHelper = {
   noteCuriosity: function FolderNotificationHelper_noteCuriosity(aViewWrapper) {
     this._curiousWrappers.push(aViewWrapper);
   },
-  
+
   /**
    * Removal helper for use by removeNotifications.
    *
@@ -938,6 +938,17 @@ DBViewWrapper.prototype = {
       this._ensureValidSort();
     }
 
+    // See if the last-used view was one of the special views.  If so, put us in
+    //  that special view mode.  We intentionally do this after restoring the
+    //  view flags because _setSpecialView enforces threading.
+    // The nsMsgDBView is the one who persists this information for us.  In this
+    //  case the nsMsgThreadedDBView superclass of the special views triggers it
+    //  when opened.
+    let viewType = dbFolderInfo.viewType;
+    if ((viewType == nsMsgViewType.eShowThreadsWithUnread) ||
+        (viewType == nsMsgViewType.eShowWatchedThreadsWithUnread))
+      this._setSpecialView(viewType);
+
     // - retrieve virtual folder configuration
     if (aFolder.flags & nsMsgFolderFlags.Virtual) {
       let virtFolder = VirtualFolderHelper.wrapVirtualFolder(aFolder);
@@ -1092,7 +1103,7 @@ DBViewWrapper.prototype = {
       this.folderLoading = false;
       // If _underlyingFolders is null, DBViewWrapper_open probably got
       // an exception trying to open the db, but after reparsing the local
-      // folder, we should have a db, so set up the view based on info 
+      // folder, we should have a db, so set up the view based on info
       // from the db.
       if (this._underlyingFolders == null) {
         this._prepareToLoadView(aFolder.msgDatabase, aFolder);
@@ -1268,7 +1279,8 @@ DBViewWrapper.prototype = {
    * - Single-folder threaded/unthreaded can handle a change to/from unthreaded/
    *    threaded, so set it.
    * - Single-folder can _not_ handle a change between grouped and not-grouped,
-   *    so re-generate the view.
+   *    so re-generate the view.  Nor can it handle a change involving
+   *    kUnreadOnly.
    */
   set _viewFlags DBViewWrapper_set__viewFlags(aViewFlags) {
     if (this._viewUpdateDepth || !this.dbView)
@@ -1278,7 +1290,8 @@ DBViewWrapper.prototype = {
       let changedFlags = oldFlags ^ aViewFlags;
       if ((this.isVirtual && this.isMultiFolder) ||
           (this.isSingleFolder &&
-           !(changedFlags & nsMsgViewFlagsType.kGroupBySort))) {
+           !(changedFlags & (nsMsgViewFlagsType.kGroupBySort |
+                             nsMsgViewFlagsType.kUnreadOnly)))) {
         this.dbView.viewFlags = aViewFlags;
         // ugh, and the single folder case needs us to re-apply his sort...
         if (this.isSingleFolder)
@@ -1709,13 +1722,24 @@ DBViewWrapper.prototype = {
    *  view (or other search) for unread messages.  There also exist special
    *  views for showing messages with unread threads which is different and
    *  has serious limitations because of its nature.
+   * Setting anything to this value clears any active special view because the
+   *  actual UI use case (the "View... Threads..." menu) uses this setter
+   *  intentionally as a mutually exclusive UI choice from the special views.
    */
   set showUnreadOnly(aShowUnreadOnly) {
-    if (this.showUnreadOnly != aShowUnreadOnly) {
+    if (this._specialView || (this.showUnreadOnly != aShowUnreadOnly)) {
+      let viewRebuildRequired = (this._specialView != null);
+      this._specialView = null;
+      if (viewRebuildRequired)
+        this.beginViewUpdate();
+
       if (aShowUnreadOnly)
         this._viewFlags |= nsMsgViewFlagsType.kUnreadOnly;
       else
         this._viewFlags &= ~nsMsgViewFlagsType.kUnreadOnly;
+
+      if (viewRebuildRequired)
+        this.endViewUpdate();
     }
   },
 
@@ -1744,6 +1768,9 @@ DBViewWrapper.prototype = {
     // all special views imply a threaded view
     this.showThreaded = true;
     this._specialView = aViewEnum;
+    // We clear the search for paranoia/correctness reasons.  However, the UI
+    //  layer is currently responsible for making sure these are already zeroed
+    //  out.
     this.search.clear();
     this.endViewUpdate();
   },

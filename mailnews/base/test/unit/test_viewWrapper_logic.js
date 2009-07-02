@@ -30,6 +30,49 @@ function test_threading_grouping_mutual_exclusion () {
 }
 
 /**
+ * Verify that flipping between the "View... Threads..." menu cases supported by
+ *  |showUnreadOnly| / |specialViewThreadsWithUnread| /
+ *  |specialViewThreadsWithUnread| has them all be properly mutually exclusive.
+ */
+function test_threads_special_views_mutual_exclusion() {
+  let viewWrapper = make_view_wrapper();
+  let folder = make_empty_folder();
+
+  yield async_view_open(viewWrapper, folder);
+  // enter an update that will never conclude. this is fine.
+  viewWrapper.beginViewUpdate();
+
+  // turn on the special view, make sure we think it took
+  viewWrapper.specialViewThreadsWithUnread = true;
+  do_check_true(viewWrapper.specialViewThreadsWithUnread);
+  do_check_false(viewWrapper.specialViewWatchedThreadsWithUnread);
+
+  // hit showUnreadOnly which should already be false, so this makes sure that
+  //  just writing to it forces the special view off.
+  viewWrapper.showUnreadOnly = false;
+  do_check_false(viewWrapper.showUnreadOnly);
+  do_check_false(viewWrapper.specialViewThreadsWithUnread);
+  do_check_false(viewWrapper.specialViewWatchedThreadsWithUnread);
+
+  // turn on the other special view
+  viewWrapper.specialViewWatchedThreadsWithUnread = true;
+  do_check_false(viewWrapper.specialViewThreadsWithUnread);
+  do_check_true(viewWrapper.specialViewWatchedThreadsWithUnread);
+
+  // turn on show unread only mode, make sure special view is cleared
+  viewWrapper.showUnreadOnly = true;
+  do_check_true(viewWrapper.showUnreadOnly);
+  do_check_false(viewWrapper.specialViewThreadsWithUnread);
+  do_check_false(viewWrapper.specialViewWatchedThreadsWithUnread);
+
+  // turn off show unread only mode just to make sure the transition happens
+  viewWrapper.showUnreadOnly = false;
+  do_check_false(viewWrapper.showUnreadOnly);
+  do_check_false(viewWrapper.specialViewThreadsWithUnread);
+  do_check_false(viewWrapper.specialViewWatchedThreadsWithUnread);
+}
+
+/**
  * Do a quick test of primary sorting to make sure we're actually changing the
  *  sort order.  (However, we are not responsible for verifying correctness of
  *  the sort.)
@@ -204,6 +247,7 @@ function test_view_update_depth_logic() {
 
 var tests = [
   test_threading_grouping_mutual_exclusion,
+  test_threads_special_views_mutual_exclusion,
   test_sort_primary,
   test_sort_secondary_explicit,
   test_sort_secondary_implicit,

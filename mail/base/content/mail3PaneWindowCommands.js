@@ -409,9 +409,9 @@ var DefaultController =
       case "cmd_previousFlaggedMsg":
         return IsViewNavigationItemEnabled();
       case "cmd_viewAllMsgs":
-      case "cmd_viewUnreadMsgs":
       case "cmd_viewIgnoredThreads":
         return gDBView;
+      case "cmd_viewUnreadMsgs":
       case "cmd_viewThreadsWithUnread":
       case "cmd_viewWatchedThreadsWithUnread":
         return !gFolderDisplay.view.isVirtual;
