@@ -378,7 +378,7 @@ libs:: $(PROGRAM)
 	mkdir -p $(DIST)/$(APP_NAME).app/Contents/Library/Spotlight
 	rsync -a --copy-unsafe-links $(DIST)/package/Thunderbird.mdimporter $(DIST)/$(APP_NAME).app/Contents/Library/Spotlight
 	cp -RL $(DIST)/branding/thunderbird.icns $(DIST)/$(APP_NAME).app/Contents/Resources/thunderbird.icns
-	echo -n APPLMOZM > $(DIST)/$(APP_NAME).app/Contents/PkgInfo
+	printf APPLMOZM > $(DIST)/$(APP_NAME).app/Contents/PkgInfo
 #       remove CVS dirs from packaged app
 	find $(DIST)/$(APP_NAME).app -type d -name "CVS" -prune -exec rm -rf {} \;
 
