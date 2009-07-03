@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Andrew Sutherland <asutherland@asutherland.org>
+ *   David Bienvenu <bienvenu@nventure.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,7 +46,6 @@ var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 var folder;
-var msgSet;
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -55,7 +55,12 @@ function setupModule(module) {
 
   folder = create_folder("MessageWindowA");
   // create three messages in the folder to display
-  [msgSet] = make_new_sets_in_folder(folder, [{count: 3}]);
+  let msg1 = create_thread(1);
+  let msg2 = create_thread(1);
+  let thread1 = create_thread(2);
+  let thread2 = create_thread(2);
+  add_sets_to_folders([folder], [msg1, msg2, thread1, thread2]);
+  folder.msgDatabase.dBFolderInfo.viewFlags = Ci.nsMsgViewFlagsType.kThreadedDisplay;
 }
 
 /** The message window controller. */
@@ -64,7 +69,7 @@ var msgc;
 function test_open_message_window() {
   be_in_folder(folder);
 
-  // select the one and only message
+  // select the first message
   let curMessage = select_click_row(0);
 
   // display it
@@ -82,6 +87,27 @@ function test_navigate_to_next_message() {
   assert_selected_and_displayed(msgc, 1);
 }
 
+/**
+ * Delete a single message and verify the next message is loaded. This sets
+ * us up for the next test, which is delete on a collapsed thread after
+ * the previous message was deleted.
+ */
+function test_delete_single_message() {
+  press_delete(msgc);
+  wait_for_message_display_completion(msgc, true);
+  assert_selected_and_displayed(msgc, 1);
+}
+
+/**
+ * Delete the current message, and verify that it only deletes
+ * a single message, not the messages in the collapsed thread
+ */
+function test_del_collapsed_thread() {
+  press_delete(msgc);
+  if (folder.getTotalMessages(false) != 4)
+    throw new Error("should have only deleted one message");
+
+}
 /**
  * Close the window by hitting escape.
  */
