@@ -527,6 +527,26 @@ function loadStartFolder(initialUri)
     var startFolder;
     var isLoginAtStartUpEnabled = false;
 
+    if (!initialUri) {
+      // Look to see if a master password is set, if so prompt for it to try
+      // and avoid the multiple master password prompts on startup scenario.
+      let token =
+        Components.classes["@mozilla.org/security/pk11tokendb;1"]
+                  .getService(Components.interfaces.nsIPK11TokenDB)
+                  .getInternalKeyToken();
+
+      // If an empty string is valid for the internal token, then we don't
+      // have a master password, else, if it does, then try to login.
+      try {
+        if (!token.checkPassword(""))
+          token.login(false);
+      }
+      catch (ex) {
+      // If user cancels an exception is expected. checkPassword also
+      // seems to fail w/ mozmill.
+      }
+    }
+
     let loadFolder = !atStartupRestoreTabs();
     // If a URI was explicitly specified, we'll just clobber the default tab
     if (initialUri)
@@ -575,25 +595,6 @@ function loadStartFolder(initialUri)
         // the folder. i.e. the user just clicked on a news folder they aren't subscribed to from a browser
         // the news url comes in here.
 
-        // Look to see if a master password is set, if so prompt for it to try
-        // and avoid the multiple master password prompts on startup scenario.
-        if (isLoginAtStartUpEnabled) {
-          var token =
-            Components.classes["@mozilla.org/security/pk11tokendb;1"]
-                      .getService(Components.interfaces.nsIPK11TokenDB)
-                      .getInternalKeyToken();
-
-          // If an empty string is valid for the internal token, then we don't
-          // have a master password, else, if it does, then try to login.
-          if (!token.checkPassword("")) {
-            try {
-              token.login(false);
-            }
-            catch (ex) {
-              // If user cancels an exception is expected.
-            }
-          }
-        }
         // Perform biff on the server to check for new mail, except for imap
         // or a pop3 account that is deferred or deferred to,
         // or the case where initialUri is non-null (non-startup)
