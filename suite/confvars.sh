@@ -45,7 +45,11 @@ fi
 MOZ_STATIC_MAIL_BUILD=1
 MOZ_COMPOSER=1
 MOZ_SUITE=1
-MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version.txt`
+if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
+  MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version-191.txt`
+else
+  MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version.txt`
+fi
 SEAMONKEY_VERSION=$MOZ_APP_VERSION
 MOZ_NO_XPCOM_OBSOLETE=1
 MOZ_EXTENSIONS_DEFAULT=" venkman inspector irc gnomevfs reporter"
