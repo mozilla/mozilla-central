@@ -58,12 +58,8 @@ include $(topsrcdir)/config/rules.mk
 
 MOZ_PKG_REMOVALS = $(srcdir)/removed-files.in
 
-ifdef BUILD_STATIC_LIBS
 ifeq (WINNT,$(OS_ARCH))
 MOZ_PKG_MANIFEST_P = $(srcdir)/windows/packages-static
-endif
-else
-$(error you need a "--enable-static --disable-shared" build to create an installer)
 endif
 
 MOZ_NONLOCALIZED_PKG_LIST = \
@@ -89,6 +85,17 @@ MOZ_PKG_MAC_DSSTORE=branding/dsstore
 MOZ_PKG_MAC_BACKGROUND=branding/background.png
 MOZ_PKG_MAC_ICON=branding/disk.icns
 MOZ_PKG_MAC_EXTRA=--symlink "/Applications:/ "
+endif
+
+# You do *NOT* want to set MAIL_PKG_SHARED: shared builds are slower at
+# everything except being rebuilt. It only exists so we can package builds
+# where xpcshell will work, to run tests on packaged builds. If you want to
+# package, install, or build an installer, build with --enable-static in your
+# mozconfig instead.
+ifndef MAIL_PKG_SHARED
+ifndef BUILD_STATIC_LIBS
+$(error you need an "--enable-static" build to package a build)
+endif
 endif
 
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
