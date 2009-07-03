@@ -850,17 +850,20 @@ EmailConfigWizard.prototype =
   _setIconAndTooltip : function(id, state, details)
   {
     let icon = getElementById(id);
-    icon.setAttribute('state', state);
+    icon.setAttribute("state", state);
     switch (state)
     {
-      case 'weak':
-        icon.setAttribute('tooltip', 'insecureserver-'+details);
+      case "weak":
+        icon.setAttribute("tooltip", "insecureserver-" + details);
+        icon.setAttribute("popup", "insecureserver-" + details + "-panel");
         break;
-      case 'hidden':
-        icon.removeAttribute('tooltip');
+      case "hidden":
+        icon.removeAttribute("tooltip");
+        icon.removeAttribute("popup");
         break;
-      case 'strong':
-        icon.setAttribute('tooltip', 'secureservertooltip');
+      case "strong":
+        icon.setAttribute("tooltip", "secureservertooltip");
+        icon.setAttribute("popup", "secureserver-panel");
         break;
     }
   },

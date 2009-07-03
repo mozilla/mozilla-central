@@ -38,8 +38,11 @@
 
 <!ENTITY lectureYourProvider.description "&brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
 
-<!ENTITY insecureCleartext.description   "Warning! This is an insecure server. Email is sent in clear-text, so your email could be read by attackers, etc. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
-<!ENTITY insecureSelfsigned.description  "Warning! This is an insecure server. The server uses a certificate that we can't trust, so we can't be sure that someone isn't intercepting the traffic between &brandShortName; and your server. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a trusted certificate.">
+<!ENTITY insecureServer.tooltip.title    "Warning! This is an insecure server.">
+<!ENTITY insecureServer.tooltip.details  "Click circle for more details.">
+
+<!ENTITY insecureCleartext.description   "Email is sent in clear-text, so your email could be read by attackers, etc. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
+<!ENTITY insecureSelfsigned.description  "The server uses a certificate that we can't trust, so we can't be sure that someone isn't intercepting the traffic between &brandShortName; and your server. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a trusted certificate.">
 <!ENTITY secureServer.description        "Congratulations! This is a secure server.">
 
 <!ENTITY customfields-header.label     "Additional information">

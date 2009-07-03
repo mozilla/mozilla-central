@@ -87,22 +87,53 @@
     <key keycode="VK_ESCAPE" oncommand="window.close();"/>
   </keyset>
 
-  <tooltip id="insecureserver-cleartext">
-    <hbox align="bottom">
+  <panel id="insecureserver-cleartext-panel" class="popup-panel">
+    <hbox>
       <image class="insecureLarry"/>
-      <description>&insecureCleartext.description;</description>
+      <vbox flex="1">
+        <description class="title">&insecureServer.tooltip.title;</description>
+        <description class="details">&insecureCleartext.description;</description>
+      </vbox>
+    </hbox>
+  </panel>
+  <panel id="insecureserver-selfsigned-panel" class="popup-panel">
+    <hbox>
+      <image class="insecureLarry"/>
+      <vbox flex="1">
+        <description class="title">&insecureServer.tooltip.title;</description>
+        <description class="details">&insecureSelfsigned.description;</description>
+      </vbox>
+    </hbox>
+  </panel>
+  <panel id="secureserver-panel" class="popup-panel">
+    <hbox>
+      <image class="secureLarry"/>
+      <description class="title">&secureServer.description;</description>
+    </hbox>
+  </panel>
+
+  <tooltip id="insecureserver-cleartext">
+    <hbox>
+      <image class="insecureLarry"/>
+      <vbox>
+        <description class="title">&insecureServer.tooltip.title;</description>
+        <description class="details">&insecureServer.tooltip.details;</description>
+      </vbox>
     </hbox>
   </tooltip>
   <tooltip id="insecureserver-selfsigned">
-    <hbox align="bottom">
+    <hbox>
       <image class="insecureLarry"/>
-      <description>&insecureSelfsigned.description;</description>
+      <vbox>
+        <description class="title">&insecureServer.tooltip.title;</description>
+        <description class="details">&insecureServer.tooltip.details;</description>
+      </vbox>
     </hbox>
   </tooltip>
   <tooltip id="secureservertooltip">
-    <hbox align="bottom">
+    <hbox>
       <image class="secureLarry"/>
-      <description>&secureServer.description;</description>
+      <description class="title">&secureServer.description;</description>
     </hbox>
   </tooltip>
 

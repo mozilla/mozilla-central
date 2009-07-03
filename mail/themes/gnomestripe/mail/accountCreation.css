@@ -282,3 +282,19 @@ checkbox.acknowledge_checkbox {
 vbox.settings {
   padding: 1em;
 }
+
+.title {
+  font-weight: bold;
+  padding: 0px 3px;
+}
+
+.details {
+  font-style: italic;
+  padding: 3px;
+}
+
+.popup-panel {
+  padding: 2px 3px;
+  background-color: #ffffc7;
+  max-width: 320px;
+}
