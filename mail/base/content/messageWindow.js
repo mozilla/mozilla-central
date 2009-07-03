@@ -114,6 +114,9 @@ StandaloneFolderDisplayWidget.prototype = {
     if (!this.messageDisplay.isDummy) {
       this.view.dbView.setTree(this._fakeTreeBox);
       this.view.dbView.selection = this._magicTreeSelection;
+      // This lets the dbView know we don't really have a tree, so it can
+      // avoid operating on messages in collapsed threads.
+      this._magicTreeSelection.tree = null;
     }
     this.__proto__.__proto__.onCreatedView.call(this);
   },

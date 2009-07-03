@@ -2525,10 +2525,18 @@ nsresult nsMsgDBView::ListCollapsedChildren(nsMsgViewIndex viewIndex,
 
 PRBool nsMsgDBView::OperateOnMsgsInCollapsedThreads()
 {
+  if (mTreeSelection)
+  {
+    nsCOMPtr<nsITreeBoxObject> selTree;
+    nsresult rv = mTreeSelection->GetTree(getter_AddRefs(selTree));
+    // no tree means stand-alone message window
+    if (!selTree)
+      return PR_FALSE;
+  }
   nsresult rv = NS_OK;
   nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
-  
+
   PRBool includeCollapsedMsgs = PR_FALSE;
   prefBranch->GetBoolPref("mail.operate_on_msgs_in_collapsed_threads", &includeCollapsedMsgs);
   return includeCollapsedMsgs;
@@ -2541,7 +2549,7 @@ nsresult nsMsgDBView::GetHeadersFromSelection(PRUint32 *indices,
   nsresult rv = NS_OK;
 
   PRBool includeCollapsedMsgs = OperateOnMsgsInCollapsedThreads();
-  
+
   for (PRUint32 index = 0;
        index < (nsMsgViewIndex) numIndices && NS_SUCCEEDED(rv); index++)
   {
