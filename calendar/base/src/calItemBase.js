@@ -1023,7 +1023,7 @@ function makeMemberAttr(ctor, varname, dflt, attr, asProperty) {
         if (asProperty)
             return this.getProperty(varname);
         else
-            return this[varname];
+            return (varname in this ? this[varname] : undefined);
     };
     var setter = function (v) {
         this.modify();
