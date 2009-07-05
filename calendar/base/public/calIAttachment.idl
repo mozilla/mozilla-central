@@ -42,7 +42,7 @@ interface nsIURI;
 interface calIIcalProperty;
 interface calIItemBase;
 
-[scriptable,uuid(984b7b12-e1bf-45c1-94c2-1f014d890e67)]
+[scriptable,uuid(2cfca4c4-539e-11de-a70d-831556d89593)]
 interface calIAttachment : nsISupports
 {
     /**
@@ -61,11 +61,6 @@ interface calIAttachment : nsISupports
     attribute AUTF8String encoding;
 
     /**
-     * The item this attachment is related to
-     */
-    attribute calIItemBase item;
-
-    /**
      * The calIIcalProperty corresponding to this object.  Can be used for
      * serializing/unserializing from ics files.
      */
@@ -77,4 +72,9 @@ interface calIAttachment : nsISupports
     AUTF8String getParamater(in AString name);
     void setParamater(in AString name, in AUTF8String value);
     void deleteParameter(in AString name);
+
+    /**
+     * Clone this calIAttachment instance into a new object.
+     */
+    calIAttachment clone();
 };

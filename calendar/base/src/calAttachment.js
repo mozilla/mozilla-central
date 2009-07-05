@@ -47,10 +47,9 @@ function calAttachment() {
 }
 
 calAttachment.prototype = {
-    mEncoding: null,     
+    mEncoding: null,
     mUri: null,
     mType: null,
-    mItem: null,
 
     QueryInterface: function (aIID) {
         return doQueryInterface(this,
@@ -109,13 +108,6 @@ calAttachment.prototype = {
         return (this.mEncoding = aValue);
     },
 
-    get item cA_get_item() {
-        return this.mItem;
-    },
-    set item cA_set_item(aItem) {
-        return (this.mItem = aItem);
-    },
-
     get icalProperty cA_get_icalProperty(attProp) {
         var icssvc = getIcsService();
         var icalatt = icssvc.createIcalProperty("ATTACH");
@@ -126,7 +118,7 @@ calAttachment.prototype = {
         if (this.mType) {
             icalatt.setParameter("FMTTYPE", this.mType);
         }
-        
+
         if (this.mEncoding) {
             icalatt.setParameter("ENCODING", this.mEncoding);
         }
@@ -173,5 +165,16 @@ calAttachment.prototype = {
 
     deleteParameter: function (aName) {
         this.mProperties.deleteProperty(aName);
+    },
+
+    clone: function cA_clone() {
+        let newAttachment = new calAttachment();
+        newAttachment.mType = this.mType;
+        newAttachment.mEncoding = this.mEncoding;
+        newAttachment.mUri = this.mUri;
+        for each (let [name, value] in this.mProperties) {
+            newAttachment.mProperties.setProperty(name, value);
+        }
+        return newAttachment;
     }
 };

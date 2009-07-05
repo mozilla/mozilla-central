@@ -48,7 +48,6 @@ function calRelation() {
 }
 
 calRelation.prototype = {
-    mItem: null,
     mType: null,
     mId: null,
 
@@ -89,13 +88,6 @@ calRelation.prototype = {
     /**
      * @see calIRelation
      */
-
-    get item cR_get_item() {
-        return this.mItem;
-    },
-    set item cR_set_item(aItem) {
-        return (this.mItem = aItem);
-    },
 
     get relType cR_get_relType() {
         return this.mType;
@@ -156,5 +148,15 @@ calRelation.prototype = {
 
     deleteParameter: function (aName) {
         return this.mProperties.deleteProperty(aName);
+    },
+
+    clone: function cR_clone() {
+        let newRelation = new calRelation();
+        newRelation.mId = this.mId;
+        newRelation.mType = this.mType;
+        for each (let [name, value] in this.mProperties) {
+            newRelation.mProperties.setProperty(name, value);
+        }
+        return newRelation;
     }
 };

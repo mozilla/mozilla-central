@@ -12,7 +12,7 @@
  * License.
  *
  * The Original Code is Mozilla Calendar code.
- * 
+ *
  * The Initial Developer of the Original Code is
  *   Fred Jendrzejewski <fred.jen@web.de>
  * Portions created by the Initial Developer are Copyright (C) 2008
@@ -39,19 +39,14 @@
 interface calIIcalProperty;
 interface calIItemBase;
 
-[scriptable,uuid(a84f2a74-c7fd-42dc-ac4b-00aa77624039)]
+[scriptable,uuid(44a4eda2-539e-11de-a9ee-cc1556d89593)]
 interface calIRelation : nsISupports
 {
-    /**
-     * The original item of the relation
-     */
-    attribute calIItemBase item;
-
     /**
      * The type of the relation between the items:
      * PARENT
      * CHILD
-     * SIBLING 
+     * SIBLING
      */
     attribute AUTF8String relType;
 
@@ -74,4 +69,9 @@ interface calIRelation : nsISupports
     AUTF8String getParameter(in AString name);
     void setParameter(in AString name, in AUTF8String value);
     void deleteParameter(in AString name);
+
+    /**
+     * Clone this calIRelation instance into a new object.
+     */
+    calIRelation clone();
 };

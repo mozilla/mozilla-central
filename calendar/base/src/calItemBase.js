@@ -25,6 +25,7 @@
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Martin Schroeder <mschroder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -292,11 +293,15 @@ calItemBase.prototype = {
             }
         }
 
-        // xxx todo: the below two need proper cloning,
-        //           calIAttachment::item, calIRelation::item are wrong
-        //           bug 466439
-        m.mAttachments = this.getAttachments({});
-        m.mRelations = this.getRelations({});
+        m.mAttachments = [];
+        for each (let att in this.getAttachments({})) {
+            m.mAttachments.push(att.clone());
+        }
+
+        m.mRelations = [];
+        for each (let rel in this.getRelations({})) {
+            m.mRelations.push(rel.clone());
+        }
 
         m.mCategories = this.getCategories({});
 
@@ -435,7 +440,7 @@ calItemBase.prototype = {
         }
     },
 
-    // AString getPropertyParameter(in AString aPropertyName, 
+    // AString getPropertyParameter(in AString aPropertyName,
     getPropertyParameter: function getPP(aPropName, aParamName) {
         return this.mPropertyParams[aPropName][aParamName];
     },
@@ -688,7 +693,7 @@ calItemBase.prototype = {
     /**
      * Walks through the propmap and sets all properties on this item from the
      * given icalcomp.
-     * 
+     *
      * @param icalcomp      The calIIcalComponent to read from.
      * @param propmap       The property map to walk through.
      */
@@ -705,7 +710,7 @@ calItemBase.prototype = {
      * Walks through the propmap and sets all properties on the given icalcomp
      * from the properties set on this item.
      * given icalcomp.
-     * 
+     *
      * @param icalcomp      The calIIcalComponent to write to.
      * @param propmap       The property map to walk through.
      */
@@ -1010,7 +1015,7 @@ makeMemberAttr(calItemBase, "mProperties", null, "properties");
  * @param dflt          The default value in case none is set
  * @param attr          The attribute name to be used
  * @param asProperty    If true, getProperty will be used to get/set the
- *                        member. 
+ *                        member.
  */
 function makeMemberAttr(ctor, varname, dflt, attr, asProperty) {
     // XXX handle defaults!
