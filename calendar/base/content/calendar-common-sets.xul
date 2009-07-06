@@ -126,20 +126,35 @@
   </commandset>
 
   <keyset id="calendar-keys">
-#ifdef XP_MACOSX
-    // The following Mac specific code-lines are necessary, because you can't
-    // just use the OPTION key on Mac OSX. So we will use SHIFT+OPTION on the
-    // Mac, but just ALT on all other platforms. See bug 448946.
-    <key id="calendar-day-view-key" key="&calendar.dayView.key;" observes="calendar_day-view_command" modifiers="shift alt"/>
-    <key id="calendar-week-view-key" key="&calendar.weekView.key;" observes="calendar_week-view_command" modifiers="shift alt"/>
-    <key id="calendar-multiweek-view-key" key="&calendar.multiweekView.key;" observes="calendar_multiweek-view_command" modifiers="shift alt"/>
-    <key id="calendar-month-view-key" key="&calendar.monthView.key;" observes="calendar_month-view_command" modifiers="shift alt"/>
+
+
+// For linux tab switching reservers alt+number, where on windows that's ctrl.
+// Use the available modifiers for each platform.
+// Can't use the OPTION key on OSX, so we will use SHIFT+OPTION on the Mac.
+#ifdef XP_UNIX
+#ifndef XP_MACOSX
+// Linux
+#define CAL_VIEW_MODIFIERS accel
 #else
-    <key id="calendar-day-view-key" key="&calendar.dayView.key;" observes="calendar_day-view_command" modifiers="alt"/>
-    <key id="calendar-week-view-key" key="&calendar.weekView.key;" observes="calendar_week-view_command" modifiers="alt"/>
-    <key id="calendar-multiweek-view-key" key="&calendar.multiweekView.key;" observes="calendar_multiweek-view_command" modifiers="alt"/>
-    <key id="calendar-month-view-key" key="&calendar.monthView.key;" observes="calendar_month-view_command" modifiers="alt"/>
+// MacOSX
+#define CAL_VIEW_MODIFIERS shift alt
 #endif
+#else
+// Windows
+#define CAL_VIEW_MODIFIERS alt
+#endif
+    <key id="calendar-day-view-key" key="1"
+         observes="calendar_day-view_command"
+#expand  modifiers="__CAL_VIEW_MODIFIERS__"/>
+    <key id="calendar-week-view-key" key="2"
+         observes="calendar_week-view_command"
+#expand  modifiers="__CAL_VIEW_MODIFIERS__"/>
+    <key id="calendar-multiweek-view-key" key="3"
+         observes="calendar_multiweek-view_command"
+#expand  modifiers="__CAL_VIEW_MODIFIERS__"/>
+    <key id="calendar-month-view-key" key="4"
+         observes="calendar_month-view_command"
+#expand  modifiers="__CAL_VIEW_MODIFIERS__"/>
     <key id="calendar-go-to-today-key" keycode="VK_DOWN" observes="calendar_go_to_today_command" modifiers="accel"/>
     <key id="calendar-delete-item-key" keycode="VK_DELETE" observes="calendar_delete_event_command"/>
     <key id="calendar-delete-todo-key" keycode="VK_DELETE" observes="calendar_delete_todo_command"/>

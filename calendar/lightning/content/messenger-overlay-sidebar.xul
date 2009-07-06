@@ -464,8 +464,14 @@
     </commandset>
 
     <keyset id="calendar-keys">
-      <key id="openLightningKey" modifiers="accel" key="3" observes="new_calendar_tab"/>
-      <key id="openTasksKey" modifiers="accel" key="4" command="new_task_tab"/>
+      <key id="openLightningKey"
+           key="C"
+           modifiers="accel, shift"
+           observes="new_calendar_tab"/>
+      <key id="openTasksKey"
+           key="D"
+           modifiers="accel, shift"
+           command="new_task_tab"/>
       <key id="todaypanekey" command="calendar_toggle_todaypane_command" keycode="VK_F11"/>
       <key id="calendar-new-event-key" key="&lightning.keys.event.new;" modifiers="accel" command="calendar_new_event_command"/>
       <key id="calendar-new-todo-key" key="&lightning.keys.todo.new;" modifiers="accel" command="calendar_new_todo_command"/>
