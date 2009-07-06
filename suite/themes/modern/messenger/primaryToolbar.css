@@ -52,7 +52,7 @@
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-1 {
-  min-width: 0px !important;
+  min-width: 0px;
 }
 
 #button-getmsg {
