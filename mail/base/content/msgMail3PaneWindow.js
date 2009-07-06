@@ -945,9 +945,12 @@ function TreeOnMouseDown(event)
     }
 }
 
-function FolderPaneContextMenuNewTab()
+function FolderPaneContextMenuNewTab(event)
 {
-  MsgOpenNewTabForFolder(gPrefBranch.getBoolPref("mail.contextMenuBackgroundTabs"));
+  var bgLoad = gPrefBranch.getBoolPref("mail.tabs.loadInBackground");
+  if (event.shiftKey)
+    bgLoad = !bgLoad;
+  MsgOpenNewTabForFolder(bgLoad);
 }
 
 function FolderPaneOnClick(event)
@@ -957,7 +960,7 @@ function FolderPaneOnClick(event)
   // Middle click on a folder opens the folder in a tab
   if (event.button == 1)
   {
-    FolderPaneContextMenuNewTab();
+    FolderPaneContextMenuNewTab(event);
     RestoreSelectionWithoutContentLoad(folderTree);
   }
   else if (event.button == 0)
@@ -980,12 +983,16 @@ function FolderPaneOnClick(event)
   }
 }
 
-function ThreadTreeContextMenuNewTab()
+function ThreadTreeContextMenuNewTab(event)
 {
-  document.getElementById('tabmail').openTab("message",
+  var bgLoad = gPrefBranch.getBoolPref("mail.tabs.loadInBackground");
+  if (event.shiftKey)
+    bgLoad = !bgLoad;
+
+  document.getElementById("tabmail").openTab("message",
       {msgHdr: gFolderDisplay.selectedMessage,
        viewWrapperToClone: gFolderDisplay.view,
-       background: gPrefBranch.getBoolPref("mail.contextMenuBackgroundTabs")});
+       background: bgLoad});
 }
 
 function ThreadTreeOnClick(event)
@@ -995,7 +1002,7 @@ function ThreadTreeOnClick(event)
   // Middle click on a message opens the message in a tab
   if (event.button == 1)
   {
-    ThreadTreeContextMenuNewTab();
+    ThreadTreeContextMenuNewTab(event);
     RestoreSelectionWithoutContentLoad(threadTree);
   }
 }

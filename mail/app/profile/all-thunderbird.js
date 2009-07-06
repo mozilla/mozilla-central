@@ -406,7 +406,7 @@ pref("mail.openMessageBehavior", 2);
 pref("mail.openMessageBehavior.version", 0);
 // If messages or folders are opened using the context menu or a middle click,
 // should we open them in the foreground or in the background?
-pref("mail.contextMenuBackgroundTabs", true);
+pref("mail.tabs.loadInBackground", true);
 
 // Tabs
 pref("mail.tabs.tabMinWidth", 100);

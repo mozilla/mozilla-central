@@ -534,7 +534,7 @@
     <menuitem id="threadPaneContext-openNewTab"
               label="&contextOpenNewTab.label;"
               accesskey="&contextOpenNewTab.accesskey;"
-              oncommand="ThreadTreeContextMenuNewTab();"/>
+              oncommand="ThreadTreeContextMenuNewTab(event);"/>
     <menuseparator id="mailContext-sep-open2"/>
     <menuitem id="mailContext-replySender"
               label="&contextReplySender.label;"
@@ -729,7 +729,7 @@
     <menuitem id="folderPaneContext-openNewTab"
               label="&folderContextOpenNewTab.label;"
               accesskey="&folderContextOpenNewTab.accesskey;"
-              oncommand="FolderPaneContextMenuNewTab();"/>
+              oncommand="FolderPaneContextMenuNewTab(event);"/>
     <menuitem id="folderPaneContext-searchMessages"
               label="&folderContextSearchMessages.label;"
               accesskey="&folderContextSearchMessages.accesskey;"

@@ -1208,24 +1208,24 @@ function reset_open_message_behavior() {
 }
 
 /**
- * Set the mail.contextMenuBackgroundTabs pref.
+ * Set the mail.tabs.loadInBackground pref.
  *
  * @param aPref true/false.
  */
 function set_context_menu_background_tabs(aPref) {
   let prefBranch = Cc["@mozilla.org/preferences-service;1"]
                      .getService(Ci.nsIPrefService).getBranch(null);
-  prefBranch.setBoolPref("mail.contextMenuBackgroundTabs", aPref);
+  prefBranch.setBoolPref("mail.tabs.loadInBackground", aPref);
 }
 
 /**
- * Reset the mail.contextMenuBackgroundTabs pref.
+ * Reset the mail.tabs.loadInBackground pref.
  */
 function reset_context_menu_background_tabs() {
   let prefBranch = Cc["@mozilla.org/preferences-service;1"]
                      .getService(Ci.nsIPrefService).getBranch(null);
-  if (prefBranch.prefHasUserValue("mail.contextMenuBackgroundTabs"))
-    prefBranch.clearUserPref("mail.contextMenuBackgroundTabs");
+  if (prefBranch.prefHasUserValue("mail.tabs.loadInBackground"))
+    prefBranch.clearUserPref("mail.tabs.loadInBackground");
 }
 
 /**
