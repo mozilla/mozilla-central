@@ -242,6 +242,17 @@
   <a href="#signing_key">signing key</a> and its equivalent public key,
   constitute a <a href="#dual_key_pairs">dual key pairs</a>.</dd>
 
+<dt id="feed">feed</dt><dd>A frequently updated source of references to web
+  pages, usually blog articles or news. Technically it is an XML document
+  available through a public well-known URL, comprising of several items inside,
+  each one containing some metadata (possibly including a summary) and an URL
+  to the full blog or news article. The XML document is regenerated at fixed
+  intervals, or whenever a new article is published to the website. Web
+  applications can subscribe to the URL serving the feed and present the new
+  articles as they are updated in the underlying XML document. There are
+  specific XML formats for feeds, most common of which are
+  <a href="#rss">RSS</a> and Atom.</dd>
+
 <dt id="fingerprint">fingerprint</dt><dd>See
   <a href="#certificate_fingerprint">certificate fingerprint</a>.</dd>
 
@@ -423,6 +434,12 @@
   list of valid certificates maintained at a specified website. Your computer
   must be online for OCSP to work.</dd>
 
+<dt id="opml">OPML (Outline Processor Markup Language)</dt><dd>An XML format
+  used to list <a href="#feed">feed</a> collections. Although broader in its
+  specification, it is mainly used nowadays to export and import feed
+  collections between different feed aggregators or readers, like
+  &brandShortName;.</dd>
+
 <dt id="password-based_authentication">password-based
   authentication</dt><dd>Confident identification by means of a name and
   password. See also <a href="#authentication">authentication</a>.</dd>
@@ -523,6 +540,9 @@
   self-signed certificate at the top of a
   <a href="#certificate_chain">certificate chain</a>. See also
   <a href="#subordinate_ca">subordinate CA</a>.</dd>
+
+<dt id="rss">RSS (Really Simple Syndication)</dt><dd>An <a href="#xml">XML</a>
+  data format for web <a href="#feed">feeds</a>.</dd>
 
 <dt id="search_engine">search engine</dt><dd>A web-based program that allows
   users to search for and retrieve specific information from the

@@ -158,6 +158,7 @@
         <rdf:li> <rdf:Description ID="mail-junk" nc:name="Controlling Junk Mail" nc:link="mail_help.xhtml#controlling_junk_mail" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-importing-other" nc:name="Importing Mail from Other Programs" nc:link="mail_help.xhtml#importing_mail_from_other_programs" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-news" nc:name="Getting Started With Newsgroups" nc:link="mail_help.xhtml#getting_started_with_newsgroups" /> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-doc-blogs" nc:name="Getting Started With Blogs &amp; News Feeds" nc:link="mail_help.xhtml#getting_started_with_blogs_and_news_feeds" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-offline" nc:name="Working Offline" nc:link="mail_help.xhtml#working_offline" /> </rdf:li>
         <rdf:li> <rdf:Description ID="sign-encrypt" nc:name="Signing &amp; Encrypting Messages" nc:link="mail_sec_help.xhtml#signing_and_encrypting_messages" /> </rdf:li>
         <rdf:li> <rdf:Description ID="mail-doc-account-settings" nc:name="Mail and Newsgroups Account Settings" nc:link="mail_help.xhtml#mail_and_newsgroups_account_settings" /> </rdf:li>
@@ -380,6 +381,34 @@
     </nc:subheadings>
   </rdf:Description>
 
+<rdf:Description about="#mail-doc-blogs">
+    <nc:subheadings>
+      <rdf:Seq>
+        <rdf:li> <rdf:Description ID="mail-blogs-subscribe" nc:name="Subscribing to blogs &amp; news feeds" nc:link="mail_help.xhtml#subscribing_to_blogs_and_news_feeds"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-subscribe-from-browser" nc:name="Subscribing to blogs &amp; news feeds from a browser window" nc:link="mail_help.xhtml#subscribing_to_blogs_and_news_feeds_from_browser"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-reading" nc:name="Reading blogs &amp; news feed messages" nc:link="mail_help.xhtml#reading_blogs_and_news_feed_messages"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-posting" nc:name="Posting blog messages" nc:link="mail_help.xhtml#posting_blog_messages"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-comments" nc:name="Adding comments to a blog post" nc:link="mail_help.xhtml#adding_comments_to_a_blog_post"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-exporting-importing" nc:name="Exporting and importing feeds" nc:link="mail_help.xhtml#exporting_and_importing_feeds"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-editing" nc:name="Editing a feed" nc:link="mail_help.xhtml#editing_a_feed"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-removing" nc:name="Removing a feed" nc:link="mail_help.xhtml#removing_a_feed"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-using-different-accounts" nc:name="Using different blogs &amp; news feeds accounts" nc:link="mail_help.xhtml#using_different_blogs_and_news_feeds_accounts"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-organizing" nc:name="Organizing your feeds" nc:link="mail_help.xhtml#organizing_your_feeds"/> </rdf:li>
+      </rdf:Seq>
+    </nc:subheadings>
+  </rdf:Description>
+
+<rdf:Description about="#mail-blogs-organizing">
+    <nc:subheadings>
+      <rdf:Seq>
+        <rdf:li> <rdf:Description ID="mail-blogs-feeds-folders" nc:name="Feeds versus folders" nc:link="mail_help.xhtml#feeds_vs_folders"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-folders-in-blogs" nc:name="Organizing folders in Blogs &amp; News Feeds accounts" nc:link="mail_help.xhtml#organizing_folders_in_blogs_and_news_feeds_accounts"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-multiple-feeds" nc:name="Downloading multiple feeds in a single folder" nc:link="mail_help.xhtml#downloading_multiple_feeds_in_a_single_folder"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail-blogs-moving-feeds" nc:name="Moving a feed to another folder" nc:link="mail_help.xhtml#moving_a_feed_to_another_folder"/> </rdf:li>
+      </rdf:Seq>
+    </nc:subheadings>
+  </rdf:Description>
+
 <rdf:Description about="#mail-doc-offline">
     <nc:subheadings>
       <rdf:Seq>
@@ -454,7 +483,8 @@
     <nc:subheadings>
       <rdf:Seq>
         <rdf:li> <rdf:Description ID="mail_offline_imap" nc:name="IMAP"  nc:link="mail_help.xhtml#synchronization_and_storage_settings_imap"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="mail_offline_pop3" nc:name="POP"  nc:link="mail_help.xhtml#disk_space_settings"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail_offline_pop3" nc:name="POP"  nc:link="mail_help.xhtml#disk_space_settings_pop"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="mail_offline_blogs" nc:name="Blogs"  nc:link="mail_help.xhtml#disk_space_settings_blogs"/> </rdf:li>
         <rdf:li> <rdf:Description ID="mail_offline_nntp" nc:name="News"  nc:link="mail_help.xhtml#synchronization_and_storage_settings_nntp"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>

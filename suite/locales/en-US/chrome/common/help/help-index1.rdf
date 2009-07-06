@@ -34,6 +34,11 @@
          nc:link="composer_help.xhtml#inserting_an_image_into_your_page"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="adding:blog_account"
+         nc:name="creating a new blog account"
+         nc:link="mail_help.xhtml#setting_up_additional_mail_and_news_accounts"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="adding:mail_account"
          nc:name="creating a new mail account"
          nc:link="mail_help.xhtml#setting_up_additional_mail_and_news_accounts"/>
@@ -637,6 +642,11 @@
 <rdf:Description about="help-indexAZ.rdf#f">
    <nc:subheadings>
      <rdf:Seq><rdf:li>
+       <rdf:Description ID="feeds"
+         nc:name="Feeds"
+         nc:link="glossary.xhtml#feed"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="file_types"
          nc:name="file types"
          nc:link="nav_help.xhtml#plugins_and_downloads"/>
@@ -665,6 +675,26 @@
        <rdf:Description ID="font_changing_in_composer"
          nc:name="Font changing in Composer"
          nc:link="composer_help.xhtml#changing_text_color_style_and_font"/>
+     </rdf:li></rdf:Seq>
+   </nc:subheadings>
+</rdf:Description>
+
+<rdf:Description about="#feeds">
+   <nc:subheadings>
+     <rdf:Seq><rdf:li>
+       <rdf:Description ID="feeds:subscribing"
+         nc:name="subscribing to a feed"
+         nc:link="mail_help.xhtml#subscribing_to_blogs_and_news_feeds"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="feeds:reading"
+         nc:name="Reading a feed"
+         nc:link="mail_help.xhtml#reading_blogs_and_news_feed_messages"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="feeds:exporting_importing"
+         nc:name="exporting and importing feeds"
+         nc:link="mail_help.xhtml#exporting_and_importing_feeds"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -812,6 +842,11 @@
        <rdf:Description ID="import:crls"
          nc:name="import CRLs"
          nc:link="using_certs_help.xhtml#importing_crls"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="import:feeds"
+         nc:name="import feeds"
+         nc:link="mail_help.xhtml#exporting_and_importing_feeds"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="import:mail"
@@ -1265,6 +1300,11 @@
      <rdf:li>
        <rdf:Description ID="Offline"
          nc:name="Offline"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="OPML"
+         nc:name="OPML"
+         nc:link="glossary.xhtml#opml"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
