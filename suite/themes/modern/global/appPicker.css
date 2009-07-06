@@ -1,0 +1,20 @@
+#app-picker {
+  width: 57ch;
+}
+
+#content-description {
+  font-weight: bold;
+}
+
+#app-picker-list {
+  height: 224px;
+}
+
+#app-picker-item {
+  border-bottom: 1px dotted #C7D0D9;
+}
+
+#app-picker-item-image,
+#app-picker-item-cell {
+  padding: 5px;
+}
