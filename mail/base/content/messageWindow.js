@@ -250,10 +250,21 @@ StandaloneMessageDisplayWidget.prototype = {
     this.__proto__.__proto__.onDisplayingMessage.call(this, aMsgHdr);
 
     // - set the window title to the message subject (and maybe the app name)
-    let title = aMsgHdr.mime2DecodedSubject;
-    if (!Application.platformIsMac)
-      title += " - " + gBrandBundle.getString("brandFullName");
-    document.title = title;
+    let docTitle = aMsgHdr.mime2DecodedSubject;
+
+    // If the tab hasn't got a title, or we're on Mac, don't display
+    // the separator.
+    if (docTitle && !Application.platformIsMac)
+        docTitle += document.documentElement
+                            .getAttribute("titlemenuseparator");
+
+    // If we haven't got a title at this stage add the modifier, or if
+    // we are on a non-mac platform, add the modifier.
+    if (!docTitle || !Application.platformIsMac)
+         docTitle += document.documentElement
+                             .getAttribute("titlemodifier");
+
+    document.title = docTitle;
 
     this.isDummy = aMsgHdr.folder == null;
     if (!this.isDummy)

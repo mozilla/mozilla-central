@@ -1027,8 +1027,19 @@
         <body>
           <![CDATA[
             let docTitle = aTab.title;
-            if (!Application.platformIsMac)
-              docTitle += " - " + gBrandBundle.getString("brandFullName");
+
+            // If the tab hasn't got a title, or we're on Mac, don't display
+            // the separator.
+            if (docTitle && !Application.platformIsMac)
+              docTitle += document.documentElement
+                                  .getAttribute("titlemenuseparator");
+
+            // If we haven't got a title at this stage add the modifier, or if
+            // we are on a non-mac platform, add the modifier.
+            if (!docTitle || !Application.platformIsMac)
+              docTitle += document.documentElement
+                                  .getAttribute("titlemodifier");
+
             document.title = docTitle;
           ]]>
         </body>
