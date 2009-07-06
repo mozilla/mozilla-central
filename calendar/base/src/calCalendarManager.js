@@ -124,7 +124,9 @@ calCalendarManager.prototype = {
         this.setUpPrefObservers();
         this.setUpRefreshTimer();
         this.setupOfflineObservers();
-        this.loginMasterPassword();
+        if (cal.isSunbird()) {
+            this.loginMasterPassword();
+        }
         this.mNetworkCalendarCount = 0;
         this.mReadonlyCalendarCount = 0;
         this.mCalendarCount = 0;
@@ -202,22 +204,20 @@ calCalendarManager.prototype = {
     },
 
     loginMasterPassword: function ccm_loginMasterPassword() {
-        if (cal.isSunbird()) {
-            // Look to see if a master password is set, if so prompt for it to try
-            // and avoid the multiple master password prompts on startup scenario.
-            let token = Components.classes["@mozilla.org/security/pk11tokendb;1"]
-                                  .getService(Components.interfaces.nsIPK11TokenDB)
-                                  .getInternalKeyToken();
+        // Look to see if a master password is set, if so prompt for it to try
+        // and avoid the multiple master password prompts on startup scenario.
+        let token = Components.classes["@mozilla.org/security/pk11tokendb;1"]
+                              .getService(Components.interfaces.nsIPK11TokenDB)
+                              .getInternalKeyToken();
 
-            // If an empty string is valid for the internal token, then we don't
-            // have a master password, else, if it does, then try to login.
-            try {
-                if (!token.checkPassword("")) {
-                    token.login(false);
-                }
-            } catch (ex) {
-                // If user cancels an exception is expected.
+        // If an empty string is valid for the internal token, then we don't
+        // have a master password, else, if it does, then try to login.
+        try {
+            if (!token.checkPassword("")) {
+                token.login(false);
             }
+        } catch (ex) {
+            // If user cancels an exception is expected.
         }
     },
 
