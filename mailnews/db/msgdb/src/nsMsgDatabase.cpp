@@ -3793,6 +3793,13 @@ nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, 
   threadTableOID.mOid_Scope = m_hdrRowScopeToken;
   threadTableOID.mOid_Id = threadId;
 
+  // Under some circumstances, mork seems to reuse an old table when we create one.
+  // Prevent problems from that by finding any old table first, and deleting its rows.
+  mdb_err res = GetStore()->GetTable(GetEnv(), &threadTableOID, &threadTable);
+  if (NS_SUCCEEDED(res) && threadTable)
+    threadTable->CutAllRows(GetEnv());
+  NS_IF_RELEASE(threadTable);
+
   err  = GetStore()->NewTableWithOid(GetEnv(), &threadTableOID, m_threadTableKindToken,
     PR_FALSE, nsnull, &threadTable);
   if (NS_FAILED(err))
