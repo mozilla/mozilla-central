@@ -3608,12 +3608,14 @@ NS_IMETHODIMP nsImapMailFolder::StoreImapFlags(PRInt32 flags, PRBool addFlags,
   return rv;
 }
 
-NS_IMETHODIMP nsImapMailFolder::LiteSelect(nsIUrlListener *aUrlListener)
+NS_IMETHODIMP nsImapMailFolder::LiteSelect(nsIUrlListener *aUrlListener,
+                                           nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-  return imapService->LiteSelectFolder(m_thread, this, aUrlListener, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return imapService->LiteSelectFolder(m_thread, this, aUrlListener,
+                                       aMsgWindow, nsnull);
 }
 
 nsresult nsImapMailFolder::GetFolderOwnerUserName(nsACString& userName)

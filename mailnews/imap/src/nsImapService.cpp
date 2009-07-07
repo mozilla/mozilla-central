@@ -266,13 +266,14 @@ NS_IMETHODIMP nsImapService::SelectFolder(nsIEventTarget *aClientEventTarget,
 }
 
 // lite select, used to verify UIDVALIDITY while going on/offline
-NS_IMETHODIMP nsImapService::LiteSelectFolder(nsIEventTarget *aClientEventTarget, 
-                                              nsIMsgFolder *aImapMailFolder, 
-                                              nsIUrlListener *aUrlListener, 
+NS_IMETHODIMP nsImapService::LiteSelectFolder(nsIEventTarget *aClientEventTarget,
+                                              nsIMsgFolder *aImapMailFolder,
+                                              nsIUrlListener *aUrlListener,
+                                              nsIMsgWindow *aMsgWindow,
                                               nsIURI **aURL)
 {
   return FolderCommand(aClientEventTarget, aImapMailFolder, aUrlListener,
-                       "/liteselect>", nsIImapUrl::nsImapLiteSelectFolder, nsnull, aURL);
+                       "/liteselect>", nsIImapUrl::nsImapLiteSelectFolder, aMsgWindow, aURL);
 }
 
 NS_IMETHODIMP nsImapService::GetUrlForUri(const char *aMessageURI, 

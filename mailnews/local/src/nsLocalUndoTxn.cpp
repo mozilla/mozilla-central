@@ -166,7 +166,7 @@ nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder,
       // when executing the imap url; we don't want to load the
       // folder so use lite select to do the trick
       rv = imapService->LiteSelectFolder(thread, folder,
-                                         urlListener, nsnull);
+                                         urlListener, nsnull, nsnull);
       if (!deleteFlag)
           rv =imapService->AddMessageFlags(thread, folder,
                                           urlListener, nsnull,

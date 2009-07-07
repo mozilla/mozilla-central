@@ -859,7 +859,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
             // do a lite select here and hook ourselves up as a listener.
             nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder, &rv);
             if (imapFolder)
-              rv = imapFolder->LiteSelect(this);
+              rv = imapFolder->LiteSelect(this, m_window);
             return rv;	// this is async, we have to return as be called again by the OnStopRunningUrl
           }
         }

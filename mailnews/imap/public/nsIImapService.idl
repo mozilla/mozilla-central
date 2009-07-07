@@ -58,7 +58,7 @@ interface nsIMsgWindow;
 interface nsIImapIncomingServer;
 interface nsICacheSession;
 
-[scriptable, uuid(9308fe9b-bc6c-4e5a-93a8-a8f7d4d75ba1)]
+[scriptable, uuid(6a881768-ffc0-4967-b291-2ea83f7027ba)]
 interface nsIImapService : nsISupports
 {
   // You can pass in null for the url listener and the url if you don't require either.....
@@ -68,11 +68,23 @@ interface nsIImapService : nsISupports
                     in nsIUrlListener aUrlListener,
                     in nsIMsgWindow   aMsgWindow,
                     out nsIURI aURL);
-  
-  void liteSelectFolder(in nsIEventTarget aClientEventTarget, 
+
+  /**
+   * Select the folder on the imap server without doing a sync of flags or
+   * headers. This is used for offline playback, where we don't want to
+   * download hdrs we don't have, because they may have been offline deleted.
+   *
+   * @param aClientEventTarget  the event target of the ui thread
+   * @param aImapMailFolder     the folder to select
+   * @param aUrlListener        url listener, can be null
+   * @param aMsgWindow          msg window url is running in, can be null
+   *
+   * @returns the url created to run the lite select in.
+   */
+  nsIURI liteSelectFolder(in nsIEventTarget aClientEventTarget, 
                         in nsIMsgFolder aImapMailFolder,
                         in nsIUrlListener aUrlListener,
-                        out nsIURI aURL);
+                        in nsIMsgWindow aMsgWindow);
   
   void addImapFetchToUrl(in nsIURI aURL,
                          in nsIMsgFolder aImapMailFolder,

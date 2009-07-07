@@ -170,7 +170,7 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
       // ** make sure we are in the selected state; use lite select
       // folder so we won't hit performance hard
       rv = imapService->LiteSelectFolder(m_eventTarget, srcFolder,
-        srcListener, nsnull);
+        srcListener, nsnull, nsnull);
       if (NS_FAILED(rv)) 
         return rv;
       PRBool deletedMsgs = PR_TRUE; //default is true unless imapDelete model
@@ -221,7 +221,7 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
     // ** make sure we are in the selected state; use lite select folder
     // so we won't potentially download a bunch of headers.
     rv = imapService->LiteSelectFolder(m_eventTarget, dstFolder,
-      dstListener, nsnull);
+      dstListener, nsnull, nsnull);
     if (NS_FAILED(rv)) return rv;
     rv = imapService->AddMessageFlags(m_eventTarget, dstFolder, dstListener,
                                       nsnull, m_dstMsgIdString, 
@@ -270,7 +270,7 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
       // Make sure we are in the selected state; use lite select
       // folder so performance won't suffer.
       rv = imapService->LiteSelectFolder(m_eventTarget, srcFolder,
-        srcListener, nsnull);
+        srcListener, nsnull, nsnull);
       if (NS_FAILED(rv)) 
         return rv;
       if (deletedMsgs)
@@ -302,7 +302,7 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
     // ** make sure we are in the selected state; use lite select
     // folder so we won't hit performance hard
     rv = imapService->LiteSelectFolder(m_eventTarget, dstFolder,
-      dstListener, nsnull);
+      dstListener, nsnull, nsnull);
     if (NS_FAILED(rv)) 
       return rv;
     rv = imapService->SubtractMessageFlags(m_eventTarget, dstFolder,
