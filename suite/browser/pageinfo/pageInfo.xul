@@ -308,7 +308,7 @@
 
       <!-- Feeds -->
       <vbox id="feedPanel">
-        <richlistbox id="feedListbox" class="inset" flex="1"/>
+        <richlistbox id="feedListbox" flex="1"/>
       </vbox>
 
       <!-- Permissions -->
@@ -324,7 +324,7 @@
           an accessible context. The accessible context for the preceeding
           checkbox is already taken care of through the richlistitem grouping.
         -->
-        <richlistbox id="permList" class="inset" flex="1">
+        <richlistbox id="permList" flex="1">
           <richlistitem orient="vertical">
             <label id="permImageLabel" value="&permImage;" control="imageRadioGroup"/>
             <hbox role="group" aria-labelledby="permImageLabel">

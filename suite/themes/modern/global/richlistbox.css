@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Joe Hewitt <hewitt@netscape.com>
  *   Philip Chee <philip.chee@gmail.com>
+ *   AKIHIRO Misaki <spitfire.kuden@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -45,13 +46,20 @@
 /* ::::: richlistbox ::::: */
 
 richlistbox {
+  /* -moz-appearance needed to override xul.css */
+  -moz-appearance: none !important;
   margin: 2px 4px;
+  border: 2px solid;
+  -moz-border-top-colors: #BEC3D3 #5D616E;
+  -moz-border-right-colors: #F8FAFE #5D616E;
+  -moz-border-bottom-colors: #F8FAFE #5D616E;
+  -moz-border-left-colors: #BEC3D3 #5D616E;
   background-color: #FFFFFF;
   color: #000000;
 }
 
 richlistbox[disabled="true"] {
-  color: #999999;
+  color: #8C99AB;
 }
 
 /* ::::: richlistitem ::::: */
@@ -71,7 +79,7 @@ richlistbox:focus > richlistitem[selected="true"] {
   color: #FFFFFF;
 }
 
-richlistbox[seltype="multiple"]:focus > richlistitem[current="true"] {
+richlistbox:focus > richlistitem[current="true"] {
   border-top-color: #000000;
   border-bottom-color: #000000;
 }
