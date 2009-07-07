@@ -45,6 +45,8 @@ fi
 MOZ_STATIC_MAIL_BUILD=1
 MOZ_COMPOSER=1
 MOZ_SUITE=1
+# Needed for the mozilla-central build side of the system.
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/\(^[0-9]\.[0-9]\.[0-9]\).*/\1/;'`
 if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
   MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/config/version-191.txt`
 else
