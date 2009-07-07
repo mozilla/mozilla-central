@@ -222,6 +222,7 @@ nsresult nsImapOfflineSync::AdvanceToNextFolder()
     rv = m_serverEnumerator->CurrentItem(getter_AddRefs(supports));
     m_currentFolder = do_QueryInterface(supports);
   }
+  m_currentDB = nsnull;
   return rv;
 }
 
