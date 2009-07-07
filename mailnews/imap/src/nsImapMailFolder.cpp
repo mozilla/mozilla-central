@@ -3019,11 +3019,13 @@ NS_IMETHODIMP nsImapMailFolder::BeginCopy(nsIMsgDBHdr *message)
   if (message)
     m_copyState->m_message = do_QueryInterface(message, &rv);
 
-  nsCOMPtr<nsIFile> msgFile;
   rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
                                        "nscpmsg.txt",
                                         getter_AddRefs(m_copyState->m_tmpFile));
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // create a unique file, since multiple copies may be open on multiple folders
+  rv = m_copyState->m_tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
 
   nsCOMPtr<nsIOutputStream> fileOutputStream;
   nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(m_copyState->m_tmpFile);
@@ -3135,6 +3137,10 @@ NS_IMETHODIMP nsImapMailFolder::EndCopy(PRBool copySucceeded)
   {
     nsCOMPtr<nsIUrlListener> urlListener;
     m_copyState->m_msgFileStream->Close();
+    // m_tmpFile can be stale because we wrote to it
+    nsCOMPtr<nsIFile> tmpFile;
+    m_copyState->m_tmpFile->Clone(getter_AddRefs(tmpFile));
+    m_copyState->m_tmpFile = tmpFile;
     nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 

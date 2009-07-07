@@ -303,7 +303,7 @@ nsMsgCopyService::DoNextCopy()
         if (j >= scnt) // all processed set the value
           copyRequest->m_processed = PR_TRUE;
       }
-      else // keep track of folders actively getting copied to.
+      if (copyRequest->m_processed) // keep track of folders actively getting copied to.
         activeTargets.AppendObject(copyRequest->m_dstFolder);
     }
     found:
