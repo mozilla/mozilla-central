@@ -44,7 +44,7 @@ interface nsIMsgDBHdr;
 interface nsIMsgDatabase;
 interface nsIMsgSearchScopeTerm;
 
-[scriptable, uuid(2dd082e7-faa4-4e46-81ba-9c636bc9315a)]
+[scriptable, uuid(D14C266B-5028-448d-B3F1-B059BD0055AA)]
 interface nsIMsgSearchTerm : nsISupports {
     attribute nsMsgSearchAttribValue attrib;
     attribute nsMsgSearchOpValue op;
@@ -52,6 +52,8 @@ interface nsIMsgSearchTerm : nsISupports {
 
     attribute boolean booleanAnd;
     attribute ACString arbitraryHeader;
+    /// identifier for a custom id used for this term, if any.
+    attribute ACString customId;
 
     attribute boolean beginsGrouping;
     attribute boolean endsGrouping;
@@ -107,5 +109,13 @@ interface nsIMsgSearchTerm : nsISupports {
     readonly attribute ACString termAsString;
     boolean matchKeyword(in ACString keyword); // used for tag searches
     attribute boolean matchAll;
+    /**
+     * Does the message match the custom search term?
+     *
+     * @param  msg  message database object representing the message
+     *
+     * @return      true if message matches
+     */
+    boolean matchCustom(in nsIMsgDBHdr msg);
 };
 

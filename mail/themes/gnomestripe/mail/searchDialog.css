@@ -63,6 +63,10 @@
   height: 100px;
 }
 
+.search-menulist[unavailable="true"] {
+  color: GrayText;
+}
+
 menulist {
   width: 12em;
 }

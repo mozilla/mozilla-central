@@ -57,6 +57,10 @@ treechildren::-moz-tree-image(activeColumn, Enabled-true) {
   width: 12em;
 }
 
+.search-menulist[unavailable="true"] {
+  color: #8C99AB;
+}
+
 .small-button {
   min-width: 3em;
   padding: 0px;

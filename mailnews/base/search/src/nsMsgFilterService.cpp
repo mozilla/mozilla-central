@@ -74,6 +74,7 @@
 #include "nsArrayEnumerator.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgWindow.h"
+#include "nsIMsgSearchCustomTerm.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgFilterService, nsIMsgFilterService)
 
@@ -757,6 +758,8 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
 
       case nsMsgFilterAction::Custom:
       {
+        nsMsgFilterTypeType filterType;
+        m_curFilter->GetFilterType(&filterType);
         nsCOMPtr<nsIMsgFilterCustomAction> customAction;
         rv = filterAction->GetCustomAction(getter_AddRefs(customAction));
         NS_ENSURE_SUCCESS(rv, rv);
@@ -764,7 +767,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
         nsCAutoString value;
         filterAction->GetStrValue(value);
         customAction->Apply(m_searchHitHdrs, value, this,
-                            nsMsgFilterType::Manual, m_msgWindow);
+                            filterType, m_msgWindow);
 
         PRBool isAsync = PR_FALSE;
         customAction->GetIsAsync(&isAsync);
@@ -833,6 +836,38 @@ nsMsgFilterService::GetCustomAction(const nsACString & aId,
   }
   aResult = nsnull;
   return NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP nsMsgFilterService::AddCustomTerm(nsIMsgSearchCustomTerm *aTerm)
+{
+  mCustomTerms.AppendObject(aTerm);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgFilterService::GetCustomTerms(nsISimpleEnumerator** aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  return NS_NewArrayEnumerator(aResult, mCustomTerms);
+}
+
+NS_IMETHODIMP 
+nsMsgFilterService::GetCustomTerm(const nsACString& aId,
+                                    nsIMsgSearchCustomTerm** aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  for (PRInt32 i = 0; i < mCustomTerms.Count(); i++)
+  {
+    nsCAutoString id;
+    nsresult rv = mCustomTerms[i]->GetId(id);
+    if (NS_SUCCEEDED(rv) && aId.Equals(id))
+    {
+      NS_ADDREF(*aResult = mCustomTerms[i]);
+      return NS_OK;
+    }
+  }
+  aResult = nsnull;
+  // we use a null result to indicate failure to find a term
+  return NS_OK;
 }
 
 // nsMsgApplyFiltersToMessages overrides nsMsgFilterAfterTheFact in order to
@@ -948,12 +983,8 @@ NS_IMETHODIMP nsMsgFilterService::ApplyFilters(nsMsgFilterTypeType aFilterType,
                                                nsIMsgFolder *aFolder,
                                                nsIMsgWindow *aMsgWindow)
 {
-  nsCOMPtr<nsIMsgIncomingServer> server;
-  nsresult rv = aFolder->GetServer(getter_AddRefs(server));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   nsCOMPtr<nsIMsgFilterList>    filterList;
-  rv = server->GetFilterList( aMsgWindow, getter_AddRefs(filterList) );
+  nsresult rv = aFolder->GetFilterList(aMsgWindow, getter_AddRefs(filterList));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupportsArray>    folderList;

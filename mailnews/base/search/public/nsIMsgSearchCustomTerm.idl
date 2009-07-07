@@ -1,0 +1,108 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code
+ *
+ * The Initial Developer of the Original Code is
+ * Kent James <kent@caspia.com>.
+ * Portions created by the Initial Developer are Copyright (C) 2009
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsMsgSearchCore.idl"
+
+/**
+ * describes a custom term added to a message search or filter
+ */
+[scriptable,uuid(8DD6E135-6790-475e-9547-3C1408CF2F08)]
+interface nsIMsgSearchCustomTerm : nsISupports
+{
+  /**
+   * globally unique string to identify this search term.
+   * recommended form: ExtensionName@example.com#TermName
+   * Commas and quotes are not allowed, the id must not
+   * parse to an integer, and names of standard search
+   * attributes in SearchAttribEntryTable in nsMsgSearchTerm.cpp
+   * are not allowed.
+   */
+  readonly attribute ACString id;
+
+  /// name to display in term list. This should be localized. */
+  readonly attribute AString name;
+
+  /**
+   * Is this custom term enabled?
+   *
+   * @param scope          search scope (nsMsgSearchScope)
+   * @param op             search operator (nsMsgSearchOp). If null, determine
+   *                       if term is available for any operator.
+   *
+   * @return               true if enabled
+   */
+  boolean getEnabled(in nsMsgSearchScopeValue scope,
+                     in nsMsgSearchOpValue op);
+
+  /**
+   * Is this custom term available?
+   *
+   * @param scope          search scope (nsMsgSearchScope)
+   * @param op             search operator (nsMsgSearchOp). If null, determine
+   *                       if term is available for any operator.
+   *
+   * @return               true if available
+   */
+  boolean getAvailable(in nsMsgSearchScopeValue scope,
+                       in nsMsgSearchOpValue op);
+
+  /**
+   * List the valid operators for this term.
+   *
+   * @param scope          search scope (nsMsgSearchScope)
+   * @param length         object to hold array length
+   *
+   * @return               array of operators
+   */
+  void getAvailableOperators(in nsMsgSearchScopeValue scope,
+                             out unsigned long length,
+                             [retval, array, size_is(length)]
+                             out nsMsgSearchOpValue operators);
+
+  /**
+   * Apply the custom search term to a message
+   *
+   * @param msgHdr       header database reference representing the message
+   * @param searchValue  user-set value to use in the search
+   * @param searchOp     search operator (Contains, IsHigherThan, etc.)
+   *
+   * @return             true if the term matches the message, else false
+   */
+
+  boolean match(in nsIMsgDBHdr msgHdr,
+                in AUTF8String searchValue,
+                in nsMsgSearchOpValue searchOp);
+};

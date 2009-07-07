@@ -59,6 +59,10 @@
   height: 100px;
 }
 
+.search-menulist[unavailable="true"] {
+  color: #8C99AB;
+}
+
 menulist {
   width: 12em;
 }

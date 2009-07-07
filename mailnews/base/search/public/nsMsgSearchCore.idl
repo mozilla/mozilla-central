@@ -73,6 +73,7 @@ typedef long nsMsgSearchAttribValue;
  */
 [scriptable, uuid(9ED17774-4748-46a6-9A18-E651E3B791F2)]
 interface nsMsgSearchAttrib {
+    const nsMsgSearchAttribValue Custom = -2;  /* a custom term, see nsIMsgSearchCustomTerm */
     const nsMsgSearchAttribValue Default = -1;
     const nsMsgSearchAttribValue Subject = 0;  /* mail and news */
     const nsMsgSearchAttribValue Sender = 1;
@@ -156,7 +157,9 @@ interface nsMsgSearchOp {
     const nsMsgSearchOpValue IsInAB = 16;
     const nsMsgSearchOpValue IsntInAB = 17;
     const nsMsgSearchOpValue IsntEmpty = 18; /* primarily for tags */
-    const nsMsgSearchOpValue kNumMsgSearchOperators  = 19;     /* must be last operator */
+    const nsMsgSearchOpValue Matches = 19; /* generic term for use by custom terms */
+    const nsMsgSearchOpValue DoesntMatch = 20; /* generic term for use by custom terms */
+    const nsMsgSearchOpValue kNumMsgSearchOperators  = 21;     /* must be last operator */
 };
 
 typedef long nsMsgSearchWidgetValue;

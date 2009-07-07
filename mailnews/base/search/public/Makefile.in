@@ -73,6 +73,7 @@ XPIDLSRCS	= \
 		nsMsgSearchCore.idl \
 		nsIMsgFilterCustomAction.idl \
 		nsIMsgTraitService.idl \
+		nsIMsgSearchCustomTerm.idl \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

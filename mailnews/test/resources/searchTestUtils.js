@@ -50,10 +50,11 @@
  * @param aOp:       operation for the search (Ci.nsMsgSearchOp.Contains, etc.)
  * @param aHitCount: expected number of search hits
  * @param onDone:    function to call on completion of search
+ * @param aCustomId: id string for the custom action, if aAttrib is Custom
  *
  */
 
-function TestSearch(aFolder, aValue, aAttrib, aOp, aHitCount, onDone)
+function TestSearch(aFolder, aValue, aAttrib, aOp, aHitCount, onDone, aCustomId)
 {
   var searchListener =
   { 
@@ -108,6 +109,8 @@ function TestSearch(aFolder, aValue, aAttrib, aOp, aHitCount, onDone)
   searchTerm.value = value;
   searchTerm.op = aOp;
   searchTerm.booleanAnd = false;
+  if (aAttrib == Ci.nsMsgSearchAttrib.Custom)
+    searchTerm.customId = aCustomId;
   searchSession.appendTerm(searchTerm);
   searchSession.registerListener(searchListener);
   searchSession.search(null);

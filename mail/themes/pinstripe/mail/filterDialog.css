@@ -77,6 +77,10 @@ listbox {
   width: 12em;
 }
 
+.search-menulist[unavailable="true"] {
+  color: GrayText;
+}
+
 textbox {
   margin: 1px 4px;
 }

@@ -641,8 +641,12 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
          err = aTerm->MatchJunkScoreOrigin(junkScoreOriginStr.get(), &result);
          break;
       }
+      case nsMsgSearchAttrib::Custom:
+      {
+        err = aTerm->MatchCustom(msgToMatch, &result);
+        break;
+      }
 
-      
       default:
           // XXX todo
           // for the temporary return receipts filters, we use a custom header for Content-Type

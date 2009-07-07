@@ -72,7 +72,14 @@ searchTermContainer.prototype = {
         var searchValue=this.searchvalue;
 
         // now reflect all attributes of the searchterm into the widgets
-        if (searchAttribute) searchAttribute.value = term.attrib;
+        if (searchAttribute)
+        {
+          // for custom, the value is the custom id, not the integer attribute
+          if (term.attrib == Components.interfaces.nsMsgSearchAttrib.Custom)
+            searchAttribute.value = term.customId;
+          else
+            searchAttribute.value = term.attrib;
+        }
         if (searchOperator) searchOperator.value = val.op;
         if (searchValue) searchValue.value = term.value;
 
@@ -131,9 +138,18 @@ searchTermContainer.prototype = {
 
     save: function () {
         var searchTerm = this.searchTerm;
-
-        searchTerm.attrib = this.searchattribute.value;
         var nsMsgSearchAttrib = Components.interfaces.nsMsgSearchAttrib;
+
+        if (isNaN(this.searchattribute.value)) // is this a custom term?
+        {
+          searchTerm.attrib = nsMsgSearchAttrib.Custom;
+          searchTerm.customId = this.searchattribute.value;
+        }
+        else
+        {
+          searchTerm.attrib = this.searchattribute.value;
+        }
+
         if (this.searchattribute.value > nsMsgSearchAttrib.OtherHeader && this.searchattribute.value < nsMsgSearchAttrib.kNumMsgSearchAttributes) 
           searchTerm.arbitraryHeader = this.searchattribute.label;
         searchTerm.op = this.searchoperator.value;
@@ -276,13 +292,18 @@ function onLess(event)
 // set scope on all visible searchattribute tags
 function setSearchScope(scope) 
 {
-    gSearchScope = scope;
-    for (var i=0; i<gSearchTerms.length; i++) {
-        gSearchTerms[i].obj.searchattribute.searchScope = scope;
-        gSearchTerms[i].scope = scope;
-        // act like the user "selected" this, see bug #202848
-        gSearchTerms[i].obj.searchattribute.onSelect(null /* no event */);  
+  gSearchScope = scope;
+  for (var i = 0; i < gSearchTerms.length; i++)
+  {
+    // don't set element attributes if XBL hasn't loaded
+    if (!(gSearchTerms[i].obj.searchattribute.searchScope === undefined))
+    {
+      gSearchTerms[i].obj.searchattribute.searchScope = scope;
+      // act like the user "selected" this, see bug #202848
+      gSearchTerms[i].obj.searchattribute.onSelect(null /* no event */);
     }
+    gSearchTerms[i].scope = scope;
+  }
 }
 
 function updateSearchAttributes()
@@ -424,9 +445,10 @@ function initializeTermFromIndex(index)
       searchTermObj.booleanAnd = (gSearchBooleanRadiogroup.value == "and");
       if (index)
       {
-        // if we weren't pre-initialized with a searchTerm then steal the search attribute from the 
-        // previous row.
+        // If we weren't pre-initialized with a searchTerm then steal the
+        // search attribute and operator from the previous row.
         searchTermObj.searchattribute.value =  gSearchTerms[index - 1].obj.searchattribute.value;
+        searchTermObj.searchoperator.value = gSearchTerms[index - 1].obj.searchoperator.value;
       }
     }
 
@@ -510,7 +532,7 @@ function saveSearchTerms(searchTerms, termOwner)
                 // is an existing term, but not initialize, so skip saving
                 continue;
             }
-            searchTerm.matchAll = matchAll;
+            gSearchTerms[i].obj.matchAll = matchAll;
             if (searchTerm)
                 gSearchTerms[i].obj.save();
             else {

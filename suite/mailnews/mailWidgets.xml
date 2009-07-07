@@ -726,10 +726,15 @@
 
     <implementation>
       <field name="internalScope">null</field>
+      <field name="internalValue">-1</field>
       <field readonly="true" name="validityManager">
         <![CDATA[
            Components.classes['@mozilla.org/mail/search/validityManager;1'].getService(Components.interfaces.nsIMsgSearchValidityManager);
         ]]>
+      </field>
+      <field name="filterService">
+        Components.classes["@mozilla.org/messenger/services/filters;1"]
+                  .getService(Components.interfaces.nsIMsgFilterService)
       </field>
       <property name="searchScope" onget="return this.internalScope;">
         <!-- scope ID - retrieve the table -->
@@ -762,7 +767,7 @@
             if (targetIds.length == 0) return null;
 
             var targets = new Array;
-            var j = 0;
+            var j=0;
             for (var i=0; i<targetIds.length;i++) {
               var target = document.getElementById(targetIds[i]);
               if (target) targets[j++] = target;
@@ -791,14 +796,14 @@
         </getter>
       </property>
 
-      <!-- value forwards to the internal menulist's "value" attribute -->
-      <property name="value" onget="return document.getAnonymousNodes(this)[0].selectedItem.getAttribute('value');">
+      <property name="value" onget="return this.internalValue;">
         <setter>
           <![CDATA[
+            if (this.internalValue == val)
+              return;
+            this.internalValue = val;
             var menulist = document.getAnonymousNodes(this)[0];
-            var dataItems = menulist.getElementsByAttribute("value", val);
-            if (dataItems.item(0))
-                menulist.selectedItem = dataItems[0];
+            menulist.selectedItem = this.validMenuitem;
 
             // now notify targets of new parent's value
             var targets = this.targets;
@@ -822,6 +827,33 @@
       </property>
       <!-- label forwards to the internal menulist's "label" attribute -->
       <property name="label" onget="return document.getAnonymousNodes(this)[0].selectedItem.getAttribute('label');">
+      </property>
+      <property name="validMenuitem" readonly="true">
+      <!-- Prepare menulist selection, adding a missing hidden menuitem if needed, and 
+        updating the disabled state of the menulist label. -->
+        <getter>
+          <![CDATA[
+            if (this.value == -1) // -1 means not initialized
+              return null;
+
+            let menulist = document.getAnonymousNodes(this)[0];
+            let isCustom = isNaN(this.value);
+            let typedValue = isCustom ? this.value : parseInt(this.value);
+
+            // custom attribute to style the unavailable menulist item
+            menulist.setAttribute("unavailable",
+              (this.valueIds.indexOf(typedValue) < 0) ? "true" : null);
+
+            // add a hidden menulist item if value is missing
+            let menuitem = menulist.getElementsByAttribute("value", this.value).item(0);
+            if (!menuitem)
+            { // need to add a hidden menuitem
+              menuitem = menulist.appendItem(this.valueLabel, this.value);
+              menuitem.hidden = true;
+            }
+            return menuitem;
+          ]]>
+        </getter>
       </property>
       <method name="refreshList">
         <parameter name="dontRestore"/> <!-- should we not restore old selection? -->
@@ -869,9 +901,14 @@
               menuitem.setAttribute("value", menuItemIds[customizePos]);
               popup.appendChild(menuitem);
             }
-            // now restore the selection
-            menulist.selectedItem = newSelection;
-
+            //
+            // If we are either uninitialized, or if we are called because
+            // of a change in our parent, update the value to the
+            // default stored in newSelection.
+            //
+            if ((this.value == -1 || dontRestore) && newSelection)
+              this.value = newSelection.value;
+            menulist.selectedItem = this.validMenuitem;
           ]]>
         </body>
       </method>
@@ -880,6 +917,7 @@
         <body>
           <![CDATA[
             var menulist = document.getAnonymousNodes(this)[0];
+            this.value = menulist.value;
             // notify targets
             var targets = this.targets;
             if (targets) {
@@ -911,11 +949,51 @@
                     .createBundle("chrome://messenger/locale/search-attributes.properties")
         ]]>
       </field>
+      <property name="valueLabel" readonly="true">
+        <getter>
+          <![CDATA[
+            if (isNaN(this.value)) // is this a custom term?
+            {
+              let customTerm = this.filterService.getCustomTerm(this.value);
+              if (customTerm)
+                return customTerm.name;
+              else
+              {
+                let consoleService = Components.classes["@mozilla.org/consoleservice;1"]
+                    .getService(Components.interfaces.nsIConsoleService);
+                let scriptError = Components.classes["@mozilla.org/scripterror;1"]
+                    .createInstance(Components.interfaces.nsIScriptError);
+                scriptError.init("Missing custom search term " + this.value,
+                    null, null, 0, 0,
+                    Components.interfaces.nsIScriptError.errorFlag,
+                    "component javascript");
+                consoleService.logMessage(scriptError);
+                return this.stringBundle.GetStringFromName("MissingCustomTerm");
+              }
+            }
+            return this.stringBundle.GetStringFromName(
+              this.validityManager.getAttributeProperty(parseInt(this.value)));
+          ]]>
+        </getter>
+      </property>
       <property name="valueIds" readonly="true">
         <getter>
           <![CDATA[
             var length = new Object;
-            return this.validityTable.getAvailableAttributes(length);
+            let result = this.validityTable.getAvailableAttributes(length);
+            // add any available custom search terms
+            let customEnum = this.filterService.getCustomTerms();
+            while (customEnum && customEnum.hasMoreElements())
+            {
+              let customTerm =
+                 customEnum.getNext()
+                           .QueryInterface(Components.interfaces.nsIMsgSearchCustomTerm);
+              // for custom terms, the array element is a string with the custom id
+              // instead of the integer attribute
+              if (customTerm.getAvailable(this.scope, null))
+                result.push(customTerm.id);
+            }
+            return result;
           ]]>
         </getter>
       </property>
@@ -936,10 +1014,19 @@
             catch(ex)
             {
             }
+
             let j = 0;
             for (let i = 0; i < ids.length; i++)
             {
-              if(ids[i] > Components.interfaces.nsMsgSearchAttrib.OtherHeader && hdrsArray)
+              if (isNaN(ids[i])) // Is this a custom search term?
+              {
+                let customTerm = this.filterService.getCustomTerm(ids[i]);
+                if (customTerm)
+                  strings[i] = customTerm.name;
+                else
+                  strings[i] = "";
+              }
+              else if(ids[i] > Components.interfaces.nsMsgSearchAttrib.OtherHeader && hdrsArray)
                 strings[i] = hdrsArray[j++];
               else
                 strings[i] = this.stringBundle.GetStringFromName(
@@ -969,10 +1056,25 @@
                     .createBundle("chrome://messenger/locale/search-operators.properties")
         ]]>
       </field>
+      <property name="valueLabel" readonly="true">
+        <getter>
+          <![CDATA[
+            return this.stringBundle.GetStringFromName(this.value);
+          ]]>
+        </getter>
+      </property>
       <property name="valueIds" readonly="true">
         <getter>
           <![CDATA[
             var length = new Object;
+            let isCustom = isNaN(this.searchAttribute);
+            if (isCustom)
+            {
+              let customTerm = this.filterService.getCustomTerm(this.searchAttribute);
+              if (customTerm)
+                return customTerm.getAvailableOperators(this.scope, length);
+              return [Components.interfaces.nsMsgSearchOp.Contains];
+            }
             return this.validityTable.getAvailableOperators(this.searchAttribute,length);
           ]]>
         </getter>
@@ -1083,12 +1185,16 @@
                         class="search-value-menuitem"/>
         </xul:menupopup>
       </xul:menulist>
+      <xul:hbox flex="1" class="search-value-custom" xbl:inherits="disabled"/>
     </content>
     <implementation>
       <field name="internalOperator">null</field>
       <field name="internalAttribute">null</field>
       <field name="internalValue">null</field>
-
+      <field name="filterService">
+        Components.classes["@mozilla.org/messenger/services/filters;1"]
+                  .getService(Components.interfaces.nsIMsgFilterService);
+      </field>
       <property name="opParentValue" onget="return this.internalOperator;">
         <setter>
           <![CDATA[
@@ -1163,7 +1269,17 @@
 
             // we inherit from a deck, so just use it's index attribute
             // to hide/show widgets
-            if (val == Components.interfaces.nsMsgSearchAttrib.Priority)
+            if (isNaN(val)) // Is this a custom attribute?
+            {
+              this.setAttribute("selectedIndex", "9");
+              let customHbox = document.getAnonymousNodes(this)[9];
+              if (this.internalValue)
+                customHbox.setAttribute("value", this.internalValue.str);
+              // the searchAttribute attribute is intended as a selector in
+              // CSS for custom search terms to bind a custom value
+              customHbox.setAttribute("searchAttribute", val);
+            }
+            else if (val == Components.interfaces.nsMsgSearchAttrib.Priority)
               this.setAttribute("selectedIndex", "1");
             else if (val == Components.interfaces.nsMsgSearchAttrib.MsgStatus)
               this.setAttribute("selectedIndex", "2");
@@ -1201,10 +1317,16 @@
           <![CDATA[
           // val is a nsIMsgSearchValue object
           this.internalValue = val;
-          var attrib = val.attrib;
+          var attrib = this.internalAttribute;
           var nsMsgSearchAttrib = Components.interfaces.nsMsgSearchAttrib;
           var children = document.getAnonymousNodes(this);
           this.searchAttribute = attrib;
+          if (isNaN(attrib)) // a custom term
+          {
+            let customHbox = document.getAnonymousNodes(this)[9];
+            customHbox.setAttribute("value", val.str);
+            return val;
+          }
           if (attrib == nsMsgSearchAttrib.Priority) {
             var matchingPriority =
               children[1].getElementsByAttribute("value", val.priority);
@@ -1283,7 +1405,6 @@
             var nsMsgSearchAttrib = Components.interfaces.nsMsgSearchAttrib;
             var children = document.getAnonymousNodes(this);
 
-            searchValue.attrib = searchAttribute;
             if (searchAttribute == nsMsgSearchAttrib.Priority) {
                searchValue.priority = children[1].selectedItem.value;
             }
@@ -1319,8 +1440,17 @@
                searchValue.status = 0x10000000;  // 0x10000000 is MSG_FLAG_ATTACHMENT;
             else if (searchAttribute == nsMsgSearchAttrib.JunkScoreOrigin)
                searchValue.str = children[8].value;
+
+            if (isNaN(searchAttribute)) //  a custom term
+            {
+              searchValue.attrib = nsMsgSearchAttrib.Custom;
+              searchValue.str = children[9].getAttribute("value");
+            }
             else
-               searchValue.str = children[0].value;
+            {
+              searchValue.attrib = searchAttribute;
+              searchValue.str = children[0].value;
+            }
           ]]>
         </body>
       </method>
@@ -1432,6 +1562,7 @@
 	<handler event="keypress" keycode="VK_RETURN" action="onEnterInSearchTerm();"/>
     </handlers>
   </binding>
+  <!-- the searchterm binding is not used anymore, remove in bug 490962 -->
   <binding id="searchterm" name="searchTerm" extends="xul:box">
     <implementation>
       <field name="internalSearchTerm">null</field>

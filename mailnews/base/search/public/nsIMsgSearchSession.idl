@@ -55,11 +55,23 @@ interface nsIMsgDatabase;
 [scriptable, uuid(a819050a-0302-11d3-a50a-0060b0fc04b7)]
 interface nsIMsgSearchSession :  nsISupports {
 
-    void addSearchTerm(in nsMsgSearchAttribValue attrib, /* attribute for this term */
-                       in nsMsgSearchOpValue op,/* operator e.g. opContains */
-                       in nsIMsgSearchValue value, /* value e.g. "Dogbert" */
-                       in boolean BooleanAND, /* set to true if associated boolean operator is AND */
-                       in string arbitraryHeader); /* user defined arbitrary header. ignored unless attrib = attribOtherHeader */
+/**
+ * add a search term to the search session
+ *
+ * @param   attrib        search attribute (e.g. nsMsgSearchAttrib::Subject)
+ * @param   op            search operator (e.g. nsMsgSearchOp::Contains)
+ * @param   value         search value (e.g. "Dogbert", see nsIMsgSearchValue)
+ * @param   BooleanAND    set to true if associated boolean operator is AND
+ * @param   customString  if attrib > nsMsgSearchAttrib::OtherHeader,
+ *                            a user defined arbitrary header
+ *                        if attrib == nsMsgSearchAttrib::Custom, the custom id
+ *                        otherwise ignored
+ */
+    void addSearchTerm(in nsMsgSearchAttribValue attrib,
+                       in nsMsgSearchOpValue op,
+                       in nsIMsgSearchValue value,
+                       in boolean BooleanAND,
+                       in string customString);
 
     readonly attribute nsISupportsArray searchTerms;
 

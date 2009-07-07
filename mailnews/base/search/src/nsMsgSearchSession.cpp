@@ -77,13 +77,13 @@ nsMsgSearchSession::~nsMsgSearchSession()
   DestroyTermList ();
 }
 
-/* [noscript] void AddSearchTerm (in nsMsgSearchAttribute attrib, in nsMsgSearchOperator op, in nsMsgSearchValue value, in boolean BooleanAND, in string arbitraryHeader); */
+/* [noscript] void AddSearchTerm (in nsMsgSearchAttribute attrib, in nsMsgSearchOperator op, in nsMsgSearchValue value, in boolean BooleanAND, in string customString); */
 NS_IMETHODIMP
 nsMsgSearchSession::AddSearchTerm(nsMsgSearchAttribValue attrib,
                                   nsMsgSearchOpValue op,
                                   nsIMsgSearchValue * value,
                                   PRBool BooleanANDp,
-                                  const char *arbitraryHeader)
+                                  const char *customString)
 {
     // stupid gcc
     nsMsgSearchBooleanOperator boolOp;
@@ -92,7 +92,7 @@ nsMsgSearchSession::AddSearchTerm(nsMsgSearchAttribValue attrib,
     else
         boolOp = (nsMsgSearchBooleanOperator)nsMsgSearchBooleanOp::BooleanOR;
   nsMsgSearchTerm *pTerm = new nsMsgSearchTerm (attrib, op, value,
-                                                  boolOp, arbitraryHeader);
+                                                  boolOp, customString);
   if (nsnull == pTerm)
     return NS_ERROR_OUT_OF_MEMORY;
   m_termList->AppendElement (pTerm);

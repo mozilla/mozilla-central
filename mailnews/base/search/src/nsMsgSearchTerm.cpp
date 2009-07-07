@@ -23,6 +23,7 @@
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Jungshik Shin <jshin@mailaps.org>
  *   David Bienvenu <bienvenu@nventure.com>
+ *   Kent James <kent@caspia.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -75,6 +76,7 @@
 #include "nsMsgBaseCID.h"
 #include "nsIMsgTagService.h"
 #include "nsMsgMessageFlags.h"
+#include "nsIMsgFilterService.h"
 
 //---------------------------------------------------------------------------
 // nsMsgSearchTerm specifies one criterion, e.g. name contains phil
@@ -120,14 +122,17 @@ nsMsgSearchAttribEntry SearchAttribEntryTable[] =
 };
 
 // Take a string which starts off with an attribute
-// return the matching attribute. If the string is not in the table, then we can conclude that it is an arbitrary header
-nsresult NS_MsgGetAttributeFromString(const char *string, PRInt16 *attrib)
+// and return the matching attribute. If the string is not in the table, and it
+// begins with a quote, then we can conclude that it is an arbitrary header.
+// Otherwise if not in the table, it is the id for a custom search term.
+nsresult NS_MsgGetAttributeFromString(const char *string, PRInt16 *attrib, nsACString &aCustomId)
 {
   NS_ENSURE_ARG_POINTER(string);
   NS_ENSURE_ARG_POINTER(attrib);
 
   PRBool found = PR_FALSE;
-  // custom headers have a leading quote
+  PRBool isArbitraryHeader = PR_FALSE;
+  // arbitrary headers have a leading quote
   if (*string != '"')
   {
     for (int idxAttrib = 0; idxAttrib < (int)(sizeof(SearchAttribEntryTable) /
@@ -142,7 +147,18 @@ nsresult NS_MsgGetAttributeFromString(const char *string, PRInt16 *attrib)
     }
   }
   else // remove the leading quote
+  {
     string++;
+    isArbitraryHeader = PR_TRUE;
+  }
+
+  if (!found && !isArbitraryHeader)
+  {
+    // must be a custom attribute
+    *attrib = nsMsgSearchAttrib::Custom;
+    aCustomId.Assign(string);
+    return NS_OK;
+  }
 
   if (!found)
   {
@@ -243,7 +259,9 @@ nsMsgSearchOperatorEntry SearchOperatorEntryTable[] =
   {nsMsgSearchOp::IsInAB, "is in ab"},
   {nsMsgSearchOp::IsntInAB, "isn't in ab"},
   {nsMsgSearchOp::IsGreaterThan, "is greater than"},
-  {nsMsgSearchOp::IsLessThan, "is less than"}
+  {nsMsgSearchOp::IsLessThan, "is less than"},
+  {nsMsgSearchOp::Matches, "matches"},
+  {nsMsgSearchOp::DoesntMatch, "doesn't match"}
 };
 
 nsresult NS_MsgGetOperatorFromString(const char *string, PRInt16 *op)
@@ -373,16 +391,21 @@ nsMsgSearchTerm::nsMsgSearchTerm (
                                   nsMsgSearchOpValue op,
                                   nsIMsgSearchValue *val,
                                   nsMsgSearchBooleanOperator boolOp,
-                                  const char * arbitraryHeader)
+                                  const char * aCustomString)
 {
   m_operator = op;
   m_attribute = attrib;
   m_booleanOp = boolOp;
-  if (attrib > nsMsgSearchAttrib::OtherHeader  && attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes && arbitraryHeader)
+  if (attrib > nsMsgSearchAttrib::OtherHeader  && attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes && aCustomString)
   {
-    m_arbitraryHeader = arbitraryHeader;
+    m_arbitraryHeader = aCustomString;
     ToLowerCaseExceptSpecials(m_arbitraryHeader);
   }
+  else if (attrib == nsMsgSearchAttrib::Custom)
+  {
+    m_customId = aCustomString;
+  }
+
   nsMsgResultElement::AssignValues (val, &m_value);
   m_matchAll = PR_FALSE;
 }
@@ -539,6 +562,13 @@ NS_IMETHODIMP nsMsgSearchTerm::GetTermAsString (nsACString &outStream)
     outputStr += m_arbitraryHeader;
     outputStr += "\"";
   }
+
+  else if (m_attribute == nsMsgSearchAttrib::Custom)
+  {
+    // use the custom id as the string
+    outputStr = m_customId;
+  }
+
   else {
     const char *attrib;
     ret = NS_MsgGetStringForAttribute(m_attribute, &attrib);
@@ -666,7 +696,8 @@ nsMsgSearchTerm::ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib)
         *separator = '\0';
 
     PRInt16 attributeVal;
-    nsresult rv = NS_MsgGetAttributeFromString(inStream, &attributeVal);
+    nsCAutoString customId;
+    nsresult rv = NS_MsgGetAttributeFromString(inStream, &attributeVal, m_customId);
     NS_ENSURE_SUCCESS(rv, rv);
 
     *attrib = (nsMsgSearchAttribValue) attributeVal;
@@ -1602,6 +1633,40 @@ nsMsgSearchTerm::MatchPriority (nsMsgPriorityValue priorityToMatch,
   }
   *pResult = result;
   return err;
+}
+
+// match a custom search term
+NS_IMETHODIMP nsMsgSearchTerm::MatchCustom(nsIMsgDBHdr* aHdr, PRBool *pResult)
+{
+  NS_ENSURE_ARG_POINTER(pResult);
+  nsresult rv;
+  nsCOMPtr<nsIMsgFilterService> filterService =
+      do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgSearchCustomTerm> customTerm;
+  rv = filterService->GetCustomTerm(m_customId, getter_AddRefs(customTerm));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (customTerm)
+    return customTerm->Match(aHdr, nsDependentCString(m_value.string),
+                             m_operator, pResult);
+  *pResult = PR_FALSE;     // default to no match if term is missing
+  return NS_ERROR_FAILURE; // missing custom term
+}
+
+// set the id of a custom search term
+NS_IMETHODIMP nsMsgSearchTerm::SetCustomId(const nsACString &aId)
+{
+  m_customId = aId;
+  return NS_OK;
+}
+
+// get the id of a custom search term
+NS_IMETHODIMP nsMsgSearchTerm::GetCustomId(nsACString &aResult)
+{
+  aResult = m_customId;
+  return NS_OK;
 }
 
 // Lazily initialize the rfc822 header parser we're going to use to do

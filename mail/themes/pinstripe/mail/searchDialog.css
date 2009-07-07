@@ -78,6 +78,10 @@ window > vbox > vbox {
   border-left: 1px solid #C3C3C3;
 }
 
+.search-menulist[unavailable="true"] {
+  color: GrayText;
+}
+
 .small-button {
   min-width: 3em;
   padding: 0px;

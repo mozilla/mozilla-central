@@ -48,8 +48,9 @@ interface nsISimpleEnumerator;
 interface nsILocalFile;
 interface nsIMsgFolder;
 interface nsISupportsArray;
+interface nsIMsgSearchCustomTerm;
 
-[scriptable, uuid(5D7DF40A-CD9C-4729-A715-D5666C3AA713)]
+[scriptable, uuid(C1A5F1BB-4D6C-447a-B70F-A12BE767DC0A)]
 interface nsIMsgFilterService : nsISupports {
 
     nsIMsgFilterList OpenFilterList(in nsILocalFile filterFile, in nsIMsgFolder rootFolder, in nsIMsgWindow msgWindow);
@@ -96,4 +97,28 @@ interface nsIMsgFilterService : nsISupports {
      * @return     the custom action, or null if not found
      */
     nsIMsgFilterCustomAction getCustomAction(in ACString id);
+
+    /**
+     * add a custom search term
+     *
+     * @param  aTerm   the custom term to add
+     */
+    void addCustomTerm(in nsIMsgSearchCustomTerm aTerm);
+
+    /**
+     * get the list of custom search terms
+     *
+     * @return   enumerator of nsIMsgSearchCustomTerm objects
+     */
+    nsISimpleEnumerator getCustomTerms();
+
+    /**
+     * lookup a custom search term given its id
+     *
+     * @param  id  unique identifier for a particular custom search term
+     *
+     * @return     the custom search term, or null if not found
+     */
+    nsIMsgSearchCustomTerm getCustomTerm(in ACString id);
+
 };

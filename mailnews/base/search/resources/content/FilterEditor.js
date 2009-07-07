@@ -150,7 +150,7 @@ function filterEditorOnLoad()
 
   // in the case of a new filter, we may not have an action row yet.
   ensureActionRow();
-  updateFilterType();
+  gFilterType = determineFilterType();
 
   gFilterNameElement.select();
   // This call is required on mac and linux.  It has no effect under win32.  See bug 94800.
@@ -266,9 +266,9 @@ function initializeDialog(filter)
         filterAction.customId : gFilterActionStrings[filterAction.type]);
   }
 
-  var scope = getScope(filter);
-  setSearchScope(scope);
-  initializeSearchRows(scope, filter.searchTerms);
+  var gSearchScope = getFilterScope(getScope(filter), filter.filterType, filter.filterList);
+  initializeSearchRows(gSearchScope, filter.searchTerms);
+  setFilterScope(filter.filterType, filter.filterList);
 }
 
 function ensureActionRow()
@@ -311,6 +311,36 @@ function saveFilter()
     return false;
   }
 
+  // Check that all of the search attributes and operators are valid.
+  let allValid = true;
+  for (var index = 0; index < gSearchTerms.length && allValid; index++)
+  {
+    let obj = gSearchTerms[index].obj;
+    if (isNaN(obj.searchattribute.value)) // is this a custom term?
+    {
+      let filterService = Components.classes["@mozilla.org/messenger/services/filters;1"]
+          .getService(Components.interfaces.nsIMsgFilterService);
+      let customTerm = filterService.getCustomTerm(obj.searchattribute.value);
+      if (!customTerm)
+        allValid = false;
+      else
+        allValid = customTerm.getAvailable(obj.searchScope, obj.searchattribute.value);
+    }
+
+    else if (!obj.searchattribute
+            .validityTable
+            .getAvailable(obj.searchattribute.value, obj.searchoperator.value))
+      allValid = false;
+  }
+
+  if (!allValid)
+  {
+    if (gPromptService)
+      gPromptService.alert(window, gFilterBundle.getString("searchTermsInvalidTitle"),
+                           gFilterBundle.getString("searchTermsInvalidMessage"));
+    return false;
+  }
+
   // before we go any further, validate each specified filter action, abort the save
   // if any of the actions is invalid...
   for (var index = 0; index < gFilterActionList.getRowCount(); index++)
@@ -347,7 +377,7 @@ function saveFilter()
   for (index = 0; index < gFilterActionList.getRowCount(); index++)
     gFilterActionList.getItemAtIndex(index).saveToFilter(gFilter);
 
-  updateFilterType();
+  gFilter.filterType = gFilterType;
   saveSearchTerms(gFilter.searchTerms, gFilter);
 
   if (isNewFilter) 
@@ -467,30 +497,72 @@ function getCustomActions()
 
 function updateFilterType()
 {
-  var contextIndex = gFilterContext.selectedIndex;
-  if (contextIndex < 0 || contextIndex == 1)
-  {
-    gFilterType = Components.interfaces.nsMsgFilterType.None;
-  }
-  else
-  {
-    if (getScopeFromFilterList(gFilterList) == Components.interfaces.nsMsgSearchScope.newsFilter)
-      gFilterType = Components.interfaces.nsMsgFilterType.NewsRule;
-    else
-      gFilterType = Components.interfaces.nsMsgFilterType.InboxRule;
-  }
-  if (contextIndex > 0)
-    gFilterType |= Components.interfaces.nsMsgFilterType.Manual;
-
-  if (gFilter)
-  {
-    gFilter.filterType = gFilterType;
-    if (gFilter.filterType == Components.interfaces.nsMsgFilterType.None)
-      gFilter.enabled = false;
-  }
+  gFilterType = determineFilterType();
+  setFilterScope(gFilterType, gFilterList);
 
   // set valid actions
   var ruleActions = gFilterActionList.getElementsByAttribute('class', 'ruleaction');
   for (var i = 0; i < ruleActions.length; i++)
     ruleActions[i].mRuleActionType.hideInvalidActions();
+}
+
+function determineFilterType()
+{
+  /*
+   * contextIndex = 0: checking mail
+   *              = 1: manually run
+   *              = 2: checking mail or manually run
+   */
+  let contextIndex = gFilterContext.selectedIndex;
+  let filterType = Components.interfaces.nsMsgFilterType.None; // that is, 0
+  if (contextIndex == 1) // manual only
+  {
+    filterType = Components.interfaces.nsMsgFilterType.Manual;
+  }
+  else // 0 or 2, checking mail is enabled
+  {
+    if (getScopeFromFilterList(gFilterList) ==
+        Components.interfaces.nsMsgSearchScope.newsFilter)
+      filterType = Components.interfaces.nsMsgFilterType.NewsRule;
+    else
+      filterType = Components.interfaces.nsMsgFilterType.InboxRule;
+
+    if (contextIndex == 2)
+      filterType |= Components.interfaces.nsMsgFilterType.Manual;
+  }
+  return filterType;
+}
+
+// Given a filter type, set the global search scope to the filter scope
+function setFilterScope(aFilterType, aFilterList) 
+{
+  let filterScope = getFilterScope(getScopeFromFilterList(aFilterList),
+                                   aFilterType, aFilterList);
+  setSearchScope(filterScope);
+}
+
+//
+// Given the base filter scope for a server, and the filter
+// type, return the scope used for filter. This assumes a
+// hierarchy of contexts, with incoming the most restrictive,
+// followed by manual.
+function getFilterScope(aServerFilterScope, aFilterType, aFilterList)
+{
+  let Ci = Components.interfaces;
+
+  if (aFilterType & Ci.nsMsgFilterType.Incoming)
+    return aServerFilterScope;
+
+  if (aFilterType & Ci.nsMsgFilterType.Manual)
+  {
+    // local mail allows body and junk types
+    if (aServerFilterScope == Ci.nsMsgSearchScope.offlineMailFilter)
+      return Ci.nsMsgSearchScope.offlineMail;
+    // IMAP and NEWS don't allow body
+    return aServerFilterScope;
+  }
+
+  // We shouldn't get here
+  dump("Invalid filter type in getFilterScope\n");
+  return null;
 }

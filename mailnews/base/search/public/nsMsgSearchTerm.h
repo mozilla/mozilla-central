@@ -44,6 +44,7 @@
 #include "nsIMsgSearchSession.h"
 #include "nsIMsgSearchScopeTerm.h"
 #include "nsIMsgSearchTerm.h"
+#include "nsIMsgSearchCustomTerm.h"
 
 // needed to search for addresses in address books
 #include "nsIAbDirectory.h"
@@ -105,6 +106,7 @@ public:
   nsCString m_arbitraryHeader;         // user specified string for the name of the arbitrary header to be used in the search
                     // only has a value when m_attribute = attribOtherHeader!!!!
         PRBool m_matchAll; // does this term match all headers?
+  nsCString m_customId; // id of custom search term
 
 protected:
   nsresult MatchString (const char *stringToMatch, const char *charset,

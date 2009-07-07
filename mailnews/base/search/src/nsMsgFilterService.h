@@ -69,6 +69,7 @@ public:
 
 protected:
   nsCOMArray<nsIMsgFilterCustomAction> mCustomActions; // defined custom action list
+  nsCOMArray<nsIMsgSearchCustomTerm> mCustomTerms; // defined custom term list
 
 };
 
