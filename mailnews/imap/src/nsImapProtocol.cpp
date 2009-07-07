@@ -1069,7 +1069,7 @@ NS_IMETHODIMP nsImapProtocol::Run()
   // close streams via UI thread if it's not already done
   if (m_imapProtocolSink)
     m_imapProtocolSink->CloseStreams();
-    
+
   m_sinkEventTarget = nsnull;
   m_imapMailFolderSink = nsnull;
   m_imapMessageSink = nsnull;
@@ -7868,17 +7868,16 @@ nsresult nsImapProtocol::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 
 nsresult nsImapProtocol::GetPassword(nsCString &password)
 {
-  nsCOMPtr<nsIMsgWindow> msgWindow;
-
   if (password.IsEmpty() && m_imapServerSink &&
       !(m_useSecAuth && GetServerStateParser().GetCapabilityFlag() & kHasAuthGssApiCapability))
   {
-    nsresult rv = GetMsgWindow(getter_AddRefs(msgWindow));
-    if (NS_FAILED(rv)) return rv;
+    nsCOMPtr<nsIMsgWindow> msgWindow;
+
+    GetMsgWindow(getter_AddRefs(msgWindow));
     // need to copy password, because in the case of Cancel,
     // GetPasswordWithUI will truncate the password.
     nsCString pwd = m_lastPasswordSent;
-    rv = m_imapServerSink->PromptForPassword(pwd, msgWindow);
+    nsresult rv = m_imapServerSink->PromptForPassword(pwd, msgWindow);
     if (rv == NS_MSG_PASSWORD_PROMPT_CANCELLED)
       return NS_ERROR_ABORT;
     password.Assign(pwd);

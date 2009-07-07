@@ -830,6 +830,8 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
       rv = SetPassword(NS_LossyConvertUTF16toASCII(uniPasswordAdopted));
       NS_ENSURE_SUCCESS(rv, rv);
     } // if we got a prompt dialog
+    else
+      return NS_ERROR_FAILURE;
   } // if the password is empty
   return GetPassword(aPassword);
 }
