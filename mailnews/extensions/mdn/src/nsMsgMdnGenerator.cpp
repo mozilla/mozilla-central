@@ -44,6 +44,7 @@
 #include "nsMimeTypes.h"
 #include "prprf.h"
 #include "prmem.h"
+#include "prsystem.h"
 #include "nsMsgI18N.h"
 #include "nsMailHeaders.h"
 #include "nsMsgLocalFolderHdrs.h"
@@ -723,15 +724,24 @@ nsresult nsMsgMdnGenerator::CreateSecondPart()
         do_GetService(NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "http", &rv);
     if (NS_SUCCEEDED(rv) && pHTTPHandler)
     {
-        nsCAutoString userAgentString;
-        pHTTPHandler->GetUserAgent(userAgentString);
+      nsCAutoString userAgentString;
+      pHTTPHandler->GetUserAgent(userAgentString);
 
-        if (!userAgentString.IsEmpty())
+      if (!userAgentString.IsEmpty())
+      {
+        // Prepend the product name with the dns name according to RFC 3798.
+        char hostName[256];
+        PR_GetSystemInfo(PR_SI_HOSTNAME_UNTRUNCATED, hostName, sizeof hostName);
+        if ((hostName[0] != '\0') && (strchr(hostName, '.') != NULL))
         {
-            tmpBuffer = PR_smprintf("Reporting-UA: %s" CRLF,
-                                    userAgentString.get());
-            PUSH_N_FREE_STRING(tmpBuffer);
+          userAgentString.Insert("; ", 0);
+          userAgentString.Insert(nsDependentCString(hostName), 0);
         }
+
+        tmpBuffer = PR_smprintf("Reporting-UA: %s" CRLF,
+                                userAgentString.get());
+        PUSH_N_FREE_STRING(tmpBuffer);
+      }
     }
 
     nsCString originalRecipient;
