@@ -134,7 +134,7 @@ function UpdateDeleteLabelsFromFolderCommand(folder, command)
 // DefaultController object (handles commands when one of the trees does not have focus)
 var DefaultController =
 {
-   supportsCommand: function(command)
+  supportsCommand: function(command)
   {
     switch ( command )
     {
@@ -495,7 +495,7 @@ var DefaultController =
     return false;
   },
 
-  doCommand: function(command)
+  doCommand: function(command, aTab)
   {
     // if the user invoked a key short cut then it is possible that we got here for a command which is
     // really disabled. kick out if the command should be disabled.
@@ -770,11 +770,16 @@ var DefaultController =
             MsgCopyMessage(GetMsgFolderFromUri(folderId));
           break;
       case "cmd_selectAll":
-          // move the focus so the user can delete the newly selected messages, not the folder
-          SetFocusThreadPane();
-          // if in threaded mode, the view will expand all before selecting all
-          gFolderDisplay.doCommand(nsMsgViewCommandType.selectAll);
-          break;
+	// XXX If the message pane is selected but the tab focused, this ends
+        // closing the message tab. See bug 502834.
+	if (aTab.mode.name == "message")
+	  break;
+
+	// move the focus so the user can delete the newly selected messages, not the folder
+        SetFocusThreadPane();
+        // if in threaded mode, the view will expand all before selecting all
+        gFolderDisplay.doCommand(nsMsgViewCommandType.selectAll);
+        break;
       case "cmd_selectThread":
           gFolderDisplay.doCommand(nsMsgViewCommandType.selectThread);
           break;

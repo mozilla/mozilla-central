@@ -1936,7 +1936,7 @@ let mailTabType = {
        *     - from:
        *     - body:
        * @param location Either a GlodaFolder or the string "everywhere".
-       * 
+       *
        * XXX This needs to handle opening in the background
        */
       openTab: function(aTab, aArgs) {
@@ -2161,7 +2161,7 @@ let mailTabType = {
   },
 
   doCommand: function(aTab, aCommand) {
-    DefaultController.doCommand(aCommand);
+    DefaultController.doCommand(aCommand, aTab);
   },
 
   onEvent: function(aTab, aEvent) {

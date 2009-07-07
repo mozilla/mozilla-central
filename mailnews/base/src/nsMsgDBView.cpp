@@ -2335,7 +2335,9 @@ NS_IMETHODIMP nsMsgDBView::DoCommand(nsMsgViewCommandTypeValue command)
         if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
             rv = ExpandAll();
         mTreeSelection->SelectAll();
-        mTree->Invalidate();
+        NS_ASSERTION(mTree, "SelectAll cleared mTree!");
+        if (mTree)
+          mTree->Invalidate();
     }
     break;
   case nsMsgViewCommandType::selectThread:
