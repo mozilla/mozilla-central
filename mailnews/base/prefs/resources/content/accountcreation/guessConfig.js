@@ -40,23 +40,9 @@
 var gOverrideService = Cc["@mozilla.org/security/certoverride;1"]
                        .getService(Ci.nsICertOverrideService);
 Cu.import("resource://app/modules/gloda/log4moz.js");
-
-// Protocol Types
-const UNKNOWN = -1;
-const IMAP = 0;
-const POP = 1;
-const SMTP = 2;
-// Security Types
-const NONE = 0; // no encryption
-//1 would be "TLS if available"
-const TLS = 2; // STARTTLS
-const SSL = 3; // SSL / TLS
+Cu.import("resource://gre/modules/autoconfigUtils.jsm");
 
 const TIMEOUT =  10; // in seconds
-
-let IMAP4_CMDS = ["1 CAPABILITY\r\n", "2 LOGOUT\r\n"];
-let POP3_CMDS  = ["CAPA\r\n", "QUIT\r\n"];
-let SMTP_CMDS = ["EHLO\r\n", "QUIT\r\n"];
 
 // This is a bit ugly - we set outgoingDone to false
 // when emailWizard.js cancels the outgoing probe because the user picked
@@ -335,6 +321,8 @@ function ConvertSocketTypeToSSL(socketType)
       return SSL;
     case 3:
       return TLS;
+    default:
+      return UNKNOWN;
   }
 }
 
@@ -364,6 +352,7 @@ function HostDetector(progressCallback, successCallback, errorCallback)
 {
   this._init(progressCallback, successCallback, errorCallback);
 }
+
 HostDetector.prototype =
 {
   _loggerName : "hostdetector",
@@ -384,7 +373,7 @@ HostDetector.prototype =
     this._gotCertError = false;
   },
 
-  _initLogging: function ()
+  _initLogging : function ()
   {
     this._log = Log4Moz.getConfiguredLogger(this._loggerName);
     this._log.info("Initializing " + this._loggerName + ' logger');
@@ -631,82 +620,16 @@ IncomingHostDetector.prototype =
     this._tryNextHost();
   },
 
-  _tryHost : function()
-  {
+  _tryHost : function() {
     // If the protocol was specified, trust that.
     // Same for the port number.
+    // Ditto for the socketType.
     // Otherwise, if the hostname starts with pop try POP3 protocols first,
     // otherwise check IMAP4 protocols first.
 
-    var lowerCaseHost = this._host.toLowerCase();
-    if (this._specifiedProtocol == POP ||
-        !lowerCaseHost.indexOf("pop.") ||
-        !lowerCaseHost.indexOf("pop3."))
-    {
-      if (this._specifiedPort == UNKNOWN)
-      {
-        this.tryOrder = [
-              [POP, TLS, 110, POP3_CMDS],
-              [POP, SSL, 995, POP3_CMDS],
-              [POP, NONE, 110, POP3_CMDS]];
-      }
-      else
-      {
-        if (this._specifiedSSL == UNKNOWN)
-          this.tryOrder = [
-              [POP, TLS, this._specifiedPort, POP3_CMDS],
-              [POP, SSL, this._specifiedPort, POP3_CMDS],
-              [POP, NONE, this._specifiedPort, POP3_CMDS]];
-         else
-           this.tryOrder = [
-               [POP, this._specifiedSSL, this._specifiedPort, POP3_CMDS]];
-      }
-    }
-    else if ((this._specifiedProtocol == IMAP) ||
-             !lowerCaseHost.indexOf("imap."))
-    {
-      if (this._specifiedPort == UNKNOWN)
-      {
-        this.tryOrder = [
-            [IMAP, TLS, 143, IMAP4_CMDS],
-            [IMAP, SSL, 993, IMAP4_CMDS],
-            [IMAP, NONE, 143, IMAP4_CMDS]];
-      }
-      else
-      {
-        if (this._specifiedSSL == UNKNOWN)
-          this.tryOrder = [
-            [IMAP, TLS, this._specifiedPort, IMAP4_CMDS],
-            [IMAP, SSL, this._specifiedPort, IMAP4_CMDS],
-            [IMAP, NONE, this._specifiedPort, IMAP4_CMDS]];
-        else
-          this.tryOrder = [
-            [IMAP, this._specifiedSSL, this._specifiedPort, IMAP4_CMDS]];
-      }
-    }
-    else
-    {
-      if (this._specifiedPort == UNKNOWN)
-      {
-        this.tryOrder = [
-              [IMAP, TLS, 143, IMAP4_CMDS],
-              [IMAP, SSL, 993, IMAP4_CMDS],
-              [POP, TLS, 110, POP3_CMDS],
-              [POP, SSL, 995, POP3_CMDS],
-              [IMAP, NONE, 143, IMAP4_CMDS],
-              [POP, NONE, 110, POP3_CMDS]];
-      }
-      else
-      {
-        this.tryOrder = [
-              [IMAP, TLS, this._specifiedPort, IMAP4_CMDS],
-              [IMAP, SSL, this._specifiedPort, IMAP4_CMDS],
-              [POP, TLS, this._specifiedPort, POP3_CMDS],
-              [POP, SSL, this._specifiedPort, POP3_CMDS],
-              [IMAP, NONE, this._specifiedPort, IMAP4_CMDS],
-              [POP, NONE, this._specifiedPort, POP3_CMDS]];
-      }
-    }
+    this.tryOrder = getIncomingTryOrder(this._host, this._specifiedProtocol,
+                                        this._specifiedSSL,
+                                        this._specifiedPort);
     this._tryIndex = -1;
     this.keepTrying();
   }
@@ -759,20 +682,7 @@ OutgoingHostDetector.prototype =
 
   _tryHost : function()
   {
-    if (this._specifiedPort == UNKNOWN)
-    {
-      this.tryOrder = [
-             [SMTP, TLS, 587, SMTP_CMDS],
-             [SMTP, SSL, 465, SMTP_CMDS],
-             [SMTP, TLS, 25, SMTP_CMDS],
-             [SMTP, NONE, 587, SMTP_CMDS],
-             [SMTP, NONE, 25, SMTP_CMDS]];
-    } else {
-      this.tryOrder = [
-             [SMTP, TLS, this._specifiedPort, SMTP_CMDS],
-             [SMTP, SSL, this._specifiedPort, SMTP_CMDS],
-             [SMTP, NONE, this._specifiedPort, SMTP_CMDS]];
-    }
+    this.tryOrder = getOutgoingTryOrder(this._specifiedPort)
     this._tryIndex = -1;
     this.keepTrying();
   }
