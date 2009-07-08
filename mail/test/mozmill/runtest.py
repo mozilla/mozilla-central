@@ -48,6 +48,7 @@ import mozrunner
 import jsbridge
 import mozmill
 import socket
+import copy
 from time import sleep
 
 class ThunderTestProfile(mozrunner.ThunderbirdProfile):
@@ -111,7 +112,8 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
                  plugins=[], preferences={}):
         self.init_env()
         self.init_paths()
-        mozrunner.Profile.__init__(self, None, None, True, plugins, preferences)
+        mozrunner.Profile.__init__(self, default_profile, profile, create_new, plugins, preferences)
+
 
     def init_paths(self):
         global automation
@@ -196,7 +198,6 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
 
         # explicitly create a profile in that directory
         self._run('-CreateProfile', 'test ' + self.profile_dir)
-
         return self.profile_dir
 
     def cleanup(self):
@@ -208,7 +209,6 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         pass
 
 class ThunderTestRunner(mozrunner.ThunderbirdRunner):
-    profile_class = ThunderTestProfile
 
     def __init__(self, *args, **kwargs):
         self.profile = args[1]
@@ -220,8 +220,49 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
 
 
 class ThunderTestCLI(mozmill.CLI):
+
     profile_class = ThunderTestProfile
     runner_class = ThunderTestRunner
+    parser_options = copy.copy(mozmill.CLI.parser_options)
+    parser_options[('-m', '--bloat-tests')] = {"default":None, "dest":"created_profile", "help":"Log file name."}
+
+
+    def parse_and_get_runner(self):
+        """Parses the command line arguments and returns a runner instance."""
+        (options, args) = self.parser.parse_args()
+        self.options = options
+        self.args = args
+        if self.options.plugins is None:
+            plugins = []
+        else:
+            plugins = self.options.plugins.split(',')
+            
+        if self.options.test is not None:
+            curdir = os.getcwd()
+            localprofile = os.path.join(curdir, self.options.test ,"profile")
+            if os.path.isfile(localprofile):
+                profilefile = open(localprofile,"r")
+                nameinfile = profilefile.readline()
+                profilename = os.path.join(curdir, "profiles", nameinfile)
+                workingprofile = os.path.join(curdir, "work_profile", nameinfile)
+                if os.path.exists(workingprofile):
+                    shutil.rmtree(workingprofile)
+                shutil.copytree(profilename, workingprofile, False)
+                crea_new = False
+                def_profile = False
+            else:
+                def_profile = options.default_profile
+                workingprofile = options.profile
+                crea_new = options.create_new
+
+        profile = self.get_profile(def_profile, 
+                                   workingprofile, crea_new,
+                                   plugins=plugins)
+        runner = self.get_runner(binary=self.options.binary, 
+                                 profile=profile)
+        
+        return runner
+
 
 TEST_RESULTS = []
 # override mozmill's default logging case, which I hate.
