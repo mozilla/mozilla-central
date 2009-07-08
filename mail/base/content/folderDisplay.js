@@ -134,14 +134,23 @@ function FolderDisplayWidget(aTabInfo, aMessageDisplayWidget) {
    */
   this._notificationsPendingActivation = [];
 
-  let dummyDOMNode = document.getElementById('mail-toolbox');
+  // Create a DOM node for the fake tree box below.
+  let domNode = document.createElementNS(
+      "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "vbox");
+
+  // We care about onselect events, so add a listener for that.
+  let self = this;
+  domNode.addEventListener("select", function () {
+    self.view.dbView.selectionChanged();
+  }, false);
+
   /**
    * Create a fake tree box object for if/when this folder is in the background.
-   * We need to give it a bogus DOM object to send events to, so we choose the
-   *  mail-toolbox, who is hopefully unlikely to take offense.
+   * We need to give it a DOM object to send events to, including the onselect
+   * event we care about and for which we added a handler above, and all the
+   * other events we don't care about.
    */
-  this._fakeTreeBox = dummyDOMNode ?
-                        new FakeTreeBoxObject(dummyDOMNode.boxObject) : null;
+  this._fakeTreeBox = new FakeTreeBoxObject(domNode);
 
   /**
    * Create a fake tree selection for cases where we have opened a background
@@ -823,12 +832,8 @@ FolderDisplayWidget.prototype = {
    * Messages (that may have been displayed) have been removed; this may impact
    *  our message selection.  If we saw this coming, then
    *  this._nextViewIndexAfterDelete should know what view index we should
-   *  select next.  If we didn't see this coming, the cause is likely an
-   *  explicit deletion in another tab/window.
-   * Because the nsMsgDBView is on top of things, it will already have called
-   *  summarizeSelection as a result of the changes to the message display.
-   *  So our job here is really just to try and potentially improve on the
-   *  default selection logic.
+   *  select next.  (We should really always see this coming -- the extra code
+   *  is just in case we didn't.)
    */
   onMessagesRemoved: function FolderDisplayWidget_onMessagesRemoved() {
     // - we saw this coming
@@ -913,7 +918,10 @@ FolderDisplayWidget.prototype = {
    * In response, we update the toolbar.
    */
   updateCommandStatus: function FolderDisplayWidget_updateCommandStatus() {
-    UpdateMailToolbar("FolderDisplayWidget command updater notification");
+    // Do this only if we're active. If we aren't, we're going to take care of
+    // this when we switch back to the tab.
+    if (this._active)
+      UpdateMailToolbar("FolderDisplayWidget command updater notification");
   },
 
   /**
@@ -958,10 +966,11 @@ FolderDisplayWidget.prototype = {
 
   /**
    * This gets called as a hint that the currently selected message is junk and
-   *  said junked message is going to be moved out of the current folder.  The
-   *  legacy behaviour is to retrieve the msgToSelectAfterDelete attribute off
-   *  the db view, stashing it for benefit of the code that gets called when a
-   *  message move/deletion is completed so that we can trigger its display.
+   *  said junked message is going to be moved out of the current folder, or
+   *  right before a header is removed from the db view.  The legacy behaviour
+   *  is to retrieve the msgToSelectAfterDelete attribute off the db view,
+   *  stashing it for benefit of the code that gets called when a message
+   *  move/deletion is completed so that we can trigger its display.
    */
   updateNextMessageAfterDelete:
       function FolderDisplayWidget_updateNextMessageAfterDelete() {
@@ -1995,14 +2004,13 @@ FolderDisplayWidget.prototype = {
  * This does not need to exist once we abandon multiplexed tabbing.
  *
  * Sometimes, nsTreeSelection tries to turn us into an nsIBoxObject and then in
- *  turn get the associated element, and then create DOM events on that.  We
- *  can't really stop that, but we can use misdirection to tell it about a box
- *  object that we don't care about.  That way it gets the bogus events,
- *  effectively blackholing them.
+ *  turn get the associated element, and then create DOM events on that. The
+ *  only event that we care about is onselect, so we get a DOM node here (with
+ *  an event listener for onselect already attached), and pass its boxObject in
+ *  whenever nsTreeSelection QIs us to nsIBoxObject.
  */
-function FakeTreeBoxObject(aDummyBoxObject) {
-  this.dummyBoxObject = aDummyBoxObject.QueryInterface(
-                          Components.interfaces.nsIBoxObject);
+function FakeTreeBoxObject(aDOMNode) {
+  this.domNode = aDOMNode;
   this.view = null;
 }
 FakeTreeBoxObject.prototype = {
@@ -2029,17 +2037,33 @@ FakeTreeBoxObject.prototype = {
   endUpdateBatch: function FakeTreeBoxObject_endUpdateBatch() {
 
   },
-  rowCountChanged: function FakeTreeBoxObject_rowCountChanged() {
+  /**
+   * We're going to make an exception to our NOP rule here, as this is rather
+   * important for us to pass on. The db view calls this if a row's been
+   * inserted or deleted. Without this, the selection's going to be out of sync
+   * with the view.
+   *
+   * @param aIndex the index where the rows have been inserted or deleted
+   * @param aCount the number of rows inserted or deleted (negative for
+   *               deleted)
+   */
+  rowCountChanged: function FakeTreeBoxObject_rowCountChanged(aIndex, aCount) {
+    if (aCount == 0 || !this.view)
+      // Nothing to do
+      return;
 
+    let selection = this.view.selection;
+    if (selection)
+      selection.adjustSelection(aIndex, aCount);
   },
   /**
    * Sleight of hand!  If someone asks us about an nsIBoxObject, we tell them
-   *  about a real box object that is just a dummy and is never used for
-   *  anything.
+   *  about a real box object that only has an onselect event listener attached
+   *  to it. (This violates the QI equivalence requirement, though.)
    */
   QueryInterface: function FakeTreeBoxObject_QueryInterface(aIID) {
     if (aIID.equals(Components.interfaces.nsIBoxObject))
-      return this.dummyBoxObject;
+      return this.domNode.boxObject;
     if (!aIID.equals(Components.interfaces.nsISupports) &&
         !aIID.equals(Components.interfaces.nsITreeBoxObject))
       throw Components.results.NS_ERROR_NO_INTERFACE;

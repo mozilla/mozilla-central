@@ -5572,7 +5572,19 @@ NS_IMETHODIMP nsMsgDBView::OnHdrDeleted(nsIMsgDBHdr *aHdrChanged, nsMsgKey aPare
 {
   nsMsgViewIndex deletedIndex = FindHdr(aHdrChanged);
   if (deletedIndex != nsMsgViewIndex_None)
+  {
+    // Check if this message is currently selected. If it is, tell the frontend
+    // to be prepared for a delete.
+    if (mTreeSelection && mCommandUpdater)
+    {
+      PRBool isMsgSelected = PR_FALSE;
+      mTreeSelection->IsSelected(deletedIndex, &isMsgSelected);
+      if (isMsgSelected)
+        mCommandUpdater->UpdateNextMessageAfterDelete();
+    }
+
     RemoveByIndex(deletedIndex);
+  }
 
   return NS_OK;
 }

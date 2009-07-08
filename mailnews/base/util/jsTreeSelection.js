@@ -119,7 +119,7 @@ JSTreeSelection.prototype = {
   // In the case of the stand-alone message window, there's no tree, but
   // there's a view.
   _view: null,
-  
+
   get tree JSTreeSelection_get_treeBoxObject() {
     return this._treeBoxObject;
   },

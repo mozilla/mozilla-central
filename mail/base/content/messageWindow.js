@@ -236,10 +236,6 @@ StandaloneMessageDisplayWidget.prototype = {
   clearDisplay: function () {
     this.messageLoading = false;
     this.messageLoaded = false;
-    // XXX we should figure out why we're calling window.close() both from here
-    // and from onSelectedMessagesChanged.
-    if (!this.aboutToLoadMessage)
-      window.close();
   },
   _updateActiveMessagePane: function() {
     // no-op.  the message pane is always visible.
@@ -275,9 +271,12 @@ StandaloneMessageDisplayWidget.prototype = {
   },
 
   onSelectedMessagesChanged: function () {
-    // XXX we should figure out why we're calling window.close() both from here
-    // and from clearDisplay.
-    if (!this.aboutToLoadMessage && this.folderDisplay.treeSelection.count == 0) {
+    // If the message we're displaying is deleted, we won't have any selection
+    // for a while, but we'll soon select a new message. So don't test the
+    // selection count -- instead see if there are any messages in the db view
+    // at all.
+    if (!this.aboutToLoadMessage &&
+        this.folderDisplay.view.dbView.rowCount == 0) {
       window.close();
       return true;
     }

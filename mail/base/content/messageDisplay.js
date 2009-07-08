@@ -324,7 +324,7 @@ MessageDisplayWidget.prototype = {
    * Called by the FolderDisplayWidget when it is being made active again and
    *  it's time for us to step up and re-display or clear the message as
    *  demanded by our multiplexed tab implementation.
-   *  
+   *
    *  @param aDontReloadMessage [optional] true if you don't want to make us
    *                            call reloadMessage even if the conditions are
    *                            right for doing so. Use only when you're sure
@@ -336,23 +336,32 @@ MessageDisplayWidget.prototype = {
     this._active = true;
 
     if (wasInactive) {
+      let dbView = this.folderDisplay.view.dbView;
       // (see our usage below)
-      let preDisplayedMessage = this.displayedMessage;
+      let preDisplayedViewIndex =
+          dbView.currentlyDisplayedMessage;
       // Force a synthetic selection changed event.  This will propagate through
       //  to a call to onSelectedMessagesChanged who will handle making sure the
       //  right message pane is in use, etc.
-      this.folderDisplay.view.dbView.selectionChanged();
+      dbView.selectionChanged();
       // The one potential problem is that the message view only triggers message
       //  streaming if it doesn't think the message is already displayed.  In that
       //  case we need to force a re-display by calling reloadMessage.  We can
-      //  detect that case by seeing if our displayedMessage value changes its
-      //  value during this call (because we will receive a onDisplayingMessage
-      //  notification).  If we should be displaying a single message but the
-      //  value does not change, we need to force a re-display.
+      //  detect that case by seeing if the preDisplayedViewIndex corresponds to
+      //  the current value of displayedMessage, since if it doesn't, the value
+      //  of displayedMessage has changed during this call (because we will
+      //  receive a onDisplayingMessage notification).  If we should be
+      //  displaying a single message but the value does not change, we need to
+      //  force a re-display.
+      // We used to use the value of this.displayedMessage prior to the
+      //  selectionChanged() call here instead of preDisplayedViewIndex, but we
+      //  don't do that any more because this.displayedMessage might be out of
+      //  sync with reality for an inactive tab.
       if (!aDontReloadMessage && this.singleMessageDisplay &&
-          this.displayedMessage && (this.displayedMessage ==
-                                    preDisplayedMessage))
-        this.folderDisplay.view.dbView.reloadMessage();
+          this.displayedMessage &&
+          (preDisplayedViewIndex != nsMsgViewIndex_None) &&
+          (this.displayedMessage == dbView.getMsgHdrAt(preDisplayedViewIndex)))
+        dbView.reloadMessage();
     }
 
     this._updateActiveMessagePane();
@@ -437,9 +446,29 @@ MessageTabDisplayWidget.prototype = {
 
   onSelectedMessagesChanged:
       function MessageTabDisplayWidget_onSelectedMessagesChanged() {
-    this.__proto__.__proto__.onSelectedMessagesChanged.apply(this, arguments);
-    if (!this.closing)
-      document.getElementById('tabmail').setTabTitle(this.folderDisplay._tabInfo);
+    // Look at the number of messages left in the db view. If there aren't any,
+    // close the tab.
+    if (this.folderDisplay.view.dbView.rowCount == 0) {
+      if (!this.closing) {
+        this.closing = true;
+        document.getElementById('tabmail').closeTab(
+            this.folderDisplay._tabInfo);
+      }
+      return true;
+    }
+    else {
+      if (!this.closing)
+        document.getElementById('tabmail').setTabTitle(
+            this.folderDisplay._tabInfo);
+
+      // The db view shouldn't do anything if we're inactive or about to close
+      if (!this.active || this.closing)
+        return true;
+
+      // No summaries in a message tab
+      this.singleMessageDisplay = true;
+      return false;
+    }
   },
 
   /**

@@ -322,6 +322,8 @@ function open_selected_message_in_new_window() {
  * @param aNewTab Optional, index of the other tab to switch to.
  */
 function switch_tab(aNewTab) {
+  // If we're still loading a message at this point, wait for that to finish
+  wait_for_message_display_completion();
   let targetTab = (aNewTab != null) ? aNewTab : otherTab;
   // now the current tab will be the 'other' tab after we switch
   otherTab = mc.tabmail.currentTabInfo;
