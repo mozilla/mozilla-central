@@ -130,7 +130,7 @@ var VERIFY_MESSAGE_TAB = 0x2;
 var VERIFY_BACKGROUND_MESSAGE_TAB = 0x4;
 /// Check whether this message is displayed in the message window
 var VERIFY_MESSAGE_WINDOW = 0x8;
-var VERIFY_ALL = 0xE;
+var VERIFY_ALL = 0xF;
 
 /**
  * Verify that the message is displayed in the given tabs. The index is
@@ -553,8 +553,13 @@ function test_delete_multiple_messages_with_nth_selected_message_open() {
   // Delete the selected messages
   press_delete();
 
-  // All the displays should now be showing the expectedMessage
-  _verify_message_is_displayed_in(VERIFY_ALL, expectedMessage);
+  // The folder tab should now be showing message 2
+  assert_selected_and_displayed(2);
+
+  // The other displays should now be showing the expectedMessage
+  _verify_message_is_displayed_in(VERIFY_MESSAGE_TAB |
+                                  VERIFY_BACKGROUND_MESSAGE_TAB |
+                                  VERIFY_MESSAGE_WINDOW, expectedMessage);
 
   // Clean up, close everything
   close_message_window(msgc);
@@ -584,9 +589,13 @@ function test_delete_multiple_messages_with_last_selected_message_open() {
   // Delete the selected messages
   press_delete();
 
-  // All the displays should now be showing the expectedMessage
-  _verify_message_is_displayed_in(VERIFY_ALL, expectedMessage);
+  // The folder tab should now be showing message 2
+  assert_selected_and_displayed(2);
 
+  // The other displays should now be showing the expectedMessage
+  _verify_message_is_displayed_in(VERIFY_MESSAGE_TAB |
+                                  VERIFY_BACKGROUND_MESSAGE_TAB |
+                                  VERIFY_MESSAGE_WINDOW, expectedMessage);
   // Clean up, close everything
   close_message_window(msgc);
   close_tab(tabMessage);
@@ -644,8 +653,13 @@ function test_delete_multiple_messages_including_the_last_one_with_nth_open() {
   // Delete the selected messages
   press_delete();
 
-  // All the displays should now be showing the expectedMessage
-  _verify_message_is_displayed_in(VERIFY_ALL, expectedMessage);
+  // The folder tab should now be showing message 1
+  assert_selected_and_displayed(1);
+
+  // The other displays should now be showing the expectedMessage
+  _verify_message_is_displayed_in(VERIFY_MESSAGE_TAB |
+                                  VERIFY_BACKGROUND_MESSAGE_TAB |
+                                  VERIFY_MESSAGE_WINDOW, expectedMessage);
 
   // Clean up, close everything
   close_message_window(msgc);
@@ -674,8 +688,13 @@ function test_delete_multiple_messages_including_the_last_one_with_last_open() {
   // Delete the selected messages
   press_delete();
 
-  // All the displays should now be showing the expectedMessage
-  _verify_message_is_displayed_in(VERIFY_ALL, expectedMessage);
+  // The folder tab should now be showing message 1
+  assert_selected_and_displayed(1);
+
+  // The other displays should now be showing the expectedMessage
+  _verify_message_is_displayed_in(VERIFY_MESSAGE_TAB |
+                                  VERIFY_BACKGROUND_MESSAGE_TAB |
+                                  VERIFY_MESSAGE_WINDOW, expectedMessage);
 
   // Clean up, close everything
   close_message_window(msgc);
