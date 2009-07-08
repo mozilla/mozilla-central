@@ -91,8 +91,6 @@
                 oncommandupdate="dlTreeController.onCommandUpdate()"/>
 
     <commandset id="downloadCommands">
-      <command id="cmd_play"
-               oncommand="goDoCommand('cmd_play');"/>
       <command id="cmd_pause"
                oncommand="goDoCommand('cmd_pause');"/>
       <command id="cmd_resume"
@@ -103,8 +101,6 @@
                oncommand="goDoCommand('cmd_cancel');"/>
       <command id="cmd_remove"
                oncommand="goDoCommand('cmd_remove');"/>
-      <command id="cmd_stop"
-               oncommand="goDoCommand('cmd_stop');"/>
       <command id="cmd_open"
                oncommand="goDoCommand('cmd_open');"/>
       <command id="cmd_show"
@@ -120,20 +116,11 @@
 
   <keyset id="tasksKeys">
     <!-- File Menu -->
-    <key id="key_open"
-         keycode="VK_ENTER"
-         command="cmd_open"/>
-    <key id="key_open2"
-         keycode="VK_RETURN"
-         command="cmd_open"/>
     <key id="key_close"/>
     <key id="key_quit"/>
     <!-- Edit Menu -->
     <key id="key_cut"/>
     <key id="key_copy"/>
-    <key id="key_play"
-         key=" "
-         command="cmd_play"/>
     <key id="key_delete"/>
     <key id="key_delete2"/>
     <key id="key_selectAll"/>
@@ -196,7 +183,6 @@
           <menuitem id="dlMenu_open"
                     label="&cmd.open.label;"
                     accesskey="&cmd.open.accesskey;"
-                    key="key_open"
                     command="cmd_open"/>
           <menuitem id="dlMenu_show"
                     label="&cmd.show.label;"
@@ -369,7 +355,6 @@
         class="plain"
         context="downloadContext"
         enableColumnDrag="true"
-        ondblclick="goDoCommand('cmd_open');"
         onselect="onTreeSelect(event);">
     <treecols context="" onclick="sortDownloads(event.target)">
       <treecol id="Name"

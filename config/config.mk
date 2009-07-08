@@ -456,14 +456,14 @@ ifdef BOTH_MANIFESTS
 MAKE_JARS_FLAGS += --both-manifests
 endif
 
-TAR_CREATE_FLAGS = -chf
+TAR_CREATE_FLAGS = -cvhf
 
 ifeq ($(OS_ARCH),BSD_OS)
-TAR_CREATE_FLAGS = -cLf
+TAR_CREATE_FLAGS = -cvLf
 endif
 
 ifeq ($(OS_ARCH),OS2)
-TAR_CREATE_FLAGS = -cf
+TAR_CREATE_FLAGS = -cvf
 endif
 
 #

@@ -1,29 +1,29 @@
 <!ENTITY pref.download.title            "Downloads">
-
 <!ENTITY downloadBehavior.label         "When starting a download">
-<!ENTITY focusWhenStarting.label        "Flash the download manager if it is already open, otherwise:">
-<!ENTITY focusWhenStarting.accesskey    "F">
+<!ENTITY downloadLocation.label         "When saving a file">
+<!ENTITY finishedBehavior.label         "When a download completes">
 <!ENTITY openDM.label                   "Open the download manager">
 <!ENTITY openDM.accesskey               "m">
 <!ENTITY openProgressDialog.label       "Open a progress dialog">
 <!ENTITY openProgressDialog.accesskey   "O">
 <!ENTITY doNothing.label                "Don't open anything">
 <!ENTITY doNothing.accesskey            "D">
-
-<!ENTITY downloadLocation.label         "When saving a file">
-<!ENTITY saveTo.label                   "Save files to">
-<!ENTITY saveTo.accesskey               "v">
+<!ENTITY promptDownload.label           "Prompt for download location and default to">
+<!ENTITY promptDownload.accesskey       "P">
+<!ENTITY lastLocation.label             "Last download folder">
+<!ENTITY lastLocation.accesskey         "L">
+<!ENTITY specifiedLocation.label        "Specified download folder">
+<!ENTITY specifiedLocation.accesskey    "e">
+<!ENTITY autoDownload.label             "Automatically download files to specified download folder">
+<!ENTITY autoDownload.accesskey         "A">
+<!ENTITY downloadFolder.label           "Current Download Folder:">
 <!ENTITY chooseDownloadFolder.label     "Choose Folder…">
 <!ENTITY chooseDownloadFolder.accesskey "C">
-<!ENTITY alwaysAsk.label                "Always ask me where to save files">
-<!ENTITY alwaysAsk.accesskey            "A">
-
-<!ENTITY finishedBehavior.label         "When a download completes">
 <!ENTITY playSound.label                "Play a sound">
 <!ENTITY playSound.accesskey            "s">
 <!ENTITY showAlert.label                "Show an alert">
-<!ENTITY showAlert.accesskey            "a">
+<!ENTITY showAlert.accesskey            "n">
 <!ENTITY browse.label                   "Browse…">
 <!ENTITY browse.accesskey               "B">
 <!ENTITY preview.label                  "Preview">
-<!ENTITY preview.accesskey              "e">
+<!ENTITY preview.accesskey              "v">

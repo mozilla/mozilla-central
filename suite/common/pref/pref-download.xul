@@ -48,24 +48,17 @@
             script="chrome://communicator/content/pref/pref-download.js">
 
     <preferences>
-      <preference id="browser.download.manager.focusWhenStarting"
-                  name="browser.download.manager.focusWhenStarting"
-                  type="bool" inverted="true"/>
-      <preference id="browser.download.manager.behavior"
-                  name="browser.download.manager.behavior"
+      <preference id="browser.downloadmanager.behavior"
+                  name="browser.downloadmanager.behavior"
                   type="int"/>
-      <preference id="browser.download.useDownloadDir"
-                  name="browser.download.useDownloadDir"
+      <preference id="browser.download.autoDownload"
+                  name="browser.download.autoDownload"
+                  type="bool"
+                  onchange="SetAutoDLEnabled(this.value);"/>
+      <preference id="browser.download.lastLocation"
+                  name="browser.download.lastLocation"
                   type="bool"/>
-      <preference id="browser.download.dir"
-                  name="browser.download.dir"
-                  type="file"/>
-      <preference id="browser.download.folderList"
-                  name="browser.download.folderList"
-                  type="int"
-                  onchange="DisplayDownloadDirPref();"/>
-      <!-- XXX: to be reintroduced with bug 490467
-       preference id="browser.download.finished_download_sound"
+      <preference id="browser.download.finished_download_sound"
                   name="browser.download.finished_download_sound"
                   type="bool"
                   onchange="SetSoundEnabled(this.value);"/>
@@ -74,18 +67,16 @@
                   type="bool"/>
       <preference id="browser.download.finished_sound_url"
                   name="browser.download.finished_sound_url"
-                  type="string"/ -->
+                  type="string"/>
+      <preference id="browser.download.dir"
+                  name="browser.download.dir"
+                  type="file"/>
     </preferences>
 
     <groupbox>
       <caption label="&downloadBehavior.label;"/>
-      <checkbox id="focusWhenStarting"
-                label="&focusWhenStarting.label;"
-                preference="browser.download.manager.focusWhenStarting"
-                accesskey="&focusWhenStarting.accesskey;"/>
       <radiogroup id="downloadBehavior"
-                  class="indent"
-                  preference="browser.download.manager.behavior">
+                  preference="browser.downloadmanager.behavior">
         <radio value="0"
                label="&openDM.label;"
                accesskey="&openDM.accesskey;"/>
@@ -100,41 +91,57 @@
 
     <groupbox>
       <caption label="&downloadLocation.label;"/>
-      <radiogroup id="saveWhere"
-                  preference="browser.download.useDownloadDir"
-                  onsyncfrompreference="return document.getElementById('download_pane').ReadUseDownloadDir();">
-        <hbox id="saveToRow">
-          <radio id="saveTo" value="true"
-                 label="&saveTo.label;"
-                 accesskey="&saveTo.accesskey;"
-                 aria-labelledby="saveTo downloadFolder"/>
-          <filefield id="downloadFolder" flex="1"
+      <radiogroup id="autoDownload"
+                  preference="browser.download.autoDownload">
+        <radio value="false"
+               label="&promptDownload.label;"
+               accesskey="&promptDownload.accesskey;"/>
+        <radiogroup id="downloadLocation"
+                    class="indent"
+                    preference="browser.download.lastLocation">
+          <radio value="true"
+                 label="&lastLocation.label;"
+                 accesskey="&lastLocation.accesskey;"/>
+          <radio value="false"
+                 label="&specifiedLocation.label;"
+                 accesskey="&specifiedLocation.accesskey;"/>
+        </radiogroup>
+        <radio value="true"
+               label="&autoDownload.label;"
+               accesskey="&autoDownload.accesskey;"/>
+      </radiogroup>
+
+      <separator class="thin"/>
+
+      <vbox>
+        <label value="&downloadFolder.label;"/>
+        <hbox align="center">
+          <filefield id="downloadFolder"
+                     flex="1"
                      preference="browser.download.dir"
                      preference-editable="true"
-                     aria-labelledby="saveTo"
-                     onsyncfrompreference="document.getElementById('download_pane').DisplayDownloadDirPref();"/>
-          <button id="chooseFolder" oncommand="ChooseFolder();"
+                     onsyncfrompreference="return document.getElementById('download_pane').ReadDLFolder(this);"/>
+          <button id="chooseDownloadFolder"
                   label="&chooseDownloadFolder.label;"
-                  accesskey="&chooseDownloadFolder.accesskey;"/>
+                  accesskey="&chooseDownloadFolder.accesskey;"
+                  oncommand="DownloadSelectFolder();">
+            <observes element="downloadFolder" attribute="disabled"/>
+          </button>
         </hbox>
-        <radio id="alwaysAsk" value="false"
-               label="&alwaysAsk.label;"
-               accesskey="&alwaysAsk.accesskey;"/>
-      </radiogroup>
+      </vbox>
     </groupbox>
 
-    <!-- XXX: to be reintroduced with bug 490467
-     groupbox>
+    <groupbox>
       <caption label="&finishedBehavior.label;"/>
       <hbox align="center">
-        <checkbox id="finishedNotificationSound"
+	<checkbox id="finishedNotificationSound"
                   label="&playSound.label;"
-                  preference="browser.download.finished_download_sound"
-                  accesskey="&playSound.accesskey;"/>
-        <checkbox id="finishedNotificationAlert"
+		  preference="browser.download.finished_download_sound"
+		  accesskey="&playSound.accesskey;"/>
+	<checkbox id="finishedNotificationAlert"
                   label="&showAlert.label;"
-                  preference="browser.download.finished_download_alert"
-                  accesskey="&showAlert.accesskey;"/>
+		  preference="browser.download.finished_download_alert"
+		  accesskey="&showAlert.accesskey;"/>
       </hbox>
 
       <hbox align="center" class="indent">
@@ -156,6 +163,6 @@
                   oncommand="PreviewSound();"/>
         </hbox>
       </hbox>
-    </groupbox -->
+    </groupbox>
   </prefpane>
 </overlay>

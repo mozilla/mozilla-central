@@ -1,8 +1,8 @@
 <!-- Context Menu -->
 <!ENTITY popupWindowRejectCmd.label     "Reject popup windows from this site">
-<!ENTITY popupWindowRejectCmd.accesskey "o">
+<!ENTITY popupWindowRejectCmd.accesskey "">
 <!ENTITY popupWindowAllowCmd.label      "Allow popup windows from this site">
-<!ENTITY popupWindowAllowCmd.accesskey  "o">
+<!ENTITY popupWindowAllowCmd.accesskey  "">
 <!ENTITY openLinkCmd.label            "Open Link in New Window">
 <!ENTITY openLinkCmd.accesskey        "W">
 <!ENTITY openLinkCmdInTab.label       "Open Link in New Tab">
@@ -30,7 +30,7 @@
 <!ENTITY reloadFrameCmd.accesskey     "R">
 <!ENTITY viewPartialSourceForSelectionCmd.label "View Selection Source">
 <!ENTITY viewPartialSourceForMathMLCmd.label    "View MathML Source">
-<!ENTITY viewPartialSourceCmd.accesskey "u">
+<!ENTITY viewPartialSourceCmd.accesskey "e">
 <!ENTITY viewPageSourceCmd.label      "View Page Source">
 <!ENTITY viewPageSourceCmd.accesskey  "V">
 <!ENTITY viewFrameSourceCmd.label     "View Frame Source">
@@ -42,29 +42,29 @@
 <!ENTITY fitImageCmd.label            "Fit Image to Window">
 <!ENTITY fitImageCmd.accesskey        "F">
 <!ENTITY reloadImageCmd.label         "Reload Image">
-<!ENTITY reloadImageCmd.accesskey     "R">
+<!ENTITY reloadImageCmd.accesskey     "e">
 <!ENTITY viewImageCmd.label           "View Image">
-<!ENTITY viewImageCmd.accesskey       "w">
+<!ENTITY viewImageCmd.accesskey       "I">
 <!ENTITY viewBGImageCmd.label         "View Background Image">
 <!ENTITY viewBGImageCmd.accesskey     "w">
 <!ENTITY setWallpaperCmd.label        "Set As Wallpaper">
-<!ENTITY setWallpaperCmd.accesskey    "e">
+<!ENTITY setWallpaperCmd.accesskey    "S">
 <!ENTITY bookmarkPageCmd.label        "Bookmark This Page">
 <!ENTITY bookmarkPageCmd.accesskey    "m">
 <!ENTITY bookmarkLinkCmd.label        "Bookmark This Link">
-<!ENTITY bookmarkLinkCmd.accesskey    "B">
+<!ENTITY bookmarkLinkCmd.accesskey    "L">
 <!ENTITY bookmarkFrameCmd.label       "Bookmark This Frame">
-<!ENTITY bookmarkFrameCmd.accesskey   "B">
+<!ENTITY bookmarkFrameCmd.accesskey   "m">
 <!ENTITY savePageAsCmd.label          "Save Page As…">
 <!ENTITY savePageCmd.label            "Save Page">
-<!ENTITY savePageCmd.accesskey        "e">
+<!ENTITY savePageCmd.accesskey        "a">
 <!ENTITY savePageCmd.commandkey       "s">
 <!ENTITY saveFrameAsCmd.label         "Save Frame As…">
 <!ENTITY saveFrameCmd.label           "Save Frame">
 <!ENTITY saveFrameCmd.accesskey       "m">
 <!ENTITY saveLinkAsCmd.label          "Save Link Target As…">
 <!ENTITY saveLinkCmd.label            "Save Link Target">
-<!ENTITY saveLinkCmd.accesskey        "S">
+<!ENTITY saveLinkCmd.accesskey        "r">
 <!ENTITY saveImageAsCmd.label         "Save Image As…">
 <!ENTITY saveImageCmd.label           "Save Image">
 <!ENTITY saveImageCmd.accesskey       "v">
@@ -77,17 +77,17 @@
 <!ENTITY selectAllCmd.label           "Select All">
 <!ENTITY selectAllCmd.accesskey       "A">
 <!ENTITY copyLinkCmd.label            "Copy Link Location">
-<!ENTITY copyLinkCmd.accesskey        "L">
+<!ENTITY copyLinkCmd.accesskey        "C">
 <!ENTITY copyImageCmd.label           "Copy Image">
-<!ENTITY copyImageCmd.accesskey       "I">
+<!ENTITY copyImageCmd.accesskey       "o">
 <!ENTITY copyVideoURLCmd.label        "Copy Video Location">
-<!ENTITY copyVideoURLCmd.accesskey    "L">
+<!ENTITY copyVideoURLCmd.accesskey    "o">
 <!ENTITY copyAudioURLCmd.label        "Copy Audio Location">
-<!ENTITY copyAudioURLCmd.accesskey    "L">
+<!ENTITY copyAudioURLCmd.accesskey    "o">
 <!ENTITY metadataCmd.label            "Properties">
 <!ENTITY metadataCmd.accesskey        "P">
 <!ENTITY copyEmailCmd.label           "Copy Email Address">
-<!ENTITY copyEmailCmd.accesskey       "A">
+<!ENTITY copyEmailCmd.accesskey       "E">
 <!ENTITY pasteCmd.label               "Paste">
 <!ENTITY pasteCmd.accesskey           "P">
 <!ENTITY cutCmd.label                 "Cut">
@@ -116,7 +116,7 @@
 <!ENTITY bidiSwitchPageDirectionItem.label        "Switch Page Direction">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey    "g">
 <!ENTITY bidiSwitchTextDirectionItem.label        "Switch Text Direction">
-<!ENTITY bidiSwitchTextDirectionItem.accesskey    "x">
+<!ENTITY bidiSwitchTextDirectionItem.accesskey    "w">
 <!ENTITY spellAddToDictionary.label     "Add to Dictionary">
 <!ENTITY spellAddToDictionary.accesskey "o">
 <!ENTITY spellIgnoreWord.label          "Ignore Word">

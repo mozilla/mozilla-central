@@ -319,10 +319,10 @@ DownloadTreeView.prototype = {
       this._dlList[row].currBytes = aDownload.amountTransferred;
       this._dlList[row].maxBytes = aDownload.size;
       this._dlList[row].progress = aDownload.percentComplete;
+      this._dlList[row].resumable = aDownload.resumable;
     }
     if (this._dlList[row].state != aDownload.state) {
       this._dlList[row].state = aDownload.state;
-      this._dlList[row].resumable = aDownload.resumable;
       switch (this._dlList[row].state) {
         case nsIDownloadManager.DOWNLOAD_NOTSTARTED:
         case nsIDownloadManager.DOWNLOAD_DOWNLOADING:
@@ -355,21 +355,11 @@ DownloadTreeView.prototype = {
     // Make sure we have an item to remove
     if (row < 0) return;
 
-    var index = this.selection.currentIndex;
-    var wasSingleSelection = this.selection.count == 1;
-
     // Remove data from the download list
     this._dlList.splice(row, 1);
 
     // Tell the tree we removed 1 row at the given row index
     this._tree.rowCountChanged(row, -1);
-
-    // Update selection if only removed download was selected
-    if (wasSingleSelection && this.selection.count == 0) {
-      index = Math.min(index, this.rowCount - 1);
-      if (index >= 0)
-        this.selection.select(index);
-    }
 
     window.updateCommands("tree-select");
   },

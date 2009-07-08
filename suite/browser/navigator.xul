@@ -252,7 +252,6 @@
                  title="&locationBar.title;">
         <textbox id="urlbar" class="chromeclass-location uri-element" flex="1"
                  type="autocomplete" autocompletesearch="history file"
-                 completedefaultindex="true" forcecomplete="false"
                  timeout="50" maxrows="6"
                  disablehistory="false" accesskey="&locationBar.accesskey;"
                  defaultSearchEngine="true" tabscrolling="true"

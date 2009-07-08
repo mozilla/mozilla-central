@@ -75,14 +75,6 @@ function dmStartup()
   gDownloadListener = new DownloadProgressListener();
   gDownloadManager.addListener(gDownloadListener);
 
-  // correct keybinding command attributes which don't do our business yet
-  var key = document.getElementById("key_delete");
-  if (key.hasAttribute("command"))
-    key.setAttribute("command", "cmd_stop");
-  key = document.getElementById("key_delete2");
-  if (key.hasAttribute("command"))
-    key.setAttribute("command", "cmd_stop");
-
   gDownloadTree.focus();
 
   if (gDownloadTree.view.rowCount > 0)
@@ -441,13 +433,11 @@ var dlTreeController = {
   supportsCommand: function(aCommand)
   {
     switch (aCommand) {
-      case "cmd_play":
       case "cmd_pause":
       case "cmd_resume":
       case "cmd_retry":
       case "cmd_cancel":
       case "cmd_remove":
-      case "cmd_stop":
       case "cmd_open":
       case "cmd_show":
       case "cmd_openReferrer":
@@ -470,13 +460,6 @@ var dlTreeController = {
                       null;
 
     switch (aCommand) {
-      case "cmd_play":
-         return selectionCount == 1 &&
-                ((selItemData.resumable &&
-                 (selItemData.isActive ||
-                  selItemData.state == nsIDownloadManager.DOWNLOAD_PAUSED)) ||
-                (selItemData.state == nsIDownloadManager.DOWNLOAD_CANCELED ||
-                 selItemData.state == nsIDownloadManager.DOWNLOAD_FAILED));
       case "cmd_pause":
         return selectionCount == 1 &&
                selItemData.isActive &&
@@ -501,8 +484,6 @@ var dlTreeController = {
                 selItemData.state == nsIDownloadManager.DOWNLOAD_FAILED);
       case "cmd_remove":
         return selectionCount == 1 && !selItemData.isActive;
-      case "cmd_stop":
-        return selectionCount == 1;
       case "cmd_openReferrer":
         return selectionCount == 1 && !!selItemData.referrer;
       case "cmd_copyLocation":
@@ -539,20 +520,6 @@ var dlTreeController = {
     }
 
     switch (aCommand) {
-      case "cmd_play":
-        switch (selItemData.state) {
-          case nsIDownloadManager.DOWNLOAD_DOWNLOADING:
-            pauseDownload(selItemData.dlid);
-            break;
-          case nsIDownloadManager.DOWNLOAD_PAUSED:
-            resumeDownload(selItemData.dlid);
-            break;
-          case nsIDownloadManager.DOWNLOAD_FAILED:
-          case nsIDownloadManager.DOWNLOAD_CANCELED:
-            retryDownload(selItemData.dlid);
-            break;
-         }
-         break;
       case "cmd_pause":
         pauseDownload(selItemData.dlid);
         break;
@@ -569,14 +536,6 @@ var dlTreeController = {
         break;
       case "cmd_remove":
         removeDownload(selItemData.dlid);
-        break;
-      case "cmd_stop":
-        if (selItemData.isActive)
-          // fake an nsIDownload with the properties needed by that function
-          cancelDownload({id: selItemData.dlid,
-                          targetFile: getLocalFileFromNativePathOrUrl(selItemData.file)});
-        else
-          removeDownload(selItemData.dlid);
         break;
       case "cmd_open":
         // fake an nsIDownload with the properties needed by that function
@@ -635,10 +594,9 @@ var dlTreeController = {
   },
 
   onCommandUpdate: function() {
-    var cmds = ["cmd_play", "cmd_pause", "cmd_resume", "cmd_retry",
-                "cmd_cancel", "cmd_remove", "cmd_stop", "cmd_open", "cmd_show",
-                "cmd_openReferrer", "cmd_copyLocation", "cmd_selectAll",
-                "cmd_clearList"];
+    var cmds = ["cmd_pause", "cmd_resume", "cmd_retry", "cmd_cancel",
+                "cmd_remove", "cmd_open", "cmd_show", "cmd_openReferrer",
+                "cmd_copyLocation", "cmd_selectAll", "cmd_clearList"];
     for (let command in cmds)
       goUpdateCommand(cmds[command]);
   }
