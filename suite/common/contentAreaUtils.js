@@ -532,6 +532,8 @@ function initFileInfo(aFI, aURL, aURLCharset, aDocument,
  * prompting the user to confirm (or change) the fileName.
  * @param aFpP a structure (see definition in internalSave(...) method)
  *        containing all the data used within this method.
+ * @param aSkipPrompt If true, we will attempt not to prompt the user for a
+          download location
  * @return true if the user confirmed a filename in the picker; false if they
  *         dismissed the picker.
  */

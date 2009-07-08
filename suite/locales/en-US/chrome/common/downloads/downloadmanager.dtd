@@ -63,7 +63,7 @@
 <!ENTITY cmd.resume.label                "Resume">
 <!ENTITY cmd.resume.accesskey            "R">
 <!ENTITY cmd.retry.label                 "Retry">
-<!ENTITY cmd.retry.accesskey             "R">
+<!ENTITY cmd.retry.accesskey             "t">
 <!ENTITY cmd.cancel.label                "Cancel">
 <!ENTITY cmd.cancel.accesskey            "C">
 <!ENTITY cmd.remove.label                "Remove From List">

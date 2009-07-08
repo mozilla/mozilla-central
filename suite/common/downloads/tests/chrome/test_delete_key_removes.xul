@@ -170,7 +170,7 @@ function test()
           synthesizeKey("VK_DELETE", {}, win);
 
           stmt.executeStep();
-          todo_is(stmt.getInt32(0), len - (i + 1),
+          is(stmt.getInt32(0), len - (i + 1),
              "The download was properly removed");
           stmt.reset();
         }

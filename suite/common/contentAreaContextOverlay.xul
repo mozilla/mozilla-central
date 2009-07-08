@@ -249,34 +249,40 @@
       <menuseparator id="frame-sep"/>
       <menu id="frame" label="&thisFrameMenu.label;" accesskey="&thisFrameMenu.accesskey;">
         <menupopup id="frame_popup">
-          <menuitem label="&showOnlyThisFrameCmd.label;"
+          <menuitem id="context-showonlythisframe"
+                    label="&showOnlyThisFrameCmd.label;"
                     accesskey="&showOnlyThisFrameCmd.accesskey;"
                     oncommand="gContextMenu.showOnlyThisFrame();"/>
-          <menuitem label="&openFrameCmd.label;"
+          <menuitem id="context-openframe"
+                    label="&openFrameCmd.label;"
                     accesskey="&openFrameCmd.accesskey;"
                     oncommand="gContextMenu.openFrame();"/>
-          <menuitem label="&openFrameCmdInTab.label;"
+          <menuitem id="context-openframeintab"
+                    label="&openFrameCmdInTab.label;"
                     accesskey="&openFrameCmdInTab.accesskey;"
                     oncommand="gContextMenu.openFrameInTab(event.shiftKey);"/>
           <menuseparator/>
-          <menuitem id="context-reload-frame"
+          <menuitem id="context-reloadframe"
                     label="&reloadFrameCmd.label;"
                     accesskey="&reloadFrameCmd.accesskey;"
                     oncommand="gContextMenu.reloadFrame();"/>
           <menuseparator/>
-          <menuitem label="&bookmarkFrameCmd.label;"
+          <menuitem id="context-bookmarkframe"
+                    label="&bookmarkFrameCmd.label;"
                     accesskey="&bookmarkFrameCmd.accesskey;"
                     oncommand="gContextMenu.addBookmarkForFrame();"/>
-          <menuitem id="saveframeas"
+          <menuitem id="context-saveframe"
                     valueSaveAs="&saveFrameAsCmd.label;"
                     valueSave="&saveFrameCmd.label;"
                     accesskey="&saveFrameCmd.accesskey;"
                     oncommand="saveDocument(gContextMenu.target.ownerDocument);"/>
           <menuseparator/>
-          <menuitem label="&viewFrameSourceCmd.label;"
+          <menuitem id="context-viewframesource"
+                    label="&viewFrameSourceCmd.label;"
                     accesskey="&viewFrameSourceCmd.accesskey;"
                     oncommand="gContextMenu.viewFrameSource();"/>
-          <menuitem label="&viewFrameInfoCmd.label;"
+          <menuitem id="context-viewframeinfo"
+                    label="&viewFrameInfoCmd.label;"
                     accesskey="&viewFrameInfoCmd.accesskey;"
                     oncommand="gContextMenu.viewFrameInfo();"/>        
         </menupopup>
