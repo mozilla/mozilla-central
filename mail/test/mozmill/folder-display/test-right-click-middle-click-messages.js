@@ -39,7 +39,7 @@
  * Test the many horrors involving right-clicks, middle clicks, and selections.
  */
 
-var MODULE_NAME = 'test-deletion-with-multiple-displays';
+var MODULE_NAME = 'test-right-click-middle-click-messages';
 
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
@@ -252,7 +252,7 @@ function _middle_click_on_existing_single_selection_helper(aBackground) {
 }
 
 /**
- * Many things selected, right-click somewhere in the selection.
+ * Many things selected, middle-click somewhere in the selection.
  */
 function _middle_click_on_existing_multi_selection_helper(aBackground) {
   be_in_folder(folder);

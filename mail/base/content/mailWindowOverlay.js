@@ -1749,15 +1749,17 @@ let mailTabType = {
         let msgHdr = ("msgHdr" in aArgs) && aArgs.msgHdr;
 
         if (!background) {
-          // Clear selection, because context clicking on a folder and opening in a
-          // new tab needs to have SelectFolder think the selection has changed.
-          // We also need to clear these globals to subvert the code that prevents
-          // folder loads when things haven't changed.
-          let folderTree = document.getElementById("folderTree");
-          folderTree.view.selection.clearSelection();
-          folderTree.view.selection.currentIndex = -1;
-
           aTab.folderDisplay.makeActive();
+          // HACK: Since we've switched away from the tab, we need to bring
+          // back the real selection before selecting the folder, so do that
+          RestoreSelectionWithoutContentLoad(document.getElementById(
+                                                 "folderTree"));
+
+          // Clear selection, because context clicking on a folder and opening in a
+          // new tab needs to have selectFolder think the selection has changed.
+          gFolderTreeView.selection.clearSelection();
+          gFolderTreeView.selection.currentIndex = -1;
+
           // This will call aTab.folderDisplay.show(aArgs.folder), which takes
           // care of the tab title and other stuff
           gFolderTreeView.selectFolder(aArgs.folder);

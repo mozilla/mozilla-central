@@ -641,6 +641,7 @@ var PerWindowTypeAugmentations = {
      */
     elementsToExpose: {
       threadTree: "threadTree",
+      folderTree: "folderTree",
       tabmail: "tabmail",
     },
     /**

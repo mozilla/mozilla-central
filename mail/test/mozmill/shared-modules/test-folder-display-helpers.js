@@ -549,12 +549,12 @@ function select_shift_click_row(aViewIndex, aController) {
 /**
  * Helper function to click on a row with a given button.
  */
-function _row_click_helper(aViewIndex, aButton) {
-  let treeBox = mc.threadTree.treeBoxObject;
+function _row_click_helper(aTree, aViewIndex, aButton) {
+  let treeBox = aTree.treeBoxObject;
   // very important, gotta be able to see the row
   treeBox.ensureRowIsVisible(aViewIndex);
   // now figure out the coords
-  let children = mc.e("threadTree", {tagName: "treechildren"});
+  let children = mc.e(aTree.id, {tagName: "treechildren"});
   let x = children.boxObject.x;
   let y = children.boxObject.y;
   let rowX = 10;
@@ -564,15 +564,15 @@ function _row_click_helper(aViewIndex, aButton) {
                     rowX + "," + rowY + " but we found " +
                     treeBox.getRowAt(rowX, rowY));
   }
-  let tx = mc.threadTree.boxObject.x;
-  let ty = mc.threadTree.boxObject.y;
-  EventUtils.synthesizeMouse(mc.threadTree, x + rowX - tx, y + rowY - ty,
+  let tx = aTree.boxObject.x;
+  let ty = aTree.boxObject.y;
+  EventUtils.synthesizeMouse(aTree, x + rowX - tx, y + rowY - ty,
                              {type: "mousedown", button: aButton}, mc.window);
   if (aButton == 2)
-    EventUtils.synthesizeMouse(mc.threadTree, x + rowX - tx, y + rowY - ty,
+    EventUtils.synthesizeMouse(aTree, x + rowX - tx, y + rowY - ty,
                                {type: "contextmenu", button: aButton},
                                mc.window);
-  EventUtils.synthesizeMouse(mc.threadTree, x + rowX - tx, y + rowY - ty,
+  EventUtils.synthesizeMouse(aTree, x + rowX - tx, y + rowY - ty,
                              {type: "mouseup", button: aButton}, mc.window);
 }
 
@@ -586,7 +586,7 @@ function _row_click_helper(aViewIndex, aButton) {
  */
 function right_click_on_row(aViewIndex) {
   let msgHdr = mc.dbView.getMsgHdrAt(aViewIndex);
-  _row_click_helper(aViewIndex, 2);
+  _row_click_helper(mc.threadTree, aViewIndex, 2);
   return msgHdr;
 }
 
@@ -598,10 +598,99 @@ function right_click_on_row(aViewIndex) {
  */
 function middle_click_on_row(aViewIndex) {
   let msgHdr = mc.dbView.getMsgHdrAt(aViewIndex);
-  _row_click_helper(aViewIndex, 1);
+  _row_click_helper(mc.threadTree, aViewIndex, 1);
   // We append new tabs at the end, so return the last tab
   return [mc.tabmail.tabInfo[mc.tabmail.tabContainer.childNodes.length - 1],
           msgHdr];
+}
+
+/**
+ * Clear the selection in the folder tree view.
+ */
+function select_no_folders() {
+  wait_for_message_display_completion();
+  mc.folderTreeView.selection.clearSelection();
+  // give the event queue a chance to drain...
+  controller.sleep(0);
+}
+
+/**
+ * Pretend we are clicking on a folder with our mouse.
+ *
+ * @param aFolder The folder to click on. This needs to be present in the
+ *     current folder tree view, of course.
+ *
+ * @returns the view index that you clicked on.
+ */
+function select_click_folder(aFolder) {
+  wait_for_all_messages_to_load();
+
+  // this should set the current index as well as setting the selection.
+  let viewIndex = mc.folderTreeView.getIndexOfFolder(aFolder);
+  mc.folderTreeView.selection.select(viewIndex);
+  wait_for_all_messages_to_load();
+  // drain the event queue
+  controller.sleep(0);
+
+  return viewIndex;
+}
+
+/**
+ * Pretend we are clicking on a folder with our mouse with the shift key pressed.
+ *
+ * @param aFolder The folder to shift-click on. This needs to be present in the
+ *     current folder tree view, of course.
+ *
+ * @return An array containing all the folders that are now selected.
+ */
+function select_shift_click_folder(aFolder) {
+  wait_for_all_messages_to_load();
+
+  let viewIndex = mc.folderTreeView.getIndexOfFolder(aFolder);
+  // Passing -1 as the start range checks the shift-pivot, which should be -1,
+  //  so it should fall over to the current index, which is what we want.  It
+  //  will then set the shift-pivot to the previously-current-index and update
+  //  the current index to be what we shift-clicked on.  All matches user
+  //  interaction.
+  mc.folderTreeView.selection.rangedSelect(-1, viewIndex, false);
+  wait_for_all_messages_to_load();
+  // give the event queue a chance to drain...
+  controller.sleep(0);
+
+  return mc.folderTreeView.getSelectedFolders();
+}
+
+/**
+ * Right click on the folder tree view. With any luck, this will have the
+ * side-effect of opening up a pop-up which it is then on _your_ head to do
+ * something with or close.  However, we have helpful popup function helpers
+ * helpers because asuth's so nice.
+ *
+ * @note The argument is a folder here, unlike in the message case, so beware.
+ *
+ * @return The view index that you clicked on.
+ */
+function right_click_on_folder(aFolder) {
+  // Figure out the view index
+  let viewIndex = mc.folderTreeView.getIndexOfFolder(aFolder);
+  _row_click_helper(mc.folderTree, viewIndex, 2);
+  return viewIndex;
+}
+
+/**
+ * Middle-click on the folder tree view, presumably opening a new folder tab.
+ *
+ * @note The argument is a folder here, unlike in the message case, so beware.
+ *
+ * @return [The new tab, the view index that you clicked on.]
+ */
+function middle_click_on_folder(aFolder) {
+  // Figure out the view index
+  let viewIndex = mc.folderTreeView.getIndexOfFolder(aFolder);
+  _row_click_helper(mc.folderTree, viewIndex, 1);
+  // We append new tabs at the end, so return the last tab
+  return [mc.tabmail.tabInfo[mc.tabmail.tabContainer.childNodes.length - 1],
+          viewIndex];
 }
 
 /**
@@ -1133,6 +1222,171 @@ function assert_visible(aViewIndexOrMessage) {
     throw new Error("View index " + viewIndex + " is not visible! (" +
                     treeBox.getFirstVisibleRow() + "-" +
                     treeBox.getLastVisibleRow() + " are visible)");
+}
+
+function _normalize_folder_view_index(aViewIndex, aController) {
+  if (aController === undefined)
+    aController = mc;
+  if (aViewIndex < 0)
+    return aController.folderTreeView.QueryInterface(Ci.nsITreeView).rowCount +
+      aViewIndex;
+  return aViewIndex;
+}
+
+/**
+ * Helper function for use by assert_folders_selected /
+ * assert_folders_selected_and_displayed / assert_folder_displayed.
+ */
+function _process_row_folder_arguments() {
+  let troller = mc;
+  // - normalize into desired selected view indices
+  let desiredFolders = [];
+  for (let iArg = 0; iArg < arguments.length; iArg++) {
+    let arg = arguments[iArg];
+    // An integer identifying a view index
+    if (typeof(arg) == "number") {
+      let folder = troller.folderTreeView.getFolderForIndex(
+                       _normalize_folder_view_index(arg));
+      if (!folder)
+        throw new Error("Folder index not present in folder view: " + arg);
+      desiredFolders.push(folder);
+    }
+    // A folder
+    else if (arg instanceof Ci.nsIMsgFolder) {
+      desiredFolders.push(arg);
+    }
+    // A list containing two integers, indicating a range of view indices.
+    else if (arg.length == 2 && typeof(arg[0]) == "number") {
+      let lowIndex = _normalize_folder_view_index(arg[0]);
+      let highIndex = _normalize_folder_view_index(arg[1]);
+      for (let viewIndex = lowIndex; viewIndex <= highIndex; viewIndex++)
+        desiredFolders.push(troller.folderTreeView.getFolderForIndex(viewIndex));
+    }
+    // a List of folders
+    else if (arg.length !== undefined) {
+      for (let iFolder = 0; iFolder < arg.length; iFolder++) {
+        let folder = arg[iFolder].QueryInterface(Ci.nsIMsgFolder);
+        if (!folder)
+          throw new Error(arg[iFolder] + " is not a folder!");
+        desiredFolders.push(folder);
+      }
+    }
+    // it's a MozmillController
+    else if (arg.window) {
+      troller = arg;
+    }
+    else {
+      throw new Error("Illegal argument: " + arg);
+    }
+  }
+  // we can't really sort, so you'll have to grin and bear it
+  return [troller, desiredFolders];
+}
+
+/**
+ * Asserts that the given set of folders is selected.  Unless you are dealing
+ *  with transient selections resulting from right-clicks, you want to be using
+ *  assert_folders_selected_and_displayed because it makes sure that the
+ *  display is correct too.
+ *
+ * The arguments consist of one or more of the following:
+ * - A MozmillController, indicating we should use that controller instead of
+ *   the default, "mc" (corresponding to the 3pane.)  Pass this first!
+ * - An integer identifying a view index.
+ * - A list containing two integers, indicating a range of view indices.
+ * - An nsIMsgFolder.
+ * - A list of nsIMsgFolders.
+ */
+function assert_folders_selected() {
+  let [troller, desiredFolders] =
+    _process_row_folder_arguments.apply(this, arguments);
+
+  // - get the actual selection (already sorted by integer value)
+  let selectedFolders = troller.folderTreeView.getSelectedFolders();
+  // - test selection equivalence
+  // no shortcuts here. check if each folder in either array is present in the
+  // other array
+  if (desiredFolders.some(
+      function (folder) _non_strict_index_of(selectedFolders, folder) == -1) ||
+      selectedFolders.some(
+      function (folder) _non_strict_index_of(desiredFolders, folder) == -1))
+    throw new Error("Desired selection is: " +
+                    _prettify_folder_array(desiredFolders) + " but actual " +
+                    "selection is: " + _prettify_folder_array(selectedFolders));
+
+  return [troller, desiredFolders];
+}
+
+let assert_folder_selected = assert_folders_selected;
+
+/**
+ * Assert that the given folder is displayed, but not necessarily selected.
+ * Unless you are dealing with transient selection issues, you really should
+ * be using assert_folders_selected_and_displayed.
+ *
+ * The arguments consist of one or more of the following:
+ * - A MozmillController, indicating we should use that controller instead of
+ *   the default, "mc" (corresponding to the 3pane.)  Pass this first!
+ * - An integer identifying a view index.
+ * - A list containing two integers, indicating a range of view indices.
+ * - An nsIMsgFolder.
+ * - A list of nsIMsgFolders.
+ *
+ * In each case, since we can only have one folder displayed, we only look at
+ * the first folder you pass in.
+ */
+function assert_folder_displayed() {
+  let [troller, desiredFolders] =
+    _process_row_folder_arguments.apply(this, arguments);
+  if (troller.folderDisplay.displayedFolder != desiredFolders[0])
+    throw new Error("The displayed folder should be " +
+        desiredFolders[0].prettiestName + ", but is actually " +
+        troller.folderDisplay.displayedFolder.prettiestName);
+}
+
+/**
+ * Asserts that the folders corresponding to the one or more folder spec
+ * arguments are selected and displayed. If you specify multiple folders,
+ * we verify that all of them are selected and that the first folder you pass
+ * in is the one displayed. (If you don't pass in any folders, we can't assume
+ * anything, so we don't test that case.)
+ *
+ * The arguments consist of one or more of the following:
+ * - A MozmillController, indicating we should use that controller instead of
+ *   the default, "mc" (corresponding to the 3pane.)  Pass this first!
+ * - An integer identifying a view index.
+ * - A list containing two integers, indicating a range of view indices.
+ * - An nsIMsgFolder.
+ * - A list of nsIMsgFolders.
+ */
+function assert_folders_selected_and_displayed() {
+  let [troller, desiredFolders] = assert_folders_selected.apply(this,
+                                                                arguments);
+  if (desiredFolders.length > 0) {
+      if (troller.folderDisplay.displayedFolder != desiredFolders[0])
+        throw new Error("The displayed folder should be " +
+            desiredFolders[0].prettiestName + ", but is actually " +
+            troller.folderDisplay.displayedFolder.prettiestName);
+  }
+}
+
+let assert_no_folders_selected = assert_folders_selected_and_displayed;
+let assert_folder_selected_and_displayed =
+    assert_folders_selected_and_displayed;
+
+/**
+ * Since indexOf does strict equality checking, we need this.
+ */
+function _non_strict_index_of(aArray, aSearchElement) {
+  for ([i, item] in Iterator(aArray)) {
+    if (item == aSearchElement)
+      return i;
+  }
+  return -1;
+}
+
+function _prettify_folder_array(aArray) {
+  return aArray.map(function (folder) folder.prettiestName).join(", ");
 }
 
 /**

@@ -309,6 +309,18 @@ let gFolderTreeView = {
   },
 
   /**
+   * Returns the folder for an index in the current display.
+   *
+   * @param aIndex the index for which the folder should be returned.
+   * @note If the index is out of bounds, this function returns null.
+   */
+  getFolderForIndex: function ftv_getFolderForIndex(aIndex) {
+    if (aIndex < 0 || aIndex >= this._rowMap.length)
+      return null;
+    return this._rowMap[aIndex]._folder;
+  },
+
+  /**
    * Returns an array of nsIMsgFolders corresponding to the current selection
    * in the tree
    */
