@@ -84,7 +84,7 @@ pref("browser.toolbars.showbutton.search",  true);
 pref("browser.download.finished_download_sound", false);
 pref("browser.download.finished_sound_url", "");
 pref("browser.download.useDownloadDir", false);
-pref("browser.download.folderList", 2);
+pref("browser.download.folderList", 1);
 
 pref("browser.download.manager.showAlertOnComplete", true);
 pref("browser.download.manager.showAlertInterval", 2000);
