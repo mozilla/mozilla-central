@@ -43,7 +43,7 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch2.h"
 #include "nsIURI.h"
-#include "nsCOMPtr.h"
+#include "nsIInterfaceRequestorUtils.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIAbManager.h"
 #include "nsIAbDirectory.h"
@@ -51,10 +51,9 @@
 #include "nsIMsgWindow.h"
 #include "nsIMimeMiscStatus.h"
 #include "nsIMsgMessageService.h"
-#include "nsIMsgIncomingServer.h"
-#include "nsIRssIncomingServer.h"
 #include "nsIMsgHdr.h"
 #include "nsMsgUtils.h"
+#include "nsNetUtil.h"
 
 #include "nsIMsgComposeService.h"
 #include "nsIMsgCompose.h"
@@ -64,14 +63,9 @@
 #include "nsIExternalProtocolService.h"
 #include "nsCExternalHandlerService.h"
 
-// needed for the cookie policy manager
-#include "nsNetUtil.h"
-#include "nsICookie2.h"
-
 // needed for mailnews content load policy manager
 #include "nsIDocShell.h"
 #include "nsIWebNavigation.h"
-#include "nsIDocShellTreeNode.h"
 #include "nsContentPolicyUtils.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsILoadContext.h"
@@ -884,64 +878,3 @@ nsMsgContentPolicy::OnSecurityChange(nsIWebProgress *aWebProgress,
 {
   return NS_OK;
 }
-
-#ifdef MOZ_THUNDERBIRD
-
-NS_IMPL_ISUPPORTS1(nsMsgCookiePolicy, nsICookiePermission)
-
-
-NS_IMETHODIMP nsMsgCookiePolicy::SetAccess(nsIURI         *aURI,
-                                           nsCookieAccess  aAccess)
-{
-  // we don't support cookie access lists for mail
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgCookiePolicy::CanAccess(nsIURI         *aURI,
-                                           nsIChannel     *aChannel,
-                                           nsCookieAccess *aResult)
-{
-  // by default we deny all cookies in mail
-  *aResult = ACCESS_DENY;
-  NS_ENSURE_ARG_POINTER(aChannel);
-  
-  nsCOMPtr<nsILoadContext> loadContext;
-  NS_QueryNotificationCallbacks(aChannel, loadContext);
-
-  NS_ENSURE_TRUE(loadContext, NS_OK);
-  PRBool isContent;
-  loadContext->GetIsContent(&isContent);
-
-  // allow chrome to set cookies
-  if (!isContent)
-    *aResult = ACCESS_DEFAULT;
-  else // allow RSS articles in content to access cookies
-  {
-    NS_ENSURE_TRUE(aURI, NS_OK);  
-    PRBool isRSS = PR_FALSE;
-    IsRSSArticle(aURI, &isRSS);
-    if (isRSS)
-      *aResult = ACCESS_DEFAULT;
-  }
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgCookiePolicy::CanSetCookie(nsIURI     *aURI,
-                                              nsIChannel *aChannel,
-                                              nsICookie2 *aCookie,
-                                              PRBool     *aIsSession,
-                                              PRInt64    *aExpiry,
-                                              PRBool     *aResult)
-{
-  *aResult = PR_TRUE;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgCookiePolicy::GetOriginatingURI(nsIChannel  *aChannel,
-                                                   nsIURI     **aURI)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-#endif

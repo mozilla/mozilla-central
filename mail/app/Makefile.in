@@ -339,20 +339,6 @@ else
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
 endif
 
-# Disable these tests due to bug 431125
-TEST_COOKIES_FILES = \
-	$(DIST)/../_tests/xpcshell/test_cookies/unit/test_bug468700.js \
-	$(DIST)/../_tests/xpcshell/test_cookies/unit/test_cookies.js \
-	$(DIST)/../_tests/xpcshell/test_necko/unit/test_cookie_header.js \
-	$(NULL)
-
-libs::
-	for file in $(TEST_COOKIES_FILES); do \
-		if test -f $$file; then $(RM) $$file; echo "function run_test() {dump('disabled for bug 431125');}" >$$file; fi; \
-	done
-	$(RM) $(DIST)/bin/TestCookie
-	if test -f $(DIST)/bin/TestTArray; then cp $(DIST)/bin/TestTArray $(DIST)/bin/TestCookie; fi;
-
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 
 AB := $(firstword $(subst -, ,$(AB_CD)))

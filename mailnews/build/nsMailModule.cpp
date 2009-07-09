@@ -377,9 +377,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMessengerUnixIntegration, Init)
 #endif
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessengerContentHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgContentPolicy, Init)
-#ifdef MOZ_THUNDERBIRD
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCookiePolicy)
-#endif
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsStopwatch)
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -929,13 +926,6 @@ static const nsModuleComponentInfo gComponents[] = {
        NS_MSGSHUTDOWNSERVICE_CONTRACTID,
        nsMsgShutdownServiceConstructor
     },
-#ifdef MOZ_THUNDERBIRD
-    { "mail cookie policy enforcer",
-      NS_MSGCOOKIEPOLICY_CID,
-      NS_COOKIEPERMISSION_CONTRACTID,
-      nsMsgCookiePolicyConstructor
-    },
-#endif
     {
       "stopwatch",
       NS_STOPWATCH_CID,
