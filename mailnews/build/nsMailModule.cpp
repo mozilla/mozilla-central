@@ -1274,8 +1274,6 @@ static const nsModuleComponentInfo gComponents[] = {
     ////////////////////////////////////////////////////////////////////////////////
     // suite general startup
     ////////////////////////////////////////////////////////////////////////////////
-    { "Messenger Bootstrapper", NS_MESSENGERBOOTSTRAP_CID,
-      NS_MAILSTARTUPHANDLER_CONTRACTID, nsMessengerBootstrapConstructor },
     { "Address Book Manager Startup Handler", NS_ABMANAGER_CID,
       NS_ABMANAGERSTARTUPHANDLER_CONTRACTID, nsAbManagerConstructor },
     { "Compose Service", NS_MSGCOMPOSESERVICE_CID,

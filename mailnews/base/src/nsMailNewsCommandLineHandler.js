@@ -179,7 +179,7 @@ mailNewsCommandLineHandlerModule.prototype =
   // XPCOM registration
   classDescription: "MailNews Commandline Handler",
   classID: Components.ID("{2f86d554-f9d9-4e76-8eb7-243f047333ee}"),
-  contractID: "@mozilla.org/messenger/clh;1",
+  contractID: "@mozilla.org/commandlinehandler/general-startup;1?type=mail",
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIModule]),
   
