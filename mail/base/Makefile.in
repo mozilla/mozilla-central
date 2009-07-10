@@ -44,7 +44,11 @@ include $(DEPTH)/config/autoconf.mk
 
 DIRS = modules
 
-DEFINES += -DMOZ_APP_VERSION=$(MOZ_APP_VERSION)
+PRE_RELEASE_SUFFIX := $(shell $(PYTHON) $(topsrcdir)/mozilla/config/printprereleasesuffix.py \
+                      $(shell cat $(MOZ_APP_VERSION_TXT) ))
+
+DEFINES += -DMOZ_APP_VERSION=$(MOZ_APP_VERSION) \
+           -DPRE_RELEASE_SUFFIX="$(PRE_RELEASE_SUFFIX)"
 
 ifneq (,$(BUILD_OFFICIAL)$(MOZILLA_OFFICIAL))
 DEFINES += -DOFFICIAL_BUILD=1

@@ -1,3 +1,4 @@
+#filter substitution
 <?xml version="1.0"?>
 
 # ***** BEGIN LICENSE BLOCK *****
@@ -63,8 +64,8 @@
   -->
 <window id="messengerWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        title="&titledefault.label;"
-        titlemodifier="&titledefault.label;"
+        title="&titledefault.label;@PRE_RELEASE_SUFFIX@"
+        titlemodifier="&titledefault.label;@PRE_RELEASE_SUFFIX@"
         titlemenuseparator="&titleSeparator.label;"
         onload="OnLoadMessageWindow()"
         onunload="OnUnloadMessageWindow()"

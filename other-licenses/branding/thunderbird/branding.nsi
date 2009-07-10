@@ -36,7 +36,7 @@
 
 # NSIS defines for official release builds.
 # The nightly build branding.nsi is located in mail/installer/windows/nsis
-!define BrandShortName        "Thunderbird"
+
 # BrandFullNameInternal is used for some registry and file system values
 # instead of BrandFullName and typically should not be modified.
 !define BrandFullNameInternal "Mozilla Thunderbird"
@@ -44,11 +44,3 @@
 !define URLInfoAbout          "http://www.mozillamessaging.com/${AB_CD}/"
 !define URLUpdateInfo         "http://www.mozillamessaging.com/${AB_CD}/thunderbird/"
 !define SurveyURL             "https://survey.mozilla.com/1/Mozilla%20Thunderbird/${AppVersion}/${AB_CD}/exit.html"
-
-# Everything below this line may be modified for Alpha / Beta releases.
-!define BrandFullName         "Mozilla Thunderbird"
-
-# Add !define NO_INSTDIR_FROM_REG to prevent finding a non-default installation
-# directory in the registry and using that as the default. This prevents
-# Beta releases built with official branding from finding an existing install
-# of an official release and defaulting to its installation directory.
