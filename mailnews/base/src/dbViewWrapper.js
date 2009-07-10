@@ -1445,7 +1445,7 @@ DBViewWrapper.prototype = {
   },
 
   /**
-   * Conclude a paired call to |endViewUpdate|.  Assuming the view depth has
+   * Conclude a paired call to |beginViewUpdate|.  Assuming the view depth has
    *  reached 0 with this call, the view will be re-created with the current
    *  settings.
    */

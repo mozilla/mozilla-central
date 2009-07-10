@@ -96,6 +96,11 @@ MessageDisplayWidget.prototype = {
   },
 
   /**
+   * @name Displayed
+   */
+  //@{
+
+  /**
    * The FolderDisplayWidget that owns us.
    */
   folderDisplay: null,
@@ -103,6 +108,13 @@ MessageDisplayWidget.prototype = {
    * The currently displayed message's nsIMsgDBHdr.  null if there's no message.
    */
   displayedMessage: null,
+  //@}
+
+  /**
+   * @name FolderDisplayWidget Notifications
+   * @private
+   */
+  //@{
 
   clearDisplay: function MessageDisplayWidget_clearDisplay() {
     this.displayedMessage = null;
@@ -142,12 +154,20 @@ MessageDisplayWidget.prototype = {
     this.messageLoading = true;
     this.messageLoaded = false;
   },
+  //@}
+
+  /**
+   * @name Summarization
+   * @protected
+   */
+  //@{
 
   /**
    * The maximum number of messages to summarize at any given time.  If there
    *  are more messages than this, we don't summarize, and instead give a blank
    *  window pane.  Arguably something that says "there are two many messages"
    *  would be a better idea.
+   * @private
    */
   MAX_MESSAGES_TO_SUMMARIZE: 100,
 
@@ -230,6 +250,7 @@ MessageDisplayWidget.prototype = {
    * Unit tests know about this variable and poke at it, so don't change the name
    *  without making sure you update the unit tests.  (Not that you would commit
    *  code without first running all tests yourself...)
+   * @private
    */
   SUMMARIZATION_SELECTION_STABILITY_INTERVAL_MS: 100,
   /**
@@ -319,6 +340,13 @@ MessageDisplayWidget.prototype = {
   _clearSummaryTimer: function MessageDisplayWidget__clearSummaryTimer(aThis) {
     aThis._summaryStabilityTimeout = null;
   },
+  //@}
+
+  /**
+   * @name Activity Control
+   * @protected FolderDisplayWidget
+   */
+  //@{
 
   /**
    * Called by the FolderDisplayWidget when it is being made active again and
@@ -374,6 +402,7 @@ MessageDisplayWidget.prototype = {
   makeInactive: function MessageDisplayWidget_makeInactive() {
     this._active = false;
   }
+  //@}
 };
 
 /**

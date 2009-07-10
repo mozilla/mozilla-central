@@ -166,6 +166,7 @@ FolderDisplayWidget.prototype = {
   /**
    * @return the currently displayed folder.  This is just proxied from the
    *     view wrapper.
+   * @groupName Displayed
    */
   get displayedFolder() {
     return this._nonViewFolder || this.view.displayedFolder;
@@ -175,6 +176,7 @@ FolderDisplayWidget.prototype = {
    * @return the nsITreeSelection object for our tree view.  This exists for
    *     the benefit of message tabs that haven't been switched to yet.
    *     We provide a fake tree selection in those cases.
+   * @protected
    */
   get treeSelection() {
     // If we haven't switched to this tab yet, dbView will exist but
@@ -194,8 +196,16 @@ FolderDisplayWidget.prototype = {
    *
    * We definitely want the header cache size to be larger than the number of
    *  rows that can be displayed on screen simultaneously.
+   *
+   * @private
    */
   PERF_HEADER_CACHE_SIZE: 100,
+
+  /**
+   * @name Selection Persistence
+   * @private
+   */
+  //@{
 
   /**
    * An optional list where each item is an object with the following
@@ -267,6 +277,13 @@ FolderDisplayWidget.prototype = {
 
     return this.selectedCount != 0;
   },
+  //@}
+
+  /**
+   * @name Columns
+   * @protected Folder Display
+   */
+  //@{
 
   /**
    * Maps column ids to functions that test whether the column is legal for
@@ -489,13 +506,20 @@ FolderDisplayWidget.prototype = {
       this._savedColumnStates = null;
     }
   },
+  //@}
 
+  /**
+   * @name What To Display
+   * @protected
+   */
+  //@{
   showFolderUri: function FolderDisplayWidget_showFolderUri(aFolderURI) {
     return this.show(GetMsgFolderFromUri(aFolderURI));
   },
 
   /**
    * Invoked by showFolder when it turns out the folder is in fact a server.
+   * @private
    */
   _showServer: function FolderDisplayWidget__showServer() {
     // currently nothing to do.  makeActive handles everything for us (because
@@ -571,10 +595,17 @@ FolderDisplayWidget.prototype = {
     this._fakeTreeBox = null;
     this._fakeTreeSelection = null;
   },
+  //@}
 
   /*   ===============================   */
   /* ===== IDBViewWrapper Listener ===== */
   /*   ===============================   */
+
+  /**
+   * @name IDBViewWrapperListener Interface
+   * @private
+   */
+  //@{
 
   /**
    * @return true if the mail view picker is visible.  This affects whether the
@@ -905,12 +936,18 @@ FolderDisplayWidget.prototype = {
     if (this.active)
       UpdateStatusMessageCounts(this.displayedFolder);
   },
-
+  //@}
   /* ===== End IDBViewWrapperListener ===== */
 
   /*   ==================================   */
   /* ===== nsIMsgDBViewCommandUpdater ===== */
   /*   ==================================   */
+
+  /**
+   * @name nsIMsgDBViewCommandUpdater Interface
+   * @private
+   */
+  //@{
 
   /**
    * This gets called when the selection changes AND !suppressCommandUpdating
@@ -1011,10 +1048,15 @@ FolderDisplayWidget.prototype = {
     }
     return this.messageDisplay.onSelectedMessagesChanged();
   },
-
+  //@}
   /* ===== End nsIMsgDBViewCommandUpdater ===== */
 
   /* ===== Hints from the command infrastructure ===== */
+  /**
+   * @name Command Infrastructure Hints
+   * @protected
+   */
+  //@{
 
   /**
    * doCommand helps us out by telling us when it is telling the view to delete
@@ -1106,7 +1148,7 @@ FolderDisplayWidget.prototype = {
       function FolderDisplayWidget_hintRightClickSelectionPerturbationDone() {
     this._restoreSelection();
   },
-
+  //@}
   /* ===== End hints from the command infrastructure ==== */
 
   _updateThreadDisplay: function FolderDisplayWidget__updateThreadDisplay() {
@@ -1137,6 +1179,12 @@ FolderDisplayWidget.prototype = {
       this.onMailViewChanged();
     }
   },
+
+  /**
+   * @name Activation Control
+   * @protected
+   */
+  //@{
 
   /**
    * Run the provided notification function right now if we are 'active' (the
@@ -1352,6 +1400,7 @@ FolderDisplayWidget.prototype = {
 
     this.messageDisplay.makeInactive();
   },
+  //@}
 
   /**
    * Called when we want to "disable" the real treeBox for a while and hook up
@@ -1361,6 +1410,7 @@ FolderDisplayWidget.prototype = {
    * @param aNullRealTreeBoxView true if we want to null out the real tree box.
    *          We don't want to null out the view if we're opening a background
    *          tab, for example.
+   * @private
    */
   hookUpFakeTreeBox: function FolderDisplayWidget_hookUpFakeTreeBox(
                          aNullRealTreeBoxView) {
@@ -1383,6 +1433,11 @@ FolderDisplayWidget.prototype = {
     this.view.dbView.setTree(this._fakeTreeBox);
     treeSelection.tree = this._fakeTreeBox;
   },
+
+  /**
+   * @name Command Support
+   */
+  //@{
 
   /**
    * @return true if there is a db view and the command is enabled on the view.
@@ -1422,9 +1477,11 @@ FolderDisplayWidget.prototype = {
     return this.view.dbView &&
            this.view.dbView.doCommandWithFolder(aCommandName, aFolder);
   },
+  //@}
 
   /**
    * @return true when account central is being displayed.
+   * @groupName Displayed
    */
   get isAccountCentralDisplayed
       FolderDisplayWidget_isAccountCentralDisplayed() {
@@ -1432,14 +1489,20 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
+   * @name Navigation
+   * @protected
+   */
+  //@{
+
+  /**
    * Navigate using nsMsgNavigationType rules and ensuring the resulting row is
    *  visible.  This is trickier than it used to be because we now support
    *  treating collapsed threads as the set of all the messages in the collapsed
    *  thread rather than just the root message in that thread.
    *
-   * @param aNavType {nsMsgNavigationType} navigation command.
-   * @param aSelect {Boolean} should we select the message if we find one?
-   *     Defaults to true if omitted.
+   * @param {nsMsgNavigationType} aNavType navigation command.
+   * @param {Boolean} [aSelect=true] should we select the message if we find
+   *     one?
    *
    * @return true if the navigation constraint matched anything, false if not.
    *     We will have navigated if true, we will have done nothing if false.
@@ -1514,6 +1577,12 @@ FolderDisplayWidget.prototype = {
       return false;
     return this.view.dbView.navigateStatus(aNavType);
   },
+  //@}
+
+  /**
+   * @name Selection
+   */
+  //@{
 
   /**
    * @returns the message header for the first selected message, or null if
@@ -1843,14 +1912,23 @@ FolderDisplayWidget.prototype = {
     this.selectMessages(newSelectedMessages);
   },
 
+  //@}
+
+  /**
+   * @name Ensure Visibility
+   */
+  //@{
+
   /**
    * Number of padding messages before the 'focused' message when it is at the
    *  top of the thread pane.
+   * @private
    */
   TOP_VIEW_PADDING: 1,
   /**
    * Number of padding messages after the 'focused' message when it is at the
    *  bottom of the thread pane and lip padding does not apply.
+   * @private
    */
   BOTTOM_VIEW_PADDING: 1,
 
@@ -1994,6 +2072,7 @@ FolderDisplayWidget.prototype = {
 
     this.ensureRowRangeIsVisible(minRow, maxRow);
   }
+  //@}
 };
 
 /**
