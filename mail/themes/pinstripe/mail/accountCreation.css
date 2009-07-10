@@ -261,6 +261,7 @@ vbox.mastervbox {
 .warningbox {
   background: #333333 none repeat scroll 0% 0%;
   padding: 3em;
+  overflow: auto;
 }
 
 .warning {

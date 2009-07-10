@@ -198,6 +198,12 @@ vbox.icon[state='weak'] {
   background-image: url("chrome://messenger/skin/icons/insecure.png");
 }
 
+.warningbox {
+  background: #333333 none repeat scroll 0% 0%;
+  padding: 3em;
+  overflow: auto;
+}
+
 vbox.settings {
   padding: 1em;
 }

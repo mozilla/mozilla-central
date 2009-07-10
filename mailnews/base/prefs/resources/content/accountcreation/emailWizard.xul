@@ -57,6 +57,7 @@
         >
 
   <stringbundleset>
+    <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
     <stringbundle id="strings" src="chrome://messenger/content/accountCreation.properties"/>
     <stringbundle id="utilstrings" src="chrome://messenger/content/accountCreationUtil.properties"/>
   </stringbundleset>
@@ -228,7 +229,7 @@
                               hidden="true"/>
                       <button id="go_button"
                               oncommand="gEmailConfigWizard.onGo();"
-                              label="&go_button.label;" class="smaller-button"
+                              label="&retest.label;" class="smaller-button"
                               hidden="true"/>
                     </hbox>
                   </hbox>
@@ -296,7 +297,7 @@
                         <menupopup onpopuphidden="gEmailConfigWizard.setSecurity('incoming_security')">
                           <menuitem label="&noencryption.label;" value="1"/>
                           <menuitem label="&starttls.label;" value="3"/>
-                          <menuitem label="&ssltls.label;" value="2"/>
+                          <menuitem label="&ssltls2.label;" value="2"/>
                         </menupopup>
                       </menulist>
                     </hbox>
@@ -338,7 +339,7 @@
                         <menupopup onpopuphidden="gEmailConfigWizard.setSecurity('outgoing_security')">
                           <menuitem label="&noencryption.label;" value="1"/>
                           <menuitem label="&starttls.label;" value="3"/>
-                          <menuitem label="&ssltls.label;" value="2"/>
+                          <menuitem label="&ssltls2.label;" value="2"/>
                         </menupopup>
                       </menulist>
                     </hbox>
@@ -355,7 +356,7 @@
       <hbox align="center">
         <button id="cancel_button" label="&cancel.label;"
                 onmousedown="gEmailConfigWizard.onCancel();"/>
-        <label id="advanced_settings" value="&gotoadvanced.label;"
+        <label id="advanced_settings" value="&gotoadvanced2.label;"
                onmousedown="gEmailConfigWizard.advancedSettings()"
                hidden="true" class="clickable_label"/>
       </hbox>
@@ -381,35 +382,37 @@
           <vbox id="incoming_box" flex="1">
             <description id="warning_incoming"/>
             <vbox class="settings">
+              <description id="incoming_details"/>
               <hbox>
                 <label value="&incoming_settings.label;"/><label id="incoming_settings"/>
               </hbox>
               <checkbox id="acknowledge_incoming"
                         class="acknowledge_checkbox"
-                        label="&incoming_is_checked.label;"
+                        label="&incoming_is_checked2.label;"
                         oncommand="gEmailConfigWizard.toggleAcknowledgeIncoming()"/>
             </vbox>
           </vbox>
           <vbox id="outgoing_box" flex="1">
             <description id="warning_outgoing"/>
             <vbox class="settings">
+              <description id="outgoing_details"/>
               <hbox>
                 <label value="&outgoing_settings.label;"/><label id="outgoing_settings"/>
               </hbox>
               <checkbox id="acknowledge_outgoing"
                         class="acknowledge_checkbox"
-                        label="&outgoing_is_checked.label;"
+                        label="&outgoing_is_checked2.label;"
                         oncommand="gEmailConfigWizard.toggleAcknowledgeOutgoing()"/>
             </vbox>
           </vbox>
           <spacer flex="1"/>
-          <description id="findoutmore">&lectureYourProvider.description;</description>
+          <description id="findoutmore">&lectureYourProvider2.description;</description>
         </vbox>
         <spacer flex="1"/>
         <hbox>
-          <button id="getmeoutofhere" label="&getmeout.label;" oncommand="gEmailConfigWizard.getMeOutOfHere()"/>
+          <button id="getmeoutofhere" label="&getmeout2.label;" oncommand="gEmailConfigWizard.getMeOutOfHere()"/>
           <spacer flex="1"/>
-          <button id="iknow" label="&understood.label;" disabled="true" oncommand="gEmailConfigWizard.validateAndFinish()"/>
+          <button id="iknow" label="&understood2.label;" disabled="true" oncommand="gEmailConfigWizard.validateAndFinish()"/>
         </hbox>
       </vbox>
     </hbox>

@@ -73,6 +73,7 @@ let gAccountMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);
 let gEmailWizardLogger = Log4Moz.getConfiguredLogger("emailwizard");
 let gStringsBundle;
+let gBrandBundle;
 
 // debugging aid
 if (kDebug) {
@@ -131,6 +132,7 @@ EmailConfigWizard.prototype =
       this._parentMsgWindow = window.arguments[0].msgWindow;
 
     gStringsBundle = getElementById("strings");
+    gBrandBundle = document.getElementById("bundle_brand");
 
     // Populate SMTP server dropdown with already configured SMTP servers from
     // other accounts.
@@ -449,8 +451,8 @@ EmailConfigWizard.prototype =
           {
             gEmailWizardLogger.info("guessConfig failed: " + e);
             me.updateConfig(config);
-            me.stopSpinner("finished_with_errors");
-            me.setSpinnerStatus("enter_missing_hostnames");
+            me.stopSpinner("finished_with_errors2");
+            me.setSpinnerStatus("enter_missing_hostnames2");
             me._probeAbortable = null;
             me.editConfigDetails();
           },
@@ -581,24 +583,33 @@ EmailConfigWizard.prototype =
 
         let incomingwarningstring;
         let outgoingwarningstring;
+        let incoming_details;
+        let outgoing_details;
         let incoming = this._currentConfigFilledIn.incoming;
         let incoming_settings = incoming.hostname + ':' + incoming.port +
                                 ' (' + sslLabel(incoming.socketType) + ')';
         let outgoing = this._currentConfigFilledIn.outgoing;
         let outgoing_settings = outgoing.hostname + ':' + outgoing.port +
                                 ' (' + sslLabel(outgoing.socketType) + ')';
+        var brandShortName = gBrandBundle.getString("brandShortName");
         switch (this._incomingWarning)
         {
           case 'cleartext':
-            incomingwarningstring = gStringsBundle.getString("cleartext_incoming");
+            incomingwarningstring = gStringsBundle.getFormattedString(
+              "cleartext_incoming2", [brandShortName, incoming.hostname]);
+            incoming_details = gStringsBundle.getString("cleartext_details");
             setText('warning_incoming', incomingwarningstring);
-            _show('incoming_box');
+            setText('incoming_details', incoming_details);
             setText('incoming_settings', incoming_settings);
+            _show('incoming_box');
             _show('acknowledge_incoming');
             break;
           case 'selfsigned':
-            incomingwarningstring = gStringsBundle.getString("selfsigned_incoming");
+            incomingwarningstring = gStringsBundle.getFormattedString(
+              "selfsigned_incoming2", [brandShortName, incoming.hostname]);
+            incoming_details = gStringsBundle.getString("selfsigned_details");
             setText('warning_incoming', incomingwarningstring);
+            setText('incoming_details', incoming_details);
             setText('incoming_settings', incoming_settings);
             _show('incoming_box');
             _show('acknowledge_incoming');
@@ -610,15 +621,21 @@ EmailConfigWizard.prototype =
         switch (this._outgoingWarning)
         {
           case 'cleartext':
-            outgoingwarningstring = gStringsBundle.getString("cleartext_outgoing");
+            outgoingwarningstring = gStringsBundle.getFormattedString(
+              "cleartext_outgoing2", [brandShortName, outgoing.hostname]);
+            outgoingdetailsstring = gStringsBundle.getString("cleartext_details");
             setText('warning_outgoing', outgoingwarningstring);
+            setText('outgoing_details', outgoing_details);
             setText('outgoing_settings', outgoing_settings);
             _show('outgoing_box');
             _show('acknowledge_outgoing');
             break;
           case 'selfsigned':
-            outgoingwarningstring = gStringsBundle.getString("selfsigned_outgoing");
+            outgoingwarningstring = gStringsBundle.getFormattedString(
+              "selfsigned_outgoing2", [brandShortName, outgoing.hostname]);
+            outgoing_details = gStringsBundle.getString("selfsigned_details");
             setText('warning_outgoing', outgoingwarningstring);
+            setText('outgoing_details', outgoing_details);
             setText('outgoing_settings', outgoing_settings);
             _show('outgoing_box');
             _show('acknowledge_outgoing');
@@ -702,10 +719,10 @@ EmailConfigWizard.prototype =
       },
       function(e) // failed
       {
-        me.stopSpinner("config_not_verified");
+        me.stopSpinner("config_not_verified2");
         me.setError('passworderror', 'user_pass_invalid');
         alertPrompt(gStringsBundle.getString("error_creating_account"),
-                    gStringsBundle.getString("config_not_verified"));
+                    gStringsBundle.getString("config_not_verified2"));
         if (errorCallback)
           errorCallback(e);
       });
@@ -1287,7 +1304,7 @@ function sslLabel(val)
     case 1:
       return gStringsBundle.getString("no_encryption");
     case 2:
-      return gStringsBundle.getString("ssltls");
+      return gStringsBundle.getString("ssltls2");
     case 3:
       return gStringsBundle.getString("starttls");;
     default:

@@ -169,7 +169,7 @@ var sanitize =
       if (allowedValue == unchecked)
         return allowedValue;
     }
-    throw new MalformedException("enum_value.error", unchecked);
+    throw new MalformedException("enum_value2.error", unchecked);
   },
 
   /**
@@ -190,7 +190,7 @@ var sanitize =
       if (inputValue == unchecked)
         return mapping[inputValue];
     }
-    throw new MalformedException("enum_value.error", unchecked);
+    throw new MalformedException("enum_value2.error", unchecked);
   }
 };
 

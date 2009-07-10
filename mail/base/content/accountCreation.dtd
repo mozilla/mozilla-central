@@ -13,16 +13,23 @@
 <!ENTITY sendingserver.label             "sending">
 <!ENTITY noencryption.label              "None">
 <!ENTITY starttls.label                  "STARTTLS">
-<!ENTITY ssltls.label                    "SSL / TLS">
+<!ENTITY ssltls2.label                   "SSL/TLS">
 
 <!ENTITY imap.label                      "IMAP">
 <!ENTITY pop.label                       "POP">
 <!ENTITY smtp.label                      "SMTP">
 
-<!ENTITY gotoadvanced.label              "Go to advanced settings">
+<!-- LOCALIZATION NOTE (gotoadvanced2.label): This label is a link which
+     will create the account and take the user to the account configuration
+     screen. -->
+<!ENTITY gotoadvanced2.label             "Create in Advanced Editor">
 <!ENTITY cancel.label                    "Cancel">
 <!ENTITY stop.label                      "Stop">
-<!ENTITY go_button.label                 "Go">
+<!-- LOCALIZATION NOTE (retest.label): This is the text that is
+     displayed on the button which will re-guess the account configuration,
+     taking into account the settings the user has changed.
+     -->
+<!ENTITY retest.label                    "Re-test Configuration">
 <!ENTITY edit.label                      "Edit">
 <!ENTITY createaccount.label             "Create Account">
 
@@ -31,12 +38,25 @@
 <!ENTITY warning.label                   "Warning!">
 <!ENTITY incoming_settings.label         "Incoming settings:">
 <!ENTITY outgoing_settings.label         "Outgoing settings:">
-<!ENTITY incoming_is_checked.label       "I've double-checked the incoming settings.">
-<!ENTITY outgoing_is_checked.label       "I've double-checked the outgoing settings.">
-<!ENTITY understood.label                "I know what I'm doing.">
-<!ENTITY getmeout.label                  "This is scary, let me out.">
+<!ENTITY technicaldetails.label          "Technical Details">
+<!-- LOCALIZATION NOTE (incoming_is_checked2.label): If there is a security
+     warning on the incoming server, then the user will need to check a
+     checkbox beside this text before continuing. -->
+<!ENTITY incoming_is_checked2.label      "I understand the risks.">
+<!-- LOCALIZATION NOTE (outgoing_is_checked2.label): If there is a security
+     warning on the outgoing server, then the user will need to check a
+     checkbox beside this text before continuing. -->
+<!ENTITY outgoing_is_checked2.label      "I understand the risks.">
+<!-- LOCALIZATION NOTE (understood2.label): If there is a security warning
+     on the incoming or outgoing servers, then the page that pops up will
+     have this text in a button to continue by creating the account. -->
+<!ENTITY understood2.label               "Create Account">
+<!-- LOCALIZATION NOTE (getmeout2.label): If there is a security warning on
+     the incoming or outgoing servers, then the page that pops up will have
+     this text in a button to take you back to the previous page. -->
+<!ENTITY getmeout2.label                 "Get me out of here!">
 
-<!ENTITY lectureYourProvider.description "&brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
+<!ENTITY lectureYourProvider2.description "&brandShortName; can allow you to get to your mail using the provided configurations. However, you should contact your administrator or email provider regarding these improper connections. See the Thunderbird FAQ for more information.">
 
 <!ENTITY insecureServer.tooltip.title    "Warning! This is an insecure server.">
 <!ENTITY insecureServer.tooltip.details  "Click circle for more details.">
@@ -45,8 +65,8 @@
 <!ENTITY insecureSelfsigned.description  "The server uses a certificate that we can't trust, so we can't be sure that someone isn't intercepting the traffic between &brandShortName; and your server. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a trusted certificate.">
 <!ENTITY secureServer.description        "Congratulations! This is a secure server.">
 
-<!ENTITY customfields-header.label     "Additional information">
-<!ENTITY customfields-intro1.descr     "For your mail provider, there is additional information needed to configure your account.">
-<!ENTITY customfields-intro2.descr     "Please look up the information in the paper or email with your account details that the provider sent you, usually when you signed up there, and enter it below.">
-<!ENTITY customfields-cancel.label     "Back">
-<!ENTITY customfields-ok.label         "OK">
+<!ENTITY customfields-header.label       "Additional information">
+<!ENTITY customfields-intro1.descr       "For your mail provider, there is additional information needed to configure your account.">
+<!ENTITY customfields-intro2.descr       "Please look up the information in the paper or email with your account details that the provider sent you, usually when you signed up there, and enter it below.">
+<!ENTITY customfields-cancel.label       "Back">
+<!ENTITY customfields-ok.label           "OK">
