@@ -310,17 +310,28 @@ var DefaultController =
       case "cmd_viewPageSource":
       case "cmd_reload":
       case "cmd_applyFiltersToSelection":
+        let numSelected = GetNumSelectedMessages();
         if (command == "cmd_applyFiltersToSelection")
         {
           var whichText = "valueMessage";
-          if (GetNumSelectedMessages() > 1)
+          if (numSelected > 1)
             whichText = "valueSelection";
           goSetMenuValue(command, whichText);
           goSetAccessKey(command, whichText + "AccessKey");
         }
-        if (GetNumSelectedMessages() > 0)
+        if (numSelected > 0)
         {
           if (!gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody))
+            return false;
+            
+          // Check if we have a collapsed thread selected and are summarizing it.
+          // If so, selectedIndices.length won't match numSelected. Also check
+          // that we're not displaying a message, which handles the case
+          // where we failed to summarize the selection and fell back to 
+          // displaying a message.
+          if (gFolderDisplay.selectedIndices.length != numSelected &&
+              command != "cmd_applyFiltersToSelection" &&
+              gDBView && gDBView.currentlyDisplayedMessage == nsMsgViewIndex_None)
             return false;
           if (command == "cmd_reply" || command == "button_reply" ||
               command == "cmd_replyall" ||command == "button_replyall")

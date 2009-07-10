@@ -445,6 +445,9 @@ protected:
   PRPackedBool mIsNews;             // we have special icons for news
   PRPackedBool mShowSizeInLines;    // for news we show lines instead of size when true
   PRPackedBool m_sortValid;
+  PRPackedBool mSelectionSummarized;
+  // we asked the front end to summarize the selection and it did not.
+  PRPackedBool mSummarizeFailed;
   PRUint8      m_saveRestoreSelectionDepth;
 
   nsCOMPtr <nsIMsgDatabase> m_db;

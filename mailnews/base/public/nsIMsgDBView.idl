@@ -332,7 +332,12 @@ interface nsIMsgDBView : nsISupports
    *  If the "mail.operate_on_msgs_in_collapsed_threads" preference is enabled,
    *  then any collapsed thread roots that are selected will also (conceptually)
    *  have all of the messages in that thread selected and they will be included
-   *  in the returned list.
+   *  in the returned list. The one exception to this is if the front end fails
+   *  to summarize the selection, and we fall back to just displaying a single
+   *  message. In that case, we won't include the children of the collapsed
+   *  thread. However, the numSelected attribute will count those children,
+   *  because the summarizeSelection code uses that to know that it should
+   *  try to summarize the selection.
    *
    * If the user has right-clicked on a message, this will return that message
    *  (and any collapsed children if so enabled) and not the selection prior to

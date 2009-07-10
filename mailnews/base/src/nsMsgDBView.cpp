@@ -163,6 +163,8 @@ nsMsgDBView::nsMsgDBView()
   mSuppressMsgDisplay = PR_FALSE;
   mSuppressCommandUpdating = PR_FALSE;
   mSuppressChangeNotification = PR_FALSE;
+  mSummarizeFailed = PR_FALSE;
+  mSelectionSummarized = PR_FALSE;
   mGoForwardEnabled = PR_FALSE;
   mGoBackEnabled = PR_FALSE;
 
@@ -1047,11 +1049,25 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
       commandsNeedDisablingBecauseOfSelection = PR_TRUE;
   }
   PRBool selectionSummarized = PR_FALSE;
+  mSummarizeFailed = PR_FALSE;
   // let the front-end adjust the message pane appropriately with either
   // the message body, or a summary of the selection
   if (mCommandUpdater)
+  {
     mCommandUpdater->SummarizeSelection(&selectionSummarized);
+    // check if the selection was not summarized, but we expected it to be,
+    // and if so, remember it so GetHeadersFromSelection won't include
+    // the messages in collapsed threads.
+    if (!selectionSummarized &&
+        (numSelected > 1 || (numSelected == 1 &&
+                              m_flags[indices[0]] & nsMsgMessageFlags::Elided &&
+                              OperateOnMsgsInCollapsedThreads())))
+      mSummarizeFailed = PR_TRUE;
+  }
 
+  PRBool summaryStateChanged = selectionSummarized != mSelectionSummarized;
+
+  mSelectionSummarized = selectionSummarized;
   // if only one item is selected then we want to display a message
   if (numSelected == 1 && !selectionSummarized)
   {
@@ -1089,6 +1105,7 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
   // (4) it went from many to 1 or 0
   // (5) a different msg was selected - perhaps it was offline or not...matters only when we are offline
   // (6) we did a forward/back, or went from having no history to having history - not sure how to tell this.
+  // (7) whether the selection was summarized or not changed.
 
   // I think we're going to need to keep track of whether forward/back were enabled/should be enabled,
   // and when this changes, force a command update.
@@ -1098,7 +1115,8 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
 
   NavigateStatus(nsMsgNavigationType::forward, &enableGoForward);
   NavigateStatus(nsMsgNavigationType::back, &enableGoBack);
-  if ((numSelected == mNumSelectedRows ||
+  if (!summaryStateChanged &&
+      (numSelected == mNumSelectedRows ||
       (numSelected > 1 && mNumSelectedRows > 1)) && (commandsNeedDisablingBecauseOfSelection == mCommandsNeedDisablingBecauseOfSelection)
       && enableGoForward == mGoForwardEnabled && enableGoBack == mGoBackEnabled)
   {
@@ -2535,6 +2553,7 @@ PRBool nsMsgDBView::OperateOnMsgsInCollapsedThreads()
     if (!selTree)
       return PR_FALSE;
   }
+
   nsresult rv = NS_OK;
   nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
@@ -2550,7 +2569,10 @@ nsresult nsMsgDBView::GetHeadersFromSelection(PRUint32 *indices,
 {
   nsresult rv = NS_OK;
 
-  PRBool includeCollapsedMsgs = OperateOnMsgsInCollapsedThreads();
+  // Don't include collapsed messages if the front end failed to summarize
+  // the selection.
+  PRBool includeCollapsedMsgs = OperateOnMsgsInCollapsedThreads() &&
+                                !mSummarizeFailed;
 
   for (PRUint32 index = 0;
        index < (nsMsgViewIndex) numIndices && NS_SUCCEEDED(rv); index++)
