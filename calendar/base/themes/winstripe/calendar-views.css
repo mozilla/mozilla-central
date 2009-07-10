@@ -151,7 +151,7 @@ calendar-header-container[weekend="true"][selected="true"],
 
 .fgdragbox[dragging="true"] {
     display: -moz-box;
-    background-color: grey;
+    background-color: blue;
     border: 5px #ffffff;
     opacity: 0.5;
 }
