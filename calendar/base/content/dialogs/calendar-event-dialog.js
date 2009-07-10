@@ -56,7 +56,7 @@ var gPrivacy = null;
 var gAttachMap = {};
 var gPriority = 0;
 var gStatus = "NONE";
-var gConfirmCancel = "true";
+var gConfirmCancel = true;
 var gLastRepeatSelection = 0;
 var gIgnoreUpdate = false;
 var gShowTimeAs = null;
@@ -246,7 +246,7 @@ function onAccept() {
  * @return    Returns true if the window should be closed.
  */
 function onCommandCancel() {
-    if (isItemChanged() == false) {
+    if (!isItemChanged()) {
         return true;
     }
 
@@ -294,16 +294,11 @@ function onCommandCancel() {
  *
  */
 function onCancel() {
-    if (gConfirmCancel == "true") {
-        var result = onCommandCancel();
-        if (result == true) {
-            dispose();
-        }
-        return result;
-    } else {
+    if (!gConfirmCancel || (gConfirmCancel && onCommandCancel())) {
         dispose();
         return true;
     }
+    return false;
 }
 
 /**
@@ -2160,17 +2155,21 @@ function onCommandSave(aIsClosing) {
     // the ability to cancel the operation though.
     var listener = {
         onOperationComplete: function(aCalendar, aStatus, aOpType, aId, aItem) {
-            if (Components.isSuccessCode(aStatus)) {
-                if (window.calendarItem.recurrenceId) {
-                    // TODO This workaround needs to be removed in bug 396182
-                    // We are editing an occurrence. Make sure that the returned
-                    // item is the same occurrence, not its parent item.
-                    let occ = aItem.recurrenceInfo
-                                   .getOccurrenceFor(window.calendarItem.recurrenceId);
-                    window.calendarItem = occ;
-                } else {
-                    // We are editing the parent item, no workarounds needed
-                    window.calendarItem = aItem;
+            // Check if the current window has a calendarItem first, because in case of undo
+            // window refers to the main window and we would get a 'calendarItem is undefined' warning.
+            if ("calendarItem" in window) {
+                if (aId == window.calendarItem.id && Components.isSuccessCode(aStatus)) {
+                    if (window.calendarItem.recurrenceId) {
+                        // TODO This workaround needs to be removed in bug 396182
+                        // We are editing an occurrence. Make sure that the returned
+                        // item is the same occurrence, not its parent item.
+                        let occ = aItem.recurrenceInfo
+                                       .getOccurrenceFor(window.calendarItem.recurrenceId);
+                        window.calendarItem = occ;
+                    } else {
+                        // We are editing the parent item, no workarounds needed
+                        window.calendarItem = aItem;
+                    }
                 }
             }
         }
@@ -2190,7 +2189,7 @@ function onCommandSave(aIsClosing) {
  */
 function onCommandDeleteItem() {
     // only ask for confirmation, if the User changed anything on a new item or we modify an existing item
-    if (isItemChanged() == true || window.mode != "new") {
+    if (isItemChanged() || window.mode != "new") {
         let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                     .getService(Components.interfaces.nsIPromptService);
         let promptTitle = "";
@@ -2208,7 +2207,7 @@ function onCommandDeleteItem() {
                                     null,
                                     promptTitle,
                                     promptMessage);
-        if (answerDelete == false) {
+        if (!answerDelete) {
             return;
         }
     }
@@ -2217,9 +2216,13 @@ function onCommandDeleteItem() {
         let deleteListener = {
             // when deletion of item is complete, close the dialog
             onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDetail) {
-                if (aId == window.calendarItem.id && aStatus == 0) {
-                    gConfirmCancel = "false";
-                    document.documentElement.cancelDialog();
+                // Check if the current window has a calendarItem first, because in case of undo
+                // window refers to the main window and we would get a 'calendarItem is undefined' warning.
+                if ("calendarItem" in window) {
+                    if (aId == window.calendarItem.id && Components.isSuccessCode(aStatus)) {
+                        gConfirmCancel = false;
+                        document.documentElement.cancelDialog();
+                    }
                 }
             }
         };
@@ -2232,10 +2235,11 @@ function onCommandDeleteItem() {
             window.opener.doTransaction("modify", newItem, newItem.calendar, 
                                         window.calendarItem.parentItem, deleteListener);
         } else {
-            window.calendarItem.calendar.deleteItem(window.calendarItem, deleteListener);
+            window.opener.doTransaction("delete", window.calendarItem, window.calendarItem.calendar,
+                                        null, deleteListener);
         }
     } else {
-        gConfirmCancel = "false";
+        gConfirmCancel = false;
         document.documentElement.cancelDialog();
     }
 }
