@@ -120,6 +120,12 @@ DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
 GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
 DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 
+# xxx todo: unless our packaging story is revised (bug 406579) we package up timezones.sqlite
+libs::
+	$(NSINSTALL) $(srcdir)/../timezones/timezones.sqlite $(FINAL_TARGET)
+
+include $(topsrcdir)/config/rules.mk
+
 # Call this target to trigger repackaging lightning for a specific language
 # Usage: make AB_CD=<language> repack-l10n
 repack-l10n: repack-clobber libs-$(AB_CD) repack-process-extrafiles
@@ -138,11 +144,6 @@ libs-%:
 	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=$(L10N_XPI_NAME) XPI_PKGNAME=$(L10N_XPI_NAME) USE_EXTENSION_MANIFEST=1
 	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=$(L10N_XPI_NAME) XPI_PKGNAME=$(L10N_XPI_NAME) USE_EXTENSION_MANIFEST=1
 
-# xxx todo: unless our packaging story is revised (bug 406579) we package up timezones.sqlite
-libs::
-	$(NSINSTALL) $(srcdir)/../timezones/timezones.sqlite $(FINAL_TARGET)
-
-include $(topsrcdir)/config/rules.mk
 
 repack-process-extrafiles: L10N_XPI_NAME=$(subst -en-US,,$(XPI_NAME)-$(AB_CD))
 repack-process-extrafiles: LOCALE_BASEDIR=$(call EXPAND_LOCALE_SRCDIR,calendar/locales)
