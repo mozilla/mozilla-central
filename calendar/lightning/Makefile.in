@@ -96,7 +96,6 @@ DIRS = ../libical \
        $(NULL)
 
 PWD := $(shell pwd)
-core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(PWD)/$(1)))
 
 # Select a theme from which to pull our skin goodness
 # OS X: pinstripe
@@ -121,12 +120,33 @@ DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
 GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
 DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 
+# Call this target to trigger repackaging lightning for a specific language
+# Usage: make AB_CD=<language> repack-l10n
+repack-l10n: repack-clobber libs-$(AB_CD) repack-process-extrafiles
+	@echo "Finished repackaging $(XPI_NAME) locale for Language $(AB_CD)"
+
+# This target should not be called directly
+repack-clobber:
+	@echo "Repackaging $(XPI_NAME) locale for Language $(AB_CD)"
+	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
+	cp -R $(DIST)/xpi-stage/$(XPI_NAME) $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
+	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/lightning-en-US.jar
+	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/calendar-en-US.jar
+
+libs-%: L10N_XPI_NAME=$(subst -en-US,,$(XPI_NAME)-$*)
 libs-%:
-	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1
-	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=$(L10N_XPI_NAME) XPI_PKGNAME=$(L10N_XPI_NAME) USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=$(L10N_XPI_NAME) XPI_PKGNAME=$(L10N_XPI_NAME) USE_EXTENSION_MANIFEST=1
 
 # xxx todo: unless our packaging story is revised (bug 406579) we package up timezones.sqlite
 libs::
 	$(NSINSTALL) $(srcdir)/../timezones/timezones.sqlite $(FINAL_TARGET)
 
 include $(topsrcdir)/config/rules.mk
+
+repack-process-extrafiles: L10N_XPI_NAME=$(subst -en-US,,$(XPI_NAME)-$(AB_CD))
+repack-process-extrafiles: LOCALE_BASEDIR=$(call EXPAND_LOCALE_SRCDIR,calendar/locales)
+repack-process-extrafiles:
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) -I $(LOCALE_BASEDIR)/defines.inc $(srcdir)/install.rdf > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/install.rdf
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(LOCALE_BASEDIR)/lightning-l10n.js  > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/$(PREF_DIR)/lightning-l10n.js
+
