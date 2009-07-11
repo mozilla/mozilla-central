@@ -35,6 +35,7 @@ function step3()
 
 function step3_5()
 {
+  is(document.activeElement.localName, "tab", "tab key to tab activeElement");
   is(document.activeElement, tab1, "tab key to tab activeElement");
 
   EventUtils.synthesizeMouse(tab1, 9, 9, {});
