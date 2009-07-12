@@ -219,6 +219,32 @@ let cal = {
               a > b ?  1 : 0);
     },
 
+    compareNativeTimeFilledAsc: function cal_compareNativeTimeFilledAsc(a, b) {
+      if (a == b)
+        return 0;
+
+      // In this filter, a zero time (not set) is always at the end.
+      if (a == -62168601600000000) // value for (0000/00/00 00:00:00)
+        return 1;
+      if (b == -62168601600000000) // value for (0000/00/00 00:00:00)
+        return -1;
+
+      return (a < b ? -1 : 1);
+    },
+
+    compareNativeTimeFilledDesc: function cal_compareNativeTimeFilledDesc(a, b) {
+      if (a == b)
+        return 0;
+
+      // In this filter, a zero time (not set) is always at the end.
+      if (a == -62168601600000000) // value for (0000/00/00 00:00:00)
+        return 1;
+      if (b == -62168601600000000) // value for (0000/00/00 00:00:00)
+        return -1;
+
+      return (a < b ? 1 : -1);
+    },
+
     compareNumber: function cal_compareNumber(a, b) {
       a = Number(a);
       b = Number(b);
@@ -230,30 +256,41 @@ let cal = {
       switch (sortType) {
         case "number":
           function compareNumbers(sortEntryA, sortEntryB) {
-            var nsA = cal.sortEntryKey(sortEntryA);
-            var nsB = cal.sortEntryKey(sortEntryB);
+            let nsA = cal.sortEntryKey(sortEntryA);
+            let nsB = cal.sortEntryKey(sortEntryB);
             return cal.compareNumber(nsA, nsB) * modifier;
           }
           return compareNumbers;
         case "date":
           function compareTimes(sortEntryA, sortEntryB) {
-            var nsA = cal.sortEntryKey(sortEntryA);
-            var nsB = cal.sortEntryKey(sortEntryB);
+            let nsA = cal.sortEntryKey(sortEntryA);
+            let nsB = cal.sortEntryKey(sortEntryB);
             return cal.compareNativeTime(nsA, nsB) * modifier;
           }
           return compareTimes;
+        case "date_filled":
+          function compareTimesFilled(sortEntryA, sortEntryB) {
+            let nsA = cal.sortEntryKey(sortEntryA);
+            let nsB = cal.sortEntryKey(sortEntryB);
+            if (modifier == 1) {
+              return cal.compareNativeTimeFilledAsc(nsA, nsB);
+            } else {
+              return cal.compareNativeTimeFilledDesc(nsA, nsB);
+            }
+          }
+          return compareTimesFilled
         case "string":
-          var collator = cal.createLocaleCollator();
+          let collator = cal.createLocaleCollator();
           function compareStrings(sortEntryA, sortEntryB) {
-            var sA = cal.sortEntryKey(sortEntryA);
-            var sB = cal.sortEntryKey(sortEntryB);
+            let sA = cal.sortEntryKey(sortEntryA);
+            let sB = cal.sortEntryKey(sortEntryB);
             if (sA.length == 0 || sB.length == 0) {
               // sort empty values to end (so when users first sort by a
               // column, they can see and find the desired values in that
               // column without scrolling past all the empty values).
               return -(sA.length - sB.length) * modifier;
             }
-            var comparison = collator.compareString(0, sA, sB);
+            let comparison = collator.compareString(0, sA, sB);
             return comparison * modifier;
           }
           return compareStrings;
@@ -275,18 +312,19 @@ let cal = {
           return aItem.title || "";
 
         case "entryDate":
-            return cal.nativeTimeOrNow(aItem.entryDate, aStartTime);
+            return cal.nativeTime(aItem.entryDate);
+
         case "startDate":
-            return cal.nativeTimeOrNow(aItem.startDate, aStartTime);
+            return cal.nativeTime(aItem.startDate);
 
         case "dueDate":
-          return cal.nativeTimeOrNow(aItem.dueDate, aStartTime);
+          return cal.nativeTime(aItem.dueDate);
 
         case "endDate":
-          return cal.nativeTimeOrNow(aItem.endDate, aStartTime);
+          return cal.nativeTime(aItem.endDate);
+
         case "completedDate":
-                  // XXX: is this right ??
-          return cal.nativeTimeOrNow(aItem.completedDate, aStartTime);
+          return cal.nativeTime(aItem.completedDate);
 
         case "percentComplete":
           return aItem.percentComplete;
@@ -319,12 +357,13 @@ let cal = {
         case "calendar":
           return "string";
 
+        // All dates use "date_filled"
         case "completedDate":
-        case "entryDate":
-        case "dueDate":
         case "startDate":
         case "endDate":
-          return "date";
+        case "dueDate":
+        case "entryDate":
+          return "date_filled";
 
         case "priority":
         case "percentComplete":
@@ -346,9 +385,16 @@ let cal = {
         return ns;
     },
 
+    nativeTime: function cal_nativeTime(calDateTime) {
+        if (calDateTime == null) {
+            return -62168601600000000; // ns value for (0000/00/00 00:00:00)
+        }
+        return calDateTime.nativeTime;
+    },
+
     sortEntry: function cal_sortEntry(aItem) {
-        var key = cal.getItemSortKey(aItem, this.mSortKey, this.mSortStartedDate);
-        return {mSortKey : key, mItem: aItem};
+        let key = cal.getItemSortKey(aItem, this.mSortKey, this.mSortStartedDate);
+        return { mSortKey : key, mItem: aItem };
     },
 
     sortEntryItem: function cal_sortEntryItem(sortEntry) {

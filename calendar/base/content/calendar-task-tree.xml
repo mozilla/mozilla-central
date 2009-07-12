@@ -308,9 +308,9 @@
         <parameter name="aTask"/>
         <body><![CDATA[
           if (aTask && aTask.dueDate && aTask.dueDate.isValid){
-              var dur = aTask.dueDate.subtractDate(now());
+              let dur = aTask.dueDate.subtractDate(cal.now());
               if (!dur.isNegative) {
-                  var minutes = Math.ceil(dur.inSeconds / 60);
+                  let minutes = Math.ceil(dur.inSeconds / 60);
                   if (minutes >= 1440) { // 1 day or more
                       let dueIn = PluralForm.get(dur.days, calGetString("calendar", "dueInDays"));
                       return dueIn.replace("#1", dur.days);
@@ -321,8 +321,22 @@
                       // Less than one hour
                       return calGetString("calendar", "dueInLessThanOneHour");
                   }
+              } else if (!aTask.completedDate || !aTask.completedDate.isValid) {
+                  // Overdue task
+                  let minutes = Math.ceil( -dur.inSeconds / 60);
+                  if (minutes >= 1440) { // 1 day or more
+                      let dueIn = PluralForm.get(dur.days, calGetString("calendar", "dueInDays"));
+                      return "-" + dueIn.replace("#1", dur.days);
+                  } else if (minutes >= 60) { // 1 hour or more
+                      let dueIn = PluralForm.get(dur.hours, calGetString("calendar", "dueInHours"));
+                      return "-" + dueIn.replace("#1", dur.hours);
+                  } else {
+                      // Less than one hour
+                      return calGetString("calendar", "dueInLessThanOneHour");
+                  }
               }
           }
+          // No due date specified
           return null;
         ]]></body>
       </method>
