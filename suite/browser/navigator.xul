@@ -61,7 +61,6 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onload="Startup()" onunload="Shutdown()"
         onclose="return WindowIsClosing();"
-        contenttitlesetting="true"
         title="&mainWindow.title;" 
         titlemodifier="&mainWindow.titlemodifier;" 
         titlemenuseparator="&mainWindow.titlemodifiermenuseparator;"
