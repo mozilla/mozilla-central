@@ -1429,6 +1429,7 @@
             var nsMsgSearchAttrib = Components.interfaces.nsMsgSearchAttrib;
             var children = document.getAnonymousNodes(this);
 
+            searchValue.attrib = searchAttribute;
             if (searchAttribute == nsMsgSearchAttrib.Priority) {
                searchValue.priority = children[1].selectedItem.value;
             }
@@ -1464,17 +1465,13 @@
                searchValue.status = 0x10000000;  // 0x10000000 is MSG_FLAG_ATTACHMENT;
             else if (searchAttribute == nsMsgSearchAttrib.JunkScoreOrigin)
                searchValue.str = children[8].value;
-
-            if (isNaN(searchAttribute)) //  a custom term
+            else if (isNaN(searchAttribute)) //  a custom term
             {
               searchValue.attrib = nsMsgSearchAttrib.Custom;
               searchValue.str = children[9].getAttribute("value");
             }
             else
-            {
-              searchValue.attrib = searchAttribute;
               searchValue.str = children[0].value;
-            }
           ]]>
         </body>
       </method>
