@@ -43,8 +43,11 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-# XXX Disable for release builds
+# check if this is an alpha or nightly
+# replace "pre" with "a" in the version and then look if "a" matches
+ifneq (,$(findstring a,$(MOZ_APP_VERSION:pre=a)))
 PARALLEL_DIRS = debugQA
+endif
 
 PARALLEL_DIRS	+= \
 		branding \
