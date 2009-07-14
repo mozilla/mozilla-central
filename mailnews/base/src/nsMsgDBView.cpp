@@ -6671,6 +6671,10 @@ nsMsgDBView::GetNumSelected(PRUint32 *aNumSelected)
   return rv;
 }
 
+/**
+ * @note For the IMAP delete model, this applies to both deleting and 
+ *       undeleting a message.
+ */
 NS_IMETHODIMP
 nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
 {
@@ -6678,6 +6682,7 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
   *msgToSelectAfterDelete = nsMsgViewIndex_None;
 
   PRBool isMultiSelect = PR_FALSE;
+  PRInt32 startFirstRange, endFirstRange = nsMsgViewIndex_None;
   if (!mTreeSelection)
   {
     // If we don't have a tree selection then we must be in stand alone mode.
@@ -6693,10 +6698,23 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
     for (PRUint32 i = 0; i < selectionCount; i++)
     {
       rv = mTreeSelection->GetRangeAt(i, &startRange, &endRange);
+      
+      // save off the first range in case we need it later 
+      if (i == 0) {          
+        startFirstRange = startRange;
+        endFirstRange = endRange;
+      } else {
+        // If the tree selection is goofy (eg adjacent or overlapping ranges),
+        // complain about it, but don't try and cope.  Just live with the fact
+        // that one of the deleted messages is going to end up selected.
+        NS_WARN_IF_FALSE(endFirstRange == startRange, 
+                        "goofy tree selection state: two ranges are adjacent!");
+      }
       *msgToSelectAfterDelete = PR_MIN(*msgToSelectAfterDelete, startRange);
     }
 
-    // Multiple selection either using Ctrl or Shift keys.
+    // Multiple selection either using Ctrl, Shift, or one of the affordances
+    // to select an entire thread.
     isMultiSelect = (selectionCount > 1 || (endRange-startRange) > 0);
   }
 
@@ -6727,9 +6745,10 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
   {
     if (isMultiSelect)
     {
-      // Special behavior for this model since otherwise we'd select one of
-      // the deleted messages.
-      *msgToSelectAfterDelete = nsMsgViewIndex_None;
+      if (deleteMatchesSort)
+        *msgToSelectAfterDelete = startFirstRange - 1;
+      else
+        *msgToSelectAfterDelete = endFirstRange + 1;
     }
     else
     {
