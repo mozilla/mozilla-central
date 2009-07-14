@@ -23,6 +23,8 @@
 #   Mark Banner <bugzilla@standard8.plus.com>
 #   Andrew Sutherland <bugzilla@asutherland.org>
 #   Ludovic Hirlimann <ludovic@hirlimann.net>
+#   Michael Foord <fuzzyman@voidspace.org.uk>
+#
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
 # the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -50,6 +52,26 @@ import mozmill
 import socket
 import copy
 from time import sleep
+
+# We need this because rmtree-ing read-only files fails on Windows
+def rmtree_onerror(func, path, exc_info):
+    """
+    Error handler for ``shutil.rmtree``.
+
+    If the error is due to an access error (read only file)
+    it attempts to add write permission and then retries.
+
+    If the error is for another reason it re-raises the error.
+    
+    Usage : ``shutil.rmtree(path, onerror=rmtree_onerror)``
+    """
+    import stat
+    if not os.access(path, os.W_OK):
+        # Is the error an access error ?
+        os.chmod(path, stat.S_IWUSR)
+        func(path)
+    else:
+        raise
 
 class ThunderTestProfile(mozrunner.ThunderbirdProfile):
     preferences = {
@@ -193,7 +215,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
     def create_new_profile(self, default_profile):
         # create a clean directory
         if os.path.exists(self.profile_dir):
-            shutil.rmtree(self.profile_dir)
+            shutil.rmtree(self.profile_dir, onerror=rmtree_onerror)
         os.makedirs(self.profile_dir)
 
         # explicitly create a profile in that directory
