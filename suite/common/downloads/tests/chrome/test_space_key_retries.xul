@@ -21,7 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Shawn Wilsher <me@shawnwilsher.com> (Original Author)
+ *   Jens Hatlak <jh@junetz.de> (Original Author)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,8 +38,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * This tests that the space key will pause and resume a download in the UI.
- * This test was added in bug 413985.
+ * This tests that the space key will retry a download in the UI.
+ * This test was added in bug 474622.
  */
 -->
 
@@ -57,14 +57,13 @@
   <script type="application/javascript">
   <![CDATA[
 
-function bug413985obs(aWin)
+function dlObs(aWin)
 {
   this.mWin = aWin;
-  this.wasPaused = false;
-  this.wasResumed = false;
+  this.wasCanceled = false;
   this.wasFinished = false;
 }
-bug413985obs.prototype = {
+dlObs.prototype = {
   observe: function(aSubject, aTopic, aData)
   {
     if ("timer-callback" == aTopic) {
@@ -73,7 +72,7 @@ bug413985obs.prototype = {
         this.mWin.close();
         SimpleTest.finish();
       } else {
-        // dispatch a space keypress to pause/resume the download
+        // dispatch a space keypress to retry the download
         synthesizeKey(" ", {}, this.mWin);
       }
     }
@@ -82,18 +81,12 @@ bug413985obs.prototype = {
   onDownloadStateChange: function(aState, aDownload)
   {
     if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_DOWNLOADING &&
-        !this.wasPaused) {
-      this.wasPaused = true;
-      // We have to do this on a timer so other JS stuff that handles the UI
-      // can actually catch up to us...
-      var timer = Components.classes["@mozilla.org/timer;1"]
-                            .createInstance(Components.interfaces.nsITimer);
-      timer.init(this, 0, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+        !this.wasCanceled) {
+      this.wasCanceled = true;
+      this.mWin.cancelDownload(aDownload);
     }
 
-    if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_PAUSED &&
-        !this.wasResumed) {
-      this.wasResumed = true;
+    if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_CANCELED) {
       // We have to do this on a timer so other JS stuff that handles the UI
       // can actually catch up to us...
       var timer = Components.classes["@mozilla.org/timer;1"]
@@ -102,8 +95,8 @@ bug413985obs.prototype = {
     }
 
     if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_FINISHED) {
-      ok(this.wasPaused && this.wasResumed,
-         "The download was paused, and then resumed to completion");
+      ok(this.wasCanceled,
+         "The download was canceled, retried and then ran to completion");
       this.wasFinished = true;
       aDownload.targetFile.remove(false);
 
@@ -182,7 +175,7 @@ function test()
 
       var win = aSubject;
       var doc = win.document;
-      dm.addListener(new bug413985obs(win));
+      dm.addListener(new dlObs(win));
 
       addDownload();
       // we need to focus the download as well

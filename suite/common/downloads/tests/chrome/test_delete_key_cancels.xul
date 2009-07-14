@@ -21,7 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Shawn Wilsher <me@shawnwilsher.com> (Original Author)
+ *   Jens Hatlak <jh@junetz.de> (Original Author)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,8 +38,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * This tests that the space key will pause and resume a download in the UI.
- * This test was added in bug 413985.
+ * This tests that the delete key will cancel a download in the UI.
+ * This test was added in bug 474622.
  */
 -->
 
@@ -57,25 +57,22 @@
   <script type="application/javascript">
   <![CDATA[
 
-function bug413985obs(aWin)
+var invokeCount = 0;
+var cancelDownload = null;
+
+function dlObs(aWin)
 {
   this.mWin = aWin;
   this.wasPaused = false;
-  this.wasResumed = false;
-  this.wasFinished = false;
+  this.wasCanceled = false;
 }
-bug413985obs.prototype = {
+dlObs.prototype = {
   observe: function(aSubject, aTopic, aData)
   {
     if ("timer-callback" == aTopic) {
-      if (this.wasFinished) {
-        // We're done!
-        this.mWin.close();
-        SimpleTest.finish();
-      } else {
-        // dispatch a space keypress to pause/resume the download
-        synthesizeKey(" ", {}, this.mWin);
-      }
+      // We're done!
+      this.mWin.close();
+      SimpleTest.finish();
     }
   },
 
@@ -83,29 +80,27 @@ bug413985obs.prototype = {
   {
     if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_DOWNLOADING &&
         !this.wasPaused) {
+      // Make a copy of the cancelDownload function and replace it with a test
+      var counter = function() invokeCount++;
+      [cancelDownload, this.mWin["cancelDownload"]] = [this.mWin["cancelDownload"], counter];
+
+      synthesizeKey("VK_DELETE", {}, this.mWin);
+      is(invokeCount, 1, "Delete canceled the active download");
+
       this.wasPaused = true;
-      // We have to do this on a timer so other JS stuff that handles the UI
-      // can actually catch up to us...
-      var timer = Components.classes["@mozilla.org/timer;1"]
-                            .createInstance(Components.interfaces.nsITimer);
-      timer.init(this, 0, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+      this.mWin.pauseDownload(aDownload.id);
     }
 
     if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_PAUSED &&
-        !this.wasResumed) {
-      this.wasResumed = true;
-      // We have to do this on a timer so other JS stuff that handles the UI
-      // can actually catch up to us...
-      var timer = Components.classes["@mozilla.org/timer;1"]
-                            .createInstance(Components.interfaces.nsITimer);
-      timer.init(this, 0, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-    }
+        !this.wasCanceled) {
+      synthesizeKey("VK_DELETE", {}, this.mWin);
+      is(invokeCount, 2, "Delete canceled the paused download");
 
-    if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_FINISHED) {
-      ok(this.wasPaused && this.wasResumed,
-         "The download was paused, and then resumed to completion");
-      this.wasFinished = true;
-      aDownload.targetFile.remove(false);
+      // After all tests, restore original function
+      this.mWin["cancelDownload"] = cancelDownload;
+
+      this.wasCanceled = true;
+      this.mWin.cancelDownload(aDownload);
 
       var dm = Components.classes["@mozilla.org/download-manager;1"]
                          .getService(Components.interfaces.nsIDownloadManager);
@@ -182,7 +177,7 @@ function test()
 
       var win = aSubject;
       var doc = win.document;
-      dm.addListener(new bug413985obs(win));
+      dm.addListener(new dlObs(win));
 
       addDownload();
       // we need to focus the download as well

@@ -1,0 +1,368 @@
+<?xml version="1.0"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Download Manager UI Test Code.
+ *
+ * The Initial Developer of the Original Code is
+ * Edward Lee <edward.lee@engineering.uiuc.edu>.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Jens Hatlak <jh@junetz.de> (Original Author)
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/**
+ * Test for bug 474622 to check that action keys (Del, Backspace, Return)
+ * respect focus, i.e. work as expected in the Search field, Clear List button
+ * and download list.
+ */
+-->
+
+<window title="Download Manager Test"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="test();">
+
+  <script type="application/javascript"
+          src="chrome://mochikit/content/MochiKit/packed.js"/>
+  <script type="application/javascript"
+          src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"/>
+  <script type="application/javascript"
+          src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"/>
+
+  <script type="application/javascript">
+  <![CDATA[
+
+var openInvokeCount = 0;
+var removeInvokeCount = 0;
+var resumeInvokeCount = 0;
+var testedFunctions = {
+  openDownload : null,
+  removeDownload : null,
+  resumeDownload : null
+};
+
+function getCounter(aFn)
+{
+  switch (aFn) {
+    case "openDownload":
+      return function() openInvokeCount++;
+    case "removeDownload":
+      return function() removeInvokeCount++;
+    case "resumeDownload":
+      return function() resumeInvokeCount++;
+  }
+}
+
+function backupTestedFunction(aFn, aWin)
+{
+  [testedFunctions[aFn], aWin[aFn]] = [aWin[aFn], getCounter(aFn)];
+}
+function restoreTestedFunction(aFn, aWin)
+{
+  aWin[aFn] = testedFunctions[aFn];
+  testedFunctions[aFn] = null;
+}
+
+function keyPressObs(aWin, aKey)
+{
+  this.mWin = aWin;
+  this.mKey = aKey;
+}
+keyPressObs.prototype = {
+  observe: function(aSubject, aTopic, aData)
+  {
+    if ("timer-callback" == aTopic)
+      synthesizeKey(this.mKey, {}, this.mWin);
+  }
+};
+var searchAndPressKey = function(aKey, aWin, aValue) {
+  var searchbox = aWin.document.getElementById("search-box");
+  searchbox.focus();
+  if (aValue != null)
+    searchbox.value = aValue;
+
+  // Press given key after a short delay to allow focus() to complete
+  var timer = Components.classes["@mozilla.org/timer;1"]
+                        .createInstance(Components.interfaces.nsITimer);
+  timer.init(new keyPressObs(aWin, aKey), 500,
+             Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+}
+
+function dlObs(aWin)
+{
+  this.mWin = aWin;
+  this.wasPaused = false;
+  this.wasResumed = false;
+  this.wasFinished = false;
+}
+dlObs.prototype = {
+  onDownloadStateChange: function(aState, aDownload)
+  {
+    if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_DOWNLOADING &&
+        !this.wasPaused)
+    {
+      this.wasPaused = true;
+      this.mWin.pauseDownload(aDownload.id);
+      return;
+    }
+
+    var searchbox = this.mWin.document.getElementById("search-box");
+    if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_PAUSED &&
+        !this.wasResumed)
+    {
+      this.wasResumed = true;
+
+      // Fill Search with an added space (test continues in testObs)
+      backupTestedFunction("resumeDownload", this.mWin);
+      searchAndPressKey(" ", this.mWin, "paused");
+    } else
+    if (aDownload.state == Components.interfaces.nsIDownloadManager.DOWNLOAD_FINISHED &&
+        !this.wasFinished)
+    {
+      this.wasFinished = true;
+
+      // The formerly paused download was resumed successfully, is now complete
+      // and still selected. Since it is a real download it can be opened.
+
+      // Init Search (test continues in testObs)
+      backupTestedFunction("openDownload", this.mWin);
+      searchAndPressKey("VK_RETURN", this.mWin, "delete me");
+
+      var dm = Components.classes["@mozilla.org/download-manager;1"]
+                         .getService(Components.interfaces.nsIDownloadManager);
+      dm.removeListener(this);
+    }
+  },
+  onStateChange: function(a, b, c, d, e) { },
+  onProgressChange: function(a, b, c, d, e, f, g) { },
+  onSecurityChange: function(a, b, c, d) { }
+};
+
+function test()
+{
+  var dm = Components.classes["@mozilla.org/download-manager;1"]
+                     .getService(Components.interfaces.nsIDownloadManager);
+
+  function addDownload()
+  {
+    function createURI(aObj)
+    {
+      var ios = Components.classes["@mozilla.org/network/io-service;1"]
+                          .getService(Components.interfaces.nsIIOService);
+      return (aObj instanceof Components.interfaces.nsIFile) ? ios.newFileURI(aObj) :
+                                            ios.newURI(aObj, null, null);
+    }
+
+    const nsIWBP = Components.interfaces.nsIWebBrowserPersist;
+    var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"]
+                            .createInstance(Components.interfaces.nsIWebBrowserPersist);
+    persist.persistFlags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
+                           nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
+                           nsIWBP.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
+
+    var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
+                           .getService(Components.interfaces.nsIProperties);
+    var destFile = dirSvc.get("ProfD", Components.interfaces.nsIFile);
+    destFile.append("download.paused");
+    if (destFile.exists())
+      destFile.remove(false);
+
+    var dl = dm.addDownload(Components.interfaces.nsIDownloadManager.DOWNLOAD_TYPE_DOWNLOAD,
+                            createURI("http://example.com/httpd.js"),
+                            createURI(destFile), null, null,
+                            Math.round(Date.now() * 1000), null, persist);
+
+    persist.progressListener = dl.QueryInterface(Components.interfaces.nsIWebProgressListener);
+    persist.saveURI(dl.source, null, null, null, null, dl.targetFile);
+
+    return dl;
+  }
+
+  // Empty any old downloads
+  dm.DBConnection.executeSimpleSQL("DELETE FROM moz_downloads");
+
+  // Make a file name for the downloads
+  var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                       .getService(Components.interfaces.nsIProperties)
+                       .get("TmpD", Components.interfaces.nsIFile);
+  file.append("cleanUp");
+  var filePath = Components.classes["@mozilla.org/network/io-service;1"]
+                           .getService(Components.interfaces.nsIIOService)
+                           .newFileURI(file).spec;
+
+  var stmt = dm.DBConnection.createStatement(
+    "INSERT INTO moz_downloads (name, target, source, state) " +
+    "VALUES (?1, ?2, ?3, ?4)");
+
+  try {
+    for each (let site in ["delete.me", "i.live"]) {
+      stmt.bindStringParameter(0, "Finished Download");
+      stmt.bindStringParameter(1, filePath);
+      stmt.bindStringParameter(2, "http://" + site + "/file");
+      stmt.bindInt32Parameter(3, dm.DOWNLOAD_FINISHED);
+
+      // Add it!
+      stmt.execute();
+    }
+  }
+  finally {
+    stmt.reset();
+    stmt.finalize();
+  }
+
+  // Close the UI if necessary
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator);
+  var win = wm.getMostRecentWindow("Download:Manager");
+  if (win) win.close();
+
+  var obs = Components.classes["@mozilla.org/observer-service;1"]
+                      .getService(Components.interfaces.nsIObserverService);
+  const DLMGR_UI_DONE = "download-manager-ui-done";
+
+  var testPhase = 0;
+  var testObs = {
+    observe: function(aSubject, aTopic, aData)
+    {
+      if (aTopic != DLMGR_UI_DONE)
+        return;
+
+      var win = aSubject;
+      var downloadTree = win.document.getElementById("downloadTree");
+      var searchbox = win.document.getElementById("search-box");
+      var clearList = win.document.getElementById("clearListButton");
+
+      // The list must have built, so figure out what test to do
+      switch (testPhase++) {
+        case 0:
+          // Init Search
+          searchbox.value = "delete me";
+          searchbox.doCommand();
+
+          break;
+        case 1:
+          // Clear Search
+          backupTestedFunction("removeDownload", win);
+          searchAndPressKey("VK_DELETE", win);
+
+          break;
+        case 2:
+          is(removeInvokeCount, 0, "Search box: Del didn't remove download");
+
+          // Search has been cleared, init again
+          searchbox.value = "live";
+          searchbox.doCommand();
+
+          break;
+        case 3:
+          // Clear Search
+          searchAndPressKey("VK_BACK_SPACE", win);
+
+          break;
+        case 4:
+          is(removeInvokeCount, 0, "Search box: Backspace didn't remove download");
+          restoreTestedFunction("removeDownload", win);
+
+          // Add paused download (test continues in dlObs)
+          dm.addListener(new dlObs(win));
+          addDownload();
+
+          break;
+        case 5:
+          // Back from dlObs
+          is(resumeInvokeCount, 0, "Search box: Space didn't resume download");
+
+          // Focus download tree and select first (paused) download
+          downloadTree.focus();
+          downloadTree.view.selection.select(0);
+
+          // Simulate Resume download
+          synthesizeKey(" ", {}, win);
+          is(resumeInvokeCount, 1, "Download list: Space resumed download");
+
+          // Resume download for real (test continues in dlObs)
+          restoreTestedFunction("resumeDownload", win);
+          synthesizeKey(" ", {}, win);
+
+          break;
+        case 6:
+          // Back from dlObs
+          is(openInvokeCount, 0, "Search box: Return didn't open download");
+
+          // Search has been changed, init again to get formerly paused download
+          searchbox.value = "paused";
+          searchbox.doCommand();
+
+          break;
+        case 7:
+          // Focus download tree and select first (formerly paused) download
+          downloadTree.focus();
+          downloadTree.view.selection.select(0);
+
+          // Simulate Open download
+          synthesizeKey("VK_RETURN", {}, win);
+          is(openInvokeCount, 1, "Download list: Return opened download");
+
+          // Clear List: Return (execute Clear List)
+          clearList.focus();
+          synthesizeKey("VK_RETURN", {}, win);
+
+          break;
+        case 8:
+          is(openInvokeCount, 1, "Clear List: Enter didn't open download");
+          restoreTestedFunction("openDownload", win);
+
+          // We're done here
+          obs.removeObserver(testObs, DLMGR_UI_DONE);
+          win.close();
+          SimpleTest.finish();
+
+          break;
+      }
+    }
+  };
+  obs.addObserver(testObs, DLMGR_UI_DONE, false);
+
+  // Show the Download Manager UI
+  Components.classes["@mozilla.org/download-manager-ui;1"]
+            .getService(Components.interfaces.nsISuiteDownloadManagerUI)
+            .showManager();
+
+  SimpleTest.waitForExplicitFinish();
+}
+
+  ]]>
+  </script>
+
+  <body xmlns="http://www.w3.org/1999/xhtml">
+    <p id="display"></p>
+    <div id="content" style="display:none;"></div>
+    <pre id="test"></pre>
+  </body>
+</window>
