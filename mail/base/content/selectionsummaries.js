@@ -508,12 +508,12 @@ ThreadSummary.prototype = {
     let headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                                     .getService(Components.interfaces.nsIMsgHeaderParser);
     let count = 0;
-    const MAX_MESSAGES = 100;
+    const MAX_THREADS = 100;
     const SNIPPET_LENGTH = 300;
     let maxCountExceeded = false;
     for (let i = 0; i < numMessages; ++i) {
       count += 1;
-      if (count > MAX_MESSAGES) {
+      if (count > MAX_THREADS) {
         maxCountExceeded = true;
         break;
       }
@@ -598,7 +598,7 @@ ThreadSummary.prototype = {
     }
     // stash somewhere so it doesn't get GC'ed
     this._glodaQueries.push(Gloda.getMessageCollectionForHeaders(this._msgHdrs, this));
-    this.notifyMaxCountExceeded(htmlpane.contentDocument, numMessages, MAX_MESSAGES);
+    this.notifyMaxCountExceeded(htmlpane.contentDocument, numMessages, MAX_THREADS);
 
     this.computeSize(htmlpane);
   }
