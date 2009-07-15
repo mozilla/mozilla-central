@@ -163,15 +163,6 @@ MessageDisplayWidget.prototype = {
   //@{
 
   /**
-   * The maximum number of messages to summarize at any given time.  If there
-   *  are more messages than this, we don't summarize, and instead give a blank
-   *  window pane.  Arguably something that says "there are two many messages"
-   *  would be a better idea.
-   * @private
-   */
-  MAX_MESSAGES_TO_SUMMARIZE: 100,
-
-  /**
    * FolderDisplayWidget tells us when the set of selected messages has changed.
    *  FDW is doing this because an nsMsgDBView/subclass called
    *  summarizeSelection.  Although the call is purely an outgrowth of the
@@ -227,9 +218,8 @@ MessageDisplayWidget.prototype = {
       //  take care of.
       return false;
     }
-    // we have a limit on the number of messages and if the pref is enabled
-    else if ((selectedCount < this.MAX_MESSAGES_TO_SUMMARIZE) &&
-        gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads")) {
+    // if the pref is enabled
+    else if (gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads")) {
       // _showSummary is responsible for handling the "don't resummarize too
       //  often" logic, as well as updating singleMessageDisplay.
       this._showSummary();
@@ -303,7 +293,7 @@ MessageDisplayWidget.prototype = {
 
     // Bail if our selection count has stabilized outside an acceptable range.
     let selectedCount = this.folderDisplay.selectedCount;
-    if (selectedCount < 2 || selectedCount > this.MAX_MESSAGES_TO_SUMMARIZE)
+    if (selectedCount < 2)
       return;
 
     // Setup a timeout call to _clearSummaryTimer so that we don't try and

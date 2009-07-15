@@ -186,14 +186,24 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
   let streamListener = new CallbackStreamListener(aMsgHdr,
                                                   aCallbackThis, aCallback);
 
-  let streamURI = msgService.streamMessage(msgURI,
-                                           streamListener, // consumer
-                                           null, // nsIMsgWindow
-                                           dumbUrlListener, // nsIUrlListener
-                                           true, // have them create the converter
-      // additional uri payload, note that "header=" is prepended automatically
-                                           "filter&emitter=js",
-                                           true);
+  try {
+    let streamURI = msgService.streamMessage(msgURI,
+                                             streamListener, // consumer
+                                             null, // nsIMsgWindow
+                                             dumbUrlListener, // nsIUrlListener
+                                             true, // have them create the converter
+        // additional uri payload, note that "header=" is prepended automatically
+                                             "filter&emitter=js",
+                                             true);
+  } catch (ex) {
+    // If streamMessage throws an exception, we should make sure to clear the
+    // activeStreamListener, or any subsequent attempt at sreaming this URI
+    // will silently fail
+    if (activeStreamListeners[msgURI]) {
+      delete activeStreamListeners[msgURI];
+    }
+    throw(ex);
+  }
 }
 
 /**

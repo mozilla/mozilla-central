@@ -141,7 +141,6 @@ MultiMessageSummary.prototype = {
                           getService(Components.interfaces.nsIMsgTagService);
     this._glodaQueries = [];
     this._msgNodes = {};
-
     this.summarize();
   },
 
@@ -220,21 +219,22 @@ MultiMessageSummary.prototype = {
       PluralForm.get(numThreads, gSelectionSummaryStrings["NConversations"])
                 .replace("#1", numThreads);
 
-    heading.innerHTML = messagesTitle;
+    heading.textContent = messagesTitle;
 
     // clear the messages list
     let messagesElt = htmlpane.contentDocument.getElementById('messagelist');
     while (messagesElt.firstChild)
       messagesElt.removeChild(messagesElt.firstChild);
 
-    let MAXCOUNT = 100;
+    const MAX_MESSAGES = 100;
+    const SNIPPET_LENGTH = 300;
     let count = 0;
     let maxCountExceeded = false;
     var parser = new DOMParser();
 
     for (let [thread,msgs] in Iterator(threads)) {
-      count += 1;
-      if (count > MAXCOUNT) {
+      count += msgs.length;
+      if (count > MAX_MESSAGES) {
         maxCountExceeded = true;
         break;
       }
@@ -259,8 +259,8 @@ MultiMessageSummary.prototype = {
       if (countStarred)
         msg_classes += " starred";
 
-      let subject = msgs[0].mime2DecodedSubject || gSelectionSummaryStrings['noSubject'];
-      let author = headerParser.extractHeaderAddressName(msgs[0].mime2DecodedAuthor);
+      let subject = escapeXMLchars(msgs[0].mime2DecodedSubject || gSelectionSummaryStrings['noSubject']);
+      let author = escapeXMLchars(headerParser.extractHeaderAddressName(msgs[0].mime2DecodedAuthor));
 
       let countstring = "";
       if (numMsgs > 1) {
@@ -285,22 +285,31 @@ MultiMessageSummary.prototype = {
                         </div>;
 
       let msgNode = htmlpane.contentDocument.createElement("div");
+      // innerHTML is safe here because all of the data in msgContents is
+      // either generated from integers or escaped to be safe.
       msgNode.innerHTML = msgContents.toXMLString();
       _mm_addClass(msgNode, msg_classes);
       messagesElt.appendChild(msgNode);
 
       let snippetNode = msgNode.getElementsByClassName("snippet")[0];
       let authorNode = msgNode.getElementsByClassName("author")[0];
-      MsgHdrToMimeMessage(msgs[0], null, function(aMsgHdr, aMimeMsg) {
-        if (aMimeMsg == null) /* shouldn't happen, but sometimes does? */
-          return;
+      try {
+        MsgHdrToMimeMessage(msgs[0], null, function(aMsgHdr, aMimeMsg) {
+          if (aMimeMsg == null) /* shouldn't happen, but sometimes does? */
+            return;
 
-        let [text, meta] = mimeMsgToContentSnippetAndMeta(aMimeMsg,
-                                                          aMsgHdr.folder, 200);
-        snippetNode.innerHTML = escapeXMLchars(text);
-        if (meta.author)
-          authorNode.innerHTML = escapeXMLchars(meta.author);
-      });
+          let [text, meta] = mimeMsgToContentSnippetAndMeta(aMimeMsg,
+                                                            aMsgHdr.folder,
+                                                            SNIPPET_LENGTH);
+          snippetNode.textContent = escapeXMLchars(text);
+          if (meta.author)
+            authorNode.textContent = escapeXMLchars(meta.author);
+        });
+      } catch (e if e.result == Components.results.NS_ERROR_FAILURE) {
+        // Offline messages generate exceptions, which is unfortunate.  When
+        // that's fixed, this code should adapt. XXX
+        snippetNode.textContent = "...";
+      }
 
       // get the subject node.
       let subjectNode = msgNode.getElementsByClassName("subject")[0];
@@ -319,7 +328,7 @@ MultiMessageSummary.prototype = {
       messagesElt.appendChild(msgNode);
     }
     this.computeSize(htmlpane);
-    this.notifyMaxCountExceeded(this._msgHdrs.length, MAXCOUNT);
+    this.notifyMaxCountExceeded(htmlpane.contentDocument, this._msgHdrs.length, MAX_MESSAGES);
 
     this._glodaQueries.push(Gloda.getMessageCollectionForHeaders(this._msgHdrs, this));
   },
@@ -345,7 +354,7 @@ MultiMessageSummary.prototype = {
         // see tagColors.css
         let colorClass = "blc-" + this._msgTagService.getColorForKey(tag.key).substr(1);
         _mm_addClass(tagNode, "tag " + tag.tag + " " + colorClass);
-        tagNode.innerHTML = tag.tag;
+        tagNode.textContent = tag.tag;
         tagsNode.appendChild(tagNode);
       }
   },
@@ -363,21 +372,19 @@ MultiMessageSummary.prototype = {
     let [size, unit] = DownloadUtils.convertByteUnits(numBytes);
     let sizeText = replaceInsert(gSelectionSummaryStrings.messagesSize, 1, size);
     sizeText = replaceInsert(sizeText, 2, unit);
-    htmlpane.contentDocument.getElementById('size').innerHTML = sizeText;
+    htmlpane.contentDocument.getElementById('size').textContent = sizeText;
   },
 
-  /** compute the size of the messages in the selection and display it
-   * in the element of id "size"
+  /** Indicate if we're not summarizing _all_ of the specified messages because
+   * that'd just be too much.
   **/
-  notifyMaxCountExceeded: function(numMessages, maxCount) {
-    let htmlpane = document.getElementById('multimessage');
-    let notice = htmlpane.contentDocument.getElementById('notice');
-    if (numMessages > maxCount)
-    {
+  notifyMaxCountExceeded: function(aContentDocument, aNumMessages, aMaxCount) {
+    let notice = aContentDocument.getElementById('notice');
+    if (aNumMessages > aMaxCount) {
       let noticeText = gSelectionSummaryStrings.noticeText;
-      noticeText = replaceInsert(noticeText, 1, numMessages);
-      noticeText = replaceInsert(noticeText, 2, maxCount);
-      notice.innerHTML = noticeText;
+      noticeText = replaceInsert(noticeText, 1, aNumMessages);
+      noticeText = replaceInsert(noticeText, 2, aMaxCount);
+      notice.textContent = noticeText;
       _mm_removeClass(notice, 'hidden');
     } else {
       _mm_addClass(notice, 'hidden');
@@ -492,7 +499,7 @@ ThreadSummary.prototype = {
        + PluralForm.get(numMessages, gSelectionSummaryStrings["Nmessages"]).replace('#1', numMessages);
     let heading = htmlpane.contentDocument.getElementById('heading');
     heading.setAttribute("class", "heading");
-    heading.innerHTML = escapeXMLchars(subject);
+    heading.textContent = escapeXMLchars(subject);
 
     let messagesElt = htmlpane.contentDocument.getElementById('messagelist');
     while (messagesElt.firstChild)
@@ -501,11 +508,12 @@ ThreadSummary.prototype = {
     let headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                                     .getService(Components.interfaces.nsIMsgHeaderParser);
     let count = 0;
-    const MAXCOUNT = 100;
+    const MAX_MESSAGES = 100;
+    const SNIPPET_LENGTH = 300;
     let maxCountExceeded = false;
     for (let i = 0; i < numMessages; ++i) {
       count += 1;
-      if (count > MAXCOUNT) {
+      if (count > MAX_MESSAGES) {
         maxCountExceeded = true;
         break;
       }
@@ -517,7 +525,7 @@ ThreadSummary.prototype = {
       if (msgHdr.isFlagged)
         msg_classes += " starred";
 
-      let senderName = headerParser.extractHeaderAddressName(msgHdr.mime2DecodedAuthor);
+      let senderName = escapeXMLchars(headerParser.extractHeaderAddressName(msgHdr.mime2DecodedAuthor));
       let date = makeFriendlyDateAgo(new Date(msgHdr.date/1000));
 
       let msgContents = <div class="row">
@@ -533,6 +541,8 @@ ThreadSummary.prototype = {
                         </div>;
 
       let msgNode = htmlpane.contentDocument.createElement("div");
+      // innerHTML is safe here because all of the data in msgContents is
+      // either generated from integers or escaped to be safe.
       msgNode.innerHTML = msgContents.toXMLString();
       _mm_addClass(msgNode, msg_classes);
       messagesElt.appendChild(msgNode);
@@ -540,16 +550,23 @@ ThreadSummary.prototype = {
       let key = msgHdr.messageKey + msgHdr.folder.URI;
       let snippetNode = msgNode.getElementsByClassName("snippet")[0];
       let senderNode = msgNode.getElementsByClassName("sender")[0];
-      MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
-          if (aMimeMsg == null) /* shouldn't happen, but sometimes does? */
+      try {
+        MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
+          if (aMimeMsg == null) /* shouldn't happen, but sometimes does? */ {
             return;
+          }
           let [text, meta] = mimeMsgToContentSnippetAndMeta(aMimeMsg,
-                                                            aMsgHdr.folder, 200);
-          snippetNode.innerHTML = escapeXMLchars(text);
+                                                            aMsgHdr.folder,
+                                                            SNIPPET_LENGTH);
+          snippetNode.textContent = escapeXMLchars(text);
           if (meta.author)
-            senderNode.innerHTML = escapeXMLchars(meta.author);
-      });
-
+            senderNode.textContent = escapeXMLchars(meta.author);
+        });
+      } catch (e if e.result == Components.results.NS_ERROR_FAILURE) {
+        // Offline messages generate exceptions, which is unfortunate.  When
+        // that's fixed, this code should adapt. XXX
+        snippetNode.textContent = "...";
+      }
       let tagsNode = msgNode.getElementsByClassName("tags")[0];
       let tags = this.getTagsForMsg(msgHdr);
       for each (let [,tag] in Iterator(tags)) {
@@ -557,7 +574,7 @@ ThreadSummary.prototype = {
         // see tagColors.css
         let colorClass = "blc-" + this._msgTagService.getColorForKey(tag.key).substr(1);
         _mm_addClass(tagNode, "tag " + tag.tag + " " + colorClass);
-        tagNode.innerHTML = tag.tag;
+        tagNode.textContent = tag.tag;
         tagsNode.appendChild(tagNode);
       }
 
@@ -579,10 +596,9 @@ ThreadSummary.prototype = {
 
       messagesElt.appendChild(msgNode);
     }
-
     // stash somewhere so it doesn't get GC'ed
     this._glodaQueries.push(Gloda.getMessageCollectionForHeaders(this._msgHdrs, this));
-    this.notifyMaxCountExceeded(numMessages, MAXCOUNT);
+    this.notifyMaxCountExceeded(htmlpane.contentDocument, numMessages, MAX_MESSAGES);
 
     this.computeSize(htmlpane);
   }
@@ -606,8 +622,14 @@ function summarizeThread(aSelectedMessages)
   if (aSelectedMessages.length == 0)
     return;
 
-  gSummary = new ThreadSummary(aSelectedMessages);
-  gSummary.init();
+  try {
+    gSummary = new ThreadSummary(aSelectedMessages);
+    gSummary.init();
+  } catch (e) {
+    dump("Exception in summarizeThread" + e + "\n");
+    Components.utils.reportError(e);
+    throw(e);
+  }
 }
 
 /**
@@ -621,9 +643,14 @@ function summarizeMultipleSelection(aSelectedMessages)
 {
   if (aSelectedMessages.length == 0)
     return;
-
-  gSummary = new MultiMessageSummary(aSelectedMessages);
-  gSummary.init();
+  try {
+    gSummary = new MultiMessageSummary(aSelectedMessages);
+    gSummary.init();
+  } catch (e) {
+    dump("Exception in summarizeMultipleSelection" + e + "\n");
+    Components.utils.reportError(e);
+    throw(e);
+  }
 }
 
 /**
