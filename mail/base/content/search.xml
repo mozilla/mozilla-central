@@ -243,28 +243,16 @@
       <constructor>
         <![CDATA[
           // initialize the quick search mode based on the checked menu item
-          var desiredQuickSearchMode = document.getElementById('quick-search-menupopup').getAttribute('value');             
-          
-          var menuItems = document.getElementById('quick-search-menupopup').getElementsByAttribute('value', '*');
-          var selectedMenuItem;
-          for (var index = 0; index < menuItems.length; index++) 
-            if (menuItems[index].getAttribute("value") == desiredQuickSearchMode)
-            {
-              selectedMenuItem = menuItems[index];
-              break;
-            }
-          
-          // if we failed to find selectedMenuItemVal in our array of menuitems
-          // then just use the first menu item in the array (surely we have at least one menu item!)
-          // This scenario happens when we decide to obsolete/delete search modes from 
-          // the quick search drop down.
-          if (!selectedMenuItem && menuItems.length) {
-            selectedMenuItem = menuItems[0];
+          // (getAttribute returns a string so "0" is still true...)
+          this.mQuickSearchMode  =
+            document.getElementById('quick-search-menupopup')
+                    .getAttribute('value') ||
+            QuickSearchConstants.kQuickSearchFromOrSubject.toString();
 
-            selectedMenuItem.setAttribute('checked', 'true');
-            this.mQuickSearchMode =
-              selectedMenuItem.getAttribute("value");
-          }
+          var selectedMenuItem =
+            document.getElementById('quick-search-menupopup')
+                    .getElementsByAttribute('value', this.mQuickSearchMode)[0];
+          selectedMenuItem.setAttribute('checked', 'true');
 
           this.setSearchCriteriaText();
         ]]>
@@ -276,7 +264,7 @@
       <property name="clearButtonHidden" onget="return document.getElementById('quick-search-clearbutton').getAttribute('clearButtonHidden') == 'true';"
                 onset="document.getElementById('quick-search-clearbutton').setAttribute('clearButtonHidden', val); return val;"/>
 
-      <field name="mQuickSearchMode">0</field>
+      <field name="mQuickSearchMode">null</field>
 
       // DND Observer
       <field name="searchInputDNDObserver" readonly="true"><![CDATA[
