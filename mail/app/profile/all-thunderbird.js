@@ -94,11 +94,7 @@ pref("app.update.mode", 1);
 pref("app.update.silent", false);
 
 // Update service URL:
-#ifdef MOZILLA_1_9_1_BRANCH
-pref("app.update.url", "https://aus2.mozilla.org/update/3/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml");
-#else
 pref("app.update.url", "https://aus2.mozillamessaging.com/update/3/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml");
-#endif
 
 // URL user can browse to manually if for some reason all update installation
 // attempts fail.  TODO: Change this URL
