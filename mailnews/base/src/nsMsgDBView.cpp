@@ -7175,7 +7175,7 @@ nsMsgDBView::FindIndexOfMsgHdr(nsIMsgDBHdr *aMsgHdr, PRBool aExpand, nsMsgViewIn
     nsMsgViewIndex threadIndex = ThreadIndexOfMsgHdr(aMsgHdr);
     if (threadIndex != nsMsgViewIndex_None)
     {
-      if (m_flags[threadIndex] & nsMsgMessageFlags::Elided)
+      if (aExpand && (m_flags[threadIndex] & nsMsgMessageFlags::Elided))
         ExpandByIndex(threadIndex, nsnull);
       *aIndex = FindHdr(aMsgHdr, threadIndex);
     }

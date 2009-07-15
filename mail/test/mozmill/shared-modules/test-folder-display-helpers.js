@@ -460,9 +460,26 @@ function select_none() {
   controller.sleep(0);
 }
 
+/**
+ * Normalize a view index to be an absolute index, handling slice-style negative
+ *  references as well as piercing complex things like message headers and
+ *  synthetic message sets.
+ *
+ * @param aViewIndex An absolute index (integer >= 0), slice-style index (< 0),
+ *     or a SyntheticMessageSet (we only care about the first message in it).
+ */
 function _normalize_view_index(aViewIndex, aController) {
   if (aController === undefined)
     aController = mc;
+  // SyntheticMessageSet special-case
+  if (typeof(aViewIndex) != "number") {
+    let msgHdrIter = aViewIndex.msgHdrs;
+    let msgHdr = msgHdrIter.next();
+    msgHdrIter.close();
+    // do not expand
+    aViewIndex = aController.dbView.findIndexOfMsgHdr(msgHdr, false);
+  }
+
   if (aViewIndex < 0)
     return aController.dbView.QueryInterface(Ci.nsITreeView).rowCount +
       aViewIndex;
@@ -955,6 +972,8 @@ var assert_message_not_in_view = assert_messages_not_in_view;
 /**
  * Helper function for use by assert_selected / assert_selected_and_displayed /
  *  assert_displayed.
+ *
+ * @return A list of two elements: [MozmillController, [list of view indices]].
  */
 function _process_row_message_arguments() {
   let troller = mc;
@@ -992,7 +1011,20 @@ function _process_row_message_arguments() {
         // false means do not expand, it should already be selected
         let viewIndex = troller.dbView.findIndexOfMsgHdr(msgHdr, false);
         if (viewIndex == nsMsgViewIndex_None)
-          throw new Error("Message not present in view that should be there.");
+          throw_and_dump_view_state(
+            "Message not present in view that should be there. " +
+             "(" + msgHdr.messageKey + ": " + msgHdr.mime2DecodedSubject + ")");
+        desiredIndices.push(viewIndex);
+      }
+    }
+    // SyntheticMessageSet
+    else if (arg.synMessages) {
+      for each (let msgHdr in arg.msgHdrs) {
+        let viewIndex = troller.dbView.findIndexOfMsgHdr(msgHdr, false);
+        if (viewIndex == nsMsgViewIndex_None)
+          throw_and_dump_view_state(
+            "Message not present in view that should be there. " +
+             "(" + msgHdr.messageKey + ": " + msgHdr.mime2DecodedSubject + ")");
         desiredIndices.push(viewIndex);
       }
     }
@@ -1023,6 +1055,7 @@ function _process_row_message_arguments() {
  * - A list containing two integers, indicating a range of view indices.
  * - A message header.
  * - A list of message headers.
+ * - A synthetic message set.
  */
 function assert_selected() {
   let [troller, desiredIndices] =
@@ -1038,7 +1071,6 @@ function assert_selected() {
 
   return [troller, desiredIndices];
 }
-
 
 /**
  * Assert that the given set of messages is displayed, but not necessarily
@@ -1140,7 +1172,7 @@ function _internal_assert_displayed(trustSelection, troller, desiredIndices) {
     //  summarize.
     let desiredMessages = [mc.dbView.getMsgHdrAt(vi) for each
                             ([, vi] in Iterator(desiredIndices))];
-    assert_selection_summarized(troller, desiredMessages);
+    assert_messages_summarized(troller, desiredMessages);
   }
 }
 
@@ -1190,10 +1222,11 @@ function _verify_message_sets_equivalent(aSetOne, aSetTwo) {
  *  unless you are testing the summarization logic.
  *
  * @param aController The controller who has the summarized display going on.
- * @param aMessages Optional set of messages to verify.  If not provided, this
- *     is extracted via the folderDisplay.
+ * @param [aMessages] Optional set of messages to verify.  If not provided, this
+ *     is extracted via the folderDisplay.  If a SyntheticMessageSet is provided
+ *     we will automatically retrieve what we need from it.
  */
-function assert_selection_summarized(aController, aSelectedMessages) {
+function assert_messages_summarized(aController, aSelectedMessages) {
   // - Compensate for selection stabilization code.
   // Although test-window-helpers sets the stabilization interval to 0, we
   //  still need to make sure we have drained the event queue so that it has
@@ -1203,6 +1236,9 @@ function assert_selection_summarized(aController, aSelectedMessages) {
   // - Verify summary object knows about right messages
   if (aSelectedMessages == null)
     aSelectedMessages = aController.folderDisplay.selectedMessages;
+  // if it's a synthetic message set, we want the headers...
+  if (aSelectedMessages.synMessages)
+    aSelectedMessages = [msgHdr for each (msgHdr in aSelectedMessages.msgHdrs)];
 
   let summary = aController.window.gSummary;
   if (aSelectedMessages.length != summary._msgHdrs.length) {
@@ -1241,6 +1277,42 @@ function assert_visible(aViewIndexOrMessage) {
                     treeBox.getFirstVisibleRow() + "-" +
                     treeBox.getLastVisibleRow() + " are visible)");
 }
+
+/**
+ * @param aShouldBeElided Should the messages at the view indices be elided?
+ * @param aArgs Arguments of the form processed by
+ *     |_process_row_message_arguments|.
+ */
+function _assert_elided_helper(aShouldBeElided, aArgs) {
+  let [troller, viewIndices] =
+    _process_row_message_arguments.apply(this, aArgs);
+
+  let dbView = troller.dbView;
+  for each (let [, viewIndex] in Iterator(viewIndices)) {
+    let flags = dbView.getFlagsAt(viewIndex);
+    if (Boolean(flags & Ci.nsMsgMessageFlags.Elided) != aShouldBeElided)
+      throw new Error("Message at view index " + viewIndex +
+                      (aShouldBeElided ? " should be elided but is not!"
+                                       : " should not be elided but is!"));
+  }
+}
+
+/**
+ * Assert that all of the messages at the given view indices are collapsed.
+ * Arguments should be of the type accepted by |assert_selected_and_displayed|.
+ */
+function assert_collapsed() {
+  _assert_elided_helper(true, arguments);
+}
+
+/**
+ * Assert that all of the messages at the given view indices are expanded.
+ * Arguments should be of the type accepted by |assert_selected_and_displayed|.
+ */
+function assert_expanded() {
+  _assert_elided_helper(false, arguments);
+}
+
 
 function _normalize_folder_view_index(aViewIndex, aController) {
   if (aController === undefined)

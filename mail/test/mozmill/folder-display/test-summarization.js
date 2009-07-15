@@ -171,7 +171,7 @@ function test_selection_stabilization_logic() {
   // this will not summarize!
   select_shift_click_row(2);
   // verify that our summary is still just 0 and 1.
-  assert_selection_summarized(mc, messages);
+  assert_messages_summarized(mc, messages);
 
   // - put it back, the way it was
   // oh put it back the way it was
@@ -205,7 +205,7 @@ function test_summarization_thread_detection() {
   select_shift_click_row(9);
   let messages = mc.folderDisplay.selectedMessages;
   toggle_thread_row(0);
-  assert_selection_summarized(mc, messages);
+  assert_messages_summarized(mc, messages);
   // count the number of messages represented
   assert_summary_contains_N_divs('wrappedsender', 10);
   select_shift_click_row(1);
@@ -218,4 +218,69 @@ function test_summarization_thread_detection() {
   select_shift_click_row(2); // add a thread
   assert_summary_contains_N_divs('wrappedsender', 0);
   assert_summary_contains_N_divs('wrappedsubject', 2);
+}
+
+/**
+ * If you are looking at a message that becomes part of a thread because of the
+ *  arrival of a new message, expand the thread so you do not have the message
+ *  turn into a summary beneath your feet.
+ *
+ * There are really two cases here:
+ * - The thread gets moved because its sorted position changes.
+ * - The thread does not move.
+ */
+function test_new_thread_that_was_not_summarized_expands() {
+  be_in_folder(folder);
+  make_display_threaded();
+
+  // - create the base messages
+  let [willMoveMsg, willNotMoveMsg] = make_new_sets_in_folders(
+    [folder], [{count: 1}, {count: 1}]);
+
+  // - do the non-move case
+  // XXX actually, this still gets treated as a move. I don't know why...
+  // select it
+  select_click_row(willNotMoveMsg);
+  assert_selected_and_displayed(willNotMoveMsg);
+
+  // give it a friend...
+  let [extraNonMoveMsg] = make_new_sets_in_folders(
+    [folder], [{count: 1, inReplyTo: willNotMoveMsg}]);
+  assert_expanded(willNotMoveMsg);
+  assert_selected_and_displayed(willNotMoveMsg);
+
+  // - do the move case
+  select_click_row(willMoveMsg);
+  assert_selected_and_displayed(willMoveMsg);
+
+  // give it a friend...
+  let [extraMoveMsg] = make_new_sets_in_folders(
+    [folder], [{count: 1, inReplyTo: willMoveMsg}]);
+  assert_expanded(willMoveMsg);
+  assert_selected_and_displayed(willMoveMsg);
+}
+
+/**
+ * Selecting an existing (and collapsed) thread, then add a message and make
+ *  sure the summary updates.
+ */
+function test_summary_updates_when_new_message_added_to_collapsed_thread() {
+  be_in_folder(folder);
+  make_display_threaded();
+  collapse_all_threads();
+
+  // - select the thread root, thereby summarizing it
+  let thread1Root = select_click_row(thread1); // this just uses the root msg
+  assert_collapsed(thread1Root);
+  // just the thread root should be selected
+  assert_selected(thread1Root);
+  // but the whole thread should be summarized
+  assert_messages_summarized(mc, thread1);
+
+  // - add a new message, make sure it's in the summary now.
+  let [thread1Extra] = make_new_sets_in_folders(
+                         [folder], [{count: 1, inReplyTo: thread1}]);
+  let thread1All = thread1.union(thread1Extra);
+  assert_selected(thread1Root);
+  assert_messages_summarized(mc, thread1All);
 }

@@ -85,6 +85,41 @@ SyntheticMessageSet.prototype = {
     aFolder.addMessage(this.synMessages[aMessageIndex].toMboxString());
   },
   /**
+   * Union this set with another set and return the (new) result.
+   *
+   * @param aOtherSet The other synthetic message set.
+   * @returns a new SyntheticMessageSet containing the union of this set and
+   *     the other set.
+   */
+  union: function(aOtherSet) {
+    let messages = this.synMessages.concat(aOtherSet.synMessages);
+    let folders = this.msgFolders.concat();
+    let indices = this.folderIndices.concat();
+
+    let folderUrisToIndices = {};
+    for each (let [iFolder, folder] in Iterator(this.msgFolders)) {
+      folderUrisToIndices[folder.URI] = iFolder;
+    }
+
+    for (let iOther = 0; iOther < aOtherSet.synMessages.length; iOther++) {
+      let folderIndex = aOtherSet.folderIndices[iOther];
+      if (folderIndex == null) {
+        indices.push(folderIndex);
+      }
+      else {
+        let folder = aOtherSet.msgFolders[folderIndex];
+        if (!(folder.URI in folderUrisToIndices)) {
+          folderUrisToIndices[folder.URI] = folders.length;
+          folders.push(folder);
+        }
+        indices.push(folderUrisToIndices[folder.URI]);
+      }
+    }
+
+    return new SyntheticMessageSet(messages, folders, indices);
+  },
+
+  /**
    * @return a JS list of the message headers for all messages inserted into a
    *     folder.
    */

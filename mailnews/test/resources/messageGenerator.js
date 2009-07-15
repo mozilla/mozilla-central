@@ -756,7 +756,8 @@ MessageGenerator.prototype = {
    *         resulting message.
    *     inReplyTo: the SyntheticMessage this message should be in reply-to.
    *         If that message was in reply to another message, we will
-   *         appropriately compensate for that.
+   *         appropriately compensate for that.  If a SyntheticMessageSet is
+   *         provided we will use the first message in the set.
    *     replyAll: a boolean indicating whether this should be a reply-to-all or
    *         just to the author of the message.  (er, to-only, not cc.)
    *     subject: The subject to use; you are responsible for doing any encoding
@@ -769,10 +770,14 @@ MessageGenerator.prototype = {
     let msg = new SyntheticMessage();
 
     if (aArgs.inReplyTo) {
-      msg.parent = aArgs.inReplyTo;
-      msg.parent.children.push(msg);
+      // If inReplyTo is a SyntheticMessageSet, just use the first message in
+      //  the set because the caller may be using them.
+      let srcMsg = aArgs.inReplyTo.synMessages ?
+                     aArgs.inReplyTo.synMessages[0] :
+                     aArgs.inReplyTo;
 
-      let srcMsg = aArgs.inReplyTo;
+      msg.parent = srcMsg;
+      msg.parent.children.push(msg);
 
       msg.subject = (srcMsg.subject.substring(0, 4) == "Re: ") ? srcMsg.subject
                     : ("Re: " + srcMsg.subject);
@@ -844,7 +849,8 @@ MessageGenerator.prototype = {
   MAKE_MESSAGES_DEFAULTS: {
     count: 10,
   },
-  MAKE_MESSAGES_PROPAGATE: ['attachments', 'body', 'cc', 'from', 'subject', 'to'],
+  MAKE_MESSAGES_PROPAGATE: ['attachments', 'body', 'cc', 'from', 'inReplyTo',
+                            'subject', 'to'],
   /**
    * Given a set definition, produce a list of synthetic messages.
    *
@@ -855,7 +861,7 @@ MessageGenerator.prototype = {
    *      dictionary (assuming a value of zero if omitted).
    *
    * Also supported are the following attributes as defined by makeMessage:
-   *  attachments, body, from, subject, to
+   *  attachments, body, from, inReplyTo, subject, to
    *
    * If omitted, the following defaults are used:
    *  count: 10

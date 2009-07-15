@@ -618,6 +618,8 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
       PRUint32 threadFlags;
       PRBool moveThread = PR_FALSE;
       nsMsgViewIndex threadIndex = ThreadIndexOfMsg(newKey, nsMsgViewIndex_None, &threadCount, &threadFlags);
+      PRBool threadRootIsDisplayed = PR_FALSE;
+
       nsCOMPtr <nsIMsgThread> threadHdr;
       m_db->GetThreadContainingMsgHdr(newHdr, getter_AddRefs(threadHdr));
       if (threadHdr && m_sortType == nsMsgViewSortType::byDate)
@@ -629,6 +631,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
       }
       if (threadIndex != nsMsgViewIndex_None)
       {
+        threadRootIsDisplayed = (m_currentlyDisplayedViewIndex == threadIndex);
         PRUint32 flags = m_flags[threadIndex];
         if (!(flags & MSG_VIEW_FLAG_HASCHILDREN))
         {
@@ -674,15 +677,21 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
           // top of thread, change the keys array.
           m_keys[threadIndex] = newKey;
         }
+
+        // If this message is new, the thread is collapsed, it is the
+        // root and it was displayed, expand it so that the user does
+        // not find that their message has magically turned into a summary.
+        if (msgFlags & nsMsgMessageFlags::New &&
+            m_flags[threadIndex] & nsMsgMessageFlags::Elided &&
+            threadRootIsDisplayed)
+          ExpandByIndex(threadIndex, nsnull);
+
         if (moveThread)
           MoveThreadAt(threadIndex);
         else
         // note change, to update the parent thread's unread and total counts
           NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
-        // if this message is new, and the thread is collapsed, expand it.
-        if (msgFlags & nsMsgMessageFlags::New &&
-            m_flags[threadIndex] & nsMsgMessageFlags::Elided)
-          ExpandByIndex(threadIndex, nsnull);
+
       }
       else // adding msg to thread that's not in view.
       {
