@@ -1920,11 +1920,19 @@ let mailTabType = {
         message: true,
         glodaFacets: false,
       },
-      desiredColumns: {
-        flaggedCol: true,
-        subjectCol: true,
-        senderCol: true,
-        dateCol: true,
+      desiredColumnStates: {
+        flaggedCol: {
+          visible: true,
+        },
+        subjectCol: {
+          visible: true,
+        },
+        senderCol: {
+          visible: true,
+        },
+        dateCol: {
+          visible: true,
+        },
       },
       /**
        * Open a new tab whose view is backed by a gloda search.
@@ -1956,7 +1964,7 @@ let mailTabType = {
 
         this.openTab(aTab, false, new MessagePaneDisplayWidget());
         aTab.folderDisplay.show(aTab.glodaSynView);
-        aTab.folderDisplay.setVisibleColumns(aTab.mode.desiredColumns);
+        aTab.folderDisplay.setColumnStates(aTab.mode.desiredColumnStates);
         aTab.folderDisplay.makeActive();
       },
     },

@@ -689,13 +689,19 @@ function UnloadPanes()
   UnloadCommandUpdateHandlers();
 }
 
-// builds prior to 12-08-2001 did not have the labels column
-// in the thread pane.  so if a user ran an old build, and then
-// upgraded, they get the new column, and this causes problems.
-// We're trying to avoid a similar problem to bug #96979.
-// to work around this, we hide the column once, using the
-// "mailnews.ui.threadpane.version" pref.
-function UpgradeThreadPaneUI()
+/**
+ * Abuse the threadpane UI version preference to know whether we should mark all
+ * IMAP folders as offline.
+ *
+ * Very important note!  Although I am writing this comment and renamed the
+ * function, this is not my doing and by reading this function and not fixing it
+ * yourself, you are just as guilty as me, which is not guilty at all, but
+ * it certainly won't improve your karma.
+ *
+ * This used to do things related to updating the visible columns and reordering
+ * them, but that is now handled by FolderDisplayWidget.
+ */
+function UpgradeProfileAndBeUglyAboutIt()
 {
   var threadPaneUIVersion;
 
@@ -722,60 +728,34 @@ function UpgradeThreadPaneUI()
           folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
       }
 
-      // Note: threadTree._reorderColumn will throw an ERROR if the columns specified are already in the same order!
-      if (threadPaneUIVersion < 6)
-      {
-        var threadTree = document.getElementById("threadTree");
-        var dateCol = document.getElementById("dateCol");
-        var receivedCol = document.getElementById("receivedCol");
-        var junkCol = document.getElementById("junkStatusCol");
-
-        if (threadPaneUIVersion < 5)
-        {
-          if (threadPaneUIVersion < 4)
-          {
-            if (threadPaneUIVersion < 3)
-            {
-
-              // in thunderbird, we are inserting the junk column just before the
-              // date column.
-              threadTree._reorderColumn(junkCol, dateCol, true);
-            }
-
-            var senderCol = document.getElementById("senderCol");
-            var recipientCol = document.getElementById("recipientCol");
-            threadTree._reorderColumn(recipientCol, junkCol, true);
-            threadTree._reorderColumn(senderCol, recipientCol, true);
-
-          } // version 4 upgrades
-
-          // version 5 adds a new column called attachments
-          var attachmentCol = document.getElementById("attachmentCol");
-          var subjectCol = document.getElementById("subjectCol");
-
-          threadTree._reorderColumn(attachmentCol, subjectCol, true);
-
-        } // version 5 upgrades
-
-        if (dateCol)
-          threadTree._reorderColumn(receivedCol, dateCol, true);
-        else
-          threadTree._reorderColumn(receivedCol, junkCol, false);
-
-      } // version 6 upgrades
-
       gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 7);
 
     } // version 7 upgrades
   }
   catch (ex) {
-    dump("UpgradeThreadPane: ex = " + ex + "\n");
+    Components.utils.reportError(ex);
   }
 }
 
 function OnLoadThreadPane()
 {
-  UpgradeThreadPaneUI();
+  // Register a listener on the columns element so that we get a notification
+  //  whenever attributes on the columns change.  Because of the XBL bindings
+  //  I think we also get the column picker too, but our filtering to only the
+  //  attributes we care about takes care of that.
+  document.getElementById("threadCols").addEventListener(
+    "DOMAttrModified",
+    function(aEvent) {
+      // we only care about hidden status and ordinal
+      if (aEvent.attrName != "hidden" &&
+          aEvent.attrName != "ordinal")
+        return;
+      if (gFolderDisplay)
+        gFolderDisplay.hintColumnsChanged();
+    },
+    true);
+
+  UpgradeProfileAndBeUglyAboutIt();
 }
 
 /* Functions for accessing particular parts of the window*/

@@ -436,11 +436,27 @@ IDBViewWrapperListener.prototype = {
   },
 
   /**
+   * Generated when we are loading information about the folder from its
+   *  dbFolderInfo.  The dbFolderInfo object is passed in.
+   * The DBViewWrapper has already restored its state when this function is
+   *  called, but has not yet created the dbView.  A view update is in process,
+   *  so the view settings can be changed and will take effect when the update
+   *  is closed.
+   * |onDisplayingFolder| is the next expected notification following this
+   *  notification.
+   */
+  onLoadingFolder: function(aDbFolderInfo) {
+  },
+
+  /**
    * Generated when the folder is being entered for display.  This is the chance
    *  for the listener to affect any UI-related changes to the folder required.
    *  Currently, this just means setting the header cache size (which needs to
    *  be proportional to the number of lines in the tree view, and is thus a
    *  UI issue.)
+   * The dbView has already been created and is valid when this function is
+   *  called.
+   * |onLoadingFolder| is called before this notification.
    */
   onDisplayingFolder: function() {
   },
@@ -1007,6 +1023,8 @@ DBViewWrapper.prototype = {
           this.setMailView(mailViewIndex);
       }
     }
+
+    this.listener.onLoadingFolder(dbFolderInfo);
   },
 
   /**

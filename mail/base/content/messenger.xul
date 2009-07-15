@@ -280,76 +280,76 @@
                           onselect="ThreadPaneSelectionChanged();"
                           >
                       <treecols id="threadCols" pickertooltiptext="&columnChooser.tooltip;">
-                        <treecol id="threadCol" persist="hidden ordinal" fixed="true" cycler="true"
+                        <treecol id="threadCol" fixed="true" cycler="true"
                                  class="treecol-image threadColumnHeader" currentView="unthreaded"
                                  label="&threadColumn.label;" tooltiptext="&threadColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="attachmentCol" persist="hidden ordinal" fixed="true"
-                                 class="treecol-image attachmentColumnHeader"
-                                 label="&attachmentColumn.label;" tooltiptext="&attachmentColumn.tooltip;"/>
-                        <splitter class="tree-splitter"/>
-                        <treecol id="flaggedCol" persist="hidden ordinal" fixed="true" cycler="true"
+                        <treecol id="flaggedCol" fixed="true" cycler="true"
                                  class="treecol-image flagColumnHeader"
                                  label="&starredColumn.label;" tooltiptext="&starredColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="subjectCol" persist="hidden ordinal width" flex="7" ignoreincolumnpicker="true"
+                        <treecol id="attachmentCol" fixed="true"
+                                 class="treecol-image attachmentColumnHeader"
+                                 label="&attachmentColumn.label;" tooltiptext="&attachmentColumn.tooltip;"/>
+                        <splitter class="tree-splitter"/>
+                        <treecol id="subjectCol" persist="width" flex="7" ignoreincolumnpicker="true"
                                  label="&subjectColumn.label;" tooltiptext="&subjectColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="unreadButtonColHeader" persist="hidden ordinal" fixed="true" cycler="true"
+                        <treecol id="unreadButtonColHeader" fixed="true" cycler="true"
                                  class="treecol-image readColumnHeader"
                                  label="&readColumn.label;" tooltiptext="&readColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="senderCol" persist="hidden swappedhidden ordinal width" flex="4"
+                        <treecol id="senderCol" persist="width" flex="4"
                                  hidden="false" swappedhidden="true"
                                  label="&fromColumn.label;" tooltiptext="&fromColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="recipientCol" persist="hidden swappedhidden ordinal width" flex="4"
+                        <treecol id="recipientCol" persist="width" flex="4"
                                  hidden="true" swappedhidden="false"
                                  label="&recipientColumn.label;" tooltiptext="&recipientColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="junkStatusCol" persist="hidden ordinal width" fixed="true" cycler="true"
+                        <treecol id="junkStatusCol" persist="width" fixed="true" cycler="true"
                                  class="treecol-image junkStatusHeader"
                                  label="&junkStatusColumn.label;" tooltiptext="&junkStatusColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="receivedCol" persist="hidden ordinal width temphidden" flex="2" hidden="true"
+                        <treecol id="receivedCol" persist="width temphidden" flex="2" hidden="true"
                                  label="&receivedColumn.label;" tooltiptext="&receivedColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="dateCol" persist="hidden ordinal width" flex="2" 
+                        <treecol id="dateCol" persist="width" flex="2"
                                  label="&dateColumn.label;" tooltiptext="&dateColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="statusCol" persist="hidden ordinal width" flex="1" hidden="true"
+                        <treecol id="statusCol" persist="width" flex="1" hidden="true"
                                  label="&statusColumn.label;" tooltiptext="&statusColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="sizeCol" persist="hidden ordinal width" flex="1" hidden="true"
+                        <treecol id="sizeCol" persist="width" flex="1" hidden="true"
                                  label="&sizeColumn.label;" tooltiptext="&sizeColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="tagsCol" persist="hidden ordinal width" flex="1" hidden="true"
+                        <treecol id="tagsCol" persist="width" flex="1" hidden="true"
                                  label="&tagsColumn.label;" tooltiptext="&tagsColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="accountCol" persist="hidden ordinal width" flex="1" hidden="true"
+                        <treecol id="accountCol" persist="width" flex="1" hidden="true"
                                  label="&accountColumn.label;" tooltiptext="&accountColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="priorityCol" persist="hidden ordinal width" flex="1" hidden="true"
+                        <treecol id="priorityCol" persist="width" flex="1" hidden="true"
                                  label="&priorityColumn.label;" tooltiptext="&priorityColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="unreadCol" persist="hidden ordinal width" flex="1" hidden="true"
+                        <treecol id="unreadCol" persist="width" flex="1" hidden="true"
                                  label="&unreadColumn.label;" tooltiptext="&unreadColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="totalCol" persist="hidden ordinal width" flex="1" hidden="true"
+                        <treecol id="totalCol" persist="width" flex="1" hidden="true"
                                  label="&totalColumn.label;" tooltiptext="&totalColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="locationCol" persist="width" flex="1" hidden="true" ignoreincolumnpicker="true"
+                        <treecol id="locationCol" persist="width" flex="1" hidden="true"
                                  label="&locationColumn.label;" tooltiptext="&locationColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="idCol" persist="hidden ordinal width" flex="1" hidden="true"
+                        <treecol id="idCol" persist="width" flex="1" hidden="true"
                                  label="&idColumn.label;" tooltiptext="&idColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="glodaWhyCol" persist="ordinal width" flex="1"
+                        <treecol id="glodaWhyCol" persist="width" flex="1"
                                  hidden="true" ignoreincolumnpicker="true"
                                  label="&glodaWhyColumn.label;"
                                  tooltiptext="&glodaWhyColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
-                        <treecol id="glodaScoreCol" persist="ordinal width" flex="1"
+                        <treecol id="glodaScoreCol" persist="width" flex="1"
                                  hidden="true" ignoreincolumnpicker="true"
                                  label="&glodaScoreColumn.label;"
                                  tooltiptext="&glodaScoreColumn.tooltip;"/>

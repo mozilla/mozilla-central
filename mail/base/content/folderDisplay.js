@@ -286,23 +286,35 @@ FolderDisplayWidget.prototype = {
   //@{
 
   /**
-   * Maps column ids to functions that test whether the column is legal for
-   *  display for the folder.  Each function should expect a DBViewWrapper
+   * The set of potential default columns in their default display order.  Each
+   *  column in this list is checked against |COLUMN_DEFAULT_TESTERS| to see if
+   *  it is actually an appropriate default for the folder type.
+   */
+  DEFAULT_COLUMNS: [
+    "threadCol",
+    "attachmentCol",
+    "flaggedCol",
+    "subjectCol",
+    "unreadButtonColHeader",
+    "senderCol", // incoming folders
+    "recipientCol", // outgoing folders
+    "junkStatusCol",
+    "dateCol",
+    "locationCol", // multiple-folder backed folders
+  ],
+
+  /**
+   * Maps column ids to functions that test whether the column is a good default
+   *  for display for the folder.  Each function should expect a DBViewWrapper
    *  instance as its argument.  The intent is that the various helper
    *  properties like isMailFolder/isIncomingFolder/isOutgoingFolder allow the
    *  constraint to be expressed concisely.  If a helper does not exist, add
    *  one! (If doing so is out of reach, than access viewWrapper.displayedFolder
    *  to get at the nsIMsgFolder.)
-   * If a column does not have a function, it is assumed to be legal for display
-   *  in all cases.
+   * If a column does not have a function, it is assumed that it should be
+   *  displayed by default.
    */
-  COLUMN_LEGALITY_TESTERS: {
-    // Only show 'Received' column for e-mails.  For newsgroup messages, the
-    // 'Date' header is as reliable as an e-mail's 'Received' header, as it is
-    // replaced with the news server's (more reliable) date.
-    receivedCol: function (viewWrapper) {
-      return viewWrapper.isMailFolder && !viewWrapper.isOutgoingFolder;
-    },
+  COLUMN_DEFAULT_TESTERS: {
     // senderCol = From.  You only care in incoming folders.
     senderCol: function (viewWrapper) {
       return viewWrapper.isIncomingFolder;
@@ -315,151 +327,257 @@ FolderDisplayWidget.prototype = {
     locationCol: function(viewWrapper) {
       return !viewWrapper.isSingleFolder;
     },
+    // core UI does not provide an ability to mark newsgroup messages as spam
+    junkStatusCol: function(viewWrapper) {
+      return !viewWrapper.isNewsFolder;
+    },
   },
 
   /**
-   * If we determine that a column is illegal but was displayed, use this
-   *  mapping to find suggested legal alternatives.  This basically exists
-   *  just to flip-flop between senderCol and recipientCol.
+   * The property name we use to store the column states on the
+   *  dbFolderInfo.
    */
-  COLUMN_LEGAL_ALTERNATIVES: {
-    // swap between sender and recipient
-    senderCol: ["recipientCol"],
-    recipientCol: ["senderCol"],
-    // if we nuke received, put back date...
-    receivedCol: ["dateCol"],
+  PERSISTED_COLUMN_PROPERTY_NAME: "columnStates",
+
+  /**
+   * Given a dbFolderInfo, extract the persisted state from it if there is any.
+   *
+   * @return null if there was no persisted state, the persisted state in object
+   *     form otherwise.  (Ideally the state conforms to the documentation on
+   *     |_savedColumnStates| but we can't stop people from doing bad things.)
+   */
+  _depersistColumnStatesFromDbFolderInfo:
+      function FolderDisplayWidget__depersistColumnStatesFromDBFolderInfo(
+        aDbFolderInfo) {
+    let columnJsonString =
+      aDbFolderInfo.getCharProperty(this.PERSISTED_COLUMN_PROPERTY_NAME);
+    if (!columnJsonString)
+      return null;
+
+    return JSON.parse(columnJsonString);
   },
 
   /**
-   * Columns to display whenever we can.  This is currently a bit of a hack to
-   *  always show the location column when relevant.  Arguably, it would be
-   *  better to use this as a default for a folder you've never been in and
-   *  the rest of the time we restore the last column set for that folder from
-   *  properties.
+   * Persist the column state for the currently displayed folder.  We are
+   *  assuming that the message database is already open when we are called and
+   *  therefore that we do not need to worry about cleaning up after the message
+   *  database.
+   * The caller should only call this when they have reason to suspect that the
+   *  column state has been changed.  This could be because there was no
+   *  persisted state so we figured out a default one and want to save it.
+   *  Otherwise this should be because the user explicitly changed up the column
+   *  configurations.  You should not call this willy-nilly.
+   *
+   * @param aState State to persist.
    */
-  COLUMNS_DISPLAY_WHEN_POSSIBLE: ["locationCol"],
-
-  /**
-   * Update the displayed columns so that:
-   * - Only legal columns (per COLUMN_LEGALITY_TESTERS) are displayed.
-   * - Alternatives to now-illegal columns may be displayed.
-   */
-  updateColumns: function() {
-    // Keep a list of columns we might want to make show up if they are not
-    //  illegal.
-    let legalize = this.COLUMNS_DISPLAY_WHEN_POSSIBLE.concat();
-
-    // figure out who is illegal and make them go away
-    for (let [colId, legalityFunc] in Iterator(this.COLUMN_LEGALITY_TESTERS)) {
-      let column = document.getElementById(colId);
-      // The search window does not have all the columns we know about, bail in
-      //  such cases.
-      if (!column)
-        continue;
-      let legal = legalityFunc(this.view);
-
-      if (!legal) {
-        let isHidden = column.getAttribute("hidden") == "true";
-        // If it wasn't hidden, consider making its alternatives visible in the
-        //  next pass.
-        if (!isHidden && (colId in this.COLUMN_LEGAL_ALTERNATIVES))
-          legalize = legalize.concat(this.COLUMN_LEGAL_ALTERNATIVES[colId]);
-        // but definitely hide the heck out of it right now
-        column.setAttribute("hidden", true);
-        column.setAttribute("ignoreincolumnpicker", true);
-      }
-      else {
-        column.removeAttribute("ignoreincolumnpicker");
-      }
-    }
-    // If we have any columns we should consider making visible because they are
-    //  alternatives to columns that became illegal, uh, do that.
-    for each (let [, colId] in Iterator(legalize)) {
-      let column = document.getElementById(colId);
-      let isLegal = column.getAttribute("ignoreincolumnpicker") != "true";
-      let isHidden = column.getAttribute("hidden") == "true";
-      if (isLegal && isHidden)
-        column.removeAttribute("hidden");
-    }
+  _persistColumnStates: function FolderDisplayWidget__persistColumnStates(aState) {
+    if (!this.view.displayedFolder || !this.view.displayedFolder.msgDatabase)
+      return;
+    let msgDatabase = this.view.displayedFolder.msgDatabase;
+    let dbFolderInfo = msgDatabase.dBFolderInfo;
+    dbFolderInfo.setCharProperty(this.PERSISTED_COLUMN_PROPERTY_NAME,
+                                 JSON.stringify(aState));
+    msgDatabase.Commit(Components.interfaces.nsMsgDBCommitType.kSmallCommit);
   },
 
   /**
-   * @param aColumnMap an object where the attribute names are column ids and
-   *     the values are a boolean indicating whether the column should be
-   *     visible or not.  If a column is not in the map, it is assumed that it
-   *     should be hidden.
+   * Track whether we know the columns are dirty.  If we know they are dirty we
+   *  have kicked off a timer event that will persist things.
    */
-  setVisibleColumns: function(aColumnMap) {
-    let cols = document.getElementById("threadCols");
-    let colChildren = cols.children;
+  _columnsDirty: false,
 
-    // because the splitter correspondence can be confusing and tricky, let's
-    //  build a list of the nodes ordered by their ordinal
-    let ordinalOrdered = [], iKid;
-    for (iKid = 0; iKid < colChildren.length; iKid++)
-      ordinalOrdered.push(null);
-
-    for (iKid = 0; iKid < colChildren.length; iKid++) {
-      let colChild = colChildren[iKid];
-      let ordinal = colChild.getAttribute("ordinal") - 1;
-      ordinalOrdered[ordinal] = colChild;
-    }
-
-    function twiddleAround(index, makeHidden) {
-      if (index + 1 < ordinalOrdered.length) {
-        let nexty = ordinalOrdered[index+1];
-        if (nexty) {
-          let isHidden = nexty.getAttribute("hidden") == "true";
-          if (isHidden != makeHidden) {
-            nexty.setAttribute("hidden", true);
-            return;
-          }
-        }
-      }
-      if (index - 1 > 0) {
-        let prevy = ordinalOrdered[index-1];
-        if (prevy) {
-          let isHidden = prevy.getAttribute("hidden") == "true";
-          if (isHidden != makeHidden) {
-            prevy.setAttribute("hidden", true);
-            return;
-          }
-        }
-      }
-    }
-
-    for (iKid = 0; iKid < ordinalOrdered.length; iKid++) {
-      let colChild = ordinalOrdered[iKid];
-      if (colChild == null)
-        continue;
-
-      if (colChild.tagName == "treecol") {
-        if (colChild.id in aColumnMap) {
-          // only need to do something if currently hidden
-          if (colChild.getAttribute("hidden") == "true") {
-            colChild.removeAttribute("hidden");
-            twiddleAround(iKid, false);
-          }
-        }
-        else {
-          // only need to do something if currently visible
-          if (colChild.getAttribute("hidden") != "true") {
-            colChild.setAttribute("hidden", true);
-            twiddleAround(iKid, true);
-          }
-        }
-      }
-    }
+  /**
+   * Let us know that the state of the columns has changed.  This is either due
+   *  to a re-ordering or hidden-ness being toggled.
+   *
+   * This method should only be called on (the active) gFolderDisplay.
+   */
+  hintColumnsChanged: function FolderDisplayWidget_hintColumnsChanged() {
+    // ignore this if we are the ones doing things or we already are handling it
+    if (this._touchingColumns || this._columnsDirty)
+      return;
+    this._columnsDirty = true;
+    let dis = this;
+    // Since DOM manipulations come in batches, use a timer so that we persist
+    //  things after the DOM manipulating code has finished its business.
+    window.setTimeout(function () {
+                        dis._persistColumnStates(dis.getColumnStates());
+                        dis._columnsDirty = false;
+                      },
+                      0);
   },
 
+  /**
+   * Either inherit the column state of another folder or use heuristics to
+   *  figure out the best column state for the current folder.
+   */
+  _getDefaultColumnsForCurrentFolder:
+      function FolderDisplayWidget__getDefaultColumnsForCurrentFolder() {
+    const InboxFlag = Components.interfaces.nsMsgFolderFlags.Inbox;
+
+    // do not inherit from the inbox if:
+    // - It's an outgoing folder; these have a different use-case and there
+    //    should be a small number of these, so it's okay to have no defaults.
+    // - It's a virtual folder (single or multi-folder backed).  Who knows what
+    //    the intent of the user is in this case.  This should also be bounded
+    //    in number and our default heuristics should be pretty good.
+    // - News folders.  There is no inbox so there's nothing to inherit from.
+    //    (Although we could try and see if they have opened any other news
+    //    folders in the same account.  But it's not all that important to us.)
+    // - It's an inbox!
+    let doNotInherit =
+      this.view.isOutgoingFolder ||
+      this.view.isVirtual ||
+      this.view.isNewsFolder ||
+      this.displayedFolder.flags & InboxFlag;
+
+    // Try and grab the inbox for this account's settings.  we may not be able
+    //  to, in which case we just won't inherit.  (It ends up the same since the
+    //  inbox is obviously not customized in this case.)
+    if (!doNotInherit) {
+      let inboxFolder =
+        this.displayedFolder.rootFolder.getFolderWithFlags(InboxFlag);
+      if (inboxFolder) {
+        let state = this._depersistColumnStatesFromDbFolderInfo(
+                      inboxFolder.msgDatabase.dBFolderInfo);
+        // inbox message databases don't get closed as a matter of policy.
+
+        if (state)
+          return state;
+      }
+    }
+
+    // if we are still here, use the defaults and helper functions
+    let state = {};
+    for (let [, colId] in Iterator(this.DEFAULT_COLUMNS)) {
+      let shouldShowColumn = true;
+      if (colId in this.COLUMN_DEFAULT_TESTERS) {
+        // This is potentially going to be used by extensions; avoid them
+        //  killing us.
+        try {
+          shouldShowColumn = this.COLUMN_DEFAULT_TESTERS[colId](this.view);
+        }
+        catch (ex) {
+          shouldShowColumn = false;
+          Components.utils.reportError(ex);
+        }
+      }
+      state[colId] = {visible: shouldShowColumn};
+    }
+    return state;
+  },
+
+  /**
+   * Is setColumnStates messing with the columns' DOM?  This is used by
+   *  hintColumnsChanged to avoid wasteful state persistence.
+   */
+  _touchingColumns: false,
+
+  /**
+   * Set the column states of this FolderDisplay to the provided state.
+   *
+   * @param aColumnStates an object of the form described on
+   *     |_savedColumnStates|.  If ordinal attributes are omitted then no
+   *     re-ordering will be performed.  This is intentional, but potentially a
+   *     bad idea.  (Right now only gloda search underspecifies ordinals.)
+   * @param [aPersistChanges=false] Should we persist the changes to the view?
+   *     This only has an effect if we are active.
+   *
+   * @public
+   */
+  setColumnStates: function(aColumnStates, aPersistChanges) {
+    // If we are not active, just overwrite our current state with the provided
+    //  state and bail.
+    if (!this._active) {
+      this._savedColumnStates = aColumnStates;
+      return;
+    }
+
+    this._touchingColumns = true;
+
+    try {
+      let cols = document.getElementById("threadCols");
+      let colChildren = cols.children;
+
+      for (let iKid = 0; iKid < colChildren.length; iKid++) {
+        let colChild = colChildren[iKid];
+        if (colChild == null)
+          continue;
+
+        // We only care about treecols.  The splitters do not need to be marked
+        //  hidden or un-hidden.
+        if (colChild.tagName == "treecol") {
+          // if it doesn't have preserved state it should be hidden
+          let shouldBeHidden = true;
+          // restore state
+          if (colChild.id in aColumnStates) {
+            let colState = aColumnStates[colChild.id];
+            if ("visible" in colState)
+              shouldBeHidden = !colState.visible;
+            if (("ordinal" in colState) &&
+                colChild.getAttribute("ordinal") != colState.ordinal)
+              colChild.setAttribute("ordinal", colState.ordinal);
+          }
+          let isHidden = colChild.getAttribute("hidden") == "true";
+          if (isHidden != shouldBeHidden) {
+            if (shouldBeHidden)
+              colChild.setAttribute("hidden", "true");
+            else
+              colChild.removeAttribute("hidden");
+          }
+        }
+      }
+    }
+    finally {
+      this._touchingColumns = false;
+    }
+
+    if (aPersistChanges)
+      this.hintColumnsChanged();
+  },
+
+  /**
+   * A dictionary that maps column ids to dictionaries where each dictionary
+   *  has the following fields:
+   * - visible: Is the column visible.
+   * - ordinal: The 1-based XUL 'ordinal' value assigned to the column.  This
+   *    corresponds to the position but is not something you want to manipulate.
+   *    See the documentation in _saveColumnStates for more information.
+   */
   _savedColumnStates: null,
 
   /**
-   * For now, just save the visible columns into a dictionary for use in a
-   *  subsequent call to setVisibleColumns.  This does not do anything about
-   *  re-arranging columns.
+   * Return a dictionary in the form of |_savedColumnStates| representing the
+   *  current column states.
+   *
+   * @public
    */
-  saveColumnStates: function() {
+  getColumnStates: function FolderDisplayWidget_getColumnStates() {
+    if (!this._active)
+      return this._savedColumnStates;
+
+    let columnStates = {};
+
+    let cols = document.getElementById("threadCols");
+    let colChildren = cols.children;
+    for (let iKid = 0; iKid < colChildren.length; iKid++) {
+      let colChild = colChildren[iKid];
+      if (colChild.tagName != "treecol")
+        continue;
+      columnStates[colChild.id] = {
+        visible: colChild.getAttribute("hidden") != "true",
+        ordinal: colChild.getAttribute("ordinal"),
+      };
+    }
+
+    return columnStates;
+  },
+
+  /**
+   * For now, just save the visible columns into a dictionary for use in a
+   *  subsequent call to |setColumnStates|.
+   */
+  _saveColumnStates: function FolderDisplayWidget__saveColumnStates() {
     // In the actual nsITreeColumn, the index property indicates the column
     //  number.  This column number is a 0-based index with no gaps; it only
     //  increments the number each time it sees a column.
@@ -478,31 +596,18 @@ FolderDisplayWidget.prototype = {
     //  at the edges.
     // Changes to the ordinal attribute should take immediate effect in terms of
     //  sibling relationship, but will merely invalidate the columns rather than
-    //  cause a re-computaiton of column relationships every time.
+    //  cause a re-computation of column relationships every time.
     // restoreNaturalOrder invalidates the tree when it is done re-ordering; I'm
     //  not sure that's entirely necessary...
-
-    let visibleMap = {};
-
-    let cols = document.getElementById("threadCols");
-    let colChildren = cols.children;
-    for (let iKid = 0; iKid < colChildren.length; iKid++) {
-      let colChild = colChildren[iKid];
-      if (colChild.getAttribute("hidden") != "true")
-        visibleMap[colChild.id] = true;
-    }
-
-    this._savedColumnStates = visibleMap;
+    this._savedColumnStates = this.getColumnStates();
   },
 
   /**
-   * Restores the visible columns saved by saveColumnStates.  Some day, in the
-   *  future we might do something about positions and the like.  But we don't
-   *  currently.
+   * Restores the visible columns saved by |_saveColumnStates|.
    */
-  restoreColumnStates: function () {
+  _restoreColumnStates: function FolderDisplayWidget__restoreColumnStates() {
     if (this._savedColumnStates) {
-      this.setVisibleColumns(this._savedColumnStates);
+      this.setColumnStates(this._savedColumnStates);
       this._savedColumnStates = null;
     }
   },
@@ -744,13 +849,35 @@ FolderDisplayWidget.prototype = {
     // and the message display needs to forget
     this.messageDisplay.onDestroyingView(aFolderIsComingBack);
   },
+
   /**
-   * We are entering the folder for display, set the header cache size.
+   * Restore persisted information about what columns to display for the folder.
+   *  If we have no persisted information, we leave/set _savedColumnStates null.
+   *  The column states will be set to default values in onDisplayingFolder in
+   *  that case.
+   */
+  onLoadingFolder: function FolderDisplayWidget_onLoadingFolder(aDbFolderInfo) {
+    this._savedColumnStates =
+      this._depersistColumnStatesFromDbFolderInfo(aDbFolderInfo);
+  },
+
+  /**
+   * We are entering the folder for display:
+   * - set the header cache size.
+   * - Setup the columns if we did not already depersist in |onLoadingFolder|.
    */
   onDisplayingFolder: function FolderDisplayWidget_onDisplayingFolder() {
     let msgDatabase = this.view.displayedFolder.msgDatabase;
     if (msgDatabase) {
       msgDatabase.resetHdrCacheSize(this.PERF_HEADER_CACHE_SIZE);
+    }
+
+    // makeActive will restore the folder state
+    if (!this._savedColumnStates) {
+      // get the default for this folder
+      this._savedColumnStates = this._getDefaultColumnsForCurrentFolder();
+      // and save it so it doesn't wiggle if the inbox/prototype changes
+      this._persistColumnStates(this._savedColumnStates);
     }
 
     // the quick-search gets nuked when we show a new folder
@@ -1071,18 +1198,6 @@ FolderDisplayWidget.prototype = {
    */
   hintAboutToDeleteMessages:
       function FolderDisplayWidget_hintAboutToDeleteMessages() {
-    // If there is a right click going on, then the possibilities are:
-    // 1) The user right-clicked in the selection.  In this case, the selection
-    //    is maintained.  This holds true for one or multiple messages.
-    // 2) The user right-clicked outside the selection.  In this case, the
-    //    selection, but not the current index, reflects the single message
-    //    the user right-clicked on.
-    // We want to treat case #1 as if a right-click was not involved and we
-    //  want to ignore case #2 by bailing because our existing selection (or
-    //  lack thereof) we want maintained.
-//    if (gRightMouseButtonDown && gRightMouseButtonChangedSelection)
-//      return;
-
     // save the value, even if it is nsMsgViewIndex_None.
     this._nextViewIndexAfterDelete = this.view.dbView.msgToSelectAfterDelete;
   },
@@ -1154,7 +1269,6 @@ FolderDisplayWidget.prototype = {
   _updateThreadDisplay: function FolderDisplayWidget__updateThreadDisplay() {
     if (this.active) {
       if (this.view.dbView) {
-        this.updateColumns();
         UpdateSortIndicators(this.view.dbView.sortType,
                              this.view.dbView.sortOrder);
         SetNewsFolderColumns();
@@ -1301,8 +1415,6 @@ FolderDisplayWidget.prototype = {
           }
           if (this._savedFirstVisibleRow != null)
             this.treeBox.scrollToRow(this._savedFirstVisibleRow);
-
-          this.restoreColumnStates();
         }
 
         // restore the quick search widget
@@ -1319,6 +1431,10 @@ FolderDisplayWidget.prototype = {
           }
         }
       }
+
+      // Always restore the column state if we have persisted state.  We restore
+      //  state on folder entry, in which case we were probably not inactive.
+      this._restoreColumnStates();
 
       // the tab mode knows whether we are folder or message display, which
       //  impacts the legal modes
@@ -1370,7 +1486,17 @@ FolderDisplayWidget.prototype = {
    * Call this when the tab using us is being hidden.
    */
   makeInactive: function FolderDisplayWidget_makeInactive() {
+    // - things to do before we mark ourselves inactive (because they depend on
+    //   us being active)
+
+    // getColumnStates returns _savedColumnStates when we are inactive (and is
+    //  used by _saveColumnStates) so we must do this before marking inactive.
+    this._saveColumnStates();
+
+    // - mark us inactive
     this._active = false;
+
+    // - (everything after this point doesn't care that we are marked inactive)
     // save the folder pane's state always
     this.folderPaneCollapsed =
       document.getElementById("folderPaneBox").collapsed;
@@ -1380,7 +1506,6 @@ FolderDisplayWidget.prototype = {
         this._savedFirstVisibleRow = this.treeBox.getFirstVisibleRow();
 
       // save column states
-      this.saveColumnStates();
 
       // save the message pane's state only when it is potentially visible
       this.messagePaneCollapsed =

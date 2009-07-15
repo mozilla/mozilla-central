@@ -270,11 +270,12 @@ function searchOnLoad()
   gFolderDisplay.view.openSearchView();
   gFolderDisplay.makeActive();
 
-  gFolderDisplay.setVisibleColumns({subjectCol: true,
-                                    senderCol: true,
-                                    dateCol: true,
-                                    locationCol: true,
-                                    });
+  gFolderDisplay.setColumnStates({
+    subjectCol: { visible: true },
+    senderCol: { visible: true },
+    dateCol: { visible: true },
+    locationCol: { visible: true },
+  });
 
   if (window.arguments && window.arguments[0])
       selectFolder(window.arguments[0].folder);

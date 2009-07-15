@@ -129,6 +129,8 @@ function setupModule() {
   make_new_sets_in_folders = make_new_sets_in_folder =
     viewWrapperTestUtils.make_new_sets_in_folders;
   add_sets_to_folders = viewWrapperTestUtils.add_sets_to_folders;
+  create_virtual_folder = viewWrapperTestUtils.make_virtual_folder;
+
   viewWrapperTestUtils.Ci = Ci;
   viewWrapperTestUtils.Cu = Cu;
   viewWrapperTestUtils.Cc = Cc;
@@ -140,6 +142,7 @@ function setupModule() {
   windowHelper.augment_controller(mc);
 
   setupAccountStuff();
+  viewWrapperTestUtils.gLocalIncomingServer = gLocalIncomingServer;
 }
 
 /**
@@ -171,7 +174,8 @@ function setupAccountStuff() {
   // so we need to create it.
   gLocalInboxFolder = rootFolder.addSubfolder("Inbox");
   // a local inbox should have a Mail flag!
-  gLocalInboxFolder.setFlag(Components.interfaces.nsMsgFolderFlags.Mail);
+  gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
+  gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Inbox);
 
   // Force an initialization of the Inbox folder database.
   var folderName = gLocalInboxFolder.prettiestName;
@@ -200,6 +204,17 @@ function create_folder(aFolderName) {
 }
 
 /**
+ * Create a virtual folder by deferring to |make_virtual_folder| and making
+ *  sure to rebuild the folder tree afterwards.
+ */
+function create_virtual_folder() {
+  let folder = viewWrapperTestUtils.make_virtual_folder.apply(null, arguments);
+  mc.folderTreeView.mode = "all";
+  return folder;
+}
+
+
+/**
  * Create a thread with the specified number of messages in it.
  */
 function create_thread(aCount) {
@@ -211,11 +226,18 @@ function create_thread(aCount) {
  *  will leave the folder and come back if we have to.
  */
 function enter_folder(aFolder) {
+  // Drain the event queue prior to doing any work.  It's possible that there's
+  //  a pending setTimeout(0) that needs to get fired.
+  controller.sleep(0);
   // if we're already selected, go back to the root...
   if (mc.folderDisplay.displayedFolder == aFolder)
     enter_folder(aFolder.rootFolder);
 
   mc.folderTreeView.selectFolder(aFolder);
+  // XXX betrayal at startup involving the inbox can happen, so force the folder
+  //  to be shown in that case.
+  if (mc.folderDisplay.displayedFolder != aFolder)
+    mc.folderDisplay.show(aFolder);
   wait_for_all_messages_to_load();
   // and drain the event queue
   controller.sleep(0);
@@ -768,12 +790,6 @@ function press_enter(aController) {
 function wait_for_all_messages_to_load(aController) {
   if (aController === undefined)
     aController = mc;
-  if (aController.allMessagesLoaded) {
-    // even though we're taking the fast-path out, let's give the event loop a
-    //  chance to drain.
-    aController.sleep(0);
-    return;
-  }
   if(!controller.waitForEval('subject.allMessagesLoaded', NORMAL_TIMEOUT,
                               FAST_INTERVAL, aController.folderDisplay))
     throw new Error("Messages never finished loading.  Timed Out.");

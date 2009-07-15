@@ -319,9 +319,10 @@ SEARCH_TERM_MAP_HELPER = {
  *     SEARCH_TERM_MAP_HELPER and values should be strings to search for within
  *     those attribute things.
  * @param aBooleanAnd Should the search terms be and-ed together.
+ * @param [aName] Name to use.
  */
-function make_virtual_folder(aFolders, aSearchDef, aBooleanAnd) {
-  let name = "virt" + gNextUniqueFolderId++;
+function make_virtual_folder(aFolders, aSearchDef, aBooleanAnd, aName) {
+  let name = aName ? aName : "virt" + gNextUniqueFolderId++;
 
   let terms = [];
   let termCreator = Components.classes["@mozilla.org/messenger/searchSession;1"]

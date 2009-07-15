@@ -158,6 +158,15 @@ StandaloneFolderDisplayWidget.prototype = {
 
   _updateThreadDisplay: function () {},
 
+  // we don't care about columns.
+  setColumnStates: function () {},
+  getColumnStates: function () { return {}; },
+  _depersistColumnStateFromDbFolderInfo: function () { return {}; },
+  _getDefaultColumnsForCurrentFolder: function () { return {}; },
+  _persistColumnStates: function () {},
+  _saveColumnStates: function () {},
+  _restoreColumnStates: function() {},
+
   onMessageCountsChanged:
       function StandaloneFolderDisplayWidget_onMessageCountsChaned() {
     UpdateStatusMessageCounts();
