@@ -1505,8 +1505,6 @@ FolderDisplayWidget.prototype = {
       if (this.treeBox)
         this._savedFirstVisibleRow = this.treeBox.getFirstVisibleRow();
 
-      // save column states
-
       // save the message pane's state only when it is potentially visible
       this.messagePaneCollapsed =
         document.getElementById("messagepanebox").collapsed;
