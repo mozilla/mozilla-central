@@ -176,7 +176,7 @@ def do_hg_pull(dir, repository, hg, rev):
         fulldir = os.path.join(topsrcdir, dir)
         check_call_noisy([hg, 'clone'] + hgopts + [repository, fulldir])
     else:
-        cmd = [hg, 'pull', '-R', fulldir, '-r', 'tip' ] + hgopts
+        cmd = [hg, 'pull', '-R', fulldir] + hgopts
         if repository is not None:
             cmd.append(repository)
         check_call_noisy(cmd)
