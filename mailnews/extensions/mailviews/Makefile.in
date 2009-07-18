@@ -44,7 +44,7 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= mailview
 
-PARALLEL_DIRS	= public src resources/content
+PARALLEL_DIRS	= public src content
 
 ifndef MOZ_STATIC_MAIL_BUILD
 DIRS = build

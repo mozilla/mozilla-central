@@ -1,3 +1,3 @@
 messenger.jar:
-    content/messenger/am-mdn.xul                                     (resources/content/am-mdn.xul)
-    content/messenger/am-mdn.js                                      (resources/content/am-mdn.js)
+    content/messenger/am-mdn.xul                                     (content/am-mdn.xul)
+    content/messenger/am-mdn.js                                      (content/am-mdn.js)

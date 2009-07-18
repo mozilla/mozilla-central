@@ -53,7 +53,7 @@ endif
 include $(topsrcdir)/config/rules.mk
 
 libs::
-	$(INSTALL) $(srcdir)/resources/content/mdn.js $(DIST)/bin/defaults/pref
+	$(INSTALL) $(srcdir)/content/mdn.js $(DIST)/bin/defaults/pref
 
 install::
-	$(SYSINSTALL) $(IFLAGS1) $(srcdir)/resources/content/mdn.js $(DESTDIR)$(mozappdir)/defaults/pref
+	$(SYSINSTALL) $(IFLAGS1) $(srcdir)/content/mdn.js $(DESTDIR)$(mozappdir)/defaults/pref
