@@ -271,7 +271,7 @@ function setServer(uri)
    var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
-   gFilterTreeView.filterList = msgFolder.getFilterList(gFilterListMsgWindow);
+   gFilterTreeView.filterList = msgFolder.getEditableFilterList(gFilterListMsgWindow);
 
    // this will get the deferred to account root folder, if server is deferred
    msgFolder = msgFolder.server.rootMsgFolder;

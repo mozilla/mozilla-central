@@ -1808,19 +1808,13 @@ function MsgFilters(emailAddress, folder)
     var args;
     if (emailAddress)
     {
-      /* we have to do prefill filter so we are going to 
-         launch the filterEditor dialog
-         and prefill that with the emailAddress */
-         
-      var curFilterList = folder.getFilterList(msgWindow);
-      args = {filterList: curFilterList};
-      args.filterName = emailAddress;
+      // Prefill the filterEditor with the emailAddress.
+      args = {filterList: folder.getEditableFilterList(msgWindow), filterName: emailAddress};
       window.openDialog("chrome://messenger/content/FilterEditor.xul", "", 
                         "chrome, modal, resizable,centerscreen,dialog=yes", args);
 
-      /* if the user hits ok in the filterEditor dialog we set 
-         args.refresh=true there
-         we check this here in args to show filterList dialog */
+      // args.refresh is set to true in the filterEditor, if the user hits ok.
+      // We check this here in args to show the filterList dialog.
       if ("refresh" in args && args.refresh)
       {
          args = { refresh: true, folder: folder };
