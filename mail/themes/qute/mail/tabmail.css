@@ -71,15 +71,13 @@
   -moz-padding-start: 1px;
 }
 
-.tabmail-tab[busy] > .tab-image-middle > .tab-icon > .tab-icon-image {
+.tabmail-tab[busy] > .tab-image-middle > .tab-icon-image,
+.tabmail-tab[thinking] > .tab-image-middle > .tab-icon-image {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;
 }
 
-.tabmail-tab[thinking] > .tab-image-middle > .tab-icon > .tab-icon-image {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
-}
-
-.tabmail-tab[type="glodaSearch"] > .tab-image-middle > .tab-icon > .tab-icon-image {
+.tabmail-tab[type="glodaSearch"] > .tab-image-middle > .tab-icon-image {
   list-style-image: url("chrome://global/skin/icons/Search-glass.png");
 }
 
