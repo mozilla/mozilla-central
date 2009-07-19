@@ -105,7 +105,6 @@ AccountConfig.prototype =
   id : null, // just an internal string to refer to this. Do not show to user.
   source : 0, // who created the config. kSource*
   displayName : null,
-  displayShortName : null,
   // Array of Objects with properties varname (value without %), displayName, exampleValue
   inputFields : null,
   // Array of Strings - email address domains for which this config is applicable
@@ -208,8 +207,6 @@ function replaceVariables(account, realname, emailfull, password, otherVariables
   account.identity.emailAddress =
     _replaceVariable(account.identity.emailAddress, otherVariables);
   account.displayName = _replaceVariable(account.displayName, otherVariables);
-  account.displayShortName =
-    _replaceVariable(account.displayShortName, otherVariables);
 }
 
 function _replaceVariable(variable, values)

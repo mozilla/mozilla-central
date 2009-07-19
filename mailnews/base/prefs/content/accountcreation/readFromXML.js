@@ -64,8 +64,6 @@ function readFromXML(clientConfigXML)
   d.id = sanitize.alphanumdash(xml.id);
   if ("displayName" in xml)
     d.displayName = sanitize.label(xml.displayName);
-  if ("displayShortName" in xml)
-    d.displayShortName = sanitize.label(xml.displayShortName);
   for each (var domain in xml.domain)
     d.domains.push(sanitize.hostname(domain));
 
