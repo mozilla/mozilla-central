@@ -80,7 +80,7 @@ function test_show_search_window() {
 
   // push control-shift-F, wait for it to show
   plan_for_new_window("mailnews:search");
-  mc.keypress(null, "f", {shiftKey: true, ctrlKey: true});
+  mc.keypress(null, "f", {shiftKey: true, accelKey: true});
   swc = wait_for_new_window("mailnews:search");
 }
 
