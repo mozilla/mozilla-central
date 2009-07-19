@@ -27,13 +27,20 @@ function step3()
   todo_is(document.activeElement, tab1, "mouse on tab again activeElement");
 
   document.getElementById("urlbar").inputField.focus();
+  // give tab key a chance to settle
+  setTimeout(step3a, 0);
+}
+
+function step3a()
+{
+  is(document.activeElement.localName, "input", "focus URL bar activeElement");
 
   EventUtils.synthesizeKey("VK_TAB", { });
   // give tab key a chance to settle
-  setTimeout(step3_5, 0);
+  setTimeout(step3b, 0);
 }
 
-function step3_5()
+function step3b()
 {
   is(document.activeElement.localName, "tab", "tab key to tab activeElement");
   is(document.activeElement, tab1, "tab key to tab activeElement");
