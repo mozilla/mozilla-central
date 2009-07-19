@@ -450,7 +450,6 @@ Feed.prototype =
     var item = this.itemsToStore[this.itemsToStoreIndex]; 
 
     item.store();
-    item.markValid();
 
     this.itemsToStoreIndex++;
 

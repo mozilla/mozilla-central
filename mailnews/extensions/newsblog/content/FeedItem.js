@@ -129,12 +129,8 @@ FeedItem.prototype =
 
   get itemUniqueURI()
   {
-    var theURI;
-    if(this.isStoredWithId && this.id)
-      theURI = "urn:" + this.id;
-    else
-      theURI = this.mURL || ("urn:" + this.id);
-    return theURI;
+    return (this.isStoredWithId && this.id) ? createURN(this.id) :
+           createURN(this.mURL || this.id);
   },
 
   get contentBase()
@@ -152,10 +148,10 @@ FeedItem.prototype =
     // this.title and this.content contain HTML
     // this.mUrl and this.contentBase contain plain text
 
-    if (this.isStored())
-      debug(this.identity + " already stored; ignoring");
-    else
+    let resource = this.findStoredResource();
+    if (resource == null)
     {
+      resource = rdf.GetResource(this.itemUniqueURI);
       if (!this.content)
       {
         debug(this.identity + " no content; storing");
@@ -170,10 +166,12 @@ FeedItem.prototype =
       // XXX store it elsewhere, f.e. this.page
       this.content = content;
       this.writeToFolder();
+      this.markStored(resource);
     }
+    this.markValid(resource);
   },
 
-  isStored: function()
+  findStoredResource: function()
   {
     // Checks to see if the item has already been stored in its feed's message folder.
 
@@ -190,7 +188,7 @@ FeedItem.prototype =
       server.rootMsgFolder.createSubfolder(this.feed.name, null /* supposed to be a msg window */);
       folder = server.rootMsgFolder.findSubFolder(this.feed.name);
       debug(this.identity + " not stored (folder didn't exist)");
-      return false;
+      return null;
     }
 
     var ds = getItemsDS(server);
@@ -205,6 +203,17 @@ FeedItem.prototype =
     if (!downloaded && this.mURL && itemURI != this.mURL)
     {
       itemResource = rdf.GetResource(this.mURL);
+      downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
+    }
+
+    // Backward compatibility: the item may have been stored
+    // using the previous unique URI algorithm.
+    // (bug 410842 & bug 461109)
+    if (!downloaded)
+    {
+      itemResource = rdf.GetResource((this.isStoredWithId && this.id) ?
+                                     ("urn:" + this.id) :
+                                     (this.mURL || ("urn:" + this.id)));
       downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
     }
 
@@ -225,34 +234,23 @@ FeedItem.prototype =
 
       if (downloaded)
       {
-        debug(this.identity + " not stored");
-        return true;
+        debug(this.identity + " stored");
+        return itemResource;
       }
 
       debug(this.identity + " not stored");
-      return false;
+      return null;
     }
     else
     {
       debug(this.identity + " stored");
-      return true;
+      return itemResource;
     }
   },
 
-  markValid: function()
+  markValid: function(resource)
   {
-    debug("validating " + this.mURL);
     var ds = getItemsDS(this.feed.server);
-
-    var itemURI = this.itemUniqueURI;
-    var resource = rdf.GetResource(itemURI);
-
-    // Backward compatibility: we might have stored this item before
-    // isStoredWithId has been turned on for RSS 2.0 (bug 354345).
-    // Check whether this item has been stored with its URL.
-    if (!ds.GetTarget(resource, FZ_STORED, true) &&
-        this.mURL && itemURI != this.mURL)
-      resource = rdf.GetResource(this.mURL);
 
     var newTimeStamp = rdf.GetLiteral(new Date().getTime());
     var currentTimeStamp = ds.GetTarget(resource, FZ_LAST_SEEN_TIMESTAMP, true);
@@ -273,11 +271,9 @@ FeedItem.prototype =
       ds.Assert(resource, FZ_VALID, RDF_LITERAL_TRUE, true);
   },
 
-  markStored: function()
+  markStored: function(resource)
   {
     var ds = getItemsDS(this.feed.server);
-    var itemURI = this.itemUniqueURI;
-    var resource = rdf.GetResource(itemURI);
 
     if (!ds.HasAssertion(resource, FZ_FEED, rdf.GetResource(this.feed.url), true))
       ds.Assert(resource, FZ_FEED, rdf.GetResource(this.feed.url), true);
@@ -401,7 +397,6 @@ FeedItem.prototype =
     // the original charset. So convert back
     folder.addMessage(this.mUnicodeConverter.ConvertFromUnicode(source));
     msgFolder.gettingNewMessages = false;
-    this.markStored();
   }
 };
 

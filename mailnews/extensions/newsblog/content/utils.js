@@ -74,6 +74,7 @@ const DC_LASTMODIFIED = rdf.GetResource(DC_NS + "lastModified");
 const DC_IDENTIFIER = rdf.GetResource(DC_NS + "identifier");
 
 const FZ_NS = "urn:forumzilla:";
+const FZ_ITEM_NS = "urn:feeditem:";
 const FZ_ROOT = rdf.GetResource(FZ_NS + "root");
 const FZ_FEEDS = rdf.GetResource(FZ_NS + "feeds");
 const FZ_FEED = rdf.GetResource(FZ_NS + "feed");
@@ -435,4 +436,28 @@ function htmlEscape(s)
   s = s.replace(/'/g, "&#39;");
   s = s.replace(/"/g, "&quot;");
   return s;
+}
+
+// Returns name as a URN in the 'feeditem' namespace. The
+// returned URN is (or intended to be) RFC2141 compliant. 
+function createURN(name)
+{
+  // The builtin encodeURI provides nearly the exact
+  // encoding functionality required by the RFC.  The
+  // exceptions are that NULL characters should not
+  // appear, and that #, /, ?, &, and ~ should be
+  // escaped.
+  // NULL characters are removed before encoding.
+
+  name = name.replace("\0", "", "g");
+
+  var encoded = encodeURI(name);
+
+  encoded = encoded.replace("#", "%23", "g");
+  encoded = encoded.replace("/", "%2f", "g");
+  encoded = encoded.replace("?", "%3f", "g");
+  encoded = encoded.replace("&", "%26", "g");
+  encoded = encoded.replace("~", "%7e", "g");
+
+  return FZ_ITEM_NS + encoded;
 }
