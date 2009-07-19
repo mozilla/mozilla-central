@@ -168,8 +168,6 @@ pref("mail.thread_without_re",              false); // if false, only thread by 
 pref("mail.strict_threading",               true);  // if true, don't thread by subject at all
 pref("mail.correct_threading",              true);  // if true, makes sure threading works correctly always (see bug 181446)
 pref("mail.leave_on_server",                false);
-pref("mail.default_cc",                     "");
-pref("mail.default_fcc",                    ""); // maibox:URL or Imap://Host/OnLineFolderName
 pref("mail.check_new_mail",                 false);
 pref("mail.pop3_gets_new_mail",             false);
 pref("mail.check_time",                     10);
@@ -254,8 +252,6 @@ pref("mail.dsn.ret_full_on", true);                    // DSN request is sent wi
 
 pref("mail.showPreviewText", false);
 
-pref("news.default_cc",                     "");
-pref("news.default_fcc",                    ""); // mailbox:URL or Imap://Host/OnlineFolderName
 pref("news.use_fcc",                        true);
 pref("news.cc_self",                        false);
 pref("news.fcc_folder",                     "");
@@ -820,8 +816,6 @@ pref("mail.notification.sound",             "");
 #ifdef XP_UNIX
 pref("mail.check_new_mail", true);
 pref("mail.signature_file", "~/.signature");
-pref("mail.default_fcc", "~/nsmail/Sent");
-pref("news.default_fcc", "~/nsmail/Sent");
 pref("mailnews.reply_with_extra_lines", 0);
 pref("mail.sash_geometry", "");
 pref("news.cache_xover", false);
