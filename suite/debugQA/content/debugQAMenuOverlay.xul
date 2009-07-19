@@ -232,7 +232,7 @@
         <menuseparator/>
 
         <menuitem label="Latest Builds"
-                  oncommand="openTopWin('http://ftp.mozilla.org/pub/mozilla.org/seamonkey/nightly/latest-trunk/');"/>
+                  oncommand="openTopWin('http://ftp.mozilla.org/pub/mozilla.org/seamonkey/nightly/latest-comm-1.9.1/');"/>
       </menupopup>
     </menu>
   </menubar>
