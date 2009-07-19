@@ -375,7 +375,7 @@ nsContextMenu.prototype = {
                                   .getInterface(Components.interfaces.nsIWebNavigation)
                                   .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                                   .getInterface(Components.interfaces.nsIEditingSession);
-          if (editingSession.windowIsEditable(win)) {
+          if (editingSession.windowIsEditable(win) && this.isTargetEditable()) {
             this.onTextInput           = true;
             this.possibleSpellChecking = true;
             InlineSpellCheckerUI.init(editingSession.getEditorForWindow(win));
@@ -1085,6 +1085,24 @@ nsContextMenu.prototype = {
         return !document.commandDispatcher.focusedWindow.getSelection().isCollapsed;
     },
     
+    // Returns true if the target is editable
+    isTargetEditable: function() {
+        if (this.target.ownerDocument.designMode == "on")
+            return true;
+
+        for (var node = this.target; node; node = node.parentNode)
+            if (node instanceof Components.interfaces.nsIDOMNSHTMLElement)
+                switch (node.contentEditable) {
+                    case "true":
+                        return true;
+                    case "false":
+                        return false;
+                    // case "inherit": continue;
+                }
+
+        return false;
+    },
+
     // Convert relative URL to absolute, using document's <base>.
     makeURLAbsolute : function ( base, url ) {
         // Construct nsIURL.
