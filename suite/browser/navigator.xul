@@ -145,7 +145,7 @@
          onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
          oncommand="subscribeToFeed(event.target.statusText, event);"
          onclick="checkForMiddleClick(this, event);"/>
-  <panel type="autocomplete" id="PopupAutoComplete" level="top"/>
+  <panel type="autocomplete" id="PopupAutoComplete" level="top" noautofocus="true"/>
 
   <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true"
            mode="full" defaultmode="full">
