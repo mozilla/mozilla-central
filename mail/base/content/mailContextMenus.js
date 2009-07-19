@@ -66,6 +66,8 @@ function RestoreSelectionWithoutContentLoad(tree)
 
     if (tree)
       tree.treeBoxObject.invalidate();
+
+    UpdateMailToolbar("RestoreSelectionWithoutContentLoad");
   }
 }
 

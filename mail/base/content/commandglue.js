@@ -51,6 +51,12 @@ Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 
 function UpdateMailToolbar(caller)
 {
+  // If we have a transient selection, we shouldn't update the toolbar. We'll
+  // update it once we've restored the original selection.
+  if ("gRightMouseButtonSavedSelection" in window &&
+      gRightMouseButtonSavedSelection)
+    return;
+
   //dump("XXX update mail-toolbar " + caller + "\n");
   document.commandDispatcher.updateCommands('mail-toolbar');
 
