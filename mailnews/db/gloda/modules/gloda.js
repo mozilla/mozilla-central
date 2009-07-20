@@ -1321,16 +1321,18 @@ var Gloda = {
       // perhaps we should have a list of required attributes, perchance with
       //  and explanation of what it holds, and use that to be friendlier?
       throw Error("You omitted a required attribute defining property, please" +
-                  " consult the documentation as penance.")
+                  " consult the documentation as penance.");
 
     // return if the attribute has already been defined
     if (aAttrDef.dbDef) {
       return aAttrDef;
     }
 
-    // provider tracking
+    // - first time we've seen a provider init logic
     if (!(aAttrDef.provider.providerName in this._attrProviders)) {
       this._attrProviders[aAttrDef.provider.providerName] = [];
+      if (aAttrDef.provider.contentWhittle)
+        whittlerRegistry.registerWhittler(aAttrDef.provider);
     }
 
     let compoundName = aAttrDef.extensionName + ":" + aAttrDef.attributeName;
@@ -1405,9 +1407,6 @@ var Gloda = {
         subjectNounDef.hasObjDependencies = true;
       }
     }
-
-    if (aAttrDef.provider.contentWhittle)
-      whittlerRegistry.registerWhittler(aAttrDef.provider)
 
     this._attrProviders[aAttrDef.provider.providerName].push(aAttrDef);
     return aAttrDef;

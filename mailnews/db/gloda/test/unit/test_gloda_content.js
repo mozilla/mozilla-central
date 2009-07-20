@@ -14,6 +14,10 @@ load("resources/glodaTestHelper.js");
 
 Components.utils.import("resource://app/modules/gloda/mimemsg.js");
 
+// we need to be able to get at GlodaFundAttr to check the number of whittler
+//   invocations
+Components.utils.import("resource://app/modules/gloda/fundattr.js");
+
 var msgGen = new MessageGenerator();
 
 /* ===== Data ===== */
@@ -136,11 +140,22 @@ function test_stream_message(info) {
   });
 }
 
+// instrument GlodaFundAttr so we can check the count
+var originalWhittler = GlodaFundAttr.contentWhittle;
+var whittleCount = 0;
+GlodaFundAttr.contentWhittle = function whittler_counter() {
+  whittleCount++;
+  return originalWhittler.apply(this, arguments);
+};
+
 function verify_message_content(aInfo, aSynMsg, aGlodaMsg, aMsgHdr, aMimeMsg) {
   if (aMimeMsg == null)
     do_throw("Message streaming should work; check test_mime_emitter.js first");
 
+  whittleCount = 0;
   let content = Gloda.getMessageContent(aGlodaMsg, aMimeMsg);
+  if (whittleCount != 1)
+    do_throw("Whittle count is " + whittleCount + " but should be 1!");
 
   do_check_eq(content.getContentString(), aInfo.expected);
 
