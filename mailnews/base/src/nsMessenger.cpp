@@ -629,6 +629,25 @@ nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const nsACString& aURL)
     loadingFromFile = PR_TRUE;
     getDummyMsgHdr = PR_TRUE;
   }
+  else if (StringBeginsWith(uriString, NS_LITERAL_STRING("mailbox:")) &&
+           (uriString.Find(NS_LITERAL_STRING(".eml?"), PR_TRUE) != -1))
+  {
+    // if we have a mailbox:// url that points to an .eml file, we have to read
+    // the file size as well
+    uriString.ReplaceSubstring(NS_LITERAL_STRING("mailbox:"), NS_LITERAL_STRING("file:"));
+    nsCOMPtr<nsIURI> fileUri;
+    rv = NS_NewURI(getter_AddRefs(fileUri), uriString);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr <nsIFileURL> fileUrl = do_QueryInterface(fileUri, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr <nsIFile> file;
+    rv = fileUrl->GetFile(getter_AddRefs(file));
+    NS_ENSURE_SUCCESS(rv, rv);
+    file->GetFileSize(&fileSize);
+    uriString.ReplaceSubstring(NS_LITERAL_STRING("file:"), NS_LITERAL_STRING("mailbox:"));
+    loadingFromFile = PR_TRUE;
+    getDummyMsgHdr = PR_TRUE;
+  }
   else if (uriString.Find("type=application/x-message-display") >= 0)
     getDummyMsgHdr = PR_TRUE;
 
