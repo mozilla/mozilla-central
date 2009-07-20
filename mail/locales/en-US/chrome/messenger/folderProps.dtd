@@ -50,8 +50,8 @@
 <!ENTITY folderRebuildSummaryFileTip.label       "Rebuild Summary File"> 
      
 <!ENTITY retention.label "Retention Policy">
-<!ENTITY retentionUseDefault.label  "Use server defaults">
-<!ENTITY retentionUseDefault.accesskey "d">
+<!ENTITY retentionUseAccount.label  "Use my account settings">
+<!ENTITY retentionUseAccount.accesskey "U">
 <!ENTITY daysOld.label "days old">
 <!ENTITY message.label "messages">
 <!ENTITY retentionCleanup.label "To recover disk space, old messages can be permanently deleted.">

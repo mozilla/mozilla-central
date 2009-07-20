@@ -117,8 +117,8 @@
     <description hidable="true" hidefor="movemail,imap,rss,none,nntp" class="desc">&retentionCleanupPop.label;</description>
 
         <hbox align="center" class="indent">
-          <checkbox wsm_persist="true" id="retention.useDefault" accesskey="&retentionUseDefault.accesskey;"
-              label="&retentionUseDefault.label;" checked="true" oncommand="onUseDefaultRetentionSettings()"/>
+          <checkbox wsm_persist="true" id="retention.useDefault" accesskey="&retentionUseAccount.accesskey;"
+              label="&retentionUseAccount.label;" checked="true" oncommand="onUseDefaultRetentionSettings()"/>
         </hbox>
         <vbox class="indent">
           <hbox class="indent">
