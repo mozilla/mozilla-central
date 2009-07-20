@@ -49,28 +49,72 @@ interface nsIMsgDatabase;
 [scriptable, uuid(21c56d34-71b9-42bb-9606-331a6a5f8210)]
 
 interface  nsIDBChangeListener : nsISupports {
-  /*
-   * Callback when message flags are changed
+  /**
+   * Callback when message flags are changed.
    *
-   * @param aHdrChanged the changed header
-   * @param aOldFlags   message flags prior to change
-   * @param aNewFlags   message flags after change
-   * @param aInstigator object that initiated the change
+   * @param aHdrChanged The changed header.
+   * @param aOldFlags   Message flags prior to change.
+   * @param aNewFlags   Message flags after change.
+   * @param aInstigator Object that initiated the change.
    */
   void onHdrFlagsChanged(in nsIMsgDBHdr aHdrChanged, in unsigned long aOldFlags,
                    in unsigned long aNewFlags, in nsIDBChangeListener aInstigator);
+
+  /**
+   * Callback when message is marked as deleted.
+   *
+   * @param aHdrChanged The message header that is going to be deleted.
+   * @param aParentKey  Key of parent.
+   * @param aFlags      Flags that message has before delete.
+   * @param aInstigator Object that initiated the change. Can be null.
+   */
   void onHdrDeleted(in nsIMsgDBHdr aHdrChanged, in nsMsgKey aParentKey, in long aFlags,
                     in nsIDBChangeListener aInstigator);
+
+  /**
+   * Callback when message is added.
+   *
+   * @param aHdrChanged The message header that is added.
+   * @param aParentKey  Parent key of message.
+   * @param aFlags      Flags that new message will have.
+   * @param aInstigator Object that initiated the change. Can be null.
+   */
   void onHdrAdded(in nsIMsgDBHdr aHdrChanged, in nsMsgKey aParentKey, in long aFlags,
                   in nsIDBChangeListener aInstigator);
+
+  /**
+   * Callback when message parrent is changed. Parent is changed when message is deleted or moved.
+   *
+   * @param aKeyChanged The message key that parent key was changed.
+   * @param oldParent   Old parent key.
+   * @param newParent   New parent key.
+   * @param aInstigator Object that initiated the change. Can be null.
+   */
   void onParentChanged(in nsMsgKey aKeyChanged, in nsMsgKey oldParent, in nsMsgKey newParent,
                        in nsIDBChangeListener aInstigator);
+
+  /**
+   * Callback when announcer is going away. This is good place to release strong pointers to announcer.
+   *
+   * @param instigator Object that initiated the change. Can be null.
+   */
   void onAnnouncerGoingAway(in nsIDBChangeAnnouncer instigator);
 
+  /**
+   * Callback when read flag is changed.
+   *
+   * @param aInstigator Object that initiated the change. Can be null.
+   */
   void onReadChanged(in nsIDBChangeListener aInstigator);
+
+  /**
+   * Callback used in case when "junkscore" property is changed.
+   *
+   * @param aInstigator Object that initiated the change. Can be null.
+   */
   void onJunkScoreChanged(in nsIDBChangeListener aInstigator);
 
-  /*
+  /**
    * Callback used in the general case where any field may have changed.
    * OnHdrPropertyChanged is called twice per change. On the first call, aPreChange
    * is true, and aStatus is undefined. OnHdrPropertyChanged saves any required status in aStatus

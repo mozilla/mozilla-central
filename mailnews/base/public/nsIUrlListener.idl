@@ -42,11 +42,23 @@ interface nsIURI;
 %{C++
 #include "nsIURL.h"
 %}
-      
+
+/// General interface that signify URL processing.
 [scriptable, uuid(47618220-D008-11d2-8069-006008128C4E)]
 interface nsIUrlListener : nsISupports {
-
+    /**
+     * Called to signify the beginning of an URL processing.
+     *
+     * @param url URL being processed.
+     */
     void OnStartRunningUrl(in nsIURI url);
-    void OnStopRunningUrl(in nsIURI url, in nsresult aExitCode);
 
+    /**
+     * Called to signify the end of an URL processing.
+     * This call is always preceded by a call to OnStartRunningUrl.
+     *
+     * @param url        URL being processed.
+     * @param aExitCode  A result code of URL processing.
+     */
+    void OnStopRunningUrl(in nsIURI url, in nsresult aExitCode);
 };
