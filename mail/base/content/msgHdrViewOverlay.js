@@ -61,7 +61,8 @@ var gBuildAttachmentPopupForCurrentMsg = true;
 var gBuiltExpandedView = false;
 var gMessengerBundle;
 var gHeadersShowReferences = false;
-var gShowCondensedEmailAddresses = true; // show the friendly display names for people I know instead of the name + email address
+// Show the friendly display names for people I know, instead of the name + email address.
+var gShowCondensedEmailAddresses;
 
 // other components may listen to on start header & on end header notifications for each message we display
 // to do that you need to add yourself to our gMessageListeners array with an object that supports the three properties:
@@ -183,40 +184,41 @@ function initializeHeaderViewTables()
   // iterate over each header in our header list arrays and create header entries
   // for each one. These header entries are then stored in the appropriate header table
   var index;
-    for (index = 0; index < gExpandedHeaderList.length; index++)
-    {
-      var headerName = gExpandedHeaderList[index].name;
-      gExpandedHeaderView[headerName] = new createHeaderEntry('expanded', gExpandedHeaderList[index]);
-    }
-
-    var extraHeaders = prefBranch.getCharPref("mailnews.headers.extraExpandedHeaders").split(' ');
-    for (index = 0; index < extraHeaders.length; index++)
-    {
-      var extraHeader = extraHeaders[index];
-      gExpandedHeaderView[extraHeader.toLowerCase()] = new createNewHeaderView(extraHeader, extraHeader);
-    }
-    if (prefBranch.getBoolPref("mailnews.headers.showOrganization"))
-    {
-      var organizationEntry = {name:"organization", outputFunction:updateHeaderValue};
-      gExpandedHeaderView[organizationEntry.name] = new createHeaderEntry('expanded', organizationEntry);
-    }
-
-    if (prefBranch.getBoolPref("mailnews.headers.showUserAgent"))
-    {
-      var userAgentEntry = {name:"user-agent", outputFunction:updateHeaderValue};
-      gExpandedHeaderView[userAgentEntry.name] = new createHeaderEntry('expanded', userAgentEntry);
-    }
-
-   if (prefBranch.getBoolPref("mailnews.headers.showMessageId"))
-   {
-     var messageIdEntry = {name:"message-id", outputFunction:OutputMessageIds};
-     gExpandedHeaderView[messageIdEntry.name] = new createHeaderEntry('expanded', messageIdEntry);
+  for (index = 0; index < gExpandedHeaderList.length; index++)
+  {
+    var headerName = gExpandedHeaderList[index].name;
+    gExpandedHeaderView[headerName] = new createHeaderEntry('expanded', gExpandedHeaderList[index]);
   }
 
-   if (prefBranch.getBoolPref("mailnews.headers.showSender"))
-   {
-     var senderEntry = {name:"sender", outputFunction:OutputEmailAddresses};
-     gExpandedHeaderView[senderEntry.name] = new createHeaderEntry('expanded', senderEntry);
+  var extraHeaders = prefBranch.getCharPref("mailnews.headers.extraExpandedHeaders").split(' ');
+  for (index = 0; index < extraHeaders.length; index++)
+  {
+    var extraHeader = extraHeaders[index];
+    gExpandedHeaderView[extraHeader.toLowerCase()] = new createNewHeaderView(extraHeader, extraHeader);
+  }
+
+  if (prefBranch.getBoolPref("mailnews.headers.showOrganization"))
+  {
+    var organizationEntry = {name:"organization", outputFunction:updateHeaderValue};
+    gExpandedHeaderView[organizationEntry.name] = new createHeaderEntry('expanded', organizationEntry);
+  }
+
+  if (prefBranch.getBoolPref("mailnews.headers.showUserAgent"))
+  {
+    var userAgentEntry = {name:"user-agent", outputFunction:updateHeaderValue};
+    gExpandedHeaderView[userAgentEntry.name] = new createHeaderEntry('expanded', userAgentEntry);
+  }
+
+  if (prefBranch.getBoolPref("mailnews.headers.showMessageId"))
+  {
+    var messageIdEntry = {name:"message-id", outputFunction:OutputMessageIds};
+    gExpandedHeaderView[messageIdEntry.name] = new createHeaderEntry('expanded', messageIdEntry);
+  }
+
+  if (prefBranch.getBoolPref("mailnews.headers.showSender"))
+  {
+    var senderEntry = {name:"sender", outputFunction:OutputEmailAddresses};
+    gExpandedHeaderView[senderEntry.name] = new createHeaderEntry('expanded', senderEntry);
   }
 }
 
@@ -351,7 +353,7 @@ var messageHeaderSink = {
         if (gViewAllHeaders) // if we currently are in view all header mode, rebuild our header view so we remove most of the header data
         {
           hideHeaderView(gExpandedHeaderView);
-          removeNewHeaderViews(gExpandedHeaderView);
+          RemoveNewHeaderViews(gExpandedHeaderView);
           gDummyHeaderIdIndex = 0;
           gExpandedHeaderView = {};
           initializeHeaderViewTables();
@@ -391,7 +393,7 @@ var messageHeaderSink = {
       ShowEditMessageBox();
       UpdateJunkButton();
 
-      for (index in gMessageListeners)
+      for (let index in gMessageListeners)
         gMessageListeners[index].onEndHeaders();
     },
 
@@ -411,7 +413,7 @@ var messageHeaderSink = {
         // case so we don't have to worry about looking for: Cc and CC, etc.
         var lowerCaseHeaderName = header.headerName.toLowerCase();
 
-        // If we have an x-mailer, x-newsreader, or x-mimeole string,
+        // If we have an x-mailer, x-mimeole, or x-newsreader string,
         // put it in the user-agent slot which we know how to handle already.
         if (/^x-(mailer|mimeole|newsreader)$/.test(lowerCaseHeaderName))
           lowerCaseHeaderName = "user-agent";
@@ -442,7 +444,8 @@ var messageHeaderSink = {
           // in this case, we want to append these headers into one.
           if (lowerCaseHeaderName == 'to' || lowerCaseHeaderName == 'cc')
             currentHeaderData[lowerCaseHeaderName].headerValue = currentHeaderData[lowerCaseHeaderName].headerValue + ',' + header.headerValue;
-          else {
+          else
+          {
             // use the index to create a unique header name like:
             // received5, received6, etc
             currentHeaderData[lowerCaseHeaderName + index++] = header;
@@ -484,9 +487,7 @@ var messageHeaderSink = {
         var inlineAttachments = pref.getBoolPref("mail.inline_attachments");
         var displayHtmlAs = pref.getIntPref("mailnews.display.html_as");
         if (inlineAttachments && !displayHtmlAs)
-        {
           return;
-        }
       }
 
       currentAttachments.push (new createNewAttachmentInfo(contentType, url, displayName, uri, isExternalAttachment));
@@ -604,7 +605,7 @@ function SetTagHeader()
       msgKeyArray.unshift(labelKey);
   }
 
- // Rebuild the keywords string with just the keys that are actual tags or
+  // Rebuild the keywords string with just the keys that are actual tags or
   // legacy labels and not other keywords like Junk and NonJunk.
   // Retain their order, though, with the label as oldest element.
   for (var i = msgKeyArray.length - 1; i >= 0; --i)
@@ -786,7 +787,7 @@ function createNewHeaderView(headerName, label)
  *
  * @param aHeaderTable Table of header entries.
  */
-function removeNewHeaderViews(aHeaderTable)
+function RemoveNewHeaderViews(aHeaderTable)
 {
   for (var index in aHeaderTable)
   {
@@ -1440,7 +1441,8 @@ function MessageIdClick(node, event)
 function attachmentListClick(event)
 {
   // we only care about button 0 (left click) events
-  if (event.button != 0) return;
+  if (event.button != 0)
+    return;
 
   if (event.detail == 2) // double click
   {
@@ -1567,7 +1569,8 @@ function FillAttachmentListPopup(popup)
 {
   // the FE sometimes call this routine TWICE...I haven't been able to figure out why yet...
   // protect against it...
-  if (!gBuildAttachmentPopupForCurrentMsg) return;
+  if (!gBuildAttachmentPopupForCurrentMsg)
+    return;
 
   var attachmentIndex = 0;
 
@@ -1723,7 +1726,7 @@ function HandleMultipleAttachments(attachments, action)
 
    // populate these arrays..
    var actionIndex = 0;
-   for (var index in attachments)
+   for (let index in attachments)
    {
      // exclude all attachments already deleted
      var attachment = attachments[index];
@@ -1906,7 +1909,6 @@ nsFlavorDataProvider.prototype =
       }
     }
   }
-
 }
 
 function nsDummyMsgHeader()
@@ -1946,4 +1948,3 @@ nsDummyMsgHeader.prototype =
   // folderDisplay.js's FolderDisplayWidget's selectedMessageIsExternal getter.
   folder : null
 };
-
