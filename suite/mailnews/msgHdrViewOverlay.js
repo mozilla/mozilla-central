@@ -39,21 +39,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+
 /* This is where functions related to displaying the headers for a selected message in the
    message pane live. */
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Warning: if you go to modify any of these JS routines please get a code review from
-// mscott@netscape.com. It's critical that the code in here for displaying
-// the message headers for a selected message remain as fast as possible. In particular, 
+// scott@scott-macgregor.org. It's critical that the code in here for displaying
+// the message headers for a selected message remain as fast as possible. In particular,
 // right now, we only introduce one reflow per message. i.e. if you click on a message in the thread
-// pane, we batch up all the changes for displaying the header pane (to, cc, attachements button, etc.) 
+// pane, we batch up all the changes for displaying the header pane (to, cc, attachements button, etc.)
 // and we make a single pass to display them. It's critical that we maintain this one reflow per message
-// view in the message header pane. 
+// view in the message header pane.
 ////////////////////////////////////////////////////////////////////////////////////
-
-const msgHeaderParserContractID      = "@mozilla.org/messenger/headerparser;1";
-const abAddressCollectorContractID   = "@mozilla.org/addressbook/services/addressCollector;1";
 
 var gViewAllHeaders = false;
 var gShowOrganization = false;
@@ -81,29 +79,30 @@ var gExtraExpandedHeaders;
 // Show the friendly display names for people I know, instead of the name + email address.
 var gShowCondensedEmailAddresses;
 
-var msgHeaderParser = Components.classes[msgHeaderParserContractID].getService(Components.interfaces.nsIMsgHeaderParser);
+var msgHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                                .getService(Components.interfaces.nsIMsgHeaderParser);
 var abAddressCollector = null;
 
 // other components may listen to on start header & on end header notifications for each message we display
 // to do that you need to add yourself to our gMessageListeners array with an object that supports the three properties:
 // onStartHeaders, onEndHeaders and onEndAttachments.
-var gMessageListeners = new Array;
+var gMessageListeners = new Array();
 
 // For every possible "view" in the message pane, you need to define the header names you want to
 // see in that view. In addition, include information describing how you want that header field to be
 // presented. i.e. if it's an email address field, if you want a toggle inserted on the node in case
 // of multiple email addresses, etc. We'll then use this static table to dynamically generate header view entries
-// which manipulate the UI. 
+// which manipulate the UI.
 // When you add a header to one of these view lists you can specify the following properties:
 // name: the name of the header. i.e. "to", "subject". This must be in lower case and the name of the
 //       header is used to help dynamically generate ids for objects in the document. (REQUIRED)
-// useToggle:      true if the values for this header are multiple email addresses and you want a 
+// useToggle:      true if the values for this header are multiple email addresses and you want a
 //                 a toggle icon to show a short vs. long list (DEFAULT: false)
 // useShortView:   (only works on some fields like From). If the field has a long presentation and a
 //                 short presentation we'll use the short one. i.e. if you are showing the From field and you
 //                 set this to true, we can show just "John Doe" instead of "John Doe <jdoe@netscape.net>".
 //                 (DEFAULT: false)
-// 
+//
 // outputFunction: this is a method which takes a headerEntry (see the definition below) and a header value
 //                 This allows you to provide your own methods for actually determining how the header value
 //                 is displayed. (DEFAULT: updateHeaderValue which just sets the header value on the text node)
@@ -115,7 +114,7 @@ var gCollapsedHeaderList = [ {name:"subject", outputFunction:updateHeaderValueIn
                              {name:"date", outputFunction:updateHeaderValueInTextNode}];
 
 // We also have an expanded header view. This shows many of your more common (and useful) headers.
-var gExpandedHeaderList = [ {name:"subject"}, 
+var gExpandedHeaderList = [ {name:"subject"},
                             {name:"from", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"sender", outputFunction:OutputEmailAddresses},
                             {name:"reply-to", useToggle:true, outputFunction:OutputEmailAddresses},
@@ -127,11 +126,11 @@ var gExpandedHeaderList = [ {name:"subject"},
                             {name:"references", outputFunction:OutputMessageIds},
                             {name:"followup-to", outputFunction:OutputNewsgroups},
                             {name:"content-base"},
-                            {name:"tags"}];
+                            {name:"tags"} ];
 
 // Now, for each view the message pane can generate, we need a global table of headerEntries. These
 // header entry objects are generated dynamically based on the static data in the header lists (see above)
-// and elements we find in the DOM based on properties in the header lists. 
+// and elements we find in the DOM based on properties in the header lists.
 var gCollapsedHeaderView = {};
 var gExpandedHeaderView  = {};
 
@@ -151,7 +150,7 @@ var currentHeaderData = {};
 // isExternalAttachment --> boolean flag stating whether the attachment is external or not.
 var currentAttachments = new Array();
 
-// createHeaderEntry --> our constructor method which creates a header Entry 
+// createHeaderEntry --> our constructor method which creates a header Entry
 // based on an entry in one of the header lists. A header entry is different from a header list.
 // a header list just describes how you want a particular header to be presented. The header entry
 // actually has knowledge about the DOM and the actual DOM elements associated with the header.
@@ -199,7 +198,7 @@ function createHeaderEntry(prefix, headerListInfo)
 
 function initializeHeaderViewTables()
 {
-  // iterate over each header in our header list arrays and create header entries 
+  // iterate over each header in our header list arrays and create header entries
   // for each one. These header entries are then stored in the appropriate header table
   var index;
   for (index = 0; index < gCollapsedHeaderList.length; index++)
@@ -213,7 +212,7 @@ function initializeHeaderViewTables()
     var headerName = gExpandedHeaderList[index].name;
     gExpandedHeaderView[headerName] = new createHeaderEntry('expanded', gExpandedHeaderList[index]);
   }
-  
+
   var extraHeaders = gExtraExpandedHeaders.match(/[^ ]+/g);
   if (extraHeaders) {
     for (index = 0; index < extraHeaders.length; index++)
@@ -228,7 +227,7 @@ function initializeHeaderViewTables()
     var organizationEntry = {name:"organization", outputFunction:updateHeaderValue};
     gExpandedHeaderView[organizationEntry.name] = new createHeaderEntry('expanded', organizationEntry);
   }
-  
+
   if (gShowUserAgent)
   {
     var userAgentEntry = {name:"user-agent", outputFunction:updateHeaderValue};
@@ -246,10 +245,9 @@ function OnLoadMsgHeaderPane()
 {
   // HACK...force our XBL bindings file to be load before we try to create our first xbl widget....
   // otherwise we have problems.
-
   document.loadBindingDocument('chrome://messenger/content/mailWidgets.xml');
-  
-  // load any preferences that at are global with regards to 
+
+  // load any preferences that at are global with regards to
   // displaying a message...
   gCollectIncoming = pref.getBoolPref("mail.collect_email_address_incoming");
   gCollectNewsgroup = pref.getBoolPref("mail.collect_email_address_newsgroup");
@@ -305,7 +303,7 @@ const MsgHdrViewObserver =
 };
 
 // The messageHeaderSink is the class that gets notified of a message's headers as we display the message
-// through our mime converter. 
+// through our mime converter.
 
 var messageHeaderSink = {
     onStartHeaders: function()
@@ -328,13 +326,13 @@ var messageHeaderSink = {
       else
       {
         if (gViewAllHeaders) // if we currently are in view all header mode, rebuild our header view so we remove most of the header data
-        { 
+        {
           hideHeaderView(gExpandedHeaderView);
           RemoveNewHeaderViews(gExpandedHeaderView);
           gExpandedHeaderView = {};
-          initializeHeaderViewTables(); 
+          initializeHeaderViewTables();
         }
-                
+
         gViewAllHeaders = false;
       }
 
@@ -344,37 +342,37 @@ var messageHeaderSink = {
       gBuildAttachmentsForCurrentMsg = false;
       gBuildAttachmentPopupForCurrentMsg = true;
       ClearAttachmentList();
-      ClearEditMessageButton();
+      ClearEditMessageBox();
       gMessageNotificationBar.clearMsgNotifications();
 
-      for (var index in gMessageListeners)
+      for (let index in gMessageListeners)
         gMessageListeners[index].onStartHeaders();
     },
 
-    onEndHeaders: function() 
+    onEndHeaders: function()
     {
       ClearHeaderView(gCollapsedHeaderView);
       ClearHeaderView(gExpandedHeaderView);
 
       EnsureSubjectValue(); // make sure there is a subject even if it's empty so we'll show the subject and the twisty
-      
+
       ShowMessageHeaderPane();
       UpdateMessageHeaders();
-      ShowEditMessageButton();
+      ShowEditMessageBox();
 
-      for (var index in gMessageListeners)
+      for (let index in gMessageListeners)
         gMessageListeners[index].onEndHeaders();
     },
 
     processHeaders: function(headerNameEnumerator, headerValueEnumerator, dontCollectAddress)
     {
-      this.onStartHeaders(); 
+      this.onStartHeaders();
 
       const kMailboxSeparator = ", ";
       var index = 0;
-      while (headerNameEnumerator.hasMore()) 
+      while (headerNameEnumerator.hasMore())
       {
-        var header = new Object;        
+        var header = new Object;
         header.headerValue = headerValueEnumerator.getNext();
         header.headerName = headerNameEnumerator.getNext();
 
@@ -411,8 +409,8 @@ var messageHeaderSink = {
           // in this case, we want to append these headers into one.
           if (lowerCaseHeaderName == 'to' || lowerCaseHeaderName == 'cc')
             currentHeaderData[lowerCaseHeaderName].headerValue = currentHeaderData[lowerCaseHeaderName].headerValue + ',' + header.headerValue;
-          else 
-          {  
+          else
+          {
             // use the index to create a unique header name like:
             // received5, received6, etc
             currentHeaderData[lowerCaseHeaderName + index++] = header;
@@ -431,7 +429,7 @@ var messageHeaderSink = {
               if (createCard || gCollectOutgoing)
               {
                 if (!abAddressCollector)
-                  abAddressCollector = Components.classes[abAddressCollectorContractID]
+                  abAddressCollector = Components.classes["@mozilla.org/addressbook/services/addressCollector;1"]
                                                  .getService(Components.interfaces.nsIAbAddressCollector);
 
                 gCollectAddress = header.headerValue;
@@ -446,7 +444,7 @@ var messageHeaderSink = {
       } // while we have more headers to parse
 
       // process message tags as if they were headers in the message
-      SetTagHeader();      
+      SetTagHeader();
 
       if (("from" in currentHeaderData) && ("sender" in currentHeaderData) && msgHeaderParser)
       {
@@ -463,7 +461,7 @@ var messageHeaderSink = {
       this.onEndHeaders();
     },
 
-    handleAttachment: function(contentType, url, displayName, uri, isExternalAttachment) 
+    handleAttachment: function(contentType, url, displayName, uri, isExternalAttachment)
     {
       // presentation level change....don't show vcards as external attachments in the UI.
       // libmime already renders them inline.
@@ -503,7 +501,7 @@ var messageHeaderSink = {
         }
       }
     },
-    
+
     onEndAllAttachments: function()
     {
       // AddSaveAllAttachmentsMenu();
@@ -537,10 +535,10 @@ var messageHeaderSink = {
     },
 
     onEndMsgHeaders: function(url)
-    { 
+    {
       OnMsgLoaded(url);
     },
-    
+
     onMsgHasRemoteContent: function(aMsgHdr)
     {
       gMessageNotificationBar.setRemoteContentMsg(aMsgHdr);
@@ -633,7 +631,7 @@ function EnsureSubjectValue()
     foo.headerValue = "";
     foo.headerName = 'subject';
     currentHeaderData[foo.headerName] = foo;
-  } 
+  }
 }
 
 // Public method called by the tag front end code when the tags for the selected
@@ -644,7 +642,7 @@ function OnTagsChange()
   SetTagHeader();
 
   // now update the expanded header view to rebuild the tags,
-  // and then show or hide the tag header box.  
+  // and then show or hide the tag header box.
   if (gBuiltExpandedView)
   {
     var headerEntry = gExpandedHeaderView.tags;
@@ -653,7 +651,7 @@ function OnTagsChange()
       headerEntry.valid = ("tags" in currentHeaderData);
       if (headerEntry.valid)
         headerEntry.outputFunction(headerEntry, currentHeaderData.tags.headerValue);
-      
+
       // if we are showing the expanded header view then we may need to collapse or
       // show the tag header box...
       if (!gCollapsedHeaderViewMode)
@@ -687,7 +685,7 @@ function hideHeaderView(headerTable)
   }
 }
 
-// make sure that any valid header entry in the table specified is 
+// make sure that any valid header entry in the table specified is
 // visible
 function showHeaderView(headerTable)
 {
@@ -772,6 +770,7 @@ function createNewHeaderView(headerName, label)
 {
   var idName = 'expanded' + headerName + 'Box';
   var newHeader = document.createElement("mail-headerfield");
+
   newHeader.setAttribute('id', idName);
   newHeader.setAttribute('label', label);
   // all mail-headerfield elements are keyword related
@@ -782,8 +781,8 @@ function createNewHeaderView(headerName, label)
   var topViewNode = document.getElementById('expandedHeaders');
 
   topViewNode.appendChild(newHeader);
-  
-  this.enclosingBox = newHeader
+
+  this.enclosingBox = newHeader;
   this.isNewHeader = true;
   this.isValid = false;
   this.useToggle = false;
@@ -896,7 +895,7 @@ function ClearCurrentHeaders()
 }
 
 function ShowMessageHeaderPane()
-{ 
+{
   var node;
   if (gCollapsedHeaderViewMode)
   {          
@@ -937,7 +936,7 @@ function HideMessageHeaderPane()
 }
 
 function OutputNewsgroups(headerEntry, headerValue)
-{ 
+{
   headerValue = headerValue.replace(/,/g,", ");
   updateHeaderValue(headerEntry, headerValue);
 }
@@ -1297,19 +1296,20 @@ function MessageIdClick(node, event)
   }
 }
 
-// this is our onclick handler for the attachment list. 
+// this is our onclick handler for the attachment list.
 // A double click in a listitem simulates "opening" the attachment....
 function attachmentListClick(event)
-{ 
-    // we only care about button 0 (left click) events
-    if (event.button != 0) return;
+{
+  // we only care about button 0 (left click) events
+  if (event.button != 0)
+    return;
 
-    if (event.detail == 2) // double click
-    {
-      var target = event.target;
-      if (target.localName == "listitem")
-        target.attachment.openAttachment();
-    }
+  if (event.detail == 2) // double click
+  {
+    var target = event.target;
+    if (target.localName == "listitem")
+      target.attachment.openAttachment();
+  }
 }
 
 // on command handlers for the attachment list context menu...
@@ -1389,8 +1389,8 @@ function FillAttachmentListPopup(popup)
 {
   // the FE sometimes call this routine TWICE...I haven't been able to figure out why yet...
   // protect against it...
-
-  if (!gBuildAttachmentPopupForCurrentMsg) return; 
+  if (!gBuildAttachmentPopupForCurrentMsg)
+    return;
 
   var attachmentIndex = 0;
 
@@ -1420,13 +1420,13 @@ function FillAttachmentListPopup(popup)
 }
 
 // Public method used to clear the file attachment menu
-function ClearAttachmentMenu(popup) 
-{ 
-  if ( popup ) 
-  { 
+function ClearAttachmentMenu(popup)
+{
+  if ( popup )
+  {
      while ( popup.childNodes[0].localName == 'menu' )
-       popup.removeChild(popup.childNodes[0]); 
-  } 
+       popup.removeChild(popup.childNodes[0]);
+  }
 }
 
 // Public method used to determine the number of attachments for the currently displayed message...
@@ -1436,13 +1436,13 @@ function GetNumberOfAttachmentsForDisplayedMessage()
 }
 
 // private method used to build up a menu list of attachments
-function addAttachmentToPopup(popup, attachment, attachmentIndex) 
-{ 
+function addAttachmentToPopup(popup, attachment, attachmentIndex)
+{
   if (popup)
-  { 
+  {
     var item = document.createElement('menu');
-    if ( item ) 
-    {     
+    if ( item )
+    {
       if (!gMessengerBundle)
         gMessengerBundle = document.getElementById("bundle_messenger");
 
@@ -1453,9 +1453,10 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       var displayName = createAttachmentDisplayName(attachment);
       var formattedDisplayNameString = gMessengerBundle.getFormattedString("attachmentDisplayNameFormat",
                                        [attachmentIndex, displayName]);
+
       item.setAttribute("crop", "center");
-      item.setAttribute('label', formattedDisplayNameString); 
-      item.setAttribute('accesskey', attachmentIndex); 
+      item.setAttribute('label', formattedDisplayNameString);
+      item.setAttribute('accesskey', attachmentIndex);
 
       var openpopup = document.createElement('menupopup');
       openpopup = item.appendChild(openpopup);
@@ -1488,8 +1489,7 @@ function FillAttachmentItemPopup(event)
   menuitementry.setAttribute('oncommand', 'this.parentNode.attachment.saveAttachment()'); 
   menuitementry = openpopup.appendChild(menuitementry);
 
-  var menuseparator = document.createElement('menuseparator');
-  openpopup.appendChild(menuseparator);
+  openpopup.appendChild(document.createElement("menuseparator"));
 
   menuitementry = document.getElementById("context-detachAttachment").cloneNode(false);
   menuitementry.setAttribute('oncommand', 'this.parentNode.attachment.detachAttachment()'); 
@@ -1506,7 +1506,7 @@ function FillAttachmentItemPopup(event)
 
 function HandleMultipleAttachments(commandPrefix, selectedAttachments)
 {
- try 
+ try
  {
    // convert our attachment data into some c++ friendly structs
    var attachmentContentTypeArray = new Array();
@@ -1515,7 +1515,7 @@ function HandleMultipleAttachments(commandPrefix, selectedAttachments)
    var attachmentMessageUriArray = new Array();
 
    // populate these arrays..
-   for (index in selectedAttachments)
+   for (let index in selectedAttachments)
    {
      var attachment = selectedAttachments[index].attachment;
      attachmentContentTypeArray[index] = attachment.contentType;
@@ -1524,7 +1524,7 @@ function HandleMultipleAttachments(commandPrefix, selectedAttachments)
      attachmentMessageUriArray[index] = attachment.uri;
    }
 
-   // okay the list has been built...now call our action code...
+   // okay the list has been built... now call our action code...
    switch (commandPrefix)
    {
      case "saveAttachment":
@@ -1560,8 +1560,8 @@ function HandleMultipleAttachments(commandPrefix, selectedAttachments)
  }
 }
 
-function ClearAttachmentList() 
-{ 
+function ClearAttachmentList()
+{
   // we also have to disable the Message/Attachments menuitem
   var node = document.getElementById("msgAttachmentMenu");
   if (node)
@@ -1571,11 +1571,11 @@ function ClearAttachmentList()
   var list = document.getElementById('attachmentList');
   list.clearSelection();
 
-  while (list.hasChildNodes()) 
+  while (list.hasChildNodes())
     list.removeChild(list.lastChild);
 }
 
-function ShowEditMessageButton() 
+function ShowEditMessageBox()
 {
   try
   {
@@ -1586,10 +1586,10 @@ function ShowEditMessageButton()
       document.getElementById("editMessageBox").collapsed = false;
   }
   catch (ex) {}
-} 
+}
 
-function ClearEditMessageButton() 
-{ 
+function ClearEditMessageBox()
+{
   var editBox = document.getElementById("editMessageBox");
   if (editBox)
     editBox.collapsed = true;
@@ -1653,10 +1653,9 @@ nsFlavorDataProvider.prototype =
         return this;
       throw Components.results.NS_NOINTERFACE;
   },
-  
+
   getFlavorData : function(aTransferable, aFlavor, aData, aDataLen)
   {
-
     // get the url for the attachment
     if (aFlavor == "application/x-moz-file-promise")
     {
@@ -1692,7 +1691,6 @@ nsFlavorDataProvider.prototype =
       }
     }
   }
-
 }
 
 function nsDummyMsgHeader()
@@ -1702,8 +1700,12 @@ function nsDummyMsgHeader()
 nsDummyMsgHeader.prototype =
 {
   mProperties : new Array,
-  getStringProperty : function(property) {return this.mProperties[property];},
-  setStringProperty : function(property, val) {this.mProperties[property] = val;},
+  getStringProperty : function(aProperty) {
+    return this.mProperties[aProperty];
+  },
+  setStringProperty : function(aProperty, aVal) {
+    this.mProperties[aProperty] = aVal;
+  },
   markHasAttachments : function(hasAttachments) {},
   messageSize : 0,
   recipients : null,
