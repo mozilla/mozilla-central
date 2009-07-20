@@ -71,7 +71,7 @@ typedef long nsMsgSearchAttribValue;
  * from here will also be used to determine the order that the
  * attributes display in the filter editor.
  */
-[scriptable, uuid(9ED17774-4748-46a6-9A18-E651E3B791F2)]
+[scriptable, uuid(a83ca7e8-4591-4111-8fb8-fd76ac73c866)]
 interface nsMsgSearchAttrib {
     const nsMsgSearchAttribValue Custom = -2;  /* a custom term, see nsIMsgSearchCustomTerm */
     const nsMsgSearchAttribValue Default = -1;
@@ -119,14 +119,19 @@ interface nsMsgSearchAttrib {
     const nsMsgSearchAttribValue JunkPercent = 46;
     const nsMsgSearchAttribValue JunkScoreOrigin = 47;
     const nsMsgSearchAttribValue Label = 48; /* mail only...can search by label */
-    //49 is for showing customize... in ui headers start from 50 onwards up until 99.
-    const nsMsgSearchAttribValue OtherHeader = 49;  /* for mail and news. MUST ALWAYS BE LAST attribute since we can have an arbitrary # of these... */
-    const nsMsgSearchAttribValue kNumMsgSearchAttributes = 100;      /* must be last attribute */
-};
+    const nsMsgSearchAttribValue HdrProperty = 49; // uses nsIMsgSearchTerm::hdrProperty
+    const nsMsgSearchAttribValue FolderFlag = 50; // uses nsIMsgSearchTerm::status
 
-/* NB: If you add elements to this enum, add only to the end, since
- *     RULES.DAT stores enum values persistently
- */
+    // 51 is for showing customize - in ui headers start from 52 onwards up until 99.
+
+     /** OtherHeader MUST ALWAYS BE LAST attribute since 
+       * we can have an arbitrary # of these. The number can be changed,
+       * however, because we never persist AttribValues as integers.
+      */
+    const nsMsgSearchAttribValue OtherHeader = 51; 
+    // must be last attribute
+    const nsMsgSearchAttribValue kNumMsgSearchAttributes = 100;
+};
 
 typedef long nsMsgSearchOpValue;
 
@@ -222,6 +227,8 @@ typedef struct nsMsgSearchValue
 
 [ptr] native nsMsgSearchTerm(nsMsgSearchTerm);
 
+// Please note the ! at the start of this macro, which means the macro
+// needs to enumerate the non-string attributes.
 %{C++
 #define IS_STRING_ATTRIBUTE(_a) \
 (!(_a == nsMsgSearchAttrib::Priority || _a == nsMsgSearchAttrib::Date || \
@@ -229,6 +236,7 @@ typedef struct nsMsgSearchValue
    _a == nsMsgSearchAttrib::Size || _a == nsMsgSearchAttrib::AgeInDays || \
    _a == nsMsgSearchAttrib::FolderInfo || _a == nsMsgSearchAttrib::Location || \
    _a == nsMsgSearchAttrib::Label || _a == nsMsgSearchAttrib::JunkStatus || \
+   _a == nsMsgSearchAttrib::FolderFlag || \
    _a == nsMsgSearchAttrib::JunkPercent || _a == nsMsgSearchAttrib::HasAttachmentStatus))
 %}
 

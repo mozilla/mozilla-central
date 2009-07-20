@@ -48,6 +48,7 @@
 #include "nsMsgKeySet.h"
 #include "nsIEnumerator.h"
 #include "nsMsgThread.h"
+#include "nsIMsgSearchTerm.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsMsgBaseCID.h"
 #include "nsMorkCID.h"
@@ -2524,10 +2525,12 @@ nsMsgDBEnumerator::nsMsgDBEnumerator(nsMsgDatabase* db,
                                      void* closure,
                                      PRBool iterateForwards)
     : mDB(db), mDone(PR_FALSE), mFilter(filter),
-      mClosure(closure), mIterateForwards(iterateForwards)
+      mClosure(closure), mIterateForwards(iterateForwards),
+      mStopPos(-1)
 {
   mNextPrefetched = PR_FALSE;
   mTable = table;
+  mRowPos = 0;
   mDB->m_enumerators.AppendElement(this);
 }
 
@@ -2555,18 +2558,17 @@ nsresult nsMsgDBEnumerator::GetRowCursor()
   if (!mDB || !mTable)
     return NS_ERROR_NULL_POINTER;
 
-  mdb_pos startPos;
   if (mIterateForwards)
   {
-    startPos = -1;
+    mRowPos = -1;
   }
   else
   {
     mdb_count numRows;
     mTable->GetCount(mDB->GetEnv(), &numRows);
-    startPos = numRows; // startPos is 0 relative.
+    mRowPos = numRows; // startPos is 0 relative.
   }
-  return mTable->GetTableRowCursor(mDB->GetEnv(), startPos, getter_AddRefs(mRowCursor));
+  return mTable->GetTableRowCursor(mDB->GetEnv(), mRowPos, getter_AddRefs(mRowCursor));
 }
 
 NS_IMETHODIMP nsMsgDBEnumerator::GetNext(nsISupports **aItem)
@@ -2592,7 +2594,6 @@ nsresult nsMsgDBEnumerator::PrefetchNext()
 {
   nsresult rv = NS_OK;
   nsIMdbRow* hdrRow;
-  mdb_pos rowPos;
   PRUint32 flags;
 
   if (!mRowCursor)
@@ -2606,9 +2607,9 @@ nsresult nsMsgDBEnumerator::PrefetchNext()
   {
     mResultHdr = nsnull;
     if (mIterateForwards)
-      rv = mRowCursor->NextRow(mDB->GetEnv(), &hdrRow, &rowPos);
+      rv = mRowCursor->NextRow(mDB->GetEnv(), &hdrRow, &mRowPos);
     else
-      rv = mRowCursor->PrevRow(mDB->GetEnv(), &hdrRow, &rowPos);
+      rv = mRowCursor->PrevRow(mDB->GetEnv(), &hdrRow, &mRowPos);
     if (!hdrRow)
     {
       mDone = PR_TRUE;
@@ -2645,6 +2646,8 @@ nsresult nsMsgDBEnumerator::PrefetchNext()
     mNextPrefetched = PR_TRUE;
     return NS_OK;
   }
+  else
+    mNextPrefetched = PR_FALSE;
   return NS_ERROR_FAILURE;
 }
 
@@ -2658,6 +2661,68 @@ NS_IMETHODIMP nsMsgDBEnumerator::HasMoreElements(PRBool *aResult)
   *aResult = !mDone;
   return NS_OK;
 }
+
+nsMsgFilteredDBEnumerator::nsMsgFilteredDBEnumerator(nsMsgDatabase* db,
+                                                     nsIMdbTable *table,
+                                                     PRBool reverse,
+                                                     nsIArray *searchTerms)
+   : nsMsgDBEnumerator(db, table, nsnull, nsnull, !reverse)
+{
+}
+
+nsMsgFilteredDBEnumerator::~nsMsgFilteredDBEnumerator()
+{
+}
+
+/**
+ * Create the search session for the enumerator,
+ * add the scope term for "folder" to the search session, and add the search
+ * terms in the array to the search session.
+ */
+nsresult nsMsgFilteredDBEnumerator::InitSearchSession(nsIArray *searchTerms, nsIMsgFolder *folder)
+{
+  nsresult rv;
+  m_searchSession = do_CreateInstance(NS_MSGSEARCHSESSION_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  m_searchSession->AddScopeTerm(nsMsgSearchScope::offlineMail, folder);
+  // add each item in termsArray to the search session
+  PRUint32 numTerms;
+  rv = searchTerms->GetLength(&numTerms);
+  NS_ENSURE_SUCCESS(rv, rv);
+  for (PRUint32 i = 0; i < numTerms; i++)
+  {
+    nsCOMPtr <nsIMsgSearchTerm> searchTerm;
+    searchTerms->QueryElementAt(i, NS_GET_IID(nsIMsgSearchTerm), getter_AddRefs(searchTerm));
+    m_searchSession->AppendTerm(searchTerm);
+  }
+  return NS_OK;
+}
+
+nsresult nsMsgFilteredDBEnumerator::PrefetchNext()
+{
+  nsresult rv;
+  do
+  {
+    rv = nsMsgDBEnumerator::PrefetchNext();
+    if (NS_SUCCEEDED(rv) && mResultHdr)
+    {
+      PRBool matches;
+      rv  = m_searchSession->MatchHdr(mResultHdr, mDB, &matches);
+      if (NS_SUCCEEDED(rv) && matches)
+        break;
+      mResultHdr = nsnull;
+    }
+    else
+      break;
+  } while (mStopPos == -1 || mRowPos != mStopPos);
+
+  if (!mResultHdr)
+    mNextPrefetched = PR_FALSE;
+
+  return rv;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2682,6 +2747,70 @@ nsMsgDatabase::ReverseEnumerateMessages(nsISimpleEnumerator* *result)
   if (!e)
     return NS_ERROR_OUT_OF_MEMORY;
   NS_ADDREF(*result = e);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgDatabase::GetFilterEnumerator(nsIArray *searchTerms, PRBool aReverse,
+                                   nsISimpleEnumerator **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  nsRefPtr<nsMsgFilteredDBEnumerator> e = 
+    new nsMsgFilteredDBEnumerator(this, m_mdbAllMsgHeadersTable, aReverse,
+                                  searchTerms);
+
+  NS_ENSURE_TRUE(e, NS_ERROR_OUT_OF_MEMORY);
+  nsresult rv = e->InitSearchSession(searchTerms, m_folder);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return CallQueryInterface(e.get(), aResult);
+}
+
+NS_IMETHODIMP
+nsMsgDatabase::NextMatchingHdrs(nsISimpleEnumerator *aEnumerator,
+                                PRInt32 aNumHdrsToLookAt, PRInt32 aMaxResults,
+                                nsIMutableArray *aMatchingHdrs,
+                                PRInt32 *aNumMatches, PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aEnumerator);
+  NS_ENSURE_ARG_POINTER(aResult);
+  nsMsgFilteredDBEnumerator *enumerator =
+    static_cast<nsMsgFilteredDBEnumerator *> (aEnumerator);
+
+  // Force mRowPos to be initialized.
+  if (!enumerator->mRowCursor)
+    enumerator->GetRowCursor();
+
+  if (aNumHdrsToLookAt)
+  {
+    enumerator->mStopPos = enumerator->mIterateForwards ?
+      enumerator->mRowPos + aNumHdrsToLookAt :
+      enumerator->mRowPos - aNumHdrsToLookAt;
+    if (enumerator->mStopPos < 0)
+      enumerator->mStopPos = 0;
+  }
+  PRInt32 numMatches = 0;
+  nsresult rv;
+  do
+  {
+    nsCOMPtr <nsIMsgDBHdr> nextMessage;
+    rv = enumerator->GetNext(getter_AddRefs(nextMessage));
+    if (NS_SUCCEEDED(rv) && nextMessage)
+    {
+      if (aMatchingHdrs)
+        aMatchingHdrs->AppendElement(nextMessage, PR_FALSE);
+      ++numMatches;
+      if (aMaxResults && numMatches == aMaxResults)
+        break;
+    }
+    else
+      break;
+  }
+  while (PR_TRUE);
+
+  if (aNumMatches)
+    *aNumMatches = numMatches;
+
+  *aResult = !enumerator->mDone;
   return NS_OK;
 }
 

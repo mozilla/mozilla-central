@@ -194,6 +194,7 @@ SearchSpec.prototype = {
         cloneTerm.value = term.value;
         cloneTerm.attrib = term.attrib;
         cloneTerm.arbitraryHeader = term.arbitraryHeader;
+        cloneTerm.hdrProperty = term.hdrProperty;
         cloneTerm.customId = term.customId;
         cloneTerm.op = term.op;
         cloneTerm.booleanAnd = term.booleanAnd;

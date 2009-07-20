@@ -49,6 +49,7 @@
 #include "nsIMutableArray.h"
 #include "nsDBFolderInfo.h"
 #include "nsICollation.h"
+#include "nsIMsgSearchSession.h"
 #include "nsIMimeConverter.h"
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
@@ -97,11 +98,11 @@ public:
 
     void Clear();
 
-protected:
     nsresult                        GetRowCursor();
-    nsresult                        PrefetchNext();
+    virtual nsresult                PrefetchNext();
     nsRefPtr<nsMsgDatabase>         mDB;
     nsCOMPtr<nsIMdbTableRowCursor>  mRowCursor;
+    mdb_pos                         mRowPos;
     nsCOMPtr<nsIMsgDBHdr>           mResultHdr;
     PRBool                          mDone;
     PRBool                          mNextPrefetched;
@@ -109,8 +110,25 @@ protected:
     nsMsgDBEnumeratorFilter         mFilter;
     nsCOMPtr <nsIMdbTable>          mTable;
     void*                           mClosure;
+    // This is used when the caller wants to limit how many headers the
+    // enumerator looks at in any given time slice.
+    mdb_pos                         mStopPos;
 };
 
+class nsMsgFilteredDBEnumerator : public nsMsgDBEnumerator
+{
+public:
+  nsMsgFilteredDBEnumerator(nsMsgDatabase* db, nsIMdbTable *table,
+                            PRBool reverse, nsIArray *searchTerms);
+  virtual ~nsMsgFilteredDBEnumerator();
+  nsresult InitSearchSession(nsIArray *searchTerms, nsIMsgFolder *folder);
+
+protected:
+  virtual nsresult               PrefetchNext();
+
+  nsCOMPtr <nsIMsgSearchSession> m_searchSession;
+
+};
 
 class nsMsgDatabase : public nsIMsgDatabase
 {

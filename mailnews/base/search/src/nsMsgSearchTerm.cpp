@@ -763,21 +763,17 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
   NS_ENSURE_ARG_POINTER(pResult);
   *pResult = PR_FALSE;
   nsresult err = NS_OK;
-  PRBool result;
-
-  GetMatchAllBeforeDeciding(&result);
+  PRBool matchExpected = m_operator == nsMsgSearchOp::Contains ||
+                         m_operator == nsMsgSearchOp::Is;
+  // init result to what we want if we don't find the header at all
+  PRBool result = !matchExpected;
 
   nsCString dbHdrValue;
   msg->GetStringProperty(m_arbitraryHeader.get(), getter_Copies(dbHdrValue));
   if (!dbHdrValue.IsEmpty())
-  {
-    PRBool result2;
-    err = MatchRfc2047String(dbHdrValue.get(), charset, charsetOverride, &result2);  // match value with the other info...
-    if (result != result2) // if we found a match
-      result = result2;
-    *pResult = result;
-    return err;
-  }
+    // match value with the other info.
+    return MatchRfc2047String(dbHdrValue.get(), charset, charsetOverride, pResult);
+
   nsMsgBodyHandler * bodyHandler = new nsMsgBodyHandler (scope, offset,length, msg, db, headers, headersSize, ForFiltering);
   if (!bodyHandler)
     return NS_ERROR_OUT_OF_MEMORY;
@@ -828,12 +824,13 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
       // Otherwise, it's just an empty header.
       if (headerValue < buf_end && *headerValue)
       {
-        PRBool result2;
-        err = MatchRfc2047String(headerValue, charset, charsetOverride, &result2);  // match value with the other info...
-        if (result != result2) // if we found a match
+        PRBool stringMatches;
+        // match value with the other info.
+        err = MatchRfc2047String(headerValue, charset, charsetOverride, &stringMatches);
+        if (matchExpected == stringMatches) // if we found a match
         {
           searchingHeaders = PR_FALSE;   // then stop examining the headers
-          result = result2;
+          result = stringMatches;
         }
       }
     }
@@ -843,6 +840,29 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
   delete bodyHandler;
   *pResult = result;
   return err;
+}
+
+NS_IMETHODIMP nsMsgSearchTerm::MatchHdrProperty(nsIMsgDBHdr *aHdr, PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  NS_ENSURE_ARG_POINTER(aHdr);
+
+  nsCString dbHdrValue;
+  aHdr->GetStringProperty(m_hdrProperty.get(), getter_Copies(dbHdrValue));
+  nsresult rv = MatchString(dbHdrValue.get(), nsnull, aResult);
+  return rv;
+}
+
+NS_IMETHODIMP nsMsgSearchTerm::MatchFolderFlag(nsIMsgDBHdr *aMsgToMatch, PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aMsgToMatch);
+  NS_ENSURE_ARG_POINTER(aResult);
+  nsCOMPtr<nsIMsgFolder> msgFolder;
+  nsresult rv = aMsgToMatch->GetFolder(getter_AddRefs(msgFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRUint32 folderFlags;
+  msgFolder->GetFlags(&folderFlags);
+  return MatchStatus(folderFlags, aResult);
 }
 
 nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, PRUint32 offset, PRUint32 length /*in lines*/, const char *folderCharset,
@@ -1735,6 +1755,21 @@ nsMsgSearchTerm::SetArbitraryHeader(const nsACString &aValue)
     return NS_OK;
 }
 
+NS_IMETHODIMP
+nsMsgSearchTerm::GetHdrProperty(nsACString &aResult)
+{
+  aResult = m_hdrProperty;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgSearchTerm::SetHdrProperty(const nsACString &aValue)
+{
+  m_hdrProperty = aValue;
+  ToLowerCaseExceptSpecials(m_hdrProperty);
+  return NS_OK;
+}
+
 NS_IMPL_GETSET(nsMsgSearchTerm, BeginsGrouping, PRBool, mEndsGrouping)
 NS_IMPL_GETSET(nsMsgSearchTerm, EndsGrouping, PRBool, mEndsGrouping)
 
@@ -1960,6 +1995,7 @@ nsresult nsMsgResultElement::AssignValues (nsIMsgSearchValue *src, nsMsgSearchVa
     break;
   case nsMsgSearchAttrib::HasAttachmentStatus:
   case nsMsgSearchAttrib::MsgStatus:
+  case nsMsgSearchAttrib::FolderFlag:
     err = src->GetStatus(&dst->u.msgStatus);
     break;
   case nsMsgSearchAttrib::MessageKey:

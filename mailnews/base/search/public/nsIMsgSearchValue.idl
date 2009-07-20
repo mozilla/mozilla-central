@@ -50,7 +50,8 @@ interface nsIMsgSearchValue : nsISupports {
     attribute AString str;
     attribute nsMsgPriorityValue priority;
     attribute PRTime date;
-    attribute unsigned long status; // see MSG_FLAG in msgcom.h
+     // see nsMsgMessageFlags.idl and nsMsgFolderFlags.idl
+    attribute unsigned long status;
     attribute unsigned long size;
     attribute nsMsgKey msgKey;
     attribute long age; // in days

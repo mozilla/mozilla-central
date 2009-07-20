@@ -58,15 +58,6 @@ class nsIMsgSearchScopeTerm;
 // the special smarts for that protocol.
 //-----------------------------------------------------------------------------
 
-inline PRBool IsStringAttribute (nsMsgSearchAttribValue a)
-{
-  return ! (a == nsMsgSearchAttrib::Priority || a == nsMsgSearchAttrib::Date ||
-    a == nsMsgSearchAttrib::MsgStatus || a == nsMsgSearchAttrib::MessageKey ||
-    a == nsMsgSearchAttrib::Size || a == nsMsgSearchAttrib::AgeInDays ||
-    a == nsMsgSearchAttrib::FolderInfo || a == nsMsgSearchAttrib::JunkStatus ||
-    a == nsMsgSearchAttrib::JunkPercent);
-}
-
 class nsMsgSearchAdapter : public nsIMsgSearchAdapter
 {
 public:

@@ -564,7 +564,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
       }
       else
 
-      if (IsStringAttribute(attrib))
+      if (IS_STRING_ATTRIBUTE(attrib))
       {
         PRUnichar *convertedValue; // = reallyDredd ? MSG_EscapeSearchUrl (term->m_value.u.string) : msg_EscapeImapSearchProtocol(term->m_value.u.string);
         nsString searchTermValue;

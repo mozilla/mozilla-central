@@ -102,10 +102,17 @@ public:
   nsMsgSearchAttribValue m_attribute;
   nsMsgSearchOpValue m_operator;
   nsMsgSearchValue m_value;
-  nsMsgSearchBooleanOperator m_booleanOp;  // boolean operator to be applied to this search term and the search term which precedes it.
-  nsCString m_arbitraryHeader;         // user specified string for the name of the arbitrary header to be used in the search
-                    // only has a value when m_attribute = attribOtherHeader!!!!
-        PRBool m_matchAll; // does this term match all headers?
+
+  // boolean operator to be applied to this search term and the search term which precedes it.
+  nsMsgSearchBooleanOperator m_booleanOp;
+
+  // user specified string for the name of the arbitrary header to be used in the search
+  // only has a value when m_attribute = OtherHeader!!!!
+  nsCString m_arbitraryHeader;
+
+  // db hdr property name to use - used when m_attribute = HdrProperty.
+  nsCString m_hdrProperty;
+  PRBool m_matchAll; // does this term match all headers?
   nsCString m_customId; // id of custom search term
 
 protected:

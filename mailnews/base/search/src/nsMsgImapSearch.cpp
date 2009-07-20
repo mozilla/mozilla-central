@@ -131,7 +131,7 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
       
       nsMsgSearchAttribValue attribute;
       pTerm->GetAttrib(&attribute);
-      if (IsStringAttribute(attribute))
+      if (IS_STRING_ATTRIBUTE(attribute))
       {
         nsString pchar;
         nsCOMPtr <nsIMsgSearchValue> searchValue;

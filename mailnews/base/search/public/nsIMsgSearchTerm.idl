@@ -44,7 +44,7 @@ interface nsIMsgDBHdr;
 interface nsIMsgDatabase;
 interface nsIMsgSearchScopeTerm;
 
-[scriptable, uuid(D14C266B-5028-448d-B3F1-B059BD0055AA)]
+[scriptable, uuid(ff8e5017-bceb-43d5-98da-cc2b79eb0910)]
 interface nsIMsgSearchTerm : nsISupports {
     attribute nsMsgSearchAttribValue attrib;
     attribute nsMsgSearchOpValue op;
@@ -52,6 +52,14 @@ interface nsIMsgSearchTerm : nsISupports {
 
     attribute boolean booleanAnd;
     attribute ACString arbitraryHeader;
+    /**
+     * Not to be confused with arbitraryHeader, which is a header in the
+     * rfc822 message. This is a property of the nsIMsgDBHdr, and may have
+     * nothing to do the message headers, e.g., gloda-id.
+     * value.str will be compared with nsIMsgHdr::GetProperty(hdrProperty).
+     */
+    attribute ACString hdrProperty;
+
     /// identifier for a custom id used for this term, if any.
     attribute ACString customId;
 
@@ -103,6 +111,22 @@ interface nsIMsgSearchTerm : nsISupports {
                                  in string headers,
                                  in unsigned long headerLength,
                                  in boolean forFilters);
+
+    /**
+     * Compares value.str with nsIMsgHdr::GetProperty(hdrProperty).
+     * @param msg   msg to match db hdr property of.
+     *
+     * @returns     true if msg matches property, false otherwise.
+     */
+    boolean matchHdrProperty(in nsIMsgDBHdr msg);
+
+    /**
+     * Compares value.status with the folder flags of the msg's folder.
+     * @param msg   msgHdr whose folder's flag we want to compare.
+     *
+     * @returns     true if folder's flags match value.status, false otherwise.
+     */
+    boolean matchFolderFlag(in nsIMsgDBHdr msg);
 
     readonly attribute boolean matchAllBeforeDeciding;
 
