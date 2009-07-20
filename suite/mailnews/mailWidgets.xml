@@ -155,9 +155,10 @@
 
   <!-- Message Pane Widgets -->
 
-  <!-- mail-toggle-headerfield: non email addrss headers which have a toggle associated with them (i.e. the subject).
-       use label to set the header name.
-       use headerValue to set the header value. -->
+  <!-- mail-toggle-headerfield: Non-email addrs headers which have a toggle
+       associated with them (i.e. the subject).
+       Use label to set the header name.
+       Use headerValue to set the header value. -->
   <binding id="mail-toggle-headerfield">
     <content>
       <xul:hbox class="headerNameBox" align="start">
@@ -290,7 +291,7 @@
             }
             catch(ex)
             {
-              dump("AddExtraAddressProcessing failed: " + ex);
+              dump("AddExtraAddressProcessing failed: " + ex + "\n");
             }
           ]]>
         </body>
@@ -407,15 +408,15 @@
         <body>
           <![CDATA[
             if (UpdateExtraAddressProcessing) {
-	      var childNodes = this.emailAddresses.childNodes;
-	      for (var i = 0; i < this.mAddresses.length; ++i) {
-	        UpdateExtraAddressProcessing(this.mAddresses[i],
+              var childNodes = this.emailAddresses.childNodes;
+              for (let i = 0; i < this.mAddresses.length; i++) {
+                UpdateExtraAddressProcessing(this.mAddresses[i],
                                              childNodes[i * 2],
                                              aParam1, aParam2, aParam3);
               }
             }
           ]]>
-	</body>
+        </body>
       </method>
 
       <method name="toggleWrap">
@@ -767,8 +768,7 @@
             if (targetIds.length == 0) return null;
 
             var targets = new Array;
-            var j=0;
-            for (var i=0; i<targetIds.length;i++) {
+            for (let j = 0, i = 0; i < targetIds.length; i++) {
               var target = document.getElementById(targetIds[i]);
               if (target) targets[j++] = target;
             }
@@ -1556,7 +1556,7 @@
       </constructor>
     </implementation>
     <handlers>
-	<handler event="keypress" keycode="VK_RETURN" action="onEnterInSearchTerm();"/>
+      <handler event="keypress" keycode="VK_RETURN" action="onEnterInSearchTerm();"/>
     </handlers>
   </binding>
   <!-- the searchterm binding is not used anymore, remove in bug 490962 -->
@@ -2033,7 +2033,7 @@
             var pref = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
             var showPreviewText = pref.getBoolPref("mail.biff.alert.show_preview");
             var folderArray = new Array;
-            if (aFolder.flags  & Components.interfaces.nsMsgFolderFlags.Virtual)
+            if (aFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
             {
               var dbFolderInfo = aFolder.msgDatabase.dBFolderInfo;
               var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
