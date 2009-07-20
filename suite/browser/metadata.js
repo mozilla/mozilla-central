@@ -196,13 +196,15 @@ function checkForImage(elem, htmllocalname)
         if (size != -1) {
             var kbSize = size / 1024;
             kbSize = Math.round(kbSize*100)/100;
-            setInfo("image-filesize", gMetadataBundle.getFormattedString("imageSize", [kbSize, size]));
+            setInfo("image-filesize", gMetadataBundle.getFormattedString("imageSize",
+                                                                         [formatNumber(kbSize),
+                                                                          formatNumber(size)]));
         } else {
             setInfo("image-filesize", gMetadataBundle.getString("imageSizeUnknown"));
         }
         if ("width" in img && img.width != "") {
-            setInfo("image-width", gMetadataBundle.getFormattedString("imageWidth", [ img.width ]));
-            setInfo("image-height", gMetadataBundle.getFormattedString("imageHeight", [ img.height ]));
+            setInfo("image-width", gMetadataBundle.getFormattedString("imageWidth", [formatNumber(img.width)]));
+            setInfo("image-height", gMetadataBundle.getFormattedString("imageHeight", [formatNumber(img.height)]));
         }
         else {
             setInfo("image-width", "");
@@ -545,4 +547,9 @@ function setAlt(elem) {
         altText.setAttribute("style","font-style:italic");
     }
 
+}
+
+function formatNumber(number)
+{
+  return (+number).toLocaleString();  // coerce number to a numeric value before calling toLocaleString()
 }

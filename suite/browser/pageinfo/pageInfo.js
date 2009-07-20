@@ -497,8 +497,10 @@ function makeGeneralTab()
   var sizeText;
   if (cacheEntryDescriptor) {
     var pageSize = cacheEntryDescriptor.dataSize;
-    var kbSize = formatNumber(Math.round(pageSize / 1024 * 100) / 100);
-    sizeText = gBundle.getFormattedString("generalSize", [kbSize, formatNumber(pageSize)]);
+    var kbSize = Math.round(pageSize / 1024 * 100) / 100;
+    sizeText = gBundle.getFormattedString("generalSize",
+                                          [formatNumber(kbSize),
+                                           formatNumber(pageSize)]);
   }
   setItemValue("sizetext", sizeText);
 
@@ -587,8 +589,8 @@ function addImage(url, type, alt, elem, isBg)
     var sizeText;
     if (cacheEntryDescriptor) {
       var pageSize = cacheEntryDescriptor.dataSize;
-      var kbSize = formatNumber(Math.round(pageSize / 1024 * 100) / 100);
-      sizeText = gBundle.getFormattedString("mediaFileSize", [kbSize]);
+      var kbSize = Math.round(pageSize / 1024 * 100) / 100;
+      sizeText = gBundle.getFormattedString("mediaFileSize", [formatNumber(kbSize)]);
     }
     else
       sizeText = gStrings.unknown;
@@ -1019,7 +1021,8 @@ function makePreview(row)
     var pageSize = cacheEntryDescriptor.dataSize;
     var kbSize = Math.round(pageSize / 1024 * 100) / 100;
     sizeText = gBundle.getFormattedString("generalSize",
-                                          [formatNumber(kbSize), formatNumber(pageSize)]);
+                                          [formatNumber(kbSize),
+                                           formatNumber(pageSize)]);
   }
   setItemValue("imagesizetext", sizeText);
 
@@ -1125,7 +1128,7 @@ function makePreview(row)
   if (url)
     imageSize = gBundle.getFormattedString("mediaSize",
                                            [formatNumber(width),
-                                           formatNumber(height)]);
+                                            formatNumber(height)]);
   setItemValue("imageSize", imageSize);
 
   var physSize = "";
