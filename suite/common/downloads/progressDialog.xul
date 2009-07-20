@@ -122,11 +122,13 @@
   <hbox>
     <label id="fileName" crop="center" value=""
            context="fileContext" popup="fileContext"
+           aria-haspopup="true"
            style="-moz-user-focus: normal;"/>
   </hbox>
   <hbox>
     <label id="fileSource" crop="center" value=""
            context="sourceContext" popup="sourceContext"
+           aria-haspopup="true"
            style="-moz-user-focus: normal;"/>
   </hbox>
   <hbox align="end">
