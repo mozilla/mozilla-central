@@ -44,6 +44,7 @@
 #include <unistd.h>    // for link(), used in spool-file locking
 
 #include "prenv.h"
+#include "private/pprio.h"     // for our kernel-based locking
 #include "nspr.h"
 
 #include "msgCore.h"    // precompiled header...
@@ -157,10 +158,58 @@ nsMovemailService::Error(PRInt32 errorCode,
 }
 
 
-PRBool ObtainSpoolLock(const char *spoolnameStr,
-                       int seconds /* number of seconds to retry */)
+PRBool ObtainSpoolLock(const char *aSpoolName,
+                       int aSeconds /* number of seconds to retry */,
+                       PRBool *aUsingLockFile)
 {
-  // How to lock:
+  NS_ENSURE_ARG_POINTER(aUsingLockFile);
+
+  /*
+   * Locking procedures:
+   * If the directory is not writable, we want to use the appropriate system
+   * utilites to lock the file.
+   * If the directory is writable, we want to go through the create-and-link
+   * locking procedures to make it atomic for certain networked file systems.
+   * This involves creating a .mozlock file and attempting to hard-link it to
+   * the customary .lock file.
+   */
+  nsCOMPtr<nsILocalFile> spoolFile;
+  nsresult rv = NS_NewNativeLocalFile(nsDependentCString(aSpoolName),
+                                      PR_TRUE,
+                                      getter_AddRefs(spoolFile));
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+  nsCOMPtr<nsIFile> directory;
+  rv = spoolFile->GetParent(getter_AddRefs(directory));
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+  rv = directory->IsWritable(aUsingLockFile);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+  if (!*aUsingLockFile) {
+    LOG(("Attempting to use kernel file lock"));
+    PRFileDesc *fd;
+    rv = spoolFile->OpenNSPRFileDesc(PR_RDWR, 0, &fd);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
+    PRStatus lock_result;
+    int retry_count = 0;
+
+    do {
+      lock_result = PR_TLockFile(fd);
+  
+      retry_count++;
+      LOG(("Attempt %d of %d to lock file", retry_count, aSeconds));
+      if (aSeconds > 0 && lock_result == PR_FAILURE) {
+        // pause 1sec, waiting for .lock to go away
+        PRIntervalTime sleepTime = 1000; // 1 second
+        PR_Sleep(sleepTime);
+      }
+    } while (lock_result == PR_FAILURE && retry_count < aSeconds);
+    LOG(("Lock result: %d", lock_result));
+    PR_Close(fd);
+    return lock_result == PR_SUCCESS;
+  }
+  // How to lock using files:
   // step 1: create SPOOLNAME.mozlock
   //        1a: can remove it if it already exists (probably crash-droppings)
   // step 2: hard-link SPOOLNAME.mozlock to SPOOLNAME.lock for NFS atomicity
@@ -172,12 +221,11 @@ PRBool ObtainSpoolLock(const char *spoolnameStr,
   //
   // (step 2a not yet implemented)
 
-  nsCAutoString mozlockstr(spoolnameStr);
-  mozlockstr.Append(".mozlock");
-  nsCAutoString lockstr(spoolnameStr);
-  lockstr.Append(".lock");
 
-  nsresult rv;
+  nsCAutoString mozlockstr(aSpoolName);
+  mozlockstr.Append(".mozlock");
+  nsCAutoString lockstr(aSpoolName);
+  lockstr.Append(".lock");
 
   // Create nsILocalFile for the spool.mozlock file
   nsCOMPtr<nsILocalFile> tmplocfile;
@@ -206,14 +254,14 @@ PRBool ObtainSpoolLock(const char *spoolnameStr,
     link_result = link(mozlockstr.get(),lockstr.get());
 
     retry_count++;
-    LOG(("Attempt %d of %d to create lock file", retry_count, seconds));
+    LOG(("Attempt %d of %d to create lock file", retry_count, aSeconds));
 
-    if (seconds > 0 && link_result == -1) {
+    if (aSeconds > 0 && link_result == -1) {
       // pause 1sec, waiting for .lock to go away
       PRIntervalTime sleepTime = 1000; // 1 second
       PR_Sleep(sleepTime);
     }
-  } while (link_result == -1 && retry_count < seconds);
+  } while (link_result == -1 && retry_count < aSeconds);
   LOG(("Link result: %d", link_result));
 
   // step 3: remove .mozlock file, in any case
@@ -231,11 +279,29 @@ PRBool ObtainSpoolLock(const char *spoolnameStr,
 
 // Remove our mail-spool-file lock (n.b. we should only try this if
 // we're the ones who made the lock in the first place!)
-PRBool YieldSpoolLock(const char *spoolnameStr)
+PRBool YieldSpoolLock(const char *aSpoolName, PRBool aUsingLockFile)
 {
-  LOG(("YieldSpoolLock(%s)", spoolnameStr));
+  LOG(("YieldSpoolLock(%s)", aSpoolName));
 
-  nsCAutoString lockstr(spoolnameStr);
+  if (!aUsingLockFile) {
+    nsCOMPtr<nsILocalFile> spoolFile;
+    nsresult rv = NS_NewNativeLocalFile(nsDependentCString(aSpoolName),
+                                        PR_TRUE,
+                                        getter_AddRefs(spoolFile));
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+    PRFileDesc *fd;
+    rv = spoolFile->OpenNSPRFileDesc(PR_RDWR, 0, &fd);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+    PRBool unlockSucceeded = PR_UnlockFile(fd) == PR_SUCCESS;
+    PR_Close(fd);
+    if (unlockSucceeded)
+      LOG(("YieldSpoolLock was successful."));
+    return unlockSucceeded;
+  }
+
+  nsCAutoString lockstr(aSpoolName);
   lockstr.Append(".lock");
 
   nsresult rv;
@@ -388,7 +454,8 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   in_server->SetServerBusy(PR_TRUE);
 
   // Try and obtain the lock for the spool file
-  if (!ObtainSpoolLock(spoolPath.get(), 5)) {
+  PRBool usingLockFile;
+  if (!ObtainSpoolLock(spoolPath.get(), 5, &usingLockFile)) {
     nsAutoString lockFile = NS_ConvertUTF8toUTF16(spoolPath);
     lockFile.AppendLiteral(".lock");
     const PRUnichar *params[] = {
@@ -443,7 +510,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     Error(MOVEMAIL_CANT_TRUNCATE_SPOOL_FILE, params, 1);
   }
 
-  if (!YieldSpoolLock(spoolPath.get())) {
+  if (!YieldSpoolLock(spoolPath.get(), usingLockFile)) {
     nsAutoString spoolLock = NS_ConvertUTF8toUTF16(spoolPath);
     spoolLock.AppendLiteral(".lock");
     const PRUnichar *params[] = {
