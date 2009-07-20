@@ -42,7 +42,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="debugqa_prefs_debug1" label="&lHeader;">
 
-    <preferences id="debugqa_preferences">
+    <preferences id="debugqa_preferences1">
       <preference id="nglayout.debug.paint_flashing"
                   name="nglayout.debug.paint_flashing" type="bool"/>
       <preference id="nglayout.debug.paint_dumping"

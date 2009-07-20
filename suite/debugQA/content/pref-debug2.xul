@@ -42,7 +42,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="debugqa_prefs_debug2" label="&lHeader;">
 
-    <preferences id="debugqa_preferences">
+    <preferences id="debugqa_preferences2">
       <preference id="network.dir.format" name="network.dir.format" type="int"/>
       <preference id="nglayout.debug.disable_xul_cache"
                   name="nglayout.debug.disable_xul_cache" type="bool"/>
