@@ -69,6 +69,10 @@ var gPermObj = {
     if (gPrefs.getBoolPref("xpinstall.whitelist.required"))
       return BLOCK;
     return ALLOW;
+  },
+  geo: function getGeoDefaultPermission()
+  {
+    return BLOCK;
   }
 };
 
