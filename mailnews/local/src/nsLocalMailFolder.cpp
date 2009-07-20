@@ -2145,7 +2145,7 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile,
 {
   nsresult rv = NS_ERROR_NULL_POINTER;
   nsParseMailMessageState* parseMsgState = nsnull;
-  PRUint32 fileSize = 0;
+  PRInt64 fileSize = 0;
   nsCOMPtr<nsISupports> fileSupport(do_QueryInterface(aFile, &rv));
 
   nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
@@ -2172,8 +2172,27 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile,
 
     nsCOMPtr<nsIInputStream> inputStream;
     rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aFile);
+    if (NS_SUCCEEDED(rv)) 
+      aFile->GetFileSize(&fileSize);
+
+    // All or none for adding a message file to the store
+    if (NS_SUCCEEDED(rv) && fileSize > PR_INT32_MAX)
+        rv = NS_ERROR_ILLEGAL_VALUE; // may need error code for max msg size
+
     if (NS_SUCCEEDED(rv) && inputStream) 
-      rv = inputStream->Available(&fileSize);
+    {
+      char buffer[5];
+      PRUint32 readCount;
+      rv = inputStream->Read(buffer, 5, &readCount);
+      if (NS_SUCCEEDED(rv)) 
+      {
+        if (strncmp(buffer, "From ", 5))
+          mCopyState->m_dummyEnvelopeNeeded = PR_TRUE;
+        nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(inputStream, &rv);
+        if (NS_SUCCEEDED(rv))
+          seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, 0);
+      }
+    }
 
     if (NS_SUCCEEDED(rv))
       rv = BeginCopy(nsnull);
