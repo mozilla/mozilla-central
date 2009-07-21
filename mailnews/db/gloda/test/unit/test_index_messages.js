@@ -60,8 +60,12 @@ var fundamentalGlodaMessageId;
  *  (which show up as kSpecial* attributes in fundattr.js anyways.)
  */
 function test_attributes_fundamental() {
-  // create a synthetic message
-  let smsg = msgGen.makeMessage();
+  // create a synthetic message with attachment
+  let smsg = msgGen.makeMessage({
+    attachments: [
+      {filename: 'bob.txt', body: 'I like cheese!'}
+    ],
+  });
   // save it off for test_attributes_fundamental_from_disk
   fundamentalSyntheticMessage = smsg;
 
@@ -93,6 +97,12 @@ function verify_attributes_fundamental(smsg, gmsg) {
 
     // date
     do_check_eq(smsg.date.valueOf(), gmsg.date.valueOf());
+
+    // -- attachments
+    do_check_eq(gmsg.attachmentTypes.length, 1);
+    do_check_eq(gmsg.attachmentTypes[0], "text/plain");
+    do_check_eq(gmsg.attachmentNames.length, 1);
+    do_check_eq(gmsg.attachmentNames[0], "bob.txt");
   }
   catch (ex) {
     // print out some info on the various states of the messages...
