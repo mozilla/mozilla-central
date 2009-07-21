@@ -1371,7 +1371,8 @@ var GlodaIndexer = {
               this._callbackHandle.activeStack.length > 1) {
             this._curIndexingJob.recoverable--;
             this._log.warn("Problem during job, trying to recover.  Problem " +
-              "was at " + ex.fileName + ":" + ex.lineNumber + ": " + ex);
+              "was at " + ex.fileName + ":" + ex.lineNumber + ": " + ex +
+              (ex.stack ? ("\nStack: " + ex.stack) : ""));
             // cleanup but leave the job's iterator intact.
             this._callbackHandle.cleanup(1);
             // the data must now be invalid

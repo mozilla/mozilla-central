@@ -101,39 +101,31 @@ GlodaAttributeDBDef.prototype = {
   },
 
   /**
-   * Given a list of values (if non-singular) or a single value (if singular),
-   *  return a list (regardless of plurality) of database-ready [attribute id,
-   *  value] tuples.  This is intended to be used to directly convert the value
-   *  of a property on an object that corresponds to a bound attribute.
+   * Given a list of values, return a list (regardless of plurality) of
+   *  database-ready [attribute id,  value] tuples.  This is intended to be used
+   *  to directly convert the value of a property on an object that corresponds
+   *  to a bound attribute.
+   *
+   * @param {Array} aInstanceValues An array of instance values regardless of
+   *     whether or not the attribute is singular.
    */
   convertValuesToDBAttributes:
       function gloda_attr_convertValuesToDBAttributes(aInstanceValues) {
     let nounDef = this.attrDef.objectNounDef;
-    if (this._singular) {
-      if (nounDef.usesParameter) {
-        let [param, dbValue] = nounDef.toParamAndValue(aInstanceValues);
-        return [[this.bindParameter(param), dbValue]];
-      }
-      else {
-        return [[this._id, nounDef.toParamAndValue(aInstanceValues)[1]]];
+    let dbAttributes = [];
+    if (nounDef.usesParameter) {
+      for each (let [, instanceValue] in Iterator(aInstanceValues)) {
+        let [param, dbValue] = nounDef.toParamAndValue(instanceValue);
+        dbAttributes.push([this.bindParameter(param), dbValue]);
       }
     }
     else {
-      let dbAttributes = [];
-      if (nounDef.usesParameter) {
-        for each (let [, instanceValue] in Iterator(aInstanceValues)) {
-          let [param, dbValue] = nounDef.toParamAndValue(instanceValue);
-          dbAttributes.push([this.bindParameter(param), dbValue]);
-        }
+      for each (let [, instanceValue] in Iterator(aInstanceValues)) {
+        dbAttributes.push([this._id,
+                           nounDef.toParamAndValue(instanceValue)[1]]);
       }
-      else {
-        for each (let [, instanceValue] in Iterator(aInstanceValues)) {
-          dbAttributes.push([this._id,
-                             nounDef.toParamAndValue(instanceValue)[1]]);
-        }
-      }
-      return dbAttributes;
     }
+    return dbAttributes;
   },
 
   toString: function() {

@@ -433,8 +433,13 @@ var GlodaFundAttr = {
 
     // -- Attachments
     let attachmentTypes = [];
-    for each (let attachment in aMimeMsg.allAttachments) {
-      if (attachment.isRealAttachment) {
+    for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
+      // We don't care about would-be attachments that are not user-intended
+      //  attachments but rather artifacts of the message content.
+      // We also want to avoid dealing with obviously bogus mime types.
+      //  (If you don't have a "/", you are probably bogus.)
+      if (attachment.isRealAttachment &&
+          (attachment.contentType.indexOf("/") != -1)) {
         attachmentTypes.push(MimeTypeNoun.getMimeType(attachment.contentType));
       }
     }

@@ -3054,10 +3054,14 @@ var GlodaDatastore = {
       let attrib = dbAttrib.attrDef;
       let objectNounDef = attrib.objectNounDef;
 
-      // if it has a tableName member, then it's a persistent object that needs
-      //  to be loaded, which also means we need to hold it in a collection
-      //  owned by our collection.
-      if (objectNounDef.tableName) {
+      // If it has a tableName member but no fromJSON, then it's a persistent
+      //  object that needs to be loaded, which also means we need to hold it in
+      //  a collection owned by our collection.
+      // (If it has a fromJSON method, then it's a special case like
+      //  MimeTypeNoun where it is authoritatively backed by a table but caches
+      //  everything into memory.  There is no case where fromJSON would be
+      //  implemented but we should still be doing database lookups.)
+      if (objectNounDef.tableName && !objectNounDef.fromJSON) {
         let references = aReferencesByNounID[objectNounDef.id];
         if (references === undefined)
           references = aReferencesByNounID[objectNounDef.id] = {};

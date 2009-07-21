@@ -1602,13 +1602,15 @@ var Gloda = {
       }
       else {
         if (objectNounDef.toJSON) {
-          toJSON = objectNounDef.toJSON;
+          let toJSON = objectNounDef.toJSON;
           jsonDict[attrib.id] = [toJSON(subValue) for each
                            ([, subValue] in Iterator(value))] ;
         }
         else
           jsonDict[attrib.id] = value;
       }
+
+      // - database index attributes
 
       // perform a delta analysis against the old value, if we have one
       let oldValue = aOldItem[key];
@@ -1699,6 +1701,8 @@ var Gloda = {
       if (attrib === undefined) {
         continue;
       }
+      if (attrib.singular)
+        value = [value];
       let attribDB = attrib.dbDef;
       removeDBAttribs.push.apply(removeDBAttribs,
                                  attribDB.convertValuesToDBAttributes(value));

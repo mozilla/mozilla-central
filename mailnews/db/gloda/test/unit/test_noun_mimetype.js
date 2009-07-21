@@ -30,32 +30,44 @@ function new_pass() {
   }
   curPassResults = [];
   passResults.push(curPassResults);
-  
+
   // the mime type does some async stuff... make sure we don't advance until
   //  it is done with said stuff.
   notifyWhenDatastoreDone(next_test);
 }
 
 function test_basics() {
+  let python;
+  // if this is not the first pass, check for python before other things to
+  //  make sure we're not just relying on consistent logic rather than actual
+  //  persistence
+  if (passResults.length)
+    python = MimeTypeNoun.getMimeType("text/x-python");
+
   let jpeg = MimeTypeNoun.getMimeType("image/jpeg");
-  LOG.debug("jpeg mime type: " + jpeg);
   curPassResults.push(jpeg);
-  
+
   let png = MimeTypeNoun.getMimeType("image/png");
-  LOG.debug("jpeg mime type: " + png);
   curPassResults.push(png);
-  
+
   let html = MimeTypeNoun.getMimeType("text/html");
-  LOG.debug("jpeg mime type: " + html);
   curPassResults.push(html);
-  
+
   let plain = MimeTypeNoun.getMimeType("text/plain");
-  LOG.debug("jpeg mime type: " + plain);
   curPassResults.push(plain);
-  
+
+  // if this is for the first time, check for python now (see above)
+  if (!passResults.length)
+    python = MimeTypeNoun.getMimeType("text/x-python");
+  // but always add it to the results now, as we need consistent ordering
+  //  since we use a list.
+  curPassResults.push(python);
+
+
   // sanity-checking the parsing
   do_check_eq(jpeg.type, "image");
   do_check_eq(jpeg.subType, "jpeg");
+
   // - make sure the numeric trickiness for the block stuff is actually doing
   //  the right thing!
   BLOCK_SIZE = MimeTypeNoun.TYPE_BLOCK_SIZE;
@@ -67,7 +79,14 @@ function test_basics() {
   // different blocks
   do_check_neq(Math.floor(jpeg.id / BLOCK_SIZE),
                Math.floor(html.id / BLOCK_SIZE));
-  
+
+  next_test();
+}
+
+function test_parameters() {
+  let plain = MimeTypeNoun.getMimeType("text/plain");
+  do_check_eq(plain, MimeTypeNoun.getMimeType('text/plain; charset="UTF-8"'));
+
   next_test();
 }
 
@@ -85,11 +104,16 @@ function verify_passes_are_the_same() {
 /* ===== Driver ===== */
 
 var tests = [
+  // do two passes of test_basics making sure that persisted values really
+  //  persist...
   new_pass,
   test_basics,
   new_pass,
   test_basics,
-  verify_passes_are_the_same
+  verify_passes_are_the_same,
+
+  test_parameters,
+
 ];
 
 function run_test() {
