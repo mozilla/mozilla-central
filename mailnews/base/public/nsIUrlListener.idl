@@ -43,7 +43,12 @@ interface nsIURI;
 #include "nsIURL.h"
 %}
 
-/// General interface that signify URL processing.
+/**
+ * General interface that signifies URL processing.
+ *
+ * Some servers do not use URLs for internal operations so the functions may be
+ * called with null URLs.
+ */
 [scriptable, uuid(47618220-D008-11d2-8069-006008128C4E)]
 interface nsIUrlListener : nsISupports {
     /**
