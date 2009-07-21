@@ -196,6 +196,13 @@ function IndexingJob(aJobType, aDeltaType, aID, aItems) {
   this.goal = null;
   this.recoverable = 10;
 }
+IndexingJob.prototype = {
+  toString: function IndexingJob_toString() {
+    return "[job:" + this.jobType + " delta:" + this.deltaType +
+      " id:" + this.id + " items:" + (this.items ? this.items.length : "no") +
+      " offset:" + this.offset + " goal:" + this.goal + "]";
+  }
+};
 
 /**
  * @namespace Core indexing logic, plus message-specific indexing logic.
@@ -1370,17 +1377,22 @@ var GlodaIndexer = {
           if (this._curIndexingJob.recoverable > 0 &&
               this._callbackHandle.activeStack.length > 1) {
             this._curIndexingJob.recoverable--;
-            this._log.warn("Problem during job, trying to recover.  Problem " +
-              "was at " + ex.fileName + ":" + ex.lineNumber + ": " + ex +
-              (ex.stack ? ("\nStack: " + ex.stack) : ""));
+            this._log.warn("Problem during " + this._curIndexingJob +
+              ", trying to recover.  Problem was at " + ex.fileName + ":" +
+              ex.lineNumber + ": " + ex +
+              (ex.stack ? (". Stack:\n  " + ex.stack.replace("\n", "\n  ", "g"))
+                        : ""));
             // cleanup but leave the job's iterator intact.
             this._callbackHandle.cleanup(1);
             // the data must now be invalid
             this._workBatchData = undefined;
           }
           else {
-            this._log.warn("Bailing on job (at " + ex.fileName + ":" +
-                ex.lineNumber + ") because: " + ex);
+            this._log.warn("Problem during " + this._curIndexingJob +
+              ", bailing.  Problem was at " + ex.fileName + ":" +
+              ex.lineNumber + ": " + ex +
+              (ex.stack ? (". Stack:\n  " + ex.stack.replace("\n", "\n  ", "g"))
+                        : ""));
             // make sure we no longer have a current folder
             this._indexerLeaveFolder(true);
             this._curIndexingJob = null;
