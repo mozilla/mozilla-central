@@ -42,7 +42,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifdef MOZILLA_1_9_1_BRANCH
 #include "gfxIImageFrame.h"
+#endif
 #include "imgIContainer.h"
 #include "imgIRequest.h"
 #include "nsIDOMHTMLImageElement.h"
@@ -574,23 +576,42 @@ nsWindowsShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
 }
 
 static nsresult
-WriteBitmap(nsIFile* aFile, gfxIImageFrame* aImage)
+WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
 {
+#ifdef MOZILLA_1_9_1_BRANCH
   PRInt32 width, height;
-  aImage->GetWidth(&width);
-  aImage->GetHeight(&height);
+  nsCOMPtr<gfxIImageFrame> image;
+  nsresult rv = aImage->GetCurrentFrame(getter_AddRefs(image));
+  if (!image)
+    return rv;
+
+  image->GetWidth(&width);
+  image->GetHeight(&height);
 
   PRUint8* bits;
   PRUint32 length;
-  aImage->LockImageData();
-  aImage->GetImageData(&bits, &length);
+  image->LockImageData();
+  image->GetImageData(&bits, &length);
   if (!bits) {
-      aImage->UnlockImageData();
-      return NS_ERROR_FAILURE;
+    image->UnlockImageData();
+    return NS_ERROR_FAILURE;
   }
 
   PRUint32 bpr;
-  aImage->GetImageBytesPerRow(&bpr);
+  image->GetImageBytesPerRow(&bpr);
+#else
+  nsRefPtr<gfxImageSurface> image;
+  nsresult rv = aImage->CopyCurrentFrame(getter_AddRefs(image));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRInt32 width = image->Width();
+  PRInt32 height = image->Height();
+
+  PRUint8* bits = image->Data();
+  PRUint32 length = image->GetDataSize();
+  PRUint32 bpr = PRUint32(image->Stride());
+#endif
+
   PRInt32 bitCount = bpr/width;
 
   // initialize these bitmap structs which we will later
@@ -617,7 +638,7 @@ WriteBitmap(nsIFile* aFile, gfxIImageFrame* aImage)
 
   // get a file output stream
   nsCOMPtr<nsIOutputStream> stream;
-  nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(stream), aFile);
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(stream), aFile);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // write the bitmap headers and rgb pixel data to the file
@@ -647,7 +668,9 @@ WriteBitmap(nsIFile* aFile, gfxIImageFrame* aImage)
     stream->Close();
   }
 
-  aImage->UnlockImageData();
+#ifdef MOZILLA_1_9_1_BRANCH
+  image->UnlockImageData();
+#endif
   return rv;
 }
 
@@ -657,7 +680,7 @@ nsWindowsShellService::SetDesktopBackground(nsIDOMElement* aElement,
 {
   nsresult rv;
 
-  nsCOMPtr<gfxIImageFrame> gfxFrame;
+  nsCOMPtr<imgIContainer> container;
 
   nsCOMPtr<nsIDOMHTMLImageElement> imgElement(do_QueryInterface(aElement));
   if (!imgElement) {
@@ -675,16 +698,10 @@ nsWindowsShellService::SetDesktopBackground(nsIDOMElement* aElement,
                                   getter_AddRefs(request));
     if (!request)
       return rv;
-    nsCOMPtr<imgIContainer> container;
     rv = request->GetImage(getter_AddRefs(container));
-    if (!container)
-      return NS_ERROR_FAILURE;
-
-    // get the current frame, which holds the image data
-    container->GetCurrentFrame(getter_AddRefs(gfxFrame));
   }
 
-  if (!gfxFrame)
+  if (!container)
     return NS_ERROR_FAILURE;
 
   // get the file name from localized strings
@@ -719,7 +736,7 @@ nsWindowsShellService::SetDesktopBackground(nsIDOMElement* aElement,
   NS_ENSURE_SUCCESS(rv, rv);
 
   // write the bitmap to a file in the profile directory
-  rv = WriteBitmap(file, gfxFrame);
+  rv = WriteBitmap(file, container);
 
   // if the file was written successfully, set it as the system wallpaper
   if (NS_SUCCEEDED(rv)) {
