@@ -440,7 +440,7 @@ DownloadTreeView.prototype = {
 
         if (!attrs.isActive)
           for each (let term in this._searchTerms)
-            if (combinedSearch.search(term) == -1)
+            if (combinedSearch.indexOf(term) == -1)
               matchSearch = false;
       }
 
