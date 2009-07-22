@@ -3969,7 +3969,7 @@ PRInt32 nsNNTPProtocol::GetNextGroupNeedingCounts( nsISupports** pNextGroup, PRI
       rv = SetProgressStatus(EmptyString().get());
       NS_ENSURE_SUCCESS(rv, rv);
 
-      SetProgressBarPercent(0, -1);
+      SetProgressBarPercent(0, PR_UINT32_MAX);
       m_newsRCListCount = 0;
       *returnStatus = 0;
     }
