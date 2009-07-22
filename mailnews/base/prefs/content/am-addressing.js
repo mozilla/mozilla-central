@@ -102,8 +102,6 @@ function quoteEnabling()
   var quotecheck = document.getElementById("identity.autoQuote");
 
   if (quotecheck.checked && !quotecheck.disabled &&
-      (document.getElementById("identity.attachSignature").checked ||
-       (document.getElementById("identity.htmlSigText").value.length > 0)) &&
       (document.getElementById("identity.replyOnTop").value == 1)) {
     placebox.firstChild.removeAttribute("disabled");
     placebox.lastChild.removeAttribute("disabled");
