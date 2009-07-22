@@ -1989,7 +1989,6 @@ MimeGetStringByID(PRInt32 stringID)
 {
   char *tempString = nsnull;
   const char *resultString = "???";
-  const char* propertyURL = MIME_URL;
 
   nsCOMPtr<nsIStringBundleService> stringBundleService =
     do_GetService(NS_STRINGBUNDLE_CONTRACTID);

@@ -488,7 +488,7 @@ nsStreamConverter::DetermineOutputFormat(const char *aUrl, nsMimeOutputType *aNe
     // find the requested header in table, ensure that we don't match on a prefix
     // by checking that the following character is either null or the next query element
     const char * remainder;
-    for (int n = 0; n < NS_ARRAY_LENGTH(rgTypes); ++n)
+    for (PRUint32 n = 0; n < NS_ARRAY_LENGTH(rgTypes); ++n)
     {
       remainder = SkipPrefix(header, rgTypes[n].headerType);
       if (remainder && (*remainder == '\0' || *remainder == '&'))
