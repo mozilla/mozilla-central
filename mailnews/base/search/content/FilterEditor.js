@@ -327,10 +327,15 @@ function saveFilter()
         allValid = customTerm.getAvailable(obj.searchScope, obj.searchattribute.value);
     }
 
-    else if (!obj.searchattribute
+    else {
+      let otherHeader = Components.interfaces.nsMsgSearchAttrib.OtherHeader;
+      let attribValue = (obj.searchattribute.value > otherHeader) ?
+        otherHeader : obj.searchattribute.value;
+      if (!obj.searchattribute
             .validityTable
-            .getAvailable(obj.searchattribute.value, obj.searchoperator.value))
-      allValid = false;
+            .getAvailable(attribValue, obj.searchoperator.value))
+        allValid = false;
+    }
   }
 
   if (!allValid)

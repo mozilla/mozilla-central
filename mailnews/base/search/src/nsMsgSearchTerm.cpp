@@ -764,7 +764,9 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
   *pResult = PR_FALSE;
   nsresult err = NS_OK;
   PRBool matchExpected = m_operator == nsMsgSearchOp::Contains ||
-                         m_operator == nsMsgSearchOp::Is;
+                         m_operator == nsMsgSearchOp::Is ||
+                         m_operator == nsMsgSearchOp::BeginsWith ||
+                         m_operator == nsMsgSearchOp::EndsWith;
   // init result to what we want if we don't find the header at all
   PRBool result = !matchExpected;
 
