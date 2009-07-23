@@ -331,7 +331,7 @@ function openAboutDialog()
                 "chrome, resizable=no, minimizable=no");
   }
 #else
-  window.openDialog("chrome://messenger/content/aboutDialog.xul", "About", "modal,centerscreen,chrome,resizable=no");
+  window.openDialog("chrome://messenger/content/aboutDialog.xul", "About", "centerscreen,chrome,resizable=no");
 #endif
 }
 
