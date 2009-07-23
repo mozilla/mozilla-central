@@ -485,7 +485,8 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
 
 #ifdef MOZ_THUNDERBIRD
   // first, check to see if the message has been marked as JUNK. If it has,
-  // then force the message to be rendered as simple.
+  // then force the message to be rendered as simple, unless this has been
+  // called by a filtering routine.
   PRBool sanitizeJunkMail = PR_FALSE;
 
   // it is faster to read the pref first then figure out the msg hdr for the current url only if we have to
@@ -494,7 +495,8 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
   if (prefBranch)
     prefBranch->GetBoolPref("mail.spam.display.sanitize", &sanitizeJunkMail);
 
-  if (sanitizeJunkMail)
+  if (sanitizeJunkMail &&
+      !(opts && opts->format_out == nsMimeOutput::nsMimeMessageFilterSniffer))
   {
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
     getMsgHdrForCurrentURL(opts, getter_AddRefs(msgHdr));
