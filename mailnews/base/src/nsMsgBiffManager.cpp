@@ -229,22 +229,17 @@ nsresult nsMsgBiffManager::AddBiffEntry(nsBiffEntry &biffEntry)
 nsresult nsMsgBiffManager::SetNextBiffTime(nsBiffEntry &biffEntry, nsTime startTime)
 {
   nsIMsgIncomingServer *server = biffEntry.server;
-
   if (!server)
     return NS_ERROR_FAILURE;
 
   PRInt32 biffInterval;
   nsresult rv = server->GetBiffMinutes(&biffInterval);
-  if (NS_FAILED(rv))
-    return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  //Add 60 secs/minute in microseconds to current time. biffEntry->nextBiffTime's
-  //constructor makes it the current time.
-  nsInt64 chosenTimeInterval = biffInterval;
-  chosenTimeInterval *= 60000000;
-
-  biffEntry.nextBiffTime = startTime;
-  biffEntry.nextBiffTime += chosenTimeInterval;
+  // Add biffInterval, converted in microseconds, to current time.
+  // biffEntry.nextBiffTime's constructor makes it the current time.
+  nsTime chosenTimeInterval = biffInterval * 60000000;
+  biffEntry.nextBiffTime = startTime + chosenTimeInterval;
 
   // Check if we should jitter.
   nsCOMPtr<nsIPrefBranch> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
@@ -254,11 +249,11 @@ nsresult nsMsgBiffManager::SetNextBiffTime(nsBiffEntry &biffEntry, nsTime startT
     prefs->GetBoolPref(PREF_BIFF_JITTER, &shouldUseBiffJitter);
     if (shouldUseBiffJitter)
     {
-      // Calculate a jitter of +/-5% on biffInterval
+      // Calculate a jitter of +/-5% on chosenTimeInterval
       // - minimum 1 second (to avoid a modulo with 0)
       // - maximum 30 seconds (to avoid problems when biffInterval is very large)
-      PRInt64 jitter = (PRInt64)(chosenTimeInterval) * 0.05;
-      jitter = PR_MAX(1000000, PR_MIN(30000000, jitter));
+      PRInt64 jitter = (PRInt64)(0.05 * (PRInt64)chosenTimeInterval);
+      jitter = PR_MAX(1000000, PR_MIN(jitter, 30000000));
       jitter = ((rand() % 2) ? 1 : -1) * (rand() % jitter);
 
       biffEntry.nextBiffTime += jitter;
