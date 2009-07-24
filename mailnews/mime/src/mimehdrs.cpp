@@ -61,22 +61,12 @@
 PRInt32 MimeHeaders_build_heads_list(MimeHeaders *hdrs);
 
 static void
-MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value,
-                                 PRBool convert_charset_only)
+MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value)
 {
   char        *converted;
 
   if (value.IsEmpty())
     return;
-
-  if (convert_charset_only)
-  {
-    nsCAutoString output;
-    ConvertRawBytesToUTF8(value, nsDependentCString(opt->default_charset),
-                          output);
-    value.Assign(output);
-    return;
-  }
 
   if (opt && opt->rfc1522_conversion_p)
   {
@@ -600,20 +590,19 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
     }
 
     // MW Fixme: more?
-    PRBool convert_charset_only =
 #ifdef MOZILLA_INTERNAL_API
-          name.LowerCaseEqualsLiteral("to") || name.LowerCaseEqualsLiteral("from") ||
+    if (!(name.LowerCaseEqualsLiteral("to") || name.LowerCaseEqualsLiteral("from") ||
           name.LowerCaseEqualsLiteral("cc") || name.LowerCaseEqualsLiteral("bcc") ||
-          name.LowerCaseEqualsLiteral("reply-to") || name.LowerCaseEqualsLiteral("sender");
+          name.LowerCaseEqualsLiteral("reply-to") || name.LowerCaseEqualsLiteral("sender")))
 #else
-          name.Equals("to", CaseInsensitiveCompare) ||
+    if (!(name.Equals("to", CaseInsensitiveCompare) ||
           name.Equals("from", CaseInsensitiveCompare) ||
           name.Equals("cc", CaseInsensitiveCompare) ||
           name.Equals("bcc", CaseInsensitiveCompare) ||
           name.Equals("reply-to", CaseInsensitiveCompare) ||
-          name.Equals("sender", CaseInsensitiveCompare);
+          name.Equals("sender", CaseInsensitiveCompare)))
 #endif
-    MimeHeaders_convert_header_value(opt, hdr_value, convert_charset_only);
+          MimeHeaders_convert_header_value(opt, hdr_value);
     // if we're saving as html, we need to convert headers from utf8 to message charset, if any
     if (opt->format_out == nsMimeOutput::nsMimeMessageSaveAs && charset)
     {

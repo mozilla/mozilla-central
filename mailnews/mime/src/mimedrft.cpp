@@ -293,11 +293,9 @@ CreateCompositionFields(const char        *from,
   cFields->SetCharacterSet(!PL_strcasecmp("us-ascii", charset) ? "ISO-8859-1" : charset);
 
   char *val;
-  nsAutoString outString;
 
   if (from) {
-    ConvertRawBytesToUTF16(from, charset, outString);
-    cFields->SetFrom(outString);
+    cFields->SetFrom(NS_ConvertUTF8toUTF16(from));
   }
 
   if (subject) {
@@ -307,23 +305,19 @@ CreateCompositionFields(const char        *from,
   }
 
   if (reply_to) {
-    ConvertRawBytesToUTF16(reply_to, charset, outString);
-    cFields->SetReplyTo(outString);
+    cFields->SetReplyTo(NS_ConvertUTF8toUTF16(reply_to));
   }
 
   if (to) {
-    ConvertRawBytesToUTF16(to, charset, outString);
-    cFields->SetTo(outString);
+    cFields->SetTo(NS_ConvertUTF8toUTF16(to));
   }
 
   if (cc) {
-    ConvertRawBytesToUTF16(cc, charset, outString);
-    cFields->SetCc(outString);
+    cFields->SetCc(NS_ConvertUTF8toUTF16(cc));
   }
 
   if (bcc) {
-    ConvertRawBytesToUTF16(bcc, charset, outString);
-    cFields->SetBcc(outString);
+    cFields->SetBcc(NS_ConvertUTF8toUTF16(bcc));
   }
 
   if (fcc) {
