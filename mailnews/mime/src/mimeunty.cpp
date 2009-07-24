@@ -131,7 +131,7 @@ MimeUntypedText_parse_line (const char *line, PRInt32 length, MimeObject *obj)
   char *name = 0, *type = 0;
   PRBool begin_line_p = PR_FALSE;
 
-  PR_ASSERT(line && *line);
+  NS_ASSERTION(line && *line, "empty line in mime untyped parse_line");
   if (!line || !*line) return -1;
 
   /* If we're supposed to write this object, but aren't supposed to convert
