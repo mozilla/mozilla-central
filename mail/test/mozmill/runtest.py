@@ -202,24 +202,17 @@ class ThunderTestCLI(mozmill.CLI):
             plugins = []
         else:
             plugins = self.options.plugins.split(',')
-            
+
         if self.options.test is not None:
             curdir = os.getcwd()
-            localprofile = os.path.join(curdir, self.options.test ,"profile")
+            localprofile = os.path.join(curdir, self.options.test, "profile")
+
             if os.path.isfile(localprofile):
-                profilefile = open(localprofile,"r")
+                profilefile = open(localprofile, "r")
                 nameinfile = profilefile.readline()
-                profilename = os.path.join(curdir, "profiles", nameinfile)
-                workingprofile = os.path.join(curdir, "work_profile", nameinfile)
-                if os.path.exists(workingprofile):
-                    shutil.rmtree(workingprofile)
-                shutil.copytree(profilename, workingprofile, False)
-                crea_new = False
-                def_profile = False
+                default_profile = os.path.join(curdir, "profiles", nameinfile)
             else:
-                def_profile = options.default_profile
-                workingprofile = options.profile
-                crea_new = options.create_new
+                default_profile = options.default_profile
 
         # We use a global as there appears to be no easy way of getting the
         # binary details into the profile without re-implementing what mozmill
@@ -228,8 +221,10 @@ class ThunderTestCLI(mozmill.CLI):
         BINARY = self.options.binary
         print BINARY
 
-        profile = self.get_profile(def_profile, 
-                                   workingprofile, crea_new,
+        # We override profile in ThunderbirdTestProfile, so no point in setting
+        # it here.
+        profile = self.get_profile(default_profile, 
+                                   None, True,
                                    plugins=plugins)
         runner = self.get_runner(binary=self.options.binary, 
                                  profile=profile)

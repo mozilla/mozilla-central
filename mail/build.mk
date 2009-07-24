@@ -99,11 +99,10 @@ source-package::
 upload::
 	@$(MAKE) -C mail/installer upload
 
+ifdef ENABLE_TESTS
 # Instructions below this line are for mail/ specific tests.
 
 MOZMILLDIR=$(DEPTH)/mozilla/_tests/mozmill
-
-PROGRAM = $(DIST)
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 # Mac options
@@ -111,21 +110,22 @@ APP_NAME = $(MOZ_APP_DISPLAYNAME)
 ifdef MOZ_DEBUG
 APP_NAME := $(APP_NAME)Debug
 endif
-PROGRAM = ../../../$(DIST)/$(APP_NAME).app/Contents/MacOS/
-PROGRAM := $(PROGRAM)thunderbird-bin$(BIN_SUFFIX)
+PROGRAM_LOCATION = ../../../$(DIST)/$(APP_NAME).app/Contents/MacOS/
+PROGRAM = $(PROGRAM_LOCATION)thunderbird-bin$(BIN_SUFFIX)
 else
 # Non-mac options
-PROGRAM = ../../../$(DIST)/bin/
-PROGRAM := $(PROGRAM)thunderbird$(BIN_SUFFIX)
+PROGRAM_LOCATION = ../../../$(DIST)/bin/
+PROGRAM = $(PROGRAM_LOCATION)thunderbird$(BIN_SUFFIX)
 endif
 
-ifdef ENABLE_TESTS
 mozmill::
 	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) \
 	runtestlist.py --list=mozmilltests.list --binary=$(PROGRAM) \
-	--dir=$(topsrcdir)/mail/test/mozmill
+	--dir=$(topsrcdir)/mail/test/mozmill \
+	--default-profile=$(PROGRAM_LOCATION)/defaults/profile
 
 mozmill-one::
 	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) runtest.py \
-	--test=$(topsrcdir)/mail/test/mozmill/$(SOLO_TEST) --binary=$(PROGRAM)
+	--test=$(topsrcdir)/mail/test/mozmill/$(SOLO_TEST) --binary=$(PROGRAM) \
+	--default-profile=$(PROGRAM_LOCATION)/defaults/profile
 endif
