@@ -698,6 +698,31 @@ function test_real_folder_special_views_persist() {
               "We should be in threads-with-unread special view mode.");
 }
 
+function test_real_folder_mark_read_on_exit() {
+  // set a pref so that the local folders account will think we should
+  // mark messages read when leaving the folder.
+  let prefs = Cc["@mozilla.org/preferences-service;1"]
+              .getService(Ci.nsIPrefBranch);
+  prefs.setBoolPref("mailnews.mark_message_read.none", true);
+
+  let viewWrapper = make_view_wrapper();
+  let folder = make_empty_folder();
+  yield async_view_open(viewWrapper, folder);
+  
+  // add some unread messages.
+  let [setOne] = make_new_sets_in_folder(folder, 1);
+  setOne.setRead(false);
+  // verify that we have unread messages.
+  assert_equals(folder.getNumUnread(false), setOne.synMessages.length,
+                "all messages should have been added as unread");
+  viewWrapper.close(false);
+  // verify that closing the view does the expected marking of the messages 
+  // as read.
+  assert_equals(folder.getNumUnread(false), 0,
+                "messages should have been marked read on view close");
+  prefs.clearUserPref("mailnews.mark_message_read.none");
+}
+
 var tests = [
   test_real_folder_load,
   test_real_folder_update,
@@ -732,6 +757,7 @@ var tests = [
   test_real_folder_special_views_threads_with_unread,
   test_real_folder_special_views_persist,
   // (we cannot test the watched threads with unread case in local folders)
+  test_real_folder_mark_read_on_exit,
 ];
 
 function run_test() {

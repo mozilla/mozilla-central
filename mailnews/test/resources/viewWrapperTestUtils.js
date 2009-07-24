@@ -106,6 +106,12 @@ var gMockViewWrapperListener = {
   __proto__: IDBViewWrapperListener.prototype,
   shouldUseMailViews: true,
   shouldDeferMessageDisplayUntilAfterServerConnect: false,
+  shouldMarkMessagesReadOnLeavingFolder : function(aMsgFolder) {
+      return Cc["@mozilla.org/preferences-service;1"]
+                 .getService(Ci.nsIPrefBranch)
+                 .getBoolPref("mailnews.mark_message_read." +
+                              aMsgFolder.server.type);
+  },
   messenger: null,
   // use no message window!
   msgWindow: null,

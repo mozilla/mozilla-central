@@ -1915,9 +1915,9 @@ DBViewWrapper.prototype = {
       // the new folder, so we just mimic its behaviour wrt
       // goDoCommand('cmd_markAllRead').
       if (this.dbView &&
-          this.listener.shouldDeferMessageDisplayUntilAfterServerConnect(
-            this.displayedFolder.server.type))
-        this.dbView.doCommand(nsMsgViewCommandType.markAllRead);
+          this.listener.shouldMarkMessagesReadOnLeavingFolder(
+            this.displayedFolder))
+        this.dbView.doCommand(Ci.nsMsgViewCommandType.markAllRead);
     }
     catch(e){/* ignore */}
   },
