@@ -969,8 +969,7 @@ enum MESSENGER_SAVEAS_FILE_TYPE
 {
  EML_FILE_TYPE =  0,
  HTML_FILE_TYPE = 1,
- TEXT_FILE_TYPE = 2,
- ANY_FILE_TYPE =  3
+ TEXT_FILE_TYPE = 2
 };
 #define HTML_FILE_EXTENSION ".htm"
 #define HTML_FILE_EXTENSION2 ".html"
@@ -993,135 +992,15 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIde
 
   if (aAsFile)
   {
-    nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance("@mozilla.org/filepicker;1", &rv);
-    if (NS_FAILED(rv))
+    nsCOMPtr<nsILocalFile> saveAsFile;
+    rv = GetSaveAsFile(aMsgFilename, &saveAsFileType, getter_AddRefs(saveAsFile));
+    // A null saveAsFile means that the user canceled the save as
+    if (NS_FAILED(rv) || !saveAsFile)
       goto done;
-    nsString saveMailAsStr;
-    GetString(NS_LITERAL_STRING("SaveMailAs"), saveMailAsStr);
-    filePicker->Init(mWindow, saveMailAsStr,
-                     nsIFilePicker::modeSave);
-
-    // if we have a non-null filename use it, otherwise use default save message one
-    if (aMsgFilename.IsEmpty())
-    {
-      nsString saveMsgStr;
-      GetString(NS_LITERAL_STRING("defaultSaveMessageAsFileName"), saveMsgStr);
-      filePicker->SetDefaultString(saveMsgStr);
-    }
-    else
-      filePicker->SetDefaultString(aMsgFilename);
-
-    // because we will be using GetFilterIndex()
-    // we must call AppendFilters() one at a time,
-    // in MESSENGER_SAVEAS_FILE_TYPE order
-    nsString emlFilesStr;
-    GetString(NS_LITERAL_STRING("EMLFiles"), emlFilesStr);
-    filePicker->AppendFilter(emlFilesStr,
-                             NS_LITERAL_STRING("*.eml"));
-    filePicker->AppendFilters(nsIFilePicker::filterHTML);
-    filePicker->AppendFilters(nsIFilePicker::filterText);
-    filePicker->AppendFilters(nsIFilePicker::filterAll);
-
-    // by default, set the filter type as "all"
-    // because the default string is "message.eml"
-    // and type is "all", we will use the filename extension, and will save as rfc/822 (.eml)
-    // but if the user just changes the name (to .html or .txt), we will save as those types
-    // if the type is "all".
-    // http://bugzilla.mozilla.org/show_bug.cgi?id=96134#c23
-    filePicker->SetFilterIndex(ANY_FILE_TYPE);
-
-    PRInt16 dialogResult;
-
-    nsCOMPtr <nsILocalFile> lastSaveDir;
-    rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
-    if (NS_SUCCEEDED(rv) && lastSaveDir)
-      filePicker->SetDisplayDirectory(lastSaveDir);
-
-    nsCOMPtr<nsILocalFile> localFile;
-    nsAutoString fileName;
-    rv = filePicker->Show(&dialogResult);
-    if (NS_FAILED(rv) || dialogResult == nsIFilePicker::returnCancel)
-      goto done;
-
-    rv = filePicker->GetFile(getter_AddRefs(localFile));
-    if (NS_FAILED(rv))
-      goto done;
-
-    if (dialogResult == nsIFilePicker::returnReplace) {
-      // be extra safe and only delete when the file is really a file
-      PRBool isFile;
-      rv = localFile->IsFile(&isFile);
-      if (NS_SUCCEEDED(rv) && isFile) {
-        rv = localFile->Remove(PR_FALSE /* recursive delete */);
-        NS_ENSURE_SUCCESS(rv, rv);
-      }
-    }
-
-    rv = SetLastSaveDirectory(localFile);
-    if (NS_FAILED(rv))
-      goto done;
-
-    rv = filePicker->GetFilterIndex(&saveAsFileType);
-    if (NS_FAILED(rv))
-      goto done;
-
-    rv = localFile->GetLeafName(fileName);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    switch ( saveAsFileType )
-    {
-      // Add the right extenstion based on filter index and build a new localFile.
-      case HTML_FILE_TYPE:
-          if ( (fileName.RFind(HTML_FILE_EXTENSION, PR_TRUE, -1, sizeof(HTML_FILE_EXTENSION)-1) == kNotFound) &&
-               (fileName.RFind(HTML_FILE_EXTENSION2, PR_TRUE, -1, sizeof(HTML_FILE_EXTENSION2)-1) == kNotFound) ) {
-           fileName.AppendLiteral(HTML_FILE_EXTENSION2);
-           localFile->SetLeafName(fileName);
-        }
-        break;
-      case TEXT_FILE_TYPE:
-        if (fileName.RFind(TEXT_FILE_EXTENSION, PR_TRUE, -1, sizeof(TEXT_FILE_EXTENSION)-1) == kNotFound) {
-         fileName.AppendLiteral(TEXT_FILE_EXTENSION);
-         localFile->SetLeafName(fileName);
-        }
-        break;
-      case EML_FILE_TYPE:
-        if (fileName.RFind(EML_FILE_EXTENSION, PR_TRUE, -1, sizeof(EML_FILE_EXTENSION)-1) == kNotFound) {
-         fileName.AppendLiteral(EML_FILE_EXTENSION);
-         localFile->SetLeafName(fileName);
-        }
-        break;
-      case ANY_FILE_TYPE:
-      default:
-        // If no extension found then default it to .eml. Otherwise,
-        // set the right file type based on the specified extension.
-        PRBool noExtensionFound = PR_FALSE;
-        if (fileName.RFind(".", 1) != kNotFound)
-        {
-          if ( (fileName.RFind(HTML_FILE_EXTENSION, PR_TRUE, -1, sizeof(HTML_FILE_EXTENSION)-1) != kNotFound) ||
-               (fileName.RFind(HTML_FILE_EXTENSION2, PR_TRUE, -1, sizeof(HTML_FILE_EXTENSION2)-1) != kNotFound) )
-            saveAsFileType = HTML_FILE_TYPE;
-          else if (fileName.RFind(TEXT_FILE_EXTENSION, PR_TRUE, -1, sizeof(TEXT_FILE_EXTENSION)-1) != kNotFound)
-            saveAsFileType = TEXT_FILE_TYPE;
-          else if (fileName.RFind(EML_FILE_EXTENSION, PR_TRUE, -1, sizeof(EML_FILE_EXTENSION)-1) != kNotFound)
-            saveAsFileType = EML_FILE_TYPE;
-          else
-            noExtensionFound = PR_TRUE;
-        }
-        else
-          noExtensionFound = PR_TRUE;
-        // Set default file type here.
-        if (noExtensionFound)
-        {
-          saveAsFileType = EML_FILE_TYPE;
-          fileName.AppendLiteral(EML_FILE_EXTENSION);
-          localFile->SetLeafName(fileName);
-        }
-        break;
-    }
 
     // XXX todo
     // document the ownership model of saveListener
-    saveListener = new nsSaveMsgListener(localFile, this, nsnull);
+    saveListener = new nsSaveMsgListener(saveAsFile, this, nsnull);
     if (!saveListener) {
       rv = NS_ERROR_OUT_OF_MEMORY;
       goto done;
@@ -1134,7 +1013,7 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIde
 
     if (saveAsFileType == EML_FILE_TYPE)
     {
-      rv = messageService->SaveMessageToDisk(PromiseFlatCString(aURI).get(), localFile, PR_FALSE,
+      rv = messageService->SaveMessageToDisk(PromiseFlatCString(aURI).get(), saveAsFile, PR_FALSE,
         urlListener, nsnull,
         PR_TRUE, mMsgWindow);
     }
@@ -1246,6 +1125,95 @@ done:
     Alert("saveMessageFailed");
   }
   return rv;
+}
+
+nsresult
+nsMessenger::GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileType,
+                           nsILocalFile **aSaveAsFile)
+{
+  nsresult rv;
+  nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance("@mozilla.org/filepicker;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsString saveMailAsStr;
+  GetString(NS_LITERAL_STRING("SaveMailAs"), saveMailAsStr);
+  filePicker->Init(mWindow, saveMailAsStr, nsIFilePicker::modeSave);
+
+  // if we have a non-null filename use it, otherwise use default save message one
+  if (aMsgFilename.IsEmpty())
+  {
+    nsString saveMsgStr;
+    GetString(NS_LITERAL_STRING("defaultSaveMessageAsFileName"), saveMsgStr);
+    filePicker->SetDefaultString(saveMsgStr);
+  }
+  else
+  {
+    filePicker->SetDefaultString(aMsgFilename);
+  }
+
+  // because we will be using GetFilterIndex()
+  // we must call AppendFilters() one at a time,
+  // in MESSENGER_SAVEAS_FILE_TYPE order
+  nsString emlFilesStr;
+  GetString(NS_LITERAL_STRING("EMLFiles"), emlFilesStr);
+  filePicker->AppendFilter(emlFilesStr,
+                           NS_LITERAL_STRING("*.eml"));
+  filePicker->AppendFilters(nsIFilePicker::filterHTML);
+  filePicker->AppendFilters(nsIFilePicker::filterText);
+
+  // Save as .eml by default
+  filePicker->SetFilterIndex(EML_FILE_TYPE);
+  // Yes, this is fine even if we ultimately save as HTML or text. On Windows,
+  // this actually is a boolean telling the file picker to automatically add
+  // the correct extension depending on the filter. On Mac or Linux this is a
+  // no-op.
+  filePicker->SetDefaultExtension(NS_LITERAL_STRING("eml"));
+
+  PRInt16 dialogResult;
+
+  nsCOMPtr <nsILocalFile> lastSaveDir;
+  rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
+  if (NS_SUCCEEDED(rv) && lastSaveDir)
+    filePicker->SetDisplayDirectory(lastSaveDir);
+
+  nsCOMPtr<nsILocalFile> localFile;
+  rv = filePicker->Show(&dialogResult);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (dialogResult == nsIFilePicker::returnCancel)
+  {
+    // We'll indicate this by setting the outparam to null.
+    *aSaveAsFile = nsnull;
+    return NS_OK;
+  }
+
+  rv = filePicker->GetFile(getter_AddRefs(localFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = SetLastSaveDirectory(localFile);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = filePicker->GetFilterIndex(aSaveAsFileType);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (dialogResult == nsIFilePicker::returnReplace)
+  {
+    // be extra safe and only delete when the file is really a file
+    PRBool isFile;
+    rv = localFile->IsFile(&isFile);
+    if (NS_SUCCEEDED(rv) && isFile)
+    {
+      rv = localFile->Remove(PR_FALSE /* recursive delete */);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+    else
+    {
+      // We failed, or this isn't a file. We can't do anything about it.
+      return NS_ERROR_FAILURE;
+    }
+  }
+
+  *aSaveAsFile = nsnull;
+  localFile.swap(*aSaveAsFile);
+  return NS_OK;
 }
 
 nsresult

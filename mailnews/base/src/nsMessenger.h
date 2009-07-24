@@ -94,7 +94,10 @@ private:
   nsresult GetLastSaveDirectory(nsILocalFile **aLastSaveAsDir);
   // if aLocalFile is a dir, we use it.  otherwise, we use the parent of aLocalFile.
   nsresult SetLastSaveDirectory(nsILocalFile *aLocalFile);
-  
+
+  nsresult GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileType,
+                         nsILocalFile **aSaveAsFile);
+
   nsresult SetDisplayProperties();
 
   nsString mId;
