@@ -61,6 +61,7 @@ mail/themes/Makefile
 mail/themes/pinstripe/Makefile
 mail/themes/qute/Makefile
 mail/themes/gnomestripe/Makefile
+mail/test/mozmill/Makefile
 "
 
 if test -n "$MOZ_BRANDING_DIRECTORY"; then

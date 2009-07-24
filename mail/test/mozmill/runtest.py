@@ -51,6 +51,9 @@ import jsbridge
 import mozmill
 import socket
 import copy
+SCRIPT_DIRECTORY = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
+sys.path.append(SCRIPT_DIRECTORY)
+import automation
 from time import sleep
 
 # We need this because rmtree-ing read-only files fails on Windows
@@ -133,68 +136,10 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
     def __init__(self, default_profile=None, profile=None, create_new=True,
                  plugins=[], preferences={}):
         self.init_env()
-        self.init_paths()
+        self.profile_dir = os.path.join(SCRIPT_DIRECTORY, 'mozmillprofile')
+
         mozrunner.Profile.__init__(self, default_profile, profile, create_new, plugins, preferences)
 
-
-    def init_paths(self):
-        global automation
-        self.src_dir = self.find_src_dir()
-        self.obj_dir = self.find_obj_dir()
-
-        self.automation_dir = os.path.join(self.obj_dir, 'mozilla', 'build')
-        sys.path.append(self.automation_dir)
-        import automation
-
-        self.profile_dir = os.path.join(self.obj_dir, 'mozilla',
-                                        '_tests', 'leakprofile')
-        # XXX tidy up
-        if automation.IS_MAC:
-            if automation.IS_DEBUG_BUILD:
-              appName = 'ShredderDebug.app'
-            else:
-              appName = 'Shredder.app'
-            self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', appName, 'Contents', 'MacOS')
-            appname = 'thunderbird-bin'
-        else:
-            self.bin_dir = os.path.join(self.obj_dir, 'mozilla', 'dist', 'bin')
-            appname = 'thunderbird'
-            if automation.IS_WIN32:
-                appname += '.exe'
-
-        self.app_path = os.path.join(self.bin_dir, appname)
-
-        self.base_test_dir = os.getcwd()
-
-
-    def find_src_dir(self):
-        curdir = os.getcwd()
-        while not os.path.isdir(os.path.join(curdir, '.hg')):
-            curdir, olddir = os.path.split(curdir)
-            if curdir == '':
-                raise Exception("unable to figure out src_dir")
-        return os.path.expanduser(os.path.expandvars(curdir))
-
-    def find_obj_dir(self):
-        if 'MOZCONFIG' in os.environ:
-            mozconfig_path = os.environ['MOZCONFIG']
-        else:
-            mozconfig_path = os.path.join(self.src_dir, '.mozconfig.mk')
-
-        guess_path = os.path.join(self.src_dir, 'mozilla/build/autoconf/config.guess')
-        config_guess = os.popen("sh " + guess_path).read()
-        config_guess = config_guess.strip()
-        f = open(mozconfig_path, 'rt')
-        for line in f:
-            if 'MOZ_OBJDIR' in line:
-                varpath = line.split('=')[1].strip()
-                varpath = varpath.replace('@TOPSRCDIR@', self.src_dir)
-                varpath = varpath.replace('$(TOPSRCDIR)', self.src_dir)
-                varpath = varpath.replace('@CONFIG_GUESS@',config_guess)
-                return os.path.expanduser(os.path.expandvars(varpath))
-        f.close()
-
-        raise Exception("unable to figure out obj_dir")
 
     def init_env(self):
         self.base_env = dict(os.environ)
@@ -207,7 +152,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
     def _run(self, *args, **extraenv):
         env = self.base_env.copy()
         env.update(extraenv)
-        allArgs = [self.app_path]
+        allArgs = [BINARY]
         allArgs.extend(args)
         proc = automation.Process(allArgs, env=env)
         status = proc.wait()
@@ -248,7 +193,6 @@ class ThunderTestCLI(mozmill.CLI):
     parser_options = copy.copy(mozmill.CLI.parser_options)
     parser_options[('-m', '--bloat-tests')] = {"default":None, "dest":"created_profile", "help":"Log file name."}
 
-
     def parse_and_get_runner(self):
         """Parses the command line arguments and returns a runner instance."""
         (options, args) = self.parser.parse_args()
@@ -276,6 +220,13 @@ class ThunderTestCLI(mozmill.CLI):
                 def_profile = options.default_profile
                 workingprofile = options.profile
                 crea_new = options.create_new
+
+        # We use a global as there appears to be no easy way of getting the
+        # binary details into the profile without re-implementing what mozmill
+        # gives us.
+        global BINARY
+        BINARY = self.options.binary
+        print BINARY
 
         profile = self.get_profile(def_profile, 
                                    workingprofile, crea_new,
@@ -334,7 +285,10 @@ import pprint
 def prettyPrintResults():
     for result in TEST_RESULTS:
         #pprint.pprint(result)
-        print 'TEST', result['name'], len(result['fails']) and "FAILED" or "PASSED"
+        if len(result['fails']) == 0:
+            print 'TEST-PASS | ', result['name']
+        else:
+            print 'TEST-UNEXPECTED-FAIL | ', result['name']
         for failure in result['fails']:
             if 'exception' in failure:
                 prettyPrintException(failure['exception'])
