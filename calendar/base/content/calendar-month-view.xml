@@ -1031,6 +1031,23 @@
         ]]></body>
       </method>
 
+      <method name="deleteItemsFromCalendar">
+        <parameter name="aCalendar"/>
+        <body><![CDATA[
+          let deleteHash = {};
+          for each (let box in this.mDateBoxes) {
+            let boxItemData = Array.slice(box.mItemData);
+            for each (let itemData in boxItemData) {
+              let item = itemData.item;
+              if (!deleteHash[item.hashId] && item.calendar.id == aCalendar.id) {
+                deleteHash[item.hashId] = true;
+                this.doDeleteItem(item);
+              }
+            }
+          }
+        ]]></body>
+      </method>
+
       <method name="flashAlarm">
         <parameter name="aAlarmItem"/>
         <parameter name="aStop"/>

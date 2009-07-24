@@ -910,8 +910,8 @@
         ]]></body>
       </method>
 
-      <!-- Called by event observers to update the display -->
-      <method name="refresh">
+      <method name="refreshCalendar">
+        <parameter name="aCalendar"/>
         <parameter name="aFilter"/>
         <body><![CDATA[
           // XXX: why do I need this ?
@@ -938,7 +938,6 @@
 
           var refreshJob = {
               execute: function() {
-                  var composite = getCompositeCalendar();
                   var filter = aFilter || !savedThis.mShowCompletedTasks ?
                       composite.ITEM_FILTER_COMPLETED_NO :
                       composite.ITEM_FILTER_COMPLETED_ALL;
@@ -955,61 +954,36 @@
         ]]></body>
       </method>
 
+      <!-- Called by event observers to update the display -->
+      <method name="refresh">
+        <parameter name="aFilter"/>
+        <body><![CDATA[
+            this.refreshFromCalendar(getCompositeCalendar(), aFilter);
+        ]]></body>
+      </method>
+
       <method name="onCalendarAdded">
         <parameter name="aCalendar"/>
         <parameter name="aFilter"/>
         <body><![CDATA[
-          var savedThis = this;
-          var refreshListener = {
-              onOperationComplete: function (aCalendar, aStatus, aOperationType, aId, aDateTime) {
-                  savedThis.onOperationComplete();
-             },
-
-             onGetResult: function (aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
-                 for (var i=0; i<aCount; i++) {
-                   if (savedThis.mFilter.isItemInFilters(aItems[i])) {
-                         savedThis.mTaskArray.push(aItems[i]);
-                     }
-                 }
-             }
-          };
-
-          var refreshJob = {
-              execute: function() {
-                  var composite = getCompositeCalendar();
-                  var filter = aFilter || !savedThis.mShowCompletedTasks ?
-                      composite.ITEM_FILTER_COMPLETED_NO :
-                      composite.ITEM_FILTER_COMPLETED_ALL;
-                  filter |= composite.ITEM_FILTER_TYPE_TODO;
-                  if (savedThis.mFilter.startDate && savedThis.mFilter.endDate) {
-                      filter |= composite.ITEM_FILTER_CLASS_OCCURRENCES;
-                  }
-                  aCalendar.getItems(filter, 0, savedThis.mFilter.startDate, savedThis.mFilter.endDate, refreshListener);
-              }
-          };
-          this.mRefreshQueue.push(refreshJob);
-          this.popRefreshQueue();
+            if (!aCalendar.getProperty("disabled")) {
+               this.refreshFromCalendar(aCalendar, aFilter);
+            }
         ]]></body>
       </method>
 
       <method name="onCalendarRemoved">
         <parameter name="aCalendar"/>
         <body><![CDATA[
-          if (this.mTaskArray.length > 0) {
-              var index = this.mTaskArray.length - 1;
-              while(index >= 0) {
-                  var item = this.mTaskArray[index];
-                  if (item.calendar == aCalendar) {
-                      this.mTreeView.removeItem(item);
-                  }
-                  --index;
-              }
-          }
-
-          // we also need to notify potential listeners.
-          var event = document.createEvent('Events');
-          event.initEvent('select', true, false);
-          this.dispatchEvent(event);
+            if (!aCalendar.getProperty("disabled")) {
+                var tasks = Array.splice(this.mTaskArray);
+                for (let i = 0; i < tasks.length; i++) {
+                    var task = tasks[i];
+                    if (task.calendar.id == aCalendar.id) {
+                        this.mTreeView.removeItem(task);
+                    }
+                }
+            }
         ]]></body>
       </method>
 

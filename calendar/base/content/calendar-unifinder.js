@@ -168,14 +168,14 @@ var unifinderObserver = {
     // calICompositeObserver:
     onCalendarAdded: function uO_onCalendarAdded(aAddedCalendar) {
         if (!this.mInBatch && !aAddedCalendar.getProperty("disabled")) {
-            refreshEventTree();
+            addItemsFromCalendar(aAddedCalendar,
+                                 addItemsFromSingleCalendarInternal);
         }
     },
 
     onCalendarRemoved: function uO_onCalendarRemoved(aDeletedCalendar) {
-        // TODO only remove such items that belong to the calendar
         if (!this.mInBatch && !aDeletedCalendar.getProperty("disabled")) {
-            refreshEventTree();
+            deleteItemsFromCalendar(aDeletedCalendar);
         }
     },
 
@@ -856,55 +856,8 @@ var unifinderTreeView = {
  * applying the current filter.
  */
 function refreshEventTree() {
-    if (isUnifinderHidden()) {
-        // If the unifinder is hidden, don't refresh the events to reduce needed
-        // getItems calls.
-        return;
-    }
-    var savedThis = this;
-    var refreshListener = {
-        mEventArray: new Array(),
-
-        onOperationComplete: function rET_onOperationComplete(aCalendar,
-                                                              aStatus,
-                                                              aOperationType,
-                                                              aId,
-                                                              aDateTime) {
-            var refreshTreeInternalFunc = function() {
-                refreshEventTreeInternal(refreshListener.mEventArray);
-            };
-            setTimeout(refreshTreeInternalFunc, 0);
-        },
-
-        onGetResult: function rET_onGetResult(aCalendar,
-                                              aStatus,
-                                              aItemType,
-                                              aDetail,
-                                              aCount,
-                                              aItems) {
-            for (var i = 0; i < aCount; i++) {
-                refreshListener.mEventArray.push(aItems[i]);
-            }
-        }
-    };
-
-
-    var ccalendar = getCompositeCalendar();
-    var filter = 0;
-
-    filter |= ccalendar.ITEM_FILTER_TYPE_EVENT;
-
-    // Not all xul might be there yet...
-    if (!document.getElementById(unifinderTreeView.mFilter.textFilterField)) {
-        return;
-    }
-    unifinderTreeView.mFilter.setDateFilter(getCurrentUnifinderFilter());
-
-    if (unifinderTreeView.mFilter.startDate && unifinderTreeView.mFilter.endDate) {
-        filter |= ccalendar.ITEM_FILTER_CLASS_OCCURRENCES;
-    }
-
-    ccalendar.getItems(filter, 0, unifinderTreeView.mFilter.startDate, unifinderTreeView.mFilter.endDate, refreshListener);
+    addItemsFromCalendar(getCompositeCalendar(),
+                         addItemsFromCompositeCalendarInternal);
 }
 
 /**
@@ -918,18 +871,88 @@ function refreshEventTree() {
  *
  * @param eventArray        The array of items to be set in the unifinder.
  */
-function refreshEventTreeInternal(eventArray) {
-
-    unifinderTreeView.setItems(eventArray.filter(unifinderTreeView
-                                                .mFilter
-                                                .isItemInFilters
-                                                , unifinderTreeView
-                                                .mFilter
-                                                ));
+function addItemsFromCompositeCalendarInternal(eventArray) {
+    let newItems
+        = eventArray.filter(unifinderTreeView.mFilter.isItemInFilters,
+                            unifinderTreeView.mFilter);
+    unifinderTreeView.setItems(newItems);
 
     // Select selected events in the tree. Not passing the argument gets the
     // items from the view.
     unifinderTreeView.setSelectedItems();
+}
+
+function addItemsFromSingleCalendarInternal(eventArray) {
+    let newItems
+        = eventArray.filter(unifinderTreeView.mFilter.isItemInFilters,
+                            unifinderTreeView.mFilter);
+    unifinderTreeView.setItems(unifinderTreeView.eventArray.concat(newItems));
+
+    // Select selected events in the tree. Not passing the argument gets the
+    // items from the view.
+    unifinderTreeView.setSelectedItems();
+}
+
+function addItemsFromCalendar(aCalendar, aAddItemsInternalFunc) {
+    if (isUnifinderHidden()) {
+        // If the unifinder is hidden, don't refresh the events to reduce needed
+        // getItems calls.
+        return;
+    }
+    var refreshListener = {
+        mEventArray: [],
+
+        onOperationComplete: function rET_onOperationComplete(aCalendar,
+                                                              aStatus,
+                                                              aOperationType,
+                                                              aId,
+                                                              aDateTime) {
+            var refreshTreeInternalFunc = function() {
+                aAddItemsInternalFunc(refreshListener.mEventArray);
+            };
+            setTimeout(refreshTreeInternalFunc, 0);
+        },
+
+        onGetResult: function rET_onGetResult(aCalendar,
+                                              aStatus,
+                                              aItemType,
+                                              aDetail,
+                                              aCount,
+                                              aItems) {
+            refreshListener.mEventArray = refreshListener.mEventArray.concat(aItems);
+        }
+    };
+
+    var filter = 0;
+
+    filter |= aCalendar.ITEM_FILTER_TYPE_EVENT;
+
+    // Not all xul might be there yet...
+    if (!document.getElementById(unifinderTreeView.mFilter.textFilterField)) {
+        return;
+    }
+    unifinderTreeView.mFilter.setDateFilter(getCurrentUnifinderFilter());
+
+    if (unifinderTreeView.mFilter.startDate && unifinderTreeView.mFilter.endDate) {
+        filter |= aCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+    }
+
+    aCalendar.getItems(filter,
+                       0,
+                       unifinderTreeView.mFilter.startDate,
+                       unifinderTreeView.mFilter.endDate,
+                       refreshListener);
+}
+
+function deleteItemsFromCalendar(aCalendar) {
+    let items = [];
+
+    for (let i = unifinderTreeView.eventArray.length; i > 0; i--) {
+        let item = unifinderTreeView.eventArray[i-1];
+        if (item.calendar.id == aCalendar.id)
+            items.push(item);
+    }
+    unifinderTreeView.removeItems(items.filter(filter.isItemInFilters, filter));
 }
 
 /**

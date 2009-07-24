@@ -224,7 +224,7 @@ InvitationsManager.prototype = {
         };
 
         for each (var calendar in cals) {
-            if (!isCalendarWritable(calendar)) {
+            if (!isCalendarWritable(calendar) || calendar.getProperty("disabled")) {
                 opListener.onOperationComplete();
                 continue;
             }

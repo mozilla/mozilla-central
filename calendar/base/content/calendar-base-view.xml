@@ -128,9 +128,9 @@
             },
             onEndBatch: function onEndBatch() {
                 this.calView.mBatchCount--;
-                if (this.calView.mBatchCount == 0) {
+/*                if (this.calView.mBatchCount == 0) {
                     this.calView.refresh();
-                }
+                } */
             },
 
             onLoad: function onLoad() {
@@ -275,13 +275,13 @@
             //
             onCalendarAdded: function onCalendarAdded(aCalendar) {
                 if (!aCalendar.getProperty("disabled")) {
-                    this.calView.refresh();
+                    this.calView.addItemsFromCalendar(aCalendar);
                 }
             },
 
             onCalendarRemoved: function onCalendarRemoved(aCalendar) {
                 if (!aCalendar.getProperty("disabled")) {
-                    this.calView.refresh();
+                    this.calView.deleteItemsFromCalendar(aCalendar);
                 }
             },
 
@@ -474,9 +474,6 @@
             return;
           }
 
-          // recreate our columns
-          this.relayout();
-
           if (!this.mCalendar) {
               return;
           }
@@ -499,11 +496,16 @@
           }
 
           this.mRefreshPending = true;
-          pendingRefresh = this.mCalendar.getItems(filter,
-                                                   0,
-                                                   this.startDate,
-                                                   this.queryEndDate,
-                                                   this.mOperationListener);
+          let refreshCalendar = refreshJob.calendar;
+          if (!refreshCalendar) {
+              refreshCalendar = this.mCalendar;
+              this.relayout();
+          }
+          pendingRefresh = refreshCalendar.getItems(filter,
+                                                    0,
+                                                    this.startDate,
+                                                    this.queryEndDate,
+                                                    this.mOperationListener);
           if (pendingRefresh && pendingRefresh.isPending) { // support for calIOperation
               this.mRefreshPending = pendingRefresh;
           }
@@ -561,6 +563,23 @@
               this.mRefreshQueue.push(refreshJob);
               this.popRefreshQueue();
           }
+        ]]></body>
+      </method>
+
+      <method name="addItemsFromCalendar">
+        <parameter name="aCalendar"/>
+        <body><![CDATA[
+            let refreshJob = { calendar: aCalendar };
+            this.mRefreshQueue.push(refreshJob);
+            this.popRefreshQueue();
+        ]]></body>
+      </method>
+
+      <method name="deleteItemsFromCalendar">
+        <parameter name="aCalendar"/>
+        <body><![CDATA[
+            /* This method must be implemented in subclasses. */
+            throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
         ]]></body>
       </method>
 

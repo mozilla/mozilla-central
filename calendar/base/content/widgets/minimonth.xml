@@ -536,6 +536,57 @@
         ]]></body>
       </method>
 
+      <method name="parseBoxBusy">
+        <parameter name="aBox"/>
+        <body><![CDATA[
+          let boxBusy = {};
+
+          let busyStr = aBox.getAttribute("busy");
+          if (busyStr && busyStr.length > 0) {
+              let calChunks = busyStr.split("\u001A");
+              for each (let chunk in calChunks) {
+                  let expr = chunk.split("=");
+                  boxBusy[expr[0]] = parseInt(expr[1]);
+              }
+          }
+
+          return boxBusy;
+        ]]></body>
+      </method>
+
+      <method name="updateBoxBusy">
+        <parameter name="aBox"/>
+        <parameter name="aBoxBusy"/>
+        <body><![CDATA[
+          let calChunks = [];
+   
+          for (let calId in aBoxBusy) {
+              if (aBoxBusy[calId]) {
+                  calChunks.push(calId + "=" + aBoxBusy[calId]);
+              }
+          }
+   
+          if (calChunks.length > 0) {
+              busyStr = calChunks.join("\u001A");
+              aBox.setAttribute("busy", busyStr);
+          } else {
+              aBox.removeAttribute("busy");
+          }
+        ]]></body>
+      </method>
+
+      <method name="removeCalendarFromBoxBusy">
+        <parameter name="aBox"/>
+        <parameter name="aCalendar"/>
+        <body><![CDATA[
+          let boxBusy = this.parseBoxBusy(aBox);
+          if (boxBusy[aCalendar.id]) {
+              delete boxBusy[aCalendar.id];
+          }
+          this.updateBoxBusy(aBox, boxBusy);
+        ]]></body>
+      </method>
+
       <method name="setBusyDaysForOccurrence">
         <parameter name="aOccurrence"/>
         <parameter name="aState"/>
@@ -566,13 +617,11 @@
         while (current.compare(end) < compareResult) {
             var box = this.getBoxForDate(current.jsDate);
             if (box) {
-                var n = parseInt(box.getAttribute("busy") || 0, 10) +
-                        (aState ? 1 : -1);
-                if (n > 0) {
-                    box.setAttribute("busy", n);
-                } else {
-                    box.removeAttribute("busy");
-                }
+                let busyCalendars = this.parseBoxBusy(box);
+                if (!busyCalendars[aOccurrence.calendar.id])
+                    busyCalendars[aOccurrence.calendar.id] = 0;
+                busyCalendars[aOccurrence.calendar.id] += (aState ? 1 : -1);
+                this.updateBoxBusy(box, busyCalendars);
             }
             current.day++;
         }
@@ -662,15 +711,15 @@
       <method name="onCalendarAdded">
         <parameter name="aCalendar"/>
         <body><![CDATA[
-            this.resetAttributesForDate();
-            this.getItems();
+            this.getItems(aCalendar);
         ]]></body>
       </method>
       <method name="onCalendarRemoved">
         <parameter name="aCalendar"/>
         <body><![CDATA[
-            this.resetAttributesForDate();
-            this.getItems();
+            for (let day in this.mDayMap) {
+                this.removeCalendarFromBoxBusy(this.mDayMap[day], aCalendar);
+            }
         ]]></body>
       </method>
 
@@ -967,21 +1016,22 @@
         ]]></body>
       </method>
       <method name="getItems">
+        <parameter name="aCalendar"/>
         <body><![CDATA[
           // The minimonth automatically clears extra styles on a month change.
           // Therefore we only need to fill the minimonth with new info.
 
-          var composite = getCompositeCalendar();
-          var filter = composite.ITEM_FILTER_COMPLETED_ALL |
-                       composite.ITEM_FILTER_CLASS_OCCURRENCES |
-                       composite.ITEM_FILTER_ALL_ITEMS;
+          let calendar = aCalendar || getCompositeCalendar();
+          let filter = calendar.ITEM_FILTER_COMPLETED_ALL |
+                       calendar.ITEM_FILTER_CLASS_OCCURRENCES |
+                       calendar.ITEM_FILTER_ALL_ITEMS;
 
           // Get new info
-          composite.getItems(filter,
-                             0,
-                             this.firstDate,
-                             this.lastDate,
-                             this);
+          calendar.getItems(filter,
+                            0,
+                            this.firstDate,
+                            this.lastDate,
+                            this);
         ]]></body>
       </method>
 

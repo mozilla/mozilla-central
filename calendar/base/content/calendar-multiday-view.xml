@@ -3150,6 +3150,23 @@
         ]]></body>
       </method>
 
+      <method name="deleteItemsFromCalendar">
+        <parameter name="aCalendar"/>
+        <body><![CDATA[
+          let deleteHash = {};
+          for each (let col in this.mDateColumns) {
+            let boxEventInfos = Array.slice(col.column.mEventInfos);
+            for each (let info in boxEventInfos) {
+              let event = info.event;
+              if (!deleteHash[event.hashId] && event.calendar.id == aCalendar.id) {
+                deleteHash[event.hashId] = true;
+                this.doDeleteItem(event);
+              }
+            }
+          }
+        ]]></body>
+      </method>
+
       <method name="adjustScrollBarSpacers">
         <body><![CDATA[
           // get the view's orientation

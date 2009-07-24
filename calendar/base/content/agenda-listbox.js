@@ -477,6 +477,22 @@ function deleteItem(aItem, aMoveSelection) {
 }
 
 /**
+ * Remove all items belonging to the specified calendar.
+ *
+ * @param aCalendar         The item to compare.
+ */
+agendaListbox.deleteItemsFromCalendar =
+function deleteItemsFromCalendar(aCalendar) {
+    let childNodes = Array.slice(this.agendaListboxControl.childNodes);
+    for each (let childNode in childNodes) {
+        if (childNode && childNode.occurrence
+            && childNode.occurrence.calendar.id == aCalendar.id) {
+            this.agendaListboxControl.removeChild(childNode);
+        }
+    }
+}
+
+/**
  * Compares two items to see if they have the same id and their start date
  * matches
  *
@@ -568,9 +584,11 @@ function enableAgendaPopupMenu() {
  *
  * @param aStart        (optional) The start date for the item query.
  * @param aEnd          (optional) The end date for the item query.
+ * @param aCalendar     (optional) If specified, the single calendar from
+ *                                   which the refresh will occur.
  */
 agendaListbox.refreshCalendarQuery =
-function refreshCalendarQuery(aStart, aEnd) {
+function refreshCalendarQuery(aStart, aEnd, aCalendar) {
     if (this.mBatchCount > 0) {
         return;
     }
@@ -583,7 +601,7 @@ function refreshCalendarQuery(aStart, aEnd) {
             return;
         }
     }
-    if ((!aStart) && (!aEnd)) {
+    if (!(aStart || aEnd || aCalendar)) {
         this.removeListItems();
     }
     if (!aStart) {
@@ -596,8 +614,9 @@ function refreshCalendarQuery(aStart, aEnd) {
         var filter = this.calendar.ITEM_FILTER_CLASS_OCCURRENCES |
                      this.calendar.ITEM_FILTER_TYPE_EVENT;
         this.pendingRefresh = true;
-        pendingRefresh = this.calendar.getItems(filter, 0, aStart, aEnd,
-                                                this.calendarOpListener);
+        let refreshCalendar = aCalendar || this.calendar;
+        pendingRefresh = refreshCalendar.getItems(filter, 0, aStart, aEnd,
+                                                  this.calendarOpListener);
         if (pendingRefresh && pendingRefresh.isPending) { // support for calIOperation
             this.pendingRefresh = pendingRefresh;
         }
@@ -959,13 +978,17 @@ agendaListbox.calendarObserver.onPropertyDeleting = function(aCalendar, aName) {
 
 
 agendaListbox.calendarObserver.onCalendarRemoved =
-function agenda_calRemove(aCalendar) {
-    this.agendaListbox.refreshCalendarQuery();
+function agenda_calRemoved(aCalendar) {
+    if (!aCalendar.getProperty("disabled")) {
+        this.agendaListbox.deleteItemsFromCalendar(aCalendar);
+    }
 };
 
 agendaListbox.calendarObserver.onCalendarAdded =
-function agenda_calAdd(aCalendar) {
-    this.agendaListbox.refreshCalendarQuery();
+function agenda_calAdded(aCalendar) {
+    if (!aCalendar.getProperty("disabled")) {
+        this.agendaListbox.refreshCalendarQuery(null, null, aCalendar);
+    }
 };
 
 agendaListbox.calendarObserver.onDefaultCalendarChanged = function(aCalendar) {
