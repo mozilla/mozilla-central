@@ -40,42 +40,44 @@
 #include "nsIMsgIdentity.idl"
 #include "nsISupportsArray.idl"
 
-/*
- * an account consists of an incoming server and one or more
- * outgoing identities
- * an account is identitfied by a key, which is the <account> string in
- * the account preferences, such as in
- * mail.account.<account>.identities
+/**
+ * An account consists of an incoming server and one or more
+ * outgoing identities. An account is identified by a key,
+ * which is the <account> string in the account preferences,
+ * such as in mail.account.<account>.identities.
  */
 
 [scriptable, uuid(3FE5B45D-ACF8-4348-8951-757D21E983F2)]
 interface nsIMsgAccount : nsISupports {
-  
-  /* init function */
+
+  /**
+   * Initialize an account.
+   *
+   * @throws NS_ERROR_ALREADY_OPENED if it is called more then once.
+   */
   void init();
 
-  /* internal key identifying itself */
+  /// Internal key identifying itself
   attribute ACString key;
-  
-  /* incoming server stuff */
+
+  /// Incoming server stuff
   attribute nsIMsgIncomingServer incomingServer;
 
-  /* outgoing identity list
-   * array of nsIMsgIdentity's
-   */
+  /// Outgoing identity list (array of nsIMsgIdentity's)
   readonly attribute nsISupportsArray identities;
 
-  /* the default identity for this account. */
+  /// The default identity for this account.
   attribute nsIMsgIdentity defaultIdentity;
 
-  /* add a new identity to this account (probably does not work) */
+  /// Add a new identity to this account
   void addIdentity(in nsIMsgIdentity identity);
 
-  /* remove an identity from this account (probably does not work) */
+  /// Remove an identity from this account
   void removeIdentity(in nsIMsgIdentity identity);
 
+  /// Clear all user preferences associated with an account.
   void clearAllValues();
-  
-  /* name in javascript */
+
+  /// Name in javascript
   AString toString();
 };
