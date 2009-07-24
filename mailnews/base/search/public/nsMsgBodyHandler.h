@@ -62,7 +62,23 @@ protected:
 
   // current offset into the mail folder file.
   PRInt32 m_localFileOffset;
+  /**
+   * The number of lines in the message.  If |m_lineCountInBodyLines| then this
+   * is the number of body lines, otherwise this is the entire number of lines
+   * in the message.  This is important so we know when to stop reading the file
+   * without accidentally reading part of the next message.
+   */
   PRUint32 m_numLocalLines;
+  /**
+   * When true, |m_numLocalLines| is the number of body lines in the message,
+   * when false it is the entire number of lines in the message.
+   *
+   * When a message is an offline IMAP or news message, then the number of lines
+   * will be the entire number of lines, so this should be false.  When the
+   * message is a local message, the number of lines will be the number of body
+   * lines.
+   */
+  PRBool m_lineCountInBodyLines;
 
   // Offline IMAP related methods & state
 

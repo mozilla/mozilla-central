@@ -40,6 +40,8 @@
 #include "nsMsgUtils.h"
 #include "nsMsgBodyHandler.h"
 #include "nsMsgSearchTerm.h"
+#include "nsIMsgHdr.h"
+#include "nsMsgMessageFlags.h"
 #include "nsISeekableStream.h"
 #include "nsIInputStream.h"
 #include "nsILocalFile.h"
@@ -51,6 +53,12 @@ nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope, PRUint32 offs
   m_scope = scope;
   m_localFileOffset = offset;
   m_numLocalLines = numLines;
+  PRUint32 flags;
+  m_lineCountInBodyLines = NS_SUCCEEDED(msg->GetFlags(&flags)) ?
+    !(flags & nsMsgMessageFlags::Offline) : PR_TRUE;
+  // account for added x-mozilla-status lines, and envelope line.
+  if (!m_lineCountInBodyLines)
+    m_numLocalLines += 3;
   m_msgHdr = msg;
   m_db = db;
   
@@ -73,6 +81,12 @@ nsMsgBodyHandler::nsMsgBodyHandler(nsIMsgSearchScopeTerm * scope,
   m_scope = scope;
   m_localFileOffset = offset;
   m_numLocalLines = numLines;
+  PRUint32 flags;
+  m_lineCountInBodyLines = NS_SUCCEEDED(msg->GetFlags(&flags)) ?
+    !(flags & nsMsgMessageFlags::Offline) : PR_TRUE;
+  // account for added x-mozilla-status lines, and envelope line.
+  if (!m_lineCountInBodyLines)
+    m_numLocalLines += 3;
   m_msgHdr = msg;
   m_db = db;
   m_headersSize = headersSize;
@@ -203,8 +217,11 @@ PRInt32 nsMsgBodyHandler::GetNextLocalLine(nsCString &buf)
 {
   if (m_numLocalLines)
   {
-    if (m_pastHeaders)
-      m_numLocalLines--; // the line count is only for body lines
+    // I the line count is in body lines, only decrement once we have
+    // processed all the headers.  Otherwise the line is not in body
+    // lines and we want to decrement for every line.
+    if (m_pastHeaders || !m_lineCountInBodyLines)
+      m_numLocalLines--;
     // do we need to check the return value here?
     if (m_fileLineStream)
     {
