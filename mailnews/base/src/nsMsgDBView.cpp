@@ -393,12 +393,22 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aSenderString)
     if (NS_SUCCEEDED(rv) && !name.IsEmpty())
     {
       nsCString charset;
-      rv = aHdr->GetCharset(getter_Copies(charset));
+      nsCOMPtr <nsIMsgFolder> folder;
+      aHdr->GetFolder(getter_AddRefs(folder));
+      PRBool charsetOverride;
+      folder->GetCharsetOverride(&charsetOverride);
+      if (charsetOverride ||
+          NS_FAILED(aHdr->GetCharset(getter_Copies(charset))) ||
+          charset.IsEmpty() ||
+          charset.Equals("us-ascii"))
+        folder->GetCharset(charset);
       rv = mimeConverter->DecodeMimeHeader(name.get(),
                                            charset.get(),
-                                           PR_FALSE,
+                                           charsetOverride,
                                            PR_TRUE,
                                            aSenderString);
+      if (NS_FAILED(rv) || aSenderString.IsEmpty())
+        CopyUTF8toUTF16(name, aSenderString);
       return NS_OK;
     }
   }
