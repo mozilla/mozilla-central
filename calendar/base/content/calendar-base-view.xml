@@ -128,9 +128,9 @@
             },
             onEndBatch: function onEndBatch() {
                 this.calView.mBatchCount--;
-/*                if (this.calView.mBatchCount == 0) {
+                if (this.calView.mBatchCount == 0) {
                     this.calView.refresh();
-                } */
+                }
             },
 
             onLoad: function onLoad() {

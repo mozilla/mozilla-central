@@ -910,7 +910,7 @@
         ]]></body>
       </method>
 
-      <method name="refreshCalendar">
+      <method name="refreshFromCalendar">
         <parameter name="aCalendar"/>
         <parameter name="aFilter"/>
         <body><![CDATA[
