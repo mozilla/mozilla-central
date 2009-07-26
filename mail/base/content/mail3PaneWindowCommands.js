@@ -214,6 +214,7 @@ var DefaultController =
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
       case "cmd_recalculateJunkScore":
+      case "cmd_displayMsgFilters":
       case "cmd_applyFiltersToSelection":
       case "cmd_applyFilters":
       case "cmd_runJunkControls":
@@ -323,7 +324,7 @@ var DefaultController =
         {
           if (!gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody))
             return false;
-            
+
           // Check if we have a collapsed thread selected and are summarizing it.
           // If so, selectedIndices.length won't match numSelected. Also check
           // that we're not displaying a message, which handles the case
@@ -367,6 +368,8 @@ var DefaultController =
         if (GetNumSelectedMessages() > 0)
           return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
         return false;
+      case "cmd_displayMsgFilters":
+        return gDBView;
       case "cmd_applyFilters":
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.applyFilters);
       case "cmd_runJunkControls":
@@ -490,7 +493,7 @@ var DefaultController =
         if (pref.getBoolPref("mail.last_msg_movecopy_was_move"))
         {
           let loadedFolder = gFolderTreeView.getSelectedFolders()[0];
-          if (!loadedFolder.canDeleteMessages)
+          if (loadedFolder && !loadedFolder.canDeleteMessages)
             return false;
         }
         return pref.getCharPref("mail.last_msg_movecopy_target_uri") &&
@@ -739,6 +742,9 @@ var DefaultController =
         return;
       case "cmd_recalculateJunkScore":
         analyzeMessagesForJunk();
+        return;
+      case "cmd_displayMsgFilters":
+        MsgFilters(null, null);
         return;
       case "cmd_applyFiltersToSelection":
         MsgApplyFiltersToSelection();
