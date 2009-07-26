@@ -41,15 +41,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 //******** define a js object to implement nsITreeView
-function pageInfoTreeView(columnids, copycol)
+function pageInfoTreeView(copycol)
 {
-  // columnids is an array of strings indicating the names of the columns, in order
-  this.columnids = columnids;
-  this.colcount = columnids.length;
-
-  // copycol is the index number for the column that we want to add to
-  // the copy-n-paste buffer when the user hits accel-c
-  this.copycol = copycol;
+  /* copycol is the index number for the column that we want to add to
+   * the copy-n-paste buffer when the user hits accel-c.
+   * Older pageInfo extensions might call pageInfoTreeView with copycol
+   * as the second argument of two.
+   */
+  this.copycol = arguments.length == 2 ? arguments[1] : copycol;
   this.rows = 0;
   this.tree = null;
   this.data = [ ];
@@ -69,10 +68,6 @@ pageInfoTreeView.prototype = {
   getCellText: function(row, column)
   {
     // row can be null, but js arrays are 0-indexed.
-    // colidx cannot be null, but can be larger than the number
-    // of columns in the array (when column is a string not in
-    // this.columnids.) In this case it's the fault of
-    // whoever typoed while calling this function.
     return this.data[row][column.index] || "";
   },
 
@@ -171,13 +166,11 @@ const COPYCOL_LINK_ADDRESS = 1;
 const COPYCOL_IMAGE = COL_IMAGE_ADDRESS;
 
 // one nsITreeView for each tree in the window
-var gMetaView = new pageInfoTreeView(["meta-name", "meta-content"], COPYCOL_META_CONTENT);
-var gFormView = new pageInfoTreeView(["form-name", "form-method", "form-action"], COPYCOL_FORM_ACTION);
-var gFieldView = new pageInfoTreeView(["field-label", "field-field", "field-type", "field-value"], COPYCOL_FIELD_VALUE);
-var gLinkView = new pageInfoTreeView(["link-name", "link-address", "link-type", "link-target", "link-accesskey"], COPYCOL_LINK_ADDRESS);
-var gImageView = new pageInfoTreeView(["image-address", "image-type", "image-size",
-                                       "image-alt", "image-count", "image-node", "image-bg"],
-                                      COPYCOL_IMAGE);
+var gMetaView = new pageInfoTreeView(COPYCOL_META_CONTENT);
+var gFormView = new pageInfoTreeView(COPYCOL_FORM_ACTION);
+var gFieldView = new pageInfoTreeView(COPYCOL_FIELD_VALUE);
+var gLinkView = new pageInfoTreeView(COPYCOL_LINK_ADDRESS);
+var gImageView = new pageInfoTreeView(COPYCOL_IMAGE);
 
 const ATOM_CONTRACTID = "@mozilla.org/atom-service;1";
 var gBrokenAtom = Components.classes[ATOM_CONTRACTID]
