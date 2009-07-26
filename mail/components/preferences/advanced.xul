@@ -21,7 +21,7 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Scott MacGregor <mscott@mozilla.org
+#   Scott MacGregor <mscott@mozilla.org>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -124,6 +124,9 @@
       <preference id="extensions.update.enabled" name="extensions.update.enabled" type="bool"
                   onchange="gAdvancedPane.updateAddonUpdateUI();"/>
       <!-- Certificates tab -->
+      <preference id="security.default_personal_cert"
+                  name="security.default_personal_cert"
+                  type="string"/>
       <preference id="security.disable_button.openCertManager"
                   name="security.disable_button.openCertManager"
                   type="bool"/>
@@ -371,20 +374,54 @@
 
         <!-- Certificates -->
         <tabpanel orient="vertical">
+          <description id="CertSelectionDesc" control="certSelection">&certSelection.description;</description>
+
+          <!--
+            The values on these radio buttons may look like l12y issues, but
+            they're not - this preference uses *those strings* as its values.
+            I KID YOU NOT.
+          -->
+          <radiogroup id="certSelection" class="indent"
+                      orient="horizontal" preftype="string"
+                      preference="security.default_personal_cert"
+                      aria-labelledby="CertGroupCaption CertSelectionDesc">
+            <radio label="&certs.auto;" accesskey="&certs.auto.accesskey;"
+                    value="Select Automatically"/>
+            <radio label="&certs.ask;" accesskey="&certs.ask.accesskey;"
+                    value="Ask Every Time"/>
+          </radiogroup>
+
+          <separator/>
+
+#ifdef XP_MACOSX
+          <vbox>
+#endif
           <hbox>
-            <button label="&viewCertificates.label;" accesskey="&viewCertificates.accesskey;"
+            <button id="viewCertificatesButton"
+                    label="&viewCertificates.label;"
+                    accesskey="&viewCertificates.accesskey;"
                     oncommand="gAdvancedPane.showCertificates();"
                     preference="security.disable_button.openCertManager"/>
-            <button label="&viewCRLs.label;" accesskey="&viewCRLs.accesskey;"
+            <button id="viewCRLButton"
+                    label="&viewCRLs.label;" accesskey="&viewCRLs.accesskey;"
                     oncommand="gAdvancedPane.showCRLs();"
                     preference="security.OCSP.disable_button.managecrl"/>
-            <button label="&validation.label;"
-                    accesskey="&validation.accesskey;"
+            <button id="verificationButton"
+                    label="&validation.label;" accesskey="&validation.accesskey;"
                     oncommand="gAdvancedPane.showOCSP();"/>
-            <button label="&viewSecurityDevices.label;" accesskey="&viewSecurityDevices.accesskey;"
+#ifdef XP_MACOSX
+          </hbox>
+          <hbox>
+#endif
+            <button id="viewSecurityDevicesButton"
+                    label="&viewSecurityDevices.label;"
+                    accesskey="&viewSecurityDevices.accesskey;"
                     oncommand="gAdvancedPane.showSecurityDevices();"
                     preference="security.disable_button.openDeviceManager"/>
           </hbox>
+#ifdef XP_MACOSX
+          </vbox>
+#endif
         </tabpanel>
       </tabpanels>
     </tabbox>
