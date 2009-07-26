@@ -212,7 +212,6 @@ function CrossFolderNavigation(type)
   if (type == nsMsgNavigationType.nextUnreadMessage ||
       type == nsMsgNavigationType.nextUnreadThread)
   {
-    
     var nextMode = pref.getIntPref("mailnews.nav_crosses_folders");
     // 0: "next" goes to the next folder, without prompting
     // 1: "next" goes to the next folder, and prompts (the default)
@@ -225,26 +224,19 @@ function CrossFolderNavigation(type)
     var folder = FindNextFolder();
     if (folder && (gDBView.msgFolder.URI != folder.URI)) 
     {
-      switch (nextMode) 
+      if (nextMode == 1)
       {
-        case 0:
-          // do this unconditionally
-          SelectFolder(folder.URI);
-          break;
-        case 1:
-        default:
-          var promptText = gMessengerBundle.getFormattedString("advanceNextPrompt", [ folder.name ], 1); 
-          var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                        .getService(Components.interfaces.nsIPromptService);
-          if (!promptService.confirmEx(window, null, promptText, 
-                                       promptService.STD_YES_NO_BUTTONS, 
-                                       null, null, null, null, {}))
-          {
-            gFolderDisplay.pushNavigation(type, true);
-            SelectFolder(folder.URI);
-          }
-          break;
+        let promptText = gMessengerBundle.getFormattedString("advanceNextPrompt",
+                                                             [folder.name], 1);
+        let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                      .getService(Components.interfaces.nsIPromptService);
+        if (promptService.confirmEx(window, null, promptText,
+                                    promptService.STD_YES_NO_BUTTONS,
+                                    null, null, null, null, {}))
+          return;
       }
+      gFolderDisplay.pushNavigation(type, true);
+      SelectFolder(folder.URI);
     }
   }
   else
