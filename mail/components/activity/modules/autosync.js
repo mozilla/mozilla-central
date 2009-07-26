@@ -73,6 +73,7 @@ let autosyncModule =
   _runnning : false,
   _syncInfoPerFolder: {},
   _syncInfoPerServer: {},
+  _lastMessage: {},
 
   get log() {
     delete this.log;
@@ -266,9 +267,14 @@ let autosyncModule =
         this.log.info("Auto_Sync OnFolderRemovedFromQ Last folder of the server: " + !found);
         if (!found) {
           // create an sync event for the completed process if it's not canceled
-          if (!canceled)
-            this.activityMgr.addActivity(this.createSyncMailEvent(syncItem));
-            
+          if (!canceled) {
+            let key = folder.server.prettyName;
+            if (key in this._lastMessage &&
+                this.activityMgr.containsActivity(this._lastMessage[key]))
+              this.activityMgr.removeActivity(this._lastMessage[key]);
+            this._lastMessage[key] = this.activityMgr
+              .addActivity(this.createSyncMailEvent(syncItem));
+          }
           delete this._syncInfoPerServer[folder.server];
         }
       }
