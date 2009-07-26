@@ -235,6 +235,7 @@
     -->
   <binding id="tabmail">
     <resources>
+      <stylesheet src="chrome://messenger/content/tabmail.css"/>
       <stylesheet src="chrome://messenger/skin/tabmail.css"/>
     </resources>
     <content>

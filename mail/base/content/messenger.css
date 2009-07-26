@@ -240,42 +240,8 @@ header-view-button-box
   width: 0px;
 }
 
-tabmail 
-{
+tabmail {
   -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail");
-}
-
-.tabmail-tabs {
-  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-tabs");
-}
-
-.tabmail-arrowscrollbox {
-  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-arrowscrollbox");
-}
-
-.tabmail-tabs > .tabmail-tab {
-  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-tab");
-}
-
-.tabmail-tabs > .tabmail-tab > .tab-close-button,
-.tabmail-tabs .tabs-closebutton-box > .tabs-closebutton {
-  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-close-tab-button");
-}
-
-.tab-close-button {
-  display: none;
-}
-
-.tabmail-tabs:not([closebuttons="noclose"]):not([closebuttons="closeatend"]) > .tabmail-tab[selected="true"] > .tab-close-button {
-  display: -moz-box;
-}
-
-.tabmail-tabs[closebuttons="alltabs"] > .tabmail-tab > .tab-close-button {
-  display: -moz-box;
-}
-
-.tabs-alltabs-popup {
-  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-alltabs-popup");
 }
 
 menupopup[type="folder"] {
