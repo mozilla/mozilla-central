@@ -44,14 +44,11 @@ var messengerContractID        = "@mozilla.org/messenger;1";
 var statusFeedbackContractID   = "@mozilla.org/messenger/statusfeedback;1";
 var mailSessionContractID      = "@mozilla.org/messenger/services/session;1";
 var secureUIContractID         = "@mozilla.org/secure_browser_ui;1";
-
-
 var prefContractID             = "@mozilla.org/preferences-service;1";
 var msgWindowContractID      = "@mozilla.org/messenger/msgwindow;1";
 
 var messenger;
 var pref;
-var prefServices;
 var statusFeedback;
 var msgWindow;
 
@@ -134,8 +131,8 @@ function CreateMailWindowGlobals()
   // get the messenger instance
   CreateMessenger();
 
-  prefServices = Components.classes[prefContractID].getService(Components.interfaces.nsIPrefService);
-  pref = prefServices.getBranch(null);
+  pref = Components.classes[prefContractID]
+                   .getService(Components.interfaces.nsIPrefBranch2);
 
   //Create windows status feedback
   // set the JS implementation of status feedback before creating the c++ one..
