@@ -348,6 +348,24 @@ function UpdateStatusMessageCounts()
 // so we do this trick (suggested by hyatt / blaker)
 function OnLoadMessageWindow()
 {
+  // Set a sane starting width/height for all resolutions on new profiles.
+  // Do this before the window loads.
+  if (!document.documentElement.hasAttribute("width"))
+  {
+    // Prefer 860xfull height.
+    let defaultHeight = screen.availHeight;
+    let defaultWidth = (screen.availWidth >= 860) ? 860 : screen.availWidth;
+
+    // On small screens, default to maximized state.
+    if (defaultHeight <= 600)
+      document.documentElement.setAttribute("sizemode", "maximized");
+
+    document.documentElement.setAttribute("width", defaultWidth);
+    document.documentElement.setAttribute("height", defaultHeight);
+    // Make sure we're safe at the left/top edge of screen
+    document.documentElement.setAttribute("screenX", screen.availLeft);
+    document.documentElement.setAttribute("screenY", screen.availTop);
+  }
   setTimeout(delayedOnLoadMessageWindow, 0); // when debugging, set this to 5000, so you can see what happens after the window comes up.
 }
 

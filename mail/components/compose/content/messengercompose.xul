@@ -72,7 +72,6 @@
         onfocus="EditorOnFocus()"
         title="&msgComposeWindow.title;"
         windowtype="msgcompose"
-        width="640" height="480"
         persist="screenX screenY width height sizemode"> 
 
 <stringbundleset id="stringbundleset">

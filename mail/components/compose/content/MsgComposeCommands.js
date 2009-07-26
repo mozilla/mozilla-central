@@ -1190,6 +1190,25 @@ function ComposeStartup(recycled, aParams)
     }
   }
 
+  // Set a sane starting width/height for all resolutions on new profiles.
+  // Do this before the window loads.
+  if (!document.documentElement.hasAttribute("width"))
+  {
+    // Prefer 860x800.
+    let defaultHeight = (screen.availHeight >= 800) ? 800 : screen.availHeight;
+    let defaultWidth = (screen.availWidth >= 860) ? 860 : screen.availWidth;
+
+    // On small screens, default to maximized state.
+    if (defaultHeight <= 600)
+      document.documentElement.setAttribute("sizemode", "maximized");
+
+    document.documentElement.setAttribute("width", defaultWidth);
+    document.documentElement.setAttribute("height", defaultHeight);
+    // Make sure we're safe at the left/top edge of screen
+    document.documentElement.setAttribute("screenX", screen.availLeft);
+    document.documentElement.setAttribute("screenY", screen.availTop);
+  }
+
   var identityList = document.getElementById("msgIdentity");
 
   document.addEventListener("keypress", awDocumentKeyPress, true);

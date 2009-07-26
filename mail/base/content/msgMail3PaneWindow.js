@@ -253,24 +253,23 @@ function OnLoadMessenger()
   UpdateMailPaneConfig(false);
   document.loadBindingDocument('chrome://global/content/bindings/textbox.xml');
 
-  // Set a sane starting width/height for all resolutions on new profiles. Do this before the window loads
+  // Set a sane starting width/height for all resolutions on new profiles.
+  // Do this before the window loads.
   if (!document.documentElement.hasAttribute("width"))
   {
-    var defaultWidth, defaultHeight;
-    if (screen.availHeight <= 600)
-    {
+    // Prefer 1024xfull height.
+    let defaultHeight = screen.availHeight;
+    let defaultWidth = (screen.availWidth <= 1024) ? screen.availWidth : 1024;
+
+    // On small screens, default to maximized state.
+    if (defaultHeight <= 600)
       document.documentElement.setAttribute("sizemode", "maximized");
-      defaultWidth = 800;
-      defaultHeight = 565;
-    }
-    else // for higher resolution displays, use larger values for height and width
-    {
-      defaultWidth = screen.availWidth <= 1024 ? screen.availWidth * .95 : screen.availWidth * .8;
-      defaultHeight = screen.availHeight * .8;
-    }
 
     document.documentElement.setAttribute("width", defaultWidth);
     document.documentElement.setAttribute("height", defaultHeight);
+    // Make sure we're safe at the left/top edge of screen
+    document.documentElement.setAttribute("screenX", screen.availLeft);
+    document.documentElement.setAttribute("screenY", screen.availTop);
   }
 
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);

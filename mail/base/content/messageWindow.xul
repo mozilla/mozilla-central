@@ -69,8 +69,6 @@
         titlemenuseparator="&titleSeparator.label;"
         onload="OnLoadMessageWindow()"
         onunload="OnUnloadMessageWindow()"
-        width="750"
-        height="500"
         persist="width height screenX screenY sizemode"
         windowtype="mail:messageWindow">
 
