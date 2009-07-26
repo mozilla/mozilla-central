@@ -189,7 +189,7 @@
 
         <vbox id="haveSmtp">
           <description id="smtpStaticText1" style="width: 200px;" prefix="&haveSmtp1.prefix;"
-                       suffix="&haveSmtp1.suffix;">*</description>
+                       suffix="&haveSmtp1.suffix2;">*</description>
         </vbox>
     </vbox>
   </wizardpage>
@@ -223,12 +223,12 @@
 
       <vbox id="loginSet2" hidden="true">
         <description id="smtpStaticText2" style="width: 200px;" prefix="&haveSmtp2.prefix;"
-                     suffix="&haveSmtp2.suffix;">*</description>
+                     suffix="&haveSmtp2.suffix2;">*</description>
       </vbox>
 
       <vbox id="loginSet3" hidden="true">
         <description id="smtpStaticText3" style="width: 200px;" prefix="&haveSmtp3.prefix;"
-                     suffix="&haveSmtp3.suffix;">*</description>
+                     suffix="&haveSmtp3.suffix2;">*</description>
       </vbox>
 
     </vbox>
