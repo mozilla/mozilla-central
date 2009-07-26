@@ -1411,7 +1411,7 @@ BatchMessageMover.prototype = {
   },
   OnStopCopy: function(aStatus)
   {
-    if (aStatus == Components.results.NS_OK) {
+    if (Components.isSuccessCode(aStatus)) {
       // remove batch we just finished
       delete this._batches[this._currentKey];
       this._currentKey = null;
@@ -1442,7 +1442,6 @@ function MsgArchiveSelectedMessages(event)
   let batchMover = new BatchMessageMover();
   batchMover.archiveSelectedMessages();
 }
-
 
 function MsgForwardMessage(event)
 {
