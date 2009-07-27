@@ -51,10 +51,12 @@
  * @param aHitCount: expected number of search hits
  * @param onDone:    function to call on completion of search
  * @param aCustomId: id string for the custom action, if aAttrib is Custom
+ * @param aArbitraryHeader  for OtherHeader case, header.
  *
  */
 
-function TestSearch(aFolder, aValue, aAttrib, aOp, aHitCount, onDone, aCustomId)
+function TestSearch(aFolder, aValue, aAttrib, aOp, aHitCount, onDone, aCustomId,
+                    aArbitraryHeader)
 {
   var searchListener =
   { 
@@ -111,6 +113,9 @@ function TestSearch(aFolder, aValue, aAttrib, aOp, aHitCount, onDone, aCustomId)
   searchTerm.booleanAnd = false;
   if (aAttrib == Ci.nsMsgSearchAttrib.Custom)
     searchTerm.customId = aCustomId;
+  else if (aAttrib == Ci.nsMsgSearchAttrib.OtherHeader)
+    searchTerm.arbitraryHeader = aArbitraryHeader;
+
   searchSession.appendTerm(searchTerm);
   searchSession.registerListener(searchListener);
   searchSession.search(null);
