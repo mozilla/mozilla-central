@@ -61,6 +61,10 @@ _HARNESS_FILES = \
 
 GARBAGE += automation.py
 
+ifndef MOZILLA_1_9_1_BRANCH
+_HARNESS_FILES += automationutils.py
+endif
+
 $(_DEST_DIR):
 	echo $(_HARNESS_FILES)
 	$(NSINSTALL) -D $@
