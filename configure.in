@@ -3319,6 +3319,17 @@ AC_SUBST(XLDFLAGS)
 AC_SUBST(XLIBS)
 AC_SUBST(XT_LIBS)
 
+AC_MSG_CHECKING(for ARM SIMD support)
+AC_TRY_COMPILE([],
+               [asm("uqadd8 r1, r1, r2");],
+               result="yes", result="no")
+AC_MSG_RESULT("$result")
+if test "$result" = "yes"; then
+    AC_DEFINE(HAVE_ARM_SIMD)
+    HAVE_ARM_SIMD=1
+fi
+AC_SUBST(HAVE_ARM_SIMD)
+
 dnl ========================================================
 dnl = pthread support
 dnl = Start by checking whether the system support pthreads
