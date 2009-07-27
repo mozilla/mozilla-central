@@ -1578,6 +1578,7 @@ nsMsgLocalMailFolder::InitCopyState(nsISupports* aSupport,
   if (listener)
     mCopyState->m_listener = do_QueryInterface(listener, &rv);
   mCopyState->m_copyingMultipleMessages = PR_FALSE;
+  mCopyState->m_wholeMsgInStream = PR_FALSE;
   return rv;
 }
 
@@ -2194,7 +2195,8 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile,
       }
     }
 
-    if (NS_SUCCEEDED(rv))
+     mCopyState->m_wholeMsgInStream = PR_TRUE;
+     if (NS_SUCCEEDED(rv))
       rv = BeginCopy(nsnull);
 
     if (NS_SUCCEEDED(rv))
@@ -2380,13 +2382,14 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CopyData(nsIInputStream *aIStream, PRInt32 a
   PRUint32 readCount;
   //allocate one extra byte for '\0' at the end and another extra byte at the
   //front to insert a '>' if we have a "From" line
-  if ( aLength + mCopyState->m_leftOver + 2 > mCopyState->m_dataBufferSize )
+  //allocate 2 more for crlf that may be needed for those without crlf at end of file
+  if ( aLength + mCopyState->m_leftOver + 4 > mCopyState->m_dataBufferSize )
   {
-    char *newBuffer = (char *) PR_REALLOC(mCopyState->m_dataBuffer, aLength + mCopyState->m_leftOver + 2);
+    char *newBuffer = (char *) PR_REALLOC(mCopyState->m_dataBuffer, aLength + mCopyState->m_leftOver + 4);
     if (!newBuffer)
       return NS_ERROR_OUT_OF_MEMORY;
     mCopyState->m_dataBuffer = newBuffer;
-    mCopyState->m_dataBufferSize = aLength + mCopyState->m_leftOver + 1;
+    mCopyState->m_dataBufferSize = aLength + mCopyState->m_leftOver + 3;
   }
 
   nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(mCopyState->m_fileStream, &rv);
@@ -2409,8 +2412,20 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CopyData(nsIInputStream *aIStream, PRInt32 a
     if (!end)
     {
       mCopyState->m_leftOver -= (start - mCopyState->m_dataBuffer - 1);
-      memmove (mCopyState->m_dataBuffer + 1, start, mCopyState->m_leftOver);
-      break;
+      // In CopyFileMessage, a complete message is being copied in a single
+      // call to CopyData, and if it does not have a LINEBREAK at the EOF,
+      // then end will be null after reading the last line, and we need
+      // to append the LINEBREAK to the buffer to enable transfer of the last line.
+      if (mCopyState->m_wholeMsgInStream)
+      {
+        end = start + mCopyState->m_leftOver;
+        memcpy (end, MSG_LINEBREAK + '\0', MSG_LINEBREAK_LEN + 1);
+      }
+      else
+      {
+        memmove (mCopyState->m_dataBuffer + 1, start, mCopyState->m_leftOver);
+        break;
+      }
     }
 
     //need to set the linebreak_len each time

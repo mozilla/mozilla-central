@@ -95,6 +95,7 @@ struct nsLocalMailCopyState
   PRPackedBool m_allowUndo;
   PRPackedBool m_writeFailed;
   PRPackedBool m_notifyFolderLoaded;
+  PRPackedBool m_wholeMsgInStream;
   nsCString    m_newMsgKeywords;
   nsCOMPtr <nsIMsgDBHdr> newHdr;
 };
