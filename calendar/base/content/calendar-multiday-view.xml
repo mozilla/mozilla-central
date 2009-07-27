@@ -530,7 +530,7 @@
            if (itemIndex != -1) {
                delete this.mSelectedItemIds[occ.hashId];
                function isNotItem(a) {
-                  return a.occurrence.hashId != aOccurrence.hashId;
+                  return !a.occurrence || (a.occurrence.hashId != aOccurrence.hashId);
                }
                this.mSelectedChunks = this.mSelectedChunks.filter(isNotItem);
 
@@ -643,6 +643,7 @@
               this.calendarView.viewBroadcaster.removeEventListener(this.calendarView.getAttribute("type") + "viewresized", handler, true);
           }
           this.mHandlersToRemove = [];
+          this.mSelectedChunks = [];
         ]]></body>
       </method>
 
@@ -822,6 +823,7 @@
                           chunkBox.parentColumn = this;
                           if (chunk.event.hashId in this.mSelectedItemIds) {
                               chunkBox.selected = true;
+                              this.mSelectedChunks.push(chunkBox);
                           }
                           
                           this.mEventBoxes.push(chunkBox);
