@@ -167,6 +167,26 @@ NS_MSG_BASE nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
                                             PRUint32 aMaxLength,
                                             nsACString &outString);
 
+/*
+ * Convert raw bytes in header to UTF-16
+ *
+ * @param inString   [IN] Input raw octets
+ * @param outString  [OUT] Output UTF-16 string
+ */
+NS_MSG_BASE void nsMsgI18NConvertRawBytesToUTF16(const nsCString& inString, 
+                                                 const char* charset,
+                                                 nsAString& outString);
+
+/*
+ * Convert raw bytes in header to UTF-8
+ *
+ * @param inString   [IN] Input raw octets
+ * @param outString  [OUT] Output UTF-8 string
+ */
+NS_MSG_BASE void nsMsgI18NConvertRawBytesToUTF8(const nsCString& inString, 
+                                                const char* charset,
+                                                nsACString& outString);
+
 // inline forwarders to avoid littering with 'x-imap4-.....'
 inline nsresult CopyUTF16toMUTF7(const nsString &aSrc, nsACString& aDest)
 {
@@ -196,6 +216,26 @@ inline nsresult ConvertFromUnicode(const char* charset,
                                    const nsString &aSrc, nsACString& aDest)
 {
     return nsMsgI18NConvertFromUnicode(charset, aSrc, aDest);
+}
+
+inline void ConvertRawBytesToUTF16(const nsCString& inString, 
+                                   const char* charset, nsAString& outString)
+{
+    return nsMsgI18NConvertRawBytesToUTF16(inString, charset, outString);
+}
+
+inline void ConvertRawBytesToUTF16(const char* inString, 
+                                   const char* charset, nsAString& outString)
+{
+    return nsMsgI18NConvertRawBytesToUTF16(nsDependentCString(inString),
+                                           charset,
+                                           outString);
+}
+
+inline void ConvertRawBytesToUTF8(const nsCString& inString, 
+                                  const char* charset, nsACString& outString)
+{
+    return nsMsgI18NConvertRawBytesToUTF8(inString, charset, outString);
 }
 
 #endif /* _nsMsgI18N_H_ */

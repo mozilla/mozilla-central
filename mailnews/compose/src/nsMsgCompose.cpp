@@ -2007,7 +2007,8 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             else
               toField.Assign(author);
 
-            m_compFields->SetTo(toField.get());
+            ConvertRawBytesToUTF8(toField, originCharset.get(), decodedCString);
+            m_compFields->SetTo(decodedCString.get());
 
             // Setup quoting callbacks for later...
             mWhatHolder = 1;
@@ -2463,17 +2464,21 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         if (type == nsIMsgCompType::ReplyAll)
         {
           mHeaders->ExtractHeader(HEADER_TO, PR_TRUE, getter_Copies(outCString));
-          CopyUTF8toUTF16(outCString, recipient);
+          ConvertRawBytesToUTF16(outCString, charset.get(), recipient);
           mHeaders->ExtractHeader(HEADER_CC, PR_TRUE, getter_Copies(outCString));
-          CopyUTF8toUTF16(outCString, cc);
+          ConvertRawBytesToUTF16(outCString, charset.get(), cc);
 
           // preserve BCC for the reply-to-self case
           mHeaders->ExtractHeader(HEADER_BCC, PR_TRUE, getter_Copies(outCString));
           if (!outCString.IsEmpty())
-            compFields->SetBcc(NS_ConvertUTF8toUTF16(outCString));
+          {
+            nsAutoString bcc;
+            ConvertRawBytesToUTF16(outCString, charset.get(), bcc);
+            compFields->SetBcc(bcc);
+          }
 
           mHeaders->ExtractHeader(HEADER_MAIL_FOLLOWUP_TO, PR_TRUE, getter_Copies(outCString));
-          CopyUTF8toUTF16(outCString, mailFollowupTo);
+          ConvertRawBytesToUTF16(outCString, charset.get(), mailFollowupTo);
 
           if (! mailFollowupTo.IsEmpty())
           { // handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
@@ -2507,9 +2512,9 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         }
 
         mHeaders->ExtractHeader(HEADER_REPLY_TO, PR_FALSE, getter_Copies(outCString));
-        CopyUTF8toUTF16(outCString, replyTo);
+        ConvertRawBytesToUTF16(outCString, charset.get(), replyTo);
         mHeaders->ExtractHeader(HEADER_MAIL_REPLY_TO, PR_TRUE, getter_Copies(outCString));
-        CopyUTF8toUTF16(outCString, mailReplyTo);
+        ConvertRawBytesToUTF16(outCString, charset.get(), mailReplyTo);
 
         mHeaders->ExtractHeader(HEADER_NEWSGROUPS, PR_FALSE, getter_Copies(outCString));
         if (!outCString.IsEmpty())
@@ -2575,7 +2580,9 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
               mHeaders->ExtractHeader(HEADER_FROM, PR_FALSE, getter_Copies(outCString));
               if (!outCString.IsEmpty())
               {
-                compFields->SetTo(NS_ConvertUTF8toUTF16(outCString));
+                nsAutoString from;
+                ConvertRawBytesToUTF16(outCString, charset.get(), from);
+                compFields->SetTo(from);
               }
             }
 
