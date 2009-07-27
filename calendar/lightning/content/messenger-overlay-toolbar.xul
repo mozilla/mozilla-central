@@ -72,9 +72,11 @@
     </menu>
   </popup>
 
+  <!-- The popup id here must match the popup id in the SeaMonkey
+       New Message button. See Bug 506461 -->
   <toolbarbutton id="button-newmsg"
                  type="menu-button">
-    <menupopup id="button-newmsg-menupopup">
+    <menupopup id="button-newMsgPopup">
       <menuitem id="newMsgButton-mail-menuitem"
                 label="&newMessageCmd.label;"
                 class="menuitem-iconic"
