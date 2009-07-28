@@ -1313,6 +1313,118 @@ function assert_expanded() {
   _assert_elided_helper(false, arguments);
 }
 
+var RECOGNIZED_WINDOWS = ["messagepane", "multimessage"];
+var RECOGNIZED_ELEMENTS = ["folderTree", "threadTree"];
+
+/**
+ * Focus an element.
+ */
+function _focus_element(aElement) {
+  // We're assuming that all elements we'd like to focus are in the main window
+  mc.window.focus();
+  mc.e(aElement).focus();
+}
+
+/**
+ * Focus a window.
+ */
+function _focus_window(aWindow) {
+  mc.e(aWindow).contentWindow.focus();
+}
+
+/**
+ * Focus the folder tree.
+ */
+function focus_folder_tree() {
+  _focus_element("folderTree");
+}
+
+/**
+ * Focus the thread tree.
+ */
+function focus_thread_tree() {
+  _focus_element("threadTree");
+}
+
+/**
+ * Focus the (single) message pane.
+ */
+function focus_message_pane() {
+  _focus_window("messagepane");
+}
+
+/**
+ * Focus the multimessage pane.
+ */
+function focus_multimessage_pane() {
+  _focus_window("multimessage");
+}
+
+/**
+ * Returns a string indicating whatever's currently focused. This will return
+ * either one of the strings in RECOGNIZED_WINDOWS/RECOGNIZED_ELEMENTS or null.
+ */
+function _get_currently_focused_thing() {
+  // If the message pane or multimessage is focused, return that
+  let focusedWindow = mc.window.document.commandDispatcher.focusedWindow;
+  if (focusedWindow) {
+    for each (let [, windowId] in Iterator(RECOGNIZED_WINDOWS)) {
+      let elem = mc.e(windowId);
+      if (elem && focusedWindow == elem.contentWindow)
+        return windowId;
+    }
+  }
+
+  // Focused window not recognized, let's try the focused element.
+  // If an element is focused, it is necessary for the main window to be
+  // focused.
+  if (focusedWindow != mc.window)
+    return null;
+
+  let focusedElement = mc.window.document.commandDispatcher.focusedElement;
+  let elementsToMatch = [mc.e(elem)
+                         for each ([, elem] in Iterator(RECOGNIZED_ELEMENTS))];
+  while (focusedElement && elementsToMatch.indexOf(focusedElement) == -1)
+    focusedElement = focusedElement.parentNode;
+
+  return focusedElement ? focusedElement.id : null;
+}
+
+function _assert_thing_focused(aThing) {
+  let focusedThing = _get_currently_focused_thing();
+  if (focusedThing != aThing)
+    throw new Error("The currently focused thing should be " + aThing +
+                    ", but is actually " + focusedThing);
+}
+
+/**
+ * Assert that the folder tree is focused.
+ */
+function assert_folder_tree_focused() {
+  _assert_thing_focused("folderTree");
+}
+
+/**
+ * Assert that the thread tree is focused.
+ */
+function assert_thread_tree_focused() {
+  _assert_thing_focused("threadTree");
+}
+
+/**
+ * Assert that the (single) message pane is focused.
+ */
+function assert_message_pane_focused() {
+  _assert_thing_focused("messagepane");
+}
+
+/**
+ * Assert that the multimessage pane is focused.
+ */
+function assert_multimessage_pane_focused() {
+  _assert_thing_focused("multimessage");
+}
+
 
 function _normalize_folder_view_index(aViewIndex, aController) {
   if (aController === undefined)

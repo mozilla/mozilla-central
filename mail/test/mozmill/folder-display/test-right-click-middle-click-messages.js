@@ -167,6 +167,9 @@ function _middle_click_with_nothing_selected_helper(aBackground) {
   select_none();
   assert_nothing_selected();
   let folderTab = mc.tabmail.currentTabInfo;
+  // Focus the thread tree -- we're going to make sure it's focused when we
+  // come back
+  focus_thread_tree();
   let [tabMessage, curMessage] = middle_click_on_row(1);
   if (aBackground) {
     // Make sure we haven't switched to the new tab.
@@ -175,9 +178,11 @@ function _middle_click_with_nothing_selected_helper(aBackground) {
     switch_tab(tabMessage);
   }
   assert_selected_and_displayed(curMessage);
+  assert_message_pane_focused();
   close_tab(tabMessage);
 
   assert_nothing_selected();
+  assert_thread_tree_focused();
 }
 
 /**
@@ -190,6 +195,7 @@ function _middle_click_with_one_thing_selected_helper(aBackground) {
   assert_selected_and_displayed(0);
 
   let folderTab = mc.tabmail.currentTabInfo;
+  focus_thread_tree();
   let [tabMessage, curMessage] = middle_click_on_row(1);
   if (aBackground) {
     // Make sure we haven't switched to the new tab.
@@ -198,9 +204,11 @@ function _middle_click_with_one_thing_selected_helper(aBackground) {
     switch_tab(tabMessage);
   }
   assert_selected_and_displayed(curMessage);
+  assert_message_pane_focused();
   close_tab(tabMessage);
 
   assert_selected_and_displayed(0);
+  assert_thread_tree_focused();
 }
 
 /**
@@ -215,6 +223,7 @@ function _middle_click_with_many_things_selected_helper(aBackground) {
   assert_selected_and_displayed([0, 5]);
 
   let folderTab = mc.tabmail.currentTabInfo;
+  focus_thread_tree();
   let [tabMessage, curMessage] = middle_click_on_row(1);
   if (aBackground) {
     // Make sure we haven't switched to the new tab.
@@ -223,9 +232,11 @@ function _middle_click_with_many_things_selected_helper(aBackground) {
     switch_tab(tabMessage);
   }
   assert_selected_and_displayed(curMessage);
+  assert_message_pane_focused();
   close_tab(tabMessage);
 
   assert_selected_and_displayed([0, 5]);
+  assert_thread_tree_focused();
 }
 
 /**
@@ -238,6 +249,7 @@ function _middle_click_on_existing_single_selection_helper(aBackground) {
   assert_selected_and_displayed(3);
 
   let folderTab = mc.tabmail.currentTabInfo;
+  focus_thread_tree();
   let [tabMessage, curMessage] = middle_click_on_row(3);
   if (aBackground) {
     // Make sure we haven't switched to the new tab.
@@ -246,9 +258,11 @@ function _middle_click_on_existing_single_selection_helper(aBackground) {
     switch_tab(tabMessage);
   }
   assert_selected_and_displayed(curMessage);
+  assert_message_pane_focused();
   close_tab(tabMessage);
 
   assert_selected_and_displayed(3);
+  assert_thread_tree_focused();
 }
 
 /**
@@ -262,6 +276,7 @@ function _middle_click_on_existing_multi_selection_helper(aBackground) {
   assert_selected_and_displayed([3, 6]);
 
   let folderTab = mc.tabmail.currentTabInfo;
+  focus_thread_tree();
   let [tabMessage, curMessage] = middle_click_on_row(5);
   if (aBackground) {
     // Make sure we haven't switched to the new tab.
@@ -270,9 +285,11 @@ function _middle_click_on_existing_multi_selection_helper(aBackground) {
     switch_tab(tabMessage);
   }
   assert_selected_and_displayed(curMessage);
+  assert_message_pane_focused();
   close_tab(tabMessage);
 
   assert_selected_and_displayed([3, 6]);
+  assert_thread_tree_focused();
 }
 
 /**
@@ -292,6 +309,12 @@ function _middle_click_on_collapsed_thread_root_helper(aBackground) {
   treeBox.scrollByLines(mc.folderDisplay.view.dbView.rowCount);
   // Note the first visible row
   let preFirstRow = treeBox.getFirstVisibleRow();
+
+  // Since reflowing a tree (eg when switching tabs) ensures that the current
+  // index is brought into view, we need to set the current index so that we
+  // don't scroll because of it. So click on the first visible row.
+  select_click_row(preFirstRow);
+
   // Middle-click on the root of the collapsed thread, which is also the last
   // row
   let [tabMessage, ] = middle_click_on_row(
@@ -327,6 +350,12 @@ function _middle_click_on_expanded_thread_root_helper(aBackground) {
       treeBox.getPageLength() - (NUM_MESSAGES_IN_THREAD / 2));
   // Note the first visible row
   let preFirstRow = treeBox.getFirstVisibleRow();
+
+  // Since reflowing a tree (eg when switching tabs) ensures that the current
+  // index is brought into view, we need to set the current index so that we
+  // don't scroll because of it. So click on the first visible row.
+  select_click_row(preFirstRow);
+
   // Middle-click on the root of the expanded thread, which is the row with
   // index (number of rows - number of messages in thread).
   let [tabMessage, ] = middle_click_on_row(

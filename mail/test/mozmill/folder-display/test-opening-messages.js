@@ -90,6 +90,8 @@ function test_open_single_message_in_tab() {
   assert_tab_mode_name(null, "message");
   // Check that the message header displayed is the right one
   assert_selected_and_displayed(msgHdr);
+  // Check that the message pane is focused
+  assert_message_pane_focused();
   // Clean up, close the tab
   close_tab(mc.tabmail.currentTabInfo);
   switch_tab(folderTab);
@@ -124,10 +126,11 @@ function test_open_multiple_messages_in_tabs() {
     assert_tab_titled_from(mc.tabmail.tabInfo[preCount + i],
                            selectedMessages[i]);
 
-  // Check whether each tab has the correct message, then close it to load the
-  // previous tab.
+  // Check whether each tab has the correct message and whether the message pane
+  // is focused in each case, then close it to load the previous tab.
   for (let i = 0; i < NUM_MESSAGES_TO_OPEN; i++) {
     assert_selected_and_displayed(selectedMessages.pop());
+    assert_message_pane_focused();
     close_tab(mc.tabmail.currentTabInfo);
   }
   switch_tab(folderTab);
@@ -143,7 +146,7 @@ function test_open_message_in_new_window() {
 
   // Select a message
   let msgHdr = select_click_row(1);
-  
+
   plan_for_new_window("mail:messageWindow");
   // Open it
   open_selected_message();

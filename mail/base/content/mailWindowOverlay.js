@@ -1863,14 +1863,22 @@ let mailTabType = {
 
         aTab.folderDisplay.selectMessage(aArgs.msgHdr);
 
+        // Once we're brought into the foreground, the message pane should
+        // get focus
+        aTab._focusedWindow = GetMessagePaneFrame();
+        aTab._focusedElement = null;
+
         // we only want to make it active after setting up the view and the message
         //  to avoid generating bogus summarization events.
-        if (!background)
+        if (!background) {
           aTab.folderDisplay.makeActive();
-        else
+          this.restoreFocus(aTab);
+        }
+        else {
           // We don't want to null out the real tree box view, as that
           // corresponds to the _current_ tab, not the new one
           aTab.folderDisplay.hookUpFakeTreeBox(false);
+        }
       },
       persistTab: function(aTab) {
         let msgHdr = aTab.folderDisplay.selectedMessage;
@@ -2009,11 +2017,77 @@ let mailTabType = {
     aTab.folderDisplay.close();
   },
 
+  /**
+   * Save off the tab's currently focused element or window.
+   * - If the message pane or summary is currently focused, we'll save this as
+   *   our focused window. We won't try to save the focused element, as they'll
+   *   be rebuilt every time we switch panes and it'll be too hard for us to do
+   *   that.
+   * - If the thread tree or folder tree is focused, save that as the focused
+   *   element and the toplevel window as the focused window.
+   */
+  saveFocus: function mailTabType_saveFocus(aTab) {
+    let focusedWindow = document.commandDispatcher.focusedWindow.top;
+    if (focusedWindow == document.getElementById("messagepane").contentWindow ||
+        focusedWindow == document.getElementById("multimessage").contentWindow) {
+      aTab._focusedWindow = focusedWindow;
+      aTab._focusedElement = null;
+    }
+    else {
+      aTab._focusedWindow = window;
+
+      // Look for children as well. This logic is copied from the mail 3pane
+      // version of WhichPaneHasFocus().
+      let focusedElement = document.commandDispatcher.focusedElement;
+      let threadTree = document.getElementById("threadTree");
+      let folderTree = document.getElementById("folderTree");
+      while (focusedElement && focusedElement != threadTree &&
+             focusedElement != folderTree)
+        focusedElement = focusedElement.parentNode;
+
+      // If we still have focusedElement at this point, it's either the thread
+      // tree or the folder tree, so we want to persist it.
+      aTab._focusedElement = focusedElement;
+    }
+  },
+
+  /**
+   * Restore the tab's focused element or window.
+   */
+  restoreFocus: function mailTabType_restoreFocus(aTab) {
+    // There seem to be issues with opening multiple messages at once, so allow
+    // things to stabilize a bit before proceeding
+    let reallyRestoreFocus = function mailTabType_reallyRestoreFocus(aTab) {
+      if ("_focusedWindow" in aTab && aTab._focusedWindow) {
+        // We can't focus() the window if it's in the background, or it'll steal
+        // focus.
+        let windowWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                              .getService(Components.interfaces.nsIWindowWatcher);
+        if (windowWatcher.activeWindow == window)
+          aTab._focusedWindow.focus();
+        else
+          // We can't focus() the window if it's in the background relative to
+          // other windows within this process, or it'll steal focus. Set the
+          // focused window instead, so that when this window receives focus
+          // again, we'll focus the right thing.
+          // XXX This should only be needed for 1.9.1
+          document.commandDispatcher.focusedWindow = aTab._focusedWindow;
+      }
+      if ("_focusedElement" in aTab && aTab._focusedElement)
+        aTab._focusedElement.focus();
+      aTab._focusedWindow = aTab._focusedElement = null;
+    };
+
+    let self = this;
+    window.setTimeout(reallyRestoreFocus, 0, aTab);
+  },
+
   saveTabState: function(aTab) {
     // Now let other tabs have a primary browser if they want.
     document.getElementById("messagepane").setAttribute("type",
                                                         "content-targetable");
 
+    this.saveFocus(aTab);
     aTab.folderDisplay.makeInactive();
   },
 
@@ -2157,6 +2231,9 @@ let mailTabType = {
         gFolderTreeView.selection.selectEventsSuppressed = false;
       }
     }
+
+    // restore focus
+    this.restoreFocus(aTab);
   },
 
   supportsCommand: function(aTab, aCommand) {

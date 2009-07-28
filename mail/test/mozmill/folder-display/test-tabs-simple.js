@@ -73,6 +73,8 @@ function test_open_folder_a() {
   tabFolderA = be_in_folder(folderA);
   assert_messages_in_view(setA);
   assert_nothing_selected();
+  // Focus the folder tree here
+  focus_folder_tree();
 }
 
 /**
@@ -82,6 +84,8 @@ function test_open_folder_b_in_tab() {
   tabFolderB = open_folder_in_new_tab(folderB);
   assert_messages_in_view(setB);
   assert_nothing_selected();
+  // Thread tree here
+  focus_thread_tree();
 }
 
 /**
@@ -91,6 +95,7 @@ function test_switch_to_tab_folder_a() {
   switch_tab(tabFolderA);
   assert_messages_in_view(setA);
   assert_nothing_selected();
+  assert_folder_tree_focused();
 }
 
 /**
@@ -101,6 +106,7 @@ function test_open_message_a_in_tab() {
   messageA = select_click_row(0);
   tabMessageA = open_selected_message_in_new_tab();
   assert_selected_and_displayed(messageA);
+  assert_message_pane_focused();
 }
 
 /**
@@ -110,6 +116,9 @@ function test_switch_to_tab_folder_b() {
   switch_tab(tabFolderB);
   assert_messages_in_view(setB);
   assert_nothing_selected();
+  assert_thread_tree_focused();
+  // Let's focus the message pane now
+  focus_message_pane();
 }
 
 /**
@@ -120,6 +129,7 @@ function test_open_message_b_in_tab() {
   messageB = select_click_row(0);
   tabMessageB = open_selected_message_in_new_tab();
   assert_selected_and_displayed(messageB);
+  assert_message_pane_focused();
 }
 
 /**
@@ -128,6 +138,7 @@ function test_open_message_b_in_tab() {
 function test_switch_to_message_a() {
   switch_tab(tabMessageA);
   assert_selected_and_displayed(messageA);
+  assert_message_pane_focused();
 }
 
 /**
@@ -145,13 +156,16 @@ function test_tabs_are_still_happy() {
   switch_tab(tabFolderB);
   assert_messages_in_view(setB);
   assert_selected_and_displayed(messageB);
+  assert_message_pane_focused();
 
   switch_tab(tabMessageB);
   assert_selected_and_displayed(messageB);
+  assert_message_pane_focused();
 
   switch_tab(tabFolderA);
   assert_messages_in_view(setA);
   assert_selected_and_displayed(messageA);
+  assert_folder_tree_focused();
 }
 
 /**
@@ -162,6 +176,7 @@ function test_close_message_b() {
   // we should still be on folder A
   assert_messages_in_view(setA);
   assert_selected_and_displayed(messageA);
+  assert_folder_tree_focused();
 }
 
 /**
@@ -171,8 +186,10 @@ function test_close_folder_b() {
   switch_tab(tabFolderB);
   assert_messages_in_view(setB);
   assert_selected_and_displayed(messageB);
+  assert_message_pane_focused();
 
   close_tab();
   assert_messages_in_view(setA);
   assert_selected_and_displayed(messageA);
+  assert_folder_tree_focused();
 }
