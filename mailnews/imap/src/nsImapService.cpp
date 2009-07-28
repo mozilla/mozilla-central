@@ -1547,14 +1547,13 @@ NS_IMETHODIMP nsImapService::UpdateFolderStatus(nsIEventTarget *aClientEventTarg
 }
 
 // Expunge, used to "compress" an imap folder,removes deleted messages.
-NS_IMETHODIMP nsImapService::Expunge(nsIEventTarget *aClientEventTarget,
+NS_IMETHODIMP nsImapService::Expunge(nsIEventTarget *aClientEventTarget, 
                                      nsIMsgFolder *aImapMailFolder,
-                                     nsIUrlListener *aUrlListener,
-                                     nsIMsgWindow *aMsgWindow,
+                                     nsIUrlListener *aUrlListener, 
                                      nsIURI **aURL)
 {
   return FolderCommand(aClientEventTarget, aImapMailFolder, aUrlListener,
-                       "/Expunge>", nsIImapUrl::nsImapExpungeFolder, aMsgWindow, aURL);
+                       "/Expunge>", nsIImapUrl::nsImapExpungeFolder, nsnull, aURL);
 }
 
 /* old-stle biff that doesn't download headers */
