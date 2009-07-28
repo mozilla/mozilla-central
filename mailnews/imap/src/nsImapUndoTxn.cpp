@@ -117,7 +117,7 @@ nsImapMoveCopyMsgTxn::~nsImapMoveCopyMsgTxn()
 {
 }
 
-NS_IMPL_ISUPPORTS_INHERITED1(nsImapMoveCopyMsgTxn, nsMsgTxn, nsIUrlListener);
+NS_IMPL_ISUPPORTS_INHERITED1(nsImapMoveCopyMsgTxn, nsMsgTxn, nsIUrlListener)
 
 NS_IMETHODIMP
 nsImapMoveCopyMsgTxn::UndoTransaction(void)
