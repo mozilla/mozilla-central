@@ -1257,51 +1257,49 @@ function EditContact(emailAddressNode)
                                              emailAddressNode);
 }
 
-// SendMailToNode takes the email address title button, extracts
-// the email address we stored in there and opens a compose window
-// with that address
+/**
+ * Takes the email address title button, extracts the email address we stored
+ * in there and opens a compose window with that address.
+ * @param emailAddressNode a node which has a "fullAddress" attribute
+ */
 function SendMailToNode(emailAddressNode)
 {
-  var fields = Components.classes["@mozilla.org/messengercompose/composefields;1"].createInstance(Components.interfaces.nsIMsgCompFields);
-  var params = Components.classes["@mozilla.org/messengercompose/composeparams;1"].createInstance(Components.interfaces.nsIMsgComposeParams);
-  if (emailAddressNode && fields && params)
-  {
-    fields.to = emailAddressNode.getAttribute("fullAddress");
-    params.type = Components.interfaces.nsIMsgCompType.New;
-    params.format = Components.interfaces.nsIMsgCompFormat.Default;
-    params.identity = accountManager.getFirstIdentityForServer(GetLoadedMsgFolder().server);
-    params.composeFields = fields;
-    msgComposeService.OpenComposeWindowWithParams(null, params);
+  let fields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
+                         .createInstance(Components.interfaces.nsIMsgCompFields);
+  let params = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
+                         .createInstance(Components.interfaces.nsIMsgComposeParams);
+  fields.to = emailAddressNode.getAttribute("fullAddress");
+  params.type = Components.interfaces.nsIMsgCompType.New;
+  params.format = Components.interfaces.nsIMsgCompFormat.Default;
+  if (gFolderDisplay.displayedFolder) {
+    params.identity = accountManager.getFirstIdentityForServer(
+                        gFolderDisplay.displayedFolder.server);
   }
+  params.composeFields = fields;
+  msgComposeService.OpenComposeWindowWithParams(null, params);
 }
 
-// CopyEmailAddress takes the email address title button, extracts
-// the email address we stored in there and copies it to the clipboard
+/**
+ * Takes the email address title button, extracts the email address we stored
+ * in there and copies it to the clipboard.
+ * @param emailAddressNode a node which has an "emailAddress" attribute
+ */
 function CopyEmailAddress(emailAddressNode)
 {
-  if (emailAddressNode)
-  {
-    var emailAddress = emailAddressNode.getAttribute("emailAddress");
-
-    var contractid = "@mozilla.org/widget/clipboardhelper;1";
-    var iid = Components.interfaces.nsIClipboardHelper;
-    var clipboard = Components.classes[contractid].getService(iid);
-    clipboard.copyString(emailAddress);
-  }
+  let clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                            .getService(Components.interfaces.nsIClipboardHelper);
+  clipboard.copyString(emailAddressNode.getAttribute("emailAddress"));
 }
 
-// CreateFilter opens the Message Filters and Filter Rules dialogs.
-//The Filter Rules dialog has focus. The window is prefilled with filtername <email address>
-//Sender condition is selected and the value is prefilled <email address>
+/**
+ * Causes the filter dialog to pop up, prefilled for the specified e-mail
+ * address.
+ * @param emailAddressNode a node which has an "emailAddress" attribute
+ */
 function CreateFilter(emailAddressNode)
 {
-  if (emailAddressNode)
-  {
-     var emailAddress = emailAddressNode.getAttribute("emailAddress");
-     if (emailAddress){
-         top.MsgFilters(emailAddress, GetFirstSelectedMsgFolder());
-     }
-  }
+  let emailAddress = emailAddressNode.getAttribute("emailAddress");
+  top.MsgFilters(emailAddress, GetFirstSelectedMsgFolder());
 }
 
 // createnewAttachmentInfo --> constructor method for creating new attachment object which goes into the

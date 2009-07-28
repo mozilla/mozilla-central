@@ -91,11 +91,9 @@ var gDisallow_classes_no_html = 1;
 // dialog.
 function menu_new_init()
 {
-  var folders = gFolderTreeView.getSelectedFolders();
-  if (folders.length != 1)
+  let folder = gFolderDisplay.displayedFolder;
+  if (!folder)
     return;
-
-  var folder = folders[0];
 
   if (!gMessengerBundle)
     gMessengerBundle = document.getElementById("bundle_messenger");

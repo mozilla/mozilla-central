@@ -652,7 +652,7 @@ function GetSelectedMsgFolders()
 
 function GetNumSelectedMessages()
 {
-  return gFolderDisplay.treeSelection.count;
+  return gFolderDisplay.selectedCount;
 }
 
 function ReloadMessage()

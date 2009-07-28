@@ -123,10 +123,6 @@ function fillMailContextMenu(event)
   var selectedMessage = gFolderDisplay.selectedMessage;
   var isNewsgroup = gFolderDisplay.selectedMessageIsNews;
 
-  // Clear the global var used to keep track if a 'Delete Message' or 'Move
-  // To' command has been triggered via the thread pane context menu.
-  gThreadPaneDeleteOrMoveOccurred = false;
-
   // Don't show mail items for links/images, just show related items.
   var hideMailItems = !inThreadPane &&
                       (gContextMenu.onImage || gContextMenu.onLink);
@@ -172,7 +168,7 @@ function fillMailContextMenu(event)
 
   ShowMenuItem("mailContext-sep-reply", true);
 
-  var msgFolder = GetLoadedMsgFolder();
+  let msgFolder = gFolderDisplay.displayedFolder;
 
   // Set up the move menu. We can't move from newsgroups.
   ShowMenuItem("mailContext-moveMenu",
@@ -723,16 +719,19 @@ function addEmail()
                     {primaryEmail: addresses});
 }
 
-function composeEmailTo ()
+function composeEmailTo()
 {
-  var url = gContextMenu.linkURL;
-  var addresses = getEmail(url);
-  var fields = Components.classes["@mozilla.org/messengercompose/composefields;1"].createInstance(Components.interfaces.nsIMsgCompFields);
-  var params = Components.classes["@mozilla.org/messengercompose/composeparams;1"].createInstance(Components.interfaces.nsIMsgComposeParams);
-  fields.to = addresses;
+  let fields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
+                         .createInstance(Components.interfaces.nsIMsgCompFields);
+  let params = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
+                         .createInstance(Components.interfaces.nsIMsgComposeParams);
+  fields.to = getEmail(gContextMenu.linkURL);
   params.type = Components.interfaces.nsIMsgCompType.New;
   params.format = Components.interfaces.nsIMsgCompFormat.Default;
-  params.identity = accountManager.getFirstIdentityForServer(GetLoadedMsgFolder().server);
+  if (gFolderDisplay.displayedFolder) {
+    params.identity = accountManager.getFirstIdentityForServer(
+                        gFolderDisplay.displayedFolder.server);
+  }
   params.composeFields = fields;
   msgComposeService.OpenComposeWindowWithParams(null, params);
 }

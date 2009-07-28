@@ -285,8 +285,8 @@ var DefaultController =
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.toggleThreadWatched);
       case "cmd_createFilterFromPopup":
       case "cmd_createFilterFromMenu":
-        var loadedFolder = GetLoadedMsgFolder();
-        if (!(loadedFolder && loadedFolder.server.canHaveFilters))
+        if (!(gFolderDisplay.displayedFolder &&
+              gFolderDisplay.displayedFolder.server.canHaveFilters))
           return false;   // else fall thru
       case "cmd_saveAsFile":
       case "cmd_saveAsTemplate":
@@ -352,14 +352,11 @@ var DefaultController =
       case "button_file":
       case "cmd_file":
       case "cmd_archive":
-        return (GetNumSelectedMessages() > 0 );
+        return (gFolderDisplay.selectedCount > 0 );
       case "button_archive":
-      {
-        let folder = GetLoadedMsgFolder();
-        return GetNumSelectedMessages() > 0 && folder &&
-          !folder.isSpecialFolder(Components.interfaces.nsMsgFolderFlags.Archive,
-                                  true);
-      }
+        return gFolderDisplay.selectedCount > 0 && gFolderDisplay.displayedFolder &&
+          !gFolderDisplay.displayedFolder.isSpecialFolder(
+             Components.interfaces.nsMsgFolderFlags.Archive, true);
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
         // can't do news on junk yet.

@@ -85,11 +85,6 @@ var gStartFolderUri = null;
 var gRightMouseButtonSavedSelection = null;
 var gNewAccountToLoad = null;
 
-// Global var to keep track of if the 'Delete Message' or 'Move To' thread pane
-// context menu item was triggered.  This helps prevent the tree view from
-// not updating on one of those menu item commands.
-var gThreadPaneDeleteOrMoveOccurred = false;
-
 var gDisplayStartupPage = false;
 
 // the folderListener object
@@ -989,11 +984,6 @@ function ThreadTreeOnClick(event)
 function GetSelectedMsgFolders()
 {
   return gFolderTreeView.getSelectedFolders();
-}
-
-function GetLoadedMsgFolder()
-{
-  return gFolderDisplay.displayedFolder;
 }
 
 function SelectFolder(folderUri)

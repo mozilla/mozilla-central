@@ -49,7 +49,7 @@ function setupBundles()
 {
   if (gBundle && gBrandBundle)
     return;
-  
+
   if (!gBundle) {
     gBundle = document.getElementById("bundle_read_smime");
     gBrandBundle = document.getElementById("bundle_brand");
@@ -82,19 +82,19 @@ function showMessageReadSecurityInfo()
       return;
     }
   }
-  
+
   var pkiParams = Components.classes[nsPKIParamBlock].createInstance(nsIPKIParamBlock);
 
   // isupport array starts with index 1
   pkiParams.setISupportAtIndex(1, gSignerCert);
   pkiParams.setISupportAtIndex(2, gEncryptionCert);
-  
+
   var params = pkiParams.QueryInterface(Components.interfaces.nsIDialogParamBlock);
 
   // int array starts with index 0, but that is used for window exit status
   params.SetInt(1, gSignatureStatus);
   params.SetInt(2, gEncryptionStatus);
-  
+
   window.openDialog('chrome://messenger-smime/content/msgReadSecurityInfo.xul',
     '', 'chrome,resizable=1,modal=1,dialog=1', pkiParams );
 }
@@ -107,7 +107,7 @@ var SecurityController =
     {
       case "cmd_viewSecurityStatus":
         return true;
-      
+
       default:
         return false;
      }
@@ -121,7 +121,7 @@ var SecurityController =
       {
         if (document.documentElement.getAttribute('windowtype') == "mail:messageWindow")
         {
-          return ( gCurrentMessageUri != null);
+          return (GetNumSelectedMessages() > 0);
         }
         else
         {
@@ -134,7 +134,6 @@ var SecurityController =
             return enabled.value;
           }
         }
-      
         return false;
       }
 
