@@ -657,7 +657,12 @@ nsMsgSearchDBView::GetMessageEnumerator(nsISimpleEnumerator **enumerator)
 
 nsresult nsMsgSearchDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder)
 {
-  nsMsgViewIndex insertIndex = GetInsertIndex(msgHdr);
+  nsMsgViewIndex insertIndex = nsMsgViewIndex_None;
+  // Threaded view always needs to go through AddHdrFromFolder since
+  // it handles the xf view thread object creation.
+  if (! (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
+    insertIndex = GetInsertIndex(msgHdr);
+
   if (insertIndex == nsMsgViewIndex_None)
     return AddHdrFromFolder(msgHdr, folder);
 

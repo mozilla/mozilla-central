@@ -3723,11 +3723,13 @@ nsresult nsMsgDBView::GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue s
       {
         nsCOMPtr <nsIMsgThread> thread;
         rv = GetThreadContainingMsgHdr(msgHdr, getter_AddRefs(thread));
-        NS_ENSURE_SUCCESS(rv, rv);
-        thread->GetNewestMsgDate(result);
+        if (NS_SUCCEEDED(rv))
+        {
+          thread->GetNewestMsgDate(result);
+          break;
+        }
       }
-      else
-        rv = msgHdr->GetDateInSeconds(result);
+      rv = msgHdr->GetDateInSeconds(result);
       break;
     case nsMsgViewSortType::byReceived:
       // when sorting threads by received date, we want the received date of the newest msg
