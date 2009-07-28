@@ -152,6 +152,12 @@ endif
 
 ifdef BUILD_STATIC_LIBS
 
+ifndef MOZILLA_1_9_1_BRANCH
+ifeq ($(OS_ARCH),WINNT)
+LIBS += ../shell/src/$(LIB_PREFIX)shellservice_s.$(LIB_SUFFIX)
+endif
+endif
+
 include $(topsrcdir)/config/static-config.mk
 
 EXTRA_DEPS	+= \
