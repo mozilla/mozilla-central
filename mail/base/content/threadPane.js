@@ -280,8 +280,8 @@ function UpdateSortIndicators(sortType, sortOrder)
 
 function IsSpecialFolderSelected(flags, checkAncestors)
 {
-  var selectedFolder = GetThreadPaneFolder();
-  return IsSpecialFolder(selectedFolder, flags, checkAncestors);
+  let folder = GetThreadPaneFolder();
+  return folder && folder.isSpecialFolder(flags, checkAncestors);
 }
 
 function GetThreadTree()

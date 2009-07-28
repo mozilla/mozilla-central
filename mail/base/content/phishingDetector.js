@@ -109,9 +109,9 @@ var gPhishingDetector = {
 
       // Also ignore messages in Sent/Drafts/Templates/Outbox.
       const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-      if (IsSpecialFolder(folder, nsMsgFolderFlags.SentMail |
-                          nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Templates |
-                          nsMsgFolderFlags.Queue, true))
+      let outgoingFlags = nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts |
+                          nsMsgFolderFlags.Templates | nsMsgFolderFlags.Queue;
+      if (folder.isSpecialFolder(outgoingFlags, true))
         return;
 
     } catch (ex) {

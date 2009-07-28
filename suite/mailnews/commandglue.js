@@ -321,7 +321,9 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
   // if this is the drafts, sent, or send later folder,
   // we show "Recipient" instead of "Author"
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-  SetSentFolderColumns(IsSpecialFolder(newFolder, nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue, true));
+  let flags = nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts |
+              nsMsgFolderFlags.Queue;
+  SetSentFolderColumns(newFolder.isSpecialFolder(flags, true));
   ShowLocationColumn(viewType == nsMsgViewType.eShowVirtualFolderResults);
   // Only show 'Received' column for e-mails.  For newsgroup messages, the 'Date' header is as reliable as an e-mail's
   // 'Received' header, as it is replaced with the news server's (more reliable) date.
@@ -336,7 +338,7 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
 
      /*we don't null out the db reference for inbox because inbox is like the "main" folder
        and performance outweighs footprint */
-    if (!IsSpecialFolder(oldFolder, nsMsgFolderFlags.Inbox, false))
+    if (!oldFolder.isSpecialFolder(nsMsgFolderFlags.Inbox, false))
       if (oldFolder.URI != newFolder.URI)
         oldFolder.msgDatabase = null;
   }
@@ -925,25 +927,6 @@ function ClearThreadPane()
     gDBView.close();
     gDBView = null; 
   }
-}
-
-function IsSpecialFolder(msgFolder, flags, checkAncestors)
-{
-    if (!msgFolder) 
-        return false;
-    else if ((msgFolder.flags & flags) == 0) 
-    {
-      var parentMsgFolder = msgFolder.parentMsgFolder;
-
-      return (parentMsgFolder && checkAncestors) ? IsSpecialFolder(parentMsgFolder, flags, true) : false;
-    }
-    else {
-      const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-      // the user can set their INBOX to be their SENT folder.
-      // in that case, we want this folder to act like an INBOX, 
-      // and not a SENT folder
-      return !((flags & nsMsgFolderFlags.SentMail) && (msgFolder.flags & nsMsgFolderFlags.Inbox));
-    }
 }
 
 function SelectNextMessage(nextMessage)

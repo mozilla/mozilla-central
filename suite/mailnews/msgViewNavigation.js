@@ -81,7 +81,10 @@ function FindNextChildFolder(aParent, aAfter)
       // templates or junk special folder, 
       // we ignore it when doing cross folder "next" navigation
       const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-      if (!IsSpecialFolder(folder, nsMsgFolderFlags.Trash | nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue | nsMsgFolderFlags.Templates | nsMsgFolderFlags.Junk, true)) {
+      let flags = nsMsgFolderFlags.Trash | nsMsgFolderFlags.SentMail |
+                  nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue |
+                  nsMsgFolderFlags.Templates | nsMsgFolderFlags.Junk;
+      if (!folder.isSpecialFolder(flags, true)) {
         if (folder.getNumUnread(false) > 0)
           return folder;
 

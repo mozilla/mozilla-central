@@ -1799,10 +1799,10 @@ function ShowEditMessageBox()
 {
   // it would be nice if we passed in the msgHdr from the back end
   var msgHdr = gFolderDisplay.selectedMessage;
-  if (!msgHdr && !msgHdr.folder)
+  if (!msgHdr || !msgHdr.folder)
     return;
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-  if (IsSpecialFolder(msgHdr.folder, nsMsgFolderFlags.Drafts, true))
+  if (msgHdr.folder.isSpecialFolder(nsMsgFolderFlags.Drafts, true))
     document.getElementById("editMessageBox").collapsed = false;
 }
 

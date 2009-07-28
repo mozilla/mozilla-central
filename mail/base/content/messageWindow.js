@@ -805,8 +805,8 @@ var MessageWindowController =
       case "button_archive":
         var folder = gFolderDisplay.displayedFolder;
         return folder &&
-          !(IsSpecialFolder(folder, Components.interfaces.nsMsgFolderFlags.Archive,
-                            true));
+          !folder.isSpecialFolder(Components.interfaces.nsMsgFolderFlags.Archive,
+                                  true);
       case "cmd_reply":
       case "button_reply":
       case "cmd_replyall":

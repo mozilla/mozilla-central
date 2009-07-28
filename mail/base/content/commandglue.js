@@ -356,26 +356,6 @@ function FolderPaneSelectionChange()
   gFolderDisplay.show(folders.length ? folders[0] : null);
 }
 
-function IsSpecialFolder(msgFolder, flags, checkAncestors)
-{
-    if (!msgFolder)
-        return false;
-    else if ((msgFolder.flags & flags) == 0)
-    {
-      var parentMsgFolder = msgFolder.parentMsgFolder;
-
-      return (parentMsgFolder && checkAncestors) ? IsSpecialFolder(parentMsgFolder, flags, true) : false;
-    }
-    else {
-        // the user can set their INBOX to be their SENT folder.
-        // in that case, we want this folder to act like an INBOX,
-        // and not a SENT folder
-        const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-        return !((flags & nsMsgFolderFlags.SentMail) &&
-                 (msgFolder.flags & nsMsgFolderFlags.Inbox));
-    }
-}
-
 function Undo()
 {
     messenger.undo(msgWindow);

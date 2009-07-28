@@ -357,8 +357,8 @@ var DefaultController =
       {
         let folder = GetLoadedMsgFolder();
         return GetNumSelectedMessages() > 0 && folder &&
-          !(IsSpecialFolder(folder, Components.interfaces.nsMsgFolderFlags.Archive,
-                            true));
+          !folder.isSpecialFolder(Components.interfaces.nsMsgFolderFlags.Archive,
+                                  true);
       }
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":

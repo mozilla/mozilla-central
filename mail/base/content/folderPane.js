@@ -1088,7 +1088,7 @@ let gFolderTreeView = {
         nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue |
         nsMsgFolderFlags.Templates;
       for each (let folder in ftv._enumerateFolders) {
-        if (!IsSpecialFolder(folder, outFolderFlagMask, true) &&
+        if (!folder.isSpecialFolder(outFolderFlagMask, true) &&
             (!folder.isServer && folder.getNumUnread(false) > 0) ||
             (folder == currentFolder))
           map.push(new ftvItem(folder));
