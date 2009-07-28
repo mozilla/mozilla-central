@@ -31,7 +31,8 @@ function setup_globals(aNextFunc) {
   messages = messages.concat(gScenarioFactory.fullPyramid(3,3));
   messages = messages.concat(gScenarioFactory.siblingsMissingParent());
   messages = messages.concat(gScenarioFactory.missingIntermediary());
-
+  messages.concat(gMessageGenerator.makeMessage({age: {days: 2, hours: 1}}));
+  
   let mboxName = "dbviewy";
   writeMessagesToMbox(messages, gProfileDir,
                       "Mail", "Local Folders", mboxName);
@@ -53,7 +54,8 @@ var gCommandUpdater = {
 
   updateNextMessageAfterDelete : function()
   {
-  }
+  },
+  summarizeSelection : function() {return false;}
 };
 
 var gNextUniqueFolderId = 0;
@@ -142,7 +144,8 @@ function assert_view_row_count(aCount) {
  *  rows in gDBView.
  */
 function assert_view_index_is_dummy() {
-  for each (let [, viewIndex] in Iterator(arguments)) {
+  for (let iArg = 0; iArg < arguments.length; iArg++) {
+    let viewIndex = arguments[iArg];
     let flags = gDBView.getFlagsAt(viewIndex);
     if (!(flags & MSG_VIEW_FLAG_DUMMY))
       view_throw("Expected index " + viewIndex + " to be a dummy!");
@@ -154,7 +157,8 @@ function assert_view_index_is_dummy() {
  *  gDBView.
  */
 function assert_view_index_is_not_dummy() {
-  for each (let [, viewIndex] in Iterator(arguments)) {
+  for (let iArg = 0; iArg < arguments.length; iArg++) {
+    let viewIndex = arguments[iArg];
     let flags = gDBView.getFlagsAt(viewIndex);
     if (flags & MSG_VIEW_FLAG_DUMMY)
       view_throw("Expected index " + viewIndex + " to not be a dummy!");
@@ -171,8 +175,8 @@ function assert_view_index_is_not_dummy() {
  */
 function assert_view_message_at_indices() {
   let curHdr;
-  for each (let [, thing] in Iterator(arguments)) {
-    // index
+  for (let iArg = 0; iArg < arguments.length; iArg++) {
+    let thing = arguments[iArg];
     if (typeof(thing) == "number") {
       let hdrAt = gDBView.getMsgHdrAt(thing);
       if (curHdr != hdrAt) {
@@ -236,7 +240,9 @@ function setup_view(aViewType, aViewFlags, aTestFolder) {
   gDBView.init(null, null, gCommandUpdater);
   var outCount = {};
   gDBView.open(aViewType != "search" ? aTestFolder : null,
-               SortType.byDate, SortOrder.ascending, aViewFlags, outCount);
+               SortType.byDate,
+               aViewType != "search" ? SortOrder.ascending : SortOrder.descending,
+               aViewFlags, outCount);
   dump("  View Out Count: " + outCount.value + "\n");
 
   // we need to cram messages into the search via nsIMsgSearchNotify interface
@@ -323,7 +329,7 @@ function ensure_view_ordering(aSortBy, aDirection, aKeyOrValueGetter,
   }
 
   let comparisonValuesByLevel = [];
-  let expectedComparison = (aDirection == SortOrder.ascending ? 1 : -1);
+  let expectedLevel0CmpResult = (aDirection == SortOrder.ascending ? 1 : -1);
   let comparator = generalCmp;
 
   let dummyCount = 0, emptyDummyCount = 0;
@@ -389,10 +395,11 @@ function ensure_view_ordering(aSortBy, aDirection, aKeyOrValueGetter,
     else { // otherwise compare it
       let prevValue = comparisonValuesByLevel[level-1];
       let cmpResult = comparator(curValue, prevValue);
-      if (cmpResult && cmpResult != expectedComparison)
-        do_throw("Ordering failure on key " + aKey + ". " +
+      let expectedCmpResult = (level > 0) ? 1 : expectedLevel0CmpResult;
+      if (cmpResult && cmpResult != expectedCmpResult)
+        do_throw("Ordering failure on key " + msgHdr.messageKey + ". " +
                  curValue + " should have been " +
-                 (expectedComparison == 1 ? ">=" : "<=") + " " +
+                 (expectedCmpResult == 1 ? ">=" : "<=") + " " +
                  prevValue + " but was not.");
     }
   }
@@ -408,6 +415,12 @@ function ensure_view_ordering(aSortBy, aDirection, aKeyOrValueGetter,
  * Test sorting functionality.
  */
 function test_sort_columns() {
+  ensure_view_ordering(SortType.byDate, SortOrder.descending, 'date',
+    function getDateAgeBucket(msgHdr) {
+      // so, this is a cop-out, but we know that the date age bucket for our
+      //  generated messages is always more than 2-weeks ago!
+      return 5;
+    });
   ensure_view_ordering(SortType.byDate, SortOrder.ascending, 'date',
     function getDateAgeBucket(msgHdr) {
       // so, this is a cop-out, but we know that the date age bucket for our
@@ -438,8 +451,22 @@ function test_sort_columns() {
   // Received
 }
 
+function test_msg_added_to_search_view() {
+  // if the view is a non-grouped search view, test adding a header to
+  // the search results, and verify it gets put at top.
+  if (! (gDBView.viewFlags & ViewFlags.kGroupBySort)) {
+    gDBView.sort(SortType.byDate, SortOrder.descending);
+    let synMsg = make_and_add_message();
+    let msgHdr = gTestFolder.msgDatabase.getMsgHdrForMessageID(synMsg.messageId);
+    gDBView.QueryInterface(Components.interfaces.nsIMsgSearchNotify)
+            .onSearchHit(msgHdr, msgHdr.folder);
+    assert_view_message_at_indices(synMsg, 0);
+  }
+}
+
 function test_group_dummies_under_mutation_by_date() {
   // - start with an empty folder
+  let save_gTestFolder = gTestFolder;
   gTestFolder = make_empty_folder();
 
   // - create the view
@@ -477,9 +504,9 @@ function test_group_dummies_under_mutation_by_date() {
   assert_view_row_count(3); // 2 messages + 1 dummy
   assert_view_index_is_dummy(0);
   assert_view_index_is_not_dummy(1, 2);
-  // the dummy should be based off the newer guy
-  assert_view_message_at_indices(newer, 0, 1);
-  assert_view_message_at_indices(older, 2);
+  // the dummy should be based off the older guy
+  assert_view_message_at_indices(older, 0, 1);
+  assert_view_message_at_indices(newer, 2);
 
   // - delete the message right under the dummy
   // (this will be the newer one)
@@ -494,10 +521,11 @@ function test_group_dummies_under_mutation_by_date() {
 }
 
 var view_types = [
-  ["group", ViewFlags.kGroupBySort],
   ["threaded", ViewFlags.kThreadedDisplay],
+  ["search", ViewFlags.kThreadedDisplay],
   ["search", ViewFlags.kGroupBySort],
-  ["search", ViewFlags.kThreadedDisplay]
+   // group does unspeakable things to gTestFolder, so put it last.
+  ["group", ViewFlags.kGroupBySort]
 ];
 
 var tests_for_all_views = [
@@ -509,6 +537,9 @@ var tests_for_specific_views = {
     test_group_dummies_under_mutation_by_date
   ],
   threaded: [
+  ],
+  search: [
+    test_msg_added_to_search_view
   ]
 };
 
@@ -520,7 +551,6 @@ function run_test() {
 function actually_run_test() {
   dump("in actually_run_test\n");
   yield async_run({func: setup_globals});
-
   dump("Num Messages: " + gTestFolder.msgDatabase.dBFolderInfo.numMessages + "\n");
 
   // for each view type...
@@ -529,6 +559,7 @@ function actually_run_test() {
     dump("===== Testing View Type: " + view_type + " flags: " + view_flags +
          "\n");
 
+    let save_gTestFolder = gTestFolder;
     // ... run each test
     setup_view(view_type, view_flags);
 
@@ -543,6 +574,7 @@ function actually_run_test() {
         yield async_run({func: testFunc});
       }
     }
+    gTestFolder = save_gTestFolder;
   }
   do_test_finished();
 }
