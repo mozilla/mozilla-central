@@ -6,7 +6,6 @@
 #ifndef _nsLocalStrings_H__
 #define _nsLocalStrings_H__
 
-#define IMAP_OUT_OF_MEMORY                                   -1000
 #define LOCAL_STATUS_SELECTING_MAILBOX                        4000
 #define LOCAL_STATUS_DOCUMENT_DONE                            4001
 #define LOCAL_STATUS_RECEIVING_MESSAGE_OF                     4002
@@ -24,17 +23,13 @@
 #define POP3_DELE_FAILURE                                     4016
 #define POP3_ENTER_PASSWORD_PROMPT                            4017
 #define POP3_PREVIOUSLY_ENTERED_PASSWORD_IS_INVALID_ETC       4018
-#define POP3_NO_ANSWER                                        4019
 #define POP3_ENTER_PASSWORD_PROMPT_TITLE                      4020
-#define POP3_FOLDER_FOR_TRASH                                 4023
 #define POP3_STAT_FAILURE                                     4024
 #define POP3_SERVER_SAID                                      4025
-#define DELETING_MSGS_STATUS                                  4026
 #define COPYING_MSGS_STATUS                                   4027
 #define MOVING_MSGS_STATUS                                    4028
 #define POP3_MESSAGE_FOLDER_BUSY                              4029
 #define CANNOT_PROCESS_SECURE_AUTH                            4030
-#define MOVEMAIL_SPOOL_FILE_LOCKED                            4032
 #define MOVEMAIL_CANT_OPEN_SPOOL_FILE                         4033
 #define MOVEMAIL_CANT_CREATE_LOCK                             4034
 #define MOVEMAIL_CANT_DELETE_LOCK                             4035
