@@ -51,25 +51,19 @@
 #include "nsCOMPtr.h"
 #include "nsWeakReference.h"
 
-#define NS_IMAPMOVECOPYMSGTXN_IID \
-{ /* 51c925b0-208e-11d3-abea-00805f8ac968 */ \
-	0x51c925b0, 0x208e, 0x11d3, \
-    { 0xab, 0xea, 0x00, 0x80, 0x5f, 0x8a, 0xc9, 0x68 } }
-
-class nsImapMoveCopyMsgTxn : public nsMsgTxn
+class nsImapMoveCopyMsgTxn : public nsMsgTxn, nsIUrlListener
 {
 public:
-  NS_DECLARE_STATIC_IID_ACCESSOR(NS_IMAPMOVECOPYMSGTXN_IID)
 
   nsImapMoveCopyMsgTxn();
   nsImapMoveCopyMsgTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                        const char* srcMsgIdString, nsIMsgFolder* dstFolder,
-                       PRBool idsAreUids, PRBool isMove, 
-                       nsIEventTarget *eventTarget, 
-                       nsIUrlListener *urlListener);
+                       PRBool isMove, 
+                       nsIEventTarget *eventTarget);
   virtual ~nsImapMoveCopyMsgTxn();
 
-  NS_DECL_ISUPPORTS_INHERITED 
+  NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSIURLLISTENER
 
   NS_IMETHOD UndoTransaction(void);
   NS_IMETHOD RedoTransaction(void);
@@ -84,8 +78,7 @@ public:
   nsresult Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                 const char* srcMsgIdString, nsIMsgFolder* dstFolder,
                 PRBool idsAreUids, PRBool isMove, 
-                nsIEventTarget *eventTarget, 
-                nsIUrlListener *urlListener);
+                nsIEventTarget *eventTarget);
 
 protected:
 
@@ -97,7 +90,6 @@ protected:
   nsWeakPtr m_dstFolder;
   nsCString m_dstMsgIdString;
   nsCOMPtr<nsIEventTarget> m_eventTarget;
-  nsCOMPtr<nsIUrlListener> m_urlListener;
   PRBool m_idsAreUids;
   PRBool m_isMove;
   PRBool m_srcIsPop3;
@@ -105,8 +97,6 @@ protected:
 
   nsresult GetImapDeleteModel(nsIMsgFolder* aFolder, nsMsgImapDeleteModel *aDeleteModel);
 };
-
-NS_DEFINE_STATIC_IID_ACCESSOR(nsImapMoveCopyMsgTxn, NS_IMAPMOVECOPYMSGTXN_IID)
 
 class nsImapOfflineTxn : public nsImapMoveCopyMsgTxn
 {
@@ -117,8 +107,7 @@ public:
                    PRBool isMove,
                    nsOfflineImapOperationType opType,
                    nsIMsgDBHdr *srcHdr,
-                   nsIEventTarget *eventTarget, 
-                   nsIUrlListener *urlListener);
+                   nsIEventTarget *eventTarge);
   virtual ~nsImapOfflineTxn();
 
   NS_IMETHOD UndoTransaction(void);

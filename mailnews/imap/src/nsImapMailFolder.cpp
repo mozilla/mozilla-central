@@ -2127,7 +2127,7 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
       //need to take care of these two delete models
       nsImapMoveCopyMsgTxn* undoMsgTxn = new nsImapMoveCopyMsgTxn;
       if (!undoMsgTxn || NS_FAILED(undoMsgTxn->Init(this, &srcKeyArray, messageIds.get(), nsnull,
-                                                      PR_TRUE, isMove, m_thread, nsnull)))
+                                                      PR_TRUE, isMove, m_thread)))
       {
         delete undoMsgTxn;
         return NS_ERROR_OUT_OF_MEMORY;
@@ -4764,7 +4764,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                 nsTArray<nsMsgKey> srcKeyArray;
                 if (m_copyState->m_allowUndo)
                 {
-                  rv = m_copyState->m_undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(msgTxn));
+                  msgTxn = m_copyState->m_undoMsgTxn;
                   if (msgTxn)
                     msgTxn->GetSrcKeyArray(srcKeyArray);
                 }
@@ -5107,15 +5107,13 @@ nsImapMailFolder::SetCopyResponseUid(const char* msgIdString,
         do_QueryInterface(copyState, &rv);
     if (NS_FAILED(rv)) return rv;
     if (mailCopyState->m_undoMsgTxn)
-      rv = mailCopyState->m_undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(msgTxn));
+      msgTxn = mailCopyState->m_undoMsgTxn;
   }
-  else if (aUrl && m_pendingOfflineMoves.Count())
+  else if (aUrl && m_pendingOfflineMoves.Length())
   {
     nsCString urlSourceMsgIds, undoTxnSourceMsgIds;
     aUrl->GetListOfMessageIds(urlSourceMsgIds);
-    nsCOMPtr <nsITransaction> firstTransaction = m_pendingOfflineMoves[0];
-    nsRefPtr<nsImapMoveCopyMsgTxn> imapUndo;
-    firstTransaction->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(imapUndo));
+    nsRefPtr<nsImapMoveCopyMsgTxn> imapUndo = m_pendingOfflineMoves[0];
     if (imapUndo)
     {
       imapUndo->GetSrcMsgIds(undoTxnSourceMsgIds);
@@ -5228,9 +5226,8 @@ nsImapMailFolder::SetAppendMsgUid(nsMsgKey aKey,
     if (mailCopyState->m_undoMsgTxn) // CopyMessages()
     {
         nsRefPtr<nsImapMoveCopyMsgTxn> msgTxn;
-        rv = mailCopyState->m_undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(msgTxn));
-        if (NS_SUCCEEDED(rv))
-          msgTxn->AddDstKey(aKey);
+        msgTxn = mailCopyState->m_undoMsgTxn;
+        msgTxn->AddDstKey(aKey);
     }
     else if (mailCopyState->m_listener) // CopyFileMessage();
                                         // Draft/Template goes here
@@ -6248,14 +6245,12 @@ nsImapMailFolder::CopyMessagesWithStream(nsIMsgFolder* srcFolder,
   {
     nsCAutoString messageIds;
     nsTArray<nsMsgKey> srcKeyArray;
-    nsCOMPtr<nsIUrlListener> urlListener;
-    rv = QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
     rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
 
     nsImapMoveCopyMsgTxn* undoMsgTxn = new nsImapMoveCopyMsgTxn;
 
     if (!undoMsgTxn || NS_FAILED(undoMsgTxn->Init(srcFolder, &srcKeyArray, messageIds.get(), this,
-                                PR_TRUE, isMove, m_thread, urlListener)))
+                                PR_TRUE, isMove, m_thread)))
     {
       delete undoMsgTxn;
       return NS_ERROR_OUT_OF_MEMORY;
@@ -6269,7 +6264,7 @@ nsImapMailFolder::CopyMessagesWithStream(nsIMsgFolder* srcFolder,
     }
     else
       undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
-    rv = undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(m_copyState->m_undoMsgTxn));
+    m_copyState->m_undoMsgTxn = undoMsgTxn;
   }
   nsCOMPtr<nsIMsgDBHdr> msg;
   msg = do_QueryElementAt(messages, 0, &rv);
@@ -6544,16 +6539,14 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
               sourceOp->AddMessageCopyOperation(folderURI.get()); // offline copy
 
             nsTArray<nsMsgKey> srcKeyArray;
-            nsCOMPtr<nsIUrlListener> urlListener;
 
             messageIds.Truncate();
             rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
             sourceOp->GetOperation(&opType);
             srcKeyArray.AppendElement(originalKey);
-            rv = QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
             nsImapOfflineTxn *undoMsgTxn = new
               nsImapOfflineTxn(srcFolder, &srcKeyArray, messageIds.get(), this, 
-                               isMove, opType, message, m_thread, urlListener);
+                               isMove, opType, message, m_thread);
             if (undoMsgTxn)
             {
               if (isMove)
@@ -6565,7 +6558,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
                 if (srcIsImap)
                 {
                   nsImapMailFolder *srcImapFolder = static_cast<nsImapMailFolder*>(srcFolder);
-                  srcImapFolder->m_pendingOfflineMoves.AppendObject(undoMsgTxn);
+                  srcImapFolder->m_pendingOfflineMoves.AppendElement(undoMsgTxn);
                 }
               }
               else
@@ -6620,13 +6613,11 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
                 destOp->SetSourceFolderURI(originalSrcFolderURI.get());
                 destOp->SetSrcMessageKey(originalKey);
                 {
-                  nsCOMPtr<nsIUrlListener> urlListener;
-                  QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
                   nsTArray<nsMsgKey> keyArray;
                   keyArray.AppendElement(fakeBase + sourceKeyIndex);
                   nsImapOfflineTxn *undoMsgTxn = new
                     nsImapOfflineTxn(this, &keyArray, nsnull, this, isMove, nsIMsgOfflineImapOperation::kAddedHeader,
-                      newMailHdr, m_thread, urlListener);
+                      newMailHdr, m_thread);
                   if (undoMsgTxn && txnMgr)
                      txnMgr->DoTransaction(undoMsgTxn);
                 }
@@ -6642,15 +6633,13 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
           {
             nsTArray<nsMsgKey> srcKeyArray;
             srcKeyArray.AppendElement(msgKey);
-            nsCOMPtr<nsIUrlListener> urlListener;
-            rv = QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
             nsOfflineImapOperationType opType = nsIMsgOfflineImapOperation::kDeletedMsg;
             if (!deleteToTrash)
               opType = nsIMsgOfflineImapOperation::kMsgMarkedDeleted;
             srcKeyArray.AppendElement(msgKey);
             nsImapOfflineTxn *undoMsgTxn = new
               nsImapOfflineTxn(srcFolder, &srcKeyArray, messageIds.get(), this, isMove, opType, mailHdr,
-                m_thread, urlListener);
+                m_thread);
             if (undoMsgTxn)
             {
               if (isMove)
@@ -6936,7 +6925,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
       nsImapMoveCopyMsgTxn* undoMsgTxn = new nsImapMoveCopyMsgTxn;
       if (!undoMsgTxn || NS_FAILED(undoMsgTxn->Init(srcFolder, &srcKeyArray,
                                    messageIds.get(), this,
-                                   PR_TRUE, isMove, m_thread, urlListener)))
+                                   PR_TRUE, isMove, m_thread)))
       {
         delete undoMsgTxn;
         return NS_ERROR_OUT_OF_MEMORY;
@@ -6950,7 +6939,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
       }
       else
         undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
-      rv = undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(m_copyState->m_undoMsgTxn) );
+      m_copyState->m_undoMsgTxn = undoMsgTxn;
     }
 
   }//endif

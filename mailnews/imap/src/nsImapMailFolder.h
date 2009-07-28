@@ -49,7 +49,7 @@
 #include "nsIImapIncomingServer.h" // we need this for its IID
 #include "nsIMsgParseMailMsgState.h"
 #include "nsITransactionManager.h"
-#include "nsMsgTxn.h"
+#include "nsImapUndoTxn.h"
 #include "nsIMsgMessageService.h"
 #include "nsIMsgFilterHitNotify.h"
 #include "nsIMsgFilterList.h"
@@ -89,7 +89,7 @@ public:
 
     nsCOMPtr<nsISupports> m_srcSupport; // source file spec or folder
     nsCOMPtr<nsIArray> m_messages; // array of source messages
-    nsRefPtr<nsMsgTxn> m_undoMsgTxn; // undo object with this copy operation
+    nsRefPtr<nsImapMoveCopyMsgTxn> m_undoMsgTxn; // undo object with this copy operation
     nsCOMPtr<nsIMsgDBHdr> m_message; // current message to be copied
     nsCOMPtr<nsIMsgCopyServiceListener> m_listener; // listener of this copy
                                                     // operation
@@ -514,7 +514,7 @@ protected:
   // Pseudo-Offline Playback support
   nsPlaybackRequest *m_pendingPlaybackReq;
   nsCOMPtr<nsITimer> m_playbackTimer;
-  nsCOMArray<nsITransaction> m_pendingOfflineMoves;
+  nsTArray<nsRefPtr<nsImapMoveCopyMsgTxn> > m_pendingOfflineMoves;
 
 };
 #endif

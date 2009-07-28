@@ -56,7 +56,7 @@ nsresult
 nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray, 
                            const char* srcMsgIdString, nsIMsgFolder* dstFolder,
                            PRBool idsAreUids, PRBool isMove,
-                           nsIEventTarget* eventTarget, nsIUrlListener* urlListener)
+                           nsIEventTarget* eventTarget)
 {
   nsresult rv;
   m_srcHdrs = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
@@ -66,8 +66,6 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyAr
   m_srcFolder = do_GetWeakReference(srcFolder);
   m_dstFolder = do_GetWeakReference(dstFolder);
   m_eventTarget = eventTarget;
-  if (urlListener)
-    m_urlListener = do_QueryInterface(urlListener, &rv);
   m_srcKeyArray = *srcKeyArray;
   m_dupKeyArray = *srcKeyArray;
   nsCString uri;
@@ -101,9 +99,8 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyAr
           srcDB->GetNextPseudoMsgKey(&pseudoKey);
           pseudoKey--;
           m_dupKeyArray[i] = pseudoKey;
-          rv = srcDB->CopyHdrFromExistingHdr(pseudoKey,
-            srcHdr, PR_FALSE,
-            getter_AddRefs(copySrcHdr));
+          rv = srcDB->CopyHdrFromExistingHdr(pseudoKey, srcHdr, PR_FALSE,
+                                             getter_AddRefs(copySrcHdr));
           if (NS_SUCCEEDED(rv)) 
           {
             nsCOMPtr<nsISupports> supports = do_QueryInterface(copySrcHdr);
@@ -120,29 +117,7 @@ nsImapMoveCopyMsgTxn::~nsImapMoveCopyMsgTxn()
 {
 }
 
-NS_IMPL_ADDREF_INHERITED(nsImapMoveCopyMsgTxn, nsMsgTxn)
-NS_IMPL_RELEASE_INHERITED(nsImapMoveCopyMsgTxn, nsMsgTxn)
-
-NS_IMETHODIMP
-nsImapMoveCopyMsgTxn::QueryInterface(REFNSIID aIID, void** aInstancePtr)
-{
-    if (!aInstancePtr) return NS_ERROR_NULL_POINTER;
-
-    *aInstancePtr = nsnull;
-
-    if (aIID.Equals(NS_GET_IID(nsImapMoveCopyMsgTxn))) 
-    {
-        *aInstancePtr = static_cast<nsImapMoveCopyMsgTxn*>(this);
-    }
-
-    if (*aInstancePtr)
-    {
-        NS_ADDREF_THIS();
-        return NS_OK;
-    }
-
-    return nsMsgTxn::QueryInterface(aIID, aInstancePtr);
-}
+NS_IMPL_ISUPPORTS_INHERITED1(nsImapMoveCopyMsgTxn, nsMsgTxn, nsIUrlListener);
 
 NS_IMETHODIMP
 nsImapMoveCopyMsgTxn::UndoTransaction(void)
@@ -441,14 +416,24 @@ nsresult nsImapMoveCopyMsgTxn::GetImapDeleteModel(nsIMsgFolder *aFolder, nsMsgIm
   return rv;
 }
 
-nsImapOfflineTxn::nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray, 
-                                   const char *srcMsgIdString,
-	nsIMsgFolder* dstFolder, PRBool isMove, nsOfflineImapOperationType opType,
-        nsIMsgDBHdr *srcHdr,
-	nsIEventTarget* eventTarget, nsIUrlListener* urlListener)
+NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStartRunningUrl(nsIURI *url)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStopRunningUrl(nsIURI *url, nsresult aExitCode)
+{
+  return NS_OK;
+}
+
+nsImapOfflineTxn::nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
+                                   const char *srcMsgIdString, nsIMsgFolder* dstFolder,
+                                   PRBool isMove, nsOfflineImapOperationType opType,
+                                   nsIMsgDBHdr *srcHdr,
+                                   nsIEventTarget* eventTarget)
 {
   Init(srcFolder, srcKeyArray, srcMsgIdString, dstFolder, PR_TRUE,
-       isMove, eventTarget, urlListener);
+       isMove, eventTarget);
 
   m_opType = opType; 
   m_flags = 0;
