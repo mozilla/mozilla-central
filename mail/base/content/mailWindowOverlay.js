@@ -2059,8 +2059,6 @@ let mailTabType = {
     // things to stabilize a bit before proceeding
     let reallyRestoreFocus = function mailTabType_reallyRestoreFocus(aTab) {
       if ("_focusedWindow" in aTab && aTab._focusedWindow) {
-        // We can't focus() the window if it's in the background, or it'll steal
-        // focus.
         let windowWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                               .getService(Components.interfaces.nsIWindowWatcher);
         if (windowWatcher.activeWindow == window)
