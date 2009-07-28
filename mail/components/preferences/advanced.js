@@ -83,7 +83,7 @@ var gAdvancedPane = {
     {
       let searchCheckbox = document.getElementById("searchIntegration");
       searchCheckbox.checked = false;
-      document.getElementById("search-enable").disabled = true;
+      document.getElementById("searchintegration.enable").disabled = true;
     }
 
     this.mInitialized = true;

@@ -79,15 +79,19 @@
 #endif
       <!-- Keep one id, so that we don't have to do platform specific stuff later -->
 #ifdef XP_WIN
-      <preference id="search-enable"
+      <preference id="searchintegration.enable"
                   name="mail.winsearch.enable"
                   type="bool"/>
 #else
 #ifdef XP_MACOSX
-      <preference id="search-enable"
+      <preference id="searchintegration.enable"
                   name="mail.spotlight.enable"
                   type="bool"/>
-#endif
+#else
+      <!-- We don't have any OS search integration for linux yet. -->
+      <preference id="searchintegration.enable"
+                  name="mail.XXX.enable"
+                  type="bool"/>
 #endif
 
       <!-- Display & Reading tab -->
@@ -177,7 +181,7 @@
             </hbox>
             <hbox id="searchIntegrationContainer">
               <checkbox id="searchIntegration"
-                        preference="search-enable"
+                        preference="searchintegration.enable"
                         label="&searchIntegration.label;"
                         accesskey="&searchIntegration.accesskey;"/>
             </hbox>
