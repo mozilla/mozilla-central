@@ -1,6 +1,11 @@
-var elementslib = {}; 
+// These tests replicate those in mailnews/test/performance/bloat. However until
+// we fix Bug 458352/Bug 500201 we can't switch bloat tests to mozmill. When
+// we do, we need to also fix the sleeps to use events/waitFor, more information
+// in bug 506625.
+
+var elementslib = {};
 Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
-var mozmill = {}; 
+var mozmill = {};
 Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
 var controller = {};
 Components.utils.import('resource://mozmill/modules/controller.js', controller);
