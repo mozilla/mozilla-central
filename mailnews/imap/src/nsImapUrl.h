@@ -140,7 +140,7 @@ protected:
 
   // online message copy support; i don't have a better solution yet
   nsCOMPtr <nsISupports> m_copyState;   // now, refcounted.
-  nsIFile* m_file;
+  nsCOMPtr<nsIFile> m_file;
   nsWeakPtr m_channelWeakPtr;
 
   // used by save message to disk
