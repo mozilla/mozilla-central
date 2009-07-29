@@ -939,14 +939,18 @@
           var refreshJob = {
               execute: function() {
                   var filter = aFilter || !savedThis.mShowCompletedTasks ?
-                      composite.ITEM_FILTER_COMPLETED_NO :
-                      composite.ITEM_FILTER_COMPLETED_ALL;
-                  filter |= composite.ITEM_FILTER_TYPE_TODO;
+                      aCalendar.ITEM_FILTER_COMPLETED_NO :
+                      aCalendar.ITEM_FILTER_COMPLETED_ALL;
+                  filter |= aCalendar.ITEM_FILTER_TYPE_TODO;
 
                   if (savedThis.mFilter.startDate && savedThis.mFilter.endDate) {
-                      filter |= composite.ITEM_FILTER_CLASS_OCCURRENCES;
+                      filter |= aCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
                   }
-                  composite.getItems(filter, 0, savedThis.mFilter.startDate, savedThis.mFilter.endDate, refreshListener);
+                  aCalendar.getItems(filter,
+                                     0,
+                                     savedThis.mFilter.startDate,
+                                     savedThis.mFilter.endDate,
+                                     refreshListener);
               }
           };
           this.mRefreshQueue.push(refreshJob);
