@@ -7772,7 +7772,11 @@ void nsImapProtocol::ProcessStoreFlags(const nsCString &messageIdsString,
   uint16 settableFlags = GetServerStateParser().SettablePermanentFlags();
 
   if (!addFlags && (flags & userFlags) && !(flags & settableFlags))
+  {
+    if (m_runningUrl)
+      m_runningUrl->SetExtraStatus(nsIImapUrl::ImapStatusFlagsNotSettable);
     return;         // if cannot set any of the flags bail out
+  }
 
   if (addFlags)
       flagString = "+Flags (";
@@ -7800,6 +7804,30 @@ void nsImapProtocol::ProcessStoreFlags(const nsCString &messageIdsString,
     flagString.SetCharAt(')',flagString.Length() - 1);
 
     Store(messageIdsString, flagString.get(), idsAreUids);
+    if (m_runningUrl && idsAreUids)
+    {
+      nsCString messageIdString;
+      m_runningUrl->GetListOfMessageIds(messageIdString);
+      nsTArray<nsMsgKey> msgKeys;
+      ParseUidString(messageIdString.get(), msgKeys);
+
+      PRInt32 msgCount = msgKeys.Length();
+      for (PRInt32 i = 0; i < msgCount; i++)
+      {
+        PRBool found;
+        imapMessageFlagsType resultFlags;
+      // check if the flags were added/removed, and if the uid really exists.
+        nsresult rv = GetFlagsForUID(msgKeys[i], &found, &resultFlags, nsnull);
+        if (NS_FAILED(rv) || !found ||
+           (addFlags && ((flags & resultFlags) != flags)) ||
+           (!addFlags && ((flags & resultFlags) != 0)))
+        {
+          m_runningUrl->SetExtraStatus(nsIImapUrl::ImapStatusFlagChangeFailed);
+          break;
+        }
+      }
+
+    }
   }
 }
 

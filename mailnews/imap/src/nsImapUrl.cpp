@@ -87,6 +87,7 @@ nsImapUrl::nsImapUrl()
   m_contentModified = IMAP_CONTENT_NOT_MODIFIED;
   m_validUrl = PR_TRUE;  // assume the best.
   m_flags = 0;
+  m_extraStatus = ImapStatusNone;
   m_onlineSubDirSeparator = '/';
 
   // ** jt - the following are not ref counted
@@ -422,6 +423,20 @@ nsImapUrl::SetOnlineSubDirSeparator(char onlineDirSeparator)
 NS_IMETHODIMP nsImapUrl::MessageIdsAreUids(PRBool *result)
 {
   *result = m_idsAreUids;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsImapUrl::SetExtraStatus(PRInt32 aExtraStatus)
+{
+  m_extraStatus = aExtraStatus;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapUrl::GetExtraStatus(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = m_extraStatus;
   return NS_OK;
 }
 

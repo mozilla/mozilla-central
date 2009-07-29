@@ -126,6 +126,8 @@ protected:
   PRPackedBool m_rerunningUrl; // first attempt running this failed with connection error; retrying
   nsImapContentModifiedType  m_contentModified;
 
+  PRInt32    m_extraStatus;
+
   nsCString  m_userName;
   nsCString  m_serverKey;
   // event sinks

@@ -60,7 +60,7 @@ interface nsImapContentModifiedTypes
   const long IMAP_CONTENT_FORCE_CONTENT_NOT_MODIFIED = 3;
 } ;
 
-[scriptable, uuid(5ea7ce41-9392-488f-a7ad-343cba15b3e4)]
+[scriptable, uuid(1d1b0a42-af5e-40fa-a0d4-2455179083ce)]
 interface nsIImapUrl : nsISupports
 {
   ///////////////////////////////////////////////////////////////////////////////
@@ -110,6 +110,23 @@ interface nsIImapUrl : nsISupports
   attribute boolean shouldStoreMsgOffline; // set to true if we should store the msg for offline use if we can,
                                            // i.e., we're not doing mime parts on demand.
   attribute boolean rerunningUrl; // server disconnected first time so we're retrying
+
+  /**
+   * @{
+   * This is used to tell the runner of the url more about the status of
+   * the command, beyond whether it was successful or not. For example,
+   * subtracting flags from a UID that doesn't exist isn't an error
+   * (the server returns OK), but the backend code may want to know about it.
+   */
+  attribute long extraStatus;
+
+  /**
+   * Current possible extra status values
+   */
+  const long ImapStatusNone = 0;
+  const long ImapStatusFlagChangeFailed = 1;
+  const long ImapStatusFlagsNotSettable = 2;
+  /** @} */
 
   ///////////////////////////////////////////////////////////////////////////////
   // Enumerated types specific to imap urls...
