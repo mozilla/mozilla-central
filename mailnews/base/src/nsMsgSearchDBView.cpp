@@ -641,8 +641,8 @@ void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
     EnableChangeUpdates();
   nsMsgViewIndex lowIndex = threadIndex < newIndex ? threadIndex : newIndex;
   nsMsgViewIndex highIndex = lowIndex == threadIndex ? newIndex : threadIndex;
-  NoteChange(lowIndex, highIndex - lowIndex + childCount, 
-              nsMsgViewNotificationCode::changed);
+  NoteChange(lowIndex, highIndex - lowIndex + childCount + 1,
+             nsMsgViewNotificationCode::changed);
 }
 
 nsresult
