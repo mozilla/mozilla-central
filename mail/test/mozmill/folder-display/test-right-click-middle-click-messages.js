@@ -177,6 +177,10 @@ function _middle_click_with_nothing_selected_helper(aBackground) {
     // Now switch to the new tab and check
     switch_tab(tabMessage);
   }
+  else {
+    wait_for_message_display_completion();
+  }
+
   assert_selected_and_displayed(curMessage);
   assert_message_pane_focused();
   close_tab(tabMessage);
@@ -203,6 +207,10 @@ function _middle_click_with_one_thing_selected_helper(aBackground) {
     // Now switch to the new tab and check
     switch_tab(tabMessage);
   }
+  else {
+    wait_for_message_display_completion();
+  }
+
   assert_selected_and_displayed(curMessage);
   assert_message_pane_focused();
   close_tab(tabMessage);
@@ -231,6 +239,10 @@ function _middle_click_with_many_things_selected_helper(aBackground) {
     // Now switch to the new tab and check
     switch_tab(tabMessage);
   }
+  else {
+    wait_for_message_display_completion();
+  }
+
   assert_selected_and_displayed(curMessage);
   assert_message_pane_focused();
   close_tab(tabMessage);
@@ -257,6 +269,10 @@ function _middle_click_on_existing_single_selection_helper(aBackground) {
     // Now switch to the new tab and check
     switch_tab(tabMessage);
   }
+  else {
+    wait_for_message_display_completion();
+  }
+
   assert_selected_and_displayed(curMessage);
   assert_message_pane_focused();
   close_tab(tabMessage);
@@ -284,6 +300,10 @@ function _middle_click_on_existing_multi_selection_helper(aBackground) {
     // Now switch to the new tab and check
     switch_tab(tabMessage);
   }
+  else {
+    wait_for_message_display_completion();
+  }
+
   assert_selected_and_displayed(curMessage);
   assert_message_pane_focused();
   close_tab(tabMessage);
@@ -320,9 +340,11 @@ function _middle_click_on_collapsed_thread_root_helper(aBackground) {
   let [tabMessage, ] = middle_click_on_row(
                            mc.folderDisplay.view.dbView.rowCount - 1);
 
-  if (!aBackground)
+  if (!aBackground) {
+    wait_for_message_display_completion();
     // Switch back to the folder tab
     switch_tab(folderTab);
+  }
 
   // Make sure the first visible row is still the same
   if (treeBox.getFirstVisibleRow() != preFirstRow)
@@ -361,9 +383,11 @@ function _middle_click_on_expanded_thread_root_helper(aBackground) {
   let [tabMessage, ] = middle_click_on_row(
       mc.folderDisplay.view.dbView.rowCount - NUM_MESSAGES_IN_THREAD);
 
-  if (!aBackground)
+  if (!aBackground) {
+    wait_for_message_display_completion();
     // Switch back to the folder tab
     switch_tab(folderTab);
+  }
 
   // Make sure the first visible row is still the same
   if (treeBox.getFirstVisibleRow() != preFirstRow)
