@@ -40,7 +40,6 @@
 
 #include "mimetext.h"
 #include "nsCOMPtr.h"
-#include "nsIStringBundle.h"
 
 /* The MimeInlineTextHTML class implements the text/x-vcard and (maybe?
    someday?) the application/directory MIME content types.
@@ -59,8 +58,5 @@ extern MimeInlineTextVCardClass mimeInlineTextVCardClass;
 struct MimeInlineTextVCard {
   MimeInlineText text;
 };
-
-extern "C" char *
-VCardGetStringByID(PRInt32 aMsgId);
 
 #endif /* _MIMEVCRD_H_ */

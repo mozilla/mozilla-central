@@ -34,32 +34,16 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#include "nsCOMPtr.h"
-#include "nsIIOService.h"
-#include "nsNetCID.h"
-#include "nsIServiceManager.h"
-#include "nsICharsetConverterManager.h"
-#include "nsServiceManagerUtils.h"
-#include "msgCore.h"
-#include "prlog.h"
-#include "prtypes.h"
-#include "prmem.h"
-#include "plstr.h"
-#include "nsIMsgVCardService.h"
+
+#include "mimevcrd.h"
+ 
 #include "mimecth.h"
 #include "mimexpcom.h"
-#include "mimevcrd.h"
-#include "nsIURI.h"
-#include "nsMsgI18N.h"
-#include "nsMsgUtils.h"
+#include "nsIMsgVCardService.h"
 #include "nsINetUtil.h"
-#include "nsIStringBundle.h"
-#include "nsVCardStringResources.h"
-
+#include "nsMsgUtils.h"
+#include "prmem.h"
 #include "prprf.h"
-
-// String bundles...
-static nsCOMPtr<nsIStringBundle>   stringBundle = nsnull;
 
 static int MimeInlineTextVCard_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeInlineTextVCard_parse_eof (MimeObject *, PRBool);
@@ -426,4 +410,3 @@ static int OutputVcardAttribute(MimeObject *aMimeObj, VObject *aVcard, const cha
 
   return 0;
 }
-
