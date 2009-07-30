@@ -4913,7 +4913,8 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
   comparisonContext.view = this;
   comparisonContext.isSecondarySort = PR_FALSE;
   comparisonContext.ascendingSort = (sortOrder == nsMsgViewSortOrder::ascending);
-  EntryInfo1.folder->GetMsgDatabase(&comparisonContext.db);
+  rv = EntryInfo1.folder->GetMsgDatabase(&comparisonContext.db);
+  NS_ENSURE_SUCCESS(rv, highIndex);
   comparisonContext.db->Release();
   switch (fieldType)
   {
