@@ -2673,11 +2673,14 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
 
 NS_IMETHODIMP VirtualFolderChangeListener::OnHdrAdded(nsIMsgDBHdr *aNewHdr, nsMsgKey aParentKey, PRInt32 aFlags, nsIDBChangeListener *aInstigator)
 {
-  nsCOMPtr <nsIMsgDatabase> msgDB;
+  nsCOMPtr<nsIMsgDatabase> msgDB;
 
   nsresult rv = m_folderWatching->GetMsgDatabase(getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
   PRBool match = PR_FALSE;
+  if (!m_searchSession)
+    return NS_ERROR_NULL_POINTER;
+
   m_searchSession->AddScopeTerm(nsMsgSearchScope::offlineMail, m_folderWatching);
   rv = m_searchSession->MatchHdr(aNewHdr, msgDB, &match);
   m_searchSession->ClearScopes();
@@ -2801,6 +2804,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
         if (Substring(buffer, 0, 4).Equals("uri="))
         {
           buffer.Cut(0, 4);
+          dbFolderInfo = nsnull;
 
           rv = rdf->GetResource(buffer, getter_AddRefs(resource));
           NS_ENSURE_SUCCESS(rv, rv);
@@ -3037,10 +3041,14 @@ nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder,
     nsCOMPtr <nsIMsgFolder> realFolder = do_QueryInterface(resource);
     VirtualFolderChangeListener *dbListener = new VirtualFolderChangeListener();
     NS_ENSURE_TRUE(dbListener, NS_ERROR_OUT_OF_MEMORY);
-    m_virtualFolderListeners.AppendObject(dbListener);
     dbListener->m_virtualFolder = virtualFolder;
     dbListener->m_folderWatching = realFolder;
-    dbListener->Init();
+    if (NS_FAILED(dbListener->Init()))
+    {
+      delete dbListener;
+      continue;
+    }
+    m_virtualFolderListeners.AppendObject(dbListener);
     msgDBService->RegisterPendingListener(realFolder, dbListener);
   }
   return NS_OK;
