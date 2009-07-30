@@ -41,11 +41,25 @@
 
 [scriptable, uuid(E6B64B86-90CB-11d3-8B02-0060B0FC04D2)]
 interface nsIIncomingServerListener : nsISupports {
-  /* Notification sent when a server is first loaded into the account manager */
+  /**
+   * Notification sent when a server is first loaded into the account manager.
+   *
+   * @param server Loaded server.
+   */
   void onServerLoaded(in nsIMsgIncomingServer server);
-  /* Notification sent when a server is unloaded from the account manager */
+
+  /**
+   * Notification sent when a server is unloaded from the account manager.
+   *
+   * @param server Unloaded server.
+   */
   void onServerUnloaded(in nsIMsgIncomingServer server);
-  /* Notification sent when a server hostname or username changes */
+
+  /**
+   * Notification sent when a server hostname or username changes.
+   *
+   * @param server Server that was changed.
+   */
   void onServerChanged(in nsIMsgIncomingServer server);
 };
 
