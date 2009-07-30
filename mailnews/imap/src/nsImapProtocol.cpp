@@ -714,6 +714,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
     if (!server)
     {
       rv = mailnewsUrl->GetServer(getter_AddRefs(server));
+      NS_ENSURE_SUCCESS(rv, rv);
       m_server = do_GetWeakReference(server);
     }
     nsCOMPtr <nsIMsgFolder> folder;
