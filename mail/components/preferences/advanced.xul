@@ -93,6 +93,7 @@
                   name="mail.XXX.enable"
                   type="bool"/>
 #endif
+#endif
 
       <!-- Display & Reading tab -->
       <preference id="mail.showCondensedAddresses" name="mail.showCondensedAddresses" type="bool"/>
