@@ -1100,7 +1100,7 @@ function MigrateOpenMessageBehavior()
   }
 }
 
-function threadPaneOnDragStart(aEvent) {
+function ThreadPaneOnDragStart(aEvent) {
   if (aEvent.originalTarget.localName != "treechildren")
     return;
 
@@ -1114,3 +1114,40 @@ function threadPaneOnDragStart(aEvent) {
   aEvent.dataTransfer.effectAllowed = "copyMove";
   aEvent.dataTransfer.addElement(aEvent.originalTarget);
 }
+
+function ThreadPaneOnDragOver(aEvent) {
+  let ds = Components.classes["@mozilla.org/widget/dragservice;1"]
+                     .getService(Components.interfaces.nsIDragService)
+                     .getCurrentSession();
+  ds.canDrop = false;
+  if (!gFolderDisplay.displayedFolder.canFileMessages)
+    return;
+
+  let dt = aEvent.dataTransfer;
+  if (Array.indexOf(dt.mozTypesAt(0), "application/x-moz-file") != -1) {
+    let extFile = dt.mozGetDataAt("application/x-moz-file", 0)
+                    .QueryInterface(Components.interfaces.nsIFile);
+    if (extFile.isFile()) {
+      let len = extFile.leafName.length;
+      if (len > 4 && extFile.leafName.substr(len - 4).toLowerCase() == ".eml")
+        ds.canDrop = true;
+    }
+  }
+}
+
+function ThreadPaneOnDrop(aEvent) {
+  let dt = aEvent.dataTransfer;
+  let cs = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
+                     .getService(Components.interfaces.nsIMsgCopyService);
+  for (let i = 0; i < dt.mozItemCount; i++) {
+    let extFile = dt.mozGetDataAt("application/x-moz-file", i)
+                    .QueryInterface(Components.interfaces.nsIFile);
+    if (extFile.isFile()) {
+      let len = extFile.leafName.length;
+      if (len > 4 && extFile.leafName.substr(len - 4).toLowerCase() == ".eml")
+        cs.CopyFileMessage(extFile, gFolderDisplay.displayedFolder, null, false,
+                           1, "", null, msgWindow);
+    }
+  }
+}
+

@@ -354,7 +354,9 @@
                                  label="&glodaScoreColumn.label;"
                                  tooltiptext="&glodaScoreColumn.tooltip;"/>
                       </treecols>
-                    <treechildren ondraggesture="threadPaneOnDragStart(event);"/>
+                    <treechildren ondraggesture="ThreadPaneOnDragStart(event);"
+                                  ondragover="ThreadPaneOnDragOver(event);"
+                                  ondrop="ThreadPaneOnDrop(event);"/>
                   </tree>
                  </vbox>
                 </hbox>
