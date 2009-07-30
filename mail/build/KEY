@@ -1,0 +1,106 @@
+This file contains the PGP keys of various developers that work on
+Mozilla and its subprojects (such as Firefox and Thunderbird).
+
+Please don't use these keys for email unless you have asked the owner
+because some keys are only used for code signing.
+
+Please realize that this file itself or the public key servers may be
+compromised.  You are encouraged to validate the authenticity of these keys in
+an out-of-band manner.
+
+Mozilla users: pgp < KEY
+Mozilla developers: 
+        (pgpk -ll <your name> && pgpk -xa <your name>) >> KEY
+      or
+        (gpg --fingerprint --list-sigs <your name> \
+             && gpg --armor --export <your name>) >> KEY
+
+Mozilla developers: please ensure that your key is also available via the
+PGP keyservers (such as pgpkeys.mit.edu).
+
+pub   1024R/0xF8898FEF6CE2996F 2009-07-15 [expires: 2011-07-15]
+      Key fingerprint = 6536 CB42 CC17 66D6 B8C6  92B4 F889 8FEF 6CE2 996F
+uid                            Mozilla Messaging Inc. (Code Signing) <build@mozillamessaging.com>
+sig 3        0xF8898FEF6CE2996F 2009-07-15  Mozilla Messaging Inc. (Code Signing) <build@mozillamessaging.com>
+sig          0x3AD1D2564E759E30 2009-07-15  Mozilla Messaging Inc. (Certification Authority) <ca@mozillamessaging.com>
+sig          0x517613305F159F52 2009-07-20  Mozilla Messaging Inc. (Certification Authority) <ca@mozillamessaging.com>
+sub   1024R/0xE950F40067DDABB3 2009-07-15 [expires: 2011-07-15]
+sig          0xF8898FEF6CE2996F 2009-07-15  Mozilla Messaging Inc. (Code Signing) <build@mozillamessaging.com>
+sub   1024R/0x061AF0EC46636259 2009-07-15 [expires: 2011-07-15]
+sig          0xF8898FEF6CE2996F 2009-07-15  Mozilla Messaging Inc. (Code Signing) <build@mozillamessaging.com>
+
+pub   1024R/0xF2033E1BB47C54E5 2009-07-15 [expires: 2011-07-15]
+      Key fingerprint = 2DC0 665A 5D99 4BE4 9E9E  7463 F203 3E1B B47C 54E5
+uid                            Mozilla Messaging Inc. (Code Signing) <build@mozillamessaging.com>
+sig 3        0xF2033E1BB47C54E5 2009-07-15  Mozilla Messaging Inc. (Code Signing) <build@mozillamessaging.com>
+sig          0x3AD1D2564E759E30 2009-07-15  Mozilla Messaging Inc. (Certification Authority) <ca@mozillamessaging.com>
+sig          0x517613305F159F52 2009-07-15  Mozilla Messaging Inc. (Certification Authority) <ca@mozillamessaging.com>
+sub   1024R/0x68695B6B06A45EAE 2009-07-15 [expires: 2011-07-15]
+sig          0xF2033E1BB47C54E5 2009-07-15  Mozilla Messaging Inc. (Code Signing) <build@mozillamessaging.com>
+sub   1024R/0x8B1600D8F37D122A 2009-07-15 [expires: 2011-07-15]
+sig          0xF2033E1BB47C54E5 2009-07-15  Mozilla Messaging Inc. (Code Signing) <build@mozillamessaging.com>
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+mI4ESl4cWgEEAM9N/C4Tob2cqpZCGacZX2OyF9H8/JsRI9JupcwPxnt67G02c+fB
+0rBqe0r2HFn09wgGTEODHbb08ILJophGtrCZ9NS1itfrfbvgat3th1yFLHzuKdbW
+fRUh3tYs0TCoey1xaZ7zykiF6zEin+znnLIVPE9LzKPmHZCO2s7Pv4/BACDjBc91
+tEJNb3ppbGxhIE1lc3NhZ2luZyBJbmMuIChDb2RlIFNpZ25pbmcpIDxidWlsZEBt
+b3ppbGxhbWVzc2FnaW5nLmNvbT6IvAQTAQIAJgUCSl4cWgIbAwUJA8JnAAYLCQgH
+AwIEFQIIAwQWAgMBAh4BAheAAAoJEPiJj+9s4plvXysD/000X75/tAe3IAqhmxYg
+EXpCK8+cNiZdr4CcA3Z4oYB8JL3cUZWvzwqrv6sJN6hNkfOn7ghJPkBtQ97EMH8I
+sB2e8z3uTLz9kBPOrOUaEFiJvu2NeZ0/iWh8dRMFRo+1Vm9iOWE8K58VURpK3r1F
+5/d+tRKQe0sQX66XMAn1iygXiJwEEAECAAYFAkpeH5wACgkQOtHSVk51njAsTwP+
+Ny6lfU2g8LkMoFdh8DmlD0IcokCYE6JvwQS2hU1rIuPOCwgfUd9fAX7vAyu7+9LF
+jFTBXexgEzRZZowwihM51bsYDEysNWCx8xigQMlqnBSb3UF0c17FlnF0CxV6swpS
+/ZkA04NT4xN8mE7aD1ae4U4OEpYvBxcXyzMwCuep1UiIRgQQEQIABgUCSl4gmgAK
+CRDLMqEHiMOlpQSUAJ9gQ7oSES/KDX6VehxJL7W3NrFc2QCgjhyC2ndtiL+zU69A
+SvJ1tKq+6SaInAQQAQIABgUCSmSVXQAKCRBRdhMwXxWfUpQtA/0SjawGzWEJ7WzH
+83CptnVSv1IAxzp+fZ5As4s0ITMgWe+L21NImMAzUttLHy13vRUQsXlZffNYTRfw
+Eu27W0RSd3ngMjG+e6SeH4hLJIhqBx9aBBfyNHULUnXM8YzNoyxEg+mMTUocftGh
+vnkp4jH5IHmsws6jyVg4eX2CPoaSFriOBEpeHHIBBADEBb8EXqrKaqi9j8mcgjtq
+vEgelg8h14g18Ga2RNzUTgX+d5viThVQ1L+7lEUXoM4cIgx8gbQLCsVwOkdklglm
+cgzpSz2sYz55ROtrZMQPygMxbISIqYf51QklSzjaopTZA/idXqYrzl4nLvQgcXgw
+LOWX+ILSHaYPsBelUfn3PwAgz4+/LYilBBgBAgAPBQJKXhxyAhsgBQkDwmcAAAoJ
+EPiJj+9s4plv3SsD/2YCrStaxa2ZvIpwxQLOYQ6mSI1vQ2CUVm2Vl0vauXLUrH1b
+u2VeI7jHt6wBPXtgHC7CqhQiuyL97iD+UtCgj7NBowMFg67PhpGxebhDx8OUa0m9
+gOdTZkvnae8ewW6F3IQ/05DwG5PvrTflGvpn2NK/lQ24voxipISgDJ/BIr3ouI4E
+Sl4ckAEEAMX9PZM4ke7Xhpn78uqDeahKncBcsgfdKvaFbNrgFDMYEujQXHVlco6c
+n5TgwTkCrXHyAZD707LeJoVFeWuEs+s0/p+aX4sPcU5a6U9xgt0/JvTA3LrzbTQQ
+Ze1nP0Vo0HfJi0XsCIDkhJfTpTkfYG6iIk9CZVq4jupZCgZYq3aPACD2r16PiKUE
+GAECAA8FAkpeHJACGwwFCQPCZwAACgkQ+ImP72zimW9ZMwQAsUKyqWQfqt1Hpff7
+k5DccI2XI/lhJ6Oc2P2qMf8guewKWY7JS4Ctfd4464xwmFEnSzWKsiQQ5oyHrbGv
+Es0iGeczUaGjYkmrnb/AhqH/GKKwYW1wjk0+HniudNuyLxcnRNoNqgbywSAMyckP
+gUEh9ZClb0pt3BxzdJuCim8JgLGYjgRKXh3nAQQAySh8KV3tTKfCfVWmbn2UtNsg
+NnTJzQHdyoY5O/IzsZxdorVkZ7l24ARDUwkaSJcPyqEL01tbMhCeuft0n9stgShK
+3Tc6XEQTPh4gvqyAeDgD3IiLuUvtx3z9WrPfQsinpOKMZzhtvvbR/EmZk4p4ofcd
+AmQRPcnN4jHHwCKSIaEAIKFSg320Qk1vemlsbGEgTWVzc2FnaW5nIEluYy4gKENv
+ZGUgU2lnbmluZykgPGJ1aWxkQG1vemlsbGFtZXNzYWdpbmcuY29tPoi8BBMBAgAm
+BQJKXh3nAhsDBQkDwmcABgsJCAcDAgQVAggDBBYCAwECHgECF4AACgkQ8gM+G7R8
+VOXfZgP+LHQP6iMf6eNfYJKL2TC20ycoOumpDhG2stQJ6hF2x2s90aLaA2M3zReQ
+0Jjv6H/tJGLJ8tBa0eg+MhUbqOltU0jRTbyT6s/ZmPj+c3bywwdlLAeTdzST8YQ4
+brkDW0ZNCfMlUB2bR8Qy7lIdxRvq+0vXnHnIyoOwn3dyzyLLmyKInAQQAQIABgUC
+Sl4f8gAKCRA60dJWTnWeMB4qA/4mCopcny9ynVPsosrwYCLUcT5/LSSpty3zxh4U
+5hPOiAsZ999PC4XbBd/iIj16YxFz8KDfjiowwW1vamrDJge0CqUb0EFM12nNO2Sv
+dEjqNUc7m0p1G030TjTRQiiuVZ7BYQdlyh6Z88D8xRucQhFefgROvuTtKaJ+eNr9
+4jdwg4icBBABAgAGBQJKXiAlAAoJEFF2EzBfFZ9SoroD/A3GRlXodJYbLwHvCcfz
+/5RwuyrE9NJQRfIJApNp0q96jvtaU++Svo/FP/dBRTUmruRUJ4aH5szrqFeggkyA
+7Ld441DOv1lFHOzR/QfXW/CG8VtYpxz8S00R3u58/b4nIL6yKz6cBGtqXYjD4rMb
+OaQZR9D7fn70116xqJ9C8F5fiEYEEBECAAYFAkpeIHYACgkQyzKhB4jDpaUpjgCe
+Mq/Wov+U4Uvf/rWaxhoV+WKvH1gAnR+OCViJ+lhO91ybWWu45SIsWs6ZuI4ESl4e
+FAEEAM0qsaG+GQvxjTgEft+3OmrYqlugHCE8d5NoRBKJ0BmkFiWLzDM+/hBqLL2I
+A3zvdKPFh2h+2ylkja129xXk04hsZKoFKU1IQDYs9kPVf7XJmJmmBwXZbdiBe6TK
+BtgiyE5z+5IzmwSpuFUisPlke26S9eX5ih0TaXzpM954Y7FLACCEV3hJiKUEGAEC
+AA8FAkpeHhQCGyAFCQPCZwAACgkQ8gM+G7R8VOU6wQQAuZPzj159C4+vJjZEuhI4
+pCCLDRY4SZrFvWypep3B7Lq8xF4nYnDGxA3JocpE0oPJGZyFf1/+d9ImRMRVY4Py
+pIYtZlb2VPnsitKHEpg87JbVAhCQbi1RDMhN0aQJIJIaiolm8kt1xsyLvNLnl7Ga
+bRkEtZULLBhjx7HjkzBnrBi4jgRKXh4rAQQAud1eiV+iiHNEzj0G8AAe/Gww7XRq
+3st/BX6/owfH6JpuSgAai5wOEfKZcgpJWzdvfu/rKa2p3ftXpdw4+cqsYyYituDt
+h9cPT/kVFx/4+ad3rRl/kTrglrJrT8ydoJDUDip3zapmKK0iOCV85ziYiS7kk1RK
+qIWeTkGByuBj3uUAIMvICLOIpQQYAQIADwUCSl4eKwIbDAUJA8JnAAAKCRDyAz4b
+tHxU5Q05A/4+u4UCyMp2jeWy3skBtYMbaQJOipzvj8w0AxW3ozvm0GO1+5f+aN02
+Tn0FzGAqSom9Clb6T0bxHS7xnGjcs4zVJue28MCWfrUfHJv5aye/3daMirbs1Rgt
+bik6OUVt8fWrQZMjhAQzeNVqg0QRK76aJKh4cReTV3cBUsnbsJB6Xw==
+=I2Tx
+-----END PGP PUBLIC KEY BLOCK-----
