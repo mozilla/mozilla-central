@@ -21,9 +21,6 @@
 #define POP3_USERNAME_UNDEFINED                               4014
 #define POP3_LIST_FAILURE                                     4015
 #define POP3_DELE_FAILURE                                     4016
-#define POP3_ENTER_PASSWORD_PROMPT                            4017
-#define POP3_PREVIOUSLY_ENTERED_PASSWORD_IS_INVALID_ETC       4018
-#define POP3_ENTER_PASSWORD_PROMPT_TITLE                      4020
 #define POP3_STAT_FAILURE                                     4024
 #define POP3_SERVER_SAID                                      4025
 #define COPYING_MSGS_STATUS                                   4027

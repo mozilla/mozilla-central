@@ -83,6 +83,10 @@
 #include "nsIMutableArray.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsArrayUtils.h"
+#include "nsIStringBundle.h"
+#include "nsIMsgWindow.h"
+#include "nsIWindowWatcher.h"
+#include "nsIPrompt.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -1871,4 +1875,69 @@ MsgExamineForProxy(const char *scheme, const char *host,
     }
   }
   return rv;
+}
+
+NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
+                                          const nsCString &aHostname,
+                                          PRInt32 *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aMsgWindow);
+  nsCOMPtr<nsIPrompt> dialog;
+  aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
+
+  nsresult rv;
+
+  // If we haven't got one, use a default dialog.
+  if (!dialog)
+  {
+    nsCOMPtr<nsIWindowWatcher> wwatch =
+      do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  nsCOMPtr<nsIStringBundleService> bundleSvc =
+    do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleSvc->CreateBundle("chrome://messenger/locale/messenger.properties",
+                               getter_AddRefs(bundle));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsString message;
+  NS_ConvertUTF8toUTF16 hostNameUTF16(aHostname);
+  const PRUnichar *formatStrings[] = { hostNameUTF16.get() };
+
+  rv = bundle->FormatStringFromName(NS_LITERAL_STRING("mailServerLoginFailed").get(),
+                                    formatStrings, 1,
+                                    getter_Copies(message));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsString title;
+  rv = bundle->GetStringFromName(
+    NS_LITERAL_STRING("mailServerLoginFailedTitle").get(), getter_Copies(title));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsString button0;
+  rv = bundle->GetStringFromName(
+    NS_LITERAL_STRING("mailServerLoginFailedRetryButton").get(),
+    getter_Copies(button0));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsString button2;
+  rv = bundle->GetStringFromName(
+    NS_LITERAL_STRING("mailServerLoginFailedEnterNewPasswordButton").get(),
+    getter_Copies(button2));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool dummyValue;
+  return dialog->ConfirmEx(
+    title.get(), message.get(),
+    (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
+    (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1) +
+    (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_2),
+    button0.get(), nsnull, button2.get(), nsnull, &dummyValue, aResult);
 }

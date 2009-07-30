@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -685,18 +685,24 @@ nsresult nsPop3Protocol::GetPassword(nsCString& aPassword, PRBool *okayValue)
       rv = server->SetPassword(EmptyCString());
     }
 
-    // first, figure out the correct prompt text to use...
-    nsCString hostName;
-    nsCString userName;
-    PRUnichar *passwordPromptString =nsnull;
-
-    server->GetRealHostName(hostName);
-    server->GetRealUsername(userName);
-    nsString passwordTemplate;
+    // Set up some items that we're going to need for the prompting.
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url, &rv);
     nsCOMPtr<nsIMsgWindow> msgWindow;
     if (mailnewsUrl)
       mailnewsUrl->GetMsgWindow(getter_AddRefs(msgWindow));
+
+    nsCString userName;
+    server->GetRealUsername(userName);
+
+    nsCString hostName;
+    server->GetRealHostName(hostName);
+
+    nsString passwordPrompt;
+    NS_ConvertUTF8toUTF16 userNameUTF16(userName);
+    NS_ConvertUTF8toUTF16 hostNameUTF16(hostName);
+    const PRUnichar* passwordParams[] = { userNameUTF16.get(),
+                                          hostNameUTF16.get() };
+
     // if the last prompt got us a bad password then show a special dialog
     if (TestFlag(POP3_PASSWORD_FAILED))
     {
@@ -706,30 +712,65 @@ nsresult nsPop3Protocol::GetPassword(nsCString& aPassword, PRBool *okayValue)
       // Only do this if it's not check for new mail, since biff shouldn't
       // cause passwords to get forgotten at all.
       if ((!isAuthenticated || m_pop3ConData->logonFailureCount > 2) && msgWindow)
-        rv = server->ForgetPassword();
-      NS_ENSURE_SUCCESS(rv, rv);
-      mLocalBundle->GetStringFromID(POP3_PREVIOUSLY_ENTERED_PASSWORD_IS_INVALID_ETC, getter_Copies(passwordTemplate));
-    } // otherwise this is the first time we've asked about the server's password so show a first time prompt
-    else
-      mLocalBundle->GetStringFromID(POP3_ENTER_PASSWORD_PROMPT, getter_Copies(passwordTemplate));
-    if (!passwordTemplate.IsEmpty())
-      passwordPromptString = nsTextFormatter::smprintf(passwordTemplate.get(), userName.get(), hostName.get());
-    // now go get the password!!!!
-    nsString passwordTitle;
-    mLocalBundle->GetStringFromID(POP3_ENTER_PASSWORD_PROMPT_TITLE, getter_Copies(passwordTitle));
-    if (passwordPromptString)
-    {
-      if (!passwordTitle.IsEmpty())
-        rv =  server->GetPasswordWithUI(nsDependentString(passwordPromptString), passwordTitle,
-                                        msgWindow, okayValue, aPassword);
-      nsTextFormatter::smprintf_free(passwordPromptString);
-      ClearFlag(POP3_PASSWORD_FAILED|POP3_AUTH_FAILURE);
-    }
+      {
+        PRInt32 buttonPressed = 0;
+        if (NS_SUCCEEDED(MsgPromptLoginFailed(msgWindow, hostName,
+                                              &buttonPressed)))
+        {
+          if (buttonPressed == 1)
+          {
+            // Cancel button pressed, about quickly and stop trying for now.
+            m_pop3ConData->next_state = POP3_ERROR_DONE;
 
+            // Clear the password we're going to return to force failure in
+            // the get mail instance.
+            aPassword.Truncate();
+
+            // We also have to clear the password failed flag, otherwise we'll
+            // automatically try again.
+            ClearFlag(POP3_PASSWORD_FAILED);
+            return NS_ERROR_FAILURE;
+          }
+          if (buttonPressed == 2)
+          {
+            // Change password was pressed. For now, forget the stored password
+            // and we'll prompt for a new one next time around.
+            rv = server->ForgetPassword();
+            NS_ENSURE_SUCCESS(rv, rv);
+          }
+          // Reset the logon failure count now that we've prompted the user
+          m_pop3ConData->logonFailureCount = 0;
+        }
+      }
+      mLocalBundle->FormatStringFromName(
+        NS_LITERAL_STRING("pop3PreviouslyEnteredPasswordIsInvalidPrompt").get(),
+        passwordParams, 2, getter_Copies(passwordPrompt));
+    }
+    else
+      // Otherwise this is the first time we've asked about the server's
+      // password so show a first time prompt.
+      mLocalBundle->FormatStringFromName(
+        NS_LITERAL_STRING("pop3EnterPasswordPrompt").get(),
+        passwordParams, 2, getter_Copies(passwordPrompt));
+
+    nsString passwordTitle;
+    mLocalBundle->GetStringFromName(
+      NS_LITERAL_STRING("pop3EnterPasswordPromptTitle").get(),
+      getter_Copies(passwordTitle));
+
+    // Now go and get the password.
+    if (!passwordPrompt.IsEmpty() && !passwordTitle.IsEmpty())
+      rv = server->GetPasswordWithUI(passwordPrompt, passwordTitle,
+                                     msgWindow, okayValue, aPassword);
+    ClearFlag(POP3_PASSWORD_FAILED|POP3_AUTH_FAILURE);
+
+    // If it failed, then user pressed the cancel button (or some other
+    // failure).
     if (NS_FAILED(rv))
       m_pop3ConData->next_state = POP3_ERROR_DONE;
-  } // if we have a server
+  }
   else
+    // No server present :-(
     rv = NS_MSG_INVALID_OR_MISSING_SERVER;
 
   return rv;

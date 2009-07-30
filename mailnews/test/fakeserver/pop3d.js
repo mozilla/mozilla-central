@@ -114,6 +114,7 @@ POP3_RFC1939_handler.prototype = {
       return "+OK maildrop locked and ready";
     }
 
+    this._state = kStateAuthAwaitingUser;
     return "-ERR invalid password";
   },
   STAT: function (args) {

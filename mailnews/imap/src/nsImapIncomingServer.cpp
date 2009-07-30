@@ -72,8 +72,6 @@
 #include "nsMsgI18N.h"
 #include "nsAutoLock.h"
 #include "nsIImapMockChannel.h"
-#include "nsIPrompt.h"
-#include "nsIWindowWatcher.h"
 // for the memory cache...
 #include "nsICacheEntryDescriptor.h"
 #include "nsImapUrl.h"
@@ -1860,44 +1858,10 @@ NS_IMETHODIMP
 nsImapIncomingServer::PromptLoginFailed(nsIMsgWindow *aMsgWindow,
                                         PRInt32 *aResult)
 {
-  NS_ENSURE_ARG_POINTER(aMsgWindow);
-  nsCOMPtr<nsIPrompt> dialog;
-  aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
-
-  nsresult rv;
-
-  // If we haven't got one, use the default.
-  if (!dialog)
-  {
-    nsCOMPtr<nsIWindowWatcher> wwatch =
-      do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-
-  rv = GetStringBundle();
-  NS_ENSURE_SUCCESS(rv, rv);
-
   nsCAutoString hostName;
   GetRealHostName(hostName);
 
-  nsString message(
-    GetFormattedStringFromName(NS_LITERAL_STRING("imapLoginFailed"),
-                               NS_ConvertUTF8toUTF16(hostName)));
-
-  PRBool dummyValue;
-  return dialog->ConfirmEx(
-    GetImapStringByName(NS_LITERAL_STRING("imapLoginFailedTitle")).get(),
-    message.get(),
-    (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
-    (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1) +
-    (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_2),
-    GetImapStringByName(NS_LITERAL_STRING("imapLoginFailedRetryButton")).get(),
-    nsnull,
-    GetImapStringByName(NS_LITERAL_STRING("imapLoginFailedEnterNewPasswordButton")).get(),
-    nsnull, &dummyValue, aResult);
+  return MsgPromptLoginFailed(aMsgWindow, hostName, aResult);
 }
 
 NS_IMETHODIMP
@@ -2891,28 +2855,6 @@ nsImapIncomingServer::GetFormattedStringFromID(const nsAString& aValue, PRInt32 
                                 getter_Copies(aResult));
   }
   return rv;
-}
-
-nsString
-nsImapIncomingServer::GetFormattedStringFromName(const nsString &aName,
-                                                 const nsString &aValue)
-{
-  nsString result;
-  GetStringBundle();
-  if (m_stringBundle)
-  {
-    const PRUnichar *formatStrings[] = { aValue.get() };
-
-    nsresult rv = m_stringBundle->FormatStringFromName(aName.get(),
-                                                       formatStrings, 1,
-                                                       getter_Copies(result));
-    if (NS_SUCCEEDED(rv))
-      return result;
-  }
-
-  result.AssignLiteral("Failed to format string named ");
-  result.Append(aName);
-  return result;
 }
 
 nsresult

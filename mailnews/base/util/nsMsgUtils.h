@@ -56,6 +56,7 @@ class nsIInputStream;
 class nsIMsgDatabase;
 class nsIMutableArray;
 class nsIProxyInfo;
+class nsIMsgWindow;
 
 //These are utility functions that can used throughout the mailnews code
 
@@ -244,5 +245,21 @@ NS_MSG_BASE PRInt32 FindCharInSet(const nsString &aString,
 // next line.
 NS_MSG_BASE PRBool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset,
                                    PRUint32 maxBufferOffset);
+
+/**
+ * Alerts the user that the login to the server failed. Asks whether the
+ * connection should: retry, cancel, or request a new password.
+ *
+ * @param aMsgWindow The message window associated with this action (cannot
+ *                   be null).
+ * @param aHostname  The hostname of the server for which the login failed.
+ * @param aResult    The button pressed. 0 for retry, 1 for cancel,
+ *                   2 for enter a new password.
+ * @return           NS_OK for success, NS_ERROR_* if there was a failure in
+ *                   creating the dialog.
+ */
+NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
+                                          const nsCString &aHostname,
+                                          PRInt32 *aResult);
 
 #endif
