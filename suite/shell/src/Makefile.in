@@ -33,6 +33,12 @@ endif
 
 ifdef CPPSRCS
 LIBRARY_NAME = shellservice_s
+ifdef BUILD_STATIC_SHELL
+MOZILLA_INTERNAL_API = 1
+EXPORT_LIBRARY = 1
+IS_COMPONENT = 1
+MODULE_NAME = nsSuiteShellModule
+endif
 endif
 
 ifdef MOZ_MAIL_NEWS

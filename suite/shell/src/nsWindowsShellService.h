@@ -39,7 +39,7 @@
 
 #include "nscore.h"
 #include "nsIShellService.h"
-#include "nsStringAPI.h"
+#include "nsStringGlue.h"
 
 #include <windows.h>
 

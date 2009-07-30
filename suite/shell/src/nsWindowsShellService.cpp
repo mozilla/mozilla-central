@@ -66,6 +66,11 @@
 #include "nsDirectoryServiceUtils.h"
 #include "nsCOMPtr.h"
 #include <mbstring.h>
+#include "nsIGenericFactory.h"
+
+#ifdef MOZILLA_INTERNAL_API
+#define CaseInsensitiveCompare nsCaseInsensitiveStringComparator()
+#endif
 
 #ifdef _WIN32_WINNT
 #undef _WIN32_WINNT
@@ -92,9 +97,7 @@ NS_IMPL_ISUPPORTS1(nsWindowsShellService, nsIShellService)
 static nsresult
 OpenKeyForReading(HKEY aKeyRoot, const PRUnichar* aKeyName, HKEY* aKey)
 {
-  const nsString &flatName = PromiseFlatString(aKeyName);
-
-  DWORD res = ::RegOpenKeyExW(aKeyRoot, flatName.get(), 0, KEY_READ, aKey);
+  DWORD res = ::RegOpenKeyExW(aKeyRoot, aKeyName, 0, KEY_READ, aKey);
   switch (res) {
   case ERROR_SUCCESS:
    break;
@@ -823,3 +826,15 @@ nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
   return NS_OK;
 }
 
+#ifdef BUILD_STATIC_SHELL
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsWindowsShellService, Init)
+
+static const nsModuleComponentInfo components[] = {
+  { "SeaMonkey Windows Integration",
+    NS_SUITEWININTEGRATION_CID,
+    NS_SUITEWININTEGRATION_CONTRACTID,
+    nsWindowsShellServiceConstructor },
+};
+
+NS_IMPL_NSGETMODULE(nsSuiteShellModule, components)
+#endif
