@@ -475,10 +475,10 @@ function fillFolderPaneContextMenu()
   }
   var selectedServers = folders.filter(checkIsServer);
 
-  var specialFolder;
-  if (numSelected == 1) {
-    specialFolder = getSpecialFolderString(folders[0]);
-  }
+  let specialFolder;
+  if (numSelected == 1)
+    specialFolder = haveAnyVirtualFolders ? "Virtual" :
+                                          getSpecialFolderString(folders[0]);
 
   function checkCanSubscribeToFolder(folder) {
     if (checkIsVirtualFolder(folder))
