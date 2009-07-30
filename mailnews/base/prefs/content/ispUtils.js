@@ -82,7 +82,7 @@ function getIspDefaultsForUri(domainURI)
           // This is necessary so RDF doesn't think they're the same.
 
           // Save the domain, but only the part up to the (possible) question mark.
-          result.domain = /[^?]*/.exec(domainData[1]);
+          result.domain = domainData[1].replace(/\?.*/, "");
         }
     }
     return result;

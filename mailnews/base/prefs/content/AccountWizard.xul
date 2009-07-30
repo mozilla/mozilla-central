@@ -124,7 +124,7 @@
             <hbox align="center">
               <label class="awIdentityLabel" id="emailFieldLabel" value="&emailLabel.label;"
                      accesskey="&emailLabel.accesskey;" control="email"/>
-              <hbox class="uri-element" align="center">
+              <hbox class="uri-element" align="center" flex="1">
                 <textbox wsm_persist="true" mailtype="identity" name="email"
                          oninput="identityPageValidate();"
                          id="email" flex="6" class="uri-element"/>

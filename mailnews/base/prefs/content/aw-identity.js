@@ -133,6 +133,7 @@ function clearEmailTextItems()
 
   var postEmailText = document.getElementById("postEmailText");
   postEmailText.setAttribute("value", "");
+  postEmailText.hidden = true;
 }
 
 // Use email example data that ISP has provided. ISP data, if avaialble
@@ -204,14 +205,14 @@ function setEmailDescriptionText()
 function checkForDomain()
 {
   var accountData = parent.gCurrentAccountData;
-  if (!accountData) return;
-  if (!accountData.domain) return;
+  if (!accountData || !accountData.domain)
+    return;
 
   // save in global variable
   gCurrentDomain = accountData.domain;
-  
   var postEmailText = document.getElementById("postEmailText");
   postEmailText.setAttribute("value", "@" + gCurrentDomain);
+  postEmailText.hidden = false;
 }
 
 function checkForFullName() {
