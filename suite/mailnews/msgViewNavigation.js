@@ -75,16 +75,16 @@ function FindNextChildFolder(aParent, aAfter)
     while (folder != aAfter)
       folder = subFolders[i++];
 
+    const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+    let ignoreFlags = nsMsgFolderFlags.Trash | nsMsgFolderFlags.SentMail |
+                      nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue |
+                      nsMsgFolderFlags.Templates | nsMsgFolderFlags.Junk;
     while (i < subFolders.length) {
       folder = subFolders[i++];
       // if there is unread mail in the trash, sent, drafts, unsent messages
       // templates or junk special folder, 
       // we ignore it when doing cross folder "next" navigation
-      const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-      let flags = nsMsgFolderFlags.Trash | nsMsgFolderFlags.SentMail |
-                  nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue |
-                  nsMsgFolderFlags.Templates | nsMsgFolderFlags.Junk;
-      if (!folder.isSpecialFolder(flags, true)) {
+      if (!folder.isSpecialFolder(ignoreFlags, true)) {
         if (folder.getNumUnread(false) > 0)
           return folder;
 

@@ -318,12 +318,12 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
   // cancel the pending mark as read timer
   ClearPendingReadTimer();
 
-  // if this is the drafts, sent, or send later folder,
-  // we show "Recipient" instead of "Author"
+  // If this is the  sent, drafts, templates, or send later folder,
+  // we show "Recipient" instead of "Author".
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-  let flags = nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts |
-              nsMsgFolderFlags.Queue;
-  SetSentFolderColumns(newFolder.isSpecialFolder(flags, true));
+  let outgoingFlags = nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts |
+                      nsMsgFolderFlags.Templates | nsMsgFolderFlags.Queue;
+  SetSentFolderColumns(newFolder.isSpecialFolder(outgoingFlags, true));
   ShowLocationColumn(viewType == nsMsgViewType.eShowVirtualFolderResults);
   // Only show 'Received' column for e-mails.  For newsgroup messages, the 'Date' header is as reliable as an e-mail's
   // 'Received' header, as it is replaced with the news server's (more reliable) date.
