@@ -83,7 +83,6 @@
         }
       ]]></handler>
     </handlers>
-    
   </binding>
 
   <!--
@@ -152,13 +151,10 @@
          */
           let tabmail = document.getElementById("tabmail");
           let tabInfo = tabMail.currentTabInfo;
-          
+
           this._facetTypeNode.value = tabInfo.facetString;
           if (typeof(tabInfo.location) == "string")
             this._facetLocationNode.value = tabInfo.location;
-          else {
-          
-          }
         ]]></body>
       </method>
       <method name="setLocationFacetToFolder">
@@ -168,18 +164,15 @@
          */
           let tabmail = document.getElementById("tabmail");
           let tabInfo = tabMail.currentTabInfo;
-          
+
           this._facetTypeNode.value = tabInfo.facetString;
           if (typeof(tabInfo.location) == "string")
             this._facetLocationNode.value = tabInfo.location;
-          else {
-          
-          }
         ]]></body>
 
       </method>
     </implementation>
-    
+
     <handlers>
       <handler event="command" phase="bubble"><![CDATA[
         // Have widgetNode be our immediate child, with nodes being a list of
@@ -194,10 +187,10 @@
           nodes.unshift(widgetNode);
           widgetNode = widgetNode.parentNode;
         }
-        
+
         // -- Type Facet
         if (widgetNode == this._facetTypeNode) {
-        
+
         }
         // -- Location Facet
         else if (widgetNode == this._facetLocationNode) {
@@ -211,7 +204,7 @@
             this._facetLocationNode.selectedItem = this._currentFolderNode;
           }
         }
-        
+
         dump("Selected folder: " + event.originalTarget._folder + "\n");
         dump("event: " + event + "\n");
         dump("target: " + event.originalTarget + "\n");
@@ -219,7 +212,7 @@
         dump("event tag: " + event.originalTarget.tagName + "\n");
       ]]></handler>
     </handlers>
-    
+
   </binding>
 
 
@@ -242,7 +235,10 @@
     <implementation>
       <constructor>
         <![CDATA[
-          // initialize the quick search mode based on the checked menu item
+          if (!document.getElementById("quick-search-menupopup"))
+            return; // no quick search item in scope
+
+          // Initialize the quick search mode based on the checked menu item.
           // (getAttribute returns a string so "0" is still true...)
           this.mQuickSearchMode  =
             document.getElementById('quick-search-menupopup')
@@ -367,7 +363,7 @@
       </handler>
     </handlers>
   </binding>
-  
+
   <binding id="searchBarDropMarker">
     <resources>
       <stylesheet src="chrome://messenger/skin/searchBox.css"/>
