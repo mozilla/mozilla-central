@@ -102,7 +102,7 @@ function RenameFolder(name,uri)
   {
     if (uri && (uri != "") && name && (name != "")) 
     {
-      var selectedFolder = GetResourceFromUri(uri);
+      var selectedFolder = GetMsgFolderFromUri(uri);
       if (gDBView)
         gCurrentlyDisplayedMessage = gDBView.currentlyDisplayedMessage;
 
