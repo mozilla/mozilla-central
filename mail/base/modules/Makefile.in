@@ -46,6 +46,7 @@ include $(DEPTH)/config/autoconf.mk
 EXTRA_JS_MODULES = \
   MailConsts.js \
   MailUtils.js \
+  attachmentChecker.js \
   $(NULL)
 
 include $(topsrcdir)/config/rules.mk

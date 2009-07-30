@@ -794,6 +794,10 @@
             hidden="true"/>
   </panel>
 
+  <hbox>
+    <notificationbox id="attachmentNotificationBox" flex="1" />
+  </hbox>
+
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="statusText" flex="1"/>
     <statusbarpanel class="statusbarpanel-progress" id="statusbar-progresspanel">

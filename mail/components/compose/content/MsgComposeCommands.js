@@ -41,6 +41,8 @@
 
 // Ensure the activity modules are loaded for this window.
 Components.utils.import("resource://app/modules/activity/activityModules.js");
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+Components.utils.import("resource://app/modules/attachmentChecker.js");
 
 /**
  * interfaces
@@ -92,6 +94,7 @@ var gMsgAddressingWidgetTreeElement;
 var gMsgSubjectElement;
 var gMsgAttachmentElement;
 var gMsgHeadersToolbarElement;
+var gRemindLater;
 
 // i18n globals
 var gSendDefaultCharset;
@@ -137,6 +140,7 @@ function InitializeGlobalVariables()
   gCharsetConvertManager = Components.classes['@mozilla.org/charset-converter-manager;1'].getService(Components.interfaces.nsICharsetConverterManager);
   gMailSession = Components.classes["@mozilla.org/messenger/services/session;1"].getService(Components.interfaces.nsIMsgMailSession);
   gHideMenus = false;
+  gRemindLater = false;
 
   gLastWindowToHaveFocus = null;
   gReceiptOptionChanged = false;
@@ -1166,6 +1170,181 @@ function handleMailtoArgs(mailtoUrl)
   return null;
 }
 
+var attachmentWorker = new Worker("resource://app/modules/attachmentChecker.js");
+
+attachmentWorker.lastMessage = null;
+
+attachmentWorker.onerror = function(error)
+{
+  dump("Attachment Notification Worker error!!! " + error.message + "\n");
+  throw error;
+};
+
+
+attachmentWorker.onmessage = function(event)
+{
+  let keywordsFound = event.data;
+  let bundle = document.getElementById("bundle_composeMsgs");
+  let msg = null;
+  let nBox = document.getElementById("attachmentNotificationBox");
+  let notification = nBox.getNotificationWithValue("1");
+  let removeNotification = false;
+
+  if (keywordsFound.length > 0) {
+    msg = document.createElement("hbox");
+    msg.setAttribute("flex", "100");
+
+    msg.onclick = function(event)
+    {
+      openOptionsDialog("paneCompose");
+    };
+
+    let msgText = document.createElement("label");
+    msg.appendChild(msgText);
+    msgText.id = "attachmentReminderText";
+    msgText.setAttribute("crop", "end");
+    msgText.setAttribute("flex", "1");
+    msgText.setAttribute("value", PluralForm.get(keywordsFound.length,
+                            bundle.getString("attachmentReminderKeywordsMsg")));
+
+    let keywords = keywordsFound.join(", ");
+    let msgKeywords = document.createElement("label");
+    msg.appendChild(msgKeywords);
+    msgKeywords.id = "attachmentKeywords";
+    msgKeywords.setAttribute("crop", "end");
+    msgKeywords.setAttribute("flex", "1000");
+    msgKeywords.setAttribute("value", keywords);
+
+    if (notification) {
+      let description = notification.querySelector("#attachmentReminderText");
+      description.setAttribute("value", msgText.getAttribute("value"));
+      description = notification.querySelector("#attachmentKeywords")
+      description.setAttribute("value", keywords);
+      msg = null;
+    }
+    if (keywords == this.lastMessage) {
+      // The user closed the notification, and we have nothing new to say.
+      msg = null;
+    }
+    this.lastMessage = keywords;
+  }
+  else {
+    removeNotification = true;
+    this.lastMessage = null;
+  }
+  if (notification && removeNotification)
+    nBox.removeNotification(notification);
+  if (msg) {
+    var addButton = {
+      accessKey : bundle.getString("addAttachmentButton.accessskey"),
+      label: bundle.getString("addAttachmentButton"),
+      callback: function (aNotificationBar, aButton)
+      {
+        goDoCommand("cmd_attachFile");
+      }
+    };
+
+    var remindButton = {
+      accessKey : bundle.getString("remindLaterButton.accessskey"),
+      label: bundle.getString("remindLaterButton"),
+      callback: function (aNotificationBar, aButton)
+      {
+        gRemindLater = true;
+      }
+    };
+
+    notification = nBox.appendNotification("", "1",
+                                 /* fake out the image so we can do it in CSS */
+                                 "null",
+                                 nBox.PRIORITY_WARNING_MEDIUM,
+                                 [addButton, remindButton]);
+    let buttons = notification.childNodes[0];
+    notification.insertBefore(msg, buttons);
+  }
+  CheckForAttachmentNotification.shouldFire = true;
+};
+
+/**
+ * Determine whether we should show the attachment notification or not.
+ *
+ * @param async Whether we should run the regex checker asynchronously or not.
+ * @return true if we should show the attachment notification
+ */
+function ShouldShowAttachmentNotification(async)
+{
+  let bucket = document.getElementById("attachmentBucket");
+  let warn = getPref("mail.compose.attachment_reminder");
+  if (warn && !bucket.itemCount) {
+    let prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                          .getService(Components.interfaces.nsIPrefBranch);
+    let keywordsInCsv = prefs.getComplexValue(
+                             "mail.compose.attachment_reminder_keywords",
+                             Components.interfaces.nsIPrefLocalizedString).data;
+    let mailBody = document.getElementById("content-frame")
+                           .contentDocument.getElementsByTagName("body")[0];
+    let mailBodyNode = mailBody.cloneNode(true);
+
+    // Don't check quoted text from reply.
+    let blockquotes = mailBodyNode.getElementsByTagName("blockquote");
+    for (let i = 0; i < blockquotes.length; i++) {
+      blockquotes[i].parentNode.removeChild(blockquotes[i]);
+    }
+    // For plaintext composition the quotes we need to find and exclude are
+    // normally <span _moz_quote="true">. If editor.quotesPreformatted is
+    // set we should exclude <pre _moz_quote="true"> nodes instead.
+    if (!getPref("editor.quotesPreformatted")) {
+      let spans = mailBodyNode.getElementsByTagName("span");
+      for (let i = 0; i < spans.length; i++) {
+        if (spans[i].hasAttribute("_moz_quote"))
+          spans[i].parentNode.removeChild(spans[i]);
+      }
+    }
+    else {
+      let pres = mailBodyNode.getElementsByTagName("pre");
+      for (let i = 0; i < pres.length; i++) {
+        if (pres[i].hasAttribute("_moz_quote"))
+          pres[i].parentNode.removeChild(pres[i]);
+      }
+    }
+    let brs = mailBodyNode.getElementsByTagName("br");
+    for (let i = 0; i < brs.length; i++) {
+      brs[i].parentNode.replaceChild(document.createTextNode("\n"), brs[i]);
+    }
+    let mailData = mailBodyNode.textContent;
+    if (!async)
+      return GetAttachmentKeywords(mailData, keywordsInCsv).length != 0;
+    attachmentWorker.postMessage([mailData, keywordsInCsv]);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Check for attachment keywords, and display a notification if it's
+ * appropriate.
+ */
+function CheckForAttachmentNotification(event)
+{
+  if (!CheckForAttachmentNotification.shouldFire || gRemindLater)
+    return;
+  if (!event)
+    attachmentWorker.lastMessage = null;
+  CheckForAttachmentNotification.shouldFire = false;
+  let nBox = document.getElementById("attachmentNotificationBox");
+  let notification = nBox.getNotificationWithValue("1");
+  let removeNotification = false;
+
+  if (!ShouldShowAttachmentNotification(true)) {
+    removeNotification = true;
+    CheckForAttachmentNotification.shouldFire = true;
+  }
+
+  if (notification && removeNotification)
+    nBox.removeNotification(notification);
+};
+
+CheckForAttachmentNotification.shouldFire = true;
+
 function ComposeStartup(recycled, aParams)
 {
   var params = null; // New way to pass parameters to the compose window as a nsIMsgComposeParameters object
@@ -1212,6 +1391,8 @@ function ComposeStartup(recycled, aParams)
   var identityList = document.getElementById("msgIdentity");
 
   document.addEventListener("keypress", awDocumentKeyPress, true);
+  var contentFrame = document.getElementById("content-frame");
+  contentFrame.addEventListener("click", CheckForAttachmentNotification, true);
 
   if (identityList)
     FillIdentityList(identityList);
@@ -1706,85 +1887,20 @@ function GenericSendMessage( msgType )
           }
         }
 
-        // Attachment Reminder stuff...
-        var bucket = document.getElementById("attachmentBucket");
-        var warn = getPref("mail.compose.attachment_reminder");
-        if (warn && !bucket.itemCount)
-        {
-          var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefBranch);
-          var keywordsInCsv = prefs.getComplexValue("mail.compose.attachment_reminder_keywords",
-                                                    Components.interfaces.nsIPrefLocalizedString).data;
-          // And empty string pref is still going to get split to an array of
-          // size 1. Avoid that...
-          var keywordsArray = (keywordsInCsv) ? keywordsInCsv.split(",") : [];
-
-          var mailBody = document.getElementById("content-frame")
-                                 .contentDocument.getElementsByTagName("body")[0];
-          var mailBodyNode = mailBody.cloneNode(true);
-
-          // Don't check quoted text from reply.
-          var blockquotes = mailBodyNode.getElementsByTagName("blockquote");
-          for (let i = 0; i < blockquotes.length; i++)
-          {
-            blockquotes[i].parentNode.removeChild(blockquotes[i]);
-          }
-          // For plaintext composition the quotes we need to find and exclude are
-          // normally <span _moz_quote="true">. If editor.quotesPreformatted is
-          // set we should exclude <pre _moz_quote="true"> nodes instead.
-          if (!getPref("editor.quotesPreformatted"))
-          {
-            let spans = mailBodyNode.getElementsByTagName("span");
-            for (let i = 0; i < spans.length; i++)
-            {
-              if (spans[i].hasAttribute("_moz_quote"))
-                spans[i].parentNode.removeChild(spans[i]);
-            }
-          }
-          else
-          {
-            let pres = mailBodyNode.getElementsByTagName("pre");
-            for (let i = 0; i < pres.length; i++)
-            {
-              if (pres[i].hasAttribute("_moz_quote"))
-                pres[i].parentNode.removeChild(pres[i]);
-            }
-          }
-          var mailData = mailBodyNode.textContent;
-
-          function escapeRegxpSpecials(inputString) {
-            const specials = [ ".", "\\", "^", "$", "*", "+", "?", , "|",
-                               "(", ")" , "[", "]", "{", "}" ];
-            var re = new RegExp("(\\"+specials.join("|\\")+")", "g");
-            return inputString.replace(re, "\\$1");
-          }
-
-          var keywordFound;
-          for (let i = 0; i < keywordsArray.length && !keywordFound; i++)
-          {
-            let kw = escapeRegxpSpecials(keywordsArray[i]);
-            let re = new RegExp("(([^\\s]*)\\b|\\s*)" + kw + "\\b", "i");
-            let matching = re.exec(mailData);
-            // Ignore the match if it was a URL.
-            keywordFound = matching && !(/^http|^ftp/i.test(matching[0]));
-          }
-
-          if (keywordFound)
-          {
-            var bundle = document.getElementById("bundle_composeMsgs");
-            var flags = gPromptService.BUTTON_POS_0 * gPromptService.BUTTON_TITLE_IS_STRING +
-                        gPromptService.BUTTON_POS_1 * gPromptService.BUTTON_TITLE_IS_STRING;
-            var hadForgotten = gPromptService.confirmEx(window,
-                                 bundle.getString("attachmentReminderTitle"),
-                                 bundle.getString("attachmentReminderMsg"),
-                                 flags,
-                                 bundle.getString("attachmentReminderFalseAlarm"),
-                                 bundle.getString("attachmentReminderYesIForgot"),
-                                 null, null, {value:0});
-            if (hadForgotten)
-              return;
-          }
-        } // End of Attachment Reminder.
+        if (gRemindLater && ShouldShowAttachmentNotification(false)) {
+          var bundle = document.getElementById("bundle_composeMsgs");
+          var flags = gPromptService.BUTTON_POS_0 * gPromptService.BUTTON_TITLE_IS_STRING +
+                      gPromptService.BUTTON_POS_1 * gPromptService.BUTTON_TITLE_IS_STRING;
+          var hadForgotten = gPromptService.confirmEx(window,
+                               bundle.getString("attachmentReminderTitle"),
+                               bundle.getString("attachmentReminderMsg"),
+                               flags,
+                               bundle.getString("attachmentReminderFalseAlarm"),
+                               bundle.getString("attachmentReminderYesIForgot"),
+                               null, null, {value:0});
+          if (hadForgotten)
+            return;
+        }
 
         // check if the user tries to send a message to a newsgroup through a mail account
         var currentAccountKey = getCurrentAccountKey();
@@ -2713,6 +2829,7 @@ function AddUrlAttachment(attachment)
 
   ChangeAttachmentBucketVisibility(false);
   gContentChanged = true;
+  CheckForAttachmentNotification(null);
 }
 
 function SelectAllAttachments()
@@ -2804,6 +2921,7 @@ function RemoveAllAttachments()
   }
 
   ChangeAttachmentBucketVisibility(true);
+  CheckForAttachmentNotification(null);
 }
 
 function ChangeAttachmentBucketVisibility(aHideBucket)
@@ -2825,6 +2943,7 @@ function RemoveSelectedAttachment()
     }
     gContentChanged = true;
   }
+  CheckForAttachmentNotification(null);
 }
 
 function RenameSelectedAttachment()
@@ -3620,6 +3739,26 @@ function AutoSave()
   gAutoSaveTimeout = setTimeout(AutoSave, gAutoSaveInterval);
 }
 
+const gAttachmentNotifier =
+{
+  event: {
+    notify: function(timer)
+    {
+      CheckForAttachmentNotification(true);
+    }
+  },
+
+  timer: Components.classes["@mozilla.org/timer;1"]
+                   .createInstance(Components.interfaces.nsITimer),
+
+  EditAction: function EditAction()
+  {
+    this.timer.cancel();
+    this.timer.initWithCallback(this.event, 500,
+                                Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+  }
+};
+
 function InitEditor()
 {
   var editor = GetCurrentEditor();
@@ -3635,6 +3774,7 @@ function InitEditor()
   InlineSpellCheckerUI.init(editor);
   enableInlineSpellCheck(getPref("mail.spellcheck.inline"));
   document.getElementById('menu_inlineSpellCheck').setAttribute('disabled', !InlineSpellCheckerUI.canSpellCheck);
+  editor.addEditorObserver(gAttachmentNotifier);
 }
 
 function enableInlineSpellCheck(aEnableInlineSpellCheck)

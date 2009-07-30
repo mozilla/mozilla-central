@@ -346,6 +346,27 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
   height: 7px;
 }
 
+/* ::::: attachment reminder ::::: */
+
+#attachmentNotificationBox > notification .messageImage {
+  width: 32px;
+  height: 32px;
+  background-image: url(chrome://messenger/skin/messengercompose/compose-toolbar.png);
+  background-position: -96px top;
+}
+
+#attachmentReminderText {
+  -moz-margin-start: 0px;
+  cursor: pointer;
+}
+
+#attachmentKeywords {
+  font-weight: bold;
+  -moz-margin-start: 0px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* XXX I should really have a selector rule here to select just .listcell-icon objects underneath the attachmentList listbox */
 
 .listcell-icon
