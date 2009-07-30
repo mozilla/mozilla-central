@@ -125,15 +125,6 @@ treechildren::-moz-tree-cell-text(broken) {
 }
 
 /* Security Tab */
-#securityPanel > .header {
-  font-size: 120%;
-}
- 
-#securityPanel > .fieldLabel {
-  margin: 2px 10px 3px;
-}
-
-#securityPanel > .fieldValue {
+.fieldValue {
   font-weight: bold;
-  margin: 2px 10px 0px;
 }
