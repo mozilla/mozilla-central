@@ -259,8 +259,8 @@ MultiMessageSummary.prototype = {
       if (countStarred)
         msg_classes += " starred";
 
-      let subject = escapeXMLchars(msgs[0].mime2DecodedSubject || gSelectionSummaryStrings['noSubject']);
-      let author = escapeXMLchars(headerParser.extractHeaderAddressName(msgs[0].mime2DecodedAuthor));
+      let subject = msgs[0].mime2DecodedSubject || gSelectionSummaryStrings['noSubject'];
+      let author = headerParser.extractHeaderAddressName(msgs[0].mime2DecodedAuthor);
 
       let countstring = "";
       if (numMsgs > 1) {
@@ -301,9 +301,9 @@ MultiMessageSummary.prototype = {
           let [text, meta] = mimeMsgToContentSnippetAndMeta(aMimeMsg,
                                                             aMsgHdr.folder,
                                                             SNIPPET_LENGTH);
-          snippetNode.textContent = escapeXMLchars(text);
+          snippetNode.textContent = text;
           if (meta.author)
-            authorNode.textContent = escapeXMLchars(meta.author);
+            authorNode.textContent = meta.author;
         });
       } catch (e if e.result == Components.results.NS_ERROR_FAILURE) {
         // Offline messages generate exceptions, which is unfortunate.  When
@@ -499,7 +499,7 @@ ThreadSummary.prototype = {
        + PluralForm.get(numMessages, gSelectionSummaryStrings["Nmessages"]).replace('#1', numMessages);
     let heading = htmlpane.contentDocument.getElementById('heading');
     heading.setAttribute("class", "heading");
-    heading.textContent = escapeXMLchars(subject);
+    heading.textContent = subject;
 
     let messagesElt = htmlpane.contentDocument.getElementById('messagelist');
     while (messagesElt.firstChild)
@@ -525,7 +525,7 @@ ThreadSummary.prototype = {
       if (msgHdr.isFlagged)
         msg_classes += " starred";
 
-      let senderName = escapeXMLchars(headerParser.extractHeaderAddressName(msgHdr.mime2DecodedAuthor));
+      let senderName = headerParser.extractHeaderAddressName(msgHdr.mime2DecodedAuthor);
       let date = makeFriendlyDateAgo(new Date(msgHdr.date/1000));
 
       let msgContents = <div class="row">
@@ -558,9 +558,9 @@ ThreadSummary.prototype = {
           let [text, meta] = mimeMsgToContentSnippetAndMeta(aMimeMsg,
                                                             aMsgHdr.folder,
                                                             SNIPPET_LENGTH);
-          snippetNode.textContent = escapeXMLchars(text);
+          snippetNode.textContent = text;
           if (meta.author)
-            senderNode.textContent = escapeXMLchars(meta.author);
+            senderNode.textContent = meta.author;
         });
       } catch (e if e.result == Components.results.NS_ERROR_FAILURE) {
         // Offline messages generate exceptions, which is unfortunate.  When
