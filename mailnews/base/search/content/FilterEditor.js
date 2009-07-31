@@ -25,6 +25,7 @@
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Mark Banner <mark@standard8.demon.co.uk>
  *   Kent James <kent@caspia.com>
+ *   Matt Dudziak <mdudziak@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -44,10 +45,12 @@
 var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                      .getService(Components.interfaces.nsIPromptService);
 
-// the actual filter that we're editing
+// The actual filter that we're editing if it is a _saved_ filter or prefill;
+// void otherwise.
 var gFilter;
 // cache the key elements we need
 var gFilterList;
+// The filter name as it appears in the "Filter Name" field of dialog.
 var gFilterNameElement;
 var gFilterContext;
 var gFilterBundle;
@@ -59,7 +62,7 @@ var gFilterActionList;
 var gCustomActions = null;
 var gFilterType;
 
-var gFilterActionStrings = ["none", "movemessage", "setpriorityto", "deletemessage", 
+var gFilterActionStrings = ["none", "movemessage", "setpriorityto", "deletemessage",
                             "markasread", "ignorethread", "watchthread", "markasflagged",
                             "label", "replytomessage", "forwardmessage", "stopexecution",
                             "deletefrompopserver",  "leaveonpopserver", "setjunkscore",
@@ -79,28 +82,32 @@ function filterEditorOnLoad()
   gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
   gFilterBundle = document.getElementById("bundle_filter");
 
-  if ("arguments" in window && window.arguments[0]) 
+  if ("arguments" in window && window.arguments[0])
   {
     var args = window.arguments[0];
 
-    if ("filterList" in args) 
+    if ("filterList" in args)
       gFilterList = args.filterList;
 
-    if ("filter" in args) 
+    if ("filter" in args)
     {
       // editing a filter
       gFilter = window.arguments[0].filter;
       initializeDialog(gFilter);
-    } 
-    else 
+    }
+    else
     {
       if (gFilterList)
           setSearchScope(getScopeFromFilterList(gFilterList));
       // if doing prefill filter create a new filter and populate it.
-      if ("filterName" in args) 
+      if ("filterName" in args)
       {
         gPreFillName = args.filterName;
-        gFilter = gFilterList.createFilter(gPreFillName);
+
+        // Passing null as the parameter to createFilter to keep the name empty
+        // until later where we assign the name.
+        gFilter = gFilterList.createFilter(null);
+
         var term = gFilter.createTerm();
 
         term.attrib = Components.interfaces.nsMsgSearchAttrib.Sender;
@@ -134,18 +141,8 @@ function filterEditorOnLoad()
 
   if (!gFilter)
   {
-    var stub = gFilterBundle.getString("untitledFilterName");
-    var count = 1;
-    var name = stub;
-
-    // Set the default filter name to be "Untitled Filter"
-    while (duplicateFilterNameExists(name)) 
-    {
-      count++;
-      name = stub + " " + count.toString();
-    }
-    gFilterNameElement.value = name;
-    gFilterContext.selectedIndex = 2; // both
+    // This is a new filter. Set to both Incoming and Manual contexts.
+    gFilterContext.selectedIndex = 2;
   }
 
   // in the case of a new filter, we may not have an action row yet.
@@ -171,7 +168,7 @@ function onEnterInSearchTerm()
 
 function onAccept()
 {
-  if (!saveFilter()) 
+  if (!saveFilter())
     return false;
 
   // parent should refresh filter list..
@@ -196,15 +193,15 @@ var gFolderListener = {
   OnItemUnicharPropertyChanged: function(item, property, oldValue, newValue){},
   OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) {},
 
-  OnItemEvent: function(folder, event) 
+  OnItemEvent: function(folder, event)
   {
     var eventType = event.toString();
 
-    if (eventType == "FolderCreateCompleted") 
+    if (eventType == "FolderCreateCompleted")
     {
       SetFolderPicker(folder.URI, gActionTargetElement.id);
       SetBusyCursor(window, false);
-    }     
+    }
     else if (eventType == "FolderCreateFailed")
       SetBusyCursor(window, false);
   }
@@ -213,15 +210,15 @@ var gFolderListener = {
 function duplicateFilterNameExists(filterName)
 {
   if (gFilterList)
-    for (var i = 0; i < gFilterList.filterCount; i++) 
+    for (var i = 0; i < gFilterList.filterCount; i++)
       if (filterName == gFilterList.getFilterAt(i).filterName)
         return true;
-  return false;   
+  return false;
 }
 
 function getScopeFromFilterList(filterList)
 {
-  if (!filterList) 
+  if (!filterList)
   {
     dump("yikes, null filterList\n");
     return nsMsgSearchScope.offlineMail;
@@ -229,7 +226,7 @@ function getScopeFromFilterList(filterList)
   return filterList.folder.server.filterScope;
 }
 
-function getScope(filter) 
+function getScope(filter)
 {
   return getScopeFromFilterList(filter.filterList);
 }
@@ -252,7 +249,7 @@ function initializeDialog(filter)
   gFilterContext.selectedIndex = contextIndex;
   var actionList = filter.actionList;
   var numActions = actionList.Count();
-  
+
   for (var actionIndex=0; actionIndex < numActions; actionIndex++)
   {
     var filterAction = actionList.QueryElementAt(actionIndex, Components.interfaces.nsIMsgRuleAction);
@@ -284,20 +281,12 @@ function ensureActionRow()
 }
 
 // move to overlay
-function saveFilter() 
+function saveFilter()
 {
   var isNewFilter;
-  var filterAction; 
+  var filterAction;
 
   var filterName= gFilterNameElement.value;
-  if (!filterName || filterName == "") 
-  {
-    if (gPromptService)
-      gPromptService.alert(window, null,
-                           gFilterBundle.getString("mustEnterName"));
-    gFilterNameElement.focus();
-    return false;
-  }
 
   // If we think have a duplicate, then we need to check that if we
   // have an original filter name (i.e. we are editing a filter), then
@@ -306,7 +295,7 @@ function saveFilter()
   if ((!gFilter || gFilter.filterName != filterName) && duplicateFilterNameExists(filterName))
   {
     if (gPromptService)
-      gPromptService.alert(window,gFilterBundle.getString("cannotHaveDuplicateFilterTitle"), 
+      gPromptService.alert(window,gFilterBundle.getString("cannotHaveDuplicateFilterTitle"),
                            gFilterBundle.getString("cannotHaveDuplicateFilterMessage"));
     return false;
   }
@@ -354,27 +343,30 @@ function saveFilter()
     if (!listItem.validateAction())
       return false;
   }
-  
+
   // if we made it here, all of the actions are valid, so go ahead and save the filter
 
-  if (!gFilter) 
+  if (!gFilter)
   {
-    gFilter = gFilterList.createFilter(filterName);
+    // This is a new filter
+    gFilter = gFilterList.createFilter(null);
     isNewFilter = true;
     gFilter.enabled=true;
-  } 
-  else 
+  }
+  else
   {
+    // We are working with an existing filter object,
+    // either editing or using prefill
     gFilter.filterName = filterName;
     //Prefilter is treated as a new filter.
-    if (gPreFillName) 
+    if (gPreFillName)
     {
       isNewFilter = true;
       gFilter.enabled=true;
     }
-    else 
+    else
       isNewFilter = false;
-    
+
     gFilter.clearActionList();
   }
 
@@ -382,10 +374,14 @@ function saveFilter()
   for (index = 0; index < gFilterActionList.getRowCount(); index++)
     gFilterActionList.getItemAtIndex(index).saveToFilter(gFilter);
 
+  // If we do not have a filter name at this point, generate one.
+  if (!gFilter.filterName)
+    AssignMeaningfulName();
+
   gFilter.filterType = gFilterType;
   saveSearchTerms(gFilter.searchTerms, gFilter);
 
-  if (isNewFilter) 
+  if (isNewFilter)
   {
     // new filter - insert into gFilterList
     gFilterList.insertFilterAt(0, gFilter);
@@ -394,6 +390,78 @@ function saveFilter()
   // success!
   return true;
 }
+
+
+function AssignMeaningfulName()
+{
+
+  // termRoot points to the first search object, which is the one we care about.
+  let termRoot = gSearchTerms[0].obj;
+  // stub is used as the base name for a filter.
+  let stub;
+
+  // If this is a Match All Messages Filter, we already know the name to assign.
+  if (termRoot.matchAll)
+    stub = gFilterBundle.getString( "matchAllFilterName" );
+  else
+  {
+    // Assign a name based on the first search term.
+    let searchValue = termRoot.searchvalue;
+    let selIndex = searchValue.getAttribute( "selectedIndex" );
+    let children = document.getAnonymousNodes(searchValue);
+    let activeItem = children[selIndex];
+    let attribs = Components.interfaces.nsMsgSearchAttrib;
+
+    // Term, Operator and Value are the three parts of a filter match
+    // Term and Operator are easy to retrieve
+    let term = termRoot.searchattribute.label;
+    let operator = termRoot.searchoperator.label;
+
+    // Values are either popup menu items or edit fields.
+    // For popup menus use activeItem.label; for
+    // edit fields, activeItem.value
+    let value;
+    switch (Number(termRoot.searchattribute.value))
+    {
+      case attribs.Priority:
+      case attribs.MsgStatus:
+      case attribs.Keywords:
+        value = activeItem.label;
+        break;
+
+      default:
+        try
+        {
+          value = activeItem.value;
+        }
+        catch (ex)
+        {
+          // We should never get here, but for safety's sake,
+          // let's name the filter "Untitled Filter".
+          stub = gFilterBundle.getString( "untitledFilterName" );
+          // Do not 'Return'. Instead fall through and deal with the untitled filter below.
+        }
+        break;
+    }
+    // We are now ready to name the filter.
+    // If at this point stub is empty, we know that this is not a Match All Filter
+    // and is not an "untitledFilterName" Filter, so assign it a name using
+    // a string format from the Filter Bundle.
+    if (!stub)
+      stub = gFilterBundle.getFormattedString("filterAutoNameStr", [term, operator, value]);
+  }
+
+  // Whatever name we have used, 'uniquify' it.
+  let tempName = stub;
+  let count = 1;
+  while (duplicateFilterNameExists(tempName))
+  {
+    count++;
+    tempName = stub + " " + count;
+  }
+  gFilter.filterName = tempName;
+}
+
 
 function GetFirstSelectedMsgFolder()
 {
@@ -419,13 +487,13 @@ function SearchNewFolderOkCallback(name, uri)
   {
     if (!gMailSession)
       gMailSession = Components.classes[mailSessionContractID].getService(Components.interfaces.nsIMsgMailSession);
-    try 
+    try
     {
       var nsIFolderListener = Components.interfaces.nsIFolderListener;
       var notifyFlags = nsIFolderListener.event;
       gMailSession.AddFolderListener(gFolderListener, notifyFlags);
-    } 
-    catch (ex) 
+    }
+    catch (ex)
     {
       dump("Error adding to session: " +ex + "\n");
     }
@@ -437,7 +505,7 @@ function SearchNewFolderOkCallback(name, uri)
     SetBusyCursor(window, true);
 
   msgFolder.createSubfolder(name, msgWindow);
-  
+
   if (!imapFolder)
   {
     var curFolder = uri+"/"+encodeURIComponent(name);
@@ -467,10 +535,10 @@ function GetFilterEditorMsgWindow()
 function SetBusyCursor(window, enable)
 {
   // setCursor() is only available for chrome windows.
-  // However one of our frames is the start page which 
+  // However one of our frames is the start page which
   // is a non-chrome window, so check if this window has a
   // setCursor method
-  if ("setCursor" in window) 
+  if ("setCursor" in window)
   {
     if (enable)
         window.setCursor("wait");
