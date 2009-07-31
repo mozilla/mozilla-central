@@ -223,7 +223,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
     
     // if stripping out attachments, write the boundary line. Otherwise, return
     // to ignore it.
-    if (obj->options->format_out == nsMimeOutput::nsMimeMessageAttach)
+    if (obj->options && obj->options->format_out == nsMimeOutput::nsMimeMessageAttach)
     {
       // Because MimeMultipart_parse_child_line strips out the 
       // the CRLF of the last line before the end of a part, we need to add that
@@ -595,7 +595,8 @@ static PRBool
 MimeMultipart_output_child_p(MimeObject *obj, MimeObject *child)
 {
   /* if we are saving an apple double attachment, ignore the appledouble wrapper part */
-  return obj->options->write_html_p || PL_strcasecmp(child->content_type, MULTIPART_APPLEDOUBLE);
+  return (obj->options && obj->options->write_html_p) ||
+          PL_strcasecmp(child->content_type, MULTIPART_APPLEDOUBLE);
 }
 
 
