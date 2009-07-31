@@ -735,6 +735,10 @@ function OnLoadMessenger()
 
   setTimeout("loadStartFolder(gStartFolderUri);", 0);
 
+  Components.classes["@mozilla.org/observer-service;1"]
+                     .getService(Components.interfaces.nsIObserverService)
+                     .notifyObservers(window, "mail-startup-done", null);
+
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadMsgHeaderPane();
 
