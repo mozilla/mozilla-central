@@ -220,6 +220,7 @@ endif
 ifdef DEBUG
 RCFLAGS += -DDEBUG
 endif
+RCFLAGS += -DTHUNDERBIRD_ICO=\"$(DIST)/branding/thunderbird.ico\"
 endif
 
 LIBS += $(JEMALLOC_LIBS)

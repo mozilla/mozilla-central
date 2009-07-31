@@ -45,7 +45,7 @@
 // Splash screen bitmap ID.
 #define IDB_SPLASH  101
 
-ICON 1 "mozos2.ico"
+ICON 1 THUNDERBIRD_ICO
 
 DLGTEMPLATE IDD_SPLASH DISCARDABLE 
 BEGIN
