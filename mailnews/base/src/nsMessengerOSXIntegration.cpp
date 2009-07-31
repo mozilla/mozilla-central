@@ -76,6 +76,7 @@
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgAccountManager.h"
+#include "nsIMessenger.h"
 
 #include <Carbon/Carbon.h>
 
@@ -121,17 +122,35 @@ static void openMailWindow(const nsCString& aUri)
 
       PRBool isMessageUri = PR_FALSE;
       msgUri->GetIsMessageUri(&isMessageUri);
-
       if (isMessageUri)
       {
         nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv));
         if (NS_FAILED(rv))
           return;
 
+        // SeaMonkey only supports message uris, whereas Thunderbird only
+        // supports message headers. This should be simplified/removed when
+        // bug 507593 is implemented.
+#ifdef MOZ_SUITE
         nsCOMPtr<nsIDOMWindow> newWindow;
         wwatch->OpenWindow(0, "chrome://messenger/content/messageWindow.xul",
                            "_blank", "all,chrome,dialog=no,status,toolbar", msgUri,
                            getter_AddRefs(newWindow));
+#else
+        nsCOMPtr<nsIMessenger> messenger(do_CreateInstance(NS_MESSENGER_CONTRACTID, &rv));
+        if (NS_FAILED(rv))
+          return;
+
+        nsCOMPtr<nsIMsgDBHdr> msgHdr; 
+        messenger->MsgHdrFromURI(aUri, getter_AddRefs(msgHdr));
+        if (msgHdr)
+        {
+          nsCOMPtr<nsIDOMWindow> newWindow;
+          wwatch->OpenWindow(0, "chrome://messenger/content/messageWindow.xul",
+                             "_blank", "all,chrome,dialog=no,status,toolbar", msgHdr,
+                             getter_AddRefs(newWindow));
+        }
+#endif
       }
       else
       {
