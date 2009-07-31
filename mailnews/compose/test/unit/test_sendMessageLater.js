@@ -14,7 +14,6 @@ var type = null;
 var test = null;
 var server;
 var sentFolder;
-var transaction;
 var originalData;
 var finished = false;
 var identity = null;
@@ -63,7 +62,7 @@ msll.prototype = {
       do_check_eq(this._initialTotal, 1);
       do_check_eq(msgSendLater.sendingMessages, false);
 
-      do_check_transaction(transaction,
+      do_check_transaction(server.playTransaction(),
                            ["EHLO test",
                             "MAIL FROM:<" + kSender + "> SIZE=" + originalData.length,
                             "RCPT TO:<" + kTo + ">",
@@ -154,8 +153,6 @@ function sendMessageLater()
     msgSendLater.sendUnsentMessages(identity);
 
     server.performTest();
-
-    transaction = server.playTransaction();
 
     do_timeout(10000, "if (!finished) do_throw('Notifications of message send/copy not received');");
   } catch (e) {

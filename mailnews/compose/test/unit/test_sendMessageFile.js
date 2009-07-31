@@ -14,7 +14,6 @@ var type = null;
 var test = null;
 var server;
 var sentFolder;
-var transaction;
 var originalData;
 var finished = false;
 
@@ -37,7 +36,7 @@ msl.prototype = {
     try {
       do_check_eq(aStatus, 0);
 
-      do_check_transaction(transaction,
+      do_check_transaction(server.playTransaction(),
                            ["EHLO test",
                             "MAIL FROM:<" + kSender + "> SIZE=" + originalData.length,
                             "RCPT TO:<" + kTo + ">",
@@ -163,8 +162,6 @@ function run_test() {
                             null, messageListener, null, null);
 
     server.performTest();
-
-    transaction = server.playTransaction();
 
     do_timeout(10000, "if (!finished) do_throw('Notifications of message send/copy not received');");
 

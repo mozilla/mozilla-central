@@ -17,7 +17,6 @@ load("../../mailnews/resources/asyncTestUtils.js");
 var test = "sendMessageLater";
 var server = null;
 var gSentFolder;
-var transaction;
 var originalData;
 var identity = null;
 var gMsgFile =
@@ -49,12 +48,11 @@ function msll() {
 
 msll.prototype = {
   checkMessageSend: function(aCurrentMessage) {
-    do_check_transaction(transaction,
+    do_check_transaction(server.playTransaction(),
                          ["EHLO test",
                           "MAIL FROM:<" + kSender + "> SIZE=" + gMsgFileData[gMsgOrder[aCurrentMessage - 1]].length,
                           "RCPT TO:<" + kTo + ">",
                           "DATA"]);
-    transaction = null;
 
     // Compare data file to what the server received
     do_check_eq(gMsgFileData[gMsgOrder[aCurrentMessage - 1]], server._handler.post);
@@ -91,12 +89,6 @@ msll.prototype = {
       // Check that the send later service now thinks we don't have messages to
       // send.
       do_check_eq(msgSendLater.hasUnsentMessages(identity), false);
-
-      // XXX This is another send multiple messages hack
-      if (!transaction) {
-        server.performTest();
-        transaction = server.playTransaction();
-      }
 
       this.checkMessageSend(gLastSentMessage);
     } catch (e) {
@@ -183,8 +175,6 @@ function sendUnsentMessages()
     // Send the unsent message
     msgSendLater.sendUnsentMessages(identity);
     server.performTest();
-
-    transaction = server.playTransaction();
   } catch (e) {
     do_throw(e);
   } finally {
@@ -203,8 +193,6 @@ function sendUnsentMessages()
 function runServerTest()
 {
   server.performTest();
-
-  transaction = server.playTransaction();
 }
 
 function actually_run_test() {
