@@ -812,6 +812,7 @@ pref("ldap_2.servers.osx.uri", "moz-abosxdirectory:///");
 pref("ldap_2.servers.osx.description", "chrome://messenger/locale/addressbook/addressBook.properties");
 pref("ldap_2.servers.osx.dirType", 3);
 pref("mail.notification.sound",             "");
+pref("mail.notification.count.inbox_only", true);
 #else
 #ifdef XP_UNIX
 pref("mail.check_new_mail", true);

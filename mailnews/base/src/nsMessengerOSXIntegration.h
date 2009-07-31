@@ -22,7 +22,8 @@
  * Contributor(s):
  *  Scott MacGregor <mscott@mozilla.org>
  *  Jon Baumgartner <jon@bergenstreetsoftware.com>
- *  
+ *  David Humphrey <david.humphrey@senecac.on.ca>
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -47,7 +48,6 @@
 #include "nsCOMPtr.h"
 #include "nsString.h"
 #include "nsInt64.h"
-#include "nsISupportsArray.h"
 #include "nsIObserver.h"
 #include "nsIAlertsService.h"
 
@@ -72,10 +72,9 @@ public:
   NS_DECL_NSIOBSERVER
 
 private:
-  nsCOMPtr<nsISupportsArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
   nsCOMPtr<nsIAtom> mBiffStateAtom;
   nsCOMPtr<nsIAtom> mNewMailReceivedAtom;
-  PRInt32 CountNewMessages();
+  nsCOMPtr<nsIAtom> mTotalUnreadMessagesAtom;
   nsresult ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI);
   nsresult OnAlertFinished();
   nsresult OnAlertClicked(const PRUnichar * aAlertCookie);
@@ -85,8 +84,12 @@ private:
   nsresult BadgeDockIcon();
   nsresult BounceDockIcon();
   nsresult GetNewMailAuthors(nsIMsgFolder* aFolder, nsString& aAuthors, PRInt32 aNewCount, PRInt32* aNotDisplayed);
+  nsresult GetTotalUnread(nsIMsgFolder* aFolder, PRBool deep, PRInt32* aTotal);
+  nsresult ConfirmShouldCount(nsIMsgFolder* aFolder, PRBool* aCountFolder);
+  void InitUnreadCount();
 
-  PRPackedBool mBiffIconVisible;
+  PRInt32 mUnreadTotal;
+  PRBool mOnlyCountInboxes;
 };
 
 #endif // __nsMessengerOSXIntegration_h
