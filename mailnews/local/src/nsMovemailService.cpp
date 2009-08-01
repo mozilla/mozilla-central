@@ -382,7 +382,6 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
                               nsIURI ** aURL)
 {
   LOG(("nsMovemailService::GetNewMail"));
-  NS_ENSURE_ARG_POINTER(aURL);
   nsresult rv = NS_OK;
 
   nsCOMPtr<nsIMsgIncomingServer> in_server =
