@@ -22,7 +22,6 @@
  * Contributor(s):
  *   Adam D. Moss <adam@gimp.org>
  *   Seth Spitzer <sspitzer@netscape.com>
- *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -383,6 +382,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
                               nsIURI ** aURL)
 {
   LOG(("nsMovemailService::GetNewMail"));
+  NS_ENSURE_ARG_POINTER(aURL);
   nsresult rv = NS_OK;
 
   nsCOMPtr<nsIMsgIncomingServer> in_server =
@@ -452,9 +452,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
                            mailDirectory, inputStream, nsnull, PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // Tell the world we're beginning.
   in_server->SetServerBusy(PR_TRUE);
-  aUrlListener->OnStartRunningUrl(nsnull);
 
   // Try and obtain the lock for the spool file
   PRBool usingLockFile;
@@ -465,10 +463,6 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
       lockFile.get()
     };
     Error(MOVEMAIL_CANT_CREATE_LOCK, params, 1);
-
-    // And we stopped running, because we failed.
-    in_server->SetServerBusy(PR_FALSE);
-    aUrlListener->OnStopRunningUrl(nsnull, NS_ERROR_FAILURE);
     return NS_ERROR_FAILURE;
   }
 
@@ -526,9 +520,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     Error(MOVEMAIL_CANT_DELETE_LOCK, params, 1);
   }
 
-  // Now we've finished
   in_server->SetServerBusy(PR_FALSE);
-  aUrlListener->OnStopRunningUrl(nsnull, rv);
 
   LOG(("GetNewMail returning rv=%d", rv));
   return rv;
