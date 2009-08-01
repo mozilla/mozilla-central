@@ -1987,26 +1987,19 @@ extern "C"
 char *
 MimeGetStringByID(PRInt32 stringID)
 {
-  char *tempString = nsnull;
-  const char *resultString = "???";
-
   nsCOMPtr<nsIStringBundleService> stringBundleService =
     do_GetService(NS_STRINGBUNDLE_CONTRACTID);
 
   nsCOMPtr<nsIStringBundle> stringBundle;
   stringBundleService->CreateBundle(MIME_URL, getter_AddRefs(stringBundle));
-
   if (stringBundle)
   {
     nsString v;
     if (NS_SUCCEEDED(stringBundle->GetStringFromID(stringID, getter_Copies(v))))
-      tempString = ToNewUTF8String(v);
+      return ToNewUTF8String(v);
   }
 
-  if (!tempString)
-    tempString = strdup(resultString);
-
-  return tempString;
+  return strdup("???");
 }
 
 void

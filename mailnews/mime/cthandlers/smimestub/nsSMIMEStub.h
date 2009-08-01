@@ -34,8 +34,9 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#ifndef _MIMECENC_H_
-#define _MIMECENC_H_
+
+#ifndef _NSSMIMESTUB_H_
+#define _NSSMIMESTUB_H_
 
 #include "mimetext.h"
 
@@ -66,4 +67,4 @@ struct MimeInlineTextSMIMEStub {
   MimeInlineText text;
 };
 
-#endif /* _MIMECENC22_H_ */
+#endif /* _NSSMIMESTUB_H_ */
