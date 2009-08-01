@@ -78,7 +78,7 @@
      text after the "&quot;" entity in haveSmtp2.suffix2, if required grammatically.
 -->
 <!ENTITY haveSmtp2.prefix "Your existing outgoing (SMTP) username, &quot;">
-<!ENTITY haveSmtp2.suffix2 "&quot;, will be used. You can the change outgoing servers in the account settings.">
+<!ENTITY haveSmtp2.suffix2 "&quot;, will be used. You can change outgoing servers in the account settings.">
 <!-- LOCALIZATION NOTE (haveSmtp3.prefix and haveSmtp3.suffix2) : Do not translate "SMTP" and "&quot;" in
      these variables. Also, translate haveSmtp3.prefix and haveSmtp3.suffix2 as a single sentence, inserting
      text after the "&quot;" entity in haveSmtp3.suffix2, if required grammatically.
