@@ -366,7 +366,9 @@ var DefaultController =
           return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
         return false;
       case "cmd_displayMsgFilters":
-        return gDBView;
+        let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                            .getService(Components.interfaces.nsIMsgAccountManager);
+        return mgr.accounts.Count() > 0;
       case "cmd_applyFilters":
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.applyFilters);
       case "cmd_runJunkControls":
