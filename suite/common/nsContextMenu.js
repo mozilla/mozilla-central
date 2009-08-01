@@ -160,10 +160,18 @@ nsContextMenu.prototype = {
         this.showItem( "context-saveimage", showSave );
         this.showItem( "context-savevideo", this.onVideo );
         this.showItem( "context-saveaudio", this.onAudio );
+        if (this.onVideo)
+          this.setItemAttr( "context-savevideo", "disabled", !this.mediaURL );
+        if (this.onAudio)
+          this.setItemAttr( "context-saveaudio", "disabled", !this.mediaURL );
         // Send media URL (but not for canvas, since it's a big data: URL)
         this.showItem( "context-sendimage", showSave );
         this.showItem( "context-sendvideo", this.onVideo );
         this.showItem( "context-sendaudio", this.onAudio );
+        if (this.onVideo)
+          this.setItemAttr( "context-sendvideo", "disabled", !this.mediaURL );
+        if (this.onAudio)
+          this.setItemAttr( "context-sendaudio", "disabled", !this.mediaURL );
     },
     initViewItems : function () {
         // View source is always OK, unless in directory listing.
@@ -310,6 +318,10 @@ nsContextMenu.prototype = {
         this.showItem( "context-copyimage", this.onImage );
         this.showItem( "context-copyvideourl", this.onVideo );
         this.showItem( "context-copyaudiourl", this.onAudio );
+        if (this.onVideo)
+          this.setItemAttr( "context-copyvideourl", "disabled", !this.mediaURL );
+        if (this.onAudio)
+          this.setItemAttr( "context-copyaudiourl", "disabled", !this.mediaURL );
         this.showItem( "context-sep-copyimage", this.onImage || this.onVideo || this.onAudio );
     },
     initMetadataItems : function () {
@@ -325,6 +337,16 @@ nsContextMenu.prototype = {
         this.showItem( "context-media-unmute", onMedia && this.target.muted );
         this.showItem( "context-media-showcontrols", onMedia && !this.target.controls );
         this.showItem( "context-media-hidecontrols", onMedia && this.target.controls );
+        // Disable them when there isn't a valid media source loaded.
+        if (onMedia) {
+          var hasError = this.target.error != null;
+          this.setItemAttr( "context-media-play", "disabled", hasError );
+          this.setItemAttr( "context-media-pause", "disabled", hasError );
+          this.setItemAttr( "context-media-mute", "disabled", hasError );
+          this.setItemAttr( "context-media-unmute", "disabled", hasError );
+          this.setItemAttr( "context-media-showcontrols", "disabled", hasError );
+          this.setItemAttr( "context-media-hidecontrols", "disabled", hasError );
+        }
         this.showItem( "context-media-sep-commands", onMedia );
     },
     // Set various context menu attributes based on the state of the world.
@@ -402,10 +424,10 @@ nsContextMenu.prototype = {
                 this.onCanvas = true;
             } else if ( this.target instanceof HTMLVideoElement ) {
                 this.onVideo = true;
-                this.mediaURL = this.target.currentSrc;
+                this.mediaURL = this.target.currentSrc || this.target.src;
             } else if ( this.target instanceof HTMLAudioElement ) {
                 this.onAudio = true;
-                this.mediaURL = this.target.currentSrc;
+                this.mediaURL = this.target.currentSrc || this.target.src;
             } else if ( this.target instanceof HTMLInputElement ) {
                 this.onTextInput = this.isTargetATextBox(this.target);
                 // allow spellchecking UI on all writable text boxes except passwords
