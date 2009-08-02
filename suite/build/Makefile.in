@@ -102,6 +102,14 @@ EXTRA_DSO_LDOPTS += \
 	$(MOZ_COMPONENT_LIBS) \
 	$(NULL)
 
+# On trunk we need to link the windows shell service into seamonkey.exe
+ifdef BUILD_STATIC_LIBS
+ifndef MOZILLA_1_9_1_BRANCH
+BUILD_STATIC_SHELL = 1
+DEFINES += -DBUILD_STATIC_SHELL=1
+endif
+endif
+
 ifndef BUILD_STATIC_SHELL
 ifeq ($(OS_ARCH),WINNT)
 SHARED_LIBRARY_LIBS += ../shell/src/$(LIB_PREFIX)shellservice_s.$(LIB_SUFFIX)

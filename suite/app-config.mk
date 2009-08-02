@@ -38,14 +38,6 @@
 MOZ_SUITE = 1
 DEFINES += -DMOZ_SUITE=1
 
-# On trunk we need to link the windows shell service into seamonkey.exe
-ifdef BUILD_STATIC_LIBS
-ifndef MOZILLA_1_9_1_BRANCH
-BUILD_STATIC_SHELL = 1
-DEFINES += -DBUILD_STATIC_SHELL=1
-endif
-endif
-
 # Make the whole tree rebuild if app-config.mk changes
 # Use MOZ_BUILD_APP to make life easy
 ifeq (,$(wildcard $(topsrcdir)/$(MOZ_BUILD_APP)/app-config.mk))
