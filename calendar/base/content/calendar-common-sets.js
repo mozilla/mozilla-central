@@ -51,7 +51,9 @@ var calendarController = {
         "calendar_delete_focused_item_command": true,
 
         "calendar_new_todo_command": true,
+        "calendar_new_todo_todaypane_command": true,
         "calendar_modify_todo_command": true,
+        "calendar_modify_todo_todaypane_command": true,
         "calendar_delete_todo_command": true,
 
         "calendar_new_calendar_command": true,
@@ -146,8 +148,10 @@ var calendarController = {
             case "calendar_delete_event_command":
                 return this.selected_items_writable;
             case "calendar_new_todo_command":
+            case "calendar_new_todo_todaypane_command":
                 return this.writable && this.calendars_support_tasks;
             case "calendar_modify_todo_command":
+            case "calendar_modify_todo_todaypane_command":
                  return this.todo_items_selected;
                  // This code is temporarily commented out due to
                  // bug 469684 Unifinder-todo: raising of the context menu fires blur-event
@@ -317,13 +321,23 @@ var calendarController = {
                 break;
             }
             case "calendar_new_todo_command":
-                createTodoWithDialog(getSelectedCalendar());
+                createTodoWithDialog(getSelectedCalendar(),
+                                     null, null, null,
+                                     currentView().selectedDay);
+                break;
+            case "calendar_new_todo_todaypane_command":
+                createTodoWithDialog(getSelectedCalendar(),
+                                     null,null,null,
+                                     agendaListbox.today.start);
                 break;
             case "calendar_delete_todo_command":
                 deleteToDoCommand();
                 break;
             case "calendar_modify_todo_command":
-                modifyTaskFromContext();
+                modifyTaskFromContext(null, currentView().selectedDay);
+                break;
+            case "calendar_modify_todo_todaypane_command":
+                modifyTaskFromContext(null, agendaListbox.today.start);
                 break;
 
             case "calendar_new_calendar_command":

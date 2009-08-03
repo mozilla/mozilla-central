@@ -58,6 +58,10 @@ calendar-task-tree {
   -moz-binding: url(chrome://calendar/content/calendar-task-tree.xml#calendar-task-tree);
 }
 
+calendar-task-tree-todaypane {
+  -moz-binding: url(chrome://calendar/content/calendar-task-tree.xml#calendar-task-tree-todaypane);
+}
+
 menupopup[type="task-progress"] > arrowscrollbox {
   -moz-binding: url(chrome://calendar/content/calendar-menus.xml#task-progress-menupopup);
 }

@@ -148,8 +148,9 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event, aFo
  * @param dueDate       (optional) The task's due date.
  * @param summary       (optional) The task's title.
  * @param todo          (optional) A template task to show in the dialog.
+ * @param initialDate   (optional) The initial date for new task datepickers
  */
-function createTodoWithDialog(calendar, dueDate, summary, todo) {
+function createTodoWithDialog(calendar, dueDate, summary, todo, initialDate) {
     const kDefaultTimezone = calendarDefaultTimezone();
 
     var onNewItem = function(item, calendar, originalItem, listener) {
@@ -164,7 +165,7 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
     }
 
     if (todo) {
-        // If the too should be created from a template, then make sure to
+        // If the todo should be created from a template, then make sure to
         // remove the id so that the item obtains a new id when doing the
         // transaction
         if (todo.id) {
@@ -185,10 +186,16 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
         if (dueDate)
             todo.dueDate = dueDate;
 
+        if (cal.getPrefSafe("calendar.alarms.onfortodos", 0) == 1 &&
+            !todo.entryDate) {
+            // the todo must have an entry date if we want to set an alarm
+            todo.entryDate = initialDate;
+        }
+        
         cal.alarms.setDefaultValues(todo);
     }
 
-    openEventDialog(todo, calendar, "new", onNewItem, null);
+    openEventDialog(todo, calendar, "new", onNewItem, null, initialDate);
 }
 
 
@@ -201,8 +208,9 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
  *                                           modification.
  * @param aPromptOccurrence     If the user should be prompted to select if the
  *                                parent item or occurrence should be modified.
+ * @param initialDate           (optional) The initial date for new task datepickers 
  */
-function modifyEventWithDialog(aItem, job, aPromptOccurrence) {
+function modifyEventWithDialog(aItem, job, aPromptOccurrence, initialDate) {
     var onModifyItem = function(item, calendar, originalItem, listener) {
         doTransaction('modify', item, calendar, originalItem, listener);
     };
@@ -214,7 +222,7 @@ function modifyEventWithDialog(aItem, job, aPromptOccurrence) {
     }
 
     if (item && (response || response === undefined)) {
-        openEventDialog(item, item.calendar, "modify", onModifyItem, job);
+        openEventDialog(item, item.calendar, "modify", onModifyItem, job, initialDate);
     } else if (job && job.dispose) {
         // If the action was canceled and there is a job, dispose it directly.
         job.dispose();
@@ -229,8 +237,9 @@ function modifyEventWithDialog(aItem, job, aPromptOccurrence) {
  * @param mode              The operation the dialog should do ("new", "modify")
  * @param callback          The callback to call when the dialog has completed.
  * @param job               (optional) The job object for the modification.
+ * @param initialDate       (optional) The initial date for new task datepickers  
  */
-function openEventDialog(calendarItem, calendar, mode, callback, job) {
+function openEventDialog(calendarItem, calendar, mode, callback, job, initialDate) {
     // Set up some defaults
     mode = mode || "new";
     calendar = calendar || getSelectedCalendar();
@@ -275,6 +284,7 @@ function openEventDialog(calendarItem, calendar, mode, callback, job) {
     args.mode = mode;
     args.onOk = callback;
     args.job = job;
+    args.initialStartDateValue = initialDate;
 
     // this will be called if file->new has been selected from within the dialog
     args.onNewEvent = function(calendar) {

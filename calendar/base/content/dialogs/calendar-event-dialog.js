@@ -172,6 +172,8 @@ function onLoad() {
     // that the item is either an occurrence [proxy]
     // or the stand-alone item [single occurrence item].
     window.calendarItem = item;
+    // store the initial date value for datepickers in New Task dialog
+    window.initialStartDateValue = args.initialStartDateValue;
 
     // we store the array of attendees in the window.
     // clone each existing attendee since we still suffer
@@ -218,6 +220,13 @@ function onLoad() {
     document.documentElement.getButton("cancel")
             .parentNode.setAttribute("collapsed", "true");
 
+    // Set initial values for datepickers in New Tasks dialog
+    if (isToDo(item)) {
+        let initialDatesValue = getDefaultStartDate(args.initialStartDateValue).jsDate;
+        setElementValue("completed-date-picker", initialDatesValue);
+        setElementValue("todo-entrydate", initialDatesValue);
+        setElementValue("todo-duedate", initialDatesValue);
+    }
     loadDialog(window.calendarItem);
 
     opener.setCursor("auto");
@@ -2052,9 +2061,10 @@ function updateToDoStatus(status, passedInCompletedDate) {
           document.getElementById("todo-status").selectedIndex = 3;
           enableElement("percent-complete-textbox");
           enableElement("percent-complete-label");
-          // if there isn't a completedDate, set it to now
-          if (!completedDate)
-              completedDate = new Date();
+          // if there isn't a completedDate, set it to the previous value
+          if (!completedDate) { 
+              completedDate = oldCompletedDate;
+          }
           break;
       case "IN-PROCESS":
           document.getElementById("todo-status").selectedIndex = 2;
@@ -2488,7 +2498,7 @@ function updateDateTime() {
               endTime.timezone = floating();
               setElementValue("todo-duedate", endTime.jsDate);
           } else {
-              startTime = getDefaultStartDate();
+              startTime = getDefaultStartDate(window.initialStartDateValue);
               startTime.timezone = floating();
               endTime = startTime.clone();
 
@@ -2543,7 +2553,7 @@ function updateDateTime() {
                 endTime.timezone = floating();
                 setElementValue("todo-duedate", endTime.jsDate);
             } else {
-                startTime = getDefaultStartDate();
+                startTime = getDefaultStartDate(window.initialStartDateValue);
                 startTime.timezone = floating();
                 endTime = startTime.clone();
 

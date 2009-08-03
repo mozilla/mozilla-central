@@ -96,9 +96,19 @@ function addCategoryNames(aEvent) {
  * @param aEvent    The popupshowing event of the opening menu.
  */
 function changeContextMenuForTask(aEvent) {
+    let idnode = document.popupNode.id;
+    document.getElementById("task-context-menu-new").hidden =
+        (idnode == "unifinder-todo-tree");
+    document.getElementById("task-context-menu-modify").hidden =
+        (idnode == "unifinder-todo-tree");
+    document.getElementById("task-context-menu-new-todaypane").hidden =
+        (idnode == "calendar-task-tree");
+    document.getElementById("task-context-menu-modify-todaypane").hidden =
+        (idnode == "calendar-task-tree");
     let tasksSelected = (getSelectedTasks(aEvent).length > 0);
     applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
     document.getElementById("calendar_new_todo_command").removeAttribute("disabled");
+    document.getElementById("calendar_new_todo_todaypane_command").removeAttribute("disabled");
     changeMenuForTask(aEvent);
 }
 
@@ -211,12 +221,13 @@ function contextChangeTaskPriority(aEvent, aPriority) {
 /**
  * Modifies the selected tasks with the event dialog
  *
- * @param aEvent      The DOM event that triggered this command.
+ * @param aEvent        The DOM event that triggered this command.
+ * @param initialDate   (optional) The initial date for new task datepickers  
  */
-function modifyTaskFromContext(aEvent) {
+function modifyTaskFromContext(aEvent, initialDate) {
     var tasks = getSelectedTasks(aEvent);
     for (var t = 0; t < tasks.length; t++) {
-        modifyEventWithDialog(tasks[t], null, true);
+        modifyEventWithDialog(tasks[t], null, true, initialDate);
     }
  }
 

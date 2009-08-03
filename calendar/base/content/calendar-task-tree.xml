@@ -709,6 +709,7 @@
 
           onDoubleClick: function tTV_onDoubleClick(event) {
               if (event.button == 0) {
+                  let initialDate = this.binding.getInitialDate();
                   var col = {};
                   var item = this._getItemFromEvent(event, col);
                   if (item) {
@@ -718,10 +719,10 @@
                           // so don't call modifyEventWithDialog
                           // to make sure user notices state changed.
                       } else {
-                          modifyEventWithDialog(item, null, true);
+                          modifyEventWithDialog(item, null, true, initialDate);
                       }
                   } else {
-                      createTodoWithDialog();
+                      createTodoWithDialog(null,null,null,null,initialDate);
                   }
               }
           },
@@ -1075,6 +1076,12 @@
         ]]></body>
       </method>
 
+      <method name="getInitialDate">
+        <body><![CDATA[
+          let initialDate = currentView().selectedDay;
+          return initialDate ? initialDate : now();
+        ]]></body>
+      </method>
     </implementation>
 
     <handlers>
@@ -1145,4 +1152,14 @@
 
   </binding>
 
+  <binding id="calendar-task-tree-todaypane" extends="chrome://calendar/content/calendar-task-tree.xml#calendar-task-tree">
+    <implementation>
+      <method name="getInitialDate">
+            <body><![CDATA[
+              let initialDate = agendaListbox.today.start;
+              return initialDate ? initialDate : now();
+            ]]></body>
+      </method>
+    </implementation>    
+  </binding>
 </bindings>

@@ -64,7 +64,9 @@
     <command id="calendar_delete_event_command" oncommand="goDoCommand('calendar_delete_event_command')"/>
 
     <command id="calendar_new_todo_command" oncommand="goDoCommand('calendar_new_todo_command')"/>
+    <command id="calendar_new_todo_todaypane_command" oncommand="goDoCommand('calendar_new_todo_todaypane_command')"/>
     <command id="calendar_modify_todo_command" oncommand="goDoCommand('calendar_modify_todo_command')"/>
+    <command id="calendar_modify_todo_todaypane_command" oncommand="goDoCommand('calendar_modify_todo_todaypane_command')"/>
     <command id="calendar_delete_todo_command" oncommand="goDoCommand('calendar_delete_todo_command')"/>
 
     <command id="calendar_modify_focused_item_command" oncommand="goDoCommand('calendar_modify_focused_item_command')"/>
@@ -294,12 +296,23 @@
                 accesskey="&calendar.context.modifyorviewtask.accesskey;"
                 command="calendar_modify_todo_command"
                 observes="calendar_modify_todo_command"/>
+      <menuitem id="task-context-menu-modify-todaypane"
+                label="&calendar.context.modifyorviewtask.label;"
+                accesskey="&calendar.context.modifyorviewtask.accesskey;"
+                command="calendar_modify_todo_todaypane_command"
+                observes="calendar_modify_todo_todaypane_command"/>
       <menuitem id="task-context-menu-new"
                 label="&calendar.context.newtodo.label;"
                 accesskey="&calendar.context.newtodo.accesskey;"
                 key="calendar-new-todo-key"
                 command="calendar_new_todo_command"
                 observes="calendar_new_todo_command"/>
+      <menuitem id="task-context-menu-new-todaypane"
+                label="&calendar.context.newtodo.label;"
+                accesskey="&calendar.context.newtodo.accesskey;"
+                key="calendar-new-todo-key"
+                command="calendar_new_todo_todaypane_command"
+                observes="calendar_new_todo_todaypane_command"/>
       <menuseparator id="calendar-menuseparator-beforemarkcompleted"/>
       <menuitem id="calendar-context-markcompleted"
                 type="checkbox"
