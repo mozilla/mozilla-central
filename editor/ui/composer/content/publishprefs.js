@@ -850,52 +850,29 @@ function FormatDirForPublishing(dir)
   return dir;
 }
 
-
-var gPasswordManager;
-function GetPasswordManager()
+var gLoginManager;
+function GetLoginManager()
 {
-  if (!gPasswordManager)
-  {
-    var passwordManager = Components.classes["@mozilla.org/passwordmanager;1"].createInstance();
-    if (passwordManager)
-      gPasswordManager = passwordManager.QueryInterface(Components.interfaces.nsIPasswordManager);
-  }
-  return gPasswordManager;
-}
+  if (!gLoginManager)
+    gLoginManager = Components.classes["@mozilla.org/login-manager;1"]
+                              .getService(Components.interfaces.nsILoginManager);
 
-var gPasswordManagerInternal;
-function GetPasswordManagerInternal()
-{
-  if (!gPasswordManagerInternal)
-  {
-    try {
-      gPasswordManagerInternal =
-        Components.classes["@mozilla.org/passwordmanager;1"].createInstance(
-          Components.interfaces.nsIPasswordManagerInternal);
-    } catch (e) {
-    }
-  }
-  return gPasswordManagerInternal;
+  return gLoginManager;
 }
 
 function GetSavedPassword(publishData)
 {
-  if (!publishData)
-    return "";
-  var passwordManagerInternal = GetPasswordManagerInternal();
-  if (!passwordManagerInternal)
+  if (!publishData || !publishData.publishUrl)
     return "";
 
-  var host = {value:""};
-  var user =  {value:""};
-  var password = {value:""}; 
+  var loginManager = GetLoginManager();
   var url = GetUrlForPasswordManager(publishData);
-  
-  try {
-    passwordManagerInternal.findPasswordEntry
-      (url, publishData.username, "", host, user, password);
-    return password.value;
-  } catch (e) {}
+  var logins = loginManager.findLogins({}, url, null, url);
+
+  for (var i = 0; i < logins.length; i++) {
+    if (logins[i].username == publishData.username)
+      return logins[i].password;
+  }
 
   return "";
 }
@@ -905,26 +882,34 @@ function SavePassword(publishData)
   if (!publishData || !publishData.publishUrl || !publishData.username)
     return false;
 
-  var passwordManager = GetPasswordManager();
-  if (passwordManager)
+  var loginManager = GetLoginManager();
+  if (loginManager)
   {
     var url = GetUrlForPasswordManager(publishData);
 
-    // Remove existing entry
-    // (Note: there is no method to update a password for an existing entry)
-    try {
-      passwordManager.removeUser(url, publishData.username);
-    } catch (e) {}
+    // Remove existing entry by finding all logins that match
+    var logins = loginManager.findLogins({}, url, null, url);
+
+    for (var i = 0; i < logins.length; i++) {
+      if (logins[i].username == publishData.username) {
+        loginManager.removeLogin(logins[i]);
+        break;
+      }
+    }
 
     // If SavePassword is true, add new password
     if (publishData.savePassword)
     {
-      try {
-        passwordManager.addUser(url, publishData.username, publishData.password);
-      } catch (e) {}
+      var authInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
+                               .createInstance(Components.interfaces.nsILoginInfo);
+      authInfo.init(url, null, url, publishData.username, publishData.password,
+                    "", "");
+      loginManager.addLogin(authInfo);
     }
+
     return true;
   }
+
   return false;
 }
 
@@ -933,19 +918,16 @@ function GetUrlForPasswordManager(publishData)
   if (!publishData || !publishData.publishUrl)
     return false;
 
-  var url;
+  var url = Components.classes["@mozilla.org/network/io-service;1"]
+                      .getService(Components.interfaces.nsIIOService)
+                      .newURI(publishData.publishUrl, null, null);
 
-  // For FTP, we must embed the username into the url for a site address
-  // XXX Maybe we should we do this for HTTP as well???
-  if (publishData.username && GetScheme(publishData.publishUrl) == "ftp")
-    url = InsertUsernameIntoUrl(publishData.publishUrl, publishData.username);
+  if (url.scheme == "ftp" && publishData.username)
+    // Include username in the URL so we can handle multiple users per server
+    // in the password manager
+    url = url.scheme + "://" + publishData.username + "@" + url.hostPort;
   else
-    url = publishData.publishUrl;
+    url = url.scheme + "://" + url.hostPort;
 
-  // Strip off terminal "/"
-  var len = url.length;
-  if (len && url.charAt(len-1) == "\/")
-    url = url.slice(0, len-1);
-  
   return url;
 }
