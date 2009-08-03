@@ -348,6 +348,8 @@ nsresult
 nsMsgCopy::GetUnsentMessagesFolder(nsIMsgIdentity   *userIdentity, nsIMsgFolder **folder, PRBool *waitForUrl)
 {
   nsresult ret = LocateMessageFolder(userIdentity, nsIMsgSend::nsMsgQueueForLater, mSavePref, folder);
+  if (*folder)
+    (*folder)->SetFlag(nsMsgFolderFlags::Queue);
   CreateIfMissing(folder, waitForUrl);
   return ret;
 }
@@ -356,6 +358,8 @@ nsresult
 nsMsgCopy::GetDraftsFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, PRBool *waitForUrl)
 {
   nsresult ret = LocateMessageFolder(userIdentity, nsIMsgSend::nsMsgSaveAsDraft, mSavePref, folder);
+  if (*folder)
+    (*folder)->SetFlag(nsMsgFolderFlags::Drafts);
   CreateIfMissing(folder, waitForUrl);
   return ret;
 }
@@ -364,6 +368,8 @@ nsresult
 nsMsgCopy::GetTemplatesFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, PRBool *waitForUrl)
 {
   nsresult ret = LocateMessageFolder(userIdentity, nsIMsgSend::nsMsgSaveAsTemplate, mSavePref, folder);
+  if (*folder)
+    (*folder)->SetFlag(nsMsgFolderFlags::Templates);
   CreateIfMissing(folder, waitForUrl);
   return ret;
 }
@@ -372,6 +378,8 @@ nsresult
 nsMsgCopy::GetSentFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, PRBool *waitForUrl)
 {
   nsresult ret = LocateMessageFolder(userIdentity, nsIMsgSend::nsMsgDeliverNow, mSavePref, folder);
+  if (*folder)
+    (*folder)->SetFlag(nsMsgFolderFlags::SentMail);
   CreateIfMissing(folder, waitForUrl);
   return ret;
 }

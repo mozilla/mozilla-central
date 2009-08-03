@@ -40,6 +40,7 @@
 #include "msgCore.h"
 #include "nsIMsgHdr.h"
 #include "nsMsgUtils.h"
+#include "nsMsgFolderFlags.h"
 #include "nsStringGlue.h"
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
@@ -901,7 +902,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
 
       // force the junk folder name to be Junk so it gets created on disk correctly...
       msgFolder->SetName(NS_LITERAL_STRING("Junk"));
-
+      msgFolder->SetFlag(nsMsgFolderFlags::Junk);
       rv = msgFolder->CreateStorageIfMissing(aListener);
       NS_ENSURE_SUCCESS(rv,rv);
 

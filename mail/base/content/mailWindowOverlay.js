@@ -1334,6 +1334,7 @@ BatchMessageMover.prototype = {
       // synchronous.
       let isImap = archiveFolder.server.type == "imap";
       if (!archiveFolder.parent) {
+        archiveFolder.setFlag(Ci.nsMsgFolderFlags.Archive);
         archiveFolder.createStorageIfMissing(this);
         if (isImap)
           return;
