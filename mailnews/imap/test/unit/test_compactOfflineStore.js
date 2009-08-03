@@ -61,7 +61,7 @@ function checkOfflineStore(prevOfflineStoreSize) {
       // this will verify that the message in the offline store
       // starts with "From " - otherwise, it returns an error.
       if (header instanceof Components.interfaces.nsIMsgDBHdr &&
-         (header.flags & Ci.nsMsgMessageFlags.Offline)
+         (header.flags & Ci.nsMsgMessageFlags.Offline))
         gIMAPInbox.getOfflineFileStream(header.messageKey, offset, size).close();
     }
   }
