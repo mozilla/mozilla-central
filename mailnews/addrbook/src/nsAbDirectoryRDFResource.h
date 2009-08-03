@@ -56,7 +56,6 @@ public:
 protected:
     PRBool mIsValidURI;
     PRBool mIsQueryURI;
-    nsCString mPath;
     nsCString mQueryString;
     nsCString mURINoQuery;
 };

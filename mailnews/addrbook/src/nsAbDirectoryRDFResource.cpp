@@ -57,44 +57,18 @@ NS_IMPL_ISUPPORTS_INHERITED0(nsAbDirectoryRDFResource, nsRDFResource)
 
 NS_IMETHODIMP nsAbDirectoryRDFResource::Init(const char* aURI)
 {
-  nsresult rv = nsRDFResource::Init (aURI);
+    nsresult rv = nsRDFResource::Init (aURI);
     NS_ENSURE_SUCCESS(rv, rv);
 
     mURINoQuery = aURI;
-
-    nsCOMPtr<nsIURI> uri = do_CreateInstance (NS_STANDARDURL_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = uri->SetSpec(nsDependentCString(aURI));
-    NS_ENSURE_SUCCESS(rv, rv);
-
     mIsValidURI = PR_TRUE;
 
-  nsCOMPtr<nsIURL> url = do_QueryInterface(uri, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCAutoString queryString;
-    rv = url->GetQuery (queryString);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCAutoString path;
-    rv = url->GetPath (path);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-    mPath = path;
-
-  if (!queryString.IsEmpty())
-    {
-    mPath.SetLength(path.Length() - queryString.Length() - 1);
-
-    mURINoQuery.SetLength(mURINoQuery.Length() - queryString.Length() - 1);
-
-        mQueryString = queryString;
-
+    PRInt32 searchCharLocation = mURINoQuery.FindChar('?');
+    if (searchCharLocation >= 0) {
+        mQueryString = Substring(mURINoQuery, searchCharLocation + 1);
+        mURINoQuery.Truncate(searchCharLocation);
         mIsQueryURI = PR_TRUE;
     }
-    else 
-      mIsQueryURI = PR_FALSE;
 
     return rv;
 }
