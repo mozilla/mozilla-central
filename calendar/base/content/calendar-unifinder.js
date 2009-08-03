@@ -945,13 +945,10 @@ function addItemsFromCalendar(aCalendar, aAddItemsInternalFunc) {
 }
 
 function deleteItemsFromCalendar(aCalendar) {
-    let items = [];
+    let filter = unifinderTreeView.mFilter;
+    let items = [ item for each (item in unifinderTreeView.eventArray)
+                    if (item.calendar.id == aCalendar.id) ];
 
-    for (let i = unifinderTreeView.eventArray.length; i > 0; i--) {
-        let item = unifinderTreeView.eventArray[i-1];
-        if (item.calendar.id == aCalendar.id)
-            items.push(item);
-    }
     unifinderTreeView.removeItems(items.filter(filter.isItemInFilters, filter));
 }
 
