@@ -364,7 +364,7 @@ pref("ldap_2.servers.default.attrmap.JobTitle", "title");
 pref("ldap_2.servers.default.attrmap.Department", "ou,department,departmentnumber,orgunit");
 pref("ldap_2.servers.default.attrmap.Company", "o,company");
 pref("ldap_2.servers.default.attrmap._AimScreenName", "nsAIMid,nscpaimscreenname");
-pref("ldap_2.servers.default.attrmap.WebPage1", "mozillaWorkUrl,workurl");
+pref("ldap_2.servers.default.attrmap.WebPage1", "mozillaWorkUrl,workurl,labeledURI");
 pref("ldap_2.servers.default.attrmap.WebPage2", "mozillaHomeUrl,homeurl");
 pref("ldap_2.servers.default.attrmap.BirthYear", "birthyear");
 pref("ldap_2.servers.default.attrmap.BirthMonth", "birthmonth");

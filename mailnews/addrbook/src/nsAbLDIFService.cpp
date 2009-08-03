@@ -533,6 +533,16 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIAddrDatabase *aDatabase,
       else
         aDatabase->AddWorkCity(newRow, column.get());
     }
+    // labeledURI contains a URI and, optionally, a label
+    // This will remove the label and place the URI as the work URL
+    else if (colType.EqualsLiteral("labeleduri"))
+    {
+      PRInt32 index = column.Find(" ", false, 0, -1);
+      if (index != -1)
+        column.Truncate(index);
+
+      aDatabase->AddWebPage1(newRow, column.get());
+    }
 
     break; // 'l'
 

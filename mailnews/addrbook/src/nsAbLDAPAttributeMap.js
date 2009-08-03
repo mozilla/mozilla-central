@@ -189,6 +189,12 @@ nsAbLDAPAttributeMap.prototype = {
           
           try {
             var values = aMessage.getValues(attr, {});
+            // strip out the optional label from the labeledURI
+            if (attr == "labeleduri" && values[0]) {
+              var index = values[0].indexOf(" ");
+              if (index != -1)
+                values[0] = values[0].substring(0, index);
+            }
             aCard.setProperty(prop, values[0]);
 
             cardValueWasSet = true;

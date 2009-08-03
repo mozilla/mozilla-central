@@ -42,5 +42,13 @@
       "Custom4"          : "Custom Field 4",
       "Notes"            : "Notes line 1\nNotes line 2\nNotes line 3\nNotes line 4"
     }
+  ],
+  "bug_263304" :
+  [
+    {
+      "DisplayName"      : "Display Name",
+      "PrimaryEmail"     : "primaryemail@host.invalid",
+      "WebPage1"         : "http://127.0.0.1"
+    }
   ]
 }

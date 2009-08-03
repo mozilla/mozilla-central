@@ -1,0 +1,7 @@
+dn: cn=Display Name,mail=primaryemail@host.invalid
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: Display Name
+mail: primaryemail@host.invalid
+labeledURI: http://127.0.0.1 label
