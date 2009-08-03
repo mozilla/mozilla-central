@@ -1204,8 +1204,10 @@ attachmentWorker.onmessage = function(event)
     msgText.id = "attachmentReminderText";
     msgText.setAttribute("crop", "end");
     msgText.setAttribute("flex", "1");
-    msgText.setAttribute("value", PluralForm.get(keywordsFound.length,
-                            bundle.getString("attachmentReminderKeywordsMsg")));
+    let textValue = bundle.getString("attachmentReminderKeywordsMsgs");
+    textValue = PluralForm.get(keywordsFound.length, textValue)
+                          .replace("#1", keywordsFound.length);
+    msgText.setAttribute("value", textValue);
 
     let keywords = keywordsFound.join(", ");
     let msgKeywords = document.createElement("label");
