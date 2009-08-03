@@ -78,7 +78,7 @@ interface nsIMsgImapFolderProps : nsISupports {
     void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
 };
 
-[scriptable, uuid(22b0aac7-937e-46b2-bb6f-ea1190697596)]
+[scriptable, uuid(1a06d2c2-c6fd-4212-af70-6774e5d0c066)]
 interface nsIMsgImapMailFolder : nsISupports {
   void removeSubFolder(in nsIMsgFolder folder);
   void createClientSubfolderInfo(in ACString folderName, in char hierarchyDelimiter,
@@ -114,6 +114,26 @@ interface nsIMsgImapMailFolder : nsISupports {
   nsIMsgImapMailFolder findOnlineSubFolder(in ACString onlineName);
   void addFolderRights(in ACString userName, in ACString rights);
   void refreshFolderRights();
+
+  /**
+   * Mark the header as pending removal from the offline store. This also
+   * increases the expungedBytes count on the folder so we know there's 
+   * more local disk space to be reclaimed.
+   *
+   * @param aHdr     msg hdr to mark pending removal from offline store.
+   *
+   */
+  void markPendingRemoval(in nsIMsgDBHdr aHdr);
+
+  /**
+   * Issue an expunge of this folder to the imap server.
+   *
+   * @param aUrlListener     url listener, can be null
+   * @param aWindow          msg window url is running in, can be null
+   *
+   * @returns                status of attempt to run url.
+   */
+  void expunge(in nsIUrlListener aListener, in nsIMsgWindow aMsgWindow);
 
   void updateStatus(in nsIUrlListener aListener, in nsIMsgWindow aMsgWindow);
   void updateFolderWithListener(in nsIMsgWindow aMsgWindow, in nsIUrlListener aListener);

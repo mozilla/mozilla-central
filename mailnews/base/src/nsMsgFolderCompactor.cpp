@@ -196,7 +196,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore,
   {
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder);
     if (imapFolder)
-      return folder->Compact(this, aMsgWindow);
+      return imapFolder->Expunge(this, aMsgWindow);
   }
    m_window = aMsgWindow;
    nsresult rv;
@@ -865,9 +865,53 @@ nsOfflineStoreCompactState::~nsOfflineStoreCompactState()
 nsresult
 nsOfflineStoreCompactState::InitDB(nsIMsgDatabase *db)
 {
+  // Start with the list of messages we have offline as the possible
+  // message to keep when compacting the offline store.
   db->ListAllOfflineMsgs(&m_keyArray);
+  // Filter out msgs that have the "pendingRemoval" attribute set.
+  nsCOMPtr<nsIMsgDBHdr> hdr;
+  nsString pendingRemoval;
+  for (PRInt32 i = m_keyArray.Length() - 1; i >= 0; i--)
+  {
+    nsresult rv = db->GetMsgHdrForKey(m_keyArray[i], getter_AddRefs(hdr));
+    NS_ENSURE_SUCCESS(rv, rv);
+    hdr->GetProperty("pendingRemoval", pendingRemoval);
+    if (!pendingRemoval.IsEmpty())
+    {
+      m_keyArray.RemoveElementAt(i);
+      // Turn off offline flag for message, since after the compact is completed;
+      // we won't have the message in the offline store.
+      PRUint32 resultFlags;
+      hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
+    }
+  }
   m_db = db;
   return NS_OK;
+}
+
+nsresult nsOfflineStoreCompactState::CopyNextMessage()
+{
+  m_messageUri.SetLength(0); // clear the previous message uri
+  nsresult rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray[m_curIndex],
+                                m_messageUri);
+  NS_ENSURE_SUCCESS(rv, rv);
+  m_startOfMsg = PR_TRUE;
+  nsCOMPtr<nsISupports> thisSupports;
+  QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(thisSupports));
+  rv = m_messageService->StreamMessage(m_messageUri.get(), thisSupports, m_window, nsnull,
+                                  PR_FALSE, EmptyCString(), PR_TRUE, nsnull);
+  // if copy fails, we clear the offline flag on the source message.
+  if (NS_FAILED(rv))
+  {
+    nsCOMPtr<nsIMsgDBHdr> hdr;
+    GetMessage(getter_AddRefs(hdr));
+    if (hdr)
+    {
+      PRUint32 resultFlags;
+      hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
+    }
+  }
+  return rv;
 }
 
 NS_IMETHODIMP
@@ -912,19 +956,7 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
   }
   else
   {
-    m_messageUri.SetLength(0); // clear the previous message uri
-    rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray[m_curIndex],
-                         m_messageUri);
-    if (NS_FAILED(rv)) goto done;
-    m_startOfMsg = PR_TRUE;
-    rv = m_messageService->CopyMessage(m_messageUri.get(), this, PR_FALSE, nsnull,
-                                       /* ### should get msg window! */ nsnull, nsnull);
-   if (NS_FAILED(rv))
-   {
-     PRUint32 resultFlags;
-     msgHdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
-   }
-  // if this fails, we should clear the offline flag on the source message.
+    rv = CopyNextMessage();
   }
 
 done:
@@ -1069,11 +1101,7 @@ nsresult nsOfflineStoreCompactState::StartCompacting()
   {
     AddRef(); // we own ourselves, until we're done, anyway.
     ShowCompactingStatusMsg();
-    m_messageUri.SetLength(0); // clear the previous message uri
-    rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray[0], m_messageUri);
-    if (NS_SUCCEEDED(rv))
-      rv = m_messageService->CopyMessage(m_messageUri.get(), this, PR_FALSE,
-                                         nsnull, m_window, nsnull);
+    rv = CopyNextMessage();
   }
   else
   { // no messages to copy with

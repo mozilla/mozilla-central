@@ -44,8 +44,6 @@
 #include "nsIUrlListener.idl"
 #include "nsISimpleEnumerator.idl"
 
-[ptr] native octet_ptr(PRUint8);
-
 interface nsIMsgDBHdr;
 interface nsIMsgWindow;
 interface nsIMsgDatabase;
@@ -203,6 +201,14 @@ interface nsIMsgFolder : nsISupports {
   */
   void createStorageIfMissing(in nsIUrlListener urlListener);
 
+  /**
+   * Compact this folder. For IMAP folders configured for offline use,
+   * it will also compact the offline store, and the completed notification
+   * will occur when the Expunge is finished, not the offline store compaction.
+   *
+   * @param aListener   Notified of completion, can be null.
+   * @param aMsgWindow  For progress/status, can be null.
+   */
   void compact(in nsIUrlListener aListener, in nsIMsgWindow aMsgWindow);
   /**
    * Compact all folders in the account corresponding to this folder/

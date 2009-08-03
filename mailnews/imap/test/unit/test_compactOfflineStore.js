@@ -11,7 +11,7 @@ const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
 
 // Globals
 var gRootFolder;
-var gIMAPInbox, gIMAPTrashFolder;
+var gIMAPInbox, gIMAPTrashFolder, gMsgImapInboxFolder;
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 var gImapInboxOfflineStoreSize;
 
@@ -46,7 +46,28 @@ function addMessagesToServer(messages, mailbox, localFolder)
   {
     mailbox.addMessage(new imapMessage(message.spec, mailbox.uidnext++, []));
   });
+}
 
+function checkOfflineStore(prevOfflineStoreSize) {
+  dump("checking offline store\n");
+  let offset = new Object;
+  let size = new Object;
+  let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+  if (enumerator)
+  {
+    while (enumerator.hasMoreElements())
+    {
+      let header = enumerator.getNext();
+      // this will verify that the message in the offline store
+      // starts with "From " - otherwise, it returns an error.
+      if (header instanceof Components.interfaces.nsIMsgDBHdr &&
+         (header.flags & Ci.nsMsgMessageFlags.Offline)
+        gIMAPInbox.getOfflineFileStream(header.messageKey, offset, size).close();
+    }
+  }
+  // check that the offline store shrunk by at least 100 bytes.
+  // (exact calculation might be fragile).
+  do_check_true(prevOfflineStoreSize > gIMAPInbox.filePath.fileSize + 100);
 }
 
 const gTestArray =
@@ -71,27 +92,22 @@ const gTestArray =
     gImapInboxOfflineStoreSize = gIMAPInbox.filePath.fileSize;
     gRootFolder.compactAll(UrlListener, null, true);
   },
-  function checkOfflineStore() {
-    dump("checking offline store\n");
-    let offset = new Object;
-    let size = new Object;
-    let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
-    if (enumerator)
-    {
-      while (enumerator.hasMoreElements())
-      {
-        var header = enumerator.getNext();
-        // this will verify that the message in the offline store
-        // starts with "From " - otherwise, it returns an error.
-        if (header instanceof Components.interfaces.nsIMsgDBHdr)
-          gIMAPInbox.getOfflineFileStream(header.messageKey, offset, size);
-      }
-    }
-    // check that the offline store shrunk by at least 100 bytes.
-    // (exact calculation might be fragile).
-    do_check_true(gImapInboxOfflineStoreSize > gIMAPInbox.filePath.fileSize + 100);
+  function checkCompactionResult() {
+    checkOfflineStore(gImapInboxOfflineStoreSize);
     UrlListener.OnStopRunningUrl(null, 0);
-  }
+  },
+  function testPendingRemoval() {
+    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId2);
+    gMsgImapInboxFolder.markPendingRemoval(msgHdr);
+    gImapInboxOfflineStoreSize = gIMAPInbox.filePath.fileSize;
+    gRootFolder.compactAll(UrlListener, null, true);
+  },
+  function checkCompactionResult() {
+    checkOfflineStore(gImapInboxOfflineStoreSize);
+    UrlListener.OnStopRunningUrl(null, 0);
+    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId2);
+    do_check_eq(msgHdr.flags & Ci.nsMsgMessageFlags.Offline, 0);
+  },
 ];
 
 function run_test()
@@ -140,13 +156,13 @@ function run_test()
 
   gRootFolder = gIMAPIncomingServer.rootFolder;
   gIMAPInbox = gRootFolder.getChildNamed("INBOX");
-  msgImapFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
+  gMsgImapInboxFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
   // then remove the INBOX folder since it's not verified.
-  msgImapFolder.hierarchyDelimiter = '/';
-  msgImapFolder.verifiedAsOnlineFolder = true;
+  gMsgImapInboxFolder.hierarchyDelimiter = '/';
+  gMsgImapInboxFolder.verifiedAsOnlineFolder = true;
 
 
   // Add a couple of messages to the INBOX
@@ -184,17 +200,23 @@ function doTest(test)
     // server
     gRootFolder = null;
     gIMAPInbox = null;
+    gMsgImapFolder = null;
     gIMAPTrashFolder = null;
-    gServer.resetTest();
-    gIMAPIncomingServer.closeCachedConnections();
-    gServer.performTest();
-    gServer.stop();
-    let thread = gThreadManager.currentThread;
-    while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
-
-    do_test_finished(); // for the one in run_test()
+    do_timeout_function(1000, endTest);
   }
+}
+
+function endTest()
+{
+  gServer.resetTest();
+  gIMAPIncomingServer.closeCachedConnections();
+  gServer.performTest();
+  gServer.stop();
+  let thread = gThreadManager.currentThread;
+  while (thread.hasPendingEvents())
+    thread.processNextEvent(true);
+
+  do_test_finished(); // for the one in run_test()
 }
 
 // nsIMsgCopyServiceListener implementation - runs next test when copy

@@ -58,12 +58,12 @@ interface nsIMsgWindow;
 interface nsIImapIncomingServer;
 interface nsICacheSession;
 
-[scriptable, uuid(6a881768-ffc0-4967-b291-2ea83f7027ba)]
+[scriptable, uuid(7ff02a19-f402-436a-a6cc-c4c454f0b86f)]
 interface nsIImapService : nsISupports
 {
   // You can pass in null for the url listener and the url if you don't require either.....
   // aClientEventTarget is the event queue of the event sinks. We post events into this queue.
-  void selectFolder(in nsIEventTarget aClientEventTarget, 
+  void selectFolder(in nsIEventTarget aClientEventTarget,
                     in nsIMsgFolder aImapMailFolder,
                     in nsIUrlListener aUrlListener,
                     in nsIMsgWindow   aMsgWindow,
@@ -81,7 +81,7 @@ interface nsIImapService : nsISupports
    *
    * @returns the url created to run the lite select in.
    */
-  nsIURI liteSelectFolder(in nsIEventTarget aClientEventTarget, 
+  nsIURI liteSelectFolder(in nsIEventTarget aClientEventTarget,
                         in nsIMsgFolder aImapMailFolder,
                         in nsIUrlListener aUrlListener,
                         in nsIMsgWindow aMsgWindow);
@@ -102,32 +102,52 @@ interface nsIImapService : nsISupports
                     in ACString additionalHeader,
                     out nsIURI aOutURL);
 
-  void noop(in nsIEventTarget aClientEventTarget, 
+  void noop(in nsIEventTarget aClientEventTarget,
             in nsIMsgFolder aImapMailFolder,
             in nsIUrlListener aUrlListener,
             out nsIURI aURL);
 
-  void getHeaders(in nsIEventTarget aClientEventTarget, 
+  void getHeaders(in nsIEventTarget aClientEventTarget,
                   in nsIMsgFolder aImapMailFolder,
                   in nsIUrlListener aUrlListener,
                   out nsIURI aURL,
                   in ACString aMessageIdentifierList,
                   in boolean aMessageIdsAreUID);
 
-  nsIURI getBodyStart(in nsIEventTarget aClientEventTarget, 
+  nsIURI getBodyStart(in nsIEventTarget aClientEventTarget,
                   in nsIMsgFolder aImapMailFolder,
                   in nsIUrlListener aUrlListener,
                   in ACString aMessageIdentifierList,
                   in long numBytes);
 
-  void expunge(in nsIEventTarget aClientEventTarget, 
+  /**
+   * Issue an EXPUNGE on the target folder.
+   *
+   * @param aClientEventTarget  the event target of the ui thread
+   * @param aImapMailFolder     the folder to expunge
+   * @param aUrlListener        url listener, can be null
+   * @param aMsgWindow          msg window url is running in, can be null
+   *
+   * @returns the url created to run the expunge.
+   */
+  void expunge(in nsIEventTarget aClientEventTarget,
                in nsIMsgFolder aImapMailFolder,
                in nsIUrlListener aUrlListener,
+               in nsIMsgWindow aMsgWindow,
                out nsIURI aURL);
-  
-  nsIURI updateFolderStatus(in nsIEventTarget aClientEventTarget, 
-               in nsIMsgFolder aImapMailFolder,
-               in nsIUrlListener aUrlListener);
+
+  /**
+   * Issue a STATUS on the target folder.
+   *
+   * @param aClientEventTarget  the event target of the ui thread
+   * @param aImapMailFolder     the folder to expunge
+   * @param aUrlListener        url listener, can be null
+   *
+   * @returns the url created to run the status.
+   */
+  nsIURI updateFolderStatus(in nsIEventTarget aClientEventTarget,
+                            in nsIMsgFolder aImapMailFolder,
+                            in nsIUrlListener aUrlListener);
 
   /**
    * Verify that we can login.
@@ -147,19 +167,19 @@ interface nsIImapService : nsISupports
             out nsIURI aURL,
             in unsigned long aUidHighWater);
 
-  void deleteMessages(in nsIEventTarget aClientEventTarget, 
+  void deleteMessages(in nsIEventTarget aClientEventTarget,
                       in nsIMsgFolder aImapMailFolder,
                       in nsIUrlListener aUrlListener,
                       out nsIURI aURL,
                       in ACString aMessageIdentifierList,
                       in boolean aMessageIdsAreUID);
 
-  void deleteAllMessages(in nsIEventTarget aClientEventTarget, 
+  void deleteAllMessages(in nsIEventTarget aClientEventTarget,
                          in nsIMsgFolder aImapMailFolder,
                          in nsIUrlListener aUrlListener,
                          out nsIURI aURL);
   
-  void addMessageFlags(in nsIEventTarget aClientEventTarget, 
+  void addMessageFlags(in nsIEventTarget aClientEventTarget,
                          in nsIMsgFolder aImapMailFolder,
                          in nsIUrlListener aUrlListener,
                          out nsIURI aURL,
@@ -167,7 +187,7 @@ interface nsIImapService : nsISupports
                          in imapMessageFlagsType aFlags,
                          in boolean aMessageIdsAreUID);
   
-  void subtractMessageFlags(in nsIEventTarget aClientEventTarget, 
+  void subtractMessageFlags(in nsIEventTarget aClientEventTarget,
                             in nsIMsgFolder aImapMailFolder,
                             in nsIUrlListener aUrlListener,
                             out nsIURI aURL,
@@ -175,7 +195,7 @@ interface nsIImapService : nsISupports
                             in imapMessageFlagsType aFlags,
                             in boolean aMessageIdsAreUID);
 
-  void setMessageFlags(in nsIEventTarget aClientEventTarget, 
+  void setMessageFlags(in nsIEventTarget aClientEventTarget,
                        in nsIMsgFolder aImapMailFolder,
                        in nsIUrlListener aUrlListener,
                        out nsIURI aURL,
@@ -183,13 +203,13 @@ interface nsIImapService : nsISupports
                        in imapMessageFlagsType aFlags,
                        in boolean aMessageIdsAreUID);
   
-  void discoverAllFolders(in nsIEventTarget aClientEventTarget, 
+  void discoverAllFolders(in nsIEventTarget aClientEventTarget,
                           in nsIMsgFolder aImapMailFolder,
                           in nsIUrlListener aUrlListener,
                           in nsIMsgWindow aMsgWindow,
                           out nsIURI aURL);
 
-  void discoverAllAndSubscribedFolders(in nsIEventTarget aClientEventTarget, 
+  void discoverAllAndSubscribedFolders(in nsIEventTarget aClientEventTarget,
                                        in nsIMsgFolder aImapMailFolder,
                                        in nsIUrlListener aUrlListener,
                                        out nsIURI aURL);
@@ -199,7 +219,7 @@ interface nsIImapService : nsISupports
                         in ACString folderPath,
                         out nsIURI aURL);
 
-  void onlineMessageCopy(in nsIEventTarget aClientEventTarget, 
+  void onlineMessageCopy(in nsIEventTarget aClientEventTarget,
                          in nsIMsgFolder aSrcFolder,
                          in ACString aMessageIds,
                          in nsIMsgFolder aDstFolder,
@@ -211,7 +231,7 @@ interface nsIImapService : nsISupports
                          in nsIMsgWindow aWindow);
 
 
-  void appendMessageFromFile(in nsIEventTarget aClientEventTarget, 
+  void appendMessageFromFile(in nsIEventTarget aClientEventTarget,
                              in nsIFile aFile,
                              in nsIMsgFolder aDstFolder,
                              in ACString aMessageId,
@@ -225,29 +245,29 @@ interface nsIImapService : nsISupports
   void downloadMessagesForOffline(in ACString aMessageIds, in nsIMsgFolder aSrcFolder,
                       in nsIUrlListener aListener, in nsIMsgWindow   aMsgWindow);
 
-  nsIURI moveFolder(in nsIEventTarget aClientEventTarget, 
+  nsIURI moveFolder(in nsIEventTarget aClientEventTarget,
                     in nsIMsgFolder aSrcFolder,
                     in nsIMsgFolder aDstFolder,
                     in nsIUrlListener aUrlListener,
                     in nsIMsgWindow msgWindow);
 
-  nsIURI renameLeaf(in nsIEventTarget aClientEventTarget, 
+  nsIURI renameLeaf(in nsIEventTarget aClientEventTarget,
                     in nsIMsgFolder aSrcFolder,
                     in AString aLeafName,
                     in nsIUrlListener aUrlListener,
                     in nsIMsgWindow msgWindow);
 
-  nsIURI deleteFolder(in nsIEventTarget aClientEventTarget, 
+  nsIURI deleteFolder(in nsIEventTarget aClientEventTarget,
                       in nsIMsgFolder aFolder,
                       in nsIUrlListener aUrlListener,
                       in nsIMsgWindow aMsgWindow);
 
-  nsIURI createFolder(in nsIEventTarget aClientEventTarget, 
+  nsIURI createFolder(in nsIEventTarget aClientEventTarget,
                       in nsIMsgFolder aParentFolder,
                       in AString aLeafName,
                       in nsIUrlListener aUrlListener);
   
-  nsIURI listFolder(in nsIEventTarget aClientEventTarget, 
+  nsIURI listFolder(in nsIEventTarget aClientEventTarget,
                     in nsIMsgFolder aMailFolder,
                     in nsIUrlListener aUrlListener);
 

@@ -1208,13 +1208,36 @@ NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow 
   if (mDatabase)
     ApplyRetentionSettings();
 
-  // We're not compacting the offline store here since that can interfere
-  // with the online compact. Offline stores should get compacted in the
-  // background.
-  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+  // We should be able to compact the offline store now that this should
+  // just be called by the UI.
+  if (aMsgWindow && (mFlags & nsMsgFolderFlags::Offline))
+    CompactOfflineStore(aMsgWindow, nsnull);
 
-  return  imapService->Expunge(m_thread, this, aListener, nsnull);
+  return Expunge(aListener, aMsgWindow);
+}
+
+NS_IMETHODIMP nsImapMailFolder::MarkPendingRemoval(nsIMsgDBHdr *aHdr)
+{
+  NS_ENSURE_ARG_POINTER(aHdr);
+  PRUint32 offlineMessageSize;
+  aHdr->GetOfflineMessageSize(&offlineMessageSize);
+  aHdr->SetStringProperty("pendingRemoval", "1");
+  nsresult rv = GetDatabase();
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
+  rv = mDatabase->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return dbFolderInfo->ChangeExpungedBytes(offlineMessageSize);
+}
+
+NS_IMETHODIMP nsImapMailFolder::Expunge(nsIUrlListener *aListener,
+                                        nsIMsgWindow *aMsgWindow)
+{
+  nsresult rv;
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return imapService->Expunge(m_thread, this, aListener, aMsgWindow, nsnull);
 }
 
 NS_IMETHODIMP nsImapMailFolder::CompactAll(nsIUrlListener *aListener,
