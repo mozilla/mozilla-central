@@ -96,10 +96,10 @@ interface calITodo : calIItemBase
   attribute boolean isCompleted;
 
   /**
-   * The duration of the todo, which is defined as dueDate - entryDate.
-   * Please note that null is returned if either entryDate or
+   * The duration of the todo, which is either set or defined as dueDate - entryDate.
+   * Please note that null is returned if there is no duration set and entryDate or
    * dueDate don't exist.
    */
-  readonly attribute calIDuration duration;
+  attribute calIDuration duration;
 };
 
