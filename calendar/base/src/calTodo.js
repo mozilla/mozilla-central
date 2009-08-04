@@ -136,26 +136,21 @@ calTodo.prototype = {
     },
 
     get duration() {
-	let dur = this.getProperty("DURATION");
-	// pick up duration if available, otherwise calculate difference
-	// between start and enddate
-	if (dur) {
-		let icalDur = cal.createDuration(dur);
-		icalDur.icalString = dur;
-		return icalDur;
-	} else {
-		if (!this.entryDate) {
-			return null;
-		}
-		if (!this.dueDate) {
-			return null;
-		}
-		return this.dueDate.subtractDate(this.entryDate);
-	}
+        let dur = this.getProperty("DURATION");
+        // pick up duration if available, otherwise calculate difference
+        // between start and enddate
+        if (dur) {
+            return cal.createDuration(dur);
+        } else {
+            if (!this.entryDate || !this.dueDate) {
+                return null;
+            }
+            return this.dueDate.subtractDate(this.entryDate);
+        }
     },
 
     set duration(value) {
-	this.setProperty("DURATION", value);
+        this.setProperty("DURATION", value);
     },
 
     get recurrenceStartDate() {
