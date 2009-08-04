@@ -829,12 +829,12 @@ function UnloadCommandUpdateHandlers()
 
 function IsSendUnsentMsgsEnabled(folderResource)
 {
-  var msgSendlater =
+  var msgSendLater =
     Components.classes["@mozilla.org/messengercompose/sendlater;1"]
               .getService(Components.interfaces.nsIMsgSendLater);
 
   // If we're currently sending unsent msgs, disable this cmd.
-  if (msgSendlater.sendingMessages)
+  if (msgSendLater.sendingMessages)
     return false;
 
   if (folderResource &&
