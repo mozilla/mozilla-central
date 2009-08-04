@@ -228,6 +228,7 @@ var DefaultController =
       case "cmd_recalculateJunkScore":
       case "cmd_markAsShowRemote":
       case "cmd_markAsNotPhish":
+      case "cmd_displayMsgFilters":
       case "cmd_applyFiltersToSelection":
       case "cmd_applyFilters":
       case "cmd_runJunkControls":
@@ -365,6 +366,10 @@ var DefaultController =
         return (GetNumSelectedMessages() > 0 && checkMsgHdrPropertyIsNot("remoteContentPolicy", kAllowRemoteContent));
       case "cmd_markAsNotPhish":
         return (GetNumSelectedMessages() > 0 && checkMsgHdrPropertyIsNot("notAPhishMessage", kNotAPhishMessage));
+      case "cmd_displayMsgFilters":
+        let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                            .getService(Components.interfaces.nsIMsgAccountManager);
+        return mgr.accounts.Count() > 0;
       case "cmd_applyFilters":
         if (gDBView)
           gDBView.getCommandStatus(nsMsgViewCommandType.applyFilters, enabled, checkStatus);
@@ -684,6 +689,9 @@ var DefaultController =
         return;
       case "cmd_markAsNotPhish":
         MsgIsNotAScam();
+        return;
+      case "cmd_displayMsgFilters":
+        MsgFilters(null, null);
         return;
       case "cmd_applyFiltersToSelection":
         MsgApplyFiltersToSelection();

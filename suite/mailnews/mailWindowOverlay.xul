@@ -309,6 +309,9 @@
               commandupdater="true"
               events="create-menu-tasks"
               oncommandupdate="goUpdateMailMenuItems(this)">
+  <command id="cmd_displayMsgFilters"
+           disabled="true"
+           oncommand="goDoCommand('cmd_displayMsgFilters');"/>
   <command id="cmd_applyFilters" oncommand="goDoCommand('cmd_applyFilters');" disabled="true"/>
   <command id="cmd_applyFiltersToSelection"
            oncommand="goDoCommand('cmd_applyFiltersToSelection');"
@@ -1825,7 +1828,7 @@
     <menuitem id="menu_Filters"
               label="&filtersCmd.label;"
               accesskey="&filtersCmd.accesskey;"
-              oncommand="MsgFilters(null, null);"/>
+              command="cmd_displayMsgFilters"/>
     <menuitem id="applyFilters"
               label="&filtersApply.label;"
               accesskey="&filtersApply.accesskey;"
