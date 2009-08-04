@@ -101,11 +101,10 @@
                                                 .getService(nsIPermissionManager);
               if (permissionmanager.testPermission(uri, "image") == nsIPermissionManager.DENY_ACTION)
                 action = "unblock";
-              // Use |getStringBundle()| from <contentAreaUtils.js>.
-              const bundle = getStringBundle();
+              const bundle = document.getElementById("contentAreaCommandsBundle");
               var blockImageMenuItem = document.getElementById("context-" + action + "image");
-              blockImageMenuItem.setAttribute("label", bundle.formatStringFromName(action + "Image", [serverLabel], 1));
-              blockImageMenuItem.setAttribute("accesskey", bundle.GetStringFromName(action + "Image.accesskey"));
+              blockImageMenuItem.setAttribute("label", bundle.getFormattedString(action + "Image", [serverLabel]));
+              blockImageMenuItem.setAttribute("accesskey", bundle.getString(action + "Image.accesskey"));
               gContextMenu.showItem("context-" + action + "image", true);
             }
           } catch (e) {}

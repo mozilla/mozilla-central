@@ -1074,13 +1074,12 @@ nsContextMenu.prototype = {
         searchSelectText = searchSelectText.substr(0, 15) + "...";
 
       // Format "Search for <selection>" string to show in menu.
-      // Use |getStringBundle()| from <contentAreaUtils.js>.
-      var bundle = getStringBundle();
-      searchSelectText = bundle.formatStringFromName("searchText",
-                                                     [searchSelectText], 1);
+      const bundle = document.getElementById("contentAreaCommandsBundle");
+      searchSelectText = bundle.getFormattedString("searchText",
+                                                   [searchSelectText]);
       this.setItemAttr("context-searchselect", "label", searchSelectText);
       this.setItemAttr("context-searchselect", "accesskey",
-                       bundle.GetStringFromName("searchText.accesskey"));
+                       bundle.getString("searchText.accesskey"));
 
       return true;
     },

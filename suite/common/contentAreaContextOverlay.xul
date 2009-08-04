@@ -52,6 +52,11 @@
   <script type="application/x-javascript" src="chrome://communicator/content/nsContextMenu.js"/>
   <script type="application/x-javascript" src="chrome://communicator/content/contentAreaUtils.js"/>
 
+  <stringbundleset>
+    <stringbundle id="contentAreaCommandsBundle"
+                  src="chrome://communicator/locale/contentAreaCommands.properties"/>
+  </stringbundleset>
+
   <popupset id="contentAreaContextSet">
     <!-- This is a generic context menu for a content area. It contains 
          each and every possible menu choice.  The appropriate items are
