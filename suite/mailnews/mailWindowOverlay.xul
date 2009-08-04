@@ -1904,9 +1904,19 @@
     </toolbarbutton>
     <toolbarbutton id="button-newmsg"
                    class="toolbarbutton-1"
+                   type="menu-button"
                    label="&newMsgButton.label;"
                    tooltiptext="&newMsgButton.tooltip;"
-                   oncommand="MsgNewMessage(event)"/>
+                   oncommand="MsgNewMessage(event)">
+      <menupopup id="button-newMsgPopup">
+        <menuitem label="&newHTMLMessageCmd.label;"
+                  accesskey="&newHTMLMessageCmd.accesskey;"
+                  mode="HTML"/>
+        <menuitem label="&newPlainTextMessageCmd.label;"
+                  accesskey="&newPlainTextMessageCmd.accesskey;"
+                  mode="PlainText"/>
+      </menupopup>
+    </toolbarbutton>
     <toolbarbutton id="button-reply"
                    class="toolbarbutton-1"
                    label="&replyButton.label;"

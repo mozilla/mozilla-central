@@ -457,6 +457,10 @@
 <!-- Toolbar items -->
 <!ENTITY getMsgButton.label "Get Msgs">
 <!ENTITY newMsgButton.label "Compose">
+<!ENTITY newHTMLMessageCmd.label "Compose in HTML">
+<!ENTITY newHTMLMessageCmd.accesskey "H">
+<!ENTITY newPlainTextMessageCmd.label "Compose in Plain Text">
+<!ENTITY newPlainTextMessageCmd.accesskey "P">
 <!ENTITY replyButton.label "Reply">
 <!ENTITY replyAllButton.label "Reply All">
 <!ENTITY forwardButton.label "Forward">

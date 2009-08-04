@@ -1067,81 +1067,82 @@ function MsgMoveMessage(destFolder)
   }
 }
 
-function MsgNewMessage(event)
+/**
+ * Calls the ComposeMessage function with the desired type and proper default
+ * based on the event that fired it.
+ *
+ * @param aCompType  The nsIMsgCompType to pass to the function.
+ * @param aEvent (optional) The event that triggered the call.
+ */
+function ComposeMsgByType(aCompType, aEvent)
 {
-  var loadedFolder = GetFirstSelectedMsgFolder();
-  var messageArray = GetSelectedMessages();
+  var format = (aEvent && aEvent.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default;
 
-  ComposeMessage(msgComposeType.New,
-    (event && event.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default,
-    loadedFolder, messageArray);
+  ComposeMessage(aCompType,
+                 format,
+                 GetFirstSelectedMsgFolder(),
+                 GetSelectedMessages());
 }
 
-function MsgReplyMessage(event)
+function MsgNewMessage(aEvent)
+{
+  var format;
+  var mode = aEvent && aEvent.target.getAttribute("mode");
+  if (mode)
+    format = msgComposeFormat[mode];
+  else
+    format = (aEvent && aEvent.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default;
+
+  ComposeMessage(msgComposeType.New,
+                 format,
+                 GetFirstSelectedMsgFolder(),
+                 GetSelectedMessages());
+}
+
+function MsgReplyMessage(aEvent)
 {
   var loadedFolder = GetLoadedMsgFolder();
   if (loadedFolder)
   {
     var server = loadedFolder.server;
-
     if (server && server.type == "nntp")
     {
-      MsgReplyGroup(event);
+      MsgReplyGroup(aEvent);
       return;
     }
   }
-  MsgReplySender(event);
+  MsgReplySender(aEvent);
 }
 
-function MsgReplySender(event)
+function MsgReplySender(aEvent)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  ComposeMessage(msgComposeType.ReplyToSender,
-    (event && event.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default,
-    loadedFolder, messageArray);
+  ComposeMsgByType(msgComposeType.ReplyToSender, aEvent);
 }
 
-function MsgReplyGroup(event)
+function MsgReplyGroup(aEvent)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  ComposeMessage(msgComposeType.ReplyToGroup,
-    (event && event.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default,
-    loadedFolder, messageArray);
+  ComposeMsgByType(msgComposeType.ReplyToGroup, aEvent);
 }
 
-function MsgReplyToAllMessage(event)
+function MsgReplyToAllMessage(aEvent)
 {
   var loadedFolder = GetLoadedMsgFolder();
   var server = loadedFolder.server;
 
   if (server && server.type == "nntp")
-    MsgReplyToSenderAndGroup(event);
+    MsgReplyToSenderAndGroup(aEvent);
   else
-    MsgReplyToAllRecipients(event);
+    MsgReplyToAllRecipients(aEvent);
 }
 
-function MsgReplyToAllRecipients(event)
+function MsgReplyToAllRecipients(aEvent)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  ComposeMessage(msgComposeType.ReplyAll,
-    (event && event.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default,
-    loadedFolder, messageArray);
+  ComposeMsgByType(msgComposeType.ReplyAll, aEvent);
 }
 
-function MsgReplyToSenderAndGroup(event)
+function MsgReplyToSenderAndGroup(aEvent)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  ComposeMessage(msgComposeType.ReplyToSenderAndGroup,
-    (event && event.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default,
-    loadedFolder, messageArray);
+  ComposeMsgByType(msgComposeType.ReplyToSenderAndGroup, aEvent);
 }
 
 
