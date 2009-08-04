@@ -125,7 +125,6 @@ EmailConfigWizard.prototype =
     this._incomingWarning = 'cleartext';
     this._outgoingWarning = 'cleartext';
     this._userPickedOutgoingServer = false;
-    this._customFields = {}; // map of: field ID from config file {String} -> field value entered by user {String}
 
     if (window.arguments && window.arguments[0] &&
         window.arguments[0].msgWindow)
@@ -146,7 +145,7 @@ EmailConfigWizard.prototype =
       var menuitem = document.createElement("menuitem");
       var label = server.displayname;
       if (server.key == gSmtpManager.defaultServer.key)
-        label += " " + gStringsBundle.getString("defaultServerTag");
+        label += " " + gStringsBundle.getString("default_server_tag");
 
       menuitem.setAttribute("label", label);
       menuitem.setAttribute("value", server.key);
@@ -451,8 +450,8 @@ EmailConfigWizard.prototype =
           {
             gEmailWizardLogger.info("guessConfig failed: " + e);
             me.updateConfig(config);
-            me.stopSpinner("finished_with_errors2");
-            me.setSpinnerStatus("enter_missing_hostnames2");
+            me.stopSpinner("finished_with_error");
+            me.setSpinnerStatus("please_enter_missing_hostnames");
             me._probeAbortable = null;
             me.editConfigDetails();
           },
@@ -497,7 +496,7 @@ EmailConfigWizard.prototype =
     this._currentConfigFilledIn = config.copy();
     _show("advanced_settings");
     replaceVariables(this._currentConfigFilledIn, this._realname, this._email,
-                     this._password, this._customFields);
+                     this._password);
 
     this.updateConfig(this._currentConfigFilledIn);
 
@@ -586,31 +585,31 @@ EmailConfigWizard.prototype =
         let incoming_details;
         let outgoing_details;
         let incoming = this._currentConfigFilledIn.incoming;
-        let incoming_settings = incoming.hostname + ':' + incoming.port +
+        let incomingSettings = incoming.hostname + ':' + incoming.port +
                                 ' (' + sslLabel(incoming.socketType) + ')';
         let outgoing = this._currentConfigFilledIn.outgoing;
-        let outgoing_settings = outgoing.hostname + ':' + outgoing.port +
+        let outgoingSettings = outgoing.hostname + ':' + outgoing.port +
                                 ' (' + sslLabel(outgoing.socketType) + ')';
         var brandShortName = gBrandBundle.getString("brandShortName");
         switch (this._incomingWarning)
         {
           case 'cleartext':
             incomingwarningstring = gStringsBundle.getFormattedString(
-              "cleartext_incoming2", [brandShortName, incoming.hostname]);
+              "incoming_cleartext_warning", [brandShortName, incoming.hostname]);
             incoming_details = gStringsBundle.getString("cleartext_details");
             setText('warning_incoming', incomingwarningstring);
             setText('incoming_details', incoming_details);
-            setText('incoming_settings', incoming_settings);
+            setText('incomingSettings', incomingSettings);
             _show('incoming_box');
             _show('acknowledge_incoming');
             break;
           case 'selfsigned':
             incomingwarningstring = gStringsBundle.getFormattedString(
-              "selfsigned_incoming2", [brandShortName, incoming.hostname]);
+              "incoming_selfsigned_warning", [brandShortName, incoming.hostname]);
             incoming_details = gStringsBundle.getString("selfsigned_details");
             setText('warning_incoming', incomingwarningstring);
             setText('incoming_details', incoming_details);
-            setText('incoming_settings', incoming_settings);
+            setText('incomingSettings', incomingSettings);
             _show('incoming_box');
             _show('acknowledge_incoming');
             break;
@@ -622,21 +621,21 @@ EmailConfigWizard.prototype =
         {
           case 'cleartext':
             outgoingwarningstring = gStringsBundle.getFormattedString(
-              "cleartext_outgoing2", [brandShortName, outgoing.hostname]);
-            outgoingdetailsstring = gStringsBundle.getString("cleartext_details");
+              "outgoing_cleartext_warning", [brandShortName, outgoing.hostname]);
+            outgoing_details = gStringsBundle.getString("cleartext_details");
             setText('warning_outgoing', outgoingwarningstring);
             setText('outgoing_details', outgoing_details);
-            setText('outgoing_settings', outgoing_settings);
+            setText('outgoingSettings', outgoingSettings);
             _show('outgoing_box');
             _show('acknowledge_outgoing');
             break;
           case 'selfsigned':
             outgoingwarningstring = gStringsBundle.getFormattedString(
-              "selfsigned_outgoing2", [brandShortName, outgoing.hostname]);
+              "outgoing_selfsigned_warning", [brandShortName, outgoing.hostname]);
             outgoing_details = gStringsBundle.getString("selfsigned_details");
             setText('warning_outgoing', outgoingwarningstring);
             setText('outgoing_details', outgoing_details);
-            setText('outgoing_settings', outgoing_settings);
+            setText('outgoingSettings', outgoingSettings);
             _show('outgoing_box');
             _show('acknowledge_outgoing');
             break;
@@ -719,10 +718,10 @@ EmailConfigWizard.prototype =
       },
       function(e) // failed
       {
-        me.stopSpinner("config_not_verified2");
+        me.stopSpinner("config_unverifiable");
         me.setError('passworderror', 'user_pass_invalid');
         alertPrompt(gStringsBundle.getString("error_creating_account"),
-                    gStringsBundle.getString("config_not_verified2"));
+                    gStringsBundle.getString("config_unverifiable"));
         if (errorCallback)
           errorCallback(e);
       });
@@ -743,7 +742,7 @@ EmailConfigWizard.prototype =
                                              : this.getUserConfig();
     // call this to set the password
     replaceVariables(config, this._realname, this._email,
-                     this._password, this._customFields);
+                     this._password);
 
     gEmailWizardLogger.info("creating account in backend");
     config.rememberPassword =
@@ -1059,7 +1058,7 @@ EmailConfigWizard.prototype =
                 this._setOutgoingStatus('strong');
               break;
             case 1: // plain
-              this._setOutgoingStatus('weak');
+              this._setOutgoingStatus('weak', 'cleartext');
               break;
             default:
               throw new NotReached("sslType " + config.incoming.socketType + " unknown");
@@ -1278,12 +1277,22 @@ EmailConfigWizard.prototype =
     }
   },
 
-  onKeyDown : function (key)
+  onKeyDown : function (event)
   {
-    if (key == 27)
+    let key = event.keyCode;
+    if (key == 27) {
       this.onCancel();
-    else if (key == 13 && !getElementById('create_button').disabled)
+      return true;
+    }
+    if (key == 13 && !getElementById('create_button').hidden) {
       this.onOK();
+      return true;
+    }
+    if (key == 13 && !getElementById('next_button').hidden) {
+      this.onNext();
+      return true;
+    }
+    return false;
   },
 
   onWizardShutdown: function EmailConfigWizard_onWizardshutdown() {
@@ -1304,7 +1313,7 @@ function sslLabel(val)
     case 1:
       return gStringsBundle.getString("no_encryption");
     case 2:
-      return gStringsBundle.getString("ssltls2");
+      return gStringsBundle.getString("ssl_tls");
     case 3:
       return gStringsBundle.getString("starttls");;
     default:
@@ -1326,154 +1335,3 @@ function setText(id, value)
   else
     throw new NotReached("XUL element type not supported");
 }
-
-
-/**
-* Called by dialog logic, if there are custom fields needed
-* The dialog just shows all these descriptions, and a textfield next to each,
-* and returns the values the user entered.
-*
-* @param inputFields {Array}   @see AccountConfig.inputFields
-* @param defaults {Object}
-* Associative array / map of
-* field ID (from config file) -> default value in text field
-* The default values can come from a previous invokation of the dialog.
-* May be null.
-*/
-function CustomFieldsDialog(inputFields, defaults)
-{
-  if (!defaults)
-    defaults = {};
-
-  this._inputFields = inputFields;
-  this._defaults = defaults;
-}
-CustomFieldsDialog.prototype =
-{
-  /**
-   * Open dialog, unless the needed data is already in |defaults|.
-   * @param successCallback, cancelCallback @see open()
-   */
-  openIfNeeded : function(successCallback, cancelCallback)
-  {
-    var needInput = false;
-    for (var i = 0; i < this._inputFields.length; i++)
-    {
-      let fieldid = this._inputFields[i].varname;
-      if (!this._defaults[fieldid])
-        needInput = true;
-    }
-    if (!needInput)
-    {
-      successCallback(this._defaults);
-      return;
-    }
-
-    this.open(successCallback, cancelCallback);
-  },
-
-  /**
-   * @param successCallback {Function({Object})}
-   * Will be called when the user entered all values and clicked OK.
-   * The first parameter contains the values that the user entered,
-   * in form Map of: field ID -> user value
-   *
-   * @param cancelCallback {Function()}
-   * The user cancelled the dialog.
-   */
-  open : function(successCallback, cancelCallback)
-  {
-    this._successCallback = successCallback;
-    this._cancelCallback = cancelCallback;
-
-    var rows = getElementById("customfields-rows");
-
-    // first, clear dialog from any possible previous use
-    while (rows.hasChildNodes())
-      rows.removeChild(rows.firstChild);
-
-    for (var i = 0; i < this._inputFields.length; i++)
-    {
-      let fieldid = this._inputFields[i].varname;
-      let displayName = this._inputFields[i].displayName;
-      let exampleValue = this._inputFields[i].exampleValue;
-
-      // only 5 fields allowed per spec, to cut down on dialog size and preserve sanity
-      if (i >= 5)
-        throw new Exception(gStringsBundle.getString("customfields_tooMany.error"));
-
-      // Create UI widgets
-      let row = document.createElement("row");
-      let descr = document.createElement("description");
-      let textfield = document.createElement("textbox");
-      let exHBox = document.createElement("hbox");
-      let exLabel = document.createElement("label");
-      let example = document.createElement("label");
-      exHBox.appendChild(exLabel);
-      exHBox.appendChild(example);
-      row.appendChild(descr);
-      row.appendChild(textfield);
-      row.appendChild(exHBox);
-      rows.appendChild(row);
-      descr.setAttribute("class", "customfield-label");
-      textfield.setAttribute("class", "customfield-value");
-      example.setAttribute("class", "customfield-example");
-      // fieldid was already sanitized in readFrom XML.js as alphanumdash and uppercase
-      textfield.id = "customfield-value-" + fieldid;
-      exLabel.setAttribute("value", gStringsBundle.getString("customfields_example.label"));
-
-      // Set labels and values
-      descr.textContent = displayName;
-      example.setAttribute("value", exampleValue);
-      if (this._defaults && this._defaults[fieldid])
-        textfield.setAttribute("value", this._defaults[fieldid]);
-    }
-
-    _hide("mastervbox");
-    _show("customfields-box");
-  },
-
-  // UI button pressed
-  onCancel : function()
-  {
-    _show("mastervbox");
-    _hide("customfields-box");
-    gCustomFieldsDialog = null;
-    try {
-      this._cancelCallback();
-    } catch (e) {
-      // XXX TODO FIXME
-      alert(e.message); throw e;
-    }
-  },
-
-  // UI button pressed
-  onOK : function()
-  {
-    try {
-      var result = {};
-      for (var i = 0; i < this._inputFields.length; i++)
-      {
-        let fieldid = this._inputFields[i].varname;
-        result[fieldid] = getElementById("customfield-value-" + fieldid).value;
-
-        gEmailWizardLogger.info("User value for " + fieldid + " is " + result[fieldid]);
-        if (!result[fieldid])
-        {
-          getElementById("customfields-error").textContent =
-            gStringsBundle.getString("customfields_empty.error");
-          return;
-        }
-      }
-
-      _show("mastervbox");
-      _hide("customfields-box");
-      gCustomFieldsDialog = null;
-
-      this._successCallback(result);
-
-    } catch (e) { alert(e.message); throw e; } // TODO alertPrompt()
-  }
-}
-
-var gCustomFieldsDialog = null;

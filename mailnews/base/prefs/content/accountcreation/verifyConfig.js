@@ -161,7 +161,7 @@ urlListener.prototype =
     else if (!this.mAlter)
     {
       this._cleanup();
-      var stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
+      var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
       var errorMsg = stringBundle.GetStringFromName("cannot_login.error");
       this.mErrorCallback(new Exception(errorMsg));
     }
@@ -202,7 +202,7 @@ urlListener.prototype =
     {
       // Tried all variations we can. Give up.
       this._cleanup();
-      let stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
+      let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
       let errorMsg = stringBundle.GetStringFromName("cannot_login.error");
       this.mErrorCallback(new Exception(errorMsg));
     }
@@ -239,7 +239,7 @@ urlListener.prototype =
     ddump("exceptionAdded = " + params.exceptionAdded + "\n");
     if (!params.exceptionAdded) {
       self._cleanup();
-      let stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
+      let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
       let errorMsg = stringBundle.GetStringFromName("cannot_login.error");
       self.mErrorCallback(new Exception(errorMsg));
     }

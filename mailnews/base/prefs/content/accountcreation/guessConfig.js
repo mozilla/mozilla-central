@@ -392,7 +392,7 @@ HostDetector.prototype =
     {
       // Ran out of options.
       this._log.info("ran out of hosts");
-      var stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
+      var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
       var errorMsg = stringBundle.GetStringFromName("cannot_find_server.error");
       this.mErrorCallback(new Exception(errorMsg));
       return;

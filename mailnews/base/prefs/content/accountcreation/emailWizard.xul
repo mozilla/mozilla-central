@@ -41,7 +41,7 @@
 <!DOCTYPE window [
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
   %brandDTD;
-  <!ENTITY % acDTD SYSTEM "chrome://messenger/content/accountCreation.dtd">
+  <!ENTITY % acDTD SYSTEM "chrome://messenger/locale/accountCreation.dtd">
   %acDTD;
 ]>
 
@@ -51,15 +51,15 @@
         title="&welcome.description;"
         style="&autoconfigWizard.style;"
         onload="gEmailConfigWizard.onLoad();"
-        onkeydown="gEmailConfigWizard.onKeyDown()"
+        onkeypress="gEmailConfigWizard.onKeyDown(event)"
         onclose="gEmailConfigWizard.onWizardShutdown();"
         onunload="gEmailConfigWizard.onWizardShutdown();"
         >
 
   <stringbundleset>
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
-    <stringbundle id="strings" src="chrome://messenger/content/accountCreation.properties"/>
-    <stringbundle id="utilstrings" src="chrome://messenger/content/accountCreationUtil.properties"/>
+    <stringbundle id="strings" src="chrome://messenger/locale/accountCreation.properties"/>
+    <stringbundle id="utilstrings" src="chrome://messenger/locale/accountCreationUtil.properties"/>
   </stringbundleset>
   <script type="application/javascript"
           src="chrome://messenger/content/accountcreation/util.js"/>
@@ -93,7 +93,7 @@
       <image class="insecureLarry"/>
       <vbox flex="1">
         <description class="title">&insecureServer.tooltip.title;</description>
-        <description class="details">&insecureCleartext.description;</description>
+        <description class="details">&insecureClearText.description;</description>
       </vbox>
     </hbox>
   </panel>
@@ -102,7 +102,7 @@
       <image class="insecureLarry"/>
       <vbox flex="1">
         <description class="title">&insecureServer.tooltip.title;</description>
-        <description class="details">&insecureSelfsigned.description;</description>
+        <description class="details">&insecureSelfSigned.description;</description>
       </vbox>
     </hbox>
   </panel>
@@ -196,16 +196,20 @@
                          onblur="gEmailConfigWizard.onblurPassword();"/>
               </row>
               <row align="center">
-                <checkbox id="remember_password" label="&rememberpassword.label;" checked="true"/>
+                <checkbox id="remember_password"
+                          accesskey="&rememberPassword.accesskey;"
+                          label="&rememberPassword.label;" checked="true"/>
               </row>
               <row>
                 <hbox pack="end">
                   <button id="next_button"
                           hidden="true"
                           oncommand="gEmailConfigWizard.onNext();"
+                          accesskey="&next.accesskey;"
                           label="&next.label;" class="larger-button"/>
                   <button id="back_button" class="smaller-button"
                           oncommand="gEmailConfigWizard.onBack();"
+                          accesskey="&back.accesskey;"
                           label="&back.label;" hidden="true"/>
                 </hbox>
               </row>
@@ -222,13 +226,16 @@
                     <hbox pack="end">
                       <button id="stop_button"
                               oncommand="gEmailConfigWizard.onStop();"
+                              accesskey="&stop.accesskey;"
                               label="&stop.label;" class="smaller-button"/>
                       <button id="edit_button"
                               oncommand="gEmailConfigWizard.onEdit();"
+                              accesskey="&edit.accesskey;"
                               label="&edit.label;" class="smaller-button"
                               hidden="true"/>
                       <button id="go_button"
                               oncommand="gEmailConfigWizard.onGo();"
+                              accesskey="&retest.accesskey;"
                               label="&retest.label;" class="smaller-button"
                               hidden="true"/>
                     </hbox>
@@ -258,7 +265,7 @@
                   </hbox>
                 </vbox>
                 <vbox id="incomingarea">
-                  <label class="textbox-label" value="&receivingserver.label;"
+                  <label class="textbox-label" value="&receivingServer.label;"
                           control="incoming_server"/>
                   <hbox>
                     <vbox id="incoming_status" class="icon" width="22"/>
@@ -295,16 +302,16 @@
                                 disabled="true"
                                 class="security">
                         <menupopup onpopuphidden="gEmailConfigWizard.setSecurity('incoming_security')">
-                          <menuitem label="&noencryption.label;" value="1"/>
+                          <menuitem label="&noEncryption.label;" value="1"/>
                           <menuitem label="&starttls.label;" value="3"/>
-                          <menuitem label="&ssltls2.label;" value="2"/>
+                          <menuitem label="&sslTls.label;" value="2"/>
                         </menupopup>
                       </menulist>
                     </hbox>
                   </hbox>
                 </vbox>
                 <vbox id="outgoingarea">
-                  <label class="textbox-label" value="&sendingserver.label;"
+                  <label class="textbox-label" value="&sendingServer.label;"
                           control="outgoing_server"/>
                   <hbox>
                     <vbox id="outgoing_status" class="icon" width="22"/>
@@ -337,9 +344,9 @@
                                 disabled="true"
                                 class="security">
                         <menupopup onpopuphidden="gEmailConfigWizard.setSecurity('outgoing_security')">
-                          <menuitem label="&noencryption.label;" value="1"/>
+                          <menuitem label="&noEncryption.label;" value="1"/>
                           <menuitem label="&starttls.label;" value="3"/>
-                          <menuitem label="&ssltls2.label;" value="2"/>
+                          <menuitem label="&sslTls.label;" value="2"/>
                         </menupopup>
                       </menulist>
                     </hbox>
@@ -356,13 +363,14 @@
       <hbox align="center">
         <button id="cancel_button" label="&cancel.label;"
                 onmousedown="gEmailConfigWizard.onCancel();"/>
-        <label id="advanced_settings" value="&gotoadvanced2.label;"
+        <label id="advanced_settings" value="&createAndEditSettings.label;"
                onmousedown="gEmailConfigWizard.advancedSettings()"
                hidden="true" class="clickable_label"/>
       </hbox>
       <spacer flex="1"/>
       <hbox align="center">
-        <button id="create_button" label="&createaccount.label;"
+        <button id="create_button" label="&createAccount.label;"
+                accesskey="&createAccount.accesskey;"
                 onmousedown="gEmailConfigWizard.onOK();"
                 hidden="true" class="larger-button"/>
       </hbox>
@@ -384,11 +392,12 @@
             <vbox class="settings">
               <description id="incoming_details"/>
               <hbox>
-                <label value="&incoming_settings.label;"/><label id="incoming_settings"/>
+                <label value="&incomingSettings.label;"/><label id="incomingSettings"/>
               </hbox>
               <checkbox id="acknowledge_incoming"
                         class="acknowledge_checkbox"
-                        label="&incoming_is_checked2.label;"
+                        label="&confirmIncomingWarning.label;"
+                        accesskey="&confirmIncomingWarning.accesskey;"
                         oncommand="gEmailConfigWizard.toggleAcknowledgeIncoming()"/>
             </vbox>
           </vbox>
@@ -397,56 +406,29 @@
             <vbox class="settings">
               <description id="outgoing_details"/>
               <hbox>
-                <label value="&outgoing_settings.label;"/><label id="outgoing_settings"/>
+                <label value="&outgoingSettings.label;"/><label id="outgoingSettings"/>
               </hbox>
               <checkbox id="acknowledge_outgoing"
                         class="acknowledge_checkbox"
-                        label="&outgoing_is_checked2.label;"
+                        label="&confirmOutgoingWarning.label;"
+                        accesskey="&confirmOutgoingWarning.accesskey;"
                         oncommand="gEmailConfigWizard.toggleAcknowledgeOutgoing()"/>
             </vbox>
           </vbox>
           <spacer flex="1"/>
-          <description id="findoutmore">&lectureYourProvider2.description;</description>
+          <description id="findoutmore">&contactYourProvider.description;</description>
         </vbox>
         <spacer flex="1"/>
         <hbox>
-          <button id="getmeoutofhere" label="&getmeout2.label;" oncommand="gEmailConfigWizard.getMeOutOfHere()"/>
+          <button id="getmeoutofhere" label="&changeSettings.label;"
+                  accesskey="&changeSettings.accesskey;"
+                  oncommand="gEmailConfigWizard.getMeOutOfHere()"/>
           <spacer flex="1"/>
-          <button id="iknow" label="&understood2.label;" disabled="true" oncommand="gEmailConfigWizard.validateAndFinish()"/>
+          <button id="iknow" label="&createAccount.label;" disabled="true"
+                  accesskey="&createAccount.accesskey;"
+                  oncommand="gEmailConfigWizard.validateAndFinish()"/>
         </hbox>
       </vbox>
-    </hbox>
-  </vbox>
-
-
-  <vbox id="customfields-box" hidden="true" flex="1">
-    <description class="header">&customfields-header.label;</description>
-    <description class="intro">&customfields-intro1.descr;</description>
-    <description class="intro">&customfields-intro2.descr;</description>
-    <spacer flex="1"/>
-    <grid>
-      <columns>
-        <column/>
-        <column flex="1"/>
-        <column/>
-      </columns>
-      <rows id="customfields-rows">
-        <!-- Generated N times by JS via DOM:
-        <row align="top">
-          <description class="customfield-label">Text from config file</description>
-          <textfield id="customfields-value-FIELDID" class="customfield-value" value="Default from config file"/>
-          <label class="customfield-example" value="Example value from config file"/>
-        </row>
-        -->
-      </rows>
-    </grid>
-    <spacer flex="1"/>
-    <description id="customfields-error" class="errordescription"/>
-    <spacer/>
-    <hbox>
-        <button label="&customfields-cancel.label;" oncommand="gCustomFieldsDialog.onCancel();"/>
-        <spacer flex="1"/>
-        <button label="&customfields-ok.label;" oncommand="gCustomFieldsDialog.onOK();"/>
     </hbox>
   </vbox>
 </window>

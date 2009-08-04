@@ -169,7 +169,7 @@ var sanitize =
       if (allowedValue == unchecked)
         return allowedValue;
     }
-    throw new MalformedException("enum_value2.error", unchecked);
+    throw new MalformedException("allowed_value.error", unchecked);
   },
 
   /**
@@ -190,13 +190,13 @@ var sanitize =
       if (inputValue == unchecked)
         return mapping[inputValue];
     }
-    throw new MalformedException("enum_value2.error", unchecked);
+    throw new MalformedException("allowed_value.error", unchecked);
   }
 };
 
 function MalformedException(msgID, uncheckedBadValue)
 {
-  var stringBundle = getStringBundle("chrome://messenger/content/accountCreationUtil.properties");
+  var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties");
   this._message = stringBundle.GetStringFromName(msgID);
   if (kDebug)
     this._message += " (bad value: " + new String(uncheckedBadValue) + ")";

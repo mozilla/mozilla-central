@@ -165,15 +165,8 @@ AccountConfig.kSourceGuess = 3; // guessConfig()
  *
  * @param password {String}
  * The password for the incoming server and (if necessary) the outgoing server
- *
- * @param otherVariables {Object}
- * Associative array of variable name
- * (without %) and value, e.g. var name "username" with value "fred"
- * would be passed as JS object { username: "fred" } .
- * The var names must exactly match account.inputFields (all vars supplied,
- * no other vars). If account.inputFields is empty or null, pass {} .
  */
-function replaceVariables(account, realname, emailfull, password, otherVariables)
+function replaceVariables(account, realname, emailfull, password)
 {
   sanitize.nonemptystring(emailfull);
   let emailsplit = emailfull.split("@");
@@ -184,6 +177,7 @@ function replaceVariables(account, realname, emailfull, password, otherVariables
   sanitize.label(realname);
   sanitize.nonemptystring(realname);
 
+  let otherVariables = {};
   otherVariables.EMAILADDRESS = emailfull;
   otherVariables.EMAILLOCALPART = emaillocal;
   otherVariables.EMAILDOMAIN = emaildomain;

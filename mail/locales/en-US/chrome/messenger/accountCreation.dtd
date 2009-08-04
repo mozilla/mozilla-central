@@ -1,0 +1,74 @@
+<!ENTITY welcome.description             "Quick Account Setup">
+<!ENTITY autoconfigWizard.style          "width: 640px; height: 480px;">
+<!ENTITY name.description                "Your name">
+<!ENTITY email.description               "Email">
+<!ENTITY password.description            "Password">
+
+<!ENTITY next.label                      "Next &#187;">
+<!ENTITY next.accesskey                  "N">
+<!ENTITY back.label                      "&#171; Back">
+<!ENTITY back.accesskey                  "B">
+
+<!ENTITY accountInformation.label        "Account Information">
+<!ENTITY username.label                  "username">
+<!ENTITY receivingServer.label           "receiving">
+<!ENTITY sendingServer.label             "sending">
+<!ENTITY noEncryption.label              "None">
+<!ENTITY starttls.label                  "STARTTLS">
+<!ENTITY sslTls.label                    "SSL/TLS">
+
+<!ENTITY imap.label                      "IMAP">
+<!ENTITY pop.label                       "POP">
+<!ENTITY smtp.label                      "SMTP">
+
+<!-- LOCALIZATION NOTE (createAndEditSettings.label): This label is a link
+     which will create the account and take the user to the account
+     configuration screen. -->
+<!ENTITY createAndEditSettings.label     "Create and Edit Account Settings">
+<!ENTITY cancel.label                    "Cancel">
+<!ENTITY stop.label                      "Stop">
+<!ENTITY stop.accesskey                  "S">
+<!-- LOCALIZATION NOTE (retest.label): This is the text that is
+     displayed on the button which will re-guess the account configuration,
+     taking into account the settings the user has changed. -->
+<!ENTITY retest.label                    "Re-test Configuration">
+<!ENTITY retest.accesskey                "R">
+<!ENTITY edit.label                      "Edit">
+<!ENTITY edit.accesskey                  "E">
+
+<!ENTITY rememberPassword.label          "Remember password">
+<!ENTITY rememberPassword.accesskey      "m">
+
+<!ENTITY warning.label                   "Warning!">
+<!ENTITY incomingSettings.label          "Incoming settings:">
+<!ENTITY outgoingSettings.label          "Outgoing settings:">
+<!-- LOCALIZATION NOTE (confirmIncomingWarning.label): If there is a security
+     warning on the incoming server, then the user will need to check a
+     checkbox beside this text before continuing. -->
+<!ENTITY confirmIncomingWarning.label    "I understand the risks.">
+<!ENTITY confirmIncomingWarning.accesskey "u">
+<!-- LOCALIZATION NOTE (confirmOutgoingWarning.label): If there is a security
+     warning on the outgoing server, then the user will need to check a
+     checkbox beside this text before continuing. -->
+<!ENTITY confirmOutgoingWarning.label    "I understand the risks.">
+<!ENTITY confirmOutgoingWarning.accesskey "d">
+<!-- LOCALIZATION NOTE (createAccount.label): If there is a security warning
+     on the incoming or outgoing servers, then the page that pops up will
+     have this text in a button to continue by creating the account. -->
+<!ENTITY createAccount.label             "Create Account">
+<!ENTITY createAccount.accesskey         "C">
+<!-- LOCALIZATION NOTE (changeSettings.label): If there is a security warning on
+     the incoming or outgoing servers, then the page that pops up will have
+     this text in a button to take you back to the previous page to change
+     the settings and try again. -->
+<!ENTITY changeSettings.label            "Change Settings">
+<!ENTITY changeSettings.accesskey        "S">
+
+<!ENTITY contactYourProvider.description "&brandShortName; can allow you to get to your mail using the provided configurations. However, you should contact your administrator or email provider regarding these improper connections. See the Thunderbird FAQ for more information.">
+
+<!ENTITY insecureServer.tooltip.title    "Warning! This is an insecure server.">
+<!ENTITY insecureServer.tooltip.details  "Click circle for more details.">
+
+<!ENTITY insecureClearText.description   "Email is sent in clear-text, so your email could be read by attackers, etc. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
+<!ENTITY insecureSelfSigned.description  "The server uses a certificate that we can't trust, so we can't be sure that someone isn't intercepting the traffic between &brandShortName; and your server. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a trusted certificate.">
+<!ENTITY secureServer.description        "Congratulations! This is a secure server.">

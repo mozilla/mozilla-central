@@ -53,7 +53,7 @@ function readFromXML(clientConfigXML)
 {
   if (!"emailProvider" in clientConfigXML)
   {
-    var stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
+    var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
     throw stringBundle.GetStringFromName("no_emailProvider.error");
   }
   var xml = clientConfigXML.emailProvider;
@@ -89,7 +89,7 @@ function readFromXML(clientConfigXML)
   var oO = d.outgoing; // output (object)
   if (!(oX.@type == "smtp"))
   {
-    var stringBundle = getStringBundle("chrome://messenger/content/accountCreationModel.properties");
+    var stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
     throw stringBundle.GetStringFromName("outgoing_not_smtp.error");
   }
   oO.hostname = sanitize.hostname(oX.hostname);

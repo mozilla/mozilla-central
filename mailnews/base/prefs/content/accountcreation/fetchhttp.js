@@ -183,7 +183,7 @@ FetchHTTP.prototype =
       catch (e)
       {
         success = false;
-        let stringBundle = getStringBundle("chrome://messenger/content/accountCreationUtil.properties");
+        let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties");
         errorStr = stringBundle.GetStringFromName("bad_response_content.error");
         errorCode = -4;
       }
@@ -198,7 +198,7 @@ FetchHTTP.prototype =
       } catch (e) {
         // If we can't resolve the hostname in DNS etc., .statusText throws
         errorCode = -2;
-        let stringBundle = getStringBundle("chrome://messenger/content/accountCreationUtil.properties")
+        let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationUtil.properties")
         errorStr = stringBundle.GetStringFromName("cannot_contact_server.error");
         ddump(errorStr);
       }
