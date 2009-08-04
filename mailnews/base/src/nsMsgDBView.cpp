@@ -5859,7 +5859,8 @@ nsresult nsMsgDBView::MarkThreadOfMsgRead(nsMsgKey msgId, nsMsgViewIndex msgInde
         return NS_MSG_MESSAGE_NOT_FOUND;
 
     nsCOMPtr <nsIMsgDBHdr> firstHdr;
-    threadHdr->GetChildAt(0, getter_AddRefs(firstHdr));
+    rv = threadHdr->GetChildAt(0, getter_AddRefs(firstHdr));
+    NS_ENSURE_SUCCESS(rv, rv);
     nsMsgKey firstHdrId;
     firstHdr->GetMessageKey(&firstHdrId);
     if (msgId != firstHdrId)
