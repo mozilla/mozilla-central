@@ -1882,9 +1882,10 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
                                           const nsCString &aHostname,
                                           PRInt32 *aResult)
 {
-  NS_ENSURE_ARG_POINTER(aMsgWindow);
+
   nsCOMPtr<nsIPrompt> dialog;
-  aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
+  if (aMsgWindow)
+    aMsgWindow->GetPromptDialog(getter_AddRefs(dialog));
 
   nsresult rv;
 

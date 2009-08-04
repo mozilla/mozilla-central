@@ -78,6 +78,7 @@
 #include "nsComposeStrings.h"
 #include "nsIStringBundle.h"
 #include "nsMsgCompUtils.h"
+#include "nsIMsgWindow.h"
 
 
 #ifndef XP_UNIX
@@ -1025,15 +1026,41 @@ PRInt32 nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 leng
         // Only forget the password if we've no mechanism left.
         if (!TestFlag(SMTP_AUTH_ANY_ENABLED))
         {
-            smtpServer->ForgetPassword();
-            if (m_usernamePrompted)
-              smtpServer->SetUsername(EmptyCString());
+          nsCOMPtr<nsISmtpServer> smtpServer;
+          nsresult rv = m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
+          NS_ENSURE_SUCCESS(rv, rv);
 
-            // Let's restore the original auth flags from SendEhloResponse
-            // so we can try them again with new password and username
-            RestoreAuthFlags();
-            // except for gssapi, which doesn't care about the new password.
-            ClearFlag(SMTP_AUTH_GSSAPI_ENABLED);
+          nsCString hostname;
+          rv = smtpServer->GetHostname(hostname);
+          NS_ENSURE_SUCCESS(rv, rv);
+
+          PRInt32 buttonPressed = 0;
+          if (NS_SUCCEEDED(MsgPromptLoginFailed(nsnull, hostname,
+                                                &buttonPressed)))
+          {
+            if (buttonPressed == 1)
+            {
+              // Cancel button pressed, so we need to abort.
+              status = NS_ERROR_FAILURE;
+
+              // and just get out of here.
+              break;
+            }
+            if (buttonPressed == 2)
+            {
+              // Change password was pressed. For now, forget the stored
+              // password and we'll prompt for a new one next time around.
+              smtpServer->ForgetPassword();
+            }
+          }
+          if (m_usernamePrompted)
+            smtpServer->SetUsername(EmptyCString());
+
+          // Let's restore the original auth flags from SendEhloResponse
+          // so we can try them again with new password and username
+          RestoreAuthFlags();
+          // except for gssapi, which doesn't care about the new password.
+          ClearFlag(SMTP_AUTH_GSSAPI_ENABLED);
         }
 
         m_nextState = SMTP_AUTH_PROCESS_STATE;
@@ -1852,11 +1879,6 @@ nsSmtpProtocol::GetPassword(nsCString &aPassword)
     NS_ENSURE_SUCCESS(rv, rv);
 
     NS_ConvertASCIItoUTF16 usernameUTF16(username);
-    const PRUnichar *formatStrings[] =
-    {
-      usernameUTF16.get(),
-      nsnull  // this will be overwritten in some cases.
-    };
 
     nsCString hostname;
     rv = smtpServer->GetHostname(hostname);
@@ -1864,13 +1886,22 @@ nsSmtpProtocol::GetPassword(nsCString &aPassword)
 
     nsAutoString hostnameUTF16;
     CopyASCIItoUTF16(hostname, hostnameUTF16);
-    formatStrings[1] = hostnameUTF16.get();
+
+    const PRUnichar *formatStrings[] =
+    {
+      hostnameUTF16.get(),
+      usernameUTF16.get()
+    };
 
     rv = PromptForPassword(smtpServer, smtpUrl, formatStrings, aPassword);
     NS_ENSURE_SUCCESS(rv,rv);
     return rv;
 }
 
+/**
+ * formatStrings is an array for the prompts, item 0 is the hostname, item 1
+ * is the username.
+ */
 nsresult
 nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpUrl, const PRUnichar **formatStrings, nsACString &aPassword)
 {
@@ -1884,13 +1915,13 @@ nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpU
 
   nsString passwordPromptString;
   if(formatStrings[1])
-    rv = composeStringBundle->FormatStringFromID(NS_SMTP_PASSWORD_PROMPT2,
-      formatStrings, 2,
-      getter_Copies(passwordPromptString));
+    rv = composeStringBundle->FormatStringFromName(
+      NS_LITERAL_STRING("smtpEnterPasswordPromptWithUsername").get(),
+      formatStrings, 2, getter_Copies(passwordPromptString));
   else
-    rv = composeStringBundle->FormatStringFromID(NS_SMTP_PASSWORD_PROMPT1,
-      formatStrings, 1,
-      getter_Copies(passwordPromptString));
+    rv = composeStringBundle->FormatStringFromName(
+      NS_LITERAL_STRING("smtpEnterPasswordPrompt").get(),
+      formatStrings, 1, getter_Copies(passwordPromptString));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAuthPrompt> netPrompt;
@@ -1898,7 +1929,9 @@ nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpU
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsString passwordTitle;
-  rv = composeStringBundle->GetStringFromID(NS_SMTP_PASSWORD_PROMPT_TITLE, getter_Copies(passwordTitle));
+  rv = composeStringBundle->GetStringFromName(
+    NS_LITERAL_STRING("smtpEnterPasswordPromptTitle").get(),
+    getter_Copies(passwordTitle));
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = aSmtpServer->GetPasswordWithUI(passwordPromptString.get(), passwordTitle.get(),

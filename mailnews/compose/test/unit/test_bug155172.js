@@ -7,6 +7,12 @@ load("../../mailnews/resources/alertTestUtils.js");
 
 var gNewPassword = null;
 
+function confirmEx(aDialogTitle, aText, aButtonFlags, aButton0Title,
+                   aButton1Title, aButton2Title, aCheckMsg, aCheckState) {
+  // Just return 2 which will is pressing button 2 - enter a new password.
+  return 2;
+}
+
 function promptPasswordPS(aParent, aDialogTitle, aText, aPassword,
                           aCheckMsg, aCheckState) {
   aPassword.value = gNewPassword;
