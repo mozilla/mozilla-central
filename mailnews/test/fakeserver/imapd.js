@@ -317,7 +317,9 @@ var gIOService;
 function imapMessage(URI, uid, flags) {
   this._URI = URI;
   this.uid = uid;
-  this.flags = flags;
+  this.flags = new Array;
+  for each (flag in flags)
+    this.flags.push(flag);
   this.recent = false;
 }
 imapMessage.prototype = {
