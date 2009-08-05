@@ -288,6 +288,8 @@ imapMailbox.prototype = {
       this.uidnext = message.uid + 1;
     if (this._updates.indexOf("EXISTS") == -1)
       this._updates.push("EXISTS");
+    if ("__highestuid" in this && message.uid > this.__highestuid)
+      this.__highestuid = message.uid;
   },
   get _highestuid () {
     if ("__highestuid" in this)
