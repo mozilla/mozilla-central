@@ -918,13 +918,31 @@ function BrowserOnCommand(event)
 
   const ot = event.originalTarget;
   const ownerDoc = ot.ownerDocument;
+
   // If the event came from an ssl error page, it is probably either the "Add
   // Exception" or "Get Me Out Of Here" button
   if (/^about:neterror\?e=nssBadCert/.test(ownerDoc.documentURI) ||
       /^about:certerror\?/.test(ownerDoc.documentURI)) {
     if (ot.id == 'exceptionDialogButton') {
-      var params = { location : ownerDoc.location.href,
-                     exceptionAdded : false };
+      var params = { exceptionAdded : false };
+      
+      try {
+        const prefBranch =
+          Components.classes["@mozilla.org/preferences-service;1"]
+                    .getService(Components.interfaces.nsIPrefService)
+                    .getBranch(null);
+
+        switch (prefBranch.getIntPref("browser.ssl_override_behavior")) {
+          case 2 : // Pre-fetch & pre-populate.
+            params.prefetchCert = true;
+            // Fall through.
+          case 1 : // Pre-populate.
+            params.location = ownerDoc.location.href;
+        }
+      } catch (e) {
+        Components.utils.reportError("Couldn't get ssl_override pref: " + e);
+      }
+
       window.openDialog('chrome://pippki/content/exceptionDialog.xul',
                         '', 'chrome,centerscreen,modal', params);
 

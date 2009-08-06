@@ -258,6 +258,12 @@ pref("browser.search.defaultenginename", "chrome://communicator-region/locale/re
 // 2 and other values, nothing
 pref("browser.backspace_action", 0);
 
+// Controls behavior of the "Add Exception" dialog launched from SSL error pages:
+// 0 - don't pre-populate anything.
+// 1 - pre-populate site URL, but don't fetch certificate.
+// 2 - pre-populate site URL and pre-fetch certificate.
+pref("browser.ssl_override_behavior", 2);
+
 pref("browser.zoom.full", true);
 
 pref("javascript.options.showInConsole",    true);
