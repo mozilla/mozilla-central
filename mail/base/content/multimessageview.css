@@ -149,12 +149,6 @@
   display: inline;
 }
 
-#trash {
-  min-height: 16px !important;
-  min-width: 21px !important;
-  padding: 0px;
-}
-
 #column {
   float: right;
   right: 1em;

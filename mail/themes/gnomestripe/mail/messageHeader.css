@@ -261,7 +261,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 .msgHeaderView-button > .button-box,
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-button {
+.msgHeaderView-button[type="menu-button"] > .button-menubutton-button > .button-box {
   /* Needed to make the buttons the same height as the trash icon */
   min-height: 16px;
 }

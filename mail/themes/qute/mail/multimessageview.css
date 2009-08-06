@@ -23,25 +23,7 @@ body {
 /* buttons aren't reliable either */
 
 .button {
-  -moz-appearance: button;
   font: message-box;
-  min-width: 32px !important;
-}
-
-
-/* and trash icon URLs aren't either */
-
-#trash {
-  min-height: 28px !important;
-  min-width: 32px !important;
-  padding: 0px;
-}
-
-.trashButton {
-  list-style-image: url("chrome://messenger/skin/icons/folder.png") !important;
-  -moz-image-region: rect(0px 144px 16px 128px);
-  width: 16px;
-  height: 16px;
 }
 
 .star {

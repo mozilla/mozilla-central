@@ -123,24 +123,24 @@ descriptionitem
   margin: 1px;
 }
 
-description[selectable="true"]:focus > descriptionitem[selected="true"][current="true"] 
+description[selectable="true"]:focus > descriptionitem[selected="true"][current="true"]
 {
   border: 1px dotted #F5DB95;
 }
 
-descriptionitem[selected="true"] 
+descriptionitem[selected="true"]
 {
   background-color: -moz-Dialog;
   color: -moz-DialogText;
 }
 
-description[selectable="true"]:focus > descriptionitem[selected="true"] 
+description[selectable="true"]:focus > descriptionitem[selected="true"]
 {
   background-color: Highlight;
   color: HighlightText;
 }
 
-.attachmentBox 
+.attachmentBox
 {
   width: 15em;
 }
@@ -237,8 +237,12 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-border-left-colors: none;
 }
 
-.msgHeaderView-button > .button-box,
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-button {
+.msgHeaderView-button[type="menu-button"] {
+  padding-top: 1px;
+}
+
+.msgHeaderView-button > .button-box > .button-icon,
+.msgHeaderView-button[type="menu-button"] .button-icon {
   /* Needed to make the buttons the same height as the trash icon */
   min-height: 16px;
 }

@@ -67,9 +67,11 @@
                  xmlns:html="http://www.w3.org/1999/xhtml"
                  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
                 <hbox id="buttonhbox" align="start">
-                    <button id="archive" class="multimessage button"
+                    <button id="archive"
+                            class="button msgHeaderView-button hdrArchiveButton"
                             onclick="window.top.MsgArchiveSelectedMessages(null)" label="&archive.label;"></button>
-                    <button id="trash" class="multimessage button trashButton"
+                    <button id="trash"
+                            class="button msgHeaderView-button hdrTrashButton"
                             onclick="window.top.DefaultController.doCommand('cmd_delete');"/>
                 </hbox>
             </div>
