@@ -71,7 +71,7 @@
       <xul:vbox flex="1" class="toolbar-internal-box">
         <children/>
       </xul:vbox>
-      <xul:hbox tbattr="collapsed-tray-holder" class="collapsed-tray-holder" moz-collapsed="true">
+      <xul:hbox tbattr="collapsed-tray-holder" class="collapsed-tray-holder" moz-collapsed="true" xbl:inherits="collapsed=inFullscreen">
         <xul:hbox tbattr="collapsed-tray" class="collapsed-tray"/>
         <xul:spacer flex="1" class="collapsed-tray-spacer"/>
       </xul:hbox>
@@ -92,7 +92,7 @@
             let name = bar.getAttribute("toolbarname").replace(" ", "_");
             if (name) {
               let attrs = ["mode", "iconsize", "labelalign", "hidden",
-                           "moz-collapsed"];
+                           "collapsed", "moz-collapsed"];
               for (let j = 0; j < attrs.length; j++) {
                 let attr = set.getAttribute(name + attrs[j]);
                 if (attr)
@@ -110,7 +110,9 @@
         <![CDATA[
           try {
             this.createCollapsedGrippy(toolbar);
-            toolbar.setAttribute("moz-collapsed", "true");
+            toolbar.setAttribute("collapsed", "true");
+            document.persist(toolbar.id, "collapsed");
+            toolbar.removeAttribute("moz-collapsed");
             document.persist(toolbar.id, "moz-collapsed");
             if (toolbar.hasAttribute("customindex"))
               this.persistCustomCollapse(toolbar, "true");
@@ -127,13 +129,13 @@
         <![CDATA[
           var idString = aGrippyID.substring("moz_tb_collapsed_".length, aGrippyID.length);
           var toolbar = document.getElementById(idString);
-          toolbar.setAttribute("moz-collapsed", "false");
+          toolbar.setAttribute("collapsed", "false");
           var collapsedTray = document.getAnonymousElementByAttribute(this, "tbattr", "collapsed-tray");
           var collapsedToolbar = document.getElementById("moz_tb_collapsed_" + toolbar.id);
           collapsedTray.removeChild(collapsedToolbar);
           if (!collapsedTray.hasChildNodes())
             document.getAnonymousElementByAttribute(this, "tbattr", "collapsed-tray-holder").setAttribute("moz-collapsed", "true");
-          document.persist(toolbar.id, "moz-collapsed");
+          document.persist(toolbar.id, "collapsed");
           if (toolbar.hasAttribute("customindex"))
             this.persistCustomCollapse(toolbar, "false");
         ]]>
@@ -177,8 +179,11 @@
         <parameter name="collapsed"/>
         <body>
         <![CDATA[
-          var attr = toolbar.getAttribute("toolbarname").replace(" ", "_") + "moz-collapsed";
+          var attr = toolbar.getAttribute("toolbarname").replace(" ", "_") + "collapsed";
           this.toolbarset.setAttribute(attr, collapsed);
+          document.persist(this.toolbarset.id, attr);
+          var attr = toolbar.getAttribute("toolbarname").replace(" ", "_") + "moz-collapsed";
+          this.toolbarset.removeAttribute(attr);
           document.persist(this.toolbarset.id, attr);
         ]]>
         </body>
@@ -189,7 +194,7 @@
   <binding id="grippytoolbar" extends="chrome://global/content/bindings/toolbar.xml#toolbar">
     <content>
       <xul:hbox flex="1" class="toolbar-box">
-        <xul:toolbargrippy xbl:inherits="last-toolbar,hidden=grippyhidden"
+        <xul:toolbargrippy xbl:inherits="last-toolbar,hidden=grippyhidden,collapsed=inFullscreen"
                            tbattr="toolbar-grippy"
                            class="toolbar-grippy"/>
         <xul:hbox flex="1" class="toolbar-holder"
@@ -204,6 +209,9 @@
         <![CDATA[
           if (this.getAttribute("moz-collapsed") == "true" &&
               this.parentNode.localName == "toolbox")
+            this.parentNode.collapseToolbar(this);
+          else if (this.getAttribute("collapsed") == "true" &&
+                   this.parentNode.localName == "toolbox")
             this.parentNode.createCollapsedGrippy(this);
         ]]>
       </constructor>
@@ -291,6 +299,9 @@
         <![CDATA[
           if (this.getAttribute("moz-collapsed") == "true" &&
               this.parentNode.localName == "toolbox")
+            this.parentNode.collapseToolbar(this);
+          else if (this.getAttribute("collapsed") == "true" &&
+                   this.parentNode.localName == "toolbox")
             this.parentNode.createCollapsedGrippy(this);
         ]]>
       </constructor>

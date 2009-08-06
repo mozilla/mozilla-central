@@ -289,10 +289,6 @@ toolbar[iconsize="small"] > #home-button[disabled="true"] {
   min-height: 0;
 }
 
-#nav-bar[inFullscreen] > .toolbar-primary-grippy {
-  display: none;
-}
-
 #nav-bar[iconsize="small"] > .toolbar-primary-holder {
   background: #D0D7DF;
 }
