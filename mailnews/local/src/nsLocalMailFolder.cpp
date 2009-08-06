@@ -1417,6 +1417,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetSizeOnDisk(PRUint32* aSize)
     NS_ENSURE_SUCCESS(rv, rv);
     PRInt64 folderSize;
     rv = file->GetFileSize(&folderSize);
+    NS_ENSURE_SUCCESS(rv, rv);
+
     mFolderSize = (PRUint32) folderSize;
   }
   *aSize = mFolderSize;
@@ -1661,16 +1663,6 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
     return OnCopyCompleted(srcSupport, PR_FALSE);
   }
 
-  PRBool mailboxTooLarge;
-
-  (void) WarnIfLocalFileTooBig(msgWindow, &mailboxTooLarge);
-  if (mailboxTooLarge)
-  {
-    if (isMove)
-      srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgFailedAtom);
-    return OnCopyCompleted(srcSupport, PR_FALSE);
-  }
-
   if (!(mFlags & (nsMsgFolderFlags::Trash|nsMsgFolderFlags::Junk)))
     SetMRUTime();
 
@@ -1679,22 +1671,33 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
   protocolType.SetLength(protocolType.FindChar(':'));
 
 #ifdef MOZILLA_INTERNAL_API
-  if (WeAreOffline() && (protocolType.LowerCaseEqualsLiteral("imap") || 
-                         protocolType.LowerCaseEqualsLiteral("news")))
+  PRBool needOfflineBody = (WeAreOffline() &&
+    (protocolType.LowerCaseEqualsLiteral("imap") ||
+     protocolType.LowerCaseEqualsLiteral("news")));
 #else
-  if (WeAreOffline() && (protocolType.Equals("imap", CaseInsensitiveCompare) || 
-                         protocolType.Equals("news", CaseInsensitiveCompare)))
+  PRBool needOfflineBody  = (WeAreOffline() &&
+    (protocolType.Equals("imap", CaseInsensitiveCompare) ||
+     protocolType.Equals("news", CaseInsensitiveCompare)));
 #endif
+  PRInt64 totalMsgSize = 0;
+  PRUint32 numMessages = 0;
+  messages->GetLength(&numMessages);
+  for (PRUint32 i = 0; i < numMessages; i++)
   {
-    PRUint32 numMessages = 0;
-    messages->GetLength(&numMessages);
-    for (PRUint32 i = 0; i < numMessages; i++)
+    nsCOMPtr<nsIMsgDBHdr> message(do_QueryElementAt(messages, i, &rv));
+    if (NS_SUCCEEDED(rv) && message)
     {
-      nsCOMPtr<nsIMsgDBHdr> message;
-      messages->QueryElementAt(i, NS_GET_IID(nsIMsgDBHdr),(void **)getter_AddRefs(message));
-      if(NS_SUCCEEDED(rv) && message)
+      nsMsgKey key;
+      PRUint32 msgSize;
+      message->GetMessageSize(&msgSize);
+
+      /* 200 is a per-message overhead to account for any extra data added
+         to the message.
+      */
+      totalMsgSize += msgSize + 200;
+
+      if (needOfflineBody)
       {
-        nsMsgKey key;
         PRBool hasMsgOffline = PR_FALSE;
         message->GetMessageKey(&key);
         srcFolder->HasMsgOffline(key, &hasMsgOffline);
@@ -1707,6 +1710,23 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
         }
       }
     }
+  }
+
+  PRInt64 sizeOnDisk;
+
+  nsCOMPtr <nsILocalFile> filePath;
+  rv = GetFilePath(getter_AddRefs(filePath));
+  if (NS_SUCCEEDED(rv))
+    rv = filePath->GetFileSize(&sizeOnDisk);
+
+  // check if the folder size + the size of the messages will be > 4GB or so.
+  // If so, warn, and return an error.
+  if (NS_FAILED(rv) || sizeOnDisk + totalMsgSize > 0xFFC00000)
+  {
+    ThrowAlertMsg("mailboxTooLarge", msgWindow);
+    if (isMove)
+      srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgFailedAtom);
+    return OnCopyCompleted(srcSupport, PR_FALSE);
   }
 
   // don't update the counts in the dest folder until it is all over
@@ -3838,6 +3858,11 @@ nsMsgLocalMailFolder::WarnIfLocalFileTooBig(nsIMsgWindow *aWindow, PRBool *aTooB
       ThrowAlertMsg("mailboxTooLarge", aWindow);
       *aTooBig = PR_TRUE;
     }
+  }
+  else
+  {
+      // We are failing to obtain the size in the first place!
+      NS_ERROR( "WarnIfLocalFileTooBig: call to GetFileSize failed");
   }
   return NS_OK;
 }
