@@ -253,14 +253,6 @@ void nsEudoraCompose::ReleaseIdentity( void)
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed to clear values");
     if (NS_FAILED(rv)) return;
 
-    NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr, NS_MSGACCOUNTMANAGER_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
-    NS_ASSERTION(NS_SUCCEEDED(rv) && accMgr,"failed to get account manager");
-    if (NS_FAILED(rv) || !accMgr) return;
-
-    rv = accMgr->RemoveIdentity(s_pIdentity);
-    NS_ASSERTION(NS_SUCCEEDED(rv),"failed to remove identity");
-    if (NS_FAILED(rv)) return;
-
     NS_RELEASE(s_pIdentity);
   }
 }

@@ -617,18 +617,6 @@ nsMsgAccountManager::removeListenerFromFolder(nsISupports *element, void *data)
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::DuplicateAccount(nsIMsgAccount *aAccount)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsMsgAccountManager::RemoveIdentity(nsIMsgIdentity *aIdentity)
-{
-  return NS_OK;
-}
-
-NS_IMETHODIMP
 nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
 {
   NS_ENSURE_ARG_POINTER(aAccount);

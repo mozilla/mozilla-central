@@ -47,7 +47,7 @@ interface nsISupportsArray;
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 
-[scriptable, uuid(41C568F8-1911-4995-AF2A-A51F9B7B165E)]
+[scriptable, uuid(A3300C19-7228-4c64-A599-1848800CF0FC)]
 interface nsIMsgAccountManager : nsISupports {
 
   nsIMsgAccount createAccount();
@@ -57,8 +57,6 @@ interface nsIMsgAccountManager : nsISupports {
   nsIMsgAccount getAccount(in ACString key);
     
   void removeAccount(in nsIMsgAccount account);
-  void removeIdentity(in nsIMsgIdentity identity);
-  void duplicateAccount(in nsIMsgAccount account);
   
   /*
    * creates a new identity and assigns it a new, unique "key"
