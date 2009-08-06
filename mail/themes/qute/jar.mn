@@ -314,7 +314,7 @@ classic.jar:
   skin/classic/aero/messenger/icons/mail-toolbar.png               (mail/icons/mail-toolbar.png)
   skin/classic/aero/messenger/icons/mail-toolbar-small.png         (mail/icons/mail-toolbar-small.png)
   skin/classic/aero/messenger/icons/folder.png                     (mail/icons/folder.png)
-  skin/classic/aero/messenger/icons/message.png                    (mail/icons/message.png)
+  skin/classic/aero/messenger/icons/message.png                    (mail/icons/message-aero.png)
   skin/classic/aero/messenger/icons/attachment-deleted.png         (mail/icons/attachment-deleted.png)
   skin/classic/aero/messenger/icons/attachment-deleted-large.png   (mail/icons/attachment-deleted-large.png)
   skin/classic/aero/messenger/icons/attachment-col.png             (mail/icons/attachment-col.png)
