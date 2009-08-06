@@ -46,7 +46,6 @@
 #include "nsIServiceManager.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
-#include "nsIRDFContainerUtils.h"
 #include "nsEnumeratorUtils.h"
 #include "nsArrayEnumerator.h"
 #include "nsUnicharUtils.h"
@@ -557,6 +556,10 @@ LocalSearchDataSource::parseFindURL(nsIRDFResource *u, nsIMutableArray *array)
     if (isContainer) 
       continue;
 
+    // Check to see if this source has a parent
+    if (!nodeHasParent(datasource, source, cUtils))
+      continue;
+
     nsCOMPtr<nsIRDFResource> property;
     rv = gRDFService->GetUnicodeResource(tokens[1].value,
     getter_AddRefs(property));
@@ -581,6 +584,32 @@ LocalSearchDataSource::parseFindURL(nsIRDFResource *u, nsIMutableArray *array)
     rv = NS_OK;
 
   return rv;
+}
+
+PRBool
+LocalSearchDataSource::nodeHasParent(nsIRDFDataSource *aDataSource,
+                                     nsIRDFNode *aNode,
+                                     nsIRDFContainerUtils *aUtils)
+{
+  nsCOMPtr<nsISimpleEnumerator> cursor;
+  if (NS_FAILED(aDataSource->ArcLabelsIn(aNode, getter_AddRefs(cursor))))
+    return PR_FALSE;
+
+  PRBool hasMore;
+  while (NS_SUCCEEDED(cursor->HasMoreElements(&hasMore)) && hasMore) {
+    nsCOMPtr<nsISupports> isupports;
+    if (NS_FAILED(cursor->GetNext(getter_AddRefs(isupports))))
+      break;
+
+    nsCOMPtr<nsIRDFResource> arc(do_QueryInterface(isupports));
+    if (!arc)
+      continue;
+
+    PRBool result;
+    if (NS_SUCCEEDED(aUtils->IsOrdinalProperty(arc, &result)) && result)
+      return PR_TRUE;
+  }
+  return PR_FALSE;
 }
 
 // could speed up date/integer matching signifigantly by caching the

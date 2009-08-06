@@ -44,6 +44,7 @@
 #include "nsStringAPI.h"
 #include "nsIRDFNode.h"
 #include "nsIRDFService.h"
+#include "nsIRDFContainerUtils.h"
 #include "nsISearchService.h"
 
 typedef	struct	_findTokenStruct
@@ -73,6 +74,9 @@ protected:
 	NS_METHOD	getFindName(nsIRDFResource *source, nsIRDFLiteral** aResult);
 	NS_METHOD	parseResourceIntoFindTokens(nsIRDFResource *u, findTokenPtr tokens);
 
+    PRBool nodeHasParent(nsIRDFDataSource *aDataSource,
+                         nsIRDFNode *aNode,
+                         nsIRDFContainerUtils *aUtils);
     // matching functions, based on type
 	PRBool doMatch(nsIRDFLiteral  *literal,
                    const nsAString& matchMethod,
