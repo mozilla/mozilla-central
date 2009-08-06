@@ -308,13 +308,14 @@ protected:
   nsTArray<nsMsgKey>          m_searchHits;
   nsCOMPtr<nsIMutableArray>   m_searchHitHdrs;
   nsCOMPtr <nsIMsgSearchSession> m_searchSession;
+  PRUint32                    m_nextAction; // next filter action to perform
 };
 
 NS_IMPL_ISUPPORTS3(nsMsgFilterAfterTheFact, nsIUrlListener, nsIMsgSearchNotify, nsIMsgCopyServiceListener)
 
 nsMsgFilterAfterTheFact::nsMsgFilterAfterTheFact(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsISupportsArray *aFolderList)
 {
-  m_curFilterIndex = m_curFolderIndex = 0;
+  m_curFilterIndex = m_curFolderIndex = m_nextAction = 0;
   m_msgWindow = aMsgWindow;
   m_filters = aFilterList;
   m_folders = aFolderList;
@@ -375,6 +376,7 @@ nsresult nsMsgFilterAfterTheFact::RunNextFilter()
 
   rv = m_searchSession->AddScopeTerm(searchScope, m_curFolder);
   NS_ENSURE_SUCCESS(rv, rv);
+  m_nextAction = 0;
   // it's possible that this error handling will need to be rearranged when mscott lands the UI for
   // doing filters based on sender in PAB, because we can't do that for IMAP. I believe appending the
   // search term will fail, or the Search itself will fail synchronously. In that case, we'll
@@ -467,7 +469,11 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
     PRUint32 numActions;
     actionList->Count(&numActions);
 
-    for (PRUint32 actionIndex =0; actionIndex < numActions && *aApplyMore; actionIndex++)
+    // We start from m_nextAction to allow us to continue applying actions
+    // after the return from an async copy.
+    for (PRUint32 actionIndex = m_nextAction;
+         actionIndex < numActions && *aApplyMore;
+         actionIndex++)
     {
       nsCOMPtr<nsIMsgRuleAction> filterAction;
       actionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction), (void **)getter_AddRefs(filterAction));
@@ -553,7 +559,18 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
           }
           nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
           if (copyService)
-            return copyService->CopyMessages(m_curFolder, m_searchHitHdrs, destIFolder, actionType == nsMsgFilterAction::MoveToFolder, this, m_msgWindow, PR_FALSE);
+          {
+            rv = copyService->CopyMessages(m_curFolder, m_searchHitHdrs,
+                destIFolder, actionType == nsMsgFilterAction::MoveToFolder,
+                this, m_msgWindow, PR_FALSE);
+            // We'll continue after a copy, but not after a move
+            if (NS_SUCCEEDED(rv) && actionType == nsMsgFilterAction::CopyToFolder
+                                 && actionIndex < numActions - 1)
+              m_nextAction = actionIndex + 1;
+            else
+              m_nextAction = 0; // OnStopCopy tests this to move to next filter
+            return rv;
+          }
         }
         //we have already moved the hdrs so we can't apply more actions
         if (actionType == nsMsgFilterAction::MoveToFolder)
@@ -819,7 +836,7 @@ NS_IMETHODIMP nsMsgFilterService::GetCustomActions(nsISimpleEnumerator** aResult
   return NS_NewArrayEnumerator(aResult, mCustomActions);
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsMsgFilterService::GetCustomAction(const nsACString & aId,
                                     nsIMsgFilterCustomAction** aResult)
 {
@@ -850,7 +867,7 @@ NS_IMETHODIMP nsMsgFilterService::GetCustomTerms(nsISimpleEnumerator** aResult)
   return NS_NewArrayEnumerator(aResult, mCustomTerms);
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsMsgFilterService::GetCustomTerm(const nsACString& aId,
                                     nsIMsgSearchCustomTerm** aResult)
 {
@@ -951,6 +968,7 @@ nsresult nsMsgApplyFiltersToMessages::RunNextFilter()
     {
       PRBool applyMore = PR_TRUE;
 
+      m_nextAction = 0;
       rv = ApplyFilter(&applyMore);
       NS_ENSURE_SUCCESS(rv, rv);
       if (applyMore)
@@ -1031,7 +1049,11 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnStopCopy(nsresult aStatus)
   PRBool continueExecution = NS_SUCCEEDED(aStatus);
   if (!continueExecution)
     continueExecution = ContinueExecutionPrompt();
-  return  (continueExecution) ?  RunNextFilter() : OnEndExecution(aStatus);
+  if (!continueExecution)
+    return OnEndExecution(aStatus);
+  if (m_nextAction) // a non-zero m_nextAction means additional actions needed
+    return ApplyFilter();
+  return RunNextFilter();
 }
 
 PRBool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
