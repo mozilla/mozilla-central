@@ -351,7 +351,8 @@ function viewPartialSourceForFragment(node, context)
   // serialize (note: the main window overrides the title set here)
   var wrapClass = gWrapLongLines ? ' class="wrap"' : '';
   var source =
-    '<html>'
+    '<!DOCTYPE html>'
+  + '<html>'
   + '<head><title>Mozilla</title>'
   + '<link rel="stylesheet" type="text/css" href="' + gViewSourceCSS + '">'
   + '<style type="text/css">'
@@ -366,10 +367,10 @@ function viewPartialSourceForFragment(node, context)
   ; // end
 
   // display
-  var doc = getBrowser().contentDocument.wrappedJSObject;
-  doc.open("text/html", "replace");
-  doc.write(source);
-  doc.close();
+  var loadFlags = Components.interfaces.nsIWebNavigation.LOAD_FLAGS_NONE;
+  getBrowser().webNavigation
+              .loadURI("data:text/html;charset=utf-8," + encodeURIComponent(source),
+                       loadFlags, null, null, null);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
