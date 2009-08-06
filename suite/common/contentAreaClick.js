@@ -106,7 +106,7 @@
     if (ceParams) {
       var href = ceParams.href;
       if (isKeyCommand) {
-        openNewTabWith(href, event.target.ownerDocument, event.shiftKey);
+        openNewTabWith(href, event.target.ownerDocument, event.altKey);
         event.stopPropagation();
       }
       else {
