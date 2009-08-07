@@ -44,6 +44,8 @@ Components.utils.import("resource://app/modules/activity/activityModules.js");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource://app/modules/attachmentChecker.js");
 
+Components.utils.import("resource://app/modules/MailUtils.js");
+
 /**
  * interfaces
  */
@@ -3005,11 +3007,7 @@ function OpenSelectedAttachment()
       messenger = messenger.QueryInterface(Components.interfaces.nsIMessenger);
       var msgHdr = messenger.messageServiceFromURI(attachmentUrl).messageURIToMsgHdr(attachmentUrl);
       if (msgHdr)
-      {
-        var folderUri = msgHdr.folder.folderURL;
-        window.openDialog("chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar",
-                          attachmentUrl, folderUri, null );
-      }
+        MailUtils.openMessageInNewWindow(msgHdr);
     }
     else
     {
