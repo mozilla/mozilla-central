@@ -379,7 +379,13 @@ nsMsgCopy::GetSentFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, PR
 {
   nsresult ret = LocateMessageFolder(userIdentity, nsIMsgSend::nsMsgDeliverNow, mSavePref, folder);
   if (*folder)
-    (*folder)->SetFlag(nsMsgFolderFlags::SentMail);
+  {
+    // If mSavePref is the same as the identity's fcc folder, set the sent flag.
+    nsCString identityFccUri;
+    userIdentity->GetFccFolder(identityFccUri);
+    if (identityFccUri.Equals(mSavePref))
+      (*folder)->SetFlag(nsMsgFolderFlags::SentMail);
+  }
   CreateIfMissing(folder, waitForUrl);
   return ret;
 }
