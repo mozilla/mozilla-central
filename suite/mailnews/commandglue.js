@@ -44,6 +44,8 @@
  * Command-specific code. This stuff should be called by the widgets
  */
 
+Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
+
 //NOTE: gMessengerBundle and gBrandBundle must be defined and set
 //      for this Overlay to work properly
 
@@ -1075,8 +1077,10 @@ function setupXFVirtualFolderSearch(folderUrisToSearch, searchTerms, searchOnlin
     }
 
     var termsArray = searchTerms.QueryInterface(Components.interfaces.nsISupportsArray);
-  for (i = 0; i < termsArray.Count(); ++i)
-      gSearchSession.appendTerm(termsArray.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgSearchTerm));
+    const nsIMsgSearchTerm = Components.interfaces.nsIMsgSearchTerm;
+    for each (let term in fixIterator(termsArray, nsIMsgSearchTerm)) {
+      gSearchSession.appendTerm(term);
+    }
 }
 
 function CreateGroupedSearchTerms(searchTermsArray)
