@@ -1598,6 +1598,7 @@ var GlodaIndexer = {
    * Index the contents of a folder.
    */
   _worker_folderIndex: function gloda_worker_folderIndex(aJob) {
+    let logDebug = this._log.level <= Log4Moz.Level.Debug;
     yield this._indexerEnterFolder(aJob.id, true);
 
     if (!this.shouldIndexFolder(this._indexingFolder))
@@ -1702,10 +1703,12 @@ var GlodaIndexer = {
 
         if (shouldIndexMessage(msgHdr)) {
           ++aJob.offset;
-          this._log.debug(">>>  _indexMessage");
+          if (logDebug)
+            this._log.debug(">>>  _indexMessage");
           yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
               this._callbackHandle));
-          this._log.debug("<<<  _indexMessage");
+          if (logDebug)
+            this._log.debug("<<<  _indexMessage");
         }
       }
     }
@@ -2385,8 +2388,11 @@ var GlodaIndexer = {
   },
 
   _indexMessage: function gloda_indexMessage(aMsgHdr, aCallbackHandle) {
-    this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
-                    aMsgHdr.subject);
+    let logDebug = this._log.level <= Log4Moz.Level.Debug;
+
+    if (logDebug)
+      this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
+                      aMsgHdr.subject);
     MsgHdrToMimeMessage(aMsgHdr, aCallbackHandle.callbackThis,
         aCallbackHandle.callback);
     let [,aMimeMsg] = yield this.kWorkAsync;
@@ -2414,10 +2420,12 @@ var GlodaIndexer = {
     // (ancestorLists has a direct correspondence to the message ids)
     let ancestorLists = yield this.kWorkAsync;
 
-    this._log.debug("ancestors raw: " + ancestorLists);
-    this._log.debug("ref len: " + references.length + " anc len: " + ancestorLists.length);
-    this._log.debug("references: " + Log4Moz.enumerateProperties(references).join(","));
-    this._log.debug("ancestors: " + Log4Moz.enumerateProperties(ancestorLists).join(","));
+    if (logDebug) {
+      this._log.debug("ancestors raw: " + ancestorLists);
+      this._log.debug("ref len: " + references.length + " anc len: " + ancestorLists.length);
+      this._log.debug("references: " + Log4Moz.enumerateProperties(references).join(","));
+      this._log.debug("ancestors: " + Log4Moz.enumerateProperties(ancestorLists).join(","));
+    }
 
     // pull our current message lookup results off
     references.pop();
@@ -2473,9 +2481,10 @@ var GlodaIndexer = {
       let ancestorList = ancestorLists[iAncestor];
 
       if (ancestorList.length == 0) {
-        this._log.debug("creating message with: null, " + conversationID +
-                        ", " + references[iAncestor] +
-                        ", null.");
+        if (logDebug)
+          this._log.debug("creating message with: null, " + conversationID +
+                          ", " + references[iAncestor] +
+                          ", null.");
         let ancestor = this._datastore.createMessage(null, null, // ghost
                                                      conversationID, null,
                                                      references[iAncestor],
@@ -2491,12 +2500,14 @@ var GlodaIndexer = {
     // find if there's a ghost version of our message or we already have indexed
     //  this message.
     let curMsg = null;
-    this._log.debug(candidateCurMsgs.length + " candidate messages");
+    if (logDebug)
+      this._log.debug(candidateCurMsgs.length + " candidate messages");
     for (let iCurCand = 0; iCurCand < candidateCurMsgs.length; iCurCand++) {
       let candMsg = candidateCurMsgs[iCurCand];
 
-      this._log.debug("candidate folderID: " + candMsg.folderID +
-                      " messageKey: " + candMsg.messageKey);
+      if (logDebug)
+        this._log.debug("candidate folderID: " + candMsg.folderID +
+                        " messageKey: " + candMsg.messageKey);
 
       if (candMsg.folderURI == aMsgHdr.folder.URI) {
         // if we are in the same folder and we have the same message key, we
