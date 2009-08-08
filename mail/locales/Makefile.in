@@ -61,6 +61,10 @@ SUBMAKEFILES += \
 
 AB = $(firstword $(subst -, ,$(AB_CD)))
 
+# On mozilla-central, packager.mk uses core_abspath to redefine _ABS_DIST on Mac
+# As the comm-central config.mk doesn't set it, do it ourselves instead
+core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(CURDIR)/$(1)))
+
 # These are defaulted to be compatible with the files the wget-en-US target
 # pulls. You may override them if you provide your own files. You _must_
 # override them when MOZ_PKG_PRETTYNAMES is defined - the defaults will not
