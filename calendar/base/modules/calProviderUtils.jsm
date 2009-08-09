@@ -126,7 +126,7 @@ cal.safeNewXML = function calSafeNewXML(aStr) {
     XML.setSettings();
 
     // Strip <?xml and surrounding whitespaces (bug 336551)
-    return new XML(aStr.replace(/^\s*<\?xml[^>]*>/g, "").trimRight());
+    return new XML(aStr.trim().replace(/^<\?xml[^>]*>\s*/g, ""));
 };
 
 /**
