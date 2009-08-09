@@ -426,7 +426,9 @@ function close_tab(aTabToClose) {
   let preCount = mc.tabmail.tabContainer.childNodes.length;
 
   mc.tabmail.closeTab(aTabToClose);
-  wait_for_message_display_completion();
+  // if there is a message visible in the tab, make sure we wait for the load
+  wait_for_message_display_completion(
+    mc, mc.messageDisplay.displayedMessage != null);
 
   // check that the tab count decreased
   if (mc.tabmail.tabContainer.childNodes.length != preCount - 1)
