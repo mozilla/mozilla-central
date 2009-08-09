@@ -350,7 +350,12 @@ function switch_tab(aNewTab) {
   // now the current tab will be the 'other' tab after we switch
   otherTab = mc.tabmail.currentTabInfo;
   mc.tabmail.switchToTab(targetTab);
-  wait_for_message_display_completion();
+  // if there is something selected, wait for display completion
+  if (mc.folderDisplay.selectedCount)
+    wait_for_message_display_completion();
+  // otherwise wait for the pane to end up blank
+  else
+    wait_for_blank_content_pane();
 }
 
 /**
@@ -876,6 +881,28 @@ function wait_for_message_display_completion(aController, aLoadDemanded) {
   controller.waitForEval('subject()',
                          NORMAL_TIMEOUT,
                          FAST_INTERVAL, isLoadedChecker);
+  // the above may return immediately, meaning the event queue might not get a
+  //  chance.  give it a chance now.
+  aController.sleep(0);
+}
+
+/**
+ * Wait for the content pane to be blank because no message is to be displayed.
+ * You would not want to call this once folder summaries land and if they are
+ *  enabled.
+ *
+ * @param aController optional controller, defaulting to |mc|.
+ */
+function wait_for_blank_content_pane(aController) {
+  if (aController === undefined)
+    aController = mc;
+
+  let isBlankChecker = function() {
+    return aController.window.content.location.href == "about:blank";
+  };
+  controller.waitForEval('subject()',
+                         NORMAL_TIMEOUT,
+                         FAST_INTERVAL, isBlankChecker);
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   aController.sleep(0);
