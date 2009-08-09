@@ -426,9 +426,14 @@ function close_tab(aTabToClose) {
   let preCount = mc.tabmail.tabContainer.childNodes.length;
 
   mc.tabmail.closeTab(aTabToClose);
+
   // if there is a message visible in the tab, make sure we wait for the load
-  wait_for_message_display_completion(
-    mc, mc.messageDisplay.displayedMessage != null);
+  if (mc.folderDisplay.selectedCount)
+    wait_for_message_display_completion(
+      mc, mc.messageDisplay.displayedMessage != null);
+  // otherwise wait for the pane to end up blank
+  else
+    wait_for_blank_content_pane();
 
   // check that the tab count decreased
   if (mc.tabmail.tabContainer.childNodes.length != preCount - 1)
