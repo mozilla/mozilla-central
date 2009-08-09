@@ -453,11 +453,19 @@ function close_message_window(aController) {
 /**
  * Clear the selection.  I'm not sure how we're pretending we did that.
  */
-function select_none() {
+function select_none(aController) {
+  if (aController === undefined)
+    aController = mc;
   wait_for_message_display_completion();
-  mc.dbView.selection.clearSelection();
-  // give the event queue a chance to drain...
-  controller.sleep(0);
+  aController.dbView.selection.clearSelection();
+  // Because the selection event may not be generated immediately, we need to
+  //  spin until the message display thinks it is not displaying a message,
+  //  which is the sign that the event actually happened.
+  function noMessageChecker() {
+    return aController.messageDisplay.displayedMessage == null;
+  }
+  controller.sleep('subject()',
+                   NORMAL_TIMEOUT, FAST_INTERVAL, noMessageChecker);
 }
 
 /**
