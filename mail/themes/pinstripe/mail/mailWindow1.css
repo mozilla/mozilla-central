@@ -382,7 +382,6 @@ treechildren::-moz-tree-row(dummy, focus, selected)  {
   min-height: 10px;
   background-color: #FFFFFF;
   -moz-appearance: none;
-  border-top: 1px solid #8E8E8E;
 }
 
 /* ::::: border adjustments for focus ring and joined splitters :::::
@@ -441,9 +440,31 @@ splitter {
 #threadpane-splitter {
   height: 8px !important;
   min-height: 8px;
+  background-image: url("chrome://messenger/skin/icons/vertical-threadpane-splitter-bg.gif");
+  background-repeat: repeat-y;
+  -moz-border-start: 1px solid #A6A6A6;
+  -moz-border-end: 1px solid #8C8C8C;
+}
+
+#threadpane-splitter[chromedir="rtl"] {
+  background-image: url("chrome://messenger/skin/icons/vertical-threadpane-splitter-bg-rtl.gif");
+}
+
+/* The orient="vertical" isn't which direction the splitter itself runs, it's
+   actually which way its parent lays out its children, so when it's vertical,
+   the splitter is a horizontal bar. */
+#threadpane-splitter[orient="vertical"] {
   background-image: url("chrome://messenger/skin/icons/threadpane-splitter-bg.gif");
   background-repeat: repeat-x;
-  border-top: 1px solid #919191;
+  border-top: 1px solid #A6A6A6;
+  border-bottom: 1px solid #8C8C8C;
+  -moz-border-start-width: 0;
+  -moz-border-end-width: 0;
+}
+
+#threadpane-splitter[state="collapsed"] {
+  border-bottom-width: 0;
+  -moz-border-end: 0;
 }
 
 #folderpane_splitter {

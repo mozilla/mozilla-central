@@ -364,7 +364,10 @@
                 </deck> <!-- displayDeck -->
 
                 <!-- if you change this id, please change GetThreadAndMessagePaneSplitter() and MsgToggleMessagePane() -->
-                <splitter id="threadpane-splitter" collapse="after" collapsed="true"
+                <splitter id="threadpane-splitter"
+                          chromedir="&locale.dir;"
+                          collapse="after"
+                          collapsed="true"
                           onmouseup="OnMouseUpThreadAndMessagePaneSplitter()"/>
 
                 <vbox id="messagepanebox" flex="2" minheight="100" height="200"

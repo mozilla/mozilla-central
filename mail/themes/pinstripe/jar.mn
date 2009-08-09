@@ -186,6 +186,8 @@ classic.jar:
   skin/classic/messenger/icons/thread-new-closed.png             (mail/icons/thread-new-closed.png)
   skin/classic/messenger/icons/threadcol.png                     (mail/icons/threadcol.png)
   skin/classic/messenger/icons/threadpane-splitter-bg.gif        (mail/icons/threadpane-splitter-bg.gif)
+  skin/classic/messenger/icons/vertical-threadpane-splitter-bg.gif     (mail/icons/vertical-threadpane-splitter-bg.gif)
+  skin/classic/messenger/icons/vertical-threadpane-splitter-bg-rtl.gif (mail/icons/vertical-threadpane-splitter-bg-rtl.gif)
   skin/classic/messenger/icons/unreadmail-selected.png           (mail/icons/unreadmail-selected.png)
   skin/classic/messenger/icons/unreadmail.png                    (mail/icons/unreadmail.png)
   skin/classic/messenger/icons/unthreadcol.png                   (mail/icons/unthreadcol.png)
