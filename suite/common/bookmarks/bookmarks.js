@@ -424,7 +424,8 @@ var BookmarksCommand = {
       sTextUnicode += url + "\n";
       sTextHTML += "<A HREF=\"" + url + "\">" + name + "</A>";
     }
-    
+    sTextUnicode = sTextUnicode.replace(/\n$/, "");
+
     const kXferableContractID = "@mozilla.org/widget/transferable;1";
     const kXferableIID = Components.interfaces.nsITransferable;
     var xferable = Components.classes[kXferableContractID].createInstance(kXferableIID);
