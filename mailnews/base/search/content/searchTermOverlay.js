@@ -189,7 +189,12 @@ function initializeBooleanWidgets()
     var firstTerm = gSearchTerms[0].searchTerm;
     if (firstTerm)
     {
-        booleanAnd = firstTerm.booleanAnd;
+        // If there is a second term, it should actually define whether we're
+        //  using 'and' or not.  Note that our UI is not as rich as the
+        //  underlying search model, so there's the potential to lose here when
+        //  grouping is involved.
+        booleanAnd = (gSearchTerms.length > 1) ?
+            gSearchTerms[1].searchTerm.booleanAnd : firstTerm.booleanAnd;
         matchAll = firstTerm.matchAll;
     }
     // target radio items have value="and" or value="or" or "all"
