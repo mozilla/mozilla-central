@@ -266,8 +266,7 @@
             ["contentAreaContextSet"]
           ],
 
-        /* MailNews and Addressbook need at least one mail account */
-        // MailNews
+        // MailNews (needs at least one mail account)
         "chrome://messenger/content/messenger.xul":
           [
             window.CheckGenerics,
@@ -284,7 +283,7 @@
             []
           ],
 
-        // Addressbook
+        // Addressbook (needs at least one mail account)
         "chrome://messenger/content/addressbook/addressbook.xul":
           [
             window.CheckGenerics,
@@ -305,7 +304,6 @@
             []
           ],
 
-/* not available yet in chrome tests
         // Chatzilla
         "chrome://chatzilla/content/chatzilla.xul":
           [
@@ -318,6 +316,7 @@
             window.CheckGenerics,
             []
           ],
+/* Passes test but has major leak. (Bug 504730)
         // Venkman
         "chrome://venkman/content/venkman.xul":
           [
