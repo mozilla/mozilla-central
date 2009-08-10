@@ -233,12 +233,21 @@ function enter_folder(aFolder) {
   if (mc.folderDisplay.displayedFolder == aFolder)
     enter_folder(aFolder.rootFolder);
 
+  // this selection event may not be synchronous...
   mc.folderTreeView.selectFolder(aFolder);
-  // XXX betrayal at startup involving the inbox can happen, so force the folder
-  //  to be shown in that case.
-  if (mc.folderDisplay.displayedFolder != aFolder)
-    mc.folderDisplay.show(aFolder);
+  // ... so wait until it goes through by waiting on the displayedFolder...
+  function isDisplayedFolder() {
+    return mc.folderDisplay.displayedFolder == aFolder;
+  }
+  controller.waitForEval('subject()', NORMAL_TIMEOUT, FAST_INTERVAL,
+                         isDisplayedFolder);
+
   wait_for_all_messages_to_load();
+
+  // XXX folder summary will impact this, but for now, nothing should be
+  //  shown when we enter the folder.
+  wait_for_blank_content_pane();
+
   // and drain the event queue
   controller.sleep(0);
 }
