@@ -422,9 +422,10 @@ var BookmarksCommand = {
       var name = BookmarksUtils.getProperty(aSelection.item[i], NC_NS+"Name");
       sBookmarkItem += aSelection.item[i].Value + "\n";
       sTextUnicode += url + "\n";
-      sTextHTML += "<A HREF=\"" + url + "\">" + name + "</A>";
+      sTextHTML += "<A HREF=\"" + url + "\">" + name + "</A>\n";
     }
     sTextUnicode = sTextUnicode.replace(/\n$/, "");
+    sTextHTML = sTextHTML.replace(/\n$/, "");
 
     const kXferableContractID = "@mozilla.org/widget/transferable;1";
     const kXferableIID = Components.interfaces.nsITransferable;
