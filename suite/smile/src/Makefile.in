@@ -1,4 +1,3 @@
-#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,15 +11,14 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is SMILE.
 #
-# The Initial Developer of the Original Code is
-# the mozilla.org SeaMonkey project.
-# Portions created by the Initial Developer are Copyright (C) 2005
+# The Initial Developer of the Original Code is Mozilla Corporation.
+# Portions created by the Initial Developer are Copyright (C) 2006
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Mark Banner <bugzilla@standard8.demon.co.uk>
+#   Jorge Villalobos <jorge.villalobos@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,56 +34,15 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
+DEPTH     = ../../..
+topsrcdir = @top_srcdir@
+srcdir    = @srcdir@
+VPATH     = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-# check if this is an alpha or nightly
-# replace "pre" with "a" in the version and then look if "a" matches
-ifneq (,$(findstring a,$(MOZ_APP_VERSION:pre=a)))
-PARALLEL_DIRS = debugQA
-endif
+MODULE = smile
 
-PARALLEL_DIRS	+= \
-		branding \
-		browser \
-		common \
-		feeds/public \
-		feeds/src \
-		locales \
-		modules \
-		themes/classic \
-		themes/modern \
-		profile \
-		security \
-		shell/public \
-		smile \
-		$(NULL)
-
-ifeq ($(OS_ARCH),WINNT)
-PARALLEL_DIRS += shell/src
-ifdef MOZ_INSTALLER
-PARALLEL_DIRS += installer/windows
-endif
-endif
-
-ifdef MOZ_MAIL_NEWS
-PARALLEL_DIRS += mailnews
-endif
-
-# app is always last as it packages up the built files on mac
-DIRS = build app
+EXTRA_PP_COMPONENTS = smileApplication.js
 
 include $(topsrcdir)/config/rules.mk
-
-# For Windows build the uninstaller during the application build since the
-# uninstaller is included with the application for mar file generation.
-libs::
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-	$(MAKE) -C installer/windows uninstaller
-endif
-endif

@@ -1,0 +1,167 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is FUEL.
+ *
+ * The Initial Developer of the Original Code is Mozilla Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2006
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *  Mark Finkle <mfinkle@mozilla.com> (Original Author)
+ *  John Resig  <jresig@mozilla.com> (Original Author)
+ *  Jorge Villalobos <jorge.villalobos@gmail.com> (SeaMonkey port)
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+#include "extIApplication.idl"
+
+interface nsIVariant;
+interface nsIURI;
+interface nsIDOMHTMLDocument;
+
+interface smileIBrowserTab;
+
+/**
+ * Interface representing a container for bookmark roots. Roots
+ * are the top level parents for the various types of bookmarks in the system.
+ * Empty as it is only used as the return type for Application.bookmarks. It
+ * will be supported once the Places bookmarks API is supported in SeaMonkey.
+ */
+[scriptable, uuid(1102eec4-f66b-4082-abad-c967ad7d5f76)]
+interface smileIBookmarkRoots : nsISupports
+{
+};
+
+/**
+ * Interface representing a browser window.
+ */
+[scriptable, uuid(1c3002ec-5aaf-4232-ab7d-835a348133fd)]
+interface smileIWindow : nsISupports
+{
+  /**
+   * A collection of browser tabs within the browser window.
+   */
+  readonly attribute nsIVariant tabs;
+
+  /**
+   * The currently-active tab within the browser window.
+   */
+  readonly attribute smileIBrowserTab activeTab;
+
+  /**
+   * Open a new browser tab, pointing to the specified URI.
+   * @param   aURI
+   *          The uri to open the browser tab to
+   */
+  smileIBrowserTab open(in nsIURI aURI);
+
+  /**
+   * The events object for the browser window.
+   * supports: "TabOpen", "TabClose", "TabMove", "TabSelect"
+   */
+  readonly attribute extIEvents events;
+};
+
+/**
+ * Interface representing a browser tab.
+ */
+[scriptable, uuid(9b06c55e-5377-4c71-8bda-8e8750c5a02a)]
+interface smileIBrowserTab : nsISupports
+{
+  /**
+   * The current uri of this tab.
+   */
+  readonly attribute nsIURI uri;
+
+  /**
+   * The current index of this tab in the browser window.
+   */
+  readonly attribute PRInt32 index;
+
+  /**
+   * The browser window that is holding the tab.
+   */
+  readonly attribute smileIWindow window;
+
+  /**
+   * The content document of the browser tab.
+   */
+  readonly attribute nsIDOMHTMLDocument document;
+
+  /**
+   * The events object for the browser tab.
+   * supports: "load"
+   */
+  readonly attribute extIEvents events;
+
+  /**
+   * Load a new URI into this browser tab.
+   * @param   aURI
+   *          The uri to load into the browser tab
+   */
+  void load(in nsIURI aURI);
+
+  /**
+   * Give focus to this browser tab, and bring it to the front.
+   */
+  void focus();
+
+  /**
+   * Close the browser tab. This may not actually close the tab
+   * as script may abort the close operation.
+   */
+  void close();
+
+  /**
+   * Moves this browser tab before another browser tab within the window.
+   * @param   aBefore
+   *          The tab before which the target tab will be moved
+   */
+  void moveBefore(in smileIBrowserTab aBefore);
+
+  /**
+   * Move this browser tab to the last tab within the window.
+   */
+  void moveToEnd();
+};
+
+/**
+ * Interface for managing and accessing the applications systems
+ */
+[scriptable, uuid(c9ba8f65-c936-4ac6-a859-8936832b0c12)]
+interface smileIApplication : extIApplication
+{
+  /**
+   * An array of browser windows within the application.
+   */
+  readonly attribute nsIVariant windows;
+
+  /**
+   * The currently active browser window.
+   */
+  readonly attribute smileIWindow activeWindow;
+};

@@ -221,6 +221,7 @@ bin/components/satchel.xpt
 bin/components/saxparser.xpt
 bin/components/shistory.xpt
 bin/components/shellservice.xpt
+bin/components/smile.xpt
 bin/components/spellchecker.xpt
 bin/components/storage.xpt
 bin/components/suitebrowser.xpt
@@ -298,6 +299,7 @@ bin/components/nsUpdateService.js
 bin/components/nsURLFormatter.js
 bin/components/nsWebHandlerApp.js
 bin/components/pluginGlue.js
+bin/components/smileApplication.js
 bin/components/storage-Legacy.js
 bin/components/storage-mozStorage.js
 bin/components/txEXSLTRegExFunctions.js

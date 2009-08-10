@@ -63,6 +63,7 @@ add_makefiles "
   suite/profile/migration/src/Makefile
   suite/shell/public/Makefile
   suite/shell/src/Makefile
+  suite/smile/Makefile
   suite/themes/modern/Makefile
   suite/themes/classic/Makefile
 "
