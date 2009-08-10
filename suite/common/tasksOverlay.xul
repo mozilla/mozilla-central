@@ -15,6 +15,8 @@
 
 <keyset id="tasksKeys">
   <key id="key_navigator"    key="&navigatorCmd.commandkey;"   command="Tasks:Navigator" modifiers="accel"/>
+  <key id="key_downloadManager" key="&downloadManagerCmd.commandkey;"
+       command="downloadmgr" modifiers="accel"/>
   <key id="key_errorConsole" key="&errorConsoleCmd.commandkey;"
        command="Tasks:ErrorConsole" modifiers="accel,shift"/>
 </keyset>
@@ -30,7 +32,7 @@
           <menu id="menu_passwordManager"
                 label="&passwordManagerCmd.label;"
                 accesskey="&passwordManagerCmd.accesskey;">
-            <menupopup>
+            <menupopup id="passwordPopup">
               <menuitem label="&passwordDisplayCmd.label;"
                         accesskey="&passwordDisplayCmd.accesskey;"
                         oncommand="toPasswordManager();"/>
@@ -39,7 +41,9 @@
                         oncommand="ExpirePassword();"/>
             </menupopup>
           </menu>
-          <menuitem id="downloadmgr" label="&downloadManagerCmd.label;" accesskey="&downloadManagerCmd.accesskey;" oncommand="toDownloadManager();"/>
+          <menuitem id="downloadmgr" label="&downloadManagerCmd.label;"
+                    accesskey="&downloadManagerCmd.accesskey;"
+                    key="key_downloadManager" oncommand="toDownloadManager();"/>
           <menuitem id="addonsmgr" accesskey="&addonsManagerCmd.accesskey;"
                     label="&addonsManagerCmd.label;" oncommand="toEM();"/>
           <menuseparator/>

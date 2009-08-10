@@ -37,6 +37,7 @@
 
 <!ENTITY downloadManagerCmd.label "Download Manager">
 <!ENTITY downloadManagerCmd.accesskey "D">
+<!ENTITY downloadManagerCmd.commandkey "j">
 
 <!ENTITY addonsManagerCmd.label "Add-on Manager">
 <!ENTITY addonsManagerCmd.accesskey "A">
