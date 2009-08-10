@@ -177,7 +177,7 @@ function test_open_multiple_search_results_in_new_tabs() {
   // Open them
   open_selected_messages(swc);
   // This is going to trigger a message display in the main 3pane window
-  wait_for_message_display_completion(mc);
+  wait_for_message_display_completion(mc, true);
   // Check that the tab count has increased by the correct number
   assert_number_of_tabs_open(preCount + NUM_MESSAGES_TO_OPEN);
   // Check that the currently displayed tab is a message tab (i.e. one of our
