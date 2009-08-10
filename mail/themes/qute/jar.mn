@@ -1,6 +1,4 @@
 classic.jar:
-  icon.png                                                    (mail/icon.png)
-  preview.png                                                 (mail/preview.png)
 % skin communicator classic/1.0 %skin/classic/communicator/
   skin/classic/communicator/communicator.css                      (mail/communicator.css)
   skin/classic/communicator/smileys.css                       (mail/smileys.css)

@@ -247,8 +247,6 @@ classic.jar:
   skin/classic/messenger/icons/arrow/arrow-up-dim.png            (mail/icons/arrow/arrow-up-dim.png)
   skin/classic/messenger/icons/arrow/arrow-down-dim.png          (mail/icons/arrow/arrow-down-dim.png)
   skin/classic/messenger/tagbg.png                               (mail/tagbg.png)
-  preview.png                                                    (mail/preview.png)
-  icon.png                                                       (mail/icon.png)
 % skin editor classic/1.0 %skin/classic/editor/
   skin/classic/editor/editor.css                                 (editor/editor.css)
   skin/classic/editor/EditorDialog.css                           (editor/EditorDialog.css)
