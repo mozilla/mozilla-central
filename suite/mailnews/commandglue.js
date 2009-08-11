@@ -160,30 +160,38 @@ function UpdateMailToolbar(caller)
   observerService.notifyObservers(window, "mail:updateToolbarItems", null);
 }
 
-function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
+/**
+ * @param   folder                - If viewFolder is a single folder saved
+                                  - search, this folder is the scope of the
+                                  - saved search, the real, underlying folder.
+                                  - Otherwise, it's the same as the viewFolder.
+ * @param   viewFolder            - nsIMsgFolder selected in the folder pane.
+                                  - Will be the same as folder, except if
+                                  - it's a single folder saved search.
+ * @param   viewType              - nsMsgViewType (see nsIMsgDBView.idl)
+ * @param   viewFlags             - nsMsgViewFlagsType (see nsIMsgDBView.idl)
+ * @param   sortType              - nsMsgViewSortType (see nsIMsgDBView.idl)
+ * @param   sortOrder             - nsMsgViewSortOrder (see nsIMsgDBView.idl)
+ **/
+function ChangeFolder(folder, viewFolder, viewType, viewFlags, sortType, sortOrder)
 {
-  //dump("In ChangeFolderByURI uri = " + uri + " sortType = " + sortType + "\n");
-  if (uri == gCurrentLoadingFolderURI)
+  if (folder.URI == gCurrentLoadingFolderURI)
     return;
 
-  SetUpToolbarButtons(uri);
+  SetUpToolbarButtons(folder.URI);
 
   // hook for extra toolbar items
   var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:setupToolbarItems", uri);
-
-  var resource = RDF.GetResource(uri);
-  var msgfolder =
-      resource.QueryInterface(Components.interfaces.nsIMsgFolder);
+  observerService.notifyObservers(window, "mail:setupToolbarItems", folder.URI);
 
   try {
-      setTitleFromFolder(msgfolder, null);
+      setTitleFromFolder(viewFolder, null);
   } catch (ex) {
       dump("error setting title: " + ex + "\n");
   }
 
   //if it's a server, clear the threadpane and don't bother trying to load.
-  if (msgfolder.isServer) {
+  if (folder.isServer) {
     msgWindow.openFolder = null;
 
     ClearThreadPane();
@@ -195,20 +203,20 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
   }
   else
   {
-    if (msgfolder.server.displayStartupPage)
+    if (folder.server.displayStartupPage)
     {
       gDisplayStartupPage = true;
-      msgfolder.server.displayStartupPage = false;
+      folder.server.displayStartupPage = false;
     }
   }
 
-  // If the user clicks on msgfolder, time to display thread pane and message pane.
+  // If the user clicks on folder, time to display thread pane and message pane.
   ShowThreadPane();
 
-  gCurrentLoadingFolderURI = uri;
+  gCurrentLoadingFolderURI = folder.URI;
   gNextMessageAfterDelete = null; // forget what message to select, if any
 
-  gCurrentFolderToReroot = uri;
+  gCurrentFolderToReroot = folder.URI;
   gCurrentLoadingFolderViewFlags = viewFlags;
   gCurrentLoadingFolderViewType = viewType;
   gCurrentLoadingFolderSortType = sortType;
@@ -216,7 +224,7 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
 
   var showMessagesAfterLoading;
   try {
-    var server = msgfolder.server;
+    let server = folder.server;
     if (gPrefBranch.getBoolPref("mail.password_protect_local_cache"))
     {
       showMessagesAfterLoading = server.passwordPromptRequired;
@@ -230,15 +238,16 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
     showMessagesAfterLoading = false;
   }
 
-  if (viewType != nsMsgViewType.eShowVirtualFolderResults && (msgfolder.manyHeadersToDownload || showMessagesAfterLoading))
+  if (viewType != nsMsgViewType.eShowVirtualFolderResults &&
+      (folder.manyHeadersToDownload || showMessagesAfterLoading))
   {
     gRerootOnFolderLoad = true;
     try
     {
       ClearThreadPane();
       SetBusyCursor(window, true);
-      msgfolder.startFolderLoading();
-      msgfolder.updateFolder(msgWindow);
+      folder.startFolderLoading();
+      folder.updateFolder(msgWindow);
     }
     catch(ex)
     {
@@ -250,14 +259,14 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
   {
     if (viewType != nsMsgViewType.eShowVirtualFolderResults)
       SetBusyCursor(window, true);
-    RerootFolder(uri, msgfolder, viewType, viewFlags, sortType, sortOrder);
+    RerootFolder(folder.URI, folder, viewType, viewFlags, sortType, sortOrder);
     gRerootOnFolderLoad = false;
-    msgfolder.startFolderLoading();
+    folder.startFolderLoading();
 
     //Need to do this after rerooting folder.  Otherwise possibility of receiving folder loaded
     //notification before folder has actually changed.
     if (viewType != nsMsgViewType.eShowVirtualFolderResults)
-      msgfolder.updateFolder(msgWindow);
+      folder.updateFolder(msgWindow);
   }
 }
 
@@ -792,6 +801,9 @@ function FolderPaneSelectionChange()
         var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
         if (msgFolder == gMsgFolderSelected)
            return;
+        // If msgFolder turns out to be a single folder saved search, not a virtual folder,
+        // realFolder will get set to the underlying folder the saved search is based on.
+        let realFolder = msgFolder;
         gPrevSelectedFolder = gMsgFolderSelected;
         gMsgFolderSelected = msgFolder;
         UpdateLocationBar(gMsgFolderSelected);
@@ -861,7 +873,7 @@ function FolderPaneSelectionChange()
                       // we need to load the db for the actual folder so that many hdrs to download
                       // will return false...
                       var realFolderRes = GetResourceFromUri(uriToLoad);
-                      var realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
+                      realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
                       msgDatabase = realFolder.msgDatabase;
 //                      dump("search term string = " + searchTermString + "\n");
                     
@@ -897,7 +909,7 @@ function FolderPaneSelectionChange()
               viewType = nsMsgViewType.eShowQuickSearchResults;
             else if (viewType == nsMsgViewType.eShowQuickSearchResults)
               viewType = nsMsgViewType.eShowAllThreads;  //override viewType - we don't want to start w/ quick search
-            ChangeFolderByURI(uriToLoad, viewType, viewFlags, sortType, sortOrder);
+            ChangeFolder(realFolder, msgFolder, viewType, viewFlags, sortType, sortOrder);
            if (gVirtualFolderTerms)
              gDBView.viewFolder = msgFolder;        
          }
@@ -929,29 +941,6 @@ function ClearThreadPane()
     gDBView.close();
     gDBView = null; 
   }
-}
-
-function SelectNextMessage(nextMessage)
-{
-    dump("XXX implement SelectNextMessage()\n");
-}
-
-function GetSelectTrashUri(folder)
-{
-    if (!folder) return null;
-    var uri = folder.getAttribute('id');
-    var resource = RDF.GetResource(uri);
-    var msgFolder =
-        resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-    if (msgFolder)
-    {
-        var rootFolder = msgFolder.rootFolder;
-        var trashFolder = rootFolder.getFolderWithFlags(Components.interfaces.nsMsgFolderFlags.Trash);
-        if (trashFolder) {
-            return trashFolder.URI;
-        }
-    }
-    return null;
 }
 
 var mailOfflineObserver = {

@@ -455,10 +455,7 @@ function GetSelectedIndices(dbView)
 
 function GetLoadedMsgFolder()
 {
-	if (gCurrentFolderUri)
-		return RDF.GetResource(gCurrentFolderUri).QueryInterface(Components.interfaces.nsIMsgFolder);
-	else
-    return null;
+  return gCurrentFolderUri ? GetMsgFolderFromUri(gCurrentFolderUri) : null;
 }
 
 function GetSelectedFolderURI()
@@ -489,7 +486,7 @@ function SelectFolder(folderUri)
   if (folderUri == gCurrentFolderUri)
     return;
 
-  var msgfolder = RDF.GetResource(folderUri).QueryInterface(Components.interfaces.nsIMsgFolder);
+  let msgfolder = GetMsgFolderFromUri(folderUri);
   if (!msgfolder || msgfolder.isServer)
     return;
 

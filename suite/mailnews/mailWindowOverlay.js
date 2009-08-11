@@ -779,25 +779,25 @@ function PopulateHistoryMenu(menuPopup, navOffset)
     var newMenuItem = document.createElement('menuitem');
     newMenuItem.setAttribute('label', menuText);
     newMenuItem.setAttribute('value', i - startPos);
+    newMenuItem.folder = folder;
     menuPopup.appendChild(newMenuItem);
   }
 }
 
 function NavigateToUri(target)
 {
-  var currentLoadedFolder = GetThreadPaneFolder();
   var historyIndex = target.getAttribute('value');
-  var folderUri = messenger.getFolderUriAtNavigatePos(historyIndex);
+  let folderUri = target.folder.URI;
   var msgUri = messenger.getMsgUriAtNavigatePos(historyIndex);
-  var msgHdr = messenger.msgHdrFromURI(msgUri);
+  let msgHdrKey = messenger.msgHdrFromURI(msgUri).messageKey;
   messenger.navigatePos += Number(historyIndex);
-  if (folderURI == currentLoadedFolder.URI)
+  if (folderURI == GetThreadPaneFolder().URI)
   {
-    gDBView.selectMsgByKey(msgHdr.messageKey);
+    gDBView.selectMsgByKey(msgHdrKey);
   }
   else
   {
-    gStartMsgKey = msgHdr.messageKey;
+    gStartMsgKey = msgHdrKey;
     SelectFolder(folderUri);
   }
 }

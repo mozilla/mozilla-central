@@ -826,7 +826,7 @@ function UpdateMessageHeaders()
         {
           var folder = null;
           if (gCurrentFolderUri)
-            folder = RDF.GetResource(gCurrentFolderUri).QueryInterface(Components.interfaces.nsIMsgFolder);
+            folder = GetMsgFolderFromUri(gCurrentFolderUri);
           setTitleFromFolder(folder, headerField.headerValue);
         }
       } catch (ex) {}
