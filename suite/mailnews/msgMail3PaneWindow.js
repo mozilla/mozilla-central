@@ -1362,14 +1362,6 @@ function ClearMessageSelection()
   ClearThreadPaneSelection();
 }
 
-function GetCompositeDataSource(command)
-{
-  if (command == "GetNewMessages" || command == "NewFolder" || command == "MarkAllMessagesRead")
-    return GetFolderDatasource();
-
-  return null;
-}
-
 // Figures out how many messages are selected (hilighted - does not necessarily
 // have the dotted outline) above a given index row value in the thread pane.
 function NumberOfSelectedMessagesAboveCurrentIndex(index)

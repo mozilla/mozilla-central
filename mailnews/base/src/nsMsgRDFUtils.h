@@ -119,8 +119,6 @@ typedef struct _nsMsgRDFNotification {
 #define NC_RDF_COMPACTALL			NC_NAMESPACE_URI "CompactAll"
 #define NC_RDF_RENAME				NC_NAMESPACE_URI "Rename"
 #define NC_RDF_EMPTYTRASH   NC_NAMESPACE_URI "EmptyTrash"
-#define NC_RDF_DOWNLOADFLAGGED NC_NAMESPACE_URI "DownloadFlaggedMessages"
-#define NC_RDF_DOWNLOADSELECTED NC_NAMESPACE_URI "DownloadSelectedMessages"
 
 
 nsresult createNode(const PRUnichar *str, nsIRDFNode **, nsIRDFService *rdfService);
@@ -136,5 +134,3 @@ nsresult createBlobNode(PRUint8 *value, PRUint32 &length,  nsIRDFNode **node, ns
 //parameter will no longer be needed.
 nsresult GetTargetHasAssertion(nsIRDFDataSource *dataSource, nsIRDFResource* folderResource,
 							   nsIRDFResource *property,PRBool tv, nsIRDFNode *target,PRBool* hasAssertion);
-
-

@@ -129,7 +129,6 @@ nsIRDFResource* nsMsgFolderDataSource::kNC_Compact= nsnull;
 nsIRDFResource* nsMsgFolderDataSource::kNC_CompactAll= nsnull;
 nsIRDFResource* nsMsgFolderDataSource::kNC_Rename= nsnull;
 nsIRDFResource* nsMsgFolderDataSource::kNC_EmptyTrash= nsnull;
-nsIRDFResource* nsMsgFolderDataSource::kNC_DownloadFlagged= nsnull;
 
 nsrefcnt nsMsgFolderDataSource::gFolderResourceRefCnt = 0;
 
@@ -217,7 +216,6 @@ nsMsgFolderDataSource::nsMsgFolderDataSource()
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_COMPACTALL), &kNC_CompactAll);
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_RENAME), &kNC_Rename);
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_EMPTYTRASH), &kNC_EmptyTrash);
-    rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_DOWNLOADFLAGGED), &kNC_DownloadFlagged);
 
     kTotalMessagesAtom           = NS_NewAtom("TotalMessages");
     kTotalUnreadMessagesAtom     = NS_NewAtom("TotalUnreadMessages");
@@ -307,7 +305,6 @@ nsMsgFolderDataSource::~nsMsgFolderDataSource (void)
     NS_RELEASE2(kNC_CompactAll, refcnt);
     NS_RELEASE2(kNC_Rename, refcnt);
     NS_RELEASE2(kNC_EmptyTrash, refcnt);
-    NS_RELEASE2(kNC_DownloadFlagged, refcnt);
     NS_RELEASE2(kNC_UnreadFolders, refcnt);
     NS_RELEASE2(kNC_FavoriteFolders, refcnt);
     NS_RELEASE2(kNC_RecentFolders, refcnt);
@@ -673,7 +670,6 @@ nsMsgFolderDataSource::GetAllCmds(nsIRDFResource* source,
   cmds->AppendElement(kNC_CompactAll, PR_FALSE);
   cmds->AppendElement(kNC_Rename, PR_FALSE);
   cmds->AppendElement(kNC_EmptyTrash, PR_FALSE);
-  cmds->AppendElement(kNC_DownloadFlagged, PR_FALSE);
 
   return cmds->Enumerate(commands);
 }
@@ -708,8 +704,7 @@ nsMsgFolderDataSource::IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aS
             (aCommand == kNC_Compact) ||
             (aCommand == kNC_CompactAll) ||
             (aCommand == kNC_Rename) ||
-            (aCommand == kNC_EmptyTrash) ||
-            (aCommand == kNC_DownloadFlagged) ))
+            (aCommand == kNC_EmptyTrash)))
       {
         *aResult = PR_FALSE;
         return NS_OK;

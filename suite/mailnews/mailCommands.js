@@ -438,16 +438,6 @@ function MarkSelectedMessagesFlagged(markFlagged)
   gDBView.doCommand(markFlagged ? nsMsgViewCommandType.flagMessages : nsMsgViewCommandType.unflagMessages);
 }
 
-function DownloadFlaggedMessages(compositeDataSource, folder)
-{
-    dump("fix DownloadFlaggedMessages()\n");
-}
-
-function DownloadSelectedMessages(compositeDataSource, messages, markFlagged)
-{
-    dump("fix DownloadSelectedMessages()\n");
-}
-
 function ViewPageSource(messages)
 {
   var numMessages = messages.length;
