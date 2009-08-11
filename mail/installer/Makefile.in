@@ -52,6 +52,7 @@ NO_PKG_FILES = \
 	xpt_link* \
 	plugins \
 	res/bloatcycle.html \
+	nspr-config \
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk

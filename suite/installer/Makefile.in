@@ -48,6 +48,7 @@ NO_PKG_FILES = \
 	xpidl* \
 	xpt_dump* \
 	xpt_link* \
+	nspr-config \
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk
