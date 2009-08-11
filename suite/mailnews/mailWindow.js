@@ -112,11 +112,6 @@ function OnMailWindowUnload()
   mailSession.RemoveMsgWindow(msgWindow);
   messenger.setWindow(null, null);
 
-  var msgDS = folderDataSource.QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
-  msgDS.window = null;
-
-  msgDS = accountManagerDataSource.QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
-  msgDS.window = null;
   msgWindow.closeWindow();
 }
 
@@ -339,20 +334,12 @@ function AddDataSources()
   SetupMoveCopyMenus('button-file', accountManagerDataSource, folderDataSource);
   SetupMoveCopyMenus('mailContext-copyMenu', accountManagerDataSource, folderDataSource);
   SetupMoveCopyMenus('mailContext-moveMenu', accountManagerDataSource, folderDataSource);
-
-  //Add statusFeedback
-  var msgDS = folderDataSource.QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
-  msgDS.window = msgWindow;
-
-  msgDS = accountManagerDataSource.QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
-  msgDS.window = msgWindow;
-
 }
 
 function SetupMoveCopyMenus(menuid, accountManagerDataSource, folderDataSource)
 {
   var menu = document.getElementById(menuid);
-  if(menu)
+  if (menu)
   {
     menu.database.AddDataSource(accountManagerDataSource);
     menu.database.AddDataSource(folderDataSource);
