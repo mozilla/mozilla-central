@@ -325,12 +325,3 @@ function GetMsgFolderFromUri(uri, checkFolderAttributes)
 {
   return MailUtils.getFolderForURI(uri, checkFolderAttributes);
 }
-
-function GetResourceFromUri(uri)
-{
-    var RDF = Components.classes['@mozilla.org/rdf/rdf-service;1'].getService();
-    RDF = RDF.QueryInterface(Components.interfaces.nsIRDFService);
-    var resource = RDF.GetResource(uri);
-
-    return resource;
-}  

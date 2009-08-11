@@ -794,7 +794,6 @@ function FolderPaneSelectionChange()
         var startIndex = {};
         var endIndex = {};
 
-
         folderSelection.getRangeAt(0, startIndex, endIndex);
         var folderResource = GetFolderResource(folderTree, startIndex.value);
         var uriToLoad = folderResource.Value;
@@ -872,8 +871,7 @@ function FolderPaneSelectionChange()
                       uriToLoad = srchFolderUri;
                       // we need to load the db for the actual folder so that many hdrs to download
                       // will return false...
-                      var realFolderRes = GetResourceFromUri(uriToLoad);
-                      realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
+                      realFolder = GetMsgFolderFromUri(uriToLoad);
                       msgDatabase = realFolder.msgDatabase;
 //                      dump("search term string = " + searchTermString + "\n");
                     
@@ -1058,8 +1056,7 @@ function setupXFVirtualFolderSearch(folderUrisToSearch, searchTerms, searchOnlin
 
   for (i in folderUrisToSearch)
     {
-      var realFolderRes = GetResourceFromUri(folderUrisToSearch[i]);
-      var realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
+      let realFolder = GetMsgFolderFromUri(folderUrisToSearch[i]);
       if (!realFolder.isServer)
         gSearchSession.addScopeTerm(!searchOnline ? nsMsgSearchScope.offlineMail : GetScopeForFolder(realFolder), realFolder);
     }
