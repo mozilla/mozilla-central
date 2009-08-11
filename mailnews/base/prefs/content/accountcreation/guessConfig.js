@@ -407,7 +407,7 @@ HostDetector.prototype =
     if (this._cancel)
         return;
     this._tryIndex++;
-    var curTry = this.tryOrder[this._tryIndex];
+    let curTry = this.tryOrder[this._tryIndex];
 
     if (curTry === undefined) {
       // Ran out of options.
@@ -416,7 +416,6 @@ HostDetector.prototype =
       return;
     }
 
-    let curTry = this.tryOrder[this._tryIndex];
     let type = curTry[0];
     let port = curTry[2];
     let ssl = curTry[1];
@@ -438,16 +437,35 @@ HostDetector.prototype =
     let cert = status.QueryInterface(Ci.nsISSLStatus).serverCert;
     let flags = 0;
 
-    if (status.isUntrusted)
-      flags |= gOverrideService.ERROR_UNTRUSTED;
-    if (status.isDomainMismatch)
-      flags |= gOverrideService.ERROR_MISMATCH;
-    if (status.isNotValidAtThisTime)
-      flags |= gOverrideService.ERROR_TIME;
-
     let parts = targetSite.split(':');
     let host = parts[0];
     let port = parts[1];
+
+    if (status.isDomainMismatch) {
+      this._gotCertError = gOverrideService.ERROR_MISMATCH;
+      flags |= gOverrideService.ERROR_MISMATCH;
+
+      // If it was just a domain mismatch error,
+      if (!(status.isUntrusted || status.isNotValidAtThisTime)) {
+        // then, if we didn't get a wildcard in the certificate,
+        if (cert.commonName.charAt(0) != "*") {
+          // then add this host to the hosts to try, and skip to the end.
+          if (this._hostsToTry.indexOf(cert.commonName) == -1)
+            this._hostsToTry.push(cert.commonName);
+          this._tryIndex = this.tryOrder.length - 1;
+        }
+        return true;
+      }
+    }
+
+    if (status.isUntrusted) {
+      this._gotCertError = gOverrideService.ERROR_UNTRUSTED;
+      flags |= gOverrideService.ERROR_UNTRUSTED;
+    }
+    if (status.isNotValidAtThisTime) {
+      this._gotCertError = gOverrideService.ERROR_TIME;
+      flags |= gOverrideService.ERROR_TIME;
+    }
 
     // If domain mismatch, then we shouldn't accept, and instead try the domain
     // in the cert to the list of tries.
@@ -455,7 +473,6 @@ HostDetector.prototype =
     // poke around the cert and find out what domain to try, best to live
     // w/ orange than red.
 
-    this._gotCertError = true;
     this._targetSite = targetSite;
     this._certOverrideProcessed = false;
     gOverrideService.rememberValidityOverride(host, port, cert, flags,
@@ -480,7 +497,15 @@ HostDetector.prototype =
     if (this._cancel) // it's been canceled
       return; // just don't use response nor continue
 
-    if (this._gotCertError)
+    if(this._gotCertError == gOverrideService.ERROR_MISMATCH)
+    {
+      this._gotCertError = false;
+      this.keepTrying();
+      return;
+    }
+
+    if (this._gotCertError == gOverrideService.ERROR_UNTRUSTED ||
+        this._gotCertError == gOverrideService.ERROR_TIME)
     {
       this._log.info("TRYING AGAIN, hopefully w/ exception recorded");
       this._tryIndex--; // this will just try same host/port, again
