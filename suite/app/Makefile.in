@@ -195,7 +195,6 @@ ifeq ($(OS_ARCH),OS2)
 RESFILE = splashos2.res
 RCFLAGS += -i $(MOZILLA_SRCDIR)/toolkit/xre
 ifdef BUILD_STATIC_LIBS
-EXE_DEF_FILE = seamonkey.def
 RCFLAGS += -DMOZ_STATIC_BUILD -i $(DIST)/include/widget
 endif
 endif

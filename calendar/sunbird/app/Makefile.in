@@ -212,7 +212,6 @@ ifeq ($(OS_ARCH),OS2)
 RESFILE=splashos2.res
 RCFLAGS += -DMOZ_SUNBIRD
 ifdef BUILD_STATIC_LIBS
-EXE_DEF_FILE = browser.def
 RCFLAGS += -DMOZ_STATIC_BUILD -i $(DIST)/include/widget
 endif
 ifdef DEBUG
@@ -262,20 +261,6 @@ endif
 endif
 
 $(PROGRAM): $(MOZDEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
-
-ifeq ($(OS_ARCH),OS2)
-ifdef BUILD_STATIC_LIBS
-$(EXE_DEF_FILE):
-	rm -f $@
-	@echo NAME mozilla >$(EXE_DEF_FILE)
-	@echo IMPORTS >>$(EXE_DEF_FILE)
-	@echo 	WinQueryProperty		= PMMERGE.5450 >>$(EXE_DEF_FILE)
-	@echo 	WinRemoveProperty		= PMMERGE.5451 >>$(EXE_DEF_FILE)
-	@echo 	WinSetProperty			= PMMERGE.5452 >>$(EXE_DEF_FILE)
-
-LDFLAGS += -Zlinker /NOE
-endif
-endif
 
 ifneq (,$(filter-out OS2 WINNT,$(OS_ARCH)))
 
@@ -343,8 +328,6 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
 endif
 ifeq ($(OS_ARCH),OS2)
 	cp $(srcdir)/sunbird-os2.ico  $(DIST)/branding/sunbird.ico
-	cp $(srcdir)/sunbird-os2.ico  $(DIST)/branding/app.ico
-	cp $(srcdir)/sunbird-os2.ico  $(DIST)/branding/document.ico
 endif
 endif
 
