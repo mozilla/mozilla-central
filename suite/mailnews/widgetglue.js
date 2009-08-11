@@ -80,23 +80,17 @@ function GetSelectedFolderURI()
 
 function MsgRenameFolder() 
 {
-	var preselectedURI = GetSelectedFolderURI();
-	var folderTree = GetFolderTree();
-
-	var name = GetFolderNameFromUri(preselectedURI, folderTree);
-
-	dump("preselectedURI = " + preselectedURI + "\n");
-	var dialog = window.openDialog(
-	             "chrome://messenger/content/renameFolderDialog.xul",
-	             "newFolder",
-	             "chrome,titlebar,modal",
-	             {preselectedURI: preselectedURI, 
-	              okCallback: RenameFolder, name: name});
+  let folder = GetSelectedMsgFolders()[0];
+  let dialog = window.openDialog(
+               "chrome://messenger/content/renameFolderDialog.xul",
+               "newFolder",
+               "chrome,titlebar,modal",
+               {preselectedURI: folder.URI,
+                okCallback: RenameFolder, name: folder.prettyName});
 }
 
 function RenameFolder(name,uri)
 {
-  dump("uri,name = " + uri + "," + name + "\n");
   var folderTree = GetFolderTree();
   if (folderTree)
   {
@@ -188,9 +182,7 @@ function MsgCompactFolder(aCompactAccount)
 function openNewVirtualFolderDialogWithArgs(defaultViewName, aSearchTerms)
 {
   var folder = GetFirstSelectedMsgFolder();
-  var folderTree = GetFolderTree();
-  var name = GetFolderNameFromUri(folder.URI, folderTree);
-  name += "-" + defaultViewName;
+  let name = folder.prettyName + "-" + defaultViewName;
 
   var dialog = window.openDialog("chrome://messenger/content/virtualFolderProperties.xul", "",
                                  "chrome,titlebar,modal,centerscreen",
@@ -198,7 +190,6 @@ function openNewVirtualFolderDialogWithArgs(defaultViewName, aSearchTerms)
                                   searchTerms:aSearchTerms,
                                   newFolderName:name});
 }
-
 
 function MsgVirtualFolderProperties(aEditExistingVFolder)
 {
@@ -225,17 +216,13 @@ function onEditVirtualFolderPropertiesCallback(aVirtualFolderURI)
 
 function MsgFolderProperties() 
 {
-  var preselectedURI = GetSelectedFolderURI();
-  var msgFolder = GetMsgFolderFromUri(preselectedURI, true);
+  let msgFolder = GetMsgFolderFromUri(GetSelectedFolderURI(), true);
 
   // if a server is selected, view settings for that account
   if (msgFolder.isServer) {
     MsgAccountManager(null);
     return;
   }
-
-  var serverType = msgFolder.server.type;
-  var folderTree = GetFolderTree();
 
   if (msgFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
   { 
@@ -245,17 +232,16 @@ function MsgFolderProperties()
     return;
   }
 
-  var name = GetFolderNameFromUri(preselectedURI, folderTree);
-
   var windowTitle = gMessengerBundle.getString("folderProperties");
   var dialog = window.openDialog(
               "chrome://messenger/content/folderProps.xul",
               "",
               "chrome,centerscreen,titlebar,modal",
-              {folder:msgFolder, serverType:serverType,
-              msgWindow:msgWindow, title:windowTitle,
-              okCallback:FolderProperties, 
-              tabID:"", tabIndex:0, name:name, rebuildSummaryCallback:RebuildSummaryFile});
+              {folder: msgFolder, serverType: msgFolder.server.type,
+               msgWindow: msgWindow, title: windowTitle,
+               okCallback: FolderProperties, tabID: "", tabIndex: 0,
+               name: msgFolder.prettyName,
+               rebuildSummaryCallback: RebuildSummaryFile});
 }
 
 function RebuildSummaryFile(msgFolder)

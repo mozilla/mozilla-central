@@ -761,8 +761,7 @@ function PopulateHistoryMenu(menuPopup, navOffset)
        i += navOffset, ++itemCount)
   {
     var menuText = "";
-    var folder = RDF.GetResource(historyArray[i * 2 + 1])
-                    .QueryInterface(Components.interfaces.nsIMsgFolder);
+    let folder = GetMsgFolderFromUri(historyArray[i * 2 + 1]);
     if (!IsCurrentLoadedFolder(folder))
       menuText += folder.prettyName + ": ";
 
@@ -1037,8 +1036,7 @@ function MsgCopyMessage(destFolder)
   try {
     // get the msg folder we're copying messages into
     var destUri = destFolder.getAttribute('id');
-    var destResource = RDF.GetResource(destUri);
-    var destMsgFolder = destResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+    let destMsgFolder = GetMsgFolderFromUri(destUri);
     gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, destMsgFolder);
   }
   catch (ex) {
@@ -1051,8 +1049,7 @@ function MsgMoveMessage(destFolder)
   try {
     // get the msg folder we're moving messages into
     var destUri = destFolder.getAttribute('id');
-    var destResource = RDF.GetResource(destUri);
-    var destMsgFolder = destResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+    let destMsgFolder = GetMsgFolderFromUri(destUri);
     // we don't move news messages, we copy them
     if (isNewsURI(gDBView.msgFolder.URI)) {
       gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, destMsgFolder);

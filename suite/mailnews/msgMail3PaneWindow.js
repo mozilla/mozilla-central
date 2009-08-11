@@ -1419,8 +1419,7 @@ function EnsureFolderIndex(builder, msgFolder)
 function SelectFolder(folderUri)
 {
   var folderTree = GetFolderTree();
-  var folderResource = RDF.GetResource(folderUri);
-  var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+  let msgFolder = GetMsgFolderFromUri(folderUri);
 
   // Before we can select a folder, we need to make sure it is "visible"
   // in the tree. To do that, we need to ensure that all its

@@ -1064,26 +1064,6 @@ function MsgGoForward()
   GoNextMessage(nsMsgNavigationType.forward, true);
 }
 
-function GetFolderNameFromUri(uri, tree)
-{
-	var folderResource = RDF.GetResource(uri);
-
-	var db = tree.database;
-
-	var nameProperty = RDF.GetResource('http://home.netscape.com/NC-rdf#Name');
-
-	var nameResult;
-	try {
-		nameResult = db.GetTarget(folderResource, nameProperty , true);
-	}
-	catch (ex) {
-		return "";
-	}
-
-	nameResult = nameResult.QueryInterface(Components.interfaces.nsIRDFLiteral);
-	return nameResult.Value;
-}
-
 /* XXX hiding the search bar while it is focus kills the keyboard so we focus the thread pane */
 function SearchBarToggled()
 {
