@@ -302,12 +302,12 @@ calCalendarManager.prototype = {
         let win = wm.getMostRecentWindow("Extension:Manager") ||
                   cal.getCalendarWindow();
         if (win) {
-            win.openDialog(uri, uri, features, args);
+            win.openDialog(uri, "Calendar:ProviderUninstallDialog", features, args);
         } else {
             // Use the window watcher to open a parentless window.
             let ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                                .getService(Components.interfaces.nsIWindowWatcher);
-            ww.openWindow(null, uri, uri, features, args);
+            ww.openWindow(null, uri, "Calendar:ProviderUninstallWindow", features, args);
         }
 
 

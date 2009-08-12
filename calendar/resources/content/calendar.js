@@ -230,7 +230,7 @@ function pickAndGoToDate() {
     getMinimonth().value = pickedDate;
   };
   openDialog("chrome://sunbird/content/calendar-gotodate-dialog.xul",
-             "calendar-gotodate-dialog",
+             "Calendar:GoToDateDialog",
              "chrome,modal",
              {callback: callback, date: initialDate});
 }
