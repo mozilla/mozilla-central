@@ -56,7 +56,6 @@ export::
 	$(NSINSTALL) -D $(DIST)/branding
 ifeq ($(OS_ARCH),WINNT)
 	cp $(srcdir)/thunderbird.ico   $(DIST)/branding/thunderbird.ico
-	cp $(srcdir)/thunderbird.ico   $(DIST)/branding/app.ico
 	cp $(srcdir)/branding.nsi      $(DIST)/branding/branding.nsi
 	cp $(srcdir)/wizHeader.bmp     $(DIST)/branding/wizHeader.bmp
 	cp $(srcdir)/wizHeaderRTL.bmp  $(DIST)/branding/wizHeaderRTL.bmp
