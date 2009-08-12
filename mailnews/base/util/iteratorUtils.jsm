@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,12 +40,37 @@
  * and enumerators) in js-friendly ways.
  */
 
-var EXPORTED_SYMBOLS = ["fixIterator", "toXPCOMArray"];
+var EXPORTED_SYMBOLS = ["fixIterator", "toXPCOMArray", "toArray"];
 
 let Ci = Components.interfaces;
 
 /**
- * Given a JS array, JS iterator, or one of a variety of XPCOM collections or
+ * This function will take a number of objects and convert them to an array.
+ *
+ * Currently, we support the following objects:
+ *   NodeList     (i.e element.childNodes)
+ *   Iterator     (i.e toArray(fixIterator(enum))[4])
+ *
+ * @param aObj        The object to convert
+ * @param aUseKeys    If true, an array of keys will be returned instead of the
+ *                      values
+ */
+function toArray(aObj, aUseKeys) {
+  if (aObj instanceof NodeList) {
+    // aUseKeys doesn't make sense in this case, always return the values.
+    return Array.slice(aObj);
+  } else if (aObj instanceof Iterator) {
+    if (aUseKeys) {
+      return [ a for (a in aObj) ];
+    } else {
+      return [ a for each (a in aObj) ];
+    }
+  }
+  return null;
+}
+
+/**
+* Given a JS array, JS iterator, or one of a variety of XPCOM collections or
  * iterators, return a JS iterator suitable for use in a for...in expression.
  *
  * Currently, we support the following types of xpcom iterators:
@@ -58,7 +84,7 @@ let Ci = Components.interfaces;
  *
  *   @note This does *not* return an Array object.  It returns an object that
  *         can be used in for...in contexts only.  To create such an array, use
- *         var array = [a for each (a in fixIterator(xpcomEnumerator))];
+ *         var array = toArray(fixIterator(xpcomEnumerator));
  */
 function fixIterator(aEnum, aIface) {
   // is it a javascript array?  We can't do instanceof because we, as a module,
@@ -114,6 +140,7 @@ function fixIterator(aEnum, aIface) {
     }
     return { __iterator__: iter };
   }
+  return null;
 }
 
 /**
