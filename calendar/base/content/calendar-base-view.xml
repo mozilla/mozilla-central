@@ -379,6 +379,8 @@
                 onset="return (this.mWorkdaysOnly = val);"/>
       <property name="supportsWorkdaysOnly" readonly="true"
                 onget="return true;"/>
+      <property name="supportsZoom" readonly="true"
+                onget="return false;"/>
       <property name="selectionObserver" readonly="true"
                 onget="return this.mSelectionObserver;"/>
       <property name="startDay" readonly="true"
@@ -769,6 +771,21 @@
         <parameter name="aStop"/>
         <body><![CDATA[
           // Do nothing by default
+        ]]></body>
+      </method>
+
+      <method name="zoomIn">
+        <parameter name="aLevel"/>
+        <body><![CDATA[
+        ]]></body>
+      </method>
+      <method name="zoomOut">
+        <parameter name="aLevel"/>
+        <body><![CDATA[
+        ]]></body>
+      </method>
+      <method name="zoomReset">
+        <body><![CDATA[
         ]]></body>
       </method>
     </implementation>

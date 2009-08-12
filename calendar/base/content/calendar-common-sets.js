@@ -111,6 +111,9 @@ var calendarController = {
         "cmd_applyFiltersToSelection": true,
         "cmd_goForward": true,
         "cmd_goBack": true,
+        "cmd_fullZoomReduce": true,
+        "cmd_fullZoomEnlarge": true,
+        "cmd_fullZoomReset": true,
 
         // Pseudo commands
         "calendar_in_foreground": true,
@@ -257,6 +260,11 @@ var calendarController = {
                     case "button_delete":
                     case "cmd_delete":
                         return this.item_selected;
+                    case "cmd_fullZoomReduce":
+                    case "cmd_fullZoomEnlarge":
+                    case "cmd_fullZoomReset":
+                      return this.isInMode("calendar") &&
+                             currentView().supportsZoom;
                     case "cmd_properties":
                     case "cmd_runJunkControls":
                     case "cmd_deleteJunk":
@@ -430,6 +438,15 @@ var calendarController = {
                         break;
                     case "cmd_goBack":
                         currentView().moveView(-1);
+                        break;
+                    case "cmd_fullZoomReduce":
+                        currentView().zoomIn();
+                        break;
+                    case "cmd_fullZoomEnlarge":
+                        currentView().zoomOut();
+                        break;
+                    case "cmd_fullZoomReset":
+                        currentView().zoomReset();
                         break;
 
                     // For these commands, nothing should happen in calendar mode.

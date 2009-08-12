@@ -57,6 +57,9 @@
   <command id="cmd_selectAll" oncommand="goDoCommand('cmd_selectAll')"/>
   <command id="cmd_pageSetup" oncommand="goDoCommand('cmd_pageSetup')"/>
   <command id="cmd_print" oncommand="goDoCommand('cmd_print')"/>
+  <command id="cmd_fullZoomReduce" oncommand="goDoCommand('cmd_fullZoomReduce')"/>
+  <command id="cmd_fullZoomEnlarge" oncommand="goDoCommand('cmd_fullZoomEnlarge')"/>
+  <command id="cmd_fullZoomReset" oncommand="goDoCommand('cmd_fullZoomReset')"/>
 
   <command id="cmd_CustomizeToolbars" oncommand="CalendarCustomizeToolbar()"/>
   <command id="cmd_showStatusBar" oncommand="goToggleToolbar('status-bar', 'menu_showStatusBar');"/>
@@ -104,6 +107,12 @@
 
   <key id="import_key"           key="&calendar.import.key;"             observes="calendar_import_command"              modifiers="accel"/>
   <key id="reload_server_key"    key="&calendar.reloadserver.key;"       observes="calendar_reload_remote_calendars"     modifiers="accel"/>
+
+# TODO L10N These keys need localization
+  <key id="key_fullZoomReduce"   key="-"                                 observes="cmd_fullZoomReduce"          modifiers="accel"/>
+  <key id="key_fullZoomEnlarge"  key="+"                                 observes="cmd_fullZoomEnlarge"         modifiers="accel"/>
+  <key id="key_fullZoomEnlarge2" key="="                                 observes="cmd_fullZoomEnlarge"         modifiers="accel"/>
+  <key id="key_fullZoomReset"    key="0"                                 observes="cmd_fullZoomReset"           modifiers="accel"/>
 
   <key id="find_key"
        key="&sunbird.find.key;"

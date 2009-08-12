@@ -2194,6 +2194,8 @@
         ]]></getter>
       </property>
 
+      <property name="supportsZoom" readonly="true"
+                onget="return true;"/>
       <property name="supportsRotation" readonly="true"
                 onget="return true"/>
 
@@ -3269,6 +3271,30 @@
             this.mVisibleMinutes = aVisibleMinutes;
           }
           return this.mVisibleMinutes;
+        ]]></body>
+      </method>
+
+      <method name="zoomIn">
+        <parameter name="aLevel"/>
+        <body><![CDATA[
+          let visibleHours = getPrefSafe("calendar.view.visiblehours", 9);
+          visibleHours += (aLevel || 1);
+
+          cal.setPref("calendar.view.visiblehours", Math.min(visibleHours, 24));
+        ]]></body>
+      </method>
+      <method name="zoomOut">
+        <parameter name="aLevel"/>
+        <body><![CDATA[
+          let visibleHours = getPrefSafe("calendar.view.visiblehours", 9);
+          visibleHours -= (aLevel || 1);
+
+          cal.setPref("calendar.view.visiblehours", Math.max(1, visibleHours));
+        ]]></body>
+      </method>
+      <method name="zoomReset">
+        <body><![CDATA[
+          cal.setPref("calendar.view.visiblehours", 9);
         ]]></body>
       </method>
     </implementation>

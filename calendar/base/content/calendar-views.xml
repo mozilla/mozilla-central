@@ -142,6 +142,33 @@
                 ]]></setter>
             </property>
 
+            <property name="supportsZoom" readonly="true"
+                      onget="return true;"/>
+
+            <method name="zoomIn">
+              <parameter name="aLevel"/>
+              <body><![CDATA[
+                let visibleWeeks = getPrefSafe("calendar.weeks.inview", 4);
+                visibleWeeks += (aLevel || 1);
+
+                cal.setPref("calendar.weeks.inview", Math.min(visibleWeeks, 6));
+              ]]></body>
+            </method>
+            <method name="zoomOut">
+              <parameter name="aLevel"/>
+              <body><![CDATA[
+                let visibleWeeks = getPrefSafe("calendar.weeks.inview", 4);
+                visibleWeeks -= (aLevel || 1);
+
+                cal.setPref("calendar.weeks.inview", Math.max(visibleWeeks, 2));
+              ]]></body>
+            </method>
+            <method name="zoomReset">
+              <body><![CDATA[
+                cal.setPref("calendar.view.visiblehours", 4);
+              ]]></body>
+            </method>
+
             <property name="observerID">
                 <getter><![CDATA[
                     return "multiweek-view-observer";
