@@ -311,9 +311,15 @@ var TodayPane = {
   
   updateSplitterState: function updateSplitterState() {
       let splitter = document.getElementById('today-splitter');
-      if ( document.getElementById('today-pane-panel').isVisible() ) {
+      let todaypane = document.getElementById('today-pane-panel');
+      if (todaypane.isVisible()) {
           splitter.removeAttribute("hidden");
-          splitter.setAttribute("state", "open");
+          todaypane.width = todaypane.getModeAttribute("modewidths", "width");
+          let splitterState = todaypane.getModeAttribute("modesplitterstates", "state");
+          splitter.setAttribute("state", splitterState);
+          if (splitterState == "collapsed") {
+              todaypane.setAttribute("collapsed", "true");
+          }
       } else {
           splitter.hidden = true;
       }
@@ -327,3 +333,16 @@ function loadTodayPane() {
     TodayPane.onLoad();
 }
 window.addEventListener("load", loadTodayPane, false);
+
+/**
+ * Store mode dependent values for today-pane width and today-splitter state
+ * when today-splitter is dragged or collapsed
+ */
+function storeWidthAndState() {
+    let todaypane = document.getElementById('today-pane-panel');
+    let splitter = document.getElementById('today-splitter');
+    todaypane.setModeAttribute("modewidths", todaypane.width);
+    if (splitter.getAttribute("state")) {
+        todaypane.setModeAttribute("modesplitterstates", splitter.getAttribute("state"));
+    }
+}

@@ -150,22 +150,51 @@
                 return "";
             }
         ]]></getter>
-       </property>
+      </property>
 
-       <method name="isVisible">
-         <parameter name="aMode"/>
-         <body><![CDATA[
-             var lMode = aMode || this.currentMode;
-             if (!this.isVisibleInMode(lMode)) {
-                 return false;
-             }
-             var collapsedModes = this.getAttribute("collapsedinmodes").split(",");
-             var modeIndex = collapsedModes.indexOf(lMode);
-             return (modeIndex == -1);
-         ]]></body>
+      <method name="isVisible">
+        <parameter name="aMode"/>
+        <body><![CDATA[
+            var lMode = aMode || this.currentMode;
+            if (!this.isVisibleInMode(lMode)) {
+                return false;
+            }
+            var collapsedModes = this.getAttribute("collapsedinmodes").split(",");
+            var modeIndex = collapsedModes.indexOf(lMode);
+            return (modeIndex == -1);
+        ]]></body>
       </method>
 
-       <method name="setVisible">
+      <method name="setModeAttribute"> 
+        <parameter name="aModeAttribute"/>
+        <parameter name="aModeValue"/>
+        <parameter name="amode"/>
+        <body><![CDATA[
+            if (this.hasAttribute(aModeAttribute)) {
+                let lMode = amode || this.currentMode;
+                let modeAttributeValues = this.getAttribute(aModeAttribute).split(",");
+                let modes = this.getAttribute("mode").split(",");
+                modeAttributeValues[modes.indexOf(lMode)] = aModeValue;
+                this.setAttribute(aModeAttribute, modeAttributeValues.join(","));
+            }
+        ]]></body>
+      </method>
+
+      <method name="getModeAttribute">
+        <parameter name="aModeAttribute"/>
+        <parameter name="aAttribute"/>
+        <parameter name="amode"/>
+        <body><![CDATA[
+            if (this.hasAttribute(aModeAttribute)) {
+                let lMode = amode || this.currentMode;
+                let modeAttributeValues = this.getAttribute(aModeAttribute).split(",");
+                let modes = this.getAttribute("mode").split(",");
+                return modeAttributeValues[modes.indexOf(lMode)];
+            }
+        ]]></body>
+      </method>
+
+      <method name="setVisible">
         <parameter name="aVisible"/>
         <parameter name="aPushModeCollapsedAttribute"/>
         <parameter name="aNotifyRefControl"/>

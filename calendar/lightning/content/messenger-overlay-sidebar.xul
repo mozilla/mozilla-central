@@ -559,10 +559,11 @@
   </tabpanels>
 
   <hbox id="tabmail-container">
-    <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed">
+    <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed"
+              oncommand="storeWidthAndState()">
       <grippy/>
     </splitter>
-    <modevbox id="today-pane-panel" persist="width"/>
+    <modevbox id="today-pane-panel" />
   </hbox>
 
   <statusbar id="status-bar">
