@@ -768,7 +768,7 @@ function BeginDragThreadPane(event)
 
 function saveAsVirtualFolder()
 {
-  searchFolderURIs = window.arguments[0].folder.URI;
+  let searchFolderURIs = window.arguments[0].folder.URI;
 
   var searchSubfolders = document.getElementById("checkSearchSubFolders").checked;
   if (gCurrentFolder && (searchSubfolders || gCurrentFolder.isServer || gCurrentFolder.noSelect))
@@ -784,4 +784,3 @@ function saveAsVirtualFolder()
                                   searchTerms:gSearchSession.searchTerms,
                                   searchFolderURIs: searchFolderURIs});
 }
-
