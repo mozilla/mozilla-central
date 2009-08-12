@@ -559,15 +559,15 @@
         <parameter name="aBoxBusy"/>
         <body><![CDATA[
           let calChunks = [];
-   
+
           for (let calId in aBoxBusy) {
               if (aBoxBusy[calId]) {
                   calChunks.push(calId + "=" + aBoxBusy[calId]);
               }
           }
-   
+
           if (calChunks.length > 0) {
-              busyStr = calChunks.join("\u001A");
+              let busyStr = calChunks.join("\u001A");
               aBox.setAttribute("busy", busyStr);
           } else {
               aBox.removeAttribute("busy");
