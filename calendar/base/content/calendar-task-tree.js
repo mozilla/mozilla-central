@@ -97,14 +97,15 @@ function addCategoryNames(aEvent) {
  */
 function changeContextMenuForTask(aEvent) {
     let idnode = document.popupNode.id;
+    let sunbird = cal.isSunbird();
     document.getElementById("task-context-menu-new").hidden =
-        (idnode == "unifinder-todo-tree");
+        (idnode == "unifinder-todo-tree" && !sunbird);
     document.getElementById("task-context-menu-modify").hidden =
-        (idnode == "unifinder-todo-tree");
+        (idnode == "unifinder-todo-tree" && !sunbird);
     document.getElementById("task-context-menu-new-todaypane").hidden =
-        (idnode == "calendar-task-tree");
+        (idnode == "calendar-task-tree" || sunbird);
     document.getElementById("task-context-menu-modify-todaypane").hidden =
-        (idnode == "calendar-task-tree");
+        (idnode == "calendar-task-tree" || sunbird);
     let tasksSelected = (getSelectedTasks(aEvent).length > 0);
     applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
     document.getElementById("calendar_new_todo_command").removeAttribute("disabled");

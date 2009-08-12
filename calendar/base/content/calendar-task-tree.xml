@@ -722,7 +722,7 @@
                           modifyEventWithDialog(item, null, true, initialDate);
                       }
                   } else {
-                      createTodoWithDialog(null,null,null,null,initialDate);
+                      createTodoWithDialog(null, null, null, null, initialDate);
                   }
               }
           },

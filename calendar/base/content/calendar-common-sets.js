@@ -327,7 +327,7 @@ var calendarController = {
                 break;
             case "calendar_new_todo_todaypane_command":
                 createTodoWithDialog(getSelectedCalendar(),
-                                     null,null,null,
+                                     null, null, null,
                                      agendaListbox.today.start);
                 break;
             case "calendar_delete_todo_command":
