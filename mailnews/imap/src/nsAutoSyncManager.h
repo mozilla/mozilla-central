@@ -223,11 +223,13 @@ class nsAutoSyncManager : public nsIObserver,
     
     // This is set if auto sync has been completely paused.
     PRBool mPaused;
+    // This is set if we've finished startup and should start
+    // paying attention to idle notifications.
+    PRBool mStartupDone;
    
   private:
     PRUint32 mGroupSize;
     IdleState mIdleState;
-    PRTime mStartupTime;
     PRInt32 mDownloadModel;
     nsCOMPtr<nsIIdleService> mIdleService;
     nsCOMPtr<nsITimer> mTimer;

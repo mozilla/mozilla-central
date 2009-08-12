@@ -52,6 +52,7 @@
 NS_IMPL_ISUPPORTS1(nsDefaultAutoSyncMsgStrategy, nsIAutoSyncMsgStrategy)
 
 const char* kAppIdleNotification = "mail:appIdle";
+const char* kStartupDoneNotification = "mail-startup-done";
 
 nsDefaultAutoSyncMsgStrategy::nsDefaultAutoSyncMsgStrategy()
 {
@@ -217,7 +218,7 @@ nsAutoSyncManager::nsAutoSyncManager()
   mGroupSize = kDefaultGroupSize;
 
   mIdleState = notIdle;
-  mStartupTime = PR_Now();
+  mStartupDone = PR_FALSE;
   mDownloadModel = dmChained;
   mUpdateState = completed;
   mPaused = PR_FALSE;
@@ -237,6 +238,7 @@ nsAutoSyncManager::nsAutoSyncManager()
   observerService->AddObserver(this, kAppIdleNotification, PR_FALSE);
   observerService->AddObserver(this, NS_IOSERVICE_OFFLINE_STATUS_TOPIC, PR_FALSE);
   observerService->AddObserver(this, NS_IOSERVICE_GOING_OFFLINE_TOPIC, PR_FALSE);
+  observerService->AddObserver(this, kStartupDoneNotification, PR_FALSE);
 }
 
 nsAutoSyncManager::~nsAutoSyncManager()
@@ -557,6 +559,7 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
       observerService->RemoveObserver(this, kAppIdleNotification);
       observerService->RemoveObserver(this, NS_IOSERVICE_OFFLINE_STATUS_TOPIC);
       observerService->RemoveObserver(this, NS_IOSERVICE_GOING_OFFLINE_TOPIC);
+      observerService->RemoveObserver(this, kStartupDoneNotification);
     }
 
     // cancel and release the timer
@@ -570,6 +573,10 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
        mIdleService->RemoveIdleObserver(this, kIdleTimeInSec);
 
     return NS_OK;
+  }
+  else if (!PL_strcmp(aTopic, kStartupDoneNotification))
+  {
+    mStartupDone = PR_TRUE; 
   }
   else if (!PL_strcmp(aTopic, kAppIdleNotification))
   {
@@ -642,9 +649,8 @@ nsresult nsAutoSyncManager::StartIdleProcessing()
     
   StartTimerIfNeeded();
   
-  // TODO: Any better way to do it?  
-  // to ignore idle events sent during the startup
-  if ((mStartupTime + (10UL * PR_USEC_PER_SEC)) > PR_Now())
+  // Ignore idle events sent during the startup
+  if (!mStartupDone)
     return NS_OK;
     
   // notify listeners that auto-sync is running
