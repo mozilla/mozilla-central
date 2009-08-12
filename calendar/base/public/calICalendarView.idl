@@ -52,7 +52,8 @@ interface calIItemBase;
  * @note Code that implements this interface is intended to be pure
  * widgetry and thus not have any preference dependencies.
  */
-[scriptable, uuid(3e567ccb-2ecf-4f59-b7ca-bf42b0fbf24a)]
+
+[scriptable, uuid(0e392744-4b2e-4b64-8862-2fb707d900a7)]
 interface calICalendarView : nsISupports
 {
 

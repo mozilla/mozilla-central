@@ -44,7 +44,7 @@
 // An interface for a todo item (analogous to a VTODO)
 //
 
-[scriptable, uuid(522991f2-4928-4cd2-9a02-e3071c58cf1c)]
+[scriptable, uuid(0a93fdad-8a5c-44e9-8f90-16a6df819e03)]
 interface calITodo : calIItemBase
 {
   const long CAL_TODO_STATUS_NEEDSACTION = 4;
