@@ -64,7 +64,7 @@
 			<key>UTTypeReferenceURL</key>
 			<string>http://www.mozilla.com/Thunderbird</string>
 			<key>UTTypeDescription</key>
-			<string>Thunderbird Spotlight Metadata</string>
+			<string>Thunderbird Mail Message</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.data</string>
@@ -96,7 +96,7 @@
 			</array>
 
 			<key>CFBundleTypeName</key>
-			<string>Thunderbird Spotlight Metadata</string>
+			<string>Thunderbird Mail Message</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSTypeIsPackage</key>
