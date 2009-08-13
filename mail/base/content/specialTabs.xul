@@ -41,8 +41,10 @@
 
   <vbox id="contentTab" collapsed="true">
     <vbox flex="1">
-      <browser type="content-targetable" flex="1" disablehistory="true"/>
-      <findbar/>
+      <notificationbox flex="1">
+        <browser type="content-targetable" flex="1" disablehistory="true"/>
+        <findbar/>
+      </notificationbox>
     </vbox>
   </vbox>
 </overlay>

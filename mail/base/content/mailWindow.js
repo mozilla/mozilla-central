@@ -504,6 +504,26 @@ function getBrowser()
                    document.getElementById("messagepane");
 }
 
+/**
+ * This function is global and expected by toolkit to get the notification box
+ * for the browser for use with items like password manager.
+ */
+function getNotificationBox(aWindow) {
+  var tabmail = document.getElementById("tabmail");
+  var tabInfo = tabmail.tabInfo;
+
+  for (var i = 0; i < tabInfo.length; ++i) {
+    var browserFunc = tabInfo[i].mode.getBrowser ||
+                      tabInfo[i].mode.tabType.getBrowser;
+    if (browserFunc) {
+      var possBrowser = browserFunc.call(tabInfo[i].mode.tabType, tabInfo[i]);
+      if (possBrowser && possBrowser.contentWindow == aWindow)
+        return possBrowser.parentNode;
+    }
+  }
+  return null;
+}
+
 // Given the server, open the twisty and the set the selection
 // on inbox of that server.
 // prompt if offline.
