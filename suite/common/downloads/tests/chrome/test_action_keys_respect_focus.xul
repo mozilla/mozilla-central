@@ -98,7 +98,7 @@ function getCounter(aFn)
 
 function backupTestedFunction(aFn, aWin)
 {
-  ok(true, "backupTestedFunction('" + aFn + "')");
+  ok(true, "(info) backupTestedFunction('" + aFn + "')");
 
   [testedFunctions[aFn], aWin[aFn]] = [aWin[aFn], getCounter(aFn)];
 }
@@ -107,7 +107,7 @@ function restoreTestedFunction(aFn, aWin)
   aWin[aFn] = testedFunctions[aFn];
   testedFunctions[aFn] = null;
 
-  ok(true, "restoreTestedFunction('" + aFn + "')");
+  ok(true, "(info) restoreTestedFunction('" + aFn + "')");
 }
 
 function keyPressObs(aWin, aKey)
@@ -268,6 +268,9 @@ function test()
   var obs = Components.classes["@mozilla.org/observer-service;1"]
                       .getService(Components.interfaces.nsIObserverService);
   const DLMGR_UI_DONE = "download-manager-ui-done";
+  const IS_MAC = Components.classes["@mozilla.org/xre/app-info;1"]
+                           .getService(Components.interfaces.nsIXULRuntime)
+                           .OS == "Darwin";
 
   var testPhase = 0;
   var testObs = {
@@ -353,12 +356,21 @@ function test()
           is(openInvokeCount, 1, "Download list: Return opened download");
 
           // Clear List: Return (execute Clear List)
-          clearList.focus();
-          synthesizeKey("VK_RETURN", {}, win);
+          // MacOSX: VK_RETURN doesn't work on this button (See bug 506850).
+          if (IS_MAC)
+            // Workaround not to time out.
+            clearList.doCommand();
+          else {
+            clearList.focus();
+            synthesizeKey("VK_RETURN", {}, win);
+          }
 
           break;
         case 8:
-          is(openInvokeCount, 1, "Clear List: Enter didn't open download");
+          if (IS_MAC)
+            is(openInvokeCount, 1, "Clear List: doCommand() didn't open download (MacOSX)");
+          else
+            is(openInvokeCount, 1, "Clear List: Enter didn't open download (Linux, Windows)");
           restoreTestedFunction("openDownload", win);
 
           // We're done here
