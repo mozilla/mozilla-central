@@ -686,12 +686,10 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
   }
 }
 
-void nsImapOfflineSync::ProcessEmptyTrash(nsIMsgOfflineImapOperation *currentOp)
+void nsImapOfflineSync::ProcessEmptyTrash()
 {
   m_currentFolder->EmptyTrash(m_window, this);
-  // don't need to remove the current op because emptying trash will
-  // delete the database.
-  m_currentDB = nsnull;	// empty trash deletes the database?
+  m_currentDB = nsnull; // EmptyTrash closes and deletes the trash db.
 }
 
 // returns PR_TRUE if we found a folder to create, PR_FALSE if we're done creating folders.
@@ -989,12 +987,14 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
           else if (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kAppendTemplate)
             ProcessAppendMsgOperation(currentOp, nsIMsgOfflineImapOperation::kAppendTemplate);
           else if (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kDeleteAllMsgs)
-            ProcessEmptyTrash(currentOp);
+          {
+            // empty trash is going to delete the db, so we'd better release the
+            // reference to the offline operation first.
+            currentOp = nsnull;
+            ProcessEmptyTrash();
+          }
           else
-            NS_ASSERTION(PR_FALSE, "invalid playback op type");
-          // currentOp was unreferred by one of the Process functions
-          // so do not reference it again!
-          currentOp = nsnull;
+            NS_ERROR("invalid playback op type");
         }
       }
       else

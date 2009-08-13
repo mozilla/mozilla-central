@@ -79,7 +79,7 @@ protected:
   void      ProcessKeywordOperation(nsIMsgOfflineImapOperation *op);
   void	    ProcessMoveOperation(nsIMsgOfflineImapOperation *currentOp);
   void	    ProcessCopyOperation(nsIMsgOfflineImapOperation *currentOp);
-  void	    ProcessEmptyTrash(nsIMsgOfflineImapOperation *currentOp);
+  void	    ProcessEmptyTrash();
   void	    ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *currentOp,
                                       nsOfflineImapOperationType opType);
   
