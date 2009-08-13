@@ -58,6 +58,7 @@ messenger.jar:
     content/messenger/mail-offline.js
     content/messenger/mailContextMenus.js
     content/messenger/msgFolderPickerOverlay.xul
+    content/messenger/start.xhtml
     content/messenger/mailPrefsOverlay.xul                                     (prefs/mailPrefsOverlay.xul)
     content/messenger/pref-mailnews.xul                                        (prefs/pref-mailnews.xul)
     content/messenger/pref-mailnews.js                                         (prefs/pref-mailnews.js)

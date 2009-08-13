@@ -128,6 +128,5 @@ messenger.jar:
     content/messenger/markByDate.js                                            (base/content/markByDate.js)
     content/messenger/markByDate.xul                                           (base/content/markByDate.xul)
     content/messenger/dateFormat.js                                            (base/content/dateFormat.js)
-    content/messenger/start.xhtml                                              (base/content/start.xhtml)
     content/messenger/shutdownWindow.xul                                       (base/content/shutdownWindow.xul)
     content/messenger/shutdownWindow.js                                        (base/content/shutdownWindow.js)
