@@ -161,9 +161,10 @@ nsAbManager::~nsAbManager()
 
 NS_IMPL_THREADSAFE_ADDREF(nsAbManager)
 NS_IMPL_THREADSAFE_RELEASE(nsAbManager)
-NS_IMPL_QUERY_INTERFACE2(nsAbManager,
+NS_IMPL_QUERY_INTERFACE3(nsAbManager,
                          nsIAbManager,
-                         nsICommandLineHandler)
+                         nsICommandLineHandler,
+                         nsIObserver)
 
 nsresult nsAbManager::Init()
 {
