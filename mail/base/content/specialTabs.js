@@ -89,11 +89,11 @@ var specialTabs = {
       for (let selectedIndex = 0; selectedIndex < tabInfo.length;
            ++selectedIndex) {
         if (tabInfo[selectedIndex].mode.name == this.name &&
-            tabInfo[selectedIndex].panel.firstChild
+            tabInfo[selectedIndex].browser
                                   .getAttribute("src")
                                   .replace(regEx, "") == contentUrl) {
           // Ensure we go to the correct location on the page.
-          tabInfo[selectedIndex].panel.firstChild
+          tabInfo[selectedIndex].browser
                                 .setAttribute("src", aContentPage);
           return selectedIndex;
         }
@@ -101,14 +101,17 @@ var specialTabs = {
       return -1;
     },
     openTab: function onTabOpened(aTab, {contentPage: aContentPage}) {
-      // You can't dynamically change an iframe from a non-content to a content
-      // type, therefore we dynamically create the element instead.
-      let iframe = document.createElement("browser");
-      iframe.setAttribute("type", "content-primary");
-      iframe.setAttribute("flex", "1");
-      iframe.setAttribute("autocompleteenabled", false);
-      iframe.setAttribute("disablehistory", true);
-      iframe.setAttribute("id", "contentTabType" + this.lastBrowserId);
+      let clone = document.getElementById("contentTab").firstChild.cloneNode(true);
+
+      clone.setAttribute("id", "contentTab" + this.lastBrowserId);
+      clone.setAttribute("collapsed", false);
+      clone.setAttribute("type", "content-primary");
+
+      aTab.panel.appendChild(clone);
+
+      aTab.browser = aTab.panel.getElementsByTagName("browser")[0];
+
+      aTab.browser.setAttribute("id", "contentTabBrowser" + this.lastBrowserId);
 
       function onDOMTitleChanged(aEvent) {
         document.getElementById("tabmail").setTabTitle(aTab);
@@ -116,32 +119,30 @@ var specialTabs = {
       // Save the function we'll use as listener so we can remove it later.
       aTab.contentTabType = { titleListener: onDOMTitleChanged };
       // Add the listener.
-      iframe.addEventListener("DOMTitleChanged",
-                              aTab.contentTabType.titleListener, true);
+      aTab.browser.addEventListener("DOMTitleChanged",
+                                    aTab.contentTabType.titleListener, true);
 
       aTab.title = this.loadingTabString;
 
-      aTab.panel.appendChild(iframe);
+      aTab.browser.setAttribute("src", aContentPage);
 
-      iframe.setAttribute("src", aContentPage);
-
-      let findbar = document.createElement("findbar");
-      findbar.setAttribute("browserid", "contentTabType" + this.lastBrowserId);
-      aTab.panel.appendChild(findbar);
+      aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
+      aTab.findbar.setAttribute("browserid",
+                                "contentTabBrowser" + this.lastBrowserId);
       this.lastBrowserId++;
     },
     closeTab: function onTabClosed(aTab) {
-      aTab.panel.firstChild.removeEventListener("DOMTitleChanged",
+      aTab.browser.removeEventListener("DOMTitleChanged",
                                                 aTab.contentTabType.titleListener, true);
     },
     saveTabState: function onSaveTabState(aTab) {
-      aTab.panel.firstChild.setAttribute("type", "content-targetable");
+      aTab.browser.setAttribute("type", "content-targetable");
     },
     showTab: function onShowTab(aTab) {
-      aTab.panel.firstChild.setAttribute("type", "content-primary");
+      aTab.browser.setAttribute("type", "content-primary");
     },
     onTitleChanged: function onTitleChanged(aTab) {
-      aTab.title = aTab.panel.firstChild.contentDocument.title;
+      aTab.title = aTab.browser.contentDocument.title;
     },
     supportsCommand: function supportsCommand(aTab, aCommand) {
       switch (aCommand) {
@@ -217,7 +218,7 @@ var specialTabs = {
       }
     },
     getBrowser: function getBrowser(aTab) {
-      return aTab.panel.firstChild;
+      return aTab.browser;
     }
   },
 
