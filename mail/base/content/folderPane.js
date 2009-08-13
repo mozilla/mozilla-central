@@ -786,6 +786,7 @@ let gFolderTreeView = {
     }
     smartServer.prettyName = document.getElementById("bundle_messenger")
                              .getString("smartAccountName");
+    smartServer.canHaveFilters = false;
 
     let accounts = gFolderTreeView._sortedAccounts();
 

@@ -276,8 +276,15 @@ nsMsgIncomingServer::GetDownloadMessagesAtStartup(PRBool *getMessagesAtStartup)
 NS_IMETHODIMP
 nsMsgIncomingServer::GetCanHaveFilters(PRBool *canHaveFilters)
 {
-  // derived class should override if they need to do this.
+  NS_ENSURE_ARG_POINTER(canHaveFilters);
   *canHaveFilters = m_canHaveFilters;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgIncomingServer::SetCanHaveFilters(PRBool aCanHaveFilters)
+{
+  m_canHaveFilters = aCanHaveFilters;
   return NS_OK;
 }
 

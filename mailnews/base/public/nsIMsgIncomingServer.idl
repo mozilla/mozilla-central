@@ -59,7 +59,7 @@ interface nsIURI;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(0af3f1fd-a290-41ff-b0ba-266a8797627f)]
+[scriptable, uuid(20B4A762-10F5-4ce7-99CC-F07C10236E20)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -358,7 +358,7 @@ interface nsIMsgIncomingServer : nsISupports {
   readonly attribute boolean downloadMessagesAtStartup; 
 
   /* check to this if the server supports filters */
-  readonly attribute boolean canHaveFilters;
+  attribute boolean canHaveFilters;
 
   /**
    * can this server be removed from the account manager?  for
