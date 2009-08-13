@@ -1687,7 +1687,6 @@ nsParseNewMailState::nsParseNewMailState()
   m_ibuffer = nsnull;
   m_ibuffer_size = 0;
   m_ibuffer_fp = 0;
-  m_moveCoalescer = nsnull;
   m_numNotNewMessages = 0;
  }
 

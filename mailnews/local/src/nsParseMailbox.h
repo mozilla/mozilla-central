@@ -55,6 +55,7 @@
 #include "nsIWeakReferenceUtils.h"
 #include "nsIMsgWindow.h"
 #include "nsImapMoveCoalescer.h"
+#include "nsAutoPtr.h"
 
 #include "nsIMsgFilterList.h"
 #include "nsIMsgFilterHitNotify.h"
@@ -278,7 +279,7 @@ protected:
   nsCOMPtr <nsIMsgFolder> m_downloadFolder;
   nsCOMArray <nsIMsgFolder> m_filterTargetFolders;
 
-  nsImapMoveCoalescer *m_moveCoalescer; // strictly owned by nsParseNewMailState;
+  nsRefPtr<nsImapMoveCoalescer> m_moveCoalescer;
 
   PRBool        m_msgMovedByFilter;
   PRBool        m_msgCopiedByFilter;
