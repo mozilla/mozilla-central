@@ -1438,8 +1438,12 @@ nsSaveMsgListener::~nsSaveMsgListener()
 //
 // nsISupports
 //
-NS_IMPL_ISUPPORTS4(nsSaveMsgListener, nsIUrlListener, nsIMsgCopyServiceListener, nsIStreamListener, nsICancelable)
-
+NS_IMPL_ISUPPORTS5(nsSaveMsgListener,
+                   nsIUrlListener,
+                   nsIMsgCopyServiceListener,
+                   nsIStreamListener,
+                   nsIRequestObserver,
+                   nsICancelable)
 
 NS_IMETHODIMP
 nsSaveMsgListener::Cancel(nsresult status)
