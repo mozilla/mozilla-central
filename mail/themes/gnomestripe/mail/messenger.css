@@ -325,3 +325,9 @@ menuitem[command="cmd_goForward"][disabled][chromedir="rtl"] {
 #javascriptConsole {
   list-style-image: url("chrome://global/skin/console/console.png");
 }
+
+statusbarpanel {
+  -moz-appearance: none !important;
+  border: none;
+  padding: 0 4px;
+}
