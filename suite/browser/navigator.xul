@@ -186,14 +186,22 @@
 
     <toolbarset id="customToolbars" context="toolbar-context-menu"/>
 
-    <toolbar id="PersonalToolbar" class="chromeclass-directories" persist="collapsed"
+    <toolbar id="PersonalToolbar"
+             accesskey="&personalbarCmd.accesskey;"
+             class="chromeclass-directories"
+             persist="collapsed"
              grippytooltiptext="&personalToolbar.tooltip;"
-             toolbarname="&personalbarCmd.label;" accesskey="&personalbarCmd.accesskey;"
+             toolbarname="&personalbarCmd.label;"
+             nowindowdrag="true"
              togglemenuitem="cmd_viewpersonaltoolbar"
              customizable="true"
              defaultset="home-button,separator,bookmarks-button,personal-bookmarks"
-             mode="full" iconsize="small" labelalign="end"
-             defaultmode="full" defaulticonsize="small" defaultlabelalign="end"
+             mode="full"
+             iconsize="small"
+             labelalign="end"
+             defaultmode="full"
+             defaulticonsize="small"
+             defaultlabelalign="end"
              context="toolbar-context-menu">
     </toolbar>
 

@@ -217,7 +217,11 @@
       </button>
     </hbox> 
   </toolbar>
-  <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed" grippytooltiptext="&formatToolbar.tooltip;">
+  <toolbar id="FormatToolbar"
+           class="chromeclass-toolbar"
+           persist="collapsed"
+           grippytooltiptext="&formatToolbar.tooltip;"
+           nowindowdrag="true">
     <!-- from editorOverlay -->
     <menulist id="ParagraphSelect"/>
     <stack id="ColorButtons"/>

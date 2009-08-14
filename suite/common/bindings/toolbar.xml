@@ -193,11 +193,11 @@
 
   <binding id="grippytoolbar" extends="chrome://global/content/bindings/toolbar.xml#toolbar">
     <content>
-      <xul:hbox flex="1" class="toolbar-box">
+      <xul:hbox flex="1" class="toolbar-box box-inherit">
         <xul:toolbargrippy xbl:inherits="last-toolbar,hidden=grippyhidden,collapsed=inFullscreen"
                            tbattr="toolbar-grippy"
                            class="toolbar-grippy"/>
-        <xul:hbox flex="1" class="toolbar-holder"
+        <xul:hbox flex="1" class="toolbar-holder box-inherit"
                   xbl:inherits="collapsed,last-toolbar,orient,align,pack">
           <children/>
         </xul:hbox>

@@ -2242,7 +2242,11 @@
 
 </toolbox>
 
-<toolbar id="msgLocationToolbar" collapsed="true" persist="collapsed" grippytooltiptext="&locationToolbar.tooltip;">
+<toolbar id="msgLocationToolbar"
+         persist="collapsed"
+         collapsed="true"
+         grippytooltiptext="&locationToolbar.tooltip;"
+         nowindowdrag="true">
   <hbox align="center" context="folderPaneContext">
     <image id="locationIcon" class="folderMenuItem"/>
     <menulist id="locationFolders" class="folderMenuItem"

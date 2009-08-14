@@ -108,16 +108,33 @@
   </menupopup>
 
   <tabbox id="tabbox" flex="1">
-    <tabs id="tabs" onselect="[gImageView, gFormView, gLinkView].forEach(ensureSelection);">
-      <tab id="generalTab"  label="&generalTab;"  accesskey="&generalTab.accesskey;"/>
-      <tab id="mediaTab"    label="&mediaTab;"    accesskey="&mediaTab.accesskey;"/>
-      <tab id="feedTab"     label="&feedTab;"     accesskey="&feedTab.accesskey;"/>
-      <tab id="permTab"     label="&permTab;"     accesskey="&permTab.accesskey;"/>
-      <tab id="formsTab"    label="&formsTab;"    accesskey="&formsTab.accesskey;"/>
-      <tab id="linksTab"    label="&linksTab;"    accesskey="&linksTab.accesskey;"/>
-      <tab id="securityTab" label="&securityTab;" accesskey="&securityTab.accesskey;"/>
-      <!-- Others added by overlay -->
-    </tabs>
+    <windowdragbox>
+      <tabs id="tabs"
+            onselect="[gImageView, gFormView, gLinkView].forEach(ensureSelection);">
+        <tab id="generalTab"
+             label="&generalTab;"
+             accesskey="&generalTab.accesskey;"/>
+        <tab id="mediaTab"
+             label="&mediaTab;"
+             accesskey="&mediaTab.accesskey;"/>
+        <tab id="feedTab"
+             label="&feedTab;"
+             accesskey="&feedTab.accesskey;"/>
+        <tab id="permTab"
+             label="&permTab;"
+             accesskey="&permTab.accesskey;"/>
+        <tab id="formsTab"
+             label="&formsTab;"
+             accesskey="&formsTab.accesskey;"/>
+        <tab id="linksTab"
+             label="&linksTab;"
+             accesskey="&linksTab.accesskey;"/>
+        <tab id="securityTab"
+             label="&securityTab;"
+             accesskey="&securityTab.accesskey;"/>
+        <!-- Others added by overlay -->
+      </tabs>
+    </windowdragbox>
 
     <tabpanels id="mainDeck" flex="1">
       <!-- General page information -->

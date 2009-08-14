@@ -469,8 +469,11 @@
        </hbox>
     </toolbar>
 
-    <toolbar id="MsgHeadersToolbar" persist="collapsed" flex="1"
-             grippytooltiptext="&addressBar.tooltip;">
+    <toolbar id="MsgHeadersToolbar"
+             persist="collapsed"
+             flex="1"
+             grippytooltiptext="&addressBar.tooltip;"
+             nowindowdrag="true">
       <hbox id="msgheaderstoolbar-box" flex="1">
         <vbox flex="1" id="addresses-box">
           <hbox align="center">
@@ -504,7 +507,11 @@
     </toolbar>
 
     <!-- These toolbar items get filled out from the editorOverlay -->
-    <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed" grippytooltiptext="&formatToolbar.tooltip;">
+    <toolbar id="FormatToolbar"
+             class="chromeclass-toolbar"
+             persist="collapsed"
+             grippytooltiptext="&formatToolbar.tooltip;"
+             nowindowdrag="true">
       <menulist id="ParagraphSelect"/>
       <menulist id="FontFaceSelect"/>
       <stack id="ColorButtons"/>

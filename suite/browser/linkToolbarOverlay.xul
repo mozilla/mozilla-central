@@ -87,9 +87,12 @@
   </menupopup>
 
   <toolbox id="navigator-toolbox">
-    <toolbar id="linktoolbar" class="chromeclass-directories"
-        oncommand="event.stopPropagation(); return linkToolbarUI.commanded(event);"
-        hidden="true" hasitems="false">
+    <toolbar id="linktoolbar"
+             class="chromeclass-directories"
+             hidden="true"
+             hasitems="false"
+             nowindowdrag="true"
+             oncommand="event.stopPropagation(); return linkToolbarUI.commanded(event);">
 
       <toolbarbutton id="link-top" class="bookmark-item"
           label="&topButton.label;" disabled="true"/>

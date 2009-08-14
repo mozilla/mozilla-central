@@ -1,0 +1,550 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Joe Hewitt <hewitt@netscape.com>
+ *   Manuel Reimer <Manuel.Reimer@gmx.de>
+ *   Stefan Hermes <stefanh@inbox.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+@import url("chrome://navigator/content/navigator.css");
+@import url("chrome://communicator/skin/");
+@import url("chrome://communicator/skin/bookmarks/bookmarksToolbar.css");
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+#main-window {
+  -moz-appearance: none;
+  background-color: #EEEEEE;
+}
+
+#main-window[chromehidden~="toolbar"][chromehidden~="location"][chromehidden~="directories"] {
+  border-top: 1px solid rgba(0,0,0,0.65);
+}
+
+#main-window:not([active="true"]) > #navigator-toolbox > #nav-bar > #nav-bar-inner,
+#main-window:not([active="true"]) > #navigator-toolbox > #nav-bar > toolbaritem,
+#main-window:not([active="true"]) > #navigator-toolbox > #PersonalToolbar,
+#main-window:not([active="true"]) > #navigator-toolbox > #linktoolbar {
+  opacity: 0.75;
+}
+
+/* ::::: primary toolbar buttons ::::: */
+
+#back-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
+  -moz-image-region: rect(60px 29px 89px 0);
+}
+
+#back-button:hover:active {
+  -moz-image-region: rect(60px 59px 89px 30px);
+}
+
+#back-button[disabled="true"] {
+  -moz-image-region: rect(60px 89px 89px 60px) !important;
+}
+
+#forward-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
+  -moz-image-region: rect(90px 29px 119px 0);
+}
+
+#forward-button:hover:active {
+  -moz-image-region: rect(90px 59px 119px 30px);
+}
+
+#forward-button[disabled="true"] {
+  -moz-image-region: rect(90px 89px 119px 60px) !important;
+}
+
+#reload-button {
+  list-style-image: url("chrome://navigator/skin/icons/navigatoricons.png");
+  -moz-image-region: rect(0 29px 29px 0);
+}
+
+#reload-button:hover:active {
+  -moz-image-region: rect(0 59px 29px 30px);
+}
+
+#reload-button[disabled="true"] {
+  -moz-image-region: rect(0 89px 29px 60px) !important;
+}
+
+#stop-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
+  -moz-image-region: rect(30px 29px 59px 0);
+}
+
+#stop-button:hover:active {
+  -moz-image-region: rect(30px 59px 59px 30px);
+}
+
+#stop-button[disabled="true"] {
+  -moz-image-region: rect(30px 89px 59px 60px) !important;
+}
+
+#print-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
+  -moz-image-region: rect(0 29px 29px 0);
+}
+
+#print-button:not([disabled="true"]):hover:active {
+  -moz-image-region: rect(0 59px 29px 30px);
+}
+
+#print-button[disabled="true"] {
+  -moz-image-region: rect(0 89px 29px 60px) !important;
+}
+
+#home-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
+  -moz-image-region: rect(120px 29px 149px 0);
+}
+
+#home-button:hover:active {
+  -moz-image-region: rect(120px 59px 149px 30px);
+}
+
+#home-button[disabled="true"] {
+  -moz-image-region: rect(120px 89px 149px 60px) !important;
+}
+
+/* ::::: small primary toolbar buttons ::::: */
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button,
+toolbar[iconsize="small"] > #back-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
+  -moz-image-region: rect(40px 19px 59px 0);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button:hover:active,
+toolbar[iconsize="small"] > #back-button:hover:active {
+  -moz-image-region: rect(40px 39px 59px 20px);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #back-button[disabled="true"],
+toolbar[iconsize="small"] > #back-button[disabled="true"] {
+  -moz-image-region: rect(40px 59px 59px 40px) !important;
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button,
+toolbar[iconsize="small"] > #forward-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
+  -moz-image-region: rect(60px 19px 79px 0);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button:hover:active,
+toolbar[iconsize="small"] > #forward-button:hover:active {
+  -moz-image-region: rect(60px 39px 79px 20px);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button[disabled="true"],
+toolbar[iconsize="small"] > #forward-button[disabled="true"] {
+  -moz-image-region: rect(60px 59px 79px 40px) !important;
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button,
+toolbar[iconsize="small"] > #reload-button {
+  list-style-image: url("chrome://navigator/skin/icons/navigatoricons-small.png");
+  -moz-image-region: rect(0 19px 19px 0);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button:hover:active,
+toolbar[iconsize="small"] > #reload-button:hover:active {
+  -moz-image-region: rect(0 39px 19px 20px);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button[disabled="true"],
+toolbar[iconsize="small"] > #reload-button[disabled="true"] {
+  -moz-image-region: rect(0 59px 19px 40px) !important;
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button,
+toolbar[iconsize="small"] > #stop-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
+  -moz-image-region: rect(20px 19px 39px 0);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button:hover:active,
+toolbar[iconsize="small"] > #stop-button:hover:active {
+  -moz-image-region: rect(20px 39px 39px 20px);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button[disabled="true"],
+toolbar[iconsize="small"] > #stop-button[disabled="true"] {
+  -moz-image-region: rect(20px 59px 39px 40px) !important;
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button,
+toolbar[iconsize="small"] > #print-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
+  -moz-image-region: rect(0 19px 19px 0);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button:hover:active,
+toolbar[iconsize="small"] > #print-button:hover:active {
+  -moz-image-region: rect(0 39px 19px 20px);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button[disabled="true"],
+toolbar[iconsize="small"] > #print-button[disabled="true"] {
+  -moz-image-region: rect(0 59px 19px 40px) !important;
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button,
+toolbar[iconsize="small"] > #home-button {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons-small.png");
+  -moz-image-region: rect(80px 19px 99px 0);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button:hover:active,
+toolbar[iconsize="small"] > #home-button:hover:active {
+  -moz-image-region: rect(80px 39px 99px 20px);
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #home-button[disabled="true"],
+toolbar[iconsize="small"] > #home-button[disabled="true"] {
+  -moz-image-region: rect(80px 59px 99px 40px) !important;
+}
+
+/* ::::: fullscreen window controls ::::: */
+
+#window-controls {
+  -moz-box-align: center;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 2px;
+  border-left: 2px solid;
+  -moz-border-left-colors: ThreeDHighlight ThreeDShadow;
+}
+
+toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
+  display: -moz-box;
+}
+
+#minimize-button {
+  list-style-image: url("chrome://navigator/skin/icons/minimize.gif");
+} 
+
+#restore-button {
+  list-style-image: url("chrome://navigator/skin/icons/restore.gif");
+} 
+
+#close-button {
+  list-style-image: url("chrome://navigator/skin/icons/close.gif");
+} 
+  
+/* ::::: nav-bar-inner ::::: */
+
+#nav-bar-inner {
+  -moz-box-align: center;
+  min-width: 0px;
+}
+
+/* nsNativeThemeCocoa adds top/bottom padding to textfields... */
+#urlbar > .autocomplete-textbox-container,
+#urlbar > .autocomplete-history-dropmarker {
+  margin-top: -1px;
+  margin-bottom: -2px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+#urlbar[level="high"] > .autocomplete-textbox-container,
+#urlbar[level="low"] > .autocomplete-textbox-container {
+  -moz-appearance: none;
+  background-color: InfoBackground;
+  color: InfoText;
+}
+
+#urlbar[level="high"] > .autocomplete-history-dropmarker,
+#urlbar[level="low"] > .autocomplete-history-dropmarker {
+  background-color: InfoBackground !important;
+}
+
+#wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner > .button-toolbar,
+#wrapper-nav-bar-inner[place="palette"] > #nav-bar-inner > #urlbar > .urlbar-icons {
+  display: none;
+}
+
+/* ::::: page proxy icon ::::: */
+
+#page-proxy-deck,
+#page-proxy-favicon,
+#page-proxy-button {
+  width: 16px;
+  height: 16px;
+}
+
+#page-proxy-deck {
+  cursor: -moz-grab;
+  margin: 0 3px 1px 3px;
+}
+
+#page-proxy-button {
+  list-style-image: url("chrome://communicator/skin/bookmarks/location.gif"); 
+} 
+
+#page-proxy-favicon {
+  list-style-image: none;
+} 
+
+#page-proxy-button[pageproxystate="valid"]:hover  {
+  list-style-image: url("chrome://communicator/skin/bookmarks/location-hov.gif");
+}
+  
+#page-proxy-button[pageproxystate="valid"]:hover:active {
+  list-style-image: url("chrome://communicator/skin/bookmarks/location-act.gif");
+}
+
+#page-proxy-button[pageproxystate="invalid"] {
+  cursor: default;
+  list-style-image: url("chrome://communicator/skin/bookmarks/location-dis.gif");
+}
+
+/* ::::: autocomplete ::::: */
+
+.autocomplete-textbox-container {
+  font: -moz-info;
+  -moz-box-align: center;
+}
+
+.autocomplete-treebody::-moz-tree-cell-text(value) {
+  -moz-padding-start: 15px;
+}
+
+.autocomplete-treebody::-moz-tree-cell-text(comment) {
+ color: GrayText;
+}
+
+.autocomplete-history-popup > .popup-internal-box {
+  padding: 0 !important;
+}
+
+.autocomplete-history-popup > menuitem {
+  -moz-appearance: none !important;
+  max-width: none !important;
+  font: inherit;
+  padding: 0px 2px 0px 2px;
+  margin: 0;
+  -moz-margin-start: -18px; /* hack to adjust for the menuitem label margin in menu.css */
+}
+
+.autocomplete-history-popup > menuitem[_moz-menuactive="true"],
+.autocomplete-search-engine[menuactive="true"] {
+  background-color: Highlight !important;
+  color: HighlightText !important;
+}
+
+.autocomplete-search-engine {
+  border-top: 1px solid #D9D9D9; /* Same color as menuseparator is probably sane here */
+  padding: 2px;
+}
+
+.autocomplete-search-engine-img {
+  -moz-margin-end: 4px;
+}
+
+/* ::::: searchbutton ::::: */
+
+#search-button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  list-style-image: url("chrome://global/skin/icons/search-textbox.png");
+}
+
+toolbar[mode="text"] #search-button > .button-box > .button-icon,
+toolbar[mode="icons"] #search-button > .button-box > .button-text {
+  display: none;
+}
+
+/* ::::: sidebar splitter ::::: */
+
+#sidebar-splitter {
+  border-left: none;
+  border-right: none;
+  min-width: 5px;
+}
+
+/* ::::: content area ::::: */
+
+#security-button {
+  list-style-image: url("chrome://communicator/skin/icons/lock-insecure.png");
+}
+
+/* |high| and |low| styles could be different, to better reflect the secure level... */
+#security-button[level="high"] > .statusbarpanel-icon,
+#security-button[level="low"] > .statusbarpanel-icon {
+  list-style-image: url("chrome://communicator/skin/icons/lock-secure.png");
+  background-color: #E8DB99;
+}
+
+#security-button[level="broken"] > .statusbarpanel-icon {
+  list-style-image: url("chrome://communicator/skin/icons/lock-broken.png");
+  background-color: #E83404;
+}
+
+#security-button[label] > .statusbarpanel-icon,
+#security-button > .statusbarpanel-text {
+  margin: 0px;
+  background-color: #62C441;
+  color: #FFFFFF;
+}
+
+#ev-button {
+  list-style-image: url("chrome://communicator/skin/icons/identity.png");
+}
+
+#popupIcon {
+  list-style-image: url("chrome://navigator/skin/icons/popup-blocked.png");
+}
+
+/* ::::: personal toolbar ::::: */
+
+#PersonalToolbar {
+  -moz-appearance: none;
+  background-color: #d5d5d5;
+  background-image: url("chrome://communicator/skin/toolbar-gradient22.png");
+  background-repeat: repeat-x;
+  border-bottom: 1px solid rgb(159, 159, 159);
+}
+
+#PersonalToolbar > #home-button,
+#PersonalToolbar > .bookmark-item,
+#personal-bookmarks > .bookmark-item,
+#bookmarks-ptf > .bookmark-item {
+  text-shadow: none;
+}
+
+#PersonalToolbar > #home-button:hover:active,
+#PersonalToolbar > .bookmark-item:hover:active,
+#PersonalToolbar > .bookmark-item[container="true"][open="true"],
+#bookmarks-ptf > .bookmark-item:hover:active,
+#bookmarks-ptf > .bookmark-item[container="true"][open="true"] {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7) !important;
+}
+
+#PersonalToolbar > #home-button > .toolbarbutton-text,
+.bookmark-item > .toolbarbutton-text {
+  margin: 0 3px 0 2px;
+}
+
+#PersonalToolbar > #home-button > .toolbarbutton-icon,
+.bookmark-item > .toolbarbutton-icon {
+  padding: 0;
+}
+
+#bookmarks-button {
+  list-style-image: url("chrome://global/skin/tree/folder.png");
+  padding: 0;
+}
+
+#bookmarks-button[open="true"],
+.bookmark-item[container="true"]:hover:active {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-active.png");
+}
+
+#bookmarks-chevron {
+  list-style-image: url("chrome://navigator/skin/icons/chevron.gif");
+  height: 16px;
+  width: 16px;
+}
+
+#bookmarks-chevron > .toolbarbutton-menu-dropmarker {
+  display: none;
+}
+
+#bookmarks-chevron > .toolbarbutton-text {
+  display: none; /* hide chevron label which has a width even if blank */
+}
+
+toolbar[mode="text"] #bookmarks-chevron > .toolbarbutton-icon {
+  display: -moz-box; /* display chevron icon in text mode */
+}
+
+/* Prevent [mode="icons"|"text"] from hiding the label and icon */
+#bookmarks-ptf .bookmark-item > .toolbarbutton-text,
+#bookmarks-ptf .bookmark-item > .toolbarbutton-icon {
+  display: -moz-box !important;
+}
+
+#PersonalToolbar[iconsize="small"] > toolbarpaletteitem > #home-button > .toolbarbutton-icon,
+#PersonalToolbar[iconsize="small"] > #home-button > .toolbarbutton-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/*
+  In customize mode we hide the normal bookmark items and show a placeholder
+  for the drag/drop UI.
+*/
+.bookmarks-toolbar-customize {
+  list-style-image: url("chrome://global/skin/tree/folder.png");
+  display: none;
+  max-width: 15em !important;
+}
+
+toolbarpaletteitem[place] > #personal-bookmarks > .bookmarks-toolbar-customize {
+  display: -moz-box;
+}
+
+toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-customize {
+  -moz-box-orient: vertical;
+}
+
+toolbarpaletteitem[place="toolbar"] > #personal-bookmarks > .bookmarks-toolbar-overflow-items,
+toolbarpaletteitem[place="toolbar"] > #personal-bookmarks > .bookmarks-toolbar-items {
+  visibility: collapse;
+}
+
+toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-overflow-items,
+toolbarpaletteitem[place="palette"] > #personal-bookmarks > .bookmarks-toolbar-items {
+  display: none;
+}
+
+/* ::::: feeds ::::: */
+
+#feedsMenu {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png") !important;
+}
+
+#feedsButton {
+  list-style-image: url("chrome://navigator/skin/btn1/feeds.png");
+  -moz-image-region: rect(0px 32px 16px 16px);
+}
+
+#feedsButton[open="true"] {
+  -moz-image-region: rect(48px 32px 64px 16px) !important;
+}

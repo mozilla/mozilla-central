@@ -16,12 +16,10 @@
  *
  * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998-2007
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Joe Hewitt (hewitt@netscape.com)
- *   Robert Kaiser (kairo@kairo.at)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -37,71 +35,64 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* ===== toolbar.css ====================================================
-  == Styles used by XUL grippytoolbar in addition to general toolbar styles.
+/* ===== accountManage.css ==============================================
+  == Styles for the Mail Account Manager.
   ======================================================================= */
+
+@import url("chrome://messenger/skin/");
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* ::::: toolbar & menubar ::::: */
+/* ::::: account manager :::::: */
 
-toolbar {
-  background: none;
-  -moz-appearance: none;
-  border-top: 1px solid rgba(255,255,255,0.45);
-  border-bottom: 1px solid rgba(0,0,0,0.35);
+.specialFolderPickerGrid {
+  -moz-margin-start: 20px;
 }
 
-toolbar:not([nowindowdrag="true"]):not([type="menubar"]) {
-  -moz-binding: url("chrome://communicator/content/bindings/toolbar.xml#grippytoolbar-drag");
+.fccReplyFollowsParent {
+  -moz-margin-start: 20px;
 }
 
-.toolbar-holder {
-  border-left: 1px solid ThreeDHighlight;
+.selectForOfflineUseButton {
+  list-style-image: url("chrome://communicator/skin/icons/offline.gif");
 }
 
-/* ::::: toolbargrippy ::::: */
-
-toolbargrippy {
-  -moz-box-orient: vertical;
-  -moz-box-align: center;
-  border-right: 1px solid ThreeDShadow;
-  width: 10px;
-  padding: 2px 1px;
-  list-style-image: url("chrome://communicator/skin/toolbar/tbgrip-arrow.gif");
+.selectForOfflineUseButton > .button-box > .button-icon {
+  -moz-margin-start: 4px;
+  -moz-margin-end: 4px;
 }
 
-toolbargrippy:hover {
-  background-color: ThreeDHighlight;
+.signatureBox {
+  font-family: -moz-fixed;
 }
 
-.toolbargrippy-texture {
-  margin-top: 2px;
-  width: 6px;
-  background: url("chrome://communicator/skin/toolbar/tbgrip-texture.gif");
+treechildren::-moz-tree-cell-text(isDefaultServer-true) {
+  font-weight: bold;
 }
 
-/* ::::: collapsed tray and grippies ::::: */
-
-toolbargrippy[tbgrippy-collapsed="true"] {
-  -moz-box-orient: horizontal;
-  border-left: 1px solid ThreeDHighlight;
-  border-top: 1px solid ThreeDHighlight;
-  border-right: 1px solid ThreeDShadow;
-  border-bottom: 1px solid ThreeDShadow;
-  width: 40px;
-  height: 10px;
-  padding: 1px 2px;
-  list-style-image: url("chrome://communicator/skin/toolbar/tbgrip-arrow-clps.gif");
+dialogheader {
+  display: none;
 }
 
-toolbargrippy[tbgrippy-collapsed="true"] > .toolbargrippy-texture {
-  margin-top: 0;
-  -moz-margin-start: 2px;
-  width: 0px;
-  height: 6px;
+button:not(.spinbuttons-button):not(.dialog-button) {
+  min-height: 19px;
 }
 
-.collapsed-tray-spacer {
-  border-bottom: 1px solid ThreeDShadow;
+page > description,
+#smimeEditing > description {
+  margin: 1px 5px 2px 6px;
+}
+
+/* ::::: SMTP Server Panel :::::: */
+
+.smtpServerListItem {
+  -moz-padding-start: 3px;
+}
+
+#backgroundBox {
+  background-color: ThreeDLightShadow;
+}
+
+#smtpServerInfoBox textbox {
+  background-color: transparent;
 }

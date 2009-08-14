@@ -150,7 +150,7 @@
   </toolbox>
 
   <tree id="historyTree"
-        class="placesTree"
+        class="placesTree plain"
         context="placesContext"
         flex="1" type="places"
         enableColumnDrag="true"
