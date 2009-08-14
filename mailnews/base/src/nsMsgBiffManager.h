@@ -70,7 +70,7 @@ public:
 
 protected:
 	PRInt32 FindServer(nsIMsgIncomingServer *server);
-	nsresult SetNextBiffTime(nsBiffEntry &biffEntry, nsTime startTime);
+	nsresult SetNextBiffTime(nsBiffEntry &biffEntry, const nsTime currentTime);
 	nsresult SetupNextBiff();
 	nsresult AddBiffEntry(nsBiffEntry &biffEntry);
 
@@ -81,7 +81,4 @@ protected:
   PRBool mInited;
 };
 
-
-
-#endif
-
+#endif // NSMSGBIFFMANAGER_H
