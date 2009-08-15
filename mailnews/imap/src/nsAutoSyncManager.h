@@ -113,7 +113,7 @@ class nsIMsgFolder;
 class nsDefaultAutoSyncMsgStrategy : public nsIAutoSyncMsgStrategy
 {
   static const PRUint32 kFirstPassMessageSize = 60U*1024U; // 60K
-  
+
   public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIAUTOSYNCMSGSTRATEGY
@@ -122,6 +122,7 @@ class nsDefaultAutoSyncMsgStrategy : public nsIAutoSyncMsgStrategy
 
   private:
     ~nsDefaultAutoSyncMsgStrategy();
+    PRInt32 m_offlineMsgAgeLimit;
 };
 
 /**

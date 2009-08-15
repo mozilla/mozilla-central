@@ -1943,3 +1943,14 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
     (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_2),
     button0.get(), nsnull, button2.get(), nsnull, &dummyValue, aResult);
 }
+
+NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays)
+{
+  PRInt64 secondsInDays, microSecondsInDay;
+  PRTime now = PR_Now();
+
+  secondsInDays = 60 * 60 * 24 * ageInDays;
+  microSecondsInDay = secondsInDays * PR_USEC_PER_SEC;
+  return now - microSecondsInDay;
+}
+

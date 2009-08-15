@@ -262,6 +262,8 @@ public:
   NS_IMETHOD GetCanCreateSubfolders(PRBool *aResult);
   NS_IMETHOD GetCanSubscribe(PRBool *aResult);
 
+  NS_IMETHOD ApplyRetentionSettings();
+
   NS_IMETHOD AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositionState aDispositionFlag);
   NS_IMETHOD MarkMessagesRead(nsIArray *messages, PRBool markRead);
   NS_IMETHOD MarkAllMessagesRead(nsIMsgWindow *aMsgWindow);

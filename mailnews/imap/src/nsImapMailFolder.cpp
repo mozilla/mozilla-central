@@ -1198,6 +1198,59 @@ NS_IMETHODIMP nsImapMailFolder::GetNoSelect(PRBool *aResult)
   return GetFlag(nsMsgFolderFlags::ImapNoselect, aResult);
 }
 
+NS_IMETHODIMP nsImapMailFolder::ApplyRetentionSettings()
+{
+  PRInt32 numDaysToKeepOfflineMsgs = -1;
+
+  // Check if we've limited the offline storage by age.
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  if (prefBranch)
+    prefBranch->GetIntPref("mail.autosync.max_age_days", &numDaysToKeepOfflineMsgs);
+
+  nsCOMPtr<nsIMsgDatabase> holdDBOpen;
+  if (numDaysToKeepOfflineMsgs > 0)
+  {
+    PRBool dbWasCached = mDatabase != nsnull;
+    nsresult rv = GetDatabase();
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr <nsISimpleEnumerator> hdrs;
+    rv = mDatabase->EnumerateMessages(getter_AddRefs(hdrs));
+    NS_ENSURE_SUCCESS(rv, rv);
+    PRBool hasMore = PR_FALSE;
+
+    PRTime cutOffDay =
+      MsgConvertAgeInDaysToCutoffDate(numDaysToKeepOfflineMsgs);
+
+    nsCOMPtr <nsIMsgDBHdr> pHeader;
+    // so now cutOffDay is the PRTime cut-off point. Any offline msg with 
+    // a date less than that will get marked for pending removal.
+    while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
+    {
+      rv = hdrs->GetNext(getter_AddRefs(pHeader));
+      NS_ENSURE_SUCCESS(rv, rv);
+      PRUint32 msgFlags;
+      PRTime msgDate;
+      pHeader->GetFlags(&msgFlags);
+      if (msgFlags & nsMsgMessageFlags::Offline)
+      {
+        pHeader->GetDate(&msgDate);
+        if (msgDate < cutOffDay)
+          MarkPendingRemoval(pHeader);
+        // I'm horribly tempted to break out of the loop if we've found
+        // a message after the cut-off date, because messages will most likely
+        // be in date order in the db, but there are always edge cases.
+      }
+    }
+    if (!dbWasCached)
+    {
+      holdDBOpen = mDatabase;
+      mDatabase = nsnull;
+    }
+  }
+  return nsMsgDBFolder::ApplyRetentionSettings();
+}
+
+
 NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv = GetDatabase();

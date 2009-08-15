@@ -262,4 +262,10 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
                                           const nsCString &aHostname,
                                           PRInt32 *aResult);
 
+/**
+ * Calculate a PRTime value used to determine if a date is XX
+ * days ago. This is used by various retention setting algorithms.
+ */
+NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays);
+
 #endif

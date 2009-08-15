@@ -48,6 +48,7 @@
 #include "nsImapIncomingServer.h"
 #include "nsMsgUtils.h"
 #include "nsIIOService.h"
+#include "nsIPrefService.h"
 
 NS_IMPL_ISUPPORTS1(nsDefaultAutoSyncMsgStrategy, nsIAutoSyncMsgStrategy)
 
@@ -56,6 +57,12 @@ const char* kStartupDoneNotification = "mail-startup-done";
 
 nsDefaultAutoSyncMsgStrategy::nsDefaultAutoSyncMsgStrategy()
 {
+  m_offlineMsgAgeLimit = -1;
+
+  // Check if we've limited the offline storage by age.
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  if (prefBranch)
+    prefBranch->GetIntPref("mail.autosync.max_age_days", &m_offlineMsgAgeLimit);
 }
 
 nsDefaultAutoSyncMsgStrategy::~nsDefaultAutoSyncMsgStrategy()
@@ -115,7 +122,11 @@ NS_IMETHODIMP nsDefaultAutoSyncMsgStrategy::IsExcluded(nsIMsgFolder *aFolder,
   nsIMsgDBHdr *aMsgHdr, PRBool *aDecision)
 {
   NS_ENSURE_ARG_POINTER(aDecision);
-  *aDecision = PR_FALSE;  
+  NS_ENSURE_ARG_POINTER(aMsgHdr);
+  PRInt64 msgDate;
+  aMsgHdr->GetDate(&msgDate);
+  *aDecision = m_offlineMsgAgeLimit > 0 &&
+    msgDate < MsgConvertAgeInDaysToCutoffDate(m_offlineMsgAgeLimit);
   return NS_OK;
 }
 

@@ -99,13 +99,13 @@ PRBool MsgStrategyComparatorAdaptor::LessThan(const nsMsgKey& a, const nsMsgKey&
   {
     nsresult rv;
     nsAutoSyncStrategyDecisionType decision = nsAutoSyncStrategyDecisions::Same;
-    
+
     nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(mFolder);
     if (mStrategy)
       rv = mStrategy->Sort(folder, hdrA, hdrB, &decision);
-      
+
     if (NS_SUCCEEDED(rv))
-        return (decision == nsAutoSyncStrategyDecisions::Lower);      
+      return (decision == nsAutoSyncStrategyDecisions::Lower);
   }
   
   return PR_FALSE;
