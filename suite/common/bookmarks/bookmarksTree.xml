@@ -77,6 +77,11 @@
 
         BMSVC.transactionManager.AddListener(this.transactionListener);
 
+        Components.classes["@mozilla.org/observer-service;1"]
+                  .getService(Components.interfaces.nsIObserverService)
+                  .addObserver(this.bookmarksChangedObserver,
+                               "bookmarks-changed", false);
+
         // Load column settings from persisted attribute
         var colinfostr = this.getAttribute("colinfo");
         var colinfo = colinfostr.split(" ");
@@ -107,6 +112,11 @@
         this.treeBuilder.removeObserver(this.builderObserver);
 
         this.tree.controllers.removeController(this.controller);
+
+        Components.classes["@mozilla.org/observer-service;1"]
+                  .getService(Components.interfaces.nsIObserverService)
+                  .removeObserver(this.bookmarksChangedObserver,
+                                  "bookmarks-changed");
 
         // Save column settings and sort info to persisted attribute
         var persistString = "";
@@ -712,6 +722,22 @@
         willMerge      : function (aTxmgr, aTxn) {},
         willBeginBatch : function (aTxmgr, aTxn) {},
         willEndBatch   : function (aTxmgr, aTxn) {}
+      })
+      ]]></field>
+
+      <!-- observer -->
+      <field name="bookmarksChangedObserver"><![CDATA[
+      ({
+        mOuter: this,
+        observe: function (aSubject, aTopic, aData)
+        {
+          if (aTopic == "bookmarks-changed") {
+            var aRef = this.mOuter.tree.getAttribute("ref");
+            var aProtocol = aRef.split(":")[0];
+            if (aProtocol == "find")
+              this.mOuter.tree.builder.rebuild();
+          }
+        }
       })
       ]]></field>
     </implementation>

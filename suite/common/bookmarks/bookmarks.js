@@ -382,12 +382,14 @@ var BookmarksCommand = {
   undoBookmarkTransaction: function ()
   {
     BMSVC.transactionManager.undoTransaction();
+    BookmarksUtils.notifyBookmarksChanged();
     BookmarksUtils.flushDataSource();
   },
 
   redoBookmarkTransaction: function ()
   {
     BMSVC.transactionManager.redoTransaction();
+    BookmarksUtils.notifyBookmarksChanged();
     BookmarksUtils.flushDataSource();
   },
 
@@ -1206,8 +1208,11 @@ var BookmarksUtils = {
         isImmutable = true;
       else if (parent) {
         var parentProtocol = parent.Value.split(":")[0];
-        if (parentProtocol == "find" || parentProtocol == "file")
+        if (parentProtocol == "file")
           aSelection.parent[i] = null;
+        else if (parentProtocol == "find")
+          // try to get the real parent so we can delete after searching
+          aSelection.parent[i] = BookmarksUtils.getParentOfContainer(aSelection.item[i]);
       }
       if (!isImmutable && aSelection.parent[i])
         aSelection.containsMutable = true;
@@ -1332,6 +1337,7 @@ var BookmarksUtils = {
     if (!isCancelled) {
       BMSVC.transactionManager.doTransaction(transaction);
       if (aAction != "move")
+        BookmarksUtils.notifyBookmarksChanged();
         BookmarksUtils.flushDataSource();
     }
     return !isCancelled;
@@ -1345,7 +1351,14 @@ var BookmarksUtils = {
       //  const kPrefSvc = Components.classes[kPrefSvcContractID].getService(kPrefSvcIID);
       //  kPrefSvc.setBoolPref("browser.bookmarks.import_system_favorites", false);
       //}
-        
+
+  notifyBookmarksChanged: function ()
+  {
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .notifyObservers(null, "bookmarks-changed", "");
+  },
+
   insertSelection: function (aAction, aSelection, aTarget)
   {
     var transaction     = new BookmarkInsertTransaction(aAction);
@@ -1376,6 +1389,7 @@ var BookmarksUtils = {
     var isCancelled = !BookmarksUtils.any(transaction.isValid);
     if (!isCancelled) {
       BMSVC.transactionManager.doTransaction(transaction);
+      BookmarksUtils.notifyBookmarksChanged();
       BookmarksUtils.flushDataSource();
     }
     return !isCancelled;
