@@ -2626,7 +2626,13 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
   NS_ENSURE_SUCCESS(rv, rv);
   PRBool match = PR_FALSE;
   m_searchSession->AddScopeTerm(nsMsgSearchScope::offlineMail, m_folderWatching);
+  // Since the notifier went to the trouble of passing in the msg flags,
+  // we should use them when doing the match.
+  PRUint32 msgFlags;
+  aHdrDeleted->GetFlags(&msgFlags);
+  aHdrDeleted->SetFlags(aFlags);
   rv = m_searchSession->MatchHdr(aHdrDeleted, msgDB, &match);
+  aHdrDeleted->SetFlags(msgFlags);
   m_searchSession->ClearScopes();
   if (match)
   {
