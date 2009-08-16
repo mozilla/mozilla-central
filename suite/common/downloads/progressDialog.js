@@ -54,12 +54,22 @@ var gCloseWhenDone;
 
 var gLastSec = Infinity;
 var gStartTime = 0;
-var gEndTime = Date.now(); // not ideal if already finished, but usable for now
+var gEndTime = Date.now(); // gets corrected below for calls from dlmgr
 var gDlActive = false;
 var gRetrying = false;
 
 function progressStartup() {
   gDownload = window.arguments[0].QueryInterface(Components.interfaces.nsIDownload);
+
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator);
+  var recentDMWindow = wm.getMostRecentWindow("Download:Manager");
+  if (recentDMWindow && recentDMWindow.gDownloadTreeView.rowCount > 0) {
+    // we have been opened by a download manager, get the end time from there
+    let dmtree = recentDMWindow.gDownloadTreeView;
+    let dldata = dmtree.getRowData(dmtree._getIdxForID(gDownload.id));
+    gEndTime = dldata.endTime;
+  }
 
   // cache elements to save .getElementById() calls
   gDownloadBundle = document.getElementById("dmBundle");
@@ -113,6 +123,12 @@ function progressStartup() {
   updateDownload();
   updateButtons();
   window.updateCommands("dlstate-change");
+
+  // Send a notification that we finished
+  setTimeout(function()
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .notifyObservers(window, "download-manager-ui-done", null), 0);
 }
 
 function progressShutdown() {

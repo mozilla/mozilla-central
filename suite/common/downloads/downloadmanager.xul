@@ -53,7 +53,7 @@
 %globalDTD;
 ]>
 
-<window id="downloads-window"
+<window id="downloadManager"
         title="&downloadManager.title;" statictitle="&downloadManager.title;"
         onload="dmStartup();" onunload="dmShutdown();"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -113,6 +113,8 @@
                oncommand="goDoCommand('cmd_openReferrer');"/>
       <command id="cmd_copyLocation"
                oncommand="goDoCommand('cmd_copyLocation');"/>
+      <command id="cmd_properties"
+               oncommand="goDoCommand('cmd_properties');"/>
       <command id="cmd_clearList"
                oncommand="goDoCommand('cmd_clearList');"/>
     </commandset>
@@ -183,6 +185,11 @@
                 label="&cmd.copyDownloadLink.label;"
                 accesskey="&cmd.copyDownloadLink.accesskey;"
                 command="cmd_copyLocation"/>
+      <menuitem id="dlContext-properties"
+                label="&cmd.properties.label;"
+                accesskey="&cmd.properties.accesskey;"
+                command="cmd_properties"/>
+      <menuseparator/>
       <menuitem id="cMenu_selectAll"/>
     </popup>
   </popupset>
@@ -206,6 +213,10 @@
                     label="&cmd.goToDownloadPage.label;"
                     accesskey="&cmd.goToDownloadPage.accesskey;"
                     command="cmd_openReferrer"/>
+          <menuitem id="dlMenu_properties"
+                    label="&cmd.properties.label;"
+                    accesskey="&cmd.properties.accesskey;"
+                    command="cmd_properties"/>
           <menuseparator/>
           <menuitem id="menu_close"/>
         </menupopup>

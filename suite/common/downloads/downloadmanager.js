@@ -275,6 +275,13 @@ function showDownload(aDownload)
   }
 }
 
+function showProperties(aDownloadID)
+{
+  var dmui = Components.classes["@mozilla.org/download-manager-ui;1"]
+                       .getService(Components.interfaces.nsISuiteDownloadManagerUI);
+  dmui.showProgress(window, aDownloadID);
+}
+
 function onTreeSelect(aEvent)
 {
   var selectionCount = gDownloadTreeView.selection.count;
@@ -452,6 +459,7 @@ var dlTreeController = {
       case "cmd_show":
       case "cmd_openReferrer":
       case "cmd_copyLocation":
+      case "cmd_properties":
       case "cmd_selectAll":
       case "cmd_clearList":
         return true;
@@ -507,6 +515,8 @@ var dlTreeController = {
         return selectionCount == 1 && !!selItemData.referrer;
       case "cmd_copyLocation":
         return selectionCount > 0;
+      case "cmd_properties":
+        return selectionCount == 1;
       case "cmd_selectAll":
         return gDownloadTreeView.rowCount != selectionCount;
       case "cmd_clearList":
@@ -600,6 +610,9 @@ var dlTreeController = {
         }
         clipboard.copyString(uris.join("\n"));
         break;
+      case "cmd_properties":
+        showProperties(selItemData.dlid);
+        break;
       case "cmd_selectAll":
         gDownloadTreeView.selection.selectAll();
         break;
@@ -637,8 +650,8 @@ var dlTreeController = {
   onCommandUpdate: function() {
     var cmds = ["cmd_play", "cmd_pause", "cmd_resume", "cmd_retry",
                 "cmd_cancel", "cmd_remove", "cmd_stop", "cmd_open", "cmd_show",
-                "cmd_openReferrer", "cmd_copyLocation", "cmd_selectAll",
-                "cmd_clearList"];
+                "cmd_openReferrer", "cmd_copyLocation", "cmd_properties",
+                "cmd_selectAll", "cmd_clearList"];
     for (let command in cmds)
       goUpdateCommand(cmds[command]);
   }

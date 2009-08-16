@@ -180,13 +180,19 @@ nsDownloadManagerUI.prototype = {
   {
     var params = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
 
-    // Don't fail if our passed in ID is invalid
-    var download = null;
+    var parent = null;
+    // We try to get a window to use as the parent here.  If we don't have one,
+    // the progress window will close immediately after opening if the pref
+    // browser.download.manager.closeWhenDone is set to true.
     try {
-      let dm = Cc["@mozilla.org/download-manager;1"].
-               getService(Ci.nsIDownloadManager);
-      download = dm.getDownload(aID);
-    } catch (ex) {}
+      if (aWindowContext)
+        parent = aWindowContext.getInterface(Ci.nsIDOMWindow);
+    } catch (e) { /* it's OK to not have a parent window */ }
+
+    // Fail if our passed in ID is invalid
+    var download = Cc["@mozilla.org/download-manager;1"].
+                   getService(Ci.nsIDownloadManager).
+                   getDownload(aID);
     params.appendElement(download, false);
 
     // Pass in the reason as well
@@ -197,7 +203,7 @@ nsDownloadManagerUI.prototype = {
 
     var ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].
              getService(Ci.nsIWindowWatcher);
-    ww.openWindow(null,
+    ww.openWindow(parent,
                   "chrome://communicator/content/downloads/progressDialog.xul",
                   null,
                   "chrome,titlebar,centerscreen,minimizable=yes,dialog=no",

@@ -76,3 +76,5 @@
 <!ENTITY cmd.goToDownloadPage.accesskey  "G">
 <!ENTITY cmd.copyDownloadLink.label      "Copy Download Link">
 <!ENTITY cmd.copyDownloadLink.accesskey  "L">
+<!ENTITY cmd.properties.label            "Properties…">
+<!ENTITY cmd.properties.accesskey        "s">

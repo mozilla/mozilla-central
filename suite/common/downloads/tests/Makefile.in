@@ -54,6 +54,7 @@ _CHROME_FILES = \
     test_enter_dblclick_opens.xul \
     test_multi_select.xul \
     test_multiword_search.xul \
+    test_open_properties.xul \
     test_removeDownload_updates_ui.xul \
     test_search_clearlist.xul \
     test_search_keys.xul \
