@@ -931,7 +931,7 @@
             // default stored in newSelection.
             //
             if ((this.value == -1 || dontRestore) && newSelection)
-              this.value = newSelection.value;
+              this.value = newSelection.getAttribute("value");
             menulist.selectedItem = this.validMenuitem;
           ]]>
         </body>
