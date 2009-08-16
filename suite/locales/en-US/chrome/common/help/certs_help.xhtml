@@ -42,10 +42,10 @@
 <div class="contentsBox">In this section:
   <ul>
     <li><a href="#your_certificates">Your Certificates</a></li>
-    <li><a href="#other_peoples_certificates">Other People&apos;s
-      Certificates</a></li>
-    <li><a href="#web_site_certificates">Website Certificates</a></li>
+    <li><a href="#people">People</a></li>
+    <li><a href="#servers">Servers</a></li>
     <li><a href="#authorities">Authorities</a></li>
+    <li><a href="#others">Others</a></li>
   </ul>
 </div>
 
@@ -54,18 +54,11 @@
 <p>The Your Certificates tab in the <a href="#certificate_manager">Certificate
   Manager</a> displays the certificates on file that identify you. Your
   certificates are listed under the names of the organizations that issued
-  them:</p>
+  them. If you can&apos;t see certificate names under an organization&apos;s
+  name, double-click the name to expand it.</p>
 
-<ul>
-  <li>If you can&apos;t see certificate names under an organization&apos;s
-    name, double-click the name.</li>
-  <li>To select a certificate, click its name.</li>
-  <li>To select more than one certificate, hold down the Control key and click
-    their names.</li>
-</ul>
-
-<p>To perform the following actions, select one or more certificates and click
-  one of the following buttons:</p>
+<p>Use the following buttons to view and manage your certificates (most actions
+  require one or more certificates to be selected):</p>
 
 <ul>
   <li><strong>View</strong>: Display detailed information about the selected
@@ -74,19 +67,6 @@
     certificates. A window appears that allows you to choose a password to
     protect the backup. You can then save the backup in a directory of your
     choice.</li>
-  <li><strong>Delete</strong>: Delete the selected certificates.</li>
-</ul>
-
-<p>These actions do not require a certificate to be selected:</p>
-
-<ul>
-  <li><strong>Import</strong>: Import a file containing one or more
-    certificates that were previously backed up. When you click Import,
-    Certificate Manager first asks you to locate the file that contains the
-    backup. The names of certificate backup files typically end in
-    <tt>.p12</tt>; for example, <tt>MyCert.p12</tt>. After you select the file
-    to be imported, Certificate Manager asks you to enter the password that you
-    set when you backed up the certificate.</li>
   <li><strong>Backup All</strong>: Initiate the process of saving all the
     certificates stored in the
     <a href="glossary.xhtml#software_security_device">Software Security
@@ -99,6 +79,14 @@
       back up certificates that are stored on the built-in Software Security
       Device.</p>
   </li>
+  <li><strong>Import</strong>: Import a file containing one or more
+    certificates that were previously backed up. When you click Import,
+    Certificate Manager first asks you to locate the file that contains the
+    backup. The names of certificate backup files typically end in
+    <tt>.p12</tt>; for example, <tt>MyCert.p12</tt>. After you select the file
+    to be imported, Certificate Manager asks you to enter the password that you
+    set when you backed up the certificate.</li>
+  <li><strong>Delete</strong>: Delete the selected certificates.</li>
 </ul>
 
 <h3 id="choose_a_certificate_backup_password">Choose a Certificate Backup
@@ -150,62 +138,55 @@
   email messages that you may have encrypted with the corresponding private
   key.</p>
 
-<h2 id="other_peoples_certificates">Other People&apos;s Certificates</h2>
+<h2 id="people">People</h2>
 
-<p>The Other People&apos;s tab in the <a href="#certificate_manager">Certificate
-  Manager</a> displays email certificates you have on file that identify other
-  people.</p>
+<p>The People tab in the <a href="#certificate_manager">Certificate Manager</a>
+  displays email certificates you have on file that identify other people.</p>
 
 <p>When people send you digitally signed email messages, Certificate Manager
   imports their certificates automatically. You can use these certificates to
   send encrypted messages to those people.</p>
 
-<p>Other people&apos;s certificates are listed under the names of the
-  organizations that issued them:</p>
+<p>Certificates that identify people are listed under the names of the
+  organizations that issued them. If you can&apos;t see certificate names under
+  an organization&apos;s name, double-click the name to expand it.</p>
 
-<ul>
-  <li>If you can&apos;t see certificate names under an organization&apos;s
-    name, double-click the name.</li>
-  <li>To select a certificate, click its name.</li>
-  <li>To select more than one certificate, hold down the Control key and click
-    their names.</li>
-</ul>
-
-<p>To perform the following actions, select one or more certificates and click
-  one of the following buttons:</p>
+<p>Use the following buttons to view and manage your certificates (most actions
+  require one or more certificates to be selected):</p>
 
 <ul>
   <li><strong>View</strong>: Display detailed information about the selected
     certificates.</li>
+  <li><strong>Edit</strong>: View or change the trust settings that Certificate
+    Manager associates with the selected certificates. You can use these
+    settings to designate an email certificate as one that you trust or
+    don&apos;t trust for identification purposes.</li>
+  <li><strong>Import</strong>: Import a file containing one or more
+    certificates. When you click Import, Certificate Manager first asks you
+    to locate the file that contains the certificate(s).</li>
+  <li><strong>Export</strong>: Export the selected certificates. You can
+    choose among various formats.</li>
   <li><strong>Delete</strong>: Delete the selected certificates.</li>
 </ul>
 
 <h3 id="delete_email_certificates">Delete Email Certificates</h3>
 
 <p>Before deleting someone else&apos;s certificate from the
-  <a href="#other_peoples_certificates">Other People&apos;s</a> tab in the
-  Certificate Manager, make sure you won&apos;t need it again some day to send
-  encrypted email to that person or to verify digital signatures on messages
-  from that person.</p>
+  <a href="#people">People</a> tab in the Certificate Manager, make sure you
+  won&apos;t need it again some day to send encrypted email to that person or
+  to verify digital signatures on messages from that person.</p>
 
-<h2 id="web_site_certificates">Website Certificates</h2>
+<h2 id="servers">Servers</h2>
 
-<p>The Websites tab in the Certificate Manager displays certificates you have
-  on file that identify websites.</p>
+<p>The Servers tab in the Certificate Manager displays certificates you have
+  on file that identify servers (websites, mail servers).</p>
 
-<p>Website certificates are grouped under the names of the organizations that
-  issued them:</p>
+<p>Certificates that identify servers are grouped under the names of the
+  organizations that issued them. If you can&apos;t see certificate names under
+  an organization&apos;s name, double-click the name to expand it.</p>
 
-<ul>
-  <li>If you can&apos;t see certificate names under an organization&apos;s
-    name, double-click the name.</li>
-  <li>To select a certificate, click its name.</li>
-  <li>To select more than one certificate, hold down the Control key and click
-    their names.</li>
-</ul>
-
-<p>To perform the following actions, select one or more certificates and click
-  one of the following buttons:</p>
+<p>Use the following buttons to view and manage your certificates (most actions
+  require one or more certificates to be selected):</p>
 
 <ul>
   <li><strong>View</strong>: Display detailed information about the selected
@@ -214,18 +195,25 @@
     Manager associates with the selected certificates. You can use these
     settings to designate a website certificate as one that you trust or
     don&apos;t trust for identification purposes.</li>
+  <li><strong>Import</strong>: Import a file containing one or more
+    certificates. When you click Import, Certificate Manager first asks you
+    to locate the file that contains the certificate(s).</li>
+  <li><strong>Export</strong>: Export the selected certificates. You can
+    choose among various formats.</li>
   <li><strong>Delete</strong>: Delete the selected certificates.</li>
+  <li><strong>Add Exception</strong>: Add a security exception for a server
+    (website, mail server) that identifies itself with invalid information.
+    This is an advanced feature, act with caution.</li>
 </ul>
 
-<h3 id="edit_web_site_certificate_trust_settings">Edit Website Certificate
+<h3 id="edit_web_site_certificate_trust_settings">Edit Web Site Certificate
   Trust Settings</h3>
 
 <p>When you select a website certificate from the
-  <a href="#web_site_certificates">Websites</a> tab in the Certificate Manager
-  and click Edit, you see a window entitled <q>Edit website certificate trust
-  settings</q>. Here you specify whether you want to trust the selected
-  certificate for identifying the website and setting up an encrypted
-  connection.</p>
+  <a href="#servers">Servers</a> tab in the Certificate Manager and click Edit,
+  you see a window entitled <q>Edit web site certificate trust settings</q>.
+  Here you specify whether you want to trust the selected certificate for
+  identifying the website and setting up an encrypted connection.</p>
 
 <p>The dialog box contains these elements:</p>
 
@@ -262,10 +250,10 @@
 
 <h3 id="delete_web_site_certificates">Delete Website Certificates</h3>
 
-<p>Before deleting a website certificate from the
-  <a href="#web_site_certificates">Websites</a> tab in the Certificate
-  Manager, make sure that you won&apos;t need it again for the purposes of
-  identifying a website and setting up an encrypted connection.</p>
+<p>Before deleting a server certificate from the
+  <a href="#servers">Servers</a> tab in the Certificate Manager, make sure that
+  you won&apos;t need it again for the purposes of identifying a website or
+  mail server and setting up an encrypted connection.</p>
 
 <h2 id="authorities">Authorities</h2>
 
@@ -275,18 +263,11 @@
   (CAs)</a>.</p>
 
 <p>CA certificates are grouped under the names of the organizations that issued
-  them:</p>
+  them. If you can&apos;t see certificate names under an organization&apos;s
+  name, double-click the name to expand it.</p>
 
-<ul>
-  <li>If you can&apos;t see CA certificate names under an organization&apos;s
-    name, double-click the name.</li>
-  <li>To select a CA certificate, click its name.</li>
-  <li>To select more than one CA certificate, hold down the Control key and
-    click their names.</li>
-</ul>
-
-<p>To perform these actions, select the certificates on which you want to act
-  and click one of these buttons:</p>
+<p>Use the following buttons to view and manage your certificates (most actions
+  require one or more certificates to be selected):</p>
 
 <ul>
   <li><strong>View</strong>: Display detailed information about the selected
@@ -295,6 +276,11 @@
     Manager associates with the selected certificates. You can use these
     settings to designate what kinds of certificates, if any, you trust that
     are issued by the corresponding CAs.</li>
+  <li><strong>Import</strong>: Import a file containing one or more
+    certificates. When you click Import, Certificate Manager first asks you
+    to locate the file that contains the certificate(s).</li>
+  <li><strong>Export</strong>: Export the selected certificates. You can
+    choose among various formats.</li>
   <li><strong>Delete</strong>: Delete the selected certificates.</li>
 </ul>
 
@@ -354,6 +340,26 @@
   by that CA. If you delete the only valid certificate you have for a CA,
   Certificate Manager will no longer trust any certificates issued by that
   CA.</p>
+
+<h2 id="others">Others</h2>
+
+<p>The Others tab in the Certificate Manager displays certificates you have
+  on file that do not fit in any of the other categories, i.e. certificates
+  that neither belong to you, other people, servers or CAs.</p>
+
+<p>Other certificates are grouped under the names of the organizations that
+  issued them. If you can&apos;t see certificate names under an
+  organization&apos;s name, double-click the name to expand it.</p>
+
+<p>Use the following buttons to view and manage your certificates:</p>
+
+<ul>
+  <li><strong>View</strong>: Display detailed information about the selected
+    certificates.</li>
+  <li><strong>Export</strong>: Export the selected certificates. You can
+    choose among various formats.</li>
+  <li><strong>Delete</strong>: Delete the selected certificates.</li>
+</ul>
 
 <h2 id="device_manager">Device Manager</h2>
 

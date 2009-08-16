@@ -60,6 +60,9 @@
         case 'ca_tab':
           openHelp("ca_certs");
           break;
+        case 'orphan_tab':
+          openHelp("orphan_certs");
+          break;
       }
     }
 

@@ -163,12 +163,14 @@
   <ul>
     <li><a href="#managing_certificates_that_identify_you">Managing
       Certificates that Identify You</a></li>
-    <li><a href="#managing_certificates_that_identify_others">Managing
-      Certificates that Identify Others</a></li>
-    <li><a href="#managing_certificates_that_identify_websites">Managing
-      Certificates that Identify Websites</a></li>
+    <li><a href="#managing_certificates_that_identify_people">Managing
+      Certificates that Identify People</a></li>
+    <li><a href="#managing_certificates_that_identify_servers">Managing
+      Certificates that Identify Servers</a></li>
     <li><a href="#managing_certificates_that_identify_certificate_authorities">Managing
       Certificates that Identify Certificate Authorities</a></li>
+    <li><a href="#managing_certificates_that_identify_others">Managing
+      Certificates that Identify Others</a></li>
   </ul>
 </div>
 
@@ -177,43 +179,24 @@
 
 <p>When you first open the Certificate Manager, you&apos;ll notice that it has
   several tabs across the top of its window. The first tab is called Your
-  Certificates, and it displays the certificates your browser has available
-  that identify you. Your certificates are listed under the names of the
-  organizations that issued them.</p>
+  Certificates, and it displays the certificates your browser or mail client
+  has available that identify you. Your certificates are listed under the names
+  of the organizations that issued them.</p>
 
 <p>To perform an action on one or more certificates, click the entry for the
   certificate (or <kbd class="mac">Cmd</kbd><kbd class="noMac">Ctrl</kbd>-click
-  to select more than one), then click the View, Backup, or Delete button. Each
-  of these buttons brings up another window that allows you to perform the
-  action. Click the Help button in any window to obtain more information about
-  using that window.</p>
+  to select more than one), then click one of the buttons at the bottom of the
+  Certificate Manager window. Each of these buttons brings up another window
+  that allows you to perform the action. Click the Help button in any window to
+  obtain more information about using that window.</p>
 
-<p>The following buttons under Your Certificates don&apos;t require a
-  certificate to be selected. You use them to perform these actions:</p>
-
-<ul>
-  <li><strong>Import</strong>: Click this button if you want to import a
-    certificate that you&apos;ve previously backed up or transferred from one
-    machine to another.</li>
-  <li><strong>Backup All</strong>: Click this button to back up all your own
-    certificates stored in the
-    <a href="glossary.xhtml#software_security_device">Software Security
-    Device</a>.</li>
-</ul>
-
-<p><strong>Important</strong>: Certificates on smart cards cannot be backed up.
-  Whether you select some of your certificates and click Backup, or click
-  Backup All, the resulting backup file will not include any certificates
-  stored on smart cards or other external security devices. You can only back
-  up certificates that are stored on the built-in Software Security Device.</p>
-
-<p>For more details about any of these tasks, see
+<p>For more details on how to view and manage these certificates, see
   <a href="certs_help.xhtml#your_certificates">Your Certificates</a>.</p>
 
 <p>[<a href="#managing_certificates">Return to beginning of section</a>]</p>
 
-<h2 id="managing_certificates_that_identify_others">Managing Certificates that
-  Identify Others</h2>
+<h2 id="managing_certificates_that_identify_people">Managing Certificates that
+  Identify People</h2>
 
 <p>When you compose a mail message, you can choose to attach your digital
   signature to it. A <a href="glossary.xhtml#digital_signature">digital
@@ -231,31 +214,31 @@
   are received in this way.</p>
 
 <p>To view all the certificates identifying other people that are available to
-  the Certificate Manager, click the Other People&apos;s tab at the top of the
+  the Certificate Manager, click the People tab at the top of the
   Certificate Manager window. You can send encrypted messages to anyone for
   whom a valid certificate is listed. Certificates are listed under the names
   of the organizations that issued them.</p>
 
 <p>To perform an action on one or more certificates, click the entry for the
   certificate (or <kbd class="mac">Cmd</kbd><kbd class="noMac">Ctrl</kbd>-click
-  to select more than one), then click the View or Delete button. Each of these
-  buttons brings up another window that allows you to perform the action. Click
-  the Help button in any window to obtain more information about using that
-  window.</p>
+  to select more than one), then click one of the buttons at the bottom of the
+  Certificate Manager window. Each of these buttons brings up another window
+  that allows you to perform the action. Click the Help button in any window to
+  obtain more information about using that window.</p>
 
-<p>For more details, see
-  <a href="certs_help.xhtml#other_peoples_certificates">Other People&apos;s
-  Certificates</a>.</p>
+<p>For more details on how to view and manage these certificates, see the
+  description of the Certificate Manager&apos;s
+  <a href="certs_help.xhtml#people">People</a> tab.</p>
 
 <p>[<a href="#managing_certificates">Return to beginning of section</a>]</p>
 
-<h2 id="managing_certificates_that_identify_websites">Managing Certificates
-  that Identify Websites</h2>
+<h2 id="managing_certificates_that_identify_servers">Managing Certificates
+  that Identify Servers</h2>
 
-<p>Some websites use certificates to identify themselves. Such identification
-  is required before the website can encrypt information transferred between
-  the site and your computer (or vice versa), so that no one can read the data
-  while in transit.</p>
+<p>Some websites and mail servers use certificates to identify themselves.
+  Such identification is required before the server can encrypt information
+  transferred between it and your computer (or vice versa), so that no one
+  can read the data while in transit.</p>
 
 <p>If the URL for a website begins with <tt>https://</tt>, the website has a
   certificate. If you visit such a website and its certificate was issued by a
@@ -265,19 +248,18 @@
   Manager adds it to its list of website certificates.</p>
 
 <p>To view all the website certificates available to your browser, click the
-  Websites tab at the top of the Certificate Manager window.</p>
+  Servers tab at the top of the Certificate Manager window.</p>
 
-<p>To perform an action on one or more website certificates, click the entry
-  for the certificate (or <kbd>Shift</kbd>-clickto select more than one), then
-  click the View, Edit, or Delete button. Each of these buttons brings up
-  another window that allows you to perform the corresponding action.</p>
+<p>To perform an action on one or more certificates, click the entry for the
+  certificate (or <kbd class="mac">Cmd</kbd><kbd class="noMac">Ctrl</kbd>-click
+  to select more than one), then click one of the buttons at the bottom of the
+  Certificate Manager window. Each of these buttons brings up another window
+  that allows you to perform the action. Click the Help button in any window to
+  obtain more information about using that window.</p>
 
-<p>The Edit button allows you to specify whether your browser will trust the
-  selected website certificates in the future.</p>
-
-<p>For more details, see
-  <a href="certs_help.xhtml#web_site_certificates">Website Certificates</a>.
-</p>
+<p>For more details on how to view and manage these certificates, see the
+  description of the Certificate Manager&apos;s
+  <a href="certs_help.xhtml#servers">Servers</a> tab.</p>
 
 <p>[<a href="#managing_certificates">Return to beginning of section</a>]</p>
 
@@ -303,17 +285,26 @@
 
 <p>To perform an action on one or more CA certificates, click the entry for the
   certificate (or <kbd class="mac">Cmd</kbd><kbd class="noMac">Ctrl</kbd>-click
-  to select more than one), then click the View, Edit, or Delete button. Each
-  of these buttons brings up another window that allows you to perform the
-  action. Click the Help button in any window to obtain more information about
-  using that window.</p>
+  to select more than one), then click one of the buttons at the bottom of the
+  Certificate Manager window. Each of these buttons brings up another window
+  that allows you to perform the action. Click the Help button in any window to
+  obtain more information about using that window.</p>
 
-<p>The Edit button allows you to view and control the trust settings for each
-  certificate. Trust settings for a CA certificate let you to specify which
-  kinds of certificates issued by that CA you are willing to trust.</p>
+<p>For more details on how to view and manage these certificates, see the
+  description of the Certificate Manager&apos;s
+  <a href="certs_help.xhtml#authorities">Authorities</a> tab.</p>
 
-<p>For more details, see
-  <a href="certs_help.xhtml#authorities">Authorities</a>.</p>
+<p>[<a href="#managing_certificates">Return to beginning of section</a>]</p>
+
+<h2 id="managing_certificates_that_identify_others">Managing Certificates that
+  Identify Others</h2>
+
+<p>To see all certificates that do not fit into any of the other categories,
+  click the Others tab at the top of the Certificate Manager window.</p>
+
+<p>For more details on how to view and manage these certificates, see the
+  description of the Certificate Manager&apos;s
+  <a href="certs_help.xhtml#others">Others</a> tab.</p>
 
 <p>[<a href="#managing_certificates">Return to beginning of section</a>]</p>
 

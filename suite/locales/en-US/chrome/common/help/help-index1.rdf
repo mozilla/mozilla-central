@@ -318,6 +318,11 @@
          nc:link="certs_prefs_help.xhtml#client_certificate_selection"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="Certificates:server"
+         nc:name="server identity"
+         nc:link="using_certs_help.xhtml#managing_certificates_that_identify_servers"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="Certificates:using"
          nc:name="Using Certificates"
          nc:link="using_certs_help.xhtml#using_certificates"/>
@@ -330,7 +335,7 @@
      <rdf:li>
        <rdf:Description ID="Certificates:web_site"
          nc:name="website identity"
-         nc:link="using_certs_help.xhtml#managing_certificates_that_identify_websites"/>
+         nc:link="using_certs_help.xhtml#managing_certificates_that_identify_servers"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Certificates:your_own"
