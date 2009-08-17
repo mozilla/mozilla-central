@@ -441,6 +441,8 @@ let SearchSupport =
 
     // If we couldn't find any headers to index, null out the enumerator
     this._headerEnumerator = null;
+    if (! (this._currentFolderToIndex.flags & Ci.nsMsgFolderFlags.Inbox))
+      this._currentFolderToIndex.msgDatabase = null;
     return null;
   },
 
