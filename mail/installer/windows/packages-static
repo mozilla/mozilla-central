@@ -17,7 +17,9 @@ bin\isp\@AB_CD@\*
 [xpcom]
 bin\xpcom.dll
 bin\xpcom_core.dll
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\components\jar50.dll
+#endif
 bin\nspr4.dll
 bin\plc4.dll
 bin\plds4.dll

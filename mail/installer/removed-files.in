@@ -9,6 +9,9 @@
 # * anything that isn't a connected chunk of files with related and shared   *
 # * ifdef conditions.                                                        *
 # ****************************************************************************
+#ifdef MOZILLA_1_9_1_BRANCH
+bin/nssdbm3.chk
+#endif
 chrome/app-chrome.manifest
 chrome/chrome.rdf
 chrome/en-US-mail.jar
@@ -352,7 +355,11 @@ components/@DLL_PREFIX@imgicon@DLL_SUFFIX@
 components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
 components/@DLL_PREFIX@import@DLL_SUFFIX@
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
+#ifdef MOZILLA_1_9_1_BRANCH
 #ifdef XP_MACOSX
+components/@DLL_PREFIX@jar50@DLL_SUFFIX@
+#endif
+#else
 components/@DLL_PREFIX@jar50@DLL_SUFFIX@
 #endif
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
