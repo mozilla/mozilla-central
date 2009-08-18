@@ -127,7 +127,7 @@ function FindNextFolder()
 
   // start at the account after the current account
   var rootFolders = GetRootFoldersInFolderPaneOrder();
-  for (i = 0; i < rootFolders.length; i++) {
+  for (var i = 0; i < rootFolders.length; i++) {
     if (rootFolders[i].URI == gDBView.msgFolder.server.serverURI)
       break;
   }
