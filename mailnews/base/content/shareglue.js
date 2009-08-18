@@ -44,15 +44,10 @@
 
 function MessengerSetForcedCharacterSet(aCharset)
 {
-//    dump(aCharset);dump("\n");
   messenger.setDocumentCharset(aCharset);
   msgWindow.mailCharacterSet = aCharset;
   msgWindow.charsetOverride = true;
 
-// folder charset to be set by folder property not by charset menu
-//	var folderResource = GetSelectedFolderResource();
-//	SetFolderCharset(folderResource, aCharset);
-//	RefreshThreadPane();
   // DO NOT try to reload the message here. we do this automatically now in
   //  messenger.SetDocumentCharset. You'll just break things and reak havoc
   // if you call MsgReload() here...
