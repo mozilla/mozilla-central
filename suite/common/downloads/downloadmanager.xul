@@ -290,6 +290,12 @@
               <menuitem id="menu_ToggleTimeElapsed" type="checkbox"
                         label="&col.timeelapsed.label;"
                         accesskey="&col.timeelapsed.accesskey;"/>
+              <menuitem id="menu_ToggleStartTime" type="checkbox"
+                        label="&col.starttime.label;"
+                        accesskey="&col.starttime.accesskey;"/>
+              <menuitem id="menu_ToggleEndTime" type="checkbox"
+                        label="&col.endtime.label;"
+                        accesskey="&col.endtime.accesskey;"/>
               <menuitem id="menu_ToggleProgressPercent" type="checkbox"
                         label="&col.progresstext.label;"
                         accesskey="&col.progresstext.accesskey;"/>
@@ -327,6 +333,12 @@
               <menuitem id="menu_SortByTimeElapsed" type="radio" name="columns"
                         label="&col.timeelapsed.label;"
                         accesskey="&col.timeelapsed.accesskey;"/>
+              <menuitem id="menu_SortByStartTime" type="radio" name="columns"
+                        label="&col.starttime.label;"
+                        accesskey="&col.starttime.accesskey;"/>
+              <menuitem id="menu_SortByEndTime" type="radio" name="columns"
+                        label="&col.endtime.label;"
+                        accesskey="&col.endtime.accesskey;"/>
               <menuitem id="menu_SortByProgressPercent" type="radio" name="columns"
                         label="&col.progresstext.label;"
                         accesskey="&col.progresstext.accesskey;"/>
@@ -440,6 +452,18 @@
       <treecol id="TimeElapsed" hidden="true"
                label="&col.timeelapsed.label;"
                tooltiptext="&col.timeelapsed.tooltip;"
+               class="sortDirectionIndicator" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="StartTime" hidden="true"
+               label="&col.starttime.label;"
+               tooltiptext="&col.starttime.tooltip;"
+               class="sortDirectionIndicator" flex="1"
+               persist="width hidden ordinal sortActive sortDirection"/>
+      <splitter class="tree-splitter"/>
+      <treecol id="EndTime" hidden="true"
+               label="&col.endtime.label;"
+               tooltiptext="&col.endtime.tooltip;"
                class="sortDirectionIndicator" flex="1"
                persist="width hidden ordinal sortActive sortDirection"/>
       <splitter class="tree-splitter"/>

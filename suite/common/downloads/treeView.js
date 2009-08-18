@@ -209,6 +209,14 @@ DownloadTreeView.prototype = {
           return this._dlbundle.getFormattedString("timeDouble", [time1, unit1, time2, unit2]);
         }
         return "";
+      case "StartTime":
+        if (dl.startTime)
+          return this._convertTimeToString(dl.startTime);
+        return "";
+      case "EndTime":
+        if (dl.endTime)
+          return this._convertTimeToString(dl.endTime);
+        return "";
       case "Source":
         return dl.uri;
     }
@@ -549,6 +557,14 @@ DownloadTreeView.prototype = {
                    ? b.endTime - b.startTime
                    : 0;
           break;
+        case "StartTime":
+          comp_a = a.startTime;
+          comp_b = b.startTime;
+          break;
+        case "EndTime":
+          comp_a = a.endTime;
+          comp_b = b.endTime;
+          break;
         case "Source":
           comp_a = a.uri;
           comp_b = b.uri;
@@ -589,8 +605,17 @@ DownloadTreeView.prototype = {
   _statement: null,
   _lastListIndex: 0,
   _selectionCache: null,
+  __dateService: null,
 
   // ***** local helper functions *****
+
+  get _dateService() {
+    if (!this.__dateService) {
+      this.__dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                                     .getService(Components.interfaces.nsIScriptableDateFormat);
+    }
+    return this.__dateService;
+  },
 
   // Get array index in _dlList for a given download ID
   _getIdxForID: function(aDlID) {
@@ -639,6 +664,33 @@ DownloadTreeView.prototype = {
     }
     // Work done, clear the cache
     this._selectionCache = null;
+  },
+
+  _convertTimeToString: function(aTime) {
+    var timeObj = new Date(aTime);
+
+    // Check if it is today and only display the time.  Only bother
+    // checking for today if it's within the last 24 hours, since
+    // computing midnight is not really cheap. Sometimes we may get dates
+    // in the future, so always show those.
+    var ago = Date.now() - aTime;
+    var dateFormat = Components.interfaces.nsIScriptableDateFormat.dateFormatShort;
+    if (ago > -10000 && ago < (1000 * 24 * 60 * 60)) {
+      var midnight = new Date();
+      midnight.setHours(0);
+      midnight.setMinutes(0);
+      midnight.setSeconds(0);
+      midnight.setMilliseconds(0);
+
+      if (aTime > midnight.getTime())
+        dateFormat = Components.interfaces.nsIScriptableDateFormat.dateFormatNone;
+    }
+
+    return (this._dateService.FormatDateTime("", dateFormat,
+      Components.interfaces.nsIScriptableDateFormat.timeFormatNoSeconds,
+      timeObj.getFullYear(), timeObj.getMonth() + 1,
+      timeObj.getDate(), timeObj.getHours(),
+      timeObj.getMinutes(), timeObj.getSeconds()));
   },
 
 };
