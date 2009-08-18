@@ -119,11 +119,26 @@ function SetNewsFolderColumns()
   }
 }
 
+/**
+ * For non-folder based tabs, message counts don't apply.
+ * Therefore hide the counts for those folders. For folder based tabs
+ * let the tab decide whether or not to show it in UpdateStatusMessageCounts().
+ */
+var statusMessageCountsMonitor = {
+  onTabTitleChanged: function() {},
+  onTabSwitched: function statusMessageCountsMonitor_onTabSwitched(aTab, aOldTab) {
+    if (aTab.mode.name != "folder" && aTab.mode.name != "glodaSearch") {
+      document.getElementById("unreadMessageCount").hidden = true;
+      document.getElementById("totalMessageCount").hidden = true;
+    }
+  }
+}
+
 function UpdateStatusMessageCounts(folder)
 {
-  var unreadElement = GetUnreadCountElement();
-  var totalElement = GetTotalCountElement();
-  if(folder && unreadElement && totalElement)
+  var unreadElement = document.getElementById("unreadMessageCount");
+  var totalElement = document.getElementById("totalMessageCount");
+  if (folder && !folder.isServer && unreadElement && totalElement)
   {
     var numSelected = GetNumSelectedMessages();
 
@@ -140,9 +155,7 @@ function UpdateStatusMessageCounts(folder)
     totalElement.setAttribute("label", numTotal);
     unreadElement.hidden = false;
     totalElement.hidden = false;
-
   }
-
 }
 
 var gQuotaUICache;

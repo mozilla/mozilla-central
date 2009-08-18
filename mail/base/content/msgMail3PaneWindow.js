@@ -66,10 +66,6 @@ var gMessagePane;
 var gSearchInput;
 
 var gThreadAndMessagePaneSplitter = null;
-/** widget with id=unreadMessageCount, initialized by GetUnreadCountElement() */
-var gUnreadCount = null;
-/** widget with id=totalMessageCount, initialized by GetTotalCountElement() */
-var gTotalCount = null;
 var gCurrentFolderView;
 var gStartFolderUri = null;
 /**
@@ -286,6 +282,7 @@ function OnLoadMessenger()
     tabmail.registerTabType(mailTabType);
     tabmail.registerTabMonitor(glodaSearchTabMonitor);
     tabmail.registerTabMonitor(QuickSearchTabMonitor);
+    tabmail.registerTabMonitor(statusMessageCountsMonitor);
     tabmail.openFirstTab();
   }
 
@@ -801,20 +798,6 @@ function GetThreadAndMessagePaneSplitter()
   if (!gThreadAndMessagePaneSplitter)
     gThreadAndMessagePaneSplitter = document.getElementById('threadpane-splitter');
   return gThreadAndMessagePaneSplitter;
-}
-
-function GetUnreadCountElement()
-{
-  if (!gUnreadCount)
-    gUnreadCount = document.getElementById('unreadMessageCount');
-  return gUnreadCount;
-}
-
-function GetTotalCountElement()
-{
-  if (!gTotalCount)
-    gTotalCount = document.getElementById('totalMessageCount');
-  return gTotalCount;
 }
 
 function IsMessagePaneCollapsed()

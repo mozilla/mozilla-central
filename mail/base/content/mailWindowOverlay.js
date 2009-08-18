@@ -2192,8 +2192,8 @@ let mailTabType = {
     } catch (ex) {}
 
     // -- thread pane status bar helpers
-    GetUnreadCountElement().hidden = !aLegalStates.thread;
-    GetTotalCountElement().hidden = !aLegalStates.thread;
+    document.getElementById("unreadMessageCount").hidden = !aLegalStates.thread;
+    document.getElementById("totalMessageCount").hidden = !aLegalStates.thread;
 
     // -- message pane
     document.getElementById("messagepanebox").collapsed =
