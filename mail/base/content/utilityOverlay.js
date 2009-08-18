@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -306,4 +306,37 @@ function openUILink(url, event)
 {
   if (!event.button)
     messenger.launchExternalURL(url);
+}
+
+function openWhatsNew()
+{
+  let startpage =
+    Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+              .getService(Components.interfaces.nsIURLFormatter)
+              .formatURLPref("mailnews.start_page.override_url");
+
+  openContentTab(startpage);
+}
+
+function openContentTab(url)
+{
+  let tabmail = document.getElementById("tabmail");
+  if (!tabmail) {
+    // Try opening new tabs in an existing 3pane window
+    let mail3PaneWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                    .getService(Components.interfaces.nsIWindowMediator)
+                                    .getMostRecentWindow("mail:3pane");
+    if (mail3PaneWindow) {
+      tabmail = mail3PaneWindow.document.getElementById("tabmail");
+      mail3PaneWindow.focus();
+    }
+  }
+
+  if (tabmail)
+    tabmail.openTab("contentTab", {contentPage: url});
+  else
+    window.openDialog("chrome://messenger/content/", "_blank",
+                      "chrome,dialog=no,all", null,
+                      { tabType: "contentTab",
+                        tabParams: {contentPage: url} });
 }

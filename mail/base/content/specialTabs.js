@@ -253,13 +253,7 @@ var specialTabs = {
    * Shows the what's new page in a content tab.
    */
   showWhatsNewPage: function onShowWhatsNewPage() {
-    let startpage =
-        Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                  .getService(Components.interfaces.nsIURLFormatter)
-                  .formatURLPref("mailnews.start_page.override_url");
-
-    document.getElementById('tabmail').openTab("contentTab",
-                                               { contentPage: startpage });
+    openWhatsNew();
   },
 
   /**

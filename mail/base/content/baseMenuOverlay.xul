@@ -73,6 +73,9 @@
       <menuitem id="releaseNotes"
                 label="&releaseCmd.label;" accesskey="&releaseCmd.accesskey;"
                 oncommand="openFormattedURL('app.releaseNotesURL');"/>
+      <menuitem id="whatsNew"
+                label="&whatsNewCmd.label;" accesskey="&whatsNewCmd.accesskey;"
+                oncommand="openWhatsNew();"/>
       <menuseparator id="menu_HelpAboutSeparator"/>
       <menuitem id="checkForUpdates" class="menuitem-iconic"
 #ifdef MOZ_UPDATER

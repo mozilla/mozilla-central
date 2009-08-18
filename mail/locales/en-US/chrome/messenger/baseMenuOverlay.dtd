@@ -7,6 +7,8 @@
 <!ENTITY helpMenuWin.accesskey "H">
 <!ENTITY releaseCmd.label "Release Notes">
 <!ENTITY releaseCmd.accesskey "R">
+<!ENTITY whatsNewCmd.label "What's New">
+<!ENTITY whatsNewCmd.accesskey "W">
 <!ENTITY openHelp.label "Help Contents">
 <!ENTITY openHelp.accesskey "H">
 <!ENTITY openHelp.commandkey "VK_F1">
