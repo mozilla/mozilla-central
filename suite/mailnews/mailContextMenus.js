@@ -217,9 +217,6 @@ function FolderPaneOnPopupHiding()
 
 function FillFolderPaneContextMenu()
 {
-  if (IsFakeAccount())
-    return false;
-
   var folderTree = GetFolderTree();
   var startIndex = {};
   var endIndex = {};

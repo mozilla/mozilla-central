@@ -319,7 +319,6 @@ modern.jar:
   skin/modern/messenger/filterDialog.css                           (messenger/filterDialog.css)
   skin/modern/messenger/folderMenus.css                            (messenger/folderMenus.css)
   skin/modern/messenger/folderPane.css                             (messenger/folderPane.css)
-  skin/modern/messenger/fakeAccount.css                            (messenger/fakeAccount.css)
   skin/modern/messenger/folderPaneExtras.css                       (messenger/folderPaneExtras.css)
   skin/modern/messenger/threadPaneExtras.css                       (messenger/threadPaneExtras.css)
   skin/modern/messenger/messageBody.css                            (messenger/messageBody.css)

@@ -203,7 +203,6 @@ classic.jar:
   skin/classic/messenger/accountWizard.css                              (messenger/accountWizard.css)
   skin/classic/messenger/folderMenus.css                                (messenger/folderMenus.css)
   skin/classic/messenger/folderPane.css                                 (messenger/folderPane.css)
-  skin/classic/messenger/fakeAccount.css                                (messenger/fakeAccount.css)
   skin/classic/messenger/accountCentral.css                             (messenger/accountCentral.css)
   skin/classic/messenger/addressingWidget.css                           (messenger/addressingWidget.css)
   skin/classic/messenger/messageWindow.css                              (messenger/messageWindow.css)

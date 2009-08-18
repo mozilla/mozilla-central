@@ -73,7 +73,6 @@ var folderDataSource;
 var accountCentralBox = null;
 var gSearchBox = null;
 var gAccountCentralLoaded = true;
-var gFakeAccountPageLoaded = false;
 //End progress and Status variables
 
 var gOfflineManager;

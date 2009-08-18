@@ -41,7 +41,6 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/folderPane.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/folderPaneExtras.css" type="text/css"?>
-<?xml-stylesheet href="chrome://messenger/skin/fakeAccount.css" type="text/css"?>
 
 <!DOCTYPE overlay SYSTEM "chrome://messenger/locale/folderpane.dtd">
 
@@ -113,9 +112,6 @@
                    predicate="http://home.netscape.com/NC-rdf#FolderSize"
                    object="?folderSize" />
           <binding subject="?member"
-                   predicate="http://home.netscape.com/NC-rdf#PageTitleFakeAccount"
-                   object="?fakeAccount" />
-          <binding subject="?member"
                    predicate="http://home.netscape.com/NC-rdf#IsDeferred"
                    object="?isDeferred" />
         </bindings>
@@ -126,7 +122,7 @@
               <treerow>
                 <treecell id="folderNameCell"
                               label="?folderTreeName"
-                              properties="specialFolder-?specialFolder biffState-?biffState isServer-?isServer newMessages-?newMessages hasUnreadMessages-?hasUnreadMessages subfoldersHaveUnreadMessages-?subfoldersHaveUnreadMessages isSecure-?isSecure serverType-?serverType noSelect-?noSelect imapShared-?imapShared fakeAccount-?fakeAccount"/>
+                              properties="specialFolder-?specialFolder biffState-?biffState isServer-?isServer newMessages-?newMessages hasUnreadMessages-?hasUnreadMessages subfoldersHaveUnreadMessages-?subfoldersHaveUnreadMessages isSecure-?isSecure serverType-?serverType noSelect-?noSelect imapShared-?imapShared"/>
                 <treecell label="?unreadCount"
                               properties="hasUnreadMessages-?hasUnreadMessages subfoldersHaveUnreadMessages-?subfoldersHaveUnreadMessages"/>
                 <treecell label="?totalCount"

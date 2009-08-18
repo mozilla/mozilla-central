@@ -65,9 +65,6 @@ var FolderPaneController =
 
 	isCommandEnabled: function(command)
 	{
-    if (IsFakeAccount()) 
-      return false;
-
 		switch ( command )
 		{
 			case "cmd_cut":
@@ -263,9 +260,6 @@ var DefaultController =
     var enabled = new Object();
     enabled.value = false;
     var checkStatus = new Object();
-
-    if (IsFakeAccount()) 
-      return false;
 
     switch ( command )
     {
@@ -921,11 +915,6 @@ function IsPropertiesEnabled(command)
       // properties menu failure
    }
 
-   // properties should be enabled for folders and servers
-   // but not fake accounts
-   if (IsFakeAccount())
-     return false;
-
    var selection = folderTree.view.selection;
    return (selection.count == 1);
 }
@@ -1168,16 +1157,6 @@ function isCommandEnabled(cmd)
   else
     return folder.isCommandEnabled(cmd);
 
-}
-
-function IsFakeAccount() {
-  try {
-    var folderResource = GetSelectedFolderResource();
-    return (folderResource.Value == "http://home.netscape.com/NC-rdf#PageTitleFakeAccount");
-  }
-  catch(ex) {
-  }
-  return false;
 }
 
 //

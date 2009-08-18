@@ -920,8 +920,6 @@ function FolderPaneSelectionChange()
 
     if (gAccountCentralLoaded)
       UpdateMailToolbar("gAccountCentralLoaded");
-    else if (gFakeAccountPageLoaded)
-      UpdateMailToolbar("gFakeAccountPageLoaded");
     else
       document.getElementById('advancedButton').setAttribute("disabled" , !(IsCanSearchMessagesEnabled()));
 
