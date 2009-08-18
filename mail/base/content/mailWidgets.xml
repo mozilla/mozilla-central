@@ -1014,7 +1014,7 @@
                            .QueryInterface(Components.interfaces.nsIMsgSearchCustomTerm);
               // for custom terms, the array element is a string with the custom id
               // instead of the integer attribute
-              if (customTerm.getAvailable(this.scope, null))
+              if (customTerm.getAvailable(this.searchScope, null))
                 result.push(customTerm.id);
             }
             return result;
@@ -1096,7 +1096,7 @@
             {
               let customTerm = this.filterService.getCustomTerm(this.searchAttribute);
               if (customTerm)
-                return customTerm.getAvailableOperators(this.scope, length);
+                return customTerm.getAvailableOperators(this.searchScope, length);
               return [Components.interfaces.nsMsgSearchOp.Contains];
             }
             return this.validityTable.getAvailableOperators(this.searchAttribute,length);
