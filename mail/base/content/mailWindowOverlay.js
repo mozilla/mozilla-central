@@ -3430,10 +3430,19 @@ function QuickSearchFocus()
     quickSearchTextBox.focus();
 }
 
-function MsgSearchMessages()
+/**
+ * Opens a search window with the given folder, or the displayed one if none is
+ * chosen.
+ *
+ * @param [aFolder] the folder to open the search window for, if different from
+ *                  the displayed one
+ */
+function MsgSearchMessages(aFolder)
 {
-  var args = { folder: gFolderDisplay.displayedFolder };
-  OpenOrFocusWindow(args, "mailnews:search", "chrome://messenger/content/SearchDialog.xul");
+  // We always open a new search dialog for each search command
+  window.openDialog("chrome://messenger/content/SearchDialog.xul", "_blank",
+                    "chrome,resizable,status,centerscreen,dialog=no",
+                    { folder: aFolder || gFolderDisplay.displayedFolder });
 }
 
 function MsgJunkMailInfo(aCheckFirstUse)

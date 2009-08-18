@@ -42,13 +42,16 @@
 var MODULE_NAME = 'test-search-window';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'search-window-helpers',
+                       'window-helpers'];
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
+  let sh = collector.getModule('search-window-helpers');
+  sh.installInto(module);
 }
 
 var folder, setFoo, setBar, setFooBar;
@@ -78,10 +81,8 @@ function test_show_search_window() {
   // put us in the folder we care about so it defaults to that
   be_in_folder(folder);
 
-  // push control-shift-F, wait for it to show
-  plan_for_new_window("mailnews:search");
-  mc.keypress(null, "f", {shiftKey: true, accelKey: true});
-  swc = wait_for_new_window("mailnews:search");
+  swc = open_search_window();
+  assert_search_window_folder_displayed(swc, folder);
 }
 
 /**

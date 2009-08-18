@@ -93,6 +93,7 @@ function installInto(module) {
   module.wait_for_modal_dialog = wait_for_modal_dialog;
   module.plan_for_window_close = plan_for_window_close;
   module.wait_for_window_close = wait_for_window_close;
+  module.close_window = close_window;
   module.wait_for_existing_window = wait_for_existing_window;
 
   module.augment_controller = augment_controller;
@@ -524,6 +525,17 @@ function wait_for_window_close() {
 }
 
 /**
+ * Close a window by calling window.close() on the controller.
+ *
+ * @param aController the controller whose window is to be closed.
+ */
+function close_window(aController) {
+  plan_for_window_close(aController);
+  aController.window.close();
+  wait_for_window_close();
+}
+
+/**
  * Methods to augment every controller that passes through augment_controller.
  */
 var AugmentEverybodyWith = {
@@ -656,6 +668,7 @@ var PerWindowTypeAugmentations = {
      */
     globalsToExposeAtStartup: {
       folderTreeView: "gFolderTreeView",
+      folderTreeController: "gFolderTreeController",
     },
     /**
      * Globals from the controller's windows global to retrieve on-demand
@@ -721,6 +734,9 @@ var PerWindowTypeAugmentations = {
     },
     globalsToExposeAtStartup: {
       folderDisplay: "gFolderDisplay",
+    },
+    globalsToExposeViaGetters: {
+      currentFolder: "gCurrentFolder",
     },
     getters: {
       dbView: function () {

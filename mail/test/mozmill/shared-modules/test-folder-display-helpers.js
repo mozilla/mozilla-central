@@ -450,25 +450,10 @@ function close_tab(aTabToClose) {
 }
 
 /**
- * Close a standalone message window.
- *
- * @param aController The message window controller
+ * Close a message window by calling window.close() on the controller.
  */
 function close_message_window(aController) {
-  windowHelper.plan_for_window_close(aController);
-  aController.window.close();
-  windowHelper.wait_for_window_close(aController);
-}
-
-/**
- * Close a standalone message window.
- *
- * @param aController The message window controller
- */
-function close_message_window(aController) {
-  windowHelper.plan_for_window_close(aController);
-  aController.window.close();
-  windowHelper.wait_for_window_close(aController);
+  windowHelper.close_window(aController);
 }
 
 /**

@@ -811,7 +811,7 @@ let gFolderTreeView = {
     sortFolderItems(smartChildren);
     for each (smartChild in smartChildren)
       map.push(smartChild);
-      
+
     for each (acct in accounts) {
       // Bug 466311 Sometimes this can throw file not found, we're unsure
       // why, but catch it and log the fact.
@@ -1715,6 +1715,17 @@ let gFolderTreeController = {
   },
 
   /**
+   * Opens a search window with the given folder, or the selected one if none
+   * is given.
+   *
+   * @param [aFolder] the folder to open the search window for, if different
+   *                  from the selected one
+   */
+  searchMessages: function ftc_searchMessages(aFolder) {
+    MsgSearchMessages(aFolder || gFolderTreeView.getSelectedFolders()[0]);
+  },
+
+  /**
    * Prompts for confirmation, if the user hasn't already chosen the "don't ask
    * again" option.
    *
@@ -1764,7 +1775,7 @@ function ftv_SmartItem(aFolder)
 }
 
 ftv_SmartItem.prototype =
-{  
+{
   get children() {
     const Ci = Components.interfaces;
     const nsMsgFolderFlags = Ci.nsMsgFolderFlags;

@@ -736,7 +736,7 @@
     <menuitem id="folderPaneContext-searchMessages"
               label="&folderContextSearchMessages.label;"
               accesskey="&folderContextSearchMessages.accesskey;"
-              command="cmd_search"/>
+              oncommand="gFolderTreeController.searchMessages();"/>
     <menuitem id="folderPaneContext-subscribe"
               label="&folderContextSubscribe.label;"
               accesskey="&folderContextSubscribe.accesskey;"
