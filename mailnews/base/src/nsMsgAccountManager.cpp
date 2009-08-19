@@ -3240,11 +3240,15 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemRemoved(nsIMsgFolder *parentItem, nsISu
         // if saved search is empty now, delete it.
         if (searchURI.IsEmpty())
         {
+          db = nsnull;
+          dbFolderInfo = nsnull;
+
           nsCOMPtr<nsIMsgFolder> parent;
           rv = savedSearch->GetParent(getter_AddRefs(parent));
           NS_ENSURE_SUCCESS(rv, rv);
-          db = nsnull;
-          dbFolderInfo = nsnull;
+
+          if (!parent)
+            continue;
           parent->PropagateDelete(savedSearch, PR_TRUE, nsnull);
         }
         else
