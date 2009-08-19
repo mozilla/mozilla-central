@@ -1049,6 +1049,13 @@ NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearch
       rv = SetOtherHeadersInTable(m_localNewsTable, customHeaders.get());
     *ppOutTable = m_localNewsTable;
     break;
+  case nsMsgSearchScope::onlineManual:
+    if (!m_onlineManualFilterTable)
+      rv = InitOnlineManualFilterTable();
+    if (m_onlineManualFilterTable)
+      rv = SetOtherHeadersInTable(m_onlineManualFilterTable, customHeaders.get());
+    *ppOutTable = m_onlineManualFilterTable;
+    break;
   case nsMsgSearchScope::LDAP:
     if (!m_ldapTable)
       rv = InitLdapTable ();

@@ -517,6 +517,8 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
         // This means we're going to end up firing off the delete, and then subsequently
         // issuing a search for the next filter, which will block until the delete finishes.
         m_curFolder->DeleteMessages(m_searchHitHdrs, m_msgWindow, PR_FALSE, PR_FALSE, nsnull, PR_FALSE /*allow Undo*/ );
+        for (PRUint32 i = 0; i < m_searchHits.Length(); i++)
+          m_curFolder->OrProcessingFlags(m_searchHits[i], nsMsgProcessingFlags::FilterToMove);
         //if we are deleting then we couldn't care less about applying remaining filter actions
         *aApplyMore = PR_FALSE;
         break;
@@ -569,6 +571,11 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
               m_nextAction = actionIndex + 1;
             else
               m_nextAction = 0; // OnStopCopy tests this to move to next filter
+            // Tell postplugin filters if we are moving the message.
+            if (actionType == nsMsgFilterAction::MoveToFolder)
+              for (PRUint32 i = 0; i < m_searchHits.Length(); i++)
+                m_curFolder->OrProcessingFlags(m_searchHits[i],
+                                               nsMsgProcessingFlags::FilterToMove);
             return rv;
           }
         }

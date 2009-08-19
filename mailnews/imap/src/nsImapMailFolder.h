@@ -453,6 +453,10 @@ protected:
   PRBool m_msgMovedByFilter;
   nsImapMoveCoalescer *m_moveCoalescer; // strictly owned by the nsImapMailFolder
   nsCOMPtr<nsIMutableArray> m_junkMessagesToMarkAsRead;
+  /// list of keys to be moved to the junk folder
+  nsTArray<nsMsgKey> mSpamKeysToMove;
+  /// the junk destination folder
+  nsCOMPtr<nsIMsgFolder> mSpamFolder;
   nsMsgKey m_curMsgUid;
   PRUint32 m_uidValidity;
   // used for condstore support;

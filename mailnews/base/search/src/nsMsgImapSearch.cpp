@@ -784,4 +784,194 @@ nsMsgSearchValidityManager::InitOfflineMailFilterTable()
   return rv;
 }
 
+// Online Manual is used for IMAP and NEWS, where at manual
+// filtering we have junk info, but cannot assure that the
+// body is available.
+nsresult
+nsMsgSearchValidityManager::InitOnlineManualFilterTable()
+{
+  NS_ASSERTION(!m_onlineManualFilterTable, "online manual filter table already initted");
+  nsresult rv = NewTable(getter_AddRefs(m_onlineManualFilterTable));
+  NS_ENSURE_SUCCESS(rv, rv);
 
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Sender, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Sender, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Sender, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Sender, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Sender, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Sender, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Sender, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Sender, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Sender, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Sender, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Sender, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Sender, nsMsgSearchOp::EndsWith, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Sender, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Sender, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Sender, nsMsgSearchOp::IsntInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Sender, nsMsgSearchOp::IsntInAB, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::To, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::To, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::To, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::To, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::To, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::To, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::To, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::To, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::To, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::To, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::To, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::To, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::To, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::To, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::To, nsMsgSearchOp::IsntInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::To, nsMsgSearchOp::IsntInAB, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::CC, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::CC, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::CC, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::CC, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::CC, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::CC, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::CC, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::CC, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::CC, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::CC, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::CC, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::CC, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::CC, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::CC, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::CC, nsMsgSearchOp::IsntInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::CC, nsMsgSearchOp::IsntInAB, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::IsntInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::ToOrCC, nsMsgSearchOp::IsntInAB, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsInAB, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsntInAB, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::AllAddresses, nsMsgSearchOp::IsntInAB, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Subject, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Subject, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Subject, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Subject, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Subject, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Subject, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Subject, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Subject, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Subject, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Subject, nsMsgSearchOp::EndsWith, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Date, nsMsgSearchOp::IsBefore, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Date, nsMsgSearchOp::IsBefore, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Date, nsMsgSearchOp::IsAfter, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Date, nsMsgSearchOp::IsAfter, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Date, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Date, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Priority, nsMsgSearchOp::IsHigherThan, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Priority, nsMsgSearchOp::IsHigherThan, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Priority, nsMsgSearchOp::IsLowerThan, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Priority, nsMsgSearchOp::IsLowerThan, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsGreaterThan, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsGreaterThan, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsLessThan,  1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsLessThan, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::Is,  1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::Is, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsLessThan, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsLessThan, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::Is, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Isnt, 1);
+
+  // HasAttachmentStatus does not work reliably until the user has opened a
+  // message to force it through MIME. We need a solution for this (bug 105169)
+  // but in the meantime, I'm doing the same thing here that we do in the
+  // offline mail table, as this does not really depend at the moment on
+  // whether we have downloaded the body for offline use.
+  m_onlineManualFilterTable->SetAvailable (nsMsgSearchAttrib::HasAttachmentStatus, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled   (nsMsgSearchAttrib::HasAttachmentStatus, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable (nsMsgSearchAttrib::HasAttachmentStatus, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled   (nsMsgSearchAttrib::HasAttachmentStatus, nsMsgSearchOp::Isnt, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Size, nsMsgSearchOp::IsGreaterThan, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Size, nsMsgSearchOp::IsGreaterThan, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Size, nsMsgSearchOp::IsLessThan, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Size, nsMsgSearchOp::IsLessThan, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Size, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Size, nsMsgSearchOp::Is, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
+
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::DoesntContain, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::BeginsWith, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::EndsWith, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::EndsWith, 1);
+
+  return rv;
+}

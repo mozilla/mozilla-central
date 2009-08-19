@@ -17,6 +17,8 @@
 <!ENTITY contextIncoming.label "Checking Mail">
 <!ENTITY contextManual.label "Manually Run">
 <!ENTITY contextBoth.label "Checking Mail or Manually Run">
+<!ENTITY contextPostPlugin.label "Checking Mail (after classification)">
+<!ENTITY contextPostPluginBoth.label "Checking Mail (after classification) or Manually Run">
 <!ENTITY filterActionDesc.label "Perform these actions:">
 <!ENTITY filterActionDesc.accesskey "P">
 

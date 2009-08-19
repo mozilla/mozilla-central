@@ -3664,20 +3664,36 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
 
   else // end of batch
   {
-    if (!mSpamKeysToMove.IsEmpty() && !spamFolderURI.IsEmpty())
+    // Parent will apply post bayes filters.
+    nsMsgDBFolder::OnMessageClassified(nsnull, nsnull, nsnull);
+    nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
+    if (!mSpamKeysToMove.IsEmpty())
     {
       nsCOMPtr<nsIMsgFolder> folder;
-      rv = GetExistingFolder(spamFolderURI, getter_AddRefs(folder));
-      if (NS_SUCCEEDED(rv) && folder) {
-        nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
-        for (PRUint32 keyIndex = 0; keyIndex < mSpamKeysToMove.Length(); keyIndex++)
+      if (!spamFolderURI.IsEmpty())
+        rv = GetExistingFolder(spamFolderURI, getter_AddRefs(folder));
+      for (PRUint32 keyIndex = 0; keyIndex < mSpamKeysToMove.Length(); keyIndex++)
+      {
+        // If an upstream filter moved this message, don't move it here.
+        nsMsgKey msgKey = mSpamKeysToMove.ElementAt(keyIndex);
+        nsMsgProcessingFlagType processingFlags;
+        GetProcessingFlags(msgKey, &processingFlags);
+        if (folder && !(processingFlags & nsMsgProcessingFlags::FilterToMove))
         {
           nsCOMPtr<nsIMsgDBHdr> mailHdr;
-          rv = GetMessageHeader(mSpamKeysToMove.ElementAt(keyIndex), getter_AddRefs(mailHdr));
+          rv = GetMessageHeader(msgKey, getter_AddRefs(mailHdr));
           if (NS_SUCCEEDED(rv) && mailHdr)
             messages->AppendElement(mailHdr, PR_FALSE);
         }
+        else
+        {
+          // We don't need the processing flag any more.
+          AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::FilterToMove);
+        }
+      }
 
+      if (folder)
+      {
         nsCOMPtr<nsIMsgCopyService> copySvc = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -3694,13 +3710,13 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
     }
     PRInt32 numNewMessages;
     GetNumNewMessages(PR_FALSE, &numNewMessages);
-    SetNumNewMessages(numNewMessages - mSpamKeysToMove.Length());
+    PRUint32 length;
+    messages->GetLength(&length);
+    SetNumNewMessages(numNewMessages - length);
     mSpamKeysToMove.Clear();
     // check if this is the inbox first...
     if (mFlags & nsMsgFolderFlags::Inbox)
       PerformBiffNotifications();
-    // Note we are not calling the parent class's method, since it
-    // currently ignores end-of-batch anyway
   }
   return NS_OK;
 }

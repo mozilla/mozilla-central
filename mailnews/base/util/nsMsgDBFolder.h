@@ -297,6 +297,9 @@ protected:
     PRUint32 bit;
     nsMsgKeySetU* keys;
   } mProcessingFlag[nsMsgProcessingFlags::NumberOfFlags];
+
+  // list of nsIMsgDBHdrs for messages to process post-bayes
+  nsCOMPtr<nsIMutableArray> mPostBayesMessagesToFilter;
 };
 
 // This class is a kludge to allow nsMsgKeySet to be used with PRUint32 keys

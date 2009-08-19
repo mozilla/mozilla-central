@@ -200,6 +200,7 @@ protected:
   nsCOMPtr<nsIMsgSearchValidityTable> m_offlineMailFilterTable;
   nsCOMPtr<nsIMsgSearchValidityTable> m_onlineMailTable;
   nsCOMPtr<nsIMsgSearchValidityTable> m_onlineMailFilterTable;
+  nsCOMPtr<nsIMsgSearchValidityTable> m_onlineManualFilterTable;
 
   nsCOMPtr<nsIMsgSearchValidityTable> m_newsTable;
   nsCOMPtr<nsIMsgSearchValidityTable> m_localNewsTable; // used for local news searching or offline news searching...
@@ -215,6 +216,7 @@ protected:
   nsresult InitOfflineMailFilterTable();
   nsresult InitOnlineMailTable();
   nsresult InitOnlineMailFilterTable();
+  nsresult InitOnlineManualFilterTable();
   nsresult InitNewsTable();
   nsresult InitLocalNewsTable();
   nsresult InitNewsFilterTable();

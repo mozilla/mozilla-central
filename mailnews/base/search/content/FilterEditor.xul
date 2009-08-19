@@ -91,6 +91,12 @@
                     value="manual"/>
           <menuitem label="&contextBoth.label;"
                     value="both"/>
+          <menuitem label="&contextPostPlugin.label;"
+                    value="postPlugin"
+                    id="contextMenuListPostPlugin"/>
+          <menuitem label="&contextPostPluginBoth.label;"
+                    value="postPluginBoth"
+                    id="contextMenuListPostPluginBoth"/>
         </menupopup>
       </menulist>
     </hbox>

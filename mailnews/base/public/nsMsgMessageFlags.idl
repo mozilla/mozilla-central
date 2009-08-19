@@ -167,6 +167,15 @@ interface nsMsgProcessingFlags
   /// This message needs traits classification
   const nsMsgProcessingFlagType ClassifyTraits = 0x00000002;
 
+  /// This message has completed any needed traits classification
+  const nsMsgProcessingFlagType TraitsDone     = 0x00000004;
+
+  /// This message has completed any needed postPlugin filtering
+  const nsMsgProcessingFlagType FiltersDone    = 0x00000008;
+
+  /// This message has a move scheduled by filters
+  const nsMsgProcessingFlagType FilterToMove   = 0x00000010;
+
   /// Number of processing flags
-  const nsMsgProcessingFlagType NumberOfFlags  = 2;
+  const nsMsgProcessingFlagType NumberOfFlags  = 5;
 };

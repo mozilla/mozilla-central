@@ -87,7 +87,17 @@ function filterEditorOnLoad()
     var args = window.arguments[0];
 
     if ("filterList" in args)
+    {
       gFilterList = args.filterList;
+      // the postPlugin filters cannot be applied to servers that are
+      // deferred, (you must define them on the deferredTo server instead).
+      let server = gFilterList.folder.server;
+      let postPluginDisabled = server.rootFolder != server.rootMsgFolder;
+      document.getElementById("contextMenuListPostPlugin")
+              .disabled = postPluginDisabled;
+      document.getElementById("contextMenuListPostPluginBoth")
+              .disabled = postPluginDisabled;
+    }
 
     if ("filter" in args)
     {
@@ -241,12 +251,31 @@ function initializeFilterWidgets()
 function initializeDialog(filter)
 {
   gFilterNameElement.value = filter.filterName;
-  var contextIndex = -1;
-  if (filter.filterType & Components.interfaces.nsMsgFilterType.Incoming)
-    contextIndex += 1;
-  if (filter.filterType & Components.interfaces.nsMsgFilterType.Manual)
-    contextIndex += 2;
+  /*
+   * contextIndex = 0: checking mail
+   *              = 1: manually run
+   *              = 2: checking mail or manually run
+   *              = 3: post analysis
+   *              = 4: post analysis or manually run
+   */
+  let filterType = filter.filterType;
+  let nsMsgFilterType = Components.interfaces.nsMsgFilterType;
+  let contextIndex;
+  if (filterType & nsMsgFilterType.Manual)
+  {
+    if (filterType & nsMsgFilterType.Incoming)
+      contextIndex = 2;
+    else if (filterType & nsMsgFilterType.PostPlugin)
+      contextIndex = 4;
+    else
+      contextIndex = 1;
+  }
+  else if (filterType & nsMsgFilterType.PostPlugin)
+    contextIndex = 3;
+  else
+    contextIndex = 0;
   gFilterContext.selectedIndex = contextIndex;
+
   var actionList = filter.actionList;
   var numActions = actionList.Count();
 
@@ -585,23 +614,22 @@ function determineFilterType()
    * contextIndex = 0: checking mail
    *              = 1: manually run
    *              = 2: checking mail or manually run
+   *              = 3: post analysis
+   *              = 4: post analysis or manually run
    */
   let contextIndex = gFilterContext.selectedIndex;
-  let filterType = Components.interfaces.nsMsgFilterType.None; // that is, 0
-  if (contextIndex == 1) // manual only
-  {
-    filterType = Components.interfaces.nsMsgFilterType.Manual;
-  }
-  else // 0 or 2, checking mail is enabled
+  let filterType = 0;
+  if (contextIndex == 1 || contextIndex == 2 || contextIndex == 4) // manual
+    filterType |= Components.interfaces.nsMsgFilterType.Manual;
+  if (contextIndex == 3 || contextIndex == 4) // post analysis
+    filterType |= Components.interfaces.nsMsgFilterType.PostPlugin;
+  if (contextIndex == 0 || contextIndex == 2) // checking mail
   {
     if (getScopeFromFilterList(gFilterList) ==
         Components.interfaces.nsMsgSearchScope.newsFilter)
-      filterType = Components.interfaces.nsMsgFilterType.NewsRule;
+      filterType |= Components.interfaces.nsMsgFilterType.NewsRule;
     else
-      filterType = Components.interfaces.nsMsgFilterType.InboxRule;
-
-    if (contextIndex == 2)
-      filterType |= Components.interfaces.nsMsgFilterType.Manual;
+      filterType |= Components.interfaces.nsMsgFilterType.InboxRule;
   }
   return filterType;
 }
@@ -618,7 +646,7 @@ function setFilterScope(aFilterType, aFilterList)
 // Given the base filter scope for a server, and the filter
 // type, return the scope used for filter. This assumes a
 // hierarchy of contexts, with incoming the most restrictive,
-// followed by manual.
+// followed by manual and post-plugin.
 function getFilterScope(aServerFilterScope, aFilterType, aFilterList)
 {
   let Ci = Components.interfaces;
@@ -626,16 +654,10 @@ function getFilterScope(aServerFilterScope, aFilterType, aFilterList)
   if (aFilterType & Ci.nsMsgFilterType.Incoming)
     return aServerFilterScope;
 
-  if (aFilterType & Ci.nsMsgFilterType.Manual)
-  {
-    // local mail allows body and junk types
-    if (aServerFilterScope == Ci.nsMsgSearchScope.offlineMailFilter)
-      return Ci.nsMsgSearchScope.offlineMail;
-    // IMAP and NEWS don't allow body
-    return aServerFilterScope;
-  }
-
-  // We shouldn't get here
-  dump("Invalid filter type in getFilterScope\n");
-  return null;
+  // Manual or PostPlugin
+  // local mail allows body and junk types
+  if (aServerFilterScope == Ci.nsMsgSearchScope.offlineMailFilter)
+    return Ci.nsMsgSearchScope.offlineMail;
+  // IMAP and NEWS online don't allow body
+  return Ci.nsMsgSearchScope.onlineManual;
 }

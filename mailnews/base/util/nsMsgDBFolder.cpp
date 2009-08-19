@@ -101,6 +101,7 @@
 #include "nsMsgLocalFolderHdrs.h"
 #define oneHour 3600000000U
 #include "nsMsgUtils.h"
+#include "nsIMsgFilterService.h"
 
 static PRTime gtimeOfLastPurgeCheck;    //variable to know when to check for purge_threshhold
 
@@ -210,6 +211,9 @@ nsMsgDBFolder::nsMsgDBFolder(void)
 
   mProcessingFlag[0].bit = nsMsgProcessingFlags::ClassifyJunk;
   mProcessingFlag[1].bit = nsMsgProcessingFlags::ClassifyTraits;
+  mProcessingFlag[2].bit = nsMsgProcessingFlags::TraitsDone;
+  mProcessingFlag[3].bit = nsMsgProcessingFlags::FiltersDone;
+  mProcessingFlag[4].bit = nsMsgProcessingFlags::FilterToMove;
   for (PRUint32 i = 0; i < nsMsgProcessingFlags::NumberOfFlags; i++)
     mProcessingFlag[i].keys = nsMsgKeySetU::Create();
 }
@@ -2135,8 +2139,28 @@ nsMsgDBFolder::OnMessageClassified(const char *aMsgURI,
                                    nsMsgJunkStatus aClassification,
                                    PRUint32 aJunkPercent)
 {
-  if (!aMsgURI)
-    return NS_OK;; // ignore end-of-batch signal
+  if (!aMsgURI) // This signifies end of batch.
+  {
+    // Apply filters if needed.
+    PRUint32 length;
+    if ((!mPostBayesMessagesToFilter ||
+         NS_FAILED(mPostBayesMessagesToFilter->GetLength(&length)) ||
+         !length))
+      return NS_OK; // No filtering needed or possible.
+
+    // Apply post-bayes filtering.
+    nsresult rv;
+    nsCOMPtr<nsIMsgFilterService> filterService(do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv));
+    if (NS_SUCCEEDED(rv))
+      // We use a null nsIMsgWindow because we don't want some sort of ui
+      // appearing in the middle of automatic filtering (plus I really don't
+      // want to propagate that value.)
+      rv = filterService->ApplyFilters(nsMsgFilterType::PostPlugin,
+                                       mPostBayesMessagesToFilter,
+                                       this, nsnull /* nsIMsgWindow */);
+    mPostBayesMessagesToFilter->Clear();
+    return rv;
+  }
 
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsresult rv = GetServer(getter_AddRefs(server));
@@ -2377,8 +2401,34 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   }
   NS_Free(proIndices);
   NS_Free(antiIndices);
-  
-  if (!filterForOther && !filterForJunk)
+
+  // Do we need to apply message filters?
+  PRBool filterPostPlugin = PR_FALSE; // Do we have a post-analysis filter?
+  nsCOMPtr<nsIMsgFilterList> filterList;
+  GetFilterList(aMsgWindow, getter_AddRefs(filterList));
+  if (filterList)
+  {
+    PRUint32 filterCount = 0;
+    filterList->GetFilterCount(&filterCount);
+    for (PRUint32 index = 0; index < filterCount && !filterPostPlugin; ++index)
+    {
+      nsCOMPtr<nsIMsgFilter> filter;
+      filterList->GetFilterAt(index, getter_AddRefs(filter));
+      if (!filter)
+        continue;
+      nsMsgFilterTypeType filterType;
+      filter->GetFilterType(&filterType);
+      if (!(filterType & nsMsgFilterType::PostPlugin))
+        continue;
+      PRBool enabled = PR_FALSE;
+      filter->GetEnabled(&enabled);
+      if (!enabled)
+        continue;
+      filterPostPlugin = PR_TRUE;
+    }
+  }
+
+  if (!filterForOther && !filterForJunk && !filterPostPlugin)
     return NS_OK;
   
   // get the list of new messages
@@ -2434,13 +2484,42 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       filterMessageForJunk = PR_TRUE;
       break;
     }
-    if (filterMessageForJunk || filterForOther)
+
+    PRUint32 processingFlags;
+    GetProcessingFlags(msgKey, &processingFlags);
+
+    // trait processing
+    PRBool filterMessageForOther = PR_FALSE;
+    if (!(processingFlags & nsMsgProcessingFlags::TraitsDone))
+    {
+      // don't do trait processing on this message again
+      OrProcessingFlags(msgKey, nsMsgProcessingFlags::TraitsDone);
+      if (filterForOther)
+        filterMessageForOther = PR_TRUE;
+    }
+
+    if (filterMessageForJunk || filterMessageForOther)
     {
       keysToClassify.AppendElement(newMessageKeys[i]);
       if (filterMessageForJunk)
         OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyJunk);
-      if (filterForOther)
+      if (filterMessageForOther)
         OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyTraits);
+    }
+
+    // Set messages to filter post-bayes.
+    // Have we already filtered this message?
+    if (!(processingFlags & nsMsgProcessingFlags::FiltersDone))
+    {
+      // Don't do filters on this message again.
+      OrProcessingFlags(msgKey, nsMsgProcessingFlags::FiltersDone);
+      if (filterPostPlugin)
+      {
+        // Lazily create the array.
+        if (!mPostBayesMessagesToFilter)
+          mPostBayesMessagesToFilter = do_CreateInstance(NS_ARRAY_CONTRACTID);
+        mPostBayesMessagesToFilter->AppendElement(msgHdr, PR_FALSE);
+      }
     }
   }
 
@@ -2467,6 +2546,15 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       PR_Free(messageURIs[freeIndex]);
     PR_Free(messageURIs);
   }
+  else if (filterPostPlugin)
+  {
+    // Nothing to classify, so need to end batch ourselves. We do this so that
+    // post analysis filters will run consistently on a folder, even if
+    // disabled junk processing, which could be dynamic through whitelisting,
+    // makes the bayes analysis unnecessary.
+    OnMessageClassified(nsnull, nsnull, nsnull);
+  }
+
   return rv;
 }
 

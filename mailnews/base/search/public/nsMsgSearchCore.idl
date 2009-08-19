@@ -62,6 +62,8 @@ interface nsMsgSearchScope {
   const nsMsgSearchScopeValue newsFilter = 10;
   const nsMsgSearchScopeValue LocalABAnd = 11;
   const nsMsgSearchScopeValue LDAPAnd = 12;
+  // IMAP and NEWS, searched using local headers
+  const nsMsgSearchScopeValue onlineManual = 13;
 };
 
 typedef long nsMsgSearchAttribValue;

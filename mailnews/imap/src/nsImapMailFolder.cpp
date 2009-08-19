@@ -8331,17 +8331,13 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
 
             if (!spamFolderURI.IsEmpty())
             {
-              nsCOMPtr<nsIMsgFolder> folder;
-              rv = GetExistingFolder(spamFolderURI, getter_AddRefs(folder));
-              if (NS_SUCCEEDED(rv) && folder)
+              rv = GetExistingFolder(spamFolderURI, getter_AddRefs(mSpamFolder));
+              if (NS_SUCCEEDED(rv) && mSpamFolder)
               {
-                rv = folder->SetFlag(nsMsgFolderFlags::Junk);
+                rv = mSpamFolder->SetFlag(nsMsgFolderFlags::Junk);
                 NS_ENSURE_SUCCESS(rv,rv);
-                if (NS_SUCCEEDED(GetMoveCoalescer()))
-                {
-                  m_moveCoalescer->AddMove(folder, msgKey);
-                  willMoveMessage = PR_TRUE;
-                }
+                mSpamKeysToMove.AppendElement(msgKey);
+                willMoveMessage = PR_TRUE;
               }
               else
               {
@@ -8368,6 +8364,9 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
 
   else // end of batch
   {
+    // Parent will apply post bayes filters.
+    nsMsgDBFolder::OnMessageClassified(nsnull, nsnull, nsnull);
+
     if (m_junkMessagesToMarkAsRead)
     {
       PRUint32 count;
@@ -8379,6 +8378,32 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
         m_junkMessagesToMarkAsRead->Clear();
       }
     }
+    if (!mSpamKeysToMove.IsEmpty())
+    {
+      GetMoveCoalescer();
+      for (PRUint32 keyIndex = 0; keyIndex < mSpamKeysToMove.Length(); keyIndex++)
+      {
+        // If an upstream filter moved this message, don't move it here.
+        nsMsgKey msgKey = mSpamKeysToMove.ElementAt(keyIndex);
+        nsMsgProcessingFlagType processingFlags;
+        GetProcessingFlags(msgKey, &processingFlags);
+        if (!(processingFlags & nsMsgProcessingFlags::FilterToMove))
+        {
+          if (m_moveCoalescer && mSpamFolder)
+            m_moveCoalescer->AddMove(mSpamFolder, msgKey);
+        }
+        else
+        {
+          // We don't need the FilterToMove flag anymore.
+          AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::FilterToMove);
+        }
+      }
+      mSpamKeysToMove.Clear();
+    }
+
+    // Let's not hold onto the spam folder reference longer than necessary.
+    mSpamFolder = nsnull;
+
     PRBool pendingMoves = m_moveCoalescer && m_moveCoalescer->HasPendingMoves();
     PlaybackCoalescedOperations();
     // If we are performing biff for this folder, tell the server object
@@ -8390,7 +8415,6 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
       server->SetPerformingBiff(PR_FALSE);
       m_performingBiff = PR_FALSE;
     }
-    // We aren't calling the parent method, since it ignores batching anyway
   }
   return NS_OK;
 }

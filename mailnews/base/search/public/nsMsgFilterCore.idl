@@ -53,6 +53,7 @@ interface nsMsgFilterType {
   const long News             = NewsRule | NewsJavaScript;
   const long Incoming         = Inbox | News;
   const long Manual           = 0x10;
+  const long PostPlugin       = 0x20; // After bayes filtering
   const long All              = Incoming | Manual;
 };
 
