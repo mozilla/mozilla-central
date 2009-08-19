@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 # -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -66,7 +65,7 @@
       <preference id="mailnews.html_domains"         name="mailnews.html_domains" type="string"/>
       <preference id="mailnews.plaintext_domains"    name="mailnews.plaintext_domains"    type="string"/>
     </preferences>
-    
+
     <groupbox>
       <caption label="&sendMail.title;"/>
 
@@ -80,7 +79,7 @@
             <menuitem value="2" label="&sendHTML.label;" accesskey="&sendHTML.accesskey;"/>
             <menuitem value="3" label="&sendBoth.label;" accesskey="&sendBoth.accesskey;"/>
           </menupopup>
-        </menulist>        
+        </menulist>
       </hbox>
 
       <separator class="thin"/>
@@ -103,8 +102,10 @@
 
           <hbox>
             <listbox id="html_domains" flex="1" seltype="multiple" rows="5"
-                     preference="mailnews.html_domains" onsynctopreference="return gSendOptionsDialog.saveDomainPref(true);"
-                     onkeypress="if (event.keyCode == 8 || event.keyCode == 46) gSendOptionsDialog.removeDomains(true);"/>
+                     class="uri-element"
+                     preference="mailnews.html_domains"
+                     onsynctopreference="return gSendOptionsDialog.saveDomainPref(true);"
+                     onkeypress="if (event.keyCode == KeyEvent.DOM_VK_BACK_SPACE || event.keyCode == KeyEvent.DOM_VK_DELETE) gSendOptionsDialog.removeDomains(true);"/>
             <vbox>
               <button label="&AddHtmlDomain.label;" oncommand="gSendOptionsDialog.addDomain(true);" accesskey="&AddHtmlDomain.accesskey;"/>
               <button label="&DeleteHtmlDomain.label;" oncommand="gSendOptionsDialog.removeDomains(true);" accesskey="&DeleteHtmlDomain.accesskey;"/>
@@ -117,8 +118,10 @@
 
           <hbox>
             <listbox id="plaintext_domains" flex="1" seltype="multiple" rows="5"
-                     preference="mailnews.plaintext_domains" onsynctopreference="return gSendOptionsDialog.saveDomainPref(false);"
-                     onkeypress="if (event.keyCode == 8 || event.keyCode == 46) gSendOptionsDialog.removeDomains(false);"/>
+                     class="uri-element"
+                     preference="mailnews.plaintext_domains"
+                     onsynctopreference="return gSendOptionsDialog.saveDomainPref(false);"
+                     onkeypress="if (event.keyCode == KeyEvent.DOM_VK_BACK_SPACE || event.keyCode == KeyEvent.DOM_VK_DELETE) gSendOptionsDialog.removeDomains(false);"/>
             <vbox>
               <button label="&AddPlainText.label;" oncommand="gSendOptionsDialog.addDomain(false);" accesskey="&AddPlainText.accesskey;"/>
               <button label="&DeletePlainText.label;" oncommand="gSendOptionsDialog.removeDomains(false);" accesskey="&DeletePlainText.accesskey;"/>
@@ -126,8 +129,7 @@
           </hbox>
         </vbox>
 
-      </tabpanels> 
-
+      </tabpanels>
     </tabbox>
 
     <separator/>

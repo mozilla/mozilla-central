@@ -81,7 +81,7 @@
       <hbox align="center">
         <label value="&folderProps.location.label;" control="location"
                accesskey="&folderProps.location.accesskey;"/>
-        <textbox id="location" readonly="true" flex="1"/>
+        <textbox id="location" readonly="true" flex="1"  class="uri-element"/>
       </hbox>
       <vbox>
         <hbox align="center" valign="middle">

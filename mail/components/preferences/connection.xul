@@ -100,7 +100,7 @@
                 <label value="&http.label;" accesskey="&http.accesskey;" control="networkProxyHTTP"/>
               </hbox>
               <hbox align="center">
-                <textbox id="networkProxyHTTP" flex="1"
+                <textbox id="networkProxyHTTP" flex="1" class="uri-element"
                          preference="network.proxy.http" onsyncfrompreference="return gConnectionsDialog.readHTTPProxyServer();"/>
                 <label value="&HTTPport.label;" accesskey="&HTTPport.accesskey;" control="networkProxyHTTP_Port"/>
                 <textbox id="networkProxyHTTP_Port" type="number" max="65535" size="5"
@@ -121,7 +121,8 @@
                 <label value="&ssl.label;" accesskey="&ssl.accesskey;" control="networkProxySSL"/>
               </hbox>
               <hbox align="center">
-                <textbox id="networkProxySSL" flex="1" preference="network.proxy.ssl"
+                <textbox id="networkProxySSL" flex="1" class="uri-element"
+                         preference="network.proxy.ssl"
                          onsyncfrompreference="return gConnectionsDialog.readProxyProtocolPref('ssl', false);"/>
                 <label value="&SSLport.label;" accesskey="&SSLport.accesskey;" control="networkProxySSL_Port"/>
                 <textbox id="networkProxySSL_Port" type="number" max="65535" size="5"
@@ -134,7 +135,8 @@
                 <label value="&socks.label;" accesskey="&socks.accesskey;" control="networkProxySOCKS"/>
               </hbox>
               <hbox align="center">
-                <textbox id="networkProxySOCKS" flex="1" preference="network.proxy.socks"
+                <textbox id="networkProxySOCKS" flex="1" class="uri-element"
+                         preference="network.proxy.socks"
                          onsyncfrompreference="return gConnectionsDialog.readProxyProtocolPref('socks', false);"/>
                 <label value="&SOCKSport.label;" accesskey="&SOCKSport.accesskey;" control="networkProxySOCKS_Port"/>
                 <textbox id="networkProxySOCKS_Port" type="number" max="65535" size="5"
@@ -155,7 +157,8 @@
               <hbox align="center" pack="end">
                 <label value="&noproxy.label;" accesskey="&noproxy.accesskey;" control="networkProxyNone"/>
               </hbox>
-              <textbox id="networkProxyNone" preference="network.proxy.no_proxies_on"/>
+              <textbox id="networkProxyNone" class="uri-element"
+                       preference="network.proxy.no_proxies_on"/>
             </row>
             <row>
               <spacer/>
@@ -165,7 +168,8 @@
         </grid>
         <radio value="2" label="&autoTypeRadio.label;" accesskey="&autoTypeRadio.accesskey;"/>
         <hbox class="indent" flex="1" align="center">
-          <textbox id="networkProxyAutoconfigURL" flex="1" preference="network.proxy.autoconfig_url"
+          <textbox id="networkProxyAutoconfigURL" flex="1" class="uri-element"
+                   preference="network.proxy.autoconfig_url"
                    oninput="gConnectionsDialog.updateReloadButton();"/>
           <button id="autoReload" label="&reload.label;" accesskey="&reload.accesskey;"
                   oncommand="gConnectionsDialog.reloadPAC();" 

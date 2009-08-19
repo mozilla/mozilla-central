@@ -78,7 +78,7 @@
     <rows>
       <row>
         <label value="&feedLocation.label;" accesskey="&feedLocation.accesskey;" control="feedLocation"/>
-        <textbox id="feedLocation"/>
+        <textbox id="feedLocation" class="uri-element"/>
       </row>
 
       <row>

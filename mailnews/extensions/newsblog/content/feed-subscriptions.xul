@@ -109,7 +109,7 @@
             </row>
             <row align="center">
               <hbox pack="end"><label id="locationLabel" control="locationValue" value="&location.label;"/></hbox>
-              <textbox id="locationValue" readonly="true" class="plain"/>
+              <textbox id="locationValue" readonly="true" class="plain uri-element"/>
             </row>
           </rows>
         </grid>
