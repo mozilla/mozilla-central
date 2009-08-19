@@ -895,15 +895,14 @@ function IsReplyListEnabled()
   // ReplyToList is enabled if there is a List-Post header
   // with the correct format.
   let listPost = currentHeaderData["list-post"];
-  if (listPost)
-  {
-    // XXX: Once Bug 496914 provides a parser, we should use that instead.
-    // Until then, we need to keep the following regex in sync with the
-    // listPost parsing in nsMsgCompose.cpp's
-    // QuotingOutputStreamListener::OnStopRequest.
-    return /^<mailto:.*>$/.test(listPost['headerValue']);
-  }
-  return false;
+  if (!listPost)
+    return false;
+
+  // XXX: Once Bug 496914 provides a parser, we should use that instead.
+  // Until then, we need to keep the following regex in sync with the
+  // listPost parsing in nsMsgCompose.cpp's
+  // QuotingOutputStreamListener::OnStopRequest.
+  return /<mailto:.+>/.test(listPost["headerValue"]);
 }
 
 /**

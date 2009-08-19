@@ -2500,13 +2500,15 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
                                            PR_FALSE, PR_TRUE, listPost);
 
-        if (type == nsIMsgCompType::ReplyToList && ! listPost.IsEmpty())
+        if (type == nsIMsgCompType::ReplyToList && !listPost.IsEmpty())
         {
-          // Strip off the leading "<mailto:" and trailing ">"
-          if (StringBeginsWith(listPost, NS_LITERAL_STRING("<mailto:")) && listPost.CharAt(listPost.Length() - 1) == '>')
+          PRInt32 startPos = listPost.Find("<mailto:");
+          PRInt32 endPos = listPost.Find(">", startPos);
+          // Extract the e-mail address.
+          if (endPos > startPos)
           {
-            listPost.Cut(0, strlen("<mailto:"));
-            listPost.Cut(listPost.Length() - 1, 1);
+            const PRUint32 mailtoLen = strlen("<mailto:");
+            listPost = Substring(listPost, startPos + mailtoLen, endPos - (startPos + mailtoLen));
             compFields->SetTo(listPost);
           }
         }
