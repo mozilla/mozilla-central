@@ -654,7 +654,7 @@ DBViewWrapper.prototype = {
    *  is a getter that will always try and load the message database!
    */
   _releaseFolderDatabase: function DBViewWrapper__nullFolderDatabase(aFolder) {
-    if (!this._isSpecialFolder(aFolder, nsMsgFolderFlags.Inbox, false))
+    if (!aFolder.isSpecialFolder(nsMsgFolderFlags.Inbox, false))
       aFolder.msgDatabase = null;
   },
 
@@ -1369,45 +1369,6 @@ DBViewWrapper.prototype = {
       this.listener.onAllMessagesLoaded();
   },
 
-  /**
-   * Check if the folder or (optionally) one of its ancestors has any one of the
-   *  provided flags set.
-   *
-   * In the event there is a folder with both the SentMail and Inbox flags set,
-   *  it will be treated as an Inbox, and not as a SentMail folder.
-   *
-   * @param {nsIMsgFolder} aMsgFolder The folder whose flags you want to check.
-   * @param {Number} aFlags A set of nsMsgFolderFlags you want to check for.
-   * @param {bool} aCheckAncestors Whether we should check the folder's ancestor
-   *     if the folder itself does not posess the flags.
-   *
-   * @return true if msgFolder has any of the provided flags set.  If msgFolder
-   *     does not, but checkAncestors is true, we will check the ancestors too.
-   */
-  _isSpecialFolder: function DBViewWrapper_isSpecialFolder(
-      aMsgFolder, aFlags, aCheckAncestors)
-  {
-    if (!aMsgFolder)
-      return false;
-    else if ((aMsgFolder.flags & aFlags) == 0) {
-      let parentMsgFolder = aMsgFolder.parentMsgFolder;
-
-      if (parentMsgFolder && aCheckAncestors)
-        return this._isSpecialFolder(parentMsgFolder, aFlags, true);
-      else
-        return false;
-    }
-    else {
-      // the user can set their INBOX to be their SENT folder.
-      // in that case, we want this folder to act like an INBOX,
-      // and not a SENT folder
-      const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
-      return !((aFlags & nsMsgFolderFlags.SentMail) &&
-               (aMsgFolder.flags & nsMsgFolderFlags.Inbox));
-    }
-  },
-
-
   get isMailFolder() {
     return this.displayedFolder &&
            (this.displayedFolder.flags & nsMsgFolderFlags.Mail);
@@ -1427,9 +1388,8 @@ DBViewWrapper.prototype = {
    *     or the descendent of a special outgoing folder.
    */
   get isIncomingFolder() {
-    return !this._isSpecialFolder(this.displayedFolder,
-                                 this.OUTGOING_FOLDER_FLAGS,
-                                 true);
+    return !this.displayedFolder.isSpecialFolder(this.OUTGOING_FOLDER_FLAGS,
+                                                 true);
   },
   /**
    * @return true if the folder is an outgoing folder by virtue of being a
@@ -1437,9 +1397,8 @@ DBViewWrapper.prototype = {
    *     or being a sub-folder of one of those types of folders.
    */
   get isOutgoingFolder() {
-    return this._isSpecialFolder(this.displayedFolder,
-                                 this.OUTGOING_FOLDER_FLAGS,
-                                 true);
+    return this.displayedFolder.isSpecialFolder(this.OUTGOING_FOLDER_FLAGS,
+                                                true);
   },
 
   get isVirtual() {
