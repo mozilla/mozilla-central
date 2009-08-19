@@ -714,6 +714,15 @@
         ]]></body>
       </method>
 
+      <property name="selectedTab" readonly="true">
+        <getter><![CDATA[
+          if (!this.currentTabInfo)
+            this.currentTabInfo = this.tabInfo[0];
+
+          return this.currentTabInfo;
+        ]]></getter>
+      </property>
+
       <!-- getBrowserForSelectedTab is required as some toolkit functions
            require a getBrowser() function. -->
       <method name="getBrowserForSelectedTab">

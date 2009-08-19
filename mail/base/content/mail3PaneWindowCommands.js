@@ -328,7 +328,7 @@ var DefaultController =
           // Check if we have a collapsed thread selected and are summarizing it.
           // If so, selectedIndices.length won't match numSelected. Also check
           // that we're not displaying a message, which handles the case
-          // where we failed to summarize the selection and fell back to 
+          // where we failed to summarize the selection and fell back to
           // displaying a message.
           if (gFolderDisplay.selectedIndices.length != numSelected &&
               command != "cmd_applyFiltersToSelection" &&
@@ -404,8 +404,14 @@ var DefaultController =
       case "cmd_find":
       case "cmd_findAgain":
       case "cmd_findPrevious":
-        return IsMessageDisplayedInMessagePane();
-        break;
+        // If we are a message tab, then we've got a message displayed, so
+        // always allow searching in the message
+        if (document.getElementById("tabmail").selectedTab.mode.name == "message")
+          return true;
+
+        // Otherwise, only allow searching if we're showing the message pane
+        // and have more than one message selected.
+        return (!IsMessagePaneCollapsed() && (GetNumSelectedMessages() == 1));
       case "cmd_search":
         return IsCanSearchMessagesEnabled();
       case "cmd_selectAll":
@@ -786,12 +792,12 @@ var DefaultController =
             MsgCopyMessage(GetMsgFolderFromUri(folderId));
           break;
       case "cmd_selectAll":
-	// XXX If the message pane is selected but the tab focused, this ends
+        // XXX If the message pane is selected but the tab focused, this ends
         // closing the message tab. See bug 502834.
-	if (aTab.mode.name == "message")
-	  break;
+        if (aTab.mode.name == "message")
+          break;
 
-	// move the focus so the user can delete the newly selected messages, not the folder
+        // move the focus so the user can delete the newly selected messages, not the folder
         SetFocusThreadPane();
         // if in threaded mode, the view will expand all before selecting all
         gFolderDisplay.doCommand(nsMsgViewCommandType.selectAll);
@@ -984,11 +990,6 @@ function IsFolderSelected()
 {
   var folders = GetSelectedMsgFolders();
   return folders.length == 1 && !folders[0].isServer;
-}
-
-function IsMessageDisplayedInMessagePane()
-{
-  return (!IsMessagePaneCollapsed() && (GetNumSelectedMessages() > 0));
 }
 
 function SetFocusThreadPaneIfNotOnMessagePane()
