@@ -1691,6 +1691,11 @@ PRBool nsImapIncomingServer::CheckSpecialFolder(nsIRDFService *rdf,
       }
       if (!foundExistingFolder)
         folder->SetFlag(folderFlag);
+        
+      nsString folderName;
+      folder->GetPrettyName(folderName);
+      // this will set the localized name based on the folder flag.
+      folder->SetPrettyName(folderName);
     }
   }
   return foundExistingFolder;

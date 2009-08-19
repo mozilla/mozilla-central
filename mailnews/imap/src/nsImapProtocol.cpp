@@ -8092,20 +8092,21 @@ PRBool nsImapProtocol::TryToLogon()
 
       if (loginSucceeded)
       {
-        ProcessAfterAuthenticated();
+        nsImapAction imapAction;
+        m_runningUrl->GetImapAction(&imapAction);
+        // We don't want to do any more processing if we're just
+        // verifying the ability to logon because it can leave us in
+        // a half-constructed state.
+        if (imapAction != nsIImapUrl::nsImapVerifylogon)
+          ProcessAfterAuthenticated();
       }
-      }
-      else
-      {
+    }
+    else
+    {
       // The user hit "Cancel" on the dialog box
-          //AlertUserEvent("Login cancelled.");
-        HandleCurrentUrlError();
-#ifdef UNREADY_CODE
-        SetCurrentEntryStatus(-1);
-        SetConnectionStatus(-1);        // stop netlib
-#endif
-        break;
-      }
+      HandleCurrentUrlError();
+      break;
+    }
   }
 
   while (!loginSucceeded && ++logonTries < maxLogonTries);
