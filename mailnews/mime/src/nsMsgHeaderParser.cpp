@@ -474,12 +474,12 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
           /* search for the closing quote but ignored escaped quote \" */
           for (end_quote = line_end;; end_quote++)
           {
-            end_quote = PL_strstr(end_quote, "\"");
+            end_quote = PL_strchr(end_quote, '"');
             if (!end_quote || *(end_quote - 1) != '\\')
               break;
           }
-          const char *mailbox = end_quote ? PL_strstr(end_quote, "<") : (char *)NULL;
-          const char *comma = end_quote ? PL_strstr(end_quote, ",") : (char *)NULL;
+          const char *mailbox = end_quote ? PL_strchr(end_quote, '<') : (char *)NULL;
+          const char *comma = end_quote ? PL_strchr(end_quote, ',') : (char *)NULL;
           if (!mailbox || (comma && comma < mailbox))
           {
             leave_quotes = 1; /* no mailbox for this address */

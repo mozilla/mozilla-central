@@ -327,11 +327,11 @@ void nsImapServerResponseParser::PreProcessCommandToken(const char *commandToken
   else if (!PL_strcasecmp(commandToken, "SELECT") && currentCommand)
   {
     // the mailbox name must be quoted, so strip the quotes
-    const char *openQuote = PL_strstr(currentCommand, "\"");
+    const char *openQuote = PL_strchr(currentCommand, '"');
     NS_ASSERTION(openQuote, "expected open quote in imap server response");
     if (!openQuote)
     { // ill formed select command
-      openQuote = PL_strstr(currentCommand, " ");
+      openQuote = PL_strchr(currentCommand, ' ');
     }
     PR_Free( fSelectedMailboxName);
     fSelectedMailboxName = PL_strdup(openQuote + 1);

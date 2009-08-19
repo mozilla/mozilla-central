@@ -987,7 +987,7 @@ nsMsgNewsFolder::HandleNewsrcLine(const char * line, PRUint32 line_size)
   // So lines like this in a newsrc file should be ignored:
   // 3746EF3F.6080309@netscape.com:
   // 3746EF3F.6080309%40netscape.com:
-  if (PL_strstr(line,"@") || PL_strstr(line,"%40"))
+  if (PL_strchr(line, '@') || PL_strstr(line, "%40"))
     // skipping, it contains @ or %40
     subscribed = PR_FALSE;
 

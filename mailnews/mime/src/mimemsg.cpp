@@ -819,7 +819,7 @@ MimeMessage_partial_message_html(const char *data, void *closure,
   char *uidl = MimeHeaders_get(headers, HEADER_X_UIDL, PR_FALSE, PR_FALSE);
   char *msgId = MimeHeaders_get(headers, HEADER_MESSAGE_ID, PR_FALSE,
                   PR_FALSE);
-  char *msgIdPtr = PL_strstr(msgId, "<");
+  char *msgIdPtr = PL_strchr(msgId, '<');
   int msgBase;
 
   PRInt32 pos = orig_url.Find("mailbox-message");
@@ -834,7 +834,7 @@ MimeMessage_partial_message_html(const char *data, void *closure,
     msgIdPtr++;
   else
     msgIdPtr = msgId;
-  char *gtPtr = PL_strstr(msgIdPtr, ">");
+  char *gtPtr = PL_strchr(msgIdPtr, '>');
   if (gtPtr)
     *gtPtr = 0;
 

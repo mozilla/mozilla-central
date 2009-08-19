@@ -367,7 +367,7 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
        curLine.Find("HTTP-EQUIV") != -1 && 
         curLine.Find("CONTENT-TYPE") != -1 && 
        curLine.Find("CHARSET") != -1) { 
-      char *cp = (char *) PL_strstr(PL_strstr(curLine.get(), "CHARSET"), "=");
+      char *cp = (char *) PL_strchr(PL_strstr(curLine.get(), "CHARSET"), '=');
       char *token = nsnull;
       if (cp)
       {
