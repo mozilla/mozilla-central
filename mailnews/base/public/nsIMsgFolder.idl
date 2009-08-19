@@ -65,7 +65,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(2848f8f2-8af5-4a4e-b095-cb8f30aada94)]
+[scriptable, uuid(8a115982-99b7-42b5-b7a5-cc5f4e0e4ad4)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -559,9 +559,6 @@ interface nsIMsgFolder : nsISupports {
    * used for order in the folder pane, folder pickers, etc.
    */
   attribute long sortOrder;
-
-  /* handy accessor when we want a msg folder */
-  readonly attribute nsIMsgFolder parentMsgFolder;
 
   attribute nsIDBFolderInfo dBTransferInfo;
 

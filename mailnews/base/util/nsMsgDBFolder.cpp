@@ -2820,14 +2820,6 @@ NS_IMETHODIMP nsMsgDBFolder::GetParent(nsIMsgFolder **aParent)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetParentMsgFolder(nsIMsgFolder **aParentMsgFolder)
-{
-  NS_ENSURE_ARG_POINTER(aParentMsgFolder);
-  nsCOMPtr<nsIMsgFolder> parent = do_QueryReferent(mParent);
-  parent.swap(*aParentMsgFolder);
-  return NS_OK;
-}
-
 NS_IMETHODIMP
 nsMsgDBFolder::GetMessages(nsISimpleEnumerator **result)
 {
@@ -2935,7 +2927,7 @@ nsMsgDBFolder::parseURI(PRBool needServer)
   {
     // first try asking the parent instead of the URI
     nsCOMPtr<nsIMsgFolder> parentMsgFolder;
-    GetParentMsgFolder(getter_AddRefs(parentMsgFolder));
+    GetParent(getter_AddRefs(parentMsgFolder));
 
     if (parentMsgFolder)
       rv = parentMsgFolder->GetServer(getter_AddRefs(server));
@@ -3751,7 +3743,7 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
   if (NS_FAILED(rv))
     return rv;
   nsCOMPtr<nsIMsgFolder> parentFolder;
-  rv = GetParentMsgFolder(getter_AddRefs(parentFolder));
+  rv = GetParent(getter_AddRefs(parentFolder));
   if (!parentFolder)
     return NS_ERROR_FAILURE;
   nsCOMPtr<nsISupports> parentSupport = do_QueryInterface(parentFolder);
@@ -4194,7 +4186,7 @@ NS_IMETHODIMP nsMsgDBFolder::IsSpecialFolder(PRUint32 aFlags,
   if ((mFlags & aFlags) == 0)
   {
     nsCOMPtr<nsIMsgFolder> parentMsgFolder;
-    GetParentMsgFolder(getter_AddRefs(parentMsgFolder));
+    GetParent(getter_AddRefs(parentMsgFolder));
 
     if (parentMsgFolder && aCheckAncestors)
       parentMsgFolder->IsSpecialFolder(aFlags, aCheckAncestors, aIsSpecial);

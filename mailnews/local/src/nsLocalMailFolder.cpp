@@ -660,8 +660,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetFolderURL(nsACString& aUrl)
 NS_IMETHODIMP nsMsgLocalMailFolder::CreateStorageIfMissing(nsIUrlListener* aUrlListener)
 {
   nsresult rv;
-  nsCOMPtr <nsIMsgFolder> msgParent;
-  GetParentMsgFolder(getter_AddRefs(msgParent));
+  nsCOMPtr<nsIMsgFolder> msgParent;
+  GetParent(getter_AddRefs(msgParent));
 
   // parent is probably not set because *this* was probably created by rdf
   // and not by folder discovery. So, we have to compute the parent.
@@ -892,7 +892,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EmptyTrash(nsIMsgWindow *msgWindow,
         return NS_OK;
     }
     nsCOMPtr<nsIMsgFolder> parentFolder;
-    rv = trashFolder->GetParentMsgFolder(getter_AddRefs(parentFolder));
+    rv = trashFolder->GetParent(getter_AddRefs(parentFolder));
     if (NS_SUCCEEDED(rv) && parentFolder)
     {
       nsCOMPtr <nsIDBFolderInfo> transferInfo;
@@ -949,8 +949,9 @@ nsresult nsMsgLocalMailFolder::IsChildOfTrash(PRBool *result)
 
   while (!isServer)
   {
-    thisFolder->GetParentMsgFolder(getter_AddRefs(parentFolder));
-    if (!parentFolder) return NS_OK;
+    thisFolder->GetParent(getter_AddRefs(parentFolder));
+    if (!parentFolder)
+      return NS_OK;
     rv = parentFolder->GetIsServer(&isServer);
     if (NS_FAILED(rv) || isServer) return NS_OK;
     rv = parentFolder->GetFlags(&parentFlags);
@@ -1108,7 +1109,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
   if (NS_FAILED(rv))
     return rv;
   nsCOMPtr<nsIMsgFolder> parentFolder;
-  rv = GetParentMsgFolder(getter_AddRefs(parentFolder));
+  rv = GetParent(getter_AddRefs(parentFolder));
   if (!parentFolder)
     return NS_ERROR_NULL_POINTER;
   nsCOMPtr<nsISupports> parentSupport = do_QueryInterface(parentFolder);
@@ -2107,7 +2108,7 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
     NotifyItemAdded(newMsgFolder);
 
     nsCOMPtr<nsIMsgFolder> msgParent;
-    srcFolder->GetParentMsgFolder(getter_AddRefs(msgParent));
+    srcFolder->GetParent(getter_AddRefs(msgParent));
     srcFolder->SetParent(nsnull);
     if (msgParent)
     {
@@ -2139,7 +2140,7 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
     {
       nsCOMPtr<nsIMsgFolder> msgParent;
       newMsgFolder->ForceDBClosed();
-      newMsgFolder->GetParentMsgFolder(getter_AddRefs(msgParent));
+      newMsgFolder->GetParent(getter_AddRefs(msgParent));
       newMsgFolder->SetParent(nsnull);
       if (msgParent)
       {
