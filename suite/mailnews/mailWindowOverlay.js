@@ -1213,6 +1213,7 @@ BatchMessageMover.prototype =
       let isImap = archiveFolder.server.type == "imap";
       if (!archiveFolder.parent)
       {
+        archiveFolder.setFlag(Components.interfaces.nsMsgFolderFlags.Archive);
         archiveFolder.createStorageIfMissing(this);
         if (isImap)
           return;
