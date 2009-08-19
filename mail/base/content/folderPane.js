@@ -280,7 +280,7 @@ let gFolderTreeView = {
       }
 
       // not found, so open the parent
-      if (aFolderToOpen.parent)
+      if (!aFolderToOpen.isServer && aFolderToOpen.parent)
         openIfNot(aFolderToOpen.parent);
 
       // now our parent is open, so we can open ourselves
@@ -288,7 +288,7 @@ let gFolderTreeView = {
       if (index)
         tree._toggleRow(index, false);
     }
-    if (aFolder.parent)
+    if (!aFolder.isServer && aFolder.parent)
       openIfNot(aFolder.parent);
     this.selection.select(tree.getIndexOfFolder(aFolder));
   },
