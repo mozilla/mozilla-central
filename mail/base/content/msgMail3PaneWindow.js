@@ -915,7 +915,8 @@ function FolderPaneOnClick(event)
   var folderTree = document.getElementById("folderTree");
 
   // Middle click on a folder opens the folder in a tab
-  if (event.button == 1)
+  if (event.button == 1 && event.originalTarget.localName != "slider" &&
+      event.originalTarget.localName != "scrollbarbutton")
   {
     FolderPaneContextMenuNewTab(event);
     RestoreSelectionWithoutContentLoad(folderTree);
@@ -957,7 +958,8 @@ function ThreadTreeOnClick(event)
   var threadTree = document.getElementById("threadTree");
 
   // Middle click on a message opens the message in a tab
-  if (event.button == 1)
+  if (event.button == 1 && event.originalTarget.localName != "slider" &&
+      event.originalTarget.localName != "scrollbarbutton")
   {
     ThreadTreeContextMenuNewTab(event);
     RestoreSelectionWithoutContentLoad(threadTree);
