@@ -1001,7 +1001,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateStorageIfMissing(nsIUrlListener* urlListen
 {
   nsresult rv = NS_OK;
   nsCOMPtr <nsIMsgFolder> msgParent;
-  GetParentMsgFolder(getter_AddRefs(msgParent));
+  GetParent(getter_AddRefs(msgParent));
 
   // parent is probably not set because *this* was probably created by rdf
   // and not by folder discovery. So, we have to compute the parent.
@@ -2310,7 +2310,7 @@ nsImapMailFolder::TrashOrDescendentOfTrash(nsIMsgFolder* folder)
     if (NS_FAILED(rv)) return PR_FALSE;
     if (flags & nsMsgFolderFlags::Trash)
       return PR_TRUE;
-    curFolder->GetParentMsgFolder(getter_AddRefs(parent));
+    curFolder->GetParent(getter_AddRefs(parent));
     if (!parent) return PR_FALSE;
     curFolder = parent;
   } while (NS_SUCCEEDED(rv) && curFolder);
@@ -4829,6 +4829,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           else
             UpdatePendingCounts();
         }
+
         if (m_copyState)
         {
           nsCOMPtr<nsIMsgFolder> srcFolder = do_QueryInterface(m_copyState->m_srcSupport, &rv);
@@ -4898,6 +4899,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           }
            (void) OnCopyCompleted(m_copyState->m_srcSupport, aExitCode);
         }
+
         // we're the dest folder of a move/copy - if we're not open in the ui,
         // then we should clear our nsMsgDatabase pointer. Otherwise, the db would
         // be open until the user selected it and then selected another folder.
@@ -7325,7 +7327,7 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
 
       // now remove the old folder
       nsCOMPtr<nsIMsgFolder> msgParent;
-      srcFolder->GetParentMsgFolder(getter_AddRefs(msgParent));
+      srcFolder->GetParent(getter_AddRefs(msgParent));
       srcFolder->SetParent(nsnull);
       if (msgParent)
       {
@@ -7987,7 +7989,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     unusedDB->Close(PR_TRUE);
     child->RenameSubFolders(msgWindow, msgFolder);
     nsCOMPtr<nsIMsgFolder> msgParent;
-    msgFolder->GetParentMsgFolder(getter_AddRefs(msgParent));
+    msgFolder->GetParent(getter_AddRefs(msgParent));
     msgFolder->SetParent(nsnull);
     msgParent->PropagateDelete(msgFolder, PR_TRUE, nsnull);
 
