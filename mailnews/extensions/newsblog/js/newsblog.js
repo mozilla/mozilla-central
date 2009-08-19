@@ -44,6 +44,8 @@ var nsNewsBlogFeedDownloader =
 {
   downloadFeed: function(aUrl, aFolder, aQuickMode, aTitle, aUrlListener, aMsgWindow)
   {
+    const Ci = Components.interfaces;
+    
     if (!gExternalScriptsLoaded)
       loadScripts();
 
@@ -63,7 +65,7 @@ var nsNewsBlogFeedDownloader =
       while (enumerator.hasMoreElements())
       {
         var containerArc = enumerator.getNext();
-        var uri = containerArc.QueryInterface(Components.interfaces.nsIRDFResource).Value;
+        var uri = containerArc.QueryInterface(Ci.nsIRDFResource).Value;
         if (concatenatedUris.length > 0)
           concatenatedUris += "|";
         concatenatedUris += uri;
@@ -82,13 +84,14 @@ var nsNewsBlogFeedDownloader =
     }
 
     // Return if there is still nothing in aUrl or the folder is in Trash.
-    if (!aUrl.length || IsInTrashFolder(aFolder))
+    if (!aUrl.length ||
+        aFolder.isSpecialFolder(Ci.nsMsgFolderFlags.Trash, true)))
       return;
 
     // Maybe just pull all these args out of the aFolder DB,
     // instead of passing them in...
     var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                        .getService(Components.interfaces.nsIRDFService);
+                        .getService(Ci.nsIRDFService);
     progressNotifier.init(aMsgWindow, false);
 
     // aUrl may be a delimited list of feeds for a particular folder.
@@ -515,13 +518,4 @@ function GetNewsBlogStringBundle(name)
   strBundleService = strBundleService.QueryInterface(Components.interfaces.nsIStringBundleService);
   var strBundle = strBundleService.createBundle("chrome://messenger-newsblog/locale/newsblog.properties"); 
   return strBundle;
-}
-
-function IsInTrashFolder(aFolder)
-{
-  if (!aFolder)
-    return false;
-  if (aFolder.flags & Components.interfaces.nsMsgFolderFlags.Trash)
-    return true;
-  return IsInTrashFolder(aFolder.parentMsgFolder);
 }
