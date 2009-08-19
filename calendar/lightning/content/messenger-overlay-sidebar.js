@@ -68,7 +68,12 @@ var calendarTabType = {
             // foreground.
             ltnSwitch2Calendar();
         }
+
+        if (("selectedDay" in aArgs) && aArgs.selectedDay != null) {
+            currentView().goToDay(aArgs.selectedDay);
+        }
       },
+
       showTab: function(aTab) {
         ltnSwitch2Calendar();
       },
@@ -79,8 +84,40 @@ var calendarTabType = {
           // calendar tab.
           ltnSwitch2Mail();
         }
-      }
+      },
+
+      persistTab: function(aTab) {
+        let tabmail = document.getElementById("tabmail");
+        return {
+            // Save the currently selected day
+            selectedDay: getSelectedDay().icalString,
+            // Since we do strange tab switching logic in ltnSwitch2Calendar,
+            // we should store the current tab state ourselves.
+            background: (aTab != tabmail.currentTabInfo)
+        };
+      },
+
+      restoreTab: function(aTabmail, aState) {
+        aState.title = document.getElementById('calendar-tab-button').getAttribute('tooltiptext');
+        if ("selectedDay" in aState) {
+            // Convert the serialized date to a datetime object
+            aState.selectedDay = cal.createDateTime(aState.selectedDay);
+        }
+        aTabmail.openTab('calendar', aState);
+      },
+
+      onTitleChanged: function(aTab) {
+        // Make sure the title is updated.
+        // TODO We should move this to a dedicated string some time.
+        aTab.title = document.getElementById("calendar-tab-button").getAttribute("tooltiptext");
+      },
+
+      supportsCommand: function (aTab, aCommand) calendarController.supportsCommand(aCommand),
+      isCommandEnabled: function (aTab, aCommand) calendarController.isCommandEnabled(aCommand),
+      doCommand: function(aTab, aCommand) calendarController.doCommand(aCommand),
+      onEvent: function(aTab, aEvent) calendarController.onEvent(aEvent)
     },
+
     tasks: {
       type: "tasks",
       maxTabs: 1,
@@ -100,7 +137,26 @@ var calendarTabType = {
           // tasks tab.
           ltnSwitch2Mail();
         }
-      }
+      },
+
+      persistTab: function(aTab) {
+        let tabmail = document.getElementById("tabmail");
+        return {
+            // Since we do strange tab switching logic in ltnSwitch2Task,
+            // we should store the current tab state ourselves.
+            background: (aTab != tabmail.currentTabInfo)
+        };
+      },
+
+      restoreTab: function(aTabmail, aState) {
+        aState.title = document.getElementById('task-tab-button').getAttribute('tooltiptext');
+        aTabmail.openTab('tasks', aState);
+      },
+
+      supportsCommand: function (aTab, aCommand) calendarController.supportsCommand(aCommand),
+      isCommandEnabled: function (aTab, aCommand) calendarController.isCommandEnabled(aCommand),
+      doCommand: function(aTab, aCommand) calendarController.doCommand(aCommand),
+      onEvent: function(aTab, aEvent) calendarController.onEvent(aEvent)
     },
   },
 
