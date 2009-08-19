@@ -1707,7 +1707,7 @@ nsMsgFolderDataSource::NotifyAncestors(nsIMsgFolder *aFolder, nsIRDFResource *aP
     return NS_OK;
 
   nsCOMPtr <nsIMsgFolder> parentMsgFolder;
-  rv = aFolder->GetParentMsgFolder(getter_AddRefs(parentMsgFolder));
+  rv = aFolder->GetParent(getter_AddRefs(parentMsgFolder));
   NS_ENSURE_SUCCESS(rv,rv);
   if (!parentMsgFolder)
     return NS_OK;
@@ -2293,7 +2293,7 @@ NS_IMETHODIMP nsMsgFlatFolderDataSource::HasAssertion(nsIRDFResource* source,
     if (folder)
     {
       nsCOMPtr<nsIMsgFolder> parentMsgFolder;
-      folder->GetParentMsgFolder(getter_AddRefs(parentMsgFolder));
+      folder->GetParent(getter_AddRefs(parentMsgFolder));
       // a folder without a parent must be getting deleted as part of
       // the rename operation and is thus a folder we are
       // no longer interested in

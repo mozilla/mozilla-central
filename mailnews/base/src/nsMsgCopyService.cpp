@@ -392,7 +392,7 @@ nsMsgCopyService::FindRequest(nsISupports* aSupport,
         PRBool isServer=PR_FALSE;
         dstFolder->GetIsServer(&isServer);
         if (!isServer)
-          rv = dstFolder->GetParentMsgFolder(getter_AddRefs(parentMsgFolder));
+          rv = dstFolder->GetParent(getter_AddRefs(parentMsgFolder));
         if ((NS_FAILED(rv)) || (!parentMsgFolder && !isServer) || (copyRequest->m_dstFolder.get() != parentMsgFolder))
         {
           copyRequest = nsnull;
