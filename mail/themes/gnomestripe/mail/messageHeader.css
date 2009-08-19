@@ -72,22 +72,6 @@
   padding-top: 0px;
 }
 
-.msgHeaderView-flat-button[type="menu"] > .button-box > .button-menu-dropmarker,
-.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-dropmarker {
-  -moz-appearance: none !important;
-}
-
-.msgHeaderView-flat-button[type="menu"] > .button-box > .button-menu-dropmarker > .dropmarker-icon,
-.msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-dropmarker > .dropmarker-icon {
-  -moz-padding-start: 4px;
-  list-style-image: url("chrome://messenger/skin/icons/arrow-dn-grey.png");
-}
-
-.msgHeaderView-flat-button[type="menu"]:hover > .button-box > .button-menu-dropmarker > .dropmarker-icon,
-.msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-dropmarker > .dropmarker-icon {
-  list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
-}
-
 /* ::::: expanded header pane ::::: */
 
 header-view-button-box {
@@ -222,8 +206,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .msgHeaderView-flat-button {
   min-width: 1px !important;
-  -moz-appearance: none;
-  color: GrayText;
+  -moz-appearance: toolbarbutton;
   background-color: transparent;
   border: 3px solid transparent;
   margin-top: 1px;
@@ -236,6 +219,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-border-left-colors: none;
   min-height: 1ex;
 }
+
 
 .hdrTrashButton {
   -moz-box-orient: vertical;
