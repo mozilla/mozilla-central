@@ -85,7 +85,7 @@ var nsNewsBlogFeedDownloader =
 
     // Return if there is still nothing in aUrl or the folder is in Trash.
     if (!aUrl.length ||
-        aFolder.isSpecialFolder(Ci.nsMsgFolderFlags.Trash, true)))
+        aFolder.isSpecialFolder(Ci.nsMsgFolderFlags.Trash, true))
       return;
 
     // Maybe just pull all these args out of the aFolder DB,
