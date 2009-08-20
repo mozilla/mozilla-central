@@ -134,6 +134,8 @@
 <popup id="messageIdContext"/>
 <popup id="emailAddressPopup"/>
 
+<tooltip id="folderpopup" class="folderSummaryPopup"/>
+
 <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
 
   <toolbox id="mail-toolbox" class="toolbox-top">
@@ -157,7 +159,9 @@
               flex="1"
               context="folderPaneContext"
               class="window-focusborder"
-              focusring="false"/>
+              focusring="false">
+          <treechildren tooltip="folderpopup"/>
+        </tree>
       </vbox>
 
       <splitter id="gray_vertical_splitter" collapse="before" persist="state" resizeafter="grow">

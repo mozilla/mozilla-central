@@ -1869,15 +1869,48 @@
       <handler event="popupshowing">
         <![CDATA[
           var folderTree = GetFolderTree();
-          var row = folderTree.treeBoxObject.getRowAt(event.clientX,
-                                                      event.clientY);
+          var row = {};
+          var col = {};
+          var childElt = {};
+          folderTree.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
+          row = row.value;
+          col = col.value;
           if (row == -1)
             return false;
+
           var msgFolder = GetFolderResource(folderTree, row).QueryInterface(Components.interfaces.nsIMsgFolder);
-          if (!msgFolder || msgFolder.isServer)
-            return false;
+          var server = msgFolder.server;
+          var popupValue = null;
+          // Use the full newsgroup name as tooltip for abbreviated newsgroups.
+          if (col.id == "folderNameCol" && !msgFolder.isServer &&
+              !(msgFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) &&
+              (server instanceof Components.interfaces.nsINntpIncomingServer) &&
+              server.abbreviate)
+          {
+            popupValue = msgFolder.name;
+          }
+          // Show full cell content as tooltip for cropped cells.
+          else if (folderTree.treeBoxObject.isCellCropped(row, col))
+          {
+            popupValue = folderTree.view.getCellText(row, col);
+          }
+
+          if (popupValue)
+          {
+            let tooltip = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "label");
+            tooltip.setAttribute("value", popupValue);
+            tooltip.className = "tooltip-label";
+            let folderSummary = document.getAnonymousNodes(this)[0];
+            document.getAnonymousNodes(folderSummary)[0].appendChild(tooltip);
+            return true;
+          }
+
+          // Disable extended alerts (sender/subject/preview) until implemented (bug 505056)
+          return false;
+/*
           var asyncResults = {};
           return document.getAnonymousNodes(this)[0].parseFolder(msgFolder, null, asyncResults);
+*/
         ]]>
       </handler>
 
@@ -1901,13 +1934,13 @@
         <parameter name="aOutAsync"/>
         <body>
           <![CDATA[
-            // from nsMsgFolderFlags.h
-            const kMsgPopupFolderFlagTrash = 0x0100;
-            const kMsgPopupFolderFlagJunk = 0x40000000;
             // skip servers, Trash and Junk folders
-            if (!aFolder || aFolder.isServer || aFolder.getFlag(kMsgPopupFolderFlagJunk) || aFolder.getFlag(kMsgPopupFolderFlagTrash))
+            if (!aFolder || aFolder.isServer ||
+                aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Junk) ||
+                aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash))
               return false;
-            var pref = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
+            var pref = Components.classes["@mozilla.org/preferences-service;1"]
+                                 .getService(Components.interfaces.nsIPrefBranch);
             var showPreviewText = pref.getBoolPref("mail.biff.alert.show_preview");
             var folderArray = new Array;
             if (aFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
@@ -1916,10 +1949,12 @@
               var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
               var srchFolderUriArray = srchFolderUri.split('|');
               var foldersAdded = 0;
-              var RDF = Components.classes['@mozilla.org/rdf/rdf-service;1'].getService().QueryInterface(Components.interfaces.nsIRDFService);
+              var RDF = Components.classes['@mozilla.org/rdf/rdf-service;1']
+                                  .getService(Components.interfaces.nsIRDFService);
               for (var i in srchFolderUriArray)
               {
-                var realFolder = RDF.GetResource(srchFolderUriArray[i]).QueryInterface(Components.interfaces.nsIMsgFolder);
+                var realFolder = RDF.GetResource(srchFolderUriArray[i])
+                                    .QueryInterface(Components.interfaces.nsIMsgFolder);
                 if (!realFolder.isServer)
                   folderArray[foldersAdded++] = realFolder;
               }
@@ -1968,7 +2003,8 @@
               foundNewMsg = true;
 
               var index = 0;
-              var hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
+              var hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                                        .getService(Components.interfaces.nsIMsgHeaderParser);
               while (document.getAnonymousNodes(this)[0].childNodes.length < this.mMaxMsgHdrsInPopup && index < numMsgKeys.value)
               {
                 var msgPopup = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "folderSummaryMessage");

@@ -168,6 +168,21 @@ searchterm {
   visibility: visible;
 }
 
+.folderSummaryPopup
+{
+  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#folderSummary-popup");
+}
+
+folderSummary
+{
+  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#folderSummary");
+}
+
+folderSummaryMessage
+{
+  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#folderSummary-message");
+}
+
 .foldersTree
 {
   margin: 0px;
