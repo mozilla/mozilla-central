@@ -7991,7 +7991,8 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     nsCOMPtr<nsIMsgFolder> msgParent;
     msgFolder->GetParent(getter_AddRefs(msgParent));
     msgFolder->SetParent(nsnull);
-    msgParent->PropagateDelete(msgFolder, PR_TRUE, nsnull);
+    if (msgParent)
+      msgParent->PropagateDelete(msgFolder, PR_TRUE, nsnull);
 
     // Reset online status now that the folder is renamed.
     nsCOMPtr <nsIMsgImapMailFolder> oldImapFolder = do_QueryInterface(msgFolder);
