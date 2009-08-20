@@ -750,7 +750,7 @@ nsMsgDatabase::CleanupCache()
 {
   if (m_dbCache)
   {
-    for (PRUint32 i = m_dbCache->Length() - 1; i != 0 && m_dbCache->Length() > 0;
+    for (PRUint32 i = m_dbCache->Length() - 1; m_dbCache->Length() > 0;
      // prior closes may have removed more than one element
          i >= m_dbCache->Length() ? i = m_dbCache->Length() - 1 : i--)
     {
@@ -764,6 +764,8 @@ nsMsgDatabase::CleanupCache()
         pMessageDB->ForceClosed();
         pMessageDB->Release();
       }
+      if (i == 0)
+        break;
     }
 #ifdef DEBUG
     // If you hit this warning, it means that ForceClosed() did not

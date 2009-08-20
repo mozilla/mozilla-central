@@ -764,9 +764,15 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolderWithListener(nsIMsgWindow *aMsgWindo
   {
     if (hasOfflineEvents)
     {
-      nsImapOfflineSync *goOnline = new nsImapOfflineSync(aMsgWindow, this, this);
+      // hold a reference to the offline sync object. If ProcessNextOperation
+      // runs a url, a reference will be added to it. Otherwise, it will get
+      // destroyed when the refptr goes out of scope.
+      nsRefPtr<nsImapOfflineSync> goOnline = new nsImapOfflineSync(aMsgWindow, this, this);
       if (goOnline)
+      {
+        m_urlListener = aUrlListener;
         return goOnline->ProcessNextOperation();
+      }
     }
   }
 
@@ -6295,6 +6301,17 @@ nsImapMailFolder::SetUrlState(nsIImapProtocol* aProtocol,
         m_downloadingFolderForOfflineUse = PR_FALSE;
       }
     }
+    nsCOMPtr<nsIImapUrl> imapUrl(do_QueryInterface(aUrl));
+    if (imapUrl)
+    {
+      nsImapAction imapAction;
+      imapUrl->GetImapAction(&imapAction);
+      // if the server doesn't support copyUID, then SetCopyResponseUid won't
+      // get called, so we need to clear m_pendingOfflineMoves when the online
+      // move operation has finished.
+      if (imapAction == nsIImapUrl::nsImapOnlineMove)
+        m_pendingOfflineMoves.Clear();
+    }
   }
   if (aUrl)
       return aUrl->SetUrlState(isRunning, statusCode);
@@ -6626,7 +6643,6 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
             messageIds.Truncate();
             rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
             sourceOp->GetOperation(&opType);
-            srcKeyArray.AppendElement(originalKey);
             nsImapOfflineTxn *undoMsgTxn = new
               nsImapOfflineTxn(srcFolder, &srcKeyArray, messageIds.get(), this, 
                                isMove, opType, message, m_thread);

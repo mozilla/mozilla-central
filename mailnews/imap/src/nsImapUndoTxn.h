@@ -86,6 +86,7 @@ protected:
   nsCOMPtr<nsISupportsArray> m_srcHdrs;
   nsTArray<nsMsgKey> m_dupKeyArray;
   nsTArray<nsMsgKey> m_srcKeyArray;
+  nsTArray<nsCString> m_srcMessageIds;
   nsCString m_srcMsgIdString;
   nsWeakPtr m_dstFolder;
   nsCString m_dstMsgIdString;
@@ -94,6 +95,9 @@ protected:
   PRBool m_isMove;
   PRBool m_srcIsPop3;
   nsTArray<PRUint32> m_srcSizeArray;
+  // this is used when we chain urls for imap undo, since "this" needs
+  // to be the listener, but the folder may need to also be notified.
+  nsWeakPtr m_onStopListener;
 
   nsresult GetImapDeleteModel(nsIMsgFolder* aFolder, nsMsgImapDeleteModel *aDeleteModel);
 };
