@@ -97,6 +97,7 @@
     <key keycode="VK_ESCAPE"                       command="cmd_close"/>
     <key key="."                 modifiers="meta"  command="cmd_close"/>
     <key keycode="VK_F1"                           command="cmd_help"/>
+    <key key="&openHelpMac.key;" modifiers="meta"  command="cmd_help"/>
     <key key="&copy.key;"        modifiers="accel" command="cmd_copy"/>
     <key key="&selectall.key;"   modifiers="accel" command="cmd_selectall"/>
     <key key="&selectall.key;"   modifiers="alt"   command="cmd_selectall"/>

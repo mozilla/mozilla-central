@@ -46,6 +46,7 @@
 <!ENTITY  selectall.key         "A">
 <!ENTITY  selectall.label       "Select All">
 <!ENTITY  selectall.accesskey   "A">
+<!ENTITY  openHelpMac.key       "?">
 <!ENTITY  closeWindow.key       "w">
 
 <!ENTITY  generalTab            "General">
