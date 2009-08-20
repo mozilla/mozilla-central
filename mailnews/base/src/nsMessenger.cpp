@@ -251,7 +251,7 @@ public:
     ePlainText,
     eHTML
   }             m_outputFormat;
-  nsString      m_msgBuffer;
+  nsCString     m_msgBuffer;
 
   nsCString     m_contentType;    // used only when saving attachment
 
@@ -1661,9 +1661,10 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
     //
     if (m_outputFormat == ePlainText)
     {
-      ConvertBufToPlainText(m_msgBuffer);
+      NS_ConvertUTF8toUTF16 utf16Buffer(m_msgBuffer);
+      ConvertBufToPlainText(utf16Buffer);
       rv = nsMsgI18NSaveAsCharset(TEXT_PLAIN, nsMsgI18NFileSystemCharset(),
-                                  m_msgBuffer.get(), &conBuf);
+                                  utf16Buffer.get(), &conBuf);
       if ( NS_SUCCEEDED(rv) && (conBuf) )
         conLength = strlen(conBuf);
     }
@@ -1788,7 +1789,7 @@ nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
       if (NS_SUCCEEDED(rv))
       {
         if ( (m_doCharsetConversion) && (m_outputFormat == ePlainText) )
-          m_msgBuffer.Append(NS_ConvertUTF8toUTF16(Substring(m_dataBuffer, m_dataBuffer + readCount)));
+          m_msgBuffer.Append(Substring(m_dataBuffer, m_dataBuffer + readCount));
         else
           rv = m_outputStream->Write(m_dataBuffer, readCount, &writeCount);
 
