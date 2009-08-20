@@ -220,6 +220,15 @@ let moveCopyModule =
   },
 
   folderDeleted : function(aFolder) {
+    let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                            .getService(Components.interfaces.nsIMsgAccountManager);
+    let server = aFolder.server;
+    // If the account has been removed, we're going to ignore this notification.
+    try {
+      acctMgr.FindServer(server.username, server.hostName, server.type);
+    }
+    catch(ex) {return;}
+
     let displayText = this.getString("deletedFolder").replace("#1", aFolder.prettiestName);
     let statusText = aFolder.server.prettyName;
     
