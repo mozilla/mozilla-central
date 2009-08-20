@@ -133,6 +133,7 @@ EXTRA_JS_MODULES = \
 		jsTreeSelection.js \
 		traceHelper.js \
 		autoconfigUtils.jsm \
+		StringBundle.js \
 		$(NULL)
 
 ifndef MOZ_STATIC_MAIL_BUILD
