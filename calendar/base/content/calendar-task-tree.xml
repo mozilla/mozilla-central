@@ -801,7 +801,7 @@
       <field name="mTaskTreeObserver"><![CDATA[
       ({
           binding: this,
-          mInBatch: false,
+          mBatchCount: 0,
 
           QueryInterface: function tTO_QueryInterface(aIID) {
               return doQueryInterface(this, null, aIID,
@@ -813,35 +813,33 @@
            * calIObserver methods and properties
            */
           onStartBatch: function tTO_onStartBatch() {
-              this.mInBatch = true;
+              this.mBatchCount++;
           },
 
           onEndBatch: function tTO_onEndBatch() {
-              if (this.mInBatch) {
-                  this.mInBatch = false;
+              this.mBatchCount--;
+              if (this.mBatchCount == 0) {
                   this.binding.refresh();
               }
           },
 
           onLoad: function tTO_onLoad() {
-              if (!this.mInBatch) {
+              if (this.mBatchCount == 0) {
                   this.binding.refresh();
               }
           },
 
           onAddItem: function tTO_onAddItem(aItem) {
-              // XXX: We have to filter here
-              if (isToDo(aItem)  &&
-                  !this.mInBatch &&
-                  this.binding.mFilter.isItemInFilters(aItem)) {
+              if (cal.isToDo(aItem) &&
+                  this.binding.mFilter.isItemInFilters(aItem) &&
+                  !this.mBatchCount) { 
                   this.binding.mTreeView.addItem(aItem);
               }
           },
 
           onModifyItem: function tTO_onModifyItem(aNewItem, aOldItem) {
-              if ((isToDo(aNewItem) || isToDo(aOldItem)) &&
-                  !this.mInBatch) {
-
+              if ((cal.isToDo(aNewItem) || cal.isToDo(aOldItem))
+                  && !this.mBatchCount) {
                   // forward the call to the view which will in turn
                   // update the internal reference and the view.
                   this.binding.mTreeView.modifyItem(aNewItem, aOldItem);
@@ -854,8 +852,7 @@
           },
 
           onDeleteItem: function tTO_onDeleteItem(aDeletedItem) {
-              if (isToDo(aDeletedItem) &&
-                  !this.mInBatch) {
+              if (cal.isToDo(aDeletedItem) && !this.mBatchCount) {
                   this.binding.mTreeView.removeItem(aDeletedItem);
               }
           },
@@ -881,13 +878,13 @@
            * calICompositeObserver methods and properties
            */
           onCalendarAdded: function tTO_onCalendarAdded(aCalendar) {
-              if (!this.mInBatch && !aCalendar.getProperty("disabled")) {
+              if (!aCalendar.getProperty("disabled")) {
                   this.binding.onCalendarAdded(aCalendar);
               }
           },
 
           onCalendarRemoved: function tTO_onCalendarRemoved(aCalendar) {
-              if (!this.mInBatch && !aCalendar.getProperty("disabled")) {
+              if (!aCalendar.getProperty("disabled")) {
                   this.binding.onCalendarRemoved(aCalendar);
               }
           },
@@ -914,27 +911,32 @@
       <method name="refreshFromCalendar">
         <parameter name="aCalendar"/>
         <parameter name="aFilter"/>
+        <parameter name="aCompleteRefresh"/>
         <body><![CDATA[
           // XXX: why do I need this ?
-          if(!this.mFilter) {
-            this.mFilter = new calFilter();
+          if (!this.mFilter) {
+              this.mFilter = new calFilter();
           }
           var savedThis = this;
+          var newArray = [];
+          if (!aCompleteRefresh) {
+              newArray = [ task for each (task in this.mTaskArray)
+                            if (task.calendar.id != aCalendar.id) ];
+          }
+
           var refreshListener = {
-              mTaskArray: [],
-
               onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDateTime) {
-              savedThis.mTaskArray = this.mTaskArray;
+                  savedThis.mTaskArray = newArray;
                   savedThis.onOperationComplete();
-             },
+              },
 
-             onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
-             for (var i=0; i<aCount; i++) {
-                     if (savedThis.mFilter.isItemInFilters(aItems[i])) {
-                         refreshListener.mTaskArray.push(aItems[i]);
-                     }
-                 }
-             }
+              onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+                  for (let i=0; i < aCount; i++) {
+                      if (savedThis.mFilter.isItemInFilters(aItems[i])) {
+                          newArray.push(aItems[i]);
+                      }
+                  }
+              }
           };
 
           var refreshJob = {
@@ -963,7 +965,7 @@
       <method name="refresh">
         <parameter name="aFilter"/>
         <body><![CDATA[
-            this.refreshFromCalendar(getCompositeCalendar(), aFilter);
+            this.refreshFromCalendar(getCompositeCalendar(), aFilter, true);
         ]]></body>
       </method>
 
@@ -972,7 +974,7 @@
         <parameter name="aFilter"/>
         <body><![CDATA[
             if (!aCalendar.getProperty("disabled")) {
-               this.refreshFromCalendar(aCalendar, aFilter);
+                this.refreshFromCalendar(aCalendar, aFilter, false);
             }
         ]]></body>
       </method>
@@ -981,13 +983,14 @@
         <parameter name="aCalendar"/>
         <body><![CDATA[
             if (!aCalendar.getProperty("disabled")) {
-                var tasks = Array.splice(this.mTaskArray);
-                for (let i = 0; i < tasks.length; i++) {
-                    var task = tasks[i];
+                this.mTreeView.treebox.beginUpdateBatch();
+                let tasks = this.mTaskArray.concat([]);
+                for each (let task in tasks) {
                     if (task.calendar.id == aCalendar.id) {
                         this.mTreeView.removeItem(task);
                     }
                 }
+                this.mTreeView.treebox.endUpdateBatch();
             }
         ]]></body>
       </method>
