@@ -53,7 +53,6 @@
 #include "nsNetscapeProfileMigratorBase.h"
 #include "nsNetUtil.h"
 #include "prtime.h"
-#include "nsIPasswordManagerInternal.h"
 #include "nsINIParser.h"
 #include "nsArrayUtils.h"
 
@@ -788,9 +787,14 @@ nsNetscapeProfileMigratorBase::CopyPasswords(PRBool aReplace)
   mSourceProfile->Clone(getter_AddRefs(seamonkeyPasswordsFile));
   seamonkeyPasswordsFile->AppendNative(signonsFileName);
 
+  // XXX Bug 511797 - This code used to compile, but the old password manager
+  // is gone so it wouldn't work.
+#if 0
   nsCOMPtr<nsIPasswordManagerInternal> pmi(
     do_GetService("@mozilla.org/passwordmanager;1"));
   return pmi->ReadPasswords(seamonkeyPasswordsFile);
+#endif
+  return NS_ERROR_FAILURE;
 }
 
 nsresult
