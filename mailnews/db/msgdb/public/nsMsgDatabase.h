@@ -347,6 +347,7 @@ protected:
   mdb_pos       FindInsertIndexInSortedTable(nsIMdbTable *table, mdb_id idToInsert);
 
   void          ClearCachedObjects(PRBool dbGoingAway);
+  void          ClearEnumerators();
   // all instantiated headers, but doesn't hold refs. 
   PLDHashTable  *m_headersInUse;
   static PLDHashNumber HashKey(PLDHashTable* aTable, const void* aKey);

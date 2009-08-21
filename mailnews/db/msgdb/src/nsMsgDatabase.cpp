@@ -428,6 +428,17 @@ NS_IMETHODIMP nsMsgDatabase::ClearCachedHdrs()
   return NS_OK;
 }
 
+void nsMsgDatabase::ClearEnumerators()
+{
+  // clear out existing enumerators
+  nsTArray<nsMsgDBEnumerator *> copyEnumerators;
+  copyEnumerators.SwapElements(m_enumerators);
+
+  PRInt32 numEnums = copyEnumerators.Length();
+  for (PRUint32 i = 0; i < numEnums; i++)
+    copyEnumerators[i]->Clear();
+}
+
 void nsMsgDatabase::ClearCachedObjects(PRBool dbGoingAway)
 {
   ClearHdrCache(PR_FALSE);
@@ -445,13 +456,6 @@ void nsMsgDatabase::ClearCachedObjects(PRBool dbGoingAway)
     ClearUseHdrCache();
   m_cachedThread = nsnull;
   m_cachedThreadId = nsMsgKey_None;
-  // clean out existing enumerators
-  nsTArray<nsMsgDBEnumerator *> copyEnumerators;
-  copyEnumerators.SwapElements(m_enumerators);
-
-  PRInt32 numEnums = copyEnumerators.Length();
-  for (PRUint32 i = 0; i < numEnums; i++)
-    copyEnumerators[i]->Clear();
 }
 
 nsresult nsMsgDatabase::ClearHdrCache(PRBool reInit)
@@ -893,6 +897,7 @@ nsMsgDatabase::~nsMsgDatabase()
 {
   //  Close(FALSE);  // better have already been closed.
   ClearCachedObjects(PR_TRUE);
+  ClearEnumerators();
   delete m_cachedHeaders;
   delete m_headersInUse;
 
@@ -1232,7 +1237,8 @@ NS_IMETHODIMP nsMsgDatabase::ForceClosed()
 
   err = CloseMDB(PR_TRUE);  // Backup DB will try to recover info, so commit
   ClearCachedObjects(PR_TRUE);
-  if (m_mdbAllMsgHeadersTable)
+  ClearEnumerators();
+if (m_mdbAllMsgHeadersTable)
   {
     m_mdbAllMsgHeadersTable->Release();
     m_mdbAllMsgHeadersTable = nsnull;
