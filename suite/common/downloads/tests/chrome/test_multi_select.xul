@@ -176,8 +176,8 @@ function test()
           retry: [0, "Retried neither download"],
           openReferrer: [0, "Opened neither referrer"],
           copyLocation: ["http://mozilla.org/file\nhttp://mozilla.com/file", "Copied both locations"],
-          remove: [3, "Removed no downloads, remaining 3"],
-          selectAll: [3, "Selected the 3 remaining downloads"],
+          remove: [1, "Removed both downloads, remaining 1"],
+          selectAll: [1, "Selected the 1 remaining download"],
         },
       };
 

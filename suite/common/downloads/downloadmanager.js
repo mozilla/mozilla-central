@@ -473,46 +473,86 @@ var dlTreeController = {
     if (gDownloadTreeView && gDownloadTreeView.selection)
       selectionCount = gDownloadTreeView.selection.count;
 
-    var selItemData = selectionCount ?
-                      gDownloadTreeView.getRowData(gDownloadTree.currentIndex) :
-                      null;
+    var selItemData = [];
+    if (selectionCount) {
+      // walk all selected rows
+      let start = {};
+      let end = {};
+      let numRanges = gDownloadTreeView.selection.getRangeCount();
+      for (let rg = 0; rg < numRanges; rg++) {
+        gDownloadTreeView.selection.getRangeAt(rg, start, end);
+        for (let row = start.value; row <= end.value; row++)
+          selItemData.push(gDownloadTreeView.getRowData(row));
+      }
+    }
 
     switch (aCommand) {
       case "cmd_play":
-         return selectionCount == 1 &&
-                ((selItemData.resumable &&
-                 (selItemData.isActive ||
-                  selItemData.state == nsIDownloadManager.DOWNLOAD_PAUSED)) ||
-                (selItemData.state == nsIDownloadManager.DOWNLOAD_CANCELED ||
-                 selItemData.state == nsIDownloadManager.DOWNLOAD_FAILED));
+        if (!selectionCount)
+          return false;
+        for each (let dldata in selItemData) {
+          if (dldata.state != nsIDownloadManager.DOWNLOAD_CANCELED &&
+              dldata.state != nsIDownloadManager.DOWNLOAD_FAILED &&
+              (!dldata.resumable ||
+               (!dldata.isActive &&
+                dldata.state != nsIDownloadManager.DOWNLOAD_PAUSED)))
+            return false;
+        }
+        return true;
       case "cmd_pause":
-        return selectionCount == 1 &&
-               selItemData.isActive &&
-               selItemData.state != nsIDownloadManager.DOWNLOAD_PAUSED &&
-               selItemData.resumable;
+        if (!selectionCount)
+          return false;
+        for each (let dldata in selItemData) {
+          if (!dldata.isActive ||
+              dldata.state == nsIDownloadManager.DOWNLOAD_PAUSED ||
+              !dldata.resumable)
+            return false;
+        }
+        return true;
       case "cmd_resume":
-        return selectionCount == 1 &&
-               selItemData.state == nsIDownloadManager.DOWNLOAD_PAUSED &&
-               selItemData.resumable;
+        if (!selectionCount)
+          return false;
+        for each (let dldata in selItemData) {
+          if (dldata.state != nsIDownloadManager.DOWNLOAD_PAUSED ||
+              !dldata.resumable)
+            return false;
+        }
+        return true;
       case "cmd_open":
       case "cmd_show":
         // we can't reveal until the download is complete, because we have not given
         // the file its final name until them.
         return selectionCount == 1 &&
-               selItemData.state == nsIDownloadManager.DOWNLOAD_FINISHED &&
-               getLocalFileFromNativePathOrUrl(selItemData.file).exists();
+               selItemData[0].state == nsIDownloadManager.DOWNLOAD_FINISHED &&
+               getLocalFileFromNativePathOrUrl(selItemData[0].file).exists();
       case "cmd_cancel":
-        return selectionCount == 1 && selItemData.isActive;
+        if (!selectionCount)
+          return false;
+        for each (let dldata in selItemData) {
+          if (!dldata.isActive)
+            return false;
+        }
+        return true;
       case "cmd_retry":
-        return selectionCount == 1 &&
-               (selItemData.state == nsIDownloadManager.DOWNLOAD_CANCELED ||
-                selItemData.state == nsIDownloadManager.DOWNLOAD_FAILED);
+        if (!selectionCount)
+          return false;
+        for each (let dldata in selItemData) {
+          if (dldata.state != nsIDownloadManager.DOWNLOAD_CANCELED &&
+              dldata.state != nsIDownloadManager.DOWNLOAD_FAILED)
+            return false;
+        }
+        return true;
       case "cmd_remove":
-        return selectionCount == 1 && !selItemData.isActive;
-      case "cmd_stop":
-        return selectionCount == 1;
+        if (!selectionCount)
+          return false;
+        for each (let dldata in selItemData) {
+          if (dldata.isActive)
+            return false;
+        }
+        return true;
       case "cmd_openReferrer":
-        return selectionCount == 1 && !!selItemData.referrer;
+        return selectionCount == 1 && !!selItemData[0].referrer;
+      case "cmd_stop":
       case "cmd_copyLocation":
         return selectionCount > 0;
       case "cmd_properties":
@@ -530,88 +570,91 @@ var dlTreeController = {
     var selectionCount = 0;
     if (gDownloadTreeView && gDownloadTreeView.selection)
       selectionCount = gDownloadTreeView.selection.count;
-    var selIdx = selectionCount == 1 ? gDownloadTree.currentIndex : -1;
-    var selItemData = selectionCount == 1 ? gDownloadTreeView.getRowData(selIdx) : null;
 
-    var m_selIdx = [];
+    var selItemData = [];
     if (selectionCount) {
-      m_selIdx = [];
       // walk all selected rows
       let start = {};
       let end = {};
       let numRanges = gDownloadTreeView.selection.getRangeCount();
-      for (let rg = 0; rg < numRanges; rg++){
+      for (let rg = 0; rg < numRanges; rg++) {
         gDownloadTreeView.selection.getRangeAt(rg, start, end);
-        for (let row = start.value; row <= end.value; row++){
-          m_selIdx.push(row);
-        }
+        for (let row = start.value; row <= end.value; row++)
+          selItemData.push(gDownloadTreeView.getRowData(row));
       }
     }
 
     switch (aCommand) {
       case "cmd_play":
-        switch (selItemData.state) {
-          case nsIDownloadManager.DOWNLOAD_DOWNLOADING:
-            pauseDownload(selItemData.dlid);
-            break;
-          case nsIDownloadManager.DOWNLOAD_PAUSED:
-            resumeDownload(selItemData.dlid);
-            break;
-          case nsIDownloadManager.DOWNLOAD_FAILED:
-          case nsIDownloadManager.DOWNLOAD_CANCELED:
-            retryDownload(selItemData.dlid);
-            break;
-         }
-         break;
+        for each (let dldata in selItemData) {
+          switch (dldata.state) {
+            case nsIDownloadManager.DOWNLOAD_DOWNLOADING:
+              pauseDownload(dldata.dlid);
+              break;
+            case nsIDownloadManager.DOWNLOAD_PAUSED:
+              resumeDownload(dldata.dlid);
+              break;
+            case nsIDownloadManager.DOWNLOAD_FAILED:
+            case nsIDownloadManager.DOWNLOAD_CANCELED:
+              retryDownload(dldata.dlid);
+              break;
+          }
+        }
+        break;
       case "cmd_pause":
-        pauseDownload(selItemData.dlid);
+        for each (let dldata in selItemData)
+          pauseDownload(dldata.dlid);
         break;
       case "cmd_resume":
-        resumeDownload(selItemData.dlid);
+        for each (let dldata in selItemData)
+          resumeDownload(dldata.dlid);
         break;
       case "cmd_retry":
-        retryDownload(selItemData.dlid);
+        for each (let dldata in selItemData)
+          retryDownload(dldata.dlid);
         break;
       case "cmd_cancel":
-        // fake an nsIDownload with the properties needed by that function
-        cancelDownload({id: selItemData.dlid,
-                        targetFile: getLocalFileFromNativePathOrUrl(selItemData.file)});
+        for each (let dldata in selItemData)
+          // fake an nsIDownload with the properties needed by that function
+          cancelDownload({id: dldata.dlid,
+                          targetFile: getLocalFileFromNativePathOrUrl(dldata.file)});
         break;
       case "cmd_remove":
-        removeDownload(selItemData.dlid);
+        for each (let dldata in selItemData)
+          removeDownload(dldata.dlid);
         break;
       case "cmd_stop":
-        if (selItemData.isActive)
-          // fake an nsIDownload with the properties needed by that function
-          cancelDownload({id: selItemData.dlid,
-                          targetFile: getLocalFileFromNativePathOrUrl(selItemData.file)});
-        else
-          removeDownload(selItemData.dlid);
+        for each (let dldata in selItemData) {
+          if (dldata.isActive)
+            // fake an nsIDownload with the properties needed by that function
+            cancelDownload({id: dldata.dlid,
+                            targetFile: getLocalFileFromNativePathOrUrl(dldata.file)});
+          else
+            removeDownload(dldata.dlid);
+        }
         break;
       case "cmd_open":
         // fake an nsIDownload with the properties needed by that function
-        openDownload({displayName: selItemData.target,
-                      targetFile: getLocalFileFromNativePathOrUrl(selItemData.file)});
+        openDownload({displayName: selItemData[0].target,
+                      targetFile: getLocalFileFromNativePathOrUrl(selItemData[0].file)});
         break;
       case "cmd_show":
         // fake an nsIDownload with the properties needed by that function
-        showDownload({targetFile: getLocalFileFromNativePathOrUrl(selItemData.file)});
+        showDownload({targetFile: getLocalFileFromNativePathOrUrl(selItemData[0].file)});
         break;
       case "cmd_openReferrer":
-        openUILink(selItemData.referrer);
+        openUILink(selItemData[0].referrer);
         break;
       case "cmd_copyLocation":
         var clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
                                   .getService(Components.interfaces.nsIClipboardHelper);
         var uris = [];
-        for each (let idx in m_selIdx) {
-          let dldata = gDownloadTreeView.getRowData(idx);
+        for each (let dldata in selItemData)
           uris.push(dldata.uri);
-        }
         clipboard.copyString(uris.join("\n"));
         break;
       case "cmd_properties":
-        showProperties(selItemData.dlid);
+        showProperties(selItemData[0].dlid);
         break;
       case "cmd_selectAll":
         gDownloadTreeView.selection.selectAll();
