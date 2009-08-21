@@ -121,7 +121,7 @@ function test()
 
       // Delete all downloads
       synthesizeKey("VK_DELETE", {}, win);
-      todo_is(downloadView.rowCount, 0, "All downloads removed");
+      is(downloadView.rowCount, 0, "All downloads removed");
 
       // We're done!
       win.close();
