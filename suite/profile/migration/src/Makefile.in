@@ -62,10 +62,11 @@ REQUIRES	= \
 CPPSRCS = \
 		nsProfileMigrator.cpp \
 		nsSuiteProfileMigratorUtils.cpp \
-		nsNetscapeProfileMigratorBase.cpp \
 		nsSeamonkeyProfileMigrator.cpp \
-		nsThunderbirdProfileMigrator.cpp \
 		$(NULL)
+# XXX bug 511797 -- these migrators don't compile or work.
+#		nsNetscapeProfileMigratorBase.cpp \
+#		nsThunderbirdProfileMigrator.cpp \
 
 # we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB = 1
