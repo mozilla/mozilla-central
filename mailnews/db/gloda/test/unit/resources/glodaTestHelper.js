@@ -496,6 +496,10 @@ var messageCollectionListener = {
     dump("@@@ messageCollectionListener.onItemsAdded\n");
     let ims = indexMessageState;
     ims.glodaMessages = ims.glodaMessages.concat(aItems);
+    // simulate some other activity clearing out the the current folder's
+    // cached database, which used to kill the indexer's enumerator.
+    if (++this._numItemsAdded == 3)
+      GlodaIndexer._indexingFolder.msgDatabase = null;
   },
 
   onItemsModified: function(aItems) {
@@ -506,7 +510,9 @@ var messageCollectionListener = {
 
   onItemsRemoved: function(aItems) {
     dump("!!! messageCollectionListener.onItemsRemoved\n");
-  }
+  },
+
+  _numItemsAdded : 0
 };
 
 /**
