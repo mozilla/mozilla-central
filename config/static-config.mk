@@ -100,6 +100,10 @@ ifdef MOZ_ENABLE_STARTUP_NOTIFICATION
 STATIC_EXTRA_LIBS	+= $(MOZ_STARTUP_NOTIFICATION_LIBS)
 endif
 
+ifeq ($(OS_ARCH),Linux)
+STATIC_EXTRA_LIBS += $(MOZ_ALSA_LIBS)
+endif
+
 # Component Makefile always brings in this.
 # STATIC_EXTRA_LIBS	+= $(TK_LIBS)
 
