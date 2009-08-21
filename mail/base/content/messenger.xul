@@ -376,7 +376,7 @@
                   
                   <!-- This next iframe is used to display summaries of -->
                   <!-- multiple selected messages or collapsed threads -->
-                  <iframe id="multimessage"
+                  <browser id="multimessage"
                            style="height: 0px; min-height: 1px"
                            flex="1" name="multimessage"
                            hidden="true"

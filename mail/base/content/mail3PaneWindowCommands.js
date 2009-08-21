@@ -507,6 +507,11 @@ var DefaultController =
       case "cmd_fullZoomEnlarge":
       case "cmd_fullZoomReset":
       case "cmd_fullZoomToggle":
+        // If we are a message tab, then we've got a message displayed, so
+        // always allow zooming in the message
+        if (document.getElementById("tabmail").selectedTab.mode.name == "message")
+          return true;
+
         return IsFolderSelected() && !IsMessagePaneCollapsed();
       default:
         return false;

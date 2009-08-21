@@ -1830,6 +1830,13 @@ let mailTabType = {
         aTabNode.setAttribute('ServerType', folder.server.type);
         aTabNode.setAttribute('IsServer', folder.isServer);
         aTabNode.setAttribute('IsSecure', folder.server.isSecure);
+      },
+      getBrowser: function(aTab) {
+        // If we are currently a thread summary, we want to select the multi
+        // message browser rather than the message pane.
+        return gMessageDisplay.singleMessageDisplay ?
+               document.getElementById("messagepane") :
+               document.getElementById("multimessage");
       }
     },
     /**
@@ -1910,6 +1917,10 @@ let mailTabType = {
         aTab.title += " - " + aMsgHdr.folder.prettyName;
         if (this._getNumberOfRealAccounts() > 1)
           aTab.title += " - " + aMsgHdr.folder.server.prettyName;
+      },
+      getBrowser: function(aTab) {
+        // Message tabs always use the messagepane browser.
+        return document.getElementById("messagepane");
       }
     },
     /**
@@ -1973,6 +1984,13 @@ let mailTabType = {
         aTab.folderDisplay.setColumnStates(aTab.mode.desiredColumnStates);
         aTab.folderDisplay.makeActive();
       },
+      getBrowser: function(aTab) {
+        // If we are currently a thread summary, we want to select the multi
+        // message browser rather than the message pane.
+        return gMessageDisplay.singleMessageDisplay ?
+               document.getElementById("messagepane") :
+               document.getElementById("multimessage");
+      }
     },
   },
 
@@ -2249,11 +2267,6 @@ let mailTabType = {
 
   onEvent: function(aTab, aEvent) {
     DefaultController.onEvent(aEvent);
-  },
-
-  getBrowser: function(aTab) {
-    // We currently use the messagepane element for all tab types.
-    return document.getElementById("messagepane");
   }
 };
 /**
