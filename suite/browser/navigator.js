@@ -59,8 +59,6 @@ var gURIFixup = null;
 
 var pref = null;
 
-var appCore = null;
-
 //cached elements
 var gBrowser = null;
 
@@ -463,12 +461,6 @@ function Startup()
 
   var webNavigation;
   try {
-    // Create the browser instance component.
-    appCore = Components.classes["@mozilla.org/appshell/component/browser/instance;1"]
-                        .createInstance(Components.interfaces.nsIBrowserInstance);
-    if (!appCore)
-      throw "couldn't create a browser instance";
-
     // Get the preferences service
     var prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                 .getService(Components.interfaces.nsIPrefService);
@@ -511,9 +503,6 @@ function Startup()
   window.browserContentListener =
     new nsBrowserContentListener(window, getBrowser());
   
-  // Initialize browser instance..
-  appCore.setWebShellWindow(window);
-
   // Add a capturing event listener to the content area
   // (rjc note: not the entire window, otherwise we'll get sidebar pane loads too!)
   //  so we'll be notified when onloads complete.
@@ -567,97 +556,87 @@ function Startup()
   // hook up UI through progress listener
   getBrowser().addProgressListener(window.XULBrowserWindow, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
 
-  // load appropriate initial page from commandline
-  var isPageCycling = false;
+  var uriToLoad = "";
 
-  // page cycling for tinderbox tests
-  if (!appCore.cmdLineURLUsed)
-    isPageCycling = appCore.startPageCycler();
-
-  // only load url passed in when we're not page cycling
-  if (!isPageCycling) {
-    var uriToLoad = "";
-
-    // Check window.arguments[0]. If not null then use it for uriArray
-    // otherwise the new window is being called when another browser
-    // window already exists so use the New Window pref for uriArray
-    if ("arguments" in window && window.arguments.length >= 1) {
-      var uriArray;
-      if (window.arguments[0]) {
-        uriArray = window.arguments[0].toString().split('\n'); // stringify and split
-      } else {
-        try {
-          switch (pref.getIntPref("browser.windows.loadOnNewWindow"))
-          {
-            default:
-              uriArray = ["about:blank"];
-              break;
-            case 1:
-              uriArray = getHomePage();
-              break;
-            case 2:
-              var history = Components.classes["@mozilla.org/browser/global-history;2"]
-                                      .getService(Components.interfaces.nsIBrowserHistory);
-              uriArray = [history.lastPageVisited];
-              break;
-          }
-        } catch(e) {
-          uriArray = ["about:blank"];
+  // Check window.arguments[0]. If not null then use it for uriArray
+  // otherwise the new window is being called when another browser
+  // window already exists so use the New Window pref for uriArray
+  if ("arguments" in window && window.arguments.length >= 1) {
+    var uriArray;
+    if (window.arguments[0]) {
+      uriArray = window.arguments[0].toString().split('\n'); // stringify and split
+    } else {
+      try {
+        switch (pref.getIntPref("browser.windows.loadOnNewWindow"))
+        {
+          default:
+            uriArray = ["about:blank"];
+            break;
+          case 1:
+            uriArray = getHomePage();
+            break;
+          case 2:
+            var history = Components.classes["@mozilla.org/browser/global-history;2"]
+                                    .getService(Components.interfaces.nsIBrowserHistory);
+            uriArray = [history.lastPageVisited];
+            break;
         }
-      }
-      uriToLoad = uriArray.splice(0, 1)[0];
-
-      if (uriArray.length > 0)
-        window.setTimeout(function(arg) { for (var i in arg) gBrowser.addTab(arg[i]); }, 0, uriArray);
-    }
-    
-    if (/^\s*$/.test(uriToLoad))
-      uriToLoad = "about:blank";
-
-    var browser = getBrowser();
-
-    if (uriToLoad != "about:blank") {
-      gURLBar.value = uriToLoad;
-      browser.userTypedValue = uriToLoad;
-      if ("arguments" in window && window.arguments.length >= 4) {
-        loadURI(uriToLoad, window.arguments[2], window.arguments[3]);
-      } else if ("arguments" in window && window.arguments.length == 3) {
-        loadURI(uriToLoad, window.arguments[2]);
-      } else {
-        loadURI(uriToLoad);
+      } catch(e) {
+        uriArray = ["about:blank"];
       }
     }
+    uriToLoad = uriArray.splice(0, 1)[0];
 
-    // Focus the content area unless we're loading a blank page, or if
-    // we weren't passed any arguments. This "breaks" the
-    // javascript:window.open(); case where we don't get any arguments
-    // either, but we're loading about:blank, but focusing the content
-    // are is arguably correct in that case as well since the opener
-    // is very likely to put some content in the new window, and then
-    // the focus should be in the content area.
-    var navBar = document.getElementById("nav-bar");
-    if ("arguments" in window && uriToLoad == "about:blank" && isElementVisible(gURLBar))
-      setTimeout(WindowFocusTimerCallback, 0, gURLBar);
-    else
-      setTimeout(WindowFocusTimerCallback, 0, content);
-
-    // Perform default browser checking (after window opens).
-    setTimeout( checkForDefaultBrowser, 0 );
-
-    // hook up browser access support
-    window.browserDOMWindow = new nsBrowserAccess();
-
-    // hook up remote support
-    if (REMOTESERVICE_CONTRACTID in Components.classes) {
-      var remoteService =
-        Components.classes[REMOTESERVICE_CONTRACTID]
-                  .getService(Components.interfaces.nsIRemoteService);
-      remoteService.registerWindow(window);
-    }
-
-    // ensure login manager is loaded
-    Components.classes["@mozilla.org/login-manager;1"].getService();
+    if (uriArray.length > 0)
+      window.setTimeout(function(arg) { for (var i in arg) gBrowser.addTab(arg[i]); }, 0, uriArray);
   }
+    
+  if (/^\s*$/.test(uriToLoad))
+    uriToLoad = "about:blank";
+
+  var browser = getBrowser();
+
+  if (uriToLoad != "about:blank") {
+    gURLBar.value = uriToLoad;
+    browser.userTypedValue = uriToLoad;
+    if ("arguments" in window && window.arguments.length >= 4) {
+      loadURI(uriToLoad, window.arguments[2], window.arguments[3]);
+    } else if ("arguments" in window && window.arguments.length == 3) {
+      loadURI(uriToLoad, window.arguments[2]);
+    } else {
+      loadURI(uriToLoad);
+    }
+  }
+
+  // Focus the content area unless we're loading a blank page, or if
+  // we weren't passed any arguments. This "breaks" the
+  // javascript:window.open(); case where we don't get any arguments
+  // either, but we're loading about:blank, but focusing the content
+  // are is arguably correct in that case as well since the opener
+  // is very likely to put some content in the new window, and then
+  // the focus should be in the content area.
+  var navBar = document.getElementById("nav-bar");
+  if ("arguments" in window && uriToLoad == "about:blank" && isElementVisible(gURLBar))
+    setTimeout(WindowFocusTimerCallback, 0, gURLBar);
+  else
+    setTimeout(WindowFocusTimerCallback, 0, content);
+
+  // Perform default browser checking (after window opens).
+  setTimeout( checkForDefaultBrowser, 0 );
+
+  // hook up browser access support
+  window.browserDOMWindow = new nsBrowserAccess();
+
+  // hook up remote support
+  if (REMOTESERVICE_CONTRACTID in Components.classes) {
+    var remoteService =
+      Components.classes[REMOTESERVICE_CONTRACTID]
+                .getService(Components.interfaces.nsIRemoteService);
+    remoteService.registerWindow(window);
+  }
+
+  // ensure login manager is loaded
+  Components.classes["@mozilla.org/login-manager;1"].getService();
   
   // called when we go into full screen, even if it is 
   // initiated by a web page script
@@ -797,9 +776,6 @@ function Shutdown()
   removePopupPermListener(gPopupPermListener);
 
   window.browserContentListener.close();
-  // Close the app core.
-  if (appCore)
-    appCore.close();
 }
 
 function Translate()
