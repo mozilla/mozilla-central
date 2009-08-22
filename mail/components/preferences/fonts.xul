@@ -66,13 +66,14 @@
 
     <preferences id="fontPreferences">
       <preference id="font.language.group"  name="font.language.group"  type="wstring"/>
+      <preference id="mail.fixed_width_messages" name="mail.fixed_width_messages" type="bool"/>
       <preference id="browser.display.use_document_fonts"
                   name="browser.display.use_document_fonts"
                   type="int"/>
       <preference id="intl.charset.default" name="intl.charset.default" type="wstring"/>
       <preference id="mailnews.send_default_charset" name="mailnews.send_default_charset" type="wstring"/>
       <preference id="mailnews.view_default_charset" name="mailnews.view_default_charset" type="wstring"/>
-      <preference id="mailnews.reply_in_default_charset" name="mailnews.reply_in_default_charset" type="bool"/>      
+      <preference id="mailnews.reply_in_default_charset" name="mailnews.reply_in_default_charset" type="bool"/>
     </preferences>
 
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
@@ -82,7 +83,8 @@
     <groupbox>
       <caption>
         <hbox align="center">
-          <label value="&language.label;" accesskey="&language.accesskey;" control="selectLangs"/>
+          <label value="&language.label;" accesskey="&language.accesskey;"
+                 control="selectLangs"/>
         </hbox>
         <menulist id="selectLangs" onsyncfrompreference="return gFontsDialog.readFontLanguageGroup();"
                   preference="font.language.group">
@@ -135,21 +137,23 @@
 
           <row align="center">
             <hbox align="center" pack="end">
-              <label accesskey="&proportional.accesskey;" control="defaultFontType">&proportional.label;</label>
+              <label accesskey="&proportional.accesskey;"
+                     control="defaultFontType">&proportional.label;</label>
             </hbox>
 
             <menulist id="defaultFontType" flex="1" style="width: 0px;">
               <menupopup>
                 <menuitem value="serif" label="&useDefaultFontSerif.label;"/>
-                <menuitem value="sans-serif" label="&useDefaultFontSansSerif.label;"/>
+                <menuitem value="sans-serif"
+                          label="&useDefaultFontSansSerif.label;"/>
               </menupopup>
             </menulist>
 
             <hbox align="center" pack="end">
-              <label value="&sizes.label;"
+              <label value="&size.label;"
                      accesskey="&proportionalSize.accesskey;"
                      control="sizeVar"/>
-            </hbox> 
+            </hbox>
 
             <menulist id="sizeVar" class="small-margin">
               <menupopup>
@@ -184,7 +188,8 @@
           </row>
           <row align="center">
             <hbox align="center" pack="end">
-              <label accesskey="&serif.accesskey;" control="serif">&serif.label;</label>
+              <label accesskey="&serif.accesskey;"
+                     control="serif">&serif.label;</label>
             </hbox>
             <menulist id="serif" flex="1" style="width: 0px;"
                       onsyncfrompreference="return gFontsDialog.readFontSelection(document.getElementById('serif'));"/>
@@ -192,7 +197,8 @@
           </row>
           <row align="center">
             <hbox align="center" pack="end">
-              <label accesskey="&sans-serif.accesskey;" control="sans-serif">&sans-serif.label;</label>
+              <label accesskey="&sans-serif.accesskey;"
+                     control="sans-serif">&sans-serif.label;</label>
             </hbox>
             <menulist id="sans-serif" flex="1" style="width: 0px;"
                       onsyncfrompreference="return gFontsDialog.readFontSelection(document.getElementById('sans-serif'));"/>
@@ -200,13 +206,15 @@
           </row>
           <row align="center">
             <hbox align="center" pack="end">
-              <label accesskey="&monospace.accesskey;" control="monospace">&monospace.label;</label>
+              <label accesskey="&monospace.accesskey;"
+                     control="monospace">&monospace.label;</label>
             </hbox>
             <menulist id="monospace" flex="1" style="width: 0px;" crop="right"
                       onsyncfrompreference="return gFontsDialog.readFontSelection(document.getElementById('monospace'));"/>
             <hbox align="center" pack="end">
-              <label accesskey="&monospaceSize.accesskey;" control="sizeMono">&sizes.label;</label>
-            </hbox> 
+              <label accesskey="&sizeMono.accesskey;"
+                     control="sizeMono">&size.label;</label>
+            </hbox>
             <menulist id="sizeMono" class="small-margin">
               <menupopup>
                 <menuitem value="8" label="8"/>
@@ -246,7 +254,8 @@
       <hbox flex="1">
         <spacer flex="1"/>
         <hbox align="center" pack="end">
-          <label accesskey="&minSize.accesskey;" control="minSize">&minSize.label;</label>
+          <label accesskey="&minSize.accesskey;"
+                 control="minSize">&minSize.label;</label>
           <menulist id="minSize">
             <menupopup>
               <menuitem value="0" label="&minSize.none;"/>
@@ -267,15 +276,27 @@
           </menulist>
         </hbox>
       </hbox>
+    </groupbox>
 
-      <separator class="thin"/>
-      <separator class="groove"/>
+    <groupbox>
+      <caption label="&fontControl.label;"/>
+
       <hbox>
-        <checkbox id="useDocumentFonts" 
-                  label="&useDocumentFonts.label;" accesskey="&useDocumentFonts.accesskey;"
+        <checkbox id="useDocumentFonts"
+                  label="&useDocumentFonts.label;"
+                  accesskey="&useDocumentFonts.accesskey;"
                   preference="browser.display.use_document_fonts"
                   onsyncfrompreference="return gFontsDialog.readUseDocumentFonts();"
                   onsynctopreference="return gFontsDialog.writeUseDocumentFonts();"/>
+      </hbox>
+
+      <hbox>
+        <checkbox id="mailFixedWidthMessages"
+                  label="&useFixedWidthForPlainText.label;"
+                  accesskey="&fixedWidth.accesskey;"
+                  preference="mail.fixed_width_messages"
+                  onsyncfrompreference="return gFontsDialog.readFixedWidthForPlainText();"
+                  onsynctopreference="return gFontsDialog.writeFixedWidthForPlainText();"/>
       </hbox>
     </groupbox>
 
@@ -294,9 +315,10 @@
         <rows>
           <row align="center" class="indent">
             <label control="sendDefaultCharsetList"
-                   value="&sendDefaultCharset.label;" accesskey="&sendDefaultCharset.accesskey;"/>
-
-            <menulist id="sendDefaultCharsetList" flex="1" preference="mailnews.send_default_charset" 
+                   value="&sendDefaultCharset.label;"
+                   accesskey="&sendDefaultCharset.accesskey;"/>
+            <menulist id="sendDefaultCharsetList" flex="1"
+                      preference="mailnews.send_default_charset"
                       onsyncfrompreference="return gFontsDialog.readDefaultCharset();">
               <menupopup id="sendDefaultCharset-menupopup">
               </menupopup>
@@ -305,8 +327,10 @@
 
           <row align="center" class="indent">
             <label control="viewDefaultCharsetList"
-                   value="&viewDefaultCharsetList.label;" accesskey="&viewDefaultCharsetList.accesskey;"/>
-            <menulist id="viewDefaultCharsetList" preference="mailnews.view_default_charset">
+                   value="&viewDefaultCharsetList.label;"
+                   accesskey="&viewDefaultCharsetList.accesskey;"/>
+            <menulist id="viewDefaultCharsetList"
+                      preference="mailnews.view_default_charset">
               <menupopup id="viewDefaultCharset-menupopup">
               </menupopup>
             </menulist>

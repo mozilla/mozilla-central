@@ -46,10 +46,101 @@ var gDisplayPane = {
     if (preference.value)
       document.getElementById("displayPrefs").selectedIndex = preference.value;
 
+    this._rebuildFonts();
+    var menulist = document.getElementById("defaultFont");
+    if (menulist.selectedIndex == -1) {
+      menulist.insertItemAt(0, "", "", "");
+      menulist.selectedIndex = 0;
+    }
+
     this.mInitialized = true;
-    
-    this.mTagListBox = document.getElementById('tagList');    
+
+    this.mTagListBox = document.getElementById("tagList");
     this.buildTagList();
+  },
+
+  // FONTS
+
+  /**
+   * Populates the default font list in UI.
+   */
+  _rebuildFonts: function ()
+  {
+    var langGroupPref = document.getElementById("font.language.group");
+    this._selectDefaultLanguageGroup(langGroupPref.value,
+          this._readDefaultFontTypeForLanguage(langGroupPref.value) == "serif");
+  },
+
+  /**
+   * Select the default language group.
+   */
+  _selectDefaultLanguageGroup: function (aLanguageGroup, aIsSerif)
+  {
+    const kFontNameFmtSerif         = "font.name.serif.%LANG%";
+    const kFontNameFmtSansSerif     = "font.name.sans-serif.%LANG%";
+    const kFontNameListFmtSerif     = "font.name-list.serif.%LANG%";
+    const kFontNameListFmtSansSerif = "font.name-list.sans-serif.%LANG%";
+    const kFontSizeFmtVariable      = "font.size.variable.%LANG%";
+
+    var prefs = [{format: aIsSerif ? kFontNameFmtSerif : kFontNameFmtSansSerif,
+                  type: "fontname",
+                  element: "defaultFont",
+                  fonttype: aIsSerif ? "serif" : "sans-serif" },
+                 {format: aIsSerif ? kFontNameListFmtSerif : kFontNameListFmtSansSerif,
+                  type: "unichar",
+                  element: null,
+                  fonttype: aIsSerif ? "serif" : "sans-serif" },
+                 {format: kFontSizeFmtVariable,
+                  type: "int",
+                  element: "defaultFontSize",
+                  fonttype: null }];
+
+    var preferences = document.getElementById("displayPreferences");
+    for (var i = 0; i < prefs.length; ++i) {
+      var preference = document.getElementById(prefs[i].format.replace(/%LANG%/,
+                                                               aLanguageGroup));
+      if (!preference) {
+        preference = document.createElement("preference");
+        var name = prefs[i].format.replace(/%LANG%/, aLanguageGroup);
+        preference.id = name;
+        preference.setAttribute("name", name);
+        preference.setAttribute("type", prefs[i].type);
+        preferences.appendChild(preference);
+      }
+
+      if (!prefs[i].element)
+        continue;
+
+      var element = document.getElementById(prefs[i].element);
+      if (element) {
+        element.setAttribute("preference", preference.id);
+
+        if (prefs[i].fonttype)
+          FontBuilder.buildFontList(aLanguageGroup, prefs[i].fonttype, element);
+
+        preference.setElementValue(element);
+      }
+    }
+  },
+
+  /**
+   * Returns the type of the current default font for the language denoted by
+   * aLanguageGroup.
+   */
+  _readDefaultFontTypeForLanguage: function (aLanguageGroup)
+  {
+    const kDefaultFontType = "font.default.%LANG%";
+    var defaultFontTypePref = kDefaultFontType.replace(/%LANG%/, aLanguageGroup);
+    var preference = document.getElementById(defaultFontTypePref);
+    if (!preference) {
+      preference = document.createElement("preference");
+      preference.id = defaultFontTypePref;
+      preference.setAttribute("name", defaultFontTypePref);
+      preference.setAttribute("type", "string");
+      preference.setAttribute("onchange", "gDisplayPane._rebuildFonts();");
+      document.getElementById("displayPreferences").appendChild(preference);
+    }
+    return preference.value;
   },
 
   tabSelectionChanged: function ()
@@ -59,11 +150,16 @@ var gDisplayPane = {
               .valueFromPreferences = document.getElementById("displayPrefs").selectedIndex;
   },
 
-  fontOptionsDialog: function()
+  /**
+   * Displays the fonts dialog, where web page font names and sizes can be
+   * configured.
+   */
+  configureFonts: function ()
   {
-    document.documentElement.openSubDialog("chrome://messenger/content/preferences/fonts.xul", "", null);  
+    document.documentElement.openSubDialog("chrome://messenger/content/preferences/fonts.xul",
+                                           "", null);
   },
-  
+
   // appends the tag to the tag list box
   appendTagItem: function(aTagName, aKey, aColor)
   {
@@ -71,7 +167,7 @@ var gDisplayPane = {
     item.style.color = aColor;
     return item;
   },
-   
+
   buildTagList: function()
   {
     var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
@@ -83,7 +179,7 @@ var gDisplayPane = {
       this.appendTagItem(taginfo.tag, taginfo.key, taginfo.color);
     }
   },
-  
+
   removeTag: function()
   {
     var index = this.mTagListBox.selectedIndex;
@@ -97,8 +193,8 @@ var gDisplayPane = {
       this.mTagListBox.selectedIndex = index < numItemsInListBox ? index : numItemsInListBox - 1;
     }
   },
-  
-  /** 
+
+  /**
    * Open the edit tag dialog
    */
   editTag: function()
@@ -113,11 +209,11 @@ var gDisplayPane = {
                   "",
                   "chrome,titlebar,modal",
                   args);
-    }  
+    }
   },
 
   addTag: function()
-  {  
+  {
     var args = {result: "", okCallback: addTagCallback};
     var dialog = window.openDialog(
                  "chrome://messenger/content/newTagDialog.xul",
@@ -131,10 +227,10 @@ function addTagCallback(aName, aColor)
 {
   var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
                     .getService(Components.interfaces.nsIMsgTagService);
-  tagService.addTag(aName, aColor, '');
- 
+  tagService.addTag(aName, aColor, "");
+
   var item = gDisplayPane.appendTagItem(aName, tagService.getKeyForTag(aName), aColor);
-  var tagListBox = document.getElementById('tagList');
+  var tagListBox = document.getElementById("tagList");
   tagListBox.ensureElementIsVisible(item);
   tagListBox.selectItem(item);
   tagListBox.focus();
@@ -143,7 +239,7 @@ function addTagCallback(aName, aColor)
 function editTagCallback()
 {
   // update the values of the selected item
-  var tagListEl = document.getElementById('tagList');
+  var tagListEl = document.getElementById("tagList");
   var index = tagListEl.selectedIndex;
   if (index >= 0)
   {
@@ -154,5 +250,5 @@ function editTagCallback()
     // update the color and label elements
     tagElToEdit.setAttribute("label", tagService.getTagForKey(key));
     tagElToEdit.style.color = tagService.getColorForKey(key);
-  }        
+  }
 }

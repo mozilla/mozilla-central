@@ -15,12 +15,7 @@
 <!ENTITY color.label                      "Color:">
 <!ENTITY color.accesskey                  "c">
 <!ENTITY displayWidth.label               "Plain Text Messages">
-<!ENTITY plainText.label                  "Use the following font:">
 <!ENTITY displayText.label                "When displaying quoted plain text messages:">
-<!ENTITY fixedWidth.label                 "Fixed width font">
-<!ENTITY fixedWidth.accesskey             "x">
-<!ENTITY variableWidth.label              "Variable width font">
-<!ENTITY variableWidth.accesskey          "V">
 <!ENTITY colors.label                     "Colors">
 <!ENTITY overrideColors.label             "When displaying messages, use the following colors:">
 <!ENTITY textColor.label                  "Text Color:">
@@ -42,7 +37,10 @@
 <!ENTITY removeTagButton.accesskey "D">
 
 <!-- Fonts -->
-<!ENTITY fontAndEncodingsDescription.label  "Configure the fonts and encodings used by &brandShortName;">
-<!ENTITY fontsAndEncodingsCaption.label      "Fonts &amp; Encodings">
-<!ENTITY fontOptions.accesskey   "F">
-<!ENTITY fontOptions.label       "Fonts…">
+<!ENTITY fontsAndColors.label    "Fonts">
+<!ENTITY defaultFont.label       "Default font:">
+<!ENTITY defaultFont.accesskey   "D">
+<!ENTITY defaultSize.label       "Size:">
+<!ENTITY defaultSize.accesskey   "S">
+<!ENTITY fontOptions.accesskey   "A">
+<!ENTITY fontOptions.label       "Advanced…">

@@ -51,11 +51,11 @@ var gFontsDialog = {
   _init: function()
   {
     // build the charset menu list. We do this by hand instead of using the xul template
-    // builder because of Bug #285076, 
+    // builder because of Bug #285076,
     this.createCharsetMenus(document.getElementById("viewDefaultCharset-menupopup"), "NC:DecodersRoot",
-                            document.getElementById('mailnews.view_default_charset').value);  
+                            document.getElementById('mailnews.view_default_charset').value);
   },
-  
+
   _selectLanguageGroup: function (aLanguageGroup)
   {
     var prefs = [{ format: kDefaultFontType,          type: "string",   element: "defaultFontType", fonttype: null},
@@ -79,14 +79,14 @@ var gFontsDialog = {
         preference.setAttribute("type", prefs[i].type);
         preferences.appendChild(preference);
       }
-      
+
       if (!prefs[i].element)
         continue;
-        
+
       var element = document.getElementById(prefs[i].element);
       if (element) {
         element.setAttribute("preference", preference.id);
-      
+
         if (prefs[i].fonttype)
           FontBuilder.buildFontList(aLanguageGroup, prefs[i].fonttype, element);
 
@@ -105,26 +105,26 @@ var gFontsDialog = {
   readFontSelection: function (aElement)
   {
     // Determine the appropriate value to select, for the following cases:
-    // - there is no setting 
+    // - there is no setting
     // - the font selected by the user is no longer present (e.g. deleted from
     //   fonts folder)
     var preference = document.getElementById(aElement.getAttribute("preference"));
     if (preference.value) {
       var fontItems = aElement.getElementsByAttribute("value", preference.value);
-    
+
       // There is a setting that actually is in the list. Respect it.
       if (fontItems.length > 0)
         return undefined;
     }
-    
+
     var defaultValue = aElement.firstChild.firstChild.getAttribute("value");
     var languagePref = document.getElementById("font.language.group");
     preference = document.getElementById("font.name-list." + aElement.id + "." + languagePref.value);
     if (!preference || !preference.hasUserValue)
       return defaultValue;
-    
+
     var fontNames = preference.value.split(",");
-    
+
     for (var i = 0; i < fontNames.length; ++i) {
       var fontName = fontNames[i].trim();
       fontItems = aElement.getElementsByAttribute("value", fontName);
@@ -135,27 +135,40 @@ var gFontsDialog = {
       return fontItems[0].getAttribute("value");
     return defaultValue;
   },
-  
+
   readUseDocumentFonts: function ()
   {
     var preference = document.getElementById("browser.display.use_document_fonts");
     return preference.value == 1;
   },
-  
+
   writeUseDocumentFonts: function ()
   {
     var useDocumentFonts = document.getElementById("useDocumentFonts");
-    return useDocumentFonts.checked ? 1 : 0;
+    return useDocumentFonts.checked;
   },
+
+  readFixedWidthForPlainText: function ()
+  {
+    var preference = document.getElementById("mail.fixed_width_messages");
+    return preference.value == 1;
+  },
+
+  writeFixedWidthForPlainText: function ()
+  {
+    var mailFixedWidthMessages = document.getElementById("mailFixedWidthMessages");
+    return mailFixedWidthMessages.checked;
+  },
+
   addMenuItem: function(aMenuPopup, aLabel, aValue)
-  { 
+  {
     var menuItem = document.createElement('menuitem');
     menuItem.setAttribute('label', aLabel);
     menuItem.setAttribute('value', aValue);
     aMenuPopup.appendChild(menuItem);
   },
 
-  readRDFString: function(aDS,aRes,aProp) 
+  readRDFString: function(aDS, aRes, aProp)
   {
     var n = aDS.GetTarget(aRes, aProp, true);
     return (n) ? n.QueryInterface(Components.interfaces.nsIRDFLiteral).Value : "";
@@ -177,30 +190,30 @@ var gFontsDialog = {
     var charset;
     var availableCharsets = rdfContainer.GetElements();
 
-    for (var i = 0; i < rdfContainer.GetCount(); i++) 
+    for (var i = 0; i < rdfContainer.GetCount(); i++)
     {
       charset = availableCharsets.getNext().QueryInterface(Components.interfaces.nsIRDFResource);
 
       this.addMenuItem(aMenuPopup, this.readRDFString(rdfDataSource, charset, kNC_Name), charset.Value);
       if (charset.Value == aPreferenceValue)
         aMenuPopup.parentNode.value = charset.Value;
-    }         
+    }
   },
-  
+
   mCharsetMenuInitialized: false,
   readDefaultCharset: function()
   {
-    if (!this.mCharsetMenuInitialized) 
+    if (!this.mCharsetMenuInitialized)
     {
       Components.classes["@mozilla.org/observer-service;1"]
                 .getService(Components.interfaces.nsIObserverService)
                 .notifyObservers(null, "charsetmenu-selected", "mailedit");
       // build the charset menu list. We do this by hand instead of using the xul template
-      // builder because of Bug #285076, 
+      // builder because of Bug #285076,
       this.createCharsetMenus(document.getElementById("sendDefaultCharset-menupopup"), "NC:MaileditCharsetMenuRoot",
                               document.getElementById('mailnews.send_default_charset').value);
       this.mCharsetMenuInitialized = true;
     }
     return undefined;
-  },  
+  },
 };
