@@ -54,6 +54,45 @@
         ]]></body>
       </method>
       
+      <method name="autoFillInput">
+        <parameter name="aSessionName"/>
+        <parameter name="aResults"/>
+        <parameter name="aUseFirstMatchIfNoDefault"/>
+        <body><![CDATA[
+          if (this.mInputElt.selectionEnd < this.currentSearchString.length ||
+              this.mDefaultMatchFilled)
+            return;
+
+          if (!this.mFinishAfterSearch && this.autoFill &&
+              this.mLastKeyCode != KeyEvent.DOM_VK_BACK_SPACE &&
+              this.mLastKeyCode != KeyEvent.DOM_VK_DELETE) {
+            var indexToUse = aResults.defaultItemIndex;
+            if (aUseFirstMatchIfNoDefault && indexToUse == -1)
+              indexToUse = 0;
+
+            if (indexToUse != -1) {
+              var result = this.getSessionValueAt(aSessionName, indexToUse);
+              var entry = this.value;
+              var suffix = "";
+              if (/^ftp:\/\/ftp\b/.test(result) &&
+                  result.lastIndexOf("ftp://" + entry, 0) == 0)
+                suffix = result.slice(entry.length + 6);
+              else if (!/^http:\/\/ftp\b/.test(result) &&
+                       result.lastIndexOf("http://" + entry, 0) == 0)
+                suffix = result.slice(entry.length + 7);
+              else if (result.lastIndexOf(entry, 0) == 0)
+                suffix = result.slice(entry.length);
+
+              if (suffix) {
+                this.setTextValue(this.value + suffix);
+                this.mInputElt.setSelectionRange(entry.length, this.value.length);
+                this.mDefaultMatchFilled = true;
+              }
+              this.mNeedToComplete = true;
+            }
+          }
+        ]]></body>
+      </method>
     </implementation>
   </binding>
   
