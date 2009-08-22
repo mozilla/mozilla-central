@@ -277,6 +277,49 @@ public:
      */
     PRUint32 getTraitCount(CorpusToken *token, PRUint32 aTraitId);
 
+    /**
+     * Add (or remove) data from a particular file to the corpus data.
+     *
+     * @param aFile       the file with the data, in the format:
+     *
+     *                    Format of the trait file for version 1:
+     *                    [0xFCA93601]  (the 01 is the version)
+     *                    for each trait to write:
+     *                    [id of trait to write] (0 means end of list)
+     *                    [number of messages per trait]
+     *                    for each token with non-zero count
+     *                    [count]
+     *                    [length of word]word
+     *
+     * @param aIsAdd      should the data be added, or removed? PR_TRUE if adding,
+     *                    else removing.
+     *
+     * @param aRemapCount number of items in the parallel arrays aFromTraits,
+     *                    aToTraits. These arrays allow conversion of the
+     *                    trait id stored in the file (which may be originated
+     *                    externally) to the trait id used in the local corpus
+     *                    (which is defined locally using nsIMsgTraitService).
+     *
+     * @param aFromTraits array of trait ids used in aFile. If aFile contains
+     *                    trait ids that are not in this array, they are not
+     *                    remapped, but assummed to be local trait ids.
+     *
+     * @param aToTraits   array of trait ids, corresponding to elements of
+     *                    aFromTraits, that represent the local trait ids to be
+     *                    used in storing data from aFile into the local corpus.
+     *
+     */
+    nsresult UpdateData(nsILocalFile *aFile, PRBool aIsAdd,
+                        PRUint32 aRemapCount, PRUint32 *aFromTraits,
+                        PRUint32 *aToTraits);
+
+    /**
+     * remove all counts (message and tokens) for a trait id
+     *
+     * @param aTrait  trait id for the trait to remove
+     */
+    nsresult ClearTrait(PRUint32 aTrait);
+
 protected:
 
     /**
@@ -291,8 +334,16 @@ protected:
 
     /**
      * read token strings from the data file
+     *
+     * @param stream     file stream with token data
+     * @param fileSize   file size
+     * @param aTraitId   id for the trait whose counts will be read
+     * @param aIsAdd     true to add the counts, false to remove them
+     *
+     * @return           true if successful, false if error
      */
-    PRBool readTokens(FILE* stream, PRInt64 fileSize, PRUint32 aTraitId);
+    PRBool readTokens(FILE* stream, PRInt64 fileSize, PRUint32 aTraitId,
+                      PRBool aIsAdd);
 
     /**
      * write token strings to the data file
@@ -326,11 +377,12 @@ protected:
                                            // the corresponding trait ID
 };
 
-class nsBayesianFilter : public nsIJunkMailPlugin {
+class nsBayesianFilter : public nsIJunkMailPlugin, nsIMsgCorpus {
 public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIMSGFILTERPLUGIN
     NS_DECL_NSIJUNKMAILPLUGIN
+    NS_DECL_NSIMSGCORPUS
 
     nsBayesianFilter();
     virtual ~nsBayesianFilter();

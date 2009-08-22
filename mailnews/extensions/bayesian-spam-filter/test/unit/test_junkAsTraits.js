@@ -520,10 +520,11 @@ function startCommand()
     case kCounts:
       // test counts
       let msgCount = {};
-      let tokenCount = nsIJunkMailPlugin.corpusCounts(null, {});
-      nsIJunkMailPlugin.corpusCounts(kJunkTrait, msgCount);
+      let nsIMsgCorpus = nsIJunkMailPlugin.QueryInterface(Ci.nsIMsgCorpus);
+      let tokenCount = nsIMsgCorpus.corpusCounts(null, {});
+      nsIMsgCorpus.corpusCounts(kJunkTrait, msgCount);
       let junkCount = msgCount.value;
-      nsIJunkMailPlugin.corpusCounts(kGoodTrait, msgCount);
+      nsIMsgCorpus.corpusCounts(kGoodTrait, msgCount);
       let goodCount = msgCount.value;
       print("tokenCount, junkCount, goodCount is " + tokenCount, junkCount, goodCount);
       do_check_eq(tokenCount, gTest.tokenCount);

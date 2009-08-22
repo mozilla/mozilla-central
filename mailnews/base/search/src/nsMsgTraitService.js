@@ -165,6 +165,64 @@ nsMsgTraitService.prototype =
     aAntiIndices.value = antiIndices;
     return;
   },
+
+  addAlias: function addAlias(aTraitIndex, aTraitAliasIndex)
+  {
+    let aliasesString = "";
+    try {
+      aliasesString = traitsBranch.getCharPref("aliases." + aTraitIndex);
+    }
+    catch (e) {}
+    let aliases;
+    if (aliasesString.length)
+      aliases = aliasesString.split(",");
+    else
+      aliases = [];
+    if (aliases.indexOf(aTraitAliasIndex.toString()) == -1)
+    {
+      aliases.push(aTraitAliasIndex);
+      traitsBranch.setCharPref("aliases." + aTraitIndex, aliases.join());
+    }
+  },
+
+  removeAlias: function removeAlias(aTraitIndex, aTraitAliasIndex)
+  {
+    let aliasesString = "";
+    try {
+      aliasesString = traitsBranch.getCharPref("aliases." + aTraitIndex);
+    }
+    catch (e) {
+      return;
+    }
+    let aliases;
+    if (aliasesString.length)
+      aliases = aliasesString.split(",");
+    else
+      aliases = [];
+    let location;
+    if ((location = aliases.indexOf(aTraitAliasIndex.toString())) != -1)
+    {
+      aliases.splice(location, 1);
+      traitsBranch.setCharPref("aliases." + aTraitIndex, aliases.join());
+    }
+  },
+
+  getAliases: function getAliases(aTraitIndex, aLength)
+  {
+    let aliasesString = "";
+    try {
+      aliasesString = traitsBranch.getCharPref("aliases." + aTraitIndex);
+    }
+    catch (e) {}
+
+    let aliases;
+    if (aliasesString.length)
+      aliases = aliasesString.split(",");
+    else
+      aliases = [];
+    aLength.value = aliases.length;
+    return aliases;
+  },
 };
 
 // initialization

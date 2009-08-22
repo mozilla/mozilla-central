@@ -90,6 +90,30 @@ function run_test()
   do_check_eq(proArray.value[1], proIndex);
   do_check_eq(antiArray.value[1], antiIndex);
 
+  // check of aliases
+  // add three random aliases
+  ts.addAlias(1, 501);
+  ts.addAlias(1, 502);
+  ts.addAlias(1, 601);
+  let aliases = ts.getAliases(1, {});
+  do_check_eq(aliases[0], 501);
+  do_check_eq(aliases[1], 502);
+  do_check_eq(aliases[2], 601);
+
+  // remove the middle one
+  ts.removeAlias(1, 502);
+  aliases = ts.getAliases(1, {});
+  do_check_eq(aliases.length, 2);
+  do_check_eq(aliases[0], 501);
+  do_check_eq(aliases[1], 601);
+
+  // try to add an existing value
+  ts.addAlias(1, 501);
+  aliases = ts.getAliases(1, {});
+  do_check_eq(aliases.length, 2);
+  do_check_eq(aliases[0], 501);
+  do_check_eq(aliases[1], 601);
+
   // now let's make sure this got saved in preferences
   do_check_eq(proId, traitsBranch.getCharPref("id." + proIndex));
   do_check_eq(proName, traitsBranch.getCharPref("name." + proIndex));

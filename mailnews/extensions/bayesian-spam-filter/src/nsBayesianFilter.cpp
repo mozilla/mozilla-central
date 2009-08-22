@@ -87,6 +87,7 @@
 #include "nsIncompleteGamma.h"
 #include <math.h>
 #include <prmem.h>
+#include "nsIMsgTraitService.h"
 
 static PRLogModuleInfo *BayesianFilterLogModule = nsnull;
 
@@ -1201,7 +1202,8 @@ NS_IMETHODIMP TokenStreamListener::OnStopRequest(nsIRequest *aRequest, nsISuppor
 
 /* Implementation file */
 
-NS_IMPL_ISUPPORTS2(nsBayesianFilter, nsIMsgFilterPlugin, nsIJunkMailPlugin)
+NS_IMPL_ISUPPORTS3(nsBayesianFilter, nsIMsgFilterPlugin,
+                   nsIJunkMailPlugin, nsIMsgCorpus)
 
 nsBayesianFilter::nsBayesianFilter()
     :   mTrainingDataDirty(PR_FALSE)
@@ -1298,7 +1300,7 @@ public:
                       PRUint32 aNumMessagesToClassify,
                       const char **aMessageURIs)
     :   mFilter(aFilter),
-        mSupports(aFilter),
+        mJunkMailPlugin(aFilter),
         mJunkListener(aJunkListener),
         mTraitListener(aTraitListener),
         mDetailListener(aDetailListener),
@@ -1321,7 +1323,7 @@ public:
                       PRUint32 aNumMessagesToClassify,
                       const char **aMessageURIs)
     :   mFilter(aFilter),
-        mSupports(aFilter),
+        mJunkMailPlugin(aFilter),
         mJunkListener(aJunkListener),
         mTraitListener(nsnull),
         mDetailListener(nsnull),
@@ -1378,7 +1380,7 @@ public:
 
 private:
     nsBayesianFilter* mFilter;
-    nsCOMPtr<nsISupports> mSupports;
+    nsCOMPtr<nsIJunkMailPlugin> mJunkMailPlugin;
     nsCOMPtr<nsIJunkMailClassificationListener> mJunkListener;
     nsCOMPtr<nsIMsgTraitClassificationListener> mTraitListener;
     nsCOMPtr<nsIMsgTraitDetailListener> mDetailListener;
@@ -1490,6 +1492,14 @@ void nsBayesianFilter::classifyMessage(
     nsAutoTArray<PRUint32, kTraitAutoCapacity> numProMessages;
     // anti message counts per trait index
     nsAutoTArray<PRUint32, kTraitAutoCapacity> numAntiMessages;
+    // array of pro aliases per trait index
+    nsAutoTArray<PRUint32*, kTraitAutoCapacity > proAliasArrays;
+    // number of pro aliases per trait index
+    nsAutoTArray<PRUint32, kTraitAutoCapacity > proAliasesLengths;    
+    // array of anti aliases per trait index
+    nsAutoTArray<PRUint32*, kTraitAutoCapacity> antiAliasArrays;
+    // number of anti aliases per trait index
+    nsAutoTArray<PRUint32, kTraitAutoCapacity > antiAliasesLengths;    
     // construct the outgoing listener arrays
     nsAutoTArray<PRUint32, kTraitAutoCapacity> traits;
     nsAutoTArray<PRUint32, kTraitAutoCapacity> percents;
@@ -1499,14 +1509,64 @@ void nsBayesianFilter::classifyMessage(
       percents.SetCapacity(traitCount);
       numProMessages.SetCapacity(traitCount);
       numAntiMessages.SetCapacity(traitCount);
+      proAliasesLengths.SetCapacity(traitCount);
+      antiAliasesLengths.SetCapacity(traitCount);
+      proAliasArrays.SetCapacity(traitCount);
+      antiAliasArrays.SetCapacity(traitCount);
     }
 
+    nsresult rv;
+    nsCOMPtr<nsIMsgTraitService> traitService(do_GetService("@mozilla.org/msg-trait-service;1", &rv));
+    if (NS_FAILED(rv))
+    {
+      NS_ERROR("Failed to get trait service");
+      PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("Failed to get trait service"));
+    }
+
+    // get aliases and message counts for the pro and anti traits
     for (PRUint32 traitIndex = 0; traitIndex < traitCount; traitIndex++)
     {
-      numProMessages.AppendElement(
-        mCorpus.getMessageCount(aProTraits[traitIndex]));
-      numAntiMessages.AppendElement(
-        mCorpus.getMessageCount(aAntiTraits[traitIndex]));
+      nsresult rv;
+
+      // pro trait
+      PRUint32 proAliasesLength = 0;
+      PRUint32* proAliases = nsnull;
+      PRUint32 proTrait = aProTraits[traitIndex];
+      if (traitService)
+      {
+        rv = traitService->GetAliases(proTrait, &proAliasesLength, &proAliases);
+        if (NS_FAILED(rv))
+        {
+          NS_ERROR("trait service failed to get aliases");
+          PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("trait service failed to get aliases"));
+        }
+      }
+      proAliasesLengths.AppendElement(proAliasesLength);
+      proAliasArrays.AppendElement(proAliases);
+      PRUint32 proMessageCount = mCorpus.getMessageCount(proTrait);
+      for (PRUint32 aliasIndex = 0; aliasIndex < proAliasesLength; aliasIndex++)
+        proMessageCount += mCorpus.getMessageCount(proAliases[aliasIndex]);
+      numProMessages.AppendElement(proMessageCount);
+
+      // anti trait
+      PRUint32 antiAliasesLength = 0;
+      PRUint32* antiAliases = nsnull;
+      PRUint32 antiTrait = aAntiTraits[traitIndex];
+      if (traitService)
+      {
+        rv = traitService->GetAliases(antiTrait, &antiAliasesLength, &antiAliases);
+        if (NS_FAILED(rv))
+        {
+          NS_ERROR("trait service failed to get aliases");
+          PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("trait service failed to get aliases"));
+        }
+      }
+      antiAliasesLengths.AppendElement(antiAliasesLength);
+      antiAliasArrays.AppendElement(antiAliases);
+      PRUint32 antiMessageCount = mCorpus.getMessageCount(antiTrait);
+      for (PRUint32 aliasIndex = 0; aliasIndex < antiAliasesLength; aliasIndex++)
+        antiMessageCount += mCorpus.getMessageCount(antiAliases[aliasIndex]);
+      numAntiMessages.AppendElement(antiMessageCount);
     }
 
     for (PRUint32 i = 0; i < tokenCount; ++i)
@@ -1517,10 +1577,17 @@ void nsBayesianFilter::classifyMessage(
         continue;
       for (PRUint32 traitIndex = 0; traitIndex < traitCount; traitIndex++)
       {
-        double proCount =
-          static_cast<double>(mCorpus.getTraitCount(t, aProTraits[traitIndex]));
-        double antiCount =
-          static_cast<double>(mCorpus.getTraitCount(t, aAntiTraits[traitIndex]));
+        PRUint32 iProCount = mCorpus.getTraitCount(t, aProTraits[traitIndex]);
+        // add in any counts for aliases to proTrait
+        for (PRUint32 aliasIndex = 0; aliasIndex < proAliasesLengths[traitIndex]; aliasIndex++)
+          iProCount += mCorpus.getTraitCount(t, proAliasArrays[traitIndex][aliasIndex]);
+        double proCount = static_cast<double>(iProCount);
+
+        PRUint32 iAntiCount = mCorpus.getTraitCount(t, aAntiTraits[traitIndex]);
+        // add in any counts for aliases to antiTrait
+        for (PRUint32 aliasIndex = 0; aliasIndex < antiAliasesLengths[traitIndex]; aliasIndex++)
+          iAntiCount += mCorpus.getTraitCount(t, antiAliasArrays[traitIndex][aliasIndex]);
+        double antiCount = static_cast<double>(iAntiCount);
 
         double prob, denom;
         // Prevent a divide by zero error by setting defaults for prob
@@ -1715,6 +1782,12 @@ void nsBayesianFilter::classifyMessage(
         traits.AppendElement(aProTraits[traitIndex]);
         percents.AppendElement(proPercent);
       }
+
+      // free aliases arrays returned from XPCOM
+      if (proAliasesLengths[traitIndex])
+        NS_Free(proAliasArrays[traitIndex]);
+      if (antiAliasesLengths[traitIndex])
+        NS_Free(antiAliasArrays[traitIndex]);
     }
 
     if (aTraitListener)
@@ -1903,7 +1976,7 @@ public:
                   nsTArray<PRUint32>& aNewClassifications,
                   nsIJunkMailClassificationListener* aJunkListener,
                   nsIMsgTraitClassificationListener* aTraitListener)
-      :   mFilter(filter), mSupports(filter), mJunkListener(aJunkListener),
+      :   mFilter(filter), mJunkMailPlugin(filter), mJunkListener(aJunkListener),
           mTraitListener(aTraitListener),
           mOldClassifications(aOldClassifications),
           mNewClassifications(aNewClassifications)
@@ -1920,7 +1993,7 @@ public:
 
 private:
   nsBayesianFilter* mFilter;
-  nsCOMPtr<nsISupports> mSupports;
+  nsCOMPtr<nsIJunkMailPlugin> mJunkMailPlugin;
   nsCOMPtr<nsIJunkMailClassificationListener> mJunkListener;
   nsCOMPtr<nsIMsgTraitClassificationListener> mTraitListener;
   nsTArray<PRUint32> mOldClassifications;
@@ -2122,6 +2195,8 @@ NS_IMETHODIMP nsBayesianFilter::DetailMessage(const char *aMsgURI,
   return tokenizeMessage(aMsgURI, aMsgWindow, analyzer);
 }
 
+// nsIMsgCorpus implementation
+
 NS_IMETHODIMP nsBayesianFilter::CorpusCounts(PRUint32 aTrait,
                                              PRUint32 *aMessageCount,
                                              PRUint32 *aTokenCount)
@@ -2135,6 +2210,33 @@ NS_IMETHODIMP nsBayesianFilter::CorpusCounts(PRUint32 aTrait,
     return NS_OK;
   }
   return NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP nsBayesianFilter::ClearTrait(PRUint32 aTrait)
+{
+    return mCorpus.ClearTrait(aTrait);
+}
+
+NS_IMETHODIMP
+nsBayesianFilter::UpdateData(nsILocalFile *aFile,
+                             PRBool aIsAdd,
+                             PRUint32 aRemapCount,
+                             PRUint32 *aFromTraits,
+                             PRUint32 *aToTraits)
+{
+  return mCorpus.UpdateData(aFile, aIsAdd, aRemapCount, aFromTraits, aToTraits);
+}
+
+NS_IMETHODIMP
+nsBayesianFilter::GetTokenCount(const nsACString &aWord,
+                                PRUint32 aTrait,
+                                PRUint32 *aCount)
+{
+  NS_ENSURE_ARG_POINTER(aCount);
+  CorpusToken* t = mCorpus.get(PromiseFlatCString(aWord).get());
+  PRUint32 count = mCorpus.getTraitCount(t, aTrait);
+  *aCount = count;
+  return NS_OK;
 }
 
 /* Corpus Store */
@@ -2262,7 +2364,8 @@ PRBool CorpusStore::writeTokens(FILE* stream, PRBool shrink, PRUint32 aTraitId)
   return PR_TRUE;
 }
 
-PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize, PRUint32 aTraitId)
+PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize,
+                               PRUint32 aTraitId, PRBool aIsAdd)
 {
     PRUint32 tokenCount;
     if (readUInt32(stream, &tokenCount) != 1)
@@ -2302,7 +2405,10 @@ PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize, PRUint32 aTraitId
             break;
         fpos += size;
         buffer[size] = '\0';
-        add(buffer, aTraitId, count);
+        if (aIsAdd)
+          add(buffer, aTraitId, count);
+        else
+          remove(buffer, aTraitId, count);
     }
 
     delete[] buffer;
@@ -2483,8 +2589,8 @@ void CorpusStore::readTrainingData()
         (memcmp(cookie, kMagicCookie, sizeof(cookie)) == 0) &&
         (readUInt32(stream, &goodMessageCount) == 1) &&
         (readUInt32(stream, &junkMessageCount) == 1) &&
-         readTokens(stream, fileSize, kGoodTrait) &&
-         readTokens(stream, fileSize, kJunkTrait))) {
+         readTokens(stream, fileSize, kGoodTrait, PR_TRUE) &&
+         readTokens(stream, fileSize, kJunkTrait, PR_TRUE))) {
       NS_WARNING("failed to read training data.");
       PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("failed to read training data."));
   }
@@ -2508,39 +2614,9 @@ void CorpusStore::readTrainingData()
   if (NS_FAILED(rv) || !exists)
     return;
 
-  rv = mTraitFile->OpenANSIFileDesc("rb", &stream);
+  rv = UpdateData(mTraitFile, PR_TRUE, 0, nsnull, nsnull);
+
   if (NS_FAILED(rv))
-    return;
-
-  rv = mTraitFile->GetFileSize(&fileSize);
-  if (NS_FAILED(rv))
-    return;
-
-  PRBool error;
-
-  while(1) // break on error or done
-  {
-    if (error = (fread(cookie, sizeof(cookie), 1, stream) != 1))
-      break;
-
-    if (error = memcmp(cookie, kTraitCookie, sizeof(cookie)))
-      break;
-
-    PRUint32 trait;
-    while ( !(error = (readUInt32(stream, &trait) != 1)) && trait)
-    {
-      PRUint32 count;
-      if (error = (readUInt32(stream, &count) != 1))
-        break;
-
-      setMessageCount(trait, count);
-
-      if (error = !readTokens(stream, fileSize, trait))
-        break;
-    }
-    break;
-  }
-  if (error)
   {
     NS_WARNING("failed to read training data.");
     PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("failed to read training data."));
@@ -2683,4 +2759,88 @@ void CorpusStore::setMessageCount(PRUint32 aTraitId, PRUint32 aCount)
   {
     mMessageCounts[index] = aCount;
   }
+}
+
+nsresult
+CorpusStore::UpdateData(nsILocalFile *aFile,
+                        PRBool aIsAdd,
+                        PRUint32 aRemapCount,
+                        PRUint32 *aFromTraits,
+                        PRUint32 *aToTraits)
+{
+  NS_ENSURE_ARG_POINTER(aFile);
+  if (aRemapCount)
+  {
+    NS_ENSURE_ARG_POINTER(aFromTraits);
+    NS_ENSURE_ARG_POINTER(aToTraits);
+  }
+
+  FILE* stream;
+  nsresult rv = aFile->OpenANSIFileDesc("rb", &stream);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRInt64 fileSize;
+  rv = aFile->GetFileSize(&fileSize);
+
+  PRBool error;
+  while(NS_SUCCEEDED(rv)) // break on error or done
+  {
+    char cookie[4];
+    if (error = (fread(cookie, sizeof(cookie), 1, stream) != 1))
+      break;
+
+    if (error = memcmp(cookie, kTraitCookie, sizeof(cookie)))
+      break;
+
+    PRUint32 fileTrait;
+    while ( !(error = (readUInt32(stream, &fileTrait) != 1)) && fileTrait)
+    {
+      PRUint32 count;
+      if (error = (readUInt32(stream, &count) != 1))
+        break;
+
+      PRUint32 localTrait = fileTrait;
+      // remap the trait
+      for (PRUint32 i = 0; i < aRemapCount; i++)
+      {
+        if (aFromTraits[i] == fileTrait)
+          localTrait = aToTraits[i];
+      }
+
+      PRUint32 messageCount = getMessageCount(localTrait);
+      if (aIsAdd)
+        messageCount += count;
+      else if (count > messageCount)
+        messageCount = 0;
+      else
+        messageCount -= count;
+      setMessageCount(localTrait, messageCount);
+
+      if (error = !readTokens(stream, fileSize, localTrait, aIsAdd))
+        break;
+    }
+    break;
+  }
+
+  fclose(stream);
+  if (error || NS_FAILED(rv))
+    return NS_ERROR_FAILURE;
+  return NS_OK;
+}
+
+nsresult CorpusStore::ClearTrait(PRUint32 aTrait)
+{
+  // clear message counts
+  setMessageCount(aTrait, 0);
+
+  // clear token counts
+  PRUint32 tokenCount = countTokens();
+  TokenEnumeration tokens = getTokens();
+  while (tokens.hasMoreTokens())
+  {
+    CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
+    PRInt32 wordCount = static_cast<PRInt32>(getTraitCount(token, aTrait));
+    updateTrait(token, aTrait, -wordCount);
+  }
+  return NS_OK;
 }

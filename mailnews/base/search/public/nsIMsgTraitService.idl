@@ -49,7 +49,7 @@
 
 #include "nsISupports.idl"
 
-[scriptable, uuid(e3e47690-a676-12d6-81c9-00308646b737)]
+[scriptable, uuid(2CB15FB0-A912-40d3-8882-F2765C75655F)]
 interface nsIMsgTraitService : nsISupports
 {
   /**
@@ -172,4 +172,35 @@ interface nsIMsgTraitService : nsISupports
   void getEnabledIndices(out unsigned long count,
                          [array, size_is(count)] out unsigned long proIndices,
                          [array, size_is(count)] out unsigned long antiIndices);
+
+  /**
+   * Add a trait as an alias of another trait. An alias is a trait whose
+   * counts will be combined with the aliased trait. This allows multiple sets
+   * of corpus data to be used to provide information on a single message
+   * characteristic, while allowing each individual set of corpus data to
+   * retain its own identity.
+   *
+   * @param aTraitIndex  the internal identifier for the aliased trait
+   * @param aTraitAlias  the internal identifier for the alias to add
+   */
+  void addAlias(in unsigned long aTraitIndex, in unsigned long aTraitAlias);
+
+  /**
+   * Removes a trait as an alias of another trait.
+   *
+   * @param aTraitIndex  the internal identifier for the aliased trait
+   * @param aTraitAlias  the internal identifier for the alias to remove
+   */
+  void removeAlias(in unsigned long aTraitIndex, in unsigned long aTraitAlias);
+
+  /**
+   * Get an array of trait aliases for a trait index, if any
+   *
+   * @param aTraitIndex  the internal identifier for the aliased trait
+   * @param aLength      length of array of aliases
+   * @param aAliases     array of internal identifiers for aliases
+   */
+  void getAliases(in unsigned long aTraitIndex, out unsigned long aLength,
+                  [retval, array, size_is(aLength)] out unsigned long aAliases);
+
 };

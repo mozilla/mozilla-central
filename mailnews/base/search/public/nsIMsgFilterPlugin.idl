@@ -45,6 +45,7 @@ interface nsIMsgFilterHitNotify;
 interface nsIMsgWindow;
 interface nsIMsgDBHdr;
 interface nsIStreamListener;
+interface nsILocalFile;
 
 /**
  * This interface is still very much under development, and is not yet stable.
@@ -145,7 +146,7 @@ interface nsIMsgTraitDetailListener : nsISupports
     [array, size_is(tokenCount)] in unsigned long runningPercents);
 };
 
-[scriptable, uuid(EDB05079-3F8A-46a6-A596-E7FD8E12216B)]
+[scriptable, uuid(8EA5BBCA-F735-4d43-8541-D203D8E2FF2F)]
 interface nsIJunkMailPlugin : nsIMsgFilterPlugin
 {
     /**
@@ -307,15 +308,80 @@ interface nsIJunkMailPlugin : nsIMsgFilterPlugin
         in nsIMsgTraitDetailListener aListener,
         [optional] in nsIMsgWindow aMsgWindow);
 
-    /**
-     * Gives information on token and message count information in the
-     * training data corpus
-     *
-     * @param aTrait           trait id (may be null)
-     * @param aMessageCount    count of messages that have been trained with aTrait
-     *
-     * @return                 token count for all traits
-     */
+};
 
-    unsigned long corpusCounts(in unsigned long aTrait, out unsigned long aMessageCount);
+/**
+ * The nsIMsgCorpus interface manages a corpus of mail data used for
+ * statistical analysis of messages.
+ */
+[scriptable, uuid(70BAD26F-DFD4-41bd-8FAB-4C09B9C1E845)]
+interface nsIMsgCorpus : nsISupports
+{
+  /**
+   * Clear the corpus data for a trait id.
+   *
+   * @param aTrait       trait id
+   */
+   void clearTrait(in unsigned long aTrait);
+
+  /**
+   * Update corpus data from a file.
+   *
+   * @param aFile       the file with the data, in the format:
+   *
+   *                    Format of the trait file for version 1:
+   *                    [0xFCA93601]  (the 01 is the version)
+   *                    for each trait to write:
+   *                    [id of trait to write] (0 means end of list)
+   *                    [number of messages per trait]
+   *                    for each token with non-zero count
+   *                    [count]
+   *                    [length of word]word
+   *
+   * @param aIsAdd      should the data be added, or removed? True if
+   *                    adding, false if removing.
+   *
+   * @param aRemapCount number of items in the parallel arrays aFromTraits,
+   *                    aToTraits. These arrays allow conversion of the
+   *                    trait id stored in the file (which may be originated
+   *                    externally) to the trait id used in the local corpus
+   *                    (which is defined locally using nsIMsgTraitService, and
+   *                    mapped by that interface to a globally unique trait
+   *                    id string).
+   *
+   * @param aFromTraits array of trait ids used in aFile. If aFile contains
+   *                    trait ids that are not in this array, they are not
+   *                    remapped, but assummed to be local trait ids.
+   *
+   * @param aToTraits   array of trait ids, corresponding to elements of
+   *                    aFromTraits, that represent the local trait ids to
+   *                    be used in storing data from aFile into the local corpus.
+   */
+  void updateData(in nsILocalFile aFile, in boolean aIsAdd,
+                  [optional] in unsigned long aRemapCount,
+                  [optional, array, size_is(aRemapCount)] in unsigned long aFromTraits,
+                  [optional, array, size_is(aRemapCount)] in unsigned long aToTraits);
+
+  /**
+   * Get the corpus count for a token as a string.
+   *
+   * @param aWord    string of characters representing the token
+   * @param aTrait   trait id
+   *
+   * @return         count of that token in the corpus
+   *
+   */
+  unsigned long getTokenCount(in AUTF8String aWord, in unsigned long aTrait);
+
+  /**
+   * Gives information on token and message count information in the
+   * training data corpus.
+   *
+   * @param aTrait           trait id (may be null)
+   * @param aMessageCount    count of messages that have been trained with aTrait
+   *
+   * @return                 token count for all traits
+   */
+
+  unsigned long corpusCounts(in unsigned long aTrait, out unsigned long aMessageCount);
 };
