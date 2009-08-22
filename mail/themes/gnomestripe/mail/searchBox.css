@@ -61,7 +61,7 @@
   list-style-image: url("chrome://global/skin/icons/Search-glass.png");
 }
 
-#quick-search-button[chromedir="rtl"] .quick-search-button-image {
+.quick-search-button-image[chromedir="rtl"] {
   -moz-transform: scaleX(-1);
 }
 

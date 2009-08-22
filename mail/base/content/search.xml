@@ -372,7 +372,8 @@
       <children/>
       <xul:stack flex="1">
         <xul:hbox align="center">
-          <xul:image class="quick-search-button-image" xbl:inherits="src"/>
+          <xul:image class="quick-search-button-image" xbl:inherits="src"
+                     chromedir="&locale.dir;"/>
         </xul:hbox>
         <xul:hbox align="center">
           <xul:image class="quick-search-button-dropmarker"/>
