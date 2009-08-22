@@ -144,7 +144,9 @@ let glodaIndexerActivity =
       if (!this.currentJob)
         this.onJobBegun(aFolder, aJobNumber, aTotalItemNum);
 
-      this.onJobProgress(aFolder, aItemNumber, aTotalItemNum);
+      // If there is only one item, don't bother creating a progress item.
+      if (aTotalItemNum != 1)
+        this.onJobProgress(aFolder, aItemNumber, aTotalItemNum);
     }
   },
 
@@ -193,7 +195,7 @@ let glodaIndexerActivity =
       statusText = this.getString(aFolder ? "indexingFolderStatusExact"
                                           : "indexingStatusExact");
       statusText = PluralForm.get(aTotalItemNum, statusText)
-                     .replace("#1", aItemNumber)
+                     .replace("#1", aItemNumber + 1)
                      .replace("#2", aTotalItemNum)
                      .replace("#3", percentComplete)
                      .replace("#4", aFolder);
