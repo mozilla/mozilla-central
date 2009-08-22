@@ -43,8 +43,8 @@
     <vbox flex="1">
       <notificationbox flex="1">
         <browser type="content-targetable" flex="1" disablehistory="true"/>
-        <findbar/>
       </notificationbox>
+      <findbar/>
     </vbox>
   </vbox>
 </overlay>

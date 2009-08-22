@@ -197,13 +197,13 @@ var specialTabs = {
           ZoomManager.toggleZoom();
           break;
         case "cmd_find":
-          aTab.panel.childNodes[1].onFindCommand();
+          aTab.findbar.onFindCommand();
           break;
         case "cmd_findAgain":
-          aTab.panel.childNodes[1].onFindAgainCommand(false);
+          aTab.findbar.onFindAgainCommand(false);
           break;
         case "cmd_findPrevious":
-          aTab.panel.childNodes[1].onFindAgainCommand(true);
+          aTab.findbar.onFindAgainCommand(true);
           break;
         case "cmd_printSetup":
           PrintUtils.showPageSetup();
