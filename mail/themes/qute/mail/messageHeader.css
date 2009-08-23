@@ -173,6 +173,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .hdrReplyButton {
   -moz-appearance: dualbutton;
+  -moz-margin-end: 0 !important;
 }
 
 .hdrReplyButton > .button-menubutton-button {
@@ -182,18 +183,26 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 .hdrReplyButton > .button-menubutton-dropmarker {
-  -moz-margin-start: 2px;
-  -moz-margin-end: 2px;
+  -moz-margin-start: 0;
+  -moz-margin-end: 0;
+  -moz-padding-start: 0;
+  -moz-padding-end: 3px;
 }
 
 .hdrReplyButton > .button-menubutton-dropmarker[open="true"] {
-  margin-top: 0px;
-  -moz-margin-end: 2px;
+  margin-top: 0;
+  -moz-margin-start: 0;
+  -moz-margin-end: 0;
+  -moz-padding-start: 0;
+  -moz-padding-end: 3;
 }
 
 .msgHeaderView-button {
   min-width: 1px;
   min-height: 1ex;
+  -moz-margin-start: 0;
+  -moz-margin-end: 4px;
+  padding: 0;
 }
 
 .msgHeaderView-flat-button {
@@ -217,6 +226,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-box-orient: vertical !important;
   list-style-image: url("chrome://messenger/skin/icons/folder.png") !important;
   -moz-image-region: rect(0px 144px 16px 128px);
+  -moz-margin-end: 0;
 }
 
 .msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button {
