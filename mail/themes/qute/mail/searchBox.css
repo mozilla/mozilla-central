@@ -53,12 +53,18 @@
   margin-bottom: 0px;
   -moz-margin-start: 0px;
   -moz-margin-end: 2px;
-
 }
 
 .quick-search-button-image {
   margin: 0px;
-  list-style-image: url("chrome://messenger/skin/icons/Search-bar.png");
+  list-style-image: url("chrome://global/skin/icons/Search-glass.png");
+  -moz-image-region: rect(0px 32px 16px 16px);
+  width: 16px;
+  height: 16px;
+}
+
+.quick-search-button-image[chromedir="rtl"] {
+  -moz-transform: scaleX(-1);
 }
 
 .quick-search-clearbutton[clearButtonHidden="true"] {
