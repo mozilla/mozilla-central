@@ -57,6 +57,7 @@ REQUIRES	= \
 		windowwatcher \
 		suitebrowser \
 		xulapp \
+		loginmgr \
 		$(NULL)
 
 CPPSRCS = \
