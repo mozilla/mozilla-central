@@ -194,7 +194,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-margin-start: 0;
   -moz-margin-end: 0;
   -moz-padding-start: 0;
-  -moz-padding-end: 3;
+  -moz-padding-end: 3px;
 }
 
 .msgHeaderView-button {
