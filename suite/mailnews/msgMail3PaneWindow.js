@@ -531,19 +531,14 @@ function HandleCompactCompleted(folder)
 {
   if (folder && folder.server.type != "imap")
   {
-    var resource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-    if (resource)
+    let msgFolder = msgWindow.openFolder;
+    if (msgFolder && folder.URI == msgFolder.URI)
     {
-      var uri = resource.Value;
-      var msgFolder = msgWindow.openFolder;
-      if (msgFolder && uri == msgFolder.URI)
-      {
-        // pretend the selection changed, to reselect the current folder+view.
-        gMsgFolderSelected = null;
-        msgWindow.openFolder = null;
-        FolderPaneSelectionChange();
-        LoadCurrentlyDisplayedMessage();
-      }
+      // pretend the selection changed, to reselect the current folder+view.
+      gMsgFolderSelected = null;
+      msgWindow.openFolder = null;
+      FolderPaneSelectionChange();
+      LoadCurrentlyDisplayedMessage();
     }
   }
 }
@@ -565,31 +560,23 @@ function LoadCurrentlyDisplayedMessage()
   return scrolled;
 }
 
-function IsCurrentLoadedFolder(folder)
+function IsCurrentLoadedFolder(aFolder)
 {
-  var msgfolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
-  if(msgfolder)
-  {
-    var folderResource = msgfolder.QueryInterface(Components.interfaces.nsIRDFResource);
-    if(folderResource)
-    {
-      var folderURI = folderResource.Value;
-      var currentLoadedFolder = GetThreadPaneFolder();
-      if (currentLoadedFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
-      {
-        var dbFolderInfo = currentLoadedFolder.msgDatabase.dBFolderInfo;
-        var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
-        var re = new RegExp("^" + folderURI + "$|^" + folderURI + "\||\|" + folderURI + "$|\|" + folderURI +"\|");
-        var retval = (currentLoadedFolder.URI.match(re));
-        return retval;
+  let msgFolderUri = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder)
+                            .URI;
+  let currentLoadedFolder = GetThreadPaneFolder();
 
-      }
-      var currentURI = currentLoadedFolder.URI;
-      return(currentURI == folderURI);
-    }
+  // If the currently loaded folder is virtual,
+  // check if aFolder is one of its searched folders.
+  if (currentLoadedFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
+  {
+    return currentLoadedFolder.msgDatabase.dBFolderInfo
+                              .getCharProperty("searchFolderUri").split("|")
+                              .indexOf(msgFolderUri) != -1;
   }
 
-  return false;
+  // Is aFolder the currently loaded folder?
+  return currentLoadedFolder.URI == msgFolderUri;
 }
 
 function ServerContainsFolder(server, folder)

@@ -1566,7 +1566,7 @@ function MsgOpenNewWindowForFolder(uri, key)
 
   if (!uriToOpen)
     // use GetSelectedFolderURI() to find out which message to open instead of
-    // GetLoadedMsgFolder().QueryIntervace(Components.interfaces.nsIRDFResource).value.
+    // GetLoadedMsgFolder().URI.
     // This is required because on a right-click, the currentIndex value will be
     // different from the actual row that is highlighted.  GetSelectedFolderURI()
     // will return the message that is highlighted.

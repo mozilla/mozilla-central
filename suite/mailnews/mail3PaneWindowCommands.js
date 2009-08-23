@@ -959,7 +959,7 @@ function MsgDeleteFolder()
             var folder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
             if (folder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
             {
-                if (gCurrentVirtualFolderUri == folderResource.Value)
+                if (gCurrentVirtualFolderUri == selectedFolder.URI)
                   gCurrentVirtualFolderUri = null;
                 var array = Components.classes["@mozilla.org/array;1"]
                                       .createInstance(Components.interfaces.nsIMutableArray);
@@ -982,7 +982,7 @@ function MsgDeleteFolder()
                 promptService.alert(window, specialFolderDeletionErrTitle, errorMessage);
                 continue;
             }   
-            else if (isNewsURI(folderResource.Value))
+            else if (isNewsURI(selectedFolder.URI))
             {
                 var unsubscribe = ConfirmUnsubscribe(selectedFolder);
                 if (unsubscribe)

@@ -221,20 +221,12 @@ function HandleDeleteOrMoveMsgCompleted(folder)
 
 function HandleDeleteOrMoveMsgFailed(folder)
 {
-  var folderResource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-  if (!folderResource)
-     return;
-
   gDBView.onDeleteCompleted(false);
 }
 
 function IsCurrentLoadedFolder(folder)
 {
-  var folderResource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-  if (!folderResource)
-     return false;
-
-  return (folderResource.Value == gCurrentFolderUri);
+  return (folder.URI == gCurrentFolderUri);
 }
 
 function OnLoadMessageWindow()
