@@ -1911,11 +1911,14 @@
                    label="&newMsgButton.label;"
                    tooltiptext="&newMsgButton.tooltip;"
                    oncommand="MsgNewMessage(event)">
-      <menupopup id="button-newMsgPopup">
-        <menuitem label="&newHTMLMessageCmd.label;"
+      <menupopup id="button-newMsgPopup"
+                 onpopupshowing="InitNewMsgMenu(this);">
+        <menuitem id="button-newMsgHTML"
+                  label="&newHTMLMessageCmd.label;"
                   accesskey="&newHTMLMessageCmd.accesskey;"
                   mode="HTML"/>
-        <menuitem label="&newPlainTextMessageCmd.label;"
+        <menuitem id="button-newMsgPlain"
+                  label="&newPlainTextMessageCmd.label;"
                   accesskey="&newPlainTextMessageCmd.accesskey;"
                   mode="PlainText"/>
       </menupopup>

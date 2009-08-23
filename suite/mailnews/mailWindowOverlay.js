@@ -578,6 +578,25 @@ function RemoveAllMessageTags()
   OnTagsChange();
 }
 
+function InitNewMsgMenu(aPopup)
+{
+  var identity = null;
+  var folder = GetFirstSelectedMsgFolder();
+  if (folder)
+    identity = getIdentityForServer(folder.server);
+  if (!identity)
+    identity = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                         .getService(Components.interfaces.nsIMsgAccountManager)
+                         .defaultAccount.defaultIdentity;
+  // If the identity is not found, use the mail.html_compose pref to
+  // determine the message compose type (HTML or PlainText).
+  var composeHTML = identity ? identity.composeHtml
+                             : Application.prefs.getValue("mail.html_compose", true);
+  const kIDs = {true: "button-newMsgHTML", false: "button-newMsgPlain"};
+  document.getElementById(kIDs[composeHTML]).setAttribute("default", "true");
+  document.getElementById(kIDs[!composeHTML]).removeAttribute("default");
+}
+
 function InitMessageForward(aPopup)
 {
   var forwardType = 0;
