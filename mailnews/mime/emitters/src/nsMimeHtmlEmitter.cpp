@@ -530,7 +530,9 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
 
   if ( (contentType) &&
        ((!strcmp(contentType, APPLICATION_XPKCS7_MIME)) ||
+        (!strcmp(contentType, APPLICATION_PKCS7_MIME)) ||
         (!strcmp(contentType, APPLICATION_XPKCS7_SIGNATURE)) ||
+        (!strcmp(contentType, APPLICATION_PKCS7_SIGNATURE)) ||
         (!strcmp(contentType, TEXT_VCARD)))
      ) {
      mSkipAttachment = PR_TRUE;
