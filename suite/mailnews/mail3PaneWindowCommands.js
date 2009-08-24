@@ -88,13 +88,12 @@ var FolderPaneController =
         var canDeleteThisFolder;
 				var specialFolder = null;
 				var isServer = null;
-				var serverType = null;
 				try {
           var folderResource = GetFolderResource(folderTree, startIndex.value);
-          specialFolder = GetFolderAttribute(folderTree, folderResource, "SpecialFolder");
-          isServer = GetFolderAttribute(folderTree, folderResource, "IsServer");
-          serverType = GetFolderAttribute(folderTree, folderResource, "ServerType");
-          if (serverType == "nntp") {
+          let folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+          specialFolder = getSpecialFolderString(folder);
+          isServer = folder.isServer;
+          if (folder.server.type == "nntp") {
 			     	if ( command == "cmd_delete" ) {
 					      goSetMenuValue(command, 'valueNewsgroup');
 				    	  goSetAccessKey(command, 'valueNewsgroupAccessKey');
@@ -106,7 +105,7 @@ var FolderPaneController =
 				} 
         if (specialFolder == "Inbox" || specialFolder == "Trash" || specialFolder == "Drafts" ||
             specialFolder == "Sent" || specialFolder == "Templates" || specialFolder == "Unsent Messages" ||
-            (specialFolder == "Junk" && !CanRenameDeleteJunkMail(GetSelectedFolderURI())) || isServer == "true")
+            (specialFolder == "Junk" && !CanRenameDeleteJunkMail(GetSelectedFolderURI())) || isServer)
           canDeleteThisFolder = false;
         else
           canDeleteThisFolder = true;
@@ -873,8 +872,8 @@ function IsRenameFolderEnabled()
         var endIndex = {};
         selection.getRangeAt(0, startIndex, endIndex);
         var folderResource = GetFolderResource(folderTree, startIndex.value);
-        var canRename = GetFolderAttribute(folderTree, folderResource, "CanRename") == "true";
-        return canRename && isCommandEnabled("cmd_renameFolder");
+        let folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+        return folder.canRename && isCommandEnabled("cmd_renameFolder");
     }
     else
         return false;
@@ -902,10 +901,11 @@ function IsPropertiesEnabled(command)
    {
       var folderTree = GetFolderTree();
       var folderResource = GetSelectedFolderResource();
+      let folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
       // when servers are selected
       // it should be "Edit | Properties..."
-      if (GetFolderAttribute(folderTree, folderResource, "IsServer") == "true")
+      if (folder.isServer)
         goSetMenuValue(command, "valueGeneric");
       else 
         goSetMenuValue(command, isNewsURI(folderResource.Value) ? "valueNewsgroup" : "valueFolder");
@@ -934,7 +934,8 @@ function IsFolderSelected()
         var endIndex = {};
         selection.getRangeAt(0, startIndex, endIndex);
         var folderResource = GetFolderResource(folderTree, startIndex.value);
-        return GetFolderAttribute(folderTree, folderResource, "IsServer") != "true";
+        let folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+        return !folder.isServer;
     }
     else
         return false;
@@ -952,8 +953,7 @@ function MsgDeleteFolder()
     for (var i = 0; i < selectedFolders.length; i++)
     {
         var selectedFolder = selectedFolders[i];
-        var folderResource = selectedFolder.QueryInterface(Components.interfaces.nsIRDFResource);
-        var specialFolder = GetFolderAttribute(folderTree, folderResource, "SpecialFolder");
+        let specialFolder = getSpecialFolderString(selectedFolder);
         if (specialFolder != "Inbox" && specialFolder != "Trash")
         {
             var folder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);

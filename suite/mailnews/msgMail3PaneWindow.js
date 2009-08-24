@@ -1011,8 +1011,18 @@ function UpdateLocationBar(resource)
     var icon = document.getElementById('locationIcon');
     var names = ['BiffState', 'NewMessages', 'HasUnreadMessages',
         'SpecialFolder', 'IsServer', 'IsSecure', 'ServerType', 'NoSelect'];
-    var label = GetFolderAttribute(tree, resource, 'FolderTreeName');
-    folders.setAttribute("label", label);
+    let folder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
+    folders.setAttribute("label", folder.prettyName);
+
+    const rdfService = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                                 .getService(Components.interfaces.nsIRDFService);
+    function GetFolderAttribute(tree, source, attribute) {
+      let property = rdfService.GetResource("http://home.netscape.com/NC-rdf#" + attribute);
+      let target = tree.database.GetTarget(source, property, true);
+      if (target)
+        target = target.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
+      return target;
+    }
     for (var i in names) {
         var name = names[i];
         var value = GetFolderAttribute(tree, resource, name);
@@ -1456,15 +1466,6 @@ function GetFolderIndex(tree, resource)
   return tree.builderView.getIndexOfResource(resource);
 }
 
-function GetFolderAttribute(tree, source, attribute)
-{
-  var property = RDF.GetResource("http://home.netscape.com/NC-rdf#" + attribute);
-  var target = tree.database.GetTarget(source, property, true);
-  if (target)
-    target = target.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
-  return target;
-}
-
 // Some of the per account junk mail settings have been
 // converted to global prefs. Let's try to migrate some
 // of those settings from the default account.
@@ -1497,4 +1498,29 @@ function MigrateJunkMailSettings()
     // bump the version so we don't bother doing this again.
     pref.setIntPref("mail.spam.version", 1);
   }
+}
+
+/**
+ * Returns a string representation of a folder's specialFolder attribute.
+ *
+ * @param aFolder The folder whose specialFolder attribute to return.
+ */
+function getSpecialFolderString(aFolder) {
+  if (aFolder.flags & 0x1000) // MSG_FOLDER_FLAG_INBOX
+    return "Inbox";
+  if (aFolder.flags & 0x0100) // MSG_FOLDER_FLAG_TRASH
+    return "Trash";
+  if (aFolder.flags & 0x0800) // MSG_FOLDER_FLAG_QUEUE
+    return "Unsent Messages";
+  if (aFolder.flags & 0x0200) // MSG_FOLDER_FLAG_SENTMAIL
+    return "Sent";
+  if (aFolder.flags & 0x0400) // MSG_FOLDER_FLAG_DRAFTS
+    return "Drafts";
+  if (aFolder.flags & 0x400000) // MSG_FOLDER_FLAG_TEMPLATES
+    return "Templates";
+  if (aFolder.flags & 0x40000000) // MSG_FOLDER_FLAG_JUNK
+    return "Junk";
+  if (aFolder.flags & 0x0020) // MSG_FOLDER_FLAG_VIRTUAL
+    return "Virtual";
+  return "none";
 }

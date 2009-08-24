@@ -225,10 +225,11 @@ function FillFolderPaneContextMenu()
     return false;
   var numSelected = endIndex.value - startIndex.value + 1;
   var folderResource = GetFolderResource(folderTree, startIndex.value);
+  let folder = GetMsgFolderFromUri(folderResource.Value, false);
 
-  var isServer = GetFolderAttribute(folderTree, folderResource, "IsServer") == 'true';
-  var serverType = GetFolderAttribute(folderTree, folderResource, "ServerType");
-  var specialFolder = GetFolderAttribute(folderTree, folderResource, "SpecialFolder");
+  let isServer = folder.isServer;
+  let serverType = folder.server.type;
+  let specialFolder = getSpecialFolderString(folder);
   var canSubscribeToFolder = (serverType == "nntp") ||
                              (serverType == "imap") ||
                              (serverType == "rss");
@@ -314,19 +315,15 @@ function FillFolderPaneContextMenu()
 function SetupRenameMenuItem(folderResource, numSelected, isServer, serverType, specialFolder)
 {
   var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-  var folderTree = GetFolderTree();
   var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
                                                   || (specialFolder == "Virtual"));
-  var canRename = GetFolderAttribute(folderTree, folderResource, "CanRename") == "true";
-
+  let canRename = msgFolder.canRename;
   ShowMenuItem("folderPaneContext-rename", (numSelected <= 1) && !isServer && !isSpecialFolder && canRename);
   var folder = GetMsgFolderFromResource(folderResource);
   EnableMenuItem("folderPaneContext-rename", !isServer && folder.isCommandEnabled("cmd_renameFolder"));
 
-  if(canRename)
-  {
+  if (canRename)
     SetMenuItemLabel("folderPaneContext-rename", gMessengerBundle.getString("renameFolder"));
-  }
 }
 
 function SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, specialFolder)
@@ -352,36 +349,31 @@ function SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, 
 
 function SetupCompactMenuItem(folderResource, numSelected)
 {
-  var folderTree = GetFolderTree();
-  var canCompact = GetFolderAttribute(folderTree, folderResource, "CanCompact") == "true";
-  ShowMenuItem("folderPaneContext-compact", (numSelected <=1) && canCompact);
   var folder = GetMsgFolderFromResource(folderResource);
+
+  ShowMenuItem("folderPaneContext-compact", numSelected <= 1 && folder.canCompact);
   EnableMenuItem("folderPaneContext-compact", folder.isCommandEnabled("cmd_compactFolder"));
 
-  if(canCompact)
-  {
+  if (canCompact)
     SetMenuItemLabel("folderPaneContext-compact", gMessengerBundle.getString("compactFolder"));
-  }
 }
 
 function SetupNewMenuItem(folderResource, numSelected, isServer, serverType, specialFolder)
 {
-  var folderTree = GetFolderTree();
-  var canCreateNew = GetFolderAttribute(folderTree, folderResource, "CanCreateSubfolders") == "true";
+  let folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
   var isInbox = specialFolder == "Inbox";
 
-  var isIMAPFolder = GetFolderAttribute(folderTree, folderResource,
-                       "ServerType") == "imap";
+  const ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
 
-  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService);
-
-  var showNew = ((numSelected <=1) && (serverType != 'nntp') && canCreateNew) || isInbox;
+  let showNew = (numSelected <= 1 && serverType != "nntp" &&
+                 folder.canCreateSubfolders) || isInbox;
   ShowMenuItem("folderPaneContext-new", showNew);
-  EnableMenuItem("folderPaneContext-new", !isIMAPFolder || !ioService.offline);
-  if(showNew)
+  EnableMenuItem("folderPaneContext-new",
+                 folder.server.type != "imap" || !ioService.offline);
+  if (showNew)
   {
-    if(isServer || isInbox)
+    if (isServer || isInbox)
       SetMenuItemLabel("folderPaneContext-new", gMessengerBundle.getString("newFolder"));
     else
       SetMenuItemLabel("folderPaneContext-new", gMessengerBundle.getString("newSubfolder"));
