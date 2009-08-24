@@ -956,6 +956,8 @@ nsresult nsMsgGroupView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgTh
 PRInt32 nsMsgGroupView::FindLevelInThread(nsIMsgDBHdr *msgHdr,
                                           nsMsgViewIndex startOfThread, nsMsgViewIndex viewIndex)
 {
+  if (!(m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
+    return nsMsgDBView::FindLevelInThread(msgHdr, startOfThread, viewIndex);
   return (startOfThread == viewIndex) ? 0 : 1;
 }
 
