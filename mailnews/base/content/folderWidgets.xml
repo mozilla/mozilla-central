@@ -671,6 +671,7 @@
             if (child._folder.URI == aFolder.URI) {
               // Making an assumption about our DOM positioning here.
               this.parentNode.selectedIndex = i;
+              this.parentNode.setAttribute("label", aFolder.name);
               return;
             }
             // Is this a subfolder (that we expect to see)?

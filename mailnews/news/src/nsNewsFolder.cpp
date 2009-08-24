@@ -1946,6 +1946,19 @@ nsMsgNewsFolder::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aRes
 }
 
 NS_IMETHODIMP
+nsMsgNewsFolder::GetEditableFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aResult)
+{
+  // We don't support pluggable filter list types for news.
+  return GetFilterList(aMsgWindow, aResult);
+}
+
+NS_IMETHODIMP
+nsMsgNewsFolder::SetEditableFilterList(nsIMsgFilterList *aFilterList)
+{
+  return SetFilterList(aFilterList);
+}
+
+NS_IMETHODIMP
 nsMsgNewsFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
 {
  if (m_tempMessageStream)

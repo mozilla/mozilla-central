@@ -109,7 +109,9 @@ public:
   NS_IMETHOD Shutdown(PRBool shutdownChildren);
 
   NS_IMETHOD GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aFilterList);
+  NS_IMETHOD GetEditableFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aFilterList);
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aFilterList);
+  NS_IMETHOD SetEditableFilterList(nsIMsgFilterList *aFilterList);
   NS_IMETHOD ApplyRetentionSettings();
 
 protected:
