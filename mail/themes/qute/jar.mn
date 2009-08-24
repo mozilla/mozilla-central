@@ -279,7 +279,7 @@ classic.jar:
   skin/classic/aero/messenger/messengercompose/compose-toolbar.png  (mail/compose/compose-toolbar.png)
   skin/classic/aero/messenger/messengercompose/compose-toolbar-small.png   (mail/compose/compose-toolbar-small.png)
   skin/classic/aero/messenger/messengercompose/format-buttons.png  (mail/compose/format-buttons-aero.png)
-  skin/classic/aero/messenger/preferences/preferences.css          (mail/preferences/preferences.css)
+* skin/classic/aero/messenger/preferences/preferences.css          (mail/preferences/preferences-aero.css)
   skin/classic/aero/messenger/preferences/general.png              (mail/preferences/general-aero.png)
   skin/classic/aero/messenger/preferences/display.png              (mail/preferences/display-aero.png)
   skin/classic/aero/messenger/preferences/composition.png          (mail/preferences/composition-aero.png)
