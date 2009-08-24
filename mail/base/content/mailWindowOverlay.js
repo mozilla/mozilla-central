@@ -1319,24 +1319,46 @@ BatchMessageMover.prototype = {
       let msgs = batch.slice(3,batch.length);
       let subFolder, dstFolder;
       let Ci = Components.interfaces;
-      // rss servers don't have an identity so we special case the archives URI
-      let archiveFolderUri = (srcFolder.server.type == 'rss')
-        ? srcFolder.server.serverURI + "/Archives"
-        : getIdentityForHeader(msgs[0], Ci.nsIMsgCompType
-                                        .ReplyAll).archiveFolder;
-
+      let identity;
+      let archiveFolderUri;
+      if (srcFolder.server.type == 'rss') {
+        // RSS servers don't have an identity so we special case the archives URI.
+        archiveFolderUri =  srcFolder.server.serverURI + "/Archives";
+      }
+      else {
+        identity = getIdentityForHeader(msgs[0]);
+        archiveFolderUri = identity.archiveFolder;
+      }
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
       let granularity = archiveFolder.server.archiveGranularity;
-      // for imap folders, we need to create the sub-folders asynchronously,
-      // so we chain the urls using the listener called back from
-      // createStorageIfMissing. For local, creatStorageIfMissing is
-      // synchronous.
       let isImap = archiveFolder.server.type == "imap";
       if (!archiveFolder.parent) {
+        // make sure there's not an other archive folder with
+        // a case-insensitive (ci) matching name. If so, we're going
+        // to use that folder instead.
+        let ciArchive = null;
+        ciArchive = archiveFolder.server.rootFolder
+                     .getChildWithURI(archiveFolderUri, true, true);
+        if (ciArchive)
+        {
+          // Found an archive folder with a different case. Switch
+          // our variables to use the new folder, and if we have an identity,
+          // make it point to the new folder.
+          archiveFolder = ciArchive;
+          archiveFolderUri = ciArchive.URI;
+          if (identity)
+            identity.archiveFolder = archiveFolderUri;
+        }
         archiveFolder.setFlag(Ci.nsMsgFolderFlags.Archive);
-        archiveFolder.createStorageIfMissing(this);
-        if (isImap)
-          return;
+        if (!ciArchive) {
+          archiveFolder.createStorageIfMissing(this);
+          // For imap folders, we need to create the sub-folders asynchronously,
+          // so we return and chain the urls using the listener called back from
+          // createStorageIfMissing. For local, createStorageIfMissing is
+          // synchronous.
+          if (isImap)
+            return;
+        }
       }
       let forceSingle = !archiveFolder.canCreateSubfolders;
       if (!forceSingle && isImap)
