@@ -305,8 +305,16 @@ nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow* *aMsgWindow)
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsISimpleEnumerator> windowEnum;
+
+#if defined (XP_UNIX)
+    // The window managers under Unix/X11 do not support ZOrder information,
+    // so we have to use the normal enumeration call here.
+    rv = windowMediator->GetEnumerator(nsnull, getter_AddRefs(windowEnum));
+#else
     rv = windowMediator->GetZOrderDOMWindowEnumerator(nsnull, PR_TRUE,
                                                       getter_AddRefs(windowEnum));
+#endif
+
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsISupports> windowSupports;

@@ -215,7 +215,6 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
   {
     nsCOMPtr<nsIMsgDatabase> mailDBFactory;
     nsCOMPtr<nsIMsgDatabase> mailDB;
-
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
 
     if (msgDBService)
@@ -236,10 +235,18 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
       // maybe this is .eml file we're trying to read. See if we can get a header from the header sink.
       if (msgWindow)
       {
-        nsCOMPtr <nsIMsgHeaderSink> headerSink;
+        nsCOMPtr<nsIMsgHeaderSink> headerSink;
         msgWindow->GetMsgHeaderSink(getter_AddRefs(headerSink));
         if (headerSink)
-          return headerSink->GetDummyMsgHeader(aMsgHdr);
+        {
+          rv = headerSink->GetDummyMsgHeader(aMsgHdr);
+          if (NS_SUCCEEDED(rv))
+          {
+            PRInt64 fileSize = 0;
+            m_filePath->GetFileSize(&fileSize);
+            (*aMsgHdr)->SetMessageSize(fileSize);
+          }
+        }
       }
     }
   }
