@@ -64,6 +64,11 @@
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
 }
 
+.toolbarbutton-1[open],
+.toolbarbutton-1[open] > .toolbarbutton-menubutton-button {
+  text-shadow: none;
+}
+
 toolbarbutton[type="menu-button"] {
   -moz-box-orient: horizontal;
 }
@@ -83,7 +88,8 @@ toolbar[mode="text"] .toolbarbutton-menubutton-button > .toolbarbutton-text {
   -moz-image-region: rect(0px 32px 32px 0px);
 }
 
-#button-getmsg:hover:active {
+#button-getmsg:hover:active,
+#button-getmsg[open] {
   -moz-image-region: rect(32px 32px 64px 0px);
 }
 
@@ -283,7 +289,8 @@ toolbar[mode="text"] .toolbarbutton-menubutton-button > .toolbarbutton-text {
   -moz-image-region: rect(0px 544px 32px 512px);
 }
 
-#button-goforward:hover:active {
+#button-goforward:hover:active,
+#button-goforward[open] {
   -moz-image-region: rect(32px 544px 64px 512px);
 }
 
@@ -295,7 +302,8 @@ toolbar[mode="text"] .toolbarbutton-menubutton-button > .toolbarbutton-text {
   -moz-image-region: rect(0px 576px 32px 544px);
 }
 
-#button-goback:hover:active {
+#button-goback:hover:active,
+#button-goback[open] {
   -moz-image-region: rect(32px 576px 64px 544px);
 }
 
@@ -327,7 +335,8 @@ toolbar[iconsize="small"] #button-getmsg {
   -moz-image-region: rect(0px 24px 24px 0px);
 }
 
-toolbar[iconsize="small"] #button-getmsg:hover:active {
+toolbar[iconsize="small"] #button-getmsg:hover:active,
+toolbar[iconsize="small"] #button-getmsg[open] {
   -moz-image-region: rect(24px 24px 48px 0px);
 }
 
@@ -523,7 +532,8 @@ toolbar[iconsize="small"] #button-goback {
   -moz-image-region: rect(0px 408px 24px 384px);
 }
 
-toolbar[iconsize="small"] #button-goback:hover:active {
+toolbar[iconsize="small"] #button-goback:hover:active,
+toolbar[iconsize="small"] #button-goback[open] {
   -moz-image-region: rect(24px 408px 48px 384px);
 }
 
@@ -535,7 +545,8 @@ toolbar[iconsize="small"] #button-goforward {
   -moz-image-region: rect(0px 432px 24px 408px);
 }
 
-toolbar[iconsize="small"] #button-goforward:hover:active {
+toolbar[iconsize="small"] #button-goforward:hover:active,
+toolbar[iconsize="small"] #button-goforward[open] {
   -moz-image-region: rect(24px 432px 48px 408px);
 }
 

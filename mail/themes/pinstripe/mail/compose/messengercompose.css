@@ -71,6 +71,10 @@ toolbar {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
 }
 
+.toolbarbutton-1[open] > .toolbarbutton-menubutton-button {
+  text-shadow: none;
+}
+
 toolbarbutton[type="menu-button"] {
   -moz-box-orient: horizontal;
 }
@@ -112,7 +116,8 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
   -moz-image-region: rect(0px 96px 32px 64px);
 }
 
-#spellingButton:hover:active {
+#spellingButton:hover:active,
+#spellingButton[open] {
   -moz-image-region: rect(32px 96px 64px 64px);
 }
 
@@ -237,7 +242,8 @@ toolbar[iconsize="small"] #spellingButton {
   -moz-image-region: rect(0px 72px 24px 48px);
 }
 
-toolbar[iconsize="small"] #spellingButton:hover:active {
+toolbar[iconsize="small"] #spellingButton:hover:active,
+toolbar[iconsize="small"] #spellingButton[open] {
   -moz-image-region: rect(24px 72px 48px 48px);
 }
 

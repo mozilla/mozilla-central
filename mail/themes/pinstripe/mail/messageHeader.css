@@ -248,7 +248,8 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   vertical-align: middle;
 }
 
-.msgHeaderView-button:active {
+.msgHeaderView-button:active,
+.msgHeaderView-button[type="menu-button"][open] {
   background-image: url(chrome://global/skin/icons/white-gray-gradient-active.gif);
 }
 
