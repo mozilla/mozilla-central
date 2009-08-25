@@ -717,6 +717,34 @@
         </body>
       </method>
 
+      <method name="getTitleForURI">
+        <parameter name="aURI"/>
+        <body>
+          <![CDATA[
+            try {
+              aURI = this.mURIFixup.createExposableURI(aURI).spec;
+            } catch (e) {
+              aURI = aURI.spec;
+            }
+
+            if (aURI == "about:blank")
+              return "";
+
+            // We have a URI. Let's try to unescape it using a character set
+            // in case the URI is not ASCII.
+            try {
+              let characterSet = this.mCurrentBrowser.contentDocument.characterSet;
+              let textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
+                                           .getService(Components.interfaces.nsITextToSubURI);
+              aURI = textToSubURI.unEscapeNonAsciiURI(characterSet, aURI);
+            } catch (e) {
+              // Do nothing.
+            }
+            return aURI;
+          ]]>
+        </body>
+      </method>
+
       <method name="updateTitlebar">
         <body>
           <![CDATA[
@@ -724,16 +752,26 @@
             var docTitle;
             var docElement = this.ownerDocument.documentElement;
             var sep = docElement.getAttribute("titlemenuseparator");
+            var modifier = docElement.getAttribute("titlemodifier");
 
             if (this.docShell.contentViewer)
               docTitle = this.contentTitle;
 
-            if (docTitle) {
-              newTitle += docElement.getAttribute("titlepreface");
-              newTitle += docTitle;
-              newTitle += sep;
+            if (!docTitle && !modifier) {
+              docTitle = this.getTitleForURI(this.mCurrentBrowser.currentURI);
+              if (!docTitle) {
+                // Here we actually override contenttitlesetting, because we
+                // don't want the titledefault value.
+                docTitle = this.mStringBundle.getString("tabs.untitled");
+              }
             }
-            newTitle += docElement.getAttribute("titlemodifier");
+
+            if (docTitle) {
+              newTitle += docElement.getAttribute("titlepreface") + docTitle;
+              if (modifier)
+                newTitle += sep;
+            }
+            newTitle += modifier;
 
             // If location bar is hidden and the URL type supports a host,
             // add the scheme and host to the title to prevent spoofing.
@@ -751,7 +789,9 @@
             } catch (e) {
             }
 
-            this.ownerDocument.title = newTitle;
+            window.QueryInterface(nsIInterfaceRequestor)
+                  .getInterface(Components.interfaces.nsIWebNavigation)
+                  .QueryInterface(Components.interfaces.nsIBaseWindow).title = newTitle;
           ]]>
         </body>
       </method>
@@ -1094,34 +1134,15 @@
             var crop = "end";
 
             if (!title) {
-              if (browser.currentURI.spec) {
-                try {
-                  title = this.mURIFixup.createExposableURI(browser.currentURI).spec;
-                } catch (e) {
-                  title = browser.currentURI.spec;
-                }
-              }
+              title = this.getTitleForURI(browser.currentURI);
 
-              if (title && title != "about:blank") {
-                // At this point, we now have a URI.
-                // Let's try to unescape it using a character set
-                // in case the URI is not ASCII.
-                try {
-                  var characterSet = browser.contentDocument.characterSet;
-                  const textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
-                                                 .getService(Components.interfaces.nsITextToSubURI);
-                  title = textToSubURI.unEscapeNonAsciiURI(characterSet, title);
-                } catch (e) {
-                  // Do nothing.
-                }
-
+              if (title)
                 crop = "center";
-              } else // Still no title?  Fall back to our untitled string.
+              else
                 title = this.mStringBundle.getString("tabs.untitled");
             }
-
             aTab.label = title;
-            aTab.setAttribute("crop", crop);
+            aTab.crop = crop;
           ]]>
         </body>
       </method>

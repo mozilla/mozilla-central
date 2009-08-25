@@ -54,7 +54,14 @@
 
       var titlemodifier = bundle.getFormattedString("titlemodifier",
                                                     [appInfo.name,
-                                                     appInfo.appBuildID])
+                                                     appInfo.appBuildID]);
+
+      // On mac, with contenttitlesetting="true", the titlemodifier is removed
+      // and replaced with a titledefault attribute that holds the value of the
+      // titlemodifier attribute. We don't use titledefault, but let's remove
+      // it since we're adding back the titlemodifier.
+      document.documentElement.removeAttribute("titledefault");
+
       // Set the new title modifier
       document.documentElement.setAttribute("titlemodifier", titlemodifier);
 
