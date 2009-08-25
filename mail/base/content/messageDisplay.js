@@ -209,6 +209,7 @@ MessageDisplayWidget.prototype = {
       // davida, put your folder summary stuff here.
       this.clearDisplay();
       this.singleMessageDisplay = true;
+      return true;
     }
     else if (selectedCount == 1) {
       // the display of the message is happening without us
@@ -218,19 +219,8 @@ MessageDisplayWidget.prototype = {
       //  take care of.
       return false;
     }
-    // if the pref is enabled
-    else if (gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads")) {
-      // _showSummary is responsible for handling the "don't resummarize too
-      //  often" logic, as well as updating singleMessageDisplay.
-      this._showSummary();
-    }
-    // and so we clear things
-    else {
-      this.clearDisplay();
-      this.singleMessageDisplay = true;
-    }
-
-    return true;
+    // Else defer to showSummary to work it out based on thread selection.
+    return this._showSummary();
   },
 
   /**
@@ -273,6 +263,9 @@ MessageDisplayWidget.prototype = {
    *
    * @param aIsCallback Is this a callback to ourselves?  Callers should not set
    *     this, leaving it undefined.
+   * @return true if we handled the selection notification and the nsMsgDBView
+   *  should do nothing, false if we did not and the nsMsgDBView should use its
+   *  logic to display a message.
    */
   _showSummary: function MessageDisplayWidget_showSummary(aIsCallback) {
     // note: if we are in this function, we already know that summaries are
@@ -288,13 +281,13 @@ MessageDisplayWidget.prototype = {
         setTimeout(this._wrapShowSummary,
                    this.SUMMARIZATION_SELECTION_STABILITY_INTERVAL_MS,
                    this);
-      return;
+      return true;
     }
 
     // Bail if our selection count has stabilized outside an acceptable range.
     let selectedCount = this.folderDisplay.selectedCount;
     if (selectedCount < 2)
-      return;
+      return true;
 
     // Setup a timeout call to _clearSummaryTimer so that we don't try and
     //  summarize again within 100ms of now.  Do this before calling
@@ -314,11 +307,20 @@ MessageDisplayWidget.prototype = {
         break;
       }
     }
-    if (oneThread)
-      summarizeThread(selectedMessages);
+    if (oneThread) {
+      if (this.folderDisplay.summarizeSelectionInFolder)
+        summarizeThread(selectedMessages);
+      else {
+        // If we're not summarizing selection for this folder, then just display
+        // the first message of the thread.
+        this.singleMessageDisplay = true;
+        return false;
+      }
+    }
     else
       summarizeMultipleSelection(selectedMessages);
     this.singleMessageDisplay = false;
+    return true;
   },
   _wrapShowSummary: function MessageDisplayWidget__wrapShowSummary(aThis) {
     aThis._showSummary(true);

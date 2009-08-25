@@ -173,6 +173,18 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
+   * @return true if the selection should be summarized for this folder. This
+   *     is based on the mail.operate_on_msgs_in_collapsed_threads pref and
+   *     if we are in a newsgroup folder. XXX When bug 478167 is fixed, this
+   *     should be limited to being disabled for newsgroups that are not stored
+   *     offline.
+   */
+  get summarizeSelectionInFolder() {
+    return gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads") &&
+      !(this.displayedFolder instanceof Components.interfaces.nsIMsgNewsFolder);
+  },
+
+  /**
    * @return the nsITreeSelection object for our tree view.  This exists for
    *     the benefit of message tabs that haven't been switched to yet.
    *     We provide a fake tree selection in those cases.
@@ -1635,8 +1647,7 @@ FolderDisplayWidget.prototype = {
       aSelect = true;
     let resultKeyObj = {}, resultIndexObj = {}, threadIndexObj = {};
 
-    let summarizeSelection =
-      gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads");
+    let summarizeSelection = this.summarizeSelectionInFolder;
 
     let treeSelection = this.treeSelection; // potentially magic getter
     let currentIndex = treeSelection ? treeSelection.currentIndex : 0;
@@ -1778,10 +1789,9 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
-   * @return the number of selected messages.  If the
-   *  "mail.operate_on_msgs_in_collapsed_threads" preference is enabled, then
-   *  any collapsed thread roots that are selected will also conceptually have
-   *  all of the messages in that thread selected.
+   * @return the number of selected messages.  If summarizeSelectionInFolder is
+   *  true, then any collapsed thread roots that are selected will also
+   *  conceptually have all of the messages in that thread selected.
    */
   get selectedCount FolderDisplayWidget_get_selectedCount() {
     if (!this.view.dbView)
@@ -1791,10 +1801,9 @@ FolderDisplayWidget.prototype = {
 
   /**
    * Provides a list of the view indices that are selected which is *not* the
-   *  same as the rows of the selected messages.  When the
-   *  "mail.operate_on_msgs_in_collapsed_threads" preference is enabled,
-   *  messages may be selected but not visible (because the thread root is
-   *  selected.)
+   *  same as the rows of the selected messages.  When
+   *  summarizeSelectionInFolder is true, messages may be selected but not
+   *  visible (because the thread root is selected.)
    * You probably want to use the |selectedMessages| attribute instead of this
    *  one.  (Or selectedMessageUris in some rare cases.)
    *
@@ -1812,10 +1821,9 @@ FolderDisplayWidget.prototype = {
 
   /**
    * Provides a list of the message headers for the currently selected messages.
-   *  If the "mail.operate_on_msgs_in_collapsed_threads" preference is enabled,
-   *  then any collapsed thread roots that are selected will also (conceptually)
-   *  have all of the messages in that thread selected and they will be included
-   *  in the returned list.
+   *  If summarizeSelectionInFolder is true, then any collapsed thread roots
+   *  that are selected will also (conceptually) have all of the messages in
+   *  that thread selected and they will be included in the returned list.
    *
    * If the user has right-clicked on a message, this will return that message
    *  (and any collapsed children if so enabled) and not the selection prior to
