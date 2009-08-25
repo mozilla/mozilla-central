@@ -150,6 +150,9 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
                                   badCert, targetSite)
   {
     assert(type == SMTP, "I only know SMTP for outgoing");
+    // Ensure there are no previously saved outgoing errors if we've got success
+    // here.
+    outgoingEx = null;
     resultConfig.outgoing.hostname = hostname;
     resultConfig.outgoing.port = port;
     // non-auth smtp servers must be rare at this point.
@@ -174,6 +177,9 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
   {
     ddump("incomingSuccess outgoingDone = " + outgoingDone + "\n");
     ddump("incoming success username = " + resultConfig.incoming.username + "\n");
+    // Ensure there are no previously saved incoming errors if we've got success
+    // here.
+    incomingEx = null;
     resultConfig.incoming.hostname = hostname;
     resultConfig.incoming.port = port;
     resultConfig.incoming.type = protocolToString(type);
