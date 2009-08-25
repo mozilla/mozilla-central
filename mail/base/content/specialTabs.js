@@ -1,4 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -101,6 +100,7 @@ var specialTabs = {
       return -1;
     },
     openTab: function onTabOpened(aTab, {contentPage: aContentPage}) {
+      // First clone the page and set up the basics.
       let clone = document.getElementById("contentTab").firstChild.cloneNode(true);
 
       clone.setAttribute("id", "contentTab" + this.lastBrowserId);
@@ -109,31 +109,32 @@ var specialTabs = {
 
       aTab.panel.appendChild(clone);
 
+      // Start setting up the browser.
       aTab.browser = aTab.panel.getElementsByTagName("browser")[0];
 
       aTab.browser.setAttribute("id", "contentTabBrowser" + this.lastBrowserId);
 
-      function onDOMTitleChanged(aEvent) {
-        document.getElementById("tabmail").setTabTitle(aTab);
-      }
-      // Save the function we'll use as listener so we can remove it later.
-      aTab.contentTabType = { titleListener: onDOMTitleChanged };
-      // Add the listener.
-      aTab.browser.addEventListener("DOMTitleChanged",
-                                    aTab.contentTabType.titleListener, true);
+      // Now initialise the find bar.
+      aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
+      aTab.findbar.setAttribute("browserid",
+                                "contentTabBrowser" + this.lastBrowserId);
 
+      // Now set up the listeners.
+      this._setUpTitleListener(aTab);
+      this._setUpCloseWindowListener(aTab);
+
+      // Now start loading the content.
       aTab.title = this.loadingTabString;
 
       aTab.browser.setAttribute("src", aContentPage);
 
-      aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
-      aTab.findbar.setAttribute("browserid",
-                                "contentTabBrowser" + this.lastBrowserId);
       this.lastBrowserId++;
     },
     closeTab: function onTabClosed(aTab) {
       aTab.browser.removeEventListener("DOMTitleChanged",
-                                                aTab.contentTabType.titleListener, true);
+                                       aTab.titleListener, true);
+      aTab.browser.removeEventListener("DOMWindowClose",
+                                       aTab.closeListener, true);
     },
     saveTabState: function onSaveTabState(aTab) {
       aTab.browser.setAttribute("type", "content-targetable");
@@ -219,6 +220,37 @@ var specialTabs = {
     },
     getBrowser: function getBrowser(aTab) {
       return aTab.browser;
+    },
+    // Internal function used to set up the title listener on a content tab.
+    _setUpTitleListener: function setUpTitleListener(aTab) {
+      function onDOMTitleChanged(aEvent) {
+        document.getElementById("tabmail").setTabTitle(aTab);
+      }
+      // Save the function we'll use as listener so we can remove it later.
+      aTab.titleListener = onDOMTitleChanged;
+      // Add the listener.
+      aTab.browser.addEventListener("DOMTitleChanged",
+                                    aTab.titleListener, true);
+    },
+    /**
+     * Internal function used to set up the close window listener on a content
+     * tab.
+     */
+    _setUpCloseWindowListener: function setUpCloseWindowListener(aTab) {
+      function onDOMWindowClose(aEvent) {
+        if (!aEvent.isTrusted)
+          return;
+
+        // Redirect any window.close events to closing the tab. As a 3-pane tab
+        // must be open, we don't need to worry about being the last tab open.
+        document.getElementById("tabmail").closeTab(aTab);
+        aEvent.preventDefault();
+      }
+      // Save the function we'll use as listener so we can remove it later.
+      aTab.closeListener = onDOMWindowClose;
+      // Add the listener.
+      aTab.browser.addEventListener("DOMWindowClose",
+                                    aTab.closeListener, true);
     }
   },
 
@@ -286,7 +318,7 @@ var specialTabs = {
 
     var stringBundle =
       Components.classes["@mozilla.org/intl/stringbundle;1"]
-                .getService(Components.interfaces.nsIStringBundleService)
+                .getService(Components.interfaces.nsIStringBundleService);
     var brandBundle =
       stringBundle.createBundle("chrome://branding/locale/brand.properties");
     var rightsBundle =
@@ -318,4 +350,4 @@ var specialTabs = {
     // Set the pref to say we've displayed the notification.
     prefs.setIntPref("mail.rights.version", this._kAboutRightsVersion);
   }
-}
+};
