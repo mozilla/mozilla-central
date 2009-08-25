@@ -350,8 +350,8 @@ function SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, 
 function SetupCompactMenuItem(folderResource, numSelected)
 {
   var folder = GetMsgFolderFromResource(folderResource);
-
-  ShowMenuItem("folderPaneContext-compact", numSelected <= 1 && folder.canCompact);
+  let canCompact = folder.canCompact;
+  ShowMenuItem("folderPaneContext-compact", numSelected <= 1 && canCompact);
   EnableMenuItem("folderPaneContext-compact", folder.isCommandEnabled("cmd_compactFolder"));
 
   if (canCompact)
