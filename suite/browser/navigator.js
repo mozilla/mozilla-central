@@ -1324,6 +1324,9 @@ function BrowserOpenFileWindow()
 function updateCloseItems()
 {
   var browser = getBrowser();
+  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                     .getService(Components.interfaces.nsISessionStore);
+
   if (browser && browser.getStripVisibility()) {
     document.getElementById('menu_closeOtherTabs').hidden = false;
     if (browser.tabContainer.childNodes.length > 1) {
@@ -1346,6 +1349,8 @@ function updateCloseItems()
   }
   var recentTabsItem = document.getElementById("menu_recentTabs");
   recentTabsItem.setAttribute("disabled", !browser || browser.getUndoList().length == 0);
+  var recentWindowsItem = document.getElementById("menu_recentWindows");
+  recentWindowsItem.setAttribute("disabled", ss.getClosedWindowCount() == 0);
 }
 
 function updateRecentTabs(menupopup)
@@ -1371,6 +1376,40 @@ function updateRecentTabs(menupopup)
     menuitem.setAttribute("value", i);
     menupopup.appendChild(menuitem);
   }
+}
+
+function updateRecentWindows(menupopup)
+{
+  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                     .getService(Components.interfaces.nsISessionStore);
+
+  while (menupopup.hasChildNodes())
+    menupopup.removeChild(menupopup.lastChild);
+
+  var undoItems = JSON.parse(ss.getClosedWindowData());
+  for (var i = 0; i < undoItems.length; i++) {
+    var menuitem = document.createElement("menuitem");
+    var label = undoItems[i].title;
+    if (i < 9) {
+      label = gNavigatorBundle.getFormattedString("windows.recentlyClosed.format", [i + 1, label]);
+      menuitem.setAttribute("accesskey", i + 1);
+    }
+
+    if (i == 0)
+      menuitem.setAttribute("key", "key_restoreWindow");
+
+    menuitem.setAttribute("label", label);
+    menuitem.setAttribute("value", i);
+    menupopup.appendChild(menuitem);
+  }
+}
+
+function undoCloseWindow(aIndex)
+{
+  var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                     .getService(Components.interfaces.nsISessionStore);
+
+  return ss.undoCloseWindow(aIndex);
 }
 
 function BrowserCloseOtherTabs()

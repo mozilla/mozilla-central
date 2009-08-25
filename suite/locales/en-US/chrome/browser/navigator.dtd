@@ -22,6 +22,9 @@
 <!ENTITY recentTabs.label "Recently Closed Tabs">
 <!ENTITY recentTabs.accesskey "R">
 <!ENTITY recentTabs.commandkey "t">
+<!ENTITY recentWindows.label "Recently Closed Windows">
+<!ENTITY recentWindows.accesskey "y">
+<!ENTITY recentWindows.commandkey "y">
 <!ENTITY editPageCmd.label "Edit Page">
 <!ENTITY editPageCmd.accesskey "E">
 <!ENTITY editPageCmd.commandkey "e">

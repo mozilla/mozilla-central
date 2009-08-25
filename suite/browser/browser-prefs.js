@@ -347,6 +347,9 @@ pref("browser.sessionstore.privacy_level", 1);
 pref("browser.sessionstore.max_resumed_crashes", 1);
 // how many tabs can be reopened (per window)
 pref("browser.sessionstore.max_tabs_undo", 10);
+// how many windows can be reopened (per session) - on non-OS X platforms this
+// pref may be ignored when dealing with pop-up windows to ensure proper startup
+pref("browser.sessionstore.max_windows_undo", 3);
 
 pref("shell.checkDefaultClient", true);
 // We want to check if we are the default client for browser and mail. See 
