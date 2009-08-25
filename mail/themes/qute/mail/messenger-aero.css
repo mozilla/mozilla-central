@@ -1,0 +1,5 @@
+%include messenger.css
+
+.toolbar-primary {
+  -moz-appearance: none;
+}
