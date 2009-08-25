@@ -203,6 +203,8 @@ MessageDisplayWidget.prototype = {
     if (!this.active)
       return true;
 
+    ClearPendingReadTimer();
+
     let selectedCount = this.folderDisplay.selectedCount;
 
     if (selectedCount == 0) {
