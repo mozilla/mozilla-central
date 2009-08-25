@@ -262,7 +262,7 @@ classic.jar:
   skin/classic/aero/messenger/activity/deleteMailIcon.png             (mail/activity/deleteMailIcon-aero.png)
   skin/classic/aero/messenger/activity/compactMailIcon.png            (mail/activity/compactMailIcon-aero.png)
   skin/classic/aero/messenger/activity/indexMailIcon.png              (mail/activity/indexMailIcon-aero.png)
-  skin/classic/aero/messenger/addressbook/addressbook.css          (mail/addrbook/addressbook.css)
+* skin/classic/aero/messenger/addressbook/addressbook.css          (mail/addrbook/addressbook-aero.css)
   skin/classic/aero/messenger/addressbook/abContactsPanel.css      (mail/addrbook/abContactsPanel.css)
   skin/classic/aero/messenger/addressbook/cardDialog.css           (mail/addrbook/cardDialog.css)
   skin/classic/aero/messenger/addressbook/abResultsPane.css        (mail/addrbook/abResultsPane.css)
