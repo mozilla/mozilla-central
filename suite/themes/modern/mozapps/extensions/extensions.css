@@ -1,0 +1,500 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is SeaMonkey modern code.
+ *
+ * The Initial Developer of the Original Code is
+ * Kuden <spitfire.kuden@gmail.com>
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#extensionsBox {
+  margin: 7px 5px 0px;
+  min-width: 1px;
+}
+
+#extensionsView {
+  margin: 0;
+  min-width: 245px;
+}
+
+#resizerBox {
+  margin-top: -15px;
+}
+
+#resizerBox > resizer {
+  height: 15px;
+  max-height: 15px;
+}
+
+/* Command Bar */
+#commandBarBottom {
+  margin: 7px 5px 5px;
+  min-width: 1px;
+}
+
+/* List Items */
+richlistitem {
+  padding: 6px 7px;
+  min-height: 25px;
+  border-top-width: 0;
+  border-bottom: 1px solid #A5ABC0 !important;
+}
+
+richlistitem[isDisabled="true"] .addonIcon {
+  opacity: 0.3;
+}
+
+richlistitem[isDisabled="true"] {
+  color: #8C99AB;
+}
+
+richlistitem[newAddon="true"] {
+  background-color: #FFFFE0;
+  color: #000000;
+}
+
+richlistitem[selected="true"] .text-link {
+  color: inherit;
+}
+
+#extensionsView:focus > richlistitem[selected="true"] {
+  background-image: url("chrome://mozapps/skin/icons/itemEnabledFader.png");
+  background-position: center top;
+  background-repeat: repeat-x;
+}
+
+#extensionsView:focus > richlistitem[selected="true"][isDisabled="true"] {
+  color: #EFF1F4;
+  background-image: url("chrome://mozapps/skin/icons/itemDisabledFader.png");
+}
+
+.descriptionWrap {
+  margin-bottom: 2px;
+}
+
+richlistitem[selected="true"]:not([opType]) .descriptionCrop {
+  display: none;
+}
+
+.addonName {
+  font-weight: bold;
+}
+
+.previewText {
+  font-size: larger;
+  font-weight: bold;
+  color: #000000;
+  text-align: center;
+}
+
+#themePreviewArea {
+  border: 2px solid;
+  -moz-border-top-colors: #BEC3D3 #5D616E;
+  -moz-border-right-colors: #F8FAFE #5D616E;
+  -moz-border-bottom-colors: #F8FAFE #5D616E;
+  -moz-border-left-colors: #BEC3D3 #5D616E;
+  background-color: #FFFFFF;
+  color: #000000;
+  min-width: 65px;
+  overflow: auto;
+}
+
+#previewImageDeck {
+  min-width: 220px;
+}
+
+#themeSplitter {
+  min-width: 0;
+  width: 5px;
+  background-color: transparent;
+  border-width: 0;
+}
+
+.addonIcon {
+  -moz-margin-end: 2px;
+  width: 32px;
+  height: 32px;
+}
+
+.addonIcon > image {
+  max-width: 32px;
+  max-height: 32px;
+}
+
+.updateBadge,
+.notifyBadge {
+  width: 16px;
+  height: 16px;
+  margin-bottom: -3px;
+}
+
+.updateBadge {
+  list-style-image: url("chrome://mozapps/skin/extensions/updateBadge.png");
+  -moz-margin-end: -2px;
+}
+
+.notifyBadge {
+  list-style-image: url("chrome://mozapps/skin/extensions/notifyBadge.png");
+  -moz-margin-start: -2px;
+}
+
+.updateBadge,
+.updateAvailableBox,
+.notifyBadge {
+  display: none;
+}
+
+richlistitem[availableUpdateURL][updateable="true"] .updateBadge,
+richlistitem[availableUpdateURL][updateable="true"] .updateAvailableBox,
+richlistitem[compatible="false"] .notifyBadge,
+richlistitem[providesUpdatesSecurely="false"] .notifyBadge,
+richlistitem[blocklisted="true"] .notifyBadge,
+richlistitem[blocklistedsoft="true"] .notifyBadge,
+richlistitem[satisfiesDependencies="false"] .notifyBadge {
+  display: -moz-box;
+}
+
+.enableButton,
+.disableButton,
+.optionsButton,
+.useThemeButton {
+  -moz-margin-end: 0;
+}
+
+.enableButton, .disableButton,
+.uninstallButton, .cancelUninstallButton {
+  -moz-margin-start: 5px;
+}
+
+/* Selected Add-on status messages and images */
+richlistitem[compatible="true"] .incompatibleBox,
+richlistitem[providesUpdatesSecurely="true"] .insecureUpdateBox,
+richlistitem[satisfiesDependencies="true"] .needsDependenciesBox,
+richlistitem:not([blocklisted="true"]):not([blocklistedsoft="true"]) .blocklistedBox,
+richlistitem[blocklistedsoft="false"]:not([selected="true"]) .blocklistedBox,
+richlistitem[blocklisted="false"] .blocklistedLabel,
+richlistitem[blocklistedsoft="false"] .softBlocklistedLabel,
+richlistitem[opType="needs-uninstall"] .blocklistedBox,
+richlistitem[opType="needs-uninstall"] .incompatibleBox,
+richlistitem[opType="needs-uninstall"] .needsDependenciesBox,
+richlistitem[opType="needs-uninstall"] .blocklistedBox {
+  display: none;
+}
+
+richlistitem[loading="true"] .updateBadge {
+  display: -moz-box;
+  width: 16px;
+  height: 16px;
+  margin-bottom: -3px;
+  -moz-margin-end: -2px;
+  list-style-image: url("chrome://communicator/skin/icons/loading.gif");
+}
+
+.addonThrobber {
+  -moz-margin-start: 5px;
+  width: 16px;
+  height: 16px;
+  list-style-image: url("chrome://communicator/skin/icons/loading.gif");
+}
+
+.selectedStatusMsgs > hbox {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.selectedStatusMsgs label {
+  font-weight: bold;
+}
+
+.selectedStatusMsgs label.text-link {
+  font-weight: normal;
+  border: none;
+}
+
+richlistitem[opType="needs-uninstall"] .notifyBadge {
+  display: none;
+}
+
+#searchPanel {
+  padding-bottom: 4px;
+}
+
+#browseAddons {
+  -moz-margin-end: 0;
+}
+
+.addon-search-details {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  -moz-margin-start: 6px;
+  -moz-margin-end: 0;
+}
+
+.addonThumbnailContainer {
+  background-color: #FFFFFF;
+  padding: 5px;
+  border: 2px solid #F3F3F3;
+  width: 135px;
+  min-height: 104px;
+  -moz-margin-end: 5px;
+}
+
+.addonMissingThumbnail {
+  color: #8290A5;
+  font-size: larger;
+  font-weight: bold;
+}
+
+.addonFailure {
+  width: 16px;
+  height: 16px;
+  list-style-image: url("chrome://mozapps/skin/extensions/notifyBadges.png");
+  -moz-image-region: rect(0px 48px 16px 32px);
+}
+
+.addonRating {
+  display: none;
+}
+
+.addonLearnMore {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.addonRating[rating] {
+  display: -moz-box;
+  width: 59px;
+  height: 11px;
+  list-style-image: url("chrome://mozapps/skin/extensions/ratings.png");
+}
+
+.addonRating[rating="0"] {
+  -moz-image-region: rect(0px 120px 12px 60px);
+}
+
+.addonRating[rating="1"] {
+  -moz-image-region: rect(0px 108px 12px 48px);
+}
+
+.addonRating[rating="2"] {
+  -moz-image-region: rect(0px 96px 12px 36px);
+}
+
+.addonRating[rating="3"] {
+  -moz-image-region: rect(0px 84px 12px 24px);
+}
+
+.addonRating[rating="4"] {
+  -moz-image-region: rect(0px 72px 12px 12px);
+}
+
+.addonRating[rating="5"] {
+  -moz-image-region: rect(0px 60px 12px 0px);
+}
+
+.addonType image {
+  -moz-margin-start: 6px;
+  list-style-image: url("chrome://mozapps/skin/extensions/extensionIcons.png");
+  width: 16px;
+  height: 16px;
+}
+
+.addonTypeExtension image {
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+
+.addonTypeTheme image {
+  -moz-image-region: rect(0px 32px 16px 16px);
+}
+
+vbox[typeName="status"][type="search-failure"],
+vbox[typeName="status"][type="recommended-failure"],
+vbox[typeName="status"][type="message-norecommended"],
+vbox[typeName="status"][type="message-nosearchresults"],
+vbox[typeName="status"][type="retrieve-search"],
+vbox[typeName="status"][type="retrieve-recommended"] {
+  margin-top: 2em;
+}
+
+vbox[typeName="status"][type="footer-recommended"],
+vbox[typeName="status"][type="footer-search"] {
+  -moz-padding-start: 6px;
+  -moz-padding-end: 6px;
+  margin-top: 1em;
+}
+
+vbox[typeName="status"][type="header-recommended"] {
+  color: #000000;
+  background-color: #90A1B3;
+  padding: 5px 8px;
+  border-bottom: 1px solid #5D616E;
+}
+
+vbox[typeName="status"][type="header-recommended"] > label {
+  font-size: larger;
+  font-weight: bold;
+  margin: 0;
+}
+
+#progressBox {
+  padding: 5px;
+}
+
+#progressBox > hbox {
+  -moz-box-align: center;
+}
+
+#progressBox .addonThrobber {
+  list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif");
+}
+
+.extension-item-progress {
+  background-color: #C7D0D9;
+}
+
+#addonsMsg {
+  margin-top: -1px;
+}
+
+#addonsMsg > notification {
+  border-bottom: 1px solid #EEF0F3;
+}
+
+/* View buttons */
+#topStackBar {
+  background-color: #FFFFFF;
+  border-bottom: 2px solid;
+  -moz-border-bottom-colors: #EEF0F3 #6E7378;
+}
+
+#viewGroup {
+  -moz-padding-start: 5px !important;
+  -moz-padding-end: 1em;
+}
+
+#viewGroup radio {
+  -moz-box-pack: center;
+  -moz-box-orient: horizontal !important;
+  margin: 5px;
+  -moz-outline-radius: 4px;
+  outline: 2px solid transparent;
+  border: 3px solid;
+  -moz-border-top-colors: #000000 #BBC6D1 #B1BBC9;
+  -moz-border-right-colors: #000000 #A2AEBB #a7b4c1;
+  -moz-border-bottom-colors: #000000 #97A6B6 #9DAAB9;
+  -moz-border-left-colors: #000000 #BBC6D1 #B1BBC9;
+  -moz-border-radius: 2px;
+  min-width: 60px;
+  background-color: #AAB6C4;
+  color: #000000;
+  font: menu;
+}
+
+#viewGroup radio[checked="true"],
+#viewGroup radio[selected="true"] {
+  -moz-border-top-colors: #000000 #8290A5 #899AAC;
+  -moz-border-right-colors: #000000 #8290A5 #899AAC;
+  -moz-border-bottom-colors: #000000 #8290A5 #899AAC;
+  -moz-border-left-colors: #000000 #8290A5 #899AAC;
+  background-color: #90A1B3;
+  color: #FFFFFF;
+}
+
+#viewGroup radio:hover:active,
+#viewGroup radio[selected="true"][focused="true"] {
+  outline: 2px solid #98A5B2;
+  -moz-border-top-colors: #000000 #8290A5 #899AAC;
+  -moz-border-right-colors: #000000 #8290A5 #899AAC;
+  -moz-border-bottom-colors: #000000 #8290A5 #899AAC;
+  -moz-border-left-colors: #000000 #8290A5 #899AAC;
+  background-color: #90A1B3;
+  color: #FFFFFF;
+}
+
+.viewButtonIcon {
+  display: none !important;
+}
+
+.viewButtonLabel {
+  text-align: center;
+  margin: 0 6px !important;
+}
+
+/* Update view checkbox */
+.includeUpdate {
+  -moz-user-focus: none;
+}
+
+richlistitem[selected="true"] .includeUpdate {
+  -moz-user-focus: normal;
+}
+
+#infoDisplay {
+  background-color: #FFFFFF;
+  overflow-y: auto;
+}
+
+#infoDisplay body {
+  padding: 5px;
+}
+
+#infoDisplay h1,
+#infoDisplay h2,
+#infoDisplay h3 {
+  text-align: left;
+  font-weight: bold;
+  margin: 0 0 .7em;
+}
+
+#infoDisplay h1 {
+  font-size: 150%;
+}
+
+#infoDisplay h2 {
+  font-size: 125%;
+}
+
+#infoDisplay h3 {
+  font-size: 100%;
+}
+
+#infoDisplay ol,
+#infoDisplay ul {
+  margin: 0 0 .7em;
+}
+
+#infoDisplay li {
+  text-align: left;
+}
+
+#infoDisplay p {
+  text-align: justify;
+  margin: 0 0 .7em;
+}

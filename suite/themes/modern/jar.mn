@@ -4,6 +4,7 @@ modern.jar:
 % skin global modern/1.0 %skin/modern/global/
 % skin help modern/1.0 %skin/modern/help/
 % skin messenger modern/1.0 %skin/modern/messenger/
+% skin mozapps modern/1.0 %skin/modern/mozapps/
 % skin navigator modern/1.0 %skin/modern/navigator/
 % skin messenger-newsblog modern/1.0 %skin/modern/messenger-newsblog/
 % style chrome://global/content/customizeToolbar.xul chrome://navigator/skin/navigator.css
@@ -235,6 +236,7 @@ modern.jar:
   skin/modern/global/icons/close-hov.gif                           (global/icons/close-hov.gif)
   skin/modern/global/icons/close.gif                               (global/icons/close.gif)
   skin/modern/global/icons/closebox.gif                            (global/icons/closebox.gif)
+  skin/modern/global/icons/Error.png                               (global/icons/Error.png)
   skin/modern/global/icons/find.png                                (global/icons/find.png)
   skin/modern/global/icons/notfound.png                            (global/icons/notfound.png)
   skin/modern/global/icons/pg-landscape.gif                        (global/icons/pg-landscape.gif)
@@ -466,6 +468,35 @@ modern.jar:
   skin/modern/messenger/smime/icons/hdrCryptoOk.gif                (messenger/smime/icons/hdrCryptoOk.gif)
   skin/modern/messenger/smime/icons/hdrCryptoNotOk.gif             (messenger/smime/icons/hdrCryptoNotOk.gif)
   skin/modern/messenger-newsblog/feed-subscriptions.css            (messenger/newsblog/feed-subscriptions.css)
+  skin/modern/mozapps/downloads/downloadIcon.png                   (mozapps/downloads/downloadIcon.png)
+  skin/modern/mozapps/downloads/downloads.css                      (mozapps/downloads/downloads.css)
+  skin/modern/mozapps/downloads/unknownContentType.css             (mozapps/downloads/unknownContentType.css)
+  skin/modern/mozapps/extensions/about.css                         (mozapps/extensions/about.css)
+  skin/modern/mozapps/extensions/blocklist.css                     (mozapps/extensions/blocklist.css)
+  skin/modern/mozapps/extensions/eula.css                          (mozapps/extensions/eula.css)
+  skin/modern/mozapps/extensions/extensionIcons.png                (mozapps/extensions/extensionIcons.png)
+  skin/modern/mozapps/extensions/extensions.css                    (mozapps/extensions/extensions.css)
+  skin/modern/mozapps/extensions/notifyBadge.png                   (mozapps/extensions/notifyBadge.png)
+  skin/modern/mozapps/extensions/ratings.png                       (mozapps/extensions/ratings.png)
+  skin/modern/mozapps/extensions/themeGeneric.png                  (mozapps/extensions/themeGeneric.png)
+  skin/modern/mozapps/extensions/update.css                        (mozapps/extensions/update.css)
+  skin/modern/mozapps/extensions/updateBadge.png                   (mozapps/extensions/updateBadge.png)
+  skin/modern/mozapps/handling/handling.css                        (mozapps/handling/handling.css)
+  skin/modern/mozapps/icons/itemDisabledFader.png                  (mozapps/icons/itemDisabledFader.png)
+  skin/modern/mozapps/icons/itemEnabledFader.png                   (mozapps/icons/itemEnabledFader.png)
+  skin/modern/mozapps/plugins/missingPlugin.css                    (mozapps/plugins/missingPlugin.css)
+  skin/modern/mozapps/plugins/pluginBlocked.png                    (mozapps/plugins/pluginBlocked.png)
+  skin/modern/mozapps/plugins/pluginBlocked-16.png                 (mozapps/plugins/pluginBlocked.png)
+  skin/modern/mozapps/plugins/pluginDisabled.png                   (mozapps/plugins/pluginDisabled.png)
+  skin/modern/mozapps/plugins/pluginDisabled-16.png                (mozapps/plugins/pluginDisabled-16.png)
+  skin/modern/mozapps/plugins/pluginGeneric.png                    (mozapps/plugins/pluginGeneric.png)
+  skin/modern/mozapps/plugins/pluginGeneric-16.png                 (mozapps/plugins/pluginGeneric-16.png)
+  skin/modern/mozapps/plugins/pluginInstallerWizard.css            (mozapps/plugins/pluginInstallerWizard.css)
+  skin/modern/mozapps/update/update.png                            (mozapps/update/update.png)
+  skin/modern/mozapps/update/updates.css                           (mozapps/update/updates.css)
+  skin/modern/mozapps/viewsource/viewsource.css                    (mozapps/viewsource/viewsource.css)
+  skin/modern/mozapps/xpinstall/xpinstallConfirm.css               (mozapps/xpinstall/xpinstallConfirm.css)
+  skin/modern/mozapps/xpinstall/xpinstallItemGeneric.png           (mozapps/xpinstall/xpinstallItemGeneric.png)
   skin/modern/navigator/linkToolbar.css                            (navigator/linkToolbar.css)
   skin/modern/navigator/navigator.css                              (navigator/navigator.css)
   skin/modern/navigator/pageInfo.css                               (navigator/pageInfo.css)

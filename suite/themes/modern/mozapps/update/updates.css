@@ -1,0 +1,264 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is SeaMonkey modern code.
+ *
+ * The Initial Developer of the Original Code is
+ * Kuden <spitfire.kuden@gmail.com>
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/**
+ * General
+ */
+.heed {
+  font-weight: bold;
+}
+
+.wizard-button > .button-box {
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}
+
+
+link {
+  color: #0000FF;
+  border: 1px solid transparent;
+  margin: 1px 5px 4px;
+  text-decoration: underline !important;
+}
+
+link > label {
+  margin: 0px;
+  padding: 1px;
+  text-decoration: underline !important;
+}
+
+link:hover:active {
+  color: #FF0000;
+}
+
+link:focus {
+  border: 1px dotted #000000;
+}
+
+remotecontent {
+  margin-top: 1px;
+  margin-bottom: 2px;
+  -moz-margin-start: 6px;
+  -moz-margin-end: 5px;
+  padding-bottom: 1px;
+  border: 2px solid;
+  -moz-border-top-colors: #BEC3D3 #5D616E;
+  -moz-border-right-colors: #F8FAFE #5D616E;
+  -moz-border-bottom-colors: #F8FAFE #5D616E;
+  -moz-border-left-colors: #BEC3D3 #5D616E;
+}
+
+/**
+ * License Page
+ */
+.loadingBox {
+  padding: 3px 5px;
+}
+.remoteLoadingThrobber {
+  margin-top: 3px;
+}
+.remoteLoadingThrobber[state="loading"] {
+  list-style-image: url("chrome://communicator/skin/icons/loading.gif");
+}
+.remoteLoadingThrobber[state="error"] {
+  list-style-image: url("chrome://global/skin/icons/notfound.png");
+}
+
+/**
+ * Update Found Page
+ */
+#moreDetails {
+  margin-top: 1px;
+  margin-bottom: 4px;
+  -moz-margin-start: 3px;
+  -moz-margin-end: 5px;
+}
+
+#updateForMoreInfo {
+  margin-left: 5px;
+}
+
+#updateName, #updateFinishedName {
+  font-weight: bold;
+  font-size: larger;
+}
+
+#alertImage {
+  list-style-image: url("chrome://global/skin/icons/Warning.png");
+  margin-right: 5px;
+}
+
+#incompatibleWarning {
+  background-color: #FFFFE0;
+  color: #000000;
+  border: 2px solid;
+  -moz-border-top-colors: #BEC3D3 #5D616E;
+  -moz-border-right-colors: #F8FAFE #5D616E;
+  -moz-border-bottom-colors: #F8FAFE #5D616E;
+  -moz-border-left-colors: #BEC3D3 #5D616E;
+  padding: 3px;
+  margin: 1px 5px 4px;
+}
+
+/**
+ * Downloading Page
+ */
+#downloadStatusTop, #downloadStatusLine {
+  -moz-box-align: center;
+}
+
+#downloadStatus {
+  height: 3em !important;
+}
+
+#downloadThrobber {
+  -moz-margin-start: 5px;
+  list-style-image: url("chrome://communicator/skin/brand/throbber16-single.png");
+}
+
+#downloadThrobber[state="loading"] {
+  list-style-image: url("chrome://communicator/skin/brand/throbber16-anim.png");
+}
+
+#downloadStatusProgress {
+  -moz-padding-end: 5px;
+}
+
+#pauseButton > .button-box > .button-icon {
+  -moz-margin-start: 0;
+}
+
+#pauseButton > .button-box > .button-text {
+  -moz-margin-start: 0 !important;
+  -moz-margin-end: 0 !important;
+}
+
+#pauseButton {
+  min-width: 0;
+  min-height: 0;
+  color: #000000 !important;
+  background-color: transparent !important;
+  list-style-image: url("chrome://mozapps/skin/icons/buttons.png");
+  -moz-image-region: rect(0px, 48px, 16px, 32px);
+  margin: 0;
+  border: 1px solid !important;
+  -moz-border-top-colors: transparent !important;
+  -moz-border-right-colors: transparent !important;
+  -moz-border-bottom-colors: transparent !important;
+  -moz-border-left-colors: transparent !important;
+  -moz-border-radius: 0 !important;
+  outline: none !important;
+}
+
+#pauseButton:focus {
+  border-style: dotted !important;
+  -moz-border-top-colors: #000000 !important;
+  -moz-border-right-colors: #000000 !important;
+  -moz-border-bottom-colors: #000000 !important;
+  -moz-border-left-colors: #000000 !important;
+}
+
+#pauseButton[disabled="true"] {
+  -moz-image-region: rect(16px, 48px, 32px, 32px);
+}
+
+#pauseButton[paused="true"] {
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
+}
+
+#pauseButton[paused="true"][disabled="true"] {
+  -moz-image-region: rect(16px, 16px, 32px, 0px);
+}
+
+#verificationFailedIcon {
+  -moz-margin-start: 5px;
+  list-style-image: url("chrome://global/skin/icons/notfound.png");
+}
+
+/**
+ * Error Page
+ */
+#errorReason {
+  margin-top: 1px;
+  margin-bottom: 2px;
+  -moz-margin-start: 6px !important;
+  -moz-margin-end: 5px;
+  font-weight: bold;
+}
+
+/**
+ * Update History Window
+ */
+update {
+  border-bottom: 1px solid #90A1B3;
+}
+
+.update-name {
+  font-weight: bold;
+}
+
+.update-label-column {
+  -moz-box-align: end;
+}
+
+.update-details-link {
+  margin: 0;
+}
+
+.update-type {
+  font-weight: bold;
+  color: #990000;
+}
+
+#historyItems {
+  height: 200px;
+  margin: 1px 5px 4px;
+  border: 2px solid;
+  -moz-border-top-colors: #BEC3D3 #5D616E;
+  -moz-border-right-colors: #F8FAFE #5D616E;
+  -moz-border-bottom-colors: #F8FAFE #5D616E;
+  -moz-border-left-colors: #BEC3D3 #5D616E;
+}
+
+#historyItems > scrollbox {
+  margin-bottom: 1px;
+}
+
+.updatePrefsInfo {
+  font-size: smaller;
+  -moz-margin-start: 27px;
+  margin-bottom: 10px;
+}
