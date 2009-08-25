@@ -213,7 +213,9 @@ function ComposeMessage(type, format, folder, messageArray)
 
     // If the addressbook sidebar panel is open and has focus, get
     // the selected addresses from it.
-    if (document.commandDispatcher.focusedWindow.document.documentElement.hasAttribute("selectedaddresses"))
+    if (document.commandDispatcher.focusedWindow &&
+        document.commandDispatcher.focusedWindow
+                .document.documentElement.hasAttribute("selectedaddresses"))
       NewMessageToSelectedAddresses(type, format, identity);
     else
       msgComposeService.OpenComposeWindow(null, null, null, type, format, identity, msgWindow);

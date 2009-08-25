@@ -36,10 +36,16 @@
 #
 # ***** END LICENSE BLOCK *****
 
+// XXX This is needed by mailCommands.js for the new message command, ideally
+// this shouldn't be a global.
+var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
+                                  .getService(Components.interfaces.nsIMsgComposeService);
+
 function hiddenWindowStartup()
 {
   // Disable menus which are not appropriate
-  var disabledItems = ['newNewMsgCmd', 'menu_newFolder', 'newAccountMenuItem', 'menu_close', 'menu_saveAs',
+  var disabledItems = ['menu_newFolder', 'newMailAccountMenuItem',
+             'newAccountMenuItem', 'menu_close', 'menu_saveAs',
              'menu_saveAsFile', 'menu_newVirtualFolder', 'menu_find', 'menu_findCmd', 'menu_findAgainCmd',
              'menu_sendunsentmsgs', 'menu_subscribe', 'menu_deleteFolder',
              'menu_renameFolder', 'menu_select',

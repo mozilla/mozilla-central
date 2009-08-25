@@ -91,6 +91,11 @@ var gDisallow_classes_no_html = 1;
 // dialog.
 function menu_new_init()
 {
+  // If we don't have a gFolderDisplay, just get out of here and leave the menu
+  // as it is.
+  if (!gFolderDisplay)
+    return;
+
   let folder = gFolderDisplay.displayedFolder;
   if (!folder)
     return;
@@ -1211,16 +1216,19 @@ function MsgMoveMessage(aDestFolder)
  * @param aEvent (optional) the event that triggered the call
  */
 function composeMsgByType(aCompType, aEvent) {
+  // If we're the hidden window, then we're not going to have a gFolderDisplay
+  // to work out existing folders, so just use null.
+  let msgFolder = gFolderDisplay ? GetFirstSelectedMsgFolder() : null;
+  let msgUris = gFolderDisplay ? gFolderDisplay.selectedMessageUris : null;
+
   if (aEvent && aEvent.shiftKey) {
     ComposeMessage(aCompType,
                    Components.interfaces.nsIMsgCompFormat.OppositeOfDefault,
-                   GetFirstSelectedMsgFolder(),
-                   gFolderDisplay.selectedMessageUris);
+                   msgFolder, msgUris);
   }
   else {
     ComposeMessage(aCompType, Components.interfaces.nsIMsgCompFormat.Default,
-                   GetFirstSelectedMsgFolder(),
-                   gFolderDisplay.selectedMessageUris);
+                   msgFolder, msgUris);
   }
 }
 
