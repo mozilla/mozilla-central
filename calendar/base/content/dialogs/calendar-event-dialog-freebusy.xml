@@ -22,6 +22,7 @@
    -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Simon Vaillancourt <simon.at.orcl@gmail.com>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -810,98 +811,92 @@
               for each (let entry in aEntries) {
                   let rangeStart = entry.interval.start.getInTimezone(kDefaultTimezone);
                   let rangeEnd = entry.interval.end.getInTimezone(kDefaultTimezone);
-                  
-		  if (rangeStart.compare(start) < 0) {
-		      rangeStart = start.clone();
-		  }
-		  if (rangeEnd.compare(end) > 0) {
-		      rangeEnd = end.clone();
-		  }
 
-                  if (rangeStart.compare(start) >= 0 &&
-                      rangeEnd.compare(end) <= 0) {
-                      let rangeDuration = rangeEnd.subtractDate(rangeStart);
-                      let rangeStartHour = rangeStart.hour;
-                      let rangeEndHour = rangeStartHour + (rangeDuration.inSeconds / 3600);
+                  if (rangeStart.compare(start) < 0) {
+                      rangeStart = start.clone();
+                  }
+                  if (rangeEnd.compare(end) > 0) {
+                      rangeEnd = end.clone();
+                  }
 
-                      if ((rangeStartHour < this.mEndHour) &&
-                          (rangeEndHour >= this.mStartHour)) {
-                          let dayingrid = start.clone();
-                          dayingrid.year = rangeStart.year;
-                          dayingrid.month = rangeStart.month;
-                          dayingrid.day = rangeStart.day;
-                          dayingrid.getInTimezone(kDefaultTimezone);
+                  let rangeDuration = rangeEnd.subtractDate(rangeStart);
+                  let rangeStartHour = rangeStart.hour;
+                  let rangeEndHour = rangeStartHour + (rangeDuration.inSeconds / 3600);
 
-                          // Ok, this is an entry we're interested in. Find out
-                          // which hours are actually occupied.
-                          let offset = rangeStart.subtractDate(dayingrid);
+                  if ((rangeStartHour < this.mEndHour) &&
+                      (rangeEndHour >= this.mStartHour)) {
+                      let dayingrid = start.clone();
+                      dayingrid.year = rangeStart.year;
+                      dayingrid.month = rangeStart.month;
+                      dayingrid.day = rangeStart.day;
+                      dayingrid.getInTimezone(kDefaultTimezone);
 
-                          // Calculate how many days we're offset from the
-                          // start of the grid. Eliminate hours in case
-                          // we encounter the daylight-saving hop.
-                          let dayoffset = dayingrid.subtractDate(start);
-                          dayoffset.hours = 0;
+                      // Ok, this is an entry we're interested in. Find out
+                      // which hours are actually occupied.
+                      let offset = rangeStart.subtractDate(dayingrid);
 
-                          // Add both offsets to find the total offset.
-                          // dayoffset -> offset in days from start of grid
-                          // offset -> offset in hours from start of current day
-                          offset.addDuration(dayoffset);
+                      // Calculate how many days we're offset from the
+                      // start of the grid. Eliminate hours in case
+                      // we encounter the daylight-saving hop.
+                      let dayoffset = dayingrid.subtractDate(start);
+                      dayoffset.hours = 0;
 
-                          let duration = rangeEnd.subtractDate(rangeStart);
-                          let start_in_minutes = Math.floor(offset.inSeconds / 60);
-                          let end_in_minutes = Math.ceil((duration.inSeconds / 60) +
-                                                         (offset.inSeconds / 60));
+                      // Add both offsets to find the total offset.
+                      // dayoffset -> offset in days from start of grid
+                      // offset -> offset in hours from start of current day
+                      offset.addDuration(dayoffset);
 
-                          function minute2offset(value,
-                                                 fNumHours,
-                                                 numHours,
-                                                 start_hour,
-                                                 zoomfactor) {
-                              // 'value' is some integer in the interval [0, range * 24 * 60].
-                              // we need to map this offset into our array which
-                              // holds elements for 'range' days with [start, end] hours each.
-                              let minutes_per_day = 24 * 60;
-                              let day = (value - (value % minutes_per_day)) /
-                                        minutes_per_day;
-                              let minute = Math.floor(
-                                  value % minutes_per_day) -
-                                  (start_hour * 60);
+                      let duration = rangeEnd.subtractDate(rangeStart);
+                      let start_in_minutes = Math.floor(offset.inSeconds / 60);
+                      let end_in_minutes = Math.ceil((duration.inSeconds / 60) +
+                                                     (offset.inSeconds / 60));
 
-                              minute = Math.max(0, minute);
+                      function minute2offset(value,
+                                             fNumHours,
+                                             numHours,
+                                             start_hour,
+                                             zoomfactor) {
+                          // 'value' is some integer in the interval [0, range * 24 * 60].
+                          // we need to map this offset into our array which
+                          // holds elements for 'range' days with [start, end] hours each.
+                          let minutes_per_day = 24 * 60;
+                          let day = (value - (value % minutes_per_day)) / minutes_per_day;
+                          let minute = Math.floor(value % minutes_per_day) - (start_hour * 60);
 
-                              if (minute >= (numHours * 60)) {
-                                  minute = (numHours * 60) - 1;
-                              }
-                              // How to get from minutes to offset?
-                              // 60 = 100%, 30 = 50%, 15 = 25%, etc.
-                              let minutes_per_block = 60 * zoomfactor / 100;
+                          minute = Math.max(0, minute);
 
-                              let block = Math.floor(minute / minutes_per_block);
-
-                              return Math.ceil(fNumHours) * day + block;
+                          if (minute >= (numHours * 60)) {
+                              minute = (numHours * 60) - 1;
                           }
+                          // How to get from minutes to offset?
+                          // 60 = 100%, 30 = 50%, 15 = 25%, etc.
+                          let minutes_per_block = 60 * zoomfactor / 100;
 
-                          // Number of hours (fractional representation)
-                          let numHours = this.mEndHour - this.mStartHour;
-                          let fNumHours = numHours * 100 / this.mZoomFactor;
+                          let block = Math.floor(minute / minutes_per_block);
 
-                          let start_offset =
-                              minute2offset(start_in_minutes,
-                                            fNumHours,
-                                            numHours,
-                                            this.mStartHour,
-                                            this.mZoomFactor);
-                          let end_offset =
-                              minute2offset(end_in_minutes - 1,
-                                            fNumHours,
-                                            numHours,
-                                            this.mStartHour,
-                                            this.mZoomFactor);
+                          return Math.ceil(fNumHours) * day + block;
+                      }
 
-                          // Set all affected state slots
-                          for (let i = start_offset; i <= end_offset; i++) {
-                              this.mState[i] = entry.freeBusyType;
-                          }
+                      // Number of hours (fractional representation)
+                      let numHours = this.mEndHour - this.mStartHour;
+                      let fNumHours = numHours * 100 / this.mZoomFactor;
+
+                      let start_offset =
+                          minute2offset(start_in_minutes,
+                                        fNumHours,
+                                        numHours,
+                                        this.mStartHour,
+                                        this.mZoomFactor);
+                      let end_offset =
+                          minute2offset(end_in_minutes - 1,
+                                        fNumHours,
+                                        numHours,
+                                        this.mStartHour,
+                                        this.mZoomFactor);
+
+                      // Set all affected state slots
+                      for (let i = start_offset; i <= end_offset; i++) {
+                          this.mState[i] = entry.freeBusyType;
                       }
                   }
               }
