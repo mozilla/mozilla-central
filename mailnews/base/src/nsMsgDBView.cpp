@@ -4297,7 +4297,8 @@ nsMsgViewIndex nsMsgDBView::GetIndexOfFirstDisplayedKeyInThread(
   {
     nsCOMPtr<nsIMsgDBHdr> childHdr;
     threadHdr->GetChildHdrAt(childIndex++, getter_AddRefs(childHdr));
-    retIndex = FindHdr(childHdr, 0, allowDummy);
+    if (childHdr)
+      retIndex = FindHdr(childHdr, 0, allowDummy);
   }
   return retIndex;
 }
