@@ -195,3 +195,16 @@ body[selected="false"] {
   height: 100%;
   border: none;
 }
+
+.mimeAttachmentHeader {
+  width: 98%;
+  border-color: GrayText;
+  border-style: none;
+  border-top-style: solid;
+}
+
+.mimeAttachmentName {
+  color: GrayText;
+  font-size: 80%;
+  font-family: Arial, sans-serif;
+}

@@ -423,16 +423,16 @@ extern int MimeObject_output_init(MimeObject *obj, const char *content_type);
    when making the decision of whether a separating <HR> is needed.
  */
 extern int MimeObject_write(MimeObject *, const char *data, PRInt32 length,
-              PRBool user_visible_p);
-extern int MimeOptions_write(MimeDisplayOptions *,
-               const char *data, PRInt32 length,
-               PRBool user_visible_p);
+                            PRBool user_visible_p);
+extern int MimeOptions_write(MimeDisplayOptions *, nsCString &name,
+                             const char *data, PRInt32 length,
+                             PRBool user_visible_p);
 
 /* Writes out the right kind of HR (or rather, queues it for writing.) */
 extern int MimeObject_write_separator(MimeObject *);
 
 extern PRBool MimeObjectChildIsMessageBody(MimeObject *obj,
-                      PRBool *isAlterOrRelated);
+                                           PRBool *isAlterOrRelated);
 
 /* This is the data tagged to contexts and the declaration needs to be
    in a header file since more than mimemoz.c needs to see it now...

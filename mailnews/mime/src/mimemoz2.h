@@ -186,13 +186,15 @@ extern "C" nsresult     mimeEmitterAddAllHeaders(MimeDisplayOptions *opt, const 
 extern "C" nsresult     mimeEmitterStartAttachment(MimeDisplayOptions *opt, const char *name, const char *contentType, const char *url,
                                                    PRBool aIsExternalAttachment);
 extern "C" nsresult     mimeEmitterEndAttachment(MimeDisplayOptions *opt);
-extern "C" nsresult      mimeEmitterEndAllAttachments(MimeDisplayOptions *opt);
+extern "C" nsresult     mimeEmitterEndAllAttachments(MimeDisplayOptions *opt);
 extern "C" nsresult     mimeEmitterStartBody(MimeDisplayOptions *opt, PRBool bodyOnly, const char *msgID, const char *outCharset);
 extern "C" nsresult     mimeEmitterEndBody(MimeDisplayOptions *opt);
 extern "C" nsresult     mimeEmitterEndHeader(MimeDisplayOptions *opt);
 extern "C" nsresult     mimeEmitterStartHeader(MimeDisplayOptions *opt, PRBool rootMailHeader, PRBool headerOnly, const char *msgID,
                                                const char *outCharset);
 extern "C" nsresult     mimeEmitterUpdateCharacterSet(MimeDisplayOptions *opt, const char *aCharset);
+
+extern "C" nsresult     MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachmentData **data);
 
 /* To Get the connnection to prefs service manager */
 extern "C" nsIPrefBranch      *GetPrefBranch(MimeDisplayOptions *opt);

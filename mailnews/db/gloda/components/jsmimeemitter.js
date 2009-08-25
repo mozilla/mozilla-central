@@ -232,12 +232,12 @@ MimeMessageEmitter.prototype = {
     //  nsIMimeHeaders instance and hands it to the nsIMsgMailNewsUrl.)
     // nop
   },
-  writeHTMLHeaders: function mime_emitter_writeHTMLHeaders() {
+  writeHTMLHeaders: function mime_emitter_writeHTMLHeaders(aName) {
     // It does't look like this should even be part of the interface; I think
     //  only the nsMimeHtmlDisplayEmitter::EndHeader call calls this signature.
     // nop
   },
-  endHeader: function mime_emitter_endHeader() {
+  endHeader: function mime_emitter_endHeader(aName) {
   },
   updateCharacterSet: function mime_emitter_updateCharacterSet(aCharset) {
     // we do not need to worry about this.  it turns out this notification is

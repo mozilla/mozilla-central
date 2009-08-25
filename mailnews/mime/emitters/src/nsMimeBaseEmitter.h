@@ -108,7 +108,7 @@ public:
   const char          *GetHeaderValue(const char  *aHeaderName);
 
   // To write out a stored header array as HTML
-  virtual nsresult            WriteHeaderFieldHTMLPrefix();
+  virtual nsresult            WriteHeaderFieldHTMLPrefix(const nsACString &name);
   virtual nsresult            WriteHeaderFieldHTML(const char *field, const char *value);
   virtual nsresult            WriteHeaderFieldHTMLPostfix();
 

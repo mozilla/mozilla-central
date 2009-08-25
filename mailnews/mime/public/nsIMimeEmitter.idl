@@ -43,7 +43,7 @@ interface nsIURI;
 interface nsIStreamListener;
 interface nsIChannel;
 
-[scriptable, uuid(39E329E2-357F-11d3-8EFD-00A024A7D144)]
+[scriptable, uuid(eb9beb09-44de-4ad2-a560-f572b1afd534)]
 interface nsMimeHeaderDisplayTypes
 {
     const long MicroHeaders = 0;
@@ -73,8 +73,22 @@ interface nsIMimeEmitter : nsISupports {
                      [const] in string msgID, [const] in string outCharset);
     void addHeaderField([const] in string field, [const] in string value);
     void addAllHeaders(in ACString allheaders);
-    void writeHTMLHeaders(); // Book case this with an EndHeader call.
-    void endHeader();
+
+    /**
+     * Write the HTML Headers for the current attachment.
+     * Note: Book case this with an EndHeader call.
+     *
+     * @param name The name of this attachment.
+     */
+    void writeHTMLHeaders([const] in AUTF8String name);
+
+    /**
+     * Finish writing the headers for the current attachment.
+     *
+     * @param name The name of this attachment.
+     */
+    void endHeader([const] in AUTF8String name);
+
     void updateCharacterSet([const] in string aCharset);
 
     // Attachment handling routines.

@@ -773,7 +773,7 @@ nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
 }
 
 nsresult
-nsMimeBaseEmitter::WriteHeaderFieldHTMLPrefix()
+nsMimeBaseEmitter::WriteHeaderFieldHTMLPrefix(const nsACString &name)
 {
   if (
       ( (mFormat == nsMimeOutput::nsMimeMessageSaveAs) && (mFirstHeaders) ) ||
@@ -781,8 +781,15 @@ nsMimeBaseEmitter::WriteHeaderFieldHTMLPrefix()
      )
      /* DO NOTHING */ ;   // rhp: Do nothing...leaving the conditional like this so its
                           //      easier to see the logic of what is going on.
-  else
-    mHTMLHeaders.Append("<br><hr width=\"90%\" size=4><br>");
+  else {
+    mHTMLHeaders.Append("<br><fieldset class=\"mimeAttachmentHeader\">");
+    if (!name.IsEmpty()) {
+      mHTMLHeaders.Append("<legend class=\"mimeAttachmentName\">");
+      mHTMLHeaders.Append(name);
+      mHTMLHeaders.Append("</legend>");
+    }
+    mHTMLHeaders.Append("</fieldset>");
+  }
 
   mFirstHeaders = PR_FALSE;
   return NS_OK;
@@ -796,9 +803,9 @@ nsMimeBaseEmitter::WriteHeaderFieldHTMLPostfix()
 }
 
 NS_IMETHODIMP
-nsMimeBaseEmitter::WriteHTMLHeaders()
+nsMimeBaseEmitter::WriteHTMLHeaders(const nsACString &name)
 {
-  WriteHeaderFieldHTMLPrefix();
+  WriteHeaderFieldHTMLPrefix(name);
 
   // Start with the subject, from date info!
   DumpSubjectFromDate();
@@ -957,7 +964,7 @@ nsMimeBaseEmitter::Complete()
 // memory cleanup
 //
 NS_IMETHODIMP
-nsMimeBaseEmitter::EndHeader()
+nsMimeBaseEmitter::EndHeader(const nsACString &name)
 {
   return NS_OK;
 }

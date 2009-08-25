@@ -58,7 +58,7 @@ public:
     virtual       ~nsMimeHtmlDisplayEmitter (void);
 
     // Header handling routines.
-    NS_IMETHOD    EndHeader();
+    NS_IMETHOD    EndHeader(const nsACString &name);
 
     // Attachment handling routines
     NS_IMETHOD    StartAttachment(const nsACString &name,
@@ -71,9 +71,9 @@ public:
     // Body handling routines
     NS_IMETHOD    WriteBody(const nsACString &buf, PRUint32 *amountWritten);
     NS_IMETHOD    EndBody();
-    NS_IMETHOD WriteHTMLHeaders();
+    NS_IMETHOD    WriteHTMLHeaders(const nsACString &name);
 
-    virtual nsresult            WriteHeaderFieldHTMLPrefix();
+    virtual nsresult            WriteHeaderFieldHTMLPrefix(const nsACString &name);
     virtual nsresult            WriteHeaderFieldHTML(const char *field, const char *value);
     virtual nsresult            WriteHeaderFieldHTMLPostfix();
 

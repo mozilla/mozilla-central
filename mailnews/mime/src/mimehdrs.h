@@ -111,4 +111,10 @@ extern char *mime_decode_filename(char *name, const char* charset,
 
 extern "C"  char * MIME_StripContinuations(char *original);
 
+/**
+ * Convert this value to a unicode string, based on the charset.
+ */
+extern void MimeHeaders_convert_header_value(MimeDisplayOptions *opt,
+                                             nsCString &value,
+                                             PRBool convert_charset_only);
 #endif /* _MIMEHDRS_H_ */

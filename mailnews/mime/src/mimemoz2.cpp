@@ -569,8 +569,8 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
   if (n <= 0)
     return n;
 
-  //in case of an inline message (as body), we need an extra slot for the message itself
-  //that we will fill later...
+  // in case of an inline message (as body), we need an extra slot for the
+  // message itself that we will fill later...
   if (isAnInlineMessage)
     n ++;
 
@@ -1914,7 +1914,20 @@ mimeEmitterEndHeader(MimeDisplayOptions *opt)
   if (msd->output_emitter)
   {
     nsIMimeEmitter *emitter = (nsIMimeEmitter *)msd->output_emitter;
-    return emitter->EndHeader();
+
+    nsCString name;
+    nsMsgAttachmentData *attachments = NULL;
+    if (msd->format_out == nsMimeOutput::nsMimeMessageSplitDisplay ||
+        msd->format_out == nsMimeOutput::nsMimeMessageHeaderDisplay ||
+        msd->format_out == nsMimeOutput::nsMimeMessageBodyDisplay) {
+      nsresult rv = MimeGetAttachmentList(msd->obj, msd->url_name, &attachments);
+      if (NS_SUCCEEDED(rv) && attachments && attachments->real_name)
+        name.Assign(attachments->real_name);
+    }
+
+    MimeHeaders_convert_header_value(opt, name, false);
+    MimeFreeAttachmentList(attachments);
+    return emitter->EndHeader(name);
   }
 
   return NS_ERROR_FAILURE;

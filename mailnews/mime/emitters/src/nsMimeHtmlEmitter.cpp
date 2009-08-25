@@ -137,10 +137,10 @@ PRBool nsMimeHtmlDisplayEmitter::BroadCastHeadersAndAttachments()
 }
 
 nsresult
-nsMimeHtmlDisplayEmitter::WriteHeaderFieldHTMLPrefix()
+nsMimeHtmlDisplayEmitter::WriteHeaderFieldHTMLPrefix(const nsACString &name)
 {
   if (!BroadCastHeadersAndAttachments() || (mFormat == nsMimeOutput::nsMimeMessagePrintOutput))
-    return nsMimeBaseEmitter::WriteHeaderFieldHTMLPrefix();
+    return nsMimeBaseEmitter::WriteHeaderFieldHTMLPrefix(name);
   else
     return NS_OK;
 }
@@ -265,13 +265,13 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
   return rv;
 }
 
-NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders()
+NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders(const nsACString &name)
 {
   // if we aren't broadcasting headers OR printing...just do whatever
   // our base class does...
   if (mFormat == nsMimeOutput::nsMimeMessagePrintOutput)
   {
-    return nsMimeBaseEmitter::WriteHTMLHeaders();
+    return nsMimeBaseEmitter::WriteHTMLHeaders(name);
   }
   else if (!BroadCastHeadersAndAttachments() || !mDocHeader)
   {
@@ -280,7 +280,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders()
     if (mFormat == nsMimeOutput::nsMimeMessageBodyDisplay)
       mFormat = nsMimeOutput::nsMimeMessagePrintOutput;
 
-    return nsMimeBaseEmitter::WriteHTMLHeaders();
+    return nsMimeBaseEmitter::WriteHTMLHeaders(name);
   }
   else
     mFirstHeaders = PR_FALSE;
@@ -426,7 +426,7 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
 }
 
 nsresult
-nsMimeHtmlDisplayEmitter::EndHeader()
+nsMimeHtmlDisplayEmitter::EndHeader(const nsACString &name)
 {
   if (mDocHeader && (mFormat != nsMimeOutput::nsMimeMessageFilterSniffer))
   {
@@ -457,7 +457,8 @@ nsMimeHtmlDisplayEmitter::EndHeader()
     UtilityWriteCRLF("<body>");
   }
 
-  WriteHTMLHeaders();
+  WriteHTMLHeaders(name);
+
   return NS_OK;
 }
 
@@ -539,8 +540,15 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
      return NS_OK;
   }
 
-  if (!mFirst)
-    UtilityWrite("<hr width=\"90%\" size=4>");
+  if (!mFirst) {
+    UtilityWrite("<br><fieldset class=\"mimeAttachmentHeader\">");
+    if (!name.IsEmpty()) {
+      UtilityWrite("<legend class=\"mimeAttachmentName\">");
+      UtilityWrite(name);
+      UtilityWrite("</legend>");
+    }
+    UtilityWrite("</fieldset>");
+  }
 
   mFirst = PR_FALSE;
 

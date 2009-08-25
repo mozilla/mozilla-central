@@ -88,6 +88,7 @@
 #include "mimebuf.h"
 #include "nsIServiceManager.h"
 #include "mimemoz2.h"
+#include "comi18n.h"
 #include "nsIMimeContentTypeHandler.h"
 #include "nsIComponentManager.h"
 #include "nsCategoryManagerUtils.h"
@@ -1683,8 +1684,8 @@ mime_parse_url_options(const char *url, MimeDisplayOptions *options)
  */
 
 int
-MimeOptions_write(MimeDisplayOptions *opt, const char *data, PRInt32 length,
-          PRBool user_visible_p)
+MimeOptions_write(MimeDisplayOptions *opt, nsCString &name, const char *data,
+                  PRInt32 length, PRBool user_visible_p)
 {
   int status = 0;
   void* closure = 0;
@@ -1700,11 +1701,31 @@ MimeOptions_write(MimeDisplayOptions *opt, const char *data, PRInt32 length,
   {
     opt->state->separator_queued_p = PR_FALSE;
     if (opt->state->separator_suppressed_p)
-    opt->state->separator_suppressed_p = PR_FALSE;
-    else
-    {
-      char sep[] = "<BR><HR WIDTH=\"90%\" SIZE=4><BR>";
+      opt->state->separator_suppressed_p = PR_FALSE;
+    else {
+      char *sep = "<BR><FIELDSET CLASS=\"mimeAttachmentHeader\">";
       int lstatus = opt->output_fn(sep, strlen(sep), closure);
+      opt->state->separator_suppressed_p = PR_FALSE;
+      if (lstatus < 0) return lstatus;
+
+      if (!name.IsEmpty()) {
+          sep = "<LEGEND CLASS=\"mimeAttachmentName\">";
+          lstatus = opt->output_fn(sep, strlen(sep), closure);
+          opt->state->separator_suppressed_p = PR_FALSE;
+          if (lstatus < 0) return lstatus;
+
+          lstatus = opt->output_fn(name.get(), name.Length(), closure);
+          opt->state->separator_suppressed_p = PR_FALSE;
+          if (lstatus < 0) return lstatus;
+
+          sep = "</LEGEND>";
+          lstatus = opt->output_fn(sep, strlen(sep), closure);
+          opt->state->separator_suppressed_p = PR_FALSE;
+          if (lstatus < 0) return lstatus;
+      }
+
+      sep = "</FIELDSET><BR/>";
+      lstatus = opt->output_fn(sep, strlen(sep), closure);
       opt->state->separator_suppressed_p = PR_FALSE;
       if (lstatus < 0) return lstatus;
     }
@@ -1746,7 +1767,10 @@ MimeObject_write(MimeObject *obj, const char *output, PRInt32 length,
     NS_ASSERTION(obj->options->state->first_data_written_p, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   }
 
-  return MimeOptions_write(obj->options, output, length, user_visible_p);
+  nsCString name;
+  name.Adopt(MimeHeaders_get_name(obj->headers, obj->options));
+  MimeHeaders_convert_header_value(obj->options, name, false);
+  return MimeOptions_write(obj->options, name, output, length, user_visible_p);
 }
 
 int
