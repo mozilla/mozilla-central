@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Dietrich Ayala <dietrich@mozilla.com>
  *   Ehsan Akhgari <ehsan.akhgari@gmail.com>
+ *   Paul O’Shannessy <paul@oshannessy.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -138,9 +139,8 @@ SessionStoreService.prototype = {
   // states for all currently opened windows
   _windows: {},
 
-  // in case the last closed window ain't a navigator:browser one
-  // (also contains browser popup windows closed after the last non-popup one)
-  _lastClosedWindows: null,
+  // states for all recently closed windows
+  _closedWindows: [],
 
   // not-"dirty" windows usually don't need to have their data updated
   _dirtyWindows: {},
@@ -184,6 +184,9 @@ SessionStoreService.prototype = {
     // get crash recovery state from prefs and allow for proper reaction to state changes
     this._resume_from_crash = this._prefBranch.getBoolPref("sessionstore.resume_from_crash");
     this._prefBranch.addObserver("sessionstore.resume_from_crash", this, true);
+
+     // observe prefs changes so we can modify stored data to match
+     this._prefBranch.addObserver("sessionstore.max_windows_undo", this, true);
 
     // this pref is only read at startup, so no need to observe it
     this._sessionhistory_max_entries =
@@ -326,7 +329,8 @@ SessionStoreService.prototype = {
         else
           delete this._windows[ix];
       }
-      this._lastClosedWindows = null;
+      // also clear all data about closed windows
+      this._closedWindows = [];
       this._clearDisk();
       // give the tabbrowsers a chance to clear their histories first
       var win = this._getMostRecentBrowserWindow();
@@ -337,6 +341,9 @@ SessionStoreService.prototype = {
       break;
     case "nsPref:changed": // catch pref changes
       switch (aData) {
+      case "sessionstore.max_windows_undo":
+        this._capClosedWindows();
+        break;
       case "sessionstore.interval":
         this._interval = this._prefBranch.getIntPref("sessionstore.interval");
         // reset timer and save
@@ -513,17 +520,16 @@ SessionStoreService.prototype = {
       // update all window data for a last time
       this._collectWindowData(aWindow);
 
-      // preserve this window's data (in case it was the last navigator:browser)
-      // if this is a popup window, append it to what we've already got (cf. bug 368677)
-      if (!this._lastClosedWindows || !winData.isPopup)
-        this._lastClosedWindows = [winData];
-      else
-        this._lastClosedWindows.push(winData);
-
       if (isFullyLoaded) {
-        winData.title = aWindow.content.document.title;
-        this._updateCookies(this._lastClosedWindows);
+        winData.title = aWindow.content.document.title || tabbrowser.selectedTab.label;
+        winData.title = this._replaceLoadingTitle(winData.title, tabbrowser,
+                                                  tabbrowser.selectedTab);
+        this._updateCookies([winData]);
       }
+
+      // store closed-window data for undo
+      this._closedWindows.unshift(winData);
+      this._capClosedWindows();
 
       // clear this window from the list
       delete this._windows[aWindow.__SSi];
@@ -616,11 +622,7 @@ SessionStoreService.prototype = {
     if (tabState.entries.length > 0) {
       let tabTitle = aTab.label;
       let tabbrowser = aWindow.gBrowser;
-      // replace "Loading..." with the document title (with minimal side-effects)
-      if (tabTitle == tabbrowser.mStringBundle.getString("tabs.loading")) {
-        tabbrowser.setTabTitle(aTab);
-        [tabTitle, aTab.label] = [aTab.label, tabTitle];
-      }
+      tabTitle = this._replaceLoadingTitle(tabTitle, tabbrowser, aTab);
 
       var tabsData = {
           state: tabState,
@@ -722,6 +724,9 @@ SessionStoreService.prototype = {
       }
     });
 
+    // make sure closed window data isn't kept
+    this._closedWindows = [];
+
     // restore to the given state
     this.restoreWindow(window, state, true);
   },
@@ -818,6 +823,25 @@ SessionStoreService.prototype = {
     var newTab = browser.restoreTab(aIndex);
 
     return newTab;
+  },
+
+  getClosedWindowCount: function sss_getClosedWindowCount() {
+    return this._closedWindows.length;
+  },
+
+  getClosedWindowData: function sss_getClosedWindowData() {
+    return this._toJSONString(this._closedWindows);
+  },
+
+  undoCloseWindow: function sss_undoCloseWindow(aIndex) {
+    if (!(aIndex in this._closedWindows))
+      return null;
+
+    // reopen the window
+    let state = { windows: this._closedWindows.splice(aIndex, 1) };
+    let window = this._openWindowWithState(state);
+    this.windowToFocus = window;
+    return window;
   },
 
   getWindowValue: function sss_getWindowValue(aWindow, aKey) {
@@ -1465,20 +1489,26 @@ SessionStoreService.prototype = {
       }
     }
 
+    // shallow copy this._closedWindows to preserve current state
+    let lastClosedWindowsCopy = this._closedWindows.slice();
+
 #ifndef XP_MACOSX
     // if no non-popup browser window remains open, return the state of the last closed window(s)
-    if (nonPopupCount == 0 && this._lastClosedWindows) {
+    if (nonPopupCount == 0 && lastClosedWindowsCopy.length > 0) {
       // prepend the last non-popup browser window, so that if the user loads more tabs
       // at startup we don't accidentally add them to a popup window
-      total = this._lastClosedWindows.concat(total);
+      do {
+        total.unshift(lastClosedWindowsCopy.shift())
+      } while (total[0].isPopup)
     }
-
 #endif
+
     if (activeWindow) {
       this.activeWindowSSiCache = activeWindow.__SSi || "";
     }
     ix = this.activeWindowSSiCache ? windows.indexOf(this.activeWindowSSiCache) : -1;
-    return { windows: total, selectedWindow: ix + 1 };
+
+    return { windows: total, selectedWindow: ix + 1, _closedWindows: lastClosedWindowsCopy };
   },
 
   /**
@@ -1550,6 +1580,9 @@ SessionStoreService.prototype = {
       this._notifyIfAllWindowsRestored();
       return;
     }
+
+    if (root._closedWindows)
+      this._closedWindows = root._closedWindows;
 
     var winData;
     if (!aState.selectedWindow) {
@@ -2477,6 +2510,44 @@ SessionStoreService.prototype = {
    */
   _getClosedTabs: function sss_getClosedTabs(aWindow) {
     return aWindow.getBrowser().savedBrowsers.map(function(e) { return e.tabData; });
+  },
+
+  /**
+   * Replace "Loading..." with the tab label (with minimal side-effects)
+   * @param aString is the string the title is stored in
+   * @param aTabbrowser is a tabbrowser object, containing aTab
+   * @param aTab is the tab whose title we're updating & using
+   *
+   * @returns aString that has been updated with the new title
+   */
+  _replaceLoadingTitle : function sss_replaceLoadingTitle(aString, aTabbrowser, aTab) {
+    if (aString == aTabbrowser.mStringBundle.getString("tabs.loading")) {
+      aTabbrowser.setTabTitle(aTab);
+      [aString, aTab.label] = [aTab.label, aString];
+    }
+    return aString;
+  },
+
+  /**
+   * Resize this._closedWindows to the value of the pref, except in the case
+   * where we don't have any non-popup windows on Windows and Linux. Then we must
+   * resize such that we have at least one non-popup window.
+   */
+  _capClosedWindows : function sss_capClosedWindows() {
+    let maxWindowsUndo = this._prefBranch.getIntPref("sessionstore.max_windows_undo");
+    if (this._closedWindows.length <= maxWindowsUndo)
+      return;
+    let spliceTo = maxWindowsUndo;
+#ifndef XP_MACOSX
+    let normalWindowIndex = 0;
+    // try to find a non-popup window in this._closedWindows
+    while (normalWindowIndex < this._closedWindows.length &&
+           this._closedWindows[normalWindowIndex].isPopup)
+      normalWindowIndex++;
+    if (normalWindowIndex >= maxWindowsUndo)
+      spliceTo = normalWindowIndex + 1;
+#endif
+    this._closedWindows.splice(spliceTo);
   },
 
 /* ........ Storage API .............. */

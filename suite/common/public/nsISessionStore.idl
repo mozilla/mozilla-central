@@ -46,7 +46,7 @@ interface nsIDOMNode;
  * - and allows to restore everything into one window.
  */
 
-[scriptable, uuid(7e8a0f63-284a-493a-8658-ddb84db42a20)]
+[scriptable, uuid(467425eb-86c7-4e8f-97ed-46e400d21e60)]
 interface nsISessionStore : nsISupports
 {
   /**
@@ -172,4 +172,22 @@ interface nsISessionStore : nsISupports
    * @param aName is the name of the attribute to save/restore for all xul:tabs.
    */
   void persistTabAttribute(in AString aName);
+
+  /**
+   * Get the number of restore-able windows
+   */
+  unsigned long getClosedWindowCount();
+
+  /**
+   * Get closed windows data
+   *
+   * @returns a JSON string representing the list of closed windows.
+   */
+  AString getClosedWindowData();
+
+  /**
+   * @param aIndex is the index of the windows to be restored (FIFO ordered).
+   * @returns the nsIDOMWindow object of the reopened window
+   */
+  nsIDOMWindow undoCloseWindow(in unsigned long aIndex);
 };
