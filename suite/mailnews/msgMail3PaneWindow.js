@@ -1259,28 +1259,6 @@ function ChangeSelection(tree, newIndex)
     }
 }
 
-function GetSelectedFolders()
-{
-    var folderArray = [];
-    var k = 0;
-    var folderTree = GetFolderTree();
-    var rangeCount = folderTree.view.selection.getRangeCount();
-
-    for(var i = 0; i < rangeCount; i++)
-    {
-        var startIndex = {};
-        var endIndex = {};
-        folderTree.view.selection.getRangeAt(i, startIndex, endIndex);
-        for (var j = startIndex.value; j <= endIndex.value; j++)
-        {
-            var folderResource = GetFolderResource(folderTree, j);
-            folderArray[k++] = folderResource.Value;
-        }
-    }
-
-    return folderArray;
-}
-
 function GetSelectedMsgFolders()
 {
     var folderArray = [];

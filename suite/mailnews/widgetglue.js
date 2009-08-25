@@ -64,18 +64,8 @@ function ConvertDOMListToResourceArray(nodeList)
 
 function GetSelectedFolderURI()
 {
-    var folderTree = GetFolderTree();
-    var selection = folderTree.view.selection;
-    if (selection.count == 1)
-    {
-        var startIndex = {};
-        var endIndex = {};
-        selection.getRangeAt(0, startIndex, endIndex);
-        var folderResource = GetFolderResource(folderTree, startIndex.value);
-        return folderResource.Value;
-    }
-
-    return null;
+  let folders = GetSelectedMsgFolders();
+  return folders.length == 1 ? folders[0].URI : null;
 }
 
 function MsgRenameFolder() 
@@ -122,25 +112,17 @@ function RenameFolder(name,uri)
   }
   else 
   {
-	  dump("no folder tree\n");
+    dump("no folder tree\n");
   }
 }
 
-function MsgEmptyTrash() 
+function MsgEmptyTrash()
 {
-    var folderTree = GetFolderTree();
-    var startIndex = {};
-    var endIndex = {};
-    folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
-    if (startIndex.value >= 0)
-    {
-        if (!confirmToProceed('emptyTrash'))
-            return;
- 
-        var folderResource = GetFolderResource(folderTree, startIndex.value);
-        var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        folder.emptyTrash(msgWindow, null);
-    }
+  let folders = GetSelectedMsgFolders();
+  if (folders.length != 1 || !confirmToProceed("emptyTrash"))
+    return;
+
+  folders[0].emptyTrash(msgWindow, null);
 }
 
 function MsgCompactFolder(aCompactAccount)

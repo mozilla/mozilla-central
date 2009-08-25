@@ -217,16 +217,12 @@ function FolderPaneOnPopupHiding()
 
 function FillFolderPaneContextMenu()
 {
-  var folderTree = GetFolderTree();
-  var startIndex = {};
-  var endIndex = {};
-  folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
-  if (startIndex.value < 0)
+  let folders = GetSelectedMsgFolders();
+  let numSelected = folders.length;
+  if (!numSelected)
     return false;
-  var numSelected = endIndex.value - startIndex.value + 1;
-  var folderResource = GetFolderResource(folderTree, startIndex.value);
-  let folder = GetMsgFolderFromUri(folderResource.Value, false);
 
+  let folder = folders[0];
   let isServer = folder.isServer;
   let serverType = folder.server.type;
   let specialFolder = getSpecialFolderString(folder);
@@ -237,9 +233,7 @@ function FillFolderPaneContextMenu()
   var isMailFolder = !isServer && serverType != 'nntp';
   var isVirtualFolder = (specialFolder == "Virtual");
   const kTrashFlag = Components.interfaces.nsMsgFolderFlags.Trash;
-  var msgFolder =
-    folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-  var isChildOfTrash = msgFolder.isSpecialFolder(kTrashFlag, true);
+  let isChildOfTrash = folder.isSpecialFolder(kTrashFlag, true);
   var canGetMessages =
     (isServer && (serverType != "nntp") && (serverType != "none")) ||
     isNewsgroup ||
@@ -272,9 +266,9 @@ function FillFolderPaneContextMenu()
   ShowMenuItem("folderPaneContext-openNewWindow", (numSelected <= 1) && !isServer);
   EnableMenuItem("folderPaneContext-openNewWindow", true);
 
-  SetupRenameMenuItem(folderResource, numSelected, isServer, serverType, specialFolder);
-  SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, specialFolder);
-  SetupCompactMenuItem(folderResource, numSelected);
+  SetupRenameMenuItem(folder, numSelected, isServer, serverType, specialFolder);
+  SetupRemoveMenuItem(folder, numSelected, isServer, serverType, specialFolder);
+  SetupCompactMenuItem(folder, numSelected);
 
   ShowMenuItem("folderPaneContext-emptyTrash", (numSelected <= 1) && (specialFolder == 'Trash'));
   EnableMenuItem("folderPaneContext-emptyTrash", true);
@@ -284,11 +278,11 @@ function FillFolderPaneContextMenu()
   var showSendUnsentMessages = (numSelected <= 1) && (specialFolder == 'Unsent Messages');
   ShowMenuItem("folderPaneContext-sendUnsentMessages", showSendUnsentMessages);
   if (showSendUnsentMessages)
-    EnableMenuItem("folderPaneContext-sendUnsentMessages", IsSendUnsentMsgsEnabled(folderResource));
+    EnableMenuItem("folderPaneContext-sendUnsentMessages", IsSendUnsentMsgsEnabled(folder));
 
   ShowMenuItem("folderPaneContext-sep-edit", (numSelected <= 1));
 
-  SetupNewMenuItem(folderResource, numSelected, isServer, serverType, specialFolder);
+  SetupNewMenuItem(folder, numSelected, isServer, serverType, specialFolder);
 
   ShowMenuItem("folderPaneContext-subscribe", (numSelected <= 1) && canSubscribeToFolder && !isVirtualFolder);
   EnableMenuItem("folderPaneContext-subscribe", true);
@@ -312,23 +306,20 @@ function FillFolderPaneContextMenu()
   return(true);
 }
 
-function SetupRenameMenuItem(folderResource, numSelected, isServer, serverType, specialFolder)
+function SetupRenameMenuItem(msgFolder, numSelected, isServer, serverType, specialFolder)
 {
-  var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
   var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
                                                   || (specialFolder == "Virtual"));
   let canRename = msgFolder.canRename;
   ShowMenuItem("folderPaneContext-rename", (numSelected <= 1) && !isServer && !isSpecialFolder && canRename);
-  var folder = GetMsgFolderFromResource(folderResource);
-  EnableMenuItem("folderPaneContext-rename", !isServer && folder.isCommandEnabled("cmd_renameFolder"));
+  EnableMenuItem("folderPaneContext-rename", !isServer && msgFolder.isCommandEnabled("cmd_renameFolder"));
 
   if (canRename)
     SetMenuItemLabel("folderPaneContext-rename", gMessengerBundle.getString("renameFolder"));
 }
 
-function SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, specialFolder)
+function SetupRemoveMenuItem(msgFolder, numSelected, isServer, serverType, specialFolder)
 {
-  var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
   var isMail = serverType != 'nntp';
   var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
                                                   || (specialFolder == "Virtual"));
@@ -336,20 +327,14 @@ function SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, 
   var showRemove = (numSelected <=1) && (isMail && !isSpecialFolder) && !isServer;
 
   ShowMenuItem("folderPaneContext-remove", showRemove);
-  if(showRemove)
-  {
-    var folder = GetMsgFolderFromResource(folderResource);
-    EnableMenuItem("folderPaneContext-remove", folder.isCommandEnabled("cmd_delete"));
-  }
-  if(isMail && !isSpecialFolder)
-  {
+  if (showRemove)
+    EnableMenuItem("folderPaneContext-remove", msgFolder.isCommandEnabled("cmd_delete"));
+  if (isMail && !isSpecialFolder)
     SetMenuItemLabel("folderPaneContext-remove", gMessengerBundle.getString("removeFolder"));
-  }
 }
 
-function SetupCompactMenuItem(folderResource, numSelected)
+function SetupCompactMenuItem(folder, numSelected)
 {
-  var folder = GetMsgFolderFromResource(folderResource);
   let canCompact = folder.canCompact;
   ShowMenuItem("folderPaneContext-compact", numSelected <= 1 && canCompact);
   EnableMenuItem("folderPaneContext-compact", folder.isCommandEnabled("cmd_compactFolder"));
@@ -358,9 +343,8 @@ function SetupCompactMenuItem(folderResource, numSelected)
     SetMenuItemLabel("folderPaneContext-compact", gMessengerBundle.getString("compactFolder"));
 }
 
-function SetupNewMenuItem(folderResource, numSelected, isServer, serverType, specialFolder)
+function SetupNewMenuItem(folder, numSelected, isServer, serverType, specialFolder)
 {
-  let folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
   var isInbox = specialFolder == "Inbox";
 
   const ioService = Components.classes["@mozilla.org/network/io-service;1"]

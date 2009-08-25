@@ -724,15 +724,6 @@ function CreateDBView(msgFolder, viewType, viewFlags, sortType, sortOrder)
   ObserverService.notifyObservers(msgFolder, "MsgCreateDBView", viewType + ":" + viewFlags);
 }
 
-function GetSelectedFolderResource()
-{
-    var folderTree = GetFolderTree();
-    var startIndex = {};
-    var endIndex = {};
-    folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
-    return GetFolderResource(folderTree, startIndex.value);
-}
-
 function ChangeMessagePaneVisibility(now_hidden)
 {
   // We also have to disable the Message/Attachments menuitem.
@@ -789,15 +780,12 @@ function FolderPaneSelectionChange()
     gVirtualFolderTerms = null;
     gXFVirtualFolderTerms = null;
 
-    if (folderSelection.count == 1)
+    let folders = GetSelectedMsgFolders();
+    if (folders.length == 1)
     {
-        var startIndex = {};
-        var endIndex = {};
+        let msgFolder = folders[0];
+        let uriToLoad = msgFolder.URI;
 
-        folderSelection.getRangeAt(0, startIndex, endIndex);
-        var folderResource = GetFolderResource(folderTree, startIndex.value);
-        var uriToLoad = folderResource.Value;
-        var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
         if (msgFolder == gMsgFolderSelected)
            return;
         // If msgFolder turns out to be a single folder saved search, not a virtual folder,
@@ -810,14 +798,10 @@ function FolderPaneSelectionChange()
         const kVirtual = Components.interfaces.nsMsgFolderFlags.Virtual;
         // if this is same folder, and we're not showing a virtual folder
         // then do nothing.
-        if (msgFolder == msgWindow.openFolder && 
-          !(folderFlags & kVirtual) && !(gPrevFolderFlags & kVirtual))
-        {
-            dump("msgFolder already open" + folderResource.URI + "\n");
-            return;
-        }
-        else
-        {
+        if (msgFolder == msgWindow.openFolder &&
+            !(folderFlags & kVirtual) && !(gPrevFolderFlags & kVirtual))
+          return;
+
             OnLeavingFolder(gPrevSelectedFolder);  // mark all read in last folder
             var sortType = 0;
             var sortOrder = 0;
@@ -910,7 +894,6 @@ function FolderPaneSelectionChange()
             ChangeFolder(realFolder, msgFolder, viewType, viewFlags, sortType, sortOrder);
            if (gVirtualFolderTerms)
              gDBView.viewFolder = msgFolder;        
-         }
     }
     else
     {
