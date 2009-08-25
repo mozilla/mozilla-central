@@ -126,7 +126,7 @@ var specialTabs = {
       // Now start loading the content.
       aTab.title = this.loadingTabString;
 
-      aTab.browser.setAttribute("src", aContentPage);
+      aTab.browser.loadURI(aContentPage);
 
       this.lastBrowserId++;
     },
@@ -141,6 +141,18 @@ var specialTabs = {
     },
     showTab: function onShowTab(aTab) {
       aTab.browser.setAttribute("type", "content-primary");
+    },
+    persistTab: function onPersistTab(aTab) {
+      if (aTab.browser.currentURI.spec == "about:blank")
+        return null;
+
+      return {
+        tabURI: aTab.browser.currentURI.spec
+      };
+    },
+    restoreTab: function onRestoreTab(aTabmail, aPersistedState) {
+      aTabmail.openTab("contentTab", { contentPage: aPersistedState.tabURI,
+                                       background: true } );
     },
     onTitleChanged: function onTitleChanged(aTab) {
       aTab.title = aTab.browser.contentDocument.title;
