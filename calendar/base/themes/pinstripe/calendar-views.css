@@ -701,7 +701,7 @@ tab[calview] > .tab-middle {
 
 .view-navigation-button {
     -moz-user-focus: normal;      
-    -moz-appearance: none;
+    -moz-appearance: toolbarbutton;
     margin-top: 3px;
     -moz-margin-start: 3px;
     -moz-margin-end: 3px;
@@ -710,7 +710,7 @@ tab[calview] > .tab-middle {
 
 .today-navigation-button {
     -moz-user-focus: normal;      
-    -moz-appearance: none;
+    -moz-appearance: toolbarbutton;
     margin-top: 2px;
     -moz-margin-start: 2px;
     -moz-margin-end: 2px;

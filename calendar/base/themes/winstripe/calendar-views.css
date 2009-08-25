@@ -696,31 +696,35 @@ tab[calview] > .tab-middle {
 }
 
 .view-navigation-button {
-    -moz-user-focus: normal;      
-    -moz-appearance: none;
+    -moz-user-focus: normal;
+    -moz-appearance: toolbarbutton;
     margin-top: 3px;
-    -moz-margin-start: 3px;
-    -moz-margin-end: 3px;
-    margin-bottom: 2px;
+    -moz-margin-start: 2px;
+    -moz-margin-end: 2px;
+    margin-bottom: 0px;
+    padding: 4px;
 }
 
 .today-navigation-button {
-    -moz-user-focus: normal;      
-    -moz-appearance: none;
+    -moz-user-focus: normal;
+    -moz-appearance: toolbarbutton;
     margin-top: 2px;
     -moz-margin-start: 2px;
     -moz-margin-end: 2px;
     margin-bottom: 0px;
+    padding: 4px;
+    padding-bottom: 5px;
     color: #2E4E73;
 }
+
 .view-navigation-button > .toolbarbutton-text {
-  display: none;
+    display: none;
 }
 
 .view-navigation-button > .toolbarbutton-icon {
-  margin: 1px;
+    margin: 1px;
 }
 
 .today-navigation-button > .toolbarbutton-icon {
-  display: none;
+    display: none;
 }
