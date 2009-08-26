@@ -377,6 +377,8 @@ calAlarmService.prototype = {
             return;
         }
 
+        let showMissed = cal.getPrefSafe("calendar.alarms.showmissed", true);
+
         let alarms = aItem.getAlarms({});
         for each (let alarm in alarms) {
             let alarmDate = cal.alarms.calculateAlarmDate(aItem, alarm);
@@ -436,8 +438,8 @@ calAlarmService.prototype = {
                 }
 
                 this.addTimer(aItem, alarm, timeout);
-            } else {
-                // This alarm is in the past.  See if it has been previously ack'd
+            } else if (showMissed) {
+                // This alarm is in the past.  See if it has been previously ack'd.
                 let lastAck = aItem.alarmLastAck || aItem.parentItem.alarmLastAck;
                 cal.LOG("[calAlarmService] last ack was: " + lastAck);
 
