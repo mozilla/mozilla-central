@@ -594,13 +594,12 @@ components/xultmpl.xpt
 
 # ****************************************************************************
 # * Remove the XPTs that were present at the time (2009-04) when we started  *
-# * linking XPTs on Linux. You almost certainly don't want to add anything   *
+# * linking XPTs on Linux, and present at the time (2009-08) when we started *
+# * linking XPTs on Mac. You almost certainly don't want to add anything     *
 # * to this section.                                                         *
 # ****************************************************************************
 #ifndef MOZILLA_1_9_1_BRANCH
 #ifdef XP_UNIX
-#ifndef XP_MACOSX
-components/accessibility.xpt
 components/activity.xpt
 components/addrbook.xpt
 components/alerts.xpt
@@ -615,14 +614,15 @@ components/commandhandler.xpt
 components/commandlines.xpt
 components/composer.xpt
 components/content_base.xpt
-components/content_htmldoc.xpt
 components/content_html.xpt
-components/contentprefs.xpt
+components/content_htmldoc.xpt
 components/content_xmldoc.xpt
 components/content_xslt.xpt
 components/content_xtf.xpt
+components/contentprefs.xpt
 components/cookie.xpt
 components/docshell.xpt
+components/dom.xpt
 components/dom_base.xpt
 components/dom_canvas.xpt
 components/dom_core.xpt
@@ -644,7 +644,6 @@ components/dom_traversal.xpt
 components/dom_views.xpt
 components/dom_xbl.xpt
 components/dom_xpath.xpt
-components/dom.xpt
 components/dom_xul.xpt
 components/downloads.xpt
 components/editor.xpt
@@ -654,7 +653,6 @@ components/exthandler.xpt
 components/exthelper.xpt
 components/fastfind.xpt
 components/feeds.xpt
-components/filepicker.xpt
 components/find.xpt
 components/gfx.xpt
 components/htmlparser.xpt
@@ -668,15 +666,15 @@ components/jar.xpt
 components/jsdservice.xpt
 components/layout_base.xpt
 components/layout_printing.xpt
-components/layout_xul_tree.xpt
 components/layout_xul.xpt
+components/layout_xul_tree.xpt
 components/locale.xpt
 components/loginmgr.xpt
 components/lwbrk.xpt
 components/mailprofilemigration.xpt
 components/mailview.xpt
-components/mimetype.xpt
 components/mime.xpt
+components/mimetype.xpt
 components/mozbrwsr.xpt
 components/mozfind.xpt
 components/mozldap.xpt
@@ -688,6 +686,7 @@ components/msglocal.xpt
 components/msgnews.xpt
 components/msgsearch.xpt
 components/msgsmime.xpt
+components/necko.xpt
 components/necko_about.xpt
 components/necko_cache.xpt
 components/necko_cookie.xpt
@@ -699,7 +698,6 @@ components/necko_res.xpt
 components/necko_socket.xpt
 components/necko_strconv.xpt
 components/necko_viewsource.xpt
-components/necko.xpt
 components/parentalcontrols.xpt
 components/pipboot.xpt
 components/pipnss.xpt
@@ -717,7 +715,6 @@ components/shistory.xpt
 components/spellchecker.xpt
 components/storage.xpt
 components/toolkitprofile.xpt
-components/toolkitremote.xpt
 components/txmgr.xpt
 components/txtsvc.xpt
 components/uconv.xpt
@@ -729,7 +726,6 @@ components/urlformatter.xpt
 components/webBrowser_core.xpt
 components/webbrowserpersist.xpt
 components/webshell_idls.xpt
-components/websrvcs.xpt
 components/widget.xpt
 components/windowds.xpt
 components/windowwatcher.xpt
@@ -747,9 +743,18 @@ components/xulapp.xpt
 components/xuldoc.xpt
 components/xultmpl.xpt
 components/zipwriter.xpt
+#ifdef XP_MACOSX
+components/steel.xpt
+components/necko_wifi.xpt
+components/widget_cocoa.xpt
+#else
+components/accessibility.xpt
+components/filepicker.xpt
+components/toolkitremote.xpt
+components/websrvcs.xpt
 #endif
 #endif
 #endif
 # ****************************************************************************
-# * End of XPTs at the time we started linking them on Linux.                *
+# * End of XPTs at the time we started linking them on Linux and Mac.        *
 # ****************************************************************************
