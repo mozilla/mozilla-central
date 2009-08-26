@@ -252,6 +252,15 @@ NS_IMETHODIMP nsAbDirProperty::CopyMailList(nsIAbDirectory* srcList)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsAbDirProperty::GetIsQuery(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  // Mailing lists are not queries by default, individual directory types
+  // will override this.
+  *aResult = PR_FALSE;
+  return NS_OK;
+}
+
 // nsIAbDirectory NOT IMPLEMENTED methods
 
 NS_IMETHODIMP

@@ -841,6 +841,14 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
 }
 
 NS_IMETHODIMP
+nsAbOSXDirectory::GetIsQuery(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = mIsQueryURI;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsAbOSXDirectory::GetCardFromProperty(const char *aProperty,
                                       const nsACString &aValue,
                                       PRBool aCaseSensitive,

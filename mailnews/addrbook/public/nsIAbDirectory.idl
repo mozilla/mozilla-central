@@ -60,7 +60,7 @@ interface nsIMutableArray;
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(5ee48561-aff9-447c-802d-93384d524f53)]
+[scriptable, uuid(4b2ed38f-9420-4491-92d3-f6ef110f363a)]
 interface nsIAbDirectory : nsIAbCollection {
 
   /**
@@ -107,6 +107,12 @@ interface nsIAbDirectory : nsIAbCollection {
    * associated with the mailing lists too.
    */
   readonly attribute nsISimpleEnumerator childCards;
+
+  /**
+   * Returns true if this directory represents a query - i.e. the rdf resource
+   * was something like moz-abmdbdirectory://abook.mab?....
+   */
+  readonly attribute boolean isQuery;
 
   // Deletes either a mailing list or a top
   // level directory, which also updates the

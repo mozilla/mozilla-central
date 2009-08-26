@@ -458,6 +458,13 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
                         mDatabase->EnumerateCards(this, result);
 }
 
+NS_IMETHODIMP nsAbMDBDirectory::GetIsQuery(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = mIsQueryURI;
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
 {
   NS_ENSURE_ARG_POINTER(aCards);
@@ -944,6 +951,20 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
 
   nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // Bug 280232 - something was causing continuous loops in searching. Add a
+  // check here for the directory to search not being a query uri as well in
+  // the hopes that will at least break us out of the continuous loop even if
+  // we don't know how we got into it.
+  PRBool isQuery;
+  rv = directory->GetIsQuery(&isQuery);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (isQuery)
+  {
+    NS_ERROR("Attempting to search a directory within a search");
+    return NS_ERROR_FAILURE;
+  }
 
   // Initiate the proxy query with the no query directory
   nsCOMPtr<nsIAbDirectoryQueryProxy> queryProxy = 

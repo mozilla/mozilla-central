@@ -250,6 +250,13 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
     return retCode ;
 }
 
+NS_IMETHODIMP nsAbOutlookDirectory::GetIsQuery(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = mIsQueryURI;
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsAbOutlookDirectory::HasCard(nsIAbCard *aCard, PRBool *aHasCard)
 {
     if (!aCard || !aHasCard) { return NS_ERROR_NULL_POINTER ; }

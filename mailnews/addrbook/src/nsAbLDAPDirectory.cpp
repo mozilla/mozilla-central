@@ -197,6 +197,13 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
     return rv;
 }
 
+NS_IMETHODIMP nsAbLDAPDirectory::GetIsQuery(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = mIsQueryURI;
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, PRBool* hasCard)
 {
   nsresult rv = Initiate ();

@@ -70,6 +70,7 @@ public:
   NS_IMETHOD GetURI(nsACString &aURI);
   NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards);
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes);
+  NS_IMETHOD GetIsQuery(PRBool *aResult);
   NS_IMETHOD HasCard(nsIAbCard *aCard, PRBool *aHasCard);
   NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, PRBool *aHasDirectory);
   NS_IMETHOD DeleteCards(nsIArray *aCardList);

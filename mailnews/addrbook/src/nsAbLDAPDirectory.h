@@ -71,6 +71,7 @@ public:
   NS_IMETHOD GetURI(nsACString &aURI);
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
   NS_IMETHOD GetChildCards(nsISimpleEnumerator* *result);
+  NS_IMETHOD GetIsQuery(PRBool *aResult);
   NS_IMETHOD HasCard(nsIAbCard *cards, PRBool *hasCard);
   NS_IMETHOD GetSupportsMailingLists(PRBool *aSupportsMailingsLists);
   NS_IMETHOD GetReadOnly(PRBool *aReadOnly);
