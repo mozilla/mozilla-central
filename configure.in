@@ -6300,10 +6300,14 @@ fi
 AC_SUBST(MOZ_MEMORY)
 if test "$MOZILLA_1_9_1_BRANCH" != "1"; then
 AC_SUBST(MOZ_MEMORY_LDFLAGS)
+# Dumb statemet, not to have an empty block.
+true
 else
 AC_SUBST(WIN32_CUSTOM_CRT_DIR)
 AC_SUBST(MOZ_LIB)
 AC_SUBST(MOZ_PATH)
+# Dumb statemet, not to have an empty block.
+true
 fi
 AC_SUBST(WIN32_CRT_SRC_DIR)
 dnl Need to set this for make because NSS doesn't have configure
@@ -7446,6 +7450,8 @@ AC_SUBST(MOZ_DBGRINFO_MODULES)
 AC_SUBST(MOZ_JSDEBUGGER)
 if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
 AC_SUBST(MOZ_OJI)
+# Dumb statemet, not to have an empty block.
+true
 fi
 AC_SUBST(MOZ_NO_XPCOM_OBSOLETE)
 AC_SUBST(MOZ_PLUGINS)
