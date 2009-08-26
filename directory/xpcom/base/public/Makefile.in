@@ -61,6 +61,10 @@ XPIDLSRCS	= 	\
 			nsILDAPModification.idl \
 			$(NULL)
 
+ifdef MOZ_PREF_EXTENSIONS
+XPIDLSRCS += nsILDAPSyncQuery.idl
+endif
+
 ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
 XPIDLSRCS	+=	\
 			$(NULL)

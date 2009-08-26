@@ -52,7 +52,9 @@
 #include "nsLDAPBERValue.h"
 #include "nsLDAPBERElement.h"
 #include "nsLDAPControl.h"
-
+#ifdef MOZ_PREF_EXTENSIONS
+#include "nsLDAPSyncQuery.h"
+#endif
 #include "ldappr.h"
 
 #ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
@@ -71,6 +73,9 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsLDAPService, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPBERValue)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPBERElement)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPControl)
+#ifdef MOZ_PREF_EXTENSIONS
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPSyncQuery)
+#endif
 #ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPChannel)
 #endif
@@ -125,6 +130,10 @@ static const nsModuleComponentInfo components[] =
 #ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
     { "LDAP Channel", NS_LDAPCHANNEL_CID,
       "@mozilla.org/network/ldap-channel;1", nsLDAPChannelConstructor },
+#endif
+#ifdef MOZ_PREF_EXTENSIONS
+    { "LDAPSyncQuery module", NS_LDAPSYNCQUERY_CID,
+      "@mozilla.org/ldapsyncquery;1", nsLDAPSyncQueryConstructor },
 #endif
     { "LDAP Control", NS_LDAPCONTROL_CID,
       "@mozilla.org/network/ldap-control;1", nsLDAPControlConstructor}
