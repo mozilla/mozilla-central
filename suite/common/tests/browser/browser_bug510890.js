@@ -140,21 +140,21 @@ function test() {
       let settings = "chrome,dialog=no," +
                      (winData.isPopup ? "all=no" : "all");
       let url = "http://window" + windowsToOpen.length + ".example.com";
-      let newWin3 = openDialog(location, "_blank", settings, url);
-      newWin3.addEventListener("load", function(aEvent) {
-        newWin3.getBrowser().addEventListener("pageshow", function(aEvent) {
-          newWin3.getBrowser().removeEventListener("pageshow", arguments.callee, true);
+      let window = openDialog(location, "_blank", settings, url);
+      window.addEventListener("load", function(aEvent) {
+        window.gBrowser.addEventListener("load", function(aEvent) {
+          // the window _should_ have state with a tab of url, but it doesn't
+          // always happend before window.close(). addTab ensure we don't treat
+          // this window as a stateless window
+          window.gBrowser.addTab();
+          window.gBrowser.removeEventListener("load", arguments.callee, true);
           executeSoon(function() {
-            // the window _should_ have state with a tab of url, but it doesn't
-            // always happend before window.close(). addTab ensure we don't treat
-            // this window as a stateless window
-            newWin3.getBrowser().addTab();
-            newWin3.close();
+            window.close();
             executeSoon(function() {
               openWindowRec(windowsToOpen, expectedResults, recCallback);
             });
           });
-        }, false);
+        }, true);
       }, true);
     }
 
@@ -177,115 +177,9 @@ function test() {
     });
   }
   
-  function test_purge(callback) {
-    // utility functions
-    function countClosedTabsByTitle(aClosedTabList, aTitle)
-      aClosedTabList.filter(function(aData) aData.title == aTitle).length;
-
-    function countOpenTabsByTitle(aOpenTabList, aTitle)
-      aOpenTabList.filter(function(aData) aData.entries.some(function(aEntry) aEntry.title == aTitle) ).length
-
-    // backup old state
-    let oldState = ss.getBrowserState();
-    // create a new state for testing
-    const REMEMBER = Date.now(), FORGET = Math.random();
-    let testState = {
-      windows: [ { tabs: [{ entries: [{ url: "http://example.com/" }] }], selected: 1 } ],
-      _closedWindows : [
-        // _closedWindows[0]
-        {
-          tabs: [
-            { entries: [{ url: "http://example.com/", title: REMEMBER }] },
-            { entries: [{ url: "http://mozilla.org/", title: FORGET }] }
-          ],
-          selected: 2,
-          title: "mozilla.org",
-          _closedTabs: []
-        },
-        // _closedWindows[1]
-        {
-          tabs: [
-           { entries: [{ url: "http://mozilla.org/", title: FORGET }] },
-           { entries: [{ url: "http://example.com/", title: REMEMBER }] },
-           { entries: [{ url: "http://example.com/", title: REMEMBER }] },
-           { entries: [{ url: "http://mozilla.org/", title: FORGET }] },
-           { entries: [{ url: "http://example.com/", title: REMEMBER }] }
-          ],
-          selected: 5,
-          _closedTabs: []
-        },
-        // _closedWindows[2]
-        {
-          tabs: [
-            { entries: [{ url: "http://example.com/", title: REMEMBER }] }
-          ],
-          selected: 1,
-          _closedTabs: [
-            {
-              state: {
-                entries: [
-                  { url: "http://mozilla.org/", title: FORGET },
-                  { url: "http://mozilla.org/again", title: "doesn't matter" }
-                ]
-              },
-              pos: 1,
-              title: FORGET
-            },
-            {
-              state: {
-                entries: [
-                  { url: "http://example.com", title: REMEMBER }
-                ]
-              },
-              title: REMEMBER
-            }
-          ]
-        }
-      ]
-    };
-    
-    // set browser to test state
-    ss.setBrowserState(JSON.stringify(testState));
-
-    let closedWindowData = JSON.parse(ss.getClosedWindowData());
-
-    // First set of tests for _closedWindows[0] - tests basics
-    let window = closedWindowData[0];
-    is(window.tabs.length, 1, "1 tab was removed");
-    is(countOpenTabsByTitle(window.tabs, FORGET), 0,
-       "The correct tab was removed");
-    is(countOpenTabsByTitle(window.tabs, REMEMBER), 1,
-       "The correct tab was remembered");
-    is(window.selected, 1, "Selected tab has changed");
-    is(window.title, REMEMBER, "The window title was correctly updated");
-
-    // Test more complicated case 
-    window = closedWindowData[1];
-    is(window.tabs.length, 3, "2 tabs were removed");
-    is(countOpenTabsByTitle(window.tabs, FORGET), 0,
-       "The correct tabs were removed");
-    is(countOpenTabsByTitle(window.tabs, REMEMBER), 3,
-       "The correct tabs were remembered");
-    is(window.selected, 3, "Selected tab has changed");
-    is(window.title, REMEMBER, "The window title was correctly updated");
-
-    // Tests handling of _closedTabs
-    window = closedWindowData[2];
-    is(countClosedTabsByTitle(window._closedTabs, REMEMBER), 1,
-       "The correct number of tabs were removed, and the correct ones");
-    is(countClosedTabsByTitle(window._closedTabs, FORGET), 0,
-       "All tabs to be forgotten were indeed removed");
-
-    // restore pre-test state
-    ss.setBrowserState(oldState);
-    executeSoon(callback);
-  }
-  
   test_basic(function() {
     test_behavior(function() {
-      test_purge(function() {
         finish();
-      });
     });
   });
 }
