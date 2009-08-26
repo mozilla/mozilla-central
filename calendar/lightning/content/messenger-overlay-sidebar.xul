@@ -135,7 +135,6 @@
     <menuseparator id="ltnViewMenuSeparator"
                    insertbefore="viewSortMenuSeparator"/>
     <menu id="ltnTodayPaneMenu"
-          observes="calendar_in_foreground"
           insertbefore="viewSortMenuSeparator"
           label="&calendar.context.button.label;"
           accesskey="&calendar.context.button.accesskey;">
