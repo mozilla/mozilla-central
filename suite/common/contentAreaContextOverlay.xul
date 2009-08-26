@@ -159,6 +159,10 @@
                 label="&copyImageCmd.label;"
                 accesskey="&copyImageCmd.accesskey;"
                 command="cmd_copyImage"/>
+      <menuitem id="context-viewvideo"
+                label="&viewVideoCmd.label;"
+                accesskey="&viewVideoCmd.accesskey;"
+                oncommand="gContextMenu.viewMedia();"/>
       <menuitem id="context-copyvideourl"
                 label="&copyVideoURLCmd.label;"
                 accesskey="&copyVideoURLCmd.accesskey;"

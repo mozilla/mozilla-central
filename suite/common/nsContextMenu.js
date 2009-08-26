@@ -209,6 +209,10 @@ nsContextMenu.prototype = {
         this.showItem( "context-viewimage", this.onImage &&
                       ( !this.onStandaloneImage || this.inFrame ) || this.onCanvas );
 
+        this.showItem( "context-viewvideo", this.onVideo && (this.inFrame ||
+                      this.mediaURL != this.target.ownerDocument.location.href));
+        this.setItemAttr( "context-viewvideo", "disabled", !this.mediaURL);
+
         // View background image depends on whether there is one.
         this.showItem( "context-viewbgimage", showView && !this.onStandaloneImage);
         this.showItem( "context-sep-viewbgimage", showView && !this.onStandaloneImage);

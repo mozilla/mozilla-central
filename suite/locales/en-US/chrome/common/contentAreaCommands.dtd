@@ -45,6 +45,8 @@
 <!ENTITY reloadImageCmd.accesskey     "e">
 <!ENTITY viewImageCmd.label           "View Image">
 <!ENTITY viewImageCmd.accesskey       "I">
+<!ENTITY viewVideoCmd.label           "View Video">
+<!ENTITY viewVideoCmd.accesskey       "i">
 <!ENTITY viewBGImageCmd.label         "View Background Image">
 <!ENTITY viewBGImageCmd.accesskey     "w">
 <!ENTITY setWallpaperCmd.label        "Set As Wallpaper">
