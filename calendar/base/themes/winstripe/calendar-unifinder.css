@@ -59,6 +59,8 @@
    color: -moz-FieldText;
    min-height: 92px;
    border: 0;
+   -moz-border-bottom-colors: ThreeDHighlight ThreeDLightShadow;
+   border-bottom: 1px solid;
    margin: 0;
 }
 

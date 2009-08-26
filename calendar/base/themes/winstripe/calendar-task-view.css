@@ -36,6 +36,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#calendar-task-view-splitter {
+    border: none;
+    min-height: 5px;
+}
+
 #calendar-task-details-container {
     border-top: 1px solid ThreeDShadow;
     border-left: 1px solid ThreeDShadow;

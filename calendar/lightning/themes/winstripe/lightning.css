@@ -39,6 +39,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#calsidebar_splitter {
+    border-right: none;
+}
+
+#today-splitter {
+    border-right: none;
+}
+
 /* Calendar list rules */
 #calendar-panel {
     padding: 0px 5px 5px;
