@@ -848,7 +848,7 @@ nsresult nsPop3Protocol::LoadUrl(nsIURI* aURL, nsISupports * /* aConsumer */)
 
   PRBool deleteByAgeFromServer = PR_FALSE;
   PRInt32 numDaysToLeaveOnServer = -1;
-  if (!m_pop3ConData->only_check_for_new_mail && !m_pop3ConData->verify_logon)
+  if (!m_pop3ConData->verify_logon)
   {
     // Pick up pref setting regarding leave messages on server, message size limit
 
@@ -2013,14 +2013,16 @@ nsPop3Protocol::GetStat()
     return(0);
   }
 
-  if (m_pop3ConData->only_check_for_new_mail && !m_pop3ConData->leave_on_server &&
-      m_pop3ConData->size_limit <= 0)
+  /* We're just checking for new mail, and we're not playing any games that
+     involve keeping messages on the server.  Therefore, we now know enough
+     to finish up.  If we had no messages, that would have been handled
+     above; therefore, we know we have some new messages. 
+  */
+  if (m_pop3ConData->only_check_for_new_mail && !m_pop3ConData->leave_on_server)
   {
-    /* We're just checking for new mail, and we're not playing any games that
-       involve keeping messages on the server.  Therefore, we now know enough
-       to finish up.  If we had no messages, that would have been handled
-       above; therefore, we know we have some new messages. */
-    m_pop3ConData->biffstate = nsIMsgFolder::nsMsgBiffState_NewMail;
+    m_nsIPop3Sink->SetBiffStateAndUpdateFE(nsIMsgFolder::nsMsgBiffState_NewMail,
+                                           m_pop3ConData->number_of_messages,
+                                           PR_TRUE);
     m_pop3ConData->next_state = POP3_SEND_QUIT;
     return(0);
   }
