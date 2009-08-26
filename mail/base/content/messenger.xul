@@ -262,7 +262,7 @@
                    <!-- The threadContentArea was specially created to be a place for
                         things that want to be above/below the thread pane, regardless
                         of where the message reader ("messagepane") gets off to. -->
-                   <vbox id="threadContentArea" flex="1">
+                   <vbox id="threadContentArea" flex="1" persist="width">
                     <!-- Gloda search facets UI for use when dealing with a gloda-backed
                          search view, implemented by glodaFacets XBL in search.xml. -->
                     <box id="glodaSearchFacets"/>
