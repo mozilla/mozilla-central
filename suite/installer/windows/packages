@@ -47,6 +47,9 @@ bin\msvcp80.dll
 bin\msvcr80.dll
 #else
 bin\mozcrt19.dll
+#ifndef MOZILLA_1_9_1_BRANCH
+bin\mozcpp19.dll
+#endif
 #endif
 
 [browser]

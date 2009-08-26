@@ -105,6 +105,11 @@ Microsoft.VC80.CRT.manifest
 msvcm80.dll
 msvcp80.dll
 msvcr80.dll
+#else
+mozcrt19.dll
+#ifdef MOZILLA_1_9_1_BRANCH
+mozcpp19.dll
+#endif
 #endif
 xpicleanup.exe
 regxpcom.exe
