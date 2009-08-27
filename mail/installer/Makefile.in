@@ -99,6 +99,10 @@ $(error you need an "--enable-static" build to package a build)
 endif
 endif
 
+# On mozilla-central, packager.mk uses core_abspath to redefine DIST
+# As the comm-central config.mk doesn't set it, do it ourselves instead
+core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(CURDIR)/$(1)))
+
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 
 ifeq (WINNT,$(OS_ARCH))
