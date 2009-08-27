@@ -65,6 +65,7 @@ function AccountConfig()
     socketType : null,
     auth : null, // enum: 1 = plain, 2 = "secure"
     checkInterval : 10, // Integer, in seconds
+    loginAtStartup : true,
     // POP3 only:
     useGlobalInbox : false, // boolean. Not yet implemented.
     leaveMessagesOnServer : true,

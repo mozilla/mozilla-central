@@ -77,6 +77,14 @@ function createAccountInBackend(config)
 
   inServer.doBiff = true;
   inServer.biffMinutes = config.incoming.checkInterval;
+  let prefs = Cc["@mozilla.org/preferences-service;1"]
+              .getService(Ci.nsIPrefBranch);
+  const loginAtStartupPrefTemplate =
+    "mail.server.%serverkey%.login_at_startup";
+  var loginAtStartupPref =
+    loginAtStartupPrefTemplate.replace("%serverkey%", inServer.key);
+  prefs.setBoolPref(loginAtStartupPref,
+                    config.incoming.loginAtStartup);
   if (config.incoming.type == "pop3")
   {
     const leaveOnServerPrefTemplate =
@@ -95,8 +103,6 @@ function createAccountInBackend(config)
       daysToLeaveOnServerPrefTemplate.replace("%serverkey%", inServer.key);
     var deleteFromServerPref =
       deleteFromServerPrefTemplate.replace("%serverkey%", inServer.key);
-    let prefs = Cc["@mozilla.org/preferences-service;1"]
-                .getService(Ci.nsIPrefBranch);
     prefs.setBoolPref(leaveOnServerPref,
                       config.incoming.leaveMessagesOnServer);
     prefs.setIntPref(daysToLeaveOnServerPref,
