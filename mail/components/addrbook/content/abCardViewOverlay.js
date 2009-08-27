@@ -167,6 +167,8 @@ function OnLoadCardView()
   cvData.cvWorkMapIt = doc.getElementById("cvWorkMapIt");
   cvData.cvWorkWebPageBox = doc.getElementById("cvWorkWebPageBox");
   cvData.cvWorkWebPage  = doc.getElementById("cvWorkWebPage");
+  cvData.cvbPhoto = doc.getElementById("cvbPhoto");
+  cvData.cvPhoto  = doc.getElementById("cvPhoto");
 }
 
 // XXX todo
@@ -211,6 +213,9 @@ function DisplayCardViewPane(realCard)
 
   var data = top.cvData;
   var visible;
+
+  // Contact photo
+  cvData.cvPhoto.setAttribute("src", getPhotoURI(card.getProperty("PhotoName")));
 
   var titleString;
   if (generatedName == "")

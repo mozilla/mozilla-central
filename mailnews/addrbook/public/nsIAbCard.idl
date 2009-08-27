@@ -86,6 +86,10 @@ interface nsIAbPreferMailFormat {
  *   - PreferMailFormat (see nsIAbPreferMailFormat)
  * - Boolean properties:
  *   - AllowRemoteContent
+ * - Photo properties:
+ *   - PhotoName
+ *   - PhotoType
+ *   - PhotoURI
  */
 [scriptable, uuid(fdac4023-cd19-4e75-9a88-8e48881076ea)]
 interface nsIAbCard : nsIAbItem {

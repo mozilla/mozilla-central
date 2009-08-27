@@ -55,6 +55,8 @@ const kDefaultDescending = "descending";
 const kLdapUrlPrefix = "moz-abldapdirectory://";
 const kPersonalAddressbookURI = "moz-abmdbdirectory://abook.mab";
 const kCollectedAddressbookURI = "moz-abmdbdirectory://history.mab";
+// The default image for contacts
+var defaultPhotoURI = "chrome://messenger/skin/addressbook/icons/contact-generic.png";
 
 // Controller object for Dir Pane
 var DirPaneController =
@@ -628,4 +630,167 @@ function GetSelectedDirectory()
     var selected = dirTree.builderView.getResourceAtIndex(dirTree.currentIndex)
     return selected.Value;
   }
+}
+
+/**
+ * Returns an nsIFile of the directory in which contact photos are stored.
+ * This will create the directory if it does not yet exist.
+ */
+function getPhotosDir() {
+  var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                       .getService(Components.interfaces.nsIProperties)
+                       .get("ProfD", Components.interfaces.nsIFile);
+  // Get the Photos directory
+  file.append("Photos");
+  if (!file.exists() || !file.isDirectory())
+    file.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, 0777);
+  return file;
+}
+
+/**
+ * Returns a URI specifying the location of a photo based on its name.
+ * If the name is blank, or if the photo with that name is not in the Photos
+ * directory then the default photo URI is returned.
+ *
+ * @param aPhotoName The name of the photo from the Photos folder, if any.
+ *
+ * @return A URI pointing to a photo.
+ */
+function getPhotoURI(aPhotoName) {
+  if (!aPhotoName)
+    return defaultPhotoURI;
+  var file = getPhotosDir();
+  try {
+    file.append(aPhotoName);
+  }
+  catch (e) {
+    return defaultPhotoURI;
+  }
+  if (!file.exists())
+    return defaultPhotoURI;
+  return Components.classes["@mozilla.org/network/io-service;1"]
+                   .getService(Components.interfaces.nsIIOService)
+                   .newFileURI(file).spec;
+}
+
+/**
+ * Saves the given input stream to a file.
+ *
+ * @param aIStream The input stream to save.
+ * @param aFile    The file to which the stream is saved.
+ */
+function saveStreamToFile(aIStream, aFile) {
+  if (!(aIStream instanceof Components.interfaces.nsIInputStream))
+    throw "Invalid stream passed to saveStreamToFile";
+  if (!(aFile instanceof Components.interfaces.nsIFile))
+    throw "Invalid file passed to saveStreamToFile";
+  // Write the input stream to the file
+  var fstream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"]
+                          .createInstance(Components.interfaces.nsIFileOutputStream);
+  var buffer  = Components.classes["@mozilla.org/network/buffered-output-stream;1"]
+                          .createInstance(Components.interfaces.nsIBufferedOutputStream);
+  fstream.init(aFile, 0x04 | 0x08 | 0x20, 0600, 0); // write, create, truncate
+  buffer.init(fstream, 8192);
+
+  buffer.writeFrom(aIStream, aIStream.available());
+
+  // Close the output streams
+  if (buffer instanceof Components.interfaces.nsISafeOutputStream)
+      buffer.finish();
+  else
+      buffer.close();
+  if (fstream instanceof Components.interfaces.nsISafeOutputStream)
+      fstream.finish();
+  else
+      fstream.close();
+  // Close the input stream
+  aIStream.close();
+  return aFile;
+}
+
+/**
+ * Copies the photo at the given URI in a folder named "Photos" in the current
+ * profile folder.
+ * The filename is randomly generated and is unique.
+ * The URI is used to obtain a channel which is then opened synchronously and
+ * this stream is written to the new file to store an offline, local copy of the
+ * photo.
+ *
+ * @param aUri The URI of the photo.
+ *
+ * @return An nsIFile representation of the photo.
+ */
+function savePhoto(aUri) {
+  if (!aUri)
+    return false;
+
+  // Get the photos directory and check that it exists
+  var file = getPhotosDir();
+
+  // Create a channel from the URI and open it as an input stream
+  var ios = Components.classes["@mozilla.org/network/io-service;1"]
+                      .getService(Components.interfaces.nsIIOService);
+  var channel = ios.newChannelFromURI(ios.newURI(aUri, null, null));
+  var istream = channel.open();
+
+  // Get the photo file
+  file.append(makePhotoFilename(file.path, findPhotoExt(aUri, channel)));
+
+  return saveStreamToFile(istream, file);
+}
+
+/**
+ * Finds the file extension of the photo identified by the URI, if possible.
+ * This function can be overridden (with a copy of the original) for URIs that
+ * do not identify the extension or when the Content-Type response header is
+ * either not set or isn't 'image/png', 'image/jpeg', or 'image/gif'.
+ * The original function can be called if the URI does not match.
+ *
+ * @param aUri The URI of the photo.
+ * @param aChannel The opened channel for the URI.
+ *
+ * @return The extension of the file, if any, including the period.
+ */
+function findPhotoExt(aUri, aChannel) {
+  if (aChannel) {
+    try {
+      aChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
+      var header = aChannel.getResponseHeader("Content-Type");
+      var type   = header ? header.split(";")[0] : "";
+      switch (type.toLowerCase()) {
+        case "image/png":
+          return ".png";
+        case "image/jpeg":
+          return ".jpg";
+        case "image/gif":
+          return ".gif";
+      }
+    } catch (e) {}
+  }
+
+  var index = aUri ? aUri.lastIndexOf(".") : -1;
+  if (index == -1)
+    return "";
+   return aUri.substring(index);
+}
+
+/**
+ * Generates a unique filename to be used for a local copy of a contact's photo.
+ *
+ * @param aPath      The path to the folder in which the photo will be saved.
+ * @param aExtension The file extension of the photo.
+ *
+ * @return A unique filename in the given path.
+ */
+function makePhotoFilename(aPath, aExtension) {
+  var filename, newFile;
+  // Find a random filename for the photo that doesn't exist yet
+  do {
+    filename = new String(Math.random()).replace("0.", "") + aExtension;
+    newFile = Components.classes["@mozilla.org/file/local;1"]
+                        .createInstance(Components.interfaces.nsILocalFile);
+    newFile.initWithPath(aPath);
+    newFile.append(filename);
+  } while (newFile.exists());
+  return filename;
 }

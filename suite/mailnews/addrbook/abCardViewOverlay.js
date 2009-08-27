@@ -166,6 +166,8 @@ function OnLoadCardView()
   cvData.cvWorkMapIt = doc.getElementById("cvWorkMapIt");
 	cvData.cvWorkWebPageBox = doc.getElementById("cvWorkWebPageBox");
 	cvData.cvWorkWebPage	= doc.getElementById("cvWorkWebPage");
+  cvData.cvbPhoto = doc.getElementById("cvbPhoto");
+  cvData.cvPhoto  = doc.getElementById("cvPhoto");
 }
 	
 // XXX todo
@@ -208,6 +210,10 @@ function DisplayCardViewPane(realCard)
                isMailList : realCard.isMailList,
                mailListURI : realCard.mailListURI
   };
+
+  // Contact photo
+  cvData.cvPhoto.setAttribute("src", getPhotoURI(card.getProperty("PhotoName")));
+
   var titleString;
   if (generatedName == "")
     titleString = card.primaryEmail;  // if no generatedName, use email

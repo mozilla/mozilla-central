@@ -42,7 +42,8 @@
 <!DOCTYPE overlay SYSTEM "chrome://messenger/locale/addressbook/abCardOverlay.dtd">
 
 <overlay id="editcardOverlay"
-     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+     xmlns:html="http://www.w3.org/1999/xhtml">
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
@@ -59,6 +60,7 @@
       <tab id="homeTabButton" label="&Home.tab;" accesskey="&Home.accesskey;"/>
       <tab id="workTabButton" label="&Work.tab;" accesskey="&Work.accesskey;"/>
       <tab id="otherTabButton" label="&Other.tab;" accesskey="&Other.accesskey;"/>
+      <tab id="photoTabButton" label="&Photo.tab;" accesskey="&Photo.accesskey;"/>
     </tabs>
 
     <tabpanels id="abTabPanels" flex="1">
@@ -388,6 +390,68 @@
         <label control="Notes" value="&Notes.label;"
                accesskey="&Notes.accesskey;"/>
         <textbox id="Notes" multiline="true" wrap="virtual" flex="1"/>
+      </vbox>
+
+      <!-- ** Photo Tab ** -->
+      <vbox id="abPhotoTab" >
+        <hbox flex="1">
+          <vbox align="left">
+            <spacer flex="1"/>
+            <hbox id="photoBox" style="min-width: 25ch; max-width: 25ch;">
+              <spacer flex="1"/>
+              <html:img align="center" src="" id="photo"
+                        style="max-width: 25ch; max-height: 25ch; min-width: 1ch;"/>
+              <spacer flex="1"/>
+            </hbox>
+            <spacer flex="1"/>
+          </vbox>
+          <vbox>
+            <command id="PhotoCmd" oncommand="updatePhoto();"/>
+            <spacer flex="1"/>
+            <groupbox flex="1">
+              <caption label="&PhotoDesc.label;"/>
+              <radiogroup id="PhotoType">
+                <radio id="generic" label="&GenericPhoto.label;"
+                       command="PhotoCmd"
+                       accesskey="&GenericPhoto.accesskey;"
+                       selected="true"/>
+                <hbox class="indent">
+                  <menulist id="GenericPhotoList"
+                            oncommand="updatePhoto('generic');">
+                    <menupopup>
+                      <menuitem label="&DefaultPhoto.label;" selected="true"
+                                value="chrome://messenger/skin/addressbook/icons/contact-generic.png"
+                                image="chrome://messenger/skin/addressbook/icons/contact-generic-tiny.png"/>
+                    </menupopup>
+                  </menulist>
+                </hbox>
+                <radio id="file" label="&PhotoFile.label;"
+                       command="PhotoCmd"
+                       accesskey="&PhotoFile.accesskey;"/>
+                <hbox class="indent">
+                  <filefield id="PhotoFile" maxlength="255" flex="1"
+                             disabled="true"
+                             style="-moz-margin-start:2px;"/>
+                  <button oncommand="browsePhoto();" id="BrowsePhoto"
+                          label="&BrowsePhoto.label;"
+                          accesskey="&BrowsePhoto.accesskey;"/>
+                </hbox>
+                <radio id="web" label="&PhotoURL.label;"
+                       command="PhotoCmd"
+                       accesskey="&PhotoURL.accesskey;"/>
+                <hbox class="indent">
+                  <textbox id="PhotoURI" maxlength="255" style="width: 45ch;"
+                           emptytext="&PhotoURL.emptytext;"
+                           class="AddressCardEditWidth"/>
+                  <button oncommand="updatePhoto('web');" id="UpdatePhoto"
+                          label="&UpdatePhoto.label;"
+                          accesskey="&UpdatePhoto.accesskey;"/>
+                </hbox>
+              </radiogroup>
+            </groupbox>
+            <spacer flex="1"/>
+          </vbox>
+        </hbox>
       </vbox>
     </tabpanels>
   </tabbox>

@@ -353,6 +353,8 @@ modern.jar:
   skin/modern/messenger/addressbook/icons/im-act.gif               (messenger/addressbook/icons/im-act.gif)
   skin/modern/messenger/addressbook/icons/im-hov.gif               (messenger/addressbook/icons/im-hov.gif)
   skin/modern/messenger/addressbook/icons/im-dis.gif               (messenger/addressbook/icons/im-dis.gif)
+  skin/modern/messenger/addressbook/icons/contact-generic.png      (messenger/addressbook/icons/contact-generic.png)
+  skin/modern/messenger/addressbook/icons/contact-generic-tiny.png (messenger/addressbook/icons/contact-generic-tiny.png)
   skin/modern/messenger/icons/acct-compose.gif                     (messenger/icons/acct-compose.gif)
   skin/modern/messenger/icons/acct-filters.gif                     (messenger/icons/acct-filters.gif)
   skin/modern/messenger/icons/acct-newaccount.gif                  (messenger/icons/acct-newaccount.gif)
