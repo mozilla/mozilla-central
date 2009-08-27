@@ -112,6 +112,68 @@ var nsNewsBlogFeedDownloader =
 
   subscribeToFeed: function(aUrl, aFolder, aMsgWindow)
   {
+    if (!gExternalScriptsLoaded)
+      loadScripts();
+
+    // we don't support the ability to subscribe to several feeds at once yet...
+    // for now, abort the subscription if we are already in the middle of subscribing to a feed
+    // via drag and drop.
+    if (gNumPendingFeedDownloads)
+    {
+      debug('Aborting RSS subscription. Feed downloads already in progress\n');
+      return;
+    }
+
+    // if aFolder is null, then use the root folder for the first RSS account
+    if (!aFolder)
+    {
+      var accountManager =
+        Components.classes["@mozilla.org/messenger/account-manager;1"]
+                  .getService(Components.interfaces.nsIMsgAccountManager);
+      var allServers = accountManager.allServers;
+      for (var i = 0; i < allServers.Count() && !aFolder; i++)
+      {
+        var currentServer = allServers.QueryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
+        if (currentServer && currentServer.type == 'rss')
+          aFolder = currentServer.rootFolder;      
+      }
+    }
+
+    // If the user has no RSS account yet, create one; also check then if
+    // the "Local Folders" exist yet and create if necessary
+    if (!aFolder)
+    {
+      var acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                              .getService(Components.interfaces.nsIMsgAccountManager);
+
+      var server = acctMgr.createIncomingServer("nobody", "Feeds", "rss");
+
+      server.biffMinutes = 100;
+      server.prettyName = GetNewsBlogStringBundle().GetStringFromName("feeds-accountname");
+      server.valid = true;
+      var account = acctMgr.createAccount();
+      account.incomingServer = server;
+
+      aFolder = account.incomingServer.rootFolder;
+
+      // Create "Local Folders" if none exist yet as it's guaranteed that those
+      // exist when any account exists
+      var localFolders = null;
+      try  {
+        localFolders = acctMgr.localFoldersServer;
+      } catch (ex) {
+      }
+
+      if (!localFolders)
+        acctMgr.createLocalMailAccount();
+
+      // Save new accounts in case of a crash
+      try {
+        acctMgr.saveAccountInfo();
+      } catch (ex) {
+      }
+    }
+
     if (!aMsgWindow)
     {
       var wmed = Components.classes["@mozilla.org/appshell/window-mediator;1"]
@@ -139,37 +201,6 @@ var nsNewsBlogFeedDownloader =
         return;
       }
     }
-
-    if (!gExternalScriptsLoaded)
-      loadScripts();
-
-    // we don't support the ability to subscribe to several feeds at once yet...
-    // for now, abort the subscription if we are already in the middle of subscribing to a feed
-    // via drag and drop.
-    if (gNumPendingFeedDownloads)
-    {
-      debug('Aborting RSS subscription. Feed downloads already in progress\n');
-      return;
-    }
-
-    // if aFolder is null, then use the root folder for the first RSS account
-    if (!aFolder)
-    {
-      var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                           .getService(Components.interfaces.nsIMsgAccountManager);
-      var allServers = accountManager.allServers;
-      for (var i=0; i< allServers.Count() && !aFolder; i++)
-      {
-        var currentServer = allServers.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgIncomingServer);
-        if (currentServer && currentServer.type == 'rss')
-          aFolder = currentServer.rootFolder;      
-      }
-    }
-
-    // What do we do if the user hasn't created an RSS account yet? 
-    // for now, fall out, would be nice if we could force RSS account creation
-    if (!aFolder)
-      return;
 
     // If aUrl is a feed url, then it is either of the form
     // feed://example.org/feed.xml or feed:https://example.org/feed.xml.

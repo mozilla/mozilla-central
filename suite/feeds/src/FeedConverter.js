@@ -477,7 +477,7 @@ FeedResultService.prototype = {
     case "messenger":
       Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
                 .getService(Components.interfaces.nsINewsBlogFeedDownloader)
-                .subscribeToFeed(spec, null, null);
+                .subscribeToFeed("feed:" + spec, null, null);
       break;
 
     }
