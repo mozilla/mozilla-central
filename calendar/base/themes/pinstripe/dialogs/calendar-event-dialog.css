@@ -1,0 +1,622 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Sun Microsystems code.
+ *
+ * The Initial Developer of the Original Code is Sun Microsystems.
+ * Portions created by the Initial Developer are Copyright (C) 2006
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Michael Buettner <michael.buettner@sun.com>
+ *   Markus Adrario <Mozilla@Adrario.de>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#calendar-event-dialog,
+#calendar-task-dialog {
+    padding: 0px;
+}
+
+#yearly-period-of-label,
+label.label {
+    text-align: right;
+}
+
+#item-calendar,
+#item-categories,
+#item-repeat,
+#item-alarm,
+.datepicker-text-class {
+    min-width: 12em;
+}
+
+/*--------------------------------------------------------------------
+ *   Event dialog toolbar buttons
+ *-------------------------------------------------------------------*/
+
+.cal-toolbarbutton-2 {
+    -moz-box-orient: vertical;
+    min-width: 0px;
+    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png");
+}
+
+toolbar[mode="full"] .cal-toolbarbutton-2 {
+    min-width: 55px;
+}
+
+/*--------------------------------------------------------------------
+ *   Event dialog toolbar buttons - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] .cal-toolbarbutton-2 {
+    -moz-box-orient: vertical;
+    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png");
+}
+
+/*--------------------------------------------------------------------
+ *   invite attendees button
+ *-------------------------------------------------------------------*/
+
+#button-attendees {
+  -moz-image-region: rect(0px 64px 32px 32px);
+}
+#button-attendees[disabled="true"],
+#button-attendees[disabled="true"]:hover,
+#button-attendees[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 64px 96px 32px);
+}
+#button-attendees:hover {
+  -moz-image-region: rect(32px 64px 64px 32px);
+}
+#button-attendees:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   spellcheck button
+ *-------------------------------------------------------------------*/
+
+#button-spellcheck {
+  -moz-image-region: rect(0px 96px 32px 64px);
+}
+#button-spellcheck[disabled="true"],
+#button-spellcheck[disabled="true"]:hover,
+#button-spellcheck[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 96px 96px 64px);
+}
+#button-spellcheck:hover {
+  -moz-image-region: rect(32px 96px 64px 64px);
+}
+#button-spellcheck:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   documents button
+ *-------------------------------------------------------------------*/
+
+#button-url {
+  -moz-image-region: rect(0px 128px 32px 96px);
+}
+#button-url[disabled="true"],
+#button-url[disabled="true"]:hover,
+#button-url[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 128px 96px 96px);
+}
+#button-url:hover {
+  -moz-image-region: rect(32px 128px 64px 96px);
+}
+#button-url:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   privacy button
+ *-------------------------------------------------------------------*/
+
+#button-privacy {
+  -moz-image-region: rect(0px 160px 32px 128px);
+}
+#button-privacy[disabled="true"],
+#button-privacy[disabled="true"]:hover,
+#button-privacy[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 160px 96px 128px);
+}
+#button-privacy:hover {
+  -moz-image-region: rect(32px 160px 64px 128px);
+}
+#button-privacy:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   save button
+ *-------------------------------------------------------------------*/
+
+#button-save {
+  -moz-image-region: rect(0px 192px 32px 160px);
+}
+#button-save[disabled="true"],
+#button-save[disabled="true"]:hover,
+#button-save[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 192px 96px 160px);
+}
+#button-save:hover {
+  -moz-image-region: rect(32px 192px 64px 160px);
+}
+#button-save:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   delete button
+ *-------------------------------------------------------------------*/
+
+#button-delete {
+    -moz-image-region: rect(0px 544px 32px 512px);
+}
+#button-delete[disabled="true"],
+#button-delete[disabled="true"]:hover,
+#button-delete[disabled="true"]:hover:active {
+    -moz-image-region: rect(64px 544px 96px 512px);
+}
+#button-delete:hover {
+    -moz-image-region: rect(32px 544px 64px 512px);
+}
+#button-delete:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   print button
+ *-------------------------------------------------------------------*/
+
+#button-print {
+  -moz-image-region: rect(0px 608px 32px 576px);
+}
+#button-print[disabled="true"],
+#button-print[disabled="true"]:hover,
+#button-print[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 608px 96px 576px);
+}
+#button-print:hover {
+  -moz-image-region: rect(32px 608px 64px 576px);
+}
+#button-print:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   help button
+ *-------------------------------------------------------------------*/
+
+#button-question {
+  -moz-image-region: rect(0px 768px 32px 736px);
+}
+#button-question[disabled="true"],
+#button-question[disabled="true"]:hover,
+#button-question[disabled="true"]:hover:active {
+  -moz-image-region: rect(64px 768px 96px 736px);
+}
+#button-question:hover {
+  -moz-image-region: rect(32px 768px 64px 736px);
+}
+#button-question:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Event dialog statusbar images
+ *-------------------------------------------------------------------*/
+
+.cal-statusbar-1 {
+    -moz-box-orient: vertical;
+    min-width: 0px;
+    list-style-image: url("chrome://calendar/skin/calendar-event-dialog.png");
+}
+
+/*--------------------------------------------------------------------
+ *   privacy "public" image
+ *-------------------------------------------------------------------*/
+
+#button-privacy-public {
+  -moz-image-region: rect(0px 28px 16px 0px);
+}
+#button-privacy-public:hover:active {
+  -moz-image-region: rect(0px 28px 16px 0px);
+}
+#button-privacy-public[disabled="true"] {
+  -moz-image-region: rect(0px 28px 16px 0px);
+}
+
+/*--------------------------------------------------------------------
+ *   privacy "private" image
+ *-------------------------------------------------------------------*/
+
+#button-privacy-private {
+  -moz-image-region: rect(0px 56px 16px 28px);
+}
+#button-privacy-private:hover:active {
+}
+#button-privacy-private[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   privacy "confidential" image
+ *-------------------------------------------------------------------*/
+
+#button-privacy-confidential {
+  -moz-image-region: rect(0px 84px 16px 56px);
+}
+#button-privacy-confidential:hover:active {
+}
+#button-privacy-confidential[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   importance "low" image
+ *-------------------------------------------------------------------*/
+
+#button-importance-low {
+  -moz-image-region: rect(0px 100px 16px 84px);
+}
+#button-importance-low:hover:active {
+}
+#button-importance-low[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   importance "medium" image
+ *-------------------------------------------------------------------*/
+
+#button-importance-medium {
+  -moz-image-region: rect(0px 116px 16px 100px);
+}
+#button-importance-medium:hover:active {
+}
+#button-importance-medium[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   importance "high" image
+ *-------------------------------------------------------------------*/
+
+#button-importance-high {
+  -moz-image-region: rect(0px 132px 16px 116px);
+}
+#button-importance-high:hover:active {
+}
+#button-importance-high[disabled="true"] {
+}
+
+/*--------------------------------------------------------------------
+ *   Recurrence dialog preview border
+ *-------------------------------------------------------------------*/
+#preview-border {
+    border: none;
+    padding: 0px;
+}
+
+#calendar-summary-dialog {
+    min-width: 35em;
+}
+
+listbox[disabled="true"] {
+    color: -moz-FieldText;
+}
+
+daypicker-weekday {
+    margin-top: 2px;
+}
+
+daypicker-monthday {
+    margin-top: 2px;
+}
+
+.headline {
+    font-weight: bold;
+}
+
+.headline[align=end],
+.headline[align=right]{
+    text-align: right;
+}
+
+.default-spacer {
+    width: 1em;
+    height: 1em;
+}
+
+.default-indent {
+    -moz-margin-start: 1.5em;
+}
+
+/*--------------------------------------------------------------------
+ *   Attendees Dialog
+ *-------------------------------------------------------------------*/
+
+.listbox-noborder {
+    margin: 0px 0px;
+    border-style: none;
+}
+
+.selection-bar {
+    background-color: #008080;
+    opacity: 0.2;
+    -moz-border-radius-topleft: 10px;
+    -moz-border-radius-topright: 10px;
+}
+
+.freebusy-container {
+    overflow: hidden;
+    clip: rect(0px 0px 0px 0px);
+}
+
+.freebusy-content {
+    overflow: hidden;
+    clip: rect(0px 0px 0px 0px);
+}
+
+/* -moz-margin-end 1px is needed to take border-right from the grid elements into account */
+.freebusy-timebar-title {
+    -moz-margin-end: 1px;
+}
+
+.freebusy-timebar-hour {
+    -moz-margin-end: 1px;
+    margin-bottom: 5px;
+}
+
+.freebusy-timebar-hour[scheduled="true"] {
+    /* the 'sechuled'-attribute is used in the timebar to indicate
+     which hours are affected of the currently schedued event.
+     since we added the selection-bar this is no longer necessary
+     but we keep the possibity to decorate those hours if it should
+     become beneficial.
+     text-decoration: underline;
+   */
+}
+
+.freebusy-grid {
+    border-right: 1px solid #BDBEC0;
+    background-color: #E09EBD;
+    color: #E09EBD;
+}
+
+.freebusy-grid[state="busy"] {
+    background-color: #153E7E;
+    color: #153E7E;
+}
+
+.freebusy-grid[state="busy_tentative"] {
+    background-color: #1589FF;
+    color: #1589FF;
+}
+
+.freebusy-grid[state="busy_unavailable"] {
+    background-color: #4E387E;
+    color: #4E387E;
+}
+
+.freebusy-grid[state="free"] {
+    background-color: #EBEBE4;
+    color: #EBEBE4;
+}
+
+#dialog-box {
+    padding-top: 8px;
+    padding-bottom: 10px;
+    -moz-padding-start: 8px;
+    -moz-padding-end: 10px;
+}
+
+#addressingWidget {
+    -moz-user-focus: none;
+}
+
+#typecol-addressingWidget {
+    min-width: 9em;
+    border-right: 1px solid #CACAFF;
+}
+
+/* This applies to rows of the attendee-list and the freebusy-grid */
+.addressingWidgetItem,
+.dummy-row {
+    border: none !important;
+    background-color: inherit !important;
+    color: inherit !important;
+
+    /* we set the minimal height to the height of the
+     largest icon [the person-icon in this case] to
+     ensure that the rows of the freebusy-grid and
+     the attendee-list always have the same height,
+     regardless of the font size. */
+    min-height: 16px;
+}
+
+.addressingWidgetCell {
+    border-bottom: 1px solid #CACAFF;
+    padding: 0px;
+}
+
+.addressingWidgetCell:first-child {
+    border-top: none;
+}
+
+.dummy-row-cell:first-child {
+    border-top: none;
+    border-bottom: 1px solid #CACAFF;
+}
+
+.person-icon {
+    margin: 0 3px;
+    list-style-image: url(chrome://calendar/skin/abcard.png);
+}
+
+.status-icon {
+    margin: 0 3px;
+    list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);
+}
+
+.status-icon[status="ACCEPTED"] {
+    -moz-image-region: rect(0px 12px 14px 0px);
+}
+.status-icon[status="ACCEPTED"][disabled="true"] {
+    -moz-image-region: rect(14px 12px 28px 0px);
+}
+
+.status-icon[status="DECLINED"] {
+    -moz-image-region: rect(0px 24px 14px 12px);
+}
+.status-icon[status="DECLINED"][disabled="true"] {
+    -moz-image-region: rect(14px 24px 28px 12px);
+}
+
+.status-icon[status="NEEDS-ACTION"] {
+    -moz-image-region: rect(0px 36px 14px 24px);
+}
+.status-icon[status="NEEDS-ACTION"][disabled="true"] {
+    -moz-image-region: rect(14px 36px 28px 24px);
+}
+
+.status-icon[status="TENTATIVE"] {
+    -moz-image-region: rect(0px 48px 14px 36px);
+}
+.status-icon[status="TENTATIVE"][disabled="true"] {
+    -moz-image-region: rect(14px 48px 28px 36px);
+}
+
+.role-icon {
+    margin: 0 3px;
+    list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);
+}
+
+.role-icon[role="REQ-PARTICIPANT"] {
+    -moz-image-region: rect(0px 159px 16px 138px);
+}
+.role-icon[role="REQ-PARTICIPANT"][disabled="true"] {
+    -moz-image-region: rect(0px 159px 16px 138px);
+}
+
+.role-icon[role="OPT-PARTICIPANT"] {
+    -moz-image-region: rect(0px 180px 16px 159px);
+}
+.role-icon[role="OPT-PARTICIPANT"][disabled="true"] {
+    -moz-image-region: rect(0px 180px 16px 159px);
+}
+
+.role-icon[role="CHAIR"] {
+    -moz-image-region: rect(0px 201px 16px 180px);
+}
+.role-icon[role="CHAIR"][disabled="true"] {
+    -moz-image-region: rect(0px 201px 16px 180px);
+}
+
+.zoom-in-icon {
+    margin: 3px 3px;
+    list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);
+    -moz-image-region: rect(0px 97px 14px 84px);
+}
+
+.zoom-out-icon {
+    margin: 3px 3px;
+    list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);
+    -moz-image-region: rect(0px 110px 14px 97px);
+}
+
+.left-icon {
+    margin: 3px 3px;
+    list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);
+    -moz-image-region: rect(0px 124px 14px 110px);
+}
+.left-icon[disabled="true"] {
+    -moz-image-region: rect(14px 124px 28px 110px);
+}
+
+.right-icon {
+    margin: 3px 3px;
+    list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);
+    -moz-image-region: rect(0px 138px 14px 124px);
+}
+.right-icon[disabled="true"] {
+    -moz-image-region: rect(14px 138px 28px 124px);
+}
+
+.legend {
+    width: 3em;
+    height: 1em;
+    border-top: 1px solid #A1A1A1;
+    border-right: 1px solid #C3C3C3;
+    border-bottom: 1px solid #DDDDDD;
+    border-left: 1px solid #C3C3C3;
+}
+
+.legend[status="FREE"] {
+    background-color: #EBEBE4;
+    color: #EBEBE4;
+}
+
+.legend[status="BUSY"] {
+    background-color: #153E7E;
+    color: #153E7E;
+}
+
+.legend[status="BUSY_TENTATIVE"] {
+    background-color: #1589FF;
+    color: #1589FF;
+}
+
+.legend[status="BUSY_UNAVAILABLE"] {
+    background-color: #4E387E;
+    color: #4E387E;
+}
+
+.legend[status="UNKNOWN"] {
+    background-color: #E09EBD;
+    color: #E09EBD;
+}
+
+#content-frame {
+    border-left: 1px solid ThreeDDarkShadow;
+    border-right: 1px solid ThreeDLightShadow;
+    min-width: 10px;
+    min-height: 10px;
+    height: 400px;
+}
+
+.attendees-list-listbox > listboxbody { 
+    overflow-y: hidden !important;
+}
+
+.selection-bar-left {
+    width: 3px;
+    cursor: w-resize;
+}
+
+.selection-bar-right {
+    width: 3px;
+    cursor: e-resize;
+}
+
+.selection-bar-spacer {
+    cursor: -moz-grab;
+}
+
+.checkbox-no-label > .checkbox-label-box {
+    display: none;
+}

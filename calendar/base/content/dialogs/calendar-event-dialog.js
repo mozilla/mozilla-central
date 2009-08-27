@@ -956,7 +956,7 @@ function updateTitle() {
  *      }
  */
 function updateStyle() {
-    const kDialogStylesheet = "chrome://calendar/content/calendar-event-dialog.css";
+    const kDialogStylesheet = "chrome://calendar/skin/calendar-event-dialog.css";
 
     for each (var stylesheet in document.styleSheets) {
         if (stylesheet.href == kDialogStylesheet) {
