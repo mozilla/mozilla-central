@@ -155,10 +155,10 @@ testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
 xpcshell-tests:
 	$(PYTHON) -u $(topsrcdir)/mozilla/config/pythonpath.py \
 	  -I$(topsrcdir)/mozilla/build \
-          $(testxpcsrcdir)/runxpcshelltests.py \
+	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
-          $(DIST)/bin/xpcshell \
-          $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
+	  $(DIST)/bin/xpcshell \
+	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
 
 # Execute a single test, specified in $(SOLO_FILE), but don't automatically
 # start the test. Instead, present the xpcshell prompt so the user can
@@ -166,22 +166,22 @@ xpcshell-tests:
 check-interactive:
 	$(PYTHON) -u $(topsrcdir)/mozilla/config/pythonpath.py \
 	  -I$(topsrcdir)/mozilla/build \
-          $(testxpcsrcdir)/runxpcshelltests.py \
+	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
-          --test=$(SOLO_FILE) \
-          --interactive \
-          $(DIST)/bin/xpcshell \
-          $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
+	  --test-path=$(SOLO_FILE) \
+	  --interactive \
+	  $(DIST)/bin/xpcshell \
+	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
 
 # Execute a single test, specified in $(SOLO_FILE)
 check-one:
 	$(PYTHON) -u $(topsrcdir)/mozilla/config/pythonpath.py \
 	  -I$(topsrcdir)/mozilla/build \
-          $(testxpcsrcdir)/runxpcshelltests.py \
+	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
-          --test=$(SOLO_FILE) \
-          $(DIST)/bin/xpcshell \
-          $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
+	  --test-path=$(SOLO_FILE) \
+	  $(DIST)/bin/xpcshell \
+	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(MODULE)/$(dir))
 
 endif # XPCSHELL_TESTS
 
@@ -290,6 +290,7 @@ endif
 ifeq (,$(filter-out WINNT WINCE,$(OS_ARCH)))
 ifndef GNU_CC
 
+#
 # Unless we're building SIMPLE_PROGRAMS, all C++ files share a PDB file per
 # directory. For parallel builds, this PDB file is shared and locked by
 # MSPDBSRV.EXE, starting with MSVC8 SP1. If you're using MSVC 7.1 or MSVC8
