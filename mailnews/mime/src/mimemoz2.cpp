@@ -1916,7 +1916,7 @@ mimeEmitterEndHeader(MimeDisplayOptions *opt)
     nsIMimeEmitter *emitter = (nsIMimeEmitter *)msd->output_emitter;
 
     nsCString name;
-    nsMsgAttachmentData *attachments = NULL;
+    nsMsgAttachmentData *attachments = nsnull;
     if (msd->format_out == nsMimeOutput::nsMimeMessageSplitDisplay ||
         msd->format_out == nsMimeOutput::nsMimeMessageHeaderDisplay ||
         msd->format_out == nsMimeOutput::nsMimeMessageBodyDisplay) {

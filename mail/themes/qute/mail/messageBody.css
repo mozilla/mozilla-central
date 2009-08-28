@@ -166,10 +166,8 @@ body[selected="false"] {
 }
 
 .mimeAttachmentHeader {
-  width: 98%;
-  border-color: GrayText;
   border-style: none;
-  border-top-style: solid;
+  border-top: 1px solid GrayText;
 }
 
 .mimeAttachmentName {
