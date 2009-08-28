@@ -129,6 +129,7 @@ EXPORTS		= \
 
 EXTRA_JS_MODULES = \
 		folderUtils.jsm \
+		errUtils.js \
 		iteratorUtils.jsm \
 		jsTreeSelection.js \
 		traceHelper.js \
