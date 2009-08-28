@@ -784,6 +784,8 @@ var GlodaDatastore = {
       // (Exceptions may be thrown if the database is corrupt)
       { // try {
         dbConnection = dbService.openUnsharedDatabase(dbFile);
+        // see _createDB...
+        dbConnection.executeSimpleSQL("PRAGMA cache_size = 8192");
 
         if (dbConnection.schemaVersion != this._schemaVersion) {
           this._log.debug("Need to migrate database.  (DB version: " +
@@ -895,6 +897,17 @@ var GlodaDatastore = {
    */
   _createDB: function gloda_ds_createDB(aDBService, aDBFile) {
     var dbConnection = aDBService.openUnsharedDatabase(aDBFile);
+    // Explicitly choose a page size of 1024 which is the default.  According
+    //  to bug 401985 this is actually the optimal page size for Linux and OS X
+    //  (while there are alleged performance improvements with 4k pages on
+    //  windows).  Increasing the page size to 4096 increases the actual byte
+    //  turnover significantly for rollback journals than a page size of 1024,
+    //  and since the rollback journal has to be fsynced, that is undesirable.
+    dbConnection.executeSimpleSQL("PRAGMA page_size = 1024");
+    // This is a maximum number of pages to be used.  If the database does not
+    //  get this large, then the memory does not get used.
+    // Do not forget to update the code in _init if you change this value.
+    dbConnection.executeSimpleSQL("PRAGMA cache_size = 8192");
 
     dbConnection.beginTransaction();
     try {

@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ['GlodaUtils'];
@@ -53,24 +53,24 @@ var GlodaUtils = {
       this._mimeConverter = Cc["@mozilla.org/messenger/mimeconverter;1"].
                             getService(Ci.nsIMimeConverter);
     }
-    
+
     return this._mimeConverter.decodeMimeHeader(aString, null, false, true);
   },
-  
+
   _headerParser: null,
-  
+
   /**
    * Parses an RFC 2822 list of e-mail addresses and returns an object with
    *  4 attributes, as described below.  We will use the example of the user
    *  passing an argument of '"Bob Smith" <bob@company.com>'.
-   *  
+   *
    * count: the number of addresses parsed. (ex: 1)
    * addresses: a list of e-mail addresses (ex: ["bob@company.com"])
    * names: a list of names (ex: ["Bob Smith"])
    * fullAddresses: aka the list of name and e-mail together (ex: ['"Bob Smith"
    *  <bob@company.com>']).
    *
-   * This method is a convenience wrapper around nsIMsgHeaderParser. 
+   * This method is a convenience wrapper around nsIMsgHeaderParser.
    */
   parseMailAddresses: function gloda_utils_parseMailAddresses(aMailAddresses) {
     if (this._headerParser == null) {
@@ -82,9 +82,9 @@ var GlodaUtils = {
                                              names, fullAddresses);
     return {names: names.value, addresses: addresses.value,
             fullAddresses: fullAddresses.value,
-            count: names.value.length}; 
+            count: names.value.length};
   },
-  
+
   /**
    * MD5 hash a string and return the hex-string result. Impl from nsICryptoHash
    *  docs.
@@ -101,7 +101,7 @@ var GlodaUtils = {
     hasher.init(Ci.nsICryptoHash.MD5);
     hasher.update(data, data.length);
     let hash = hasher.finish(false);
-    
+
      // return the two-digit hexadecimal code for a byte
     function toHexString(charCode) {
       return ("0" + charCode.toString(16)).slice(-2);
@@ -110,7 +110,7 @@ var GlodaUtils = {
     // convert the binary hash data to a hex string.
     return [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
   },
-  
+
   getCardForEmail: function gloda_utils_getCardForEmail(aAddress) {
     // search through all of our local address books looking for a match.
     let enumerator = Components.classes["@mozilla.org/abmanager;1"]
@@ -131,13 +131,13 @@ var GlodaUtils = {
 
     return null;
   },
-  
+
   /* from mailTestUtils.js, but whittled for our purposes... */
   loadFileToString: function(aFile) {
     let fstream = Cc["@mozilla.org/network/file-input-stream;1"]
                     .createInstance(Ci.nsIFileInputStream);
     fstream.init(aFile, -1, 0, 0);
-    
+
     let sstream = Cc["@mozilla.org/scriptableinputstream;1"]
                     .createInstance(Ci.nsIScriptableInputStream);
     sstream.init(fstream);
@@ -154,14 +154,14 @@ var GlodaUtils = {
 
     return data;
   },
-  
+
   /**
    * Force a garbage-collection sweep.  Gloda has to force garbage collection
    *  periodically because XPConnect's XPCJSRuntime::DeferredRelease mechanism
    *  can end up holding onto a ridiculously high number of XPConnect objects in
    *  between normal garbage collections.  This has mainly posed a problem
-   *  because nsAutolock is a jerk in DEBUG builds, but in theory this also
-   *  helps us even out our memory usage.
+   *  because nsAutolock is a jerk in DEBUG builds in 1.9.1, but in theory this
+   *  also helps us even out our memory usage.
    * We also are starting to do this more to try and keep the garbage collection
    *  durations acceptable.  We intentionally avoid triggering the cycle
    *  collector in those cases, as we do presume a non-trivial fixed cost for
@@ -169,7 +169,7 @@ var GlodaUtils = {
    * This method exists mainly to centralize our GC activities and because if
    *  we do start involving the cycle collector, that is a non-trivial block of
    *  code to copy-and-paste all over the place (at least in a module).
-   * 
+   *
    * @param aCycleCollecting Do we need the cycle collector to run?  Currently
    *     unused / unimplemented, but we would use
    *     nsIDOMWindowUtils.garbageCollect() to do so.
@@ -177,26 +177,5 @@ var GlodaUtils = {
   forceGarbageCollection:
     function gloda_utils_garbageCollection(aCycleCollecting) {
     Cu.forceGC();
-  },
-  
-  _forceGCCounter: 0,
-  /**
-   * The question of when we should actually force the garbage collection is
-   *  tricky.  Right now, our only caller is from the indexer, and the indexer
-   *  issues its calls based on token consumption, which is already a fairly
-   *  nebulous sort of thing.  On the upside, tokens do correlate with
-   *  XPConnect activity fairly well, although just how much does vary a bit.
-   */
-  FORCE_GC_THRESHOLD: 64,
-  /**
-   * Along the lines of forceGarbageCollection, allow code to hint that it is
-   *  doing a fair bit of garbage generation as it relates to XPConnect and that
-   *  we should note it and consider garbage collecting.
-   */
-  maybeGarbageCollect: function gloda_utils_maybeGarbageCollect() {
-    if (++this._forceGCCounter >= this.FORCE_GC_THRESHOLD) {
-      GlodaUtils.forceGarbageCollection(false);
-      this._forceGCCounter = 0;
-    }
   }
 };

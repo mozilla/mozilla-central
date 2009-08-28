@@ -247,9 +247,26 @@ function imsInit() {
     // Make the indexer be more verbose about indexing for us...
     GlodaIndexer._unitTestSuperVerbose = true;
     // The indexer doesn't need to worry about load; zero his rescheduling time.
-    GlodaIndexer._indexInterval = 0;
-    // And it doesn't need to adjust its performance, either.
-    GlodaIndexer._PERF_SAMPLE_RATE_MS = 24 * 60 * 60 * 1000;
+    GlodaIndexer._INDEX_INTERVAL = 0;
+
+    let realIdleService = GlodaIndexer._idleService;
+    // pretend we are always idle
+    GlodaIndexer._idleService = {
+      idleTime: 1000,
+      addIdleObserver: function() {
+        realIdleService.addIdleObserver.apply(realIdleService, arguments);
+      },
+      removeIdleObserver: function() {
+        realIdleService.removeIdleObserver.apply(realIdleService, arguments);
+      }
+    };
+
+    // Lobotomize the adaptive indexer
+    GlodaIndexer._cpuTargetIndexTime = 10000;
+    GlodaIndexer._CPU_TARGET_INDEX_TIME_ACTIVE = 10000;
+    GlodaIndexer._CPU_TARGET_INDEX_TIME_IDLE = 10000;
+    GlodaIndexer._CPU_IS_BUSY_TIME = 10000;
+    GlodaIndexer._PAUSE_LATE_IS_BUSY_TIME = 10000;
 
     if (ims.injectMechanism == INJECT_FAKE_SERVER) {
       // set up POP3 fakeserver to feed things in...
@@ -1030,7 +1047,7 @@ function next_test() {
   }
   catch (ex) {
     dumpExc(ex);
-    do_throw("Caught an exception during execution of next_test: " + ex);
+    do_throw("Caught an exception during execution of next_test: " + ex + ": " + ex.stack);
   }
   _next_test_currently_in_test = false;
 }

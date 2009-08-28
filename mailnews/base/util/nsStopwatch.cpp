@@ -3,6 +3,7 @@
 #ifdef XP_UNIX
 #include <unistd.h>
 #include <sys/times.h>
+#include <sys/time.h>
 #include <errno.h>
 #endif
 #ifdef XP_WIN
@@ -35,6 +36,7 @@ NS_IMPL_ISUPPORTS1_CI(nsStopwatch, nsIStopwatch)
 #ifdef XP_UNIX
 /** the number of ticks per second */
 static double gTicks = 0;
+#define MICRO_SECONDS_TO_SECONDS_MULT 1.0e-6;
 #elif defined(WIN32)
 // a tick every 100ns, 10 per us, 10 * 1000 per ms, 10 * 1000 * 1000 per sec.
 #define TICKS_PER_SECOND 10000000.0
@@ -51,6 +53,9 @@ nsStopwatch::nsStopwatch()
   // idempotent in the event of a race under all coherency models
   if (!gTicks)
   {
+    // we need to clear errno because sysconf's spec says it leaves it the same
+    //  on success and only sets it on failure.
+    errno = 0;
     gTicks = (clock_t)sysconf(_SC_CLK_TCK);
     // in event of failure, pick an arbitrary value so we don't divide by zero.
     if (errno)
@@ -111,8 +116,9 @@ NS_IMETHODIMP nsStopwatch::GetRealTimeSeconds(double *result)
 double nsStopwatch::GetRealTime()
 {
 #if defined(XP_UNIX)
-  struct tms cpt;
-  return (double)times(&cpt) / gTicks;
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  return t.tv_sec + t.tv_usec * MICRO_SECONDS_TO_SECONDS_MULT;
 #elif defined(WIN32)
   union     {FILETIME ftFileTime;
              __int64  ftInt64;
