@@ -3058,13 +3058,23 @@ var GlodaDatastore = {
 
     // Iterate over the attributes on the item
     for each (let [attribId, jsonValue] in Iterator(jsonDict)) {
+      // It is technically impossible for attribute ids to go away at this
+      //  point in time.  This would require someone to monkey around with
+      //  our schema.  But we will introduce this functionality one day, so
+      //  prepare for it now.
+      if (!(attribId in attribIDToDBDefAndParam))
+        continue;
       // find the attribute definition that corresponds to this key
       let dbAttrib = attribIDToDBDefAndParam[attribId][0];
-      // the attribute should only fail to exist if an extension was removed
-      if (dbAttrib === undefined)
-        continue;
 
       let attrib = dbAttrib.attrDef;
+      // The attribute definition will fail to exist if no one defines the
+      //  attribute anymore.  This can happen for many reasons: an extension
+      //  was uninstalled, an extension was changed and no longer defines the
+      //  attribute, or patches are being applied/unapplied.  Ignore this
+      //  attribute if missing.
+      if (attrib == null)
+        continue;
       let objectNounDef = attrib.objectNounDef;
 
       // If it has a tableName member but no fromJSON, then it's a persistent
