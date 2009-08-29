@@ -41,21 +41,28 @@
 
 interface nsIMsgMailNewsUrl;
 
-[scriptable, uuid(F9D64900-F83B-4265-A774-C1E7006C7EC4)]
+[scriptable, uuid(33694e58-458b-4bbd-afbf-96d06f90676b)]
 
 interface nsIImapMessageSink : nsISupports {
   // set up messge download output stream
   void setupMsgWriteStream(in nsIFile aFile, in boolean aAppendDummyEnvelope);
 
-  void parseAdoptedMsgLine(in string aAdoptedMsgLine, in nsMsgKey aUidOfMsg);
-    
-  void normalEndMsgWriteStream(in nsMsgKey aUidOfMessage, in boolean aMarkMsgRead, in nsIImapUrl aImapUrl);
-    
-  void abortMsgWriteStream();
+  /**
+   * Used by the imap protocol code to notify the core backend code about
+   * downloaded imap messages.
+   *
+   * @param aAdoptedMsgLine  a string with a lot of message lines,
+   *                         separated by native line terminators.
+   * @param aUidOfMsg        IMAP UID of the fetched message.
+   * @param aImapUrl         IMAP Url used to fetch the message.
+   */
+  void parseAdoptedMsgLine(in string aAdoptedMsgLine, in nsMsgKey aUidOfMsg,
+                           in nsIImapUrl aImapUrl);
 
-  attribute boolean notifyDownloadedLines;  // imap protocol doesn't notify message sink of downloaded
-                                  // lines when it has a channelListener. This forces it to,
-                                  // even if there is a channel listener.
+  void normalEndMsgWriteStream(in nsMsgKey aUidOfMessage,
+                               in boolean aMarkMsgRead, in nsIImapUrl aImapUrl);
+
+  void abortMsgWriteStream();
 
   void beginMessageUpload();
 

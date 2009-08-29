@@ -1580,6 +1580,7 @@ nsresult nsMsgDBFolder::WriteStartOfNewLocalMessage()
   result = "From - ";
   result += ct;
   result += MSG_LINEBREAK;
+  m_bytesAddedToLocalMsg = result.Length();
 
   nsCOMPtr <nsISeekableStream> seekable;
   nsInt64 curStorePos;
@@ -1606,14 +1607,14 @@ nsresult nsMsgDBFolder::WriteStartOfNewLocalMessage()
     m_offlineHeader->SetStatusOffset((PRUint32) curStorePos);
   }
 
-  result = "X-Mozilla-Status: 0001";
-  result += MSG_LINEBREAK;
-  m_tempMessageStream->Write(result.get(), result.Length(),
+  NS_NAMED_LITERAL_CSTRING(MozillaStatus, "X-Mozilla-Status: 0001" MSG_LINEBREAK);
+  m_tempMessageStream->Write(MozillaStatus.get(), MozillaStatus.Length(),
                              &writeCount);
-  result =  "X-Mozilla-Status2: 00000000";
-  result += MSG_LINEBREAK;
-  return m_tempMessageStream->Write(result.get(), result.Length(),
-                             &writeCount);
+  m_bytesAddedToLocalMsg += writeCount;
+  NS_NAMED_LITERAL_CSTRING(MozillaStatus2, "X-Mozilla-Status2: 00000000" MSG_LINEBREAK);
+  m_bytesAddedToLocalMsg += MozillaStatus2.Length();
+  return m_tempMessageStream->Write(MozillaStatus2.get(),
+                                    MozillaStatus2.Length(), &writeCount);
 }
 
 nsresult nsMsgDBFolder::StartNewOfflineMessage()
@@ -1639,6 +1640,8 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
   nsCOMPtr <nsISeekableStream> seekable;
   nsInt64 curStorePos;
   PRUint32 messageOffset;
+  PRUint32 messageSize;
+
   nsMsgKey messageKey;
 
   nsresult rv = GetDatabase();
@@ -1656,10 +1659,27 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
     seekable->Tell(&tellPos);
     curStorePos = tellPos;
 
+    // N.B. This only works if we've set the offline flag for the message,
+    // so be careful about moving the call to MarkOffline above.
     m_offlineHeader->GetMessageOffset(&messageOffset);
     curStorePos -= messageOffset;
     m_offlineHeader->SetOfflineMessageSize(curStorePos);
-    m_offlineHeader->SetLineCount(m_numOfflineMsgLines);
+    m_offlineHeader->GetMessageSize(&messageSize);
+    messageSize += m_bytesAddedToLocalMsg;
+    // unix/mac has a one byte line ending, but the imap server returns
+    // crlf terminated lines.
+    if (MSG_LINEBREAK_LEN == 1)
+      messageSize -= m_numOfflineMsgLines;
+
+    // We clear the offline flag on the message if the size
+    // looks wrong.
+    if ((PRUint32) curStorePos  < messageSize)
+    {
+       mDatabase->MarkOffline(messageKey, PR_FALSE, nsnull);
+       NS_ERROR("offline message too small");
+    }
+    else
+      m_offlineHeader->SetLineCount(m_numOfflineMsgLines);
   }
 #ifdef _DEBUG
   nsCOMPtr<nsIInputStream> inputStream;

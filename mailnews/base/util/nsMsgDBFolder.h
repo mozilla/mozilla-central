@@ -188,6 +188,7 @@ protected:
 
   nsCOMPtr <nsIMsgDBHdr> m_offlineHeader;
   PRInt32 m_numOfflineMsgLines;
+  PRInt32 m_bytesAddedToLocalMsg;
   // this is currently used when we do a save as of an imap or news message..
   nsCOMPtr<nsIOutputStream> m_tempMessageStream;
 

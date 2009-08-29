@@ -2378,6 +2378,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
             // we need to set this so we'll get the msg from the memory cache.
             if (m_imapAction == nsIImapUrl::nsImapMsgFetchPeek)
               SetContentModified(IMAP_CONTENT_NOT_MODIFIED);
+
             FetchMessage(messageIdString,
               (m_imapAction == nsIImapUrl::nsImapMsgPreview)
               ? kBodyStart : kEveryThingRFC822Peek);
@@ -2454,9 +2455,9 @@ void nsImapProtocol::ProcessSelectedStateURL()
               m_runningUrl->GetFetchPartsOnDemand(&urlOKToFetchByParts);
 
               if (urlOKToFetchByParts &&
-                allowedToBreakApart &&
-                !GetShouldFetchAllParts() &&
-                GetServerStateParser().ServerHasIMAP4Rev1Capability() /* &&
+                  allowedToBreakApart &&
+                  !GetShouldFetchAllParts() &&
+                  GetServerStateParser().ServerHasIMAP4Rev1Capability() /* &&
                 !mimePartSelectorDetected */)  // if a ?part=, don't do BS.
               {
                 // OK, we're doing bodystructure
@@ -2468,16 +2469,17 @@ void nsImapProtocol::ProcessSelectedStateURL()
                   IMAP_CONTENT_MODIFIED_VIEW_INLINE :
                   IMAP_CONTENT_MODIFIED_VIEW_AS_LINKS ;
 
+                PRBool wasStoringMsgOffline;
+                m_runningUrl->GetStoreResultsOffline(&wasStoringMsgOffline);
+                m_runningUrl->SetStoreOfflineOnFallback(wasStoringMsgOffline);
+                m_runningUrl->SetStoreResultsOffline(PR_FALSE);
                 nsCOMPtr<nsIMsgMailNewsUrl> mailurl = do_QueryInterface(m_runningUrl);
                 if (mailurl)
                 {
                   mailurl->SetAddToMemoryCache(PR_FALSE);
                   // need to proxy this over to the ui thread
                   if (m_imapMessageSink)
-                  {
-                    m_imapMessageSink->SetNotifyDownloadedLines(PR_FALSE);
                     m_imapMessageSink->SetImageCacheSessionForUrl(mailurl);
-                  }
 
                 }
                 SetContentModified(modType);  // This will be looked at by the cache
@@ -3164,9 +3166,8 @@ void nsImapProtocol::FallbackToFetchWholeMsg(const nsCString &messageId, PRUint3
   if (m_imapMessageSink && m_runningUrl)
   {
     PRBool shouldStoreMsgOffline;
-    m_runningUrl->GetShouldStoreMsgOffline(&shouldStoreMsgOffline);
-    if (shouldStoreMsgOffline)
-      m_imapMessageSink->SetNotifyDownloadedLines(PR_TRUE);
+    m_runningUrl->GetStoreOfflineOnFallback(&shouldStoreMsgOffline);
+    m_runningUrl->SetStoreResultsOffline(shouldStoreMsgOffline);
   }
   FetchTryChunking(messageId, kEveryThingRFC822, PR_TRUE, NULL, messageSize, PR_TRUE);
 }
@@ -3576,15 +3577,12 @@ nsImapProtocol::PostLineDownLoadEvent(const char *line, PRUint32 uidOfMessage)
           nsCOMPtr<nsIRequest> request = do_QueryInterface(m_mockChannel);
           m_channelListener->OnDataAvailable(request, m_channelContext, m_channelInputStream, 0, count);
         }
-          // here is where we should echo the line to the local folder copy of an online message
       }
-      if (m_imapMessageSink)
-        m_imapMessageSink->GetNotifyDownloadedLines(&echoLineToMessageSink);
+      if (m_runningUrl)
+        m_runningUrl->GetStoreResultsOffline(&echoLineToMessageSink);
     }
     if (m_imapMessageSink && line && echoLineToMessageSink && !GetPseudoInterrupted())
-    {
-      m_imapMessageSink->ParseAdoptedMsgLine(line, uidOfMessage);
-    }
+      m_imapMessageSink->ParseAdoptedMsgLine(line, uidOfMessage, m_runningUrl);
   }
   // ***** We need to handle the pseudo interrupt here *****
 }

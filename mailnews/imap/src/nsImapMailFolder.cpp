@@ -219,7 +219,6 @@ nsImapMailFolder::nsImapMailFolder() :
     m_folderQuotaCommandIssued(PR_FALSE),
     m_folderQuotaDataIsValid(PR_FALSE),
     m_updatingFolder(PR_FALSE),
-    m_downloadMessageForOfflineUse(PR_FALSE),
     m_downloadingFolderForOfflineUse(PR_FALSE),
     m_folderQuotaUsedKB(0),
     m_folderQuotaMaxKB(0),
@@ -4218,15 +4217,20 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
       ThrowAlertMsg("operationFailedFolderBusy", msgWindow);
       return rv;
     }
-    SetNotifyDownloadedLines(PR_TRUE);
     nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    // selecting the folder with m_downloadingFolderForOfflineUse true will cause
-    // us to fetch any message bodies we don't have.
-    rv = imapService->SelectFolder(m_thread, this, listener, msgWindow, nsnull);
+    // Selecting the folder with nsIImapUrl::shouldStoreMsgOffline true will
+    // cause us to fetch any message bodies we don't have.
+    rv = imapService->SelectFolder(m_thread, this, listener, msgWindow,
+                                   getter_AddRefs(runningURI));
     if (NS_SUCCEEDED(rv))
+    {
+      nsCOMPtr<nsIImapUrl> imapUrl(do_QueryInterface(runningURI));
+      if (imapUrl)
+        imapUrl->SetStoreResultsOffline(PR_TRUE);
       m_urlRunning = PR_TRUE;
+    }
   }
   else
     rv = NS_MSG_FOLDER_UNREADABLE;
@@ -4234,51 +4238,32 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
 }
 
 NS_IMETHODIMP
-nsImapMailFolder::GetNotifyDownloadedLines(PRBool *notifyDownloadedLines)
+nsImapMailFolder::ParseAdoptedMsgLine(const char *adoptedMessageLine,
+                                      nsMsgKey uidOfMessage,
+                                      nsIImapUrl *aImapUrl)
 {
-  NS_ENSURE_ARG(notifyDownloadedLines);
-  *notifyDownloadedLines = m_downloadMessageForOfflineUse;
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsImapMailFolder::SetNotifyDownloadedLines(PRBool notifyDownloadedLines)
-{
-  // ignore this if we're downloading the whole folder and someone says
-  // to turn off downloading for offline use, which can happen if a 3rd party
-  // app tries to stream a message while we're downloading for offline use.
-  if (!notifyDownloadedLines && m_downloadingFolderForOfflineUse)
-    return NS_OK;
-  m_downloadMessageForOfflineUse = notifyDownloadedLines;
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsImapMailFolder::ParseAdoptedMsgLine(const char *adoptedMessageLine, nsMsgKey uidOfMessage)
-{
+  NS_ENSURE_ARG_POINTER(aImapUrl);
   PRUint32 count = 0;
   nsresult rv;
   // remember the uid of the message we're downloading.
   m_curMsgUid = uidOfMessage;
-  if (m_downloadMessageForOfflineUse && !m_offlineHeader)
+  if (!m_offlineHeader)
   {
     GetMessageHeader(uidOfMessage, getter_AddRefs(m_offlineHeader));
     rv = StartNewOfflineMessage();
   }
   // adoptedMessageLine is actually a string with a lot of message lines, separated by native line terminators
   // we need to count the number of MSG_LINEBREAK's to determine how much to increment m_numOfflineMsgLines by.
-  if (m_downloadMessageForOfflineUse)
+  const char *nextLine = adoptedMessageLine;
+  do
   {
-    const char *nextLine = adoptedMessageLine;
-    do
-    {
-      m_numOfflineMsgLines++;
-      nextLine = PL_strstr(nextLine, MSG_LINEBREAK);
-      if (nextLine)
-        nextLine += MSG_LINEBREAK_LEN;
-    }
-    while (nextLine && *nextLine);
+    m_numOfflineMsgLines++;
+    nextLine = PL_strstr(nextLine, MSG_LINEBREAK);
+    if (nextLine)
+      nextLine += MSG_LINEBREAK_LEN;
   }
+  while (nextLine && *nextLine);
+
   if (m_tempMessageStream)
   {
     nsCOMPtr <nsISeekableStream> seekable (do_QueryInterface(m_tempMessageStream));
@@ -4772,10 +4757,13 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
   PRBool endedOfflineDownload = PR_FALSE;
   m_urlRunning = PR_FALSE;
   m_updatingFolder = PR_FALSE;
-  if (m_downloadingFolderForOfflineUse)
+  nsCOMPtr <nsIImapUrl> imapUrl = do_QueryInterface(aUrl, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool downloadingForOfflineUse;
+  imapUrl->GetStoreResultsOffline(&downloadingForOfflineUse);
+  if (downloadingForOfflineUse)
   {
     ReleaseSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
-    m_downloadingFolderForOfflineUse = PR_FALSE;
     endedOfflineDownload = PR_TRUE;
     EndOfflineDownload();
   }
@@ -4805,7 +4793,6 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
       if (imapAction == nsIImapUrl::nsImapMsgFetch || imapAction == nsIImapUrl::nsImapMsgDownloadForOffline)
       {
         ReleaseSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
-        SetNotifyDownloadedLines(PR_FALSE);
         if (!endedOfflineDownload)
           EndOfflineDownload();
       }
@@ -5391,10 +5378,8 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
       GetBodysToDownload(&keysToDownload);
       if (!keysToDownload.IsEmpty())
       {
-        SetNotifyDownloadedLines(PR_TRUE);
-
         // this is the case when DownloadAllForOffline is called.
-        if (m_downloadingFolderForOfflineUse)
+        if (m_downloadingFolderForOfflineUse || autoDownloadNewHeaders)
         {
           notifiedBodies = PR_TRUE;
           aProtocol->NotifyBodysToDownload(keysToDownload.Elements(), keysToDownload.Length());

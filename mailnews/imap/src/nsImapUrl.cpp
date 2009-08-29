@@ -81,7 +81,8 @@ nsImapUrl::nsImapUrl()
   m_allowContentChange = PR_TRUE;  // assume we can do MPOD.
   m_fetchPartsOnDemand = PR_FALSE; // but assume we're not doing it :-)
   m_msgLoadingFromCache = PR_FALSE;
-  m_shouldStoreMsgOffline = PR_FALSE;
+  m_storeResultsOffline = PR_FALSE;
+  m_storeOfflineOnFallback = PR_FALSE;
   m_rerunningUrl = PR_FALSE;
   m_externalLinkUrl = PR_TRUE; // we'll start this at true, and set it false in nsImapService::CreateStartOfImapUrl
   m_contentModified = IMAP_CONTENT_NOT_MODIFIED;
@@ -1516,16 +1517,29 @@ NS_IMETHODIMP nsImapUrl::SetCharsetOverRide(const char * aCharacterSet)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::GetShouldStoreMsgOffline(PRBool *aShouldStoreMsgOffline)
+NS_IMETHODIMP nsImapUrl::GetStoreResultsOffline(PRBool *aStoreResultsOffline)
 {
-  NS_ENSURE_ARG_POINTER(aShouldStoreMsgOffline);
-  *aShouldStoreMsgOffline = m_shouldStoreMsgOffline;
+  NS_ENSURE_ARG_POINTER(aStoreResultsOffline);
+  *aStoreResultsOffline = m_storeResultsOffline;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::SetShouldStoreMsgOffline(PRBool aShouldStoreMsgOffline)
+NS_IMETHODIMP nsImapUrl::SetStoreResultsOffline(PRBool aStoreResultsOffline)
 {
-  m_shouldStoreMsgOffline = aShouldStoreMsgOffline;
+  m_storeResultsOffline = aStoreResultsOffline;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapUrl::GetStoreOfflineOnFallback(PRBool *aStoreOfflineOnFallback)
+{
+  NS_ENSURE_ARG_POINTER(aStoreOfflineOnFallback);
+  *aStoreOfflineOnFallback = m_storeOfflineOnFallback;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapUrl::SetStoreOfflineOnFallback(PRBool aStoreOfflineOnFallback)
+{
+  m_storeOfflineOnFallback = aStoreOfflineOnFallback;
   return NS_OK;
 }
 

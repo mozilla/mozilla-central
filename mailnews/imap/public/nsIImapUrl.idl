@@ -60,7 +60,7 @@ interface nsImapContentModifiedTypes
   const long IMAP_CONTENT_FORCE_CONTENT_NOT_MODIFIED = 3;
 } ;
 
-[scriptable, uuid(1d1b0a42-af5e-40fa-a0d4-2455179083ce)]
+[scriptable, uuid(2a85ea47-480b-4ed7-97ec-d96baa3f94ef)]
 interface nsIImapUrl : nsISupports
 {
   ///////////////////////////////////////////////////////////////////////////////
@@ -107,9 +107,20 @@ interface nsIImapUrl : nsISupports
   attribute nsISupports copyState;
   attribute nsIFile msgFile;
   attribute nsIImapMockChannel mockChannel;
-  attribute boolean shouldStoreMsgOffline; // set to true if we should store the msg for offline use if we can,
-                                           // i.e., we're not doing mime parts on demand.
-  attribute boolean rerunningUrl; // server disconnected first time so we're retrying
+  /**
+   * Set to true if we should store the msg(s) for offline use if we can,
+   * e.g., we're fetching a message and the folder is configured for offline
+   * use and we're not doing mime parts on demand.
+   */
+  attribute boolean storeResultsOffline;
+  /**
+   * If we fallback from fetching by parts to fetching the whole message,
+   *  because all the parts were inline, this tells us we should store
+   * the message offline.
+   */
+  attribute boolean storeOfflineOnFallback;
+  /// Server disconnected first time so we're retrying.
+  attribute boolean rerunningUrl;
 
   /**
    * @{

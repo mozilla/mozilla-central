@@ -506,7 +506,6 @@ protected:
   static nsIAtom* mImapHdrDownloadedAtom;
 
   // offline imap support
-  PRBool m_downloadMessageForOfflineUse;
   PRBool m_downloadingFolderForOfflineUse;
   
   // auto-sync (preemptive download) support

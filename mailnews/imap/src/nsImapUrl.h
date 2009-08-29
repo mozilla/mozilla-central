@@ -122,7 +122,9 @@ protected:
   PRPackedBool m_fetchPartsOnDemand; // if PR_TRUE, we should fetch leave parts on server.
   PRPackedBool m_msgLoadingFromCache; // if PR_TRUE, we might need to mark read on server
   PRPackedBool m_externalLinkUrl; // if PR_TRUE, we're running this url because the user
-  PRPackedBool m_shouldStoreMsgOffline;
+  // True if the fetch results should be put in the offline store.
+  PRPackedBool m_storeResultsOffline;
+  PRPackedBool m_storeOfflineOnFallback;
   PRPackedBool m_rerunningUrl; // first attempt running this failed with connection error; retrying
   nsImapContentModifiedType  m_contentModified;
 

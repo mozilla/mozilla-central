@@ -530,7 +530,7 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
 
       if (imapMessageSink)
         imapMessageSink->GetMessageSizeFromDB(msgKey.get(), &messageSize);
-      
+
       msgurl->SetMsgWindow(aMsgWindow);
 
       rv = msgurl->GetServer(getter_AddRefs(aMsgIncomingServer));
@@ -558,28 +558,10 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
         folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
         folder->HasMsgOffline(key, &hasMsgOffline);
       }
-
-      if (!useMimePartsOnDemand || (messageSize < (uint32) gMIMEOnDemandThreshold))
-        //                allowedToBreakApart && 
-        //              !GetShouldFetchAllParts() &&
-        //            GetServerStateParser().ServerHasIMAP4Rev1Capability() &&
-      {
-        imapUrl->SetFetchPartsOnDemand(PR_FALSE);
-        // for now, lets try not adding these 
-        msgurl->SetAddToMemoryCache(PR_TRUE);
-      }
-      else
-      {
-        // whenever we are displaying a message, we want to add it to the memory cache..
-        imapUrl->SetFetchPartsOnDemand(PR_TRUE);
-        // if we happen to fetch the whole message, note in the url
-        // whether we want to store this message offline.
-        imapUrl->SetShouldStoreMsgOffline(shouldStoreMsgOffline);
-        shouldStoreMsgOffline = PR_FALSE; // if we're fetching by parts, don't store offline
-        msgurl->SetAddToMemoryCache(PR_FALSE);
-      }
-      if (imapMessageSink && !hasMsgOffline)
-        imapMessageSink->SetNotifyDownloadedLines(shouldStoreMsgOffline);
+      imapUrl->SetStoreResultsOffline(shouldStoreMsgOffline);
+      msgurl->SetAddToMemoryCache(!hasMsgOffline);
+      imapUrl->SetFetchPartsOnDemand(
+        useMimePartsOnDemand && messageSize >= (PRUint32) gMIMEOnDemandThreshold);
 
       if (hasMsgOffline)
         msgurl->SetMsgIsInLocalCache(PR_TRUE);
@@ -620,18 +602,16 @@ nsresult nsImapService::FetchMimePart(nsIImapUrl *aImapUrl,
   NS_ENSURE_ARG_POINTER(aImapUrl);
   NS_ENSURE_ARG_POINTER(aImapMailFolder);
   NS_ENSURE_ARG_POINTER(aImapMessage);
-  
+
   // create a protocol instance to handle the request.
   // NOTE: once we start working with multiple connections, this step will be much more complicated...but for now
   // just create a connection and process the request.
-  
-  nsresult rv;
   nsCAutoString urlSpec;
-  rv = SetImapUrlSink(aImapMailFolder, aImapUrl);
+  nsresult rv = SetImapUrlSink(aImapMailFolder, aImapUrl);
   nsImapAction actionToUse = aImapAction;
   if (actionToUse == nsImapUrl::nsImapOpenMimePart)
     actionToUse = nsIImapUrl::nsImapMsgFetch;
-  
+
   nsCOMPtr<nsIMsgMailNewsUrl> msgurl (do_QueryInterface(aImapUrl));
   if (aImapMailFolder && msgurl && !messageIdentifierList.IsEmpty())
   {
@@ -1238,9 +1218,7 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
 
       PRBool shouldStoreMsgOffline = PR_FALSE;
       folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
-      if (imapMessageSink && !hasMsgOffline)
-        imapMessageSink->SetNotifyDownloadedLines(shouldStoreMsgOffline);
-      
+      imapUrl->SetStoreResultsOffline(shouldStoreMsgOffline);
       rv = GetMessageFromUrl(imapUrl, nsIImapUrl::nsImapMsgFetchPeek, folder,
                              imapMessageSink, aMsgWindow, aConsumer,
                              aConvertData, aURL);
@@ -3231,14 +3209,17 @@ NS_IMETHODIMP nsImapService::DownloadMessagesForOffline(const nsACString &messag
     nsCOMPtr<nsIURI> runningURI;
     // need to pass in stream listener in order to get the channel created correctly
     nsCOMPtr<nsIImapMessageSink> imapMessageSink(do_QueryInterface(aFolder, &rv));
-    imapMessageSink->SetNotifyDownloadedLines(PR_TRUE);
-    rv = FetchMessage(imapUrl, nsImapUrl::nsImapMsgDownloadForOffline,aFolder, imapMessageSink, 
-                      aMsgWindow, nsnull, messageIds, PR_FALSE, EmptyCString(), getter_AddRefs(runningURI));
+    rv = FetchMessage(imapUrl, nsImapUrl::nsImapMsgDownloadForOffline,aFolder,
+                      imapMessageSink, aMsgWindow, nsnull, messageIds,
+                      PR_FALSE, EmptyCString(), getter_AddRefs(runningURI));
     if (runningURI && aUrlListener)
     {
       nsCOMPtr<nsIMsgMailNewsUrl> msgurl (do_QueryInterface(runningURI));
+      nsCOMPtr<nsIImapUrl> imapUrl(do_QueryInterface(runningURI));
       if (msgurl)
         msgurl->RegisterListener(aUrlListener);
+      if (imapUrl)
+        imapUrl->SetStoreResultsOffline(PR_TRUE);
     }
   }
   return rv;
