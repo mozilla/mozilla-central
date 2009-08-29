@@ -1221,6 +1221,7 @@ NS_IMETHODIMP nsMsgDBFolder::HasMsgOffline(nsMsgKey msgKey, PRBool *result)
 {
   NS_ENSURE_ARG(result);
   *result = PR_FALSE;
+  GetDatabase();
   if(!mDatabase)
     return NS_ERROR_FAILURE;
 
