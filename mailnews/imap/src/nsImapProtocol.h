@@ -544,7 +544,8 @@ private:
   void MailboxDiscoveryFinished();
   void NthLevelChildList(const char *onlineMailboxPrefix, PRInt32 depth);
   void Lsub(const char *mailboxPattern, PRBool addDirectoryIfNecessary);
-  void List(const char *mailboxPattern, PRBool addDirectoryIfNecessary);
+  void List(const char *mailboxPattern, PRBool addDirectoryIfNecessary,
+            PRBool useXLIST = PR_FALSE);
   void Subscribe(const char *mailboxName);
   void Unsubscribe(const char *mailboxName);
   void Idle();
@@ -601,6 +602,8 @@ private:
   nsRefPtr <nsMsgImapLineDownloadCache> m_downloadLineCache;
   nsRefPtr <nsMsgImapHdrXferInfo> m_hdrDownloadCache;
   nsCOMPtr <nsIImapHeaderInfo> m_curHdrInfo;
+  // mapping between special xlist mailboxes and the corresponding folder flag
+  nsDataHashtable<nsCStringHashKey, PRInt32> m_specialXListMailboxes;
 
   nsIImapHostSessionList * m_hostSessionList;
 
@@ -644,6 +647,7 @@ private:
       kListingForInfoOnly,
       kListingForInfoAndDiscovery,
       kDiscoveringNamespacesOnly,
+      kXListing,
       kListingForCreate
   };
   EMailboxHierarchyNameState  m_hierarchyNameState;

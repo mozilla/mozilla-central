@@ -470,6 +470,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   // through proxied xpcom methods, just AddRef them here.
   m_hdrDownloadCache = new nsMsgImapHdrXferInfo();
   m_downloadLineCache = new nsMsgImapLineDownloadCache();
+  m_specialXListMailboxes.Init(0);
 
   // subscription
   m_autoSubscribe = PR_TRUE;
@@ -4738,6 +4739,14 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
 
   switch (m_hierarchyNameState)
   {
+  case kXListing:
+    if (adoptedBoxSpec->mBoxFlags &
+        (kImapXListTrash|kImapAllMail|kImapInbox|kImapSent|kImapSpam|kImapDrafts))
+    {
+      nsCString mailboxName(adoptedBoxSpec->mAllocatedPathName);
+      m_specialXListMailboxes.Put(mailboxName, adoptedBoxSpec->mBoxFlags);
+    }
+    break;
   case kListingForCreate:
   case kNoOperationInProgress:
   case kDiscoverTrashFolderInProgress:
@@ -4802,6 +4811,15 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
         if (m_imapServerSink)
         {
           PRBool newFolder;
+
+          if (m_specialXListMailboxes.Count() > 0)
+          {
+            PRInt32 hashValue = 0;
+            nsCString strHashKey(adoptedBoxSpec->mAllocatedPathName);
+            m_specialXListMailboxes.Get(strHashKey, &hashValue);
+            adoptedBoxSpec->mBoxFlags |= hashValue;
+          }
+
           m_imapServerSink->PossibleImapMailbox(adoptedBoxSpec->mAllocatedPathName,
                                                 adoptedBoxSpec->mHierarchySeparator,
                                                 adoptedBoxSpec->mBoxFlags, &newFolder);
@@ -6949,9 +6967,16 @@ void nsImapProtocol::DiscoverMailboxList()
 {
   PRBool usingSubscription = PR_FALSE;
 
+  m_hostSessionList->GetHostIsUsingSubscription(GetImapServerKey(), usingSubscription);
   // should we check a pref here, to be able to turn off XList?
-  if (GetServerStateParser().GetCapabilityFlag() & kHasXListCapability)
-    m_hostSessionList->SetHostIsUsingSubscription(GetImapServerKey(), PR_FALSE);
+  PRBool hasXLIST = GetServerStateParser().GetCapabilityFlag() & kHasXListCapability;
+  if (hasXLIST && usingSubscription)
+  {
+    m_hierarchyNameState = kXListing;
+    // We use "%.%" since gmail special folders are unlikely
+    // to be more than 2 levels deep.
+    List("%.%", PR_TRUE, PR_TRUE);
+  }
 
   SetMailboxDiscoveryStatus(eContinue);
   if (GetServerStateParser().ServerHasACLCapability())
@@ -6961,7 +6986,6 @@ void nsImapProtocol::DiscoverMailboxList()
 
   // Pretend that the Trash folder doesn't exist, so we will rediscover it if we need to.
   m_hostSessionList->SetOnlineTrashFolderExistsForHost(GetImapServerKey(), PR_FALSE);
-  m_hostSessionList->GetHostIsUsingSubscription(GetImapServerKey(), usingSubscription);
 
   // iterate through all namespaces and LSUB them.
   PRUint32 count = 0;
@@ -7056,8 +7080,8 @@ void nsImapProtocol::DiscoverMailboxList()
           Lsub(pattern.get(), PR_TRUE);
         else
         {
-          List(pattern.get(), PR_TRUE);
-          List(pattern2.get(), PR_TRUE);
+          List(pattern.get(), PR_TRUE, hasXLIST);
+          List(pattern2.get(), PR_TRUE, hasXLIST);
         }
       }
     }
@@ -7342,7 +7366,8 @@ void nsImapProtocol::Lsub(const char *mailboxPattern, PRBool addDirectoryIfNeces
     ParseIMAPandCheckForNewMail();
 }
 
-void nsImapProtocol::List(const char *mailboxPattern, PRBool addDirectoryIfNecessary)
+void nsImapProtocol::List(const char *mailboxPattern, PRBool addDirectoryIfNecessary,
+                          PRBool useXLIST)
 {
   ProgressEventFunctionUsingId (IMAP_STATUS_LOOKING_FOR_MAILBOX);
 
@@ -7358,7 +7383,7 @@ void nsImapProtocol::List(const char *mailboxPattern, PRBool addDirectoryIfNeces
                         mailboxPattern, escapedPattern);
 
   nsCString command (GetServerCommandTag());
-  command += GetServerStateParser().GetCapabilityFlag() & kHasXListCapability ?
+  command += useXLIST ?
     " xlist \"\" \"" : " list \"\" \"";
   command += escapedPattern;
   command += "\""CRLF;
