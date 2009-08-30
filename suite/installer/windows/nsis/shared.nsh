@@ -453,7 +453,7 @@
   ; The IconHandler reference for SeaMonkeyHTML can end up in an inconsistent
   ; state due to changes not being detected by the IconHandler for side by side
   ; installs. The symptoms can be either an incorrect icon or no icon being
-  ; displayed for files associated with Firefox. By setting it here it will
+  ; displayed for files associated with SeaMonkey. By setting it here it will
   ; always reference the install referenced in the
   ; HKLM\Software\Classes\SeaMonkeyHTML registry key.
   ClearErrors
@@ -462,7 +462,7 @@
     ClearErrors
     ReadRegStr $3 HKLM "Software\Classes\CLSID\$2\Old Icon\SeaMonkeyHTML\DefaultIcon" ""
     ${Unless} ${Errors}
-      WriteRegStr HKLM "Software\Classes\CLSID\$2\Old Icon\SeaMonkeyHTML\DefaultIcon" "" "$8,1"
+      WriteRegStr HKLM "Software\Classes\CLSID\$2\Old Icon\SeaMonkeyHTML\DefaultIcon" "" "$INSTDIR\chrome\icons\default\html-file.ico"
     ${EndUnless}
   ${EndUnless}
 !macroend
