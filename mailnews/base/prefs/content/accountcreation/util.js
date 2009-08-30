@@ -264,11 +264,7 @@ function deepCopy(org)
   return result;
 }
 
-
-
-let kDebug = true;
-
-
+let kDebug = false;
 function ddump(text)
 {
   if (kDebug)
