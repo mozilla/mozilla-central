@@ -110,7 +110,7 @@ EmailConfigWizard.prototype =
     this._probeAbortable = null;
   },
 
-  onLoad : function ()
+  onLoad : function()
   {
     this._email = "";
     this._realname = "";
@@ -121,6 +121,7 @@ EmailConfigWizard.prototype =
     this._userChangedIncomingSocketType = false;
     this._userChangedOutgoingPort = false;
     this._userChangedOutgoingSocketType = false;
+    this._userChangedPassword = false;
 
     this._incomingWarning = 'cleartext';
     this._outgoingWarning = 'cleartext';
@@ -139,9 +140,11 @@ EmailConfigWizard.prototype =
                        .getService(Ci.nsISmtpService);
     this._smtpServers = gSmtpManager.smtpServers;
     var menupopup = getElementById("smtp_menupopup");
+    this._smtpServerCount = 0;
     while (this._smtpServers.hasMoreElements())
     {
       var server = this._smtpServers.getNext().QueryInterface(Ci.nsISmtpServer);
+      this._smtpServerCount++;
       var menuitem = document.createElement("menuitem");
       var label = server.displayname;
       if (server.key == gSmtpManager.defaultServer.key)
@@ -154,7 +157,7 @@ EmailConfigWizard.prototype =
     }
     var menulist = getElementById("outgoing_server");
     menulist.addEventListener("command",
-      function() { gEmailConfigWizard.userChangedOutgoing(); }, true);
+      function(event) { gEmailConfigWizard.userChangedOutgoing(event); }, true);
   },
 
   /* When the next button is clicked we've moved from the initial account
@@ -212,18 +215,51 @@ EmailConfigWizard.prototype =
   _accountInfoInputs : function(disabled)
   {
     let ids = ["realname","email","password"];
+    if (disabled && getElementById("password").getAttribute("empty")) {
+      getElementById("password").value = " ";
+      getElementById("password").setAttribute("empty", true);
+      getElementById("remember_password").checked = false;
+    }
+
     for ( let i = 0; i < ids.length; i++ )
       getElementById(ids[i]).disabled = disabled;
+
+    if (!disabled && getElementById("password").getAttribute("empty")) {
+      getElementById("password").value = "";
+      getElementById("password").setAttribute("empty", true);
+      getElementById("remember_password").checked = false;
+    }
   },
 
-  userChangedOutgoing : function ()
+  userChangedOutgoing : function(event)
   {
+    let menulist = getElementById("outgoing_server");
+
+    let selectedIndex = menulist.getIndexOfItem(event.target);
+
+    if (selectedIndex != -1) {
+      getElementById("outgoing_port").value = this._currentConfig.outgoing.port;
+      getElementById("outgoing_security").value = this._currentConfig
+                                                      .outgoing.socketType;
+    }
+
+    if (selectedIndex == -1 || selectedIndex == 0) {
+      this._outgoingState = '';
+      this._userPickedOutgoingServer = false;
+      _show('outgoing_protocol');
+      _show('outgoing_port');
+      _show('outgoing_security');
+      menulist.setAttribute("editable", true);
+      return;
+    }
+    menulist.setAttribute("editable", false);
     this._outgoingState = 'done';
     this._outgoingWarning = '';
 
     if (this._probeAbortable)
       this._probeAbortable.cancel('outgoing');
 
+    // Re-set the outgoing port and security.
     this._userPickedOutgoingServer = true;
     _hide('outgoing_protocol');
     _hide('outgoing_port');
@@ -237,7 +273,7 @@ EmailConfigWizard.prototype =
    * Since this is such an insignificant test we should be using a very light
    * or even jovial warning.
    */
-  validateRealname : function ()
+  validateRealname : function()
   {
     if (getElementById('realname').value.length > 0)
       this.clearError('nameerror');
@@ -249,7 +285,7 @@ EmailConfigWizard.prototype =
    * This checks if the email address is at least possibly valid, meaning it
    * has an '@' before the last char.
    */
-  emailAddrValidish : function ()
+  emailAddrValidish : function()
   {
     let emailAddr = getElementById('email').value;
     let atPos = emailAddr.lastIndexOf("@");
@@ -283,7 +319,7 @@ EmailConfigWizard.prototype =
    * we don't want to block the person if they've entered and email that
    * doesn't conform to our regex
    */
-  validateEmail : function ()
+  validateEmail : function()
   {
     if (getElementById('email').value.length <= 0)
       return;
@@ -329,11 +365,23 @@ EmailConfigWizard.prototype =
     }
   },
   
+  oninputPassword : function()
+  {
+    let passwordElt = getElementById("password");
+    let rememberPasswordElt = getElementById("remember_password");
+    if (passwordElt.value.length < 1) {
+      getElementById("remember_password").checked = false;
+      this._userChangedPassword = false;
+    }
+    else if (!this._userChangedPassword)
+      getElementById("remember_password").checked = true;
+  },
+
   /* If the user just tabbed through the password input without entering
    * anything, set the type back to text so we don't wind up showing the
    * emptytext as bullet characters.
    */
-  onblurPassword : function ()
+  onblurPassword : function()
   {
     let passwordElt = getElementById("password");
     if (passwordElt.value.length < 1)
@@ -544,24 +592,17 @@ EmailConfigWizard.prototype =
     return isNew;
   },
 
-  toggleAcknowledgeIncoming : function()
+  toggleAcknowledgeWarning : function()
   {
-    this._incomingWarningAcknowledged =
-      getElementById('acknowledge_incoming').checked;
-    this.checkEnableIKnow();
-  },
-
-  toggleAcknowledgeOutgoing : function()
-  {
-    this._outgoingWarningAcknowledged =
-      getElementById('acknowledge_outgoing').checked;
+    this._warningAcknowledged =
+      getElementById('acknowledge_warning').checked;
     this.checkEnableIKnow();
   },
 
   checkEnableIKnow: function()
   {
-    if ((!this._incomingWarning || this._incomingWarningAcknowledged) &&
-        (!this._outgoingWarning || this._outgoingWarningAcknowledged))
+    if ((!this._incomingWarning && !this._outgoingWarning) ||
+        this._warningAcknowledged)
       document.getElementById('iknow').disabled = false;
     else
       document.getElementById('iknow').disabled = true;
@@ -585,11 +626,7 @@ EmailConfigWizard.prototype =
         let incoming_details;
         let outgoing_details;
         let incoming = this._currentConfigFilledIn.incoming;
-        let incomingSettings = incoming.hostname + ':' + incoming.port +
-                                ' (' + sslLabel(incoming.socketType) + ')';
         let outgoing = this._currentConfigFilledIn.outgoing;
-        let outgoingSettings = outgoing.hostname + ':' + outgoing.port +
-                                ' (' + sslLabel(outgoing.socketType) + ')';
         var brandShortName = gBrandBundle.getString("brandShortName");
         switch (this._incomingWarning)
         {
@@ -599,9 +636,8 @@ EmailConfigWizard.prototype =
             incoming_details = gStringsBundle.getString("cleartext_details");
             setText('warning_incoming', incomingwarningstring);
             setText('incoming_details', incoming_details);
-            setText('incomingSettings', incomingSettings);
             _show('incoming_box');
-            _show('acknowledge_incoming');
+            _show('acknowledge_warning');
             break;
           case 'selfsigned':
             incomingwarningstring = gStringsBundle.getFormattedString(
@@ -609,13 +645,12 @@ EmailConfigWizard.prototype =
             incoming_details = gStringsBundle.getString("selfsigned_details");
             setText('warning_incoming', incomingwarningstring);
             setText('incoming_details', incoming_details);
-            setText('incomingSettings', incomingSettings);
             _show('incoming_box');
-            _show('acknowledge_incoming');
+            _show('acknowledge_warning');
             break;
           case '':
             _hide('incoming_box');
-            _hide('acknowledge_incoming');
+            _hide('acknowledge_warning');
         }
         switch (this._outgoingWarning)
         {
@@ -625,9 +660,8 @@ EmailConfigWizard.prototype =
             outgoing_details = gStringsBundle.getString("cleartext_details");
             setText('warning_outgoing', outgoingwarningstring);
             setText('outgoing_details', outgoing_details);
-            setText('outgoingSettings', outgoingSettings);
             _show('outgoing_box');
-            _show('acknowledge_outgoing');
+            _show('acknowledge_warning');
             break;
           case 'selfsigned':
             outgoingwarningstring = gStringsBundle.getFormattedString(
@@ -635,13 +669,13 @@ EmailConfigWizard.prototype =
             outgoing_details = gStringsBundle.getString("selfsigned_details");
             setText('warning_outgoing', outgoingwarningstring);
             setText('outgoing_details', outgoing_details);
-            setText('outgoingSettings', outgoingSettings);
             _show('outgoing_box');
-            _show('acknowledge_outgoing');
+            _show('acknowledge_warning');
             break;
           case '':
             _hide('outgoing_box');
-            _hide('acknowledge_outgoing');
+            if (this._incomingWarning == '')
+              _hide('acknowledge_warning');
         }
       }
       else
@@ -655,10 +689,11 @@ EmailConfigWizard.prototype =
 
   getMeOutOfHere : function()
   {
+    // If we're going backwards, we should reset the acknowledge_warning.
+    getElementById('acknowledge_warning').checked = false;
+    this.toggleAcknowledgeWarning();
     _hide('warningbox');
     _show('mastervbox');
-    getElementById('acknowledge_incoming').checked = false;
-    getElementById('acknowledge_outgoing').checked = false;
   },
 
   validateAndFinish : function()
@@ -808,7 +843,7 @@ EmailConfigWizard.prototype =
     return config;
   },
 
-  _setIncomingStatus : function (state, details)
+  _setIncomingStatus : function(state, details)
   {
     if (!details)
       details = "";
@@ -821,7 +856,7 @@ EmailConfigWizard.prototype =
         // fall through
       case 'weak':
         this._incomingWarning = details;
-        this._incomingWarningAcknowledged = false;
+        this._warningAcknowledged = false;
         break;
       default:
         this._incomingState = state;
@@ -834,7 +869,7 @@ EmailConfigWizard.prototype =
     this._setIconAndTooltip('incoming_status', state, details);
   },
 
-  _setOutgoingStatus: function (state, details)
+  _setOutgoingStatus: function(state, details)
   {
     if (!details)
       details = '';
@@ -850,7 +885,7 @@ EmailConfigWizard.prototype =
         // fall through
       case 'weak':
         this._outgoingWarning = details;
-        this._outgoingWarningAcknowledged = false;
+        this._warningAcknowledged = false;
         break
       default:
         this._outgoingState = state;
@@ -918,7 +953,16 @@ EmailConfigWizard.prototype =
    * might have changed.  The function called from the button that restarts
    * the config check should be enabling the config button as needed.
    */
-  editConfigDetails : function() {
+  editConfigDetails : function()
+  {
+    // Add the custom entry to the menulist, if it's not already there.
+    let menulist = getElementById("outgoing_server");
+    if (this._smtpServerCount == menulist.itemCount) {
+      var hostname = getElementById("outgoing_server").value;
+      let menuitem = menulist.insertItemAt(0, hostname, hostname);
+      menuitem.hostname = hostname;
+    }
+
     this._disableConfigDetails(false);
     this._setIncomingStatus('hidden');
     this._setOutgoingStatus('hidden');
@@ -934,7 +978,8 @@ EmailConfigWizard.prototype =
    * XXX However it seems that a disabled button can still receive click
    *     events so this needs to be looked into further.
    */
-  goWithConfigDetails : function() {
+  goWithConfigDetails : function()
+  {
     this._disableConfigDetails(true);
     _show("create_button");
   },
@@ -1277,7 +1322,7 @@ EmailConfigWizard.prototype =
     }
   },
 
-  onKeyDown : function (event)
+  onKeyDown : function(event)
   {
     let key = event.keyCode;
     if (key == 27) {

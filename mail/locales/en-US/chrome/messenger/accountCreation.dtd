@@ -42,16 +42,11 @@
 <!ENTITY warning.label                   "Warning!">
 <!ENTITY incomingSettings.label          "Incoming settings:">
 <!ENTITY outgoingSettings.label          "Outgoing settings:">
-<!-- LOCALIZATION NOTE (confirmIncomingWarning.label): If there is a security
-     warning on the incoming server, then the user will need to check a
-     checkbox beside this text before continuing. -->
-<!ENTITY confirmIncomingWarning.label    "I understand the risks.">
-<!ENTITY confirmIncomingWarning.accesskey "u">
-<!-- LOCALIZATION NOTE (confirmOutgoingWarning.label): If there is a security
+<!-- LOCALIZATION NOTE (confirmWarning.label): If there is a security
      warning on the outgoing server, then the user will need to check a
      checkbox beside this text before continuing. -->
-<!ENTITY confirmOutgoingWarning.label    "I understand the risks.">
-<!ENTITY confirmOutgoingWarning.accesskey "d">
+<!ENTITY confirmWarning.label            "I understand the risks.">
+<!ENTITY confirmWarning.accesskey        "u">
 <!-- LOCALIZATION NOTE (createAccount.label): If there is a security warning
      on the incoming or outgoing servers, then the page that pops up will
      have this text in a button to continue by creating the account. -->

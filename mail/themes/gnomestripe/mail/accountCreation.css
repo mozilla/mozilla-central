@@ -1,92 +1,3 @@
-vbox.icon {
-  width: 22px;
-  height: 22px;
-  background-repeat: no-repeat;
-}
-
-image.insecureLarry  {
-  height: 64px;
-  width: 64px;
-  padding: 0;
-  list-style-image: url("chrome://global/skin/icons/sslWarning.png");
-}
-
-image.secureLarry  {
-  height: 64px;
-  width: 64px;
-  padding: 0;
-  list-style-image: url("chrome://messenger/skin/icons/identity.png");
-}
-
-vbox.icon[state='strong'] {
-  background-image: url("chrome://messenger/skin/icons/secure.png");
-}
-
-vbox.icon[state='failed'] {
-  background-image: url("chrome://messenger/skin/icons/failed.png");
-}
-
-vbox.icon[state='probing'] {
-  background-image: url("chrome://messenger/skin/icons/probing.png");
-}
-
-vbox.icon[state='weak'] {
-  background-image: url("chrome://messenger/skin/icons/insecure.png");
-}
-
-label.textbox-label {
-  color: GrayText;
-  font-size: smaller;
-  border-bottom: 1px dotted InactiveBorder;
-}
-
-.protocol,
-textbox.security {
-  width: 8em;
-}
-
-textbox.port {
-  width: 5em;
-}
-
-textbox.host {
-  width: 12em;
-  margin-bottom: 4px !important;
-  margin-top: 4px !important;
-}
-
-menulist.host {
-  width: 12em;
-  margin-bottom: 4px !important;
-  margin-top: 4px !important;
-}
-
-textbox[disabled="true"] {
-  -moz-appearance: none;
-  border: none;
-  padding: 6px;
-  background-color: #fff;
-  color: -moz-DialogText;
-}
-
-menulist[disabled="true"] {
-  -moz-appearance: none;
-  border: none;
-  background-color: #fff;
-  color: -moz-DialogText;
-}
-
-menulist[disabled="true"] > .menulist-editable-box,
-menulist[disabled="true"] > .menulist-editable-box > .menulist-editable-input,
-menulist[disabled="true"] > .menulist-dropmarker {
-  -moz-appearance: none;
-  color: -moz-DialogText;
-}
-
-#outgoing_protocol {
-  padding: 6px;
-}
-
 /* ::::: BUTTONS ::::: */
 
 .larger-button {
@@ -150,6 +61,32 @@ menulist[disabled="true"] > .menulist-dropmarker {
   -moz-padding-start: 6px;
 }
 
+/* Missing:
+ * #incoming_config
+ */
+
+menulist[disabled="true"] {
+  -moz-appearance: none;
+  border: none;
+  background-color: #fff;
+  color: -moz-DialogText;
+}
+
+menulist[disabled="true"] > .menulist-editable-box,
+menulist[disabled="true"] > .menulist-editable-box > .menulist-editable-input,
+menulist[disabled="true"] > .menulist-dropmarker {
+  -moz-appearance: none;
+  color: -moz-DialogText;
+}
+
+#outgoing_protocol {
+  padding: 6px;
+}
+
+/* Missing:
+ * #outgoing_config
+ */
+
 .config_area {
   padding: 6px;
 }
@@ -162,13 +99,13 @@ description.error_notice {
   color: rgb(244,50,50);
 }
 
+/* Missing:
+ * description.heading
+ */
+
 description.explanation {
   padding-top: 1em;
   padding-bottom: 1em;
-}
-
-vbox.statusimage {
-  padding-top: 6px;
 }
 
 #config_status_title {
@@ -182,14 +119,14 @@ vbox.statusimage {
   font-style: italic;
 }
 
-label.heading {
-  font-size: larger;
-  font-weight: bolder;
+vbox.statusimage {
+  padding-top: 6px;
 }
 
-row.heading {
-  padding-bottom: 1em;
-}
+/* Missing:
+ * label.bignumber
+ * hbox.stepheading
+ */
 
 window {
   -moz-appearance: none;
@@ -229,23 +166,57 @@ window {
   font-weight: bold;
 }
 
+vbox.icon {
+  width: 22px;
+  height: 22px;
+  background-repeat: no-repeat;
+}
+
+image.insecureLarry {
+  height: 64px;
+  width: 64px;
+  padding: 0;
+  list-style-image: url("chrome://global/skin/icons/sslWarning.png");
+}
+
+image.secureLarry {
+  height: 64px;
+  width: 64px;
+  padding: 0;
+  list-style-image: url("chrome://messenger/skin/icons/identity.png");
+}
+
 vbox.mastervbox {
   padding: 14px;
 }
 
+vbox.icon[state='strong'] {
+  background-image: url("chrome://messenger/skin/icons/secure.png");
+}
+
+vbox.icon[state='failed'] {
+  background-image: url("chrome://messenger/skin/icons/failed.png");
+}
+
+vbox.icon[state='probing'] {
+  background-image: url("chrome://messenger/skin/icons/probing.png");
+}
+
+vbox.icon[state='weak'] {
+  background-image: url("chrome://messenger/skin/icons/insecure.png");
+}
+
 .warningbox {
   background: #333333 none repeat scroll 0% 0%;
-  padding: 3em;
+  padding: 1em;
   overflow: auto;
 }
 
 .warning {
-  padding: 3em;
+  padding: 2em;
   -moz-border-radius: 10px;
-  -moz-padding-start: 30px;
   background-color: #772222;
   border: 1px solid threedshadow;
-  margin: 4em auto;
 }
 
 .warning_text {
@@ -259,8 +230,13 @@ vbox.mastervbox {
   margin:0 0 0.6em;
 }
 
+.warning_settings {
+  color: yellow;
+  font-weight: bold;
+}
+
 .larrybox {
-  -moz-padding-end: 3em;
+  -moz-padding-end: 2em;
 }
 
 label.linklabel {
@@ -299,3 +275,65 @@ vbox.settings {
   background-color: #ffffc7;
   max-width: 320px;
 }
+
+label.textbox-label {
+  color: GrayText;
+  font-size: smaller;
+  border-bottom: 1px dotted InactiveBorder;
+}
+
+.protocol,
+textbox.security {
+  width: 8em;
+}
+
+textbox.port {
+  width: 5em;
+}
+
+textbox.host {
+  width: 12em;
+  margin-bottom: 4px !important;
+  margin-top: 4px !important;
+}
+
+menulist.host {
+  width: 12em;
+  margin-bottom: 4px !important;
+  margin-top: 4px !important;
+}
+
+textbox[disabled="true"] {
+  -moz-appearance: none;
+  border: none;
+  padding: 6px;
+  background-color: #fff;
+  color: -moz-DialogText;
+}
+
+label.heading {
+  font-size: larger;
+  font-weight: bolder;
+}
+
+row.heading {
+  padding-bottom: 1em;
+}
+
+/* Missing:
+ * hbox.clickable
+ * hbox.hoverable:hover
+ * textbox.clickable
+ * textbox.editing
+ * textbox.clickable > .textbox-input-box > .textbox-input:hover
+ * textbox.clickable > .textbox-input-box
+ * textbox.clickable > .textbox-input-box > .texbox-input
+ * menulist.clickable
+ * menulist.clickable:hover
+ * menulist.clickable > .menulist-label-box
+ * menulist.clickable > .menulist-label-box:hover
+ * menulist[editable="true"].clickable
+ * menulist[editable="true"].clickable > .menulist-editable-box
+ * menulist[editable="true"].clickable > .menulist-editable-box > .menulist-editable-input
+ * menulist[editable="true"].clickable > .menulist-dropmarker
+ */

@@ -192,13 +192,15 @@
                          class="padded"
                          emptytext="&password.description;"
                          type="text"
+                         oninput="gEmailConfigWizard.oninputPassword();"
                          onfocus="this.type='password';"
                          onblur="gEmailConfigWizard.onblurPassword();"/>
               </row>
               <row align="center">
                 <checkbox id="remember_password"
                           accesskey="&rememberPassword.accesskey;"
-                          label="&rememberPassword.label;" checked="true"/>
+                          onclick="gEmailConfigWizard._userChangedPassword=true;"
+                          label="&rememberPassword.label;" checked="false"/>
               </row>
               <row>
                 <hbox pack="end">
@@ -255,13 +257,13 @@
                 </vbox>
                 <vbox id="usernamearea">
                   <label class="textbox-label" value="&username.label;"
-                          control="username"/>
+                         control="username"/>
                   <hbox>
                     <vbox class="statusimage" width="22"/>
-                      <textbox id="username"
-                               value=""
-                               disabled="true"
-                               class="username"/>
+                    <textbox id="username"
+                             value=""
+                             disabled="true"
+                             class="username"/>
                   </hbox>
                 </vbox>
                 <vbox id="incomingarea">
@@ -282,6 +284,7 @@
                       <menulist id="incoming_protocol"
                                 value=""
                                 disabled="true"
+                                sizetopopup="none"
                                 class="protocol">
                         <menupopup onpopuphidden="gEmailConfigWizard.setIncomingProtocol()">
                           <menuitem label="&imap.label;" value="1"/>
@@ -300,6 +303,7 @@
                       <menulist id="incoming_security"
                                 value=""
                                 disabled="true"
+                                sizetopopup="none"
                                 class="security">
                         <menupopup onpopuphidden="gEmailConfigWizard.setSecurity('incoming_security')">
                           <menuitem label="&noEncryption.label;" value="1"/>
@@ -312,13 +316,14 @@
                 </vbox>
                 <vbox id="outgoingarea">
                   <label class="textbox-label" value="&sendingServer.label;"
-                          control="outgoing_server"/>
+                         control="outgoing_server"/>
                   <hbox>
                     <vbox id="outgoing_status" class="icon" width="22"/>
                     <hbox>
                       <menulist id="outgoing_server"
                                 class="host uri-element"
-                                disabled="false"
+                                disabled="true"
+                                sizetopopup="none"
                                 editable="true" >
                               <!-- oncommand, and onchange and onmousedown of menulist's inputfield, set in ctor -->
                         <menupopup id="smtp_menupopup"/>
@@ -327,7 +332,7 @@
                   </hbox>
                   <hbox>
                     <spacer height="30" width="22"/>
-                    <hbox>
+                    <hbox align="center">
                       <label id="outgoing_protocol"
                              class="protocol" value="&smtp.label;"/>
                     </hbox>
@@ -342,6 +347,7 @@
                       <menulist id="outgoing_security"
                                 value=""
                                 disabled="true"
+                                sizetopopup="none"
                                 class="security">
                         <menupopup onpopuphidden="gEmailConfigWizard.setSecurity('outgoing_security')">
                           <menuitem label="&noEncryption.label;" value="1"/>
@@ -388,35 +394,21 @@
           <label class="warning-heading">&warning.label;</label>
           <description id="warning_description"/>
           <vbox id="incoming_box" flex="1">
+            <label class="warning_settings" value="&incomingSettings.label;"/>
             <description id="warning_incoming"/>
-            <vbox class="settings">
-              <description id="incoming_details"/>
-              <hbox>
-                <label value="&incomingSettings.label;"/><label id="incomingSettings"/>
-              </hbox>
-              <checkbox id="acknowledge_incoming"
-                        class="acknowledge_checkbox"
-                        label="&confirmIncomingWarning.label;"
-                        accesskey="&confirmIncomingWarning.accesskey;"
-                        oncommand="gEmailConfigWizard.toggleAcknowledgeIncoming()"/>
-            </vbox>
+            <description id="incoming_details"/>
           </vbox>
           <vbox id="outgoing_box" flex="1">
+            <label class="warning_settings" value="&outgoingSettings.label;"/>
             <description id="warning_outgoing"/>
-            <vbox class="settings">
-              <description id="outgoing_details"/>
-              <hbox>
-                <label value="&outgoingSettings.label;"/><label id="outgoingSettings"/>
-              </hbox>
-              <checkbox id="acknowledge_outgoing"
-                        class="acknowledge_checkbox"
-                        label="&confirmOutgoingWarning.label;"
-                        accesskey="&confirmOutgoingWarning.accesskey;"
-                        oncommand="gEmailConfigWizard.toggleAcknowledgeOutgoing()"/>
-            </vbox>
+            <description id="outgoing_details"/>
           </vbox>
-          <spacer flex="1"/>
           <description id="findoutmore">&contactYourProvider.description;</description>
+          <checkbox id="acknowledge_warning"
+                    class="acknowledge_checkbox"
+                    label="&confirmWarning.label;"
+                    accesskey="&confirmWarning.accesskey;"
+                    oncommand="gEmailConfigWizard.toggleAcknowledgeWarning()"/>
         </vbox>
         <spacer flex="1"/>
         <hbox>
