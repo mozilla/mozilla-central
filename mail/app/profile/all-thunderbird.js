@@ -221,7 +221,7 @@ pref("mail.close_message_window.on_delete", false);
 pref("mail.showCondensedAddresses", true); // show the friendly display name for people I know
 
 // hidden pref for changing how we present attachments in the message pane
-pref("mailnews.attachments.display.largeView", true); 
+pref("mailnews.attachments.display.largeView", false);
 pref("mail.pane_config.dynamic",            0);
 pref("mailnews.reuse_thread_window2",     true);
 pref("mail.spam.display.sanitize", true); // sanitize the HTML in spam messages
