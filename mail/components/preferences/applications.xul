@@ -76,6 +76,16 @@
     <script type="application/javascript"
             src="chrome://messenger/content/preferences/applications.js"/>
 
+    <commandset id="appPaneCommandSet">
+      <command id="cmd_delete"
+               oncommand="gApplicationsPane.onDelete();"/>
+    </commandset>
+
+    <keyset id="appPaneKeyset">
+      <key keycode="VK_BACK" modifiers="any" command="cmd_delete"/>
+      <key keycode="VK_DELETE" modifiers="any" command="cmd_delete"/>
+    </keyset>
+
     <keyset>
       <key key="&focusSearch1.key;" modifiers="accel"
            oncommand="gApplicationsPane.focusFilterBox();"/>
@@ -100,7 +110,7 @@
         <treecol id="typeColumn" label="&typeColumn.label;" value="type"
                  accesskey="&typeColumn.accesskey;" persist="sortDirection"
                  flex="1" onclick="gApplicationsPane.sort(event);"
-                 sortDirection="ascending"/>
+                 sortDirection="ascending" sort="typeDescription"/>
         <treecol id="actionColumn" label="&actionColumn2.label;" value="action"
                  accesskey="&actionColumn2.accesskey;" persist="sortDirection"
                  flex="1" onclick="gApplicationsPane.sort(event);"/>

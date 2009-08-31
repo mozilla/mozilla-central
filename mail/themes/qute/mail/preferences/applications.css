@@ -88,3 +88,12 @@ menuitem[appHandlerIcon="plugin"] {
 .actionsMenu > menupopup > menuitem {
   -moz-padding-start: 4px;
 }
+
+.shortDetails {
+  text-align: right;
+  color: GrayText;
+}
+
+richlistbox:focus .shortDetails.selected {
+  color: inherit;
+}

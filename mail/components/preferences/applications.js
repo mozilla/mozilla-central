@@ -411,6 +411,10 @@ HandlerInfoWrapper.prototype = {
     this._handlerSvc.store(this.wrappedHandlerInfo);
   },
 
+  remove: function() {
+    this._handlerSvc.remove(this.wrappedHandlerInfo);
+  },
+
 
   //**************************************************************************//
   // Icons
@@ -707,7 +711,6 @@ var gApplicationsPane = {
     // Clear the list of entries.
     while (this._list.childNodes.length > 1)
       this._list.removeChild(this._list.lastChild);
-
     var visibleTypes = this._visibleTypes;
 
     // If the user is filtering the list, then only show matching types.
@@ -718,6 +721,8 @@ var gApplicationsPane = {
       let item = document.createElement("richlistitem");
       item.setAttribute("type", visibleType.type);
       item.setAttribute("typeDescription", this._describeType(visibleType));
+      item.setAttribute("shortTypeDescription", visibleType.description);
+      item.setAttribute("shortTypeDetails", this._typeDetails(visibleType));
       if (visibleType.smallIcon)
         item.setAttribute("typeIcon", visibleType.smallIcon);
       item.setAttribute("actionDescription",
@@ -751,14 +756,47 @@ var gApplicationsPane = {
    * @return {string} a description of the type
    */
   _describeType: function(aHandlerInfo) {
-    if (this._visibleTypeDescriptionCount[aHandlerInfo.description] > 1)
-      return this._prefsBundle.getFormattedString("typeDescriptionWithType",
-                                                  [aHandlerInfo.description,
-                                                   aHandlerInfo.type]);
+    let details = this._typeDetails(aHandlerInfo);
 
+    if (details)
+      return this._prefsBundle.getFormattedString("typeDescriptionWithDetails",
+                                                  [aHandlerInfo.description,
+                                                   details]);
     return aHandlerInfo.description;
   },
 
+  /**
+   * Get the details for the type represented by the given handler info
+   * object.
+   *
+   * @param aHandlerInfo {nsIHandlerInfo} the type to get the extensions for.
+   * @return {string} the extensions for the type
+   */
+  _typeDetails: function(aHandlerInfo) {
+    let exts = [];
+    if (aHandlerInfo.wrappedHandlerInfo instanceof Components.interfaces.nsIMIMEInfo) {
+      let extIter = aHandlerInfo.wrappedHandlerInfo.getFileExtensions();
+      while(extIter.hasMore()) {
+        let ext = "."+extIter.getNext();
+        if (exts.indexOf(ext) == -1)
+          exts.push(ext);
+      }
+    }
+    exts.sort();
+    exts = exts.join(", ");
+    if (this._visibleTypeDescriptionCount[aHandlerInfo.description] > 0) {
+      if (exts)
+        return this._prefsBundle.getFormattedString("typeDetailsWithTypeAndExt",
+                                                    [aHandlerInfo.type,
+                                                     exts]);
+      return this._prefsBundle.getFormattedString("typeDetailsWithTypeOrExt",
+                                                  [ aHandlerInfo.type]);
+    }
+    if (exts)
+      return this._prefsBundle.getFormattedString("typeDescriptionWithExt",
+                                                  [exts]);
+    return exts;
+  },
   /**
    * Describe, in a human-readable fashion, the preferred action to take on
    * the type represented by the given handler info object.
@@ -1000,6 +1038,13 @@ var gApplicationsPane = {
       menuPopup.appendChild(menuItem);
     }
 
+    let menuItem = document.createElement("menuseparator");
+    menuPopup.appendChild(menuItem);
+    menuItem = document.createElement("menuitem");
+    menuItem.setAttribute("oncommand", "gApplicationsPane.confirmDelete(event)");
+    menuItem.setAttribute("label", this._prefsBundle.getString("delete"));
+    menuPopup.appendChild(menuItem);
+
     // Select the item corresponding to the preferred action.  If the always
     // ask flag is set, it overrides the preferred action.  Otherwise we pick
     // the item identified by the preferred action (when the preferred action
@@ -1025,6 +1070,10 @@ var gApplicationsPane = {
         menu.selectedItem = saveMenuItem;
         break;
     }
+    // menu.selectedItem may be null if the preferredAction is
+    // useSystemDefault, but handlerInfo.hasDefaultHandler returns false.
+    // For now, we'll just use the askMenuItem to avoid ugly exceptions.
+    menu.previousSelectedItem = menu.selectedItem || askMenuItem;
   },
 
 
@@ -1099,6 +1148,10 @@ var gApplicationsPane = {
   onSelectAction: function(aActionItem) {
     this._storingAction = true;
 
+    let typeItem = this._list.selectedItem;
+    let menu = document.getAnonymousElementByAttribute(typeItem, "class",
+                                                       "actionsMenu");
+    menu.previousSelectedItem = aActionItem;
     try {
       this._storeAction(aActionItem);
     }
@@ -1258,6 +1311,40 @@ var gApplicationsPane = {
     if (this._list.selectedItem)
       this._list.setAttribute("lastSelectedType",
                               this._list.selectedItem.getAttribute("type"));
+  },
+
+  confirmDelete: function(aEvent) {
+    aEvent.stopPropagation();
+    let promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                              .getService(Components.interfaces.nsIPromptService);
+    if (promptSvc.confirm(null,
+                          this._prefsBundle.getString("confirmDeleteTitle"),
+                          this._prefsBundle.getString("confirmDeleteText")))
+      this.onDelete(aEvent);
+    else {
+      // They hit cancel, so return them to the previously selected item.
+      let typeItem = this._list.selectedItem;
+      let menu = document.getAnonymousElementByAttribute(this._list.selectedItem,
+                                                         "class", "actionsMenu");
+      menu.selectedItem = menu.previousSelectedItem;
+    }
+  },
+
+  onDelete: function(aEvent) {
+    // We want to delete if either the request came from the confirmDelete
+    // method (which is the only thing that populates the aEvent parameter),
+    // or we've hit the delete/backspace key while the list has focus.
+    if ((aEvent || document.commandDispatcher.focusedElement == this._list) &&
+        this._list.selectedIndex != -1) {
+      let typeItem = this._list.getItemAtIndex(this._list.selectedIndex);
+      let handlerInfo = this._handledTypes[typeItem.type];
+      this._list.removeItemAt(this._list.selectedIndex);
+      let index = this._visibleTypes.indexOf(handlerInfo);
+      if (index != -1)
+        this._visibleTypes.splice(index, 1);
+      handlerInfo.remove();
+      delete this._handledTypes[typeItem.type];
+    }
   },
 
   _setIconClassForPreferredAction: function(aHandlerInfo, aElement) {
