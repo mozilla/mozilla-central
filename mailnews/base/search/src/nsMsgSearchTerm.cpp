@@ -1772,7 +1772,7 @@ nsMsgSearchTerm::SetHdrProperty(const nsACString &aValue)
   return NS_OK;
 }
 
-NS_IMPL_GETSET(nsMsgSearchTerm, BeginsGrouping, PRBool, mEndsGrouping)
+NS_IMPL_GETSET(nsMsgSearchTerm, BeginsGrouping, PRBool, mBeginsGrouping)
 NS_IMPL_GETSET(nsMsgSearchTerm, EndsGrouping, PRBool, mEndsGrouping)
 
 //
