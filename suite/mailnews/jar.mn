@@ -24,6 +24,8 @@ messenger.jar:
     content/messenger/mailViewList.xul
     content/messenger/mailViewList.js
     content/messenger/mailWidgets.xml
+    content/messenger/tabmail.xml
+    content/messenger/tabmail.js
     content/messenger/messenger.css
     content/messenger/messenger.xul
     content/messenger/mailWindowOverlay.xul

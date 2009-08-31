@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -208,6 +208,7 @@ pref("places.frecency.unvisitedTypedBonus", 200);
 // Tabbed browser
 pref("browser.tabs.loadDivertedInBackground", false);
 pref("browser.tabs.loadInBackground", false);
+pref("browser.tabs.opentabfor.doubleclick", false);
 pref("browser.tabs.opentabfor.middleclick", false);
 pref("browser.tabs.opentabfor.urlbar", false);
 pref("browser.tabs.tooltippreview.enable", true);
@@ -220,6 +221,18 @@ pref("browser.tabs.warnOnOpen", true);
 pref("browser.tabs.maxOpenBeforeWarn", 15);
 // 0 = append, 1 = replace
 pref("browser.tabs.loadGroup", 1);
+
+// tab width and clipping
+pref("browser.tabs.tabMinWidth", 100);
+pref("browser.tabs.tabMaxWidth", 250);
+pref("browser.tabs.tabClipWidth", 140);
+
+// Where to show tab close buttons:
+// 0  on active tab only
+// 1  on all tabs until tabClipWidth is reached, then active tab only
+// 2  no close buttons at all
+// 3  at the end of the tabstrip
+pref("browser.tabs.closeButtons", 3);
 
 // lets new tab/window load something different than first window
 // -1 - use navigator startup preference

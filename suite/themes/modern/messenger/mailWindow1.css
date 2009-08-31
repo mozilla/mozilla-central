@@ -57,7 +57,7 @@
 
 /* ::::: border adjustments for focus ring and joined splitters ::::: */
 
-#gray_vertical_splitter {
+#folderpane-splitter {
   border-right: none;
   border-bottom: none;
   border-left: none;
@@ -151,4 +151,10 @@
 
 #messagepanebox[focusring="true"] > #messagepane {
   border-color: #000000;
+}
+
+/* ..... tabmail ..... */
+
+.tab-close-button {
+  list-style-image: url("chrome://global/skin/icons/close.gif");
 }

@@ -1,5 +1,5 @@
-/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -44,11 +44,9 @@ var messengerContractID        = "@mozilla.org/messenger;1";
 var statusFeedbackContractID   = "@mozilla.org/messenger/statusfeedback;1";
 var mailSessionContractID      = "@mozilla.org/messenger/services/session;1";
 var secureUIContractID         = "@mozilla.org/secure_browser_ui;1";
-var prefContractID             = "@mozilla.org/preferences-service;1";
 var msgWindowContractID      = "@mozilla.org/messenger/msgwindow;1";
 
 var messenger;
-var pref;
 var statusFeedback;
 var msgWindow;
 
@@ -99,15 +97,8 @@ function OnMailWindowUnload()
   }
 
   var mailSession = Components.classes[mailSessionContractID].getService();
-  if(mailSession)
-  {
-    mailSession = mailSession.QueryInterface(Components.interfaces.nsIMsgMailSession);
-    if(mailSession)
-    {
-      mailSession.RemoveFolderListener(folderListener);
-    }
-  }
-
+  if (mailSession instanceof Components.interfaces.nsIMsgMailSession)
+    mailSession.RemoveFolderListener(folderListener);
   mailSession.RemoveMsgWindow(msgWindow);
   messenger.setWindow(null, null);
 
@@ -124,10 +115,8 @@ function CreateMailWindowGlobals()
 {
   // get the messenger instance
   CreateMessenger();
-
-  pref = Components.classes[prefContractID]
-                   .getService(Components.interfaces.nsIPrefBranch2);
-
+  // force pref service initialization
+  GetPrefService();
   //Create windows status feedback
   // set the JS implementation of status feedback before creating the c++ one..
   window.MsgStatusFeedback = new nsMsgStatusFeedback();
@@ -204,7 +193,7 @@ function InitMsgWindow()
   msgWindow.msgHeaderSink = messageHeaderSink;
   mailSession.AddMsgWindow(msgWindow);
 
-  var messagepane = document.getElementById("messagepane");
+  var messagepane = getMessageBrowser();
   messagepane.docShell.allowAuth = false;
   msgWindow.rootDocShell.allowAuth = true;
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
@@ -215,7 +204,7 @@ function InitMsgWindow()
 function messagePaneOnResize(event)
 {
   // scale any overflowing images
-  var messagepane = document.getElementById("messagepane");
+  var messagepane = getMessageBrowser();
   var doc = messagepane.contentDocument;
   var imgs = doc.images;
   for each (var img in imgs)
@@ -575,87 +564,6 @@ function loadStartPage()
     dump("Error loading start page.\n");
     return;
   }
-}
-
-// When the ThreadPane is hidden via the displayDeck, we should collapse the
-// elements that are only meaningful to the thread pane. When AccountCentral is
-// shown via the displayDeck, we need to switch the displayDeck to show the
-// accountCentralBox, and load the iframe in the AccountCentral box with
-// corresponding page.
-function ShowAccountCentral()
-{
-    try
-    {
-        document.getElementById("displayDeck").selectedPanel = accountCentralBox;
-        var acctCentralPage = pref.getComplexValue("mailnews.account_central_page.url",
-                                                   Components.interfaces.nsIPrefLocalizedString).data;
-        window.frames["accountCentralPane"].location.href = acctCentralPage;
-    }
-    catch (ex)
-    {
-        dump("Error loading AccountCentral page -> " + ex + "\n");
-        return;
-    }
-}
-
-function ShowingAccountCentral()
-{
-    if (!IsFolderPaneCollapsed())
-        GetFolderTree().focus();
-    gAccountCentralLoaded = true;
-}
-
-function HidingAccountCentral()
-{
-    gAccountCentralLoaded = false;
-}
-
-function ShowThreadPane()
-{
-    document.getElementById("displayDeck").selectedPanel =
-        document.getElementById("threadPaneBox");
-}
-
-function ShowingThreadPane()
-{
-    gSearchBox.collapsed = false;
-    var threadPaneSplitter = document.getElementById("threadpane-splitter");
-    threadPaneSplitter.collapsed = false;
-    if (!threadPaneSplitter.hidden && threadPaneSplitter.getAttribute("state") != "collapsed")
-    {
-        GetMessagePane().collapsed = false;
-        // XXX We need to force the tree to refresh its new height
-        // so that it will correctly scroll to the newest message
-        GetThreadTree().boxObject.height;
-    }
-    document.getElementById("key_toggleMessagePane").removeAttribute("disabled");
-}
-
-function HidingThreadPane()
-{
-    ClearThreadPane();
-    GetUnreadCountElement().hidden = true;
-    GetTotalCountElement().hidden = true;
-    GetMessagePane().collapsed = true;
-    document.getElementById("threadpane-splitter").collapsed = true;
-    gSearchBox.collapsed = true;
-    document.getElementById("key_toggleMessagePane").setAttribute("disabled", "true");
-}
-
-function ObserveDisplayDeckChange(event)
-{
-    var selectedPanel = document.getElementById("displayDeck").selectedPanel;
-    var nowSelected = selectedPanel ? selectedPanel.id : "";
-
-    if (nowSelected == "threadPaneBox")
-        ShowingThreadPane();
-    else
-        HidingThreadPane();
-    
-    if (nowSelected == "accountCentralBox")
-        ShowingAccountCentral();
-    else
-        HidingAccountCentral();
 }
 
 // Given the server, open the twisty and the set the selection

@@ -1,5 +1,5 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -258,22 +258,6 @@ function FolderProperties(name, oldName, uri)
 {
   if (name != oldName)
     RenameFolder(name, uri);
-}
-
-function MsgToggleMessagePane()
-{
-  MsgToggleSplitter("threadpane-splitter");
-  OnClickThreadAndMessagePaneSplitter();
-}
-
-function MsgToggleSplitter(id)
-{
-    var splitter = document.getElementById(id);
-    var state = splitter.getAttribute("state");
-    if (state == "collapsed")
-        splitter.setAttribute("state", null);
-    else
-        splitter.setAttribute("state", "collapsed")
 }
 
 function MsgSetFolderCharset() 

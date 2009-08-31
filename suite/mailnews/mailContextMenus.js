@@ -1,4 +1,4 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -143,7 +143,7 @@ function FillMailContextMenu(aTarget)
   ShowMenuItem("context-copy", !inThreadPane);
 
   ShowMenuItem("mailContext-openNewWindow", inThreadPane && single);
-  ShowMenuItem("mailContext-openNewTab", inThreadPane);
+  ShowMenuItem("mailContext-openNewTab",    inThreadPane && single);
   ShowMenuItem("mailContext-downloadflagged",
                inThreadPane || (numSelected > 1));
   ShowMenuItem("mailContext-downloadselected",
@@ -263,8 +263,11 @@ function FillFolderPaneContextMenu()
   ShowMenuItem("folderPaneContext-getMessages", (numSelected <= 1) && canGetMessages);
   EnableMenuItem("folderPaneContext-getMessages", true);
 
-  ShowMenuItem("folderPaneContext-openNewWindow", (numSelected <= 1) && !isServer);
+  ShowMenuItem("folderPaneContext-openNewWindow", (numSelected <= 1));
   EnableMenuItem("folderPaneContext-openNewWindow", true);
+
+  ShowMenuItem("folderPaneContext-openNewTab", (numSelected <= 1));
+  EnableMenuItem("folderPaneContext-openNewTab", true);
 
   SetupRenameMenuItem(folder, numSelected, isServer, serverType, specialFolder);
   SetupRemoveMenuItem(folder, numSelected, isServer, serverType, specialFolder);

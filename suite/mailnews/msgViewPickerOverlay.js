@@ -1,5 +1,5 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -144,7 +144,7 @@ function ViewChangeByFolder(aFolder)
 function GetLabelForValue(aValue)
 {
   var label = "";
-  let viewPickerPopup = document.getElementById("viewPickerPopup");
+  var viewPickerPopup = document.getElementById("viewPickerPopup");
   if (viewPickerPopup)
   {
     // grab the label for the menulist from one of its menuitems
@@ -177,12 +177,14 @@ function UpdateViewPicker(aValue, aLabel)
 
 function GetFolderInfo(aFolder)
 {
-  if (aFolder)
+  // accounts may not have a msgDatabase, eg. Movemail or RSS
+  try
   {
     var db = aFolder.msgDatabase;
     if (db)
       return db.dBFolderInfo;
   }
+  catch (ex) {}
   return null;
 }
 

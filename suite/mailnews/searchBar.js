@@ -1,5 +1,5 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -96,7 +96,7 @@ var gSearchNotificationListener =
           dbFolderInfo.numMessages = gNumTotalMessages;
           vFolder.updateSummaryTotals(true); // force update from db.
           var msgdb = vFolder.msgDatabase;
-          msgdb.Commit(MSG_DB_LARGE_COMMIT);
+          msgdb.Commit(Components.interfaces.nsMsgDBCommitType.kLargeCommit);
           // now that we have finished loading a virtual folder,
           // scroll to the correct message if there is at least one.
           if (vFolder.getTotalMessages(false) > 0)
@@ -193,9 +193,9 @@ function onEnterInSearchBar()
    viewDebug ("onEnterInSearchBar gSearchInput.value = " /* + gSearchInput.value + " showing criteria = " + gSearchInput.showingSearchCriteria */ +"\n");
    if (gSearchInput.value == ""  /* || gSearchInput.showingSearchCriteria */) 
    {
-     
-     if (gDBView.viewType == nsMsgViewType.eShowQuickSearchResults 
-        || gDBView.viewType == nsMsgViewType.eShowVirtualFolderResults)
+    let viewType = gDBView && gDBView.viewType;
+    if (viewType == nsMsgViewType.eShowQuickSearchResults ||
+        viewType == nsMsgViewType.eShowVirtualFolderResults)
      {
        statusFeedback.showStatusString("");
        disableQuickSearchClearButton();

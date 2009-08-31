@@ -1,5 +1,5 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -148,6 +148,11 @@ function setTitleFromFolder(msgfolder, subject)
       title += " - " + gBrandBundle.getString("brandShortName");
 
     document.title = title;
+
+  // Notify the current tab, it might want to update also.
+  var tabmail = GetTabMail();
+  tabmail.saveCurrentTabState(); // gDBView may have changed!
+  tabmail.setTabTitle();
 }
 
 function UpdateMailToolbar(caller)
@@ -359,7 +364,7 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
   UpdateLocationBar(gMsgFolderSelected);
 
   UpdateStatusMessageCounts(gMsgFolderSelected);
-  
+
   UpdateMailToolbar("reroot folder in 3 pane");
   // hook for extra toolbar items
   var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
@@ -368,6 +373,7 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
   if (gSearchSession && !gVirtualFolderTerms) // another var might be better...
   {
     viewDebug("doing a xf folder search in rerootFolder\n");
+    gCurrentLoadingFolderURI = "";
     ViewChangeByFolder(newFolder);
     gPreQuickSearchView = null; // don't remember the cross folder search
     ScrollToMessageAfterFolderLoad(newFolder);
@@ -724,40 +730,6 @@ function CreateDBView(msgFolder, viewType, viewFlags, sortType, sortOrder)
   ObserverService.notifyObservers(msgFolder, "MsgCreateDBView", viewType + ":" + viewFlags);
 }
 
-function ChangeMessagePaneVisibility(now_hidden)
-{
-  // We also have to disable the Message/Attachments menuitem.
-  // It will be enabled when loading a message with attachments
-  // (see messageHeaderSink.handleAttachment).
-  var node = document.getElementById("msgAttachmentMenu");
-  if (node && now_hidden)
-    node.setAttribute("disabled", "true");
-
-  if (gDBView) {
-    // clear the subject, collapsing won't automatically do this
-    setTitleFromFolder(GetThreadPaneFolder(), null);
-    // the collapsed state is the state after we released the mouse 
-    // so we take it as it is
-    gDBView.suppressMsgDisplay = now_hidden;
-    // set the subject, uncollapsing won't automatically do this
-    gDBView.loadMessageByUrl("about:blank");
-    gDBView.selectionChanged();
-  }
-  var event = document.createEvent('Events');
-  if (now_hidden) {
-    event.initEvent('messagepane-hide', false, true);
-  }
-  else {
-    event.initEvent('messagepane-unhide', false, true);
-  }
-  document.getElementById("messengerWindow").dispatchEvent(event);
-}
-
-function OnClickThreadAndMessagePaneSplitter()
-{
-  ChangeMessagePaneVisibility(IsMessagePaneCollapsed());
-}
-
 function FolderPaneSelectionChange()
 {
     var folderTree = GetFolderTree();
@@ -872,7 +844,8 @@ function FolderPaneSelectionChange()
                 dump("failed to get view & sort values.  ex = " + ex +"\n");
               }
             }
-            if (gDBView && gDBView.viewType == nsMsgViewType.eShowQuickSearchResults)
+            // clear cached view if we have no db or a pending quick search
+            if (!gDBView || gDBView.viewType == nsMsgViewType.eShowQuickSearchResults)
             {
               if (gPreQuickSearchView) //close cached view before quick search
               {
@@ -893,8 +866,12 @@ function FolderPaneSelectionChange()
               viewType = nsMsgViewType.eShowAllThreads;  //override viewType - we don't want to start w/ quick search
             ChangeFolder(realFolder, msgFolder, viewType, viewFlags, sortType, sortOrder);
            if (gVirtualFolderTerms)
-             gDBView.viewFolder = msgFolder;        
-    }
+             gDBView.viewFolder = msgFolder;
+
+    let tabmail = GetTabMail();
+    tabmail.saveCurrentTabState(); // gDBView may have changed!
+    tabmail.setTabTitle();
+  }
     else
     {
         msgWindow.openFolder = null;

@@ -1,5 +1,5 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -25,6 +25,7 @@
  *   Håkan Waara (hwaara@chello.se)
  *   Neil Rashbrook (neil@parkwaycc.co.uk)
  *   Seth Spitzer <sspitzer@netscape.com>
+ *   Karsten Düsterloh <mnyromyr@tprac.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -48,10 +49,8 @@ const nsMsgViewIndex_None = 0xFFFFFFFF;
 const kMailCheckOncePrefName = "mail.startup.enabledMailCheckOnce";
 
 var gFolderTree;
-var gMessagePane;
 var gSearchInput;
 
-var gThreadAndMessagePaneSplitter = null;
 var gUnreadCount = null;
 var gTotalCount = null;
 
@@ -92,6 +91,8 @@ function SelectAndScrollToKey(aMsgKey)
 {
   // select the desired message
   // if the key isn't found, we won't select anything
+  if (!gDBView)
+    return false;
   gDBView.selectMsgByKey(aMsgKey);
 
   // is there a selection?
@@ -126,7 +127,7 @@ function ScrollToMessageAfterFolderLoad(folder)
     // if we still haven't scrolled,
     // scroll to the newest, which might be the top or the bottom
     // depending on our sort order and sort type
-    if (gDBView.sortOrder == nsMsgViewSortOrder.ascending)
+    if (gDBView && gDBView.sortOrder == nsMsgViewSortOrder.ascending)
     {
       switch (gDBView.sortType)
       {
@@ -147,27 +148,48 @@ function ScrollToMessageAfterFolderLoad(folder)
 }
 
 // the folderListener object
-var folderListener = {
-    OnItemAdded: function(parentItem, item) { },
+var folderListener =
+{
+  OnItemAdded:   function(parentItem, item) {},
+  OnItemRemoved: function(parentItem, item) {},
 
-    OnItemRemoved: function(parentItem, item) { },
+  OnItemPropertyChanged:        function(item, property, oldValue, newValue) {},
+  OnItemBoolPropertyChanged:    function(item, property, oldValue, newValue) {},
+  OnItemUnicharPropertyChanged: function(item, property, oldValue, newValue) {},
+  OnItemPropertyFlagChanged:    function(item, property, oldFlag,  newFlag)  {},
 
-    OnItemPropertyChanged: function(item, property, oldValue, newValue) { },
+  OnItemIntPropertyChanged: function(item, property, oldValue, newValue)
+  {
+    // handle the currently visible folder
+    if (item == gMsgFolderSelected)
+    {
+      let prop = property.toString();
+      if (prop == "TotalMessages" || prop == "TotalUnreadMessages")
+      {
+        UpdateStatusMessageCounts(gMsgFolderSelected);
+        item = item.QueryInterface(Components.interfaces.nsIRDFResource);
+        UpdateLocationBar(item);
+      }
+    }
 
-    OnItemIntPropertyChanged: function(item, property, oldValue, newValue) {
-      if (item == gMsgFolderSelected) {
-        if(property.toString() == "TotalMessages" || property.toString() == "TotalUnreadMessages") {
-          UpdateStatusMessageCounts(gMsgFolderSelected);
-          item = item.QueryInterface(Components.interfaces.nsIRDFResource);
-          UpdateLocationBar(item);
+    // check folders shown in tabs
+    if (item instanceof Components.interfaces.nsIMsgFolder)
+    {
+      // find corresponding tabinfos
+      // we may have the folder openened in more than one tab
+      let tabmail = GetTabMail();
+      for (let i = 0; i < tabmail.tabInfo.length; ++i)
+      {
+        // if we never switched away from the tab, we only have just one
+        let tabFolder = tabmail.tabInfo[i].msgSelectedFolder || gMsgFolderSelected;
+        if (tabFolder == item)
+        {
+          // update tab title incl. any icon styles
+          tabmail.setTabTitle(tabmail.tabInfo[i]);
         }
       }
-    },
-
-    OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) { },
-
-    OnItemUnicharPropertyChanged: function(item, property, oldValue, newValue) { },
-    OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) { },
+    }
+  },
 
     OnItemEvent: function(folder, event) {
       var eventType = event.toString();
@@ -234,7 +256,8 @@ var folderListener = {
           // Folder loading is over,
           // now issue quick search if there is an email address.
           viewDebug("in folder loaded gVirtualFolderTerms = " + gVirtualFolderTerms + "\n");
-          viewDebug("in folder loaded gMsgFolderSelected = " + gMsgFolderSelected.URI + "\n");
+          viewDebug("in folder loaded gMsgFolderSelected = " +
+                    gMsgFolderSelected && gMsgFolderSelected.URI + "\n");
           if (rerootingFolder)
           {
             if (gSearchEmailAddress)
@@ -638,7 +661,7 @@ var gThreePaneIncomingServerListener = {
 }
 
 function UpdateMailPaneConfig() {
-  const dynamicIds = ["messagesBox", "mailContent", "threadPaneBox"];
+  const dynamicIds = ["messagesBox", "mailContent", "messengerBox"];
   var desiredId = dynamicIds[pref.getIntPref("mail.pane_config.dynamic")];
   var messagePane = GetMessagePane();
   if (messagePane.parentNode.id != desiredId) {
@@ -653,10 +676,11 @@ function UpdateMailPaneConfig() {
     desiredParent.appendChild(messagePaneSplitter);
     desiredParent.appendChild(messagePane);
     messagePaneSplitter.orient = desiredParent.orient;
-    messenger.setWindow(null, null);
-    messenger.setWindow(window, msgWindow);
-    if (gDBView && GetNumSelectedMessages() == 1)
-      gDBView.reloadMessage();
+    // Reroot message display
+    InvalidateTabDBs();
+    let tabmail = GetTabMail();
+    tabmail.currentTabInfo = null;
+    tabmail.updateCurrentTab();
   }
 }
 
@@ -677,6 +701,12 @@ function OnLoadMessenger()
   UpdateMailPaneConfig();
   Create3PaneGlobals();
   verifyAccounts(null, false);
+
+  // initialize tabmail system - see tabmail.js and tabmail.xml for details
+  let tabmail = GetTabMail();
+  tabmail.registerTabType(gMailNewsTabsType);
+  tabmail.openFirstTab();
+  window.tryToClose = MailWindowIsClosing;
 
   InitMsgWindow();
   messenger.setWindow(window, msgWindow);
@@ -747,12 +777,46 @@ function OnUnloadMessenger()
 
   OnLeavingFolder(gMsgFolderSelected);  // mark all read in current folder
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
+  GetTabMail().closeTabs();
+
   // FIX ME - later we will be able to use onload from the overlay
   OnUnloadMsgHeaderPane();
-
   UnloadPanes();
-
   OnMailWindowUnload();
+}
+
+// we probably want to warn if more than one tab is closed
+function MailWindowIsClosing()
+{
+  let reallyClose = true;
+  let numtabs = GetTabMail().tabInfo.length;
+  if (numtabs > 1)
+  {
+    let shouldPrompt = pref.getBoolPref("browser.tabs.warnOnClose");
+    if (shouldPrompt)
+    {
+      let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                    .getService(Components.interfaces.nsIPromptService);
+      // default to true: if it were false, we wouldn't get this far
+      let warnOnClose = {value: true};
+      let buttonPressed = promptService.confirmEx(
+        window,
+        gMessengerBundle.getString('tabs.closeWarningTitle'),
+        gMessengerBundle.getFormattedString("tabs.closeWarning", [numtabs], 1),
+        (promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0) +
+          (promptService.BUTTON_TITLE_CANCEL * promptService.BUTTON_POS_1),
+        gMessengerBundle.getString('tabs.closeButton'),
+        null,
+        null,
+        gMessengerBundle.getString('tabs.closeWarningPromptMe'),
+        warnOnClose);
+      reallyClose = (buttonPressed == 0);
+      // don't set the pref unless OK was pressed and it's false
+      if (reallyClose && !warnOnClose.value)
+        pref.setBoolPref("browser.tabs.warnOnClose", false);
+    }
+  }
+  return reallyClose;
 }
 
 function NotifyObservers(aSubject, aTopic, aData)
@@ -783,7 +847,6 @@ function loadStartFolder(initialUri)
         if (!initialUri)
         {
             // Startup time.
-
             defaultServer = accountManager.defaultAccount.incomingServer;
 
             // set the initialUri to the server, so we select it
@@ -1062,13 +1125,6 @@ function GetSearchInput()
   return gSearchInput;
 }
 
-function GetMessagePane()
-{
-  if (!gMessagePane)
-    gMessagePane = document.getElementById("messagepanebox");
-  return gMessagePane;
-}
-
 function GetMessagePaneFrame()
 {
   return window.content;
@@ -1090,13 +1146,6 @@ function FindInSidebar(currentWindow, id)
   return null;
 }
 
-function GetThreadAndMessagePaneSplitter()
-{
-  if (!gThreadAndMessagePaneSplitter)
-    gThreadAndMessagePaneSplitter = document.getElementById('threadpane-splitter');
-  return gThreadAndMessagePaneSplitter;
-}
-
 function GetUnreadCountElement()
 {
   if (!gUnreadCount)
@@ -1109,16 +1158,6 @@ function GetTotalCountElement()
   if (!gTotalCount)
     gTotalCount = document.getElementById('totalMessageCount');
   return gTotalCount;
-}
-
-function IsMessagePaneCollapsed()
-{
-  return GetMessagePane().collapsed;
-}
-
-function IsFolderPaneCollapsed()
-{
-  return GetFolderTree().parentNode.collapsed;
 }
 
 function FindMessenger()
@@ -1143,12 +1182,12 @@ function ClearThreadPaneSelection()
 
 function ClearMessagePane()
 {
-  if(gHaveLoadedMessage)
+  if (gHaveLoadedMessage)
   {
     gHaveLoadedMessage = false;
     gCurrentDisplayedMessage = null;
     if (GetMessagePaneFrame().location.href != "about:blank")
-        GetMessagePaneFrame().location.href = "about:blank";
+      GetMessagePaneFrame().location.href = "about:blank";
 
     // hide the message header view AND the message pane...
     HideMessageHeaderPane();
@@ -1176,7 +1215,7 @@ function ChangeSelectionWithoutContentLoad(event, tree)
     var row = treeBoxObj.getRowAt(event.clientX, event.clientY);
     // make sure that row.value is valid so that it doesn't mess up
     // the call to ensureRowIsVisible().
-    if((row >= 0) && !treeSelection.isSelected(row))
+    if ((row >= 0) && !treeSelection.isSelected(row))
     {
         var saveCurrentIndex = treeSelection.currentIndex;
         treeSelection.selectEventsSuppressed = true;
@@ -1186,7 +1225,7 @@ function ChangeSelectionWithoutContentLoad(event, tree)
         treeSelection.selectEventsSuppressed = false;
 
         // Keep track of which row in the thread pane is currently selected.
-        if(tree.id == "threadTree")
+        if (tree.id == "threadTree")
           gThreadPaneCurrentSelectedIndex = row;
     }
     event.stopPropagation();
@@ -1194,60 +1233,79 @@ function ChangeSelectionWithoutContentLoad(event, tree)
 
 function TreeOnMouseDown(event)
 {
-    // Detect right mouse click and change the highlight to the row
-    // where the click happened without loading the message headers in
-    // the Folder or Thread Pane.
-    if (event.button == 2)
-    {
-      gRightMouseButtonDown = true;
-      ChangeSelectionWithoutContentLoad(event, event.target.parentNode);
-    }
-    else
-      gRightMouseButtonDown = false;
+  // Detect right mouse click and change the highlight to the row
+  // where the click happened without loading the message headers in
+  // the Folder or Thread Pane.
+  // Same for middle click, which will open the folder/message in a tab.
+  gRightMouseButtonDown = event.button == kMouseButtonRight;
+  if (!gRightMouseButtonDown)
+    gRightMouseButtonDown = AllowOpenTabOnMiddleClick() &&
+                            event.button == kMouseButtonMiddle;
+  if (gRightMouseButtonDown)
+    ChangeSelectionWithoutContentLoad(event, event.target.parentNode);
 }
 
 function FolderPaneOnClick(event)
 {
-    // we only care about button 0 (left click) events
-    if (event.button != 0)
-        return;
-
-    var folderTree = GetFolderTree();
-    var row = {};
-    var col = {};
-    var elt = {};
-    folderTree.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, elt);
-    if (row.value == -1) {
-      if (event.originalTarget.localName == "treecol")
-      {
-        // clicking on the name column in the folder pane should not sort
-        event.stopPropagation();
-      }
+  // we may want to open the folder in a new tab on middle click
+  if (event.button == kMouseButtonMiddle)
+  {
+    if (AllowOpenTabOnMiddleClick())
+    {
+      MsgOpenNewTabForFolder();
+      RestoreSelectionWithoutContentLoad(GetFolderTree());
+      return;
     }
-    else if ((event.originalTarget.localName == "slider") ||
-             (event.originalTarget.localName == "scrollbarbutton")) {
+  }
+
+  // otherwise, we only care about left click events
+  if (event.button != kMouseButtonLeft)
+    return;
+
+  var folderTree = GetFolderTree();
+  var row = {}, col = {}, elt = {};
+  folderTree.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, elt);
+  if (row.value == -1)
+  {
+    if (event.originalTarget.localName == "treecol")
+    {
+      // clicking on the name column in the folder pane should not sort
       event.stopPropagation();
     }
-    else if ((event.detail == 2) && (elt.value != "twisty") &&
-             (folderTree.view.getLevel(row.value) != 0)) {
-      FolderPaneDoubleClick(row.value, event);
-    }
+  }
+  else if ((event.originalTarget.localName == "slider") ||
+           (event.originalTarget.localName == "scrollbarbutton"))
+  {
+    event.stopPropagation();
+  }
+  else if ((event.detail == 2) &&
+           (elt.value != "twisty") &&
+           (folderTree.view.getLevel(row.value) != 0))
+  {
+    FolderPaneDoubleClick(row.value, event);
+  }
 }
 
 function FolderPaneDoubleClick(folderIndex, event)
 {
-    if (!pref.getBoolPref("mailnews.reuse_thread_window2"))
-    {
-      var folderResource = GetFolderResource(GetFolderTree(), folderIndex);
-      // Open a new msg window only if we are double clicking on
-      // folders or newsgroups.
-      MsgOpenNewWindowForFolder(folderResource.Value, -1 /* key */);
+  // In tabmail land, lazyness is dead!
+  // We either open the folder in a tab or a new window...
+  if (AllowOpenTabOnDoubleClick())
+  {
+    MsgOpenNewTabForFolder();
+  }
+  else
+  {
+    let folderResource = GetFolderResource(GetFolderTree(), folderIndex);
+    // Open a new msg window only if we are double clicking on
+    // folders or newsgroups.
+    MsgOpenNewWindowForFolder(folderResource.Value, nsMsgKey_None);
+  }
 
-      // double clicking should not toggle the open / close state of the
-      // folder.  this will happen if we don't prevent the event from
-      // bubbling to the default handler in tree.xml
-      event.stopPropagation();
-    }
+  // Double-clicking should not toggle the open/close state of the folder.
+  // This will happen if we don't prevent the event from bubbling to the
+  // default handler in tree.xml.
+  event.stopPropagation();
 }
 
 function ChangeSelection(tree, newIndex)

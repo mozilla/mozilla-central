@@ -80,6 +80,7 @@
   <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/msgViewNavigation.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
+  <script type="application/x-javascript" src="chrome://messenger/content/tabmail.js"/>
 
   <commandset id="mailCommands">
     <commandset id="mailFileMenuItems"/>

@@ -1,5 +1,5 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Karsten Düsterloh <mnyromyr@tprac.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -41,53 +42,64 @@ var gThreadPaneCommandUpdater = null;
 
 function ThreadPaneOnClick(event)
 {
-    // we only care about button 0 (left click) events
-    if (event.button != 0) return;
-
-    // we are already handling marking as read and flagging
-    // in nsMsgDBView.cpp
-    // so all we need to worry about here is double clicks
-    // and column header.
-    //
-    // we get in here for clicks on the "treecol" (headers)
-    // and the "scrollbarbutton" (scrollbar buttons)
-    // we don't want those events to cause a "double click"
-
-    var t = event.originalTarget;
-
-    if (t.localName == "treecol") {
-       HandleColumnClick(t.id);
+  // we may want to open the message in a new tab on middle click
+  if (event.button == kMouseButtonMiddle)
+  {
+    if (AllowOpenTabOnMiddleClick())
+    {
+      // we don't allow new tabs in the search dialog
+      if ("RestoreSelectionWithoutContentLoad" in window)
+      {
+        MsgOpenNewTabForMessage();
+        RestoreSelectionWithoutContentLoad(GetThreadTree());
+      }
+      return;
     }
-    else if (t.localName == "treechildren") {
-      var row = new Object;
-      var col = new Object;
-      var childElt = new Object;
+  }
 
-      var tree = GetThreadTree();
-      // figure out what cell the click was in
-      tree.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
-      if (row.value == -1)
-       return;
+  // otherwise, we only care about left click events
+  if (event.button != kMouseButtonLeft)
+    return;
 
-      // if the cell is in a "cycler" column
-      // or if the user double clicked on the twisty,
-      // don't open the message in a new window
-      if (event.detail == 2 && !col.value.cycler && (childElt.value != "twisty")) {
-        ThreadPaneDoubleClick();
-        // double clicking should not toggle the open / close state of the 
-        // thread.  this will happen if we don't prevent the event from
-        // bubbling to the default handler in tree.xml
-        event.stopPropagation();
-      }
-      else if (col.value.id == "junkStatusCol") {
-        MsgJunkMailInfo(true);
-      }
-      else if (col.value.id == "threadCol" && !event.shiftKey &&
-          (event.ctrlKey || event.metaKey)) {
-        gDBView.ExpandAndSelectThreadByIndex(row.value, true);
-        event.stopPropagation();
-      }
+  // We are already handling marking as read and flagging in nsMsgDBView.cpp,
+  // so all we need to worry about here is double clicks and column header.
+  // We also get in here for clicks on the "treecol" (headers) and the
+  // "scrollbarbutton" (scrollbar buttons), but we don't want those events to
+  // cause a "double click".
+  var t = event.originalTarget;
+  if (t.localName == "treecol")
+  {
+    HandleColumnClick(t.id);
+  }
+  else if (t.localName == "treechildren")
+  {
+    let row = {}, col = {}, childElt = {};
+    let tree = GetThreadTree();
+    // figure out what cell the click was in
+    tree.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
+    if (row.value == -1)
+      return;
+
+    // If the cell is in a "cycler" column or if the user double clicked on the
+    // twisty, don't open the message in a new window.
+    if (event.detail == 2 && !col.value.cycler && (childElt.value != "twisty"))
+    {
+      ThreadPaneDoubleClick();
+      // Double clicking should not toggle the open/close state of the thread.
+      // This will happen if we don't prevent the event from bubbling to the
+      // default handler in tree.xml.
+      event.stopPropagation();
     }
+    else if (col.value.id == "junkStatusCol")
+    {
+      MsgJunkMailInfo(true);
+    }
+    else if (col.value.id == "threadCol" && !event.shiftKey && (event.ctrlKey || event.metaKey))
+    {
+      gDBView.ExpandAndSelectThreadByIndex(row.value, true);
+      event.stopPropagation();
+    }
+  }
 }
 
 function nsMsgDBViewCommandUpdater()
@@ -202,18 +214,26 @@ function HandleColumnClick(columnID)
 function ThreadPaneDoubleClick()
 {
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-  if (IsSpecialFolderSelected(nsMsgFolderFlags.Drafts, true)) {
+  if (IsSpecialFolderSelected(nsMsgFolderFlags.Drafts, true))
+  {
     MsgComposeDraftMessage();
   }
-  else if(IsSpecialFolderSelected(nsMsgFolderFlags.Templates, true)) {
+  else if(IsSpecialFolderSelected(nsMsgFolderFlags.Templates, true))
+  {
     var loadedFolder = GetLoadedMsgFolder();
     var messageArray = GetSelectedMessages();
-
     ComposeMessage(Components.interfaces.nsIMsgCompType.Template,
                    Components.interfaces.nsIMsgCompFormat.Default,
                    loadedFolder, messageArray);
   }
-  else {
+  else if (AllowOpenTabOnDoubleClick())
+  {
+    // open the message in a new tab on double click
+    MsgOpenNewTabForMessage();
+    RestoreSelectionWithoutContentLoad(GetThreadTree());
+  }
+  else
+  {
     MsgOpenSelectedMessages();
   }
 }
@@ -417,7 +437,7 @@ function UpdateSortIndicators(sortType, sortOrder)
 
 function IsSpecialFolderSelected(flags, checkAncestors)
 {
-  let folder = GetThreadPaneFolder();
+  var folder = GetThreadPaneFolder();
   return folder && folder.isSpecialFolder(flags, checkAncestors);
 }
 
@@ -472,7 +492,7 @@ function ThreadPaneOnLoad()
     return;
 
   tree.addEventListener("mousedown",TreeOnMouseDown,true);
-  let delay = pref.getIntPref("mailnews.threadpane_select_delay");
+  var delay = pref.getIntPref("mailnews.threadpane_select_delay");
   document.getElementById("threadTree")._selectDelay = delay;
 }
 

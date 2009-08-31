@@ -1,5 +1,5 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -263,7 +263,7 @@ function OnLoadMsgHeaderPane()
 
   initializeHeaderViewTables();
 
-  var toggleHeaderView = document.getElementById("msgHeaderView");
+  var toggleHeaderView = GetHeaderPane();
   var initialCollapsedSetting = toggleHeaderView.getAttribute("state");
   if (initialCollapsedSetting == "true")
     gCollapsedHeaderViewMode = true;   
@@ -271,8 +271,7 @@ function OnLoadMsgHeaderPane()
   // dispatch an event letting any listeners know that we have loaded the message pane
   var event = document.createEvent('Events');
   event.initEvent('messagepane-loaded', false, true);
-  var headerViewElement = document.getElementById("msgHeaderView");
-  headerViewElement.dispatchEvent(event);
+  toggleHeaderView.dispatchEvent(event);
 }
 
 function OnUnloadMsgHeaderPane()
@@ -282,8 +281,7 @@ function OnUnloadMsgHeaderPane()
   // dispatch an event letting any listeners know that we have unloaded the message pane
   var event = document.createEvent('Events');
   event.initEvent('messagepane-unloaded', false, true);
-  var headerViewElement = document.getElementById("msgHeaderView");
-  headerViewElement.dispatchEvent(event);
+  GetHeaderPane().dispatchEvent(event);
 }
 
 const MsgHdrViewObserver =
@@ -718,14 +716,13 @@ function updateHeaderViews()
   }
 }
 
-function ToggleHeaderView ()
+function ToggleHeaderView()
 {
   var expandedNode = document.getElementById("expandedHeaderView");
   var collapsedNode = document.getElementById("collapsedHeaderView");
-  var toggleHeaderView = document.getElementById("msgHeaderView");
 
   if (gCollapsedHeaderViewMode)
-  {          
+  {
     gCollapsedHeaderViewMode = false;
     // hide the current view
     hideHeaderView(gCollapsedHeaderView);
@@ -749,6 +746,7 @@ function ToggleHeaderView ()
     expandedNode.collapsed = true;
   }  
 
+  var toggleHeaderView = GetHeaderPane();
   if (gCollapsedHeaderViewMode)
     toggleHeaderView.setAttribute("state", "true");
   else
@@ -913,7 +911,7 @@ function ShowMessageHeaderPane()
   /* workaround for 39655 */
   if (gFolderJustSwitched) 
   {
-    var el = document.getElementById("msgHeaderView");
+    let el = GetHeaderPane();
     el.setAttribute("style", el.getAttribute("style"));
     gFolderJustSwitched = false;    
   }

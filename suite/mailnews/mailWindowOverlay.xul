@@ -83,6 +83,11 @@
   <stringbundle id="findBundle" src="chrome://global/locale/finddialog.properties"/>
 </stringbundleset>
 
+<broadcasterset id="mailBroadcasters">
+  <!-- Go Menu -->
+  <broadcaster id="mailFolderPane"/>
+</broadcasterset>
+
 <!-- Performance optimization...we include utilityOverlay.xul which defines some command sets
      which are updated based on events like focus and select. We have our own custom events
      which we use to optmize when we do command updating. To avoid unnecessary command updating,
@@ -329,6 +334,10 @@
   <key id="space" key=" " modifiers="shift any" oncommand="SpaceHit(event);"/>
 
   <!-- File Menu -->
+  <key id="key_newTab"
+       key="&newTabCmd.key;"
+       modifiers="accel"
+       oncommand="MsgOpenNewTab();"/>
   <key id="key_newNavigator"/>
   <key id="key_newBlankPage"/>
   <key id="key_close"/>
@@ -405,8 +414,19 @@
   <key keycode="VK_F6" oncommand="SwitchPaneFocus(event);"/>
 
   <!-- View Toggle Keys (F8/F9) -->
-  <key id="key_toggleMessagePane" keycode="VK_F8" oncommand="MsgToggleMessagePane();" disabled="true"/>
-  <key id="key_toggleFolderPane" keycode="VK_F9" oncommand="MsgToggleSplitter('gray_vertical_splitter');" observes="mailDisableKeys"/>
+  <key id="key_toggleFolderPane"
+       keycode="VK_F9"
+       oncommand="MsgToggleFolderPane(true);"
+       observes="mailDisableKeys"/>
+  <key id="key_toggleThreadPane"
+       keycode="VK_F8"
+       modifiers="shift"
+       oncommand="MsgToggleThreadPane();"
+       disabled="true"/>
+  <key id="key_toggleMessagePane"
+       keycode="VK_F8"
+       oncommand="MsgToggleMessagePane(true);"
+       disabled="true"/>
 
   <!-- Tag Keys -->
   <!-- Includes both shifted and not, for Azerty and other layouts where the
@@ -443,22 +463,22 @@
   <popup id="folderPaneContext"
          onpopupshowing="return FillFolderPaneContextMenu();"
          onpopuphiding="if (event.target == this) FolderPaneOnPopupHiding();">
-
     <menuitem id="folderPaneContext-getMessages"
               label="&folderContextGetMessages.label;"
               accesskey="&folderContextGetMessages.accesskey;"
               oncommand="MsgGetMessage();"/>
-
     <menuitem id="folderPaneContext-openNewWindow"
               label="&folderContextOpenNewWindow.label;"
               accesskey="&folderContextOpenNewWindow.accesskey;"
               oncommand="MsgOpenNewWindowForFolder(null,-1);"/>
-
+    <menuitem id="folderPaneContext-openNewTab"
+              label="&folderContextOpenNewTab.label;"
+              accesskey="&folderContextOpenNewTab.accesskey;"
+              oncommand="MsgOpenNewTabForFolder();"/>
     <menuitem id="folderPaneContext-searchMessages"
               label="&folderContextSearchMessages.label;"
               accesskey="&folderContextSearchMessages.accesskey;"
               command="cmd_search"/>
-
     <menuitem id="folderPaneContext-subscribe"
         label="&folderContextSubscribe.label;"
         accesskey="&folderContextSubscribe.accesskey;"
@@ -547,6 +567,10 @@
               label="&contextOpenNewWindow.label;"
               accesskey="&contextOpenNewWindow.accesskey;"
               oncommand="MsgOpenNewWindowForMessage();"/>
+    <menuitem id="mailContext-openNewTab"
+              label="&contextOpenNewTab.label;"
+              accesskey="&contextOpenNewTab.accesskey;"
+              oncommand="MsgOpenNewTabForMessage();"/>
     <menuseparator id="mailContext-sep-open"/>
     <menuitem id="mailContext-replySender"
               label="&contextReplySender.label;"
@@ -935,16 +959,23 @@
                     accesskey="&newNewMsgCmd.accesskey;"
                     key="key_newMessage"
                     oncommand="MsgNewMessage(null);"/>
-          <menuitem id="menu_newFolder" label="&newFolderCmd.label;"
-                     oncommand="MsgNewFolder(NewFolder);"
-                     accesskey="&newFolderCmd.accesskey;"/>
+          <menuitem id="menu_newFolder"
+                    label="&newFolderCmd.label;"
+                    accesskey="&newFolderCmd.accesskey;"
+                    oncommand="MsgNewFolder(NewFolder);"/>
           <menuitem id="menu_newVirtualFolder" label="&newVirtualFolderCmd.label;"
                     oncommand="MsgVirtualFolderProperties(false);"
                     accesskey="&newVirtualFolderCmd.accesskey;"/>
-          <menuitem id="newAccountMenuItem" label="&newAccountCmd.label;"
-                     accesskey="&newAccountCmd.accesskey;"
-                     oncommand="MsgAccountWizard();"/>
+          <menuitem id="newAccountMenuItem"
+                    label="&newAccountCmd.label;"
+                    accesskey="&newAccountCmd.accesskey;"
+                    oncommand="MsgAccountWizard();"/>
           <menuseparator id="newPopupMenuSeparator"/>
+          <menuitem id="menu_newTab"
+                    label="&newTabCmd.label;"
+                    accesskey="&newTabCmd.accesskey;"
+                    key="key_newTab"
+                    oncommand="MsgOpenNewTab();"/>
           <menuitem id="menu_newNavigator"/>
           <menuitem id="menu_newEditor"/>
         </menupopup>
@@ -1152,11 +1183,26 @@
           <menuitem id="messagePaneVertical" type="radio" label="&messagePaneVertical.label;" name="viewlayoutgroup"
                     accesskey="&messagePaneVertical.accesskey;" oncommand="ChangeMailLayout(kVerticalMailLayout);"/>
           <menuseparator id="viewMenuAfterPaneVerticalSeparator"/>
-          <menuitem id="menu_showMessagePane" type="checkbox" label="&showMessagePaneCmd.label;" key="key_toggleMessagePane"
-                    accesskey="&showMessagePaneCmd.accesskey;" oncommand="MsgToggleMessagePane();"
+          <menuitem id="menu_showMessagePane"
+                    type="checkbox"
+                    label="&showMessagePaneCmd.label;"
+                    accesskey="&showMessagePaneCmd.accesskey;"
+                    key="key_toggleMessagePane"
+                    oncommand="MsgToggleMessagePane(true);"
                     observes="mailHideMenus"/>
-          <menuitem id="menu_showFolderPane" type="checkbox" label="&showFolderPaneCmd.label;" key="key_toggleFolderPane"
-                    accesskey="&showFolderPaneCmd.accesskey;" oncommand="MsgToggleSplitter('gray_vertical_splitter');"
+          <menuitem id="menu_showThreadPane"
+                    type="checkbox"
+                    label="&showThreadPaneCmd.label;"
+                    accesskey="&showThreadPaneCmd.accesskey;"
+                    key="key_toggleThreadPane"
+                    oncommand="MsgToggleThreadPane();"
+                    observes="mailHideMenus"/>
+          <menuitem id="menu_showFolderPane"
+                    type="checkbox"
+                    label="&showFolderPaneCmd.label;"
+                    accesskey="&showFolderPaneCmd.accesskey;"
+                    key="key_toggleFolderPane"
+                    oncommand="MsgToggleFolderPane(true);"
                     observes="mailHideMenus"/>
         </menupopup>
       </menu>
@@ -1394,6 +1440,7 @@
       <rule iscontainer="true" isempty="false">
         <menupopup>
           <menu uri="rdf:*" class="folderMenuItem menu-iconic"
+                observes="mailFolderPane"
               SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
               BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
               IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
@@ -1423,6 +1470,7 @@
       <rule>
         <menupopup>
           <menuitem uri="rdf:*" value="rdf:*" class="folderMenuItem menuitem-iconic"
+                    observes="mailFolderPane"
               SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
               BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
               IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"

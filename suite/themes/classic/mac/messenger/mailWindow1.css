@@ -85,7 +85,7 @@
 
 /* Leopard-styled "zero-width" vertical splitter */
 
-#gray_vertical_splitter {
+#folderpane_splitter {
   border: solid #B3B3B3;
   border-width: 0 1px 0 0;
   min-width: 1px;
@@ -94,7 +94,7 @@
 
 /* Make sure users find the splitter when it's collapsed... */
 
-#gray_vertical_splitter[state="collapsed"] {
+#folderpane_splitter[state="collapsed"] {
   min-width: 5px;
   background-color: #D6DDE5;
   cursor: e-resize;
@@ -172,4 +172,20 @@
 
 #messagepanebox[focusring="true"] > #messagepane {
   border-color: -moz-mac-focusring;
+}
+
+.tab-close-button {
+  margin: 0;
+}
+
+.tabmail-strip {
+  border-bottom: 1px solid #A1A1A1;
+  padding-bottom: 3px;
+  background-color: #E8E8E8;
+}
+
+/* ..... tabmail ..... */
+
+.tab-close-button {
+  margin: 0;
 }

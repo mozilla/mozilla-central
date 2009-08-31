@@ -64,7 +64,12 @@ tabpanels {
   padding: 4px 7px;
 }
 
-.tabbrowser-tab:hover > .tab-middle {
+.tab-middle[selected="true"] {
+  padding: 1px 7px 4px;
+  background-color: #E8E8E8;
+}
+
+.tabbrowser-tab:hover > .tab-middle:not([selected="true"]) {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -86,11 +91,6 @@ tabpanels {
   outline: 2px solid -moz-mac-focusring;
   outline-offset: -2px;
   -moz-outline-radius: 5px;
-}
-
-.tab-middle[selected="true"] {
-  padding: 1px 7px 4px;
-  -moz-appearance: dialog;
 }
 
 .tabbrowser-tab[beforeselected="true"]:not([chromedir="rtl"]) {

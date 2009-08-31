@@ -204,3 +204,52 @@ folderSummaryMessage
 dummy.usesMailWidgets {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#dummy");
 }
+
+/* tabmail */
+
+#tabmail
+{
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail");
+}
+
+.tabmail-tabs {
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-tabs");
+}
+
+.tabmail-arrowscrollbox {
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-arrowscrollbox");
+}
+
+.tabmail-tab {
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-tab");
+}
+
+.tabs-newbutton {
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-new-tab-button");
+  display: none;
+}
+
+.tabmail-tabs[closebuttons="closeatend"] .tabs-newbutton {
+  display: -moz-box;
+}
+
+.tab-close-button,
+.tabs-closebutton {
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-close-tab-button");
+}
+
+.tab-close-button {
+  display: none;
+}
+
+.tabmail-tabs:not([closebuttons="noclose"]):not([closebuttons="closeatend"]) > .tabmail-tab[selected="true"] > .tab-close-button {
+  display: -moz-box;
+}
+
+.tabmail-tabs[closebuttons="alltabs"] .tab-close-button {
+  display: -moz-box;
+}
+
+.tabs-alltabs-popup {
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-alltabs-popup");
+}

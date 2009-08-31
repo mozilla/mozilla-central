@@ -59,7 +59,7 @@
 
 /* ..... splitter adjustments ..... */
 
-#gray_vertical_splitter {
+#folderpane-splitter {
   border-right: none;
   border-bottom: none;
   border-left: none;
@@ -136,4 +136,13 @@
   border-color: #000000;
 }
 
+/* ..... tabmail ..... */
 
+tabpanels {
+  /* don't draw tabpanel borders; see also tabbrowser.css */
+  -moz-appearance: none;
+}
+
+.tab-close-button {
+  margin: 0;
+}

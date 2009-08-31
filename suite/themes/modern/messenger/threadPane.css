@@ -224,23 +224,30 @@ treechildren::-moz-tree-image(junkStatusCol, notjunk) {
 
 /* ..... subject column ..... */
 
+.tabmail-tab[type="message"],
+treechildren::-moz-tree-image(subjectCol) {
+  list-style-image: url("chrome://messenger/skin/icons/message-mail.gif");
+}
+
 treechildren::-moz-tree-image(subjectCol) {
   -moz-margin-end: 2px;
-  list-style-image: url("chrome://messenger/skin/icons/message-mail.gif");
 }
 
 treechildren::-moz-tree-image(subjectCol, new) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-new.gif");
 }
 
+.tabmail-tab[type="message"][Attachment="true"],
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, attach) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-attach.gif");
 }
 
+.tabmail-tab[type="message"][IMAPDeleted="true"],
 treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-imapdelete.gif");
 }
 
+.tabmail-tab[type="message"][Offline="true"],
 treechildren::-moz-tree-image(subjectCol, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-offl.gif");
 }
@@ -249,23 +256,39 @@ treechildren::-moz-tree-image(subjectCol, new, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-new-offl.gif");
 }
 
+.tabmail-tab[type="message"][Attachment="true"][Offline="true"],
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, attach, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-attach-offl.gif");
 }
 
+.tabmail-tab[type="message"][IMAPDeleted="true"][Offline="true"],
 treechildren::-moz-tree-image(subjectCol, imapdeleted, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-mail-delete-offl.gif");
 }
 
+/* the news icons are only 14px high, unfortunately */
+.tabmail-tab[type="message"][MessageType="rss"] .tab-icon,
+.tabmail-tab[type="message"][MessageType="nntp"] .tab-icon {
+  height: 14px;
+}
+
+.tabmail-tab[type="message"][MessageType="rss"],
+.tabmail-tab[type="message"][MessageType="nntp"],
 treechildren::-moz-tree-image(subjectCol, rss),
 treechildren::-moz-tree-image(subjectCol, news) {
   list-style-image: url("chrome://messenger/skin/icons/message-news.gif");
 }
 
+.tabmail-tab[type="message"][MessageType="rss"][Attachment="true"],
+.tabmail-tab[type="message"][MessageType="nntp"][Attachment="true"],
+tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, rss, attach),
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, news, attach) {
   list-style-image: url("chrome://messenger/skin/icons/message-news-attach.gif");
 }
 
+.tabmail-tab[type="message"][MessageType="rss"][Attachment="true"][Offline="true"],
+.tabmail-tab[type="message"][MessageType="nntp"][Attachment="true"][Offline="true"],
+tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, rss, attach, offline),
 tree[noattachcol="true"] > treechildren::-moz-tree-image(subjectCol, news, attach, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-news-attach-offl.gif");
 }
@@ -287,6 +310,9 @@ treechildren::-moz-tree-image(subjectCol, news, new, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-news-new-offl.gif");
 }
 
+.tabmail-tab[type="message"][MessageType="rss"][Offline="true"],
+.tabmail-tab[type="message"][MessageType="nntp"][Offline="true"],
+treechildren::-moz-tree-image(subjectCol, rss, offline),
 treechildren::-moz-tree-image(subjectCol, news, offline) {
   list-style-image: url("chrome://messenger/skin/icons/message-news-offl.gif");
 }

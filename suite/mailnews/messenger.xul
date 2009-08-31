@@ -60,6 +60,7 @@
         titlemenuseparator="&titleSeparator.label;"
         onload="OnLoadMessenger()"
         onunload="OnUnloadMessenger()"
+        onclose="return MailWindowIsClosing();"
         style="width: 60em; height: 40em;"
         screenX="10" screenY="10"
         persist="width height screenX screenY sizemode"
@@ -86,6 +87,7 @@
 <script type="application/x-javascript" src="chrome://communicator/content/contentAreaClick.js"/>
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/searchBar.js"/>
+<script type="application/x-javascript" src="chrome://messenger/content/tabmail.js"/>
 
 <commandset id="mailCommands">
   <commandset id="mailFileMenuItems"/>
@@ -115,7 +117,6 @@
   <broadcaster id="mailDisableKeys"/>
   <!-- File Menu -->
   <broadcaster id="Communicator:WorkMode"/>
-  <!-- Edit Menu -->
 </broadcasterset>
 
 <keyset id="mailKeys">
@@ -123,19 +124,15 @@
 </keyset>
 
 <popupset id="mainPopupSet"/>
-
 <popup id="mailContext"/>
 <popup id="folderPaneContext"/>
 <popup id="attachmentListContext"/>
 <tooltip id="attachmentListTooltip"/>
-
 <popup id="copyUrlPopup"/>
 <popup id="toolbar-context-menu"/>
 <popup id="messageIdContext"/>
 <popup id="emailAddressPopup"/>
-
 <tooltip id="folderpopup" class="folderSummaryPopup"/>
-
 <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
 
   <toolbox id="mail-toolbox" class="toolbox-top">
@@ -148,83 +145,120 @@
     <toolbarset id="customToolbars" context="toolbar-context-menu"/>
     <toolbar id="msgLocationToolbar"/>
   </toolbox>
-
-  <!-- The main mail three pane frame -->
-  <box id="mailContent" orient="vertical" flex="1">
-    <box id="messengerBox" orient="horizontal" flex="1" minheight="100" height="100" persist="height">
-      <vbox id="folderPaneBox" minwidth="100" width="200" persist="collapsed width">
-        <tree id="folderTree"
-              treelines="true"
-              keepcurrentinview="true"
-              flex="1"
-              context="folderPaneContext"
-              class="window-focusborder"
-              focusring="false">
-          <treechildren tooltip="folderpopup"/>
-        </tree>
-      </vbox>
-
-      <splitter id="gray_vertical_splitter" collapse="before" persist="state" resizeafter="grow">
-        <grippy/>
-      </splitter>
-
-      <box id="messagesBox" orient="vertical" flex="1">
-        <hbox id="searchBoxHolder"/>
-        <deck id="displayDeck" flex="1" selectedIndex="0"
-              minheight="100" height="100" persist="height"
-              onselect="ObserveDisplayDeckChange(event)">
-          <!-- first panel in displayDeck is Account Central -->
-          <vbox id="accountCentralBox">
-            <iframe name="accountCentralPane" width="150" flex="1" src="about:blank"/>
-          </vbox>
-          <!-- second panel is the threadPane -->
-          <hbox id="threadPaneBox">
-            <tree id="threadTree"
-                  treelines="true"
-                  keepcurrentinview="true"
-                  flex="1"
-                  minwidth="100"
-                  width="100"
-                  persist="width"
-                  context="mailContext"
-                  class="window-focusborder"
-                  focusring="false"/>
-          </hbox>
-          <!-- extensions may overlay in additional panels; don't assume that there are only 2! -->
-        </deck>
-
-        <!-- if you change this id, please change GetThreadAndMessagePaneSplitter() and MsgToggleMessagePane() -->
-        <splitter id="threadpane-splitter" collapse="after" persist="state hidden" collapsed="true"
-                  oncommand="OnClickThreadAndMessagePaneSplitter()">
-          <grippy/>
-        </splitter>
-
-        <vbox id="messagepanebox" flex="2" minheight="100" height="200"
-              minwidth="100" width="200" persist="height width"
-              class="window-focusborder" focusring="false">
-          <deck id="msgNotificationBar"/>
-
-          <hbox id="msgHeaderView"/>
-
-          <browser id="messagepane"
-                   name="messagepane"
-                   height="0"
-                   flex="1"
-                   minwidth="1"
-                   minheight="1"
-                   tooltip="aHTMLTooltip"
-                   context="mailContext"
-                   disablesecurity="true"
-                   disablehistory="true"
-                   autofind="false"
-                   type="content-primary"
-                   onresize="return messagePaneOnResize(event);"
-                   onclick="return messagePaneOnClick(event);"/>
-        </vbox>
-      </box>
-    </box>
-  </box>
   <panel id="customizeToolbarSheetPopup"/>
+
+  <!-- XXX This extension point (tabmail-container) is only temporary!
+           (See bug 460252 for details.)
+           We will readd a mechanism for sidebar panes in bug 178003.
+    -->
+  <hbox id="tabmail-container" flex="1">
+    <tabbrowser id="tabmail" flex="1" panelcontainer="tabpanelcontainer">
+      <box id="tabmail-buttons" orientation="horizontal"/>
+      <tabpanels id="tabpanelcontainer" flex="1" class="plain" selectedIndex="0">
+        <!-- The main mail three pane frame -->
+        <box id="mailContent" orient="vertical" flex="1">
+          <box id="messengerBox"
+               orient="horizontal"
+               flex="1"
+               minheight="100"
+               height="100"
+               persist="height">
+            <vbox id="folderPaneBox"
+                  minwidth="100"
+                  width="200"
+                  persist="collapsed width hidden">
+              <tree id="folderTree"
+                    treelines="true"
+                    keepcurrentinview="true"
+                    flex="1"
+                    context="folderPaneContext"
+                    class="window-focusborder"
+                    focusring="false">
+                <treechildren tooltip="folderpopup"/>
+              </tree>
+            </vbox>
+
+            <splitter id="folderpane-splitter"
+                      collapse="before"
+                      resizeafter="grow"
+                      persist="state collapsed"
+                      oncommand="MsgToggleFolderPane(false);">
+              <grippy/>
+            </splitter>
+
+            <box id="messagesBox" orient="vertical" flex="1">
+              <deck id="displayDeck"
+                    flex="1"
+                    selectedIndex="0"
+                    minheight="100"
+                    height="100"
+                    persist="height"
+                    onselect="ObserveDisplayDeckChange(event);">
+                <!-- first panel in displayDeck is Account Central -->
+                <vbox id="accountCentralBox">
+                  <iframe name="accountCentralPane"
+                          width="150"
+                          flex="1"
+                          src="about:blank"/>
+                </vbox>
+                <!-- second panel is the threadPane -->
+                <vbox id="threadPaneBox">
+                  <hbox id="searchBoxHolder"/>
+                  <tree id="threadTree"
+                        treelines="true"
+                        keepcurrentinview="true"
+                        flex="1"
+                        minwidth="100"
+                        width="100"
+                        persist="width"
+                        context="mailContext"
+                        class="window-focusborder"
+                        focusring="false"/>
+                </vbox>
+                <!-- extensions may overlay in additional panels; don't assume that there are only 2! -->
+              </deck>
+
+              <!-- if you change this id, please change GetThreadAndMessagePaneSplitter() and MsgToggleMessagePane() -->
+              <splitter id="threadpane-splitter"
+                        collapse="after"
+                        persist="state collapsed hidden"
+                        collapsed="true"
+                        oncommand="MsgToggleMessagePane(false);">
+                <grippy/>
+              </splitter>
+
+              <vbox id="messagepanebox"
+                    flex="2"
+                    minheight="100"
+                    height="200"
+                    minwidth="100"
+                    width="200"
+                    persist="height width"
+                    class="window-focusborder"
+                    focusring="false">
+                <deck id="msgNotificationBar"/>
+                <hbox id="msgHeaderView"/>
+                <browser id="messagepane"
+                         name="messagepane"
+                         height="0"
+                         flex="1"
+                         minwidth="1"
+                         minheight="1"
+                         tooltip="aHTMLTooltip"
+                         context="mailContext"
+                         disablesecurity="true"
+                         disablehistory="true"
+                         autofind="false"
+                         type="content-primary"
+                         onresize="return messagePaneOnResize(event);"
+                         onclick="return messagePaneOnClick(event);"/>
+              </vbox>
+            </box>
+          </box>
+        </box>
+      </tabpanels>
+    </tabbrowser>
+  </hbox>
 
   <statusbar id="status-bar" class="chromeclass-status mailwindow-statusbar"/>
 </window>

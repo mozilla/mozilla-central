@@ -1,5 +1,5 @@
-/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -46,13 +46,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// Flags from nsMsgMessageFlags.h
-const MDN_DISPOSE_TYPE_DISPLAYED = 0;
-const MSG_DB_LARGE_COMMIT        = 1;
+Components.utils.import("resource://gre/modules/folderUtils.jsm");
 
-const kClassicMailLayout = 0;
-const kWideMailLayout = 1;
+const kClassicMailLayout  = 0;
+const kWideMailLayout     = 1;
 const kVerticalMailLayout = 2;
+
+const kMouseButtonLeft   = 0;
+const kMouseButtonMiddle = 1;
+const kMouseButtonRight  = 2;
 
 // Per message header flags to keep track of whether the user is allowing remote
 // content for a particular message.
@@ -162,40 +164,49 @@ function InitEditMessagesMenu()
 
 function InitGoMessagesMenu()
 {
+  // deactivate the folders in the go menu if we don't have a folderpane
+  document.getElementById("mailFolderPane")
+          .setAttribute("disabled", IsFolderPaneCollapsed());
   document.commandDispatcher.updateCommands('create-menu-go');
 }
 
 function view_init()
 {
-  var isFeed = IsFeedItem();
-
   if (!gMessengerBundle)
-      gMessengerBundle = document.getElementById("bundle_messenger");
+    gMessengerBundle = document.getElementById("bundle_messenger");
 
-  var message_menuitem = document.getElementById('menu_showMessagePane');
-  if (message_menuitem && !message_menuitem.hidden) {
-      message_menuitem.setAttribute('checked', !IsMessagePaneCollapsed());
-      message_menuitem.setAttribute('disabled', gAccountCentralLoaded);
+  var message_menuitem = document.getElementById("menu_showMessagePane");
+  if (message_menuitem && !message_menuitem.hidden)
+  {
+    message_menuitem.setAttribute("checked", !IsMessagePaneCollapsed());
+    message_menuitem.setAttribute("disabled", gAccountCentralLoaded);
   }
 
-  var folderPane_menuitem = document.getElementById('menu_showFolderPane');
+  var threadpane_menuitem = document.getElementById("menu_showThreadPane");
+  if (threadpane_menuitem && !threadpane_menuitem.hidden)
+  {
+    threadpane_menuitem.setAttribute("checked", !IsDisplayDeckCollapsed());
+    threadpane_menuitem.setAttribute("disabled", gAccountCentralLoaded);
+  }
+
+  var folderPane_menuitem = document.getElementById("menu_showFolderPane");
   if (folderPane_menuitem && !folderPane_menuitem.hidden)
-    folderPane_menuitem.setAttribute('checked', !IsFolderPaneCollapsed());
+    folderPane_menuitem.setAttribute("checked", !IsFolderPaneCollapsed());
 
-  var sort_menuitem = document.getElementById('viewSortMenu');
-  if (sort_menuitem) {
+  var sort_menuitem = document.getElementById("viewSortMenu");
+  if (sort_menuitem)
     sort_menuitem.setAttribute("disabled", gAccountCentralLoaded);
-  }
-  var view_menuitem = document.getElementById('viewMessageViewMenu');
-  if (view_menuitem) {
+
+  var view_menuitem = document.getElementById("viewMessageViewMenu");
+  if (view_menuitem)
     view_menuitem.setAttribute("disabled", gAccountCentralLoaded);
-  }
-  var threads_menuitem = document.getElementById('viewMessagesMenu');
-  if (threads_menuitem) {
+
+  var threads_menuitem = document.getElementById("viewMessagesMenu");
+  if (threads_menuitem)
     threads_menuitem.setAttribute("disabled", gAccountCentralLoaded);
-  }
 
   // Initialize the Message Body menuitem
+  var isFeed = IsFeedItem();
   document.getElementById('viewBodyMenu').hidden = isFeed;
 
   // Initialize the Show Feed Summary menu
@@ -809,7 +820,7 @@ function NavigateToUri(target)
   var msgUri = messenger.getMsgUriAtNavigatePos(historyIndex);
   let msgHdrKey = messenger.msgHdrFromURI(msgUri).messageKey;
   messenger.navigatePos += Number(historyIndex);
-  if (folderURI == GetThreadPaneFolder().URI)
+  if (folderUri == GetThreadPaneFolder().URI)
   {
     gDBView.selectMsgByKey(msgHdrKey);
   }
@@ -1599,7 +1610,6 @@ function MsgOpenNewWindowForFolder(uri, key)
   }
 }
 
-// passing in the view, so this will work for search and the thread pane
 function MsgOpenSelectedMessages()
 {
   // Toggle message body (rss summary) and content-base url in message
@@ -1610,7 +1620,6 @@ function MsgOpenSelectedMessages()
   }
 
   var dbView = GetDBView();
-
   var indices = GetSelectedIndices(dbView);
   var numMessages = indices.length;
 
@@ -2172,7 +2181,6 @@ function getMessageBrowser()
 {
   if (!gMessageBrowser)
     gMessageBrowser = document.getElementById("messagepane");
-
   return gMessageBrowser;
 }
 
@@ -2728,6 +2736,12 @@ function OnMsgParsed(aUrl)
 
   gMessageNotificationBar.setPhishingMsg(aUrl);
 
+  // notify anyone (e.g., extensions) who's interested in when a message is loaded.
+  var msgURI = GetLoadedMessage();
+  var observerService = Components.classes["@mozilla.org/observer-service;1"]
+                                  .getService(Components.interfaces.nsIObserverService);
+  observerService.notifyObservers(msgWindow.msgHeaderSink, "MsgMsgDisplayed", msgURI);
+
   // scale any overflowing images
   var doc = getMessageBrowser().contentDocument;
   var imgs = doc.getElementsByTagName("img");
@@ -2895,7 +2909,12 @@ function HandleMDNResponse(aUrl)
   // Everything looks good so far, let's generate the MDN response.
   var mdnGenerator = Components.classes["@mozilla.org/messenger-mdn/generator;1"].
                                   createInstance(Components.interfaces.nsIMsgMdnGenerator);
-  mdnGenerator.process(MDN_DISPOSE_TYPE_DISPLAYED, msgWindow, msgFolder, msgHdr.messageKey, mimeHdr, false);
+  mdnGenerator.process(Components.interfaces.nsIMsgMdnGenerator.eDisplayed,
+                       msgWindow,
+                       msgFolder,
+                       msgHdr.messageKey,
+                       mimeHdr,
+                       false);
 
   // Reset mark msg MDN "Sent" and "Not Needed".
   msgHdr.flags = (msgFlags &
@@ -2905,7 +2924,7 @@ function HandleMDNResponse(aUrl)
   // Commit db changes.
   var msgdb = msgFolder.msgDatabase;
   if (msgdb)
-    msgdb.Commit(MSG_DB_LARGE_COMMIT);
+    msgdb.Commit(Components.interfaces.nsMsgDBCommitType.kLargeCommit);
 }
 
 function MsgSearchMessages()
@@ -3107,8 +3126,7 @@ function FeedSetContentView(val)
     }
   }
   else if(contentBase.headerValue) {
-    document.getElementById("messagepane")
-            .loadURI(contentBase.headerValue, null, null);
+    getMessageBrowser().loadURI(contentBase.headerValue, null, null);
     gShowFeedSummaryToggle = false;
   }
 }

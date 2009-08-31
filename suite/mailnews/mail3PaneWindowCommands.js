@@ -1,5 +1,5 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -462,17 +462,18 @@ var DefaultController =
     return false;
   },
 
-	doCommand: function(command)
-	{
+  doCommand: function(command)
+  {
     // if the user invoked a key short cut then it is possible that we got here for a command which is
     // really disabled. kick out if the command should be disabled.
-    if (!this.isCommandEnabled(command)) return;
-   
-		switch ( command )
-		{
-			case "cmd_close":
-				CloseMailWindow();
-				break;
+    if (!this.isCommandEnabled(command))
+      return;
+
+    switch (command)
+    {
+      case "cmd_close":
+        MsgCloseCurrentTab();
+        break;
       case "button_getNewMessages":
 			case "cmd_getNewMessages":
 				MsgGetMessage();
@@ -811,15 +812,11 @@ function SetupCommandUpdateHandlers()
   var widget = GetFolderTree();
   if (widget)
     widget.controllers.appendController(FolderPaneController);
-
-  top.controllers.insertControllerAt(0, DefaultController);
 }
 
 // Called from <msgMail3PaneWindow.js>.
 function UnloadCommandUpdateHandlers()
 {
-  top.controllers.removeController(DefaultController);
-
   var widget = GetFolderTree();
   if (widget)
     widget.controllers.removeController(FolderPaneController);
