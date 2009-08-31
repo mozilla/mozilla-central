@@ -224,15 +224,22 @@ vbox.icon[state='weak'] {
   font-size: 120%;
 }
 
+.warning_text > vbox {
+  padding-top: 5px;
+}
+
 .warning-heading {
-  border-bottom:1px solid threedlightshadow;
-  font-size:160%;
-  margin:0 0 0.6em;
+  border-bottom: 1px solid threedlightshadow;
+  font-size: 160%;
+  margin: 0px;
+  padding: 2px 2px 1px;
 }
 
 .warning_settings {
   color: yellow;
   font-weight: bold;
+  margin: 0px;
+  margin-right: 2px;
 }
 
 .larrybox {
@@ -337,3 +344,14 @@ row.heading {
  * menulist[editable="true"].clickable > .menulist-editable-box > .menulist-editable-input
  * menulist[editable="true"].clickable > .menulist-dropmarker
  */
+
+.technical_details {
+  cursor: pointer;
+  margin: 0px;
+  padding-left: 20px;
+  background: url("chrome://messenger/skin/section_collapsed.png") left 0 no-repeat;
+}
+
+.technical_details[expanded] {
+  background-image: url("chrome://messenger/skin/section_expanded.png");
+}

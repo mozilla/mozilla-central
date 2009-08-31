@@ -592,6 +592,20 @@ EmailConfigWizard.prototype =
     return isNew;
   },
 
+  toggleDetails : function (id)
+  {
+    let tech = document.getElementById(id+"_technical");
+    let details = document.getElementById(id+"_details");
+    if (details.getAttribute("collapsed")) {
+      tech.setAttribute("expanded", true);
+      details.removeAttribute("collapsed");
+    }
+    else {
+      details.setAttribute("collapsed", true);
+      tech.removeAttribute("expanded");
+    }
+  },
+
   toggleAcknowledgeWarning : function()
   {
     this._warningAcknowledged =
@@ -632,7 +646,7 @@ EmailConfigWizard.prototype =
         {
           case 'cleartext':
             incomingwarningstring = gStringsBundle.getFormattedString(
-              "incoming_cleartext_warning", [brandShortName, incoming.hostname]);
+              "cleartext_warning", [incoming.hostname]);
             incoming_details = gStringsBundle.getString("cleartext_details");
             setText('warning_incoming', incomingwarningstring);
             setText('incoming_details', incoming_details);
@@ -641,7 +655,7 @@ EmailConfigWizard.prototype =
             break;
           case 'selfsigned':
             incomingwarningstring = gStringsBundle.getFormattedString(
-              "incoming_selfsigned_warning", [brandShortName, incoming.hostname]);
+              "selfsigned_warning", [incoming.hostname]);
             incoming_details = gStringsBundle.getString("selfsigned_details");
             setText('warning_incoming', incomingwarningstring);
             setText('incoming_details', incoming_details);
@@ -656,7 +670,7 @@ EmailConfigWizard.prototype =
         {
           case 'cleartext':
             outgoingwarningstring = gStringsBundle.getFormattedString(
-              "outgoing_cleartext_warning", [brandShortName, outgoing.hostname]);
+              "cleartext_warning", [outgoing.hostname]);
             outgoing_details = gStringsBundle.getString("cleartext_details");
             setText('warning_outgoing', outgoingwarningstring);
             setText('outgoing_details', outgoing_details);
@@ -665,7 +679,7 @@ EmailConfigWizard.prototype =
             break;
           case 'selfsigned':
             outgoingwarningstring = gStringsBundle.getFormattedString(
-              "outgoing_selfsigned_warning", [brandShortName, outgoing.hostname]);
+              "selfsigned_warning", [outgoing.hostname]);
             outgoing_details = gStringsBundle.getString("selfsigned_details");
             setText('warning_outgoing', outgoingwarningstring);
             setText('outgoing_details', outgoing_details);

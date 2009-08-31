@@ -42,6 +42,7 @@
 <!ENTITY warning.label                   "Warning!">
 <!ENTITY incomingSettings.label          "Incoming settings:">
 <!ENTITY outgoingSettings.label          "Outgoing settings:">
+<!ENTITY technicaldetails.label          "Technical Details">
 <!-- LOCALIZATION NOTE (confirmWarning.label): If there is a security
      warning on the outgoing server, then the user will need to check a
      checkbox beside this text before continuing. -->

@@ -389,28 +389,36 @@
       <vbox class="larrybox">
         <image id="insecure_larry" class="insecureLarry"/>
       </vbox>
-      <vbox flex="1">
-        <vbox class="warning_text" flex="1">
-          <label class="warning-heading">&warning.label;</label>
-          <description id="warning_description"/>
-          <vbox id="incoming_box" flex="1">
-            <label class="warning_settings" value="&incomingSettings.label;"/>
-            <description id="warning_incoming"/>
-            <description id="incoming_details"/>
-          </vbox>
-          <vbox id="outgoing_box" flex="1">
-            <label class="warning_settings" value="&outgoingSettings.label;"/>
-            <description id="warning_outgoing"/>
-            <description id="outgoing_details"/>
-          </vbox>
-          <description id="findoutmore">&contactYourProvider.description;</description>
-          <checkbox id="acknowledge_warning"
-                    class="acknowledge_checkbox"
-                    label="&confirmWarning.label;"
-                    accesskey="&confirmWarning.accesskey;"
-                    oncommand="gEmailConfigWizard.toggleAcknowledgeWarning()"/>
-        </vbox>
-        <spacer flex="1"/>
+      <vbox flex="1" class="warning_text">
+         <label class="warning-heading">&warning.label;</label>
+         <vbox id="incoming_box">
+           <hbox>
+             <label class="warning_settings" value="&incomingSettings.label;"/>
+             <description id="warning_incoming"/>
+           </hbox>
+           <label id="incoming_technical" value="&technicaldetails.label;"
+                  class="technical_details"
+                  onclick="gEmailConfigWizard.toggleDetails('incoming');"/>
+           <description id="incoming_details" collapsed="true"/>
+         </vbox>
+         <vbox id="outgoing_box">
+           <hbox>
+             <label class="warning_settings" value="&outgoingSettings.label;"/>
+             <description id="warning_outgoing"/>
+           </hbox>
+           <label id="outgoing_technical" value="&technicaldetails.label;"
+                  class="technical_details"
+                  onclick="gEmailConfigWizard.toggleDetails('outgoing');"/>
+           <description id="outgoing_details" collapsed="true"/>
+         </vbox>
+         <spacer flex="10"/>
+         <description id="findoutmore">&contactYourProvider.description;</description>
+         <checkbox id="acknowledge_warning"
+                   class="acknowledge_checkbox"
+                   label="&confirmWarning.label;"
+                   accesskey="&confirmWarning.accesskey;"
+                  oncommand="gEmailConfigWizard.toggleAcknowledgeWarning()"/>
+        <spacer flex="100"/>
         <hbox>
           <button id="getmeoutofhere" label="&changeSettings.label;"
                   accesskey="&changeSettings.accesskey;"

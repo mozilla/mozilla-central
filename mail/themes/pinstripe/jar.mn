@@ -8,6 +8,8 @@ classic.jar:
   skin/classic/messenger/accountCreation.css                     (mail/accountCreation.css)
   skin/classic/messenger/accountManage.css                       (mail/accountManage.css)
   skin/classic/messenger/accountWizard.css                       (mail/accountWizard.css)
+  skin/classic/messenger/section_collapsed.png                   (mail/section_collapsed.png)
+  skin/classic/messenger/section_expanded.png                    (mail/section_expanded.png)
   skin/classic/messenger/messageHeader.css                       (mail/messageHeader.css)
   skin/classic/messenger/messageWindow.css                       (mail/messageWindow.css)
   skin/classic/messenger/messageBody.css                         (mail/messageBody.css)
