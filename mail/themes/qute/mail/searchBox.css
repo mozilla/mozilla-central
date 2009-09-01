@@ -39,13 +39,8 @@
 
 /* ..... tree adjustments ..... */
 
-.quick-search-textbox
-{
+.quick-search-textbox {
   padding-top: 1px;
-}
-
-#searchInput[searchCriteria="true"]  {
-  color: grey;
 }
 
 #quick-search-button  {
