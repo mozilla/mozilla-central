@@ -64,6 +64,9 @@ var GlodaUtils = {
    *  4 attributes, as described below.  We will use the example of the user
    *  passing an argument of '"Bob Smith" <bob@company.com>'.
    *
+   * This method (by way of nsIMsgHeaderParser) takes care of decoding mime
+   *  headers, but is not aware of folder-level character set overrides.
+   *
    * count: the number of addresses parsed. (ex: 1)
    * addresses: a list of e-mail addresses (ex: ["bob@company.com"])
    * names: a list of names (ex: ["Bob Smith"])

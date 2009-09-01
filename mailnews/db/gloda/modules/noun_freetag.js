@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ['FreeTag', 'FreeTagNoun'];
@@ -64,10 +64,10 @@ var FreeTagNoun = {
   _log: Log4Moz.repository.getLogger("gloda.noun.freetag"),
 
   name: "freetag",
-  class: FreeTag,
+  clazz: FreeTag,
   allowsArbitraryAttrs: false,
   usesParameter: true,
-  
+
   _listeners: [],
   addListener: function(aListener) {
     this._listeners.push(aListener);
@@ -77,7 +77,7 @@ var FreeTagNoun = {
     if (index >=0)
       this._listeners.splice(index, 1);
   },
-  
+
   populateKnownFreeTags: function() {
     for each (let [,attr] in Iterator(this.objectNounOfAttributes)) {
       let attrDB = attr.dbDef;
@@ -86,7 +86,7 @@ var FreeTagNoun = {
       }
     }
   },
-  
+
   knownFreeTags: {},
   getFreeTag: function(aTagName) {
     let tag = this.knownFreeTags[aTagName];
@@ -98,10 +98,23 @@ var FreeTagNoun = {
     return tag;
   },
 
+  comparator: function gloda_noun_freetag_comparator(a, b) {
+    if (a == null) {
+      if (b == null)
+        return 0;
+      else
+        return 1;
+    }
+    else if (b == null) {
+      return -1;
+    }
+    return a.name.localeCompare(b.name);
+  },
+
   toParamAndValue: function gloda_noun_freetag_toParamAndValue(aTag) {
     return [aTag.name, null];
   },
-  
+
   toJSON: function gloda_noun_freetag_toJSON(aTag) {
     return aTag.name;
   },

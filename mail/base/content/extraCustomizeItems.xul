@@ -52,22 +52,33 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+  <popupset>
+    <panel type="glodacomplete-richlistbox" chromedir="ltr"
+           id="PopupGlodaAutocomplete" noautofocus="true" />
+  </popupset>
+
   <toolbarpalette id="MailToolbarPalette">
     <!-- gloda search widget; provides global (message) searching.  -->
     <toolbaritem id="gloda-search" insertafter="search-container"
                  title="&glodaSearch.title;"
                  align="center"
                  class="chromeclass-toolbar-additional">
-      <textbox id="glodaSearchInput" flex="1" type="search"
-               searchbutton="true"
-               emptytext="&glodaSearchBar.emptyText;"/>
+        <textbox id="searchInput" flex="1"
+                 chromedir="ltr"
+                 searchCriteria="true"
+                 type="glodacomplete"
+                 searchbutton="true"
+                 autocompletesearch="gloda"
+                 autocompletepopup="PopupGlodaAutocomplete"
+                 >
+        </textbox>
     </toolbaritem>
 
     <toolbaritem id="search-container" insertafter="button-stop"
                  title="&searchItem.title;"
                  align="center"
                  class="chromeclass-toolbar-additional">
-      <textbox id="searchInput" timeout="800" flex="1"
+      <textbox id="old_searchInput" timeout="800" flex="1"
                onfocus="onSearchInputFocus(event);"
                onclick="onSearchInputClick(event);"
                onmousedown="onSearchInputMousedown(event);"

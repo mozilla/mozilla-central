@@ -23,6 +23,8 @@
   -
   - Contributor(s):
   -   Scott MacGregor <mscott@mozilla.org>
+  -   Andrew Sutherland <asutherland@asutherland.org>
+  -   David Ascher <dascher@mozillamessaging.com>
   -
   - Alternatively, the contents of this file may be used under the terms of
   - either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -52,169 +54,297 @@
 
   <!--
     - The glodaSearch binding implements a gloda-backed search mechanism.  The
-    -  actual search logic comes from the glodaSearch tab mode in the
-    -  mailTabType definition.  This binding serves as a means to display and 
-    -  alter the current search query if a "glodaSearch" tab is displayed, or
-    -  enter a search query and spawn a new "glodaSearch" tab if one is
-    -  currently not displayed.  The "glodaFacets" binding also is used to
-    -  display/modify the parameters of the search when on a "glodaSearch" tab.
+    -  actual search logic comes from the glodaFacet tab mode in the
+    -  glodaFacetTabType definition.  This binding serves as a means to display
+    -  and alter the current search query if a "glodaFacet" tab is displayed,
+    -  or enter a search query and spawn a new "glodaFacet" tab if one is
+    -  currently not displayed.
     -->
-  <binding id="glodaSearch" extends="chrome://global/content/bindings/textbox.xml#search-textbox">
+  <binding id="glodaSearch" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete">
     <resources>
       <stylesheet src="chrome://messenger/skin/searchBox.css"/>
     </resources>
 
-    <handlers>
-      <handler event="command"><![CDATA[
-        if (this.value) {
-          let searchString = this.value;
-          let tabmail = document.getElementById("tabmail");
-          // If the current tab is a gloda search tab, reset the value
-          //  to the initial search value.  Otherwise, clear it.  This
-          //  is the value that is going to be saved with the current
-          //  tab when we switch back to it next.
-          if (tabmail.currentTabInfo.mode.name == "glodaSearch")
-            this.value = tabmail.currentTabInfo.searchString;
-          else
-            this.value = "";
-          // open a new tab with our dude
-          tabmail.openTab("glodaSearch", {searchString: searchString,
-              facetString: "everything", locationString: "everywhere"});
-        }
-      ]]></handler>
-    </handlers>
-  </binding>
+    <content>
+      <xul:button anonid="quick-search-button" class="quick-search-button" type="menu" chromedir="&locale.dir;">
+        <xul:menupopup anonid="quick-search-menupopup"
+                   class="quick-search-menupopup"
+                   persist="value"
+                   onpopupshowing="this.parentNode.parentNode.updatePopup();"
+                   popupalign="topleft"
+                   popupanchor="bottomleft">
+          <xul:menuitem anonid="searchGlobalMenu"
+                    class="quick-search-menu"
+                    value="global"
+                    label="&searchEverywhere.label;"
+                    type="radio"
+                    oncommand="this.parentNode.parentNode.parentNode.changeMode(this)"/>
+          <xul:menuseparator/>
+        </xul:menupopup>
+      </xul:button>
+      <xul:hbox class="quick-search-textbox textbox-input-box" flex="1">
+        <html:input class="textbox-input" flex="1" anonid="input" allowevents="true"
+                    xbl:inherits="onfocus,onblur,oninput,value,type,maxlength,disabled,size,readonly,tabindex,accesskey"/>
+      </xul:hbox>
+      <xul:toolbarbutton anonid="quick-search-clearbutton" xbl:inherits=""
+                         disabled="true" class="quick-search-clearbutton"
+                         onclick="this.parentNode.value = ''; this.parentNode.select(); return false;" 
+                         chromedir="&locale.dir;"/>
+                         <!--XXX update search if not global-->
 
-  <!--
-    - The glodaFacets binding is used to display additional search constraints
-    -  on a "glodaSearch" tab's gloda-backed search.  Because we live in the
-    -  "mailContent" panel reused by the "glodaSearch" tab mode, we are always
-    -  present, even when we should not be displayed (namely for "folder" and
-    -  "message" tab modes).  We leave it up to the mailTabType and glodaSearch
-    -  tab mode to ensure that we are shown/hidden at the right times.  (We
-    -  could do this ourselves as a tabmail tab monitor, but it is more
-    -  intuitive to have our behaviour/relationship made explicit.)
-    -->
-  <binding id="glodaFacets">
-    <resources>
-      <stylesheet src="chrome://messenger/skin/searchBox.css"/>
-    </resources>
-    <content orientation="horizontal" hidden="true">
-      <xul:label control="glodaFacetType" value="&glodaSearchBar.facet.label;"/>
-      <xul:menulist id="glodaFacetType">
-        <xul:menupopup>
-          <xul:menuitem label="&glodaSearchFacet.everything.label;"
-                        value="everything"/>
-          <xul:menuitem label="&glodaSearchFacet.subject.label;"
-                        value="subject"/>
-          <xul:menuitem label="&glodaSearchFacet.involves.label;"
-                        value="involves"/>
-          <xul:menuitem label="&glodaSearchFacet.to.label;"
-                        value="to"/>
-          <xul:menuitem label="&glodaSearchFacet.from.label;"
-                        value="from"/>
-          <xul:menuitem label="&glodaSearchFacet.body.label;"
-                        value="body"/>
-        </xul:menupopup>
-      </xul:menulist>
-      <xul:label control="glodaFacetLocation"
-                 value="&glodaSearchBar.location.label;"/>
-      <xul:menulist id="glodaFacetLocation" anonid="glodaFacetLocation">
-        <xul:menupopup>
-          <xul:menuitem label="&glodaSearchFacet.everywhere.label;" value="everywhere"/>
-          <xul:menuitem anonid="currentFolder" label="" value="currentFolder" hidden="true"/>
-          <xul:menu label="&glodaSearchFacet.folder.label;">
-            <xul:menupopup type="folder"/>
-          </xul:menu>
-        </xul:menupopup>
-      </xul:menulist>
     </content>
-
-    <implementation>
-      <constructor>
-        <![CDATA[
-          this._facetTypeNode =
-            document.getAnonymousElementByAttribute(this, "id",
-                                                    "glodaFacetType");
-          this._facetLocationNode =
-            document.getAnonymousElementByAttribute(this, "id",
-                                                    "glodaFacetLocation");
-          this._currentFolderNode =
-            document.getAnonymousElementByAttribute(this, "anonid",
-                                                    "currentFolder");
-        ]]>
-      </constructor>
-      <method name="updateStateFromCurrentTab">
-        <body><![CDATA[
-        /**
-         * Update our display state to match the state of the current tab.
-         */
-          let tabmail = document.getElementById("tabmail");
-          let tabInfo = tabMail.currentTabInfo;
-
-          this._facetTypeNode.value = tabInfo.facetString;
-          if (typeof(tabInfo.location) == "string")
-            this._facetLocationNode.value = tabInfo.location;
-        ]]></body>
-      </method>
-      <method name="setLocationFacetToFolder">
-        <body><![CDATA[
-        /**
-         * Update our display state to match the state of the current tab.
-         */
-          let tabmail = document.getElementById("tabmail");
-          let tabInfo = tabMail.currentTabInfo;
-
-          this._facetTypeNode.value = tabInfo.facetString;
-          if (typeof(tabInfo.location) == "string")
-            this._facetLocationNode.value = tabInfo.location;
-        ]]></body>
-
-      </method>
-    </implementation>
-
     <handlers>
-      <handler event="command" phase="bubble"><![CDATA[
-        // Have widgetNode be our immediate child, with nodes being a list of
-        //  the descendent nodes between eventNode and the actual target.
-        // This allows us to know which of our widgets actually got clicked on,
-        //  plus makes subsequent processing easier.  (Alternatively, we could
-        //  register a command listener on each of our widgets, but that is
-        //  arguably just as ugly.) 
-        let nodes = [];
-        let widgetNode = event.originalTarget;
-        while (widgetNode.parentNode != this) {
-          nodes.unshift(widgetNode);
-          widgetNode = widgetNode.parentNode;
-        }
-
-        // -- Type Facet
-        if (widgetNode == this._facetTypeNode) {
-
-        }
-        // -- Location Facet
-        else if (widgetNode == this._facetLocationNode) {
-          if (event.originalTarget._folder) {
-            let folder = event.originalTarget._folder;
-            this._currentFolderNode.label =
-              [node._folder.prettiestName
-               for each ([, node] in Iterator(nodes))
-               if (node._folder)].join("/");
-            this._currentFolderNode.hidden = false;
-            this._facetLocationNode.selectedItem = this._currentFolderNode;
+      <handler event="input">
+        <![CDATA[
+        try {
+          if (this.searchMode != "global") { // it's a quick search
+            let dis = this;
+            clearTimeout(this.timeoutHandler);
+            this.timeoutHandler = setTimeout(this.onTimeout, this.timeout, dis);
           }
+        } catch (e) {
+          logException(e);
         }
-
-        dump("Selected folder: " + event.originalTarget._folder + "\n");
-        dump("event: " + event + "\n");
-        dump("target: " + event.originalTarget + "\n");
-        dump("event target id: " + event.originalTarget.id + "\n");
-        dump("event tag: " + event.originalTarget.tagName + "\n");
-      ]]></handler>
+        ]]>
+      </handler>
+      <!-- For the next two, we need to get in on the bubbling phase, as
+           otherwise we'll be doing searches when autocomplete results are
+           being selected. -->
+      <handler event="keypress" keycode="VK_ENTER"
+        phase="bubbling" action="return this.doSearch();"/>
+      <handler event="keypress" keycode="VK_RETURN"
+        phase="bubbling" action="try {this.doSearch();} catch (e) { logException(e);} return true;"/>
+      <handler event="input">
+        <![CDATA[ 
+          if (!this.value) 
+            this.clearButtonHidden = true;
+          else 
+            this.clearButtonHidden = false;
+        ]]></handler>
     </handlers>
 
-  </binding>
+    <implementation implements="nsIObserver">
+      <constructor><![CDATA[
+        this.build();
+      ]]></constructor>
+      <method name="onTimeout">
+        <parameter name="dis"/>
+        <body><![CDATA[
+        try {
+          dis.doSearch();
+        } catch (e) {
+          logException(e);
+        }
+        ]]>
+        </body>
+      </method>
+      <method name="updatePopup">
+        <body><![CDATA[
+        try {
+          // disable the create virtual folder menu item if the current radio
+          // value is set to Find in message since you can't really  create a VF from find
+          // in message
+          if (this.searchMode == "global" || this.value == "")
+            this.saveAsVirtualFolder.setAttribute('disabled', 'true');
+          else
+            this.saveAsVirtualFolder.removeAttribute('disabled');
 
+          //let hideQuickSearchModes = this.searchMode == "global" ? "true" : "false";
+          //for each (let child in this.menupopup.childNodes) {
+          //  if (child.hasAttribute("quicksearch")) {
+          //    child.setAttribute("collapsed", hideQuickSearchModes)
+          //  }
+          //}
+        } catch (e) {
+          logException(e);
+        }
+        ]]>
+        </body>
+      </method>
+      <method name="build">
+        <body><![CDATA[
+        const Cu = Components.utils;
+        Cu.import("resource://gre/modules/errUtils.js");
+        try {
+          Cu.import("resource://app/modules/StringBundle.js");
+          Cu.import("resource://app/modules/quickSearchManager.js");
+  
+          this.glodaCompleter =
+            Components.classes["@mozilla.org/autocomplete/search;1?name=gloda"].
+                      getService(). //Components.interfaces.nsIAutoCompleteSearch)
+                      wrappedJSObject;
+  
+          var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
+                            .getService(Components.interfaces.nsIObserverService);
+          observerSvc.addObserver(this, "autocomplete-did-enter-text", false);
+  
+          this.quickSearchStrings = new StringBundle("chrome://messenger/locale/quickSearch.properties");
+  
+          let quickSearchModes = QuickSearchManager.getSearchModes();
+          for (let i = 0; i < quickSearchModes.length; i++) {
+            let searchMode = quickSearchModes[i];
+            let value = searchMode["value"];
+            let label = searchMode["label"];
+            let menuitem = document.createElement("menuitem");
+            menuitem.setAttribute("value", String(value));
+            menuitem.setAttribute("label", label);
+            menuitem.setAttribute("type", "radio");
+            menuitem.setAttribute("quicksearch", "true");
+            menuitem.setAttribute("oncommand", "this.parentNode.parentNode.parentNode.changeMode(this)");
+            this.menupopup.appendChild(menuitem);
+          }
+          
+          let separator = document.createElement("menuseparator");
+          this.menupopup.appendChild(separator);
+          let saveAsVF = document.createElement("menuitem");
+          saveAsVF.setAttribute("anonid", "quick-search-save-as-virtual-folder");
+          saveAsVF.setAttribute("label", this.quickSearchStrings.get("saveAsVirtualFolder.label"));
+          saveAsVF.setAttribute("oncommand",
+                                "gFolderTreeController.newVirtualFolder(this.parentNode.parentNode.parentNode.value,\
+                                gFolderDisplay.view.search.session.searchTerms);");
+
+          this.menupopup.appendChild(saveAsVF);
+          this.updateSaveItem();
+        } catch (e) {
+          logException(e);
+        }
+        ]]></body>
+      </method>
+
+      <method name="observe">
+      <parameter name="aSubject"/>
+      <parameter name="aTopic"/>
+      <parameter name="aData"/>
+        <body><![CDATA[
+        try {
+          if (aTopic == "autocomplete-did-enter-text") {
+            let selectedIndex = this.autocompletePopup.selectedIndex;
+            let row = this.glodaCompleter.curResult.getObjectAt(selectedIndex);
+            if (row == null) {
+              this.applyConstraints();
+              return;
+            }
+            let theQuery = Gloda.newQuery(Gloda.NOUN_MESSAGE);
+            let tabmail = document.getElementById("tabmail");
+            if (row.fullText) {
+              tabmail.openTab("glodaFacet", {
+                searcher: new GlodaMsgSearcher(null, row.item, row.andTerms)
+              });
+            } else {
+              if (row.nounDef.name == "tag") {
+                theQuery = theQuery.tags(row.item);
+              } else if (row.nounDef.name == "identity") {
+                theQuery = theQuery.involves(row.item); 
+              }
+              tabmail.openTab("glodaFacet", {
+                query: theQuery
+              });
+            }
+
+            this.applyConstraints();
+          }
+        } catch (e) {
+          logException(e);
+        }
+        ]]></body>
+      </method>
+
+      <method name="applyConstraints">
+        <body><![CDATA[
+          ]]>
+        </body>
+      </method>
+
+      <method name="updateEmptyText">
+        <body><![CDATA[
+        try {
+          // extract the label value from the menu item
+          let menuItem = this.menupopup.getElementsByAttribute('value',
+                          this.searchMode)[0];
+          this.emptyText = menuItem.getAttribute('label');
+        } catch (e) {
+          logException(e);
+        }
+        ]]></body>
+      </method>
+
+      <method name="updateSaveItem">
+        <body><![CDATA[
+          let disabled = true;
+          this.saveAsVirtualFolder.setAttribute("disabled", disabled)
+        ]]></body>
+      </method>
+
+
+      <method name="doSearch">
+        <body><![CDATA[
+      try {
+        dump("doing search, value = " + this.value + "\n");
+        if (this.searchMode == 'global') // faceted search
+        {
+          if (this.value) {
+            let tabmail = document.getElementById("tabmail");
+            // If the current tab is a gloda search tab, reset the value
+            //  to the initial search value.  Otherwise, clear it.  This
+            //  is the value that is going to be saved with the current
+            //  tab when we switch back to it next.
+            let searchString = this.value;
+            if (tabmail.currentTabInfo.mode.name == "glodaFacet")
+              this.value = tabmail.currentTabInfo.searchString;
+            else
+              this.value = "";
+            // open a new tab with our dude
+            tabmail.openTab("glodaFacet", {
+              searcher: new GlodaMsgSearcher(null, searchString)
+            });
+          }
+        } else { // quick search
+          if (! this.value)
+            gFolderDisplay.view.search.userTerms = null
+          else
+            gFolderDisplay.view.search.quickSearch(Number(this.searchMode), this.value);
+        }
+      } catch (e) {
+        logException(e);
+      }
+          ]]>
+        </body>
+      </method>
+
+      <method name="changeMode">
+      <parameter name="aMenuItem" />
+        <body><![CDATA[
+          var oldSearchMode = this.searchMode;
+          this.searchMode = aMenuItem.value;
+          if (oldSearchMode != this.searchMode) // the search mode just changed so we need to redo the quick search
+            this.doSearch();
+        ]]></body>
+      </method>
+      <field name="timeout">200</field>
+      <field name="glodaCompleter">null</field>
+      <field name="ignoreClick">false</field>
+      <field name="quickSearchStrings">null</field>
+      <field name="mQuickSearchMode">null</field>
+      <field name="timeoutHandler">null</field>
+      <property name="searchMode" onget="return this.mQuickSearchMode;"
+                onset="this.mQuickSearchMode = val;
+                       dump('val = ' + val + ' \n');
+                       dump('typeof val = ' + typeof(val) + ' \n');
+                       this.menupopup.setAttribute('value', val);
+                       this.updateEmptyText(); "/>
+
+      <property name="autocompletePopup" readonly="true" onget="return document.getElementById(this.getAttribute('autocompletepopup'))"/>
+
+
+      <property name="showingSearchCriteria" onget="return this.getAttribute('searchCriteria') == 'true';"
+                onset="this.setAttribute('searchCriteria', val); return val;"/>
+      <property name="menupopup" readonly="true" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-menupopup')"/>
+      <property name="saveAsVirtualFolder" readonly="true" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-save-as-virtual-folder')"/>
+      <property name="clearButtonHidden" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-clearbutton').getAttribute('clearButtonHidden') == 'true';"
+                onset="document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-clearbutton').setAttribute('clearButtonHidden', val); return val;"/>
+
+    </implementation>
+  </binding>
 
   <binding id="searchbar" extends="chrome://global/content/bindings/textbox.xml#timed-textbox">
     <resources>
@@ -258,16 +388,10 @@
               qsmenu.getElementsByAttribute('value', this.searchMode)[0];
           }
           selectedMenuItem.setAttribute('checked', 'true');
-
-          this.setSearchCriteriaText();
         ]]>
       </constructor>
-
       <property name="showingSearchCriteria" onget="return this.getAttribute('searchCriteria') == 'true';"
                 onset="this.setAttribute('searchCriteria', val); return val;"/>
-
-      <property name="clearButtonHidden" onget="return document.getElementById('quick-search-clearbutton').getAttribute('clearButtonHidden') == 'true';"
-                onset="document.getElementById('quick-search-clearbutton').setAttribute('clearButtonHidden', val); return val;"/>
 
       <field name="mQuickSearchMode">null</field>
 
@@ -300,6 +424,7 @@
 
       <method name="setSearchCriteriaText">
         <body><![CDATA[
+    try {
           this.showingSearchCriteria = true;
 
           let qsmenu = document.getElementById('quick-search-menupopup');
@@ -307,7 +432,7 @@
           // extract the label value from the menu item
           let menuItem = qsmenu.getElementsByAttribute('value',
                                                        this.searchMode)[0];
-
+          logElement(menuItem);
           if (typeof menuItem == "undefined") {
             // Error condition, something went wrong - try and recover from it.
             this.mQuickSearchMode =
@@ -320,10 +445,14 @@
 
             this.inputField.value = selectedMenuItem.getAttribute('label');
           }
-          else
+          else {
             this.inputField.value = menuItem.getAttribute('label');
+          }
 
          this.clearButtonHidden = true;
+    } catch (e) {
+      logException(e);
+    }
         ]]></body>
       </method>
 

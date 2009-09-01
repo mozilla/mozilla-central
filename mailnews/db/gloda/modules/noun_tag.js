@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ['TagNoun'];
@@ -49,22 +49,23 @@ Cu.import("resource://app/modules/gloda/gloda.js");
  */
 var TagNoun = {
   name: "tag",
-  class: Ci.nsIMsgTag,
+  clazz: Ci.nsIMsgTag,
   usesParameter: true,
   allowsArbitraryAttrs: false,
+  idAttr: "key",
   _msgTagService: null,
   _tagMap: null,
-  
+
   _init: function () {
     this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
                           getService(Ci.nsIMsgTagService);
     this._updateTagMap();
   },
-  
+
   getAllTags: function gloda_noun_tag_getAllTags() {
     return this._msgTagService.getAllTags({});
   },
-  
+
   _updateTagMap: function gloda_noun_tag_updateTagMap() {
     this._tagMap = {};
     let tagArray = this._msgTagService.getAllTags({});
@@ -73,9 +74,25 @@ var TagNoun = {
       this._tagMap[tag.key] = tag;
     }
   },
-  
+
+  comparator: function gloda_noun_tag_comparator(a, b) {
+    if (a == null) {
+      if (b == null)
+        return 0;
+      else
+        return 1;
+    }
+    else if (b == null) {
+      return -1;
+    }
+    return a.tag.localeCompare(b.tag);
+  },
+  userVisibleString: function gloda_noun_tag_userVisibleString(aTag) {
+    return aTag.tag;
+  },
+
   // we cannot be an attribute value
-  
+
   toParamAndValue: function gloda_noun_tag_toParamAndValue(aTag) {
     return [aTag.key, null];
   },

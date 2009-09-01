@@ -164,19 +164,15 @@ dummy.usesMailWidgets {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#dummy");
 }
 
-#glodaSearchInput {
+#searchInput {
   -moz-binding: url("chrome://messenger/content/search.xml#glodaSearch");
 }
 
-#glodaSearchFacets {
-  -moz-binding: url("chrome://messenger/content/search.xml#glodaFacets");
-}
-
-#searchInput {
+#oldsearchInput {
   -moz-binding: url("chrome://messenger/content/search.xml#searchbar");
 }
 
-#quick-search-button {
+.quick-search-button {
   -moz-binding: url("chrome://messenger/content/search.xml#searchBarDropMarker");
   cursor: default;
   -moz-user-focus: none;

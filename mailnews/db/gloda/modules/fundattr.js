@@ -43,6 +43,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource://app/modules/StringBundle.js");
 
 Cu.import("resource://app/modules/gloda/utils.js");
 Cu.import("resource://app/modules/gloda/gloda.js");
@@ -60,6 +61,7 @@ Cu.import("resource://app/modules/gloda/noun_mimetype.js");
  */
 var GlodaFundAttr = {
   providerName: "gloda.fundattr",
+  strings: new StringBundle("chrome://messenger/locale/gloda.properties"),
   _log: null,
 
   init: function gloda_explattr_init() {
@@ -76,8 +78,10 @@ var GlodaFundAttr = {
 
   POPULARITY_FROM_ME_TO: 10,
   POPULARITY_FROM_ME_CC: 4,
+  POPULARITY_FROM_ME_BCC: 3,
   POPULARITY_TO_ME: 5,
   POPULARITY_CC_ME: 1,
+  POPULARITY_BCC_ME: 1,
 
   /** Boost for messages 'I' sent */
   NOTABILITY_FROM_ME: 10,
@@ -89,17 +93,6 @@ var GlodaFundAttr = {
   NOTABILITY_INVOLVING_ADDR_BOOK_FIRST: 8,
   /** Boost for each additional person involved in my address book. */
   NOTABILITY_INVOLVING_ADDR_BOOK_ADDL: 2,
-
-  _attrConvSubject: null,
-  _attrFolder: null,
-  _attrBody: null,
-  _attrFrom: null,
-  _attrFromMe: null,
-  _attrTo: null,
-  _attrToMe: null,
-  _attrCc: null,
-  _attrCcMe: null,
-  _attrDate: null,
 
   defineAttributes: function() {
     /* ***** Conversations ***** */
@@ -124,6 +117,7 @@ var GlodaFundAttr = {
       attributeType: Gloda.kAttrFundamental,
       attributeName: "folder",
       singular: true,
+      facet: true,
       special: Gloda.kSpecialColumn,
       specialColumnName: "folderID",
       subjectNouns: [Gloda.NOUN_MESSAGE],
@@ -272,6 +266,19 @@ var GlodaFundAttr = {
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
                         }); // not-tested
+    /**
+     * Bcc'ed recipients; only makes sense for sent messages.
+     */
+    this._attrBcc = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "bcc",
+      singular: false,
+      facet: true,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_IDENTITY,
+    }); // not-tested
 
     // Date.  now lives on the row.
     this._attrDate = Gloda.defineAttribute({
@@ -280,6 +287,9 @@ var GlodaFundAttr = {
                         attributeType: Gloda.kAttrFundamental,
                         attributeName: "date",
                         singular: true,
+                        facet: {
+                          type: "date",
+                        },
                         special: Gloda.kSpecialColumn,
                         specialColumnName: "date",
                         subjectNouns: [Gloda.NOUN_MESSAGE],
@@ -293,61 +303,71 @@ var GlodaFundAttr = {
       attributeType: Gloda.kAttrFundamental,
       attributeName: "attachmentTypes",
       singular: false,
+      facet: {
+        type: "default",
+        // This will group the MIME types by their category.
+        groupIdAttr: "category",
+        queryHelper: "Category",
+      },
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_MIME_TYPE,
       });
 
     // --- Optimization
-    // Involves.  Means any of from/to/cc.  The queries get ugly enough without
-    //   this that it seems to justify the cost, especially given the frequent
-    //   use case.  (In fact, post-filtering for the specific from/to/cc is
-    //   probably justifiable rather than losing this attribute...)
+    /**
+     * Involves means any of from/to/cc/bcc.  The queries get ugly enough
+     *  without this that it seems to justify the cost, especially given the
+     *  frequent use case.  (In fact, post-filtering for the specific from/to/cc
+     *  is probably justifiable rather than losing this attribute...)
+     */
     this._attrInvolves = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrOptimization,
       attributeName: "involves",
       singular: false,
+      facet: true,
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
       }); // not-tested
 
-    // From Me To
-    this._attrFromMeTo = Gloda.defineAttribute({
+    /**
+     * Any of to/cc/bcc.
+     */
+    this._attrRecipients = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrOptimization,
-      attributeName: "fromMeTo",
+      attributeName: "recipients",
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
-      objectNoun: Gloda.NOUN_PARAM_IDENTITY,
+      objectNoun: Gloda.NOUN_IDENTITY,
       }); // not-tested
-    // From Me Cc
-    this._attrFromMeCc = Gloda.defineAttribute({
+
+    // From Me (To/Cc/Bcc)
+    this._attrFromMe = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrOptimization,
-      attributeName: "fromMeCc",
+      attributeName: "fromMe",
       singular: false,
+      // The interesting thing to a facet is whether the message is from me.
+      facet: {
+        type: "nonempty?"
+      },
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_PARAM_IDENTITY,
       }); // not-tested
-    // To Me
+    // To/Cc/Bcc Me
     this._attrToMe = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrFundamental,
       attributeName: "toMe",
-      singular: false,
-      subjectNouns: [Gloda.NOUN_MESSAGE],
-      objectNoun: Gloda.NOUN_PARAM_IDENTITY,
-      }); // not-tested
-    // Cc Me
-    this._attrCcMe = Gloda.defineAttribute({
-      provider: this,
-      extensionName: Gloda.BUILT_IN,
-      attributeType: Gloda.kAttrFundamental,
-      attributeName: "ccMe",
+      // The interesting thing to a facet is whether the message is to me.
+      facet: {
+        type: "nonempty?"
+      },
       singular: false,
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_PARAM_IDENTITY,
@@ -377,10 +397,13 @@ var GlodaFundAttr = {
                         attributeName: "mailing-list",
                         bindName: "mailingLists",
                         singular: false,
+                        facet: true,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
                         }); // not-tested, not-implemented
   },
+
+  RE_LIST_POST: /<mailto:([^>]+)>/,
 
   /**
    *
@@ -413,11 +436,20 @@ var GlodaFundAttr = {
     if (author == null || author == "")
       author = aMsgHdr.mime2DecodedAuthor;
 
-    let [authorIdentities, toIdentities, ccIdentities] =
+    let normalizedListPost = "";
+    if (aMimeMsg.has("list-post")) {
+      let match = this.RE_LIST_POST.exec(aMimeMsg.get("list-post"));
+      if (match)
+        normalizedListPost = "<" + match[1] + ">";
+    }
+
+    let [authorIdentities, toIdentities, ccIdentities, bccIdentities,
+         listIdentities] =
       yield aCallbackHandle.pushAndGo(
         Gloda.getOrCreateMailIdentities(aCallbackHandle,
                                         author, aMsgHdr.mime2DecodedRecipients,
-                                        aMsgHdr.ccList));
+                                        aMsgHdr.ccList, aMsgHdr.bccList,
+                                        normalizedListPost));
 
     if (authorIdentities.length == 0) {
       this._log.error("Message with subject '" + aMsgHdr.mime2DecodedSubject +
@@ -427,9 +459,14 @@ var GlodaFundAttr = {
     let authorIdentity = authorIdentities[0];
     aGlodaMessage.from = authorIdentity;
 
-    // -- To, Cc
+    // -- To, Cc, Bcc
     aGlodaMessage.to = toIdentities;
     aGlodaMessage.cc = ccIdentities;
+    aGlodaMessage.bcc = bccIdentities;
+
+    // -- Mailing List
+    if (listIdentities.length)
+      aGlodaMessage.mailingLists = listIdentities;
 
     // -- Attachments
     let attachmentTypes = [];
@@ -460,14 +497,14 @@ var GlodaFundAttr = {
 
     let aMsgHdr = aRawReps.header;
 
+    // for simplicity this is used for both involves and recipients
     let involvesIdentities = {};
     let involves = aGlodaMessage.involves || [];
+    let recipients = aGlodaMessage.recipients || [];
 
-    // me specialization optimizations
+    // 'me' specialization optimizations
     let toMe = aGlodaMessage.toMe || [];
-    let fromMeTo = aGlodaMessage.fromMeTo || [];
-    let ccMe = aGlodaMessage.ccMe || [];
-    let fromMeCc = aGlodaMessage.fromMeCc || [];
+    let fromMe = aGlodaMessage.fromMe || [];
 
     let myIdentities = Gloda.myIdentities; // needless optimization?
     let authorIdentity = aGlodaMessage.from;
@@ -500,6 +537,7 @@ var GlodaFundAttr = {
     for each (let [,toIdentity] in Iterator(aGlodaMessage.to)) {
       if (!(toIdentity.id in involvesIdentities)) {
         involves.push(toIdentity);
+        recipients.push(toIdentity);
         involvesIdentities[toIdentity.id] = true;
         let toCard = toIdentity.abCard;
         if (toCard) {
@@ -517,7 +555,7 @@ var GlodaFundAttr = {
       }
       // optimization attribute from-me-to ('I' am the parameter)
       if (isFromMe) {
-        fromMeTo.push([authorIdentity, toIdentity]);
+        fromMe.push([authorIdentity, toIdentity]);
         // also, popularity
         if (aIsNew)
           toIdentity.contact.popularity += this.POPULARITY_FROM_ME_TO;
@@ -526,6 +564,7 @@ var GlodaFundAttr = {
     for each (let [,ccIdentity] in Iterator(aGlodaMessage.cc)) {
       if (!(ccIdentity.id in involvesIdentities)) {
         involves.push(ccIdentity);
+        recipients.push(ccIdentity);
         involvesIdentities[ccIdentity.id] = true;
         let ccCard = ccIdentity.abCard;
         if (ccCard) {
@@ -536,16 +575,44 @@ var GlodaFundAttr = {
       }
       // optimization attribute cc-me ('I' am the parameter)
       if (ccIdentity.id in myIdentities) {
-        ccMe.push([ccIdentity, authorIdentity]);
+        toMe.push([ccIdentity, authorIdentity]);
         if (aIsNew)
           authorIdentity.contact.popularity += this.POPULARITY_CC_ME;
       }
       // optimization attribute from-me-to ('I' am the parameter)
       if (isFromMe) {
-        fromMeCc.push([authorIdentity, ccIdentity]);
+        fromMe.push([authorIdentity, ccIdentity]);
         // also, popularity
         if (aIsNew)
           ccIdentity.contact.popularity += this.POPULARITY_FROM_ME_CC;
+      }
+    }
+    // just treat bcc like cc; the intent is the same although the exact
+    //  semantics differ.
+    for each (let [,bccIdentity] in Iterator(aGlodaMessage.bcc)) {
+      if (!(bccIdentity.id in involvesIdentities)) {
+        involves.push(bccIdentity);
+        recipients.push(bccIdentity);
+        involvesIdentities[bccIdentity.id] = true;
+        let bccCard = bccIdentity.abCard;
+        if (bccCard) {
+          involvedAddrBookCount++;
+          // @testpoint gloda.noun.message.attr.recipientsMatch
+          aGlodaMessage._indexRecipients += ' ' + bccCard.displayName;
+        }
+      }
+      // optimization attribute cc-me ('I' am the parameter)
+      if (bccIdentity.id in myIdentities) {
+        toMe.push([bccIdentity, authorIdentity]);
+        if (aIsNew)
+          authorIdentity.contact.popularity += this.POPULARITY_BCC_ME;
+      }
+      // optimization attribute from-me-to ('I' am the parameter)
+      if (isFromMe) {
+        fromMe.push([authorIdentity, bccIdentity]);
+        // also, popularity
+        if (aIsNew)
+          bccIdentity.contact.popularity += this.POPULARITY_FROM_ME_BCC;
       }
     }
 
@@ -554,16 +621,13 @@ var GlodaFundAttr = {
         (involvedAddrBookCount - 1) * this.NOTABILITY_INVOLVING_ADDR_BOOK_ADDL;
 
     aGlodaMessage.involves = involves;
+    aGlodaMessage.recipients = recipients;
     if (toMe.length) {
       aGlodaMessage.toMe = toMe;
       aGlodaMessage.notability += this.NOTABILITY_INVOLVING_ME;
     }
-    if (fromMeTo.length)
-      aGlodaMessage.fromMeTo = fromMeTo;
-    if (ccMe.length)
-      aGlodaMessage.ccMe = ccMe;
-    if (fromMeCc.length)
-      aGlodaMessage.fromMeCc = fromMeCc;
+    if (fromMe.length)
+      aGlodaMessage.fromMe = fromMe;
 
     if (aRawReps.bodyLines &&
         this.contentWhittle({}, aRawReps.bodyLines, aRawReps.content)) {

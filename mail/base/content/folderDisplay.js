@@ -783,12 +783,12 @@ FolderDisplayWidget.prototype = {
    *  of searches and we will receive a notification for them.
    */
   onSearching: function(aIsSearching) {
-    // getDocumentElements() sets gSearchBundle
-    getDocumentElements();
-    if (this._tabInfo)
+    if (this._tabInfo) {
+      let searchBundle = document.getElementById("bundle_search");
       document.getElementById("tabmail").setTabThinking(
         this._tabInfo,
-        aIsSearching && gSearchBundle.getString("searchingMessage"));
+        aIsSearching && searchBundle.getString("searchingMessage"));
+    }
   },
 
   /**
@@ -892,8 +892,6 @@ FolderDisplayWidget.prototype = {
       this._persistColumnStates(this._savedColumnStates);
     }
 
-    // the quick-search gets nuked when we show a new folder
-    ClearQSIfNecessary();
     // update the quick-search relative to whether it's incoming/outgoing
     onSearchFolderTypeChanged(this.view.isOutgoingFolder);
 
@@ -1437,9 +1435,6 @@ FolderDisplayWidget.prototype = {
             searchInput.value = this._savedQuickSearch.text;
             searchInput.showingSearchCriteria = false;
             searchInput.clearButtonHidden = false;
-          }
-          else {
-            searchInput.setSearchCriteriaText();
           }
         }
       }

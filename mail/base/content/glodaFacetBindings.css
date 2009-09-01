@@ -1,0 +1,31 @@
+#query-explanation {
+  -moz-binding: url('chrome://messenger/content/glodaFacetBindings.xml#query-explanation');
+}
+
+.facets {
+  -moz-binding: url('chrome://messenger/content/glodaFacetBindings.xml#facets');
+}
+
+.facetious[type="discrete"] {
+  -moz-binding: url('chrome://messenger/content/glodaFacetBindings.xml#facet-discrete');
+}
+
+.facetious[type="boolean"] {
+  -moz-binding: url('chrome://messenger/content/glodaFacetBindings.xml#facet-boolean');
+}
+
+.facetious[type="boolean-filtered"] {
+  -moz-binding: url('chrome://messenger/content/glodaFacetBindings.xml#facet-boolean-filtered');
+}
+
+.facetious[type="date"] {
+  -moz-binding: url('chrome://messenger/content/glodaFacetBindings.xml#facet-date');
+}
+
+.results[type="message"] {
+  -moz-binding: url('chrome://messenger/content/glodaFacetBindings.xml#results-message');
+}
+
+.message {
+  -moz-binding: url('chrome://messenger/content/glodaFacetBindings.xml#result-message');
+}

@@ -38,6 +38,8 @@
 // -- Pull in the POP3 fake-server / local account helper code
 load("../../test_mailnewslocal/unit/head_maillocal.js");
 
+Components.utils.import("resource://app/modules/errUtils.js");
+
 /**
  * Create a 'me' identity of "me@localhost" for the benefit of Gloda.  At the
  *  time of this writing, Gloda only initializes Gloda.myIdentities and
@@ -875,9 +877,11 @@ QueryExpectationListener.prototype = {
       this.nextIndex++;
 
       // make sure the query's test method agrees with the database about this
-      if (!aCollection.query.test(item))
+      if (!aCollection.query.test(item)) {
+        logObject(item);
         do_throw("Query test returned false when it should have been true on " +
                  "extracted: " + glodaStringRep + " item: " + item);
+      }
     }
   },
   onItemsModified: function query_expectation_onItemsModified(aItems,

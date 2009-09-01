@@ -553,7 +553,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 12,
+  _schemaVersion: 13,
   _schema: {
     tables: {
 
@@ -988,6 +988,9 @@ var GlodaDatastore = {
    * Create a table for a noun, replete with data binding.
    */
   createNounTable: function gloda_ds_createTableIfNotExists(aNounDef) {
+    // give it a _jsonText attribute if appropriate...
+    if (aNounDef.allowsArbitraryAttrs)
+      aNounDef.schema.columns.push(['jsonAttributes', 'STRING', '_jsonText']);
     // check if the table exists
     if (!this.asyncConnection.tableExists(aNounDef.tableName)) {
       // it doesn't! create it (and its potentially many variants)
@@ -1028,7 +1031,15 @@ var GlodaDatastore = {
     // - notability column added
     // version 13:
     // - we are adding a new fulltext index column. blow away!
-    if (aCurVersion < 13) {
+    // - note that I screwed up and failed to mark the schema change; apparently
+    //   no database will claim to be version 13...
+    // version 14:
+    // - new attributes: forwarded, repliedTo, bcc, recipients
+    // - altered fromMeTo and fromMeCc to fromMe
+    // - altered toMe and ccMe to just be toMe
+    // - exposes bcc to cc-related attributes
+    // - MIME type DB schema overhaul
+    if (aCurVersion < 14) {
       aDBConnection.close();
       aDBFile.remove(false);
       this._log.warn("Global database has been purged due to schema change.");
@@ -2099,7 +2110,7 @@ var GlodaDatastore = {
     else
       jsonText = aRow.getString(7);
     // only queryFromQuery queries will have these columns
-    if (aRow.numEntries == 14) {
+    if (aRow.numEntries >= 14) {
       if (aRow.getTypeOfIndex(9) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
         subject = undefined;
       else
@@ -2980,7 +2991,7 @@ var GlodaDatastore = {
     }
     if (aListenerData) {
       if (collection.dataStack)
-        collection.dataStack.push(aListenerData)
+        collection.dataStack.push(aListenerData);
       else
         collection.dataStack = [aListenerData];
     }

@@ -417,6 +417,9 @@
         <parameter name="aArgs"/>
         <body>
             <![CDATA[
+        try {
+          if (!(aTabModeName in this.tabModes))
+            throw new Error("No such tab mode: " + aTabModeName);
           let tabMode = this.tabModes[aTabModeName];
           // if we are already at our limit for this mode, show an existing one
           if (tabMode.tabs.length == tabMode.maxTabs) {
@@ -523,6 +526,7 @@
             UpdateMailToolbar("tabmail");
 
           return tab;
+          } catch (e) { logException(e);}
         ]]></body>
       </method>
       <method name="selectTabByMode">

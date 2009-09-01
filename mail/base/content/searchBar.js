@@ -23,6 +23,8 @@
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Scott MacGregor <mscott@mozilla.org>
  *   David Bienvenu <bienvenu@nventure.com>
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *   David Ascher <dascher@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,27 +42,16 @@
 
 Components.utils.import("resource://app/modules/quickSearchManager.js");
 
+
 var gSearchBundle;
+
 var gStatusBar = null;
-var gIgnoreFocus = false;
-var gIgnoreClick = false;
-
-// change/add constants in QuickSearchConstants in quickSearchManager.js first
-// ideally these should go away in favor of everyone using QuickSearchConstants
-const kQuickSearchSubject = QuickSearchConstants.kQuickSearchSubject;
-const kQuickSearchFrom = QuickSearchConstants.kQuickSearchFrom;
-const kQuickSearchFromOrSubject =
-  QuickSearchConstants.kQuickSearchFromOrSubject;
-const kQuickSearchBody = QuickSearchConstants.kQuickSearchBody;
-const kQuickSearchRecipient = QuickSearchConstants.kQuickSearchRecipient;
-const kQuickSearchRecipientOrSubject =
-  QuickSearchConstants.kQuickSearchRecipientOrSubject;
-
 
 /**
  * We are exclusively concerned with disabling the quick-search box when a
  *  tab is being displayed that lacks quick search abilities.
  */
+
 var QuickSearchTabMonitor = {
   onTabTitleChanged: function() {
   },
@@ -69,18 +60,21 @@ var QuickSearchTabMonitor = {
     let searchInput = document.getElementById("searchInput");
 
     if (searchInput) {
-      let newTabEligible = aTab.mode.tabType == mailTabType;
+      let newTabEligible = ((aTab.mode.tabType == mailTabType) ||
+                            (aTab.mode.tabType == glodaFacetTabType));
       searchInput.disabled = !newTabEligible;
       if (!newTabEligible)
         searchInput.value = "";
     }
-  },
+  }
 };
 
 
+// XXX never called?
 function SetQSStatusText(aNumHits)
 {
   var statusMsg;
+  gSearchBundle = document.getElementById("bundle_search");
   // if there are no hits, it means no matches were found in the search.
   if (aNumHits == 0)
     statusMsg = gSearchBundle.getString("searchFailureMessage");
@@ -95,159 +89,6 @@ function SetQSStatusText(aNumHits)
   statusFeedback.showStatusString(statusMsg);
 }
 
-function getDocumentElements()
-{
-  gSearchBundle = document.getElementById("bundle_search");
-  gStatusBar = document.getElementById('statusbar-icon');
-  GetSearchInput();
-}
-
-function onEnterInSearchBar()
-{
-  if (!gSearchInput)
-    return;
-
-  // nothing changes while showing the criteria
-  if (gSearchInput.showingSearchCriteria)
-    return;
-
-  if (!gSearchInput || gSearchInput.value == "")
-     gFolderDisplay.view.search.userTerms = null;
-  else
-     gFolderDisplay.view.search.quickSearch(gSearchInput.searchMode,
-                                            gSearchInput.value);
-}
-
-
-function onSearchKeyPress()
-{
-  if (gSearchInput.showingSearchCriteria)
-    gSearchInput.showingSearchCriteria = false;
-}
-
-function onSearchInputFocus(event)
-{
-  GetSearchInput();
-  // search bar has focus, ...clear the showing search criteria flag
-  if (gSearchInput.showingSearchCriteria)
-  {
-    gSearchInput.value = "";
-    gSearchInput.showingSearchCriteria = false;
-  }
-
-  if (gIgnoreFocus) // got focus via mouse click, don't need to anything else
-    gIgnoreFocus = false;
-  else
-    gSearchInput.select();
-}
-
-function onSearchInputMousedown(event)
-{
-  GetSearchInput();
-  if (gSearchInput.hasAttribute("focused"))
-    // If the search input is focused already, ignore the click so that
-    // onSearchInputBlur does nothing.
-    gIgnoreClick = true;
-  else
-  {
-    gIgnoreFocus = true;
-    gIgnoreClick = false;
-  }
-}
-
-function onSearchInputClick(event)
-{
-  if (!gIgnoreClick)
-    // Triggers onSearchInputBlur(), but focus returns to field.
-    gSearchInput.select();
-}
-
-function onSearchInputBlur(event)
-{
-  // If we're doing something else, don't process the blur.
-  if (gIgnoreClick)
-    return;
-
-  if (!gSearchInput.value)
-    gSearchInput.showingSearchCriteria = true;
-
-  if (gSearchInput.showingSearchCriteria)
-    gSearchInput.setSearchCriteriaText();
-}
-
-function onClearSearch()
-{
-  // If we're not showing search criteria, then we need to clear up.
-  if (!gSearchInput.showingSearchCriteria)
-  {
-    Search("");
-    // Hide the clear button
-    gSearchInput.clearButtonHidden = true;
-    gIgnoreClick = true;
-    gSearchInput.select();
-    gIgnoreClick = false;
-  }
-}
-
-// called from commandglue.js in cases where the view is being changed and QS
-// needs to be cleared.
-function ClearQSIfNecessary()
-{
-  if (!gSearchInput || gSearchInput.showingSearchCriteria)
-    return;
-  gSearchInput.setSearchCriteriaText();
-}
-
-function Search(str)
-{
-  if (gSearchInput.showingSearchCriteria && str != "")
-    return;
-
-  gSearchInput.value = str;  //on input does not get fired for some reason
-  onEnterInSearchBar();
-}
-
-// helper methods for the quick search drop down menu
-function changeQuickSearchMode(aMenuItem)
-{
-  // extract the label and set the search input to match it
-  var oldSearchMode = gSearchInput.searchMode;
-  gSearchInput.searchMode = aMenuItem.value;
-
-  if (gSearchInput.value == "" || gSearchInput.showingSearchCriteria)
-  {
-    gSearchInput.showingSearchCriteria = true;
-    if (gSearchInput.value) //
-      gSearchInput.setSearchCriteriaText();
-  }
-
-  // if the search box is empty, set showing search criteria to true so it shows up when focus moves out of the box
-  if (!gSearchInput.value)
-    gSearchInput.showingSearchCriteria = true;
-  else if (gSearchInput.showingSearchCriteria) // if we are showing criteria text and the box isn't empty, change the criteria text
-    gSearchInput.setSearchCriteriaText();
-  else if (oldSearchMode != gSearchInput.searchMode) // the search mode just changed so we need to redo the quick search
-    onEnterInSearchBar();
-}
-
-function saveViewAsVirtualFolder()
-{
-  gFolderTreeController.newVirtualFolder(gSearchInput.value,
-                                         gFolderDisplay.view.search.session.searchTerms);
-}
-
-function InitQuickSearchPopup()
-{
-  // disable the create virtual folder menu item if the current radio
-  // value is set to Find in message since you can't really  create a VF from find
-  // in message
-
-  GetSearchInput();
-  if (!gSearchInput ||gSearchInput.value == "" || gSearchInput.showingSearchCriteria)
-    document.getElementById('quickSearchSaveAsVirtualFolder').setAttribute('disabled', 'true');
-  else
-    document.getElementById('quickSearchSaveAsVirtualFolder').removeAttribute('disabled');
-}
 
 /**
  * If switching from an "incoming" (Inbox, etc.) type of mail folder,
@@ -272,19 +113,19 @@ function onSearchFolderTypeChanged(isOutboundFolder)
 
   if (isOutboundFolder)
   {
-    if (gSearchInput.searchMode == kQuickSearchFromOrSubject)
-      newSearchType = kQuickSearchRecipientOrSubject;
-    else if (gSearchInput.searchMode == kQuickSearchFrom)
-      newSearchType = kQuickSearchRecipient;
+    if (gSearchInput.searchMode == QuickSearchConstants.kQuickSearchFromOrSubject)
+      newSearchType = QuickSearchConstants.kQuickSearchRecipientOrSubject;
+    else if (gSearchInput.searchMode == QuickSearchConstants.kQuickSearchFrom)
+      newSearchType = QuickSearchConstants.kQuickSearchRecipient;
     else
       return;
   }
   else
   {
-    if (gSearchInput.searchMode == kQuickSearchRecipientOrSubject)
-      newSearchType = kQuickSearchFromOrSubject;
-    else if (gSearchInput.searchMode == kQuickSearchRecipient)
-      newSearchType = kQuickSearchFrom;
+    if (gSearchInput.searchMode == QuickSearchConstants.kQuickSearchRecipientOrSubject)
+      newSearchType = QuickSearchConstants.kQuickSearchFromOrSubject;
+    else if (gSearchInput.searchMode == QuickSearchConstants.kQuickSearchRecipient)
+      newSearchType = QuickSearchConstants.kQuickSearchFrom;
     else
       return;
   }

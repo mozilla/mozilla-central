@@ -1679,7 +1679,7 @@ function CreateToolbarTooltip(document, event)
 }
 
 /**
- * Displays message "folder"s, mail "message"s, and "glodaSearch" results.  The
+ * Displays message "folder"s, mail "message"s, and "glodaList" results.  The
  *  commonality is that they all use the "mailContent" panel's folder tree,
  *  thread tree, and message pane objects.  This happens for historical reasons,
  *  likely involving the fact that prior to the introduction of this
@@ -1954,19 +1954,22 @@ let mailTabType = {
       }
     },
     /**
-     * The glodaSearch view displays a gloda-backed nsMsgDBView with only the
+     * The glodaList view displays a gloda-backed nsMsgDBView with only the
      *  thread pane and (potentially) the message pane displayed; the folder
      *  pane is forced hidden.
      */
-    glodaSearch: {
+    glodaList: {
       type: "glodaSearch",
       /// The set of panes that are legal to be displayed in this mode
       legalPanes: {
         folder: false,
         thread: true,
         message: true,
-        glodaFacets: false,
       },
+      /**
+       * The default set of columns to show.  This really should just be for
+       *  boot-strapping and should be persisted after that...
+       */
       desiredColumnStates: {
         flaggedCol: {
           visible: true,
@@ -1982,37 +1985,42 @@ let mailTabType = {
         },
       },
       /**
-       * Open a new tab whose view is backed by a gloda search.
+       * Open a new folder-display-style tab showing the contents of a gloda
+       *  query/collection.  You must pass one of 'query'/'collection'/
+       *  'conversation'
        *
-       * @param searchString
-       * @param facetString
-       *     - everything:
-       *     - subject:
-       *     - involves:
-       *     - to:
-       *     - from:
-       *     - body:
-       * @param location Either a GlodaFolder or the string "everywhere".
+       * @param {GlodaQuery} [aArgs.query] An un-triggered gloda query to use.
+       *     Alternatively, if you already have a collection, you can pass that
+       *     instead as 'collection'.
+       * @param {GlodaCollection} [aArgs.collection] A gloda collection to
+       *     display.
+       * @param {GlodaConversation} [aArgs.conversation] A conversation whose
+       *     messages you want to display.
+       * @param {GlodaMessage} [aArgs.message] The message to select in the
+       *     conversation, if provided.
+       * @param aArgs.title The title to give to the tab.  If this is not user
+       *     content (a search string, a message subject, etc.), make sure you
+       *     are using a localized string.
        *
        * XXX This needs to handle opening in the background
        */
       openTab: function(aTab, aArgs) {
-        // make sure the search string bundle is loaded
-        getDocumentElements();
-        aTab.title = gSearchBundle.getFormattedString("glodaSearchTabTitle",
-                                                      [aArgs.searchString]);
-        aTab.glodaSearchInputValue = aArgs.searchString;
-        aTab.searchString = aArgs.searchString;
-        aTab.facetString = aArgs.facetString;
-
-        aTab.glodaSynView = new GlodaSyntheticSearchView(aArgs.searchString,
-                                                         aArgs.facetString,
-                                                         aArgs.location);
+        aTab.glodaSynView = new GlodaSyntheticView(aArgs);
+        aTab.title = aArgs.title;
 
         this.openTab(aTab, false, new MessagePaneDisplayWidget());
         aTab.folderDisplay.show(aTab.glodaSynView);
+        // XXX persist column states in preferences or session store or other
         aTab.folderDisplay.setColumnStates(aTab.mode.desiredColumnStates);
-        aTab.folderDisplay.makeActive();
+
+        let background = ("background" in aArgs) && aArgs.background;
+        if (!background)
+          aTab.folderDisplay.makeActive();
+        if ("message" in aArgs) {
+          let hdr = aArgs.message.folderMessage;
+          if (hdr)
+            aTab.folderDisplay.selectMessage(hdr);
+        }
       },
       getBrowser: function(aTab) {
         // If we are currently a thread summary, we want to select the multi
@@ -2166,7 +2174,6 @@ let mailTabType = {
    *        is distinct from the thread pane because some other things depend
    *        on whether it's actually the thread pane we are showing.
    *     - message: The message pane.  Required/assumed to be true for now.
-   *     - glodaFacets: The gloda search facets pane.
    * @param aVisibleStates A dictionary where each value indicates whether the
    *     pane should be 'visible' (not collapsed).  Only panes that are governed
    *     by splitters are options here.  Keys are:
@@ -2253,10 +2260,6 @@ let mailTabType = {
       messagePaneToggleKey.removeAttribute("disabled");
     else
       messagePaneToggleKey.setAttribute("disabled", "true");
-
-    // -- gloda facets
-    document.getElementById("glodaSearchFacets").hidden =
-      !aLegalStates.glodaFacets;
   },
 
   showTab: function(aTab) {
@@ -2297,42 +2300,6 @@ let mailTabType = {
 
   onEvent: function(aTab, aEvent) {
     DefaultController.onEvent(aEvent);
-  }
-};
-/**
- * The glodaSearch tab mode has a UI widget outside of the mailTabType's
- *  display panel, the #glodaSearchInput textbox.  This means we need to use a
- *  tab monitor so that we can appropriately update the contents of the textbox.
- * Every time a tab is changed, we save the state of the text box and restore
- *  its previous value for the tab we are switching to, as well as whether this
- *  value is a change to the currently-used value (if it is a glodaSearch) tab.
- *  The behaviour rationale for this is that the glodaSearchInput is like the
- *  URL bar.  When you are on a glodaSearch tab, we need to show you your
- *  current value, including any "uncommitted" (you haven't hit enter yet)
- *  changes.  It's not entirely clear that imitating this behaviour on
- *  non-glodaSearch tabs makes a lot of sense, but it is consistent, so we do
- *  so.  The counter-example to this choice is the search box in firefox, but
- *  it never updates when you switch tabs, so it is arguably less of a fit.
- */
-var glodaSearchTabMonitor = {
-  onTabTitleChanged: function() {},
-  onTabSwitched: function glodaSearchTabMonitor_onTabSwitch(aTab, aOldTab) {
-    let inputNode = document.getElementById("glodaSearchInput");
-    if (!inputNode)
-      return;
-
-    // save the current search field value
-    if (aOldTab)
-      aOldTab.glodaSearchInputValue = inputNode.value;
-    // load (or clear if there is none) the persisted search field value
-    inputNode.value = aTab.glodaSearchInputValue || "";
-
-    // If the mode is glodaSearch and the search is unchanged, then we want to
-    //  set the icon state of the input box to be the 'clear' icon.
-    if (aTab.mode.name == "glodaSearch") {
-      if (aTab.searchString == aTab.glodaSearchInputValue)
-        inputNode._searchIcons.selectedIndex = 1;
-    }
   }
 };
 

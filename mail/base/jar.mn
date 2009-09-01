@@ -60,7 +60,7 @@ messenger.jar:
     content/messenger/aboutDialog.css               (content/aboutDialog.css)
 *   content/messenger/credits.xhtml                 (content/credits.xhtml)
     content/messenger/messenger.css                 (content/messenger.css)
-*   content/messenger/search.xml                    (content/search.xml)
+    content/messenger/search.xml                    (content/search.xml)
     content/messenger/tabmail.xml                   (content/tabmail.xml)
     content/messenger/tabmail.css                   (content/tabmail.css)
 *   content/messenger/newmailalert.xul              (content/newmailalert.xul)
@@ -80,6 +80,14 @@ messenger.jar:
     content/messenger/multimessageview.css          (content/multimessageview.css)
     content/messenger/sharedsummary.css             (content/sharedsummary.css)
     content/messenger/multimessageview.xhtml        (content/multimessageview.xhtml)
+    content/messenger/glodaFacetTab.js              (content/glodaFacetTab.js)
+    content/messenger/glodaFacetViewWrapper.xul     (content/glodaFacetViewWrapper.xul)
+    content/messenger/glodaFacetView.xhtml          (content/glodaFacetView.xhtml)
+    content/messenger/glodaFacetView.js             (content/glodaFacetView.js)
+    content/messenger/glodaFacetView.css            (content/glodaFacetView.css)
+    content/messenger/glodaFacetBindings.css        (content/glodaFacetBindings.css)
+    content/messenger/glodaFacetBindings.xml        (content/glodaFacetBindings.xml)
+    content/messenger/glodaFacetVis.js              (content/glodaFacetVis.js)
 
 comm.jar:
 % content communicator %content/communicator/ xpcnativewrappers=yes

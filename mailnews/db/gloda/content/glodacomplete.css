@@ -1,5 +1,6 @@
 textbox[type="glodacomplete"] {
   -moz-binding: url("chrome://global/content/bindings/autocomplete.xml#autocomplete");
+  width: 400px;
 }
 
 panel[type="glodacomplete-richlistbox"] {
@@ -16,6 +17,15 @@ panel[type="glodacomplete-richlistbox"] {
   overflow-x: hidden !important;
 }
 
+.parameters {
+  font-style: italic;
+  margin-left: 1em;
+}
+.picture {
+  margin: 1ex;
+  margin-right: 1em;
+}
+
 .autocomplete-richlistitem[type="gloda-single-tag"] {
   -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-single-tag-item");
   overflow: -moz-hidden-unscrollable;
@@ -24,6 +34,21 @@ panel[type="glodacomplete-richlistbox"] {
 .autocomplete-richlistitem[type="gloda-single-identity"] {
   -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-single-identity-item");
   -moz-box-orient: vertical;
+  overflow: -moz-hidden-unscrollable;
+}
+
+.autocomplete-richlistitem[type="gloda-fulltext-single"] {
+  -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-fulltext-single-item");
+  overflow: -moz-hidden-unscrollable;
+}
+
+.autocomplete-richlistitem[type="gloda-fulltext-any"] {
+  -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-fulltext-any-item");
+  overflow: -moz-hidden-unscrollable;
+}
+
+.autocomplete-richlistitem[type="gloda-fulltext-all"] {
+  -moz-binding: url("chrome://gloda/content/glodacomplete.xml#gloda-fulltext-all-item");
   overflow: -moz-hidden-unscrollable;
 }
 

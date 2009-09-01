@@ -1,0 +1,491 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Thunderbird Global Database.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2009
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *   David Ascher <dascher@mozillamessaging.com>
+ *   Bryan Clark <clarkbw@gnome.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+body {
+  background: #ffffff;
+  font-family: sans-serif;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  font-family: sans-serif;
+}
+
+/* ===== Query Explanation ===== */
+
+#query-explanation {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 20.5em;
+  height: 2.5em;
+  font-size: 110%;
+  margin-left: 0;
+  padding: 2px;
+  padding-left: 0;
+  padding-top: 1em;
+  font-size: medium;
+}
+
+.explanation-fulltext-label {
+  font-size: 120%;
+  color: #3465a4;
+  margin: 0 0.1em;
+}
+
+.explanation-fulltext-term {
+  font-size: large;
+  color: black;
+  margin: 0 0.1em;
+}
+
+.explanation-fulltext-criteria {
+  font-size: medium;
+  color: #888;
+  margin: 0 0.1em;
+}
+
+.explanation-change-label {
+  font-size: 80%;
+  color: black;
+  margin: 0 0.1em;
+}
+
+.explanation-query-label {
+  margin-top: 1ex;
+}
+
+.explanation-query-label,
+.explanation-query-involves,
+.explanation-query-tagged {
+  color: #3465a4;
+  margin-right: 0.5ex;
+}
+
+/* ===== Facets ===== */
+
+h1, h2, h3 {
+  color: #3465a4;
+}
+
+#filter-header-label {
+  font-size: 120%;
+  margin: 0;
+  margin-top: 1em;
+}
+
+.explanation-change-label {
+  margin-left: 1em;
+  font-size: 80%;
+  border: 1px solid grey;
+  -moz-border-radius: 4px;
+  padding: 3px;
+}
+
+.explanation-change-label:hover {
+  cursor: pointer;
+  background-color: #aed5ff;
+}
+
+.facetious[uninitialized] {
+  display: none;
+}
+
+.facets-sidebar {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 20em;
+  height: 100%;
+  background-color: #eeeeee;
+  padding: 4px;
+  padding-left: 1em;
+  font-size: 90%;
+}
+
+.facetious {
+  display: inline-block;
+  padding: 2px;
+}
+
+.facet > h2 {
+  display: inline;
+  margin: 0;
+  font-size: medium;
+}
+
+.facet-included[state="empty"],
+.facet-excluded[state="empty"] {
+  display: none;
+}
+
+#facet-date {
+  position: fixed;
+  bottom: -4px;
+  left: 20em;
+  padding: 0px;
+  background-color: rgba(255,255,255,0.6);
+
+  display: block;
+}
+
+/* === Boolean Facet === */
+
+.facetious[type="boolean"][disabled] {
+  color: #888888;
+}
+
+.facet-checkbox-bubble {
+  padding: 2px;
+  padding-right: 6px;
+  border: solid transparent 1px;
+  cursor: pointer;
+  color: #333;
+  font-size: 90%;
+}
+
+
+.facetious[type="boolean"][disabled] > .facet-checkbox-bubble,
+.facetious[type="boolean-filtered"][disabled] > .facet-checkbox-bubble {
+  cursor: default;
+  color: #777;
+}
+
+.facetious[type="boolean"]:not([disabled]):hover > .facet-checkbox-bubble,
+.facetious[type="boolean-filtered"]:not([disabled]):hover > .facet-checkbox-bubble {
+  background-color: #aed5ff;
+  border: solid #3465a4 1px;
+  -moz-border-radius: 4px;
+}
+
+
+
+.facet-checkbox-label {
+}
+
+.facet-checkbox-count {
+}
+.facet-checkbox-count:before {
+  content: " (";
+}
+.facet-checkbox-count:after {
+  content: ")";
+}
+
+/* === Boolean Filtered === */
+
+.facetious[type="boolean-filtered"]:not([checked]) > .facet-filter-list {
+  display: none
+}
+
+.facet-filter-list {
+  display: block;
+}
+
+/* === Discrete Facet === */
+
+/*
+ * Our basis for the bar-chart comes from:
+ *  http://www.alistapart.com/articles/accessibledatavisualization/
+ * Thank you, Wilson Miner.
+ */
+
+.barry {
+  border-top: 1px solid #EEE;
+  margin: 0;
+  padding: 4px;
+}
+
+.facet-modes {
+  font-size: 80%;
+  cursor: pointer;
+  color: #888888;
+}
+
+.facet-modes:before {
+  font-weight: normal;
+  content: "( ";
+}
+
+.facet-mode:not(:first-child):before {
+  font-weight: normal;
+  content: " | ";
+}
+
+.facet-modes:after {
+  font-weight: normal;
+  content: " )";
+}
+
+.facet-mode[selected] {
+  font-weight: bold;
+}
+
+.bar {
+  position: relative;
+  display: block;
+  border-bottom: 1px solid #EEE;
+  _zoom: 1;
+  cursor: pointer;
+  font-size: 80%;
+}
+
+.bar[included] {
+  background-color: #efffef;
+}
+
+.bar[excluded] {
+  text-decoration: line-through;
+}
+
+
+.bar:hover {
+  background: #e8e8e8;
+}
+
+.bar-link {
+  color: #2D7BB2;
+  text-decoration: none;
+  display: block;
+  padding: 0.3em 2em 0.3em 0.5em;
+  position: relative;
+  z-index: 2;
+}
+
+.bar:hover > .bar-link {
+  color: #333;
+}
+
+.bar-percent {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #e9f2f5;
+  text-indent: -9999px;
+  overflow: hidden;
+  line-height: 1.6em;
+}
+
+.bar:hover > .bar-percent {
+  background: #ceeaf5;
+}
+
+.bar-exclude {
+  display: block;
+  visibility: hidden;
+  background-image: url("chrome://messenger/skin/icons/thread-ignored.png");
+  position: absolute;
+  top: 0.3em;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  z-index: 3;
+}
+
+.bar:hover > .bar-exclude {
+  visibility: visible;
+}
+
+.bar-exclude:hover {
+  background-color: #ffffcc;
+}
+
+/* ===== Results ===== */
+
+.results {
+  margin-left: 20.5em;
+  margin-top: 3em;
+}
+
+.results-message-header {
+  background-color: #dcddde;
+  border-top: 2px solid #ccc;
+  padding: 2px;
+}
+
+.results-message-count {
+  display: inline;
+  margin: 0;
+  font-size: medium;
+}
+
+.results-message-showall {
+  margin-left: 1em;
+  cursor: pointer;
+  font-size: 80%;
+}
+
+/* ===== Messages ===== */
+
+.message {
+  display: block;
+  font-family: sans-serif;
+  font-size: 80%;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  margin-right: 1em;
+  border: 1px solid transparent;
+  -moz-border-radius: 3px;
+  border-bottom: 1px solid #ddd;
+  display: block;
+  color: #555;
+  background-color: #ffffff;
+}
+
+.message:hover {
+  border-color: grey;
+  background: #efefef;
+  cursor: pointer;
+}
+
+.message:focus {
+  border: 1px dotted #111;
+  padding: 1em 0px;
+}
+.message[unread="true"]:focus {
+  border: 1px dotted #111;
+  padding: 1em 0px;
+}
+.message:focus:last-child {
+  border: 1px dotted #111;
+  padding: 1em 0px;
+}
+.message:focus:first-child {
+  border: 1px dotted #111;
+  padding: 1em 0px;
+}
+.message:last-child {
+  border-bottom: 1px solid transparent;
+}
+.message:last-child:hover {
+  border-bottom: 1px solid;
+}
+
+
+.message {
+  display: block;
+  padding: 0.2em 0em;
+  padding-right: 1em;
+}
+
+.message-header,
+.message-body {
+  margin-left: 24px;
+  font-size: 95%;
+}
+
+.message-header {
+  margin-bottom: 0.5em;
+}
+.message-meta {
+  float: right;
+  padding-left: 2em;
+  text-align: right;
+  color: #999;
+  font-size: 90%;
+}
+.message-attachments {
+  padding-right: 18px;
+  background: url("chrome://messenger/skin/icons/attachment.png") transparent no-repeat center right;
+  display: none;
+}
+.message-attachments[count] {
+  display: inline;
+}
+.message-attachments:before {
+  content: "(";
+}
+.message-attachments:after {
+  content: ")";
+}
+.message-writes {
+  font-size: 90%;
+  color: #777;
+}
+.message-date {
+  color: #999; font-size: 90%; }
+.message-date:before {
+  content: "\2014  ";
+}
+
+.message-recipients {
+  display: inline;
+  color: #222;
+}
+.message-recipient:first-child:before {
+  content: "";
+}
+.message-recipient:after {
+  content: ", ";
+}
+.message-recipient:last-child:after {
+  content: "";
+}
+
+.message-subject {
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 115%;
+  font-weight: bold;
+  color: #555;
+}
+.message-body {
+  color: #555;
+  padding-left: 1em;
+  font-family: monospace;
+  font-size: 110%;
+}
+
+.message-tag {
+  -moz-margin-start: 0px;
+  background-image: url("chrome://messenger/skin/tagbg.png");
+  color: black;
+  -moz-border-radius: 2px;
+  padding: 1px 3px;
+  margin-right: 3px;
+}
+.message-folder {
+  background-color: #faf0b8;
+  border: 1px solid #ede4af;
+}
+

@@ -1,0 +1,1029 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+  - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+  -
+  - The contents of this file are subject to the Mozilla Public License Version
+  - 1.1 (the "License"); you may not use this file except in compliance with
+  - the License. You may obtain a copy of the License at
+  - http://www.mozilla.org/MPL/
+  -
+  - Software distributed under the License is distributed on an "AS IS" basis,
+  - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  - for the specific language governing rights and limitations under the
+  - License.
+  -
+  - The Original Code is Thunderbird Global Database.
+  -
+  - The Initial Developer of the Original Code is
+  - Mozilla Messaging, Inc.
+  - Portions created by the Initial Developer are Copyright (C) 2009
+  - the Initial Developer. All Rights Reserved.
+  -
+  - Contributor(s):
+  -   Andrew Sutherland <asutherland@asutherland.org>
+  -   David Ascher <dascher@mozillamessaging.com>
+  -   Bryan Clark <clarkbw@gnome.org>
+  -
+  - Alternatively, the contents of this file may be used under the terms of
+  - either of the GNU General Public License Version 2 or later (the "GPL"),
+  - or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+  - in which case the provisions of the GPL or the LGPL are applicable instead
+  - of those above. If you wish to allow use of your version of this file only
+  - under the terms of either the GPL or the LGPL, and not to allow others to
+  - use your version of this file under the terms of the MPL, indicate your
+  - decision by deleting the provisions above and replace them with the notice
+  - and other provisions required by the GPL or the LGPL. If you do not delete
+  - the provisions above, a recipient may use your version of this file under
+  - the terms of any one of the MPL, the GPL or the LGPL.
+  - ***** END LICENSE BLOCK ***** -->
+
+<bindings id="glodaFacetBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:html="http://www.w3.org/1999/xhtml"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:svg="http://www.w3.org/2000/svg">
+
+<!-- ===== Constraints ===== -->
+
+<binding id="query-explanation">
+  <content>
+  </content>
+  <implementation>
+    <!-- Indicate that we are based on a fulltext search-->
+    <method name="setFulltext">
+      <parameter name="aMsgSearcher" />
+      <body><![CDATA[
+        while (this.lastChild)
+          this.removeChild(this.lastChild);
+
+        let dis = this;
+        function spanify(aText, aClass) {
+          let span = document.createElement("span");
+          span.setAttribute("class", aClass);
+          span.textContent = aText;
+          dis.appendChild(span);
+          return span;
+        }
+
+        let labelFormat = glodaFacetStrings.get(
+          "glodaFacetView.constraints.query.fulltext.label");
+        let [labelPre, labelPost] = labelFormat.split("#1");
+        // trim both; we rely on CSS to handle the spacing
+        labelPre = labelPre.trim();
+        labelPost = labelPost.trim();
+
+        if (labelPre)
+          spanify(labelPre, "explanation-fulltext-label");
+
+        let criteriaText = glodaFacetStrings.get(
+          "glodaFacetView.constraints.query.fulltext." +
+          (aMsgSearcher.andTerms ? "and" : "or") + "JoinWord");
+        for each (let [iTerm, term] in Iterator(aMsgSearcher.fulltextTerms)) {
+          if (iTerm)
+            spanify(criteriaText, "explanation-fulltext-criteria");
+          spanify(term, "explanation-fulltext-term");
+        }
+
+        if (labelPost)
+          spanify(labelPost, "explanation-fulltext-label");
+
+        if (aMsgSearcher.fulltextTerms.length > 1) {
+          spanify(
+            glodaFacetStrings.get("glodaFacetView.constraints.query.fulltext." +
+              (aMsgSearcher.andTerms ? "changeToOrLabel" : "changeToAndLabel")),
+            "explanation-change-label")
+          .onclick = function() {
+            FacetContext.toggleFulltextCriteria();
+          };
+        }
+      ]]></body>
+    </method>
+    <method name="setQuery">
+      <parameter name="aMsgQuery" />
+      <body><![CDATA[
+      try {
+        while (this.lastChild)
+          this.removeChild(this.lastChild);
+
+        let dis = this;
+        function spanify(aText, aClass) {
+          let span = document.createElement("span");
+          span.setAttribute("class", aClass);
+          span.textContent = aText;
+          dis.appendChild(span);
+          return span;
+        }
+
+        let label = glodaFacetStrings.get(
+          "glodaFacetView.constraints.query.initial");
+        spanify(label, "explanation-query-label");
+
+        let constraintStrings = [];
+        for each (let constraint in aMsgQuery._constraints) {
+          if (constraint[0] != 1) return; // no idea what this is about
+          if (constraint[1].attributeName == 'involves') {
+            let involvesLabel = glodaFacetStrings.get(
+              "glodaFacetView.constraints.query.involves.label");
+            involvesLabel = involvesLabel.replace("#1", constraint[2].value)
+            spanify(involvesLabel, "explanation-query-involves");
+          } else if (constraint[1].attributeName == 'tag') {
+            let tagLabel = glodaFacetStrings.get(
+              "glodaFacetView.constraints.query.tagged.label");
+            let tag = constraint[2];
+            let _msgTagService = Components.classes["@mozilla.org/messenger/tagservice;1"].
+                                      getService(Components.interfaces.nsIMsgTagService);
+
+            let tagNode = document.createElement("span");
+            let colorClass = "blc-" + _msgTagService.getColorForKey(tag.key).substr(1);
+            tagNode.setAttribute("class", "message-tag tag " + colorClass);
+            tagNode.textContent = tag.tag;
+            spanify(tagLabel, "explanation-query-tagged");
+            this.appendChild(tagNode);
+          }
+        }
+        label = label + constraintStrings.join(', '); // XXX l10n?
+      } catch (e) {
+        logException(e);
+      }
+      ]]></body>
+    </method>
+  </implementation>
+</binding>
+
+<!-- ===== Facets ===== -->
+
+<binding id="facets">
+  <content>
+  </content>
+  <implementation>
+    <method name="clearFacets">
+      <body><![CDATA[
+        while (this.lastChild != null)
+          this.removeChild(this.lastChild);
+      ]]></body>
+    </method>
+    <method name="addFacet">
+      <parameter name="aType" />
+      <parameter name="aAttrDef" />
+      <parameter name="aArgs" />
+      <body><![CDATA[
+        let facets = this;
+
+        let facet = document.createElement("div");
+        facet.attrDef = aAttrDef;
+        facet.nounDef = aAttrDef.objectNounDef;
+        for each (let [key, value] in Iterator(aArgs)) {
+          facet[key] = value;
+        }
+        facet.setAttribute("class", "facetious");
+        facet.setAttribute("type", aType);
+        facet.setAttribute("name", aAttrDef.attributeName);
+        facets.appendChild(facet);
+
+        return facet;
+      ]]></body>
+    </method>
+  </implementation>
+</binding>
+
+<binding id="facet-base">
+  <implementation>
+    <method name="brushItems">
+      <body><![CDATA[
+      ]]></body>
+    </method>
+    <method name="clearBrushedItems">
+      <body><![CDATA[
+      ]]></body>
+    </method>
+  </implementation>
+</binding>
+
+<!--
+  - A boolean facet; we presume orderedGroups contains at most two entries, and
+  -  that their group values consist of true or false.
+  -
+  - The implication of this UI is that you only want to filter to true values
+  -  and would never want to filter out the false values.  Consistent with this
+  -  assumption we disable the UI if there are no true values.
+  -
+  - This depressingly
+  -->
+<binding id="facet-boolean"
+         extends="chrome://messenger/content/glodaFacetBindings.xml#facet-base">
+  <content>
+    <html:span anonid="bubble" class="facet-checkbox-bubble">
+      <html:input anonid="checkbox" type="checkbox" />
+      <html:span anonid="label" class="facet-checkbox-label" />
+      <html:span anonid="count" class="facet-checkbox-count" />
+    </html:span>
+  </content>
+  <implementation>
+    <constructor><![CDATA[
+      this.bubble = document.getAnonymousElementByAttribute(this, "anonid",
+                                                            "bubble");
+      this.checkbox = document.getAnonymousElementByAttribute(this, "anonid",
+                                                              "checkbox");
+      this.labelNode = document.getAnonymousElementByAttribute(this, "anonid",
+                                                               "label");
+      this.countNode = document.getAnonymousElementByAttribute(this, "anonid",
+                                                               "count");
+
+      let dis = this;
+      this.bubble.addEventListener("click", function (event) {
+        return dis.bubbleClicked(event);
+      }, true);
+
+      this.extraSetup();
+
+      if ("faceter" in this)
+        this.build(true);
+    ]]></constructor>
+    <field name="canUpdate" readonly="true">true</field>
+    <property name="disabled">
+      <getter><![CDATA[
+        return this.getAttribute("disabled") == "true";
+      ]]></getter>
+      <setter><![CDATA[
+        if (val) {
+          this.setAttribute("disabled", "true");
+          this.checkbox.setAttribute("disabled", true);
+        }
+        else {
+          this.removeAttribute("disabled");
+          this.checkbox.removeAttribute("disabled");
+        }
+      ]]></setter>
+    </property>
+    <property name="checked">
+      <getter><![CDATA[
+        return this.getAttribute("checked") == "true";
+      ]]></getter>
+      <setter><![CDATA[
+        if (this.checked == val)
+          return;
+        this.checkbox.checked = val;
+        if (val) {
+          // the XBL inherits magic appears to fail if we explicitly check the
+          //  box itself rather than via our click handler, presumably because
+          //  we unshadow something.  So manually apply changes ourselves.
+          this.setAttribute("checked", "true");
+          this.checkbox.setAttribute("checked", "true");
+          if (!this.disabled)
+            FacetContext.addFacetConstraint(this.faceter, this.attrDef, true,
+                                            this.trueGroups);
+        }
+        else {
+          this.removeAttribute("checked");
+          this.checkbox.removeAttribute("checked");
+          if (!this.disabled)
+            FacetContext.removeFacetConstraint(this.faceter);
+        }
+        this.checkStateChanged();
+      ]]></setter>
+    </property>
+    <method name="extraSetup">
+      <body><![CDATA[
+      ]]></body>
+    </method>
+    <method name="checkStateChanged">
+      <body><![CDATA[
+      ]]></body>
+    </method>
+    <method name="build">
+      <parameter name="aFirstTime" />
+      <body><![CDATA[
+        if (aFirstTime) {
+          this.labelNode.textContent = this.attrDef.strings.facetLabel;
+          this.checkbox.setAttribute("aria-label",
+                                     this.attrDef.strings.facetLabel);
+        }
+
+        // If we do not currently have a constraint applied and there is only
+        //  one (or no) group, then: disable us, but reflect the underlying
+        //  state of the data (checked or non-checked)
+        if (!this.faceter.constraint && (this.orderedGroups.length <= 1)){
+          this.disabled = true;
+          let count = 0;
+          if (this.orderedGroups.length) {
+            // true case?
+            if (this.orderedGroups[0][0]) {
+              count = this.orderedGroups[0][1].length;
+              this.checked = true;
+            }
+            else {
+              this.checked = false;
+            }
+          }
+          this.countNode.textContent = count.toLocaleString();
+          return;
+        }
+        // if we were disabled checked before, clear ourselves out
+        if (this.disabled && this.checked)
+          this.checked = false;
+        this.disabled = false;
+
+        // if we are here, we have our 2 groups, find true...
+        // (note: it is possible to get jerked around by null values
+        //  currently, so leave a reasonable failure case)
+        this.trueValues = [];
+        this.trueGroups = [true];
+        for each (let [, groupPair] in Iterator(this.orderedGroups)) {
+          if (groupPair[0] == true)
+            this.trueValues = groupPair[1];
+        }
+
+        this.countNode.textContent = this.trueValues.length.toLocaleString();
+      ]]></body>
+    </method>
+    <method name="bubbleClicked">
+      <parameter name="event" />
+      <body><![CDATA[
+      if (!this.disabled)
+        this.checked = !this.checked;
+      event.stopPropagation();
+      ]]></body>
+    </method>
+  </implementation>
+</binding>
+
+<!--
+  - A check-box with filter-box front-end to a standard discrete faceter.  If
+  -  there are no non-null values, we disable the UI.  If there are non-null
+  -  values the checkbox is enabled and the filter is hidden.  Once you check
+  -  the box we apply the facet and show the filtering mechanism.
+  -->
+<binding id="facet-boolean-filtered"
+         extends="chrome://messenger/content/glodaFacetBindings.xml#facet-boolean">
+  <content>
+    <html:span anonid="bubble" class="facet-checkbox-bubble">
+      <html:input anonid="checkbox" type="checkbox"
+                  xbl:inherits="checked,disabled"/>
+      <html:span anonid="label" class="facet-checkbox-label" />
+      <html:span anonid="count" class="facet-checkbox-count" />
+    </html:span>
+    <html:select anonid="filter" class="facet-filter-list" />
+  </content>
+  <implementation>
+    <method name="extraSetup">
+      <body><![CDATA[
+        this.filterNode = document.getAnonymousElementByAttribute(
+                            this, "anonid", "filter");
+        this.groupDisplayProperty = this.getAttribute("groupDisplayProperty");
+
+        let dis = this;
+        this.filterNode.addEventListener("change", function(event) {
+          return dis.filterChanged(event);
+        }, false);
+
+        this.selectedValue = "all";
+      ]]></body>
+    </method>
+    <method name="build">
+      <parameter name="aFirstTime" />
+      <body><![CDATA[
+        if (aFirstTime) {
+          this.labelNode.textContent = this.attrDef.strings.facetLabel;
+          this.checkbox.setAttribute("aria-label",
+                                     this.attrDef.strings.facetLabel);
+        }
+
+        // Only update count if anything other than "all" is selected.
+        //  Otherwise we lose the set of attachment types in our select box,
+        //  and that makes us sad.  We do want to update on "all" though
+        //  because other facets may further reduce the number of attachments
+        //  we see.  (Or if this is not just being used for attachments, it
+        //  still holds.)
+        if (this.selectedValue != "all") {
+          let count = 0;
+          for each (let [, groupPair] in Iterator(this.orderedGroups)) {
+            if (groupPair[0] != null)
+              count += groupPair[1].length;
+          }
+          this.countNode.textContent = count.toLocaleString();
+          return;
+        }
+
+        while (this.filterNode.lastChild)
+          this.filterNode.removeChild(this.filterNode.lastChild);
+        let allNode = document.createElement("option");
+        allNode.textContent =
+          glodaFacetStrings.get("glodaFacetView.facets.filter." +
+                                this.attrDef.attributeName + ".allLabel");
+        allNode.setAttribute("value", "all");
+        if (this.selectedValue == "all")
+          allNode.setAttribute("selected", "selected");
+        this.filterNode.appendChild(allNode);
+
+        // if we are here, we have our 2 groups, find true...
+        // (note: it is possible to get jerked around by null values
+        //  currently, so leave a reasonable failure case)
+        // empty true groups is for the checkbox
+        this.trueGroups = [];
+        // the real true groups is the actual true values for our explicit
+        //  filtering
+        this.realTrueGroups = [];
+        this.trueValues = [];
+        this.falseValues = [];
+        let selectNodes = [];
+        for each (let [, groupPair] in Iterator(this.orderedGroups)) {
+          if (groupPair[0] == null)
+            this.falseValues.push.apply(this.falseValues, groupPair[1]);
+          else {
+            this.trueValues.push.apply(this.trueValues, groupPair[1]);
+
+            let groupValue = groupPair[0];
+            let selNode = document.createElement("option");
+            selNode.textContent = groupValue[this.groupDisplayProperty];
+            selNode.setAttribute("value", this.realTrueGroups.length);
+            if (this.selectedValue == groupValue.category)
+              selNode.setAttribute("selected", "selected");
+            selectNodes.push(selNode);
+
+            this.realTrueGroups.push(groupValue);
+          }
+        }
+        selectNodes.sort(function(a, b) {
+          return a.textContent.localeCompare(b.textContent);
+        })
+        for each (let [, selNode] in Iterator(selectNodes)) {
+          this.filterNode.appendChild(selNode);
+        }
+
+        this.disabled = !this.trueValues.length;
+
+        this.countNode.textContent = this.trueValues.length.toLocaleString();
+      ]]></body>
+    </method>
+    <method name="checkStateChanged">
+      <body><![CDATA[
+        // if they un-check us, revert our value to all.
+        if (!this.checked)
+          this.selectedValue = "all";
+      ]]></body>
+    </method>
+    <method name="filterChanged">
+      <parameter name="event" />
+      <body><![CDATA[
+        if (!this.checked)
+          return;
+        if (this.filterNode.value == "all") {
+          this.selectedValue = "all";
+          FacetContext.addFacetConstraint(this.faceter, this.attrDef, true,
+                                          this.trueGroups, false, true);
+        }
+        else {
+          let groupValue = this.realTrueGroups[parseInt(this.filterNode.value)];
+          this.selectedValue = groupValue.category;
+          FacetContext.addFacetConstraint(this.faceter, this.attrDef, true,
+                                          [groupValue], false, true);
+        }
+      ]]></body>
+    </method>
+  </implementation>
+</binding>
+
+<binding id="facet-discrete">
+  <content>
+  <!-- without this explicit div here, the sibling selectors used to span
+       included-label/included and excluded-label/excluded fail to apply.
+       so. magic! (this is why our binding node's class is facetious. -->
+  <html:div class="facet">
+    <html:h2 anonid="name"></html:h2>
+    <html:ul anonid="included" class="facet-included barry"></html:ul>
+    <html:ul anonid="excluded" class="facet-excluded barry"></html:ul>
+    <html:ul anonid="candidates" class="barry"></html:ul>
+  </html:div>
+  </content>
+  <implementation>
+    <constructor><![CDATA[
+      if ("faceter" in this)
+        this.build(true);
+    ]]></constructor>
+    <field name="canUpdate" readonly="true">false</field>
+    <method name="lockSize">
+      <body><![CDATA[
+        return;
+        if (this.style.paddingBottom != "0px") {
+          let $this = $(this);
+          let height = ($this.height() + 60) + "px";
+          let width = $this.width() + "px";
+          this.style.minWidth = width;
+          this.style.minHeight = height;
+          this.style.maxWidth = width;
+          this.style.maxHeight = height;
+          this.style.paddingBottom = "0px";
+        }
+      ]]></body>
+    </method>
+    <method name="build">
+      <parameter name="aFirstTime" />
+      <body><![CDATA[
+        // -- Header Building
+        let nameNode = document.getAnonymousElementByAttribute(this, "anonid",
+                                                               "name");
+        nameNode.textContent = this.attrDef.strings.facetLabel;
+        nameNode.setAttribute("title", this.attrDef.strings.facetTooltip);
+
+
+        this.inclList = document.getAnonymousElementByAttribute(this, "anonid",
+                                                                "included");
+        this.exclList = document.getAnonymousElementByAttribute(this, "anonid",
+                                                                "excluded");
+
+        this.inclList.setAttribute("state", "empty");
+        this.exclList.setAttribute("state", "empty");
+
+        // -- House-cleaning
+        // -- All/Top mode decision
+        // to simplify our logic, we always need an other group sentinel even
+        //  if we are operating in "all" mode.
+        this.otherGroupObject = {};
+        this.modes = ["all"];
+        if (this.maxDisplayRows >= this.orderedGroups.length) {
+          this.mode = "all";
+        }
+        else {
+          // top mode must be used
+          this.modes.push("top");
+          this.mode = "top";
+          this.topGroups = FacetUtils.makeTopGroups(this.attrDef,
+                                                    this.orderedGroups,
+                                                    this.maxDisplayRows,
+                                                    this.otherGroupObject);
+        }
+
+        // -- Row Building
+        this.buildRows();
+
+      ]]></body>
+    </method>
+    <method name="buildRows">
+      <body><![CDATA[
+        let nounDef = this.nounDef;
+        let useGroups = (this.mode == "all") ? this.orderedGroups
+                                             : this.topGroups;
+
+        // -- empty all of our display buckets...
+        let root = document.getAnonymousElementByAttribute(this, "anonid",
+                                                           "candidates");
+        while (root.lastChild)
+          root.removeChild(root.lastChild);
+
+        let inclList = this.inclList, exclList = this.exclList;
+        while (inclList.lastChild)
+          inclList.removeChild(inclList.lastChild);
+        while (exclList.lastChild)
+          exclList.removeChild(exclList.lastChild);
+
+        // for our bar-graph thing we need to find the largest group size
+        let maxGroupSize = 0;
+        for each (let [, groupPair] in Iterator(useGroups)) {
+          maxGroupSize = Math.max(maxGroupSize, groupPair[1].length);
+        }
+
+        for each (let [, groupPair] in Iterator(useGroups)) {
+          let [groupValue, groupItems] = groupPair;
+          let li = document.createElement("li");
+          li.setAttribute("class", "bar");
+          li.groupValue = groupValue;
+          li.groupItems = groupItems;
+
+          let label = document.createElement("a");
+          label.setAttribute("class", "bar-link");
+          // The null value is a special indicator for 'none'
+          if (groupValue == null) {
+            label.textContent =
+              glodaFacetStrings.get("glodaFacetView.facets.noneLabel");
+          }
+          // Top mode uses a sentinel value for the 'other' case
+          else if (groupValue == this.otherGroupObject) {
+            label.textContent = glodaFacetStrings.get(
+                                  "glodaFacetView.facets.mode.top.otherLabel",
+                                  [this.otherGroupObject.count.toLocaleString(),
+                                   ]);
+          }
+          // Otherwise stringify the group object
+          else {
+            // XXX do a better job of truncation
+            label.textContent = ("userVisibleString" in nounDef) ?
+                                  nounDef.userVisibleString(groupValue) :
+                                  groupValue.toLocaleString().substring(0, 80);
+          }
+
+          li.appendChild(label);
+
+          let barSpan = document.createElement("span");
+          let percent = Math.floor(100 * groupItems.length / maxGroupSize);
+          barSpan.setAttribute("class", "bar-percent");
+          barSpan.setAttribute("style", "width: " + percent +  "%");
+          barSpan.textContent = percent + "%";
+          li.appendChild(barSpan);
+
+          let excludeSpan = document.createElement("span");
+          excludeSpan.setAttribute("class", "bar-exclude");
+          li.appendChild(excludeSpan);
+
+          root.appendChild(li);
+        }
+      ]]></body>
+    </method>
+    <method name="brushItems">
+      <parameter name="aItems" />
+      <body><![CDATA[
+      ]]></body>
+    </method>
+    <method name="clearBrushedItems">
+      <body><![CDATA[
+      ]]></body>
+    </method>
+    <method name="afterListVisible">
+      <parameter name="aInclude" />
+      <parameter name="aCallback" />
+      <body><![CDATA[
+        let listNode = aInclude ? this.inclList : this.exclList;
+
+        // if there are already things displayed, no need
+        if (listNode.childElementCount) {
+          aCallback();
+          return;
+        }
+
+        listNode.setAttribute("state", "some");
+        $(listNode)
+          .hide()
+          .slideDown("fast", aCallback);
+      ]]></body>
+    </method>
+    <method name="barClicked">
+      <parameter name="aBarNode" />
+      <parameter name="aInclude" />
+      <body><![CDATA[
+        let groupValue = aBarNode.groupValue;
+        let groupItems = aBarNode.groupItems;
+
+        // The 'other' object has special interaction semantics given that it is
+        //  in fact an aggregation of a bunch of other groups.
+        // Clicking on it inclusively results in excluding all of the displayed
+        //  top groups.  This allows us to keep displaying the facet while also
+        //  having stable behavior if the user starts excluding single groups.
+        //  (Our rule is that we only have one active constraint per attribute
+        //  at a time, so if we treated the other inclusion as an inclusion, the
+        //  subsequent exclude would knock the inclusion off the chart.
+        // Clicking on it exclusively results in excluding all of the groups in
+        //  the 'other' group.  We do this for the same rationale as in the
+        //  inclusion case; we need subsequent excludes to not do weird things
+        //  (or complicate the implementation).
+        // (If we start allowing multiple inclusion, we will keep these
+        //  semantics; we will simply remove things from the inclusion set when
+        //  excluded.  Easy peasy.)
+        if (groupValue == this.otherGroupObject) {
+          if (aInclude) {
+            // build up the list of non-other group values.  since other is
+            //  always last, this is not so hard.
+            let groupValues = [];
+            for (let iGroup = 0; iGroup < this.topGroups.length - 1; iGroup++) {
+              groupValues.push(this.topGroups[iGroup][0]);
+            }
+
+            FacetContext.addFacetConstraint(this.faceter, this.attrDef, false,
+                                            groupValues);
+            return;
+          }
+          // exclusive case, exclude all the values in the group... we already
+          //  know who they are, though from the sentinel object.
+          FacetContext.addFacetConstraint(this.faceter, this.attrDef, false,
+                                          this.otherGroupObject.groupValues);
+          return;
+        }
+
+        // When clicking on something we want to animate it flying up into the
+        //  appropriate list (included/excluded).  This depends on the list
+        //  being visible, which may also need animation.
+        let dis = this;
+        this.afterListVisible(aInclude, function() {
+          // figure out our origin location prior to adding the target or it
+          //  will shift us down.
+          let $barNode = $(aBarNode);
+          let origin = $barNode.offset();
+
+          // clone the node into its target location
+          let targetNode = aBarNode.cloneNode(true);
+          targetNode.groupValue = groupValue;
+          targetNode.groupItems = groupItems;
+          targetNode.setAttribute(aInclude ? "included" : "excluded", "true");
+          targetNode.removeAttribute(aInclude ? "excluded" : "included")
+
+          let targetParent = aInclude ? dis.inclList : dis.exclList;
+          targetParent.appendChild(targetNode);
+
+          // create a flying clone
+          let flyingNode = aBarNode.cloneNode(true);
+
+          // animate the flying clone... flying!
+          let $targetNode = $(targetNode);
+          let dest = $targetNode.offset();
+
+          let $flyingNode = $(flyingNode)
+            .appendTo("body")
+            .css("position", "absolute")
+            .css("width", $barNode.width())
+            .css("height", $barNode.height())
+            .css("top", origin.top)
+            .css("left", origin.left)
+            .css("zIndex", 1000)
+            .animate({
+                top: dest.top,
+                left: dest.left
+              },
+              // have a velocity of 1 pixel every 4ms
+              Math.abs(dest.top - origin.top) * 6, function() {
+                $barNode.remove();
+                $targetNode.show();
+                $flyingNode.remove();
+
+                setTimeout(function() {
+                    FacetContext.addFacetConstraint(dis.faceter, dis.attrDef,
+                                                    aInclude, [groupValue]);
+                  }, 50);
+              });
+
+          // hide the target (cloned) node
+          $(targetNode).hide();
+
+          // hide the original node and remove its JS properties
+          $(aBarNode).css("visibility", "hidden");
+          delete aBarNode.groupValue;
+          delete aBarNode.groupItems;
+        });
+
+      ]]></body>
+    </method>
+    <method name="barHovered">
+      <parameter name="aBarNode" />
+      <parameter name="aInclude" />
+      <body><![CDATA[
+        let groupValue = aBarNode.groupValue;
+        let groupItems = aBarNode.groupItems;
+
+        FacetContext.hoverFacet(this.faceter, this.attrDef, groupValue, groupItems);
+      ]]></body>
+    </method>
+    <!-- HoverGone! HoverGone!
+         We know it's gone, but where has it gone? -->
+    <method name="barHoverGone">
+      <parameter name="aBarNode" />
+      <parameter name="aInclude" />
+      <body><![CDATA[
+        let groupValue = aBarNode.groupValue;
+        let groupItems = aBarNode.groupItems;
+
+        FacetContext.unhoverFacet(this.faceter, this.attrDef, groupValue, groupItems);
+      ]]></body>
+    </method>
+  </implementation>
+  <handlers>
+    <handler event="click"><![CDATA[
+      // we dispatch based on the class of the thing we clicked on.
+      // there are other ways we could accomplish this, but they all sorta suck.
+      let nodeClasses = event.originalTarget.getAttribute("class");
+      if (!nodeClasses)
+        return;
+
+      let nodeClass = nodeClasses.split(" ")[0];
+      if (nodeClass == "bar-exclude")
+        this.barClicked(event.originalTarget.parentNode, false);
+      else if (nodeClass == "bar-link")
+        this.barClicked(event.originalTarget.parentNode, true);
+    ]]></handler>
+    <handler event="mouseover"><![CDATA[
+      // we dispatch based on the class of the thing we clicked on.
+      // there are other ways we could accomplish this, but they all sorta suck.
+      let nodeClasses = event.originalTarget.getAttribute("class");
+      if (!nodeClasses)
+        return;
+
+      let nodeClass = nodeClasses.split(" ")[0];
+      if (nodeClass == "bar-link")
+        this.barHovered(event.originalTarget.parentNode, true);
+    ]]></handler>
+    <handler event="mouseout"><![CDATA[
+      // we dispatch based on the class of the thing we clicked on.
+      // there are other ways we could accomplish this, but they all sorta suck.
+      let nodeClasses = event.originalTarget.getAttribute("class");
+      if (!nodeClasses)
+        return;
+
+      let nodeClass = nodeClasses.split(" ")[0];
+      if (nodeClass == "bar-link")
+        this.barHoverGone(event.originalTarget.parentNode, true);
+    ]]></handler>
+  </handlers>
+</binding>
+
+<binding id="facet-date">
+  <content>
+    <html:div class="facet">
+      <html:h2 anonid="name"></html:h2>
+      <!-- we need to do this because of something protovis is doing where
+           it attempts to re-interpret the text and the html namespace no
+           longer exists in that context. -->
+      <html:div anonid="canvas" class="date-vis-frame"></html:div>
+    </html:div>
+  </content>
+  <implementation>
+    <constructor><![CDATA[
+      this.canvasNode = document.getAnonymousElementByAttribute(
+                                   this, "anonid", "canvas");
+      this.vis = null;
+      if ("faceter" in this)
+        this.build(true);
+    ]]></constructor>
+    <field name="canUpdate" readonly="true">true</field>
+    <method name="build">
+      <parameter name="aFirstTime" />
+      <body><![CDATA[
+        if (!this.vis) {
+          this.vis = new DateFacetVis(this, this.canvasNode);
+          this.vis.build();
+        }
+        else {
+          while (this.canvasNode.lastChild)
+            this.canvasNode.removeChild(this.canvasNode.lastChild);
+          this.vis.rebuild();
+        }
+      ]]></body>
+    </method>
+    <method name="brushItems">
+      <parameter name="aItems" />
+      <body><![CDATA[
+        this.vis.hoverItems(aItems);
+      ]]></body>
+    </method>
+    <method name="clearBrushedItems">
+      <body><![CDATA[
+        this.vis.clearHover();
+      ]]></body>
+    </method>
+  </implementation>
+</binding>
+
+<!-- ===== Results ===== -->
+
+<binding id="results-message">
+  <content>
+    <html:div class="results-message-header">
+      <html:h2 class="results-message-count" anonid="count"></html:h2>
+      <html:span class="results-message-showall" anonid="showall"
+            onclick="FacetContext.showActiveSetInTab()"></html:span>
+    </html:div>
+    <html:div class="messages" anonid="messages">
+    </html:div>
+  </content>
+  <implementation>
+    <method name="setMessages">
+      <parameter name="aMessages" />
+      <body><![CDATA[
+        // -- Count
+        let countNode = document.getAnonymousElementByAttribute(
+                          this, "anonid", "count");
+        let messagesPlural = glodaFacetStrings.get(
+          "glodaFacetView.results.message.countLabelMessagePlurals");
+        let countLabel = glodaFacetStrings.get(
+          "glodaFacetView.results.message.countLabel");
+        // display set
+        countLabel = countLabel.replace("#1",
+          aMessages.length.toLocaleString());
+        countLabel = countLabel.replace("#2",
+          PluralForm.get(aMessages.length, messagesPlural));
+        // active set
+        countLabel = countLabel.replace("#3",
+          FacetContext.activeSet.length.toLocaleString());
+        countLabel = countLabel.replace("#4",
+          PluralForm.get(FacetContext.activeSet.length, messagesPlural));
+        countNode.textContent = countLabel;
+
+        // -- Show All
+        let showNode = document.getAnonymousElementByAttribute(
+                          this, "anonid", "showall");
+        showNode.textContent = glodaFacetStrings.get(
+          "glodaFacetView.results.message.showAllInList.label");
+        showNode.setAttribute("title",
+          glodaFacetStrings.get(
+            "glodaFacetView.results.message.showAllInList.tooltip"));
+
+        let messagesNode = document.getAnonymousElementByAttribute(
+                             this, "anonid", "messages");
+        while (messagesNode.lastChild)
+          messagesNode.removeChild(messagesNode.lastChild);
+
+        // -- Messages
+        for each (let [, message] in Iterator(aMessages)) {
+          let msgNode = document.createElement("message");
+          msgNode.message = message;
+          msgNode.setAttribute("class", "message");
+          messagesNode.appendChild(msgNode);
+        }
+      ]]></body>
+    </method>
+  </implementation>
+</binding>
+
+<binding id="result-message">
+  <content>
+    <html:div class="message-header">
+      <html:div class="message-meta">
+        <html:div anonid="oldestMessageDate" class="message-oldestMessageDate"></html:div>
+        <html:div anonid="attachments" class="message-attachments"></html:div>
+      </html:div>
+      <html:div anonid="subject" class="message-subject"></html:div>
+      <html:div class="message-addressing">
+        <html:span anonid="author" class="message-author"></html:span>
+        <html:span anonid="writes" class="message-writes"></html:span>
+        <html:div anonid="recipients" class="message-recipients"/>
+        <html:span anonid="date" class="message-date"></html:span>
+      </html:div>
+      <html:div anonid="tags" class="message-tags"></html:div>
+    </html:div>
+    <html:pre anonid="snippet" class="message-body"></html:pre>
+  </content>
+  <implementation>
+    <constructor><![CDATA[
+      this.build();
+    ]]></constructor>
+    <method name="build">
+      <body><![CDATA[
+        let message = this.message;
+        let dis = this;
+        function anonElem(aAnonId) {
+          return document.getAnonymousElementByAttribute(dis, "anonid",
+                                                         aAnonId);
+        }
+
+        // -- eventify
+        this.onclick = function(aEvent) {
+          FacetContext.showConversationInTab(message,
+                                             aEvent.button == 1);
+        }
+
+        // -- l10n poking
+        anonElem("writes").textContent =
+          glodaFacetStrings.get("glodaFacetView.result.message.writesLabel");
+
+        // -- Content Poking
+        anonElem("subject").textContent = message.subject;
+        anonElem("author").textContent = message.from.toLocaleString();
+        anonElem("date").textContent = message.date.toLocaleString();
+
+        // - Recipients
+        let recipientsNode = anonElem("recipients");
+        if (message.recipients) {
+          for each (let [, recip] in Iterator(message.recipients)) {
+            let recipNode = document.createElement("span");
+            recipNode.setAttribute("class", "message-recipient");
+            recipNode.textContent = recip.toLocaleString();
+            recipientsNode.appendChild(recipNode);
+          }
+        }
+        // - Tags
+        let tagsNode = anonElem("tags");
+        if ("tags" in message && message.tags.length) {
+          let _msgTagService = Components.classes["@mozilla.org/messenger/tagservice;1"].
+                                    getService(Components.interfaces.nsIMsgTagService);
+          for each (let [, tag] in Iterator(message.tags)) {
+            let tagNode = document.createElement("span");
+            let colorClass = "blc-" + _msgTagService.getColorForKey(tag.key).substr(1);
+            tagNode.setAttribute("class", "message-tag tag " + colorClass);
+            tagNode.textContent = tag.tag;
+            tagsNode.appendChild(tagNode);
+          }
+        }
+
+        // - Body
+        if (message.indexedBodyText) {
+          let bodyText = message.indexedBodyText;
+          // start assuming it's just one line that we want to show
+          let idxNewline = -1;
+          for (let newlineCount = 0; newlineCount < 5; newlineCount++) {
+            let idxNextNewline = bodyText.indexOf("\n", idxNewline+1);
+            if (idxNextNewline == -1)
+              break;
+            idxNewline = idxNextNewline;
+          }
+          if (idxNewline > -1)
+            anonElem("snippet").textContent = bodyText.substring(0, idxNewline);
+          else
+            anonElem("snippet").textContent = bodyText;
+        }
+
+        // - Misc attributes
+        if (!message.read)
+          this.setAttribute("unread", "true");
+      ]]></body>
+    </method>
+  </implementation>
+</binding>
+
+</bindings>
