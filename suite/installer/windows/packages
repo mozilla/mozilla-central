@@ -59,6 +59,7 @@ bin\license.txt
 bin\@MOZ_APP_NAME@.exe
 bin\application.ini
 bin\platform.ini
+bin\blocklist.xml
 
 bin\plugins\npnul32.dll
 bin\AccessibleMarshal.dll

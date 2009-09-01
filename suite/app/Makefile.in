@@ -278,6 +278,9 @@ else
 endif
 	touch $(DIST)/bin/.autoreg
 
+libs:: blocklist.xml
+	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin
+
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 
 # copy .dmg contents into obj dir branding

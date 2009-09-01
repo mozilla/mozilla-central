@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist">
+  <emItems>
+    <emItem id="langpack-vi-VN@firefox.mozilla.org">
+      <versionRange minVersion="2.0" maxVersion="2.0"/>
+    </emItem>
+    <emItem id="support@daemon-tools.cc">
+      <versionRange minVersion=" " maxVersion="1.0.0.5"/>
+    </emItem>
+  </emItems>
+<pluginItems>
+  <pluginItem>
+    <match name="filename" exp="NPFFAddOn.dll"/>
+    <versionRange>
+      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+        <versionRange minVersion="" maxVersion="*"/>
+      </targetApplication>
+    </versionRange>
+  </pluginItem>
+  <pluginItem>
+    <match name="name" exp="^Yahoo Application State Plugin$"/>
+    <match name="description" exp="^Yahoo Application State Plugin$"/>
+    <match name="filename" exp="npYState.dll"/>
+    <versionRange>
+      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+        <versionRange minVersion="1.0.0.5" maxVersion="*"/>
+      </targetApplication>
+    </versionRange>
+  </pluginItem>
+  <pluginItem>
+    <match name="name" exp="QuickTime Plug-in 7[.]1[.]"/>
+    <match name="filename" exp="npqtplugin.?[.]dll"/>
+    <versionRange>
+      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+        <versionRange minVersion="1.0.0.5" maxVersion="*"/>
+      </targetApplication>
+    </versionRange>
+  </pluginItem>
+</pluginItems>
+</blocklist>

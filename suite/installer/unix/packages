@@ -48,6 +48,7 @@ bin/@MOZ_APP_NAME@
 bin/run-mozilla.sh
 bin/application.ini
 bin/platform.ini
+bin/blocklist.xml
 
 bin/mozilla-xremote-client
 bin/plugins/libnullplugin.so
