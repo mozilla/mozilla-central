@@ -1208,15 +1208,16 @@ NS_IMETHODIMP nsImapMailFolder::ApplyRetentionSettings()
   PRInt32 numDaysToKeepOfflineMsgs = -1;
 
   // Check if we've limited the offline storage by age.
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-  if (prefBranch)
-    prefBranch->GetIntPref("mail.autosync.max_age_days", &numDaysToKeepOfflineMsgs);
+  nsCOMPtr<nsIImapIncomingServer> imapServer;
+  nsresult rv = GetImapIncomingServer(getter_AddRefs(imapServer));
+  NS_ENSURE_SUCCESS(rv, rv);
+  imapServer->GetAutoSyncMaxAgeDays(&numDaysToKeepOfflineMsgs);
 
   nsCOMPtr<nsIMsgDatabase> holdDBOpen;
   if (numDaysToKeepOfflineMsgs > 0)
   {
     PRBool dbWasCached = mDatabase != nsnull;
-    nsresult rv = GetDatabase();
+    rv = GetDatabase();
     NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr <nsISimpleEnumerator> hdrs;
     rv = mDatabase->EnumerateMessages(getter_AddRefs(hdrs));

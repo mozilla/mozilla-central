@@ -55,7 +55,7 @@ interface nsMsgImapDeleteModels
   const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(99599429-f9ea-48d9-ab4a-a05ec2395f5c)]
+[scriptable, uuid(3b5ada31-561f-4a76-b1be-0b2bba8e9389)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
@@ -99,6 +99,10 @@ interface nsIImapIncomingServer : nsISupports {
   nsIMsgFolder getPFC(in boolean createIfMissing);
   attribute boolean downloadBodiesOnGetNewMail;
   attribute boolean autoSyncOfflineStores;
+
+  /// Max age of messages we will autosync to, or keep in offline store.
+  attribute long autoSyncMaxAgeDays;
+
   void GetImapConnectionAndLoadUrl(in nsIEventTarget aClientEventTarget,
                                            in nsIImapUrl aImapUrl,
                                            in nsISupports aConsumer);

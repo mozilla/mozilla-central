@@ -527,7 +527,7 @@ pref("mail.server.default.autosync_offline_stores",true);
 pref("mail.server.default.offline_download",true);
 
 // -1 means no limit, no purging of offline stores.
-pref("mail.autosync.max_age_days", -1);
+pref("mail.server.default.autosync_max_age_days", -1);
 
 pref("mail.server.default.archive_granularity", 1);
 // the probablilty threshold over which messages are classified as junk

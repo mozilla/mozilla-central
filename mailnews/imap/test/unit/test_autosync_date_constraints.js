@@ -96,7 +96,7 @@ function run_test()
   prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
   // We aren't interested in downloading messages automatically
   prefBranch.setBoolPref("mail.server.server1.download_on_biff", false);
-  prefBranch.setIntPref("mail.autosync.max_age_days", 4);
+  prefBranch.setIntPref("mail.server.server1.autosync_max_age_days", 4);
 
   // Get the server list...
   gIMAPIncomingServer.performExpand(null);

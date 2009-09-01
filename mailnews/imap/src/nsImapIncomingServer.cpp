@@ -324,6 +324,9 @@ NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, IsGMailServer,
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, UseCompressDeflate,
                         "use_compress_deflate")
 
+NS_IMPL_SERVERPREF_INT(nsImapIncomingServer, AutoSyncMaxAgeDays,
+                        "autosync_max_age_days")
+
 NS_IMETHODIMP
 nsImapIncomingServer::GetShuttingDown(PRBool *retval)
 {

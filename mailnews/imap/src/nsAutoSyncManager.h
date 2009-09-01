@@ -122,7 +122,6 @@ class nsDefaultAutoSyncMsgStrategy : public nsIAutoSyncMsgStrategy
 
   private:
     ~nsDefaultAutoSyncMsgStrategy();
-    PRInt32 m_offlineMsgAgeLimit;
 };
 
 /**
