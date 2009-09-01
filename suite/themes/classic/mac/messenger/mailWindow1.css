@@ -85,7 +85,7 @@
 
 /* Leopard-styled "zero-width" vertical splitter */
 
-#folderpane_splitter {
+#folderpane-splitter {
   border: solid #B3B3B3;
   border-width: 0 1px 0 0;
   min-width: 1px;
@@ -94,7 +94,7 @@
 
 /* Make sure users find the splitter when it's collapsed... */
 
-#folderpane_splitter[state="collapsed"] {
+#folderpane-splitter[state="collapsed"] {
   min-width: 5px;
   background-color: #D6DDE5;
   cursor: e-resize;
