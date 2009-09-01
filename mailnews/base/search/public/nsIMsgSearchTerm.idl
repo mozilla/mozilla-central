@@ -44,7 +44,7 @@ interface nsIMsgDBHdr;
 interface nsIMsgDatabase;
 interface nsIMsgSearchScopeTerm;
 
-[scriptable, uuid(ff8e5017-bceb-43d5-98da-cc2b79eb0910)]
+[scriptable, uuid(80BC6107-A61D-4469-B7D6-18C17D6DEC91)]
 interface nsIMsgSearchTerm : nsISupports {
     attribute nsMsgSearchAttribValue attrib;
     attribute nsMsgSearchOpValue op;
@@ -119,6 +119,14 @@ interface nsIMsgSearchTerm : nsISupports {
      * @returns     true if msg matches property, false otherwise.
      */
     boolean matchHdrProperty(in nsIMsgDBHdr msg);
+
+    /**
+     * Compares value.status with nsIMsgHdr::GetUint32Property(hdrProperty).
+     * @param msg   msg to match db hdr property of.
+     *
+     * @returns     true if msg matches property, false otherwise.
+     */
+    boolean matchUint32HdrProperty(in nsIMsgDBHdr msg);
 
     /**
      * Compares value.status with the folder flags of the msg's folder.

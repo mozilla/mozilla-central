@@ -867,6 +867,41 @@ NS_IMETHODIMP nsMsgSearchTerm::MatchFolderFlag(nsIMsgDBHdr *aMsgToMatch, PRBool 
   return MatchStatus(folderFlags, aResult);
 }
 
+NS_IMETHODIMP nsMsgSearchTerm::MatchUint32HdrProperty(nsIMsgDBHdr *aHdr, PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  NS_ENSURE_ARG_POINTER(aHdr);
+
+  PRUint32 dbHdrValue;
+  aHdr->GetUint32Property(m_hdrProperty.get(), &dbHdrValue);
+  nsresult rv = NS_OK;
+
+  PRBool result = PR_FALSE;
+  switch (m_operator)
+  {
+  case nsMsgSearchOp::IsGreaterThan:
+    if (dbHdrValue > m_value.u.msgStatus)
+      result = PR_TRUE;
+    break;
+  case nsMsgSearchOp::IsLessThan:
+    if (dbHdrValue < m_value.u.msgStatus)
+      result = PR_TRUE;
+    break;
+  case nsMsgSearchOp::Is:
+    if (dbHdrValue == m_value.u.msgStatus)
+      result = PR_TRUE;
+    break;
+  case nsMsgSearchOp::Isnt:
+    if (dbHdrValue != m_value.u.msgStatus)
+      result = PR_TRUE;
+    break;
+  default:
+    break;
+  }
+  *aResult = result;
+  return NS_OK;
+}
+
 nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, PRUint32 offset, PRUint32 length /*in lines*/, const char *folderCharset,
                                       nsIMsgDBHdr *msg, nsIMsgDatabase* db, PRBool *pResult)
 {
@@ -1998,6 +2033,7 @@ nsresult nsMsgResultElement::AssignValues (nsIMsgSearchValue *src, nsMsgSearchVa
   case nsMsgSearchAttrib::HasAttachmentStatus:
   case nsMsgSearchAttrib::MsgStatus:
   case nsMsgSearchAttrib::FolderFlag:
+  case nsMsgSearchAttrib::Uint32HdrProperty:
     err = src->GetStatus(&dst->u.msgStatus);
     break;
   case nsMsgSearchAttrib::MessageKey:

@@ -123,14 +123,15 @@ interface nsMsgSearchAttrib {
     const nsMsgSearchAttribValue Label = 48; /* mail only...can search by label */
     const nsMsgSearchAttribValue HdrProperty = 49; // uses nsIMsgSearchTerm::hdrProperty
     const nsMsgSearchAttribValue FolderFlag = 50; // uses nsIMsgSearchTerm::status
+    const nsMsgSearchAttribValue Uint32HdrProperty = 51; // uses nsIMsgSearchTerm::hdrProperty
 
-    // 51 is for showing customize - in ui headers start from 52 onwards up until 99.
+    // 52 is for showing customize - in ui headers start from 53 onwards up until 99.
 
      /** OtherHeader MUST ALWAYS BE LAST attribute since 
        * we can have an arbitrary # of these. The number can be changed,
        * however, because we never persist AttribValues as integers.
       */
-    const nsMsgSearchAttribValue OtherHeader = 51; 
+    const nsMsgSearchAttribValue OtherHeader = 52; 
     // must be last attribute
     const nsMsgSearchAttribValue kNumMsgSearchAttributes = 100;
 };
@@ -238,7 +239,7 @@ typedef struct nsMsgSearchValue
    _a == nsMsgSearchAttrib::Size || _a == nsMsgSearchAttrib::AgeInDays || \
    _a == nsMsgSearchAttrib::FolderInfo || _a == nsMsgSearchAttrib::Location || \
    _a == nsMsgSearchAttrib::Label || _a == nsMsgSearchAttrib::JunkStatus || \
-   _a == nsMsgSearchAttrib::FolderFlag || \
+   _a == nsMsgSearchAttrib::FolderFlag || _a == nsMsgSearchAttrib::Uint32HdrProperty || \
    _a == nsMsgSearchAttrib::JunkPercent || _a == nsMsgSearchAttrib::HasAttachmentStatus))
 %}
 

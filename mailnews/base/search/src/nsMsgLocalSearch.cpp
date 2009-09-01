@@ -646,6 +646,11 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
         err = aTerm->MatchHdrProperty(msgToMatch, &result);
         break;
       }
+      case nsMsgSearchAttrib::Uint32HdrProperty:
+      {
+        err = aTerm->MatchUint32HdrProperty(msgToMatch, &result);
+        break;
+      }
       case nsMsgSearchAttrib::Custom:
       {
         err = aTerm->MatchCustom(msgToMatch, &result);
