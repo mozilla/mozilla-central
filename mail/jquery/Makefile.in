@@ -35,36 +35,31 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ..
+DEPTH		= ../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
-include $(topsrcdir)/config/config.mk
+DIRS =
 
-# app is always last as it packages up the built files on mac
-DIRS		= base locales components extensions steel themes jquery app
+include $(DEPTH)/config/autoconf.mk
 
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-# though some lasts are more last than others
-DIRS += installer/windows
+PRE_RELEASE_SUFFIX := $(shell $(PYTHON) $(topsrcdir)/mozilla/config/printprereleasesuffix.py \
+                      $(shell cat $(MOZ_APP_VERSION_TXT) ))
+
+DEFINES += -DMOZ_APP_VERSION=$(MOZ_APP_VERSION) \
+           -DPRE_RELEASE_SUFFIX="$(PRE_RELEASE_SUFFIX)"
+
+ifneq (,$(BUILD_OFFICIAL)$(MOZILLA_OFFICIAL))
+DEFINES += -DOFFICIAL_BUILD=1
 endif
+
+ifneq (,$(filter windows gtk2 mac cocoa, $(MOZ_WIDGET_TOOLKIT)))
+DEFINES += -DHAVE_SHELL_SERVICE=1
 endif
 
-ifdef ENABLE_TESTS
-DIRS += test/mozmill
+ifdef MOZ_UPDATER
+DEFINES += -DMOZ_UPDATER=1
 endif
 
 include $(topsrcdir)/config/rules.mk
-
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-
-# For Windows build the uninstaller during the application build since the
-# uninstaller is included with the application for mar file generation.
-libs::
-	$(MAKE) -C installer/windows uninstaller
-
-endif
-endif
