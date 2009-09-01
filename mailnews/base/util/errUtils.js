@@ -162,13 +162,13 @@ Stringifier.prototype = {
       compress = true;
     let pfx = "";
 
-    for (let i = 0; i < level; i++)
+    for (var junk = 0; junk < level; junk++)
       pfx += (compress) ? "| " : "|  ";
 
     let tee = (compress) ? "+ " : "+- ";
 
     if (typeof(o) != "object") {
-      s += pfx + tee + i + " (" + typeof(o) + ") " + o + "\n";
+      s += pfx + tee + " (" + typeof(o) + ") " + o + "\n";
     }
     else {
       for (let i in o) {
