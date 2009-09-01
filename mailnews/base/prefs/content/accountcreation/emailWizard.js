@@ -75,28 +75,13 @@ let gEmailWizardLogger = Log4Moz.getConfiguredLogger("emailwizard");
 let gStringsBundle;
 let gBrandBundle;
 
-// debugging aid
-if (kDebug) {
-  function getElementById(id)
-  {
-    let elt = document.getElementById(id);
-    if (!elt)
-    {
-      gEmailWizardLogger.error("Can't find element ID: " + id);
-      return null;
-    }
-    return elt;
-  }
-} else // production
-  getElementById = document.getElementById;
-
 function _hide(id)
 {
-  getElementById(id).hidden = true;
+  document.getElementById(id).hidden = true;
 }
 function _show(id)
 {
-  getElementById(id).hidden = false;
+  document.getElementById(id).hidden = false;
 }
 function EmailConfigWizard()
 {
@@ -131,7 +116,7 @@ EmailConfigWizard.prototype =
         window.arguments[0].msgWindow)
       this._parentMsgWindow = window.arguments[0].msgWindow;
 
-    gStringsBundle = getElementById("strings");
+    gStringsBundle = document.getElementById("strings");
     gBrandBundle = document.getElementById("bundle_brand");
 
     // Populate SMTP server dropdown with already configured SMTP servers from
@@ -139,7 +124,7 @@ EmailConfigWizard.prototype =
     let gSmtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
                        .getService(Ci.nsISmtpService);
     this._smtpServers = gSmtpManager.smtpServers;
-    var menupopup = getElementById("smtp_menupopup");
+    var menupopup = document.getElementById("smtp_menupopup");
     this._smtpServerCount = 0;
     while (this._smtpServers.hasMoreElements())
     {
@@ -155,7 +140,7 @@ EmailConfigWizard.prototype =
       menuitem.hostname = server.hostname;
       menupopup.appendChild(menuitem);
     }
-    var menulist = getElementById("outgoing_server");
+    var menulist = document.getElementById("outgoing_server");
     menulist.addEventListener("command",
       function(event) { gEmailConfigWizard.userChangedOutgoing(event); }, true);
   },
@@ -168,9 +153,9 @@ EmailConfigWizard.prototype =
     // change the inputs to a flat look
     this._accountInfoInputs(true);
 
-    this._email = getElementById("email").value;
-    this._realname = getElementById("realname").value;
-    this._password = getElementById("password").value;
+    this._email = document.getElementById("email").value;
+    this._realname = document.getElementById("realname").value;
+    this._password = document.getElementById("password").value;
 
     this.showConfigDetails();
 
@@ -215,32 +200,34 @@ EmailConfigWizard.prototype =
   _accountInfoInputs : function(disabled)
   {
     let ids = ["realname","email","password"];
-    if (disabled && getElementById("password").getAttribute("empty")) {
-      getElementById("password").value = " ";
-      getElementById("password").setAttribute("empty", true);
-      getElementById("remember_password").checked = false;
+    if (disabled && document.getElementById("password").getAttribute("empty")) {
+      document.getElementById("password").value = " ";
+      document.getElementById("password").setAttribute("empty", true);
+      document.getElementById("remember_password").checked = false;
     }
 
     for ( let i = 0; i < ids.length; i++ )
-      getElementById(ids[i]).disabled = disabled;
+      document.getElementById(ids[i]).disabled = disabled;
 
-    if (!disabled && getElementById("password").getAttribute("empty")) {
-      getElementById("password").value = "";
-      getElementById("password").setAttribute("empty", true);
-      getElementById("remember_password").checked = false;
+    if (!disabled &&
+        document.getElementById("password").getAttribute("empty")) {
+      document.getElementById("password").value = "";
+      document.getElementById("password").setAttribute("empty", true);
+      document.getElementById("remember_password").checked = false;
     }
   },
 
   userChangedOutgoing : function(event)
   {
-    let menulist = getElementById("outgoing_server");
+    let menulist = document.getElementById("outgoing_server");
 
     let selectedIndex = menulist.getIndexOfItem(event.target);
 
     if (selectedIndex != -1) {
-      getElementById("outgoing_port").value = this._currentConfig.outgoing.port;
-      getElementById("outgoing_security").value = this._currentConfig
-                                                      .outgoing.socketType;
+      document.getElementById("outgoing_port").value =
+        this._currentConfig.outgoing.port;
+      document.getElementById("outgoing_security").value =
+        this._currentConfig.outgoing.socketType;
     }
 
     if (selectedIndex == -1 || selectedIndex == 0) {
@@ -275,7 +262,7 @@ EmailConfigWizard.prototype =
    */
   validateRealname : function()
   {
-    if (getElementById('realname').value.length > 0)
+    if (document.getElementById('realname').value.length > 0)
       this.clearError('nameerror');
     else
       this.setError("nameerror", "name.error");
@@ -287,7 +274,7 @@ EmailConfigWizard.prototype =
    */
   emailAddrValidish : function()
   {
-    let emailAddr = getElementById('email').value;
+    let emailAddr = document.getElementById('email').value;
     let atPos = emailAddr.lastIndexOf("@");
     return  atPos > 0 && atPos + 1 < emailAddr.length;
   },
@@ -299,7 +286,7 @@ EmailConfigWizard.prototype =
    */
   onEmailInput : function()
   {
-    if (getElementById('realname').value.length > 0 &&
+    if (document.getElementById('realname').value.length > 0 &&
         this.emailAddrValidish())
       _show("next_button");
     else
@@ -308,7 +295,7 @@ EmailConfigWizard.prototype =
 
   onRealnameInput : function()
   {
-    if (getElementById('realname').value.length > 0 &&
+    if (document.getElementById('realname').value.length > 0 &&
         this.emailAddrValidish())
       _show("next_button");
     else
@@ -321,10 +308,10 @@ EmailConfigWizard.prototype =
    */
   validateEmail : function()
   {
-    if (getElementById('email').value.length <= 0)
+    if (document.getElementById('email').value.length <= 0)
       return;
 
-    if (emailRE.test(getElementById('email').value))
+    if (emailRE.test(document.getElementById('email').value))
       this.clearError('emailerror');
     else
       this.setError("emailerror", "email.error");
@@ -367,14 +354,14 @@ EmailConfigWizard.prototype =
   
   oninputPassword : function()
   {
-    let passwordElt = getElementById("password");
-    let rememberPasswordElt = getElementById("remember_password");
+    let passwordElt = document.getElementById("password");
+    let rememberPasswordElt = document.getElementById("remember_password");
     if (passwordElt.value.length < 1) {
-      getElementById("remember_password").checked = false;
+      document.getElementById("remember_password").checked = false;
       this._userChangedPassword = false;
     }
     else if (!this._userChangedPassword)
-      getElementById("remember_password").checked = true;
+      document.getElementById("remember_password").checked = true;
   },
 
   /* If the user just tabbed through the password input without entering
@@ -383,7 +370,7 @@ EmailConfigWizard.prototype =
    */
   onblurPassword : function()
   {
-    let passwordElt = getElementById("password");
+    let passwordElt = document.getElementById("password");
     if (passwordElt.value.length < 1)
       passwordElt.type = "text";
   },
@@ -548,8 +535,8 @@ EmailConfigWizard.prototype =
 
     this.updateConfig(this._currentConfigFilledIn);
 
-    getElementById('create_button').disabled = false;
-    getElementById('create_button').hidden = false;
+    document.getElementById('create_button').disabled = false;
+    document.getElementById('create_button').hidden = false;
 
   },
 
@@ -609,7 +596,7 @@ EmailConfigWizard.prototype =
   toggleAcknowledgeWarning : function()
   {
     this._warningAcknowledged =
-      getElementById('acknowledge_warning').checked;
+      document.getElementById('acknowledge_warning').checked;
     this.checkEnableIKnow();
   },
 
@@ -704,7 +691,7 @@ EmailConfigWizard.prototype =
   getMeOutOfHere : function()
   {
     // If we're going backwards, we should reset the acknowledge_warning.
-    getElementById('acknowledge_warning').checked = false;
+    document.getElementById('acknowledge_warning').checked = false;
     this.toggleAcknowledgeWarning();
     _hide('warningbox');
     _show('mastervbox');
@@ -733,7 +720,7 @@ EmailConfigWizard.prototype =
       }
     }
 
-    getElementById('create_button').disabled = true;
+    document.getElementById('create_button').disabled = true;
     var me = this;
     if (!this._verifiedConfig)
       this.verifyConfig(function() // success
@@ -742,7 +729,7 @@ EmailConfigWizard.prototype =
                         },
                         function(e) // failure
                         {
-                          getElementById('create_button').disabled = false;
+                          document.getElementById('create_button').disabled = false;
                         });
     else
       this.finish();
@@ -780,7 +767,7 @@ EmailConfigWizard.prototype =
   {
     gEmailWizardLogger.info("creating account in backend");
     this._currentConfigFilledIn.rememberPassword =
-      getElementById("remember_password").checked;
+      document.getElementById("remember_password").checked;
     createAccountInBackend(this._currentConfigFilledIn);
     window.close();
   },
@@ -795,7 +782,7 @@ EmailConfigWizard.prototype =
 
     gEmailWizardLogger.info("creating account in backend");
     config.rememberPassword =
-      getElementById("remember_password").checked;
+      document.getElementById("remember_password").checked;
     var newAccount = createAccountInBackend(config);
     var windowManager =
       Components.classes['@mozilla.org/appshell/window-mediator;1']
@@ -830,29 +817,32 @@ EmailConfigWizard.prototype =
     {
       config.outgoing.addThisServer = false;
       config.outgoing.existingServerKey =
-        getElementById("outgoing_server").selectedItem.value;
+        document.getElementById("outgoing_server").selectedItem.value;
       config.outgoing.existingServerLabel =
-        getElementById("outgoing_server").selectedItem.label;
+        document.getElementById("outgoing_server").selectedItem.label;
     }
     else
     {
-      config.outgoing.username = getElementById("username").value;
-      config.outgoing.hostname = getElementById("outgoing_server").value;
+      config.outgoing.username = document.getElementById("username").value;
+      config.outgoing.hostname =
+        document.getElementById("outgoing_server").value;
       config.outgoing.port =
-        sanitize.integerRange(getElementById("outgoing_port").value, 1,
+        sanitize.integerRange(document.getElementById("outgoing_port").value, 1,
                               kHighestPort);
-      config.outgoing.socketType = parseInt(getElementById("outgoing_security").value);
+      config.outgoing.socketType =
+        parseInt(document.getElementById("outgoing_security").value);
     }
-    config.incoming.username = getElementById("username").value;
-    config.incoming.hostname = getElementById("incoming_server").value;
+    config.incoming.username = document.getElementById("username").value;
+    config.incoming.hostname = document.getElementById("incoming_server").value;
     config.incoming.port =
-      sanitize.integerRange(getElementById("incoming_port").value, 1,
+      sanitize.integerRange(document.getElementById("incoming_port").value, 1,
                             kHighestPort);
     config.incoming.type =
-      getElementById("incoming_protocol").value == 1 ? "imap" : "pop3";
+      document.getElementById("incoming_protocol").value == 1 ? "imap" : "pop3";
     // type is a string, "imap" or "pop3", protocol is a protocol type.
     config.incoming.protocol = sanitize.translate(config.incoming.type, { "imap" : 0, "pop3" : 1});
-    config.incoming.socketType = parseInt(getElementById("incoming_security").value);
+    config.incoming.socketType =
+      parseInt(document.getElementById("incoming_security").value);
 
     return config;
   },
@@ -914,7 +904,7 @@ EmailConfigWizard.prototype =
 
   _setIconAndTooltip : function(id, state, details)
   {
-    let icon = getElementById(id);
+    let icon = document.getElementById(id);
     icon.setAttribute("state", state);
     switch (state)
     {
@@ -955,7 +945,7 @@ EmailConfigWizard.prototype =
   {
     for (let i = 0; i < this._configDetailTextInputs.length; i++ )
     {
-      getElementById(this._configDetailTextInputs[i]).value = "";
+      document.getElementById(this._configDetailTextInputs[i]).value = "";
     }
 
     this._setIncomingStatus('hidden');
@@ -970,9 +960,9 @@ EmailConfigWizard.prototype =
   editConfigDetails : function()
   {
     // Add the custom entry to the menulist, if it's not already there.
-    let menulist = getElementById("outgoing_server");
+    let menulist = document.getElementById("outgoing_server");
     if (this._smtpServerCount == menulist.itemCount) {
-      var hostname = getElementById("outgoing_server").value;
+      var hostname = document.getElementById("outgoing_server").value;
       let menuitem = menulist.insertItemAt(0, hostname, hostname);
       menuitem.hostname = hostname;
     }
@@ -980,7 +970,7 @@ EmailConfigWizard.prototype =
     this._disableConfigDetails(false);
     this._setIncomingStatus('hidden');
     this._setOutgoingStatus('hidden');
-    getElementById('create_button').disabled = true;
+    document.getElementById('create_button').disabled = true;
     _hide("create_button");
     _hide("stop_button");
     _hide("edit_button");
@@ -1017,7 +1007,7 @@ EmailConfigWizard.prototype =
       this._configDetailTextInputs.concat(this._configDetailMenulists);
     for (let i = 0; i < formElements.length; i++)
     {
-      getElementById(formElements[i]).disabled = disabled;
+      document.getElementById(formElements[i]).disabled = disabled;
     }
   },
 
@@ -1034,7 +1024,7 @@ EmailConfigWizard.prototype =
     // if we have a username, set it.
     if (config.incoming.username)
     {
-      getElementById("username").value = config.incoming.username;
+      document.getElementById("username").value = config.incoming.username;
     }
     else
     {
@@ -1048,10 +1038,12 @@ EmailConfigWizard.prototype =
         * at this point all we know is there is no hostname, but not why
         * the error handling behaviour needs to be done above
         */
-      getElementById("incoming_server").value = config.incoming.hostname;
-      getElementById("incoming_port").value = config.incoming.port;
-      getElementById("incoming_security").value = config.incoming.socketType;
-      getElementById("incoming_protocol").value =
+      document.getElementById("incoming_server").value =
+        config.incoming.hostname;
+      document.getElementById("incoming_port").value = config.incoming.port;
+      document.getElementById("incoming_security").value =
+        config.incoming.socketType;
+      document.getElementById("incoming_protocol").value =
         sanitize.translate(config.incoming.type, { "imap" : 1, "pop3" : 2});
 
       if (config.incoming._inprogress)
@@ -1097,9 +1089,11 @@ EmailConfigWizard.prototype =
        */
       if (!gEmailConfigWizard._userPickedOutgoingServer)
       {
-        getElementById("outgoing_server").value = config.outgoing.hostname;
-        getElementById("outgoing_port").value = config.outgoing.port;
-        getElementById("outgoing_security").value = config.outgoing.socketType;
+        document.getElementById("outgoing_server").value =
+          config.outgoing.hostname;
+        document.getElementById("outgoing_port").value = config.outgoing.port;
+        document.getElementById("outgoing_security").value =
+          config.outgoing.socketType;
         _show("outgoing_port");
         _show("outgoing_security");
         if (config.outgoing._inprogress) {
@@ -1216,7 +1210,7 @@ EmailConfigWizard.prototype =
   // thought this would be needed other places, not likely though
   _hideSpinner : function(hidden)
   {
-    getElementById("config_spinner").hidden = hidden;
+    document.getElementById("config_spinner").hidden = hidden;
   },
 
   _showStatusTitle: function(success, msgName)
@@ -1229,7 +1223,7 @@ EmailConfigWizard.prototype =
     }
 
     this._hideSpinner(success);
-    let title = getElementById("config_status_title");
+    let title = document.getElementById("config_status_title");
     title.hidden = false;
     title.textContent = msg;
     gEmailWizardLogger.info("show status title " + (success ? "success" : "failure") +
@@ -1245,7 +1239,7 @@ EmailConfigWizard.prototype =
       gEmailWizardLogger.error("missing string for " + msgName);
     }
 
-    let subtitle = getElementById("config_status_subtitle");
+    let subtitle = document.getElementById("config_status_subtitle");
     subtitle.hidden = false;
     subtitle.textContent = msg;
     gEmailWizardLogger.info("show status subtitle: " + msg);
@@ -1323,13 +1317,14 @@ EmailConfigWizard.prototype =
 
   clearError: function(which) {
     _hide(which);
-    getElementById(which).textContent = "";
+    document.getElementById(which).textContent = "";
   },
 
   setError: function(which, msg_name) {
     try {
       _show(which);
-      getElementById(which).textContent = gStringsBundle.getString(msg_name);
+      document.getElementById(which).textContent =
+        gStringsBundle.getString(msg_name);
     }
     catch(ex) {
       alertPrompt("missing error string", msg_name);
@@ -1343,11 +1338,11 @@ EmailConfigWizard.prototype =
       this.onCancel();
       return true;
     }
-    if (key == 13 && !getElementById('create_button').hidden) {
+    if (key == 13 && !document.getElementById('create_button').hidden) {
       this.onOK();
       return true;
     }
-    if (key == 13 && !getElementById('next_button').hidden) {
+    if (key == 13 && !document.getElementById('next_button').hidden) {
       this.onNext();
       return true;
     }
