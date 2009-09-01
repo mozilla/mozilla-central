@@ -1040,12 +1040,11 @@ function UpdateAttachmentCol(aFirstTimeFlag)
 
 function OnLocationToolbarAttrModified(event)
 {
-    if (!/collapsed/.test(event.attrName))
+    if (!/collapsed|hidden/.test(event.attrName))
         return;
     var searchBox = document.getElementById("searchBox");
     var desiredParent = document.getElementById("msgLocationToolbar");
-    if (desiredParent.getAttribute("collapsed") == "true" ||
-        desiredParent.getAttribute("moz-collapsed") == "true")
+    if (desiredParent.hidden || desiredParent.collapsed)
         desiredParent = document.getElementById("searchBoxHolder");
     if (searchBox.parentNode != desiredParent)
         desiredParent.appendChild(searchBox);
@@ -1093,16 +1092,6 @@ function UpdateLocationBar(resource)
         icon.setAttribute(name, value);
     }
     folders.setAttribute('uri', resource.Value);
-}
-
-function goToggleLocationToolbar(toggle)
-{
-    // XXX hidden doesn't work, use collapsed instead
-    var menu = document.getElementById("menu_showLocationToolbar");
-    var toolbar = document.getElementById("msgLocationToolbar");
-    var checked = toolbar.collapsed;
-    menu.setAttribute('checked', checked);
-    toolbar.setAttribute('collapsed', !checked);
 }
 
 function GetFolderDatasource()
