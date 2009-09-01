@@ -355,6 +355,10 @@ h1, h2, h3 {
   font-size: 80%;
 }
 
+.results-message-showall:hover {
+  text-decoration: underline;
+}
+
 /* ===== Messages ===== */
 
 .message {
