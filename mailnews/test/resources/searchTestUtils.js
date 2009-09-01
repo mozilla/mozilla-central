@@ -36,7 +36,7 @@
  
  // Contains various functions commonly used in testing mailnews search
 
-/*
+/**
  * TestSearch: Class to test number of search hits
  *
  * @param aFolder:   the folder to search
@@ -52,11 +52,12 @@
  * @param onDone:    function to call on completion of search
  * @param aCustomId: id string for the custom action, if aAttrib is Custom
  * @param aArbitraryHeader  for OtherHeader case, header.
+ * @param aHdrProperty      for HdrProperty and Uint32HdrProperty case
  *
  */
 
 function TestSearch(aFolder, aValue, aAttrib, aOp, aHitCount, onDone, aCustomId,
-                    aArbitraryHeader)
+                    aArbitraryHeader, aHdrProperty)
 {
   var searchListener =
   { 
@@ -90,7 +91,9 @@ function TestSearch(aFolder, aValue, aAttrib, aOp, aHitCount, onDone, aCustomId,
     value.priority = aValue;
   else if (aAttrib == Ci.nsMsgSearchAttrib.Date)
     value.date = aValue;
-  else if (aAttrib == Ci.nsMsgSearchAttrib.MsgStatus)
+  else if (aAttrib == Ci.nsMsgSearchAttrib.MsgStatus ||
+           aAttrib == Ci.nsMsgSearchAttrib.FolderFlag ||
+           aAttrib == Ci.nsMsgSearchAttrib.Uint32HdrProperty)
     value.status = aValue;
   else if (aAttrib == Ci.nsMsgSearchAttrib.MessageKey)
     value.msgKey = aValue;
@@ -115,6 +118,9 @@ function TestSearch(aFolder, aValue, aAttrib, aOp, aHitCount, onDone, aCustomId,
     searchTerm.customId = aCustomId;
   else if (aAttrib == Ci.nsMsgSearchAttrib.OtherHeader)
     searchTerm.arbitraryHeader = aArbitraryHeader;
+  else if (aAttrib == Ci.nsMsgSearchAttrib.HdrProperty ||
+           aAttrib == Ci.nsMsgSearchAttrib.Uint32HdrProperty)
+    searchTerm.hdrProperty = aHdrProperty;
 
   searchSession.appendTerm(searchTerm);
   searchSession.registerListener(searchListener);
