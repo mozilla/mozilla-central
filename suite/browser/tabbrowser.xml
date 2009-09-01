@@ -860,7 +860,10 @@
                 // Clear focus outline before we draw on top of it.
                 // Only blur the focused element if it isn't a tab, 
                 // to avoid breaking keyboard tab navigation
-                this.mCurrentBrowser.focusedElement.blur();
+                this.mCurrentBrowser.focusedWindow
+                    .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                    .getInterface(Components.interfaces.nsIDOMWindowUtils)
+                    .focus(null);
               }
               this.mCurrentBrowser.setAttribute("type", "content-targetable");
             }
@@ -967,7 +970,13 @@
 
             function setFocus(element) {
               document.commandDispatcher.suppressFocusScroll = true;
-              element.focus();
+              if (element instanceof Window)
+                element.focus();
+              else
+                element.ownerDocument.defaultView
+                       .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                       .getInterface(Components.interfaces.nsIDOMWindowUtils)
+                       .focus(element);
               document.commandDispatcher.suppressFocusScroll = false;
             }
 
