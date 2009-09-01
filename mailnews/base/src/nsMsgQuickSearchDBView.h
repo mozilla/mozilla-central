@@ -89,6 +89,15 @@ protected:
   virtual nsresult ListCollapsedChildren(nsMsgViewIndex viewIndex,
                                          nsIMutableArray *messageArray);
   virtual nsresult ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, PRUint32 *pNumListed);
+  virtual nsresult ListIdsInThreadOrder(nsIMsgThread *threadHdr,
+                                        nsMsgKey parentKey, PRInt32 level,
+                                        nsMsgViewIndex *viewIndex,
+                                        PRUint32 *pNumListed);
+  virtual nsresult ListIdsInThreadOrder(nsIMsgThread *threadHdr,
+                                        nsMsgKey parentKey, PRInt32 level,
+                                        nsMsgKey keyToSkip,
+                                        nsMsgViewIndex *viewIndex,
+                                        PRUint32 *pNumListed);
   virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
   void      SavePreSearchInfo();
   void      ClearPreSearchInfo();

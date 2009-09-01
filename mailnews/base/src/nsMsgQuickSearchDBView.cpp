@@ -525,9 +525,12 @@ nsresult nsMsgQuickSearchDBView::SortThreads(nsMsgViewSortTypeValue sortType, ns
         m_flags.AppendElement(rootFlags);
         m_levels.AppendElement(0);
 
-        nsMsgViewIndex startOfThreadViewIndex = m_keys.Length() - 1;
-        PRUint32 numListed;
-        ListIdsInThread(threadHdr, startOfThreadViewIndex, &numListed);
+        nsMsgViewIndex startOfThreadViewIndex = m_keys.Length();
+        nsMsgViewIndex rootIndex = startOfThreadViewIndex - 1;
+        PRUint32 numListed = 0;
+        ListIdsInThreadOrder(threadHdr, rootKey, 1, &startOfThreadViewIndex, &numListed);
+        if (numListed > 0)
+          m_flags[rootIndex] = rootFlags | MSG_VIEW_FLAG_HASCHILDREN;
       }
     }
   }
@@ -574,6 +577,13 @@ nsMsgQuickSearchDBView::ListCollapsedChildren(nsMsgViewIndex viewIndex,
 
 nsresult nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, PRUint32 *pNumListed)
 {
+
+  if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay && ! (m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
+  {
+    nsMsgKey parentKey = m_keys[startOfThreadViewIndex++];
+    return ListIdsInThreadOrder(threadHdr, parentKey, 1, &startOfThreadViewIndex, pNumListed);
+  }
+
   PRUint32 numChildren;
   threadHdr->GetNumChildren(&numChildren);
   PRUint32 i;
@@ -618,6 +628,78 @@ nsresult nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgV
     }
   }
   return NS_OK;
+}
+
+nsresult
+nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
+                                             nsMsgKey parentKey, PRInt32 level,
+                                             nsMsgKey keyToSkip,
+                                             nsMsgViewIndex *viewIndex,
+                                             PRUint32 *pNumListed)
+{
+  nsCOMPtr <nsISimpleEnumerator> msgEnumerator;
+  nsresult rv = threadHdr->EnumerateMessages(parentKey, getter_AddRefs(msgEnumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool hasMore;
+  nsCOMPtr <nsISupports> supports;
+  nsCOMPtr <nsIMsgDBHdr> msgHdr;
+  while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(rv = msgEnumerator->HasMoreElements(&hasMore)) && hasMore)
+  {
+    rv = msgEnumerator->GetNext(getter_AddRefs(supports));
+    if (NS_SUCCEEDED(rv) && supports)
+    {
+      msgHdr = do_QueryInterface(supports);
+      nsMsgKey msgKey;
+      msgHdr->GetMessageKey(&msgKey);
+      if (msgKey == keyToSkip)
+        continue;
+
+      PRInt32 childLevel = level;
+      if (m_origKeys.BinaryIndexOf(msgKey) != -1)
+      {
+        PRUint32 msgFlags;
+        msgHdr->GetFlags(&msgFlags);
+        InsertMsgHdrAt(*viewIndex, msgHdr, msgKey, msgFlags & ~MSG_VIEW_FLAGS, level);
+        (*pNumListed)++;
+        (*viewIndex)++;
+        childLevel++;
+      }
+      rv = ListIdsInThreadOrder(threadHdr, msgKey, childLevel, keyToSkip, viewIndex, pNumListed);
+    }
+  }
+  return rv;
+}
+
+nsresult
+nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
+                                             nsMsgKey parentKey, PRInt32 level,
+                                             nsMsgViewIndex *viewIndex,
+                                             PRUint32 *pNumListed)
+{
+  nsresult rv = ListIdsInThreadOrder(threadHdr, parentKey, level, nsMsgKey_None,
+                                     viewIndex, pNumListed);
+  // Because a quick search view might not have the actual thread root
+  // as its root, and thus might have a message that potentially has siblings
+  // as its root, and the enumerator will miss the siblings, we might need to
+  // make a pass looking for the siblings of the non-root root. We'll put
+  // those after the potential children of the root. So we will list the children
+  // of the faux root's parent, ignoring the faux root.
+  if (level == 1)
+  {
+    nsCOMPtr<nsIMsgDBHdr> root;
+    nsCOMPtr<nsIMsgDBHdr> rootParent;
+    nsMsgKey rootKey;
+    PRInt32 rootIndex;
+    threadHdr->GetRootHdr(&rootIndex, getter_AddRefs(rootParent));
+    if (rootParent)
+    {
+      rootParent->GetMessageKey(&rootKey);
+      if (rootKey != parentKey)
+        rv = ListIdsInThreadOrder(threadHdr, rootKey, level, parentKey, viewIndex,
+                                  pNumListed);
+    }
+  }
+  return rv;
 }
 
 nsresult nsMsgQuickSearchDBView::ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDelta)

@@ -15,6 +15,7 @@ var gMessageGenerator;
 var gScenarioFactory;
 
 var gTestFolder;
+var gSiblingsMissingParentsSubject;
 
 function setup_globals(aNextFunc) {
   loadLocalMailAccount();
@@ -28,11 +29,27 @@ function setup_globals(aNextFunc) {
   //  mix up the order of messages ourselves to ensure that the timestamp
   //  ordering is not already in order.  (a poor test of sorting otherwise.)
   messages = gScenarioFactory.directReply(6).concat(messages);
+
   messages = messages.concat(gScenarioFactory.fullPyramid(3,3));
-  messages = messages.concat(gScenarioFactory.siblingsMissingParent());
+  let siblingMessages = gScenarioFactory.siblingsMissingParent();
+  // cut off "Re: " part
+  gSiblingsMissingParentsSubject = siblingMessages[0].subject.slice(4);
+  dump("siblings subect = " + gSiblingsMissingParentsSubject + "\n");
+  messages = messages.concat(siblingMessages);
   messages = messages.concat(gScenarioFactory.missingIntermediary());
   messages.concat(gMessageGenerator.makeMessage({age: {days: 2, hours: 1}}));
-  
+
+  // build a hierarchy like this (the UID order corresponds to the date order)
+  //   1
+  //    2
+  //     4
+  //    3
+  let msg1 = gMessageGenerator.makeMessage();
+  let msg2 = gMessageGenerator.makeMessage({inReplyTo: msg1});
+  let msg3 = gMessageGenerator.makeMessage({inReplyTo: msg1});
+  let msg4 = gMessageGenerator.makeMessage({inReplyTo: msg2});
+  messages = messages.concat([msg1, msg2, msg3, msg4]);
+
   let mboxName = "dbviewy";
   writeMessagesToMbox(messages, gProfileDir,
                       "Mail", "Local Folders", mboxName);
@@ -246,7 +263,7 @@ function setup_view(aViewType, aViewFlags, aTestFolder) {
   dump("  View Out Count: " + outCount.value + "\n");
 
   // we need to cram messages into the search via nsIMsgSearchNotify interface
-  if (aViewType == "search") {
+  if (aViewType == "search" || aViewType == "quicksearch") {
     let searchNotify = gDBView.QueryInterface(
       Components.interfaces.nsIMsgSearchNotify);
     searchNotify.onNewSearch();
@@ -464,6 +481,52 @@ function test_msg_added_to_search_view() {
   }
 }
 
+function IsHdrChildOf(possibleParent, possibleChild) {
+  let parentHdrId = possibleParent.messageId;
+  let numRefs = possibleChild.numReferences;
+  for (let refIndex = 0; refIndex < numRefs; refIndex++) {
+    if (parentHdrId == possibleChild.getStringReference(refIndex))
+      return true;
+  }
+  return false;
+}
+
+// This could be part of ensure_view_ordering() but I don't want to make that
+// function any harder to read.
+function test_threading_levels() {
+
+  if (!gTreeView.rowCount)
+    do_throw("There are no rows in my folder! I can't test anything!");
+  // only look at threaded, non-grouped views.
+  if ((gDBView.viewFlags & ViewFlags.kGroupBySort) || 
+      ! (gDBView.viewFlags & ViewFlags.kThreadedDisplay))
+    return;
+
+  let prevLevel = 1;
+  let prevMsgHdr;
+  for (let iViewIndex = 0; iViewIndex < gTreeView.rowCount; iViewIndex++) {
+    let msgHdr = gDBView.getMsgHdrAt(iViewIndex);
+    let level = gTreeView.getLevel(iViewIndex);
+    if (level > prevLevel && msgHdr.subject != gSiblingsMissingParentsSubject) {
+      if (!IsHdrChildOf(prevMsgHdr, msgHdr))
+        view_throw("indented message not child of parent");
+    }
+    prevLevel = level;
+    prevMsgHdr = msgHdr;
+  }
+}
+
+function test_qs_results() {
+  // This just tests that bug 505967 hasn't regressed.
+  if (gTreeView.getLevel(0) != 0)
+    view_throw("first message should be at level 0");
+  if (gTreeView.getLevel(1) != 1)
+    view_throw("second message should be at level 1");
+  if (gTreeView.getLevel(2) != 2)
+    view_throw("third message should be at level 2");
+  test_threading_levels();
+}
+
 function test_group_dummies_under_mutation_by_date() {
   // - start with an empty folder
   let save_gTestFolder = gTestFolder;
@@ -522,6 +585,7 @@ function test_group_dummies_under_mutation_by_date() {
 
 var view_types = [
   ["threaded", ViewFlags.kThreadedDisplay],
+  ["quicksearch", ViewFlags.kThreadedDisplay],
   ["search", ViewFlags.kThreadedDisplay],
   ["search", ViewFlags.kGroupBySort],
    // group does unspeakable things to gTestFolder, so put it last.
@@ -540,6 +604,9 @@ var tests_for_specific_views = {
   ],
   search: [
     test_msg_added_to_search_view
+  ],
+  quicksearch: [
+    test_qs_results
   ]
 };
 
