@@ -71,6 +71,7 @@ messenger.jar:
 *   content/messenger/configEditorOverlay.xul       (content/configEditorOverlay.xul)
     content/messenger/composerOverlay.css           (content/composerOverlay.css)
     content/messenger/threadPane.js                 (content/threadPane.js)
+    content/messenger/protovis-r2.6-modded.js       (content/protovis-r2.6-modded.js)
 #ifdef XP_MACOSX
     content/messenger/macMenuOverlay.xul            (content/macMenuOverlay.xul)
 #endif
