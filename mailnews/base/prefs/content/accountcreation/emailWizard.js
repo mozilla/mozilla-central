@@ -97,10 +97,12 @@ EmailConfigWizard.prototype =
 
   onLoad : function()
   {
+    this._domain = "";
     this._email = "";
     this._realname = "";
     this._password = "";
     this._verifiedConfig = false;
+    this._userChangedIncomingServer = false;
     this._userChangedIncomingProtocol = false;
     this._userChangedIncomingPort = false;
     this._userChangedIncomingSocketType = false;
@@ -159,8 +161,8 @@ EmailConfigWizard.prototype =
 
     this.showConfigDetails();
 
-    let domain = this._email.split("@")[1];
-    this.findConfig(domain, this._email);
+    this._domain = this._email.split("@")[1];
+    this.findConfig(this._domain, this._email);
 
     // swap out buttons
     _hide("next_button");
@@ -330,6 +332,12 @@ EmailConfigWizard.prototype =
         this._outgoingState = "";
         break;
     }
+  },
+
+  setIncomingServer : function()
+  {
+    this._userChangedIncomingServer = true;
+    this._incomingState = "";
   },
 
   setIncomingProtocol : function()
@@ -1274,6 +1282,9 @@ EmailConfigWizard.prototype =
       config.incoming.port = undefined;
     if (!this._userChangedIncomingSocketType)
       config.incoming.socketType = undefined;
+    if (!this._userChangedIncomingServer) {
+      config.incoming.hostname = undefined;
+    }
 
     if (this._probeAbortable)
     {
@@ -1284,7 +1295,10 @@ EmailConfigWizard.prototype =
     }
     else
     {
-      this._guessConfig(config.incoming.hostname, config, "incoming");
+      let domain = this._domain;
+      if (config.incoming.hostname)
+        domain = config.incoming.hostname;
+      this._guessConfig(domain, config, "incoming");
     }
   },
 

@@ -275,6 +275,7 @@
                       <textbox id="incoming_server"
                                value=""
                                disabled="true"
+                               oninput="gEmailConfigWizard.setIncomingServer()"
                                class="host uri-element"/>
                     </hbox>
                   </hbox>
