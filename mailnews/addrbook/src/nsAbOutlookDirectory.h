@@ -88,7 +88,7 @@ public:
   // nsIAbDirectorySearch methods
   NS_DECL_NSIABDIRECTORYSEARCH
   // Perform a MAPI query (function executed in a separate thread)
-  nsresult ExecuteQuery(nsIAbDirectoryQueryArguments *aArguments,
+  nsresult ExecuteQuery(SRestriction &aRestriction,
                         nsIAbDirSearchListener *aListener,
                         PRInt32 aResultLimit, PRInt32 aTimeout,
                         PRInt32 aThreadId);

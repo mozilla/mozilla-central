@@ -870,7 +870,7 @@ static void DestroyRestriction(SRestriction& aRestriction)
 struct QueryThreadArgs 
 {
     nsAbOutlookDirectory *mThis ;
-    nsCOMPtr<nsIAbDirectoryQueryArguments> mArguments ;
+    SRestriction mRestriction ;
     nsCOMPtr<nsIAbDirSearchListener> mListener ;
     PRInt32 mResultLimit ;
     PRInt32 mTimeout ;
@@ -882,9 +882,10 @@ static void QueryThreadFunc(void *aArguments)
     QueryThreadArgs *arguments = reinterpret_cast<QueryThreadArgs *>(aArguments) ;
 
     if (!aArguments) { return ; }
-    arguments->mThis->ExecuteQuery(arguments->mArguments, arguments->mListener,
+    arguments->mThis->ExecuteQuery(arguments->mRestriction, arguments->mListener,
                                    arguments->mResultLimit, arguments->mTimeout,
                                    arguments->mThreadId) ;
+    DestroyRestriction(arguments->mRestriction) ;
     delete arguments ;
 }
 
@@ -905,8 +906,10 @@ NS_IMETHODIMP nsAbOutlookDirectory::DoQuery(nsIAbDirectory *aDirectory,
   if (!threadArgs)
     return NS_ERROR_OUT_OF_MEMORY;
 
+  nsresult rv = BuildRestriction(aArguments, threadArgs->mRestriction);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   threadArgs->mThis = this;
-  threadArgs->mArguments = aArguments;
   threadArgs->mListener = aListener;
   threadArgs->mResultLimit = aResultLimit;
   threadArgs->mTimeout = aTimeout;
@@ -925,6 +928,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::DoQuery(nsIAbDirectory *aDirectory,
                               0);
 
   if (!newThread ) {
+    DestroyRestriction(threadArgs->mRestriction);
     delete threadArgs;
     return NS_ERROR_OUT_OF_MEMORY;
   }
@@ -1001,28 +1005,23 @@ NS_IMETHODIMP nsAbOutlookDirectory::OnSearchFoundCard(nsIAbCard *aCard)
   return rv;
 }
 
-nsresult nsAbOutlookDirectory::ExecuteQuery(nsIAbDirectoryQueryArguments *aArguments,
+nsresult nsAbOutlookDirectory::ExecuteQuery(SRestriction &aRestriction,
                                             nsIAbDirSearchListener *aListener,
                                             PRInt32 aResultLimit, PRInt32 aTimeout,
                                             PRInt32 aThreadId) 
 
 {
-  if (!aArguments || !aListener)
+  if (!aListener)
     return NS_ERROR_NULL_POINTER;
 
-  SRestriction arguments;
   nsresult retCode = NS_OK;
-    
-  retCode = BuildRestriction(aArguments, arguments);
-  NS_ENSURE_SUCCESS(retCode, retCode);
 
   nsCOMPtr<nsIMutableArray> resultsArray(do_CreateInstance(NS_ARRAY_CONTRACTID,
                                                            &retCode));
   NS_ENSURE_SUCCESS(retCode, retCode);
 
   retCode = GetChildCards(resultsArray,
-                          arguments.rt == RES_COMMENT ? nsnull : &arguments);
-  DestroyRestriction(arguments);
+                          aRestriction.rt == RES_COMMENT ? nsnull : &aRestriction);
   NS_ENSURE_SUCCESS(retCode, retCode);
 
   PRUint32 nbResults = 0;
