@@ -604,10 +604,15 @@
                 (iTab == this.tabContainer.childNodes.length) ? iTab - 1 : iTab;
             if (this.currentTabInfo == tab)
               this.updateCurrentTab();
-              
+
             if (tab.panel) {
               this.panelContainer.removeChild(tab.panel);
               delete tab.panel;
+
+              // Ensure current tab is still selecte and displayed in the
+              // panelContainer.
+              this.panelContainer.selectedPanel =
+                this.currentTabInfo.panel || this.currentTabInfo.mode.tabType.panel;
             }
             if (this.tabContainer.childNodes.length == 1 &&
                 this.tabContainer.mAutoHide)
