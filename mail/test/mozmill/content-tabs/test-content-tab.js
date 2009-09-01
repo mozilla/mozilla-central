@@ -55,6 +55,7 @@ var mc;
 // RELATIVE_ROOT messes with the collector, so we have to bring the path back
 // so we get the right path for the resources.
 var url = collector.addHttpResource('../content-tabs/html', 'content-tabs');
+var whatsUrl = url + "whatsnew.html";
 
 var setupModule = function (module) {
   windowHelper = collector.getModule('window-helpers');
@@ -65,7 +66,6 @@ var setupModule = function (module) {
 
 function test_content_tab_open() {
   let preCount = mc.tabmail.tabContainer.childNodes.length;
-  let whatsUrl = url + "whatsnew.html";
 
   // Set the pref so that what's new opens a local url
   Components.classes["@mozilla.org/preferences-service;1"]
