@@ -527,6 +527,7 @@ modern.jar:
   skin/modern/navigator/toolbar/urlbar-mid.gif                     (navigator/toolbar/urlbar-mid.gif)
   skin/modern/navigator/icons/browser.png                          (navigator/icons/browser.png)
   skin/modern/navigator/icons/browser-small.png                    (navigator/icons/browser-small.png)
+  skin/modern/navigator/icons/identity.png                         (navigator/icons/identity.png)
   skin/modern/navigator/icons/popup-blocked.png                    (navigator/icons/popup-blocked.png)
   skin/modern/navigator/icons/tab-drag-indicator.gif               (navigator/icons/tab-drag-indicator.gif)
   skin/modern/navigator/icons/tab-new.gif                          (navigator/icons/tab-new.gif)

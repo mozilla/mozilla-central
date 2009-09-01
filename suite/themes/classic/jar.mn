@@ -378,6 +378,7 @@ classic.jar:
   skin/classic/navigator/icons/restore.gif                              (navigator/icons/restore.gif)
   skin/classic/navigator/icons/chevron.gif                              (navigator/icons/chevron.gif)
   skin/classic/navigator/icons/close.gif                                (navigator/icons/close.gif)
+  skin/classic/navigator/icons/identity.png                             (navigator/icons/identity.png)
   skin/classic/navigator/icons/popup-blocked.png                        (navigator/icons/popup-blocked.png)
   skin/classic/navigator/icons/tab-drag-indicator.gif                   (navigator/icons/tab-drag-indicator.gif)
   skin/classic/navigator/icons/tab-new.gif                              (navigator/icons/tab-new.gif)

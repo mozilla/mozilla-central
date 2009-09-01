@@ -490,38 +490,41 @@
         <!-- Identity Section -->
         <groupbox id="security-identity-groupbox" flex="1">
           <caption id="security-identity" label="&securityView.identity.header;"/>
-          <grid flex="1">
-            <columns>
-              <column/>
-              <column flex="1"/>
-            </columns>
-            <rows>
-              <row><!-- Domain -->
-                <label control="security-identity-domain-value"
-                       id="security-identity-domain-label"
-                       class="fieldLabel"
-                       value="&securityView.identity.domain;"/>
-                <textbox id="security-identity-domain-value"
-                         class="fieldValue" readonly="true"/>
-              </row>
-              <row><!-- Owner -->
-                <label control="security-identity-owner-value"
-                       id="security-identity-owner-label"
-                       class="fieldLabel"
-                       value="&securityView.identity.owner;"/>
-                <textbox id="security-identity-owner-value"
-                         class="fieldValue" readonly="true"/>
-              </row>
-              <row><!-- Verifier -->
-                <label control="security-identity-verifier-value"
-                       id="security-identity-verifier-label"
-                       class="fieldLabel"
-                       value="&securityView.identity.verifier;"/>
-                <textbox id="security-identity-verifier-value"
-                         class="fieldValue" readonly="true"/>
-              </row>
-            </rows>
-          </grid>
+          <hbox>
+            <image id="identity-icon"/>
+            <grid flex="1">
+              <columns>
+                <column/>
+                <column flex="1"/>
+              </columns>
+              <rows>
+                <row><!-- Domain -->
+                  <label control="security-identity-domain-value"
+                        id="security-identity-domain-label"
+                        class="fieldLabel"
+                        value="&securityView.identity.domain;"/>
+                  <textbox id="security-identity-domain-value"
+                          class="fieldValue" readonly="true"/>
+                </row>
+                <row><!-- Owner -->
+                  <label control="security-identity-owner-value"
+                        id="security-identity-owner-label"
+                        class="fieldLabel"
+                        value="&securityView.identity.owner;"/>
+                  <textbox id="security-identity-owner-value"
+                          class="fieldValue" readonly="true"/>
+                </row>
+                <row><!-- Verifier -->
+                  <label control="security-identity-verifier-value"
+                        id="security-identity-verifier-label"
+                        class="fieldLabel"
+                        value="&securityView.identity.verifier;"/>
+                  <textbox id="security-identity-verifier-value"
+                          class="fieldValue" readonly="true"/>
+                </row>
+              </rows>
+            </grid>
+          </hbox>
           <spacer flex="1"/>
           <hbox pack="end"><!-- Cert button -->
             <button id="security-view-cert" label="&securityView.certView;"

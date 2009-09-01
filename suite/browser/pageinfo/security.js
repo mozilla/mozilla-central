@@ -193,7 +193,7 @@ function securityOnLoad() {
   /* Set Identity section text */
   setText("security-identity-domain-value", info.hostName);
 
-  var owner, verifier, generalPageIdentityString;
+  var owner, verifier, generalPageIdentityString, identityClass;
   if (info.cert && !info.isBroken) {
     // Try to pull out meaningful values.  Technically these fields are optional
     // so we'll employ fallbacks where appropriate.  The EV spec states that Org
@@ -204,6 +204,7 @@ function securityOnLoad() {
       generalPageIdentityString =
         pageInfoBundle.getFormattedString("generalSiteIdentity",
                                           [owner, verifier]);
+      identityClass = "verifiedIdentity";
     }
     else {
       // Technically, a non-EV cert might specify an owner in the O field or not,
@@ -216,6 +217,7 @@ function securityOnLoad() {
                                                 info.cert.issuerCommonName ||
                                                 info.cert.issuerName);
       generalPageIdentityString = owner;
+      identityClass = "verifiedDomain";
     }
   }
   else {
@@ -223,11 +225,13 @@ function securityOnLoad() {
     owner = pageInfoBundle.getString("securityNoOwner");
     verifier = pageInfoBundle.getString("notSet");
     generalPageIdentityString = owner;
+    identityClass = "";
   }
 
   setText("security-identity-owner-value", owner);
   setText("security-identity-verifier-value", verifier);
   setText("general-security-identity", generalPageIdentityString);
+  document.getElementById("identity-icon").className = identityClass;
 
   /* Manage the View Cert button*/
   if (info.cert)

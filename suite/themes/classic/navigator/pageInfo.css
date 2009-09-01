@@ -130,3 +130,18 @@ treechildren::-moz-tree-cell-text(broken) {
 .fieldValue {
   font-weight: bold;
 }
+
+#identity-icon {
+  width: 64px;
+  height: 64px;
+  list-style-image: url("chrome://navigator/skin/icons/identity.png");
+  -moz-image-region: rect(0px, 64px, 64px, 0px);
+}
+
+#identity-icon.verifiedDomain {
+  -moz-image-region: rect(64px, 64px, 128px, 0px);
+}
+
+#identity-icon.verifiedIdentity {
+  -moz-image-region: rect(128px, 64px, 192px, 0px);
+}
