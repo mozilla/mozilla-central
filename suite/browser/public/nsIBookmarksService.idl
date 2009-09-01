@@ -43,10 +43,12 @@
 
 #include "nsISupports.idl"
 
+interface nsIRDFNode;
 interface nsIRDFResource;
+interface nsITransaction;
 interface nsITransactionManager;
 
-[scriptable, uuid(4342a6ac-1b43-4121-b606-4bdf62de71ff)]
+[scriptable, uuid(b3b8d09d-71b1-4654-b807-9288c2f16300)]
 interface nsIBookmarksService : nsISupports
 {
     const unsigned long BOOKMARK_DEFAULT_TYPE   = 0;
@@ -105,6 +107,11 @@ interface nsIBookmarksService : nsISupports
     void importSystemBookmarks(in nsIRDFResource aParentFolder);
 
     readonly attribute nsITransactionManager transactionManager;
+
+    nsITransaction createTransaction(in nsIRDFResource parent,
+                                     in nsIRDFNode item,
+                                     in unsigned long index,
+                                     in boolean remove);
 };
 
 %{C++

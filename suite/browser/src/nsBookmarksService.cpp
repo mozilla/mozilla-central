@@ -1622,6 +1622,107 @@ ElementArray::Clear()
     nsAutoVoidArray::Clear();
 }
 
+/**
+ * The bookmark transaction knows how to assert and unassert arcs
+ */
+class BookmarkTransaction: public nsITransaction,
+                           public nsIInterfaceRequestor
+{
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSITRANSACTION
+  NS_DECL_NSIINTERFACEREQUESTOR
+
+private:
+  nsBookmarksService* mBookmarksService;
+  nsCOMPtr<nsIRDFResource> mParent;
+  nsCOMPtr<nsIRDFNode> mItem;
+  PRUint32 mIndex;
+  PRBool mRemove;
+  nsresult performTransaction(PRBool aRemove, PRBool aRenumber);
+
+public:
+  BookmarkTransaction(nsBookmarksService* aBookmarksService,
+                      nsIRDFResource* aParent, nsIRDFNode* aItem,
+                      PRUint32 aIndex, PRBool aRemove)
+    : mBookmarksService(aBookmarksService),
+      mParent(aParent),
+      mItem(aItem),
+      mIndex(aIndex),
+      mRemove(aRemove) {}
+};
+
+NS_IMPL_ISUPPORTS2(BookmarkTransaction, nsITransaction, nsIInterfaceRequestor)
+
+nsresult
+BookmarkTransaction::performTransaction(PRBool aRemove, PRBool aRenumber)
+{
+  nsresult rv;
+  nsCOMPtr<nsIRDFContainer> container(do_CreateInstance("@mozilla.org/rdf/container;1", &rv));
+  if (NS_FAILED(rv))
+    return rv;
+
+  rv = container->Init(mBookmarksService, mParent);
+  if (NS_FAILED(rv))
+    return rv;
+
+  if (!aRemove)
+    return container->InsertElementAt(mItem, mIndex, aRenumber);
+
+  // We don't renumber the container when deleting bookmarks.
+  // This makes it easy to undo the transaction by restoring the same index.
+  return container->RemoveElement(mItem, PR_FALSE);
+}
+
+NS_IMETHODIMP
+BookmarkTransaction::DoTransaction()
+{
+  return performTransaction(mRemove, PR_TRUE);
+}
+
+NS_IMETHODIMP
+BookmarkTransaction::UndoTransaction()
+{
+  // We don't renumber the container when undoing transactions.
+  // This makes it easy to redo the transaction by restoring the same index.
+  return performTransaction(!mRemove, PR_FALSE);
+}
+
+NS_IMETHODIMP
+BookmarkTransaction::RedoTransaction()
+{
+  // We don't renumber the container when redoing transactions.
+  // This makes it easy to undo the transaction by restoring the same index.
+  return performTransaction(mRemove, PR_FALSE);
+}
+
+NS_IMETHODIMP
+BookmarkTransaction::GetIsTransient(PRBool *aIsTransient)
+{
+  NS_ENSURE_ARG_POINTER(aIsTransient);
+  *aIsTransient = PR_FALSE;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+BookmarkTransaction::Merge(nsITransaction* aTransaction, PRBool* aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = PR_FALSE;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+BookmarkTransaction::GetInterface(REFNSIID aIID, void** aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  nsISupports *result = nsnull;
+  if (aIID.Equals(NS_GET_IID(nsIRDFNode))) {
+    NS_ADDREF(result = mItem);
+    *aResult = result;
+    return NS_OK;
+  }
+  return NS_NOINTERFACE;
+}
 
 ////////////////////////////////////////////////////////////////////////
 // nsBookmarksService implementation
@@ -3977,6 +4078,23 @@ nsBookmarksService::GetTransactionManager(nsITransactionManager** aTransactionMa
     NS_ADDREF(*aTransactionManager = mTransactionManager);
 
     return NS_OK;
+}
+
+NS_IMETHODIMP
+nsBookmarksService::CreateTransaction(nsIRDFResource* aParent,
+                                      nsIRDFNode* aItem,
+                                      PRUint32 aIndex,
+                                      PRBool aRemove,
+                                      nsITransaction** aTransaction)
+{
+  NS_ENSURE_ARG_POINTER(aTransaction);
+  NS_ENSURE_ARG(aItem);
+  *aTransaction = new BookmarkTransaction(this, aParent, aItem, aIndex, aRemove);
+  if (!*aTransaction)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  NS_ADDREF(*aTransaction);
+  return NS_OK;
 }
 
 ////////////////////////////////////////////////////////////////////////

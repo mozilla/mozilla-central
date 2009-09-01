@@ -364,19 +364,12 @@
       </method>
 
       <field name="_itemToBeToggled">  []</field>
-      <field name="_parentToBeToggled">[]</field>
       <method name="preUpdateTreeSelection">
         <parameter name="aTxn"/>
         <body><![CDATA[
-          aTxn = aTxn.wrappedJSObject;
-          var type = aTxn.type;
-          // Skip transactions that aggregates nested "insert" or "remove" transactions.
-          if (type != "insert" && type != "remove")
-            return;
-          for (var i=0; i<aTxn.item.length; ++i) {
-            this._itemToBeToggled  .push(aTxn.item  [i]);
-            this._parentToBeToggled.push(aTxn.parent[i]);
-          }
+          // aTxn could be null, or possibly some third-party transaction?
+          if (aTxn instanceof Components.interfaces.nsIInterfaceRequestor)
+            this._itemToBeToggled.push(aTxn.getInterface(Components.interfaces.nsIRDFNode));
         ]]></body>
       </method>
 
@@ -385,7 +378,7 @@
           this.treeBoxObject.view.selection.selectEventsSuppressed = true;
           this.treeBoxObject.view.selection.clearSelection();
           for (var i=0; i<this._itemToBeToggled.length; ++i) {
-            index = this.treeBuilder.getIndexOfResource(this._itemToBeToggled[i]);
+            var index = this.treeBuilder.getIndexOfResource(this._itemToBeToggled[i]);
             if (index >=0)
               this.treeBoxObject.view.selection.toggleSelect(index);
           }
@@ -691,7 +684,6 @@
 
         willDo: function (aTxmgr, aTxn) {
           this.mOuter._itemToBeToggled   = [];
-          this.mOuter._parentToBeToggled = [];
         },
 
         didDo: function (aTxmgr, aTxn) {
@@ -700,7 +692,6 @@
 
         willUndo: function (aTxmgr, aTxn) {
           this.mOuter._itemToBeToggled   = [];
-          this.mOuter._parentToBeToggled = [];
         },
 
         didUndo: function (aTxmgr, aTxn) {
@@ -709,7 +700,6 @@
 
         willRedo: function (aTxmgr, aTxn) {
           this.mOuter._itemToBeToggled   = [];
-          this.mOuter._parentToBeToggled = [];
         },
 
         didRedo: function (aTxmgr, aTxn) {
