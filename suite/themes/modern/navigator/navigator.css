@@ -165,17 +165,14 @@ toolbar[iconsize="small"] > #back-button {
   -moz-image-region: rect(38px 19px 57px 0);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #back-button:hover,
 toolbar[iconsize="small"] > #back-button:hover {
   -moz-image-region: rect(38px 38px 57px 19px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #back-button:hover:active,
 toolbar[iconsize="small"] > #back-button:hover:active {
   -moz-image-region: rect(38px 57px 57px 38px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #back-button[disabled="true"],
 toolbar[iconsize="small"] > #back-button[disabled="true"] {
   -moz-image-region: rect(38px 76px 57px 57px) !important;
 }
@@ -186,17 +183,14 @@ toolbar[iconsize="small"] > #forward-button {
   -moz-image-region: rect(57px 19px 76px 0);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button:hover,
 toolbar[iconsize="small"] > #forward-button:hover {
   -moz-image-region: rect(57px 38px 76px 19px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button:hover:active,
 toolbar[iconsize="small"] > #forward-button:hover:active {
   -moz-image-region: rect(57px 57px 76px 38px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #forward-button[disabled="true"],
 toolbar[iconsize="small"] > #forward-button[disabled="true"] {
   -moz-image-region: rect(57px 76px 76px 57px) !important;
 }
@@ -207,17 +201,14 @@ toolbar[iconsize="small"] > #reload-button {
   -moz-image-region: rect(0 19px 19px 0);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button:hover,
 toolbar[iconsize="small"] > #reload-button:hover {
   -moz-image-region: rect(0 38px 19px 19px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button:hover:active,
 toolbar[iconsize="small"] > #reload-button:hover:active {
   -moz-image-region: rect(0 57px 19px 38px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #reload-button[disabled="true"],
 toolbar[iconsize="small"] > #reload-button[disabled="true"] {
   -moz-image-region: rect(0 76px 19px 57px) !important;
 }
@@ -228,17 +219,14 @@ toolbar[iconsize="small"] > #stop-button {
   -moz-image-region: rect(19px 19px 38px 0);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button:hover,
 toolbar[iconsize="small"] > #stop-button:hover {
   -moz-image-region: rect(19px 38px 38px 19px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button:hover:active,
 toolbar[iconsize="small"] > #stop-button:hover:active {
   -moz-image-region: rect(19px 57px 38px 38px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #stop-button[disabled="true"],
 toolbar[iconsize="small"] > #stop-button[disabled="true"] {
   -moz-image-region: rect(19px 76px 38px 57px) !important;
 }
@@ -249,17 +237,14 @@ toolbar[iconsize="small"] > #print-button {
   -moz-image-region: rect(0 19px 19px 0);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #print-button:hover,
 toolbar[iconsize="small"] > #print-button:hover {
   -moz-image-region: rect(0 38px 19px 19px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #print-button:hover:active,
 toolbar[iconsize="small"] > #print-button:hover:active {
   -moz-image-region: rect(0 57px 19px 38px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #print-button[disabled="true"],
 toolbar[iconsize="small"] > #print-button[disabled="true"] {
   -moz-image-region: rect(0 76px 19px 57px) !important;
 }
@@ -270,17 +255,14 @@ toolbar[iconsize="small"] > #home-button {
   -moz-image-region: rect(76px 19px 95px 0);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #home-button:hover,
 toolbar[iconsize="small"] > #home-button:hover {
   -moz-image-region: rect(76px 38px 95px 19px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #home-button:hover:active,
 toolbar[iconsize="small"] > #home-button:hover:active {
   -moz-image-region: rect(76px 57px 95px 38px);
 }
 
-toolbar[iconsize="small"] > toolbarpaletteitem > #home-button[disabled="true"],
 toolbar[iconsize="small"] > #home-button[disabled="true"] {
   -moz-image-region: rect(76px 76px 95px 57px) !important;
 }
