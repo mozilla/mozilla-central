@@ -227,6 +227,19 @@ h1, h2, h3 {
  * Thank you, Wilson Miner.
  */
 
+.bar {
+  display: block;
+}
+
+.bar-link {
+  display: inline-block;
+}
+
+.bar-count {
+  float: right;
+  margin-right: 3em;
+}
+
 .barry {
   border-top: 1px solid #EEE;
   margin: 0;
@@ -312,12 +325,12 @@ h1, h2, h3 {
 .bar-exclude {
   display: block;
   visibility: hidden;
-  background-image: url("chrome://messenger/skin/icons/thread-ignored.png");
+  background-image: url("chrome://messenger/skin/icons/exclude.png");
   position: absolute;
   top: 0.3em;
   right: 2px;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   z-index: 3;
 }
 
@@ -326,7 +339,7 @@ h1, h2, h3 {
 }
 
 .bar-exclude:hover {
-  background-color: #ffffcc;
+  background-image: url("chrome://messenger/skin/icons/exclude-selected.png");
 }
 
 /* ===== Results ===== */

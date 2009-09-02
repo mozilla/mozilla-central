@@ -605,6 +605,11 @@
           li.groupValue = groupValue;
           li.groupItems = groupItems;
 
+          let countSpan = document.createElement("span");
+          countSpan.setAttribute("class", "bar-count");
+          countSpan.textContent = groupItems.length.toLocaleString();
+          li.appendChild(countSpan);
+
           let label = document.createElement("a");
           label.setAttribute("class", "bar-link");
           // The null value is a special indicator for 'none'
@@ -632,11 +637,6 @@
           let excludeSpan = document.createElement("span");
           excludeSpan.setAttribute("class", "bar-exclude");
           li.appendChild(excludeSpan);
-
-          let countSpan = document.createElement("span");
-          countSpan.setAttribute("class", "bar-count");
-          countSpan.textContent = groupItems.length.toLocaleString();
-          li.appendChild(countSpan);
 
           root.appendChild(li);
         }

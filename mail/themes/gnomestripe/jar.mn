@@ -26,6 +26,8 @@ classic.jar:
   skin/classic/messenger/filterDialog.css                     (mail/filterDialog.css)
   skin/classic/messenger/multimessageview.css                 (mail/multimessageview.css)
   skin/classic/messenger/glodaFacetView.css                   (mail/glodaFacetView.css)
+  skin/classic/messenger/icons/exclude.png                    (mail/icons/exclude.png)
+  skin/classic/messenger/icons/exclude-selected.png           (mail/icons/exclude-selected.png)
   skin/classic/messenger/dialogs.css                          (mail/dialogs.css)
   skin/classic/messenger/newmailalert.css                     (mail/newmailalert.css)
 * skin/classic/messenger/tabmailBindings.xml                  (mail/tabmailBindings.xml)

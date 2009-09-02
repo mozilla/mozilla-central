@@ -136,6 +136,8 @@ classic.jar:
   skin/classic/messenger/icons/flagcol.png                       (mail/icons/flagcol.png)
   skin/classic/messenger/icons/flag-col.png                      (mail/icons/flag-col.png)
   skin/classic/messenger/icons/flaggedmail.png                   (mail/icons/flaggedmail.png)
+  skin/classic/messenger/icons/exclude.png                       (mail/icons/exclude.png)
+  skin/classic/messenger/icons/exclude-selected.png              (mail/icons/exclude-selected.png)
   skin/classic/messenger/icons/folder-archive.png                (mail/icons/folder-archive.png)
   skin/classic/messenger/icons/folder-closed.png                 (mail/icons/folder-closed.png)
   skin/classic/messenger/icons/folder-draft.png                  (mail/icons/folder-draft.png)
