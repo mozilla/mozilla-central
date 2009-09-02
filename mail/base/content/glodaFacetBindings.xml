@@ -949,7 +949,6 @@
     <html:div class="message-header">
       <html:div class="message-meta">
         <html:div anonid="oldestMessageDate" class="message-oldestMessageDate"></html:div>
-        <html:div anonid="attachments" class="message-attachments"></html:div>
       </html:div>
       <html:div class="message-line">
         <html:div anonid="addresses-group" class="message-addresses-group">
@@ -960,8 +959,9 @@
           <html:div anonid="recipients-group" class="message-recipients-group">
             <html:span anonid="to" class="message-to-label"></html:span>
             <html:div anonid="recipients" class="message-recipients"/>
+            <html:div anonid="date" class="message-date"></html:div>
+            <html:div anonid="attachments" class="message-attachments"></html:div>
           </html:div>
-          <html:span anonid="date" class="message-date"></html:span>
         </html:div>
         <html:div class="message-subject-group">
           <html:span anonid="star" class="message-star"></html:span>
@@ -1016,9 +1016,25 @@
           }
         }
         
+        // - Starred
         let starNode = anonElem("star");
         if (message.starred) {
           starNode.setAttribute("starred", "true")
+        }
+
+        // - Attachments
+        if (message.attachmentNames) {
+          let attachmentsNode = anonElem("attachments");
+          let imgNode = document.createElement("div");
+          imgNode.setAttribute("class", "message-attachment-icon");
+          attachmentsNode.appendChild(imgNode);
+          for each (let [, attach] in Iterator(message.attachmentNames)) {
+            let attachNode = document.createElement("div");
+            attachNode.setAttribute("class", "message-attachment");
+            dump('attach = ' + attach + '\n');
+            attachNode.textContent = attach;
+            attachmentsNode.appendChild(attachNode);
+          }
         }
 
         // - Tags
