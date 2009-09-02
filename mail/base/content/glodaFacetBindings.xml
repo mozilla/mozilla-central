@@ -624,13 +624,6 @@
 
           li.appendChild(label);
 
-          let barSpan = document.createElement("span");
-          let percent = Math.floor(100 * groupItems.length / maxGroupSize);
-          barSpan.setAttribute("class", "bar-percent");
-          barSpan.setAttribute("style", "width: " + percent +  "%");
-          barSpan.textContent = percent + "%";
-          li.appendChild(barSpan);
-
           let excludeSpan = document.createElement("span");
           excludeSpan.setAttribute("class", "bar-exclude");
           li.appendChild(excludeSpan);

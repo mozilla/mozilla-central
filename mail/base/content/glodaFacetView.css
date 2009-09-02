@@ -303,22 +303,6 @@ h1, h2, h3 {
   color: #333;
 }
 
-.bar-percent {
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: #e9f2f5;
-  text-indent: -9999px;
-  overflow: hidden;
-  line-height: 1.6em;
-}
-
-.bar:hover > .bar-percent {
-  background: #ceeaf5;
-}
-
 .bar-exclude {
   display: block;
   visibility: hidden;
