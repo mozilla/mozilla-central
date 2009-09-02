@@ -88,8 +88,7 @@ var specialTabs = {
       for (let selectedIndex = 0; selectedIndex < tabInfo.length;
            ++selectedIndex) {
         if (tabInfo[selectedIndex].mode.name == this.name &&
-            tabInfo[selectedIndex].browser
-                                  .getAttribute("src")
+            tabInfo[selectedIndex].browser.currentURI.spec
                                   .replace(regEx, "") == contentUrl) {
           // Ensure we go to the correct location on the page.
           tabInfo[selectedIndex].browser
@@ -99,18 +98,26 @@ var specialTabs = {
       }
       return -1;
     },
-    openTab: function onTabOpened(aTab, {contentPage: aContentPage}) {
+    openTab: function onTabOpened(aTab, aArgs) {
+      if (!"contentPage" in aArgs)
+        throw("contentPage must be specified");
+
       // First clone the page and set up the basics.
       let clone = document.getElementById("contentTab").firstChild.cloneNode(true);
 
       clone.setAttribute("id", "contentTab" + this.lastBrowserId);
       clone.setAttribute("collapsed", false);
-      clone.setAttribute("type", "content-primary");
 
       aTab.panel.appendChild(clone);
 
       // Start setting up the browser.
       aTab.browser = aTab.panel.getElementsByTagName("browser")[0];
+
+      // As we're opening this tab, showTab may not get called, so set
+      // the type according to if we're opening in background or not.
+      let background = ("background" in aArgs) && aArgs.background;
+      aTab.browser.setAttribute("type", background ? "content-targetable" :
+                                                     "content-primary");
 
       aTab.browser.setAttribute("id", "contentTabBrowser" + this.lastBrowserId);
 
@@ -126,7 +133,7 @@ var specialTabs = {
       // Now start loading the content.
       aTab.title = this.loadingTabString;
 
-      aTab.browser.loadURI(aContentPage);
+      aTab.browser.loadURI(aArgs.contentPage);
 
       this.lastBrowserId++;
     },

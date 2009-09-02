@@ -54,8 +54,8 @@ var gHistoryGrouping = "day";
 function HistoryCommonInit()
 {
   gHistoryTree = document.getElementById("historyTree");
-  gDeleteByHostname = document.getElementById("menu_deleteByHostname");
-  gDeleteByDomain = document.getElementById("menu_deleteByDomain");
+  gDeleteByHostname = document.getElementById("placesCmd_delete:hostname");
+  gDeleteByDomain = document.getElementById("placesCmd_delete:domain");
   gHistoryStatus = document.getElementById("statusbar-display");
   gSearchBox = document.getElementById("search-box");
 
@@ -117,7 +117,8 @@ function historyOnSelect()
     }
   }
 
-  gHistoryStatus.label = url;
+  if (gHistoryStatus)
+    gHistoryStatus.label = url;
 
   updateHistoryCommands();
 }

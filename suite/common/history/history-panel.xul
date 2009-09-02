@@ -83,6 +83,7 @@
         flex="1"
         type="places"
         context="placesContext"
+        onselect="historyOnSelect();"
         onkeypress="SidebarUtils.handleTreeKeyPress(event);"
         onclick="SidebarUtils.handleTreeClick(this, event, true);"
         onmousemove="SidebarUtils.handleTreeMouseMove(event);"

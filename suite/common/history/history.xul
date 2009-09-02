@@ -80,10 +80,7 @@
     <command id="cmd_delete"/>
     <command id="cmd_selectAll"/>
   </commandset>
-  <commandset id="placesCommands">
-    <command id="placesCmd_delete:hostname" oncommand="goDoCommand('placesCmd_delete:hostname');"/>
-    <command id="placesCmd_delete:domain" oncommand="goDoCommand('placesCmd_delete:domain');"/>
-  </commandset>
+  <commandset id="placesCommands"/>
 
   <broadcaster id="Communicator:WorkMode"/>
 
