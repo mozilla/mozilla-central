@@ -1056,16 +1056,23 @@
           let bodyText = message.indexedBodyText;
           // start assuming it's just one line that we want to show
           let idxNewline = -1;
+          let ellipses = "…";
           for (let newlineCount = 0; newlineCount < 5; newlineCount++) {
             let idxNextNewline = bodyText.indexOf("\n", idxNewline+1);
-            if (idxNextNewline == -1)
+            if (idxNextNewline == -1) {
+              ellipses = '';
               break;
+            }
             idxNewline = idxNextNewline;
           }
+          let snippet = "";
           if (idxNewline > -1)
-            anonElem("snippet").textContent = bodyText.substring(0, idxNewline);
+            snippet = bodyText.substring(0, idxNewline);
           else
-            anonElem("snippet").textContent = bodyText;
+            snippet = bodyText;
+          if (ellipses)
+            snippet = snippet.replace(/\s+$/, '') + ellipses;
+          anonElem("snippet").textContent = snippet;
         }
 
         // - Misc attributes
