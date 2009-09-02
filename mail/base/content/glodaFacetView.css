@@ -51,7 +51,7 @@ body {
 #query-explanation {
   display: block;
   position: absolute;
-  top: 100px;
+  top: 0em;
   left: 20.5em;
   height: 40px;
   font-size: 110%;
@@ -100,7 +100,7 @@ body {
 /* ===== Facets ===== */
 
 h1, h2, h3 {
-  color: #3465a4;
+  color: #555753;
 }
 
 #filter-header-label {
@@ -159,9 +159,11 @@ h1, h2, h3 {
 #facet-date {
   display: block;
   position: absolute;
-  top: 2px;
-  height: 100px;
+  top: 2.5em;
+  height: 80px;
+  right: 1em;
   left: 20.5em;
+  text-align: right;
   padding: 0px;
   display: block;
 }
@@ -271,6 +273,10 @@ h1, h2, h3 {
   font-weight: bold;
 }
 
+h1, h2 {
+  font-weight: normal;
+}
+
 .bar {
   position: relative;
   display: block;
@@ -346,7 +352,7 @@ h1, h2, h3 {
 
 .results {
   margin-left: 20.5em;
-  margin-top: 154px;
+  margin-top: 170px;
 }
 
 .results-message-header {
