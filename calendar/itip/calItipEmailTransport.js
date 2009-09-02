@@ -301,12 +301,11 @@ calItipEmailTransport.prototype = {
                 let mimeConverter = Components.classes["@mozilla.org/messenger/mimeconverter;1"]
                                               .createInstance(Components.interfaces.nsIMimeConverter);
                 let fieldNameLen = (header.indexOf(": ") + 2);
-                return (header.substring(0, fieldNameLen) +
-                        mimeConverter.encodeMimePartIIStr_UTF8(header.substring(fieldNameLen),
-                                                               false,
-                                                               "UTF-8",
-                                                               fieldNameLen,
-                                                               72 - fieldNameLen));
+                return mimeConverter.encodeMimePartIIStr_UTF8(header,
+                                                              false,
+                                                              "UTF-8",
+                                                              fieldNameLen,
+                                                              Components.interfaces.nsIMimeConverter.MIME_ENCODED_WORD_SIZE);
             }
 
             var itemList = aItem.getItemList({});
