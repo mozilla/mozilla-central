@@ -496,6 +496,7 @@ h1, h2, h3 {
   padding-left: 1em;
   font-family: monospace;
   font-size: 110%;
+  white-space: pre-wrap;
 }
 
 .message-tag {
