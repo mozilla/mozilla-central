@@ -938,16 +938,23 @@
         <html:div anonid="oldestMessageDate" class="message-oldestMessageDate"></html:div>
         <html:div anonid="attachments" class="message-attachments"></html:div>
       </html:div>
-      <html:div anonid="subject" class="message-subject"></html:div>
-      <html:div class="message-addressing">
-        <html:span anonid="author" class="message-author"></html:span>
-        <html:span anonid="writes" class="message-writes"></html:span>
-        <html:div anonid="recipients" class="message-recipients"/>
-        <html:span anonid="date" class="message-date"></html:span>
+      <html:div class="message-line">
+        <html:div anonid="addresses-group" class="message-addresses-group">
+          <html:div anonid="author-group" class="message-author-group">
+            <html:span anonid="from" class="message-from-label"></html:span>
+            <html:span anonid="author" class="message-author"></html:span>
+          </html:div>
+          <html:div anonid="recipients-group" class="message-recipients-group">
+            <html:span anonid="to" class="message-to-label"></html:span>
+            <html:div anonid="recipients" class="message-recipients"/>
+          </html:div>
+        </html:div>
+        <html:div anonid="subject" class="message-subject"></html:div>
       </html:div>
       <html:div anonid="tags" class="message-tags"></html:div>
     </html:div>
     <html:pre anonid="snippet" class="message-body"></html:pre>
+    <html:span anonid="date" class="message-date"></html:span>
   </content>
   <implementation>
     <constructor><![CDATA[
@@ -968,14 +975,18 @@
                                              aEvent.button == 1);
         }
 
-        // -- l10n poking
-        anonElem("writes").textContent =
-          glodaFacetStrings.get("glodaFacetView.result.message.writesLabel");
-
         // -- Content Poking
         anonElem("subject").textContent = message.subject;
-        anonElem("author").textContent = message.from.toLocaleString();
-        anonElem("date").textContent = message.date.toLocaleString();
+        let authorNode = anonElem("author");
+        authorNode.setAttribute("title", message.from.value);
+        authorNode.textContent = message.from.contact.name
+        let fromNode = anonElem("from");
+        fromNode.textContent = glodaFacetStrings.get("glodaFacetView.result.message.fromLabel");
+        let toNode = anonElem("to");
+        toNode.textContent = glodaFacetStrings.get("glodaFacetView.result.message.toLabel");
+        
+        //anonElem("author").textContent = ;
+        anonElem("date").textContent = makeFriendlyDateAgo(message.date);
 
         // - Recipients
         let recipientsNode = anonElem("recipients");
@@ -983,10 +994,12 @@
           for each (let [, recip] in Iterator(message.recipients)) {
             let recipNode = document.createElement("span");
             recipNode.setAttribute("class", "message-recipient");
-            recipNode.textContent = recip.toLocaleString();
+            recipNode.textContent = recip.contact.name;
+            recipNode.setAttribute("title", "BARGH");
             recipientsNode.appendChild(recipNode);
           }
         }
+
         // - Tags
         let tagsNode = anonElem("tags");
         if ("tags" in message && message.tags.length) {

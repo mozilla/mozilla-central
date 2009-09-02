@@ -413,7 +413,6 @@ h1, h2, h3 {
 
 .message-header,
 .message-body {
-  margin-left: 24px;
   font-size: 95%;
 }
 
@@ -441,20 +440,27 @@ h1, h2, h3 {
 .message-attachments:after {
   content: ")";
 }
-.message-writes {
-  font-size: 90%;
-  color: #777;
-}
-.message-date {
-  color: #999; font-size: 90%; }
-.message-date:before {
-  content: "\2014  ";
+
+.message-line {
+  position: relative;
 }
 
-.message-recipients {
+.message-addresses-group {
+  float: right;
+  text-align: right;
+}
+
+.message-date {
+  color: #999;
+  font-size: 90%;
+}
+
+.message-author, .message-recipients {
+  text-align: right;
   display: inline;
   color: #222;
 }
+
 .message-recipient:first-child:before {
   content: "";
 }
@@ -466,8 +472,8 @@ h1, h2, h3 {
 }
 
 .message-subject {
-  white-space: nowrap;
-  overflow: hidden;
+/*  white-space: nowrap; */
+  /* overflow: hidden; */
   font-size: 115%;
   font-weight: bold;
   color: #555;

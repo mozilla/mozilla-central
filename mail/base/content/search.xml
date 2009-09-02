@@ -170,7 +170,7 @@
         ]]></handler>
 
 
-      <handler event="dragdrop" phase="capturing">
+      <handler event="drop" phase="capturing">
         nsDragAndDrop.drop(event, this.searchInputDNDObserver);
       </handler>
     </handlers>
@@ -215,10 +215,16 @@
         inputSearch: this,
 
         onDrop: function (aEvent, aXferData, aDragSession) {
-          if (aXferData.data) {
-            this.inputSearch.focus();
-            this.input.value = aXferData.data;
-            this.doSearch(true);
+          try {
+            if (aXferData.data) {
+              this.inputSearch.focus();
+              this.inputSearch.value = aXferData.data;
+              // XXX for some reason the input field is _cleared_ even though
+              // the search works.
+              this.inputSearch.doSearch();
+            }
+          } catch (e) {
+            logException(e);
           }
         },
 

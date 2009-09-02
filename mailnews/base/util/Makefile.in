@@ -135,6 +135,7 @@ EXTRA_JS_MODULES = \
 		traceHelper.js \
 		autoconfigUtils.jsm \
 		StringBundle.js \
+		templateUtils.js \
 		$(NULL)
 
 ifndef MOZ_STATIC_MAIL_BUILD

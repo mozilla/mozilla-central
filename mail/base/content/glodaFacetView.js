@@ -54,6 +54,7 @@ Cu.import("resource://app/modules/gloda/log4moz.js");
 Cu.import("resource://app/modules/StringBundle.js");
 Cu.import("resource://app/modules/PluralForm.jsm");
 Cu.import("resource://app/modules/errUtils.js");
+Cu.import("resource://app/modules/templateUtils.js");
 
 Cu.import("resource://app/modules/gloda/public.js");
 Cu.import("resource://app/modules/gloda/facet.js");
