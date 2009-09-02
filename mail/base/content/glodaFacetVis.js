@@ -287,7 +287,7 @@ DateFacetVis.prototype = {
 
     let vis = this.vis = new pv.Panel().canvas(this.canvasNode)
       // dimensions
-      .width(width).height(height)
+      .width(width).height(ch)
       // margins
       .bottom(totalAxisLabelHeight);
 
