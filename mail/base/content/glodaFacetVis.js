@@ -299,9 +299,9 @@ DateFacetVis.prototype = {
       .height(function (d) Math.floor(d.items.length * binScale))
       .width(function() barWidth)
       .left(function() this.index * barPix)
-      .fillStyle("#e9f2f5")
-      .event("mouseover", function(d) this.fillStyle("#ceeaf5"))
-      .event("mouseout", function(d) this.fillStyle("#e9f2f5"))
+      .fillStyle("#add2fb")
+      .event("mouseover", function(d) this.fillStyle("#3465a4"))
+      .event("mouseout", function(d) this.fillStyle("#add2fb"))
       .event("click", function(d)
         FacetContext.addFacetConstraint(faceter, faceter.attrDef, true,
                                         [[d.startDate, d.endDate]],
@@ -313,7 +313,7 @@ DateFacetVis.prototype = {
       .height(function (d) Math.floor(d * binScale))
       .width(function() barWidth)
       .left(function() this.index * barPix)
-      .fillStyle("#ceeaf5");
+      .fillStyle("#3465a4");
 
     for each (let [, labelTier] in Iterator(labelTiers)) {
       let labelBar = vis.add(pv.Bar)
@@ -324,7 +324,7 @@ DateFacetVis.prototype = {
         .width(function(d)
                  Math.floor(width * d[1]) - Math.floor(width * d[0]) - 1)
         .fillStyle("#dddddd")
-        .event("mouseover", function(d) this.fillStyle("#ceeaf5"))
+        .event("mouseover", function(d) this.fillStyle("#3465a4"))
         .event("mouseout", function(d) this.fillStyle("#dddddd"))
         .event("click", function(d)
           FacetContext.addFacetConstraint(faceter, faceter.attrDef, true,
@@ -335,7 +335,7 @@ DateFacetVis.prototype = {
           .font(this._AXIS_FONT)
           .textAlign("center")
           .textBaseline("top")
-          .textStyle("#888888")
+          .textStyle("black")
           .text(function(d) d[2]);
       }
     }
