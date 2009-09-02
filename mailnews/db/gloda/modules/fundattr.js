@@ -94,7 +94,7 @@ var GlodaFundAttr = {
   /** Boost for each additional person involved in my address book. */
   NOTABILITY_INVOLVING_ADDR_BOOK_ADDL: 2,
 
-  defineAttributes: function() {
+  defineAttributes: function gloda_explattr_defineAttributes() {
     /* ***** Conversations ***** */
     // conversation: subjectMatches
     this._attrConvSubject = Gloda.defineAttribute({
@@ -326,7 +326,19 @@ var GlodaFundAttr = {
       attributeType: Gloda.kAttrOptimization,
       attributeName: "involves",
       singular: false,
-      facet: true,
+      facet: {
+        type: "default",
+        /**
+         * Filter out 'me', as we have other facets that deal with that, and the
+         *  'me' identities are so likely that they distort things.
+         *
+         * @return true if the identity is not one of my identities, false if it
+         *   is.
+         */
+        filter: function gloda_explattr_involves_filter(aItem) {
+          return (!(aItem.id in Gloda.myIdentities));
+        }
+      },
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
       }); // not-tested

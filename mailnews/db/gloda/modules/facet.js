@@ -238,6 +238,7 @@ DiscreteFaceter.prototype = {
   facetPrimitiveItems: function(aItems) {
     let attrKey = this.attrDef.boundName;
     let nounDef = this.attrDef.objectNounDef;
+    let filter = this.attrDef.facet.filter;
 
     let valStrToVal = {};
     let groups = this.groups = {};
@@ -245,6 +246,11 @@ DiscreteFaceter.prototype = {
 
     for each (let [, item] in Iterator(aItems)) {
       let val = (attrKey in item) ? item[attrKey] : null;
+
+      // skip items the filter tells us to ignore
+      if (filter && !filter(val))
+        continue;
+
       if (val in groups)
         groups[val].push(item);
       else {
@@ -271,6 +277,7 @@ DiscreteFaceter.prototype = {
   facetComplexItems: function(aItems) {
     let attrKey = this.attrDef.boundName;
     let nounDef = this.attrDef.objectNounDef;
+    let filter = this.attrDef.facet.filter;
     let idAttr = this.attrDef.facet.groupIdAttr;
 
     let groups = this.groups = {};
@@ -279,6 +286,11 @@ DiscreteFaceter.prototype = {
 
     for each (let [, item] in Iterator(aItems)) {
       let val = (attrKey in item) ? item[attrKey] : null;
+
+      // skip items the filter tells us to ignore
+      if (filter && !filter(val))
+        continue;
+
       let valId = (val == null) ? null : val[idAttr];
       if (valId in groupMap) {
         groups[valId].push(item);
@@ -330,6 +342,7 @@ DiscreteSetFaceter.prototype = {
   facetPrimitiveItems: function(aItems) {
     let attrKey = this.attrDef.boundName;
     let nounDef = this.attrDef.objectNounDef;
+    let filter = this.attrDef.facet.filter;
 
     let groups = this.groups = {};
     let valStrToVal = {};
@@ -341,6 +354,10 @@ DiscreteSetFaceter.prototype = {
         vals = [null];
       }
       for each (let [, val] in Iterator(vals)) {
+        // skip items the filter tells us to ignore
+        if (filter && !filter(val))
+          continue;
+
         if (val in groups)
           groups[val].push(item);
         else {
@@ -368,6 +385,7 @@ DiscreteSetFaceter.prototype = {
   facetComplexItems: function(aItems) {
     let attrKey = this.attrDef.boundName;
     let nounDef = this.attrDef.objectNounDef;
+    let filter = this.attrDef.facet.filter;
     let idAttr = this.attrDef.facet.groupIdAttr;
 
     let groups = this.groups = {};
@@ -380,6 +398,10 @@ DiscreteSetFaceter.prototype = {
         vals = [null];
       }
       for each (let [, val] in Iterator(vals)) {
+        // skip items the filter tells us to ignore
+        if (filter && !filter(val))
+          continue;
+
         let valId = (val == null) ? null : val[idAttr];
         if (valId in groupMap) {
           groups[valId].push(item);

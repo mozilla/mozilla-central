@@ -1560,12 +1560,15 @@ var Gloda = {
       if (aAttrDef.facet == true) {
         aAttrDef.facet = {
           type: "default",
-          groupIdAttr: aAttrDef.objectNounDef.idAttr
+          groupIdAttr: aAttrDef.objectNounDef.idAttr,
+          filter: null,
         };
       }
       else {
         if (!("groupIdAttr" in aAttrDef.facet))
           aAttrDef.facet.groupIdAttr = aAttrDef.objectNounDef.idAttr;
+        if (!("filter" in aAttrDef.facet))
+          aAttrDef.facet.filter = null;
       }
     }
 
