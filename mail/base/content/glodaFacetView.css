@@ -151,8 +151,18 @@ h1, h2, h3 {
   font-size: medium;
 }
 
-.facet-included[state="empty"],
-.facet-excluded[state="empty"] {
+.facet-included-header,
+.facet-excluded-header {
+  margin: 0;
+  font-size: 80%;
+}
+.facet-included-header[state="empty"],
+.facet-excluded-header[state="empty"] {
+  display: none;
+}
+
+.facet-included-header[state="empty"] + .facet-included,
+.facet-excluded-header[state="empty"] + .facet-excluded {
   display: none;
 }
 

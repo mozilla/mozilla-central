@@ -492,7 +492,9 @@
        so. magic! (this is why our binding node's class is facetious. -->
   <html:div class="facet">
     <html:h2 anonid="name"></html:h2>
+    <html:h2 anonid="included-label" class="facet-included-header"></html:h2>
     <html:ul anonid="included" class="facet-included barry"></html:ul>
+    <html:h2 anonid="excluded-label" class="facet-excluded-header"></html:h2>
     <html:ul anonid="excluded" class="facet-excluded barry"></html:ul>
     <html:ul anonid="candidates" class="barry"></html:ul>
   </html:div>
@@ -527,14 +529,21 @@
         nameNode.textContent = this.attrDef.strings.facetLabel;
         nameNode.setAttribute("title", this.attrDef.strings.facetTooltip);
 
-
+        this.inclLabel = document.getAnonymousElementByAttribute(
+                           this, "anonid", "included-label");
+        this.inclLabel.textContent = glodaFacetStrings.get(
+                                       "glodaFacetView.facets.included.label");
         this.inclList = document.getAnonymousElementByAttribute(this, "anonid",
                                                                 "included");
+        this.exclLabel = document.getAnonymousElementByAttribute(
+                           this, "anonid", "excluded-label");
+        this.exclLabel.textContent = glodaFacetStrings.get(
+                                       "glodaFacetView.facets.excluded.label");
         this.exclList = document.getAnonymousElementByAttribute(this, "anonid",
                                                                 "excluded");
 
-        this.inclList.setAttribute("state", "empty");
-        this.exclList.setAttribute("state", "empty");
+        this.inclLabel.setAttribute("state", "empty");
+        this.exclLabel.setAttribute("state", "empty");
 
         // -- House-cleaning
         // -- All/Top mode decision
@@ -643,6 +652,7 @@
       <parameter name="aInclude" />
       <parameter name="aCallback" />
       <body><![CDATA[
+        let labelNode = aInclude ? this.inclLabel : this.exclLabel;
         let listNode = aInclude ? this.inclList : this.exclList;
 
         // if there are already things displayed, no need
@@ -651,8 +661,8 @@
           return;
         }
 
-        listNode.setAttribute("state", "some");
-        $(listNode)
+        labelNode.setAttribute("state", "some");
+        $(labelNode)
           .hide()
           .slideDown("fast", aCallback);
       ]]></body>
@@ -984,7 +994,7 @@
         fromNode.textContent = glodaFacetStrings.get("glodaFacetView.result.message.fromLabel");
         let toNode = anonElem("to");
         toNode.textContent = glodaFacetStrings.get("glodaFacetView.result.message.toLabel");
-        
+
         //anonElem("author").textContent = ;
         anonElem("date").textContent = makeFriendlyDateAgo(message.date);
 
