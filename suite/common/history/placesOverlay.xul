@@ -78,6 +78,10 @@
              oncommand="goDoCommand('placesCmd_open:window');"/>
     <command id="placesCmd_open:tab"
              oncommand="goDoCommand('placesCmd_open:tab');"/>
+    <command id="placesCmd_delete:hostname"
+             oncommand="goDoCommand('placesCmd_delete:hostname');"/>
+    <command id="placesCmd_delete:domain"
+             oncommand="goDoCommand('placesCmd_delete:domain');"/>
   </commandset>
 
   <popup id="placesContext"
@@ -125,6 +129,12 @@
               label="&deleteCmd.label;"
               accesskey="&deleteCmd.accesskey;"
               selection="link|host|day"/>
+    <menuitem id="placesContext_deleteByHostname"
+              command="placesCmd_delete:hostname"
+              selection="link|host"/>
+    <menuitem id="placesContext_deleteByDomain"
+              command="placesCmd_delete:domain"
+              selection="link|host"/>
     <menuitem id="placesContext_selectAll"
               command="cmd_selectAll"
               label="&selectAllCmd.label;"

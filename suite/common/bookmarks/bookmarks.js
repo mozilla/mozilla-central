@@ -126,8 +126,6 @@ function initBMService()
   kBMSVCIID = Components.interfaces.nsIBookmarksService;
   BMDS  = RDF.GetDataSource("rdf:bookmarks");
   BMSVC = BMDS.QueryInterface(kBMSVCIID);
-  BookmarkTransaction.prototype.RDFC = RDFC;
-  BookmarkTransaction.prototype.BMDS = BMDS;
 }
 
 /**
@@ -675,27 +673,25 @@ var BookmarksCommand = {
     catch (e) {
       return;
     }
-    rTarget = RDF.GetResource("NC:BookmarksRoot");
+    var rTarget = BookmarksUtils.getNewBookmarkFolder();
     RDFC.Init(BMDS, rTarget);
-    var countBefore = parseInt(BookmarksUtils.getProperty(rTarget, RDF_NS+"nextVal"));
+    var index = RDFC.GetCount();
     var args = [{ property: NC_NS+"URL", literal: fileName}];
     this.doBookmarksCommand(rTarget, NC_NS_CMD+"import", args);
-    var countAfter = parseInt(BookmarksUtils.getProperty(rTarget, RDF_NS+"nextVal"));
+    RDFC.Init(BMDS, rTarget); // changing the selection clobbers RDFC
+    var count = RDFC.GetCount();
+    if (index == count)
+      return;
 
-    var transaction = new BookmarkImportTransaction("import");
-    for (var index = countBefore; index < countAfter; index++) {
-      var nChildArc = RDFCU.IndexToOrdinalResource(index);
-      var rChild    = BMDS.GetTarget(rTarget, nChildArc, true);
-      transaction.item   .push(rChild);
-      transaction.parent .push(rTarget);
-      transaction.index  .push(index);
-      transaction.isValid.push(true);
+    var txmgr = BMSVC.transactionManager;
+    txmgr.beginBatch();
+    while (++index <= count) {
+      var rChild = RDFC.RemoveElementAt(index, true);
+      var txn = BMSVC.createTransaction(rTarget, rChild, index, false);
+      txmgr.doTransaction(txn);
     }
-    var isCancelled = !BookmarksUtils.any(transaction.isValid);
-    if (!isCancelled) {
-      BMSVC.transactionManager.doTransaction(transaction);
-      BookmarksUtils.flushDataSource();
-    }    
+    txmgr.endBatch();
+    BookmarksUtils.flushDataSource();
   },
 
   exportBookmarks: function ()
@@ -1318,29 +1314,28 @@ var BookmarksUtils = {
   /////////////////////////////////////////////////////////////////////////////
   removeSelection: function (aAction, aSelection)
   {
-    var transaction     = new BookmarkRemoveTransaction(aAction);
-    transaction.item    = new Array(aSelection.length);
-    transaction.parent  = new Array(aSelection.length);
-    transaction.index   = new Array(aSelection.length);
-    transaction.isValid = BookmarksUtils.isSelectionValidForDeletion(aSelection);
+    var isValid = BookmarksUtils.isSelectionValidForDeletion(aSelection);
+    if (SOUND && !BookmarksUtils.all(isValid))
+      SOUND.beep();
+    if (!BookmarksUtils.any(isValid))
+      return false;
+
+    var txmgr = BMSVC.transactionManager;
+    txmgr.beginBatch();
     for (var i = 0; i < aSelection.length; ++i) {
-      transaction.item  [i] = aSelection.item  [i];
-      transaction.parent[i] = aSelection.parent[i];
-      if (transaction.isValid[i]) {
+      if (isValid[i]) {
         RDFC.Init(BMDS, aSelection.parent[i]);
-        transaction.index[i]  = RDFC.IndexOf(aSelection.item[i]);
+        var index = RDFC.IndexOf(aSelection.item[i]);
+        var txn = BMSVC.createTransaction(aSelection.parent[i], aSelection.item[i], index, true);
+        txmgr.doTransaction(txn);
       }
     }
-    if (SOUND && aAction != "move" && !BookmarksUtils.all(transaction.isValid))
-      SOUND.beep();
-    var isCancelled = !BookmarksUtils.any(transaction.isValid);
-    if (!isCancelled) {
-      BMSVC.transactionManager.doTransaction(transaction);
-      if (aAction != "move")
-        BookmarksUtils.notifyBookmarksChanged();
-        BookmarksUtils.flushDataSource();
+    txmgr.endBatch();
+    if (aAction != "move") {
+      BookmarksUtils.notifyBookmarksChanged();
+      BookmarksUtils.flushDataSource();
     }
-    return !isCancelled;
+    return true;
   },
       // If the current bookmark is the IE Favorites folder, we have a little
       // extra work to do - set the pref |browser.bookmarks.import_system_favorites|
@@ -1361,50 +1356,51 @@ var BookmarksUtils = {
 
   insertSelection: function (aAction, aSelection, aTarget)
   {
-    var transaction     = new BookmarkInsertTransaction(aAction);
-    transaction.item    = new Array(aSelection.length);
-    transaction.parent  = new Array(aSelection.length);
-    transaction.index   = new Array(aSelection.length);
-    if (aAction != "move")
-      transaction.isValid = BookmarksUtils.isSelectionValidForInsertion(aSelection, aTarget, aAction);
-    else // isValid has already been determined in moveSelection
-      transaction.isValid = aSelection.isValid;
-    var index = aTarget.index;
-    for (var i=0; i<aSelection.length; ++i) {
-      var rSource = aSelection.item[i];
-      
-      if (transaction.isValid[i]) {
-        if (BMSVC.isBookmarkedResource(rSource))
-          rSource = BMSVC.cloneResource(rSource);
-        transaction.item  [i] = rSource;
-        transaction.parent[i] = aTarget.parent;
-        transaction.index [i] = index++;
-      } else {
-        transaction.item  [i] = rSource;
-        transaction.parent[i] = aSelection.parent[i];
-      } 
-    }
-    if (SOUND && !BookmarksUtils.all(transaction.isValid))
+    var isValid = BookmarksUtils.isSelectionValidForInsertion(aSelection, aTarget, aAction);
+    if (SOUND && !BookmarksUtils.all(isValid))
       SOUND.beep();
-    var isCancelled = !BookmarksUtils.any(transaction.isValid);
-    if (!isCancelled) {
-      BMSVC.transactionManager.doTransaction(transaction);
-      BookmarksUtils.notifyBookmarksChanged();
-      BookmarksUtils.flushDataSource();
+    if (!BookmarksUtils.any(isValid))
+      return false;
+
+    var txmgr = BMSVC.transactionManager;
+    txmgr.beginBatch();
+    var index = aTarget.index;
+    for (var i = 0; i < aSelection.length; ++i) {
+      if (isValid[i]) {
+        var txn = BMSVC.createTransaction(aTarget.parent, aSelection.item[i], index++, false);
+        txmgr.doTransaction(txn);
+      }
     }
-    return !isCancelled;
+    txmgr.endBatch();
+    BookmarksUtils.notifyBookmarksChanged();
+    BookmarksUtils.flushDataSource();
+    return true;
   },
 
   moveSelection: function (aAction, aSelection, aTarget)
   {
-    aSelection.isValid = BookmarksUtils.isSelectionValidForInsertion(aSelection, aTarget, "move");
-    var transaction = new BookmarkMoveTransaction(aAction, aSelection, aTarget);
-    var isCancelled = !BookmarksUtils.any(transaction.isValid);
-    if (!isCancelled) {
-      BMSVC.transactionManager.doTransaction(transaction);
-    } else if (SOUND)
+    var isValid = BookmarksUtils.isSelectionValidForInsertion(aSelection, aTarget, aAction);
+    if (SOUND && !BookmarksUtils.all(isValid))
       SOUND.beep();
-    return !isCancelled;
+    if (!BookmarksUtils.any(isValid))
+      return false;
+
+    var txmgr = BMSVC.transactionManager;
+    txmgr.beginBatch();
+    var index = aTarget.index;
+    for (var i = 0; i < aSelection.length; ++i) {
+      if (isValid[i]) {
+        RDFC.Init(BMDS, aSelection.parent[i]);
+        var deleteIndex = RDFC.IndexOf(aSelection.item[i]);
+        var deleteTxn = BMSVC.createTransaction(aSelection.parent[i], aSelection.item[i], deleteIndex, true);
+        txmgr.doTransaction(deleteTxn);
+        var insertTxn = BMSVC.createTransaction(aTarget.parent, aSelection.item[i], index++, false);
+        txmgr.doTransaction(insertTxn);
+      }
+    }
+    txmgr.endBatch();
+    BookmarksUtils.flushDataSource();
+    return true;
   }, 
 
   getXferDataFromSelection: function (aSelection)
@@ -1650,200 +1646,4 @@ var BookmarksUtils = {
     var selection = BookmarksUtils.getSelectionFromResource(rSource);
     BookmarksCommand.openBookmark(selection, target, aDS, aEvent)
   }
-}
-
-
-function BookmarkTransaction()
-{
-}
-
-BookmarkTransaction.prototype = {
-  BATCH_LIMIT : 8,
-  RDFC        : null,
-  BMDS        : null,
-
-  beginUpdateBatch: function()
-  {
-    if (this.item.length > this.BATCH_LIMIT) {
-      this.BMDS.beginUpdateBatch();
-    }
-  },
-
-  endUpdateBatch: function()
-  {
-    if (this.item.length > this.BATCH_LIMIT) {
-      this.BMDS.endUpdateBatch();
-    }
-  },
-
-  // nsITransaction method stubs
-  doTransaction: function() {},
-  undoTransaction: function() {},
-  redoTransaction: function() { this.doTransaction(); },
-  get isTransient() { return false; },
-  merge: function(aTransaction) { return false; },
-
-  // debugging helper
-  get wrappedJSObject() { return this; }
-}
-
-function BookmarkInsertTransaction (aAction)
-{
-  this.type    = "insert";
-  this.action  = aAction;
-  this.item    = null;
-  this.parent  = null;
-  this.index   = null;
-  this.isValid = null;
-}
-
-BookmarkInsertTransaction.prototype =
-{
-  __proto__: BookmarkTransaction.prototype,
-
-  doTransaction: function ()
-  {
-    this.beginUpdateBatch();
-    for (var i=0; i<this.item.length; ++i) {
-      if (this.isValid[i]) {
-        this.RDFC.Init(this.BMDS, this.parent[i]);
-        this.RDFC.InsertElementAt(this.item[i], this.index[i], true);
-      }
-    }
-    this.endUpdateBatch();
-  },
-
-  undoTransaction: function ()
-  {
-    this.beginUpdateBatch();
-    // XXXvarga Can't use |RDFC| here because it's being "reused" elsewhere.
-    var container = Components.classes[kRDFCContractID].createInstance(kRDFCIID);
-    for (var i=this.item.length-1; i>=0; i--) {
-      if (this.isValid[i]) {
-        container.Init(this.BMDS, this.parent[i]);
-        container.RemoveElementAt(this.index[i], true);
-      }
-    }
-    this.endUpdateBatch();
-  }
-
-}
-
-function BookmarkRemoveTransaction (aAction)
-{
-  this.type    = "remove";
-  this.action  = aAction;
-  this.item    = null;
-  this.parent  = null;
-  this.index   = null;
-  this.isValid = null;
-}
-
-BookmarkRemoveTransaction.prototype =
-{
-  __proto__: BookmarkTransaction.prototype,
-
-  doTransaction: function ()
-  {
-    this.beginUpdateBatch();
-    for (var i=0; i<this.item.length; ++i) {
-      if (this.isValid[i]) {
-        this.RDFC.Init(this.BMDS, this.parent[i]);
-        this.RDFC.RemoveElementAt(this.index[i], false);
-      }
-    }
-    this.endUpdateBatch();
-  },
-
-  undoTransaction: function ()
-  {
-    this.beginUpdateBatch();
-    for (var i=this.item.length-1; i>=0; i--) {
-      if (this.isValid[i]) {
-        this.RDFC.Init(this.BMDS, this.parent[i]);
-        this.RDFC.InsertElementAt(this.item[i], this.index[i], false);
-      }
-    }
-    this.endUpdateBatch();
-  }
-
-}
-
-function BookmarkMoveTransaction (aAction, aSelection, aTarget)
-{
-  this.type      = "move";
-  this.action    = aAction;
-  this.selection = aSelection;
-  this.target    = aTarget;
-  this.isValid   = aSelection.isValid;
-}
-
-BookmarkMoveTransaction.prototype =
-{
-  __proto__: BookmarkTransaction.prototype,
-
-  beginUpdateBatch: function()
-  {
-    if (this.selection.length > this.BATCH_LIMIT) {
-      this.BMDS.beginUpdateBatch();
-    }
-  },
-
-  endUpdateBatch: function()
-  {
-    if (this.selection.length > this.BATCH_LIMIT) {
-      this.BMDS.endUpdateBatch();
-    }
-  },
-
-  doTransaction: function ()
-  {
-    this.beginUpdateBatch();
-    BookmarksUtils.removeSelection("move", this.selection);
-    BookmarksUtils.insertSelection("move", this.selection, this.target);
-    this.endUpdateBatch();
-  },
-
-  redoTransaction     : function () {}
-
-}
-
-function BookmarkImportTransaction (aAction)
-{
-  this.type    = "import";
-  this.action  = aAction;
-  this.item    = [];
-  this.parent  = [];
-  this.index   = [];
-  this.isValid = [];
-}
-
-BookmarkImportTransaction.prototype =
-{
-  __proto__: BookmarkTransaction.prototype,
-
-  undoTransaction: function ()
-  {
-    this.beginUpdateBatch();
-    for (var i=this.item.length-1; i>=0; i--) {
-      if (this.isValid[i]) {
-        this.RDFC.Init(this.BMDS, this.parent[i]);
-        this.RDFC.RemoveElementAt(this.index[i], true);
-      }
-    }
-    this.endUpdateBatch();
-  },
-   
-  redoTransaction: function ()
-  {
-    this.beginUpdateBatch();
-    for (var i=0; i<this.item.length; ++i) {
-      if (this.isValid[i]) {
-        this.RDFC.Init(this.BMDS, this.parent[i]);
-        this.RDFC.InsertElementAt(this.item[i], this.index[i], true);
-      }
-    }
-    this.endUpdateBatch();
-  }
-
 }

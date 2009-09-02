@@ -1687,8 +1687,7 @@
           <![CDATA[
             var view = this.tree.view;
 
-            if (!view.selection.currentColumn)
-              view.selection.currentColumn = this.tree.columns.getFirstColumn();
+            view.selection.currentColumn = this.tree.columns.getFirstColumn();
 
             view.selection.selectEventsSuppressed = true;
             for (var i = 0; i < view.rowCount; i++) {
