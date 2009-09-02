@@ -628,6 +628,11 @@
           excludeSpan.setAttribute("class", "bar-exclude");
           li.appendChild(excludeSpan);
 
+          let countSpan = document.createElement("span");
+          countSpan.setAttribute("class", "bar-count");
+          countSpan.textContent = groupItems.length.toLocaleString();
+          li.appendChild(countSpan);
+
           root.appendChild(li);
         }
       ]]></body>
