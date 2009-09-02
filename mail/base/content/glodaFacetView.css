@@ -457,7 +457,22 @@ h1, h2, h3 {
 
 .message-date {
   color: #999;
-  font-size: 90%;
+  float: right;
+}
+
+.message-star[starred="true"] {
+  display: inline-block;
+  width: 16px !important;
+  height: 16px;
+}
+
+.message-addresses-group {
+  padding-left: 1em;
+}
+
+.message-subject-group {
+  margin-right: 1em;
+  padding-left: .5em;
 }
 
 .message-author, .message-recipients {
@@ -477,10 +492,9 @@ h1, h2, h3 {
 }
 
 .message-subject {
-/*  white-space: nowrap; */
-  /* overflow: hidden; */
   font-size: 115%;
   font-weight: bold;
+  line-height: 1.2em;
   color: #555;
 }
 .message-body {

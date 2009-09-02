@@ -50,6 +50,11 @@
 <binding id="query-explanation">
   <content>
   </content>
+  <handlers>
+    <handler event="click"><![CDATA[
+    logEvent(event);
+    ]]></handler>
+  </handlers>
   <implementation>
     <!-- Indicate that we are based on a fulltext search-->
     <method name="setFulltext">
@@ -956,13 +961,16 @@
             <html:span anonid="to" class="message-to-label"></html:span>
             <html:div anonid="recipients" class="message-recipients"/>
           </html:div>
+          <html:span anonid="date" class="message-date"></html:span>
         </html:div>
-        <html:div anonid="subject" class="message-subject"></html:div>
+        <html:div class="message-subject-group">
+          <html:span anonid="star" class="message-star"></html:span>
+          <html:span anonid="subject" class="message-subject"></html:span>
+          <html:span anonid="tags" class="message-tags"></html:span>
+        </html:div>
       </html:div>
-      <html:div anonid="tags" class="message-tags"></html:div>
     </html:div>
     <html:pre anonid="snippet" class="message-body"></html:pre>
-    <html:span anonid="date" class="message-date"></html:span>
   </content>
   <implementation>
     <constructor><![CDATA[
@@ -1006,6 +1014,11 @@
             recipNode.setAttribute("title", "BARGH");
             recipientsNode.appendChild(recipNode);
           }
+        }
+        
+        let starNode = anonElem("star");
+        if (message.starred) {
+          starNode.setAttribute("starred", "true")
         }
 
         // - Tags

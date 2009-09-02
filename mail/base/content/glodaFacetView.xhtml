@@ -22,7 +22,7 @@
         href="chrome://messenger/skin/tagColors.css"/>
   <!-- Themes -->
   <link rel="stylesheet"
-      href="chrome://messenger/content/glodaFacetView.css"
+      href="chrome://messenger/skin/glodaFacetView.css"
       type="text/css"></link>
   <!-- Global Context -->
   <script type="application/javascript;version=1.8"
@@ -36,7 +36,7 @@
   <script type="application/javascript;version=1.8"
       src="chrome://messenger/content/glodaFacetVis.js"></script>
 </head>
-<body onload="reachOutAndTouchFrame()">
+<body id="body" onload="reachOutAndTouchFrame()">
   <div class="facets facets-sidebar" id="facets">
     <h1 id="filter-header-label">&glodaFacetView.filters.label;</h1>
     <div id="facet-fromMe" class="facetious" type="boolean" attr="fromMe"
