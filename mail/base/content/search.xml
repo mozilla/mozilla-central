@@ -79,7 +79,7 @@
                     label="&searchEverywhere.label;"
                     type="radio"
                     oncommand="this.parentNode.parentNode.parentNode.changeMode(this)"/>
-          <xul:menuseparator/>
+          <xul:menuseparator quicksearchOnly="true"/>
         </xul:menupopup>
       </xul:button>
       <xul:hbox class="quick-search-textbox textbox-input-box" flex="1">
@@ -131,7 +131,6 @@
       <handler event="keypress" keycode="VK_UP" modifiers="control" phase="capturing">
         <![CDATA[
         try {
-          dump("VK_UP\n");
           var menuPopupValue = this.menupopup.getAttribute('value');
           var menuItem = this.menupopup.getElementsByAttribute('value', this.searchMode)[0];
           if (menuItem != this.menupopup.firstChild) {
@@ -153,7 +152,6 @@
       <handler event="keypress" keycode="VK_DOWN" modifiers="control" phase="capturing">
         <![CDATA[
         try {
-          dump("VK_DOWN\n");
           var menuPopupValue = this.menupopup.getAttribute('value');
           var menuItem = this.menupopup.getElementsByAttribute('value', this.searchMode)[0];
           if (menuItem != this.menupopup.lastChild) {
@@ -193,9 +191,10 @@
                 onset="this.mQuickSearchMode = val;
                        this.menupopup.setAttribute('value', val);
                        let currentTabInfo = document.getElementById('tabmail').currentTabInfo;
+                       this.menupopup.getElementsByAttribute('value', this.searchMode)[0].setAttribute('checked', 'true');
                        if (currentTabInfo)
                           currentTabInfo.searchState = this.state;
-                       this.updateEmptyText(); "/>
+                       this.updateEmptyText();"/>
 
       <property name="autocompletePopup" readonly="true" onget="return document.getElementById(this.getAttribute('autocompletepopup'))"/>
       <property name="showingSearchCriteria" onget="return this.getAttribute('searchCriteria') == 'true';"
@@ -293,16 +292,18 @@
             menuitem.setAttribute("value", String(value));
             menuitem.setAttribute("label", label);
             menuitem.setAttribute("type", "radio");
-            menuitem.setAttribute("quicksearch", "true");
+            menuitem.setAttribute("quicksearchOnly", "true");
             menuitem.setAttribute("oncommand", "this.parentNode.parentNode.parentNode.changeMode(this)");
             this.menupopup.appendChild(menuitem);
           }
           
           let separator = document.createElement("menuseparator");
+          separator.setAttribute("quicksearchOnly", "true");
           this.menupopup.appendChild(separator);
           let saveAsVF = document.createElement("menuitem");
           saveAsVF.setAttribute("anonid", "quick-search-save-as-virtual-folder");
           saveAsVF.setAttribute("label", this.quickSearchStrings.get("saveAsVirtualFolder.label"));
+          saveAsVF.setAttribute("quicksearchOnly", "true");
           saveAsVF.setAttribute("oncommand",
                                 "gFolderTreeController.newVirtualFolder(this.parentNode.parentNode.parentNode.value,\
                                 gFolderDisplay.view.search.session.searchTerms);");
@@ -467,6 +468,29 @@
           ]]>
         </body>
       </method>
+      <!--
+        Called by the TabMonitor to make the quick search menu only show options that are relevant for a particular tab.
+        In particular, in faceted search results, no real mode choices are available.
+
+         @param showQSItems  Bool
+            true:  show quick search-relevant menu items
+            false: don't show quick search-relevant menu items
+      -->
+      <method name="showQuickSearchItems">
+        <parameter name="showQSItems" />
+        <body>
+          <![CDATA[
+            for (let i = 0; i < this.menupopup.childNodes.length; i++) {
+              let menuitem = this.menupopup.childNodes[i];
+              if (menuitem.getAttribute('quicksearchOnly') == 'true')
+                menuitem.collapsed = ! showQSItems;
+            }
+          ]]>
+        </body>
+      </method>
+      
+      
+      
 
     </implementation>
   </binding>

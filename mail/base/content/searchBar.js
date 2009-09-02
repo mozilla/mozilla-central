@@ -63,8 +63,12 @@ var QuickSearchTabMonitor = {
       let newTabEligible = ((aTab.mode.tabType == mailTabType) ||
                             (aTab.mode.tabType == glodaFacetTabType));
       searchInput.disabled = !newTabEligible;
-      if (!newTabEligible)
+      if (newTabEligible)
+        searchInput.showQuickSearchItems(aTab.mode.tabType != glodaFacetTabType)
+      else
         searchInput.value = "";
+      if (aTab.mode.tabType == glodaFacetTabType)
+        searchInput.searchMode = "global";
     }
   }
 };

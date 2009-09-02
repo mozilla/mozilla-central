@@ -1440,8 +1440,9 @@ FolderDisplayWidget.prototype = {
            message: this.messageDisplay.visible});
       
       let searchInput = document.getElementById("searchInput");
-      if (searchInput && this._tabInfo.searchState)
+      if (searchInput && this._tabInfo.searchState) {
         searchInput.state = this._tabInfo.searchState;
+      }
 
       // update the columns and such that live inside the thread pane
       this._updateThreadDisplay();
