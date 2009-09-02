@@ -257,6 +257,14 @@ function OnLoadMsgHeaderPane()
     deckElement.selectedIndex = 0;
   }
 
+  // Only offer openInTab and openInNewWindow if this window supports tabs...
+  // (i.e. is not a standalone message window), since those actions are likely
+  // to be significantly less common in that case.
+  let opensAreHidden = document.getElementById("tabmail") ? false : true;
+  let openInTab = document.getElementById("otherActionsOpenInNewTab");
+  let openInNewWindow = document.getElementById("otherActionsOpenInNewWindow");
+  openInTab.hidden = openInNewWindow.hidden = opensAreHidden;
+
   // dispatch an event letting any listeners know that we have loaded the message pane
   var event = document.createEvent('Events');
   event.initEvent('messagepane-loaded', false, true);

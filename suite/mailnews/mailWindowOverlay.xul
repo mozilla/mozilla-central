@@ -1160,7 +1160,7 @@
                     type="checkbox"
                     label="&showLocationToolbarCmd.label;"
                     accesskey="&showLocationToolbarCmd.accesskey;"
-                    oncommand="goToggleLocationToolbar('true');"
+                    oncommand="goToggleToolbar('msgLocationToolbar', 'menu_showLocationToolbar');"
                     observes="mailHideMenus"
                     checked="false" persist="checked"/>
           <menuitem id="menu_showSearchToolbar"
@@ -2294,8 +2294,8 @@
 </toolbox>
 
 <toolbar id="msgLocationToolbar"
-         persist="collapsed"
-         collapsed="true"
+         persist="hidden"
+         hidden="true"
          grippytooltiptext="&locationToolbar.tooltip;"
          nowindowdrag="true">
   <hbox align="center" context="folderPaneContext">
