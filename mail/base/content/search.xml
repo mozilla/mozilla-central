@@ -121,12 +121,116 @@
           else 
             this.clearButtonHidden = false;
         ]]></handler>
+      <handler event="keypress" keycode="VK_DOWN" modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
+      <handler event="keypress" keycode="VK_UP"   modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
+      <handler event="keypress" keycode="VK_F4" phase="capturing"><![CDATA[
+        if (window.navigator.oscpu.substring(0, 3).toLowerCase() != "mac")
+          return this.openmenupopup();
+      ]]></handler>
+
+      <handler event="keypress" keycode="VK_UP" modifiers="control" phase="capturing">
+        <![CDATA[
+        try {
+          dump("VK_UP\n");
+          var menuPopupValue = this.menupopup.getAttribute('value');
+          var menuItem = this.menupopup.getElementsByAttribute('value', this.searchMode)[0];
+          if (menuItem != this.menupopup.firstChild) {
+            let previousMenuItem = menuItem.previousSibling;
+            while (! previousMenuItem.hasAttribute("value") && previousMenuItem != this.menupopup.firstChild)
+              previousMenuItem = previousMenuItem.previousSibling;
+
+            previousMenuItem.setAttribute("checked", "true");
+            menuItem.removeAttribute("checked");
+            this.searchMode = previousMenuItem.getAttribute('value');
+            this.menupopup.setAttribute('value', this.searchMode);
+          }
+          return false;
+        } catch (e) {
+          logException(e);
+        }
+        ]]></handler>
+
+      <handler event="keypress" keycode="VK_DOWN" modifiers="control" phase="capturing">
+        <![CDATA[
+        try {
+          dump("VK_DOWN\n");
+          var menuPopupValue = this.menupopup.getAttribute('value');
+          var menuItem = this.menupopup.getElementsByAttribute('value', this.searchMode)[0];
+          if (menuItem != this.menupopup.lastChild) {
+            let nextMenuItem = menuItem.nextSibling;
+            while (! nextMenuItem.hasAttribute("value") && nextMenuItem != this.menupopup.lastChild)
+              nextMenuItem = nextMenuItem.nextSibling;
+            nextMenuItem.setAttribute("checked", "true");
+            menuItem.removeAttribute("checked");
+            this.searchMode = nextMenuItem.getAttribute('value');
+            this.menupopup.setAttribute('value', this.searchMode);
+          }
+          return false;
+        } catch (e) {
+          logException(e);
+        }
+        ]]></handler>
+
+
+      <handler event="dragdrop" phase="capturing">
+        nsDragAndDrop.drop(event, this.searchInputDNDObserver);
+      </handler>
     </handlers>
 
     <implementation implements="nsIObserver">
       <constructor><![CDATA[
         this.build();
       ]]></constructor>
+
+
+      <field name="timeout">200</field>
+      <field name="glodaCompleter">null</field>
+      <field name="ignoreClick">false</field>
+      <field name="quickSearchStrings">null</field>
+      <field name="mQuickSearchMode">null</field>
+      <field name="timeoutHandler">null</field>
+      <property name="searchMode" onget="return this.mQuickSearchMode;"
+                onset="this.mQuickSearchMode = val;
+                       this.menupopup.setAttribute('value', val);
+                       let currentTabInfo = document.getElementById('tabmail').currentTabInfo;
+                       if (currentTabInfo)
+                          currentTabInfo.searchState = this.state;
+                       this.updateEmptyText(); "/>
+
+      <property name="autocompletePopup" readonly="true" onget="return document.getElementById(this.getAttribute('autocompletepopup'))"/>
+      <property name="showingSearchCriteria" onget="return this.getAttribute('searchCriteria') == 'true';"
+                onset="this.setAttribute('searchCriteria', val); return val;"/>
+      <property name="menupopup" readonly="true" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-menupopup')"/>
+      <property name="saveAsVirtualFolder" readonly="true" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-save-as-virtual-folder')"/>
+      <property name="clearButtonHidden" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-clearbutton').getAttribute('clearButtonHidden') == 'true';"
+                onset="document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-clearbutton').setAttribute('clearButtonHidden', val); return val;"/>
+
+
+      <property name="state"
+                onget="return {'mode': this.searchMode, 'string': this.value}"
+                onset="this.searchMode = val['mode']; this.value = val['string'];"/>
+
+      // DND Observer
+      <field name="searchInputDNDObserver" readonly="true"><![CDATA[
+      ({
+        inputSearch: this,
+
+        onDrop: function (aEvent, aXferData, aDragSession) {
+          if (aXferData.data) {
+            this.inputSearch.focus();
+            this.input.value = aXferData.data;
+            this.doSearch(true);
+          }
+        },
+
+        getSupportedFlavours: function () {
+          var flavourSet = new FlavourSet();
+          flavourSet.appendFlavour("text/unicode");
+          return flavourSet;
+        }
+      })
+      ]]></field>
+
       <method name="onTimeout">
         <parameter name="dis"/>
         <body><![CDATA[
@@ -206,6 +310,7 @@
           this.menupopup.appendChild(saveAsVF);
           this.updateSaveItem();
           this.input = "";
+          this.searchMode = "global";
         } catch (e) {
           logException(e);
         }
@@ -279,36 +384,35 @@
 
       <method name="doSearch">
         <body><![CDATA[
-      try {
-        dump("doing search, value = " + this.value + "\n");
-        if (this.searchMode == 'global') // faceted search
-        {
-          if (this.value) {
-            let tabmail = document.getElementById("tabmail");
-            // If the current tab is a gloda search tab, reset the value
-            //  to the initial search value.  Otherwise, clear it.  This
-            //  is the value that is going to be saved with the current
-            //  tab when we switch back to it next.
-            let searchString = this.value;
-            if (tabmail.currentTabInfo.mode.name == "glodaFacet")
-              this.value = tabmail.currentTabInfo.searchString;
-            else
-              this.value = "";
-            // open a new tab with our dude
-            tabmail.openTab("glodaFacet", {
-              searcher: new GlodaMsgSearcher(null, searchString)
-            });
+          try {
+            if (this.searchMode == 'global') // faceted search
+            {
+              if (this.value) {
+                let tabmail = document.getElementById("tabmail");
+                // If the current tab is a gloda search tab, reset the value
+                //  to the initial search value.  Otherwise, clear it.  This
+                //  is the value that is going to be saved with the current
+                //  tab when we switch back to it next.
+                let searchString = this.value;
+                if (tabmail.currentTabInfo.mode.name == "glodaFacet")
+                  this.value = tabmail.currentTabInfo.searchString;
+                else
+                  this.value = "";
+                // open a new tab with our dude
+                tabmail.openTab("glodaFacet", {
+                  searcher: new GlodaMsgSearcher(null, searchString)
+                });
+              }
+            } else { // quick search
+              if (! this.value)
+                gFolderDisplay.view.search.userTerms = null
+              else
+                gFolderDisplay.view.search.quickSearch(Number(this.searchMode), this.value);
+            }
+          } catch (e) {
+            logException(e);
           }
-        } else { // quick search
-          if (! this.value)
-            gFolderDisplay.view.search.userTerms = null
-          else
-            gFolderDisplay.view.search.quickSearch(Number(this.searchMode), this.value);
-        }
-      } catch (e) {
-        logException(e);
-      }
-          ]]>
+        ]]>
         </body>
       </method>
 
@@ -321,207 +425,52 @@
             this.doSearch();
         ]]></body>
       </method>
-      <field name="timeout">200</field>
-      <field name="glodaCompleter">null</field>
-      <field name="ignoreClick">false</field>
-      <field name="quickSearchStrings">null</field>
-      <field name="mQuickSearchMode">null</field>
-      <field name="timeoutHandler">null</field>
-      <property name="searchMode" onget="return this.mQuickSearchMode;"
-                onset="this.mQuickSearchMode = val;
-                       dump('val = ' + val + ' \n');
-                       dump('typeof val = ' + typeof(val) + ' \n');
-                       this.menupopup.setAttribute('value', val);
-                       this.updateEmptyText(); "/>
-
-      <property name="autocompletePopup" readonly="true" onget="return document.getElementById(this.getAttribute('autocompletepopup'))"/>
-
-
-      <property name="showingSearchCriteria" onget="return this.getAttribute('searchCriteria') == 'true';"
-                onset="this.setAttribute('searchCriteria', val); return val;"/>
-      <property name="menupopup" readonly="true" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-menupopup')"/>
-      <property name="saveAsVirtualFolder" readonly="true" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-save-as-virtual-folder')"/>
-      <property name="clearButtonHidden" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-clearbutton').getAttribute('clearButtonHidden') == 'true';"
-                onset="document.getAnonymousElementByAttribute(this, 'anonid', 'quick-search-clearbutton').setAttribute('clearButtonHidden', val); return val;"/>
-
-    </implementation>
-  </binding>
-
-  <binding id="searchbar" extends="chrome://global/content/bindings/textbox.xml#timed-textbox">
-    <resources>
-      <stylesheet src="chrome://messenger/skin/searchBox.css"/>
-    </resources>
-    <content> 
-      <children/>
-      <xul:hbox class="quick-search-textbox textbox-input-box" flex="1">
-        <html:input class="textbox-input" flex="1" anonid="input" allowevents="true"
-                    xbl:inherits="onfocus,onblur,value,type,maxlength,disabled,size,readonly,tabindex,accesskey"/>
-      </xul:hbox>
-      <xul:toolbarbutton id="quick-search-clearbutton" xbl:inherits=""
-                         disabled="true" class="quick-search-clearbutton"
-                         onclick="onClearSearch(); return false;"
-                         chromedir="&locale.dir;"/>
-    </content>
-
-    <implementation>
-      <constructor>
-        <![CDATA[
-          let qsmenu = document.getElementById("quick-search-menupopup");
-          if (!qsmenu)
-            return; // no quick search item in scope
-
-          // Initialize the quick search mode based on the checked menu item.
-          // (getAttribute returns a string so "0" is still true...)
-          this.mQuickSearchMode =
-            qsmenu.getAttribute('value') ||
-            QuickSearchConstants.kQuickSearchFromOrSubject.toString();
-
-          var selectedMenuItem =
-            qsmenu.getElementsByAttribute('value', this.mQuickSearchMode)[0];
-
-          if (!selectedMenuItem) {
-            // We didn't expect this, try and fix it.
-            // Error condition, something went wrong - try and recover from it.
-            this.mQuickSearchMode =
-              QuickSearchConstants.kQuickSearchFromOrSubject.toString();
-
-            selectedMenuItem =
-              qsmenu.getElementsByAttribute('value', this.searchMode)[0];
-          }
-          selectedMenuItem.setAttribute('checked', 'true');
-        ]]>
-      </constructor>
-      <property name="showingSearchCriteria" onget="return this.getAttribute('searchCriteria') == 'true';"
-                onset="this.setAttribute('searchCriteria', val); return val;"/>
-
-      <field name="mQuickSearchMode">null</field>
-
-      // DND Observer
-      <field name="searchInputDNDObserver" readonly="true"><![CDATA[
-      ({
-        inputSearch: this,
-
-        onDrop: function (aEvent, aXferData, aDragSession)
-        {
-          if (aXferData.data) {
-            this.inputSearch.focus();
-            this.inputSearch.value = aXferData.data;
-            this.inputSearch.clearButtonHidden = false;
-            onSearchInput(true);
-          }
-        },
-
-        getSupportedFlavours: function ()
-        {
-          var flavourSet = new FlavourSet();
-          flavourSet.appendFlavour("text/unicode");
-          return flavourSet;
-        }
-      })
-      ]]></field>
-
-      <property name="searchMode" onget="return this.mQuickSearchMode;"
-                onset="this.mQuickSearchMode = val; document.getElementById('quick-search-menupopup').setAttribute('value', val);"/>
-
-      <method name="setSearchCriteriaText">
-        <body><![CDATA[
-    try {
-          this.showingSearchCriteria = true;
-
-          let qsmenu = document.getElementById('quick-search-menupopup');
-
-          // extract the label value from the menu item
-          let menuItem = qsmenu.getElementsByAttribute('value',
-                                                       this.searchMode)[0];
-          logElement(menuItem);
-          if (typeof menuItem == "undefined") {
-            // Error condition, something went wrong - try and recover from it.
-            this.mQuickSearchMode =
-              QuickSearchConstants.kQuickSearchFromOrSubject.toString();
-
-            let selectedMenuItem =
-              qsmenu.getElementsByAttribute('value', this.searchMode)[0];
-
-            selectedMenuItem.setAttribute('checked', 'true');
-
-            this.inputField.value = selectedMenuItem.getAttribute('label');
-          }
-          else {
-            this.inputField.value = menuItem.getAttribute('label');
-          }
-
-         this.clearButtonHidden = true;
-    } catch (e) {
-      logException(e);
-    }
-        ]]></body>
-      </method>
 
       <method name="openmenupopup">
         <body>
           <![CDATA[
-            document.getElementById('quick-search-menupopup').click();
-            return false;
+          try {
+            this.menupopup.click();
+          } catch (e) {
+            logException(e);
+          }
+          return false;
           ]]>
         </body>
       </method>
+
+
+      <!--If switching from an "incoming" (Inbox, etc.) type of mail folder,-->
+      <!--to an "outbound" (Sent, Drafts etc.)  type, and the current search-->
+      <!--type contains 'Sender', then switch it to the equivalent-->
+      <!--'Recipient' search type by default. Vice versa when switching from-->
+      <!--outbound to incoming folder type.-->
+      <!--@param isOutboundFolder  Bool-->
+      <!--       true:  switch from an incoming to an outgoing folder-->
+      <!--       false: switch from an outgoing to an incoming folder-->
+      <method name="folderChanged">
+        <parameter name="isOutboundFolder" />
+        <body>
+          <![CDATA[
+            let newSearchMode = null;
+            if (isOutboundFolder) {
+              if (this.searchMode == QuickSearchConstants.kQuickSearchFromOrSubject)
+                this.searchMode = QuickSearchConstants.kQuickSearchRecipientOrSubject;
+              else if (this.searchMode == QuickSearchConstants.kQuickSearchFrom)
+                this.searchMode = QuickSearchConstants.kQuickSearchRecipient;
+            } else {
+              if (this.searchMode == QuickSearchConstants.kQuickSearchRecipientOrSubject)
+                this.searchMode = QuickSearchConstants.kQuickSearchFromOrSubject;
+              else if (this.searchMode == QuickSearchConstants.kQuickSearchRecipient)
+                this.searchMode = QuickSearchConstants.kQuickSearchFrom;
+            }
+          ]]>
+        </body>
+      </method>
+
     </implementation>
-
-    <handlers>
-      <handler event="input">
-        <![CDATA[ 
-          if (!this.value) 
-            this.clearButtonHidden = true;
-          else 
-            this.clearButtonHidden = false;
-        ]]></handler>
-
-      <handler event="keypress" keycode="VK_UP" modifiers="control" phase="capturing">
-        <![CDATA[
-          var  menuPopup = document.getElementById('quick-search-menupopup');
-          var menuPopupValue = menuPopup.getAttribute('value');
-          var menuPopupOrdinal = menuPopup.getElementsByAttribute('value', menuPopupValue)[0].getAttribute('ordinal');
-          if (menuPopupOrdinal > 0)
-          {
-            var nextMenuItem = menuPopup.getElementsByAttribute('ordinal', --menuPopupOrdinal)[0];
-            menuPopup.getElementsByAttribute('value', this.searchMode)[0].removeAttribute('checked');
-            this.searchMode = nextMenuItem.getAttribute('value');
-            nextMenuItem.setAttribute('checked', 'true');
-            menuPopup.setAttribute('value', this.searchMode);
-          }
-        ]]></handler>
-
-      <handler event="keypress" keycode="VK_DOWN" modifiers="control" phase="capturing">
-        <![CDATA[
-          var menuItemAfterOptions = document.getElementById('quickSearchAfterLastOptionSeparator');
-          var lastOrdinal = menuItemAfterOptions.getAttribute('ordinal') - 1;
-          var  menuPopup = document.getElementById('quick-search-menupopup');
-          var menuPopupValue = menuPopup.getAttribute('value');
-          var menuPopupOrdinal = menuPopup.getElementsByAttribute('value', menuPopupValue)[0].getAttribute('ordinal');
-          if (menuPopupOrdinal < lastOrdinal)
-          {
-            var nextMenuItem = menuPopup.getElementsByAttribute('ordinal', ++menuPopupOrdinal)[0];
-            menuPopup.getElementsByAttribute('value', this.searchMode)[0].removeAttribute('checked');
-            this.searchMode = nextMenuItem.getAttribute('value');
-            nextMenuItem.setAttribute('checked', 'true');
-            menuPopup.setAttribute('value', this.searchMode);
-          }
-        ]]></handler>
-
-        <handler event="keypress" keycode="VK_DOWN" modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
-        <handler event="keypress" keycode="VK_UP"   modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
-
-      <handler event="keypress" keycode="VK_F4" phase="capturing"><![CDATA[
-        if (window.navigator.oscpu.substring(0, 3).toLowerCase() != "mac")
-          return this.openmenupopup();
-      ]]></handler>
-
-      <handler event="dragdrop" phase="capturing">
-        nsDragAndDrop.drop(event, this.searchInputDNDObserver);
-      </handler>
-    </handlers>
   </binding>
-
+  
   <binding id="searchBarDropMarker">
     <resources>
       <stylesheet src="chrome://messenger/skin/searchBox.css"/>

@@ -395,7 +395,8 @@
           //  contents will set themselves up correctly.
           if (this.tabInfo.length == 0) {
             let firstTab = {mode: this.defaultTabMode, busy: false,
-                            canClose: false};
+                            canClose: false,
+                            searchMode: 'global'};
             firstTab.mode.tabs.push(firstTab);
 
             this.tabInfo[0] = this.currentTabInfo = firstTab;
@@ -679,7 +680,7 @@
             if (tabState != null) {
               tabs.push({
                 mode: tab.mode.name,
-                state: tabState
+                state: tabState,
               });
               // Mark this persisted tab as selected
               if (iTab == this.tabContainer.selectedIndex)

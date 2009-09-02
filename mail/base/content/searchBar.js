@@ -45,7 +45,7 @@ Components.utils.import("resource://app/modules/quickSearchManager.js");
 
 var gSearchBundle;
 
-var gStatusBar = null;
+var gStatusBar = document.getElementById('statusbar-icon');
 
 /**
  * We are exclusively concerned with disabling the quick-search box when a
@@ -69,74 +69,3 @@ var QuickSearchTabMonitor = {
   }
 };
 
-
-// XXX never called?
-function SetQSStatusText(aNumHits)
-{
-  var statusMsg;
-  gSearchBundle = document.getElementById("bundle_search");
-  // if there are no hits, it means no matches were found in the search.
-  if (aNumHits == 0)
-    statusMsg = gSearchBundle.getString("searchFailureMessage");
-  else
-  {
-    if (aNumHits == 1)
-      statusMsg = gSearchBundle.getString("searchSuccessMessage");
-    else
-      statusMsg = gSearchBundle.getFormattedString("searchSuccessMessages", [aNumHits]);
-  }
-
-  statusFeedback.showStatusString(statusMsg);
-}
-
-
-/**
- * If switching from an "incoming" (Inbox, etc.) type of mail folder,
- * to an "outbound" (Sent, Drafts etc.)  type, and the current search
- * type contains 'Sender', then switch it to the equivalent
- * 'Recipient' search type by default. Vice versa when switching from
- * outbound to incoming folder type.
- * @param isOutboundFolder  Bool
- *        true:  switch from an incoming to an outgoing folder
- *        false: switch from an outgoing to an incoming folder
- */
-function onSearchFolderTypeChanged(isOutboundFolder)
-{
-  var quickSearchMenu = document.getElementById('quick-search-menupopup');
-  var newSearchType;
-  var oldSearchMode;
-
-  GetSearchInput();
-
-  if (!gSearchInput)
-    return;
-
-  if (isOutboundFolder)
-  {
-    if (gSearchInput.searchMode == QuickSearchConstants.kQuickSearchFromOrSubject)
-      newSearchType = QuickSearchConstants.kQuickSearchRecipientOrSubject;
-    else if (gSearchInput.searchMode == QuickSearchConstants.kQuickSearchFrom)
-      newSearchType = QuickSearchConstants.kQuickSearchRecipient;
-    else
-      return;
-  }
-  else
-  {
-    if (gSearchInput.searchMode == QuickSearchConstants.kQuickSearchRecipientOrSubject)
-      newSearchType = QuickSearchConstants.kQuickSearchFromOrSubject;
-    else if (gSearchInput.searchMode == QuickSearchConstants.kQuickSearchRecipient)
-      newSearchType = QuickSearchConstants.kQuickSearchFrom;
-    else
-      return;
-  }
-  var newMenuItem = quickSearchMenu.getElementsByAttribute('value', newSearchType).item(0);
-  if (newMenuItem)
-  {
-    // If a menu item is already checked, need to uncheck it first:
-    var checked = quickSearchMenu.getElementsByAttribute('checked', 'true').item(0);
-    if (checked)
-      checked.setAttribute('checked', 'false');
-    changeQuickSearchMode(newMenuItem);
-    newMenuItem.setAttribute('checked', 'true');
-  }
-}

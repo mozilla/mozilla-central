@@ -1035,7 +1035,11 @@ function SelectedMessagesAreFlagged()
 
 function GetFirstSelectedMsgFolder()
 {
-  var selectedFolders = GetSelectedMsgFolders();
+  try {
+    var selectedFolders = GetSelectedMsgFolders();
+  } catch (e) {
+    logException(e);
+  }
   return (selectedFolders.length > 0) ? selectedFolders[0] : null;
 }
 
@@ -1758,6 +1762,11 @@ let mailTabType = {
         if (modelTab)
           aTab.folderPaneCollapsed = modelTab.folderPaneCollapsed;
 
+        if ("searchMode" in aArgs)
+          aTab.searchState = {'mode': aArgs.searchMode, 'string': ''};
+        else if (modelTab)
+          aTab.searchState = {'mode': modelTab.searchMode, 'string': ''};
+
         // - figure out whether to show the message pane
         let messagePaneShouldBeVisible;
         // explicitly told to us?
@@ -1805,10 +1814,12 @@ let mailTabType = {
       persistTab: function(aTab) {
         if (!aTab.folderDisplay.displayedFolder)
           return null;
+        dump(" returning a searchMode of: " + aTab.searchState['mode'] + '\n');
         return {
           folderURI: aTab.folderDisplay.displayedFolder.URI,
           messagePaneVisible: aTab.messageDisplay.visible,
-          firstTab: aTab.firstTab
+          firstTab: aTab.firstTab,
+          searchMode: aTab.searchState['mode']
         };
       },
       restoreTab: function(aTabmail, aPersistedState) {
@@ -1832,11 +1843,13 @@ let mailTabType = {
               if (!gMessageDisplay._active)
                 gMessageDisplay._visible = aPersistedState.messagePaneVisible;
             }
+            document.getElementById('searchInput').searchMode = aPersistedState.searchMode;
             gFolderTreeView.selectFolder(folder);
           }
           else {
             aTabmail.openTab("folder", {folder: folder,
                 messagePaneVisible: aPersistedState.messagePaneVisible,
+                searchMode: aPersistedState.searchMode,
                 background: true});
           }
         }
