@@ -67,6 +67,7 @@ function CanDropOnFolderTree(index, orientation)
     trans.addDataFlavor("text/x-moz-message");
     trans.addDataFlavor("text/x-moz-folder");
     trans.addDataFlavor("text/x-moz-newsfolder");
+    trans.addDataFlavor("application/x-moz-file");
     trans.addDataFlavor("text/x-moz-url");
  
     var folderTree = GetFolderTree();
@@ -88,6 +89,17 @@ function CanDropOnFolderTree(index, orientation)
         catch (ex)
         {
             continue;   //no data so continue;
+        }
+
+        if (dataFlavor.value == "application/x-moz-file" && dataObj)
+        {
+          if (orientation != Components.interfaces.nsITreeView.DROP_ON ||
+              targetFolder.isServer ||
+              !targetFolder.canFileMessages)
+            return false;
+          if (dataObj.value instanceof Components.interfaces.nsIFile)
+            return dataObj.value.isFile();
+          return false;
         }
         if (dataObj)
             dataObj = dataObj.value.QueryInterface(Components.interfaces.nsISupportsString);
@@ -248,9 +260,12 @@ function DropOnFolderTree(row, orientation)
     trans.addDataFlavor("text/x-moz-message");
     trans.addDataFlavor("text/x-moz-folder");
     trans.addDataFlavor("text/x-moz-newsfolder");
+    trans.addDataFlavor("application/x-moz-file");
     trans.addDataFlavor("text/x-moz-url");
 
     var list = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+    var cs = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
+                       .getService(Components.interfaces.nsIMsgCopyService);
 
     var dropMessage;
     var sourceUri;
@@ -264,6 +279,22 @@ function DropOnFolderTree(row, orientation)
         var flavor = new Object();
         var len = new Object();
         trans.getAnyTransferData(flavor, dataObj, len);
+        
+        // shortcircuit external files and get out
+        if (flavor.value == "application/x-moz-file" && dataObj)
+        {
+          dataObj = dataObj.value.QueryInterface(Components.interfaces.nsIFile);
+          if (!dataObj)
+            return false; // don't know how this would ever happen
+          if (dataObj.isFile())
+          {
+            let len = dataObj.leafName.length;
+            if (len > 4 && dataObj.leafName.substr(len - 4).toLowerCase() == ".eml")
+              cs.CopyFileMessage(dataObj, targetFolder, null, false, 1, "", null, msgWindow);
+          }
+          continue;
+        }
+        
         if (dataObj)
             dataObj = dataObj.value.QueryInterface(Components.interfaces.nsISupportsString);
         if (! dataObj)
@@ -349,8 +380,6 @@ function DropOnFolderTree(row, orientation)
     var isSourceNews = false;
     isSourceNews = isNewsURI(sourceUri);
 
-    var cs = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
-                       .getService(Components.interfaces.nsIMsgCopyService);
     if (dropMessage) {
         var sourceMsgHdr = list.queryElementAt(0, Components.interfaces.nsIMsgDBHdr);
         sourceFolder = sourceMsgHdr.folder;
