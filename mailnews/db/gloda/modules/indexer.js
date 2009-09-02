@@ -950,8 +950,6 @@ var GlodaIndexer = {
 
   /** folder whose entry we are pending on */
   _pendingFolderEntry: null,
-  /** if we are pending on a folder, do we want an iterator too? */
-  _pendingFolderWantsIterator: false,
 
   /**
    * Common logic that we want to deal with the given folder ID.  Besides
@@ -963,8 +961,7 @@ var GlodaIndexer = {
    *     or what have you).  In the event of an actual problem, an exception
    *     will escape.
    */
-  _indexerEnterFolder: function gloda_index_indexerEnterFolder(aFolderID,
-                                                               aNeedIterator) {
+  _indexerEnterFolder: function gloda_index_indexerEnterFolder(aFolderID) {
     // leave the folder if we haven't explicitly left it.
     if (this._indexingFolder !== null) {
       this._indexerLeaveFolder();
@@ -1000,7 +997,6 @@ var GlodaIndexer = {
         //  FolderLoaded events will call _indexerCompletePendingFolderEntry.
         this._log.debug("Pending on folder load...");
         this._pendingFolderEntry = this._indexingFolder;
-        this._pendingFolderWantsIterator = aNeedIterator;
         return this.kWorkAsync;
       }
       // we get an nsIMsgDatabase out of this (unsurprisingly) which
@@ -1008,8 +1004,6 @@ var GlodaIndexer = {
       //  AddListener call we want.
       if (this._indexingDatabase == null)
         this._indexingDatabase = this._indexingFolder.msgDatabase;
-      if (aNeedIterator)
-        this._indexerGetIterator();
       this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
     }
     catch (ex) {
@@ -1022,7 +1016,7 @@ var GlodaIndexer = {
       this._indexingFolder = null;
       this._indexingGlodaFolder = null;
       this._indexingDatabase = null;
-      this._indexingIterator = null;
+      this._indexingEnumerator = null;
 
       // re-throw, we just wanted to make sure this junk is cleaned up and
       //  get localized error logging...
@@ -1041,8 +1035,6 @@ var GlodaIndexer = {
   _indexerCompletePendingFolderEntry:
       function gloda_indexer_indexerCompletePendingFolderEntry() {
     this._indexingDatabase = this._indexingFolder.msgDatabase;
-    if (this._pendingFolderWantsIterator)
-      this._indexerGetIterator();
     this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
     this._log.debug("...Folder Loaded!");
 
@@ -1053,10 +1045,89 @@ var GlodaIndexer = {
     this.callbackDriver();
   },
 
-  _indexerGetIterator: function gloda_indexer_indexerGetIterator() {
-    this._indexingIterator = fixIterator(
-                               this._indexingDatabase.EnumerateMessages(),
-                               Ci.nsIMsgDBHdr);
+  /**
+   *  @param  aGetAll  should we get all messages
+   *                    (or only those we need to index)?
+   */
+  _indexerGetEnumerator: function gloda_indexer_indexerGetEnumerator(aGetAll) {
+    if (aGetAll) {
+      this._indexingEnumerator = this._indexingDatabase.EnumerateMessages();
+    }
+
+    else {
+      // We need to create search terms for messages to index. Messages should
+      //  be indexed if they're indexable (local or offline and not expunged)
+      //  and either haven't been indexed or are dirty.
+      // The basic search expression is:
+      //  ((GLODA_MESSAGE_ID_PROPERTY Is 0) || (GLODA_DIRTY_PROPERTY Isnt 0))
+      // If the folder !isLocal we add the terms:
+      //  && (Status Is nsMsgMessageFlags.Offline)
+      //  && (Status Isnt nsMsgMessageFlags.Expunged)
+
+      let searchSession = Cc["@mozilla.org/messenger/searchSession;1"]
+                            .createInstance(Ci.nsIMsgSearchSession);
+      let searchTerms = Cc["@mozilla.org/array;1"]
+                         .createInstance(Ci.nsIMutableArray);
+      let isLocal = this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
+
+      searchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail,
+                                 this._indexingFolder);
+      let nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
+      let nsMsgSearchOp = Ci.nsMsgSearchOp;
+
+      // first term: (GLODA_MESSAGE_ID_PROPERTY Is 0
+      let searchTerm = searchSession.createTerm();
+      searchTerm.booleanAnd = false; // actually don't care here
+      searchTerm.beginsGrouping = true;
+      searchTerm.attrib = nsMsgSearchAttrib.Uint32HdrProperty;
+      searchTerm.op = nsMsgSearchOp.Is;
+      value = searchTerm.value;
+      value.attrib = searchTerm.attrib;
+      value.status = 0;
+      searchTerm.value = value;
+      searchTerm.hdrProperty = GLODA_MESSAGE_ID_PROPERTY;
+      searchTerms.appendElement(searchTerm, false);
+
+      //  second term: || GLODA_DIRTY_PROPERTY Isnt 0 )
+      searchTerm = searchSession.createTerm();
+      searchTerm.booleanAnd = false;
+      searchTerm.endsGrouping = true;
+      searchTerm.attrib = nsMsgSearchAttrib.Uint32HdrProperty;
+      searchTerm.op = nsMsgSearchOp.Isnt;
+      value = searchTerm.value;
+      value.attrib = searchTerm.attrib;
+      value.status = 0;
+      searchTerm.value = value;
+      searchTerm.hdrProperty = GLODA_DIRTY_PROPERTY;
+      searchTerms.appendElement(searchTerm, false);
+
+      if (!isLocal)
+      {
+        //  third term: && Status Is nsMsgMessageFlags.Offline
+        searchTerm = searchSession.createTerm();
+        searchTerm.booleanAnd = true;
+        searchTerm.attrib = nsMsgSearchAttrib.MsgStatus;
+        searchTerm.op = nsMsgSearchOp.Is;
+        value = searchTerm.value;
+        value.attrib = searchTerm.attrib;
+        value.status = Ci.nsMsgMessageFlags.Offline;
+        searchTerm.value = value;
+        searchTerms.appendElement(searchTerm, false);
+
+        // fourth term: && Status Isnt nsMsgMessageFlags.Expunged
+        searchTerm = searchSession.createTerm();
+        searchTerm.booleanAnd = true;
+        searchTerm.attrib = nsMsgSearchAttrib.MsgStatus;
+        searchTerm.op = nsMsgSearchOp.Isnt;
+        value = searchTerm.value;
+        value.attrib = searchTerm.attrib;
+        value.status = Ci.nsMsgMessageFlags.Expunged;
+        searchTerm.value = value;
+        searchTerms.appendElement(searchTerm, false);
+      }
+
+      this._indexingEnumerator = this._indexingDatabase.getFilterEnumerator(searchTerms);
+    }
   },
 
   _indexerLeaveFolder: function gloda_index_indexerLeaveFolder(aExpected) {
@@ -1072,7 +1143,7 @@ var GlodaIndexer = {
       this._indexingFolder = null;
       this._indexingGlodaFolder = null;
       this._indexingDatabase = null;
-      this._indexingIterator = null;
+      this._indexingEnumerator = null;
     }
   },
 
@@ -1651,7 +1722,7 @@ var GlodaIndexer = {
    */
   _worker_folderIndex: function gloda_worker_folderIndex(aJob) {
     let logDebug = this._log.level <= Log4Moz.Level.Debug;
-    yield this._indexerEnterFolder(aJob.id, true);
+    yield this._indexerEnterFolder(aJob.id);
 
     if (!this.shouldIndexFolder(this._indexingFolder))
       yield this.kWorkDone;
@@ -1680,8 +1751,10 @@ var GlodaIndexer = {
     //  pathological situation.)
     let glodaFolder = GlodaDatastore._mapFolder(this._indexingFolder);
     if (glodaFolder.dirtyStatus == glodaFolder.kFolderFilthy) {
+      this._indexerGetEnumerator(true);
       let count = 0;
-      for (let msgHdr in this._indexingIterator) {
+      for (let msgHdr in fixIterator(this._indexingEnumerator,
+                                     Ci.nsIMsgDBHdr)) {
         // we still need to avoid locking up the UI, pause periodically...
         if (++count % HEADER_CHECK_BLOCK_SIZE == 0)
           yield this.kWorkSync;
@@ -1696,72 +1769,53 @@ var GlodaIndexer = {
       }
       // this will automatically persist to the database
       glodaFolder.dirtyStatus = glodaFolder.kFolderDirty;
-
-      // We used up the iterator, get a new one.
-      this._indexerGetIterator();
     }
-
-    // Whether or not the given message should be indexed.  Messages should
-    // be indexed if they're indexable (local or offline and not expunged)
-    // and either haven't been indexed or are dirty.
-    let shouldIndexMessage = function(msgHdr) {
-      if ((!isLocal &&
-           !(msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Offline)) ||
-          (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Expunged))
-        return false;
-
-      // returns 0 when missing, which means this message hasn't been indexed
-      if (msgHdr.getUint32Property(GLODA_MESSAGE_ID_PROPERTY) == 0)
-        return true;
-
-      // returns 0 when missing, which means this message is clean
-      return (msgHdr.getUint32Property(GLODA_DIRTY_PROPERTY) != 0);
-    };
 
     // Pass 1: count the number of messages to index.
     //  We do this in order to be able to report to the user what we're doing.
-    // To avoid traversing the entire folder again in the second pass, we could
-    //  cache headers that need indexing here, which would work fine for sparse
-    //  indexing but might eat too much memory for dense indexing.  Perhaps we
-    //  could employ a hybrid approach where we cache up to a certain number
-    //  of headers before falling back to full traversal in the second pass.
     // TODO: give up after reaching a certain number of messages in folders
     //  with ridiculous numbers of messages and make the interface just say
     //  something like "over N messages to go."
-    let count = 0;
-    let numMessagesToIndex = 0;
-    for (let msgHdr in this._indexingIterator) {
-      // we still need to avoid locking up the UI, pause periodically...
-      if (++count % HEADER_CHECK_BLOCK_SIZE == 0)
-        yield this.kWorkSync;
 
-      if (shouldIndexMessage(msgHdr))
-        ++numMessagesToIndex;
+    this._indexerGetEnumerator(false);
+    let numMessagesToIndex = 0;
+    let numMessagesOut = {};
+    // Keep going until we run out of headers.
+    while (this._indexingFolder.msgDatabase.nextMatchingHdrs(
+             this._indexingEnumerator,
+             HEADER_CHECK_BLOCK_SIZE * 8, // this way is much faster, do more
+             0, // moot, we don't return headers
+             null, // don't return headers, we just want the count
+             numMessagesOut)) {
+      numMessagesToIndex += numMessagesOut.value;
+      yield this.kWorkSync;
     }
+    numMessagesToIndex += numMessagesOut.value;
 
     aJob.goal = numMessagesToIndex;
 
     if (numMessagesToIndex > 0) {
       // We used up the iterator, get a new one.
-      this._indexerGetIterator();
+      this._indexerGetEnumerator(false);
 
       // Pass 2: index the messages.
       let count = 0;
-      for (let msgHdr in this._indexingIterator) {
+      for (let msgHdr in fixIterator(this._indexingEnumerator,
+                                     Ci.nsIMsgDBHdr)) {
         // per above, we want to periodically release control while doing all
         // this header traversal/investigation.
+        // XXX not clear that this is really needed, since search has its own
+        // method to yield to UI periodically.
         if (++count % HEADER_CHECK_BLOCK_SIZE == 0)
           yield this.kWorkSync;
 
-        if (shouldIndexMessage(msgHdr)) {
-          ++aJob.offset;
-          if (logDebug)
-            this._log.debug(">>>  _indexMessage");
-          yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
-              this._callbackHandle));
-          if (logDebug)
-            this._log.debug("<<<  _indexMessage");
-        }
+        ++aJob.offset;
+        if (logDebug)
+          this._log.debug(">>>  _indexMessage");
+        yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
+            this._callbackHandle));
+        if (logDebug)
+          this._log.debug("<<<  _indexMessage");
       }
     }
 
@@ -1791,7 +1845,7 @@ var GlodaIndexer = {
       // get in the folder
       if (!this._indexingGlodaFolder ||
           this._indexingGlodaFolder.id != item[0]) {
-        yield this._indexerEnterFolder(item[0], false);
+        yield this._indexerEnterFolder(item[0]);
 
         // stay out of folders we should not be in!
         if (!this.shouldIndexFolder(this._indexingFolder))
@@ -2349,6 +2403,8 @@ var GlodaIndexer = {
         this.indexer._pendingAddJob.items.push(
           [GlodaDatastore._mapFolder(msgFolder).id,
            aMsgHdr.messageKey]);
+      else
+        this.indexer.indexingSweepNeeded = true;
       this.indexer.indexing = true;
     },
 

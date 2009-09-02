@@ -537,7 +537,7 @@
     <menuitem id="threadPaneContext-openNewTab"
               label="&contextOpenNewTab.label;"
               accesskey="&contextOpenNewTab.accesskey;"
-              oncommand="ThreadTreeContextMenuNewTab(event);"/>
+              oncommand="OpenMessageInNewTab(event);"/>
     <menuseparator id="mailContext-sep-open2"/>
     <menuitem id="mailContext-replySender"
               label="&contextReplySender.label;"
