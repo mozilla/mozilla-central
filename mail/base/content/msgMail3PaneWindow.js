@@ -941,7 +941,7 @@ function FolderPaneOnClick(event)
   }
 }
 
-function ThreadTreeContextMenuNewTab(event)
+function OpenMessageInNewTab(event)
 {
   var bgLoad = gPrefBranch.getBoolPref("mail.tabs.loadInBackground");
   if (event.shiftKey)
@@ -961,7 +961,7 @@ function ThreadTreeOnClick(event)
   if (event.button == 1 && event.originalTarget.localName != "slider" &&
       event.originalTarget.localName != "scrollbarbutton")
   {
-    ThreadTreeContextMenuNewTab(event);
+    OpenMessageInNewTab(event);
     RestoreSelectionWithoutContentLoad(threadTree);
   }
 }
