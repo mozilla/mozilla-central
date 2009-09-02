@@ -196,7 +196,7 @@
                           label="&otherActionsOpenInNewTab.label;"
                           accesskey="&otherActionsOpenInNewTab.accesskey;"
                           oncommand="OpenMessageInNewTab(event);"/>
-                <menuitem id="viewSourceMenuItem;"
+                <menuitem id="viewSourceMenuItem"
                           label="&viewSourceMenuItem.label;"
                           accesskey="&viewSourceMenuItem.accesskey;"
                           oncommand="ViewPageSource(gFolderDisplay.selectedMessageUris);" />
