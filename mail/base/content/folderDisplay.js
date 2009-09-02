@@ -1438,11 +1438,6 @@ FolderDisplayWidget.prototype = {
         mailTabType._setPaneStates(this._tabInfo.mode.legalPanes,
           {folder: !this._tabInfo.folderPaneCollapsed,
            message: this.messageDisplay.visible});
-      
-      let searchInput = document.getElementById("searchInput");
-      if (searchInput && this._tabInfo.searchState) {
-        searchInput.state = this._tabInfo.searchState;
-      }
 
       // update the columns and such that live inside the thread pane
       this._updateThreadDisplay();
@@ -1501,11 +1496,6 @@ FolderDisplayWidget.prototype = {
     // save the folder pane's state always
     this.folderPaneCollapsed =
       document.getElementById("folderPaneBox").collapsed;
-
-    // save the actual quick-search query text
-    let searchInput = document.getElementById("searchInput");
-    if (searchInput)
-      this._tabInfo.searchState = searchInput.state;
 
     if (this.view.dbView) {
       if (this.treeBox)

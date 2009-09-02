@@ -47,9 +47,24 @@ var gSearchBundle;
 
 var gStatusBar = document.getElementById('statusbar-icon');
 
+
 /**
- * We are exclusively concerned with disabling the quick-search box when a
- *  tab is being displayed that lacks quick search abilities.
+ * The quicksearch widget is a UI widget (the #searchInput textbox) which is
+ * outside of the mailTabType's display panel, but acts as though it were within
+ * it..  This means we need to use a tab monitor so that we can appropriately
+ * update the contents of the textbox.
+ * 
+ * Every time a tab is changed, we save the state of the text box and restore
+ *  its previous value for the tab we are switching to, as well as whether this
+ *  value is a change to the currently-used value (if it is a faceted search) tab.
+ *  The behaviour rationale for this is that the searchInput is like the
+ *  URL bar.  When you are on a glodaSearch tab, we need to show you your
+ *  current value, including any "uncommitted" (you haven't hit enter yet)
+ *  changes.
+ *
+ *  In addition, we want to disable the quick-search modes when a tab is
+ *  being displayed that lacks quick search abilities (but we'll leave the
+ *  faceted search as it's always available).
  */
 
 var QuickSearchTabMonitor = {
@@ -58,18 +73,18 @@ var QuickSearchTabMonitor = {
 
   onTabSwitched: function (aTab, aOldTab) {
     let searchInput = document.getElementById("searchInput");
-
     if (searchInput) {
-      let newTabEligible = ((aTab.mode.tabType == mailTabType) ||
-                            (aTab.mode.tabType == glodaFacetTabType));
-      searchInput.disabled = !newTabEligible;
-      if (newTabEligible)
-        searchInput.showQuickSearchItems(aTab.mode.tabType != glodaFacetTabType)
-      else
-        searchInput.value = "";
-      if (aTab.mode.tabType == glodaFacetTabType)
-        searchInput.searchMode = "global";
+      searchInput.showQuickSearchItems(aTab.mode.tabType != glodaFacetTabType)
     }
+    // save the current search field value
+    if (aOldTab) {
+      aOldTab.searchInputValue = searchInput.value;
+      aOldTab.searchMode = searchInput.searchMode;
+    }
+    // load (or clear if there is none) the persisted search field value
+    searchInput.value = aTab.searchInputValue || "";
+    if (aTab.searchMode)
+      searchInput.searchMode = aTab.searchMode;
   }
 };
 

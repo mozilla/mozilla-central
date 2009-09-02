@@ -1814,7 +1814,6 @@ let mailTabType = {
       persistTab: function(aTab) {
         if (!aTab.folderDisplay.displayedFolder)
           return null;
-        dump(" returning a searchMode of: " + aTab.searchState['mode'] + '\n');
         return {
           folderURI: aTab.folderDisplay.displayedFolder.URI,
           messagePaneVisible: aTab.messageDisplay.visible,
@@ -1823,6 +1822,7 @@ let mailTabType = {
         };
       },
       restoreTab: function(aTabmail, aPersistedState) {
+      try {
         let rdfService = Components.classes['@mozilla.org/rdf/rdf-service;1']
                            .getService(Components.interfaces.nsIRDFService);
         let folder = rdfService.GetResource(aPersistedState.folderURI)
@@ -1853,6 +1853,9 @@ let mailTabType = {
                 background: true});
           }
         }
+      } catch (e) {
+        logException(e);
+      }
       },
       onTitleChanged: function(aTab, aTabNode) {
         if (!aTab.folderDisplay || !aTab.folderDisplay.displayedFolder) {

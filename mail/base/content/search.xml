@@ -332,11 +332,12 @@
         try {
           if (aTopic == "autocomplete-did-enter-text") {
             let selectedIndex = this.autocompletePopup.selectedIndex;
-            let row = this.glodaCompleter.curResult.getObjectAt(selectedIndex);
-            if (row == null) {
-              this.applyConstraints();
+            let curResult = this.glodaCompleter.curResult;
+            if (! curResult)
+              return; // autocomplete didn't even finish.
+            let row = curResult.getObjectAt(selectedIndex);
+            if (row == null)
               return;
-            }
             let theQuery = Gloda.newQuery(Gloda.NOUN_MESSAGE);
             let tabmail = document.getElementById("tabmail");
             if (row.fullText) {
@@ -353,19 +354,11 @@
                 query: theQuery
               });
             }
-
-            this.applyConstraints();
           }
         } catch (e) {
           logException(e);
         }
         ]]></body>
-      </method>
-
-      <method name="applyConstraints">
-        <body><![CDATA[
-          ]]>
-        </body>
       </method>
 
       <method name="updateEmptyText">
@@ -398,14 +391,18 @@
                 let tabmail = document.getElementById("tabmail");
                 // If the current tab is a gloda search tab, reset the value
                 //  to the initial search value.  Otherwise, clear it.  This
-                //  is the value that is going to be saved with the current
+                //  is the value that 3is going to be saved with the current
                 //  tab when we switch back to it next.
                 let searchString = this.value;
-                if (tabmail.currentTabInfo.mode.name == "glodaFacet")
-                  this.value = tabmail.currentTabInfo.searchString;
-                else
-                  this.value = "";
-                // open a new tab with our dude
+                
+                if (tabmail.currentTabInfo.mode.name == "glodaFacet") {
+                  // we'd rather reuse the existing tab (and somehow do something
+                  // smart with any preexisting facet choices, but that's a
+                  // bit hard right now, so doing the cheap thing and closing
+                  // this tab and starting over
+                  tabmail.closeTab();
+                }
+                this.value = ''; // clear our value, to avoid persistence
                 tabmail.openTab("glodaFacet", {
                   searcher: new GlodaMsgSearcher(null, searchString)
                 });

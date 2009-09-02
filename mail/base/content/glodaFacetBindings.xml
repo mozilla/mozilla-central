@@ -1031,7 +1031,6 @@
           for each (let [, attach] in Iterator(message.attachmentNames)) {
             let attachNode = document.createElement("div");
             attachNode.setAttribute("class", "message-attachment");
-            dump('attach = ' + attach + '\n');
             attachNode.textContent = attach;
             attachmentsNode.appendChild(attachNode);
           }
