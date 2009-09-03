@@ -1231,6 +1231,17 @@ var Gloda = {
       usesUniqueValue: true,
       tableName: "identities",
       datastore: GlodaDatastore, objFromRow: GlodaDatastore._identityFromRow,
+      /**
+       * Short string is the contact name, long string includes the identity
+       *  value too, delimited by a colon.  Not tremendously localizable.
+       */
+      userVisibleString: function(aIdentity, aLong) {
+        if (!aLong)
+          return aIdentity.contact.name;
+        if (aIdentity.contact.name == aIdentity.value)
+          return aIdentity.value;
+        return aIdentity.contact.name + " : " + aIdentity.value;
+      },
       comparator: function gloda_identity_comparator(a, b) {
         if (a == null) {
           if (b == null)

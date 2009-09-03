@@ -618,6 +618,42 @@
         while (excludeList.lastChild)
           excludeList.removeChild(excludeList.lastChild);
 
+        // -- first pass, check for ambiguous labels
+        // It's possible that multiple groups are identified by the same short
+        //  string, in which case we want to use the longer string to
+        //  disambiguate.  For example, un-merged contacts can result in
+        //  multiple identities having contacts with the same name.  In that
+        //  case we want to display both the contact name and the identity
+        //  name.
+        // This is generically addressed by using the userVisibleString function
+        //  defined on the noun type if it is defined.  It takes an argument
+        //  indicating whether it should be a short string or a long string.
+        // Our algorithm is somewhat dumb.  We get the short strings, put them
+        //  in a dictionary that maps to whether they are ambiguous or not.  We
+        //  do not attempt to map based on their id, so then when it comes time
+        //  to actually build the labels, we must build the short string and
+        //  then re-call for the long name.  We could be smarter by building
+        //  a list of the input values that resulted in the output string and
+        //  then using that to back-update the id map, but it's more compelx and
+        //  the performance difference is unlikely to be meaningful.
+        let ambiguousKeyValues;
+        if ("userVisibleString" in nounDef) {
+          ambiguousKeyValues = {};
+          for each (let [, groupPair] in Iterator(useGroups)) {
+            let [groupValue, groupItems] = groupPair;
+
+            // skip null values, they are handled by the none special-case
+            if (groupValue == null)
+              continue;
+
+            let groupStr = nounDef.userVisibleString(groupValue, false);
+            if (groupStr in ambiguousKeyValues)
+              ambiguousKeyValues[groupStr] = true;
+            else
+              ambiguousKeyValues[groupStr] = false;
+          }
+        }
+
         // -- create the items, assigning them to the right list based on
         //  existing constraint values
         for each (let [, groupPair] in Iterator(useGroups)) {
@@ -639,19 +675,19 @@
             label.textContent =
               glodaFacetStrings.get("glodaFacetView.facets.noneLabel");
           }
-          // Top mode uses a sentinel value for the 'other' case
-          else if (groupValue == this.otherGroupObject) {
-            label.textContent = glodaFacetStrings.get(
-                                  "glodaFacetView.facets.mode.top.otherLabel",
-                                  [this.otherGroupObject.count.toLocaleString(),
-                                   ]);
-          }
           // Otherwise stringify the group object
           else {
             // XXX do a better job of truncation
-            label.textContent = ("userVisibleString" in nounDef) ?
-                                  nounDef.userVisibleString(groupValue) :
-                                  groupValue.toLocaleString().substring(0, 80);
+            let labelStr;
+            if (ambiguousKeyValues) {
+              labelStr = nounDef.userVisibleString(groupValue, false);
+              if (ambiguousKeyValues[labelStr])
+                labelStr = nounDef.userVisibleString(groupValue, true);
+            }
+            else {
+              labelStr = groupValue.toLocaleString().substring(0, 80);
+            }
+            label.textContent = labelStr;
           }
 
           li.appendChild(label);
@@ -1029,7 +1065,7 @@
                           this, "anonid", "sort-relevance");
         sortRelevanceNode.textContent = glodaFacetStrings.get(
           "glodaFacetView.results.message.sort.relevance");
-        
+
         let dis = this;
         sortRelevanceNode.onclick = function() {
           FacetContext.sortBy = '-dascore';
