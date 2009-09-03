@@ -38,19 +38,32 @@
  * ***** END LICENSE BLOCK ***** */
 
 body {
-  background: white url("chrome://messenger/skin/faceted-background.png") repeat-y 0 0;
   padding: 0;
   margin: 0;
   font-family: sans-serif;
   position: relative;
+  display: table;
+  background: white;
 }
 
-#main-column {
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 19.5em;
+#row {
+  display: table-row;
 }
+
+.facets-sidebar {
+  display: table-cell;
+  width: 20em;
+  background-color: #eeeeee;
+  padding: 4px;
+  padding-left: 1em;
+  font-size: 90%;
+}
+#main-column {
+  display: table-cell
+}
+
+
+
 /* ===== Query Explanation ===== */
 
 #query-explanation {
@@ -126,19 +139,6 @@ h1, h2, h3 {
 
 .facetious[uninitialized] {
   display: none;
-}
-
-.facets-sidebar {
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 20em;
-  /*background-color: #eeeeee;*/
-  padding: 4px;
-  padding-left: 1em;
-  font-size: 90%;
 }
 
 .facetious {

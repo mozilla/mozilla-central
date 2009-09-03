@@ -73,9 +73,10 @@ var QuickSearchTabMonitor = {
 
   onTabSwitched: function (aTab, aOldTab) {
     let searchInput = document.getElementById("searchInput");
-    if (searchInput) {
-      searchInput.showQuickSearchItems(aTab.mode.tabType != glodaFacetTabType)
-    }
+    if (!searchInput) // customized out of the way
+      return;
+
+    searchInput.showQuickSearchItems(aTab.mode.tabType != glodaFacetTabType)
     // save the current search field value
     if (aOldTab) {
       aOldTab.searchInputValue = searchInput.value;
