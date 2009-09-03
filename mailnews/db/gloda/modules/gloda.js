@@ -1240,7 +1240,7 @@ var Gloda = {
           return aIdentity.contact.name;
         if (aIdentity.contact.name == aIdentity.value)
           return aIdentity.value;
-        return aIdentity.contact.name + " : " + aIdentity.value;
+        return aIdentity.contact.name + " (" + aIdentity.value + ")";
       },
       comparator: function gloda_identity_comparator(a, b) {
         if (a == null) {
