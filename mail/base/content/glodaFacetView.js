@@ -742,7 +742,9 @@ function reachOutAndTouchFrame() {
                     .getInterface(Ci.nsIDOMWindow);
   let aTab = FacetContext.tab = parentWin.tab;
   parentWin.tab = null;
-
+  $(window).resize(function() {
+    document.getElementById("facet-date").build(true);
+  })
   // we need to hook the context up as a listener in all cases since
   //  removal notifications are required.
   if ("searcher" in aTab) {

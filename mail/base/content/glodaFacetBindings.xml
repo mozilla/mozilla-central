@@ -946,7 +946,7 @@
     ]]></constructor>
     <field name="canUpdate" readonly="true">true</field>
     <method name="build">
-      <parameter name="aFirstTime" />
+      <parameter name="aDoSize" />
       <body><![CDATA[
         if (!this.vis) {
           this.vis = new DateFacetVis(this, this.canvasNode);
@@ -955,7 +955,10 @@
         else {
           while (this.canvasNode.lastChild)
             this.canvasNode.removeChild(this.canvasNode.lastChild);
-          this.vis.rebuild();
+          if (aDoSize)
+            this.vis.build()
+          else
+            this.vis.rebuild();
         }
       ]]></body>
     </method>
