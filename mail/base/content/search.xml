@@ -394,6 +394,7 @@
               } else if (row.nounDef.name == "identity") {
                 theQuery = theQuery.involves(row.item); 
               }
+              theQuery.orderBy('-date');
               tabmail.openTab("glodaFacet", {
                 query: theQuery
               });

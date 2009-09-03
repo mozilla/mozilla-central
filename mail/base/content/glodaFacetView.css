@@ -186,6 +186,7 @@ h2 {
   padding-top: 2.5em;
   height: 80px;
   margin-right: 1em;
+  padding-left: 2em;
   padding-bottom: 1em;
   text-align: right;
 }
@@ -388,7 +389,6 @@ h2 {
 }
 
 .results-message-sort-bar {
-  display: none; /* until we can figure out how to make it work! */
   position: absolute;
   right: 1em;
   top: 0.5em;

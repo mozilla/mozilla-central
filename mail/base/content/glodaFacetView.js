@@ -342,17 +342,16 @@ var FacetContext = {
     return this._collection;
   },
 
+  _sortBy: null,
   get sortBy() {
-    return this.tab.collection.query._order; // XXX doesn't feel right.
+    return this._sortBy;
   },
   set sortBy(val) {
     try {
-      // XXX not sure how to properly update the collection/searcher/query, and
-      // redisplay it all.
-      this.tab.collection.query._order = [];
-      this.tab.collection.query.orderBy(val);
-      // XXX magic?
-      this.build(this.tab.collection.items);
+      if (val == this._sortBy)
+        return;
+      this._sortBy = val;
+      this.build(this._sieveAll());
     } catch (e) {
       logException(e);
     }
@@ -363,6 +362,12 @@ var FacetContext = {
   _activeSet: null,
   get activeSet() {
     return this._activeSet;
+  },
+  
+  get fullSet() {
+    if (this._sortBy == '-dascore')
+      return this._relevantSortedItems;
+    return this._dateSortedItems;
   },
 
   initialBuild: function() {
@@ -375,8 +380,22 @@ var FacetContext = {
     this.faceters = this.facetDriver.faceters.concat();
 
     this.everFaceted = false;
-
-    this.build(this._collection.items);
+    try {
+      if (this.searcher) {
+        this._sortBy = '-dascore';
+        this._relevantSortedItems = this._collection.items.concat();
+        this._dateSortedItems = this._relevantSortedItems.concat().sort(function(a,b) b.date-a.date);
+        this._activeSet = this._relevantSortedItems;
+      } else {
+        this._sortBy = '-date';
+        this._dateSortedItems = this.collection.items.concat();
+        this._relevantSortedItems = Gloda.scoreNounItems(this._dateSortedItems);
+        this._activeSet = this._dateSortedItems;
+      }
+      this.build(this.fullSet);
+    } catch (e) {
+      logException(e);
+    }
   },
 
   /**
@@ -632,7 +651,7 @@ var FacetContext = {
    *  returning the value.
    */
   _sieveAll: function() {
-    let items = this.collection.items;
+    let items = this.fullSet;
 
     for each (let [, constraint] in Iterator(this._activeConstraints)) {
       items = constraint.sieve(items);
