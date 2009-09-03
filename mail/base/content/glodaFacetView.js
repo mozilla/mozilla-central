@@ -63,19 +63,18 @@ const glodaFacetStrings =
   new StringBundle("chrome://messenger/locale/glodaFacetView.properties");
 
 /**
- *
+ * Represents the active constraints on a singular facet.  Singular facets can
+ *  only have an inclusive set or an exclusive set, but not both.  Non-singular
+ *  facets can have both.  Because they are different worlds, non-singular gets
+ *  its own class, |ActiveNonSingularConstraint|.
  */
-function ActiveConstraint(aFaceter, aAttrDef, aInclusive, aGroupValues,
-                          aRanged) {
+function ActiveSingularConstraint(aFaceter, aAttrDef, aRanged) {
   this.faceter = aFaceter;
   this.attrDef = aAttrDef;
-  this.inclusive = aInclusive;
   this.ranged = Boolean(aRanged);
-  this.groupValues = aGroupValues;
-
-  this._makeQuery();
+  this.clear();
 }
-ActiveConstraint.prototype = {
+ActiveSingularConstraint.prototype = {
   _makeQuery: function() {
     // have the faceter make the query and the invert decision for us if it
     //  implements the makeQuery method.
@@ -104,25 +103,64 @@ ActiveConstraint.prototype = {
    *  Mainly, if the inclusive flag is the same as what we already have, we
    *  just append the new values to the existing set of values.  If it is not
    *  the same, we replace them.
+   *
+   * @return true if the caller needs to revalidate their understanding of the
+   *     constraint because we have flipped whether we are inclusive or
+   *     exclusive and have thrown away some constraints as a result.
    */
-  adjust: function(aInclusive, aGroupValues) {
+  constrain: function(aInclusive, aGroupValues) {
     if (aInclusive == this.inclusive) {
       this.groupValues = this.groupValues.concat(aGroupValues);
       this._makeQuery();
-      return;
+      return false;
     }
 
+    let needToRevalidate = (this.inclusive != null);
     this.inclusive = aInclusive;
     this.groupValues = aGroupValues;
     this._makeQuery();
+
+    return needToRevalidate;
   },
   /**
-   * Replace the existing constraints with the new constraint.
+   * Relax something we previously constrained.  Remove it, some might say.  It
+   *  is possible after relaxing that we will no longer be an active constraint.
+   *
+   * @return true if we are no longer constrained at all.
    */
-  replace: function(aInclusive, aGroupValues) {
-    this.inclusive = aInclusive;
-    this.groupValues = aGroupValues;
+  relax: function(aInclusive, aGroupValues) {
+    if (aInclusive != this.inclusive)
+      throw new Error("You can't relax a constraint that isn't possible.");
+
+    for each (let [, groupValue] in Iterator(aGroupValues)) {
+      let index = this.groupValues.indexOf(groupValue);
+      if (index == -1)
+        throw new Error("Tried to relax a constraint that was not in force.");
+      this.groupValues.splice(index, 1);
+    }
+
+    if (this.groupValues.length == 0) {
+      this.clear();
+      return true;
+    }
     this._makeQuery();
+
+    return false;
+  },
+  /**
+   * Indicate whether this constraint is actually doing anything anymore.
+   */
+  get isConstrained() {
+    return this.inclusive != null;
+  },
+  /**
+   * Clear the constraint so that the next call to adjust initializes it.
+   */
+  clear: function() {
+    this.inclusive = null;
+    this.groupValues = null;
+    this.query = null;
+    this.invertQuery = null;
   },
   /**
    * Filter the items against our constraint.
@@ -136,6 +174,154 @@ ActiveConstraint.prototype = {
         outItems.push(item);
     }
     return outItems;
+  },
+  isIncludedGroup: function(aGroupValue) {
+    if (!this.inclusive)
+      return false;
+    return this.groupValues.indexOf(aGroupValue) > -1;
+  },
+  isExcludedGroup: function(aGroupValue) {
+    if (this.inclusive)
+      return false;
+    return this.groupValues.indexOf(aGroupValue) > -1;
+  }
+};
+
+function ActiveNonSingularConstraint(aFaceter, aAttrDef, aRanged) {
+  this.faceter = aFaceter;
+  this.attrDef = aAttrDef;
+  this.ranged = Boolean(aRanged);
+
+  this.clear();
+}
+ActiveNonSingularConstraint.prototype = {
+  _makeQuery: function(aInclusive, aGroupValues) {
+    // have the faceter make the query and the invert decision for us if it
+    //  implements the makeQuery method.
+    if ("makeQuery" in this.faceter) {
+      // returns [query, invertQuery] directly
+      return this.faceter.makeQuery(aGroupValues, aInclusive);
+    }
+
+    let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
+    let constraintFunc;
+    // If the facet definition references a queryHelper defined by the noun
+    //  type, use that instead of the standard constraint function.
+    if ("queryHelper" in this.attrDef.facet)
+      constraintFunc = query[this.attrDef.boundName +
+                             this.attrDef.facet.queryHelper];
+    else
+      constraintFunc = query[this.ranged ? (this.attrDef.boundName + "Range")
+                                         : this.attrDef.boundName];
+    constraintFunc.apply(query, aGroupValues);
+
+    return [query, false];
+  },
+
+  /**
+   * Adjust the constraint given the incoming faceting constraint desired.
+   *  Mainly, if the inclusive flag is the same as what we already have, we
+   *  just append the new values to the existing set of values.  If it is not
+   *  the same, we replace them.
+   */
+  constrain: function(aInclusive, aGroupValues) {
+    let groupIdAttr = this.attrDef.objectNounDef.isPrimitive ? null
+                        : this.attrDef.facet.groupIdAttr;
+    let idMap = aInclusive ? this.includedGroupIds
+                           : this.excludedGroupIds;
+    let valList = aInclusive ? this.includedGroupValues
+                             : this.excludedGroupValues;
+    for each (let [, groupValue] in Iterator(aGroupValues)) {
+      let valId = (groupIdAttr !== null) ? groupValue[groupIdAttr] : groupValue;
+      idMap[valId] = true;
+      valList.push(groupValue);
+    }
+
+    let [query, invertQuery] = this._makeQuery(aInclusive, valList);
+    if (aInclusive && !invertQuery)
+      this.includeQuery = query;
+    else
+      this.excludeQuery = query;
+
+    return false;
+  },
+  /**
+   * Relax something we previously constrained.  Remove it, some might say.  It
+   *  is possible after relaxing that we will no longer be an active constraint.
+   *
+   * @return true if we are no longer constrained at all.
+   */
+  relax: function(aInclusive, aGroupValues) {
+    let groupIdAttr = this.attrDef.objectNounDef.isPrimitive ? null
+                        : this.attrDef.facet.groupIdAttr;
+    let idMap = aInclusive ? this.includedGroupIds
+                           : this.excludedGroupIds;
+    let valList = aInclusive ? this.includedGroupValues
+                             : this.excludedGroupValues;
+    for each (let [, groupValue] in Iterator(aGroupValues)) {
+      let valId = (groupIdAttr !== null) ? groupValue[groupIdAttr] : groupValue;
+      if (!(valId in idMap))
+        throw new Error("Tried to relax a constraint that was not in force.");
+      delete idMap[valId];
+
+      let index = valList.indexOf(groupValue);
+      valList.splice(index, 1);
+    }
+
+    if (valList.length == 0) {
+      if (aInclusive)
+        this.includeQuery = null;
+      else
+        this.excludeQuery = null;
+    }
+    else {
+      let [query, invertQuery] = this._makeQuery(aInclusive, valList);
+      if (aInclusive && !invertQuery)
+        this.includeQuery = query;
+      else
+        this.excludeQuery = query;
+    }
+
+    return this.includeQuery == null && this.excludeQuery == null;
+  },
+  /**
+   * Indicate whether this constraint is actually doing anything anymore.
+   */
+  get isConstrained() {
+    return this.includeQuery == null && this.excludeQuery == null;
+  },
+  /**
+   * Clear the constraint so that the next call to adjust initializes it.
+   */
+  clear: function() {
+    this.includeQuery = null;
+    this.includedGroupIds = {};
+    this.includedGroupValues = [];
+
+    this.excludeQuery = null;
+    this.excludedGroupIds = {};
+    this.excludedGroupValues = [];
+  },
+  /**
+   * Filter the items against our constraint.
+   */
+  sieve: function(aItems) {
+    let includeQuery = this.includeQuery, excludeQuery = this.excludeQuery;
+    let outItems = [];
+    for each (let [, item] in Iterator(aItems)) {
+      if ((!includeQuery || includeQuery.test(item)) &&
+          (!excludeQuery || !excludeQuery.test(item)))
+        outItems.push(item);
+    }
+    return outItems;
+  },
+  isIncludedGroup: function(aGroupValue) {
+    let valId = aGroupValue[this.attrDef.facet.groupIdAttr];
+    return (valId in this.includedGroupIds);
+  },
+  isExcludedGroup: function(aGroupValue) {
+    let valId = aGroupValue[this.attrDef.facet.groupIdAttr];
+    return (valId in this.excludedGroupIds);
   }
 };
 
@@ -178,8 +364,15 @@ var FacetContext = {
     this.build(this._collection.items);
   },
 
-  build: function(aNewSet) {
+  /**
+   * Kick-off a new faceting pass.
+   *
+   * @param aNewSet the set of items to facet.
+   * @param aCallback the callback to invoke when faceting is completed.
+   */
+  build: function(aNewSet, aCallback) {
     this._activeSet = aNewSet;
+    this._callbackOnFacetComplete = aCallback;
     this.facetDriver.go(this._activeSet, this.facetingCompleted, this);
   },
 
@@ -215,6 +408,7 @@ var FacetContext = {
         let explicitBinding = document.getElementById("facet-" + attrName);
 
         if (explicitBinding) {
+          explicitBinding.explicit = true;
           explicitBinding.faceter = faceter;
           explicitBinding.attrDef = faceter.attrDef;
           explicitBinding.nounDef = faceter.attrDef.objectNounDef;
@@ -239,6 +433,7 @@ var FacetContext = {
           faceter: faceter,
           orderedGroups: faceter.orderedGroups,
           maxDisplayRows: this.maxDisplayRows,
+          explicit: false,
         });
       }
     }
@@ -252,9 +447,9 @@ var FacetContext = {
           continue;
 
         // hide things that have 0/1 groups now and are not constrained and not
-        //  boolean
+        //  explicit
         if (faceter.groupCount <= 1 && !faceter.constraint &&
-            (faceter.type != "boolean"))
+            (!faceter.xblNode.explicit || faceter.type == "date"))
           $(faceter.xblNode).hide();
         // otherwise, update
         else {
@@ -269,6 +464,12 @@ var FacetContext = {
     let numMessageToShow = Math.min(this.maxMessagesToShow,
                                     this._activeSet.length);
     results.setMessages(this._activeSet.slice(0, numMessageToShow));
+
+    if (this._callbackOnFacetComplete) {
+      let callback = this._callbackOnFacetComplete;
+      this._callbackOnFacetComplete = null;
+      callback();
+    }
   },
 
   _HOVER_STABILITY_DURATION_MS: 100,
@@ -321,8 +522,8 @@ var FacetContext = {
    */
   _activeConstraints: {},
   /**
-   * Called by facets when the user does some clicking and wants to impose a new
-   *  constraint.
+   * Called by facet bindings when the user does some clicking and wants to
+   *  impose a new constraint.
    *
    * @param aFaceter
    * @param aAttrDef
@@ -334,10 +535,15 @@ var FacetContext = {
    *     our display allows a click to actually make our range more generic
    *     than it currently is.  (But this only matters if we already have
    *     a date constraint applied.)
+   *
+   * @return true if the caller needs to revalidate because the constraint has
+   *     changed in a way other than explicitly requested.  This can occur if
+   *     a singular constraint flips its inclusive state and throws away
+   *     constraints.
    */
-  addFacetConstraint: function(aFaceter, aAttrDef, aInclusive, aGroupValues,
-                               aRanged, aNukeExisting) {
-    let attrName = aAttrDef.attributeName;
+  addFacetConstraint: function(aFaceter, aInclusive, aGroupValues,
+                               aRanged, aNukeExisting, aCallback) {
+    let attrName = aFaceter.attrDef.attributeName;
 
     let constraint;
     let needToSieveAll = false;
@@ -346,16 +552,16 @@ var FacetContext = {
 
       needToSieveAll = true;
       if (aNukeExisting)
-        constraint.replace(aInclusive, aGroupValues);
-      else
-        constraint.adjust(aInclusive, aGroupValues);
+        constraint.clear();
     }
     else {
+      let constraintClass = aFaceter.attrDef.singular ? ActiveSingularConstraint
+                              : ActiveNonSingularConstraint;
       constraint = this._activeConstraints[attrName] =
-        new ActiveConstraint(aFaceter, aAttrDef, aInclusive, aGroupValues,
-                             aRanged);
+        new constraintClass(aFaceter, aFaceter.attrDef, aRanged);
+      aFaceter.constraint = constraint;
     }
-    aFaceter.constraint = constraint;
+    let needToRevalidate = constraint.constrain(aInclusive, aGroupValues);
 
     // Given our current implementation, we can only be further constraining our
     //  active set, so we can just sieve the existing active set with the
@@ -363,16 +569,47 @@ var FacetContext = {
     //  cheaper to use the facet's knowledge about the items in the groups, but
     //  for now let's keep a single code-path for how we refine the active set.
     this.build(needToSieveAll ? this._sieveAll()
-                              : constraint.sieve(this.activeSet));
+                              : constraint.sieve(this.activeSet),
+               aCallback);
+
+    return needToRevalidate;
   },
 
-  removeFacetConstraint: function(aFaceter) {
+  /**
+   * Remove a constraint previously imposed by addFacetConstraint.  The
+   *  constraint must still be active, which means you need to pay attention
+   *  when |addFacetConstraint| returns true indicating that you need to
+   *  revalidate.
+   *
+   * @param aFaceter
+   * @param aInclusive Whether the group values were previously included /
+   *     excluded.  If you want to remove some values that were included and
+   *     some that were excluded then you need to call us once for each case.
+   * @param aGroupValues The list of group values to remove.
+   * @param aCallback The callback to call once all facets have been updated.
+   *
+   * @return true if the constraint has been completely removed.  Under the
+   *     current regime, this will likely cause the binding that is calling us
+   *     to be rebuilt, so be aware if you are trying to do any cool animation
+   *     that might no longer make sense.
+   */
+  removeFacetConstraint: function(aFaceter, aInclusive, aGroupValues,
+                                  aCallback) {
     let attrName = aFaceter.attrDef.attributeName;
-    delete this._activeConstraints[attrName];
-    aFaceter.constraint = null;
+    let constraint = this._activeConstraints[attrName];
+
+    let constraintGone = false;
+
+    if (constraint.relax(aInclusive, aGroupValues)) {
+      delete this._activeConstraints[attrName];
+      aFaceter.constraint = null;
+      constraintGone = true;
+    }
 
     // we definitely need to re-sieve everybody in this case...
-    this.build(this._sieveAll());
+    this.build(this._sieveAll(), aCallback);
+
+    return constraintGone;
   },
 
   /**

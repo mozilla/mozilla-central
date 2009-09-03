@@ -152,7 +152,11 @@ h1, h2, h3 {
 }
 
 .facet-included[state="empty"],
-.facet-excluded[state="empty"] {
+.facet-excluded-header,
+.facet-remainder-header {
+  font-size: 60%;
+.facet-excluded-header[state="empty"],
+.facet-remainder-header[needed="false"] {
   display: none;
 }
 
@@ -286,14 +290,6 @@ h1, h2 {
   font-size: 80%;
 }
 
-.bar[included] {
-  background-color: #efffef;
-}
-
-.bar[excluded] {
-  text-decoration: line-through;
-}
-
 
 .bar:hover {
   background: #e8e8e8;
@@ -340,12 +336,33 @@ h1, h2 {
   z-index: 3;
 }
 
-.bar:hover > .bar-exclude {
+.bar-remove {
+  display: block;
+  visibility: hidden;
+  background-image: url("chrome://messenger/skin/icons/thread-watched.png");
+  position: absolute;
+  top: 0.3em;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  z-index: 3;
+}
+
+.bar[variety="remainder"]:hover > .bar-exclude {
+  visibility: visible;
+}
+
+.bar[variety="include"]:hover > .bar-remove,
+.bar[variety="exclude"]:hover > .bar-remove {
   visibility: visible;
 }
 
 .bar-exclude:hover {
   background-image: url("chrome://messenger/skin/icons/exclude-selected.png");
+}
+
+.bar-remove:hover {
+  background-color: #ffffcc;
 }
 
 /* ===== Results ===== */

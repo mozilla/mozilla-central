@@ -277,14 +277,15 @@
           this.setAttribute("checked", "true");
           this.checkbox.setAttribute("checked", "true");
           if (!this.disabled)
-            FacetContext.addFacetConstraint(this.faceter, this.attrDef, true,
+            FacetContext.addFacetConstraint(this.faceter, true,
                                             this.trueGroups);
         }
         else {
           this.removeAttribute("checked");
           this.checkbox.removeAttribute("checked");
           if (!this.disabled)
-            FacetContext.removeFacetConstraint(this.faceter);
+            FacetContext.removeFacetConstraint(this.faceter, true,
+                                               this.trueGroups);
         }
         this.checkStateChanged();
       ]]></setter>
@@ -476,13 +477,13 @@
           return;
         if (this.filterNode.value == "all") {
           this.selectedValue = "all";
-          FacetContext.addFacetConstraint(this.faceter, this.attrDef, true,
+          FacetContext.addFacetConstraint(this.faceter, true,
                                           this.trueGroups, false, true);
         }
         else {
           let groupValue = this.realTrueGroups[parseInt(this.filterNode.value)];
           this.selectedValue = groupValue.category;
-          FacetContext.addFacetConstraint(this.faceter, this.attrDef, true,
+          FacetContext.addFacetConstraint(this.faceter, true,
                                           [groupValue], false, true);
         }
       ]]></body>
@@ -497,11 +498,12 @@
        so. magic! (this is why our binding node's class is facetious. -->
   <html:div class="facet">
     <html:h2 anonid="name"></html:h2>
-    <html:h2 anonid="included-label" class="facet-included-header"></html:h2>
+    <html:h3 anonid="included-label" class="facet-included-header"></html:h3>
     <html:ul anonid="included" class="facet-included barry"></html:ul>
-    <html:h2 anonid="excluded-label" class="facet-excluded-header"></html:h2>
+    <html:h3 anonid="excluded-label" class="facet-excluded-header"></html:h3>
     <html:ul anonid="excluded" class="facet-excluded barry"></html:ul>
-    <html:ul anonid="candidates" class="barry"></html:ul>
+    <html:h3 anonid="remainder-label" class="facet-remainder-header"></html:h3>
+    <html:ul anonid="remainder" class="facet-remaindered barry"></html:ul>
   </html:div>
   </content>
   <implementation>
@@ -534,27 +536,57 @@
         nameNode.textContent = this.attrDef.strings.facetLabel;
         nameNode.setAttribute("title", this.attrDef.strings.facetTooltip);
 
-        this.inclLabel = document.getAnonymousElementByAttribute(
+        // - include
+        // setup the include label
+        this.includeLabel = document.getAnonymousElementByAttribute(
                            this, "anonid", "included-label");
-        this.inclLabel.textContent = glodaFacetStrings.get(
-                                       "glodaFacetView.facets.included.label");
-        this.inclList = document.getAnonymousElementByAttribute(this, "anonid",
-                                                                "included");
-        this.exclLabel = document.getAnonymousElementByAttribute(
-                           this, "anonid", "excluded-label");
-        this.exclLabel.textContent = glodaFacetStrings.get(
-                                       "glodaFacetView.facets.excluded.label");
-        this.exclList = document.getAnonymousElementByAttribute(this, "anonid",
-                                                                "excluded");
+        if ("includeLabel" in this.attrDef.strings)
+          this.includeLabel.textContent = this.attrDef.strings.includeLabel;
+        else
+          this.includeLabel.textContent =
+            glodaFacetStrings.get(
+              "glodaFacetView.facets.included.fallbackLabel");
+        this.includeLabel.setAttribute("state", "empty");
 
-        this.inclLabel.setAttribute("state", "empty");
-        this.exclLabel.setAttribute("state", "empty");
+        // include list ref
+        this.includeList = document.getAnonymousElementByAttribute(
+                                      this, "anonid", "included");
+
+        // - exclude
+        // setup the exclude label
+        this.excludeLabel = document.getAnonymousElementByAttribute(
+                                       this, "anonid", "excluded-label");
+        if ("excludeLabel" in this.attrDef.strings)
+          this.excludeLabel.textContent = this.attrDef.strings.excludeLabel;
+        else
+          this.excludeLabel.textContent =
+            glodaFacetStrings.get(
+              "glodaFacetView.facets.excluded.fallbackLabel");
+        this.excludeLabel.setAttribute("state", "empty");
+
+        // exclude list ref
+        this.excludeList = document.getAnonymousElementByAttribute(
+                                      this, "anonid", "excluded");
+
+        // - remainder
+        // setup the remainder label
+        this.remainderLabel = document.getAnonymousElementByAttribute(
+                                this, "anonid", "remainder-label");
+        if ("remainderLabel" in this.attrDef.strings)
+          this.remainderLabel.textContent = this.attrDef.strings.remainderLabel;
+        else
+          this.remainderLabel.textContent =
+            glodaFacetStrings.get(
+              "glodaFacetView.facets.remainder.fallbackLabel");
+        // remainder list ref
+        this.remainderList = document.getAnonymousElementByAttribute(
+                                        this, "anonid", "remainder");
+
 
         // -- House-cleaning
         // -- All/Top mode decision
         // to simplify our logic, we always need an other group sentinel even
         //  if we are operating in "all" mode.
-        this.otherGroupObject = {};
         this.modes = ["all"];
         if (this.maxDisplayRows >= this.orderedGroups.length) {
           this.mode = "all";
@@ -565,8 +597,7 @@
           this.mode = "top";
           this.topGroups = FacetUtils.makeTopGroups(this.attrDef,
                                                     this.orderedGroups,
-                                                    this.maxDisplayRows,
-                                                    this.otherGroupObject);
+                                                    this.maxDisplayRows);
         }
 
         // -- Row Building
@@ -580,24 +611,20 @@
         let useGroups = (this.mode == "all") ? this.orderedGroups
                                              : this.topGroups;
 
-        // -- empty all of our display buckets...
-        let root = document.getAnonymousElementByAttribute(this, "anonid",
-                                                           "candidates");
-        while (root.lastChild)
-          root.removeChild(root.lastChild);
+        let constraint = this.constraint;
 
-        let inclList = this.inclList, exclList = this.exclList;
+        // -- empty all of our display buckets...
+        let remainderList = this.remainderList;
+        while (remainderList.lastChild)
+          remainderList.removeChild(remainderList.lastChild);
+        let inclList = this.includeList, excludeList = this.excludeList;
         while (inclList.lastChild)
           inclList.removeChild(inclList.lastChild);
-        while (exclList.lastChild)
-          exclList.removeChild(exclList.lastChild);
+        while (excludeList.lastChild)
+          excludeList.removeChild(excludeList.lastChild);
 
-        // for our bar-graph thing we need to find the largest group size
-        let maxGroupSize = 0;
-        for each (let [, groupPair] in Iterator(useGroups)) {
-          maxGroupSize = Math.max(maxGroupSize, groupPair[1].length);
-        }
-
+        // -- create the items, assigning them to the right list based on
+        //  existing constraint values
         for each (let [, groupPair] in Iterator(useGroups)) {
           let [groupValue, groupItems] = groupPair;
           let li = document.createElement("li");
@@ -638,8 +665,50 @@
           excludeSpan.setAttribute("class", "bar-exclude");
           li.appendChild(excludeSpan);
 
-          root.appendChild(li);
+          let removeSpan = document.createElement("span");
+          removeSpan.setAttribute("class", "bar-remove");
+          li.appendChild(removeSpan);
+
+          // root it under the appropriate list
+          if (constraint) {
+            if (constraint.isIncludedGroup(groupValue)) {
+              li.setAttribute("variety", "include");
+              includeList.appendChild(li);
+            }
+            else if (constraint.isExcludedGroup(groupValue)) {
+              li.setAttribute("variety", "exclude");
+              excludeList.appendChild(li);
+            }
+            else {
+              li.setAttribute("variety", "remainder");
+              remainderList.appendChild(li);
+            }
+          }
+          else {
+            li.setAttribute("variety", "remainder");
+            remainderList.appendChild(li);
+          }
         }
+
+        this.updateHeaderStates();
+      ]]></body>
+    </method>
+    <!--
+      - Mark the include/exclude headers as "some" if there is anything in their
+      -  lists, mark the remainder header as "needed" if either of include /
+      -  exclude exist so we need that label.
+      -->
+    <method name="updateHeaderStates">
+      <parameter name="aItems" />
+      <body><![CDATA[
+        this.includeLabel.setAttribute("state",
+          this.includeList.childElementCount ? "some" : "empty");
+        this.excludeLabel.setAttribute("state",
+          this.excludeList.childElementCount ? "some" : "empty");
+        this.remainderLabel.setAttribute("needed",
+          ((this.includeList.childElementCount ||
+            this.excludeList.childElementCount) &&
+           this.remainderList.childElementCount) ? "true" : "false");
       ]]></body>
     </method>
     <method name="brushItems">
@@ -652,11 +721,11 @@
       ]]></body>
     </method>
     <method name="afterListVisible">
-      <parameter name="aInclude" />
+      <parameter name="aVariety" />
       <parameter name="aCallback" />
       <body><![CDATA[
-        let labelNode = aInclude ? this.inclLabel : this.exclLabel;
-        let listNode = aInclude ? this.inclList : this.exclList;
+        let labelNode = this[aVariety + "Label"];
+        let listNode = this[aVariety + "List"];
 
         // if there are already things displayed, no need
         if (listNode.childElementCount) {
@@ -664,114 +733,131 @@
           return;
         }
 
+        let remListVisible =
+          this.remainderLabel.getAttribute("needed") == "true";
+        let remListShouldBeVisible =
+          this.remainderList.childElementCount > 1;
+
         labelNode.setAttribute("state", "some");
-        $(labelNode)
+        if (remListVisible != remListShouldBeVisible)
+          showNodes = $([labelNode, this.remainderLabel]);
+        else
+          showNodes = $(labelNode);
+        showNodes
           .hide()
           .slideDown("fast", aCallback);
       ]]></body>
     </method>
+    <method name="_flyBarAway">
+      <parameter name="aBarNode" />
+      <parameter name="aVariety" />
+      <parameter name="aCallback" />
+      <body><![CDATA[
+        // figure out our origin location prior to adding the target or it
+        //  will shift us down.
+        let $barNode = $(aBarNode);
+        let origin = $barNode.offset();
+
+        // clone the node into its target location
+        let targetNode = aBarNode.cloneNode(true);
+        targetNode.groupValue = aBarNode.groupValue;
+        targetNode.groupItems = aBarNode.groupItems;
+        targetNode.setAttribute("variety", aVariety);
+
+        let targetParent = this[aVariety + "List"];
+        targetParent.appendChild(targetNode);
+
+        // create a flying clone
+        let flyingNode = aBarNode.cloneNode(true);
+
+        // animate the flying clone... flying!
+        let $targetNode = $(targetNode);
+        let dest = $targetNode.offset();
+
+        let $flyingNode = $(flyingNode)
+          .appendTo("body")
+          .css("position", "absolute")
+          .css("width", $barNode.width())
+          .css("height", $barNode.height())
+          .css("top", origin.top)
+          .css("left", origin.left)
+          .css("zIndex", 1000)
+          .animate({
+              top: dest.top,
+              left: dest.left
+            },
+            // have a velocity of 1 pixel every 4ms
+            Math.abs(dest.top - origin.top) * 6, function() {
+              $barNode.remove();
+              $targetNode.show();
+              $flyingNode.remove();
+
+              if (aCallback)
+                setTimeout(aCallback, 50);
+            });
+
+        // hide the target (cloned) node
+        $(targetNode).hide();
+
+        // hide the original node and remove its JS properties
+        $(aBarNode).css("visibility", "hidden");
+        delete aBarNode.groupValue;
+        delete aBarNode.groupItems;
+      ]]></body>
+    </method>
     <method name="barClicked">
       <parameter name="aBarNode" />
-      <parameter name="aInclude" />
+      <parameter name="aVariety" />
       <body><![CDATA[
         let groupValue = aBarNode.groupValue;
         let groupItems = aBarNode.groupItems;
 
-        // The 'other' object has special interaction semantics given that it is
-        //  in fact an aggregation of a bunch of other groups.
-        // Clicking on it inclusively results in excluding all of the displayed
-        //  top groups.  This allows us to keep displaying the facet while also
-        //  having stable behavior if the user starts excluding single groups.
-        //  (Our rule is that we only have one active constraint per attribute
-        //  at a time, so if we treated the other inclusion as an inclusion, the
-        //  subsequent exclude would knock the inclusion off the chart.
-        // Clicking on it exclusively results in excluding all of the groups in
-        //  the 'other' group.  We do this for the same rationale as in the
-        //  inclusion case; we need subsequent excludes to not do weird things
-        //  (or complicate the implementation).
-        // (If we start allowing multiple inclusion, we will keep these
-        //  semantics; we will simply remove things from the inclusion set when
-        //  excluded.  Easy peasy.)
-        if (groupValue == this.otherGroupObject) {
-          if (aInclude) {
-            // build up the list of non-other group values.  since other is
-            //  always last, this is not so hard.
-            let groupValues = [];
-            for (let iGroup = 0; iGroup < this.topGroups.length - 1; iGroup++) {
-              groupValues.push(this.topGroups[iGroup][0]);
-            }
-
-            FacetContext.addFacetConstraint(this.faceter, this.attrDef, false,
-                                            groupValues);
-            return;
-          }
-          // exclusive case, exclude all the values in the group... we already
-          //  know who they are, though from the sentinel object.
-          FacetContext.addFacetConstraint(this.faceter, this.attrDef, false,
-                                          this.otherGroupObject.groupValues);
-          return;
-        }
-
-        // When clicking on something we want to animate it flying up into the
-        //  appropriate list (included/excluded).  This depends on the list
-        //  being visible, which may also need animation.
         let dis = this;
-        this.afterListVisible(aInclude, function() {
-          // figure out our origin location prior to adding the target or it
-          //  will shift us down.
-          let $barNode = $(aBarNode);
-          let origin = $barNode.offset();
+        // These determine what goAnimate actually does.
+        // flyAway allows us to cancel flying in the case the constraint is
+        //  being fully dropped and so the facet is just going to get rebuilt
+        let flyAway = true;
 
-          // clone the node into its target location
-          let targetNode = aBarNode.cloneNode(true);
-          targetNode.groupValue = groupValue;
-          targetNode.groupItems = groupItems;
-          targetNode.setAttribute(aInclude ? "included" : "excluded", "true");
-          targetNode.removeAttribute(aInclude ? "excluded" : "included")
-
-          let targetParent = aInclude ? dis.inclList : dis.exclList;
-          targetParent.appendChild(targetNode);
-
-          // create a flying clone
-          let flyingNode = aBarNode.cloneNode(true);
-
-          // animate the flying clone... flying!
-          let $targetNode = $(targetNode);
-          let dest = $targetNode.offset();
-
-          let $flyingNode = $(flyingNode)
-            .appendTo("body")
-            .css("position", "absolute")
-            .css("width", $barNode.width())
-            .css("height", $barNode.height())
-            .css("top", origin.top)
-            .css("left", origin.left)
-            .css("zIndex", 1000)
-            .animate({
-                top: dest.top,
-                left: dest.left
-              },
-              // have a velocity of 1 pixel every 4ms
-              Math.abs(dest.top - origin.top) * 6, function() {
-                $barNode.remove();
-                $targetNode.show();
-                $flyingNode.remove();
-
-                setTimeout(function() {
-                    FacetContext.addFacetConstraint(dis.faceter, dis.attrDef,
-                                                    aInclude, [groupValue]);
-                  }, 50);
+        function goAnimate() {
+          dump("!!! in animate\n");
+          if (flyAway) {
+            dump(" !! in fly away\n");
+            dis.afterListVisible(aVariety, function() {
+              dis._flyBarAway(aBarNode, aVariety, function() {
+                dis.updateHeaderStates();
               });
+            });
+          }
+        };
 
-          // hide the target (cloned) node
-          $(targetNode).hide();
-
-          // hide the original node and remove its JS properties
-          $(aBarNode).css("visibility", "hidden");
-          delete aBarNode.groupValue;
-          delete aBarNode.groupItems;
-        });
-
+        // Immediately apply the facet change, triggering the animation after
+        //  the faceting completes.
+        if (aVariety == "remainder") {
+          let currentVariety = aBarNode.getAttribute("variety");
+          let constraintGone = FacetContext.removeFacetConstraint(
+                                 this.faceter,
+                                 currentVariety == "include",
+                                 [groupValue],
+                                 goAnimate);
+          // we will automatically rebuild if the constraint is gone, so
+          //  just make the animation a no-op.
+          if (constraintGone)
+            flyAway = false;
+        }
+        // include/exclude
+        else {
+          let revalidate = FacetContext.addFacetConstraint(
+                             this.faceter,
+                             aVariety == "include",
+                             [groupValue],
+                             false, false, goAnimate);
+          // revalidate means we need to blow away the other dudes, in which
+          //  case it makes the most sense to just trigger a rebuild of ourself
+          if (revalidate) {
+            flyAway = false;
+            this.build(false);
+          }
+        }
       ]]></body>
     </method>
     <method name="barHovered">
@@ -807,9 +893,11 @@
 
       let nodeClass = nodeClasses.split(" ")[0];
       if (nodeClass == "bar-exclude")
-        this.barClicked(event.originalTarget.parentNode, false);
+        this.barClicked(event.originalTarget.parentNode, "exclude");
       else if (nodeClass == "bar-link")
-        this.barClicked(event.originalTarget.parentNode, true);
+        this.barClicked(event.originalTarget.parentNode, "include");
+      else if (nodeClass == "bar-remove")
+        this.barClicked(event.originalTarget.parentNode, "remainder");
     ]]></handler>
     <handler event="mouseover"><![CDATA[
       // we dispatch based on the class of the thing we clicked on.
@@ -1015,7 +1103,7 @@
             recipientsNode.appendChild(recipNode);
           }
         }
-        
+
         // - Starred
         let starNode = anonElem("star");
         if (message.starred) {

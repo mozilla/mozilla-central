@@ -1442,10 +1442,17 @@ var Gloda = {
    *  exposed as in the attribute's "strings" attribute (if the provider has a
    *  string bundle exposed on its "strings" attribute).  They are rooted at
    *  "gloda.SUBJECT-NOUN-NAME.attr.ATTR-NAME.*".
+   *
+   * Please consult the localization notes in gloda.properties to understand
+   *  what these are used for.
    */
   _ATTR_LOCALIZED_STRINGS: {
+    /* - Faceting */
     facetLabel: "facetLabel",
     facetTooltip: "facetTooltip",
+    includeLabel: "includeLabel",
+    excludeLabel: "excludeLabel",
+    remainderLabel: "remainderLabel",
   },
   /**
    * Define an attribute and all its meta-data.  Takes a single dictionary as

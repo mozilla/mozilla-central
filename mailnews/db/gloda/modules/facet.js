@@ -141,21 +141,19 @@ var FacetUtils = {
 
   /**
    * Given a list where each entry is a tuple of [group object, list of items
-   *  belonging to that group], produce a new list of the top grouped items plus
-   *  an "other" category.
+   *  belonging to that group], produce a new list of the top grouped items.  We
+   *  used to also produce an "other" aggregation, but that turned out to be
+   *  conceptually difficult to deal with, so that's gone, leaving this method
+   *  with much less to do.
    *
    * @param aAttrDef The attribute for the facet we are working with.
    * @param aGroups The list of groups built for the facet.
-   * @param aMaxCount The number of result rows you want back.  We will provide
-   *     the aMaxCount-1 rows plus an "other" row which we put last.
-   * @param aOtherSentinel An object to use as the other sentinel object and the
-   *     count of the number of groups that went into the other group.  The
-   *     count is found in the 'count' attribute of this object.
+   * @param aMaxCount The number of result rows you want back.
    */
   makeTopGroups: function FacetUtils_makeTopGroups(aAttrDef, aGroups,
-                                                   aMaxCount, aOtherSentinel) {
+                                                   aMaxCount) {
     let nounDef = aAttrDef.objectNounDef;
-    let realGroupsToUse = aMaxCount - 1;
+    let realGroupsToUse = aMaxCount;
 
     let orderedBySize = aGroups.concat();
     orderedBySize.sort(this._groupSizeComparator);
@@ -167,46 +165,6 @@ var FacetUtils = {
       return comparator(a[0], b[0]);
     }
     outGroups.sort(comparatorHelper);
-
-    // - build the 'other' group
-    let otherItems, otherGroupValues;
-    // If the attribute is singular, we can just concatenate everybody together
-    if (aAttrDef.singular) {
-      // Since concat can take multiple arrays, build a list of all of the items
-      //  except for the first one who we will issue the concat call against.
-      //  (We could also just use an empty array as the base.)
-      let iGroup = realGroupsToUse;
-      otherGroupValues = [orderedBySize[iGroup][0]];
-      let firstItemList = orderedBySize[iGroup++][1];
-      let otherItemLists = [];
-      for (; iGroup < orderedBySize.length; iGroup++) {
-        otherGroupValues.push(orderedBySize[iGroup][0]);
-        otherItemLists.push(orderedBySize[iGroup][1]);
-      }
-
-      otherItems = firstItemList.concat.apply(firstItemList, otherItemLists);
-    }
-    // For non-singular attributes, we need to uniqify the contents.  If we
-    //  naively concatenated all the items, we might end up with duplicates.
-    else {
-      let idsSeen = {};
-      otherItems = [];
-      otherGroupValues = [];
-      for (let iGroup = realGroupsToUse; iGroup < orderedBySize.length;
-           iGroup++) {
-        otherGroupValues.push(orderedBySize[iGroup][0]);
-        for each (let [, item] in Iterator(orderedBySize[iGroup][1])) {
-          if (!(item.id in idsSeen)) {
-            idsSeen[item.id] = true;
-            otherItems.push(item);
-          }
-        }
-      }
-    }
-
-    aOtherSentinel.count = orderedBySize.length - realGroupsToUse;
-    aOtherSentinel.groupValues = otherGroupValues;
-    outGroups.push([aOtherSentinel, otherItems]);
 
     return outGroups;
   }
