@@ -50,11 +50,6 @@
 <binding id="query-explanation">
   <content>
   </content>
-  <handlers>
-    <handler event="click"><![CDATA[
-    logEvent(event);
-    ]]></handler>
-  </handlers>
   <implementation>
     <!-- Indicate that we are based on a fulltext search-->
     <method name="setFulltext">
