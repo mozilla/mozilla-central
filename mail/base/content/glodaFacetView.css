@@ -40,6 +40,7 @@
 body {
   padding: 0;
   margin: 0;
+  width: 100%;
   font-family: sans-serif;
   position: relative;
   display: table;
@@ -48,6 +49,7 @@ body {
 
 #row {
   display: table-row;
+  background: white;
 }
 
 .facets-sidebar {
@@ -59,7 +61,7 @@ body {
   font-size: 90%;
 }
 #main-column {
-  display: table-cell
+  display: table-cell;
 }
 
 
@@ -183,12 +185,11 @@ h2 {
 #facet-date {
   display: block;
   padding: 0px;
-  padding-top: 2.5em;
+  padding-top: 0.5em;
   height: 80px;
   margin-right: 1em;
   padding-left: 2em;
   padding-bottom: 1em;
-  text-align: right;
 }
 
 /* === Boolean Facet === */
@@ -364,6 +365,7 @@ h2 {
 .results {
   margin-left: 0.5em;
   margin-top: 2em;
+  max-width: 40em;
 }
 
 .results-message-header {
