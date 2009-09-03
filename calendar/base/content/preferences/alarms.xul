@@ -200,8 +200,10 @@
                         <hbox>
                             <textbox id="eventdefalarmlen"
                                      preference="calendar.alarms.eventalarmlen"
+                                     type="number"
+                                     min="0"
                                      size="3"
-                                     oninput="validateNaturalNums(event); gAlarmsPane.updateMenuPlural('eventdefalarmlen','eventdefalarmunit')"/>
+                                     oninput="gAlarmsPane.updateMenuPlural('eventdefalarmlen','eventdefalarmunit')"/>
                             <menulist id="eventdefalarmunit"
                                       crop="none"
                                       preference="calendar.alarms.eventalarmunit"
@@ -236,8 +238,10 @@
                         <hbox>
                             <textbox id="tododefalarmlen"
                                      preference="calendar.alarms.todoalarmlen"
+                                     type="number"
+                                     min="0"
                                      size="3"
-                                     oninput="validateNaturalNums(event); gAlarmsPane.updateMenuPlural('tododefalarmlen','tododefalarmunit')"/>
+                                     oninput="gAlarmsPane.updateMenuPlural('tododefalarmlen','tododefalarmunit')"/>
                             <menulist id="tododefalarmunit"
                                       crop="none"
                                       preference="calendar.alarms.todoalarmunit"

@@ -104,9 +104,10 @@
                        control="defaultlength"/>
                 <textbox id="defaultlength"
                          preference="calendar.event.defaultlength"
+                         type="number"
+                         min="0"
                          maxlength="3"
-                         size="3"
-                         oninput="validateNaturalNums(event);"/>
+                         size="3"/>
                 <label value="&calendar.global.units.minutes;"/>
             </hbox>
 
@@ -116,9 +117,10 @@
                        control="defaultsnoozelength"/>
                 <textbox id="defaultsnoozelength"
                          preference="calendar.alarms.defaultsnoozelength"
+                         type="number"
+                         min="0"
                          maxlength="3"
-                         size="3"
-                         oninput="validateNaturalNums(event);"/>
+                         size="3"/>
                 <label value="&calendar.global.units.minutes;"/>
             </hbox>
 
@@ -133,8 +135,10 @@
                           accesskey="&pref.autorefresh.accesskey;"/>
                 <textbox id="refreshtimeout"
                          preference="calendar.autorefresh.timeout"
-                         size="3"
-                         oninput="validateIntegerRange(event, 1, 0x7FFFF);"/>
+                         type="number"
+                         min="1"
+                         max="0x7FFFF"
+                         size="3"/>
                 <label value="&calendar.global.units.minutes;"/>
             </hbox>
         </groupbox>

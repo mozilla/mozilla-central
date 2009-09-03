@@ -807,6 +807,8 @@ let gFolderTreeView = {
                                             nsMsgFolderFlags.Archive, "Archives");
     gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
                                             nsMsgFolderFlags.Junk, "Junk");
+    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
+                                            nsMsgFolderFlags.Queue, "Outbox");
 
     sortFolderItems(smartChildren);
     for each (smartChild in smartChildren)
@@ -833,6 +835,15 @@ let gFolderTreeView = {
   _addSmartFoldersForFlag: function ftv_addSmartFoldersForFlag(map, accounts, smartRootFolder,
                                                                flag, folderName)
   {
+    // If there's only one subFolder, just put it at the root.
+    let subFolders = gFolderTreeView._allFoldersWithFlag(accounts, flag, false);
+    if (subFolders.length == 1) {
+      let folderItem = new ftvItem(subFolders[0]);
+      folderItem._level = 0;
+      map.push(folderItem);
+      return;
+    }
+
     let smartFolder;
     try {
       let folderUri = smartRootFolder.URI + "/" + folderName;
@@ -857,7 +868,6 @@ let gFolderTreeView = {
     let smartFolderItem = new ftvItem(smartFolder);
     smartFolderItem._level = 0;
     map.push(smartFolderItem);
-    let subFolders = gFolderTreeView._allFoldersWithFlag(accounts, flag, false);
     // now add the actual inboxes as sub-folders of the saved search.
     // By setting _children directly, we bypass the normal calculation
     // of subfolders.
