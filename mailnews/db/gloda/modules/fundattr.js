@@ -275,7 +275,6 @@ var GlodaFundAttr = {
       attributeType: Gloda.kAttrFundamental,
       attributeName: "bcc",
       singular: false,
-      facet: true,
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_IDENTITY,
     }); // not-tested
