@@ -1043,10 +1043,8 @@
         sortDateNode.textContent = glodaFacetStrings.get(
           "glodaFacetView.results.message.sort.date");
         sortDateNode.onclick = function() {
-          dump("in onclink\n");
           FacetContext.sortBy = '-date';
           dis.updateSortLabels();
-          dump("updated\n");
         }
 
         this.updateSortLabels(FacetContext.sortBy);
