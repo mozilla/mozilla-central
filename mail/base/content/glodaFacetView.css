@@ -38,22 +38,28 @@
  * ***** END LICENSE BLOCK ***** */
 
 body {
-  background: #ffffff;
+  background: white url("chrome://messenger/skin/icons/faceted-background.png") repeat-y 0 0;
   padding: 0;
   margin: 0;
   font-family: sans-serif;
+  position: relative;
+  background: #eeeeee;
 }
 
+#main-column {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 19.5em;
+  background: white;
+}
 /* ===== Query Explanation ===== */
 
 #query-explanation {
   display: block;
-  position: absolute;
-  top: 0em;
-  left: 20.5em;
   height: 40px;
   font-size: 110%;
-  margin-left: 0;
+  margin-left: 1em;
   padding: 2px;
   padding-left: 0;
   padding-top: 1em;
@@ -131,7 +137,7 @@ h1, h2, h3 {
   left: 0;
   bottom: 0;
   width: 20em;
-  background-color: #eeeeee;
+  /*background-color: #eeeeee;*/
   padding: 4px;
   padding-left: 1em;
   font-size: 90%;
@@ -178,14 +184,12 @@ h2 {
 
 #facet-date {
   display: block;
-  position: absolute;
-  top: 2.5em;
-  height: 80px;
-  right: 1em;
-  left: 20.5em;
-  text-align: right;
   padding: 0px;
-  display: block;
+  padding-top: 2.5em;
+  height: 80px;
+  margin-right: 1em;
+  padding-bottom: 1em;
+  text-align: right;
 }
 
 /* === Boolean Facet === */
@@ -261,9 +265,10 @@ h2 {
 }
 
 .barry {
-  border-top: 1px solid #EEE;
+  border-top: 1px solid #ccc;
   margin: 0;
-  padding: 4px;
+  padding: 0; 
+  /*padding: 4px;*/
 }
 
 .facet-modes {
@@ -294,14 +299,14 @@ h2 {
 .bar {
   display: block;
   position: relative;
-  border-bottom: 1px solid #EEE;
+  border-bottom: 1px solid #ccc;
   cursor: pointer;
   font-size: 80%;
 }
 
 
 .bar:hover {
-  background: #e8e8e8;
+  background: #e2e2e2;
 }
 
 .bar-link {
@@ -358,19 +363,23 @@ h2 {
 /* ===== Results ===== */
 
 .results {
-  margin-left: 20.5em;
-  margin-top: 170px;
+  margin-left: 0.5em;
+  margin-top: 2em;
 }
 
 .results-message-header {
   background-color: #dcddde;
   border-top: 2px solid #ccc;
   padding: 2px;
+  margin-right: 0.5em;
+  margin-bottom: 0.5em;
+  position: relative;
 }
 
 .results-message-count {
   display: inline;
   margin: 0;
+  margin-left: 0.5em;
   font-size: medium;
 }
 
@@ -378,6 +387,28 @@ h2 {
   margin-left: 1em;
   cursor: pointer;
   font-size: 80%;
+}
+
+.results-message-sort-bar {
+  display: none; /* until we can figure out how to make it work! */
+  position: absolute;
+  right: 1em;
+  top: 0.5em;
+  font-size: 80%;
+  
+}
+
+.results-message-sort-label {
+  color: grey;
+}
+
+.results-message-sort-value:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.results-message-sort-value[selected="true"] {
+  font-weight: bold;
 }
 
 .results-message-showall:hover {
@@ -402,11 +433,15 @@ h2 {
 }
 
 .message:hover {
-  border-color: grey;
-  background: #efefef;
+  border-color: #d8d8d8;
+  background: #f8f8f8;
   cursor: pointer;
 }
 
+.message:hover .message-subject {
+  color:#0a0a5a;
+  text-decoration: underline;
+}
 .message:focus {
   border: 1px dotted #111;
   padding: 1em 0px;
@@ -526,6 +561,7 @@ h2 {
 }
 
 .message-tag {
+  display: inline-block; /* to avoid splitting 'To' and 'Do' e.g. */
   -moz-margin-start: 0px;
   background-image: url("chrome://messenger/skin/tagbg.png");
   color: black;

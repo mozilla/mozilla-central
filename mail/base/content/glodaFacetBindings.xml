@@ -981,6 +981,11 @@
       <html:h2 class="results-message-count" anonid="count"></html:h2>
       <html:span class="results-message-showall" anonid="showall"
             onclick="FacetContext.showActiveSetInTab()"></html:span>
+      <html:div anonid="sort" class="results-message-sort-bar">
+        <html:span anonid="sort-label" class="results-message-sort-label"/>
+        <html:span anonid="sort-relevance" class="results-message-sort-value"/>
+        <html:span anonid="sort-date" class="results-message-sort-value"/>
+      </html:div>
     </html:div>
     <html:div class="messages" anonid="messages">
     </html:div>
@@ -1017,6 +1022,35 @@
           glodaFacetStrings.get(
             "glodaFacetView.results.message.showAllInList.tooltip"));
 
+        let sortLabelNode = document.getAnonymousElementByAttribute(
+                          this, "anonid", "sort-label");
+        sortLabelNode.textContent = glodaFacetStrings.get(
+          "glodaFacetView.results.message.sort.label");
+
+        let sortRelevanceNode = document.getAnonymousElementByAttribute(
+                          this, "anonid", "sort-relevance");
+        sortRelevanceNode.textContent = glodaFacetStrings.get(
+          "glodaFacetView.results.message.sort.relevance");
+        
+        let dis = this;
+        sortRelevanceNode.onclick = function() {
+          FacetContext.sortBy = '-dascore';
+          dis.updateSortLabels();
+        }
+
+        let sortDateNode = document.getAnonymousElementByAttribute(
+                          this, "anonid", "sort-date");
+        sortDateNode.textContent = glodaFacetStrings.get(
+          "glodaFacetView.results.message.sort.date");
+        sortDateNode.onclick = function() {
+          dump("in onclink\n");
+          FacetContext.sortBy = '-date';
+          dis.updateSortLabels();
+          dump("updated\n");
+        }
+
+        this.updateSortLabels(FacetContext.sortBy);
+
         let messagesNode = document.getAnonymousElementByAttribute(
                              this, "anonid", "messages");
         while (messagesNode.lastChild)
@@ -1029,6 +1063,27 @@
           msgNode.setAttribute("class", "message");
           messagesNode.appendChild(msgNode);
         }
+      ]]></body>
+    </method>
+    <method name="updateSortLabels">
+      <body><![CDATA[
+      try {
+        let sortBy = FacetContext.sortBy;
+        let sortRelevanceNode = document.getAnonymousElementByAttribute(
+                          this, "anonid", "sort-relevance");
+        let sortDateNode = document.getAnonymousElementByAttribute(
+                          this, "anonid", "sort-date");
+
+        if (sortBy == "-dascore") {
+          sortRelevanceNode.setAttribute("selected", "true");
+          sortDateNode.removeAttribute("selected");
+        } else if (sortBy == "-date") {
+          sortRelevanceNode.removeAttribute("selected");
+          sortDateNode.setAttribute("selected", "true");
+        }
+      } catch (e ) {
+        logException(e);
+      }
       ]]></body>
     </method>
   </implementation>

@@ -342,6 +342,21 @@ var FacetContext = {
     return this._collection;
   },
 
+  get sortBy() {
+    return this.tab.collection.query._order; // XXX doesn't feel right.
+  },
+  set sortBy(val) {
+    try {
+      // XXX not sure how to properly update the collection/searcher/query, and
+      // redisplay it all.
+      this.tab.collection.query._order = [];
+      this.tab.collection.query.orderBy(val);
+      // XXX magic?
+      this.build(this.tab.collection.items);
+    } catch (e) {
+      logException(e);
+    }
+  },
   /**
    * List of the current working set
    */
@@ -385,7 +400,7 @@ var FacetContext = {
   planLayout: function() {
     // XXX arbitrary!
     this.maxDisplayRows = 8;
-    this.maxMessagesToShow = 8;
+    this.maxMessagesToShow = 10;
   },
 
   _groupCountComparator: function(a, b) {

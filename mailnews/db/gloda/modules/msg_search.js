@@ -259,7 +259,7 @@ GlodaMsgSearcher.prototype = {
       fulltextQueryString = '"' + this.fulltextTerms.join('" OR "') + '"';
 
     query.fulltextMatches(fulltextQueryString);
-    query.orderBy('-dascore');
+    query.orderBy(this.sortBy);
     query.limit(this.retrievalLimit);
 
     return query;
@@ -276,6 +276,8 @@ GlodaMsgSearcher.prototype = {
 
     return this.collection;
   },
+  
+  sortBy: '-dascore', 
 
   onItemsAdded: function GlodaMsgSearcher_onItemsAdded(aItems, aCollection) {
     let scores = Gloda.scoreNounItems(
