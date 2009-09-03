@@ -502,7 +502,7 @@
     <html:ul anonid="included" class="facet-included barry"></html:ul>
     <html:h3 anonid="excluded-label" class="facet-excluded-header"></html:h3>
     <html:ul anonid="excluded" class="facet-excluded barry"></html:ul>
-    <html:h3 anonid="remainder-label" class="facet-remainder-header"></html:h3>
+    <html:h3 anonid="remainder-label" class="facet-remaindered-header"></html:h3>
     <html:ul anonid="remainder" class="facet-remaindered barry"></html:ul>
   </html:div>
   </content>

@@ -151,12 +151,15 @@ h1, h2, h3 {
   font-size: medium;
 }
 
-.facet-included[state="empty"],
-.facet-excluded-header,
-.facet-remainder-header {
-  font-size: 60%;
+.facet-included-header[state="empty"],
 .facet-excluded-header[state="empty"],
-.facet-remainder-header[needed="false"] {
+.facet-remaindered-header[needed="false"] {
+  display: none;
+}
+
+.facet-included-header[state="empty"] + .facet-included,
+.facet-excluded-header[state="empty"] + .facet-excluded,
+.facet-remaindered:empty {
   display: none;
 }
 
@@ -547,4 +550,3 @@ h1, h2 {
   background-color: #faf0b8;
   border: 1px solid #ede4af;
 }
-
