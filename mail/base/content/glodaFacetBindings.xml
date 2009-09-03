@@ -1093,20 +1093,19 @@
 <binding id="result-message">
   <content>
     <html:div class="message-header">
-      <html:div class="message-meta">
-        <html:div anonid="oldestMessageDate" class="message-oldestMessageDate"></html:div>
-      </html:div>
       <html:div class="message-line">
-        <html:div anonid="addresses-group" class="message-addresses-group">
-          <html:div anonid="author-group" class="message-author-group">
-            <html:span anonid="from" class="message-from-label"></html:span>
-            <html:span anonid="author" class="message-author"></html:span>
-          </html:div>
-          <html:div anonid="recipients-group" class="message-recipients-group">
-            <html:span anonid="to" class="message-to-label"></html:span>
-            <html:div anonid="recipients" class="message-recipients"/>
-            <html:div anonid="date" class="message-date"></html:div>
-            <html:div anonid="attachments" class="message-attachments"></html:div>
+        <html:div class="message-meta">
+          <html:div anonid="addresses-group" class="message-addresses-group">
+            <html:div anonid="author-group" class="message-author-group">
+              <html:span anonid="from" class="message-from-label"></html:span>
+              <html:span anonid="author" class="message-author"></html:span>
+            </html:div>
+            <html:div anonid="recipients-group" class="message-recipients-group">
+              <html:span anonid="to" class="message-to-label"></html:span>
+              <html:div anonid="recipients" class="message-recipients"/>
+              <html:div anonid="date" class="message-date"></html:div>
+              <html:div anonid="attachments" class="message-attachments"></html:div>
+            </html:div>
           </html:div>
         </html:div>
         <html:div class="message-subject-group">
@@ -1151,16 +1150,38 @@
         anonElem("date").textContent = makeFriendlyDateAgo(message.date);
 
         // - Recipients
+      try {
         let recipientsNode = anonElem("recipients");
         if (message.recipients) {
+          let recipientCount = 0;
+          const MAX_RECIPIENTS = 3;
+          let totalRecipientCount = message.recipients.length;
           for each (let [, recip] in Iterator(message.recipients)) {
             let recipNode = document.createElement("span");
             recipNode.setAttribute("class", "message-recipient");
             recipNode.textContent = recip.contact.name;
             recipNode.setAttribute("title", "BARGH");
             recipientsNode.appendChild(recipNode);
+            recipientCount++;
+            if (recipientCount == MAX_RECIPIENTS)
+              break;
+          }
+          if (totalRecipientCount > MAX_RECIPIENTS) {
+            let nOthers = totalRecipientCount - recipientCount;
+            let andNOthers = document.createElement("span");
+            andNOthers.setAttribute("class", "message-recipients-andothers");
+
+            let andOthersLabel= PluralForm.get(nOthers, glodaFacetStrings.get(
+                              "glodaFacetView.results.message.andNOthers"))
+                             .replace("#1", nOthers);
+
+            andNOthers.textContent = andOthersLabel;
+            recipientsNode.appendChild(andNOthers);
           }
         }
+      } catch (e) {
+        logException(e);
+      }
 
         // - Starred
         let starNode = anonElem("star");

@@ -628,6 +628,7 @@ function summarizeThread(aSelectedMessages)
     gSummary.init();
   } catch (e) {
     dump("Exception in summarizeThread" + e + "\n");
+    logException(e);
     Components.utils.reportError(e);
     throw(e);
   }
