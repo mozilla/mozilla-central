@@ -64,7 +64,7 @@ DateFacetVis.prototype = {
   _MIN_BAR_SIZE_PX: 9,
   _BAR_SPACING_PX: 1,
 
-  _MAX_BAR_SIZE_PX: 15,
+  _MAX_BAR_SIZE_PX: 44,
 
   _AXIS_FONT: "10px sans-serif",
   _AXIS_HEIGHT_NO_LABEL_PX: 6,
