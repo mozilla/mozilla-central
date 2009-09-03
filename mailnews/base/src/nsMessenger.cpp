@@ -969,12 +969,12 @@ enum MESSENGER_SAVEAS_FILE_TYPE
 {
  EML_FILE_TYPE =  0,
  HTML_FILE_TYPE = 1,
- TEXT_FILE_TYPE = 2
+ TEXT_FILE_TYPE = 2,
+ ANY_FILE_TYPE = 3
 };
 #define HTML_FILE_EXTENSION ".htm"
 #define HTML_FILE_EXTENSION2 ".html"
 #define TEXT_FILE_EXTENSION ".txt"
-#define EML_FILE_EXTENSION  ".eml"
 
 NS_IMETHODIMP
 nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIdentity, const nsAString& aMsgFilename)
@@ -1159,9 +1159,12 @@ nsMessenger::GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileTy
                            NS_LITERAL_STRING("*.eml"));
   filePicker->AppendFilters(nsIFilePicker::filterHTML);
   filePicker->AppendFilters(nsIFilePicker::filterText);
+  filePicker->AppendFilters(nsIFilePicker::filterAll);
 
-  // Save as .eml by default
-  filePicker->SetFilterIndex(EML_FILE_TYPE);
+  // Save as the "All Files" file type by default. We want to save as .eml by
+  // default, but the filepickers on some platforms don't switch extensions
+  // based on the file type selected (bug 508597).
+  filePicker->SetFilterIndex(ANY_FILE_TYPE);
   // Yes, this is fine even if we ultimately save as HTML or text. On Windows,
   // this actually is a boolean telling the file picker to automatically add
   // the correct extension depending on the filter. On Mac or Linux this is a
@@ -1191,8 +1194,33 @@ nsMessenger::GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileTy
   rv = SetLastSaveDirectory(localFile);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = filePicker->GetFilterIndex(aSaveAsFileType);
+  PRInt32 selectedSaveAsFileType;
+  rv = filePicker->GetFilterIndex(&selectedSaveAsFileType);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // If All Files was selected, look at the extension
+  if (selectedSaveAsFileType == ANY_FILE_TYPE)
+  {
+    nsAutoString fileName;
+    rv = localFile->GetLeafName(fileName);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if ((fileName.RFind(HTML_FILE_EXTENSION, PR_TRUE, -1,
+                        sizeof(HTML_FILE_EXTENSION) - 1) != kNotFound) ||
+        (fileName.RFind(HTML_FILE_EXTENSION2, PR_TRUE, -1,
+                        sizeof(HTML_FILE_EXTENSION2) - 1) != kNotFound))
+      *aSaveAsFileType = HTML_FILE_TYPE;
+    else if (fileName.RFind(TEXT_FILE_EXTENSION, PR_TRUE, -1,
+                            sizeof(TEXT_FILE_EXTENSION)-1) != kNotFound)
+      *aSaveAsFileType = TEXT_FILE_TYPE;
+    else
+      // The default is .eml
+      *aSaveAsFileType = EML_FILE_TYPE;
+  }
+  else
+  {
+    *aSaveAsFileType = selectedSaveAsFileType;
+  }
 
   if (dialogResult == nsIFilePicker::returnReplace)
   {

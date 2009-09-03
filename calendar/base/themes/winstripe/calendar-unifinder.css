@@ -52,6 +52,16 @@
     border-bottom: 1px dotted #AAA;
 }
 
+#unifinder-search-results-tree > treechildren::-moz-tree-cell-text(highpriority) {
+   font-weight: bold;
+}
+
+#unifinder-search-results-tree > treechildren::-moz-tree-cell-text(lowpriority) {
+   font-style: italic;
+   color: GrayText !important;
+   background-color: -moz-field;
+}
+
 /* workaround to avoid Window Flick */
 #unifinder-search-results-tree {
    -moz-appearance: none;
