@@ -829,19 +829,21 @@
                         accesskey="&newNewMsgCmd.accesskey;"
                         key="key_newMessage2"
                         oncommand="MsgNewMessage(null);"/>
-              <menuitem id="newMailAccountMenuItem"
-                        label="&newMailAccountCmd.label;"
-                        accesskey="&newMailAccountCmd.accesskey;"
-                        oncommand="NewMailAccount(msgWindow);"/>
               <menuitem id="menu_newFolder" label="&newFolderCmd.label;"
                          oncommand="gFolderTreeController.newFolder();"
                          accesskey="&newFolderCmd.accesskey;"/>
               <menuitem id="menu_newVirtualFolder" label="&newVirtualFolderCmd.label;"
                          oncommand="gFolderTreeController.newVirtualFolder();"
                          accesskey="&newVirtualFolderCmd.accesskey;"/>
-              <menuitem id="newAccountMenuItem" label="&newAccountCmd.label;"
-                         accesskey="&newAccountCmd.accesskey;"
-                         oncommand="MsgAccountWizard();"/>
+              <menuseparator id="newAccountPopupMenuSeparator"/>
+              <menuitem id="newMailAccountMenuItem"
+                        label="&newEmailAccountCmd.label;"
+                        accesskey="&newEmailAccountCmd.accesskey;"
+                        oncommand="NewMailAccount(msgWindow);"/>
+              <menuitem id="newAccountMenuItem"
+                        label="&newOtherAccountsCmd.label;"
+                        accesskey="&newOtherAccountsCmd.accesskey;"
+                        oncommand="MsgAccountWizard();"/>
               <menuseparator id="newPopupMenuSeparator"/>
               <menuitem id="menu_newCard"/>
             </menupopup>
