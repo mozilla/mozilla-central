@@ -76,10 +76,12 @@
           <xul:menuitem anonid="searchGlobalMenu"
                     class="quick-search-menu"
                     value="global"
+                    glodaOnly="true"
                     label="&searchEverywhere.label;"
                     type="radio"
                     oncommand="this.parentNode.parentNode.parentNode.changeMode(this)"/>
-          <xul:menuseparator quicksearchOnly="true"/>
+          <xul:menuseparator quicksearchOnly="true"
+                             glodaOnly="true"/>
         </xul:menupopup>
       </xul:button>
       <xul:hbox class="quick-search-textbox textbox-input-box" flex="1">
@@ -177,10 +179,97 @@
 
     <implementation implements="nsIObserver">
       <constructor><![CDATA[
-        this.build();
+        const Cu = Components.utils;
+        Cu.import("resource://gre/modules/errUtils.js");
+        try {
+          Cu.import("resource://app/modules/StringBundle.js");
+          Cu.import("resource://app/modules/quickSearchManager.js");
+  
+          var prefBranch =
+              Components.classes['@mozilla.org/preferences-service;1'].
+              getService(Components.interfaces.nsIPrefBranch);
+          prefBranch.addObserver("mailnews.database.global.indexer.enabled", this._prefObserver, false);
+
+          this.glodaCompleter =
+            Components.classes["@mozilla.org/autocomplete/search;1?name=gloda"].
+                      getService(). //Components.interfaces.nsIAutoCompleteSearch)
+                      wrappedJSObject;
+  
+          var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
+                            .getService(Components.interfaces.nsIObserverService);
+          observerSvc.addObserver(this, "autocomplete-did-enter-text", false);
+  
+          this.quickSearchStrings = new StringBundle("chrome://messenger/locale/quickSearch.properties");
+  
+          let quickSearchModes = QuickSearchManager.getSearchModes();
+          for (let i = 0; i < quickSearchModes.length; i++) {
+            let searchMode = quickSearchModes[i];
+            let value = searchMode["value"];
+            let label = searchMode["label"];
+            let menuitem = document.createElement("menuitem");
+            menuitem.setAttribute("value", String(value));
+            menuitem.setAttribute("label", label);
+            menuitem.setAttribute("type", "radio");
+            menuitem.setAttribute("quicksearchOnly", "true");
+            menuitem.setAttribute("oncommand", "this.parentNode.parentNode.parentNode.changeMode(this)");
+            this.menupopup.appendChild(menuitem);
+          }
+          
+          let separator = document.createElement("menuseparator");
+          separator.setAttribute("quicksearchOnly", "true");
+          this.menupopup.appendChild(separator);
+          let saveAsVF = document.createElement("menuitem");
+          saveAsVF.setAttribute("anonid", "quick-search-save-as-virtual-folder");
+          saveAsVF.setAttribute("label", this.quickSearchStrings.get("saveAsVirtualFolder.label"));
+          saveAsVF.setAttribute("quicksearchOnly", "true");
+          saveAsVF.setAttribute("oncommand",
+                                "gFolderTreeController.newVirtualFolder(this.parentNode.parentNode.parentNode.value,\
+                                gFolderDisplay.view.search.session.searchTerms);");
+
+          this.menupopup.appendChild(saveAsVF);
+          this.updateSaveItem();
+          this.input = "";
+          this.glodaEnabled = gPrefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
+          this.searchMode = this.glodaEnabled ? "global" : String(quickSearchModes[QuickSearchConstants.kQuickSearchFromOrSubject].value);
+        } catch (e) {
+          logException(e);
+        }
       ]]></constructor>
 
+      <destructor>
+        <![CDATA[
+          var prefBranch =
+              Components.classes['@mozilla.org/preferences-service;1'].
+              getService(Components.interfaces.nsIPrefBranch);
+          prefBranch.removeObserver("mailnews.database.global.indexer.enabled", this._prefObserver);
+        ]]>
+      </destructor>
 
+      <field name="_prefObserver">({
+        inputSearch: this,
+        observe: function(subject, topic, data)
+        {
+          if (topic == "nsPref:changed") {
+            subject.QueryInterface(Components.interfaces.nsIPrefBranch);
+            switch (data) {
+            case "mailnews.database.global.indexer.enabled":
+              this.inputSearch.glodaEnabled = gPrefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
+              let quickSearchModes = QuickSearchManager.getSearchModes();
+              this.inputSearch.searchMode = this.inputSearch.glodaEnabled ? "global" : String(quickSearchModes[QuickSearchConstants.kQuickSearchFromOrSubject].value);
+              break;
+            }
+          }
+        },
+  
+        QueryInterface: function(aIID)
+        {
+          if (aIID.equals(Components.interfaces.nsIObserver) ||
+              aIID.equals(Components.interfaces.nsISupports))
+            return this;
+          throw Components.results.NS_NOINTERFACE;
+        }
+        });
+      </field>
       <field name="timeout">200</field>
       <field name="glodaCompleter">null</field>
       <field name="ignoreClick">false</field>
@@ -195,6 +284,9 @@
                        if (currentTabInfo)
                           currentTabInfo.searchState = this.state;
                        this.updateEmptyText();"/>
+      <field name="_glodaEnabled"/>
+      <property name="glodaEnabled" onget="return this._glodaEnabled"
+                onset="try {this.showGlodaItems(val); this._glodaEnabled = val;} catch(e) {logException(e);}"/> 
 
       <property name="autocompletePopup" readonly="true" onget="return document.getElementById(this.getAttribute('autocompletepopup'))"/>
       <property name="showingSearchCriteria" onget="return this.getAttribute('searchCriteria') == 'true';"
@@ -272,55 +364,7 @@
       </method>
       <method name="build">
         <body><![CDATA[
-        const Cu = Components.utils;
-        Cu.import("resource://gre/modules/errUtils.js");
-        try {
-          Cu.import("resource://app/modules/StringBundle.js");
-          Cu.import("resource://app/modules/quickSearchManager.js");
-  
-          this.glodaCompleter =
-            Components.classes["@mozilla.org/autocomplete/search;1?name=gloda"].
-                      getService(). //Components.interfaces.nsIAutoCompleteSearch)
-                      wrappedJSObject;
-  
-          var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
-                            .getService(Components.interfaces.nsIObserverService);
-          observerSvc.addObserver(this, "autocomplete-did-enter-text", false);
-  
-          this.quickSearchStrings = new StringBundle("chrome://messenger/locale/quickSearch.properties");
-  
-          let quickSearchModes = QuickSearchManager.getSearchModes();
-          for (let i = 0; i < quickSearchModes.length; i++) {
-            let searchMode = quickSearchModes[i];
-            let value = searchMode["value"];
-            let label = searchMode["label"];
-            let menuitem = document.createElement("menuitem");
-            menuitem.setAttribute("value", String(value));
-            menuitem.setAttribute("label", label);
-            menuitem.setAttribute("type", "radio");
-            menuitem.setAttribute("quicksearchOnly", "true");
-            menuitem.setAttribute("oncommand", "this.parentNode.parentNode.parentNode.changeMode(this)");
-            this.menupopup.appendChild(menuitem);
-          }
-          
-          let separator = document.createElement("menuseparator");
-          separator.setAttribute("quicksearchOnly", "true");
-          this.menupopup.appendChild(separator);
-          let saveAsVF = document.createElement("menuitem");
-          saveAsVF.setAttribute("anonid", "quick-search-save-as-virtual-folder");
-          saveAsVF.setAttribute("label", this.quickSearchStrings.get("saveAsVirtualFolder.label"));
-          saveAsVF.setAttribute("quicksearchOnly", "true");
-          saveAsVF.setAttribute("oncommand",
-                                "gFolderTreeController.newVirtualFolder(this.parentNode.parentNode.parentNode.value,\
-                                gFolderDisplay.view.search.session.searchTerms);");
 
-          this.menupopup.appendChild(saveAsVF);
-          this.updateSaveItem();
-          this.input = "";
-          this.searchMode = "global";
-        } catch (e) {
-          logException(e);
-        }
         ]]></body>
       </method>
 
@@ -492,8 +536,23 @@
         </body>
       </method>
       
-      
-      
+      <method name="showGlodaItems">
+        <parameter name="aEnable"/>
+        <body><![CDATA[
+        try {
+          for (let i = 0; i < this.menupopup.childNodes.length; i++) {
+            let menuitem = this.menupopup.childNodes[i];
+            if (menuitem.getAttribute('glodaOnly') == 'true') {
+              menuitem.collapsed = ! aEnable;
+              menuitem.hidden = ! aEnable;
+            }
+          }
+        } catch (e) {
+          logException(e);
+        }
+        ]]>
+        </body>
+      </method>
 
     </implementation>
   </binding>
