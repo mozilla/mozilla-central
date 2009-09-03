@@ -853,8 +853,10 @@
                                 disabled="true"
                                 value=""/>
                     <textbox id="percent-complete-textbox"
+                             type="number"
+                             min="0"
+                             max="100"
                              disable-on-readonly="true"
-                             oninput="validateIntegers(event);"
                              size="3"/>
                     <label id="percent-complete-label"
                            class="todo-only"

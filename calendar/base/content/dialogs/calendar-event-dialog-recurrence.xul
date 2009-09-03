@@ -114,9 +114,13 @@
                          disable-on-readonly="true"
                          disable-on-occurrence="true"
                          selected="true"/>
-                  <textbox id="daily-days" value="1"
+                  <textbox id="daily-days"
+                           type="number"
+                           value="1"
+                           min="1"
+                           max="0x7FFF"
                            size="3"
-                           oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                           oninput="updateRecurrenceControls();"
                            disable-on-readonly="true"
                            disable-on-occurrence="true"/>
                   <label id="daily-group-every-units-label"
@@ -140,9 +144,12 @@
                        disable-on-occurrence="true"
                        control="weekly-weeks"/>
                 <textbox id="weekly-weeks"
+                         type="number"
                          value="1"
+                         min="1"
+                         max="0x7FFF"
                          size="3"
-                         oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                         oninput="updateRecurrenceControls();"
                          disable-on-readonly="true"
                          disable-on-occurrence="true"/>
                 <label id="weekly-period-units-label"
@@ -173,9 +180,12 @@
                        disable-on-occurrence="true"
                        control="monthly-interval"/>
                 <textbox id="monthly-interval"
+                         type="number"
                          value="1"
+                         min="1"
+                         max="0x7FFF"
                          size="3"
-                         oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                         oninput="updateRecurrenceControls();"
                          disable-on-readonly="true"
                          disable-on-occurrence="true"/>
                 <label id="monthly-period-units-label"
@@ -273,9 +283,12 @@
                        value="&event.recurrence.every.label;"
                        control="yearly-interval"/>
                 <textbox id="yearly-interval"
+                         type="number"
                          value="1"
+                         min="1"
+                         max="0x7FFF"
                          size="3"
-                         oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                         oninput="updateRecurrenceControls();"
                          disable-on-readonly="true"
                          disable-on-occurrence="true"/>
                 <label id="yearly-period-units-label" value="&repeat.units.years.both;"/>
@@ -298,7 +311,9 @@
                            orient="horizontal"
                            align="center">
                         <textbox id="yearly-days"
+                                 type="number"
                                  value="1"
+                                 min="1"
                                  size="3"
                                  oninput="updateRecurrenceControls();"
                                  disable-on-readonly="true"
@@ -492,9 +507,12 @@
                  disable-on-readonly="true"
                  disable-on-occurrence="true"/>
           <textbox id="repeat-ntimes-count"
-                   size="3"
+                   type="number"
                    value="5"
-                   oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                   min="1"
+                   max="0x7FFF"
+                   size="3"
+                   oninput="updateRecurrenceControls();"
                    disable-on-readonly="true"
                    disable-on-occurrence="true"/>
           <label id="repeat-appointments-label"
