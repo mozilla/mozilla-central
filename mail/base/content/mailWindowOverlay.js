@@ -1987,6 +1987,9 @@ let mailTabType = {
        *  boot-strapping and should be persisted after that...
        */
       desiredColumnStates: {
+        threadCol: {
+          visible: true,
+        },
         flaggedCol: {
           visible: true,
         },
@@ -2028,6 +2031,7 @@ let mailTabType = {
         aTab.folderDisplay.show(aTab.glodaSynView);
         // XXX persist column states in preferences or session store or other
         aTab.folderDisplay.setColumnStates(aTab.mode.desiredColumnStates);
+        aTab.folderDisplay.view.showThreaded = true;
 
         let background = ("background" in aArgs) && aArgs.background;
         if (!background)
