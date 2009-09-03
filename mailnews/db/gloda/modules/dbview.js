@@ -129,12 +129,10 @@ GlodaSyntheticView.prototype = {
    */
   getMsgHdrForMessageID: function(aMessageId) {
     for each (let [, item] in Iterator(this.collection.items)) {
-      dump("comparing " + item.headerMessageID + " with " + aMessageId + "\n");
       if (item.headerMessageID == aMessageId) {
         let hdr = item.folderMessage;
         if (hdr)
           return hdr;
-        dump("  hdr was sad! :( :( :(\n");
       }
     }
     return null;
