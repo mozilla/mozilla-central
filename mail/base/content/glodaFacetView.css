@@ -47,11 +47,6 @@ body {
   background: white;
 }
 
-#row {
-  display: table-row;
-  background: white;
-}
-
 .facets-sidebar {
   display: table-cell;
   width: 20em;
@@ -60,48 +55,38 @@ body {
   padding-left: 1em;
   font-size: 90%;
 }
+
 #main-column {
   display: table-cell;
 }
-
-
 
 /* ===== Query Explanation ===== */
 
 #query-explanation {
   display: block;
   height: 40px;
-  font-size: 110%;
+  font-size: 140% !important;
   margin-left: 1em;
   padding: 2px;
   padding-left: 0;
   padding-top: 1em;
-  font-size: medium;
 }
 
 .explanation-fulltext-label {
-  font-size: 120%;
   color: #3465a4;
   margin: 0 0.1em;
 }
 
 .explanation-fulltext-term {
-  font-size: large;
   color: black;
   margin: 0 0.1em;
 }
 
 .explanation-fulltext-criteria {
-  font-size: medium;
   color: #888;
   margin: 0 0.1em;
 }
 
-.explanation-change-label {
-  font-size: 80%;
-  color: black;
-  margin: 0 0.1em;
-}
 
 .explanation-query-label {
   margin-top: 1ex;
@@ -121,17 +106,19 @@ h1, h2, h3 {
 }
 
 #filter-header-label {
-  font-size: 120%;
   margin: 0;
   margin-top: 1em;
 }
 
 .explanation-change-label {
+  display: inline-block;
+  color: black;
+  font-size: 60%;
+  padding: 3px;
+  margin: 0 0.1em;
   margin-left: 1em;
-  font-size: 80%;
   border: 1px solid grey;
   -moz-border-radius: 4px;
-  padding: 3px;
 }
 
 .explanation-change-label:hover {
@@ -148,26 +135,29 @@ h1, h2, h3 {
   padding: 2px;
 }
 
+h1 {
+  font-size: x-large !important;
+  padding-bottom: 0.5em;
+}
+
 h2 {
   display: block;
   margin: 0;
-  font-size: medium;
+  font-size: 120%;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
 }
 
 h3 {
   font-weight: normal;
 }
 
-h2 {
-  margin-top: 1em;
-  margin-bottom: 0.5em;
-}
 
 .facet > h3 {
   font-size: 105%;
-  padding-left: 0.5em;
-  margin-bottom: 0;
-  margin-top: 0;
+  padding-left: 0em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 .facet-included-header[state="empty"],

@@ -1,4 +1,4 @@
 <!-- LOCALIZATION NOTE (glodaFacetView.filters.label): Label at the top of the
      faceting sidebar.  Serves as a header both for the checkboxes under it as
      well for labeled facets with multiple options. -->
-<!ENTITY glodaFacetView.filters.label "Filters">
+<!ENTITY glodaFacetView.filters.label "Filter by:">
