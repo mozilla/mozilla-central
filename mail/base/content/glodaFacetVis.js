@@ -303,7 +303,7 @@ DateFacetVis.prototype = {
       .event("mouseover", function(d) this.fillStyle("#3465a4"))
       .event("mouseout", function(d) this.fillStyle("#add2fb"))
       .event("click", function(d)
-        FacetContext.addFacetConstraint(faceter, faceter.attrDef, true,
+        FacetContext.addFacetConstraint(faceter, true,
                                         [[d.startDate, d.endDate]],
                                         true, true));
 
@@ -327,7 +327,7 @@ DateFacetVis.prototype = {
         .event("mouseover", function(d) this.fillStyle("#3465a4"))
         .event("mouseout", function(d) this.fillStyle("#dddddd"))
         .event("click", function(d)
-          FacetContext.addFacetConstraint(faceter, faceter.attrDef, true,
+          FacetContext.addFacetConstraint(faceter, true,
                                           [[d[3], d[4]]], true, true));
 
       if (labelTier.displayLabel) {
