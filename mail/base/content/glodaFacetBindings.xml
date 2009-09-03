@@ -1288,6 +1288,18 @@
       ]]></body>
     </method>
   </implementation>
+  <handlers>
+    <handler event="mouseover"><![CDATA[
+      FacetContext.hoverFacet(FacetContext.fakeResultFaceter,
+                              FacetContext.fakeResultAttr,
+                              this.message, [this.message]);
+    ]]></handler>
+    <handler event="mouseout"><![CDATA[
+      FacetContext.unhoverFacet(FacetContext.fakeResultFaceter,
+                                FacetContext.fakeResultAttr,
+                                this.message, [this.message]);
+    ]]></handler>
+  </handlers>
 </binding>
 
 </bindings>

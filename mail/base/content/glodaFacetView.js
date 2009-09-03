@@ -363,7 +363,7 @@ var FacetContext = {
   get activeSet() {
     return this._activeSet;
   },
-  
+
   get fullSet() {
     if (this._sortBy == '-dascore')
       return this._relevantSortedItems;
@@ -505,6 +505,11 @@ var FacetContext = {
       callback();
     }
   },
+
+  /** For use in hovering specific results. */
+  fakeResultFaceter: {},
+  /** For use in hovering specific results. */
+  fakeResultAttr: {},
 
   _HOVER_STABILITY_DURATION_MS: 100,
   _brushedFacet: null,
