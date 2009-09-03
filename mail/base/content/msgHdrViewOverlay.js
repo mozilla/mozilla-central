@@ -64,9 +64,17 @@ var gHeadersShowReferences = false;
 // Show the friendly display names for people I know, instead of the name + email address.
 var gShowCondensedEmailAddresses;
 
-// other components may listen to on start header & on end header notifications for each message we display
-// to do that you need to add yourself to our gMessageListeners array with an object that supports the three properties:
-// onStartHeaders, onEndHeaders and onEndAttachments.
+/**
+ * Other components may listen to on start header & on end header notifications
+ * for each message we display: to do that you need to add yourself to our
+ * gMessageListeners array with an object that supports the three properties:
+ * onStartHeaders, onEndHeaders and onEndAttachments.
+ *
+ * Additionally, if your object has an onBeforeShowHeaderPane() method, it will
+ * be called at the appropriate time.  This is designed to give add-ons a
+ * chance to examine and modify the currentHeaderData array before it gets
+ * displayed.
+ */
 var gMessageListeners = new Array();
 
 // For every possible "view" in the message pane, you need to define the header names you want to
@@ -384,6 +392,12 @@ var messageHeaderSink = {
 
     onEndHeaders: function()
     {
+      // give add-ons a chance to modify currentHeaderData before it actually
+      // gets displayed
+      for (let index in gMessageListeners)
+        if ("onBeforeShowHeaderPane" in gMessageListeners[index])
+          gMessageListeners[index].onBeforeShowHeaderPane();
+
       ShowMessageHeaderPane();
       // WARNING: This is the ONLY routine inside of the message Header Sink that should
       // trigger a reflow!
