@@ -350,14 +350,10 @@
   </implementation>
   <handlers>
     <handler event="mouseover"><![CDATA[
-      // do not hover brush if we are already constrained!
-      if (this.faceter.constraint)
-        return;
       FacetContext.hoverFacet(this.faceter, this.faceter.attrDef,
                               true, this.trueValues);
     ]]></handler>
     <handler event="mouseout"><![CDATA[
-      // always unhover even if constrained, as it doesn't hurt
       FacetContext.unhoverFacet(this.faceter, this.faceter.attrDef,
                                 true, this.trueValues);
     ]]></handler>
