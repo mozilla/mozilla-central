@@ -5138,21 +5138,21 @@ NS_IMETHODIMP nsMsgDBFolder::GetSortOrder(PRInt32 *order)
 
   if (flags & nsMsgFolderFlags::Inbox)
     *order = 0;
-  else if (flags & nsMsgFolderFlags::Queue)
-    *order = 1;
   else if (flags & nsMsgFolderFlags::Drafts)
-    *order = 2;
+    *order = 1;
   else if (flags & nsMsgFolderFlags::Templates)
-    *order = 3;
+    *order = 2;
   else if (flags & nsMsgFolderFlags::SentMail)
-    *order = 4;
+    *order = 3;
   else if (flags & nsMsgFolderFlags::Archive)
-    *order = 5;
+    *order = 4;
   else if (flags & nsMsgFolderFlags::Junk)
-    *order = 6;
+    *order = 5;
   else if (flags & nsMsgFolderFlags::Trash)
-    *order = 7;
+    *order = 6;
   else if (flags & nsMsgFolderFlags::Virtual)
+    *order = 7;
+  else if (flags & nsMsgFolderFlags::Queue)
     *order = 8;
   else
     *order = 9;

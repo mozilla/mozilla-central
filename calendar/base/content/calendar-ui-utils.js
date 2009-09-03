@@ -397,7 +397,7 @@ function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
  */
 function addMenuItem(aParent, aLabel, aValue, aCommand) {
     if (aParent.localName == "menupopup") {
-        var item = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
+        var item = createXULElement("menuitem");
         item.setAttribute("label", aLabel);
         if (aValue) {
             item.setAttribute("value", aValue);
@@ -663,56 +663,6 @@ function getOptimalMinimumHeight(aXULElement) {
                                                 "margin-bottom", "margin-top",
                                                 "border-bottom-width", "border-top-width"]);
     return (firstEntity + secondEntity);
-}
-
-/**
- * Use with textfields oninput to only allow integers
- *
- * @param event         The event that contains the target
- * @param lowerBound    The lower bound the number should have
- * @param upperBound    The upper bound the number should have
- */
-function validateIntegerRange(event, lowerBound, upperBound) {
-    validateIntegers(event);
-
-    var num = Number(event.target.value);
-
-    // Only modify the number if a value is entered, otherwise deleting the
-    // value (to maybe enter a new number) will cause the field to be set to the
-    // lower bound.
-    if (event.target.value != "" && (num < lowerBound || num > upperBound)) {
-        event.target.value = Math.min(Math.max(num, lowerBound), upperBound);
-        event.preventDefault();
-    }
-}
-
-/**
- * Validate Integers, or rather validate numbers. Makes sure the input value is
- * a number.
- *
- * @param event         The event that contains the target
- */
-function validateIntegers(event) {
-    if (isNaN(Number(event.target.value))) {
-        var newValue = parseInt(event.target.value);
-        event.target.value = isNaN(newValue) ? "" : newValue;
-        event.preventDefault();
-    }
-}
-
-/**
- * Make sure the number entered is 0 or more. A negative number is turned
- * positive.
- *
- * @param event         The event that contains the target
- */
-function validateNaturalNums(event) {
-    validateIntegers(event);
-    var num = event.target.value;
-    if (num < 0) {
-        event.target.value = -1 * num;
-        event.preventDefault();
-    }
 }
 
 /**
