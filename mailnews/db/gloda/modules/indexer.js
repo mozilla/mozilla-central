@@ -351,6 +351,12 @@ var GlodaIndexer = {
   _INITIAL_SWEEP_DELAY: 10000,
 
   /**
+   * How many milliseconds in the future should we schedule indexing to start
+   *  when turning on indexing (and it was not previously active).
+   */
+  _INDEX_KICKOFF_DELAY: 200,
+
+  /**
    * The time interval, in milliseconds, of pause between indexing batches.  The
    *  maximum processor consumption is determined by this constant and the
    *  active |_cpuTargetIndexTime|.
@@ -686,7 +692,7 @@ var GlodaIndexer = {
         this._log.info("+++ Indexing Queue Processing Commencing");
         this._indexingActive = true;
         this._timer.initWithCallback(this._wrapCallbackDriver,
-                                     this._INDEX_INTERVAL,
+                                     this._INDEX_KICKOFF_DELAY,
                                      Ci.nsITimer.TYPE_ONE_SHOT);
       }
     }
@@ -710,7 +716,7 @@ var GlodaIndexer = {
         this._log.info("+++ Indexing Queue Processing Resuming");
         this._indexingActive = true;
         this._timer.initWithCallback(this._wrapCallbackDriver,
-                                     this._INDEX_INTERVAL,
+                                     this._INDEX_KICKOFF_DELAY,
                                      Ci.nsITimer.TYPE_ONE_SHOT);
     }
   },

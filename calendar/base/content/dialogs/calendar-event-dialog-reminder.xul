@@ -91,8 +91,10 @@
       <vbox id="reminder-relative-box" flex="1">
         <hbox id="reminder-relative-length-unit-relation" flex="1">
           <textbox id="reminder-length"
+                   type="number"
                    size="1"
-                   oninput="validateIntegers(event); updateReminder(event)"/>
+                   min="1"
+                   oninput="updateReminder(event)"/>
           <menulist id="reminder-unit" oncommand="updateReminder(event)" flex="1">
             <menupopup id="reminder-unit-menupopup">
               <menuitem id="reminder-minutes-menuitem"
