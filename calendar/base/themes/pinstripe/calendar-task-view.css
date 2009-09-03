@@ -65,8 +65,8 @@
 }
 
 #calendar-task-details-description {
-    -moz-appearance: none;
-    border: 0;
+    -moz-appearance: textfield;
+    border: 1px solid;
     margin: 0;
     font-family: serif;
     font-size: 16px;
