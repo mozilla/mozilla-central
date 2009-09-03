@@ -251,6 +251,7 @@ modern.jar:
   skin/modern/global/icons/question-16.png                         (global/icons/question-16.png)
   skin/modern/global/icons/resizer.png                             (global/icons/resizer.png)
   skin/modern/global/icons/search.gif                              (global/icons/search.gif)
+  skin/modern/global/icons/sslWarning.png                          (global/icons/sslWarning.png)
   skin/modern/global/icons/warning-16.png                          (global/icons/warning-16.png)
   skin/modern/global/icons/wrap.png                                (global/icons/wrap.png)
   skin/modern/global/media/error.png                               (/mozilla/toolkit/themes/winstripe/global/media/error.png)
