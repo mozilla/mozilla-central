@@ -819,15 +819,15 @@
         let flyAway = true;
 
         function goAnimate() {
-          dump("!!! in animate\n");
-          if (flyAway) {
-            dump(" !! in fly away\n");
-            dis.afterListVisible(aVariety, function() {
-              dis._flyBarAway(aBarNode, aVariety, function() {
-                dis.updateHeaderStates();
+          setTimeout(function () {
+            if (flyAway) {
+              dis.afterListVisible(aVariety, function() {
+                dis._flyBarAway(aBarNode, aVariety, function() {
+                  dis.updateHeaderStates();
+                });
               });
-            });
-          }
+            }
+          }, 0);
         };
 
         // Immediately apply the facet change, triggering the animation after
