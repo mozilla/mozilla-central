@@ -41,8 +41,6 @@ body {
   background: #ffffff;
   padding: 0;
   margin: 0;
-  height: 100%;
-  width: 100%;
   font-family: sans-serif;
 }
 
@@ -133,7 +131,6 @@ h1, h2, h3 {
   left: 0;
   bottom: 0;
   width: 20em;
-  height: 100%;
   background-color: #eeeeee;
   padding: 4px;
   padding-left: 1em;
@@ -145,10 +142,26 @@ h1, h2, h3 {
   padding: 2px;
 }
 
-.facet > h2 {
-  display: inline;
+h2 {
+  display: block;
   margin: 0;
   font-size: medium;
+}
+
+h3 {
+  font-weight: normal;
+}
+
+h2 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.facet > h3 {
+  font-size: 105%;
+  padding-left: 0.5em;
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 .facet-included-header[state="empty"],
@@ -240,13 +253,11 @@ h1, h2, h3 {
   display: block;
 }
 
-.bar-link {
-  display: inline-block;
-}
-
 .bar-count {
-  float: right;
-  margin-right: 3em;
+  position: absolute;
+  right: 3px;
+  margin-right: 1.5em;
+  line-height: 1.6em;
 }
 
 .barry {
@@ -280,15 +291,10 @@ h1, h2, h3 {
   font-weight: bold;
 }
 
-h1, h2 {
-  font-weight: normal;
-}
-
 .bar {
-  position: relative;
   display: block;
+  position: relative;
   border-bottom: 1px solid #EEE;
-  _zoom: 1;
   cursor: pointer;
   font-size: 80%;
 }
@@ -299,10 +305,12 @@ h1, h2 {
 }
 
 .bar-link {
+  display: inline-block;
   color: #2D7BB2;
   text-decoration: none;
   display: block;
   padding: 0.3em 2em 0.3em 0.5em;
+  padding-right: 4em;
   position: relative;
   z-index: 2;
 }
