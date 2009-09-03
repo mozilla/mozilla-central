@@ -38,12 +38,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 body {
-  background: white url("chrome://messenger/skin/icons/faceted-background.png") repeat-y 0 0;
+  background: white url("chrome://messenger/skin/faceted-background.png") repeat-y 0 0;
   padding: 0;
   margin: 0;
   font-family: sans-serif;
   position: relative;
-  background: #eeeeee;
 }
 
 #main-column {
@@ -51,7 +50,6 @@ body {
   position: absolute;
   top: 0;
   left: 19.5em;
-  background: white;
 }
 /* ===== Query Explanation ===== */
 
