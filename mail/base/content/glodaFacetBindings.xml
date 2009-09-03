@@ -665,10 +665,6 @@
           excludeSpan.setAttribute("class", "bar-exclude");
           li.appendChild(excludeSpan);
 
-          let removeSpan = document.createElement("span");
-          removeSpan.setAttribute("class", "bar-remove");
-          li.appendChild(removeSpan);
-
           // root it under the appropriate list
           if (constraint) {
             if (constraint.isIncludedGroup(groupValue)) {
@@ -745,7 +741,11 @@
           showNodes = $(labelNode);
         showNodes
           .hide()
-          .slideDown("fast", aCallback);
+          .slideDown("fast", function() {
+              showNodes.removeAttr("style");
+              if (aCallback)
+                aCallback();
+            });
       ]]></body>
     </method>
     <method name="_flyBarAway">
@@ -787,7 +787,7 @@
               left: dest.left
             },
             // have a velocity of 1 pixel every 4ms
-            Math.abs(dest.top - origin.top) * 6, function() {
+            Math.abs(dest.top - origin.top) * 2, function() {
               $barNode.remove();
               $targetNode.show();
               $flyingNode.remove();
@@ -894,10 +894,12 @@
       let nodeClass = nodeClasses.split(" ")[0];
       if (nodeClass == "bar-exclude")
         this.barClicked(event.originalTarget.parentNode, "exclude");
-      else if (nodeClass == "bar-link")
-        this.barClicked(event.originalTarget.parentNode, "include");
-      else if (nodeClass == "bar-remove")
-        this.barClicked(event.originalTarget.parentNode, "remainder");
+      else if (nodeClass == "bar-link") {
+        let barNode = event.originalTarget.parentNode;
+        this.barClicked(barNode,
+                        (barNode.getAttribute("variety") == "remainder") ?
+                          "include" : "remainder");
+      }
     ]]></handler>
     <handler event="mouseover"><![CDATA[
       // we dispatch based on the class of the thing we clicked on.

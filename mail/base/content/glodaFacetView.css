@@ -347,33 +347,12 @@ h2 {
   z-index: 3;
 }
 
-.bar-remove {
-  display: block;
-  visibility: hidden;
-  background-image: url("chrome://messenger/skin/icons/thread-watched.png");
-  position: absolute;
-  top: 0.3em;
-  right: 2px;
-  width: 16px;
-  height: 16px;
-  z-index: 3;
-}
-
 .bar[variety="remainder"]:hover > .bar-exclude {
-  visibility: visible;
-}
-
-.bar[variety="include"]:hover > .bar-remove,
-.bar[variety="exclude"]:hover > .bar-remove {
   visibility: visible;
 }
 
 .bar-exclude:hover {
   background-image: url("chrome://messenger/skin/icons/exclude-selected.png");
-}
-
-.bar-remove:hover {
-  background-color: #ffffcc;
 }
 
 /* ===== Results ===== */
