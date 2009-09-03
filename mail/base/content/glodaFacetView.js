@@ -138,7 +138,6 @@ ActiveSingularConstraint.prototype = {
         throw new Error("Tried to relax a constraint that was not in force.");
       this.groupValues.splice(index, 1);
     }
-
     if (this.groupValues.length == 0) {
       this.clear();
       return true;

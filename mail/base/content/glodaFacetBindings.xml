@@ -746,6 +746,12 @@
           ((this.includeList.childElementCount ||
             this.excludeList.childElementCount) &&
            this.remainderList.childElementCount) ? "true" : "false");
+
+        // nuke the style attributes to lose the artifacts of the jquery
+        //  animation.
+        this.includeLabel.removeAttribute("style");
+        this.excludeLabel.removeAttribute("style");
+        this.remainderLabel.removeAttribute("style");
       ]]></body>
     </method>
     <method name="brushItems">
@@ -782,11 +788,7 @@
           showNodes = $(labelNode);
         showNodes
           .hide()
-          .slideDown("fast", function() {
-              showNodes.removeAttr("style");
-              if (aCallback)
-                aCallback();
-            });
+          .slideDown("fast", aCallback);
       ]]></body>
     </method>
     <method name="_flyBarAway">
