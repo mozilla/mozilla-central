@@ -676,9 +676,9 @@ GlodaIdentity.prototype = {
   },
 
   pictureURL: function(aSize) {
-    let md5hash = GlodaUtils.md5HashString(this._value);
-    let gravURL = "http://www.gravatar.com/avatar/" + md5hash +
-                                "?d=identicon&s=" + aSize + "&r=g";
-    return gravURL;
+    if (this.inAddressBook) {
+      // XXX should get the photo if we have it.
+    }
+    return "";
   }
 };

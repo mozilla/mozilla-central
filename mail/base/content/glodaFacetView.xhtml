@@ -37,25 +37,27 @@
       src="chrome://messenger/content/glodaFacetVis.js"></script>
 </head>
 <body id="body" onload="reachOutAndTouchFrame()">
-  <div class="facets facets-sidebar" id="facets">
-    <h1 id="filter-header-label">&glodaFacetView.filters.label;</h1>
-    <div>
-      <div id="facet-fromMe" class="facetious" type="boolean" attr="fromMe"
-           uninitialized="true" />
-      <div id="facet-toMe" class="facetious" type="boolean" attr="toMe"
-           uninitialized="true" />
-      <div id="facet-star" class="facetious" type="boolean" attr="star"
-           uninitialized="true"/><br />
-      <div id="facet-attachmentTypes" class="facetious" type="boolean-filtered"
-           attr="attachmentTypes"
-           groupDisplayProperty="categoryLabel"
-           uninitialized="true"/>
+  <div id="table">
+    <div class="facets facets-sidebar" id="facets">
+      <h1 id="filter-header-label">&glodaFacetView.filters.label;</h1>
+      <div>
+        <div id="facet-fromMe" class="facetious" type="boolean" attr="fromMe"
+             uninitialized="true" />
+        <div id="facet-toMe" class="facetious" type="boolean" attr="toMe"
+             uninitialized="true" />
+        <div id="facet-star" class="facetious" type="boolean" attr="star"
+             uninitialized="true"/><br />
+        <div id="facet-attachmentTypes" class="facetious" type="boolean-filtered"
+             attr="attachmentTypes"
+             groupDisplayProperty="categoryLabel"
+             uninitialized="true"/>
+      </div>
     </div>
-  </div>
-  <div id="main-column">
-    <div id="query-explanation"/>
-    <div id="facet-date" class="facetious" type="date" />
-    <div class="results" id="results" type="message" />
+    <div id="main-column">
+      <div id="query-explanation"/>
+      <div id="facet-date" class="facetious" type="date" />
+      <div class="results" id="results" type="message" />
+    </div>
   </div>
 </body>
 </html>

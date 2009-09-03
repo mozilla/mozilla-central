@@ -48,7 +48,6 @@ let gSelectionSummaryStrings = {
   countUnread: "countUnread",
   Nmessages: "Nmessages",
   messagesSize: "messagesSize",
-  yesterday: "yesterday",
   noticeText: "noticeText",
   noSubject: "noSubject",
 }

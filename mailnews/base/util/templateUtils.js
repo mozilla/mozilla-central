@@ -41,6 +41,11 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://app/modules/StringBundle.js");
+
+const gTemplateUtilsStrings =
+  new StringBundle("chrome://messenger/locale/templateUtils.properties");
+
 /**
  * Helper function to generate a localized "friendly" representation of
  * time relative to the present.  If the time input is "today", it returns
@@ -77,7 +82,7 @@ function makeFriendlyDateAgo(time)
                                   end.getHours(), end.getMinutes(),0);
   } else if (today - end < kDayInMsecs) {
     // activity finished after yesterday started, show yesterday
-    dateTime = gSelectionSummaryStrings.yesterday;
+    dateTime = gTemplateUtilsStrings.get('yesterday');
   } else if (today - end < k6DaysInMsecs) {
     // activity finished after last week started, show day of week
     dateTime = end.toLocaleFormat("%A");

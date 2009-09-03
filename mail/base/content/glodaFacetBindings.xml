@@ -1097,7 +1097,7 @@
                              this, "anonid", "messages");
         while (messagesNode.lastChild)
           messagesNode.removeChild(messagesNode.lastChild);
-
+      try {
         // -- Messages
         for each (let [, message] in Iterator(aMessages)) {
           let msgNode = document.createElement("message");
@@ -1105,6 +1105,9 @@
           msgNode.setAttribute("class", "message");
           messagesNode.appendChild(msgNode);
         }
+      } catch (e) {
+        logException(e);
+      }
       ]]></body>
     </method>
     <method name="updateSortLabels">

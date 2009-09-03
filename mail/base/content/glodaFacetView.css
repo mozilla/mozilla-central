@@ -37,13 +37,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+html {
+  background:white;
+}
+
 body {
   padding: 0;
   margin: 0;
-  width: 100%;
   font-family: sans-serif;
-  position: relative;
+  background: white;
+}
+
+#table {
   display: table;
+  width: 100%;
+  height: 100%;
+  position: relative;
   background: white;
 }
 
@@ -52,11 +61,13 @@ body {
   width: 20em;
   background-color: #eeeeee;
   padding: 4px;
+  height: 100%;
   padding-left: 1em;
   font-size: 90%;
 }
 
 #main-column {
+  padding-left: 1em;
   display: table-cell;
 }
 
@@ -547,10 +558,10 @@ h3 {
   color: #555;
 }
 .message-body {
-  color: #555;
+  color: black;
   padding-left: 1em;
   font-family: monospace;
-  font-size: 110%;
+  font-size: 120%;
   white-space: pre-wrap;
 }
 

@@ -17,13 +17,36 @@ panel[type="glodacomplete-richlistbox"] {
   overflow-x: hidden !important;
 }
 
+.explanation, .gloda-single-identity {
+  margin-left: 1em;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.ac-comment {
+  font-size: 1.1em;
+}
+
+.ac-url-text {
+  color: -moz-nativehyperlinktext;
+  font-size: 0.95em;
+}
+
+.ac-url-text[selected="true"] {
+  color: inherit !important;
+}
+
+.gloda-single-identity[selected="true"] .ac-url{
+  color: white;
+}
+
 .parameters {
   font-style: italic;
   margin-left: 1em;
 }
+
 .picture {
-  margin: 1ex;
-  margin-right: 1em;
+  /*margin-right: 1em;*/
 }
 
 .autocomplete-richlistitem[type="gloda-single-tag"] {
