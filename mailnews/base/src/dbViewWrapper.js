@@ -899,6 +899,9 @@ DBViewWrapper.prototype = {
       return;
     this._searching = aSearching;
     this.listener.onSearching(aSearching);
+    // notify that all messages are loaded if searching has concluded
+    if (!aSearching)
+      this.listener.onAllMessagesLoaded();
   },
 
    /**

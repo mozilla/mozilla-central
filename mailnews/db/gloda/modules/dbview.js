@@ -128,11 +128,13 @@ GlodaSyntheticView.prototype = {
    *  are no actual backing folders for it to check.
    */
   getMsgHdrForMessageID: function(aMessageId) {
-    for each (let [, item] in this.collection.items) {
-      if (item.messageId == aMessageId) {
+    for each (let [, item] in Iterator(this.collection.items)) {
+      dump("comparing " + item.headerMessageID + " with " + aMessageId + "\n");
+      if (item.headerMessageID == aMessageId) {
         let hdr = item.folderMessage;
         if (hdr)
           return hdr;
+        dump("  hdr was sad! :( :( :(\n");
       }
     }
     return null;
