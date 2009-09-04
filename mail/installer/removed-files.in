@@ -50,12 +50,18 @@ components/history.xpt
 components/jsconsole.xpt
 components/mailnews.xpt
 components/mozgnome.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
+components/satchel.xpt
+#endif
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/necko_data.xpt
 components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
 components/nsComposerCmdLineHandler.js
 components/nsDownloadProgressListener.js
+#ifdef MOZILLA_1_9_1_BRANCH
+components/nsFormAutoComplete.js
+#endif
 components/nsInterfaceInfoToIDL.js
 components/nsLDAPPrefsService.js
 #ifdef XP_WIN
