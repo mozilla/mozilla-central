@@ -198,6 +198,7 @@ protected:
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) mDeleteOrMoveMsgCompletedAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) mDeleteOrMoveMsgFailedAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) mJunkStatusChangedAtom;
+  static NS_MSG_BASE_STATIC_MEMBER_(nsIAtom*) mFiltersAppliedAtom;
   static NS_MSG_BASE_STATIC_MEMBER_(nsrefcnt) mInstanceCount;
 
 protected:

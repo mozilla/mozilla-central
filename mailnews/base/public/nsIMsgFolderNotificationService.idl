@@ -45,7 +45,7 @@ interface nsIArray;
 
 typedef unsigned long msgFolderListenerFlag;
 
-[scriptable, uuid(54900730-ba1f-4315-af44-cfbb2121d115)]
+[scriptable, uuid(e5d75176-a3d7-4f80-a1fe-b915a679ca53)]
 interface nsIMsgFolderNotificationService : nsISupports {
   /**
    * @name Notification flags

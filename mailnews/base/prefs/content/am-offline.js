@@ -165,7 +165,7 @@ function onSave()
     gIncomingServer.limitOfflineMessageSize = document.getElementById("offline.notDownload").checked;
     gIncomingServer.maxMessageSize = document.getElementById("offline.notDownloadMin").value;
 
-    var retentionSettings = saveCommonRetentionSettings();
+    var retentionSettings = saveCommonRetentionSettings(gIncomingServer.retentionSettings);
 
     retentionSettings.daysToKeepBodies = document.getElementById("nntp.removeBodyMin").value;
     retentionSettings.cleanupBodiesByDays = document.getElementById("nntp.removeBody").checked;

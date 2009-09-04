@@ -133,6 +133,7 @@ nsIAtom* nsMsgDBFolder::kSynchronizeAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kOpenAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kIsDeferred=nsnull;
 nsIAtom* nsMsgDBFolder::kKeywords=nsnull;
+nsIAtom* nsMsgDBFolder::mFiltersAppliedAtom=nsnull;
 
 nsICollation * nsMsgDBFolder::gCollationKeyGenerator = nsnull;
 
@@ -174,7 +175,8 @@ const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
   { "Synchronize", &nsMsgDBFolder::kSynchronizeAtom },
   { "open", &nsMsgDBFolder::kOpenAtom },
   { "isDeferred", &nsMsgDBFolder::kIsDeferred },
-  { "Keywords", &nsMsgDBFolder::kKeywords }
+  { "Keywords", &nsMsgDBFolder::kKeywords },
+  { "FiltersApplied", &nsMsgDBFolder::mFiltersAppliedAtom }
 };
 
 nsMsgDBFolder::nsMsgDBFolder(void)
@@ -1703,7 +1705,8 @@ nsresult nsMsgDBFolder::CompactOfflineStore(nsIMsgWindow *inWindow, nsIUrlListen
 nsresult
 nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
 {
-  NS_ENSURE_ARG_POINTER(aWindow);
+  // we don't check for null aWindow, because this routine can get called
+  // in unit tests where we have no window. Just assume not OK if no window.
   PRBool prompt;
   nsresult rv = GetPromptPurgeThreshold(&prompt);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1795,7 +1798,7 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
 
          PRBool askBeforePurge;
          branch->GetBoolPref(PREF_MAIL_PURGE_ASK, &askBeforePurge);
-         if (askBeforePurge)
+         if (askBeforePurge && aWindow)
          {
            nsCOMPtr <nsIStringBundle> bundle;
            rv = GetBaseStringBundle(getter_AddRefs(bundle));
@@ -1836,7 +1839,7 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
            }
          }
          else
-           okToCompact = PR_TRUE;
+           okToCompact = aWindow || !askBeforePurge;
 
          if (okToCompact)
          {
@@ -2317,16 +2320,10 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   // if it's a news folder, then we really don't support junk in the ui
   // yet the legacy spamLevel seems to think we should analyze it.
   // Maybe we should upgrade that, but for now let's not analyze. We'll
-  // use the preference "mail.filter_news_for_junk", and/or
   // let an extension set an inherited property if they really want us to
   // analyze this. We need that anyway to allow extension-based overrides.
   // When we finalize adding junk in news to core, we'll deal with the
   // spamLevel issue
-
-  PRBool filterNewsForJunk = PR_FALSE;
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (prefBranch)
-    prefBranch->GetBoolPref("mail.filter_news_for_junk", &filterNewsForJunk);
 
   // if this is the junk folder, or the trash folder
   // don't analyze for spam, because we don't care
@@ -2342,11 +2339,10 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
 
   PRBool filterForJunk = PR_TRUE;
   if (serverType.EqualsLiteral("rss") ||
-      (mFlags & nsMsgFolderFlags::Newsgroup && !filterNewsForJunk) ||
       (mFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash |
                  nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Queue |
                  nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
-                 nsMsgFolderFlags::ImapPublic |
+                 nsMsgFolderFlags::ImapPublic | nsMsgFolderFlags::Newsgroup |
                  nsMsgFolderFlags::ImapOtherUser) &&
        !(mFlags & nsMsgFolderFlags::Inbox)))
     filterForJunk = PR_FALSE;

@@ -54,6 +54,8 @@
 #include "nsIAsyncOutputStream.h"
 #include "nsIAuthModule.h"
 
+class nsIMsgWindow;
+
 #define UNKNOWN_ERROR             101
 #define UNKNOWN_HOST_ERROR        102
 #define CONNECTION_REFUSED_ERROR  103
@@ -122,6 +124,8 @@ protected:
   // helper routine
   nsresult GetFileFromURL(nsIURI * aURL, nsIFile **aResult);
   virtual nsresult OpenFileSocket(nsIURI * aURL, PRUint32 aStartPosition, PRInt32 aReadCount); // used to open a file socket connection
+
+  nsresult GetTopmostMsgWindow(nsIMsgWindow **aWindow);
 
   // a Protocol typically overrides this method. They free any of their own connection state and then
   // they call up into the base class to free the generic connection objects

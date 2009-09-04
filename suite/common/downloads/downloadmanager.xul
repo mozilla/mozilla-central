@@ -172,7 +172,8 @@
       <menuitem id="dlContext-open"
                 label="&cmd.open.label;"
                 accesskey="&cmd.open.accesskey;"
-                command="cmd_open"/>
+                command="cmd_open"
+                default="true"/>
       <menuitem id="dlContext-show"
                 label="&cmd.show.label;"
                 accesskey="&cmd.show.accesskey;"

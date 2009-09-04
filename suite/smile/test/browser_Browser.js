@@ -1,11 +1,3 @@
-const Ci = Components.interfaces;
-const Cc = Components.classes;
-
-function url(spec) {
-  var ios = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-  return ios.newURI(spec, null, null);
-}
-
 var gPageA = null;
 var gPageB = null;
 
@@ -18,41 +10,55 @@ var gTabMoveCount = 0;
 var gPageLoadCount = 0;
 
 function test() {
+  waitForExplicitFinish();
+
+  // nsIFocusManager is not available on MOZILLA_1_9_1
+  if ("nsIFocusManager" in Ci) {
+    if (Cc["@mozilla.org/focus-manager;1"].getService(Ci.nsIFocusManager)
+                                          .activeWindow != window) {
+      setTimeout(test, 0);
+      window.focus();
+      return;
+    }
+  } else if (!document.hasFocus()) {
+    setTimeout(test, 0);
+    window.focus();
+    return;
+  }
+
   var windows = Application.windows;
   ok(windows, "Check access to browser windows");
-  ok(windows.length, "There should be at least one browser window open");
+  is(windows.length, 1, "There should be one browser window open");
 
   var activeWin = Application.activeWindow;
   activeWin.events.addListener("TabOpen", onTabOpen);
   activeWin.events.addListener("TabClose", onTabClose);
   activeWin.events.addListener("TabMove", onTabMove);
 
-  gPageA = activeWin.open(url("chrome://mochikit/content/browser/suite/smile/test/ContentA.html"));
+  gPageA = activeWin.open(makeURI("chrome://mochikit/content/browser/suite/smile/test/ContentA.html"));
   gPageA.events.addListener("load", onPageAFirstLoad);
 
   is(activeWin.tabs.length, 2, "Checking length of 'Browser.tabs' after opening 1 additional tab");
-
-  waitForExplicitFinish();
-
-  function execAfterOpen() {
-    executeSoon(afterOpen);
-  }
 
   function onPageAFirstLoad(event) {
     gPageA.events.removeListener("load", onPageAFirstLoad);
     is(gPageA.uri.spec, event.data.uri.spec, "Checking event browser tab is equal to page A");
 
-    gPageB = activeWin.open(url("chrome://mochikit/content/browser/suite/smile/test/ContentB.html"));
-    gPageB.events.addListener("load", execAfterOpen);
+    gPageB = activeWin.open(makeURI("chrome://mochikit/content/browser/suite/smile/test/ContentB.html"));
+    gPageB.events.addListener("load", delayAfterOpen);
     gPageB.focus();
 
     is(activeWin.tabs.length, 3, "Checking length of 'Browser.tabs' after opening a second additional tab");
     is(activeWin.activeTab.index, gPageB.index, "Checking 'Browser.activeTab' after setting focus");
   }
 
+  function delayAfterOpen() {
+    executeSoon(afterOpen);
+  }
+
   // need to wait for the url's to be refreshed during the load
   function afterOpen(event) {
-    gPageB.events.removeListener("load", execAfterOpen);
+    gPageB.events.removeListener("load", delayAfterOpen);
     // check actuals
     is(gPageA.uri.spec, "chrome://mochikit/content/browser/suite/smile/test/ContentA.html", "Checking 'BrowserTab.uri' after opening");
     is(gPageB.uri.spec, "chrome://mochikit/content/browser/suite/smile/test/ContentB.html", "Checking 'BrowserTab.uri' after opening");
@@ -69,6 +75,9 @@ function test() {
     is(test1.innerHTML, "A", "Checking content of element in content DOM");
 
     // test moving tab
+    is(gTabMoveCount, 0, "Checking initial tab move count");
+
+    // move the tab
     gPageA.moveToEnd();
     is(gPageA.index, 2, "Checking index after moving tab");
 
@@ -102,9 +111,9 @@ function test() {
     });
 
     // test loading new content with a frame into a tab
-    // the event will be checked in afterClose
+    // the event will be checked in onPageBLoadComplete
     gPageB.events.addListener("load", onPageBLoadWithFrames);
-    gPageB.load(url("chrome://mochikit/content/browser/suite/smile/test/ContentWithFrames.html"));
+    gPageB.load(makeURI("chrome://mochikit/content/browser/suite/smile/test/ContentWithFrames.html"));
   }
 
   function onPageBLoadWithFrames(event) {
@@ -117,9 +126,9 @@ function test() {
     is(gPageLoadCount, 1, "Checking load count after loading new content with a frame");
 
     // test loading new content into a tab
-    // the event will be checked in onPageLoad
+    // the event will be checked in onPageASecondLoad
     gPageA.events.addListener("load", onPageASecondLoad);
-    gPageA.load(url("chrome://mochikit/content/browser/suite/smile/test/ContentB.html"));
+    gPageA.load(makeURI("chrome://mochikit/content/browser/suite/smile/test/ContentB.html"));
   }
 
   function onPageASecondLoad(event) {

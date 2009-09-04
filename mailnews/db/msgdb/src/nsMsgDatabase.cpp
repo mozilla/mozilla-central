@@ -681,7 +681,20 @@ NS_IMETHODIMP nsMsgDatabase::NotifyHdrChangeAll(nsIMsgDBHdr *aHdrChanged,
                                                 PRUint32 aNewFlags,
                                                 nsIDBChangeListener *aInstigator)
 {
-  NOTIFY_LISTENERS(OnHdrFlagsChanged, (aHdrChanged, aOldFlags, aNewFlags, aInstigator));
+  // We will only notify the change if the header exists in the database.
+  // This allows database functions to be usable in both the case where the
+  // header is in the db, or the header is not so no notifications should be
+  // given.
+  nsMsgKey key;
+  PRBool inDb = PR_FALSE;
+  if (aHdrChanged)
+  {
+    aHdrChanged->GetMessageKey(&key);
+    ContainsKey(key, &inDb);
+  }
+  if (inDb)
+    NOTIFY_LISTENERS(OnHdrFlagsChanged,
+                     (aHdrChanged, aOldFlags, aNewFlags, aInstigator));
   return NS_OK;
 }
 
@@ -2186,6 +2199,59 @@ NS_IMETHODIMP nsMsgDatabase::SetStringPropertyByHdr(nsIMsgDBHdr *msgHdr, const c
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsMsgDatabase::SetUint32PropertyByHdr(nsIMsgDBHdr *aMsgHdr,
+                                      const char *aProperty,
+                                      PRUint32 aValue)
+{
+  // If no change to this property, bail out.
+  PRUint32 oldValue;
+  nsresult rv = aMsgHdr->GetUint32Property(aProperty, &oldValue);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (oldValue == aValue)
+    return NS_OK;
+
+  // Don't do notifications if message not yet added to database.
+  PRBool notify = PR_TRUE;  
+  nsMsgKey key = nsMsgKey_None;
+  aMsgHdr->GetMessageKey(&key);
+  ContainsKey(key, &notify);
+
+  // Precall OnHdrPropertyChanged to store prechange status.
+  nsTArray<PRUint32> statusArray(m_ChangeListeners.Length());
+  PRUint32 status;
+  nsCOMPtr<nsIDBChangeListener> listener;
+  if (notify)
+  {
+    nsTObserverArray<nsCOMPtr<nsIDBChangeListener> >::ForwardIterator listeners(m_ChangeListeners);
+    while (listeners.HasMore())
+    {
+      listener = listeners.GetNext();
+      listener->OnHdrPropertyChanged(aMsgHdr, PR_TRUE, &status, nsnull);
+      // Ignore errors, but append element to keep arrays in sync.
+      statusArray.AppendElement(status);
+    }
+  }
+
+  rv = aMsgHdr->SetUint32Property(aProperty, aValue);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Postcall OnHdrPropertyChanged to process the change.
+  if (notify)
+  {
+    nsTObserverArray<nsCOMPtr<nsIDBChangeListener> >::ForwardIterator listeners(m_ChangeListeners);
+    for (PRUint32 i = 0; listeners.HasMore(); i++)
+    {
+      listener = listeners.GetNext();
+      status = statusArray[i];
+      listener->OnHdrPropertyChanged(aMsgHdr, PR_FALSE, &status, nsnull);
+      // Ignore errors.
+    }
+  }
+
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgDatabase::SetLabel(nsMsgKey key, nsMsgLabelValue label)
 {
   nsresult rv;
@@ -2372,6 +2438,16 @@ NS_IMETHODIMP nsMsgDatabase::MarkHdrMarked(nsIMsgDBHdr *msgHdr, PRBool mark,
   return SetMsgHdrFlag(msgHdr, mark, nsMsgMessageFlags::Marked, instigator);
 }
 
+NS_IMETHODIMP
+nsMsgDatabase::MarkHdrNotNew(nsIMsgDBHdr *aMsgHdr,
+                             nsIDBChangeListener *aInstigator)
+{
+  NS_ENSURE_ARG_POINTER(aMsgHdr);
+  nsMsgKey msgKey;
+  aMsgHdr->GetMessageKey(&msgKey);
+  m_newSet.RemoveElement(msgKey);
+  return SetMsgHdrFlag(aMsgHdr, PR_FALSE, nsMsgMessageFlags::New, aInstigator);
+}
 
 NS_IMETHODIMP nsMsgDatabase::MarkAllRead(nsTArray<nsMsgKey> *thoseMarked)
 {
@@ -5030,7 +5106,16 @@ nsresult nsMsgDatabase::PurgeExcessMessages(PRUint32 numHeadersToKeep,
 
 NS_IMPL_ISUPPORTS1(nsMsgRetentionSettings, nsIMsgRetentionSettings)
 
+// Initialise the member variables to resonable defaults.
 nsMsgRetentionSettings::nsMsgRetentionSettings()
+: m_retainByPreference(1),
+  m_daysToKeepHdrs(0),
+  m_numHeadersToKeep(0),
+  m_keepUnreadMessagesOnly(PR_FALSE),
+  m_useServerDefaults(PR_TRUE),
+  m_cleanupBodiesByDays(PR_FALSE),
+  m_daysToKeepBodies(0),
+  m_applyToFlaggedMessages(PR_FALSE)
 {
 }
 

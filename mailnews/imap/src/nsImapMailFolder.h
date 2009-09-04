@@ -507,6 +507,7 @@ protected:
 
   // offline imap support
   PRBool m_downloadingFolderForOfflineUse;
+  PRBool m_filterListRequiresBody;
   
   // auto-sync (preemptive download) support
   nsRefPtr<nsAutoSyncState> m_autoSyncStateObj;

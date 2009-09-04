@@ -39,7 +39,7 @@
 /**
  * describes a custom term added to a message search or filter
  */
-[scriptable,uuid(8DD6E135-6790-475e-9547-3C1408CF2F08)]
+[scriptable,uuid(925DB5AA-21AF-494c-8652-984BC7BAD13A)]
 interface nsIMsgSearchCustomTerm : nsISupports
 {
   /**
@@ -54,6 +54,9 @@ interface nsIMsgSearchCustomTerm : nsISupports
 
   /// name to display in term list. This should be localized. */
   readonly attribute AString name;
+
+  /// Does this term need the message body?
+  readonly attribute boolean needsBody;
 
   /**
    * Is this custom term enabled?

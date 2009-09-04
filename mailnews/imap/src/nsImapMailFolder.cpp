@@ -76,6 +76,8 @@
 #include "nsEscape.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsIMsgFilter.h"
+#include "nsIMsgFilterService.h"
+#include "nsIMsgSearchCustomTerm.h"
 #include "nsImapMoveCoalescer.h"
 #include "nsIPrompt.h"
 #include "nsIPromptService.h"
@@ -222,7 +224,8 @@ nsImapMailFolder::nsImapMailFolder() :
     m_downloadingFolderForOfflineUse(PR_FALSE),
     m_folderQuotaUsedKB(0),
     m_folderQuotaMaxKB(0),
-    m_applyIncomingFilters(PR_FALSE)
+    m_applyIncomingFilters(PR_FALSE),
+    m_filterListRequiresBody(PR_FALSE)
 {
   MOZ_COUNT_CTOR(nsImapMailFolder); // double count these for now.
 
@@ -725,6 +728,68 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolderWithListener(nsIMsgWindow *aMsgWindo
     {
       rv = server->ConfigureTemporaryFilters(m_filterList);
       NS_ENSURE_SUCCESS(rv, rv);
+    }
+
+    // If a body filter is enabled for an offline folder, delay the filter
+    // application until after message has been downloaded.
+    m_filterListRequiresBody = PR_FALSE;
+
+    if (mFlags & nsMsgFolderFlags::Offline)
+    {
+      nsCOMPtr<nsIMsgFilterService> filterService =
+        do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
+      PRUint32 filterCount = 0;
+      m_filterList->GetFilterCount(&filterCount);
+      for (PRUint32 index = 0;
+           index < filterCount && !m_filterListRequiresBody;
+           ++index)
+      {
+        nsCOMPtr<nsIMsgFilter> filter;
+        m_filterList->GetFilterAt(index, getter_AddRefs(filter));
+        if (!filter)
+          continue;
+        nsMsgFilterTypeType filterType;
+        filter->GetFilterType(&filterType);
+        if (!(filterType & nsMsgFilterType::Incoming))
+          continue;
+        PRBool enabled = PR_FALSE;
+        filter->GetEnabled(&enabled);
+        if (!enabled)
+          continue;
+        nsCOMPtr<nsISupportsArray> searchTerms;
+        PRUint32 numSearchTerms = 0;
+        filter->GetSearchTerms(getter_AddRefs(searchTerms));
+        if (searchTerms)
+          searchTerms->Count(&numSearchTerms);
+        for (PRUint32 termIndex = 0;
+             termIndex < numSearchTerms && !m_filterListRequiresBody;
+             termIndex++)
+        {
+          nsCOMPtr<nsIMsgSearchTerm> term;
+          rv = searchTerms->QueryElementAt(termIndex,
+                                           NS_GET_IID(nsIMsgSearchTerm),
+                                           getter_AddRefs(term));
+          nsMsgSearchAttribValue attrib;
+          rv = term->GetAttrib(&attrib);
+          NS_ENSURE_SUCCESS(rv, rv);
+          if (attrib == nsMsgSearchAttrib::Body)
+            m_filterListRequiresBody = PR_TRUE;
+          else if (attrib == nsMsgSearchAttrib::Custom)
+          {
+            nsCAutoString customId;
+            rv = term->GetCustomId(customId);
+            nsCOMPtr<nsIMsgSearchCustomTerm> customTerm;
+            if (NS_SUCCEEDED(rv) && filterService)
+              rv = filterService->GetCustomTerm(customId,
+                                                getter_AddRefs(customTerm));
+            PRBool needsBody = PR_FALSE;
+            if (NS_SUCCEEDED(rv))
+              rv = customTerm->GetNeedsBody(&needsBody);
+            if (NS_SUCCEEDED(rv) && needsBody)
+              m_filterListRequiresBody = PR_TRUE;
+          }
+        }
+      }
     }
   }
 
@@ -3051,13 +3116,15 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
       }
       rv = m_msgParser->GetAllHeaders(&headers, &headersSize);
 
-      if (NS_SUCCEEDED(rv) && headers && !m_msgMovedByFilter)
+      if (NS_SUCCEEDED(rv) && headers && !m_msgMovedByFilter &&
+          !m_filterListRequiresBody)
       {
         if (m_filterList)
         {
           GetMoveCoalescer();  // not sure why we're doing this here.
           m_filterList->ApplyFiltersToHdr(nsMsgFilterType::InboxRule, newMsgHdr, this, mDatabase,
                                           headers, headersSize, this, msgWindow, nsnull);
+          NotifyFolderEvent(mFiltersAppliedAtom);
         }
       }
     }
@@ -3264,6 +3331,20 @@ NS_IMETHODIMP nsImapMailFolder::EndMessage(nsMsgKey key)
 
 NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindow *msgWindow, PRBool *applyMore)
 {
+  //
+  //  This routine is called indirectly from ApplyFiltersToHdr in two
+  //  circumstances, controlled by m_filterListRequiresBody:
+  //
+  //  If false, after headers are parsed in NormalEndHeaderParseStream.
+  //  If true, after the message body is downloaded in NormalEndMsgWriteStream.
+  //
+  //  In NormalEndHeaderParseStream, the message has not been added to the
+  //  database, and it is important that database notifications and count 
+  //  updates do not occur. In NormalEndMsgWriteStream, the message has been
+  //  added to the database, and database notifications and count updates
+  //  should be performed.
+  //
+
   NS_ENSURE_ARG_POINTER(applyMore);
 
   nsMsgRuleActionType actionType;
@@ -3277,7 +3358,9 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
 #endif
 
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
-  if (m_msgParser)
+  if (m_filterListRequiresBody)
+    GetMessageHeader(m_curMsgUid, getter_AddRefs(msgHdr));
+  else if (m_msgParser)
     m_msgParser->GetNewMsgHdr(getter_AddRefs(msgHdr));
   if (!msgHdr)
     return NS_ERROR_NULL_POINTER; //fatal error, cannot apply filters
@@ -3339,7 +3422,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
           }
           else  // (!deleteToTrash)
           {
-            msgHdr->OrFlags(nsMsgMessageFlags::Read | nsMsgMessageFlags::IMAPDeleted, &newFlags);
+            mDatabase->MarkHdrRead(msgHdr, PR_TRUE, nsnull);
+            mDatabase->MarkImapDeleted(msgKey, PR_TRUE, nsnull);
             StoreImapFlags(kImapMsgSeenFlag | kImapMsgDeletedFlag, PR_TRUE,
                            &msgKey, 1, nsnull);
             m_msgMovedByFilter = PR_TRUE; // this will prevent us from adding the header to the db.
@@ -3359,8 +3443,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
 
             if (msgFlags & nsMsgMessageFlags::MDNReportNeeded && !isRead)
             {
-               msgHdr->SetFlags(msgFlags & ~nsMsgMessageFlags::MDNReportNeeded);
-               msgHdr->OrFlags(nsMsgMessageFlags::MDNReportSent, &newFlags);
+               mDatabase->MarkMDNNeeded(msgKey, PR_FALSE, nsnull);
+               mDatabase->MarkMDNSent(msgKey, PR_TRUE, nsnull);
             }
             nsresult err = MoveIncorporatedMessage(msgHdr, mDatabase, actionTargetFolderUri, filter, msgWindow);
             if (NS_SUCCEEDED(err))
@@ -3383,8 +3467,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
             msgHdr->GetFlags(&msgFlags);
             if (msgFlags & nsMsgMessageFlags::MDNReportNeeded && !isRead)
             {
-               msgHdr->SetFlags(msgFlags & ~nsMsgMessageFlags::MDNReportNeeded);
-               msgHdr->OrFlags(nsMsgMessageFlags::MDNReportSent, &newFlags);
+               mDatabase->MarkMDNNeeded(msgKey, PR_FALSE, nsnull);
+               mDatabase->MarkMDNSent(msgKey, PR_TRUE, nsnull);
             }
 
             nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
@@ -3418,26 +3502,56 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         }
         break;
         case nsMsgFilterAction::KillThread:
-          msgHdr->SetUint32Property("ProtoThreadFlags", nsMsgMessageFlags::Ignored);
-          break;
-        case nsMsgFilterAction::KillSubthread:
-          msgHdr->OrFlags(nsMsgMessageFlags::Ignored, &newFlags);
-          break;
         case nsMsgFilterAction::WatchThread:
-          msgHdr->OrFlags(nsMsgMessageFlags::Watched, &newFlags);
+        {
+          nsCOMPtr <nsIMsgThread> msgThread;
+          nsMsgKey threadKey;
+          mDatabase->GetThreadContainingMsgHdr(msgHdr, getter_AddRefs(msgThread));
+          if (msgThread)
+          {
+            msgThread->GetThreadKey(&threadKey);
+            if (actionType == nsMsgFilterAction::KillThread)
+              mDatabase->MarkThreadIgnored(msgThread, threadKey, PR_TRUE, nsnull);
+            else
+              mDatabase->MarkThreadWatched(msgThread, threadKey, PR_TRUE, nsnull);
+          }
+          else
+          {
+            if (actionType == nsMsgFilterAction::KillThread)
+              msgHdr->SetUint32Property("ProtoThreadFlags", nsMsgMessageFlags::Ignored);
+            else
+              msgHdr->SetUint32Property("ProtoThreadFlags", nsMsgMessageFlags::Watched);
+          }
+          if (actionType == nsMsgFilterAction::KillThread)
+          {
+            mDatabase->MarkHdrRead(msgHdr, PR_TRUE, nsnull);
+            StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, &msgKey, 1, nsnull);
+            msgIsNew = PR_FALSE;
+          }
+        }
+        break;
+        case nsMsgFilterAction::KillSubthread:
+        {
+          mDatabase->MarkHeaderKilled(msgHdr, PR_TRUE, nsnull);
+          mDatabase->MarkHdrRead(msgHdr, PR_TRUE, nsnull);
+          StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, &msgKey, 1, nsnull);
+          msgIsNew = PR_FALSE;
+        }
         break;
         case nsMsgFilterAction::ChangePriority:
         {
-          nsMsgPriorityValue filterPriority;
+          nsMsgPriorityValue filterPriority; // a PRInt32
           filterAction->GetPriority(&filterPriority);
-          msgHdr->SetPriority(filterPriority);
+          mDatabase->SetUint32PropertyByHdr(msgHdr, "priority",
+                                            static_cast<PRUint32>(filterPriority));
         }
         break;
         case nsMsgFilterAction::Label:
         {
           nsMsgLabelValue filterLabel;
           filterAction->GetLabel(&filterLabel);
-          msgHdr->SetLabel(filterLabel);
+          mDatabase->SetUint32PropertyByHdr(msgHdr, "label",
+                                            static_cast<PRUint32>(filterLabel));
           StoreImapFlags((filterLabel << 9), PR_TRUE, &msgKey, 1, nsnull);
         }
         break;
@@ -3469,8 +3583,28 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
             NS_ASSERTION(keysToClassify, "error getting key bucket");
             if (keysToClassify)
               keysToClassify->AppendElement(msgKey);
-            if (junkScore == nsIJunkMailPlugin::IS_SPAM_SCORE)
+            if (msgIsNew && junkScore == nsIJunkMailPlugin::IS_SPAM_SCORE)
+            {              
               msgIsNew = PR_FALSE;
+              mDatabase->MarkHdrNotNew(msgHdr, nsnull);
+              // nsMsgDBFolder::SendFlagNotifications by the call to
+              // SetBiffState(nsMsgBiffState_NoMail) will reset numNewMessages
+              // only if the message is also read and database notifications
+              // are active, but we are not going to mark it read in this
+              // action, preferring to leave the choice to the user.
+              // So correct numNewMessages.
+              if (m_filterListRequiresBody)
+              {
+                msgHdr->GetFlags(&msgFlags);
+                if (!(msgFlags & nsMsgMessageFlags::Read))
+                {
+                  PRInt32 numNewMessages;
+                  GetNumNewMessages(PR_FALSE, &numNewMessages);
+                  SetNumNewMessages(--numNewMessages);
+                  SetHasNewMessages(numNewMessages != 0);
+                }
+              }
+            }
           }
         }
         break;
@@ -3529,6 +3663,10 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
 
           customAction->Apply(messageArray, value, nsnull,
                               nsMsgFilterType::InboxRule, msgWindow);
+          // allow custom action to affect new
+          msgHdr->GetFlags(&msgFlags);
+          if (!(msgFlags & nsMsgMessageFlags::New))
+            msgIsNew = PR_FALSE;
         }
         break;
 
@@ -3548,7 +3686,13 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
   {
     PRInt32 numNewMessages;
     GetNumNewMessages(PR_FALSE, &numNewMessages);
-    SetNumNewMessages(numNewMessages - 1);
+    // When database notifications are active, new counts will be reset
+    // to zero in nsMsgDBFolder::SendFlagNotifications by the call to
+    // SetBiffState(nsMsgBiffState_NoMail), so don't repeat them here.
+    if (!m_filterListRequiresBody)
+      SetNumNewMessages(--numNewMessages);
+    if (mDatabase)
+      mDatabase->MarkHdrNotNew(msgHdr, nsnull);
   }
   return NS_OK;
 }
@@ -4297,6 +4441,61 @@ nsImapMailFolder::NormalEndMsgWriteStream(nsMsgKey uidOfMessage,
   if (m_offlineHeader)
     EndNewOfflineMessage();
   m_curMsgUid = uidOfMessage;
+
+  // Apply filter now if it needed a body
+  if (m_filterListRequiresBody)
+  {
+    if (m_filterList)
+    {
+      nsCOMPtr<nsIMsgDBHdr> newMsgHdr;
+      GetMessageHeader(uidOfMessage, getter_AddRefs(newMsgHdr));
+      GetMoveCoalescer();
+      nsCOMPtr<nsIMsgWindow> msgWindow;
+      if (imapUrl)
+      {
+        nsresult rv;
+        nsCOMPtr<nsIMsgMailNewsUrl> msgUrl;
+        msgUrl = do_QueryInterface(imapUrl, &rv);
+        if (msgUrl && NS_SUCCEEDED(rv))
+          msgUrl->GetMsgWindow(getter_AddRefs(msgWindow));
+      }
+      m_filterList->ApplyFiltersToHdr(nsMsgFilterType::InboxRule, newMsgHdr,
+                                      this, mDatabase, nsnull, nsnull, this,
+                                      msgWindow, nsnull);
+      NotifyFolderEvent(mFiltersAppliedAtom);
+    }
+    // Process filter plugins and other items normally done at the end of
+    // HeaderFetchCompleted.
+    PRBool pendingMoves = m_moveCoalescer && m_moveCoalescer->HasPendingMoves();
+    PlaybackCoalescedOperations();
+
+    PRBool filtersRun;
+    CallFilterPlugins(nsnull, &filtersRun);
+    PRInt32 numNewBiffMsgs = 0;
+    if (m_performingBiff)
+      GetNumNewMessages(PR_FALSE, &numNewBiffMsgs);
+
+    if (!filtersRun && m_performingBiff && mDatabase && numNewBiffMsgs > 0 &&
+        (!pendingMoves || !ShowPreviewText()))
+    {
+      // If we are performing biff for this folder, tell the
+      // stand-alone biff about the new high water mark
+      // We must ensure that the server knows that we are performing biff.
+      // Otherwise the stand-alone biff won't fire.
+      nsCOMPtr<nsIMsgIncomingServer> server;
+      if (NS_SUCCEEDED(GetServer(getter_AddRefs(server))) && server)
+        server->SetPerformingBiff(PR_TRUE);
+
+      SetBiffState(nsIMsgFolder::nsMsgBiffState_NewMail);
+      if (server)
+        server->SetPerformingBiff(PR_FALSE);
+      m_performingBiff = PR_FALSE;
+    }
+
+    if (m_filterList)
+      (void)m_filterList->FlushLogIfNecessary();
+  }
+
   return NS_OK;
 }
 
@@ -5370,6 +5569,8 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
     {
       imapServer->GetAutoSyncOfflineStores(&autoSyncOfflineStores);
       imapServer->GetDownloadBodiesOnGetNewMail(&autoDownloadNewHeaders);
+      if (m_filterListRequiresBody)
+        autoDownloadNewHeaders = PR_TRUE;
     }
     PRBool notifiedBodies = PR_FALSE;
     if (m_downloadingFolderForOfflineUse || autoSyncOfflineStores ||
@@ -5410,30 +5611,31 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
     }
   }
 
-  PRBool filtersRun;
-  CallFilterPlugins(msgWindow, &filtersRun);
-  if (!filtersRun && m_performingBiff && mDatabase && numNewBiffMsgs > 0 &&
-      (!pendingMoves || !ShowPreviewText()))
+  // delay calling plugins if filter application is also delayed
+  if (!m_filterListRequiresBody)
   {
-    if (!pendingMoves)
-      SetHasNewMessages(PR_TRUE);
+    PRBool filtersRun;
+    CallFilterPlugins(msgWindow, &filtersRun);
+    if (!filtersRun && m_performingBiff && mDatabase && numNewBiffMsgs > 0 &&
+        (!pendingMoves || !ShowPreviewText()))
+    {
+      // If we are performing biff for this folder, tell the
+      // stand-alone biff about the new high water mark
+      // We must ensure that the server knows that we are performing biff.
+      // Otherwise the stand-alone biff won't fire.
+      nsCOMPtr<nsIMsgIncomingServer> server;
+      if (NS_SUCCEEDED(GetServer(getter_AddRefs(server))) && server)
+        server->SetPerformingBiff(PR_TRUE);
 
-    // If we are performing biff for this folder, tell the
-    // stand-alone biff about the new high water mark
-    // We must ensure that the server knows that we are performing biff.
-    // Otherwise the stand-alone biff won't fire.
-    nsCOMPtr<nsIMsgIncomingServer> server;
-    if (NS_SUCCEEDED(GetServer(getter_AddRefs(server))) && server)
-      server->SetPerformingBiff(PR_TRUE);
+      SetBiffState(nsIMsgFolder::nsMsgBiffState_NewMail);
+      if (server)
+        server->SetPerformingBiff(PR_FALSE);
+      m_performingBiff = PR_FALSE;
+    }
 
-    SetBiffState(nsIMsgFolder::nsMsgBiffState_NewMail);
-    if (server)
-      server->SetPerformingBiff(PR_FALSE);
-    m_performingBiff = PR_FALSE;
+    if (m_filterList)
+      (void)m_filterList->FlushLogIfNecessary();
   }
-
-  if (m_filterList)
-    (void)m_filterList->FlushLogIfNecessary();
 
   return NS_OK;
 }

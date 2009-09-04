@@ -279,6 +279,14 @@ nsresult nsMsgProtocol::OpenFileSocket(nsIURI * aURL, PRUint32 aStartPosition, P
   return rv;
 }
 
+nsresult nsMsgProtocol::GetTopmostMsgWindow(nsIMsgWindow **aWindow)
+{
+  nsresult rv;
+  nsCOMPtr<nsIMsgMailSession> mailSession(do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return mailSession->GetTopmostMsgWindow(aWindow);
+}
+
 nsresult nsMsgProtocol::SetupTransportState()
 {
   if (!m_socketIsOpen && m_transport)

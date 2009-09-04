@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Andrew Sutherland <asutherland@asutherland.org>
  *   Kent James <kent@caspia.com>
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -243,7 +244,8 @@ IndexingJob.prototype = {
  *   meta-data.
  *
  * Indexing Message Control
- * - We index IMAP messages that are offline.  We index all local messages.
+ * - We index the headers of all IMAP messages. We index the bodies of all IMAP
+ *   messages that are offline.  We index all local messages.
  *   We plan to avoid indexing news messages.
  * - We would like a way to express desires about indexing that either don't
  *   confound offline storage with indexing, or actually allow some choice.
@@ -1061,8 +1063,8 @@ var GlodaIndexer = {
       // The basic search expression is:
       //  ((GLODA_MESSAGE_ID_PROPERTY Is 0) || (GLODA_DIRTY_PROPERTY Isnt 0))
       // If the folder !isLocal we add the terms:
-      //  && (Status Is nsMsgMessageFlags.Offline)
-      //  && (Status Isnt nsMsgMessageFlags.Expunged)
+      //  - if the folder is offline -- && (Status Is nsMsgMessageFlags.Offline)
+      //  - && (Status Isnt nsMsgMessageFlags.Expunged)
 
       let searchSession = Cc["@mozilla.org/messenger/searchSession;1"]
                             .createInstance(Ci.nsIMsgSearchSession);
@@ -1081,7 +1083,7 @@ var GlodaIndexer = {
       searchTerm.beginsGrouping = true;
       searchTerm.attrib = nsMsgSearchAttrib.Uint32HdrProperty;
       searchTerm.op = nsMsgSearchOp.Is;
-      value = searchTerm.value;
+      let value = searchTerm.value;
       value.attrib = searchTerm.attrib;
       value.status = 0;
       searchTerm.value = value;
@@ -1103,16 +1105,19 @@ var GlodaIndexer = {
 
       if (!isLocal)
       {
-        //  third term: && Status Is nsMsgMessageFlags.Offline
-        searchTerm = searchSession.createTerm();
-        searchTerm.booleanAnd = true;
-        searchTerm.attrib = nsMsgSearchAttrib.MsgStatus;
-        searchTerm.op = nsMsgSearchOp.Is;
-        value = searchTerm.value;
-        value.attrib = searchTerm.attrib;
-        value.status = Ci.nsMsgMessageFlags.Offline;
-        searchTerm.value = value;
-        searchTerms.appendElement(searchTerm, false);
+        // If the folder is offline, then the message should be too
+        if (this._indexingFolder.flags & Ci.nsMsgFolderFlags.Offline) {
+          // third term: && Status Is nsMsgMessageFlags.Offline
+          searchTerm = searchSession.createTerm();
+          searchTerm.booleanAnd = true;
+          searchTerm.attrib = nsMsgSearchAttrib.MsgStatus;
+          searchTerm.op = nsMsgSearchOp.Is;
+          value = searchTerm.value;
+          value.attrib = searchTerm.attrib;
+          value.status = Ci.nsMsgMessageFlags.Offline;
+          searchTerm.value = value;
+          searchTerms.appendElement(searchTerm, false);
+        }
 
         // fourth term: && Status Isnt nsMsgMessageFlags.Expunged
         searchTerm = searchSession.createTerm();
@@ -1652,10 +1657,10 @@ var GlodaIndexer = {
             Ci.nsIMsgFolder);
           if (!this.shouldIndexFolder(folder))
             continue;
-          // we could also check nsMsgFolderFlags.Mail conceivably...
-          let isLocal = folder instanceof Ci.nsIMsgLocalMailFolder;
-          // we only index local folders or IMAP folders that are marked offline
-          if (!isLocal && !(folder.flags & Ci.nsMsgFolderFlags.Offline))
+
+          // we only index local or IMAP folders
+          if (!(folder instanceof Ci.nsIMsgLocalMailFolder) &&
+              !(folder instanceof Ci.nsIMsgImapMailFolder))
             continue;
 
           let glodaFolder = Gloda.getFolderForFolder(folder);
@@ -1734,7 +1739,6 @@ var GlodaIndexer = {
     //  don't do something.  so we will yield with kWorkSync for every block.
     const HEADER_CHECK_BLOCK_SIZE = 25;
 
-    let isLocal = this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
     // we can safely presume if we are here that this folder has been selected
     //  for offline processing...
 
@@ -1835,8 +1839,6 @@ var GlodaIndexer = {
     // if we are already in the correct folder, our "get in the folder" clause
     //  will not execute, so we need to make sure this value is accurate in
     //  that case.  (and we want to avoid multiple checks...)
-    let folderIsLocal =
-      this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
     for (; aJob.offset < aJob.items.length; aJob.offset++) {
       let item = aJob.items[aJob.offset];
       // item is either [folder ID, message key] or
@@ -1850,9 +1852,6 @@ var GlodaIndexer = {
         // stay out of folders we should not be in!
         if (!this.shouldIndexFolder(this._indexingFolder))
           continue;
-
-        folderIsLocal =
-          this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
       }
 
       let msgHdr;
@@ -1863,12 +1862,9 @@ var GlodaIndexer = {
         // TODO fixme to not assume singular message-id's.
         msgHdr = this._indexingDatabase.getMsgHdrForMessageID(item[1]);
 
-      // it needs a header, the header needs to not be expunged, plus, the
-      //  message needs to be considered offline.
+      // it needs a header, and the header needs to not be expunged.
       if (msgHdr &&
-          !(msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Expunged) &&
-          (folderIsLocal ||
-           (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Offline)))
+          !(msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Expunged))
         yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
             this._callbackHandle));
       else
@@ -2069,9 +2065,16 @@ var GlodaIndexer = {
       let msgFolder = aMsgHdr.folder;
       if (!this.indexer.shouldIndexFolder(msgFolder))
         return;
+
+      // Make sure the message is eligible for indexing.
+      // We index local messages, IMAP messages that are offline, and IMAP
+      // messages that aren't offline but whose folders aren't offline either
       let isFolderLocal = msgFolder instanceof Ci.nsIMsgLocalMailFolder;
-      if (!isFolderLocal && !(msgFolder.flags&Ci.nsMsgFolderFlags.Offline))
-        return;
+      if (!isFolderLocal) {
+        if (!(aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline) &&
+            (msgFolder.flags & Ci.nsMsgFolderFlags.Offline))
+          return;
+      }
 
       // mark the folder dirty so we know to look in it, but there is no need
       //  to mark the message because it will lack a gloda-id anyways.
@@ -2379,9 +2382,16 @@ var GlodaIndexer = {
       let msgFolder = aMsgHdr.folder;
       if (!this.indexer.shouldIndexFolder(msgFolder))
         return;
+
+      // Make sure the message is eligible for indexing.
+      // We index local messages, IMAP messages that are offline, and IMAP
+      // messages that aren't offline but whose folders aren't offline either
       let isFolderLocal = msgFolder instanceof Ci.nsIMsgLocalMailFolder;
-      if (!isFolderLocal && !(msgFolder.flags&Ci.nsMsgFolderFlags.Offline))
-        return;
+      if (!isFolderLocal) {
+        if (!(aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline) &&
+            (msgFolder.flags & Ci.nsMsgFolderFlags.Offline))
+          return;
+      }
 
       // mark the message as dirty
       // (We could check for the presence of the gloda message id property
@@ -2399,13 +2409,15 @@ var GlodaIndexer = {
       }
       // only queue the message if we haven't overflowed our event-driven budget
       if (this.indexer._pendingAddJob.items.length <
-          this.indexer._indexMaxEventQueueMessages)
+          this.indexer._indexMaxEventQueueMessages) {
         this.indexer._pendingAddJob.items.push(
           [GlodaDatastore._mapFolder(msgFolder).id,
            aMsgHdr.messageKey]);
-      else
+        this.indexer.indexing = true;
+      }
+      else {
         this.indexer.indexingSweepNeeded = true;
-      this.indexer.indexing = true;
+      }
     },
 
     OnItemAdded: function gloda_indexer_OnItemAdded(aParentItem, aItem) {
@@ -2485,13 +2497,27 @@ var GlodaIndexer = {
 
   _indexMessage: function gloda_indexMessage(aMsgHdr, aCallbackHandle) {
     let logDebug = this._log.level <= Log4Moz.Level.Debug;
-
     if (logDebug)
       this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
                       aMsgHdr.subject);
-    MsgHdrToMimeMessage(aMsgHdr, aCallbackHandle.callbackThis,
-        aCallbackHandle.callback);
-    let [,aMimeMsg] = yield this.kWorkAsync;
+
+    // If the message is offline, then get the message body as well
+    let isMsgOffline = false;
+    let aMimeMsg;
+    if ((aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline) ||
+        (aMsgHdr.folder instanceof Ci.nsIMsgLocalMailFolder)) {
+      isMsgOffline = true;
+      MsgHdrToMimeMessage(aMsgHdr, aCallbackHandle.callbackThis,
+          aCallbackHandle.callback);
+      [,aMimeMsg] = yield this.kWorkAsync;
+    }
+    else {
+      if (logDebug)
+        this._log.debug("  * Message is not offline -- only headers indexed");
+    }
+
+    if (logDebug)
+      this._log.debug("  * Got message, subject " + aMsgHdr.subject);
 
     if (this._unitTestSuperVerbose) {
       if (aMimeMsg)
@@ -2511,8 +2537,8 @@ var GlodaIndexer = {
     // also see if we already know about the message...
     references.push(aMsgHdr.messageId);
 
-    this._datastore.getMessagesByMessageID(references, aCallbackHandle.callback,
-      aCallbackHandle.callbackThis);
+    Gloda.getMessagesByMessageID(references, aCallbackHandle.callback,
+                                 aCallbackHandle.callbackThis);
     // (ancestorLists has a direct correspondence to the message ids)
     let ancestorLists = yield this.kWorkAsync;
 
@@ -2668,7 +2694,7 @@ var GlodaIndexer = {
       let bodyPlain = aMimeMsg.coerceBodyToPlaintext(aMsgHdr.folder);
       if (bodyPlain) {
         curMsg._bodyLines = bodyPlain.split(/\r?\n/);
-        curMsg._content = new GlodaContent();
+        // curMsg._content gets set by fundattr.js
       }
     }
 
@@ -2676,20 +2702,20 @@ var GlodaIndexer = {
       curMsg._isNew = true;
       // curMsg._indexedBodyText is set by GlodaDatastore.insertMessage or
       //  GlodaDatastore.updateMessage
-      curMsg._subject = aMsgHdr.mime2DecodedSubject;
-      curMsg._attachmentNames = attachmentNames;
-
-      // curMsg._indexAuthor gets set by fundattr.js
-      // curMsg._indexRecipients gets set by fundattr.js
     }
+
+    curMsg._subject = aMsgHdr.mime2DecodedSubject;
+    curMsg._attachmentNames = attachmentNames;
+
+    // curMsg._indexAuthor gets set by fundattr.js
+    // curMsg._indexRecipients gets set by fundattr.js
 
     // zero the notability so everything in grokNounItem can just increment
     curMsg.notability = 0;
 
     yield aCallbackHandle.pushAndGo(
         Gloda.grokNounItem(curMsg,
-            {header: aMsgHdr, mime: aMimeMsg,
-             bodyLines: curMsg._bodyLines, content: curMsg._content},
+            {header: aMsgHdr, mime: aMimeMsg, bodyLines: curMsg._bodyLines},
             isConceptuallyNew, isRecordNew,
             aCallbackHandle));
 
