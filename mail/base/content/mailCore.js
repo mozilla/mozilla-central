@@ -121,8 +121,8 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
   // make sure the folder location picker is initialized
   if (document.getElementById("folder-location-container"))
   {
-    loadFolderViewForTree(gCurrentFolderView, document.getElementById('folderLocationPopup').tree);
-    UpdateFolderLocationPicker(gFolderDisplay.displayedFolder);
+    // XXX FIXME: used to call loadFolderViewForTree  and UpdateFolderLocationPicker
+    // but those were removed in changeset 1de58e1d7549
   }
 
   gSearchInput = null;

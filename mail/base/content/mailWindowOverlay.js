@@ -238,11 +238,17 @@ function InitViewLayoutStyleMenu(event)
     layoutStyleMenuitem.setAttribute("checked", "true");
 }
 
+/**
+ * Initialize (check) appropriate folder mode under the View | Folder menu.
+ */
 function InitViewFolderViewsMenu(event)
 {
-  var layoutStyleMenuitem = event.target.childNodes[gCurrentFolderView];
-  if (layoutStyleMenuitem)
-    layoutStyleMenuitem.setAttribute("checked", "true");
+  for (let i = 0; i < event.target.childNodes.length; i++) {
+    if (event.target.childNodes[i].value == gFolderTreeView.mode) {
+      event.target.childNodes[i].setAttribute("checked", true);
+      break;
+    }
+  }
 }
 
 function setSortByMenuItemCheckState(id, value)
