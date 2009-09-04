@@ -59,12 +59,14 @@
 
   <toolbarpalette id="MailToolbarPalette">
     <!-- gloda search widget; provides global (message) searching.  -->
-    <toolbaritem id="gloda-search" insertafter="search-container"
+    <toolbaritem id="gloda-search" insertafter="button-stop"
                  title="&glodaSearch.title;"
                  align="center"
+                 flex="1000"
                  class="chromeclass-toolbar-additional">
-        <textbox id="searchInput" flex="1"
+        <textbox id="searchInput" 
                  chromedir="ltr"
+                 flex="1"
                  searchCriteria="true"
                  type="glodacomplete"
                  searchbutton="true"

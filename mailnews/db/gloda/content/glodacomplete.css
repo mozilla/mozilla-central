@@ -1,6 +1,5 @@
 textbox[type="glodacomplete"] {
   -moz-binding: url("chrome://global/content/bindings/autocomplete.xml#autocomplete");
-  width: 400px;
 }
 
 panel[type="glodacomplete-richlistbox"] {

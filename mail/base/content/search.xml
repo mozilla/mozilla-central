@@ -187,7 +187,7 @@
   
           var prefBranch =
               Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch);
+              getService(Components.interfaces.nsIPrefBranch2);
           prefBranch.addObserver("mailnews.database.global.indexer.enabled", this._prefObserver, false);
 
           this.glodaCompleter =
@@ -229,7 +229,7 @@
           this.menupopup.appendChild(saveAsVF);
           this.updateSaveItem();
           this.input = "";
-          this.glodaEnabled = gPrefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
+          this.glodaEnabled = prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
           this.searchMode = this.glodaEnabled ? "global" : String(quickSearchModes[QuickSearchConstants.kQuickSearchFromOrSubject].value);
         } catch (e) {
           logException(e);
@@ -279,11 +279,14 @@
       <property name="searchMode" onget="return this.mQuickSearchMode;"
                 onset="this.mQuickSearchMode = val;
                        this.menupopup.setAttribute('value', val);
-                       let currentTabInfo = document.getElementById('tabmail').currentTabInfo;
-                       this.menupopup.getElementsByAttribute('value', this.searchMode)[0].setAttribute('checked', 'true');
-                       if (currentTabInfo)
-                          currentTabInfo.searchState = this.state;
-                       this.updateEmptyText();"/>
+                       let tabmail = document.getElementById('tabmail');
+                       if (tabmail) { /* if not in the customize toolbar */
+                         let currentTabInfo = tabmail.currentTabInfo;
+                         this.menupopup.getElementsByAttribute('value', this.searchMode)[0].setAttribute('checked', 'true');
+                         if (currentTabInfo)
+                            currentTabInfo.searchState = this.state;
+                         this.updateEmptyText();
+                       }"/>
       <field name="_glodaEnabled"/>
       <property name="glodaEnabled" onget="return this._glodaEnabled"
                 onset="try {this.showGlodaItems(val); this._glodaEnabled = val;} catch(e) {logException(e);}"/> 
