@@ -54,7 +54,6 @@ var pageTagPairs = {
   "chrome://messenger/content/am-smime.xul": "mail_security_settings",
   "chrome://messenger/content/am-serverwithnoidentities.xul": "mail_local_folders_settings",
   "chrome://messenger/content/am-mdn.xul": "mail-account-receipts",
-  "chrome://messenger/content/am-fakeaccount.xul": "fake_account"
 } 
 
 function doHelpButton() 

@@ -394,22 +394,58 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
     nsCOMPtr<nsIMsgAccountManager>
       accountManager(do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr<nsISupportsArray> identities;
-    rv = accountManager->GetIdentitiesForServer(aServer, getter_AddRefs(identities));
+
+    nsCOMPtr<nsIMsgAccount> account;
+    rv = accountManager->FindAccountForServer(aServer, getter_AddRefs(account));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 count = 0;
-    identities->Count(&count);
+    nsCAutoString accountKey;
+    rv = account->GetKey(accountKey);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Loop through all accounts, adding emails from this account, as well as
+    // from any accounts that defer to this account.
     mEmails.Clear();
-    mEmails.SetCapacity(count);
-    for (PRUint32 index = 0; index < count; ++index)
+    nsCOMPtr<nsISupportsArray> accounts;
+    rv = accountManager->GetAccounts(getter_AddRefs(accounts));
+    NS_ENSURE_SUCCESS(rv, rv);
+    PRUint32 accountCount;
+    accounts->Count(&accountCount);
+
+    for (PRUint32 i = 0; i < accountCount; i++)
     {
-      nsCOMPtr<nsIMsgIdentity> identity(do_QueryElementAt(identities, index));
-      if (!identity)
+      nsCOMPtr<nsIMsgAccount> loopAccount(do_QueryElementAt(accounts, i));
+      if (!loopAccount)
         continue;
-      nsCAutoString email;
-      rv = identity->GetEmail(email);
-      mEmails.AppendElement(email);
+      nsCAutoString loopAccountKey;
+      loopAccount->GetKey(loopAccountKey);
+      nsCOMPtr<nsIMsgIncomingServer> loopServer;
+      loopAccount->GetIncomingServer(getter_AddRefs(loopServer));
+      nsCAutoString deferredToAccountKey;
+      if (loopServer)
+        loopServer->GetCharValue("deferred_to_account", deferredToAccountKey);
+
+      // Add the emails for any account that defers to this one, or for the
+      // account itself.
+      if (accountKey.Equals(deferredToAccountKey) || accountKey.Equals(loopAccountKey))
+      {
+        nsCOMPtr<nsISupportsArray> identities;
+        loopAccount->GetIdentities(getter_AddRefs(identities));
+        if (!identities)
+          continue;
+        PRUint32 identityCount = 0;
+        identities->Count(&identityCount);
+        for (PRUint32 j = 0; j < identityCount; ++j)
+        {
+          nsCOMPtr<nsIMsgIdentity> identity(do_QueryElementAt(identities, j));
+          if (!identity)
+            continue;
+          nsCAutoString email;
+          identity->GetEmail(email);
+          if (!email.IsEmpty())
+            mEmails.AppendElement(email);
+        }
+      }
     }
   }
 
