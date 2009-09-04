@@ -2923,7 +2923,25 @@ NS_IMETHODIMP
 nsImapIncomingServer::GetFilterScope(nsMsgSearchScopeValue *filterScope)
 {
   NS_ENSURE_ARG_POINTER(filterScope);
-  *filterScope = nsMsgSearchScope::onlineMailFilter;
+  // If the inbox is enabled for offline use, then use the offline filter
+  // scope, else use the online filter scope.
+  //
+  // XXX We use the same scope for all folders with the same incoming server,
+  // yet it is possible to set the offline flag separately for each folder.
+  // Manual filters could perhaps check the offline status of each folder,
+  // though it's hard to see how to make that work since we only store filters
+  // per server.
+  // 
+  nsCOMPtr<nsIMsgFolder> rootMsgFolder;
+  nsresult rv = GetRootMsgFolder(getter_AddRefs(rootMsgFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgFolder> offlineInboxMsgFolder;
+  rv = rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox |
+                                           nsMsgFolderFlags::Offline,
+                                         getter_AddRefs(offlineInboxMsgFolder));
+
+  *filterScope = offlineInboxMsgFolder ? nsMsgSearchScope::offlineMailFilter
+                                       : nsMsgSearchScope::onlineMailFilter;
   return NS_OK;
 }
 

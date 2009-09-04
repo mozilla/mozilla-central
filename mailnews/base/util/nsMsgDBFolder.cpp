@@ -133,6 +133,7 @@ nsIAtom* nsMsgDBFolder::kSynchronizeAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kOpenAtom=nsnull;
 nsIAtom* nsMsgDBFolder::kIsDeferred=nsnull;
 nsIAtom* nsMsgDBFolder::kKeywords=nsnull;
+nsIAtom* nsMsgDBFolder::mFiltersAppliedAtom=nsnull;
 
 nsICollation * nsMsgDBFolder::gCollationKeyGenerator = nsnull;
 
@@ -174,7 +175,8 @@ const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
   { "Synchronize", &nsMsgDBFolder::kSynchronizeAtom },
   { "open", &nsMsgDBFolder::kOpenAtom },
   { "isDeferred", &nsMsgDBFolder::kIsDeferred },
-  { "Keywords", &nsMsgDBFolder::kKeywords }
+  { "Keywords", &nsMsgDBFolder::kKeywords },
+  { "FiltersApplied", &nsMsgDBFolder::mFiltersAppliedAtom }
 };
 
 nsMsgDBFolder::nsMsgDBFolder(void)
@@ -1703,7 +1705,8 @@ nsresult nsMsgDBFolder::CompactOfflineStore(nsIMsgWindow *inWindow, nsIUrlListen
 nsresult
 nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
 {
-  NS_ENSURE_ARG_POINTER(aWindow);
+  // we don't check for null aWindow, because this routine can get called
+  // in unit tests where we have no window. Just assume not OK if no window.
   PRBool prompt;
   nsresult rv = GetPromptPurgeThreshold(&prompt);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1795,7 +1798,7 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
 
          PRBool askBeforePurge;
          branch->GetBoolPref(PREF_MAIL_PURGE_ASK, &askBeforePurge);
-         if (askBeforePurge)
+         if (askBeforePurge && aWindow)
          {
            nsCOMPtr <nsIStringBundle> bundle;
            rv = GetBaseStringBundle(getter_AddRefs(bundle));
@@ -1836,7 +1839,7 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
            }
          }
          else
-           okToCompact = PR_TRUE;
+           okToCompact = aWindow || !askBeforePurge;
 
          if (okToCompact)
          {
