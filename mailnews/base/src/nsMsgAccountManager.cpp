@@ -195,6 +195,7 @@ nsMsgAccountManager::~nsMsgAccountManager()
     if (NS_SUCCEEDED(rv))
     {
       observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
+      observerService->RemoveObserver(this, "quit-application-granted");
       observerService->RemoveObserver(this, ABOUT_TO_GO_OFFLINE_TOPIC);
     }
   }
@@ -217,7 +218,7 @@ nsresult nsMsgAccountManager::Init()
   if (NS_SUCCEEDED(rv))
   {
     observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
-    observerService->AddObserver(this, "quit-application" , PR_TRUE);
+    observerService->AddObserver(this, "quit-application-granted" , PR_TRUE);
     observerService->AddObserver(this, ABOUT_TO_GO_OFFLINE_TOPIC, PR_TRUE);
     observerService->AddObserver(this, "profile-before-change", PR_TRUE);
   }
@@ -293,13 +294,12 @@ NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aT
     Shutdown();
     return NS_OK;
   }
-
-  if (!strcmp(aTopic,"quit-application"))
+  if (!strcmp(aTopic, "quit-application-granted"))
   {
-    m_shutdownInProgress = PR_TRUE;
+    // CleanupOnExit will set m_shutdownInProgress to true.
+    CleanupOnExit();
     return NS_OK;
   }
-
   if (!strcmp(aTopic, ABOUT_TO_GO_OFFLINE_TOPIC))
   {
     nsAutoString dataString(NS_LITERAL_STRING("offline"));
@@ -1491,6 +1491,11 @@ nsMsgAccountManager::CloseCachedConnections()
 NS_IMETHODIMP
 nsMsgAccountManager::CleanupOnExit()
 {
+  // This can get called multiple times, and potentially re-entrantly.
+  // So add some protection against that.
+  if (m_shutdownInProgress)
+    return NS_OK;
+  m_shutdownInProgress = PR_TRUE;
   m_incomingServers.Enumerate(hashCleanupOnExit, nsnull);
   // Try to do this early on in the shutdown process before
   // necko shuts itself down.

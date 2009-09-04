@@ -539,6 +539,8 @@ nsresult nsPop3Protocol::Initialize(nsIURI * aURL)
     {
       nsCOMPtr<nsIMsgWindow> msgwin;
       mailnewsUrl->GetMsgWindow(getter_AddRefs(msgwin));
+      if (!msgwin)
+        GetTopmostMsgWindow(getter_AddRefs(msgwin));
       if (msgwin)
       {
         nsCOMPtr<nsIDocShell> docshell;

@@ -35,6 +35,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// Make sure we execute this file exactly once
+var gMailTestUtils_js__;
+if (!gMailTestUtils_js__) {
+gMailTestUtils_js__ = true;
+
 // we would like for everyone to have fixIterator and toXPComArray
 Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 
@@ -275,3 +280,5 @@ function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
 
   aFolder.updateFolder(null);
 }
+
+} // gMailTestUtils_js__

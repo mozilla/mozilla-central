@@ -28,8 +28,18 @@ classic.jar:
   skin/classic/editor/icons/img-align-top.gif                 (editor/img-align-top.gif)
 % skin messenger classic/1.0 %skin/classic/messenger/ os=WINNT osversion<6
 % skin messenger classic/1.0 %skin/classic/messenger/ os!=WINNT
-# NOTE: If you add a new file here, you'll need to add it to the aero
-# section at the bottom of this file, too.
+
+# ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+# ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+#
+# If you add a new file here, you'll need to add it to the aero section at the
+# bottom of this file, too. If you do not, people using Windows prior to Vista
+# will be able to enjoy your additions, but people using Vista and above will
+# not.
+#
+# ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+# ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
+
   skin/classic/messenger/primaryToolbar.css                   (mail/primaryToolbar.css)
   skin/classic/messenger/accountCentral.css                   (mail/accountCentral.css)
   skin/classic/messenger/accountCreation.css                  (mail/accountCreation.css)
@@ -226,6 +236,8 @@ classic.jar:
   skin/classic/aero/messenger/accountCreation.css                  (mail/accountCreation.css)
   skin/classic/aero/messenger/accountManage.css                    (mail/accountManage.css)
   skin/classic/aero/messenger/accountWizard.css                    (mail/accountWizard.css)
+  skin/classic/aero/messenger/section_collapsed.png                (mail/section_collapsed.png)
+  skin/classic/aero/messenger/section_expanded.png                 (mail/section_expanded.png)
   skin/classic/aero/messenger/messageHeader.css                    (mail/messageHeader.css)
   skin/classic/aero/messenger/messageBody.css                      (mail/messageBody.css)
   skin/classic/aero/messenger/messageQuotes.css                    (mail/messageQuotes.css)
@@ -285,6 +297,8 @@ classic.jar:
   skin/classic/aero/messenger/messengercompose/compose-toolbar.png  (mail/compose/compose-toolbar.png)
   skin/classic/aero/messenger/messengercompose/compose-toolbar-small.png   (mail/compose/compose-toolbar-small.png)
   skin/classic/aero/messenger/messengercompose/format-buttons.png  (mail/compose/format-buttons-aero.png)
+  skin/classic/aero/messenger/preferences/alwaysAsk.png            (mail/preferences/alwaysAsk.png)
+  skin/classic/aero/messenger/preferences/application.png          (mail/preferences/application.png)
 * skin/classic/aero/messenger/preferences/preferences.css          (mail/preferences/preferences-aero.css)
   skin/classic/aero/messenger/preferences/general.png              (mail/preferences/general-aero.png)
   skin/classic/aero/messenger/preferences/display.png              (mail/preferences/display-aero.png)
@@ -292,6 +306,8 @@ classic.jar:
   skin/classic/aero/messenger/preferences/junk.png                 (mail/preferences/junk-aero.png)
   skin/classic/aero/messenger/preferences/security.png             (mail/preferences/security-aero.png)
   skin/classic/aero/messenger/preferences/attachments.png          (mail/preferences/attachments-aero.png)
+  skin/classic/aero/messenger/preferences/applications.css         (mail/preferences/applications.css)
+  skin/classic/aero/messenger/preferences/saveFile.png             (mail/preferences/saveFile.png)
   skin/classic/aero/messenger/preferences/advanced.png             (mail/preferences/advanced-aero.png)
   skin/classic/aero/messenger/preferences/background.png           (mail/preferences/background.png)
   skin/classic/aero/messenger/preferences/hover.png                (mail/preferences/hover.png)

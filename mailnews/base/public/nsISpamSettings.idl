@@ -81,10 +81,14 @@ interface nsISpamSettings: nsISupports {
   attribute string whiteListAbURI;
 
   /**
-   * should we do something (move or delete)
-   * when the user manually marks a message as junk?
+   * Should we do something when the user manually marks a message as junk?
    */
   readonly attribute boolean manualMark;
+
+  /**
+   * With manualMark true, which action (move to the Junk folder, or delete)
+   * should we take when the user marks a message as junk.
+   */
   readonly attribute long manualMarkMode;
   const long MANUAL_MARK_MODE_MOVE = 0;
   const long MANUAL_MARK_MODE_DELETE = 1;

@@ -409,31 +409,50 @@ let SearchSupport =
   {
     try
     {
-      if (!this._headerEnumerator)
-        this._headerEnumerator = this._currentFolderToIndex.messages;
-
-      // iterate over the folder finding the next message to index
       let reindexTime = this._getLastReindexTime(this._currentFolderToIndex);
       this._log.debug("Reindex time for this folder is " + reindexTime);
+      if (!this._headerEnumerator)
+      {
+        //  we need to create search terms for messages to index
+        let searchSession = Cc["@mozilla.org/messenger/searchSession;1"]
+                              .createInstance(Ci.nsIMsgSearchSession);
+        let searchTerms = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+
+        searchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail, this._currentFolderToIndex);
+        let nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
+        let nsMsgSearchOp = Ci.nsMsgSearchOp;
+        // first term: (_hdrIndexProperty < reindexTime)
+        let searchTerm = searchSession.createTerm();
+        searchTerm.booleanAnd = false; // actually don't care here
+        searchTerm.attrib = nsMsgSearchAttrib.Uint32HdrProperty;
+        searchTerm.op = nsMsgSearchOp.IsLessThan;
+        value = searchTerm.value;
+        value.attrib = searchTerm.attrib;
+        searchTerm.hdrProperty = this._hdrIndexedProperty;
+        value.status = reindexTime;
+        searchTerm.value = value;
+        searchTerms.appendElement(searchTerm, false);
+        this._headerEnumerator = this._currentFolderToIndex.msgDatabase
+                                 .getFilterEnumerator(searchTerms);
+      }
+
+      // iterate over the folder finding the next message to index
       while (this._headerEnumerator.hasMoreElements())
       {
         let msgHdr = this._headerEnumerator.getNext()
                          .QueryInterface(Ci.nsIMsgDBHdr);
 
-        if (msgHdr.getUint32Property(this._hdrIndexedProperty) < reindexTime)
+        // Check if the file exists. If it does, then assume indexing to be
+        // complete for this file
+        if (this._getSupportFile(msgHdr).exists())
         {
-          // Check if the file exists. If it does, then assume indexing to be
-          // complete for this file
-          if (this._getSupportFile(msgHdr).exists())
-          {
-            this._log.debug("Message time not set but file exists; setting " +
-                            "time to " + reindexTime);
-            msgHdr.setUint32Property(this._hdrIndexedProperty, reindexTime);
-          }
-          else
-          {
-            return [msgHdr, reindexTime];
-          }
+          this._log.debug("Message time not set but file exists; setting " +
+                          "time to " + reindexTime);
+          msgHdr.setUint32Property(this._hdrIndexedProperty, reindexTime);
+        }
+        else
+        {
+          return [msgHdr, reindexTime];
         }
       }
     }

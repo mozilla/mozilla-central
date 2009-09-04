@@ -9,6 +9,11 @@
  * <objdir>/dist/Thunderbird{Debug}.app/Contents/MacOS/mailtest/  (on Mac OS X)
  */
 
+// Make sure we execute this file exactly once
+var gMailDirService_js__;
+if (!gMailDirService_js__) {
+gMailDirService_js__ = true;
+
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // Declare these globally for unit tests and be done with it.
@@ -133,3 +138,5 @@ catch (e) {
 }
 // Always ensure the profile directory exists before we start the tests
 gProfileDir.create(Ci.nsIFile.DIRECTORY_TYPE, 0700);
+
+} // gMailDirService_js__

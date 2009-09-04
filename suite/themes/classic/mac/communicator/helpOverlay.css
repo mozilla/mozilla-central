@@ -70,7 +70,8 @@
   -moz-image-region: rect(60px 29px 89px 0);
 }
 
-#help-back-button:not([disabled="true"]):hover:active {
+#help-back-button:not([disabled="true"]):hover:active,
+#help-back-button[open]:not([disabled="true"]) {
   -moz-image-region: rect(60px 59px 89px 30px);
 }
 
@@ -83,7 +84,8 @@
   -moz-image-region: rect(90px 29px 119px 0);
 }
 
-#help-forward-button:not([disabled="true"]):hover:active {
+#help-forward-button:not([disabled="true"]):hover:active,
+#help-forward-button[open]:not([disabled="true"]) {
   -moz-image-region: rect(90px 59px 119px 30px);
 }
 

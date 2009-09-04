@@ -22,6 +22,12 @@ load("resources/glodaTestHelper.js");
 var msgGen = new MessageGenerator();
 // Create a message scenario generator using that message generator
 var scenarios = new MessageScenarioFactory(msgGen);
+// Whether we're using a single folder to test. We need to skip a few tests if
+// we're doing so
+var singleFolder = false;
+// Whether we expect fulltext results. IMAP folders that are offline shouldn't
+// have their bodies indexed.
+var expectFulltextResults = true;
 
 /* ===== Populate ===== */
 var world = {
@@ -201,6 +207,15 @@ function glodaInfoStasher(aSynthMessage, aGlodaMessage) {
     world.glodaFolders.push(aGlodaMessage.folder);
 }
 
+// We override these for the IMAP tests
+var pre_setup_populate_hook = function default_pre_setup_populate_hook() {
+  next_test();
+};
+var post_setup_populate_hook = function default_post_setup_populate_hook() {
+  next_test();
+};
+
+var gSynMessages = [];
 // first, we must populate our message store with delicious messages.
 function setup_populate() {
   world.glodaHolderCollection = Gloda.explicitCollection(Gloda.NOUN_MESSAGE,
@@ -216,13 +231,22 @@ function setup_populate() {
     world.glodaConversationIds.push(null);
   }
 
-  indexMessages(generateFolderMessages(), glodaInfoStasher,
-                setup_populate_phase_two);
+  let messages = generateFolderMessages();
+  gSynMessages = gSynMessages.concat(messages);
+  indexMessages(messages, glodaInfoStasher, setup_populate_phase_two);
 }
 
 function setup_populate_phase_two() {
-  world.phase++;
-  indexMessages(generateFolderMessages(), glodaInfoStasher, next_test);
+  // If we have one folder, we don't attempt to populate the other one
+  if (singleFolder) {
+    next_test();
+  }
+  else {
+    world.phase++;
+    let messages = generateFolderMessages();
+    gSynMessages = gSynMessages.concat(messages);
+    indexMessages(messages, glodaInfoStasher, next_test);
+  }
 }
 
 /* ===== Non-text queries ===== */
@@ -294,6 +318,12 @@ var ts_folderCollections = [];
  * @tests gloda.datastore.sqlgen.kConstraintIn
  */
 function test_query_messages_by_folder() {
+  // If we have one folder to test with, we can't do this test more times
+  if (singleFolder && ts_folderNum >= 1) {
+    next_test();
+    return;
+  }
+
   let folderNum = ts_folderNum++;
   let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
   query.folder(world.glodaFolders[folderNum]);
@@ -307,7 +337,9 @@ function test_query_messages_by_folder() {
  * @tests gloda.query.test.kConstraintIn
  */
 function test_query_messages_by_folder_nonmatches() {
-  verify_nonMatches(ts_folderQueries, ts_folderCollections);
+  // No can do with one folder
+  if (!singleFolder)
+    verify_nonMatches(ts_folderQueries, ts_folderCollections);
   next_test();
 }
 
@@ -458,7 +490,8 @@ function test_query_messages_by_body_text() {
   let convBodyTerm = uniqueTermGenerator(
     UNIQUE_OFFSET_BODY + UNIQUE_OFFSET_CONV + convNum);
   query.bodyMatches(convBodyTerm);
-  queryExpect(query, world.conversationLists[convNum]); // calls next_test
+  queryExpect(query, expectFulltextResults ? world.conversationLists[convNum] :
+                                             []); // calls next_test
 }
 
 /**
@@ -473,7 +506,8 @@ function test_query_messages_by_attachment_names() {
   let convUniqueAttachment = uniqueTermGenerator(
     UNIQUE_OFFSET_ATTACHMENT + UNIQUE_OFFSET_CONV + convNum);
   query.attachmentNamesMatch(convUniqueAttachment);
-  queryExpect(query, world.conversationLists[convNum]); // calls next_test
+  queryExpect(query, expectFulltextResults ? world.conversationLists[convNum] :
+                                             []); // calls next_test
 }
 
 /**
@@ -595,7 +629,9 @@ function test_query_identities_by_kind_and_value_nonmatches() {
 /* ===== Driver ===== */
 
 var tests = [
+  function pre_setup_populate() { pre_setup_populate_hook(); },
   setup_populate,
+  function post_setup_populate() { post_setup_populate_hook(); },
   test_query_messages_by_conversation,
   test_query_messages_by_conversation,
   test_query_messages_by_conversation_nonmatches,
@@ -629,7 +665,8 @@ var tests = [
 ];
 
 function run_test() {
-  // use mbox injection so we get multiple folders...
-  injectMessagesUsing(INJECT_MBOX);
   glodaHelperRunTests(tests);
 }
+
+// use mbox injection so we get multiple folders...
+injectMessagesUsing(INJECT_MBOX);

@@ -49,7 +49,7 @@ Cu.import("resource://app/modules/gloda/gloda.js");
 Cu.import("resource://app/modules/gloda/datastore.js");
 
 Cu.import("resource://app/modules/gloda/noun_mimetype.js");
-
+Cu.import("resource://app/modules/gloda/connotent.js");
 
 /**
  * @namespace The Gloda Fundamental Attribute provider is a special attribute
@@ -100,6 +100,7 @@ var GlodaFundAttr = {
   _attrCc: null,
   _attrCcMe: null,
   _attrDate: null,
+  _attrHeaderMessageID: null,
 
   defineAttributes: function() {
     /* ***** Conversations ***** */
@@ -286,6 +287,19 @@ var GlodaFundAttr = {
                         objectNoun: Gloda.NOUN_DATE,
                         }); // tested-by: test_attributes_fundamental
 
+    // Header message ID.
+    this._attrHeaderMessageID = Gloda.defineAttribute({
+                        provider: this,
+                        extensionName: Gloda.BUILT_IN,
+                        attributeType: Gloda.kAttrFundamental,
+                        attributeName: "headerMessageID",
+                        singular: true,
+                        special: Gloda.kSpecialColumn,
+                        specialColumnName: "headerMessageID",
+                        subjectNouns: [Gloda.NOUN_MESSAGE],
+                        objectNoun: Gloda.NOUN_STRING,
+                        }); // tested-by: test_attributes_fundamental
+
     // Attachment MIME Types
     this._attrAttachmentTypes = Gloda.defineAttribute({
       provider: this,
@@ -432,19 +446,21 @@ var GlodaFundAttr = {
     aGlodaMessage.cc = ccIdentities;
 
     // -- Attachments
-    let attachmentTypes = [];
-    for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
-      // We don't care about would-be attachments that are not user-intended
-      //  attachments but rather artifacts of the message content.
-      // We also want to avoid dealing with obviously bogus mime types.
-      //  (If you don't have a "/", you are probably bogus.)
-      if (attachment.isRealAttachment &&
-          (attachment.contentType.indexOf("/") != -1)) {
-        attachmentTypes.push(MimeTypeNoun.getMimeType(attachment.contentType));
+    if (aMimeMsg) {
+      let attachmentTypes = [];
+      for each (let [, attachment] in Iterator(aMimeMsg.allAttachments)) {
+        // We don't care about would-be attachments that are not user-intended
+        //  attachments but rather artifacts of the message content.
+        // We also want to avoid dealing with obviously bogus mime types.
+        //  (If you don't have a "/", you are probably bogus.)
+        if (attachment.isRealAttachment &&
+            (attachment.contentType.indexOf("/") != -1)) {
+          attachmentTypes.push(MimeTypeNoun.getMimeType(attachment.contentType));
+        }
       }
-    }
-    if (attachmentTypes.length) {
-      aGlodaMessage.attachmentTypes = attachmentTypes;
+      if (attachmentTypes.length) {
+        aGlodaMessage.attachmentTypes = attachmentTypes;
+      }
     }
 
     // TODO: deal with mailing lists, including implicit-to.  this will require
@@ -565,9 +581,12 @@ var GlodaFundAttr = {
     if (fromMeCc.length)
       aGlodaMessage.fromMeCc = fromMeCc;
 
-    if (aRawReps.bodyLines &&
-        this.contentWhittle({}, aRawReps.bodyLines, aRawReps.content)) {
-      // we were going to do something here?
+    // Content
+    if (aRawReps.bodyLines) {
+      aGlodaMessage._content = new GlodaContent();
+      if (this.contentWhittle({}, aRawReps.bodyLines, aGlodaMessage._content)) {
+        // we were going to do something here?
+      }
     }
 
     yield Gloda.kWorkDone;

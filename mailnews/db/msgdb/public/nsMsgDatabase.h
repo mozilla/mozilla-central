@@ -404,7 +404,6 @@ protected:
   nsMsgRetainByPreference m_retainByPreference;
   PRUint32                m_daysToKeepHdrs;
   PRUint32                m_numHeadersToKeep;
-  PRUint32                m_keepUnreadMessagesProp;
   PRBool                  m_keepUnreadMessagesOnly;
   PRBool                  m_useServerDefaults;
   PRBool                  m_cleanupBodiesByDays;

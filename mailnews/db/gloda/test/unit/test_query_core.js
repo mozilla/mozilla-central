@@ -241,7 +241,22 @@ function setup_search_ranking_idiom() {
     new Widget(1, origin, "", 0, "bar baz", "bar baz bar bar"), // 6 + 0
     new Widget(0, origin, "", 1, "bar baz", "bar baz bar bar") // 7 + 0
   ];
-  runOnIndexingComplete(next_test);
+
+  let indexingInProgress = false;
+
+  // Since we don't use the message indexer listener any more in this test, we
+  // need to add our own listener.
+  function genericIndexerCallback(aStatus) {
+    // If indexingInProgress is false, we've received the synthetic
+    // notification, so ignore it
+    if (indexingInProgress && aStatus == Gloda.kIndexerIdle) {
+      // We're done, so remove ourselves and move to the next test
+      Gloda.removeIndexerListener(genericIndexerCallback);
+      next_test();
+    }
+  }
+  Gloda.addIndexerListener(genericIndexerCallback);
+  indexingInProgress = true;
   GenericIndexer.indexNewObjects(fooWidgets.concat(barBazWidgets));
 }
 
@@ -317,7 +332,6 @@ var tests = [
 ];
 
 function run_test() {
-  // use mbox injection so we get multiple folders...
-  injectMessagesUsing(INJECT_MBOX);
-  glodaHelperRunTests(tests);
+  // Don't initialize the index message state
+  glodaHelperRunTests(tests, null, true);
 }

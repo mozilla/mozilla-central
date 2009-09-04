@@ -151,7 +151,7 @@ function folderPropsOKButton()
     else
       gMsgFolder.clearFlag(nsMsgFolderFlags.CheckNew);
 
-    var retentionSettings = saveCommonRetentionSettings();
+    var retentionSettings = saveCommonRetentionSettings(gMsgFolder.retentionSettings);
     retentionSettings.useServerDefaults = document.getElementById("retention.useDefault").checked;
     gMsgFolder.retentionSettings = retentionSettings;
 
@@ -241,7 +241,7 @@ function folderPropsOnLoad()
         document.getElementById("offline.selectForOfflineNewsgroup").checked = false;
     }
 
-    // select the menu item 
+    // select the menu item
     var folderCharsetList = document.getElementById("folderCharsetList");
     var elements = folderCharsetList.getElementsByAttribute("value", gMsgFolder.charset);
     folderCharsetList.selectedItem = elements[0];
@@ -342,17 +342,17 @@ function hideShowControls(serverType)
   }
 }
 
-function getEnclosingContainer(startNode) 
+function getEnclosingContainer(startNode)
 {
   var parent = startNode;
-  var box; 
-  while (parent && parent != document) 
+  var box;
+  while (parent && parent != document)
   {
     var isContainer = (parent.getAttribute("iscontrolcontainer") == "true");
 
     // remember the FIRST container we encounter, or the first controlcontainer
     if (!box || isContainer) box=parent;
-        
+
     // break out with a controlcontainer
     if (isContainer) break;
       parent = parent.parentNode;
@@ -372,7 +372,7 @@ function onFolderPrivileges()
   if (imapFolder)
     imapFolder.folderPrivileges(window.arguments[0].msgWindow);
   // let's try closing the modal dialog to see if it fixes the various problems running this url
-  window.close(); 
+  window.close();
 }
 
 
