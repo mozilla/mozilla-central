@@ -2283,21 +2283,16 @@ let mailTabType = {
     this.restoreFocus(aTab);
   },
 
-  supportsCommand: function(aTab, aCommand) {
-    return DefaultController.supportsCommand(aCommand);
-  },
-
-  isCommandEnabled: function(aTab, aCommand) {
-    return DefaultController.isCommandEnabled(aCommand);
-  },
-
-  doCommand: function(aTab, aCommand) {
-    DefaultController.doCommand(aCommand, aTab);
-  },
-
-  onEvent: function(aTab, aEvent) {
-    DefaultController.onEvent(aEvent);
-  }
+  //
+  // nsIController implementation
+  //
+  // We ignore the aTab parameter sent by tabmail when calling nsIController
+  // stuff and just delegate the call to a default controller by using it as
+  // our proto chain:
+  // - "DefaultController" is the default controller of messenger.xul
+  // - "MessageWindowController" is the default controller of messageWindow.xul
+  __proto__: "DefaultController" in window && window.DefaultController ||
+             "MessageWindowController" in window && window.MessageWindowController
 };
 /**
  * The glodaSearch tab mode has a UI widget outside of the mailTabType's

@@ -164,7 +164,7 @@ var specialTabs = {
     onTitleChanged: function onTitleChanged(aTab) {
       aTab.title = aTab.browser.contentDocument.title;
     },
-    supportsCommand: function supportsCommand(aTab, aCommand) {
+    supportsCommand: function supportsCommand(aCommand, aTab) {
       switch (aCommand) {
         case "cmd_fullZoomReduce":
         case "cmd_fullZoomEnlarge":
@@ -183,7 +183,7 @@ var specialTabs = {
           return false;
       }
     },
-    isCommandEnabled: function isCommandEnabled(aTab, aCommand) {
+    isCommandEnabled: function isCommandEnabled(aCommand, aTab) {
       switch (aCommand) {
         case "cmd_fullZoomReduce":
         case "cmd_fullZoomEnlarge":
@@ -202,7 +202,7 @@ var specialTabs = {
           return false;
       }
     },
-    doCommand: function isCommandEnabled(aTab, aCommand) {
+    doCommand: function isCommandEnabled(aCommand, aTab) {
       switch (aCommand) {
         case "cmd_fullZoomReduce":
           ZoomManager.reduce();
