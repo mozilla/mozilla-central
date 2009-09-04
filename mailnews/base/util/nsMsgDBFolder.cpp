@@ -2320,16 +2320,10 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   // if it's a news folder, then we really don't support junk in the ui
   // yet the legacy spamLevel seems to think we should analyze it.
   // Maybe we should upgrade that, but for now let's not analyze. We'll
-  // use the preference "mail.filter_news_for_junk", and/or
   // let an extension set an inherited property if they really want us to
   // analyze this. We need that anyway to allow extension-based overrides.
   // When we finalize adding junk in news to core, we'll deal with the
   // spamLevel issue
-
-  PRBool filterNewsForJunk = PR_FALSE;
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (prefBranch)
-    prefBranch->GetBoolPref("mail.filter_news_for_junk", &filterNewsForJunk);
 
   // if this is the junk folder, or the trash folder
   // don't analyze for spam, because we don't care
@@ -2345,11 +2339,10 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
 
   PRBool filterForJunk = PR_TRUE;
   if (serverType.EqualsLiteral("rss") ||
-      (mFlags & nsMsgFolderFlags::Newsgroup && !filterNewsForJunk) ||
       (mFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash |
                  nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Queue |
                  nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
-                 nsMsgFolderFlags::ImapPublic |
+                 nsMsgFolderFlags::ImapPublic | nsMsgFolderFlags::Newsgroup |
                  nsMsgFolderFlags::ImapOtherUser) &&
        !(mFlags & nsMsgFolderFlags::Inbox)))
     filterForJunk = PR_FALSE;
