@@ -57,11 +57,11 @@
 
 #button-send:hover:active {
   -moz-image-region: rect(330px 59px 359px 30px);
-} 
+}
 
 #button-send[disabled="true"] {
   -moz-image-region: rect(330px 89px 359px 60px) !important;
-} 
+}
 
 #button-address {
   -moz-image-region: rect(270px 29px 299px 0);
@@ -69,30 +69,32 @@
 
 #button-address:hover:active {
   -moz-image-region: rect(270px 59px 299px 30px);
-} 
+}
 
 #button-address[disabled="true"] {
   -moz-image-region: rect(270px 89px 299px 60px) !important;
-} 
+}
 
 #button-attach {
   -moz-image-region: rect(300px 29px 329px 0);
 }
 
-#button-attach:hover:active {
+#button-attach:hover:active,
+#button-attach[open] {
   -moz-image-region: rect(300px 59px 329px 30px);
-} 
+}
 
 #button-attach[disabled="true"] {
   -moz-image-region: rect(300px 89px 329px 60px) !important;
-} 
+}
 
 #spellingButton {
   list-style-image: url("chrome://editor/skin/icons/editoricons.png");
   -moz-image-region: rect(240px 29px 269px 0);
 }
 
-#spellingButton:hover:active {
+#spellingButton:hover:active,
+#spellingButton[open] {
   -moz-image-region: rect(240px 59px 269px 30px);
 }
 
@@ -105,9 +107,10 @@
   -moz-image-region: rect(210px 29px 239px 0);
 }
 
-#button-save:hover:active {
+#button-save:hover:active,
+#button-save[open] {
   -moz-image-region: rect(210px 59px 239px 30px);
-} 
+}
 
 #button-save[disabled="true"] {
   -moz-image-region: rect(210px 89px 239px 60px) !important;

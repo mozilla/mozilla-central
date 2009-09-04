@@ -49,6 +49,11 @@
   -moz-box-orient: vertical;
 }
 
+.toolbarbutton-1[open],
+.toolbarbutton-1[open] > .toolbarbutton-menubutton-button {
+  text-shadow: none;
+}
+
 .toolbarbutton-1[type="menu-button"] {
   -moz-box-orient: horizontal;
   padding: 0;

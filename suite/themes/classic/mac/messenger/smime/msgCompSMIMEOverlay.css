@@ -46,7 +46,8 @@
   -moz-image-region: rect(0 29px 29px 0px);
 }
 
-#button-security:hover:active {
+#button-security:hover:active,
+#button-security[open] {
   -moz-image-region: rect(0 59px 29px 30px);
 }
 
