@@ -52,7 +52,7 @@ interface nsIArray;
  * these two interfaces should be combined somehow.
  */
 
-[scriptable, uuid(4dee6994-1a7d-4200-b9a7-b1fc54df3397)]
+[scriptable, uuid(eebbedae-ce43-4151-9798-3f1c6e5a5af0)]
 interface nsIMsgFolderListener : nsISupports {
   /**
    * Notified immediately after a message is added to a folder. This could be a new incoming
