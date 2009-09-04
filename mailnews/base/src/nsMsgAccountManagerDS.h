@@ -122,10 +122,6 @@ protected:
   nsresult appendGenericSettingsResources(nsIMsgIncomingServer *server, nsISupportsArray *aNodeArray);
   nsresult appendGenericSetting(const char *name, nsISupportsArray *aNodeArray);
 
-  PRBool IsFakeAccountRequired();
-  nsresult GetFakeAccountHostName(char **aHostName);
-  nsresult IsIncomingServerForFakeAccount(nsIMsgIncomingServer* aServer, PRBool *aResult);
-
   static nsIRDFResource* kNC_Name;
   static nsIRDFResource* kNC_FolderTreeName;
   static nsIRDFResource* kNC_FolderTreeSimpleName;
@@ -154,7 +150,6 @@ protected:
   static nsIRDFResource* kNC_PageTitleAddressing;
   static nsIRDFResource* kNC_PageTitleSMTP;
   static nsIRDFResource* kNC_PageTitleJunk;
-  static nsIRDFResource* kNC_PageTitleFakeAccount;
 
   static nsIRDFLiteral* kTrueLiteral;
 
@@ -182,4 +177,4 @@ private:
   nsCOMPtr<nsIStringBundle> mStringBundle;
 };
 
-#endif
+#endif /* __nsMsgAccountManagerDS_h */

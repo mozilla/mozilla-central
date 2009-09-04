@@ -579,7 +579,7 @@ function updateButtons(tree, account) {
     // either way, we don't want the user to be able to delete it or duplicate it
 
     canSetDefault = false;
-    canDelete = (serverId == "http://home.netscape.com/NC-rdf#PageTitleFakeAccount");
+    canDelete = false;
     canDuplicate = false;
   }
 
@@ -696,7 +696,7 @@ function loadPage(pageId)
   try 
   {
     // we could compare against "main","server","copies","offline","addressing",
-    // "smtp","advanced", and "fakeaccount" first to save the work, but don't
+    // "smtp" and "advanced" first to save the work, but don't,
     // as some of these might be turned into extensions (for thunderbird)
     var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
                        .getService(Components.interfaces.nsIMsgAccountManager);
