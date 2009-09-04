@@ -41,8 +41,9 @@
 // add address book setup
 load("../../mailnews/resources/abSetup.js");
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+// add fake POP3 server driver
+load("../../mailnews/resources/POP3pump.js");
+
 const prefs = Cc["@mozilla.org/preferences-service;1"]
                 .getService(Ci.nsIPrefBranch);
 
@@ -72,7 +73,6 @@ let hdrs = [];
 
 function run_test()
 {
-  loadLocalMailAccount();
 
   // Test setup - copy the data file into place
   var testAB = do_get_file("../../test_addbook/unit/data/cardForEmail.mab");
@@ -80,35 +80,32 @@ function run_test()
   // Copy the file to the profile directory for a PAB (this is the personal address book)
   testAB.copyTo(gProfileDir, kPABData.fileName);
 
-  var copyListener = 
-  {
-    OnStartCopy: function() {},
-    OnProgress: function(aProgress, aProgressMax) {},
-    SetMessageKey: function(aKey) { hdrs.push(gLocalInboxFolder.GetMessageHeader(aKey));},
-    SetMessageId: function(aMessageId) {},
-    OnStopCopy: function _OnStopCopy(aStatus)
-    {
-      var fileName = Files.shift();
-      if (fileName)
-      { 
-        var file = do_get_file(fileName);
-        copyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
-                                    "", copyListener, null);
-      }
-      else
-        continueTest();
-    }
-  };
-
   do_test_pending();
-  
+
   // kick off copying
-  copyListener.OnStopCopy(null);
+  gPOP3Pump.files = Files;
+  gPOP3Pump.onDone = "continueTest();";
+  gPOP3Pump.run();
 }
 
 function continueTest()
 {
-  let server = gLocalInboxFolder.server;
+  // get the message headers
+  let headerEnum = gLocalInboxFolder.messages;
+  while (headerEnum.hasMoreElements())
+    hdrs.push(headerEnum.getNext().QueryInterface(Ci.nsIMsgDBHdr));
+
+  // check with spam properties set on the local server
+  doChecks(gLocalIncomingServer);
+
+  // Free our globals
+  hdrs = null;
+  gPOP3Pump = null;
+  do_test_finished();
+}
+
+function doChecks(server)
+{
   let spamSettings = server.spamSettings;
 
   // default is to use the whitelist
@@ -132,7 +129,7 @@ function continueTest()
   server.setBoolValue("useWhiteList", false);
   spamSettings.initialize(server);
 
-  // check that the change was propogated to spamSettings
+  // check that the change was propagated to spamSettings
   do_check_false(spamSettings.useWhiteList);
 
   // and affects whitelisting calculationss
@@ -183,6 +180,20 @@ function continueTest()
   identity.email = "iAmNotTheSender@test.invalid";
   account.addIdentity(identity);
 
+  // setup account and identify for the deferred-from fake server
+  let fakeAccount = accountManager.createAccount();
+  fakeAccount.incomingServer = gPOP3Pump.fakeServer;
+  let fakeIdentity = accountManager.createIdentity();
+  // start with an email that does not match
+  fakeIdentity.email = "iAmNotTheSender@wrong.domain";
+  fakeAccount.addIdentity(fakeIdentity);
+
+  // gPOP3Pump delivers messages to the local inbox regardless of other
+  // settings. But because we are testing here one of those other settings,
+  // let's just pretend that it works like the real POP3 stuff, and set
+  // the correct setting for deferring.
+  gPOP3Pump.fakeServer.setCharValue("deferred_to_account", "account1");
+
   // suppress whitelisting for sender
   server.setBoolValue("inhibitWhiteListingIdentityUser", true);
   spamSettings.initialize(server);
@@ -194,10 +205,23 @@ function continueTest()
   spamSettings.initialize(server);
   do_check_false(spamSettings.checkWhiteList(hdrs[kDomainTest]));
 
+  // remove the matching email
+  identity.email = "iAmNotTheSender@test.invalid";
+  spamSettings.initialize(server);
+  do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
+
+  // add the email to the deferred-from server
+  fakeIdentity.email = "PrimaryEMAIL1@test.INVALID";
+  spamSettings.initialize(server);
+  do_check_false(spamSettings.checkWhiteList(hdrs[kDomainTest]));
+
   // stop suppressing identity users
   server.setBoolValue("inhibitWhiteListingIdentityUser", false);
   spamSettings.initialize(server);
   do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
+
+  // remove the matching email from the fake identity
+  fakeIdentity.email = "iAmNotTheSender@wrong.domain";
 
   // add a fully non-matching domain to the identity
   identity.email = "PrimaryEmail1@wrong.domain";
@@ -217,10 +241,5 @@ function continueTest()
   server.setBoolValue("inhibitWhiteListingIdentityDomain", false);
   spamSettings.initialize(server);
   do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
-
-  // Free our globals
-  hdrs = null;
-
-  do_test_finished();
 }
 
