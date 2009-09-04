@@ -39,6 +39,11 @@
 
 // Much of the original code is taken from netwerk's httpserver implementation
 
+// Make sure we execute this file exactly once
+var gMaild_js__;
+if (!gMaild_js__) {
+gMaild_js__ = true;
+
 var Cc = Components.classes;
 var Ci = Components.interfaces;
 var Cr = Components.results;
@@ -120,6 +125,12 @@ function nsMailServer(handler) {
   this._handler = handler;
   this._readers = [];
   this._test = false;
+
+  /**
+   * An array to hold refs to all the input streams below, so that they don't
+   * get GCed
+   */
+  this._inputStreams = [];
 }
 nsMailServer.prototype = {
   onSocketAccepted : function (socket, trans) {
@@ -130,6 +141,7 @@ nsMailServer.prototype = {
     const SEGMENT_COUNT = 1024;
     var input = trans.openInputStream(0, SEGMENT_SIZE, SEGMENT_COUNT)
                      .QueryInterface(Ci.nsIAsyncInputStream);
+    this._inputStreams.push(input);
 
     var reader = new nsMailReader(this, this._handler, trans, this._debug);
     this._readers.push(reader);
@@ -526,3 +538,5 @@ function server(port, handler) {
   srv.performTest();
   return srv.playTransaction();
 }
+
+} // gMaild_js__

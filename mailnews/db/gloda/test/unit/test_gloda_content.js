@@ -97,6 +97,17 @@ var messageInfos = [
 
 /* ===== Tests ===== */
 
+/**
+ * Hooks for pre/post setup message, used for the IMAP tests.
+ */
+var pre_inject_message_hook = function default_pre_inject_message_hook() {
+  next_test();
+};
+
+var post_inject_message_hook = function default_post_inject_message_hook() {
+  next_test();
+};
+
 function setup_create_message(info) {
   info.body = {body: [tupe[1] for each
                       ([, tupe] in Iterator(info.bode))].join("\r\n")};
@@ -125,10 +136,12 @@ function glodaInfoStasher(aSynthMessage, aGlodaMessage) {
 /**
  * Actually inject all the messages we created above.
  */
+var gSynMessages;
+
 function setup_inject_messages() {
-  let synMessages = [info._synMsg for each
-                      ([, info] in Iterator(messageInfos))];
-  indexMessages(synMessages, glodaInfoStasher, next_test);
+  gSynMessages = [info._synMsg for each
+                  ([, info] in Iterator(messageInfos))];
+  indexMessages(gSynMessages, glodaInfoStasher, next_test);
 }
 
 function test_stream_message(info) {
@@ -166,11 +179,15 @@ function verify_message_content(aInfo, aSynMsg, aGlodaMsg, aMsgHdr, aMimeMsg) {
 
 var tests = [
   parameterizeTest(setup_create_message, messageInfos),
+  function pre_inject_message() { pre_inject_message_hook(); },
   setup_inject_messages,
+  function post_inject_message() { post_inject_message_hook(); },
+ // disable_index_notifications,
   parameterizeTest(test_stream_message, messageInfos),
 ];
 
 function run_test() {
-  injectMessagesUsing(INJECT_MBOX);
   glodaHelperRunTests(tests);
 }
+
+injectMessagesUsing(INJECT_MBOX);

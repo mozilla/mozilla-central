@@ -73,6 +73,9 @@ Cu.import("resource://app/modules/gloda/datastore.js");
  *           this makes things more readable but is unlikely to improve
  *           performance.  (Namely, my use of 'offsets' for full-text stuff
  *           ends up in the EXPLAIN plan twice despite this.)
+ *     - noDbQueryValidityConstraints: Indicates that any validity constraints
+ *           should be ignored. This should be used when you need to get every
+ *           match regardless of whether it's valid.
  *
  * @property _owner The query instance that holds the list of unions...
  * @property _constraints A list of (lists of OR constraints) that are ANDed
