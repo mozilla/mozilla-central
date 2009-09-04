@@ -321,6 +321,9 @@ bin\components\dom_xbl.xpt
 bin\components\dom_xul.xpt
 bin\components\dom_loadsave.xpt
 bin\components\NetworkGeolocationProvider.js
+#ifndef MOZILLA_1_9_1_BRANCH
+bin\components\GPSDGeolocationProvider.js
+#endif
 
 ; editor / composer for HTML compose
 bin\components\editor.xpt

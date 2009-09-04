@@ -55,6 +55,9 @@ components/satchel.xpt
 #endif
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/necko_data.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
+components/GPSDGeolocationProvider.js
+#endif
 components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
 components/nsComposerCmdLineHandler.js
