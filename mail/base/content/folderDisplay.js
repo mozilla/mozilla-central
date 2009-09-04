@@ -893,7 +893,9 @@ FolderDisplayWidget.prototype = {
     }
 
     // update the quick-search relative to whether it's incoming/outgoing
-    document.getElementById("searchInput").folderChanged(this.view.isOutgoingFolder)
+    let searchInput = document.getElementById("searchInput");
+    if (searchInput)
+      searchInput.folderChanged(this.view.isOutgoingFolder)
 
     if (this.active)
       this.makeActive();
