@@ -1501,21 +1501,18 @@ nsNntpIncomingServer::ForgetPassword()
 NS_IMETHODIMP
 nsNntpIncomingServer::GetSupportsExtensions(PRBool *aSupportsExtensions)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::SetSupportsExtensions(PRBool aSupportsExtensions)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::AddExtension(const char *extension)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -1553,49 +1550,42 @@ nsNntpIncomingServer::GetLastUpdatedTime(PRUint32 *aLastUpdatedTime)
 NS_IMETHODIMP
 nsNntpIncomingServer::SetLastUpdatedTime(PRUint32 aLastUpdatedTime)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::AddPropertyForGet(const char *name, const char *value)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::QueryPropertyForGet(const char *name, char **value)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::AddSearchableGroup(const nsAString &name)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::QuerySearchableGroup(const nsAString &name, PRBool *result)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::AddSearchableHeader(const char *name)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::QuerySearchableHeader(const char *name, PRBool *result)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -1625,7 +1615,6 @@ nsNntpIncomingServer::FindGroup(const nsACString &name, nsIMsgNewsFolder **resul
 NS_IMETHODIMP
 nsNntpIncomingServer::GetFirstGroupNeedingExtraInfo(nsACString &result)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -1633,7 +1622,6 @@ NS_IMETHODIMP
 nsNntpIncomingServer::SetGroupNeedsExtraInfo(const nsACString &name,
                                              PRBool needsExtraInfo)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -1694,7 +1682,6 @@ NS_IMETHODIMP
 nsNntpIncomingServer::SetPrettyNameForGroup(const nsAString &name,
                                             const nsAString &prettyName)
 {
-  NS_ASSERTION(0,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 

@@ -3764,7 +3764,7 @@ nsresult nsMsgDBView::GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue s
     case nsMsgViewSortType::byId:
         // handled by caller, since caller knows the key
     default:
-        NS_ASSERTION(0,"should not be here");
+        NS_ERROR("should not be here");
         rv = NS_ERROR_UNEXPECTED;
         break;
     }
@@ -4242,7 +4242,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
         NS_QuickSort(pPtrBase, numSoFar, sizeof(IdKey*), FnSortIdUint32, &qsPrivateData);
         break;
       default:
-        NS_ASSERTION(0, "not supposed to get here");
+        NS_ERROR("not supposed to get here");
         break;
     }
   }
@@ -5772,7 +5772,7 @@ NS_IMETHODIMP nsMsgDBView::SetSortType(nsMsgViewSortTypeValue aSortType)
 
 NS_IMETHODIMP nsMsgDBView::GetViewType(nsMsgViewTypeValue *aViewType)
 {
-    NS_ASSERTION(0,"you should be overriding this\n");
+    NS_ERROR("you should be overriding this");
     return NS_ERROR_UNEXPECTED;
 }
 
@@ -6183,7 +6183,7 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
 
         }
         default:
-            NS_ASSERTION(0, "unsupported motion");
+            NS_ERROR("unsupported motion");
             break;
     }
     return NS_OK;
@@ -6274,7 +6274,7 @@ NS_IMETHODIMP nsMsgDBView::NavigateStatus(nsMsgNavigationTypeValue motion, PRBoo
           break;
 
         default:
-            NS_ASSERTION(0,"unexpected");
+            NS_ERROR("unexpected");
             break;
     }
 
@@ -6343,7 +6343,7 @@ nsresult nsMsgDBView::FindPrevUnread(nsMsgKey startKey, nsMsgKey *pResultKey,
 
         if (curIndex != startIndex && flags & MSG_VIEW_FLAG_ISTHREAD && flags & nsMsgMessageFlags::Elided)
         {
-            NS_ASSERTION(0,"fix this");
+            NS_ERROR("fix this");
             //nsMsgKey threadId = m_keys[curIndex];
             //rv = m_db->GetUnreadKeyInThread(threadId, pResultKey, resultThreadId);
             if (NS_SUCCEEDED(rv) && (*pResultKey != nsMsgKey_None))

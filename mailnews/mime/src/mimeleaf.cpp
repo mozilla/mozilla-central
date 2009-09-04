@@ -180,8 +180,7 @@ MimeLeaf_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
 static int
 MimeLeaf_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
-  NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-  /* This method shouldn't ever be called. */
+  NS_ERROR("MimeLeaf_parse_line shouldn't ever be called.");
   return -1;
 }
 

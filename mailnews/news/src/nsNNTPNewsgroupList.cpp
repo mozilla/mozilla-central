@@ -763,7 +763,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
       break;
 
       default:
-        NS_ASSERTION(0, "unexpected action");
+        NS_ERROR("unexpected action");
         break;
       }
 

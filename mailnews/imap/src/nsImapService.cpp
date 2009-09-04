@@ -698,7 +698,7 @@ nsresult nsImapService::FetchMimePart(nsIImapUrl *aImapUrl,
         // or stream listener passed into us in this method but i'm not sure yet...
         // I'm going to use an assert for now to figure out if this is ever getting called
 #if defined(DEBUG_mscott) || defined(DEBUG_bienvenu)
-        NS_ASSERTION(0, "oops...someone still is reaching this part of the code");
+        NS_ERROR("oops...someone still is reaching this part of the code");
 #endif
         rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), aImapUrl,
                                          aDisplayConsumer, aURL);
@@ -1137,7 +1137,7 @@ nsresult nsImapService::GetMessageFromUrl(nsIImapUrl *aImapUrl,
       // or stream listener passed into us in this method but i'm not sure yet...
       // I'm going to use an assert for now to figure out if this is ever getting called
 #if defined(DEBUG_mscott) || defined(DEBUG_bienvenu)
-      NS_ASSERTION(0, "oops...someone still is reaching this part of the code");
+      NS_ERROR("oops...someone still is reaching this part of the code");
 #endif
       rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), aImapUrl,
                                        aDisplayConsumer, aURL);

@@ -221,7 +221,7 @@ mime_decode_base64_token (const char *in, char *out)
     else if (in[j] == '/')         c = 63;
     else if (in[j] == '=')         c = 0, eq_count++;
     else
-    NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+    NS_ERROR("Invalid character");
     num = (num << 6) | c;
   }
 
@@ -236,8 +236,10 @@ mime_decode_base64_token (const char *in, char *out)
   else if (eq_count == 2)
   return 1;        /* "xx==" means 2 bytes mapped to 1. */
   else
-  {            /* "x===" can't happen, because "x" would then */
-    NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");      /* be encoding only 6 bits, not the min of 8. */
+  {
+    // "x===" can't happen, because "x" would then be encoding only
+    // 6 bits, not the min of 8.
+    NS_ERROR("Count is 6 bits, should be at least 8");
     return 1;
   }
 }
@@ -841,7 +843,7 @@ MimeDecoderWrite (MimeDecoderData *data, const char *buffer, PRInt32 size)
   case mime_yencode:
     return mime_decode_yenc_buffer (data, buffer, size);
   default:
-    NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+    NS_ERROR("Invalid decoding");
     return -1;
   }
 }
@@ -888,7 +890,7 @@ mime_encode_base64_buffer (MimeEncoderData *data,
   return 0;
   else if (size < 0)
   {
-    NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+    NS_ERROR("Size is less than 0");
     return -1;
   }
 
@@ -1226,7 +1228,7 @@ MimeEncoderWrite (MimeEncoderData *data, const char *buffer, PRInt32 size)
   case mime_QuotedPrintable:
     return mime_encode_qp_buffer (data, buffer, size);
   default:
-    NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+    NS_ERROR("Invalid encoding");
     return -1;
   }
 }

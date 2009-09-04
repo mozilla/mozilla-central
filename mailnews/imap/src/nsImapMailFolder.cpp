@@ -1763,7 +1763,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameLocal(const nsACString& newName, nsIMsgFol
     if (!isDirectory)
       parentPathFile->Create(nsIFile::DIRECTORY_TYPE, 0700);
     else
-      NS_ASSERTION(0,"Directory already exists.");
+      NS_ERROR("Directory already exists.");
     rv = RecursiveCopy(dirFile, parentPathFile);
     NS_ENSURE_SUCCESS(rv,rv);
     dirFile->Remove(PR_TRUE);                         // moving folders

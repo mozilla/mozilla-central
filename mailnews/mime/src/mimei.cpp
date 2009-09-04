@@ -1112,7 +1112,7 @@ mime_part_address(MimeObject *obj)
       }
     if (j == -1)
     {
-      NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+      NS_ERROR("No children under MeimContainer");
       return 0;
     }
 
