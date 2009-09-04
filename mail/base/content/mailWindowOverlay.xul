@@ -1029,19 +1029,28 @@
           </menupopup>
         </menu>
         <menu id="menu_FolderViews" label="&folderView.label;" accesskey="&folderView.accesskey;">
-          <menupopup id="menu_FolderViewsPopup" onpopupshowing="InitViewFolderViewsMenu(event)">
-            <menuitem id="menu_allFolders"      label="&allFolders.label;" accesskey="&allFolders.accesskey;"
+          <menupopup id="menu_FolderViewsPopup"
+                     onpopupshowing="InitViewFolderViewsMenu(event)">
+            <menuitem id="menu_allFolders" value="all"
+                      label="&allFolders.label;"
+                      accesskey="&allFolders.accesskey;"
                       type="radio" name="viewmessages"
-                      oncommand="gFolderTreeView.mode = 'all';"/>
-            <menuitem id="menu_unreadFolders"   label="&unreadFolders.label;" accesskey="&unreadFolders.accesskey;"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
+            <menuitem id="menu_unreadFolders"
+                      label="&unreadFolders.label;" value="unread"
+                      accesskey="&unreadFolders.accesskey;"
                       type="radio" name="viewmessages"
-                      oncommand="gFolderTreeView.mode = 'unread';"/>
-            <menuitem id="menu_favoriteFolders" label="&favoriteFolders.label;" accesskey="&favoriteFolders.accesskey;"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
+            <menuitem id="menu_favoriteFolders" value="favorite"
+                      label="&favoriteFolders.label;"
+                      accesskey="&favoriteFolders.accesskey;"
                       type="radio" name="viewmessages"
-                      oncommand="gFolderTreeView.mode = 'favorite';"/>
-            <menuitem id="menu_recentFolders"   label="&recentFolders.label;" accesskey="&recentFolders.accesskey;"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
+            <menuitem id="menu_recentFolders" value="recent"
+                      label="&recentFolders.label;"
+                      accesskey="&recentFolders.accesskey;"
                       type="radio" name="viewmessages"
-                      oncommand="gFolderTreeView.mode = 'recent';"/>
+                      oncommand="gFolderTreeView.mode = this.value;"/>
           </menupopup>
         </menu>
         <menuseparator id="viewSortMenuSeparator"/>

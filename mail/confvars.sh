@@ -41,9 +41,9 @@ MOZ_UPDATER=1
 MOZ_THUNDERBIRD=1
 MOZ_NO_ACTIVEX_SUPPORT=1
 MOZ_ACTIVEX_SCRIPTING_SUPPORT=
-if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
+# MOZ_OJI is only required to be cleared for MOZILLA_1_9_1_BRANCH.
+# mozilla-central does not have this.
 MOZ_OJI=
-fi
 NECKO_PROTOCOLS_DEFAULT="about data file ftp http res viewsource"
 MOZ_IMG_DECODERS_DEFAULT=`echo "$MOZ_IMG_DECODERS_DEFAULT" | sed "s/ xbm//"`
 MOZ_MAIL_NEWS=1

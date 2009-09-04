@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Andrew Sutherland <asutherland@asutherland.org>
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,8 +36,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// -- Pull in the POP3 fake-server / local account helper code
-load("../../test_mailnewslocal/unit/head_maillocal.js");
+// Import the main scripts that mailnews tests need to set up and tear down
+load("../../mailnews/resources/mailDirService.js");
+load("../../mailnews/resources/mailTestUtils.js");
 
 Components.utils.import("resource://app/modules/errUtils.js");
 
@@ -219,6 +221,8 @@ const INJECT_FAKE_SERVER = 1;
 const INJECT_MBOX = 2;
 /** Inject messages using addMessage. */
 const INJECT_ADDMESSAGE = 3;
+/** Inject messages using the IMAP fakeserver. */
+const INJECT_IMAP_FAKE_SERVER = 4;
 
 /**
  * Convert a list of synthetic messages to a form appropriate to feed to the
@@ -229,7 +233,32 @@ function _synthMessagesToFakeRep(aSynthMessages) {
           (msg in aSynthMessages)];
 }
 
+function lobotomizeAdaptiveIndexer() {
+  // The indexer doesn't need to worry about load; zero his rescheduling time.
+  GlodaIndexer._INDEX_INTERVAL = 0;
+
+  let realIdleService = GlodaIndexer._idleService;
+  // pretend we are always idle
+  GlodaIndexer._idleService = {
+    idleTime: 1000,
+    addIdleObserver: function() {
+      realIdleService.addIdleObserver.apply(realIdleService, arguments);
+    },
+    removeIdleObserver: function() {
+      realIdleService.removeIdleObserver.apply(realIdleService, arguments);
+    }
+  };
+
+  // Lobotomize the adaptive indexer
+  GlodaIndexer._cpuTargetIndexTime = 10000;
+  GlodaIndexer._CPU_TARGET_INDEX_TIME_ACTIVE = 10000;
+  GlodaIndexer._CPU_TARGET_INDEX_TIME_IDLE = 10000;
+  GlodaIndexer._CPU_IS_BUSY_TIME = 10000;
+  GlodaIndexer._PAUSE_LATE_IS_BUSY_TIME = 10000;
+}
+
 function imsInit() {
+  dump("Initializing index message state\n");
   let ims = indexMessageState;
 
   if (!ims.inited) {
@@ -248,29 +277,12 @@ function imsInit() {
 
     // Make the indexer be more verbose about indexing for us...
     GlodaIndexer._unitTestSuperVerbose = true;
-    // The indexer doesn't need to worry about load; zero his rescheduling time.
-    GlodaIndexer._INDEX_INTERVAL = 0;
 
-    let realIdleService = GlodaIndexer._idleService;
-    // pretend we are always idle
-    GlodaIndexer._idleService = {
-      idleTime: 1000,
-      addIdleObserver: function() {
-        realIdleService.addIdleObserver.apply(realIdleService, arguments);
-      },
-      removeIdleObserver: function() {
-        realIdleService.removeIdleObserver.apply(realIdleService, arguments);
-      }
-    };
-
-    // Lobotomize the adaptive indexer
-    GlodaIndexer._cpuTargetIndexTime = 10000;
-    GlodaIndexer._CPU_TARGET_INDEX_TIME_ACTIVE = 10000;
-    GlodaIndexer._CPU_TARGET_INDEX_TIME_IDLE = 10000;
-    GlodaIndexer._CPU_IS_BUSY_TIME = 10000;
-    GlodaIndexer._PAUSE_LATE_IS_BUSY_TIME = 10000;
+    lobotomizeAdaptiveIndexer();
 
     if (ims.injectMechanism == INJECT_FAKE_SERVER) {
+      // -- Pull in the POP3 fake-server / local account helper code
+      load("../../test_mailnewslocal/unit/head_maillocal.js");
       // set up POP3 fakeserver to feed things in...
       [ims.daemon, ims.server] = setupServerDaemon();
       // (this will call loadLocalMailAccount())
@@ -286,6 +298,42 @@ function imsInit() {
     else if (ims.injectMechanism == INJECT_ADDMESSAGE) {
       // we need an inbox
       loadLocalMailAccount();
+    }
+    else if (ims.injectMechanism == INJECT_IMAP_FAKE_SERVER) {
+      // Pull in the IMAP fake server code
+      load("../../test_imap/unit/head_server.js");
+
+      // set up IMAP fakeserver and incoming server
+      ims.daemon = new imapDaemon();
+      ims.server = makeServer(ims.daemon, "");
+      ims.incomingServer = createLocalIMAPServer();
+      // we need a local account for the IMAP server to have its sent messages in
+      loadLocalMailAccount();
+
+      // We need an identity so that updateFolder doesn't fail
+      let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
+                      .getService(Ci.nsIMsgAccountManager);
+      let localAccount = acctMgr.createAccount();
+      let identity = acctMgr.createIdentity();
+      localAccount.addIdentity(identity);
+      localAccount.defaultIdentity = identity;
+      localAccount.incomingServer = gLocalIncomingServer;
+      acctMgr.defaultAccount = localAccount;
+
+      // Let's also have another account, using the same identity
+      let imapAccount = acctMgr.createAccount();
+      imapAccount.addIdentity(identity);
+      imapAccount.defaultIdentity = identity;
+      imapAccount.incomingServer = ims.incomingServer;
+
+      // The server doesn't support more than one connection
+      prefSvc.setIntPref("mail.server.server1.max_cached_connections", 1);
+      // We aren't interested in downloading messages automatically
+      prefSvc.setBoolPref("mail.server.server1.download_on_biff", false);
+
+      // Set the inbox to not be offline
+      ims.imapInbox = ims.incomingServer.rootFolder.getChildNamed("Inbox");
+      ims.imapInbox.flags &= ~Ci.nsMsgFolderFlags.Offline;
     }
 
     ims.inited = true;
@@ -314,16 +362,11 @@ function imsInit() {
  */
 function indexMessages(aSynthMessages, aVerifier, aOnDone) {
   let ims = indexMessageState;
-
-  ims.inputMessages = aSynthMessages;
-  ims.glodaMessages = [];
-  ims.verifier = aVerifier;
-  ims.previousValue = undefined;
-  ims.onDone = aOnDone;
+  ims.expectMessages(aSynthMessages, aVerifier, aOnDone);
 
   if (ims.injectMechanism == INJECT_FAKE_SERVER) {
     ims.daemon.setMessages(_synthMessagesToFakeRep(aSynthMessages));
-    do_timeout(0, "driveFakeServer();");
+    do_timeout(0, "drivePOP3FakeServer();");
   }
   else if (ims.injectMechanism == INJECT_MBOX) {
     ims.mboxName = "injecty" + ims.nextMboxNumber++;
@@ -346,7 +389,20 @@ function indexMessages(aSynthMessages, aVerifier, aOnDone) {
       localFolder.addMessage(msg.toMboxString());
     }
   }
+  else if (ims.injectMechanism == INJECT_IMAP_FAKE_SERVER) {
+    let ioService = Cc["@mozilla.org/network/io-service;1"]
+                      .getService(Ci.nsIIOService);
+    let serverInbox = ims.daemon.getMailbox("INBOX");
 
+    for (let [, msg] in Iterator(aSynthMessages)) {
+      // Generate a URI out of the message
+      let URI = ioService.newURI("data:text/plain;base64," + btoa(msg.toMessageString()), null, null);
+      // Add it to the server
+      serverInbox.addMessage(new imapMessage(URI.spec, serverInbox.uidnext++, []));
+    }
+    // Time to do stuff with the fakeserver
+    driveIMAPFakeServer();
+  }
 }
 
 function injectMessagesUsing(aInjectMechanism) {
@@ -356,6 +412,8 @@ function injectMessagesUsing(aInjectMechanism) {
 var indexMessageState = {
   /** have we been initialized (hooked listeners, etc.) */
   inited: false,
+  /** whether we're due for any index notifications */
+  expectingIndexNotifications: false,
   /** our catch-all message collection that nets us all messages passing by */
   catchAllCollection: null,
   /** the set of synthetic messages passed in to indexMessages */
@@ -372,19 +430,48 @@ var indexMessageState = {
   injectMechanism: INJECT_ADDMESSAGE,
 
   /* === Fake Server State === */
-  /** nsMailServer instance with POP3_RFC1939 handler */
+  /** nsMailServer instance (if POP3, with POP3_RFC1939 handler) */
   server: null,
   serverStarted: false,
-  /** pop3Daemon instance */
+  /** pop3Daemon/imapDaemon instance */
   daemon: null,
-  /** incoming pop3 server */
+  /** incoming pop3/imap server */
   incomingServer: null,
-  /** pop3 service */
+  /** pop3 service (not used for imap) */
   pop3Service: null,
+  /** IMAP inbox */
+  imapInbox: null,
 
   /* === MBox Injection State === */
   nextMboxNumber: 0,
   mboxName: null,
+
+  /**
+   * Sets up messages to expect index notifications for.
+   *
+   * @param aSynthMessages The synthetic messages to expect notifications
+   *     for. We currently don't do anything with these other than count them,
+   *     so pass whatever you want and it will be the 'source message' (1st
+   *     argument) to your verifier function.
+   * @param aVerifier The function to call to verify that the indexing had the
+   *     desired result.  Takes arguments aSynthMessage (the synthetic message
+   *     just indexed), aGlodaMessage (the gloda message representation of the
+   *     indexed message), and aPreviousResult (the value last returned by the
+   *     verifier function for this given set of messages, or undefined if it is
+   *     the first message.)
+   * @param aOnDone The function to call when we complete processing this set of
+   *     messages.
+   */
+  expectMessages: function indexMessageState_expectMessages(aSynthMessages, aVerifier,
+                                                            aOnDone) {
+    dump("^^^ setting up " + aSynthMessages.length + " message(s) to expect\n");
+    this.inputMessages = aSynthMessages;
+    this.expectingIndexNotifications = true;
+    this.glodaMessages = [];
+    this.verifier = aVerifier;
+    this.previousValue = undefined;
+    this.onDone = aOnDone;
+  },
 
   /**
    * Listener to handle the completion of the POP3 message retrieval (one way or
@@ -420,38 +507,12 @@ var indexMessageState = {
   }
 };
 
-
 /**
- * Indicate that we should expect some modified messages to be indexed.
- *
- * @param aMessages The messages that will be modified and we should expect
- *   notifications about.  We currently don't do anything with these other than
- *   count them, so pass whatever you want and it will be the 'source message'
- *   (1st argument) to your verifier function.
- * @param aVerifier See indexMessage's aVerifier argument.
- * @param aDone The (optional) callback to call on completion.
+ * Perform POP3 mail fetching, seeing it through to completion.
  */
-function expectModifiedMessages(aMessages, aVerifier, aOnDone) {
+function drivePOP3FakeServer() {
   let ims = indexMessageState;
-
-  ims.inputMessages = aMessages;
-  ims.glodaMessages = [];
-  ims.verifier = aVerifier;
-  ims.previousValue = undefined;
-  ims.onDone = aOnDone;
-
-  // we don't actually need to do anything.  the caller is going to be
-  //  triggering a notification which will spur the indexer into action.  the
-  //  indexer uses its own scheduling mechanism to drive itself, so as long
-  //  as an event loop is active, we're good.
-}
-
-/**
- * Perform the mail fetching, seeing it through to completion.
- */
-function driveFakeServer() {
-  let ims = indexMessageState;
-dump(">>> enter driveFakeServer\n");
+dump(">>> enter drivePOP3FakeServer\n");
   // Handle the server in a try/catch/finally loop so that we always will stop
   // the server if something fails.
   try {
@@ -482,8 +543,40 @@ dump(">>> enter driveFakeServer\n");
     while (thread.hasPendingEvents())
       thread.processNextEvent(true);
   }
-dump("<<< exit driveFakeServer\n");
+dump("<<< exit drivePOP3FakeServer\n");
 }
+
+/**
+ * Perform an IMAP mail fetch, seeing it through to completion
+ */
+function driveIMAPFakeServer() {
+  dump(">>> enter driveIMAPFakeServer\n");
+  let ims = indexMessageState;
+  // Handle the server in a try/catch/finally loop so that we always will stop
+  // the server if something fails.
+  try {
+    dump("  resetting fake server\n");
+    ims.server.resetTest();
+
+    // Update the inbox
+    dump("  issuing updateFolder\n");
+    ims.imapInbox.updateFolder(null);
+    // performTest won't work here because that seemingly blocks until the
+    // socket is closed, which is something undesirable here
+  }
+  catch (e) {
+    ims.server.stop();
+    do_throw(e);
+  }
+  finally {
+    dump("  draining events\n");
+    let thread = gThreadManager.currentThread;
+    while (thread.hasPendingEvents())
+      thread.processNextEvent(true);
+  }
+  dump("<<< exit driveIMAPFakeServer\n");
+}
+
 
 /**
  * Tear down the fake server.  This is very important to avoid things getting
@@ -491,6 +584,7 @@ dump("<<< exit driveFakeServer\n");
  *  a context without "Components" defined.)
  */
 function killFakeServer() {
+  dump("Killing fake server\n");
   let ims = indexMessageState;
 
   ims.incomingServer.closeCachedConnections();
@@ -501,6 +595,8 @@ function killFakeServer() {
   var thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
+
+  do_test_finished();
 }
 
 /**
@@ -551,30 +647,46 @@ var messageIndexerListener = {
   callbackOnDone: null,
   onIndexNotification: function(aStatus, aPrettyName, aJobIndex, aJobTotal,
                                 aJobItemIndex, aJobItemGoal) {
+    dump("((( Index listener notified! aStatus = " + aStatus + "\n");
+    // Ignore moving/removing notifications
+    if (aStatus == Gloda.kIndexerMoving || aStatus == Gloda.kIndexerRemoving)
+      return;
+
+    let ims = indexMessageState;
+    // If we shouldn't be receiving notifications and we receive one with aStatus
+    // != kIndexerIdle. throw.
+    if (!ims.expectingIndexNotifications) {
+      if (aStatus == Gloda.kIndexerIdle) {
+        dump("((( Ignoring indexing notification since it's just kIndexerIdle.\n");
+        return;
+      }
+      else {
+        do_throw("Exception during index notification -- we weren't " +
+                 "expecting one.");
+      }
+    }
+
     // we only care if indexing has just completed...
-    if (!GlodaIndexer.indexing) {
+    if (aStatus == Gloda.kIndexerIdle) {
       if (messageIndexerListener.callbackOnDone) {
         let callback = messageIndexerListener.callbackOnDone;
         messageIndexerListener.callbackOnDone = null;
         callback();
       }
 
-      let ims = indexMessageState;
-
-      // this is just the synthetic notification if inputMessages is null
-      if (ims.inputMessages === null) {
-        dump("((( ignoring indexing notification, assuming synthetic " +
-             "notification.\n");
-        return;
-      }
-
       // if we haven't seen all the messages we should see, assume that the
       //  rest are on their way, and are just coming in a subsequent job...
       // (Also, the first time we register our listener, we will get a synthetic
       //  idle status; at least if the indexer is idle.)
-      if (ims.glodaMessages.length < ims.inputMessages.length) {
+      let glodaLen = ims.glodaMessages.length, inputLen =
+        ims.inputMessages.length;
+      if (glodaLen < inputLen) {
         dump("((( indexing is no longer indexing, but we're still expecting " +
-             "more results, ignoring.\n");
+             inputLen + " - " + glodaLen + " = " + (inputLen - glodaLen) +
+             " more results, ignoring.\n");
+        // If we're running IMAP, then update the folder once more
+        if (ims.imapInbox)
+          ims.imapInbox.updateFolder(null);
         return;
       }
 
@@ -582,6 +694,8 @@ var messageIndexerListener = {
            " messages) about to verify: " +
            (ims.verifier ? ims.verifier.name : "none") + " and complete: " +
            (ims.onDone ? ims.onDone.name : "none") + "\n");
+      // If we're verifying messages, we shouldn't be expecting them
+      ims.expectingIndexNotifications = false;
 
       // call the verifier.  (we expect them to generate an exception if the
       //  verification fails, using do_check_*/do_throw; we don't care about
@@ -602,6 +716,7 @@ var messageIndexerListener = {
         }
       }
 
+      dump("((( Verification complete\n");
       if (ims.onDone) {
         try {
           ims.onDone();
@@ -772,9 +887,8 @@ function twiddleAndTest(aSynthMsg, aActionsAndTests) {
     // the underlying nsIMsgDBHdr should exist at this point...
     do_check_neq(gmsg.folderMessage, null);
     // prepare
-    expectModifiedMessages([gmsg.folderMessage], verify_next_attr);
+    indexMessageState.expectMessages([gmsg.folderMessage], verify_next_attr);
     // tell the function to perform its mutation to the desired state
-    dump("twiddling: " + twiddleFunc.name + ": " + desiredState + "\n");
     twiddleFunc(gmsg.folderMessage, desiredState);
   }
   function verify_next_attr(smsg, gmsg) {
@@ -1025,8 +1139,11 @@ function _gh_test_iterator() {
     }
   }
 
-  if (indexMessageState.injectMechanism == INJECT_FAKE_SERVER) {
-    killFakeServer();
+  if (indexMessageState.injectMechanism == INJECT_FAKE_SERVER ||
+      indexMessageState.injectMechanism == INJECT_IMAP_FAKE_SERVER) {
+    do_test_pending();
+    // Give a bit of time for any remaining notifications to go through.
+    do_timeout(500, "killFakeServer()");
   }
 
   do_test_finished();
@@ -1076,15 +1193,23 @@ function parameterizeTest(aTestFunc, aParameters) {
  *
  * @param aTests A list of test functions to call.
  * @param aLongestTestRunTimeConceivableInSecs Optional parameter
+ * @param aDontInitIMS Optional parameter. If this is specified then the index
+ *                     message state is not initialized
  */
-function glodaHelperRunTests(aTests, aLongestTestRunTimeConceivableInSecs) {
+function glodaHelperRunTests(aTests, aLongestTestRunTimeConceivableInSecs,
+                             aDontInitIMS) {
   if (aLongestTestRunTimeConceivableInSecs == null)
     aLongestTestRunTimeConceivableInSecs =
         DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS;
   do_timeout(aLongestTestRunTimeConceivableInSecs * 1000,
       "do_throw('Timeout running test, and we want you to have the log.');");
 
-  imsInit();
+  if (!aDontInitIMS)
+    imsInit();
+  // even if we don't want to init IMS, we want to avoid anything adaptive
+  //  happening.
+  else
+    lobotomizeAdaptiveIndexer();
   glodaHelperTests = aTests;
   glodaHelperIterator = _gh_test_iterator();
   next_test();
@@ -1138,4 +1263,20 @@ function nukeGlodaCachesAndCollections() {
   for each (let cache in oldCaches) {
     GlodaCollectionManager.defineCache(cache._nounDef, cache._maxCacheSize);
   }
+}
+
+/**
+ * Given an IMAP folder, marks it offline and downloads its messages.
+ *
+ * @param aFolder an IMAP message folder
+ * @param aSynthMessages see indexMessageState.expectMessages
+ * @param aVerifier see indexMessageState.expectMessages
+ * @param aDone see indexMessageState.expectMessages
+ */
+function imapDownloadAllMessages(aFolder, aSynthMessages, aVerifier, aDone) {
+  // Let the message state know that we're expecting messages
+  indexMessageState.expectMessages(aSynthMessages, aVerifier, aDone);
+  aFolder.setFlag(Ci.nsMsgFolderFlags.Offline);
+  aFolder.downloadAllForOffline(null, null);
+  // The indexer listener is going to call aDone, so our job is done here
 }

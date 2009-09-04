@@ -769,6 +769,8 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
       m_mockChannel->GetChannelContext(getter_AddRefs(m_channelContext));
       nsCOMPtr<nsIMsgWindow> msgWindow;
       GetMsgWindow(getter_AddRefs(msgWindow));
+      if (!msgWindow)
+        GetTopmostMsgWindow(getter_AddRefs(msgWindow));
       if (msgWindow)
       {
         nsCOMPtr<nsIInterfaceRequestor> interfaceRequestor;

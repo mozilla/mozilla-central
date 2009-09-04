@@ -10,6 +10,9 @@
 load("../../mailnews/resources/messageGenerator.js");
 load("resources/glodaTestHelper.js");
 
+// Whether we can expect fulltext results
+var expectFulltextResults = true;
+
 // Create a message generator
 var msgGen = new MessageGenerator();
 // Create a message scenario generator using that message generator
@@ -17,12 +20,24 @@ var scenarios = new MessageScenarioFactory(msgGen);
 
 /* ===== Threading / Conversation Grouping ===== */
 
+var gSynMessages = [];
 function allMessageInSameConversation(aSynthMessage, aGlodaMessage, aConvID) {
   if (aConvID === undefined)
     return aGlodaMessage.conversationID;
   do_check_eq(aConvID, aGlodaMessage.conversationID);
+  // Cheat and stash the synthetic message (we need them for one of the IMAP
+  // tests)
+  gSynMessages.push(aSynthMessage);
   return aConvID;
 }
+
+// These are overridden by the IMAP tests as needed
+var pre_test_threading_hook = function default_pre_test_threading_hook() {
+  next_test();
+};
+var post_test_threading_hook = function default_post_test_threading_hook() {
+  next_test();
+};
 
 /**
  * Test our conversation/threading logic in the straight-forward direct
@@ -72,12 +87,17 @@ function test_attributes_fundamental() {
   indexMessages([smsg], verify_attributes_fundamental, next_test);
 }
 
+// Overridden by test_index_imap_mesasges
+var get_expected_folder_URI = function local_get_expected_folder_URI() {
+  return gLocalInboxFolder.URI;
+};
+
 function verify_attributes_fundamental(smsg, gmsg) {
   try {
     // save off the message id for test_attributes_fundamental_from_disk
     fundamentalGlodaMessageId = gmsg.id;
 
-    do_check_eq(gmsg.folderURI, gLocalInboxFolder.URI);
+    do_check_eq(gmsg.folderURI, get_expected_folder_URI());
 
     // -- subject
     do_check_eq(smsg.subject, gmsg.conversation.subject);
@@ -97,12 +117,22 @@ function verify_attributes_fundamental(smsg, gmsg) {
 
     // date
     do_check_eq(smsg.date.valueOf(), gmsg.date.valueOf());
+    
+    // -- message ID
+    do_check_eq(smsg.messageId, gmsg.headerMessageID);
 
-    // -- attachments
-    do_check_eq(gmsg.attachmentTypes.length, 1);
-    do_check_eq(gmsg.attachmentTypes[0], "text/plain");
-    do_check_eq(gmsg.attachmentNames.length, 1);
-    do_check_eq(gmsg.attachmentNames[0], "bob.txt");
+    // -- attachments. We won't have these if we don't have fulltext results
+    if (expectFulltextResults) {
+      do_check_eq(gmsg.attachmentTypes.length, 1);
+      do_check_eq(gmsg.attachmentTypes[0], "text/plain");
+      do_check_eq(gmsg.attachmentNames.length, 1);
+      do_check_eq(gmsg.attachmentNames[0], "bob.txt");
+    }
+    else {
+      // Make sure we don't actually get attachments!
+      do_check_eq(gmsg.attachmentTypes, null);
+      do_check_eq(gmsg.attachmentNames, null);
+    }
   }
   catch (ex) {
     // print out some info on the various states of the messages...
@@ -229,7 +259,9 @@ function test_message_deletion() {
 
 
 var tests = [
+  function pre_test_threading() { pre_test_threading_hook(); },
   test_threading,
+  function post_test_threading() { post_test_threading_hook(); },
   test_attributes_fundamental,
   test_attributes_fundamental_from_disk,
   test_attributes_explicit,

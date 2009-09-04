@@ -612,8 +612,9 @@
             this.tabInfo.splice(iTab, 1);
             tabInfo.mode.tabs.splice(tabInfo.mode.tabs.indexOf(tabInfo), 1);
             this.tabContainer.removeChild(aTabNode);
+            --numTabs;
             if (this.tabContainer.selectedIndex == -1)
-              this.tabContainer.selectedIndex = (iTab == --numTabs) ? iTab - 1 : iTab;
+              this.tabContainer.selectedIndex = (iTab == numTabs) ? iTab - 1 : iTab;
             if (this.currentTabInfo == tabInfo)
               this.updateCurrentTab();
 

@@ -238,11 +238,17 @@ function InitViewLayoutStyleMenu(event)
     layoutStyleMenuitem.setAttribute("checked", "true");
 }
 
+/**
+ * Initialize (check) appropriate folder mode under the View | Folder menu.
+ */
 function InitViewFolderViewsMenu(event)
 {
-  var layoutStyleMenuitem = event.target.childNodes[gCurrentFolderView];
-  if (layoutStyleMenuitem)
-    layoutStyleMenuitem.setAttribute("checked", "true");
+  for (let i = 0; i < event.target.childNodes.length; i++) {
+    if (event.target.childNodes[i].value == gFolderTreeView.mode) {
+      event.target.childNodes[i].setAttribute("checked", true);
+      break;
+    }
+  }
 }
 
 function setSortByMenuItemCheckState(id, value)
@@ -2306,21 +2312,16 @@ let mailTabType = {
     this.restoreFocus(aTab);
   },
 
-  supportsCommand: function(aTab, aCommand) {
-    return DefaultController.supportsCommand(aCommand);
-  },
-
-  isCommandEnabled: function(aTab, aCommand) {
-    return DefaultController.isCommandEnabled(aCommand);
-  },
-
-  doCommand: function(aTab, aCommand) {
-    DefaultController.doCommand(aCommand, aTab);
-  },
-
-  onEvent: function(aTab, aEvent) {
-    DefaultController.onEvent(aEvent);
-  }
+  //
+  // nsIController implementation
+  //
+  // We ignore the aTab parameter sent by tabmail when calling nsIController
+  // stuff and just delegate the call to a default controller by using it as
+  // our proto chain:
+  // - "DefaultController" is the default controller of messenger.xul
+  // - "MessageWindowController" is the default controller of messageWindow.xul
+  __proto__: "DefaultController" in window && window.DefaultController ||
+             "MessageWindowController" in window && window.MessageWindowController
 };
 
 
@@ -2436,7 +2437,9 @@ function MsgJunk()
   JunkSelectedMessages(!SelectedMessagesAreJunk());
 }
 
-
+/**
+ * Update the "mark as junk" button in the message header area.
+ */
 function UpdateJunkButton()
 {
   // The junk message should slave off the selected message, as the preview pane
@@ -2446,7 +2449,7 @@ function UpdateJunkButton()
   if (!hdr || gMessageDisplay.isDummy) // .eml file
     return;
   let junkScore = hdr.getStringProperty("junkscore");
-  let hideJunk = (junkScore != "") && (junkScore != "0");
+  let hideJunk = (junkScore == Components.interfaces.nsIJunkMailPlugin.IS_SPAM_SCORE);
   if (gFolderDisplay.selectedMessageIsNews)
     hideJunk = true;
 
@@ -3042,18 +3045,18 @@ function HandleJunkStatusChanged(folder)
     // Only bother doing this if we are modifying the html for junk mail....
     if (sanitizeJunkMail)
     {
-      var moveJunkMail = (folder && folder.server && folder.server.spamSettings) ?
-                          folder.server.spamSettings.manualMark : false;
+      let junkScore = msgHdr.getStringProperty("junkscore");
+      let isJunk = (junkScore == Components.interfaces.nsIJunkMailPlugin.IS_SPAM_SCORE);
 
-      var junkScore = msgHdr.getStringProperty("junkscore");
-      var isJunk = (junkScore == "") || (junkScore == "0");
+      // If the current row  isn't going to change, reload to show sanitized or
+      // unsanitized. Otherwise we wouldn't see the reloaded version anyway.
 
-      // We used to only reload the message if we were toggling the message
-      // to NOT JUNK from junk but it can be useful to see the HTML in the
-      // message get converted to sanitized form when a message is marked as
-      // junk. Furthermore, if we are about to move the message that was just
-      // marked as junk then don't bother reloading it.
-      if (!(isJunk && moveJunkMail))
+      // 1) When marking as non-junk, the msg would move back to the inbox.
+      // 2) When marking as junk, the msg will move or delete, if manualMark is set.
+      // 3) Marking as junk in the junk folder just changes the junk status.
+      if ((!isJunk && folder.isSpecialFolder(Components.interfaces.nsMsgFolderFlags.Inbox)) ||
+          (isJunk && !folder.server.spamSettings.manualMark) ||
+          (isJunk && folder.isSpecialFolder(Components.interfaces.nsMsgFolderFlags.Junk)))
         ReloadMessage();
     }
   }

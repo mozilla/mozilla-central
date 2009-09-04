@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Andrew Sutherland <asutherland@asutherland.org>
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,52 +53,6 @@ Cu.import("resource://app/modules/gloda/log4moz.js");
 Cu.import("resource://app/modules/gloda/datamodel.js");
 Cu.import("resource://app/modules/gloda/databind.js");
 Cu.import("resource://app/modules/gloda/collection.js");
-
-let MBM_LOG = Log4Moz.repository.getLogger("gloda.ds.mbm");
-
-/**
- * @class This callback handles processing the asynchronous query results of
- *  GlodaDatastore.getMessagesByMessageID.  Because that method is only
- *  called as part of the indexing process, we are guaranteed that there will
- *  be no real caching ramifications.  Accordingly, we can also defer our cache
- *  processing (via GlodaCollectionManager) until the query completes.
- *
- * @param aMsgIDToIndex Map from message-id to the desired
- *
- * @constructor
- */
-function MessagesByMessageIdCallback(aMsgIDToIndex, aResults,
-                                     aCallback, aCallbackThis) {
-  this.msgIDToIndex = aMsgIDToIndex;
-  this.results = aResults;
-  this.callback = aCallback;
-  this.callbackThis = aCallbackThis;
-}
-
-MessagesByMessageIdCallback.prototype = {
-  onItemsAdded: function gloda_ds_mbmi_onItemsAdded(aItems, aCollection) {
-    // just outright bail if we are shutdown
-    if (GlodaDatastore.datastoreIsShutdown)
-      return;
-
-    MBM_LOG.debug("getting results...");
-    for each (let [, message] in Iterator(aItems)) {
-      this.results[this.msgIDToIndex[message.headerMessageID]].push(message);
-    }
-  },
-  onItemsModified: function () {},
-  onItemsRemoved: function () {},
-  onQueryCompleted: function gloda_ds_mbmi_onQueryCompleted(aCollection) {
-    // just outright bail if we are shutdown
-    if (GlodaDatastore.datastoreIsShutdown)
-      return;
-
-    MBM_LOG.debug("query completed, notifying... " + this.results);
-    // we no longer need to unify; it is done for us.
-
-    this.callback.call(this.callbackThis, this.results);
-  }
-};
 
 let PCH_LOG = Log4Moz.repository.getLogger("gloda.ds.pch");
 
@@ -1899,34 +1854,46 @@ var GlodaDatastore = {
              this.asyncConnection.lastErrorString + " - " + ex);
     }
 
-    // we only create the full-text row if the body is non-null.
-    // so, even though body might be null, we still want to create the
-    //  full-text search row
-    if (aMessage._bodyLines) {
-      if (aMessage._content && aMessage._content.hasContent())
-        aMessage._indexedBodyText = aMessage._content.getContentString(true);
-      else
-        aMessage._indexedBodyText = aMessage._bodyLines.join("\n");
+    // we create the full-text row for any message that isn't a ghost,
+    // whether we have the body or not
+    if (aMessage.folderID !== null)
+      this._insertMessageText(aMessage);
+  },
 
-      let imts = this._insertMessageTextStatement;
-      imts.bindInt64Parameter(0, aMessage.id);
-      imts.bindStringParameter(1, aMessage._subject);
+  /**
+   * Inserts a full-text row. This should only be called if you're sure you want
+   * to insert a row into the table.
+   */
+  _insertMessageText: function gloda_ds__insertMessageText(aMessage) {
+    if (aMessage._content && aMessage._content.hasContent())
+      aMessage._indexedBodyText = aMessage._content.getContentString(true);
+    else if (aMessage._bodyLines)
+      aMessage._indexedBodyText = aMessage._bodyLines.join("\n");
+    else
+      aMessage._indexedBodyText = null;
+
+    let imts = this._insertMessageTextStatement;
+    imts.bindInt64Parameter(0, aMessage.id);
+    imts.bindStringParameter(1, aMessage._subject);
+    if (aMessage._indexedBodyText == null)
+      imts.bindNullParameter(2);
+    else
       imts.bindStringParameter(2, aMessage._indexedBodyText);
-      if (aMessage._attachmentNames === null)
-        imts.bindNullParameter(3);
-      else
-        imts.bindStringParameter(3, aMessage._attachmentNames.join("\n"));
-      imts.bindStringParameter(4, aMessage._indexAuthor);
-      imts.bindStringParameter(5, aMessage._indexRecipients);
+    if (aMessage._attachmentNames === null)
+      imts.bindNullParameter(3);
+    else
+      imts.bindStringParameter(3, aMessage._attachmentNames.join("\n"));
 
-      try {
-         imts.executeAsync(this.trackAsync());
-      }
-      catch(ex) {
-         throw("error executing fulltext statement... " +
-               this.asyncConnection.lastError + ": " +
-               this.asyncConnection.lastErrorString + " - " + ex);
-      }
+    imts.bindStringParameter(4, aMessage._indexAuthor);
+    imts.bindStringParameter(5, aMessage._indexRecipients);
+
+    try {
+      imts.executeAsync(this.trackAsync());
+    }
+    catch(ex) {
+      throw("error executing fulltext statement... " +
+            this.asyncConnection.lastError + ": " +
+            this.asyncConnection.lastErrorString + " - " + ex);
     }
   },
 
@@ -1944,10 +1911,24 @@ var GlodaDatastore = {
     return this._updateMessageStatement;
   },
 
+  get _updateMessageTextStatement() {
+    let statement = this._createAsyncStatement(
+      "UPDATE messagesText SET body = ?1, \
+                               attachmentNames = ?2 \
+              WHERE docid = ?3");
+
+    this.__defineGetter__("_updateMessageTextStatement", function() statement);
+    return this._updateMessageTextStatement;
+  },
+
   /**
-   * Update the database row associated with the message.  If aBody is supplied,
-   *  the associated full-text row is created; it is assumed that it did not
-   *  previously exist.
+   * Update the database row associated with the message. If the message is
+   * not a ghost and has _isNew defined, messagesText is affected.
+   *
+   * aMessage._isNew is currently equivalent to the fact that there is no
+   * full-text row associated with this message, and we work with this
+   * assumption here. Note that if aMessage._isNew is not defined, then
+   * we don't do anything.
    */
   updateMessage: function gloda_ds_updateMessage(aMessage) {
     let ums = this._updateMessageStatement;
@@ -1974,37 +1955,62 @@ var GlodaDatastore = {
 
     ums.executeAsync(this.trackAsync());
 
-    if (aMessage._isNew && aMessage._bodyLines) {
-      if (aMessage._content && aMessage._content.hasContent())
-        aMessage._indexedBodyText = aMessage._content.getContentString(true);
+    if (aMessage.folderID !== null) {
+      if (aMessage._isNew === true)
+        this._insertMessageText(aMessage);
       else
-        aMessage._indexedBodyText = aMessage._bodyLines.join("\n");
-
-      let imts = this._insertMessageTextStatement;
-      imts.bindInt64Parameter(0, aMessage.id);
-      imts.bindStringParameter(1, aMessage._subject);
-      imts.bindStringParameter(2, aMessage._indexedBodyText);
-      if (aMessage._attachmentNames === null)
-        imts.bindNullParameter(3);
-      else
-        imts.bindStringParameter(3, aMessage._attachmentNames.join("\n"));
-      imts.bindStringParameter(4, aMessage._indexAuthor);
-      imts.bindStringParameter(5, aMessage._indexRecipients);
-
-      try {
-         imts.executeAsync(this.trackAsync());
-      }
-      catch(ex) {
-         throw("error executing fulltext statement... " +
-               this.asyncConnection.lastError + ": " +
-               this.asyncConnection.lastErrorString + " - " + ex);
-      }
+        this._updateMessageText(aMessage);
     }
 
     // In completely abstract theory, this is where we would call
     //  GlodaCollectionManager.itemsModified, except that the attributes may
     //  also have changed, so it's out of our hands.  (Gloda.grokNoun
     //  handles it.)
+  },
+
+  /**
+   * Updates the full-text row associated with this message. This only performs
+   * the UPDATE query if the indexed body text has changed, which means that if
+   * the body hasn't changed but the attachments have, we don't update.
+   */
+  _updateMessageText: function gloda_ds__updateMessageText(aMessage) {
+    let newIndexedBodyText;
+    if (aMessage._content && aMessage._content.hasContent())
+      newIndexedBodyText = aMessage._content.getContentString(true);
+    else if (aMessage._bodyLines)
+      newIndexedBodyText = aMessage._bodyLines.join("\n");
+    else
+      newIndexedBodyText = null;
+
+    // If the body text matches, don't perform an update
+    if (newIndexedBodyText == aMessage._indexedBodyText) {
+      this._log.debug("in _updateMessageText, skipping update because body matches");
+      return;
+    }
+
+    aMessage._indexedBodyText = newIndexedBodyText;
+
+    let umts = this._updateMessageTextStatement;
+    umts.bindInt64Parameter(2, aMessage.id);
+
+    if (aMessage._indexedBodyText == null)
+      umts.bindNullParameter(0);
+    else
+      umts.bindStringParameter(0, aMessage._indexedBodyText);
+
+    if (aMessage._attachmentNames == null)
+      umts.bindNullParameter(1);
+    else
+      umts.bindStringParameter(1, aMessage._attachmentNames.join("\n"));
+
+    try {
+      umts.executeAsync(this.trackAsync());
+    }
+    catch(ex) {
+      throw("error executing fulltext statement... " +
+            this.asyncConnection.lastError + ": " +
+            this.asyncConnection.lastErrorString + " - " + ex);
+    }
   },
 
   get _updateMessageLocationStatement() {
@@ -2221,49 +2227,6 @@ var GlodaDatastore = {
     smidbfs.reset();
 
     return messageIDs;
-  },
-
-  /**
-   * Given a list of Message-ID's, return a matching list of lists of messages
-   *  matching those Message-ID's.  So if you pass an array with three
-   *  Message-ID's ["a", "b", "c"], you would get back an array containing
-   *  3 lists, where the first list contains all the messages with a message-id
-   *  of "a", and so forth.  The reason a list is returned rather than null/a
-   *  message is that we accept the reality that we have multiple copies of
-   *  messages with the same ID.
-   * This call is asynchronous because it depends on previously created messages
-   *  to be reflected in our results, which requires us to execute on the async
-   *  thread where all our writes happen.  This also turns out to be a
-   *  reasonable thing because we could imagine pathological cases where there
-   *  could be a lot of message-id's and/or a lot of messages with those
-   *  message-id's.
-   */
-  getMessagesByMessageID: function gloda_ds_getMessagesByMessageID(aMessageIDs,
-      aCallback, aCallbackThis) {
-    let msgIDToIndex = {};
-    let results = [];
-    for (let iID = 0; iID < aMessageIDs.length; ++iID) {
-      let msgID = aMessageIDs[iID];
-      results.push([]);
-      msgIDToIndex[msgID] = iID;
-    }
-
-    // Unfortunately, IN doesn't work with statement binding mechanisms, and
-    //  a chain of ORed tests really can't be bound unless we create one per
-    //  value of N (seems silly).
-    let quotedIDs = ["'" + msgID.replace("'", "''", "g") + "'" for each
-                     ([i, msgID] in Iterator(aMessageIDs))]
-    let sqlString = "SELECT * FROM messages WHERE headerMessageID IN (" +
-                    quotedIDs + ")";
-
-    let nounDef = GlodaMessage.prototype.NOUN_DEF;
-    let listener = new MessagesByMessageIdCallback(msgIDToIndex, results,
-        aCallback, aCallbackThis);
-    // Use a null query because we don't want any update notifications about our
-    //  collection.  They would just confuse and anger the listener.
-    let query = new nounDef.nullQueryClass();
-    return this._queryFromSQLString(sqlString, [], nounDef,
-        query, listener);
   },
 
   get _updateMessagesMarkDeletedByFolderID() {
@@ -2774,8 +2737,12 @@ var GlodaDatastore = {
     //  return.  For example, in the case of messages, deleted or ghost
     //  messages should not be returned by this query layer.  We require
     //  hand-rolled SQL to do that for now.
-    let validityConstraintSuffix  =
-      nounDef.dbQueryValidityConstraintSuffix || "";
+    let validityConstraintSuffix;
+    if (nounDef.dbQueryValidityConstraintSuffix &&
+        !aQuery.options.noDbQueryValidityConstraints)
+      validityConstraintSuffix = nounDef.dbQueryValidityConstraintSuffix;
+    else
+      validityConstraintSuffix = "";
 
     for (let iUnion = 0; iUnion < unionQueries.length; iUnion++) {
       let curQuery = unionQueries[iUnion];
@@ -2923,8 +2890,14 @@ var GlodaDatastore = {
     }
 
     let sqlString = "SELECT * FROM " + nounDef.tableName;
-    if (nounDef.dbQueryJoinMagic && !aQuery.options.noMagic)
-      sqlString += nounDef.dbQueryJoinMagic;
+    if (!aQuery.options.noMagic) {
+      if (aQuery.options.noDbQueryValidityConstraints &&
+          nounDef.dbQueryJoinMagicWithNoValidityConstraints)
+        sqlString += nounDef.dbQueryJoinMagicWithNoValidityConstraints;
+      else if (nounDef.dbQueryJoinMagic)
+        sqlString += nounDef.dbQueryJoinMagic;
+    }
+
     if (whereClauses.length)
       sqlString += " WHERE (" + whereClauses.join(") OR (") + ")";
 

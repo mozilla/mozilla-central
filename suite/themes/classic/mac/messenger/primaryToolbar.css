@@ -49,26 +49,28 @@
   -moz-image-region: rect(90px 29px 119px 0);
 }
 
-#button-getmsg:hover:active {
+#button-getmsg:hover:active,
+#button-getmsg[open] {
   -moz-image-region: rect(90px 59px 119px 30px);
 } 
 
 #button-getmsg[disabled="true"] {
   -moz-image-region: rect(90px 89px 119px 60px) !important;
-} 
+}
 
 #button-newmsg {
   list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
   -moz-image-region: rect(150px 29px 179px 0);
 }
 
-#button-newmsg:hover:active {
+#button-newmsg:hover:active,
+#button-newmsg[open] {
   -moz-image-region: rect(150px 59px 179px 30px);
-} 
+}
 
 #button-newmsg[disabled="true"] {
   -moz-image-region: rect(150px 89px 179px 60px) !important;
-} 
+}
 
 #button-reply {
   list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
@@ -77,11 +79,11 @@
 
 #button-reply:hover:active {
   -moz-image-region: rect(210px 59px 239px 30px);
-} 
+}
 
 #button-reply[disabled="true"] {
   -moz-image-region: rect(210px 89px 239px 60px) !important;
-} 
+}
 
 #button-replyall {
   list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
@@ -94,14 +96,15 @@
 
 #button-replyall[disabled="true"] {
   -moz-image-region: rect(240px 89px 269px 60px) !important;
-} 
+}
 
 #button-forward {
   list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
   -moz-image-region: rect(60px 29px 89px 0);
 }
 
-#button-forward:hover:active {
+#button-forward:hover:active,
+#button-forward[open] {
   -moz-image-region: rect(60px 59px 89px 30px);
 } 
 
@@ -117,18 +120,19 @@
 #button-file:hover:active,
 #button-file[open] {
   -moz-image-region: rect(30px 59px 59px 30px);
-} 
+}
 
 #button-file[disabled="true"] {
   -moz-image-region: rect(30px 89px 59px 60px) !important;
-} 
+}
 
 #button-goback {
   list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
   -moz-image-region: rect(60px 29px 89px 0);
 }
 
-#button-goback:hover:active {
+#button-goback:hover:active,
+#button-goback[open] {
   -moz-image-region: rect(60px 59px 89px 30px);
 }
 
@@ -141,7 +145,8 @@
   -moz-image-region: rect(90px 29px 119px 0);
 }
 
-#button-goforward:hover:active {
+#button-goforward:hover:active,
+#button-goforward[open] {
   -moz-image-region: rect(90px 59px 119px 30px);
 }
 
@@ -154,13 +159,14 @@
   -moz-image-region: rect(180px 29px 209px 0);
 }
 
-#button-next:hover:active {
+#button-next:hover:active,
+#button-next[open] {
   -moz-image-region: rect(180px 59px 209px 30px);
-} 
+}
 
 #button-next[disabled="true"] {
   -moz-image-region: rect(180px 89px 209px 60px) !important;
-} 
+}
 
 #button-delete {
   list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
@@ -184,13 +190,14 @@ toolbarpaletteitem > #button-delete {
   -moz-image-region: rect(120px 29px 149px 0);
 }
 
-#button-mark:hover:active {
+#button-mark:hover:active,
+#button-mark[open] {
   -moz-image-region: rect(120px 59px 149px 30px);
-} 
+}
 
 #button-mark[disabled="true"] {
   -moz-image-region: rect(120px 89px 149px 60px) !important;
-} 
+}
 
 #button-junk {
   list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
@@ -210,7 +217,8 @@ toolbarpaletteitem > #button-delete {
   -moz-image-region: rect(0 29px 29px 0);
 }
 
-#button-print:hover:active {
+#button-print:hover:active,
+#button-print[open] {
   -moz-image-region: rect(0 59px 29px 30px);
 }
 
@@ -238,7 +246,8 @@ toolbar[iconsize="small"] > #button-getmsg {
   -moz-image-region: rect(60px 19px 79px 0);
 }
 
-toolbar[iconsize="small"] > #button-getmsg:hover:active {
+toolbar[iconsize="small"] > #button-getmsg:hover:active,
+toolbar[iconsize="small"] > #button-getmsg[open] {
   -moz-image-region: rect(60px 39px 79px 20px);
 }
 
@@ -251,7 +260,8 @@ toolbar[iconsize="small"] > #button-newmsg {
   -moz-image-region: rect(100px 19px 119px 0);
 }
 
-toolbar[iconsize="small"] > #button-newmsg:hover:active {
+toolbar[iconsize="small"] > #button-newmsg:hover:active,
+toolbar[iconsize="small"] > #button-newmsg[open] {
   -moz-image-region: rect(100px 39px 119px 20px);
 }
 
@@ -290,7 +300,8 @@ toolbar[iconsize="small"] > #button-forward {
   -moz-image-region: rect(40px 19px 59px 0);
 }
 
-toolbar[iconsize="small"] > #button-forward:hover:active {
+toolbar[iconsize="small"] > #button-forward:hover:active,
+toolbar[iconsize="small"] > #button-forward[open] {
   -moz-image-region: rect(40px 39px 59px 20px);
 }
 
@@ -317,7 +328,8 @@ toolbar[iconsize="small"] > #button-goback {
   -moz-image-region: rect(40px 19px 59px 0);
 }
 
-toolbar[iconsize="small"] > #button-goback:hover:active {
+toolbar[iconsize="small"] > #button-goback:hover:active,
+toolbar[iconsize="small"] > #button-goback[open] {
   -moz-image-region: rect(40px 39px 59px 20px);
 }
 
@@ -330,7 +342,8 @@ toolbar[iconsize="small"] > #button-goforward {
   -moz-image-region: rect(60px 19px 79px 0);
 }
 
-toolbar[iconsize="small"] > #button-goforward:hover:active {
+toolbar[iconsize="small"] > #button-goforward:hover:active,
+toolbar[iconsize="small"] > #button-goforward[open] {
   -moz-image-region: rect(60px 39px 79px 20px);
 }
 
@@ -343,7 +356,8 @@ toolbar[iconsize="small"] > #button-next {
   -moz-image-region: rect(120px 19px 139px 0);
 }
 
-toolbar[iconsize="small"] > #button-next:hover:active {
+toolbar[iconsize="small"] > #button-next:hover:active,
+toolbar[iconsize="small"] > #button-next[open] {
   -moz-image-region: rect(120px 39px 139px 20px);
 }
 
@@ -369,7 +383,8 @@ toolbar[iconsize="small"] > #button-mark {
   -moz-image-region: rect(80px 19px 99px 0);
 }
 
-toolbar[iconsize="small"] > #button-mark:hover:active {
+toolbar[iconsize="small"] > #button-mark:hover:active,
+toolbar[iconsize="small"] > #button-mark[open] {
   -moz-image-region: rect(80px 39px 99px 20px);
 }
 
@@ -395,7 +410,8 @@ toolbar[iconsize="small"] > #button-print {
   -moz-image-region: rect(0 19px 19px 0);
 }
 
-toolbar[iconsize="small"] > #button-print:hover:active {
+toolbar[iconsize="small"] > #button-print:hover:active,
+toolbar[iconsize="small"] > #button-print[open] {
   -moz-image-region: rect(0 39px 19px 20px);
 }
 

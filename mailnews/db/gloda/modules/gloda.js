@@ -54,6 +54,49 @@ Cu.import("resource://app/modules/gloda/utils.js");
 
 Cu.import("resource://app/modules/iteratorUtils.jsm");
 
+let MBM_LOG = Log4Moz.repository.getLogger("gloda.NS.mbm");
+
+/**
+ * @class This callback handles processing the asynchronous query results of
+ *  Gloda.getMessagesByMessageID.
+ *
+ * @param aMsgIDToIndex Map from message-id to the desired
+ *
+ * @constructor
+ */
+function MessagesByMessageIdCallback(aMsgIDToIndex, aResults,
+                                     aCallback, aCallbackThis) {
+  this.msgIDToIndex = aMsgIDToIndex;
+  this.results = aResults;
+  this.callback = aCallback;
+  this.callbackThis = aCallbackThis;
+}
+
+MessagesByMessageIdCallback.prototype = {
+  onItemsAdded: function gloda_ds_mbmi_onItemsAdded(aItems, aCollection) {
+    // just outright bail if we are shutdown
+    if (GlodaDatastore.datastoreIsShutdown)
+      return;
+
+    MBM_LOG.debug("getting results...");
+    for each (let [, message] in Iterator(aItems)) {
+      this.results[this.msgIDToIndex[message.headerMessageID]].push(message);
+    }
+  },
+  onItemsModified: function () {},
+  onItemsRemoved: function () {},
+  onQueryCompleted: function gloda_ds_mbmi_onQueryCompleted(aCollection) {
+    // just outright bail if we are shutdown
+    if (GlodaDatastore.datastoreIsShutdown)
+      return;
+
+    MBM_LOG.debug("query completed, notifying... " + this.results);
+    // we no longer need to unify; it is done for us.
+
+    this.callback.call(this.callbackThis, this.results);
+  }
+};
+
 /**
  * Provides the user-visible (and extension visible) global database
  *  functionality.  There is currently a dependency/ordering
@@ -324,6 +367,45 @@ var Gloda = {
     }
 
     return query.getCollection(aListener, aData);
+  },
+
+  /**
+   * Given a list of Message-ID's, return a matching list of lists of messages
+   *  matching those Message-ID's.  So if you pass an array with three
+   *  Message-ID's ["a", "b", "c"], you would get back an array containing
+   *  3 lists, where the first list contains all the messages with a message-id
+   *  of "a", and so forth.  The reason a list is returned rather than null/a
+   *  message is that we accept the reality that we have multiple copies of
+   *  messages with the same ID.
+   * This call is asynchronous because it depends on previously created messages
+   *  to be reflected in our results, which requires us to execute on the async
+   *  thread where all our writes happen.  This also turns out to be a
+   *  reasonable thing because we could imagine pathological cases where there
+   *  could be a lot of message-id's and/or a lot of messages with those
+   *  message-id's.
+   */
+  getMessagesByMessageID: function gloda_ns_getMessagesByMessageID(aMessageIDs,
+      aCallback, aCallbackThis) {
+    let msgIDToIndex = {};
+    let results = [];
+    for (let iID = 0; iID < aMessageIDs.length; ++iID) {
+      let msgID = aMessageIDs[iID];
+      results.push([]);
+      msgIDToIndex[msgID] = iID;
+    }
+
+    let quotedIDs = ["'" + msgID.replace("'", "''", "g") + "'" for each
+                      ([i, msgID] in Iterator(aMessageIDs))];
+
+    let query = Gloda.newQuery(Gloda.NOUN_MESSAGE, {
+      noDbQueryValidityConstraints: true,
+    });
+    query.headerMessageID.apply(query, quotedIDs);
+    query.frozen = true;
+
+    let listener = new MessagesByMessageIdCallback(msgIDToIndex, results,
+                                                   aCallback, aCallbackThis);
+    return query.getCollection(listener);
   },
 
   /**
@@ -1184,6 +1266,10 @@ var Gloda = {
       dbAttribAdjuster: GlodaDatastore.adjustMessageAttributes,
       dbQueryValidityConstraintSuffix:
         " AND +deleted = 0 AND +folderID IS NOT NULL AND +messageKey IS NOT NULL",
+      // This is what's used when we have no validity constraints, i.e. we allow
+      // for ghost messages, which do not have a row in the messagesText table.
+      dbQueryJoinMagicWithNoValidityConstraints:
+        " LEFT JOIN messagesText ON messages.id = messagesText.rowid",
       objInsert: GlodaDatastore.insertMessage,
       objUpdate: GlodaDatastore.updateMessage,
       toParamAndValue: function(aMessage) {

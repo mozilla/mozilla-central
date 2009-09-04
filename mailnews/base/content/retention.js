@@ -43,7 +43,7 @@ function initCommonRetentionSettings(retentionSettings)
   document.getElementById("retention.keepUnread").checked =  retentionSettings.keepUnreadMessagesOnly;
   document.getElementById("retention.keepMsg").value = retentionSettings.retainByPreference;
   if(retentionSettings.daysToKeepHdrs > 0)
-    document.getElementById("retention.keepOldMsgMin").value = 
+    document.getElementById("retention.keepOldMsgMin").value =
     (retentionSettings.daysToKeepHdrs > 0) ? retentionSettings.daysToKeepHdrs : 30;
   document.getElementById("retention.keepNewMsgMin").value =
     (retentionSettings.numHeadersToKeep > 0) ? retentionSettings.numHeadersToKeep : 2000;
@@ -52,22 +52,18 @@ function initCommonRetentionSettings(retentionSettings)
     !retentionSettings.applyToFlaggedMessages;
 }
 
-function saveCommonRetentionSettings()
+function saveCommonRetentionSettings(aRetentionSettings)
 {
-  var retentionSettings =
-    Components.classes["@mozilla.org/msgDatabase/retentionSettings;1"]
-              .createInstance(Components.interfaces.nsIMsgRetentionSettings);
+  aRetentionSettings.retainByPreference = document.getElementById("retention.keepMsg").value;
 
-  retentionSettings.retainByPreference = document.getElementById("retention.keepMsg").value;
+  aRetentionSettings.daysToKeepHdrs = document.getElementById("retention.keepOldMsgMin").value;
+  aRetentionSettings.numHeadersToKeep = document.getElementById("retention.keepNewMsgMin").value;
+  aRetentionSettings.keepUnreadMessagesOnly = document.getElementById("retention.keepUnread").checked;
 
-  retentionSettings.daysToKeepHdrs = document.getElementById("retention.keepOldMsgMin").value;
-  retentionSettings.numHeadersToKeep = document.getElementById("retention.keepNewMsgMin").value;
-  retentionSettings.keepUnreadMessagesOnly = document.getElementById("retention.keepUnread").checked;
-
-  retentionSettings.applyToFlaggedMessages =
+  aRetentionSettings.applyToFlaggedMessages =
     !document.getElementById("retention.applyToFlagged").checked;
 
-  return retentionSettings;
+  return aRetentionSettings;
 }
 
 function onCheckKeepMsg()

@@ -467,7 +467,8 @@ GlodaMessage.prototype = {
   _clone: function gloda_message_clone() {
     return new GlodaMessage(this._datastore, this._id, this._folderID,
       this._messageKey, this._conversationID, this._conversation, this._date,
-      this._headerMessageID, this._deleted);
+      this._headerMessageID, this._deleted, this._jsonText, this._notability,
+      this._subject, this._indexedBodyText, this._attachmentNames);
   },
 
   _ghost: function gloda_message_ghost() {

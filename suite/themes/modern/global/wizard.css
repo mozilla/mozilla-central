@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* ===== wizard.css =====================================================
-  == Styles used by the wizards which contains buttons for stepping 
+  == Styles used by the wizards which contains buttons for stepping
   == through a wizard.
   ======================================================================= */
 
@@ -48,6 +48,10 @@
   padding: 10px 0px;
   background-color: #5B7693;
   color: #ffffff;
+}
+
+.wizard-header-description[value=""] {
+  display: none;
 }
 
 .wizard-header-label {
@@ -62,4 +66,22 @@
 
 .wizard-page-box {
   margin: 10px 44px;
+}
+
+.wizard-buttons-separator {
+  margin-bottom: 0px !important;
+}
+
+.wizard-buttons-box-2,
+.wizard-buttons-btm {
+  padding: 5px;
+}
+
+.wizard-button[dlgtype="finish"],
+.wizard-button[dlgtype="next"] {
+  -moz-margin-start: 0px;
+}
+
+.wizard-button[dlgtype="back"] {
+  -moz-margin-end: 0px;
 }

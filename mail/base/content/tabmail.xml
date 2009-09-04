@@ -205,15 +205,15 @@
     -     hint that the tab's title needs to be updated.  This function should
     -     update aTab.title if it can.
     - Mode definition functions to do with menu/toolbar commands:
-    - * supportsCommand(aTab, aCommand): Called when a menu or toolbar needs to
+    - * supportsCommand(aCommand, aTab): Called when a menu or toolbar needs to
     -     be updated. Return true if you support that command in
     -     isCommandEnabled and doCommand, return false otherwise.
-    - * isCommandEnabled(aTab, aCommand): Called when a menu or toolbar needs
+    - * isCommandEnabled(aCommand, aTab): Called when a menu or toolbar needs
     -     to be updated. Return true if the command can be executed at the
     -     current time, false otherwise.
-    - * doCommand(aTab, aCommand): Called when a menu or toolbar command is to
+    - * doCommand(aCommand, aTab): Called when a menu or toolbar command is to
     -     be executed. Perform the action appropriate to the command.
-    - * onEvent(aTab, aEvent): This can be used to handle different events on
+    - * onEvent(aEvent, aTab): This can be used to handle different events on
     -     the window.
     - * getBrowser(aTab): This function should return the browser element for
     -     your tab if there is one (return null or don't define this function
@@ -978,7 +978,7 @@
              let supportsCommandFunc = tab.mode.supportsCommand ||
                                        tab.mode.tabType.supportsCommand;
              if (supportsCommandFunc)
-               return supportsCommandFunc.call(tab.mode.tabType, tab, aCommand);
+               return supportsCommandFunc.call(tab.mode.tabType, aCommand, tab);
 
              return false;
            ]]>
@@ -998,7 +998,7 @@
              let isCommandEnabledFunc = tab.mode.isCommandEnabled ||
                                         tab.mode.tabType.isCommandEnabled;
              if (isCommandEnabledFunc)
-               return isCommandEnabledFunc.call(tab.mode.tabType, tab, aCommand);
+               return isCommandEnabledFunc.call(tab.mode.tabType, aCommand, tab);
 
              return false;
            ]]>
@@ -1018,7 +1018,7 @@
              let doCommandFunc = tab.mode.doCommand ||
                                  tab.mode.tabType.doCommand;
              if (doCommandFunc)
-               doCommandFunc.call(tab.mode.tabType, tab, aCommand);
+               doCommandFunc.call(tab.mode.tabType, aCommand, tab);
            ]]>
         </body>
       </method>
@@ -1036,7 +1036,7 @@
              let onEventFunc = tab.mode.onEvent ||
                                tab.mode.tabType.onEvent;
              if (onEventFunc)
-               return onEventFunc.call(tab.mode.tabType, tab, aEvent);
+               return onEventFunc.call(tab.mode.tabType, aEvent, tab);
 
              return false;
            ]]>

@@ -66,7 +66,6 @@ var gMessagePane;
 var gSearchInput;
 
 var gThreadAndMessagePaneSplitter = null;
-var gCurrentFolderView;
 var gStartFolderUri = null;
 /**
  * Tracks whether the right mouse button changed the selection or not.  If the

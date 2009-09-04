@@ -2757,12 +2757,17 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
           if (txnMgr)
             txnMgr->DoTransaction(mCopyState->m_undoMsgTxn);
         }
-        if (srcFolder && !mCopyState->m_isFolder)
-          srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
 
-        (void) OnCopyCompleted(mCopyState->m_srcSupport, PR_TRUE);
         // enable the dest folder
         EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_FALSE /*dbBatching*/); //dest folder doesn't need db batching
+        if (srcFolder && !mCopyState->m_isFolder)
+        {
+          // I'm not too sure of the proper location of this event. It seems to need to be
+          // after the EnableNotifications, or the folder counts can be incorrect
+          // during the mDeleteOrMoveMsgCompletedAtom call.
+          srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
+        }
+        (void) OnCopyCompleted(mCopyState->m_srcSupport, PR_TRUE);
       }
     }
     // Send the itemAdded notification in case we didn't send the itemMoveCopyCompleted notification earlier.
@@ -2839,11 +2844,14 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndMove(PRBool moveSucceeded)
     }
     // lets delete these all at once - much faster that way
     rv = srcFolder->DeleteMessages(mCopyState->m_messages, mCopyState->m_msgWindow, PR_TRUE, PR_TRUE, nsnull, mCopyState->m_allowUndo);
-    srcFolder->NotifyFolderEvent(NS_SUCCEEDED(rv) ? mDeleteOrMoveMsgCompletedAtom : mDeleteOrMoveMsgFailedAtom);
     AutoCompact(mCopyState->m_msgWindow);
 
     // enable the dest folder
     EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_FALSE /*dbBatching*/); //dest folder doesn't need db batching
+    // I'm not too sure of the proper location of this event. It seems to need to be
+    // after the EnableNotifications, or the folder counts can be incorrect
+    // during the mDeleteOrMoveMsgCompletedAtom call.
+    srcFolder->NotifyFolderEvent(NS_SUCCEEDED(rv) ? mDeleteOrMoveMsgCompletedAtom : mDeleteOrMoveMsgFailedAtom);
 
     if (NS_SUCCEEDED(rv) && mCopyState->m_msgWindow && mCopyState->m_undoMsgTxn)
     {
