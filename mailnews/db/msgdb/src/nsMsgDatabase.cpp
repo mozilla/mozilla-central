@@ -5030,7 +5030,16 @@ nsresult nsMsgDatabase::PurgeExcessMessages(PRUint32 numHeadersToKeep,
 
 NS_IMPL_ISUPPORTS1(nsMsgRetentionSettings, nsIMsgRetentionSettings)
 
+// Initialise the member variables to resonable defaults.
 nsMsgRetentionSettings::nsMsgRetentionSettings()
+: m_retainByPreference(1),
+  m_daysToKeepHdrs(0),
+  m_numHeadersToKeep(0),
+  m_keepUnreadMessagesOnly(PR_FALSE),
+  m_useServerDefaults(PR_TRUE),
+  m_cleanupBodiesByDays(PR_FALSE),
+  m_daysToKeepBodies(0),
+  m_applyToFlaggedMessages(PR_FALSE)
 {
 }
 
