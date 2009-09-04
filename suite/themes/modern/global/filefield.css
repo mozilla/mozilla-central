@@ -11,14 +11,13 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is SeaMonkey prefwindow code.
+ * The Original Code is SeaMonkey filefield code.
  *
  * The Initial Developer of the Original Code is the SeaMonkey project.
- * Portions created by the Initial Developer are Copyright (C) 2007
+ * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Karsten Düsterloh <mnyromyr@tprac.de>
  *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -35,17 +34,43 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* Styles used by all preference windows and panes of SeaMonkey */
-
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* ::::: Main Window ::::: */
-
-prefwindow {
-  padding: 7px 5px 5px;
+/* File Field Widget */
+filefield {
+  margin: 2px 4px;
+  border: 2px solid;
+  -moz-border-top-colors: #BEC3D3 #5D616E;
+  -moz-border-right-colors: #F8FAFE #5D616E;
+  -moz-border-bottom-colors: #F8FAFE #5D616E;
+  -moz-border-left-colors: #BEC3D3 #5D616E;
 }
 
-prefpane,
-.prefWindow-dlgbuttons {
-  padding: 0px;
+.fileFieldContentBox {
+  background-color: #C7D0D9;
+}
+
+filefield[disabled="true"] {
+  -moz-border-top-colors: #BEC3D3 #98A5B2;
+  -moz-border-right-colors: #F8FAFE #98A5B2;
+  -moz-border-bottom-colors: #F8FAFE #98A5B2;
+  -moz-border-left-colors: #BEC3D3 #98A5B2;
+}
+
+.fileFieldIcon[disabled="true"] {
+ opacity: 0.4;
+}
+
+.fileFieldIcon {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  -moz-margin-start: 1px;
+  -moz-margin-end: 4px;
+}
+
+.fileFieldLabel {
+  border: none;
+  margin: 0px;
 }

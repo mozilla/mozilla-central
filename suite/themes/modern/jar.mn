@@ -159,6 +159,7 @@ modern.jar:
   skin/modern/global/datetimepicker.css                            (global/datetimepicker.css)
   skin/modern/global/dialog.css                                    (global/dialog.css)
   skin/modern/global/dropmarker.css                                (global/dropmarker.css)
+  skin/modern/global/filefield.css                                 (global/filefield.css)
   skin/modern/global/filepicker.css                                (global/filepicker.css)
   skin/modern/global/findBar.css                                   (global/findBar.css)
   skin/modern/global/global.css                                    (global/global.css)
