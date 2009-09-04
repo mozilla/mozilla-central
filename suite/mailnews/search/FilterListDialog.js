@@ -183,7 +183,7 @@ function onLoad()
     gStatusBar = document.getElementById("statusbar-icon");
     gStatusText = document.getElementById("statusText");
 
-    updateButtons();
+    gFilterTree.view = gFilterTreeView;
 
     // get the selected server if it can have filters.
     var firstItem = getSelectedServerForFilters();
@@ -192,13 +192,15 @@ function onLoad()
     // if the default server cannot have filters, check all accounts
     // and get a server that can have filters.
     if (!firstItem)
-        firstItem = getServerThatCanHaveFilters();
+      firstItem = getServerThatCanHaveFilters();
 
-    if (firstItem) {
-        selectServer(firstItem);
-    }
+    if (firstItem)
+      selectServer(firstItem);
+    else
+      updateButtons();
 
-    gFilterTree.view = gFilterTreeView;
+    // Focus the list.
+    gFilterTree.focus();
 
     window.tryToClose = onFilterClose;
 }
@@ -272,6 +274,10 @@ function setServer(uri)
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
    gFilterTreeView.filterList = msgFolder.getEditableFilterList(gFilterListMsgWindow);
+
+   // Select the first item in the list, if there is one.
+   if (gFilterTreeView.rowCount)
+     gFilterTreeView.selection.select(0);
 
    // this will get the deferred to account root folder, if server is deferred
    msgFolder = msgFolder.server.rootMsgFolder;
