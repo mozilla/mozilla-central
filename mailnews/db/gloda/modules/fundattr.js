@@ -461,7 +461,7 @@ var GlodaFundAttr = {
       author = aMsgHdr.mime2DecodedAuthor;
 
     let normalizedListPost = "";
-    if (aMimeMsg.has("list-post")) {
+    if (aMimeMsg && aMimeMsg.has("list-post")) {
       let match = this.RE_LIST_POST.exec(aMimeMsg.get("list-post"));
       if (match)
         normalizedListPost = "<" + match[1] + ">";
