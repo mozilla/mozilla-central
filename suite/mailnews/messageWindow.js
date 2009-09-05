@@ -301,6 +301,37 @@ function OnLoadMessageWindow()
   setTimeout(OnLoadMessageWindowDelayed, 0, loadCustomMessage);
 
   SetupCommandUpdateHandlers();
+
+  window.addEventListener("AppCommand", HandleAppCommandEvent, true);
+}
+
+function HandleAppCommandEvent(evt)
+{
+  evt.stopPropagation();
+  switch (evt.command)
+  {
+    case "Back":
+      goDoCommand('cmd_goBack');
+      break;
+    case "Forward":
+      goDoCommand('cmd_goForward');
+      break;
+    case "Stop":
+      goDoCommand('cmd_stop');
+      break;
+    case "Search":
+      goDoCommand('cmd_search');
+      break;
+    case "Bookmarks":
+      toAddressBook();
+      break;
+    case "Reload":
+      goDoCommand('cmd_reload');
+      break;
+    case "Home":
+    default:
+      break;
+  }
 }
 
 function OnLoadMessageWindowDelayed(loadCustomMessage)
@@ -396,6 +427,8 @@ function extractMsgKeyFromURI()
 
 function OnUnloadMessageWindow()
 {
+  window.removeEventListener("AppCommand", HandleAppCommandEvent, true);
+
   UnloadCommandUpdateHandlers();
 
   // FIX ME - later we will be able to use onunload from the overlay
@@ -561,6 +594,7 @@ var MessageWindowController =
     switch (command)
     {
       case "cmd_delete":
+      case "cmd_stop":
       case "cmd_undo":
       case "cmd_redo":
       case "cmd_killThread":
@@ -744,6 +778,8 @@ var MessageWindowController =
       case "cmd_search":
         loadedFolder = GetLoadedMsgFolder();
         return (loadedFolder && loadedFolder.server.canSearchMessages);
+      case "cmd_stop":
+        return true;
       case "cmd_undo":
       case "cmd_redo":
         return SetupUndoRedoCommand(command);
@@ -831,6 +867,9 @@ var MessageWindowController =
         break;
       case "button_junk":
         MsgJunk();
+        break;
+      case "cmd_stop":
+        MsgStop();
         break;
       case "cmd_printSetup":
         PrintUtils.showPageSetup();

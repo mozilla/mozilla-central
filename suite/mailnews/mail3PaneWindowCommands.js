@@ -185,6 +185,7 @@ var DefaultController =
       case "cmd_viewThreadsWithUnread":
       case "cmd_viewWatchedThreadsWithUnread":
       case "cmd_viewIgnoredThreads":
+      case "cmd_stop":
       case "cmd_undo":
       case "cmd_redo":
 			case "cmd_expandAllThreads":
