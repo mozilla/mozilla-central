@@ -1237,7 +1237,7 @@ var BookmarksUtils = {
   isSelectionValidForDeletion: function (aSelection)
   {
     var isValid = new Array(aSelection.length);
-    for (i=0; i<aSelection.length; ++i) {
+    for (var i=0; i<aSelection.length; ++i) {
       if (!aSelection.isValid[i] || aSelection.isImmutable[i] || 
           !aSelection.parent [i])
         isValid[i] = false;
@@ -1379,6 +1379,7 @@ var BookmarksUtils = {
 
   moveSelection: function (aAction, aSelection, aTarget)
   {
+    var canDelete = BookmarksUtils.isSelectionValidForDeletion(aSelection);
     var isValid = BookmarksUtils.isSelectionValidForInsertion(aSelection, aTarget, aAction);
     if (SOUND && !BookmarksUtils.all(isValid))
       SOUND.beep();
@@ -1389,11 +1390,13 @@ var BookmarksUtils = {
     txmgr.beginBatch();
     var index = aTarget.index;
     for (var i = 0; i < aSelection.length; ++i) {
-      if (isValid[i]) {
+      if (canDelete[i]) {
         RDFC.Init(BMDS, aSelection.parent[i]);
         var deleteIndex = RDFC.IndexOf(aSelection.item[i]);
         var deleteTxn = BMSVC.createTransaction(aSelection.parent[i], aSelection.item[i], deleteIndex, true);
         txmgr.doTransaction(deleteTxn);
+      }
+      if (isValid[i]) {
         var insertTxn = BMSVC.createTransaction(aTarget.parent, aSelection.item[i], index++, false);
         txmgr.doTransaction(insertTxn);
       }
