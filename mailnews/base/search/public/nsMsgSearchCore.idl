@@ -53,6 +53,7 @@ interface nsMsgSearchScope {
   const nsMsgSearchScopeValue offlineMailFilter = 1;
   const nsMsgSearchScopeValue onlineMail = 2;
   const nsMsgSearchScopeValue onlineMailFilter = 3;
+  /// offline news, base table, no body or junk
   const nsMsgSearchScopeValue localNews = 4;
   const nsMsgSearchScopeValue news = 5;
   const nsMsgSearchScopeValue newsEx = 6;
@@ -64,6 +65,12 @@ interface nsMsgSearchScope {
   const nsMsgSearchScopeValue LDAPAnd = 12;
   // IMAP and NEWS, searched using local headers
   const nsMsgSearchScopeValue onlineManual = 13;
+  /// local news + junk
+  const nsMsgSearchScopeValue localNewsJunk = 14;
+  /// local news + body
+  const nsMsgSearchScopeValue localNewsBody = 15;
+  /// local news + junk + body
+  const nsMsgSearchScopeValue localNewsJunkBody = 16;
 };
 
 typedef long nsMsgSearchAttribValue;

@@ -2117,7 +2117,9 @@ nsNntpIncomingServer::GetSearchScope(nsMsgSearchScopeValue *searchScope)
    NS_ENSURE_ARG_POINTER(searchScope);
 
    if (WeAreOffline()) {
-     *searchScope = nsMsgSearchScope::localNews;
+     // This value is set to the localNewsBody scope to be compatible with
+     // the legacy default value.
+     *searchScope = nsMsgSearchScope::localNewsBody;
    }
    else {
      *searchScope = nsMsgSearchScope::news;
