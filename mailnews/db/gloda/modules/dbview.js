@@ -86,7 +86,7 @@ function GlodaSyntheticView(aArgs) {
   this.customColumns = [];
 }
 GlodaSyntheticView.prototype = {
-  defaultSort: [["dateCol", Ci.nsMsgViewSortOrder.descending]],
+  defaultSort: [[Ci.nsMsgViewSortType.byDate, Ci.nsMsgViewSortOrder.descending]],
 
   /**
    * Request the search be performed and notification provided to
