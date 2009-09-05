@@ -94,8 +94,7 @@ var GlodaFundAttr = {
   /** Boost for each additional person involved in my address book. */
   NOTABILITY_INVOLVING_ADDR_BOOK_ADDL: 2,
 
-  defineAttributes: function gloda_explattr_defineAttributes() {
-  _attrHeaderMessageID: null,
+  defineAttributes: function gloda_fundattr_defineAttributes() {
     /* ***** Conversations ***** */
     // conversation: subjectMatches
     this._attrConvSubject = Gloda.defineAttribute({
