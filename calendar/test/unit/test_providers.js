@@ -303,7 +303,7 @@ function run_test() {
         var calArray = [];
         calArray.push(getStorageCal());
         calArray.push(getMemoryCal());
-        for each (cal in calArray) {
+        for each (let calendar in calArray) {
             // implement listener
             var count = 0;
             var listener = {
@@ -335,7 +335,7 @@ function run_test() {
                 }
             };
             // add item to calendar
-            cal.addItem(aItem, listener);
+            calendar.addItem(aItem, listener);
         }
     }
 
@@ -350,7 +350,7 @@ function run_test() {
         var calArray = [];
         calArray.push(getStorageCal());
         calArray.push(getMemoryCal());
-        for each (cal in calArray) {
+        for each (let calendar in calArray) {
             // implement listener
             var count = 0;
             var returnedItem = null;
@@ -383,7 +383,7 @@ function run_test() {
                 }
             };
             // add item to calendar
-            cal.addItem(aItem, listener);
+            calendar.addItem(aItem, listener);
         }
     }
 
