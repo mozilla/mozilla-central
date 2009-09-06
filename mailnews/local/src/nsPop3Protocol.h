@@ -281,7 +281,7 @@ public:
   const char* GetUsername() { return m_username.get(); }
   void SetUsername(const char* name);
 
-  nsresult GetPassword(nsCString& aPassword, PRBool *okayValue);
+  nsresult GetPassword(nsCString& aPassword);
 
   NS_IMETHOD OnTransportStatus(nsITransport *transport, nsresult status, PRUint64 progress, PRUint64 progressMax);
   NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports * aContext, nsresult aStatus);

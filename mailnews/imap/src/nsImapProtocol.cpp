@@ -7932,8 +7932,10 @@ nsresult nsImapProtocol::GetPassword(nsCString &password)
     // GetPasswordWithUI will truncate the password.
     nsCString pwd = m_lastPasswordSent;
     nsresult rv = m_imapServerSink->PromptForPassword(pwd, msgWindow);
-    if (rv == NS_MSG_PASSWORD_PROMPT_CANCELLED)
+
+    if (NS_FAILED(rv) || rv == NS_MSG_PASSWORD_PROMPT_CANCELLED)
       return NS_ERROR_ABORT;
+
     password.Assign(pwd);
   }
   m_lastPasswordSent = password;

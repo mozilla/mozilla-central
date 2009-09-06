@@ -2146,7 +2146,6 @@ NS_IMETHODIMP nsImapIncomingServer::PromptForPassword(nsACString& aPassword,
   nsString passwordTitle;
   IMAPGetStringByID(IMAP_ENTER_PASSWORD_PROMPT_TITLE, getter_Copies(passwordTitle));
   nsCString promptValue;
-  PRBool okayValue;
   GetRealUsername(promptValue);
 
   nsCString hostName;
@@ -2159,9 +2158,7 @@ NS_IMETHODIMP nsImapIncomingServer::PromptForPassword(nsACString& aPassword,
                                          IMAP_ENTER_PASSWORD_PROMPT,
                                          passwordText);
   NS_ENSURE_SUCCESS(rv,rv);
-  rv =  GetPasswordWithUI(passwordText, passwordTitle, aMsgWindow,
-                          &okayValue, aPassword);
-  return (okayValue) ? rv : NS_MSG_PASSWORD_PROMPT_CANCELLED;
+  return GetPasswordWithUI(passwordText, passwordTitle, aMsgWindow, aPassword);
 }
 
 // for the nsIImapServerSink interface
