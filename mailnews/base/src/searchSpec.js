@@ -412,10 +412,12 @@ SearchSpec.prototype = {
         let onlineAvailable = true;
         for each (let term in fixIterator(session.searchTerms,
                                           nsIMsgSearchTerm)) {
-          if (!offlineValidityTable.getAvailable(term.attrib, term.op))
-            offlineAvailable = false;
-          if (!onlineValidityTable.getAvailable(term.attrib, term.op))
-            onlineAvailable = false;
+          if (!term.matchAll) {
+            if (!offlineValidityTable.getAvailable(term.attrib, term.op))
+              offlineAvailable = false;
+            if (!onlineValidityTable.getAvailable(term.attrib, term.op))
+              onlineAvailable = false;
+          }
         }
         // If both scopes work, honor the onlineSearch request
         if (onlineAvailable && offlineAvailable)
