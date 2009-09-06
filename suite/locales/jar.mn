@@ -31,6 +31,7 @@
   locale/@AB_CD@/communicator/openLocation.properties                       (%chrome/common/openLocation.properties)
   locale/@AB_CD@/communicator/passwordManager.dtd                           (%chrome/common/passwordManager.dtd)
   locale/@AB_CD@/communicator/printPreview.dtd                              (%chrome/common/printPreview.dtd)
+  locale/@AB_CD@/communicator/quitDialog.properties                         (%chrome/common/quitDialog.properties)
   locale/@AB_CD@/communicator/shellservice.properties                       (%chrome/common/shellservice.properties)
   locale/@AB_CD@/communicator/sanitize.dtd                                  (%chrome/common/sanitize.dtd)
   locale/@AB_CD@/communicator/tasksOverlay.dtd                              (%chrome/common/tasksOverlay.dtd)
