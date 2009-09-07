@@ -3303,11 +3303,6 @@ else
     fi
 
 	LDFLAGS="$_SAVE_LDFLAGS"
-
-    dnl ========================================================
-    dnl = Check for freetype2 and its functionality
-    dnl ========================================================
-    AC_CHECK_FT2(6.1.0, [_HAVE_FREETYPE2=1], [_HAVE_FREETYPE2=])
 fi # $no_x
 
 AC_SUBST(XCFLAGS)
@@ -5091,10 +5086,6 @@ then
     else
         PKG_CHECK_MODULES(MOZ_PANGO, pango >= $PANGO_VERSION pangoft2 >= $PANGO_VERSION)
         AC_SUBST(MOZ_PANGO_LIBS)
-
-        PKG_CHECK_MODULES(FT2, freetype2 > 6.1.0 fontconfig)
-        AC_SUBST(FT2_CFLAGS)
-        AC_SUBST(FT2_LIBS)
     fi
 fi
 
@@ -5536,10 +5527,6 @@ MOZ_ARG_ENABLE_BOOL(tree-freetype,
     MOZ_TREE_FREETYPE=1,
     MOZ_TREE_FREETYPE= )
 if test -n "$MOZ_TREE_FREETYPE"; then
-   AC_DEFINE(MOZ_TREE_FREETYPE)
-   AC_SUBST(MOZ_TREE_FREETYPE)
-   FT2_CFLAGS="-I${MOZILLA_SRCDIR}/modules/freetype2/include"
-   FT2_LIBS="${LIBXUL_DIST}/lib/freetype2.lib"
    CAIRO_FT_LIBS = "${LIBXUL_DIST}/lib/freetype2.lib"
 fi
 
