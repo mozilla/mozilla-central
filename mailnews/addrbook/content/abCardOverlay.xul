@@ -393,66 +393,43 @@
       </vbox>
 
       <!-- ** Photo Tab ** -->
-      <vbox id="abPhotoTab" >
-        <hbox flex="1">
-          <vbox align="left">
-            <spacer flex="1"/>
-            <hbox id="photoBox" style="min-width: 25ch; max-width: 25ch;">
-              <spacer flex="1"/>
-              <html:img align="center" src="" id="photo"
-                        style="max-width: 25ch; max-height: 25ch; min-width: 1ch;"/>
-              <spacer flex="1"/>
+      <hbox id="abPhotoTab" align="center">
+        <description style="min-width: 25ch; max-width: 25ch; text-align: center">
+          <html:img id="photo" style="max-width: 25ch; max-height: 25ch;"/>
+        </description>
+        <groupbox flex="1">
+          <caption label="&PhotoDesc.label;"/>
+          <radiogroup id="PhotoType" onselect="updatePhoto();">
+            <radio value="generic" label="&GenericPhoto.label;"
+                   accesskey="&GenericPhoto.accesskey;"/>
+            <menulist id="GenericPhotoList" class="indent" flex="1"
+                      oncommand="updatePhoto('generic');">
+              <menupopup>
+                <menuitem label="&DefaultPhoto.label;" selected="true"
+                          value="chrome://messenger/skin/addressbook/icons/contact-generic.png"
+                          image="chrome://messenger/skin/addressbook/icons/contact-generic-tiny.png"/>
+              </menupopup>
+            </menulist>
+            <radio value="file" label="&PhotoFile.label;"
+                   accesskey="&PhotoFile.accesskey;"/>
+            <hbox class="indent">
+              <filefield id="PhotoFile" maxlength="255" flex="1"/>
+              <button oncommand="browsePhoto();" id="BrowsePhoto"
+                      label="&BrowsePhoto.label;"
+                      accesskey="&BrowsePhoto.accesskey;"/>
             </hbox>
-            <spacer flex="1"/>
-          </vbox>
-          <vbox>
-            <command id="PhotoCmd" oncommand="updatePhoto();"/>
-            <spacer flex="1"/>
-            <groupbox flex="1">
-              <caption label="&PhotoDesc.label;"/>
-              <radiogroup id="PhotoType">
-                <radio id="generic" label="&GenericPhoto.label;"
-                       command="PhotoCmd"
-                       accesskey="&GenericPhoto.accesskey;"
-                       selected="true"/>
-                <hbox class="indent">
-                  <menulist id="GenericPhotoList"
-                            oncommand="updatePhoto('generic');">
-                    <menupopup>
-                      <menuitem label="&DefaultPhoto.label;" selected="true"
-                                value="chrome://messenger/skin/addressbook/icons/contact-generic.png"
-                                image="chrome://messenger/skin/addressbook/icons/contact-generic-tiny.png"/>
-                    </menupopup>
-                  </menulist>
-                </hbox>
-                <radio id="file" label="&PhotoFile.label;"
-                       command="PhotoCmd"
-                       accesskey="&PhotoFile.accesskey;"/>
-                <hbox class="indent">
-                  <filefield id="PhotoFile" maxlength="255" flex="1"
-                             disabled="true"
-                             style="-moz-margin-start:2px;"/>
-                  <button oncommand="browsePhoto();" id="BrowsePhoto"
-                          label="&BrowsePhoto.label;"
-                          accesskey="&BrowsePhoto.accesskey;"/>
-                </hbox>
-                <radio id="web" label="&PhotoURL.label;"
-                       command="PhotoCmd"
-                       accesskey="&PhotoURL.accesskey;"/>
-                <hbox class="indent">
-                  <textbox id="PhotoURI" maxlength="255" style="width: 45ch;"
-                           emptytext="&PhotoURL.emptytext;"
-                           class="AddressCardEditWidth"/>
-                  <button oncommand="updatePhoto('web');" id="UpdatePhoto"
-                          label="&UpdatePhoto.label;"
-                          accesskey="&UpdatePhoto.accesskey;"/>
-                </hbox>
-              </radiogroup>
-            </groupbox>
-            <spacer flex="1"/>
-          </vbox>
-        </hbox>
-      </vbox>
+            <radio value="web" label="&PhotoURL.label;"
+                   accesskey="&PhotoURL.accesskey;"/>
+            <hbox class="indent">
+              <textbox id="PhotoURI" maxlength="255" flex="1"
+                       emptytext="&PhotoURL.emptytext;"/>
+              <button oncommand="updatePhoto('web');" id="UpdatePhoto"
+                      label="&UpdatePhoto.label;"
+                      accesskey="&UpdatePhoto.accesskey;"/>
+            </hbox>
+          </radiogroup>
+        </groupbox>
+      </hbox>
     </tabpanels>
   </tabbox>
 </vbox>
