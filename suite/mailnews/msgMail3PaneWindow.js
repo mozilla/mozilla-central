@@ -769,11 +769,45 @@ function OnLoadMessenger()
   mailToolbox.customizeInit = MailToolboxCustomizeInit;
   mailToolbox.customizeDone = MailToolboxCustomizeDone;
   mailToolbox.customizeChange = MailToolboxCustomizeChange;
+
+  window.addEventListener("AppCommand", HandleAppCommandEvent, true);
+}
+
+function HandleAppCommandEvent(evt)
+{
+  evt.stopPropagation();
+  switch (evt.command)
+  {
+    case "Back":
+      goDoCommand('cmd_goBack');
+      break;
+    case "Forward":
+      goDoCommand('cmd_goForward');
+      break;
+    case "Stop":
+      goDoCommand('cmd_stop');
+      break;
+    case "Search":
+      goDoCommand('cmd_search');
+      break;
+    case "Bookmarks":
+      toAddressBook();
+      break;
+    case "Reload":
+      goDoCommand('cmd_reload');
+      break;
+    case "Home":
+      goDoCommand('cmd_goStartPage');
+      break;
+    default:
+      break;
+  }
 }
 
 function OnUnloadMessenger()
 {
   pref.removeObserver("mail.pane_config.dynamic", MailPaneConfigObserver, false);
+  window.removeEventListener("AppCommand", HandleAppCommandEvent, true);
 
   OnLeavingFolder(gMsgFolderSelected);  // mark all read in current folder
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);

@@ -380,42 +380,54 @@ SearchSpec.prototype = {
       return;
     }
 
-    // We are filtering if we have mail view terms or user terms.  When
-    //  filtering, we bias towards offline search.  The only time we would use
-    //  an online search when filtering is if one of the constraints uses the
-    //  body attribute and the folder is not marked for offline access.
-    // We are not filtering if we only have virtual folder terms, in which case
-    //  we honor the onlineSearch attribute.  This means that we use the
-    //  folder's server's searchScope if the folder is not explicitly marked
-    //  offline.
-    // For further discussion on this choice of logic, please read from:
-    //  https://bugzilla.mozilla.org/show_bug.cgi?id=474701#c73
-    let filtering = this._virtualFolderTerms == null &&
-                    this._viewTerms == null;
-
     let ioService = Cc["@mozilla.org/network/io-service;1"]
                       .getService(Ci.nsIIOService);
+    let validityManager = Cc['@mozilla.org/mail/search/validityManager;1']
+                            .getService(Ci.nsIMsgSearchValidityManager);
     for each (let [, folder] in Iterator(this.owner._underlyingFolders)) {
       // we do not need to check isServer here because _underlyingFolders
       //  filtered it out when it was initialized.
 
       let scope;
-      let folderIsOffline = (folder instanceof nsIMsgLocalMailFolder) ||
-                            (folder.flags & nsMsgFolderFlags.Offline) ||
-                            ioService.offline;
-      // To restate the above logic into simpler rules, the scope is definitely
-      //  offline if:
-      // - Folders available offline always use offline search.
-      // - If we are filtering and don't have a body term, use offline search.
-      // - If we are not filtering and our virtual folder is not marked for
-      //   onlineSearch.
-      if (folderIsOffline ||
-          (filtering && !haveBodyTerm) ||
-          (!filtering && !this.onlineSearch))
-        scope = nsMsgSearchScope.offlineMail;
-      // Otherwise, it's up to the folder's sever's searchScope.
-      else
-        scope = folder.server.searchScope;
+      let serverScope = folder.server.searchScope;
+      // If we're offline, or this is a local folder, or there's no separate
+      //  online scope, use server scope.
+      if (ioService.offline || (serverScope == nsMsgSearchScope.offlineMail) ||
+                               (folder instanceof nsIMsgLocalMailFolder))
+        scope = serverScope;
+      else {
+        // we need to test the validity in online and offline tables
+        let onlineValidityTable = validityManager.getTable(serverScope);
+
+        let offlineScope;
+        if (folder.flags & nsMsgFolderFlags.Offline)
+          offlineScope = nsMsgSearchScope.offlineMail;
+        else
+          // The onlineManual table is used for local search when there is no
+          //  body available.
+          offlineScope = nsMsgSearchScope.onlineManual;
+
+        let offlineValidityTable = validityManager.getTable(offlineScope);
+        let offlineAvailable = true;
+        let onlineAvailable = true;
+        for each (let term in fixIterator(session.searchTerms,
+                                          nsIMsgSearchTerm)) {
+          if (!term.matchAll) {
+            if (!offlineValidityTable.getAvailable(term.attrib, term.op))
+              offlineAvailable = false;
+            if (!onlineValidityTable.getAvailable(term.attrib, term.op))
+              onlineAvailable = false;
+          }
+        }
+        // If both scopes work, honor the onlineSearch request
+        if (onlineAvailable && offlineAvailable)
+          scope = this.onlineSearch ? serverScope : offlineScope;
+        // If only one works, use it. Otherwise, default to offline
+        else if (onlineAvailable)
+          scope = serverScope;
+        else
+          scope = offlineScope;
+      }
       session.addScopeTerm(scope, folder);
     }
   },

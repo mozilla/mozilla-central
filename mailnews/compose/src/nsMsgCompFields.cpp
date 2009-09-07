@@ -248,7 +248,7 @@ NS_IMETHODIMP nsMsgCompFields::GetSubject(nsAString &_retval)
 
 NS_IMETHODIMP nsMsgCompFields::SetTemporaryFiles(const char *value)
 {
-  NS_ASSERTION(0, "nsMsgCompFields::SetTemporaryFiles is not supported anymore, please use nsMsgCompFields::AddAttachment");
+  NS_ERROR("nsMsgCompFields::SetTemporaryFiles is not supported anymore, please use nsMsgCompFields::AddAttachment");
   return SetAsciiHeader(MSG_TEMPORARY_FILES_HEADER_ID, value);
 }
 

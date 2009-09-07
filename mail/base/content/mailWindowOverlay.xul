@@ -302,6 +302,8 @@
     <command id="cmd_markAsJunk" oncommand="goDoCommand('cmd_markAsJunk'); event.stopPropagation()" disabled="true"/>
     <command id="cmd_markAsNotJunk" oncommand="goDoCommand('cmd_markAsNotJunk'); event.stopPropagation()" disabled="true"/>
     <command id="cmd_recalculateJunkScore" oncommand="goDoCommand('cmd_recalculateJunkScore');" disabled="true"/>
+    <command id="cmd_viewAllHeader" oncommand="goDoCommand('cmd_viewAllHeader');" disabled="true"/>
+    <command id="cmd_viewNormalHeader" oncommand="goDoCommand('cmd_viewNormalHeader');" disabled="true"/>
 </commandset>
 
 <commandset id="mailToolsMenuItems"
@@ -1119,13 +1121,13 @@
                name="viewheadergroup"
                label="&headersAllCmd.label;"
                accesskey="&headersAllCmd.accesskey;"
-               oncommand="MsgViewAllHeaders();"/>
+               command="cmd_viewAllHeader"/>
               <menuitem id="viewnormalheaders"
                type="radio"
                name="viewheadergroup"
                label="&headersNormalCmd.label;"
                accesskey="&headersNormalCmd.accesskey;"
-               oncommand="MsgViewNormalHeaders();"/>
+               command="cmd_viewNormalHeader"/>
             </menupopup>
           </menu>
           <menu id="viewBodyMenu" accesskey="&bodyMenu.accesskey;" label="&bodyMenu.label;">

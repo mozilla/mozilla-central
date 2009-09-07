@@ -278,8 +278,7 @@ MimeObject_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
 static int
 MimeObject_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
-  /* This method should never be called. */
-  NS_ASSERTION(0, "shouldn't call this method");
+  NS_ERROR("shouldn't call this method");
   return -1;
 }
 
@@ -334,7 +333,7 @@ MimeObject_parse_end (MimeObject *obj, PRBool abort_p)
 static PRBool
 MimeObject_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 {
-  NS_ASSERTION(0, "shouldn't call this method");  /* This method should never be called. */
+  NS_ERROR("shouldn't call this method");
   return PR_FALSE;
 }
 

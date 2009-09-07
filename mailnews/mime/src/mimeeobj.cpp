@@ -250,7 +250,7 @@ MimeExternalObject_parse_decoded_buffer (const char *buf, PRInt32 size,
     !obj->options ||
     obj->options->write_html_p)
   {
-    NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+    NS_ERROR("MimeObject is missing some data");
     return -1;
   }
 
@@ -261,9 +261,7 @@ MimeExternalObject_parse_decoded_buffer (const char *buf, PRInt32 size,
 static int
 MimeExternalObject_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
-  /* This method should never be called (externals do no line buffering).
-   */
-  NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+  NS_ERROR("This method should never be called (externals do no line buffering).");
   return -1;
 }
 

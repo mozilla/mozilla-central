@@ -23,6 +23,7 @@
  *   Ben Bucksch <mozilla.BenB@bucksch.org>
  *   Ian Neal <bugzilla@arlen.demon.co.uk>
  *   Žiga Sancin <bisi@pikslar.com>
+ *   Magnus Melin <mkmelin+mozilla@iki.fi>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -38,153 +39,57 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var msgCompSendFormat = Components.interfaces.nsIMsgCompSendFormat;
-var msgCompConvertible = Components.interfaces.nsIMsgCompConvertible;
-var param = null;
+var gParam = null;
 
-/* There are 3 preferences that let you customize the behavior of this dialog
-
-1. pref("mail.asksendformat.default", 1); //1=plaintext, 2=html, 3=both
-   This defines the default action selected when the dialog opens. It can be overwritten by the preference
-   mail.asksendformat.recommended_as_default
-
-
-2. pref("mail.asksendformat.recommended_as_default", true);
-   If you set this preference to true and we have a recommended action, this action will be selected by default.
-   In this case, we ignore the preference mail.asksendformat.default
-
-
-3. pref("mail.asksendformat.display_recommendation", true);
-   When this preference is set to false, the recommended action label will not be displayed next to the action
-   radio button. However, the default action might change to the recommended one if the preference
-   mail.asksendformat.recommended_as_default is set.
-*/
-
-var defaultAction = msgCompSendFormat.PlainText;
-var recommended_as_default = true;
-var display_recommendation = true;
-var useDefault = false;
-
-var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService();
-if (prefs)
-{
-  prefs = prefs.QueryInterface(Components.interfaces.nsIPrefBranch);
-  if (prefs)
-  {
-    try
-    {
-      defaultAction = prefs.getIntPref("mail.asksendformat.default");
-      useDefault = true;
-    }
-    catch (ex) {}
-
-    try
-    {
-      recommended_as_default = prefs.getBoolPref("mail.asksendformat.recommended_as_default");
-    }
-    catch (ex) {}
-
-    try
-    {
-      display_recommendation = prefs.getBoolPref("mail.asksendformat.display_recommendation");
-    }
-    catch (ex) {}
-  }
-}
-
+/**
+ * This dialog should be opened with arguments like e.g.
+ * {action: nsIMsgCompSendFormat.AskUser, convertible: nsIMsgCompConvertible.Yes}
+ */
 function Startup()
 {
-  if (window.arguments && window.arguments[0])
+  gParam = window.arguments[0];
+
+  const msgCompSendFormat = Components.interfaces.nsIMsgCompSendFormat;
+  const msgCompConvertible = Components.interfaces.nsIMsgCompConvertible;
+
+  var bundle = document.getElementById("askSendFormatStringBundle");
+
+  // If the user hits the close box, we will abort.
+  gParam.abort = true;
+
+  // Set the question label
+  var mailSendFormatExplanation = document.getElementById("mailSendFormatExplanation");
+  var icon = document.getElementById("convertDefault");
+
+  switch (gParam.convertible)
   {
-    var askSendFormatStringBundle = document.getElementById("askSendFormatStringBundle");
-    param = window.arguments[0];
-    // If the user hits the close box, we will abort.
-    param.abort = true;
-    if (param.action)
-    {
-      // Set the question label
-      var mailSendFormatExplanation = document.getElementById("mailSendFormatExplanation");
-      var icon = document.getElementById("convertDefault");
-      switch (param.convertible)
-      {
-        case msgCompConvertible.Plain:
-          // We shouldn't be here at all
-          mailSendFormatExplanation.textContent = askSendFormatStringBundle.getString("convertibleYes");
-          // No icon
-          break;
-        case msgCompConvertible.Yes:
-          mailSendFormatExplanation.textContent = askSendFormatStringBundle.getString("convertibleYes");
-          icon.setAttribute("id", "convertYes");
-          break;
-        case msgCompConvertible.Altering:
-          mailSendFormatExplanation.textContent = askSendFormatStringBundle.getString("convertibleAltering");
-          icon.setAttribute("id", "convertAltering");
-          break;
-        case msgCompConvertible.No:
-          mailSendFormatExplanation.textContent = askSendFormatStringBundle.getString("convertibleNo");
-          icon.setAttribute("id", "convertNo");
-          break;
-      }
-
-      // Set the default radio array value and recommendation
-      var group = document.getElementById("mailDefaultHTMLAction");
-      var radio;
-      var radioButtons = group.getElementsByTagName("radio");
-      var haveRecommendation = false;
-      var format = (useDefault) ? defaultAction : param.action;
-
-      switch (format)
-      {
-        case msgCompSendFormat.AskUser:
-          // haveRecommendation = false;
-          break;
-        case msgCompSendFormat.PlainText:
-          radio = radioButtons[1];
-          haveRecommendation = true;
-          break;
-        case msgCompSendFormat.Both:
-          radio = radioButtons[0];
-          haveRecommendation = true;
-          break;
-        case msgCompSendFormat.HTML:
-          radio = radioButtons[2];
-          haveRecommendation = true;
-          break;
-      }
-
-      if (haveRecommendation)
-      {
-        if (display_recommendation)
-          radio.label += " " + askSendFormatStringBundle.getString("recommended");
-
-        if (recommended_as_default)
-          group.value = format;
-      }
-
-      if (!haveRecommendation || !recommended_as_default)
-        group.value = defaultAction;
-    }
+    case msgCompConvertible.Altering:
+      mailSendFormatExplanation.textContent = bundle.getString("convertibleAltering");
+      icon.className = "question-icon";
+      break;
+    case msgCompConvertible.No:
+      mailSendFormatExplanation.textContent = bundle.getString("convertibleNo");
+      icon.className = "alert-icon";
+      break;
+    default: // msgCompConvertible.Yes
+      mailSendFormatExplanation.textContent = bundle.getString("convertibleYes");
+      // XXX change this to use class message-icon once bug 512173 is fixed
+      icon.className = "question-icon";
+      break;
   }
-  else 
+
+  // Set the default radio array value and recommendation.
+  var group = document.getElementById("mailDefaultHTMLAction");
+  if (gParam.action != msgCompSendFormat.AskUser)
   {
-    dump("error, no return object registered\n");
+    group.value = gParam.action;
+    group.selectedItem.label += " " + bundle.getString("recommended");
   }
 }
 
 function Send()
 {
-  if (param)
-  {
-    // param.action should be an integer for when it is returned to MsgComposeCommands.js
-    param.action = parseInt(document.getElementById("mailDefaultHTMLAction").value);
-    param.abort = false;
-  }
-  return true;
-}
-
-function Cancel()
-{
-  if (param)
-    param.abort = true;
-  return true;
+  // gParam.action should be an integer for when it is returned to MsgComposeCommands.js
+  gParam.action = parseInt(document.getElementById("mailDefaultHTMLAction").value);
+  gParam.abort = false;
 }

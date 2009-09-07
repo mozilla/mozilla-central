@@ -316,7 +316,6 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("intl.accept_languages",                   String),
   MAKESAMETYPEPREFTRANSFORM("intl.charset.default",                    String),
 
-  MAKESAMETYPEPREFTRANSFORM("javascript.allow.mailnews",               Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.enabled",                      Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.options.relimit",              Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.options.showInConsole",        Bool),

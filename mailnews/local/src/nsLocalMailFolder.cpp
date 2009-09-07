@@ -1658,7 +1658,7 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
   nsresult rv = GetIsServer(&isServer);
   if (NS_SUCCEEDED(rv) && isServer)
   {
-    NS_ASSERTION(0, "Destination is the root folder. Cannot move/copy here");
+    NS_ERROR("Destination is the root folder. Cannot move/copy here");
     if (isMove)
       srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgFailedAtom);
     return OnCopyCompleted(srcSupport, PR_FALSE);

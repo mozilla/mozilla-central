@@ -93,7 +93,7 @@ var gEditCard;
 var gOnSaveListeners = new Array();
 var gOkCallback = null;
 var gHideABPicker = false;
-var originalPhotoURI = "";
+var gOriginalPhotoURI = "";
 
 function OnLoadNewCard()
 {
@@ -279,15 +279,6 @@ function OnLoadEditCard()
 
       if (directory.readOnly) 
       {
-        // Disable the photo field and buttons
-        document.getElementById("generic").disabled          = true;
-        document.getElementById("GenericPhotoList").disabled = true;
-        document.getElementById("file").disabled             = true;
-        document.getElementById("web").disabled              = true;
-        document.getElementById("PhotoURI").readOnly         = true;
-        document.getElementById("PhotoURI").emptyText        = "";
-        document.getElementById("BrowsePhoto").disabled      = true;
-        document.getElementById("UpdatePhoto").disabled      = true;
         // Set all the editable vcard fields to read only
         for (var i = kVcardFields.length; i-- > 0; )
           document.getElementById(kVcardFields[i][0]).readOnly = true;
@@ -296,6 +287,14 @@ function OnLoadEditCard()
         document.getElementById("Birthday").readOnly = true;
         document.getElementById("BirthYear").readOnly = true;
         document.getElementById("Age").readOnly = true;
+
+        // the photo field and buttons
+        document.getElementById("PhotoType").disabled        = true;
+        document.getElementById("GenericPhotoList").disabled = true;
+        document.getElementById("PhotoURI").disabled         = true;
+        document.getElementById("PhotoURI").emptyText        = "";
+        document.getElementById("BrowsePhoto").disabled      = true;
+        document.getElementById("UpdatePhoto").disabled      = true;
 
         // And the phonetic fields
         document.getElementById(kPhoneticFields[0]).readOnly = true;
@@ -484,33 +483,31 @@ function GetCardValues(cardproperty, doc)
   // Store the original photo URI and update the photo
   // Select the type if there is a valid value stored for that type, otherwise
   // select the generic photo
-  var type = cardproperty.getProperty("PhotoType", "");
-  document.getElementById("PhotoType").selectedItem =
-    document.getElementById(type ? type : "generic");
-  if (type == "file") {
-    originalPhotoURI = getPhotoURI(cardproperty.getProperty("PhotoName", ""));
-    var file = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService)
-                         .newURI(originalPhotoURI, null, null)
-                         .QueryInterface(Components.interfaces.nsIFileURL)
-                         .file;
-    if (file) {
-      document.getElementById("PhotoFile").file = file;
-      updatePhoto("file");
-    }
-    else
+  gOriginalPhotoURI = cardproperty.getProperty("PhotoURI", "");
+  switch (cardproperty.getProperty("PhotoType", "")) {
+    case "file":
+      try {
+        var file = Components.classes["@mozilla.org/network/io-service;1"]
+                             .getService(Components.interfaces.nsIIOService)
+                             .newURI(gOriginalPhotoURI, null, null)
+                             .QueryInterface(Components.interfaces.nsIFileURL)
+                             .file;
+      } catch (e) {}
+      if (file) {
+        document.getElementById("PhotoFile").file = file;
+        updatePhoto("file");
+      }
+      else
+        updatePhoto("generic");
+      break;
+    case "web":
+      document.getElementById("PhotoURI").value = gOriginalPhotoURI;
+      updatePhoto("web");
+      break;
+    default:
+      if (gOriginalPhotoURI)
+        document.getElementById("GenericPhotoList").value = gOriginalPhotoURI;
       updatePhoto("generic");
-  }
-  else if (type == "web") {
-    originalPhotoURI = getPhotoURI(cardproperty.getProperty("PhotoName", ""));
-    document.getElementById("PhotoURI").value = originalPhotoURI;
-    updatePhoto("web");
-  }
-  else {
-    originalPhotoURI = cardproperty.getProperty("PhotoURI", "");
-    if (originalPhotoURI)
-      document.getElementById("GenericPhotoList").value = originalPhotoURI;
-    updatePhoto("generic");
   }
 }
 
@@ -569,31 +566,36 @@ function CheckAndSetCardValues(cardproperty, doc, check)
   }
   catch (ex) {}
 
-  var type = document.getElementById("PhotoType").selectedItem.id;
-  var photoURI = originalPhotoURI;
+  var type = document.getElementById("PhotoType").value;
+  var photoURI = gOriginalPhotoURI;
   if (type == "file" && document.getElementById("PhotoFile").file)
-    photoURI = "file://" + document.getElementById("PhotoFile").file.path;
+    photoURI = Components.classes["@mozilla.org/network/io-service;1"]
+                         .getService(Components.interfaces.nsIIOService)
+                         .newFileURI(document.getElementById("PhotoFile").file)
+                         .spec;
   else if (type == "web" && document.getElementById("PhotoURI").value)
     photoURI = document.getElementById("PhotoURI").value;
   else {
     type = "generic";
     photoURI = document.getElementById("GenericPhotoList").value;
   }
-  if (photoURI != originalPhotoURI) {
+  cardproperty.setProperty("PhotoType", type);
+  if (photoURI != gOriginalPhotoURI) {
     // Store the original URI
     cardproperty.setProperty("PhotoURI", photoURI);
-    // Remove the original, if any
-    removePhoto(cardproperty.getProperty("PhotoName", null));
     // Save the photo if it isn't one of the generic photos
-    if (type != "generic") {
-      cardproperty.setProperty("PhotoType", "file");
+    if (type == "generic") {
+      // Remove the original, if any
+      removePhoto(cardproperty.getProperty("PhotoName", null));
+    } else {
       // Save the new file and store its URI as PhotoName 
       var file = savePhoto(photoURI);
-      if (file)
+      if (file) {
+        // Remove the original, if any
+        removePhoto(cardproperty.getProperty("PhotoName", null));
         cardproperty.setProperty("PhotoName", file.leafName);
+      }
     }
-    else
-      cardproperty.setProperty("PhotoType", "generic");
   }
 
   return true;
@@ -903,25 +905,28 @@ function modifyDatepicker(aDatepicker) {
  *              selected type.
  */
 function updatePhoto(aType) {
-  if (aType) {
+  if (aType)
     // Select the type's radio button
-    document.getElementById("PhotoType").selectedItem =
-      document.getElementById(aType);
-  }
+    document.getElementById("PhotoType").value = aType;
   else
-    aType = document.getElementById("PhotoType").selectedItem.id;
+    aType = document.getElementById("PhotoType").value;
 
   var value;
-  if (aType == "file") {
-    var file = document.getElementById("PhotoFile").file;
-    value = file ? "file://" + file.path : "";
+  switch (aType) {
+    case "file":
+      var file = document.getElementById("PhotoFile").file;
+      value = file ? Components.classes["@mozilla.org/network/io-service;1"]
+                               .getService(Components.interfaces.nsIIOService)
+                               .newFileURI(file)
+                               .spec : "";
+      break;
+    case "web":
+      value = document.getElementById("PhotoURI").value;
+      break;
+    default:
+      value = document.getElementById("GenericPhotoList").value;
   }
-  else if (aType == "web")
-    value = document.getElementById("PhotoURI").value;
-  else
-    value = document.getElementById("GenericPhotoList").value;
-  document.getElementById("photo").setAttribute("src", value ? value
-                                                             : defaultPhotoURI);
+  document.getElementById("photo").setAttribute("src", value || defaultPhotoURI);
 }
 
 /**
@@ -939,17 +944,10 @@ function removePhoto(aName) {
   // Get the photo (throws an exception for invalid names)
   try {
     file.append(aName);
+    file.remove(false);
+    return true;
   }
-  catch (e) {
-    return false;
-  }
-  if (file.exists()) {
-    try {
-      file.remove(false);
-      return true;
-    }
-    catch (e) {}
-  }
+  catch (e) {}
   return false;
 }
 
@@ -967,8 +965,8 @@ function browsePhoto() {
   fp.init(window, gAddressBookBundle.getString("browsePhoto"), nsIFilePicker.modeOpen);
   
   // Add All Files & Image Files filters and select the latter
-  fp.appendFilters(nsIFilePicker.filterAll | nsIFilePicker.filterImages);
-  fp.filterIndex = 1;
+  fp.appendFilters(nsIFilePicker.filterImages);
+  fp.appendFilters(nsIFilePicker.filterAll);
 
   if (fp.show() == nsIFilePicker.returnOK) {
     document.getElementById("PhotoFile").file = fp.file;

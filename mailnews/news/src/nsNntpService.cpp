@@ -1302,7 +1302,7 @@ NS_IMETHODIMP nsNntpService::GetNewNews(nsINntpIncomingServer *nntpServer, const
   }
   else
   {
-    NS_ASSERTION(0,"not a news:/ url");
+    NS_ERROR("not a news:/ url");
     rv = NS_ERROR_FAILURE;
   }
 

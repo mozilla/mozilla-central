@@ -246,7 +246,6 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const nsACString& setStr,
 
 nsresult nsMsgNewsFolder::ParseFolder(nsILocalFile *path)
 {
-  NS_ASSERTION(0,"ParseFolder not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -570,7 +569,6 @@ NS_IMETHODIMP nsMsgNewsFolder::Delete()
 
 NS_IMETHODIMP nsMsgNewsFolder::Rename(const nsAString& newName, nsIMsgWindow *msgWindow)
 {
-  NS_ASSERTION(0,"Rename not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -761,19 +759,16 @@ NS_IMETHODIMP nsMsgNewsFolder::GetExpungedBytesCount(PRUint32 *count)
 
 NS_IMETHODIMP nsMsgNewsFolder::GetDeletable(PRBool *deletable)
 {
-  //  NS_ASSERTION(0,"GetDeletable() not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::GetRequiresCleanup(PRBool *requiresCleanup)
 {
-  //  NS_ASSERTION(0,"GetRequiresCleanup not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::GetSizeOnDisk(PRUint32 *size)
 {
-  //  NS_ASSERTION(0, "GetSizeOnDisk not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 

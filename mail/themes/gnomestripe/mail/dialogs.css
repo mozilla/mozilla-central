@@ -67,27 +67,3 @@ menu.push[disabled="true"]:hover,
 menu.push[disabled="true"]:hover:active {
   color: GrayText;
 }
-
-/* ::::: askSendFormat.xul ::::: */
-
-#askSendFormat {
-  width: 40em;
-}
-
-#askImageBox {
- -moz-box-align: start;
-}
-
-#convertYes,
-#convertAltering {
-  list-style-image:url("chrome://global/skin/icons/Question.png");
-}
-
-#convertNo {
-  list-style-image:url("chrome://global/skin/icons/Warning.png");
-}
-
-/* Workaround for bug 50217. Please remove this rule, when this bug is fixed. */
-#convertDefault {
-  list-style-image:url("chrome://global/skin/icons/Question.png");
-}

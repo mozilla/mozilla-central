@@ -129,6 +129,7 @@ dnl ========================================================
 GLIB_VERSION=1.2.0
 LIBIDL_VERSION=0.6.3
 PERL_VERSION=5.006
+CAIRO_VERSION=1.6.0
 PANGO_VERSION=1.14.0
 GTK2_VERSION=2.10.0
 MAKE_VERSION=3.78
@@ -5085,10 +5086,6 @@ then
     else
         PKG_CHECK_MODULES(MOZ_PANGO, pango >= $PANGO_VERSION pangoft2 >= $PANGO_VERSION)
         AC_SUBST(MOZ_PANGO_LIBS)
-
-        PKG_CHECK_MODULES(FT2, freetype2 > 6.1.0 fontconfig)
-        AC_SUBST(FT2_CFLAGS)
-        AC_SUBST(FT2_LIBS)
     fi
 fi
 
@@ -5530,13 +5527,7 @@ MOZ_ARG_ENABLE_BOOL(tree-freetype,
     MOZ_TREE_FREETYPE=1,
     MOZ_TREE_FREETYPE= )
 if test -n "$MOZ_TREE_FREETYPE"; then
-   AC_DEFINE(MOZ_TREE_FREETYPE)
-   AC_SUBST(MOZ_TREE_FREETYPE)
-   FT2_CFLAGS="-I${MOZILLA_SRCDIR}/modules/freetype2/include"
-   CAIRO_FT_CFLAGS="-I${MOZILLA_SRCDIR}/modules/freetype2/include"
-   FT2_LIBS="${LIBXUL_DIST}/lib/freetype2.lib"
    CAIRO_FT_LIBS = "${LIBXUL_DIST}/lib/freetype2.lib"
-   AC_SUBST(CAIRO_FT_CFLAGS)
 fi
 
 dnl ========================================================
@@ -7178,14 +7169,12 @@ AC_CHECK_HEADERS(stdint.h inttypes.h sys/int_types.h)
 if test "$MOZ_TREE_CAIRO"; then
     AC_DEFINE(MOZ_TREE_CAIRO)
 
-    if test "$MOZ_X11"; then
-        CAIRO_FT_CFLAGS="$FT2_CFLAGS"
-    fi
     if test "$MOZ_WIDGET_TOOLKIT" = "os2"; then
-        CAIRO_FT_CFLAGS="-I${MZFTCFGFT2}/include"
         CAIRO_FT_LIBS="-L${MZFTCFGFT2}/lib -lmozft -lmzfntcfg"
     fi
-    AC_SUBST(CAIRO_FT_CFLAGS)
+    if test "$MOZ_WIDGET_TOOLKIT" = "beos"; then
+        PKG_CHECK_MODULES(CAIRO_FT, fontconfig freetype2)
+    fi
 
     if test "$_WIN32_MSVC"; then
         MOZ_CAIRO_LIBS='$(DEPTH)/mozilla/gfx/cairo/cairo/src/mozcairo.lib $(DEPTH)/mozilla/gfx/cairo/libpixman/src/mozlibpixman.lib'
@@ -7197,8 +7186,10 @@ if test "$MOZ_TREE_CAIRO"; then
         fi
     fi
 else
+   PKG_CHECK_MODULES(CAIRO, cairo >= $CAIRO_VERSION freetype2 fontconfig)
    MOZ_CAIRO_LIBS=$CAIRO_LIBS
    if test "$MOZ_X11"; then
+        PKG_CHECK_MODULES(CAIRO_XRENDER, cairo-xlib-xrender >= $CAIRO_VERSION)
         MOZ_CAIRO_LIBS="$MOZ_CAIRO_LIBS $XLDFLAGS $CAIRO_XRENDER_LIBS"
    fi
 fi

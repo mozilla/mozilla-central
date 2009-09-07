@@ -1190,8 +1190,10 @@ calInterfaceBag.prototype = {
             }
             if (!this.mInterfaces.some(eq)) {
                 this.mInterfaces.push(iface);
+                return true;
             }
         }
+        return false;
     },
 
     remove: function calInterfaceBag_remove(iface) {

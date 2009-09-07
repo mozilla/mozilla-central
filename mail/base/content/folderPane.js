@@ -207,8 +207,7 @@ let gFolderTreeView = {
    * @param event  the double-click event
    */
   onDoubleClick: function ftv_onDoubleClick(aEvent) {
-    if (pref.getBoolPref("mailnews.reuse_thread_window2") ||
-        aEvent.button != 0 || aEvent.originalTarget.localName == "twisty" ||
+    if (aEvent.button != 0 || aEvent.originalTarget.localName == "twisty" ||
         aEvent.originalTarget.localName == "slider" ||
         aEvent.originalTarget.localName == "scrollbarbutton")
       return;
@@ -1411,7 +1410,10 @@ ftvItem.prototype = {
   },
 
   command: function fti_command() {
-    MsgOpenNewWindowForFolder(this._folder.URI, -1 /* key */);
+    let pref = Components.classes["@mozilla.org/preferences-service;1"]
+                         .getService(Components.interfaces.nsIPrefBranch);
+    if (!pref.getBoolPref("mailnews.reuse_thread_window2"))
+      MsgOpenNewWindowForFolder(this._folder.URI, -1 /* key */);
   },
 
   _children: null,

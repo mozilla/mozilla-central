@@ -730,7 +730,7 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
               NS_ENSURE_SUCCESS(rv,rv);
 
               if (NS_FAILED(rv)) {
-                NS_ASSERTION(0, "failed to convert string to system charset.  use LDIF");
+                NS_ERROR("failed to convert string to system charset.  use LDIF");
                 valueCStr = "?";
               }
 

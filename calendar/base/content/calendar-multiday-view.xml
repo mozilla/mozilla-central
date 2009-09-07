@@ -1913,10 +1913,7 @@
                          xbl:inherits="context,parentorient=orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories">
                 <xul:image flex="1" class="calendar-event-box-gradient"/>
                 <xul:vbox class="calendar-event-details" anonid="calendar-event-details">
-                  <xul:description anonid="event-name" class="calendar-event-details-core" flex="1">
-                    <html:div anonid="event-name-div"/>
-                  </xul:description>
-
+                  <xul:description anonid="event-name" class="calendar-event-details-core" flex="1"/>
                   <xul:textbox anonid="event-name-textbox"
                                class="plain calendar-event-details-core calendar-event-name-textbox"
                                flex="1"
@@ -2033,24 +2030,19 @@
 
       <method name="setEditableLabel">
         <body><![CDATA[
-          let evldiv = document.getAnonymousElementByAttribute(this, "anonid", "event-name-div");
-          let item = this.mOccurrence;
+          var evl = this.eventNameLabel;
+          var item = this.mOccurrence;
 
           if (item.title && item.title != "") {
             // Use <description> textContent so it can wrap.
-            evldiv.textContent = item.title;
+            evl.textContent = item.title;
           } else {
-            evldiv.textContent = calGetString("calendar", "eventUntitled");
+            evl.textContent = calGetString("calendar", "eventUntitled");
           }
 
           var gripbar = document.getAnonymousElementByAttribute(this, "anonid", "gripbar1").boxObject.height;
           var height = document.getAnonymousElementByAttribute(this, "anonid", "eventbox").boxObject.height;
-          
-          if(this.orient == "vertical") {
-            evldiv.setAttribute("style", "max-height: " + Math.max(0, height-gripbar*2) + "px");
-          } else {
-            evldiv.setAttribute("style", "max-height: " + height + "px");
-          }
+          evl.setAttribute("style", "max-height: " + Math.max(0, height-gripbar*2) + "px");
         ]]></body>
       </method>
     </implementation>

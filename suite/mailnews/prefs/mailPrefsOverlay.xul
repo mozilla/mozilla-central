@@ -17,22 +17,10 @@
                 type="bool"/>
   </preferences>
   <preferences id="scripts_preferences">
-    <preference id="javascript.allow.mailnews"
-                name="javascript.allow.mailnews"
-                type="bool"
-                onchange="javascriptEnabledChange();"/>
     <preference id="mailnews.message_display.allow.plugins"
                 name="mailnews.message_display.allow.plugins"
                 type="bool"/>
   </preferences>
-  <!-- javascript toggle for mail/news -->
-  <groupbox id="javascriptPreferences">
-    <checkbox id="javascriptAllowMailNews"
-              insertafter="javascriptAllowNavigator"
-              label="&enbJsCheckMailNews.label;"
-              accesskey="&enbJsCheckMailNews.accesskey;"
-              preference="javascript.allow.mailnews"/>
-  </groupbox>
   <!-- plugin toggle for mail/news -->
   <groupbox id="pluginPreferences" hidden="false">
     <checkbox id="pluginAllowMailNews"

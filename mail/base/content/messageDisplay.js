@@ -208,8 +208,8 @@ MessageDisplayWidget.prototype = {
     let selectedCount = this.folderDisplay.selectedCount;
 
     if (selectedCount == 0) {
-      // davida, put your folder summary stuff here.
       this.clearDisplay();
+      loadStartPage();
       this.singleMessageDisplay = true;
       return true;
     }

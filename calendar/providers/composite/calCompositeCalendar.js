@@ -104,8 +104,8 @@ function calCompositeCalendar () {
     this.wrappedJSObject = this;
 
     this.mCalendars = new Array();
-    this.mCompositeObservers = new calListenerBag(Components.interfaces.calICompositeObserver);
-    this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
+    this.mCompositeObservers = new cal.observerBag(Components.interfaces.calICompositeObserver);
+    this.mObservers = new cal.observerBag(Components.interfaces.calIObserver);
     this.mDefaultCalendar = null;
     this.mStatusObserver = null;
 }
@@ -604,6 +604,7 @@ var calCompositeCalendarModule = {
             return;
 
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
+        Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
         cal.loadScripts(["calUtils.js"], this.__parent__);
 
         this.mUtilsLoaded = true;

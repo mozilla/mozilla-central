@@ -78,25 +78,21 @@ NS_IMETHODIMP nsRssService::GetDefaultLocalPath(nsILocalFile * *aDefaultLocalPat
 
 NS_IMETHODIMP nsRssService::SetDefaultLocalPath(nsILocalFile * aDefaultLocalPath)
 {
-    NS_ASSERTION(0,"foo");
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsRssService::GetServerIID(nsIID * *aServerIID)
 {
-    NS_ASSERTION(0,"foo");
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsRssService::GetRequiresUsername(PRBool *aRequiresUsername)
 {
-    NS_ASSERTION(0,"foo");
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsRssService::GetPreflightPrettyNameWithEmailAddress(PRBool *aPreflightPrettyNameWithEmailAddress)
 {
-    NS_ASSERTION(0,"foo");
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -158,6 +154,5 @@ NS_IMETHODIMP nsRssService::GetShowComposeMsgLink(PRBool *aShowComposeMsgLink)
 
 NS_IMETHODIMP nsRssService::GetSpecialFoldersDeletionAllowed(PRBool *aSpecialFoldersDeletionAllowed)
 {
-    NS_ASSERTION(0,"foo");
     return NS_ERROR_NOT_IMPLEMENTED;
 }

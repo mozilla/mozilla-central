@@ -1007,7 +1007,7 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
   }
 #endif /* HAVE_MOVEMAIL */
   else {
-    NS_ASSERTION(0,"failure, didn't recognize your mail server type.\n");
+    NS_ERROR("failure, didn't recognize your mail server type.");
     return NS_ERROR_UNEXPECTED;
   }
 
@@ -1134,7 +1134,7 @@ nsDogbertProfileMigrator::ProcessPrefsCallback(const char* oldProfilePathStr, co
   }
 #endif /* HAVE_MOVEMAIL */
   else {
-    NS_ASSERTION(0, "unknown mail server type!");
+    NS_ERROR("unknown mail server type!");
     return NS_ERROR_FAILURE;
   }
 

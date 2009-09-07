@@ -12,13 +12,14 @@
  * License.
  *
  * The Original Code is Mozilla Calendar code.
- * 
+ *
  * The Initial Developer of the Original Code is
  *   Fred Jendrzejewski <fred.jen@web.de>
  * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,36 +36,29 @@
  * ***** END LICENSE BLOCK ***** */
 
 function run_test() {
-    var eventClass = Cc["@mozilla.org/calendar/event;1"];
-    var eventIID = Ci.calIEvent;
-
-    var relationClass = Cc["@mozilla.org/calendar/relation;1"];
-    var relationIID = Ci.calIRelation;
-
     // Create Relation
-    var r1 = createRelation();
+    let r1 = cal.createRelation();
 
     // Create Items
-    var e1 = eventClass.createInstance(eventIID);
-    var e2 = eventClass.createInstance(eventIID);
+    let e1 = cal.createEvent();
+    let e2 = cal.createEvent();
 
     // Testing relation set/get.
-    var properties = ["item", "relType", "relId"];
-    var values = [e1, "PARENT", e2.id];
+    let properties = {
+        relType: "PARENT",
+        relId: e2.id
+    }
 
-    // Make sure test is valid
-    do_check_eq(properties.length, values.length);
-
-    for (var i = 0; i < properties.length; i++) {
-        r1[properties[i]] = values[i];
-        do_check_eq(r1[properties[i]], values[i]);
+    for (let [property, value] in Iterator(properties)) {
+        r1[property] = value;
+        do_check_eq(r1[property], value);
     }
 
     // Add relation to event
     e1.addRelation(r1);
 
-    // Add 2nd attendee to event.
-    var r2 = relationClass.createInstance(relationIID);
+    // Add 2nd relation to event.
+    let r2 = cal.createRelation();
     r2.relId = "myid2";
     e1.addRelation(r2);
 
@@ -79,25 +73,25 @@ function run_test() {
 }
 
 function checkRelations(event, expRel) {
-    var countObj = {}
-    var allRel = event.getRelations(countObj);
+    let countObj = {};
+    let allRel = event.getRelations(countObj);
     do_check_eq(countObj.value, allRel.length);
     do_check_eq(allRel.length, expRel.length);
 
     // check if all expacted relations are found
-    for (var i = 0; i < expRel.length; i++) {
+    for (let i = 0; i < expRel.length; i++) {
         do_check_neq(allRel.indexOf(expRel[i]), -1);
     }
 
     // Check if all found relations are expected
-    for (var i = 0; i < allRel.length; i++) {
+    for (let i = 0; i < allRel.length; i++) {
         do_check_neq(expRel.indexOf(allRel[i]), -1);
     }
 }
 
 function modifyRelations(event, oldRel) {
-    var allRel = event.getRelations({});
-    var rel = allRel[0];
+    let allRel = event.getRelations({});
+    let rel = allRel[0];
 
     // modify the properties
     rel.relType = "SIBLING";
@@ -106,15 +100,10 @@ function modifyRelations(event, oldRel) {
 
     // remove one relation
     event.removeRelation(rel);
-
     do_check_eq(event.getRelations({}).length, oldRel.length - 1);
 
     // add one relation and remove all relations
-
     event.addRelation(oldRel[0]);
-
     event.removeAllRelations();
-
     do_check_eq(event.getRelations({}), 0);
-
 }

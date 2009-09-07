@@ -60,6 +60,9 @@ var gViewSearchListener;
 
 var gSearchStopButton;
 
+// Should we try to search online?
+var gSearchOnline = false;
+
 // Controller object for search results thread pane
 var nsSearchResultsController =
 {
@@ -348,9 +351,26 @@ function updateSearchFolderPicker(folderURI)
     // use the URI to get the real folder
     gCurrentFolder = GetMsgFolderFromUri(folderURI);
 
-    var searchLocalSystem = document.getElementById("checkSearchLocalSystem");
-    if (searchLocalSystem)
-        searchLocalSystem.disabled = gCurrentFolder.server.searchScope == nsMsgSearchScope.offlineMail;
+    var searchOnline = document.getElementById("checkSearchOnline");
+    if (searchOnline)
+    {
+      // We will clear and disable the search online checkbox if we are offline, or
+      // if the folder does not support online search.
+
+      // Anything greater than 0 is an online server like IMAP or news.
+      if (gCurrentFolder.server.offlineSupportLevel &&
+          !Components.classes["@mozilla.org/network/io-service;1"]
+                             .getService(Components.interfaces.nsIIOService)
+                             .offline)
+      {
+        searchOnline.disabled = false;
+      }
+      else
+      {
+        searchOnline.checked = false;
+        searchOnline.disabled = true;
+      }
+    }
     setSearchScope(GetScopeForFolder(gCurrentFolder));
 }
 
@@ -392,6 +412,7 @@ function onSearch()
 
   viewWrapper.beginViewUpdate();
   viewWrapper.search.userTerms = searchTerms.length ? searchTerms : null;
+  viewWrapper.search.onlineSearch = gSearchOnline;
   viewWrapper.searchFolders = getSearchFolders();
   viewWrapper.endViewUpdate();
 }
@@ -486,11 +507,69 @@ function AddSubFoldersToURI(folder)
   return returnString;
 }
 
-
+/**
+ * Determine the proper search scope to use for a folder, so that the user is
+ *  presented with a correct list of search capabilities. The user may manually
+ *  request on online search for certain server types. To determine if the
+ *  folder body may be searched, we ignore whether autosync is enabled,
+ *  figuring that after the user manually syncs, they would still expect that
+ *  body searches would work.
+ *  
+ * The available search capabilities also depend on whether the user is
+ *  currently online or offline. Although that is also checked by the server,
+ *  we do it ourselves because we have a more complex response to offline
+ *  than the server's searchScope attribute provides.
+ *
+ * This method only works for real folders.
+ */
 function GetScopeForFolder(folder)
 {
-  var searchLocalSystem = document.getElementById("checkSearchLocalSystem");
-  return searchLocalSystem && searchLocalSystem.checked ? nsMsgSearchScope.offlineMail : folder.server.searchScope;
+  let searchOnline = document.getElementById("checkSearchOnline");
+  if (searchOnline && searchOnline.checked)
+  {
+    gSearchOnline = true;
+    return folder.server.searchScope;
+  }
+  gSearchOnline = false;
+
+  // We are going to search offline. The proper search scope may depend on
+  // whether we have the body and/or junk available or not.
+  let localType;
+  try
+  {
+    localType = folder.server.localStoreType;
+  }
+  catch (e) {} // On error, we'll just assume the default mailbox type
+
+  let hasBody = folder.getFlag(Components.interfaces.nsMsgFolderFlags.Offline);
+  let nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
+  switch (localType)
+  {
+    case "news":
+      // News has four offline scopes, depending on whether junk and body
+      // are available.
+      let hasJunk = 
+        folder.getInheritedStringProperty("dobayes.mailnews@mozilla.org#junk")
+               == "true";
+      if (hasJunk && hasBody)
+        return nsMsgSearchScope.localNewsJunkBody;
+      if (hasJunk) // and no body
+        return nsMsgSearchScope.localNewsJunk;
+      if (hasBody) // and no junk
+        return nsMsgSearchScope.localNewsBody;
+      // We don't have offline message bodies or junk processing.
+      return nsMsgSearchScope.localNews;
+
+    case "imap":
+      // Junk is always enabled for imap, so the offline scope only depends on
+      // whether the body is available.
+      if (!hasBody)
+        return nsMsgSearchScope.onlineManual;
+        // fall through to default
+    default:
+      return nsMsgSearchScope.offlineMail;
+  }
+
 }
 
 var nsMsgViewSortType = Components.interfaces.nsMsgViewSortType;
@@ -588,6 +667,7 @@ function saveAsVirtualFolder()
                                  {folder: window.arguments[0].folder,
                                   searchTerms: toXPCOMArray(getSearchTerms(),
                                                             Components.interfaces.nsISupportsArray),
-                                  searchFolderURIs: searchFolderURIs});
+                                  searchFolderURIs: searchFolderURIs,
+                                  searchOnline: document.getElementById("checkSearchOnline").checked});
 }
 

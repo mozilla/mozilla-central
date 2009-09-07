@@ -277,7 +277,6 @@ function test_interface() {
     // deleteRecurrenceItemAt
     rinfo.deleteRecurrenceItemAt(1);
     itemString = item.icalString;
-    dump(itemString);
     do_check_true(itemString.indexOf(EXDATE) < 0);
     do_check_false(itemString.indexOf(RDATE) < 0);
 
