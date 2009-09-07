@@ -2445,7 +2445,7 @@ function UpdateJunkButton()
     return;
   let junkScore = hdr.getStringProperty("junkscore");
   let hideJunk = (junkScore == Components.interfaces.nsIJunkMailPlugin.IS_SPAM_SCORE);
-  if (gFolderDisplay.selectedMessageIsNews)
+  if (!gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk))
     hideJunk = true;
 
   getCurrentMsgHdrButtonBox().getButton('hdrJunkButton').disabled = hideJunk;

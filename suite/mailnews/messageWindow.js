@@ -680,6 +680,9 @@ var MessageWindowController =
 	isCommandEnabled: function(command)
 	{
     var loadedFolder;
+    var enabled = new Object();
+    enabled.value = false;
+    var checkStatus = new Object();
 
 		switch (command)
 		{
@@ -703,9 +706,13 @@ var MessageWindowController =
         // fall through
       case "cmd_markAsJunk":
 			case "cmd_markAsNotJunk":
+        if (gDBView)
+          gDBView.getCommandStatus(nsMsgViewCommandType.junk, enabled, checkStatus);
+        return enabled.value;
       case "cmd_recalculateJunkScore":
-        // can't do junk on news yet
-        return (!isNewsURI(gCurrentFolderUri));
+        if (GetNumSelectedMessages() > 0 && gDBView)
+          gDBView.getCommandStatus(nsMsgViewCommandType.runJunkControls, enabled, checkStatus);
+        return enabled.value;
 			case "cmd_reply":
 			case "button_reply":
 			case "cmd_replySender":

@@ -379,6 +379,8 @@ protected:
   nsresult DownloadForOffline(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices);
   nsresult DownloadFlaggedForOffline(nsIMsgWindow *window);
   nsMsgViewIndex	GetThreadFromMsgIndex(nsMsgViewIndex index, nsIMsgThread **threadHdr);
+  /// Should junk commands be enabled for the current message in the view?
+  PRBool JunkControlsEnabled(nsMsgViewIndex aViewIndex);
 
   // for sorting
   nsresult GetFieldTypeAndLenForSort(nsMsgViewSortTypeValue sortType, PRUint16 *pMaxLen, eFieldType *pFieldType);
@@ -445,7 +447,12 @@ protected:
   // and decendents of those folders
   // (like the "Sent" folder, "Sent/Old Sent")
   // the Sender column really shows recipients.
+
+  // Server types for this view's folder
   PRPackedBool mIsNews;             // we have special icons for news
+  PRPackedBool mIsRss;              // rss affects enabling of junk commands
+  PRPackedBool mIsXFVirtual;        // a virtual folder with multiple folders
+
   PRPackedBool mShowSizeInLines;    // for news we show lines instead of size when true
   PRPackedBool m_sortValid;
   PRPackedBool mSelectionSummarized;

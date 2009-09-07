@@ -801,9 +801,10 @@ var MessageWindowController =
         // fall through
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk);
       case "cmd_recalculateJunkScore":
-        // can't do junk on news yet
-        return (!gFolderDisplay.view.isNewsFolder);
+        return gFolderDisplay.selectedMessage &&
+               gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
       case "button_archive":
         var folder = gFolderDisplay.displayedFolder;
         return folder &&
