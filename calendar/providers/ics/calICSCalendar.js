@@ -632,7 +632,7 @@ calICSCalendar.prototype = {
             // old backups
             var i;
             for (i = 0; i < filteredFiles.length - numBackupFiles; ++i) {
-                file = backupDir.clone();
+                let file = backupDir.clone();
                 file.append(filteredFiles[i].name);
 
                 // This can fail because of some crappy code in nsILocalFile.
