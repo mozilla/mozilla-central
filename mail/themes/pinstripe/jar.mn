@@ -24,7 +24,6 @@ classic.jar:
   skin/classic/messenger/virtualFolderListDialog.css             (mail/virtualFolderListDialog.css)
   skin/classic/messenger/searchDialog.css                        (mail/searchDialog.css)
   skin/classic/messenger/filterDialog.css                        (mail/filterDialog.css)
-* skin/classic/messenger/tabmailBindings.xml                     (mail/tabmailBindings.xml)
   skin/classic/messenger/tabmail.css                             (mail/tabmail.css)
   skin/classic/messenger/editContactOverlay.css                  (mail/editContactOverlay.css)
   skin/classic/messenger/starred48.png                           (mail/starred48.png)

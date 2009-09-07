@@ -27,7 +27,6 @@ classic.jar:
   skin/classic/messenger/multimessageview.css                 (mail/multimessageview.css)
   skin/classic/messenger/dialogs.css                          (mail/dialogs.css)
   skin/classic/messenger/newmailalert.css                     (mail/newmailalert.css)
-* skin/classic/messenger/tabmailBindings.xml                  (mail/tabmailBindings.xml)
   skin/classic/messenger/tabmail.css                          (mail/tabmail.css)
   skin/classic/messenger/editContactOverlay.css               (mail/editContactOverlay.css)
   skin/classic/messenger/starred48.png                        (mail/starred48.png)

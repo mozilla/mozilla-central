@@ -418,6 +418,39 @@ cal.toRFC3339 = function toRFC3339(aDateTime) {
 };
 
 /**
+ * Observer bag implementation taking care to replay open batch notifications.
+ */
+cal.observerBag = function calObserverBag(iid) {
+    this.init(iid);
+};
+cal.observerBag.prototype = {
+    __proto__: cal.calListenerBag.prototype,
+
+    mBatchCount: 0,
+    notify: function calObserverBag_notify(func, args) {
+        switch (func) {
+            case "onStartBatch":
+                 ++this.mBatchCount;
+                 break;
+            case "onEndBatch":
+                 --this.mBatchCount;
+                 break;
+        }
+        return this.__proto__.__proto__.notify.apply(this, arguments);
+    },
+
+    add: function calObserverBag_add(iface) {
+        if (this.__proto__.__proto__.add.apply(this, arguments) && (this.mBatchCount > 0)) {
+            // Replay batch notifications, because the onEndBatch notifications are yet to come.
+            // We may think about doing the reverse on remove, though I currently see no need:
+            for (var i = this.mBatchCount; i--;) {
+                iface.onStartBatch();
+            }
+        }
+    }
+};
+
+/**
  * Base prototype to be used implementing a provider.
  *
  * @see e.g. providers/gdata
@@ -450,7 +483,7 @@ cal.ProviderBase.prototype = {
 
     initProviderBase: function cPB_initProviderBase() {
         this.wrappedJSObject = this;
-        this.mObservers = new cal.calListenerBag(Components.interfaces.calIObserver);
+        this.mObservers = new cal.observerBag(Components.interfaces.calIObserver);
         this.mProperties = {};
         this.mProperties.currentStatus = Components.results.NS_OK;
     },

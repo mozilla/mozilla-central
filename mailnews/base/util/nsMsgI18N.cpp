@@ -340,7 +340,7 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
   PRBool isDirectory = PR_FALSE;
   file->IsDirectory(&isDirectory);
   if (isDirectory) {
-    NS_ASSERTION(0,"file is a directory");
+    NS_ERROR("file is a directory");
     return charset; 
   }
 

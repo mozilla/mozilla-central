@@ -169,6 +169,8 @@ nsMsgDBView::nsMsgDBView()
   mGoBackEnabled = PR_FALSE;
 
   mIsNews = PR_FALSE;
+  mIsRss = PR_FALSE;
+  mIsXFVirtual = PR_FALSE;
   mDeleteModel = nsMsgImapDeleteModels::MoveToTrash;
   m_deletingRows = PR_FALSE;
   mNumMessagesRemainingInBatch = 0;
@@ -1612,7 +1614,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
         aValue.Adopt(GetString(NS_LITERAL_STRING("messageHasFlag").get()));
       break;
     case 'j': // junk column
-      if (!mIsNews)
+      if (JunkControlsEnabled(aRow))
       {
         nsCString junkScoreStr;
         msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
@@ -1986,7 +1988,7 @@ NS_IMETHODIMP nsMsgDBView::CycleCell(PRInt32 row, nsITreeColumn* col)
     break;
   case 'j': // junkStatus column
     {
-      if (mIsNews) // junk not supported for news yet.
+      if (!JunkControlsEnabled(row))
         return NS_OK;
 
       nsCOMPtr <nsIMsgDBHdr> msgHdr;
@@ -2073,7 +2075,19 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
     rv = server->GetType(type);
     NS_ENSURE_SUCCESS(rv,rv);
 
+    // I'm not sure this is correct, because XF virtual folders with mixed news
+    // and mail can have this set.
     mIsNews = type.LowerCaseEqualsLiteral("nntp");
+
+    // Default to a virtual folder if folder not set, since synthetic search
+    // views may not have a folder.
+    PRUint32 folderFlags = nsMsgFolderFlags::Virtual;
+    if (folder)
+      folder->GetFlags(&folderFlags);
+    mIsXFVirtual = folderFlags & nsMsgFolderFlags::Virtual;
+
+    if (!mIsXFVirtual && type.LowerCaseEqualsLiteral("rss"))
+      mIsRss = PR_TRUE;
 
     if (type.IsEmpty())
       mMessageTypeAtom = nsnull;
@@ -2457,7 +2471,8 @@ NS_IMETHODIMP nsMsgDBView::GetCommandStatus(nsMsgViewCommandTypeValue command, P
   if (mTreeSelection && NS_SUCCEEDED(mTreeSelection->GetRangeCount(&rangeCount)) && rangeCount > 0)
     haveSelection = NonDummyMsgSelected(indices, numIndices);
   else
-    haveSelection = PR_FALSE;
+  // If we don't have a tree selection we must be in stand alone mode.
+    haveSelection = m_currentlyDisplayedViewIndex != nsMsgViewIndex_None;
 
   switch (command)
   {
@@ -2482,9 +2497,8 @@ NS_IMETHODIMP nsMsgDBView::GetCommandStatus(nsMsgViewCommandTypeValue command, P
     break;
   case nsMsgViewCommandType::runJunkControls:
     // disable if no messages
-    // no JMC on news yet
     // XXX todo, check that we have JMC enabled?
-    *selectable_p = GetSize() && !mIsNews;
+    *selectable_p = GetSize() && JunkControlsEnabled(nsMsgViewIndex_None);
     break;
   case nsMsgViewCommandType::deleteJunk:
     {
@@ -2505,7 +2519,7 @@ NS_IMETHODIMP nsMsgDBView::GetCommandStatus(nsMsgViewCommandTypeValue command, P
     break;
   case nsMsgViewCommandType::junk:
   case nsMsgViewCommandType::unjunk:
-    *selectable_p = haveSelection && !mIsNews;  // no junk for news yet
+    *selectable_p = haveSelection && JunkControlsEnabled(selection[0]);
     break;
   case nsMsgViewCommandType::cmdRequiringMsgBody:
     *selectable_p = haveSelection && (!WeAreOffline() || OfflineMsgSelected(indices, numIndices));
@@ -3764,7 +3778,7 @@ nsresult nsMsgDBView::GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue s
     case nsMsgViewSortType::byId:
         // handled by caller, since caller knows the key
     default:
-        NS_ASSERTION(0,"should not be here");
+        NS_ERROR("should not be here");
         rv = NS_ERROR_UNEXPECTED;
         break;
     }
@@ -4242,7 +4256,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
         NS_QuickSort(pPtrBase, numSoFar, sizeof(IdKey*), FnSortIdUint32, &qsPrivateData);
         break;
       default:
-        NS_ASSERTION(0, "not supposed to get here");
+        NS_ERROR("not supposed to get here");
         break;
     }
   }
@@ -5772,7 +5786,7 @@ NS_IMETHODIMP nsMsgDBView::SetSortType(nsMsgViewSortTypeValue aSortType)
 
 NS_IMETHODIMP nsMsgDBView::GetViewType(nsMsgViewTypeValue *aViewType)
 {
-    NS_ASSERTION(0,"you should be overriding this\n");
+    NS_ERROR("you should be overriding this");
     return NS_ERROR_UNEXPECTED;
 }
 
@@ -6183,7 +6197,7 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
 
         }
         default:
-            NS_ASSERTION(0, "unsupported motion");
+            NS_ERROR("unsupported motion");
             break;
     }
     return NS_OK;
@@ -6274,7 +6288,7 @@ NS_IMETHODIMP nsMsgDBView::NavigateStatus(nsMsgNavigationTypeValue motion, PRBoo
           break;
 
         default:
-            NS_ASSERTION(0,"unexpected");
+            NS_ERROR("unexpected");
             break;
     }
 
@@ -6343,7 +6357,7 @@ nsresult nsMsgDBView::FindPrevUnread(nsMsgKey startKey, nsMsgKey *pResultKey,
 
         if (curIndex != startIndex && flags & MSG_VIEW_FLAG_ISTHREAD && flags & nsMsgMessageFlags::Elided)
         {
-            NS_ASSERTION(0,"fix this");
+            NS_ERROR("fix this");
             //nsMsgKey threadId = m_keys[curIndex];
             //rv = m_db->GetUnreadKeyInThread(threadId, pResultKey, resultThreadId);
             if (NS_SUCCEEDED(rv) && (*pResultKey != nsMsgKey_None))
@@ -7135,6 +7149,8 @@ nsresult nsMsgDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMess
   if (m_db)
     aNewMsgDBView->m_db->AddListener(aNewMsgDBView);
   aNewMsgDBView->mIsNews = mIsNews;
+  aNewMsgDBView->mIsRss = mIsRss;
+  aNewMsgDBView->mIsXFVirtual = mIsXFVirtual;
   aNewMsgDBView->mShowSizeInLines = mShowSizeInLines;
   aNewMsgDBView->mHeaderParser = mHeaderParser;
   aNewMsgDBView->mDeleteModel = mDeleteModel;
@@ -7296,4 +7312,47 @@ nsresult nsMsgDBView::GetViewEnumerator(nsISimpleEnumerator **enumerator)
 {
   NS_IF_ADDREF(*enumerator = new nsMsgViewHdrEnumerator(this));
   return (*enumerator) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+}
+
+/**
+ * Determine whether junk commands should be enabled on this view.
+ * Junk commands are always enabled for mail. For nntp and rss, they
+ * may be selectively enabled using an inherited folder property.
+ *
+ * @param  aViewIndex  view index of the message to check
+ * @return             PR_TRUE if junk controls should be enabled
+ */
+PRBool nsMsgDBView::JunkControlsEnabled(nsMsgViewIndex aViewIndex)
+{
+  // For normal mail, junk commands are always enabled.
+  if (!(mIsNews || mIsRss || mIsXFVirtual))
+    return PR_TRUE;
+
+  // we need to check per message or folder
+  nsCOMPtr <nsIMsgFolder> folder = m_folder;
+  if (!folder && aViewIndex != nsMsgViewIndex_None)
+    GetFolderForViewIndex(aViewIndex, getter_AddRefs(folder));
+  if (folder)
+  {
+    // Check if this is a mail message in search folders.
+    if (mIsXFVirtual)
+    {
+      nsCOMPtr <nsIMsgIncomingServer> server;
+      folder->GetServer(getter_AddRefs(server));
+      nsCAutoString type;
+      if (server)
+        server->GetType(type);
+      if (!(type.LowerCaseEqualsLiteral("nntp") || type.LowerCaseEqualsLiteral("rss")))
+        return PR_TRUE;
+    }
+
+    // For rss and news, check the inherited folder property.
+    nsCAutoString junkEnableOverride;
+    folder->GetInheritedStringProperty("dobayes.mailnews@mozilla.org#junk",
+                                       junkEnableOverride);
+    if (junkEnableOverride.EqualsLiteral("true"))
+      return PR_TRUE;
+  }
+
+  return PR_FALSE;
 }

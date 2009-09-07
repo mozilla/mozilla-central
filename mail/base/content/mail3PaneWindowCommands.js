@@ -233,6 +233,8 @@ var DefaultController =
       case "cmd_fullZoomEnlarge":
       case "cmd_fullZoomReset":
       case "cmd_fullZoomToggle":
+      case "cmd_viewAllHeader":
+      case "cmd_viewNormalHeader":
         return true;
       case "cmd_downloadFlagged":
       case "cmd_downloadSelected":
@@ -347,6 +349,8 @@ var DefaultController =
           return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody);
         return false;
       case "cmd_printSetup":
+      case "cmd_viewAllHeader":
+      case "cmd_viewNormalHeader":
         return true;
       case "cmd_markAsFlagged":
       case "button_file":
@@ -359,12 +363,14 @@ var DefaultController =
              Components.interfaces.nsMsgFolderFlags.Archive, true);
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
-        // can't do news on junk yet.
-        return (GetNumSelectedMessages() > 0 && !gFolderDisplay.selectedMessageIsNews);
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk);
       case "cmd_recalculateJunkScore":
-        if (GetNumSelectedMessages() > 0)
-          return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
-        return false;
+        // We're going to take a conservative position here, because we really
+        // don't want people running junk controls on folders that are not
+        // enabled for junk. The junk type picks up possible dummy message headers,
+        // while the runJunkControls will prevent running on XF virtual folders.
+        return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk) &&
+               gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
       case "cmd_displayMsgFilters":
         let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
                             .getService(Components.interfaces.nsIMsgAccountManager);
@@ -743,6 +749,12 @@ var DefaultController =
         return;
       case "cmd_markAsFlagged":
         MsgMarkAsFlagged();
+        return;
+      case "cmd_viewAllHeader":
+        MsgViewAllHeaders();
+        return;
+      case "cmd_viewNormalHeader":
+        MsgViewNormalHeaders();
         return;
       case "cmd_markAsJunk":
         JunkSelectedMessages(true);

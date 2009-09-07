@@ -22,7 +22,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Jonas Jørgensen <jonasj@jonasj.dk>
+ *   Jonas JÃ¸rgensen <jonasj@jonasj.dk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -56,15 +56,7 @@ function changeDisabledState(state) {
 }
 
 function javascriptEnabledChange() {
-  // If javascript.allow.mailnews is overlayed (mailnews is installed),
-  // then if javascript.allow.mailnews and javascript.enabled are false,
-  // we disable the tree items. If javascript.allow.mailnews is not
-  // available, we only take javascript.enabled in consideration.
-
   var javascriptDisabled = !document.getElementById('javascript.enabled').value;
-  var javascriptAllowMailNews = document.getElementById('javascript.allow.mailnews');
-  if (javascriptDisabled && javascriptAllowMailNews)
-    javascriptDisabled = !javascriptAllowMailNews.value;
   changeDisabledState(javascriptDisabled);
 }
 

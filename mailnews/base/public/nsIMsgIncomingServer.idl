@@ -59,7 +59,7 @@ interface nsIURI;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(20B4A762-10F5-4ce7-99CC-F07C10236E20)]
+[scriptable, uuid(cca9b826-24d8-4b76-b229-b8b12f1ecbd5)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -123,8 +123,24 @@ interface nsIMsgIncomingServer : nsISupports {
   /* cleartext version of the password */
   attribute ACString password;
 
-  /* prompt the user for a password */
-  ACString getPasswordWithUI(in AString aPromptString, in AString aPromptTitle, in nsIMsgWindow aMsgWindow, out boolean okayValue);
+  /**
+   * Attempts to get the password first from the password manager, if that
+   * fails it will attempt to get it from the user if aMsgWindow is supplied.
+   *
+   * @param aPromptString  The text of the prompt if the user is prompted for
+   *                       password.
+   * @param aPromptTitle   The title of the prompt if the user is prompted.
+   * @param aMsgWindow     A message window to associate the prompt with.
+   * @return               The obtained password. Could be an empty password.
+   *
+   * @exception NS_ERROR_FAILURE  The password could not be obtained.
+   *
+   * @note NS_MSG_PASSWORD_PROMPT_CANCELLED is a success code that is returned
+   *       if the prompt was presented to the user but the user cancelled the
+   *       prompt.
+   */
+  ACString getPasswordWithUI(in AString aPromptString, in AString aPromptTitle,
+                             in nsIMsgWindow aMsgWindow);
 
   /* forget the password in memory and in single signon database */
   void forgetPassword();

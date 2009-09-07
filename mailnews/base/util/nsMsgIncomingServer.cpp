@@ -761,11 +761,9 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
                                        nsAString& aPromptTitle,
                                        nsIMsgWindow* aMsgWindow,
-                                       PRBool *okayValue,
                                        nsACString& aPassword)
 {
   nsresult rv = NS_OK;
-  NS_ENSURE_ARG_POINTER(okayValue);
 
   if (m_password.IsEmpty())
   {
@@ -818,16 +816,17 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
       if (!aPassword.IsEmpty())
         uniPassword = ToNewUnicode(NS_ConvertASCIItoUTF16(aPassword));
 
+      PRBool okayValue = PR_TRUE;
       rv = dialog->PromptPassword(PromiseFlatString(aPromptTitle).get(),
                                   PromiseFlatString(aPromptMessage).get(),
                                   NS_ConvertASCIItoUTF16(serverUri).get(),
                                   nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
-                                  &uniPassword, okayValue);
+                                  &uniPassword, &okayValue);
       nsAutoString uniPasswordAdopted;
       uniPasswordAdopted.Adopt(uniPassword);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      if (!*okayValue) // if the user pressed cancel, just return an empty string;
+      if (!okayValue) // if the user pressed cancel, just return an empty string;
       {
         aPassword.Truncate();
         return NS_MSG_PASSWORD_PROMPT_CANCELLED;

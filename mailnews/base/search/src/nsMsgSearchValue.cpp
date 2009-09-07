@@ -138,7 +138,7 @@ nsMsgSearchValueImpl::ToString(nsAString &aResult)
     }
         break;
     default:
-        NS_ASSERTION(0, "Unknown search value type");
+        NS_ERROR("Unknown search value type");
     }        
 
     aResult.AppendLiteral("]");

@@ -608,6 +608,8 @@ calAlarm.prototype = {
                     return aPrefix + "Event";
                 } else if (isToDo(aItem)) {
                     return aPrefix + "Task";
+                } else {
+                    return aPrefix;
                 }
             }
 
@@ -663,6 +665,10 @@ calAlarm.prototype = {
                                 "reminderCustomTitle",
                                 [unitString, originString]);
                                 
+        } else {
+            // This is an incomplete alarm, but then again we should never reach
+            // this state.
+            return "[Incomplete calIAlarm]";
         }
     }
 };

@@ -78,7 +78,7 @@ function manageIdentities()
   var identity = account.defaultIdentity;
   saveIdentitySettings(identity);
 
-  window.openDialog('am-identities-list.xul', 'identity', 'modal,titlebar,chrome', args);
+  window.openDialog("am-identities-list.xul", "", "chrome,modal,resizable=no,centerscreen", args);
 
   if (args.result) {
     // now re-initialize the default identity settings in case they changed

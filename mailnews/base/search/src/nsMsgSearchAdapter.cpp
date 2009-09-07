@@ -1049,6 +1049,28 @@ NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearch
       rv = SetOtherHeadersInTable(m_localNewsTable, customHeaders.get());
     *ppOutTable = m_localNewsTable;
     break;
+  case nsMsgSearchScope::localNewsJunk:
+    if (!m_localNewsJunkTable)
+      rv = InitLocalNewsJunkTable();
+    if (m_localNewsJunkTable)
+      rv = SetOtherHeadersInTable(m_localNewsJunkTable, customHeaders.get());
+    *ppOutTable = m_localNewsJunkTable;
+    break;
+  case nsMsgSearchScope::localNewsBody:
+    if (!m_localNewsBodyTable)
+      rv = InitLocalNewsBodyTable();
+    if (m_localNewsBodyTable)
+      rv = SetOtherHeadersInTable(m_localNewsBodyTable, customHeaders.get());
+    *ppOutTable = m_localNewsBodyTable;
+    break;
+  case nsMsgSearchScope::localNewsJunkBody:
+    if (!m_localNewsJunkBodyTable)
+      rv = InitLocalNewsJunkBodyTable();
+    if (m_localNewsJunkBodyTable)
+      rv = SetOtherHeadersInTable(m_localNewsJunkBodyTable, customHeaders.get());
+    *ppOutTable = m_localNewsJunkBodyTable;
+    break;
+
   case nsMsgSearchScope::onlineManual:
     if (!m_onlineManualFilterTable)
       rv = InitOnlineManualFilterTable();

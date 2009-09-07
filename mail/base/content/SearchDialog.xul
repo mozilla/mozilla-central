@@ -123,6 +123,12 @@
            <spacer flex="10"/>
            <button label="&resetButton.label;" oncommand="onResetSearch(event);" accesskey="&resetButton.accesskey;"/>
          </hbox>
+         <hbox align="center">
+           <checkbox id="checkSearchOnline"
+                     label="&searchOnline.label;"
+                     accesskey="&searchOnline.accesskey;"
+                     oncommand="updateSearchLocalSystem();"/>
+         </hbox>
       </vbox>
 
       <hbox flex="1">

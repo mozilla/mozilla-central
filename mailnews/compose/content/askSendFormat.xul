@@ -39,7 +39,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/messengercompose/askSendFormat.dtd">
 
@@ -48,10 +48,10 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         buttonpack="center"
         onload="Startup();"
-        ondialogaccept="return Send();"
-        ondialogcancel="return Cancel();"
+        ondialogaccept="Send();"
         buttonlabelaccept="&send.label;"
-        buttonaccesskeyaccept="&send.accesskey;">
+        buttonaccesskeyaccept="&send.accesskey;"
+        style="width: 75ch;">
 
   <script type="application/javascript"
           src="chrome://messenger/content/messengercompose/askSendFormat.js"/>
@@ -73,7 +73,8 @@
         <separator/>
         <radiogroup id="mailDefaultHTMLAction">
           <radio value="3" label="&plainTextAndHtml.label;" accesskey="&plainTextAndHtml.accesskey;"/>
-          <radio value="1" label="&plainTextOnly.label;" accesskey="&plainTextOnly.accesskey;"/>
+          <radio value="1" selected="true"
+                 label="&plainTextOnly.label;" accesskey="&plainTextOnly.accesskey;"/>
           <radio value="2" label="&htmlOnly.label;" accesskey="&htmlOnly.accesskey;"/>
         </radiogroup>
       </vbox>

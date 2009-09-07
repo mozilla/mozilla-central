@@ -98,6 +98,8 @@ function onLoad()
     doEnabling(); // we only need to disable/enable the OK button for new virtual folders
   }
 
+  if (typeof arguments.searchOnline != "undefined")
+    document.getElementById('searchOnline').checked = arguments.searchOnline;
   updateOnlineSearchState();
   doSetOKCancel(onOK, onCancel);
 }

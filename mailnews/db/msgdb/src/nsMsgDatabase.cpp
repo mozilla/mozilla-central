@@ -5348,7 +5348,7 @@ NS_IMETHODIMP nsMsgDatabase::GetFolderStream(nsIOutputStream **aFileStream)
 
 NS_IMETHODIMP nsMsgDatabase::SetFolderStream(nsIOutputStream *aFileStream)
 {
-  NS_ASSERTION(0, "Trying to set the folderStream, not implemented");
+  NS_ERROR("Trying to set the folderStream, not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 

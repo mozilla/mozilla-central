@@ -1,8 +1,4 @@
 <?xml version="1.0"?>
-
-<?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
-<?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
-
 <!-- ***** BEGIN LICENSE BLOCK *****
  Version: MPL 1.1/GPL 2.0/LGPL 2.1
 
@@ -22,7 +18,7 @@
  David Bienvenu.
  Portions created by the Initial Developer are Copyright (C) 2004
  the Initial Developer. All Rights Reserved.
- 
+
  Contributor(s):
    Scott MacGregor <mscott@mozilla.org>
 
@@ -40,6 +36,9 @@
 
  ***** END LICENSE BLOCK ***** -->
 
+<?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
+
 <?xul-overlay href="chrome://messenger/content/am-copiesOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/am-addressingOverlay.xul"?>
 
@@ -48,14 +47,14 @@
 %identityEditDTD;
 <!ENTITY % identityDTD SYSTEM "chrome://messenger/locale/am-main.dtd" >
 %identityDTD;
-]>  
+]>
 
 <dialog title="&identityTitle.label;"
-  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-  onload="onLoadIdentityProperties();"
-  ondialogaccept="return onOk();"
-  style="width: 35em;">
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="onLoadIdentityProperties();"
+        ondialogaccept="return onOk();"
+        style="&identityDialog.style;">
 
   <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
@@ -159,7 +158,7 @@
           </menulist>
         </hbox>
       </vbox>
-      
+
       <!-- Copies & Folders Tab --> 
       <vbox flex="1" name="copiesAndFolders" id="copiesAndFolders"/>
 

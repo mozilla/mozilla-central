@@ -6973,9 +6973,15 @@ void nsImapProtocol::DiscoverMailboxList()
   if (hasXLIST && usingSubscription)
   {
     m_hierarchyNameState = kXListing;
-    // We use "%.%" since gmail special folders are unlikely
+    nsCAutoString pattern("%");
+    List("%", PR_TRUE, PR_TRUE);
+    // We list the first and second levels since special folders are unlikely
     // to be more than 2 levels deep.
-    List("%.%", PR_TRUE, PR_TRUE);
+    char separator = 0;
+    m_runningUrl->GetOnlineSubDirSeparator(&separator);
+    pattern.Append(separator);
+    pattern += '%';
+    List(pattern.get(), PR_TRUE, PR_TRUE);
   }
 
   SetMailboxDiscoveryStatus(eContinue);
@@ -7932,8 +7938,10 @@ nsresult nsImapProtocol::GetPassword(nsCString &password)
     // GetPasswordWithUI will truncate the password.
     nsCString pwd = m_lastPasswordSent;
     nsresult rv = m_imapServerSink->PromptForPassword(pwd, msgWindow);
-    if (rv == NS_MSG_PASSWORD_PROMPT_CANCELLED)
+
+    if (NS_FAILED(rv) || rv == NS_MSG_PASSWORD_PROMPT_CANCELLED)
       return NS_ERROR_ABORT;
+
     password.Assign(pwd);
   }
   m_lastPasswordSent = password;

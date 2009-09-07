@@ -185,6 +185,7 @@ var DefaultController =
       case "cmd_viewThreadsWithUnread":
       case "cmd_viewWatchedThreadsWithUnread":
       case "cmd_viewIgnoredThreads":
+      case "cmd_stop":
       case "cmd_undo":
       case "cmd_redo":
 			case "cmd_expandAllThreads":
@@ -346,11 +347,20 @@ var DefaultController =
         return (GetNumSelectedMessages() > 0);
       case "cmd_markAsJunk":
       case "cmd_markAsNotJunk":
-        // can't do news on junk yet.
-        return (GetNumSelectedMessages() > 0 && !isNewsURI(GetFirstSelectedMessage()));
+        if (gDBView)
+          gDBView.getCommandStatus(nsMsgViewCommandType.junk, enabled, checkStatus);
+        return enabled.value;
       case "cmd_recalculateJunkScore":
-        if (GetNumSelectedMessages() > 0)
+        // We're going to take a conservative position here, because we really
+        // don't want people running junk controls on folders that are not
+        // enabled for junk. The junk type picks up possible dummy message headers,
+        // while the runJunkControls will prevent running on XF virtual folders.
+        if (gDBView)
+        {
           gDBView.getCommandStatus(nsMsgViewCommandType.runJunkControls, enabled, checkStatus);
+          if (enabled.value)
+            gDBView.getCommandStatus(nsMsgViewCommandType.junk, enabled, checkStatus);
+        }
         return enabled.value;
       case "cmd_markAsShowRemote":
         return (GetNumSelectedMessages() > 0 && checkMsgHdrPropertyIsNot("remoteContentPolicy", kAllowRemoteContent));

@@ -45,23 +45,37 @@ var gBrandBundle;
 const nsPKIParamBlock    = "@mozilla.org/security/pkiparamblock;1";
 const nsIPKIParamBlock    = Components.interfaces.nsIPKIParamBlock;
 
+addEventListener("load", smimeReadOnLoad, false);
+
+function smimeReadOnLoad()
+{
+  removeEventListener("load", smimeReadOnLoad, false);
+
+  top.controllers.appendController(SecurityController);
+
+  addEventListener("unload", smimeReadOnUnload, false);
+}
+
+function smimeReadOnUnload()
+{
+  removeEventListener("unload", smimeReadOnUnload, false);
+
+  top.controllers.removeController(SecurityController);
+}
+
 function setupBundles()
 {
-  if (gBundle && gBrandBundle)
+  if (gBundle)
     return;
 
-  if (!gBundle) {
-    gBundle = document.getElementById("bundle_read_smime");
-    gBrandBundle = document.getElementById("bundle_brand");
-  }
+  gBundle = document.getElementById("bundle_read_smime");
+  gBrandBundle = document.getElementById("bundle_brand");
 }
 
 function showImapSignatureUnknown()
 {
-  var ifps = Components.interfaces.nsIPromptService;
-
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-  promptService = promptService.QueryInterface(ifps);
+  let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                .getService(Components.interfaces.nsIPromptService);
   setupBundles();
 
   if (promptService && gBundle && gBrandBundle) {
@@ -110,7 +124,7 @@ var SecurityController =
 
       default:
         return false;
-     }
+    }
   },
 
   isCommandEnabled: function(command)
@@ -118,7 +132,6 @@ var SecurityController =
     switch ( command )
     {
       case "cmd_viewSecurityStatus":
-      {
         if (document.documentElement.getAttribute('windowtype') == "mail:messageWindow")
         {
           return (GetNumSelectedMessages() > 0);
@@ -134,14 +147,10 @@ var SecurityController =
             return enabled.value;
           }
         }
-        return false;
-      }
+        // else: fall through.
 
       default:
         return false;
     }
-    return false;
   }
 };
-
-top.controllers.appendController(SecurityController);

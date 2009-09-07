@@ -878,76 +878,168 @@ nsresult nsMsgSearchOfflineNews::ValidateTerms ()
   return nsMsgSearchOfflineMail::ValidateTerms ();
 }
 
+// local helper functions to set subsets of the validity table
 
-//-----------------------------------------------------------------------------
-nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
+nsresult SetJunk(nsIMsgSearchValidityTable* aTable)
 {
-  NS_ASSERTION (nsnull == m_localNewsTable, "already have local news validty table");
-  nsresult err = NewTable (getter_AddRefs(m_localNewsTable));
+  NS_ENSURE_ARG_POINTER(aTable);
 
-  if (NS_SUCCEEDED(err))
-  {
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Contains, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Contains, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::BeginsWith, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::BeginsWith, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::EndsWith, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::EndsWith, 1);
+  aTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Is, 1);
+  aTable->SetAvailable(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
+  aTable->SetEnabled(nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
 
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::BeginsWith, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::BeginsWith, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::EndsWith, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::EndsWith, 1);
+  aTable->SetAvailable(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
+  aTable->SetEnabled(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
+  aTable->SetAvailable(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsLessThan, 1);
+  aTable->SetEnabled(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsLessThan, 1);
+  aTable->SetAvailable(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled(nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::Is, 1);
 
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::Contains, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::Contains, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::DoesntContain, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::DoesntContain, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::Isnt, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::Isnt, 1);
+  aTable->SetAvailable(nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled(nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Is, 1);
+  aTable->SetAvailable(nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Isnt, 1);
+  aTable->SetEnabled(nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Isnt, 1);
 
-
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsBefore, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsAfter, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsAfter, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
-
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsGreaterThan, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsGreaterThan, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsLessThan,  1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsLessThan, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::Is,  1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::Is, 1);
-
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
-
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Is, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::BeginsWith, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::BeginsWith, 1);
-    m_localNewsTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::EndsWith, 1);
-    m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::EndsWith, 1);
-
-
-  }
-
-  return err;
+  return NS_OK;
 }
 
+nsresult SetBody(nsIMsgSearchValidityTable* aTable)
+{
+  NS_ENSURE_ARG_POINTER(aTable);
+  aTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::Contains, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::Contains, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::Is, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::Isnt, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::Isnt, 1);
 
+  return NS_OK;
+}
+
+// set the base validity table values for local news
+nsresult SetLocalNews(nsIMsgSearchValidityTable* aTable)
+{
+  NS_ENSURE_ARG_POINTER(aTable);
+
+  aTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Contains, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Contains, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Isnt, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Isnt, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::BeginsWith, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::BeginsWith, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::EndsWith, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::EndsWith, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::IsInAB, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::IsInAB, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::IsntInAB, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::IsntInAB, 1);
+
+  aTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Is, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Isnt, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Isnt, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::BeginsWith, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::BeginsWith, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::EndsWith, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::EndsWith, 1);
+
+  aTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsBefore, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsBefore, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsAfter, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsAfter, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::Is, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
+
+  aTable->SetAvailable (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsGreaterThan, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsGreaterThan, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsLessThan,  1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsLessThan, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::Is,  1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::Is, 1);
+
+  aTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
+
+  aTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Contains, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Contains, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Is, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Isnt, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::Isnt, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsEmpty, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::Keywords, nsMsgSearchOp::IsntEmpty, 1);
+
+  aTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::DoesntContain, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Is, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Is, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Isnt, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Isnt, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::BeginsWith, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::BeginsWith, 1);
+  aTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::EndsWith, 1);
+  aTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::EndsWith, 1);
+  return NS_OK;
+
+}
+
+nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
+{
+  NS_ASSERTION (nsnull == m_localNewsTable, "already have local news validity table");
+  nsresult rv = NewTable(getter_AddRefs(m_localNewsTable));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return SetLocalNews(m_localNewsTable);
+}
+
+nsresult nsMsgSearchValidityManager::InitLocalNewsBodyTable()
+{
+  NS_ASSERTION (nsnull == m_localNewsBodyTable, "already have local news+body validity table");
+  nsresult rv = NewTable(getter_AddRefs(m_localNewsBodyTable));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = SetLocalNews(m_localNewsBodyTable);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return SetBody(m_localNewsBodyTable);
+}
+
+nsresult nsMsgSearchValidityManager::InitLocalNewsJunkTable()
+{
+  NS_ASSERTION (nsnull == m_localNewsJunkTable, "already have local news+junk validity table");
+  nsresult rv = NewTable(getter_AddRefs(m_localNewsJunkTable));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = SetLocalNews(m_localNewsJunkTable);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return SetJunk(m_localNewsJunkTable);
+}
+
+nsresult nsMsgSearchValidityManager::InitLocalNewsJunkBodyTable()
+{
+  NS_ASSERTION (nsnull == m_localNewsJunkBodyTable, "already have local news+junk+body validity table");
+  nsresult rv = NewTable(getter_AddRefs(m_localNewsJunkBodyTable));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = SetLocalNews(m_localNewsJunkBodyTable);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = SetJunk(m_localNewsJunkBodyTable);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return SetBody(m_localNewsJunkBodyTable);
+}

@@ -618,7 +618,7 @@ NS_IMETHODIMP nsStreamConverter::Init(nsIURI *aURI, nsIStreamListener * aOutList
       break;
 
     default:
-      NS_ASSERTION(0, "this means I made a mistake in my assumptions");
+      NS_ERROR("this means I made a mistake in my assumptions");
   }
 
 

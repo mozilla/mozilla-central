@@ -1770,11 +1770,13 @@ var gApplicationsPane = {
     if (aHandlerApp instanceof nsILocalHandlerApp)
       return this._getIconURLForFile(aHandlerApp.executable);
 
-    if (aHandlerApp instanceof nsIWebHandlerApp)
-      return this._getIconURLForWebApp(aHandlerApp.uriTemplate);
+    if (prefSvc.getBoolPref("browser.chrome.favicons")) { // q.v. Bug 514671
+      if (aHandlerApp instanceof nsIWebHandlerApp)
+        return this._getIconURLForWebApp(aHandlerApp.uriTemplate);
 
-    if (aHandlerApp instanceof nsIWebContentHandlerInfo)
-      return this._getIconURLForWebApp(aHandlerApp.uri)
+      if (aHandlerApp instanceof nsIWebContentHandlerInfo)
+        return this._getIconURLForWebApp(aHandlerApp.uri)
+    }
 
     // We know nothing about other kinds of handler apps.
     return "";

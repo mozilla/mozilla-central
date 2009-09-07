@@ -47,17 +47,13 @@ var gBrandBundle;
 var gSMFields;
 var gEncryptedURIService = null;
 
-
 function onComposerClose()
 {
   gSMFields = null;
   setNoEncryptionUI();
   setNoSignatureUI();
 
-  if (!gMsgCompose)
-    return;
-
-  if (!gMsgCompose.compFields)
+  if (!gMsgCompose || !gMsgCompose.compFields)
     return;
 
   gMsgCompose.compFields.securityInfo = null;
@@ -65,14 +61,8 @@ function onComposerClose()
 
 function onComposerReOpen()
 {
-  // are we already set up?
-  if (gSMFields)
-    return;
-
-  if (!gMsgCompose)
-    return;
-
-  if (!gMsgCompose.compFields)
+  // Are we already set up ? Or are the required fields missing ?
+  if (gSMFields || !gMsgCompose || !gMsgCompose.compFields)
     return;
 
   gMsgCompose.compFields.securityInfo = null;
@@ -98,57 +88,69 @@ function onComposerReOpen()
     }
 
     if (gSMFields.requireEncryptMessage)
-    {
       setEncryptionUI();
-    }
     else
-    {
       setNoEncryptionUI();
-    }
 
     if (gSMFields.signMessage)
-    {
       setSignatureUI();
-    }
     else
-    {
       setNoSignatureUI();
-    }
   }
 }
 
+addEventListener("load", smimeComposeOnLoad, false);
 
 // this function gets called multiple times,
 // but only on first open, not on composer recycling
 function smimeComposeOnLoad()
 {
+  removeEventListener("load", smimeComposeOnLoad, false);
+
   if (!gEncryptedURIService)
-  {
     gEncryptedURIService = 
       Components.classes["@mozilla.org/messenger-smime/smime-encrypted-uris-service;1"]
       .getService(Components.interfaces.nsIEncryptedSMIMEURIsService);
-  }
 
   onComposerReOpen();
+
+  top.controllers.appendController(SecurityController);
+
+  addEventListener("compose-from-changed", onComposerFromChanged, true);
+  addEventListener("compose-send-message", onComposerSendMessage, true);
+  addEventListener("compose-window-close", onComposerClose, true);
+  addEventListener("compose-window-reopen", onComposerReOpen, true);
+
+  addEventListener("unload", smimeComposeOnUnload, false);
+}
+
+function smimeComposeOnUnload()
+{
+  removeEventListener("unload", smimeComposeOnUnload, false);
+
+  removeEventListener("compose-from-changed", onComposerFromChanged, true);
+  removeEventListener("compose-send-message", onComposerSendMessage, true);
+  removeEventListener("compose-window-close", onComposerClose, true);
+  removeEventListener("compose-window-reopen", onComposerReOpen, true);
+
+  top.controllers.removeController(SecurityController);
 }
 
 function setupBundles()
 {
-  if (gBundle && gBrandBundle)
+  if (gBundle)
     return;
-  
-  if (!gBundle) {
-    gBundle = document.getElementById("bundle_comp_smime");
-    gBrandBundle = document.getElementById("bundle_brand");
-  }
+
+  gBundle = document.getElementById("bundle_comp_smime");
+  gBrandBundle = document.getElementById("bundle_brand");
 }
 
 function showNeedSetupInfo()
 {
   var ifps = Components.interfaces.nsIPromptService;
 
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-  promptService = promptService.QueryInterface(ifps);
+  let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                .getService(ifps);
   setupBundles();
 
   if (promptService && gBundle && gBrandBundle) {
@@ -260,7 +262,6 @@ function doSecurityButton()
     case "show":
     default:
       showMessageComposeSecurityStatus();
-      break;
   }
 }
 
@@ -320,7 +321,7 @@ var SecurityController =
       
       default:
         return false;
-     }
+    }
   },
 
   isCommandEnabled: function(command)
@@ -328,29 +329,25 @@ var SecurityController =
     switch ( command )
     {
       case "cmd_viewSecurityStatus":
-      {
         return true;
-      }
 
       default:
         return false;
     }
-    return false;
   }
 };
 
 function onComposerSendMessage()
 {
+  let missingCount = new Object();
+  let emailAddresses = new Object();
+
   try {
     if (!gMsgCompose.compFields.securityInfo.requireEncryptMessage) {
       return;
     }
 
     var helper = Components.classes[gSMimeContractID].createInstance(gISMimeJSHelper);
-
-    var emailAddresses = new Object();
-    var missingCount = new Object();
-
     helper.getNoCertAddresses(
       gMsgCompose.compFields,
       missingCount,
@@ -376,20 +373,17 @@ function onComposerSendMessage()
       // Try the global one
       var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                             .getService(Components.interfaces.nsIPrefBranch);
-
       if (prefs.getBoolPref("ldap_2.autoComplete.useDirectory"))
         autocompleteDirectory =
           prefs.getCharPref("ldap_2.autoComplete.directoryServer");
     }
 
     if (autocompleteDirectory)
-    {
       window.openDialog('chrome://messenger-smime/content/certFetchingStatus.xul',
                         '',
                         'chrome,resizable=1,modal=1,dialog=1', 
                         autocompleteDirectory,
                         emailAddresses.value);
-    }
   }
 }
 
@@ -427,9 +421,3 @@ function onComposerFromChanged()
     }
   }
 }
-
-top.controllers.appendController(SecurityController);
-addEventListener('compose-window-close', onComposerClose, true);
-addEventListener('compose-window-reopen', onComposerReOpen, true);
-addEventListener('compose-send-message', onComposerSendMessage, true);
-addEventListener('compose-from-changed', onComposerFromChanged, true);
