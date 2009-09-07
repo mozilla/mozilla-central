@@ -1976,7 +1976,7 @@ PRInt32 nsNNTPProtocol::SendListSubscriptionsResponse(nsIInputStream * inputStre
 
   if ('.' != line[0])
   {
-        NS_ASSERTION(0,"fix me");
+        NS_ERROR("fix me");
 #if 0
     char *url = PR_smprintf ("%s//%s/%s", NEWS_SCHEME, m_hostName, line);
     if (url)
@@ -2858,7 +2858,7 @@ PRInt32 nsNNTPProtocol::AuthorizationResponse()
     return(MK_NNTP_AUTH_FAILED);
   }
 
-  NS_ASSERTION(0,"should never get here");
+  NS_ERROR("should never get here");
   return(-1);
 
 }
@@ -2901,7 +2901,7 @@ PRInt32 nsNNTPProtocol::PasswordResponse()
     return(MK_NNTP_AUTH_FAILED);
   }
 
-  NS_ASSERTION(0,"should never get here");
+  NS_ERROR("should never get here");
   return(-1);
 }
 
@@ -4862,7 +4862,7 @@ PRInt32 nsNNTPProtocol::SendListGroupResponse(nsIInputStream * inputStream, PRUi
 
 PRInt32 nsNNTPProtocol::Search()
 {
-  NS_ASSERTION(0,"Search not implemented");
+  NS_ERROR("Search not implemented");
   return 0;
 }
 
@@ -4946,7 +4946,7 @@ PRInt32 nsNNTPProtocol::SetupForTransfer()
 #endif
   else
   {
-    NS_ASSERTION(0, "unexpected");
+    NS_ERROR("unexpected");
     return -1;
   }
 

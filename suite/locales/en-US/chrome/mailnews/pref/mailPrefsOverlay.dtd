@@ -1,6 +1,4 @@
 <!-- These are added to the Advanced - Scripts & Plugins panel -->
-<!ENTITY enbJsCheckMailNews.label         "Mail &amp; Newsgroups">
-<!ENTITY enbJsCheckMailNews.accesskey     "M">
 <!ENTITY enbPluginCheckMailNews.label     "Mail &amp; Newsgroups">
 <!ENTITY enbPluginCheckMailNews.accesskey "a">
 

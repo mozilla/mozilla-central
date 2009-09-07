@@ -393,6 +393,11 @@
             while (index < numAddresses && index < aNumAddressesToShow)
             {
               var newAddressNode = document.createElement("mail-emailaddress");
+
+              // Stash the headerName somewhere that AddExtraAddressProcessing
+              // will be able to find it.
+              newAddressNode.setAttribute("headerName", this.headerName);
+
               if (index)
               {
                 var textNode = document.createElement("text");

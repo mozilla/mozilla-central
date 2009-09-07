@@ -734,7 +734,7 @@ function savePhoto(aUri) {
   var istream = channel.open();
 
   // Get the photo file
-  file.append(makePhotoFilename(file.path, findPhotoExt(aUri, channel)));
+  file = makePhotoFile(file, findPhotoExt(channel));
 
   return saveStreamToFile(istream, file);
 }
@@ -751,27 +751,17 @@ function savePhoto(aUri) {
  *
  * @return The extension of the file, if any, including the period.
  */
-function findPhotoExt(aUri, aChannel) {
-  if (aChannel) {
-    try {
-      aChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
-      var header = aChannel.getResponseHeader("Content-Type");
-      var type   = header ? header.split(";")[0] : "";
-      switch (type.toLowerCase()) {
-        case "image/png":
-          return ".png";
-        case "image/jpeg":
-          return ".jpg";
-        case "image/gif":
-          return ".gif";
-      }
-    } catch (e) {}
-  }
-
-  var index = aUri ? aUri.lastIndexOf(".") : -1;
-  if (index == -1)
-    return "";
-   return aUri.substring(index);
+function findPhotoExt(aChannel) {
+  var mimeSvc = Components.classes["@mozilla.org/mime;1"]
+                          .getService(Components.interfaces.nsIMIMEService);
+  var ext = "";
+  var uri = aChannel.URI;
+  if (uri instanceof Components.interfaces.nsIURL)
+    ext = uri.fileExtension;
+  try {
+    return mimeSvc.getPrimaryExtension(aChannel.contentType, ext);
+  } catch (e) {}
+  return ext;
 }
 
 /**
@@ -782,15 +772,13 @@ function findPhotoExt(aUri, aChannel) {
  *
  * @return A unique filename in the given path.
  */
-function makePhotoFilename(aPath, aExtension) {
+function makePhotoFile(aDir, aExtension) {
   var filename, newFile;
   // Find a random filename for the photo that doesn't exist yet
   do {
-    filename = new String(Math.random()).replace("0.", "") + aExtension;
-    newFile = Components.classes["@mozilla.org/file/local;1"]
-                        .createInstance(Components.interfaces.nsILocalFile);
-    newFile.initWithPath(aPath);
+    filename = new String(Math.random()).replace("0.", "") + "." + aExtension;
+    newFile = aDir.clone();
     newFile.append(filename);
   } while (newFile.exists());
-  return filename;
+  return newFile;
 }

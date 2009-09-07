@@ -130,7 +130,10 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mail.smtpserver.smtp1.username' :  "tinderbox",
         'mail.smtpservers' :  "smtp1",
         'mail.startup.enabledMailCheckOnce' :  True,
+        # Don't load what's new or the remote start page - keep everything local
+        # under our control.
         'mailnews.start_page_override.mstone' :  "ignore",
+        'mailnews.start_page.url': "about:blank",
         }
 
     def __init__(self, default_profile=None, profile=None, create_new=True,

@@ -3662,7 +3662,7 @@ nsMsgComposeAndSend::DeliverFileAsMail()
   else if (!forcePlainText)
     sendFormat = nsIAbPreferMailFormat::html;
   else
-    NS_ASSERTION(0,"unknown send format, should not happen");
+    NS_ERROR("unknown send format, should not happen");
 #endif
 
   PL_strcpy (buf, "");

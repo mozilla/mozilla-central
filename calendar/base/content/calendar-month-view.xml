@@ -83,9 +83,7 @@
                     <xul:label anonid="event-name"
                                crop="end"
                                flex="1"
-                               style="margin: 0;">
-                        <html:div anonid="event-name-div"/>
-                    </xul:label>
+                               style="margin: 0;"/>
                     <xul:textbox anonid="event-name-textbox"
                                  class="plain calendar-event-name-textbox"
                                  crop="end"

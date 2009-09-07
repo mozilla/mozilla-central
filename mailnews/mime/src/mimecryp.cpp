@@ -178,8 +178,7 @@ MimeEncrypted_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
 static int
 MimeEncrypted_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
-  NS_ASSERTION(0, "1.2 <mscott@netscape.com> 01 Nov 2001 17:59");
-  /* This method shouldn't ever be called. */
+  NS_ERROR("This method shouldn't ever be called.");
   return -1;
 }
 

@@ -663,7 +663,7 @@ void nsPop3Protocol::SetUsername(const char* name)
       m_username = name;
 }
 
-nsresult nsPop3Protocol::GetPassword(nsCString& aPassword, PRBool *okayValue)
+nsresult nsPop3Protocol::GetPassword(nsCString& aPassword)
 {
   nsresult rv = NS_OK;
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
@@ -763,7 +763,7 @@ nsresult nsPop3Protocol::GetPassword(nsCString& aPassword, PRBool *okayValue)
     // Now go and get the password.
     if (!passwordPrompt.IsEmpty() && !passwordTitle.IsEmpty())
       rv = server->GetPasswordWithUI(passwordPrompt, passwordTitle,
-                                     msgWindow, okayValue, aPassword);
+                                     msgWindow, aPassword);
     ClearFlag(POP3_PASSWORD_FAILED|POP3_AUTH_FAILURE);
 
     // If it failed, then user pressed the cancel button (or some other
@@ -1760,9 +1760,8 @@ PRInt32 nsPop3Protocol::SendUsername()
       return(Error(POP3_USERNAME_UNDEFINED));
 
     nsCString password;
-    PRBool okayValue = PR_TRUE;
-    nsresult rv = GetPassword(password, &okayValue);
-    if (NS_SUCCEEDED(rv) && !okayValue)
+    nsresult rv = GetPassword(password);
+    if (NS_SUCCEEDED(rv) && rv == NS_MSG_PASSWORD_PROMPT_CANCELLED)
     {
       // user has canceled the password prompt
       m_pop3ConData->next_state = POP3_ERROR_DONE;
@@ -1811,9 +1810,8 @@ PRInt32 nsPop3Protocol::SendPassword()
         return(Error(POP3_USERNAME_UNDEFINED));
 
     nsCString password;
-    PRBool okayValue = PR_TRUE;
-    nsresult rv = GetPassword(password, &okayValue);
-    if (NS_SUCCEEDED(rv) && !okayValue)
+    nsresult rv = GetPassword(password);
+    if (NS_SUCCEEDED(rv) && rv == NS_MSG_PASSWORD_PROMPT_CANCELLED)
     {
         // user has canceled the password prompt
         m_pop3ConData->next_state = POP3_ERROR_DONE;
@@ -3443,8 +3441,7 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
       prompt the user for a password; just tell him we don't
         know whether he has new mail. */
         nsCString password;
-        PRBool okayValue;
-        GetPassword(password, &okayValue);
+        GetPassword(password);
         const char * pwd = password.get();
         if (password.IsEmpty() || m_username.IsEmpty())
         {

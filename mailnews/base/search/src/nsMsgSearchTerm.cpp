@@ -1946,6 +1946,7 @@ nsresult nsMsgSearchScopeTerm::InitializeAdapter (nsISupportsArray *termList)
         m_adapter = new nsMsgSearchOnlineMail (this, termList);
       break;
     case nsMsgSearchScope::offlineMail:
+    case nsMsgSearchScope::onlineManual:
         m_adapter = new nsMsgSearchOfflineMail (this, termList);
       break;
     case nsMsgSearchScope::newsEx:
@@ -1961,6 +1962,9 @@ nsresult nsMsgSearchScopeTerm::InitializeAdapter (nsISupportsArray *termList)
       NS_ASSERTION(PR_FALSE, "not supporting LDAP yet");
       break;
     case nsMsgSearchScope::localNews:
+    case nsMsgSearchScope::localNewsJunk:
+    case nsMsgSearchScope::localNewsBody:
+    case nsMsgSearchScope::localNewsJunkBody:
       m_adapter = new nsMsgSearchOfflineNews (this, termList);
       break;
     default:

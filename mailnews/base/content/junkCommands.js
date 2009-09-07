@@ -44,7 +44,11 @@
   * globals prerequisites used:
   *
   *   window.MsgStatusFeedback
-  *   GetSelectedIndices(view)
+  *
+  *   One of:
+  *     GetSelectedIndices(view) (in suite)
+  *     gFolderDisplay (in mail)
+  *
   *   messenger
   *   gMessengerBundle
   *   gDBView
@@ -236,6 +240,8 @@ MessageClassifier.prototype =
    */
   onMessageClassified: function(aClassifiedMsgURI, aClassification, aJunkPercent)
   {
+    if (!aClassifiedMsgURI)
+      return; // ignore end of batch
     var nsIJunkMailPlugin = Components.interfaces.nsIJunkMailPlugin;
     var score = (aClassification == nsIJunkMailPlugin.JUNK) ?
       nsIJunkMailPlugin.IS_SPAM_SCORE : nsIJunkMailPlugin.IS_HAM_SCORE;
@@ -321,7 +327,10 @@ function processFolderForJunk(aAll)
   }
   else
   {
-    var indices = GetSelectedIndices(gDBView);
+    // suite uses GetSelectedIndices, mail uses gFolderDisplay.selectedMessages
+    var indices = typeof GetSelectedIndices != "undefined" ?
+                    GetSelectedIndices(gDBView) :
+                    gFolderDisplay.selectedIndices;
     if (!indices || !indices.length)
       return;
   }

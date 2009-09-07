@@ -196,7 +196,7 @@ SuiteGlue.prototype = {
     if (showPrompt) {
       var bundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].
                           getService(Components.interfaces.nsIStringBundleService);
-      var quitBundle = bundleService.createBundle("chrome://browser/locale/quitDialog.properties");
+      var quitBundle = bundleService.createBundle("chrome://communicator/locale/quitDialog.properties");
       var brandBundle = bundleService.createBundle("chrome://branding/locale/brand.properties");
 
       var appName = brandBundle.GetStringFromName("brandShortName");

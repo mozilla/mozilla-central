@@ -339,7 +339,6 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("intl.charset.default",                    String),
   MAKESAMETYPEPREFTRANSFORM("intl.charsetmenu.browser.static",         String),
 
-  MAKESAMETYPEPREFTRANSFORM("javascript.allow.mailnews",               Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.enabled",                      Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.options.relimit",              Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.options.showInConsole",        Bool),

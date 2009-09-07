@@ -272,8 +272,6 @@ MimeInlineImage_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject 
 static int
 MimeInlineImage_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
-  /* This method should never be called (inline images do no line buffering).
-   */
-  NS_ASSERTION(0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+  NS_ERROR("This method should never be called (inline images do no line buffering).");
   return -1;
 }

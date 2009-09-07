@@ -64,7 +64,7 @@ calMemoryCalendar.prototype = {
     },
 
     initMemoryCalendar: function() {
-        this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
+        this.mObservers = new cal.observerBag(Components.interfaces.calIObserver);
         this.mItems = {};
         this.mMetaData = new calPropertyBag();
     },

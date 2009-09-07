@@ -3837,7 +3837,7 @@ nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
   PRBool isDirectory = PR_FALSE;
   file->IsDirectory(&isDirectory);
   if (isDirectory) {
-    NS_ASSERTION(0,"file is a directory");
+    NS_ERROR("file is a directory");
     return NS_MSG_ERROR_READING_FILE;
   }
 

@@ -136,7 +136,7 @@ NS_IMETHODIMP nsImapMailDatabase::GetFolderStream(nsIOutputStream **aFileStream)
 
 NS_IMETHODIMP nsImapMailDatabase::SetFolderStream(nsIOutputStream *aFileStream)
 {
-  NS_ASSERTION(0, "Trying to set folderStream, not implemented");
+  NS_ERROR("Trying to set folderStream, not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 

@@ -38,7 +38,6 @@
  */
 
 .tabmail-tabs {
-  -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tabs") !important;
   padding-top: 0px;
   background: -moz-dialog url("chrome://messenger/skin/tabmail-tabs-bkgnd.png") !important;
   -moz-padding-start: 0px;
@@ -58,7 +57,6 @@
 
 .tabmail-tab {
   -moz-appearance: none !important;
-  -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tab") !important;
   background: transparent !important;
   margin: 0px 0px 1px !important;
   padding: 0px !important;

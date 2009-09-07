@@ -183,6 +183,12 @@ function createHeaderEntry(prefix, headerListInfo)
     this.outputFunction = headerListInfo.outputFunction;
   else
     this.outputFunction = updateHeaderValue;
+
+  // stash this so that the <mail-multi-emailheaderfield/> binding can
+  // later attach it to any <mail-emailaddress> tags it creates for later
+  // extraction and use by AddExtraAddressProcessing.
+  this.enclosingBox.headerName = headerListInfo.name;
+
 }
 
 function initializeHeaderViewTables()
@@ -1023,10 +1029,21 @@ function AddExtraAddressProcessing(emailAddress, documentNode)
   if (!gShowCondensedEmailAddresses)
     return;
 
+  // If this address is one of the user's identities...
   var displayName;
   var identity = getBestIdentity(accountManager.allIdentities);
   if (emailAddress == identity.email) {
-    displayName = gMessengerBundle.getString("headerFieldYou");
+
+    // ...pick a localized version of the word "You" appropriate to this
+    // specific header; fall back to the version used by the "to" header
+    // if nothing else is available.
+    let headerName = documentNode.getAttribute("headerName");
+    try {
+      displayName = gMessengerBundle.getString("header" + headerName +
+                                               "FieldYou");
+    } catch (ex) {
+      displayName = gMessengerBundle.getString("headertoFieldYou");
+    }
   }
   else
   {

@@ -151,12 +151,12 @@ public:
   const char* GetSubject() {return GetAsciiHeader(MSG_SUBJECT_HEADER_ID);}
 
   const char* GetAttachments() {
-    NS_ASSERTION(0, "nsMsgCompFields::GetAttachments is not supported anymore, please use nsMsgCompFields::GetAttachmentsArray");
+    NS_ERROR("nsMsgCompFields::GetAttachments is not supported anymore, please use nsMsgCompFields::GetAttachmentsArray");
     return GetAsciiHeader(MSG_ATTACHMENTS_HEADER_ID);
     }
 
   const char* GetTemporaryFiles() {
-    NS_ASSERTION(0, "nsMsgCompFields::GetTemporaryFiles is not supported anymore, please use nsMsgCompFields::GetAttachmentsArray");
+    NS_ERROR("nsMsgCompFields::GetTemporaryFiles is not supported anymore, please use nsMsgCompFields::GetAttachmentsArray");
     return GetAsciiHeader(MSG_TEMPORARY_FILES_HEADER_ID);
     }
 

@@ -202,8 +202,13 @@ protected:
   nsCOMPtr<nsIMsgSearchValidityTable> m_onlineMailFilterTable;
   nsCOMPtr<nsIMsgSearchValidityTable> m_onlineManualFilterTable;
 
-  nsCOMPtr<nsIMsgSearchValidityTable> m_newsTable;
-  nsCOMPtr<nsIMsgSearchValidityTable> m_localNewsTable; // used for local news searching or offline news searching...
+  nsCOMPtr<nsIMsgSearchValidityTable> m_newsTable;      // online news
+
+  // Local news tables, used for local news searching or offline.
+  nsCOMPtr<nsIMsgSearchValidityTable> m_localNewsTable;         // base table
+  nsCOMPtr<nsIMsgSearchValidityTable> m_localNewsJunkTable;     // base + junk
+  nsCOMPtr<nsIMsgSearchValidityTable> m_localNewsBodyTable;     // base + body
+  nsCOMPtr<nsIMsgSearchValidityTable> m_localNewsJunkBodyTable; // base + junk + body
   nsCOMPtr<nsIMsgSearchValidityTable> m_ldapTable;
   nsCOMPtr<nsIMsgSearchValidityTable> m_ldapAndTable;
   nsCOMPtr<nsIMsgSearchValidityTable> m_localABTable;
@@ -219,6 +224,9 @@ protected:
   nsresult InitOnlineManualFilterTable();
   nsresult InitNewsTable();
   nsresult InitLocalNewsTable();
+  nsresult InitLocalNewsJunkTable();
+  nsresult InitLocalNewsBodyTable();
+  nsresult InitLocalNewsJunkBodyTable();
   nsresult InitNewsFilterTable();
 
   //set the custom headers in the table, changes whenever "mailnews.customHeaders" pref changes.
