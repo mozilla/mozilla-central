@@ -62,7 +62,7 @@
     <toolbaritem id="gloda-search" insertafter="button-stop"
                  title="&glodaSearch.title;"
                  align="center"
-                 flex="1000"
+                 flex="1"
                  class="chromeclass-toolbar-additional">
         <textbox id="searchInput" 
                  chromedir="ltr"
