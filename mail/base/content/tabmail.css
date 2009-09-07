@@ -36,11 +36,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 .tabmail-tabs {
-  -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tabs");
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-tabs");
 }
 
 .tabmail-tab {
-  -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tab");
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-tab");
 }
 
 .tabmail-arrowscrollbox {

@@ -35,16 +35,6 @@
 
 /* ::::: tabmail ::::: */
 
-/* bring in the proper bindings on OS X */
-
-.tabmail-tab {
-  -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tab") !important;
-}
-
-.tabmail-tabs {
-  -moz-binding: url("chrome://messenger/skin/tabmailBindings.xml#tabmail-tabs") !important;
-}
-
 .tabmail-tabs > .tabmail-tab:first-child > .tab-close-button {
   visibility: collapse;
 }
