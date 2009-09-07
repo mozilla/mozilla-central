@@ -6973,9 +6973,15 @@ void nsImapProtocol::DiscoverMailboxList()
   if (hasXLIST && usingSubscription)
   {
     m_hierarchyNameState = kXListing;
-    // We use "%.%" since gmail special folders are unlikely
+    nsCAutoString pattern("%");
+    List("%", PR_TRUE, PR_TRUE);
+    // We list the first and second levels since special folders are unlikely
     // to be more than 2 levels deep.
-    List("%.%", PR_TRUE, PR_TRUE);
+    char separator = 0;
+    m_runningUrl->GetOnlineSubDirSeparator(&separator);
+    pattern.Append(separator);
+    pattern += '%';
+    List(pattern.get(), PR_TRUE, PR_TRUE);
   }
 
   SetMailboxDiscoveryStatus(eContinue);
