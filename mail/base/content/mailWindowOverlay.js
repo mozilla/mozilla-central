@@ -406,31 +406,13 @@ function initMoveToFolderAgainMenu(aMenuItem)
 
 function InitViewHeadersMenu()
 {
-  var headerchoice = 1;
-  try
-  {
-    headerchoice = pref.getIntPref("mail.show_headers");
-  }
-  catch (ex)
-  {
-    dump("failed to get the header pref\n");
-  }
-
-  var id = null;
-  switch (headerchoice)
-  {
-    case 2:
-      id = "viewallheaders";
-      break;
-    case 1:
-    default:
-      id = "viewnormalheaders";
-      break;
-  }
-
-  var menuitem = document.getElementById(id);
-  if (menuitem)
-    menuitem.setAttribute("checked", "true");
+  const nsMimeHeaderDisplayTypes = Components.interfaces.nsMimeHeaderDisplayTypes;
+  var headerchoice = pref.getIntPref("mail.show_headers");
+  document.getElementById("cmd_viewAllHeader")
+          .setAttribute("checked", headerchoice == nsMimeHeaderDisplayTypes.AllHeaders);
+  document.getElementById("cmd_viewNormalHeader")
+          .setAttribute("checked", headerchoice == nsMimeHeaderDisplayTypes.NormalHeaders);
+  document.commandDispatcher.updateCommands("create-menu-mark");
 }
 
 function InitViewBodyMenu()
