@@ -130,6 +130,8 @@
 
 <!ENTITY folderView.label "Folders">
 <!ENTITY folderView.accesskey "F">
+<!ENTITY smartFolders.label "Smart">
+<!ENTITY smartFolders.accesskey "S">
 <!ENTITY allFolders.label "All">
 <!ENTITY allFolders.accesskey "A">
 <!ENTITY unreadFolders.label "Unread">

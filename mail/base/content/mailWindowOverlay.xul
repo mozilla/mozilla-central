@@ -1049,6 +1049,11 @@
         <menu id="menu_FolderViews" label="&folderView.label;" accesskey="&folderView.accesskey;">
           <menupopup id="menu_FolderViewsPopup"
                      onpopupshowing="InitViewFolderViewsMenu(event)">
+            <menuitem id="menu_allFolders" value="smart"
+                      label="&smartFolders.label;"
+                      accesskey="&smartFolders.accesskey;"
+                      type="radio" name="viewmessages"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
             <menuitem id="menu_allFolders" value="all"
                       label="&allFolders.label;"
                       accesskey="&allFolders.accesskey;"
