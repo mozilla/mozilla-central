@@ -95,7 +95,6 @@ function initRetentionSettings()
 
 function initDownloadSettings()
 {
-
     var downloadSettings =  gIncomingServer.downloadSettings;
     document.getElementById("nntp.downloadMsg").checked = downloadSettings.downloadByDate;
     document.getElementById("nntp.notDownloadRead").checked = downloadSettings.downloadUnreadOnly;
@@ -104,41 +103,74 @@ function initDownloadSettings()
     else
         document.getElementById("nntp.downloadMsgMin").setAttribute("value", "30");
  
+  // Figure out what the most natural division of the autosync pref into
+  // a value and an interval is.
+  let autosyncInterval = document.getElementById("autosyncInterval");
+  let autosyncValue = document.getElementById("autosyncValue");
+  let autosyncPref = document.getElementById("imap.autoSyncMaxAgeDays");
+  let autosyncPrefValue = (autosyncPref.value == "") ? -1 :
+                                               parseInt(autosyncPref.value, 10);
+
+  // Clear the preference until we're done initializing.
+  autosyncPref.value = "";
+
+  if (autosyncPrefValue <= 0) {
+    // Special-case values <= 0 to have an interval of "All" and a disabled
+    // value of the positive version of the preference, so we don't lose
+    // the last value the user typed.
+    autosyncInterval.value = 0;
+    autosyncValue.value = 31;
+    autosyncValue.disabled = true;
+  }
+  else {
+    // Otherwise, get the list of possible intervals, in order from
+    // largest to smallest.
+    let valuesToTest = [];
+    for (let i = autosyncInterval.itemCount - 1; i >= 0; i--)
+      valuesToTest.push(autosyncInterval.getItemAtIndex(i).value);
+
+    // and find the first one that divides the preference evenly.
+    for (let i in valuesToTest) {
+      if (!(autosyncPrefValue % valuesToTest[i])) {
+        autosyncInterval.value = valuesToTest[i];
+        autosyncValue.value = autosyncPrefValue / autosyncInterval.value;
+        break;
+      }
+    }
+  }
+  autosyncPref.value = autosyncPrefValue;
 }
 
 
 function onPreInit(account, accountValues)
 {
+  gServerType = getAccountValue(account, accountValues, "server", "type", null, false);
+  hideShowControls(gServerType);
+  gIncomingServer = account.incomingServer;
+  gIncomingServer.type = gServerType;
 
-    gServerType = getAccountValue(account, accountValues, "server", "type", null, false);
-    hideShowControls(gServerType);
-    gIncomingServer= account.incomingServer;
-    gIncomingServer.type = gServerType;
+  // 10 is OFFLINE_SUPPORT_LEVEL_REGULAR, see nsIMsgIncomingServer.idl
+  // currently, there is no offline without diskspace
+  var titleStringID = (gIncomingServer.offlineSupportLevel >= 10) ?
+   "prefPanel-synchronization" : "prefPanel-diskspace";
 
-    // 10 is OFFLINE_SUPPORT_LEVEL_REGULAR, see nsIMsgIncomingServer.idl
-    // currently, there is no offline without diskspace
-    var titleStringID = (gIncomingServer.offlineSupportLevel >= 10) ?
-     "prefPanel-synchronization" : "prefPanel-diskspace";
+  var prefBundle = document.getElementById("bundle_prefs");
+  var headertitle = document.getElementById("headertitle");
+  headertitle.setAttribute('title',prefBundle.getString(titleStringID));
+  document.title = prefBundle.getString(titleStringID);
 
-    var prefBundle = document.getElementById("bundle_prefs");
-    var headertitle = document.getElementById("headertitle");
-    headertitle.setAttribute('title',prefBundle.getString(titleStringID));
-    document.title = prefBundle.getString(titleStringID);
-
-    if (gServerType == "pop3")
-    {
-      var pop3Server = gIncomingServer.QueryInterface(Components.interfaces.nsIPop3IncomingServer);
-      // hide retention settings for deferred accounts
-      if (pop3Server.deferredToAccount.length)
-      {
-        var retentionRadio = document.getElementById("retention.keepMsg");
-        retentionRadio.setAttribute("hidden", "true");
-        var retentionLabel = document.getElementById("retentionDescriptionPop");
-        retentionLabel.setAttribute("hidden", "true");
-        var applyToFlaggedCheckbox = document.getElementById("retention.applyToFlagged");
-        applyToFlaggedCheckbox.setAttribute("hidden", "true");
-      }
+  if (gServerType == "pop3") {
+    var pop3Server = gIncomingServer.QueryInterface(Components.interfaces.nsIPop3IncomingServer);
+    // hide retention settings for deferred accounts
+    if (pop3Server.deferredToAccount.length) {
+      var retentionRadio = document.getElementById("retention.keepMsg");
+      retentionRadio.setAttribute("hidden", "true");
+      var retentionLabel = document.getElementById("retentionDescriptionPop");
+      retentionLabel.setAttribute("hidden", "true");
+      var applyToFlaggedCheckbox = document.getElementById("retention.applyToFlagged");
+      applyToFlaggedCheckbox.setAttribute("hidden", "true");
     }
+  }
 }
 
 function onClickSelect()
@@ -147,6 +179,37 @@ function onClickSelect()
     top.window.openDialog("chrome://messenger/content/msgSelectOffline.xul", "", "centerscreen,chrome,modal,titlebar,resizable=yes");
     return true;
 
+}
+
+/**
+ * Handle updates to the Autosync
+ */
+function onAutosyncChange()
+{
+  let autosyncInterval = document.getElementById("autosyncInterval");
+  let autosyncValue = document.getElementById("autosyncValue");
+  let autosyncPref = document.getElementById("imap.autoSyncMaxAgeDays");
+
+  // If we're not done initializing, don't do anything.
+  // (See initDownloadSettings() for more details.)
+  if (autosyncPref.value == "")
+    return;
+
+  // If the user selected the All option, disable the autosync and the
+  // textbox.
+  if (autosyncInterval.value == 0) {
+    autosyncPref.value = 0;
+    autosyncValue.disabled = true;
+    return;
+  }
+
+  let max = 0x7FFFFFFF / (60 * 60 * 24 * autosyncInterval.value);
+  autosyncValue.setAttribute("max", max);
+  if (autosyncValue.value > max)
+    autosyncValue.value = Math.floor(max);
+
+  autosyncValue.disabled = false;
+  autosyncPref.value = autosyncValue.value * autosyncInterval.value;
 }
 
 function onCancel()
