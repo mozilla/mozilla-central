@@ -112,10 +112,10 @@ var calendarTabType = {
         aTab.title = document.getElementById("calendar-tab-button").getAttribute("tooltiptext");
       },
 
-      supportsCommand: function (aTab, aCommand) calendarController.supportsCommand(aCommand),
-      isCommandEnabled: function (aTab, aCommand) calendarController.isCommandEnabled(aCommand),
-      doCommand: function(aTab, aCommand) calendarController.doCommand(aCommand),
-      onEvent: function(aTab, aEvent) calendarController.onEvent(aEvent)
+      supportsCommand: function (aCommand, aTab) calendarController.supportsCommand(aCommand),
+      isCommandEnabled: function (aCommand, aTab) calendarController.isCommandEnabled(aCommand),
+      doCommand: function(aCommand, aTab) calendarController.doCommand(aCommand),
+      onEvent: function(aEvent, aTab) calendarController.onEvent(aEvent)
     },
 
     tasks: {
@@ -153,10 +153,10 @@ var calendarTabType = {
         aTabmail.openTab('tasks', aState);
       },
 
-      supportsCommand: function (aTab, aCommand) calendarController.supportsCommand(aCommand),
-      isCommandEnabled: function (aTab, aCommand) calendarController.isCommandEnabled(aCommand),
-      doCommand: function(aTab, aCommand) calendarController.doCommand(aCommand),
-      onEvent: function(aTab, aEvent) calendarController.onEvent(aEvent)
+      supportsCommand: function (aCommand, aTab) calendarController.supportsCommand(aCommand),
+      isCommandEnabled: function (aCommand, aTab) calendarController.isCommandEnabled(aCommand),
+      doCommand: function(aCommand, aTab) calendarController.doCommand(aCommand),
+      onEvent: function(aEvent, aTab) calendarController.onEvent(aEvent)
     },
   },
 
