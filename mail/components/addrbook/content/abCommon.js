@@ -472,7 +472,7 @@ function DirPaneDoubleClick(event)
 function DirPaneSelectionChange()
 {
   // clear out the search box when changing folders...
-  onClearSearch();
+  onAbClearSearch();
   if (dirTree && dirTree.view.selection && dirTree.view.selection.count == 1) {
     gPreviousDirTreeIndex = dirTree.currentIndex;
     ChangeDirectoryByURI(GetSelectedDirectory());
@@ -627,16 +627,6 @@ function onAbClearSearch()
   onEnterInSearchBar();
 }
 
-function onSearchInputFocus(event)
-{
-  // search bar has focus, ...clear the showing search criteria flag
-  if (gSearchInput.showingSearchCriteria)
-  {
-    gSearchInput.value = "";
-    gSearchInput.showingSearchCriteria = false;
-  }
-}
-
 // sets focus into the quick search box
 function QuickSearchFocus()
 {
@@ -644,37 +634,7 @@ function QuickSearchFocus()
   gSearchInput.select();
 }
 
-function onSearchInputBlur(event)
-{
-//  if (gQuickSearchFocusEl && gQuickSearchFocusEl.id == 'searchInput') // ignore the blur if we are in the middle of processing the clear button
-//    return;
-
-  if (!gSearchInput.value)
-    gSearchInput.showingSearchCriteria = true;
-
-  if (gSearchInput.showingSearchCriteria)
-    gSearchInput.setSearchCriteriaText();
-}
-
 var gQuickSearchFocusEl = null;
-
-function onClearSearch()
-{
-  if (gSearchInput && !gSearchInput.showingSearchCriteria) // ignore the text box value if it's just showing the search criteria string
-  {
-     onAbClearSearch();
-     // this needs to be on a timer otherwise we end up messing up the focus while the Search("") is still happening
-     setTimeout(restoreSearchFocusAfterClear, 0);
-  }
-}
-
-function restoreSearchFocusAfterClear()
-{
-//  gQuickSearchFocusEl.focus();
-  gSearchInput.clearButtonHidden = 'true';
-  gQuickSearchFocusEl = null;
-}
-
 var gIsOffline;
 var gSessionAdded;
 var gCurrentAutocompleteDirectory;

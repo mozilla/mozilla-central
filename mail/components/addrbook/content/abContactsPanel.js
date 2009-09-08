@@ -91,7 +91,7 @@ function AddressBookMenuListChange()
 function AbPanelOnComposerClose()
 {
   CloseAbView();
-  onClearSearch();
+  onAbClearSearch();
 }
 
 function AbPanelOnComposerReOpen()
@@ -119,7 +119,7 @@ function AbPanelLoad()
 
   parent.addEventListener("compose-window-close", AbPanelOnComposerClose, true);
   parent.addEventListener("compose-window-reopen", AbPanelOnComposerReOpen, true);
-  gSearchInput = document.getElementById("searchInput");
+  gSearchInput = document.getElementById("peopleSearchInput");
 }
 
 function AbPanelUnload()
