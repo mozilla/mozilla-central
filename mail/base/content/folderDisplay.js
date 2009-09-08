@@ -963,6 +963,29 @@ FolderDisplayWidget.prototype = {
         this.navigate(nsMsgNavigationType.firstNew, /* select */ false))
       return;
 
+    // - last selected message
+    // if configured to load the last selected message (this is currently more
+    //  persistent than our saveSelection/restoreSelection stuff), and the view
+    //  is backed by a single underlying folder (the only way having just a
+    //  message key works out), try that
+    if (gPrefBranch.getBoolPref("mailnews.remember_selected_message") &&
+        this.view.isSingleFolder) {
+      // use the displayed folder; nsMsgDBView goes to the effort to save the
+      //  state to the viewFolder, so this is the correct course of action.
+      let lastLoadedMessageKey = this.view.displayedFolder.lastMessageLoaded;
+      if (lastLoadedMessageKey != nsMsgKey_None) {
+        this.view.dbView.selectMsgByKey(lastLoadedMessageKey);
+        // The message key may not be present in the view for a variety of
+        //  reasons.  Beyond message deletion, it simply may not match the
+        //  active mail view or quick search, for example.
+        if (this.view.dbView.numSelected > 0) {
+          this.ensureRowIsVisible(
+            this.view.dbView.viewIndexForFirstSelectedMsg);
+          return;
+        }
+      }
+    }
+
     // - towards the newest messages, but don't select
     if (this.view.isSortedAscending && this.view.sortImpliesTemporalOrdering &&
       this.navigate(nsMsgNavigationType.lastMessage, /* select */ false))

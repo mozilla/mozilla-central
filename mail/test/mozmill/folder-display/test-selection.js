@@ -155,3 +155,18 @@ function test_enter_scroll_to_new() {
   // make sure it (which must be the last row) is visible
   assert_visible(-1);
 }
+
+/**
+ * Test that the last selected message persists through folder changes.
+ */
+function test_selection_persists_through_folder_changes() {
+  // be in the folder
+  be_in_folder(folder);
+  // select a message
+  select_click_row(3);
+  // leave and re-enter the folder
+  enter_folder(folder.rootFolder);
+  enter_folder(folder);
+  // make sure it is selected and displayed
+  assert_selected_and_displayed(3);
+}
