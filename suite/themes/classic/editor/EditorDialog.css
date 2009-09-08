@@ -38,13 +38,6 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* The defaults are WAY to big! */
-groupbox {
-  margin:         2px 5px /* 4px 5px */;
-  padding-top:    2px;
-  padding-bottom: 4px;
-}
-
 .MinWidth5em {
   min-width: 5em;
 }
@@ -85,14 +78,6 @@ groupbox {
   font-weight : bold;
 }
 
-/* Use this with groove-thin in dialogs 
-   to add margins to top and bottom
-*/
-.tb-margin {
-  margin-top    : 6px;
-  margin-bottom : 6px;
-}
-
 .color-well {
   width: 20px;
   height: 12px; 
@@ -108,10 +93,6 @@ groupbox {
   /* override large default min-width */
   min-width : 0px;
   margin: 2px;
-}
-
-.menu-list[focused="true"] {
-  color: white;
 }
 
 #ColorPicker {
@@ -143,24 +124,12 @@ groupbox {
   -moz-margin-end: 2px;
 }
 
-/* temporary -- we need a simple box-based list defined in XBL */
-tree.list {
-  border: 1px inset #CCCCCC;
-  /* same as in menulist.css */
-  margin: 1px 5px 2px;
-  /* use rows="#" in XUL to define height */
-}
-
 #ColorPreview {
   border: 1px inset #CCCCCC;
   -moz-margin-start:    10px;
   padding: 0 5px;
   min-width:     100px;
   min-height:     50px;
-}
-
-#alignTypeSelect,label#alignLabel {
-  -moz-margin-start: 5px;
 }
 
 /* ::::: table properties dialog ::::: */
@@ -192,10 +161,6 @@ tree.list {
 }
 
 /* ::::: spelling dialog ::::: */
-
-#MisspelledWord {
-  font-weight: bold;
-}
 
 #ReplaceWordInput {
   min-width: 16em;
@@ -256,28 +221,29 @@ tree.list {
   min-width: 2em;
 }
 
-#alignTypeSelect {
-  height: 34px;
+.align-menu > .menu-iconic-left > .menu-iconic-icon {
+  height: auto;
+  width: auto;
 }
 
 .align-menu[value="top"] {
-  list-style-image:url("chrome://editor/skin/icons/img-align-top.gif");
+  list-style-image:url("chrome://editor/skin/icons/img-align-top.gif") !important;
 }
 
 .align-menu[value="middle"] {
-  list-style-image:url("chrome://editor/skin/icons/img-align-middle.gif");
+  list-style-image:url("chrome://editor/skin/icons/img-align-middle.gif") !important;
 }
 
 .align-menu[value="bottom"] {
-  list-style-image:url("chrome://editor/skin/icons/img-align-bottom.gif");
+  list-style-image:url("chrome://editor/skin/icons/img-align-bottom.gif") !important;
 }
 
 .align-menu[value="right"] {
-  list-style-image:url("chrome://editor/skin/icons/img-align-right.gif");
+  list-style-image:url("chrome://editor/skin/icons/img-align-right.gif") !important;
 }
 
 .align-menu[value="left"] {
-  list-style-image:url("chrome://editor/skin/icons/img-align-left.gif");
+  list-style-image:url("chrome://editor/skin/icons/img-align-left.gif") !important;
 }
 
 /* Don't change width/height of these without changing values in 
@@ -319,10 +285,6 @@ tree.AttributesTree {
 }
 
 /* ::::: select edit dialog ::::: */
-
-#SelectTreeChildren::-moz-tree-cell(SelectSelCol, checked-false) {
-  background: url("chrome://global/skin/checkbox/cbox.gif") 50% 50% no-repeat;
-}
 
 #SelectTreeChildren::-moz-tree-cell(SelectSelCol, checked-true) {
   background: url("chrome://global/skin/checkbox/cbox-check.gif") 50% 50% no-repeat;
