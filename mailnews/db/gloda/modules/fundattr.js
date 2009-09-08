@@ -657,10 +657,13 @@ var GlodaFundAttr = {
 
     // Content
     if (aRawReps.bodyLines) {
-      aGlodaMessage._content = new GlodaContent();
+      aGlodaMessage._content = aRawReps.content = new GlodaContent();
       if (this.contentWhittle({}, aRawReps.bodyLines, aGlodaMessage._content)) {
         // we were going to do something here?
       }
+    }
+    else {
+      aRawReps.content = null;
     }
 
     yield Gloda.kWorkDone;
