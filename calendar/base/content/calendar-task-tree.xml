@@ -884,9 +884,7 @@
           },
 
           onCalendarRemoved: function tTO_onCalendarRemoved(aCalendar) {
-              if (!aCalendar.getProperty("disabled")) {
-                  this.binding.onCalendarRemoved(aCalendar);
-              }
+              this.binding.onCalendarRemoved(aCalendar);
           },
 
           onDefaultCalendarChanged: function tTO_onDefaultCalendarChanged(aNewDefaultCalendar) {}
@@ -982,16 +980,14 @@
       <method name="onCalendarRemoved">
         <parameter name="aCalendar"/>
         <body><![CDATA[
-            if (!aCalendar.getProperty("disabled")) {
-                this.mTreeView.treebox.beginUpdateBatch();
-                let tasks = this.mTaskArray.concat([]);
-                for each (let task in tasks) {
-                    if (task.calendar.id == aCalendar.id) {
-                        this.mTreeView.removeItem(task);
-                    }
+            this.mTreeView.treebox.beginUpdateBatch();
+            let tasks = this.mTaskArray.concat([]);
+            for each (let task in tasks) {
+                if (task.calendar.id == aCalendar.id) {
+                    this.mTreeView.removeItem(task);
                 }
-                this.mTreeView.treebox.endUpdateBatch();
             }
+            this.mTreeView.treebox.endUpdateBatch();
         ]]></body>
       </method>
 
