@@ -36,9 +36,9 @@
  *
  * ***** END LICENSE BLOCK ****** */
 
-/* ::::: Feed Subscription UI icons :::::: */
+/* ::::: Feed Subscription styling :::::: */
 
-#subscriptionsDialog { 
+#subscriptionsDialog {
   padding: 0px;
 }
 
@@ -47,18 +47,22 @@
 }
 
 #subscriptionChildren::-moz-tree-image(folderNameCol) {
-  -moz-margin-end: 2px;
-  list-style-image: url("chrome://messenger-newsblog/skin/icons/rss-feed.png");
-  -moz-image-region: rect(0 16px 16px 0);
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(128px 16px 144px 0px);
 }
 
 #subscriptionChildren::-moz-tree-image(folderNameCol, container) {
-  list-style-image: url("chrome://messenger/skin/icons/folder.png");
-  -moz-image-region: rect(0 16px 16px 0);
-}
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-attachment: scroll;
+  -moz-background-clip: border;
+  -moz-background-inline-policy: continuous;
+  -moz-background-origin: border;
+  background-image: url("moz-icon://stock/gtk-directory?size=menu");
+  list-style-image: url("chrome://messenger/skin/icons/folder-blank.png");
 
-#subscriptionChildren::-moz-tree-image(folderNameCol, container, open) {
-  -moz-image-region: rect(0 32px 16px 16px);
+  -moz-margin-end: 2px;
 }
 
 #rssFeedInfoBox {
@@ -69,6 +73,6 @@
 }
 
 #backgroundBox {
-  background-color: #FFFFFF; 
+  background-color: #FFFFFF;
   opacity: 0.5;
 }
