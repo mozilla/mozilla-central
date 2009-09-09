@@ -3,6 +3,15 @@
  * .smaller-button
  */
 
+#back_button {
+  border: none;
+  -moz-appearance: none;
+  color: -moz-nativehyperlinktext;
+  text-decoration: underline;
+  background-color: inherit;
+  cursor: pointer;
+}
+
 .clickable_label:hover {
   text-decoration: underline;
   cursor: pointer;
@@ -35,9 +44,13 @@
 }
 
 .errordescription {
-  -moz-padding-start: 4px;
-  padding-top: 4px;
-  color: rgb(244,50,50);
+  -moz-padding-start: 3px;
+  margin-top: 3px;
+}
+
+.initialDesc {
+  margin-top: 2px;
+  color: GrayText;
 }
 
 .edited_label {
@@ -91,10 +104,6 @@ description.explanation {
  * #config_status_title
  * #config_status_subtitle
  */
-
-vbox.statusimage {
-  padding-top: 6px;
-}
 
 label.bignumber {
   font-size: larger;
@@ -156,18 +165,19 @@ image.insecureLarry {
   height: 64px;
   width: 64px;
   padding: 0;
-  list-style-image: url("chrome://global/skin/icons/sslWarning.png");
+  background: url("chrome://global/skin/icons/sslWarning.png") no-repeat;
 }
 
 image.secureLarry {
   height: 64px;
   width: 64px;
   padding: 0;
-  list-style-image: url("chrome://messenger/skin/icons/identity.png");
+  background: url("chrome://messenger/skin/icons/identity.png") no-repeat;
 }
 
 vbox.mastervbox {
   padding: 14px;
+  background: #F4F4F4;
 }
 
 vbox.icon[state='strong'] {
@@ -186,7 +196,9 @@ vbox.icon[state='weak'] {
   background-image: url("chrome://messenger/skin/icons/insecure.png");
 }
 
-.warningbox {
+#warningbox {
+  width: 650px;
+  height: 400px;
   background: #333333 none repeat scroll 0% 0%;
   padding: 1em;
   overflow: auto;
@@ -271,12 +283,22 @@ vbox.settings {
   width: 8em;
 }
 
-textbox.security {
-  width: 8em;
+.protocol > label {
+  -moz-padding-start: 6px;
+}
+
+.security {
+  width: 10em;
 }
 
 textbox.port {
-  width: 5em;
+  width: 4em;
+}
+
+textbox.username {
+  width: 14em;
+  margin-bottom: 4px !important;
+  margin-top: 4px !important;
 }
 
 textbox.host {
@@ -374,4 +396,18 @@ menulist[editable="true"].clickable > .menulist-dropmarker{
 
 .technical_details[expanded] {
   background-image: url("chrome://messenger/skin/section_expanded.png");
+}
+
+label.autoconfigLabel {
+  width: 80px;
+  text-align: right;
+}
+
+label.textbox-label {
+  width: 58px;
+  text-align: right;
+}
+
+vbox.initialSettings textbox {
+  width: 280px;
 }
