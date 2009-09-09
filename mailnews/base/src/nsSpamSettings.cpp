@@ -400,8 +400,8 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCAutoString accountKey;
-    rv = account->GetKey(accountKey);
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (account) 
+      account->GetKey(accountKey);
 
     // Loop through all accounts, adding emails from this account, as well as
     // from any accounts that defer to this account.
@@ -409,8 +409,9 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
     nsCOMPtr<nsISupportsArray> accounts;
     rv = accountManager->GetAccounts(getter_AddRefs(accounts));
     NS_ENSURE_SUCCESS(rv, rv);
-    PRUint32 accountCount;
-    accounts->Count(&accountCount);
+    PRUint32 accountCount = 0;
+    if (account && accounts) // no sense scanning accounts if we've nothing to match
+      accounts->Count(&accountCount);
 
     for (PRUint32 i = 0; i < accountCount; i++)
     {
