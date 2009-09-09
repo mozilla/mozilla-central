@@ -493,6 +493,7 @@ nsresult nsMsgSearchSession::GetNextUrl()
 
   m_urlQueue.CStringAt(m_urlQueueIndex, nextUrl);
   nsMsgSearchScopeTerm *currentTerm = GetRunningScope();
+  NS_ENSURE_TRUE(currentTerm, NS_ERROR_NULL_POINTER);
   EnableFolderNotifications(PR_FALSE);
   nsCOMPtr <nsIMsgFolder> folder = currentTerm->m_folder;
   if (folder)

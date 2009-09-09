@@ -168,15 +168,10 @@ function onCheckboxChange(event) {
  */
 agendaListbox.onSelect =
 function onSelect(aListItem) {
-    var listbox = document.getElementById("agenda-listbox");
-    listbox.focus();
-    listbox.removeAttribute("disabled");
-    var item = aListItem || listbox.selectedItem;
+    let listbox = document.getElementById("agenda-listbox");
+    let item = aListItem || listbox.selectedItem;
     if (aListItem) {
         listbox.selectedItem = item;
-    }
-    if (item) {
-        item.removeAttribute("disabled");
     }
     calendarController.onSelectionChanged({detail: agendaListbox.getSelectedItems()});
 }
@@ -186,9 +181,7 @@ function onSelect(aListItem) {
  */
 agendaListbox.onFocus =
 function onFocus() {
-    var listbox = document.getElementById("agenda-listbox");
-    listbox.removeAttribute("disabled");
-    this.enableListItems();
+    let listbox = document.getElementById("agenda-listbox");
     calendarController.onSelectionChanged({detail: agendaListbox.getSelectedItems()});
 }
 
@@ -197,24 +190,9 @@ function onFocus() {
  */
 agendaListbox.onBlur =
 function onBlur() {
-    var item  = document.getElementById("agenda-listbox").selectedItem;
-    if (item) {
-        item.setAttribute("disabled","true");
-    }
     calendarController.onSelectionChanged({detail: []});
 }
 
-/**
- * Enables all child nodes of the agenda listbox
- */
-agendaListbox.enableListItems =
-function enableListItems() {
-    var childNodes = document.getElementById("agenda-listbox").childNodes;
-    for (var i = 0;i < childNodes.length; i++) {
-        var listItem = childNodes[i];
-        listItem.removeAttribute("disabled");
-    }
-}
 
 /**
  * Handler function called when a key was pressed on the agenda listbox

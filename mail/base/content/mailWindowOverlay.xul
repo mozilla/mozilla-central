@@ -532,6 +532,22 @@
               accesskey="&copyCmd.accesskey;"
               command="cmd_copy"/>
     <menuseparator id="mailContext-sep-open"/>
+    <menuitem id="mailContext-media-play"
+              label="&contextPlay.label;"
+              accesskey="&contextPlay.accesskey;"
+              oncommand="gContextMenu.mediaCommand('play');"/>
+    <menuitem id="mailContext-media-pause"
+              label="&contextPause.label;"
+              accesskey="&contextPause.accesskey;"
+              oncommand="gContextMenu.mediaCommand('pause');"/>
+    <menuitem id="mailContext-media-mute"
+              label="&contextMute.label;"
+              accesskey="&contextMute.accesskey;"
+              oncommand="gContextMenu.mediaCommand('mute');"/>
+    <menuitem id="mailContext-media-unmute"
+              label="&contextUnmute.label;"
+              accesskey="&contextUnmute.accesskey;"
+              oncommand="gContextMenu.mediaCommand('unmute');"/>
     <menuitem id="mailContext-openNewWindow"
               label="&contextOpenNewWindow.label;"
               accesskey="&contextOpenNewWindow.accesskey;"
@@ -1033,6 +1049,11 @@
         <menu id="menu_FolderViews" label="&folderView.label;" accesskey="&folderView.accesskey;">
           <menupopup id="menu_FolderViewsPopup"
                      onpopupshowing="InitViewFolderViewsMenu(event)">
+            <menuitem id="menu_allFolders" value="smart"
+                      label="&smartFolders.label;"
+                      accesskey="&smartFolders.accesskey;"
+                      type="radio" name="viewmessages"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
             <menuitem id="menu_allFolders" value="all"
                       label="&allFolders.label;"
                       accesskey="&allFolders.accesskey;"

@@ -69,7 +69,7 @@ treechildren::-moz-tree-checkbox(checked) {
 }
 
 treechildren::-moz-tree-checkbox(partial) {
-  list-style-image: url("chrome://global/skin/checkbox/cbox-check-dis.gif");
+  list-style-image: url("chrome://global/skin/checkbox/cbox-dis-check.gif");
 }
 
 #buttons {

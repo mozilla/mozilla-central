@@ -101,6 +101,12 @@
   margin: 0px !important;
 }
 
+/* ::::: iconic menuitems ::::: */
+
+menuitem.menuitem-iconic > .menu-iconic-left {
+  display: -moz-box;
+}
+
 /* ::::: download manager ::::: */
 
 #downloadView > treechildren::-moz-tree-image(Name) {
