@@ -1512,9 +1512,13 @@
             this.savedBrowsers.unshift({browser: oldBrowser, history: oldSH, tabData: aTab.tabData || {} });
 
             var newSH = Components.classes["@mozilla.org/browser/shistory;1"]
-                                    .createInstance(Components.interfaces.nsISHistoryInternal);
+                                  .createInstance(Components.interfaces.nsISHistoryInternal);
             oldBrowser.webNavigation.sessionHistory = newSH;
             var entry = oldSH.getEntryAtIndex(oldSH.index, false)
+                             .QueryInterface(Components.interfaces.nsISHEntry)
+                             .clone();
+            // don't try to repost data when restoring the tab
+            entry.postData = null;
             newSH.addEntry(entry, true);
 
             // about:blank is light
