@@ -72,11 +72,15 @@
            accesskey="&filtersForPrefix.accesskey;" control="serverMenu"/>
 
       <menulist id="serverMenu"
-          datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
-          sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-          sortDirection="ascending"
-          ref="msgaccounts:/"
-          oncommand="onFilterServerClick(event.target);">
+                class="folderMenuItem"
+                IsServer="true"
+                IsSecure="false"
+                ServerType="none"
+                datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+                sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+                sortDirection="ascending"
+                ref="msgaccounts:/"
+                oncommand="onFilterServerClick(event.target);">
           <template>
             <rule iscontainer="true" isempty="false" nc:ServerType="nntp">
               <menupopup>
