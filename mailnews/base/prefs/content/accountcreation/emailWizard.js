@@ -113,10 +113,14 @@ EmailConfigWizard.prototype =
     this._incomingWarning = 'cleartext';
     this._outgoingWarning = 'cleartext';
     this._userPickedOutgoingServer = false;
+    this._okCallback = null;
 
-    if (window.arguments && window.arguments[0] &&
-        window.arguments[0].msgWindow)
-      this._parentMsgWindow = window.arguments[0].msgWindow;
+    if (window.arguments && window.arguments[0]) {
+      if (window.arguments[0].msgWindow)
+        this._parentMsgWindow = window.arguments[0].msgWindow;
+      if (window.arguments[0].okCallback)
+        this._okCallback = window.arguments[0].okCallback;
+    }
 
     gStringsBundle = document.getElementById("strings");
     gBrandBundle = document.getElementById("bundle_brand");
@@ -717,7 +721,6 @@ EmailConfigWizard.prototype =
         // no certificate or cleartext issues
         this.validateAndFinish();
       }
-
     } catch (ex) { alertPrompt(gStringsBundle.getString("error_creating_account"), ex); }
   },
 
@@ -1405,6 +1408,8 @@ EmailConfigWizard.prototype =
     if (this._probeAbortable)
       this._probeAbortable.cancel();
 
+    if (this._okCallback)
+      this._okCallback();
     gEmailWizardLogger.info("Shutting down email config dialog");
   }
 };
