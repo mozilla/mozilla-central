@@ -164,7 +164,8 @@ h3 {
 }
 
 
-.facet > h3 {
+.facet > h3,
+.facet-content > h3 {
   font-size: 105%;
   padding-left: 0em;
   margin-top: 0.5em;
@@ -248,11 +249,18 @@ h3 {
 
 /* === Discrete Facet === */
 
-/*
- * Our basis for the bar-chart comes from:
- *  http://www.alistapart.com/articles/accessibledatavisualization/
- * Thank you, Wilson Miner.
- */
+.facet-content {
+  max-height: 32em;
+  overflow: auto;
+}
+
+.facet-more[needed="false"] {
+  display: none;
+}
+
+.facet-more[needed="true"] {
+
+}
 
 .bar {
   display: block;
@@ -270,31 +278,6 @@ h3 {
   margin: 0;
   padding: 0; 
   /*padding: 4px;*/
-}
-
-.facet-modes {
-  font-size: 80%;
-  cursor: pointer;
-  color: #888888;
-}
-
-.facet-modes:before {
-  font-weight: normal;
-  content: "( ";
-}
-
-.facet-mode:not(:first-child):before {
-  font-weight: normal;
-  content: " | ";
-}
-
-.facet-modes:after {
-  font-weight: normal;
-  content: " )";
-}
-
-.facet-mode[selected] {
-  font-weight: bold;
 }
 
 .bar {
