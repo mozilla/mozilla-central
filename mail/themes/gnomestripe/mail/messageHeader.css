@@ -63,6 +63,18 @@
   min-width: 1px;
 }
 
+#expandedHeaderRows > row,
+#expandedHeader2Rows > row {
+  /* Ensure that the header names and values are aligned with each other. */
+  -moz-box-align: baseline;
+}
+
+#expandedHeadersTopBox {
+  /* Ensure that the space between the from row and the one after is
+     identical to the spacing between the subsequent header lines. */
+  -moz-box-align: end;
+}
+
 #otherActionsButton {
   margin-bottom: .1em;
   padding-top: 0px;
@@ -72,10 +84,6 @@
 
 header-view-button-box {
   padding: 0px;
-}
-
-#expandedfromBox {
-  padding-top: 0.5em;
 }
 
 #expandedsubjectBox > .headerValue {
@@ -276,11 +284,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-border-left-colors: transparent threedhighlight threedlightshadow;
 }
 
-.headerNameBox {
-  width: 7.7em;
-  background-color: transparent;
-}
-
 .headerName {
   color: #888a85; /* lower contrast */
   text-align: right;
@@ -303,7 +306,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   line-height: 1.4em;
 
   -moz-appearance: none !important;
-  -moz-appearance: none;
 
   padding: 0px !important;
   margin: 0px !important;
@@ -492,4 +494,5 @@ mail-multi-emailHeaderField,
 mail-headerfield {
   margin: 0;
   padding: 0;
+  -moz-box-align: baseline;
 }

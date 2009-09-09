@@ -150,9 +150,10 @@ function createHeaderEntry(prefix, headerListInfo)
   var useShortView = false;
   var partialIDName = prefix + headerListInfo.name;
   this.enclosingBox = document.getElementById(partialIDName + 'Box');
+  this.enclosingRow = document.getElementById(partialIDName + 'Row');
   this.textNode = document.getElementById(partialIDName + 'Value');
   this.isNewHeader = false;
-  this.isValid = false;
+  this.valid = false;
 
   if ("useShortView" in headerListInfo)
   {
@@ -674,8 +675,8 @@ function OnTagsChange()
       if (headerEntry.valid)
         headerEntry.outputFunction(headerEntry, currentHeaderData.tags.headerValue);
 
-      // we may need to collapse or show the tag header box...
-      headerEntry.enclosingBox.collapsed = !headerEntry.valid;
+      // we may need to collapse or show the tag header row...
+      headerEntry.enclosingRow.collapsed = !headerEntry.valid;
     }
   }
 }
@@ -701,7 +702,7 @@ function hideHeaderView(headerTable)
 {
   for (index in headerTable)
   {
-    headerTable[index].enclosingBox.collapsed = true;
+    headerTable[index].enclosingRow.collapsed = true;
   }
 }
 
@@ -715,10 +716,10 @@ function showHeaderView(headerTable)
     headerEntry = headerTable[index];
     if (headerEntry.valid)
     {
-      headerEntry.enclosingBox.collapsed = false;
+      headerEntry.enclosingRow.collapsed = false;
     }
     else // if the entry is invalid, always make sure it's collapsed
-      headerEntry.enclosingBox.collapsed = true;
+      headerEntry.enclosingRow.collapsed = true;
   }
 }
 
@@ -777,9 +778,36 @@ function updateExpandedView()
       EnsureMinimumNumberOfHeaders(gExpandedHeaderView);
   showHeaderView(gExpandedHeaderView);
 
+  // Now that we have all the headers, ensure that the name columns of both
+  // grids are the same size so that they don't look weird.
+  syncGridColumnWidths();
+
   UpdateJunkButton();
   UpdateReplyButtons();
   displayAttachmentsForExpandedView();
+}
+
+/**
+ * Ensure that the name columns in both grids are the same size, since the only
+ * reason that we're using two grids at all is to workaround the XUL box
+ * model's inability to float elements.
+ */
+function syncGridColumnWidths() 
+{
+  let nameColumn = document.getElementById('expandedHeadersNameColumn');
+  let nameColumn2 = document.getElementById('expandedHeaders2NameColumn');
+
+  // reset the minimum widths to 0 so that clientWidth will return the
+  // preferred intrinsic width of each column
+  nameColumn.minWidth = nameColumn2.minWidth = 0;
+
+  // set minWidth on the smaller of the two columns to be the width of the
+  // larger of the two
+  if (nameColumn.clientWidth > nameColumn2.clientWidth) {
+    nameColumn2.minWidth = nameColumn.clientWidth;
+  } else if (nameColumn.clientWidth < nameColumn2.clientWidth) {
+    nameColumn.minWidth = nameColumn2.clientWidth;
+  }
 }
 
 // default method for updating a header value into a header entry
@@ -788,24 +816,46 @@ function updateHeaderValue(headerEntry, headerValue)
   headerEntry.enclosingBox.headerValue = headerValue;
 }
 
+/**
+ * Create the DOM nodes (aka "View") for a non-standard header and insert them
+ * into the grid.  Create and return the corresponding headerEntry object.
+ *
+ * @param {String} headerName  name of the header we're adding, all lower-case;
+ *                             used to construct element ids
+ * @param {String} label       name of the header as displayed in the UI
+ */
 function createNewHeaderView(headerName, label)
 {
   var idName = 'expanded' + headerName + 'Box';
-  var newHeader = document.createElement("mail-headerfield");
+    
+  // create new collapsed row
+  let newRowNode = document.createElement("row");
+  newRowNode.setAttribute("id", 'expanded' + headerName + 'Row');
+  newRowNode.collapsed = true;
+    
+  // create and append the label which contains the header name
+  let newLabelNode = document.createElement("label");
+  newLabelNode.setAttribute("id", 'expanded' + headerName + 'Label');
+  newLabelNode.setAttribute("value", label);
+  newLabelNode.setAttribute("class", "headerName");
+  newLabelNode.setAttribute("control", idName);
+  newRowNode.appendChild(newLabelNode);
 
-  newHeader.setAttribute('id', idName);
-  newHeader.setAttribute('label', label);
-  newHeader.setAttribute('flex', '1');
-  newHeader.collapsed = true;
+  // create and append the new header value
+  var newHeaderNode = document.createElement("mail-headerfield");
+  newHeaderNode.setAttribute('id', idName);
+  newHeaderNode.setAttribute('flex', '1');
+  
+  newRowNode.appendChild(newHeaderNode);
 
   // this new element needs to be inserted into the view...
-  var topViewNode = document.getElementById('variousHeadersBox');
+  let topViewNode = document.getElementById('expandedHeader2Rows');
+  topViewNode.appendChild(newRowNode);
 
-  topViewNode.appendChild(newHeader);
-
-  this.enclosingBox = newHeader;
+  this.enclosingBox = newHeaderNode;
+  this.enclosingRow = newRowNode;
   this.isNewHeader = true;
-  this.isValid = false;
+  this.valid = false;
   this.useToggle = false;
   this.outputFunction = updateHeaderValue;
 }
@@ -821,8 +871,7 @@ function RemoveNewHeaderViews(aHeaderTable)
   {
     var headerEntry = aHeaderTable[index];
     if (headerEntry.isNewHeader)
-      headerEntry.enclosingBox.parentNode
-                 .removeChild(headerEntry.enclosingBox);
+      headerEntry.enclosingRow.parentNode.removeChild(headerEntry.enclosingRow);
   }
 }
 
@@ -1185,7 +1234,6 @@ function hideEmailAddressPopup(emailAddressNode)
 
 function setupEmailAddressPopup(emailAddressNode)
 {
-    dump("emailAddressNode.tagName = " + emailAddressNode.tagName + '\n');
   var emailAddressPlaceHolder = document.getElementById('emailAddressPlaceHolder');
   var emailAddress = emailAddressNode.getPart('emaillabel').value;
   emailAddressNode.setAttribute('selected', 'true');

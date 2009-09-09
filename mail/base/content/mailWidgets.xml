@@ -164,15 +164,9 @@
 
   <!-- mail-toggle-headerfield: Non-email addrs headers which have a toggle
        associated with them (i.e. the subject).
-       Use label to set the header name.
        Use headerValue to set the header value. -->
   <binding id="mail-toggle-headerfield">
     <content>
-      <xul:hbox class="headerNameBox" align="baseline">
-        <xul:image class="expandHeaderViewButton" xbl:inherits="onclick=ontwistyclick"/>
-        <xul:spacer flex="1"/>
-        <xul:label class="headerName" xbl:inherits="value=label" control="headerValue"/>
-      </xul:hbox>
       <xul:textbox class="headerValue" anonid="headerValue" flex="1" readonly="true"/>
     </content>
 
@@ -182,13 +176,9 @@
   </binding>
 
   <!-- mail-headerfield: presents standard text header name & value pairs. Don't use this for email addresses.
-       use label to set the header name.
        use headerValue to set the header value. -->
   <binding id="mail-headerfield">
     <content>
-      <xul:hbox class="headerNameBox" align="baseline">
-        <xul:label class="headerName" xbl:inherits="value=label" control="headerValue" flex="1"/>
-      </xul:hbox>
       <xul:textbox class="headerValue" anonid="headerValue" flex="1" readonly="true"/>
     </content>
 
@@ -199,9 +189,6 @@
 
   <binding id="mail-urlfield" extends="chrome://messenger/content/mailWidgets.xml#mail-headerfield">
     <content>
-      <xul:hbox class="headerNameBox" align="start">
-        <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
-      </xul:hbox>
       <xul:label onclick="if (event.button != 2) openUILink(event.target.value, event);"
                  class="headerValue text-link headerValueUrl"
                  anonid="headerValue" flex="1" readonly="true" context="copyUrlPopup"/>
@@ -210,9 +197,6 @@
 
   <binding id="mail-emailheaderfield">
     <content>
-      <xul:hbox class="headerNameBox" align="start">
-        <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
-      </xul:hbox>
       <xul:mail-emailaddress class="headerValue" containsEmail="true"
                              anonid="emailAddressNode"/>
     </content>
@@ -226,10 +210,6 @@
   <!-- multi-emailHeaderField: presents multiple emailheaderfields with a toggle -->
   <binding id="mail-multi-emailHeaderField">
     <content>
-      <xul:hbox class="headerNameBox" align="baseline" pack="end">
-        <xul:label class="headerName" xbl:inherits="value=label"/>
-      </xul:hbox>
-
       <xul:hbox class="headerValueBox" anonid="longEmailAddresses" flex="1"
                 singleline="true"
                 align="baseline"
@@ -535,10 +515,9 @@
       <xul:hbox class="headerNameBox" align="start" pack="end">
         <xul:image class="addresstwisty" anonid="toggleIcon"
                    onclick="toggleWrap();"/>
-        <xul:label class="headerName" xbl:inherits="value=label"/>
       </xul:hbox>
       <xul:hbox class="headerValueBox" flex="1">
-      <xul:label class="headerValue" anonid="headerValue" flex="1"/>
+        <xul:label class="headerValue" anonid="headerValue" flex="1"/>
       </xul:hbox>
     </content>
 
@@ -697,9 +676,6 @@
   <!-- Header field for showing the tags associated with a message -->
   <binding id="mail-headerfield-tags">
     <content>
-      <xul:hbox class="headerNameBox" align="start">
-        <xul:label class="headerName" xbl:inherits="value=label" flex="1"/>
-      </xul:hbox>
       <xul:label class="headerValue" anonid="headerValue" flex="1"/>
     </content>
 
