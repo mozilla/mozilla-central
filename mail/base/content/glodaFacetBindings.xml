@@ -542,7 +542,6 @@
         let nameNode = document.getAnonymousElementByAttribute(this, "anonid",
                                                                "name");
         nameNode.textContent = this.attrDef.strings.facetLabel;
-        nameNode.setAttribute("title", this.attrDef.strings.facetTooltip);
 
         // - include
         // setup the include label
@@ -1105,9 +1104,6 @@
                           this, "anonid", "showall");
         showNode.textContent = glodaFacetStrings.get(
           "glodaFacetView.results.message.showAllInList.label");
-        showNode.setAttribute("title",
-          glodaFacetStrings.get(
-            "glodaFacetView.results.message.showAllInList.tooltip"));
 
         let sortLabelNode = document.getAnonymousElementByAttribute(
                           this, "anonid", "sort-label");
