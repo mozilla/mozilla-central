@@ -90,7 +90,7 @@
       </xul:hbox>
       <xul:toolbarbutton anonid="quick-search-clearbutton" xbl:inherits=""
                          disabled="true" class="quick-search-clearbutton"
-                         onclick="this.parentNode.value = ''; this.parentNode.select(); return false;" 
+                         onclick="this.parentNode.value = ''; this.parentNode.doSearch(); this.parentNode.select(); return false;"
                          chromedir="&locale.dir;"/>
                          <!--XXX update search if not global-->
 
@@ -117,10 +117,10 @@
       <handler event="keypress" keycode="VK_RETURN"
         phase="bubbling" action="try {this.doSearch();} catch (e) { logException(e);} return true;"/>
       <handler event="input">
-        <![CDATA[ 
-          if (!this.value) 
+        <![CDATA[
+          if (!this.value)
             this.clearButtonHidden = true;
-          else 
+          else
             this.clearButtonHidden = false;
         ]]></handler>
       <handler event="keypress" keycode="VK_DOWN" modifiers="alt" phase="capturing" action="return this.openmenupopup();"/>
@@ -184,7 +184,7 @@
         try {
           Cu.import("resource://app/modules/StringBundle.js");
           Cu.import("resource://app/modules/quickSearchManager.js");
-  
+
           var prefBranch =
               Components.classes['@mozilla.org/preferences-service;1'].
               getService(Components.interfaces.nsIPrefBranch2);
@@ -194,13 +194,13 @@
             Components.classes["@mozilla.org/autocomplete/search;1?name=gloda"].
                       getService(). //Components.interfaces.nsIAutoCompleteSearch)
                       wrappedJSObject;
-  
+
           var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
                             .getService(Components.interfaces.nsIObserverService);
           observerSvc.addObserver(this, "autocomplete-did-enter-text", false);
-  
+
           this.quickSearchStrings = new StringBundle("chrome://messenger/locale/quickSearch.properties");
-  
+
           let quickSearchModes = QuickSearchManager.getSearchModes();
           for (let i = 0; i < quickSearchModes.length; i++) {
             let searchMode = quickSearchModes[i];
@@ -214,7 +214,7 @@
             menuitem.setAttribute("oncommand", "this.parentNode.parentNode.parentNode.changeMode(this)");
             this.menupopup.appendChild(menuitem);
           }
-          
+
           let separator = document.createElement("menuseparator");
           separator.setAttribute("quicksearchOnly", "true");
           this.menupopup.appendChild(separator);
@@ -260,7 +260,7 @@
             }
           }
         },
-  
+
         QueryInterface: function(aIID)
         {
           if (aIID.equals(Components.interfaces.nsIObserver) ||
@@ -289,7 +289,7 @@
                        }"/>
       <field name="_glodaEnabled"/>
       <property name="glodaEnabled" onget="return this._glodaEnabled"
-                onset="try {this.showGlodaItems(val); this._glodaEnabled = val;} catch(e) {logException(e);}"/> 
+                onset="try {this.showGlodaItems(val); this._glodaEnabled = val;} catch(e) {logException(e);}"/>
 
       <property name="autocompletePopup" readonly="true" onget="return document.getElementById(this.getAttribute('autocompletepopup'))"/>
       <property name="showingSearchCriteria" onget="return this.getAttribute('searchCriteria') == 'true';"
@@ -395,7 +395,7 @@
               if (row.nounDef.name == "tag") {
                 theQuery = theQuery.tags(row.item);
               } else if (row.nounDef.name == "identity") {
-                theQuery = theQuery.involves(row.item); 
+                theQuery = theQuery.involves(row.item);
               }
               theQuery.orderBy('-date');
               tabmail.openTab("glodaFacet", {
@@ -442,7 +442,7 @@
                 //  is the value that 3is going to be saved with the current
                 //  tab when we switch back to it next.
                 let searchString = this.value;
-                
+
                 if (tabmail.currentTabInfo.mode.name == "glodaFacet") {
                   // we'd rather reuse the existing tab (and somehow do something
                   // smart with any preexisting facet choices, but that's a
@@ -539,7 +539,7 @@
           ]]>
         </body>
       </method>
-      
+
       <method name="showGlodaItems">
         <parameter name="aEnable"/>
         <body><![CDATA[
@@ -560,7 +560,7 @@
 
     </implementation>
   </binding>
-  
+
   <binding id="searchBarDropMarker">
     <resources>
       <stylesheet src="chrome://messenger/skin/searchBox.css"/>
@@ -576,7 +576,7 @@
           <xul:image class="quick-search-button-dropmarker"/>
         </xul:hbox>
       </xul:stack>
-    </content>  
+    </content>
   </binding>
 
 </bindings>
