@@ -41,12 +41,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://app/modules/quickSearchManager.js");
+Components.utils.import("resource://app/modules/StringBundle.js");
 
 
 var gSearchBundle;
 
 var gStatusBar = document.getElementById('statusbar-icon');
 
+var gGlodaCompleteStrings = new StringBundle("chrome://messenger/locale/glodaComplete.properties");
 
 /**
  * The quicksearch widget is a UI widget (the #searchInput textbox) which is

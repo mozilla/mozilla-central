@@ -360,7 +360,8 @@
       <method name="_adjustAcItem">
         <body>
           <![CDATA[
-          this._explanation.value = "messages tagged " + this.row.item.tag; // XXX l10n
+            let label = gGlodaCompleteStrings.get("glodaComplete.messagesTagged.label");
+            this._explanation.value = label.replace("#1", this.row.item.tag);
           ]]>
         </body>
       </method>
@@ -393,11 +394,8 @@
       <method name="_adjustAcItem">
         <body>
           <![CDATA[
-          try {
-            this._explanation.value = "messages mentioning " + this.row.item; // XXX l10n
-            } catch (e) {
-            logException(e);
-            }
+            let label = gGlodaCompleteStrings.get("glodaComplete.messagesMentioning.label");
+            this._explanation.value = label.replace("#1", this.row.item);
           ]]>
         </body>
       </method>
@@ -432,8 +430,8 @@
       <method name="_adjustAcItem">
         <body>
           <![CDATA[
-          this._explanation.value = "messages with ANY of: "
-          this._parameters.value = this.row.words.join(", "); // XXX l10n
+          this._explanation.value = gGlodaCompleteStrings.get("glodaComplete.messagesWithAny.label");
+          this._parameters.value = this.row.words.join(", ");
           ]]>
         </body>
       </method>
@@ -458,7 +456,7 @@
       <property name="label" readonly="true">
         <getter>
           <![CDATA[
-            return "full text search: " + this.row.item;
+            return "full text search: " + this.row.item; // what is this for? l10n?
           ]]>
         </getter>
       </property>
@@ -466,8 +464,8 @@
       <method name="_adjustAcItem">
         <body>
           <![CDATA[
-          this._explanation.value = "messages with ALL of: "
-          this._parameters.value = this.row.words.join(", "); // XXX l10n
+          this._explanation.value = gGlodaCompleteStrings.get("glodaComplete.messagesWithAll.label");
+          this._parameters.value = this.row.words.join(", ");
           ]]>
         </body>
       </method>
