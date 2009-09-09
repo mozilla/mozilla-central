@@ -503,12 +503,15 @@
        so. magic! (this is why our binding node's class is facetious. -->
   <html:div class="facet">
     <html:h2 anonid="name"></html:h2>
-    <html:h3 anonid="included-label" class="facet-included-header"></html:h3>
-    <html:ul anonid="included" class="facet-included barry"></html:ul>
-    <html:h3 anonid="excluded-label" class="facet-excluded-header"></html:h3>
-    <html:ul anonid="excluded" class="facet-excluded barry"></html:ul>
-    <html:h3 anonid="remainder-label" class="facet-remaindered-header"></html:h3>
-    <html:ul anonid="remainder" class="facet-remaindered barry"></html:ul>
+    <html:div anonid="content-box" class="facet-content">
+      <html:h3 anonid="included-label" class="facet-included-header"></html:h3>
+      <html:ul anonid="included" class="facet-included barry"></html:ul>
+      <html:h3 anonid="excluded-label" class="facet-excluded-header"></html:h3>
+      <html:ul anonid="excluded" class="facet-excluded barry"></html:ul>
+      <html:h3 anonid="remainder-label" class="facet-remaindered-header"></html:h3>
+      <html:ul anonid="remainder" class="facet-remaindered barry"></html:ul>
+      <html:div anonid="more" class="facet-more" needed="false" />
+    </html:div>
   </html:div>
   </content>
   <implementation>
@@ -539,7 +542,6 @@
         let nameNode = document.getAnonymousElementByAttribute(this, "anonid",
                                                                "name");
         nameNode.textContent = this.attrDef.strings.facetLabel;
-        nameNode.setAttribute("title", this.attrDef.strings.facetTooltip);
 
         // - include
         // setup the include label
@@ -587,11 +589,17 @@
         this.remainderList = document.getAnonymousElementByAttribute(
                                         this, "anonid", "remainder");
 
+        // - more button
+        this.moreButton = document.getAnonymousElementByAttribute(
+                            this, "anonid", "more");
+
+        // we need to know who the content box is for flying fun
+        this.contentBox = document.getAnonymousElementByAttribute(
+                            this, "anonid", "content-box");
+
 
         // -- House-cleaning
         // -- All/Top mode decision
-        // to simplify our logic, we always need an other group sentinel even
-        //  if we are operating in "all" mode.
         this.modes = ["all"];
         if (this.maxDisplayRows >= this.orderedGroups.length) {
           this.mode = "all";
@@ -603,11 +611,24 @@
           this.topGroups = FacetUtils.makeTopGroups(this.attrDef,
                                                     this.orderedGroups,
                                                     this.maxDisplayRows);
+          // setup the more button string
+          this.moreButton.textContent =
+            glodaFacetStrings.get(
+                "glodaFacetView.facets.mode.top.moreLabel")
+              .replace("#1", this.orderedGroups.length.toLocaleString());
         }
 
         // -- Row Building
         this.buildRows();
 
+      ]]></body>
+    </method>
+    <method name="changeMode">
+      <parameter name="aNewMode" />
+      <body><![CDATA[
+        this.mode = aNewMode;
+        this.setAttribute("mode", aNewMode);
+        this.buildRows();
       ]]></body>
     </method>
     <method name="buildRows">
@@ -616,15 +637,19 @@
         let useGroups = (this.mode == "all") ? this.orderedGroups
                                              : this.topGroups;
 
-        let constraint = this.constraint;
+        // should we just rely on automatic string coercion?
+        this.moreButton.setAttribute("needed",
+                                     (this.mode == "top") ? "true" : "false");
+
+        let constraint = this.faceter.constraint;
 
         // -- empty all of our display buckets...
         let remainderList = this.remainderList;
         while (remainderList.lastChild)
           remainderList.removeChild(remainderList.lastChild);
-        let inclList = this.includeList, excludeList = this.excludeList;
-        while (inclList.lastChild)
-          inclList.removeChild(inclList.lastChild);
+        let includeList = this.includeList, excludeList = this.excludeList;
+        while (includeList.lastChild)
+          includeList.removeChild(includeList.lastChild);
         while (excludeList.lastChild)
           excludeList.removeChild(excludeList.lastChild);
 
@@ -817,6 +842,18 @@
         let $targetNode = $(targetNode);
         let dest = $targetNode.offset();
 
+        // if the flying box wants to go higher than the content box goes, just
+        //  send it to the top of the content box instead.
+        let $contentBox = $(this.contentBox);
+        let contentOffset = $contentBox.offset();
+        if (dest.top < contentOffset.top)
+          dest.top = contentOffset.top;
+        // likewise if it wants to go further south than the content box, stop
+        //  that
+        if (dest.top > (contentOffset.top + $contentBox.height()))
+          dest.top = contentOffset.top + $contentBox.height() -
+                       $targetNode.height();
+
         let $flyingNode = $(flyingNode)
           .appendTo("body")
           .css("position", "absolute")
@@ -943,6 +980,9 @@
                         (barNode.getAttribute("variety") == "remainder") ?
                           "include" : "remainder");
       }
+      else if (nodeClass == "facet-more") {
+        this.changeMode("all");
+      }
     ]]></handler>
     <handler event="mouseover"><![CDATA[
       // we dispatch based on the class of the thing we clicked on.
@@ -1064,9 +1104,6 @@
                           this, "anonid", "showall");
         showNode.textContent = glodaFacetStrings.get(
           "glodaFacetView.results.message.showAllInList.label");
-        showNode.setAttribute("title",
-          glodaFacetStrings.get(
-            "glodaFacetView.results.message.showAllInList.tooltip"));
 
         let sortLabelNode = document.getAnonymousElementByAttribute(
                           this, "anonid", "sort-label");

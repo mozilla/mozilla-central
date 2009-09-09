@@ -379,6 +379,7 @@ var FacetContext = {
     this.faceters = this.facetDriver.faceters.concat();
 
     this.everFaceted = false;
+    this._activeConstraints = {};
     try {
       if (this.searcher) {
         this._sortBy = '-dascore';
@@ -421,6 +422,18 @@ var FacetContext = {
     this.maxMessagesToShow = 10;
   },
 
+  /**
+   * Clean up the UI in preparation for a new query to come in.
+   */
+  _resetUI: function() {
+    for each (let [, faceter] in Iterator(this.faceters)) {
+      if (faceter.xblNode && !faceter.xblNode.explicit)
+        faceter.xblNode.parentNode.removeChild(faceter.xblNode);
+      faceter.xblNode = null;
+      faceter.constraint = null;
+    }
+  },
+
   _groupCountComparator: function(a, b) {
     return b.groupCount - a.groupCount;
   },
@@ -448,7 +461,7 @@ var FacetContext = {
           explicitBinding.orderedGroups = faceter.orderedGroups;
           // explicit booleans should always be displayed for consistency
           if (faceter.groupCount >= 1 ||
-              faceter.type == "boolean") {
+              (explicitBinding.getAttribute("type").indexOf("boolean") != -1)) {
             explicitBinding.build(true);
             explicitBinding.removeAttribute("uninitialized");
           }
@@ -574,7 +587,7 @@ var FacetContext = {
    * Maps attribute names to their corresponding |ActiveConstraint|, if they
    *  have one.
    */
-  _activeConstraints: {},
+  _activeConstraints: null,
   /**
    * Called by facet bindings when the user does some clicking and wants to
    *  impose a new constraint.
@@ -682,6 +695,7 @@ var FacetContext = {
 
   toggleFulltextCriteria: function() {
     this.tab.searcher.andTerms = !this.tab.searcher.andTerms;
+    this._resetUI();
     this.collection = this.tab.searcher.getCollection(this);
   },
 
