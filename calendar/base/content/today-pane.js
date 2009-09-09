@@ -188,7 +188,7 @@ var TodayPane = {
       newdatetime = newdatetime.getInTimezone(calendarDefaultTimezone());
 
       // XXX this doesn't really fit into this function
-      document.getElementById("aMinimonthPopupset").hidePopup();
+      document.getElementById("miniday-month-panel").hidePopup();
 
       return this.setDay(newdatetime, true);
   },
