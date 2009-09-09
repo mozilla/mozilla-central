@@ -79,6 +79,22 @@
       <preference id="pref.privacy.disable_button.view_passwords"
                   name="pref.privacy.disable_button.view_passwords"
                   type="bool"/>
+      <!-- Cookies -->
+      <preference id="pref.privacy.disable_button.cookie_exceptions"
+                  name="pref.privacy.disable_button.cookie_exceptions"
+                  type="bool"/>
+      <preference id="pref.privacy.disable_button.view_cookies"
+                  name="pref.privacy.disable_button.view_cookies"
+                  type="bool"/>
+      <preference id="network.cookie.cookieBehavior"
+                  name="network.cookie.cookieBehavior"
+                  type="int"/>
+      <preference id="network.cookie.lifetimePolicy"
+                  name="network.cookie.lifetimePolicy"
+                  type="int"/>
+      <preference id="network.cookie.blockFutureCookies"
+                  name="network.cookie.blockFutureCookies"
+                  type="bool"/>
     </preferences>
 
     <tabbox id="securityPrefs" flex="1" onselect="gSecurityPane.tabSelectionChanged();">
@@ -87,6 +103,7 @@
         <tab label="&itemPhishing.label;"/>
         <tab label="&itemAntiVirus.label;"/>
         <tab label="&itemPasswords.label;"/>
+        <tab label="&itemCookies.label;"/>
       </tabs>
       
       <tabpanels flex="1">
@@ -174,6 +191,43 @@
                     oncommand="gSecurityPane.changeMasterPassword();"/>
           </hbox>
           <separator flex="1"/>
+        </tabpanel>
+
+        <!-- Cookies -->
+        <tabpanel orient="vertical">
+          <description>&cookies.intro;</description>
+          <separator class="thin"/>
+
+          <hbox id="cookiesBox">
+            <checkbox id="acceptCookies" label="&acceptCookies.label;" flex="1"
+                      preference="network.cookie.cookieBehavior"
+                      accesskey="&acceptCookies.accesskey;"
+                      onsyncfrompreference="return gSecurityPane.readAcceptCookies();"
+                      onsynctopreference="return gSecurityPane.writeAcceptCookies();"/>
+            <button id="cookieExceptions" oncommand="gSecurityPane.showCookieExceptions();"
+                    label="&cookieExceptions.label;" accesskey="&cookieExceptions.accesskey;"
+                    preference="pref.privacy.disable_button.cookie_exceptions"/>
+          </hbox>
+          <hbox id="keepRow" class="indent">
+            <hbox id="keepBox" align="center">
+              <label id="keepUntil"
+                     control="keepCookiesUntil"
+                     accesskey="&keepUntil.accesskey;">&keepUntil.label;</label>
+              <menulist id="keepCookiesUntil"
+                        preference="network.cookie.lifetimePolicy">
+                <menupopup>
+                  <menuitem label="&expire.label;" value="0"/>
+                  <menuitem label="&close.label;" value="2"/>
+                  <menuitem label="&askEachTime.label;" value="1"/>
+                </menupopup>
+              </menulist>
+            </hbox>
+            <hbox flex="1"/>
+            <button id="showCookiesButton" label="&showCookies.label;"
+                    accesskey="&showCookies.accesskey;"
+                    oncommand="gSecurityPane.showCookies();"
+                    preference="pref.privacy.disable_button.view_cookies"/>
+          </hbox>
         </tabpanel>
       </tabpanels>
     </tabbox>

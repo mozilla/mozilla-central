@@ -213,5 +213,64 @@ var gSecurityPane = {
   updateDownloadedPhishingListState: function()
   {
     document.getElementById('useDownloadedList').disabled = !document.getElementById('enablePhishingDetector').checked;
+  },
+
+  /**
+   * Reads the network.cookie.cookieBehavior preference value and
+   * enables/disables the rest of the cookie UI accordingly, returning true
+   * if cookies are enabled.
+   */
+  readAcceptCookies: function ()
+  {
+    var pref = document.getElementById("network.cookie.cookieBehavior");
+    var keepUntil = document.getElementById("keepUntil");
+    var menu = document.getElementById("keepCookiesUntil");
+
+    // enable the rest of the UI for anything other than "disable all cookies"
+    var acceptCookies = (pref.value != 2);
+
+    keepUntil.disabled = menu.disabled = this._autoStartPrivateBrowsing || !acceptCookies;
+
+    return acceptCookies;
+  },
+
+  /**
+   * Enables/disables the "keep until" label and menulist in response to the
+   * "accept cookies" checkbox being checked or unchecked.
+   */
+  writeAcceptCookies: function ()
+  {
+    var accept = document.getElementById("acceptCookies");
+
+    return accept.checked ? 0 : 2;
+  },
+
+  /**
+   * Displays fine-grained, per-site preferences for cookies.
+   */
+  showCookieExceptions: function ()
+  {
+    var bundle = document.getElementById("bundlePreferences");
+    var params = { blockVisible   : true,
+                   sessionVisible : true,
+                   allowVisible   : true,
+                   prefilledHost  : "",
+                   permissionType : "cookie",
+                   windowTitle    : bundle.getString("cookiepermissionstitle"),
+                   introText      : bundle.getString("cookiepermissionstext") };
+    document.documentElement.openWindow("mailnews:permissions",
+                        "chrome://messenger/content/preferences/permissions.xul",
+                        "", params);
+  },
+
+  /**
+   * Displays all the user's cookies in a dialog.
+   */
+  showCookies: function (aCategory)
+  {
+    document.documentElement.openWindow("mailnews:cookies",
+                            "chrome://messenger/content/preferences/cookies.xul",
+                            "", null);
   }
+
 };
