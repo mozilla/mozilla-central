@@ -95,28 +95,35 @@ var QuickSearchManager = {
 
   _modeLabels: {},
 
-  /** populate an associative array containing the labels from a properties file
-  **/
-  
+  /**
+   * Populate an associative array containing the labels from a properties file
+   */
   loadLabels: function QuickSearchManager_loadLabels() {
     const quickSearchStrings =
       new StringBundle("chrome://messenger/locale/quickSearch.properties");
-    this._modeLabels[QuickSearchConstants.kQuickSearchSubject] = quickSearchStrings.get("searchSubject.label");
-    this._modeLabels[QuickSearchConstants.kQuickSearchFrom] = quickSearchStrings.get("searchFrom.label");
-    this._modeLabels[QuickSearchConstants.kQuickSearchFromOrSubject] = quickSearchStrings.get("searchFromOrSubject.label");
-    this._modeLabels[QuickSearchConstants.kQuickSearchRecipient] = quickSearchStrings.get("searchRecipient.label");
-    this._modeLabels[QuickSearchConstants.kQuickSearchRecipientOrSubject] = quickSearchStrings.get("searchRecipientOrSubject.label");
-    this._modeLabels[QuickSearchConstants.kQuickSearchBody] = quickSearchStrings.get("searchBody.label");
+    this._modeLabels[QuickSearchConstants.kQuickSearchSubject] =
+      quickSearchStrings.get("searchSubject.label");
+    this._modeLabels[QuickSearchConstants.kQuickSearchFrom] =
+      quickSearchStrings.get("searchFrom.label");
+    this._modeLabels[QuickSearchConstants.kQuickSearchFromOrSubject] =
+      quickSearchStrings.get("searchFromOrSubject.label");
+    this._modeLabels[QuickSearchConstants.kQuickSearchRecipient] =
+      quickSearchStrings.get("searchRecipient.label");
+    this._modeLabels[QuickSearchConstants.kQuickSearchRecipientOrSubject] =
+      quickSearchStrings.get("searchRecipientOrSubject.label");
+    this._modeLabels[QuickSearchConstants.kQuickSearchBody] =
+      quickSearchStrings.get("searchBody.label");
   },
-  
-  /** create the structure that the UI needs to fully describe a quick search
-      mode.
-      
-      @return a list of array objects mapping 'value' to the constant specified in
-      QuickSearchConstants, and 'label' to a localized string.
-  **/
+
+  /**
+   * Create the structure that the UI needs to fully describe a quick search
+   * mode.
+   *
+   * @return a list of array objects mapping 'value' to the constant specified
+   * in QuickSearchConstants, and 'label' to a localized string.
+   */
   getSearchModes: function QuickSearchManager_getSearchModes() {
-    let modes =[];
+    let modes = [];
     for (let i = 0; i < kQuickSearchCount; i++)
       modes.push({'value': i, 'label': this._modeLabels[i]});
     return modes;

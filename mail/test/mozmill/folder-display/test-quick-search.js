@@ -40,6 +40,8 @@ var MODULE_NAME = 'test-quick-search';
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
+Cu.import("resource://app/modules/quickSearchManager.js");
+
 var folder;
 var setFoo, setBar;
 
@@ -59,10 +61,19 @@ function setupModule(module) {
  *
  */
 function test_save_quick_search() {
+  mc.sleep(3000);
   be_in_folder(folder);
+  mc.sleep(2000);
+
+  // - Force it to do a subject search, not a gloda search!
+dump("GLODA SEARCH MODE: " + mc.e("gloda-search").searchMode + "\n");
+  mc.e("gloda-search").searchMode =
+    QuickSearchConstants.kQuickSearchSubject.toString();
+dump("GLODA SEARCH MODE: " + mc.e("gloda-search").searchMode + "\n");
 
   // - Type something in the quick search box.
   mc.type(mc.eid("searchInput"), "foo");
+
   mc.keypress(mc.eid("searchInput"), "VK_RETURN", {});
   wait_for_all_messages_to_load();
 
