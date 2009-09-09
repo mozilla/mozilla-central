@@ -644,12 +644,6 @@ function GoToFolder()
   MsgOpenNewWindowForFolder(gFolderDisplay.selectedMessage);
 }
 
-function BeginDragThreadPane(event)
-{
-    // no search pane dnd yet
-    return false;
-}
-
 function saveAsVirtualFolder()
 {
   var searchFolderURIs = window.arguments[0].folder.URI;

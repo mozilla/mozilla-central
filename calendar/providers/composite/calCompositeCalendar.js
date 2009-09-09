@@ -104,8 +104,8 @@ function calCompositeCalendar () {
     this.wrappedJSObject = this;
 
     this.mCalendars = new Array();
-    this.mCompositeObservers = new cal.observerBag(Components.interfaces.calICompositeObserver);
-    this.mObservers = new cal.observerBag(Components.interfaces.calIObserver);
+    this.mCompositeObservers = new cal.ObserverBag(Components.interfaces.calICompositeObserver);
+    this.mObservers = new cal.ObserverBag(Components.interfaces.calIObserver);
     this.mDefaultCalendar = null;
     this.mStatusObserver = null;
 }

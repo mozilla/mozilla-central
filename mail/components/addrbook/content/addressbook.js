@@ -170,7 +170,7 @@ function OnLoadAddressBook()
 
 function delayedOnLoadAddressBook()
 {
-  gSearchInput = document.getElementById("searchInput");
+  gSearchInput = document.getElementById("peopleSearchInput");
 
   verifyAccounts(null, false);   // this will do migration, if we need to.
 

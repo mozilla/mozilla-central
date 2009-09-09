@@ -93,17 +93,11 @@
     <separator class="thin"/>
 
     <vbox>
-      <label value="&searchInput.label;" accesskey="&searchInput.accesskey;" control="searchInput"/>
-      <textbox id="searchInput" flex="1" type="timed" timeout="800"
-               onfocus="onSearchInputFocus(event);"
-               onblur="onSearchInputBlur(event);" clickSelectsAll="true"
-               oncommand="onEnterInSearchBar();" chromedir="&locale.dir;">
-        <button id="quick-search-button" type="menu" chromedir="&locale.dir;">
-          <menupopup id="quick-search-menupopup" value="0" persist="value" popupalign="topleft" popupanchor="bottomleft">
-            <menuitem value="0" label="&SearchNameOrEmail.label;" type="radio"/>
-          </menupopup>
-        </button>
-      </textbox>
+      <label value="&searchInput.label;" accesskey="&searchInput.accesskey;"
+             control="peopleSearchInput"/>
+      <textbox id="peopleSearchInput" flex="1" type="search" timeout="800"
+               emptytext="&SearchNameOrEmail.label;" clickSelectsAll="true"
+               oncommand="onEnterInSearchBar();" chromedir="&locale.dir;"/>
     </vbox>
 
     <separator class="thin"/>

@@ -67,7 +67,6 @@
   <script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/commandglue.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/SearchDialog.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/messengerdnd.js"/>
 
   <!-- We need this for a SetFolderPicker call, until we de-rdfify this file -->
   <script type="application/x-javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
@@ -125,8 +124,8 @@
          </hbox>
          <hbox align="center">
            <checkbox id="checkSearchOnline"
-                     label="&searchOnline.label;"
-                     accesskey="&searchOnline.accesskey;"
+                     label="&searchOnServer.label;"
+                     accesskey="&searchOnServer.accesskey;"
                      oncommand="updateSearchLocalSystem();"/>
          </hbox>
       </vbox>
@@ -201,7 +200,7 @@
             <treecol id="idCol" persist="hidden ordinal width" flex="1" hidden="true"
                      label="&idColumn.label;" tooltiptext="&idColumn.tooltip;"/>
           </treecols>
-          <treechildren ondraggesture="BeginDragThreadPane(event);"/>
+          <treechildren ondraggesture="ThreadPaneOnDragStart(event);"/>
         </tree>
       </vbox>
       <hbox align="start"> 

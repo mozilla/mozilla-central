@@ -128,11 +128,11 @@ function fillMailContextMenu(event)
                       (gContextMenu.onImage || gContextMenu.onLink);
   var single = (numSelected == 1);
 
+  let onPlayableMedia = gContextMenu.onVideo || gContextMenu.onAudio;
+
   // Select-all and copy are only available in the message-pane
-  if (inThreadPane) {
-    document.getElementById("mailContext-selectall").hidden = true;
-    document.getElementById("mailContext-copy").hidden = true;
-  }
+  ShowMenuItem("mailContext-selectall", !inThreadPane && !onPlayableMedia);
+  ShowMenuItem("mailContext-copy", !inThreadPane && !onPlayableMedia);
 
   // Show the Open in New Window  and New Tab options if there is exactly one
   // message selected.
@@ -142,6 +142,8 @@ function fillMailContextMenu(event)
   /**
    * Most menu items are visible if there's 1 or 0 messages selected, and
    * enabled if there's exactly one selected. Handle those here.
+   * Exception: playable media is selected, in which case, don't show them.
+   *
    * @param aID   the id of the element to display/enable
    * @param aHide (optional)  an additional criteria to evaluate when we
    *              decide whether to display the element. If false, we'll hide
@@ -149,7 +151,7 @@ function fillMailContextMenu(event)
    */
  function setSingleSelection(aID, aHide) {
     var hide = aHide != undefined ? aHide : true;
-    ShowMenuItem(aID, single && !hideMailItems && hide);
+    ShowMenuItem(aID, single && !hideMailItems && hide && !onPlayableMedia);
     EnableMenuItem(aID, single);
   }
 
@@ -172,26 +174,28 @@ function fillMailContextMenu(event)
 
   // Set up the move menu. We can't move from newsgroups.
   ShowMenuItem("mailContext-moveMenu",
-               !isNewsgroup && !hideMailItems && msgFolder);
+               !isNewsgroup && !hideMailItems && msgFolder && !onPlayableMedia);
 
   // disable move if we can't delete message(s) from this folder
   var canMove = msgFolder && msgFolder.canDeleteMessages;
-  EnableMenuItem("mailContext-moveMenu", canMove);
+  EnableMenuItem("mailContext-moveMenu", canMove && !onPlayableMedia);
 
   // Copy is available as long as something is selected.
-  ShowMenuItem("mailContext-copyMenu", !hideMailItems && msgFolder);
+  ShowMenuItem("mailContext-copyMenu",
+               !hideMailItems && msgFolder && !onPlayableMedia);
 
-  ShowMenuItem("mailContext-moveToFolderAgain", !hideMailItems && msgFolder);
-  if (!hideMailItems) {
+  let hideMoveToFolderAgain = !hideMailItems && msgFolder && !onPlayableMedia;
+  ShowMenuItem("mailContext-moveToFolderAgain", hideMoveToFolderAgain);
+  if (hideMoveToFolderAgain) {
     initMoveToFolderAgainMenu(document.getElementById("mailContext-moveToFolderAgain"));
     goUpdateCommand("cmd_moveToFolderAgain");
   }
 
   ShowMenuItem("paneContext-afterMove", !inThreadPane);
 
-  ShowMenuItem("mailContext-tags", !hideMailItems && msgFolder);
+  ShowMenuItem("mailContext-tags", !hideMailItems && msgFolder && !onPlayableMedia);
 
-  ShowMenuItem("mailContext-mark", !hideMailItems && msgFolder);
+  ShowMenuItem("mailContext-mark", !hideMailItems && msgFolder && !onPlayableMedia);
 
   setSingleSelection("mailContext-saveAs");
   if (Application.platformIsMac)
@@ -199,9 +203,10 @@ function fillMailContextMenu(event)
   else
     setSingleSelection("mailContext-printpreview");
 
-  ShowMenuItem("mailContext-print", !hideMailItems);
+  ShowMenuItem("mailContext-print", !hideMailItems && !onPlayableMedia);
 
-  ShowMenuItem("mailContext-delete", !hideMailItems && (isNewsgroup || canMove));
+  ShowMenuItem("mailContext-delete",
+               !hideMailItems && (isNewsgroup || canMove) && !onPlayableMedia);
   // This function is needed for the case where a folder is just loaded (while
   // there isn't a message loaded in the message pane), a right-click is done
   // in the thread pane.  This function will disable enable the 'Delete

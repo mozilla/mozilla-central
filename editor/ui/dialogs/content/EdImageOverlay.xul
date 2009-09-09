@@ -259,12 +259,22 @@
         <caption id="alignLabel" label="&alignment.label;"/>
         <menulist id="alignTypeSelect" class="align-menu">
           <menupopup>
-            <menuitem class="align-menu" value="top"    label="&topPopup.value;"/>
-            <menuitem class="align-menu" value="middle" label="&centerPopup.value;"/>
-            <menuitem class="align-menu" value="bottom" label="&bottomPopup.value;"/>
+            <menuitem class="align-menu menuitem-iconic"
+                      value="top"
+                      label="&topPopup.value;"/>
+            <menuitem class="align-menu menuitem-iconic"
+                      value="middle"
+                      label="&centerPopup.value;"/>
+            <menuitem class="align-menu menuitem-iconic"
+                      value="bottom"
+                      label="&bottomPopup.value;"/>
             <!-- HTML attribute value is opposite of the button label on purpose -->
-            <menuitem class="align-menu" value="right"  label="&wrapLeftPopup.value;"/>
-            <menuitem class="align-menu" value="left"   label="&wrapRightPopup.value;"/>
+            <menuitem class="align-menu menuitem-iconic"
+                      value="right"
+                      label="&wrapLeftPopup.value;"/>
+            <menuitem class="align-menu menuitem-iconic"
+                      value="left"
+                      label="&wrapRightPopup.value;"/>
           </menupopup>
         </menulist>
       </groupbox>

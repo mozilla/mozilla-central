@@ -3,8 +3,8 @@
 <!ENTITY searchHeading.accesskey     "h">
 <!ENTITY searchSubfolders.label      "Search subfolders">
 <!ENTITY searchSubfolders.accesskey  "e">
-<!ENTITY searchOnline.label          "Search online">
-<!ENTITY searchOnline.accesskey      "l">
+<!ENTITY searchOnServer.label        "Run search on server">
+<!ENTITY searchOnServer.accesskey    "u">
 <!ENTITY resetButton.label           "Clear">
 <!ENTITY resetButton.accesskey       "C">
 <!ENTITY openButton.label            "Open">
