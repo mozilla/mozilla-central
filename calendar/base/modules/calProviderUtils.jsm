@@ -420,10 +420,10 @@ cal.toRFC3339 = function toRFC3339(aDateTime) {
 /**
  * Observer bag implementation taking care to replay open batch notifications.
  */
-cal.observerBag = function calObserverBag(iid) {
+cal.ObserverBag = function calObserverBag(iid) {
     this.init(iid);
 };
-cal.observerBag.prototype = {
+cal.ObserverBag.prototype = {
     __proto__: cal.calListenerBag.prototype,
 
     mBatchCount: 0,
@@ -483,7 +483,7 @@ cal.ProviderBase.prototype = {
 
     initProviderBase: function cPB_initProviderBase() {
         this.wrappedJSObject = this;
-        this.mObservers = new cal.observerBag(Components.interfaces.calIObserver);
+        this.mObservers = new cal.ObserverBag(Components.interfaces.calIObserver);
         this.mProperties = {};
         this.mProperties.currentStatus = Components.results.NS_OK;
     },

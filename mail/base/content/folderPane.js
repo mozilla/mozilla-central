@@ -37,6 +37,8 @@
 Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/folderUtils.jsm");
 
+const kDefaultMode = "smart";
+
 /**
  * This file contains the controls and functions for the folder pane.
  * The following definitions will be useful to know:
@@ -76,7 +78,8 @@ let gFolderTreeView = {
       let prefB = Cc["@mozilla.org/preferences-service;1"]
                      .getService(Ci.nsIPrefBranch);
       let modeIndex = prefB.getIntPref("mail.ui.folderpane.view");
-      this._mode = this._modeNames[modeIndex];
+      // upgrade default All to Smart
+      this._mode = (modeIndex == 0) ? kDefaultMode : this._modeNames[modeIndex];
       prefB.deleteBranch("mail.ui.folderpane");
     } catch(ex) {
       // This is ok.  If we've already migrated we'll end up here
@@ -185,7 +188,7 @@ let gFolderTreeView = {
     delete this._mapGenerators[aCommonName];
     delete this._modeDisplayNames[aCommonName];
     if (this._mode == aCommonName)
-      this.mode = "all";
+      this.mode = kDefaultMode;
   },
 
   /**
@@ -239,7 +242,7 @@ let gFolderTreeView = {
       this._mode = this._treeElement.getAttribute("mode");
       // this can happen when an extension is removed
       if (!(this._mode in this._mapGenerators))
-        this._mode = "all";
+        this._mode = kDefaultMode;
     }
     return this._mode;
   },
@@ -772,6 +775,18 @@ let gFolderTreeView = {
     let map = [];
     let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
                     .getService(Components.interfaces.nsIMsgAccountManager);
+    // Smart mode only makes sense if there's more than 1 incoming mail account,
+    // so check for that and fall back to "all folders" if we don't find a 2nd.
+    let accounts = gFolderTreeView._sortedAccounts();
+    let numMailAccounts = 0;
+    for each (let account in accounts) {
+      if (GetInboxFolder(account.incomingServer) != null)
+        numMailAccounts++;
+      if (numMailAccounts > 1)
+        break;
+    }
+    if (numMailAccounts <= 1)
+      return ftv._mapGenerators["all"](ftv);
     let smartServer;
     try {
       smartServer = acctMgr.FindServer("nobody", "smart mailboxes", "none");
@@ -786,8 +801,6 @@ let gFolderTreeView = {
     smartServer.prettyName = document.getElementById("bundle_messenger")
                              .getString("smartAccountName");
     smartServer.canHaveFilters = false;
-
-    let accounts = gFolderTreeView._sortedAccounts();
 
     let smartRoot = smartServer.rootFolder;
     let nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;

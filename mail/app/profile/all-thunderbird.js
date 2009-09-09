@@ -467,3 +467,7 @@ pref("browser.formfill.enable", true);
 pref("browser.history_expire_days", 180);
 pref("browser.history_expire_days_min", 90);
 pref("browser.history_expire_sites", 40000);
+
+// Disable autoplay as we don't handle audio elements in emails very well.
+// See bug 515082.
+pref("media.autoplay.enabled", false);

@@ -1,7 +1,6 @@
 classic.jar:
 % skin communicator classic/1.0 %skin/classic/communicator/
 % skin editor classic/1.0 %skin/classic/editor/
-% skin global classic/1.0 %skin/classic/global/
 % skin messenger classic/1.0 %skin/classic/messenger/
 % skin navigator classic/1.0 %skin/classic/navigator/
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/

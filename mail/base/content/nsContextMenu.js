@@ -46,6 +46,8 @@ function nsContextMenu(aXulMenu) {
   this.onTextInput    = false;
   this.onImage        = false;
   this.onLoadedImage  = false;
+  this.onVideo        = false;
+  this.onAudio        = false;
   this.onLink         = false;
   this.onMailtoLink   = false;
   this.onSaveableLink = false;
@@ -55,6 +57,7 @@ function nsContextMenu(aXulMenu) {
   this.linkURL        = "";
   this.linkURI        = null;
   this.linkProtocol   = null;
+  this.mediaURL       = "";
   this.inFrame        = false;
   this.hasBGImage     = false;
   this.isContentSelected = false;
@@ -82,6 +85,7 @@ nsContextMenu.prototype = {
   initItems : function CM_initItems() {
     this.initSaveItems();
     this.initClipboardItems();
+    this.initMediaPlayerItems();
   },
   initSaveItems : function CM_initSaveItems() {
     this.showItem("mailContext-savelink", this.onSaveableLink);
@@ -99,6 +103,21 @@ nsContextMenu.prototype = {
     this.showItem("mailContext-copyemail", this.onMailtoLink);
     this.showItem("mailContext-copylink", this.onLink);
     this.showItem("mailContext-copyimage", this.onImage);
+  },
+  initMediaPlayerItems: function CM_initMediaPlayerItems() {
+    let onMedia = this.onVideo || this.onAudio;
+    // Several mutually exclusive items.... play/pause, mute/unmute, show/hide
+    this.showItem("mailContext-media-play", onMedia && this.target.paused);
+    this.showItem("mailContext-media-pause", onMedia && !this.target.paused);
+    this.showItem("mailContext-media-mute", onMedia && !this.target.muted);
+    this.showItem("mailContext-media-unmute", onMedia && this.target.muted);
+    if (onMedia) {
+      let hasError = this.target.error != null;
+      this.setItemAttr("mailContext-media-play", "disabled", hasError);
+      this.setItemAttr("mailContext-media-pause", "disabled", hasError);
+      this.setItemAttr("mailContext-media-mute", "disabled", hasError);
+      this.setItemAttr("mailContext-media-unmute", "disabled", hasError);
+    }
   },
 
   /**
@@ -118,6 +137,9 @@ nsContextMenu.prototype = {
     this.onTextInput    = false;
     this.imageURL       = "";
     this.onLink         = false;
+    this.onVideo        = false;
+    this.onAudio        = false;
+    this.mediaURL       = "";
     this.linkURL        = "";
     this.linkURI        = null;
     this.linkProtocol   = null;
@@ -144,6 +166,12 @@ nsContextMenu.prototype = {
         this.onTextInput = this.isTargetATextBox(this.target);
       } else if (this.target instanceof HTMLTextAreaElement) {
         this.onTextInput = true;
+      } else if (this.target instanceof HTMLVideoElement) {
+        this.onVideo = true;
+        this.mediaURL = this.target.currentSrc || this.target.src;
+      } else if (this.target instanceof HTMLAudioElement) {
+        this.onAudio = true;
+        this.mediaURL = this.target.currentSrc || this.target.src;
       } else if (this.target instanceof HTMLHtmlElement) {
         var bodyElt = this.target.ownerDocument.body;
         if (bodyElt) {
@@ -529,5 +557,26 @@ nsContextMenu.prototype = {
       }
     }
     return false;
+  },
+
+  mediaCommand : function CM_mediaCommand(command) {
+    var media = this.target;
+
+    switch (command) {
+      case "play":
+        media.play();
+        break;
+      case "pause":
+        media.pause();
+        break;
+      case "mute":
+        media.muted = true;
+        break;
+      case "unmute":
+        media.muted = false;
+        break;
+      // XXX hide controls & show controls don't work in emails as Javascript is
+      // disabled. May want to consider later for RSS feeds.
+    }
   }
 };

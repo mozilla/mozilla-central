@@ -77,7 +77,8 @@
                   preference="browser.search.defaultengine">
           <template>
             <menupopup>
-              <menuitem value="..."
+              <menuitem class="menuitem-iconic"
+                        value="..."
                         uri="..."
                         image="rdf:http://home.netscape.com/NC-rdf#Icon"
                         label="rdf:http://home.netscape.com/NC-rdf#Name"/>
