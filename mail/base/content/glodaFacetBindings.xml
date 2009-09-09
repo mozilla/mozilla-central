@@ -1112,6 +1112,16 @@
       }
       ]]></body>
     </method>
+    <method name="ensureNodeVisible">
+      <parameter name="messageIndex"/>
+      <body><![CDATA[
+        let messagesNode = document.getAnonymousElementByAttribute(
+                             this, "anonid", "messages");
+        let message = messagesNode.childNodes[messageIndex];
+        window.scrollTo(0, $(message).position()['top']);
+      ]]></body>
+    </method>
+      
     <method name="updateSortLabels">
       <body><![CDATA[
       try {

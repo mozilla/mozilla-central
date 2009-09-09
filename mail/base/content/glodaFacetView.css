@@ -578,3 +578,17 @@ h3 {
   background-color: #faf0b8;
   border: 1px solid #ede4af;
 }
+
+.show-more {
+  font-size: small;
+  text-align: right;
+  margin-right: 1em;
+  margin-bottom: 2em;
+  color: #3465a4;
+  font-weight: bold;
+}
+
+.show-more:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
