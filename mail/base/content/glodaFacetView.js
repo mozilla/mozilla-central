@@ -506,7 +506,7 @@ var FacetContext = {
       }
     }
 
-    this.showMore();
+    this._showResults();
 
     if (this._callbackOnFacetComplete) {
       let callback = this._callbackOnFacetComplete;
@@ -515,22 +515,26 @@ var FacetContext = {
     }
   },
 
-  showMore: function() {
-    this._numPages += 1;
+  _showResults: function()
+  {
     let results = document.getElementById("results");
     let numMessageToShow = Math.min(this.maxMessagesToShow * this._numPages,
                                     this._activeSet.length);
     results.setMessages(this._activeSet.slice(0, numMessageToShow));
 
     let showMore = document.getElementById("showMore");
-
     if (this._activeSet.length > numMessageToShow)
       $(showMore).show();
     else
       $(showMore).hide();
+  },
 
-    if (this._numPages > 1)
-      results.ensureNodeVisible((this._numPages-1) * this.maxMessagesToShow);
+  showMore: function() {
+    this._numPages += 1;
+    this._showResults();
+    let results = document.getElementById("results");
+    let msgIndex = (this._numPages - 1) * this.maxMessagesToShow;
+    results.ensureNodeVisible(msgIndex);
   },
 
   /** For use in hovering specific results. */
@@ -538,7 +542,7 @@ var FacetContext = {
   /** For use in hovering specific results. */
   fakeResultAttr: {},
 
-  _numPages: 0,
+  _numPages: 1,
   _HOVER_STABILITY_DURATION_MS: 100,
   _brushedFacet: null,
   _brushedGroup: null,
