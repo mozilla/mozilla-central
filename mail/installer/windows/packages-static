@@ -283,9 +283,7 @@ bin\components\toolkitprofile.xpt
 bin\components\commandlines.xpt
 bin\components\chrome.xpt
 bin\components\nsDefaultCLH.js
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\components\nsFormAutoComplete.js
-#endif
 
 ; rdf
 bin\components\rdf.xpt
@@ -420,9 +418,7 @@ bin\components\pluginGlue.js
 bin\components\txEXSLTRegExFunctions.js
 bin\components\feeds.xpt
 bin\components\saxparser.xpt
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\components\satchel.xpt
-#endif
 bin\components\shistory.xpt
 bin\components\zipwriter.xpt
 bin\components\nsBadCertHandler.js
