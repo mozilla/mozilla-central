@@ -298,7 +298,7 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
 }
 
 .folderview-cycler {
-  -moz-padding-end: 0px !important;
+  -moz-padding-end: 0px;
 }
 
 .folderview-cycler[dir="prev"],

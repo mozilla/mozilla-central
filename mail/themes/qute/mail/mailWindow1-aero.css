@@ -1,0 +1,6 @@
+%include mailWindow1.css
+
+.folderview-cycler {
+  -moz-padding-start: 5px;
+  -moz-padding-end: 5px;
+}

@@ -244,7 +244,7 @@ classic.jar:
   skin/classic/aero/messenger/messageBody.css                      (mail/messageBody.css)
   skin/classic/aero/messenger/messageQuotes.css                    (mail/messageQuotes.css)
 * skin/classic/aero/messenger/messenger.css                        (mail/messenger-aero.css)
-  skin/classic/aero/messenger/mailWindow1.css                      (mail/mailWindow1.css)
+* skin/classic/aero/messenger/mailWindow1.css                      (mail/mailWindow1-aero.css)
   skin/classic/aero/messenger/tagColors.css                        (mail/tagColors.css)
   skin/classic/aero/messenger/messageWindow.css                    (mail/messageWindow.css)
   skin/classic/aero/messenger/searchBox.css                        (mail/searchBox.css)
