@@ -283,8 +283,10 @@ function OnLoadMessenger()
   let tabmail = document.getElementById('tabmail');
   if (tabmail)
   {
+    // mailTabType is defined in mailWindowOverlay.js
     tabmail.registerTabType(mailTabType);
-    tabmail.registerTabMonitor(glodaSearchTabMonitor);
+    // glodaFacetTab* in glodaFacetTab.js
+    tabmail.registerTabType(glodaFacetTabType);
     tabmail.registerTabMonitor(QuickSearchTabMonitor);
     tabmail.registerTabMonitor(statusMessageCountsMonitor);
     tabmail.openFirstTab();

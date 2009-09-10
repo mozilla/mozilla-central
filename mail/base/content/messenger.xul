@@ -40,6 +40,8 @@
 # ***** END LICENSE BLOCK *****
 
 <?xml-stylesheet href="chrome://messenger/skin/mailWindow1.css" type="text/css"?>
+<?xml-stylesheet href="chrome://gloda/content/glodacomplete.css" type="text/css"?>
+
 
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/msgHdrViewOverlay.xul"?>
@@ -90,12 +92,13 @@
 <script type="application/x-javascript" src="chrome://messenger/content/selectionsummaries.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/specialTabs.js"/>
+<script type="application/x-javascript" src="chrome://messenger/content/glodaFacetTab.js"/>
+<script type="application/x-javascript" src="chrome://messenger/content/searchBar.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mail3PaneWindowCommands.js"/>
 <script type="application/x-javascript" src="chrome://global/content/contentAreaUtils.js"/>
 <script type="application/x-javascript" src="chrome://communicator/content/nsContextMenu.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mailContextMenus.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/accountUtils.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/searchBar.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/folderPane.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/phishingDetector.js"/>
 <script type="application/x-javascript" src="chrome://communicator/content/contentAreaClick.js"/>
@@ -344,16 +347,6 @@
                         <splitter class="tree-splitter"/>
                         <treecol id="idCol" persist="width" flex="1" hidden="true"
                                  label="&idColumn.label;" tooltiptext="&idColumn.tooltip;"/>
-                        <splitter class="tree-splitter"/>
-                        <treecol id="glodaWhyCol" persist="width" flex="1"
-                                 hidden="true" ignoreincolumnpicker="true"
-                                 label="&glodaWhyColumn.label;"
-                                 tooltiptext="&glodaWhyColumn.tooltip;"/>
-                        <splitter class="tree-splitter"/>
-                        <treecol id="glodaScoreCol" persist="width" flex="1"
-                                 hidden="true" ignoreincolumnpicker="true"
-                                 label="&glodaScoreColumn.label;"
-                                 tooltiptext="&glodaScoreColumn.tooltip;"/>
                       </treecols>
                     <treechildren ondraggesture="ThreadPaneOnDragStart(event);"
                                   ondragover="ThreadPaneOnDragOver(event);"

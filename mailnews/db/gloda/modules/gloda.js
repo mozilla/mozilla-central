@@ -433,10 +433,16 @@ var Gloda = {
    * This method uses the indexer's callback handle mechanism, and does not
    *  obey traditional return semantics.
    *
+   * We normalize all e-mail addresses to be lowercase as a normative measure.
+   *
+   * @param aCallbackHandle The GlodaIndexer callback handle (or equivalent)
+   *   that you are operating under.
    * @param ... One or more strings.  Each string can contain zero or more
    *   e-mail addresses with display name.  If more than one address is given,
    *   they should be comma-delimited.  For example
-   *   '"Bob Smith" <bob@smith.com>' is an address with display name.
+   *   '"Bob Smith" <bob@smith.com>' is an address with display name.  Mime
+   *   header decoding is performed, but is ignorant of any folder-level
+   *   character set overrides.
    * @returns via the callback handle mechanism, a list containing one sub-list
    *   for each string argument passed.  Each sub-list containts zero or more
    *   GlodaIdentity instances corresponding to the addresses provided.
@@ -456,7 +462,7 @@ var Gloda = {
 
       let identities = [];
       for (let iAddress = 0; iAddress < parsed.count; iAddress++) {
-        let address = parsed.addresses[iAddress];
+        let address = parsed.addresses[iAddress].toLowerCase();
         if (address in addresses)
           addresses[address].push(resultList);
         else
@@ -595,7 +601,7 @@ var Gloda = {
 
       // find the identities if they exist, flag to create them if they don't
       if (emailAddress) {
-        parsed = GlodaUtils.parseMailAddresses(emailAddress);
+        let parsed = GlodaUtils.parseMailAddresses(emailAddress);
         if (!(parsed.addresses[0] in myEmailAddresses)) {
           let identity = GlodaDatastore.getIdentity("email",
                                                     parsed.addresses[0]);
@@ -607,7 +613,7 @@ var Gloda = {
         }
       }
       if (replyTo) {
-        parsed = GlodaUtils.parseMailAddresses(replyTo);
+        let parsed = GlodaUtils.parseMailAddresses(replyTo);
         if (!(parsed.addresses[0] in myEmailAddresses)) {
           let identity = GlodaDatastore.getIdentity("email",
                                                     parsed.addresses[0]);
@@ -862,40 +868,48 @@ var Gloda = {
   /**
    * Define a noun.  Takes a dictionary with the following keys/values:
    *
-   * @param name The name of the noun.  This is not a display name (anything
-   *     being displayed needs to be localized, after all), but simply the
-   *     canonical name for debugging purposes and for people to pass to
+   * @param aNounDef.name The name of the noun.  This is not a display name
+   *     (anything being displayed needs to be localized, after all), but simply
+   *     the canonical name for debugging purposes and for people to pass to
    *     lookupNoun.  The suggested convention is lower-case-dash-delimited,
    *     with names being singular (since it's a single noun we are referring
    *     to.)
-   * @param class The 'class' to which an instance of the noun will belong (aka
-   *     will pass an instanceof test).
-   * @param allowsArbitraryAttrs Is this a 'first class noun'/can it be a subject, AKA can
-   *     this noun have attributes stored on it that relate it to other things?
-   *     For example, a message is first-class; we store attributes of
-   *     messages.  A date is not first-class now, nor is it likely to be; we
-   *     will not store attributes about a date, although dates will be the
-   *     objects of other subjects.  (For example: we might associate a date
-   *     with a calendar event, but the date is an attribute of the calendar
-   *     event and not vice versa.)
-   * @param usesParameter A boolean indicating whether this noun requires use
-   *     of the 'parameter' BLOB storage field on the attribute bindings in the
-   *     database to persist itself.  Use of parameters should be limited
-   *     to a reasonable number of values (16-32 is okay, more than that is
-   *     pushing it and 256 should be considered an absolute upper bound)
-   *     because of the database organization.  When false, your toParamAndValue
-   *     function is expected to return null for the parameter and likewise your
-   *     fromParamAndValue should expect ignore and generally ignore the
-   *     argument.
-   * @param toParamAndValue A function that takes an instantiated noun
+   * @param aNounDef.class The 'class' to which an instance of the noun will
+   *     belong (aka will pass an instanceof test).  You may also provide this
+   *     as 'clazz' if the keyword makes your IDE angry.
+   * @param aNounDef.allowsArbitraryAttrs Is this a 'first class noun'/can it be
+   *     a subject, AKA can this noun have attributes stored on it that relate
+   *     it to other things?  For example, a message is first-class; we store
+   *     attributes of messages.  A date is not first-class now, nor is it
+   *     likely to be; we will not store attributes about a date, although dates
+   *     will be the objects of other subjects.  (For example: we might
+   *     associate a date with a calendar event, but the date is an attribute of
+   *     the calendar event and not vice versa.)
+   * @param aNounDef.usesParameter A boolean indicating whether this noun
+   *     requires use of the 'parameter' BLOB storage field on the attribute
+   *     bindings in the database to persist itself.  Use of parameters should
+   *     be limited to a reasonable number of values (16-32 is okay, more than
+   *     that is pushing it and 256 should be considered an absolute upper
+   *     bound) because of the database organization.  When false, your
+   *     toParamAndValue function is expected to return null for the parameter
+   *     and likewise your fromParamAndValue should expect ignore and generally
+   *     ignore the argument.
+   * @param aNounDef.toParamAndValue A function that takes an instantiated noun
    *     instance and returns a 2-element list of [parameter, value] where
    *     parameter may only be non-null if you passed a usesParameter of true.
    *     Parameter may be of any type (BLOB), and value must be numeric (pass
    *     0 if you don't need the value).
    *
-   * @param schema Unsupported mechanism by which you can define a table that
-   *     corresponds to this noun.  The table will be created if it does not
-   *     exist.
+   * @param aNounDef.isPrimitive True when the noun instance is a raw numeric
+   *     value/string/boolean.  False when the instance is an object.  When
+   *     false, it is assumed the attribute that serves as a unique identifier
+   *     for the value is "id" unless 'idAttr' is provided.
+   * @param [aNounDef.idAttr="id"] For non-primitive nouns, this is the
+   *     attribute on the object that uniquely identifies it.
+   *
+   * @param aNounDef.schema Unsupported mechanism by which you can define a
+   *     table that corresponds to this noun.  The table will be created if it
+   *     does not exist.
    *     - name The table name; don't conflict with other things!
    *     - columns A list of [column name, sqlite type] tuples.  You should
    *       always include a definition like ["id", "INTEGER PRIMARY KEY"] for
@@ -918,6 +932,15 @@ var Gloda = {
     //  clazz instead of class.
     if (aNounDef.clazz)
       aNounDef.class = aNounDef.clazz;
+
+    if (!("idAttr" in aNounDef))
+      aNounDef.idAttr = "id";
+    if (!("comparator" in aNounDef)) {
+      aNounDef.comparator = function() {
+        throw new Error("Noun type '" + aNounDef.name +
+                        "' lacks a real comparator.");
+      };
+    }
 
     // We allow nouns to have data tables associated with them where we do all
     //  the legwork.  The schema attribute is the gateway to this magical world
@@ -1089,30 +1112,87 @@ var Gloda = {
     this.defineNoun({
       name: "bool",
       clazz: Boolean, allowsArbitraryAttrs: false,
+      isPrimitive: true,
+      // favor true before false
+      comparator: function gloda_bool_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        return b - a;
+      },
       toParamAndValue: function(aBool) {
         return [null, aBool ? 1 : 0];
       }}, this.NOUN_BOOLEAN);
     this.defineNoun({
       name: "number",
       clazz: Number, allowsArbitraryAttrs: false, continuous: true,
+      isPrimitive: true,
+      comparator: function gloda_number_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        return a - b;
+      },
       toParamAndValue: function(aNum) {
         return [null, aNum];
       }}, this.NOUN_NUMBER);
     this.defineNoun({
       name: "string",
       clazz: String, allowsArbitraryAttrs: false,
+      isPrimitive: true,
+      comparator: function gloda_string_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        return a.localeCompare(b);
+      },
       toParamAndValue: function(aString) {
         return [null, aString];
       }}, this.NOUN_STRING);
     this.defineNoun({
       name: "date",
       clazz: Date, allowsArbitraryAttrs: false, continuous: true,
+      isPrimitive: true,
+      comparator: function gloda_data_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        return a - b;
+      },
       toParamAndValue: function(aDate) {
         return [null, aDate.valueOf() * 1000];
       }}, this.NOUN_DATE);
     this.defineNoun({
       name: "fulltext",
       clazz: String, allowsArbitraryAttrs: false, continuous: false,
+      isPrimitive: true,
+      comparator: function gloda_fulltext_comparator(a, b) {
+        throw new Error("Fulltext nouns are not comparable!");
+      },
       // as noted on NOUN_FULLTEXT, we just pass the string around.  it never
       //  hits the database, so it's okay.
       toParamAndValue: function(aString) {
@@ -1123,6 +1203,19 @@ var Gloda = {
       name: "folder",
       clazz: GlodaFolder,
       allowsArbitraryAttrs: false,
+      isPrimitive: false,
+      comparator: function gloda_folder_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        return a.name.localeCompare(b.name);
+      },
       toParamAndValue: function(aFolderOrGlodaFolder) {
         if (aFolderOrGlodaFolder instanceof GlodaFolder)
           return [null, aFolderOrGlodaFolder.id];
@@ -1133,11 +1226,24 @@ var Gloda = {
       name: "conversation",
       clazz: GlodaConversation,
       allowsArbitraryAttrs: false,
+      isPrimitive: false,
       cache: true, cacheCost: 512,
       tableName: "conversations",
       attrTableName: "messageAttributes", attrIDColumnName: "conversationID",
       datastore: GlodaDatastore,
       objFromRow: GlodaDatastore._conversationFromRow,
+      comparator: function gloda_conversation_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        return a.subject.localeCompare(b.subject);
+      },
       toParamAndValue: function(aConversation) {
         if (aConversation instanceof GlodaConversation)
           return [null, aConversation.id];
@@ -1148,6 +1254,7 @@ var Gloda = {
       name: "message",
       clazz: GlodaMessage,
       allowsArbitraryAttrs: true,
+      isPrimitive: false,
       cache: true, cacheCost: 2048,
       tableName: "messages",
       // we will always have a fulltext row, even for messages where we don't
@@ -1175,6 +1282,7 @@ var Gloda = {
       name: "contact",
       clazz: GlodaContact,
       allowsArbitraryAttrs: true,
+      isPrimitive: false,
       cache: true, cacheCost: 128,
       tableName: "contacts",
       attrTableName: "contactAttributes", attrIDColumnName: "contactID",
@@ -1182,6 +1290,18 @@ var Gloda = {
       dbAttribAdjuster: GlodaDatastore.adjustAttributes,
       objInsert: GlodaDatastore.insertContact,
       objUpdate: GlodaDatastore.updateContact,
+      comparator: function gloda_contact_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        return a.name.localeCompare(b.name);
+      },
       toParamAndValue: function(aContact) {
         if (aContact instanceof GlodaContact)
           return [null, aContact.id];
@@ -1192,10 +1312,34 @@ var Gloda = {
       name: "identity",
       clazz: GlodaIdentity,
       allowsArbitraryAttrs: false,
+      isPrimitive: false,
       cache: true, cacheCost: 128,
       usesUniqueValue: true,
       tableName: "identities",
       datastore: GlodaDatastore, objFromRow: GlodaDatastore._identityFromRow,
+      /**
+       * Short string is the contact name, long string includes the identity
+       *  value too, delimited by a colon.  Not tremendously localizable.
+       */
+      userVisibleString: function(aIdentity, aLong) {
+        if (!aLong)
+          return aIdentity.contact.name;
+        if (aIdentity.contact.name == aIdentity.value)
+          return aIdentity.value;
+        return aIdentity.contact.name + " (" + aIdentity.value + ")";
+      },
+      comparator: function gloda_identity_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        return a.contact.name.localeCompare(b.contact.name);
+      },
       toParamAndValue: function(aIdentity) {
         if (aIdentity instanceof GlodaIdentity)
           return [null, aIdentity.id];
@@ -1211,6 +1355,26 @@ var Gloda = {
       name: "parameterized-identity",
       clazz: null,
       allowsArbitraryAttrs: false,
+      comparator: function gloda_fulltext_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        // First sort by the first identity in the tuple
+        // Since our general use-case is for the first guy to be "me", we only
+        //  compare the identity value, not the name.
+        let fic = a[0].value.localeCompare(b[0].value);
+        if (fic)
+          return fic;
+        // Next compare the second identity in the tuple, but use the contact
+        //  this time to be consistent with our identity comparator.
+        return a[1].contact.name.localeCompare(b[1].contact.name);
+      },
       computeDelta: function(aCurValues, aOldValues) {
         let oldMap = {};
         for each (let [, tupe] in Iterator(aOldValues)) {
@@ -1355,43 +1519,72 @@ var Gloda = {
         aSubjectNounDef.queryClass.prototype[aAttrDef.boundName + "Like"] =
           likeConstrainer;
       }
+
+      // - Custom helpers provided by the noun type...
+      if ("queryHelpers" in objectNounDef) {
+        for each (let [name, helper] in Iterator(objectNounDef.queryHelpers)) {
+          // we need a new closure...
+          let helperFunc = helper;
+          aSubjectNounDef.queryClass.prototype[aAttrDef.boundName + name] =
+            function() {
+              return helperFunc.call(this, aAttrDef, arguments);
+            };
+        }
+      }
     }
   },
 
   /**
+   * Names of attribute-specific localized strings and the JS attribute they are
+   *  exposed as in the attribute's "strings" attribute (if the provider has a
+   *  string bundle exposed on its "strings" attribute).  They are rooted at
+   *  "gloda.SUBJECT-NOUN-NAME.attr.ATTR-NAME.*".
+   *
+   * Please consult the localization notes in gloda.properties to understand
+   *  what these are used for.
+   */
+  _ATTR_LOCALIZED_STRINGS: {
+    /* - Faceting */
+    facetLabel: "facetLabel",
+    includeLabel: "includeLabel",
+    excludeLabel: "excludeLabel",
+    remainderLabel: "remainderLabel",
+  },
+  /**
    * Define an attribute and all its meta-data.  Takes a single dictionary as
    *  its argument, with the following required properties:
    *
-   * @param provider The object instance providing a 'process' method.
-   * @param extensionName The name of the extension providing these attributes.
-   * @param attributeType The type of attribute, one of the values from the
-   *     kAttr* enumeration.
-   * @param attributeName The name of the attribute, which also doubles as the
-   *     bound property name if you pass 'bind' a value of true.  You are
+   * @param aAttrDef.provider The object instance providing a 'process' method.
+   * @param aAttrDef.extensionName The name of the extension providing these
+   *     attributes.
+   * @param aAttrDef.attributeType The type of attribute, one of the values from
+   *     the kAttr* enumeration.
+   * @param aAttrDef.attributeName The name of the attribute, which also doubles
+   *     as the bound property name if you pass 'bind' a value of true.  You are
    *     responsible for avoiding collisions, which presumably will mean
    *     checking/updating a wiki page in the future, or just prefixing your
    *     attribute name with your extension name or something like that.
-   * @param bind Should this attribute be 'bound' as a convenience attribute
-   *     on the subject's object (true/false)?  For example, with an
+   * @param aAttrDef.bind Should this attribute be 'bound' as a convenience
+   *     attribute on the subject's object (true/false)?  For example, with an
    *     attributeName of "foo" and passing true for 'bind' with a subject noun
-   *     of NOUN_MESSAGE, GlodaMessage instances will expose a "foo" getter
-   *     that returns the value of the attribute.  If 'singular' is true, this
-   *     means an instance of the object class corresponding to the noun type or
-   *     null if the attribute does not exist.  If 'singular' is false, this
-   *     means a list of instances of the object class corresponding to the noun
-   *     type, where the list may be empty if no instances of the attribute are
+   *     of NOUN_MESSAGE, GlodaMessage instances will expose a "foo" getter that
+   *     returns the value of the attribute.  If 'singular' is true, this means
+   *     an instance of the object class corresponding to the noun type or null
+   *     if the attribute does not exist.  If 'singular' is false, this means a
+   *     list of instances of the object class corresponding to the noun type,
+   *     where the list may be empty if no instances of the attribute are
    *     present.
-   * @param bindName Optional override of attributeName for purposes of the
-   *     binding property's name.
-   * @param singular Is the attribute going to happen at most once (true),
-   *     or potentially multiple times (false).  This affects whether
-   *     the binding  returns a list or just a single item (which is null when
+   * @param aAttrDef.bindName Optional override of attributeName for purposes of
+   *     the binding property's name.
+   * @param aAttrDef.singular Is the attribute going to happen at most once
+   *     (true), or potentially multiple times (false).  This affects whether
+   *     the binding returns a list or just a single item (which is null when
    *     the attribute is not present).
-   * @param subjectNouns A list of object types (NOUNs) that this attribute can
-   *     be set on.  Each element in the list should be one of the NOUN_*
-   *     constants or a dynamically registered noun type.
-   * @param objectNoun The object type (one of the NOUN_* constants or a
-   *     dynamically registered noun types) that is the 'object' in the
+   * @param aAttrDef.subjectNouns A list of object types (NOUNs) that this
+   *     attribute can be set on.  Each element in the list should be one of the
+   *     NOUN_* constants or a dynamically registered noun type.
+   * @param aAttrDef.objectNoun The object type (one of the NOUN_* constants or
+   *     a dynamically registered noun types) that is the 'object' in the
    *     traditional RDF triple.  More pragmatically, in the database row used
    *     to represent an attribute, we store the subject (ex: message ID),
    *     attribute ID, and an integer which is the integer representation of the
@@ -1424,6 +1617,7 @@ var Gloda = {
     }
 
     let compoundName = aAttrDef.extensionName + ":" + aAttrDef.attributeName;
+    // -- Database Definition
     let attrDBDef;
     if (compoundName in GlodaDatastore._attributeDBDefs) {
       // the existence of the GlodaAttributeDBDef means that either it has
@@ -1459,6 +1653,55 @@ var Gloda = {
     aAttrDef.objectNounDef = this._nounIDToDef[aAttrDef.objectNoun];
     aAttrDef.objectNounDef.objectNounOfAttributes.push(aAttrDef);
 
+    // No facet attribute means no facet desired; set an explicit null so that
+    //  code can check without doing an "in" check.
+    if (!("facet" in aAttrDef))
+      aAttrDef.facet = null;
+    // Promote "true" facet values to the defaults.  Where attributes have
+    //  specified values, make sure we fill in any missing defaults.
+    else {
+      if (aAttrDef.facet == true) {
+        aAttrDef.facet = {
+          type: "default",
+          groupIdAttr: aAttrDef.objectNounDef.idAttr,
+          filter: null,
+        };
+      }
+      else {
+        if (!("groupIdAttr" in aAttrDef.facet))
+          aAttrDef.facet.groupIdAttr = aAttrDef.objectNounDef.idAttr;
+        if (!("filter" in aAttrDef.facet))
+          aAttrDef.facet.filter = null;
+      }
+    }
+
+    // -- L10n.
+    // If the provider has a string bundle, populate a "strings" attribute with
+    //  our standard attribute strings that can be UI exposed.
+    if ("strings" in aAttrDef.provider) {
+      let bundle = aAttrDef.provider.strings;
+      let attrStrings = aAttrDef.strings = {};
+      // we use the first subject the attribute applies to as the basis of
+      //  where to get the string from.  Mainly because we currently don't have
+      //  any attributes with multiple subjects nor a use-case where we expose
+      //  multiple noun types via the UI.  (Just messages right now.)
+      let canonicalSubject = this._nounIDToDef[aAttrDef.subjectNouns[0]];
+      let propRoot = "gloda." + canonicalSubject.name + ".attr." +
+                       aAttrDef.attributeName + ".";
+      for each (let [propName, attrName] in
+                Iterator(this._ATTR_LOCALIZED_STRINGS)) {
+        try {
+          attrStrings[attrName] = bundle.get(propRoot + propName);
+        }
+        catch (ex) {
+          // do nothing.  nsIStringBundle throws exceptions because it is a
+          //  standard nsresult type of API and our helper buddy does nothing
+          //  to help us.  (StringBundle.js, that is.)
+        }
+      }
+    }
+
+    // -- Subject Noun Binding
     for (let iSubject = 0; iSubject < aAttrDef.subjectNouns.length;
            iSubject++) {
       let subjectType = aAttrDef.subjectNouns[iSubject];
@@ -1842,8 +2085,12 @@ var Gloda = {
    */
   scoreNounItems: function gloda_ns_grokNounItem(aItems, aContext,
                                                  aExtraScoreFuncs) {
-    let itemNounDef = aItems[0].NOUN_DEF;
     let scores = [];
+    // bail if there is nothing to score
+    if (!aItems.length)
+      return scores;
+
+    let itemNounDef = aItems[0].NOUN_DEF;
     if (aExtraScoreFuncs == null)
       aExtraScoreFuncs = [];
 

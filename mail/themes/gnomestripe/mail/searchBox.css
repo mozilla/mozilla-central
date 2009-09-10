@@ -39,13 +39,8 @@
 
 /* ..... tree adjustments ..... */
 
-.quick-search-textbox
-{
+.quick-search-textbox {
   padding-top: 1px;
-}
-
-#searchInput[searchCriteria="true"]  {
-  color: grey;
 }
 
 #quick-search-button  {
@@ -53,7 +48,6 @@
   margin-bottom: 0px;
   -moz-margin-start: 0px;
   -moz-margin-end: 2px;
-
 }
 
 .quick-search-button-image {

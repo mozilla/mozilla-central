@@ -122,10 +122,10 @@ mozmill::
 	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) \
 	runtestlist.py --list=mozmilltests.list --binary=$(PROGRAM) \
 	--dir=$(topsrcdir)/mail/test/mozmill \
-	--default-profile=$(PROGRAM_LOCATION)/defaults/profile
+	--default-profile=$(PROGRAM_LOCATION)/defaults/profile $(MOZMILL_EXTRA)
 
 mozmill-one::
 	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) runtest.py \
 	--test=$(topsrcdir)/mail/test/mozmill/$(SOLO_TEST) --binary=$(PROGRAM) \
-	--default-profile=$(PROGRAM_LOCATION)/defaults/profile
+	--default-profile=$(PROGRAM_LOCATION)/defaults/profile $(MOZMILL_EXTRA)
 endif

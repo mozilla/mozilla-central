@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd" [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
+%brandDTD;
+<!ENTITY % aboutDTD SYSTEM "chrome://global/locale/about.dtd" >
+%aboutDTD;
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
+<!ENTITY % facetViewDTD SYSTEM "chrome://messenger/locale/glodaFacetView.dtd">
+%facetViewDTD;
+]>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en">
+<head>
+  <!-- XBL bindings CSS -->
+  <link rel="stylesheet"
+      href="chrome://messenger/content/glodaFacetBindings.css"
+      type="text/css"></link>
+  <link rel="stylesheet" media="screen" type="text/css"
+        href="chrome://messenger/skin/tagColors.css"/>
+  <!-- Themes -->
+  <link rel="stylesheet"
+      href="chrome://messenger/skin/glodaFacetView.css"
+      type="text/css"></link>
+  <!-- Global Context -->
+  <script type="application/javascript;version=1.8"
+      src="chrome://messenger/content/glodaFacetView.js"></script>
+  <!-- Libs -->
+  <script type="application/javascript;version=1.8"
+      src="chrome://messenger/content/jquery.js"></script>
+  <script type="application/javascript;version=1.8"
+      src="chrome://messenger/content/protovis-r2.6-modded.js"></script>
+  <!-- Facet Binding Stuff that doesn't belong in XBL -->
+  <script type="application/javascript;version=1.8"
+      src="chrome://messenger/content/glodaFacetVis.js"></script>
+</head>
+<body id="body" onload="reachOutAndTouchFrame()">
+  <div id="table">
+    <div class="facets facets-sidebar" id="facets">
+      <h1 id="filter-header-label">&glodaFacetView.filters.label;</h1>
+      <div>
+        <div id="facet-fromMe" class="facetious" type="boolean" attr="fromMe"
+             uninitialized="true" />
+        <div id="facet-toMe" class="facetious" type="boolean" attr="toMe"
+             uninitialized="true" />
+        <div id="facet-star" class="facetious" type="boolean" attr="star"
+             uninitialized="true"/><br />
+        <div id="facet-attachmentTypes" class="facetious" type="boolean-filtered"
+             attr="attachmentTypes"
+             groupDisplayProperty="categoryLabel"
+             uninitialized="true"/>
+      </div>
+    </div>
+    <div id="main-column">
+      <div id="query-explanation"/>
+      <div id="facet-date" class="facetious" type="date" />
+      <div class="results" id="results" type="message" />
+      <div class="show-more" id="showMore" onclick="FacetContext.showMore()">&glodaFacetView.showMore.label;</div>
+    </div>
+  </div>
+</body>
+</html>

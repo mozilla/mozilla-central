@@ -1,5 +1,6 @@
 classic.jar:
 % skin messenger classic/1.0 %skin/classic/messenger/
+  skin/classic/messenger/glodaFacetView.css                      (mail/glodaFacetView.css)
   skin/classic/messenger/multimessageview.css                    (mail/multimessageview.css)
   skin/classic/messenger/dialogs.css                             (mail/dialogs.css)
   skin/classic/messenger/messenger.css                           (mail/messenger.css)
@@ -132,7 +133,10 @@ classic.jar:
   skin/classic/messenger/icons/check.png                         (mail/icons/check.png)
   skin/classic/messenger/icons/dot.png                           (mail/icons/dot.png)
   skin/classic/messenger/icons/flagcol.png                       (mail/icons/flagcol.png)
+  skin/classic/messenger/icons/flag-col.png                      (mail/icons/flag-col.png)
   skin/classic/messenger/icons/flaggedmail.png                   (mail/icons/flaggedmail.png)
+  skin/classic/messenger/icons/exclude.png                       (mail/icons/exclude.png)
+  skin/classic/messenger/icons/exclude-selected.png              (mail/icons/exclude-selected.png)
   skin/classic/messenger/icons/folder-archive.png                (mail/icons/folder-archive.png)
   skin/classic/messenger/icons/folder-closed.png                 (mail/icons/folder-closed.png)
   skin/classic/messenger/icons/folder-draft.png                  (mail/icons/folder-draft.png)

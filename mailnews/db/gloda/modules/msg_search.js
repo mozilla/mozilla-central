@@ -88,7 +88,7 @@ const DASCORE_SQL_SNIPPET =
     ") + date)";
 
 const FULLTEXT_QUERY_EXPLICIT_SQL =
-  "SELECT messages.*, offsets(messagesText) AS osets " +
+  "SELECT messages.*, messagesText.*, offsets(messagesText) AS osets " +
     "FROM messages, messagesText WHERE messagesText MATCH ?" +
     " AND messages.id == messagesText.docid";
 
@@ -183,48 +183,101 @@ function scoreOffsets(aMessage, aContext) {
   return score;
 }
 
+/**
+ * The searcher basically looks like a query, but is specialized for fulltext
+ *  search against messages.  Most of the explicit specialization involves
+ *  crafting a SQL query that attempts to order the matches by likelihood that
+ *  the user was looking for it.  This is based on full-text matches combined
+ *  with an explicit (generic) interest score value placed on the message at
+ *  indexing time.  This is followed by using the more generic gloda scoring
+ *  mechanism to explicitly score the messages given the search context in
+ *  addition to the more generic score adjusting rules.
+ */
+function GlodaMsgSearcher(aListener, aSearchString, aAndTerms) {
+  this.listener = aListener;
 
-function GlodaMsgSearcher(aViewWrapper, aFulltextTerms) {
-  this.viewWrapper = aViewWrapper;
-
-  this.fulltextTerms = aFulltextTerms;
+  this.searchString = aSearchString;
+  this.fulltextTerms = this.parseSearchString(aSearchString);
+  this.andTerms = (aAndTerms != null) ? aAndTerms : true;
 
   this.query = null;
   this.collection = null;
 
-  this.scoresByUriAndKey = {};
-  this.whysByUriAndKey = {};
+  this.scoresById = {};
 }
 GlodaMsgSearcher.prototype = {
   /**
    * Number of messages to retrieve initially.
    */
-  retrievalLimit: 100,
+  retrievalLimit: 400,
+
+  parseSearchString: function GlodaMsgSearcher_parseSearchString(aSearchString) {
+    aSearchString = aSearchString.trim();
+    let terms = [];
+    while (aSearchString) {
+      if (aSearchString[0] == '"') {
+        let endIndex = aSearchString.indexOf(aSearchString[0], 1);
+        // eat the quote if it has no friend
+        if (endIndex == -1) {
+          aSearchString = aSearchString.substring(1);
+          continue;
+        }
+
+        terms.push(aSearchString.substring(1, endIndex).trim());
+        aSearchString = aSearchString.substring(endIndex + 1);
+        continue;
+      }
+
+      let spaceIndex = aSearchString.indexOf(" ");
+      if (spaceIndex == -1) {
+        terms.push(aSearchString);
+        break;
+      }
+
+      terms.push(aSearchString.substring(0, spaceIndex));
+      aSearchString = aSearchString.substring(spaceIndex+1);
+    }
+
+    return terms;
+  },
 
   buildFulltextQuery: function GlodaMsgSearcher_buildFulltextQuery() {
     let query = Gloda.newQuery(Gloda.NOUN_MESSAGE, {
       noMagic: true,
       explicitSQL: FULLTEXT_QUERY_EXPLICIT_SQL,
-      // osets is 0-based column number 9 (volatile to column changes)
-      // dascore becomes 0-based column number 10
+      // osets is 0-based column number 14 (volatile to column changes)
+      // dascore becomes 0-based column number 15
       outerWrapColumns: [DASCORE_SQL_SNIPPET + " AS dascore"],
       // save the offset column for extra analysis
-      stashColumns: [9]
+      stashColumns: [14]
     });
 
-    query.fulltextMatches(this.fulltextTerms.join(" "));
-    query.orderBy('-dascore');
+    let fulltextQueryString;
+    if (this.andTerms)
+      fulltextQueryString = '"' + this.fulltextTerms.join('" "') + '"';
+    else
+      fulltextQueryString = '"' + this.fulltextTerms.join('" OR "') + '"';
+
+    query.fulltextMatches(fulltextQueryString);
+    query.orderBy(this.sortBy);
     query.limit(this.retrievalLimit);
 
     return query;
   },
 
-  go: function GlodaMsgSearcher_go() {
+  getCollection: function GlodaMsgSearcher_getCollection(
+      aListenerOverride, aData) {
+    if (aListenerOverride)
+      this.listener = aListenerOverride;
+
     this.query = this.buildFulltextQuery();
-    this.collection = this.query.getCollection(this);
+    this.collection = this.query.getCollection(this, aData);
+    this.completed = false;
 
     return this.collection;
   },
+  
+  sortBy: '-dascore', 
 
   onItemsAdded: function GlodaMsgSearcher_onItemsAdded(aItems, aCollection) {
     let scores = Gloda.scoreNounItems(
@@ -239,18 +292,25 @@ GlodaMsgSearcher.prototype = {
       let item = aItems[i];
       let score = scores[i];
 
-      let hdr = item.folderMessage;
-      if (hdr) {
-        this.scoresByUriAndKey[hdr.folder.URI + "-" + hdr.messageKey] = score;
-        actualItems.push(item);
-      }
+      this.scoresById[item.id] = score;
     }
 
-    this.viewWrapper.onItemsAdded(actualItems, aCollection);
+    if (this.listener)
+      this.listener.onItemsAdded(actualItems, aCollection);
   },
-  onItemsModified: function GlodaMsgSearcher_onItemsModified() {},
-  onItemsRemoved: function GlodaMsgSearcher_onItemsRemoved() {},
+  onItemsModified: function GlodaMsgSearcher_onItemsModified(aItems,
+                                                             aCollection) {
+    if (this.listener)
+      this.listener.onItemsModified(aItems, aCollection);
+  },
+  onItemsRemoved: function GlodaMsgSearcher_onItemsRemoved(aItems,
+                                                           aCollection) {
+    if (this.listener)
+      this.listener.onItemsRemoved(aItems, aCollection);
+  },
   onQueryCompleted: function GlodaMsgSearcher_onQueryCompleted(aCollection) {
-    this.viewWrapper.onQueryCompleted(aCollection);
+    this.completed = true;
+    if (this.listener)
+      this.listener.onQueryCompleted(aCollection);
   },
 };

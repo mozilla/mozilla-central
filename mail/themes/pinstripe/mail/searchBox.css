@@ -37,11 +37,7 @@
 # ***** END LICENSE BLOCK *****
 */
 
-#searchInput[searchCriteria="true"]  {
-  color: grey;
-}
-
-#quick-search-button {
+.quick-search-button {
   -moz-margin-start: -10px;
   -moz-margin-end: 4px;
   margin-bottom: 0;

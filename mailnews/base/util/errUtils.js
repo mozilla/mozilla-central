@@ -91,6 +91,7 @@ Stringifier.prototype = {
   },
 
   dumpDOM: function(node, level, recursive) {
+    this._reset();
     let s = this.DOMNodeAsString(node, level, recursive);
     dump(s);
   },
@@ -201,7 +202,7 @@ Stringifier.prototype = {
               s += pfx + tee + i + " (" + t + ") " + o[i] + "\n";
           }
         } catch (ex) {
-          s += pfx + tee + i + " (exception) " + ex + "\n";
+          s += pfx + tee + " (exception) " + ex + "\n";
         }
         if (!compress)
           s += pfx + "|\n";
@@ -219,12 +220,10 @@ Stringifier.prototype = {
   },
 
   DOMNodeAsString: function(node, level, recursive) {
-    this._reset();
     if (level === undefined)
       level = 0
     if (recursive === undefined)
       recursive = true;
-
     this._append(this._repeatStr(" ", 2*level) + "<" + node.nodeName + "\n");
 
     if (node.nodeType == 3) {
@@ -244,7 +243,7 @@ Stringifier.prototype = {
       else if (recursive) {
         this._append(this._repeatStr(" ", (2*level)) + ">\n");
         for (let i = 0; i < node.childNodes.length; i++) {
-          this.dumpDOM(node.childNodes[i], level + 1);
+          this._append(this.DOMNodeAsString(node.childNodes[i], level + 1));
         }
         this._append(this._repeatStr(" ", 2*level) + "</" + node.nodeName + ">\n");
       }

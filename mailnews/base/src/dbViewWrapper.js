@@ -899,6 +899,9 @@ DBViewWrapper.prototype = {
       return;
     this._searching = aSearching;
     this.listener.onSearching(aSearching);
+    // notify that all messages are loaded if searching has concluded
+    if (!aSearching)
+      this.listener.onAllMessagesLoaded();
   },
 
    /**
@@ -1820,7 +1823,7 @@ DBViewWrapper.prototype = {
                                                   aData);
 
     // - persist the view to the folder.
-    if (!aDoNotPersist) {
+    if (!aDoNotPersist && this.displayedFolder) {
       let msgDatabase = this.displayedFolder.msgDatabase;
       if (msgDatabase) {
         let dbFolderInfo = msgDatabase.dBFolderInfo;
@@ -1901,6 +1904,8 @@ DBViewWrapper.prototype = {
    */
   getMsgHdrForMessageID: function DBViewWrapper_getMsgHdrForMessageID(
       aMessageId) {
+    if (this._syntheticView)
+      return this._syntheticView.getMsgHdrForMessageID(aMessageId);
     if (!this._underlyingFolders)
       return null;
     for (let [, folder] in Iterator(this._underlyingFolders)) {

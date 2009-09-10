@@ -40,7 +40,7 @@
  *  nsIMsgDBView.
  */
 
-EXPORTED_SYMBOLS = ["GlodaSyntheticSearchView", "GlodaViewFactory"];
+EXPORTED_SYMBOLS = ["GlodaSyntheticView"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -52,82 +52,41 @@ Cu.import("resource://app/modules/gloda/log4moz.js");
 Cu.import("resource://app/modules/gloda/public.js");
 Cu.import("resource://app/modules/gloda/msg_search.js");
 
-function GlodaScoreColumn(aSearcher) {
-  this.searcher = aSearcher;
+/**
+ * Create a synthetic view suitable for passing to |FolderDisplayWidget.show|.
+ * You must pass a query, collection, or conversation in.
+ *
+ * @param {GlodaQuery} [aArgs.query] A gloda query to run.
+ * @param {GlodaCollection} [aArgs.collection] An already-populated collection
+ *     to display.  Do not call getCollection on a query and hand us that.  We
+ *     will not register ourselves as a listener and things will not work.
+ * @param {GlodaConversation} [aArgs.conversation] A conversation whose messages
+ *     you want to display.
+ */
+function GlodaSyntheticView(aArgs) {
+  if ("query" in aArgs) {
+    this.query = aArgs.query;
+    this.collection = this.query.getCollection(this);
+    this.completed = false;
+  }
+  else if ("collection" in aArgs) {
+    this.query = null;
+    this.collection = aArgs.collection;
+    this.completed = true;
+  }
+  else if ("conversation" in aArgs) {
+    this.collection = aArgs.conversation.getMessagesCollection(this);
+    this.query = this.collection.query;
+    this.completed = false;
+  }
+  else {
+    throw new Error("You need to pass a query or collection");
+  }
+
+  this.customColumns = [];
 }
-GlodaScoreColumn.prototype = {
-  id: "glodaScoreCol",
-  bindToView: function (aDBView) {
-    this.dbView = aDBView;
-  },
-
-  getCellText: function(row, col) {
-    let folder = this.dbView.getFolderForViewIndex(row);
-    let key = this.dbView.getKeyAt(row);
-    return "" + this.searcher.scoresByUriAndKey[folder.URI + "-" + key];
-  },
-  getSortLongForRow:   function(hdr) {
-    return this.searcher.scoresByUriAndKey[
-      hdr.folder.URI + "-" + hdr.messageKey] || 0;
-  },
-  isString: function() {
-    return false;
-  },
-
-  getCellProperties:   function(row, col, props){},
-  getRowProperties:    function(row, props){},
-  getImageSrc:         function(row, col) {return null;},
-  getSortStringForRow: function(hdr) {
-    return null;
-  },
-};
-
-function GlodaWhyColumn(aSearcher) {
-  this.searcher = aSearcher;
-}
-GlodaWhyColumn.prototype = {
-  id: "glodaWhyCol",
-  bindToView: function (aDBView) {
-    this.dbView = aDBView;
-  },
-
-  getCellText: function(row, col) {
-    let folder = this.dbView.getFolderForViewIndex(row);
-    let key = this.dbView.getKeyAt(row);
-    return this.searcher.whysByUriAndKey[folder.URI + "-" + key] || "";
-  },
-  getSortStringForRow: function(hdr) {
-    return this.searcher.whysByUriAndKey[hdr.folder.URI + "-" + hdr.messageKey]
-      || "";
-  },
-  isString: function() {
-    return true;
-  },
-
-  getCellProperties:   function(row, col, props){},
-  getRowProperties:    function(row, props){},
-  getImageSrc:         function(row, col) {return null;},
-  getSortLongForRow:   function(hdr) {return 0;}
-};
-
-function GlodaSyntheticSearchView(aSearchString, aFacetString, aLocation) {
-  this.searcher = new GlodaMsgSearcher(this, aSearchString.split(" "));
-
-  this._whyColumn = new GlodaWhyColumn(this.searcher);
-  this._scoreColumn = new GlodaScoreColumn(this.searcher);
-
-  this.customColumns = [this._whyColumn, this._scoreColumn];
-
-  this.collection = null;
-  this._whyMap = {};
-  this._scoreMap = {};
-
-  this.searchString = aSearchString;
-  this.facetString = aFacetString;
-  this.location = aLocation;
-}
-GlodaSyntheticSearchView.prototype = {
-  defaultSort: [["glodaScoreCol", Ci.nsMsgViewSortOrder.descending]],
+GlodaSyntheticView.prototype = {
+  defaultSort: [[Ci.nsMsgViewSortType.byDate, Ci.nsMsgViewSortOrder.descending]],
 
   /**
    * Request the search be performed and notification provided to
@@ -139,14 +98,12 @@ GlodaSyntheticSearchView.prototype = {
     this.completionCallback = aCompletionCallback;
 
     this.searchListener.onNewSearch();
-    if (this.collection) {
+    if (this.completed) {
       this.reportResults(this.collection.items);
       // we're not really aborting, but it closes things out nicely
       this.abortSearch();
       return;
     }
-
-    this.collection = this.searcher.go();
   },
 
   abortSearch: function() {
@@ -161,8 +118,24 @@ GlodaSyntheticSearchView.prototype = {
   reportResults: function(aItems) {
     for each (let [, item] in Iterator(aItems)) {
       let hdr = item.folderMessage;
-      this.searchListener.onSearchHit(hdr, hdr.folder);
+      if (hdr)
+        this.searchListener.onSearchHit(hdr, hdr.folder);
     }
+  },
+
+  /**
+   * Helper function used by |DBViewWrapper.getMsgHdrForMessageID| since there
+   *  are no actual backing folders for it to check.
+   */
+  getMsgHdrForMessageID: function(aMessageId) {
+    for each (let [, item] in Iterator(this.collection.items)) {
+      if (item.headerMessageID == aMessageId) {
+        let hdr = item.folderMessage;
+        if (hdr)
+          return hdr;
+      }
+    }
+    return null;
   },
 
   // --- collection listener
@@ -175,18 +148,9 @@ GlodaSyntheticSearchView.prototype = {
   onItemsRemoved: function(aItems, aCollection) {
   },
   onQueryCompleted: function(aCollection) {
+    this.completed = true;
     this.searchListener.onSearchDone(Cr.NS_OK);
     if (this.completionCallback)
       this.completionCallback();
   },
-};
-
-var GlodaViewFactory = {
-  kFacetEverything: "everything",
-  kFacetSubject: "subject",
-  kFacetBody: "body",
-  kFacetAttachments: "attachments",
-  kFacetInvolves: "involves",
-  kFacetTo: "to",
-  kFacetFrom: "from",
 };

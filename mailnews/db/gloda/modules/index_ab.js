@@ -5,7 +5,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -32,7 +32,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ['GlodaABIndexer', 'GlodaABAttrs'];
@@ -61,11 +61,11 @@ var GlodaABIndexer = {
   enable: function() {
     if (this._log == null)
       this._log =  Log4Moz.repository.getLogger("gloda.ab_indexer");
-  
+
     let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
     abManager.addAddressBookListener(this, Ci.nsIAbListener.itemChanged);
   },
-  
+
   disable: function() {
     let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
     abManager.removeAddressBookListener(this);
@@ -74,21 +74,22 @@ var GlodaABIndexer = {
   get workers() {
     return [["ab-card", this._worker_index_card]];
   },
-  
+
   _worker_index_card: function(aJob, aCallbackHandle) {
     let card = aJob.id;
-    
+
     if (card.primaryEmail) {
       // load the identity
       let query = Gloda.newQuery(Gloda.NOUN_IDENTITY);
       query.kind("email");
-      query.value(card.primaryEmail);
+      // we currently normalize all e-mail addresses to be lowercase
+      query.value(card.primaryEmail.toLowerCase());
       let identityCollection = query.getCollection(aCallbackHandle);
       yield Gloda.kWorkAsync;
-      
+
       if (identityCollection.items.length) {
         let identity = identityCollection.items[0];
-  
+
         this._log.debug("Found identity, processing card.");
         yield aCallbackHandle.pushAndGo(
             Gloda.grokNounItem(identity.contact, card, false, false,
@@ -96,13 +97,13 @@ var GlodaABIndexer = {
         this._log.debug("Done processing card.");
       }
     }
-    
+
     yield GlodaIndexer.kWorkDone;
   },
-  
+
   initialSweep: function() {
   },
-  
+
   /* ------ nsIAbListener ------ */
   onItemAdded: function ab_indexer_onItemAdded(aParentDir, aItem) {
   },
@@ -127,7 +128,7 @@ var GlodaABAttrs = {
 
   init: function() {
     this._log =  Log4Moz.repository.getLogger("gloda.abattrs");
-    
+
     try {
       this.defineAttributes();
     }
@@ -136,7 +137,7 @@ var GlodaABAttrs = {
       throw ex;
     }
   },
-  
+
   defineAttributes: function() {
     /* ***** Contacts ***** */
     this._attrIdentityContact = Gloda.defineAttribute({
@@ -195,7 +196,7 @@ var GlodaABAttrs = {
       special: Gloda.kSpecialColumnParent,
       specialColumnName: "contactID", // the column in the db
       idStorageAttributeName: "_contactID",
-      valueStorageAttributeName: "_contact", 
+      valueStorageAttributeName: "_contact",
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_CONTACT,
       }); // tested-by: test_attributes_fundamental
@@ -245,19 +246,19 @@ var GlodaABAttrs = {
       FreeTagNoun.getFreeTag(freeTagName);
     }
   },
-  
+
   process: function(aContact, aCard, aIsNew, aCallbackHandle) {
     if (aContact.NOUN_ID != Gloda.NOUN_CONTACT) {
       this._log.warning("Somehow got a non-contact: " + aContact);
       return; // this will produce an exception; we like.
     }
-    
+
     // update the name
     if (aCard.displayName && aCard.displayName != aContact.name)
       aContact.name = aCard.displayName;
-  
+
     aContact.freeTags = [];
-    
+
     let tags = null;
     try {
       tags = aCard.getProperty("Categories", null);
@@ -272,7 +273,7 @@ var GlodaABAttrs = {
         }
       }
     }
-    
+
     yield Gloda.kWorkDone;
   }
 };

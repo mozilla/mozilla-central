@@ -338,7 +338,7 @@
 
   <binding id="gloda-single-tag-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
     <content orient="vertical">
-      <xul:description anonid="explanation"/>
+      <xul:description anonid="explanation" class="explanation gloda-single"/>
     </content>
     <implementation implements="nsIDOMXULSelectControlItemElement">
       <constructor>
@@ -360,7 +360,112 @@
       <method name="_adjustAcItem">
         <body>
           <![CDATA[
-          this._explanation.value = "messages tagged " + this.row.item.tag;
+            let label = gGlodaCompleteStrings.get("glodaComplete.messagesTagged.label");
+            this._explanation.value = label.replace("#1", this.row.item.tag);
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+
+  <binding id="gloda-fulltext-single-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
+    <content orient="vertical">
+      <xul:description anonid="explanation" class="explanation gloda-fulltext-single"/>
+      <xul:description anonid="parameters"/>
+    </content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+            this._explanation = document.getAnonymousElementByAttribute(this, "anonid", "explanation");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            return "full text search: " + this.row.item;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+            let label = gGlodaCompleteStrings.get("glodaComplete.messagesMentioning.label");
+            this._explanation.value = label.replace("#1", this.row.item);
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+
+
+  <binding id="gloda-fulltext-any-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
+    <content orient="vertical">
+      <xul:description anonid="explanation" class="explanation"/>
+      <xul:description anonid="parameters" class="parameters"/>
+    </content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+            this._explanation = document.getAnonymousElementByAttribute(this, "anonid", "explanation");
+            this._parameters = document.getAnonymousElementByAttribute(this, "anonid", "parameters");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            return "full text search: " + this.row.item;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          this._explanation.value = gGlodaCompleteStrings.get("glodaComplete.messagesWithAny.label");
+          this._parameters.value = this.row.words.join(", ");
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="gloda-fulltext-all-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
+    <content orient="vertical">
+      <xul:description anonid="explanation" class="explanation"/>
+      <xul:description anonid="parameters" class="parameters"/>
+    </content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+            this._explanation = document.getAnonymousElementByAttribute(this, "anonid", "explanation");
+            this._parameters = document.getAnonymousElementByAttribute(this, "anonid", "parameters");
+
+            this._adjustAcItem();
+          ]]>
+      </constructor>
+      
+      <property name="label" readonly="true">
+        <getter>
+          <![CDATA[
+            return "full text search: " + this.row.item; // what is this for? l10n?
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          this._explanation.value = gGlodaCompleteStrings.get("glodaComplete.messagesWithAll.label");
+          this._parameters.value = this.row.words.join(", ");
           ]]>
         </body>
       </method>
@@ -369,30 +474,30 @@
 
   <binding id="gloda-single-identity-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
     <content>
-      <xul:hbox>
-	    <xul:image anonid="picture"/>
-	    <xul:vbox>
-	      <xul:hbox>
-	        <xul:hbox anonid="name-box" class="ac-title" flex="1"
-	                  onunderflow="_doUnderflow('_name');">
-	          <xul:description anonid="name" class="ac-normal-text ac-comment"
-	                           xbl:inherits="selected"/>
-	        </xul:hbox>
-	        <xul:label anonid="name-overflow-ellipsis" xbl:inherits="selected"
-	                   class="ac-ellipsis-after ac-comment" hidden="true"/>
-	      </xul:hbox>
-	      <xul:hbox>
-	        <xul:hbox anonid="identity-box" class="ac-url" flex="1"
-	                  onunderflow="_doUnderflow('_identity');">
-	          <xul:description anonid="identity" class="ac-normal-text ac-url-text"
-	                           xbl:inherits="selected"/>
-	        </xul:hbox>
-	        <xul:label anonid="identity-overflow-ellipsis" xbl:inherits="selected"
-	                   class="ac-ellipsis-after ac-url-text" hidden="true"/>
-	        <xul:image anonid="type-image" class="ac-type-icon"/>
-	      </xul:hbox>
-	    </xul:vbox>
-	  </xul:hbox>
+      <xul:hbox class="gloda-single-identity">
+        <xul:image anonid="picture" class="picture"/>
+        <xul:vbox>
+          <xul:hbox>
+            <xul:hbox anonid="name-box" class="ac-title" flex="1"
+                      onunderflow="_doUnderflow('_name');">
+              <xul:description anonid="name" class="ac-normal-text ac-comment"
+                               xbl:inherits="selected"/>
+            </xul:hbox>
+            <xul:label anonid="name-overflow-ellipsis" xbl:inherits="selected"
+                       class="ac-ellipsis-after ac-comment" hidden="true"/>
+          </xul:hbox>
+          <xul:hbox>
+            <xul:hbox anonid="identity-box" class="ac-url" flex="1"
+                      onunderflow="_doUnderflow('_identity');">
+              <xul:description anonid="identity" class="ac-normal-text ac-url-text"
+                               xbl:inherits="selected"/>
+            </xul:hbox>
+            <xul:label anonid="identity-overflow-ellipsis" xbl:inherits="selected"
+                       class="ac-ellipsis-after ac-url-text" hidden="true"/>
+            <xul:image anonid="type-image" class="ac-type-icon"/>
+          </xul:hbox>
+        </xul:vbox>
+      </xul:hbox>
     </content>
     <implementation implements="nsIDOMXULSelectControlItemElement">
       <constructor>

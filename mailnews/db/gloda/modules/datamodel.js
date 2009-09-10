@@ -206,6 +206,10 @@ GlodaConversation.prototype = {
   toString: function gloda_conversation_toString() {
     return "Conversation:" + this._id;
   },
+
+  toLocaleString: function gloda_conversation_toLocaleString() {
+    return this._subject;
+  }
 };
 
 function GlodaFolder(aDatastore, aID, aURI, aDirtyStatus, aPrettyName,
@@ -265,6 +269,14 @@ GlodaFolder.prototype = {
     return "Folder:" + this._id;
   },
 
+  toLocaleString: function gloda_folder_toLocaleString() {
+    let xpcomFolder = this.getXPCOMFolder(this.kActivityFolderOnlyNoData);
+    if (!xpcomFolder)
+      return this._prettyName;
+    return xpcomFolder.prettiestName +
+      " (" + xpcomFolder.rootFolder.prettiestName + ")";
+  },
+
   get indexingPriority() {
     return this._indexingPriority;
   },
@@ -273,6 +285,9 @@ GlodaFolder.prototype = {
   kActivityIndexing: 0,
   /** Asking for the folder to perform header retrievals. */
   kActivityHeaderRetrieval: 1,
+  /** We only want the folder for its metadata but are not going to open it. */
+  kActivityFolderOnlyNoData: 2,
+
 
   /** Is this folder known to be actively used for indexing? */
   _activeIndexing: false,
@@ -323,6 +338,9 @@ GlodaFolder.prototype = {
         if (this._activeHeaderRetrievalLastStamp === 0)
           this._datastore.markFolderLive(this);
         this._activeHeaderRetrievalLastStamp = Date.now();
+        break;
+      case this.kActivityFolderOnlyNoData:
+        // we don't have to do anything here.
         break;
     }
 
@@ -629,6 +647,12 @@ GlodaIdentity.prototype = {
     return "Identity:" + this._kind + ":" + this._value;
   },
 
+  toLocaleString: function gloda_identity_toLocaleString() {
+    if (this.contact.name == this.value)
+      return this.value;
+    return this.contact.name + " : " + this.value;
+  },
+
   get abCard() {
     // for our purposes, the address book only speaks email
     if (this._kind != "email")
@@ -653,9 +677,9 @@ GlodaIdentity.prototype = {
   },
 
   pictureURL: function(aSize) {
-    let md5hash = GlodaUtils.md5HashString(this._value);
-    let gravURL = "http://www.gravatar.com/avatar/" + md5hash +
-                                "?d=identicon&s=" + aSize + "&r=g";
-    return gravURL;
+    if (this.inAddressBook) {
+      // XXX should get the photo if we have it.
+    }
+    return "";
   }
 };

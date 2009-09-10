@@ -138,6 +138,7 @@ GlodaQueryClass.prototype = {
    *  removed respectively.
    */
   getCollection: function gloda_query_getCollection(aListener, aData) {
+    this.completed = false;
     return this._nounDef.datastore.queryFromQuery(this, aListener, aData);
   },
 
@@ -160,6 +161,7 @@ GlodaQueryClass.prototype = {
            iConstraint++) {
         let constraint = curQuery._constraints[iConstraint];
         let [constraintType, attrDef] = constraint;
+        let boundName = attrDef ? attrDef.boundName : "id";
         let constraintValues = constraint.slice(2);
 
         if (constraintType === GlodaDatastore.kConstraintIdIn) {
@@ -179,10 +181,18 @@ GlodaQueryClass.prototype = {
           //  code complexity costs...)
           if (objectNounDef.equals) {
             let testValues;
-            if (attrDef.singular)
-              testValues = [aObj[attrDef.boundName]];
+            if (!(boundName in aObj))
+              testValues = [];
+            else if (attrDef.singular)
+              testValues = [aObj[boundName]];
             else
-              testValues = aObj[attrDef.boundName];
+              testValues = aObj[boundName];
+
+            // If there are no constraints, then we are just testing for there
+            //  being a value.  Succeed (continue) in that case.
+            if (constraintValues.length == 0 && testValues.length &&
+                testValues[0] != null)
+              continue;
 
             let foundMatch = false;
             for each (let [,testValue] in Iterator(testValues)) {
@@ -207,10 +217,18 @@ GlodaQueryClass.prototype = {
             //  what we did in the prior case but exploding values using
             //  toParamAndValue, and then comparing.
             let testValues;
-            if (attrDef.singular)
-              testValues = [aObj[attrDef.boundName]];
+            if (!(boundName in aObj))
+              testValues = [];
+            else if (attrDef.singular)
+              testValues = [aObj[boundName]];
             else
-              testValues = aObj[attrDef.boundName];
+              testValues = aObj[boundName];
+
+            // If there are no constraints, then we are just testing for there
+            //  being a value.  Succeed (continue) in that case.
+            if (constraintValues.length == 0 && testValues.length &&
+                testValues[0] != null)
+              continue;
 
             let foundMatch = false;
             for each (let [,testValue] in Iterator(testValues)) {
@@ -236,10 +254,12 @@ GlodaQueryClass.prototype = {
           let objectNounDef = attrDef.objectNounDef;
 
           let testValues;
-          if (attrDef.singular)
-            testValues = [aObj[attrDef.boundName]];
+          if (!(boundName in aObj))
+              testValues = [];
+          else if (attrDef.singular)
+            testValues = [aObj[boundName]];
           else
-            testValues = aObj[attrDef.boundName];
+            testValues = aObj[boundName];
 
           let foundMatch = false;
           for each (let [,testValue] in Iterator(testValues)) {
@@ -285,7 +305,7 @@ GlodaQueryClass.prototype = {
         // @testpoint gloda.query.test.kConstraintStringLike
         else if (constraintType === GlodaDatastore.kConstraintStringLike) {
           let curIndex = 0;
-          let value = aObj[attrDef.boundName];
+          let value = (boundName in aObj) ? aObj[boundName] : "";
           // the attribute must be singular, we don't support arrays of strings.
           for each (let [iValuePart, valuePart] in Iterator(constraintValues)) {
             if (typeof valuePart == "string") {
@@ -335,6 +355,37 @@ GlodaQueryClass.prototype = {
     }
     return false;
   },
+
+  /**
+   * Helper code for noun definitions of queryHelpers that want to build a
+   *  traditional in/equals constraint.  The goal is to let them build a range
+   *  without having to know how we structure |_constraints|.
+   *
+   * @protected
+   */
+  _inConstraintHelper:
+      function gloda_query__discreteConstraintHelper(aAttrDef, aValues) {
+    let constraint =
+      [GlodaDatastore.kConstraintIn, aAttrDef].concat(aValues);
+    this._constraints.push(constraint);
+    return this;
+  },
+
+  /**
+   * Helper code for noun definitions of queryHelpers that want to build a
+   *  range.  The goal is to let them build a range without having to know how
+   *  we structure |_constraints| or requiring them to mark themselves as
+   *  continuous to get a "Range".
+   *
+   * @protected
+   */
+  _rangedConstraintHelper:
+      function gloda_query__rangedConstraintHelper(aAttrDef, aRanges) {
+    let constraint =
+      [GlodaDatastore.kConstraintRanges, aAttrDef].concat(aRanges);
+    this._constraints.push(constraint);
+    return this;
+  }
 };
 
 /**

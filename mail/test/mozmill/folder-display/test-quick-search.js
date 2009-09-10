@@ -40,6 +40,8 @@ var MODULE_NAME = 'test-quick-search';
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
+Cu.import("resource://app/modules/quickSearchManager.js");
+
 var folder;
 var setFoo, setBar;
 
@@ -61,8 +63,13 @@ function setupModule(module) {
 function test_save_quick_search() {
   be_in_folder(folder);
 
+  // - We want to do a from or subject search
+  mc.e("searchInput").searchMode =
+    QuickSearchConstants.kQuickSearchFromOrSubject.toString();
+
   // - Type something in the quick search box.
   mc.type(mc.eid("searchInput"), "foo");
+
   mc.keypress(mc.eid("searchInput"), "VK_RETURN", {});
   wait_for_all_messages_to_load();
 
@@ -72,7 +79,7 @@ function test_save_quick_search() {
   //  no windowtype, id: "virtualFolderPropertiesDialog")
   plan_for_modal_dialog("mailnews:virtualFolderProperties",
                         subtest_save_search);
-  mc.click(mc.eid("quickSearchSaveAsVirtualFolder"));
+  mc.e("searchInput").saveAsVirtualFolder.doCommand();
   wait_for_modal_dialog("mailnews:virtualFolderProperties");
 }
 

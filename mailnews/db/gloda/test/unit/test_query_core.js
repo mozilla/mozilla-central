@@ -59,7 +59,8 @@ function setup_test_noun_and_attributes() {
   WidgetNoun = Gloda.defineNoun({
     name: "widget",
     clazz: Widget,
-    allowArbitraryAttrs: true,
+    allowsArbitraryAttrs: true,
+    //cache: true, cacheCost: 32,
     schema: {
       columns: [['id', 'INTEGER PRIMARY KEY'],
                 ['intCol', 'NUMBER', 'inum'],
@@ -82,7 +83,7 @@ function setup_test_noun_and_attributes() {
   Gloda.defineAttribute({
     provider: WidgetProvider, extensionName: EXT_NAME,
     attributeType: Gloda.kAttrFundamental,
-    attributeName: "intCol",
+    attributeName: "inum",
     singular: true,
     special: Gloda.kSpecialColumn,
     specialColumnName: "intCol",
@@ -92,7 +93,7 @@ function setup_test_noun_and_attributes() {
   Gloda.defineAttribute({
     provider: WidgetProvider, extensionName: EXT_NAME,
     attributeType: Gloda.kAttrFundamental,
-    attributeName: "dateCol",
+    attributeName: "date",
     singular: true,
     special: Gloda.kSpecialColumn,
     specialColumnName: "dateCol",
@@ -102,7 +103,7 @@ function setup_test_noun_and_attributes() {
   Gloda.defineAttribute({
     provider: WidgetProvider, extensionName: EXT_NAME,
     attributeType: Gloda.kAttrFundamental,
-    attributeName: "strCol",
+    attributeName: "str",
     singular: true,
     special: Gloda.kSpecialString,
     specialColumnName: "strCol",
@@ -115,7 +116,7 @@ function setup_test_noun_and_attributes() {
   Gloda.defineAttribute({
     provider: WidgetProvider, extensionName: EXT_NAME,
     attributeType: Gloda.kAttrFundamental,
-    attributeName: "fulltextOne",
+    attributeName: "text1",
     singular: true,
     special: Gloda.kSpecialFulltext,
     specialColumnName: "fulltextOne",
@@ -125,7 +126,7 @@ function setup_test_noun_and_attributes() {
   Gloda.defineAttribute({
     provider: WidgetProvider, extensionName: EXT_NAME,
     attributeType: Gloda.kAttrFundamental,
-    attributeName: "fulltextTwo",
+    attributeName: "text2",
     singular: true,
     special: Gloda.kSpecialFulltext,
     specialColumnName: "fulltextTwo",
@@ -153,6 +154,15 @@ function setup_test_noun_and_attributes() {
     objectNoun: Gloda.NOUN_NUMBER
   });
 
+  Gloda.defineAttribute({
+    provider: WidgetProvider, extensionName: EXT_NAME,
+    attributeType: Gloda.kAttrFundamental,
+    attributeName: "multiIntAttr",
+    singular: false,
+    subjectNouns: [WidgetNoun.id],
+    objectNoun: Gloda.NOUN_NUMBER
+  });
+
   next_test();
 }
 
@@ -174,9 +184,55 @@ function test_lots_of_string_constraints() {
   }
 
   let query = Gloda.newQuery(WidgetNoun.id);
-  query.strCol.apply(query, stringConstraints);
+  query.str.apply(query, stringConstraints);
 
   queryExpect(query, []);
+}
+
+/* === Query === */
+
+/**
+ * Use a counter so that each test can have its own unique value for intCol so
+ *  that it can use that as a constraint.  Otherwise we would need to purge
+ *  between every test.  That's not an unreasonable alternative, but this works.
+ * Every test should increment this before using it.
+ */
+var testUnique = 100;
+
+/**
+ * Widgets with multiIntAttr populated with one or more values.
+ */
+var nonSingularWidgets;
+/**
+ * Widgets with multiIntAttr unpopulated.
+ */
+var singularWidgets;
+
+function setup_non_singular_values() {
+  testUnique++;
+  let origin = new Date("2007/01/01");
+  nonSingularWidgets = [
+    new Widget(testUnique, origin, "ns1", 0, "", ""),
+    new Widget(testUnique, origin, "ns2", 0, "", ""),
+  ];
+  singularWidgets = [
+    new Widget(testUnique, origin, "s1", 0, "", ""),
+    new Widget(testUnique, origin, "s2", 0, "", ""),
+  ];
+  nonSingularWidgets[0].multiIntAttr = [1, 2];
+  nonSingularWidgets[1].multiIntAttr = [3];
+  singularWidgets[0].multiIntAttr = [];
+  // and don't bother setting it on singularWidgets[1]
+
+  runOnIndexingComplete(next_test);
+  GenericIndexer.indexNewObjects(nonSingularWidgets.concat(singularWidgets));
+}
+
+function test_query_has_value_for_non_singular() {
+  let query = Gloda.newQuery(WidgetNoun.id);
+  query.inum(testUnique);
+  query.multiIntAttr();
+  queryExpect(query, nonSingularWidgets);
 }
 
 /* === Search === */
@@ -326,6 +382,8 @@ function test_search_ranking_idiom_score() {
 var tests = [
   setup_test_noun_and_attributes,
   test_lots_of_string_constraints,
+  setup_non_singular_values,
+  test_query_has_value_for_non_singular,
   setup_search_ranking_idiom,
   test_search_ranking_idiom_offsets,
   test_search_ranking_idiom_score,

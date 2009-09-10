@@ -597,6 +597,7 @@ GlodaCollection.prototype = {
   },
 
   _onQueryCompleted: function gloda_coll_onQueryCompleted() {
+    this.query.completed = true;
     if (this._listener && this._listener.onQueryCompleted)
       this._listener.onQueryCompleted(this);
   }

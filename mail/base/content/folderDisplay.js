@@ -783,12 +783,12 @@ FolderDisplayWidget.prototype = {
    *  of searches and we will receive a notification for them.
    */
   onSearching: function(aIsSearching) {
-    // getDocumentElements() sets gSearchBundle
-    getDocumentElements();
-    if (this._tabInfo)
+    if (this._tabInfo) {
+      let searchBundle = document.getElementById("bundle_search");
       document.getElementById("tabmail").setTabThinking(
         this._tabInfo,
-        aIsSearching && gSearchBundle.getString("searchingMessage"));
+        aIsSearching && searchBundle.getString("searchingMessage"));
+    }
   },
 
   /**
@@ -892,10 +892,10 @@ FolderDisplayWidget.prototype = {
       this._persistColumnStates(this._savedColumnStates);
     }
 
-    // the quick-search gets nuked when we show a new folder
-    ClearQSIfNecessary();
     // update the quick-search relative to whether it's incoming/outgoing
-    onSearchFolderTypeChanged(this.view.isOutgoingFolder);
+    let searchInput = document.getElementById("searchInput");
+    if (searchInput)
+      searchInput.folderChanged(this.view.isOutgoingFolder)
 
     if (this.active)
       this.makeActive();
@@ -1451,20 +1451,6 @@ FolderDisplayWidget.prototype = {
           if (this._savedFirstVisibleRow != null)
             this.treeBox.scrollToRow(this._savedFirstVisibleRow);
         }
-
-        // restore the quick search widget
-        let searchInput = document.getElementById("searchInput");
-        if (searchInput && this._savedQuickSearch) {
-          searchInput.searchMode = this._savedQuickSearch.searchMode;
-          if (this._savedQuickSearch.text) {
-            searchInput.value = this._savedQuickSearch.text;
-            searchInput.showingSearchCriteria = false;
-            searchInput.clearButtonHidden = false;
-          }
-          else {
-            searchInput.setSearchCriteriaText();
-          }
-        }
       }
 
       // Always restore the column state if we have persisted state.  We restore
@@ -1543,15 +1529,6 @@ FolderDisplayWidget.prototype = {
       // save the message pane's state only when it is potentially visible
       this.messagePaneCollapsed =
         document.getElementById("messagepanebox").collapsed;
-
-      // save the actual quick-search query text
-      let searchInput = document.getElementById("searchInput");
-      if (searchInput) {
-        this._savedQuickSearch = {
-          text: searchInput.showingSearchCriteria ? null : searchInput.value,
-          searchMode: searchInput.searchMode
-        };
-      }
 
       this.hookUpFakeTreeBox(true);
     }

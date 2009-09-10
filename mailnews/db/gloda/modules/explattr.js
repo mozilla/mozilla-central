@@ -50,16 +50,17 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://app/modules/gloda/log4moz.js");
+Cu.import("resource://app/modules/StringBundle.js");
 
 Cu.import("resource://app/modules/gloda/utils.js");
 Cu.import("resource://app/modules/gloda/gloda.js");
 Cu.import("resource://app/modules/gloda/noun_tag.js");
 
 
+const nsMsgMessageFlags_Replied = Ci.nsMsgMessageFlags.Replied;
+const nsMsgMessageFlags_Forwarded = Ci.nsMsgMessageFlags.Forwarded;
+
 const EXT_BUILTIN = "built-in";
-const FA_TAG = "TAG";
-const FA_STAR = "STAR";
-const FA_READ = "READ";
 
 /**
  * @namespace Explicit attribute provider.  Indexes/defines attributes that are
@@ -68,6 +69,7 @@ const FA_READ = "READ";
  */
 var GlodaExplicitAttr = {
   providerName: "gloda.explattr",
+  strings: new StringBundle("chrome://messenger/locale/gloda.properties"),
   _log: null,
   _msgTagService: null,
 
@@ -93,10 +95,6 @@ var GlodaExplicitAttr = {
   /** Boost for tagged messages, each additional tag. */
   NOTABILITY_TAGGED_ADDL: 1,
 
-  _attrTag: null,
-  _attrStar: null,
-  _attrRead: null,
-
   defineAttributes: function() {
     // Tag
     this._attrTag = Gloda.defineAttribute({
@@ -106,6 +104,7 @@ var GlodaExplicitAttr = {
                         attributeName: "tag",
                         bindName: "tags",
                         singular: false,
+                        facet: true,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_TAG,
                         parameterNoun: null,
@@ -121,6 +120,7 @@ var GlodaExplicitAttr = {
                         attributeName: "star",
                         bindName: "starred",
                         singular: true,
+                        facet: true,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_BOOLEAN,
                         parameterNoun: null,
@@ -137,6 +137,33 @@ var GlodaExplicitAttr = {
                         parameterNoun: null,
                         }); // tested-by: test_attributes_explicit
 
+    /**
+     * Has this message been replied to by the user.
+     */
+    this._attrRepliedTo = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrExplicit,
+      attributeName: "repliedTo",
+      singular: true,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_BOOLEAN,
+      parameterNoun: null,
+    }); // tested-by: test_attributes_explicit
+
+    /**
+     * Has this user forwarded this message to someone.
+     */
+    this._attrForwarded = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrExplicit,
+      attributeName: "forwarded",
+      singular: true,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_BOOLEAN,
+      parameterNoun: null,
+    }); // tested-by: test_attributes_explicit
   },
 
   process: function Gloda_explattr_process(aGlodaMessage, aRawReps, aIsNew,
@@ -148,6 +175,10 @@ var GlodaExplicitAttr = {
       aGlodaMessage.notability += this.NOTABILITY_STARRED;
 
     aGlodaMessage.read = aMsgHdr.isRead;
+
+    let flags = aMsgHdr.flags;
+    aGlodaMessage.repliedTo = Boolean(flags & nsMsgMessageFlags_Replied);
+    aGlodaMessage.forwarded = Boolean(flags & nsMsgMessageFlags_Forwarded);
 
     let tags = aGlodaMessage.tags = [];
 
