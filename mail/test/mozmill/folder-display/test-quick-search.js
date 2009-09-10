@@ -61,15 +61,11 @@ function setupModule(module) {
  *
  */
 function test_save_quick_search() {
-  mc.sleep(3000);
   be_in_folder(folder);
-  mc.sleep(2000);
 
-  // - Force it to do a subject search, not a gloda search!
-dump("GLODA SEARCH MODE: " + mc.e("gloda-search").searchMode + "\n");
-  mc.e("gloda-search").searchMode =
-    QuickSearchConstants.kQuickSearchSubject.toString();
-dump("GLODA SEARCH MODE: " + mc.e("gloda-search").searchMode + "\n");
+  // - We want to do a from or subject search
+  mc.e("searchInput").searchMode =
+    QuickSearchConstants.kQuickSearchFromOrSubject.toString();
 
   // - Type something in the quick search box.
   mc.type(mc.eid("searchInput"), "foo");
@@ -83,7 +79,7 @@ dump("GLODA SEARCH MODE: " + mc.e("gloda-search").searchMode + "\n");
   //  no windowtype, id: "virtualFolderPropertiesDialog")
   plan_for_modal_dialog("mailnews:virtualFolderProperties",
                         subtest_save_search);
-  mc.click(mc.eid("quickSearchSaveAsVirtualFolder"));
+  mc.e("searchInput").saveAsVirtualFolder.doCommand();
   wait_for_modal_dialog("mailnews:virtualFolderProperties");
 }
 

@@ -199,7 +199,7 @@
         const Cc = Components.classes;
         const Ci = Components.interfaces;
         const Cu = Components.utils;
-        Cu.import("resource://gre/modules/errUtils.js");
+        Cu.import("resource://app/modules/errUtils.js");
         try {
           Cu.import("resource://app/modules/StringBundle.js");
           Cu.import("resource://app/modules/quickSearchManager.js");
@@ -262,7 +262,7 @@
             quickSearchModes[QuickSearchConstants.kQuickSearchFromOrSubject]
               .value.toString();
         } catch (e) {
-          logException(e);
+          logException(e, true);
         }
       ]]></constructor>
 
@@ -345,7 +345,8 @@
       </property>
       <property name="autocompletePopup" readonly="true">
         <getter><![CDATA[
-          return document.getElementById(this.getAttribute('autocompletepopup'))
+          return document.getElementById(
+                   this.getAttribute('autocompletepopup'));
         ]]></getter>
       </property>
       <property name="showingSearchCriteria">

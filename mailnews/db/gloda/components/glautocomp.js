@@ -109,7 +109,7 @@ function nsAutoCompleteGlodaResult(aListener, aCompleter, aString) {
   this._results = [];
   this._pendingCount = 0;
   this._problem = false;
-  
+
   this.wrappedJSObject = this;
 }
 nsAutoCompleteGlodaResult.prototype = {
@@ -127,7 +127,7 @@ nsAutoCompleteGlodaResult.prototype = {
   addRows: function ACGR_addRows(aRows) {
     if (!aRows.length)
       return;
-    this._results.push.apply(this._results, aRows); 
+    this._results.push.apply(this._results, aRows);
     this.listener.onSearchResult(this.completer, this);
   },
   // ==== nsIAutoCompleteResult
@@ -236,7 +236,7 @@ ContactIdentityCompleter.prototype = {
 
     // - match against database contacts / identities
     let pending = {contactToThing: contactToThing, pendingCount: 2};
-    
+
     let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
     contactQuery.nameLike(contactQuery.WILD, aString, contactQuery.WILD);
     pending.contactColl = contactQuery.getCollection(this, aResult);
@@ -247,7 +247,7 @@ ContactIdentityCompleter.prototype = {
         identityQuery.WILD);
     pending.identityColl = identityQuery.getCollection(this, aResult);
     pending.identityColl.becomeExplicit();
-    
+
     aResult._contactCompleterPending = pending;
 
     return true;
@@ -264,7 +264,7 @@ ContactIdentityCompleter.prototype = {
       // cheat and explicitly add our own contact...
       if (!(Gloda.myContact.id in this.contactCollection._idMap))
         this.contactCollection._onItemsAdded([Gloda.myContact]);
-        
+
       // the set of identities owned by the contacts is automatically loaded as part
       //  of the contact loading...
       // (but only if we actually have any contacts)
@@ -289,21 +289,21 @@ ContactIdentityCompleter.prototype = {
       this.suffixTree = new MultiSuffixTree(contactNames.concat(identityMails),
         this.contactCollection.items.concat(this.identityCollection &&
           this.identityCollection.items));
-      
+
       return;
     }
-    
+
     // handle the completion case
     let result = aCollection.data;
     let pending = result._contactCompleterPending;
-    
+
     if (--pending.pendingCount == 0) {
       let possibleDudes = [];
-      
+
       let contactToThing = pending.contactToThing;
-      
+
       let items;
-      
+
       // check identities first because they are better than contacts in terms
       //  of display
       items = pending.identityColl.items;
@@ -324,14 +324,14 @@ ContactIdentityCompleter.prototype = {
           possibleDudes.push(contact.identities[0]);
         }
       }
-      
+
       // sort in order of descending popularity
       possibleDudes.sort(this._popularitySorter);
       let rows = [new ResultRowSingle(dude, "text", result.searchString)
                   for each ([iDude, dude] in Iterator(possibleDudes))];
       result.addRows(rows);
       result.markCompleted(this);
-      
+
       // the collections no longer care about the result, make it clear.
       delete pending.identityColl.data;
       delete pending.contactColl.data;
@@ -366,10 +366,10 @@ ContactTagCompleter.prototype = {
     // now is not the best time to do this; have onFreeTagAdded use a timer.
     if (this._suffixTreeDirty)
       this._buildSuffixTree();
-    
+
     if (aString.length < 2)
       return false; // no async mechanism that will add new rows
-    
+
     tags = this._suffixTree.findMatches(aString.toLowerCase());
     let rows = [];
     for each (let [iTag, tag] in Iterator(tags)) {
@@ -380,7 +380,7 @@ ContactTagCompleter.prototype = {
       rows.push(resRow);
     }
     aResult.addRows(rows);
-    
+
     return false; // no async mechanism that will add new rows
   }
 };
@@ -406,7 +406,7 @@ MessageTagCompleter.prototype = {
   complete: function MessageTagCompleter_complete(aResult, aString) {
     if (aString.length < 2)
       return false;
-    
+
     tags = this._suffixTree.findMatches(aString.toLowerCase());
     let rows = [];
     for each (let [, tag] in Iterator(tags)) {
@@ -414,7 +414,7 @@ MessageTagCompleter.prototype = {
       rows.push(resRow);
     }
     aResult.addRows(rows);
-    
+
     return false; // no async mechanism that will add new rows
   }
 };
@@ -445,6 +445,8 @@ FullTextCompleter.prototype = {
   }
 };
 
+var LOG;
+
 function nsAutoCompleteGloda() {
   this.wrappedJSObject = this;
   try {
@@ -453,7 +455,7 @@ function nsAutoCompleteGloda() {
       let loadNS = {};
       Cu.import("resource://app/modules/gloda/public.js", loadNS);
       Gloda = loadNS.Gloda;
-  
+
       Cu.import("resource://app/modules/gloda/utils.js", loadNS);
       GlodaUtils = loadNS.GlodaUtils;
       Cu.import("resource://app/modules/gloda/suffixtree.js", loadNS);
@@ -462,7 +464,7 @@ function nsAutoCompleteGloda() {
       TagNoun = loadNS.TagNoun;
       Cu.import("resource://app/modules/gloda/noun_freetag.js", loadNS);
       FreeTagNoun = loadNS.FreeTagNoun;
-  
+
       Cu.import("resource://app/modules/gloda/log4moz.js", loadNS);
       LOG = loadNS["Log4Moz"].repository.getLogger("gloda.autocomp");
     }
@@ -492,13 +494,13 @@ nsAutoCompleteGloda.prototype = {
       // save this for hacky access to the search.  I somewhat suspect we simply
       //  should not be using the formal autocomplete mechanism at all.
       this.curResult = result;
-      
+
       for each (let [iCompleter, completer] in Iterator(this.completers)) {
         // they will return true if they have something pending.
         if (completer.complete(result, aString))
           result.markPending(completer);
       }
-      
+
       aListener.onSearchResult(this, result);
     } catch (e) {
       logException(e);
