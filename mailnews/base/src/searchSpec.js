@@ -521,12 +521,6 @@ SearchSpecListener.prototype = {
     }
 
     viewWrapper.searching = false;
-    // If we were not interrupted, it's okay to notify listeners that messages
-    //  were loaded.  If we were interrupted, no one wants to know; we are
-    //  only interrupted when we ourselves are dissociating a view.  In that
-    //  case, there is no view to refer to, so it doesn't make sense to notify.
-    if (aStatus != NS_MSG_SEARCH_INTERRUPTED)
-      viewWrapper.listener.onAllMessagesLoaded();
   },
 };
 
