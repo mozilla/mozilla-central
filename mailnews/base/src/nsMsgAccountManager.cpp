@@ -2157,6 +2157,12 @@ NS_IMETHODIMP nsMsgAccountManager::GetLocalFoldersServer(nsIMsgIncomingServer **
   if (!*aServer)
     return NS_ERROR_FAILURE;
 
+  // we don't want the Smart Mailboxes server to be the local server.
+  PRBool hidden;
+  (*aServer)->GetHidden(&hidden);
+  if (hidden)
+    return NS_ERROR_FAILURE;
+
   rv = SetLocalFoldersServer(*aServer);
   return rv;
 }
