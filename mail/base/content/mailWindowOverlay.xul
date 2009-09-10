@@ -1760,16 +1760,16 @@
        of mail-bar in order to force the new default items to show up for users who customized their toolbar
        in earlier versions. Bumping the id means users will have to re-customize their toolbar!
   -->
-  <toolbar id="mail-bar2" class="toolbar-primary chromeclass-toolbar"
+  <toolbar id="mail-bar3" class="toolbar-primary chromeclass-toolbar"
            toolbarname="&showMessengerToolbarCmd.label;"
            accesskey="&showMessengerToolbarCmd.accesskey;"
            fullscreentoolbar="true" mode="full"
            customizable="true"
            context="toolbar-context-menu"
 #ifdef XP_MACOSX
-           defaultset="button-getmsg,button-newmsg,button-address,spacer,button-reply,button-replyall,button-replylist,button-forward,spacer,button-tag,button-delete,button-junk,button-print,spacer,button-goback,button-goforward,spring,gloda-search,throbber-box">
+           defaultset="button-getmsg,button-newmsg,button-address,spacer,button-tag,spring,gloda-search,throbber-box">
 #else
-           defaultset="button-getmsg,button-newmsg,button-address,separator,button-reply,button-replyall,button-replylist,button-forward,separator,button-tag,button-delete,button-junk,button-print,separator,button-goback,button-goforward,spring,gloda-search">
+           defaultset="button-getmsg,button-newmsg,button-address,separator,button-tag,spring,gloda-search">
 #endif
   </toolbar>
   <toolbarset id="customToolbars" context="toolbar-context-menu"/>
