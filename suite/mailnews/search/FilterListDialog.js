@@ -346,6 +346,9 @@ function selectServer(uri)
     // see bug #XXXXXX
     serverMenu.setAttribute("label", msgFolder.name);
     serverMenu.setAttribute("uri",uri);
+    serverMenu.setAttribute("IsServer", msgFolder.isServer);
+    serverMenu.setAttribute("IsSecure", msgFolder.server.isSecure);
+    serverMenu.setAttribute("ServerType", msgFolder.server.type);
 
     setServer(uri);
 }

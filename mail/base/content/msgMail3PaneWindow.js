@@ -233,6 +233,11 @@ const MailPrefObserver = {
   }
 };
 
+function AutoConfigWizard(okCallback)
+{
+  NewMailAccount(msgWindow, okCallback);
+}
+
 /**
  * Called on startup to initialize various parts of the main window
  */
@@ -289,7 +294,7 @@ function OnLoadMessenger()
 
   // verifyAccounts returns true if the callback won't be called
   // We also don't want the account wizard to open if any sort of account exists
-  if (verifyAccounts(LoadPostAccountWizard, false))
+  if (verifyAccounts(LoadPostAccountWizard, false, AutoConfigWizard))
     LoadPostAccountWizard();
 
   // This also registers the contentTabType ("contentTab")

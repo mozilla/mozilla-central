@@ -70,12 +70,6 @@
   font-size: 18px;
 }
 
-#miniday-dropdown-button {
-  margin: 2px;
-  max-width: 15px;
-  -moz-user-focus: normal;
-}
-
 .monthlabel {
   -moz-margin-end: 0px;
 }
@@ -143,14 +137,24 @@
   -moz-image-region: rect(26px 21px 39px 16px);
 }
 
-#miniday-dropdown-button > .toolbarbutton-icon,
-  .miniday-nav-buttons > .toolbarbutton-icon {
+.miniday-nav-buttons > .toolbarbutton-icon {
   margin: 1px;
 }
 
+#miniday-dropdown-button {
+  margin: 2px;
+  max-width: 18px;
+  -moz-user-focus: normal;
+}
+
+#miniday-dropdown-button > .toolbarbutton-icon,
 #miniday-dropdown-button > .toolbarbutton-text,
   .miniday-nav-buttons > .toolbarbutton-text  {
   display: none;
+}
+
+#miniday-dropdown-button > .toolbarbutton-menu-dropmarker {
+    -moz-padding-start: 0;
 }
 
 .today-closebutton {

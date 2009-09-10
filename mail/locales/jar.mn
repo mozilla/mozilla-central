@@ -141,6 +141,8 @@
   locale/@AB_CD@/messenger/preferences/offline.dtd                      (%chrome/messenger/preferences/offline.dtd)
   locale/@AB_CD@/messenger/preferences/notifications.dtd                (%chrome/messenger/preferences/notifications.dtd)
   locale/@AB_CD@/messenger/preferences/preferences.properties           (%chrome/messenger/preferences/preferences.properties)
+  locale/@AB_CD@/messenger/preferences/cookies.dtd                      (%chrome/messenger/preferences/cookies.dtd)
+  locale/@AB_CD@/messenger/preferences/permissions.dtd                  (%chrome/messenger/preferences/permissions.dtd)
   locale/@AB_CD@/messenger/migration/migration.dtd                      (%chrome/messenger/migration/migration.dtd)
   locale/@AB_CD@/messenger/migration/migration.properties               (%chrome/messenger/migration/migration.properties)
   locale/@AB_CD@/messenger/searchIntegrationWin.dtd                     (%chrome/messenger/searchIntegrationWin.dtd)

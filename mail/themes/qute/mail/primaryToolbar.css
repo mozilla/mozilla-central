@@ -112,18 +112,6 @@
   -moz-image-region: rect(48px 120px 72px 96px) !important;
 } 
 
-#button-replylist {
-  -moz-image-region: rect(0px 120px 24px 96px);
-}
-
-#button-replylist:hover {
-  -moz-image-region: rect(24px 120px 48px 96px);
-}
-
-#button-replylist[disabled] {
-  -moz-image-region: rect(48px 120px 72px 96px) !important;
-}
-
 #button-forward {
   -moz-image-region: rect(0px 144px 24px 120px);
 }
@@ -134,151 +122,175 @@
 
 #button-forward[disabled] {
   -moz-image-region: rect(48px 144px 72px 120px) !important;
-} 
+}
 
-.delete-button {
+#button-replylist {
   -moz-image-region: rect(0px 168px 24px 144px);
 }
 
-.delete-button:hover {
+#button-replylist:hover {
   -moz-image-region: rect(24px 168px 48px 144px);
-} 
+}
 
-.delete-button[disabled] {
+#button-replylist[disabled] {
   -moz-image-region: rect(48px 168px 72px 144px) !important;
 }
 
-#button-compact {
-  -moz-image-region: rect(0px 432px 24px 408px);
-}
-
-#button-compact:hover {
-  -moz-image-region: rect(24px 432px 48px 408px);
-}
-
-#button-compact[disabled] {
-  -moz-image-region: rect(48px 432px 72px 408px) !important;
-}
-
-.junk-button {
+.delete-button {
   -moz-image-region: rect(0px 192px 24px 168px);
 }
 
-.junk-button:hover {
+.delete-button:hover {
   -moz-image-region: rect(24px 192px 48px 168px);
-}
+} 
 
-.junk-button[disabled="true"] {
+.delete-button[disabled] {
   -moz-image-region: rect(48px 192px 72px 168px) !important;
 }
 
-#button-print {
+#button-compact {
+  -moz-image-region: rect(0px 456px 24px 432px);
+}
+
+#button-compact:hover {
+  -moz-image-region: rect(24px 456px 48px 432px);
+}
+
+#button-compact[disabled] {
+  -moz-image-region: rect(48px 456px 72px 432px) !important;
+}
+
+.junk-button {
   -moz-image-region: rect(0px 216px 24px 192px);
 }
 
-#button-print:hover {
+.junk-button:hover {
   -moz-image-region: rect(24px 216px 48px 192px);
 }
 
-#button-print[disabled] {
+.junk-button[disabled="true"] {
   -moz-image-region: rect(48px 216px 72px 192px) !important;
 }
 
-#button-stop {
+#button-print {
   -moz-image-region: rect(0px 240px 24px 216px);
 }
 
-#button-stop:hover {
+#button-print:hover {
   -moz-image-region: rect(24px 240px 48px 216px);
-} 
+}
 
-#button-stop[disabled="true"] {
+#button-print[disabled] {
   -moz-image-region: rect(48px 240px 72px 216px) !important;
 }
 
-#button-file {
+#button-stop {
   -moz-image-region: rect(0px 264px 24px 240px);
+}
+
+#button-stop:hover {
+  -moz-image-region: rect(24px 264px 48px 240px);
+} 
+
+#button-stop[disabled="true"] {
+  -moz-image-region: rect(48px 264px 72px 240px) !important;
+}
+
+#button-file {
+  -moz-image-region: rect(0px 288px 24px 264px);
 }
 
 #button-file:hover,
 #button-file[open] {
-  -moz-image-region: rect(24px 264px 48px 240px);
-} 
-
-#button-file[disabled] {
-  -moz-image-region: rect(48px 264px 72px 240px) !important;
-} 
-
-#button-next, #button-previous[chromedir="rtl"] {
-  -moz-image-region: rect(0px 288px 24px 264px);
-}
-
-#button-next:hover, #button-previous:hover[chromedir="rtl"]{
   -moz-image-region: rect(24px 288px 48px 264px);
 } 
 
-#button-next[disabled], #button-previous[chromedir="rtl"][disabled] {
+#button-file[disabled] {
   -moz-image-region: rect(48px 288px 72px 264px) !important;
 } 
 
-#button-previous, #button-next[chromedir="rtl"] {
+#button-next, #button-previous[chromedir="rtl"] {
   -moz-image-region: rect(0px 312px 24px 288px);
 }
 
-#button-previous:hover, #button-next:hover[chromedir="rtl"]{
+#button-next:hover, #button-previous:hover[chromedir="rtl"]{
   -moz-image-region: rect(24px 312px 48px 288px);
 } 
 
-#button-previous[disabled], #button-next[chromedir="rtl"][disabled] {
+#button-next[disabled], #button-previous[chromedir="rtl"][disabled] {
   -moz-image-region: rect(48px 312px 72px 288px) !important;
 } 
 
-#button-mark {
+#button-previous, #button-next[chromedir="rtl"] {
   -moz-image-region: rect(0px 336px 24px 312px);
 }
 
-#button-mark:hover {
+#button-previous:hover, #button-next:hover[chromedir="rtl"]{
   -moz-image-region: rect(24px 336px 48px 312px);
 } 
 
-#button-mark[disabled] {
+#button-previous[disabled], #button-next[chromedir="rtl"][disabled] {
   -moz-image-region: rect(48px 336px 72px 312px) !important;
 } 
 
-#button-tag {
+#button-mark {
   -moz-image-region: rect(0px 360px 24px 336px);
 }
 
-#button-tag:hover {
+#button-mark:hover {
   -moz-image-region: rect(24px 360px 48px 336px);
 } 
 
-#button-tag[disabled] {
+#button-mark[disabled] {
   -moz-image-region: rect(48px 360px 72px 336px) !important;
 } 
 
-#button-goback, #button-goforward[chromedir="rtl"] {
+#button-tag {
   -moz-image-region: rect(0px 384px 24px 360px);
 }
 
-#button-goback:hover, #button-goforward:hover[chromedir="rtl"]{
+#button-tag:hover {
   -moz-image-region: rect(24px 384px 48px 360px);
 } 
 
-#button-goback[disabled], #button-goforward[chromedir="rtl"][disabled] {
+#button-tag[disabled] {
   -moz-image-region: rect(48px 384px 72px 360px) !important;
 } 
 
-#button-goforward, #button-goback[chromedir="rtl"] {
+#button-goback, #button-goforward[chromedir="rtl"] {
   -moz-image-region: rect(0px 408px 24px 384px);
 }
 
-#button-goforward:hover, #button-goback:hover[chromedir="rtl"]{
+#button-goback:hover, #button-goforward:hover[chromedir="rtl"]{
   -moz-image-region: rect(24px 408px 48px 384px);
 } 
 
-#button-goforward[disabled], #button-goback[chromedir="rtl"][disabled] {
+#button-goback[disabled], #button-goforward[chromedir="rtl"][disabled] {
   -moz-image-region: rect(48px 408px 72px 384px) !important;
+} 
+
+#button-goforward, #button-goback[chromedir="rtl"] {
+  -moz-image-region: rect(0px 432px 24px 408px);
+}
+
+#button-goforward:hover, #button-goback:hover[chromedir="rtl"]{
+  -moz-image-region: rect(24px 432px 48px 408px);
+} 
+
+#button-goforward[disabled], #button-goback[chromedir="rtl"][disabled] {
+  -moz-image-region: rect(48px 432px 72px 408px) !important;
+}
+
+#button-archive {
+  -moz-image-region: rect(0px 480px 24px 456px);
+}
+
+#button-archive:hover {
+  -moz-image-region: rect(24px 480px 48px 456px);
+}
+
+#button-archive[disabled] {
+  -moz-image-region: rect(48px 480px 72px 456px) !important;
 }
 
 /* ::::: small primary toolbar buttons ::::: */
@@ -347,18 +359,6 @@ toolbar[iconsize="small"] #button-replyall[disabled] {
   -moz-image-region: rect(32px 80px 48px 64px) !important;
 } 
 
-toolbar[iconsize="small"] #button-replylist {
-  -moz-image-region: rect(0px 80px 16px 64px);
-}
-
-toolbar[iconsize="small"] #button-replylist:hover {
-  -moz-image-region: rect(16px 80px 32px 64px);
-}
-
-toolbar[iconsize="small"] #button-replylist[disabled] {
-  -moz-image-region: rect(32px 80px 48px 64px) !important;
-}
-
 toolbar[iconsize="small"] #button-forward {
   -moz-image-region: rect(0px 96px 16px 80px);
 }
@@ -369,175 +369,199 @@ toolbar[iconsize="small"] #button-forward:hover {
 
 toolbar[iconsize="small"] #button-forward[disabled] {
   -moz-image-region: rect(32px 96px 48px 80px) !important;
-} 
+}
 
-toolbar[iconsize="small"] .delete-button {
+toolbar[iconsize="small"] #button-replylist {
   -moz-image-region: rect(0px 112px 16px 96px);
 }
 
-toolbar[iconsize="small"] .delete-button:hover {
+toolbar[iconsize="small"] #button-replylist:hover {
   -moz-image-region: rect(16px 112px 32px 96px);
-} 
+}
 
-toolbar[iconsize="small"] .delete-button[disabled] {
+toolbar[iconsize="small"] #button-replylist[disabled] {
   -moz-image-region: rect(32px 112px 48px 96px) !important;
-} 
+}
 
-toolbar[iconsize="small"] .junk-button{
+toolbar[iconsize="small"] .delete-button {
   -moz-image-region: rect(0px 128px 16px 112px);
 }
 
-toolbar[iconsize="small"] .junk-button:hover {
+toolbar[iconsize="small"] .delete-button:hover {
   -moz-image-region: rect(16px 128px 32px 112px);
-}
+} 
 
-toolbar[iconsize="small"] .junk-button[disabled="true"] {
+toolbar[iconsize="small"] .delete-button[disabled] {
   -moz-image-region: rect(32px 128px 48px 112px) !important;
-}
+} 
 
-toolbar[iconsize="small"] #button-print {
+toolbar[iconsize="small"] .junk-button{
   -moz-image-region: rect(0px 144px 16px 128px);
 }
 
-toolbar[iconsize="small"] #button-print:hover {
+toolbar[iconsize="small"] .junk-button:hover {
   -moz-image-region: rect(16px 144px 32px 128px);
 }
 
-toolbar[iconsize="small"] #button-print[disabled] {
+toolbar[iconsize="small"] .junk-button[disabled="true"] {
   -moz-image-region: rect(32px 144px 48px 128px) !important;
 }
 
-toolbar[iconsize="small"] #button-stop {
+toolbar[iconsize="small"] #button-print {
   -moz-image-region: rect(0px 160px 16px 144px);
 }
 
-toolbar[iconsize="small"] #button-stop:hover {
+toolbar[iconsize="small"] #button-print:hover {
   -moz-image-region: rect(16px 160px 32px 144px);
-} 
+}
 
-toolbar[iconsize="small"] #button-stop[disabled="true"] {
+toolbar[iconsize="small"] #button-print[disabled] {
   -moz-image-region: rect(32px 160px 48px 144px) !important;
 }
 
-toolbar[iconsize="small"] #button-file {
+toolbar[iconsize="small"] #button-stop {
   -moz-image-region: rect(0px 176px 16px 160px);
+}
+
+toolbar[iconsize="small"] #button-stop:hover {
+  -moz-image-region: rect(16px 176px 32px 160px);
+} 
+
+toolbar[iconsize="small"] #button-stop[disabled="true"] {
+  -moz-image-region: rect(32px 176px 48px 160px) !important;
+}
+
+toolbar[iconsize="small"] #button-file {
+  -moz-image-region: rect(0px 192px 16px 176px);
 }
 
 toolbar[iconsize="small"] #button-file:hover,
 toolbar[iconsize="small"] #button-file[open] {
-  -moz-image-region: rect(16px 176px 32px 160px);
+  -moz-image-region: rect(16px 192px 32px 176px);
 } 
 
 toolbar[iconsize="small"] #button-file[disabled] {
-  -moz-image-region: rect(32px 176px 48px 160px) !important;
+  -moz-image-region: rect(32px 192px 48px 176px) !important;
 } 
 
 toolbar[iconsize="small"] #button-next {
-  -moz-image-region: rect(0px 192px 16px 176px);
+  -moz-image-region: rect(0px 208px 16px 192px);
 }
 
 toolbar[iconsize="small"] #button-next:hover {
-  -moz-image-region: rect(16px 192px 32px 176px);
+  -moz-image-region: rect(16px 208px 32px 192px);
 } 
 
 toolbar[iconsize="small"] #button-next[disabled] {
-  -moz-image-region: rect(32px 192px 48px 176px) !important;
+  -moz-image-region: rect(32px 208px 48px 192px) !important;
 } 
 
 toolbar[iconsize="small"] #button-next[chromedir="rtl"] {
-  -moz-image-region: rect(0px 208px 16px 192px);
-}
-
-toolbar[iconsize="small"] #button-next:hover[chromedir="rtl"] {
-  -moz-image-region: rect(16px 208px 32px 192px);
-} 
-
-toolbar[iconsize="small"] #button-next[chromedir="rtl"][disabled] {
-  -moz-image-region: rect(32px 208px 48px 192px) !important;
-} 
-
-toolbar[iconsize="small"] #button-previous {
-  -moz-image-region: rect(0px 208px 16px 192px);
-}
-
-toolbar[iconsize="small"] #button-previous:hover {
-  -moz-image-region: rect(16px 208px 32px 192px);
-} 
-
-toolbar[iconsize="small"] #button-previous[disabled] {
-  -moz-image-region: rect(32px 208px 48px 192px) !important;
-} 
-
-toolbar[iconsize="small"] #button-previous[chromedir="rtl"] {
-  -moz-image-region: rect(0px 192px 16px 176px);
-}
-
-toolbar[iconsize="small"] #button-previous:hover[chromedir="rtl"] {
-  -moz-image-region: rect(16px 192px 32px 176px);
-} 
-
-toolbar[iconsize="small"] #button-previous[chromedir="rtl"][disabled] {
-  -moz-image-region: rect(32px 192px 48px 176px) !important;
-} 
-
-toolbar[iconsize="small"] #button-mark {
   -moz-image-region: rect(0px 224px 16px 208px);
 }
 
-toolbar[iconsize="small"] #button-mark:hover {
+toolbar[iconsize="small"] #button-next:hover[chromedir="rtl"] {
   -moz-image-region: rect(16px 224px 32px 208px);
 } 
 
-toolbar[iconsize="small"] #button-mark[disabled] {
+toolbar[iconsize="small"] #button-next[chromedir="rtl"][disabled] {
   -moz-image-region: rect(32px 224px 48px 208px) !important;
+} 
+
+toolbar[iconsize="small"] #button-previous {
+  -moz-image-region: rect(0px 224px 16px 208px);
 }
 
-toolbar[iconsize="small"] #button-tag {
+toolbar[iconsize="small"] #button-previous:hover {
+  -moz-image-region: rect(16px 224px 32px 208px);
+} 
+
+toolbar[iconsize="small"] #button-previous[disabled] {
+  -moz-image-region: rect(32px 224px 48px 208px) !important;
+} 
+
+toolbar[iconsize="small"] #button-previous[chromedir="rtl"] {
+  -moz-image-region: rect(0px 208px 16px 192px);
+}
+
+toolbar[iconsize="small"] #button-previous:hover[chromedir="rtl"] {
+  -moz-image-region: rect(16px 208px 32px 192px);
+} 
+
+toolbar[iconsize="small"] #button-previous[chromedir="rtl"][disabled] {
+  -moz-image-region: rect(32px 208px 48px 192px) !important;
+} 
+
+toolbar[iconsize="small"] #button-mark {
   -moz-image-region: rect(0px 240px 16px 224px);
 }
 
-toolbar[iconsize="small"] #button-tag:hover {
+toolbar[iconsize="small"] #button-mark:hover {
   -moz-image-region: rect(16px 240px 32px 224px);
 } 
 
-toolbar[iconsize="small"] #button-tag[disabled] {
+toolbar[iconsize="small"] #button-mark[disabled] {
   -moz-image-region: rect(32px 240px 48px 224px) !important;
 }
 
-toolbar[iconsize="small"] #button-goback {
+toolbar[iconsize="small"] #button-tag {
   -moz-image-region: rect(0px 256px 16px 240px);
 }
 
-toolbar[iconsize="small"] #button-goback:hover {
+toolbar[iconsize="small"] #button-tag:hover {
   -moz-image-region: rect(16px 256px 32px 240px);
 } 
 
-toolbar[iconsize="small"] #button-goback[disabled] {
+toolbar[iconsize="small"] #button-tag[disabled] {
   -moz-image-region: rect(32px 256px 48px 240px) !important;
 }
 
-toolbar[iconsize="small"] #button-goforward {
+toolbar[iconsize="small"] #button-goback {
   -moz-image-region: rect(0px 272px 16px 256px);
 }
 
-toolbar[iconsize="small"] #button-goforward:hover {
+toolbar[iconsize="small"] #button-goback:hover {
   -moz-image-region: rect(16px 272px 32px 256px);
 } 
 
-toolbar[iconsize="small"] #button-goforward[disabled] {
+toolbar[iconsize="small"] #button-goback[disabled] {
   -moz-image-region: rect(32px 272px 48px 256px) !important;
 }
 
-toolbar[iconsize="small"] #button-compact {
+toolbar[iconsize="small"] #button-goforward {
   -moz-image-region: rect(0px 288px 16px 272px);
 }
 
-toolbar[iconsize="small"] #button-compact:hover {
+toolbar[iconsize="small"] #button-goforward:hover {
   -moz-image-region: rect(16px 288px 32px 272px);
+} 
+
+toolbar[iconsize="small"] #button-goforward[disabled] {
+  -moz-image-region: rect(32px 288px 48px 272px) !important;
+}
+
+toolbar[iconsize="small"] #button-compact {
+  -moz-image-region: rect(0px 304px 16px 288px);
+}
+
+toolbar[iconsize="small"] #button-compact:hover {
+  -moz-image-region: rect(16px 304px 32px 288px);
 }
 
 toolbar[iconsize="small"] #button-compact[disabled] {
-  -moz-image-region: rect(32px 288px 48px 272px) !important;
+  -moz-image-region: rect(32px 304px 48px 288px) !important;
+}
+
+toolbar[iconsize="small"] #button-archive {
+  -moz-image-region: rect(0px 320px 16px 304px);
+}
+
+toolbar[iconsize="small"] #button-archive:hover {
+  -moz-image-region: rect(16px 320px 32px 304px);
+}
+
+toolbar[iconsize="small"] #button-archive[disabled] {
+  -moz-image-region: rect(32px 320px 48px 304px) !important;
 }
 
 /* ::::: end small primary toolbar buttons ::::: */
