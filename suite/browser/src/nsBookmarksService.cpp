@@ -471,7 +471,7 @@ protected:
 
     nsresult setFolderHint(nsIRDFResource *newSource, nsIRDFResource *objType);
 
-    nsresult Unescape(nsString &text);
+    static nsresult Unescape(nsString &text);
 
     nsresult ParseMetaTag(const nsString &aLine, nsIUnicodeDecoder **decoder);
 
@@ -1345,6 +1345,7 @@ BookmarkParser::ParseLiteral(nsIRDFResource *arc, nsString& aValue, nsIRDFNode**
 
     if (arc == kNC_ShortcutURL)
     {
+        Unescape(aValue);
         // lowercase the shortcut URL before storing internally
         ToLowerCase(aValue);
     }
@@ -1470,6 +1471,8 @@ BookmarkParser::ParseBookmarkSeparator(const nsString &aLine, const nsCOMPtr<nsI
                                             termQuote - attrStart));
                 attrStart = termQuote + 1;
                 if (!name.IsEmpty()) {
+                    Unescape(name);
+
                     nsCOMPtr<nsIRDFLiteral> nameLiteral;
                     rv = gRDF->GetLiteral(name.get(), getter_AddRefs(nameLiteral));
                     if (NS_FAILED(rv))
@@ -5911,6 +5914,11 @@ nsBookmarksService::WriteBookmarkProperties(nsIRDFDataSource *ds,
             }
             else
             {
+                if (property == kNC_Name || property == kNC_ShortcutURL)
+                {
+                    EscapeHTML(attribute);
+                }
+
                 rv |= strm->Write(htmlAttrib, strlen(htmlAttrib), &dummy);
                 rv |= strm->Write(attribute.get(), attribute.Length(), &dummy);
                 rv |= strm->Write(kQuoteStr, sizeof(kQuoteStr)-1, &dummy);

@@ -2,6 +2,7 @@
 <!ENTITY itemPhishing.label      "E-mail Scams">
 <!ENTITY itemPasswords.label     "Passwords">
 <!ENTITY itemAntiVirus.label     "Anti-Virus">
+<!ENTITY itemCookies.label       "Web Content">
 
 <!-- Junk Mail Controls -->
 <!ENTITY junkMail.intro "Set your default junk mail settings. Account-specific junk mail settings can be configured in Account Settings.">
@@ -41,3 +42,18 @@
 <!ENTITY antiVirus.intro      "&brandShortName; can make it easy for anti-virus software to analyze incoming mail messages for viruses before they are stored locally.">
 <!ENTITY antiVirus.label      "Allow anti-virus clients to quarantine individual incoming messages">
 <!ENTITY antiVirus.accesskey  "A">
+
+<!-- Cookies -->
+<!ENTITY cookies.intro                  "&brandShortName; lets you specify which blogs, news feeds, and other web sites are allowed to set cookies.">
+<!ENTITY acceptCookies.label            "Accept cookies from sites">
+<!ENTITY acceptCookies.accesskey        "c">
+<!ENTITY keepUntil.label                "Keep until:">
+<!ENTITY keepUntil.accesskey            "K">
+<!ENTITY expire.label                   "they expire">
+<!ENTITY close.label                    "I close &brandShortName;">
+<!ENTITY askEachTime.label              "ask me every time">
+<!ENTITY cookieExceptions.label         "Exceptions…">
+<!ENTITY cookieExceptions.accesskey     "E">
+<!ENTITY showCookies.label              "Show Cookies…">
+<!ENTITY showCookies.accesskey          "S">
+

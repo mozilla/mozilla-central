@@ -466,8 +466,6 @@ function Startup()
                                 .getService(Components.interfaces.nsIPrefService);
     pref = prefService.getBranch(null);
 
-    window.tryToClose = WindowIsClosing;
-
     webNavigation = getWebNavigation();
     if (!webNavigation)
       throw "no XBL binding for browser";
@@ -1432,8 +1430,7 @@ function BrowserCloseTabOrWindow()
 
 function BrowserTryToCloseWindow()
 {
-  //give tryToClose a chance to veto if it is defined
-  if (typeof(window.tryToClose) != "function" || window.tryToClose())
+  if (WindowIsClosing())
     BrowserCloseWindow();
 }
 

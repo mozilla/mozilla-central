@@ -101,8 +101,9 @@
   margin: 0px !important;
 }
 
-/* ::::: iconic menuitems ::::: */
+/* ::::: iconic menus and menuitems ::::: */
 
+menu.menu-iconic > .menu-iconic-left,
 menuitem.menuitem-iconic > .menu-iconic-left {
   display: -moz-box;
 }
