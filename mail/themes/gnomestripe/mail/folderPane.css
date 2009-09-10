@@ -157,7 +157,6 @@ treechildren::-moz-tree-image(folderNameCol, serverType-rss) {
 
 /* ..... Account nodes ..... */
 .tabmail-tab[type="folder"][IsServer="true"] > .tab-image-middle > .tab-icon-image {
-  -moz-margin-start: 0px;
   background-image: url("chrome://messenger/skin/icons/folder-pane.png");
   background-position: left -16px;
   list-style-image: url("chrome://messenger/skin/icons/folder-blank.png");
