@@ -1448,8 +1448,8 @@ function WizCallback(state)
   }
   else
   {
-    MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
-//  window.tryToClose=ComposeCanClose;
+    // The account wizard is still closing so we can't close just yet
+    setTimeout(MsgComposeCloseWindow, 0, false); // Don't recycle a bogus window
   }
 }
 
