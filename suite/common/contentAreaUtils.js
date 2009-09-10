@@ -192,7 +192,7 @@ function saveURL(aURL, aFileName, aFilePickerTitleKey, aShouldBypassCache,
                  aReferrer)
 {
   internalSave(aURL, null, aFileName, null, null, aShouldBypassCache,
-               aFilePickerTitleKey, null, aReferrer);
+               aFilePickerTitleKey, null, aReferrer, null);
 }
 
 // Just like saveURL, but will get some info off the image before
@@ -223,7 +223,7 @@ function saveImageURL(aURL, aFileName, aFilePickerTitleKey, aShouldBypassCache,
     }
   }
   internalSave(aURL, null, aFileName, contentDisposition, contentType,
-               aShouldBypassCache, aFilePickerTitleKey, null, aReferrer);
+               aShouldBypassCache, aFilePickerTitleKey, null, aReferrer, null);
 }
 
 function saveFrameDocument()
@@ -239,19 +239,32 @@ function saveDocument(aDocument)
     throw "Must have a document when calling saveDocument";
 
   // We want to use cached data because the document is currently visible.
+  var ifreq =
+      aDocument.defaultView
+               .QueryInterface(Components.interfaces.nsIInterfaceRequestor);
   var contentDisposition = null;
   try {
     contentDisposition =
-      aDocument.defaultView
-               .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-               .getInterface(Components.interfaces.nsIDOMWindowUtils)
-               .getDocumentMetadata("content-disposition");
+      ifreq.getInterface(Components.interfaces.nsIDOMWindowUtils)
+           .getDocumentMetadata("content-disposition");
   } catch (ex) {
     // Failure to get a content-disposition is ok
   }
+
+  var cacheKey = null;
+  try {
+    cacheKey = ifreq.getInterface(Components.interfaces.nsIWebNavigation)
+                    .QueryInterface(Components.interfaces.nsIWebPageDescriptor)
+                    .currentDescriptor
+                    .QueryInterface(Components.interfaces.nsISHEntry).cacheKey;
+  } catch (ex) {
+    // We might not find it in the cache. Oh, well.
+  }
+
   internalSave(aDocument.location.href, aDocument, null, contentDisposition,
                aDocument.contentType, false, null, null,
-               aDocument.referrer ? makeURI(aDocument.referrer) : null);
+               aDocument.referrer ? makeURI(aDocument.referrer) : null,
+               cacheKey);
 }
 
 function DownloadListener(win, transfer) {
@@ -325,10 +338,12 @@ const kSaveAsType_Text     = 2; // Save document, converting to plain text.
  *        need to be prompted for a target filename.
  * @param aReferrer the referrer URI object (not URL string) to use, or null
  *        if no referrer should be sent.
+ * @param aCacheKey [optional] If set will be passed to saveURI.
+ *        See nsIWebBrowserPersist for allowed values.
  */
 function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
                       aContentType, aShouldBypassCache, aFilePickerTitleKey,
-                      aChosenData, aReferrer)
+                      aChosenData, aReferrer, aCacheKey)
 {
   // Note: aDocument == null when this code is used by save-link-as...
   var saveMode = GetSaveModeForContentType(aContentType);
@@ -444,7 +459,7 @@ function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
             persistArgs.target, "", null, null, null, persist);
     persist.progressListener = new DownloadListener(window, tr);
     persist.saveURI((aChosenData ? aChosenData.uri : source),
-                    null, aReferrer, persistArgs.postData, null,
+                    aCacheKey, aReferrer, persistArgs.postData, null,
                     persistArgs.target);
   }
 }
