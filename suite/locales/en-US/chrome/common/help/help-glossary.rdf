@@ -90,6 +90,8 @@
         <rdf:li> <rdf:Description nc:name="root CA" nc:link="glossary.xhtml#root_ca"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="RSS" nc:link="glossary.xhtml#rss"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="search engine" nc:link="glossary.xhtml#search_engine"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="secure authentication" nc:link="glossary.xhtml#secure_authentication"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="secure connection" nc:link="glossary.xhtml#secure_connection"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="security certificate" nc:link="glossary.xhtml#security_certificate"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="security device" nc:link="glossary.xhtml#security_device"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="security module" nc:link="glossary.xhtml#security_module"/> </rdf:li>
@@ -106,6 +108,7 @@
         <rdf:li> <rdf:Description nc:name="software security device" nc:link="glossary.xhtml#software_security_device"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="spoofing" nc:link="glossary.xhtml#spoofing"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="SSL" nc:link="glossary.xhtml#ssl"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="STARTTLS" nc:link="glossary.xhtml#starttls"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="Status Bar" nc:link="glossary.xhtml#status_bar"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="subject" nc:link="glossary.xhtml#subject"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="subject name" nc:link="glossary.xhtml#subject_name"/> </rdf:li>

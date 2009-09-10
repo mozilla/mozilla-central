@@ -552,6 +552,17 @@
   Typically, the user types a word or phrase, also called a query, into a
   search box, and the search engine displays links to relevant web pages.</dd>
 
+<dt id="secure_authentication">secure authentication</dt><dd>A type of
+  <a href="#authentication">authentication</a> which uses a
+  <a href="#secure_connection">secure connection</a> so the communication
+  between client and server is encrypted.</dd>
+
+<dt id="secure_connection">secure connection</dt><dd>A connection between a
+  client and a server which uses some type of encryption (usually,
+  <a href="#ssl">SSL</a>) to ensure it can&apos;t be intercepted by
+  third-parties. Most of the time, the server is the one providing the
+  certificate to identify itself.</dd>
+
 <dt id="security_certificate">security certificate</dt><dd>See
   <a href="#certificate">certificate</a>.</dd>
 
@@ -647,6 +658,11 @@
   <a href="#authentication">authentication</a>,
   <a href="#encryption">encryption</a>.</dd>
 
+<dt id="starttls">STARTTLS</dt><dd>An extension to common standard TCP
+  protocols (like SMTP, POP or IMAP) so the client can tell the server to use
+  <a href="#tls">TLS</a> on the same TCP port as for non-secure
+  connections.</dd>
+
 <dt id="status_bar">Status Bar</dt><dd>The toolbar that appears at the bottom
   of any &brandShortName; window. It includes the
   <a href="#component_bar">Component Bar</a> on the left and status icons on
@@ -688,8 +704,10 @@
 <dt id="third-party_cookie">third-party cookie</dt><dd>See
   <a href="#foreign_cookie">foreign cookie</a>.</dd>
 
-<dt id="tls">TLS</dt><dd>See <a href="#ssl">SSL
-  (Secure Sockets Layer).</a>.</dd>
+<dt id="tls">TLS</dt><dd>Transport Layer Security (TLS) is the new Internet
+  Engineering Task Force (IETF) standard based on SSL (Secure Sockets Layer).
+  See also <a href="#ssl">SSL</a> and
+  <a href="#encryption">encryption</a>.</dd>
 
 <dt id="token">token</dt><dd>See <a href="#security_device">security
   device</a>.</dd>
