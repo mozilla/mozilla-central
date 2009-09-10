@@ -471,3 +471,8 @@ pref("browser.history_expire_sites", 40000);
 // Disable autoplay as we don't handle audio elements in emails very well.
 // See bug 515082.
 pref("media.autoplay.enabled", false);
+
+// Enable gloda by default!
+pref("mailnews.database.global.indexer.enabled", true);
+// Show gloda errors in the error console
+pref("mailnews.database.global.logging.console", true);
