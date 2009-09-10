@@ -22,6 +22,7 @@ var GenericIndexer = {
   enabled: false,
   initialSweepCalled: false,
   indexNewObjects: function(aObjects) {
+    indexingInProgress = true;
     this._log.debug("enqueuing " + aObjects.length +
       " new generic objects with id: " + aObjects[0].NOUN_ID);
     GlodaIndexer.indexJob(new IndexingJob("generic-new", 0, null, aObjects.concat()));
@@ -41,3 +42,14 @@ var GenericIndexer = {
   }
 };
 GlodaIndexer.registerIndexer(GenericIndexer);
+
+let indexingInProgress = false;
+function genericIndexerCallback(aStatus) {
+  // If indexingInProgress is false, we've received the synthetic
+  // notification, so ignore it
+  if (indexingInProgress && aStatus == Gloda.kIndexerIdle) {
+    indexingInProgress = false;
+    next_test();
+  }
+}
+Gloda.addIndexerListener(genericIndexerCallback);

@@ -224,7 +224,6 @@ function setup_non_singular_values() {
   singularWidgets[0].multiIntAttr = [];
   // and don't bother setting it on singularWidgets[1]
 
-  runOnIndexingComplete(next_test);
   GenericIndexer.indexNewObjects(nonSingularWidgets.concat(singularWidgets));
 }
 
@@ -298,21 +297,6 @@ function setup_search_ranking_idiom() {
     new Widget(0, origin, "", 1, "bar baz", "bar baz bar bar") // 7 + 0
   ];
 
-  let indexingInProgress = false;
-
-  // Since we don't use the message indexer listener any more in this test, we
-  // need to add our own listener.
-  function genericIndexerCallback(aStatus) {
-    // If indexingInProgress is false, we've received the synthetic
-    // notification, so ignore it
-    if (indexingInProgress && aStatus == Gloda.kIndexerIdle) {
-      // We're done, so remove ourselves and move to the next test
-      Gloda.removeIndexerListener(genericIndexerCallback);
-      next_test();
-    }
-  }
-  Gloda.addIndexerListener(genericIndexerCallback);
-  indexingInProgress = true;
   GenericIndexer.indexNewObjects(fooWidgets.concat(barBazWidgets));
 }
 

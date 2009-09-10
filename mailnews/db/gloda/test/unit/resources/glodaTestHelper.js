@@ -233,7 +233,8 @@ function _synthMessagesToFakeRep(aSynthMessages) {
           (msg in aSynthMessages)];
 }
 
-function lobotomizeAdaptiveIndexer() {
+function prepareIndexerForTesting() {
+  // -- Lobotomize the adaptive indexer
   // The indexer doesn't need to worry about load; zero his rescheduling time.
   GlodaIndexer._INDEX_INTERVAL = 0;
 
@@ -271,6 +272,7 @@ function imsInit() {
     prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
     prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
 
+    // -- Get indexing events
     Gloda.addIndexerListener(messageIndexerListener.onIndexNotification);
     ims.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
     ims.catchAllCollection.listener = messageCollectionListener;
@@ -278,7 +280,7 @@ function imsInit() {
     // Make the indexer be more verbose about indexing for us...
     GlodaIndexer._unitTestSuperVerbose = true;
 
-    lobotomizeAdaptiveIndexer();
+    prepareIndexerForTesting();
 
     if (ims.injectMechanism == INJECT_FAKE_SERVER) {
       // -- Pull in the POP3 fake-server / local account helper code
@@ -635,6 +637,7 @@ var messageCollectionListener = {
  *   Only one at a time, etc.
  */
 function runOnIndexingComplete(aCallback) {
+  indexMessageState.expectingIndexNotifications = true;
   messageIndexerListener.callbackOnDone = aCallback;
 }
 
@@ -1152,6 +1155,7 @@ function _gh_test_iterator() {
   //  so let's just yield something to avoid callers having to deal with an
   //  exception indicating completion.
   yield null;
+  yield null;
 }
 
 var _next_test_currently_in_test = false;
@@ -1209,7 +1213,7 @@ function glodaHelperRunTests(aTests, aLongestTestRunTimeConceivableInSecs,
   // even if we don't want to init IMS, we want to avoid anything adaptive
   //  happening.
   else
-    lobotomizeAdaptiveIndexer();
+    prepareIndexerForTesting();
   glodaHelperTests = aTests;
   glodaHelperIterator = _gh_test_iterator();
   next_test();
