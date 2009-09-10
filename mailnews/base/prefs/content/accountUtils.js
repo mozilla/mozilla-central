@@ -97,13 +97,26 @@ function showMailIntegrationDialog() {
   } catch (ex) {}
 }
 
-function verifyAccounts(wizardCallback, needsIdentity) 
+/**
+ * Verify that there is at least one account. If not, open a new account wizard.
+ *
+ * @param wizardCallback if the wizard is run, callback when it is done.
+ * @param needsIdentity True only when verifyAccounts is called from the
+ *                      compose window. This last condition is so that we open
+ *                      the account wizard if the user does not have any
+ *                      identities defined and tries to compose mail.
+ * @param wizardOpen optional param that allows the caller to specify a
+ *                   different method to open a wizard. The wizardOpen method
+ *                   takes wizardCallback as an argument. The wizardCallback
+ *                   doesn't take any arguments.
+ */
+function verifyAccounts(wizardCallback, needsIdentity, wizardOpen)
 {
-	var openWizard = false;
+  var openWizard = false;
   var prefillAccount;
-	var state=true;
-	var ret = true;
-    
+  var state=true;
+  var ret = true;
+
     try {
         var am = Components.classes[accountManagerContractID].getService(Components.interfaces.nsIMsgAccountManager);
 
@@ -154,7 +167,10 @@ function verifyAccounts(wizardCallback, needsIdentity)
 
         if (openWizard || prefillAccount || ((!gAnyValidIdentity) && needsIdentity))
         {
-          MsgAccountWizard(wizardCallback);
+          if (wizardOpen != undefined)
+            wizardOpen(wizardCallback)
+          else
+            MsgAccountWizard(wizardCallback);
           ret = false;
         }
         else
@@ -299,12 +315,12 @@ function migrateGlobalQuotingPrefs(allIdentities)
 // we do this from a timer because if this is called from the onload=
 // handler, then the parent window doesn't appear until after the wizard
 // has closed, and this is confusing to the user
-function NewMailAccount(msgWindow)
+function NewMailAccount(msgWindow, okCallback)
 {
-  setTimeout(msgNewMailAccount, 0, msgWindow);
+  setTimeout(msgNewMailAccount, 0, msgWindow, okCallback);
 }
 
-function msgNewMailAccount(msgWindow)
+function msgNewMailAccount(msgWindow, okCallback)
 {
   let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                      .getService()
@@ -314,5 +330,5 @@ function msgNewMailAccount(msgWindow)
     existingWindow.focus();
   else
     window.openDialog("chrome://messenger/content/accountcreation/emailWizard.xul",
-                      "AccountSetup", "chrome,titlebar,centerscreen",{msgWindow:msgWindow});
+                      "AccountSetup", "chrome,titlebar,centerscreen",{msgWindow:msgWindow, okCallback:okCallback});
 }

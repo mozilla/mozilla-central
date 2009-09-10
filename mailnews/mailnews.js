@@ -850,13 +850,13 @@ pref("mailnews.auto_config_url", "https://live.mozillamessaging.com/autoconfig/"
 //                     copied to the new nsIMsgHdr when a message is copied.
 //                     Allows extensions to control preservation of properties.
 pref("mailnews.database.summary.dontPreserveOnCopy",
-  "account msgOffset threadParent msgThreadId statusOfset flag size numLines ProtoThreadFlags label gloda-id gloda-dirty");
+  "account msgOffset threadParent msgThreadId statusOfset flags size numLines ProtoThreadFlags label gloda-id gloda-dirty");
 
 // dontPreserveOnMove: a space separated list of properties that are not
 //                     copied to the new nsIMsgHdr when a message is moved.
 //                     Allows extensions to control preservation of properties.
 pref("mailnews.database.summary.dontPreserveOnMove",
-  "account msgOffset threadParent msgThreadId statusOfset flag size numLines ProtoThreadFlags label");
+  "account msgOffset threadParent msgThreadId statusOfset flags size numLines ProtoThreadFlags label");
 
 // -- Global Database (gloda) options
 // Should the indexer be enabled?

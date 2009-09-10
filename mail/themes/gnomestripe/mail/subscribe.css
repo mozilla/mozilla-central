@@ -3,6 +3,7 @@
   ======================================================================= */
 
 @import url("chrome://messenger/skin/");
+@import url("chrome://messenger/skin/folderMenus.css");
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
@@ -28,35 +29,28 @@ treechildren::-moz-tree-cell-text(nameColumn, Subscribable-false) {
   font-style: italic;
 }
 
-/* ::::: Folders :::::: */
-
+/* IMAP Folders*/
 treechildren::-moz-tree-image(nameColumn) {
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-attachment: scroll;
+  -moz-background-clip: border;
+  -moz-background-inline-policy: continuous;
+  -moz-background-origin: border;
+  background-image: url("moz-icon://stock/gtk-directory?size=menu");
+  list-style-image: url("chrome://messenger/skin/icons/folder-blank.png");
+
   -moz-margin-end: 2px;
-  list-style-image: url("chrome://messenger/skin/icons/folder.png");
-  -moz-image-region: rect(0 16px 16px 0);
 }
 
+/* Newsgroups */
 treechildren::-moz-tree-image(nameColumn, ServerType-nntp),
 treechildren::-moz-tree-image(nameColumn2, nntp) {
+  background-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  background-position: left -208px;
+  list-style-image: url("chrome://messenger/skin/icons/folder-blank.png");
+
   -moz-margin-end: 2px;
-  -moz-image-region: rect(0 160px 16px 144px);
 }
 
-/* ::::: Servers :::::: */
-
-.subscribeMenuItem {
-  list-style-image: url("chrome://messenger/skin/icons/server.png");
-  -moz-image-region: rect(0 16px 16px 0);
-}
-
-.subscribeMenuItem[ServerType="imap"][IsSecure="true"] {
-  -moz-image-region: rect(0 32px 16px 16px);
-}
-
-.subscribeMenuItem[ServerType="nntp"] {
-  -moz-image-region: rect(0 64px 16px 48px);
-}
-
-.subscribeMenuItem[ServerType="nntp"][IsSecure="true"] {
-  -moz-image-region: rect(0 80px 16px 64px);
-}

@@ -305,7 +305,7 @@ function openCalendarWizard(aCallback) {
  */
 function openCalendarProperties(aCalendar) {
     openDialog("chrome://calendar/content/calendar-properties-dialog.xul",
-               "Calendar:PropertiesDialog",
+               "CalendarPropertiesDialog",
                "chrome,titlebar,modal,resizable",
                {calendar: aCalendar});
 }

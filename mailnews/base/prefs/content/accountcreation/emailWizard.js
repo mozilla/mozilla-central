@@ -113,10 +113,14 @@ EmailConfigWizard.prototype =
     this._incomingWarning = 'cleartext';
     this._outgoingWarning = 'cleartext';
     this._userPickedOutgoingServer = false;
+    this._okCallback = null;
 
-    if (window.arguments && window.arguments[0] &&
-        window.arguments[0].msgWindow)
-      this._parentMsgWindow = window.arguments[0].msgWindow;
+    if (window.arguments && window.arguments[0]) {
+      if (window.arguments[0].msgWindow)
+        this._parentMsgWindow = window.arguments[0].msgWindow;
+      if (window.arguments[0].okCallback)
+        this._okCallback = window.arguments[0].okCallback;
+    }
 
     gStringsBundle = document.getElementById("strings");
     gBrandBundle = document.getElementById("bundle_brand");
@@ -145,6 +149,13 @@ EmailConfigWizard.prototype =
     var menulist = document.getElementById("outgoing_server");
     menulist.addEventListener("command",
       function(event) { gEmailConfigWizard.userChangedOutgoing(event); }, true);
+
+    // Store the size of the bottom half of the window in the fullspacer
+    // element, so that we don't resize wildly when we show and hide it.
+    window.sizeToContent();
+    document.getElementById("settingsbox").hidden = true;
+    document.getElementById("fullspacer").width = document.width;
+    window.sizeToContent();
   },
 
   /* When the next button is clicked we've moved from the initial account
@@ -170,6 +181,8 @@ EmailConfigWizard.prototype =
     _show("stop_button");
     _hide("edit_button");
     _hide("go_button");
+
+    window.sizeToContent();
   },
 
   /* The back button can be clicked at anytime and should stop all probing of
@@ -181,6 +194,7 @@ EmailConfigWizard.prototype =
    */
   onBack : function()
   {
+    this._disableConfigDetails(true);
     this.hideConfigDetails();
     this.clearConfigDetails();
 
@@ -190,18 +204,15 @@ EmailConfigWizard.prototype =
     // swap buttons back
     _show("next_button");
     _hide("back_button");
+    document.getElementById("advanced_settings").disabled = true;
     _hide("advanced_settings");
   },
 
   /* Helper method that enables or disabled all the account information inputs
-   *
-   * NOTE: The remember password input was skipped purposefully, people should
-   *        continue to be able to change that setting even as account details
-   *        are determined.
    */
   _accountInfoInputs : function(disabled)
   {
-    let ids = ["realname","email","password"];
+    let ids = ["realname", "email", "password", "remember_password"];
     if (disabled && document.getElementById("password").getAttribute("empty")) {
       document.getElementById("password").value = " ";
       document.getElementById("password").setAttribute("empty", true);
@@ -264,10 +275,17 @@ EmailConfigWizard.prototype =
    */
   validateRealname : function()
   {
-    if (document.getElementById('realname').value.length > 0)
-      this.clearError('nameerror');
-    else
-      this.setError("nameerror", "name.error");
+    let realname = document.getElementById("realname");
+    if (realname.value.length > 0) {
+      this.clearError("nameerror");
+      _show("nametext");
+      realname.removeAttribute("error");
+    }
+    else {
+      _hide("nametext");
+      this.setError("nameerror", "please_enter_name");
+      realname.setAttribute("error", "true");
+    }
   },
 
   /*
@@ -288,20 +306,20 @@ EmailConfigWizard.prototype =
    */
   onEmailInput : function()
   {
-    if (document.getElementById('realname').value.length > 0 &&
+    if (document.getElementById("realname").value.length > 0 &&
         this.emailAddrValidish())
-      _show("next_button");
+      document.getElementById("next_button").disabled = false;
     else
-      _hide("next_button");
+      document.getElementById("next_button").disabled = true;
    },
 
   onRealnameInput : function()
   {
     if (document.getElementById('realname').value.length > 0 &&
         this.emailAddrValidish())
-      _show("next_button");
+      document.getElementById("next_button").disabled = false;
     else
-      _hide("next_button");
+      document.getElementById("next_button").disabled = true;
    },
 
   /* This check is done on blur and is only done as an informative warning
@@ -310,13 +328,18 @@ EmailConfigWizard.prototype =
    */
   validateEmail : function()
   {
-    if (document.getElementById('email').value.length <= 0)
+    let email = document.getElementById("email");
+    if (email.value.length <= 0)
       return;
 
-    if (emailRE.test(document.getElementById('email').value))
-      this.clearError('emailerror');
-    else
-      this.setError("emailerror", "email.error");
+    if (emailRE.test(email.value)) {
+      this.clearError("emailerror");
+      email.removeAttribute("error");
+    }
+    else {
+      this.setError("emailerror", "double_check_email");
+      email.setAttribute("error", "true");
+    }
   },
 
   // We use this to  prevent probing from forgetting the user's choice.
@@ -364,12 +387,14 @@ EmailConfigWizard.prototype =
   {
     let passwordElt = document.getElementById("password");
     let rememberPasswordElt = document.getElementById("remember_password");
+    rememberPasswordElt.disabled = false;
     if (passwordElt.value.length < 1) {
-      document.getElementById("remember_password").checked = false;
+      rememberPasswordElt.disabled = true;
+      rememberPasswordElt.checked = false;
       this._userChangedPassword = false;
     }
     else if (!this._userChangedPassword)
-      document.getElementById("remember_password").checked = true;
+      rememberPasswordElt.checked = true;
   },
 
   /* If the user just tabbed through the password input without entering
@@ -379,15 +404,19 @@ EmailConfigWizard.prototype =
   onblurPassword : function()
   {
     let passwordElt = document.getElementById("password");
-    if (passwordElt.value.length < 1)
+    let rememberPasswordElt = document.getElementById("remember_password");
+    if (passwordElt.value.length < 1) {
+      rememberPasswordElt.disabled = true;
       passwordElt.type = "text";
+    }
+    else
+      rememberPasswordElt.disabled = false;
   },
 
   findConfig : function(domain, email)
   {
     gEmailWizardLogger.info("findConfig()");
-    this.startSpinner("searching_for_configs");
-    this.setSpinnerStatus("check_preconfig");
+    this.startSpinner("all", "looking_up_settings");
     if (this._probeAbortable)
     {
       gEmailWizardLogger.info("aborting existing config search");
@@ -400,34 +429,29 @@ EmailConfigWizard.prototype =
         function(config) // success
         {
           me.foundConfig(config);
-          me.stopSpinner("finished_with_success");
-          me.setSpinnerStatus("found_preconfig");
+          me.stopSpinner("found_settings");
           me._probeAbortable = null;
         },
         function(e) // fetchConfigFromDisk failed
         {
           gEmailWizardLogger.info("fetchConfigFromDisk failed: " + e);
-          me.startSpinner("searching_for_configs");
-          me.setSpinnerStatus("checking_mozilla_config");
+          me.startSpinner("all", "looking_up_settings");
           me._probeAbortable = 
             fetchConfigFromDB(
               domain,
               function(config) // success
               {
                 me.foundConfig(config);
-                me.stopSpinner("finished_with_success");
-                me.setSpinnerStatus("found_isp_config");
+                me.stopSpinner("found_settings");
                 me.showEditButton();
                 me._probeAbortable = null;
               },
               function(e) // fetchConfigFromDB failed
               {
                 gEmailWizardLogger.info("fetchConfigFromDB failed: " + e);
-                me.setSpinnerStatus("probing_config");
                 var initialConfig = new AccountConfig();
                 me._prefillConfig(initialConfig);
-                me.startSpinner("searching_for_configs")
-                me.setSpinnerStatus("guessing_from_email");
+                me.startSpinner("all", "looking_up_settings")
                 me._guessConfig(domain, initialConfig, 'both');
               });
           });
@@ -467,21 +491,24 @@ EmailConfigWizard.prototype =
                                     me._outgoingState);
             if (me._incomingState == 'done' && me._outgoingState == 'done')
             {
-              me.stopSpinner("finished_with_success");
-              me.setSpinnerStatus("config_details_found");
+              me.stopSpinner("found_settings");
               _hide("stop_button");
               _show("edit_button");
             }
             else if (me._incomingState == 'done' && me._outgoingState != 'probing')
             {
-              me.stopSpinner("finished_with_success");
-              me.setSpinnerStatus("incoming_found_specify_outgoing");
+              if (me._outgoingState == "failed")
+                me.stopSpinner("failed_to_find_settings");
+              else
+                me.stopSpinner("found_settings");
               me.editConfigDetails();
             }
             else if (me._outgoingState == 'done' && me._incomingState != 'probing')
             {
-              me.stopSpinner("finished_with_success");
-              me.setSpinnerStatus("outgoing_found_specify_incoming");
+              if (me._incomingState == "failed")
+                me.stopSpinner("failed_to_find_settings");
+              else
+                me.stopSpinner("found_settings");
               me.editConfigDetails();
             }
             if (me._outgoingState != 'probing' &&
@@ -493,22 +520,23 @@ EmailConfigWizard.prototype =
           {
             gEmailWizardLogger.info("guessConfig failed: " + e);
             me.updateConfig(config);
-            me.stopSpinner("finished_with_error");
-            me.setSpinnerStatus("please_enter_missing_hostnames");
+            me.stopSpinner("failed_to_find_settings");
             me._probeAbortable = null;
             me.editConfigDetails();
           },
           function(e, config) // guessconfig failed for incoming
           {
             gEmailWizardLogger.info("guessConfig failed for incoming: " + e);
-            me.setSpinnerStatus("incoming_failed_trying_outgoing");
+            me._setIconAndTooltip("incoming", "failed", "");
+            me._incomingState = "failed";
             config.incoming.hostname = -1;
             me.updateConfig(config);
           },
           function(e, config) // guessconfig failed for outgoing
           {
             gEmailWizardLogger.info("guessConfig failed for outgoing: " + e);
-            me.setSpinnerStatus("outgoing_failed_trying_incoming");
+            me._setIconAndTooltip("outgoing", "failed", "");
+            me._outgoingState = "failed";
             if (!me._userPickedOutgoingServer)
               config.outgoing.hostname = -1;
 
@@ -538,6 +566,7 @@ EmailConfigWizard.prototype =
   {
     this._currentConfigFilledIn = config.copy();
     _show("advanced_settings");
+    document.getElementById("advanced_settings").disabled = false;
     replaceVariables(this._currentConfigFilledIn, this._realname, this._email,
                      this._password);
 
@@ -545,7 +574,6 @@ EmailConfigWizard.prototype =
 
     document.getElementById('create_button').disabled = false;
     document.getElementById('create_button').hidden = false;
-
   },
 
   /*
@@ -686,13 +714,13 @@ EmailConfigWizard.prototype =
             if (this._incomingWarning == '')
               _hide('acknowledge_warning');
         }
+        window.sizeToContent();
       }
       else
       {
         // no certificate or cleartext issues
         this.validateAndFinish();
       }
-
     } catch (ex) { alertPrompt(gStringsBundle.getString("error_creating_account"), ex); }
   },
 
@@ -701,8 +729,13 @@ EmailConfigWizard.prototype =
     // If we're going backwards, we should reset the acknowledge_warning.
     document.getElementById('acknowledge_warning').checked = false;
     this.toggleAcknowledgeWarning();
+    document.getElementById("incoming_technical").removeAttribute("expanded");;
+    document.getElementById("incoming_details").setAttribute("collapsed", true);;
+    document.getElementById("outgoing_technical").removeAttribute("expanded");;
+    document.getElementById("outgoing_details").setAttribute("collapsed", true);;
     _hide('warningbox');
     _show('mastervbox');
+    window.sizeToContent();
   },
 
   validateAndFinish : function()
@@ -710,6 +743,7 @@ EmailConfigWizard.prototype =
     // if we're coming from the cert warning dialog
     _show('mastervbox');
     _hide('warningbox');
+    window.sizeToContent();
 
     if (!this.checkIncomingAccountIsNew())
     {
@@ -746,7 +780,7 @@ EmailConfigWizard.prototype =
   verifyConfig : function(successCallback, errorCallback)
   {
     var me = this;
-    this.startSpinner("checking_password");
+    this.startSpinner("username", "checking_password");
     // logic function defined in verifyConfig.js
     verifyConfig(
       this._currentConfigFilledIn,
@@ -878,7 +912,7 @@ EmailConfigWizard.prototype =
     if (state == 'weak')
       this._incomingState = 'done';
 
-    this._setIconAndTooltip('incoming_status', state, details);
+    this._setIconAndTooltip('incoming', state, details);
   },
 
   _setOutgoingStatus: function(state, details)
@@ -907,26 +941,36 @@ EmailConfigWizard.prototype =
     if (state == 'weak')
       this._outgoingState = 'done';
 
-    this._setIconAndTooltip('outgoing_status', state, details);
+    this._setIconAndTooltip('outgoing', state, details);
   },
 
   _setIconAndTooltip : function(id, state, details)
   {
-    let icon = document.getElementById(id);
+    gEmailWizardLogger.warn(id + " setting icon and tooltip " +
+                            state + ":" + details);
+    let icon = document.getElementById(id + "_status");
     icon.setAttribute("state", state);
     switch (state)
     {
       case "weak":
         icon.setAttribute("tooltip", "insecureserver-" + details);
         icon.setAttribute("popup", "insecureserver-" + details + "-panel");
+        this._updateSpinner(id, true);
         break;
       case "hidden":
         icon.removeAttribute("tooltip");
         icon.removeAttribute("popup");
+        this._updateSpinner(id, false);
         break;
       case "strong":
         icon.setAttribute("tooltip", "secureservertooltip");
         icon.setAttribute("popup", "secureserver-panel");
+        this._updateSpinner(id, true);
+        break;
+      case "failed":
+        icon.removeAttribute("tooltip");
+        icon.removeAttribute("popup");
+        this._updateSpinner(id, true);
         break;
     }
   },
@@ -942,7 +986,9 @@ EmailConfigWizard.prototype =
   hideConfigDetails : function()
   {
     _hide("settingsbox");
+    document.getElementById("create_button").disabled = true;
     _hide("create_button");
+    window.sizeToContent();
   },
 
   /* Clears out the config details information, this is really only meant to be
@@ -967,6 +1013,7 @@ EmailConfigWizard.prototype =
    */
   editConfigDetails : function()
   {
+    gEmailWizardLogger.info("onEdit");
     // Add the custom entry to the menulist, if it's not already there.
     let menulist = document.getElementById("outgoing_server");
     if (this._smtpServerCount == menulist.itemCount) {
@@ -976,10 +1023,10 @@ EmailConfigWizard.prototype =
     }
 
     this._disableConfigDetails(false);
-    this._setIncomingStatus('hidden');
-    this._setOutgoingStatus('hidden');
-    document.getElementById('create_button').disabled = true;
-    _hide("create_button");
+    this._setIncomingStatus("failed");
+    this._setOutgoingStatus("failed");
+    document.getElementById("advanced_settings").disabled = false;
+    document.getElementById("create_button").disabled = true;
     _hide("stop_button");
     _hide("edit_button");
     _show("go_button");
@@ -997,13 +1044,13 @@ EmailConfigWizard.prototype =
   },
 
   // IDs of <textbox> inputs that can have a .value attr set
-  _configDetailTextInputs : ["username", "incoming_server",
+  _configDetailTextInputs : ["password", "username", "incoming_server",
                              "incoming_port", "incoming_protocol",
                              "outgoing_port"],
 
   // IDs of the <menulist> elements that don't accept a .value attr but can
   // be disabled
-  _configDetailMenulists : ["incoming_security",
+  _configDetailMenulists : ["remember_password", "incoming_security",
                             "outgoing_server", "outgoing_security"],
 
   /* Helper function to loop through all config details form elements and
@@ -1033,6 +1080,7 @@ EmailConfigWizard.prototype =
     if (config.incoming.username)
     {
       document.getElementById("username").value = config.incoming.username;
+      this._setIconAndTooltip("username", "strong", "");
     }
     else
     {
@@ -1060,6 +1108,8 @@ EmailConfigWizard.prototype =
       }
       else
       {
+        // We got an incoming server, so we can enable the advanced settings.
+        document.getElementById("advanced_settings").disabled = false;
         switch (config.incoming.socketType)
         {
           case 2: // SSL / TLS
@@ -1178,6 +1228,7 @@ EmailConfigWizard.prototype =
     // the stop is naturally not hidden so has no place in the code where it is
     // told to be shown
     _show("stop_button");
+    this._password = document.getElementById("password").value;
     this.goWithConfigDetails();
     var newConfig = this.getUserConfig();
     if (this._incomingState != "done") {
@@ -1198,39 +1249,46 @@ EmailConfigWizard.prototype =
 
   // UI helper functions
 
-  startSpinner: function(actionStrName)
+  startSpinner: function(which, actionStrName)
   {
     this._showStatusTitle(false, actionStrName);
-    gEmailWizardLogger.warn("spinner start\n");
-  },
-
-  setSpinnerStatus : function(actionStrName)
-  {
-    this._showStatus(actionStrName);
+    if (which == "all") {
+      this._setIconAndTooltip("username", "hidden", "");
+      this._setIconAndTooltip("incoming", "hidden", "");
+      this._setIconAndTooltip("outgoing", "hidden", "");
+    }
+    else
+      this._setIconAndTooltip(which, "hidden", "");
+    gEmailWizardLogger.warn(which + "spinner start " + actionStrName);
   },
 
   stopSpinner: function(actionStrName)
   {
     this._showStatusTitle(true, actionStrName);
-    gEmailWizardLogger.warn("spinner stop\n");
+    this._updateSpinner("username", true);
+    this._updateSpinner("incoming", true);
+    this._updateSpinner("outgoing", true);
+    gEmailWizardLogger.warn("all spinner stop " + actionStrName);
   },
 
-  // thought this would be needed other places, not likely though
-  _hideSpinner : function(hidden)
+  _updateSpinner: function(which, stop)
   {
-    document.getElementById("config_spinner").hidden = hidden;
+    document.getElementById(which + "_spinner").hidden = stop;
   },
 
   _showStatusTitle: function(success, msgName)
   {
+    let brandShortName = document.getElementById("bundle_brand")
+                                 .getString("brandShortName");
     let msg;
     try {
-      msg = msgName ? gStringsBundle.getString(msgName) : "";
+      msg = msgName
+            ? gStringsBundle.getFormattedString(msgName, [brandShortName])
+            : "";
     } catch(ex) {
       gEmailWizardLogger.error("missing string for " + msgName);
     }
 
-    this._hideSpinner(success);
     let title = document.getElementById("config_status_title");
     title.hidden = false;
     title.textContent = msg;
@@ -1238,26 +1296,11 @@ EmailConfigWizard.prototype =
                             ", msg: " + msg);
   },
 
-  _showStatus: function(msgName)
-  {
-    let msg;
-    try {
-      msg = msgName ? gStringsBundle.getString(msgName) : "";
-    } catch(ex) {
-      gEmailWizardLogger.error("missing string for " + msgName);
-    }
-
-    let subtitle = document.getElementById("config_status_subtitle");
-    subtitle.hidden = false;
-    subtitle.textContent = msg;
-    gEmailWizardLogger.info("show status subtitle: " + msg);
-  },
-
   _prefillConfig: function(initialConfig)
   {
     var emailsplit = this._email.split("@");
     if (emailsplit.length != 2)
-      throw new Exception(gStringsBundle.getString("email.error"));
+      throw new Exception(gStringsBundle.getString("double_check_email"));
 
     var emaillocal = sanitize.nonemptystring(emailsplit[0]);
     initialConfig.incoming.username = emaillocal;
@@ -1270,9 +1313,7 @@ EmailConfigWizard.prototype =
   {
     gEmailWizardLogger.info("_startProbingIncoming: " + config.incoming.hostname +
                             " probe = " + this._probeAbortable);
-    this.startSpinner("searching_for_configs");
-    this.setSpinnerStatus(this._outgoingState == "probing" ?
-                          "check_server_details" : "check_in_server_details");
+    this.startSpinner("incoming", "looking_up_settings");
 
     config.incoming._inprogress = true;
     // User entered hostname, we may want to probe port and protocol and socketType
@@ -1306,9 +1347,7 @@ EmailConfigWizard.prototype =
   {
     gEmailWizardLogger.info("_startProbingOutgoing: " + config.outgoing.hostname +
                             " probe = " + this._probeAbortable);
-    this.startSpinner("searching_for_configs");
-    this.setSpinnerStatus(this._incomingState == "probing" ?
-                          "check_server_details" : "check_out_server_details");
+    this.startSpinner("outgoing", "looking_up_settings");
 
     config.outgoing._inprogress = true;
     // User entered hostname, we want to probe port and protocol and socketType
@@ -1331,12 +1370,14 @@ EmailConfigWizard.prototype =
 
   clearError: function(which) {
     _hide(which);
+    _hide(which+"icon");
     document.getElementById(which).textContent = "";
   },
 
   setError: function(which, msg_name) {
     try {
       _show(which);
+      _show(which+"icon");
       document.getElementById(which).textContent =
         gStringsBundle.getString(msg_name);
     }
@@ -1367,6 +1408,8 @@ EmailConfigWizard.prototype =
     if (this._probeAbortable)
       this._probeAbortable.cancel();
 
+    if (this._okCallback)
+      this._okCallback();
     gEmailWizardLogger.info("Shutting down email config dialog");
   }
 };

@@ -177,14 +177,12 @@
                     </vbox>
                     <toolbarbutton id="miniday-dropdown-button"
                                    tooltiptext="&showselectedday.tooltip;"
-                                   popup="aMinimonthPopupset"
-                                   class="toolbarbutton-menubutton-dropmarker"/>
-                    <popupset>
-                      <popup id="aMinimonthPopupset" position="after_start">
+                                   type="menu">
+                      <panel id="miniday-month-panel" position="after_start">
                         <minimonth id="todayMinimonth" flex="1"
                                    onchange="TodayPane.setDaywithjsDate(this.value);"/>
-                      </popup>
-                    </popupset>
+                      </panel>
+                   </toolbarbutton>
                  </hbox>
                 </stack>
               </modebox>

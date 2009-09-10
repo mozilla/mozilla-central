@@ -101,119 +101,176 @@
 	      persist="selectedIndex" flex="1">
   
     <!-- the message pane consists of 3 'boxes'. Box #2 is the expanded headers view (the default view) -->
-    <hbox id="expandedHeaderView" flex="1">
+    <vbox id="expandedHeaderView" flex="1">
 
-      <!--  XXX this should switch to using <grid> for expandedHeaders to get
-            away from gross historical CSS pseudo-boxery used for header
-            name positioning -->
-      <vbox id="expandedHeaders" flex="1">
+      <hbox id="expandedHeadersTopBox" flex="1">
 
-        <hbox id="expandedHeadersTopBox" flex="1">
+        <!-- Theoretically, we should be able to replace this grid with just
+             an hbox.  Unfortunately, doing that makes it very hard to sync
+             the column sizes between the name columns, because for currently
+             unclear reasons, the .clientWidth of a column is wider than the
+             .clientWidth of its largest contained child by an unspecified
+             amount. -->
+        <grid id="expandedHeaders" flex="1">
 
-          <hbox flex="1" align="center">
-            <mail-multi-emailHeaderField id="expandedfromBox"
-                                         label="&fromField2.label;"
-                                         align="baseline"
-                                         collapsed="false"
-                                         flex="1"/>
-          </hbox>
-          <header-view-button-box id="expandedButtonBox"/>
-        </hbox>
+          <columns id="expandedHeadersColumns">
+            <column id="expandedHeadersNameColumn"/>
+            <column id="expandedHeadersValueColumn" flex="1"/>
+          </columns>
 
-        <hbox id="otherHeadersAndButtonsBox" flex="1">
-          <vbox id="variousHeadersBox" flex="1">
-            <mail-headerfield id="expandedsubjectBox" label="&subjectField2.label;"
-                              align="baseline"
-                              collapsed="false"/>
-            <mail-headerfield id="expandedorganizationBox"
-                              label="&organizationField2.label;"
-                              align="baseline"
-                              collapsed="true"/>
-            <mail-emailheaderfield id="expandedsenderBox"
-                                   align="baseline"
-                                   label="&senderField2.label;"
-                                   collapsed="true"/>
-            <mail-multi-emailHeaderField id="expandedreply-toBox"
-                                         label="&replyToField2.label;"
-                                         align="baseline"
-                                         collapsed="true"/>
-            <mail-multi-emailHeaderField id="expandedtoBox"
-                                         label="&toField2.label;"
-                                         align="baseline"
-                                         collapsed="true"/>
-            <mail-multi-emailHeaderField id="expandedccBox"
-                                         label="&ccField2.label;"
-                                         align="baseline"
-                                         collapsed="true"/>
-            <mail-multi-emailHeaderField id="expandedbccBox" 
-                                         label="&bccField2.label;"
-                                         align="baseline"
-                                         collapsed="true"/>
-            <mail-headerfield id="expandednewsgroupsBox"
-                              label="&newsgroupsField2.label;"
-                              align="baseline"
-                              collapsed="true"/>
-            <mail-headerfield id="expandedfollowup-toBox"
-                              label="&followupToField2.label;"
-                              align="baseline"
-                              collapsed="true"/>
-            <mail-headerfield id="expandeddateBox" label="&dateField2.label;"
-                              align="baseline"
-                              collapsed="true"/>
-            <mail-messageids-headerfield id="expandedmessage-idBox"
-                              align="baseline"
-                                         label="&messageIdField2.label;"
-                                         collapsed="true"/>
-            <mail-messageids-headerfield id="expandedin-reply-toBox"
-                              align="baseline"
-                                         label="&inReplyToField2.label;"
-                                         collapsed="true"/>
-            <mail-messageids-headerfield id="expandedreferencesBox"
-                              align="baseline"
-                                         label="&referencesField2.label;"
-                                         collapsed="true"/>
-            <mail-tagfield id="expandedtagsBox" label="&tagsHdr2.label;"
-                           collapsed="true"/>
-            <mail-urlfield id="expandedcontent-baseBox"
-                           label="&originalWebsite2.label;" collapsed="true"/>
-            <mail-headerfield id="expandeduser-agentBox"
-                              label="&userAgentField2.label;"
-                              collapsed="true"/>
-          </vbox>
+          <rows id="expandedHeaderRows">
+            <row id="expandedfromRow">
+              <label id="expandedfromLabel" class="headerName"
+                     value="&fromField2.label;" control="expandedfromBox"/>
+              <mail-multi-emailHeaderField id="expandedfromBox" flex="1"/>
+            </row>
+          </rows>
+        </grid>
+        <header-view-button-box id="expandedButtonBox"/>
+      </hbox>
 
-          <!-- perhaps this should be a customizable toolbar too -->
-          <vbox id="otherActionsBox" align="end">
-            <spacer id="otherActionsTopSpacer" flex="1"/>
-            <button type="menu" id="otherActionsButton"
-                    label="&otherActionsButton.label;"
-                    class="msgHeaderView-button msgHeaderView-flat-button">
-              <menupopup id="otherActionsPopup">
-                <menuitem id="otherActionsOpenInNewWindow"
-                          label="&otherActionsOpenInNewWindow.label;"
-                          accesskey="&otherActionsOpenInNewWindow.accesskey;"
-                          oncommand="MsgOpenNewWindowForMessage();"/>
-                <menuitem id="otherActionsOpenInNewTab"
-                          label="&otherActionsOpenInNewTab.label;"
-                          accesskey="&otherActionsOpenInNewTab.accesskey;"
-                          oncommand="OpenMessageInNewTab(event);"/>
-                <menuitem id="viewSourceMenuItem"
-                          label="&viewSourceMenuItem.label;"
-                          accesskey="&viewSourceMenuItem.accesskey;"
-                          oncommand="ViewPageSource(gFolderDisplay.selectedMessageUris);" />
-                <menuseparator id="otherActionsSeparator"/>
-                <menuitem id="saveAsMenuItem" label="&saveAsMenuItem.label;"
-                          accesskey="&saveAsMenuItem.accesskey;"
-                          oncommand="MsgSaveAsFile();"/>
-                <menuitem id="otherActionsPrint"
-                          label="&otherActionsPrint.label;"
-                          accesskey="&otherActionsPrint.accesskey;"
-                          oncommand="PrintEnginePrint();"/>
-              </menupopup>
-            </button>
-          </vbox>
-        </hbox>
-      </vbox>
-    </hbox>
+      <hbox id="expandedHeadersBottomBox">
+
+        <!-- The grid that contains all headers except the first one,
+              including any headers created dynamically from JavaScript -->
+        <grid id="expandedHeaders2" flex="1">
+
+          <columns id="expandedHeaders2Columns">
+            <column id="expandedHeaders2NameColumn"/>
+            <column id="expandedHeaders2ValueColumn" flex="1"/>
+          </columns>
+
+          <rows id="expandedHeader2Rows">
+
+            <!-- Commonly used rows are pre-specified in the XUL to avoid the
+                 performance hit of creating them dynamically. -->
+            <row id="expandedsubjectRow">
+              <label id="expandedsubjectLabel" class="headerName"
+                     value="&subjectField2.label;"
+                     control="expandedsubjectBox"/>
+              <mail-headerfield id="expandedsubjectBox" flex="1"/>
+            </row>
+            <row id="expandedorganizationRow" collapsed="true">
+              <label id="expandedorganizationLabel" class="headerName"
+                     value="&organizationField2.label;"
+                     control="expandedorganizationBox"/>
+              <mail-headerfield id="expandedorganizationBox"
+                                label="&organizationField2.label;"/>
+            </row>
+            <row id="expandedsenderRow" collapsed="true">
+              <label id="expandedsenderLabel" class="headerName"
+                     value="&senderField2.label;" control="expandedsenderBox"/>
+              <mail-emailheaderfield id="expandedsenderBox"/>
+            </row>
+            <row id="expandedreply-toRow" collapsed="true">
+              <label id="expandedreply-toLabel" class="headerName"
+                     value="&replyToField2.label;"
+                     control="expandedreply-toBox"/>
+              <mail-multi-emailHeaderField id="expandedreply-toBox"/>
+            </row>
+            <row id="expandedtoRow" collapsed="true">
+              <label id="expandedtoLabel" class="headerName"
+                     value="&toField2.label;" control="expandedtoBox"/>
+              <mail-multi-emailHeaderField id="expandedtoBox" flex="1"/>
+            </row>
+            <row id="expandedccRow" collapsed="true">
+              <label id="expandedccLabel" class="headerName"
+                     value="&ccField2.label;" control="expandedccBox"/>
+              <mail-multi-emailHeaderField id="expandedccBox" flex="1"/>
+            </row>
+            <row id="expandedbccRow" collapsed="true">
+              <label id="expandedbccLabel" class="headerName"
+                     value="&bccField2.label;" control="expandedbccBox"/>
+              <mail-multi-emailHeaderField id="expandedbccBox"/>
+            </row>
+            <row id="expandednewsgroupsRow" collapsed="true">
+              <label id="expandednewsgroupsLabel" class="headerName"
+                     value="&newsgroupsField2.label;"
+                     control="expandednewsgroupsBox"/>
+              <mail-headerfield id="expandednewsgroupsBox"/>
+            </row>
+            <row id="expandedfollowup-toRow" collapsed="true">
+              <label id="expandedfollowup-toLabel" class="headerName"
+                     value="&followupToField2.label;"
+                     control="expandedfollowup-toBox"/>
+              <mail-headerfield id="expandedfollowup-toBox"/>
+            </row>
+            <row id="expandeddateRow" collapsed="true">
+              <label id="expandeddateLabel" class="headerName"
+                     value="&dateField2.label;" control="expandeddateBox"/>
+              <mail-headerfield id="expandeddateBox" flex="1"/>
+            </row>
+            <row id="expandedmessage-idRow" collapsed="true">
+              <label id="expandedmessage-idLabel" class="headerName"
+                     value="&messageIdField2.label;"
+                     control="expandedmessage-idBox"/>
+              <mail-messageids-headerfield id="expandedmessage-idBox"/>
+            </row>
+            <row id="expandedin-reply-toRow" collapsed="true">
+              <label id="expandedin-reply-toLabel" class="headerName"
+                     value="&inReplyToField2.label;"
+                     control="expandedin-reply-toBox"/>
+              <mail-messageids-headerfield id="expandedin-reply-toBox"/>
+            </row>
+            <row id="expandedreferencesRow" collapsed="true">
+              <label id="expandedreferencesLabel" class="headerName"
+                     value="&referencesField2.label;"
+                     control="expandedReferencesBox"/>
+              <mail-messageids-headerfield id="expandedreferencesBox"
+                                           flex="1"/>
+            </row>
+            <row id="expandedtagsRow" collapsed="true">
+              <label id="expandedtagsLabel" class="headerName"
+                     value="&tagsHdr2.label;" control="expandedtagsBox"/>
+              <mail-tagfield id="expandedtagsBox"/>
+            </row>
+            <row id="expandedcontent-baseRow" collapsed="true">
+              <label id="expandedcontent-baseLabel" class="headerName"
+                     value="&originalWebsite2.label;"
+                     control="expandedcontent-baseBox"/>
+              <mail-urlfield id="expandedcontent-baseBox"/>
+            </row>
+            <row id="expandeduser-agentRow" collapsed="true">
+              <label id="expandeduser-agentLabel" class="headerName"
+                     value="&userAgentField2.label;"
+                     control="expandeduser-agentBox"/>
+              <mail-headerfield id="expandeduser-agentBox" flex="1"/>
+            </row>
+          </rows>
+        </grid>
+
+        <!-- perhaps this should be a customizable toolbar too -->
+        <vbox id="otherActionsBox" align="end">
+          <spacer id="otherActionsTopSpacer" flex="1"/>
+          <button type="menu" id="otherActionsButton"
+                  label="&otherActionsButton.label;"
+                  class="msgHeaderView-button msgHeaderView-flat-button">
+            <menupopup id="otherActionsPopup">
+              <menuitem id="otherActionsOpenInNewWindow"
+                        label="&otherActionsOpenInNewWindow.label;"
+                        accesskey="&otherActionsOpenInNewWindow.accesskey;"
+                        oncommand="MsgOpenNewWindowForMessage();"/>
+              <menuitem id="otherActionsOpenInNewTab"
+                        label="&otherActionsOpenInNewTab.label;"
+                        accesskey="&otherActionsOpenInNewTab.accesskey;"
+                        oncommand="OpenMessageInNewTab(event);"/>
+              <menuitem id="viewSourceMenuItem"
+                        label="&viewSourceMenuItem.label;"
+                        accesskey="&viewSourceMenuItem.accesskey;"
+                        oncommand="ViewPageSource(gFolderDisplay.selectedMessageUris);" />
+              <menuseparator id="otherActionsSeparator"/>
+              <menuitem id="saveAsMenuItem" label="&saveAsMenuItem.label;"
+                        accesskey="&saveAsMenuItem.accesskey;"
+                        oncommand="MsgSaveAsFile();"/>
+              <menuitem id="otherActionsPrint"
+                        label="&otherActionsPrint.label;"
+                        accesskey="&otherActionsPrint.accesskey;"
+                        oncommand="PrintEnginePrint();"/>
+            </menupopup>
+          </button>
+        </vbox>
+      </hbox>
+    </vbox>
   </deck>
 </hbox>
 

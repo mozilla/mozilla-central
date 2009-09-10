@@ -187,7 +187,7 @@ function openSnoozeWindow(event, aContainerItem) {
     var pos = ",left=" + (event.target.boxObject.screenX - 3) +
              ",top=" + (event.target.boxObject.screenY + event.target.boxObject.height - 3);
     window.openDialog(uri,
-                      "Calendar:AlarmSnoozePopup",
+                      "CalendarAlarmSnoozePopup",
                       "chrome,dependent=yes,titlebar=no" + pos,
                       aContainerItem);
 }

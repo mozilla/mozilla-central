@@ -108,7 +108,6 @@ classic.jar:
   skin/classic/messenger/icons/cancel.png                     (mail/icons/cancel.png)
   skin/classic/messenger/icons/mail-toolbar.png               (mail/icons/mail-toolbar.png)
   skin/classic/messenger/icons/mail-toolbar-small.png         (mail/icons/mail-toolbar-small.png)
-  skin/classic/messenger/icons/folder.png                     (mail/icons/folder.png)
   skin/classic/messenger/icons/folder-pane.png                (mail/icons/folder-pane.png)
   skin/classic/messenger/icons/folder-blank.png               (mail/icons/folder-blank.png)
   skin/classic/messenger/icons/folder-new-star.png            (mail/icons/folder-new-star.png)

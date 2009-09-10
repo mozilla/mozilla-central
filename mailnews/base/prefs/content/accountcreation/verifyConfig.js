@@ -96,8 +96,14 @@ function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
     inServer.useSecAuth = true;
 
   try {
-    inServer.password = config.incoming.password;
-    verifyLogon(config, inServer, alter, msgWindow, successCallback, errorCallback);
+    if (inServer.password)
+      verifyLogon(config, inServer, alter, msgWindow,
+                  successCallback, errorCallback);
+    else {
+      // Avoid pref pollution, clear out server prefs.
+      accountManager.removeIncomingServer(inServer, true);
+      successCallback();
+    }
   } catch (e) {
     ddump("ERROR: verify logon shouldn't have failed");
     errorCallback(e);
@@ -117,12 +123,16 @@ function verifyLogon(config, inServer, alter, msgWindow, successCallback,
   // our listener listens both for the url and cert errors.
   msgWindow.notificationCallbacks = listener;
   // try to work around bug where backend is clearing password.
-  inServer.password = config.incoming.password;
-  let uri = inServer.verifyLogon(listener, msgWindow);
-  // clear msgWindow so url won't prompt for passwords.
-  uri.QueryInterface(Ci.nsIMsgMailNewsUrl).msgWindow = null;
-  // restore them
-  msgWindow.notificationCallbacks = saveCallbacks;
+  try {
+    inServer.password = config.incoming.password;
+    let uri = inServer.verifyLogon(listener, msgWindow);
+    // clear msgWindow so url won't prompt for passwords.
+    uri.QueryInterface(Ci.nsIMsgMailNewsUrl).msgWindow = null;
+  }
+  finally {
+    // restore them
+    msgWindow.notificationCallbacks = saveCallbacks;
+  }
 }
 
 /**

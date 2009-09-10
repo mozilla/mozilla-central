@@ -1,18 +1,20 @@
-<!ENTITY welcome.description             "Quick Account Setup">
-<!ENTITY autoconfigWizard.style          "width: 640px; height: 480px;">
-<!ENTITY name.description                "Your name">
-<!ENTITY email.description               "Email">
-<!ENTITY password.description            "Password">
-
-<!ENTITY next.label                      "Next &#187;">
-<!ENTITY next.accesskey                  "N">
-<!ENTITY back.label                      "&#171; Back">
-<!ENTITY back.accesskey                  "B">
+<!ENTITY autoconfigWizard.title          "Mail Account Setup">
+<!ENTITY name.label                      "Your name:">
+<!ENTITY name.accesskey                  "n">
+<!ENTITY name.emptytext                  "First Last">
+<!ENTITY name.text                       "Your name, as shown to others">
+<!ENTITY email.label                     "Email address:">
+<!ENTITY email.accesskey                 "l">
+<!ENTITY email.emptytext                 "email@example.com">
+<!ENTITY password.label                  "Password:">
+<!ENTITY password.accesskey              "P">
+<!ENTITY password.emptytext              "Password">
+<!ENTITY password.text                   "Optional, will only be used to validate the username">
 
 <!ENTITY accountInformation.label        "Account Information">
-<!ENTITY username.label                  "username">
-<!ENTITY receivingServer.label           "receiving">
-<!ENTITY sendingServer.label             "sending">
+<!ENTITY username2.label                 "Username:">
+<!ENTITY incoming.label                  "Incoming:">
+<!ENTITY outgoing.label                  "Outgoing:">
 <!ENTITY noEncryption.label              "None">
 <!ENTITY starttls.label                  "STARTTLS">
 <!ENTITY sslTls.label                    "SSL/TLS">
@@ -21,11 +23,14 @@
 <!ENTITY pop.label                       "POP">
 <!ENTITY smtp.label                      "SMTP">
 
-<!-- LOCALIZATION NOTE (createAndEditSettings.label): This label is a link
-     which will create the account and take the user to the account
-     configuration screen. -->
-<!ENTITY createAndEditSettings.label     "Create and Edit Account Settings">
+<!ENTITY manualSetup.label               "Manual Setup…">
+<!ENTITY manualSetup.accesskey           "S">
 <!ENTITY cancel.label                    "Cancel">
+<!ENTITY cancel.accesskey                "a">
+<!ENTITY continue.label                  "Continue">
+<!ENTITY continue.accesskey              "C">
+<!ENTITY startOver.label                 "Start over">
+<!ENTITY startOver.accesskey             "o">
 <!ENTITY stop.label                      "Stop">
 <!ENTITY stop.accesskey                  "S">
 <!-- LOCALIZATION NOTE (retest.label): This is the text that is
@@ -65,6 +70,6 @@
 <!ENTITY insecureServer.tooltip.title    "Warning! This is an insecure server.">
 <!ENTITY insecureServer.tooltip.details  "Click circle for more details.">
 
-<!ENTITY insecureClearText.description   "Email is sent in clear-text, so your email could be read by attackers, etc. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
+<!ENTITY insecureCleartext.description   "Email is sent in clear-text, so your email could be read by other people on the internet. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
 <!ENTITY insecureSelfSigned.description  "The server uses a certificate that we can't trust, so we can't be sure that someone isn't intercepting the traffic between &brandShortName; and your server. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a trusted certificate.">
 <!ENTITY secureServer.description        "Congratulations! This is a secure server.">
