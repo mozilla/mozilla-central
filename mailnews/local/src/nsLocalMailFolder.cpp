@@ -120,7 +120,7 @@ nsLocalMailCopyState::nsLocalMailCopyState() :
   m_curDstKey(0xffffffff), m_curCopyIndex(0),
   m_totalMsgCount(0), m_dataBufferSize(0), m_leftOver(0),
   m_isMove(PR_FALSE), m_dummyEnvelopeNeeded(PR_FALSE), m_fromLineSeen(PR_FALSE), m_writeFailed(PR_FALSE),
-  m_notifyFolderLoaded(PR_FALSE)
+  m_notifyFolderLoaded(PR_FALSE), m_flags(0)
 {
   LL_I2L(m_lastProgressTime, PR_IntervalToMilliseconds(PR_IntervalNow()));
 }
@@ -2379,7 +2379,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::BeginCopy(nsIMsgDBHdr *message)
   // by the time we get here, m_curCopyIndex is 1 relative because WriteStartOfNewMessage increments it
   mCopyState->m_messages->QueryElementAt(messageIndex, NS_GET_IID(nsIMsgDBHdr),
                                   (void **)getter_AddRefs(mCopyState->m_message));
-
+  // The flags of the source message can get changed when it is deleted, so
+  // save them here.
+  if (mCopyState->m_message)
+    mCopyState->m_message->GetFlags(&(mCopyState->m_flags));
   DisplayMoveCopyStatusMsg();
   // if we're copying more than one message, StartMessage will handle this.
   return !mCopyState->m_copyingMultipleMessages ? WriteStartOfNewMessage() : rv;
@@ -2658,40 +2661,23 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
       mCopyState->newHdr = newHdr;
       if (NS_SUCCEEDED(result) && newHdr)
       {
-        // need to copy junk score and label from mCopyState->m_message to newHdr.
+        // Copy message metadata.
         if (mCopyState->m_message)
         {
           // deal with propagating the new flag on an imap to local folder filter action
           PRUint32 msgFlags;
-          mCopyState->m_message->GetFlags(&msgFlags);
-          if (!(msgFlags & nsMsgMessageFlags::Read))
-          {
-            nsCOMPtr <nsIMsgFolder> srcFolder;
-            mCopyState->m_message->GetFolder(getter_AddRefs(srcFolder));
-            if (srcFolder)
-            {
-              PRUint32 folderFlags;
-              srcFolder->GetFlags(&folderFlags);
-              // check if the src folder is an imap inbox.
-              if ((folderFlags & (nsMsgFolderFlags::Inbox|nsMsgFolderFlags::ImapBox))
-                            == (nsMsgFolderFlags::Inbox|nsMsgFolderFlags::ImapBox))
-              {
-                nsCOMPtr <nsIMsgDatabase> db;
-                srcFolder->GetMsgDatabase(getter_AddRefs(db));
-                if (db)
-                {
-                  nsMsgKey srcKey;
-                  PRBool containsKey;
-                  mCopyState->m_message->GetMessageKey(&srcKey);
-                  db->ContainsKey(srcKey, &containsKey);
-                  // if the db doesn't have the key, it must be a filtered imap
-                  // message, getting moved to a local folder.
-                  if (!containsKey)
-                    newHdr->OrFlags(nsMsgMessageFlags::New, &msgFlags);
-                }
-              }
-            }
-          }
+          // Flags may get changed when deleting the original source message in
+          // IMAP. We have a copy of the original flags, but parseMsgState has
+          // already tried to decide what those flags should be. Who to believe?
+          // Let's only deal here with the flags that might get changed, Read
+          // and New, and trust upstream code for everything else.
+          PRUint32 readAndNew = nsMsgMessageFlags::New | nsMsgMessageFlags::Read;
+          PRUint32 newFlags;
+          newHdr->GetFlags(&newFlags);
+          newHdr->SetFlags( (newFlags & ~readAndNew) | 
+                            ((mCopyState->m_flags) & readAndNew));
+
+          // Copy other message properties.
           CopyPropertiesToMsgHdr(newHdr, mCopyState->m_message, mCopyState->m_isMove);
         }
         msgDb->AddNewHdrToDB(newHdr, PR_TRUE);
