@@ -152,18 +152,6 @@ radio[pane=paneAdvanced]:active {
   -moz-padding-end: 2px;
 }
 
-#downloadFolderIcon {
-  width: 16px;
-  height: 16px;
-}
-
-#downloadFolder {
-  -moz-appearance: none;
-  background-color: transparent;
-  border: none;
-  padding: 1px 0px 0px;
-}
-
 prefpane .groupbox-body {
   -moz-appearance: none;
   padding: 8px 4px 4px;
