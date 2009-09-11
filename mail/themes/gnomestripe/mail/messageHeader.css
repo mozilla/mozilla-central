@@ -173,11 +173,21 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 #msgHeaderView {
   font-size: 100%;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-#msgHeaderViewDeck {
-  margin: 0;
-  padding: 0;
+#expandedButtonBox {
+  -moz-padding-end: 6px;
+  padding-bottom: 3px;
+  padding-top: 3px;
+}
+
+.dateLabel {
+  -moz-padding-end: 3px;
+  -moz-user-select: text;
+  -moz-user-focus: normal;
+  cursor: text;
 }
 
 
@@ -389,11 +399,11 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   padding-bottom: .1em;
   margin-bottom: 3px !important;
   background-color: transparent;
+  -moz-border-radius: 2px;
 }
 
 .emailDisplayButton:hover {
   cursor: pointer;
-  -moz-border-radius: 2px;
   color: HighlightText;
   background-color: Highlight;
 }
@@ -436,7 +446,6 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
   -moz-box-orient: vertical;
   padding: 0px;
   -moz-margin-start: -2px !important;
-  /*margin: 0px 2px;*/
   list-style-image: url("chrome://messenger/skin/starContact.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);
 }

@@ -100,7 +100,6 @@ var gMessageListeners = new Array();
 var gExpandedHeaderList = [ {name:"subject"},
                             {name:"from", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"reply-to", useToggle:true, outputFunction:OutputEmailAddresses},
-                            {name:"date"},
                             {name:"to", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"cc", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"bcc", useToggle:true, outputFunction:OutputEmailAddresses},
@@ -950,7 +949,7 @@ function UpdateExpandedMessageHeaders() {
       }
     }
   }
-
+  document.getElementById('dateLabel').textContent = currentHeaderData.date.headerValue;
   gBuiltExpandedView = true;
 
   // now update the view to make sure the right elements are visible
@@ -1012,17 +1011,6 @@ function OutputMessageIds(headerEntry, headerValue)
     headerEntry.enclosingBox.addMessageIdView(messageIdArray[i]);
 
   headerEntry.enclosingBox.fillMessageIdNodes();
-}
-
-function OutputDate(headerEntry, headerValue)
-{
-  headerEntry.textNode.value = headerValue;
-  // The date field is a textbox, and we want it to be as small as possible to
-  // not take space from the subject textbox. This is a bit bigger than
-  // necessary, but guaranteed to fit. We should move to not using textboxes
-  // because of these sizing problems, and instead figure out selectable
-  // labels.
-  headerEntry.textNode.setAttribute("size", Math.round(headerValue.length * 1.2));
 }
 
 // OutputEmailAddresses --> knows how to take a comma separated list of email addresses,

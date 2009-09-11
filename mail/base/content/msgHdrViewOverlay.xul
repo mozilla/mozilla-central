@@ -98,7 +98,7 @@
 
 <hbox id="msgHeaderView" collapsed="true" class="main-header-area">
   <deck id="msgHeaderViewDeck" selectedIndex="0" 
-	      persist="selectedIndex" flex="1">
+        persist="selectedIndex" flex="1">
   
     <!-- the message pane consists of 3 'boxes'. Box #2 is the expanded headers view (the default view) -->
     <vbox id="expandedHeaderView" flex="1">
@@ -241,7 +241,9 @@
 
         <!-- perhaps this should be a customizable toolbar too -->
         <vbox id="otherActionsBox" align="end">
-          <spacer id="otherActionsTopSpacer" flex="1"/>
+          <hbox id="dateValueBox" flex="1">  <!--For extensions-->
+            <label id="dateLabel" class="dateLabel" flex="1"/>
+          </hbox>
           <button type="menu" id="otherActionsButton"
                   label="&otherActionsButton.label;"
                   class="msgHeaderView-button msgHeaderView-flat-button">

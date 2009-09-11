@@ -171,11 +171,20 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 /* ::::: msg header captions ::::: */
 
 #msgHeaderView {
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-#msgHeaderViewDeck {
-  margin: 0;
-  padding: 0;
+#expandedButtonBox {
+  -moz-padding-end: 6px;
+  padding-top: 3px;
+}
+
+.dateLabel {
+  -moz-padding-end: 3px;
+  -moz-user-select: text;
+  -moz-user-focus: normal;
+  cursor: text;
 }
 
 .hdrReplyButton {
@@ -389,11 +398,11 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   padding-bottom: .1em;
   margin-bottom: 3px !important;
   background-color: transparent;
+  -moz-border-radius: 2px;
 }
 
 .emailDisplayButton:hover {
   cursor: pointer;
-  -moz-border-radius: 2px;
   color: HighlightText;
   background-color: Highlight;
 }

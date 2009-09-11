@@ -218,6 +218,21 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 #msgHeaderView {
   font-size: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+#expandedButtonBox {
+  -moz-padding-end: 6px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+#dateLabel {
+  -moz-padding-end: 3px;
+  -moz-user-select: text;
+  -moz-user-focus: normal;
+  cursor: text;
 }
 
 #msgHeaderViewDeck {
@@ -356,7 +371,11 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
   padding: 0px !important;
   margin: 0px !important;
-  -moz-margin-start: 3px !important;
+
+  /* 1px plus 2px of border-radius matches the 3px at the beginning of
+    .emailDisplayButton, making email address header values and plain text
+    headers line up. Not sure why this math isn't needed in other themes*/
+  -moz-margin-start: 1px !important;
   border: none !important;
   background-color: transparent;
 }
@@ -437,11 +456,11 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   padding-bottom: 0.1em;
   margin-bottom: 3px !important;
   background-color: transparent;
+  -moz-border-radius: 2px;
 }
 
 .emailDisplayButton:hover {
   cursor: pointer;
-  -moz-border-radius: 2px;
   background-color: #fcaf3e; /* tango orange */
 }
 
