@@ -221,7 +221,7 @@
               </sidebarheader>
 
               <tree id="folderTree" class="plain" flex="1"
-                    hidecolumnpicker="true" persist="mode" mode="all"
+                    hidecolumnpicker="true" persist="mode" mode="smart"
                     keepcurrentinview="true"
                     context="folderPaneContext"
                     disableKeyNavigation="true"
