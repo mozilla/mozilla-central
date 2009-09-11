@@ -78,7 +78,7 @@
 #msgLocationToolbar {
   -moz-appearance: none;
   background-color: #CDCDCD;
-  background-image: url("chrome://communicator/skin/toolbar-gradient34.png");
+  background-image: url("chrome://communicator/skin/toolbar/toolbar-gradient34.png");
   background-repeat: repeat-x;
   border-bottom: 1px solid #9F9F9F;
 }
@@ -142,7 +142,7 @@
   border-bottom: 1px solid #9F9F9F;
   height: 34px;
   background-color: #CDCDCD;
-  background-image: url("chrome://communicator/skin/toolbar-gradient34.png");
+  background-image: url("chrome://communicator/skin/toolbar/toolbar-gradient34.png");
   background-repeat: repeat-x;
 }
 
