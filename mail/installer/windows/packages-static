@@ -266,8 +266,9 @@ bin\components\webBrowser_core.xpt
 bin\components\windowwatcher.xpt
 bin\components\webbrowserpersist.xpt
 bin\components\commandhandler.xpt
-; we need mozbrwser.xpt for nsIXULWindow.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\components\mozbrwsr.xpt
+#endif
 
 ; jar
 bin\components\jar.xpt

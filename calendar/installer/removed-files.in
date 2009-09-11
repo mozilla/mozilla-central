@@ -153,6 +153,9 @@ components/layout_xul_tree.xpt
 components/locale.xpt
 components/lwbrk.xpt
 components/mimetype.xpt
+#ifndef MOZILLA_1_9_1_BRANCH
+components/mozbrwsr.xpt
+#endif
 components/mozfind.xpt
 components/necko.xpt
 components/necko_about.xpt
