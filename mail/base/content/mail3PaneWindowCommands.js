@@ -403,7 +403,8 @@ var DefaultController =
           enabled.value = gDBView.navigateStatus((command == "cmd_goBack" || command == "button_goBack") ? nsMsgNavigationType.back : nsMsgNavigationType.forward);
         return enabled.value;
       case "cmd_goStartPage":
-        return !IsMessagePaneCollapsed();
+        return document.getElementById("tabmail").selectedTab.mode.name == "folder" &&
+               !IsMessagePaneCollapsed();
       case "cmd_markAllRead":
       case "cmd_markReadByDate":
         return IsFolderSelected();
@@ -642,7 +643,7 @@ var DefaultController =
         break;
       case "cmd_goStartPage":
         HideMessageHeaderPane();
-        loadStartPage();
+        loadStartPage(true);
         break;
       case "cmd_viewAllMsgs":
       case "cmd_viewThreadsWithUnread":

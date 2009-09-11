@@ -209,7 +209,7 @@ MessageDisplayWidget.prototype = {
 
     if (selectedCount == 0) {
       this.clearDisplay();
-      loadStartPage();
+      loadStartPage(false);
       this.singleMessageDisplay = true;
       return true;
     }

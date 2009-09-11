@@ -470,8 +470,13 @@ function startPageUrlPref()
 /**
  * Loads the mail start page.
  */
-function loadStartPage()
+function loadStartPage(aForce)
 {
+  // If the preference isn't enabled, then don't load anything.
+  if (!aForce &&
+      !Application.prefs.getValue("mailnews.start_page.enabled", false))
+    return;
+
   gMessageNotificationBar.clearMsgNotifications();
   let startpage = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
                             .getService(Components.interfaces.nsIURLFormatter)
