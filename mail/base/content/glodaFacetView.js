@@ -704,7 +704,7 @@ var FacetContext = {
   },
 
   /**
-   * Show the active message set in a glodaList tab, closing the current tab.
+   * Show the active message set in a glodaList tab.
    */
   showActiveSetInTab: function() {
     let tabmail = this.rootWin.document.getElementById("tabmail");
@@ -712,7 +712,6 @@ var FacetContext = {
       collection: Gloda.explicitCollection(Gloda.NOUN_MESSAGE, this.activeSet),
       title: this.tab.title
     });
-    tabmail.closeTab(this.tab);
   },
 
   /**
