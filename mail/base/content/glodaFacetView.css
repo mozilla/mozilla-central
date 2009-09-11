@@ -114,6 +114,7 @@ body {
 
 h1, h2, h3 {
   color: #555753;
+  cursor: default;
 }
 
 #filter-header-label {
@@ -254,12 +255,22 @@ h3 {
   overflow: auto;
 }
 
+
+.facet-more {
+  font-size: 80%;
+  color: #3465a4;
+  font-weight: bold;
+  padding-top: 1ex;
+  padding-left: 0.5em;
+  cursor: pointer;
+}
+
 .facet-more[needed="false"] {
   display: none;
 }
 
-.facet-more[needed="true"] {
-
+.facet-more:hover {
+  text-decoration: underline;
 }
 
 .bar {
