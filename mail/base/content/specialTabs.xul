@@ -53,10 +53,10 @@
   <vbox id="contentTab" collapsed="true">
     <vbox flex="1">
       <notificationbox flex="1">
-        <browser type="content-targetable" flex="1" disablehistory="true"
-                 autocompletepopup="PopupAutoComplete"/>
+        <browser id="dummycontentbrowser" type="content-targetable" flex="1"
+                 disablehistory="true" autocompletepopup="PopupAutoComplete"/>
       </notificationbox>
-      <findbar/>
+      <findbar browserid="dummycontentbrowser"/>
     </vbox>
   </vbox>
 </overlay>
