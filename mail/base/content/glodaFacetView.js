@@ -479,7 +479,7 @@ var FacetContext = {
           faceter: faceter,
           orderedGroups: faceter.orderedGroups,
           maxDisplayRows: this.maxDisplayRows,
-          explicit: false,
+          explicit: false
         });
       }
     }

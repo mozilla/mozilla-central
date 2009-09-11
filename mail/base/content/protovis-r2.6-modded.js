@@ -546,7 +546,7 @@ pv.ns = {
   *
   * @type string
   */
- xlink: "http://www.w3.org/1999/xlink",
+ xlink: "http://www.w3.org/1999/xlink"
 };
 
 /** @namespace Protovis major and minor version numbers. */
