@@ -1898,6 +1898,10 @@ nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgMailNewsUrl *aUrl)
 NS_IMETHODIMP
 nsImapIncomingServer::FEAlertWithID(PRInt32 aMsgId, nsIMsgMailNewsUrl *aUrl)
 {
+  // don't bother the user if we're shutting down.
+  if (m_shuttingDown)
+    return NS_OK;
+
   GetStringBundle();
 
   nsString message;
