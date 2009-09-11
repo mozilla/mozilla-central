@@ -1,1 +1,7 @@
 @import url("chrome://messenger/content/glodaFacetView.css");
+
+.message-attachment-icon {
+  width: 12px;
+  height: 12px;
+  background: url("chrome://messenger/skin/icons/attachment-col.png") transparent no-repeat center right;
+}
