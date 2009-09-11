@@ -35,6 +35,92 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
+function tabProgressListener(aTab, aStartsBlank) {
+  this.mTab = aTab;
+  this.mBrowser = aTab.browser;
+  this.mBlank = aStartsBlank;
+}
+
+tabProgressListener.prototype =
+{
+  mTab: null,
+  mBrowser: null,
+  mBlank: null,
+
+  // cache flags for correct status bar update after tab switching
+  mStateFlags: 0,
+  mStatus: 0,
+  mMessage: "",
+
+  // count of open requests (should always be 0 or 1)
+  mRequestCount: 0,
+
+  onProgressChange: function tPL_onProgressChange(aWebProgress, aRequest,
+                                                  aCurSelfProgress,
+                                                  aMaxSelfProgress,
+                                                  aCurTotalProgress,
+                                                  aMaxTotalProgress) {
+  },
+  onProgressChange64: function tPL_onProgressChange64(aWebProgress, aRequest,
+                                                      aCurSelfProgress,
+                                                      aMaxSelfProgress,
+                                                      aCurTotalProgress,
+                                                      aMaxTotalProgress) {
+  },
+  onLocationChange: function tPL_onLocationChange(aWebProgress, aRequest,
+                                                  aLocation) {
+  },
+  onStateChange: function tPL_onStateChange(aWebProgress, aRequest, aStateFlags,
+                                            aStatus) {
+    if (!aRequest)
+      return;
+
+    var oldBlank = this.mBlank;
+
+    const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
+    const nsIChannel = Components.interfaces.nsIChannel;
+    let tabmail = document.getElementById("tabmail");
+
+    if (aStateFlags & nsIWebProgressListener.STATE_START) {
+      this.mRequestCount++;
+    }
+    else if (aStateFlags & nsIWebProgressListener.STATE_STOP) {
+      // Since we (try to) only handle STATE_STOP of the last request,
+      // the count of open requests should now be 0.
+      this.mRequestCount = 0;
+    }
+
+    if (aStateFlags & nsIWebProgressListener.STATE_START &&
+        aStateFlags & nsIWebProgressListener.STATE_IS_NETWORK) {
+      if (!this.mBlank) {
+        this.mTab.title = specialTabs.contentTabType.loadingTabString;
+        tabmail.setTabBusy(this.mTab, true);
+        tabmail.setTabtitle(this.mTab);
+      }
+    }
+    else if (aStateFlags & nsIWebProgressListener.STATE_STOP &&
+             aStateFlags & nsIWebProgressListener.STATE_IS_NETWORK) {
+      this.mBlank = false;
+
+      tabmail.setTabBusy(this.mTab, false);
+    }
+  },
+  onStatusChange: function tPL_onStatusChange(aWebProgress, aRequest, aStatus,
+                                              aMessage) {
+  },
+  onSecurityChange: function tPL_onSecurityChange(aWebProgress, aRequest,
+                                                  aState) {
+  },
+  onRefreshAttempted: function tPL_OnRefreshAttempted(aWebProgress, aURI,
+                                                      aDelay, aSameURI) {
+  },
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIWebProgressListener,
+                                         Components.interfaces.nsIWebProgressListener2,
+                                         Components.interfaces.nsISupportsWeakReference])
+};
+
 var specialTabs = {
   _kAboutRightsVersion: 1,
 
@@ -130,6 +216,16 @@ var specialTabs = {
       this._setUpTitleListener(aTab);
       this._setUpCloseWindowListener(aTab);
 
+      // Create a filter and hook it up to our browser
+      let filter = Components.classes["@mozilla.org/appshell/component/browser-status-filter;1"]
+                             .createInstance(Components.interfaces.nsIWebProgress);
+      aTab.filter = filter;
+      aTab.browser.webProgress.addProgressListener(filter, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
+
+      // Wire up a progress listener to the filter for this browser
+      const listener = new tabProgressListener(aTab, false);
+      filter.addProgressListener(listener, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
+
       // Now start loading the content.
       aTab.title = this.loadingTabString;
 
@@ -142,6 +238,7 @@ var specialTabs = {
                                        aTab.titleListener, true);
       aTab.browser.removeEventListener("DOMWindowClose",
                                        aTab.closeListener, true);
+      aTab.browser.webProgress.removeProgressListener(aTab.filter);
     },
     saveTabState: function onSaveTabState(aTab) {
       aTab.browser.setAttribute("type", "content-targetable");
