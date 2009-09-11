@@ -1831,14 +1831,20 @@ let mailTabType = {
               if (!gMessageDisplay._active)
                 gMessageDisplay._visible = aPersistedState.messagePaneVisible;
             }
-            document.getElementById('searchInput').searchMode = aPersistedState.searchMode;
+            if ("searchMode" in aPersistedState)
+              document.getElementById('searchInput').searchMode =
+                aPersistedState.searchMode;
             gFolderTreeView.selectFolder(folder);
           }
           else {
-            aTabmail.openTab("folder", {folder: folder,
-                messagePaneVisible: aPersistedState.messagePaneVisible,
-                searchMode: aPersistedState.searchMode,
-                background: true});
+            let tabArgs = {
+              folder: folder,
+              messagePaneVisible: aPersistedState.messagePaneVisible,
+              background: true
+            };
+            if ("searchMode" in aPersistedState)
+              tabArgs.searchMode = aPersistedState.searchMode;
+            aTabmail.openTab("folder", tabArgs);
           }
         }
       } catch (e) {
