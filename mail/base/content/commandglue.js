@@ -349,6 +349,17 @@ function OnMouseUpThreadAndMessagePaneSplitter()
 var gIgnoreSyntheticFolderPaneSelectionChange = false;
 function FolderPaneSelectionChange()
 {
+  let folders = GetSelectedMsgFolders();
+  if (folders.length) {
+    let msgFolder = folders[0];
+    let locationItem = document.getElementById("locationFolders");
+    if (locationItem) {
+      locationItem.setAttribute("label", msgFolder.prettyName);
+      document.getElementById("folderLocationPopup")
+              ._setCssSelectors(msgFolder, locationItem);
+    }
+  }
+
   if (gIgnoreSyntheticFolderPaneSelectionChange) {
     gIgnoreSyntheticFolderPaneSelectionChange = false;
     return;
@@ -365,7 +376,6 @@ function FolderPaneSelectionChange()
   if (!folderSelection.isSelected(folderSelection.currentIndex))
     return;
 
-  let folders = GetSelectedMsgFolders();
   gFolderDisplay.show(folders.length ? folders[0] : null);
 }
 

@@ -60,7 +60,7 @@ var setupModule = function(module) {
 };
 
 function test_put_view_picker_on_toolbar() {
-  let toolbar = mc.e("mail-bar2");
+  let toolbar = mc.e("mail-bar3");
   toolbar.insertItem("mailviews-container", null);
   mc.assertNode(mc.eid("mailviews-container"));
 }

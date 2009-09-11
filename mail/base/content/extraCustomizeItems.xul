@@ -46,6 +46,8 @@
   %messengerDTD;
   <!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd" >
   %msgViewPickerDTD;
+  <!ENTITY % msgFolderPickerDTD SYSTEM "chrome://messenger/locale/msgFolderPickerOverlay.dtd" >
+  %msgFolderPickerDTD;
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
   %brandDTD;
 ]>
@@ -86,20 +88,19 @@
                  title="&folderLocationToolbarItem.title;"
                  align="center"
                  class="chromeclass-toolbar-additional">
-      <!--XXX The src attribute is there to give the menulist icon horizontal
-          margin (bug 381364). Remove it once bug 381548 is fixed. -->
       <menulist id="locationFolders"
                 class="folderMenuItem"
                 label=" "
-                src=""
                 context="folderPaneContext"
                 width="170"
                 crop="center">
         <menupopup id="folderLocationPopup"
                    class="folderLocationPopup"
-                   height="400"
+                   type="folder"
                    flex="1"
-                   oncommand="OnLocationTreeSelect(this);"/>
+                   fileHereLabel="&filemessageschoosethis.label;"
+                   showFileHereLabel="true"
+                   oncommand="gFolderTreeView.selectFolder(event.target._folder);"/>
       </menulist>
     </toolbaritem>
     <toolbaritem id="mailviews-container"

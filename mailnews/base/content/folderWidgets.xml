@@ -317,6 +317,7 @@
             }
           }
 
+          this._teardown();
           this._build(folders);
 
           // Lastly, we add a listener to get notified of changes in the folder
@@ -338,6 +339,7 @@
         <parameter name="aFolders"/>
         <body><![CDATA[
           var folders;
+          Components.utils.import("resource://app/modules/MailUtils.js");
           // Extensions and other consumers can add to these modes too, see the
           // above note on the _filters field.
           var mode = this.getAttribute("mode");
@@ -444,6 +446,10 @@
              }
              shouldExpand = function (e) { return types.indexOf(e) != -1; };
            }
+
+          // We need to call this, or hasSubFolders will always return false.
+          // Remove this workaround when Bug 502900 is fixed.
+          MailUtils.discoverFolders();
 
           for each (var folder in folders) {
             var node;
@@ -696,8 +702,12 @@
         -->
       <method name="_teardown">
         <body><![CDATA[
-          while(this.hasChildNodes())
-            this.removeChild(this.lastChild);
+          while(this.hasChildNodes()) {
+            let child = this.lastChild;
+            if ("_teardown" in child)
+              child._teardown();
+            this.removeChild(child);
+          }
 
           if (this._initialized) {
             const Cc = Components.classes;

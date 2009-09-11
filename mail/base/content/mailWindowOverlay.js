@@ -2222,6 +2222,11 @@ let mailTabType = {
     // collapse the folder pane when not visible
     document.getElementById("folderPaneBox").collapsed =
       !aLegalStates.folder || !aVisibleStates.folder;
+    try {
+      // The folder-location-toolbar is like the folder pane.
+      document.getElementById("folder-location-container").collapsed =
+        !aLegalStates.folder || !aVisibleStates.folder;
+    } catch (ex) {}
 
     // -- display deck (thread pane / account central)
     // in a vertical view, the threadContentArea sits in the #threadPaneBox

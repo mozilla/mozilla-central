@@ -407,7 +407,7 @@ dump("waitingList: " + this.waitingList + "\n");
       this.waitingList[windowType] = aXULWindow;
     }
     else {
-      dump("Not there! :( SCREWED\n");
+      dump("Saw Window Type '" + windowType + "' but don't care.\n");
     }
 
     return true;

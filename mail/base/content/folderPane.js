@@ -292,7 +292,9 @@ let gFolderTreeView = {
     }
     if (!aFolder.isServer && aFolder.parent)
       openIfNot(aFolder.parent);
-    this.selection.select(tree.getIndexOfFolder(aFolder));
+    let folderIndex = tree.getIndexOfFolder(aFolder);
+    this.selection.select(folderIndex);
+    this._treeElement.treeBoxObject.ensureRowIsVisible(folderIndex);
   },
 
   /**

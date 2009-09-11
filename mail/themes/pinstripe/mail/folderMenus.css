@@ -121,3 +121,13 @@
 .folderMenuItem[IsServer="true"][ServerType="rss"] {
   list-style-image: url("chrome://messenger/skin/icons/server-newsblog.png");
 }
+
+/* Make any sub-menu item of the folderLocationPopup act like a menuitem. */
+.folderLocationPopup menuitem,
+.folderLocationPopup menu {
+  -moz-padding-end: 30px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  max-width: none;
+  font: message-box;
+}

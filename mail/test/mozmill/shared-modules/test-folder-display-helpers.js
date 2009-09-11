@@ -78,6 +78,9 @@ const DO_NOT_EXPORT = {
   windowHelper: true
 };
 
+var Application = Cc["@mozilla.org/steel/application;1"]
+                    .getService(Ci.steelIApplication);
+
 var mainController = null;
 /** convenience shorthand for the mainController. */
 var mc;
@@ -1347,6 +1350,44 @@ function assert_collapsed() {
  */
 function assert_expanded() {
   _assert_elided_helper(false, arguments);
+}
+
+/**
+ * Add the widget with the given id to the toolbar if it is not already present.
+ *  It gets added to the front if we add it.  Use |remove_from_toolbar| to
+ *  remove the widget from the toolbar when you are done.
+ *
+ * @param aToolbarElement The DOM element that is the toolbar, like you would
+ *     get from getElementById.
+ * @param aElementId The id attribute of the toolbaritem item you want added to
+ *     the toolbar (not the id of the thing inside the toolbaritem tag!).
+ *     We take the id name rather than element itself because if not already
+ *     present the element is off floating in DOM limbo.  (The toolbar widget
+ *     calls removeChild on the palette.)
+ */
+function add_to_toolbar(aToolbarElement, aElementId) {
+  let currentSet = aToolbarElement.currentSet.split(",");
+  if (currentSet.indexOf(aElementId) == -1) {
+    currentSet.unshift(aElementId);
+    aToolbarElement.currentSet = currentSet.join(",");
+  }
+}
+
+/**
+ * Remove the widget with the given id from the toolbar if it is present.  Use
+ *  |add_to_toolbar| to add the item in the first place.
+ *
+ * @param aToolbarElement The DOM element that is the toolbar, like you would
+ *     get from getElementById.
+ * @param aElementId The id attribute of the item you want removed to the
+ *     toolbar.
+ */
+function remove_from_toolbar(aToolbarElement, aElementId) {
+  let currentSet = aToolbarElement.currentSet.split(",");
+  if (currentSet.indexOf(aElementId) != -1) {
+    currentSet.splice(currentSet.indexOf(aElementId), 1);
+    aToolbarElement.currentSet = currentSet.join(",");
+  }
 }
 
 var RECOGNIZED_WINDOWS = ["messagepane", "multimessage"];

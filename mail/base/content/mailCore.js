@@ -120,10 +120,7 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
 
   // make sure the folder location picker is initialized
   if (document.getElementById("folder-location-container"))
-  {
-    // XXX FIXME: used to call loadFolderViewForTree  and UpdateFolderLocationPicker
-    // but those were removed in changeset 1de58e1d7549
-  }
+    FolderPaneSelectionChange();
 
   gSearchInput = null;
   if (document.getElementById("search-container"))
