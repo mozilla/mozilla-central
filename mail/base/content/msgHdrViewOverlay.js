@@ -487,10 +487,11 @@ var messageHeaderSink = {
       // process message tags as if they were headers in the message
       SetTagHeader();
 
+      var msgHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                                      .getService(Components.interfaces.nsIMsgHeaderParser);
+
       if (("from" in currentHeaderData) && ("sender" in currentHeaderData))
       {
-        var msgHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                                        .getService(Components.interfaces.nsIMsgHeaderParser);
         var senderMailbox = kMailboxSeparator +
           msgHeaderParser.extractHeaderAddressMailboxes(
             currentHeaderData.sender.headerValue) + kMailboxSeparator;
@@ -499,6 +500,23 @@ var messageHeaderSink = {
             currentHeaderData.from.headerValue) + kMailboxSeparator;
         if (fromMailboxes.indexOf(senderMailbox) >= 0)
           delete currentHeaderData.sender;
+      }
+
+      // We don't need to show the reply-to header if its value is either
+      // the From field (totally pointless) or the To field (common for
+      // mailing lists, but not that useful).
+      if (("from" in currentHeaderData) &&
+          ("to" in currentHeaderData) &&
+          ("reply-to" in currentHeaderData)) {
+        var replyToMailbox = msgHeaderParser.extractHeaderAddressMailboxes(
+            currentHeaderData["reply-to"].headerValue);
+        var fromMailboxes = msgHeaderParser.extractHeaderAddressMailboxes(
+            currentHeaderData.from.headerValue);
+        var toMailboxes = msgHeaderParser.extractHeaderAddressMailboxes(
+            currentHeaderData.to.headerValue);
+
+        if (replyToMailbox == fromMailboxes || replyToMailbox == toMailboxes)
+          delete currentHeaderData["reply-to"];
       }
 
       this.onEndHeaders();
