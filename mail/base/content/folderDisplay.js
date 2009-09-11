@@ -957,6 +957,11 @@ FolderDisplayWidget.prototype = {
       return;
     }
 
+    // - if something's already selected (e.g. in a message tab), don't try to
+    //   do anything more
+    if (this.view.dbView.numSelected > 0)
+      return;
+
     // - new messages
     // if configured to scroll to new messages, try that
     if (gPrefBranch.getBoolPref("mailnews.scroll_to_new_message") &&
