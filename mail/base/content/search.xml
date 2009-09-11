@@ -207,17 +207,25 @@
           var prefBranch =
               Components.classes['@mozilla.org/preferences-service;1'].
               getService(Components.interfaces.nsIPrefBranch2);
-          prefBranch.addObserver("mailnews.database.global.indexer.enabled",
-                                 this._prefObserver, false);
-
           this.glodaCompleter =
             Components.classes["@mozilla.org/autocomplete/search;1?name=gloda"]
                       .getService()
                       .wrappedJSObject;
-
           var observerSvc = Cc["@mozilla.org/observer-service;1"]
                             .getService(Ci.nsIObserverService);
-          observerSvc.addObserver(this, "autocomplete-did-enter-text", false);
+
+          if (! gSearchInputObserversRegistered) {
+            // due to a bug in XBL that means that destructors don't get
+            // called reliably, the customize toolbar path will end up creating
+            // two clones of this widget, and never destroy them.  So the destructor
+            // isn't reliably called, and so we must use a global to avoid
+            // registering ourselves for the same event multiple times (twice
+            // per invocation of the customize-toolbar).
+            prefBranch.addObserver("mailnews.database.global.indexer.enabled",
+                                   this._prefObserver, false);
+            observerSvc.addObserver(this, "autocomplete-did-enter-text", false);
+            gSearchInputObserversRegistered = true;
+          }
 
           this.quickSearchStrings =
             new StringBundle(
@@ -273,6 +281,9 @@
               getService(Components.interfaces.nsIPrefBranch);
           prefBranch.removeObserver("mailnews.database.global.indexer.enabled",
                                     this._prefObserver);
+          var observerSvc = Cc["@mozilla.org/observer-service;1"]
+                            .getService(Ci.nsIObserverService);
+          observerSvc.removeObserver("autocomplete-did-enter-text", this);
         ]]>
       </destructor>
 
