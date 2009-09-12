@@ -105,18 +105,46 @@ var sanTests = {
 
       var history = Components.classes["@mozilla.org/browser/global-history;2"]
                               .getService(Components.interfaces.nsIBrowserHistory);
-      if (history.addPageWithDetails) {
-        // toolkit history interfaces can be used
-        history.addPageWithDetails(uri, "Sanitizer!", (new Date()).getTime());
+      history.addPageWithDetails(uri, "Sanitizer!", Date.now());
+
+      return this.check();
+    },
+
+    check: function() {
+      var history = Components.classes["@mozilla.org/browser/nav-history-service;1"]
+                              .getService(Components.interfaces.nsINavHistoryService);
+      var options = history.getNewQueryOptions();
+      var query = history.getNewQuery();
+      query.searchTerms = "Sanitizer!";
+      var results = history.executeQuery(query, options).root;
+      results.containerOpen = true;
+      for (var i = 0; i < results.childCount; i++) {
+        if (results.getChild(i).uri == "http://sanitizer.test/")
+          return true;
       }
-      else {
-        // old xpfe history implementation!
-        history.removeAllPages();
-        history.addURI(uri, false, true, null);
-        history.setPageTitle(uri, "Sanitizer!");
+      return false;
+    }
+  },
+
+  urlbar: {
+    desc: "Location bar history",
+    setup: function() {
+      // Create urlbarhistory file first otherwise tests will fail.
+      var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                           .getService(Components.interfaces.nsIProperties)
+                           .get("ProfD", Components.interfaces.nsIFile);
+      file.append("urlbarhistory.sqlite");
+      if (!file.exists()) {
+        var connection = Components.classes["@mozilla.org/storage/service;1"]
+                                   .getService(Components.interfaces.mozIStorageService)
+                                   .openDatabase(file);
+        connection.createTable("urlbarhistory", "url TEXT");
+        connection.executeSimpleSQL(
+          "INSERT INTO urlbarhistory (url) VALUES ('Sanitizer')");
+        connection.close();
       }
 
-      // Open location dialog
+      // Open location dialog.
       var supStr = Components.classes["@mozilla.org/supports-string;1"]
                              .createInstance(Components.interfaces.nsISupportsString);
       supStr.data = "Sanitizer!";
@@ -125,38 +153,44 @@ var sanTests = {
       this.prefs.setComplexValue("general.open_location.last_url",
                                  Components.interfaces.nsISupportsString, supStr);
 
-      return this.check();
+      return this.check(true);
     },
 
-    check: function() {
+    check: function(aCheckAll) {
       var locDialog = false;
       try {
         locDialog = (this.prefs.getComplexValue("general.open_location.last_url",
                                                 Components.interfaces.nsISupportsString).data == "Sanitizer!");
       } catch(ex) {}
 
-      if (Components.classes["@mozilla.org/browser/nav-history-service;1"]) {
-        // toolkit history interfaces can be used
-        var history = Components.classes["@mozilla.org/browser/nav-history-service;1"]
-                                .getService(Components.interfaces.nsINavHistoryService);
-        var options = history.getNewQueryOptions();
-        var query = history.getNewQuery();
-        query.searchTerms = "Sanitizer!";
-        var results = history.executeQuery(query, options).root;
-        results.containerOpen = true;
-        for (var i = 0; i < results.childCount; i++) {
-          if (results.getChild(i).uri == "http://sanitizer.test/" && locDialog)
-            return true;
-        }
+      if (locDialog == !aCheckAll)
+        return locDialog;
+
+      var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                           .getService(Components.interfaces.nsIProperties)
+                           .get("ProfD", Components.interfaces.nsIFile);
+      file.append("urlbarhistory.sqlite");
+      if (!file.exists())
+        return false;
+
+      if (!aCheckAll)
+        return true;
+
+      var connection = Components.classes["@mozilla.org/storage/service;1"]
+                                 .getService(Components.interfaces.mozIStorageService)
+                                 .openDatabase(file);
+      var urlbar = connection.tableExists("urlbarhistory");
+      if (urlbar) {
+        var handle = connection.createStatement(
+          "SELECT url FROM urlbarhistory");
+        if (handle.executeStep())
+          urlbar = (handle.getString(0) == "Sanitizer");
+        handle.reset();
+        handle.finalize();
       }
-      else {
-        // old xpfe history implementation, having any entry set is counted as true
-        var history = Components.classes["@mozilla.org/browser/global-history;2"]
-                                .getService(Components.interfaces.nsIBrowserHistory);
-        if (history.count)
-          return true;
-      }
-      return false;
+      connection.close();
+
+      return urlbar;
     }
   },
 

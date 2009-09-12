@@ -525,6 +525,7 @@ pref("privacy.popups.showBrowserMessage",         true);
 
 // sanitize (clear private data) options
 pref("privacy.item.history",     true);
+pref("privacy.item.urlbar",      true);
 pref("privacy.item.formdata",    true);
 pref("privacy.item.passwords",   false);
 pref("privacy.item.downloads",   true);

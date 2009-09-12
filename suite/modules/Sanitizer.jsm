@@ -24,6 +24,7 @@
  *   Giorgio Maone <g.maone@informaction.com>
  *   Ryan Flint <rflint@dslr.net>
  *   Robert Kaiser <kairo@kairo.at>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -177,7 +178,15 @@ var Sanitizer = {
                              .getService(Components.interfaces.nsIObserverService);
           os.notifyObservers(null, "browser:purge-session-history", "");
         } catch(ex) {}
+      },
 
+        // bug 347231: Always allow clearing history due to dependencies on
+        // the browser:purge-session-history notification. (like error console)
+      canClear: true
+    },
+
+    urlbar: {
+      clear: function() {
         // Clear last URL of the Open Web Location dialog
         var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                               .getService(Components.interfaces.nsIPrefBranch2);
@@ -194,9 +203,19 @@ var Sanitizer = {
           file.remove(false);
       },
 
-        // bug 347231: Always allow clearing history due to dependencies on
-        // the browser:purge-session-history notification. (like error console)
-      canClear: true
+      get canClear() {
+        var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                              .getService(Components.interfaces.nsIPrefBranch2);
+        if (!prefs.prefIsLocked("general.open_location.last_url") &&
+            prefs.prefHasUserValue("general.open_location.last_url"))
+          return true;
+
+        var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                             .getService(Components.interfaces.nsIProperties)
+                             .get("ProfD", Components.interfaces.nsIFile);
+        file.append("urlbarhistory.sqlite");
+        return file.exists();
+      }
     },
 
     formdata: {

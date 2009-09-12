@@ -24,6 +24,7 @@
    -   Ben Goodger <ben@mozilla.org>
    -   Giorgio Maone <g.maone@informaction.com>
    -   Robert Kaiser <kairo@kairo.at>
+   -   Ian Neal <iann_bugzilla@blueyonder.co.uk>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -107,6 +108,8 @@
     <preferences id="sanitizePreferences">
       <preference id="privacy.item.history" name="privacy.item.history"
                   type="bool" readonly="true" onchange="onReadGeneric();"/>
+      <preference id="privacy.item.urlbar" name="privacy.item.urlbar"
+                  type="bool" readonly="true" onchange="onReadGeneric();"/>
       <preference id="privacy.item.formdata" name="privacy.item.formdata"
                   type="bool" readonly="true" onchange="onReadGeneric();"/>
       <preference id="privacy.item.passwords" name="privacy.item.passwords"
@@ -128,6 +131,9 @@
     <checkbox label="&itemHistory.label;"
               accesskey="&itemHistory.accesskey;"
               preference="privacy.item.history"/>
+    <checkbox label="&itemUrlBar.label;"
+              accesskey="&itemUrlBar.accesskey;"
+              preference="privacy.item.urlbar"/>
     <checkbox label="&itemDownloads.label;"
               accesskey="&itemDownloads.accesskey;"
               preference="privacy.item.downloads"/>
