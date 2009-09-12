@@ -121,3 +121,11 @@ toolbar[mode="full"] .toolbarbutton-1 {
 sidebarheader .toolbarbutton-text:not([value]) {
   display: none;
 }
+
+#searchInput {
+  -moz-appearance: none;
+  min-height: 22px;
+  border: 1px solid threedshadow;
+  -moz-padding-end: 2px;
+  -moz-padding-start: 2px;
+}
