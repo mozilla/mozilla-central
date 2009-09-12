@@ -228,9 +228,9 @@ var FolderNotificationHelper = {
       for each (let [, wrapper] in Iterator(wrappers.concat())) {
         wrapper[aHandlerName](aFolder);
       }
-      for each (let wrapper in this._curiousWrappers)
-        wrapper[aHandlerName](aFolder);
     }
+    for each (let wrapper in this._curiousWrappers)
+      wrapper[aHandlerName](aFolder);
   },
 
   OnItemEvent: function FolderNotificationHelper_OnItemEvent(
