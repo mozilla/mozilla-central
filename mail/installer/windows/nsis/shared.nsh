@@ -701,10 +701,10 @@ Function SetAsDefaultAppUser
   ; b) is not a member of the administrators group and chooses to elevate
   ${ElevateUAC}
 
+  SetShellVarContext all  ; Set SHCTX to all users (e.g. HKLM)  
   ${SetClientsMail}
   ${SetClientsNews}
 
-  SetShellVarContext all  ; Set SHCTX to all users (e.g. HKLM)
   ${RemoveDeprecatedKeys}
 
   ClearErrors
