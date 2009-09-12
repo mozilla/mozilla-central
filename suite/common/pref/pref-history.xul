@@ -22,6 +22,7 @@
 
  Contributor(s):
    Jason Eager <jce2@po.cwru.edu>
+   Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -65,6 +66,12 @@
       <preference id="general.open_location.last_url"
                   name="general.open_location.last_url"
                   type="string"/>
+      <preference id="browser.formfill.enable"
+                  name="browser.formfill.enable"
+                  type="bool"/>
+      <preference id="browser.formfill.expire_days"
+                  name="browser.formfill.expire_days"
+                  type="int"/>
     </preferences>
 
     <groupbox>
@@ -90,7 +97,6 @@
                  preference="browser.history_expire_days_min"/>
         <label value="&expireDaysMin2.label;"/>
       </hbox>
-      <separator class="thin" />
       <hbox align="center">
         <label value="&expireDays1.label;"
                accesskey="&expireDays1.accesskey;"
@@ -126,6 +132,25 @@
                   oncommand="prefClearUrlbarHistory(); this.disabled = true;"
                   preference="pref.browser.history.disable_button.clear_urlbar"/>
         </hbox>
+      </hbox>
+    </groupbox>
+
+    <!-- form history -->
+    <groupbox>
+      <caption label="&formfillHistory.caption;"/>
+      <checkbox id="formfillEnable"
+                label="&enableFormfill.label;"
+                accesskey="&enableFormfill.accesskey;"
+                preference="browser.formfill.enable"/>
+      <hbox align="center">
+        <label value="&formfillExpire.label;"
+               accesskey="&formfillExpire.accesskey;"
+               control="formfillDay"/>
+        <textbox id="formfillDay"
+                 type="number"
+                 size="4"
+                 preference="browser.formfill.expire_days"/>
+        <label value="&formfillDays.label;"/>
       </hbox>
     </groupbox>
   </prefpane>

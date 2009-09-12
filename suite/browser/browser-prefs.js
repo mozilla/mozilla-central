@@ -286,6 +286,7 @@ pref("offline.send.unsent_messages",            0);
 pref("offline.download.download_messages",  0);
 
 pref("browser.formfill.enable",             true);
+pref("browser.formfill.expire_days",        180);
 
 // -- folders (Mac: these are binary aliases.)
 pref("mail.signature_file",             "");
