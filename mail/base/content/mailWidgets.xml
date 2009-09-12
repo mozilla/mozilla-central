@@ -212,16 +212,11 @@
     <content>
       <xul:hbox class="headerValueBox" anonid="longEmailAddresses" flex="1"
                 singleline="true"
-                align="baseline"
-                onoverflow="this.parentNode.overflow(event)"
-                onunderflow="this.parentNode.underflow(event)">
+                align="baseline">
         <xul:description class="headerValue" containsEmail="true"
                          anonid="emailAddresses" flex="1"
                          orient="vertical" pack="start" />
       </xul:hbox>
-      <xul:label class="moreIndicator" value="&more.label;" anonid="more"
-                 collapsed="true"
-                 onclick="this.parentNode.toggleWrap()"/>
     </content>
 
     <implementation>
@@ -231,30 +226,7 @@
         ]]>
       </constructor>
 
-
-      <method name="overflow">
-        <parameter name="event"/>
-        <body>
-        <![CDATA[
-        if (event.detail != 1) this.more.collapsed = false;
-        ]]>
-        </body>
-      </method>
-
-      <method name="underflow">
-        <parameter name="event"/>
-        <body>
-        <![CDATA[
-          if (event.detail != 1) this.more.collapsed = true;
-        ]]>
-        </body>
-      </method>
-
       <field name="mAddresses"/>
-      <!-- as a perf optimization we are going to keep a cache of email address nodes which we've
-           created around for the lifetime of the widget. mSizeOfAddressCache controls how many of these
-           elements we keep around -->
-      <field name="mSizeOfAddressCache">3</field>
 
       <!-- addAddressView: a public method used to add an address to this widget.
            aAddresses is an object with 3 properties: displayName, emailAddress and fullAddress
@@ -274,16 +246,8 @@
         <parameter name="aAddress"/>
         <body>
           <![CDATA[
-            if (aEmailNode.parentNode.useShortView && aAddress.displayName)
-            {
-              aEmailNode.setAttribute("label", aAddress.displayName);
-              aEmailNode.setAttribute("tooltiptext", aAddress.fullAddress);
-            }
-            else
-            {
-              aEmailNode.setAttribute("label", aAddress.fullAddress || aAddress.displayName);
-              aEmailNode.removeAttribute("tooltiptext");
-            }
+            aEmailNode.setAttribute("label", aAddress.fullAddress || aAddress.displayName);
+            aEmailNode.removeAttribute("tooltiptext");
             aEmailNode.setAttribute("emailAddress", aAddress.emailAddress);
             aEmailNode.setAttribute("fullAddress", aAddress.fullAddress);
             aEmailNode.setAttribute("displayName", aAddress.displayName);
@@ -398,15 +362,39 @@
         readonly="true"/>
       <property name="longEmailAddresses" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'longEmailAddresses');"
         readonly="true"/>
-      <property name="more" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'more');"
+      <property name="more" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'more')"
         readonly="true"/>
 
-      <!-- buildView: public method used by callers when they are done adding all the email addresses to the widget
-           aNumAddressesToShow: total # of addresses to show in the short view -->
+      <!-- The number of addresses buildViews will display before adding a
+           (more) indicator to the widget; the nodes associated with these
+           addresses are cached for the lifetime of the widget. -->
+      <field name="maxAddressesBeforeMore">2</field>
+
+      <!-- Public method to build the DOM nodes for display, to be called
+           after all the addresses have been added to the widget. Displays at
+           most maxAddressesBeforeMore addresses plus a (more) widget which
+           can be clicked to reveal the rest. -->
       <method name="buildViews">
         <body>
           <![CDATA[
-            this.fillAddressesNode(this.emailAddresses, -1);
+            this.fillAddressesNode(this.emailAddresses,
+                                   this.maxAddressesBeforeMore);
+
+            // If that's all the addresses we've got, we're done.
+            if (this.mAddresses.length <= this.maxAddressesBeforeMore) {
+              return;
+            }
+
+            // Create and append a comma.
+            let commaNode = document.createElement("text");
+            commaNode.setAttribute("value", ",");
+            commaNode.setAttribute("class", "emailSeparator");
+            this.emailAddresses.appendChild(commaNode);
+
+            // Create and append the more indicator.
+            let more = document.createElement("mail-multi-more-indicator");
+            more.setAttribute("anonid", "more");
+            this.emailAddresses.appendChild(more);
           ]]>
         </body>
       </method>
@@ -434,11 +422,21 @@
         </body>
       </method>
 
+      <!-- Called when the (more) indicator has been clicked on; re-renders
+           the widget with all the addresses. -->
       <method name="toggleWrap">
         <body>
           <![CDATA[
             this.more.collapsed = true;
+
+            // Causes different CSS selectors to be used, which allows all
+            // of the addresses to be properly displayed and wrapped.
             this.longEmailAddresses.removeAttribute("singleline");
+
+            this.clearChildNodes(this.emailAddresses);
+
+            // Re-render the node, this time with all the addresses.
+            this.fillAddressesNode(this.emailAddresses, -1);
           ]]>
         </body>
       </method>
@@ -448,10 +446,9 @@
         <parameter name="aParentNode"/>
         <body>
           <![CDATA[
-            // we want to keep around the first mSizeOfAddressCache email address nodes
-            // don't forget that we have comma text nodes in there too so really we want to keep
-            // around cache size * 2 - 1.
-            var numItemsToPreserve = this.mSizeOfAddressCache * 2 - 1;
+            // We want to keep around the first maxAddressesBeforeMore email
+            // address nodes as well as any intervening comma nodes.
+            var numItemsToPreserve = this.maxAddressesBeforeMore * 2 - 1;
             var numItemsInNode = aParentNode.childNodes.length;
 
             while (numItemsInNode && (numItemsInNode > numItemsToPreserve))
@@ -475,6 +472,18 @@
         </body>
       </method>
     </implementation>
+  </binding>
+
+ <!-- XXX This shouldn't really be its own binding, since it depends on the
+      internal structure of mail-multi-emailHeaderField (thus the parentNode
+      glop).  It really wants to be created from the JS inside that binding
+      somewhere, but that implies a properties file change, and we're already
+      past string freeze, so... -->
+  <binding id="mail-multi-more-indicator">
+    <content>
+      <xul:label class="moreIndicator" value="&more.label;"
+                 onclick="this.parentNode.parentNode.parentNode.parentNode.toggleWrap()"/>
+    </content>
   </binding>
 
   <binding id="mail-emailaddress">

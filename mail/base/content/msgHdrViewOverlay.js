@@ -86,12 +86,7 @@ var gMessageListeners = new Array();
 // name: the name of the header. i.e. "to", "subject". This must be in lower case and the name of the
 //       header is used to help dynamically generate ids for objects in the document. (REQUIRED)
 // useToggle:      true if the values for this header are multiple email addresses and you want a
-//                 a toggle icon to show a short vs. long list (DEFAULT: false)
-// useShortView:   (only works on some fields like From). If the field has a long presentation and a
-//                 short presentation we'll use the short one. i.e. if you are showing the From field and you
-//                 set this to true, we can show just "John Doe" instead of "John Doe <jdoe@netscape.net>".
-//                 (DEFAULT: false)
-//
+//                 a (more) toggle to show a short vs. long list (DEFAULT: false)
 // outputFunction: this is a method which takes a headerEntry (see the definition below) and a header value
 //                 This allows you to provide your own methods for actually determining how the header value
 //                 is displayed. (DEFAULT: updateHeaderValue which just sets the header value on the text node)
@@ -146,22 +141,12 @@ const nsIAbCard = Components.interfaces.nsIAbCard;
 // headerListInfo --> entry from a header list.
 function createHeaderEntry(prefix, headerListInfo)
 {
-  var useShortView = false;
   var partialIDName = prefix + headerListInfo.name;
   this.enclosingBox = document.getElementById(partialIDName + 'Box');
   this.enclosingRow = document.getElementById(partialIDName + 'Row');
   this.textNode = document.getElementById(partialIDName + 'Value');
   this.isNewHeader = false;
   this.valid = false;
-
-  if ("useShortView" in headerListInfo)
-  {
-    useShortView = headerListInfo.useShortView;
-    if (useShortView)
-      this.enclosingBox = this.textNode;
-    else
-      this.enclosingBox.emailAddressNode = this.textNode;
-  }
 
   if ("useToggle" in headerListInfo)
   {
@@ -175,9 +160,6 @@ function createHeaderEntry(prefix, headerListInfo)
   }
   else
    this.useToggle = false;
-
-  if (this.textNode)
-    this.textNode.useShortView = useShortView;
 
   if ("outputFunction" in headerListInfo)
     this.outputFunction = headerListInfo.outputFunction;
@@ -1143,13 +1125,6 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
   if (gShowCondensedEmailAddresses && displayName) {
     aDocumentNode.setAttribute("label", displayName);
     aDocumentNode.setAttribute("tooltiptext", aEmailAddress);
-  }
-  else if (aDocumentNode.parentNode.useShortView &&
-           aDocumentNode.getAttribute("displayName")) {
-    aDocumentNode.setAttribute("label",
-                               aDocumentNode.getAttribute("displayName"));
-    aDocumentNode.setAttribute("tooltiptext",
-                               aDocumentNode.getAttribute("fullAddress"));
   }
   else
     aDocumentNode.setAttribute("label",
