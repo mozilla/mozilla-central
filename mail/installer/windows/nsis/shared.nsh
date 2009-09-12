@@ -84,14 +84,12 @@
     ${If} "$0" == "$INSTDIR"
       ${SetClientsNews}
     ${EndIf}
-
-    ${SetUninstallKeys}
   ${EndIf}
 
   ${RemoveDeprecatedKeys}
 
-  ; Add Software\Mozilla\ registry entries
   ${SetAppKeys}
+  ${SetUninstallKeys}
 
   ; Remove files that may be left behind by the application in the
   ; VirtualStore directory.
@@ -103,93 +101,6 @@
   ${EndIf}
 !macroend
 !define PostUpdate "!insertmacro PostUpdate"
-
-!macro SetAsDefaultAppUser
-  ; It is only possible to set this installation of the application as the
-  ; Start Menu Mail handler if it was added to the HKLM Clients\Mail registry
-  ; keys.
-  ; http://support.microsoft.com/kb/297878
-
-  ${GetParameters} $R0
-
-  ClearErrors
-  ${GetOptions} "$R0" "Mail" $R1
-  ${Unless} ${Errors}
-    ReadRegStr $0 HKLM "Software\Clients\Mail\${ClientsRegName}\DefaultIcon" ""
-    ${GetPathFromString} "$0" $0
-    ${GetParent} "$0" $0
-    ${If} ${FileExists} "$0"
-      ${GetLongPath} "$0" $0
-    ${EndIf}
-    ${If} "$0" != "$INSTDIR"
-      DeleteRegValue HKLM "Software\Mozilla" "${BrandShortName}InstallerTest"
-      ClearErrors
-      WriteRegStr HKLM "Software\Mozilla" "${BrandShortName}InstallerTest" "Write Test"
-      ${If} ${Errors}
-        ; Prevent multiple elevation requests
-        ClearErrors
-        ${GetOptions} "$R0" "/UAC:" $R1
-        ${Unless} ${Errors}
-          Quit
-        ${EndUnless}
-        ${ElevateUAC}
-      ${EndIf}
-      DeleteRegValue HKLM "Software\Mozilla" "${BrandShortName}InstallerTest"
-      SetShellVarContext all     ; Set SHCTX to all users (e.g. HKLM)
-      ${SetClientsMail}
-    ${EndIf}
-    WriteRegStr HKCU "Software\Clients\Mail" "" "${ClientsRegName}"
-    ClearErrors
-    ${GetOptions} "$R0" "/UAC:" $R1
-    ${If} ${Errors}
-      Call SetAsDefaultMailAppUser
-    ${Else}
-      GetFunctionAddress $0 SetAsDefaultMailAppUser
-      UAC::ExecCodeSegment $0
-    ${EndIf}
-  ${EndUnless}
-
-  ClearErrors
-  ${GetOptions} "$R0" "News" $R1
-  ${Unless} ${Errors}
-    ReadRegStr $0 HKLM "Software\Clients\News\${ClientsRegName}\DefaultIcon" ""
-    ${GetPathFromString} "$0" $0
-    ${GetParent} "$0" $0
-    ${If} ${FileExists} "$0"
-      ${GetLongPath} "$0" $0
-    ${EndIf}
-    ${If} "$0" != "$INSTDIR"
-      DeleteRegValue HKLM "Software\Mozilla" "${BrandShortName}InstallerTest"
-      ClearErrors
-      WriteRegStr HKLM "Software\Mozilla" "${BrandShortName}InstallerTest" "Write Test"
-      ${If} ${Errors}
-        ; Prevent multiple elevation requests
-        ClearErrors
-        ${GetOptions} "$R0" "/UAC:" $R1
-        ${Unless} ${Errors}
-          DeleteRegValue HKLM "Software\Mozilla" "${BrandShortName}InstallerTest"
-          Quit
-        ${EndUnless}
-        ${ElevateUAC}
-      ${EndIf}
-      DeleteRegValue HKLM "Software\Mozilla" "${BrandShortName}InstallerTest"
-      SetShellVarContext all     ; Set SHCTX to all users (e.g. HKLM)
-      ${SetClientsNews}
-    ${EndIf}
-    WriteRegStr HKCU "Software\Clients\News" "" "${ClientsRegName}"
-    ClearErrors
-    ${GetOptions} "$R0" "/UAC:" $R1
-    ${If} ${Errors}
-      Call SetAsDefaultNewsAppUser
-    ${Else}
-      GetFunctionAddress $0 SetAsDefaultNewsAppUser
-      UAC::ExecCodeSegment $0
-    ${EndIf}
-  ${EndUnless}
-
-  ${RemoveDeprecatedKeys}
-!macroend
-!define SetAsDefaultAppUser "!insertmacro SetAsDefaultAppUser"
 
 !macro SetAsDefaultAppGlobal
   ${RemoveDeprecatedKeys}
@@ -276,7 +187,7 @@
   ${AddHandlerValues} "$0\mailto" "$2" "$8,0" "${AppRegNameMail} URL" "true" ""
 
   ; Associate the file handlers with ThunderbirdEML
-  ReadRegStr $6 HKCR ".eml" ""
+  ReadRegStr $6 SHCTX ".eml" ""
   ${If} "$6" != "ThunderbirdEML"
     WriteRegStr SHCTX "$0\.eml"   "" "ThunderbirdEML"
   ${EndIf}
@@ -483,27 +394,46 @@
 !macroend
 !define SetAppKeys "!insertmacro SetAppKeys"
 
+; Add uninstall registry entries. This macro tests for write access to determine
+; if the uninstall keys should be added to HKLM or HKCU.
 !macro SetUninstallKeys
   StrCpy $0 "Software\Microsoft\Windows\CurrentVersion\Uninstall\${BrandFullNameInternal} (${AppVersion})"
+
+  WriteRegStr HKLM "$0" "${BrandShortName}InstallerTest" "Write Test"
+  ${If} ${Errors}
+    StrCpy $1 "HKCU"
+    SetShellVarContext current  ; Set SHCTX to the current user (e.g. HKCU)
+  ${Else}
+    StrCpy $1 "HKLM"
+    SetShellVarContext all     ; Set SHCTX to all users (e.g. HKLM)
+    DeleteRegValue HKLM "$0" "${BrandShortName}InstallerTest"
+  ${EndIf}
+
   ${GetLongPath} "$INSTDIR" $8
 
   ; Write the uninstall registry keys
-  ${WriteRegStr2} $TmpVal "$0" "Comments" "${BrandFullNameInternal}" 0
-  ${WriteRegStr2} $TmpVal "$0" "DisplayIcon" "$8\${FileMainEXE},0" 0
-  ${WriteRegStr2} $TmpVal "$0" "DisplayName" "${BrandFullNameInternal} (${AppVersion})" 0
-  ${WriteRegStr2} $TmpVal "$0" "DisplayVersion" "${AppVersion} (${AB_CD})" 0
-  ${WriteRegStr2} $TmpVal "$0" "InstallLocation" "$8" 0
-  ${WriteRegStr2} $TmpVal "$0" "Publisher" "Mozilla" 0
-  ${WriteRegStr2} $TmpVal "$0" "UninstallString" "$8\uninstall\helper.exe" 0
-  ${WriteRegStr2} $TmpVal "$0" "URLInfoAbout" "${URLInfoAbout}" 0
-  ${WriteRegStr2} $TmpVal "$0" "URLUpdateInfo" "${URLUpdateInfo}" 0
-  ${WriteRegDWORD2} $TmpVal "$0" "NoModify" 1 0
-  ${WriteRegDWORD2} $TmpVal "$0" "NoRepair" 1 0
+  ${WriteRegStr2} $1 "$0" "Comments" "${BrandFullNameInternal}" 0
+  ${WriteRegStr2} $1 "$0" "DisplayIcon" "$8\${FileMainEXE},0" 0
+  ${WriteRegStr2} $1 "$0" "DisplayName" "${BrandFullNameInternal} (${AppVersion})" 0
+  ${WriteRegStr2} $1 "$0" "DisplayVersion" "${AppVersion} (${AB_CD})" 0
+  ${WriteRegStr2} $1 "$0" "InstallLocation" "$8" 0
+  ${WriteRegStr2} $1 "$0" "Publisher" "Mozilla" 0
+  ${WriteRegStr2} $1 "$0" "UninstallString" "$8\uninstall\helper.exe" 0
+  ${WriteRegStr2} $1 "$0" "URLInfoAbout" "${URLInfoAbout}" 0
+  ${WriteRegStr2} $1 "$0" "URLUpdateInfo" "${URLUpdateInfo}" 0
+  ${WriteRegDWORD2} $1 "$0" "NoModify" 1 0
+  ${WriteRegDWORD2} $1 "$0" "NoRepair" 1 0
+
+  ${If} "$TmpVal" == "HKLM"
+    SetShellVarContext all     ; Set SHCTX to all users (e.g. HKLM)
+  ${Else}
+    SetShellVarContext current  ; Set SHCTX to the current user (e.g. HKCU)
+  ${EndIf}
 !macroend
 !define SetUninstallKeys "!insertmacro SetUninstallKeys"
 
 ; Updates protocol handlers if their registry open command value is for this
-; install location
+; install location (uses SHCTX)
 !macro UpdateProtocolHandlers
   ; Store the command to open the app with an url in a register for easy access.
   ${GetLongPath} "$INSTDIR\${FileMainEXE}" $8
@@ -554,6 +484,7 @@
 !macroend
 !define UpdateProtocolHandlers "!insertmacro UpdateProtocolHandlers"
 
+; Removes various registry entries for reasons noted below (does not use SHCTX).
 !macro RemoveDeprecatedKeys
   StrCpy $0 "SOFTWARE\Classes"
 
@@ -607,6 +538,12 @@
   ; as this is the string used by the vista shim.
   DeleteRegKey HKLM "$0\Mozilla Thunderbird.Url.mailto"
   DeleteRegValue HKLM "Software\RegisteredApplications" "Mozilla Thunderbird"
+
+  ; Remove the app compatibility registry key
+  StrCpy $0 "Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers"
+  DeleteRegValue HKLM "$0" "$INSTDIR\${FileMainEXE}"
+  DeleteRegValue HKCU "$0" "$INSTDIR\${FileMainEXE}"
+
 !macroend
 !define RemoveDeprecatedKeys "!insertmacro RemoveDeprecatedKeys"
 
@@ -689,9 +626,135 @@
 !macroend
 !define PushFilesToCheck "!insertmacro PushFilesToCheck"
 
-; The !ifdef NO_LOG prevents warnings when compiling the installer since these
-; functions are currently only used by the uninstaller.
-Function SetAsDefaultMailAppUser
+; The !ifdef NO_LOG prevents warnings when compiling the installer.nsi due to
+; this function only being used by the uninstaller.nsi.
+!ifdef NO_LOG
+
+Function SetAsDefaultAppUser
+  ; It is only possible to set this installation of the application as the
+  ; Mail handler if it was added to the HKLM Mail
+  ; registry keys.
+  ; http://support.microsoft.com/kb/297878
+  ${GetParameters} $R0
+
+  ClearErrors
+  ${GetOptions} "$R0" "Mail" $R1
+  ${Unless} ${Errors}
+    ; Check if this install location registered as the Mail client
+    ClearErrors
+    ReadRegStr $0 HKLM "Software\Clients\Mail\${ClientsRegName}\DefaultIcon" ""
+    ${GetPathFromString} "$0" $0
+    ${GetParent} "$0" $0
+    ${If} ${FileExists} "$0"
+      ${GetLongPath} "$0" $0
+      ${If} "$0" == "$INSTDIR"
+        ; Check if this is running in an elevated process
+        ClearErrors
+        ${GetParameters} $0
+        ${GetOptions} "$0" "/UAC:" $0
+        ${If} ${Errors} ; Not elevated
+          Call SetAsDefaultMailAppUserHKCU
+        ${Else} ; Elevated - execute the function in the unelevated process
+          GetFunctionAddress $0 SetAsDefaultMailAppUserHKCU
+          UAC::ExecCodeSegment $0
+        ${EndIf}
+
+        ; Do we also set TB as default News client? If not we can return
+        ClearErrors
+        ${GetOptions} "$R0" "News" $R1
+        ${If} ${Errors}
+          Return
+        ${EndIf}
+      ${EndIf}
+    ${EndIf}
+  ${EndUnless}
+
+  ClearErrors
+  ${GetOptions} "$R0" "News" $R1
+  ${Unless} ${Errors}
+    ; Check if this install location registered as the News client
+    ClearErrors
+    ReadRegStr $0 HKLM "Software\Clients\News\${ClientsRegName}\DefaultIcon" ""
+    ${GetPathFromString} "$0" $0
+    ${GetParent} "$0" $0
+    ${If} ${FileExists} "$0"
+      ${GetLongPath} "$0" $0
+      ${If} "$0" == "$INSTDIR"
+        ; Check if this is running in an elevated process
+        ClearErrors
+        ${GetParameters} $0
+        ${GetOptions} "$0" "/UAC:" $0
+        ${If} ${Errors} ; Not elevated
+          Call SetAsDefaultNewsAppUserHKCU
+        ${Else} ; Elevated - execute the function in the unelevated process
+          GetFunctionAddress $0 SetAsDefaultNewsAppUserHKCU
+          UAC::ExecCodeSegment $0
+        ${EndIf}
+        Return ; Nothing more needs to be done
+      ${EndIf}
+    ${EndIf}
+  ${EndUnless}
+
+  ; The code after ElevateUAC won't be executed on Vista and above when the
+  ; user:
+  ; a) is a member of the administrators group (e.g. elevation is required)
+  ; b) is not a member of the administrators group and chooses to elevate
+  ${ElevateUAC}
+
+  ${SetClientsMail}
+  ${SetClientsNews}
+
+  SetShellVarContext all  ; Set SHCTX to all users (e.g. HKLM)
+  ${RemoveDeprecatedKeys}
+
+  ClearErrors
+  ${GetParameters} $0
+  ${GetOptions} "$0" "/UAC:" $0
+  ${If} ${Errors}
+    ClearErrors
+    ${GetOptions} "$R0" "Mail" $R1
+    ${Unless} ${Errors}
+      Call SetAsDefaultMailAppUserHKCU
+    ${EndUnless}
+    ClearErrors
+    ${GetOptions} "$R0" "News" $R1
+    ${Unless} ${Errors}
+      Call SetAsDefaultNewsAppUserHKCU
+    ${EndUnless}
+  ${Else}
+    ${GetOptions} "$R0" "Mail" $R1
+    ${Unless} ${Errors}
+      GetFunctionAddress $0 SetAsDefaultMailAppUserHKCU
+      UAC::ExecCodeSegment $0
+    ${EndUnless}
+    ClearErrors
+    ${GetOptions} "$R0" "News" $R1
+    ${Unless} ${Errors}
+      GetFunctionAddress $0 SetAsDefaultNewsAppUserHKCU
+      UAC::ExecCodeSegment $0
+    ${EndUnless}
+  ${EndIf}
+FunctionEnd
+!define SetAsDefaultAppUser "Call SetAsDefaultAppUser"
+
+!endif
+
+Function SetAsDefaultMailAppUserHKCU
+  ; Only set as the user's Mail client if the StartMenuInternet
+  ; registry keys are for this install.
+  ClearErrors
+  ReadRegStr $0 HKLM "Software\Clients\Mail\${ClientsRegName}\DefaultIcon" ""
+  ${Unless} ${Errors}
+    ${GetPathFromString} "$0" $0
+    ${GetParent} "$0" $0
+    ${If} ${FileExists} "$0"
+      ${GetLongPath} "$0" $0
+      ${If} "$0" == "$INSTDIR"
+        WriteRegStr HKCU "Software\Clients\Mail" "" "${ClientsRegName}"
+      ${EndIf}
+    ${EndIf}
+  ${EndUnless}
+
   SetShellVarContext current  ; Set SHCTX to the current user (e.g. HKCU)
   ${SetHandlersMail}
   ${If} ${AtLeastWinVista}
@@ -705,8 +768,26 @@ Function SetAsDefaultMailAppUser
   ${EndIf}
 FunctionEnd
 
+; The !ifdef NO_LOG prevents warnings when compiling the installer.nsi due to
+; this function only being used by SetAsDefaultAppUser.
 !ifdef NO_LOG
-Function SetAsDefaultNewsAppUser
+
+Function SetAsDefaultNewsAppUserHKCU
+  ; Only set as the user's News client if the StartMenuInternet
+  ; registry keys are for this install.
+  ClearErrors
+  ReadRegStr $0 HKLM "Software\Clients\News\${ClientsRegName}\DefaultIcon" ""
+  ${Unless} ${Errors}
+    ${GetPathFromString} "$0" $0
+    ${GetParent} "$0" $0
+    ${If} ${FileExists} "$0"
+      ${GetLongPath} "$0" $0
+      ${If} "$0" == "$INSTDIR"
+        WriteRegStr HKCU "Software\Clients\News" "" "${ClientsRegName}"
+      ${EndIf}
+    ${EndIf}
+  ${EndUnless}
+
   SetShellVarContext current  ; Set SHCTX to the current user (e.g. HKCU)
   ${SetHandlersNews}
   ${If} ${AtLeastWinVista}
@@ -719,4 +800,5 @@ Function SetAsDefaultNewsAppUser
     ${EndUnless}
   ${EndIf}
 FunctionEnd
+
 !endif
