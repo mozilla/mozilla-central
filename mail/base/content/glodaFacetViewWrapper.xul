@@ -25,5 +25,6 @@
          command="cmd_fullZoomReset" modifiers="accel"/>
   </keyset>
   <browser id="browser"
-           flex="1" />
+           flex="1"
+           disablehistory="true"/>
 </window>
