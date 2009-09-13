@@ -80,9 +80,7 @@
  */
 
 menulist[disabled="true"] {
-  -moz-appearance: none;
-  border: none;
-  background-color: #fff;
+  -moz-appearance: menulist;
   color: -moz-DialogText;
 }
 
@@ -197,7 +195,7 @@ image.secureLarry {
 
 vbox.mastervbox {
   padding: 14px;
-  background: #F4F4F4;
+  background: -moz-dialog;
 }
 
 vbox.icon[state='strong'] {
@@ -334,10 +332,7 @@ menulist.host {
 }
 
 textbox[disabled="true"] {
-  -moz-appearance: none;
-  border: none;
-  padding: 6px;
-  background-color: #fff;
+  -moz-appearance: textfield;
   color: -moz-DialogText;
 }
 
@@ -391,4 +386,16 @@ label.textbox-label {
 
 vbox.initialSettings textbox {
   width: 280px;
+}
+
+#outgoing_server[disabled="true"] {
+  -moz-appearance: none;
+}
+
+#outgoing_server .menulist-editable-box[disabled="true"] {
+  -moz-appearance: menulist-textfield;
+}
+
+#outgoing_server .menulist-dropmarker[disabled="true"] {
+  -moz-appearance: menulist-button;
 }
