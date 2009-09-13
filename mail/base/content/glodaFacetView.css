@@ -59,7 +59,7 @@ body {
 .facets-sidebar {
   display: table-cell;
   width: 20em;
-  background-color: #eeeeee;
+  background-color: #e0eaf5;
   padding: 4px;
   height: 100%;
   padding-left: 1em;
@@ -143,31 +143,32 @@ h1, h2, h3 {
 }
 
 .facetious {
-  display: inline-block;
+  display: list-item; /* take the whole column width */
+  list-style: none;
   padding: 2px;
 }
 
 h1 {
-  font-size: x-large !important;
+  font-size: medium !important;
   padding-bottom: 0.5em;
 }
 
 h2 {
   display: block;
   margin: 0;
-  font-size: 120%;
+  font-size: 100%;
   margin-top: 1em;
   margin-bottom: 0.5em;
 }
 
 h3 {
-  font-weight: normal;
+  font-weight: 90%;
 }
 
 
 .facet > h3,
 .facet-content > h3 {
-  font-size: 105%;
+  font-size: 90%;
   padding-left: 0em;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
@@ -185,6 +186,10 @@ h3 {
   display: none;
 }
 
+.facet-excluded > .bar > .bar-link {
+  text-decoration: line-through; /* strike the names of exluded facets */
+}
+
 #facet-date {
   display: block;
   padding: 0px;
@@ -196,6 +201,10 @@ h3 {
 }
 
 /* === Boolean Facet === */
+
+#facet-fromMe, #facet-toMe, #facet-star, #facet-attachmentTypes {
+  display: inline-block; /* override the general .facetious list-item style */
+}
 
 .facetious[type="boolean"][disabled] {
   color: #888888;
@@ -219,9 +228,10 @@ h3 {
 
 .facetious[type="boolean"]:not([disabled]):hover > .facet-checkbox-bubble,
 .facetious[type="boolean-filtered"]:not([disabled]):hover > .facet-checkbox-bubble {
-  background-color: #aed5ff;
-  border: solid #3465a4 1px;
+  background-color: #729fcf;
   -moz-border-radius: 4px;
+  color: #ffffff;
+
 }
 
 
@@ -230,6 +240,7 @@ h3 {
 }
 
 .facet-checkbox-count {
+  color: GrayText;
 }
 .facet-checkbox-count:before {
   content: " (";
@@ -256,14 +267,23 @@ h3 {
 }
 
 
-.facet-more {
-  font-size: 80%;
-  color: #3465a4;
-  font-weight: bold;
-  padding-top: 1ex;
-  padding-left: 0.5em;
+.facet-more[needed="true"] {
+  display: inline-block;
+  margin-top: 0.5em;
+  padding: 0.2em 1em;
+  font-weight: normal;
+  font-size: x-small;
+  color: #000000;
+  background-color: #babdb6;
   cursor: pointer;
+  -moz-border-radius: 4px;
 }
+
+.facet-more[needed="true"]:hover {
+  background-color: #729fcf;
+  color: #ffffff;
+  text-decoration: none;
+ }
 
 .facet-more[needed="false"] {
   display: none;
@@ -282,6 +302,7 @@ h3 {
   right: 3px;
   margin-right: 1.5em;
   line-height: 1.6em;
+  color: GrayText;
 }
 
 .barry {
@@ -380,10 +401,18 @@ h3 {
 }
 
 .results-message-showall {
-  margin-left: 1em;
+  display: inline-block;
+  padding: 0.2em 1em;
   cursor: pointer;
   font-size: 80%;
-  padding-right: 14em;
+}
+
+.results-message-showall:hover {
+  display: inline-block;
+  background-color: #729fcf;
+  color: #ffffff;
+  text-decoration: none;
+  -moz-border-radius: 4px;
 }
 
 .results-message-sort-bar {
@@ -399,8 +428,14 @@ h3 {
   color: grey;
 }
 
+.results-message-sort-value {
+  padding: 0.2em;
+}
+
 .results-message-sort-value:hover {
-  text-decoration: underline;
+  -moz-border-radius: 4px;
+  background-color: #729fcf;
+  color: #ffffff;
   cursor: pointer;
 }
 
@@ -408,8 +443,10 @@ h3 {
   font-weight: bold;
 }
 
-.results-message-showall:hover {
-  text-decoration: underline;
+.results-message-sort-value[selected="true"]:hover {
+  cursor: default;
+  background-color: #dcddde;
+  color: #000000;
 }
 
 /* ===== Messages ===== */
@@ -422,7 +459,7 @@ h3 {
   padding-bottom: 3px;
   margin-right: 1em;
   border: 1px solid transparent;
-  -moz-border-radius: 3px;
+  -moz-border-radius: 4px;
   border-bottom: 1px solid #ddd;
   display: block;
   color: #555;
@@ -430,14 +467,12 @@ h3 {
 }
 
 .message:hover {
-  border-color: #d8d8d8;
   background: #f8f8f8;
   cursor: pointer;
 }
 
 .message:hover .message-subject {
-  color:#0a0a5a;
-  text-decoration: underline;
+  color:#729fcf;
 }
 .message:focus {
   border: 1px dotted #111;
@@ -574,15 +609,19 @@ h3 {
 }
 
 .show-more {
+  background-color: #babdb6;
+  -moz-border-radius: 4px;
+  float: right;
+  padding: 0.2em 1em;
   font-size: small;
-  text-align: right;
   margin-right: 1em;
   margin-bottom: 2em;
-  color: #3465a4;
-  font-weight: bold;
+  color: #000000;
 }
 
 .show-more:hover {
-  text-decoration: underline;
+  background-color: #729fcf;
+  color: #ffffff;
   cursor: pointer;
 }
+
