@@ -59,6 +59,9 @@
                   name="browser.tabs.loadInBackground"
                   type="bool"
                   inverted="true"/>
+      <preference id="browser.tabs.warnOnClose"
+                  name="browser.tabs.warnOnClose"
+                  type="bool"/>
       <preference id="browser.tabs.loadGroup"
                   name="browser.tabs.loadGroup"
                   type="int"/>
@@ -86,6 +89,10 @@
                   label="&background.label;" 
                   accesskey="&background.accesskey;" 
                   preference="browser.tabs.loadInBackground"/>
+        <checkbox id="tabWarnOnClose"
+                  label="&warnOnClose.label;"
+                  accesskey="&warnOnClose.accesskey;"
+                  preference="browser.tabs.warnOnClose"/>
       </groupbox>
 
       <groupbox id="loadGroupPreferences" align="start">

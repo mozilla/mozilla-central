@@ -4,6 +4,8 @@
 <!ENTITY autoHide.accesskey "d">
 <!ENTITY background.label "Switch to new tabs opened from links">
 <!ENTITY background.accesskey "S">
+<!ENTITY warnOnClose.label "Warn me when closing a window with multiple tabs">
+<!ENTITY warnOnClose.accesskey "n">
 <!ENTITY loadGroup.label "When opening a bookmark group">
 <!ENTITY loadGroupAppend.label "Add tabs">
 <!ENTITY loadGroupAppend.accesskey "A">
@@ -19,7 +21,7 @@
 <!ENTITY newWindowGroupCurrent.accesskey "c">
 <!ENTITY externalGroupCurrent.accesskey "u">
 <!ENTITY openTab.label "A new tab in the current window">
-<!ENTITY newWindowGroupTab.accesskey "n">
+<!ENTITY newWindowGroupTab.accesskey "t">
 <!ENTITY externalGroupTab.accesskey "e">
 <!ENTITY openWindow.label "A new window">
 <!ENTITY newWindowGroupWindow.accesskey "w">
