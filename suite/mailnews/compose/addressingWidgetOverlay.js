@@ -1035,13 +1035,14 @@ function awSizerMouseUp()
   document.removeEventListener("mouseup", awSizerMouseUp, false);
 }
 
-function awSizerResized()
+function awSizerResized(aSplitter)
 {
   // set the height on the listbox rather than on the toolbox
   var listbox = document.getElementById("addressingWidget");
   listbox.height = listbox.boxObject.height;
-  var headersbox = document.getElementById("headers-box");
-  headersbox.removeAttribute("height");
+  // remove all the heights set on the splitter's previous siblings
+  for (let sib = aSplitter.previousSibling; sib; sib = sib.previousSibling)
+    sib.removeAttribute("height");
 }
 
 function awDocumentKeyPress(event)

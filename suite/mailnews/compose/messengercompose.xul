@@ -534,9 +534,11 @@
     </toolbar>
   </toolbox>
 
-  <splitter id="compose-toolbar-sizer" resizeafter="grow"
-            onmousedown="awSizerListen();" oncommand="awSizerResized();">
-    <observes element="MsgHeadersToolbar" attribute="moz-collapsed"/>
+  <splitter id="compose-toolbar-sizer"
+            resizeafter="grow"
+            onmousedown="awSizerListen();"
+            oncommand="awSizerResized(this);">
+    <observes element="MsgHeadersToolbar" attribute="collapsed"/>
   </splitter>
 
 <!-- sidebar/toolbar/content/status -->
