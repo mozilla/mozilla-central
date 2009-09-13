@@ -196,7 +196,7 @@ image.secureLarry {
 
 vbox.mastervbox {
   padding: 14px;
-  background: #F4F4F4;
+  background: -moz-dialog;
 }
 
 vbox.icon[state='strong'] {
