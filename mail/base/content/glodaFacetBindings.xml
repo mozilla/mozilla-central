@@ -1011,12 +1011,13 @@
 
 <binding id="facet-date">
   <content>
-    <html:div class="facet">
+    <html:div class="facet date-wrapper">
       <html:h2 anonid="name"></html:h2>
       <!-- we need to do this because of something protovis is doing where
            it attempts to re-interpret the text and the html namespace no
            longer exists in that context. -->
       <html:div anonid="canvas" class="date-vis-frame"></html:div>
+      <html:div class="facet-date-zoom-out" onclick="FacetContext.zoomOut()"/>
     </html:div>
   </content>
   <implementation>

@@ -292,6 +292,7 @@ DateFacetVis.prototype = {
       .bottom(totalAxisLabelHeight);
 
     let faceter = this.faceter;
+    let dis = this;
     // bin bars...
     vis.add(pv.Bar)
       .data(bins)
@@ -302,10 +303,13 @@ DateFacetVis.prototype = {
       .fillStyle("#add2fb")
       .event("mouseover", function(d) this.fillStyle("#3465a4"))
       .event("mouseout", function(d) this.fillStyle("#add2fb"))
-      .event("click", function(d)
-        FacetContext.addFacetConstraint(faceter, true,
-                                        [[d.startDate, d.endDate]],
-                                        true, true));
+      .event("click", function(d) {
+          dis.constraints = [[d.startDate, d.endDate]];
+          dis.binding.setAttribute("zoomedout", "false");
+          FacetContext.addFacetConstraint(faceter, true, dis.constraints,
+                                          true, true);
+        }
+      );
 
     this.hotBars = vis.add(pv.Bar)
       .data(this.emptyBins)
@@ -326,9 +330,12 @@ DateFacetVis.prototype = {
         .fillStyle("#dddddd")
         .event("mouseover", function(d) this.fillStyle("#3465a4"))
         .event("mouseout", function(d) this.fillStyle("#dddddd"))
-        .event("click", function(d)
-          FacetContext.addFacetConstraint(faceter, true,
-                                          [[d[3], d[4]]], true, true));
+        .event("click", function(d) {
+          dis.constraints = [[d[3], d[4]]];
+          dis.binding.setAttribute("zoomedout", "false");
+          FacetContext.addFacetConstraint(faceter, true, dis.constraints,
+                                          true, true)
+        });
 
       if (labelTier.displayLabel) {
         labelBar.anchor("top").add(pv.Label)

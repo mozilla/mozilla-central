@@ -190,14 +190,43 @@ h3 {
   text-decoration: line-through; /* strike the names of exluded facets */
 }
 
-#facet-date {
+.date-wrapper {
+  position: relative;
+  height: 80px;
   display: block;
   padding: 0px;
   padding-top: 0.5em;
-  height: 80px;
   margin-right: 1em;
   padding-left: 2em;
   padding-bottom: 1em;
+}
+
+.facet-date-zoom-out {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  width: 24px !important;
+  height: 24px !important;
+  background-position: center center;
+  background-repeat: no-repeat;
+  -moz-border-radius: 4px;
+}
+
+.facetious[type="date"][zoomedout="false"] .facet-date-zoom-out {
+  background-image: url("chrome://messenger/skin/icons/zoomout.png");
+  background-color: #babdb6;
+  cursor: pointer;
+}
+
+.facetious[type="date"][zoomedout="false"] .facet-date-zoom-out:hover {
+  background-image: url("chrome://messenger/skin/icons/zoomout-hover.png");
+  background-color: #729fcf;
+}
+
+.date-vis-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 /* === Boolean Facet === */
@@ -624,4 +653,3 @@ h3 {
   color: #ffffff;
   cursor: pointer;
 }
-

@@ -202,6 +202,8 @@ classic.jar:
   skin/classic/messenger/icons/offline.png                       (mail/icons/offline.png)
   skin/classic/messenger/icons/warning.png                       (mail/icons/warning.png)
   skin/classic/messenger/icons/arrow-dn-7.png                    (mail/icons/arrow-dn-7.png)
+  skin/classic/messenger/icons/zoomout.png                       (mail/icons/zoomout.png)
+  skin/classic/messenger/icons/zoomout-hover.png                 (mail/icons/zoomout-hover.png)
   skin/classic/messenger/tabs/alltabs-box-bkgnd-icon.png              (mail/tabs/alltabs-box-bkgnd-icon.png)
   skin/classic/messenger/tabs/alltabs-box-overflow-bkgnd-animate.png  (mail/tabs/alltabs-box-overflow-bkgnd-animate.png)
   skin/classic/messenger/tabs/newtab.png                              (mail/tabs/newtab.png)

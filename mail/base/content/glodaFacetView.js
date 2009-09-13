@@ -537,6 +537,13 @@ var FacetContext = {
     results.ensureNodeVisible(msgIndex);
   },
 
+
+  zoomOut: function() {
+    let facetDate = document.getElementById('facet-date');
+    this.removeFacetConstraint(facetDate.faceter, true, facetDate.vis.constraints)
+    facetDate.setAttribute("zoomedout", "true");
+  },
+
   /** For use in hovering specific results. */
   fakeResultFaceter: {},
   /** For use in hovering specific results. */
