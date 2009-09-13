@@ -1393,11 +1393,18 @@ EmailConfigWizard.prototype =
       this.onCancel();
       return true;
     }
-    if (key == 13 && !document.getElementById('create_button').hidden) {
+    if (key == 13 && !document.getElementById("go_button").hidden
+                  && !document.getElementById("go_button").disabled) {
+      this.onGo();
+      return true;
+    }
+    if (key == 13 && !document.getElementById("create_button").hidden
+                  && !document.getElementById("create_button").disabled) {
       this.onOK();
       return true;
     }
-    if (key == 13 && !document.getElementById('next_button').hidden) {
+    if (key == 13 && !document.getElementById("next_button").hidden
+                  && !document.getElementById("next_button").disabled) {
       this.onNext();
       return true;
     }
