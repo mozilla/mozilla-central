@@ -1022,7 +1022,15 @@ let gFolderTreeView = {
    */
   _rebuild: function ftv__rebuild() {
     let oldCount = this._rowMap ? this._rowMap.length : null;
-    this._rowMap = this._mapGenerators[this.mode](this);
+    try {
+      this._rowMap = this._mapGenerators[this.mode](this);
+    } catch(ex) {
+      Components.classes["@mozilla.org/consoleservice;1"]
+                .getService(Components.interfaces.nsIConsoleService)
+                .logStringMessage("generator " + this.mode + " failed with exception: " + ex);
+      this.mode = "all";
+      this._rowMap = this._mapGenerators[this.mode](this);
+    }
 
     let evt = document.createEvent("Events");
     evt.initEvent("mapRebuild", true, false);
