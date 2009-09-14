@@ -444,16 +444,26 @@ GlodaMessage.prototype = {
   set date(aNewDate) { this._date = aNewDate; },
 
   get folder() {
-    if (this._folderID != null)
-      return this._datastore._mapFolderID(this._folderID);
-    else
-      return null;
+    // XXX due to a deletion bug it is currently possible to get in a state
+    //  where we have an illegal folderID value.  This will result in an
+    //  exception.  As a workaround, let's just return null in that case.
+    try {
+      if (this._folderID != null)
+        return this._datastore._mapFolderID(this._folderID);
+    }
+    catch (ex) {
+    }
+    return null;
   },
   get folderURI() {
-    if (this._folderID != null)
-      return this._datastore._mapFolderID(this._folderID).uri;
-    else
-      return null;
+    // XXX just like for folder, handle mapping failures and return null
+    try {
+      if (this._folderID != null)
+        return this._datastore._mapFolderID(this._folderID).uri;
+    }
+    catch (ex) {
+    }
+    return null;
   },
   get conversation() {
     return this._conversation;
@@ -510,7 +520,14 @@ GlodaMessage.prototype = {
     if (this._folderID === null || this._messageKey === null)
       return null;
 
-    let glodaFolder = this._datastore._mapFolderID(this._folderID);
+    // XXX like for folder and folderURI, return null if we can't map the folder
+    let glodaFolder;
+    try {
+      glodaFolder = this._datastore._mapFolderID(this._folderID);
+    }
+    catch (ex) {
+      return null;
+    }
     let folder = glodaFolder.getXPCOMFolder(
                    glodaFolder.kActivityHeaderRetrieval);
     if (folder) {
