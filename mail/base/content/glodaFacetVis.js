@@ -53,8 +53,8 @@ function DateFacetVis(aBinding, aCanvasNode) {
 }
 DateFacetVis.prototype = {
   build: function() {
-    this.allowedSpace = document.documentElement.clientWidth -
-                        this.canvasNode.getBoundingClientRect().left;
+    let resultsBarRect = document.getElementById("results").getBoundingClientRect();
+    this.allowedSpace = resultsBarRect.right - resultsBarRect.left;
     this.render();
   },
   rebuild: function() {

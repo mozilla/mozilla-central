@@ -378,6 +378,10 @@ var FacetContext = {
     // we like to sort them so should clone the list
     this.faceters = this.facetDriver.faceters.concat();
 
+    this._timelineShown = ! Application.prefs.getValue('gloda.facetview.hidetimeline', true);
+    if (! this._timelineShown)
+      this._hideTimeline(true);
+
     this.everFaceted = false;
     this._activeConstraints = {};
     try {
@@ -544,6 +548,35 @@ var FacetContext = {
     facetDate.setAttribute("zoomedout", "true");
   },
 
+  toggleTimeline: function() {
+    try {
+      this._timelineShown = ! this._timelineShown;
+      if (this._timelineShown)
+        this._showTimeline();
+      else
+        this._hideTimeline(false);
+    } catch (e) {
+      logException(e);
+    }
+  },
+  
+  _showTimeline: function() {
+    $("#facet-date").slideDown();
+    $("#date-toggle").removeAttr("tucked");
+    Application.prefs.setValue('gloda.facetview.hidetimeline', false);
+  },
+
+  _hideTimeline: function(immediate) {
+    if (immediate) 
+      $("#facet-date").hide();
+    else
+      $("#facet-date").slideUp();
+    $("#date-toggle").attr("tucked", "true");
+    Application.prefs.setValue('gloda.facetview.hidetimeline', true);
+  },
+
+  _timelineShown: true,
+  
   /** For use in hovering specific results. */
   fakeResultFaceter: {},
   /** For use in hovering specific results. */

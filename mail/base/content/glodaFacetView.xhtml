@@ -55,10 +55,15 @@
       </div>
     </div>
     <div id="main-column">
-      <div id="query-explanation"/>
-      <div id="facet-date" class="facetious" type="date" zoomedout="true"/>
-      <div class="results" id="results" type="message" />
-      <div class="show-more" id="showMore" onclick="FacetContext.showMore()">&glodaFacetView.showMore.label;</div>
+      <div id="header">
+        <div id="query-explanation"/>
+        <div id="date-toggle" class="date-toggle" onclick="FacetContext.toggleTimeline()"/>
+      </div>
+      <div id="data-column">
+        <div id="facet-date" class="facetious" type="date" />
+        <div class="results" id="results" type="message" />
+        <div class="show-more" id="showMore" onclick="FacetContext.showMore()">&glodaFacetView.showMore.label;</div>
+      </div>
     </div>
   </div>
 </body>

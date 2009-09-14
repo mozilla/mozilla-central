@@ -472,6 +472,9 @@ pref("browser.history_expire_sites", 40000);
 // See bug 515082.
 pref("media.autoplay.enabled", false);
 
+// whether to hide the timeline view by default in the faceted search display
+pref("gloda.facetview.hidetimeline", true);
+
 // Enable gloda by default!
 pref("mailnews.database.global.indexer.enabled", true);
 // Show gloda errors in the error console

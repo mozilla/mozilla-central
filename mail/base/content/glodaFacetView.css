@@ -71,6 +71,17 @@ body {
   display: table-cell;
 }
 
+#header {
+  position: relative;
+  max-width: 40em;
+}
+
+#data-column {
+  margin-left: 0.5em;
+  margin-top: 1em;
+  max-width: 40em;
+}
+
 /* ===== Query Explanation ===== */
 
 #query-explanation {
@@ -81,6 +92,7 @@ body {
   padding: 2px;
   padding-left: 0;
   padding-top: 1em;
+  padding-right: 80px;
 }
 
 .explanation-fulltext-label {
@@ -200,6 +212,32 @@ h3 {
   padding-left: 2em;
   padding-bottom: 1em;
 }
+
+#date-toggle {
+  position: absolute;
+  right: 1em;
+  bottom: 0;
+  margin: 5px;
+  font-size: 90%;
+  text-align: right;
+  display: inline-block;
+  width: 46px !important;
+  height: 17px !important;
+  margin-right: 2px;
+  margin-top: 2px;
+  padding: 4px;
+  background-image: url("chrome://messenger/skin/icons/timeline.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  -moz-border-radius: 4px;
+}
+
+#date-toggle:hover {
+  background-color: #729fcf;
+  color: #ffffff;
+  background-image: url("chrome://messenger/skin/icons/timeline-inverted.png");
+}
+
 
 .facet-date-zoom-out {
   position: absolute;
@@ -406,12 +444,6 @@ h3 {
 }
 
 /* ===== Results ===== */
-
-.results {
-  margin-left: 0.5em;
-  margin-top: 2em;
-  max-width: 40em;
-}
 
 .results-message-header {
   background-color: #dcddde;
