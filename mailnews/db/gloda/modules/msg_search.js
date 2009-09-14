@@ -90,8 +90,10 @@ const DASCORE_SQL_SNIPPET =
 const FULLTEXT_QUERY_EXPLICIT_SQL =
   "SELECT messages.*, messagesText.*, offsets(messagesText) AS osets " +
     "FROM messages, messagesText WHERE messagesText MATCH ?" +
-    " AND messages.id == messagesText.docid";
-
+    " AND messages.id == messagesText.docid" +
+    " AND +messages.deleted = 0" +
+    " AND +messages.folderID IS NOT NULL" +
+    " AND +messages.messageKey IS NOT NULL";
 
 function identityFunc(x) {
   return x;
@@ -276,8 +278,8 @@ GlodaMsgSearcher.prototype = {
 
     return this.collection;
   },
-  
-  sortBy: '-dascore', 
+
+  sortBy: '-dascore',
 
   onItemsAdded: function GlodaMsgSearcher_onItemsAdded(aItems, aCollection) {
     let scores = Gloda.scoreNounItems(
