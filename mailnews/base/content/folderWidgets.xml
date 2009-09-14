@@ -56,7 +56,7 @@
          - Make sure we remove our listener when the window is being destroyed
         -->
       <destructor><![CDATA[
-        if (!this._initialized)
+        if (!this.hasAttribute("_initialized"))
           return;
 
         const Cc = Components.classes;
@@ -71,10 +71,11 @@
          - populate this menu.  If this is null, the menu will be populated
          - using the root-folders for all accounts
         -->
-      <field name="_parentFolder">null</field>
       <property name="parentFolder"
-                onget="return this._parentFolder;"
-                onset="return this._parentFolder = val;"/>
+                onget="return this.hasAttribute('_parentFolder')
+                       ? GetMsgFolderFromUri(this.getAttribute('_parentFolder'))
+                       : null;"
+                onset="return this.setAttribute('_parentFolder', val.URI);"/>
 
       <!--
          - Various filtering modes can be used with this menu-binding.  To use
@@ -219,7 +220,7 @@
          *              menuitem for that child
          */
         _getChildForItem: function act__itemIsChild(aItem) {
-          if (!this._menu || !this._menu._initialized)
+          if (!this._menu || !this._menu.hasAttribute("_initialized"))
             return null;
 
            if (!(aItem instanceof Components.interfaces.nsIMsgFolder))
@@ -234,10 +235,10 @@
       })]]></field>
 
       <!-- 
-         - True if we have already built our menu-items and are now just
-         - listening for changes
+         - We also have an "_initialized" attribute, which is true if we
+         - have already built our menu-items and are now just listening for
+         - changes
         -->
-      <field name="_initialized">false</field>
 
       <!--
          - Call this if you are unsure whether the menu-items have been built,
@@ -245,7 +246,7 @@
         -->
       <method name="_ensureInitialized">
         <body><![CDATA[
-          if (this._initialized)
+          if (this.hasAttribute("_initialized"))
             return;
 
           // I really wish they'd just make this global...
@@ -257,7 +258,7 @@
           // Figure out which folders to build.  If we don't have a parent, then
           // we assume we should build the top-level accounts.  (Actually we
           // build the fake root folders for those accounts.)
-          if (!this._parentFolder) {
+          if (!this.hasAttribute("_parentFolder")) {
             var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"].
                           getService(Ci.nsIMsgAccountManager);
             var count = acctMgr.accounts.Count();
@@ -311,13 +312,12 @@
           } else {
             // If we do have a parent folder, then we just build based on those
             // subFolders for that parent
-            var myenum = this._parentFolder.subFolders;
+            var myenum = GetMsgFolderFromUri(this.getAttribute("_parentFolder")).subFolders;
             while (myenum.hasMoreElements()) {
               folders.push(myenum.getNext().QueryInterface(Ci.nsIMsgFolder));
             }
           }
 
-          this._teardown();
           this._build(folders);
 
           // Lastly, we add a listener to get notified of changes in the folder
@@ -326,7 +326,7 @@
                         getService(Ci.nsIMsgMailSession);
           session.AddFolderListener(this._listener, Ci.nsIFolderListener.all);
 
-          this._initialized = true;
+          this.setAttribute("_initialized", true);
         ]]></body>
       </method>
 
@@ -365,25 +365,28 @@
              label or if the attribute does not exist the name of the parent
              folder instead.
           */
-          if (this._parentFolder && (!mode ||
+          let parentFolder = null;
+          if (this.hasAttribute("_parentFolder"))
+            parentFolder = GetMsgFolderFromUri(this.getAttribute("_parentFolder"));
+          if (parentFolder && (!mode ||
               (this.getAttribute("showFileHereLabel") == "true" &&
-               (this._parentFolder.noSelect ||
-                this._parentFolder.canFileMessages || mode == "newFolder")))) {
+               (parentFolder.noSelect ||
+                parentFolder.canFileMessages || mode == "newFolder")))) {
             var menuitem = document.createElement("menuitem");
-            menuitem._folder = this._parentFolder;
+            menuitem._folder = parentFolder;
             if (this.hasAttribute("fileHereLabel")) {
               menuitem.setAttribute("label", this.getAttribute("fileHereLabel"));
               menuitem.setAttribute("accesskey", this.getAttribute("fileHereAccessKey"));
             } else {
-              menuitem.setAttribute("label", this._parentFolder.prettyName);
+              menuitem.setAttribute("label", parentFolder.prettyName);
               menuitem.setAttribute("class", "folderMenuItem menuitem-iconic");
-              this._setCssSelectors(this._parentFolder, menuitem);
+              this._setCssSelectors(parentFolder, menuitem);
             }
             // Eww. have to support some legacy code here...
-            menuitem.setAttribute("id", this._parentFolder.URI);
+            menuitem.setAttribute("id", parentFolder.URI);
             this.appendChild(menuitem);
 
-            if (this._parentFolder.noSelect)
+            if (parentFolder.noSelect)
               menuitem.setAttribute("disabled", "true");
 
             this.appendChild(document.createElement("menuseparator"));
@@ -391,7 +394,7 @@
 
           // Some menus want a "Recent" option, but that should only be on our
           // top-level menu
-          if (!this._parentFolder && this.getAttribute("showRecent") == "true") {
+          if (!parentFolder && this.getAttribute("showRecent") == "true") {
             this._buildRecentMenu();
           }
 
@@ -412,7 +415,7 @@
            * folders belong.  Since that sorting was already done, we don't need
            * to do anything for that case here
            */
-          if (this._parentFolder)
+          if (parentFolder)
             folders = folders.sort(nameCompare);
 
           /* In some cases, the user wants to have a list of subfolders for only
@@ -697,8 +700,7 @@
          - removes the listener.  This function is invoked when a change
          - that affects this menu is detected by our listener, or during
          - initialization of cloned children to reset them to their
-         - initial state.  In the case of cloned children, this._initialized
-         - will be false on entry, but they will possess child nodes.
+         - initial state.
         -->
       <method name="_teardown">
         <body><![CDATA[
@@ -709,7 +711,7 @@
             this.removeChild(child);
           }
 
-          if (this._initialized) {
+          if (this.hasAttribute("_initialized")) {
             const Cc = Components.classes;
             const Ci = Components.interfaces;
             var session = Cc["@mozilla.org/messenger/services/session;1"].
@@ -718,7 +720,7 @@
           }
 
           this._folders = null;
-          this._initialized = false;
+          this.removeAttribute("_initialized");
         ]]></body>
       </method>
     </implementation>
