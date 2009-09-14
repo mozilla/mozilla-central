@@ -192,7 +192,7 @@ function saveURL(aURL, aFileName, aFilePickerTitleKey, aShouldBypassCache,
                  aReferrer)
 {
   internalSave(aURL, null, aFileName, null, null, aShouldBypassCache,
-               aFilePickerTitleKey, null, aReferrer, null);
+               aFilePickerTitleKey, null, aReferrer, true, null);
 }
 
 // Just like saveURL, but will get some info off the image before
@@ -223,7 +223,8 @@ function saveImageURL(aURL, aFileName, aFilePickerTitleKey, aShouldBypassCache,
     }
   }
   internalSave(aURL, null, aFileName, contentDisposition, contentType,
-               aShouldBypassCache, aFilePickerTitleKey, null, aReferrer, null);
+               aShouldBypassCache, aFilePickerTitleKey, null, aReferrer,
+               true, null);
 }
 
 function saveFrameDocument()
@@ -264,7 +265,7 @@ function saveDocument(aDocument)
   internalSave(aDocument.location.href, aDocument, null, contentDisposition,
                aDocument.contentType, false, null, null,
                aDocument.referrer ? makeURI(aDocument.referrer) : null,
-               cacheKey);
+               true, cacheKey);
 }
 
 function DownloadListener(win, transfer) {
@@ -338,12 +339,14 @@ const kSaveAsType_Text     = 2; // Save document, converting to plain text.
  *        need to be prompted for a target filename.
  * @param aReferrer the referrer URI object (not URL string) to use, or null
  *        if no referrer should be sent.
+ * @param aUsePref [ignored] Only here to be compatible with toolkit, it uses
+ *        the param name aSkipPrompt but it does not mean what it says.
  * @param aCacheKey [optional] If set will be passed to saveURI.
  *        See nsIWebBrowserPersist for allowed values.
  */
 function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
                       aContentType, aShouldBypassCache, aFilePickerTitleKey,
-                      aChosenData, aReferrer, aCacheKey)
+                      aChosenData, aReferrer, aUsePref, aCacheKey)
 {
   // Note: aDocument == null when this code is used by save-link-as...
   var saveMode = GetSaveModeForContentType(aContentType);
