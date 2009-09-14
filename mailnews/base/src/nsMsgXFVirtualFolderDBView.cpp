@@ -299,7 +299,8 @@ NS_IMETHODIMP
 nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
 {
   // handle any non verified hits we haven't handled yet.
-  UpdateCacheAndViewForPrevSearchedFolders(nsnull);
+  if (NS_SUCCEEDED(status) && status != NS_MSG_SEARCH_INTERRUPTED)
+    UpdateCacheAndViewForPrevSearchedFolders(nsnull);
 
   m_doingSearch = PR_FALSE;
   //we want to set imap delete model once the search is over because setting next
