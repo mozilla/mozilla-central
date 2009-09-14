@@ -428,6 +428,7 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
   m_sortType = aSortType;
   m_sortOrder = aSortOrder;
   m_viewFlags = aViewFlags | nsMsgViewFlagsType::kThreadedDisplay | nsMsgViewFlagsType::kGroupBySort;
+  SaveSortInfo(m_sortType, m_sortOrder);
 
   PRBool hasMore;
   nsCOMPtr <nsISupports> supports;

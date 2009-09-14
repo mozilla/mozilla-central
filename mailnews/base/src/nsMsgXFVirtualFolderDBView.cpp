@@ -493,6 +493,7 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OpenWithHdrs(nsISimpleEnumerator *aHea
   m_sortType = aSortType;
   m_sortOrder = aSortOrder;
   m_viewFlags = aViewFlags;
+  SaveSortInfo(m_sortType, m_sortOrder);
 
   PRBool hasMore;
   nsCOMPtr<nsISupports> supports;
