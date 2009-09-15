@@ -379,8 +379,6 @@ var FacetContext = {
     this.faceters = this.facetDriver.faceters.concat();
 
     this._timelineShown = ! Application.prefs.getValue('gloda.facetview.hidetimeline', true);
-    if (! this._timelineShown)
-      this._hideTimeline(true);
 
     this.everFaceted = false;
     this._activeConstraints = {};
@@ -509,6 +507,9 @@ var FacetContext = {
         }
       }
     }
+
+    if (! this._timelineShown)
+      this._hideTimeline(true);
 
     this._showResults();
 
