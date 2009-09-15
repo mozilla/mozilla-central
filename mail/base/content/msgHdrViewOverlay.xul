@@ -244,7 +244,7 @@
 
           <!-- perhaps this should be a customizable toolbar too -->
           <vbox id="otherActionsBox" align="end">
-            <hbox id="dateValueBox" flex="1">  <!--For extensions-->
+            <hbox id="dateValueBox" align="top" flex="1">  <!--For extensions-->
               <label id="dateLabel" class="dateLabel" flex="1"/>
             </hbox>
             <button type="menu" id="otherActionsButton"
