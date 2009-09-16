@@ -1161,8 +1161,6 @@ USE_DEPENDENT_LIBS=1
 
 _PLATFORM_DEFAULT_TOOLKIT=cairo-gtk2
 
-MOZ_ENABLE_POSTSCRIPT=1 
-
 if test -n "$CROSS_COMPILE"; then
     OS_TARGET="${target_os}"
     OS_ARCH=`echo $target_os | sed -e 's|/|_|g'`
@@ -1913,7 +1911,6 @@ case "$target" in
     DSO_LDOPTS=''
     STRIP="$STRIP -x -S"
     _PLATFORM_DEFAULT_TOOLKIT='cairo-cocoa'
-    MOZ_ENABLE_POSTSCRIPT=
     TARGET_NSPR_MDCPUCFG='\"md/_darwin.cfg\"'
     LDFLAGS="$LDFLAGS -framework Cocoa"
     # The ExceptionHandling framework is needed for Objective-C exception
@@ -2165,7 +2162,6 @@ case "$target" in
     _PLATFORM_DEFAULT_TOOLKIT='windows'
     BIN_SUFFIX='.exe'
     USE_SHORT_LIBNAME=1
-    MOZ_ENABLE_POSTSCRIPT=
     MOZ_USER_DIR="Mozilla"
 
     # Sanity check for WINCE_WINDOWS_MOBILE
@@ -2279,7 +2275,6 @@ case "$target" in
     _PLATFORM_DEFAULT_TOOLKIT='cairo-windows'
     BIN_SUFFIX='.exe'
     USE_SHORT_LIBNAME=1
-    MOZ_ENABLE_POSTSCRIPT=
     MOZ_USER_DIR="Mozilla"
 
     dnl Hardcode to win95 for now - cls
@@ -2546,7 +2541,6 @@ case "$target" in
     LIBXUL_LIBS='-L$(LIBXUL_DIST)/lib $(LIBXUL_DIST)/lib/xpcom.lib $(LIBXUL_DIST)/lib/xul.lib'
     TARGET_MD_ARCH=os2
     _PLATFORM_DEFAULT_TOOLKIT="cairo-os2"
-    MOZ_ENABLE_POSTSCRIPT=
     RC=rc.exe
     RCFLAGS='-n'
     MOZ_USER_DIR="Mozilla"
@@ -3309,17 +3303,6 @@ AC_SUBST(XCFLAGS)
 AC_SUBST(XLDFLAGS)
 AC_SUBST(XLIBS)
 AC_SUBST(XT_LIBS)
-
-AC_MSG_CHECKING(for ARM SIMD support)
-AC_TRY_COMPILE([],
-               [asm("uqadd8 r1, r1, r2");],
-               result="yes", result="no")
-AC_MSG_RESULT("$result")
-if test "$result" = "yes"; then
-    AC_DEFINE(HAVE_ARM_SIMD)
-    HAVE_ARM_SIMD=1
-fi
-AC_SUBST(HAVE_ARM_SIMD)
 
 dnl ========================================================
 dnl = pthread support
@@ -4546,25 +4529,13 @@ MOZ_ARG_WITH_STRING(embedding-profile,
 
 case "$MOZ_EMBEDDING_PROFILE" in
 default)
-  MOZ_EMBEDDING_LEVEL_DEFAULT=1
-  MOZ_EMBEDDING_LEVEL_BASIC=1
-  MOZ_EMBEDDING_LEVEL_MINIMAL=1
-  AC_DEFINE(MOZ_EMBEDDING_LEVEL_DEFAULT)
-  AC_DEFINE(MOZ_EMBEDDING_LEVEL_BASIC)
-  AC_DEFINE(MOZ_EMBEDDING_LEVEL_MINIMAL)
   ;;
 
 basic)
-  MOZ_EMBEDDING_LEVEL_DEFAULT=
-  MOZ_EMBEDDING_LEVEL_BASIC=1
-  MOZ_EMBEDDING_LEVEL_MINIMAL=1
-  AC_DEFINE(MOZ_EMBEDDING_LEVEL_BASIC)
-  AC_DEFINE(MOZ_EMBEDDING_LEVEL_MINIMAL)
   ENABLE_TESTS=
   MOZ_ACTIVEX_SCRIPTING_SUPPORT=
   MOZ_COMPOSER=
   MOZ_ENABLE_CANVAS=
-  MOZ_ENABLE_POSTSCRIPT=
   MOZ_INSTALLER=
   MOZ_JSDEBUGGER=
   MOZ_LDAP_XPCOM=
@@ -4596,15 +4567,10 @@ basic)
   ;;
 
 minimal)
-  MOZ_EMBEDDING_LEVEL_DEFAULT=
-  MOZ_EMBEDDING_LEVEL_BASIC=
-  MOZ_EMBEDDING_LEVEL_MINIMAL=1
-  AC_DEFINE(MOZ_EMBEDDING_LEVEL_MINIMAL)
   ENABLE_TESTS=
   MOZ_ACTIVEX_SCRIPTING_SUPPORT=
   MOZ_COMPOSER=
   MOZ_ENABLE_CANVAS=
-  MOZ_ENABLE_POSTSCRIPT=
   MOZ_INSTALLER=
   MOZ_JSDEBUGGER=
   MOZ_LDAP_XPCOM=
@@ -4643,10 +4609,6 @@ minimal)
   AC_MSG_ERROR([Unrecognized value: --with-embedding-profile=$MOZ_EMBEDDING_PROFILE])
   ;;
 esac
-
-AC_SUBST(MOZ_EMBEDDING_LEVEL_DEFAULT)
-AC_SUBST(MOZ_EMBEDDING_LEVEL_BASIC)
-AC_SUBST(MOZ_EMBEDDING_LEVEL_MINIMAL)
 
 MOZ_ARG_WITH_STRING(xulrunner-stub-name,
 [  --with-xulrunner-stub-name=appname   Create the xulrunner stub with the given name],
@@ -4769,7 +4731,6 @@ dnl ========================================================
 
 case "$MOZ_WIDGET_TOOLKIT" in
 photon)
-	MOZ_ENABLE_PHOTON=1
 	AC_DEFINE(MOZ_WIDGET_PHOTON)
     ;;
 
@@ -4780,7 +4741,6 @@ cairo-windows)
 cairo-gtk2|cairo-gtk2-x11)
     MOZ_WIDGET_TOOLKIT=gtk2
     MOZ_ENABLE_GTK2=1
-    MOZ_ENABLE_XREMOTE=1
 
     AC_DEFINE(MOZ_X11)
     MOZ_X11=1
@@ -4809,7 +4769,6 @@ cairo-gtk2-dfb)
 cairo-qt)
     MOZ_WIDGET_TOOLKIT=qt
     MOZ_ENABLE_QT=1
-    MOZ_ENABLE_XREMOTE=1
     USE_ELF_DYNSTR_GC=
 
     AC_DEFINE(MOZ_X11)
@@ -4849,10 +4808,6 @@ cairo-mac|cairo-cocoa)
     CXXFLAGS="$CXXFLAGS $TK_CFLAGS"
     ;;
 esac
-
-if test "$MOZ_ENABLE_XREMOTE"; then
-    AC_DEFINE(MOZ_ENABLE_XREMOTE)
-fi
 
 if test "$COMPILE_ENVIRONMENT"; then
   if test "$MOZ_ENABLE_GTK2"; then
@@ -4949,9 +4904,7 @@ AC_SUBST(TK_CFLAGS)
 AC_SUBST(TK_LIBS)
 
 AC_SUBST(MOZ_ENABLE_GTK2)
-AC_SUBST(MOZ_ENABLE_PHOTON)
 AC_SUBST(MOZ_ENABLE_QT)
-AC_SUBST(MOZ_ENABLE_XREMOTE)
 AC_SUBST(MOZ_GTK2_CFLAGS)
 AC_SUBST(MOZ_GTK2_LIBS)
 AC_SUBST(MOZ_QT_CFLAGS)
@@ -5090,14 +5043,6 @@ then
 fi
 
 dnl ========================================================
-dnl = PostScript print module
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(postscript,
-[  --disable-postscript    Disable PostScript printing support ],
-    MOZ_ENABLE_POSTSCRIPT=,
-    MOZ_ENABLE_POSTSCRIPT=1 )
-
-dnl ========================================================
 dnl = GnomeVFS support module
 dnl ========================================================
 
@@ -5234,7 +5179,6 @@ then
     fi
 fi
 AC_SUBST(MOZ_ENABLE_DBUS)
-AC_SUBST(MOZ_DBUS_GLIB_CFLAGS)
 AC_SUBST(MOZ_DBUS_GLIB_LIBS)
 
 dnl ========================================================
@@ -7356,7 +7300,6 @@ AC_SUBST(MOZ_PROFILELOCKING)
 
 AC_SUBST(HAVE_XIE)
 AC_SUBST(MOZ_XIE_LIBS)
-AC_SUBST(MOZ_ENABLE_POSTSCRIPT)
 
 AC_SUBST(XPCOM_USE_LEA)
 AC_SUBST(BUILD_STATIC_LIBS)
