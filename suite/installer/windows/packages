@@ -426,6 +426,7 @@ bin\freebl3.chk
 bin\freebl3.dll
 bin\nss3.dll
 bin\nssckbi.dll
+bin\nssdbm3.chk
 bin\nssdbm3.dll
 bin\nssutil3.dll
 bin\smime3.dll

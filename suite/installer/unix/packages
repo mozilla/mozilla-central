@@ -439,6 +439,7 @@ bin/libfreebl3.chk
 bin/libfreebl3.so
 bin/libnss3.so
 bin/libnssckbi.so
+bin/libnssdbm3.chk
 bin/libnssdbm3.so
 bin/libnssutil3.so
 bin/libsmime3.so
