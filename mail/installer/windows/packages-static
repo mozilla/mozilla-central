@@ -386,9 +386,7 @@ bin\freebl3.chk
 bin\freebl3.dll
 bin\ssl3.dll
 bin\nssckbi.dll
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\nssdbm3.chk
-#endif
 bin\nssdbm3.dll
 
 ; core platform files

@@ -9,9 +9,6 @@
 # * anything that isn't a connected chunk of files with related and shared   *
 # * ifdef conditions.                                                        *
 # ****************************************************************************
-#ifdef MOZILLA_1_9_1_BRANCH
-bin/nssdbm3.chk
-#endif
 chrome/app-chrome.manifest
 chrome/chrome.rdf
 chrome/en-US-mail.jar
