@@ -127,7 +127,7 @@
       </xul:tabbox>
       <children/>
     </content>
-    <implementation>
+    <implementation implements="nsIObserver">
       <field name="mPrefs" readonly="true">
         Components.classes['@mozilla.org/preferences-service;1']
                   .getService(Components.interfaces.nsIPrefService)
@@ -1527,6 +1527,7 @@
             // remove overflow from the undo stack
             if (this.savedBrowsers.length > maxUndoDepth) {
               var deadBrowser = this.savedBrowsers.pop().browser;
+              deadBrowser.parentNode.destroy();
               deadBrowser.destroy();
 
               // The pagehide event that this removal triggers is safe
@@ -2245,6 +2246,30 @@
                 onget="return this.mCurrentBrowser.userTypedValue;"
                 onset="return this.mCurrentBrowser.userTypedValue = val;"/>
 
+      <method name="observe">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aState"/>
+        <body>
+          <![CDATA[
+            if (aTopic != "browser:purge-session-history")
+              return;
+
+            // Wipe out savedBrowsers since history is gone
+            while (this.savedBrowsers.length) {
+              var deadBrowser = this.savedBrowsers.pop().browser;
+              deadBrowser.parentNode.destroy();
+              deadBrowser.destroy();
+
+              // The pagehide event that this removal triggers is safe
+              // because the browser is no longer current at this point
+              this.mPanelContainer.removeChild(deadBrowser.parentNode);
+              this.mTabBox.selectedPanel = this.selectedTab.linkedBrowser.parentNode;
+            }
+          ]]>
+        </body>
+      </method>
+
       <constructor>
         <![CDATA[
           this.mCurrentBrowser = this.mPanelContainer.firstChild.firstChild;
@@ -2296,6 +2321,10 @@
           t.setAttribute("validate", "never");
           t.setAttribute("onerror", "this.parentNode.parentNode.parentNode.parentNode.addToMissedIconCache(this.getAttribute('image')); this.removeAttribute('image');");
           this.referenceTab = t;
+
+          var os = Components.classes["@mozilla.org/observer-service;1"]
+                             .getService(Components.interfaces.nsIObserverService);
+          os.addObserver(this, "browser:purge-session-history", false);
         ]]>
       </constructor>
 
@@ -2310,6 +2339,10 @@
             this.browsers[i].removeEventListener("DOMTitleChanged", this.onTitleChanged, true);
           }
           document.removeEventListener("keypress", this._keyEventHandler, false);
+
+          var os = Components.classes["@mozilla.org/observer-service;1"]
+                             .getService(Components.interfaces.nsIObserverService);
+          os.removeObserver(this, "browser:purge-session-history");
         ]]>
       </destructor>
     </implementation>
