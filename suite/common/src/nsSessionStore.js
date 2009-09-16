@@ -1129,9 +1129,12 @@ SessionStoreService.prototype = {
     let storageData = {};
     let hasContent = false;
 
+#ifdef MOZILLA_1_9_1_BRANCH
+    aDocShell.QueryInterface(Components.interfaces.nsIDocShell_MOZILLA_1_9_1_SessionStorage);
+#endif
     for (let i = 0; i < aHistory.count; i++) {
       let uri = aHistory.getEntryAtIndex(i, false).URI;
-      // sessionStorage is saved per domain (cf. nsDocShell::GetSessionStorageForURI)
+      // sessionStorage is saved per origin (cf. nsDocShell::GetSessionStorageForURI)
       let domain = uri.spec;
       try {
         if (uri.host)
@@ -1143,6 +1146,18 @@ SessionStoreService.prototype = {
 
       let storage, storageItemCount = 0;
       try {
+        var principal = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
+                                  .getService(Components.interfaces.nsIScriptSecurityManager)
+                                  .getCodebasePrincipal(uri);
+
+        // Using getSessionStorageForPrincipal instead of getSessionStorageForURI
+        // just to be able to pass aCreate = false, that avoids creation of the
+        // sessionStorage object for the page earlier than the page really
+        // requires it. It was causing problems while accessing a storage when
+        // a page later changed its domain.
+        storage = aDocShell.getSessionStorageForPrincipal(principal, false);
+        if (storage)
+          storageItemCount = storage.length;
         storage = aDocShell.getSessionStorageForURI(uri);
         storageItemCount = storage.length;
       }
@@ -1155,9 +1170,7 @@ SessionStoreService.prototype = {
         try {
           let key = storage.key(j);
           let item = storage.getItem(key);
-          data[key] = { value: item.value };
-          if (uri.schemeIs("https") && item.secure)
-            data[key].secure = true;
+          data[key] = item;
         }
         catch (ex) { /* XXXzeniko this currently throws for secured items (cf. bug 442048) */ }
       }
@@ -1948,14 +1961,15 @@ SessionStoreService.prototype = {
    */
   _deserializeSessionStorage: function sss_deserializeSessionStorage(aStorageData, aDocShell) {
     let ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
+#ifdef MOZILLA_1_9_1_BRANCH
+    aDocShell.QueryInterface(Components.interfaces.nsIDocShell_MOZILLA_1_9_1_SessionStorage);
+#endif
     for (let url in aStorageData) {
       let uri = ioService.newURI(url, null, null);
       let storage = aDocShell.getSessionStorageForURI(uri);
       for (let key in aStorageData[url]) {
         try {
-          storage.setItem(key, aStorageData[url][key].value);
-          if (uri.schemeIs("https"))
-            storage.getItem(key).secure = aStorageData[url][key].secure || false;
+          storage.setItem(key, aStorageData[url][key]);
         }
         catch (ex) { Cu.reportError(ex); } // throws e.g. for URIs that can't have sessionStorage
       }
