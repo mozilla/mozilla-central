@@ -33,6 +33,7 @@ messenger.jar:
     content/messenger/mail3PaneWindowCommands.js    (content/mail3PaneWindowCommands.js)
 *   content/messenger/mailCommands.js               (content/mailCommands.js)
 *   content/messenger/mailCore.js                   (content/mailCore.js)
+    content/messenger/mailTabs.js                   (content/mailTabs.js)
     content/messenger/commandglue.js                (content/commandglue.js)
     content/messenger/widgetglue.js                 (content/widgetglue.js)
 *   content/messenger/SearchDialog.xul              (content/SearchDialog.xul)
