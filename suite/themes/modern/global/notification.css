@@ -1,33 +1,55 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 notification {
-  background-color: #E8DB99;
+  background-color: #C7D0D9;
   color: #000000;
 }
 
-notification[type="info"] {
-  background-color: #C7D0D9;
+notification[type="warning"] {
+  background-color: #E8DB99;
 }
 
 notification[type="critical"] {
   background-color: #FF0000;
+  color: #FFFFFF;
+}
+
+.notification-inner[type="warning"] {
+  border-color: #E8DB99 !important;
+}
+
+.notification-inner[type="critical"] {
+  border-color: #FF0000 !important;
 }
 
 .messageImage {
   width: 16px;
   height: 16px;
   margin-top: 0px;
-  margin-bottom: 0px;
-  -moz-margin-start: 6px;
+  margin-bottom: 3px;
+  -moz-margin-start: 5px;
   -moz-margin-end: 1px;
 }
 
-.messageText {
-  -moz-margin-start: 5px;
+/* Default icons for notifications */
+
+.notification-inner[type="info"] > hbox > .messageImage {
+  list-style-image: url("chrome://global/skin/icons/information-16.png");
 }
 
-.messageButton {
-  margin: 0px 5px;
+.notification-inner[type="warning"] > hbox > .messageImage {
+  list-style-image: url("chrome://global/skin/icons/warning-16.png");
+}
+
+.notification-inner[type="critical"] > hbox > .messageImage {
+  list-style-image: url("chrome://global/skin/icons/error-16.png");
+}
+
+.messageText {
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+  -moz-margin-start: 5px !important;
+  -moz-margin-end: 1px !important;
 }
 
 .messageCloseButton {
