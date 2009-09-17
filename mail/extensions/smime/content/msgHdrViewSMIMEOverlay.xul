@@ -49,15 +49,13 @@
   </stringbundleset>
 -->
 
-  <hbox id="expandedHeaderView">
-    <vbox id="smimeBox" insertafter="expandedHeaders" collapsed="true">
-      <spacer flex="1"/>
+  <hbox id="dateValueBox">
+    <hbox id="smimeBox" insertbefore="dateLabel" collapsed="true">
       <image id="signedHdrIcon"
              onclick="showMessageReadSecurityInfo();" collapsed="true"/>
       <image id="encryptedHdrIcon"
              onclick="showMessageReadSecurityInfo();" collapsed="true"/>
-      <spacer flex="1"/>
-    </vbox>
+    </hbox>
   </hbox>
 </overlay>
 
