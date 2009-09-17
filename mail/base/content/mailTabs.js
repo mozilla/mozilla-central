@@ -31,6 +31,7 @@
  *   Jeremy Morton <bugzilla@game-point.net>
  *   Andrew Sutherland <asutherland@asutherland.org>
  *   Dan Mosedale <dmose@mozilla.org>
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,6 +46,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
+Components.utils.import("resource://app/modules/MsgHdrSyntheticView.js");
 
 /**
  * Displays message "folder"s, mail "message"s, and "glodaList" results.  The
@@ -275,10 +278,14 @@ let mailTabType = {
                                  aArgs.viewWrapperToClone;
         let background = ("background" in aArgs) && aArgs.background;
 
-        if (viewWrapperToClone)
+        if (viewWrapperToClone) {
           aTab.folderDisplay.cloneView(viewWrapperToClone);
-        else
-          aTab.folderDisplay.show(aArgs.msgHdr.folder);
+        }
+        else {
+          // Create a synthetic message view for the header
+          let synView = new MsgHdrSyntheticView(aArgs.msgHdr);
+          aTab.folderDisplay.show(synView);
+        }
 
         // folderDisplay.show is going to try to set the title itself, but we
         // wouldn't have selected a message at that point, so set the title

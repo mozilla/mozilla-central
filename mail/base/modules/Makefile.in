@@ -47,6 +47,7 @@ EXTRA_JS_MODULES = \
   MailConsts.js \
   MailUtils.js \
   attachmentChecker.js \
+  MsgHdrSyntheticView.js \
   $(NULL)
 
 include $(topsrcdir)/config/rules.mk

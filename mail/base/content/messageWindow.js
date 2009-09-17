@@ -39,6 +39,7 @@
 
 Components.utils.import("resource://app/modules/jsTreeSelection.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://app/modules/MsgHdrSyntheticView.js");
 
 // from MailNewsTypes.h
 const nsMsgKey_None = 0xFFFFFFFF;
@@ -465,10 +466,14 @@ function actuallyLoadMessage() {
 
     // this is a message header, so show it
     if (msgHdr) {
-      if (originViewWrapper)
+      if (originViewWrapper) {
         gFolderDisplay.cloneView(originViewWrapper);
-      else
-        gFolderDisplay.show(msgHdr.folder);
+      }
+      else {
+        // Create a synthetic message view for the header
+        let synView = new MsgHdrSyntheticView(msgHdr);
+        gFolderDisplay.show(synView);
+      }
       gFolderDisplay.selectMessage(msgHdr);
     }
     // it must be a URI for a message lacking a backing header
@@ -519,10 +524,14 @@ function displayMessage(aMsgHdr, aViewWrapperToClone)
   // window because of this.
   gFolderDisplay.clearSelection();
 
-  if (aViewWrapperToClone)
+  if (aViewWrapperToClone) {
     gFolderDisplay.cloneView(aViewWrapperToClone);
-  else
-    gFolderDisplay.show(aMsgHdr.folder);
+  }
+  else {
+    // Create a synthetic message view for the header
+    let synView = new MsgHdrSyntheticView(aMsgHdr);
+    gFolderDisplay.show(synView);
+  }
 
   // show the message
   gFolderDisplay.selectMessage(aMsgHdr);
