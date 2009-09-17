@@ -604,7 +604,13 @@ WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
   image->GetImageBytesPerRow(&bpr);
 #else
   nsRefPtr<gfxImageSurface> image;
+#ifdef MOZILLA_1_9_2_BRANCH
   nsresult rv = aImage->CopyCurrentFrame(getter_AddRefs(image));
+#else
+  nsresult rv = aImage->CopyFrame(imgIContainer::FRAME_CURRENT,
+                                  imgIContainer::FLAG_SYNC_DECODE,
+                                  getter_AddRefs(image));
+#endif
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRInt32 width = image->Width();
@@ -613,7 +619,7 @@ WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
   PRUint8* bits = image->Data();
   PRUint32 length = image->GetDataSize();
   PRUint32 bpr = PRUint32(image->Stride());
-#endif
+#endif // else MOZILLA_1_9_1_BRANCH
 
   PRInt32 bitCount = bpr/width;
 

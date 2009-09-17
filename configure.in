@@ -243,15 +243,21 @@ changequote(,)
 MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
 changequote([,])
 
+dnl Set the Gecko 1.9.1 branch version.
 MOZILLA_1_9_1_BRANCH=
-
-dnl Set the Gecko 1.9.1 branch version
 if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
     MOZILLA_1_9_1_BRANCH=1
     AC_DEFINE(MOZILLA_1_9_1_BRANCH)
 fi
-
 AC_SUBST(MOZILLA_1_9_1_BRANCH)
+
+dnl Set the Gecko 1.9.2 branch version.
+MOZILLA_1_9_2_BRANCH=
+if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
+    MOZILLA_1_9_2_BRANCH=1
+    AC_DEFINE(MOZILLA_1_9_2_BRANCH)
+fi
+AC_SUBST(MOZILLA_1_9_2_BRANCH)
 
 
 dnl ========================================================
