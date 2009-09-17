@@ -142,7 +142,9 @@ bin\components\necko_res.xpt
 bin\components\necko_socket.xpt
 bin\components\necko_strconv.xpt
 bin\components\necko_viewsource.xpt
+bin\components\necko_wifi.xpt
 bin\components\parentalcontrols.xpt
+bin\components\places.xpt
 bin\components\plugin.xpt
 bin\components\pref.xpt
 bin\components\prefetch.xpt
@@ -194,6 +196,7 @@ bin\components\calMemoryCalendarModule.js
 bin\components\calStorageCalendarModule.js
 bin\components\calWcapCalendarModule.js
 bin\components\jsconsole-clhandler.js
+bin\components\NetworkGeolocationProvider.js
 bin\components\nsAddonRepository.js
 bin\components\nsBadCertHandler.js
 bin\components\nsBlocklistService.js
@@ -328,7 +331,9 @@ bin\res\broken-image.png
 #endif
 bin\res\fonts\*
 bin\res\dtd\*
-bin\res\html\*
+bin\res\html\folder.png
+bin\res\contenteditable.css
+bin\res\designmode.css
 bin\res\wincharset.properties
 bin\res\charsetalias.properties
 bin\res\charsetData.properties
@@ -339,6 +344,7 @@ bin\res\entityTables\*
 ; [Personal Security Manager]
 ;
 bin\nssckbi.dll
+bin\nssdbm3.chk
 bin\nssdbm3.dll
 bin\components\pipboot.xpt
 bin\components\pipnss.xpt
