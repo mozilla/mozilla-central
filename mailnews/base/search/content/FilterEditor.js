@@ -378,7 +378,7 @@ function saveFilter()
   if (!gFilter)
   {
     // This is a new filter
-    gFilter = gFilterList.createFilter(null);
+    gFilter = gFilterList.createFilter(filterName);
     isNewFilter = true;
     gFilter.enabled=true;
   }
@@ -455,6 +455,9 @@ function AssignMeaningfulName()
       case attribs.Priority:
       case attribs.MsgStatus:
       case attribs.Keywords:
+      case attribs.HasAttachmentStatus:
+      case attribs.JunkStatus:
+      case attribs.JunkScoreOrigin:
         value = activeItem.label;
         break;
 
