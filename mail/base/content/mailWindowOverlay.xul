@@ -714,8 +714,8 @@
               accesskey="&AddToAddressBook.accesskey;"
               oncommand="addEmail();"/>
     <menuitem id="mailContext-composeemailto"
-              label="&SendMailTo.label;"
-              accesskey="&SendMailTo.accesskey;"
+              label="&SendMessageTo.label;"
+              accesskey="&SendMessageTo.accesskey;"
               oncommand="composeEmailTo();"/>
     <menuitem id="mailContext-copyemail"
               label="&copyEmailCmd.label;"

@@ -190,13 +190,13 @@
                 <label id="expandednewsgroupsLabel" class="headerName"
                        value="&newsgroupsField2.label;"
                        control="expandednewsgroupsBox"/>
-                <mail-headerfield id="expandednewsgroupsBox"/>
+                <mail-newsgroups-headerfield id="expandednewsgroupsBox"/>
               </row>
               <row id="expandedfollowup-toRow" collapsed="true">
                 <label id="expandedfollowup-toLabel" class="headerName"
                        value="&followupToField2.label;"
                        control="expandedfollowup-toBox"/>
-                <mail-headerfield id="expandedfollowup-toBox"/>
+                <mail-newsgroups-headerfield id="expandedfollowup-toBox"/>
               </row>
               <row id="expandeddateRow" collapsed="true">
                 <label id="expandeddateLabel" class="headerName"

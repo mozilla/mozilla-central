@@ -153,7 +153,7 @@
 
 <popup id="emailAddressPopup" position="after_start" class="emailAddressPopup"
        onpopupshowing="setupEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
-       onpopuphiding="hideEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'));">
+       onpopuphiding="hideEmailNewsPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'));">
     <menuitem id="emailAddressPlaceHolder"
               disabled="true"/>
     <menuseparator/>
@@ -167,17 +167,35 @@
     <menuitem id="viewContactItem" label="&ViewContact.label;" hidden="true"
               accesskey="&ViewContact.accesskey;"
               oncommand="EditContact(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
-    <menuitem id="sendMailToItem" label="&SendMailTo.label;"
-              accesskey="&SendMailTo.accesskey;"
+    <menuitem id="sendMailToItem" label="&SendMessageTo.label;"
+              accesskey="&SendMessageTo.accesskey;"
               oncommand="SendMailToNode(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
     <menuitem id="copyEmailAddressItem" label="&CopyEmailAddress.label;"
               accesskey="&CopyEmailAddress.accesskey;"
-              oncommand="CopyEmailAddress(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
+              oncommand="CopyEmailNewsAddress(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
     <menuseparator/>
     <menuitem id="createFilterFromItem" label="&CreateFilterFrom.label;"
               accesskey="&CreateFilterFrom.accesskey;"
               oncommand="CreateFilter(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"
               observes="cmd_createFilterFromPopup"/>
+</popup>
+
+<popup id="newsgroupPopup" position="after_start" class="newsgroupPopup"
+       onpopupshowing="setupNewsgroupPopup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
+       onpopuphiding="hideEmailNewsPopup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'));">
+    <menuitem id="newsgroupPlaceHolder"
+              disabled="true"/>
+    <menuseparator/>
+    <menuitem id="sendMessageToNewsgroupItem" label="&SendMessageTo.label;"
+              accesskey="&SendMessageTo.accesskey;"
+              oncommand="SendMailToNode(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'))"/>
+    <menuitem id="copyNewsgroupAddressItem" label="&CopyNewsgroupName.label;"
+              accesskey="&CopyNewsgroupName.accesskey;"
+              oncommand="CopyEmailNewsAddress(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'))"/>
+    <menuseparator id="subscribeToNewsgroupSeparator"/>
+    <menuitem id="subscribeToNewsgroupItem" label="&SubscribeToNewsgroup.label;"
+              accesskey="&SubscribeToNewsgroup.accesskey;"
+              oncommand="SubscribeToNewsgroup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'))"/>
 </popup>
 
 <popup id="messageIdContext"/>

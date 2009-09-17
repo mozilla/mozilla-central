@@ -687,7 +687,7 @@ function ClearHeaderView(headerTable)
   for (index in headerTable)
   {
      var headerEntry = headerTable[index];
-     if (headerEntry.useToggle)
+     if (headerEntry.enclosingBox.clearHeaderValues)
      {
        headerEntry.enclosingBox.clearHeaderValues();
      }
@@ -975,10 +975,20 @@ function HideMessageHeaderPane()
   ClearEditMessageBox();
 }
 
+/** 
+ * Take string of newsgroups separated by commas, split it
+ * into newsgroups and send them to the corresponding
+ * mail-newsgroups-headerfield element.
+ * 
+ * @param headerEntry  the entry data structure for this header
+ * @param headerValue  the string value for the header from the message
+ */ 
 function OutputNewsgroups(headerEntry, headerValue)
 {
-  headerValue = headerValue.replace(/,/g,", ");
-  updateHeaderValue(headerEntry, headerValue);
+  headerValue.split(",").forEach(
+    function(newsgroup) headerEntry.enclosingBox.addNewsgroupView(newsgroup));
+
+  headerEntry.enclosingBox.buildViews();
 }
 
 // take string of message-ids separated by whitespace, split it
@@ -1207,10 +1217,10 @@ function findEmailNodeFromPopupNode(elt, popup)
   return elt.parentNode;
 }
 
-function hideEmailAddressPopup(emailAddressNode)
+function hideEmailNewsPopup(addressNode)
 {
-  // highlight the emailBox
-  emailAddressNode.removeAttribute('selected');
+  // highlight the emailBox/newsgroupBox
+  addressNode.removeAttribute('selected');
 }
 
 function setupEmailAddressPopup(emailAddressNode)
@@ -1328,15 +1338,18 @@ function EditContact(emailAddressNode)
 /**
  * Takes the email address title button, extracts the email address we stored
  * in there and opens a compose window with that address.
- * @param emailAddressNode a node which has a "fullAddress" attribute
+ * @param addressNode a node which has a "fullAddress" or "newsgroup" attribute
  */
-function SendMailToNode(emailAddressNode)
+function SendMailToNode(addressNode)
 {
   let fields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
                          .createInstance(Components.interfaces.nsIMsgCompFields);
   let params = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
                          .createInstance(Components.interfaces.nsIMsgComposeParams);
-  fields.to = emailAddressNode.getAttribute("fullAddress");
+
+  fields.newsgroups = addressNode.getAttribute("newsgroup");
+  fields.to = addressNode.getAttribute("fullAddress");
+
   params.type = Components.interfaces.nsIMsgCompType.New;
   params.format = Components.interfaces.nsIMsgCompFormat.Default;
   if (gFolderDisplay.displayedFolder) {
@@ -1348,15 +1361,19 @@ function SendMailToNode(emailAddressNode)
 }
 
 /**
- * Takes the email address title button, extracts the email address we stored
- * in there and copies it to the clipboard.
- * @param emailAddressNode a node which has an "emailAddress" attribute
+ * Takes the email address or newsgroup title button, extracts the address/name
+ * we stored in there and copies it to the clipboard.
+ * 
+ * @param addressNode  a node which has an "emailAddress" or "newsgroup"
+ *                     attribute
  */
-function CopyEmailAddress(emailAddressNode)
+function CopyEmailNewsAddress(addressNode)
 {
   let clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
                             .getService(Components.interfaces.nsIClipboardHelper);
-  clipboard.copyString(emailAddressNode.getAttribute("emailAddress"));
+  let address = addressNode.getAttribute("emailAddress") ||
+                addressNode.getAttribute("newsgroup");
+  clipboard.copyString(address);
 }
 
 /**
@@ -1368,6 +1385,80 @@ function CreateFilter(emailAddressNode)
 {
   let emailAddress = emailAddressNode.getAttribute("emailAddress");
   top.MsgFilters(emailAddress, GetFirstSelectedMsgFolder());
+}
+
+/**
+ * Get the newsgroup server corresponding to the currently selected message.
+ *
+ * @return nsISubscribableServer for the newsgroup, or null
+ */
+function GetNewsgroupServer()
+{
+  if (gFolderDisplay.selectedMessageIsNews)
+  {
+    let server = gFolderDisplay.selectedMessage.folder.server;
+    if (server)
+        return server.QueryInterface(Components.interfaces.nsISubscribableServer);
+  }
+}
+
+/**
+ * Initialize the newsgroup popup, showing/hiding menu items as appropriate.
+ * 
+ * @param newsgroupNode a node which has a "newsgroup" attribute
+ */
+function setupNewsgroupPopup(newsgroupNode)
+{
+  let newsgroupPlaceHolder = document.getElementById('newsgroupPlaceHolder');
+  let newsgroup = newsgroupNode.getAttribute('newsgroup');
+  newsgroupNode.setAttribute('selected', 'true');
+  newsgroupPlaceHolder.setAttribute('label', newsgroup);
+
+  let server = GetNewsgroupServer();
+  if (server)
+  {
+    // XXX Why is this necessary when nsISubscribableServer contains
+    // |isSubscribed|?
+    server = server.QueryInterface(Components.interfaces.nsINntpIncomingServer);
+    if (!server.containsNewsgroup(newsgroup))
+    {
+      document.getElementById('subscribeToNewsgroupItem').removeAttribute('hidden');
+      document.getElementById('subscribeToNewsgroupSeparator').removeAttribute('hidden');
+      return;
+    }
+  }
+  document.getElementById('subscribeToNewsgroupItem').setAttribute('hidden',
+                                                                   true);
+  document.getElementById('subscribeToNewsgroupSeparator').setAttribute('hidden', true);
+}
+
+/**
+ * Subscribe to a newsgroup based on the newsgroup title button
+ * 
+ * @param newsgroupNode a node which has a "newsgroup" attribute
+ */
+function SubscribeToNewsgroup(newsgroupNode)
+{
+  let server = GetNewsgroupServer();
+  if (server)
+  {
+    let newsgroup = newsgroupNode.getAttribute('newsgroup');
+    server.subscribe(newsgroup);
+    server.commitSubscribeChanges();
+  }
+}
+
+/**
+ * Takes the newsgroup address title button, extracts the newsgroup name we
+ * stored in there and copies it to the clipboard.
+ * 
+ * @param newsgroupNode a node which has a "newsgroup" attribute
+ */
+function CopyNewsgroupName(newsgroupNode)
+{
+  let clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                            .getService(Components.interfaces.nsIClipboardHelper);
+  clipboard.copyString(newsgroupNode.getAttribute("newsgroup"));
 }
 
 // createnewAttachmentInfo --> constructor method for creating new attachment object which goes into the

@@ -424,8 +424,17 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 }
 
 .emailSeparator {
-  /* this is for the comma in between email addresses */
+  /* this is for the comma in between email addresses/newsgroups */
   -moz-margin-start: -4px; /* squeeze it inside the bubble, by the star */
+}
+
+/* Because there's no star for newsgroups like there is for email addresses,
+ * pushing it back the same number of pixels as emailSeparator causes
+ * the comma to be drawn too close to the last letter, which looks bad, so
+ * using a separate rule here.
+ */
+.newsgroupSeparator {
+  -moz-margin-start: -3px;
 }
 
 .emailDisplayButton:focus {
@@ -436,7 +445,8 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
   border: 1px dotted;
 }
 
-.emaillabel {
+.emaillabel,
+.newsgrouplabel {
   padding: 0px !important;  /* override <label> defaults */
   margin: 0px !important;  /* override <label> defaults */
   overflow: hidden;
@@ -504,7 +514,8 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 }
 
 mail-multi-emailHeaderField,
-mail-headerfield {
+mail-headerfield,
+mail-newsgroups-headerfield {
   margin: 0;
   padding: 0;
   -moz-box-align: baseline;

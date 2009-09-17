@@ -519,6 +519,83 @@
     </implementation>
   </binding>
 
+  <!-- a single newsgroup as displayed in the message header with a drop-down
+       menu for various actions -->
+  <binding id="mail-newsgroup">
+    <content>
+      <xul:description anonid="newsgroupValue" class="emailDisplayButton"
+                       xbl:inherits="aria-label"
+                       context="newsgroupPopup" popup="newsgroupPopup"
+                       flex="1">
+        <xul:label class="newsgrouplabel" anonid="newsgrouplabel"
+                   xbl:inherits="value=label,crop"/>
+      </xul:description>
+    </content>
+
+    <implementation>
+      <property name="label"      onset="this.getPart('newsgroupValue').setAttribute('label',val); return val;"
+                                  onget="return this.getPart('newsgroupValue').getAttribute('label');"/>
+    </implementation>
+  </binding>
+
+  <!-- The value of the Newsgroups: headers, as displayed in the message,
+       header, composed of <mail-newsgroup> nodes.  -->      
+  <binding id="mail-newsgroups-headerfield">
+    <content>
+      <xul:hbox class="headerValueBox" flex="1">
+        <xul:description class="headerValue" anonid="newsgroups" containsEmail="true"
+                         flex="1"/>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+      <constructor><![CDATA[
+          this.mNewsgroups = new Array;
+      ]]></constructor>
+
+      <property name="newsgroups" onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'newsgroups');"
+        readonly="true"/>
+
+      <!-- add a newsgroup to the internal list of newsgroups -->
+      <method name="addNewsgroupView">
+        <parameter name="aNewsgroup"/>
+        <body><![CDATA[
+          this.mNewsgroups.push(aNewsgroup);
+        ]]></body>
+      </method>
+
+      <!-- build the view for the current list of newsgroups -->
+      <method name="buildViews">
+        <body><![CDATA[
+          for (let i=0; i<this.mNewsgroups.length; i++)
+          {
+            let newNode = document.createElement("mail-newsgroup");
+            if (i)
+            {
+              let textNode = document.createElement("text");
+              textNode.setAttribute("value", ",");
+              textNode.setAttribute("class", "newsgroupSeparator");
+              this.newsgroups.appendChild(textNode);
+            }
+
+            let itemInDocument = this.newsgroups.appendChild(newNode);
+            itemInDocument.setAttribute("label", this.mNewsgroups[i]);
+            itemInDocument.setAttribute("newsgroup", this.mNewsgroups[i]);
+          }
+        ]]></body>
+      </method>
+
+      <!-- clear the current view and internal list of newsgroups -->
+      <method name="clearHeaderValues">
+        <body><![CDATA[
+          this.mNewsgroups = new Array;
+          while(this.newsgroups.childNodes.length)
+            this.newsgroups.removeChild(this.newsgroups.firstChild);
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+
   <binding id="mail-messageids-headerfield">
     <content>
       <xul:hbox class="headerNameBox" align="start" pack="end">

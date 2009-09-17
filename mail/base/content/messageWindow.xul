@@ -138,12 +138,12 @@
       <menuitem id="viewContactItem" label="&ViewContact.label;" hidden="true"
                 accesskey="&ViewContact.accesskey;"
                 oncommand="EditContact(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
-      <menuitem id="sendMailToItem" label="&SendMailTo.label;"
-                accesskey="&SendMailTo.accesskey;"
+      <menuitem id="sendMailToItem" label="&SendMessageTo.label;"
+                accesskey="&SendMessageTo.accesskey;"
                 oncommand="SendMailToNode(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
       <menuitem id="copyEmailAddressItem" label="&CopyEmailAddress.label;"
                 accesskey="&CopyEmailAddress.accesskey;"
-                oncommand="CopyEmailAddress(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
+                oncommand="CopyEmailNewsAddress(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup'))"/>
       <menuseparator/>
       <menuitem id="createFilterFromItem" label="&CreateFilterFrom.label;"
                 accesskey="&CreateFilterFrom.accesskey;"
