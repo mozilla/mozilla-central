@@ -176,9 +176,7 @@ ifdef _MSC_VER
 WIN32_EXE_LDFLAGS += -ENTRY:wmainCRTStartup
 endif
 
-ifndef BUILD_STATIC_LIBS
-
-else
+ifdef BUILD_STATIC_LIBS
 include $(topsrcdir)/config/static-config.mk
 
 EXTRA_DEPS	+= \
@@ -189,7 +187,24 @@ CPPSRCS		+= $(STATIC_CPPSRCS)
 EXTRA_DSO_LIBS	+= $(STATIC_EXTRA_DSO_LIBS)
 REQUIRES	+= $(STATIC_REQUIRES)
 EXTRA_LIBS	+= $(STATIC_EXTRA_LIBS)
+
+ifndef MOZILLA_1_9_1_BRANCH
+ifndef MOZILLA_1_9_2_BRANCH
+
+ifdef MOZ_ENABLE_CANVAS3D
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+OS_LIBS += -framework OpenGL
 endif
+
+ifneq (,$(filter windows,$(MOZ_WIDGET_TOOLKIT)))
+OS_LIBS += opengl32.lib
+endif
+endif
+
+endif # MOZILLA_1_9_2_BRANCH
+endif # MOZILLA_1_9_1_BRANCH
+
+endif # BUILD_STATIC_LIBS
 
 ifeq ($(OS_ARCH),WINNT)
 OS_LIBS += $(call EXPAND_LIBNAME,comctl32 comdlg32 uuid shell32 ole32 oleaut32 version winspool)
