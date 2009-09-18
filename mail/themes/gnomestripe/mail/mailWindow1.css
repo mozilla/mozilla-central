@@ -342,9 +342,14 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   background-color: -moz-oddtreerow;
 }
 
-#threadTree > treechildren::-moz-tree-row(selected),
-#threadTree > treechildren::-moz-tree-row(selected, focus) {
+#threadTree > treechildren::-moz-tree-row(selected) {
+  color: -moz-cellhighlighttext;
   background-color: -moz-cellhighlight;
+}
+
+#threadTree > treechildren::-moz-tree-row(selected, focus) {
+  color: HighlightText;
+  background-color: Highlight;
 }
 
 .tabmail-tab[type="message"]  .tab-icon-image {
