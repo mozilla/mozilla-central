@@ -102,17 +102,11 @@
 #include "nsIPrefBranch.h"
 #include "imgILoader.h"
 
-#ifdef MOZ_THUNDERBIRD
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgHdr.h"
-#endif
-
-#ifdef MOZ_THUNDERBIRD
 
 // forward declaration
 void getMsgHdrForCurrentURL(MimeDisplayOptions *opts, nsIMsgDBHdr ** aMsgHdr);
-
-#endif
 
 #define  IMAP_EXTERNAL_CONTENT_HEADER "X-Mozilla-IMAP-Part"
 #define  EXTERNAL_ATTACHMENT_URL_HEADER "X-Mozilla-External-Attachment-URL"
@@ -403,9 +397,6 @@ PRBool mime_is_allowed_class(const MimeObjectClass *clazz,
       );
 }
 
-
-#ifdef MOZ_THUNDERBIRD
-
 void getMsgHdrForCurrentURL(MimeDisplayOptions *opts, nsIMsgDBHdr ** aMsgHdr)
 {
   *aMsgHdr = nsnull;
@@ -445,7 +436,6 @@ void getMsgHdrForCurrentURL(MimeDisplayOptions *opts, nsIMsgDBHdr ** aMsgHdr)
 
   return;
 }
-#endif
 
 MimeObjectClass *
 mime_find_class (const char *content_type, MimeHeaders *hdrs,
@@ -484,8 +474,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
         html_as = 1;
     }
 
-#ifdef MOZ_THUNDERBIRD
-  // first, check to see if the message has been marked as JUNK. If it has,
+  // First, check to see if the message has been marked as JUNK. If it has,
   // then force the message to be rendered as simple, unless this has been
   // called by a filtering routine.
   PRBool sanitizeJunkMail = PR_FALSE;
@@ -509,7 +498,6 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
         html_as = 3; // 3 == Simple HTML
     } // if msgHdr
   } // if we are supposed to sanitize junk mail
-#endif
 
   /*
   * What we do first is check for an external content handler plugin.

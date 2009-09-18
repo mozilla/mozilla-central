@@ -2503,17 +2503,47 @@ function SetupUndoRedoCommand(command)
 
 function HandleJunkStatusChanged(folder)
 {
-  // this might be the stand alone window, open to a message that was
+  // This might be the stand alone window, open to a message that was
   // and attachment (or on disk), in which case, we want to ignore it.
   var loadedMessage = GetLoadedMessage();
-  if (loadedMessage && (!(/type=application\/x-message-display/.test(loadedMessage))) && IsCurrentLoadedFolder(folder))
+  if (!loadedMessage || /type=application\/x-message-display/.test(loadedMessage) ||
+      !IsCurrentLoadedFolder(folder))
+    return;
+
+  // If multiple message are selected and we change the junk status
+  // we don't want to show the junk bar (since the message pane is blank).
+  var msgHdr = null;
+  if (GetNumSelectedMessages() == 1)
+    msgHdr = messenger.msgHdrFromURI(loadedMessage);
+  var junkBarWasDisplayed = gMessageNotificationBar.isFlagSet(kMsgNotificationJunkBar);
+  gMessageNotificationBar.setJunkMsg(msgHdr);
+
+  // Only reload message if junk bar display state has changed.
+  if (msgHdr && junkBarWasDisplayed != gMessageNotificationBar.isFlagSet(kMsgNotificationJunkBar))
   {
-    // if multiple message are selected and we change the junk status
-    // we don't want to show the junk bar (since the message pane is blank)
-    var msgHdr = null;
-    if (GetNumSelectedMessages() == 1)
-      msgHdr = messenger.msgHdrFromURI(loadedMessage);
-    gMessageNotificationBar.setJunkMsg(msgHdr);
+    // We may be forcing junk mail to be rendered with sanitized html.
+    // In that scenario, we want to reload the message if the status has just
+    // changed to not junk.
+    var sanitizeJunkMail = gPrefBranch.getBoolPref("mail.spam.display.sanitize");
+
+    // Only bother doing this if we are modifying the html for junk mail...
+    if (sanitizeJunkMail)
+    {
+      let isJunk = gMessageNotificationBar.isFlagSet(kMsgNotificationJunkBar);
+
+      // If the current row isn't going to change, reload to show sanitized or
+      // unsanitized. Otherwise we wouldn't see the reloaded version anyway.
+
+      // XXX: need to special handle last message in view, for imap mark as deleted
+
+      // 1) When marking as non-junk, the msg would move back to the inbox.
+      // 2) When marking as junk, the msg will move or delete, if manualMark is set.
+      // 3) Marking as junk in the junk folder just changes the junk status.
+      if ((!isJunk && folder.isSpecialFolder(Components.interfaces.nsMsgFolderFlags.Inbox)) ||
+          (isJunk && !folder.server.spamSettings.manualMark) ||
+          (isJunk && folder.isSpecialFolder(Components.interfaces.nsMsgFolderFlags.Junk)))
+        ReloadMessage();
+    }
   }
 }
 
@@ -2586,6 +2616,17 @@ var gMessageNotificationBar =
     this.mMsgNotificationBar.selectedIndex = this.mBarFlagValues.indexOf(status & -status);
 
     this.mMsgNotificationBar.collapsed = !status;
+  },
+
+  /**
+   * @param aFlag  kMsgNotificationPhishingBar, kMsgNotificationJunkBar, or
+   *               kMsgNotificationRemoteImages
+   * @return true if aFlag is currently set for the loaded message
+   */
+  isFlagSet: function(aFlag)
+  {
+    var chunk = this.mBarFlagValues[aFlag];
+    return this.mBarStatus & chunk;
   }
 };
 

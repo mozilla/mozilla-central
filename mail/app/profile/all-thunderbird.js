@@ -216,7 +216,7 @@ pref("accessibility.typeaheadfind.flashBar", 1);
 pref("mail.close_message_window.on_delete", false);
 
 /////////////////////////////////////////////////////////////////
-// Overrides of the seamonkey suite mailnews.js prefs
+// Overrides of the core mailnews.js prefs
 /////////////////////////////////////////////////////////////////
 pref("mail.showCondensedAddresses", true); // show the friendly display name for people I know
 
@@ -224,7 +224,6 @@ pref("mail.showCondensedAddresses", true); // show the friendly display name for
 pref("mailnews.attachments.display.largeView", false);
 pref("mail.pane_config.dynamic",            0);
 pref("mailnews.reuse_thread_window2",     true);
-pref("mail.spam.display.sanitize", true); // sanitize the HTML in spam messages
 pref("editor.singleLine.pasteNewlines", 4);  // substitute commas for new lines in single line text boxes
 
 // hidden pref to ensure a certain number of headers in the message pane
@@ -253,11 +252,11 @@ pref("mail.forward_message_mode", 2);
 pref("mail.default_html_action", 3);
 
 /////////////////////////////////////////////////////////////////
-// End seamonkey suite mailnews.js pref overrides
+// End core mailnews.js pref overrides
 ///////////////////////////////////////////////////////////////// 
 
 /////////////////////////////////////////////////////////////////
-// Overrides for generic app behavior from the seamonkey suite's all.js
+// Overrides for generic app behavior from the core all.js
 /////////////////////////////////////////////////////////////////
 
 pref("browser.hiddenWindowChromeURL", "chrome://messenger/content/hiddenWindow.xul");
@@ -318,7 +317,7 @@ pref("browser.display.auto_quality_min_font_size", 0);
 
 pref("view_source.syntax_highlight", false);
 /////////////////////////////////////////////////////////////////
-// End seamonkey suite all.js pref overrides
+// End core all.js pref overrides
 ///////////////////////////////////////////////////////////////// 
 
 /////////////////////////////////////////////////////////////////

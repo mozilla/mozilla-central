@@ -540,6 +540,7 @@ pref("mail.spam.manualMark", false);
 pref("mail.spam.markAsReadOnSpam", false);
 pref("mail.spam.manualMarkMode", 0); // 0 == "move to junk folder", 1 == "delete"
 pref("mail.spam.markAsNotJunkMarksUnRead", true);
+pref("mail.spam.display.sanitize", true); // display simple html for html junk messages
 // the number of allowed bayes tokens before the database is shrunk
 pref("mailnews.bayesian_spam_filter.junk_maxtokens", 100000);
 
