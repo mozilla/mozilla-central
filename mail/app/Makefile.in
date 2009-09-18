@@ -191,14 +191,13 @@ EXTRA_LIBS	+= $(STATIC_EXTRA_LIBS)
 ifndef MOZILLA_1_9_1_BRANCH
 ifndef MOZILLA_1_9_2_BRANCH
 
-ifdef MOZ_ENABLE_CANVAS3D
+# OpenGL is required for MOZ_ENABLE_CANVAS3D (only set in m-c build system).
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 OS_LIBS += -framework OpenGL
 endif
 
 ifneq (,$(filter windows,$(MOZ_WIDGET_TOOLKIT)))
 OS_LIBS += opengl32.lib
-endif
 endif
 
 endif # MOZILLA_1_9_2_BRANCH
