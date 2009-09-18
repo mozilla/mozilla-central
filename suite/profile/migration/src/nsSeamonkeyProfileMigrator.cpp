@@ -564,7 +564,6 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
 
   MAKESAMETYPEPREFTRANSFORM("signon.SignonFileName",                   String),
   MAKESAMETYPEPREFTRANSFORM("signon.rememberSignons",                  Bool),
-  MAKESAMETYPEPREFTRANSFORM("signon.expireMasterPassword",             Bool),
 
   MAKESAMETYPEPREFTRANSFORM("slider.snapMultiplier",                   Int),
 

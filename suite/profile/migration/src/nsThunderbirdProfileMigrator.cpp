@@ -524,7 +524,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
 
   MAKESAMETYPEPREFTRANSFORM("signon.SignonFileName",                   String),
   MAKESAMETYPEPREFTRANSFORM("signon.rememberSignons",                  Bool),
-  MAKESAMETYPEPREFTRANSFORM("signon.expireMasterPassword",             Bool),
+
   MAKESAMETYPEPREFTRANSFORM("slider.snapMultiplier",                   Int),
   MAKESAMETYPEPREFTRANSFORM("startup.homepage_override_url",           String),
 

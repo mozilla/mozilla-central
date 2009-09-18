@@ -81,9 +81,6 @@ function WriteAskForPassword(field) {
   var timeout = gInternalToken.getAskPasswordTimeout();
   gInternalToken.setAskPasswordDefaults(askTimes, timeout);
 
-  var prefExpire = document.getElementById("signon.expireMasterPassword");
-  prefExpire.value = (field.value == 1);
-
   return field.value;
 }
 

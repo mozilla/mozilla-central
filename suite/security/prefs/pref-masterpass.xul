@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -51,15 +51,9 @@
             label="&pref.masterpass.title;"
             script="chrome://pippki/content/pref-masterpass.js">
 
-             
-    <!--      onload="onMasterPasswordLoad();"-->
-
     <preferences id="masterpass_preferences">
       <preference id="security.disable_button.changePassword"
                   name="security.disable_button.changePassword"
-                  type="bool"/>
-      <preference id="signon.expireMasterPassword"
-                  name="signon.expireMasterPassword"
                   type="bool"/>
       <preference id="security.ask_for_password"
                   name="security.ask_for_password"
