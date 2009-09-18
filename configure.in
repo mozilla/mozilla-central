@@ -383,8 +383,15 @@ if test -n "$CROSS_COMPILE" && test "$target" != "$host"; then
         dnl checks will fail.  Fake a working SDK in that case.
         _SAVE_CFLAGS=$CFLAGS
         _SAVE_CXXFLAGS=$CXXLAGS
+        dnl 1.9.1 and 1.9.2 support 10.4, 1.9.3 and later don't.
+        if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1";
+        then
         CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk $CFLAGS"
         CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk $CXXFLAGS"
+        else
+        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5u.sdk $CFLAGS"
+        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5u.sdk $CXXFLAGS"
+        fi
         ;;
     esac
 
@@ -958,10 +965,18 @@ dnl ========================================================
 dnl Check for MacOS deployment target version
 dnl ========================================================
 
+dnl 1.9.1 and 1.9.2 support 10.4, 1.9.3 and later don't.
+if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1"; then
 MOZ_ARG_ENABLE_STRING(macos-target,
                       [  --enable-macos-target=VER (default=10.4)
                           Set the minimum MacOS version needed at runtime],
                       [_MACOSX_DEPLOYMENT_TARGET=$enableval])
+else
+MOZ_ARG_ENABLE_STRING(macos-target,
+                      [  --enable-macos-target=VER (default=10.5)
+                          Set the minimum MacOS version needed at runtime],
+                      [_MACOSX_DEPLOYMENT_TARGET=$enableval])
+fi
 
 case "$target" in
 *-darwin*)
@@ -973,7 +988,11 @@ case "$target" in
         dnl No value specified on the command line or in the environment,
         dnl use the lesser of the application's minimum or the architecture's
         dnl minimum.
+        if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1"; then
         export MACOSX_DEPLOYMENT_TARGET=10.4
+        else
+        export MACOSX_DEPLOYMENT_TARGET=10.5
+        fi
     fi
     ;;
 esac
