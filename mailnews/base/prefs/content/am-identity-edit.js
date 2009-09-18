@@ -47,14 +47,11 @@ function onLoadIdentityProperties()
   gIdentity = window.arguments[0].identity;
   gAccount = window.arguments[0].account;
 
+  loadSMTPServerList();
+
   initIdentityValues(gIdentity);
   initCopiesAndFolder(gIdentity);
   initCompositionAndAddressing(gIdentity);
-  loadSMTPServerList();
-
-  // the multiple identities editor isn't an account wizard panel so we have to do this ourselves:
-  document.getElementById('identity.smtpServerKey').value = gIdentity ? gIdentity.smtpServerKey 
-                                                            : gAccount.defaultIdentity.smtpServerKey;
 }
 
 // based on the values of gIdentity, initialize the identity fields we expose to the user
@@ -75,6 +72,15 @@ function initIdentityValues(identity)
 
     document.getElementById('identity.attachVCard').checked = identity.attachVCard;
     document.getElementById('identity.escapedVCard').value = identity.escapedVCard;
+
+    document.getElementById('identity.smtpServerKey').value =
+      identity.smtpServerKey || ""; // useDefaultItem.value is ""
+  }
+  else
+  {
+    // We're adding an identity, use the best default we have.
+    document.getElementById('identity.smtpServerKey').value =
+      gAccount.defaultIdentity.smtpServerKey;
   }
 
   setupSignatureItems();
@@ -356,20 +362,19 @@ function getAccountForFolderPickerState()
   return gAccount;
 }
 
-// when the identity panel is loaded, the smtp-list is created
-// and the in prefs.js configured smtp is activated
+/**
+ * Build the SMTP server list for display.
+ */
 function loadSMTPServerList()
 {
-  var smtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
-  fillSmtpServers(document.getElementById('identity.smtpServerKey'), smtpService.smtpServers, smtpService.defaultServer);
-}
+  var smtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"]
+                              .getService(Components.interfaces.nsISmtpService);
 
-function fillSmtpServers(smtpServerList, servers, defaultServer)
-{
-  if (!smtpServerList || !servers) 
-    return;
+  var smtpServerList = document.getElementById("identity.smtpServerKey");
+  var servers = smtpService.smtpServers;
+  var defaultServer = smtpService.defaultServer;
 
-  var smtpPopup = document.getElementById('smtpPopup');
+  var smtpPopup = document.getElementById("smtpPopup");
   while (smtpPopup.lastChild.nodeName != "menuseparator")
     smtpPopup.removeChild(smtpPopup.lastChild);
 
@@ -377,8 +382,7 @@ function fillSmtpServers(smtpServerList, servers, defaultServer)
   {
     var server = servers.getNext();
 
-    if (server instanceof Components.interfaces.nsISmtpServer &&
-        !server.redirectorType)
+    if (server instanceof Components.interfaces.nsISmtpServer)
     {
       var serverName = "";
       if (server.description)
