@@ -35,6 +35,7 @@ messenger.jar:
     content/messenger/messageWindow.xul
     content/messenger/messageWindow.js
     content/messenger/folderPane.xul
+    content/messenger/folderDisplay.js
     content/messenger/threadPane.xul
     content/messenger/threadPane.js
     content/messenger/msgHdrViewOverlay.xul

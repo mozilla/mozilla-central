@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
  Version: MPL 1.1/GPL 2.0/LGPL 2.1
 
@@ -35,7 +35,7 @@
  the terms of any one of the MPL, the GPL or the LGPL.
 
  ***** END LICENSE BLOCK ***** -->
-<?xml-stylesheet href="chrome://messenger/skin/mailWindow1.css" type="text/css"?> 
+<?xml-stylesheet href="chrome://messenger/skin/mailWindow1.css" type="text/css"?>
 
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
@@ -88,6 +88,7 @@
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/searchBar.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/tabmail.js"/>
+<script type="application/x-javascript" src="chrome://messenger/content/folderDisplay.js"/>
 
 <commandset id="mailCommands">
   <commandset id="mailFileMenuItems"/>
