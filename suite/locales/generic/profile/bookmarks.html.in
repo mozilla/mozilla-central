@@ -29,10 +29,10 @@ Do Not Edit! -->
         </DL><p>
         <DT><H3>@extend_seamonkey@</H3>
         <DL><p>
-            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.org/@AB_CD@/seamonkey/">@seamonkey_addons@</a>
-            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.org/@AB_CD@/seamonkey/themes">@seamonkey_themes@</a>
-            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.org/@AB_CD@/seamonkey/dictionaries">@seamonkey_dictionaries@</a>
-            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.org/@AB_CD@/seamonkey/plugins">@seamonkey_plugins@</a>
+            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.com/@AB_CD@/seamonkey/">@seamonkey_addons@</a>
+            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.com/@AB_CD@/seamonkey/themes">@seamonkey_themes@</a>
+            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.com/@AB_CD@/seamonkey/dictionaries">@seamonkey_dictionaries@</a>
+            <DT><A HREF="https://@AB_CD@.add-ons.mozilla.com/@AB_CD@/seamonkey/plugins">@seamonkey_plugins@</a>
             <DT><A HREF="http://www.mozdev.org/">@mozdev@</A>
             <DT><A HREF="http://www.mozdev.org/projects/applications/SeaMonkey.html">@mozdev_seamonkey@</A>
         </DL><p>
