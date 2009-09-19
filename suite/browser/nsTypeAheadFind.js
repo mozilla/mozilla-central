@@ -349,6 +349,10 @@ typeAheadFind.prototype = {
         this.mBadKeysSinceMatch++;
     }
 
+    // Ensure that the correct frame is focused (work around for bug 485213).
+    if (this.mFind.currentWindow)
+      this.mFind.currentWindow.focus();
+
     this.showStatusMatch(result, "");
     if (!this.mFindService)
       this.mFindService = Components.classes["@mozilla.org/find/find_service;1"]
