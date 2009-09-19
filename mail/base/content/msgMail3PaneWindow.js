@@ -62,8 +62,6 @@ const kNumFolderViews = 4; // total number of folder views
 
 /** widget with id=messagepanebox, initialized by GetMessagePane() */
 var gMessagePane;
-/** widget with id=searchInput, initialized by GetSearchInput() */
-var gSearchInput;
 
 var gThreadAndMessagePaneSplitter = null;
 var gStartFolderUri = null;
@@ -756,13 +754,6 @@ function OnLoadThreadPane()
 }
 
 /* Functions for accessing particular parts of the window*/
-function GetSearchInput()
-{
-  if (!gSearchInput)
-    gSearchInput = document.getElementById("searchInput");
-  return gSearchInput;
-}
-
 function GetMessagePane()
 {
   if (!gMessagePane)

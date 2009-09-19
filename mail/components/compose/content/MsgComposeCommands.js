@@ -226,6 +226,11 @@ var gComposeRecyclingListener = {
         document.getElementById("FormatToolbar").hidden = false;
     }
 
+    // Reset the Customize Toolbars panel/sheet if open.
+    if (getMailToolbox().customizing && gCustomizeSheet)
+      document.getElementById("customizeToolbarSheetIFrame")
+              .contentWindow.finishToolbarCustomization();
+
     // Stop InlineSpellCheckerUI so personal dictionary is saved
     enableInlineSpellCheck(false);
     // clear any suggestions in the context menu

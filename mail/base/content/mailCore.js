@@ -122,10 +122,6 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
   if (document.getElementById("folder-location-container"))
     FolderPaneSelectionChange();
 
-  gSearchInput = null;
-  if (document.getElementById("search-container"))
-    GetSearchInput();
-
   var customizePopup = document.getElementById(customizePopupId);
   customizePopup.removeAttribute("disabled");
 
