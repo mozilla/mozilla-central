@@ -378,23 +378,15 @@ treechildren::-moz-tree-row(dummy, focus, selected)  {
 
 /* ..... message pane adjustments ..... */
 
-/* :::::
-   :: Make sure the min height is small so we can
-   :: resize the pane vertically -EDV
-   ::::: */
+/* We need to hide overflow in messagepanebox, so that resizing doesn't spill
+   header content over the statusbar.
+   */
 
 #messagepanebox {
-  min-height: 10px;
   background-color: #FFFFFF;
   -moz-appearance: none;
+  overflow: hidden;
 }
-
-/* ::::: border adjustments for focus ring and joined splitters :::::
-
-  min-width: 7px !important;
-  min-height: 7px !important;
-
-*/
 
 /* ..... folder pane adjustments ..... */
 

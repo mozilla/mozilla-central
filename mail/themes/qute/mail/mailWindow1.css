@@ -280,14 +280,12 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   text-align: right;
 }
 
-/* :::::
-   :: Make sure the min height is small so we can
-   :: resize the pane vertically -EDV
-   ::::: */
+/* We need to hide overflow in messagepanebox, so that resizing doesn't spill
+   header content over the statusbar.
+   */
 
 #messagepanebox {
-  min-height: 10px;
-  height: 0px;
+  overflow: hidden;
 }
 
 /* ..... folder pane adjustments ..... */
