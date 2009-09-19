@@ -97,7 +97,6 @@ messenger.jar:
     content/messenger/virtualFolderProperties.js                               (base/content/virtualFolderProperties.js)
     content/messenger/virtualFolderListDialog.xul                              (base/content/virtualFolderListDialog.xul)
     content/messenger/virtualFolderListDialog.js                               (base/content/virtualFolderListDialog.js)
-    content/messenger/messengerdnd.js                                          (base/content/messengerdnd.js)
     content/messenger/msgPrintEngine.js                                        (base/content/msgPrintEngine.js)
 *   content/messenger/junkMailInfo.xul                                         (base/content/junkMailInfo.xul)
     content/messenger/junkCommands.js                                          (base/content/junkCommands.js)

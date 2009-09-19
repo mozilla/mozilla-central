@@ -61,6 +61,7 @@ messenger.jar:
     content/messenger/mailContextMenus.js
     content/messenger/msgFolderPickerOverlay.xul
     content/messenger/start.xhtml
+    content/messenger/messengerdnd.js
     content/messenger/mailPrefsOverlay.xul                                     (prefs/mailPrefsOverlay.xul)
     content/messenger/pref-mailnews.xul                                        (prefs/pref-mailnews.xul)
     content/messenger/pref-mailnews.js                                         (prefs/pref-mailnews.js)
