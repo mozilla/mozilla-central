@@ -28,7 +28,7 @@
   <treechildren id="prefsPanelChildren">
     <treeitem container="true"
               id="composerItem"
-              insertafter="mailnews,navigator"
+              insertbefore="securityItem"
               label="&compose.label;"
               prefpane="composer_pane"
               url="chrome://editor/content/pref-composer.xul"

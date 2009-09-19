@@ -130,8 +130,8 @@
 
         <groupbox>
             <caption label="&pref.calendar.view.workweek.caption;"/>
+            <label value="&pref.daysoff.label;"/>
             <hbox>
-                <label value="&pref.daysoff.label;"/>
                 <checkbox id="dayoff0"
                           class="dayOffCheckbox"
                           label="&day.1.Ddd;"
@@ -327,8 +327,6 @@
                 </menulist>
             </hbox>
         </groupbox>
-
-        <separator/>
 
     </vbox>
 </overlay>

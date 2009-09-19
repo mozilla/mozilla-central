@@ -58,14 +58,14 @@
                         type="string"/>
         </preferences>
 
-        <caption label="&pref.calendar.timezones.list.caption;"/>
+        <groupbox>
+            <caption label="&pref.calendar.timezones.list.caption;"/>
 
-        <menulist id="calendar-timezone-menulist"
-                  preference="calendar-timezone-local">
-            <menupopup id="calendar-timezone-menupopup"/>
-        </menulist>
-
-        <separator/>
+            <menulist id="calendar-timezone-menulist"
+                      preference="calendar-timezone-local">
+                <menupopup id="calendar-timezone-menupopup"/>
+            </menulist>
+        </groupbox>
 
     </vbox>
 </overlay>

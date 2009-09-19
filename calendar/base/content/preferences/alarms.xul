@@ -151,12 +151,10 @@
                     <column/>
                 </columns>
                 <rows>
-                    <row>
-                        <vbox align="start">
-                            <label value="&pref.defalarm4events.label;"
-                                   accesskey="&pref.defalarm4events.accesskey;"
-                                   control="eventdefalarm"/>
-                        </vbox>
+                    <row align="center">
+                        <label value="&pref.defalarm4events.label;"
+                               accesskey="&pref.defalarm4events.accesskey;"
+                               control="eventdefalarm"/>
                         <menulist id="eventdefalarm"
                                   crop="none"
                                   preference="calendar.alarms.onforevents">
@@ -171,12 +169,10 @@
                             </menupopup>
                         </menulist>
                     </row>
-                    <row>
-                        <vbox align="start">
-                            <label value="&pref.defalarm4todos.label;"
-                                   accesskey="&pref.defalarm4todos.accesskey;"
-                                   control="tododefalarm"/>
-                        </vbox>
+                    <row align="center">
+                        <label value="&pref.defalarm4todos.label;"
+                               accesskey="&pref.defalarm4todos.accesskey;"
+                               control="tododefalarm"/>
                         <menulist id="tododefalarm"
                                   crop="none"
                                   preference="calendar.alarms.onfortodos">
@@ -191,13 +187,11 @@
                             </menupopup>
                         </menulist>
                     </row>
-                    <row>
-                        <vbox align="start">
-                            <label value="&pref.defalarmlen4events.label;"
-                                   accesskey="&pref.defalarmlen4events.accesskey;"
-                                   control="eventdefalarmlen"/>
-                        </vbox>
-                        <hbox>
+                    <row align="center">
+                        <label value="&pref.defalarmlen4events.label;"
+                               accesskey="&pref.defalarmlen4events.accesskey;"
+                               control="eventdefalarmlen"/>
+                        <hbox align="center">
                             <textbox id="eventdefalarmlen"
                                      preference="calendar.alarms.eventalarmlen"
                                      type="number"
@@ -229,13 +223,11 @@
                             </menulist>
                         </hbox>
                     </row>
-                    <row>
-                        <vbox align="start">
-                            <label value="&pref.defalarmlen4todos.label;"
-                                   accesskey="&pref.defalarmlen4todos.accesskey;"
-                                   control="tododefalarmlen"/>
-                        </vbox>
-                        <hbox>
+                    <row align="center">
+                        <label value="&pref.defalarmlen4todos.label;"
+                               accesskey="&pref.defalarmlen4todos.accesskey;"
+                               control="tododefalarmlen"/>
+                        <hbox align="center">
                             <textbox id="tododefalarmlen"
                                      preference="calendar.alarms.todoalarmlen"
                                      type="number"
@@ -285,8 +277,6 @@
             </hbox>
 -->
         </groupbox>
-
-        <separator/>
 
     </vbox>
 </overlay>

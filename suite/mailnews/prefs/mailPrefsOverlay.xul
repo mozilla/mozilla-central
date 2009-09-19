@@ -47,7 +47,7 @@
   <treechildren id="prefsPanelChildren">
     <treeitem container="true"
               id="mailnewsItem"
-              insertafter="navigator"
+              insertafter="navigatorItem"
               label="&mail.label;"
               prefpane="mailnews_pane"
               url="chrome://messenger/content/pref-mailnews.xul"

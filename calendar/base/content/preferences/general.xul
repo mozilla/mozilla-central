@@ -143,7 +143,5 @@
             </hbox>
         </groupbox>
 
-        <separator/>
-
     </vbox>
 </overlay>

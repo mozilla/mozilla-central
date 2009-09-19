@@ -63,36 +63,32 @@
                         type="string"/>
         </preferences>
 
-        <groupbox id="categoriesBox">
-            <listbox id="categorieslist"
-                     flex="1"
-                     onselect="gCategoriesPane.enableButtons()"
-                     ondblclick="if (event.target.localName == 'listitem') gCategoriesPane.editCategory()">
-                <listhead>
-                    <listheader label="&pref.categories.name.label;"/>
-                    <listheader label="&pref.categories.color.label;"/>
-                </listhead>
-                <listcols id="categoryColumns">
-                    <listcol flex="3"/>
-                    <listcol flex="1"/>
-                </listcols>
-            </listbox>
-            <hbox pack="end">
-                <button label="&pref.categories.addButton.label;"
-                        accesskey="&pref.categories.addButton.accesskey;"
-                        oncommand="gCategoriesPane.addCategory()"/>
-                <button id="editCButton"
-                        label="&pref.categories.editButton.label;"
-                        accesskey="&pref.categories.editButton.accesskey;"
-                        oncommand="gCategoriesPane.editCategory()"/>
-                <button id="deleteCButton"
-                        label="&pref.categories.removeButton.label;"
-                        accesskey="&pref.categories.removeButton.accesskey;"
-                        oncommand="gCategoriesPane.deleteCategory()"/>
-            </hbox>
-        </groupbox>
-
-        <separator/>
+        <listbox id="categorieslist"
+                 flex="1"
+                 onselect="gCategoriesPane.enableButtons()"
+                 ondblclick="if (event.target.localName == 'listitem') gCategoriesPane.editCategory()">
+            <listhead>
+                <listheader label="&pref.categories.name.label;"/>
+                <listheader label="&pref.categories.color.label;"/>
+            </listhead>
+            <listcols id="categoryColumns">
+                <listcol flex="3"/>
+                <listcol flex="1"/>
+            </listcols>
+        </listbox>
+        <hbox pack="end">
+            <button label="&pref.categories.addButton.label;"
+                    accesskey="&pref.categories.addButton.accesskey;"
+                    oncommand="gCategoriesPane.addCategory()"/>
+            <button id="editCButton"
+                    label="&pref.categories.editButton.label;"
+                    accesskey="&pref.categories.editButton.accesskey;"
+                    oncommand="gCategoriesPane.editCategory()"/>
+            <button id="deleteCButton"
+                    label="&pref.categories.removeButton.label;"
+                    accesskey="&pref.categories.removeButton.accesskey;"
+                    oncommand="gCategoriesPane.deleteCategory()"/>
+        </hbox>
 
     </vbox>
 </overlay>

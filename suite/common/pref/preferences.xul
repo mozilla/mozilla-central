@@ -104,7 +104,7 @@
 
       <!-- Browser items -->
       <treeitem container="true"
-                id="navigator"
+                id="navigatorItem"
                 label="&navigator.label;"
                 prefpane="navigator_pane"
                 helpTopic="navigator_pref_navigator"

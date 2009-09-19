@@ -7,6 +7,7 @@ lightning.jar:
 % overlay chrome://messenger/content/messageWindow.xul chrome://lightning/content/imip-bar-overlay.xul
 % overlay chrome://messenger/content/messageWindow.xul chrome://lightning/content/messenger-overlay-messageWindow.xul
 % overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://lightning/content/imip-bar-overlay.xul
+% overlay chrome://communicator/content/pref/preferences.xul chrome://lightning/content/communicator-overlay-preferences.xul
 % overlay chrome://messenger/content/preferences/preferences.xul chrome://lightning/content/messenger-overlay-preferences.xul
 % overlay chrome://messenger/content/preferences/preferences.xul chrome://calendar/content/preferences/alarms.xul
 % overlay chrome://messenger/content/preferences/preferences.xul chrome://calendar/content/preferences/categories.xul
@@ -33,6 +34,7 @@ lightning.jar:
     content/lightning/lightning-utils.js                   (content/lightning-utils.js)
     content/lightning/lightning-widgets.css                (content/lightning-widgets.css)
     content/lightning/lightning-widgets.xml                (content/lightning-widgets.xml)
+    content/lightning/communicator-overlay-preferences.xul (content/communicator-overlay-preferences.xul)
     content/lightning/messenger-overlay-sidebar.css        (content/messenger-overlay-sidebar.css)
     content/lightning/messenger-overlay-accountCentral.xul (content/messenger-overlay-accountCentral.xul)
     content/lightning/messenger-overlay-messageWindow.xul  (content/messenger-overlay-messageWindow.xul)
