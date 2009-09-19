@@ -1198,6 +1198,7 @@ function openUILinkIn(url, where, allowThirdPartyFixup)
   switch (where) {
   case "current":
     w.loadURI(url, null, flags);
+    w.content.focus();
     break;
   case "tabshifted":
     loadInBackground = !loadInBackground;
@@ -1205,12 +1206,13 @@ function openUILinkIn(url, where, allowThirdPartyFixup)
   case "tab":
     var browser = w.getBrowser();
     var tab = browser.addTab(url, null, null, false, flags);
-    if (!loadInBackground)
+    if (!loadInBackground) {
       browser.selectedTab = tab;
+      w.content.focus();
+    }
     break;
   }
 
-  w.content.focus();
   return w;
 }
 
@@ -1241,25 +1243,25 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
 
   var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
 
-  var browser;
+  var browser = w.getBrowser();
   switch (where) {
   case "current":
     w.loadURI(urlArray[0], null, flags);
-    browser = w.getBrowser();
+    w.content.focus();
     break;
   case "tabshifted":
     loadInBackground = !loadInBackground;
     // fall through
   case "tab":
-    browser = w.getBrowser();
     var tab = browser.addTab(urlArray[0], null, null, false, flags);
-    if (!loadInBackground)
+    if (!loadInBackground) {
       browser.selectedTab = tab;
+      w.content.focus();
+    }
   }
   for (var i = 1; i < urlArray.length; i++)
     browser.addTab(urlArray[i], null, null, false, flags);
 
-  w.content.focus();
   return w;
 }
 
