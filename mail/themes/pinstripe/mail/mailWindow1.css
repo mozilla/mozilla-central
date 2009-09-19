@@ -78,6 +78,11 @@ treechildren::-moz-tree-twisty {
 
 #folderPaneHeader, #folderTree {
   background-color: #D6DDE5 !important;
+  border-bottom: 2px solid transparent;
+}
+
+#folderPaneHeader[overflowing="true"] {
+  border-bottom: 2px groove ThreeDShadow;
 }
 
 :root:not([active]) #folderPaneHeader,

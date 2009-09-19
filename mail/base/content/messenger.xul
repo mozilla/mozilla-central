@@ -258,7 +258,9 @@
                            sortActive="true"
                            sortDirection="ascending"/>
                 </treecols>
-                <treechildren tooltip="folderpopup"/>
+                <treechildren tooltip="folderpopup"
+                              onoverflow="document.getElementById('folderPaneHeader').setAttribute('overflowing', 'true');"
+                              onunderflow="document.getElementById('folderPaneHeader').setAttribute('overflowing', 'false');"/>
               </tree>
             </vbox>
 
