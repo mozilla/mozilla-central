@@ -250,22 +250,14 @@
                      group="true"
                      label="rdf:http://home.netscape.com/NC-rdf#Name"/>
     </rule>
-    <rule parent="hbox" iscontainer="true" isempty="true">
+    <rule parent="hbox" iscontainer="true">
       <toolbarbutton type="menu" editable="true" class="bookmark-item"
                      image="rdf:http://home.netscape.com/NC-rdf#Icon"
                      validate="never"
                      uri="rdf:*" label="rdf:http://home.netscape.com/NC-rdf#Name">
-        <menupopup>
-          <menuitem label="&emptyItem.label;" disabled="true"/>
+        <menupopup context="bookmarks-context-menu">
+          <menuitem label="&emptyItem.label;" disabled="true" class="isempty"/>
         </menupopup>
-      </toolbarbutton>
-    </rule>
-    <rule parent="hbox" iscontainer="true">
-      <toolbarbutton type="menu" class="bookmark-item" uri="rdf:*" editable="true"
-                     image="rdf:http://home.netscape.com/NC-rdf#Icon"
-                     validate="never"
-                     label="rdf:http://home.netscape.com/NC-rdf#Name">
-        <menupopup context="bookmarks-context-menu"/>
       </toolbarbutton>
     </rule>
     <rule parent="hbox">
@@ -284,27 +276,16 @@
                   uri="rdf:*"/>
       </menupopup>
     </rule>
-    <rule iscontainer="true" isempty="true">
+    <rule iscontainer="true">
       <menupopup>
         <menu class="menu-iconic bookmark-item" uri="rdf:*" 
               image="rdf:http://home.netscape.com/NC-rdf#Icon"
               validate="never"
               type="rdf:http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
               label="rdf:http://home.netscape.com/NC-rdf#Name">
-          <menupopup>
-            <menuitem label="&emptyItem.label;" disabled="true"/>
+          <menupopup context="bookmarks-context-menu">
+            <menuitem label="&emptyItem.label;" disabled="true" class="isempty"/>
           </menupopup>
-        </menu>
-      </menupopup>
-    </rule>
-    <rule iscontainer="true">
-      <menupopup>
-        <menu class="menu-iconic bookmark-item" uri="rdf:*"
-              image="rdf:http://home.netscape.com/NC-rdf#Icon"
-              validate="never"
-              label="rdf:http://home.netscape.com/NC-rdf#Name"
-              type="rdf:http://www.w3.org/1999/02/22-rdf-syntax-ns#type">
-          <menupopup context="bookmarks-context-menu"/>
         </menu>
       </menupopup>
     </rule>

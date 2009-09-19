@@ -37,6 +37,12 @@ panel[for="urlbar"] {
   -moz-box-align: center;
 }
 
+/* ::::: bookmarks menu ::::: */
+
+.isempty:not(:last-child) {
+  display: none;
+}
+
 /* ::::: Wallpaper fix for Bug 435652. Remove when Bug 204743 is fixed ::::: */
 
 .textbox-input-box {
