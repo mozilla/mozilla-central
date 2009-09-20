@@ -57,11 +57,11 @@ richlistitem[type="download"][selected="true"] {
 }
 
 richlistitem[type="download"] .name {
-  font-size: larger;
+  font-size: 120%;
 }
 
 richlistitem[type="download"] .dateTime {
-  font-size: smaller;
+  font-size: 83.3333%;
 }
 
 richlistitem[type="download"] progressmeter {

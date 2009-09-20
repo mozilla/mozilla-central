@@ -108,7 +108,7 @@ richlistitem[selected="true"]:not([opType]) .descriptionCrop {
 }
 
 .previewText {
-  font-size: larger;
+  font-size: 120%;
   font-weight: bold;
   color: #000000;
   text-align: center;
@@ -268,7 +268,7 @@ richlistitem[opType="needs-uninstall"] .notifyBadge {
 
 .addonMissingThumbnail {
   color: #8290A5;
-  font-size: larger;
+  font-size: 120%;
   font-weight: bold;
 }
 
@@ -358,7 +358,7 @@ vbox[typeName="status"][type="header-recommended"] {
 }
 
 vbox[typeName="status"][type="header-recommended"] > label {
-  font-size: larger;
+  font-size: 120%;
   font-weight: bold;
   margin: 0;
 }

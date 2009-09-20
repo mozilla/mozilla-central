@@ -113,7 +113,7 @@ remotecontent {
 
 #updateName, #updateFinishedName {
   font-weight: bold;
-  font-size: larger;
+  font-size: 120%;
 }
 
 #alertImage {
@@ -258,7 +258,7 @@ update {
 }
 
 .updatePrefsInfo {
-  font-size: smaller;
+  font-size: 83.3333%;
   -moz-margin-start: 27px;
   margin-bottom: 10px;
 }

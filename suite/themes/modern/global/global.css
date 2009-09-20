@@ -126,7 +126,7 @@ statusbar {
     Prevents hiding of scrollbars in browser when window is made smaller.*/
   background-color: #C7D0D9;
   color: #22262F;
-  font-size: smaller;
+  font-size: 83.3333%;
 }
 
 statusbarpanel {

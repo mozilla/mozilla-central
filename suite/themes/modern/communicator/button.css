@@ -47,7 +47,7 @@
 .toolbarbutton-1 {
   min-width: 50px;
   color: #323642;
-  font-size: smaller;
+  font-size: 83.3333%;
 }
 
 toolbar[mode="text"] .toolbarbutton-1,

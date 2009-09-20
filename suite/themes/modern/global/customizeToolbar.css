@@ -44,7 +44,7 @@ dialog {
 
 #instructions {
   font-weight: bold;
-  font-size: larger;
+  font-size: 120%;
 }
 
 #CustomizeToolbarWindow > #main-box {
