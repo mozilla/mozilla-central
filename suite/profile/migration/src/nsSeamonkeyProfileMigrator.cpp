@@ -577,13 +577,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("view_source.syntax_highlight",            Bool),
   MAKESAMETYPEPREFTRANSFORM("view_source.wrap_long_lines",             Bool),
 
-  // XXX Because SeaMonkey's default pref for wallet.captureForms is now the
-  // opposite sense, we can't actually migrate this preference. Therefore,
-  // disable it for now, and re-enable/fix once bug 390025 is fixed.
-  //  MAKEPREFTRANSFORM("wallet.captureForms", "browser.formfill.enabled", Bool, Bool),
-  MAKESAMETYPEPREFTRANSFORM("wallet.enabled",                          Bool),
-  MAKESAMETYPEPREFTRANSFORM("wallet.crypto",                           Bool),
-  MAKESAMETYPEPREFTRANSFORM("wallet.crypto.autocompleteoverride",      Bool)
+  MAKEPREFTRANSFORM("wallet.captureForms", "browser.formfill.enable", Bool, Bool),
 };
 
 nsresult
