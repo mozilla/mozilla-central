@@ -151,8 +151,11 @@ function setTitleFromFolder(msgfolder, subject)
 
   // Notify the current tab, it might want to update also.
   var tabmail = GetTabMail();
-  tabmail.saveCurrentTabState(); // gDBView may have changed!
-  tabmail.setTabTitle();
+  if (tabmail)
+  {
+    tabmail.saveCurrentTabState(); // gDBView may have changed!
+    tabmail.setTabTitle();
+  }
 }
 
 function UpdateMailToolbar(caller)
@@ -869,8 +872,11 @@ function FolderPaneSelectionChange()
              gDBView.viewFolder = msgFolder;
 
     let tabmail = GetTabMail();
-    tabmail.saveCurrentTabState(); // gDBView may have changed!
-    tabmail.setTabTitle();
+    if (tabmail)
+    {
+      tabmail.saveCurrentTabState(); // gDBView may have changed!
+      tabmail.setTabTitle();
+    }
   }
     else
     {
