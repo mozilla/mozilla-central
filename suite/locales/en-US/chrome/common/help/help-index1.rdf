@@ -1158,6 +1158,11 @@
          nc:link="mail_help.xhtml#searching_through_messages"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="Mail_and_Newsgroups:network_preferences"
+         nc:name="Mail and Newsgroups Network preferences"
+         nc:link="mail_help.xhtml#network_and_storage_preferences"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="Mail_and_Newsgroups:offline_synchronization_settings"
          nc:name="offline synchronization settings"
          nc:link="mail_help.xhtml#synchronization_and_storage"/>
@@ -1319,7 +1324,7 @@
      <rdf:Seq><rdf:li>
        <rdf:Description ID="Offline:general_preferences"
          nc:name="offline preferences"
-         nc:link="mail_help.xhtml#offline_and_disk_space_preferences"/>
+         nc:link="mail_help.xhtml#network_and_storage_preferences"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="Offline:Mail_and_Newsgroups"

@@ -25,7 +25,7 @@
    Mohan Bhamidipati (mohanb@netscape.com)
    Diego Biurrun     (diego@biurrun.de)
    David Bienvenu    (bienvenu@nventure.com)
-   Ian Neal          (bugzilla@arlen.demon.co.uk)
+   Ian Neal          (iann_bugzilla@blueyonder.co.uk)
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -47,7 +47,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="offline_pane"
-            label="&pref.offline.title;"
+            label="&pref.network.title;"
             script="chrome://messenger/content/pref-offline.js">
 
     <preferences id="offline_preferences">
@@ -59,6 +59,9 @@
                   type="int"/>
       <preference id="offline.download.download_messages"
                   name="offline.download.download_messages"
+                  type="int"/>
+      <preference id="mailnews.tcptimeout"
+                  name="mailnews.tcptimeout"
                   type="int"/>
       <preference id="mail.prompt_purge_threshhold"
                   name="mail.prompt_purge_threshhold"
@@ -114,14 +117,33 @@
                  accesskey="&radioAskDownload.accesskey;"/>
         </radiogroup>
     </groupbox>
-    
+
+    <groupbox>
+      <caption label="&mailConnections.caption;"/>
+      <hbox align="center">
+        <label id="timeoutLabel"
+               value="&mailnewsTimeout.label;"
+               accesskey="&mailnewsTimeout.accesskey;"
+               control="mailnewsTimeoutSeconds"/>
+        <textbox id="mailnewsTimeoutSeconds"
+                 type="number"
+                 size="4"
+                 preference="mailnews.tcptimeout"
+                 aria-labelledby="timeoutLabel mailnewsTimeoutSeconds timeoutSeconds"/>
+        <label id="timeoutSeconds" value="&mailnewsTimeoutSeconds.label;"/>
+      </hbox>
+    </groupbox>
+
     <groupbox>
       <caption label="&Diskspace;"/>
       <hbox align="center">
         <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
           preference="mail.prompt_purge_threshhold"
           aria-labelledby="offlineCompactFolder offlineCompactFolderMin kbLabel"/>
-        <textbox id="offlineCompactFolderMin" size="5" value="100"
+        <textbox id="offlineCompactFolderMin"
+                 type="number"
+                 size="5"
+                 value="100"
                  preference="mail.purge_threshhold"
                  aria-labelledby="offlineCompactFolder offlineCompactFolderMin kbLabel"/>
         <label id="kbLabel" value="&kb.label;"/>

@@ -99,7 +99,7 @@
                   url="chrome://messenger/content/pref-character_encoding.xul"
                   helpTopic="mail_prefs_character_encoding"/>
         <treeitem id="offlineItem"
-                  label="&offline.label;"
+                  label="&networkStorage.label;"
                   prefpane="offline_pane"
                   url="chrome://messenger/content/pref-offline.xul"
                   helpTopic="mail_prefs_offline"/>

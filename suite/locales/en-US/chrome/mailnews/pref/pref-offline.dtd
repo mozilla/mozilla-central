@@ -1,7 +1,7 @@
 <!-- extracted from content/pref-offline.xul -->
 
 <!--LOCALIZATION NOTE : FILE The 'Offline' preferences dialog -->
-<!ENTITY pref.offline.title               "Offline &amp; Disk Space">
+<!ENTITY pref.network.title               "Network &amp; Storage">
 <!ENTITY pref.offline.caption             "Offline">
 <!ENTITY textStartUp                      "When starting up:">
 <!ENTITY textStartUp.accesskey            "W">
@@ -24,6 +24,10 @@
 <!ENTITY radioNotDownload.accesskey       "o">
 <!ENTITY radioAskDownload                 "Ask me">
 <!ENTITY radioAskDownload.accesskey       "k">
+<!ENTITY mailConnections.caption          "Mail Connections">
+<!ENTITY mailnewsTimeout.label            "Connection timeout:">
+<!ENTITY mailnewsTimeout.accesskey        "m">
+<!ENTITY mailnewsTimeoutSeconds.label     "seconds">
 <!ENTITY Diskspace                        "Disk Space">
 <!ENTITY offlineCompact.label             "Compact folders when it will save over">
 <!ENTITY offlineCompact.accesskey         "C">

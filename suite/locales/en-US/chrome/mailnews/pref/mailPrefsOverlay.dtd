@@ -18,4 +18,4 @@
 <!ENTITY junk.label                       "Junk Mail">
 <!ENTITY tags.label                       "Tags">
 <!ENTITY characterEncoding.label          "Character Encoding">
-<!ENTITY offline.label                    "Offline &amp; Disk Space">
+<!ENTITY networkStorage.label             "Network &amp; Storage">
