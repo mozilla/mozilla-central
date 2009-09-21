@@ -1600,6 +1600,13 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
 NS_IMETHODIMP nsImapMailFolder::Delete()
 {
   nsresult rv;
+  if (!mDatabase)
+  {
+    // Check if anyone has this db open. If so, do a force closed.
+    nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    msgDBService->CachedDBForFolder(this, getter_AddRefs(mDatabase));
+  }
   if (mDatabase)
   {
     mDatabase->ForceClosed();
