@@ -320,6 +320,8 @@ nsContextMenu.prototype = {
 
         // Copy image location depends on whether we're on an image.
         this.showItem( "context-copyimage", this.onImage );
+        // Copy Image Location (regression fix for bug 469481)
+        this.showItem( "context-copyimageurl", this.onImage );
         this.showItem( "context-copyvideourl", this.onVideo );
         this.showItem( "context-copyaudiourl", this.onAudio );
         if (this.onVideo)

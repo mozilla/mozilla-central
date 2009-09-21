@@ -48,4 +48,13 @@
          command="cmd_openHelp"/>
   </keyset>
 
+  <!-- Copy Image Location (regression fix for bug 469481) -->
+  <popup id="contentAreaContextMenu">
+    <menuitem id="context-copyimageurl"
+              label="&copyImageURLCmd.label;"
+              accesskey="&copyImageURLCmd.accesskey;"
+              insertafter="context-copyimage"
+              oncommand="gContextMenu.copyMediaLocation();"/>
+  </popup>
+
 </overlay>    
