@@ -258,7 +258,7 @@ Stringifier.prototype = {
     this._append("eventPhase:     " + event.eventPhase + "\n");
     if ("charCode" in event) {
       this._append("charCode: " + event.charCode + "\n");
-      if (event[name])
+      if ("name" in event)
         this._append("str(charCode):  '" + String.fromCharCode(event.charCode) + "'\n");
     }
     if ("target" in event) {
