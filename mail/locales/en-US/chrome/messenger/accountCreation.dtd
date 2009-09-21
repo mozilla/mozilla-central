@@ -70,6 +70,6 @@
 <!ENTITY insecureServer.tooltip.title    "Warning! This is an insecure server.">
 <!ENTITY insecureServer.tooltip.details  "Click circle for more details.">
 
-<!ENTITY insecureCleartext.description   "Email is sent in clear-text, so your email could be read by other people on the internet. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a secure connection.">
+<!ENTITY insecureUnencrypted.description "Your email and authentication are sent unencrypted, so your password (and your message) could easily be read by other people. &brandShortName; will let you get to your mail, but you should contact your email provider about configuring the server with a secure connection.">
 <!ENTITY insecureSelfSigned.description  "The server uses a certificate that we can't trust, so we can't be sure that someone isn't intercepting the traffic between &brandShortName; and your server. &brandShortName; will let you get to your mail, but you should really get your email provider to configure the server with a trusted certificate.">
 <!ENTITY secureServer.description        "Congratulations! This is a secure server.">

@@ -92,7 +92,7 @@
       <image class="insecureLarry"/>
       <vbox flex="1">
         <description class="title">&insecureServer.tooltip.title;</description>
-        <description class="details">&insecureCleartext.description;</description>
+        <description class="details">&insecureUnencrypted.description;</description>
       </vbox>
     </hbox>
   </panel>
