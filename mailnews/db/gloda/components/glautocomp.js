@@ -495,10 +495,16 @@ nsAutoCompleteGloda.prototype = {
       //  should not be using the formal autocomplete mechanism at all.
       this.curResult = result;
 
-      for each (let [iCompleter, completer] in Iterator(this.completers)) {
-        // they will return true if they have something pending.
-        if (completer.complete(result, aString))
-          result.markPending(completer);
+      if (aParam == "global") {
+        for each (let [iCompleter, completer] in Iterator(this.completers)) {
+          // they will return true if they have something pending.
+          if (completer.complete(result, aString))
+            result.markPending(completer);
+        }
+      //} else {
+      //   It'd be nice to do autocomplete in the quicksearch modes based
+      //   on the specific values for that mode in the current view.
+      //   But we don't do that yet.
       }
 
       aListener.onSearchResult(this, result);

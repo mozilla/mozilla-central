@@ -339,6 +339,7 @@
                currentTabInfo.searchState = this.state;
             this.updateEmptyText();
           }
+          this.setAttribute("autocompletesearchparam", val)
         ]]></setter>
       </property>
       <field name="_glodaEnabled"/>
