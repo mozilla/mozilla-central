@@ -91,7 +91,7 @@ private:
   nsresult MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSendReport *sendReport);
   nsresult MimeFinishEncryption (PRBool aSign, nsIMsgSendReport *sendReport);
   nsresult MimeCryptoHackCerts(const char *aRecipients, nsIMsgSendReport *sendReport, PRBool aEncrypt, PRBool aSign);
-  static void InitializeSMIMEBundle();
+  PRBool InitializeSMIMEBundle();
   nsresult GetSMIMEBundleString(const PRUnichar *name,
 				PRUnichar **outString);
   nsresult SMIMEBundleFormatStringFromName(const PRUnichar *name,
@@ -113,7 +113,7 @@ private:
   nsCOMPtr<nsIMutableArray> mCerts;
   nsCOMPtr<nsICMSMessage> mEncryptionCinfo;
   nsCOMPtr<nsICMSEncoder> mEncryptionContext;
-  static nsCOMPtr<nsIStringBundle> mSMIMEBundle;
+  nsCOMPtr<nsIStringBundle> mSMIMEBundle;
 
   MimeEncoderData *mCryptoEncoderData;
   PRBool mIsDraft;

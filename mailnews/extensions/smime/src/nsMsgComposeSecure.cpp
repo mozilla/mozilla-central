@@ -39,26 +39,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgComposeSecure.h"
-#include "nspr.h"
-#include "nsCOMPtr.h"
-#include "nsIX509Cert.h"
-#include "nsISMimeCert.h"
-#include "nsIMimeConverter.h"
-#include "nsMimeStringResources.h"
-#include "nsMimeTypes.h"
-#include "nsIX509Cert.h"
-#include "nsIX509CertDB.h"
-#include "nsMsgBaseCID.h"
-#include "nsIMsgHeaderParser.h"
-#include "nsIServiceManager.h"
-#include "nsIMsgIdentity.h"
-#include "nsIMsgCompFields.h"
-#include "nsReadableUtils.h"
-#include "nsIMutableArray.h"
-#include "msgCore.h"
 
-// String bundle for smime. Class static.
-nsCOMPtr<nsIStringBundle> nsMsgComposeSecure::mSMIMEBundle = nsnull;
+#include "msgCore.h"
+#include "nsIMsgCompFields.h"
+#include "nsIMsgHeaderParser.h"
+#include "nsIMsgIdentity.h"
+#include "nsISMimeCert.h"
+#include "nsIX509CertDB.h"
+#include "nsMimeTypes.h"
+#include "nsMsgMimeCID.h"
+#include "nspr.h"
 
 // XXX These strings should go in properties file XXX //
 #define MIME_MULTIPART_SIGNED_BLURB "This is a cryptographically signed message in MIME format."
@@ -79,12 +69,6 @@ static int make_multipart_signed_header_string(PRBool outer_p,
 static char *mime_make_separator(const char *prefix);
 
 // mscott --> FIX ME...for now cloning code from compose\nsMsgEncode.h/.cpp
-
-#include "prprf.h"
-#include "prmem.h"
-#include "nsCOMPtr.h"
-#include "nsMsgMimeCID.h"
-#include "nsIMimeConverter.h"
 
 MimeEncoderData *
 MIME_B64EncoderInit(nsresult (* output_fn) (const char *buf, PRInt32 size, void *closure), void *closure) 
@@ -228,15 +212,8 @@ NS_IMPL_ISUPPORTS1(nsMsgComposeSecure, nsIMsgComposeSecure)
 nsMsgComposeSecure::nsMsgComposeSecure()
 {
   /* member initializers and constructor code */
-  mStream = 0;
-  mDataHash = 0;
   mSigEncoderData = 0;
   mMultipartSignedBoundary  = 0;
-  mSelfSigningCert = 0;
-  mSelfEncryptionCert = 0;
-  mCerts = 0;
-  mEncryptionCinfo = 0;
-  mEncryptionContext = 0;
   mCryptoEncoderData = 0;
   mBuffer = 0;
   mBufferedBytes = 0;
@@ -286,27 +263,15 @@ NS_IMETHODIMP nsMsgComposeSecure::RequiresCryptoEncapsulation(nsIMsgIdentity * a
 nsresult nsMsgComposeSecure::GetSMIMEBundleString(const PRUnichar *name,
                                                   PRUnichar **outString)
 {
-  nsresult rv = NS_ERROR_FAILURE;
-
   *outString = nsnull;
 
-  if ( ! mSMIMEBundle ) {
-    InitializeSMIMEBundle();
-    if ( ! mSMIMEBundle ) {
-      return rv;
-    }
-  }
+  NS_ENSURE_ARG_POINTER(name);
 
-  if (name) {
-    rv = mSMIMEBundle->GetStringFromName(name, outString);
-    if (NS_SUCCEEDED(rv)) {
-      rv = NS_OK;
-    }
-  }
+  if (!InitializeSMIMEBundle())
+    return NS_ERROR_FAILURE;
 
-  return rv;
+  return NS_SUCCEEDED(mSMIMEBundle->GetStringFromName(name, outString));
 }
-
 
 nsresult
 nsMsgComposeSecure::
@@ -315,35 +280,27 @@ SMIMEBundleFormatStringFromName(const PRUnichar *name,
                                 PRUint32 numParams,
                                 PRUnichar **outString)
 {
+  NS_ENSURE_ARG_POINTER(name);
 
-  nsresult rv = NS_ERROR_FAILURE;
+  if (!InitializeSMIMEBundle())
+    return NS_ERROR_FAILURE;
 
-  if ( ! mSMIMEBundle ) {
-    InitializeSMIMEBundle();
-    if ( ! mSMIMEBundle ) {
-      return rv;
-    }
-  }
-
-  if (name) {
-    rv = mSMIMEBundle->FormatStringFromName(name, params, 
-                                             numParams, outString);
-  }
-  return rv;
+  return mSMIMEBundle->FormatStringFromName(name, params,
+                                            numParams, outString);
 }
 
-void nsMsgComposeSecure::InitializeSMIMEBundle()
+PRBool nsMsgComposeSecure::InitializeSMIMEBundle()
 {
-  nsresult rv;
+  if (mSMIMEBundle)
+    return PR_TRUE;
 
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+  nsresult rv = bundleService->CreateBundle(SMIME_STRBUNDLE_URL,
+                                            getter_AddRefs(mSMIMEBundle));
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
-  if ( NS_FAILED(rv) ) {
-    return;
-  }  
-
-  bundleService->CreateBundle(SMIME_STRBUNDLE_URL,
-                              getter_AddRefs(mSMIMEBundle));
+  return PR_TRUE;
 }
 
 void nsMsgComposeSecure::SetError(nsIMsgSendReport *sendReport, const PRUnichar *bundle_string)
@@ -405,8 +362,8 @@ nsresult nsMsgComposeSecure::ExtractEncryptionState(nsIMsgIdentity * aIdentity, 
   if (!aComposeFields && !aIdentity)
     return NS_ERROR_FAILURE; // kick out...invalid args....
 
-  NS_ENSURE_ARG(aSignMessage);
-  NS_ENSURE_ARG(aEncrypt);
+  NS_ENSURE_ARG_POINTER(aSignMessage);
+  NS_ENSURE_ARG_POINTER(aEncrypt);
 
   nsCOMPtr<nsISupports> securityInfo;
   if (aComposeFields)
@@ -732,8 +689,6 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSen
 
   PR_ASSERT (mSelfSigningCert);
   PR_SetError(0,0);
-  
-
 
   rv = cinfo->CreateSigned(mSelfSigningCert, mSelfEncryptionCert, (unsigned char*)hashString.get(), hashString.Length());
   if (NS_FAILED(rv))  {
