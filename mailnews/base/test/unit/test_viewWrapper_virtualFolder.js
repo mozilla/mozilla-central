@@ -118,6 +118,33 @@ function test_virtual_folder_multi_load_no_pred() {
 }
 
 /**
+ * Make sure the sort order of a virtual folder backed by multiple underlying
+ * folders is persistent.
+ */
+function test_virtual_folder_multi_sortorder_persistence() {
+  let viewWrapper = make_view_wrapper();
+
+  let [folderOne, setOne] = make_folder_with_sets(1);
+  let [folderTwo, setTwo] = make_folder_with_sets(1);
+
+  let virtFolder = make_virtual_folder([folderOne, folderTwo], {});
+  yield async_view_open(viewWrapper, virtFolder);
+
+  verify_messages_in_view([setOne, setTwo], viewWrapper);
+  viewWrapper.showThreaded = true;
+  viewWrapper.sort(Ci.nsMsgViewSortType.bySubject,
+                   Ci.nsMsgViewSortOrder.ascending);
+
+  viewWrapper.close();
+  yield async_view_open(viewWrapper, virtFolder);
+  assert_equals(viewWrapper.primarySortType, Ci.nsMsgViewSortType.bySubject,
+               "should have remembered sort type.");
+  assert_equals(viewWrapper.primarySortOrder, Ci.nsMsgViewSortOrder.ascending,
+               "should have remembered sort order.");
+
+}
+
+/**
  * Make sure we open a virtual folder backed by multiple underlying folders
  *  correctly; one constraint.
  */
@@ -412,6 +439,7 @@ var tests = [
   test_virtual_folder_single_load_after_load,
   // -- multi-folder backed virtual folder
   test_virtual_folder_multi_load_no_pred,
+  test_virtual_folder_multi_sortorder_persistence,
   test_virtual_folder_multi_load_simple_pred,
   test_virtual_folder_multi_load_complex_pred,
   test_virtual_folder_multi_load_alotta_folders_no_pred,
