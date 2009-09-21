@@ -1066,8 +1066,10 @@
   <content>
     <html:div class="results-message-header">
       <html:h2 class="results-message-count" anonid="count"></html:h2>
-      <html:span class="results-message-showall" anonid="showall"
+      <html:div class="results-message-showall">
+        <html:span class="results-message-showall-button" anonid="showall"
             onclick="FacetContext.showActiveSetInTab()"></html:span>
+      </html:div>
       <html:div anonid="sort" class="results-message-sort-bar">
         <html:span anonid="sort-label" class="results-message-sort-label"/>
         <html:span anonid="sort-relevance" class="results-message-sort-value"/>
@@ -1191,14 +1193,8 @@
         <html:div class="message-meta">
           <html:div anonid="addresses-group" class="message-addresses-group">
             <html:div anonid="author-group" class="message-author-group">
-              <html:span anonid="from" class="message-from-label"></html:span>
               <html:span anonid="author" class="message-author"></html:span>
-            </html:div>
-            <html:div anonid="recipients-group" class="message-recipients-group">
-              <html:span anonid="to" class="message-to-label"></html:span>
-              <html:div anonid="recipients" class="message-recipients"/>
               <html:div anonid="date" class="message-date"></html:div>
-              <html:div anonid="attachments" class="message-attachments"></html:div>
             </html:div>
           </html:div>
         </html:div>
@@ -1206,10 +1202,15 @@
           <html:span anonid="star" class="message-star"></html:span>
           <html:span anonid="subject" class="message-subject"></html:span>
           <html:span anonid="tags" class="message-tags"></html:span>
+          <html:div anonid="recipients-group" class="message-recipients-group">
+            <html:span anonid="to" class="message-to-label"></html:span>
+            <html:div anonid="recipients" class="message-recipients"/>
+          </html:div>
         </html:div>
       </html:div>
     </html:div>
     <html:pre anonid="snippet" class="message-body"></html:pre>
+      <html:div anonid="attachments" class="message-attachments"></html:div>
   </content>
   <implementation>
     <constructor><![CDATA[
@@ -1223,20 +1224,18 @@
           return document.getAnonymousElementByAttribute(dis, "anonid",
                                                          aAnonId);
         }
-
+        let subject = anonElem("subject");
         // -- eventify
-        this.onclick = function(aEvent) {
+        subject.onclick = function(aEvent) {
           FacetContext.showConversationInTab(message,
                                              aEvent.button == 1);
         }
 
         // -- Content Poking
-        anonElem("subject").textContent = message.subject;
+        subject.textContent = message.subject;
         let authorNode = anonElem("author");
         authorNode.setAttribute("title", message.from.value);
         authorNode.textContent = message.from.contact.name
-        let fromNode = anonElem("from");
-        fromNode.textContent = glodaFacetStrings.get("glodaFacetView.result.message.fromLabel");
         let toNode = anonElem("to");
         toNode.textContent = glodaFacetStrings.get("glodaFacetView.result.message.toLabel");
 

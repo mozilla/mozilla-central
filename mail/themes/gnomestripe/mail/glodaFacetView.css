@@ -1,5 +1,17 @@
 @import url("chrome://messenger/content/glodaFacetView.css");
 
+.facet-more[needed="true"] {
+  font-size: x-small;
+}
+
+.results-message-showall-button {
+  font-size: x-small;
+}
+
+.results-message-sort-bar {
+  font-size: x-small;
+}
+
 .message-attachment-icon {
   width: 12px;
   height: 12px;

@@ -77,8 +77,8 @@ body {
 }
 
 #data-column {
-  margin-left: 0.5em;
   margin-top: 1em;
+  margin-right: 1em;
   max-width: 40em;
 }
 
@@ -88,7 +88,6 @@ body {
   display: block;
   height: 40px;
   font-size: 140% !important;
-  margin-left: 1em;
   padding: 2px;
   padding-left: 0;
   padding-top: 1em;
@@ -181,7 +180,7 @@ h3 {
 .facet > h3,
 .facet-content > h3 {
   font-size: 90%;
-  padding-left: 0em;
+  padding-left: 0;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
 }
@@ -339,7 +338,7 @@ h3 {
   margin-top: 0.5em;
   padding: 0.2em 1em;
   font-weight: normal;
-  font-size: x-small;
+  font-size: 85%;
   color: #000000;
   background-color: #babdb6;
   cursor: pointer;
@@ -446,43 +445,46 @@ h3 {
 /* ===== Results ===== */
 
 .results-message-header {
-  background-color: #dcddde;
-  border-top: 2px solid #ccc;
+  display: table;
+  width: 100%;
+  background-color: #edeeef;
+  border-top: 2px solid #ddd;
   padding: 2px;
-  margin-right: 0.5em;
   margin-bottom: 0.5em;
-  position: relative;
 }
 
 .results-message-count {
-  display: inline;
+  display: table-cell;
   margin: 0;
-  margin-left: 0.5em;
-  font-size: medium;
+  padding-left: 2px;
+  font-weight: normal;
+  font-size: small;
 }
 
 .results-message-showall {
-  display: inline-block;
-  padding: 0.2em 1em;
-  cursor: pointer;
-  font-size: 80%;
+  display: table-cell;
 }
 
-.results-message-showall:hover {
-  display: inline-block;
+.results-message-showall-button {
+  padding: 0.2em 1em;
+  font-size: small;
+  -moz-border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.results-message-showall-button:hover {
   background-color: #729fcf;
   color: #ffffff;
   text-decoration: none;
-  -moz-border-radius: 4px;
 }
 
+
 .results-message-sort-bar {
-  position: absolute;
-  right: 1em;
-  top: 0;
-  line-height: 1.8em; /* not right approach */
-  font-size: 80%;
-  
+  display: table-cell;
+  padding-right: 2px;
+  text-align: right;
+  font-size: small;
 }
 
 .results-message-sort-label {
@@ -515,25 +517,16 @@ h3 {
 .message {
   display: block;
   font-family: sans-serif;
-  font-size: 80%;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  margin-right: 1em;
-  border: 1px solid transparent;
-  -moz-border-radius: 4px;
+  font-size: small;
+  padding: 3px 0;
+  margin: 3px 0;
   border-bottom: 1px solid #ddd;
-  display: block;
   color: #555;
   background-color: #ffffff;
 }
 
-.message:hover {
-  background: #f8f8f8;
-  cursor: pointer;
-}
-
 .message:hover .message-subject {
-  color:#729fcf;
+  text-decoration: underline;
 }
 .message:focus {
   border: 1px dotted #111;
@@ -554,20 +547,6 @@ h3 {
 .message:last-child {
   border-bottom: 1px solid transparent;
 }
-.message:last-child:hover {
-  border-bottom: 1px solid;
-}
-
-
-.message {
-  display: block;
-  padding: 0.2em 0em;
-}
-
-.message-header,
-.message-body {
-  font-size: 95%;
-}
 
 .message-header {
   margin-bottom: 0.5em;
@@ -580,13 +559,16 @@ h3 {
   max-height: 10em;
   overflow: hidden;
   color: #999;
-  font-size: 90%;
 }
 
 .message-attachments {
+  text-align: right;
+  overflow: hidden;
 }
 
 .message-attachment {
+  max-width: 20em;
+  text-align: left;
   display: inline-block;
 }
 
@@ -618,11 +600,10 @@ h3 {
 
 .message-addresses-group {
   padding-left: 1em;
-  padding-right: 0.5em;
 }
 
 .message-subject-group {
-  padding-left: .5em;
+  padding-left: 2px; /* to lign up the subjects with the "Top N messages out of M" */
 }
 
 .message-author, .message-recipients {
@@ -642,17 +623,25 @@ h3 {
 }
 
 .message-subject {
-  font-size: 115%;
-  font-weight: bold;
-  line-height: 1.2em;
-  color: #555;
+  color: #3465a4;
+  font-size: medium;
 }
+
+.message-subject:hover {
+  cursor: pointer;
+}
+
 .message-body {
   color: black;
-  padding-left: 1em;
+  margin-left: 1em;
   font-family: monospace;
-  font-size: 120%;
+  font-size: medium;
   white-space: pre-wrap;
+}
+
+.message-recipients-group {
+  margin-left: 0.5em;
+  font-size: small;
 }
 
 .message-tag {
