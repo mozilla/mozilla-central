@@ -74,7 +74,7 @@ var nsSearchResultsController =
         case "button_delete":
         case "cmd_open":
         case "file_message_button":
-        case "goto_folder_button":
+        case "open_in_folder_button":
         case "saveas_vf_button":
         case "cmd_selectAll":
             return true;
@@ -91,7 +91,7 @@ var nsSearchResultsController =
         var enabled = true;
 
         switch (command) {
-          case "goto_folder_button":
+          case "open_in_folder_button":
             if (GetNumSelectedMessages() != 1)
               enabled = false;
             break;
@@ -132,8 +132,8 @@ var nsSearchResultsController =
             MsgDeleteSelectedMessages(nsMsgViewCommandType.deleteNoTrash);
             return true;
 
-        case "goto_folder_button":
-            GoToFolder();
+        case "open_in_folder_button":
+            OpenInFolder();
             return true;
 
         case "saveas_vf_button":
@@ -639,9 +639,11 @@ function MoveMessageInSearch(destFolder)
   }
 }
 
-function GoToFolder()
+function OpenInFolder()
 {
-  MsgOpenNewWindowForFolder(gFolderDisplay.selectedMessage);
+  let msg = gFolderDisplay.selectedMessage;
+  let tabmail = window.opener.document.getElementById('tabmail');
+  tabmail.openTab("folder", {folder: msg.folder, msgHdr: msg});
 }
 
 function saveAsVirtualFolder()

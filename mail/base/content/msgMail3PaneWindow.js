@@ -509,7 +509,7 @@ function atStartupRestoreTabs() {
 function loadExtraTabs()
 {
   if ("arguments" in window && window.arguments.length >= 2) {
-    if ("tabType" in window.arguments[1]) {
+    if (window.arguments[1] && "tabType" in window.arguments[1]) {
       document.getElementById('tabmail').openTab(window.arguments[1].tabType, window.arguments[1].tabParams);
     }
   }
