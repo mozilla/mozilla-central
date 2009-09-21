@@ -125,7 +125,8 @@ os.mkdir(PROFILE)
 
 defaultEnv = dict(os.environ)
 defaultEnv['NO_EM_RESTART'] = '1'
-defaultEnv['XPCOM_DEBUG_BREAK'] = 'warn'
+if (not "XPCOM_DEBUG_BREAK" in defaultEnv):
+  defaultEnv['XPCOM_DEBUG_BREAK'] = 'stack'
 
 defaultArgs = ['-no-remote']
 if automation.IS_MAC:
