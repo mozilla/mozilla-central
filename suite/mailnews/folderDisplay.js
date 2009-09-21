@@ -37,11 +37,72 @@
 
 var gFolderDisplay =
 {
+  nsMsgFolderFlags: Components.interfaces.nsMsgFolderFlags,
+
+  get selectedCount()
+  {
+    return gDBView ? gDBView.numSelected : 0;
+  },
+
   get selectedMessage()
   {
-    if (!gDBView.QueryInterface(Components.interfaces.nsITreeView).selection.count)
+    if (!this.selectedCount)
       return null;
     return gDBView.hdrForFirstSelectedMessage;
+  },
+
+  get selectedMessageIsFeed()
+  {
+    var message = this.selectedMessage;
+    return message && message.folder &&
+           message.folder.server.type == "rss";
+  },
+
+  get selectedMessageIsImap()
+  {
+    var message = this.selectedMessage;
+    return message && message.folder &&
+           (message.folder.flags & this.nsMsgFolderFlags.ImapBox) != 0;
+  },
+
+  get selectedMessageIsNews()
+  {
+    var message = this.selectedMessage;
+    return message && message.folder &&
+           (message.folder.flags & this.nsMsgFolderFlags.Newsgroup) != 0;
+  },
+
+  get selectedMessageIsExternal()
+  {
+    var message = this.selectedMessage;
+    return message && !message.folder;
+  },
+
+  get selectedIndices()
+  {
+    return gDBView ? gDBView.getIndicesForSelection({}) : [];
+  },
+
+  get selectedMessages()
+  {
+    var msgHdrs = [];
+    if (gDBView)
+    {
+      var array = gDBView.getMsgHdrsForSelection();
+      for (let i = 0; i < array.length; i++)
+      {
+        msgHdrs.push(array.queryElementAt(i, Components.interfaces.nsIMsgDBHdr));
+      }
+    }
+    return msgHdrs;
+  },
+
+  get selectedMessageUris()
+  {
+    if (!gDBView)
+      return null;
+    var messageArray = gDBView.getURIsForSelection({});
+    return messageArray.length ? messageArray : null;
   }
 }
 
@@ -54,5 +115,17 @@ var gMessageDisplay =
     var viewIndex = gDBView.currentlyDisplayedMessage;
     return viewIndex == nsMsgViewIndex_None ? null :
                                               gDBView.getMsgHdrAt(viewIndex);
+  },
+
+  get visible()
+  {
+    return !GetMessagePane().collapsed;
+  },
+
+  set visible(aVisible)
+  {
+    return aVisible; // Fake setter for the time being.
   }
 }
+
+gFolderDisplay.messageDisplay = gMessageDisplay;
