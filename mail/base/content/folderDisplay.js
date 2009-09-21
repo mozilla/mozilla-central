@@ -1379,6 +1379,34 @@ FolderDisplayWidget.prototype = {
     }
   },
 
+  /// This is not guaranteed to be up to date if the folder display is active
+  _folderPaneVisible: null,
+
+  /**
+   * Whether the folder pane is visible. When we're inactive, we stash the value
+   * in |this._folderPaneVisible|.
+   */
+  get folderPaneVisible FolderDisplayWidget_get_folderPaneVisible() {
+    if (this._active) {
+      let folderPaneBox = document.getElementById("folderPaneBox");
+      if (folderPaneBox)
+        return !folderPaneBox.collapsed;
+    }
+    else {
+      return this._folderPaneVisible;
+    }
+
+    return null;
+  },
+
+  /**
+   * Sets the visibility of the folder pane. This should reflect reality and
+   * not define it (for active tabs at least).
+   */
+  set folderPaneVisible FolderDisplayWidget_set_folderPaneVisible(aVisible) {
+    this._folderPaneVisible = aVisible;
+  },
+
   get active() {
     return this._active;
   },
@@ -1400,6 +1428,10 @@ FolderDisplayWidget.prototype = {
 
     // update singleton globals' state
     msgWindow.openFolder = this.view.displayedFolder;
+
+    // This depends on us being active, so get it before we're marked active.
+    // We don't get this._folderPaneActive directly for idempotence's sake.
+    let folderPaneVisible = this.folderPaneVisible;
 
     this._active = true;
     this._runNotificationsPendingActivation();
@@ -1466,7 +1498,7 @@ FolderDisplayWidget.prototype = {
       //  impacts the legal modes
       if (this._tabInfo)
         mailTabType._setPaneStates(this._tabInfo.mode.legalPanes,
-          {folder: !this._tabInfo.folderPaneCollapsed,
+          {folder: folderPaneVisible,
            message: this.messageDisplay.visible});
 
       // update the columns and such that live inside the thread pane
@@ -1479,7 +1511,7 @@ FolderDisplayWidget.prototype = {
       this._showAccountCentral();
       if (this._tabInfo)
         mailTabType._setPaneStates(this._tabInfo.mode.accountCentralLegalPanes,
-          {folder: !this._tabInfo.folderPaneCollapsed});
+          {folder: folderPaneVisible});
     }
 
     this._updateContextDisplay();
@@ -1524,8 +1556,8 @@ FolderDisplayWidget.prototype = {
 
     // - (everything after this point doesn't care that we are marked inactive)
     // save the folder pane's state always
-    this.folderPaneCollapsed =
-      document.getElementById("folderPaneBox").collapsed;
+    this._folderPaneVisible =
+      !document.getElementById("folderPaneBox").collapsed;
 
     if (this.view.dbView) {
       if (this.treeBox)

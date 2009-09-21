@@ -107,7 +107,7 @@ let mailTabType = {
         message: false
       },
       openFirstTab: function(aTab) {
-        this.openTab(aTab, true, new MessagePaneDisplayWidget());
+        this.openTab(aTab, true, new MessagePaneDisplayWidget(), true);
         // persistence and restoreTab wants to know if we are the magic first tab
         aTab.firstTab = true;
         aTab.folderDisplay.makeActive();
@@ -126,13 +126,22 @@ let mailTabType = {
         let modelTab = document.getElementById("tabmail")
                          .getTabInfoForCurrentOrFirstModeInstance(aTab.mode);
 
-        if (modelTab)
-          aTab.folderPaneCollapsed = modelTab.folderPaneCollapsed;
-
         if ("searchMode" in aArgs)
           aTab.searchState = {'mode': aArgs.searchMode, 'string': ''};
         else if (modelTab)
           aTab.searchState = {'mode': modelTab.searchMode, 'string': ''};
+
+        // - figure out whether to show the folder pane
+        let folderPaneShouldBeVisible;
+        // explicitly told to us?
+        if ("folderPaneVisible" in aArgs)
+          folderPaneShouldBeVisible = aArgs.folderPaneVisible;
+        // inherit from the previous tab (if we've got one)
+        else if (modelTab)
+          folderPaneShouldBeVisible = modelTab.folderDisplay.folderPaneVisible;
+        // who doesn't love a folder pane?
+        else
+          folderPaneShouldBeVisible = true;
 
         // - figure out whether to show the message pane
         let messagePaneShouldBeVisible;
@@ -147,7 +156,8 @@ let mailTabType = {
           messagePaneShouldBeVisible = true;
 
         this.openTab(aTab, false,
-                     new MessagePaneDisplayWidget(messagePaneShouldBeVisible));
+                     new MessagePaneDisplayWidget(messagePaneShouldBeVisible),
+                     folderPaneShouldBeVisible);
 
         let background = ("background" in aArgs) && aArgs.background;
         let msgHdr = ("msgHdr" in aArgs) && aArgs.msgHdr;
@@ -183,6 +193,9 @@ let mailTabType = {
           return null;
         return {
           folderURI: aTab.folderDisplay.displayedFolder.URI,
+          // if the folder pane is active, then we need to look at
+          // whether the box is collapsed
+          folderPaneVisible: aTab.folderDisplay.folderPaneVisible,
           messagePaneVisible: aTab.messageDisplay.visible,
           firstTab: aTab.firstTab,
           searchMode: aTab.searchState['mode']
@@ -196,11 +209,20 @@ let mailTabType = {
                        .QueryInterface(Components.interfaces.nsIMsgFolder);
         // if the folder no longer exists, we can't restore the tab
         if (folder) {
+          let folderPaneVisible = ("folderPaneVisible" in aPersistedState) ?
+                                    aPersistedState.folderPaneVisible :
+                                    true;
           // If we are talking about the first tab, it already exists and we
           //  should poke it.  We are assuming it is the currently displayed
           //  tab because we are privvy to the implementation details and know
           //  it to be true.
           if (aPersistedState.firstTab) {
+            // Poke the folder pane box and splitter
+            document.getElementById("folderPaneBox").collapsed =
+              !folderPaneVisible;
+            document.getElementById("folderpane_splitter").setAttribute("state",
+              (folderPaneVisible ? "open" : "collapsed"));
+
             if (gMessageDisplay.visible != aPersistedState.messagePaneVisible) {
               MsgToggleMessagePane();
               // For reasons that are not immediately obvious, sometimes the
@@ -218,6 +240,7 @@ let mailTabType = {
           else {
             let tabArgs = {
               folder: folder,
+              folderPaneVisible: folderPaneVisible,
               messagePaneVisible: aPersistedState.messagePaneVisible,
               background: true
             };
@@ -272,7 +295,7 @@ let mailTabType = {
         message: true
       },
       openTab: function(aTab, aArgs) {
-        this.openTab(aTab, false, new MessageTabDisplayWidget());
+        this.openTab(aTab, false, new MessageTabDisplayWidget(), false);
 
         let viewWrapperToClone = ("viewWrapperToClone" in aArgs) &&
                                  aArgs.viewWrapperToClone;
@@ -404,7 +427,7 @@ let mailTabType = {
         aTab.glodaSynView = new GlodaSyntheticView(aArgs);
         aTab.title = aArgs.title;
 
-        this.openTab(aTab, false, new MessagePaneDisplayWidget());
+        this.openTab(aTab, false, new MessagePaneDisplayWidget(), false);
         aTab.folderDisplay.show(aTab.glodaSynView);
         // XXX persist column states in preferences or session store or other
         aTab.folderDisplay.setColumnStates(aTab.mode.desiredColumnStates);
@@ -440,7 +463,7 @@ let mailTabType = {
   /**
    * Common tab opening code shared by the various tab modes.
    */
-  openTab: function(aTab, aIsFirstTab, aMessageDisplay) {
+  openTab: function(aTab, aIsFirstTab, aMessageDisplay, aFolderPaneVisible) {
     // Set the messagepane as the primary browser for content.
     document.getElementById("messagepane").setAttribute("type",
                                                         "content-primary");
@@ -451,6 +474,7 @@ let mailTabType = {
     aTab.folderDisplay.tree = document.getElementById("threadTree");
     aTab.folderDisplay.treeBox = aTab.folderDisplay.tree.boxObject.QueryInterface(
                                    Components.interfaces.nsITreeBoxObject);
+    aTab.folderDisplay.folderPaneVisible = aFolderPaneVisible;
 
     if (aIsFirstTab) {
       aTab.folderDisplay.messenger = messenger;
@@ -604,11 +628,15 @@ let mailTabType = {
       !aLegalStates.folder;
     // collapse the folder pane when not visible
     document.getElementById("folderPaneBox").collapsed =
-      !aLegalStates.folder || !aVisibleStates.folder;
-    try {
-      // The folder-location-toolbar is like the folder pane.
+     !aLegalStates.folder || !aVisibleStates.folder;
+    // let the splitter know as well
+    document.getElementById("folderpane_splitter").setAttribute("state",
+     (!aLegalStates.folder || !aVisibleStates.folder) ? "collapsed" : "open");
+    try {      
+      // The folder-location-toolbar should be hidden if the folder
+      // pane is illegal. Otherwise we shouldn't touch it
       document.getElementById("folder-location-container").collapsed =
-        !aLegalStates.folder || !aVisibleStates.folder;
+        !aLegalStates.folder;
     } catch (ex) {}
 
     // -- display deck (thread pane / account central)

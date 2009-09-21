@@ -221,7 +221,7 @@
              beneath both of them. -->
         <box id="mailContent" orient="vertical" flex="1">
           <box id="messengerBox" orient="horizontal" flex="1" minheight="100" height="100" persist="height">
-            <vbox id="folderPaneBox" minwidth="100" width="200" persist="collapsed width">
+            <vbox id="folderPaneBox" minwidth="100" width="200" persist="width">
               <label id="folderColumnLabel" hidden="true" value="&folderColumn.label;"/>
               <sidebarheader id="folderPaneHeader" align="center">
                 <label id="folderpane-title"/>
@@ -264,7 +264,7 @@
               </tree>
             </vbox>
 
-            <splitter id="folderpane_splitter" collapse="before" persist="state"/>
+            <splitter id="folderpane_splitter" collapse="before"/>
 
             <vbox flex="1">
               <box orient="vertical" id="messagesBox" flex="1">
