@@ -814,6 +814,7 @@ var MessageWindowController =
       case "cmd_recalculateJunkScore":
         return gFolderDisplay.selectedMessage &&
                gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
+      case "cmd_archive":
       case "button_archive":
         var folder = gFolderDisplay.displayedFolder;
         return folder &&
@@ -827,7 +828,7 @@ var MessageWindowController =
       case "cmd_replylist":
       case "button_replylist":
         return gFolderDisplay.selectedMessage && IsReplyListEnabled();
-      case "cmd_archive":
+
       case "cmd_replySender":
       case "cmd_replyGroup":
       case "cmd_forward":
@@ -851,7 +852,7 @@ var MessageWindowController =
       case "cmd_markReadByDate":
       case "cmd_viewAllHeader":
       case "cmd_viewNormalHeader":
-        return(true);
+        return true;
       case "cmd_markAsFlagged":
       case "button_file":
       case "cmd_file":
