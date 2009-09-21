@@ -9,6 +9,8 @@ modern.jar:
 % skin messenger-newsblog modern/1.0 %skin/modern/messenger-newsblog/
 % style chrome://global/content/customizeToolbar.xul chrome://navigator/skin/navigator.css
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/primaryToolbar.css
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/messengercompose/messengercompose.css
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/smime/msgCompSMIMEOverlay.css
   skin/modern/communicator/brand.css                               (communicator/brand.css)
   skin/modern/communicator/certError.css                           (communicator/certError.css)
   skin/modern/communicator/prefpanels.css                          (communicator/prefpanels.css)

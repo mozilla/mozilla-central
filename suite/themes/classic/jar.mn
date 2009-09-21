@@ -6,6 +6,8 @@ classic.jar:
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/
 % style chrome://global/content/customizeToolbar.xul chrome://navigator/skin/navigator.css
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/primaryToolbar.css
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/messengercompose/messengercompose.css
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/smime/msgCompSMIMEOverlay.css
 #ifdef XP_MACOSX
   skin/classic/communicator/aboutSessionRestore.css                     (mac/communicator/aboutSessionRestore.css)
   skin/classic/communicator/button.css                                  (mac/communicator/button.css)
@@ -146,12 +148,14 @@ classic.jar:
   skin/classic/editor/editorPrimaryToolbar.css                          (mac/editor/editorPrimaryToolbar.css)
   skin/classic/editor/editorFormatToolbar.css                           (mac/editor/editorFormatToolbar.css)
   skin/classic/editor/icons/editoricons.png                             (mac/editor/icons/editoricons.png)
+  skin/classic/editor/icons/editoricons-small.png                       (mac/editor/icons/editoricons-small.png)
 #else
   skin/classic/editor/editor.css                                        (editor/editor.css)
   skin/classic/editor/editorModeToolbar.css                             (editor/editorModeToolbar.css)
   skin/classic/editor/editorPrimaryToolbar.css                          (editor/editorPrimaryToolbar.css)
   skin/classic/editor/editorFormatToolbar.css                           (editor/editorFormatToolbar.css)
   skin/classic/editor/icons/editoricons.png                             (editor/icons/editoricons.png)
+  skin/classic/editor/icons/editoricons-small.png                       (editor/icons/editoricons-small.png)
 #endif
   skin/classic/editor/EdImageMapPage.css                                (editor/EdImageMapPage.css)
   skin/classic/editor/EditorDialog.css                                  (editor/EditorDialog.css)
@@ -183,6 +187,7 @@ classic.jar:
   skin/classic/messenger/messengercompose/messengercompose.css          (mac/messenger/messengercompose/messengercompose.css)
   skin/classic/messenger/smime/msgCompSMIMEOverlay.css                  (mac/messenger/smime/msgCompSMIMEOverlay.css)
   skin/classic/messenger/smime/icons/smimeicons.png                     (mac/messenger/smime/icons/smimeicons.png)
+  skin/classic/messenger/smime/icons/smimeicons-small.png               (mac/messenger/smime/icons/smimeicons-small.png)
 #else
   skin/classic/messenger/accountManage.css                              (messenger/accountManage.css)
   skin/classic/messenger/mailWindow1.css                                (messenger/mailWindow1.css)
@@ -197,6 +202,7 @@ classic.jar:
   skin/classic/messenger/messengercompose/messengercompose.css          (messenger/messengercompose/messengercompose.css)
   skin/classic/messenger/smime/msgCompSMIMEOverlay.css                  (messenger/smime/msgCompSMIMEOverlay.css)
   skin/classic/messenger/smime/icons/smimeicons.png                     (messenger/smime/icons/smimeicons.png)
+  skin/classic/messenger/smime/icons/smimeicons-small.png               (messenger/smime/icons/smimeicons-small.png)
 #endif
   skin/classic/messenger/dialogs.css                                    (messenger/dialogs.css)
   skin/classic/messenger/accountWizard.css                              (messenger/accountWizard.css)

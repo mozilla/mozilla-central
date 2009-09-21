@@ -152,6 +152,8 @@
   <command id="cmd_selectAddress" oncommand="goDoCommand('cmd_selectAddress')"/>
   <command id="cmd_outputFormat" oncommand="OutputFormatMenuSelect(event.target)"/>
   <command id="cmd_quoteMessage" oncommand="goDoCommand('cmd_quoteMessage')"/>
+
+  <command id="cmd_CustomizeToolbars" oncommand="goCustomizeToolbar(getMailToolbox());"/>
 </commandset>
 
 <broadcasterset id="composeBroadcasters">
@@ -230,244 +232,328 @@
   <menuitem label="&attachPage.label;" accesskey="&attachPage.accesskey;" command="cmd_attachPage"/>
 </popup>
 
-  <toolbox class="toolbox-top" id="headers-box">
-    <menubar id="compose-menubar" grippytooltiptext="&menuBar.tooltip;">
-      <menu id="menu_File">
-        <menupopup id="menu_FilePopup">
-          <menu id="menu_New">
-            <menupopup id="menu_NewPopup">
-              <menuitem label="&newMessage.label;" accesskey="&newMessage.accesskey;" key="key_newMessage" oncommand="goOpenNewMessage();"/>
-              <menuseparator/>
-              <menuitem id="menu_newNavigator"/>
-              <menuitem id="menu_newEditor"/>
+<popup id="toolbar-context-menu"/>
+  <toolbox id="compose-toolbox"
+           class="toolbox-top"
+           mode="full"
+           defaultmode="full">
+    <toolbar id="compose-toolbar-menubar2"
+             type="menubar"
+             class="chromeclass-menubar"
+             persist="collapsed"
+             grippytooltiptext="&menuBar.tooltip;"
+             customizable="true"
+             defaultset="menubar-items"
+             mode="icons"
+             iconsize="small"
+             defaultmode="icons"
+             defaulticonsize="small"
+             context="toolbar-context-menu">
+      <toolbaritem id="menubar-items"
+                   class="menubar-items"
+                   align="center">
+        <menubar id="mail-menubar">
+          <menu id="menu_File">
+            <menupopup id="menu_FilePopup">
+              <menu id="menu_New">
+                <menupopup id="menu_NewPopup">
+                  <menuitem id="menu_NewMessage"
+                            label="&newMessage.label;"
+                            accesskey="&newMessage.accesskey;"
+                            key="key_newMessage"
+                            oncommand="goOpenNewMessage();"/>
+                  <menuseparator id="menuNewPopupSeparator"/>
+                  <menuitem id="menu_newNavigator"/>
+                  <menuitem id="menu_newEditor"/>
+                </menupopup>
+              </menu>
+              <menu id="menu_Attach"
+                    label="&attachMenu.label;"
+                    accesskey="&attachMenu.accesskey;">
+                <menupopup id="menu_AttachPopup">
+                  <menuitem id="menu_AttachFile"
+                            label="&attachFileCmd.label;"
+                            accesskey="&attachFileCmd.accesskey;"
+                            command="cmd_attachFile"/>
+                  <menuitem id="menu_AttachPage"
+                            label="&attachPageCmd.label;"
+                            accesskey="&attachPageCmd.accesskey;"
+                            command="cmd_attachPage"/>
+                  <menuseparator id="menuAttachPageSeparator"/>
+                  <menuitem id="menu_AttachPageVCard"
+                            type="checkbox"
+                            label="&attachVCardCmd.label;"
+                            accesskey="&attachVCardCmd.accesskey;"
+                            command="cmd_attachVCard"/>
+                </menupopup>
+              </menu>
+              <menuitem id="menu_close"/>
+              <menuseparator id="menuFileAfterCloseSeparator"/>
+              <menuitem id="menu_SaveCmd"
+                        label="&saveCmd.label;"
+                        accesskey="&saveCmd.accesskey;"
+                        key="key_save"
+                        command="cmd_saveDefault"/>
+              <menu id="menu_SaveAsCmd"
+                    label="&saveAsCmd.label;"
+                    accesskey="&saveAsCmd.accesskey;">
+                <menupopup id="menu_SaveAsCmdPopup">
+                  <menuitem id="menu_SaveAsFileCmd"
+                            label="&saveAsFileCmd.label;"
+                            accesskey="&saveAsFileCmd.accesskey;"
+                            command="cmd_saveAsFile"/>
+                  <menuseparator id="menuSaveAfterSaveAsSeparator"/>
+                  <menuitem id="menu_SaveAsDraftCmd"
+                            label="&saveAsDraftCmd.label;"
+                            accesskey="&saveAsDraftCmd.accesskey;"
+                            command="cmd_saveAsDraft"/>
+                  <menuitem id="menu_SaveAsTemplateCmd"
+                            label="&saveAsTemplateCmd.label;"
+                            accesskey="&saveAsTemplateCmd.accesskey;"
+                            command="cmd_saveAsTemplate"/>
+                </menupopup>
+              </menu>
+              <menuseparator id="menuFileAfterSaveAsSeparator"/>
+              <menuitem id="menu_sendNow"
+                        label="&sendNowCmd.label;"
+                        accesskey="&sendNowCmd.accesskey;"
+                        key="key_send" command="cmd_sendNow"/>
+              <menuitem id="menu_sendLater"
+                        label="&sendLaterCmd.label;"
+                        accesskey="&sendLaterCmd.accesskey;"
+                        key="key_sendLater"
+                        command="cmd_sendLater"/>
+              <menuseparator id="menuFileAfterSendLaterSeparator"/>
+              <menuitem id="printSetupMenuItem"
+                        label="&printSetupCmd.label;"
+                        accesskey="&printSetupCmd.accesskey;"
+                        command="cmd_printSetup"/>
+              <menuitem id="printMenuItem"
+                        label="&printCmd.label;"
+                        accesskey="&printCmd.accesskey;"
+                        key="key_print" command="cmd_print"/>
             </menupopup>
           </menu>
-          <menu id="menu_Attach" label="&attachMenu.label;" accesskey="&attachMenu.accesskey;">
-            <menupopup id="menu_AttachPopup">
-              <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;" command="cmd_attachFile"/>
-              <menuitem label="&attachPageCmd.label;" accesskey="&attachPageCmd.accesskey;" command="cmd_attachPage"/>
-              <menuseparator/>
-              <menuitem type="checkbox" label="&attachVCardCmd.label;" accesskey="&attachVCardCmd.accesskey;" command="cmd_attachVCard"/>
+          <menu id="menu_Edit">
+            <menupopup id="menu_EditPopup" onpopupshowing="updateEditItems();">
+              <menuitem id="menu_undo"/>
+              <menuitem id="menu_redo"/>
+              <menuseparator id="menuEditAfterRedoSeparator"/>
+              <menuitem id="menu_cut"/>
+              <menuitem id="menu_copy"/>
+              <menuitem id="menu_paste"/>
+              <menuitem id="menu_pasteNoFormatting"
+                        command="cmd_pasteNoFormatting"
+                        key="pastenoformattingkb"/>
+              <menuitem id="menu_pasteQuote"/>
+              <menuitem id="menu_rewrap"
+                        label="&editRewrapCmd.label;"
+                        accesskey="&editRewrapCmd.accesskey;"
+                        key="key_rewrap"
+                        command="cmd_rewrap"/>
+              <menuitem id="menu_delete"/>
+              <menuseparator id="menuEditAfterDeleteSeparator"/>
+              <menuitem id="menu_selectAll"/>
+              <menuseparator id="menuEditAfterSelectAllSeparator"/>
+              <menuitem id="menu_findCmd"
+                        label="&findCmd.label;"
+                        accesskey="&findCmd.accesskey;"
+                        key="key_find"
+                        command="cmd_find"/>
+              <menuitem id="menu_findNextCmd"
+                        label="&findAgainCmd.label;"
+                        accesskey="&findAgainCmd.accesskey;"
+                        key="key_findNext"
+                        command="cmd_findNext"/>
+              <menuitem id="menu_findPrevCmd"
+                        label="&findPrevCmd.label;"
+                        accesskey="&findPrevCmd.accesskey;"
+                        key="key_findPrev"
+                        command="cmd_findPrev"/>
+              <menuseparator id="prefSep"/>
+              <menuitem id="menu_accountmgr"
+                        label="&accountManagerCmd.label;"
+                        accesskey="&accountManagerCmd.accesskey;"
+                        command="cmd_account"/>
+              <menuitem id="menu_preferences"
+                        oncommand="goDoCommand('cmd_preferences')"/>
             </menupopup>
           </menu>
-          <menuitem id="menu_close"/>
-          <menuseparator/>
-          <menuitem label="&saveCmd.label;" accesskey="&saveCmd.accesskey;" key="key_save" command="cmd_saveDefault"/>
-          <menu id="menu_SaveAsCmd" label="&saveAsCmd.label;" accesskey="&saveAsCmd.accesskey;">
-            <menupopup id="menu_SaveAsCmdPopup">
-              <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;" command="cmd_saveAsFile"/>
-              <menuseparator/>
-              <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;" command="cmd_saveAsDraft"/>
-              <menuitem label="&saveAsTemplateCmd.label;" accesskey="&saveAsTemplateCmd.accesskey;" command="cmd_saveAsTemplate"/>
+          <menu id="menu_View">
+            <menupopup id="menu_View_Popup">
+              <menu id="menu_Toolbars">
+                <menupopup id="view_toolbars_popup">
+                  <menuitem id="menu_showComposeToolbar"
+                            type="checkbox"
+                            label="&showComposeToolbarCmd.label;"
+                            accesskey="&showComposeToolbarCmd.accesskey;"
+                            command="cmd_showComposeToolbar"
+                            checked="true"/>
+                  <menuitem id="menu_showFormatToolbar"
+                            type="checkbox"
+                            label="&showFormatToolbarCmd.label;"
+                            accesskey="&showFormatToolbarCmd.accesskey;"
+                            command="cmd_showFormatToolbar"
+                            checked="true"/>
+                  <menuitem id="menu_showTaskbar"/>
+                </menupopup>
+              </menu>
             </menupopup>
           </menu>
-          <menuseparator/>
-          <menuitem label="&sendNowCmd.label;" accesskey="&sendNowCmd.accesskey;" key="key_send" command="cmd_sendNow" id="menu-item-send-now"/>
-          <menuitem label="&sendLaterCmd.label;" accesskey="&sendLaterCmd.accesskey;" key="key_sendLater" command="cmd_sendLater"/>
-          <menuseparator/>
-          <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" command="cmd_printSetup"/>
-          <menuitem id="printMenuItem" label="&printCmd.label;" accesskey="&printCmd.accesskey;" key="key_print" command="cmd_print"/>
-        </menupopup>
-      </menu>
-      <menu id="menu_Edit">
-        <menupopup id="menu_EditPopup" onpopupshowing="updateEditItems();">
-          <menuitem id="menu_undo"/>
-          <menuitem id="menu_redo"/>
-          <menuseparator/>
-          <menuitem id="menu_cut"/>
-          <menuitem id="menu_copy"/>
-          <menuitem id="menu_paste"/>
-          <menuitem id="menu_pasteNoFormatting" command="cmd_pasteNoFormatting"
-                    key="pastenoformattingkb"/>
-          <menuitem id="menu_pasteQuote"/>
-          <menuitem id="menu_rewrap" label="&editRewrapCmd.label;" key="key_rewrap" accesskey="&editRewrapCmd.accesskey;" command="cmd_rewrap"/>
-          <menuitem id="menu_delete"/>
-          <menuseparator/>
-          <menuitem id="menu_selectAll"/>
-          <menuseparator/>
-          <menuitem label="&findCmd.label;"      key="key_find"      accesskey="&findCmd.accesskey;"      command="cmd_find"/>
-          <menuitem label="&findAgainCmd.label;" key="key_findNext" accesskey="&findAgainCmd.accesskey;" command="cmd_findNext"/>
-          <menuitem label="&findPrevCmd.label;"  key="key_findPrev" accesskey="&findPrevCmd.accesskey;"  command="cmd_findPrev"/>
-          <menuseparator/>
-          <menuitem label="&accountManagerCmd.label;" accesskey="&accountManagerCmd.accesskey;" command="cmd_account"/>
-          <menuitem id="menu_preferences" oncommand="goDoCommand('cmd_preferences')"/>
-        </menupopup>
-      </menu>
-      <menu id="menu_View">
-        <menupopup id="menu_View_Popup">
-          <menu id="menu_Toolbars">
-            <menupopup id="view_toolbars_popup">
-              <menuitem id="menu_showComposeToolbar"
+
+          <menu id="insertMenu"
+                command="cmd_renderedHTMLEnabler"/>
+
+          <menu id="formatMenu"
+                label="&formatMenu.label;"
+                accesskey="&formatMenu.accesskey;"
+                command="cmd_renderedHTMLEnabler">
+            <menupopup id="formatMenuPopup">
+              <menu id="tableMenu"/>
+              <menuseparator id="menuFormatAfterTableSeparator"/>
+              <menuitem id="objectProperties"/>
+              <menuitem id="colorsAndBackground"/>
+            </menupopup>
+          </menu>
+
+          <menu id="optionsMenu"
+                label="&optionsMenu.label;"
+                accesskey="&optionsMenu.accesskey;">
+            <menupopup id="optionsMenuPopup"
+                       onpopupshowing="updateOptionItems();">
+              <menuitem id="menu_selectAddress"
+                        label="&selectAddressCmd.label;"
+                        accesskey="&selectAddressCmd.accesskey;"
+                        command="cmd_selectAddress"/>
+              <menuitem id="menu_checkspelling"
+                        label="&checkSpellingCmd2.label;"
+                        accesskey="&checkSpellingCmd2.accesskey;"
+                        key="key_checkspelling"
+                        command="cmd_spelling"/>
+              <menuitem id="menu_inlineSpellCheck"
                         type="checkbox"
-                        label="&showComposeToolbarCmd.label;"
-                        command="cmd_showComposeToolbar"
-                        accesskey="&showComposeToolbarCmd.accesskey;"
-                        checked="true"/>
-              <menuitem id="menu_showFormatToolbar"
+                        label="&enableInlineSpellChecker.label;"
+                        accesskey="&enableInlineSpellChecker.accesskey;"
+                        oncommand="EnableInlineSpellCheck(!InlineSpellCheckerUI.enabled);"/>
+              <menuitem id="menu_quoteMessage"
+                        label="&quoteCmd.label;"
+                        accesskey="&quoteCmd.accesskey;"
+                        command="cmd_quoteMessage"/>
+              <menuseparator id="menuOptionsAfterQuoteSeparator"/>
+              <menuitem id="returnReceiptMenu"
                         type="checkbox"
-                        label="&showFormatToolbarCmd.label;"
-                        command="cmd_showFormatToolbar"
-                        accesskey="&showFormatToolbarCmd.accesskey;"
-                        checked="true"/>
-              <menuitem id="menu_showTaskbar"/>
-            </menupopup>
-          </menu>
-        </menupopup>
-      </menu>
-
-      <menu id="insertMenu" command="cmd_renderedHTMLEnabler"/>
-
-      <menu id="formatMenu" label="&formatMenu.label;" accesskey="&formatMenu.accesskey;" command="cmd_renderedHTMLEnabler">
-        <menupopup id="formatMenuPopup">
-          <menu id="tableMenu"/>
-          <menuseparator/>
-          <menuitem id="objectProperties"/>
-          <menuitem id="colorsAndBackground"/>
-        </menupopup>
-      </menu>
-
-      <menu id="optionsMenu" label="&optionsMenu.label;" accesskey="&optionsMenu.accesskey;">
-        <menupopup id="optionsMenuPopup" onpopupshowing="updateOptionItems();">
-          <menuitem label="&selectAddressCmd.label;" accesskey="&selectAddressCmd.accesskey;" command="cmd_selectAddress"/>
-          <menuitem label="&checkSpellingCmd2.label;" id="menu_checkspelling" accesskey="&checkSpellingCmd2.accesskey;" key="key_checkspelling" command="cmd_spelling"/>
-          <menuitem label="&enableInlineSpellChecker.label;" id="menu_inlineSpellCheck"
-                    accesskey="&enableInlineSpellChecker.accesskey;" type="checkbox"
-                    oncommand="EnableInlineSpellCheck(!InlineSpellCheckerUI.enabled);"/>
-          <menuitem label="&quoteCmd.label;" accesskey="&quoteCmd.accesskey;" command="cmd_quoteMessage"/>
-          <menuseparator/>
-          <menuitem id="returnReceiptMenu" type="checkbox" label="&returnReceiptMenu.label;" accesskey="&returnReceiptMenu.accesskey;" checked="false" oncommand="ToggleReturnReceipt(event.target)"/>
-          <menu id="outputFormatMenu" label="&outputFormatMenu.label;" accesskey="&outputFormatMenu.accesskey;" command="cmd_outputFormat">
-            <menupopup id="outputFormatMenuPopup">
-              <menuitem type="radio" name="output_format" label="&autoFormatCmd.label;" accesskey="&autoFormatCmd.accesskey;" id="format_auto" checked="true"/>
-              <menuitem type="radio" name="output_format" label="&plainTextFormatCmd.label;" accesskey="&plainTextFormatCmd.accesskey;" id="format_plain"/>
-              <menuitem type="radio" name="output_format" label="&htmlFormatCmd.label;" accesskey="&htmlFormatCmd.accesskey;" id="format_html"/>
-              <menuitem type="radio" name="output_format" label="&bothFormatCmd.label;" accesskey="&bothFormatCmd.accesskey;" id="format_both"/>
-            </menupopup>
-          </menu>
-          <menu id="priorityMenu" label="&priorityMenu.label;" accesskey="&priorityMenu.accesskey;" oncommand="PriorityMenuSelect(event.target);">
-            <menupopup id="priorityMenuPopup" onpopupshowing="updatePriorityMenu(this);">
-              <menuitem type="radio" name="priority" label="&highestPriorityCmd.label;" accesskey="&highestPriorityCmd.accesskey;" value="Highest"/>
-              <menuitem type="radio" name="priority" label="&highPriorityCmd.label;" accesskey="&highPriorityCmd.accesskey;" value="High"/>
-              <menuitem type="radio" name="priority" label="&normalPriorityCmd.label;" accesskey="&normalPriorityCmd.accesskey;" value="Normal"/>
-              <menuitem type="radio" name="priority" label="&lowPriorityCmd.label;" accesskey="&lowPriorityCmd.accesskey;" value="Low"/>
-              <menuitem type="radio" name="priority" label="&lowestPriorityCmd.label;" accesskey="&lowestPriorityCmd.accesskey;" value="Lowest"/>
-            </menupopup>
-          </menu>
-          <menu id="maileditCharsetMenu" />
-          <menu id="fccMenu" label="&fileCarbonCopyCmd.label;"
-             accesskey="&fileCarbonCopyCmd.accesskey;"
-             sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-             sortDirection="ascending"
-             datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
-             ref="msgaccounts:/"
-             oncommand="MessageFcc(event.target);">
-            <menupopup id="fccMenuPopup"/>
-            <template>
-              <rule nc:CanFileMessages="true" iscontainer="true" isempty="false">
-                <menupopup>
-                  <!--menuitem label="[current selection]" disabled="true"/>
-                  <menuseparator/-->
-                  <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-                        SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-                        BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-                        IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                        IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                        ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
+                        label="&returnReceiptMenu.label;"
+                        accesskey="&returnReceiptMenu.accesskey;"
+                        checked="false"
+                        oncommand="ToggleReturnReceipt(event.target)"/>
+              <menu id="outputFormatMenu"
+                    label="&outputFormatMenu.label;"
+                    accesskey="&outputFormatMenu.accesskey;"
+                    command="cmd_outputFormat">
+                <menupopup id="outputFormatMenuPopup">
+                  <menuitem id="format_auto"  type="radio" name="output_format" label="&autoFormatCmd.label;"      accesskey="&autoFormatCmd.accesskey;" checked="true"/>
+                  <menuitem id="format_plain" type="radio" name="output_format" label="&plainTextFormatCmd.label;" accesskey="&plainTextFormatCmd.accesskey;"/>
+                  <menuitem id="format_html"  type="radio" name="output_format" label="&htmlFormatCmd.label;"      accesskey="&htmlFormatCmd.accesskey;"/>
+                  <menuitem id="format_both"  type="radio" name="output_format" label="&bothFormatCmd.label;"      accesskey="&bothFormatCmd.accesskey;"/>
+                </menupopup>
+              </menu>
+              <menu id="priorityMenu"
+                    label="&priorityMenu.label;"
+                    accesskey="&priorityMenu.accesskey;"
+                    oncommand="PriorityMenuSelect(event.target);">
+                <menupopup id="priorityMenuPopup"
+                           onpopupshowing="updatePriorityMenu(this);">
+                  <menuitem id="priority_highest" type="radio" name="priority" label="&highestPriorityCmd.label;" accesskey="&highestPriorityCmd.accesskey;" value="Highest"/>
+                  <menuitem id="priority_high"    type="radio" name="priority" label="&highPriorityCmd.label;"    accesskey="&highPriorityCmd.accesskey;"    value="High"/>
+                  <menuitem id="priority_normal"  type="radio" name="priority" label="&normalPriorityCmd.label;"  accesskey="&normalPriorityCmd.accesskey;"  value="Normal"/>
+                  <menuitem id="priority_low"     type="radio" name="priority" label="&lowPriorityCmd.label;"     accesskey="&lowPriorityCmd.accesskey;"     value="Low"/>
+                  <menuitem id="priority_lowest"  type="radio" name="priority" label="&lowestPriorityCmd.label;"  accesskey="&lowestPriorityCmd.accesskey;"  value="Lowest"/>
+                </menupopup>
+              </menu>
+              <menu id="maileditCharsetMenu" />
+              <menu id="fccMenu"
+                    label="&fileCarbonCopyCmd.label;"
+                    accesskey="&fileCarbonCopyCmd.accesskey;"
+                    sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+                    sortDirection="ascending"
+                    datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+                    ref="msgaccounts:/"
+                    oncommand="MessageFcc(event.target);">
+                <menupopup id="fccMenuPopup"/>
+                <template>
+                  <rule nc:CanFileMessages="true" iscontainer="true" isempty="false">
                     <menupopup>
-                      <menuitem label="&fileHereMenu.label;" fccUri="rdf:*"/>
-                      <menuseparator/>
-                    </menupopup>
-                  </menu>
-                </menupopup>
-              </rule>
-              <rule nc:CanFileMessagesOnServer="false"/>
-              <rule nc:CanFileMessages="false" iscontainer="true" isempty="false">
-                <menupopup>
-                  <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-                        SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-                        BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-                        IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                        IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                        ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
-                    <menupopup/>
-                  </menu>
-                </menupopup>
-              </rule>
-              <rule nc:CanFileMessages="true">
-                <menupopup>
-                  <menuitem uri="..." class="folderMenuItem menuitem-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
+                      <!--menuitem label="[current selection]" disabled="true"/>
+                      <menuseparator/-->
+                      <menu uri="..."
+                            class="folderMenuItem menu-iconic"
+                            label="rdf:http://home.netscape.com/NC-rdf#Name"
                             SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
                             BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
                             IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
                             IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                            ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
-                            fccUri="rdf:*"/>
-                </menupopup>
-              </rule>
-            </template>
+                            ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
+                        <menupopup>
+                          <menuitem label="&fileHereMenu.label;"
+                                    fccUri="rdf:*"/>
+                          <menuseparator/>
+                        </menupopup>
+                      </menu>
+                    </menupopup>
+                  </rule>
+                  <rule nc:CanFileMessagesOnServer="false"/>
+                  <rule nc:CanFileMessages="false" iscontainer="true" isempty="false">
+                    <menupopup>
+                      <menu uri="..."
+                            class="folderMenuItem menu-iconic"
+                            label="rdf:http://home.netscape.com/NC-rdf#Name"
+                            SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                            BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                            IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                            IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                            ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
+                        <menupopup/>
+                      </menu>
+                    </menupopup>
+                  </rule>
+                  <rule nc:CanFileMessages="true">
+                    <menupopup>
+                      <menuitem uri="..."
+                                class="folderMenuItem menuitem-iconic"
+                                label="rdf:http://home.netscape.com/NC-rdf#Name"
+                                SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                                BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                                IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                                IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                                ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                                fccUri="rdf:*"/>
+                    </menupopup>
+                  </rule>
+                </template>
+              </menu>
+
+            </menupopup>
           </menu>
-
-        </menupopup>
-      </menu>
-      <menu id="tasksMenu"/>
-      <menu id="windowMenu"/>
-      <menu id="menu_Help"/>
-    </menubar>
-
-    <toolbar class="toolbar-primary chromeclass-toolbar" id="composeToolbar" persist="collapsed" grippytooltiptext="&mailToolbar.tooltip;">
-       <toolbarbutton class="toolbarbutton-1"
-               id="button-send" label="&sendButton.label;"
-               tooltiptext="&sendButton.tooltip;"
-               command="cmd_sendButton"
-               now_label="&sendButton.label;"
-               now_tooltiptext="&sendButton.tooltip;"
-               later_label="&sendLaterCmd.label;"
-               later_tooltiptext="&sendlaterButton.tooltip;">
-        <observes element="Communicator:WorkMode" attribute="offline"/>
-       </toolbarbutton>
-       <toolbarseparator class="toolbarseparator-primary"/>
-       <toolbarbutton class="toolbarbutton-1"
-               id="button-address" label="&addressButton.label;"
-               tooltiptext="&addressButton.tooltip;"
-               command="cmd_selectAddress"/>
-       <toolbarbutton class="toolbarbutton-1" type="menu-button"
-               id="button-attach" label="&attachButton.label;"
-               tooltiptext="&attachButton.tooltip;"
-               command="cmd_attachFile">
-         <menupopup id="button-attachPopup">
-           <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;" command="cmd_attachFile"/>
-           <menuitem label="&attachPageCmd.label;" accesskey="&attachPageCmd.accesskey;" command="cmd_attachPage"/>
-           <menuseparator/>
-           <menuitem type="checkbox" label="&attachVCardCmd.label;" accesskey="&attachVCardCmd.accesskey;" command="cmd_attachVCard"/>
-         </menupopup>
-       </toolbarbutton>
-       <toolbarbutton class="toolbarbutton-1" type="menu-button"
-               id="spellingButton" label="&spellingButton.label;"
-               command="cmd_spelling">
-         <!-- this popup gets dynamically generated -->
-         <menupopup id="languageMenuList" oncommand="ChangeLanguage(event);"
-                    onpopupshowing="OnShowDictionaryMenu(event.target);"/>
-       </toolbarbutton>
-       <toolbarseparator id="saveSeparator" class="toolbarseparator-primary"/>
-       <toolbarbutton class="toolbarbutton-1" type="menu-button"
-               id="button-save" label="&saveButton.label;"
-               tooltiptext="&saveButton.tooltip;"
-               command="cmd_saveDefault">
-         <menupopup id="button-savePopup">
-           <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;" command="cmd_saveAsFile"/>
-           <menuseparator/>
-           <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;" command="cmd_saveAsDraft"/>
-           <menuitem label="&saveAsTemplateCmd.label;" accesskey="&saveAsTemplateCmd.accesskey;" command="cmd_saveAsTemplate"/>
-         </menupopup>
-       </toolbarbutton>
-       <spacer flex="1"/>
-       <hbox id="throbber-box" align="center">
-         <button id="navigator-throbber"
-               oncommand="goClickThrobber('compose.throbber.url')" tooltiptext="&throbber.tooltip;">
-           <observes element="broadcaster_throbber" attribute="busy"/>
-         </button>
-       </hbox>
+          <menu id="tasksMenu"/>
+          <menu id="windowMenu"/>
+          <menu id="menu_Help"/>
+        </menubar>
+      </toolbaritem>
     </toolbar>
+
+    <toolbar id="composeToolbar"
+             class="toolbar-primary chromeclass-toolbar"
+             persist="collapsed"
+             grippytooltiptext="&mailToolbar.tooltip;"
+             toolbarname="&showComposeToolbarCmd.label;"
+             accesskey="&showComposeToolbarCmd.accesskey;"
+             customizable="true"
+             defaultset="button-send,separator,button-address,button-attach,spellingButton,button-security,separator,button-save,spring,throbber-box"
+             togglemenuitem="menu_showComposeToolbar"
+             context="toolbar-context-menu">
+    </toolbar>
+
+    <toolbarset id="customToolbars" context="toolbar-context-menu"/>
 
     <toolbar id="MsgHeadersToolbar"
              persist="collapsed"
@@ -475,10 +561,13 @@
              grippytooltiptext="&addressBar.tooltip;"
              nowindowdrag="true">
       <hbox id="msgheaderstoolbar-box" flex="1">
-        <vbox flex="1" id="addresses-box">
+        <vbox id="addresses-box" flex="1">
           <hbox align="center">
             <label value="&fromAddr.label;" accesskey="&fromAddr.accesskey;" control="msgIdentity"/>
-            <menulist id="msgIdentity" type="description" flex="1" oncommand="LoadIdentity(false);">
+            <menulist id="msgIdentity"
+                      type="description"
+                      flex="1"
+                      oncommand="LoadIdentity(false);">
               <menupopup id="msgIdentityPopup"/>
             </menulist>
           </hbox>
@@ -494,9 +583,13 @@
         <vbox id="attachments-box">
           <label id="attachmentBucketText" value="&attachments.label;" crop="right"
                  accesskey="&attachments.accesskey;" control="attachmentBucket"/>
-          <listbox seltype="multiple" id="attachmentBucket" flex="1" rows="4"
+          <listbox id="attachmentBucket"
+                   seltype="multiple"
+                   flex="1"
+                   rows="4"
                    style="-moz-user-focus: none;"
                    context="msgComposeAttachmentContext"
+                   disableoncustomize="true"
                    onkeypress="if (event.keyCode == 8 || event.keyCode == 46) RemoveSelectedAttachment();"
                    onclick="AttachmentBucketClicked(event);"
                    ondragover="nsDragAndDrop.dragOver(event, attachmentBucketObserver);"
@@ -514,7 +607,8 @@
              nowindowdrag="true">
       <menulist id="ParagraphSelect"/>
       <menulist id="FontFaceSelect"/>
-      <stack id="ColorButtons"/>
+      <stack id="ColorButtons"
+             disableoncustomize="true"/>
       <toolbarbutton id="DecreaseFontSizeButton"/>
       <toolbarbutton id="IncreaseFontSizeButton"/>
       <toolbarseparator class="toolbarseparator-standard"/>
@@ -532,6 +626,95 @@
       <toolbarbutton id="smileButtonMenu" padwithspace="true"/>
       <spacer flex="1"/>
     </toolbar>
+
+    <toolbarpalette id="MsgComposeToolbarPalette">
+      <toolbarbutton id="button-send"
+                     class="toolbarbutton-1"
+                     label="&sendButton.label;"
+                     tooltiptext="&sendButton.tooltip;"
+                     now_label="&sendButton.label;"
+                     now_tooltiptext="&sendButton.tooltip;"
+                     later_label="&sendLaterCmd.label;"
+                     later_tooltiptext="&sendlaterButton.tooltip;"
+                     command="cmd_sendButton">
+       <observes element="Communicator:WorkMode"
+                 attribute="offline"/>
+      </toolbarbutton>
+
+      <toolbarbutton id="button-address"
+                     class="toolbarbutton-1"
+                     label="&addressButton.label;"
+                     tooltiptext="&addressButton.tooltip;"
+                     command="cmd_selectAddress"/>
+
+      <toolbarbutton id="button-attach"
+                     type="menu-button"
+                     class="toolbarbutton-1"
+                     label="&attachButton.label;"
+                     tooltiptext="&attachButton.tooltip;"
+                     command="cmd_attachFile">
+        <menupopup id="button-attachPopup">
+          <menuitem id="button-attachFile"
+                    label="&attachFileCmd.label;"
+                    accesskey="&attachFileCmd.accesskey;"
+                    command="cmd_attachFile"/>
+          <menuitem id="button-attachPage"
+                    label="&attachPageCmd.label;"
+                    accesskey="&attachPageCmd.accesskey;"
+                    command="cmd_attachPage"/>
+          <menuseparator id="buttonAttachAfterPageSeparator"/>
+          <menuitem id="button-attachVCard"
+                    type="checkbox"
+                    label="&attachVCardCmd.label;"
+                    accesskey="&attachVCardCmd.accesskey;"
+                    command="cmd_attachVCard"/>
+        </menupopup>
+      </toolbarbutton>
+
+      <toolbarbutton id="spellingButton"
+                     type="menu-button"
+                     class="toolbarbutton-1"
+                     label="&spellingButton.label;"
+                     command="cmd_spelling">
+        <!-- this popup gets dynamically generated -->
+        <menupopup id="languageMenuList"
+                   oncommand="ChangeLanguage(event);"
+                   onpopupshowing="OnShowDictionaryMenu(event.target);"/>
+      </toolbarbutton>
+
+      <toolbarbutton id="button-save"
+                     type="menu-button"
+                     class="toolbarbutton-1"
+                     label="&saveButton.label;"
+                     tooltiptext="&saveButton.tooltip;"
+                     command="cmd_saveDefault">
+        <menupopup id="button-savePopup">
+          <menuitem id="button-saveAsFile"
+                    label="&saveAsFileCmd.label;"
+                    accesskey="&saveAsFileCmd.accesskey;"
+                    command="cmd_saveAsFile"/>
+          <menuseparator id="buttonSaveAfterFileSeparator"/>
+          <menuitem id="button-saveAsDraft"
+                    label="&saveAsDraftCmd.label;"
+                    accesskey="&saveAsDraftCmd.accesskey;"
+                    command="cmd_saveAsDraft"/>
+          <menuitem id="button-saveAsTemplate"
+                    label="&saveAsTemplateCmd.label;"
+                    accesskey="&saveAsTemplateCmd.accesskey;"
+                    command="cmd_saveAsTemplate"/>
+        </menupopup>
+      </toolbarbutton>
+
+      <toolbaritem id="throbber-box"
+                   align="center">
+          <button id="navigator-throbber"
+                  oncommand="goClickThrobber('compose.throbber.url')"
+                  tooltiptext="&throbber.tooltip;">
+            <observes element="broadcaster_throbber" attribute="busy"/>
+          </button>
+      </toolbaritem>
+    </toolbarpalette>
+
   </toolbox>
 
   <splitter id="compose-toolbar-sizer"
@@ -553,6 +736,8 @@
             context="msgComposeContext"/>
   </vbox>
 </hbox>
+
+  <panel id="customizeToolbarSheetPopup"/>
 
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="component-bar"/>

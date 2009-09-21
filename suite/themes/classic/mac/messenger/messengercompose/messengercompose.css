@@ -46,12 +46,9 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 /* ::::: primary toolbar buttons ::::: */
- 
-.toolbarbutton-1 {
-  list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
-}
 
 #button-send {
+  list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
   -moz-image-region: rect(330px 29px 359px 0);
 }
 
@@ -64,6 +61,7 @@
 }
 
 #button-address {
+  list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
   -moz-image-region: rect(270px 29px 299px 0);
 }
 
@@ -76,6 +74,7 @@
 }
 
 #button-attach {
+  list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
   -moz-image-region: rect(300px 29px 329px 0);
 }
 
@@ -114,6 +113,81 @@
 
 #button-save[disabled="true"] {
   -moz-image-region: rect(210px 89px 239px 60px) !important;
+}
+
+/* ::::: small primary toolbar buttons ::::: */
+
+toolbar[iconsize="small"] > #button-send,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-send {
+  list-style-image: url("chrome://messenger/skin/icons/messengericons-small.png");
+  -moz-image-region: rect(220px 19px 239px 0);
+}
+
+toolbar[iconsize="small"] > #button-send:hover:active {
+  -moz-image-region: rect(220px 39px 239px 20px);
+}
+
+toolbar[iconsize="small"] > #button-send[disabled="true"] {
+  -moz-image-region: rect(220px 59px 239px 40px) !important;
+}
+
+toolbar[iconsize="small"] > #button-address,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-address {
+  list-style-image: url("chrome://messenger/skin/icons/messengericons-small.png");
+  -moz-image-region: rect(180px 19px 199px 0);
+}
+
+toolbar[iconsize="small"] > #button-address:hover:active {
+  -moz-image-region: rect(180px 39px 199px 20px);
+}
+
+toolbar[iconsize="small"] > #button-address[disabled="true"] {
+  -moz-image-region: rect(180px 59px 199px 40px) !important;
+}
+
+toolbar[iconsize="small"] > #button-attach,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-attach {
+  list-style-image: url("chrome://messenger/skin/icons/messengericons-small.png");
+  -moz-image-region: rect(200px 19px 219px 0);
+}
+
+toolbar[iconsize="small"] > #button-attach:hover:active,
+toolbar[iconsize="small"] > #button-attach[open] {
+  -moz-image-region: rect(200px 39px 219px 20px);
+}
+
+toolbar[iconsize="small"] > #button-attach[disabled="true"] {
+  -moz-image-region: rect(200px 59px 219px 40px) !important;
+}
+
+toolbar[iconsize="small"] > #spellingButton,
+toolbar[iconsize="small"] > toolbarpaletteitem > #spellingButton {
+  list-style-image: url("chrome://editor/skin/icons/editoricons-small.png");
+  -moz-image-region: rect(160px 19px 179px 0);
+}
+
+toolbar[iconsize="small"] > #spellingButton:hover:active,
+toolbar[iconsize="small"] > #spellingButton[open] {
+  -moz-image-region: rect(160px 39px 179px 20px);
+}
+
+toolbar[iconsize="small"] > #spellingButton[disabled="true"] {
+  -moz-image-region: rect(160px 59px 179px 40px) !important;
+}
+
+toolbar[iconsize="small"] > #button-save,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-save {
+  list-style-image: url("chrome://editor/skin/icons/editoricons-small.png");
+  -moz-image-region: rect(140px 19px 159px 0);
+}
+
+toolbar[iconsize="small"] > #button-save:hover:active,
+toolbar[iconsize="small"] > #button-save[open] {
+  -moz-image-region: rect(140px 39px 159px 20px);
+}
+
+toolbar[iconsize="small"] > #button-save[disabled="true"] {
+  -moz-image-region: rect(140px 59px 159px 40px) !important;
 }
 
 #attachmentbucket-sizer {

@@ -233,6 +233,11 @@ var gComposeRecyclingListener = {
         document.getElementById("FormatToolbar").hidden = false;
     }
 
+    //Reset the Customize Toolbars panel/sheet if open.
+    if (getMailToolbox().customizing && gCustomizeSheet)
+      document.getElementById("customizeToolbarSheetIFrame")
+              .contentWindow.finishToolbarCustomization();
+
     // Stop InlineSpellCheckerUI so personal dictionary is saved
     EnableInlineSpellCheck(false);
     // clear any suggestions in the context menu
@@ -1516,6 +1521,12 @@ function ComposeLoad()
   window.tryToClose=ComposeCanClose;
   if (gLogComposePerformance)
     sMsgComposeService.TimeStamp("Done with the initialization (ComposeLoad). Waiting on editor to load about:blank", false);
+
+  // Before and after callbacks for the customizeToolbar code
+  var mailToolbox = getMailToolbox();
+  mailToolbox.customizeInit = MailToolboxCustomizeInit;
+  mailToolbox.customizeDone = MailToolboxCustomizeDone;
+  mailToolbox.customizeChange = MailToolboxCustomizeChange;
 }
 
 function ComposeUnload()
@@ -3221,10 +3232,7 @@ function GetMsgHeadersToolbarElement()
 function IsMsgHeadersToolbarCollapsed()
 {
   var element = GetMsgHeadersToolbarElement();
-  if(element)
-    return(element.getAttribute('moz-collapsed') == "true");
-
-  return(0);
+  return element && element.collapsed;
 }
 
 function WhichElementHasFocus()
@@ -3377,4 +3385,35 @@ function EnableInlineSpellCheck(aEnableInlineSpellCheck)
 {
   InlineSpellCheckerUI.enabled = aEnableInlineSpellCheck;
   document.getElementById('msgSubject').setAttribute('spellcheck', aEnableInlineSpellCheck);
+}
+
+function getMailToolbox()
+{
+  return document.getElementById("compose-toolbox");
+}
+
+function MailToolboxCustomizeInit()
+{
+  if (document.commandDispatcher.focusedWindow == content)
+    window.focus();
+  disableEditableFields();
+  document.getElementById("MsgHeadersToolbar").setAttribute("moz-collapsed", true);
+  document.getElementById("compose-toolbar-sizer").setAttribute("moz-collapsed", true);
+  document.getElementById("content-frame").setAttribute("moz-collapsed", true);
+  toolboxCustomizeInit("mail-menubar");
+}
+
+function MailToolboxCustomizeDone(aToolboxChanged)
+{
+  toolboxCustomizeDone("mail-menubar", getMailToolbox(), aToolboxChanged);
+  document.getElementById("MsgHeadersToolbar").removeAttribute("moz-collapsed");
+  document.getElementById("compose-toolbar-sizer").removeAttribute("moz-collapsed");
+  document.getElementById("content-frame").removeAttribute("moz-collapsed");
+  enableEditableFields();
+  SetMsgBodyFrameFocus();
+}
+
+function MailToolboxCustomizeChange(aEvent)
+{
+  toolboxCustomizeChange(getMailToolbox(), aEvent);
 }

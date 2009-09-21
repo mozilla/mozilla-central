@@ -52,11 +52,8 @@
 
 /* ::::: primary toolbar buttons ::::: */
 
-.toolbarbutton-1 {
-  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
-}
-
 #button-send {
+  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
   -moz-image-region: rect(374px 49px 407px 0);
 }
 
@@ -73,6 +70,7 @@
 } 
 
 #button-address {
+  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
   -moz-image-region: rect(306px 49px 339px 0);
 }
 
@@ -89,6 +87,7 @@
 } 
 
 #button-attach {
+  list-style-image: url("chrome://messenger/skin/icons/btn1.gif");
   -moz-image-region: rect(340px 49px 373px 0);
 }
 

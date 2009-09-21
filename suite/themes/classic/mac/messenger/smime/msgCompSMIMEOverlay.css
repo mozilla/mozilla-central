@@ -55,6 +55,21 @@
   -moz-image-region: rect(0 89px 29px 60px) !important;
 }
 
+toolbar[iconsize="small"] > #button-security,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-security {
+  list-style-image: url("chrome://messenger/skin/smime/icons/smimeicons-small.png");
+  -moz-image-region: rect(0 19px 19px 0px);
+}
+
+toolbar[iconsize="small"] > #button-security:hover:active,
+toolbar[iconsize="small"] > #button-security[open] {
+  -moz-image-region: rect(0 39px 19px 20px);
+}
+
+toolbar[iconsize="small"] > #button-security[disabled] {
+  -moz-image-region: rect(0 59px 19px 40px) !important;
+}
+
 #msgcomposeWindow #signing-status {
   list-style-image: none;
   visibility: collapse;
