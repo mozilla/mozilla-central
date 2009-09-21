@@ -258,8 +258,13 @@
                   var tabmail = this.parentNode.parentNode.parentNode;
                   return tabmail.onTabContextMenuShowing(document.popupNode);">
             <xul:menuitem label="&closeTabCmd.label;" accesskey="&closeTabCmd.accesskey;"
+                          anonid="closeTab"
                           oncommand="var tabmail = this.parentNode.parentNode.parentNode.parentNode;
                                      tabmail.removeTabByNode(document.popupNode);"/>
+            <xul:menuitem label="&closeOtherTabsCmd.label;" accesskey="&closeOtherTabsCmd.accesskey;"
+                          anonid="closeOtherTabs"
+                          oncommand="var tabmail = this.parentNode.parentNode.parentNode.parentNode;
+                                     tabmail.closeOtherTabs(document.popupNode);"/>
           </xul:menupopup>
           <xul:tabs class="tabmail-tabs" flex="1"
                     anonid="tabcontainer"
@@ -646,6 +651,24 @@
           ]]>
         </body>
       </method>
+      <method name="closeOtherTabs">
+        <parameter name="aTabNode"/>
+        <body>
+          <![CDATA[
+            /**
+             * Given a tabNode (or tabby thing), close all of the other tabs
+             *  that are closeable.
+             */
+            let [iTab, thisTab, tabNode] = this._getTabContextForTabbyThing(
+                                           aTabNode, false);
+            for (var i = 0; i < this.tabInfo.length; i++) {
+              let tab = this.tabInfo[i];
+              if ((tab != thisTab) && tab.canClose)
+                this.closeTab(tab)
+            }
+          ]]>
+        </body>
+      </method>
       <method name="persistTabs">
         <body><![CDATA[
           /**
@@ -950,18 +973,27 @@
         <parameter name="aTabNode"/>
         <body>
           <![CDATA[
-            // To determine whether the 'Close Tab' context menu should be
-            // visible according to the tab node that was being clicked on.
-            // If the tab node is not closable, the context menu should not
-            // be shown.
+            // this happens when the user did not actually-click on a tab but
+            // instead on the strip behind it.
             if (aTabNode.localName != "tab")
               return false;
 
-            for (let iTab = 0; iTab < this.tabContainer.childNodes.length; iTab++) {
-              if (this.tabContainer.childNodes[iTab] == aTabNode)
-                return this.tabInfo[iTab].canClose;
-            }
-            return false;
+            // If there is only one tab, then then "close all tabs" menu item
+            // should not be enabled
+            let otherTabs = document.getAnonymousElementByAttribute(this,
+              "anonid", "closeOtherTabs");
+            otherTabs.setAttribute("disabled",
+              (this.tabContainer.childNodes.length == 1) ? "true" : "false")
+
+            let closeTabItem = document.getAnonymousElementByAttribute(this,
+              "anonid", "closeTab");
+
+            // If the tab node is not closable, the "Close Tab" item should not
+            // be enabled.
+            let [iTab, tab, tabNode] =
+              this._getTabContextForTabbyThing(aTabNode, true);
+            closeTabItem.setAttribute("disabled", tab.canClose ? "false" : "true");
+            return true;
           ]]>
         </body>
       </method>

@@ -7,6 +7,8 @@
 <!ENTITY newFolderCmd.accesskey "F">
 <!ENTITY closeTabCmd.label "Close Tab">
 <!ENTITY closeTabCmd.accesskey "e">
+<!ENTITY closeOtherTabsCmd.label "Close Other Tabs">
+<!ENTITY closeOtherTabsCmd.accesskey "L">
 <!ENTITY newVirtualFolderCmd.label "Saved Search…">
 <!ENTITY newVirtualFolderCmd.accesskey "S">
 <!ENTITY newOtherAccountsCmd.label "Other Accounts…">
