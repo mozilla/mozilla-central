@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -23,7 +23,8 @@
 #
 # Contributor(s):
 #   David Drinan <ddrinan@netscape.com>
-#   Scott MacGregor <mscott@netscape.com
+#   Scott MacGregor <mscott@netscape.com>
+#   Magnus Melin <mkmelin+mozilla@iki.fi>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,7 +40,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-<?xml-stylesheet href="chrome://messenger/skin/smime/msgCompSMIMEOverlay.css" type="text/css"?> 
+<?xml-stylesheet href="chrome://messenger/skin/smime/msgCompSMIMEOverlay.css" type="text/css"?>
 
 <!DOCTYPE overlay SYSTEM "chrome://messenger-smime/locale/msgCompSMIMEOverlay.dtd">
 
@@ -55,33 +56,42 @@
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   </window>
 
-  <menupopup id="optionsMenuPopup">
-    <menuseparator insertafter="fccMenu"/>
-    <menu label="&securityMenu.label;" accesskey="&securityMenu.accesskey;">
-      <menupopup onpopupshowing="setSecuritySettings(1)">
-        <menuitem id="menu_securityNoEncryption1" type="radio" name="encryptmessage" 
-          accesskey="&menu_securityNoEncryption.accesskey;" label="&menu_securityNoEncryption.label;" oncommand="noEncryption()"/>
-        <menuitem id="menu_securityEncryptRequire1" type="radio" name="encryptmessage" 
-          accesskey="&menu_securityEncryptRequire.accesskey;" label="&menu_securityEncryptRequire.label;" oncommand="encryptMessage()"/>
-        <menuseparator/>
-        <menuitem id="menu_securitySign1" type="checkbox" accesskey="&menu_securitySign.accesskey;" label="&menu_securitySign.label;" oncommand="signMessage()"/>
-      </menupopup>
-    </menu>
+  <menupopup id="optionsMenuPopup"
+             onpopupshowing="setSecuritySettings(1);">
+    <menuseparator id="smimeOptionsSeparator"/>
+
+    <menuitem id="menu_securityEncryptRequire1"
+              type="checkbox"
+              label="&menu_securityEncryptRequire.label;"
+              accesskey="&menu_securityEncryptRequire.accesskey;"
+              oncommand="toggleEncryptMessage();"/>
+    <menuitem id="menu_securitySign1"
+              type="checkbox"
+              label="&menu_securitySign.label;"
+              accesskey="&menu_securitySign.accesskey;"
+              oncommand="toggleSignMessage();"/>
   </menupopup>
 
   <toolbarpalette id="MsgComposeToolbarPalette">
     <toolbarbutton id="button-security" type="menu-button" insertbefore="button-save"
                    oncommand="doSecurityButton();" class="toolbarbutton-1"
                    label="&securityButton.label;" tooltiptext="&securityButton.tooltip;">
-      <menupopup onpopupshowing="setSecuritySettings(2)">
-        <menuitem id="menu_securityNoEncryption2" type="radio" name="encryptmessage" 
-          accesskey="&menu_securityNoEncryption.accesskey;" label="&menu_securityNoEncryption.label;" oncommand="setNextCommand('noEncryption');"/>
-        <menuitem id="menu_securityEncryptRequire2" type="radio" name="encryptmessage" 
-          accesskey="&menu_securityEncryptRequire.accesskey;" label="&menu_securityEncryptRequire.label;" oncommand="setNextCommand('encryptMessage')"/>
-        <menuseparator/>
-        <menuitem id="menu_securitySign2" type="checkbox" accesskey="&menu_securitySign.accesskey;" label="&menu_securitySign.label;" oncommand="setNextCommand('signMessage');"/>
-        <menuseparator/>
-        <menuitem id="menu_securityStatus2" accesskey="&menu_securityStatus.accesskey;" label="&menu_securityStatus.label;" oncommand="setNextCommand('show');"/>
+      <menupopup onpopupshowing="setSecuritySettings(2);">
+        <menuitem id="menu_securityEncryptRequire2"
+                  type="checkbox"
+                  label="&menu_securityEncryptRequire.label;"
+                  accesskey="&menu_securityEncryptRequire.accesskey;"
+                  oncommand="setNextCommand('encryptMessage');"/>
+        <menuitem id="menu_securitySign2"
+                  type="checkbox"
+                  label="&menu_securitySign.label;"
+                  accesskey="&menu_securitySign.accesskey;"
+                  oncommand="setNextCommand('signMessage');"/>
+        <menuseparator id="smimeToolbarButtonSeparator"/>
+        <menuitem id="menu_securityStatus2"
+                  label="&menu_securityStatus.label;"
+                  accesskey="&menu_securityStatus.accesskey;"
+                  oncommand="setNextCommand('show');"/>
       </menupopup>
     </toolbarbutton>
   </toolbarpalette>

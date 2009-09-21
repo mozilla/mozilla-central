@@ -22,6 +22,7 @@
  * Contributor(s):
  *   ddrinan@netscape.com
  *   Scott MacGregor <mscott@netscape.com>
+ *   Magnus Melin <mkmelin+mozilla@iki.fi>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,10 +38,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const gISMimeCompFields = Components.interfaces.nsIMsgSMIMECompFields;
-const gSMimeCompFieldsContractID = "@mozilla.org/messenger-smime/composefields;1";
-const gSMimeContractID = "@mozilla.org/messenger-smime/smimejshelper;1";
-const gISMimeJSHelper = Components.interfaces.nsISMimeJSHelper;
 var gNextSecurityButtonCommand = "";
 var gBundle;
 var gBrandBundle;
@@ -67,7 +64,8 @@ function onComposerReOpen()
 
   gMsgCompose.compFields.securityInfo = null;
 
-  gSMFields = Components.classes[gSMimeCompFieldsContractID].createInstance(gISMimeCompFields);
+  gSMFields = Components.classes["@mozilla.org/messenger-smime/composefields;1"]
+                        .createInstance(Components.interfaces.nsIMsgSMIMECompFields);
   if (gSMFields)
   {
     gMsgCompose.compFields.securityInfo = gSMFields;
@@ -184,35 +182,34 @@ function showNeedSetupInfo()
   }
 }
 
-function noEncryption()
+function toggleEncryptMessage()
 {
   if (!gSMFields)
     return;
 
-  gSMFields.requireEncryptMessage = false;
-  setNoEncryptionUI();
-}
+  // toggle
+  gSMFields.requireEncryptMessage = !gSMFields.requireEncryptMessage;
 
-function encryptMessage()
-{
-  if (!gSMFields)
-    return;
-  
-  var encryptionCertName = gCurrentIdentity.getUnicharAttribute("encryption_cert_name");
-  if (!encryptionCertName) 
+  if (gSMFields.requireEncryptMessage)
   {
-    gSMFields.requireEncryptMessage = false;
-    setNoEncryptionUI();
-    showNeedSetupInfo();
-    return;
+    // Make sure we have a cert.
+    var encryptionCertName = gCurrentIdentity.getUnicharAttribute("encryption_cert_name");
+    if (!encryptionCertName)
+    {
+      gSMFields.requireEncryptMessage = false;
+      setNoEncryptionUI();
+      showNeedSetupInfo();
+      return;
+    }
   }
-
-  gSMFields.requireEncryptMessage = true;
-  setEncryptionUI();
+  else
+  {
+    setNoEncryptionUI();
+  }
 }
 
-function signMessage()
-{ 
+function toggleSignMessage()
+{
   if (!gSMFields)
     return;
 
@@ -238,13 +235,14 @@ function signMessage()
 }
 
 function setSecuritySettings(menu_id)
-{ 
+{
   if (!gSMFields)
     return;
 
-  document.getElementById("menu_securityEncryptRequire" + menu_id).setAttribute("checked", gSMFields.requireEncryptMessage);
-  document.getElementById("menu_securityNoEncryption" + menu_id).setAttribute("checked", !gSMFields.requireEncryptMessage);
-  document.getElementById("menu_securitySign" + menu_id).setAttribute("checked", gSMFields.signMessage);
+  document.getElementById("menu_securityEncryptRequire" + menu_id)
+          .setAttribute("checked", gSMFields.requireEncryptMessage);
+  document.getElementById("menu_securitySign" + menu_id)
+          .setAttribute("checked", gSMFields.signMessage);
 }
 
 function setNextCommand(what)
@@ -259,18 +257,14 @@ function doSecurityButton()
 
   switch (what)
   {
-    case "noEncryption":
-      noEncryption();
-      break;
-    
     case "encryptMessage":
-      encryptMessage();
+      toggleEncryptMessage();
       break;
-    
+
     case "signMessage":
-      signMessage();
+      toggleSignMessage();
       break;
-    
+
     case "show":
     default:
       showMessageComposeSecurityStatus();
@@ -359,7 +353,8 @@ function onComposerSendMessage()
       return;
     }
 
-    var helper = Components.classes[gSMimeContractID].createInstance(gISMimeJSHelper);
+    var helper = Components.classes["@mozilla.org/messenger-smime/smimejshelper;1"]
+                           .createInstance(Components.interfaces.nsISMimeJSHelper);
     helper.getNoCertAddresses(
       gMsgCompose.compFields,
       missingCount,
@@ -425,7 +420,7 @@ function onComposerFromChanged()
   if (gSMFields.signMessage)
   {
     var signMessage = gCurrentIdentity.getBoolAttribute("sign_mail");
-    
+
     if (!signMessage)
     {
       gSMFields.signMessage = false;
