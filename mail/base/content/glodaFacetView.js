@@ -369,6 +369,12 @@ var FacetContext = {
     return this._dateSortedItems;
   },
 
+  set fullSet(val) {
+    if (this._sortBy == '-dascore')
+      this._relevantSortedItems = val;
+    this._dateSortedItems = val;
+  },
+
   initialBuild: function() {
     let queryExplanation = document.getElementById("query-explanation");
     if (this.searcher)
@@ -394,10 +400,33 @@ var FacetContext = {
         this._relevantSortedItems = Gloda.scoreNounItems(this._dateSortedItems);
         this._activeSet = this._dateSortedItems;
       }
+      this._removeDupes();
       this.build(this.fullSet);
     } catch (e) {
       logException(e);
     }
+  },
+
+  /**
+   * Remove duplicate messages from search results.
+   *
+   * Some IMAP servers (here's looking at you, Gmail) will create message
+   * duplicates unbeknownst to the user.  We'd like to deal with them earlier
+   * in the pipeline, but that's a bit hard right now.  So as a workaround
+   * we'd rather not show them in the Search Results UI.  The simplest way
+   * of doing that is just to cull (from the display) messages with have the
+   * Message-ID of a message already displayed.
+   */
+  _removeDupes: function() {
+    let deduped = [];
+    let msgIdsSeen = {};
+    for each (let [, item] in Iterator(this.fullSet)) {
+      if (item.headerMessageID in msgIdsSeen)
+        continue;
+      deduped.push(item);
+      msgIdsSeen[item.headerMessageID] = true;
+    }
+    this.fullSet = deduped;
   },
 
   /**
