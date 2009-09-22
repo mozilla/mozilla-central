@@ -118,10 +118,10 @@ var smimeHeaderSink =
       gEncryptedUINode.setAttribute("encrypted", "notok");
       gStatusBar.setAttribute("encrypted", "notok");
     }
-    
+
     if (gEncryptedURIService)
     {
-      gMyLastEncryptedURI = GetLoadedMessage();
+      gMyLastEncryptedURI = gFolderDisplay.selectedMessageUris[0];
       gEncryptedURIService.rememberEncrypted(gMyLastEncryptedURI);
     }
 
