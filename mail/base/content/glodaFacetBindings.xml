@@ -1086,21 +1086,24 @@
         // -- Count
         let countNode = document.getAnonymousElementByAttribute(
                           this, "anonid", "count");
-        let messagesPlural = glodaFacetStrings.get(
-          "glodaFacetView.results.message.countLabelMessagePlurals");
-        let countLabel = glodaFacetStrings.get(
-          "glodaFacetView.results.message.countLabel");
-        // display set
-        countLabel = countLabel.replace("#1",
-          aMessages.length.toLocaleString());
-        countLabel = countLabel.replace("#2",
-          PluralForm.get(aMessages.length, messagesPlural));
-        // active set
-        countLabel = countLabel.replace("#3",
-          FacetContext.activeSet.length.toLocaleString());
-        countLabel = countLabel.replace("#4",
-          PluralForm.get(FacetContext.activeSet.length, messagesPlural));
-        countNode.textContent = countLabel;
+        let topMessagesPluralFormat = glodaFacetStrings.get(
+          "glodaFacetView.results.message.countLabel.topMessages");
+        let outOfPluralFormat = glodaFacetStrings.get(
+          "glodaFacetView.results.message.countLabel.outOf");
+        let groupingFormat = glodaFacetStrings.get(
+          "glodaFacetView.results.message.countLabel.grouping");
+
+        let displayCount = aMessages.length;
+        let totalCount = FacetContext.activeSet.length;
+        let topMessagesStr = PluralForm.get(displayCount,
+                                            topMessagesPluralFormat)
+                                       .replace("#1",
+                                                displayCount.toLocaleString());
+        let outOfStr = PluralForm.get(totalCount,
+                                      outOfPluralFormat)
+                                 .replace("#1", totalCount.toLocaleString());
+        countNode.textContent = groupingFormat.replace("#1", topMessagesStr)
+                                              .replace("#2", outOfStr);
 
         // -- Show All
         let showNode = document.getAnonymousElementByAttribute(
