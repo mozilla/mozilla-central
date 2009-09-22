@@ -47,16 +47,32 @@
            extends="chrome://global/content/bindings/popup.xml#popup">
     <implementation>
       <constructor><![CDATA[
-        // If we are a child of a menulist, we need to build our content right
-        // away, otherwise the menulist won't have proper sizing
-        if (this.parentNode && this.parentNode.localName == "menulist")
+        // If we are a child of a menulist, and we aren't in a wrapper, we
+        // need to build our content right away, otherwise the menulist
+        // won't have proper sizing.
+        let inWrapper = false;
+        let node = this;
+        while (node) {
+          if (/wrapper-.*/.test(node.id)) {
+            inWrapper = true;
+            break;
+          }
+          node = node.parentNode;
+        }
+        if (this.parentNode && this.parentNode.localName == "menulist" &&
+            !inWrapper)
           this._ensureInitialized();
+
+        // But if we're in a wrapper, remove our children, because we're
+        // getting re-created when the toolbar customization closes.
+        if (inWrapper)
+          this._teardown();
       ]]></constructor>
       <!-- 
          - Make sure we remove our listener when the window is being destroyed
         -->
       <destructor><![CDATA[
-        if (!this.hasAttribute("_initialized"))
+        if (!this._initialized)
           return;
 
         const Cc = Components.classes;
@@ -71,11 +87,10 @@
          - populate this menu.  If this is null, the menu will be populated
          - using the root-folders for all accounts
         -->
+      <field name="_parentFolder">null</field>
       <property name="parentFolder"
-                onget="return this.hasAttribute('_parentFolder')
-                       ? GetMsgFolderFromUri(this.getAttribute('_parentFolder'))
-                       : null;"
-                onset="return this.setAttribute('_parentFolder', val.URI);"/>
+                onget="return this._parentFolder;"
+                onset="return this._parentFolder = val;"/>
 
       <!--
          - Various filtering modes can be used with this menu-binding.  To use
@@ -220,7 +235,7 @@
          *              menuitem for that child
          */
         _getChildForItem: function act__itemIsChild(aItem) {
-          if (!this._menu || !this._menu.hasAttribute("_initialized"))
+          if (!this._menu || !this._menu._initialized)
             return null;
 
            if (!(aItem instanceof Components.interfaces.nsIMsgFolder))
@@ -235,10 +250,10 @@
       })]]></field>
 
       <!-- 
-         - We also have an "_initialized" attribute, which is true if we
-         - have already built our menu-items and are now just listening for
-         - changes
+         - True if we have already built our menu-items and are now just
+         - listening for changes
         -->
+      <field name="_initialized">false</field>
 
       <!--
          - Call this if you are unsure whether the menu-items have been built,
@@ -246,7 +261,7 @@
         -->
       <method name="_ensureInitialized">
         <body><![CDATA[
-          if (this.hasAttribute("_initialized"))
+          if (this._initialized)
             return;
 
           // I really wish they'd just make this global...
@@ -258,7 +273,7 @@
           // Figure out which folders to build.  If we don't have a parent, then
           // we assume we should build the top-level accounts.  (Actually we
           // build the fake root folders for those accounts.)
-          if (!this.hasAttribute("_parentFolder")) {
+          if (!this._parentFolder) {
             var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"].
                           getService(Ci.nsIMsgAccountManager);
             var count = acctMgr.accounts.Count();
@@ -312,7 +327,7 @@
           } else {
             // If we do have a parent folder, then we just build based on those
             // subFolders for that parent
-            var myenum = GetMsgFolderFromUri(this.getAttribute("_parentFolder")).subFolders;
+            var myenum = this._parentFolder.subFolders;
             while (myenum.hasMoreElements()) {
               folders.push(myenum.getNext().QueryInterface(Ci.nsIMsgFolder));
             }
@@ -326,7 +341,7 @@
                         getService(Ci.nsIMsgMailSession);
           session.AddFolderListener(this._listener, Ci.nsIFolderListener.all);
 
-          this.setAttribute("_initialized", true);
+          this._initialized = true;
         ]]></body>
       </method>
 
@@ -365,28 +380,25 @@
              label or if the attribute does not exist the name of the parent
              folder instead.
           */
-          let parentFolder = null;
-          if (this.hasAttribute("_parentFolder"))
-            parentFolder = GetMsgFolderFromUri(this.getAttribute("_parentFolder"));
-          if (parentFolder && (!mode ||
+          if (this._parentFolder && (!mode ||
               (this.getAttribute("showFileHereLabel") == "true" &&
-               (parentFolder.noSelect ||
-                parentFolder.canFileMessages || mode == "newFolder")))) {
+               (this._parentFolder.noSelect ||
+                this._parentFolder.canFileMessages || mode == "newFolder")))) {
             var menuitem = document.createElement("menuitem");
-            menuitem._folder = parentFolder;
+            menuitem._folder = this._parentFolder;
             if (this.hasAttribute("fileHereLabel")) {
               menuitem.setAttribute("label", this.getAttribute("fileHereLabel"));
               menuitem.setAttribute("accesskey", this.getAttribute("fileHereAccessKey"));
             } else {
-              menuitem.setAttribute("label", parentFolder.prettyName);
+              menuitem.setAttribute("label", this._parentFolder.prettyName);
               menuitem.setAttribute("class", "folderMenuItem menuitem-iconic");
-              this._setCssSelectors(parentFolder, menuitem);
+              this._setCssSelectors(this._parentFolder, menuitem);
             }
             // Eww. have to support some legacy code here...
-            menuitem.setAttribute("id", parentFolder.URI);
+            menuitem.setAttribute("id", this._parentFolder.URI);
             this.appendChild(menuitem);
 
-            if (parentFolder.noSelect)
+            if (this._parentFolder.noSelect)
               menuitem.setAttribute("disabled", "true");
 
             this.appendChild(document.createElement("menuseparator"));
@@ -394,9 +406,8 @@
 
           // Some menus want a "Recent" option, but that should only be on our
           // top-level menu
-          if (!parentFolder && this.getAttribute("showRecent") == "true") {
+          if (!this._parentFolder && this.getAttribute("showRecent") == "true")
             this._buildRecentMenu();
-          }
 
           /**
            * Sorts the list of folders. We give first priority to the sortKey
@@ -415,7 +426,7 @@
            * folders belong.  Since that sorting was already done, we don't need
            * to do anything for that case here
            */
-          if (parentFolder)
+          if (this._parentFolder)
             folders = folders.sort(nameCompare);
 
           /* In some cases, the user wants to have a list of subfolders for only
@@ -472,8 +483,16 @@
               this.appendChild(node);
 
               // Create the submenu
-              var popup = this.cloneNode(true);
-              popup._teardown();
+              var popup = document.createElement(this.localName);
+              popup._parentFolder = folder;
+              popup.setAttribute("class", this.getAttribute("class"));
+              popup.setAttribute("type", this.getAttribute("type"));
+              popup.setAttribute("fileHereLabel",
+                                 this.getAttribute("fileHereLabel"));
+              popup.setAttribute("showFileHereLabel",
+                                 this.getAttribute("showFileHereLabel"));
+              popup.setAttribute("oncommand",
+                                 this.getAttribute("oncommand"));
 
               // If there are labels, add the labels now
               if (labels) {
@@ -485,7 +504,6 @@
               }
 
               node.appendChild(popup);
-              popup.parentFolder = folder;
             }
             node._folder = folder;
             node.setAttribute("label", folder.prettyName);
@@ -698,9 +716,7 @@
       <!--
          - Removes all menu-items for this popup, resets all fields, and
          - removes the listener.  This function is invoked when a change
-         - that affects this menu is detected by our listener, or during
-         - initialization of cloned children to reset them to their
-         - initial state.
+         - that affects this menu is detected by our listener.
         -->
       <method name="_teardown">
         <body><![CDATA[
@@ -711,7 +727,7 @@
             this.removeChild(child);
           }
 
-          if (this.hasAttribute("_initialized")) {
+          if (this._initialized) {
             const Cc = Components.classes;
             const Ci = Components.interfaces;
             var session = Cc["@mozilla.org/messenger/services/session;1"].
@@ -720,7 +736,7 @@
           }
 
           this._folders = null;
-          this.removeAttribute("_initialized");
+          this._initialized = false;
         ]]></body>
       </method>
     </implementation>
