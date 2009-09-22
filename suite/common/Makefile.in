@@ -65,6 +65,6 @@ CHROME_DEPS += $(abs_srcdir)/app-license.html
 DEFINES += -DAPP_EULA_BLOCK=$(abs_srcdir)/app-license.html
 
 # once we support the shell service, define this for supported platforms
-#ifneq (,$(filter windows gtk2 mac cocoa, $(MOZ_WIDGET_TOOLKIT)))
+#ifneq (,$(filter windows gtk2 cocoa,$(MOZ_WIDGET_TOOLKIT)))
 #DEFINES += -DHAVE_SHELL_SERVICE=1
 #endif

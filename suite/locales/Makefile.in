@@ -281,7 +281,7 @@ $(STAGEDIST): AB_CD:=en-US
 $(STAGEDIST): UNPACKAGE=$(ZIP_IN)
 $(STAGEDIST): $(ZIP_IN)
 # only mac needs to remove the parent of STAGEDIST...
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 	if test -d $(DIST)/l10n-stage; then \
 	  $(RM) -r -v $(DIST)/l10n-stage; \
 	fi
@@ -343,7 +343,7 @@ ifdef MOZ_MAKE_COMPLETE_MAR
 endif
 # packaging done, undo l10n stuff
 ifneq (en,$(AB))
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj
 endif
 endif
