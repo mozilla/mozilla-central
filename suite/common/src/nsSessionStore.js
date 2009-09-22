@@ -470,7 +470,7 @@ SessionStoreService.prototype = {
         // Nothing to restore, notify observers things are complete.
         var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                         .getService(Components.interfaces.nsIObserverService);
-        observerService.notifyObservers(null, NOTIFY_WINDOWS_RESTORED, "");
+        observerService.notifyObservers(aWindow, NOTIFY_WINDOWS_RESTORED, "");
 
         // the next delayed save request should execute immediately
         this._lastSaveTime -= this._interval;
@@ -2556,7 +2556,8 @@ SessionStoreService.prototype = {
         // This was the last window restored at startup, notify observers.
         var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                         .getService(Components.interfaces.nsIObserverService);
-        observerService.notifyObservers(null, NOTIFY_WINDOWS_RESTORED, "");
+        observerService.notifyObservers(this.windowToFocus,
+                                        NOTIFY_WINDOWS_RESTORED, "");
       }
     }
   },

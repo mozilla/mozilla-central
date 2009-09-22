@@ -294,6 +294,7 @@ bin\components\GPSDGeolocationProvider.js
 #endif
 bin\components\jsconsole-clhandler.js
 bin\components\NetworkGeolocationProvider.js
+bin\components\aboutRights.js
 bin\components\nsAboutAbout.js
 bin\components\nsAboutCertError.js
 bin\components\nsAboutFeeds.js

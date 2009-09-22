@@ -50,6 +50,7 @@ endif
 
 EXTRA_COMPONENTS = \
 	nsAboutAbout.js \
+	nsAboutRights.js \
 	nsBrowserContentHandler.js \
 	nsTypeAheadFind.js \
 	$(NULL)
@@ -62,5 +63,9 @@ DEFINES += -DMOZ_APP_NAME="$(MOZ_APP_NAME)" \
            -DMOZ_APP_DISPLAYNAME="$(MOZ_APP_DISPLAYNAME)" \
            -DMOZ_APP_VERSION="$(MOZ_APP_VERSION)" \
            $(NULL)
+
+ifneq (,$(BUILD_OFFICIAL)$(MOZILLA_OFFICIAL))
+DEFINES += -DOFFICIAL_BUILD=1
+endif
 
 include $(topsrcdir)/config/rules.mk

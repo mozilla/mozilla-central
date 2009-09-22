@@ -73,6 +73,9 @@ SuiteGlue.prototype = {
         this._promptForMasterPassword();
         this._checkForNewAddons();
         break;
+      case "sessionstore-windows-restored":
+        this._onBrowserStartup(subject);
+        break;
       case "browser:purge-session-history":
         // reset the console service's error buffer
         const cs = Components.classes["@mozilla.org/consoleservice;1"]
@@ -117,6 +120,7 @@ SuiteGlue.prototype = {
                            .getService(Components.interfaces.nsIObserverService);
     osvr.addObserver(this, "xpcom-shutdown", false);
     osvr.addObserver(this, "final-ui-startup", false);
+    osvr.addObserver(this, "sessionstore-windows-restored", false);
     osvr.addObserver(this, "browser:purge-session-history", false);
     osvr.addObserver(this, "quit-application-requested", false);
     osvr.addObserver(this, "quit-application-granted", false);
@@ -140,6 +144,7 @@ SuiteGlue.prototype = {
                            .getService(Components.interfaces.nsIObserverService);
     osvr.removeObserver(this, "xpcom-shutdown");
     osvr.removeObserver(this, "final-ui-startup");
+    osvr.removeObserver(this, "sessionstore-windows-restored");
     osvr.removeObserver(this, "browser:purge-session-history");
     osvr.removeObserver(this, "quit-application-requested");
     osvr.removeObserver(this, "quit-application-granted");
@@ -166,6 +171,14 @@ SuiteGlue.prototype = {
     }
 
     // once we support a safe mode popup, it should be called here
+  },
+
+  // Browser startup complete. All initial windows have opened.
+  _onBrowserStartup: function(aWindow)
+  {
+    // Show about:rights notification, if needed.
+    if (this._shouldShowRights())
+      this._showRightsNotification(aWindow);
   },
 
   // profile shutdown handler (contains profile cleanup routines)
@@ -361,6 +374,77 @@ SuiteGlue.prototype = {
         this._sound.beep();
       }
     }
+  },
+
+  /*
+   * _shouldShowRights - Determines if the user should be shown the
+   * about:rights notification. The notification should *not* be shown if
+   * we've already shown the current version, or if the override pref says to
+   * never show it. The notification *should* be shown if it's never been seen
+   * before, if a newer version is available, or if the override pref says to
+   * always show it.
+   */
+  _shouldShowRights: function () {
+    // Look for an unconditional override pref. If set, do what it says.
+    // (true --> never show, false --> always show)
+    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                               .getService(Components.interfaces.nsIPrefBranch);
+    try {
+      return !prefBranch.getBoolPref("browser.rights.override");
+    } catch (e) { }
+    // Ditto, for the legacy EULA pref (tinderbox testing profile sets this).
+    try {
+      return !prefBranch.getBoolPref("browser.EULA.override");
+    } catch (e) { }
+
+    // Look to see if the user has seen the current version or not.
+    var currentVersion = prefBranch.getIntPref("browser.rights.version");
+    try {
+      return !prefBranch.getBoolPref("browser.rights." + currentVersion + ".shown");
+    } catch (e) { }
+
+    // We haven't shown the notification before, so do so now.
+    return true;
+  },
+
+  _showRightsNotification: function(aSubject) {
+    // Stick the notification onto the selected tab of the active browser window.
+    var browser = aSubject.getBrowser(); // for closure in notification bar callback
+    var notifyBox = browser.getNotificationBox();
+
+    const nsIStringBundleService = Components.interfaces.nsIStringBundleService;
+    var bundleService = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                                  .getService(nsIStringBundleService);
+    var brandBundle  = bundleService.createBundle("chrome://branding/locale/brand.properties");
+    var rightsBundle = bundleService.createBundle("chrome://branding/locale/aboutRights.properties");
+
+    var buttonLabel      = rightsBundle.GetStringFromName("buttonLabel");
+    var buttonAccessKey  = rightsBundle.GetStringFromName("buttonAccessKey");
+    var productName      = brandBundle.GetStringFromName("brandFullName");
+    var notifyRightsText = rightsBundle.formatStringFromName("notifyRightsText",
+                                                             [productName], 1);
+
+    var buttons = [
+                    {
+                      label:     buttonLabel,
+                      accessKey: buttonAccessKey,
+                      popup:     null,
+                      callback: function(aNotificationBar, aButton) {
+                        browser.selectedTab = browser.addTab("about:rights");
+                      }
+                    }
+                  ];
+
+    // Set pref to indicate we've shown the notficiation.
+    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                               .getService(Components.interfaces.nsIPrefBranch);
+    var currentVersion = prefBranch.getIntPref("browser.rights.version");
+    prefBranch.setBoolPref("browser.rights." + currentVersion + ".shown", true);
+
+    var box = notifyBox.appendNotification(notifyRightsText, "about-rights",
+                                           null, notifyBox.PRIORITY_INFO_LOW,
+                                           buttons);
+    box.persistence = 3; // arbitrary number, just so bar sticks around for a bit
   },
 
   _updatePrefs: function()

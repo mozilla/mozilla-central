@@ -605,3 +605,14 @@ pref("security.alternate_certificate_error_page", "certerror");
 
 // FAQ URLs
 pref("browser.geolocation.warning.infoURL", "http://www.seamonkey-project.org/doc/2.0/geolocation");
+
+pref("browser.rights.version", 1);
+pref("browser.rights.1.shown", false);
+
+#ifdef DEBUG
+// Don't show the about:rights notification in debug builds.
+pref("browser.rights.override", true);
+#elifndef OFFICIAL_BUILD
+// Don't show the about:rights notification in non-official builds.
+pref("browser.rights.override", true);
+#endif
