@@ -155,7 +155,7 @@ function nsMsgStatusFeedback()
   this._statusText = document.getElementById("statusText");
   this._progressBar = document.getElementById("statusbar-icon");
   this._progressBarContainer = document.getElementById("statusbar-progresspanel");
-  this._throbber = document.getElementById("navigator-throbber");
+  this._throbber = document.getElementById("throbber-box");
   this._stopCmd = document.getElementById("cmd_stop");
   this._activeProcesses = new Array();
 }

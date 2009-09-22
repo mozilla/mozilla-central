@@ -1744,11 +1744,9 @@
                    label="&addressBookButton.label;"
                    oncommand="toAddressBook();"
                    tooltiptext="&addressBookButton.tooltip;"/>
-    <toolbaritem id="throbber-box"
-                 title="&throbberItem.title;"
-                 align="center"
-                 pack="center">
-      <button id="navigator-throbber" disabled="true" mousethrough="always"/>
+    <toolbaritem id="throbber-box" title="&throbberItem.title;" align="center" pack="center"
+                 mousethrough="always">
+       <image/>
     </toolbaritem>
     <toolbarbutton id="button-stop"
                    class="toolbarbutton-1"
