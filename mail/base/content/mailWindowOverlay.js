@@ -1326,7 +1326,11 @@ BatchMessageMover.prototype = {
         archiveFolderUri =  srcFolder.server.serverURI + "/Archives";
       }
       else {
-        identity = getIdentityForHeader(msgs[0]);
+        identity = getIdentityForServer(srcFolder.server);
+        // Local Folders server doesn't have an identity, so if we don't
+        // get an identity from the server, figure it out from the message.
+        if (!identity)
+          identity = getIdentityForHeader(msgs[0]);
         archiveFolderUri = identity.archiveFolder;
       }
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
