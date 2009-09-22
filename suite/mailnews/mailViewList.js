@@ -26,6 +26,7 @@
  *   Stefan Borggraefe <borggraefe@despammed.com>
  *   Gervase Markham <gerv@gerv.net>
  *   Karsten Düsterloh <mnyromyr@tprac.de>
+ *   Jens Hatlak <jh@junetz.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -42,54 +43,115 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-var gMailListView; 
-var gListBox; 
+var gMailListView;
+var gListBox;
 var gEditButton;
 var gDeleteButton;
-
-function mailViewListOnLoad()
+var gMailViewListController =
 {
-  gMailListView = Components.classes["@mozilla.org/messenger/mailviewlist;1"].getService(Components.interfaces.nsIMsgMailViewList);; 
+  supportsCommand: function(aCommand)
+  {
+    switch (aCommand)
+    {
+      case "cmd_new":
+      case "cmd_edit":
+      case "cmd_delete":
+        return true;
+    }
+    return false;
+  },
+
+  isCommandEnabled: function(aCommand)
+  {
+    switch (aCommand)
+    {
+      case "cmd_new":
+        return true;
+      case "cmd_edit":
+      case "cmd_delete":
+        return gListBox.selectedIndex >= 0;
+    }
+    return false;
+  },
+
+  doCommand: function(aCommand)
+  {
+    switch (aCommand)
+    {
+      case "cmd_new":
+        OnNewMailView();
+        break;
+      case "cmd_edit":
+        OnEditMailView();
+        break;
+      case "cmd_delete":
+        OnDeleteMailView();
+        break;
+    }
+  },
+
+  onEvent: function(aEvent) {},
+
+  onCommandUpdate: function()
+  {
+    for each (let command in ["cmd_new", "cmd_edit", "cmd_delete"])
+      goUpdateCommand(command);
+  }
+};
+
+function MailViewListOnLoad()
+{
+  gMailListView = Components.classes["@mozilla.org/messenger/mailviewlist;1"]
+                            .getService(Components.interfaces.nsIMsgMailViewList);
   gListBox = document.getElementById('mailViewList');
 
+  window.controllers.insertControllerAt(0, gMailViewListController);
+
   // Construct list view based on current mail view list data
-  refreshListView(null);
+  RefreshListView(null);
   gEditButton = document.getElementById('editButton');
   gDeleteButton = document.getElementById('deleteButton');
-
-  updateButtons();
 }
 
-function refreshListView(aSelectedMailView)
+function MailViewListOnUnload()
+{
+  window.controllers.removeController(gMailViewListController);
+}
+
+function RefreshListView(aSelectedMailView)
 {
   // remove any existing items in the view...
-  for (var index = gListBox.getRowCount(); index > 0; index--)
+  for (let index = gListBox.getRowCount(); index > 0; index--)
     gListBox.removeChild(gListBox.getItemAtIndex(index - 1));
 
   var numItems = gMailListView.mailViewCount;
-  var mailView; 
-  for (index = 0; index < numItems; index++)
+  for (let index = 0; index < numItems; index++)
   {
-    mailView = gMailListView.getMailViewAt(index);
+    let mailView = gMailListView.getMailViewAt(index);
     gListBox.appendItem(mailView.prettyName, index);
-    if (aSelectedMailView && (mailView.prettyName == aSelectedMailView.prettyName) )
+    if (aSelectedMailView && (mailView.prettyName == aSelectedMailView.prettyName))
       gListBox.selectedIndex = index;
   }
 }
 
-function onNewMailView()
+function OnNewMailView()
 {
-   window.openDialog('chrome://messenger/content/mailViewSetup.xul', "", 'centerscreen,resizable,modal,titlebar,chrome', {onOkCallback: refreshListView});
+  window.openDialog('chrome://messenger/content/mailViewSetup.xul',
+                    '',
+                    'centerscreen,resizable,modal,titlebar,chrome',
+                    {onOkCallback: RefreshListView});
 }
 
-function onDeleteMailView()
-{  
-  var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].
-      getService(Components.interfaces.nsIStringBundleService);
+function OnDeleteMailView()
+{
+  var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                                   .getService(Components.interfaces.nsIStringBundleService);
   var bundle = strBundleService.createBundle("chrome://messenger/locale/messenger.properties");
 
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-  if (!promptService.confirm(window, bundle.GetStringFromName("confirmViewDeleteTitle"), bundle.GetStringFromName("confirmViewDeleteMessage")))
+  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                .getService(Components.interfaces.nsIPromptService);
+  if (!promptService.confirm(window, bundle.GetStringFromName("confirmViewDeleteTitle"),
+                             bundle.GetStringFromName("confirmViewDeleteMessage")))
     return;
 
   // get the selected index
@@ -114,30 +176,29 @@ function onDeleteMailView()
   }
 }
 
-function onEditMailView()
+function OnEditMailView()
 {
   // get the selected index
   var selectedIndex = gListBox.selectedIndex;
   if (selectedIndex >= 0)
   {
-    var selMailView = gMailListView.getMailViewAt(selectedIndex);
-    // open up the mail view setup dialog passing in the mail view as an argument....
-
-    var args = {mailView: selMailView, onOkCallback: refreshListView};
-
-    window.openDialog('chrome://messenger/content/mailViewSetup.xul', "", 'centerscreen,modal,resizable,titlebar,chrome', args);
+    let selMailView = gMailListView.getMailViewAt(selectedIndex);
+    // open up the mail view setup dialog passing in the mail view as an argument
+    let args = {mailView: selMailView, onOkCallback: RefreshListView};
+    window.openDialog('chrome://messenger/content/mailViewSetup.xul',
+                      '',
+                      'centerscreen,modal,resizable,titlebar,chrome',
+                      args);
   }
 }
 
-function onMailViewSelect(event)
+function OnMailViewSelect(aEvent)
 {
-  updateButtons();
+  gMailViewListController.onCommandUpdate();
 }
 
-function updateButtons()
+function OnMailViewDoubleClick(aEvent)
 {
-  var selectedIndex = gListBox.selectedIndex;
-  // "edit" and "delete" only enabled when one filter selected
-  gEditButton.disabled = selectedIndex < 0;
-  gDeleteButton.disabled = selectedIndex < 0;
+  if (aEvent.button == 0 && aEvent.target.selected)
+    OnEditMailView();
 }

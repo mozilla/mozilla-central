@@ -74,7 +74,7 @@
           ondialoghelp="return openHelp('mail-subscribe');"/>
 
   <dialog id="mailViewListDialog"
-          buttons="accept,help"
+          buttons="help"
           ondialoghelp="return openHelp('message-views-using');"/>
 
   <dialog id="mailViewSetupDialog"

@@ -30,6 +30,7 @@
     Stefan Borggraefe <Stefan.Borggraefe@gmx.de>
     Paul Tomlin <paul@wavebreaks.com>
     Karsten Düsterloh <mnyromyr@tprac.de>
+    Jens Hatlak <jh@junetz.de>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -45,7 +46,11 @@
 
  ***** END LICENSE BLOCK ***** -->
 
+<?xul-overlay href="chrome://communicator/content/platformCommunicatorOverlay.xul"?>
+
 <?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?>
+<!-- Mac needs dialog.css to correctly style the moved Help button -->
+<?xml-stylesheet href="chrome://global/skin/dialog.css" type="text/css"?>
 
 <!DOCTYPE dialog [
 <!ENTITY % mailViewLisDTD SYSTEM "chrome://messenger/locale/mailViewList.dtd">
@@ -56,18 +61,37 @@
 
 <dialog id="mailViewListDialog"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        onload="mailViewListOnLoad();"
+        onload="MailViewListOnLoad();"
+        onunload="MailViewListOnUnload();"
+        ondialogaccept="return false;"
         windowtype="mailnews:mailviewlist"
         title="&mailViewListTitle.label;"
         width="400" height="340"
-        buttons="accept"
+        buttons=","
         persist="screenX screenY width height">
 
   <script type="application/x-javascript" src="chrome://messenger/content/mailViewList.js"/>
+  <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
+
+  <commandset id="mailViewCommands">
+    <command id="cmd_new"    oncommand="goDoCommand('cmd_new');"/>
+    <command id="cmd_edit"   oncommand="goDoCommand('cmd_edit');"   disabled="true"/>
+    <command id="cmd_delete" oncommand="goDoCommand('cmd_delete');" disabled="true"/>
+  </commandset>
+
+  <keyset id="mailViewListKeys">
+    <key id="key_delete"/>
+    <key id="key_delete2"/>
+    <key id="key_open"  keycode="VK_ENTER"  command="cmd_edit"/>
+    <key id="key_open2" keycode="VK_RETURN" command="cmd_edit"/>
+  </keyset>
 
   <vbox flex="1">
     <hbox flex="1">
-      <listbox id="mailViewList" flex="1"  onselect="onMailViewSelect(event);">
+      <listbox id="mailViewList"
+               flex="1"
+               onselect="OnMailViewSelect(event);"
+               ondblclick="OnMailViewDoubleClick(event);">
         <listcols>
           <listcol flex="1" width="0"/>
         </listcols>
@@ -76,10 +100,23 @@
         </listhead>
       </listbox>
 
-      <vbox>
-       <button id="newButton" label="&newButton.label;" accesskey="&newButton.accesskey;" oncommand="onNewMailView();"/>
-       <button id="editButton" label="&editButton.label;" accesskey="&editButton.accesskey;" oncommand="onEditMailView();"/>
-       <button id="deleteButton" label="&deleteButton.label;" accesskey="&deleteButton.accesskey;" oncommand="onDeleteMailView();"/>
+      <vbox id="buttonCol">
+        <button id="newButton"
+                label="&newButton.label;"
+                accesskey="&newButton.accesskey;"
+                command="cmd_new"/>
+        <button id="editButton"
+                label="&editButton.label;"
+                accesskey="&editButton.accesskey;"
+                command="cmd_edit"/>
+        <button id="deleteButton"
+                label="&deleteButton.label;"
+                accesskey="&deleteButton.accesskey;"
+                command="cmd_delete"/>
+        <spacer flex="1"/>
+        <button id="helpButton"
+                dlgtype="help"
+                class="dialog-button"/>
       </vbox>
     </hbox>
   </vbox>
