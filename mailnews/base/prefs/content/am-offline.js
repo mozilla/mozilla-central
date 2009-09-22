@@ -198,7 +198,7 @@ function onAutosyncChange()
   // If the user selected the All option, disable the autosync and the
   // textbox.
   if (autosyncInterval.value == 0) {
-    autosyncPref.value = 0;
+    autosyncPref.value = -1;
     autosyncValue.disabled = true;
     return;
   }
