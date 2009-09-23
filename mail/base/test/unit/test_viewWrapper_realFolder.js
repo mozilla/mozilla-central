@@ -8,7 +8,7 @@ load("../../mailnews/resources/messageGenerator.js");
 load("../../mailnews/resources/messageModifier.js");
 load("../../mailnews/resources/asyncTestUtils.js");
 
-load("../../mailnews/resources/viewWrapperTestUtils.js");
+load("resources/viewWrapperTestUtils.js");
 initViewWrapperTestUtils();
 
 /* ===== Real Folder, no features ===== */
@@ -708,7 +708,7 @@ function test_real_folder_mark_read_on_exit() {
   let viewWrapper = make_view_wrapper();
   let folder = make_empty_folder();
   yield async_view_open(viewWrapper, folder);
-  
+
   // add some unread messages.
   let [setOne] = make_new_sets_in_folder(folder, 1);
   setOne.setRead(false);
@@ -716,7 +716,7 @@ function test_real_folder_mark_read_on_exit() {
   assert_equals(folder.getNumUnread(false), setOne.synMessages.length,
                 "all messages should have been added as unread");
   viewWrapper.close(false);
-  // verify that closing the view does the expected marking of the messages 
+  // verify that closing the view does the expected marking of the messages
   // as read.
   assert_equals(folder.getNumUnread(false), 0,
                 "messages should have been marked read on view close");

@@ -2,7 +2,7 @@ load("../../mailnews/resources/messageGenerator.js");
 load("../../mailnews/resources/messageModifier.js");
 load("../../mailnews/resources/asyncTestUtils.js");
 
-load("../../mailnews/resources/viewWrapperTestUtils.js");
+load("resources/viewWrapperTestUtils.js");
 initViewWrapperTestUtils();
 
 /**

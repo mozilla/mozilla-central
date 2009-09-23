@@ -47,6 +47,10 @@ EXTRA_JS_MODULES = \
   MailConsts.js \
   MailUtils.js \
   attachmentChecker.js \
+  dbViewWrapper.js \
+  mailViewManager.js \
+  quickSearchManager.js \
+  searchSpec.js \
   MsgHdrSyntheticView.js \
   $(NULL)
 

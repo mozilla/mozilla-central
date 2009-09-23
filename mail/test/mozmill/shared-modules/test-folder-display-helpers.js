@@ -116,7 +116,7 @@ function setupModule() {
   messageModifier = load_via_src_path(
     'mailnews/test/resources/messageModifier.js');
   viewWrapperTestUtils = load_via_src_path(
-    'mailnews/test/resources/viewWrapperTestUtils.js');
+    'mail/base/test/unit/resources/viewWrapperTestUtils.js');
   // desired global types...
   viewWrapperTestUtils.SyntheticMessageSet =
     messageModifier.SyntheticMessageSet;

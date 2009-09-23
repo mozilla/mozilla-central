@@ -180,10 +180,6 @@ EXTRA_COMPONENTS = \
 		$(NULL)
 
 EXTRA_JS_MODULES = \
-		dbViewWrapper.js \
-		mailViewManager.js \
-		quickSearchManager.js \
-		searchSpec.js \
 		virtualFolderWrapper.js \
 		$(NULL)
 
