@@ -612,10 +612,12 @@
                                                     this.orderedGroups,
                                                     this.maxDisplayRows);
           // setup the more button string
+          let groupCount = this.orderedGroups.length;
           this.moreButton.textContent =
-            glodaFacetStrings.get(
-                "glodaFacetView.facets.mode.top.moreLabel")
-              .replace("#1", this.orderedGroups.length.toLocaleString());
+            PluralForm.get(groupCount,
+                           glodaFacetStrings.get(
+                             "glodaFacetView.facets.mode.top.listAllLabel"))
+                      .replace("#1", groupCount);
         }
 
         // -- Row Building
@@ -1164,7 +1166,7 @@
         window.scrollTo(0, $(message).position()['top']);
       ]]></body>
     </method>
-      
+
     <method name="updateSortLabels">
       <body><![CDATA[
       try {
