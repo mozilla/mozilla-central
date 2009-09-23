@@ -180,6 +180,8 @@ function fillMailContextMenu(event)
   var canMove = msgFolder && msgFolder.canDeleteMessages;
   EnableMenuItem("mailContext-moveMenu", canMove && !onPlayableMedia);
 
+  ShowMenuItem("mailContext-archive", canMove);
+
   // Copy is available as long as something is selected.
   ShowMenuItem("mailContext-copyMenu",
                !hideMailItems && msgFolder && !onPlayableMedia);

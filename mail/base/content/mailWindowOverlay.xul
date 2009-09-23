@@ -558,6 +558,10 @@
               accesskey="&contextOpenNewTab.accesskey;"
               oncommand="OpenMessageInNewTab(event);"/>
     <menuseparator id="mailContext-sep-open2"/>
+    <menuitem id="mailContext-archive"
+              label="&contextArchive.label;"
+              accesskey="&contextArchive.accesskey;"
+              oncommand="MsgArchiveSelectedMessages(event);"/>
     <menuitem id="mailContext-replySender"
               label="&contextReplySender.label;"
               accesskey="&contextReplySender.accesskey;"
