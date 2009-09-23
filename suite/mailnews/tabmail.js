@@ -261,6 +261,7 @@ var gMailNewsTabsType =
       let folderResource = RDF.GetResource(aTabInfo.uriToOpen);
       if (folderResource instanceof Components.interfaces.nsIMsgFolder)
         aTabInfo.msgSelectedFolder = folderResource;
+      gCurrentFolderToReroot = null;
       delete aTabInfo.uriToOpen; // destroy after use!
       // restore our message data
       aTabInfo.hdr = msgHdr;
