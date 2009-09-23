@@ -45,8 +45,9 @@
 
 <!DOCTYPE window SYSTEM "chrome://communicator/locale/downloads/progressDialog.dtd">
 
-<window xmlns:html="http://www.w3.org/1999/xhtml"
+<window id="dlProgressWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
         onload="progressStartup();" onunload="progressShutdown();"
         title="&progress.title;"
         style="width:40em;">
@@ -146,7 +147,7 @@
     <button id="cancelButton" class="mini-button"
             command="cmd_cancel" tooltiptext="&cmd.cancel.tooltip;"/>
   </hbox>
-  <hbox>
+  <hbox id="progressBox">
     <progressmeter id="progressMeter" mode="determined" flex="1"/>
     <label id="progressText" value=""/>
   </hbox>

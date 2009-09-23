@@ -378,6 +378,7 @@
       <textbox id="search-box"
                clickSelectsAll="true"
                type="search"
+               class="compact"
                emptytext="&search.emptytext;"
                oncommand="searchDownloads(this.value);"/>
       <spacer flex="1"/>

@@ -18,6 +18,7 @@ classic.jar:
   skin/classic/communicator/bookmarks/bookmark-folder-active.png        (mac/communicator/bookmarks/bookmark-folder-active.png)
   skin/classic/communicator/bookmarks/bookmarksToolbar.css              (mac/communicator/bookmarks/bookmarksToolbar.css)
   skin/classic/communicator/downloads/downloadButtons.png               (mac/communicator/downloads/downloadButtons.png)
+  skin/classic/communicator/downloads/progressBg.png                    (mac/communicator/downloads/progressBg.png)
   skin/classic/communicator/downloads/downloadmanager.css               (mac/communicator/downloads/downloadmanager.css)
   skin/classic/communicator/sidebar/sidebar.css                         (mac/communicator/sidebar/sidebar.css)
   skin/classic/communicator/icons/communicatoricons.png                 (mac/communicator/icons/communicatoricons.png)

@@ -46,28 +46,28 @@
   -moz-appearance: none;
   -moz-box-orient: vertical;
   -moz-box-align: center;
-  font: menu;
   text-shadow: rgba(255, 255, 255, 0.4) 0 1px;
-  margin: 0;
-  padding: 3px 1px 3px 1px;
-  height: 24px;
+  padding: 0;
+  margin: 2px 4px 0 4px;
+  min-height: 20px;
+  min-width: 0;
   border: solid transparent;
   border-width: 0 6px;
-  -moz-border-image: url("chrome://global/skin/toolbar/roundrectbutton.png") 0 6 repeat stretch;
+  -moz-border-image: url("chrome://global/skin/toolbar/roundrectbutton.png") 0 6 round stretch;
 }
 
 #clearListButton:active:hover:not([disabled="true"]) {
-  -moz-border-image: url("chrome://global/skin/toolbar/roundrectbutton-down.png") 0 6 repeat stretch;
+  -moz-border-image: url("chrome://global/skin/toolbar/roundrectbutton-down.png") 0 6 round stretch;
 }
 
 #clearListButton[disabled="true"],
 :root:not([active]) #clearListButton {
   color: #7C7C7C !important; /* remove this when we support click-through */
-  -moz-border-image: url("chrome://global/skin/toolbar/roundrectbutton-inactive.png") 0 6 repeat stretch;
+  -moz-border-image: url("chrome://global/skin/toolbar/roundrectbutton-inactive.png") 0 6 round stretch;
 }
 
-#clearListButton > .button-icon {
-  margin: 0;
+treechildren::-moz-tree-image {
+  -moz-margin-start: -1px;
 }
 
 #ActionPlay {
@@ -115,7 +115,29 @@ treechildren::-moz-tree-image(ActionStop, inactive) {
   -moz-image-region: auto;
 }
 
+/* There's no way this will look like a native progressbar, but we can at least
+   try to mimic the aqua, graphite and non-active colors. */
+treechildren::-moz-tree-progressmeter {
+  background: url("chrome://communicator/skin/downloads/progressBg.png") repeat-x;
+  color: rgba(0, 115, 255, 0.5);
+  border: none;
+  padding-bottom: 1px;
+  margin-top: 3px;
+}
+
+treechildren:-moz-system-metric(mac-graphite-theme)::-moz-tree-progressmeter {
+  color: rgba(43, 71, 106, 0.5);
+}
+
+:root:not([active]) treechildren::-moz-tree-progressmeter {
+  color: rgba(0, 0, 0, 0.1);
+}
+
 /* progress dialogs */
+
+#dlProgressWindow {
+  padding: 14px;
+}
 
 /* focusable label, focus ring like .link-text but not a link */
 #fileName, #fileSource {
@@ -126,6 +148,7 @@ treechildren::-moz-tree-image(ActionStop, inactive) {
   -moz-margin-start: 5px;
   -moz-margin-end: 4px;
 }
+
 #fileName:focus,
 #fileSource:focus {
   border: 1px dotted -moz-DialogText;
@@ -133,6 +156,7 @@ treechildren::-moz-tree-image(ActionStop, inactive) {
 
 #fileName {
   font-weight: bold;
+  margin-bottom: 6px;
 }
 
 .mini-button {
@@ -148,4 +172,9 @@ treechildren::-moz-tree-image(ActionStop, inactive) {
 .mini-button > .button-box {
   -moz-appearance: none;
   padding: 0 !important;
+}
+
+#progressBox {
+  margin-top: 6px;
+  margin-bottom: 6px;
 }
