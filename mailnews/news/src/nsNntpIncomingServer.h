@@ -116,6 +116,11 @@ protected:
     nsCOMArray<nsINNTPProtocol> mConnectionCache;
     nsTArray<nsRefPtr<nsNntpMockChannel> > m_queuedChannels;
 
+    /**
+     * Downloads the newsgroup headers.
+     */
+    nsresult DownloadMail(nsIMsgWindow *aMsgWindow);
+
     NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
     nsresult SetupNewsrcSaveTimer();
     static void OnNewsrcSaveTimer(nsITimer *timer, void *voidIncomingServer);
@@ -145,7 +150,6 @@ private:
     nsresult AddGroupOnServer(const nsACString &name);
 
     PRBool mNewsrcHasChanged;
-    nsCOMPtr<nsISimpleEnumerator> mGroupsEnumerator;
     PRBool mHostInfoLoaded;
     PRBool mHostInfoHasChanged;
     nsCOMPtr <nsILocalFile> mHostInfoFile;

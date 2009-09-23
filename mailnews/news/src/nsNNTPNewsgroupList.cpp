@@ -130,7 +130,8 @@ nsNNTPNewsgroupList::Initialize(nsINntpUrl *runningURL, nsIMsgNewsFolder *newsFo
   m_runningURL = runningURL;
   m_knownArts.set = nsMsgKeySet::Create();
 
-  nsresult rv;
+  nsresult rv = m_newsFolder->GetDatabaseWithoutCache(getter_AddRefs(m_newsDB));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -294,9 +295,6 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
   nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   m_msgWindow = aMsgWindow;
-
-  if (!m_newsDB)
-    rv = folder->GetMsgDatabase(getter_AddRefs(m_newsDB));
 
   nsCOMPtr<nsINewsDatabase> db(do_QueryInterface(m_newsDB, &rv));
   NS_ENSURE_SUCCESS(rv,rv);
@@ -1276,7 +1274,11 @@ nsNNTPNewsgroupList::UpdateStatus(PRBool filtering, PRInt32 numDLed, PRInt32 tot
   nsAutoString totalToDownloadStr;
   totalToDownloadStr.AppendInt(totToDL);
 
-  nsresult rv;
+  nsAutoString newsgroupName;
+  nsresult rv = m_newsFolder->GetUnicodeName(newsgroupName);
+  if (!NS_SUCCEEDED(rv))
+      return;
+
   nsString statusString;
   nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
   if (!NS_SUCCEEDED(rv))
@@ -1290,17 +1292,17 @@ nsNNTPNewsgroupList::UpdateStatus(PRBool filtering, PRInt32 numDLed, PRInt32 tot
   if (filtering)
   {
     NS_ConvertUTF8toUTF16 header(m_filterHeaders[m_currentXHDRIndex]);
-    const PRUnichar *formatStrings[3] = { header.get(),
-      numDownloadedStr.get(), totalToDownloadStr.get() };
-    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingFilterHeaders").get(),
-      formatStrings, 3, getter_Copies(statusString));
+    const PRUnichar *formatStrings[4] = { header.get(),
+      numDownloadedStr.get(), totalToDownloadStr.get(), newsgroupName.get() };
+    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("newNewsgroupFilteringHeaders").get(),
+      formatStrings, 4, getter_Copies(statusString));
   }
   else
   {
-    const PRUnichar *formatStrings[2] = { numDownloadedStr.get(),
-      totalToDownloadStr.get() };
-    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingHeaders").get(),
-      formatStrings, 2, getter_Copies(statusString));
+    const PRUnichar *formatStrings[3] = { numDownloadedStr.get(),
+      totalToDownloadStr.get(), newsgroupName.get() };
+    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("newNewsgroupHeaders").get(),
+      formatStrings, 3, getter_Copies(statusString));
   }
   if (!NS_SUCCEEDED(rv))
     return;

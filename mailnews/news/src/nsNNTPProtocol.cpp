@@ -220,9 +220,6 @@ const char *const stateLabels[] = {
 "NNTP_SEND_POST_DATA",
 "NNTP_SEND_POST_DATA_RESPONSE",
 "NNTP_CHECK_FOR_MESSAGE",
-"NEWS_NEWS_RC_POST",
-"NEWS_DISPLAY_NEWS_RC",
-"NEWS_DISPLAY_NEWS_RC_RESPONSE",
 "NEWS_START_CANCEL",
 "NEWS_DO_CANCEL",
 "NNTP_XPAT_SEND",
@@ -254,7 +251,6 @@ const char *const stateLabels[] = {
 #define CANCEL_WANTED   2
 #define GROUP_WANTED    3
 #define NEWS_POST       4
-#define READ_NEWS_RC    5
 #define NEW_GROUPS      6
 #define SEARCH_WANTED   7
 #define PRETTY_NAMES_WANTED 8
@@ -551,10 +547,6 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   m_lastPossibleArticle = 0;
   m_numArticlesLoaded = 0;
   m_numArticlesWanted = 0;
-
-  m_newsRCListIndex = 0;
-  m_RCIndexToResumeAfterAuthRequest  = 0;
-  m_newsRCListCount = 0;
 
   PR_FREEIF(m_messageID);
 
@@ -1203,8 +1195,11 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
       }
     }
     else
+    {
       // news: or news://HOST
-      m_typeWanted = READ_NEWS_RC;
+      NS_ASSERTION(0, "Should not get here!");
+      rv = NS_ERROR_FAILURE;
+    }
 
     // if this connection comes from the cache, we need to initialize the
     // load group here, by generating the start request notification. nsMsgProtocol::OnStartRequest
@@ -1615,7 +1610,6 @@ PRInt32 nsNNTPProtocol::NewsResponse(nsIInputStream * inputStream, PRUint32 leng
     MK_NNTP_RESPONSE_AUTHINFO_SIMPLE_REQUIRE == m_responseCode)
   {
     m_nextState = NNTP_BEGIN_AUTHORIZE;
-    GotAuthorizationRequest();
   }
   else if (MK_NNTP_RESPONSE_PERMISSION_DENIED == m_responseCode)
   {
@@ -2029,18 +2023,6 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
     if(m_typeWanted == NEWS_POST)
     {  /* posting to the news group */
         NS_MsgSACopy(&command, "POST");
-    }
-    else if(m_typeWanted == READ_NEWS_RC)
-    {
-    /* extract post method from the url when we have it... */
-#ifdef HAVE_NEWS_URL
-    if(ce->URL_s->method == URL_POST_METHOD ||
-                PL_strchr(ce->URL_s->address, '?'))
-          m_nextState = NEWS_NEWS_RC_POST;
-    else
-#endif
-          m_nextState = NEWS_DISPLAY_NEWS_RC;
-    return(0);
     }
   else if (m_typeWanted == NEW_GROUPS)
   {
@@ -3570,9 +3552,13 @@ PRInt32 nsNNTPProtocol::ProcessXover()
   NS_ASSERTION(m_newsgroupList, "no newsgroupList");
   if (!m_newsgroupList) return -1;
 
+  // Some people may use the notifications in CallFilters to close the cached
+  // connections, which will clear m_newsgroupList. So we keep a copy for
+  // ourselves to ward off this threat.
+  nsCOMPtr<nsINNTPNewsgroupList> list(m_newsgroupList);
+  list->CallFilters();
   PRInt32 status = 0;
-  m_newsgroupList->CallFilters();
-  rv = m_newsgroupList->FinishXOVERLINE(0,&status);
+  rv = list->FinishXOVERLINE(0, &status);
   m_newsgroupList = nsnull;
   if (NS_SUCCEEDED(rv) && status < 0) return status;
 
@@ -3904,239 +3890,6 @@ PRInt32 nsNNTPProtocol::CheckForArticle()
      posting attempt (which is already in ce->URL_s->error_msg). */
   return MK_NNTP_ERROR_MESSAGE;
   }
-}
-
-#define NEWS_GROUP_DISPLAY_FREQ 1
-
-nsresult
-nsNNTPProtocol::SetCheckingForNewNewsStatus(PRInt32 current, PRInt32 total)
-{
-    nsresult rv;
-    nsString statusString;
-
-    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIStringBundle> bundle;
-    rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_nntpServer, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCString hostName;
-    rv = server->GetHostName(hostName);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsAutoString thisGroupStr;
-    thisGroupStr.AppendInt(current);
-
-    nsAutoString totalGroupStr;
-    totalGroupStr.AppendInt(total);
-
-    nsAutoString hostNameStr;
-    CopyASCIItoUTF16(hostName, hostNameStr);
-
-    const PRUnichar *formatStrings[] = { thisGroupStr.get(), totalGroupStr.get(), hostNameStr.get() };
-
-    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("checkingForNewNews").get(),
-                                                  formatStrings, 3,
-                                                  getter_Copies(statusString));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = SetProgressStatus(statusString.get());
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    SetProgressBarPercent(current, total);
-    return NS_OK;
-}
-
-PRInt32 nsNNTPProtocol::GetNextGroupNeedingCounts( nsISupports** pNextGroup, PRInt32* returnStatus )
-{
-
-  nsresult rv = m_nntpServer->GetFirstGroupNeedingCounts( pNextGroup );
-  if (NS_FAILED(rv)) {
-    ClearFlag(NNTP_NEWSRC_PERFORMED);
-    *returnStatus = -1;
-    return rv;
-  }
-  else if (!*pNextGroup) {
-    ClearFlag(NNTP_NEWSRC_PERFORMED);
-    m_nextState = NEWS_DONE;
-
-    if (m_newsRCListCount) {
-      // clear the status text.
-      rv = SetProgressStatus(EmptyString().get());
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      SetProgressBarPercent(0, PR_UINT32_MAX);
-      m_newsRCListCount = 0;
-      *returnStatus = 0;
-    }
-    else if (m_responseCode == MK_NNTP_RESPONSE_LIST_OK)  {
-    /*
-     * 5-9-96 jefft
-     * If for some reason the news server returns an empty
-     * newsgroups list with a nntp response code MK_NNTP_RESPONSE_LIST_OK -- list of
-     * newsgroups follows. We set status to MK_EMPTY_NEWS_LIST
-     * to end the infinite dialog loop.
-     */
-      *returnStatus = MK_EMPTY_NEWS_LIST;
-    }
-
-    if(*returnStatus > -1)
-      *returnStatus = MK_DATA_LOADED;
-
-    return NS_ERROR_FAILURE;
-  }
-
-  return NS_OK;
-}
-
-PRInt32 nsNNTPProtocol::DisplayNewsRC()
-{
-  PRInt32 status = 0;
-  nsresult rv;
-
-  if(!TestFlag(NNTP_NEWSRC_PERFORMED)) {
-    SetFlag(NNTP_NEWSRC_PERFORMED);
-    rv = m_nntpServer->GetNumGroupsNeedingCounts(&m_newsRCListCount);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-
-  nsCOMPtr <nsISupports> currChild;
-
-  PRInt32 groupsToAdvance = m_RCIndexToResumeAfterAuthRequest + 1;
-  m_RCIndexToResumeAfterAuthRequest = 0;
-  // if we entered this method with a m_RCIndexToResumeAfterAuthRequest > 0, then this is a
-  // re-incarnation: we already did a run before, but it was disrupted by
-  // an authorization request (see GotAuthorizationRequest)
-  while ( groupsToAdvance-- )
-    if ( NS_FAILED( GetNextGroupNeedingCounts( getter_AddRefs( currChild ), &status ) ) )
-      return status;
-
-    nsCOMPtr<nsIMsgFolder> currFolder = do_QueryInterface(currChild, &rv);
-    if (NS_FAILED(rv)) return -1;
-    if (!currFolder) return -1;
-
-    m_newsFolder = do_QueryInterface(currFolder, &rv);
-    if (NS_FAILED(rv)) return -1;
-    if (!m_newsFolder) return -1;
-
-    nsCString name;
-    rv = m_newsFolder->GetRawName(name);
-    if (NS_FAILED(rv) || name.IsEmpty()) return -1;
-
-    /* send group command to server */
-    char outputBuffer[OUTPUT_BUFFER_SIZE];
-
-    PR_snprintf(outputBuffer, OUTPUT_BUFFER_SIZE, "GROUP %.512s" CRLF, name.get());
-    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-    if (mailnewsurl) {
-      status = SendData(mailnewsurl, outputBuffer);
-    }
-
-    /* only update every NEWS_GROUP_DISPLAY_FREQ groups for speed */
-    if ((m_newsRCListCount >= NEWS_GROUP_DISPLAY_FREQ) && ((m_newsRCListIndex % NEWS_GROUP_DISPLAY_FREQ) == 0 || ((m_newsRCListIndex+1) == m_newsRCListCount))) {
-      rv = SetCheckingForNewNewsStatus(m_newsRCListIndex+1, m_newsRCListCount);
-      if (NS_FAILED(rv)) return -1;
-    }
-
-    m_newsRCListIndex++;
-
-    SetFlag(NNTP_PAUSE_FOR_READ);
-    m_nextState = NNTP_RESPONSE;
-    m_nextStateAfterResponse = NEWS_DISPLAY_NEWS_RC_RESPONSE;
-
-    return status; /* keep going */
-}
-
-/* Parses output of GROUP command */
-PRInt32 nsNNTPProtocol::DisplayNewsRCResponse()
-{
-  nsresult rv = NS_OK;
-  PRInt32 status = 0;
-  if(m_responseCode == MK_NNTP_RESPONSE_GROUP_SELECTED)
-  {
-    char *num_arts = 0, *low = 0, *high = 0, *group = 0;
-    PRInt32 first_art, last_art;
-
-    /* line looks like:
-    *     211 91 3693 3789 comp.infosystems
-    */
-
-    num_arts = m_responseText;
-    low = PL_strchr(num_arts, ' ');
-
-    if(low)
-    {
-      first_art = atol(low);
-      *low++ = '\0';
-      high= PL_strchr(low, ' ');
-    }
-    if(high)
-    {
-      *high++ = '\0';
-      group = PL_strchr(high, ' ');
-    }
-    if(group)
-    {
-      *group++ = '\0';
-      /* the group name may be contaminated by "group selected" at
-         the end.  This will be space separated from the group name.
-                           If a space is found in the group name terminate at that
-         point. */
-      strtok(group, " ");
-      last_art = atol(high);
-    }
-
-    // this might save us a GROUP command, if the user reads a message in the
-    // last group we update.
-    m_currentGroup = group;
-
-    // prevent crash when
-    // if going offline in the middle of
-    // updating the unread counts on a news server
-    // (running a "news://host/*" url)
-    NS_ASSERTION(m_nntpServer,"no server");
-    if (!m_nntpServer) return -1;
-
-    rv = m_nntpServer->DisplaySubscribedGroup(m_newsFolder,
-      low ? atol(low) : 0,
-      high ? atol(high) : 0,
-      atol(num_arts));
-    NS_ASSERTION(NS_SUCCEEDED(rv),"DisplaySubscribedGroup() failed");
-    if (NS_FAILED(rv)) status = -1;
-
-    if (status < 0) return status;
-  }
-  else if (m_responseCode == MK_NNTP_RESPONSE_GROUP_NO_GROUP)
-  {
-    nsString name;
-    rv = m_newsFolder->GetUnicodeName(name);
-
-    if (NS_SUCCEEDED(rv)) {
-        m_nntpServer->GroupNotFound(m_msgWindow, name, PR_FALSE);
-    }
-
-    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) NO_GROUP, so unset m_currentGroup", this));
-    m_currentGroup.Truncate();
-  }
-  /* it turns out subscribe ui depends on getting this displaysubscribedgroup call,
-  even if there was an error.
-  */
-  if(m_responseCode != MK_NNTP_RESPONSE_GROUP_SELECTED)
-  {
-    /* only on news server error or when zero articles */
-    rv = m_nntpServer->DisplaySubscribedGroup(m_newsFolder, 0, 0, 0);
-    NS_ASSERTION(NS_SUCCEEDED(rv),"DisplaySubscribedGroup() failed");
-    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) error, so unset m_currentGroup", this));
-    m_currentGroup.Truncate();
-  }
-
-  m_nextState = NEWS_DISPLAY_NEWS_RC;
-
-  return 0;
 }
 
 PRInt32 nsNNTPProtocol::StartCancel()
@@ -5190,22 +4943,6 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = CheckForArticle();
       break;
 
-    case NEWS_NEWS_RC_POST:
-#ifdef UNREADY_CODE
-      status = net_NewsRCProcessPost(ce);
-#endif
-      break;
-
-    case NEWS_DISPLAY_NEWS_RC:
-      status = DisplayNewsRC();
-      break;
-    case NEWS_DISPLAY_NEWS_RC_RESPONSE:
-      if (inputStream == nsnull)
-        SetFlag(NNTP_PAUSE_FOR_READ);
-      else
-        status = DisplayNewsRCResponse();
-      break;
-
       // cancel
     case NEWS_START_CANCEL:
       status = StartCancel();
@@ -5497,29 +5234,3 @@ NS_IMETHODIMP nsNNTPProtocol::GetCurrentFolder(nsIMsgFolder **aFolder)
   return rv;
 }
 
-void nsNNTPProtocol::GotAuthorizationRequest()
-{
-  if ( m_nextStateAfterResponse == NEWS_DISPLAY_NEWS_RC_RESPONSE )
-  {
-    // the authorization request disrupted our NEWSRC reading.
-    // => restart it, to not lose groups
-    // (see http://bugzilla.mozilla.org/show_bug.cgi?id=111855)
-    ClearFlag( NNTP_NEWSRC_PERFORMED );
-
-    // with setting m_newsRCListIndex to 0, we could simply restart
-    // the whole process, starting over with the very first group.
-    // However, this may lead to problems in some rare scenarios:
-    // Consider, for instance, an account which has n newsgroups which
-    // all require different authentication, and a user which does not
-    // allow the password manager to remember the user/pwd settings. This
-    // would lead to constantly annoying this user with the authorization
-    // request for the first group.
-    // To prevent this (well, and to save some network traffic :), we go
-    // back one step only
-    NS_ASSERTION( m_newsRCListIndex > 0, "next state == NEWS_DISPLAY_NEWS_RC_RESPONSE, but no single group handled, yet?" );
-    if ( m_newsRCListIndex > 0 )
-    {   // yes, I'm paranoid :)
-        m_RCIndexToResumeAfterAuthRequest = --m_newsRCListIndex;
-    }
-  }
-}

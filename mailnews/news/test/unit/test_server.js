@@ -54,16 +54,6 @@ function testRFC977() {
     transaction = server.playTransaction();
     do_check_transaction(transaction, []);*/
 
-    // Test - newsrc
-    test = "news:";
-    server.resetTest();
-    setupProtocolTest(NNTP_PORT, prefix+"");
-    server.performTest();
-    transaction = server.playTransaction();
-    do_check_transaction(transaction, ["MODE READER"].concat(
-          groups.filter(function (group) { return group[1]; })
-                .map(function (group) { return "GROUP "+group[0]; })));
-
     // Test - getting an article
     test = "news:MESSAGE_ID";
     server.resetTest();

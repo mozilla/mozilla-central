@@ -67,7 +67,6 @@
 #define NNTP_PAUSE_FOR_READ      0x00000001  /* should we pause for the next read */
 #define NNTP_PROXY_AUTH_REQUIRED    0x00000002  /* is auth required */
 #define NNTP_SENT_PROXY_AUTH        0x00000004  /* have we sent a proxy auth? */
-#define NNTP_NEWSRC_PERFORMED       0x00000008  /* have we done a newsrc update? */
 #define NNTP_READER_PERFORMED       0x00000010  /* have we sent any cmds to the server yet? */
 #define NNTP_USE_FANCY_NEWSGROUP    0x00000020  /* use LIST XACTIVE or LIST */
 #define NNTP_DESTROY_PROGRESS_GRAPH 0x00000040  /* do we need to destroy graph progress */
@@ -133,9 +132,6 @@ NNTP_PRINT_ARTICLE_HEADERS,
 NNTP_SEND_POST_DATA,
 NNTP_SEND_POST_DATA_RESPONSE,
 NNTP_CHECK_FOR_MESSAGE,
-NEWS_NEWS_RC_POST,
-NEWS_DISPLAY_NEWS_RC,
-NEWS_DISPLAY_NEWS_RC_RESPONSE,
 NEWS_START_CANCEL,
 NEWS_DO_CANCEL,
 NNTP_XPAT_SEND,
@@ -254,11 +250,6 @@ private:
   char     *m_cancelID;
   PRInt32    m_cancelStatus;
 
-  // variables for ReadNewsRC
-  PRInt32   m_newsRCListIndex;
-  PRInt32   m_RCIndexToResumeAfterAuthRequest;
-  PRInt32   m_newsRCListCount;
-
   // variable for ReadNewsList
   PRInt32   m_readNewsListCount;
 
@@ -352,10 +343,6 @@ private:
   PRInt32 PostDataResponse();
 
   PRInt32 CheckForArticle();
-
-  // NewsRC specific
-  PRInt32 DisplayNewsRC();
-  PRInt32 DisplayNewsRCResponse();
 
   /////////////////////////////////////////////////////////////////////////////
   // XHDR, XOVER, HEAD filtering process handlers
@@ -482,7 +469,6 @@ private:
 
   void SetProgressBarPercent(PRUint32 aProgress, PRUint32 aProgressMax);
   nsresult SetProgressStatus(const PRUnichar *aMessage);
-  nsresult SetCheckingForNewNewsStatus(PRInt32 current, PRInt32 total);
   nsresult InitializeNewsFolderFromUri(const char *uri);
   void TimerCallback();
 
@@ -498,9 +484,6 @@ private:
 
   nsresult SetCurrentGroup(); /* sets m_currentGroup.  should be called after doing a successful GROUP command */
   nsresult CleanupNewsgroupList(); /* cleans up m_newsgroupList, and set it to null */
-
-  void    GotAuthorizationRequest(); /* called when we got an authorization request, which potentially disrupted something */
-  PRInt32 GetNextGroupNeedingCounts( nsISupports** pNextGroup, PRInt32* returnStatus );
 
   // cache related helper methods
   void FinishMemCacheEntry(PRBool valid); // either mark it valid, or doom it

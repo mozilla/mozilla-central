@@ -319,6 +319,27 @@ nsresult nsMsgNewsFolder::GetDatabase()
 }
 
 NS_IMETHODIMP
+nsMsgNewsFolder::GetDatabaseWithoutCache(nsIMsgDatabase **db)
+{
+  NS_ENSURE_ARG_POINTER(db);
+
+  // The simplest way to perform this operation is to get the database normally
+  // and then clear our information about it if we didn't already hold it open.
+  PRBool wasCached = !!mDatabase;
+  nsresult rv = GetDatabase();
+  NS_IF_ADDREF(*db = mDatabase);
+
+  // If the DB was not open before, close our reference to it now.
+  if (!wasCached && mDatabase)
+  {
+    mDatabase->RemoveListener(this);
+    mDatabase = nsnull;
+  }
+
+  return rv;
+}
+
+NS_IMETHODIMP
 nsMsgNewsFolder::UpdateFolder(nsIMsgWindow *aWindow)
 {
   // Get news.get_messages_on_select pref
@@ -1796,11 +1817,24 @@ NS_IMETHODIMP nsMsgNewsFolder::NotifyDownloadedLine(const char *line, nsMsgKey k
 
 NS_IMETHODIMP nsMsgNewsFolder::NotifyFinishedDownloadinghdrs()
 {
+  PRBool wasCached = !!mDatabase;
   ChangeNumPendingTotalMessages(-GetNumPendingTotalMessages());
   ChangeNumPendingUnread(-GetNumPendingUnread());
   PRBool filtersRun;
   // run the bayesian spam filters, if enabled.
   CallFilterPlugins(nsnull, &filtersRun);
+
+  // If the DB was not open before, close our reference to it now.
+  if (!wasCached && mDatabase)
+  {
+    mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+    mDatabase->RemoveListener(this);
+    // This also clears all of the cached headers that may have been added while
+    // we were downloading messages (and those clearing refcount cycles in the
+    // database).
+    mDatabase->ClearCachedHdrs();
+    mDatabase = nsnull;
+  }
 
   return NS_OK;
 }

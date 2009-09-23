@@ -1687,28 +1687,6 @@ NS_IMETHODIMP nsNntpService::Search(nsIMsgSearchSession *aSearchSession, nsIMsgW
 }
 
 NS_IMETHODIMP
-nsNntpService::UpdateCounts(nsINntpIncomingServer *aNntpServer, nsIMsgWindow *aMsgWindow)
-{
-  nsresult rv;
-  NS_ENSURE_ARG_POINTER(aNntpServer);
-
-  nsCOMPtr<nsIURI> url;
-  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(aNntpServer, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCString serverUri;
-  rv = server->GetServerURI(serverUri);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = ConstructNntpUrl(serverUri.get(), nsnull, aMsgWindow, nsnull, nsINntpUrl::ActionUpdateCounts, getter_AddRefs(url));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // run the url to update the counts
-  rv = RunNewsUrl(url, aMsgWindow, nsnull);
-  return NS_SUCCEEDED(rv) || (rv == NS_MSG_ERROR_OFFLINE) ? NS_OK : rv;
-}
-
-NS_IMETHODIMP
 nsNntpService::GetListOfGroupsOnServer(nsINntpIncomingServer *aNntpServer, nsIMsgWindow *aMsgWindow, PRBool aGetOnlyNew)
 {
   nsresult rv;

@@ -47,7 +47,7 @@ interface nsINntpIncomingServer;
 
 [ref] native nsMsgKeyArrayRef(nsTArray<nsMsgKey>);
 
-[scriptable, uuid(7fe8c961-3fce-41e2-aa49-9ea3bc332d40)]
+[scriptable, uuid(e56a2366-e66c-4240-a9a1-48c4a0a9ffbc)]
 interface nsIMsgNewsFolder : nsISupports {
   attribute ACString groupUsername;
   attribute ACString groupPassword;
@@ -94,4 +94,11 @@ interface nsIMsgNewsFolder : nsISupports {
   void getNextNMessages(in nsIMsgWindow aMsgWindow);
   void notifyDownloadedLine(in string line, in nsMsgKey key);
   void notifyFinishedDownloadinghdrs();
+
+  /**
+   * Retrieves the database, but does not cache it in mDatabase.
+   *
+   * This is useful for operations that shouldn't hold open the database.
+   */
+  nsIMsgDatabase getDatabaseWithoutCache();
 };

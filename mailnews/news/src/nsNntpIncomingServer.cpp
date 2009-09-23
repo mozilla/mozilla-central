@@ -108,7 +108,6 @@ NS_INTERFACE_MAP_END_INHERITING(nsMsgIncomingServer)
 nsNntpIncomingServer::nsNntpIncomingServer()
 {
   mNewsrcHasChanged = PR_FALSE;
-  mGroupsEnumerator = nsnull;
 
   mHostInfoLoaded = PR_FALSE;
   mHostInfoHasChanged = PR_FALSE;
@@ -403,7 +402,7 @@ nsNntpIncomingServer::WriteNewsrcFile()
     }
 #ifdef DEBUG_NEWS
     else {
-        printf("no need to write newsrc file for %s, it was not dirty\n", (hostname.get());
+        printf("no need to write newsrc file for %s, it was not dirty\n", (hostname.get()));
     }
 #endif /* DEBUG_NEWS */
 
@@ -658,7 +657,6 @@ NS_IMETHODIMP nsNntpIncomingServer::RemoveConnection(nsINNTPProtocol *aNntpConne
   return NS_OK;
 }
 
-
 NS_IMETHODIMP
 nsNntpIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
 {
@@ -671,84 +669,33 @@ nsNntpIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
 
   // Only if news.update_unread_on_expand is true do we update the unread counts
   if (updateUnreadOnExpand)
-  {
-    // a user might have a new server without any groups.
-    // if so, bail out.  no need to establish a connection to the server
-    PRInt32 numGroups = 0;
-    rv = GetNumGroupsNeedingCounts(&numGroups);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    if (!numGroups)
-      return NS_OK;
-
-    nsCOMPtr<nsINntpService> nntpService = do_GetService(NS_NNTPSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    rv = nntpService->UpdateCounts(this, aMsgWindow);
-    NS_ENSURE_SUCCESS(rv,rv);
-  }
+    return DownloadMail(aMsgWindow);
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsNntpIncomingServer::GetNumGroupsNeedingCounts(PRInt32 *aNumGroupsNeedingCounts)
+nsresult
+nsNntpIncomingServer::DownloadMail(nsIMsgWindow *aMsgWindow)
 {
   nsCOMPtr<nsIMsgFolder> rootFolder;
-
   nsresult rv = GetRootFolder(getter_AddRefs(rootFolder));
-  if (NS_FAILED(rv))
-    return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  // Ensure the sub folders are initialised.
-  rv = rootFolder->GetSubFolders(getter_AddRefs(mGroupsEnumerator));
-  if (NS_FAILED(rv))
-    return rv;
+  nsCOMPtr<nsISimpleEnumerator> groups;
+  rv = rootFolder->GetSubFolders(getter_AddRefs(groups));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 count = 0;
-  rv = rootFolder->GetNumSubFolders(&count);
-  if (NS_FAILED(rv))
-    return rv;
-
-  *aNumGroupsNeedingCounts = (PRInt32) count;
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsNntpIncomingServer::GetFirstGroupNeedingCounts(nsISupports **aFirstGroupNeedingCounts)
-{
-  nsresult rv;
-
-  if (!aFirstGroupNeedingCounts) return NS_ERROR_NULL_POINTER;
-
-  PRBool moreFolders;
-  if (!mGroupsEnumerator) return NS_ERROR_FAILURE;
-
-  rv = mGroupsEnumerator->HasMoreElements(&moreFolders);
-  if (NS_FAILED(rv)) return rv;
-
-  if (!moreFolders)
+  PRBool hasNext;
+  while (NS_SUCCEEDED(rv = groups->HasMoreElements(&hasNext)) && hasNext)
   {
-    *aFirstGroupNeedingCounts = nsnull;
-    mGroupsEnumerator = nsnull;
-    return NS_OK; // this is not an error - it just means we reached the end of the groups.
-  }
+    nsCOMPtr<nsISupports> nextGroup;
+    rv = groups->GetNext(getter_AddRefs(nextGroup));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-  do
-  {
-    rv = mGroupsEnumerator->GetNext(aFirstGroupNeedingCounts);
-    if (NS_FAILED(rv)) return rv;
-    if (!*aFirstGroupNeedingCounts) return NS_ERROR_FAILURE;
-    nsCOMPtr <nsIMsgFolder> folder;
-    (*aFirstGroupNeedingCounts)->QueryInterface(NS_GET_IID(nsIMsgFolder), getter_AddRefs(folder));
-    PRUint32 folderFlags;
-    folder->GetFlags(&folderFlags);
-    if (folderFlags & nsMsgFolderFlags::Virtual)
-      continue;
-    else
-      break;
+    nsCOMPtr<nsIMsgFolder> group(do_QueryInterface(nextGroup));
+    rv = group->GetNewMessages(aMsgWindow, nsnull);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
-  while (PR_TRUE);
-  return NS_OK;
+  return rv;
 }
 
 NS_IMETHODIMP
@@ -767,10 +714,10 @@ nsNntpIncomingServer::DisplaySubscribedGroup(nsIMsgNewsFolder *aMsgFolder, PRInt
 NS_IMETHODIMP
 nsNntpIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
 {
-#ifdef DEBUG_NEWS
-  printf("PerformBiff for nntp\n");
-#endif
-  return PerformExpand(nsnull);
+  // Biff will force a download of the messages. If the user doesn't want this
+  // (e.g., there is a lot of high-traffic newsgroups), the better option is to
+  // just ignore biff.
+  return PerformExpand(aMsgWindow);
 }
 
 NS_IMETHODIMP nsNntpIncomingServer::GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff)

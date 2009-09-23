@@ -49,7 +49,7 @@ interface nsIMsgWindow;
 interface nsIMsgFolder;
 interface nsICacheSession;
 
-[scriptable, uuid(ecd8087f-f71a-4d44-a285-4caacd57f217)]
+[scriptable, uuid(dc5cadb0-966c-4ef1-a4c8-cc1e48d1ac61)]
 interface nsINntpService : nsISupports {
   
   /* newsgroupsList is a comma separated list of newsgroups, which may be
@@ -71,8 +71,6 @@ interface nsINntpService : nsISupports {
   nsIURI cancelMessage(in string cancelURL, in string messageURI, in nsISupports aConsumer, in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
  
   void getListOfGroupsOnServer(in nsINntpIncomingServer nntpServer, in nsIMsgWindow aMsgWindow, in boolean getOnlyNew);
-
-  void updateCounts(in nsINntpIncomingServer nntpServer, in nsIMsgWindow aMsgWindow);
 
   nsIURI fetchMessage(in nsIMsgFolder newsFolder, in nsMsgKey key, in nsIMsgWindow aMsgWindow, in nsISupports aConsumer, in nsIUrlListener aUrlListener);
 

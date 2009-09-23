@@ -46,7 +46,7 @@ interface nsIChannel;
 interface nsIURI;
 interface nsIMsgWindow;
 
-[scriptable, uuid(113e9e21-3313-4e73-83f1-0d675251b607)]
+[scriptable, uuid(720a808c-17b5-4a96-837f-494541db15f2)]
 interface nsINntpIncomingServer : nsISupports {
     /* the on-disk path to the newsrc file for this server */
     attribute nsILocalFile newsrcFilePath;
@@ -91,9 +91,6 @@ interface nsINntpIncomingServer : nsISupports {
      * connections, presently 2.
      */
     attribute long maximumConnectionsNumber;
-
-    readonly attribute long numGroupsNeedingCounts;
-    readonly attribute nsISupports firstGroupNeedingCounts;
 
     void displaySubscribedGroup(in nsIMsgNewsFolder msgFolder,
                                 in long firstMessage, in long lastMessage,
