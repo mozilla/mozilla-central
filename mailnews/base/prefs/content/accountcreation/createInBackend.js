@@ -180,6 +180,7 @@ function createAccountInBackend(config)
   else if (!config.outgoing.useGlobalPreferredServer)
     identity.smtpServerKey = outServer.key;
 
+  verifyLocalFoldersAccount(accountManager);
   setFolders(identity, inServer);
 
   // save
@@ -236,4 +237,33 @@ function rememberPassword(server, password)
   } catch (e if e.message.indexOf("This login already exists") != -1) {
     // TODO modify
   }
+}
+
+// Check if there already is a "Local Folders". If not, create it. This routine
+//  is copied from AccountWizard.js with minor updates.
+function verifyLocalFoldersAccount(am) 
+{
+  let localMailServer;
+  try {
+    localMailServer = am.localFoldersServer;
+  }
+  catch (ex) {
+    localMailServer = null;
+  }
+
+  try {
+    if (!localMailServer) 
+    {
+      // creates a copy of the identity you pass in
+      am.createLocalMailAccount();
+      try {
+        localMailServer = am.localFoldersServer;
+      }
+      catch (ex) {
+        dump("error!  we should have found the local mail server after we created it.\n");
+      }
+    }
+  }
+  catch (ex) {dump("Error in verifyLocalFoldersAccount " + ex + "\n");  }
+
 }

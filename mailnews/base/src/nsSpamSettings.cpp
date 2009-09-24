@@ -573,9 +573,10 @@ NS_IMETHODIMP nsSpamSettings::GetSpamFolderURI(char **aSpamFolderURI)
   // search by URI - if we find a junk folder, use its URI.
   nsCOMPtr<nsIMsgFolder> junkFolder;
   folderURI.Append("/Junk");
-  if (NS_SUCCEEDED(server->GetMsgFolderFromURI(folder, folderURI,
-                                               getter_AddRefs(junkFolder))))
-      junkFolder->GetURI(folderURI);
+  if (NS_SUCCEEDED(server->GetMsgFolderFromURI(nsnull, folderURI,
+                                               getter_AddRefs(junkFolder))) &&
+      junkFolder)
+    junkFolder->GetURI(folderURI);
 
   // XXX todo
   // better not to make base depend in imap
