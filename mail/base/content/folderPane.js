@@ -761,12 +761,15 @@ let gFolderTreeView = {
   {
     let folders = [];
     for each (acct in accounts) {
-     let folderWithFlag = acct.incomingServer.rootFolder.getFolderWithFlags(aFolderFlag);
-     if (folderWithFlag) {
-       folders.push(folderWithFlag);
-      // add sub-folders of Sent and Archive to the result.
-      if (deep && (aFolderFlag & (nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Archive)))
-        this.addSubFolders(folderWithFlag, folders);
+      let foldersWithFlag = acct.incomingServer.rootFolder.getFoldersWithFlags(aFolderFlag);
+      if (foldersWithFlag.length > 0) {
+        for each (folderWithFlag in fixIterator(foldersWithFlag.enumerate(),
+                                                Components.interfaces.nsIMsgFolder)) {
+          folders.push(folderWithFlag);
+          // Add sub-folders of Sent and Archive to the result.
+          if (deep && (aFolderFlag & (nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Archive)))
+            this.addSubFolders(folderWithFlag, folders);
+        }
       }
     }
     return folders;
@@ -895,7 +898,7 @@ let gFolderTreeView = {
     // of subfolders.
     smartFolderItem._children = [new ftvItem(f) for each (f in subFolders)];
 
-    // sortFolderItems(this._children);
+    let prevChild = null;
     // Each child is a level one below the smartFolder
     for each (let child in smartFolderItem._children) {
       child._level = smartFolderItem._level + 1;
@@ -904,7 +907,17 @@ let gFolderTreeView = {
       // should have the sub-folders.
       if (flag & nsMsgFolderFlags.Inbox)
         child.__defineGetter__("children", function() []);
-      child.useServerNameOnly = true;
+      // If we have consecutive children with the same server, then both
+      // should display as folder - server.
+      if (prevChild && (child._folder.server == prevChild._folder.server)) {
+        child.addServerName = true;
+        prevChild.addServerName = true;
+        prevChild.useServerNameOnly = false;
+      }
+      else {
+        child.useServerNameOnly = true;
+      }
+      prevChild = child;
       child.getProperties = function (aProps) {
         // From folderUtils.jsm
         setPropertyAtoms(this._folder, aProps);
