@@ -23,6 +23,7 @@
  *   Seth Spitzer <sspitzer@mozilla.com>
  *   Asaf Romano <mano@mozilla.com>
  *   Robert Kaiser <kairo@kairo.at>
+ *   Nils Maier <maierman@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -66,9 +67,6 @@ SuiteGlue.prototype = {
       case "xpcom-shutdown":
         this._dispose();
         break;
-      case "quit-application":
-        this._onProfileShutdown();
-        break;
       case "final-ui-startup":
         this._onProfileStartup();
         break;
@@ -83,9 +81,19 @@ SuiteGlue.prototype = {
         this._onQuitRequest(subject, data);
         break;
       case "quit-application-granted":
+        this._onProfileShutdown();
         if (this._saveSession) {
           this._setPrefToSaveSession();
         }
+        break;
+      case "browser-lastwindow-close-requested":
+        // The application is not actually quitting, but the last full browser
+        // window is about to be closed.
+        this._onQuitRequest(subject, "lastwindow");
+        break;
+      case "browser-lastwindow-close-granted":
+        if (this._saveSession)
+          this._setPrefToSaveSession();
         break;
       case "session-save":
         this._setPrefToSaveSession();
@@ -102,11 +110,12 @@ SuiteGlue.prototype = {
     const osvr = Components.classes["@mozilla.org/observer-service;1"]
                            .getService(Components.interfaces.nsIObserverService);
     osvr.addObserver(this, "xpcom-shutdown", false);
-    osvr.addObserver(this, "quit-application", false);
     osvr.addObserver(this, "final-ui-startup", false);
     osvr.addObserver(this, "browser:purge-session-history", false);
     osvr.addObserver(this, "quit-application-requested", false);
     osvr.addObserver(this, "quit-application-granted", false);
+    osvr.addObserver(this, "browser-lastwindow-close-requested", false);
+    osvr.addObserver(this, "browser-lastwindow-close-granted", false);
     osvr.addObserver(this, "session-save", false);
   },
 
@@ -117,11 +126,12 @@ SuiteGlue.prototype = {
     const osvr = Components.classes["@mozilla.org/observer-service;1"]
                            .getService(Components.interfaces.nsIObserverService);
     osvr.removeObserver(this, "xpcom-shutdown");
-    osvr.removeObserver(this, "quit-application");
     osvr.removeObserver(this, "final-ui-startup");
     osvr.removeObserver(this, "browser:purge-session-history");
     osvr.removeObserver(this, "quit-application-requested");
     osvr.removeObserver(this, "quit-application-granted");
+    osvr.removeObserver(this, "browser-lastwindow-close-requested");
+    osvr.removeObserver(this, "browser-lastwindow-close-granted");
     osvr.removeObserver(this, "session-save");
  },
 
@@ -184,7 +194,9 @@ SuiteGlue.prototype = {
       // browser.warnOnQuit is a hidden global boolean to override all quit prompts
       // browser.warnOnRestart specifically covers app-initiated restarts where we restart the app
       // browser.tabs.warnOnClose is the global "warn when closing multiple tabs" pref
-      if (prefBranch.getBoolPref("browser.warnOnQuit") == false)
+      if (prefBranch.getIntPref("browser.startup.page") == 3 ||
+          prefBranch.getBoolPref("browser.sessionstore.resume_session_once") ||
+          !prefBranch.getBoolPref("browser.warnOnQuit"))
         showPrompt = false;
       else if (aQuitType == "restart")
         showPrompt = prefBranch.getBoolPref("browser.warnOnRestart");
@@ -192,7 +204,6 @@ SuiteGlue.prototype = {
         showPrompt = prefBranch.getBoolPref("browser.tabs.warnOnClose");
     } catch (ex) {}
 
-    var buttonChoice = 0;
     if (showPrompt) {
       var bundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].
                           getService(Components.interfaces.nsIStringBundleService);
@@ -234,9 +245,10 @@ SuiteGlue.prototype = {
         button2Title = quitBundle.GetStringFromName("quitTitle");
       }
 
-      buttonChoice = promptService.confirmEx(null, quitDialogTitle, message,
-                                   flags, button0Title, button1Title, button2Title,
-                                   neverAskText, neverAsk);
+      var mostRecentBrowserWindow = wm.getMostRecentWindow("navigator:browser");
+      var buttonChoice = promptService.confirmEx(mostRecentBrowserWindow, quitDialogTitle, message,
+                                       flags, button0Title, button1Title, button2Title,
+                                       neverAskText, neverAsk);
 
       switch (buttonChoice) {
       case 2:
@@ -253,8 +265,6 @@ SuiteGlue.prototype = {
           if (aQuitType == "restart")
             prefBranch.setBoolPref("browser.warnOnRestart", false);
           else {
-            // don't prompt in the future
-            prefBranch.setBoolPref("browser.tabs.warnOnClose", false);
             // always save state when shutting down
             prefBranch.setIntPref("browser.startup.page", 3);
           }

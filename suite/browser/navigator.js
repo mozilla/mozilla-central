@@ -23,6 +23,7 @@
  *   Blake Ross <blakeross@telocity.com>
  *   Peter Annema <disttsc@bart.nl>
  *   Dean Tessman <dean_tessman@hotmail.com>
+ *   Nils Maier <maierman@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -2382,6 +2383,21 @@ function WindowIsClosing()
   var numtabs = cn.length;
   var reallyClose = true;
 
+  if (!/Mac/.test(navigator.platform) && isClosingLastBrowser()) {
+    let os = Components.classes["@mozilla.org/observer-service;1"]
+                       .getService(Components.interfaces.nsIObserverService);
+
+    let closingCanceled = Components.classes["@mozilla.org/supports-PRBool;1"]
+                                    .createInstance(Components.interfaces.nsISupportsPRBool);
+    os.notifyObservers(closingCanceled, "browser-lastwindow-close-requested", null);
+    if (closingCanceled.data)
+      return false;
+
+    os.notifyObservers(null, "browser-lastwindow-close-granted", null);
+
+    return true;
+  }
+
   if (numtabs > 1) {
     var shouldPrompt = pref.getBoolPref("browser.tabs.warnOnClose");
     if (shouldPrompt) {
@@ -2416,6 +2432,28 @@ function WindowIsClosing()
   }
 
   return reallyClose;
+}
+
+/**
+ * Checks whether this is the last full *browser* window around.
+ * @returns true if closing last browser window, false if not.
+ */
+function isClosingLastBrowser() {
+  // Popups aren't considered full browser windows.
+  if (!toolbar.visible)
+    return false;
+
+  // Figure out if there's at least one other browser window around.
+  let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator);
+  let e = wm.getEnumerator("navigator:browser");
+  while (e.hasMoreElements()) {
+    let win = e.getNext();
+    if (win != window && win.toolbar.visible)
+      return false;
+  }
+
+  return true;
 }
 
 /**

@@ -22,6 +22,7 @@
  *   Dietrich Ayala <dietrich@mozilla.com>
  *   Ehsan Akhgari <ehsan.akhgari@gmail.com>
  *   Paul O’Shannessy <paul@oshannessy.com>
+ *   Nils Maier <maierman@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -68,6 +69,7 @@ const NOTIFY_WINDOWS_RESTORED = "sessionstore-windows-restored";
 const OBSERVING = [
   "domwindowopened", "domwindowclosed",
   "quit-application-requested", "quit-application-granted",
+  "browser-lastwindow-close-granted",
   "quit-application", "browser:purge-session-history"
 ];
 
@@ -150,6 +152,9 @@ SessionStoreService.prototype = {
 
   // counts the number of crashes since the last clean start
   _recentCrashes: 0,
+
+  // whether the last window was closed and should be restored
+  _restoreLastWindow: false,
 
 /* ........ Global Event Handlers .............. */
 
@@ -308,6 +313,13 @@ SessionStoreService.prototype = {
       // freeze the data at what we've got (ignoring closing windows)
       this._loadState = STATE_QUITTING;
       break;
+    case "browser-lastwindow-close-granted":
+      // last browser window is quitting.
+      // remember to restore the last window when another browser window is openend
+      // do not account for pref(resume_session_once) at this point, as it might be
+      // set by another observer getting this notice after us
+      this._restoreLastWindow = true;
+      break;
     case "quit-application":
       if (aData == "restart")
         this._prefBranch.setBoolPref("sessionstore.resume_session_once", true);
@@ -450,7 +462,8 @@ SessionStoreService.prototype = {
         this.restoreWindow(aWindow, this._initialState, this._isCmdLineEmpty(aWindow));
         delete this._initialState;
 
-        // mark ourselves as running
+        // _loadState changed from "stopped" to "running"
+        // force a save operation so that crashes happening during startup are correctly counted
         this.saveState(true);
       }
       else {
@@ -467,6 +480,33 @@ SessionStoreService.prototype = {
     else if (!this._isWindowLoaded(aWindow)) {
       let followUp = this._statesToRestore[aWindow.__SS_restoreID].windows.length == 1;
       this.restoreWindow(aWindow, this._statesToRestore[aWindow.__SS_restoreID], true, followUp);
+    }
+    else if (this._restoreLastWindow && aWindow.toolbar.visible &&
+             this._closedWindows.length && this._doResumeSession()) {
+      // default to the most-recently closed window
+      // don't use popup windows
+      let state = null;
+      this._closedWindows = this._closedWindows.filter(function(aWinState) {
+        if (!state && !aWinState.isPopup) {
+          state = aWinState;
+          return false;
+        }
+        return true;
+      });
+      if (state) {
+        delete state.hidden;
+        state = { windows: [state] };
+        this._restoreCount = 1;
+        this.restoreWindow(aWindow, state, this._isCmdLineEmpty(aWindow));
+      }
+      // we actually restored the session just now.
+      this._prefBranch.setBoolPref("sessionstore.resume_session_once", false);
+    }
+    if (this._restoreLastWindow && aWindow.toolbar.visible) {
+      // always reset (if not a popup window)
+      // we don't want to restore a window directly after, for example,
+      // undoCloseWindow was executed.
+      this._restoreLastWindow = false;
     }
 
     var tabbrowser = aWindow.getBrowser();
