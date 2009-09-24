@@ -783,7 +783,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolderWithListener(nsIMsgWindow *aMsgWindo
               rv = filterService->GetCustomTerm(customId,
                                                 getter_AddRefs(customTerm));
             PRBool needsBody = PR_FALSE;
-            if (NS_SUCCEEDED(rv))
+            if (NS_SUCCEEDED(rv) && customTerm)
               rv = customTerm->GetNeedsBody(&needsBody);
             if (NS_SUCCEEDED(rv) && needsBody)
               m_filterListRequiresBody = PR_TRUE;
