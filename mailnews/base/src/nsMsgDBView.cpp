@@ -2857,11 +2857,22 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
                     imapUids.Elements(), imapUids.Length(),
                     nsnull);
     case nsMsgViewCommandType::unjunk:
+      {
+        nsCOMPtr<nsIMsgDBHdr> msgHdr;
+        GetHdrForFirstSelectedMessage(getter_AddRefs(msgHdr));
+        PRUint32 msgFlags = 0;
+        if (msgHdr)
+          msgHdr->GetFlags(&msgFlags);
+        if (msgFlags & nsMsgMessageFlags::IMAPDeleted)
+          imapFolder->StoreImapFlags(kImapMsgDeletedFlag, PR_FALSE,
+                                     imapUids.Elements(),
+                                     imapUids.Length(), nsnull);
         return imapFolder->StoreCustomKeywords(msgWindow,
                     NS_LITERAL_CSTRING("NonJunk"),
                     NS_LITERAL_CSTRING("Junk"),
                     imapUids.Elements(), imapUids.Length(),
                     nsnull);
+      }
 
     default:
       break;
