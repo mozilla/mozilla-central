@@ -403,8 +403,7 @@ function deleteJunkInFolder()
   MsgJunkMailInfo(true);
 
   // use direct folder commands if possible so we don't mess with the selection
-  let selectedFolder = ("gFolderDisplay" in window) ?
-                       gFolderDisplay.displayedFolder : gMsgFolderSelected;
+  let selectedFolder = gFolderDisplay.displayedFolder;
   if ( !(selectedFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) )
   {
     var junkMsgHdrs = Components.classes["@mozilla.org/array;1"]

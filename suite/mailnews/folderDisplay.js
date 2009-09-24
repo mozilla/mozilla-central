@@ -103,7 +103,13 @@ var gFolderDisplay =
       return null;
     var messageArray = gDBView.getURIsForSelection({});
     return messageArray.length ? messageArray : null;
+  },
+
+  get displayedFolder()
+  {
+    return gMsgFolderSelected;
   }
+
 }
 
 var gMessageDisplay =
