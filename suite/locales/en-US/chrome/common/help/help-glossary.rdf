@@ -86,7 +86,6 @@
         <rdf:li> <rdf:Description nc:name="proxy" nc:link="glossary.xhtml#proxy"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="public key" nc:link="glossary.xhtml#public_key"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="public-key cryptography" nc:link="glossary.xhtml#public-key_cryptography"/> </rdf:li>
-        <rdf:li> <rdf:Description nc:name="roaming profile" nc:link="glossary.xhtml#roaming_profile"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="root CA" nc:link="glossary.xhtml#root_ca"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="RSS" nc:link="glossary.xhtml#rss"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="search engine" nc:link="glossary.xhtml#search_engine"/> </rdf:li>
