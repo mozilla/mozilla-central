@@ -1034,7 +1034,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
                  PR_CEnterMonitor(folder);
                  PR_CWait(folder, PR_MicrosecondsToInterval(1000UL));
                  PR_CExitMonitor(folder);
-                 NS_ProcessPendingEvents(thread);
+                 NS_ProcessPendingEvents(thread, PR_MicrosecondsToInterval(1000UL));
                }
              }
              if (emptyTrashOnExit)
@@ -1047,7 +1047,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
                  PR_CEnterMonitor(folder);
                  PR_CWait(folder, PR_MicrosecondsToInterval(1000UL));
                  PR_CExitMonitor(folder);
-                 NS_ProcessPendingEvents(thread);
+                 NS_ProcessPendingEvents(thread, PR_MicrosecondsToInterval(1000UL));
                }
              }
            }
@@ -1225,6 +1225,11 @@ nsMsgAccountManager::LoadAccounts()
   // for now safeguard multiple calls to this function
   if (m_accountsLoaded)
     return NS_OK;
+
+  // If we have code trying to do things after we've unloaded accounts,
+  // ignore it.
+  if (m_shutdownInProgress || m_haveShutdown)
+    return NS_ERROR_FAILURE;
 
   kDefaultServerAtom = do_GetAtom("DefaultServer");
 

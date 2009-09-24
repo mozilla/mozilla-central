@@ -414,7 +414,12 @@ nsImapIncomingServer::GetImapConnectionAndLoadUrl(nsIEventTarget * aClientEventT
   // if we're shutting down, and not running the kinds of urls we run at
   // shutdown, then this should fail because running urls during
   // shutdown will very likely fail and potentially hang.
-  if (m_shuttingDown)
+  nsresult rv;
+  nsCOMPtr<nsIMsgAccountManager> accountMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool shuttingDown = PR_FALSE;
+  (void) accountMgr->GetShutdownInProgress(&shuttingDown);
+  if (shuttingDown)
   {
     nsImapAction imapAction;
     aImapUrl->GetImapAction(&imapAction);
@@ -423,7 +428,6 @@ nsImapIncomingServer::GetImapConnectionAndLoadUrl(nsIEventTarget * aClientEventT
         imapAction != nsIImapUrl::nsImapDeleteFolder)
       return NS_ERROR_FAILURE;
   }
-  nsresult rv = NS_OK;
   nsCOMPtr <nsIImapProtocol> aProtocol;
 
   rv = GetImapConnection(aClientEventTarget, aImapUrl, getter_AddRefs(aProtocol));
