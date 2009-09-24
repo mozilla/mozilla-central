@@ -46,7 +46,7 @@
  *  ease of searching.
  */
 
-EXPORTED_SYMBOLS = ['QuickSearchManager', 'QuickSearchConstants'];
+const EXPORTED_SYMBOLS = ['QuickSearchManager', 'QuickSearchConstants'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -112,7 +112,7 @@ var QuickSearchManager = {
     this._modeLabels[QuickSearchConstants.kQuickSearchRecipientOrSubject] =
       quickSearchStrings.get("searchRecipientOrSubject.label");
     this._modeLabels[QuickSearchConstants.kQuickSearchBody] =
-      quickSearchStrings.get("searchBody.label");
+      quickSearchStrings.get("searchMsgBody.label");
   },
 
   /**

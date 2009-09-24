@@ -38,7 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['MailViewManager', 'MailViewConstants'];
+const EXPORTED_SYMBOLS = ['MailViewManager', 'MailViewConstants'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

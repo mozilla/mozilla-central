@@ -36,8 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['GlodaContent', 'whittlerRegistry',
-                    'mimeMsgToContentAndMeta', 'mimeMsgToContentSnippetAndMeta'];
+const EXPORTED_SYMBOLS = ['GlodaContent', 'whittlerRegistry',
+                          'mimeMsgToContentAndMeta', 'mimeMsgToContentSnippetAndMeta'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

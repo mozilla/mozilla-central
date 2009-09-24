@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['MimeType', 'MimeTypeNoun'];
+const EXPORTED_SYMBOLS = ['MimeType', 'MimeTypeNoun'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["GlodaDatabind"];
+const EXPORTED_SYMBOLS = ["GlodaDatabind"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

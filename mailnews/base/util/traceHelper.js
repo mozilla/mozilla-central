@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['DebugTraceHelper'];
+const EXPORTED_SYMBOLS = ['DebugTraceHelper'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

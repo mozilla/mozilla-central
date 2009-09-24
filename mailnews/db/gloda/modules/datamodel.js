@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["GlodaAttributeDBDef",
+const EXPORTED_SYMBOLS = ["GlodaAttributeDBDef",
                     "GlodaConversation", "GlodaFolder", "GlodaMessage",
                     "GlodaContact", "GlodaIdentity"];
 

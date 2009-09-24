@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['SearchSpec'];
+const EXPORTED_SYMBOLS = ['SearchSpec'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

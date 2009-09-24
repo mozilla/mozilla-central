@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['DBViewWrapper', 'IDBViewWrapperListener'];
+const EXPORTED_SYMBOLS = ['DBViewWrapper', 'IDBViewWrapperListener'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

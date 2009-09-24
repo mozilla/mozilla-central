@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["GlodaQueryClassFactory"];
+const EXPORTED_SYMBOLS = ["GlodaQueryClassFactory"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

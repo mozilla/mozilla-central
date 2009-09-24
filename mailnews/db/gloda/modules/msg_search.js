@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["GlodaMsgSearcher"];
+const EXPORTED_SYMBOLS = ["GlodaMsgSearcher"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

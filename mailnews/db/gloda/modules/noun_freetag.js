@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['FreeTag', 'FreeTagNoun'];
+const EXPORTED_SYMBOLS = ['FreeTag', 'FreeTagNoun'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

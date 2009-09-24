@@ -35,7 +35,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["SuffixTree", "MultiSuffixTree"];
+const EXPORTED_SYMBOLS = ["SuffixTree", "MultiSuffixTree"];
 
 /**
  * Given a list of strings and a corresponding map of items that those strings

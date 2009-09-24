@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['TagNoun'];
+const EXPORTED_SYMBOLS = ['TagNoun'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

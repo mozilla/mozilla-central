@@ -40,7 +40,7 @@
  *  nsIMsgDBView.
  */
 
-EXPORTED_SYMBOLS = ["GlodaSyntheticView"];
+const EXPORTED_SYMBOLS = ["GlodaSyntheticView"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

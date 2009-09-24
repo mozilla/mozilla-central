@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['GlodaABIndexer', 'GlodaABAttrs'];
+const EXPORTED_SYMBOLS = ['GlodaABIndexer', 'GlodaABAttrs'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

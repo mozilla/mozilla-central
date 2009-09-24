@@ -35,9 +35,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['MsgHdrToMimeMessage',
-                    'MimeMessage', 'MimeContainer', 'MimeBody', 'MimeUnknown',
-                    'MimeMessageAttachment'];
+const EXPORTED_SYMBOLS = ['MsgHdrToMimeMessage',
+                          'MimeMessage', 'MimeContainer',
+                          'MimeBody', 'MimeUnknown',
+                          'MimeMessageAttachment'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

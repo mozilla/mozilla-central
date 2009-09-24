@@ -42,7 +42,7 @@
  *  read/unread, etc.
  */
 
-EXPORTED_SYMBOLS = ['GlodaExplicitAttr'];
+const EXPORTED_SYMBOLS = ['GlodaExplicitAttr'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

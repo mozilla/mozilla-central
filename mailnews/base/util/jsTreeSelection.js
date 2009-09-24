@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['JSTreeSelection'];
+const EXPORTED_SYMBOLS = ['JSTreeSelection'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

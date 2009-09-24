@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ['Gloda'];
+const EXPORTED_SYMBOLS = ['Gloda'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
