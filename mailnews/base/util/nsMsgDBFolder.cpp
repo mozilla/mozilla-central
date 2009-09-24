@@ -1674,8 +1674,9 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
       messageSize -= m_numOfflineMsgLines;
 
     // We clear the offline flag on the message if the size
-    // looks wrong.
-    if ((PRUint32) curStorePos  < messageSize)
+    // looks wrong. Check if we're off by more than one byte per line.
+    if (messageSize > (PRUint32) curStorePos &&
+       (messageSize - (PRUint32) curStorePos) > (PRUint32) m_numOfflineMsgLines)
     {
        mDatabase->MarkOffline(messageKey, PR_FALSE, nsnull);
        NS_ERROR("offline message too small");
