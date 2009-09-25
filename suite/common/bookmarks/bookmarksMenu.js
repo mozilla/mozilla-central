@@ -115,7 +115,7 @@ var BookmarksMenu = {
       break;
     default:
       if (aOrientation == BookmarksUtils.DROP_ON)
-        parent = aNode.id
+        parent = aNode.id || aNode.parentNode.parentNode.id;
       else {
         parent = this.getBTContainer(aNode);
         item = aNode;
@@ -196,6 +196,8 @@ var BookmarksMenu = {
           BookmarksUtils.DROP_AFTER : BookmarksUtils.DROP_ON;
     }
     if (target.id == "bookmarks-chevron")
+      return BookmarksUtils.DROP_ON;
+    if (target.className == "isempty")
       return BookmarksUtils.DROP_ON;
 
     var overButtonBoxObject = target.boxObject.QueryInterface(Components.interfaces.nsIBoxObject);
