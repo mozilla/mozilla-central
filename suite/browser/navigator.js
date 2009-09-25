@@ -2046,6 +2046,27 @@ function setStyleDisabled(disabled) {
   getMarkupDocumentViewer().authorStyleDisabled = disabled;
 }
 
+function restartApp() {
+  // Notify all windows that an application quit has been requested.
+  var os = Components.classes["@mozilla.org/observer-service;1"]
+                     .getService(Components.interfaces.nsIObserverService);
+
+  var cancelQuit = Components.classes["@mozilla.org/supports-PRBool;1"]
+                             .createInstance(Components.interfaces.nsISupportsPRBool);
+
+  os.notifyObservers(cancelQuit, "quit-application-requested", "restart");
+
+  // Something aborted the quit process.
+  if (cancelQuit.data)
+    return;
+
+  Application.prefs.setValue("browser.sessionstore.resume_session_once", true);
+  const nsIAppStartup = Components.interfaces.nsIAppStartup;
+  Components.classes["@mozilla.org/toolkit/app-startup;1"]
+            .getService(nsIAppStartup)
+            .quit(nsIAppStartup.eRestart | nsIAppStartup.eAttemptQuit);
+ }
+
 function applyTheme(themeName)
 {
   var name = themeName.getAttribute("internalName");
@@ -2063,13 +2084,20 @@ function applyTheme(themeName)
   pref.setComplexValue("extensions.lastSelectedSkin", Components.interfaces.nsISupportsString, str);
   var switchPending = str != pref.getComplexValue("general.skins.selectedSkin", Components.interfaces.nsISupportsString);
   pref.setBoolPref("extensions.dss.switchPending", switchPending);
- 
+
   if (switchPending) {
     var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-    var dialogTitle = gNavigatorBundle.getString("switchskinstitle");
+    var promptTitle = gNavigatorBundle.getString("switchskinstitle");
     var brandName = gBrandBundle.getString("brandShortName");
-    var msg = gNavigatorBundle.getFormattedString("switchskins", [brandName]);
-    promptService.alert(window, dialogTitle, msg);
+    var promptMsg = gNavigatorBundle.getFormattedString("switchskins", [brandName]);
+    var promptNow = gNavigatorBundle.getString("switchskinsnow");
+    var promptLater = gNavigatorBundle.getString("switchskinslater");
+    var check = {value: false};
+    var flags = promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_IS_STRING;
+    var pressedVal = promptService.confirmEx(window, promptTitle, promptMsg, flags, promptNow, promptLater, null, null, check);
+
+    if (pressedVal == 0)
+      restartApp();
   }
 }
 
@@ -2081,8 +2109,8 @@ function getNewThemes()
                               .getService(Components.interfaces.nsIURLFormatter);
     openTopWin(formatter.formatURLPref("extensions.getMoreThemesURL"));
   }
-  catch (ex) { 
-    dump(ex); 
+  catch (ex) {
+    dump(ex);
   }
 }
 
