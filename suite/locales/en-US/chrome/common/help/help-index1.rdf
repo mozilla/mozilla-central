@@ -224,6 +224,16 @@
          nc:link="customize_help.xhtml#specifying_a_starting_page"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="browser:session_restore"
+         nc:name="session restore"
+         nc:link="customize_help.xhtml#session_restore"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:crash_recovery"
+         nc:name="crash recovery"
+         nc:link="customize_help.xhtml#session_restore"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="browser:start_up_components"
          nc:name="start up components"
          nc:link="customize_help.xhtml#specifying_which_components_open_at_launch"/>
