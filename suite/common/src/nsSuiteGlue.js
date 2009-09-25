@@ -69,6 +69,7 @@ SuiteGlue.prototype = {
         break;
       case "final-ui-startup":
         this._onProfileStartup();
+        this._checkForNewAddons();
         break;
       case "browser:purge-session-history":
         // reset the console service's error buffer
@@ -100,11 +101,11 @@ SuiteGlue.prototype = {
         subject.QueryInterface(Components.interfaces.nsISupportsPRBool);
         subject.data = true;
         break;
-   }
+    }
   },
 
   // initialization (called on application startup)
-  _init: function() 
+  _init: function()
   {
     // observer registration
     const osvr = Components.classes["@mozilla.org/observer-service;1"]
@@ -133,7 +134,7 @@ SuiteGlue.prototype = {
     osvr.removeObserver(this, "browser-lastwindow-close-requested");
     osvr.removeObserver(this, "browser-lastwindow-close-granted");
     osvr.removeObserver(this, "session-save");
- },
+  },
 
   // profile startup handler (contains profile initialization routines)
   _onProfileStartup: function()
@@ -158,6 +159,37 @@ SuiteGlue.prototype = {
   _onProfileShutdown: function()
   {
     Sanitizer.checkAndSanitize();
+  },
+
+  // If new add-ons were installed during startup, open the add-ons manager.
+  _checkForNewAddons: function()
+  {
+    const PREF_EM_NEW_ADDONS_LIST = "extensions.newAddons";
+
+    const prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                                 .getService(Components.interfaces.nsIPrefBranch);
+    if (!prefBranch.prefHasUserValue(PREF_EM_NEW_ADDONS_LIST))
+      return;
+
+    const args = Components.classes["@mozilla.org/array;1"]
+                           .createInstance(Components.interfaces.nsIMutableArray);
+    let str = Components.classes["@mozilla.org/supports-string;1"]
+                        .createInstance(Components.interfaces.nsISupportsString);
+    args.appendElement(str, false);
+    str = Components.classes["@mozilla.org/supports-string;1"]
+                    .createInstance(Components.interfaces.nsISupportsString);
+    str.data = prefBranch.getCharPref(PREF_EM_NEW_ADDONS_LIST);
+    args.appendElement(str, false);
+    const EMURL = "chrome://mozapps/content/extensions/extensions.xul";
+    // This window is the "first" to open.
+    // 'alwaysRaised' makes sure it stays in the foreground (though unfocused)
+    //   so it is noticed.
+    const EMFEATURES = "all,dialog=no,alwaysRaised";
+    const ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                         .getService(Components.interfaces.nsIWindowWatcher);
+    ww.openWindow(null, EMURL, "_blank", EMFEATURES, args);
+
+    prefBranch.clearUserPref(PREF_EM_NEW_ADDONS_LIST);
   },
 
   _onQuitRequest: function(aCancelQuit, aQuitType)
