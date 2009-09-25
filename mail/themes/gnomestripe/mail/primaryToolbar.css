@@ -194,6 +194,15 @@
   list-style-image: url("moz-icon://stock/gtk-save-as?size=toolbar");
 }
 
+#button-archive {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 336px 24px 312px);
+}
+
+#button-archive[disabled] {
+  -moz-image-region: rect(24px 336px 48px 312px);
+}
+
 #button-file[disabled] {
   list-style-image: url("moz-icon://stock/gtk-save-as?size=toolbar&state=disabled");
 }
@@ -417,6 +426,15 @@ toolbar[iconsize="small"] #button-file {
 
 toolbar[iconsize="small"] #button-file[disabled] {
   list-style-image: url("moz-icon://stock/gtk-save-as?size=menu&state=disabled");
+}
+
+toolbar[iconsize="small"] #button-archive {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 224px 16px 208px);
+}
+
+toolbar[iconsize="small"] #button-archive[disabled] {
+  -moz-image-region: rect(16px 224px 32px 208px);
 }
 
 /* ::::: end small primary toolbar buttons ::::: */

@@ -471,6 +471,7 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY replyListButton.label "Reply to List">
 <!ENTITY forwardButton.label "Forward">
 <!ENTITY fileButton.label "File">
+<!ENTITY archiveButton.label "Archive">
 <!ENTITY nextButton.label "Next">
 <!ENTITY previousButton.label "Previous">
 <!ENTITY backButton1.label "Back">
@@ -503,6 +504,7 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY replyListButton.tooltip "Reply to mailing list">
 <!ENTITY forwardButton.tooltip "Forward selected message">
 <!ENTITY fileButton.tooltip "File selected message">
+<!ENTITY archiveButton.tooltip "Archive selected messages">
 <!ENTITY nextButton.tooltip "Move to the next unread message">
 <!ENTITY previousButton.tooltip "Move to the previous unread message">
 <!ENTITY goForwardButton.tooltip "Go forward one message">

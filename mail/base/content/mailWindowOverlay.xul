@@ -1587,6 +1587,12 @@
                  recentLabel="&moveCopyMsgRecentMenu.label;"
                  recentAccessKey="&moveCopyMsgRecentMenu.accesskey;"/>
     </toolbarbutton>
+    <toolbarbutton id="button-archive"
+                   class="toolbarbutton-1"
+                   label="&archiveButton.label;"
+                   tooltiptext="&archiveButton.tooltip;"
+                   observes="button_archive"
+                   oncommand="MsgArchiveSelectedMessages(event)"/>
     <toolbarbutton id="button-goback"
                    class="toolbarbutton-1"
                    type="menu-button"
