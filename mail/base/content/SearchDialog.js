@@ -563,6 +563,17 @@ function GetScopeForFolder(folder)
     case "imap":
       // Junk is always enabled for imap, so the offline scope only depends on
       // whether the body is available.
+
+      // If we are the root folder, use the server property for body rather
+      // than the folder property.
+      if (folder.isServer)
+      {
+        let imapServer = folder.server
+                               .QueryInterface(Components.interfaces.nsIImapIncomingServer);
+        if (imapServer && imapServer.offlineDownload)
+          hasBody = true;
+      }
+
       if (!hasBody)
         return nsMsgSearchScope.onlineManual;
         // fall through to default
