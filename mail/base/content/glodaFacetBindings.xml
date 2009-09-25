@@ -1237,7 +1237,10 @@
         }
 
         // -- Content Poking
-        subject.textContent = message.subject;
+        if (message.subject.trim() == "")
+          subject.textContent = glodaFacetStrings.get("glodaFacetView.result.message.noSubject");
+        else
+          subject.textContent = message.subject;
         let authorNode = anonElem("author");
         authorNode.setAttribute("title", message.from.value);
         authorNode.textContent = message.from.contact.name
