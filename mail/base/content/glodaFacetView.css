@@ -74,6 +74,7 @@ body {
 #header {
   position: relative;
   max-width: 40em;
+  display: inline-block;
 }
 
 #data-column {
