@@ -74,14 +74,15 @@ const nsMsgSearchOp = Ci.nsMsgSearchOp;
  *  new constants.
  */
 var QuickSearchConstants = {
-  kQuickSearchSubject: 0,
-  kQuickSearchFrom: 1,
-  kQuickSearchFromOrSubject: 2,
-  kQuickSearchRecipient: 3,
-  kQuickSearchRecipientOrSubject: 4,
-  kQuickSearchBody: 5
+  kQuickSearchSubjectFromOrRecipient: 0,
+  kQuickSearchFromOrSubject: 1,
+  kQuickSearchRecipientOrSubject: 2,
+  kQuickSearchSubject: 3,
+  kQuickSearchFrom: 4,
+  kQuickSearchRecipient: 5,
+  kQuickSearchBody: 6
 };
-const kQuickSearchCount = 6;
+const kQuickSearchCount = 7;
 
 var QuickSearchLabels = null; // populated dynamically from properties files
 
@@ -113,6 +114,9 @@ var QuickSearchManager = {
       quickSearchStrings.get("searchRecipientOrSubject.label");
     this._modeLabels[QuickSearchConstants.kQuickSearchBody] =
       quickSearchStrings.get("searchMsgBody.label");
+    this._modeLabels[QuickSearchConstants.kQuickSearchSubjectFromOrRecipient] =
+      quickSearchStrings.get("searchSubjectFromOrRecipient.label");
+
   },
 
   /**
@@ -171,7 +175,8 @@ var QuickSearchManager = {
       // the subject
       if (aSearchMode == QuickSearchConstants.kQuickSearchSubject ||
           aSearchMode == QuickSearchConstants.kQuickSearchFromOrSubject ||
-          aSearchMode == QuickSearchConstants.kQuickSearchRecipientOrSubject)
+          aSearchMode == QuickSearchConstants.kQuickSearchRecipientOrSubject ||
+          aSearchMode == QuickSearchConstants.kQuickSearchSubjectFromOrRecipient)
       {
         term = aTermCreator.createTerm();
         value = term.value;
@@ -222,6 +227,19 @@ var QuickSearchManager = {
         value.str = termList[i];
         term.value = value;
         term.attrib = nsMsgSearchAttrib.ToOrCC;
+        term.op = nsMsgSearchOp.Contains;
+        term.booleanAnd = false;
+        searchTerms.push(term);
+      }
+
+      // create, fill, and append the AllAddresses term
+      if (aSearchMode == QuickSearchConstants.kQuickSearchSubjectFromOrRecipient)
+      {
+        term = aTermCreator.createTerm();
+        value = term.value;
+        value.str = termList[i];
+        term.value = value;
+        term.attrib = nsMsgSearchAttrib.AllAddresses;
         term.op = nsMsgSearchOp.Contains;
         term.booleanAnd = false;
         searchTerms.push(term);

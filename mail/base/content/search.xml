@@ -77,7 +77,7 @@
                     class="quick-search-menu"
                     value="global"
                     glodaOnly="true"
-                    label="&searchEverywhere.label;"
+                    label="&searchAllMessages.label;"
                     type="radio"
                     oncommand="this.parentNode.parentNode.parentNode.changeMode(this)"/>
           <xul:menuseparator quicksearchOnly="true"
