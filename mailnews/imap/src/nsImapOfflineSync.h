@@ -45,25 +45,31 @@
 #include "nsIMsgWindow.h"
 #include "nsIMsgFolder.h"
 #include "nsCOMArray.h"
+#include "nsIDBChangeListener.h"
 #include "nsIEnumerator.h"
 
-class nsImapOfflineSync : public nsIUrlListener, public nsIMsgCopyServiceListener {
-public:												// set to one folder to playback one folder only
-  nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener, nsIMsgFolder *singleFolderOnly = nsnull, PRBool isPseudoOffline = PR_FALSE);
+class nsImapOfflineSync : public nsIUrlListener,
+                          public nsIMsgCopyServiceListener,
+                          public nsIDBChangeListener {
+public: // set to one folder to playback one folder only
+  nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener,
+                    nsIMsgFolder *singleFolderOnly = nsnull,
+                    PRBool isPseudoOffline = PR_FALSE);
 
   virtual ~nsImapOfflineSync();
-  
+
   NS_DECL_ISUPPORTS
   NS_DECL_NSIURLLISTENER
   NS_DECL_NSIMSGCOPYSERVICELISTENER
+  NS_DECL_NSIDBCHANGELISTENER
   virtual nsresult  ProcessNextOperation(); // this kicks off playback
-  
+
   PRInt32   GetCurrentUIDValidity();
-  void	    SetCurrentUIDValidity(PRInt32 uidvalidity) { mCurrentUIDValidity = uidvalidity; }
-  
-  void	    SetPseudoOffline(PRBool pseudoOffline) {m_pseudoOffline = pseudoOffline;}
+  void      SetCurrentUIDValidity(PRInt32 uidvalidity) { mCurrentUIDValidity = uidvalidity; }
+
+  void      SetPseudoOffline(PRBool pseudoOffline) {m_pseudoOffline = pseudoOffline;}
   PRBool    ProcessingStaleFolderUpdate() { return m_singleFolderToUpdate != nsnull; }
-  
+
   PRBool    CreateOfflineFolder(nsIMsgFolder *folder);
   void      SetWindow(nsIMsgWindow *window);
 protected:
@@ -71,18 +77,19 @@ protected:
   PRBool    DestFolderOnSameServer(nsIMsgFolder *destFolder);
   nsresult  AdvanceToNextServer();
   nsresult  AdvanceToNextFolder();
-  void	    AdvanceToFirstIMAPFolder();
-  void 	    DeleteAllOfflineOpsForCurrentDB();
+  void      AdvanceToFirstIMAPFolder();
+  void      DeleteAllOfflineOpsForCurrentDB();
   void      ClearCurrentOps();
-  
+  // Clears m_currentDB, and unregister listener.
+  void      ClearDB();
   void      ProcessFlagOperation(nsIMsgOfflineImapOperation *currentOp);
   void      ProcessKeywordOperation(nsIMsgOfflineImapOperation *op);
-  void	    ProcessMoveOperation(nsIMsgOfflineImapOperation *currentOp);
-  void	    ProcessCopyOperation(nsIMsgOfflineImapOperation *currentOp);
-  void	    ProcessEmptyTrash();
-  void	    ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *currentOp,
+  void      ProcessMoveOperation(nsIMsgOfflineImapOperation *currentOp);
+  void      ProcessCopyOperation(nsIMsgOfflineImapOperation *currentOp);
+  void      ProcessEmptyTrash();
+  void      ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *currentOp,
                                       nsOfflineImapOperationType opType);
-  
+
   nsCOMPtr <nsIMsgFolder> m_currentFolder;
   nsCOMPtr <nsIMsgFolder> m_singleFolderToUpdate;
   nsCOMPtr <nsIMsgWindow> m_window;

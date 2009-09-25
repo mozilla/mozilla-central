@@ -58,7 +58,7 @@
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
-NS_IMPL_ISUPPORTS2(nsImapOfflineSync, nsIUrlListener, nsIMsgCopyServiceListener)
+NS_IMPL_ISUPPORTS3(nsImapOfflineSync, nsIUrlListener, nsIMsgCopyServiceListener, nsIDBChangeListener)
 
 nsImapOfflineSync::nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener, nsIMsgFolder *singleFolderOnly, PRBool isPseudoOffline)
 {
@@ -200,9 +200,9 @@ nsresult nsImapOfflineSync::AdvanceToNextServer()
 nsresult nsImapOfflineSync::AdvanceToNextFolder()
 {
   nsresult rv;
-	// we always start by changing flags
+  // we always start by changing flags
   mCurrentPlaybackOpType = nsIMsgOfflineImapOperation::kFlagsChanged;
-	
+
   if (m_currentFolder)
   {
     m_currentFolder->SetMsgDatabase(nsnull);
@@ -222,7 +222,7 @@ nsresult nsImapOfflineSync::AdvanceToNextFolder()
     rv = m_serverEnumerator->CurrentItem(getter_AddRefs(supports));
     m_currentFolder = do_QueryInterface(supports);
   }
-  m_currentDB = nsnull;
+  ClearDB();
   return rv;
 }
 
@@ -689,7 +689,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
 void nsImapOfflineSync::ProcessEmptyTrash()
 {
   m_currentFolder->EmptyTrash(m_window, this);
-  m_currentDB = nsnull; // EmptyTrash closes and deletes the trash db.
+  ClearDB(); // EmptyTrash closes and deletes the trash db.
 }
 
 // returns PR_TRUE if we found a folder to create, PR_FALSE if we're done creating folders.
@@ -787,7 +787,11 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     // shouldn't need to check if configured for offline use, since any folder with
     // events should have nsMsgFolderFlags::OfflineEvents set.
     if (folderFlags & (nsMsgFolderFlags::OfflineEvents /* | nsMsgFolderFlags::Offline */))
+    {
       m_currentFolder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(m_currentDB));
+      if (m_currentDB)
+        m_currentDB->AddListener(this);
+    }
 
     if (m_currentDB)
     {
@@ -795,7 +799,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
       m_KeyIndex = 0;
       if ((m_currentDB->ListAllOfflineOpIds(&m_CurrentKeys) != 0) || m_CurrentKeys.IsEmpty())
       {
-        m_currentDB = nsnull;
+        ClearDB();
         folderInfo = nsnull; // can't hold onto folderInfo longer than db
         m_currentFolder->ClearFlag(nsMsgFolderFlags::OfflineEvents);
       }
@@ -841,7 +845,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
         m_CurrentKeys.Clear();
         if ( (m_currentDB->ListAllOfflineOpIds(&m_CurrentKeys) != 0) || m_CurrentKeys.IsEmpty() )
         {
-          m_currentDB = nsnull;
+          ClearDB();
           if (deletedGhostMsgs)
             deletedAllOfflineEventsInFolder = m_currentFolder;
         }
@@ -1005,7 +1009,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     
     if (currentFolderFinished)
     {
-      m_currentDB = nsnull;
+      ClearDB();
       if (!m_singleFolderToUpdate)
       {
         AdvanceToNextFolder();
@@ -1186,7 +1190,7 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
   {
     PRUint32 folderFlags;
 
-    m_currentDB = nsnull;
+    ClearDB();
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder;
     if (m_currentFolder)
       imapFolder = do_QueryInterface(m_currentFolder);
@@ -1236,5 +1240,75 @@ NS_IMETHODIMP nsImapOfflineSync::OnStopCopy(nsresult aStatus)
   return OnStopRunningUrl(nsnull, aStatus);
 }
 
+void nsImapOfflineSync::ClearDB()
+{
+  m_currentOpsToClear.Clear();
+  if (m_currentDB)
+    m_currentDB->RemoveListener(this);
+  m_currentDB = nsnull;
+}
 
+NS_IMETHODIMP
+nsImapOfflineSync::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange,
+    PRBool aPreChange, PRUint32 *aStatus, nsIDBChangeListener * aInstigator)
+{
+  return NS_OK;
+}
+
+
+NS_IMETHODIMP
+nsImapOfflineSync::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged,
+    PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
+{
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+nsImapOfflineSync::OnHdrDeleted(nsIMsgDBHdr *aHdrChanged,
+    nsMsgKey aParentKey, PRInt32 aFlags, nsIDBChangeListener *aInstigator)
+{
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+nsImapOfflineSync::OnHdrAdded(nsIMsgDBHdr *aHdrAdded,
+    nsMsgKey aParentKey, PRInt32 aFlags, nsIDBChangeListener *aInstigator)
+{
+    return NS_OK;
+}
+
+/* void OnParentChanged (in nsMsgKey aKeyChanged, in nsMsgKey oldParent, in nsMsgKey newParent, in nsIDBChangeListener aInstigator); */
+NS_IMETHODIMP
+nsImapOfflineSync::OnParentChanged(nsMsgKey aKeyChanged,
+    nsMsgKey oldParent, nsMsgKey newParent, nsIDBChangeListener *aInstigator)
+{
+    return NS_OK;
+}
+
+/* void OnAnnouncerGoingAway (in nsIDBChangeAnnouncer instigator); */
+NS_IMETHODIMP
+nsImapOfflineSync::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)
+{
+  ClearDB();
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapOfflineSync::OnEvent(nsIMsgDatabase *aDB, const char *aEvent)
+{
+  return NS_OK;
+}
+
+/* void OnReadChanged (in nsIDBChangeListener instigator); */
+NS_IMETHODIMP
+nsImapOfflineSync::OnReadChanged(nsIDBChangeListener *instigator)
+{
+    return NS_OK;
+}
+
+/* void OnJunkScoreChanged (in nsIDBChangeListener instigator); */
+NS_IMETHODIMP
+nsImapOfflineSync::OnJunkScoreChanged(nsIDBChangeListener *instigator)
+{
+    return NS_OK;
+}
 
