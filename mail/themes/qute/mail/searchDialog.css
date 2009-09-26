@@ -151,7 +151,7 @@ treecol.attachmentColumnHeader {
 }
 
 treechildren::-moz-tree-image(attachmentCol, attach) {
-  list-style-image: url("chrome://messenger/skin/icons/attachment.png");
+  list-style-image: url("chrome://messenger/skin/icons/attachment-col.png");
 }
 
 /* ..... flag column ..... */
