@@ -89,15 +89,6 @@
         if (labelPost)
           spanify(labelPost, "explanation-fulltext-label");
 
-        if (aMsgSearcher.fulltextTerms.length > 1) {
-          spanify(
-            glodaFacetStrings.get("glodaFacetView.constraints.query.fulltext." +
-              (aMsgSearcher.andTerms ? "changeToOrLabel" : "changeToAndLabel")),
-            "explanation-change-label")
-          .onclick = function() {
-            FacetContext.toggleFulltextCriteria();
-          };
-        }
       ]]></body>
     </method>
     <method name="setQuery">

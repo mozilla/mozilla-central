@@ -134,22 +134,6 @@ h1, h2, h3 {
   margin-top: 1em;
 }
 
-.explanation-change-label {
-  display: inline-block;
-  color: black;
-  font-size: 60%;
-  padding: 3px;
-  margin: 0 0.1em;
-  margin-left: 1em;
-  border: 1px solid grey;
-  -moz-border-radius: 4px;
-}
-
-.explanation-change-label:hover {
-  cursor: pointer;
-  background-color: #aed5ff;
-}
-
 .facetious[uninitialized] {
   display: none;
 }
