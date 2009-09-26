@@ -257,6 +257,10 @@ h3 {
   display: inline-block; /* override the general .facetious list-item style */
 }
 
+#facet-star[disabled], #facet-attachmentTypes[disabled] {
+  display: none;
+}
+
 .facetious[type="boolean"][disabled] {
   color: #888888;
 }
