@@ -442,7 +442,8 @@ char nsMsgFilterList::SkipWhitespace(nsIInputStream *aStream)
   do
   {
     ch = ReadChar(aStream);
-  } while (isspace(ch));
+  } while (!(ch & 0x80) && isspace(ch)); // isspace can crash with non-ascii input
+
   return ch;
 }
 
@@ -461,7 +462,7 @@ char nsMsgFilterList::LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIInputStr
   int i;
   for (i = 0; i + 1 < (int)(sizeof(attribStr)); )
   {
-    if (curChar == (char) -1 || isspace(curChar) || curChar == '=')
+    if (curChar == (char) -1 || (!(curChar & 0x80) && isspace(curChar)) || curChar == '=')
       break;
     attribStr[i++] = curChar;
     curChar = ReadChar(aStream);
@@ -559,7 +560,8 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
     switch(attrib)
     {
     case nsIMsgFilterList::attribNone:
-      m_curFilter->SetUnparseable(PR_TRUE);
+      if (m_curFilter)
+        m_curFilter->SetUnparseable(PR_TRUE);
       break;
     case nsIMsgFilterList::attribVersion:
       m_fileVersion = value.ToInteger(&intToStringResult, 10);
