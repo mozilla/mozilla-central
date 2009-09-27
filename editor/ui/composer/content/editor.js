@@ -58,6 +58,7 @@ const kContentEditableStyleSheet = "resource://gre/res/contenteditable.css";
 
 const kTextMimeType = "text/plain";
 const kHTMLMimeType = "text/html";
+const kXHTMLMimeType = "application/xhtml+xml";
 
 const nsIWebNavigation = Components.interfaces.nsIWebNavigation;
 
@@ -816,13 +817,7 @@ function CheckAndSaveDocument(command, allowDontSave)
     }
 
     // Save to local disk
-    var contentsMIMEType;
-    if (IsHTMLEditor())
-      contentsMIMEType = kHTMLMimeType;
-    else
-      contentsMIMEType = kTextMimeType;
-    var success = SaveDocument(false, false, contentsMIMEType);
-    return success;
+    return SaveDocument(false, false, editor.contentsMIMEType);
   }
 
   if (result == 2) // "Don't Save"
@@ -1759,7 +1754,7 @@ function SetEditMode(mode)
     } catch (e) {}
 
     flags |= kOutputLFLineBreak;
-    var source = editor.outputToString(kHTMLMimeType, flags);
+    var source = editor.outputToString(editor.contentsMIMEType, flags);
     var start = source.search(/<html/i);
     if (start == -1) start = 0;
     gSourceTextEditor.insertText(source.slice(start));
@@ -1790,8 +1785,16 @@ function SetEditMode(mode)
       try {
         // We are coming from edit source mode,
         //   so transfer that back into the document
-        source = gSourceTextEditor.outputToString(kTextMimeType, kOutputLFLineBreak);
-        editor.rebuildDocumentFromSource(source);
+        source = gSourceTextEditor.outputToString(kTextMimeType, kOutputLFLineBreak).trim();
+        if (editor.contentsMIMEType != kXHTMLMimeType)
+          editor.rebuildDocumentFromSource(source);
+        else {
+          var fragment = editor.document.createRange().createContextualFragment(source);
+          editor.enableUndo(false);
+          editor.document.documentElement.removeChild(GetBodyElement());
+          editor.document.replaceChild(fragment.firstChild, editor.document.documentElement);
+          editor.enableUndo(true);
+        }
 
         // Get the text for the <title> from the newly-parsed document
         // (must do this for proper conversion of "escaped" characters)
@@ -1825,6 +1828,7 @@ function SetEditMode(mode)
     gSourceTextEditor.resetModificationCount();
 
     gContentWindow.focus();
+    //goDoCommand("cmd_moveTop");
   }
 
   switch (mode) {
@@ -1851,32 +1855,21 @@ function CancelHTMLSource()
 
 function FinishHTMLSource()
 {
-  //Here we need to check whether the HTML source contains <head> and <body> tags
-  //Or RebuildDocumentFromSource() will fail.
-  if (IsInHTMLSourceMode())
-  {
-    var htmlSource = gSourceTextEditor.outputToString(kTextMimeType, kOutputLFLineBreak);
-    if (htmlSource.length > 0)
-    {
-      var beginHead = htmlSource.indexOf("<head");
-      if (beginHead == -1)
-      {
-        AlertWithTitle(GetString("Alert"), GetString("NoHeadTag"));
-        //cheat to force back to Source Mode
-        gEditorDisplayMode = kDisplayModePreview;
-        SetDisplayMode(kDisplayModeSource);
-        throw Components.results.NS_ERROR_FAILURE;
-      }
+  var editor = GetCurrentEditor();
 
-      var beginBody = htmlSource.indexOf("<body");
-      if (beginBody == -1)
-      {
-        AlertWithTitle(GetString("Alert"), GetString("NoBodyTag"));
-        //cheat to force back to Source Mode
-        gEditorDisplayMode = kDisplayModePreview;
-        SetDisplayMode(kDisplayModeSource);
-        throw Components.results.NS_ERROR_FAILURE;
-      }
+  if (IsInHTMLSourceMode() && editor.contentsMIMEType == kXHTMLMimeType)
+  {
+    var html = null;
+    try {
+      var htmlSource = gSourceTextEditor.outputToString(kTextMimeType,
+                                                        kOutputLFLineBreak);
+      editor.document.createRange().createContextualFragment(htmlSource);
+    } catch (e) {
+      AlertWithTitle(GetString("Alert"), GetString("Malformed"));
+      //cheat to force back to Source Mode
+      gEditorDisplayMode = kDisplayModePreview;
+      SetDisplayMode(kDisplayModeSource);
+      throw e;
     }
   }
 
@@ -1927,14 +1920,14 @@ function SetDisplayMode(mode)
           // Disable all extra "edit mode" style sheets 
           editor.enableStyleSheet(kNormalStyleSheet, false);
           editor.enableStyleSheet(kAllTagsStyleSheet, false);
-          editor.isImageResizingEnabled = true;
+          editor.objectResizingEnabled = true;
           break;
 
         case kDisplayModeNormal:
           editor.addOverrideStyleSheet(kNormalStyleSheet);
           // Disable ShowAllTags mode
           editor.enableStyleSheet(kAllTagsStyleSheet, false);
-          editor.isImageResizingEnabled = true;
+          editor.objectResizingEnabled = true;
           break;
 
         case kDisplayModeAllTags:
@@ -1945,7 +1938,7 @@ function SetDisplayMode(mode)
           if (editor.resizedObject) {
             editor.hideResizers();
           }
-          editor.isImageResizingEnabled = false;
+          editor.objectResizingEnabled = false;
           break;
       }
     } catch(e) {}

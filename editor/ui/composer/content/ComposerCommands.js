@@ -1672,7 +1672,7 @@ function SaveDocument(aSaveAs, aSaveCopy, aMimeType)
   var saveAsTextFile = IsSupportedTextMimeType(aMimeType);
 
   // check if the file is to be saved is a format we don't understand; if so, bail
-  if (aMimeType != "text/html" && !saveAsTextFile)
+  if (aMimeType != kHTMLMimeType && aMimeType != kXHTMLMimeType && !saveAsTextFile)
     throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
 
   if (saveAsTextFile)
