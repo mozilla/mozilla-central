@@ -230,6 +230,7 @@
   locale/@AB_CD@/messenger/FilterListDialog.dtd                             (%chrome/mailnews/FilterListDialog.dtd)
   locale/@AB_CD@/messenger/folderpane.dtd                                   (%chrome/mailnews/folderpane.dtd)
   locale/@AB_CD@/messenger/folderProps.dtd                                  (%chrome/mailnews/folderProps.dtd)
+  locale/@AB_CD@/messenger/gloda.properties                                 (%chrome/mailnews/gloda.properties)
   locale/@AB_CD@/messenger/imapMsgs.properties                              (%chrome/mailnews/imapMsgs.properties)
   locale/@AB_CD@/messenger/importDialog.dtd                                 (%chrome/mailnews/importDialog.dtd)
   locale/@AB_CD@/messenger/importMsgs.properties                            (%chrome/mailnews/importMsgs.properties)
