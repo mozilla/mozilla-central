@@ -119,7 +119,11 @@ bin\components\xppref32.dll
 bin\components\zipwriter.dll
 #endif
 bin\components\suite.dll
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\components\xpinstal.dll
+#else
+bin\components\xpinstall.dll
+#endif
 ; component xpts
 bin\components\accessibility.xpt
 bin\components\accessibility-msaa.xpt
@@ -143,7 +147,11 @@ bin\components\content_xtf.xpt
 bin\components\contentprefs.xpt
 bin\components\cookie.xpt
 bin\components\directory.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\components\docshell_base.xpt
+#else
+bin\components\docshell.xpt
+#endif
 bin\components\dom.xpt
 bin\components\dom_base.xpt
 bin\components\dom_canvas.xpt
@@ -221,7 +229,11 @@ bin\components\plugin.xpt
 bin\components\pref.xpt
 bin\components\prefetch.xpt
 bin\components\profile.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\components\proxyObject.xpt
+#else
+bin\components\proxyObjInst.xpt
+#endif
 bin\components\rdf.xpt
 bin\components\satchel.xpt
 bin\components\saxparser.xpt
@@ -254,7 +266,11 @@ bin\components\xpcom_components.xpt
 bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt
 bin\components\xpcom_system.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\components\xpcom_thread.xpt
+#else
+bin\components\xpcom_threads.xpt
+#endif
 bin\components\xpcom_xpti.xpt
 bin\components\xpconnect.xpt
 bin\components\xpinstall.xpt

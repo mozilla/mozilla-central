@@ -86,7 +86,7 @@ PREF_JS_EXPORTS = \
     $(srcdir)/profile/channel-prefs.js \
     $(NULL)
 
-ifeq ($(USE_SHORT_LIBNAME), 1)
+ifneq (,$(filter OS2 WINCE WINNT,$(OS_ARCH)))
 PROGRAM = thunderbird$(BIN_SUFFIX)
 else
 PROGRAM = thunderbird-bin$(BIN_SUFFIX)

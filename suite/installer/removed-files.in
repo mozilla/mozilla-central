@@ -85,6 +85,13 @@ components/wallet.xpt
 components/walleteditor.xpt
 components/walletpreview.xpt
 components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
+#ifdef XP_WIN
+#ifndef MOZILLA_1_9_1_BRANCH
+components/xpinstal.dll
+#else
+components/xpinstall.dll
+#endif
+#endif
 components/winhooks.xpt
 components/xml-rpc.xpt
 defaults/wallet/VcardSchema.tbl

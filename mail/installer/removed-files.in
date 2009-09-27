@@ -90,6 +90,13 @@ components/widget_mac.xpt
 #endif
 components/@DLL_PREFIX@xpcom_compat_c@DLL_SUFFIX@
 components/xpcom_obsolete.xpt
+#ifdef XP_WIN
+#ifndef MOZILLA_1_9_1_BRANCH
+components/xpinstal.dll
+#else
+components/xpinstall.dll
+#endif
+#endif
 components/xpti.dat
 components/xptitemp.dat
 components/myspell/en-US.dic
@@ -151,7 +158,10 @@ res/bloatcycle.html
 res/cmessage.txt
 #ifndef MOZILLA_1_9_1_BRANCH
 res/broken-image.gif
+res/charsetData.properties
+res/charsetalias.properties
 res/loading-image.gif
+res/wincharset.properties
 #endif
 res/platform-forms.css
 res/sample.unixpsfonts.properties
