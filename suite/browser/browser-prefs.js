@@ -67,6 +67,9 @@ pref("browser.startup.page",                1);
 pref("browser.startup.homepage",	   "chrome://navigator-region/locale/region.properties");
 pref("browser.startup.homepage.count", 1);
 
+pref("browser.warnOnQuit", true);
+pref("browser.warnOnRestart", true);
+
 // disable this until it can be disabled on a per-docshell basis (see bug 319368)
 pref("browser.send_pings", false);
 
