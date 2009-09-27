@@ -601,16 +601,6 @@ h3 {
   color: #222;
 }
 
-.message-recipient:first-child:before {
-  content: "";
-}
-.message-recipient:after {
-  content: ", ";
-}
-.message-recipient:last-child:after {
-  content: "";
-}
-
 .message-subject {
   color: #3465a4;
   font-size: medium;

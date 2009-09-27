@@ -1248,15 +1248,23 @@
           let recipientCount = 0;
           const MAX_RECIPIENTS = 3;
           let totalRecipientCount = message.recipients.length;
-          for each (let [, recip] in Iterator(message.recipients)) {
+          let recipientSeparator = glodaFacetStrings.get(
+              "glodaFacetView.results.message.recipientSeparator")
+          for each (let [index, recip] in Iterator(message.recipients)) {
             let recipNode = document.createElement("span");
             recipNode.setAttribute("class", "message-recipient");
             recipNode.textContent = recip.contact.name;
-            recipNode.setAttribute("title", "BARGH");
             recipientsNode.appendChild(recipNode);
             recipientCount++;
             if (recipientCount == MAX_RECIPIENTS)
               break;
+            if (index != totalRecipientCount - 1) {
+              // add separators (usually commas)
+              let sepNode = document.createElement("span");
+              sepNode.setAttribute("class", "message-recipient-separator");
+              sepNode.textContent = recipientSeparator;
+              recipientsNode.appendChild(sepNode);
+            }
           }
           if (totalRecipientCount > MAX_RECIPIENTS) {
             let nOthers = totalRecipientCount - recipientCount;
@@ -1264,7 +1272,7 @@
             andNOthers.setAttribute("class", "message-recipients-andothers");
 
             let andOthersLabel= PluralForm.get(nOthers, glodaFacetStrings.get(
-                              "glodaFacetView.results.message.andNOthers"))
+                              "glodaFacetView.results.message.andOthers"))
                              .replace("#1", nOthers);
 
             andNOthers.textContent = andOthersLabel;
