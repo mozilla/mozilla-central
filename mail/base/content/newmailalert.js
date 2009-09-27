@@ -62,9 +62,16 @@ function prefillAlertInfo()
   gUserInitiated = window.arguments[2];
   gOrigin = window.arguments[3];
 
-  // for now just grab the first folder which should be a root folder
-  // for the account that has new mail. 
-  var rootFolder = foldersWithNewMail.GetElementAt(0).QueryInterface(Components.interfaces.nsIWeakReference).QueryReferent(Components.interfaces.nsIMsgFolder);
+  // For now just grab the first folder which should be a root folder
+  // for the account that has new mail. If we can't find a folder, just
+  // return to avoid the exception and empty dialog in upper left-hand corner.
+  let rootFolder;
+  if (foldersWithNewMail && foldersWithNewMail.Count() > 0)
+     rootFolder = foldersWithNewMail.GetElementAt(0)
+                    .QueryInterface(Components.interfaces.nsIWeakReference)
+                    .QueryReferent(Components.interfaces.nsIMsgFolder);
+  else
+   return;
 
   // generate an account label string based on the root folder
   var label = document.getElementById('alertTitle');
