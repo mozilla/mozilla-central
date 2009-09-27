@@ -235,7 +235,7 @@ function FillFolderPaneContextMenu()
   const kTrashFlag = Components.interfaces.nsMsgFolderFlags.Trash;
   let isChildOfTrash = folder.isSpecialFolder(kTrashFlag, true);
   var canGetMessages =
-    (isServer && (serverType != "nntp") && (serverType != "none")) ||
+    (isServer && serverType != "none") ||
     isNewsgroup ||
     ((serverType == "rss") && !isChildOfTrash && !isVirtualFolder);
 
