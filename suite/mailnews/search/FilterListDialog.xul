@@ -23,6 +23,7 @@
  Contributor(s):
    Håkan Waara <hwaara@chello.se>
    Seth Spitzer <sspitzer@netscape.com>
+   Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -43,21 +44,25 @@
 <?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 
-<!DOCTYPE window SYSTEM "chrome://messenger/locale/FilterListDialog.dtd">
+<!DOCTYPE dialog SYSTEM "chrome://messenger/locale/FilterListDialog.dtd">
 
-<window id="filterListDialog"
-  xmlns:nc="http://home.netscape.com/NC-rdf#"
-  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-  windowtype="mailnews:filterlist"
-  style="width: 45em; height: 31em;"
-  onload="onLoad();"
-  onunload="onFilterUnload();"
-  onclose="return onFilterClose();"
-  persist="width height screenX screenY"
-  title="&window.title;">
+<dialog id="filterListDialog"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:nc="http://home.netscape.com/NC-rdf#"
+        windowtype="mailnews:filterlist"
+        title="&filterListDialog.title;"
+        style="width: 45em; height: 31em;"
+        persist="width height screenX screenY"
+        buttons="help"
+        ondialoghelp="return openHelp('mail-filters');"
+        onload="onLoad();"
+        onunload="onFilterUnload();"
+        onclose="return onFilterClose();">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/FilterListDialog.js"/>
-  <stringbundle id="bundle_filter" src="chrome://messenger/locale/filter.properties"/>
+  <script type="application/x-javascript"
+          src="chrome://messenger/content/FilterListDialog.js"/>
+  <stringbundle id="bundle_filter"
+                src="chrome://messenger/locale/filter.properties"/>
 
   <commandset id="filterListCommands">
     <command id="cmd_close" oncommand="if (onFilterClose()) window.close();"/>
@@ -67,69 +72,6 @@
     <key id="key_close"/>
   </keyset>
 
-  <hbox align="center">
-    <label value="&filtersForPrefix.label;" 
-           accesskey="&filtersForPrefix.accesskey;" control="serverMenu"/>
-
-      <menulist id="serverMenu"
-                class="folderMenuItem"
-                IsServer="true"
-                IsSecure="false"
-                ServerType="none"
-                datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
-                sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-                sortDirection="ascending"
-                ref="msgaccounts:/"
-                oncommand="onFilterServerClick(event.target);">
-          <template>
-            <rule iscontainer="true" isempty="false" nc:ServerType="nntp">
-              <menupopup>
-                <menu uri="..." 
-                                class="folderMenuItem menu-iconic" 
-                                IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                                IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                                ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
-                                label="rdf:http://home.netscape.com/NC-rdf#Name"
-                                itemUri="rdf:*">
-                  <menupopup class="menulist-menupopup">
-                    <menuitem label="&choosethisnewsserver.label;"
-                              itemUri="rdf:*"/>
-                    <menuseparator/>
-                  </menupopup>
-                </menu>
-              </menupopup>
-            </rule>
-            <rule nc:ServerType="nntp">
-              <menupopup>
-                <menuitem uri="..." value="..."
-                 class="folderMenuItem menuitem-iconic"
-                 IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                 IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                 ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
-                 label="rdf:http://home.netscape.com/NC-rdf#Name"
-                 itemUri="rdf:*"/>
-              </menupopup>
-            </rule>
-            <rule nc:SupportsFilters="true">
-              <menupopup>
-                <menuitem uri="..." value="..."
-                 class="folderMenuItem menuitem-iconic"
-                 IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                 IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                 ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
-                 label="rdf:http://home.netscape.com/NC-rdf#Name"
-                 itemUri="rdf:*"/>
-              </menupopup>
-            </rule>
-          </template>
-          <menupopup/>
-      </menulist>
-      <spacer flex="1"/> 
-      <vbox>
-        <button label="&viewLogButton.label;" accesskey="&viewLogButton.accesskey;" oncommand="viewLog();"/>
-      </vbox>
-  </hbox>
-
   <grid flex="1">
     <columns>
       <column flex="1"/>
@@ -137,80 +79,162 @@
     </columns>
     <rows>
       <row>
+        <hbox align="center">
+          <label value="&filtersForPrefix.label;"
+                 accesskey="&filtersForPrefix.accesskey;"
+                 control="serverMenu"/>
+
+          <menulist id="serverMenu"
+                    class="folderMenuItem"
+                    IsServer="true"
+                    IsSecure="false"
+                    ServerType="none"
+                    datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+                    sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+                    sortDirection="ascending"
+                    ref="msgaccounts:/"
+                    oncommand="onFilterServerClick(event.target);">
+            <template>
+              <rule iscontainer="true" isempty="false" nc:ServerType="nntp">
+                <menupopup>
+                  <menu uri="..."
+                        class="folderMenuItem menu-iconic"
+                        IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                        IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                        ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                        label="rdf:http://home.netscape.com/NC-rdf#Name"
+                        itemUri="rdf:*">
+                    <menupopup class="menulist-menupopup">
+                      <menuitem label="&choosethisnewsserver.label;"
+                                itemUri="rdf:*"/>
+                      <menuseparator/>
+                    </menupopup>
+                  </menu>
+                </menupopup>
+              </rule>
+              <rule nc:ServerType="nntp">
+                <menupopup>
+                  <menuitem uri="..."
+                            value="..."
+                            class="folderMenuItem menuitem-iconic"
+                            IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                            IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                            ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                            label="rdf:http://home.netscape.com/NC-rdf#Name"
+                            itemUri="rdf:*"/>
+                </menupopup>
+              </rule>
+              <rule nc:SupportsFilters="true">
+                <menupopup>
+                  <menuitem uri="..."
+                            value="..."
+                            class="folderMenuItem menuitem-iconic"
+                            IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                            IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                            ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                            label="rdf:http://home.netscape.com/NC-rdf#Name"
+                            itemUri="rdf:*"/>
+                </menupopup>
+              </rule>
+            </template>
+            <menupopup/>
+          </menulist>
+          <spacer flex="1"/>
+        </hbox>
+        <button label="&viewLogButton.label;"
+                accesskey="&viewLogButton.accesskey;"
+                oncommand="viewLog();"/>
+      </row>
+
+      <row>
         <separator/>
       </row>
+
       <row>
-        <label control="filterTree" id="filterHeader">&filterHeader.label;</label>
+        <label id="filterHeader" control="filterTree">&filterHeader.label;</label>
       </row>
 
-
       <row flex="1">
+        <tree id="filterTree"
+              hidecolumnpicker="true"
+              onselect="onFilterSelect(event);"
+              onkeypress="onFilterTreeKeyPress(event);"
+              ondblclick="onFilterDoubleClick(event);">
+
+          <treecols>
+            <treecol id="nameColumn"
+                     flex="1"
+                     label="&nameColumn.label;"
+                     sort="?Name"/>
+            <treecol id="activeColumn"
+                     label="&activeColumn.label;"
+                     cycler="true"/>
+          </treecols>
+
+          <treechildren/>
+        </tree>
         <vbox>
-          <tree id="filterTree" flex="1" hidecolumnpicker="true"
-                onselect="onFilterSelect(event);"
-                onkeypress="onFilterTreeKeyPress(event);"
-                ondblclick="onFilterDoubleClick(event);">
-
-            <treecols>
-              <treecol id="nameColumn" flex="1" label="&nameColumn.label;" sort="?Name"/>
-              <treecol id="activeColumn" label="&activeColumn.label;" cycler="true"/>
-            </treecols>
-
-            <treechildren/>
-          </tree>
-        </vbox>
-
-        <vbox>
-          <button id="newButton" label="&newButton.label;" accesskey="&newButton.accesskey;"
+          <button id="newButton"
+                  label="&newButton.label;"
+                  accesskey="&newButton.accesskey;"
                   oncommand="onNewFilter(null);"/>
-          <button id="editButton" label="&editButton.label;" accesskey="&editButton.accesskey;" 
+          <button id="editButton"
+                  label="&editButton.label;"
+                  accesskey="&editButton.accesskey;"
                   oncommand="onEditFilter();"/>
-          <button id="deleteButton" label="&deleteButton.label;" accesskey="&deleteButton.accesskey;" 
+          <button id="deleteButton"
+                  label="&deleteButton.label;"
+                  accesskey="&deleteButton.accesskey;"
                   oncommand="onDeleteFilter();"/>
-          <button label="&helpButton.label;" accesskey="&helpButton.accesskey;" 
-                  oncommand="openHelp('mail-filters', 'chrome://communicator/locale/help/suitehelp.rdf');"/>
           <spacer flex="1"/>
-          <button id="reorderUpButton" label="&reorderUpButton.label;" accesskey="&reorderUpButton.accesskey;" 
+          <button id="reorderUpButton"
+                  label="&reorderUpButton.label;"
+                  accesskey="&reorderUpButton.accesskey;"
                   class="up"
                   oncommand="onUp(event);"/>
-          <button id="reorderDownButton" label="&reorderDownButton.label;" accesskey="&reorderDownButton.accesskey;" 
+          <button id="reorderDownButton"
+                  label="&reorderDownButton.label;"
+                  accesskey="&reorderDownButton.accesskey;"
                   class="down"
                   oncommand="onDown(event);"/>
           <spacer flex="1"/>
         </vbox>
       </row>
-      <row>
-        <vbox>
-          <hbox align="center">
-            <label id="folderPickerPrefix" value="&folderPickerPrefix.label;" 
-                   accesskey="&folderPickerPrefix.accesskey;"
-                   disabled="true" control="runFiltersFolder"/>
 
-            <menulist id="runFiltersFolder" disabled="true"/>
-          </hbox>
-        </vbox>
-        <vbox>
-          <button id="runFiltersButton" 
-                  label="&runFilters.label;" 
-                  accesskey="&runFilters.accesskey;" 
-                  runlabel="&runFilters.label;" 
-                  runaccesskey="&runFilters.accesskey;" 
-                  stoplabel="&stopFilters.label;" 
+      <row align="center">
+        <hbox align="center">
+          <label id="folderPickerPrefix"
+                 value="&folderPickerPrefix.label;"
+                 accesskey="&folderPickerPrefix.accesskey;"
+                 disabled="true"
+                 control="runFiltersFolder"/>
+
+          <menulist id="runFiltersFolder" disabled="true"/>
+          <spacer flex="1"/>
+          <button id="runFiltersButton"
+                  label="&runFilters.label;"
+                  accesskey="&runFilters.accesskey;"
+                  runlabel="&runFilters.label;"
+                  runaccesskey="&runFilters.accesskey;"
+                  stoplabel="&stopFilters.label;"
                   stopaccesskey="&stopFilters.accesskey;"
-                  oncommand="runSelectedFilters();" disabled="true"/>
+                  disabled="true"
+                  oncommand="runSelectedFilters();"/>
+        </hbox>
+        <vbox align="center">
+          <button dlgtype="help" class="dialog-button"/>
         </vbox>
       </row>
     </rows>
   </grid>
 
-  <separator/>
-
-  <statusbar class="chromeclass-status" id="status-bar">    
+  <statusbar class="chromeclass-status" id="status-bar">
     <statusbarpanel class="statusbarpanel-progress">
-      <progressmeter class="progressmeter-statusbar" id="statusbar-icon" mode="normal" value="0"/>
+      <progressmeter id="statusbar-icon"
+                     class="progressmeter-statusbar"
+                     mode="normal"
+                     value="0"/>
     </statusbarpanel>
     <statusbarpanel id="statusText" crop="right" flex="1"/>
-  </statusbar> 
-
-</window>
-
+  </statusbar>
+</dialog>

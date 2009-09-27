@@ -165,6 +165,7 @@ const nsMsgFilterMotion = Components.interfaces.nsMsgFilterMotion;
 
 function onLoad()
 {
+    setHelpFileURI("chrome://communicator/locale/help/suitehelp.rdf");
     gFilterListMsgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"].createInstance(Components.interfaces.nsIMsgWindow);
     gFilterListMsgWindow.domWindow = window; 
     gFilterListMsgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;   

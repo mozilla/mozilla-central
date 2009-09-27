@@ -80,6 +80,10 @@ textbox {
   min-height:1px;
 }
 
+#filterListDialog {
+  padding: 0px;
+}
+
 .filler {
   -moz-padding-end: 22px;
 }
