@@ -101,7 +101,6 @@
                  this.showStatusString(commonStatus);
              }
              if (this.mThrobber) {
-                 this.mThrobber.removeAttribute("disabled");
                  this.mThrobber.setAttribute("busy", true);
              }
          }
@@ -120,7 +119,6 @@
              this.showStatusString("");
              if (this.mThrobber) {
                  this.mThrobber.setAttribute("busy", false);
-                 this.mThrobber.setAttribute("disabled", true);
              }
              this.mCalendarValue = 0;
          }
@@ -141,10 +139,7 @@
                      this.showStatusString(curStatus);
                  }
              }
-             // it may be possible that the throbber has been disabled by another
-             // completed operation
              if (this.mThrobber){
-                 this.mThrobber.removeAttribute("disabled");
                  this.mThrobber.setAttribute("busy", true);
              }
          }
