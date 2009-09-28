@@ -15,7 +15,7 @@
 <!ENTITY composingMessages.label          "Composition">
 <!ENTITY format.label                     "Send Format">
 <!ENTITY return.label                     "Return Receipts">
-<!ENTITY junk.label                       "Junk Mail">
+<!ENTITY junk.label                       "Junk &amp; Suspect Mail">
 <!ENTITY tags.label                       "Tags">
 <!ENTITY characterEncoding.label          "Character Encoding">
 <!ENTITY networkStorage.label             "Network &amp; Storage">

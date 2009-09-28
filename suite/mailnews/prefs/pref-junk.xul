@@ -72,6 +72,12 @@
       <preference id="pref.junk.disable_button.resetTrainingData"
                   name="pref.junk.disable_button.resetTrainingData"
                   type="string"/>
+      <preference id="mail.phishing.detection.enabled"
+                  name="mail.phishing.detection.enabled"
+                  type="bool"/>
+      <preference id="mailnews.downloadToTempFile"
+                  name="mailnews.downloadToTempFile"
+                  type="bool"/>
     </preferences>
 
     <stringbundle id="bundleJunkPreferences"
@@ -136,6 +142,22 @@
                 preference="pref.junk.disable_button.resetTrainingData"
                 oncommand="ResetTrainingData();"/>
       </hbox>
+    </groupbox>
+
+    <groupbox>
+      <caption label="&pref.suspectMail.caption;"/>
+
+        <checkbox id="enablePhishingDetector"
+                  label="&enablePhishingDetector.label;"
+                  accesskey="&enablePhishingDetector.accesskey;"
+                  preference="mail.phishing.detection.enabled"/>
+
+        <separator class="thin"/>
+
+        <checkbox id="enableAntiVirusQuarantine"
+                  label="&antiVirus.label;"
+                  accesskey="&antiVirus.accesskey;"
+                  preference="mailnews.downloadToTempFile"/>
     </groupbox>
   </prefpane>
 </overlay>

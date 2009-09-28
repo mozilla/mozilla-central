@@ -34,7 +34,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!ENTITY pref.junk.title "Junk Mail">
+<!ENTITY pref.junk.title "Junk &amp; Suspect Mail">
 <!ENTITY junkSettings.caption "Global Junk Mail Settings">
 <!ENTITY junkMail.intro "Goto Account Settings to configure account specific junk mail settings.">
 
@@ -57,4 +57,16 @@
 <!ENTITY openJunkLog.label              "Show log">
 <!ENTITY openJunkLog.accesskey          "S">
 <!ENTITY resetTrainingData.label        "Reset training data">
-<!ENTITY resetTrainingData.accesskey    "t">
+<!ENTITY resetTrainingData.accesskey    "R">
+
+<!ENTITY pref.suspectMail.caption       "Suspect Mail">
+
+<!-- Phishing Detector -->
+<!ENTITY pref.phishing.caption            "E-mail Scams">
+<!ENTITY enablePhishingDetector.label     "Tell me if the message I'm reading is a suspected email scam">
+<!ENTITY enablePhishingDetector.accesskey "T">
+
+<!-- Anti Virus -->
+<!ENTITY pref.antivirus.caption           "Anti-Virus">
+<!ENTITY antiVirus.label                  "Allow anti-virus clients to scan incoming messages more easily">
+<!ENTITY antiVirus.accesskey              "A">
