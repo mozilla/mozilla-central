@@ -189,9 +189,12 @@
     <menuitem id="sendMessageToNewsgroupItem" label="&SendMessageTo.label;"
               accesskey="&SendMessageTo.accesskey;"
               oncommand="SendMailToNode(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'))"/>
-    <menuitem id="copyNewsgroupAddressItem" label="&CopyNewsgroupName.label;"
+    <menuitem id="copyNewsgroupNameItem" label="&CopyNewsgroupName.label;"
               accesskey="&CopyNewsgroupName.accesskey;"
               oncommand="CopyEmailNewsAddress(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'))"/>
+    <menuitem id="copyNewsgroupURLItem" label="&CopyNewsgroupURL.label;"
+              accesskey="&CopyNewsgroupURL.accesskey;"
+              oncommand="CopyNewsgroupURL(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'))"/>
     <menuseparator id="subscribeToNewsgroupSeparator"/>
     <menuitem id="subscribeToNewsgroupItem" label="&SubscribeToNewsgroup.label;"
               accesskey="&SubscribeToNewsgroup.accesskey;"

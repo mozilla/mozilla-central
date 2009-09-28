@@ -707,6 +707,8 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY CopyEmailAddress.accesskey "C">
 <!ENTITY CopyNewsgroupName.label "Copy Newsgroup Name">
 <!ENTITY CopyNewsgroupName.accesskey "C">
+<!ENTITY CopyNewsgroupURL.label "Copy Newsgroup URL">
+<!ENTITY CopyNewsgroupURL.accesskey "U">
 <!ENTITY CreateFilterFrom.label "Create Filter From…">
 <!ENTITY CreateFilterFrom.accesskey "F">
 <!ENTITY reportPhishingURL.label "Report Email Scam">

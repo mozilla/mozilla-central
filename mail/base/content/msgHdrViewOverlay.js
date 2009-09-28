@@ -1400,6 +1400,7 @@ function GetNewsgroupServer()
     if (server)
         return server.QueryInterface(Components.interfaces.nsISubscribableServer);
   }
+  return null;
 }
 
 /**
@@ -1451,7 +1452,7 @@ function SubscribeToNewsgroup(newsgroupNode)
 /**
  * Takes the newsgroup address title button, extracts the newsgroup name we
  * stored in there and copies it to the clipboard.
- * 
+ *
  * @param newsgroupNode a node which has a "newsgroup" attribute
  */
 function CopyNewsgroupName(newsgroupNode)
@@ -1459,6 +1460,38 @@ function CopyNewsgroupName(newsgroupNode)
   let clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
                             .getService(Components.interfaces.nsIClipboardHelper);
   clipboard.copyString(newsgroupNode.getAttribute("newsgroup"));
+}
+
+/**
+ * Takes the newsgroup address title button, extracts the newsgroup name we
+ * stored in there and copies it URL to it.
+ *
+ * @param newsgroupNode a node which has a "newsgroup" attribute
+ */
+function CopyNewsgroupURL(newsgroupNode)
+{
+  let server = GetNewsgroupServer();
+  if (!server)
+    return;
+
+  let ng = newsgroupNode.getAttribute("newsgroup");
+
+  let url;
+  if (server.socketType != Components.interfaces.nsIMsgIncomingServer.useSSL) {
+    url = "news://" + server.hostName;
+    if (server.port != Components.interfaces.nsINntpUrl.DEFAULT_NNTP_PORT)
+      url += ":" + server.port;
+    url += "/" + ng;
+  }
+  else {
+    url = "snews://" + server.hostName;
+    if (server.port != Components.interfaces.nsINntpUrl.DEFAULT_NNTPS_PORT)
+      url += ":" + server.port;
+    url += "/" + ng;
+  }
+  let clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                            .getService(Components.interfaces.nsIClipboardHelper);
+  clipboard.copyString(decodeURI(url));
 }
 
 // createnewAttachmentInfo --> constructor method for creating new attachment object which goes into the
