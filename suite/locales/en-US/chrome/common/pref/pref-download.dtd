@@ -18,6 +18,13 @@
 <!ENTITY alwaysAsk.label                "Always ask me where to save files">
 <!ENTITY alwaysAsk.accesskey            "A">
 
+<!ENTITY downloadRetention.label        "Download retention">
+<!ENTITY removeDownloads.label          "Remove downloads">
+<!ENTITY removeDownloads.accesskey      "R">
+<!ENTITY whenCompleted.label            "When they have completed">
+<!ENTITY whenQuittingApp.label          "When quitting &brandShortName;">
+<!ENTITY neverRemove.label              "Never">
+
 <!ENTITY finishedBehavior.label         "When a download completes">
 <!ENTITY playSound.label                "Play a sound">
 <!ENTITY playSound.accesskey            "s">

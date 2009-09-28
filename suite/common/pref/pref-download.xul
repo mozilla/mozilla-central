@@ -39,7 +39,12 @@
 
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-download.dtd">
+<!DOCTYPE overlay [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+%brandDTD;
+<!ENTITY % prefDownloadDTD SYSTEM "chrome://communicator/locale/pref/pref-download.dtd">
+%prefDownloadDTD;
+]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="download_pane"
@@ -63,6 +68,9 @@
                   name="browser.download.folderList"
                   type="int"
                   onchange="DisplayDownloadDirPref();"/>
+      <preference id="browser.download.manager.retention"
+                  name="browser.download.manager.retention"
+                  type="int"/>
       <!-- XXX: to be reintroduced with bug 490467
        preference id="browser.download.finished_download_sound"
                   name="browser.download.finished_download_sound"
@@ -120,6 +128,23 @@
                label="&alwaysAsk.label;"
                accesskey="&alwaysAsk.accesskey;"/>
       </radiogroup>
+    </groupbox>
+
+    <groupbox>
+      <caption label="&downloadRetention.label;"/>
+      <hbox align="center">
+        <label value="&removeDownloads.label;"
+               accesskey="&removeDownloads.accesskey;"
+               control="downloadRetention"/>
+        <menulist id="downloadRetention"
+                  preference="browser.download.manager.retention">
+          <menupopup>
+            <menuitem value="0" label="&whenCompleted.label;"/>
+            <menuitem value="1" label="&whenQuittingApp.label;"/>
+            <menuitem value="2" label="&neverRemove.label;"/>
+          </menupopup>
+        </menulist>
+      </hbox>
     </groupbox>
 
     <!-- XXX: to be reintroduced with bug 490467
