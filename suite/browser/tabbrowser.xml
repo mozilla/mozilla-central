@@ -364,20 +364,21 @@
             {
               if (aMaxTotalProgress > 0)
                 this.mTab.setAttribute("progress", Math.floor(aCurTotalProgress * 9.9 / aMaxTotalProgress));
-              if (!this.mBlank && this.mTabBrowser.mCurrentTab == this.mTab) {
-                for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
-                  var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p) {
-                    try {
-                      p.onProgressChange(aWebProgress, aRequest,
-                                         aCurSelfProgress, aMaxSelfProgress,
-                                         aCurTotalProgress, aMaxTotalProgress);
-                    } catch (e) {
-                      Components.utils.reportError(e);
-                    }
+
+              if (this.mBlank || this.mTabBrowser.mCurrentTab != this.mTab)
+                return;
+
+              this.mTabBrowser.mProgressListeners.forEach(
+                function notifyProgressChange(element) {
+                  try {
+                    element.onProgressChange(aWebProgress, aRequest,
+                                             aCurSelfProgress, aMaxSelfProgress,
+                                             aCurTotalProgress, aMaxTotalProgress);
+                  } catch (e) {
+                    Components.utils.reportError(e);
                   }
                 }
-              }
+              );
             },
 
             onStateChange : function(aWebProgress, aRequest, aStateFlags, aStatus)
@@ -463,19 +464,19 @@
                   this.mTabBrowser.mIsBusy = false;
               }
 
-              if (!oldBlank && this.mTabBrowser.mCurrentTab == this.mTab) {
-                for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
-                  var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p) {
-                    try {
-                      p.onStateChange(aWebProgress, aRequest, aStateFlags,
-                                      aStatus);
-                    } catch (e) {
-                      Components.utils.reportError(e);
-                    }
+              if (oldBlank || this.mTabBrowser.mCurrentTab != this.mTab)
+                return;
+
+              this.mTabBrowser.mProgressListeners.forEach(
+                function notifyStateChange(element) {
+                  try {
+                    element.onStateChange(aWebProgress, aRequest,
+                                          aStateFlags, aStatus);
+                  } catch (e) {
+                    Components.utils.reportError(e);
                   }
                 }
-              }
+              );
             },
 
             // The first location change is gotoIndex called from mInstallSH,
@@ -502,54 +503,51 @@
                   this.mBrowser.userTypedValue = null;
               }
 
-              if (!this.mBlank && this.mTabBrowser.mCurrentTab == this.mTab) {
-                for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
-                  var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p) {
-                    try {
-                      p.onLocationChange(aWebProgress, aRequest, aLocation);
-                    } catch (e) {
-                      Components.utils.reportError(e);
-                    }
+              if (this.mBlank || this.mTabBrowser.mCurrentTab != this.mTab)
+                return;
+
+              this.mTabBrowser.mProgressListeners.forEach(
+                function notifyLocationChange(element) {
+                  try {
+                    element.onLocationChange(aWebProgress, aRequest, aLocation);
+                  } catch (e) {
+                    Components.utils.reportError(e);
                   }
                 }
-              }
+              );
             },
 
             onStatusChange : function(aWebProgress, aRequest, aStatus, aMessage)
             {
-              if (this.mBlank)
+              if (this.mBlank || this.mTabBrowser.mCurrentTab != this.mTab)
                 return;
 
-              if (this.mTabBrowser.mCurrentTab == this.mTab) {
-                for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
-                  var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p) {
-                    try {
-                      p.onStatusChange(aWebProgress, aRequest, aStatus,
-                                       aMessage);
-                    } catch (e) {
-                      Components.utils.reportError(e);
-                    }
+              this.mTabBrowser.mProgressListeners.forEach(
+                function notifyStatusChange(element) {
+                  try {
+                    element.onStatusChange(aWebProgress, aRequest,
+                                           aStatus, aMessage);
+                  } catch (e) {
+                    Components.utils.reportError(e);
                   }
                 }
-              }
+              );
             },
 
             onSecurityChange : function(aWebProgress, aRequest, aState)
             {
-              if (this.mTabBrowser.mCurrentTab == this.mTab) {
-                for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
-                  var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p) {
-                    try {
-                      p.onSecurityChange(aWebProgress, aRequest, aState);
-                    } catch (e) {
-                      Components.utils.reportError(e);
-                    }
+              if (this.mTabBrowser.mCurrentTab != this.mTab)
+                return;
+
+              this.mTabBrowser.mProgressListeners.forEach(
+                function notifySecurityChange(element) {
+                  try {
+                    element.onSecurityChange(aWebProgress, aRequest, aState);
+                  } catch (e) {
+                    Components.utils.reportError(e);
                   }
                 }
-              }
+              );
             },
 
             setIcon : function(aURI)
@@ -876,27 +874,29 @@
             var loc = this.mCurrentBrowser.currentURI;
             var webProgress = this.mCurrentBrowser.webProgress;
             var securityUI = this.mCurrentBrowser.securityUI;
-            var i, p;
-            for (i = 0; i < this.mProgressListeners.length; i++) {
-              p = this.mProgressListeners[i];
-              if (p) {
+            this.mProgressListeners.forEach(
+              function notifyUrlBar(element) {
                 try {
-                  p.onLocationChange(webProgress, null, loc);
+                  element.onLocationChange(webProgress, null, loc);
                   if (securityUI)
-                    p.onSecurityChange(webProgress, null, securityUI.state);
+                    element.onSecurityChange(webProgress, null, securityUI.state);
                   var listener = this.mTabListeners[this.mTabContainer
                                                         .selectedIndex];
-                  if (listener.mBrowser.mIconURL && 'onLinkIconAvailable' in p)
-                    p.onLinkIconAvailable(listener.mBrowser.mIconURL);
-                  if ('onFeedAvailable' in p) {
-                    for (var j = 0; j < listener.mFeeds.length; j++)
-                      p.onFeedAvailable(listener.mFeeds[j]);
+                  if (listener.mBrowser.mIconURL && "onLinkIconAvailable" in element)
+                    element.onLinkIconAvailable(listener.mBrowser.mIconURL);
+                  if ("onFeedAvailable" in element) {
+                    listener.mFeeds.forEach(
+                      function notifyFeedAvailable(feed) {
+                        element.onFeedAvailable(feed);
+                      }
+                    );
                   }
                 } catch (e) {
                   Components.utils.reportError(e);
                 }
-              }
-            }
+              },
+              this
+            );
 
             // Update the window title.
             this.updateTitlebar();
@@ -906,40 +906,40 @@
             const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
             if (this.mCurrentTab.hasAttribute("busy") && !this.mIsBusy) {
               this.mIsBusy = true;
+
               webProgress = this.mCurrentBrowser.webProgress;
-              for (i = 0; i < this.mProgressListeners.length; i++) {
-                p = this.mProgressListeners[i];
-                if (p) {
+              this.mProgressListeners.forEach(
+                function notifyStateChangeBusy(element) {
                   try {
-                    p.onStateChange(webProgress, null,
-                                    nsIWebProgressListener.STATE_START |
-                                    nsIWebProgressListener.STATE_IS_NETWORK,
-                                    0);
+                    element.onStateChange(webProgress, null,
+                                          nsIWebProgressListener.STATE_START |
+                                            nsIWebProgressListener.STATE_IS_NETWORK,
+                                          0);
                   } catch (e) {
                     Components.utils.reportError(e);
                   }
                 }
-              }
+              );
             }
 
             // If the new tab is not busy, and our current state is busy, then
             // we need to fire a stop to all progress listeners.
             if (!this.mCurrentTab.hasAttribute("busy") && this.mIsBusy) {
               this.mIsBusy = false;
+
               webProgress = this.mCurrentBrowser.webProgress;
-              for (i = 0; i < this.mProgressListeners.length; i++) {
-                p = this.mProgressListeners[i];
-                if (p) {
+              this.mProgressListeners.forEach(
+                function notifyStateChangeNotBusy(element) {
                   try {
-                    p.onStateChange(webProgress, null,
-                                    nsIWebProgressListener.STATE_STOP |
-                                    nsIWebProgressListener.STATE_IS_NETWORK,
-                                    0);
+                    element.onStateChange(webProgress, null,
+                                          nsIWebProgressListener.STATE_STOP |
+                                            nsIWebProgressListener.STATE_IS_NETWORK,
+                                          0);
                   } catch (e) {
                     Components.utils.reportError(e);
                   }
                 }
-              }
+              );
             }
 
             // We've selected the new tab, so go ahead and notify listeners
@@ -1066,15 +1066,17 @@
               if (isFeed) {
                 this.mTabListeners[i].addFeed(event.originalTarget);
                 if (this.browsers[i] == this.mCurrentBrowser) {
-                  for each (var p in this.mProgressListeners) {
-                    if (p && 'onFeedAvailable' in p) {
-                      try {
-                        p.onFeedAvailable(event.originalTarget);
-                      } catch (e) {
-                        Components.utils.reportError(e);
+                  this.mProgressListeners.forEach(
+                    function notifyFeedAvailable(element) {
+                      if ("onFeedAvailable" in element) {
+                        try {
+                          element.onFeedAvailable(event.originalTarget);
+                        } catch (e) {
+                          Components.utils.reportError(e);
+                        }
                       }
                     }
-                  }
+                  );
                 }
               }
 
@@ -1099,15 +1101,17 @@
                                            null) == nsIContentPolicy.ACCEPT) {
                 this.mTabListeners[i].setIcon(href);
                 if (this.browsers[i] == this.mCurrentBrowser) {
-                  for each (var p in this.mProgressListeners) {
-                    if (p && 'onLinkIconAvailable' in p) {
-                      try {
-                        p.onLinkIconAvailable(href);
-                      } catch (e) {
-                        Components.utils.reportError(e);
+                  this.mProgressListeners.forEach(
+                    function notifyLinkIconAvailable(element) {
+                      if ("onLinkIconAvailable" in element) {
+                        try {
+                          element.onLinkIconAvailable(href);
+                        } catch (e) {
+                          Components.utils.reportError(e);
+                        }
                       }
                     }
-                  }
+                  );
                 }
               }
               return;
@@ -1571,6 +1575,15 @@
         <parameter name="aMask"/>
         <body>
           <![CDATA[
+/* Enable this _after_ MOZILLA_1_9_1_BRANCH.
+            if (!aListener)
+              throw Components.results.NS_ERROR_INVALID_ARG;
+
+            if (this.mProgressListeners.indexOf(aListener) != -1)
+              throw Components.results.NS_ERROR_FAILURE;
+*/
+
+            // push() does not disturb possibly ongoing iterations.
             this.mProgressListeners.push(aListener);
           ]]>
         </body>
@@ -1580,12 +1593,18 @@
         <parameter name="aListener"/>
         <body>
           <![CDATA[
-            for (var i = 0; i < this.mProgressListeners.length; i++) {
-              if (this.mProgressListeners[i] == aListener) {
-                this.mProgressListeners[i] = null;
-                break;
-              }
-            }
+/* Enable this _after_ MOZILLA_1_9_1_BRANCH.
+            if (this.mProgressListeners.indexOf(aListener) == -1)
+              throw Components.results.NS_ERROR_FAILURE;
+*/
+
+            // Create a new array, not to disturb possibly ongoing iterations.
+            this.mProgressListeners =
+              this.mProgressListeners.filter(
+                function removeListener(element) {
+                  return element != aListener;
+                }
+              );
          ]]>
         </body>
       </method>
