@@ -36,8 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* ===== primaryToolbar.css =============================================
-  == Images for the Mail primary toolbar.
-  ======================================================================= */
+   == Images for the Mail primary toolbar.
+   == This file is mainly about the general look-and-feel of
+   == native-OS-style toolbars at the top of various windows, as well as
+   == the specifically about the ones that appear on the 3-pane window and
+   == the standalone message window.  The other native-OS-style toolbars
+   == (addressbook and compose) are already styled elsewhere.
+   ====================================================================== */
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
@@ -48,8 +53,18 @@
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
 }
 
+toolbox[labelalign="end"] .toolbarbutton-1,
+toolbox[labelalign="end"] .toolbarbutton-1[type="menu-button"]
+  > .toolbarbutton-menubutton-button {
+  -moz-box-orient: horizontal;
+}
+
 .toolbarbutton-1[type="menu"] {
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
+}
+
+toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
+  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu");
 }
 
 #button-getmsg {

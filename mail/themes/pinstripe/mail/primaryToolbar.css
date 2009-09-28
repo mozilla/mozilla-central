@@ -36,8 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* ===== primaryToolbar.css =============================================
-  == Images for the Mail primary toolbar.
-  ======================================================================= */
+   == Images for the Mail primary toolbar.
+   == This file is mainly about the general look-and-feel of
+   == native-OS-style toolbars at the top of various windows, as well as
+   == the specifically about the ones that appear on the 3-pane window and
+   == the standalone message window.  The other native-OS-style toolbars
+   == (addressbook and compose) are already styled elsewhere.
+   ====================================================================== */
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
@@ -64,12 +69,23 @@
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
 }
 
+toolbox[labelalign="end"] .toolbarbutton-1[type="menu"],
+toolbox[labelalign="end"] toolbarpaletteitem .toolbarbutton-1[type="menu"] {
+  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu");
+}
+
 .toolbarbutton-1[open],
 .toolbarbutton-1[open] > .toolbarbutton-menubutton-button {
   text-shadow: none;
 }
 
-toolbarbutton[type="menu-button"] {
+toolbarbutton[type="menu-button"],
+toolbox[labelalign="end"] .toolbarbutton-1,
+toolbox[labelalign="end"] toolbarpaletteitem .toolbarbutton-1,
+toolbox[labelalign="end"] .toolbarbutton-1[type="menu-button"]
+  > .toolbarbutton-menubutton-button,
+toolbox[labelalign="end"] toolbarpaletteitem
+  .toolbarbutton-1[type="menu-button"] > .toolbarbutton-menubutton-button {
   -moz-box-orient: horizontal;
 }
 
@@ -77,6 +93,12 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
   -moz-box-orient: vertical !important;
   padding: 0px;
   margin: 0px;
+}
+
+toolbox[labelalign="end"] toolbarbutton[type="menu-button"] > toolbarbutton,
+toolbox[labelalign="end"] toolbarpaletteitem
+  > toolbarbutton[type="menu-button"] > toolbarbutton {
+  -moz-box-orient: horizontal !important;
 }
 
 toolbar[mode="text"] .toolbarbutton-1 > .toolbarbutton-text,

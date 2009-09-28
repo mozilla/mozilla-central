@@ -44,6 +44,50 @@
 
 var gCustomizeSheet = false;
 
+function overlayUpdateToolbarMode(aModeValue)
+{
+  let toolbox = window.frameElement.toolbox;
+
+  // If they chose a mode of textbesideicon or full,
+  // then map that to a mode of full, and a labelalign of true or false.
+  if( aModeValue == "textbesideicon" || aModeValue == "full") {
+    var align = aModeValue == "textbesideicon" ? "end" : "bottom";
+    toolbox.setAttribute("labelalign", align);
+    toolbox.ownerDocument.persist(toolbox.id, "labelalign");
+    aModeValue = "full";
+  }
+  updateToolbarMode(aModeValue);
+}
+
+function overlayOnLoad()
+{
+  // Add the textBesideIcon menu item if it's not already there.
+  let menuitem = document.getElementById("textbesideiconItem");
+  if (!menuitem) {
+    let menulist = document.getElementById("modelist");
+    let label = document.getElementById("iconsBesideText.label")
+                        .getAttribute("value");
+    menuitem = menulist.appendItem(label, "textbesideicon");
+    menuitem.id = "textbesideiconItem";
+  }
+
+  // If they have a mode of full and a labelalign of true,
+  // then pretend the mode is textbesideicon when populating the popup.
+  let toolbox = window.frameElement.toolbox;
+  let mode = toolbox.getAttribute("mode");
+  let align = toolbox.getAttribute("labelalign");
+  if (mode == "full" && align == "end")
+    toolbox.setAttribute("mode", "textbesideicon");
+
+  onLoad();
+
+  // Re-set and re-persist the mode, if we changed it above.
+  if (mode == "full" && align == "end") {
+    toolbox.setAttribute("mode", mode);
+    toolbox.ownerDocument.persist(toolbox.id, "mode");
+  }
+}
+
 function CustomizeMailToolbar(toolboxId, customizePopupId)
 {
   // Disable the toolbar context menu items
@@ -182,6 +226,9 @@ function onViewToolbarsPopupShowing(aEvent, toolboxId)
     }
     toolbar = toolbar.nextSibling;
   }
+  var end = toolbox.getAttribute("labelalign") == "end";
+  document.getElementById("labelAlignToolbar").setAttribute("checked", end);
+  document.getElementById("labelAlign").setAttribute("checked", end);
 }
 
 function toJavaScriptConsole()

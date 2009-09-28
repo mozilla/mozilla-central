@@ -33,6 +33,7 @@ messenger.jar:
     content/messenger/mail3PaneWindowCommands.js    (content/mail3PaneWindowCommands.js)
 *   content/messenger/mailCommands.js               (content/mailCommands.js)
 *   content/messenger/mailCore.js                   (content/mailCore.js)
+*   content/messenger/customizeToolbarOverlay.xul   (content/customizeToolbarOverlay.xul)
     content/messenger/mailTabs.js                   (content/mailTabs.js)
     content/messenger/commandglue.js                (content/commandglue.js)
     content/messenger/widgetglue.js                 (content/widgetglue.js)
@@ -96,3 +97,6 @@ comm.jar:
 *  content/communicator/utilityOverlay.xul          (content/utilityOverlay.xul)
 *  content/communicator/utilityOverlay.js           (content/utilityOverlay.js)
 *  content/communicator/nsContextMenu.js            (content/nsContextMenu.js)
+
+toolkit.jar:
+% overlay chrome://global/content/customizeToolbar.xul chrome://messenger/content/customizeToolbarOverlay.xul
