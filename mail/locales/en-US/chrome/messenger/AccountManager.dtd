@@ -2,10 +2,14 @@
 
 <!ENTITY accountManagerTitle.label "Account Settings">
 
-<!ENTITY addAccountButton.label "Add Account…">
-<!ENTITY addAccountButton.accesskey "A">
+<!ENTITY accountActionsButton.label "Account Actions">
+<!ENTITY accountActionsButton.accesskey "A">
+<!ENTITY addMailAccountButton.label "Add Mail Account…">
+<!ENTITY addMailAccountButton.accesskey "A">
+<!ENTITY addOtherAccountButton.label "Add Other Account…">
+<!ENTITY addOtherAccountButton.accesskey "O">
 <!ENTITY setDefaultButton.label "Set as Default">
-<!ENTITY setDefaultButton.accesskey "f">
+<!ENTITY setDefaultButton.accesskey "D">
 <!ENTITY removeButton.label "Remove Account">
 <!ENTITY removeButton.accesskey "R">
 

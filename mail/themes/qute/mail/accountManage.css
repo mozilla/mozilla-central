@@ -69,6 +69,10 @@ treechildren::-moz-tree-cell-text(isDefaultServer-true) {
   font-weight: bold;
 }
 
+#accountActionsDropdown {
+  min-width: 30ch;
+}
+
 /* ::::: SMTP Server Panel :::::: */
 
 .smtpServerListItem {

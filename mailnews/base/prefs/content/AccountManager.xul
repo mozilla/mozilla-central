@@ -31,6 +31,36 @@
         <treechildren id="account-tree-children"/>
       </tree>
 
+#ifdef MOZ_THUNDERBIRD
+      <button id="accountActionsButton" type="menu"
+              label="&accountActionsButton.label;"
+              accesskey="&accountActionsButton.accesskey;">
+        <menupopup id="accountActionsDropdown"
+                   onpopupshowing="initAcountActionsButton(this)">
+          <menuitem id="accountActionsAddMailAccount"
+                    label="&addMailAccountButton.label;"
+                    accesskey="&addMailAccountButton.accesskey;"
+                    prefstring="mail.disable_new_account_addition"
+                    oncommand="AddMailAccount(event); event.stopPropagation();"/>
+          <menuitem id="accountActionsAddOtherAccount"
+                    label="&addOtherAccountButton.label;"
+                    accesskey="&addOtherAccountButton.accesskey;"
+                    prefstring="mail.disable_new_account_addition"
+                    oncommand="onAddAccount(event); event.stopPropagation();"/>
+          <menuseparator id="accountActionsDropdownSep1"/>
+          <menuitem id="accountActionsDropdownSetDefault"
+                    label="&setDefaultButton.label;"
+                    accesskey="&setDefaultButton.accesskey;"
+                    prefstring="mail.disable_button.set_default_account"
+                    oncommand="onSetDefault(event); event.stopPropagation();"/>
+          <menuitem id="accountActionsDropdownRemove"
+                    label="&removeButton.label;"
+                    accesskey="&removeButton.accesskey;"
+                    prefstring="mail.disable_button.delete_account"
+                    oncommand="onRemoveAccount(event); event.stopPropagation();"/>
+        </menupopup>
+      </button>
+#else
       <button label="&addAccountButton.label;" oncommand="onAddAccount(event);" id="addAccountButton"
               prefstring="mail.disable_new_account_addition"
               accesskey="&addAccountButton.accesskey;"/>
@@ -40,6 +70,7 @@
       <button disabled="true" label="&removeButton.label;" oncommand="onRemoveAccount(event);" id="removeButton"
               prefstring="mail.disable_button.delete_account"
               accesskey="&removeButton.accesskey;"/>
+#endif
     </vbox>
 
     <iframe id="contentFrame" name="contentFrame" flex="1"/>

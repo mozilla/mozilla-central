@@ -377,6 +377,14 @@ function onAddAccount() {
   MsgAccountWizard();
 }
 
+function AddMailAccount()
+{
+  let msgWindow = Components.classes["@mozilla.org/messenger/services/session;1"]
+                            .getService(Components.interfaces.nsIMsgMailSession)
+                            .topmostMsgWindow;
+  NewMailAccount(msgWindow);
+}
+
 function ReloadSmtpPanel()
 {
   var smtpUsername = top.frames["contentFrame"].document.getElementById("smtp.username");
@@ -552,7 +560,6 @@ function saveAccount(accountValues, account)
 
 function updateButtons(tree, account) {
   var canCreate = true;
-  var canDuplicate = true;
   var canDelete = true;
   var canSetDefault = true;
 
@@ -567,7 +574,6 @@ function updateButtons(tree, account) {
       canSetDefault = false;
 
     var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type].getService(Components.interfaces.nsIMsgProtocolInfo);
-    canDuplicate = protocolinfo.canDuplicate;
     canDelete = protocolinfo.canDelete;
     if (!canDelete) {
       canDelete = server.canDelete;
@@ -576,15 +582,14 @@ function updateButtons(tree, account) {
   else {
     // HACK
     // if account is null, we have either selected a SMTP server, or there is a problem
-    // either way, we don't want the user to be able to delete it or duplicate it
+    // either way, we don't want the user to be able to delete it.
 
     canSetDefault = false;
     canDelete = false;
-    canDuplicate = false;
   }
 
   if (tree.view.selection.count < 1)
-    canDuplicate = canSetDefault = canDelete = false;
+    canSetDefault = canDelete = false;
 
   // check for disabled preferences on the account buttons.  
   //  Not currently handled by WSM or the main loop yet since these buttons aren't
@@ -592,6 +597,9 @@ function updateButtons(tree, account) {
   var addAccountButton = document.getElementById("addAccountButton");
   var removeButton = document.getElementById("removeButton");
   var setDefaultButton = document.getElementById("setDefaultButton");
+
+  if (!addAccountButton && !removeButton && !setDefaultButton)
+    return; // tb isn't useing these anymore
 
   var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                              .getService(Components.interfaces.nsIPrefBranch);
@@ -603,10 +611,58 @@ function updateButtons(tree, account) {
     canDelete = false;
 
   setEnabled(addAccountButton, canCreate);
-  setEnabled(document.getElementById("duplicateButton"), canDuplicate);
   setEnabled(setDefaultButton, canSetDefault);
   setEnabled(removeButton, canDelete);
 }
+
+/**
+ * Set enabled/disabled state for the actions in the Account Actions menu.
+ */
+function initAcountActionsButton(menupopup) {
+  let account = getCurrentAccount();
+  if (account) {
+    let server = account.incomingServer;
+
+    let am = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                      .getService(Components.interfaces.nsIMsgAccountManager);
+    if (account == am.defaultAccount || !server.canBeDefaultServer ||
+        account.identities.Count() < 1)
+      document.getElementById("accountActionsDropdownSetDefault")
+              .setAttribute("disabled", true);
+    else
+      document.getElementById("accountActionsDropdownSetDefault")
+              .removeAttribute("disabled");
+
+    let protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + server.type]
+                                .getService(Components.interfaces.nsIMsgProtocolInfo);
+    if (!protocolInfo.canDelete)
+      document.getElementById("accountActionsDropdownRemove")
+              .setAttribute("disabled", true);
+    else
+      document.getElementById("accountActionsDropdownRemove")
+              .removeAttribute("disabled");
+  }
+  else { // SMTP server
+    document.getElementById("accountActionsDropdownSetDefault")
+            .setAttribute("disabled", true);
+    document.getElementById("accountActionsDropdownRemove")
+            .setAttribute("disabled", true);
+  }
+
+  let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                             .getService(Components.interfaces.nsIPrefBranch);
+
+  let children = menupopup.childNodes;
+  for (let i = 0; i < children.length; i++) {
+    let prefstring = children[i].getAttribute("prefstring");
+    if (!prefstring)
+      continue;
+
+    if (prefBranch.prefIsLocked(prefstring) && prefBranch.getBoolPref(prefstring))
+      children[i].setAttribute("disabled", true);
+  }
+}
+
 
 function setEnabled(control, enabled)
 {

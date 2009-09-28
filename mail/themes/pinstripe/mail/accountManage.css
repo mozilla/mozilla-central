@@ -69,6 +69,10 @@
   -moz-margin-end: 8px;
 }
 
+#accountActionsDropdown {
+  min-width: 30ch;
+}
+
 button:not(.spinbuttons-button):not(.dialog-button) {
   min-height: 19px; /* aqua size for small buttons */
 }
