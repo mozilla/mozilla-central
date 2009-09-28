@@ -2312,7 +2312,7 @@
     <textbox id="searchInput"
              flex="1"
              type="search"
-             emptytext="&searchSubjectAndFrom.emptytext;"
+             emptytext="&searchSubjectOrAddress.emptytext;"
              clickSelectsAll="true"
              onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"
              oncommand="onEnterInSearchBar();"/>

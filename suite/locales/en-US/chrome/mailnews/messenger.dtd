@@ -589,7 +589,7 @@
 
 <!-- focusSearchInput.key also used by addressbook -->
 <!ENTITY focusSearchInput.key "k">
-<!ENTITY searchSubjectAndFrom.emptytext "Search Subject and From">
+<!ENTITY searchSubjectOrAddress.emptytext "Search Subject or Address">
 <!ENTITY advancedButton.label "Advanced…">
 <!ENTITY advancedButton.accesskey "A">
 

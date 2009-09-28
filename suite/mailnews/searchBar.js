@@ -368,15 +368,10 @@ function createSearchTerms()
   var nsMsgSearchAttrib = Components.interfaces.nsMsgSearchAttrib;
   var nsMsgSearchOp = Components.interfaces.nsMsgSearchOp;
 
-  // create an i supports array to store our search terms 
+  // create an nsISupportsArray to store our search terms 
   var searchTermsArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
   var selectedFolder = GetThreadPaneFolder();
 
-  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-  var outgoingFlags = nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts |
-                      nsMsgFolderFlags.Templates | nsMsgFolderFlags.Queue;
-  var searchAttrib = selectedFolder.isSpecialFolder(outgoingFlags, true) ?
-                     nsMsgSearchAttrib.ToOrCC : nsMsgSearchAttrib.Sender;
   // implement | for QS
   // does this break if the user types "foo|bar" expecting to see subjects with that string?
   // I claim no, since "foo|bar" will be a hit for "foo" || "bar"
@@ -398,12 +393,12 @@ function createSearchTerms()
     term.booleanAnd = false;
     searchTermsArray.AppendElement(term);
 
-    // create, fill, and append the sender (or recipient) term
+    // create, fill, and append the AllAddresses term
     term = gSearchSession.createTerm();
     value = term.value;
     value.str = termList[i];
     term.value = value;
-    term.attrib = searchAttrib;
+    term.attrib = nsMsgSearchAttrib.AllAddresses;
     term.op = nsMsgSearchOp.Contains; 
     term.booleanAnd = false;
     searchTermsArray.AppendElement(term);

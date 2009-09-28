@@ -468,16 +468,7 @@ function SetSentFolderColumns(isSentFolder)
     recipientColumn.setAttribute("swappedhidden", saveHidden);
   }
 
-  if (isSentFolder)
-  {
-    tree.setAttribute("lastfoldersent", "true");
-    searchBox.emptyText = gMessengerBundle.getString("searchRecipientEmptyText");
-  }
-  else
-  {
-    tree.setAttribute("lastfoldersent", "false");
-    searchBox.emptyText = gMessengerBundle.getString("searchFromEmptyText");
-  }
+  tree.setAttribute("lastfoldersent", isSentFolder ? "true" : "false");
 }
 
 function ShowLocationColumn(show)
