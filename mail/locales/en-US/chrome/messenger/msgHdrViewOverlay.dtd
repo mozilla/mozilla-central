@@ -66,6 +66,8 @@
 <!ENTITY trashButton.tooltiptext "delete">
 
 <!ENTITY otherActionsButton.label "other actions">
+<!ENTITY otherActionsShowConversation.label "show in conversation">
+<!ENTITY otherActionsShowConversation.accesskey "c">
 <!ENTITY otherActionsOpenInNewWindow.label "open in new window">
 <!ENTITY otherActionsOpenInNewWindow.accesskey "w">
 <!ENTITY otherActionsOpenInNewTab.label "open in new tab">

@@ -2138,3 +2138,63 @@ nsDummyMsgHeader.prototype =
   // folderDisplay.js's FolderDisplayWidget's selectedMessageIsExternal getter.
   folder : null
 };
+
+function onShowOtherActionsPopup()
+{
+  // Enable/disable the Show Conversation button.
+  let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                             .getService(Components.interfaces.nsIPrefBranch2);
+  let glodaEnabled = prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
+
+  let showConversation = document.getElementById("otherActionsShowConversation");
+  showConversation.disabled = !glodaEnabled;
+  if (glodaEnabled && gFolderDisplay.selectedMessages.length > 0) {
+    let message = gFolderDisplay.selectedMessages[0];
+    let isMessageIndexed = Gloda.isMessageIndexed(message);
+    showConversation.disabled = !isMessageIndexed;
+  }
+}
+
+function ConversationShower()
+{
+}
+
+ConversationShower.prototype = {
+  showConversationForMessages: function(messages) {
+    try {
+      this._items = [];
+      this._msgHdr = messages[0];
+      this._queries = [Gloda.getMessageCollectionForHeaders(messages, this)];
+    } catch (e) {
+      logException(e);
+    }
+  },
+  onItemsAdded: function(aItems) {
+  },
+  onItemsModified: function(aItems) {
+  },
+  onItemsRemoved: function(aItems) {
+  },
+  onQueryCompleted: function(aCollection) {
+    try {
+      if (!aCollection.items.length) {
+        Components.utils.reportError("Couldn't find a collection for msg: " +
+                                     this._msgHdr);
+      } else {
+        let aMessage = aCollection.items[0];
+        let tabmail = document.getElementById("tabmail");
+        tabmail.openTab("glodaList", {
+          conversation: aMessage.conversation,
+          message: aMessage,
+          title: aMessage.conversation.subject,
+          background: false
+        });
+      }
+    } catch (e) {
+      logException(e);
+    }
+  }
+}
+
+var gConversationShower = new ConversationShower();
+

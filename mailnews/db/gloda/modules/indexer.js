@@ -2001,6 +2001,20 @@ var GlodaIndexer = {
     this.indexing = true;
   },
 
+  /**
+   * Given a message header, return whether this message is likely to have
+   * been indexed or not.
+   *
+   * @param aMsgHdr A message header.
+   * @returns true if the message is likely to have been indexed.
+   */
+  isMessageIndexed: function gloda_index_isMessageIndexed(aMsgHdr) {
+    let glodaFolder = GlodaDatastore._mapFolder(aMsgHdr.folder);
+    return aMsgHdr.getUint32Property(GLODA_MESSAGE_ID_PROPERTY) != 0 &&
+           aMsgHdr.getStringProperty(GLODA_DIRTY_PROPERTY) == 0 &&
+           glodaFolder && glodaFolder.dirtyStatus != glodaFolder.kFolderFilthy;
+  },
+
   /* *********** Event Processing *********** */
   observe: function gloda_indexer_observe(aSubject, aTopic, aData) {
     // idle

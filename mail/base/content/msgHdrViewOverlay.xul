@@ -250,7 +250,12 @@
             <button type="menu" id="otherActionsButton"
                     label="&otherActionsButton.label;"
                     class="msgHeaderView-button msgHeaderView-flat-button">
-              <menupopup id="otherActionsPopup">
+              <menupopup id="otherActionsPopup"
+                         onpopupshowing="onShowOtherActionsPopup();">
+                <menuitem id="otherActionsShowConversation"
+                          label="&otherActionsShowConversation.label;"
+                          accesskey="&otherActionsShowConversation.accesskey;"
+                          oncommand="gConversationShower.showConversationForMessages(gFolderDisplay.selectedMessages);"/>
                 <menuitem id="otherActionsOpenInNewWindow"
                           label="&otherActionsOpenInNewWindow.label;"
                           accesskey="&otherActionsOpenInNewWindow.accesskey;"
