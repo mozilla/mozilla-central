@@ -282,7 +282,7 @@
 
 <popup id="msgComposeAttachmentContext" onpopupshowing="updateEditItems();">
   <menuitem label="&openAttachment.label;" accesskey="&openAttachment.accesskey;" command="cmd_openAttachment"/>
-  <menuitem label="&delete.label;" accesskey="&delete.accesskey;" command="cmd_delete"/>
+  <menuitem label="&removeAttachment.label;" accesskey="&removeAttachment.accesskey;" command="cmd_delete"/>
   <menuitem label="&renameAttachment.label;" accesskey="&renameAttachment.accesskey;" command="cmd_renameAttachment"/>
   <menuitem label="&selectAll.label;" accesskey="&selectAll.accesskey;" command="cmd_selectAll"/>
   <menuseparator/>
