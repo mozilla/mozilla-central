@@ -143,17 +143,39 @@ nsContextMenu.prototype = {
     }
   },
   initBrowserItems: function CM_initBrowserItems() {
-    let shouldShow = !(this.inMessageArea || this.isContentSelected ||
-                       this.onCanvas || this.onLink || this.onImage ||
-                       this.onPlayableMedia || this.onTextInput);
+    // Work out if we are a context menu on a special item e.g. an image, link
+    // etc.
+    let notOnSpecialItem = !(this.inMessageArea || this.isContentSelected ||
+                             this.onCanvas || this.onLink || this.onImage ||
+                             this.onPlayableMedia || this.onTextInput);
     // Ensure these commands are updated with their current status.
-    if (shouldShow) {
+    if (notOnSpecialItem) {
       goUpdateCommand("cmd_stop");
       goUpdateCommand("cmd_reload");
     }
 
-    this.showItem("mailContext-stop", shouldShow);
-    this.showItem("mailContext-reload", shouldShow);
+    // These only needs showing if we're not on something special.
+    this.showItem("mailContext-stop", notOnSpecialItem);
+    this.showItem("mailContext-reload", notOnSpecialItem);
+
+    let loadedProtocol = "";
+    if (content.document && content.document.location)
+      loadedProtocol = content.document.location.protocol;
+
+    // Only show open in browser if we're not on a special item and we're not
+    // on an about: or chrome: protocol - for these protocols the browser is
+    // unlikely to show the same thing as we do (if at all), so therefore don't
+    // offer the option.
+    this.showItem("mailContext-openInBrowser",
+                  notOnSpecialItem &&
+                  loadedProtocol &&
+                  loadedProtocol != "about:" && loadedProtocol != "chrome:");
+
+    // Only show mailContext-openLinkInBrowser if we're on a link and it isn't
+    // a mailto link.
+    this.showItem("mailContext-openLinkInBrowser",
+                  this.onLink && !this.onMailtoLink &&
+                  this.linkProtocol != "about" && this.linkProtocol != "chrome");
   },
   initMessageItems: function CM_initMessageItems() {
     // If we're not in a message related tab, we're just going to bulk hide most
@@ -251,15 +273,15 @@ nsContextMenu.prototype = {
                   this.onLink && !this.onMailtoLink);
   },
   initSeparators: function CM_initSeparators() {
-    this.hideIfAppropriate("mailContext-sep-link");
-    this.hideIfAppropriate("mailContext-sep-open");
-    this.hideIfAppropriate("mailContext-sep-open2");
-    this.hideIfAppropriate("mailContext-sep-reply");
-    this.hideIfAppropriate("paneContext-afterMove");
-    this.hideIfAppropriate("mailContext-sep-afterMarkMenu");
-    this.hideIfAppropriate("mailContext-sep-edit");
-    this.hideIfAppropriate("mailContext-sep-copy");
-    this.hideIfAppropriate("mailContext-sep-reportPhishing");
+    const mailContextSeparators = [
+      "mailContext-sep-open-browser", "mailContext-sep-link",
+      "mailContext-sep-open", "mailContext-sep-open2",
+      "mailContext-sep-reply", "paneContext-afterMove",
+      "mailContext-sep-afterMarkMenu", "mailContext-sep-edit",
+      "mailContext-sep-copy", "mailContext-sep-reportPhishing"
+    ];
+    mailContextSeparators.forEach(this.hideIfAppropriate, this);
+
     this.checkLastSeparator(this.menu);
   },
 
@@ -793,6 +815,22 @@ nsContextMenu.prototype = {
       }
       sibling = sibling.previousSibling;
     }
+  },
+
+  openInBrowser: function CM_openInBrowser() {
+    let uri = Components.classes["@mozilla.org/network/io-service;1"]
+                        .getService(Components.interfaces.nsIIOService)
+                        .newURI(content.document.location, null, null);
+
+    Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
+              .getService(Components.interfaces.nsIExternalProtocolService)
+              .loadURI(uri);
+  },
+
+  openLinkInBrowser: function CM_openLinkInBrowser() {
+    Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
+      .getService(Components.interfaces.nsIExternalProtocolService)
+      .loadURI(this.linkURI);
   },
 
   mediaCommand : function CM_mediaCommand(command) {

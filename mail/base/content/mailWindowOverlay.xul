@@ -524,6 +524,15 @@
   <popup id="mailContext"
          onpopupshowing="return fillMailContextMenu(event);"
          onpopuphiding="mailContextOnPopupHiding(event);">
+    <menuitem id="mailContext-openInBrowser"
+              label="&openInBrowser.label;"
+              accesskey="&openInBrowser.accesskey;"
+              oncommand="gContextMenu.openInBrowser();"/>
+    <menuitem id="mailContext-openLinkInBrowser"
+              label="&openLinkInBrowser.label;"
+              accesskey="&openLinkInBrowser.accesskey;"
+              oncommand="gContextMenu.openLinkInBrowser();"/>
+    <menuseparator id="mailContext-sep-open-browser"/>
     <menuitem id="mailContext-reload"
               label="&reloadCmd.label;"
               accesskey="&reloadCmd.accesskey;"

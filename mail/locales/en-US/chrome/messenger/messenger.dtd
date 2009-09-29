@@ -730,13 +730,17 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY copyLinkCmd.label "Copy Link Location">
 <!ENTITY copyLinkCmd.accesskey "C">
 <!ENTITY copyImageCmd.label "Copy Image Location">
-<!ENTITY copyImageCmd.accesskey "o">
+<!ENTITY copyImageCmd.accesskey "I">
 <!ENTITY copyEmailCmd.label "Copy Email Address">
 <!ENTITY copyEmailCmd.accesskey "E">
 <!ENTITY stopCmd.label "Stop">
 <!ENTITY stopCmd.accesskey "S">
 <!ENTITY reloadCmd.label "Reload">
 <!ENTITY reloadCmd.accesskey "R">
+<!ENTITY openInBrowser.label "Open In Browser">
+<!ENTITY openInBrowser.accesskey "O">
+<!ENTITY openLinkInBrowser.label "Open Link In Browser">
+<!ENTITY openLinkInBrowser.accesskey "O">
 
 <!-- Statusbar -->
 <!ENTITY statusText.label "Done">
