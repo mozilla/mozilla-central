@@ -84,27 +84,10 @@ function mailContextOnPopupHiding(aEvent)
   if (aEvent.target != aEvent.currentTarget)
     return;
 
+  let wasInThreadPane = gContextMenu.inThreadPane;
   gContextMenu = null;
-  if (popupNodeIsInThreadPane())
+  if (wasInThreadPane)
     RestoreSelectionWithoutContentLoad(GetThreadTree());
-}
-
-/**
- * Determines whether the context menu was triggered by a node that's a child
- * of the threadpane by looking for a parent node with id="threadTree".
- * @return true if the popupNode is a child of the threadpane, otherwise false
- */
-function popupNodeIsInThreadPane()
-{
-  var node = document.popupNode;
-  while (node)
-  {
-    if (node.id == "threadTree")
-      return true;
-
-    node = node.parentNode;
-  }
-  return false;
 }
 
 function fillMailContextMenu(event)
@@ -113,145 +96,7 @@ function fillMailContextMenu(event)
   if (event.target != event.currentTarget)
     return true;
 
-  var numSelected = GetNumSelectedMessages();
-  if (numSelected == 0)
-    return false; // Don't show the context menu if no items are selected.
-
-  var inThreadPane = popupNodeIsInThreadPane();
   gContextMenu = new nsContextMenu(event.target);
-
-  var selectedMessage = gFolderDisplay.selectedMessage;
-  var isNewsgroup = gFolderDisplay.selectedMessageIsNews;
-
-  // Don't show mail items for links/images, just show related items.
-  var hideMailItems = !inThreadPane &&
-                      (gContextMenu.onImage || gContextMenu.onLink);
-  var single = (numSelected == 1);
-
-  let onPlayableMedia = gContextMenu.onVideo || gContextMenu.onAudio;
-
-  // Select-all and copy are only available in the message-pane
-  ShowMenuItem("mailContext-selectall", !inThreadPane && !onPlayableMedia);
-  ShowMenuItem("mailContext-copy", !inThreadPane && !onPlayableMedia);
-
-  // Show the Open in New Window  and New Tab options if there is exactly one
-  // message selected.
-  ShowMenuItem("mailContext-openNewWindow", single && inThreadPane);
-  ShowMenuItem("threadPaneContext-openNewTab", single && inThreadPane);
-
-  /**
-   * Most menu items are visible if there's 1 or 0 messages selected, and
-   * enabled if there's exactly one selected. Handle those here.
-   * Exception: playable media is selected, in which case, don't show them.
-   *
-   * @param aID   the id of the element to display/enable
-   * @param aHide (optional)  an additional criteria to evaluate when we
-   *              decide whether to display the element. If false, we'll hide
-   *              the item no matter what messages are selected
-   */
- function setSingleSelection(aID, aHide) {
-    var hide = aHide != undefined ? aHide : true;
-    ShowMenuItem(aID, single && !hideMailItems && hide && !onPlayableMedia);
-    EnableMenuItem(aID, single);
-  }
-
-  setSingleSelection("mailContext-replySender");
-  setSingleSelection("mailContext-editAsNew");
-  setSingleSelection("mailContext-replyNewsgroup", isNewsgroup);
-  setSingleSelection("mailContext-replyAll");
-  setSingleSelection("mailContext-replyList");
-  setSingleSelection("mailContext-forward");
-  ShowMenuItem("mailContext-forwardAsAttachment",
-               numSelected > 1 && inThreadPane && !hideMailItems);
-
-  setSingleSelection("mailContext-copyMessageUrl", isNewsgroup);
-
-  ShowMenuItem("mailContext-sep-open", single);
-
-  ShowMenuItem("mailContext-sep-reply", true);
-
-  let msgFolder = gFolderDisplay.displayedFolder;
-
-  // Set up the move menu. We can't move from newsgroups.
-  ShowMenuItem("mailContext-moveMenu",
-               !isNewsgroup && !hideMailItems && msgFolder && !onPlayableMedia);
-
-  // disable move if we can't delete message(s) from this folder
-  var canMove = msgFolder && msgFolder.canDeleteMessages;
-  EnableMenuItem("mailContext-moveMenu", canMove && !onPlayableMedia);
-
-  ShowMenuItem("mailContext-archive", canMove);
-
-  // Copy is available as long as something is selected.
-  ShowMenuItem("mailContext-copyMenu",
-               !hideMailItems && msgFolder && !onPlayableMedia);
-
-  let hideMoveToFolderAgain = !hideMailItems && msgFolder && !onPlayableMedia;
-  ShowMenuItem("mailContext-moveToFolderAgain", hideMoveToFolderAgain);
-  if (hideMoveToFolderAgain) {
-    initMoveToFolderAgainMenu(document.getElementById("mailContext-moveToFolderAgain"));
-    goUpdateCommand("cmd_moveToFolderAgain");
-  }
-
-  ShowMenuItem("paneContext-afterMove", !inThreadPane);
-
-  ShowMenuItem("mailContext-tags", !hideMailItems && msgFolder && !onPlayableMedia);
-
-  ShowMenuItem("mailContext-mark", !hideMailItems && msgFolder && !onPlayableMedia);
-
-  setSingleSelection("mailContext-saveAs");
-  if (Application.platformIsMac)
-    ShowMenuItem("mailContext-printpreview", false);
-  else
-    setSingleSelection("mailContext-printpreview");
-
-  ShowMenuItem("mailContext-print", !hideMailItems && !onPlayableMedia);
-
-  ShowMenuItem("mailContext-delete",
-               !hideMailItems && (isNewsgroup || canMove) && !onPlayableMedia);
-  // This function is needed for the case where a folder is just loaded (while
-  // there isn't a message loaded in the message pane), a right-click is done
-  // in the thread pane.  This function will disable enable the 'Delete
-  // Message' menu item.
-  goUpdateCommand('cmd_delete');
-
-  setSingleSelection("mailContext-composeemailto",
-                     gContextMenu.onMailtoLink && !inThreadPane);
-  setSingleSelection("mailContext-addemail",
-                     gContextMenu.onMailtoLink && !inThreadPane);
-
-  ShowMenuItem("mailContext-sep-edit", single);
-
-  ShowMenuItem('downloadSelected', numSelected > 1 && !hideMailItems);
-
-  ShowMenuItem("mailContext-reportPhishingURL",
-               !inThreadPane && gContextMenu.onLink && !gContextMenu.onMailtoLink);
-
-  // handle our separators
-  function hideIfAppropriate(aID) {
-    var separator = document.getElementById(aID);
-    var sibling = separator.previousSibling;
-    while (sibling) {
-      if (!sibling.hidden) {
-        ShowMenuItem(aID, sibling.localName != "menuseparator" &&
-                          hasAVisibleNextSibling(separator));
-        return;
-      }
-      sibling = sibling.previousSibling;
-    }
-    ShowMenuItem(aID, false);
-  }
-
-  hideIfAppropriate("mailContext-sep-link");
-  hideIfAppropriate("mailContext-sep-open");
-  hideIfAppropriate("mailContext-sep-open2");
-  hideIfAppropriate("mailContext-sep-reply");
-  hideIfAppropriate("paneContext-afterMove");
-  hideIfAppropriate("mailContext-sep-afterMarkMenu");
-  hideIfAppropriate("mailContext-sep-edit");
-  hideIfAppropriate("mailContext-sep-copy");
-  hideIfAppropriate("mailContext-sep-reportPhishing");
-
   return true;
 }
 

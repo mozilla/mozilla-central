@@ -54,7 +54,8 @@
     <vbox flex="1">
       <notificationbox flex="1">
         <browser id="dummycontentbrowser" type="content-targetable" flex="1"
-                 disablehistory="true" autocompletepopup="PopupAutoComplete"/>
+                 disablehistory="true" autocompletepopup="PopupAutoComplete"
+                 context="mailContext"/>
       </notificationbox>
       <findbar browserid="dummycontentbrowser"/>
     </vbox>

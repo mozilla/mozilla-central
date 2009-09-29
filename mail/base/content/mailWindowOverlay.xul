@@ -627,7 +627,6 @@
               command="cmd_moveToFolderAgain"
               label="&moveToFolderAgain.label;"
               accesskey="&moveToFolderAgain.accesskey;"/>
-    <!-- This separator is only shown in the message pane -->
     <menuseparator id="paneContext-afterMove"/>
     <menu id="mailContext-tags" label="&tagMenu.label;" accesskey="&tagMenu.accesskey;">
       <menupopup id="mailContext-tagpopup"

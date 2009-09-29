@@ -1,44 +1,43 @@
-# -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Mozilla Communicator client code, released
-# March 31, 1998.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   William A. ("PowerGUI") Law <law@netscape.com>
-#   Blake Ross <blakeross@telocity.com>
-#   Gervase Markham <gerv@gerv.net>
-#   Phil Ringnalda <philringnalda@gmail.com>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+/** ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   William A. ("PowerGUI") Law <law@netscape.com>
+ *   Blake Ross <blakeross@telocity.com>
+ *   Gervase Markham <gerv@gerv.net>
+ *   Phil Ringnalda <philringnalda@gmail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 function nsContextMenu(aXulMenu) {
   this.target         = null;
@@ -48,6 +47,7 @@ function nsContextMenu(aXulMenu) {
   this.onLoadedImage  = false;
   this.onVideo        = false;
   this.onAudio        = false;
+  this.onPlayableMedia = false;
   this.onLink         = false;
   this.onMailtoLink   = false;
   this.onSaveableLink = false;
@@ -59,10 +59,17 @@ function nsContextMenu(aXulMenu) {
   this.linkProtocol   = null;
   this.mediaURL       = "";
   this.inFrame        = false;
-  this.hasBGImage     = false;
   this.isContentSelected = false;
   this.inDirList      = false;
   this.shouldDisplay  = true;
+
+  // Message Related Items
+  this.inMessageArea = false;
+  this.inThreadPane = false;
+  this.numSelectedMessages = 0;
+  this.selectedMessage = null;
+  this.isNewsgroup = false;
+  this.hideMailItems = false;
 
   this.initMenu(aXulMenu);
 }
@@ -78,6 +85,7 @@ nsContextMenu.prototype = {
 
     // Get contextual info.
     this.setTarget(document.popupNode);
+    this.setMessageTargets(document.popupNode);
     this.isContentSelected = this.isContentSelection();
 
     this.initItems();
@@ -86,6 +94,8 @@ nsContextMenu.prototype = {
     this.initSaveItems();
     this.initClipboardItems();
     this.initMediaPlayerItems();
+    this.initMessageItems();
+    this.initSeparators();
   },
   initSaveItems : function CM_initSaveItems() {
     this.showItem("mailContext-savelink", this.onSaveableLink);
@@ -98,11 +108,19 @@ nsContextMenu.prototype = {
 
     goUpdateGlobalEditMenuItems();
 
-    this.showItem("mailContext-copy", this.isContentSelected || this.onTextInput);
-    this.showItem("mailContext-selectall", true);
+    this.showItem("mailContext-copy",
+                  !this.inThreadPane && !this.onPlayableMedia &&
+                  (this.isContentSelected || this.onTextInput));
+
+    // Select all not available in the thread pane or on playable media.
+    this.showItem("mailContext-selectall", !this.inThreadPane && !this.onPlayableMedia);
     this.showItem("mailContext-copyemail", this.onMailtoLink);
-    this.showItem("mailContext-copylink", this.onLink);
+    this.showItem("mailContext-copylink", this.onLink && !this.onMailtoLink);
     this.showItem("mailContext-copyimage", this.onImage);
+
+    this.showItem("mailContext-composeemailto", this.onMailtoLink && !this.inThreadPane);
+    this.showItem("mailContext-addemail", this.onMailtoLink && !this.inThreadPane);
+
   },
   initMediaPlayerItems: function CM_initMediaPlayerItems() {
     let onMedia = this.onVideo || this.onAudio;
@@ -118,6 +136,113 @@ nsContextMenu.prototype = {
       this.setItemAttr("mailContext-media-mute", "disabled", hasError);
       this.setItemAttr("mailContext-media-unmute", "disabled", hasError);
     }
+  },
+  initMessageItems: function CM_initMessageItems() {
+    // If we're not in a message related tab, we're just going to bulk hide most
+    // items as this simplifies the logic below.
+    if (!this.inMessageArea) {
+      const messageTabSpecificItems = [
+        "mailContext-openNewWindow", "threadPaneContext-openNewTab",
+        "mailContext-archive", "mailContext-replySender",
+        "mailContext-editAsNew", "mailContext-replyNewsgroup",
+        "mailContext-replyAll", "mailContext-replyList",
+        "mailContext-forward", "mailContext-forwardAsAttachment",
+        "mailContext-copyMessageUrl", "mailContext-moveMenu",
+        "mailContext-copyMenu", "mailContext-moveToFolderAgain",
+        "mailContext-tags", "mailContext-mark", "mailContext-saveAs",
+        "mailContext-printpreview", "mailContext-print", "mailContext-delete",
+        "downloadSelected", "mailContext-reportPhishingURL"
+      ];
+      for (let i = 0; i < messageTabSpecificItems.length; ++i)
+        this.showItem(messageTabSpecificItems[i], false);
+      return;
+    }
+
+    let msgFolder = gFolderDisplay.displayedFolder;
+    var canMove = msgFolder && msgFolder.canDeleteMessages;
+
+    // Show the Open in New Window and New Tab options if there is exactly one
+    // message selected.
+    this.showItem("mailContext-openNewWindow",
+                  this.numSelectedMessages == 1 && this.inThreadPane);
+    this.showItem("threadPaneContext-openNewTab",
+                  this.numSelectedMessages == 1 && this.inThreadPane);
+
+    this.setSingleSelection("mailContext-replySender");
+    this.setSingleSelection("mailContext-editAsNew");
+    this.setSingleSelection("mailContext-replyNewsgroup", this.isNewsgroup);
+    this.setSingleSelection("mailContext-replyAll");
+    this.setSingleSelection("mailContext-replyList");
+    this.setSingleSelection("mailContext-forward");
+
+    this.showItem("mailContext-forwardAsAttachment",
+                  this.numSelectedMessages > 1 && this.inThreadPane &&
+                  !this.hideMailItems);
+
+    this.setSingleSelection("mailContext-copyMessageUrl", this.isNewsgroup);
+
+    let msgModifyItems = this.numSelectedMessages > 0 && !this.hideMailItems &&
+                         msgFolder && !this.onPlayableMedia;
+
+    this.showItem("mailContext-archive", canMove && msgModifyItems);
+
+    // Set up the move menu. We can't move from newsgroups.
+    this.showItem("mailContext-moveMenu",
+                  msgModifyItems && !this.isNewsgroup);
+
+    // disable move if we can't delete message(s) from this folder
+    this.enableItem("mailContext-moveMenu", canMove && !this.onPlayableMedia);
+
+    // Copy is available as long as something is selected.
+    this.showItem("mailContext-copyMenu", msgModifyItems);
+
+    this.showItem("mailContext-moveToFolderAgain", msgModifyItems);
+    if (msgModifyItems) {
+      initMoveToFolderAgainMenu(document.getElementById("mailContext-moveToFolderAgain"));
+      goUpdateCommand("cmd_moveToFolderAgain");
+    }
+
+    this.showItem("mailContext-tags", msgModifyItems);
+
+    this.showItem("mailContext-mark", msgModifyItems);
+
+    this.setSingleSelection("mailContext-saveAs");
+    if (Application.platformIsMac)
+      this.showItem("mailContext-printpreview", false);
+    else
+      this.setSingleSelection("mailContext-printpreview");
+
+    // XXX Not quite modifying the message, but the same rules apply at the
+    // moment as we can't print non-message content from the message pane yet.
+    this.showItem("mailContext-print", msgModifyItems);
+
+    this.showItem("mailContext-delete",
+                  msgModifyItems && (this.isNewsgroup || canMove));
+
+    // This function is needed for the case where a folder is just loaded (while
+    // there isn't a message loaded in the message pane), a right-click is done
+    // in the thread pane. This function will disable enable the 'Delete
+    // Message' menu item.
+    goUpdateCommand('cmd_delete');
+
+    this.showItem('downloadSelected',
+                  this.numSelectedMessages > 1 && !this.hideMailItems);
+
+    this.showItem("mailContext-reportPhishingURL",
+                  this.numSelectedMessages > 0 && !this.inThreadPane &&
+                  this.onLink && !this.onMailtoLink);
+  },
+  initSeparators: function CM_initSeparators() {
+    this.hideIfAppropriate("mailContext-sep-link");
+    this.hideIfAppropriate("mailContext-sep-open");
+    this.hideIfAppropriate("mailContext-sep-open2");
+    this.hideIfAppropriate("mailContext-sep-reply");
+    this.hideIfAppropriate("paneContext-afterMove");
+    this.hideIfAppropriate("mailContext-sep-afterMarkMenu");
+    this.hideIfAppropriate("mailContext-sep-edit");
+    this.hideIfAppropriate("mailContext-sep-copy");
+    this.hideIfAppropriate("mailContext-sep-reportPhishing");
+    this.checkLastSeparator(this.menu);
   },
 
   /**
@@ -145,8 +270,6 @@ nsContextMenu.prototype = {
     this.linkProtocol   = null;
     this.onMathML       = false;
     this.inFrame        = false;
-    this.hasBGImage     = false;
-    this.bgImageURL     = "";
 
     this.target = aNode;
 
@@ -168,20 +291,13 @@ nsContextMenu.prototype = {
         this.onTextInput = true;
       } else if (this.target instanceof HTMLVideoElement) {
         this.onVideo = true;
+        this.onPlayableMedia = true;
         this.mediaURL = this.target.currentSrc || this.target.src;
       } else if (this.target instanceof HTMLAudioElement) {
         this.onAudio = true;
+        this.onPlayableMedia = true;
         this.mediaURL = this.target.currentSrc || this.target.src;
-      } else if (this.target instanceof HTMLHtmlElement) {
-        var bodyElt = this.target.ownerDocument.body;
-        if (bodyElt) {
-          var computedURL = this.getComputedURL(bodyElt, "background-image");
-          if (computedURL) {
-            this.hasBGImage = true;
-            this.bgImageURL = this.makeURLAbsolute(bodyElt.baseURI,
-                                                   computedURL);
-          }
-        }
+      // Browser supports background images here but we don't need to.
       } else if ("HTTPIndex" in content &&
                  content.HTTPIndex instanceof Components.interfaces.nsIHTTPIndex) {
         this.inDirList = true;
@@ -258,16 +374,7 @@ nsContextMenu.prototype = {
           }
         }
 
-        // Background image? Don't bother if we've already found a
-        // background image further down the hierarchy. Otherwise,
-        // we look for the computed background-image style.
-        if (!this.hasBGImage) {
-          var bgImgUrl = this.getComputedURL(elem, "background-image");
-          if (bgImgUrl) {
-            this.hasBGImage = true;
-            this.bgImageURL = this.makeURLAbsolute(elem.baseURI, bgImgUrl);
-          }
-        }
+        // Browser supports background images here but we don't need to.
       }
       elem = elem.parentNode;
     }
@@ -283,6 +390,37 @@ nsContextMenu.prototype = {
     if (this.target.ownerDocument != window.content.document) {
       this.inFrame = true;
     }
+  },
+
+  setMessageTargets: function CM_setMessageTargets(aNode) {
+    let tabmail = document.getElementById("tabmail");
+    if (tabmail) {
+      // Not all tabs are message tabs - if we're in a tab mode that is in
+      // mailTabType's list of modes, then we'll assume it is a message related
+      // tab.
+      this.inMessageArea = tabmail.selectedTab.mode.name in mailTabType.modes;
+    }
+    else
+      // Assume that if we haven't got a tabmail item, then we're in standalone
+      // window
+      this.inMessageArea = true;
+
+    if (!this.inMessageArea) {
+      this.inThreadPane = false;
+      this.numSelectedMessages = 0;
+      this.selectedMessage = null;
+      this.isNewsgroup = false;
+      this.hideMailItems = true;
+      return;
+    }
+
+    this.inThreadPane = this.popupNodeIsInThreadPane(aNode);
+    this.numSelectedMessages = GetNumSelectedMessages();
+    this.selectedMessage = gFolderDisplay.selectedMessage;
+    this.isNewsgroup = gFolderDisplay.selectedMessageIsNews;
+    // Don't show mail items for links/images, just show related items.
+    this.hideMailItems = !this.inThreadPane &&
+                         (this.onImage || this.onLink);
   },
 
   /**
@@ -407,6 +545,35 @@ nsContextMenu.prototype = {
   },
 
   /**
+   * Set a DOM node's disabled property by passing in the node's id or the
+   * element itself.
+   *
+   * @param aItemOrId  A DOM node or the id of a DOM node
+   * @param aEnabled   True to enable the element, false to disable.
+   */
+  enableItem: function CM_enableItem(aItemOrId, aEnabled) {
+    var item = aItemOrId.constructor == String ? document.getElementById(aItemOrId) : aItemOrId;
+    item.disabled = !aEnabled;
+  },
+
+  /**
+   * Most menu items are visible if there's 1 or 0 messages selected, and
+   * enabled if there's exactly one selected. Handle those here.
+   * Exception: playable media is selected, in which case, don't show them.
+   *
+   * @param aID   the id of the element to display/enable
+   * @param aHide (optional)  an additional criteria to evaluate when we
+   *              decide whether to display the element. If false, we'll hide
+   *              the item no matter what messages are selected
+   */
+  setSingleSelection: function CM_setSingleSelection(aID, aHide) {
+    var hide = aHide != undefined ? aHide : true;
+    this.showItem(aID, this.numSelectedMessages == 1 && !this.hideMailItems &&
+                  hide && !this.onPlayableMedia);
+    this.enableItem(aID, this.numSelectedMessages == 1);
+  },
+
+  /**
    * Set given attribute of specified context-menu item. If the
    * value is null, then it removes the attribute (which works
    * nicely for the disabled attribute).
@@ -510,6 +677,23 @@ nsContextMenu.prototype = {
   },
 
   /**
+   * Determines whether the context menu was triggered by a node that's a child
+   * of the threadpane by looking for a parent node with id="threadTree".
+   * @return true if the popupNode is a child of the threadpane, otherwise false
+   */
+  popupNodeIsInThreadPane: function CM_popupNodeIsInThreadPane(aNode) {
+    var node = aNode;
+    while (node)
+    {
+      if (node.id == "threadTree")
+        return true;
+
+      node = node.parentNode;
+    }
+    return false;
+  },
+
+  /**
    * Convert relative URL to absolute, using a provided <base>.
    * @param  aBase
    *         The URL string to use as the base
@@ -540,6 +724,16 @@ nsContextMenu.prototype = {
   },
 
   /**
+   * Hide a separator based on whether there are any non-hidden items between
+   * it and the previous separator.
+   *
+   * @param aSeparatorID  The id of the separator element.
+   */
+  hideIfAppropriate: function CM_hideIfAppropriate(aSeparatorID) {
+    this.showItem(aSeparatorID, this.shouldShowSeparator(aSeparatorID));
+  },
+
+  /**
    * Determine whether a separator should be shown based on whether
    * there are any non-hidden items between it and the previous separator.
    * @param  aSeparatorID
@@ -557,6 +751,28 @@ nsContextMenu.prototype = {
       }
     }
     return false;
+  },
+
+  /**
+   * Ensures that there isn't a separator shown at the bottom of the menu.
+   *
+   * @param aPopup  The menu to check.
+   */
+  checkLastSeparator: function CM_checkLastSeparator(aPopup) {
+    let sibling = aPopup.lastChild;
+    while (sibling) {
+      if (sibling.getAttribute("hidden") != "true") {
+        if (sibling.localName == "menuseparator") {
+          // If we got here then the item is a menuseparator and everything
+          // below it hidden.
+          sibling.setAttribute("hidden", true);
+          return;
+        }
+        else
+          return;
+      }
+      sibling = sibling.previousSibling;
+    }
   },
 
   mediaCommand : function CM_mediaCommand(command) {
