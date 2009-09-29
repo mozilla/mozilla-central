@@ -229,6 +229,7 @@ classic.jar:
   skin/classic/messenger/icons/arrow/arrow-down-dim.png       (mail/icons/arrow/arrow-down-dim.png)
   skin/classic/messenger/icons/timeline.png                   (mail/icons/timeline.png)
   skin/classic/messenger/icons/timeline-inverted.png          (mail/icons/timeline-inverted.png)
+  skin/classic/messenger/icons/empty-search-results.png       (mail/icons/empty-search-results.png)
   skin/classic/messenger/tagbg.png                            (mail/tagbg.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/ os=WINNT osversion<6
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/ os!=WINNT
@@ -341,6 +342,7 @@ classic.jar:
   skin/classic/aero/messenger/smime/icons/sbSignUnknown.png        (mail/smime/sbSignUnknown.png)
   skin/classic/aero/messenger/icons/timeline.png                   (mail/icons/timeline.png)
   skin/classic/aero/messenger/icons/timeline-inverted.png          (mail/icons/timeline-inverted.png)
+  skin/classic/aero/messenger/icons/empty-search-results.png       (mail/icons/empty-search-results.png)
   skin/classic/aero/messenger/icons/new-mail-alert.png             (mail/icons/new-mail-alert.png)
   skin/classic/aero/messenger/icons/readmail.png                   (mail/icons/readmail.png)
   skin/classic/aero/messenger/icons/mail-toolbar.png               (mail/icons/mail-toolbar-aero.png)

@@ -560,6 +560,21 @@ var FacetContext = {
                                     this._activeSet.length);
     results.setMessages(this._activeSet.slice(0, numMessageToShow));
 
+    let showLoading = document.getElementById("showLoading");
+    $(showLoading).hide(); /* hide spinner, we're done thinking */
+
+    let showEmpty = document.getElementById("showEmpty");
+    let dateToggle = document.getElementById("date-toggle");
+    /* check for no messages at all */
+    if (this._activeSet.length == 0) {
+      $(showEmpty).show();
+      $(dateToggle).hide();
+    }
+    else {
+      $(showEmpty).hide();
+      $(dateToggle).show();
+    }
+
     let showMore = document.getElementById("showMore");
     if (this._activeSet.length > numMessageToShow)
       $(showMore).show();

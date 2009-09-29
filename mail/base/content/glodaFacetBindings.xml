@@ -1081,6 +1081,10 @@
 
         let displayCount = aMessages.length;
         let totalCount = FacetContext.activeSet.length;
+
+        // set the count so CSS selectors can know what the results look like
+        this.setAttribute("state", (totalCount <= 0)? "empty" : "some");
+
         let topMessagesStr = PluralForm.get(displayCount,
                                             topMessagesPluralFormat)
                                        .replace("#1",

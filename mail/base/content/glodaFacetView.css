@@ -201,7 +201,7 @@ h2 {
   margin: 5px;
   font-size: 90%;
   text-align: right;
-  display: inline-block;
+  display: none; /* $('.date-toggle').show() is run if there are results */
   width: 46px !important;
   height: 17px !important;
   margin-right: 2px;
@@ -254,6 +254,7 @@ h2 {
   display: inline-block; /* override the general .facetious list-item style */
 }
 
+/* special case: hide these two facets when they don't match */
 #facet-star[disabled], #facet-attachmentTypes[disabled] {
   display: none;
 }
@@ -293,6 +294,9 @@ h2 {
 
 .facet-checkbox-count {
   color: GrayText;
+}
+.facet-checkbox-count:empty {
+  display: none;
 }
 .facet-checkbox-count:before {
   content: " (";
@@ -431,12 +435,16 @@ h2 {
 /* ===== Results ===== */
 
 .results-message-header {
-  display: table;
+  display: none; /* $('.results-message-header').show() is run if there are results */
   width: 100%;
   background-color: #edeeef;
   border-top: 2px solid #ddd;
   padding: 2px;
   margin-bottom: 0.5em;
+}
+
+#results[state="some"] .results-message-header {
+  display: table;  
 }
 
 .results-message-count {
@@ -644,6 +652,7 @@ h2 {
 }
 
 .show-more {
+  display: none; /* $('.show-more').show() is run if there are results */
   background-color: #babdb6;
   -moz-border-radius: 4px;
   float: right;
@@ -658,4 +667,35 @@ h2 {
   background-color: #729fcf;
   color: #ffffff;
   cursor: pointer;
+}
+
+div.loading, div.empty {
+  margin: 0 auto;
+  text-align: center;
+}
+
+span.loading, span.empty {
+  padding: 1em;
+  color: ButtonText;
+  background-color: ButtonFace;
+  border: 1px outset ThreeDShadow;
+  -moz-border-radius: 3px;
+}
+
+img.loading, img.empty {
+  margin: 0 1ex;
+  padding: 0;
+  border: none;
+  vertical-align: middle;
+}
+
+div.empty {
+  display: none;
+}
+
+span.empty {
+  background-color: inherit;
+  border: none;
+  font-size: large;
+  color: #729fcf;
 }

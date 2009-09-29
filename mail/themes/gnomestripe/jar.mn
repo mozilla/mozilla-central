@@ -107,6 +107,7 @@ classic.jar:
   skin/classic/messenger/smime/icons/sbSignUnknown.png        (mail/smime/sbSignUnknown.png)
   skin/classic/messenger/icons/timeline.png                   (mail/icons/timeline.png)
   skin/classic/messenger/icons/timeline-inverted.png          (mail/icons/timeline-inverted.png)
+  skin/classic/messenger/icons/empty-search-results.png       (mail/icons/empty-search-results.png)
   skin/classic/messenger/icons/new-mail-alert.png             (mail/icons/new-mail-alert.png)
   skin/classic/messenger/icons/secure.png                     (mail/icons/secure.png)
   skin/classic/messenger/icons/insecure.png                   (mail/icons/insecure.png)
