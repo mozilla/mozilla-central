@@ -1204,6 +1204,60 @@ var Gloda = {
       clazz: GlodaFolder,
       allowsArbitraryAttrs: false,
       isPrimitive: false,
+      queryHelpers: {
+        /**
+         * Query for accounts based on the account associated with folders.  We
+         *  walk all of the folders associated with an account and put them in
+         *  the list of folders that match if gloda would index them.  This is
+         *  unsuitable for producing a persistable constraint since it does not
+         *  adapt for added/deleted folders.  However, it is sufficient for
+         *  faceting.  Also, we don't persist constraints yet.
+         *
+         * @TODO The long-term solution is to move towards using arithmetic
+         *     encoding on folder-id's like we use for MIME types and friends.
+         */
+        Account: function(aAttrDef, aArguments) {
+          let folderValues = [];
+          let seenRootFolders = {};
+          for (let iArg = 0; iArg < aArguments.length; iArg++) {
+            let givenFolder = aArguments[iArg];
+            let givenMsgFolder = givenFolder.getXPCOMFolder(
+                                   givenFolder.kActivityFolderOnlyNoData);
+            let rootFolder = givenMsgFolder.rootFolder;
+
+            // skip processing this folder if we have already processed its
+            //  root folder.
+            if (rootFolder.URI in seenRootFolders)
+              continue;
+            seenRootFolders[rootFolder.URI] = true;
+
+            let allFolders = Cc["@mozilla.org/supports-array;1"].
+              createInstance(Ci.nsISupportsArray);
+            rootFolder.ListDescendents(allFolders);
+            let numFolders = allFolders.Count();
+            for (let folderIndex = 0; folderIndex < numFolders; folderIndex++) {
+              let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
+                Ci.nsIMsgFolder);
+              let folderFlags = folder.flags;
+
+              // Ignore virtual folders, non-mail folders.
+              // XXX this is derived from GlodaIndexer's shouldIndexFolder.
+              //  This should probably just use centralized code or the like.
+              if (!(folderFlags & Ci.nsMsgFolderFlags.Mail) ||
+                  (folderFlags & Ci.nsMsgFolderFlags.Virtual))
+                continue;
+              // we only index local or IMAP folders
+              if (!(folder instanceof Ci.nsIMsgLocalMailFolder) &&
+                !(folder instanceof Ci.nsIMsgImapMailFolder))
+                continue;
+
+              let glodaFolder = Gloda.getFolderForFolder(folder);
+              folderValues.push(glodaFolder);
+            }
+          }
+          return this._inConstraintHelper(aAttrDef, folderValues);
+        }
+      },
       comparator: function gloda_folder_comparator(a, b) {
         if (a == null) {
           if (b == null)
@@ -1653,6 +1707,13 @@ var Gloda = {
     aAttrDef.objectNounDef = this._nounIDToDef[aAttrDef.objectNoun];
     aAttrDef.objectNounDef.objectNounOfAttributes.push(aAttrDef);
 
+    // -- Facets
+    function normalizeFacetDef(aFacetDef) {
+      if (!("groupIdAttr" in aFacetDef))
+        aFacetDef.groupIdAttr = aAttrDef.objectNounDef.idAttr;
+      if (!("filter" in aFacetDef))
+        aFacetDef.filter = null;
+    }
     // No facet attribute means no facet desired; set an explicit null so that
     //  code can check without doing an "in" check.
     if (!("facet" in aAttrDef))
@@ -1668,19 +1729,37 @@ var Gloda = {
         };
       }
       else {
-        if (!("groupIdAttr" in aAttrDef.facet))
-          aAttrDef.facet.groupIdAttr = aAttrDef.objectNounDef.idAttr;
-        if (!("filter" in aAttrDef.facet))
-          aAttrDef.facet.filter = null;
+        normalizeFacetDef(aAttrDef.facet);
+      }
+    }
+    if ("extraFacets" in aAttrDef) {
+      for each (let [, facetDef] in Iterator(aAttrDef.extraFacets)) {
+        normalizeFacetDef(facetDef);
       }
     }
 
     // -- L10n.
     // If the provider has a string bundle, populate a "strings" attribute with
     //  our standard attribute strings that can be UI exposed.
-    if ("strings" in aAttrDef.provider) {
+    if (("strings" in aAttrDef.provider) && (aAttrDef.facet)) {
       let bundle = aAttrDef.provider.strings;
-      let attrStrings = aAttrDef.strings = {};
+
+      function gatherLocalizedStrings(aPropRoot, aStickIn) {
+        for each (let [propName, attrName] in
+                  Iterator(Gloda._ATTR_LOCALIZED_STRINGS)) {
+          try {
+            aStickIn[attrName] = bundle.get(aPropRoot + propName);
+          }
+          catch (ex) {
+            // do nothing.  nsIStringBundle throws exceptions because it is a
+            //  standard nsresult type of API and our helper buddy does nothing
+            //  to help us.  (StringBundle.js, that is.)
+          }
+        }
+      }
+
+      // -- attribute strings
+      let attrStrings = aAttrDef.facet.strings = {};
       // we use the first subject the attribute applies to as the basis of
       //  where to get the string from.  Mainly because we currently don't have
       //  any attributes with multiple subjects nor a use-case where we expose
@@ -1688,15 +1767,15 @@ var Gloda = {
       let canonicalSubject = this._nounIDToDef[aAttrDef.subjectNouns[0]];
       let propRoot = "gloda." + canonicalSubject.name + ".attr." +
                        aAttrDef.attributeName + ".";
-      for each (let [propName, attrName] in
-                Iterator(this._ATTR_LOCALIZED_STRINGS)) {
-        try {
-          attrStrings[attrName] = bundle.get(propRoot + propName);
-        }
-        catch (ex) {
-          // do nothing.  nsIStringBundle throws exceptions because it is a
-          //  standard nsresult type of API and our helper buddy does nothing
-          //  to help us.  (StringBundle.js, that is.)
+      gatherLocalizedStrings(propRoot, attrStrings);
+
+      // -- alias strings for synthetic facets
+      if ("extraFacets" in aAttrDef) {
+        for each (let [, facetDef] in Iterator(aAttrDef.extraFacets)) {
+          facetDef.strings = {};
+          let aliasPropRoot = "gloda." + canonicalSubject.name + ".attr." +
+                                facetDef.alias + ".";
+          gatherLocalizedStrings(aliasPropRoot, facetDef.strings);
         }
       }
     }

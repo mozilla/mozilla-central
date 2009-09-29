@@ -288,9 +288,9 @@
       <parameter name="aFirstTime" />
       <body><![CDATA[
         if (aFirstTime) {
-          this.labelNode.textContent = this.attrDef.strings.facetLabel;
+          this.labelNode.textContent = this.facetDef.strings.facetLabel;
           this.checkbox.setAttribute("aria-label",
-                                     this.attrDef.strings.facetLabel);
+                                     this.facetDef.strings.facetLabel);
         }
 
         // If we do not currently have a constraint applied and there is only
@@ -387,9 +387,9 @@
       <parameter name="aFirstTime" />
       <body><![CDATA[
         if (aFirstTime) {
-          this.labelNode.textContent = this.attrDef.strings.facetLabel;
+          this.labelNode.textContent = this.facetDef.strings.facetLabel;
           this.checkbox.setAttribute("aria-label",
-                                     this.attrDef.strings.facetLabel);
+                                     this.facetDef.strings.facetLabel);
         }
 
         // Only update count if anything other than "all" is selected.
@@ -532,14 +532,14 @@
         // -- Header Building
         let nameNode = document.getAnonymousElementByAttribute(this, "anonid",
                                                                "name");
-        nameNode.textContent = this.attrDef.strings.facetLabel;
+        nameNode.textContent = this.facetDef.strings.facetLabel;
 
         // - include
         // setup the include label
         this.includeLabel = document.getAnonymousElementByAttribute(
                            this, "anonid", "included-label");
-        if ("includeLabel" in this.attrDef.strings)
-          this.includeLabel.textContent = this.attrDef.strings.includeLabel;
+        if ("includeLabel" in this.facetDef.strings)
+          this.includeLabel.textContent = this.facetDef.strings.includeLabel;
         else
           this.includeLabel.textContent =
             glodaFacetStrings.get(
@@ -554,8 +554,8 @@
         // setup the exclude label
         this.excludeLabel = document.getAnonymousElementByAttribute(
                                        this, "anonid", "excluded-label");
-        if ("excludeLabel" in this.attrDef.strings)
-          this.excludeLabel.textContent = this.attrDef.strings.excludeLabel;
+        if ("excludeLabel" in this.facetDef.strings)
+          this.excludeLabel.textContent = this.facetDef.strings.excludeLabel;
         else
           this.excludeLabel.textContent =
             glodaFacetStrings.get(
@@ -570,8 +570,8 @@
         // setup the remainder label
         this.remainderLabel = document.getAnonymousElementByAttribute(
                                 this, "anonid", "remainder-label");
-        if ("remainderLabel" in this.attrDef.strings)
-          this.remainderLabel.textContent = this.attrDef.strings.remainderLabel;
+        if ("remainderLabel" in this.facetDef.strings)
+          this.remainderLabel.textContent = this.facetDef.strings.remainderLabel;
         else
           this.remainderLabel.textContent =
             glodaFacetStrings.get(
@@ -711,6 +711,9 @@
               labelStr = nounDef.userVisibleString(groupValue, false);
               if (ambiguousKeyValues[labelStr])
                 labelStr = nounDef.userVisibleString(groupValue, true);
+            }
+            else if ("labelFunc" in this.facetDef) {
+              labelStr = this.facetDef.labelFunc(groupValue);
             }
             else {
               labelStr = groupValue.toLocaleString().substring(0, 80);

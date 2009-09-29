@@ -68,9 +68,10 @@ const glodaFacetStrings =
  *  facets can have both.  Because they are different worlds, non-singular gets
  *  its own class, |ActiveNonSingularConstraint|.
  */
-function ActiveSingularConstraint(aFaceter, aAttrDef, aRanged) {
+function ActiveSingularConstraint(aFaceter, aRanged) {
   this.faceter = aFaceter;
-  this.attrDef = aAttrDef;
+  this.attrDef = aFaceter.attrDef;
+  this.facetDef = aFaceter.facetDef;
   this.ranged = Boolean(aRanged);
   this.clear();
 }
@@ -88,9 +89,9 @@ ActiveSingularConstraint.prototype = {
     let constraintFunc;
     // If the facet definition references a queryHelper defined by the noun
     //  type, use that instead of the standard constraint function.
-    if ("queryHelper" in this.attrDef.facet)
+    if ("queryHelper" in this.facetDef)
       constraintFunc = query[this.attrDef.boundName +
-                             this.attrDef.facet.queryHelper];
+                             this.facetDef.queryHelper];
     else
       constraintFunc = query[this.ranged ? (this.attrDef.boundName + "Range")
                                          : this.attrDef.boundName];
@@ -186,9 +187,10 @@ ActiveSingularConstraint.prototype = {
   }
 };
 
-function ActiveNonSingularConstraint(aFaceter, aAttrDef, aRanged) {
+function ActiveNonSingularConstraint(aFaceter, aRanged) {
   this.faceter = aFaceter;
-  this.attrDef = aAttrDef;
+  this.attrDef = aFaceter.attrDef;
+  this.facetDef = aFaceter.facetDef;
   this.ranged = Boolean(aRanged);
 
   this.clear();
@@ -206,9 +208,9 @@ ActiveNonSingularConstraint.prototype = {
     let constraintFunc;
     // If the facet definition references a queryHelper defined by the noun
     //  type, use that instead of the standard constraint function.
-    if ("queryHelper" in this.attrDef.facet)
+    if ("queryHelper" in this.facetDef)
       constraintFunc = query[this.attrDef.boundName +
-                             this.attrDef.facet.queryHelper];
+                             this.facetDef.queryHelper];
     else
       constraintFunc = query[this.ranged ? (this.attrDef.boundName + "Range")
                                          : this.attrDef.boundName];
@@ -225,7 +227,7 @@ ActiveNonSingularConstraint.prototype = {
    */
   constrain: function(aInclusive, aGroupValues) {
     let groupIdAttr = this.attrDef.objectNounDef.isPrimitive ? null
-                        : this.attrDef.facet.groupIdAttr;
+                        : this.facetDef.groupIdAttr;
     let idMap = aInclusive ? this.includedGroupIds
                            : this.excludedGroupIds;
     let valList = aInclusive ? this.includedGroupValues
@@ -252,7 +254,7 @@ ActiveNonSingularConstraint.prototype = {
    */
   relax: function(aInclusive, aGroupValues) {
     let groupIdAttr = this.attrDef.objectNounDef.isPrimitive ? null
-                        : this.attrDef.facet.groupIdAttr;
+                        : this.facetDef.groupIdAttr;
     let idMap = aInclusive ? this.includedGroupIds
                            : this.excludedGroupIds;
     let valList = aInclusive ? this.includedGroupValues
@@ -315,11 +317,11 @@ ActiveNonSingularConstraint.prototype = {
     return outItems;
   },
   isIncludedGroup: function(aGroupValue) {
-    let valId = aGroupValue[this.attrDef.facet.groupIdAttr];
+    let valId = aGroupValue[this.facetDef.groupIdAttr];
     return (valId in this.includedGroupIds);
   },
   isExcludedGroup: function(aGroupValue) {
-    let valId = aGroupValue[this.attrDef.facet.groupIdAttr];
+    let valId = aGroupValue[this.facetDef.groupIdAttr];
     return (valId in this.excludedGroupIds);
   }
 };
@@ -488,6 +490,7 @@ var FacetContext = {
           explicitBinding.explicit = true;
           explicitBinding.faceter = faceter;
           explicitBinding.attrDef = faceter.attrDef;
+          explicitBinding.facetDef = faceter.facetDef;
           explicitBinding.nounDef = faceter.attrDef.objectNounDef;
           explicitBinding.orderedGroups = faceter.orderedGroups;
           // explicit booleans should always be displayed for consistency
@@ -508,6 +511,7 @@ var FacetContext = {
 
         faceter.xblNode = uiFacets.addFacet(faceter.type, faceter.attrDef, {
           faceter: faceter,
+          facetDef: faceter.facetDef,
           orderedGroups: faceter.orderedGroups,
           maxDisplayRows: this.maxDisplayRows,
           explicit: false
@@ -589,7 +593,7 @@ var FacetContext = {
       logException(e);
     }
   },
-  
+
   _showTimeline: function() {
     $("#facet-date").slideDown();
     $("#date-toggle").removeAttr("tucked");
@@ -597,7 +601,7 @@ var FacetContext = {
   },
 
   _hideTimeline: function(immediate) {
-    if (immediate) 
+    if (immediate)
       $("#facet-date").hide();
     else
       $("#facet-date").slideUp();
@@ -606,7 +610,7 @@ var FacetContext = {
   },
 
   _timelineShown: true,
-  
+
   /** For use in hovering specific results. */
   fakeResultFaceter: {},
   /** For use in hovering specific results. */
@@ -699,7 +703,7 @@ var FacetContext = {
       let constraintClass = aFaceter.attrDef.singular ? ActiveSingularConstraint
                               : ActiveNonSingularConstraint;
       constraint = this._activeConstraints[attrName] =
-        new constraintClass(aFaceter, aFaceter.attrDef, aRanged);
+        new constraintClass(aFaceter, aRanged);
       aFaceter.constraint = constraint;
     }
     let needToRevalidate = constraint.constrain(aInclusive, aGroupValues);

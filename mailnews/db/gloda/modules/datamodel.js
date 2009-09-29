@@ -395,6 +395,14 @@ GlodaFolder.prototype = {
 
     return true;
   },
+
+  /**
+   * Return the string associated with this account.
+   */
+  get accountLabel() {
+    let msgFolder = this.getXPCOMFolder(this.kActivityFolderOnlyNoData);
+    return msgFolder.server.prettyName;
+  }
 };
 
 /**

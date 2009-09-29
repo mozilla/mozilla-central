@@ -72,24 +72,35 @@ FacetDriver.prototype = {
    */
   _makeFaceters: function() {
     let faceters = this.faceters = [];
+
+    function makeFaceter(aAttrDef, aFacetDef) {
+      let facetType = aFacetDef.type;
+
+      if (aAttrDef.singular) {
+        if (facetType == "date")
+          faceters.push(new DateFaceter(aAttrDef, aFacetDef));
+        else
+          faceters.push(new DiscreteFaceter(aAttrDef, aFacetDef));
+      }
+      else {
+        if (facetType == "nonempty?")
+          faceters.push(new NonEmptySetFaceter(aAttrDef, aFacetDef));
+        else
+          faceters.push(new DiscreteSetFaceter(aAttrDef, aFacetDef));
+      }
+    }
+
     for each (let [, attrDef] in Iterator(this.nounDef.attribsByBoundName)) {
       // ignore attributes that do not want to be faceted
       if (!attrDef.facet)
         continue;
 
-      let facetType = attrDef.facet.type;
+      makeFaceter(attrDef, attrDef.facet);
 
-      if (attrDef.singular) {
-        if (facetType == "date")
-          faceters.push(new DateFaceter(attrDef));
-        else
-          faceters.push(new DiscreteFaceter(attrDef));
-      }
-      else {
-        if (facetType == "nonempty?")
-          faceters.push(new NonEmptySetFaceter(attrDef));
-        else
-          faceters.push(new DiscreteSetFaceter(attrDef));
+      if ("extraFacets" in attrDef) {
+        for each (let [, facetDef] in Iterator(attrDef.extraFacets)) {
+          makeFaceter(attrDef, facetDef);
+        }
       }
     }
   },
@@ -175,8 +186,9 @@ var FacetUtils = {
  *  appropriate for use on singular values.  Use |DiscreteSetFaceter| for
  *  non-singular values.
  */
-function DiscreteFaceter(aAttrDef) {
+function DiscreteFaceter(aAttrDef, aFacetDef) {
   this.attrDef = aAttrDef;
+  this.facetDef = aFacetDef;
 }
 DiscreteFaceter.prototype = {
   type: "discrete",
@@ -196,7 +208,7 @@ DiscreteFaceter.prototype = {
   facetPrimitiveItems: function(aItems) {
     let attrKey = this.attrDef.boundName;
     let nounDef = this.attrDef.objectNounDef;
-    let filter = this.attrDef.facet.filter;
+    let filter = this.facetDef.filter;
 
     let valStrToVal = {};
     let groups = this.groups = {};
@@ -235,8 +247,8 @@ DiscreteFaceter.prototype = {
   facetComplexItems: function(aItems) {
     let attrKey = this.attrDef.boundName;
     let nounDef = this.attrDef.objectNounDef;
-    let filter = this.attrDef.facet.filter;
-    let idAttr = this.attrDef.facet.groupIdAttr;
+    let filter = this.facetDef.filter;
+    let idAttr = this.facetDef.groupIdAttr;
 
     let groups = this.groups = {};
     let groupMap = this.groupMap = {};
@@ -279,8 +291,9 @@ DiscreteFaceter.prototype = {
  * - Specific set configurations could be interesting, but are not low-hanging
  *    fruit.
  */
-function DiscreteSetFaceter(aAttrDef) {
+function DiscreteSetFaceter(aAttrDef, aFacetDef) {
   this.attrDef = aAttrDef;
+  this.facetDef = aFacetDef;
 }
 DiscreteSetFaceter.prototype = {
   type: "discrete",
@@ -300,7 +313,7 @@ DiscreteSetFaceter.prototype = {
   facetPrimitiveItems: function(aItems) {
     let attrKey = this.attrDef.boundName;
     let nounDef = this.attrDef.objectNounDef;
-    let filter = this.attrDef.facet.filter;
+    let filter = this.facetDef.filter;
 
     let groups = this.groups = {};
     let valStrToVal = {};
@@ -343,8 +356,8 @@ DiscreteSetFaceter.prototype = {
   facetComplexItems: function(aItems) {
     let attrKey = this.attrDef.boundName;
     let nounDef = this.attrDef.objectNounDef;
-    let filter = this.attrDef.facet.filter;
-    let idAttr = this.attrDef.facet.groupIdAttr;
+    let filter = this.facetDef.filter;
+    let idAttr = this.facetDef.groupIdAttr;
 
     let groups = this.groups = {};
     let groupMap = this.groupMap = {};
@@ -387,8 +400,9 @@ DiscreteSetFaceter.prototype = {
  * Given a non-singular attribute, facet it as if it were a boolean based on
  *  whether there is anything in the list (set).
  */
-function NonEmptySetFaceter(aAttrDef) {
+function NonEmptySetFaceter(aAttrDef, aFacetDef) {
   this.attrDef = aAttrDef;
+  this.facetDef = aFacetDef;
 }
 NonEmptySetFaceter.prototype = {
   type: "boolean",
@@ -445,8 +459,9 @@ NonEmptySetFaceter.prototype = {
  *  Alternately, it could be used to inform a non-linear visualization.  As it
  *  stands (as of this writing), it's just a complicating factor.
  */
-function DateFaceter(aAttrDef) {
+function DateFaceter(aAttrDef, aFacetDef) {
   this.attrDef = aAttrDef;
+  this.facetDef = aFacetDef;
 }
 DateFaceter.prototype = {
   type: "date",

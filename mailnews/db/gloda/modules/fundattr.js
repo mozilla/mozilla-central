@@ -118,6 +118,19 @@ var GlodaFundAttr = {
       attributeName: "folder",
       singular: true,
       facet: true,
+      extraFacets: [
+        {
+          type: "default",
+          alias: "account",
+          // Group the folders by their account (label)...
+          groupIdAttr: "accountLabel",
+          queryHelper: "Account",
+          // Display the account label for the facet
+          labelFunc: function(aGlodaFolder) {
+            return aGlodaFolder.accountLabel;
+          }
+        },
+      ],
       special: Gloda.kSpecialColumn,
       specialColumnName: "folderID",
       subjectNouns: [Gloda.NOUN_MESSAGE],
