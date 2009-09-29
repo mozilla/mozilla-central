@@ -148,6 +148,10 @@
   display: inline;
 }
 
+#trash {
+  -moz-box-orient: horizontal;
+}
+
 #column {
   float: right;
   right: 1em;

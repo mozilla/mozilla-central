@@ -1,3 +1,4 @@
 <!ENTITY window.title             "Message Summary">
 <!ENTITY selectedmessages.label   "Selected Messages">
 <!ENTITY archive.label            "archive">
+<!ENTITY delete.label             "delete">
