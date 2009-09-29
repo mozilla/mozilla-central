@@ -46,7 +46,11 @@ var gCustomizeSheet = false;
 
 function overlayUpdateToolbarMode(aModeValue)
 {
-  let toolbox = window.frameElement.toolbox;
+  let toolbox = null;
+  if ("arguments" in window && window.arguments[0])
+    toolbox = window.arguments[0];
+  else if (window.frameElement && "toolbox" in window.frameElement)
+    toolbox = window.frameElement.toolbox;
 
   // If they chose a mode of textbesideicon or full,
   // then map that to a mode of full, and a labelalign of true or false.
@@ -73,7 +77,11 @@ function overlayOnLoad()
 
   // If they have a mode of full and a labelalign of true,
   // then pretend the mode is textbesideicon when populating the popup.
-  let toolbox = window.frameElement.toolbox;
+  let toolbox = null;
+  if ("arguments" in window && window.arguments[0])
+    toolbox = window.arguments[0];
+  else if (window.frameElement && "toolbox" in window.frameElement)
+    toolbox = window.frameElement.toolbox;
   let mode = toolbox.getAttribute("mode");
   let align = toolbox.getAttribute("labelalign");
   if (mode == "full" && align == "end")
@@ -226,9 +234,6 @@ function onViewToolbarsPopupShowing(aEvent, toolboxId)
     }
     toolbar = toolbar.nextSibling;
   }
-  var end = toolbox.getAttribute("labelalign") == "end";
-  document.getElementById("labelAlignToolbar").setAttribute("checked", end);
-  document.getElementById("labelAlign").setAttribute("checked", end);
 }
 
 function toJavaScriptConsole()
