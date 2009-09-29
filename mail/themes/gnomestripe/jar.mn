@@ -1,6 +1,7 @@
 classic.jar:
   skin/classic/communicator/smileys.css                       (mail/smileys.css)
 % skin messenger classic/1.0 %skin/classic/messenger/
+  skin/classic/messenger/featureConfigurator.css              (mail/featureConfigurator.css)
   skin/classic/messenger/primaryToolbar.css                   (mail/primaryToolbar.css)
   skin/classic/messenger/accountCentral.css                   (mail/accountCentral.css)
   skin/classic/messenger/accountCreation.css                  (mail/accountCreation.css)

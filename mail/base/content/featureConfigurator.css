@@ -1,0 +1,111 @@
+html {
+  background: white;
+}
+
+body {
+  padding: 0 1em 0;
+  margin: 0 0 2em 0;
+  font-family: sans-serif;
+  background: white;
+}
+
+h2.withstatus {
+  margin-bottom: 0.5em;
+}
+
+.status {
+  display: inline-block;
+  color: #444;
+  margin: 0 1em 1em 1em;
+}
+
+#content {
+  padding: 1em 3em 0 3em;
+  max-width: 40em;
+  font-size: smaller;
+}
+
+a {
+  color: #003595;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1 {
+  font-size: large;
+}
+
+h2 {
+  font-size: medium;
+}
+
+.pro,.con {
+  display: table-cell;
+  width: 50%;
+}
+
+.pro {
+  padding-right: 1em;
+}
+
+.row {
+  display: table-row;
+}
+
+.benefits, .disadvantage {
+  padding-bottom: 0.5em;
+}
+
+.benefits {
+  color: #2D7BB2;
+  font-weight: bold;
+}
+
+.disadvantage {
+  color: darkred;
+  font-weight: bold;
+}
+
+.other {
+  color: darkgreen;
+  font-weight: bold;
+}
+
+.sync_button {
+  padding-top: 0.5em;
+}
+
+.feature {
+  -moz-padding-start: 2em;
+}
+
+span.status {
+  display: inline;
+}
+
+.button {
+  display: inline-block;
+  margin: 1px 1em 0.5em 1px;
+  padding: 0.2em 1em;
+  font-weight: normal;
+  color: #000000;
+  background-color: #babdb6;
+  cursor: pointer;
+  -moz-border-radius: 4px;
+}
+
+.button:hover {
+  background-color: #729fcf;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.button[invisible="true"] {
+  display: none;
+}
+
+.status[invisible="true"] {
+  display: none;
+}

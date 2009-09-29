@@ -77,6 +77,20 @@
         persist="width height screenX screenY sizemode"
         windowtype="mail:3pane">
 
+
+<!--This (strange!) element is here to support recovering customized toolbars in
+    the featureConfigurator code.  We just want to access the persisted data.
+
+    If this not an upgrade from 2 to 3, then there won't be any persisted
+    currentset, and we want the original defaultset -->
+<data id="mail-bar2" persist="currentset iconsize"
+#ifdef XP_MACOSX
+  defaultset="button-getmsg,button-newmsg,button-address,spacer,button-reply,button-replyall,button-replylist,button-forward,spacer,button-tag,button-delete,button-junk,button-print,spacer,button-goback,button-goforward,spring,gloda-search,throbber-box"
+#else
+  defaultset="button-getmsg,button-newmsg,button-address,separator,button-reply,button-replyall,button-replylist,button-forward,separator,button-tag,button-delete,button-junk,button-print,separator,button-goback,button-goforward,spring,gloda-search"
+#endif
+/>
+
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   <stringbundle id="bundle_search" src="chrome://messenger/locale/search.properties"/>
@@ -420,6 +434,7 @@
       </tabpanels>
     </tabmail>
     <vbox id="contentTab"/>
+    <vbox id="chromeTab"/>
   </hbox>
   <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"

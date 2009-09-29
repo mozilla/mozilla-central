@@ -478,3 +478,6 @@ pref("gloda.facetview.hidetimeline", true);
 pref("mailnews.database.global.indexer.enabled", true);
 // Show gloda errors in the error console
 pref("mailnews.database.global.logging.console", true);
+
+// page to load to find good header add-ons
+pref("mailnews.migration.header_addons_url","http://live.mozillamessaging.com/%APP%/addons/search?q=header&locale=%LOCALE%&lver=%VERSION%&hver=%VERSION%&os=%OS%");

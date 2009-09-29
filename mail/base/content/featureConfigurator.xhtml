@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd" [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
+%brandDTD;
+<!ENTITY % aboutDTD SYSTEM "chrome://global/locale/about.dtd" >
+%aboutDTD;
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
+<!ENTITY % featureConfiguratorDTD SYSTEM "chrome://messenger/locale/featureConfigurator.dtd">
+%featureConfiguratorDTD;
+]>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Thunderbird Feature Configurator.
+   -
+   - The Initial Developer of the Original Code is
+   - Mozilla Messaging, Inc.
+   - Portions created by the Initial Developer are Copyright (C) 2009
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   David Ascher <dascher@mozillamessaging.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en">
+<head>
+  <!-- Themes -->
+  <link rel="stylesheet"
+      href="chrome://messenger/skin/featureConfigurator.css"
+      type="text/css"></link>
+  <!-- Global Context -->
+  <script type="application/javascript;version=1.8"
+      src="chrome://messenger/content/featureConfigurator.js"></script>
+  <!-- Libs -->
+  <script type="application/javascript;version=1.8"
+      src="chrome://messenger/content/jquery.js"></script>
+  <script type="application/javascript;version=1.8"
+      src="chrome://messenger/content/jquery-ui.js"></script>
+  <title>&featureConfigurator.title;</title>
+</head>
+<body id="body" onload="reachOutAndTouchFrame()">
+<div id="content">
+  <h1>&featureConfigurator.heading;</h1>
+  <p>&featureConfigurator.para1;</p>
+  <p>&featureConfigurator.para2;</p>
+  <form>
+    <h2 class="withstatus">&featureConfigurator.imap.heading;</h2>
+    <div id="imap_status" class="status">
+      <span id="all-synced" class="status">&featureConfigurator.imap.status.all;</span>
+      <span id="none-synced" class="status">&featureConfigurator.imap.status.none;</span>
+      <span id="some-synced" class="status">&featureConfigurator.imap.status.some;</span>
+    </div>
+    <div class="feature">
+      <div class="row">
+        <div class="explanation pro">
+          <div class="benefits">&featureConfigurator.benefits.label;</div>
+          &featureConfigurator.syncBenefits.para;
+        </div>
+        <div class="explanation con">
+          <div class="disadvantage">&featureConfigurator.alternative.label;</div>
+          &featureConfigurator.syncAlternative.para;
+        </div>
+      </div>
+      <div class="row">
+        <div class="sync_button pro">
+          <span id="sync-all" class="button">&featureConfigurator.syncAll.button;</span>
+        </div>
+        <div class="sync_button con">
+          <span id="sync-none" class="button">&featureConfigurator.syncNone.button;</span>
+        </div>
+      </div>
+      <p class="explanation"><span class="other">&featureConfigurator.advancedUsers.label;</span>
+        &featureConfigurator.advancedUsers.para;
+        <ul id="account_list"/>
+      </p>
+    </div>
+    <h2 class="withstatus">&featureConfigurator.toolbar.heading;</h2>
+    <div id="toolbar_status" class="status">
+      <span id="using-new-toolbar" class="status">&featureConfigurator.toolbar.new.status;</span>
+      <span id="using-original-toolbar" class="status">&featureConfigurator.toolbar.original.status;</span>
+    </div>
+    <div class="feature">
+      <div class="row">
+        <p class="explanation pro"><div class="benefits">&featureConfigurator.benefits.label;</div>
+          &featureConfigurator.toolbarBenefits.para;
+        </p>
+        <p class="explanation con"><div class="disadvantage">&featureConfigurator.alternative.label;</div>
+          &featureConfigurator.toolbarAlternative.para;
+        </p>
+      </div>
+      <div class="row">
+        <div class="sync_button pro">
+          <span class="button" id="useNewToolbar" tabindex="0">&featureConfigurator.useNewToolbar.button;</span>
+        </div>
+        <div class="sync_button pro">
+          <span class="button" id="useOriginalToolbar" tabindex="0">&featureConfigurator.useOriginalToolbar.button;</span>
+        </div>
+      </div>
+    </div>
+    <h2 class="withstatus">&featureConfigurator.smartFolders.heading;</h2>
+    <div id="foldermode_status" class="status">
+      <span id="using-smart-folders" class="status">&featureConfigurator.smartFolders.smart.status;</span>
+      <span id="using-all-folders" class="status">&featureConfigurator.smartFolders.all.status;</span>
+    </div>
+    <div class="feature">
+      <div class="row">
+        <p class="explanation pro"><div class="benefits">&featureConfigurator.benefits.label;</div>
+          &featureConfigurator.smartFolderBenefits.para;
+        </p>
+        <p class="explanation con">
+          <div class="disadvantage">&featureConfigurator.alternative.label;</div>
+          &featureConfigurator.smartFolderAlternative.para;
+        </p>
+      </div>
+      <div class="row">
+        <div class="sync_button pro">
+          <span class="button" id="useSmartFolders" tabindex="0">&featureConfigurator.useSmartFolders.button;</span>
+        </div>
+        <div class="sync_button pro">
+          <span class="button" id="useAllFolders" tabindex="0">&featureConfigurator.useAllFolders.button;</span>
+        </div>
+      </div>
+    </div>
+    <h2>&featureConfigurator.collapsedHeaders.heading;</h2>
+    <div class="feature">
+      <!-- odd line breaks to avoid adding whitespace in rendered HTML -->
+      <p class="explanation">&featureConfigurator.headerParaBeforeLink;<a
+        id="header_addons">&featureConfigurator.headerParaLinkName;</a
+        >&featureConfigurator.headerParaAfterLink;
+      </p>
+    </div>
+  </form>
+</div>
+</body>
+</html>

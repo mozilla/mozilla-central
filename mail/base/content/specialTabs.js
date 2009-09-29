@@ -144,9 +144,18 @@ var specialTabs = {
                           .getService(Components.interfaces.nsIPrefBranch);
 
     tabmail.registerTabType(this.contentTabType);
+    tabmail.registerTabType(this.chromeTabType);
 
-    // Show the "what's new" tab to the user, if we have upgraded.
-    if (this.isApplicationUpgraded(prefs))
+    // If we've upgraded:
+    let [fromVer, toVer] = this.getApplicationUpgradeVersions(prefs);
+
+    // Show the "configure helper" tab to the user, if we have upgraded to 3
+    if (fromVer && (Number(fromVer[0]) < 3) && toVer[0] == "3")
+      openFeatureConfigurator();
+
+    // Only show what's new tab if this is actually an upgraded version,
+    // not just a new installation/profile.
+    if (fromVer && fromVer != toVer)
       this.showWhatsNewPage();
 
     // Show the about rights notification if we need to.
@@ -398,30 +407,27 @@ var specialTabs = {
   },
 
   /**
-   * Tests whether the application has been upgraded
-   * or not. Updates the pref with the latest version,
-   * returns true if upgraded, false otherwise.
+   * In the case of an upgrade, returns the version we're upgrading
+   * from, as well as the current version.  In the case of a fresh profile,
+   * return null and the current version.  In either case, updates the
+   * pref with the latest version.
    */
-  isApplicationUpgraded: function(prefs) {
+  getApplicationUpgradeVersions: function(prefs) {
     let savedAppVersion = null;
+    let prefstring = "mailnews.start_page_override.mstone";
+
     try {
-      savedAppVersion = prefs.getCharPref("mailnews.start_page_override.mstone");
+      savedAppVersion = prefs.getCharPref(prefstring);
     } catch (ex) {}
 
-    if (savedAppVersion != "ignore") {
-      let currentApplicationVersion =
-        Components.classes["@mozilla.org/xre/app-info;1"]
-                  .getService(Components.interfaces.nsIXULAppInfo).version;
+    let currentApplicationVersion =
+      Components.classes["@mozilla.org/xre/app-info;1"]
+                .getService(Components.interfaces.nsIXULAppInfo).version;
 
-      prefs.setCharPref("mailnews.start_page_override.mstone",
-                        currentApplicationVersion);
+    if (savedAppVersion != "ignore")
+      prefs.setCharPref(prefstring, currentApplicationVersion);
 
-      // Only show if this is actually an upgraded version, not just a new
-      // installation/profile.
-      if (savedAppVersion && currentApplicationVersion != savedAppVersion)
-        return true;
-    }
-    return false;
+    return [savedAppVersion, currentApplicationVersion];
   },
 
   /**
@@ -492,5 +498,225 @@ var specialTabs = {
 
     // Set the pref to say we've displayed the notification.
     prefs.setIntPref("mail.rights.version", this._kAboutRightsVersion);
+  },
+
+  chromeTabType: {
+    name: "chromeTab",
+    perTabPanel: "vbox",
+    lastBrowserId: 0,
+    get loadingTabString() {
+      delete this.loadingTabString;
+      return this.loadingTabString = document.getElementById("bundle_messenger")
+                                             .getString("loadingTab");
+    },
+
+    modes: {
+      chromeTab: {
+        type: "chromeTab",
+        maxTabs: 10
+      }
+    },
+    shouldSwitchTo: function onSwitchTo({chromePage: achromePage}) {
+      let tabmail = document.getElementById("tabmail");
+      let tabInfo = tabmail.tabInfo;
+
+      // Remove any anchors - especially for the about: pages, we just want
+      // to re-use the same tab.
+      let regEx = new RegExp("#.*");
+
+      let contentUrl = achromePage.replace(regEx, "");
+
+      for (let selectedIndex = 0; selectedIndex < tabInfo.length;
+           ++selectedIndex) {
+        if (tabInfo[selectedIndex].mode.name == this.name &&
+            tabInfo[selectedIndex].browser.currentURI.spec
+                                  .replace(regEx, "") == contentUrl) {
+          // Ensure we go to the correct location on the page.
+          tabInfo[selectedIndex].browser
+                                .setAttribute("src", achromePage);
+          return selectedIndex;
+        }
+      }
+      return -1;
+    },
+    openTab: function onTabOpened(aTab, aArgs) {
+      if (!"chromePage" in aArgs)
+        throw("chromePage must be specified");
+
+      // First clone the page and set up the basics.
+      let clone = document.getElementById("chromeTab").firstChild.cloneNode(true);
+
+      clone.setAttribute("id", "chromeTab" + this.lastBrowserId);
+      clone.setAttribute("collapsed", false);
+
+      aTab.panel.appendChild(clone);
+
+      // Start setting up the browser.
+      aTab.browser = aTab.panel.getElementsByTagName("browser")[0];
+
+      // As we're opening this tab, showTab may not get called, so set
+      // the type according to if we're opening in background or not.
+      let background = ("background" in aArgs) && aArgs.background;
+      // XXX not setting type as it's chrome
+      //aTab.browser.setAttribute("type", background ? "content-targetable" :
+      //                                               "content-primary");
+
+      aTab.browser.setAttribute("id", "chromeTabBrowser" + this.lastBrowserId);
+
+      // Now initialise the find bar.
+      aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
+      aTab.findbar.setAttribute("browserid",
+                                "chromeTabBrowser" + this.lastBrowserId);
+
+      // Now set up the listeners.
+      this._setUpTitleListener(aTab);
+      this._setUpCloseWindowListener(aTab);
+
+      // Now start loading the content.
+      aTab.title = this.loadingTabString;
+      aTab.browser.loadURI(aArgs.chromePage);
+
+      this.lastBrowserId++;
+    },
+    closeTab: function onTabClosed(aTab) {
+      try {
+      aTab.browser.removeEventListener("DOMTitleChanged",
+                                       aTab.titleListener, true);
+      aTab.browser.removeEventListener("DOMWindowClose",
+                                       aTab.closeListener, true);
+      } catch (e) {
+        logException(e);
+      }
+    },
+    saveTabState: function onSaveTabState(aTab) {
+    },
+    showTab: function onShowTab(aTab) {
+    },
+    persistTab: function onPersistTab(aTab) {
+      if (aTab.browser.currentURI.spec == "about:blank")
+        return null;
+
+      return {
+        tabURI: aTab.browser.currentURI.spec
+      };
+    },
+    restoreTab: function onRestoreTab(aTabmail, aPersistedState) {
+      aTabmail.openTab("chromeTab", { chromePage: aPersistedState.tabURI,
+                                       background: true } );
+    },
+    onTitleChanged: function onTitleChanged(aTab) {
+      aTab.title = aTab.browser.contentDocument.title;
+    },
+    supportsCommand: function supportsCommand(aCommand, aTab) {
+      switch (aCommand) {
+        case "cmd_fullZoomReduce":
+        case "cmd_fullZoomEnlarge":
+        case "cmd_fullZoomReset":
+        case "cmd_fullZoomToggle":
+        case "cmd_find":
+        case "cmd_findAgain":
+        case "cmd_findPrevious":
+        case "cmd_printSetup":
+        case "cmd_print":
+        case "button_print":
+        // XXX print preview not currently supported - bug 497994 to implement.
+        // case "cmd_printpreview":
+          return true;
+        default:
+          return false;
+      }
+    },
+    isCommandEnabled: function isCommandEnabled(aCommand, aTab) {
+      switch (aCommand) {
+        case "cmd_fullZoomReduce":
+        case "cmd_fullZoomEnlarge":
+        case "cmd_fullZoomReset":
+        case "cmd_fullZoomToggle":
+        case "cmd_find":
+        case "cmd_findAgain":
+        case "cmd_findPrevious":
+        case "cmd_printSetup":
+        case "cmd_print":
+        case "button_print":
+        // XXX print preview not currently supported - bug 497994 to implement.
+        // case "cmd_printpreview":
+          return true;
+        default:
+          return false;
+      }
+    },
+    doCommand: function isCommandEnabled(aCommand, aTab) {
+      switch (aCommand) {
+        case "cmd_fullZoomReduce":
+          ZoomManager.reduce();
+          break;
+        case "cmd_fullZoomEnlarge":
+          ZoomManager.enlarge();
+          break;
+        case "cmd_fullZoomReset":
+          ZoomManager.reset();
+          break;
+        case "cmd_fullZoomToggle":
+          ZoomManager.toggleZoom();
+          break;
+        case "cmd_find":
+          aTab.findbar.onFindCommand();
+          break;
+        case "cmd_findAgain":
+          aTab.findbar.onFindAgainCommand(false);
+          break;
+        case "cmd_findPrevious":
+          aTab.findbar.onFindAgainCommand(true);
+          break;
+        case "cmd_printSetup":
+          PrintUtils.showPageSetup();
+          break;
+        case "cmd_print":
+          PrintUtils.print();
+          break;
+        // XXX print preview not currently supported - bug 497994 to implement.
+        //case "cmd_printpreview":
+        //  PrintUtils.printPreview();
+        //  break;
+      }
+    },
+    getBrowser: function getBrowser(aTab) {
+      return aTab.browser;
+    },
+    // Internal function used to set up the title listener on a content tab.
+    _setUpTitleListener: function setUpTitleListener(aTab) {
+      function onDOMTitleChanged(aEvent) {
+        document.getElementById("tabmail").setTabTitle(aTab);
+      }
+      // Save the function we'll use as listener so we can remove it later.
+      aTab.titleListener = onDOMTitleChanged;
+      // Add the listener.
+      aTab.browser.addEventListener("DOMTitleChanged",
+                                    aTab.titleListener, true);
+    },
+    /**
+     * Internal function used to set up the close window listener on a content
+     * tab.
+     */
+    _setUpCloseWindowListener: function setUpCloseWindowListener(aTab) {
+      function onDOMWindowClose(aEvent) {
+      try {
+        if (!aEvent.isTrusted)
+          return;
+
+        // Redirect any window.close events to closing the tab. As a 3-pane tab
+        // must be open, we don't need to worry about being the last tab open.
+        document.getElementById("tabmail").closeTab(aTab);
+        aEvent.preventDefault();
+      } catch (e) {
+        logException(e);
+      }
+      }
+      // Save the function we'll use as listener so we can remove it later.
+      aTab.closeListener = onDOMWindowClose;
+      // Add the listener.
+      aTab.browser.addEventListener("DOMWindowClose",
+                                    aTab.closeListener, true);
+    }
   }
 };

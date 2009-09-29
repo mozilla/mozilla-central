@@ -76,6 +76,10 @@
       <menuitem id="whatsNew"
                 label="&whatsNewCmd.label;" accesskey="&whatsNewCmd.accesskey;"
                 oncommand="openWhatsNew();"/>
+      <menuitem id="featureConfigurator"
+                label="&featureConfiguratorCmd.label;"
+                accesskey="&featureConfiguratorCmd.accesskey;"
+                oncommand="openFeatureConfigurator();"/>
       <menuseparator id="menu_HelpAboutSeparator"/>
       <menuitem id="checkForUpdates" class="menuitem-iconic"
 #ifdef MOZ_UPDATER

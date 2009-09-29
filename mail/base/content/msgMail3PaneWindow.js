@@ -723,6 +723,9 @@ function UpgradeProfileAndBeUglyAboutIt()
           folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
       }
 
+      // Open a tab explaining the major changes between 2 and 3.
+      window.setTimeout(openFeatureConfigurator, 300, [true,]);
+
       gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 7);
 
     } // version 7 upgrades

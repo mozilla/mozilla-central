@@ -340,3 +340,8 @@ function openContentTab(url)
                       { tabType: "contentTab",
                         tabParams: {contentPage: url} });
 }
+
+function openFeatureConfigurator() {
+  document.getElementById("tabmail").openTab("chromeTab",
+    {chromePage: "chrome://messenger/content/featureConfigurator.xhtml"});
+}

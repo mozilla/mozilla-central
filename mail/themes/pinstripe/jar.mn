@@ -1,5 +1,6 @@
 classic.jar:
 % skin messenger classic/1.0 %skin/classic/messenger/
+  skin/classic/messenger/featureConfigurator.css                 (mail/featureConfigurator.css)
   skin/classic/messenger/glodaFacetView.css                      (mail/glodaFacetView.css)
   skin/classic/messenger/multimessageview.css                    (mail/multimessageview.css)
   skin/classic/messenger/dialogs.css                             (mail/dialogs.css)
