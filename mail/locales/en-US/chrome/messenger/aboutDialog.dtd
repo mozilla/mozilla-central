@@ -13,5 +13,7 @@
 <!ENTITY aboutRights.accesskey  "R">
 <!ENTITY aboutContributors.label "Contributors">
 <!ENTITY aboutContributors.accesskey "o">
+<!ENTITY aboutLicense.label      "License">
+<!ENTITY aboutLicense.accesskey  "L">
 
 <!ENTITY cmdCloseMac.commandKey "w">

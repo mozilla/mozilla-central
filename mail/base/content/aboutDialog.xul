@@ -88,6 +88,9 @@
           <menuitem label="&aboutContributors.label;"
                     accesskey="&aboutContributors.accesskey;"
                     oncommand="loadAbout('credits');"/>
+          <menuitem label="&aboutLicense.label;"
+                    accesskey="&aboutLicense.accesskey;"
+                    oncommand="loadAbout('license');"/>
         </menupopup>
       </button>
 #ifndef XP_MACOSX
