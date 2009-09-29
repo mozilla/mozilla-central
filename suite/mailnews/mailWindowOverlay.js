@@ -3053,15 +3053,8 @@ function FeedCheckContentFormat()
   // a summary - notify user.
   var rssIframe = contentWindowDoc.getElementById('_mailrssiframe');
   if (rssIframe) {
-    if (gShowFeedSummaryToggle ||
-        pref.getIntPref("rss.show.summary") == 1) {
-      var titleMsg = gMessengerBundle.getString("feedNoSummaryTitle");
-      var dialogMsg = gMessengerBundle.getString("feedNoSummaryAlert");
-      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                    .getService(Components.interfaces.nsIPromptService);
-      promptService.alert(window, titleMsg, dialogMsg);
+    if (gShowFeedSummaryToggle || pref.getIntPref("rss.show.summary") == 1)
       gShowFeedSummaryToggle = false;
-    }
     return false;
   }
 
