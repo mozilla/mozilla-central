@@ -34,17 +34,11 @@
 #
 # ***** END LICENSE BLOCK *****
 
-var gSelectedPage = 0;
-
 function onLoad() {
   document.getElementById("userAgent").value = navigator.userAgent;
 
-  var button = document.documentElement.getButton("extra2");
-  button.setAttribute("label",
-                      document.documentElement.getAttribute("creditslabel"));
-  button.setAttribute("accesskey",
-                      document.documentElement.getAttribute("creditsaccesskey"));
-  button.addEventListener("command", switchPage, false);
+  document.documentElement.getButton("extra2").setAttribute("hidden", true);
+
   document.documentElement.getButton("accept").focus();
 #ifdef XP_MACOSX
   // The dialog may not be sized at this point, and we need its width to
@@ -62,27 +56,28 @@ function onUnload(aEvent) {
 }
 
 function switchPage(aEvent) {
-  var button = aEvent.target;
-  if (button.localName != "button")
-    return;
+  let iframe = document.getElementById("creditsIframe");
+  let item = aEvent.target;
 
-  var iframe = document.getElementById("creditsIframe");
-  if (gSelectedPage == 0) {
+  // If the user clicked a menuitem, that's the credits option from the menu
+  // so switch to the credits page.
+  if (item.localName == "menuitem") {
     iframe.setAttribute("src", "chrome://messenger/content/credits.xhtml");
-    button.setAttribute("label",
-                        document.documentElement.getAttribute("aboutlabel"));
-    button.setAttribute("accesskey",
-                        document.documentElement.getAttribute("aboutaccesskey"));
-    gSelectedPage = 1;
-  } else {
-    iframe.setAttribute("src", "");
-    button.setAttribute("label",
-                        document.documentElement.getAttribute("creditslabel"));
-    button.setAttribute("accesskey",
-                        document.documentElement.getAttribute("creditsaccesskey"));
-    gSelectedPage = 0;
+
+    document.getElementById("aboutMenu").setAttribute("hidden", true);
+    document.documentElement.getButton("extra2").removeAttribute("hidden");
+
+    document.getElementById("modes").setAttribute("selectedIndex", 1);
   }
-  document.getElementById("modes").setAttribute("selectedIndex", gSelectedPage);
+  // If its a button, it is the back button, so switch back to the main page.
+  else if (item.localName == "button") {
+    iframe.setAttribute("src", "");
+
+    document.getElementById("aboutMenu").removeAttribute("hidden");
+    document.documentElement.getButton("extra2").setAttribute("hidden", true);
+
+    document.getElementById("modes").setAttribute("selectedIndex", 0);
+  }
 }
 
 function loadAbout(type)

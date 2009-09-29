@@ -1,6 +1,4 @@
 <!ENTITY aboutDialog.title      "About &brandFullName;">
-<!ENTITY credits.label          "Credits">
-<!ENTITY credits.accesskey      "C">
 <!ENTITY aboutButton.label      "&lt; Back">
 <!ENTITY aboutButton.accesskey  "B">
 <!ENTITY aboutVersion           "version">
@@ -9,6 +7,8 @@
                                  reserved.">
 <!ENTITY aboutMenu.label        "About">
 <!ENTITY aboutMenu.accesskey    "A">
+<!ENTITY aboutCredits.label     "Credits">
+<!ENTITY aboutCredits.accesskey "C">
 <!ENTITY aboutRights.label      "Your Rights">
 <!ENTITY aboutRights.accesskey  "R">
 <!ENTITY aboutContributors.label "Contributors">
