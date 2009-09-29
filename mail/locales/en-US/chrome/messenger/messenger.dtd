@@ -719,8 +719,12 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY saveLinkAsCmd.accesskey "k">
 <!ENTITY saveImageAsCmd.label "Save Image As…">
 <!ENTITY saveImageAsCmd.accesskey "v">
+<!ENTITY cutCmd.label "Cut">
+<!ENTITY cutCmd.accesskey "u">
 <!ENTITY copyCmd.label "Copy">
 <!ENTITY copyCmd.accesskey "C">
+<!ENTITY pasteCmd.label "Paste">
+<!ENTITY pasteCmd.accesskey "P">
 <!ENTITY selectAllCmd.label "Select All">
 <!ENTITY selectAllCmd.accesskey "A">
 <!ENTITY copyLinkCmd.label "Copy Link Location">
@@ -729,6 +733,10 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY copyImageCmd.accesskey "o">
 <!ENTITY copyEmailCmd.label "Copy Email Address">
 <!ENTITY copyEmailCmd.accesskey "E">
+<!ENTITY stopCmd.label "Stop">
+<!ENTITY stopCmd.accesskey "S">
+<!ENTITY reloadCmd.label "Reload">
+<!ENTITY reloadCmd.accesskey "R">
 
 <!-- Statusbar -->
 <!ENTITY statusText.label "Done">

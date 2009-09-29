@@ -774,6 +774,7 @@ var MessageWindowController =
       case "cmd_fullZoomToggle":
       case "cmd_viewAllHeader":
       case "cmd_viewNormalHeader":
+      case "cmd_stop":
         return true;
       case "cmd_synchronizeOffline":
       case "cmd_downloadFlagged":
@@ -852,6 +853,7 @@ var MessageWindowController =
       case "cmd_markReadByDate":
       case "cmd_viewAllHeader":
       case "cmd_viewNormalHeader":
+      case "cmd_stop":
         return true;
       case "cmd_markAsFlagged":
       case "button_file":
@@ -1122,6 +1124,9 @@ var MessageWindowController =
         break;
       case "cmd_fullZoomToggle":
         ZoomManager.toggleZoom();
+        break;
+      case "cmd_stop":
+        msgWindow.StopUrls();
         break;
       }
   },

@@ -134,6 +134,7 @@ function SetUpServerMenu()
 var MySubscribeListener = {
     OnDonePopulating: function() {
         gStatusFeedback._stopMeteors();
+      document.getElementById("stopButton").disabled = true;
 
         // only re-root the tree, if it is null.
         // otherwise, we are in here because we are populating
@@ -185,6 +186,7 @@ function SetUpTree(forceToServer, getOnlyNew)
 
     gStatusFeedback._startMeteors();
     gStatusFeedback.showStatusString(gSubscribeBundle.getString("pleaseWaitString"));
+    document.getElementById("stopButton").removeAttribute("disabled");
 
     gSubscribableServer.startPopulating(msgWindow, forceToServer, getOnlyNew);
   }

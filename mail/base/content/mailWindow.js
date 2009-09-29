@@ -156,7 +156,6 @@ function nsMsgStatusFeedback()
   this._progressBar = document.getElementById("statusbar-icon");
   this._progressBarContainer = document.getElementById("statusbar-progresspanel");
   this._throbber = document.getElementById("throbber-box");
-  this._stopCmd = document.getElementById("cmd_stop");
   this._activeProcesses = new Array();
 }
 
@@ -167,7 +166,6 @@ nsMsgStatusFeedback.prototype =
   _progressBar: null,
   _progressBarContainer: null,
   _throbber: null,
-  _stopCmd: null,
 
   // Member variables.
   _startTimeoutID: null,
@@ -235,10 +233,6 @@ nsMsgStatusFeedback.prototype =
     // Start the throbber.
     if (this._throbber)
       this._throbber.setAttribute("busy", true);
-
-    // Turn on stop button and menu.
-    if (this._stopCmd)
-      this._stopCmd.removeAttribute("disabled");
   },
 
   startMeteors: function() {
@@ -264,9 +258,6 @@ nsMsgStatusFeedback.prototype =
     // stop the throbber
     if (this._throbber)
       this._throbber.setAttribute("busy", false);
-
-    if (this._stopCmd)
-      this._stopCmd.setAttribute("disabled", "true");
 
     this._meteorsSpinning = false;
     this._stopTimeoutID = null;

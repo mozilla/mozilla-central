@@ -45,6 +45,7 @@ function nsContextMenu(aXulMenu) {
   this.onTextInput    = false;
   this.onImage        = false;
   this.onLoadedImage  = false;
+  this.onCanvas       = false;
   this.onVideo        = false;
   this.onAudio        = false;
   this.onPlayableMedia = false;
@@ -94,6 +95,7 @@ nsContextMenu.prototype = {
     this.initSaveItems();
     this.initClipboardItems();
     this.initMediaPlayerItems();
+    this.initBrowserItems();
     this.initMessageItems();
     this.initSeparators();
   },
@@ -108,10 +110,13 @@ nsContextMenu.prototype = {
 
     goUpdateGlobalEditMenuItems();
 
+    this.showItem("mailContext-cut", !this.inMessageArea && this.onTextInput);
     this.showItem("mailContext-copy",
                   !this.inThreadPane && !this.onPlayableMedia &&
                   (this.isContentSelected || this.onTextInput));
+    this.showItem("mailContext-paste", !this.inMessageArea && this.onTextInput);
 
+    this.showItem("mailContext-undo", !this.inMessageArea && this.onTextInput);
     // Select all not available in the thread pane or on playable media.
     this.showItem("mailContext-selectall", !this.inThreadPane && !this.onPlayableMedia);
     this.showItem("mailContext-copyemail", this.onMailtoLink);
@@ -136,6 +141,19 @@ nsContextMenu.prototype = {
       this.setItemAttr("mailContext-media-mute", "disabled", hasError);
       this.setItemAttr("mailContext-media-unmute", "disabled", hasError);
     }
+  },
+  initBrowserItems: function CM_initBrowserItems() {
+    let shouldShow = !(this.inMessageArea || this.isContentSelected ||
+                       this.onCanvas || this.onLink || this.onImage ||
+                       this.onPlayableMedia || this.onTextInput);
+    // Ensure these commands are updated with their current status.
+    if (shouldShow) {
+      goUpdateCommand("cmd_stop");
+      goUpdateCommand("cmd_reload");
+    }
+
+    this.showItem("mailContext-stop", shouldShow);
+    this.showItem("mailContext-reload", shouldShow);
   },
   initMessageItems: function CM_initMessageItems() {
     // If we're not in a message related tab, we're just going to bulk hide most
@@ -289,6 +307,8 @@ nsContextMenu.prototype = {
         this.onTextInput = this.isTargetATextBox(this.target);
       } else if (this.target instanceof HTMLTextAreaElement) {
         this.onTextInput = true;
+      } else if (this.target instanceof HTMLCanvasElement) {
+        this.onCanvas = true;
       } else if (this.target instanceof HTMLVideoElement) {
         this.onVideo = true;
         this.onPlayableMedia = true;

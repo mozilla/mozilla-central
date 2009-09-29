@@ -235,6 +235,7 @@ var DefaultController =
       case "cmd_fullZoomToggle":
       case "cmd_viewAllHeader":
       case "cmd_viewNormalHeader":
+      case "cmd_stop":
         return true;
       case "cmd_downloadFlagged":
       case "cmd_downloadSelected":
@@ -441,7 +442,7 @@ var DefaultController =
       case "cmd_viewWatchedThreadsWithUnread":
         return !gFolderDisplay.view.isVirtual;
       case "cmd_stop":
-        return true;
+        return window.MsgStatusFeedback._meteorsSpinning;
       case "cmd_undo":
       case "cmd_redo":
           return SetupUndoRedoCommand(command);

@@ -207,7 +207,8 @@
   <command id="cmd_find" oncommand="goDoCommand('cmd_find')" disabled="true"/>
   <command id="cmd_findAgain" oncommand="goDoCommand('cmd_findAgain')" disabled="true"/>
   <command id="cmd_findPrevious"  oncommand="goDoCommand('cmd_findPrevious')"  disabled="true"/>
-  <command id="cmd_stop" oncommand="msgWindow.StopUrls();"/>
+  <command id="cmd_stop" oncommand="goDoCommand('cmd_stop')"/>
+  <command id="cmd_reload" oncommand="goDoCommand('cmd_reload')"/>
 </commandset>
 
 <commandset id="mailEditContextMenuItems">
@@ -523,15 +524,35 @@
   <popup id="mailContext"
          onpopupshowing="return fillMailContextMenu(event);"
          onpopuphiding="mailContextOnPopupHiding(event);">
+    <menuitem id="mailContext-reload"
+              label="&reloadCmd.label;"
+              accesskey="&reloadCmd.accesskey;"
+              command="cmd_reload"/>
+    <menuitem id="mailContext-stop"
+              label="&stopCmd.label;"
+              accesskey="&stopCmd.accesskey;"
+              command="cmd_stop"/>
     <menuseparator id="mailContext-sep-link"/>
+    <menuitem id="mailContext-undo"
+              label="&undoDefaultCmd.label;"
+              accesskey="&undoDefaultCmd.accesskey;"
+              command="cmd_undo"/>
     <menuitem id="mailContext-selectall"
               label="&selectAllCmd.label;"
               accesskey="&selectAllCmd.accesskey;"
               command="cmd_selectAll"/>
+    <menuitem id="mailContext-cut"
+              label="&cutCmd.label;"
+              accesskey="&cutCmd.accesskey;"
+              command="cmd_copy"/>
     <menuitem id="mailContext-copy"
               label="&copyCmd.label;"
               accesskey="&copyCmd.accesskey;"
               command="cmd_copy"/>
+    <menuitem id="mailContext-paste"
+              label="&pasteCmd.label;"
+              accesskey="&pasteCmd.accesskey;"
+              command="cmd_paste"/>
     <menuseparator id="mailContext-sep-open"/>
     <menuitem id="mailContext-media-play"
               label="&contextPlay.label;"

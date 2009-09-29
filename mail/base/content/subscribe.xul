@@ -202,9 +202,9 @@
                   <button id="refreshButton" label="&refreshButton.label;"
                           accesskey="&refreshButton.accesskey;" 
                           oncommand="Refresh()"/>
-                  <button id="cmd_stop" label="&stopButton.label;"
+                  <button id="stopButton" label="&stopButton.label;"
                           accesskey="&stopButton.accesskey;" 
-                          oncommand="Stop()"/>
+                          oncommand="Stop()" disabled="true"/>
                   <spacer flex="1"/>
                 </vbox>
                 

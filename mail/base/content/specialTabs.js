@@ -70,7 +70,19 @@ tabProgressListener.prototype =
                                                       aMaxTotalProgress) {
   },
   onLocationChange: function tPL_onLocationChange(aWebProgress, aRequest,
-                                                  aLocation) {
+                                                  aLocationURI) {
+    var location = aLocationURI ? aLocationURI.spec : "";
+
+    // Set the reload command only if this is a report that is coming in about
+    // the top-level content location change.
+    if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
+      // Although we're unlikely to be loading about:blank, we'll check it
+      // anyway just in case. The second condition is for new tabs, otherwise
+      // the reload function is enabled until tab is refreshed.
+      this.mTab.reloadEnabled =
+        !((location == "about:blank" && !this.mBrowser.contentWindow.opener) ||
+          location == "");
+    }
   },
   onStateChange: function tPL_onStateChange(aWebProgress, aRequest, aStateFlags,
                                             aStatus) {
@@ -212,6 +224,9 @@ var specialTabs = {
       aTab.findbar.setAttribute("browserid",
                                 "contentTabBrowser" + this.lastBrowserId);
 
+      // Default to reload being disabled.
+      aTab.reloadEnabled = false;
+
       // Now set up the listeners.
       this._setUpTitleListener(aTab);
       this._setUpCloseWindowListener(aTab);
@@ -273,6 +288,8 @@ var specialTabs = {
         case "cmd_printSetup":
         case "cmd_print":
         case "button_print":
+        case "cmd_stop":
+        case "cmd_reload":
         // XXX print preview not currently supported - bug 497994 to implement.
         // case "cmd_printpreview":
           return true;
@@ -295,6 +312,10 @@ var specialTabs = {
         // XXX print preview not currently supported - bug 497994 to implement.
         // case "cmd_printpreview":
           return true;
+        case "cmd_reload":
+          return aTab.reloadEnabled;
+        case "cmd_stop":
+          return aTab.busy;
         default:
           return false;
       }
@@ -332,6 +353,12 @@ var specialTabs = {
         //case "cmd_printpreview":
         //  PrintUtils.printPreview();
         //  break;
+        case "cmd_stop":
+          aTab.browser.stop();
+          break;
+        case "cmd_reload":
+          aTab.browser.reload();
+          break;
       }
     },
     getBrowser: function getBrowser(aTab) {
