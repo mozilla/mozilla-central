@@ -1147,6 +1147,6 @@
        but in composer it has to go in the debug menu
    -->
   <menuitem id="menu_pasteQuote" accesskey="&pasteAsQuotationCmd.accesskey;"
-            command="cmd_pasteQuote"/>
+            command="cmd_pasteQuote" key="pastequotationkb"/>
 
 </overlay>

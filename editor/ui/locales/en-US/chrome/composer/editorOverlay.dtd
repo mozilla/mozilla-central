@@ -98,6 +98,7 @@
 <!ENTITY publishSettings.accesskey "b">
 <!ENTITY pasteAsQuotationCmd.label "Paste As Quotation">
 <!ENTITY pasteAsQuotationCmd.accesskey "Q">
+<!ENTITY pasteAsQuotationCmd.key "o">
 <!ENTITY findCmd.label "Find and Replace…">
 <!ENTITY findCmd.accesskey "F">
 <!ENTITY findCmd.key "F">

@@ -64,9 +64,7 @@
         <menuitem label="&outputHTMLCmd.label;"
                   oncommand="EditorGetHTML()"/>
         <menuseparator/>
-        <menuitem label="&pasteAsQuotationCmd.label;"
-                  accesskey="&pasteAsQuotationCmd.accesskey;"
-                  oncommand="goDoCommand('cmd_pasteQuote')"/>
+        <menuitem id="menu_pasteQuote"/>
         <menuitem label="&editRewrapCmd.label;"
                   oncommand="try { GetCurrentEditor().rewrap(true); } catch (e) {}"/>
         <menuitem label="&editStripQuotesCmd.label;"

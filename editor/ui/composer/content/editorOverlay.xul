@@ -72,6 +72,8 @@
     <key id="key_paste"/>
     <key id="key_delete"/>
     <key id="key_selectAll"/>
+    <key id="pastequotationkb" key="&pasteAsQuotationCmd.key;"
+         observes="cmd_pasteQuote" modifiers="accel, shift"/>
     <key id="pastenoformattingkb" key="&pasteNoFormatting.key;"
          observes="cmd_pasteNoFormatting" modifiers="accel, shift"/>
     <key id="findkb"            key="&findCmd.key;"            observes="cmd_find"  modifiers="accel"/>
@@ -1315,6 +1317,6 @@
        but in composer it has to go in the debug menu
    -->
   <menuitem id="menu_pasteQuote" accesskey="&pasteAsQuotationCmd.accesskey;"
-            command="cmd_pasteQuote"/>
+            command="cmd_pasteQuote" key="pastequotationkb"/>
 
 </overlay>

@@ -206,6 +206,8 @@
   <key id="key_cut" key="&cutCmd.key;" modifiers="accel"/>
   <key id="key_copy" key="&copyCmd.key;" modifiers="accel"/>
   <key id="key_paste" key="&pasteCmd.key;" modifiers="accel"/>
+  <key id="pastequotationkb" key="&pasteAsQuotationCmd.key;"
+       observes="cmd_pasteQuote" modifiers="accel, shift"/>
   <key id="pastenoformattingkb" key="&pasteNoFormattingCmd.key;"
        modifiers="accel, shift" observes="cmd_pasteNoFormatting"/>
   <key id="key_rewrap" key="&editRewrapCmd.key;" command="cmd_rewrap" modifiers="accel"/>
