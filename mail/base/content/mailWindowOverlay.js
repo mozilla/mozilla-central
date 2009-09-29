@@ -2691,7 +2691,8 @@ function OnMsgParsed(aUrl)
     gPhishingDetector.analyzeMsgForPhishingURLs(aUrl);
 
   // notify anyone (e.g., extensions) who's interested in when a message is loaded.
-  var msgURI = gFolderDisplay.selectedMessageUris[0];
+  let selectedMessageUris = gFolderDisplay.selectedMessageUris;
+  let msgURI = selectedMessageUris ? selectedMessageUris[0] : null;
   var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                   .getService(Components.interfaces.nsIObserverService);
   observerService.notifyObservers(msgWindow.msgHeaderSink, "MsgMsgDisplayed", msgURI);
