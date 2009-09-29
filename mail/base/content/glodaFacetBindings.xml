@@ -67,15 +67,9 @@
           return span;
         }
 
-        let labelFormat = glodaFacetStrings.get(
-          "glodaFacetView.constraints.query.fulltext.label");
-        let [labelPre, labelPost] = labelFormat.split("#1");
-        // trim both; we rely on CSS to handle the spacing
-        labelPre = labelPre.trim();
-        labelPost = labelPost.trim();
-
-        if (labelPre)
-          spanify(labelPre, "explanation-fulltext-label");
+        let searchLabel = glodaFacetStrings.get(
+          "glodaFacetView.search.label");
+        spanify(searchLabel, "explanation-fulltext-label");
 
         let criteriaText = glodaFacetStrings.get(
           "glodaFacetView.constraints.query.fulltext." +
@@ -85,10 +79,6 @@
             spanify(criteriaText, "explanation-fulltext-criteria");
           spanify(term, "explanation-fulltext-term");
         }
-
-        if (labelPost)
-          spanify(labelPost, "explanation-fulltext-label");
-
       ]]></body>
     </method>
     <method name="setQuery">
@@ -108,7 +98,7 @@
         }
 
         let label = glodaFacetStrings.get(
-          "glodaFacetView.constraints.query.initial");
+          "glodaFacetView.search.label");
         spanify(label, "explanation-query-label");
 
         let constraintStrings = [];
@@ -288,9 +278,9 @@
       <parameter name="aFirstTime" />
       <body><![CDATA[
         if (aFirstTime) {
-          this.labelNode.textContent = this.facetDef.strings.facetLabel;
+          this.labelNode.textContent = this.facetDef.strings.facetNameLabel;
           this.checkbox.setAttribute("aria-label",
-                                     this.facetDef.strings.facetLabel);
+                                     this.facetDef.strings.facetNameLabel);
         }
 
         // If we do not currently have a constraint applied and there is only
@@ -387,9 +377,9 @@
       <parameter name="aFirstTime" />
       <body><![CDATA[
         if (aFirstTime) {
-          this.labelNode.textContent = this.facetDef.strings.facetLabel;
+          this.labelNode.textContent = this.facetDef.strings.facetNameLabel;
           this.checkbox.setAttribute("aria-label",
-                                     this.facetDef.strings.facetLabel);
+                                     this.facetDef.strings.facetNameLabel);
         }
 
         // Only update count if anything other than "all" is selected.
@@ -532,7 +522,7 @@
         // -- Header Building
         let nameNode = document.getAnonymousElementByAttribute(this, "anonid",
                                                                "name");
-        nameNode.textContent = this.facetDef.strings.facetLabel;
+        nameNode.textContent = this.facetDef.strings.facetNameLabel;
 
         // - include
         // setup the include label
@@ -1083,11 +1073,11 @@
         let countNode = document.getAnonymousElementByAttribute(
                           this, "anonid", "count");
         let topMessagesPluralFormat = glodaFacetStrings.get(
-          "glodaFacetView.results.message.countLabel.topMessages");
+          "glodaFacetView.results.header.countLabel.NMessages");
         let outOfPluralFormat = glodaFacetStrings.get(
-          "glodaFacetView.results.message.countLabel.outOf");
+          "glodaFacetView.results.header.countLabel.ofN");
         let groupingFormat = glodaFacetStrings.get(
-          "glodaFacetView.results.message.countLabel.grouping");
+          "glodaFacetView.results.header.countLabel.grouping");
 
         let displayCount = aMessages.length;
         let totalCount = FacetContext.activeSet.length;
@@ -1105,7 +1095,7 @@
         let showNode = document.getAnonymousElementByAttribute(
                           this, "anonid", "showall");
         showNode.textContent = glodaFacetStrings.get(
-          "glodaFacetView.results.message.showAllInList.label");
+          "glodaFacetView.results.message.openAsList.label");
 
         let sortLabelNode = document.getAnonymousElementByAttribute(
                           this, "anonid", "sort-label");
