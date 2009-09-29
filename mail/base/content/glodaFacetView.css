@@ -559,7 +559,16 @@ h3 {
   max-width: 20em;
   text-align: left;
   display: inline-block;
+  -moz-padding-start: 1ex;
 }
+
+.message-attachment:after {
+  content: ", ";
+}
+.message-attachment:last-child:after {
+  content: "";
+}
+
 
 .message-attachment-icon {
   display: inline-block;
