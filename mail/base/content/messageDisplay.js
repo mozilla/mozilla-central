@@ -309,16 +309,17 @@ MessageDisplayWidget.prototype = {
         break;
       }
     }
-    if (oneThread) {
-      if (this.folderDisplay.summarizeSelectionInFolder)
-        summarizeThread(selectedMessages);
-      else {
-        // If we're not summarizing selection for this folder, then just display
-        // the first message of the thread.
+    if (!this.folderDisplay.summarizeSelectionInFolder) {
+      // If we're not summarizing selection for this folder, then just display
+      // one message, or clear the message pane for multi-selection.
+      if (selectedMessages.length > 1)
+        this.clearDisplay();
+      else
         this.singleMessageDisplay = true;
-        return false;
-      }
+      return false;
     }
+    if (oneThread)
+      summarizeThread(selectedMessages);
     else
       summarizeMultipleSelection(selectedMessages);
     this.singleMessageDisplay = false;
