@@ -409,8 +409,8 @@ var specialTabs = {
   /**
    * In the case of an upgrade, returns the version we're upgrading
    * from, as well as the current version.  In the case of a fresh profile,
-   * return null and the current version.  In either case, updates the
-   * pref with the latest version.
+   * or the pref being set to ignore - return null and the current version.
+   * In either case, updates the pref with the latest version.
    */
   getApplicationUpgradeVersions: function(prefs) {
     let savedAppVersion = null;
@@ -420,11 +420,12 @@ var specialTabs = {
       savedAppVersion = prefs.getCharPref(prefstring);
     } catch (ex) {}
 
-    let currentApplicationVersion =
-      Components.classes["@mozilla.org/xre/app-info;1"]
-                .getService(Components.interfaces.nsIXULAppInfo).version;
+    let currentApplicationVersion = Application.version;
 
-    if (savedAppVersion != "ignore")
+    if (savedAppVersion == "ignore")
+      return [null, currentApplicationVersion];
+
+    if (savedAppVersion != currentApplicationVersion)
       prefs.setCharPref(prefstring, currentApplicationVersion);
 
     return [savedAppVersion, currentApplicationVersion];
