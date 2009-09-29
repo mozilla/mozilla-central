@@ -155,7 +155,7 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
                 nsCString& pathResult)
 {
   nsresult rv;
-  
+
   // verify that rootURI starts with "mailbox:/" or "mailbox-message:/"
   if ((PL_strcmp(rootURI, kMailboxRootURI) != 0) && 
       (PL_strcmp(rootURI, kMailboxMessageRootURI) != 0)) {
@@ -173,11 +173,12 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
 
   if (NS_FAILED(rv))
     return rv;
-  
+
   // now ask the server what it's root is
   // and begin pathResult with the mailbox root
   nsCOMPtr<nsILocalFile> localPath;
   rv = server->GetLocalPath(getter_AddRefs(localPath));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString localNativePath;
 
@@ -186,7 +187,6 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
   pathResult = localNativePath.get();
   const char *curPos = uriStr + PL_strlen(rootURI);
   if (curPos) {
-    
     // advance past hostname
     while ((*curPos)=='/') curPos++;
     while (*curPos && (*curPos)!='/') curPos++;
