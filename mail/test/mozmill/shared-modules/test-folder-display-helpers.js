@@ -1812,7 +1812,7 @@ function assert_mail_view(aMailViewIndex, aData) {
 
   let actualMailViewData = mc.folderDisplay.view.mailViewData;
   if (actualMailViewData != aData)
-    throw new Error("The mail view data should be " + aMailViewData +
+    throw new Error("The mail view data should be " + aData +
                     ", but is actually " + actualMailViewData);
 }
 
