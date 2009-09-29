@@ -564,11 +564,6 @@ var specialTabs = {
 
       aTab.browser.setAttribute("id", "chromeTabBrowser" + this.lastBrowserId);
 
-      // Now initialise the find bar.
-      aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
-      aTab.findbar.setAttribute("browserid",
-                                "chromeTabBrowser" + this.lastBrowserId);
-
       // Now set up the listeners.
       this._setUpTitleListener(aTab);
       this._setUpCloseWindowListener(aTab);
@@ -614,9 +609,6 @@ var specialTabs = {
         case "cmd_fullZoomEnlarge":
         case "cmd_fullZoomReset":
         case "cmd_fullZoomToggle":
-        case "cmd_find":
-        case "cmd_findAgain":
-        case "cmd_findPrevious":
         case "cmd_printSetup":
         case "cmd_print":
         case "button_print":
@@ -633,9 +625,6 @@ var specialTabs = {
         case "cmd_fullZoomEnlarge":
         case "cmd_fullZoomReset":
         case "cmd_fullZoomToggle":
-        case "cmd_find":
-        case "cmd_findAgain":
-        case "cmd_findPrevious":
         case "cmd_printSetup":
         case "cmd_print":
         case "button_print":
@@ -659,15 +648,6 @@ var specialTabs = {
           break;
         case "cmd_fullZoomToggle":
           ZoomManager.toggleZoom();
-          break;
-        case "cmd_find":
-          aTab.findbar.onFindCommand();
-          break;
-        case "cmd_findAgain":
-          aTab.findbar.onFindAgainCommand(false);
-          break;
-        case "cmd_findPrevious":
-          aTab.findbar.onFindAgainCommand(true);
           break;
         case "cmd_printSetup":
           PrintUtils.showPageSetup();

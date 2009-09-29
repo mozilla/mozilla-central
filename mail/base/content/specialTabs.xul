@@ -68,7 +68,6 @@
                  disablesecurity="true" disablehistory="true"
                  autocompletepopup="PopupAutoComplete"/>
       </notificationbox>
-      <findbar browserid="dummychromebrowser"/>
     </vbox>
   </vbox>
 </overlay>
