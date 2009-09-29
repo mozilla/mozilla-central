@@ -88,10 +88,8 @@
       <menuseparator id="menu_HelpAfterUpdatesSeparator"/>
 #endif
       <menuitem id="aboutName"
-                label="&aboutCmd.label;" accesskey="&aboutCmd.accesskey;"
-#ifdef XP_MACOSX
-                hidden="true"
-#endif
+                label="&aboutMenuCmd.label;"
+                accesskey="&aboutMenuCmd.accesskey;"
                 oncommand="openAboutDialog();"/>
     </menupopup>
   </menu>

@@ -17,5 +17,5 @@
 <!ENTITY openHelpMac2.modifiers    "accel">
 
 <!ENTITY updateCmd.label "Check for Updates…">
-<!ENTITY aboutCmd.label "About &brandFullName;">
-<!ENTITY aboutCmd.accesskey "A">
+<!ENTITY aboutMenuCmd.label "About &brandShortName;">
+<!ENTITY aboutMenuCmd.accesskey "A">
