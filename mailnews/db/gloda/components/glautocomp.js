@@ -50,10 +50,9 @@ var MultiSuffixTree = null;
 var TagNoun = null;
 var FreeTagNoun = null;
 
-function ResultRowFullText(aItem, words, typeForStyle, andTerms) {
+function ResultRowFullText(aItem, words, typeForStyle) {
   this.item = aItem;
   this.words = words;
-  this.andTerms = andTerms;
   this.typeForStyle = "gloda-fulltext-" + typeForStyle;
 }
 ResultRowFullText.prototype = {
@@ -425,22 +424,48 @@ MessageTagCompleter.prototype = {
 function FullTextCompleter() {
 }
 FullTextCompleter.prototype = {
-  complete: function FullTextCompleter_complete(aResult, aString) {
-    if (aString.length < 2)
+  complete: function FullTextCompleter_complete(aResult, aSearchString) {
+    if (aSearchString.length < 4)
       return false;
-    let rows = [];
-    let words = aString.trim().replace(/\s+/g, ' ').split(' ');
-    let numWords = words.length;
-    if (numWords == 1) {
-      let resRow = new ResultRowFullText(aString, words, "single", false);
-      rows.push(resRow);
-    } else {
-      let resRow = new ResultRowFullText(aString, words, "all", true);
-      rows.push(resRow);
-      resRow = new ResultRowFullText(aString, words, "any", false);
-      rows.push(resRow);
+    // We use code very similar to that in msg_search.js, except that we
+    // need to detect when we found phrases, as well as strip commas.
+    aSearchString = aSearchString.trim();
+    let terms = [];
+    let phraseFound = false;
+    while (aSearchString) {
+      let term = "";
+      if (aSearchString[0] == '"') {
+        let endIndex = aSearchString.indexOf(aSearchString[0], 1);
+        // eat the quote if it has no friend
+        if (endIndex == -1) {
+          aSearchString = aSearchString.substring(1);
+          continue;
+        }
+        phraseFound = true;
+        term = aSearchString.substring(1, endIndex).trim();
+        if (term)
+          terms.push(term);
+        aSearchString = aSearchString.substring(endIndex + 1);
+        continue;
+      }
+
+      let spaceIndex = aSearchString.indexOf(" ");
+      if (spaceIndex == -1) {
+        terms.push(aSearchString.replace(/,/g, ""));
+        break;
+      }
+
+      term = aSearchString.substring(0, spaceIndex).replace(/,/g, "");
+      if (term)
+        terms.push(term);
+      aSearchString = aSearchString.substring(spaceIndex+1);
     }
-    aResult.addRows(rows);
+
+    if (terms.length == 1 && !phraseFound)
+      aResult.addRows([new ResultRowFullText(aSearchString, terms, "single")]);
+    else
+      aResult.addRows([new ResultRowFullText(aSearchString, terms, "all")]);
+
     return false; // no async mechanism that will add new rows
   }
 };

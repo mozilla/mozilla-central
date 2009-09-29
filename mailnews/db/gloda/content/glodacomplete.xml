@@ -71,23 +71,11 @@
               getService(Components.interfaces.nsITextToSubURI).
               unEscapeURIForUI("UTF-8", controller.getValueAt(this._currentIndex));
 
-            if (this._currentIndex < existingItemsCount) {
-              // re-use the existing item
-              item = this.richlistbox.childNodes[this._currentIndex];
+            // Unlike our superclass, we create nodes every time because we have
+            //  heterogeneous results and we cannot rely on the XBL bindings to
+            //  to change fast enough.
+            item = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "richlistitem");
 
-              // Completely re-use the existing richlistitem if it's the same
-              if (item.getAttribute("text") == trimmedSearchString &&
-                  item.getAttribute("url") == url) {
-                item.collapsed = false;
-                this._currentIndex++;
-                continue;
-              }
-            }
-            else {
-              // need to create a new item
-              item = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "richlistitem");
-            }
-            
             var glodaCompleter =  Components.
               classes["@mozilla.org/autocomplete/search;1?name=gloda"].
               getService(). //Components.interfaces.nsIAutoCompleteSearch)
@@ -103,23 +91,30 @@
 
             item.row = row;
 
-            if (this._currentIndex < existingItemsCount) {
-              // re-use the existing item
-              item._adjustAcItem();
-              item.collapsed = false;
-            }
-            else {
-              // set the class at the end so we can use the attributes
-              // in the xbl constructor
-              item.className = "autocomplete-richlistitem";
-              this.richlistbox.appendChild(item);
-            }
+            // set the class at the end so we can use the attributes
+            // in the xbl constructor
+            item.className = "autocomplete-richlistitem";
+            this.richlistbox.appendChild(item);
 
             this._currentIndex++;
           }
 
           // yield after each batch of items so that typing the url bar is responsive
           setTimeout(function (self) { self._appendCurrentResult(); }, 0, this);
+        ]]>
+        </body>
+      </method>
+      <method name="_invalidate">
+        <body>
+          <![CDATA[
+          setTimeout(function(self) self.adjustHeight(), 0, this);
+
+          // remove all child nodes because we never want to reuse them.
+          while (this.richlistbox.lastChild)
+            this.richlistbox.removeChild(this.richlistbox.lastChild);
+
+          this._currentIndex = 0;
+          this._appendCurrentResult();
         ]]>
         </body>
       </method>
@@ -402,53 +397,14 @@
     </implementation>
   </binding>
 
-
-
-  <binding id="gloda-fulltext-any-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
-    <content orient="vertical">
-      <xul:description anonid="explanation" class="explanation"/>
-      <xul:description anonid="parameters" class="parameters"/>
-    </content>
-    <implementation implements="nsIDOMXULSelectControlItemElement">
-      <constructor>
-        <![CDATA[
-            this._explanation = document.getAnonymousElementByAttribute(this, "anonid", "explanation");
-            this._parameters = document.getAnonymousElementByAttribute(this, "anonid", "parameters");
-
-            this._adjustAcItem();
-          ]]>
-      </constructor>
-      
-      <property name="label" readonly="true">
-        <getter>
-          <![CDATA[
-            return "full text search: " + this.row.item;
-          ]]>
-        </getter>
-      </property>
-      
-      <method name="_adjustAcItem">
-        <body>
-          <![CDATA[
-          this._explanation.value = gGlodaCompleteStrings.get("glodaComplete.messagesWithAny.label");
-          this._parameters.value = this.row.words.join(", ");
-          ]]>
-        </body>
-      </method>
-    </implementation>
-  </binding>
-
   <binding id="gloda-fulltext-all-item" extends="chrome://gloda/content/glodacomplete.xml#glodacomplete-base-richlistitem">
     <content orient="vertical">
       <xul:description anonid="explanation" class="explanation"/>
-      <xul:description anonid="parameters" class="parameters"/>
     </content>
     <implementation implements="nsIDOMXULSelectControlItemElement">
       <constructor>
         <![CDATA[
             this._explanation = document.getAnonymousElementByAttribute(this, "anonid", "explanation");
-            this._parameters = document.getAnonymousElementByAttribute(this, "anonid", "parameters");
-
             this._adjustAcItem();
           ]]>
       </constructor>
@@ -464,8 +420,8 @@
       <method name="_adjustAcItem">
         <body>
           <![CDATA[
-          this._explanation.value = gGlodaCompleteStrings.get("glodaComplete.messagesWithAll.label");
-          this._parameters.value = this.row.words.join(", ");
+          let label = gGlodaCompleteStrings.get("glodaComplete.messagesMentioningMany.label");
+          this._explanation.value = label.replace("#1", this.row.words.join(", "));
           ]]>
         </body>
       </method>
