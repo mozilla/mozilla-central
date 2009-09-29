@@ -1780,6 +1780,62 @@ function MsgOpenNewWindowForMessage(aMsgHdr)
                       aMsgHdr, gFolderDisplay.view);
 }
 
+/**
+ * Display the given message in a folder tab.
+ * - If we're set to display messages in a new tab, open a new folder tab with
+ *   the message.
+ * - If we're set to display messages in a window (new or existing), select the
+ *   message in the current tab.
+ *
+ * @param aMsgHdr the message header to display
+ */
+function MsgDisplayMessageInFolderTab(aMsgHdr) {
+  let tabmail = document.getElementById("tabmail");
+  let openMessageBehavior = gPrefBranch.getIntPref("mail.openMessageBehavior");
+  if (openMessageBehavior == MailConsts.OpenMessageBehavior.NEW_TAB) {
+    // Open a new tab, and make sure we select the message
+    tabmail.openTab("folder",
+      {folder: aMsgHdr.folder, msgHdr: aMsgHdr, forceSelectMessage: true});
+  }
+  else {
+    // Look for a folder tab
+    let folderTab = tabmail.getTabInfoForCurrentOrFirstModeInstance(
+                        tabmail.tabModes["folder"]);
+    let folderDisplay = folderTab.folderDisplay;
+    let folder = aMsgHdr.folder;
+
+    // XXX Yuck. We really need to have the tabmail be able to handle an extra
+    // param with data to send to showTab, and to have the folder display have
+    // a |selectFolderAndMessage| method that handles most of the messiness.
+    folderDisplay.selectMessageComingUp();
+
+    // Switch to the tab
+    tabmail.switchToTab(folderTab);
+
+    // We don't want to drop view filters at first
+    if (folderDisplay.view.getViewIndexForMsgHdr(aMsgHdr, false) !=
+        nsMsgViewIndex_None) {
+      folderDisplay.selectMessage(aMsgHdr);
+    }
+    else {
+      if (folderDisplay.displayedFolder != folder ||
+          folderDisplay.view.isVirtual) {
+        // Switch to the folder
+        if (gFolderTreeView.getIndexOfFolder(folder) == null) {
+          // Switch to the default mode. The assumption here is that the default
+          // mode can display every folder
+          gFolderTreeView.mode = kDefaultMode;
+        }
+        folderDisplay.show(folder);
+        gFolderTreeView.selectFolder(folder);
+      }
+
+      // Force select the message
+      folderDisplay.selectMessage(aMsgHdr, true);
+    }
+  }
+}
+
 function MsgJunk()
 {
   MsgJunkMailInfo(true);

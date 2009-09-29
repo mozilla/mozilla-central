@@ -113,8 +113,19 @@ let mailTabType = {
         aTab.folderDisplay.makeActive();
       },
       /**
-       * @param aFolder The nsIMsgFolder to display.
-       * @param aMsgHdr Optional message header to display.
+       * @param aArgs.folder The nsIMsgFolder to display.
+       * @param [aArgs.msgHdr] Optional message header to display.
+       * @param [aArgs.folderPaneVisible] Whether the folder pane should be
+       *            visible. If this isn't specified, the current or first tab's
+       *            current state is used.
+       * @param [aArgs.messagePaneVisible] Whether the message pane should be
+       *            visible. If this isn't specified, the current or first tab's
+       *            current state is used.
+       * @param [aArgs.searchMode] The search mode for this tab. If this isn't
+       *            specified, the current or first tab's current mode is used.
+       * @param [aArgs.forceSelectMessage] Whether we should consider dropping
+       *            filters to select the message. This has no effect if
+       *            aArgs.msgHdr isn't specified. Defaults to false.
        */
       openTab: function(aTab, aArgs) {
         // persistence and restoreTab wants to know if we are the magic first tab
@@ -161,29 +172,34 @@ let mailTabType = {
 
         let background = ("background" in aArgs) && aArgs.background;
         let msgHdr = ("msgHdr" in aArgs) && aArgs.msgHdr;
+        let forceSelectMessage = ("forceSelectMessage" in aArgs) &&
+                                     aArgs.forceSelectMessage;
+
+        if (msgHdr)
+          // Tell the folder display that a selectMessage is coming up, so that
+          // we don't generate double message loads
+          aTab.folderDisplay.selectMessageComingUp();
 
         if (!background) {
+          // Activate the folder display
           aTab.folderDisplay.makeActive();
+
           // HACK: Since we've switched away from the tab, we need to bring
           // back the real selection before selecting the folder, so do that
           RestoreSelectionWithoutContentLoad(document.getElementById(
                                                  "folderTree"));
-
-          // Clear selection, because context clicking on a folder and opening in a
-          // new tab needs to have selectFolder think the selection has changed.
-          gFolderTreeView.selection.clearSelection();
-          gFolderTreeView.selection.currentIndex = -1;
-
-          // This will call aTab.folderDisplay.show(aArgs.folder), which takes
-          // care of the tab title and other stuff
-          gFolderTreeView.selectFolder(aArgs.folder);
-          if (msgHdr)
-            aTab.folderDisplay.selectMessage(msgHdr);
         }
-        else {
-          // Since we can't call gFolderTreeView.selectFolder, we need to make the folder
-          // display believe it's showing this folder
-          aTab.folderDisplay.show(aArgs.folder);
+
+        aTab.folderDisplay.show(aArgs.folder);
+        if (msgHdr)
+          aTab.folderDisplay.selectMessage(msgHdr, forceSelectMessage);
+
+        if (!background) {
+          // This only makes sure the selection in the folder pane is correct --
+          // the actual displaying is handled by the show() call above. This
+          // also means that we don't have to bother about making
+          // gFolderTreeView believe that a selection change has happened.
+          gFolderTreeView.selectFolder(aArgs.folder);
         }
 
         aTab.mode.onTitleChanged.call(this, aTab, aTab.tabNode);

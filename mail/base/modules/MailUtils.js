@@ -288,5 +288,23 @@ var MailUtils =
 
     for each (let [, msgHdr] in Iterator(aMsgHdrs))
       this.openMessageInNewWindow(msgHdr, aViewWrapperToClone);
+  },
+
+  /**
+   * Display this message header in a folder tab in a 3pane window. This is
+   * useful when the message needs to be displayed in the context of its folder
+   * or thread.
+   * 
+   * @param aMsgHdr the message header to display
+   */
+  displayMessageInFolderTab: function MailUtils_displayMessageInFolderTab(
+                                 aMsgHdr) {
+    // Try opening new tabs in a 3pane window
+    let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
+                           .getService(Ci.nsIWindowMediator);
+    let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+    if (mail3PaneWindow)
+      mail3PaneWindow.MsgDisplayMessageInFolderTab(aMsgHdr);
+    // XXX handle the case where no 3pane window is open
   }
 };

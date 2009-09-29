@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://app/modules/MailUtils.js");
+
 var gCurrentFolder;
 
 var gFolderDisplay;
@@ -652,9 +654,7 @@ function MoveMessageInSearch(destFolder)
 
 function OpenInFolder()
 {
-  let msg = gFolderDisplay.selectedMessage;
-  let tabmail = window.opener.document.getElementById('tabmail');
-  tabmail.openTab("folder", {folder: msg.folder, msgHdr: msg});
+  MailUtils.displayMessageInFolderTab(gFolderDisplay.selectedMessage);
 }
 
 function saveAsVirtualFolder()

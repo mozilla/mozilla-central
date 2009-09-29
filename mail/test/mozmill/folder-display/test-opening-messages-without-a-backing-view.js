@@ -46,7 +46,6 @@ var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 Components.utils.import("resource://app/modules/MailUtils.js");
-Components.utils.import("resource://app/modules/mailViewManager.js");
 
 // One folder's enough
 var folder = null;
@@ -198,7 +197,7 @@ function test_open_message_without_backing_view_in_existing_window() {
  * excludes every message.
  */
 function test_filter_out_all_messages() {
-  mc.folderDisplay.view.setMailView(MailViewConstants.kViewItemTags, "$label1");
+  set_mail_view(MailViewConstants.kViewItemTags, "$label1");
   // Make sure all the messages have actually disappeared
   assert_messages_not_in_view(msgHdrsInFolder);
 }

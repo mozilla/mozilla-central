@@ -220,10 +220,11 @@ FolderDisplayWidget.prototype = {
   //@{
 
   /**
-   * An optional list where each item is an object with the following
-   *  attributes sufficient to re-establish the selected items even in the face
-   *  of folder renaming.
-   * - messageId: The value of the message's message-id header.
+   * An optional object, with the following properties:
+   * - messages: This is a list where each item is an object with the following
+   *       attributes sufficient to re-establish the selected items even in the
+   *       face of folder renaming.
+   *   - messageId: The value of the message's message-id header.
    *
    * That's right, we only save the message-id header value.  This is arguably
    *  overkill and ambiguous in the face of duplicate messages, but it's the
@@ -238,6 +239,9 @@ FolderDisplayWidget.prototype = {
    * Additional justification is that selection saving/restoration should not
    *  happen all that frequently.  A nice freebie is that message-id is
    *  definitely persistable.
+   *
+   * - forceSelect: Whether we are allowed to drop all filters in our quest to
+   *       select messages.
    */
   _savedSelection: null,
 
@@ -250,8 +254,10 @@ FolderDisplayWidget.prototype = {
    *  restore), but is also the most reliable option for this use case.
    */
   _saveSelection: function FolderDisplayWidget_saveSelection() {
-    this._savedSelection = [{messageId: msgHdr.messageId} for each
-                              ([, msgHdr] in Iterator(this.selectedMessages))];
+    this._savedSelection = {messages:
+                            [{messageId: msgHdr.messageId} for each
+                             ([, msgHdr] in Iterator(this.selectedMessages))],
+                            forceSelect: false};
   },
 
   /**
@@ -281,10 +287,10 @@ FolderDisplayWidget.prototype = {
     var msgHdr;
     let messages =
       [msgHdr for each
-        ([, savedInfo] in Iterator(this._savedSelection)) if
+        ([, savedInfo] in Iterator(this._savedSelection.messages)) if
         ((msgHdr = this.view.getMsgHdrForMessageID(savedInfo.messageId)))];
 
-    this.selectMessages(messages, true);
+    this.selectMessages(messages, this._savedSelection.forceSelect, true);
     this._savedSelection = null;
 
     return this.selectedCount != 0;
@@ -835,7 +841,9 @@ FolderDisplayWidget.prototype = {
       aFolderIsComingBack) {
     // try and persist the selection's content if we can
     if (this._active) {
-      if (aFolderIsComingBack)
+      // if a new selection is coming up, there's no point in trying to persist
+      // any selections
+      if (aFolderIsComingBack && !this._aboutToSelectMessage)
         this._saveSelection();
       else
         this._clearSavedSelection();
@@ -938,6 +946,10 @@ FolderDisplayWidget.prototype = {
   },
   _activeAllMessagesLoaded:
       function FolderDisplayWidget__activeAllMessagesLoaded() {
+    // - if a selectMessage's coming up, get out of here
+    if (this._aboutToSelectMessage)
+      return;
+
     // - restore selection
     // Attempt to restore the selection (if we saved it because the view was
     //  being destroyed or otherwise manipulated in a fashion that the normal
@@ -957,10 +969,12 @@ FolderDisplayWidget.prototype = {
       return;
     }
 
-    // - if something's already selected (e.g. in a message tab), don't try to
-    //   do anything more
-    if (this.view.dbView.numSelected > 0)
+    // - if something's already selected (e.g. in a message tab), scroll to the
+    //   first selected message and get out
+    if (this.view.dbView.numSelected > 0) {
+      this.ensureRowIsVisible(this.view.dbView.viewIndexForFirstSelectedMsg);
       return;
+    }
 
     // - new messages
     // if configured to scroll to new messages, try that
@@ -1445,8 +1459,8 @@ FolderDisplayWidget.prototype = {
 
     // We're going to set this to true if we've already caused a
     // selectionChanged event, so that the message display doesn't cause
-    // another.
-    let dontReloadMessage = false;
+    // another, or if a select message is coming up shortly.
+    let dontReloadMessage = this._aboutToSelectMessage;
     // thread pane if we have a db view
     if (this.view.dbView) {
       // Make sure said thread pane is visible.  If we do this after we re-root
@@ -1911,26 +1925,49 @@ FolderDisplayWidget.prototype = {
     this._updateContextDisplay();
   },
 
+  /// Whether we're about to select a message
+  _aboutToSelectMessage: false,
+
+  /**
+   * This needs to be called to let us know that a selectMessage or equivalent
+   * is coming  up right after a show() call, so that we know that a double
+   * message load won't be happening.
+   *
+   * This can be assumed to be idempotent.
+   */
+  selectMessageComingUp: function FolderDisplayWidget_selectMessageComingUp() {
+    this._aboutToSelectMessage = true;
+  },
+
   /**
    * Select a message for display by header.  Attempt to select the message
    *  right now.  If we were unable to find it, update our saved selection
    *  to want to display the message.  Threads are expanded to find the header.
    *
    * @param aMsgHdr The message header to select for display.
+   * @param [aForceSelect] If the message is not in the view and this is true,
+   *                       we will drop any applied view filters to look for the
+   *                       message. The dropping of view filters is persistent,
+   *                       so use with care. Defaults to false.
    */
   selectMessage: function FolderDisplayWidget_selectMessage(aMsgHdr,
-      aForceNotification) {
-    let viewIndex = this.view.dbView.findIndexOfMsgHdr(aMsgHdr, true);
+      aForceSelect) {
+    let viewIndex = this.view.getViewIndexForMsgHdr(aMsgHdr, aForceSelect);
     if (viewIndex != nsMsgViewIndex_None) {
+      this._savedSelection = null;
       this.selectViewIndex(viewIndex);
     }
     else {
-      this._savedSelection = [{messageId: aMsgHdr.messageId}];
+      this._savedSelection = {messages: [{messageId: aMsgHdr.messageId}],
+                              forceSelect: aForceSelect};
       // queue the selection to be restored once we become active if we are not
       //  active.
       if (!this.active)
         this._notifyWhenActive(this._restoreSelection);
     }
+
+    // Do this here instead of at the beginning to prevent reentrancy issues
+    this._aboutToSelectMessage = false;
   },
 
   /**
@@ -1942,6 +1979,10 @@ FolderDisplayWidget.prototype = {
    *  are backed by an in-progress search and no
    *
    * @param aMessages An array of nsIMsgDBHdr instances.
+   * @param [aForceSelect] If a message is not in the view and this is true,
+   *                       we will drop any applied view filters to look for the
+   *                       message. The dropping of view filters is persistent,
+   *                       so use with care. Defaults to false.
    * @param aDoNotNeedToFindAll If true (can be omitted and left undefined), we
    *     do not attempt to save the selection for future use.  This is intended
    *     for use by the _restoreSelection call which is the end-of-the-line for
@@ -1949,18 +1990,18 @@ FolderDisplayWidget.prototype = {
    *     should have already been loaded.)
    */
   selectMessages: function FolderDisplayWidget_selectMessages(
-      aMessages, aDoNotNeedToFindAll) {
+      aMessages, aForceSelect, aDoNotNeedToFindAll) {
     let treeSelection = this.treeSelection; // potentially magic getter
+    let foundAll = true;
     if (treeSelection) {
-      let foundAll = true;
-      let dbView = this.view.dbView;
       let minRow = null, maxRow = null;
 
       treeSelection.selectEventsSuppressed = true;
       treeSelection.clearSelection();
 
       for each (let [, msgHdr] in Iterator(aMessages)) {
-        let viewIndex = dbView.findIndexOfMsgHdr(msgHdr, true);
+        let viewIndex = this.view.getViewIndexForMsgHdr(msgHdr, aForceSelect);
+
         if (viewIndex != nsMsgViewIndex_None) {
           if (minRow == null || viewIndex < minRow)
             minRow = viewIndex;
@@ -1981,13 +2022,26 @@ FolderDisplayWidget.prototype = {
 
       treeSelection.selectEventsSuppressed = false;
 
-      if (!aDoNotNeedToFindAll || foundAll)
-        return;
+      // If we haven't selected every message, we'll set |this._savedSelection|
+      // below, so it's fine to null it out at this point.
+      this._savedSelection = null;
     }
-    this._savedSelection = [{messageId: msgHdr.messageId} for each
-                            ([, msgHdr] in Iterator(aMessages))];
-    if (!this.active)
-      this._notifyWhenActive(this._restoreSelection);
+
+    // Do this here instead of at the beginning to prevent reentrancy issues
+    this._aboutToSelectMessage = false;
+
+    // Two cases.
+    // 1. The tree selection isn't there at all.
+    // 2. The tree selection is there, and we needed to find all messages, but
+    //    we didn't.
+    if (!treeSelection || (!aDoNotNeedToFindAll && !foundAll)) {
+      this._savedSelection = {messages:
+                              [{messageId: msgHdr.messageId} for each
+                              ([, msgHdr] in Iterator(aMessages))],
+                              forceSelect: aForceSelect};
+      if (!this.active)
+        this._notifyWhenActive(this._restoreSelection);
+    }
   },
 
   /**
@@ -2042,6 +2096,12 @@ FolderDisplayWidget.prototype = {
 
     if (this._active)
       this.ensureRowIsVisible(aViewIndex);
+
+    // The saved selection is invalidated, since we've got something newer
+    this._savedSelection = null;
+
+    // Do this here instead of at the beginning to prevent reentrancy issues
+    this._aboutToSelectMessage = false;
   },
 
   /**

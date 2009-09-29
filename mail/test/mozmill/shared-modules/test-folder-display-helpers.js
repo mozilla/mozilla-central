@@ -59,7 +59,9 @@ const RELATIVE_ROOT = '../shared-modules';
 const MODULES_REQUIRES = ['window-helpers'];
 
 const nsMsgViewIndex_None = 0xffffffff;
+Cu.import('resource://app/modules/MailUtils.js');
 Cu.import('resource://app/modules/MailConsts.js');
+Cu.import('resource://app/modules/mailViewManager.js');
 
 const DO_NOT_EXPORT = {
   // magic globals
@@ -68,8 +70,10 @@ const DO_NOT_EXPORT = {
   elib: true, mozmill: true, controller: true, frame: true, os: true,
   // convenience constants
   Ci: true, Cc: true, Cu: true, Cr: true,
-  // useful constants
+  // useful constants (we do export MailViewConstants)
   nsMsgViewIndex_None: true, MailConsts: true,
+  // utility functions
+  MailUtils: true, MailViewManager: true,
   // internal setup functions
   setupModule: true, setupAccountStuff: true,
   // internal setup flags
@@ -349,6 +353,26 @@ function open_selected_message_in_new_window() {
 }
 
 /**
+ * Display the given message in a folder tab. This doesn't make any assumptions
+ * about whether a new tab is opened, since that is dependent on a user
+ * preference. However, we do check that the tab we're returning is a folder
+ * tab.
+ *
+ * @param aMsgHdr The message header to display.
+ * @returns The currently selected tab, guaranteed to be a folder tab.
+ */
+function display_message_in_folder_tab(aMsgHdr) {
+  MailUtils.displayMessageInFolderTab(aMsgHdr);
+  wait_for_message_display_completion(mc, true);
+
+  // Make sure that the tab we're returning is a folder tab
+  let currentTab = mc.tabmail.currentTabInfo;
+  assert_tab_mode_name(currentTab, "folder");
+
+  return currentTab;
+}
+
+/**
  * Switch to another tab.  If no tab is specified, we switch to the 'other' tab.
  *  That is the last tab we used, most likely the tab that was current when we
  *  created this tab.
@@ -380,6 +404,17 @@ function assert_selected_tab(aTab) {
     throw new Error("The currently selected tab should be at index " +
         mc.tabmail.tabInfo.indexOf(aTab) + ", but is actually at index " +
         mc.tabmail.tabInfo.indexOf(mc.tabmail.currentTabInfo));
+}
+
+/**
+ * Assert that the currently selected tab is _not_ the given one.
+ *
+ * @param aTab The tab that should currently not be selected.
+ */
+function assert_not_selected_tab(aTab) {
+  if (mc.tabmail.currentTabInfo == aTab)
+    throw new Error("The currently selected tab should not be the one at " +
+        "index " + mc.tabmail.tabInfo.indexOf(aTab) + ", but is actually so.");
 }
 
 /**
@@ -660,6 +695,18 @@ function middle_click_on_row(aViewIndex) {
   // We append new tabs at the end, so return the last tab
   return [mc.tabmail.tabInfo[mc.tabmail.tabContainer.childNodes.length - 1],
           msgHdr];
+}
+
+/**
+ * Assert that the given row index is currently visible in the thread pane view.
+ */
+function assert_row_visible(aViewIndex) {
+  let treeBox = mc.threadTree.treeBoxObject;
+
+  if (treeBox.getFirstVisibleRow() > aViewIndex ||
+      treeBox.getLastVisibleRow() < aViewIndex)
+    throw new Error("Row " + aViewIndex + " should currently be visible in " +
+                    "the thread pane, but isn't.");
 }
 
 /**
@@ -1706,6 +1753,67 @@ function collapse_all_threads() {
   mc.folderDisplay.doCommand(Ci.nsMsgViewCommandType.collapseAll);
   // drain event queue
   mc.sleep(0);
+}
+
+/**
+ * Set whether to show unread messages only in the current view.
+ */
+function set_show_unread_only(aShowUnreadOnly) {
+  wait_for_message_display_completion();
+  mc.folderDisplay.view.showUnreadOnly = aShowUnreadOnly;
+  wait_for_all_messages_to_load();
+  wait_for_message_display_completion();
+  // drain event queue
+  mc.sleep(0);
+}
+
+/**
+ * Assert that we are showing unread messages only in this view.
+ */
+function assert_showing_unread_only() {
+  wait_for_message_display_completion();
+  if (!mc.folderDisplay.view.showUnreadOnly)
+    throw new Error("The view should be showing unread messages only, but it " +
+                    "isn't.");
+}
+
+/**
+ * Assert that we are _not_ showing unread messages only in this view.
+ */
+function assert_not_showing_unread_only() {
+  wait_for_message_display_completion();
+  if (mc.folderDisplay.view.showUnreadOnly)
+    throw new Error("The view should not be showing unread messages only, " +
+                    "but it is.");
+}
+
+/**
+ * Set the mail view filter for the current view. The aData parameter is for
+ * tags (e.g. you can specify "$label1" for the first tag).
+ */
+function set_mail_view(aMailViewIndex, aData) {
+  wait_for_message_display_completion();
+  mc.folderDisplay.view.setMailView(aMailViewIndex, aData);
+  wait_for_all_messages_to_load();
+  wait_for_message_display_completion();
+  // drain event queue
+  mc.sleep(0);
+}
+
+/**
+ * Assert that the current mail view is as given. See the documentation for
+ * |set_mail_view| for information about aData.
+ */
+function assert_mail_view(aMailViewIndex, aData) {
+  let actualMailViewIndex = mc.folderDisplay.view.mailViewIndex;
+  if (actualMailViewIndex != aMailViewIndex)
+    throw new Error("The mail view index should be " + aMailViewIndex +
+                    ", but is actually " + actualMailViewIndex);
+
+  let actualMailViewData = mc.folderDisplay.view.mailViewData;
+  if (actualMailViewData != aData)
+    throw new Error("The mail view data should be " + aMailViewData +
+                    ", but is actually " + actualMailViewData);
 }
 
 /**

@@ -585,9 +585,12 @@
          * @return the tab info object for the tab meeting the above criteria,
          *     or null if no such tab exists.
          */
-          if (this._mostRecentTabInfo &&
-              this._mostRecentTabInfo.mode == aTabMode)
-            return this._mostRecentTabInfo;
+          // If we're in the middle of opening a new tab
+          // (this._mostRecentTabInfo is non-null), we shouldn't consider the
+          // current tab
+          let tabToConsider = this._mostRecentTabInfo || this.currentTabInfo;
+          if (tabToConsider && tabToConsider.mode == aTabMode)
+            return tabToConsider;
           else if (aTabMode.tabs.length)
             return aTabMode.tabs[0];
           else

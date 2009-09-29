@@ -55,6 +55,8 @@ const nsMsgMessageFlags = Ci.nsMsgMessageFlags;
 
 const MSG_VIEW_FLAG_DUMMY = 0x20000000;
 
+const nsMsgViewIndex_None = 0xffffffff;
+
 /**
  * Helper singleton for DBViewWrapper that tells instances when something
  *  interesting is happening to the folder(s) they care about.  The rationale
@@ -1882,6 +1884,60 @@ DBViewWrapper.prototype = {
         this.dbView.doCommand(Ci.nsMsgViewCommandType.markAllRead);
     }
     catch(e){/* ignore */}
+  },
+
+  /**
+   * Returns the view index for this message header in this view.
+   *
+   * - If this is a single folder view, we first check whether the folder is the
+   *   right one. If it is, we call the db view's findIndexOfMsgHdr. We do the
+   *   first check because findIndexOfMsgHdr only checks for whether the message
+   *   key matches, which might lead to false positives.
+   *
+   * - If this isn't, we trust findIndexOfMsgHdr to do the right thing.
+   *
+   * @param aMsgHdr The message header for which the view index should be
+   *                returned.
+   * @param [aForceFind] If the message is not in the view and this is true, we
+   *                     will drop any applied view filters to look for the
+   *                     message. The dropping of view filters is persistent, so
+   *                     use with care. Defaults to false.
+   *
+   * @returns the view index for this header, or nsMsgViewIndex_None if it isn't
+   *          found.
+   *
+   * @public
+   */
+  getViewIndexForMsgHdr: function DBViewWrapper_getViewIndexForMsgHdr(aMsgHdr,
+      aForceFind) {
+    if (this.dbView) {
+      if (this.isSingleFolder && aMsgHdr.folder != this.displayedFolder)
+        return nsMsgViewIndex_None;
+
+      let viewIndex = this.dbView.findIndexOfMsgHdr(aMsgHdr, true);
+
+      if (aForceFind && viewIndex == nsMsgViewIndex_None) {
+        // Consider dropping view filters.
+        // - If we're not displaying all messages, switch to All
+        if (viewIndex == nsMsgViewIndex_None &&
+            this.mailViewIndex != MailViewConstants.kViewItemAll) {
+          this.setMailView(MailViewConstants.kViewItemAll, null);
+          viewIndex = this.dbView.findIndexOfMsgHdr(aMsgHdr, true);
+        }
+
+        // - Don't just show unread only
+        if (viewIndex == nsMsgViewIndex_None) {
+          this.showUnreadOnly = false;
+          viewIndex = this.dbView.findIndexOfMsgHdr(aMsgHdr, true);
+        }
+      }
+
+      // We've done all we can.
+      return viewIndex;
+    }
+
+    // No db view, so we can't do anything
+    return nsMsgViewIndex_None;
   },
 
   /**
