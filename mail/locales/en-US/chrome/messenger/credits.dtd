@@ -1,6 +1,5 @@
 <!ENTITY credit.title     "&brandFullName; Credits">
 <!ENTITY brandMotto       "Thunderbirds Are Go!">
-<!ENTITY credit.leads     "Engineering Leads">
 <!ENTITY credit.thanks    "Special Thanks To">
 
 <!-- localization credits look like this: -->
@@ -10,8 +9,5 @@
 -->
 <!ENTITY credit.translation "">
 
-<!ENTITY credit.theme          "Theme Design">
-<!ENTITY credit.qa             "Quality Assurance">
-<!ENTITY credit.build          "Build and Release">
 <!ENTITY credit.memory         "In Fond Memory Of">
 <!ENTITY credit.poweredByGecko "Powered by Gecko&trade;">
