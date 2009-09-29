@@ -39,6 +39,7 @@
 
 html {
   background:white;
+  height: 100%;
 }
 
 body {
@@ -46,6 +47,7 @@ body {
   margin: 0;
   font-family: sans-serif;
   background: white;
+  height: 100%;
 }
 
 #table {
@@ -61,7 +63,7 @@ body {
   width: 20em;
   background-color: #e0eaf5;
   padding: 4px;
-  height: 100%;
+  min-height: 100%;
   padding-left: 1em;
   font-size: 90%;
 }
