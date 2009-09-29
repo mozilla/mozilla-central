@@ -34,6 +34,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
+#ifdef MOZ_LOGGING
+// sorry, this has to be before the pre-compiled header
+#define FORCE_PR_LOG /* Allow logging in the release build */
+#endif
 #include "nsAutoSyncManager.h"
 #include "nsAutoSyncState.h"
 #include "nsIIdleService.h"
@@ -53,6 +57,7 @@ NS_IMPL_ISUPPORTS1(nsDefaultAutoSyncMsgStrategy, nsIAutoSyncMsgStrategy)
 
 const char* kAppIdleNotification = "mail:appIdle";
 const char* kStartupDoneNotification = "mail-startup-done";
+PRLogModuleInfo *gAutoSyncLog;
 
 nsDefaultAutoSyncMsgStrategy::nsDefaultAutoSyncMsgStrategy()
 {
@@ -252,6 +257,7 @@ nsAutoSyncManager::nsAutoSyncManager()
   observerService->AddObserver(this, NS_IOSERVICE_OFFLINE_STATUS_TOPIC, PR_FALSE);
   observerService->AddObserver(this, NS_IOSERVICE_GOING_OFFLINE_TOPIC, PR_FALSE);
   observerService->AddObserver(this, kStartupDoneNotification, PR_FALSE);
+  gAutoSyncLog = PR_NewLogModule("ImapAutoSync");
 }
 
 nsAutoSyncManager::~nsAutoSyncManager()
@@ -550,6 +556,7 @@ NS_IMETHODIMP nsAutoSyncManager::Pause()
 {
   StopTimer();
   mPaused = PR_TRUE;
+  PR_LOG(gAutoSyncLog, PR_LOG_DEBUG, ("autosync paused\n"));
   return NS_OK;
 }
 
@@ -557,6 +564,7 @@ NS_IMETHODIMP nsAutoSyncManager::Resume()
 {
   mPaused = PR_FALSE;
   StartTimerIfNeeded();
+  PR_LOG(gAutoSyncLog, PR_LOG_DEBUG, ("autosync resumed\n"));
   return NS_OK;
 }
 
@@ -745,31 +753,31 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
   nsresult rv;
 
   // iterate through each imap account and update offline folders automatically
-  
+
   nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   nsCOMPtr<nsISupportsArray> accounts;
   rv = accountManager->GetAccounts(getter_AddRefs(accounts));
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   PRUint32 accountCount;
   accounts->Count(&accountCount);
-  
+
   for (PRUint32 i = 0; i < accountCount; ++i) 
   {
     nsCOMPtr<nsIMsgAccount> account(do_QueryElementAt(accounts, i, &rv));
     if (!account)
       continue;
-    
+
     nsCOMPtr<nsIMsgIncomingServer> incomingServer;
     rv = account->GetIncomingServer(getter_AddRefs(incomingServer));
     if (!incomingServer)
       continue;
-    
+
     nsCString type;
     rv = incomingServer->GetType(type);
-    
+
     if (!type.EqualsLiteral("imap"))
       continue;
 
@@ -781,63 +789,64 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
 
     nsCOMPtr<nsIMsgFolder> rootFolder;
     nsCOMPtr<nsISupportsArray> allDescendents;
-    
+
     rv = incomingServer->GetRootFolder(getter_AddRefs(rootFolder));
     if (rootFolder)
     {
       allDescendents = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
       if (NS_FAILED(rv))
         continue;
-        
+
       rv = rootFolder->ListDescendents(allDescendents);
       if (!allDescendents)
         continue;
-      
+
       PRUint32 cnt = 0;
       rv = allDescendents->Count(&cnt);
       if (NS_FAILED(rv))
         continue;
-      
+
       for (PRUint32 i = 0; i < cnt; i++)
       {
         nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(allDescendents, i, &rv));
         if (NS_FAILED(rv))
           continue;
-        
+
         PRUint32 folderFlags;
         rv = folder->GetFlags(&folderFlags);
-        // skip this folder if not offline or is a saved search
+        // Skip this folder if not offline or is a saved search or is no select.
         if (NS_FAILED(rv) || !(folderFlags & nsMsgFolderFlags::Offline) ||
-            (folderFlags & nsMsgFolderFlags::Virtual))
-          continue; 
-        
+            folderFlags & (nsMsgFolderFlags::Virtual |
+                           nsMsgFolderFlags::ImapNoselect))
+          continue;
+
         nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder, &rv);
         if (NS_FAILED(rv))
           continue;
-          
+
         nsCOMPtr<nsIImapIncomingServer> imapServer;
         rv = imapFolder->GetImapIncomingServer(getter_AddRefs(imapServer));
         if (imapServer)
         {
           PRBool autoSyncOfflineStores = PR_FALSE;
           rv = imapServer->GetAutoSyncOfflineStores(&autoSyncOfflineStores);
-          
+
           // skip if AutoSyncOfflineStores pref is not set for this folder
           if (NS_FAILED(rv) || !autoSyncOfflineStores)
             continue;
         }
-        
+
         nsCOMPtr<nsIAutoSyncState> autoSyncState;
         rv = imapFolder->GetAutoSyncStateObj(getter_AddRefs(autoSyncState));
         NS_ASSERTION(autoSyncState, "*** nsAutoSyncState shouldn't be NULL, check owner folder");
-        
+
         // shouldn't happen but lets be defensive here
         if (!autoSyncState)
           continue;
-        
+
         PRInt32 state;
         rv = autoSyncState->GetState(&state);
-        
+
         if (NS_SUCCEEDED(rv) && nsAutoSyncState::stCompletedIdle == state)
         {
           // ensure that we wait for at least nsMsgIncomingServer::BiffMinutes between
@@ -855,7 +864,7 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
             }
           }
         }
-  
+
         // check last sync time
         PRTime lastSyncTime;
         rv = autoSyncState->GetLastSyncTime(&lastSyncTime);
@@ -873,7 +882,7 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
       }//endfor
     }//endif
   }//endfor
-  
+
   // lazily create the timer if there is something to process in the queue
   // when timer is done, it will self destruct
   StartTimerIfNeeded();

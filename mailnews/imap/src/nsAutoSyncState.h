@@ -43,6 +43,7 @@
 #include "nsIUrlListener.h"
 #include "nsWeakPtr.h"
 #include "nsTArray.h"
+#include "prlog.h"
 
 class nsImapMailFolder;
 class nsIAutoSyncMsgStrategy;
@@ -105,13 +106,11 @@ class nsAutoSyncState : public nsIAutoSyncState, public nsIUrlListener
   nsresult SortQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue);
   nsresult SortSubQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue, 
                                     PRUint32 aStartingOffset);
-  
-  #ifdef DEBUG_me
-  void DebugPrintOwnerFolderName(char *s);
-  void DebugPrintQWithSize(nsTArray<nsMsgKey>& q, PRUint32 toOffset = 0);
-  void DebugPrintQWithSize(nsIMutableArray *q, PRUint32 toOffset = 0);
-  #endif
-  
+
+  void LogOwnerFolderName(char *s);
+  void LogQWithSize(nsTArray<nsMsgKey>& q, PRUint32 toOffset = 0);
+  void LogQWithSize(nsIMutableArray *q, PRUint32 toOffset = 0);
+
  private:
   PRInt32 mSyncState;
   nsWeakPtr mOwnerFolder;

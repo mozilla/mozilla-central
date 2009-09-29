@@ -34,10 +34,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#if defined(DEBUG_ebirol) || defined(DEBUG_David_Bienvenu)
-#define DEBUG_me
-#endif
-
 #include "nsAutoSyncState.h"
 #include "nsImapMailFolder.h"
 #include "nsMsgImapCID.h"
@@ -48,12 +44,7 @@
 #include "nsIAutoSyncManager.h"
 #include "nsIAutoSyncMsgStrategy.h"
 
-#ifdef DEBUG_me
-#define DEBUG_AutoSyncState_L0
-//#define DEBUG_AutoSyncState_L1
-//#define DEBUG_AutoSyncState_L2
-#endif
-
+extern PRLogModuleInfo *gAutoSyncLog;
 
 MsgStrategyComparatorAdaptor::MsgStrategyComparatorAdaptor(nsIAutoSyncMsgStrategy* aStrategy, 
   nsIMsgFolder *aFolder, nsIMsgDatabase *aDatabase) : mStrategy(aStrategy), mFolder(aFolder), 
@@ -158,6 +149,10 @@ nsresult nsAutoSyncState::PlaceIntoDownloadQ(const nsTArray<nsMsgKey> &aMsgKeyLi
     for (PRInt32 idx = 0; idx < elemCount; idx++)
     {
       nsCOMPtr<nsIMsgDBHdr> hdr;
+      PRBool containsKey;
+      database->ContainsKey(aMsgKeyList[idx], &containsKey);
+      if (!containsKey)
+        continue;
       rv = database->GetMsgHdrForKey(aMsgKeyList[idx], getter_AddRefs(hdr));
       if(!hdr)
         continue; // can't get message header, continue with the next one
@@ -182,13 +177,8 @@ nsresult nsAutoSyncState::PlaceIntoDownloadQ(const nsTArray<nsMsgKey> &aMsgKeyLi
     
     if (mIsDownloadQChanged)
     {
-      #if defined(DEBUG_me) && defined(DEBUG_AutoSyncState_L1)
-      DebugPrintOwnerFolderName("Download Q is created for ");
-       #ifdef DEBUG_AutoSyncState_L2
-       DebugPrintQWithSize(mDownloadQ, 0);
-       #endif   
-      #endif
-
+      LogOwnerFolderName("Download Q is created for ");
+      LogQWithSize(mDownloadQ, 0);
       rv = autoSyncMgr->OnDownloadQChanged(this);
     }
     
@@ -289,6 +279,14 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
 
       for (; idx < msgCount; idx++)
       {
+        PRBool containsKey = PR_FALSE;
+        database->ContainsKey(mDownloadQ[idx], &containsKey);
+        if (!containsKey)
+        {
+          mDownloadQ.RemoveElementAt(idx--);
+          msgCount--;
+          continue;
+        }
         nsCOMPtr<nsIMsgDBHdr> qhdr;
         database->GetMsgHdrForKey(mDownloadQ[idx], getter_AddRefs(qhdr));
         if(!qhdr)
@@ -339,12 +337,8 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
       mOffset = idx;
     }
 
-    #if defined(DEBUG_me) && defined(DEBUG_AutoSyncState_L1)
-    DebugPrintOwnerFolderName("Next group of messages to be downloaded.");
-     #ifdef DEBUG_AutoSyncState_L2
-      DebugPrintQWithSize(group.get(), 0);
-     #endif
-    #endif
+    LogOwnerFolderName("Next group of messages to be downloaded.");
+    LogQWithSize(group.get(), 0);
   } //endif
 
    // return it to the caller
@@ -394,13 +388,12 @@ NS_IMETHODIMP nsAutoSyncState::ProcessExistingHeaders(PRUint32 aNumOfHdrsToProce
         msgKeys.AppendElement(mExistingHeadersQ[mProcessPointer]);
     }
   }
-  
-  #if defined(DEBUG_me) && defined(DEBUG_AutoSyncState_L1)
   nsCString folderName;
   folder->GetURI(folderName);
-  printf("%d messages will be added into the download q of folder %s\n", msgKeys.Length(), folderName.get());
-  #endif   
-  
+  PR_LOG(gAutoSyncLog, PR_LOG_DEBUG,
+        ("%d messages will be added into the download q of folder %s\n",
+          msgKeys.Length(), folderName.get()));
+
   if (!msgKeys.IsEmpty())
   {
     rv = PlaceIntoDownloadQ(msgKeys);
@@ -467,14 +460,15 @@ NS_IMETHODIMP nsAutoSyncState::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCode
     if (serverNextUID != mLastNextUID || serverTotal != mLastServerTotal ||
         serverUnseen != mLastServerUnseen || serverRecent != mLastServerRecent)
     {
-#if defined(DEBUG_me) && defined(DEBUG_AutoSyncState_L0)
       nsCString folderName;
       ownerFolder->GetURI(folderName);
-      printf("folder %s status changed serverNextUID = %lx lastNextUID = %lx\n", folderName.get(),
-             serverNextUID, mLastNextUID);
-      printf("serverTotal = %lx lastServerTotal = %lx serverRecent = %lx lastServerRecent = %lx\n",
-        serverTotal, mLastServerTotal, serverRecent, mLastServerRecent);
-#endif
+      PR_LOG(gAutoSyncLog, PR_LOG_DEBUG,
+             ("folder %s status changed serverNextUID = %lx lastNextUID = %lx\n", folderName.get(),
+              serverNextUID, mLastNextUID));
+      PR_LOG(gAutoSyncLog, PR_LOG_DEBUG,
+             ("serverTotal = %lx lastServerTotal = %lx serverRecent = %lx lastServerRecent = %lx\n",
+              serverTotal, mLastServerTotal, serverRecent, mLastServerRecent));
+
       mSyncState = nsAutoSyncState::stUpdateIssued;
       return imapFolder->UpdateFolderWithListener(nsnull, autoSyncMgrListener);
     }
@@ -646,14 +640,18 @@ NS_IMETHODIMP nsAutoSyncState::DownloadMessagesForOffline(nsIArray *aMessagesLis
   rv = nsImapMailFolder::BuildIdsAndKeyArray(aMessagesList, messageIds, msgKeys);  
   if (NS_FAILED(rv) || messageIds.IsEmpty()) 
     return rv;
-  
+
   // acquire semaphore for offline store. If it fails, we won't download
   nsCOMPtr <nsIMsgFolder> folder = do_QueryReferent(mOwnerFolder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   
   rv = folder->AcquireSemaphore(folder);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
+  nsCString folderName;
+  folder->GetURI(folderName);
+  PR_LOG(gAutoSyncLog, PR_LOG_DEBUG, ("downloading %s for %s", messageIds.get(),
+           folderName.get()));
   // start downloading
   rv = imapService->DownloadMessagesForOffline(messageIds, 
                                                folder, 
@@ -661,7 +659,7 @@ NS_IMETHODIMP nsAutoSyncState::DownloadMessagesForOffline(nsIArray *aMessagesLis
                                                nsnull);
   if (NS_SUCCEEDED(rv))
     SetState(stDownloadInProgress);                                              
-  
+
   return rv;
 }
 
@@ -703,8 +701,7 @@ void nsAutoSyncState::SetServerCounts(PRInt32 total, PRInt32 recent,
 NS_IMPL_ISUPPORTS2(nsAutoSyncState, nsIAutoSyncState, nsIUrlListener)
 
 
-#ifdef DEBUG_me
-void nsAutoSyncState::DebugPrintQWithSize(nsTArray<nsMsgKey>& q, PRUint32 toOffset)
+void nsAutoSyncState::LogQWithSize(nsTArray<nsMsgKey>& q, PRUint32 toOffset)
 {
   nsCOMPtr <nsIMsgFolder> ownerFolder = do_QueryReferent(mOwnerFolder);
   if (ownerFolder)
@@ -720,13 +717,18 @@ void nsAutoSyncState::DebugPrintQWithSize(nsTArray<nsMsgKey>& q, PRUint32 toOffs
       database->GetMsgHdrForKey(q[x], getter_AddRefs(h));
       PRUint32 s;
       if (h)
+      {
         h->GetMessageSize(&s);
-      printf("Elem #%d, size: %u bytes\n", x+1, s);
+        PR_LOG(gAutoSyncLog, PR_LOG_DEBUG,
+              ("Elem #%d, size: %u bytes\n", x+1, s));
+      }
+      else
+        PR_LOG(gAutoSyncLog, PR_LOG_DEBUG, ("unable to get header for key %ul", q[x]));
     }
   }
 }
 
-void nsAutoSyncState::DebugPrintQWithSize(nsIMutableArray *q, PRUint32 toOffset)
+void nsAutoSyncState::LogQWithSize(nsIMutableArray *q, PRUint32 toOffset)
 {
   nsCOMPtr <nsIMsgFolder> ownerFolder = do_QueryReferent(mOwnerFolder);
   if (ownerFolder)
@@ -744,20 +746,25 @@ void nsAutoSyncState::DebugPrintQWithSize(nsIMutableArray *q, PRUint32 toOffset)
                         getter_AddRefs(h));
       PRUint32 s;
       if (h)
+      {
         h->GetMessageSize(&s);
-      printf("Elem #%d, size: %u bytes\n", x+1, s);
+        PR_LOG(gAutoSyncLog, PR_LOG_DEBUG,
+              ("Elem #%d, size: %u bytes\n", x+1, s));
+      }
+      else
+        PR_LOG(gAutoSyncLog, PR_LOG_DEBUG, ("null header in q at index %ul", x));
     }
   }
 }
 
-void nsAutoSyncState::DebugPrintOwnerFolderName(char *s)
+void nsAutoSyncState::LogOwnerFolderName(char *s)
 {
   nsCOMPtr <nsIMsgFolder> ownerFolder = do_QueryReferent(mOwnerFolder);
   if (ownerFolder)
   {
     nsCString folderName;
     ownerFolder->GetURI(folderName);
-    printf("*** %s Folder: %s ***\n", s, folderName.get());
+    PR_LOG(gAutoSyncLog, PR_LOG_DEBUG,
+           ("*** %s Folder: %s ***\n", s, folderName.get()));
   }
 }
-#endif

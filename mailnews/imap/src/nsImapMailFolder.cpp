@@ -134,7 +134,9 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
 static NS_DEFINE_CID(kCImapHostSessionList, NS_IIMAPHOSTSESSIONLIST_CID);
 
-nsIAtom* nsImapMailFolder::mImapHdrDownloadedAtom=nsnull;
+nsIAtom* nsImapMailFolder::mImapHdrDownloadedAtom = nsnull;
+
+extern PRLogModuleInfo *gAutoSyncLog;
 
 #define FOUR_K 4096
 #define MAILNEWS_CUSTOM_HEADERS "mailnews.customHeaders"
@@ -8921,11 +8923,9 @@ NS_IMETHODIMP nsImapMailFolder::GetAutoSyncStateObj(nsIAutoSyncState **autoSyncS
 
 NS_IMETHODIMP nsImapMailFolder::InitiateAutoSync(nsIUrlListener *aUrlListener)
 {
-  #ifdef DEBUG_me
   nsCString folderName;
   GetURI(folderName);
-  printf("Updating folder: %s\n", folderName.get());
-  #endif
+  PR_LOG(gAutoSyncLog, PR_LOG_DEBUG, ("Updating folder: %s\n", folderName.get()));
 
   // HACK: if UpdateFolder finds out that it can't open 
   // the folder, it doesn't set the url listener and returns 
@@ -8936,9 +8936,7 @@ NS_IMETHODIMP nsImapMailFolder::InitiateAutoSync(nsIUrlListener *aUrlListener)
   
   if (!canOpenThisFolder)
   {
-    #ifdef DEBUG_me
-    printf("Cannot update folder: %s\n", folderName.get());
-    #endif
+    PR_LOG(gAutoSyncLog, PR_LOG_DEBUG, ("Cannot update folder: %s\n", folderName.get()));
     return NS_ERROR_FAILURE;
   }
 
