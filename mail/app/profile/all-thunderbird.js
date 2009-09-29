@@ -463,6 +463,7 @@ pref("mail.compose.attachment_reminder_keywords", "chrome://messenger/locale/mes
 
 pref("browser.formfill.enable", true);
 // Override the all.js values so that unit tests pass and we get sane values.
+pref("browser.formfill.expire_days", 180);
 pref("browser.history_expire_days", 180);
 pref("browser.history_expire_days_min", 90);
 pref("browser.history_expire_sites", 40000);
