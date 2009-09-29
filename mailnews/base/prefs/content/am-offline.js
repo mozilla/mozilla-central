@@ -69,6 +69,7 @@ function initOfflineSettings()
 function initServerSettings()
 {
     document.getElementById("offline.notDownload").checked =  gIncomingServer.limitOfflineMessageSize;
+    document.getElementById("autosync.notDownload").checked =  gIncomingServer.limitOfflineMessageSize;
     if(gIncomingServer.maxMessageSize > 0)
         document.getElementById("offline.notDownloadMin").setAttribute("value", gIncomingServer.maxMessageSize);
     else
@@ -105,6 +106,7 @@ function initDownloadSettings()
  
   // Figure out what the most natural division of the autosync pref into
   // a value and an interval is.
+  let autosyncSelect = document.getElementById("autosyncSelect");
   let autosyncInterval = document.getElementById("autosyncInterval");
   let autosyncValue = document.getElementById("autosyncValue");
   let autosyncPref = document.getElementById("imap.autoSyncMaxAgeDays");
@@ -115,11 +117,12 @@ function initDownloadSettings()
   autosyncPref.value = "";
 
   if (autosyncPrefValue <= 0) {
-    // Special-case values <= 0 to have an interval of "All" and a disabled
-    // value of the positive version of the preference, so we don't lose
-    // the last value the user typed.
-    autosyncInterval.value = 0;
-    autosyncValue.value = 31;
+    // Special-case values <= 0 to have an interval of "All" and disabled
+    // controls for value and interval.
+    autosyncSelect.value = 0;
+    autosyncInterval.value = 1;
+    autosyncInterval.disabled = true;
+    autosyncValue.value = 30;
     autosyncValue.disabled = true;
   }
   else {
@@ -132,11 +135,14 @@ function initDownloadSettings()
     // and find the first one that divides the preference evenly.
     for (let i in valuesToTest) {
       if (!(autosyncPrefValue % valuesToTest[i])) {
+        autosyncSelect.value = 1;
         autosyncInterval.value = valuesToTest[i];
         autosyncValue.value = autosyncPrefValue / autosyncInterval.value;
         break;
       }
     }
+    autosyncInterval.disabled = false;
+    autosyncValue.disabled = false;
   }
   autosyncPref.value = autosyncPrefValue;
 }
@@ -186,6 +192,7 @@ function onClickSelect()
  */
 function onAutosyncChange()
 {
+  let autosyncSelect = document.getElementById("autosyncSelect");
   let autosyncInterval = document.getElementById("autosyncInterval");
   let autosyncValue = document.getElementById("autosyncValue");
   let autosyncPref = document.getElementById("imap.autoSyncMaxAgeDays");
@@ -197,8 +204,9 @@ function onAutosyncChange()
 
   // If the user selected the All option, disable the autosync and the
   // textbox.
-  if (autosyncInterval.value == 0) {
+  if (autosyncSelect.value == 0) {
     autosyncPref.value = -1;
+    autosyncInterval.disabled = true;
     autosyncValue.disabled = true;
     return;
   }
@@ -208,8 +216,19 @@ function onAutosyncChange()
   if (autosyncValue.value > max)
     autosyncValue.value = Math.floor(max);
 
+  autosyncInterval.disabled = false;
   autosyncValue.disabled = false;
   autosyncPref.value = autosyncValue.value * autosyncInterval.value;
+}
+
+function onAutosyncNotDownload()
+{
+  // This function is called when the autosync version of offline.notDownload
+  // is changed it simply copies the new checkbox value over to the element
+  // driving the preference.
+  document.getElementById("offline.notDownload").checked =
+    document.getElementById("autosync.notDownload").checked;
+  onCheckItem("offline.notDownloadMin", "offline.notDownload");
 }
 
 function onCancel()
@@ -284,6 +303,7 @@ function onLockPreference()
     // to code in AccountManager, and update these as well.
     var allPrefElements = [
       { prefstring:"limit_offline_message_size", id:"offline.notDownload"},
+      { prefstring:"limit_offline_message_size", id:"autosync.notDownload"},
       { prefstring:"max_size", id:"offline.notDownloadMin"},
       { prefstring:"downloadUnreadOnly", id:"nntp.notDownloadRead"},
       { prefstring:"downloadByDate", id:"nntp.downloadMsg"},

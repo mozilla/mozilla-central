@@ -85,28 +85,33 @@
     <groupbox id="diskspace.titlebox">
       <caption label="&diskspaceGroupTitle.label;" hidefor="movemail,pop3,none,rss"/>
 
-    <!-- IMAP Autosync Preference -->
-    <hbox align="center" hidefor="movemail,pop3,nntp,none,rss">
-      <label id="useAutosyncBefore">&useAutosyncBefore.label;</label>
-      <textbox id="autosyncValue" type="number" size="5" min="1"
-               class="autosync" onchange="onAutosyncChange();"
-               aria-labelledby="useAutosyncBefore autosyncValue useAutosyncMiddle autosyncInterval useAutosyncAfter"/>
-      <label id="useAutosyncMiddle">&useAutosyncMiddle.label;</label>
-      <menulist id="autosyncInterval" onselect="onAutosyncChange();">
-        <menupopup>
-          <menuitem label="&allInterval.label;" value="0"/>
-          <menuitem label="&dayInterval.label;" value="1"/>
-          <menuitem label="&weekInterval.label;" value="7"/>
-          <menuitem label="&monthInterval.label;" value="31"/>
-          <menuitem label="&yearInterval.label;" value="365"/>
-        </menupopup>
-      </menulist>
-      <label id="useAutosyncAfter" control="autosyncValue"
-             flex="1">&useAutosyncAfter.label;</label>
-    </hbox>
-
-    <description hidefor="pop3,movemail,none,rss">&doNotDownload.label;</description>
+    <description hidefor="pop3,nntp,movemail,none,rss">&doNotDownloadImap.label;</description>
+    <description hidefor="pop3,imap,movemail,none,rss">&doNotDownloadNntp.label;</description>
     <description hidefor="imap,nntp,none,rss">&doNotDownloadPop3Movemail.label;</description>
+
+    <!-- IMAP Autosync Preference -->
+    <radiogroup wsm_persist="true" hidefor="pop3,nntp,movemail,none,rss" id="autosyncSelect" class="indent">
+      <radio wsm_persist="true" id="useAutosync.AllMsg" value="0" accesskey="&allAutosync.accesskey;"
+             label="&allAutosync.label;" oncommand="onAutosyncChange();"/>
+      <hbox flex="1" align="center">
+        <radio wsm_persist="true" id="useAutosync.ByAge" accesskey="&ageAutosync.accesskey;" 
+               value="1" label="&ageAutosyncBefore.label;" oncommand="onAutosyncChange();"/>
+        <textbox id="autosyncValue" type="number" size="4" min="1"
+                 class="autosync" onchange="onAutosyncChange();"
+                 aria-labelledby="ageAutosyncBefore autosyncValue ageAutosyncMiddle autosyncInterval ageAutosyncAfter"/>
+        <label id="ageAutosyncMiddle" control="autosyncValue" label="&ageAutosyncMiddle.label;"/>
+        <menulist id="autosyncInterval" onselect="onAutosyncChange();">
+          <menupopup>
+            <menuitem label="&dayAgeInterval.label;" value="1"/>
+            <menuitem label="&weekAgeInterval.label;" value="7"/>
+            <menuitem label="&monthAgeInterval.label;" value="31"/>
+            <menuitem label="&yearAgeInterval.label;" value="365"/>
+          </menupopup>
+        </menulist>
+        <label id="ageAutosyncAfter" control="autosyncInterval"
+               flex="1" label="&ageAutosyncAfter.label;"/>
+      </hbox>
+    </radiogroup>
 
     <hbox align="center" class="indent" hidefor="rss">
         <checkbox hidefor="movemail,pop3,imap,none"
@@ -116,10 +121,14 @@
     </hbox>
 
     <hbox align="center" class="indent" hidefor="none,rss">
-        <checkbox wsm_persist="true" id="offline.notDownload"
+        <checkbox wsm_persist="true" id="offline.notDownload" hidefor="imap"
                   label="&offlineNotDownload.label;"
                   accesskey="&offlineNotDownload.accesskey;"
                   oncommand="onCheckItem('offline.notDownloadMin', 'offline.notDownload');"/>
+        <checkbox wsm_persist="true" id="autosync.notDownload" hidefor="pop3,nntp,movemail"
+                  label="&autosyncNotDownload.label;"
+                  accesskey="&autosyncNotDownload.accesskey;"
+                  oncommand="onAutosyncNotDownload();"/>
         <textbox wsm_persist="true" id="offline.notDownloadMin"
                  type="number" min="1" increment="10" size="4" value="50"
                  aria-labelledby="offline.notDownload offline.notDownloadMin kbLabel"/>
