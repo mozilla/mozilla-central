@@ -2740,8 +2740,8 @@ to filter unwanted mail, and how phishing detection works.</p>
 <h2 id="junk_controls_options">Junk Mail Controls Options</h2>
 
 <p>To fine-tune how Junk Mail Controls work, use the 
-  <a href="#global_junk_settings">global Junk Mail preference panel</a> for
-  account-independent settings and the account manager's 
+  <a href="#junk_and_suspect_preferences">Junk &amp; Suspect Mail preference
+  panel</a> for account-independent settings and the account manager's
   <a href="#junk_settings">Junk Settings</a> for settings of a specific mail
   account.</p>
 
@@ -4650,8 +4650,8 @@ to filter unwanted mail, and how phishing detection works.</p>
 
 <p>You use the Junk Settings panel to define your account-specific settings
   for the adaptive mail filter. Global junk settings are changed under
-  <a href="#global_junk_settings">Mail &amp; Newsgroups Preferences -
-  Junk Mail</a>.</p>
+  <a href="#junk_and_suspect_preferences">Mail &amp; Newsgroups Preferences -
+  Junk &amp; Suspect Mail</a>.</p>
   
 <ul>  
   <li><strong>Enable adaptive junk mail controls for this account</strong>:
@@ -4951,7 +4951,7 @@ to filter unwanted mail, and how phishing detection works.</p>
     <li><a href="#composition">Composition</a></li>
     <li><a href="#send_format">Send Format</a></li>
     <li><a href="#addressing_preferences">Addressing</a></li>
-    <li><a href="#global_junk_settings">Junk Mail</a></li>
+    <li><a href="#junk_and_suspect_preferences">Junk &amp; Suspect Mail</a></li>
     <li><a href="#tags">Tags</a></li>
     <li><a href="#return_receipts_preferences">Return Receipts</a></li>
     <li><a href="#character_encoding">Character Encoding</a></li>
@@ -5345,22 +5345,23 @@ to filter unwanted mail, and how phishing detection works.</p>
 <p>[<a href="#mail_and_newsgroup_preferences">Return to beginning of
   section</a>]</p>
 
-<h2 id="global_junk_settings">Mail &amp; Newsgroups Preferences - 
-  Junk Mail</h2>
+<h2 id="junk_and_suspect_preferences">Mail &amp; Newsgroups Preferences -
+  Junk &amp; Suspect Mail</h2>
 
-<p>This section describes how to use the Junk Mail preferences panel. If
-  you are not currently viewing the Junk Mail panel, follow these steps:</p>
+<p>This section describes how to use the Junk &amp; Suspect Mail preferences
+  panel. If you are not currently viewing the Junk &amp; Suspect Mail panel,
+  follow these steps:</p>
 
 <ol>
   <li>Open the <span class="mac">&brandShortName;</span>
     <span class="noMac">Edit</span> menu and choose Preferences.</li>
-  <li>Under the Mail &amp; Newsgroups category, select Junk Mail. (If no
-    subcategories are visible, double-click Mail &amp; Newsgroups to expand the
-    list.)</li>
+  <li>Under the Mail &amp; Newsgroups category, select Junk &amp; Suspect Mail.
+    (If no subcategories are visible, double-click Mail &amp; Newsgroups to
+    expand the list.)</li>
 </ol>
 
 <ul>
-  <li><strong>When I manually mark messages as junk</strong>: Choose this to
+  <li><strong>When I mark messages as junk</strong>: Choose this to
     set what you want &brandShortName; to do when you manually mark messages
     as Junk.
     <ul>
@@ -5371,8 +5372,16 @@ to filter unwanted mail, and how phishing detection works.</p>
         Junk messages to the trash folder.</li>
     </ul>
   </li>
-  <li><strong>Mark messages determined to be junk as read</strong>: Select this
-    option to mark junk messages as read, so they will not show up as new.</li>
+  <li><strong>Mark messages as read</strong>:
+    <ul>
+      <li><strong>When &brandShortName; determines that they are junk</strong>:
+        Select this option to mark junk messages as read, so they will not show
+        up as new.</li>
+      <li><strong>When I manually mark them as junk</strong>: Select this
+        option to mark messages as read when you manually mark them as junk.
+      </li>
+    </ul>
+  </li>
   <li><strong>Enable junk filter logging</strong>: Select this option to allow
     logging the history of Junk mail detections. Click the <strong>Show log
     </strong> button to open a dialog showing this log.</li>
@@ -5380,6 +5389,14 @@ to filter unwanted mail, and how phishing detection works.</p>
     training data of the adaptive junk filter. Since this will effectively
     destroy your personal junk profile, you will be asked for confirmation.
   </li>
+  <li><strong>Tell me if the message I'm reading is a suspected email
+    scam</strong>: Choose this to make &brandShortName; analyze messages for
+    suspected email scams by looking for common techniques used to deceive
+    people.</li>
+  <li><strong>Allow anti-virus clients to scan incoming messages more
+    easily</strong>: Choose this to let &brandShortName; make it easier for
+    anti-virus software to analyze incoming mail messages for viruses before
+    they are stored locally.</li>
 </ul>
 
 <p>[<a href="#mail_and_newsgroup_preferences">Return to beginning of
