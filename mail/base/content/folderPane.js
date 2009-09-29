@@ -338,7 +338,8 @@ let gFolderTreeView = {
       let endIndex = {};
       selection.getRangeAt(i, startIndex, endIndex);
       for (let j = startIndex.value; j <= endIndex.value; j++) {
-        folderArray.push(this._rowMap[j]._folder);
+        if (j < this._rowMap.length)
+          folderArray.push(this._rowMap[j]._folder);
       }
     }
     return folderArray;
