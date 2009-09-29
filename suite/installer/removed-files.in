@@ -40,6 +40,12 @@ chrome/icons/default/msgcomposeWindow.xpm
 chrome/icons/default/msgcomposeWindow16.xpm
 chrome/icons/default/venkman-window.xpm
 chrome/icons/default/venkman-window16.xpm
+#ifndef MOZILLA_1_9_1_BRANCH
+#ifndef MOZILLA_1_9_2_BRANCH
+chrome/reporter.jar
+chrome/reporter.manifest
+#endif
+#endif
 chrome/venkman.jar
 #ifdef XP_MACOSX
 updater.app/Contents/MacOS/updater.ini
