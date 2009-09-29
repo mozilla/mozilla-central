@@ -45,6 +45,7 @@ Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource://app/modules/attachmentChecker.js");
 
 Components.utils.import("resource://app/modules/MailUtils.js");
+Components.utils.import("resource://app/modules/errUtils.js");
 
 /**
  * interfaces
@@ -1843,6 +1844,11 @@ function GetCharsetUIString()
 
 function GenericSendMessage( msgType )
 {
+// This try/catch ensures errors make it to the error console on the
+// MOZILLA_1_9_1_BRANCH. On 1.9.2 and later, globalOverlay.js has been fixed
+// to put the errors to the error console for us and therefore this try/catch
+// can be removed.
+try {
   if (gMsgCompose != null)
   {
     var msgCompFields = gMsgCompose.compFields;
@@ -1930,8 +1936,9 @@ function GenericSendMessage( msgType )
 
         if (servertype != "nntp" && msgCompFields.newsgroups != "")
         {
+          let kDontAskAgainPref = "mail.compose.dontWarnMail2Newsgroup";
           // default to ask user if the pref is not set
-          var dontAskAgain = getPref("mail.compose.dontWarnMail2Newsgroup");
+          var dontAskAgain = getPref(kDontAskAgainPref);
           if (!dontAskAgain)
           {
             var checkbox = {value:false};
@@ -2089,6 +2096,13 @@ function GenericSendMessage( msgType )
   }
   else
     dump("###SendMessage Error: composeAppCore is null!\n");
+// This try/catch ensures errors make it to the error console on the
+// MOZILLA_1_9_1_BRANCH. On 1.9.2 and later, globalOverlay.js has been fixed
+// to put the errors to the error console for us and therefore this try/catch
+// can be removed.
+} catch (e) {
+  logException(e);
+}
 }
 
 function CheckValidEmailAddress(to, cc, bcc)
