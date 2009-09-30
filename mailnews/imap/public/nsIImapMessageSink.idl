@@ -41,7 +41,7 @@
 
 interface nsIMsgMailNewsUrl;
 
-[scriptable, uuid(33694e58-458b-4bbd-afbf-96d06f90676b)]
+[scriptable, uuid(b2d287c5-e857-4fa2-9047-351f801fafb2)]
 
 interface nsIImapMessageSink : nsISupports {
   // set up messge download output stream
@@ -54,10 +54,11 @@ interface nsIImapMessageSink : nsISupports {
    * @param aAdoptedMsgLine  a string with a lot of message lines,
    *                         separated by native line terminators.
    * @param aUidOfMsg        IMAP UID of the fetched message.
+   * @param aSizeOfMsg       RFC822.Size of the fetched message
    * @param aImapUrl         IMAP Url used to fetch the message.
    */
   void parseAdoptedMsgLine(in string aAdoptedMsgLine, in nsMsgKey aUidOfMsg,
-                           in nsIImapUrl aImapUrl);
+                           in long aSizeOfMsg, in nsIImapUrl aImapUrl);
 
   void normalEndMsgWriteStream(in nsMsgKey aUidOfMessage,
                                in boolean aMarkMsgRead, in nsIImapUrl aImapUrl);

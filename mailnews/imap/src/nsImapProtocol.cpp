@@ -3584,7 +3584,9 @@ nsImapProtocol::PostLineDownLoadEvent(const char *line, PRUint32 uidOfMessage)
         m_runningUrl->GetStoreResultsOffline(&echoLineToMessageSink);
     }
     if (m_imapMessageSink && line && echoLineToMessageSink && !GetPseudoInterrupted())
-      m_imapMessageSink->ParseAdoptedMsgLine(line, uidOfMessage, m_runningUrl);
+      m_imapMessageSink->ParseAdoptedMsgLine(line, uidOfMessage,
+                                             GetServerStateParser().SizeOfMostRecentMessage(),
+                                             m_runningUrl);
   }
   // ***** We need to handle the pseudo interrupt here *****
 }

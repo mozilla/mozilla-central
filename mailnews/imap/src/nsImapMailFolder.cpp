@@ -4394,6 +4394,7 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
 NS_IMETHODIMP
 nsImapMailFolder::ParseAdoptedMsgLine(const char *adoptedMessageLine,
                                       nsMsgKey uidOfMessage,
+                                      PRInt32 aMsgSize,
                                       nsIImapUrl *aImapUrl)
 {
   NS_ENSURE_ARG_POINTER(aImapUrl);
@@ -4405,6 +4406,7 @@ nsImapMailFolder::ParseAdoptedMsgLine(const char *adoptedMessageLine,
   {
     GetMessageHeader(uidOfMessage, getter_AddRefs(m_offlineHeader));
     rv = StartNewOfflineMessage();
+    m_offlineHeader->SetMessageSize(aMsgSize);
   }
   // adoptedMessageLine is actually a string with a lot of message lines, separated by native line terminators
   // we need to count the number of MSG_LINEBREAK's to determine how much to increment m_numOfflineMsgLines by.
