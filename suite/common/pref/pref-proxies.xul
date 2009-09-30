@@ -115,7 +115,7 @@
                  accesskey="&autoTypeRadio.accesskey;"/>
         </vbox>
 
-        <hbox class="indent" flex="1" align="center">
+        <hbox class="indent" align="center">
          <textbox id="networkProxyAutoconfigURL"
                   flex="1"
                   class="uri-element"
