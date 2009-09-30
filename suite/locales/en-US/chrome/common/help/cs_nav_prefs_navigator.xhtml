@@ -582,10 +582,14 @@
 <ul>
   <li><strong>When starting a download</strong>:
     <ul>
+      <li><strong>Flash the download manager if it is already open</strong>:
+        Select this to change focus to the Download Manager if it is currently
+        open. It displays the status for current and previous downloads in a
+        single window. This option only takes effect if the Download Manager
+        is already open and overrides the other settings.</li>
       <li><strong>Open the download manager</strong>: Select this to display
-        the Download Manager, which displays the status for current and
-        previous downloads. The status of all downloads is kept in a single
-        window.</li>
+        the Download Manager when starting a new download. It will be opened
+        if the window isn&apos;t currently shown.</li>
       <li><strong>Open a progress dialog</strong>: Select this to display a
         progress dialog box, which display the status for your current
         download. The status of each download is kept in a separate
@@ -600,31 +604,39 @@
 <ul>
   <li><strong>When saving a file</strong>:
     <ul>
-      <li><strong>Prompt for download location and default to</strong>: Select
-        this if you always want to be able to choose a folder for the file to
-        be saved. Choose one of the following folders to be the default
-        location for the file:
-        <ul>
-          <li><strong>Last download folder</strong>: The default location will
-            be the folder you last downloaded a file to.</li>
-          <li><strong>Specified download folder</strong>: The default location
-            will be your Current Download Folder.</li>
-        </ul>
-      </li>
-      <li><strong>Automatically download files to specified download
-        folder</strong>: Select this if you want files to be saved to your
-        Current Download Folder without &brandShortName; prompting you for
-        the download location.</li>
+      <li><strong>Save files to</strong>: Select this if you want files to be
+        saved to the specified folder without &brandShortName; prompting you
+        for the download location.</li>
+      <li><strong>Always ask me where to save files</strong>: Select this if
+        you always want to be able to choose a folder for the file to be saved.
+        The default will be the folder you last downloaded a file to.</li>
     </ul>
   </li>
 </ul>
-    
+
 <ul>
-  <li><strong>Current Download Folder</strong>: Use the button to navigate
-    to a folder that you want to use as your specified download folder.</li>
+  <li><strong>Download retention</strong>:
+    <ul>
+      <li><strong>Remove downloads</strong>: This determines when a completed
+        entry is removed from the Download Manager listing (the downloaded
+        file will <em>not</em> be affected):
+        <ul>
+          <li><strong>When they have completed</strong>: Select this to
+            remove an entry immediately once the download is successfully
+            completed.</li>
+          <li><strong>When quitting &brandShortName;</strong>: Select this
+            to retain all entries until closing the program, the list will
+            be empty upon restarting &brandShortName;.</li>
+          <li><strong>Never</strong>: Select this to not remove <em>any</em>
+            entry automatically, even after &brandShortName; is restarted.
+            You can remove them manually in the Download Manager.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
 </ul>
-    
-<ul>
+        
+<!-- XXX: to be reintroduced with bug 490467 ul>
   <li><strong>When a download completes</strong>:
     <ul>
       <li><strong>Play a sound</strong>: Select this if you want
@@ -637,7 +649,7 @@
         completed.</li>
     </ul>
   </li>
-</ul>
+</ul -->
 
 <p>For more information about downloading files from web pages, see
   <a href= "nav_help.xhtml#plugins_and_downloads">Plugins and
