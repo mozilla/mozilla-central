@@ -81,8 +81,19 @@
 }
 
 /* ::::: expanded header pane ::::: */
-header-view-button-box {
-  padding: 0px;
+
+#header-view-toolbox {
+  border-top-width: 0;
+  -moz-appearance: none;
+  -moz-padding-end: 6px;
+  padding-top: 3px;
+}
+
+/* toolbars are optimized to look like OS-provided widgets; override this */
+#header-view-toolbar {
+  -moz-appearance: none;
+  padding: 0;
+  border-bottom-width: 0;
 }
 
 #expandedsubjectBox > .headerValue {
@@ -175,11 +186,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   margin: 0 !important;
 }
 
-#expandedButtonBox {
-  -moz-padding-end: 6px;
-  padding-top: 3px;
-}
-
 .dateLabel {
   -moz-padding-end: 3px;
   -moz-user-select: text;
@@ -187,38 +193,141 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   cursor: text;
 }
 
-.hdrReplyButton {
-  -moz-appearance: dualbutton;
-  -moz-margin-end: 0 !important;
-}
-
-.hdrReplyButton > .button-menubutton-button {
-  min-width: 1em;
-  min-height: 1ex;
-  margin: 0px;
-}
-
-.hdrReplyButton > .button-menubutton-dropmarker {
-  -moz-margin-start: 0;
-  -moz-margin-end: 0;
-  -moz-padding-start: 0;
-  -moz-padding-end: 3px;
-}
-
-.hdrReplyButton > .button-menubutton-dropmarker[open="true"] {
-  margin-top: 0;
-  -moz-margin-start: 0;
-  -moz-margin-end: 0;
-  -moz-padding-start: 0;
-  -moz-padding-end: 3px;
-}
-
 .msgHeaderView-button {
-  min-width: 1px;
+  -moz-appearance: button;
+  min-width: 1em;
   min-height: 1ex;
   -moz-margin-start: 0;
   -moz-margin-end: 4px;
-  padding: 0;
+  margin-top: 1px;
+  margin-bottom: 2px;
+  vertical-align: middle;
+  /* important required to override messenger.css rules */
+  -moz-padding-start: 4px !important;
+  -moz-padding-end: 3px !important;
+  padding-top: 3px !important;
+  padding-bottom: 2px !important;
+  list-style-image: none;
+}
+
+.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button > .button-box {
+  /* Needed to make the buttons the same height as the trash icon */
+  min-height: 16px;
+}
+
+.msgHeaderView-button[disabled="true"] {
+  display: none;
+}
+
+/* toolbar[mode="text"] is necessary so that we end up with more specificity
+ * than the !important rule in toolkit's toolbar.css.
+ */
+toolbar[mode="text"] > .msgHeaderView-button .toolbarbutton-text
+{
+  margin: 0 !important;
+  -moz-padding-start: 3px !important;
+  -moz-padding-end: 4px !important;
+  padding-top: 1px !important;
+  padding-bottom: 2px !important;
+}
+
+/* Force the icons to be horizontally in line with the text, rather than
+ * vertically.
+ */
+toolbar[mode="full"] > .msgHeaderView-button,
+toolbar[mode="full"] > .msgHeaderView-button > .toolbarbutton-menubutton-button
+{
+  -moz-box-orient: horizontal;
+}
+
+/* For unclear reasons, toolkit's toolbarbutton.css forces a margin of 0,
+ * jamming the image up against the text, so we need this !important
+ * rule to override that.
+ *
+ * The second selector is a descendent selector rather than a child selector
+ * so that we effect both buttons and menubuttons.
+ */
+toolbar[mode="full"] > .msgHeaderView-button .toolbarbutton-text {
+  -moz-margin-start: 2px !important;
+}
+
+.hdrReplyButton {
+  /* important required to override -moz-appearance from msgHdrView-button */
+  -moz-appearance: dualbutton !important;
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 64px 16px 48px);
+  -moz-margin-end: 0 !important;
+  
+  /* Need to override both rules from messenger.css and msgHeaderView-button */
+  padding: 0 !important;
+}
+
+.hdrReplyAllButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 80px 16px 64px);
+}
+
+.hdrReplyListButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 112px 16px 96px);
+}
+
+.hdrReplyButton > .toolbarbutton-menubutton-button {
+  -moz-appearance: button;
+  min-width: 1em;
+  min-height: 1ex;
+  margin: 0px;
+  /* important required to override messenger.css rules */
+  -moz-padding-start: 4px !important;
+  -moz-padding-end: 3px !important;
+  padding-top: 3px !important;
+  padding-bottom: 2px !important;
+}
+
+.hdrForwardButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 96px 16px 80px);
+}
+
+/* This icon isn't visually that meaningful, and we'd rather save horizontal
+ * space in full mode.  */
+toolbar:not([mode="full"]) > .hdrArchiveButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 320px 16px 304px);
+}
+
+/* This icon isn't visually that meaningful, and we'd rather save horizontal
+ * space in full mode.  */
+toolbar:not([mode="full"]) > .hdrJunkButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 142px 16px 130px);
+}
+
+/* Need to ensure that junk and archive in full mode end up being as tall as
+ * the buttons with images, since the text is shorter than the images.
+ * Ideally, we'd use min-height for this, but it turns that in some cases,
+ * Gecko regards min-* properties on XUL elements as merely "advisory", and
+ * this seems to be one of those cases.
+ */
+toolbar[mode="full"] > .hdrArchiveButton,
+toolbar[mode="full"] > .hdrJunkButton {
+  /* !important required to override messenger.css rules */
+  padding-top: 5px !important;
+  padding-bottom: 3px !important;
+}
+
+.hdrJunkButton[disabled="true"] {
+  background: none;
+  opacity: 0;
+}
+
+.hdrTrashButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 128px 16px 112px);
+}
+
+.hdrTrashButton > .toolbarbutton-icon {
+  -moz-margin-end: 0px;
 }
 
 .msgHeaderView-flat-button {
@@ -236,13 +345,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-border-bottom-colors: none;
   -moz-border-left-colors: none;
   min-height: 1ex;
-}
-
-.hdrTrashButton {
-  -moz-box-orient: vertical !important;
-  list-style-image: url("chrome://messenger/skin/icons/folder.png") !important;
-  -moz-image-region: rect(0px 144px 16px 128px);
-  -moz-margin-end: 0;
 }
 
 .msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button {
@@ -263,12 +365,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   padding-top: 1px;
 }
 
-.msgHeaderView-button > .button-box > .button-icon,
-.msgHeaderView-button[type="menu-button"] .button-icon {
-  /* Needed to make the buttons the same height as the trash icon */
-  min-height: 16px;
-}
-
 .msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-button {
   background-color: transparent;
 }
@@ -279,15 +375,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .msgHeaderView-flat-button[secondary="true"] {
   background-color: transparent;
-}
-
-.msgHeaderView-button[disabled="true"] {
-  display: none;
-}
-
-.msgHeaderView-button > .button-text {
-  margin: 0px;
-  padding: 0px;
 }
 
 .msgHeaderView-flat-button:hover {
@@ -357,11 +444,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .moreIndicator:hover {
   text-decoration: underline;
   color: darkred;
-}
-
-.hdrJunkButton[disabled="true"] {
-  background: none;
-  opacity: 0;
 }
 
 .tagvalue {
