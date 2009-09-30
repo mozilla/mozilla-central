@@ -1520,15 +1520,61 @@ function saveAttachment(aAttachment)
                            aAttachment.uri, aAttachment.isExternalAttachment);
 }
 
+/**
+ * This method checks whether the passed attachment is empty or not.
+ *
+ * @param aAttachment The attachment to check.
+ * @return @c true if the attachment is empty, @c false otherwise.
+ */
+function attachmentIsEmpty(aAttachment)
+{
+  let io = Components.classes["@mozilla.org/network/io-service;1"]
+                     .getService(Components.interfaces.nsIIOService);
+
+  // create an input stream on the attachment url
+  let url = io.newURI(aAttachment.url, null, null);
+  let stream = io.newChannelFromURI(url).open();
+
+  let inputStream = Components.classes["@mozilla.org/binaryinputstream;1"]
+                              .createInstance(Components.interfaces.nsIBinaryInputStream);
+  inputStream.setInputStream(stream);
+
+  let bytesAvailable = 0;
+
+  if (inputStream.isNonBlocking()) {
+    // if the stream does not block test on two conditions:
+    //   - attachment is empty     -> 0 bytes will be returned on readBytes()
+    //   - attachment is not empty -> NS_BASE_STREAM_WOULD_BLOCK exception is thrown
+    let chunk = null;
+
+    try {
+      chunk = inputStream.readBytes(1);
+    } catch (ex if ex.result == Components.results.NS_BASE_STREAM_WOULD_BLOCK) {
+      bytesAvailable = 1;
+    }
+    if (chunk)
+      bytesAvailable = chunk.length;
+  } else {
+    // if the stream blocks, we can rely on available() to return the correct number
+    bytesAvailable = inputStream.available();
+  }
+
+  return (bytesAvailable == 0);
+}
+
 function openAttachment(aAttachment)
 {
   if (aAttachment.contentType == "text/x-moz-deleted")
     return;
 
-  messenger.openAttachment(aAttachment.contentType,
-                           aAttachment.url,
-                           encodeURIComponent(aAttachment.displayName),
-                           aAttachment.uri, aAttachment.isExternalAttachment);
+  if (attachmentIsEmpty(aAttachment)) {
+    msgWindow.promptDialog.alert(null, gMessengerBundle.getString('emptyAttachment'));
+  } else {
+    messenger.openAttachment(aAttachment.contentType,
+                             aAttachment.url,
+                             encodeURIComponent(aAttachment.displayName),
+                             aAttachment.uri, aAttachment.isExternalAttachment);
+  }
 }
 
 function detachAttachment(aAttachment, aSaveFirst)
