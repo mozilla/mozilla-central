@@ -214,13 +214,20 @@
           var observerSvc = Cc["@mozilla.org/observer-service;1"]
                             .getService(Ci.nsIObserverService);
 
-          if (! gSearchInputObserversRegistered) {
+          if ((typeof gSearchInputObserversRegistered != "undefined" &&
+              gSearchInputObserversRegistered == false)) {
             // due to a bug in XBL that means that destructors don't get
             // called reliably, the customize toolbar path will end up creating
             // two clones of this widget, and never destroy them.  So the destructor
             // isn't reliably called, and so we must use a global to avoid
             // registering ourselves for the same event multiple times (twice
             // per invocation of the customize-toolbar).
+
+            // We need to test for undefined above because if the widget is
+            // created from the customize toolbar, its namespace won't include
+            // a definition of gSearchInputObserversRegistered -- and we don't
+            // care, since we don't want to register observers in that scope.
+
             prefBranch.addObserver("mailnews.database.global.indexer.enabled",
                                    this._prefObserver, false);
             observerSvc.addObserver(this, "autocomplete-did-enter-text", false);

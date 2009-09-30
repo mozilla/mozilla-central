@@ -48,6 +48,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://app/modules/MsgHdrSyntheticView.js");
+Components.utils.import("resource://app/modules/errUtils.js");
 
 /**
  * Displays message "folder"s, mail "message"s, and "glodaList" results.  The
@@ -205,17 +206,24 @@ let mailTabType = {
         aTab.mode.onTitleChanged.call(this, aTab, aTab.tabNode);
       },
       persistTab: function(aTab) {
-        if (!aTab.folderDisplay.displayedFolder)
+        try {
+          if (!aTab.folderDisplay.displayedFolder)
+            return null;
+          let retval = {
+            folderURI: aTab.folderDisplay.displayedFolder.URI,
+            // if the folder pane is active, then we need to look at
+            // whether the box is collapsed
+            folderPaneVisible: aTab.folderDisplay.folderPaneVisible,
+            messagePaneVisible: aTab.messageDisplay.visible,
+            firstTab: aTab.firstTab
+          }
+          if (aTab.searchState)
+            retval['searchMode'] = aTab.searchState['mode']
+          return retval;
+        } catch (e) {
+          logException(e);
           return null;
-        return {
-          folderURI: aTab.folderDisplay.displayedFolder.URI,
-          // if the folder pane is active, then we need to look at
-          // whether the box is collapsed
-          folderPaneVisible: aTab.folderDisplay.folderPaneVisible,
-          messagePaneVisible: aTab.messageDisplay.visible,
-          firstTab: aTab.firstTab,
-          searchMode: aTab.searchState['mode']
-        };
+        }
       },
       restoreTab: function(aTabmail, aPersistedState) {
       try {
@@ -248,9 +256,12 @@ let mailTabType = {
               if (!gMessageDisplay._active)
                 gMessageDisplay._visible = aPersistedState.messagePaneVisible;
             }
-            if ("searchMode" in aPersistedState)
-              document.getElementById('searchInput').searchMode =
-                aPersistedState.searchMode;
+
+            if ("searchMode" in aPersistedState) {
+              let searchInput = document.getElementById("searchInput");
+              if (searchInput)
+                  searchInput.searchMode = aPersistedState.searchMode;
+            }
             gFolderTreeView.selectFolder(folder);
           }
           else {
