@@ -57,13 +57,27 @@
 
 <!ENTITY editMessageDescription.label "This is a draft message">
 <!ENTITY editMessageButton.label "Edit…">
-<!ENTITY archiveButton.label "archive">
+<!ENTITY hdrArchiveButton.label "archive">
+<!ENTITY hdrArchiveButton.tooltip "archive this message">
 <!ENTITY hdrReplyButton.label "reply">
+<!ENTITY hdrReplyButton.tooltip "reply to this message">
 <!ENTITY hdrReplyAllButton.label "reply all">
+<!ENTITY hdrReplyAllButton.tooltip "reply to sender and all recipients">
 <!ENTITY hdrReplyListButton.label "reply list">
+<!ENTITY hdrReplyListButton.tooltip "reply to mailing list">
 <!ENTITY hdrForwardButton.label "forward">
+<!ENTITY hdrForwardButton.tooltip "forward this message">
 <!ENTITY hdrJunkButton.label "junk">
-<!ENTITY trashButton.tooltiptext "delete">
+<!ENTITY hdrJunkButton.tooltip "mark this message as junk">
+<!ENTITY hdrTrashButton.label "delete">
+<!ENTITY hdrTrashButton.tooltip "delete this message">
+
+<!ENTITY hdrViewToolbarShowFull.label "Show Icons and Text">
+<!ENTITY hdrViewToolbarShowFull.accesskey "a">
+<!ENTITY hdrViewToolbarShowIcons.label "Show Icons Only">
+<!ENTITY hdrViewToolbarShowIcons.accesskey "I">
+<!ENTITY hdrViewToolbarShowText.label "Show Text Only">
+<!ENTITY hdrViewToolbarShowText.accesskey "T">
 
 <!ENTITY otherActionsButton.label "other actions">
 <!ENTITY otherActionsShowConversation.label "show in conversation">

@@ -253,6 +253,8 @@ function OnLoadMsgHeaderPane()
     deckElement.selectedIndex = 0;
   }
 
+  initToolbarMenu();
+
   // Only offer openInTab and openInNewWindow if this window supports tabs...
   // (i.e. is not a standalone message window), since those actions are likely
   // to be significantly less common in that case.
@@ -266,6 +268,24 @@ function OnLoadMsgHeaderPane()
   event.initEvent('messagepane-loaded', false, true);
   var headerViewElement = document.getElementById("msgHeaderView");
   headerViewElement.dispatchEvent(event);
+}
+
+function initToolbarMenu() {
+
+  // Get the mode as persisted on the toolbar itself.
+  let mode = document.getElementById('header-view-toolbar')
+                     .getAttribute("mode");
+
+  // Construct the appropriate menuitem nodename, get the node, and check it.
+  document.getElementById("header-toolbar-show-" + mode)
+          .setAttribute("checked", "true");
+  return;
+}
+
+function setAndPersistToolbarMode(mode) {
+  let toolbarElement = document.getElementById('header-view-toolbar');
+  toolbarElement.setAttribute('mode', mode);
+  document.persist('header-view-toolbar', 'mode');
 }
 
 function OnUnloadMsgHeaderPane()
@@ -1291,19 +1311,6 @@ function onClickEmailStar(event, emailAddressNode)
     EditContact(emailAddressNode);
   else
     AddContact(emailAddressNode);
-}
-
-/**
- * @return the DOM node for the header-view-button-box in the currently
- * selected panel of the message header
- *
- * @note that this assumes that the first such button box is the only one
- * worth caring about (having more than one per panel is not supported).
- */
-function getCurrentMsgHdrButtonBox() {
-
-  return document.getElementById('msgHeaderViewDeck').selectedPanel
-                 .getElementsByTagName("header-view-button-box").item(0);
 }
 
 function AddContact(emailAddressNode)

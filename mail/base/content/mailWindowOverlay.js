@@ -921,13 +921,11 @@ function UpdateReplyButtons()
   else if (showReplyAll)
     buttonToShow = "replyAll";
 
-  let buttonBox = getCurrentMsgHdrButtonBox();
-
-  let replyButton = buttonBox.getButton("hdrReplyButton");
-  let replyAllButton = buttonBox.getButton("hdrReplyAllButton");
-  let replyAllSubButton = buttonBox.getButton("hdrReplyAllSubButton");
-  let replyAllSubButtonSep = buttonBox.getButton("hdrReplyAllSubButtonSep");
-  let replyListButton = buttonBox.getButton("hdrReplyListButton");
+  let replyButton = document.getElementById("hdrReplyButton");
+  let replyAllButton = document.getElementById("hdrReplyAllButton");
+  let replyAllSubButton = document.getElementById("hdrReplyAllSubButton");
+  let replyAllSubButtonSep = document.getElementById("hdrReplyAllSubButtonSep");
+  let replyListButton = document.getElementById("hdrReplyListButton");
 
   replyButton.hidden = (buttonToShow != "reply");
   replyAllButton.hidden = (buttonToShow != "replyAll");
@@ -1858,7 +1856,7 @@ function UpdateJunkButton()
   if (!gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk))
     hideJunk = true;
 
-  getCurrentMsgHdrButtonBox().getButton('hdrJunkButton').disabled = hideJunk;
+  document.getElementById('hdrJunkButton').disabled = hideJunk;
 }
 
 function MsgMarkMsgAsRead()

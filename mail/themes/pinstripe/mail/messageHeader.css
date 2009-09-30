@@ -62,6 +62,16 @@
   min-width: 1px;
 }
 
+#header-view-toolbox {
+  -moz-padding-end: 6px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+#header-view-toolbar {
+  -moz-appearance: none;
+}
+
 #expandedHeaderRows > row,
 #expandedHeader2Rows > row {
 /* Ensure that the header names and values are aligned with each other. */
@@ -106,16 +116,7 @@
   list-style-image: url("chrome://messenger/skin/icons/arrow-dn-black.png");
 }
 
-.hdrTrashButton {
-  -moz-box-orient: vertical;
-  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
-}
-
 /* ::::: expanded header pane ::::: */
-
-header-view-button-box {
-  padding: 0px;
-}
 
 #expandedsubjectBox > .headerValue {
   font-weight: bold;
@@ -222,12 +223,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   margin: 0;
 }
 
-#expandedButtonBox {
-  -moz-padding-end: 6px;
-  padding-top: 3px;
-  padding-bottom: 3px;
-}
-
 #dateLabel {
   -moz-padding-end: 3px;
   -moz-user-select: text;
@@ -241,22 +236,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 
-.hdrReplyButton { 
-  -moz-appearance: dualbutton;
-}
-
-.hdrReplyButton > .button-menubutton-button {
-  -moz-appearance: none;
-  padding: 0;
-  margin: 0;
-  -moz-padding-start: 0px;
-  -moz-padding-end: 0px;
-  -moz-margin-start: 0px;
-  -moz-margin-end: 0px;
-  min-width: 1em;
-  min-height: 1ex;
-}
-
 
 .msgHeaderView-button {
   -moz-appearance: none;
@@ -269,6 +248,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   margin: 0px;
   -moz-margin-start: 0.4em;
   vertical-align: middle;
+  list-style-image: none; /* overrides the rule from primaryToolbar.css */
 }
 
 .msgHeaderView-button:active,
@@ -310,8 +290,8 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-border-left-colors: none;
 }
 
-.msgHeaderView-button > .button-box,
-.msgHeaderView-button[type="menu-button"] > .button-menubutton-button {
+.msgHeaderView-button > .toolbarbutton-text,
+.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button {
   /* Needed to make the buttons at least the same height as the trash icon */
   min-height: 16px;
 }
@@ -332,9 +312,74 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   display: none;
 }
 
-.msgHeaderView-button .button-text {
+toolbar[mode="text"] .msgHeaderView-button .toolbarbutton-text {
   margin: 0;
   padding: 0;
+}
+
+/* We want our icons to be on one side of the text rather than below them so we 
+ * need this rule to override the one from primaryToolbar.css
+ */
+toolbar[mode="full"] .msgHeaderView-button,
+toolbar[mode="full"] .msgHeaderView-button > .toolbarbutton-menubutton-button
+{
+  /* !important required for toolbarbutton-menubutton-button case */
+  -moz-box-orient: horizontal !important;
+}
+
+.hdrReplyButton {
+  list-style-image: url("chrome://messenger/skin/icons/reply16.png");
+}
+
+.hdrReplyListButton {
+  list-style-image: url("chrome://messenger/skin/icons/reply-to-list16.png");
+}
+
+.hdrReplyAllButton {
+  list-style-image: url("chrome://messenger/skin/icons/reply-to-all16.png");
+}
+
+.hdrReplyButton > .toolbarbutton-menubutton-button {
+  -moz-appearance: none;
+  padding: 0;
+  margin: 0;
+  -moz-padding-start: 0px;
+  -moz-padding-end: 0px;
+  -moz-margin-start: 0px;
+  -moz-margin-end: 0px;
+  min-width: 1em;
+  min-height: 1ex;
+}
+
+/* The default toolbarbutton CSS makes the dropmarker really tiny in icon mode;
+ * make the click target easier to hit.
+ */
+ .hdrReplyButton > .toolbarbutton-menubutton-dropmarker {
+  -moz-margin-start: 3px;
+  -moz-margin-end: 4px;
+}
+
+.hdrForwardButton {
+  list-style-image: url("chrome://messenger/skin/icons/forward16.png");
+}
+
+/* This icon isn't that meaningful, and we'd rather save horizontal space */
+toolbar:not([mode="full"]) > .hdrArchiveButton {
+  list-style-image: url("chrome://messenger/skin/icons/folder-archive.png");
+}
+
+.junkButton[disabled="true"] {
+  background: none;
+  opacity: 0;
+}
+
+/* This icon isn't that meaningful, and we'd rather save horizontal space */
+toolbar:not([mode="full"]) > .hdrJunkButton {
+  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+}
+
+.hdrTrashButton {
+  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
 }
 
 .msgHeaderView-flat-button:hover {
@@ -415,11 +460,6 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 .moreIndicator:hover {
   text-decoration: underline;
   color: darkred;
-}
-
-.junkButton[disabled="true"] {
-  background: none;
-  opacity: 0;
 }
 
 .tagvalue {
