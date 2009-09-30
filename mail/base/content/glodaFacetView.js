@@ -887,3 +887,10 @@ function reachOutAndTouchFrame() {
   if (aTab.query.completed)
     FacetContext.initialBuild();
 }
+
+function clickOnBody(event) {
+  if (event.bubbles) {
+    document.getElementById('popup-menu').hide();
+  }
+  return 0;
+}

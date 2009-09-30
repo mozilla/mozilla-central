@@ -37,7 +37,9 @@
   <script type="application/javascript;version=1.8"
       src="chrome://messenger/content/glodaFacetVis.js"></script>
 </head>
-<body id="body" onload="reachOutAndTouchFrame()">
+<body id="body" onload="reachOutAndTouchFrame()"
+      onmouseup="return clickOnBody(event)">
+  <div id="popup-menu" class="popup-menu" variety="invisible"/>
   <div id="table">
     <div class="facets facets-sidebar" id="facets">
       <h1 id="filter-header-label">&glodaFacetView.filters.label;</h1>

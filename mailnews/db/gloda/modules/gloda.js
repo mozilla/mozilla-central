@@ -1603,6 +1603,12 @@ var Gloda = {
     includeLabel: "includeLabel",
     excludeLabel: "excludeLabel",
     remainderLabel: "remainderLabel",
+    mustMatchLabel: "mustMatchLabel",
+    cantMatchLabel: "cantMatchLabel",
+    mayMatchLabel: "mayMatchLabel",
+    mustMatchNoneLabel: "mustMatchNoneLabel",
+    mustMatchSomeLabel: "mustMatchSomeLabel",
+    mayMatchAnyLabel: "mayMatchAnyLabel",
   },
   /**
    * Define an attribute and all its meta-data.  Takes a single dictionary as

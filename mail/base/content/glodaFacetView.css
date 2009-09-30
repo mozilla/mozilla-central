@@ -85,6 +85,73 @@ body {
   max-width: 40em;
 }
 
+.popup-menu {
+  position: absolute;
+  z-index: 100;
+  color: #3465a4;
+  font-size: 80%;
+  overflow: hidden;
+  -moz-border-radius: 5px;
+  -moz-box-shadow: 1px 1px 1px black;
+}
+
+.popup-menuitem {
+  border: 1px solid #729fcf;
+  -moz-border-radius: 5px;
+  background: white;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
+  padding-top: 0px;
+  text-align: center;
+}
+
+.popup-menu[variety="remainder"] .undo {
+  display: none;
+}
+.popup-menu[variety="include"] .top {
+  display: none;
+}
+.popup-menu[variety="include"] .bottom {
+  display: none;
+}
+.popup-menu[variety="exclude"] .top {
+  display: none;
+}
+.popup-menu[variety="exclude"] .bottom {
+  display: none;
+}
+
+.popup-menuitem.top {
+  -moz-border-radius-bottomleft: 0;
+  -moz-border-radius-bottomright: 0;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-bottom: 0px;
+}
+
+.popup-menuitem.bottom {
+  -moz-border-radius-topleft: 0;
+  -moz-border-radius-topright: 0;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.popup-menuitem.undo {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.popup-menuitem:focus {
+  background-color: #729fcf;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.popup-menu[variety="invisible"] {
+  display: none;
+}
+
 /* ===== Query Explanation ===== */
 
 #query-explanation {
@@ -145,6 +212,12 @@ h1, h2, h3 {
   list-style: none;
   padding: 2px;
 }
+
+.bar-link[selected="true"] {
+  background: Highlight;
+  color: HighlightText;
+}
+
 
 h1 {
   font-size: medium !important;
@@ -410,26 +483,6 @@ h2 {
 
 .bar:hover > .bar-percent {
   background: #ceeaf5;
-}
-
-.bar-exclude {
-  display: block;
-  visibility: hidden;
-  background-image: url("chrome://messenger/skin/icons/exclude.png");
-  position: absolute;
-  top: 0.3em;
-  right: 2px;
-  width: 12px;
-  height: 12px;
-  z-index: 3;
-}
-
-.bar[variety="remainder"]:hover > .bar-exclude {
-  visibility: visible;
-}
-
-.bar-exclude:hover {
-  background-image: url("chrome://messenger/skin/icons/exclude-selected.png");
 }
 
 /* ===== Results ===== */

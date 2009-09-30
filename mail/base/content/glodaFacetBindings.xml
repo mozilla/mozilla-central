@@ -477,6 +477,171 @@
   </implementation>
 </binding>
 
+<binding id="popup-menu">
+  <content>
+    <html:div anonid="parent" class="parent"
+              tabindex="0"
+      ><html:div anonid="include-item" class="popup-menuitem top"
+        tabindex="0"
+        onmouseover="this.focus()"
+        onkeypress="if (event.keyCode == 13) this.parentNode.parentNode.doInclude()"
+        onclick="this.parentNode.parentNode.doInclude()"></html:div
+      ><html:div anonid="exclude-item" class="popup-menuitem bottom"
+        tabindex="0"
+        onmouseover="this.focus()"
+        onkeypress="if (event.keyCode == 13) this.parentNode.parentNode.doExclude()"
+        onclick="this.parentNode.parentNode.doExclude()"></html:div
+      ><html:div anonid="undo-item" class="popup-menuitem undo"
+        tabindex="0"
+        onmouseover="this.focus()"
+        onkeypress="if (event.keyCode == 13 this.parentNode.parentNode.doUndo()"
+        onclick="this.parentNode.parentNode.doUndo()"></html:div
+    ></html:div>
+  </content>
+  <handlers>
+    <handler event="keypress" keycode="VK_ESCAPE" action="return this.hide();"/>
+    <handler event="keypress" keycode="VK_DOWN" action="return this.moveFocus(event, 1);"/>
+    <handler event="keypress" keycode="VK_UP" action="return this.moveFocus(event, -1);"/>
+  </handlers>
+  <implementation>
+    <constructor><![CDATA[
+      this.includeNode = document.getAnonymousElementByAttribute(this, "anonid",
+                                                        "include-item");
+      this.excludeNode = document.getAnonymousElementByAttribute(this, "anonid",
+                                                     "exclude-item");
+      this.undoNode = document.getAnonymousElementByAttribute(this, "anonid",
+                                                     "undo-item");
+    ]]></constructor>
+    <method name="_getLabel">
+      <parameter name="facetDef"/>
+      <parameter name="facetValue"/>
+      <parameter name="groupValue"/>
+      <parameter name="stringName"/>
+      <body><![CDATA[
+        let label, labelFormat;
+        if (stringName in facetDef.strings)
+          labelFormat = facetDef.strings[stringName];
+        else
+          labelFormat = glodaFacetStrings.get(
+              "glodaFacetView.facets."+stringName+".fallbackLabel");
+        if (labelFormat.indexOf("#1") == -1)
+          return labelFormat;
+        else
+          return labelFormat.replace("#1", facetValue);
+      ]]></body>
+    </method>
+    <method name="build">
+      <parameter name="facetDef"/>
+      <parameter name="facetValue"/>
+      <parameter name="groupValue"/>
+      <body><![CDATA[
+      try {
+        if (groupValue)
+          this.includeNode.textContent = this._getLabel(facetDef, facetValue,
+                                                        groupValue, "mustMatchLabel");
+        else
+          this.includeNode.textContent = this._getLabel(facetDef, facetValue,
+                                                        groupValue, "mustMatchNoneLabel");
+        if (groupValue)
+          this.excludeNode.textContent = this._getLabel(facetDef, facetValue,
+                                                        groupValue, "cantMatchLabel");
+        else
+          this.excludeNode.textContent = this._getLabel(facetDef, facetValue,
+                                                        groupValue, "mustMatchSomeLabel");
+        if (groupValue)
+          this.undoNode.textContent = this._getLabel(facetDef, facetValue,
+                                                     groupValue, "mayMatchLabel");
+        else
+          this.undoNode.textContent = this._getLabel(facetDef, facetValue,
+                                                     groupValue, "mayMatchAnyLabel");
+      } catch (e) {
+        logException(e);
+      }
+      ]]>
+      </body>
+    </method>
+    <method name="moveFocus">
+      <parameter name="event"/>
+      <parameter name="delta"/>
+      <body><![CDATA[
+      try {
+        let parent = document.getAnonymousElementByAttribute(this,
+          "anonid", "parent");
+        // We probably want something quite generic in the long term, but that
+        // is way too much for now (needs to skip over invisible items, etc)
+        let focused = document.activeElement;
+        if (focused == this.includeNode)
+          this.excludeNode.focus();
+        else if (focused == this.excludeNode)
+          this.includeNode.focus();
+        event.preventDefault();
+        event.stopPropagation();
+      } catch (e) {
+        logException(e);
+      }
+      ]]>
+      </body>
+    </method>
+    <method name="show">
+      <parameter name="event"/>
+      <parameter name="facetDef"/>
+      <parameter name="facetNode"/>
+      <parameter name="groupValue"/>
+      <body><![CDATA[
+        // center the menu on the mouse click
+        try {
+          this.node = event.originalTarget;
+          this.facetNode = facetNode;
+          this.build(facetDef, this.node.textContent, groupValue);
+          this.node.setAttribute("selected", "true");
+          /* We show different menus if we're on an "unselected" facet value,
+             or if we're on a preselected facet value, whether included or
+             excluded. The variety attribute handles that through CSS */
+          let variety = this.node.parentNode.getAttribute('variety');
+          this.setAttribute("variety", variety);
+          let rect = this.getBoundingClientRect();
+          this.style.top = (event.pageY - 15) + "px";
+          this.style.left = Math.max(20, event.pageX- 10) + "px";
+          document.getAnonymousElementByAttribute(this,
+            "anonid", "parent").firstChild.focus();
+        } catch (e) {
+          logException(e);
+        }
+      ]]>
+      </body>
+    </method>
+    <method name="hide">
+      <body><![CDATA[
+        if (this.node)
+          this.node.removeAttribute("selected");
+        this.setAttribute("variety", "invisible");
+      ]]>
+      </body>
+    </method>
+    <method name="doInclude">
+      <body><![CDATA[
+        this.facetNode.includeFacet(this.node);
+        this.hide();
+      ]]>
+      </body>
+    </method>
+    <method name="doExclude">
+      <body><![CDATA[
+        this.facetNode.excludeFacet(this.node);
+        this.hide();
+      ]]>
+      </body>
+    </method>
+    <method name="doUndo">
+      <body><![CDATA[
+        this.facetNode.undoFacet(this.node);
+        this.hide();
+      ]]>
+      </body>
+    </method>
+  </implementation>
+</binding>
+
 <binding id="facet-discrete">
   <content>
   <!-- without this explicit div here, the sibling selectors used to span
@@ -487,10 +652,10 @@
     <html:div anonid="content-box" class="facet-content">
       <html:h3 anonid="included-label" class="facet-included-header"></html:h3>
       <html:ul anonid="included" class="facet-included barry"></html:ul>
-      <html:h3 anonid="excluded-label" class="facet-excluded-header"></html:h3>
-      <html:ul anonid="excluded" class="facet-excluded barry"></html:ul>
       <html:h3 anonid="remainder-label" class="facet-remaindered-header"></html:h3>
       <html:ul anonid="remainder" class="facet-remaindered barry"></html:ul>
+      <html:h3 anonid="excluded-label" class="facet-excluded-header"></html:h3>
+      <html:ul anonid="excluded" class="facet-excluded barry"></html:ul>
       <html:div anonid="more" class="facet-more" needed="false" />
     </html:div>
   </html:div>
@@ -710,7 +875,6 @@
             }
             label.textContent = labelStr;
           }
-
           li.appendChild(label);
 
           let excludeSpan = document.createElement("span");
@@ -948,28 +1112,58 @@
         FacetContext.unhoverFacet(this.faceter, this.attrDef, groupValue, groupItems);
       ]]></body>
     </method>
+    <method name="includeFacet">
+      <parameter name="node"/>
+      <body>
+      <![CDATA[
+          let barNode = node.parentNode;
+          this.barClicked(barNode,
+                          (barNode.getAttribute("variety") == "remainder") ?
+                            "include" : "remainder");
+      ]]>
+      </body>
+    </method>
+    <method name="undoFacet">
+      <parameter name="node"/>
+      <body>
+      <![CDATA[
+          let barNode = node.parentNode;
+          this.barClicked(barNode,
+                          (barNode.getAttribute("variety") == "remainder") ?
+                            "include" : "remainder");
+      ]]>
+      </body>
+    </method>
+    <method name="excludeFacet">
+      <parameter name="node"/>
+      <body>
+      <![CDATA[
+        this.barClicked(node.parentNode, "exclude");
+      ]]>
+      </body>
+    </method>
   </implementation>
   <handlers>
     <handler event="click"><![CDATA[
       // we dispatch based on the class of the thing we clicked on.
       // there are other ways we could accomplish this, but they all sorta suck.
-      let nodeClasses = event.originalTarget.getAttribute("class");
-      if (!nodeClasses)
-        return;
+      try {
+        let node = event.originalTarget;
+        let nodeClasses = node.getAttribute("class");
+        if (!nodeClasses)
+          return;
 
-      let nodeClass = nodeClasses.split(" ")[0];
-      if (nodeClass == "bar-exclude")
-        this.barClicked(event.originalTarget.parentNode, "exclude");
-      else if (nodeClass == "bar-link") {
-        let barNode = event.originalTarget.parentNode;
-        this.barClicked(barNode,
-                        (barNode.getAttribute("variety") == "remainder") ?
-                          "include" : "remainder");
+        let nodeClass = nodeClasses.split(" ")[0];
+        if (nodeClass == "bar-exclude" || nodeClass == "bar-link")
+          document.getElementById("popup-menu").show(event, this.facetDef, this, node.parentNode.groupValue);
+        else if (nodeClass == "facet-more") {
+          this.changeMode("all");
+        }
+      } catch (e) {
+        logException(e);
       }
-      else if (nodeClass == "facet-more") {
-        this.changeMode("all");
-      }
-    ]]></handler>
+      ]]>
+    </handler>
     <handler event="mouseover"><![CDATA[
       // we dispatch based on the class of the thing we clicked on.
       // there are other ways we could accomplish this, but they all sorta suck.
