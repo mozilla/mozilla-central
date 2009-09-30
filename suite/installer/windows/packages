@@ -283,6 +283,9 @@ bin\components\zipwriter.xpt
 bin\components\FeedConverter.js
 bin\components\FeedProcessor.js
 bin\components\FeedWriter.js
+#ifndef MOZILLA_1_9_1_BRANCH
+bin\components\GPSDGeolocationProvider.js
+#endif
 bin\components\jsconsole-clhandler.js
 bin\components\NetworkGeolocationProvider.js
 bin\components\nsAboutAbout.js

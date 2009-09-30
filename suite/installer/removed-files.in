@@ -56,6 +56,9 @@ components/bookmarks.xpt
 components/chatzilla-service.js
 components/crashreporter.xpt
 components/downloadmanager.xpt
+#ifdef MOZILLA_1_9_1_BRANCH
+components/GPSDGeolocationProvider.js
+#endif
 components/nsDownloadProgressListener.js
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
