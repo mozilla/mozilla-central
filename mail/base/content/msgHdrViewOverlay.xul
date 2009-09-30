@@ -92,7 +92,7 @@
     accesskey="&deleteAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('delete');" />
 </popup>
 
-<popup id="header-toolbar-context-menu">
+<popup id="header-toolbar-context-menu" onpopupshowing="return onShowHeaderToolbarContextMenu();">
   <menuitem id="header-toolbar-show-full" type="radio"
             name="header-toolbar-menu-mode-group"
             label="&hdrViewToolbarShowFull.label;"
@@ -108,6 +108,11 @@
             label="&hdrViewToolbarShowText.label;"
             accesskey="&hdrViewToolbarShowText.accesskey;"
             oncommand="setAndPersistToolbarMode('text');"/>
+  <menuseparator id="header-toolbar-separator"/>
+  <menuitem id="header-toolbar-always-show-reply" type="checkbox"
+            label="&hdrViewToolbarAlwaysReplySender.label;"
+            accesskey="&hdrViewToolbarAlwaysReplySender.accesskey;"
+            oncommand="setAndPersistReplyToSenderButton(this.getAttribute('checked'));"/>
 </popup>
 
 <popup id="copyUrlPopup" popupanchor="bottomleft">

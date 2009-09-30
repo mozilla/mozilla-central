@@ -288,6 +288,18 @@ function setAndPersistToolbarMode(mode) {
   document.persist('header-view-toolbar', 'mode');
 }
 
+function onShowHeaderToolbarContextMenu() {
+  let menuitem = document.getElementById("header-toolbar-always-show-reply");
+  menuitem.setAttribute("checked", Application.prefs.get("mailnews.headers.always_show_reply_sender").value);
+  return true; /*  always want to show the popup */
+}
+
+function setAndPersistReplyToSenderButton(checked) {
+  Application.prefs.setValue("mailnews.headers.always_show_reply_sender",
+                             (checked)? true : false);
+  UpdateReplyButtons();
+}
+
 function OnUnloadMsgHeaderPane()
 {
   pref.removeObserver("mail.showCondensedAddresses", MsgHdrViewObserver);

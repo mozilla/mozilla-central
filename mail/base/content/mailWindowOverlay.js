@@ -927,7 +927,10 @@ function UpdateReplyButtons()
   let replyAllSubButtonSep = document.getElementById("hdrReplyAllSubButtonSep");
   let replyListButton = document.getElementById("hdrReplyListButton");
 
-  replyButton.hidden = (buttonToShow != "reply");
+  let alwaysOfferReply =
+    Application.prefs.get("mailnews.headers.always_show_reply_sender").value;
+
+  replyButton.hidden = (buttonToShow != "reply" && !alwaysOfferReply);
   replyAllButton.hidden = (buttonToShow != "replyAll");
   replyListButton.hidden = (buttonToShow != "replyList");
 

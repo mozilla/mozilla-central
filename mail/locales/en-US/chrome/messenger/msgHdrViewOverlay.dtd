@@ -78,6 +78,8 @@
 <!ENTITY hdrViewToolbarShowIcons.accesskey "I">
 <!ENTITY hdrViewToolbarShowText.label "Show Text Only">
 <!ENTITY hdrViewToolbarShowText.accesskey "T">
+<!ENTITY hdrViewToolbarAlwaysReplySender.label "Always Show Reply to Sender">
+<!ENTITY hdrViewToolbarAlwaysReplySender.accesskey "R">
 
 <!ENTITY otherActionsButton.label "other actions">
 <!ENTITY otherActionsShowConversation.label "show in conversation">
