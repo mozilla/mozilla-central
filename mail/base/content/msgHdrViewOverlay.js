@@ -2160,6 +2160,15 @@ function onShowOtherActionsPopup()
     let isMessageIndexed = Gloda.isMessageIndexed(message);
     showConversation.disabled = !isMessageIndexed;
   }
+
+  if (SelectedMessagesAreRead()) {
+    document.getElementById('markAsReadMenuItem').setAttribute('hidden', true);
+    document.getElementById('markAsUnreadMenuItem').removeAttribute('hidden');
+  } else {
+    document.getElementById('markAsReadMenuItem').removeAttribute('hidden');
+    document.getElementById('markAsUnreadMenuItem').setAttribute('hidden', 
+                                                                 true);
+  }
 }
 
 function ConversationShower()
