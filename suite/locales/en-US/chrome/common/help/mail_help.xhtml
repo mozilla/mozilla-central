@@ -4478,9 +4478,20 @@ to filter unwanted mail, and how phishing detection works.</p>
       an individual folder, those per-folder settings are <em>removed</em>
       whenever the <q>Keep messages for this account</q> box is toggled.</p>
   </li>
-  <li><strong>Messages larger than [__] KB</strong>: Select this option to
-    conserve disk space by preventing large messages from being downloaded.
-    Enter the maximum size for downloaded messages.</li>
+  <li><strong>Synchronize all messages locally regardless of age</strong>:
+    When synchronization is enabled for an account or a folder, <em>all</em>
+    messages are downloaded and local copies of them kept on disk, unless
+    a size limit is specified.</li>
+  <li><strong>Synchronize the most recent [__] [days]</strong>: Only copies of
+    messages younger than the specified number of days (weeks, months, years)
+    are kept locally for synchronization, after that they are removed from the
+    offline storage. This does <em>not</em> affect the originals on the server,
+    only the local copies are removed if the given age is reached.</li>
+  <li><strong>Don't download messages larger than [__] KB</strong>: Select this
+    option to conserve disk space by preventing large messages from being
+    downloaded. Enter the maximum size for downloaded messages. Changing
+    this option does <em>not</em> affect messages that have already been
+    downloaded.</li>
   <li>The <a href="#retention_policy">retention settings</a> can be used to
     free up space by deleting old messages. Note that these settings apply
     to <em>both</em> local copies and their originals on the server.</li>
