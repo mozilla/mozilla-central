@@ -62,6 +62,11 @@
     <hbox flex="1" align="top">
       <image id="editContactPanelIcon"/>
       <label id="editContactPanelTitle" flex="1"/>
+      <button id="editContactPanelDeleteContactButton"
+              label="&editContactPanelDeleteContact.label;"
+              accesskey="&editContactPanelDeleteContact.accesskey;"
+              oncommand="editContactInlineUI.deleteContact();"
+              onkeypress="editContactInlineUI.onKeyPress(event, false);"/>
     </hbox>
       
     <vbox id="editContactContent">

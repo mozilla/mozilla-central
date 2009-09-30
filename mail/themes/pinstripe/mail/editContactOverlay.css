@@ -74,6 +74,7 @@
 
 /**** HUD style buttons ****/
 
+#editContactPanel > hbox > button,
 #editContactPanel > hbox > vbox > hbox > button,
 #editContactPanel > #editContactPanelBottomButtons > button {
   -moz-appearance: none;
@@ -92,11 +93,13 @@
   color: #ffffff;
 }
 
+#editContactPanel > hbox > button:hover:active,
 #editContactPanel > hbox > vbox > hbox > button:hover:active,
 #editContactPanel > #editContactPanelBottomButtons > button:hover:active {
   background-color: #86888B;
 }
 
+#editContactPanel > hbox > button:focus,
 #editContactPanel > hbox > vbox > hbox > button:focus,
 #editContactPanel > #editContactPanelBottomButtons > button:focus {
   outline: 2px solid -moz-mac-focusring;

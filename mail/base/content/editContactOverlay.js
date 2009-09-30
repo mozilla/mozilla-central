@@ -140,6 +140,10 @@ var editContactInlineUI = {
     document.getElementById("editContactPanelCancelButton").hidden =
       !this._writeable;
 
+    // We don't need a delete button for a read only card.
+    document.getElementById("editContactPanelDeleteContactButton").hidden =
+      !this._writeable;
+
     var nameElement = document.getElementById("editContactName");
 
     // Set these to read only if we can't write to the directory.
@@ -171,6 +175,31 @@ var editContactInlineUI = {
                       { abURI: this._cardDetails.book.URI,
                         card: this._cardDetails.card });
 
+  },
+
+  deleteContact: function() {
+    if (this._cardDetails.book.readOnly)
+      return; /* double check we can delete this */
+
+    /* hide before the dialog or the panel takes the first click */
+    this.panel.hidePopup();
+
+    var bundle = document.getElementById("bundle_editContact");
+    if (!Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                  .getService(Components.interfaces.nsIPromptService)
+                  .confirm(window,
+                            bundle.getString("deleteContactTitle"),
+                            bundle.getString("deleteContactMessage")))
+      return;  /* XXX would be nice to bring the popup back up here */
+
+    let cardArray = Components.classes["@mozilla.org/array;1"]
+                              .createInstance(Components.interfaces.nsIMutableArray);
+    cardArray.appendElement(this._cardDetails.card, false);
+
+    Components.classes["@mozilla.org/abmanager;1"]
+              .getService(Components.interfaces.nsIAbManager)
+              .getDirectory(this._cardDetails.book.URI)
+              .deleteCards(cardArray);
   },
 
   saveChanges: function() {
