@@ -7291,6 +7291,8 @@ nsMsgDBView::nsMsgViewHdrEnumerator::nsMsgViewHdrEnumerator(nsMsgDBView *view)
 
 nsMsgDBView::nsMsgViewHdrEnumerator::~nsMsgViewHdrEnumerator()
 {
+  if (m_view)
+    m_view->Close();
 }
 
 NS_IMETHODIMP nsMsgDBView::nsMsgViewHdrEnumerator::GetNext(nsISupports **aItem)
