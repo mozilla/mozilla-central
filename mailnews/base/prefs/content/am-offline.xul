@@ -99,7 +99,7 @@
         <textbox id="autosyncValue" type="number" size="4" min="1"
                  class="autosync" onchange="onAutosyncChange();"
                  aria-labelledby="ageAutosyncBefore autosyncValue ageAutosyncMiddle autosyncInterval ageAutosyncAfter"/>
-        <label id="ageAutosyncMiddle" control="autosyncValue" label="&ageAutosyncMiddle.label;"/>
+        <label id="ageAutosyncMiddle" control="autosyncValue" value="&ageAutosyncMiddle.label;"/>
         <menulist id="autosyncInterval" onselect="onAutosyncChange();">
           <menupopup>
             <menuitem label="&dayAgeInterval.label;" value="1"/>
@@ -108,8 +108,7 @@
             <menuitem label="&yearAgeInterval.label;" value="365"/>
           </menupopup>
         </menulist>
-        <label id="ageAutosyncAfter" control="autosyncInterval"
-               flex="1" label="&ageAutosyncAfter.label;"/>
+        <label id="ageAutosyncAfter" control="autosyncInterval" value="&ageAutosyncAfter.label;"/>
       </hbox>
     </radiogroup>
 
