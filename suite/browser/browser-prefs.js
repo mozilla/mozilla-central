@@ -83,7 +83,6 @@ pref("browser.chrome.load_toolbar_icons", 0);
 pref("browser.toolbars.showbutton.go",      false);
 pref("browser.toolbars.showbutton.search",  true);
 
-//XXXCallek sound is not implemented in new DLMGR yet
 pref("browser.download.finished_download_sound", false);
 pref("browser.download.finished_sound_url", "");
 pref("browser.download.useDownloadDir", false);

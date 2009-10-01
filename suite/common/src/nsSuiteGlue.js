@@ -52,6 +52,7 @@ function SuiteGlue() {
 
 SuiteGlue.prototype = {
   _saveSession: false,
+  _sound: null,
 
   _setPrefToSaveSession: function()
   {
@@ -101,6 +102,9 @@ SuiteGlue.prototype = {
         subject.QueryInterface(Components.interfaces.nsISupportsPRBool);
         subject.data = true;
         break;
+      case "dl-done":
+        this._playDownloadSound();
+        break;
     }
   },
 
@@ -118,6 +122,13 @@ SuiteGlue.prototype = {
     osvr.addObserver(this, "browser-lastwindow-close-requested", false);
     osvr.addObserver(this, "browser-lastwindow-close-granted", false);
     osvr.addObserver(this, "session-save", false);
+    osvr.addObserver(this, "dl-done", false);
+    try {
+      tryToClose = Components.classes["@mozilla.org/appshell/trytoclose;1"]
+                             .getService(Components.interfaces.nsIObserver);
+      osvr.removeObserver(tryToClose, "quit-application-requested");
+      osvr.addObserver(tryToClose, "quit-application-requested", true);
+    } catch (e) {}
   },
 
   // cleanup (called on application shutdown)
@@ -134,6 +145,7 @@ SuiteGlue.prototype = {
     osvr.removeObserver(this, "browser-lastwindow-close-requested");
     osvr.removeObserver(this, "browser-lastwindow-close-granted");
     osvr.removeObserver(this, "session-save");
+    osvr.removeObserver(this, "dl-done");
   },
 
   // profile startup handler (contains profile initialization routines)
@@ -302,6 +314,27 @@ SuiteGlue.prototype = {
           }
         }
         break;
+      }
+    }
+  },
+
+  _playDownloadSound: function()
+  {
+    // Get the preferences service
+    var pref = Components.classes["@mozilla.org/preferences-service;1"]
+                         .getService(Components.interfaces.nsIPrefBranch);
+    if (pref.getBoolPref("browser.download.finished_download_sound")) {
+      if (!this._sound)
+        this._sound = Components.classes["@mozilla.org/sound;1"]
+                                .createInstance(Components.interfaces.nsISound);
+      try {
+        var url = pref.getComplexValue("browser.download.finished_sound_url",
+                                       Components.interfaces.nsISupportsString);
+        var ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
+        this._sound.play(ioSvc.newURI(url.data, null, null));
+      } catch (e) {
+        this._sound.beep();
       }
     }
   },

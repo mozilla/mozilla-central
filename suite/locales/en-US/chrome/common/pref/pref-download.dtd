@@ -27,9 +27,9 @@
 
 <!ENTITY finishedBehavior.label         "When a download completes">
 <!ENTITY playSound.label                "Play a sound">
-<!ENTITY playSound.accesskey            "s">
+<!ENTITY playSound.accesskey            "P">
 <!ENTITY showAlert.label                "Show an alert">
-<!ENTITY showAlert.accesskey            "a">
+<!ENTITY showAlert.accesskey            "S">
 <!ENTITY browse.label                   "Browse…">
 <!ENTITY browse.accesskey               "B">
 <!ENTITY preview.label                  "Preview">

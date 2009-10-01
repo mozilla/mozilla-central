@@ -51,13 +51,13 @@ function Startup()
                          .getProtocolHandler("file")
                          .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
+  SetSoundEnabled(document.getElementById("browser.download.finished_download_sound").value);
+
   // if we don't have the alert service, hide the pref UI for using alerts to
   // notify on download completion
   // see bug #158711
-  /* XXX: sound is to be reintroduced with bug 490467
   var downloadDoneNotificationAlertUI = document.getElementById("finishedNotificationAlert");
   downloadDoneNotificationAlertUI.hidden = !("@mozilla.org/alerts-service;1" in Components.classes);
-  */
 }
 
 /**
@@ -196,7 +196,6 @@ function IndexToFolder(aIndex)
   }
 }
 
-/* XXX: sound is to be reintroduced with bug 490467
 function SetSoundEnabled(aEnable)
 {
   EnableElementById("downloadSndURL", aEnable, false);
@@ -253,4 +252,3 @@ function ReadSndFile(aField)
     aField.label = (/Mac/.test(navigator.platform)) ? file.leafName : file.path;
   }
 }
-*/
