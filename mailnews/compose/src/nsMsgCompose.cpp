@@ -2193,13 +2193,17 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
       if (reply_on_top == 1)
       {
         // add one newline if a signature comes before the quote, two otherwise
+        PRBool includeSignature = PR_TRUE;
         PRBool sig_bottom = PR_TRUE;
         PRBool attachFile = PR_FALSE;
         nsString prefSigText;
+
+        mIdentity->GetSigOnReply(&includeSignature);
         mIdentity->GetSigBottom(&sig_bottom);
         mIdentity->GetHtmlSigText(prefSigText);
         rv = mIdentity->GetAttachSignature(&attachFile);
-        if (!sig_bottom && ((NS_SUCCEEDED(rv) && attachFile) || !prefSigText.IsEmpty()))
+        if (includeSignature && !sig_bottom &&
+            ((NS_SUCCEEDED(rv) && attachFile) || !prefSigText.IsEmpty()))
           mCitePrefix.AppendLiteral("\n");
         else
           mCitePrefix.AppendLiteral("\n\n");
