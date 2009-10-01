@@ -36,7 +36,7 @@ WindowOpenListener.prototype = {
   domwindow: null,
 
   handleEvent: function(event) {
-    todo_is(this.domwindow.document.location.href, this.url, "Should have opened the correct window");
+    is(this.domwindow.document.location.href, this.url, "Should have opened the correct window");
 
     this.domwindow.removeEventListener("load", this, false);
     // Allow any other load handlers to execute
@@ -142,12 +142,10 @@ function test3() {
 
   EventUtils.synthesizeMouse(gTestBrowser.contentDocument.getElementById("test"),
                              0, 0, {}, gTestBrowser.contentWindow);
-  // this test doesn't work, we don't open EM atm, put up an alert to trigger rest of test
-  alert("SeaMonkey workaround!");
 }
 
 function test4(win) {
-  todo_is(win.gView, "plugins", "Should have displayed the plugins pane");
+  is(win.gView, "plugins", "Should have displayed the plugins pane");
   win.close();
 }
 

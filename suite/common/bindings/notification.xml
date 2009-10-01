@@ -274,6 +274,31 @@
                               "", "chrome,resizable=yes",
                               {plugins: missingPlugins, browser: this.activeBrowser});
             aEvent.preventDefault();
+            aEvent.stopPropagation();
+          ]]>
+        </body>
+      </method>
+
+      <method name="managePlugins">
+        <parameter name="aEvent"/>
+        <body>
+          <![CDATA[
+            aEvent.preventDefault();
+            aEvent.stopPropagation();
+
+            var theEM = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                  .getService(Components.interfaces.nsIWindowMediator)
+                                  .getMostRecentWindow("Extension:Manager");
+
+            if (theEM) {
+              theEM.focus();
+              theEM.showView("plugins");
+              return;
+            }
+
+            const EMURL = "chrome://mozapps/content/extensions/extensions.xul";
+            const EMFEATURES = "all,dialog=no";
+            window.openDialog(EMURL, "", EMFEATURES, "plugins");
           ]]>
         </body>
       </method>
@@ -473,7 +498,7 @@
           // so don't stomp on the page developers toes.
 
           if (!(event.target instanceof HTMLObjectElement))
-            event.target.addEventListener("click", this, false);
+            event.target.addEventListener("click", this, true);
 
           if (this._prefs.getBoolPref("plugins.hide_infobar_for_missing_plugin"))
             return;
@@ -583,6 +608,17 @@
           const iconURL = "chrome://mozapps/skin/plugins/pluginGeneric.png";
           this.appendNotification(messageString, "blocked-plugins",
                                   iconURL, priority, buttons);
+        ]]>
+      </handler>
+
+      <handler event="PluginDisabled">
+        <![CDATA[
+          // Since we are expecting also untrusted events, make sure
+          // that the target is a plugin
+          if (!(event.target instanceof Components.interfaces.nsIObjectLoadingContent))
+            return;
+
+          event.target.addEventListener("click", this.managePlugins, true);
         ]]>
       </handler>
 
