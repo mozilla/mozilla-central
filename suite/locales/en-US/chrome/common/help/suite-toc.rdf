@@ -1103,9 +1103,11 @@
 <rdf:Description about="#cert-dialog-help-website">
     <nc:subheadings>
       <rdf:Seq>
-        <rdf:li><rdf:Description ID="new_web_cert" nc:name="Website Certified by an Unknown Authority" nc:link="cert_dialog_help.xhtml#web_site_certified_by_an_unknown_authority"/> </rdf:li>
-        <rdf:li><rdf:Description ID="exp_web_cert" nc:name="Server Certificate Expired" nc:link="cert_dialog_help.xhtml#server_certificate_expired"/> </rdf:li>
-        <rdf:li><rdf:Description ID="not_yet_web_cert" nc:name="Server Certificate Not Yet Valid" nc:link="cert_dialog_help.xhtml#server_certificate_not_yet_valid"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_con_failed_page" nc:name="Secure Connection Failed Page" nc:link="cert_dialog_help.xhtml#secure_connection_failed_page"/> </rdf:li>
+        <rdf:li><rdf:Description ID="untrusted_con_page" nc:name="Untrusted Connection Page" nc:link="cert_dialog_help.xhtml#untrusted_connection_page"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_con_failed_dialog" nc:name="Secure Connection Failed Dialog" nc:link="cert_dialog_help.xhtml#secure_connection_failed_dialog"/> </rdf:li>
+        <rdf:li><rdf:Description ID="exp_web_cert" nc:name="Certificate Expired" nc:link="cert_dialog_help.xhtml#certificate_expired"/> </rdf:li>
+        <rdf:li><rdf:Description ID="not_yet_web_cert" nc:name="Certificate Not Yet Valid" nc:link="cert_dialog_help.xhtml#certificate_not_yet_valid"/> </rdf:li>
         <rdf:li><rdf:Description ID="bad_name_web_cert" nc:name="Domain Name Mismatch" nc:link="cert_dialog_help.xhtml#domain_name_mismatch"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>

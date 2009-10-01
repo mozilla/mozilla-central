@@ -336,166 +336,134 @@
 
 <h2 id="web_site_certificates">Website Certificates</h2>
 
-<p>One of the windows listed here may appear when you attempt to go to a
-  website that supports the use of <a href="glossary.xhtml#ssl">SSL</a> for
+<p>When you attempt to go to a website that supports the use of
+  <a href="glossary.xhtml#ssl">SSL</a> for
   <a href="glossary.xhtml#authentication">authentication</a> and
-  <a href="glossary.xhtml#encryption">encryption</a>.</p>
+  <a href="glossary.xhtml#encryption">encryption</a>, you may be faced with an
+  error page. There are two types, one called
+  <a href="#secure_connection_failed_page">Secure Connection Failed</a> and one
+  called <a href="#untrusted_connection_page">Untrusted Connection</a>.</p>
 
 <div class="contentsBox">In this section:
   <ul>
-    <li><a href="#web_site_certified_by_an_unknown_authority">Website Certified
-      by an Unknown Authority</a></li>
-    <li><a href="#server_certificate_expired">Server Certificate Expired</a></li>
-    <li><a href="#server_certificate_not_yet_valid">Server Certificate Not Yet
+    <li><a href="#secure_connection_failed_page">Secure Connection Failed
+      Page</a></li>
+    <li><a href="#untrusted_connection_page">Untrusted Connection Page</a></li>
+    <li><a href="#secure_connection_failed_dialog">Secure Connection Failed
+      Dialog</a></li>
+    <li><a href="#certificate_expired">Server Certificate Expired</a></li>
+    <li><a href="#certificate_not_yet_valid">Server Certificate Not Yet
       Valid</a></li>
     <li><a href="#domain_name_mismatch">Domain Name Mismatch</a></li>
   </ul>
 </div>
 
-<h3 id="web_site_certified_by_an_unknown_authority">Website Certified by an Unknown
-  Authority</h3>
+<h3 id="secure_connection_failed_page">Secure Connection Failed Page</h3>
 
-<p>Many websites use certificates to identify themselves when you visit the
-  site. If Certificate Manager doesn&apos;t recognize the
-  <a href="glossary.xhtml#certificate_authority"> certificate authority (CA)</a>
-  that issued a website&apos;s certificate, it displays an alert that allows
-  you to examine the new website certificate and decide what to do.</p>
+<p>In the case where you have disabled the SSL protocol (e.g. through
+  <a href="ssl_help.xhtml#ssl_settings">SSL Settings</a>) or the site that you
+  are accessing is using an older, insecure version of the SSL protocol then you
+  will be presented with a page titled &quot;Secure Connection Failed&quot;.
+  That page contains some basic background information (including the
+  <strong>Error code</strong> that uniquely identifies the type of problem
+  &brandShortName; detected with the site) and a <strong>Try Again</strong>
+  button that triggers a page reload.</p>
 
-<p>Use the buttons to perform the following actions:</p>
-<ul>
-  <li><strong>View Certificate</strong>: Examine the website&apos;s
-    certificate.</li>
-  <li><strong>Cancel</strong>: Cancel the operation. Certificate Manager
-    will not recognize the certificate as legitimate identification and will not
-    connect to the website.</li>
-  <li><strong>OK</strong>: Accept the certificate and connect to the website.
-    Choose for how long the certificate should be accepted:
-    <ul>
-      <li><strong>Accept this certificate permanently</strong>: Certificate
-        Manager will recognize the certificate as legitimate identification
-        until the certificate expires.</li>
-      <li><strong>Accept this certificate temporarily for this session</strong>:
-        Certificate Manager will recognize the certificate as legitimate
-        identification only during your current &brandShortName; session. You
-        will see the alert again if you restart &brandShortName; and attempt to
-        visit the website.</li>
-    </ul>
-  </li>
-</ul>
+<h3 id="untrusted_connection_page">Untrusted Connection Page</h3>
 
-<p><strong>Important note for server administrators</strong>: This alert may be
-  triggered by a server that is not configured correctly. To find out if this
-  is the case, the server administrator or webmaster for the site you are
-  attempting to visit should check the status of any required intermediate CAs
-  and if necessary, install the missing certificate in the server.</p>
-
-<p>If you decide to contact the website&apos;s webmaster about this issue, you
-  can include the following information:</p>
+<p>If SSL itself is enabled then the error page that you will be presented with
+  will be titled &quot;This Connection is Untrusted&quot;. There are many
+  different reasons why a connection can appear untrusted. Here are some of the
+  most common ones:</p>
 
 <ul>
-  <li>The server administrator can obtain more information about intermediate
-    CAs from here:
-    <a href="http://knowledge.verisign.com/search/solution.jsp?id=vs2119">What
-    is the purpose of the Intermediate CA certificate?</a></li>
-  <li>If the server is using a VeriSign certificate, the server administrator
-    can download the appropriate certificate from here:
-    <a href="http://www.verisign.com/support/ssl-certificates-support/install-ssl-certificate.html">SSL
-    Certificates Support</a></li>
+  <li>the certificate of the website is <a href="#certificate_expired">no longer
+    valid (expired)</a></li>
+  <li>the certificate of the website is
+    <a href="#certificate_not_yet_valid">not yet valid</a></li>
+  <li>the certificate of the website is only valid for another site
+    (<a href="#domain_name_mismatch">domain name mismatch</a>)</li>
+  <li>the certificate of the website is self-signed (thus the identity of the
+    website cannot be verified).</li>
+  <li>the issuer certificate is not trusted (&brandShortName; cannot
+    verify the identity of the website because it doesn&apos;t
+    recognize the <a href="glossary.xhtml#certificate_authority">certificate
+    authority (CA)</a> that issued the website&apos;s certificate)</li>
 </ul>
 
-<p><strong>For advanced users</strong>: To ensure that Certificate Manager
-  trusts all certificates issued by a given CA, you can edit the trust
-  settings for the corresponding CA certificate. To do so, follow these
-  steps:</p>
+<p>The page displayed in the above cases is meant to help you understand why
+  &brandShortName; was unable to establish a secure connection to the website.
+  It starts by telling you that the site&apos;s identity could not be verified,
+  then offers you to leave the page by clicking the <strong>This sounds bad,
+  take me to my home page instead</strong> button. If you are unsure what to do
+  it is recommended that you follow this advice.</p>
 
-<ol>
-  <li>Open the <span class="mac">&brandShortName;</span>
-    <span class="noMac">Edit</span> menu and choose Preferences.</li>
-  <li>Under the Privacy &amp; Security category, click Certificates. (If no
-    subcategories are visible, double-click Privacy &amp; Security to expand
-    the list.)</li>
-  <li>Click Manage Certificates.</li>
-  <li>Click the Authorities tab.</li>
-  <li>Select the CA certificate whose trust settings you want to edit.</li>
-  <li>Click the Edit button and select the appropriate trust settings.</li>
-</ol>
+<p>If you want to know a little bit more about the actual problem at hand you
+  may expand the corresponding section by clicking the chevron in front of
+  <strong>Technical Details</strong>. That section also contains the
+  <strong>Error code</strong> that uniquely identifies the type of problem
+  &brandShortName; detected with the site.</p>
 
-<h3 id="server_certificate_expired">Server Certificate Expired</h3>
+<h4 id="add_security_exception">Adding a Security Exception</h4>
+
+<p>The <strong>I Understand the Risks</strong> section of the Untrusted
+  Connection page allows you to tell &brandShortName; to explicitly override the
+  security checks for this site by adding an exception. If you expand the
+  section by clicking the chevron in front of it you will see an <strong>Add
+  Exception</strong> button that will take you to a dialog allowing you to get
+  and view the website&apos;s certificate and optionally add a Security
+  Exception for it (either permanently or just for the current session). Those
+  exceptions can be administered through the Certificate Manager&apos;s
+  <a href="certs_help.xhtml#servers">Servers</a> tab.</p>
+
+<h3 id="secure_connection_failed_dialog">Secure Connection Failed Dialog</h3>
+
+<p>In cases where &brandShortName; cannot determine the actual cause of the
+  problem a dialog titled &quot;Secure Connection Failed&quot; is shown in
+  addition to the <a href="#untrusted_connection_page">Untrusted Connection
+  page</a>. That dialog includes a <strong>View Certificate</strong> button
+  that allows you to examine the website&apos;s certificate more closely.</p>
+
+<h3 id="certificate_expired">Certificate Expired</h3>
 
 <p>Like a credit card, a driver&apos;s license, and many other forms of
   identification, a <a href="glossary.xhtml#certificate">certificate</a> is
   valid for a specified period of time. When a certificate expires, the owner
   of the certificate needs to get a new one.</p>
 
-<p>Certificate Manager warns you when you attempt to visit a website whose
-  server certificate has expired. The first thing you should do is make sure
-  the time and date displayed by your computer is correct. If your
-  computer&apos;s clock is set to a date that is after the expiration date,
-  Certificate Manager treats the website&apos;s certificate as expired.</p>
+<p>&brandShortName; <a href="#untrusted_connection_page">warns</a> you when you
+  attempt to visit a website whose server certificate has expired. The first
+  thing you should do is make sure the time and date displayed by your computer
+  is correct. If your computer&apos;s clock is set to a date that is after the
+  expiration date, &brandShortName; treats the website&apos;s certificate as
+  expired.</p>
 
 <p>If your computer&apos;s clock is set correctly, you need to make a decision
   about whether to trust the site. This decision depends on what you intend to
   do at the site and what else you know about it. Most commercial sites will
-  make sure that they replace their certificates before they expire.</p>
+  make sure that they replace their certificates before they expire. If you
+  choose to continue you need to <a href="#add_security_exception">add a
+  security exception</a>.</p>
 
-<p>You can take these actions from the Expired Server Certificate dialog
-  box:</p>
-
-<ul>
-  <li><strong>View Certificate</strong>: To examine information about the
-    certificate, including its validity period, click View Certificate.</li>
-  <li><strong>Continue</strong>: If you have reason to believe the
-    certificate&apos;s expiration is an inadvertent error, you may choose to
-    click Continue to accept the certificate anyway for this session, and let
-    the webmaster for the site know about the problem.
-
-    <p>Be cautious about any actions you take while you are visiting the
-      site.</p>
-  </li>
-  <li><strong>Cancel</strong>: If you suspect that there may be a significant
-    problem and you don&apos;t want to risk visiting the site at all, click
-    Cancel (in which case Certificate Manager will not connect you to the
-    site).</li>
-</ul>
-
-<h3 id="server_certificate_not_yet_valid">Server Certificate Not Yet Valid</h3>
+<h3 id="certificate_not_yet_valid">Certificate Not Yet Valid</h3>
 
 <p>Like a credit card, a driver&apos;s license, and many other forms of
   identification, a <a href="glossary.xhtml#certificate">certificate</a> is
   valid for a specified period of time.</p>
 
-<p>Certificate Manager warns you when you attempt to visit a website whose
-  server certificate&apos;s validity period has not yet started. The first
-  thing you should do is make sure the time and date displayed by your own
-  computer is correct. If your computer&apos;s clock is set to the wrong date,
-  Certificate Manager may treat the server certificate as not yet valid even
-  if this is not the case.</p>
+<p>&brandShortName; <a href="#untrusted_connection_page">warns</a> you when you
+  attempt to visit a website whose server certificate&apos;s validity period has
+  not yet started. The first thing you should do is make sure the time and date
+  displayed by your own computer is correct. If your computer&apos;s clock is
+  set to the wrong date, &brandShortName; may treat the server certificate as
+  not yet valid even if this is not the case.</p>
 
 <p>If your computer&apos;s clock is set correctly, you need to make a decision
   about whether to trust the site. This decision depends on what you intend to
   do at the site and what else you know about it. Most commercial sites will
   make sure that the validity period for their certificates has begun before
-  beginning to use them.</p>
-
-<p>You can take these actions from the Server Certificate Not Yet Valid dialog
-  box:</p>
-
-<ul>
-  <li><strong>View Certificate</strong>: To examine information about the
-    certificate, including its validity period, click View Certificate.</li>
-  <li><strong>OK</strong>: If you have reason to believe the problem is an
-    inadvertent error, you may choose to click OK to accept the certificate
-    anyway for this session, and let the webmaster for the site know about the
-    problem.
-
-    <p>Be cautious about any actions you take while you are visiting the
-      site.</p>
-  </li>
-  <li><strong>Cancel</strong>: If you suspect that there may be a significant
-    problem and you don&apos;t want to risk visiting the site at all, click
-    Cancel (in which case Certificate Manager will not connect you to the
-    site).</li>
-</ul>
+  beginning to use them. If you choose to continue you need to
+  <a href="#add_security_exception">add a security exception</a>.</p>
 
 <h3 id="domain_name_mismatch">Domain Name Mismatch</h3>
 
@@ -506,33 +474,18 @@
   domain name of the website, it may be a sign that someone is attempting to
   intercept your communication with the website.</p>
 
-<p>The decision whether to trust the site anyway depends on what you intend to
-  do at the site and what else you know about it. Most commercial sites will
-  make sure that the host name for a website certificate matches
-  the website&apos;s actual host name.</p>
+<p>&brandShortName; <a href="#untrusted_connection_page">warns</a> you when you
+  attempt to visit a website whose server certificate&apos;s domain does not
+  match the domain of the website you are trying to visit. The decision whether
+  to trust the site anyway depends on what you intend to do at the site and what
+  else you know about it. Most commercial sites will make sure that the host
+  name for a website certificate matches the website&apos;s actual host name.
+  If you choose to continue you need to <a href="#add_security_exception">add
+  a security exception</a>.</p>
 
-<p>You can take these actions from the Domain Name Mismatch dialog box:</p>
-
-<ul>
-  <li><strong>View Certificate</strong>: To examine information about the
-    certificate, click View Certificate.</li>
-  <li><strong>OK</strong>: If you have reason to believe the problem is an
-    inadvertent error, you may choose to click OK to accept the certificate
-    anyway for this session, and let the webmaster for the site know about
-    the problem.
-
-    <p>Be cautious about any actions you take while you are visiting the site,
-      and treat any information you find there as potentially suspect.</p>
-  </li>
-  <li><strong>Cancel</strong>: If you suspect that there may be a significant
-    problem and you don&apos;t want to risk visiting the site at all, click
-    Cancel (in which case Certificate Manager will not connect you to the
-    site).</li>
-</ul>
-
-<p>If you decide to accept the certificate anyway for this session, you should
-  be cautious about what you do on the website, and you should treat any
-  information you find there as potentially suspect.</p>
+<p>If you decide to accept the certificate anyway (either for this session or
+  permanently), you should be cautious about what you do on the website, and you
+  should treat any information you find there as potentially suspect.</p>
 
 <p>&copyright.string;</p>
 
