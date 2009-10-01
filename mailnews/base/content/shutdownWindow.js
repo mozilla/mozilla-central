@@ -43,19 +43,17 @@ var stringBundle;
 
 var msgShutdownService = Components.classes["@mozilla.org/messenger/msgshutdownservice;1"]
                            .getService(Components.interfaces.nsIMsgShutdownService);
-                        
+
 function onLoad()
 {
   numTasks = msgShutdownService.getNumTasks();
-  
+
   stringBundle = document.getElementById("bundle_shutdown");
   document.title = stringBundle.getString("shutdownDialogTitle");
-  
+
   updateTaskProgressLabel(1);
   updateProgressMeter(0);
-  
-  moveToAlertPosition();
-  
+
   msgShutdownService.startShutdownTasks();
 }
 
@@ -95,10 +93,10 @@ nsMsgShutdownTaskListener.prototype =
         iid.equals(Components.interfaces.nsISupportsWeakReference) ||
         iid.equals(Components.interfaces.nsISupports))
       return this;
-   
+
     throw Components.results.NS_NOINTERFACE;
   },
-  
+
   onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus)
   {
     if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP)
@@ -106,7 +104,7 @@ nsMsgShutdownTaskListener.prototype =
       window.close();
     }
   },
-  
+
   onProgressChange: function(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress)
   {
     updateProgressMeter(((aCurTotalProgress / aMaxTotalProgress) * 100));

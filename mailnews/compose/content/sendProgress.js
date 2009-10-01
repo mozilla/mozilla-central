@@ -168,7 +168,6 @@ function onLoad()
 
     // set our web progress listener on the helper app launcher
     msgProgress.registerListener(progressListener);
-    moveToAlertPosition();
 
     var prefix = itsASaveOperation ? "titlePrefixSave" : "titlePrefixSend";
     document.title = gSendProgressStringBundle.getString(prefix) + " " + subject;

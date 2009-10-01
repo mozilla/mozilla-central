@@ -188,15 +188,16 @@ function AbNewLDAPDirectory()
 {
   window.openDialog("chrome://messenger/content/addressbook/pref-directory-add.xul",
                     "",
-                    "chrome,modal=yes,resizable=no,centerscreen",
+                    "chrome,modal,resizable=no,centerscreen",
                     null);
 }
 
 function AbNewAddressBook()
 {
-  window.openDialog(
-    "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul",
-    "", "chrome,modal=yes,resizable=no,centerscreen", null);
+  window.openDialog("chrome://messenger/content/addressbook/abAddressBookNameDialog.xul",
+                    "",
+                    "chrome,modal,resizable=no,centerscreen",
+                    null);
 }
 
 function AbEditSelectedDirectory()
@@ -210,7 +211,8 @@ function AbEditSelectedDirectory()
     }
     else {
       window.openDialog(directory.propertiesChromeURI,
-                        "editDirectory", "chrome,modal=yes,resizable=no",
+                        "",
+                        "chrome,modal,resizable=no,centerscreen",
                         {selectedDirectory: directory});
     }
   }
@@ -504,7 +506,7 @@ function goNewListDialog(selectedAB)
 {
   window.openDialog("chrome://messenger/content/addressbook/abMailListDialog.xul",
                     "",
-                    "chrome,resizable=no,titlebar,modal,centerscreen",
+                    "chrome,modal,resizable=no,centerscreen",
                     {selectedAB:selectedAB});
 }
 
@@ -512,7 +514,7 @@ function goEditListDialog(abCard, listURI)
 {
   window.openDialog("chrome://messenger/content/addressbook/abEditListDialog.xul",
                     "",
-                    "chrome,resizable=no,titlebar,modal,centerscreen",
+                    "chrome,modal,resizable=no,centerscreen",
                     {abCard:abCard, listURI:listURI});
 }
 
@@ -520,16 +522,16 @@ function goNewCardDialog(selectedAB)
 {
   window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul",
                     "",
-                    "chrome,resizable=no,titlebar,modal,centerscreen",
+                    "chrome,modal,resizable=no,centerscreen",
                     {selectedAB:selectedAB});
 }
 
 function goEditCardDialog(abURI, card)
 {
   window.openDialog("chrome://messenger/content/addressbook/abEditCardDialog.xul",
-            "",
-            "chrome,resizable=no,modal,titlebar,centerscreen",
-            {abURI:abURI, card:card});
+                    "",
+                    "chrome,modal,resizable=no,centerscreen",
+                    {abURI:abURI, card:card});
 }
 
 

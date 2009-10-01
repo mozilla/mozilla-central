@@ -166,7 +166,7 @@ function GetListValue(mailList, doAdd)
   }
 
   --i;
-  
+
   if (doAdd == false && i < oldTotal)
   {
     for (var j = i; j < oldTotal; j++)
@@ -219,17 +219,16 @@ function OnLoadNewMailList()
         if (parentURI) {
           selectedAB = parentURI;
         }
-  }
+      }
       else if (directory.readOnly) {
         selectedAB = kPersonalAddressbookURI;
-        
-      }      
+      }
       else {
         selectedAB = abURI;
       }
     }
   }
-  
+
   if (!selectedAB)
     selectedAB = kPersonalAddressbookURI;
 
@@ -246,8 +245,6 @@ function OnLoadNewMailList()
   var listName = document.getElementById('ListName');
   if ( listName )
     setTimeout( function(firstTextBox) { firstTextBox.focus(); }, 0, listName );
-
-  moveToAlertPosition();
 }
 
 function EditListOKButton()
@@ -326,8 +323,6 @@ function OnLoadEditList()
   }
 
   document.addEventListener("keypress", awDocumentKeyPress, true);
-
-  moveToAlertPosition();
 
   // workaround for bug 118337 - for mailing lists that have more rows than fits inside
   // the display, the value of the textbox inside the new row isn't inherited into the input -

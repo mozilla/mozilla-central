@@ -115,7 +115,7 @@ function OnLoadNewCard()
     if ("selectedAB" in window.arguments[0]) {
       // check if selected ab is a mailing list
       var abURI = window.arguments[0].selectedAB;
-      
+
       var directory = GetDirectoryFromURI(abURI);
       if (directory.isMailList) {
         var parentURI = GetParentDirectoryFromMailingListURI(abURI);
@@ -125,7 +125,7 @@ function OnLoadNewCard()
       else if (!directory.readOnly)
         gEditCard.selectedAB = window.arguments[0].selectedAB;
     }
-    
+
     // we may have been given properties to pre-initialize the window with....
     // we'll fill these in here...
     if ("primaryEmail" in window.arguments[0])
@@ -141,7 +141,7 @@ function OnLoadNewCard()
     if ("aimScreenName" in window.arguments[0])
       gEditCard.card.setProperty("_AimScreenName",
                                  window.arguments[0].aimScreenName);
-    
+
     if ("allowRemoteContent" in window.arguments[0])
       gEditCard.card.setProperty("AllowRemoteContent",
                                  window.arguments[0].allowRemoteContent);
@@ -160,7 +160,7 @@ function OnLoadNewCard()
 
     if ("titleProperty" in window.arguments[0])
       gEditCard.titleProperty = window.arguments[0].titleProperty;
-    
+
     if ("hideABPicker" in window.arguments[0])
       gHideABPicker = window.arguments[0].hideABPicker;
   }
@@ -175,7 +175,7 @@ function OnLoadNewCard()
   } 
 
   SetCardDialogTitle(gEditCard.card.displayName);
-    
+
   GetCardValues(gEditCard.card, document);
 
   // FIX ME - looks like we need to focus on both the text field and the tab widget
@@ -188,7 +188,6 @@ function OnLoadNewCard()
     // XXX Using the setTimeout hack until bug 103197 is fixed
     setTimeout( function(firstTextBox) { firstTextBox.focus(); }, 0, focus );
   }
-  moveToAlertPosition();
 }
 
 function EditCardOKButton()
@@ -467,7 +466,7 @@ function GetCardValues(cardproperty, doc)
   var popup = document.getElementById("PreferMailFormatPopup");
   if (popup)
     popup.value = cardproperty.getProperty("PreferMailFormat", "");
-    
+
   var allowRemoteContentEl = document.getElementById("allowRemoteContent");
   if (allowRemoteContentEl)
     // getProperty may return a "1" or "0" string, we want a boolean
@@ -554,7 +553,7 @@ function CheckAndSetCardValues(cardproperty, doc, check)
   var popup = document.getElementById("PreferMailFormatPopup");
   if (popup)
     cardproperty.setProperty("PreferMailFormat", popup.value);
-    
+
   var allowRemoteContentEl = document.getElementById("allowRemoteContent");
   if (allowRemoteContentEl)
     cardproperty.setProperty("AllowRemoteContent", allowRemoteContentEl.checked);

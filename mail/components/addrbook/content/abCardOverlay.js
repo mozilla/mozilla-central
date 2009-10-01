@@ -115,7 +115,7 @@ function OnLoadNewCard()
     if ("selectedAB" in window.arguments[0]) {
       // check if selected ab is a mailing list
       var abURI = window.arguments[0].selectedAB;
-      
+
       var directory = GetDirectoryFromURI(abURI);
       if (directory.isMailList) {
         var parentURI = GetParentDirectoryFromMailingListURI(abURI);
@@ -159,7 +159,7 @@ function OnLoadNewCard()
 
     if ("titleProperty" in window.arguments[0])
       gEditCard.titleProperty = window.arguments[0].titleProperty;
-    
+
     if ("hideABPicker" in window.arguments[0])
       gHideABPicker = window.arguments[0].hideABPicker;
   }
@@ -174,7 +174,7 @@ function OnLoadNewCard()
   }
 
   SetCardDialogTitle(gEditCard.card.displayName);
-    
+
   GetCardValues(gEditCard.card, document);
 
   // FIX ME - looks like we need to focus on both the text field and the tab widget
@@ -187,7 +187,6 @@ function OnLoadNewCard()
     // XXX Using the setTimeout hack until bug 103197 is fixed
     setTimeout( function(firstTextBox) { firstTextBox.focus(); }, 0, focus );
   }
-  moveToAlertPosition();
 }
 
 function EditCardOKButton()

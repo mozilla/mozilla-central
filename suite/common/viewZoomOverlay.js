@@ -304,7 +304,8 @@ function setZoomOther()
 
   // open dialog and ask for new value
   var o = {value: zoom.factorOther, zoomMin: zoom.MIN, zoomMax: zoom.MAX};
-  window.openDialog("chrome://communicator/content/askViewZoom.xul", "AskViewZoom", "chrome,modal,titlebar", o);
+  window.openDialog("chrome://communicator/content/askViewZoom.xul",
+                    "", "chrome,modal,centerscreen", o);
   if (o.zoomOK)
     zoom.currentZoom = o.value;
 }

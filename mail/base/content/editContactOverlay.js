@@ -171,7 +171,8 @@ var editContactInlineUI = {
     this.panel.hidePopup();
 
     window.openDialog("chrome://messenger/content/addressbook/abEditCardDialog.xul",
-                      "", "chrome,resizable=no,modal,titlebar,centerscreen",
+                      "",
+                      "chrome,modal,resizable=no,centerscreen",
                       { abURI: this._cardDetails.book.URI,
                         card: this._cardDetails.card });
 

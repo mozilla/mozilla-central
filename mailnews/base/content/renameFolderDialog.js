@@ -59,7 +59,6 @@ function onLoad()
   // pre select the folderPicker, based on what they selected in the folder pane
   dialog.preselectedFolderURI = arguments.preselectedURI;
 
-  moveToAlertPosition();
   doEnabling();
 }
 

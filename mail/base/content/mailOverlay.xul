@@ -9,8 +9,7 @@
     function openNewCardDialog()
       {
         window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul",
-                          "",
-                          "chrome,resizable=no,titlebar,modal");
+                          "", "chrome,modal,resizable=no,centerscreen");
       }
 
     function goOpenNewMessage()
@@ -35,7 +34,7 @@
 
   ]]>
   </script>
-         
+
   <!-- generic commands -->  
   <commandset id="tasksCommands">
     <command id="cmd_newMessage" oncommand="goOpenNewMessage();"/>

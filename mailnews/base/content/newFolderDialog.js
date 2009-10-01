@@ -77,7 +77,6 @@ function onLoad()
     eval(selectedFolderType.getAttribute("oncommand"));
   }
 
-  moveToAlertPosition();
   doEnabling();
 }
 

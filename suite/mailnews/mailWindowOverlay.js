@@ -1461,7 +1461,8 @@ function MsgNewFolder(callBackFunctionName)
         }
     }
     window.openDialog("chrome://messenger/content/newFolderDialog.xul",
-                      "", "chrome,titlebar,modal",
+                      "",
+                      "chrome,modal,centerscreen",
                       {folder: destinationFolder,
                        dualUseFolders: dualUseFolders,
                        okCallback:callBackFunctionName});

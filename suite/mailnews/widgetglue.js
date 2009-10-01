@@ -73,8 +73,8 @@ function MsgRenameFolder()
   let folder = GetSelectedMsgFolders()[0];
   let dialog = window.openDialog(
                "chrome://messenger/content/renameFolderDialog.xul",
-               "newFolder",
-               "chrome,titlebar,modal",
+               "",
+               "chrome,modal,centerscreen",
                {preselectedURI: folder.URI,
                 okCallback: RenameFolder, name: folder.prettyName});
 }
@@ -167,7 +167,7 @@ function openNewVirtualFolderDialogWithArgs(defaultViewName, aSearchTerms)
   let name = folder.prettyName + "-" + defaultViewName;
 
   var dialog = window.openDialog("chrome://messenger/content/virtualFolderProperties.xul", "",
-                                 "chrome,titlebar,modal,centerscreen",
+                                 "chrome,modal,centerscreen",
                                  {folder:folder,
                                   searchTerms:aSearchTerms,
                                   newFolderName:name});
@@ -178,7 +178,7 @@ function MsgVirtualFolderProperties(aEditExistingVFolder)
   var preselectedFolder = GetFirstSelectedMsgFolder();
 
   var dialog = window.openDialog("chrome://messenger/content/virtualFolderProperties.xul", "",
-                                 "chrome,titlebar,modal,centerscreen",
+                                 "chrome,modal,centerscreen",
                                  {folder:preselectedFolder,
                                   editExistingFolder: aEditExistingVFolder,
                                   onOKCallback:onEditVirtualFolderPropertiesCallback,
@@ -218,7 +218,7 @@ function MsgFolderProperties()
   var dialog = window.openDialog(
               "chrome://messenger/content/folderProps.xul",
               "",
-              "chrome,centerscreen,titlebar,modal",
+              "chrome,modal,centerscreen",
               {folder: msgFolder, serverType: msgFolder.server.type,
                msgWindow: msgWindow, title: windowTitle,
                okCallback: FolderProperties, tabID: "", tabIndex: 0,

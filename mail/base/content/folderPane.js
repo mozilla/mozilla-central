@@ -1638,7 +1638,8 @@ let gFolderTreeController = {
     }
 
     window.openDialog("chrome://messenger/content/newFolderDialog.xul",
-                      "", "chrome,titlebar,modal",
+                      "",
+                      "chrome,modal,resizable=no,centerscreen",
                       {folder: folder, dualUseFolders: dualUseFolders,
                        okCallback: newFolderCallback});
   },
@@ -1693,8 +1694,9 @@ let gFolderTreeController = {
       folder.updateFolder(msgWindow);
     }
 
-    window.openDialog("chrome://messenger/content/folderProps.xul", "",
-                      "chrome,centerscreen,titlebar,modal",
+    window.openDialog("chrome://messenger/content/folderProps.xul",
+                      "",
+                      "chrome,modal,centerscreen,modal",
                       {folder: folder, serverType: folder.server.type,
                        msgWindow: msgWindow, title: title,
                        okCallback: editFolderCallback,
@@ -1724,7 +1726,8 @@ let gFolderTreeController = {
       folder.rename(aName, msgWindow);
     }
     window.openDialog("chrome://messenger/content/renameFolderDialog.xul",
-                      "newFolder", "chrome,titlebar,modal",
+                      "",
+                      "chrome,modal,centerscreen",
                       {preselectedURI: folder.URI,
                        okCallback: renameCallback, name: folder.prettyName});
   },
@@ -1872,7 +1875,8 @@ let gFolderTreeController = {
       name += "-" + aName;
 
     window.openDialog("chrome://messenger/content/virtualFolderProperties.xul",
-                      "", "chrome,titlebar,modal,centerscreen",
+                      "",
+                      "chrome,modal,centerscreen",
                       {folder: folder, searchTerms: aSearchTerms,
                        newFolderName: name});
   },
@@ -1888,7 +1892,8 @@ let gFolderTreeController = {
         FolderPaneSelectionChange();
     }
     window.openDialog("chrome://messenger/content/virtualFolderProperties.xul",
-                      "", "chrome,titlebar,modal,centerscreen",
+                      "",
+                      "chrome,modal,centerscreen",
                       {folder: folder, editExistingFolder: true,
                        onOKCallback: editVirtualCallback,
                        msgWindow: msgWindow});

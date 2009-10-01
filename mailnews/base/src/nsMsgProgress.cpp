@@ -81,38 +81,38 @@ NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindowInternal *parent,
                                                 nsISupports *parameters)
 {
   nsresult rv;
-  
+
   if (aMsgWindow)
   {
     SetMsgWindow(aMsgWindow);
     aMsgWindow->SetStatusFeedback(this);
   }
-  
+
   NS_ENSURE_ARG_POINTER(dialogURL);
   NS_ENSURE_ARG_POINTER(parent);
-  
+
   // Set up window.arguments[0]...
   nsCOMPtr<nsISupportsArray> array;
   rv = NS_NewISupportsArray(getter_AddRefs(array));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsISupportsInterfacePointer> ifptr =
     do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   ifptr->SetData(static_cast<nsIMsgProgress*>(this));
   ifptr->SetDataIID(&NS_GET_IID(nsIMsgProgress));
-  
+
   array->AppendElement(ifptr);
   array->AppendElement(parameters);
-  
+
   // Open the dialog.
   nsCOMPtr<nsIDOMWindow> newWindow;
-  
-  nsString chromeOptions(NS_LITERAL_STRING("chrome,titlebar,dependent"));
+
+  nsString chromeOptions(NS_LITERAL_STRING("chrome,dependent,centerscreen"));
   if (inDisplayModal)
     chromeOptions.AppendLiteral(",modal");
-  
+
   return parent->OpenDialog(NS_ConvertASCIItoUTF16(dialogURL),
                             NS_LITERAL_STRING("_blank"),
                             chromeOptions,

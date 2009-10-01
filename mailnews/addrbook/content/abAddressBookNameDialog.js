@@ -79,8 +79,6 @@ function abNameOnLoad()
     gNameInput.focus();
     abNameDoOkEnabling();
   }
-
-  moveToAlertPosition();
 }
 
 function abNameOKButton()

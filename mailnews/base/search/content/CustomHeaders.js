@@ -74,8 +74,6 @@ function onLoad()
 
     updateAddButton(true);
     updateRemoveButton();
-
-    moveToAlertPosition();
 }
 
 function initializeDialog(hdrs)

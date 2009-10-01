@@ -275,8 +275,6 @@ function folderPropsOnLoad()
   hideShowControls(serverType);
   onCheckKeepMsg();
   onUseDefaultRetentionSettings();
-
-  moveToAlertPosition();
 }
 
 function hideShowControls(serverType)

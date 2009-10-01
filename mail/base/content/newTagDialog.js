@@ -59,24 +59,23 @@ function onLoad()
   if (arguments.keyToEdit)
     initializeForEditing(arguments.keyToEdit);
 
-  moveToAlertPosition();
   doEnabling();
 }
 
-/** 
+/**
  * Turn the new tag dialog into an edit existing tag dialog
  */
 function initializeForEditing(aTagKey)
 {
   dialog.editTagKey = aTagKey;
-  
+
   // Change the title of the dialog
   var messengerBundle = document.getElementById("bundle_messenger");
   document.title = messengerBundle.getString("editTagTitle");
-  
+
   // override the OK button
   document.documentElement.setAttribute("ondialogaccept", "return onOKEditTag();");
-  
+
   // extract the color and name for the current tag
   var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
                      .getService(Components.interfaces.nsIMsgTagService);
@@ -93,7 +92,7 @@ function onOKEditTag()
                      .getService(Components.interfaces.nsIMsgTagService);
   // get the tag name of the current key we are editing
   var existingTagName = tagService.getTagForKey(dialog.editTagKey);
-  
+
   // it's ok if the name didn't change
   if (existingTagName != dialog.nameField.value)
   {
@@ -103,10 +102,10 @@ function onOKEditTag()
       alertForExistingTag();
       return false; // abort the OK
     }
-              
+
     tagService.setTagForKey(dialog.editTagKey, dialog.nameField.value);
   }
-    
+
   tagService.setColorForKey(dialog.editTagKey, document.getElementById("tagColorPicker").color);
   return dialog.okCallback();
 }
@@ -120,14 +119,13 @@ function onOKNewTag()
   var name = dialog.nameField.value;
 
   var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"].getService(Components.interfaces.nsIMsgTagService);
-  
+
   if (tagService.getKeyForTag(name))
   {
     alertForExistingTag();
     return false;
-  } 
-  else
-    return dialog.okCallback(name, document.getElementById("tagColorPicker").color);
+  }
+  return dialog.okCallback(name, document.getElementById("tagColorPicker").color);
 }
 
 /**

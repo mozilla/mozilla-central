@@ -1153,7 +1153,7 @@ function openNewCardDialog() {
     window.openDialog(
         "chrome://messenger/content/addressbook/abNewCardDialog.xul",
         "",
-        "chrome,resizable=no,titlebar,modal");
+        "chrome,modal,resizable=no,centerscreen");
 }
 
 /**

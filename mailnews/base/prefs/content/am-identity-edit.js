@@ -352,7 +352,7 @@ function editVCard()
   // read vCard hidden value from UI
   window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul",
                     "",
-                    "chrome,resizable=no,titlebar,modal",
+                    "chrome,modal,resizable=no,centerscreen",
                     {escapedVCardStr:escapedVCard.value, okCallback:editVCardCallback,
                      titleProperty:"editVCardTitle", hideABPicker:true});
 }

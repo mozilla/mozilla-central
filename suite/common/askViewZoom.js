@@ -52,7 +52,6 @@ function onLoad() {
   dialog.input.select();
   dialog.input.focus();
 
-  moveToAlertPosition();
   doEnabling();
 }
 
