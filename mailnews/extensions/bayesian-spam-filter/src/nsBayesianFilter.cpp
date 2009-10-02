@@ -1132,6 +1132,16 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
             readCount = aCount;
         }
 
+        // mBuffer is supposed to be allocated in onStartRequest. But something
+        // is causing that to not happen, so as a last-ditch attempt we'll
+        // do it here.
+        if (!mBuffer)
+        {
+          mBuffer = new char[mBufferSize];
+          if (!mBuffer)
+            return NS_ERROR_OUT_OF_MEMORY;
+        }
+
         char* buffer = mBuffer;
         rv = aInputStream->Read(buffer + mLeftOverCount, readCount, &readCount);
         if (NS_FAILED(rv))
