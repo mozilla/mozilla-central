@@ -1696,7 +1696,7 @@ let gFolderTreeController = {
 
     window.openDialog("chrome://messenger/content/folderProps.xul",
                       "",
-                      "chrome,modal,centerscreen,modal",
+                      "chrome,modal,centerscreen",
                       {folder: folder, serverType: folder.server.type,
                        msgWindow: msgWindow, title: title,
                        okCallback: editFolderCallback,
