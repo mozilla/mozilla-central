@@ -2187,7 +2187,7 @@ if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1"; then
     XPCOM_FROZEN_LDOPTS='$(LIBXUL_DIST)/lib/xpcom.lib'
 else
     XPCOM_FROZEN_LDOPTS='$(LIBXUL_DIST)/lib/xpcom.lib $(LIBXUL_DIST)/lib/mozalloc.lib'
-endif
+fi
     ZIP=zip
     LIBIDL_CFLAGS="-I$MOZ_TOOLS_DIR/include ${GLIB_CFLAGS}"
     LIBIDL_LIBS="$MOZ_TOOLS_DIR/lib/libidl-0.6_s.lib $MOZ_TOOLS_DIR/lib/glib-1.2_s.lib"
