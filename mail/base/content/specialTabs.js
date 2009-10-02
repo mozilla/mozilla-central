@@ -247,8 +247,9 @@ var specialTabs = {
       aTab.browser.webProgress.addProgressListener(filter, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
 
       // Wire up a progress listener to the filter for this browser
-      const listener = new tabProgressListener(aTab, false);
-      filter.addProgressListener(listener, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
+      aTab.progressListener = new tabProgressListener(aTab, false);
+
+      filter.addProgressListener(aTab.progressListener, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
 
       // Now start loading the content.
       aTab.title = this.loadingTabString;
@@ -263,6 +264,7 @@ var specialTabs = {
       aTab.browser.removeEventListener("DOMWindowClose",
                                        aTab.closeListener, true);
       aTab.browser.webProgress.removeProgressListener(aTab.filter);
+      aTab.filter.removeProgressListener(aTab.progressListener);
     },
     saveTabState: function onSaveTabState(aTab) {
       aTab.browser.setAttribute("type", "content-targetable");
