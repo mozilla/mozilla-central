@@ -319,9 +319,9 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
     }
     if (curSequenceEnd > startSequence)
     {
-      returnString.AppendInt(startSequence);
+      returnString.AppendInt((PRInt64) startSequence);
       returnString += ':';
-      returnString.AppendInt(curSequenceEnd);
+      returnString.AppendInt((PRInt64) curSequenceEnd);
       startSequence = nextKey;
       curSequenceEnd = startSequence;
       curFlagStateIndex = -1;
@@ -330,7 +330,7 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
     {
       startSequence = nextKey;
       curSequenceEnd = startSequence;
-      returnString.AppendInt(msgUids[keyIndex]);
+      returnString.AppendInt((PRInt64) msgUids[keyIndex]);
       curFlagStateIndex = -1;
     }
     // check if we've generated too long a string - if there's no flag state,
@@ -353,8 +353,8 @@ void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys)
   // This is in the form <id>,<id>, or <id1>:<id2>
   char curChar = *uidString;
   PRBool isRange = PR_FALSE;
-  int32 curToken;
-  int32 saveStartToken=0;
+  PRUint32 curToken;
+  PRUint32 saveStartToken = 0;
 
   for (const char *curCharPtr = uidString; curChar && *curCharPtr;)
   {
@@ -363,9 +363,9 @@ void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys)
     while (curChar != ':' && curChar != ',' && curChar != '\0')
       curChar = *curCharPtr++;
 
-    // we don't need to null terminate currentKeyToken because atoi 
+    // we don't need to null terminate currentKeyToken because strtoul
     // stops at non-numeric chars.
-    curToken = atoi(currentKeyToken); 
+    curToken = strtoul(currentKeyToken, nsnull, 10);
     if (isRange)
     {
       while (saveStartToken < curToken)
