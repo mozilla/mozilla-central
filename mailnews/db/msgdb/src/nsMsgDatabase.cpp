@@ -767,28 +767,16 @@ nsMsgDatabase::CleanupCache()
 {
   if (m_dbCache)
   {
-    for (PRUint32 i = m_dbCache->Length() - 1; m_dbCache->Length() > 0;
-     // prior closes may have removed more than one element
-         i >= m_dbCache->Length() ? i = m_dbCache->Length() - 1 : i--)
+#ifdef DEBUG
+    // If you hit this warning, it means that some code is holding onto
+    // a db at shutdown.
+    NS_WARN_IF_FALSE(!m_dbCache->Length(), "some msg dbs left open");
+    for (PRUint32 i = 0; i < m_dbCache->Length(); i++)
     {
       nsMsgDatabase* pMessageDB = m_dbCache->ElementAt(i);
       if (pMessageDB)
-      {
-        // hold onto the db until we're finished closing it.
-        pMessageDB->AddRef();
-        // break cycle with folder -> parse msg state -> db
-        pMessageDB->m_folder = nsnull;
-        pMessageDB->ForceClosed();
-        pMessageDB->Release();
-      }
-      if (i == 0)
-        break;
+        printf("db left open %s\n", (const char *) pMessageDB->m_dbName.get());
     }
-#ifdef DEBUG
-    // If you hit this warning, it means that ForceClosed() did not
-    // successfully remove all references to the db so that it can
-    // be shutdown.
-    NS_WARN_IF_FALSE(!m_dbCache->Length(), "some msg dbs left open");
 #endif
     delete m_dbCache;
     m_dbCache = nsnull;
@@ -5455,9 +5443,6 @@ NS_IMETHODIMP nsMsgDatabase::RefreshCache(const char *aSearchFolderUri, PRUint32
       {
         table->AddRow(GetEnv(), hdrRow);
         mdb_pos newPos;
-#ifdef DEBUG_David_Bienvenu
-        printf("adding row %lx at pos %lx \n", rowObjectId.mOid_Id, tableRowIndex);
-#endif
         table->MoveRow(GetEnv(), hdrRow, rowCount, tableRowIndex, &newPos);
         rowCount++;
         tableRowIndex++;
@@ -5547,9 +5532,6 @@ nsMsgDatabase::UpdateHdrInCache(const char *aSearchFolderUri, nsIMsgDBHdr *aHdr,
     if (!aAdd)
     {
       table->CutRow(m_mdbEnv, msgHdr->m_mdbRow);
-#ifdef DEBUG_David_Bienvenu
-      printf("removing key %lx \n", key);
-#endif
     }
     else
     {
@@ -5561,25 +5543,6 @@ nsMsgDatabase::UpdateHdrInCache(const char *aSearchFolderUri, nsIMsgDBHdr *aHdr,
       table->AddRow(m_mdbEnv, msgHdr->m_mdbRow);
       mdb_pos newPos;
       table->MoveRow(m_mdbEnv, msgHdr->m_mdbRow, rowCount, insertPos, &newPos);
-#ifdef DEBUG_David_Bienvenu
-      printf("moving row with key %lx to pos %lx \n", key, newPos);
-      // iterate over table and assert that it's in id order
-      table->GetCount(GetEnv(), &rowCount);
-      mdbOid oid;
-      PRUint32 tableRowIndex = 0;
-      mdb_id prevId = 0;
-      while (tableRowIndex < rowCount)
-      {
-        nsresult ret = table->PosToOid (m_mdbEnv, tableRowIndex++, &oid);
-        if (tableRowIndex > 1 && oid.mOid_Id <= prevId)
-        {
-          NS_ASSERTION(PR_FALSE, "inserting row into cached hits table, not sorted correctly");
-          printf("key %lx is before or equal %lx \n", prevId, oid.mOid_Id);
-        }
-        prevId = oid.mOid_Id;
-      }
-
-#endif
     }
   }
 

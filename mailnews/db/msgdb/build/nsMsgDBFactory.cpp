@@ -69,7 +69,7 @@ static const nsModuleComponentInfo msgDB_components[] = {
 static void
 msgDBModuleDtor(nsIModule* self)
 {
-    nsMsgDatabase::CleanupCache();
+  nsMsgDatabase::CleanupCache();
 }
 
 NS_IMPL_NSGETMODULE_WITH_DTOR(nsMsgDBModule, msgDB_components, msgDBModuleDtor)
