@@ -808,10 +808,10 @@ calRecurrenceInfo.prototype = {
             } else if (cal.calInstanceOf(ritem, Components.interfaces.calIRecurrenceRule)) {
                 ritem = ritem.QueryInterface(Components.interfaces.calIRecurrenceRule);
                 if (!ritem.isByCount) {
-                    let endDate = ritem.endDate;
-                    if (endDate) {
-                        endDate.addDuration(timeDiff);
-                        ritem.endDate = endDate;
+                    let untilDate = ritem.untilDate;
+                    if (untilDate) {
+                        untilDate.addDuration(timeDiff);
+                        ritem.untilDate = untilDate;
                     }
                 }
             }

@@ -205,9 +205,9 @@ calRecurrenceRule::SetCount(PRInt32 aRecurCount)
     return NS_OK;
 }
 
-/* attribute calIDateTime endDate; */
+/* attribute calIDateTime untilDate; */
 NS_IMETHODIMP
-calRecurrenceRule::GetEndDate(calIDateTime * *aRecurEnd)
+calRecurrenceRule::GetUntilDate(calIDateTime * *aRecurEnd)
 {
     NS_ENSURE_ARG_POINTER(aRecurEnd);
 
@@ -226,7 +226,7 @@ calRecurrenceRule::GetEndDate(calIDateTime * *aRecurEnd)
 }
 
 NS_IMETHODIMP
-calRecurrenceRule::SetEndDate(calIDateTime * aRecurEnd)
+calRecurrenceRule::SetUntilDate(calIDateTime * aRecurEnd)
 {
     if (aRecurEnd) {
         nsCOMPtr<calIDateTime> dt(aRecurEnd);

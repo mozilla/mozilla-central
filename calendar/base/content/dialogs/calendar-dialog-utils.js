@@ -284,7 +284,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         detailsString = PluralForm.get(rule.count, countString)
                                                   .replace("#3", rule.count);
                     } else {
-                        let untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
+                        let untilDate = rule.untilDate.getInTimezone(kDefaultTimezone);
                         detailsString = getRString("repeatDetailsUntilAllDay",
                             [ruleString,
                              dateFormatter.formatDateShort(startDate),
@@ -306,7 +306,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         detailsString = PluralForm.get(rule.count, countString)
                                                   .replace("#5", rule.count);
                     } else {
-                        let untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
+                        let untilDate = rule.untilDate.getInTimezone(kDefaultTimezone);
                         detailsString = getRString("repeatDetailsUntil",
                             [ruleString,
                              dateFormatter.formatDateShort(startDate),

@@ -45,7 +45,7 @@ interface calIDateTime;
 
 // an interface implementing a RRULE
 
-[scriptable, uuid(c8a953ac-0864-4128-ab3f-b5ba8473fa53)]
+[scriptable, uuid(e965a91a-49fa-41b5-b668-1a824a73bdbf)]
 interface calIRecurrenceRule : calIRecurrenceItem
 {
   //
@@ -66,11 +66,11 @@ interface calIRecurrenceRule : calIRecurrenceItem
   // These two are mutually exclusive; whichever is set
   // invalidates the other.  It's only valid to read the one
   // that was set; the other will throw NS_ERROR_FAILURE.  Use
-  // isByCount to figure out whether count or endDate is valid.
-  // Setting count to -1 or endDate to null indicates infinite
+  // isByCount to figure out whether count or untilDate is valid.
+  // Setting count to -1 or untilDate to null indicates infinite
   // recurrence.
   attribute long count;
-  attribute calIDateTime endDate;
+  attribute calIDateTime untilDate;
 
   // if this isn't infinite recurrence, this flag indicates whether
   // it was set by count or not

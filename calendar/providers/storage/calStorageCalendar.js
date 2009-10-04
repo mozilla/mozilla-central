@@ -2143,9 +2143,9 @@ calStorageCalendar.prototype = {
                             }
                         } else {
                             if (row.end_date)
-                                ritem.endDate = newDateTime(row.end_date);
+                                ritem.untilDate = newDateTime(row.end_date);
                             else
-                                ritem.endDate = null;
+                                ritem.untilDate = null;
                         }
                         try {
                             ritem.interval = row.interval;
@@ -2661,7 +2661,7 @@ calStorageCalendar.prototype = {
                     if (ritem.isByCount)
                         ap.count = ritem.count;
                     else
-                        ap.end_date = ritem.endDate ? ritem.endDate.nativeTime : null;
+                        ap.end_date = ritem.untilDate ? ritem.untilDate.nativeTime : null;
 
                     ap.interval = ritem.interval;
 

@@ -227,13 +227,13 @@ function initializeControls(rule) {
             setElementValue("repeat-ntimes-count", rule.count );
         }
     } else {
-        var endDate = rule.endDate;
-        if (!endDate) {
+        var untilDate = rule.untilDate;
+        if (!untilDate) {
             setElementValue("recurrence-duration", "forever");
         } else {
-            endDate = endDate.getInTimezone(gStartTime.timezone); // calIRecurrenceRule::endDate is always UTC or floating
+            untilDate = untilDate.getInTimezone(gStartTime.timezone); // calIRecurrenceRule::untilDate is always UTC or floating
             setElementValue("recurrence-duration", "until");
-            setElementValue("repeat-until-date", endDate.getInTimezone(floating()).jsDate);
+            setElementValue("repeat-until-date", untilDate.getInTimezone(floating()).jsDate);
         }
     }
 }
@@ -358,15 +358,15 @@ function onSave(item) {
             recRule.count = Math.max(1, getElementValue("repeat-ntimes-count"));
             break;
         case "until":
-            var endDate = jsDateToDateTime(getElementValue("repeat-until-date"), gStartTime.timezone);
-            endDate.isDate = gStartTime.isDate; // enforce same value type as DTSTART
+            let untilDate = jsDateToDateTime(getElementValue("repeat-until-date"), gStartTime.timezone);
+            untilDate.isDate = gStartTime.isDate; // enforce same value type as DTSTART
             if (!gStartTime.isDate) {
                 // correct UNTIL to exactly match start date's hour, minute, second:
-                endDate.hour = gStartTime.hour;
-                endDate.minute = gStartTime.minute;
-                endDate.second = gStartTime.second;
+                untilDate.hour = gStartTime.hour;
+                untilDate.minute = gStartTime.minute;
+                untilDate.second = gStartTime.second;
             }
-            recRule.endDate = endDate;
+            recRule.untilDate = untilDate;
             break;
     }
 
