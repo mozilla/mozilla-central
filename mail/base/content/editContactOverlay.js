@@ -159,7 +159,7 @@ var editContactInlineUI = {
     // Fill in the card details
     nameElement.value = this._cardDetails.card.displayName;
     document.getElementById("editContactEmail").value =
-      this._cardDetails.card.primaryEmail;
+      aAnchorElement.getAttribute("emailAddress");
 
     this.panel.popupBoxObject
         .setConsumeRollupEvent(Components.interfaces
@@ -210,10 +210,9 @@ var editContactInlineUI = {
       return;
     }
 
+    // We can assume the email address stays the same, so just update the name
     this._cardDetails.card.displayName =
       document.getElementById("editContactName").value;
-    this._cardDetails.card.primaryEmail =
-      document.getElementById("editContactEmail").value;
 
     // Save the card
     this._cardDetails.book.modifyCard(this._cardDetails.card);
