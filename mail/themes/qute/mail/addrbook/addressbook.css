@@ -54,6 +54,14 @@
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
 }
 
+toolbox[labelalign="end"] .toolbarbutton-1 {
+  -moz-box-orient: horizontal;
+}
+
+toolbox[labelalign="end"] .toolbarbutton-1 .toolbarbutton-text {
+  -moz-padding-start: 3px;
+}
+
 #button-newcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
   -moz-image-region: rect(0px 24px 24px 0px);

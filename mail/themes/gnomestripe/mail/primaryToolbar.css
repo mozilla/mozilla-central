@@ -59,6 +59,10 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu-button"]
   -moz-box-orient: horizontal;
 }
 
+toolbox[labelalign="end"] .toolbarbutton-1 .toolbarbutton-text {
+  -moz-padding-start: 3px;
+}
+
 .toolbarbutton-1[type="menu"] {
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
 }

@@ -71,6 +71,10 @@ toolbar {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
 }
 
+toolbox[labelalign="end"] .toolbarbutton-1 {
+  -moz-box-orient: horizontal;
+}
+
 .toolbarbutton-1[open] > .toolbarbutton-menubutton-button {
   text-shadow: none;
 }
@@ -83,6 +87,10 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
   -moz-box-orient: vertical !important;
   padding: 0px;
   margin: 0px;
+}
+
+toolbox[labelalign="end"] toolbarbutton[type="menu-button"] > toolbarbutton {
+  -moz-box-orient: horizontal !important;
 }
 
 #button-send {

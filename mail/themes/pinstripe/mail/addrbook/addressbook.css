@@ -73,10 +73,18 @@ toolbar {
   -moz-box-orient: vertical;
 }
 
+toolbox[labelalign="end"] .toolbarbutton-1 {
+  -moz-box-orient: horizontal;
+}
+
 toolbarbutton[type="menu-button"] > toolbarbutton {
   -moz-box-orient: vertical !important;
   padding: 0px;
   margin: 0px;
+}
+
+toolbox[labelalign="end"] toolbarbutton[type="menu-button"] > toolbarbutton {
+  -moz-box-orient: horizontal !important;
 }
 
 
