@@ -82,6 +82,7 @@ private:
   void FillToolTipInfo(nsIMsgFolder *aFolder, PRInt32 aNewCount);
   nsresult GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCString& aFolderURI);
   nsresult BadgeDockIcon();
+  nsresult RestoreDockIcon();
   nsresult BounceDockIcon();
   nsresult GetNewMailAuthors(nsIMsgFolder* aFolder, nsString& aAuthors, PRInt32 aNewCount, PRInt32* aNotDisplayed);
   nsresult GetTotalUnread(nsIMsgFolder* aFolder, PRBool deep, PRInt32* aTotal);
@@ -90,6 +91,7 @@ private:
 
   PRInt32 mUnreadTotal;
   PRBool mOnlyCountInboxes;
+  PRBool mOnLeopardOrLater;
 };
 
 #endif // __nsMessengerOSXIntegration_h
