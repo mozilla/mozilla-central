@@ -268,13 +268,16 @@ GuessAbortable.prototype =
     // Calling code may have changed config (e.g., user may have changed
     // username) so put new values in resultConfig.
     this._updateConfig(config);
+    var incomingHostIsPrecise = config.incoming.hostname ? true : false;
+    var outgoingHostIsPrecise = config.outgoing.hostname ? true : false;
     switch (which)
     {
       case 'incoming':
         if (this._incomingHostDetector)
         {
           this._incomingHostDetector.cancel();
-          this._incomingHostDetector.autoDetect(domain, true, protocol, port, socketType);
+          this._incomingHostDetector.autoDetect(domain, incomingHostIsPrecise,
+                                                protocol, port, socketType);
         }
         else
         {
@@ -285,7 +288,8 @@ GuessAbortable.prototype =
           if (this._outgoingHostDetector)
           {
             this._outgoingHostDetector.cancel();
-            this._outgoingHostDetector.autoDetect(domain, true, port, socketType);
+            this._outgoingHostDetector.autoDetect(domain, outgoingHostIsPrecise,
+                                                  port, socketType);
           } else {
             ddump("no outgoing host detector!"); // TODO use assert()
           }
@@ -294,13 +298,14 @@ GuessAbortable.prototype =
         if (this._incomingHostDetector)
         {
           this._incomingHostDetector.cancel();
-          this._incomingHostDetector.autoDetect(domain, true, protocol, port,
-                                                socketType);
+          this._incomingHostDetector.autoDetect(domain, incomingHostIsPrecise,
+                                                protocol, port, socketType);
         }
         if (this._outgoingHostDetector)
         {
           this._outgoingHostDetector.cancel();
-          this._outgoingHostDetector.autoDetect(domain, true, port, socketType);
+          this._outgoingHostDetector.autoDetect(domain, outgoingHostIsPrecise,
+                                                port, socketType);
         }
     }
   }

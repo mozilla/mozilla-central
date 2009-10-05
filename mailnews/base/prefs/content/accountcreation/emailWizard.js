@@ -1323,22 +1323,23 @@ EmailConfigWizard.prototype =
       config.incoming.port = undefined;
     if (!this._userChangedIncomingSocketType)
       config.incoming.socketType = undefined;
-    if (!this._userChangedIncomingServer) {
+    if (!this._userChangedIncomingServer)
       config.incoming.hostname = undefined;
-    }
+
+    let domain = this._domain;
+    if (config.incoming.hostname)
+      domain = config.incoming.hostname;
 
     if (this._probeAbortable)
     {
-      gEmailWizardLogger.info("restarting probe: " + config.incoming.hostname);
-      this._probeAbortable.restart(config.incoming.hostname, config, "incoming",
-                                   config.incoming.protocol, config.incoming.port,
+      gEmailWizardLogger.info("restarting probe: " + domain);
+      this._probeAbortable.restart(domain, config, "incoming",
+                                   config.incoming.protocol,
+                                   config.incoming.port,
                                    config.incoming.socketType);
     }
     else
     {
-      let domain = this._domain;
-      if (config.incoming.hostname)
-        domain = config.incoming.hostname;
       this._guessConfig(domain, config, "incoming");
     }
   },
