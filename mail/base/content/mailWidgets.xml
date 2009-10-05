@@ -2071,9 +2071,7 @@
                 var emails = {};
                 var numAddresses = hdrParser.parseHeadersWithArray(msgHdr.mime2DecodedAuthor, emails, names, {});
                 msgPopup.setAttribute('sender', names.value[0] ? names.value[0] : emails.value[0]);
-                msgPopup.messageUri = aFolder.getUriForMsg(msgHdr);
-                msgPopup.folderUri = aFolder.URI;
-                msgPopup.msgKey = msgHdr.messageKey;
+                msgPopup.msgHdr = msgHdr;
                 document.getAnonymousNodes(this)[0].appendChild(msgPopup);
               }
               if (document.getAnonymousNodes(this)[0].childNodes.length >= this.mMaxMsgHdrsInPopup)
@@ -2110,6 +2108,7 @@
     <implementation>
       <constructor>
         <![CDATA[
+          Components.utils.import("resource://app/modules/MailUtils.js");
           var pref = Components.classes["@mozilla.org/preferences-service;1"]
                                .getService(Components.interfaces.nsIPrefBranch);
           if (!pref.getBoolPref("mail.biff.alert.show_preview"))
@@ -2128,29 +2127,7 @@
     <handlers>
       <handler event="click" button="0">
         <![CDATA[
-          var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"].
-                              getService(Components.interfaces.nsIMsgMailSession);
-          var topmostMsgWindow;
-          try {
-           topmostMsgWindow = mailSession.topmostMsgWindow;
-          } catch (ex) {}
-
-          if (topmostMsgWindow)
-          {
-            try {
-              // SelectFolder throws an exception if the folder is not in the current folder view
-              mailSession.topmostMsgWindow.windowCommands.selectFolder(this.folderUri);
-              mailSession.topmostMsgWindow.windowCommands.selectMessage(this.messageUri);
-            } catch (ex) {}
-          }
-          else
-          {
-            // open a new window
-            var mailWindowService = Components.classes["@mozilla.org/messenger/windowservice;1"].
-                                      getService(Components.interfaces.nsIMessengerWindowService);
-            mailWindowService.openMessengerWindowWithUri("mail:3pane", this.folderUri, this.msgKey);
-          }
-
+          MailUtils.displayMessageInFolderTab(this.msgHdr);
           if (gAlertListener)
             gAlertListener.observe(null, "alertclickcallback", "");
         ]]>
