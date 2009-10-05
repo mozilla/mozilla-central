@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -41,16 +41,16 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <!-- Context menu -->
-  <script type="application/x-javascript">
+  <script type="application/javascript">
     // Global variable that holds the nsContextMenu instance.
     var gContextMenu = null;
-    
+
     // Global variable that caches the default search engine info
     var gDefaultEngine = null;
   </script>
-  <script type="application/x-javascript" src="chrome://global/content/inlineSpellCheckUI.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/nsContextMenu.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/contentAreaUtils.js"/>
+  <script type="application/javascript" src="chrome://global/content/inlineSpellCheckUI.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/nsContextMenu.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/contentAreaUtils.js"/>
 
   <stringbundleset>
     <stringbundle id="contentAreaCommandsBundle"
@@ -58,7 +58,7 @@
   </stringbundleset>
 
   <popupset id="contentAreaContextSet">
-    <!-- This is a generic context menu for a content area. It contains 
+    <!-- This is a generic context menu for a content area. It contains
          each and every possible menu choice.  The appropriate items are
          hidden/shown upon display, based on what the user has clicked-on.
      -->
@@ -101,7 +101,7 @@
                 label="&bookmarkLinkCmd.label;"
                 accesskey="&bookmarkLinkCmd.accesskey;"
                 oncommand="BookmarksUtils.addBookmark(gContextMenu.linkURL(),
-                                                      gContextMenu.linkText(), 
+                                                      gContextMenu.linkText(),
                                                       undefined, false);"/>
       <menuitem id="context-savelink"
                 valueSaveAs="&saveLinkAsCmd.label;"
@@ -251,7 +251,7 @@
       <menuitem id="context-selectall"
                 label="&selectAllCmd.label;"
                 accesskey="&selectAllCmd.accesskey;"
-                command="cmd_selectAll"/>      
+                command="cmd_selectAll"/>
       <menuseparator id="context-sep-selectall"/>
       <menuitem id="context-searchselect"
                 oncommand="OpenSearch('internet', gContextMenu.searchSelected(), true, event.shiftKey);"/>
@@ -287,7 +287,7 @@
                     oncommand="gContextMenu.viewFrameSource();"/>
           <menuitem label="&viewFrameInfoCmd.label;"
                     accesskey="&viewFrameInfoCmd.accesskey;"
-                    oncommand="gContextMenu.viewFrameInfo();"/>        
+                    oncommand="gContextMenu.viewFrameInfo();"/>
         </menupopup>
       </menu>
       <menuseparator id="context-sep-properties"/>

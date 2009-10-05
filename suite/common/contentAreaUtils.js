@@ -37,13 +37,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/*
+ * contentAreaUtils.js assumes that a stringbundle of the form:
+ *
+ *   <stringbundle id="contentAreaCommandsBundle"
+ *                 src="chrome://communicator/locale/contentAreaCommands.properties"/>
+ *
+ * is available in the scope of the window it is operating in.
+ * If you include this file directly in a XUL file,
+ * rather than pulling it in via contentAreaContextOverlay.xul,
+ * then you must include this stringbundle in the XUL file.
+ */
+
 const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
 const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
 const kNewTab = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWTAB;
 
 /**
  * Determine whether or not a given focused DOMWindow is in the content area.
- **/
+ */
 function isContentFrame(aFocusedWindow)
 {
   if (!aFocusedWindow)
@@ -136,7 +148,7 @@ function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground)
   if (aType != kNewWindow)
     browserWin = getTopWin();
 
-  // Where appropiate we want to pass the charset of the 
+  // Where appropriate we want to pass the charset of the
   // current document over to a new tab / window.
   var originCharset = null;
   if (aType != kExistingWindow) {
@@ -484,7 +496,7 @@ function AutoChosen(aFileAutoChosen, aUriAutoChosen) {
  * Structure for holding info about a URL and the target filename it should be
  * saved to. This structure is populated by initFileInfo(...).
  * @param aSuggestedFileName This is used by initFileInfo(...) when it
- *        cannot 'discover' the filename from the url 
+ *        cannot 'discover' the filename from the url
  * @param aFileName The target filename
  * @param aFileBaseName The filename without the file extension
  * @param aFileExt The extension of the filename
@@ -543,7 +555,7 @@ function initFileInfo(aFI, aURL, aURLCharset, aDocument,
   }
 }
 
-/** 
+/**
  * Given the Filepicker Parameters (aFpP), show the file picker dialog,
  * prompting the user to confirm (or change) the fileName.
  * @param aFpP a structure (see definition in internalSave(...) method)
@@ -622,7 +634,7 @@ function getTargetFile(aFpP)
   prefs.setComplexValue("lastDir", nsILocalFile, directory);
 
   fp.file.leafName = validateFileName(fp.file.leafName);
-  
+
   aFpP.saveAsType = fp.filterIndex;
   aFpP.file = fp.file;
   aFpP.fileURL = fp.fileURL;
@@ -759,7 +771,7 @@ function getPostData(aDocument)
 function getPrefsBrowserDownload(branch)
 {
   const prefSvcContractID = "@mozilla.org/preferences-service;1";
-  const prefSvcIID = Components.interfaces.nsIPrefService;                              
+  const prefSvcIID = Components.interfaces.nsIPrefService;
   return Components.classes[prefSvcContractID].getService(prefSvcIID).getBranch(branch);
 }
 
@@ -1016,7 +1028,7 @@ function getCharsetforSave(aDocument)
  *       don't use a XUL/JS layer. It is important that the logic of
  *       these two routines be kept more or less in sync.
  *       (pinkerton)
- **/
+ */
 function FillInHTMLTooltip(tipElement)
 {
   var retVal = false;
@@ -1025,11 +1037,10 @@ function FillInHTMLTooltip(tipElement)
 
   const XLinkNS = "http://www.w3.org/1999/xlink";
 
-
   var titleText = null;
   var XLinkTitleText = null;
   var direction = tipElement.ownerDocument.dir;
-  
+
   while (!titleText && !XLinkTitleText && tipElement) {
     if (tipElement.nodeType == Node.ELEMENT_NODE) {
       titleText = tipElement.getAttribute("title");
