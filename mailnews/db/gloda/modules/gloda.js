@@ -90,8 +90,8 @@ MessagesByMessageIdCallback.prototype = {
     if (GlodaDatastore.datastoreIsShutdown)
       return;
 
-    MBM_LOG.debug("query completed, notifying... " + this.results);
-    // we no longer need to unify; it is done for us.
+    if (MBM_LOG.level <= Log4Moz.Level.Debug)
+      MBM_LOG.debug("query completed, notifying... " + this.results);
 
     this.callback.call(this.callbackThis, this.results);
   }
