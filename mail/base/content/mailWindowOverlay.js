@@ -53,6 +53,12 @@ const ADDR_DB_LARGE_COMMIT       = 1;
 const kClassicMailLayout = 0;
 const kWideMailLayout = 1;
 const kVerticalMailLayout = 2;
+const kMailLayoutCommandMap =
+{
+  "cmd_viewClassicMailLayout": kClassicMailLayout,
+  "cmd_viewWideMailLayout": kWideMailLayout,
+  "cmd_viewVerticalMailLayout": kVerticalMailLayout
+};
 
 // Per message header flags to keep track of whether the user is allowing remote
 // content for a particular message.
@@ -2008,6 +2014,11 @@ function MsgApplyFiltersToSelection()
 function ChangeMailLayout(newLayout)
 {
   gPrefBranch.setIntPref("mail.pane_config.dynamic", newLayout);
+}
+
+function ChangeMailLayoutForCommand(aCommand)
+{
+  ChangeMailLayout(kMailLayoutCommandMap[aCommand]);
 }
 
 function MsgViewAllHeaders()

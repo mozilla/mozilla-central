@@ -743,11 +743,43 @@ let mailTabType = {
     this.restoreFocus(aTab);
   },
 
-  //
   // nsIController implementation
-  //
-  // We ignore the aTab parameter sent by tabmail when calling nsIController
-  // stuff and just delegate the call to the default controller by using it as
-  // our proto chain.
-  __proto__: window.DefaultController
+
+  supportsCommand: function mailTabType_supportsCommand(aCommand, aTab) {
+    switch (aCommand) {
+      case "cmd_viewClassicMailLayout":
+      case "cmd_viewWideMailLayout":
+      case "cmd_viewVerticalMailLayout":
+      case "cmd_toggleMessagePane":
+        return true;
+
+      default:
+        return window.DefaultController.isCommandEnabled(aCommand);
+    }
+  },
+
+  // We only depend on what's illegal
+  isCommandEnabled: function mailTabType_isCommandEnabled(aCommand, aTab) {
+    switch (aCommand) {
+      case "cmd_viewClassicMailLayout":
+      case "cmd_viewWideMailLayout":
+      case "cmd_viewVerticalMailLayout":
+      case "cmd_toggleMessagePane":
+        // If the thread pane is illegal, these are all disabled
+        if (!aTab.mode.legalPanes.thread)
+          return false;
+        // else fall through
+
+      default:
+        return window.DefaultController.isCommandEnabled(aCommand);
+    }
+  },
+
+  doCommand: function mailTabType_doCommand(aCommand, aTab) {
+    if (!this.isCommandEnabled(aCommand, aTab))
+      return;
+
+    // window.DefaultController knows how to handle this
+    window.DefaultController.doCommand(aCommand);
+  }
 };

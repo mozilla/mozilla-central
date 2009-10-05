@@ -174,6 +174,10 @@ var DefaultController =
       case "cmd_goForward":
       case "cmd_goBack":
       case "cmd_goStartPage":
+      case "cmd_viewClassicMailLayout":
+      case "cmd_viewWideMailLayout":
+      case "cmd_viewVerticalMailLayout":
+      case "cmd_toggleMessagePane":
       case "cmd_viewAllMsgs":
       case "cmd_viewUnreadMsgs":
       case "cmd_viewThreadsWithUnread":
@@ -434,6 +438,12 @@ var DefaultController =
       case "cmd_nextFlaggedMsg":
       case "cmd_previousFlaggedMsg":
         return IsViewNavigationItemEnabled();
+      case "cmd_viewClassicMailLayout":
+      case "cmd_viewWideMailLayout":
+      case "cmd_viewVerticalMailLayout":
+      case "cmd_toggleMessagePane":
+        // this is overridden per-mail tab
+        return true;
       case "cmd_viewAllMsgs":
       case "cmd_viewIgnoredThreads":
         return gDBView;
@@ -645,6 +655,14 @@ var DefaultController =
       case "cmd_goStartPage":
         HideMessageHeaderPane();
         loadStartPage(true);
+        break;
+      case "cmd_viewClassicMailLayout":
+      case "cmd_viewWideMailLayout":
+      case "cmd_viewVerticalMailLayout":
+        ChangeMailLayoutForCommand(command);
+        break;
+      case "cmd_toggleMessagePane":
+        MsgToggleMessagePane();
         break;
       case "cmd_viewAllMsgs":
       case "cmd_viewThreadsWithUnread":
