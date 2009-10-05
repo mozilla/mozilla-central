@@ -121,7 +121,7 @@ function SyntheticPart(aProperties) {
 }
 SyntheticPart.prototype = {
   get contentTypeHeaderValue() {
-    s = this._contentType;
+    let s = this._contentType;
     if (this._charset)
       s += '; charset=' + this._charset;
     if (this._format)
@@ -146,7 +146,7 @@ SyntheticPart.prototype = {
     return this._filename;
   },
   get contentDispositionHeaderValue() {
-    s = '';
+    let s = '';
     if (this._filename)
       s += 'attachment;\r\n filename="' + this._filename + '"';
     return s;
@@ -194,7 +194,7 @@ SyntheticPartMulti.prototype = {
   __proto__: SyntheticPart.prototype,
   BOUNDARY_COUNTER: 0,
   toMessageString: function() {
-    s = "This is a multi-part message in MIME format.\r\n";
+    let s = "This is a multi-part message in MIME format.\r\n";
     for (let [,part] in Iterator(this.parts)) {
       s += "--" + this._boundary + "\r\n";
       s += "Content-Type: " + part.contentTypeHeaderValue + '\r\n';
@@ -284,7 +284,7 @@ SyntheticPartMultiRelated.prototype = {
 
 const PKCS_SIGNATURE_MIME_TYPE = 'application/x-pkcs7-signature';
 /**
- * Multipart signed (multipart/signed) MIME part.  This is helperish and makes
+ * Multipart signed (multipart/signed) SMIME part.  This is helperish and makes
  *  up a gibberish signature.  We wrap the provided parts in the standard
  *  signature idiom
  *
@@ -292,7 +292,7 @@ const PKCS_SIGNATURE_MIME_TYPE = 'application/x-pkcs7-signature';
  *     you need to cram extra stuff in there.
  * @param aProperties Properties, propagated to SyntheticPart, see that.
  */
-function SyntheticPartMultiSigned(aPart, aProperties) {
+function SyntheticPartMultiSignedSMIME(aPart, aProperties) {
   SyntheticPartMulti.call(this, [aPart], aProperties);
   this.parts.push(new SyntheticPartLeaf(
     "I am not really a signature but let's hope no one figures it out.",
@@ -301,12 +301,39 @@ function SyntheticPartMultiSigned(aPart, aProperties) {
       name: 'smime.p7s',
     }));
 }
-SyntheticPartMultiSigned.prototype = {
+SyntheticPartMultiSignedSMIME.prototype = {
   __proto__: SyntheticPartMulti.prototype,
   _contentType: 'multipart/signed',
   _contentTypeExtra: {
     protocol: PKCS_SIGNATURE_MIME_TYPE,
     micalg: 'SHA1'
+  },
+};
+
+const PGP_SIGNATURE_MIME_TYPE = 'application/pgp-signature';
+/**
+ * Multipart signed (multipart/signed) PGP part.  This is helperish and makes
+ *  up a gibberish signature.  We wrap the provided parts in the standard
+ *  signature idiom
+ *
+ * @param aPart The content part to wrap. Only one part!  Use a multipart if
+ *     you need to cram extra stuff in there.
+ * @param aProperties Properties, propagated to SyntheticPart, see that.
+ */
+function SyntheticPartMultiSignedPGP(aPart, aProperties) {
+  SyntheticPartMulti.call(this, [aPart], aProperties);
+  this.parts.push(new SyntheticPartLeaf(
+    "I am not really a signature but let's hope no one figures it out.",
+    {
+      contentType: PGP_SIGNATURE_MIME_TYPE,
+    }));
+}
+SyntheticPartMultiSignedPGP.prototype = {
+  __proto__: SyntheticPartMulti.prototype,
+  _contentType: 'multipart/signed',
+  _contentTypeExtra: {
+    protocol: PGP_SIGNATURE_MIME_TYPE,
+    micalg: 'pgp-sha1'
   },
 };
 
@@ -971,7 +998,7 @@ MessageScenarioFactory.prototype = {
       helper(root, aHeight - 2);
     return messages;
   }
-}
+};
 
 /**
  * Decorate the given object's methods will python-style method binding.  We
@@ -991,7 +1018,7 @@ function bindMethods(aObj) {
   for (let [name, ubfunc] in Iterator(aObj)) {
     // the variable binding needs to get captured...
     let realFunc = ubfunc;
-    let getterFunc = function() {
+    function getterFunc() {
       // 'this' is magic and not from the enclosing scope.  we are assuming the
       //  getter will receive a valid 'this', and so
       let realThis = this;

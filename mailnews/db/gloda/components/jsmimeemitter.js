@@ -85,6 +85,8 @@ function MimeMessageEmitter() {
   this._state = kStateUnknown;
 }
 
+const deathToNewlines = /\n/g;
+
 MimeMessageEmitter.prototype = {
   classDescription: "JS Mime Message Emitter",
   classID: Components.ID("{8cddbbbc-7ced-46b0-a936-8cddd1928c24}"),
@@ -138,22 +140,30 @@ MimeMessageEmitter.prototype = {
   },
 
   _beginPayload: function mime_emitter__beginPayload(aContentType) {
-    aContentType = this._stripParams(aContentType).toLowerCase();
-    if (aContentType == "text/plain" || aContentType == "text/html") {
-      this._curPart = new this._mimeMsg.MimeBody(aContentType);
+    let contentTypeNoParams = this._stripParams(aContentType).toLowerCase();
+    if (contentTypeNoParams == "text/plain" ||
+        contentTypeNoParams == "text/html") {
+      this._curPart = new this._mimeMsg.MimeBody(contentTypeNoParams);
     }
-    else if (aContentType == "message/rfc822") {
+    else if (contentTypeNoParams == "message/rfc822") {
       // startHeader will take care of this
       this._curPart = new this._mimeMsg.MimeMessage();
+      // do not fall through into the content-type setting case; this
+      //  content-type needs to get clobbered by the actual content-type of
+      //  the enclosed message.
+      return;
     }
     // this is going to fall-down with TNEF encapsulation and such, we really
     //  need to just be consuming the object model.
-    else if (aContentType.indexOf("multipart/") == 0) {
-      this._curPart = new this._mimeMsg.MimeContainer(aContentType);
+    else if (contentTypeNoParams.indexOf("multipart/") == 0) {
+      this._curPart = new this._mimeMsg.MimeContainer(contentTypeNoParams);
     }
     else {
-      this._curPart = new this._mimeMsg.MimeUnknown(aContentType);
+      this._curPart = new this._mimeMsg.MimeUnknown(contentTypeNoParams);
     }
+    // put the full content-type in the headers and normalize out any newlines
+    this._curPart.headers["content-type"] =
+      [aContentType.replace(deathToNewlines, "")];
   },
 
   // ----- Header Routines
@@ -216,6 +226,9 @@ MimeMessageEmitter.prototype = {
           this._placePart(this._curPart);
         }
       }
+      // There is no other field to be emitted in the body case other than the
+      //  ones we just handled.  (They were explicitly added for the js
+      //  emitter.)
     }
     else if (this._state == kStateInHeaders) {
       let lowerField = aField.toLowerCase();
@@ -297,7 +310,9 @@ MimeMessageEmitter.prototype = {
 
     let oldPart = parentPart.parts[childIndex];
     parentPart.parts[childIndex] = aPart;
+    // copy over information from the original part
     aPart.parts = oldPart.parts;
+    aPart.headers = oldPart.headers;
   },
 
   // ----- Attachment Routines

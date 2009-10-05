@@ -130,36 +130,43 @@ var messageInfos = [
   // -- S/MIME.
   {
     name: 'S/MIME alternative',
-    bodyPart: new SyntheticPartMultiSigned(partAlternative),
+    bodyPart: new SyntheticPartMultiSignedSMIME(partAlternative),
   },
   {
     name: 'S/MIME alternative with text attachment inside',
     // we have to do the attachment packing ourselves on this one.
-    bodyPart: new SyntheticPartMultiSigned(
+    bodyPart: new SyntheticPartMultiSignedSMIME(
       new SyntheticPartMultiMixed([partAlternative, partTachText])),
   },
   {
     name: 'S/MIME alternative with image attachment inside',
     // we have to do the attachment packing ourselves on this one.
-    bodyPart: new SyntheticPartMultiSigned(
+    bodyPart: new SyntheticPartMultiSignedSMIME(
       new SyntheticPartMultiMixed([partAlternative, partTachImage])),
   },
   {
     name: 'S/MIME alternative with image attachment inside',
     // we have to do the attachment packing ourselves on this one.
-    bodyPart: new SyntheticPartMultiSigned(
+    bodyPart: new SyntheticPartMultiSignedSMIME(
       new SyntheticPartMultiMixed([partAlternative, partTachVCard])),
   },
   {
     name: 'S/MIME alternative with app attachment inside',
     // we have to do the attachment packing ourselves on this one.
-    bodyPart: new SyntheticPartMultiSigned(
+    bodyPart: new SyntheticPartMultiSignedSMIME(
       new SyntheticPartMultiMixed([partAlternative, partTachApplication])),
   },
   {
     name: 'S/MIME alternative wrapped in mailing list',
     bodyPart: new SyntheticPartMultiMixed(
-      [new SyntheticPartMultiSigned(partAlternative), partMailingListFooter]),
+      [new SyntheticPartMultiSignedSMIME(partAlternative),
+       partMailingListFooter]),
+  },
+  // -- PGP signature
+  // We mainly care that all the content-type parameters show up.
+  {
+    name: 'PGP signed alternative',
+    bodyPart: new SyntheticPartMultiSignedPGP(partAlternative),
   },
   // -- attached RFC822
   {
@@ -219,7 +226,16 @@ function test_stream_message(info) {
 }
 
 function verify_body_part_equivalence(aSynBodyPart, aMimePart) {
+  // the content-type devoid of parameters should match
   do_check_eq(aSynBodyPart._contentType, aMimePart.contentType);
+
+  // the header representation of the content-type should also match unless
+  //  this is an rfc822 part, in which case it should only match for the
+  //  actual contents.
+  if (aMimePart.contentType != "message/rfc822")
+    do_check_eq(aSynBodyPart.contentTypeHeaderValue.replace("\r\n", "", "g"),
+                aMimePart.get("content-type").replace("\n", "", "g"));
+
   // XXX body part checking will get brittle if we ever actually encode things!
   if (aSynBodyPart.body && !aSynBodyPart._filename &&
       aSynBodyPart._contentType.indexOf("text/") == 0)
@@ -260,14 +276,14 @@ function verify_stream_message(aInfo, aSynMsg, aMsgHdr, aMimeMsg) {
     dump("Something was wrong with the MIME rep!\n!!!!!!!!\n");
     dump("Synthetic looks like:\n  " + aSynMsg.prettyString() +
          "\n\n");
-    dump("MIME looks like:\n  " + aMimeMsg.prettyString() + "\n\n");
+    dump("MIME looks like:  \n" + aMimeMsg.prettyString(true, "  ") + "\n\n");
     do_throw(ex);
   }
 
   dump("Everything is just fine.\n");
   dump("Synthetic looks like:\n  " + aSynMsg.prettyString() +
        "\n\n");
-  dump("MIME looks like:\n  " + aMimeMsg.prettyString() + "\n\n");
+  dump("MIME looks like:\n  " + aMimeMsg.prettyString(true, "  ") + "\n\n");
 
   next_test();
 }

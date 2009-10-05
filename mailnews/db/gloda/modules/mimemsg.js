@@ -93,7 +93,7 @@ let shutdownCleanupObserver = {
       }
     }
   }
-}
+};
 
 function CallbackStreamListener(aMsgHdr, aCallbackThis, aCallback) {
   this._msgHdr = aMsgHdr;
@@ -169,9 +169,17 @@ let gMessenger = Cc["@mozilla.org/messenger;1"].
  *     parsing or failure.  The first argument passed will be the nsIMsgDBHdr
  *     you passed to this function.  The second argument will be the MimeMessage
  *     instance resulting from the processing on success, and null on failure.
+ * @param [aAllowDownload=false] Should we allow the message to be downloaded
+ *     for this streaming request?  The default is false, which means that we
+ *     require that the message be available offline.  If false is passed and
+ *     the message is not available offline, we will propagate an exception
+ *     thrown by the underlying code.
  */
-function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
+function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback,
+                             aAllowDownload) {
   shutdownCleanupObserver.ensureInitialized();
+
+  let requireOffline = !aAllowDownload;
 
   let msgURI = aMsgHdr.folder.getUriForMsg(aMsgHdr);
   let msgService = gMessenger.messageServiceFromURI(msgURI);
@@ -188,14 +196,15 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
                                                   aCallbackThis, aCallback);
 
   try {
-    let streamURI = msgService.streamMessage(msgURI,
-                                             streamListener, // consumer
-                                             null, // nsIMsgWindow
-                                             dumbUrlListener, // nsIUrlListener
-                                             true, // have them create the converter
-        // additional uri payload, note that "header=" is prepended automatically
-                                             "filter&emitter=js",
-                                             true);
+    let streamURI = msgService.streamMessage(
+      msgURI,
+      streamListener, // consumer
+      null, // nsIMsgWindow
+      dumbUrlListener, // nsIUrlListener
+      true, // have them create the converter
+      // additional uri payload, note that "header=" is prepended automatically
+      "filter&emitter=js",
+      requireOffline);
   } catch (ex) {
     // If streamMessage throws an exception, we should make sure to clear the
     // activeStreamListener, or any subsequent attempt at sreaming this URI
@@ -223,29 +232,7 @@ function MsgHdrToMimeMessage(aMsgHdr, aCallbackThis, aCallback) {
  */
 MsgHdrToMimeMessage.RESULT_RENDEVOUZ = {};
 
-/**
- * @ivar partName The MIME part, ex "1.2.2.1".  The partName of a (top-level)
- *     message is "1", its first child is "1.1", its second child is "1.2",
- *     its first child's first child is "1.1.1", etc.
- * @ivar headers Maps lower-cased header field names to a list of the values
- *     seen for the given header.  Use get or getAll as convenience helpers.
- * @ivar parts The list of the MIME part children of this message.  Children
- *     will be either MimeMessage instances, MimeMessageAttachment instances,
- *     MimeContainer instances, or MimeUnknown instances.  The latter two are
- *     the result of limitations in the Javascript representation generation
- *     at this time, combined with the need to most accurately represent the
- *     MIME structure.
- */
-function MimeMessage() {
-  this.partName = null;
-  this.headers = {};
-
-  this.parts = [];
-}
-
-MimeMessage.prototype = {
-  contentType: "message/rfc822",
-
+let HeaderHandlerBase = {
   /**
    * Look-up a header that should be present at most once.
    *
@@ -292,6 +279,40 @@ MimeMessage.prototype = {
     let lowerHeader = aHeaderName.toLowerCase();
     return lowerHeader in this.headers;
   },
+  _prettyHeaderString: function MimeMessage__prettyHeaderString(aIndent) {
+    if (aIndent === undefined)
+      aIndent = "";
+    let s = "";
+    for each (let [header, values] in Iterator(this.headers)) {
+      s += "\n        " + aIndent + header + ": " + values;
+    }
+    return s;
+  }
+};
+
+/**
+ * @ivar partName The MIME part, ex "1.2.2.1".  The partName of a (top-level)
+ *     message is "1", its first child is "1.1", its second child is "1.2",
+ *     its first child's first child is "1.1.1", etc.
+ * @ivar headers Maps lower-cased header field names to a list of the values
+ *     seen for the given header.  Use get or getAll as convenience helpers.
+ * @ivar parts The list of the MIME part children of this message.  Children
+ *     will be either MimeMessage instances, MimeMessageAttachment instances,
+ *     MimeContainer instances, or MimeUnknown instances.  The latter two are
+ *     the result of limitations in the Javascript representation generation
+ *     at this time, combined with the need to most accurately represent the
+ *     MIME structure.
+ */
+function MimeMessage() {
+  this.partName = null;
+  this.headers = {};
+  this.parts = [];
+}
+
+MimeMessage.prototype = {
+  __proto__: HeaderHandlerBase,
+  contentType: "message/rfc822",
+
   /**
    * @return a list of all attachments contained in this message and all its
    *     sub-messages.  Only MimeMessageAttachment instances will be present in
@@ -341,16 +362,19 @@ MimeMessage.prototype = {
    *  content-type (ex: image/jpeg) displayed.  "Filler" classes simply have
    *  their class displayed.
    */
-  prettyString: function MimeMessage_prettyString(aIndent) {
+  prettyString: function MimeMessage_prettyString(aVerbose, aIndent) {
     if (aIndent === undefined)
       aIndent = "";
     let nextIndent = aIndent + "  ";
 
     let s = "Message: " + this.headers.subject;
+    if (aVerbose)
+      s += this._prettyHeaderString(nextIndent);
 
     for (let iPart = 0; iPart < this.parts.length; iPart++) {
       let part = this.parts[iPart];
-      s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(nextIndent);
+      s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(aVerbose,
+                                                                   nextIndent);
     }
 
     return s;
@@ -366,10 +390,12 @@ MimeMessage.prototype = {
 function MimeContainer(aContentType) {
   this.partName = null;
   this.contentType = aContentType;
+  this.headers = {};
   this.parts = [];
 }
 
 MimeContainer.prototype = {
+  __proto__: HeaderHandlerBase,
   get allAttachments() {
     let results = [];
     for (let iChild = 0; iChild < this.parts.length; iChild++) {
@@ -396,14 +422,17 @@ MimeContainer.prototype = {
     // if it's not alternative, recurse/aggregate using MimeMessage logic
     return MimeMessage.prototype.coerceBodyToPlaintext.call(this, aMsgFolder);
   },
-  prettyString: function MimeContainer_prettyString(aIndent) {
+  prettyString: function MimeContainer_prettyString(aVerbose, aIndent) {
     let nextIndent = aIndent + "  ";
 
     let s = "Container: " + this.contentType;
+    if (aVerbose)
+      s += this._prettyHeaderString(nextIndent);
 
     for (let iPart = 0; iPart < this.parts.length; iPart++) {
       let part = this.parts[iPart];
-      s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(nextIndent);
+      s += "\n" + nextIndent + (iPart+1) + " " + part.prettyString(aVerbose,
+                                                                   nextIndent);
     }
 
     return s;
@@ -425,10 +454,12 @@ MimeContainer.prototype = {
 function MimeBody(aContentType) {
   this.partName = null;
   this.contentType = aContentType;
+  this.headers = {};
   this.body = "";
 }
 
 MimeBody.prototype = {
+  __proto__: HeaderHandlerBase,
   get allAttachments() {
     return []; // we are a leaf
   },
@@ -440,8 +471,11 @@ MimeBody.prototype = {
       return aMsgFolder.convertMsgSnippetToPlainText(this.body);
     return "";
   },
-  prettyString: function MimeBody_prettyString(aIndent) {
-    return "Body: " + this.contentType + " (" + this.body.length + " bytes)";
+  prettyString: function MimeBody_prettyString(aVerbose, aIndent) {
+    let s = "Body: " + this.contentType + " (" + this.body.length + " bytes)";
+    if (aVerbose)
+      s += this._prettyHeaderString(aIndent + "  ");
+    return s;
   },
   toString: function MimeBody_toString() {
     return "Body: " + this.contentType + " (" + this.body.length + " bytes)";
@@ -461,14 +495,19 @@ MimeBody.prototype = {
 function MimeUnknown(aContentType) {
   this.partName = null;
   this.contentType = aContentType;
+  this.headers = {};
 }
 
 MimeUnknown.prototype = {
+  __proto__: HeaderHandlerBase,
   get allAttachments() {
     return []; // we are a leaf
   },
-  prettyString: function MimeUnknown_prettyString(aIndent) {
-    return "Unknown: " + this.contentType;
+  prettyString: function MimeUnknown_prettyString(aVerbose, aIndent) {
+    let s = "Unknown: " + this.contentType;
+    if (aVerbose)
+      s += this._prettyHeaderString(aIndent + "  ");
+    return s;
   },
   toString: function MimeUnknown_toString() {
     return "Unknown: " + this.contentType;
@@ -492,11 +531,12 @@ function MimeMessageAttachment(aPartName, aName, aContentType, aUrl,
   this.contentType = aContentType;
   this.url = aUrl;
   this.isExternal = aIsExternal;
-
-  this.fields = {};
+  // parts is copied over from the part instance that preceded us
+  // headers is copied over from the part instance that preceded us
 }
 
 MimeMessageAttachment.prototype = {
+  __proto__: HeaderHandlerBase,
   /**
    * Is this an actual attachment, as far as we can tell?  An example of
    *  something that's not a real attachment is a mailing list footer that
@@ -511,7 +551,10 @@ MimeMessageAttachment.prototype = {
   get allAttachments() {
     return [this]; // we are a leaf, so just us.
   },
-  prettyString: function MimeMessageAttachment_prettyString(aIndent) {
-    return "Attachment: " + this.name + ", " + this.contentType;
+  prettyString: function MimeMessageAttachment_prettyString(aVerbose, aIndent) {
+    let s = "Attachment: " + this.name + ", " + this.contentType;
+    if (aVerbose)
+      s += this._prettyHeaderString(aIndent + "  ");
+    return s;
   },
 };
