@@ -59,8 +59,7 @@ var gCategoriesPane = {
         // On non-instant-apply platforms, once this pane has been loaded,
         // attach our "revert all changes" function to the parent prefwindow's
         // "ondialogcancel" event.
-        var parentPrefWindow = document.getElementById("CalendarPreferences") ||
-                               document.getElementById("MailPreferences");
+        var parentPrefWindow = document.documentElement;
         if (!parentPrefWindow.instantApply) {
             var existingOnDialogCancel = parentPrefWindow.getAttribute("ondialogcancel");
             parentPrefWindow.setAttribute("ondialogcancel",
