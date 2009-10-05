@@ -15,16 +15,8 @@ treechildren::-moz-tree-image(folderNameCol) {
   -moz-image-region: rect(0 16px 16px 0);
 }
 
-treechildren::-moz-tree-image(folderNameCol, newMessages-true) {
-  -moz-image-region: rect(16px 16px 32px 0);
-}
-
 treechildren::-moz-tree-image(folderNameCol, selected, open) {
   -moz-image-region: rect(0 32px 16px 16px);
-}
-
-treechildren::-moz-tree-image(folderNameCol, selected, open, newMessages-true) {
-  -moz-image-region: rect(16px 32px 32px 16px);
 }
 
 /* ..... Newsgroup ..... */
@@ -60,10 +52,6 @@ treechildren::-moz-tree-image(folderNameCol, serverType-rss, specialFolder-Virtu
 .tabmail-tab[type="folder"][SpecialFolder="Inbox"] .tab-icon-image,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Inbox) {
   -moz-image-region: rect(0 48px 16px 32px);
-}
-
-treechildren::-moz-tree-image(folderNameCol, specialFolder-Inbox, newMessages-true) {
-  -moz-image-region: rect(16px 48px 32px 32px);
 }
 
 /* ..... Sent ..... */
@@ -162,10 +150,6 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Virtual) {
   -moz-image-region: rect(0 160px 16px 144px);
 }
 
-treechildren::-moz-tree-image(folderNameCol, specialFolder-Virtual, newMessages-true) {
-  -moz-image-region: rect(16px 176px 32px 160px);
-}
-
 treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true),
 treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessages-true) {
   font-weight: bold;
@@ -256,4 +240,18 @@ treechildren::-moz-tree-cell-text(folderNameCol, noSelect-true) {
 
 .folderSummary-previewText {
   color: grey; 
+}
+
+treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true) {
+  font-weight: bold;
+  color: Highlight;
+}
+
+treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true, selected) {
+  color: -moz-cellHighlightText;
+}
+
+treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true, selected, focus) {
+  font-weight: bold;
+  color: -moz-cellHighlight;
 }
