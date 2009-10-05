@@ -205,19 +205,23 @@ function replaceWithDefaultSmtpServer(deletedSmtpServerKey)
       identity.smtpServerKey = smtpService.defaultServer.key;
   }
 
-  //When accounts have already been loaded in the panel then the first replacement will be 
-  //overwritten when the accountvalues are written out from the pagedata.
-  //we get the loaded accounts and check to make sure that the account exists for the accountid
-  //and that it has a default identity associated with it (to exclude smtpservers and local folders)
-  //Then we check only for the identity[type] and smtpServerKey[slot]
-  //and replace that with the default smtpserverkey if necessary.
+  // When accounts have already been loaded in the panel then the first
+  // replacement will be overwritten when the accountvalues are written out
+  // from the pagedata.  We get the loaded accounts and check to make sure
+  // that the account exists for the accountid and that it has a default
+  // identity associated with it (to exclude smtpservers and local folders)
+  // Then we check only for the identity[type] and smtpServerKey[slot] and
+  // replace that with the default smtpserverkey if necessary.
 
   for (var accountid in accountArray) {
     var account = accountArray[accountid]._account;
     if(account && account.defaultIdentity) {
       var accountValues = accountArray[accountid];
-      if (accountValues['identity']['smtpServerKey'] == deletedSmtpServerKey)
-        setAccountValue(accountValues,'identity', 'smtpServerKey', smtpService.defaultServer.key);
+      var smtpServerKey = getAccountValue(account, accountValues, "identity",
+                                          "smtpServerKey", null, false);
+      if (smtpServerKey == deletedSmtpServerKey)
+        setAccountValue(accountValues, "identity", "smtpServerKey",
+                        smtpService.defaultServer.key);
     }
   }
 }

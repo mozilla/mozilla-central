@@ -114,17 +114,16 @@ function createAccountInBackend(config)
   }
   inServer.valid = true;
 
-  // outgoing server
-  var outServer = null;
+  let username = config.outgoing.auth > 0 ? config.outgoing.username : null;
+  let outServer = smtpManager.findServer(username, config.outgoing.hostname);
   assert(config.outgoing.addThisServer ||
          config.outgoing.useGlobalPreferredServer ||
          config.outgoing.existingServerKey,
          "No SMTP server: inconsistent flags");
-  if (config.outgoing.addThisServer &&
-      !smtpManager.findServer(config.outgoing.username,
-                              config.outgoing.hostname))
+
+  if (config.outgoing.addThisServer && !outServer)
   {
-    var outServer = smtpManager.createSmtpServer();
+    outServer = smtpManager.createSmtpServer();
     outServer.hostname = config.outgoing.hostname;
     outServer.port = config.outgoing.port;
     if (config.outgoing.auth > 0)

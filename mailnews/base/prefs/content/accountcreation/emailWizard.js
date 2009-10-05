@@ -751,6 +751,7 @@ EmailConfigWizard.prototype =
                   gStringsBundle.getString("incoming_server_exists"));
       return;
     }
+
     // No need to check if we aren't adding it.
     if (this._currentConfigFilledIn.outgoing.addThisServer)
     {
@@ -816,11 +817,21 @@ EmailConfigWizard.prototype =
 
   advancedSettings : function()
   {
+    let shouldEraseConfig = !this._currentConfigFilledIn;
     let config = this._currentConfigFilledIn ? this._currentConfigFilledIn.copy()
                                              : this.getUserConfig();
+    this._currentConfigFilledIn = config.copy();
     // call this to set the password
     replaceVariables(config, this._realname, this._email,
                      this._password);
+
+    if (!this.checkIncomingAccountIsNew()) {
+      alertPrompt(gStringsBundle.getString("error_creating_account"),
+                  gStringsBundle.getString("incoming_server_exists"));
+      if (shouldEraseConfig)
+        this._currentConfigFilledIn = null;
+      return;
+    }
 
     gEmailWizardLogger.info("creating account in backend");
     config.rememberPassword =
