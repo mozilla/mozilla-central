@@ -77,44 +77,13 @@
 #include "nsIMsgWindow.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMessenger.h"
-#include "nsObjCExceptions.h"
 
 #include <Carbon/Carbon.h>
-#import <Cocoa/Cocoa.h>
 
 #define kNewMailAlertIcon "chrome://messenger/skin/icons/new-mail-alert.png"
 #define kBiffShowAlertPref "mail.biff.show_alert"
 #define kCountInboxesPref "mail.notification.count.inbox_only"
 #define kMaxDisplayCount 10
-
-// HACK: this code is copied from nsToolkit.mm in order to deal with
-// version checks below.  This should be tidied once we are not on
-// MOZILLA_1_9_1_BRANCH or MOZILLA_1_9_2_BRANCH
-#define MAC_OS_X_VERSION_10_4_HEX 0x00001040
-#define MAC_OS_X_VERSION_10_5_HEX 0x00001050
-long OSXVersion()
-{
-  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_RETURN;
-
-  static long gOSXVersion = 0x0;
-  if (gOSXVersion == 0x0)
-  {
-    if (::Gestalt(gestaltSystemVersion, &gOSXVersion) != noErr)
-    {
-      // This should probably be changed when our minimum version changes
-      NS_ERROR("Couldn't determine OS X version, assuming 10.4");
-      gOSXVersion = MAC_OS_X_VERSION_10_4_HEX;
-    }
-  }
-  return gOSXVersion;
-
-  NS_OBJC_END_TRY_ABORT_BLOCK_RETURN(0);
-}
-
-PRBool OnLeopardOrLater()
-{
-  return (OSXVersion() >= MAC_OS_X_VERSION_10_5_HEX);
-}
 
 // HACK: Limitations in Focus/SetFocus on Mac (see bug 465446)
 nsresult FocusAppNative()
@@ -218,12 +187,11 @@ nsMessengerOSXIntegration::nsMessengerOSXIntegration()
   mTotalUnreadMessagesAtom = do_GetAtom("TotalUnreadMessages");
   mUnreadTotal = 0;
   mOnlyCountInboxes = PR_TRUE;
-  mOnLeopardOrLater = OnLeopardOrLater();
 }
 
 nsMessengerOSXIntegration::~nsMessengerOSXIntegration()
 {
-  RestoreDockIcon();
+  RestoreApplicationDockTileImage();
 }
 
 NS_IMPL_ADDREF(nsMessengerOSXIntegration)
@@ -565,24 +533,18 @@ nsMessengerOSXIntegration::BounceDockIcon()
 }
 
 nsresult
-nsMessengerOSXIntegration::RestoreDockIcon()
-{
-  // Use the Leopard API if possible.
-  if (mOnLeopardOrLater)
-  {
-    NSDockTile *tile = [[NSApplication sharedApplication] dockTile];
-    [tile setBadgeLabel: nil];
-  }
-  else // 10.4
-    RestoreApplicationDockTileImage();
-
-  return NS_OK;
-}
-
-nsresult
 nsMessengerOSXIntegration::BadgeDockIcon()
 {
-  // Only badge if unread count is non-zero.
+  // This will change the dock icon. If we want to overlay the number of
+  // new messages on top of the icon use OverlayApplicationDockTileImage
+  // you'll have to pass it a CGImage, and somehow we have to/ create
+  // the CGImage with the numbers.
+
+  // Clean-up dock icon, since we will either redraw (need to get rid of
+  // any text left over from large numbers), or remove completely.
+  RestoreApplicationDockTileImage();
+
+  // Only badge if unread count > 0.
   if (mUnreadTotal < 1)
     return NS_OK;
 
@@ -590,46 +552,26 @@ nsMessengerOSXIntegration::BadgeDockIcon()
   // Extensions might wish to transform "1000" into "100+" or some
   // other short string. Getting back the empty string will cause
   // nothing to be drawn and us to return early.
+  nsAutoString total;
+  total.AppendInt(mUnreadTotal);
+
   nsresult rv;
   nsCOMPtr<nsIObserverService> os
     (do_GetService("@mozilla.org/observer-service;1", &rv));
-  if (NS_FAILED(rv))
-  {
-    RestoreDockIcon();
-    return rv;
-  }
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupportsString> str
     (do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID, &rv));
-  if (NS_FAILED(rv))
-  {
-    RestoreDockIcon();
-    return rv;
-  }
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsAutoString total;
-  total.AppendInt(mUnreadTotal);
   str->SetData(total);
   os->NotifyObservers(str, "before-unread-count-display",
                       total.get());
   nsAutoString badgeString;
   str->GetData(badgeString);
   if (badgeString.IsEmpty())
-  {
-    RestoreDockIcon();
     return NS_OK;
-  }
 
-  // On 10.5 or later, we can use the new API for this.
-  if (mOnLeopardOrLater)
-  {
-    NSDockTile *tile = [[NSApplication sharedApplication] dockTile];
-    [tile setBadgeLabel:[NSString stringWithFormat:@"%S", total.get()]];
-    return NS_OK;
-  }
-
-  // On 10.4 we have to draw this manually, clearing any existing badge artifacts first.
-  RestoreDockIcon();
   CGContextRef context = ::BeginCGContextForApplicationDockTile();
 
   // Draw a circle.

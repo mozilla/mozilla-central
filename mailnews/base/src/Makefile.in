@@ -138,7 +138,7 @@ CPPSRCS		= \
 		$(NULL)
 
 ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
-CMMSRCS = nsMessengerOSXIntegration.mm
+CPPSRCS		+= nsMessengerOSXIntegration.cpp
 endif
 
 ifeq ($(OS_ARCH),WINNT)
