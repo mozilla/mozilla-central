@@ -172,6 +172,8 @@ classic.jar:
   skin/classic/messenger/primaryToolbar.css                             (mac/messenger/primaryToolbar.css)
   skin/classic/messenger/icons/messengericons.png                       (mac/messenger/icons/messengericons.png)
   skin/classic/messenger/icons/messengericons-small.png                 (mac/messenger/icons/messengericons-small.png)
+  skin/classic/messenger/icons/spin-buttons.png                         (mac/messenger/icons/spin-buttons.png)
+  skin/classic/messenger/icons/spin-buttons-active.png                  (mac/messenger/icons/spin-buttons-active.png)
   skin/classic/messenger/icons/twisty-clsd.png                          (mac/messenger/icons/twisty-clsd.png)
   skin/classic/messenger/icons/twisty-open.png                          (mac/messenger/icons/twisty-open.png)
   skin/classic/messenger/addressbook/addressbook.css                    (mac/messenger/addressbook/addressbook.css)

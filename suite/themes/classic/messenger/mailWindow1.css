@@ -55,6 +55,26 @@
   height: 0px;
 }
 
+/* ..... folder pane adjustments ..... */
+
+.folderview-cycler > .toolbarbutton-text {
+  display: none;
+}
+
+.folderview-cycler > .toolbarbutton-icon {
+  margin: 0px;
+}
+
+.folderview-cycler[dir="prev"],
+.folderview-cycler[dir="next"][chromedir="rtl"] {
+  list-style-image: url("chrome://global/skin/arrow/arrow-lft.gif");
+}
+
+.folderview-cycler[dir="next"],
+.folderview-cycler[dir="prev"][chromedir="rtl"] {
+  list-style-image: url("chrome://global/skin/arrow/arrow-rit.gif");
+}
+
 /* ::::: border adjustments for focus ring and joined splitters ::::: */
 
 /* ..... splitter adjustments ..... */
@@ -76,7 +96,7 @@
 }
 
 /* ..... tree adjustments ..... */
- 
+
 #folderTree {
   border-right: 1px solid;
   -moz-border-right-colors: ThreeDShadow;
