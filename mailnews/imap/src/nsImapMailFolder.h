@@ -429,7 +429,9 @@ protected:
                                 nsIMsgCopyServiceListener* listener);
   void SetPendingAttributes(nsIArray* messages, PRBool aIsMove);
 
-  nsresult CopyOfflineMsgBody(nsIMsgFolder *srcFolder, nsIMsgDBHdr *destHdr, nsIMsgDBHdr *origHdr);
+  nsresult CopyOfflineMsgBody(nsIMsgFolder *srcFolder, nsIMsgDBHdr *destHdr,
+                              nsIMsgDBHdr *origHdr, nsIInputStream *inputStream,
+                              nsIOutputStream *outputStream);
 
   void GetTrashFolderName(nsAString &aFolderName);
   PRBool ShowPreviewText();

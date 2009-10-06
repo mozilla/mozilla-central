@@ -6647,11 +6647,13 @@ nsresult nsImapMailFolder::GetOriginalOp(nsIMsgOfflineImapOperation *op, nsIMsgO
   return rv;
 }
 
-nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder, nsIMsgDBHdr *destHdr, nsIMsgDBHdr *origHdr)
+nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder,
+                                              nsIMsgDBHdr *destHdr,
+                                              nsIMsgDBHdr *origHdr,
+                                              nsIInputStream *inputStream,
+                                              nsIOutputStream *outputStream)
 {
-  nsCOMPtr<nsIOutputStream> outputStream;
-  nsresult rv = GetOfflineStoreOutputStream(getter_AddRefs(outputStream));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv;
   nsCOMPtr <nsISeekableStream> seekable (do_QueryInterface(outputStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   nsMsgKey messageOffset;
@@ -6668,39 +6670,33 @@ nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder, nsIMsgDBH
   seekable->Tell(&tellPos);
   nsInt64 curStorePos = tellPos;
   destHdr->SetMessageOffset((PRUint32) curStorePos);
-  nsCOMPtr <nsIInputStream> offlineStoreInputStream;
-  rv = srcFolder->GetOfflineStoreInputStream(getter_AddRefs(offlineStoreInputStream));
-  if (NS_SUCCEEDED(rv) && offlineStoreInputStream)
+  nsCOMPtr<nsISeekableStream> seekStream = do_QueryInterface(inputStream);
+  NS_ASSERTION(seekStream, "non seekable stream - can't read from offline msg");
+  if (seekStream)
   {
-    nsCOMPtr<nsISeekableStream> seekStream = do_QueryInterface(offlineStoreInputStream);
-    NS_ASSERTION(seekStream, "non seekable stream - can't read from offline msg");
-    if (seekStream)
+    rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, messageOffset);
+    if (NS_SUCCEEDED(rv))
     {
-      rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, messageOffset);
-      if (NS_SUCCEEDED(rv))
+      // now, copy the dest folder offline store msg to the temp file
+      PRInt32 inputBufferSize = 10240;
+      char *inputBuffer = (char *) PR_Malloc(inputBufferSize);
+      PRInt32 bytesLeft;
+      PRUint32 bytesRead, bytesWritten;
+      bytesLeft = messageSize;
+      rv = (inputBuffer) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+      while (bytesLeft > 0 && NS_SUCCEEDED(rv))
       {
-        // now, copy the dest folder offline store msg to the temp file
-        PRInt32 inputBufferSize = 10240;
-        char *inputBuffer = (char *) PR_Malloc(inputBufferSize);
-        PRInt32 bytesLeft;
-        PRUint32 bytesRead, bytesWritten;
-        bytesLeft = messageSize;
-        rv = (inputBuffer) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
-        while (bytesLeft > 0 && NS_SUCCEEDED(rv))
+        rv = inputStream->Read(inputBuffer, inputBufferSize, &bytesRead);
+        if (NS_SUCCEEDED(rv) && bytesRead > 0)
         {
-          rv = offlineStoreInputStream->Read(inputBuffer, inputBufferSize, &bytesRead);
-          if (NS_SUCCEEDED(rv) && bytesRead > 0)
-          {
-            rv = outputStream->Write(inputBuffer, PR_MIN((PRInt32) bytesRead, bytesLeft), &bytesWritten);
-            NS_ASSERTION((PRInt32) bytesWritten == PR_MIN((PRInt32) bytesRead, bytesLeft), "wrote out incorrect number of bytes");
-          }
-          else
-            break;
-          bytesLeft -= bytesRead;
+          rv = outputStream->Write(inputBuffer, PR_MIN((PRInt32) bytesRead, bytesLeft), &bytesWritten);
+          NS_ASSERTION((PRInt32) bytesWritten == PR_MIN((PRInt32) bytesRead, bytesLeft), "wrote out incorrect number of bytes");
         }
-        PR_FREEIF(inputBuffer);
-        outputStream->Flush();
+        else
+          break;
+        bytesLeft -= bytesRead;
       }
+      PR_FREEIF(inputBuffer);
     }
   }
   if (NS_SUCCEEDED(rv))
@@ -6767,6 +6763,15 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       nsMsgKey highWaterMark = nsMsgKey_None;
       folderInfo->GetHighWater(&highWaterMark);
       fakeBase += highWaterMark;
+
+      nsCOMPtr <nsIInputStream> inputStream;
+      nsCOMPtr<nsIOutputStream> outputStream;
+      // only need the output stream if we got an input stream.
+      if (NS_SUCCEEDED(srcFolder->GetOfflineStoreInputStream(
+                                    getter_AddRefs(inputStream))))
+        rv = GetOfflineStoreOutputStream(getter_AddRefs(outputStream));
+      NS_ENSURE_SUCCESS(rv, rv);
+
       // put fake message in destination db, delete source if move
       for (PRUint32 sourceKeyIndex=0; !stopit && (sourceKeyIndex < srcCount); sourceKeyIndex++)
       {
@@ -6894,8 +6899,9 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
           {
             PRBool hasMsgOffline = PR_FALSE;
             srcFolder->HasMsgOffline(originalKey, &hasMsgOffline);
-            if (hasMsgOffline)
-              CopyOfflineMsgBody(srcFolder, newMailHdr, mailHdr);
+            if (inputStream && hasMsgOffline)
+              CopyOfflineMsgBody(srcFolder, newMailHdr, mailHdr, inputStream,
+                                 outputStream);
 
             nsCOMPtr <nsIMsgOfflineImapOperation> destOp;
             mDatabase->GetOfflineOpForKey(fakeBase + sourceKeyIndex, PR_TRUE, getter_AddRefs(destOp));
@@ -6962,6 +6968,8 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
             msgHdrsCopied->AppendElement(mailHdr, PR_FALSE);
         }
       }
+      if (outputStream)
+        outputStream->Close();
 
       if (isMove)
         sourceMailDB->Commit(nsMsgDBCommitType::kLargeCommit);
