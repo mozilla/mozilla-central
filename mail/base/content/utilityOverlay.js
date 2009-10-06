@@ -342,6 +342,18 @@ function openContentTab(url)
 }
 
 function openFeatureConfigurator() {
-  document.getElementById("tabmail").openTab("chromeTab",
-    {chromePage: "chrome://messenger/content/featureConfigurator.xhtml"});
+  let mail3PaneWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                  .getService(Components.interfaces.nsIWindowMediator)
+                                  .getMostRecentWindow("mail:3pane");
+  const url = "chrome://messenger/content/featureConfigurator.xhtml";
+  if (mail3PaneWindow) {
+    mail3PaneWindow.focus();
+    mail3PaneWindow.document.getElementById("tabmail")
+                            .openTab("chromeTab", {chromePage: url});
+  } else {
+    window.openDialog("chrome://messenger/content/", "_blank",
+                      "chrome,dialog=no,all", null,
+                      { tabType: "chromeTab",
+                        tabParams: {chromePage: url} });
+  }
 }
