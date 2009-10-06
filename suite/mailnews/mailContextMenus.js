@@ -219,7 +219,7 @@ function FillFolderPaneContextMenu()
 {
   let folders = GetSelectedMsgFolders();
   let numSelected = folders.length;
-  if (!numSelected)
+  if (numSelected != 1)
     return false;
 
   let folder = folders[0];
