@@ -225,6 +225,8 @@ function test_stream_message(info) {
   });
 }
 
+var deathToNewlineTypeThings = /[\r\n]+/g;
+
 function verify_body_part_equivalence(aSynBodyPart, aMimePart) {
   // the content-type devoid of parameters should match
   do_check_eq(aSynBodyPart._contentType, aMimePart.contentType);
@@ -233,8 +235,10 @@ function verify_body_part_equivalence(aSynBodyPart, aMimePart) {
   //  this is an rfc822 part, in which case it should only match for the
   //  actual contents.
   if (aMimePart.contentType != "message/rfc822")
-    do_check_eq(aSynBodyPart.contentTypeHeaderValue.replace("\r\n", "", "g"),
-                aMimePart.get("content-type").replace("\n", "", "g"));
+    do_check_eq(aSynBodyPart.contentTypeHeaderValue.replace(
+                  deathToNewlineTypeThings, ""),
+                aMimePart.get("content-type").replace(
+                  deathToNewlineTypeThings, ""));
 
   // XXX body part checking will get brittle if we ever actually encode things!
   if (aSynBodyPart.body && !aSynBodyPart._filename &&
