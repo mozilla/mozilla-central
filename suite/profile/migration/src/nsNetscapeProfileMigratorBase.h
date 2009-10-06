@@ -142,6 +142,8 @@ protected:
   nsresult GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
                                       nsIMutableArray* aProfileNames,
                                       nsIMutableArray* aProfileLocations);
+  nsresult GetFileValue(nsIPrefBranch* aPrefBranch, const char* aRelPrefName,
+                        const char* aPrefName, nsILocalFile** aReturnFile);
   nsresult CopyFile(const char* aSourceFileName,
                     const char* aTargetFileName);
   nsresult RecursiveCopy(nsIFile* srcDir, nsIFile* destDir);

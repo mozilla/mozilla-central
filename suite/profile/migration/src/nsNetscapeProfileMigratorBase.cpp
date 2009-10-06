@@ -742,6 +742,36 @@ nsNetscapeProfileMigratorBase::WriteBranch(const char * branchName,
   aPrefs.Clear();
 }
 
+nsresult
+nsNetscapeProfileMigratorBase::GetFileValue(nsIPrefBranch* aPrefBranch, const char* aRelPrefName, const char* aPrefName, nsILocalFile** aReturnFile)
+{
+  nsCString prefValue;
+  nsCOMPtr<nsILocalFile> theFile;
+  nsresult rv = aPrefBranch->GetCharPref(aRelPrefName, getter_Copies(prefValue));
+  if (NS_SUCCEEDED(rv)) {
+    // The pref has the format: [ProfD]a/b/c
+    if (!StringBeginsWith(prefValue, NS_LITERAL_CSTRING("[ProfD]")))
+      return NS_ERROR_FAILURE;
+
+    rv = NS_NewNativeLocalFile(EmptyCString(), PR_TRUE, getter_AddRefs(theFile));
+    if (NS_FAILED(rv))
+      return rv;
+
+    rv = theFile->SetRelativeDescriptor(mSourceProfile, Substring(prefValue, 7));
+    if (NS_FAILED(rv))
+      return rv;
+
+    *aReturnFile = theFile;
+  } else {
+    rv = aPrefBranch->GetComplexValue(aPrefName,
+                                      NS_GET_IID(nsILocalFile),
+                                      getter_AddRefs(theFile));
+  }
+
+  theFile.forget(aReturnFile);
+  return rv;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Generic Import Functions
 
@@ -1028,21 +1058,7 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
     PrefBranchStruct* pref = aMailServers.ElementAt(i);
     nsDependentCString prefName(pref->prefName);
 
-    if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".directory-rel"))) {
-      // When the directories are modified below, we may change the .directory
-      // pref. As we don't have a pref branch to modify at this stage and set
-      // up the relative folders properly, we'll just remove all the
-      // *.directory-rel prefs. Mailnews will cope with this, creating them
-      // when it first needs them.
-      if (pref->type == nsIPrefBranch::PREF_STRING)
-        NS_Free(pref->stringValue);
-
-      aMailServers.RemoveElementAt(i);
-      // Now decrease i and count to match the removed element
-      --i;
-      --count;
-    }
-    else if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".directory"))) {
+    if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".directory"))) {
       // let's try to get a branch for this particular server to simplify things
       prefName.Cut(prefName.Length() - strlen("directory"),
                    strlen("directory"));
@@ -1058,9 +1074,8 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
       serverBranch->GetCharPref("type", getter_Copies(serverType));
 
       nsCOMPtr<nsILocalFile> sourceMailFolder;
-      nsresult rv =
-        serverBranch->GetComplexValue("directory", NS_GET_IID(nsILocalFile),
-                                      getter_AddRefs(sourceMailFolder));
+      nsresult rv = GetFileValue(serverBranch, "directory-rel", "directory",
+                                 getter_AddRefs(sourceMailFolder));
       NS_ENSURE_SUCCESS(rv, rv);
 
       // now based on type, we need to build a new destination path for the
@@ -1135,6 +1150,20 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
       }
+    }
+  }
+
+  // Remove all .directory-rel prefs as those might have changed; MailNews
+  // will create those prefs again on first use
+  for (PRInt32 i = count; i-- > 0; ) {
+    PrefBranchStruct* pref = aMailServers.ElementAt(i);
+    nsDependentCString prefName(pref->prefName);
+
+    if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".directory-rel"))) {
+      if (pref->type == nsIPrefBranch::PREF_STRING)
+        NS_Free(pref->stringValue);
+
+      aMailServers.RemoveElementAt(i);
     }
   }
 
