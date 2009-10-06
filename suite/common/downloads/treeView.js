@@ -309,7 +309,7 @@ DownloadTreeView.prototype = {
     this._tree.rowCountChanged(0, 1);
 
     // Data has changed, so re-sorting might be needed
-    this.sortView("", "");
+    this.sortView("", "", attrs, 0);
 
     window.updateCommands("tree-select");
   },
@@ -322,38 +322,39 @@ DownloadTreeView.prototype = {
       this.addDownload(aDownload);
       return;
     }
-    if (this._dlList[row].currBytes != aDownload.amountTransferred) {
-      this._dlList[row].endTime = Date.now();
-      this._dlList[row].currBytes = aDownload.amountTransferred;
-      this._dlList[row].maxBytes = aDownload.size;
-      this._dlList[row].progress = aDownload.percentComplete;
+    var dl = this._dlList[row];
+    if (dl.currBytes != aDownload.amountTransferred) {
+      dl.endTime = Date.now();
+      dl.currBytes = aDownload.amountTransferred;
+      dl.maxBytes = aDownload.size;
+      dl.progress = aDownload.percentComplete;
     }
-    if (this._dlList[row].state != aDownload.state) {
-      this._dlList[row].state = aDownload.state;
-      this._dlList[row].resumable = aDownload.resumable;
-      switch (this._dlList[row].state) {
+    if (dl.state != aDownload.state) {
+      dl.state = aDownload.state;
+      dl.resumable = aDownload.resumable;
+      switch (dl.state) {
         case nsIDownloadManager.DOWNLOAD_NOTSTARTED:
         case nsIDownloadManager.DOWNLOAD_DOWNLOADING:
         case nsIDownloadManager.DOWNLOAD_PAUSED:
         case nsIDownloadManager.DOWNLOAD_QUEUED:
         case nsIDownloadManager.DOWNLOAD_SCANNING:
-          this._dlList[row].isActive = 1;
+          dl.isActive = 1;
           break;
         default:
-          this._dlList[row].isActive = 0;
+          dl.isActive = 0;
           break;
       }
       // We should eventually know the referrer at some point
       var referrer = aDownload.referrer;
       if (referrer)
-        this._dlList[row].referrer = referrer.spec;
+        dl.referrer = referrer.spec;
     }
 
     // Repaint the tree row
     this._tree.invalidateRow(row);
 
     // Data has changed, so re-sorting might be needed
-    this.sortView("", "");
+    this.sortView("", "", dl, row);
 
     window.updateCommands("tree-select");
   },
@@ -497,7 +498,7 @@ DownloadTreeView.prototype = {
     this._restoreSelection();
   },
 
-  sortView: function(aColumnID, aDirection) {
+  sortView: function(aColumnID, aDirection, aDownload, aRow) {
     var sortAscending = aDirection != "descending";
 
     if (aColumnID == "" && aDirection == "") {
@@ -587,8 +588,19 @@ DownloadTreeView.prototype = {
     // Do the actual sorting of the array
     this._dlList.sort(compfunc);
 
-    // Repaint the tree
-    this._tree.invalidate();
+    var row = this._dlList.indexOf(aDownload);
+    if (row == -1)
+      // Repaint the tree
+      this._tree.invalidate();
+    else if (row == aRow)
+      // No effect
+      this._selectionCache = null;
+    else if (row < aRow)
+      // Download moved up from aRow to row
+      this._tree.invalidateRange(row, aRow);
+    else
+      // Download moved down from aRow to row
+      this._tree.invalidateRange(aRow, row)
 
     // Restore the selection
     this._restoreSelection();
