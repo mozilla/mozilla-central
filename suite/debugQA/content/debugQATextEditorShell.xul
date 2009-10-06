@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -39,7 +39,7 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://editor/skin/editor.css" type="text/css"?>
-<?xml-stylesheet href="chrome://editor/skin/editorPrimaryToolbar.css" type="text/css"?> 
+<?xml-stylesheet href="chrome://editor/skin/editorPrimaryToolbar.css" type="text/css"?>
 <?xul-overlay href="chrome://editor/content/editorOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
@@ -76,10 +76,6 @@
   <script type="application/x-javascript" src="chrome://editor/content/ComposerCommands.js"/>
   <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
   <script type="application/x-javascript" src="chrome://communicator/content/contentAreaDD.js"/>
-<!--
-editor.xul has these - do we need them?
-  <script type="application/x-javascript" src="chrome://communicator/content/contentAreaUtils.js"/>
--->
 
   <commands id="commands">
     <commandset id="globalEditMenuItems"/>
@@ -88,18 +84,18 @@ editor.xul has these - do we need them?
     <commandset id="clipboardEditMenuItems"/>
     <commandset id="commonEditorMenuItems"/>
     <commandset id="composerEditMenuItems"/>
-    <commandset id="composerSaveMenuItems"/>    
+    <commandset id="composerSaveMenuItems"/>
     <commandset id="composerMenuItems"/>
   </commands>
 
   <broadcaster id="args" value="chrome://debugqa/content/EditorInitPagePlain.html"/>
   <broadcaster id="canPrint"/>
-  
+
 <!-- Interim hack to transition from nsIXULWindowCallbacks/ShowWindowWithArgs
   <broadcaster id="dialog.start" ready="false"/>
   <observes element="dialog.start" attribute="ready" onbroadcast="EditorStartup('text')"/>
  -->
-   
+
   <!-- broadcaster nodes are appended here from the overlays -->
   <broadcasterset id="broadcasterset">
     <broadcaster id="Editor:Throbber" busy="false"/>
@@ -142,7 +138,7 @@ editor.xul has these - do we need them?
       <toolbarseparator class="toolbarseparator-primary"/>
       <toolbarbutton id="spellingButton"/>
       <spacer flex="1"/>
-    </toolbar>    
+    </toolbar>
   </toolbox>
 
   <popup id="popupNotificationMenu"/>
