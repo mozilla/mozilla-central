@@ -144,7 +144,7 @@
 
 
   <vbox id="mastervbox" class="mastervbox" flex="1">
-    <groupbox class="initialSettings">
+    <groupbox id="initialSettings">
       <hbox align="center">
         <label accesskey="&name.accesskey;"
                class="autoconfigLabel"
@@ -218,7 +218,7 @@
       <hbox id="fullspacer"/>
     </groupbox>
     <vbox>
-      <groupbox id="settingsbox" class="settings">
+      <groupbox id="settingsbox">
         <vbox>
           <vbox id="configarea">
             <hbox>

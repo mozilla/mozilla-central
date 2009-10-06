@@ -17,25 +17,6 @@
   cursor: pointer;
 }
 
-.clickable_label:hover {
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.clickable_label {
-  color: blue;
-  width: 120px;
-  padding-top: 6px;
-  -moz-padding-start: 2px;
-  padding-bottom: 5px;
-  overflow: auto;
-}
-
-/* Missing:
- * .short_clickable_label
- * .short_not_clickable_label
- */
-
 .errordescription {
   -moz-padding-start: 3px;
   margin-top: 3px;
@@ -44,26 +25,6 @@
 .initialDesc {
   margin-top: 2px;
   color: GrayText;
-}
-
-.edited_label {
-  width: 123px;
-  overflow: auto;
-}
-
-/* Missing:
- * .short_edited_label
- */
-
-.protocol_label {
-  width: 73px;
-  -moz-padding-start: 6px;
-}
-
-#incoming_config {
-  width: 73px;
-  padding-top: 6px;
-  -moz-padding-start: 6px;
 }
 
 menulist[disabled="true"] {
@@ -85,93 +46,13 @@ menulist[disabled="true"] > .menulist-dropmarker {
   padding-top: 5px;
 }
 
-#outgoing_config {
-  width: 73px;
-  padding-top: 5px;
-  -moz-padding-start: 6px;
-}
-
-.config_area {
-  padding: 6px;
-}
-
-.settingsbox {
-  min-height: 200px;
-}
-
-description.error_notice {
-  color: rgb(244,50,50);
-}
-
-description.heading {
-  font-size: larger;
-  padding-bottom: 1em;
-}
-
-description.explanation {
-  padding-top: 1em;
-  padding-bottom: 1em;
-}
-
 #config_status_title {
   font-weight: bold;
-}
-
-#config_status_subtitle {
-  font-size: smaller;
-  color: GrayText;
-  font-style: italic;
-}
-
-label.bignumber {
-  font-size: larger;
-  font-weight: bolder;
-  color: white;
-  background-color: rgb(140,140,140);
-  -moz-border-radius: 8px;
-  padding: 8px;
-}
-
-hbox.stepheading {
-  padding-bottom: 1em;
 }
 
 window {
   -moz-appearance: none;
   padding: 14px;
-}
-
-.wizard-header {
-  -moz-border-radius-topright: 15px;
-  -moz-border-radius-topleft: 15px;
-  margin-top: 70px;
-  -moz-margin-end: 0;
-  -moz-margin-start: 0;
-  border-bottom: none;
-  -moz-padding-start: 14px;
-  -moz-padding-end: 14px;
-  padding-top: 14px;
-}
-
-.wizard-page-box {
-  -moz-border-radius-bottomright: 15px;
-  -moz-border-radius-bottomleft: 15px;
-  margin-top: 0;
-  -moz-margin-end: 0;
-  -moz-margin-start: 0;
-  -moz-padding-start: 14px;
-  -moz-padding-end: 14px;
-  padding-bottom: 14px;
-}
-
-.wizard-header, .wizard-page-box {
-  -moz-appearance: none;
-  background-color: #FFFFFF;
-  opacity: 0.8;
-}
-
-.header {
-  font-weight: bold;
 }
 
 vbox.icon {
@@ -257,25 +138,8 @@ vbox.icon[state='weak'] {
   -moz-padding-end: 2em;
 }
 
-label.linklabel {
-  color: yellow;
-}
-
-label.linklabel {
-  text-decoration: underline !important;
-}
-
-label.linklabel:hover {
-  cursor: move;
-  text-decoration: underline !important;
-}
-
 checkbox.acknowledge_checkbox {
   padding-top: .5em;
-}
-
-vbox.settings {
-  padding: 1em;
 }
 
 .title {
@@ -331,23 +195,6 @@ menulist.host {
 
 /* Missing:
  * textbox[disabled="true"]
- * label.heading
- * row.heading
- * hbox.clickable
- * hbox.hoverable:hover
- * textbox.clickable
- * textbox.editing
- * textbox.clickable > .textbox-input-box > .textbox-input:hover
- * textbox.clickable > .textbox-input-box
- * textbox.clickable > .textbox-input-box > .texbox-input
- * menulist.clickable
- * menulist.clickable:hover
- * menulist.clickable > .menulist-label-box
- * menulist.clickable > .menulist-label-box:hover
- * menulist[editable="true"].clickable
- * menulist[editable="true"].clickable > .menulist-editable-box
- * menulist[editable="true"].clickable > .menulist-editable-box > .menulist-editable-input
- * menulist[editable="true"].clickable > .menulist-dropmarker
  */
 
 .technical_details {
@@ -369,8 +216,4 @@ label.autoconfigLabel {
 label.textbox-label {
   width: 58px;
   text-align: right;
-}
-
-vbox.initialSettings textbox {
-  width: 280px;
 }
