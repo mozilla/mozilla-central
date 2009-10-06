@@ -689,6 +689,7 @@
         <rdf:li> <rdf:Description ID="cust-font" nc:name="Changing Fonts, Colors, and Themes"  nc:link="customize_help.xhtml#changing_fonts_colors_and_themes"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-toolbar" nc:name="Toolbars"  nc:link="customize_help.xhtml#toolbars"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-bkmk" nc:name="Bookmarks"  nc:link="customize_help.xhtml#bookmarks"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="cust-addons" nc:name="Add-ons"  nc:link="customize_help.xhtml#add-ons"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-page" nc:name="Specifying How &brandShortName; Starts Up"  nc:link="customize_help.xhtml#specifying_how_mozilla_starts_up"/> </rdf:li>
         <rdf:li> <rdf:Description ID="appearance_pref" nc:name="Appearance Preferences" nc:link="cs_nav_prefs_appearance.xhtml"/> </rdf:li>
         <rdf:li> <rdf:Description ID="navigator_pref_navigator" nc:name="Browser Preferences" nc:link="cs_nav_prefs_navigator.xhtml"/> </rdf:li>
@@ -756,6 +757,16 @@
         <rdf:li> <rdf:Description ID="cust-bkmk-change" nc:name="Changing Individual Bookmarks"  nc:link="customize_help.xhtml#changing_individual_bookmarks"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-bkmk-search" nc:name="Searching Your Bookmarks"  nc:link="customize_help.xhtml#searching_your_bookmarks"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-bkmk-multiple" nc:name="Exporting or Importing a Bookmark List"  nc:link="customize_help.xhtml#exporting_or_importing_a_bookmark_list"/> </rdf:li>
+      </rdf:Seq>
+    </nc:subheadings>
+  </rdf:Description>
+
+<rdf:Description about="#cust-addons">
+    <nc:subheadings>
+      <rdf:Seq>
+        <rdf:li> <rdf:Description ID="cust-addons-about" nc:name="About Add-ons"  nc:link="customize_help.xhtml#about_add-ons"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="cust-addons-installing" nc:name="Installing Add-ons"  nc:link="customize_help.xhtml#installing_add-ons"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="cust-addons-manager" nc:name="Using the Add-on Manager"  nc:link="customize_help.xhtml#using_the_add-on_manager"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>

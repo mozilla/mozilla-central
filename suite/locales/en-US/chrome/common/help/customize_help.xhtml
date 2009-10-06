@@ -24,7 +24,7 @@
 <h1 id="customizing_mozilla">Customizing &brandShortName;</h1>
 
 <p>You can customize &brandShortName; to better suit your needs using features
-  like Sidebar, bookmarks, and Tabbed Browsing.</p>
+  like Sidebar, bookmarks, Tabbed Browsing, and Add-ons.</p>
 
 <p>This section describes the customizable aspects of &brandShortName;&apos;s
   browser component.</p>
@@ -37,6 +37,7 @@
       Themes</a></li>
     <li><a href="#toolbars">Toolbars</a></li>
     <li><a href="#bookmarks">Bookmarks</a></li>
+    <li><a href="#add-ons">Add-ons</a></li>
     <li><a href="#specifying_how_mozilla_starts_up">Specifying How
       &brandShortName; Starts Up</a></li>
     <li><a href="cs_nav_prefs_appearance.xhtml">Appearance
@@ -346,8 +347,8 @@
   <a href="shortcuts-navigator.xhtml#tabbed_browsing_shortcuts">keyboard
   shortcuts</a> to move tabs within a window if desired.</p>
 
-<p><strong>Note</strong>: The keyboard shortcuts don't work when a text box has
-  focus.</p>
+<p><strong>Note</strong>: The keyboard shortcuts don&apos;t work when a text
+  box has focus.</p>
 
 <p>[<a href="#tabbed_browsing">Return to beginning of section</a>]</p>
 
@@ -1035,6 +1036,287 @@
   folders from that file. It does not create two bookmarks files.</p>
 
 <p>[<a href="#bookmarks">Return to beginning of section</a>]</p>
+
+<h2 id="add-ons">Add-ons</h2>
+
+<p>One of the most exciting ways to customize &brandShortName; is through the
+  addition of Add-ons. In this section, you will learn what Add-ons are, how
+  to install them, and how to use the Add-on Manager.</p>
+
+<div class="contentsBox">In this section:
+  <ul>
+    <li><a href="#about_add-ons">About Add-ons</a></li>
+    <li><a href="#installing_add-ons">Installing Add-ons</a></li>
+    <li><a href="#using_the_add-on_manager">Using the Add-on Manager</a></li>
+  </ul>
+</div>
+
+<h3 id="about_add-ons">About Add-ons</h3>
+
+<p>An Add-on is a piece of software that can be added to &brandShortName; to
+  change its appearance, behavior, or to add new features. It can also change
+  the language shown in the user interface. Add-ons can be classified in four
+  types:</p>
+
+<ul>
+  <li><strong>Extensions</strong>: This type of Add-on either changes the way
+    &brandShortName; behaves or adds new features to it. For instance, there
+    are extensions that provide you with weather forecasts, that add a
+    full-featured FTP client, or that block advertisements in web pages. Some
+    extensions are designed to work only with specific websites.</li>
+  <li><strong>Themes</strong>: Themes change the appearance and design of
+    &brandShortName;, but don&apos;t add or change features. They act as a
+    skin. &brandShortName; ships with two themes, Default Theme and Modern
+    Theme, but you can add more to fit your style.</li>
+  <li><strong>Languages</strong>: While you can download &brandShortName; in
+    a number of languages, you may add additional languages to it in the form
+    of language packs. This way, different users may use &brandShortName; in
+    their own language without having to install the program for everyone.
+    This is specially useful if you are going to install &brandShortName; on a
+    computer that is shared by different users in, for example, a computer lab.
+
+    <p><strong>Note</strong>: Language packs only change the user interface
+      language. Web pages, messages, newsgroup and news &amp; blog posts will
+      still be shown in the original language in which they were written.</p>
+  </li>
+  <li><strong>Plugins</strong>: Plugins act as connectors between
+    &brandShortName; and other programs. They enable you to see special content
+    (like Flash movies, or Adobe PDF documents) directly inside the
+    &brandShortName; browser window, instead of opening the target program in a
+    separate window.</li>
+</ul>
+
+<p>Add-ons always come as packages. Each Add-on is a single file with the XPI
+  extension, except in the case of plugins which usually are binaries specific
+  to the target operating system.</p>
+
+<p>[<a href="#add-ons">Return to beginning of section</a>]</p>
+
+<h3 id="installing_add-ons">Installing Add-ons</h3>
+
+<p>There are a number of ways to install Add-ons:</p>
+
+<ul>
+  <li>By clicking a link for an Add-on on a web page. This will trigger
+    a &brandShortName; dialog asking you to confirm or cancel the
+    installation, with the Install button disabled during some seconds in
+    order to avoid you accidentally click it just as the dialog shows up.
+    
+    <p><strong>Note</strong>: As an additonal security measure,
+      &brandShortName; only allows installing Add-ons from a list of permitted
+      sites in the <a
+      href="cs_nav_prefs_advanced.xhtml#software_installation">Software
+      Installation preferences panel</a>.</p>
+  </li>
+  <li>By opening a previously saved Add-on package, just like you open a
+    regular file that you previously saved on your hard drive: Select Open file
+    from the File menu, or press <span class="mac"><kbd>Cmd</kbd></span><span
+    class="noMac"><kbd>Ctrl</kbd></span>+<kbd>O</kbd>.</li>
+  <li>By using the Get Add-ons panel in the Add-on Manager or clicking the
+    Install button in any of the panels in the Add-on Manager.</li>
+</ul>
+
+<p><strong>Note</strong>: Plugins are usually installed as a separate program
+  while &brandShortName; is closed so both the external program and the
+  corresponding plugin for &brandShortName; get installed correctly.</p>
+
+<p>[<a href="#add-ons">Return to beginning of section</a>]</p>
+
+<h3 id="using_the_add-on_manager">Using the Add-on Manager</h3>
+
+<p>The Add-on Manager enables you to install and uninstall Add-ons, enable and
+  disable them and, in some cases, set preferences for them.</p>
+  
+<p id="accessing_the_add-on_manager">To access the Add-on Manager, follow any
+  of these steps:</p>
+
+<ul>
+  <li>Open the Tools menu, then select Add-on Manager.</li>
+  <li>Open the <span class="mac">&brandShortName;</span><span
+    class="noMac">Edit</span> menu and choose Preferences, expand the Advanced
+    category and click Software Installation.</li>
+</ul>
+
+<div class="contentsBox">In this section:
+  <ul>
+    <li><a href="#the_get_add-ons_panel">The Get Add-ons panel</a></li>
+    <li><a href="#the_extensions_panel">The Extensions panel</a></li>
+    <li><a href="#the_themes_panel">The Themes panel</a></li>
+    <li><a href="#the_languages_panel">The Languages panel</a></li>
+    <li><a href="#the_plugins_panel">The Plugins panel</a></li>
+  </ul>
+</div>
+
+<h4 id="the_get_add-ons_panel">The Get Add-ons panel</h4>
+
+<p>The Get Add-ons panel in the Add-on Manager uses web services provided by
+  the Mozilla Add-ons website to present a list of recommended Add-ons, as
+  well as giving you the option to search all available Mozilla Add-ons
+  directly from the Add-on Manager. After
+  <a href="#accessing_the_add-on_manager">accessing the Add-on Manager</a>,
+  click the Get Add-ons button to show the Get Add-ons panel. There, you can
+  perform the following actions:</p>
+
+<ul>
+  <li>To search for Add-ons based on name, description or tags, use the
+    Search box. Type a word or phrase and press <span
+    class="mac"><kbd>Return</kbd></span><span
+    class="noMac"><kbd>Enter</kbd></span>. You will get a list of matching
+    Add-ons. To clear the search box terms and the result list, click the
+    icon inside the search box.
+
+    <p><strong>Note</strong>: Add-ons that are already installed or
+      incompatible with your current version of &brandShortName; will not be
+      displayed in the list of search results.</p>
+  </li>
+  <li>To open the Mozilla Add-ons website in a new browser window (or a new
+    browser tab, depending on your preferences), click Browse All Add-ons.</li>
+  <li>To get more information about one of the recommended Add-ons in the list
+    displayed by default, click the entry. The entry will expand, displaying
+    a larger image, a full description of the Add-on, and an indication of the
+    Add-on type (extension, theme, etc.). You will also be able to install the
+    Add-on by clicking the Add to &brandShortName; button inside the
+    expanded entry.</li>
+  <li>To display the full list of recommended Add-ons for &brandShortName; in a
+    new browser window (or a new browser tab, depending on your preferences),
+    scroll down the recommended Add-ons list until you see the See All
+    Recommended Add-ons link.</li>
+</ul>
+
+<p>[<a href="#using_the_add-on_manager">Return to beginning of section</a>]</p>
+
+<h4 id="the_extensions_panel">The Extensions panel</h4>
+
+<p>The Extensions panel in the Add-on Manager lists the installed extensions.
+  After <a href="#accessing_the_add-on_manager">accessing the Add-on
+  Manager</a>, click the Extensions button to show the Extensions panel. There,
+  you can perform the following actions:</p>
+
+<ul>
+  <li>To get more information about any of the installed extensions, click the
+    entry in the list. The entry will expand and show the full description of
+    the extension.
+
+    <p><strong>Note</strong>: Disabled extensions will appear greyed out.
+      Incompatible extensions will appear greyed out, since they are also
+      disabled, and with a forbidden sign over the extension icon (incompatible
+      extensions are those which define themselves as not compatible for the
+      version of &brandShortName; you are using).</p>
+  </li>
+  <li>To access preferences of an extension (if the extension features a
+    preferences panel), click the entry corresponding to the desired extension,
+    then click the Preferences button.
+
+    <p><strong>Note</strong>: If the extension does not feature a preferences
+      panel, the Preferences button will be disabled. You can&apos;t access
+      preferences of disabled or incompatible extensions.</p>
+  </li>
+  <li>To disable an extension, click the entry corresponding to the desired
+    extension, then click the Disable button. An info bar will appear to remind
+    you that changes will apply once you restart &brandShortName;. The info bar
+    features a Restart &brandShortName; button.</li>
+  <li>To enable an extension, click the entry corresponding to the desired
+    extension, then click the Enable button. An info bar will appear to remind
+    you that changes will apply once you restart &brandShortName;. The info bar
+    features a Restart &brandShortName; button.</li>
+  <li>To uninstall an extension, click the entry corresponding to the
+    desired extension, then click the Uninstall button. An info bar will
+    appear to remind you that changes will apply once you restart
+    &brandShortName;. The info bar features a Restart &brandShortName;
+    button.</li>
+  <li>To find updates for any extension in the list (including those marked as
+    incompatible), click the Find Updates button at the bottom of the
+    Add-on Manager.
+
+    <p>If updates are found, they will be displayed in a new panel. In the
+      panel, you can choose what extensions you want to update and then use the
+      Install Updates button to retrieve updated Add-ons. Once downloaded, you
+      will need to restart &brandShortName; to apply the updates.</p>
+  </li>
+</ul>
+
+<p>[<a href="#using_the_add-on_manager">Return to beginning of section</a>]</p>
+
+<h4 id="the_themes_panel">The Themes panel</h4>
+
+<p>The Themes panel in the Add-on Manager lists the installed themes. After
+  <a href="#accessing_the_add-on_manager">accessing the Add-on Manager</a>,
+  click the Themes button to show the Themes panel. There, you can perform the
+  following actions:</p>
+
+<ul>
+  <li>To get more information and a preview on any of the installed themes,
+    click an entry in the list. The entry will expand and show the full
+    description of the theme, along with a preview in the right side of the
+    Add-on Manager dialog (you may need to resize the dialog to properly see
+    the preview pane).</li>
+  <li>To use a theme, click the entry corresponding to the desired theme, then
+    click the Use Theme button. An info bar will appear to remind you that
+    changes will apply once you restart &brandShortName;. The info bar features
+    a Restart &brandShortName; button.
+    
+    <p><strong>Note</strong>: Contrary to extensions, you only can use one
+    theme at a time.</p>
+  </li>
+  <li>To uninstall a theme, click the entry corresponding to the desired theme,
+    then click the Uninstall button. An info bar will appear to remind
+    you that changes will apply once you restart &brandShortName;. The info bar
+    features a Restart &brandShortName; button.</li>
+</ul>
+
+<p>[<a href="#using_the_add-on_manager">Return to beginning of section</a>]</p>
+
+<h4 id="the_languages_panel">The Languages panel</h4>
+
+<p>The Languages panel in the Add-on Manager lists the installed Language
+  Packs. This panel only appears if you have installed a Language Pack.</p>
+
+<p>After <a href="#accessing_the_add-on_manager">accessing the Add-on
+  Manager</a>, click the Languages button to show the Languages panel. There,
+  you can perform the following actions:</p>
+
+<ul>
+  <li>To disable a language pack, click the entry corresponding to the desired
+    language pack, then click the Disable button. An info bar will appear to
+    remind you that changes will apply once you restart &brandShortName;. The
+    info bar features a Restart &brandShortName; button.</li>
+  <li>To enable a language pack, click the entry corresponding to the desired
+    language pack, then click the Enable button. An info bar will appear to
+    remind you that changes will apply once you restart &brandShortName;. The
+    info bar features a Restart &brandShortName; button.</li>
+  <li>To uninstall a language pack, click the entry corresponding to the
+    desired language pack, then click the Uninstall button. An info bar will
+    appear to remind you that changes will apply once you restart
+    &brandShortName;. The info bar features a Restart &brandShortName;
+    button.</li>
+</ul>
+
+<p><strong>Note</strong>: Enabling a language pack in the Language panel
+  doesn&apos;t change the language shown in &brandShortName;&apos;s user
+  interface, it only makes the language available for selection in the
+  <a href="cs_nav_prefs_appearance.xhtml#appearance">Appearance Preferences
+  panel</a>.</p>
+
+<p>[<a href="#using_the_add-on_manager">Return to beginning of section</a>]</p>
+
+<h4 id="the_plugins_panel">The Plugins panel</h4>
+
+<p>The Plugins panel in the Add-on Manager lists the installed Add-ons of type
+  Plugin. After <a href="#accessing_the_add-on_manager">accessing the Add-on
+  Manager</a>, click the Plugins button to show the Plugins panel. There, you
+  can perform the following actions:</p>
+
+<ul>
+  <li>To disable a plugin, click the entry corresponding to the desired plugin,
+    then click the Disable button.</li>
+  <li>To enable a plugin, click the entry corresponding to the desired plugin,
+    then click the Enable button.</li>
+</ul>
+
+<p><strong>Note</strong>: Contrary to other types of Add-ons, enabling and
+  disabling plugins doesn&apos;t require restarting &brandShortName;.</p>
+
+<p>[<a href="#using_the_add-on_manager">Return to beginning of section</a>]</p>
 
 <h2 id="specifying_how_mozilla_starts_up">Specifying How &brandShortName;
   Starts Up</h2>

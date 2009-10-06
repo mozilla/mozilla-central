@@ -14,6 +14,11 @@
          nc:name="adding"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="add-ons"
+         nc:name="add-ons"
+         nc:link="customize_help.xhtml#add-ons"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="address_books"
          nc:name="address books"
          nc:link="mail_help.xhtml#about_address_books"/>
@@ -92,6 +97,56 @@
        <rdf:Description ID="address_books:searching"
          nc:name="searching your address book"
          nc:link="mail_help.xhtml#searching_address_books_and_directories"/>
+     </rdf:li></rdf:Seq>
+   </nc:subheadings>
+</rdf:Description>
+
+<rdf:Description about="#add-ons">
+   <nc:subheadings>
+     <rdf:Seq><rdf:li>
+       <rdf:Description ID="add-ons:about"
+         nc:name="about"
+         nc:link="customize_help.xhtml#about_add-ons"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="add-ons:installing"
+         nc:name="installing"
+         nc:link="customize_help.xhtml#installing_add-ons"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="add-ons:manager"
+         nc:name="Add-ons Manager"
+         nc:link="customize_help.xhtml#using_the_add-on_manager"/>
+     </rdf:li></rdf:Seq>
+   </nc:subheadings>
+</rdf:Description>
+
+<rdf:Description about="#add-ons:manager">
+   <nc:subheadings>
+     <rdf:Seq><rdf:li>
+       <rdf:Description ID="add-ons:get_add-ons"
+         nc:name="Get Add-ons Panel"
+         nc:link="customize_help.xhtml#the_get_add-ons_panel"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="add-ons:extensions_panel"
+         nc:name="Extensions Panel"
+         nc:link="customize_help.xhtml#the_extensions_panel"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="add-ons:themes_panel"
+         nc:name="Themes Panel"
+         nc:link="customize_help.xhtml#the_themes_panel"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="add-ons:languages_panel"
+         nc:name="Languages Panel"
+         nc:link="customize_help.xhtml#the_languages_panel"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="add-ons:plugins_panel"
+         nc:name="Plugins Panel"
+         nc:link="customize_help.xhtml#the_plugins_panel"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -605,6 +660,11 @@
        <rdf:Description ID="JSConsole"
          nc:name="error console"
          nc:link="developer_tools.xhtml#js_console"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="extensions_panel"
+         nc:name="extensions panel"
+         nc:link="customize_help.xhtml#the_extensions_panel"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -951,6 +1011,11 @@
        <rdf:Description ID="languages"
          nc:name="languages"
          nc:link="nav_help.xhtml#using_languages_and_international_content"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="languages_panel"
+         nc:name="languages panel"
+         nc:link="customize_help.xhtml#the_languages_panel"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="LDAP"
@@ -1360,6 +1425,11 @@
        <rdf:Description ID="plugins"
          nc:name="plugins"
          nc:link="nav_help.xhtml#plugins_and_downloads"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="plugins_panel"
+         nc:name="plugins panel"
+         nc:link="customize_help.xhtml#the_plugins_panel"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="POP"
@@ -2006,6 +2076,11 @@
        <rdf:Description ID="themes"
          nc:name="themes"
          nc:link="customize_help.xhtml#changing_the_theme"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="themes_panel"
+         nc:name="themes panel"
+         nc:link="customize_help.xhtml#the_themes_panel"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="toolbar"

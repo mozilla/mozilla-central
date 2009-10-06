@@ -7,6 +7,7 @@
   <rdf:Description about="urn:root">
     <nc:subheadings>
       <rdf:Seq>
+        <rdf:li> <rdf:Description nc:name="add-on" nc:link="glossary.xhtml#add-on"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="authentication" nc:link="glossary.xhtml#authentication"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="bookmark" nc:link="glossary.xhtml#bookmark"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="CA" nc:link="glossary.xhtml#ca"/> </rdf:li>
@@ -40,6 +41,7 @@
         <rdf:li> <rdf:Description nc:name="encryption" nc:link="glossary.xhtml#encryption"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="encryption certificate" nc:link="glossary.xhtml#encryption_certificate"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="encryption key" nc:link="glossary.xhtml#encryption_key"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="extension" nc:link="glossary.xhtml#extension"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="feed" nc:link="glossary.xhtml#feed"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="fingerprint" nc:link="glossary.xhtml#fingerprint"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="FIPS PUBS 140-1" nc:link="glossary.xhtml#fips_pubs_140-1"/> </rdf:li>
@@ -62,6 +64,7 @@
         <rdf:li> <rdf:Description nc:name="JavaScript" nc:link="glossary.xhtml#javascript"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="key" nc:link="glossary.xhtml#key"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="LDAP" nc:link="glossary.xhtml#ldap"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="language pack" nc:link="glossary.xhtml#language_pack"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="Location Bar" nc:link="glossary.xhtml#location_bar"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="master key" nc:link="glossary.xhtml#master_key"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="master password" nc:link="glossary.xhtml#master_password"/> </rdf:li>
@@ -115,6 +118,7 @@
         <rdf:li> <rdf:Description nc:name="symmetric encryption" nc:link="glossary.xhtml#symmetric_encryption"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="tamper detection" nc:link="glossary.xhtml#tamper_detection"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="TCP" nc:link="glossary.xhtml#tcp"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="theme" nc:link="glossary.xhtml#theme"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="TCP/IP" nc:link="glossary.xhtml#tcp_ip"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="third-party cookie" nc:link="glossary.xhtml#third-party_cookie"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="TLS" nc:link="glossary.xhtml#tls"/> </rdf:li>
