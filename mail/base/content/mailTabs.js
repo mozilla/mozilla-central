@@ -659,7 +659,7 @@ let mailTabType = {
     // let the splitter know as well
     document.getElementById("folderpane_splitter").setAttribute("state",
      (!aLegalStates.folder || !aVisibleStates.folder) ? "collapsed" : "open");
-    try {      
+    try {
       // The folder-location-toolbar should be hidden if the folder
       // pane is illegal. Otherwise we shouldn't touch it
       document.getElementById("folder-location-container").collapsed =
@@ -754,7 +754,7 @@ let mailTabType = {
         return true;
 
       default:
-        return window.DefaultController.isCommandEnabled(aCommand);
+        return DefaultController.supportsCommand(aCommand);
     }
   },
 
@@ -771,7 +771,7 @@ let mailTabType = {
         // else fall through
 
       default:
-        return window.DefaultController.isCommandEnabled(aCommand);
+        return DefaultController.isCommandEnabled(aCommand);
     }
   },
 
@@ -779,7 +779,7 @@ let mailTabType = {
     if (!this.isCommandEnabled(aCommand, aTab))
       return;
 
-    // window.DefaultController knows how to handle this
-    window.DefaultController.doCommand(aCommand);
+    // DefaultController knows how to handle this
+    DefaultController.doCommand(aCommand, aTab);
   }
 };
