@@ -56,6 +56,8 @@ MessageDisplayWidget.prototype = {
     return this._active;
   },
 
+  _haveDisplayedStartPage: false,
+
   /**
    * Track whether the single message display pane is desired to be displayed
    *  (it is actually displayed when active, does't matter when not), or
@@ -209,7 +211,12 @@ MessageDisplayWidget.prototype = {
 
     if (selectedCount == 0) {
       this.clearDisplay();
-      loadStartPage(false);
+
+      // Once in our lifetime is plenty.
+      if (!this._haveDisplayedStartPage) {
+        loadStartPage(false);
+        this._haveDisplayedStartPage = true;
+      }
       this.singleMessageDisplay = true;
       return true;
     }
