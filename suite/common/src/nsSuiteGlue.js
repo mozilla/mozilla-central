@@ -70,6 +70,7 @@ SuiteGlue.prototype = {
         break;
       case "final-ui-startup":
         this._onProfileStartup();
+        this._promptForMasterPassword();
         this._checkForNewAddons();
         break;
       case "browser:purge-session-history":
@@ -171,6 +172,29 @@ SuiteGlue.prototype = {
   _onProfileShutdown: function()
   {
     Sanitizer.checkAndSanitize();
+  },
+
+  _promptForMasterPassword: function()
+  {
+    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                               .getService(Components.interfaces.nsIPrefBranch);
+    if (!prefBranch.getBoolPref("signon.startup.prompt"))
+      return;
+
+    // Look to see if a master password is set, if so prompt for it to try
+    // and avoid the multiple master password prompts on startup scenario.
+    let token = Components.classes["@mozilla.org/security/pk11tokendb;1"]
+                          .getService(Components.interfaces.nsIPK11TokenDB)
+                          .getInternalKeyToken();
+
+    // If an empty string is valid for the internal token, then we don't
+    // have a master password, else, if it does, then try to login.
+    try {
+      if (!token.checkPassword(""))
+        token.login(false);
+    } catch (ex) {
+      // If user cancels an exception is expected.
+    }
   },
 
   // If new add-ons were installed during startup, open the add-ons manager.

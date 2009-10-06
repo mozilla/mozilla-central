@@ -47,6 +47,9 @@ pref("general.skins.selectedSkin", "classic/1.0");
 pref("browser.chromeURL","chrome://navigator/content/navigator.xul");
 pref("browser.hiddenWindowChromeURL", "chrome://navigator/content/hiddenWindow.xul");
 
+// prompt for Master Password on startup
+pref("signon.startup.prompt",               true);
+
 pref("general.startup.browser",             true);
 pref("general.startup.mail",                false);
 pref("general.startup.news",                false);
