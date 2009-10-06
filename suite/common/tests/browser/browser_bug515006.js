@@ -95,6 +95,11 @@
  * notifications. The latter won't.
  */
 function test() {
+  if (navigator.platform.match(/Mac/)) {
+    todo(false, "Test disabled on MacOSX. (Bug 520787)");
+    return;
+  }
+
   waitForExplicitFinish();
 
   // Some urls that might be opened in tabs and/or popups
