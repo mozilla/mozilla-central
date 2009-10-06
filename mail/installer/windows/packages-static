@@ -23,7 +23,13 @@ bin\components\jar50.dll
 bin\nspr4.dll
 bin\plc4.dll
 bin\plds4.dll
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\js3250.dll
+#elifdef MOZILLA_1_9_2_BRANCH
+bin\js3250.dll
+#else
+bin\mozjs.dll
+#endif
 bin\components\jsd3250.dll
 #ifdef MOZILLA_1_9_1_BRANCH
 bin\components\xpinstal.dll

@@ -230,6 +230,15 @@ xpicleanup
 @DLL_PREFIX@xpcom_compat@DLL_SUFFIX@
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 @DLL_PREFIX@zlib@DLL_SUFFIX@
+#ifdef XP_WIN
+#ifdef MOZILLA_1_9_1_BRANCH
+mozjs.dll
+#elifdef MOZILLA_1_9_2_BRANCH
+mozjs.dll
+#else
+js3250.dll
+#endif
+#endif
 # ****************************************************************************
 # * End generic removals section.                                            *
 # ****************************************************************************
