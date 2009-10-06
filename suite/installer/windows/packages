@@ -308,12 +308,15 @@ bin\components\nsContentDispatchChooser.js
 bin\components\nsContentPrefService.js
 bin\components\nsDefaultCLH.js
 bin\components\nsExtensionManager.js
+bin\components\nsHandlerService.js
+bin\components\nsHelperAppDlg.js
 bin\components\nsLivemarkService.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
-bin\components\nsHandlerService.js
-bin\components\nsHelperAppDlg.js
+#ifndef MOZILLA_1_9_1_BRANCH
+bin\components\nsPlacesAutoComplete.js
+#endif
 bin\components\nsPlacesDBFlush.js
 #ifdef MOZILLA_1_9_1_BRANCH
 bin\components\nsPostUpdateWin.js
@@ -327,8 +330,8 @@ bin\components\nsSidebar.js
 bin\components\nsSuiteDownloadManagerUI.js
 bin\components\nsSuiteGlue.js
 bin\components\nsTaggingService.js
-bin\components\nsTypeAheadFind.js
 bin\components\nsTryToClose.js
+bin\components\nsTypeAheadFind.js
 bin\components\nsUpdateService.js
 bin\components\nsURLFormatter.js
 bin\components\nsWebHandlerApp.js

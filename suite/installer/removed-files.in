@@ -59,13 +59,16 @@ components/downloadmanager.xpt
 #ifdef MOZILLA_1_9_1_BRANCH
 components/GPSDGeolocationProvider.js
 #endif
-components/nsDownloadProgressListener.js
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
 components/nsDictionary.js
+components/nsDownloadProgressListener.js
 components/nsInterfaceInfoToIDL.js
-components/nsLDAPPrefsService.js
 components/nsKillAll.js
+components/nsLDAPPrefsService.js
+#ifdef MOZILLA_1_9_1_BRANCH
+components/nsPlacesAutoComplete.js
+#endif
 components/nsResetPref.js
 components/nsScriptableIO.js
 components/nsSetDefaultBrowser.js
