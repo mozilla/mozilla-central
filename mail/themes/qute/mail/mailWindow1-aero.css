@@ -4,3 +4,8 @@
   -moz-padding-start: 5px;
   -moz-padding-end: 5px;
 }
+
+#editContactPanel:-moz-system-metric(windows-default-theme) {
+  -moz-appearance: tooltip;
+  color: InfoText;
+}
