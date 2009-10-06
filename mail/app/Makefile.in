@@ -374,8 +374,10 @@ libs:: $(PROGRAM)
 	rsync -a $(DIST)/bin/ $(DIST)/$(APP_NAME).app/Contents/MacOS
 	rm -f $(DIST)/$(APP_NAME).app/Contents/MacOS/$(PROGRAM)
 	rsync -aL $(PROGRAM) $(DIST)/$(APP_NAME).app/Contents/MacOS
+ifdef MOZILLA_1_9_1_BRANCH
 	mkdir -p $(DIST)/$(APP_NAME).app/Contents/Plug-Ins
 	rsync -a --copy-unsafe-links $(DIST)/package/PrintPDE.plugin $(DIST)/$(APP_NAME).app/Contents/Plug-Ins
+endif
 	mkdir -p $(DIST)/$(APP_NAME).app/Contents/Library/Spotlight
 	rsync -a --copy-unsafe-links $(DIST)/package/Thunderbird.mdimporter $(DIST)/$(APP_NAME).app/Contents/Library/Spotlight
 	cp -RL $(DIST)/branding/thunderbird.icns $(DIST)/$(APP_NAME).app/Contents/Resources/thunderbird.icns
