@@ -71,6 +71,9 @@ const kMsgNotificationPhishingBar = 1;
 const kMsgNotificationJunkBar = 2;
 const kMsgNotificationRemoteImages = 3;
 
+const kMsgForwardAsAttachment = 0;
+const kMsgForwardInline = 2;
+
 var gMessengerBundle;
 var gPromptService;
 var gOfflinePromptsBundle;
@@ -610,20 +613,17 @@ function InitNewMsgMenu(aPopup)
 
 function InitMessageForward(aPopup)
 {
-  var forwardType = 0;
-  try {
-    forwardType = gPrefs.getIntPref("mail.forward_message_mode");
-  }
-  catch (ex) {
-    dump("failed to retrieve pref mail.forward_message_mode");
-  }
+  var forwardType = Application.prefs.getValue("mail.forward_message_mode",
+                                               kMsgForwardAsAttachment);
 
-  if (forwardType) {
+  if (forwardType != kMsgForwardAsAttachment)
+  {
     // forward inline is the first menuitem
     aPopup.firstChild.setAttribute("default", "true");
     aPopup.lastChild.removeAttribute("default");
   }
-  else {
+  else
+  {
     // attachment is the last menuitem
     aPopup.lastChild.setAttribute("default", "true");
     aPopup.firstChild.removeAttribute("default");
@@ -1350,18 +1350,13 @@ function MsgArchiveSelectedMessages(event)
 
 function MsgForwardMessage(event)
 {
-  var forwardType = 0;
-  try {
-    forwardType = gPrefBranch.getIntPref("mail.forward_message_mode");
-  }
-  catch (ex) {
-    dump("failed to retrieve pref mail.forward_message_mode");
-  }
+  var forwardType = Application.prefs.getValue("mail.forward_message_mode",
+                                               kMsgForwardAsAttachment);
 
   // mail.forward_message_mode could be 1, if the user migrated from 4.x
   // 1 (forward as quoted) is obsolete, so we treat is as forward inline
   // since that is more like forward as quoted then forward as attachment
-  if (forwardType == 0)
+  if (forwardType == kMsgForwardAsAttachment)
       MsgForwardAsAttachment(event);
   else
       MsgForwardAsInline(event);
