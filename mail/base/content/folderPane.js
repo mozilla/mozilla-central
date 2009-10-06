@@ -1797,8 +1797,21 @@ let gFolderTreeController = {
   emptyTrash: function ftc_emptyTrash(aFolder) {
     let folder = aFolder || gFolderTreeView.getSelectedFolders()[0];
 
-    if (this._checkConfirmationPrompt("emptyTrash"))
-      folder.emptyTrash(msgWindow, null);
+    if (this._checkConfirmationPrompt("emptyTrash")) {
+      // Check if this is a top-level smart folder. If so, we're going
+      // to empty all the trash folders.
+      if (folder.server.hostName == "smart mailboxes" &&
+          folder.parent.isServer) {
+        let subFolders = gFolderTreeView
+                           ._allFoldersWithFlag(gFolderTreeView._sortedAccounts(),
+                            nsMsgFolderFlags.Trash, false);
+        for each (let trash in subFolders)
+          trash.emptyTrash(msgWindow, null);
+      }
+      else {
+        folder.emptyTrash(msgWindow, null);
+      }
+    }
   },
 
   /**
