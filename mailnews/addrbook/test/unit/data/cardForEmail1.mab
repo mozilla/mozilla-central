@@ -3,7 +3,7 @@
   (B8=LastModifiedDate)(B9=RecordKey)(BA=AddrCharSet)(BB=LastRecordKey)
   (BC=ns:addrbk:db:table:kind:pab)(BD=ListName)(BE=ListNickName)
   (BF=ListDescription)(C0=ListTotalAddresses)(C1=LowercaseListName)
-  (C2=ns:addrbk:db:table:kind:deleted)(C3=DbRowID)
+  (C2=ns:addrbk:db:table:kind:deleted)
   (80=ns:addrbk:db:row:scope:card:all)
   (81=ns:addrbk:db:row:scope:list:all)
   (82=ns:addrbk:db:row:scope:data:all)(83=FirstName)(84=LastName)
@@ -22,36 +22,40 @@
   (B1=BirthMonth)(B2=BirthDay)(B3=Custom1)(B4=Custom2)(B5=Custom3)
   (B6=Custom4)(B7=Notes)>
 
-<(BA=4)(81=Email)(82=1)(83=Empty Email)(80=0)(84=Empty)(85=)(86=LastName1)
-  (87=Custom41)(88=1237281794)(89=2)(8A=http://WebPage11)(8B=NickName1)
-  (8C=DisplayName1)(8D=WorkZipCode1)(8E=ScreenName1)(8F=WorkAddress1)
-  (90=HomeCountry1)(91=WorkPhone1)(92=PrimaryEmail1@test.invalid)(93
-    =HomeAddress11)(94=primaryemail1@test.invalid)(95=WorkCity1)(96
+<(80=0)>
+{1:^80 {(k^BC:c)(s=9)} 
+  [1:^82(^BB=0)]}
+
+@$${1{@
+< <(a=c)> // (f=iso-8859-1)
+  (C3=DbRowID)>
+
+<(82=1)(81=Email)(83=Empty Email)(84=Empty)(85=)>
+{-1:^80 {(k^BC:c)(s=9)} 
+  [1:^82(^BB=1)]
+  [-1(^84^81)(^C3=1)(^87^83)(^8E=0)(^8D=0)(^83^84)(^8C=0)(^B8=0)(^B9=1)
+    (^89=)(^8A=)]}
+@$$}1}@
+
+@$${2{@
+
+<(89=2)(86=LastName1)(87=Custom41)(88=1237281794)(8A=http://WebPage11)
+  (8B=NickName1)(8C=DisplayName1)(8D=WorkZipCode1)(8E=ScreenName1)(8F
+    =WorkAddress1)(90=HomeCountry1)(91=WorkPhone1)(92
+    =PrimaryEmail1@test.invalid)(93=HomeAddress11)(94
+    =primaryemail1@test.invalid)(95=WorkCity1)(96
     =SecondEmail1$C3$90@test.invalid)(97=HomeZipCode1)(98=Custom31)
   (99=FaxNumber1)(9A=Custom11)(9B=HomePhone1)(9C=FirstName1)(9D=HomeCity1)
   (9E=PagerNumber1)(9F=CellularNumber1)(A0=WorkAddress21)(A1=WorkState1)
   (A2=HomeAddress21)(A3=http://WebPage21)(A4=Notes1)(A5=Custom21)(A6
     =Department1)(A7=WorkCountry1)(A8=HomeState1)(A9=JobTitle1)(AA
-    =Organization1)(B0=1245128765)(B1=johnd)(B2=John Doe)(B3=Doe)(B4
-    =john.doe@mailinator.com)(B5=John)(AD=3)(B6=janed)(B7=Jane Doe)
-  (B8=jane.doe@mailinator.com)(B9=Jane)>
-{1:^80 {(k^BC:c)(s=9)} 
-  [1:^82(^BB=4)]
-  [1(^84^81)(^C3=1)(^87^83)(^8E=0)(^8D=0)(^83^84)(^8C=0)(^B8=0)(^B9=1)
-    (^89=)(^8A=)]
-  [2(^B0=)(^84^86)(^B6^87)(^8D=0)(^B8^88)(^B9=2)(^AF^8A)(^88^8B)(^87^8C)
+    =Organization1)>
+{-1:^80 {(k^BC:c)(s=9)} 
+  [1:^82(^BB=2)]1 
+  [-2(^B0=)(^84^86)(^B6^87)(^8D=0)(^B8^88)(^B9=2)(^AF^8A)(^88^8B)(^87^8C)
     (^A3^8D)(^A8^8E)(^85=)(^9F^8F)(^9E^90)(^8F^91)(^89^92)(^99^93)(^8A^94)
     (^A1^95)(^8E=1)(^8B^96)(^9D^97)(^B5^98)(^91^99)(^B3^9A)(^90^9B)
     (^83^9C)(^9B^9D)(^92^9E)(^93^9F)(^8C=0)(^A0^A0)(^A2^A1)(^B2=)(^9A^A2)
     (^AE^A3)(^B7^A4)(^B4^A5)(^A6^A6)(^A4^A7)(^86=)(^9C^A8)(^C3=2)(^A5^A9)
-    (^A7^AA)(^B1=)]
-  [3(^B0=)(^B7=)(^B6=)(^B8^B0)(^88^B1)(^AE=)(^A6=)(^87^B2)(^B3=)(^A8=)
-    (^84^B3)(^9F=)(^9E=)(^9C=)(^90=)(^8F=)(^89^B4)(^85=)(^A1=)(^99=)
-    (^8E=0)(^8B=)(^8D=0)(^B5=)(^91=)(^B1=)(^A4=)(^9D=)(^9B=)(^92=)(^93=)
-    (^8C=0)(^83^B5)(^A2=)(^B2=)(^9A=)(^B4=)(^A3=)(^86=)(^A0=)(^C3=3)
-    (^A5=)(^A7=)(^AF=)(^8A^B4)(^B9=3)]
-  [4(^B0=)(^B7=)(^B6=)(^B8=0)(^88^B6)(^AE=)(^A6=)(^87^B7)(^B3=)(^A8=)
-    (^84^B3)(^9F=)(^9E=)(^9C=)(^90=)(^8F=)(^89^B8)(^85=)(^A1=)(^99=)
-    (^8E=0)(^8B=)(^8D=0)(^B5=)(^91=)(^B1=)(^A4=)(^9D=)(^9B=)(^92=)(^93=)
-    (^8C=0)(^83^B9)(^A2=)(^B2=)(^9A=)(^B4=)(^A3=)(^86=)(^A0=)(^C3=4)
-    (^A5=)(^A7=)(^AF=)(^8A^B8)(^B9=4)]}
+    (^A7^AA)(^B1=)]}
+@$$}2}@

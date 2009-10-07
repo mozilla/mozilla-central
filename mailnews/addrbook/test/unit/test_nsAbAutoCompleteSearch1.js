@@ -95,7 +95,7 @@ function run_test() {
 
   testAB.copyTo(gProfileDir, kPABData.fileName);
 
-  testAB = do_get_file("data/cardForEmail.mab");
+  testAB = do_get_file("data/cardForEmail1.mab");
 
   testAB.copyTo(gProfileDir, kCABData.fileName);
 

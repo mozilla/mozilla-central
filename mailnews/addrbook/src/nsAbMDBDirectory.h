@@ -104,6 +104,10 @@ public:
   NS_IMETHOD GetCardFromProperty(const char *aProperty,
                                  const nsACString &aValue,
                                  PRBool caseSensitive, nsIAbCard **result);
+  NS_IMETHOD GetCardsFromProperty(const char *aProperty,
+                                  const nsACString &aValue,
+                                  PRBool caseSensitive,
+                                  nsISimpleEnumerator **result);
 
   // nsIAbDirectorySearch methods
   NS_DECL_NSIABDIRECTORYSEARCH

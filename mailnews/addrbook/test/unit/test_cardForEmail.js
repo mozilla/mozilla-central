@@ -77,4 +77,21 @@ function run_test() {
 
   card = AB.getCardFromProperty("JobTitle", "jobtitle1", false);
   check_correct_card(card);
+
+  cards = AB.getCardsFromProperty("LastName", "DOE", true);
+  do_check_false(cards.hasMoreElements());
+
+  cards = AB.getCardsFromProperty("LastName", "Doe", true);
+  var i = 0;
+  var data = [ 'John', 'Jane' ];
+
+  while (cards.hasMoreElements()) {
+    i++;
+    card = cards.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+    do_check_eq(card.lastName, 'Doe');
+    var index = data.indexOf(card.firstName);
+    do_check_neq(index, -1);
+    delete data[index];
+  }
+  do_check_eq(i, 2);
 };

@@ -88,6 +88,11 @@ public:
   NS_IMETHOD GetCardFromAttribute(nsIAbDirectory *aDirectory, const char *aName,
                                   const nsACString &aValue,
                                   PRBool aCaseInsensitive, nsIAbCard **card);
+  NS_IMETHOD GetCardsFromAttribute(nsIAbDirectory *aDirectory,
+                                   const char *aName,
+                                   const nsACString & uUTF8Value,
+                                   PRBool aCaseInsensitive,
+                                   nsISimpleEnumerator **cards);
   NS_IMETHOD GetNewRow(nsIMdbRow * *newRow);
   NS_IMETHOD GetNewListRow(nsIMdbRow * *newRow);
   NS_IMETHOD AddCardRowToDB(nsIMdbRow *newRow);
@@ -338,7 +343,8 @@ protected:
 
   nsresult AddLowercaseColumn(nsIMdbRow * row, mdb_token columnToken, const char* utf8String);
   nsresult GetRowFromAttribute(const char *aName, const nsACString &aUTF8Value,
-                               PRBool aCaseInsensitive, nsIMdbRow  **aCardRow);
+                               PRBool aCaseInsensitive, nsIMdbRow  **aCardRow,
+                               mdb_pos *aRowPos);
 
   static nsTArray<nsAddrDatabase*>* m_dbCache;
   static nsTArray<nsAddrDatabase*>* GetDBCache();
@@ -457,7 +463,8 @@ protected:
 private:
   nsresult GetRowForCharColumn(const PRUnichar *unicodeStr,
                                mdb_column findColumn, PRBool bIsCard,
-                               PRBool aCaseInsensitive, nsIMdbRow **findRow);
+                               PRBool aCaseInsensitive, nsIMdbRow **findRow,
+                               mdb_pos *aRowPos);
   PRBool HasRowButDeletedForCharColumn(const PRUnichar *unicodeStr, mdb_column findColumn, PRBool aIsCard, nsIMdbRow **aFindRow);
   nsresult OpenInternal(nsIFile *aMabFile, PRBool aCreate, nsIAddrDatabase **pCardDB);
   nsresult AlertAboutCorruptMabFile(const PRUnichar *aOldFileName, const PRUnichar *aNewFileName);

@@ -324,6 +324,13 @@ NS_IMETHODIMP nsAbDirProperty::GetCardFromProperty(const char *aProperty,
                                                    nsIAbCard **result)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
+NS_IMETHODIMP nsAbDirProperty::GetCardsFromProperty(const char *aProperty,
+                                                    const nsACString &aValue,
+                                                    PRBool caseSensitive,
+                                                    nsISimpleEnumerator **result)
+{ return NS_ERROR_NOT_IMPLEMENTED; }
+
+
 NS_IMETHODIMP nsAbDirProperty::GetSupportsMailingLists(PRBool *aSupportsMailingsLists)
 {
   NS_ENSURE_ARG_POINTER(aSupportsMailingsLists);

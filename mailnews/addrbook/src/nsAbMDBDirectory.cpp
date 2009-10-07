@@ -1120,3 +1120,28 @@ NS_IMETHODIMP nsAbMDBDirectory::GetCardFromProperty(const char *aProperty,
   return mDatabase->GetCardFromAttribute(this, aProperty, aValue,
                                          !caseSensitive, result);
 }
+
+NS_IMETHODIMP nsAbMDBDirectory::GetCardsFromProperty(const char *aProperty,
+                                                     const nsACString &aValue,
+                                                     PRBool caseSensitive,
+                                                     nsISimpleEnumerator **result)
+{
+  NS_ENSURE_ARG(aProperty);
+  NS_ENSURE_ARG_POINTER(result);
+
+  *result = nsnull;
+
+  if (aValue.IsEmpty())
+    return NS_OK;
+
+  if (!mDatabase)
+  {
+    nsresult rv = GetAbDatabase();
+    if (rv == NS_ERROR_FILE_NOT_FOUND)
+      return NS_OK;
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  return mDatabase->GetCardsFromAttribute(this, aProperty, aValue,
+                                          !caseSensitive, result);
+}

@@ -46,6 +46,7 @@ interface nsIMdbTableRowCursor;
 interface nsIMdbEnv;
 interface nsIMdbRow;
 interface nsIArray;
+interface nsISimpleEnumerator;
 
 %{C++
 // this is the prefix we for attributes that are specific
@@ -72,7 +73,7 @@ interface nsIArray;
 
 %}
 
-[scriptable, uuid(14d89995-e6c5-11d8-9a39-000a95dc234c)]
+[scriptable, uuid(8532d6db-95eb-48b3-8879-26e7168b90f7)]
 interface nsAddrDBCommitType 
 {
   const long kSmallCommit = 0;
@@ -213,6 +214,22 @@ interface nsIAddrDatabase : nsIAddrDBAnnouncer {
   nsIAbCard getCardFromAttribute(in nsIAbDirectory aDirectory, in string aName,
                                  in AUTF8String aUTF8Value,
                                  in boolean aCaseInsensitive);
+
+  /**
+   * Gets all cards which matches the attribute/value pair supplied.
+   *
+   * @param  aDirectory       The current nsIAbDirectory associated with this
+   *                          instance of the database.
+   * @param  aName            The attribute to look up the value in.
+   * @param  aUTF8Value       The value to look up in UTF8 format.
+   * @param  aCaseInsensitive Set to true for case-insenstive matching.
+   * @result                  Returns an nsISimpleEnumerator of nsIAbCard
+   *                          instances.
+   */
+  nsISimpleEnumerator getCardsFromAttribute(in nsIAbDirectory aDirectory,
+                                            in string aName,
+                                            in AUTF8String uUTF8Value,
+                                            in boolean aCaseInsensitive);
 
   PRBool findMailListbyUnicodeName(in wstring listName);
 

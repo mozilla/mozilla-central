@@ -41,11 +41,12 @@
 #include "nsIAbItem.idl"
 
 interface nsIAbCard;
+interface nsISimpleEnumerator;
 
 /**
  * A collection of address book items.
  */
-[scriptable, uuid(e6f97fdb-2e3e-46ad-974d-50f1388953c0)]
+[scriptable, uuid(67f9d071-3853-4ba1-bd85-df108dd10625)]
 interface nsIAbCollection : nsIAbItem {
   
   /**
@@ -107,4 +108,20 @@ interface nsIAbCollection : nsIAbItem {
    */
   nsIAbCard getCardFromProperty(in string aProperty, in AUTF8String aValue,
                                 in boolean aCaseSensitive);
+
+  /**
+   * Returns all address book cards with a specific property matching value
+   *
+   * This function is almost identical to getCardFromProperty, with the
+   * exception of returning all cards rather than just the first.
+   *
+   * @param  aProperty      The property to look for.
+   * @param  aValue         The value to search for.
+   * @param  aCaseSensitive True if matching should be done case-sensitively.
+   * @result                A nsISimpleEnumerator that holds nsIAbCard
+   *                        instances.
+   */
+  nsISimpleEnumerator getCardsFromProperty(in string aProperty,
+                                           in AUTF8String aValue,
+                                           in boolean aCaseSensitive);
 };

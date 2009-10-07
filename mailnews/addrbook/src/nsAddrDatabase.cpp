@@ -66,6 +66,8 @@
 #include "nsXPCOMCIDInternal.h"
 #include "nsIProperty.h"
 #include "nsIVariant.h"
+#include "nsCOMArray.h"
+#include "nsArrayEnumerator.h"
 
 #define ID_PAB_TABLE            1
 #define ID_DELETEDCARDS_TABLE           2
@@ -1362,7 +1364,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     // Please DO NOT change the 3rd param of GetRowFromAttribute() call to
     // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
     err = GetRowFromAttribute(kPriEmailProperty, NS_ConvertUTF16toUTF8(email),
-                              PR_FALSE /* retain case */, &pCardRow);
+                              PR_FALSE /* retain case */, &pCardRow, nsnull);
     PRBool cardWasAdded = PR_FALSE;
     if (NS_FAILED(err) || !pCardRow)
     {
@@ -1528,7 +1530,7 @@ NS_IMETHODIMP nsAddrDatabase::FindRowByCard(nsIAbCard * aCard,nsIMdbRow **aRow)
     nsString primaryEmail;
     aCard->GetPrimaryEmail(primaryEmail);
     return GetRowForCharColumn(primaryEmail.get(), m_PriEmailColumnToken,
-                               PR_TRUE, PR_TRUE, aRow);
+                               PR_TRUE, PR_TRUE, aRow, nsnull);
 }
 
 nsresult nsAddrDatabase::GetAddressRowByPos(nsIMdbRow* listRow, PRUint16 pos, nsIMdbRow** cardRow)
@@ -2117,7 +2119,7 @@ NS_IMETHODIMP nsAddrDatabase::AddLdifListMember(nsIMdbRow* listRow, const char* 
   // Please DO NOT change the 3rd param of GetRowFromAttribute() call to
   // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
   nsresult rv = GetRowFromAttribute(kPriEmailProperty, email, PR_FALSE /* retain case */,
-                                    getter_AddRefs(cardRow));
+                                    getter_AddRefs(cardRow), nsnull);
   if (NS_SUCCEEDED(rv) && cardRow)
   {
     mdbOid outOid;
@@ -3006,7 +3008,8 @@ nsresult nsAddrDatabase::GetListRowByRowID(mdb_id rowID, nsIMdbRow **dbRow)
 nsresult nsAddrDatabase::GetRowFromAttribute(const char *aName,
                                              const nsACString &aUTF8Value,
                                              PRBool aCaseInsensitive,
-                                             nsIMdbRow **aCardRow)
+                                             nsIMdbRow **aCardRow,
+                                             mdb_pos *aRowPos)
 {
   NS_ENSURE_ARG_POINTER(aName);
   NS_ENSURE_ARG_POINTER(aCardRow);
@@ -3018,7 +3021,7 @@ nsresult nsAddrDatabase::GetRowFromAttribute(const char *aName,
   NS_ConvertUTF8toUTF16 newUnicodeString(aUTF8Value);
 
   return GetRowForCharColumn(newUnicodeString.get(), token, PR_TRUE,
-                             aCaseInsensitive, aCardRow);
+                             aCaseInsensitive, aCardRow, aRowPos);
 }
 
 NS_IMETHODIMP nsAddrDatabase::GetCardFromAttribute(nsIAbDirectory *aDirectory,
@@ -3032,11 +3035,42 @@ NS_IMETHODIMP nsAddrDatabase::GetCardFromAttribute(nsIAbDirectory *aDirectory,
   m_dbDirectory = aDirectory;
   nsCOMPtr<nsIMdbRow> cardRow;
   if (NS_SUCCEEDED(GetRowFromAttribute(aName, aUTF8Value, aCaseInsensitive,
-                                       getter_AddRefs(cardRow))) && cardRow)
+                                       getter_AddRefs(cardRow), nsnull)) && cardRow)
     return CreateABCard(cardRow, 0, aCardResult);
 
   *aCardResult = nsnull;
   return NS_OK;
+}
+
+NS_IMETHODIMP nsAddrDatabase::GetCardsFromAttribute(nsIAbDirectory *aDirectory,
+                                                    const char *aName,
+                                                    const nsACString & aUTF8Value,
+                                                    PRBool aCaseInsensitive,
+                                                    nsISimpleEnumerator **cards)
+{
+  NS_ENSURE_ARG_POINTER(cards);
+
+  m_dbDirectory = aDirectory;
+  nsCOMPtr<nsIMdbRow> row;
+  PRBool done = PR_FALSE;
+  nsCOMArray<nsIAbCard> list;
+  nsCOMPtr<nsIAbCard> card;
+  mdb_pos rowPos = -1;
+
+  do
+  {
+    if (NS_SUCCEEDED(GetRowFromAttribute(aName, aUTF8Value, aCaseInsensitive,
+                                         getter_AddRefs(row), &rowPos)) && row)
+    {
+      if (NS_FAILED(CreateABCard(row, 0, getter_AddRefs(card))))
+        continue;
+      list.AppendObject(card);
+    }
+    else
+      done = PR_TRUE;
+  } while (!done);
+
+  return NS_NewArrayEnumerator(cards, list);
 }
 
 NS_IMETHODIMP nsAddrDatabase::AddListDirNode(nsIMdbRow * listRow)
@@ -3090,7 +3124,7 @@ NS_IMETHODIMP nsAddrDatabase::FindMailListbyUnicodeName(const PRUnichar *listNam
   nsCOMPtr <nsIMdbRow> listRow;
   nsresult rv = GetRowForCharColumn(unicodeString.get(),
                                     m_LowerListNameColumnToken, PR_FALSE,
-                                    PR_FALSE, getter_AddRefs(listRow));
+                                    PR_FALSE, getter_AddRefs(listRow), nsnull);
   *exist = (NS_SUCCEEDED(rv) && listRow);
   return rv;
 }
@@ -3152,11 +3186,16 @@ nsAddrDatabase::HasRowButDeletedForCharColumn(const PRUnichar *unicodeStr, mdb_c
   return (NS_SUCCEEDED(rv) && *aFindRow);
 }
 
+/* @param aRowPos Contains the row position for multiple calls. Should be
+ *                instantiated to -1 on the first call. Or can be null
+ *                if you are not making multiple calls.
+ */
 nsresult
 nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr,
                                     mdb_column findColumn, PRBool aIsCard,
                                     PRBool aCaseInsensitive,
-                                    nsIMdbRow **aFindRow)
+                                    nsIMdbRow **aFindRow,
+                                    mdb_pos *aRowPos)
 {
   NS_ENSURE_ARG_POINTER(unicodeStr);
   NS_ENSURE_ARG_POINTER(aFindRow);
@@ -3184,7 +3223,7 @@ nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr,
   // deleted lots of cards, and then have a lot of non-deleted cards.
   // we'd have to call FindRow(), HasRow(), and then search the list of non-deleted cards
   // each time we call GetRowForCharColumn().
-  if (!HasRowButDeletedForCharColumn(unicodeStr, findColumn, aIsCard, aFindRow))
+  if (!aRowPos && !HasRowButDeletedForCharColumn(unicodeStr, findColumn, aIsCard, aFindRow))
   {
     // If we have a row, it's the row for the non-delete card, so return NS_OK.
     // If we don't have a row, there are two possible conditions: either the
@@ -3202,14 +3241,17 @@ nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr,
 
   // check if there is a non-deleted card
   nsCOMPtr<nsIMdbTableRowCursor> rowCursor;
-  mdb_pos rowPos;
+  mdb_pos rowPos = -1;
   PRBool done = PR_FALSE;
   nsCOMPtr<nsIMdbRow> currentRow;
   nsAutoString columnValue;
 
+  if (aRowPos)
+    rowPos = *aRowPos;
+
   mdb_scope targetScope = aIsCard ? m_CardRowScopeToken : m_ListRowScopeToken;
 
-  m_mdbPabTable->GetTableRowCursor(m_mdbEnv, -1, getter_AddRefs(rowCursor));
+  m_mdbPabTable->GetTableRowCursor(m_mdbEnv, rowPos, getter_AddRefs(rowCursor));
   if (!rowCursor)
     return NS_ERROR_FAILURE;
 
@@ -3236,6 +3278,8 @@ nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr,
         if (NS_SUCCEEDED(rv) && equals)
         {
           NS_IF_ADDREF(*aFindRow = currentRow);
+          if (aRowPos)
+            *aRowPos = rowPos;
           return NS_OK;
         }
       }
