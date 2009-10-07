@@ -184,6 +184,10 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 
 #define NS_MSG_ERROR_COPYING_FROM_TMP_DOWNLOAD NS_MSG_GENERATE_FAILURE(31) // pop3 downloaded to tmp file, and failed.
 
+// The code tried to stream a message using the aLocalOnly argument, but
+// the message was not cached locally.
+#define NS_MSG_ERROR_MSG_NOT_OFFLINE NS_MSG_GENERATE_FAILURE(32)
+
 #define NS_MSGCOMP_ERROR_BEGIN	12500
 /* NS_ERROR_NNTP_NO_CROSS_POSTING lives here, and not in nsMsgComposeStringBundle.h, because it is used in news and compose. */
 #define NS_ERROR_NNTP_NO_CROSS_POSTING NS_MSG_GENERATE_FAILURE(12554)

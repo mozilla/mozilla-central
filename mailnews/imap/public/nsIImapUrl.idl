@@ -60,7 +60,7 @@ interface nsImapContentModifiedTypes
   const long IMAP_CONTENT_FORCE_CONTENT_NOT_MODIFIED = 3;
 } ;
 
-[scriptable, uuid(2a85ea47-480b-4ed7-97ec-d96baa3f94ef)]
+[scriptable, uuid(efd92a5f-a4fe-4093-ac9c-d23fae3950cd)]
 interface nsIImapUrl : nsISupports
 {
   ///////////////////////////////////////////////////////////////////////////////
@@ -119,6 +119,14 @@ interface nsIImapUrl : nsISupports
    * the message offline.
    */
   attribute boolean storeOfflineOnFallback;
+
+  /**
+   * This attribute defaults to false, but if we only want to use the offline
+   * cache (disk, memory, or offline store) to fetch the message, then we set
+   * this to true. Currently, nsIMsgMessageService.streamMessage does this.
+   */
+  attribute boolean localFetchOnly;
+
   /// Server disconnected first time so we're retrying.
   attribute boolean rerunningUrl;
 

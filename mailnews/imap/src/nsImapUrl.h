@@ -125,6 +125,7 @@ protected:
   // True if the fetch results should be put in the offline store.
   PRPackedBool m_storeResultsOffline;
   PRPackedBool m_storeOfflineOnFallback;
+  PRPackedBool m_localFetchOnly;
   PRPackedBool m_rerunningUrl; // first attempt running this failed with connection error; retrying
   nsImapContentModifiedType  m_contentModified;
 

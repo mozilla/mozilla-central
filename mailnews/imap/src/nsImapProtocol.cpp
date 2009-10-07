@@ -8385,7 +8385,8 @@ nsresult nsImapMockChannel::NotifyStartEndReadFromCache(PRBool start)
     if (folderSink)
     {
       nsCOMPtr <nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(m_url);
-      rv = folderSink->SetUrlState(nsnull /* we don't know the protocol */, mailUrl, start, NS_OK);
+      rv = folderSink->SetUrlState(nsnull /* we don't know the protocol */,
+                                   mailUrl, start, m_cancelStatus);
     }
   }
   return rv;
@@ -8774,6 +8775,20 @@ nsresult nsImapMockChannel::ReadFromImapConnection()
   nsresult rv = NS_OK;
   nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(m_url);
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url);
+
+  PRBool localOnly = PR_FALSE;
+  imapUrl->GetLocalFetchOnly(&localOnly);
+  if (localOnly)
+  {
+    // This will cause an OnStartRunningUrl, and the subsequent close
+    // will then cause an OnStopRunningUrl with the cancel status.
+    NotifyStartEndReadFromCache(PR_TRUE);
+    Cancel(NS_MSG_ERROR_MSG_NOT_OFFLINE);
+    if (m_channelListener)
+      m_channelListener->OnStopRequest(this, m_channelContext,
+                                       NS_MSG_ERROR_MSG_NOT_OFFLINE);
+    return NS_MSG_ERROR_MSG_NOT_OFFLINE;
+  }
 
   nsCOMPtr <nsILoadGroup> loadGroup;
   GetLoadGroup(getter_AddRefs(loadGroup));

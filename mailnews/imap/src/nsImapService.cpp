@@ -1197,6 +1197,7 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
       PRBool hasMsgOffline = PR_FALSE;
       folder->HasMsgOffline(key, &hasMsgOffline);
       msgurl->SetMsgIsInLocalCache(hasMsgOffline);
+      imapUrl->SetLocalFetchOnly(aLocalOnly);
 
       // If we don't have the message available locally, and we can't get it over
       // the network, return with an error

@@ -925,7 +925,10 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
   nsCOMPtr <nsIMsgStatusFeedback> statusFeedback;
   ReleaseFolderLock();
 
-  if (NS_FAILED(rv)) goto done;
+  // The NS_MSG_ERROR_MSG_NOT_OFFLINE error should allow us to continue, so we
+  // check for it specifically and don't terminate the compaction.
+  if (NS_FAILED(rv) && rv != NS_MSG_ERROR_MSG_NOT_OFFLINE)
+    goto done;
   uri = do_QueryInterface(ctxt, &rv);
   if (NS_FAILED(rv)) goto done;
   rv = GetMessage(getter_AddRefs(msgHdr));
@@ -933,8 +936,16 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
 
   if (msgHdr)
   {
-    msgHdr->SetMessageOffset(m_startOfNewMsg);
-    msgHdr->SetOfflineMessageSize(m_offlineMsgSize);
+    if (NS_SUCCEEDED(status))
+    {
+      msgHdr->SetMessageOffset(m_startOfNewMsg);
+      msgHdr->SetOfflineMessageSize(m_offlineMsgSize);
+    }
+    else
+    {
+      PRUint32 resultFlags;
+      msgHdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
+    }
   }
 
   if (m_window)
