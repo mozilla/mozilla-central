@@ -495,6 +495,17 @@ pref("mailnews.database.global.logging.console", true);
 // page to load to find good header add-ons
 pref("mailnews.migration.header_addons_url","http://live.mozillamessaging.com/%APP%/addons/search?q=header&locale=%LOCALE%&lver=%VERSION%&hver=%VERSION%&os=%OS%");
 
+#ifdef XP_MACOSX
+// On the mac at least, serif fonts look dated.  Switching those language
+// families to sans-serif where we know it makes sense.  Worth investigating
+// for other font families and platforms as well, viz bug 520824.  See all.js
+// for the rest of the font families preferences.
+pref("font.default", "sans-serif");
+pref("font.default.x-unicode", "sans-serif");
+pref("font.default.x-western", "sans-serif");
+pref("font.default.x-western", "sans-serif");
+#endif
+
 // What level of warning should we send to the error console?
 pref("mail.wizard.logging.console", "None");
 // What level of warning should we send to stdout via dump?
