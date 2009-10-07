@@ -89,8 +89,10 @@ toolbar[printpreview="true"] {
   -moz-margin-end: 0px;
 }
 
+/* Has to be !important to overrule toolkit's dropmarker.css for the
+   dropmarker[disabled="true"] case. */
 .toolbarbutton-menu-dropmarker {
-  -moz-padding-start: 3px;
+  -moz-padding-start: 3px !important;
 }
 
 toolbar[mode="full"] .toolbarbutton-1 {
