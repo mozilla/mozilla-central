@@ -271,9 +271,9 @@ bin/components/GPSDGeolocationProvider.js
 bin/components/jsconsole-clhandler.js
 bin/components/NetworkGeolocationProvider.js
 bin/components/aboutRights.js
-bin/components/nsAboutAbout.js
 bin/components/nsAboutCertError.js
 bin/components/nsAboutFeeds.js
+bin/components/nsAboutRights.js
 bin/components/nsAboutSessionRestore.js
 bin/components/nsAddonRepository.js
 bin/components/nsBadCertHandler.js
