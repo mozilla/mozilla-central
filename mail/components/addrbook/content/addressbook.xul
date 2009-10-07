@@ -738,12 +738,10 @@
             <description id="CardTitle"/>
             <hbox flex="1">
               <vbox id="cvbPhoto" class="cardViewGroup">
-                <hbox style="min-width: 10ch; max-width: 10ch;">
-                  <spacer flex="1"/>
-                  <html:img align="center" src="" id="cvPhoto"
-                            style="max-width: 10ch; max-height: 10ch; min-width: 1ch;"/>
-                  <spacer flex="1"/>
-                </hbox>
+                <description style="min-width: 10ch; max-width: 10ch; text-align: center;">
+                  <html:img id="cvPhoto"
+                            style="max-width: 10ch; max-height: 10ch;"/>
+                </description>
               </vbox>
               <vbox flex="1">
                 <vbox id="cvbContact" class="cardViewGroup">
