@@ -582,9 +582,12 @@ nsMessengerOSXIntegration::RestoreDockIcon()
 nsresult
 nsMessengerOSXIntegration::BadgeDockIcon()
 {
-  // Only badge if unread count is non-zero.
+  // If unread count is less than one, we should restore the original dock icon.
   if (mUnreadTotal < 1)
+  {
+    RestoreDockIcon();
     return NS_OK;
+  }
 
   // Draw the number, first giving extensions a chance to modify.
   // Extensions might wish to transform "1000" into "100+" or some
