@@ -104,6 +104,10 @@ public:
                                  const nsACString &aValue,
                                  PRBool caseSensitive,
                                  nsIAbCard **aResult);
+  NS_IMETHOD GetCardsFromProperty(const char *aProperty,
+                                  const nsACString &aValue,
+                                  PRBool aCaseSensitive,
+                                  nsISimpleEnumerator **aResult);
   NS_IMETHOD CardForEmailAddress(const nsACString &aEmailAddress,
                                  nsIAbCard **aResult);
 

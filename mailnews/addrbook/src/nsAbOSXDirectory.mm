@@ -897,6 +897,56 @@ nsAbOSXDirectory::GetCardFromProperty(const char *aProperty,
 }
 
 NS_IMETHODIMP
+nsAbOSXDirectory::GetCardsFromProperty(const char *aProperty,
+                                       const nsACString &aValue,
+                                       PRBool aCaseSensitive,
+                                       nsISimpleEnumerator **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  *aResult = nsnull;
+
+  if (aValue.IsEmpty())
+    return NS_NewEmptyEnumerator(aResult);
+
+  nsIMutableArray *list = m_IsMailList ? m_AddressList : mCardList;
+
+  if (!list)
+    return NS_NewEmptyEnumerator(aResult);
+
+  PRUint32 length;
+  nsresult rv = list->GetLength(&length);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMArray<nsIAbCard> resultArray;
+  nsCOMPtr<nsIAbCard> card;
+  nsCAutoString cardValue;
+
+  for (PRUint32 i = 0; i < length; ++i)
+  {
+    card = do_QueryElementAt(list, i, &rv);
+    if (NS_SUCCEEDED(rv))
+    {
+      rv = card->GetPropertyAsAUTF8String(aProperty, cardValue);
+      if (NS_SUCCEEDED(rv))
+      {
+#ifdef MOZILLA_INTERNAL_API
+        PRBool equal = aCaseSensitive ? cardValue.Equals(aValue) :
+          cardValue.Equals(aValue, nsCaseInsensitiveCStringComparator());
+#else
+        PRBool equal = aCaseSensitive ? cardValue.Equals(aValue) :
+          cardValue.Equals(aValue, CaseInsensitiveCompare);
+#endif
+        if (equal)
+          resultArray.AppendObject(card);
+      }
+    }
+  }
+
+  return NS_NewArrayEnumerator(aResult, resultArray);
+}
+
+NS_IMETHODIMP
 nsAbOSXDirectory::CardForEmailAddress(const nsACString &aEmailAddress,
                                       nsIAbCard **aResult)
 {
