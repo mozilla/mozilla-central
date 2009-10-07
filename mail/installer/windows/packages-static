@@ -169,7 +169,11 @@ bin\defaults\pref\mailnews.js
 bin\defaults\pref\mdn.js
 bin\defaults\pref\smime.js
 bin\defaults\pref\thunderbird-branding.js
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\greprefs\*
+#else
+bin\greprefs.js
+#endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; App extensions to Mail
