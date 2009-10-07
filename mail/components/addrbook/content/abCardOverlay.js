@@ -38,7 +38,7 @@
 
 const kNonVcardFields =
         ["nickNameContainer", "secondaryEmailContainer", "screenNameContainer",
-         "customFields", "allowRemoteContent", "abPhotoTab"];
+         "customFields", "allowRemoteContent"];
 
 const kPhoneticFields =
         ["PhoneticLastName", "PhoneticLabel1", "PhoneticSpacer1",
@@ -519,6 +519,7 @@ function GetCardValues(cardproperty, doc)
 function HideNonVcardFields()
 {
   document.getElementById("homeTabButton").hidden = true;
+  document.getElementById("photoTabButton").hidden = true;
   var i;
   for (i = kNonVcardFields.length; i-- > 0; )
     document.getElementById(kNonVcardFields[i]).collapsed = true;
