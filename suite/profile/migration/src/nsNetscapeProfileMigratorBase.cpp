@@ -760,8 +760,6 @@ nsNetscapeProfileMigratorBase::GetFileValue(nsIPrefBranch* aPrefBranch, const ch
     rv = theFile->SetRelativeDescriptor(mSourceProfile, Substring(prefValue, 7));
     if (NS_FAILED(rv))
       return rv;
-
-    *aReturnFile = theFile;
   } else {
     rv = aPrefBranch->GetComplexValue(aPrefName,
                                       NS_GET_IID(nsILocalFile),
