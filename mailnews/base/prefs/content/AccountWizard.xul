@@ -72,10 +72,11 @@
       <label control="acctyperadio">&accountTypeDirections.label;</label>
       <separator/>
       <radiogroup id="acctyperadio" >
+#ifndef MOZ_THUNDERBIRD
         <radio id="mailaccount" value="mailaccount"
                label="&accountTypeMail.label;" accesskey="&accountTypeMail.accesskey;"
                selected="true"/>
-  
+#endif
         <vbox datasources="rdf:ispdefaults" 
               containment="http://home.netscape.com/NC-rdf#providers"
               id="ispBox"

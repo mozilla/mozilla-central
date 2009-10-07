@@ -103,14 +103,6 @@ endif
 
 vpath %.rdf $(topsrcdir)/mailnews/base/ispdata
 
-ISP_FILES = $(shell cat $(LOCALE_SRCDIR)/isp/isps.txt)
-
-libs:: $(addsuffix .rdf,$(ISP_FILES)) 
-	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/isp/$(AB_CD)
-
-install:: $(addsuffix .rdf,$(ISP_FILES))
-	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/isp/$(AB_CD)
-
 tests:
 ifeq (WINNT,$(OS_ARCH))
 ifneq (en-US, $(AB_CD))
