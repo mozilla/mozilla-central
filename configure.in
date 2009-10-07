@@ -127,7 +127,6 @@ NSS_VERSION=3
 dnl Set the minimum version of toolkit libs used by mozilla
 dnl ========================================================
 GLIB_VERSION=1.2.0
-LIBIDL_VERSION=0.6.3
 PERL_VERSION=5.006
 CAIRO_VERSION=1.6.0
 PANGO_VERSION=1.14.0
@@ -1015,8 +1014,6 @@ AC_SUBST(NEXT_ROOT)
 
 if test "$MACOS_SDK_DIR"; then
   dnl Sync this section with the ones in NSPR and NSS.
-  dnl Changes to the cross environment here need to be accounted for in
-  dnl the libIDL checks (below) and xpidl build.
 
   if test ! -d "$MACOS_SDK_DIR"; then
     AC_MSG_ERROR([SDK not found.  When using --with-macos-sdk, you must
@@ -2171,9 +2168,6 @@ case "$target" in
     XARGS=xargs
     XPCOM_FROZEN_LDOPTS='$(LIBXUL_DIST)/lib/xpcom.lib'
     ZIP=zip
-    LIBIDL_CFLAGS="-I$MOZ_TOOLS_DIR/include ${GLIB_CFLAGS}"
-    LIBIDL_LIBS="$MOZ_TOOLS_DIR/lib/libidl-0.6_s.lib $MOZ_TOOLS_DIR/lib/glib-1.2_s.lib"
-    STATIC_LIBIDL=1
     MOZ_TREE_FREETYPE=1
 
     AC_DEFINE(HAVE_SNPRINTF)
@@ -2372,33 +2366,6 @@ case "$target" in
     else
         AC_MSG_ERROR([Cannot find $_GLIB_PREFIX_DIR/lib/glib-1.2.lib or $_GLIB_PREFIX_DIR/lib/glib-1.2_s.lib])
     fi
-
-    if test -n "$LIBIDL_PREFIX"; then
-        _LIBIDL_PREFIX_DIR=`cd $LIBIDL_PREFIX && pwd`
-        if test "$?" = "0"; then
-            if test `echo ${PATH}: | grep -ic "$_LIBIDL_PREFIX_DIR/bin:"` = 0; then
-                AC_MSG_ERROR([LIBIDL_PREFIX must be in your \$PATH.])
-            fi
-            _LIBIDL_PREFIX_DIR=`$CYGPATH_W $_LIBIDL_PREFIX_DIR | $CYGPATH_S`
-        else
-            AC_MSG_ERROR([LIBIDL_PREFIX is set but "${LIBIDL_PREFIX}" is not a directory.])
-        fi
-    else
-        _LIBIDL_PREFIX_DIR=$MOZ_TOOLS_DIR
-    fi        
-    if test ! -f "${_LIBIDL_PREFIX_DIR}/include/libIDL/IDL.h"; then
-        AC_MSG_ERROR([Cannot find $_LIBIDL_PREFIX_DIR/include/libIDL/IDL.h .])
-    fi
-    LIBIDL_CFLAGS="-I${_LIBIDL_PREFIX_DIR}/include ${GLIB_CFLAGS}"
-    if test -f "${_LIBIDL_PREFIX_DIR}/lib/libidl-0.6_s.lib"; then
-        LIBIDL_LIBS="${_LIBIDL_PREFIX_DIR}/lib/libidl-0.6_s.lib"
-        STATIC_LIBIDL=1
-    elif test -f "${_LIBIDL_PREFIX_DIR}/lib/libidl-0.6.lib"; then
-        LIBIDL_LIBS="${_LIBIDL_PREFIX_DIR}/lib/libidl-0.6.lib"
-    else
-        AC_MSG_ERROR([Cannot find $_LIBIDL_PREFIX_DIR/lib/libidl-0.6.lib or $_LIBIDL_PREFIX_DIR/lib/libidl-0.6_s.lib])
-    fi
-    LIBIDL_LIBS="${LIBIDL_LIBS} ${GLIB_LIBS}"
     ;;
 
     *) # else cross-compiling
@@ -2412,18 +2379,6 @@ case "$target" in
                 AC_MSG_ERROR([Cannot find $GLIB_PREFIX/lib/glib-1.2.lib or $GLIB_PREFIX/lib/glib-1.2_s.lib])
             fi
         fi
-        if test -n "$LIBIDL_PREFIX"; then
-            LIBIDL_CFLAGS="-I${LIBIDL_PREFIX}/include ${GLIB_CFLAGS}"
-            if test -f "${LIBIDL_PREFIX}/lib/libIDL-0.6_s.lib"; then
-                LIBIDL_LIBS="${LIBIDL_PREFIX}/lib/libIDL-0.6_s.lib"
-                STATIC_LIBIDL=1
-            elif test -f "${LIBIDL_PREFIX}/lib/libIDL-0.6.lib"; then
-                LIBIDL_LIBS="${LIBIDL_PREFIX}/lib/libIDL-0.6.lib"
-            else
-                AC_MSG_ERROR([Cannot find $LIBIDL_PREFIX/lib/libIDL-0.6.lib or $LIBIDL_PREFIX/lib/libIDL-0.6_s.lib])
-            fi
-        fi
-        LIBIDL_LIBS="${LIBIDL_LIBS} ${GLIB_LIBS}"
         ;;
     esac 
 
@@ -3146,7 +3101,6 @@ if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
 else
           VISIBILITY_FLAGS='-I$(DIST)/system_wrappers -include $(MOZILLA_SRCDIR)/config/gcc_hidden.h'
 fi
-          WRAP_SYSTEM_INCLUDES=1
         else
           VISIBILITY_FLAGS='-fvisibility=hidden'
         fi # have visibility pragma bug
@@ -3160,7 +3114,6 @@ if test "$SOLARIS_SUNPRO_CC"; then
 VISIBILITY_FLAGS='-xldscope=hidden'
 fi         # Sun Studio on Solaris
 
-AC_SUBST(WRAP_SYSTEM_INCLUDES)
 AC_SUBST(VISIBILITY_FLAGS)
 
 dnl Checks for header files.
@@ -4764,7 +4717,6 @@ dnl ========================================================
 
 case "$MOZ_WIDGET_TOOLKIT" in
 photon)
-	AC_DEFINE(MOZ_WIDGET_PHOTON)
     ;;
 
 cairo-windows)
@@ -5042,35 +4994,13 @@ fi
 AC_DEFINE_UNQUOTED(MOZ_DISTRIBUTION_ID,"$MOZ_DISTRIBUTION_ID")
 AC_SUBST(MOZ_DISTRIBUTION_ID)
 
-
-dnl ========================================================
-dnl complex text support off by default
-dnl ========================================================
-MOZ_PANGO=1
-MOZ_ARG_DISABLE_BOOL(pango,
-[  --disable-pango Disable usage of Pango ],
-    MOZ_PANGO=,
-    MOZ_PANGO=1)
-
-
 dnl ========================================================
 dnl = Pango
 dnl ========================================================
 if test "$MOZ_ENABLE_GTK2"
 then
-    AC_SUBST(MOZ_PANGO)
-
-    PKG_CHECK_MODULES(_PANGOCHK, pango >= $PANGO_VERSION)
-
-    if test "$MOZ_PANGO"
-    then
-        PKG_CHECK_MODULES(MOZ_PANGO, pango >= $PANGO_VERSION pangoft2 >= $PANGO_VERSION)
-        AC_SUBST(MOZ_PANGO_LIBS)
-        AC_DEFINE(MOZ_PANGO)
-    else
-        PKG_CHECK_MODULES(MOZ_PANGO, pango >= $PANGO_VERSION pangoft2 >= $PANGO_VERSION)
-        AC_SUBST(MOZ_PANGO_LIBS)
-    fi
+    PKG_CHECK_MODULES(MOZ_PANGO, pango >= $PANGO_VERSION pangoft2 >= $PANGO_VERSION)
+    AC_SUBST(MOZ_PANGO_LIBS)
 fi
 
 dnl ========================================================
@@ -6986,124 +6916,8 @@ dnl =
 dnl ========================================================
 MOZ_ARG_HEADER(Standalone module options (Not for building Mozilla))
 
-dnl Check for GLib and libIDL.
+dnl Check for GLib.
 dnl ========================================================
-case "$target_os" in
-msvc*|mks*|cygwin*|mingw*|wince*)
-    SKIP_IDL_CHECK="yes"
-    ;;
-*)
-    SKIP_IDL_CHECK="no"
-    ;;
-esac
-
-if test -z "$COMPILE_ENVIRONMENT"; then
-    SKIP_IDL_CHECK="yes"
-fi
-
-dnl = Allow users to disable libIDL checking for standalone modules
-MOZ_ARG_WITHOUT_BOOL(libIDL,
-[  --without-libIDL        Skip check for libIDL (standalone modules only)],
-	SKIP_IDL_CHECK="yes")
-
-if test "$SKIP_IDL_CHECK" = "no"
-then
-    _LIBIDL_FOUND=
-    if test "$MACOS_SDK_DIR"; then 
-      dnl xpidl, and therefore libIDL, is only needed on the build host.
-      dnl Don't build it against the SDK, as that causes problems.
-      _MACSAVE_CFLAGS="$CFLAGS"
-      _MACSAVE_LIBS="$LIBS"
-      _MACSAVE_LDFLAGS="$LDFLAGS"
-      _MACSAVE_NEXT_ROOT="$NEXT_ROOT"
-      changequote(,)
-      CFLAGS=`echo $CFLAGS|sed -E -e "s%((-I|-isystem )${MACOS_SDK_DIR}/usr/(include|lib/gcc)[^ ]*)|-F${MACOS_SDK_DIR}(/System)?/Library/Frameworks[^ ]*|-nostdinc[^ ]*|-isysroot ${MACOS_SDK_DIR}%%g"`
-      LIBS=`echo $LIBS|sed -e "s?-L${MACOS_SDK_DIR}/usr/lib[^ ]*??g"`
-      LDFLAGS=`echo $LDFLAGS|sed -e "s?-Wl,-syslibroot,${MACOS_SDK_DIR}??g"`
-      changequote([,])
-      unset NEXT_ROOT
-    fi
-
-    if test "$MOZ_ENABLE_GTK2"; then
-        PKG_CHECK_MODULES(LIBIDL, libIDL-2.0 >= 0.8.0 glib-2.0 gobject-2.0, _LIBIDL_FOUND=1,_LIBIDL_FOUND=)
-    fi
-    dnl if no gtk/libIDL1 or gtk2/libIDL2 combination was found, fall back
-    dnl to either libIDL1 or libIDL2.
-    if test -z "$_LIBIDL_FOUND"; then
-        AM_PATH_LIBIDL($LIBIDL_VERSION,_LIBIDL_FOUND=1)
-        if test -z "$_LIBIDL_FOUND"; then
-            PKG_CHECK_MODULES(LIBIDL, libIDL-2.0 >= 0.8.0,_LIBIDL_FOUND=1)
-        fi
-    fi
-    dnl
-    dnl If we don't have a libIDL config program & not cross-compiling, 
-    dnl     look for orbit-config instead.
-    dnl
-    if test -z "$_LIBIDL_FOUND" && test -z "$CROSS_COMPILE"; then
-        AC_PATH_PROGS(ORBIT_CONFIG, $ORBIT_CONFIG orbit-config)
-        if test -n "$ORBIT_CONFIG"; then
-            AC_MSG_CHECKING([for ORBit libIDL usability])
-        	_ORBIT_CFLAGS=`${ORBIT_CONFIG} client --cflags`
-    	    _ORBIT_LIBS=`${ORBIT_CONFIG} client --libs`
-            _ORBIT_INC_PATH=`${PERL} -e '{ for $f (@ARGV) { print "$f " if ($f =~ m/^-I/); } }' -- ${_ORBIT_CFLAGS}`
-            _ORBIT_LIB_PATH=`${PERL} -e '{ for $f (@ARGV) { print "$f " if ($f =~ m/^-L/); } }' -- ${_ORBIT_LIBS}`
-            LIBIDL_CFLAGS="$_ORBIT_INC_PATH"
-            LIBIDL_LIBS="$_ORBIT_LIB_PATH -lIDL -lglib"
-            LIBIDL_CONFIG=
-            _SAVE_CFLAGS="$CFLAGS"
-            _SAVE_LIBS="$LIBS"
-            CFLAGS="$LIBIDL_CFLAGS $CFLAGS"
-            LIBS="$LIBIDL_LIBS $LIBS"
-            AC_TRY_RUN([
-#include <stdlib.h>
-#include <libIDL/IDL.h>
-int main() {
-  char *s;
-  s=strdup(IDL_get_libver_string());
-  if(s==NULL) {
-    exit(1);
-  }
-  exit(0);
-}
-            ], [_LIBIDL_FOUND=1
-                result="yes"],
-               [LIBIDL_CFLAGS=
-                LIBIDL_LIBS=
-                result="no"],
-               [_LIBIDL_FOUND=1
-                result="maybe"] )
-            AC_MSG_RESULT($result)
-            CFLAGS="$_SAVE_CFLAGS"
-            LIBS="$_SAVE_LIBS"
-        fi
-    fi
-    if test -z "$_LIBIDL_FOUND"; then
-        AC_MSG_ERROR([libIDL not found.
-        libIDL $LIBIDL_VERSION or higher is required.])
-    fi
-    if test "$MACOS_SDK_DIR"; then
-      CFLAGS="$_MACSAVE_CFLAGS"
-      LIBS="$_MACSAVE_LIBS"
-      LDFLAGS="$_MACSAVE_LDFLAGS"
-      if test -n "$_MACSAVE_NEXT_ROOT" ; then
-        export NEXT_ROOT="$_MACSAVE_NEXT_ROOT"
-      fi
-    fi
-fi
-
-if test -n "$CROSS_COMPILE"; then
-     if test -z "$HOST_LIBIDL_CONFIG"; then
-        HOST_LIBIDL_CONFIG="$LIBIDL_CONFIG"
-    fi
-    if test -n "$HOST_LIBIDL_CONFIG" && test "$HOST_LIBIDL_CONFIG" != "no"; then
-        HOST_LIBIDL_CFLAGS=`${HOST_LIBIDL_CONFIG} --cflags`
-        HOST_LIBIDL_LIBS=`${HOST_LIBIDL_CONFIG} --libs`
-    else
-        HOST_LIBIDL_CFLAGS="$LIBIDL_CFLAGS"
-        HOST_LIBIDL_LIBS="$LIBIDL_LIBS"
-    fi
-fi
-
 if test -z "$SKIP_PATH_CHECKS"; then
 if test -z "${GLIB_CFLAGS}" || test -z "${GLIB_LIBS}" ; then
     if test "$MOZ_ENABLE_GTK2" || test "$USE_ELF_DYNSTR_GC" ; then
@@ -7118,15 +6932,9 @@ if test -z "${GLIB_GMODULE_LIBS}" -a -n "${GLIB_CONFIG}"; then
     GLIB_GMODULE_LIBS=`$GLIB_CONFIG gmodule --libs`
 fi
 
-AC_SUBST(LIBIDL_CFLAGS)
-AC_SUBST(LIBIDL_LIBS)
-AC_SUBST(STATIC_LIBIDL)
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
 AC_SUBST(GLIB_GMODULE_LIBS)
-AC_SUBST(HOST_LIBIDL_CONFIG)
-AC_SUBST(HOST_LIBIDL_CFLAGS)
-AC_SUBST(HOST_LIBIDL_LIBS)
 
 dnl ========================================================
 dnl Check for cairo
@@ -7142,8 +6950,6 @@ MOZ_TREE_CAIRO=1 )
 AC_CHECK_HEADERS(stdint.h inttypes.h sys/int_types.h)
 
 if test "$MOZ_TREE_CAIRO"; then
-    AC_DEFINE(MOZ_TREE_CAIRO)
-
     if test "$MOZ_WIDGET_TOOLKIT" = "os2"; then
         CAIRO_FT_LIBS="-L${MZFTCFGFT2}/lib -lmozft -lmzfntcfg"
     fi
@@ -7169,7 +6975,6 @@ else
    fi
 fi
 
-AC_SUBST(MOZ_TREE_CAIRO)
 AC_SUBST(MOZ_CAIRO_LIBS)
 
 dnl qcms
