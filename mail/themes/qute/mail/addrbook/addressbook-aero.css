@@ -45,6 +45,10 @@
   border-bottom: 0px none;
 }
 
+#dirTree-splitter {
+  min-width: 1px;
+}
+
 #results-splitter {
   border: none;
   min-height: 1px;
@@ -61,6 +65,8 @@
 #CardViewOuterBox {
   border-top: 1px solid ThreeDShadow;
   border-left: 0px none;
+  border-right: 0px none;
+  border-bottom: 0px none;
 }
 
 #CardViewBox {
