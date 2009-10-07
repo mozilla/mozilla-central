@@ -152,7 +152,7 @@ let gFolderTreeView = {
       let data = JSON.encode(this._persistOpenMap);
       let file = Cc["@mozilla.org/file/directory_service;1"]
                     .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
-      file.append("folderTree.json");
+      file.append(aJSONFile);
       let foStream = Cc["@mozilla.org/network/file-output-stream;1"]
                         .createInstance(Ci.nsIFileOutputStream);
 
