@@ -254,7 +254,7 @@ SessionStoreService.prototype = {
         if (this._sessionFile.exists())
           this._sessionFile.copyTo(null, this._sessionFileBackup.leafName);
       }
-      catch (ex) { Cu.reportError(ex); } // file was write-locked?
+      catch (ex) { Components.utils.reportError(ex); } // file was write-locked?
     }
 
     // at this point, we've as good as resumed the session, so we can
@@ -2019,7 +2019,7 @@ SessionStoreService.prototype = {
         try {
           storage.setItem(key, aStorageData[url][key]);
         }
-        catch (ex) { Cu.reportError(ex); } // throws e.g. for URIs that can't have sessionStorage
+        catch (ex) { Components.utils.reportError(ex); } // throws e.g. for URIs that can't have sessionStorage
       }
     }
   },
