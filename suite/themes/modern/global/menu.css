@@ -108,8 +108,8 @@ menuitem[_moz-menuactive="true"][disabled="true"] {
   margin-top: 0px;
   margin-bottom: 0px;
   -moz-margin-start: 6px;
-  -moz-margin-end: 0px;
-  width: 8px;
+  -moz-margin-end: 4px;
+  width: 4px;
   list-style-image: url("chrome://global/skin/menu/menu-arrow.gif");
   -moz-image-region: auto;
 }
