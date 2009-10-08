@@ -49,9 +49,9 @@
             style="width: 54ch;"
             persist="screenX screenY">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/pref/pref-proxies.js"/>
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/pref/preferences.js"/>
 
   <prefpane helpTopic="nav-prefs-advanced-proxy-advanced"

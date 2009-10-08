@@ -42,8 +42,8 @@
 <overlay xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<script type="application/x-javascript" src="chrome://messenger/content/messengercompose/addressingWidgetOverlay.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/addressbook/abDragDrop.js"/>
+<script type="application/javascript" src="chrome://messenger/content/messengercompose/addressingWidgetOverlay.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/abDragDrop.js"/>
 
   <!-- Addressing Widget -->
   <listbox id="addressingWidget" seltype="multiple" rows="4"

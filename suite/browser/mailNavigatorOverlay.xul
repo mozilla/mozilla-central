@@ -7,7 +7,7 @@
 <overlay id="mailNavigatorOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript">
+  <script type="application/javascript">
   <![CDATA[
     var gHasIntegratedMailClient = ("@mozilla.org/messengercompose/composeparams;1" in Components.classes);
 

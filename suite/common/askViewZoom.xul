@@ -47,7 +47,7 @@
   ondialogaccept="return onAccept();"
   onload="onLoad();">
 
-  <script type="application/x-javascript" src="chrome://communicator/content/askViewZoom.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/askViewZoom.js"/>
 
   <hbox>
     <label value="&selectZoom.label;" control="zoomValue"/>

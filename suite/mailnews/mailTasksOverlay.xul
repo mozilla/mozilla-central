@@ -64,7 +64,7 @@
 <overlay id="mailTasksOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger/content/mailTasksOverlay.js"/>
 
   <keyset id="tasksKeys">

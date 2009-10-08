@@ -46,7 +46,7 @@
 
   <window id="help" onload="init(); initOverlay();"/>
 
-  <script type="application/x-javascript" src="chrome://communicator/content/helpOverlay.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/helpOverlay.js"/>
 
   <browser id="help-content" onclick="return contentClick(event);" />
 

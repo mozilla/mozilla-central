@@ -68,12 +68,12 @@
   onunload="Shutdown();">
 
   <!-- JS from navigator.xul, to handle the menu commands -->
-  <script type="application/x-javascript" src="chrome://navigator/content/browser.js"/>
-  <script type="application/x-javascript" src="chrome://navigator/content/navigator.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/browser.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/navigator.js"/>
 
   <!-- Shared Bookmarks Utility Library -->
-  <script type="application/x-javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/bookmarks/bookmarksMenu.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarksMenu.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_navigator" src="chrome://navigator/locale/navigator.properties"/>

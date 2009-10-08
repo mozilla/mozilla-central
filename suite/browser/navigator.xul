@@ -69,28 +69,28 @@
         persist="screenX screenY width height sizemode"> 
 
   <!-- Generic Utility -->
-  <script type="application/x-javascript" src="chrome://global/content/nsUserSettings.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/nsClipboard.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/javascript" src="chrome://global/content/nsUserSettings.js"/>
+  <script type="application/javascript" src="chrome://global/content/nsClipboard.js"/>
+  <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
   
   <!-- Content Area -->
-  <script type="application/x-javascript" src="chrome://navigator/content/nsBrowserStatusHandler.js"/>
-  <script type="application/x-javascript" src="chrome://navigator/content/nsBrowserContentListener.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/contentAreaClick.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/contentAreaDD.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/findUtils.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/nsBrowserStatusHandler.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/nsBrowserContentListener.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/contentAreaDD.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/findUtils.js"/>
+  <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
 
   <!-- Shared Bookmarks Utility Library -->
-  <script type="application/x-javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/bookmarks/bookmarksMenu.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarksMenu.js"/>
   
   <!-- Navigator -->
-  <script type="application/x-javascript" src="chrome://navigator/content/fullScreen.js"/>
-  <script type="application/x-javascript" src="chrome://navigator/content/browser.js"/>
-  <script type="application/x-javascript" src="chrome://navigator/content/navigator.js"/>
-  <script type="application/x-javascript" src="chrome://navigator/content/navigatorDD.js"/>
-  <script type="application/x-javascript" src="chrome://navigator/content/sessionHistoryUI.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/fullScreen.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/browser.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/navigator.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/navigatorDD.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/sessionHistoryUI.js"/>
 
   <!-- hook for stringbundle overlays -->
   <stringbundleset id="stringbundleset">

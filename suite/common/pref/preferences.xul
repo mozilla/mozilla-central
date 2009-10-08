@@ -55,9 +55,9 @@
             buttons="accept,cancel,help"
             autopanes="true"> 
 
-  <script type="application/x-javascript" src="chrome://communicator/content/pref/preferences.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/pref/preferences.js"/>
   <!-- Used by pref-smartupdate, pref-cookies, pref-images and pref-popups -->
-  <script type="application/x-javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
 
   <stringbundle id="bundle_prefutilities"
                 src="chrome://communicator/locale/pref/prefutilities.properties"/>

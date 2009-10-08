@@ -56,7 +56,7 @@
       onunload="SidebarUtils.clearURLFromStatusBar();"
       elementtofocus="search-box">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/history/sidebarUtils.js"/>
 
   <commandset id="editMenuCommands"/>

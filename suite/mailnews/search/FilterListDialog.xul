@@ -59,7 +59,7 @@
         onunload="onFilterUnload();"
         onclose="return onFilterClose();">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger/content/FilterListDialog.js"/>
   <stringbundle id="bundle_filter"
                 src="chrome://messenger/locale/filter.properties"/>

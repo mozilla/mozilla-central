@@ -56,13 +56,13 @@
         ondialogaccept="return selectOkButton();"
         ondialogcancel="return selectCancelButton();">
 
-<script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/commandglue.js"/>
+<script type="application/javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
+<script type="application/javascript" src="chrome://messenger/content/commandglue.js"/>
 <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
 <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
-<script type="application/x-javascript" src="chrome://messenger/content/mailCommands.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/msgSynchronize.js"/>
+<script type="application/javascript" src="chrome://messenger/content/mailCommands.js"/>
+<script type="application/javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
+<script type="application/javascript" src="chrome://messenger/content/msgSynchronize.js"/>
 
     <keyset id="keyset"/>
     <label class="desc" control="synchronizeTree">&MsgSelectDesc.label;</label>

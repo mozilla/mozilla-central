@@ -61,11 +61,11 @@
         persist="width height screenX screenY sizemode"
         windowtype="Download:Manager">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/downloads/downloadmanager.js"/>
   <script type="application/javascript"
           src="chrome://communicator/content/downloads/DownloadProgressListener.js"/>
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/downloads/treeView.js"/>
 
   <stringbundleset id="stringbundleset">

@@ -63,7 +63,7 @@
   ondialogextra2="BrowseMorePanels();"
   ondialogaccept="return Save();">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/sidebar/customize.js"/>
 
   <hbox flex="1">

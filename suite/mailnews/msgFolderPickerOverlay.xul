@@ -47,8 +47,8 @@
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   </stringbundleset>
-  <script type="application/x-javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
 
     <menulist id="runFiltersFolder"
               containment="http://home.netscape.com/NC-rdf#child"

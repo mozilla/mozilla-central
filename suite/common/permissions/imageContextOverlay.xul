@@ -40,9 +40,9 @@
 <overlay id="cookieContextOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
 
-  <script type="application/x-javascript">
+  <script type="application/javascript">
   <![CDATA[
     // Code from nsContextMenu.js. Note that we extend the prototype here,
     // rather than making these methods on a new object, as some methods require

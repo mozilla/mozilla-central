@@ -53,7 +53,7 @@
         buttons="accept"
         ondialogaccept="return Commit();">
 
-  <script type="application/x-javascript" src="chrome://communicator/content/search/search-editor.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/search/search-editor.js"/>
 
   <stringbundle id="searchBundle"
                 src="chrome://communicator/locale/search/search-editor.properties"/>

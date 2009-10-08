@@ -49,7 +49,7 @@
         buttons="accept,cancel"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/migration/migration.js"/>
 
   <stringbundle id="bundle"

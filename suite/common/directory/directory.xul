@@ -49,7 +49,7 @@
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   onunload="DoUnload();">
 
-  <script type="application/x-javascript" src="chrome://communicator/content/directory/directory.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/directory/directory.js"/>
 
   <tree id="tree"
         treelines="true"

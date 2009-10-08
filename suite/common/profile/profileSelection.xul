@@ -75,8 +75,8 @@
   <stringbundle id="bundle_brand"
                 src="chrome://branding/locale/brand.properties"/>
 
-  <script type="application/x-javascript" src="chrome://communicator/content/profile/profileSelection.js"/>
-  <script type="application/x-javascript" src="chrome://mozapps/content/profile/createProfileWizard.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/profile/profileSelection.js"/>
+  <script type="application/javascript" src="chrome://mozapps/content/profile/createProfileWizard.js"/>
 
   <dialogheader class="header-large" id="header" title="&profileManager.title;" description="&windowTitle.label;"/>
 

@@ -39,9 +39,9 @@
 <overlay id="helpMessengerOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://help/content/contextHelp.js"/>
-  <script type="application/x-javascript">
+  <script type="application/javascript">
     setHelpFileURI('chrome://communicator/locale/help/suitehelp.rdf');
   </script>
 

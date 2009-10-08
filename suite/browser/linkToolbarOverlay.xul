@@ -47,13 +47,13 @@
          xmlns:rdf="http://www.mozilla.org/rdf">
 
   <!-- classes -->
-  <script type="application/x-javascript" src="chrome://navigator/content/linkToolbarHandler.js" />
-  <script type="application/x-javascript" src="chrome://navigator/content/linkToolbarItem.js" />
+  <script type="application/javascript" src="chrome://navigator/content/linkToolbarHandler.js" />
+  <script type="application/javascript" src="chrome://navigator/content/linkToolbarItem.js" />
 
   <!-- functions -->
-  <script type="application/x-javascript" src="chrome://navigator/content/linkToolbarOverlay.js" />
+  <script type="application/javascript" src="chrome://navigator/content/linkToolbarOverlay.js" />
 
-  <script type="application/x-javascript">
+  <script type="application/javascript">
     <![CDATA[
       document.addEventListener("pageshow", linkToolbarUI.initHandlers, true);
     ]]>

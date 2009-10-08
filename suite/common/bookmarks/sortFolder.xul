@@ -53,7 +53,7 @@
         buttons="accept,cancel"
 	ondialogaccept="return onAccept();">
 
-  <script type="application/x-javascript" src="chrome://communicator/content/bookmarks/sortFolder.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/bookmarks/sortFolder.js"/>
 
   <tabbox>
     <tabs>

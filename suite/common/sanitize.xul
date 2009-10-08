@@ -57,7 +57,7 @@
             buttonlabelaccept="&sanitizeButton.label;">
 
   <prefpane id="SanitizeDialogPane" onpaneload="init();">
-    <script type="application/x-javascript">
+    <script type="application/javascript">
     <![CDATA[
       Components.utils.import("resource:///modules/Sanitizer.jsm");
 

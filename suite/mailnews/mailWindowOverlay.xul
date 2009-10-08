@@ -67,14 +67,14 @@
   xmlns:nc="http://home.netscape.com/NC-rdf#"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<script type="application/x-javascript" src="chrome://messenger/content/mailCommands.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/junkCommands.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
-<script type="application/x-javascript" src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/mail-offline.js"/>
-<script type="application/x-javascript" src="chrome://communicator/content/findUtils.js"/>
-<script type="application/x-javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
-<script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
+<script type="application/javascript" src="chrome://messenger/content/mailCommands.js"/>
+<script type="application/javascript" src="chrome://messenger/content/junkCommands.js"/>
+<script type="application/javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
+<script type="application/javascript" src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
+<script type="application/javascript" src="chrome://messenger/content/mail-offline.js"/>
+<script type="application/javascript" src="chrome://communicator/content/findUtils.js"/>
+<script type="application/javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
+<script type="application/javascript" src="chrome://global/content/printUtils.js"/>
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>

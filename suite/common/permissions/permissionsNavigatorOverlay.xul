@@ -43,8 +43,8 @@
 <overlay id="cookieNavigatorOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
-  <script type="application/x-javascript">
+  <script type="application/javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
+  <script type="application/javascript">
   <![CDATA[
     /******* THE FOLLOWING IS FOR THE TASKMENU OVERLAY *******/
 

@@ -52,9 +52,9 @@
         title="&progress.title;"
         style="width:40em;">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/downloads/downloadmanager.js"/>
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/downloads/progressDialog.js"/>
 
   <stringbundleset id="stringbundleset">

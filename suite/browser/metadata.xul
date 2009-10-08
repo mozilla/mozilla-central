@@ -57,7 +57,7 @@
         persist="screenX screenY"
         screenX="24" screenY="24">
 
-  <script type="application/x-javascript" src="chrome://navigator/content/metadata.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/metadata.js"/>
 
   <keyset id="dialogKeys"/>
 

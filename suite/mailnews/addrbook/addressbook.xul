@@ -74,13 +74,13 @@
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   </stringbundleset>
 
-<script type="application/x-javascript" src="chrome://messenger/content/accountUtils.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
-<script type="application/x-javascript" src="chrome://communicator/content/contentAreaClick.js"/>
-<script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/msgPrintEngine.js"/>
+<script type="application/javascript" src="chrome://messenger/content/accountUtils.js"/>
+<script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
+<script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
+<script type="application/javascript" src="chrome://global/content/printUtils.js"/>
+<script type="application/javascript" src="chrome://messenger/content/msgPrintEngine.js"/>
 
   <commandset id="addressBook">
   <commandset id="CommandUpdate_AddressBook"

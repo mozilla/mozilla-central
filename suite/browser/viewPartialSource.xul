@@ -61,7 +61,7 @@
         screenX="10" screenY="10"
         persist="screenX screenY width height sizemode">
 
-  <script type="application/x-javascript" src="chrome://navigator/content/viewPartialSource.js"/>
+  <script type="application/javascript" src="chrome://navigator/content/viewPartialSource.js"/>
 
   <commandset id="commands"/>
   <keyset id="viewSourceKeys"/>

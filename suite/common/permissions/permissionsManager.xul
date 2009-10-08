@@ -53,9 +53,9 @@
         ondialogaccept="return onAccept();"
         ondialoghelp="return doHelpButton();">
 
-  <script type="application/x-javascript" src="chrome://communicator/content/permissions/permissionsManager.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/permissions/treeUtils.js"/>
-  <script type="application/x-javascript" src="chrome://help/content/contextHelp.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/permissions/permissionsManager.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/permissions/treeUtils.js"/>
+  <script type="application/javascript" src="chrome://help/content/contextHelp.js"/>
 
   <stringbundle id="permissionsBundle"
                 src="chrome://communicator/locale/permissions/permissionsManager.properties"/>
