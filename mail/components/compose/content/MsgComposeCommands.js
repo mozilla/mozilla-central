@@ -159,7 +159,10 @@ function ReleaseGlobalVariables()
   gPromptService = null;
   gCurrentIdentity = null;
   gCurrentAutocompleteDirectory = null;
-  gLDAPSession = null;
+  if (gLDAPSession) {
+    gLDAPSession = null;
+    Components.utils.forceGC();
+  }
   gCharsetConvertManager = null;
   gMsgCompose = null;
   gMailSession = null;
@@ -2607,6 +2610,9 @@ function SetComposeWindowTitle()
 // This is hooked up to the OS's window close widget (e.g., "X" for Windows)
 function ComposeCanClose()
 {
+  // Do this early, so ldap sessions have a better chance to 
+  // cleanup after themselves.
+  ReleaseAutoCompleteState();
   if (gSendOrSaveOperationInProgress)
   {
     var result;
@@ -2719,7 +2725,13 @@ function ReleaseAutoCompleteState()
     document.getElementById("addressCol2#" + i).removeSession(gLDAPSession);
 
   gSessionAdded = false;
-  gLDAPSession = null;
+  gSetupLdapAutocomplete = false;
+  if (gLDAPSession) {
+    gLDAPSession = null;
+    // We're trying to force ldap sessions to get cleaned up as
+    // soon as possible so they don't hang on shutdown.
+    Components.utils.forceGC();
+  }
 }
 
 function MsgComposeCloseWindow(recycleIt)
