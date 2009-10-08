@@ -1367,7 +1367,10 @@ var BookmarksUtils = {
     var index = aTarget.index;
     for (var i = 0; i < aSelection.length; ++i) {
       if (isValid[i]) {
-        var txn = BMSVC.createTransaction(aTarget.parent, aSelection.item[i], index++, false);
+        var rSource = aSelection.item[i];
+        if (BMSVC.isBookmarkedResource(rSource))
+          rSource = BMSVC.cloneResource(rSource);
+        var txn = BMSVC.createTransaction(aTarget.parent, rSource, index++, false);
         txmgr.doTransaction(txn);
       }
     }
