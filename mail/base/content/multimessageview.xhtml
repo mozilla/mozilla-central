@@ -60,15 +60,19 @@
               href="chrome://messenger/skin/tagColors.css"/>
         <title>&window.title;</title>
         <script type="application/x-javascript;version=1.8"><![CDATA[
+            Components.utils.import("resource://app/modules/errUtils.js");
+            function adjustHeadingSize() {
+              let content = document.getElementById('content');
+              let heading = document.getElementById('heading');
+              let buttonbox = document.getElementById('buttonbox');
+              content.style.top = Math.max(
+                buttonbox.getBoundingClientRect().height,
+                heading.getBoundingClientRect().height) + 'px';
+            }
             function hookResize() {
               // we need to hook into the resize event on the header to make the #content
               // node shift down as it reflows.
-              let content = document.getElementById('content');
-              let heading = document.getElementById('heading');
-              window.addEventListener('resize',
-                function(e) {
-                  content.style.top = heading.getBoundingClientRect().height + 'px';
-              }, false);
+              window.addEventListener('resize', adjustHeadingSize, false);
             }
         ]]>
         </script>

@@ -331,6 +331,7 @@ MultiMessageSummary.prototype = {
     this.notifyMaxCountExceeded(htmlpane.contentDocument, this._msgHdrs.length, MAX_MESSAGES);
 
     this._glodaQueries.push(Gloda.getMessageCollectionForHeaders(this._msgHdrs, this));
+    htmlpane.contentDocument.defaultView.adjustHeadingSize();
   },
 
   /**
@@ -601,6 +602,7 @@ ThreadSummary.prototype = {
     this.notifyMaxCountExceeded(htmlpane.contentDocument, numMessages, MAX_THREADS);
 
     this.computeSize(htmlpane);
+    htmlpane.contentDocument.defaultView.adjustHeadingSize();
   }
 };
 
