@@ -365,8 +365,8 @@ bin/icons/updater.png
 ; classic theme
 bin/chrome/classic.jar
 bin/chrome/classic.manifest
-bin/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/install.rdf
 bin/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/icon.png
+bin/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/install.rdf
 bin/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}/preview.png
 
 ; modern theme
@@ -376,11 +376,17 @@ bin/extensions/modern@themes.mozilla.org/icon.png
 bin/extensions/modern@themes.mozilla.org/install.rdf
 bin/extensions/modern@themes.mozilla.org/preview.png
 
-; Default Preferences
+; [Default Preferences]
 ; All the pref files must be part of base to prevent migration bugs
 bin/defaults/autoconfig/*
 bin/defaults/pref/*
+#ifdef MOZILLA_1_9_1_BRANCH
 bin/greprefs/*
+#elifdef MOZILLA_1_9_2_BRANCH
+bin/greprefs/*
+#else
+bin/greprefs.js
+#endif
 
 ; [Layout Engine Resources]
 ; Style Sheets, Graphics and other Resources used by the layout engine.

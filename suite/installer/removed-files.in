@@ -113,6 +113,16 @@ defaults/wallet/DistinguishedSchema.tbl
 defaults/wallet/SchemaStrings.tbl
 defaults/wallet/PositionalSchema.tbl
 defaults/wallet/StateSchema.tbl
+#ifdef MOZILLA_1_9_1_BRANCH
+greprefs.js
+#elifdef MOZILLA_1_9_2_BRANCH
+greprefs.js
+#else
+greprefs/all.js
+greprefs/security-prefs.js
+greprefs/xpinstall.js
+greprefs/
+#endif
 modules/JSON.jsm
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 @DLL_PREFIX@mozlcms@DLL_SUFFIX@
