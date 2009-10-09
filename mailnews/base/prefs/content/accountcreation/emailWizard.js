@@ -791,7 +791,8 @@ EmailConfigWizard.prototype =
       function() // success
       {
         me._verifiedConfig = true;
-        me.stopSpinner("password_ok");
+        if (me._currentConfigFilledIn.incoming.password)
+          me.stopSpinner("password_ok");
         if (successCallback)
           successCallback();
       },
