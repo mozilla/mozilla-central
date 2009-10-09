@@ -74,8 +74,12 @@
     <label value="&filtersForPrefix.label;" 
            accesskey="&filtersForPrefix.accesskey;" control="serverMenu"/>
 
-        <menulist id="serverMenu"
-                  oncommand="onFilterFolderClick(event.target._folder)">
+      <menulist id="serverMenu"
+                class="folderMenuItem"
+                IsServer="true"
+                IsSecure="false"
+                ServerType="none"
+                oncommand="onFilterFolderClick(event.target._folder);">
         <menupopup id="serverMenuPopup" type="folder" mode="filters"
           expandFolders="nntp" headlabels="&choosethisnewsserver.label;" />
       </menulist>

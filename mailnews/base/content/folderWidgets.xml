@@ -695,17 +695,20 @@
             var child = this.childNodes[i];
             if (!child || !child._folder)
               continue;
-            if (child._folder.URI == aFolder.URI) {
-              // Making an assumption about our DOM positioning here.
-              this.parentNode.selectedIndex = i;
-              this.parentNode.setAttribute("label", aFolder.name);
-              return;
-            }
-            // Is this a subfolder (that we expect to see)?
-            if (child.tagName == "menu" && child._folder.isAncestorOf(aFolder)) {
+            // Is this the folder in question or subfolder of the folder?
+            if ((child._folder.URI == aFolder.URI) ||
+                (child.tagName == "menu" &&
+                 child._folder.isAncestorOf(aFolder))) {
+              if (child._folder.URI == aFolder.URI) {
+                // Making an assumption about our DOM positioning here.
+                this.parentNode.selectedIndex = i;
+              }
               // If this is a subfolder of what's in question, we merely appear
               // to select this node.
               this.parentNode.setAttribute("label", aFolder.name);
+              this.parentNode.setAttribute("IsServer", aFolder.isServer);
+              this.parentNode.setAttribute("IsSecure", aFolder.server.isSecure);
+              this.parentNode.setAttribute("ServerType", aFolder.server.type);
               return;
             }
           }
