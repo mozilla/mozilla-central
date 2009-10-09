@@ -78,7 +78,7 @@ interface nsIMsgImapFolderProps : nsISupports {
     void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
 };
 
-[scriptable, uuid(1a06d2c2-c6fd-4212-af70-6774e5d0c066)]
+[scriptable, uuid(9da3a211-51bf-4db6-a109-863dbe7e14d7)]
 interface nsIMsgImapMailFolder : nsISupports {
   void removeSubFolder(in nsIMsgFolder folder);
   void createClientSubfolderInfo(in ACString folderName, in char hierarchyDelimiter,
@@ -116,14 +116,15 @@ interface nsIMsgImapMailFolder : nsISupports {
   void refreshFolderRights();
 
   /**
-   * Mark the header as pending removal from the offline store. This also
-   * increases the expungedBytes count on the folder so we know there's 
-   * more local disk space to be reclaimed.
+   * Mark/unmark the header as pending removal from the offline store. If mark,
+   * this also increases the expungedBytes count on the folder so we know
+   * there's more local disk space to be reclaimed.
    *
    * @param aHdr     msg hdr to mark pending removal from offline store.
+   * @param aMark    whether to set or clear the pending removal status.
    *
    */
-  void markPendingRemoval(in nsIMsgDBHdr aHdr);
+  void markPendingRemoval(in nsIMsgDBHdr aHdr, in boolean aMark);
 
   /**
    * Issue an expunge of this folder to the imap server.

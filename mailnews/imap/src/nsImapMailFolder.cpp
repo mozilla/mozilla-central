@@ -1307,8 +1307,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyRetentionSettings()
       if (msgFlags & nsMsgMessageFlags::Offline)
       {
         pHeader->GetDate(&msgDate);
-        if (msgDate < cutOffDay)
-          MarkPendingRemoval(pHeader);
+        MarkPendingRemoval(pHeader, msgDate < cutOffDay);
         // I'm horribly tempted to break out of the loop if we've found
         // a message after the cut-off date, because messages will most likely
         // be in date order in the db, but there are always edge cases.
@@ -1342,12 +1341,14 @@ NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow 
   return Expunge(aListener, aMsgWindow);
 }
 
-NS_IMETHODIMP nsImapMailFolder::MarkPendingRemoval(nsIMsgDBHdr *aHdr)
+NS_IMETHODIMP nsImapMailFolder::MarkPendingRemoval(nsIMsgDBHdr *aHdr, PRBool aMark)
 {
   NS_ENSURE_ARG_POINTER(aHdr);
   PRUint32 offlineMessageSize;
   aHdr->GetOfflineMessageSize(&offlineMessageSize);
-  aHdr->SetStringProperty("pendingRemoval", "1");
+  aHdr->SetStringProperty("pendingRemoval", aMark ? "1" : "");
+  if (!aMark)
+    return NS_OK;
   nsresult rv = GetDatabase();
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;

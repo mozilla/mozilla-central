@@ -883,6 +883,9 @@ nsOfflineStoreCompactState::InitDB(nsIMsgDatabase *db)
       // we won't have the message in the offline store.
       PRUint32 resultFlags;
       hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
+      // We need to clear this in case the user changes the offline retention
+      // settings.
+      hdr->SetStringProperty("pendingRemoval", "");
     }
   }
   m_db = db;
