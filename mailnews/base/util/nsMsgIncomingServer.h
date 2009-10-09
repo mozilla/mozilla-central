@@ -85,7 +85,6 @@ protected:
   nsresult ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filterList);
 
   nsCOMPtr <nsIMsgFolder> m_rootFolder;
-  nsCOMPtr <nsIMsgRetentionSettings> m_retentionSettings;
   nsCOMPtr <nsIMsgDownloadSettings> m_downloadSettings;
 
   nsresult CreateLocalFolder(nsIFile *path, const nsACString& folderName);
