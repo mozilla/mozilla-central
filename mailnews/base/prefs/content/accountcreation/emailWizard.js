@@ -818,12 +818,11 @@ EmailConfigWizard.prototype =
   advancedSettings : function()
   {
     let shouldEraseConfig = !this._currentConfigFilledIn;
-    let config = this._currentConfigFilledIn ? this._currentConfigFilledIn.copy()
-                                             : this.getUserConfig();
+    let config = this.getUserConfig();
     this._currentConfigFilledIn = config.copy();
+
     // call this to set the password
-    replaceVariables(config, this._realname, this._email,
-                     this._password);
+    replaceVariables(config, this._realname, this._email, this._password);
 
     if (!this.checkIncomingAccountIsNew()) {
       alertPrompt(gStringsBundle.getString("error_creating_account"),
