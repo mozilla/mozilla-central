@@ -916,7 +916,7 @@
       <xul:hbox class="tab-middle box-inherit"
                 xbl:inherits="align,dir,pack,orient,selected"
                 flex="1">
-        <xul:image class="tab-icon" xbl:inherits="validate,src=image"/>
+        <xul:image class="tab-icon tab-icon-image" xbl:inherits="validate,src=image"/>
         <xul:label class="tab-text"
                    xbl:inherits="value=label,accesskey,crop,disabled"
                    flex="1"/>
