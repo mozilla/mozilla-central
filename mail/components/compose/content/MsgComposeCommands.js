@@ -1299,7 +1299,7 @@ function ShouldShowAttachmentNotification(async)
 
     // Don't check quoted text from reply.
     let blockquotes = mailBodyNode.getElementsByTagName("blockquote");
-    for (let i = 0; i < blockquotes.length; i++) {
+    for (let i = blockquotes.length - 1; i >= 0; i--) {
       blockquotes[i].parentNode.removeChild(blockquotes[i]);
     }
     // For plaintext composition the quotes we need to find and exclude are
@@ -1307,23 +1307,38 @@ function ShouldShowAttachmentNotification(async)
     // set we should exclude <pre _moz_quote="true"> nodes instead.
     if (!getPref("editor.quotesPreformatted")) {
       let spans = mailBodyNode.getElementsByTagName("span");
-      for (let i = 0; i < spans.length; i++) {
+      for (let i = spans.length - 1; i >= 0; i--) {
         if (spans[i].hasAttribute("_moz_quote"))
           spans[i].parentNode.removeChild(spans[i]);
       }
     }
     else {
       let pres = mailBodyNode.getElementsByTagName("pre");
-      for (let i = 0; i < pres.length; i++) {
+      for (let i = pres.length - 1; i >= 0; i--) {
         if (pres[i].hasAttribute("_moz_quote"))
           pres[i].parentNode.removeChild(pres[i]);
       }
     }
+
+    // Ignore signature (html compose mode).
+    let sigs = mailBodyNode.getElementsByClassName("moz-signature");
+    for (let i = sigs.length - 1; i >= 0; i--) {
+      sigs[i].parentNode.removeChild(sigs[i]);
+    }
+
+    // Replace brs with line breaks so node.textContent won't pull foo<br>bar
+    // together to foobar.
     let brs = mailBodyNode.getElementsByTagName("br");
-    for (let i = 0; i < brs.length; i++) {
+    for (let i = brs.length - 1; i >= 0; i--) {
       brs[i].parentNode.replaceChild(document.createTextNode("\n"), brs[i]);
     }
+
+    // Ignore signature (plain text compose mode).
     let mailData = mailBodyNode.textContent;
+    let sigIndex = mailData.indexOf("-- \n");
+    if (sigIndex > 0)
+      mailData = mailData.substring(0, sigIndex);
+
     if (!async)
       return GetAttachmentKeywords(mailData, keywordsInCsv).length != 0;
     attachmentWorker.postMessage([mailData, keywordsInCsv]);
