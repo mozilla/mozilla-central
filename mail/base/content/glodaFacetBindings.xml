@@ -1489,6 +1489,8 @@
           for each (let [, attach] in Iterator(message.attachmentNames)) {
             let attachNode = document.createElement("div");
             attachNode.setAttribute("class", "message-attachment");
+            if (attach.length >= 28)
+              attach = attach.substring(0, 24) + "…";
             attachNode.textContent = attach;
             attachmentsNode.appendChild(attachNode);
           }

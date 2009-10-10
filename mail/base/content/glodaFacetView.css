@@ -617,6 +617,7 @@ h2 {
   max-width: 20em;
   text-align: left;
   display: inline-block;
+  white-space: nowrap;
   -moz-padding-start: 1ex;
 }
 
