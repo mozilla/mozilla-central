@@ -50,8 +50,6 @@ var gItemDuration = null;
 var gStartTimezone = null;
 var gEndTimezone = null;
 var gIsReadOnly = false;
-var gUserID = null;
-var gOrganizerID = null;
 var gPrivacy = null;
 var gAttachMap = {};
 var gPriority = 0;
@@ -1071,6 +1069,9 @@ function updateAccept() {
     return enableAccept;
 }
 
+var gOldStartTime = null;
+var gOldEndTime = null;
+
 /**
  * Handler function to update controls in consequence of the "all day" checkbox
  * being clicked.
@@ -1079,7 +1080,43 @@ function onUpdateAllDay() {
     if (!isEvent(window.calendarItem)) {
         return;
     }
-    var allDay = getElementValue("event-all-day", "checked");
+    let allDay = getElementValue("event-all-day", "checked");
+
+    // store/restore datetimes when "All day" checkbox changes status
+    if (allDay) {
+        gOldStartTime = gStartTime.clone();
+        gOldEndTime = gEndTime.clone();
+    } else {
+        if (gStartTime.isDate || gEndTime.isDate) {
+            if (!gOldStartTime && !gOldEndTime) {
+                // checkbox "all day" has been unchecked for the first time
+                gOldStartTime = gStartTime.clone();
+                gOldStartTime.isDate = 0;
+                gOldStartTime.hour = getDefaultStartDate(window.initialStartDateValue).hour;
+                gOldEndTime = gEndTime.clone();
+                gOldEndTime.isDate = 0;
+                gOldEndTime.hour = gOldStartTime.hour;
+                gOldEndTime.minute += getPrefSafe("calendar.event.defaultlength", 60);
+            } else if (gOldStartTime != gStartTime || gOldEndTime != gEndTime) {
+                // checkbox "all day" has been unchecked after a date change
+                let startTimeHour =  gOldStartTime.hour;
+                let startTimeMinute = gOldStartTime.minute;
+                let endTimeHour = gOldEndTime.hour;
+                let endTimeMinute = gOldEndTime.minute;
+                gOldStartTime = gStartTime.clone();
+                gOldStartTime.isDate = 0;
+                gOldStartTime.hour = startTimeHour;
+                gOldStartTime.minute = startTimeMinute;
+                gOldEndTime = gEndTime.clone();
+                gOldEndTime.isDate = 0;
+                gOldEndTime.hour = endTimeHour;
+                gOldEndTime.minute = endTimeMinute;
+            }
+        }
+        gStartTime = gOldStartTime.clone();
+        gEndTime = gOldEndTime.clone();
+    }
+
     gStartTimezone = (allDay ? floating(): calendarDefaultTimezone());
     gEndTimezone = gStartTimezone;
     gStartTime.timezone = gStartTimezone;
