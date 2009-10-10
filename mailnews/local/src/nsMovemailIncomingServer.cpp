@@ -254,6 +254,14 @@ nsMovemailIncomingServer::GetDownloadMessagesAtStartup(PRBool *getMessagesAtStar
 }
 
 NS_IMETHODIMP
+nsMovemailIncomingServer::GetCanBeDefaultServer(PRBool *aCanBeDefaultServer)
+{
+  NS_ENSURE_ARG_POINTER(aCanBeDefaultServer);
+  *aCanBeDefaultServer = PR_TRUE;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsMovemailIncomingServer::GetCanSearchMessages(PRBool *canSearchMessages)
 {
     NS_ENSURE_ARG_POINTER(canSearchMessages);
