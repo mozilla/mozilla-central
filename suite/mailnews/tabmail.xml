@@ -216,11 +216,11 @@
           <xul:tooltip onpopupshowing="var tabmail = this.parentNode.parentNode.parentNode;
                                        return tabmail.FillTabmailTooltip(document, event);"/>
           <xul:menupopup anonid="tabContextMenu"
-                         onpopupshowing="var tabmail = this.parentNode.parentNode.parentNode;
-                                         tabmail.mContextTab = document.popupNode;">
+                         onpopupshowing="return document.getBindingParent(this)
+                                                        .onTabContextMenuShowing();">
             <xul:menuitem label="&closeTabCmd.label;"
                           accesskey="&closeTabCmd.accesskey;"
-                          oncommand="var tabmail = this.parentNode.parentNode.parentNode.parentNode;
+                          oncommand="var tabmail = document.getBindingParent(this);
                                      tabmail.removeTab(tabmail.mContextTab);"/>
           </xul:menupopup>
           <xul:tabs class="tabbrowser-tabs tabmail-tabs"
@@ -778,6 +778,16 @@
               return true;
             }
             return false;
+          ]]>
+        </body>
+      </method>
+
+      <method name="onTabContextMenuShowing">
+        <body>
+          <![CDATA[
+            // The user might right-click on a non-tab area of the tab strip.
+            this.mContextTab = document.popupNode;
+            return this.mContextTab.localName == "tab";
           ]]>
         </body>
       </method>
