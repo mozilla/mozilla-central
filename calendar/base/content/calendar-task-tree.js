@@ -108,8 +108,15 @@ function changeContextMenuForTask(aEvent) {
         (idnode == "calendar-task-tree" || sunbird);
     let tasksSelected = (getSelectedTasks(aEvent).length > 0);
     applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
-    document.getElementById("calendar_new_todo_command").removeAttribute("disabled");
-    document.getElementById("calendar_new_todo_todaypane_command").removeAttribute("disabled");
+    if (calendarController.isCommandEnabled("calendar_new_todo_command") &&
+        calendarController.isCommandEnabled("calendar_new_todo_todaypane_command")) {
+        document.getElementById("calendar_new_todo_command").removeAttribute("disabled");
+        document.getElementById("calendar_new_todo_todaypane_command").removeAttribute("disabled");
+    } else {
+        document.getElementById("calendar_new_todo_command").setAttribute("disabled", "true");
+        document.getElementById("calendar_new_todo_todaypane_command").setAttribute("disabled", "true");
+    }
+
     changeMenuForTask(aEvent);
 }
 
