@@ -117,11 +117,11 @@ function OnLoadSelectAddress()
 
   // Reselect the persisted address book if possible, if not just select the
   // first in the list.
-  var temp = abPopup.value;
-  abPopup.selectedItem = null;
-  abPopup.value = temp;
-  if (!abPopup.selectedItem)
-    abPopup.selectedIndex = 0;
+  var temp = abList.value;
+  abList.selectedItem = null;
+  abList.value = temp;
+  if (!abList.selectedItem)
+    abList.selectedIndex = 0;
 
   ChangeDirectoryByURI(abList.value);
 
