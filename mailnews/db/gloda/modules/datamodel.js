@@ -648,10 +648,10 @@ function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue,
   this._value = aValue;
   this._description = aDescription;
   this._isRelay = aIsRelay;
-  /// cached positive indicator of a card.  false means we don't know, not that
-  ///  we are confident there is no card.  (Users may star contacts with
-  ///  frequency, we don't want to latch on an erroneous value.)
-  this._hasAddressBookCard = false;
+  /// Cached indication of whether there is an address book card for this
+  ///  identity.  We keep this up-to-date via address book listener
+  ///  notifications in |GlodaABIndexer|.
+  this._hasAddressBookCard = undefined;
 }
 
 GlodaIdentity.prototype = {
@@ -683,22 +683,19 @@ GlodaIdentity.prototype = {
     if (this._kind != "email")
       return false;
     let card = GlodaUtils.getCardForEmail(this._value);
-    if (card)
-      this._hasAddressBookCard = true;
+    this._hasAddressBookCard = (card != null);
     return card;
   },
 
   /**
-   * Indicate whether this person is in the user's address book. This differs
-   *  from abCard in that its semantics are cheaper.  We can cache/flag that
-   *  the identity is in the address book on disk whereas we can't keep the
-   *  card reference live easily right now (until UUIDs happen...)
-   * However, we currently don't cache the value, lest it screw us.
+   * Indicates whether we have an address book card for this identity.  This
+   *  value is cached once looked-up and kept up-to-date by |GlodaABIndexer|
+   *  and its notifications.
    */
   get inAddressBook() {
-    if (this._hasAddressBookCard)
-      return true;
-    return this.abCard && true;
+    if (this._hasAddressBookCard !== undefined)
+      return this._hasAddressBookCard;
+    return (this.abCard && true) || false;
   },
 
   pictureURL: function(aSize) {

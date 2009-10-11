@@ -63,7 +63,10 @@ var GlodaABIndexer = {
       this._log =  Log4Moz.repository.getLogger("gloda.ab_indexer");
 
     let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
-    abManager.addAddressBookListener(this, Ci.nsIAbListener.itemChanged);
+    abManager.addAddressBookListener(this,
+                                     Ci.nsIAbListener.itemAdded |
+                                       Ci.nsIAbListener.itemChanged |
+                                       Ci.nsIAbListener.directoryItemRemoved);
   },
 
   disable: function() {
@@ -89,6 +92,8 @@ var GlodaABIndexer = {
 
       if (identityCollection.items.length) {
         let identity = identityCollection.items[0];
+        // force the identity to know it has an associated ab card.
+        identity._hasAddressBookCard = true;
 
         this._log.debug("Found identity, processing card.");
         yield aCallbackHandle.pushAndGo(
@@ -105,9 +110,34 @@ var GlodaABIndexer = {
   },
 
   /* ------ nsIAbListener ------ */
+  /**
+   * When an address book card is added, update the cached GlodaIdentity
+   *  object's cached idea of whether the identity has an ab card.
+   */
   onItemAdded: function ab_indexer_onItemAdded(aParentDir, aItem) {
+    if (!(aItem instanceof Ci.nsIAbCard))
+      return;
+
+    this._log.debug("Received Card Add Notification");
+    let identity = GlodaCollectionManager.cacheLookupOneByUniqueValue(
+      Gloda.NOUN_IDENTITY, "email@" + aItem.primaryEmail.toLowerCase());
+    if (identity)
+      identity._hasAddressBookCard = true;
   },
+  /**
+   * When an address book card is added, update the cached GlodaIdentity
+   *  object's cached idea of whether the identity has an ab card.
+   */
   onItemRemoved: function ab_indexer_onItemRemoved(aParentDir, aItem) {
+    if (!(aItem instanceof Ci.nsIAbCard))
+      return;
+
+    this._log.debug("Received Card Removal Notification");
+    let identity = GlodaCollectionManager.cacheLookupOneByUniqueValue(
+      Gloda.NOUN_IDENTITY, "email@" + aItem.primaryEmail.toLowerCase());
+    if (identity)
+      identity._hasAddressBookCard = false;
+
   },
   onItemPropertyChanged: function ab_indexer_onItemPropertyChanged(aItem,
       aProperty, aOldValue, aNewValue) {
