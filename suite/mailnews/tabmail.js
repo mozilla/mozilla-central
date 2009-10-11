@@ -374,6 +374,11 @@ var gMailNewsTabsType =
 
   closeTab: function(aTabInfo)
   {
+    // If the tab has never been opened, we must not clean up the view,
+    // because it still belongs to a different tab.
+    if (aTabInfo.uriToOpen)
+      return;
+
     if (aTabInfo.dbView)
       aTabInfo.dbView.close();
     if (aTabInfo.messenger)
