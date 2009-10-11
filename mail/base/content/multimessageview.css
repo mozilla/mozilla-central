@@ -130,11 +130,6 @@
   font-weight: normal;
 }
 
-.tag {
-  display: inline;
-  white-space: nowrap; /* for tags like "To Do" */
-}
-
 #buttonbox {
   float: right;
   padding-top: 1ex;
@@ -191,10 +186,16 @@
 }
 
 .tag {
-  color: #fff;
-  padding: 0.2ex 0.4em;
-  margin-right: 0.5em;
+  display: inline-block; /* to avoid splitting 'To' and 'Do' e.g. */
+  -moz-margin-start: 0px;
+  -moz-margin-end: 3px;
+  padding: 0 0.5ex;
+  background-image: url("chrome://messenger/skin/tagbg.png");
   -moz-border-radius: 3px;
+  border-style: outset;
+  border-width: 0.5px;
+  text-shadow: 0 1px 0 rgba(238,238,236,0.4); /* Tango Alumninum 1 */
+  color: #111111;
 }
 
 .notice {

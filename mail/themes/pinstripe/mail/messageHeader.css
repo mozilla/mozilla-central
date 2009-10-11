@@ -463,11 +463,14 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
 }
 
 .tagvalue {
+  padding: 0 0.5ex;
   -moz-margin-start: 0px;
   background-image: url("chrome://messenger/skin/tagbg.png");
-  color: black;
-  -moz-border-radius: 2px;
-  padding: 1px 3px;
+  -moz-border-radius: 3px;
+  border-width: 0.5px;
+  border-style: outset;
+  text-shadow: 0 1px 0 rgba(238,238,236,0.4); /* Tango Alumninum 1 */
+  color: #111111;
 }
 
 /* ::::: msg header message ids ::::: */

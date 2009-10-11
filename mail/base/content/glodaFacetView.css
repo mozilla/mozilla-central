@@ -694,12 +694,16 @@ h2 {
 .message-tag {
   display: inline-block; /* to avoid splitting 'To' and 'Do' e.g. */
   -moz-margin-start: 0px;
+  -moz-margin-end: 3px;
+  padding: 0 0.5ex;
   background-image: url("chrome://messenger/skin/tagbg.png");
-  color: black;
-  -moz-border-radius: 2px;
-  padding: 1px 3px;
-  margin-right: 3px;
+  -moz-border-radius: 3px;
+  border-style: outset;
+  border-width: 0.5px;
+  text-shadow: 0 1px 0 rgba(238,238,236,0.4); /* Tango Alumninum 1 */
+  color: #111111;
 }
+
 .message-folder {
   background-color: #faf0b8;
   border: 1px solid #ede4af;
