@@ -1221,8 +1221,7 @@ calDavCalendar.prototype = {
                 thisCalendar.mTargetCalendar.getItems
                             .apply(thisCalendar.mTargetCalendar, query);
             }
-            if (thisCalendar.hasScheduling &&
-                !thisCalendar.isInbox(aUri.spec)) {
+            if (!thisCalendar.isInbox(aUri.spec)) {
                 thisCalendar.pollInbox();
             }
         };
@@ -1996,7 +1995,7 @@ calDavCalendar.prototype = {
     },
 
     isInbox: function caldav_isInbox(aString) {
-        return (this.hasScheduling && this.mInboxUrl &&
+        return ((this.hasScheduling || this.hasAutoScheduling) && this.mInboxUrl &&
                 aString.indexOf(this.mInboxUrl.spec) == 0);
     },
 
@@ -2008,7 +2007,7 @@ calDavCalendar.prototype = {
         // If polling the inbox was switched off, no need to poll the inbox.
         // Also, if we have more than one calendar in this CalDAV account, we
         // want only one of them to be checking the inbox.
-        if (!this.hasScheduling || !this.mShouldPollInbox || !this.firstInRealm()) {
+        if ((!this.hasScheduling && !this.hasAutoScheduling) || !this.mShouldPollInbox || !this.firstInRealm()) {
             return;
         }
 

@@ -186,8 +186,8 @@ etagsHandler.prototype = {
             }
 
             // but do poll the inbox
-            if (this.calendar.hasScheduling &&
-                this.calendar.isInbox(this.baseUri.spec)) {
+            if (this.calendar.mShouldPollInbox &&
+                !this.calendar.isInbox(this.baseUri.spec)) {
                 this.calendar.pollInbox();
             }
         } else {
