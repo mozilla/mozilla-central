@@ -129,7 +129,8 @@ function setupWizardPanels() {
 
 function initializeIspData()
 {
-    if (!document.getElementById("mailaccount").selected) {
+    let mailAccount = document.getElementById("mailaccount");
+    if (!mailAccount || !mailAccount.selected) {
       parent.SetCurrentAccountData(null);
     }
 
