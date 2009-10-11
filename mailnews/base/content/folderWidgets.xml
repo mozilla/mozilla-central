@@ -386,6 +386,7 @@
                 this._parentFolder.canFileMessages || mode == "newFolder")))) {
             var menuitem = document.createElement("menuitem");
             menuitem._folder = this._parentFolder;
+            menuitem.setAttribute("generated", "true");
             if (this.hasAttribute("fileHereLabel")) {
               menuitem.setAttribute("label", this.getAttribute("fileHereLabel"));
               menuitem.setAttribute("accesskey", this.getAttribute("fileHereAccessKey"));
@@ -401,7 +402,9 @@
             if (this._parentFolder.noSelect)
               menuitem.setAttribute("disabled", "true");
 
-            this.appendChild(document.createElement("menuseparator"));
+            var sep= document.createElement("menuseparator");
+            sep.setAttribute("generated", "true");
+            this.appendChild(sep);
           }
 
           // Some menus want a "Recent" option, but that should only be on our
@@ -474,12 +477,14 @@
               // Grumble, grumble, legacy code support
               node.setAttribute("id", folder.URI);
               node.setAttribute("class", "folderMenuItem menuitem-iconic");
+              node.setAttribute("generated", "true");
               this.appendChild(node);
             } else {
               //xxx this is slightly problematic in that we haven't confirmed
               //    whether any of the subfolders will pass the filter
               node = document.createElement("menu");
               node.setAttribute("class", "folderMenuItem menu-iconic");
+              node.setAttribute("generated", "true");
               this.appendChild(node);
 
               // Create the submenu
@@ -499,10 +504,14 @@
                 var serverNode = document.createElement("menuitem");
                 serverNode.setAttribute("label", labels[folder.server.type]);
                 serverNode._folder = folder;
+                serverNode.setAttribute("generated", "true");
                 popup.appendChild(serverNode);
-                popup.appendChild(document.createElement("menuseparator"));
+                var sep = document.createElement("menuseparator");
+                sep.setAttribute("generated", "true");
+                popup.appendChild(sep);
               }
 
+              popup.setAttribute("generated", "true");
               node.appendChild(popup);
             }
             node._folder = folder;
@@ -610,6 +619,7 @@
           menu.setAttribute("label", this.getAttribute("recentLabel"));
           menu.setAttribute("accesskey", this.getAttribute("recentAccessKey"));
           var popup = document.createElement("menupopup");
+          popup.setAttribute("generated", "true");
           menu.appendChild(popup);
 
           // Create entries for each of the recent folders.
@@ -624,10 +634,13 @@
 
             node.setAttribute("class", "folderMenuItem menuitem-iconic");
             this._setCssSelectors(folder, node);
+            node.setAttribute("generated", "true");
             popup.appendChild(node);
           }
+          menu.setAttribute("generated", "true");
           this.appendChild(menu);
           var sep = document.createElement("menuseparator");
+          sep.setAttribute("generated", "true");
           this.appendChild(sep);
         ]]></body>
       </method>
@@ -723,8 +736,10 @@
         -->
       <method name="_teardown">
         <body><![CDATA[
-          while(this.hasChildNodes()) {
-            let child = this.lastChild;
+          for (let i = this.childNodes.length - 1; i >= 0; i--) {
+            let child = this.childNodes[i];
+            if (child.getAttribute("generated") != "true")
+              continue;
             if ("_teardown" in child)
               child._teardown();
             this.removeChild(child);
