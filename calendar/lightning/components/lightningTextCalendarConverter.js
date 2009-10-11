@@ -85,7 +85,6 @@ function linkifyText(text) {
 
         localText = localText.substr(endPos);
     }
-    dump(linkifiedText.toXMLString());
     // restore the settings
     XML.setSettings(savedSettings);
 
