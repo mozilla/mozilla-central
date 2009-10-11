@@ -1969,6 +1969,7 @@
                   label="&newPlainTextMessageCmd.label;"
                   accesskey="&newPlainTextMessageCmd.accesskey;"
                   mode="PlainText"/>
+        <menuitem id="newMsgButton-mail-menuitem" hidden="true"/>
       </menupopup>
     </toolbarbutton>
     <toolbarbutton id="button-reply"
