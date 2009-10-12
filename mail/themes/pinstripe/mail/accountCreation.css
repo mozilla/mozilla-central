@@ -203,3 +203,24 @@ label.textbox-label {
   width: 58px;
   text-align: right;
 }
+
+textbox[disabled="true"],
+input[disabled="true"],
+menulist[disabled="true"] {
+  -moz-appearance: none;
+  border: 0;
+  background-color: #ececec;
+  color: #000000 !important;
+}
+
+/* Missing:
+ * .menulist-dropmarker[disabled="true"]
+ */
+
+textbox.port[disabled="true"] {
+  padding-top: 4px;
+}
+
+#incoming_protocol[disabled="true"] {
+  padding-left: 5px;
+}

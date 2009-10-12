@@ -221,14 +221,23 @@ label.textbox-label {
   text-align: right;
 }
 
-#outgoing_server[disabled="true"] {
+textbox[disabled="true"],
+input[disabled="true"],
+menulist[disabled="true"] {
   -moz-appearance: none;
+  border: 0;
+  background-color: dialog;
+  color: -moz-DialogText;
 }
 
-#outgoing_server .menulist-editable-box[disabled="true"] {
-  -moz-appearance: menulist-textfield;
+/* Missing:
+ * .menulist-dropmarker[disabled="true"]
+ */
+
+textbox.port[disabled="true"] {
+  padding-top: 4px;
 }
 
-#outgoing_server .menulist-dropmarker[disabled="true"] {
-  -moz-appearance: menulist-button;
+#incoming_protocol[disabled="true"] {
+  padding-left: 5px;
 }
