@@ -9,3 +9,21 @@
   -moz-appearance: tooltip;
   color: InfoText;
 }
+
+treecol.treecol-image image {
+  -moz-padding-start: 1px;
+  -moz-padding-end: 2px;
+}
+
+treecol.junkStatusHeader {
+  -moz-padding-end: 2px;
+}
+
+treechildren::-moz-tree-image(unreadButtonColHeader) {
+  -moz-padding-start: 0px;
+  -moz-margin-start: -3px;
+}
+
+treechildren::-moz-tree-image(junkStatusCol) {
+  -moz-margin-start: -3px;
+}
