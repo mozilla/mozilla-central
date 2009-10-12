@@ -164,9 +164,18 @@ function getURLToLoad()
 
   try {
     var ss = Components.classes["@mozilla.org/suite/sessionstartup;1"]
-             .getService(Components.interfaces.nsISessionStartup);
+                       .getService(Components.interfaces.nsISessionStartup);
     // return about:blank if we are restoring previous session
     if (ss.doRestore())
+      return "about:blank";
+  } catch (e) {
+  }
+
+  try {
+    var st = Components.classes["@mozilla.org/suite/sessionstore;1"]
+                       .getService(Components.interfaces.nsISessionStore);
+    // return about:blank if the last window was closed and should be restored
+    if (st.doRestoreLastWindow())
       return "about:blank";
   } catch (e) {
   }

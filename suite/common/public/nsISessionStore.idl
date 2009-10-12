@@ -46,7 +46,7 @@ interface nsIDOMNode;
  * - and allows to restore everything into one window.
  */
 
-[scriptable, uuid(467425eb-86c7-4e8f-97ed-46e400d21e60)]
+[scriptable, uuid(8afb6a83-21e2-40d6-8416-1adfbbbe54cb)]
 interface nsISessionStore : nsISupports
 {
   /**
@@ -190,4 +190,11 @@ interface nsISessionStore : nsISupports
    * @returns the nsIDOMWindow object of the reopened window
    */
   nsIDOMWindow undoCloseWindow(in unsigned long aIndex);
+
+  /**
+   * Returns true if the last window was closed and should be restored
+   *
+   * @returns true if the last window was closed and should be restored
+   */
+  boolean doRestoreLastWindow();
 };

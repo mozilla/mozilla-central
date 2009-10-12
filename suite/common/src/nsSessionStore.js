@@ -945,6 +945,17 @@ SessionStoreService.prototype = {
     this.saveStateDelayed();
   },
 
+  doRestoreLastWindow: function sss_doRestoreLastWindow() {
+    let state = null;
+    this._closedWindows.forEach(function(aWinState) {
+      if (!state && !aWinState.isPopup) {
+        state = aWinState;
+      }
+    });
+    return (this._restoreLastWindow && state &&
+            this._doResumeSession());
+  },
+
 /* ........ Saving Functionality .............. */
 
   /**
