@@ -249,6 +249,8 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-margin-start: 0.4em;
   vertical-align: middle;
   list-style-image: none; /* overrides the rule from primaryToolbar.css */
+  text-shadow: none;
+  color: #000000;
 }
 
 .msgHeaderView-button:active,
@@ -328,15 +330,15 @@ toolbar[mode="full"] .msgHeaderView-button > .toolbarbutton-menubutton-button
 }
 
 .hdrReplyButton {
-  list-style-image: url("chrome://messenger/skin/icons/reply16.png");
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-reply.png");
 }
 
 .hdrReplyListButton {
-  list-style-image: url("chrome://messenger/skin/icons/reply-to-list16.png");
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-replylist.png");
 }
 
 .hdrReplyAllButton {
-  list-style-image: url("chrome://messenger/skin/icons/reply-to-all16.png");
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-replyall.png");
 }
 
 .hdrReplyButton > .toolbarbutton-menubutton-button {
@@ -360,7 +362,7 @@ toolbar[mode="full"] .msgHeaderView-button > .toolbarbutton-menubutton-button
 }
 
 .hdrForwardButton {
-  list-style-image: url("chrome://messenger/skin/icons/forward16.png");
+  list-style-image: url("chrome://messenger/skin/icons/symbolic-forward.png");
 }
 
 /* This icon isn't that meaningful, and we'd rather save horizontal space */
