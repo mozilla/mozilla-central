@@ -92,6 +92,8 @@ function onLoad() {
     }
 
     var zoom = document.getElementById("zoom-menulist");
+    let zoomOut = document.getElementById("zoom-out-button");
+    let zoomIn = document.getElementById("zoom-in-button");
     zoom.value = "100";
 
     initTimeRange();
@@ -108,6 +110,8 @@ function onLoad() {
         setForce24Hours(true);
         zoom.value = "400";
         zoom.setAttribute("disabled", "true");
+        zoomOut.setAttribute("disabled", "true");
+        zoomIn.setAttribute("disabled", "true");
         setZoomFactor(zoom.value);
     }
 
@@ -177,6 +181,21 @@ function onCancel() {
  */
 function onZoomFactor(aValue) {
     setZoomFactor(parseInt(aValue));
+}
+
+/**
+ * Function called when zoom buttons (+/-) are clicked.
+ *
+ * @param aZoomOut      true -> zoom out; false -> zoom in.
+ */
+function zoomWithButtons(aZoomOut) {
+    let zoom = document.getElementById("zoom-menulist");
+    if (aZoomOut && zoom.selectedIndex < 4) {
+        zoom.selectedIndex++;
+    } else if (!aZoomOut && zoom.selectedIndex > 0) {
+        zoom.selectedIndex--;
+    }
+    setZoomFactor(parseInt(zoom.value));
 }
 
 /**
@@ -572,13 +591,19 @@ function changeAllDay() {
     // on the zoom-factor. In case this events is now said to be all-day,
     // we automatically enforce a 25% zoom-factor and disable the control.
     var zoom = document.getElementById("zoom-menulist");
+    let zoomOut = document.getElementById("zoom-out-button");
+    let zoomIn = document.getElementById("zoom-in-button");
     if (allDay) {
         zoom.value = "400";
         zoom.setAttribute("disabled", "true");
+        zoomOut.setAttribute("disabled", "true");
+        zoomIn.setAttribute("disabled", "true");
         setZoomFactor(zoom.value);
         setForce24Hours(true);
     } else {
         zoom.removeAttribute("disabled");
+        zoomOut.removeAttribute("disabled");
+        zoomIn.removeAttribute("disabled");
     }
 }
 

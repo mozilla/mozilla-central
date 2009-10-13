@@ -79,7 +79,9 @@
             oncommand="onNextSlot();"/>
     <spacer style="width: 10em"/>
     <label value="&event.freebusy.zoom;" control="zoom-menulist"/>
-    <image class="zoom-out-icon"/>
+    <toolbarbutton id="zoom-out-button"
+                   class="zoom-out-icon"
+                   oncommand="zoomWithButtons(true);"/>
     <menulist id="zoom-menulist"
               oncommand="onZoomFactor(this.value);">
       <menupopup>
@@ -90,7 +92,9 @@
         <menuitem label="25%" value="400"/>
       </menupopup>
     </menulist>
-    <image class="zoom-in-icon"/>
+    <toolbarbutton id="zoom-in-button"
+                   class="zoom-in-icon"
+                   oncommand="zoomWithButtons(false);"/>
   </hbox>
   <hbox flex="1">
     <vbox flex="1">

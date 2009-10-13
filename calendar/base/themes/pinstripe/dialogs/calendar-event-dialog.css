@@ -532,11 +532,17 @@ daypicker-monthday {
     list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);
     -moz-image-region: rect(0px 97px 14px 84px);
 }
+.zoom-in-icon[disabled="true"] {
+    -moz-image-region: rect(14px 97px 28px 84px);
+}
 
 .zoom-out-icon {
     margin: 3px 3px;
     list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);
     -moz-image-region: rect(0px 110px 14px 97px);
+}
+.zoom-out-icon[disabled="true"] {
+    -moz-image-region: rect(14px 110px 28px 97px);
 }
 
 .left-icon {
