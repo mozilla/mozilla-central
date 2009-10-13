@@ -346,3 +346,6 @@
   locale/@AB_CD@/pippki/pref-masterpass.dtd                                 (%chrome/common/pref/pref-masterpass.dtd)
   locale/@AB_CD@/pippki/pref-ssl.dtd                                        (%chrome/common/pref/pref-ssl.dtd)
   locale/@AB_CD@/pippki/pref-validation.dtd                                 (%chrome/common/pref/pref-validation.dtd)
+
+# Extra l10n files for documentation and such
+#includesubst @LOCALE_SRCDIR@/extra-jar.mn
