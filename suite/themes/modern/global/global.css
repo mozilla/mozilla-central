@@ -101,7 +101,7 @@ window.dialog {
   list-style-image: url("chrome://global/skin/icons/alert-question.gif");
 }
 
-.security-icon {
+.authentication-icon {
   width: 46px;
   height: 41px;
   list-style-image: url("chrome://global/skin/icons/alert-security.gif");
