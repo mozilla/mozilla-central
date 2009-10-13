@@ -5780,7 +5780,7 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
     dataBuffer = (char*) PR_CALLOC(COPY_BUFFER_SIZE+1);
     if (!dataBuffer) goto done;
     rv = file->GetFileSize(&fileSize);
-    if (NS_FAILED(rv)) goto done;
+    if (NS_FAILED(rv) || !fileSize) goto done;
     nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(file);
     rv = NS_NewLocalFileInputStream(getter_AddRefs(fileInputStream), localFile);
     if (NS_FAILED(rv) || !fileInputStream) goto done;
