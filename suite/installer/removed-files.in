@@ -152,6 +152,10 @@ xpicleanup
 res/broken-image.gif
 res/loading-image.gif
 #endif
+modules/dbViewWrapper.js
+modules/mailViewManager.js
+modules/quickSearchManager.js
+modules/searchSpec.js
 #ifdef XP_WIN
 extensions/p@m/install.rdf
 extensions/p@m/mozABConduit.dll
