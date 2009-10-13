@@ -21,6 +21,16 @@ defaults/profile/US/
 # {641d8d09-7dda-4850-8228-ac0ab65e2ac9} = DOM Inspector
 extensions/{641d8d09-7dda-4850-8228-ac0ab65e2ac9}/install.rdf
 extensions/{641d8d09-7dda-4850-8228-ac0ab65e2ac9}/
+#ifdef MOZILLA_1_9_1_BRANCH
+greprefs.js
+#elifdef MOZILLA_1_9_2_BRANCH
+greprefs.js
+#else
+greprefs/all.js
+greprefs/security-prefs.js
+greprefs/xpinstall.js
+greprefs/
+#endif
 components/component.reg
 components/compreg.dat
 components/xpti.dat
