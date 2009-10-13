@@ -388,8 +388,8 @@ if test -n "$CROSS_COMPILE" && test "$target" != "$host"; then
         CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk $CFLAGS"
         CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk $CXXFLAGS"
         else
-        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5u.sdk $CFLAGS"
-        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5u.sdk $CXXFLAGS"
+        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk $CFLAGS"
+        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk $CXXFLAGS"
         fi
         ;;
     esac
