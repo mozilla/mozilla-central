@@ -635,7 +635,10 @@
             var orient = selection.isExpanded[0] ? BookmarksUtils.DROP_ON : BookmarksUtils.DROP_AFTER;
             this.mOuter._target = this.mOuter.getTreeTarget(selection.item[0], selection.parent[0], orient);
           }
+          /* XXX Work around bug 519049
           this.mOuter.onCommandUpdate();
+          */
+          setTimeout(function(aOuter) { aOuter.onCommandUpdate(); }, 0, this.mOuter);
           const kStatusBar = document.getAnonymousElementByAttribute(this.mOuter, "anonid", "statusbar-text");
           var displayValue;
           if (kStatusBar && selectionLength == 1) {
