@@ -14,6 +14,8 @@ button {
 
 .playButton {
   background: url(chrome://global/skin/media/pauseButton.png) no-repeat center;
+  margin-right: -22px; /* 1/2 of scrubber thumb width, for overhang. */
+  position: relative; /* Trick to work around negative margin interfering with clicking on the button. */
 }
 
 .playButton[paused="true"] {
@@ -22,6 +24,7 @@ button {
 
 .muteButton {
   background: url(chrome://global/skin/media/muteButton.png) no-repeat center;
+  min-width: 33px;
 }
 .muteButton[muted="true"] {
   background: url(chrome://global/skin/media/unmuteButton.png) no-repeat center;
@@ -29,18 +32,31 @@ button {
 
 .backgroundBar {
   /* make bar 8px tall (control height = 28, minus 2 * 10 margin) */
-  margin: 10px 0px;
+  /* margin left/right: 1/2 of scrubber thumb width, for overhang. */
+  margin: 10px 22px;
   background-color: #C7D0D9;
   -moz-border-radius: 4px;
 }
 
 .bufferBar, .progressBar {
   /* make bar 8px tall (control height = 28, minus 2 * 10 margin) */
-  margin: 10px 0px;
+  /* margin left/right: 1/2 of scrubber thumb width, for overhang. */
+  margin: 10px 22px;
   height: 8px;
   border: none;
   min-width: 0px;
   min-height: 0px;
+}
+
+.volumeStack {
+  width: 28px;
+  height: 70px;
+  background-color: #989EA6;
+  /* use negative margin to place stack over the mute button to its left. */
+  margin: -70px 3px 28px -31px;
+  overflow: hidden; /* crop it when sliding down, don't grow the control bar */
+  position: relative; /* Trick to work around negative margin interfering with dragging the thumb. */
+  padding-top: 6px;
 }
 
 /* .progress-bar is an element inside the <progressmeter> implementation. */
@@ -63,8 +79,12 @@ button {
   min-height: 20px;
 }
 
+.volumeControl {
+  min-height: 64px;
+}
+
 /* .scale-thumb is an element inside the <scale> implementation. */
-.scale-thumb {
+.volumeControl .scale-thumb {
   /* Override the default thumb appearance. */
   background-color: #B1BBC5;
   background-image: none;
@@ -74,6 +94,73 @@ button {
   -moz-border-bottom-colors: #000000;
   -moz-border-left-colors: #000000;
   -moz-border-radius: 5px;
-  min-width: 11px;
-  min-height: 20px;
+  min-height: 11px;
+  min-width: 20px;
+}
+
+.volumeBackgroundBar {
+  /* margin left/right: make bar 8px wide (control width = 28, minus 2 * 10 margin) */
+  margin: 0px 10px;
+  background-color: #B1BBC5;
+  -moz-border-radius: 4px;
+}
+
+.durationBox {
+  -moz-box-pack: center;
+}
+
+.durationLabel {
+  margin-left: -22px; /* 1/2 of scrubber thumb width, for overhang. */
+  padding-left: 8px; /* don't bump into the scrubber bar */
+  padding-top: 0px; /* center vertically with scrubber bar */
+  color: #000000;
+  font: 11px sans-serif;
+}
+
+.scrubber .scale-slider {
+  /* abs(margin-top) + margin-bottom + bar height == timeThumb height */
+  margin-top: -9px;
+  margin-bottom: 15px;
+}
+
+/* .scale-thumb is an element inside the <scale> implementation. */
+.scrubber .scale-thumb {
+  /* Override the default thumb appearance with a custom image. */
+  background: transparent;
+  border: none;
+}
+
+.timeThumb {
+  background: url(chrome://global/skin/media/scrubberThumb.png) no-repeat center;
+  min-width: 48px;
+  min-height: 28px;
+  -moz-box-pack: center;
+}
+
+.timeThumb[showhours="true"] {
+  background: url(chrome://global/skin/media/scrubberThumbWide.png) no-repeat center;
+}
+
+.timeLabel {
+  color: #000000;
+  font: 10px sans-serif;
+  padding-top: 4px;
+}
+
+.statusOverlay {
+  background-color: #000000;
+}
+
+.statusIcon {
+  margin-bottom: 30px; /* same height as .controlBar, to keep icon centered above it */
+  width: 36px;
+  height: 36px;
+}
+
+.statusIcon[type="throbber"] {
+  background: url(chrome://global/skin/media/throbber.png) no-repeat center;
+}
+
+.statusIcon[type="error"] {
+  background: url(chrome://global/skin/media/error.png) no-repeat center;
 }
