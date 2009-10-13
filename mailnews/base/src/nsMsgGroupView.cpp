@@ -331,6 +331,20 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
   nsMsgViewIndex threadInsertIndex; // index of newly added header in thread
 
   nsMsgGroupThread *foundThread = static_cast<nsMsgGroupThread *>(msgThread.get());
+  if (foundThread) 
+  {
+    // find the view index of the root node of the thread in the view
+    viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(foundThread,
+                                                            PR_TRUE);
+    if (viewIndexOfThread == nsMsgViewIndex_None)
+    {
+      // Something is wrong with the group table. Remove the old group and
+      // insert a new one.
+      m_groupsTable.Remove(hashKey);
+      foundThread = nsnull;
+      *pNewThread = newThread = PR_TRUE;
+    }
+  }
   // If the thread does not already exist, create one
   if (!foundThread)
   {
@@ -375,12 +389,6 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
     else
       foundThread->m_threadKey = (nsMsgKey)
         PL_HashString(NS_LossyConvertUTF16toASCII(hashKey).get());
-  }
-  else // find the view index of the root node of the thread in the view
-  {
-    // (indicate that we do want/accept the dummy node)
-    viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(foundThread,
-                                                            PR_TRUE);
   }
   // Add the message to the thread as an actual content-bearing header.
   // (If we use dummy rows, it was already added to the thread during creation.)
