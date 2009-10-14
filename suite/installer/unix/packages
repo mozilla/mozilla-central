@@ -28,15 +28,17 @@ bin/update.locale
 bin/updater.ini
 
 [xpcom]
+bin/components/libjar50.so
 bin/libmozjs.so
+#ifndef MOZ_STATIC_BUILD
+bin/libmozz.so
+#endif
+bin/libnspr4.so
 bin/libplc4.so
 bin/libplds4.so
 bin/libxpcom.so
 bin/libxpcom_core.so
-bin/libnspr4.so
-bin/components/libjar50.so
 #ifndef MOZ_STATIC_BUILD
-bin/libmozz.so
 bin/libxul.so
 #endif
 
@@ -134,6 +136,11 @@ bin/components/commandhandler.xpt
 bin/components/commandlines.xpt
 bin/components/composer.xpt
 bin/components/content_base.xpt
+#ifndef MOZILLA_1_9_1_BRANCH
+#ifndef MOZILLA_1_9_2_BRANCH
+bin/components/content_canvas.xpt
+#endif
+#endif
 bin/components/content_html.xpt
 bin/components/content_htmldoc.xpt
 bin/components/content_xmldoc.xpt
@@ -565,11 +572,11 @@ bin/isp/SpamAssassin.sfd
 bin/isp/SpamPal.sfd
 
 ; Gloda
-bin/modules/gloda/*
 bin/chrome/gloda.jar
 bin/chrome/gloda.manifest
 bin/components/glautocomp.js
 bin/components/jsmimeemitter.js
+bin/modules/gloda/*
 
 [chatzilla]
 bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/chatzilla-service.js

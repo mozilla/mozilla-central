@@ -29,6 +29,7 @@ bin\update.locale
 bin\updater.ini
 
 [xpcom]
+bin\components\jar50.dll
 #ifdef MOZILLA_1_9_1_BRANCH
 bin\js3250.dll
 #elifdef MOZILLA_1_9_2_BRANCH
@@ -36,14 +37,15 @@ bin\js3250.dll
 #else
 bin\mozjs.dll
 #endif
+#ifndef MOZ_STATIC_BUILD
+bin\mozz.dll
+#endif
 bin\nspr4.dll
 bin\plc4.dll
 bin\plds4.dll
 bin\xpcom.dll
 bin\xpcom_core.dll
-bin\components\jar50.dll
 #ifndef MOZ_STATIC_BUILD
-bin\mozz.dll
 bin\xul.dll
 #endif
 #ifndef MOZ_MEMORY
@@ -150,6 +152,11 @@ bin\components\commandhandler.xpt
 bin\components\commandlines.xpt
 bin\components\composer.xpt
 bin\components\content_base.xpt
+#ifndef MOZILLA_1_9_1_BRANCH
+#ifndef MOZILLA_1_9_2_BRANCH
+bin\components\content_canvas.xpt
+#endif
+#endif
 bin\components\content_html.xpt
 bin\components\content_htmldoc.xpt
 bin\components\content_xmldoc.xpt
@@ -569,11 +576,11 @@ bin\isp\SpamAssassin.sfd
 bin\isp\SpamPal.sfd
 
 ; Gloda
-bin\modules\gloda\*
 bin\chrome\gloda.jar
 bin\chrome\gloda.manifest
 bin\components\glautocomp.js
 bin\components\jsmimeemitter.js
+bin\modules\gloda\*
 
 [chatzilla]
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\components\chatzilla-service.js
