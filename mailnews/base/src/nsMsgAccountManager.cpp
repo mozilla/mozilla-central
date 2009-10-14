@@ -2401,7 +2401,7 @@ public:
 
   nsresult Init();
   /**
-   *Posts an event to update the summary totals and commit the db.
+   * Posts an event to update the summary totals and commit the db.
    * We post the event to avoid committing each time we're called
    * in a synchronous loop.
    */
