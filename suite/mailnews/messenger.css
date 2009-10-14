@@ -251,7 +251,8 @@ dummy.usesMailWidgets {
 }
 
 .tabs-alltabs-popup {
-  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-alltabs-popup");
+  /* override toolkit's .menulist-menupopup binding */
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-alltabs-popup") ! important;
 }
 
 /* Wallpaper patch for  Bug 517924 */
