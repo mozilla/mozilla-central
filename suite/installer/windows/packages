@@ -307,8 +307,8 @@ bin\components\NetworkGeolocationProvider.js
 bin\components\nsAboutAbout.js
 bin\components\nsAboutCertError.js
 bin\components\nsAboutFeeds.js
-bin\components\nsAboutSessionRestore.js
 bin\components\nsAboutRights.js
+bin\components\nsAboutSessionRestore.js
 bin\components\nsAddonRepository.js
 bin\components\nsAxSecurityPolicy.js
 bin\components\nsBadCertHandler.js
@@ -319,6 +319,9 @@ bin\components\nsContentDispatchChooser.js
 bin\components\nsContentPrefService.js
 bin\components\nsDefaultCLH.js
 bin\components\nsExtensionManager.js
+#ifndef MOZILLA_1_9_1_BRANCH
+bin\components\nsFormAutoComplete.js
+#endif
 bin\components\nsHandlerService.js
 bin\components\nsHelperAppDlg.js
 bin\components\nsLivemarkService.js

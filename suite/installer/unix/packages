@@ -287,6 +287,9 @@ bin/components/nsContentPrefService.js
 bin/components/nsDefaultCLH.js
 bin/components/nsExtensionManager.js
 bin/components/nsFilePicker.js
+#ifndef MOZILLA_1_9_1_BRANCH
+bin/components/nsFormAutoComplete.js
+#endif
 bin/components/nsHandlerService.js
 bin/components/nsHelperAppDlg.js
 bin/components/nsLivemarkService.js
