@@ -107,7 +107,7 @@ class nsAutoSyncState : public nsIAutoSyncState, public nsIUrlListener
   nsresult SortSubQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue, 
                                     PRUint32 aStartingOffset);
 
-  void LogOwnerFolderName(char *s);
+  void LogOwnerFolderName(const char *s);
   void LogQWithSize(nsTArray<nsMsgKey>& q, PRUint32 toOffset = 0);
   void LogQWithSize(nsIMutableArray *q, PRUint32 toOffset = 0);
 

@@ -1189,29 +1189,25 @@ NS_IMETHODIMP nsAutoSyncManager::OnDownloadQChanged(nsIAutoSyncState *aAutoSyncS
   nsCOMPtr<nsIAutoSyncState> autoSyncStateObj(aAutoSyncStateObj);
   if (!autoSyncStateObj)
     return NS_ERROR_INVALID_ARG;
-  
+
   if (mPaused)
     return NS_OK;
-  // we want to start downloading immediately
-  
-  // unless the folder is excluded
+  // We want to start downloading immediately unless the folder is excluded.
   PRBool excluded = PR_FALSE;
   nsCOMPtr<nsIAutoSyncFolderStrategy> folStrategy;
   nsCOMPtr<nsIMsgFolder> folder;
-  
+
   GetFolderStrategy(getter_AddRefs(folStrategy));
   autoSyncStateObj->GetOwnerFolder(getter_AddRefs(folder));
-        
+
   if (folder && folStrategy)
     folStrategy->IsExcluded(folder, &excluded);
-  
-  // and if the folder is in completed state
-  PRInt32 state;
-  nsresult rv = autoSyncStateObj->GetState(&state);
-  if (NS_SUCCEEDED(rv) && nsAutoSyncState::stCompletedIdle == state && !excluded)
+
+  nsresult rv = NS_OK;
+
+  if (!excluded)
   {
-    // add this folder into the priority queue - if state == stCompletedIdle shouldn't be
-    // in the priority queue
+    // Add this folder into the priority queue.
     autoSyncStateObj->SetState(nsAutoSyncState::stReadyToDownload);
     ScheduleFolderForOfflineDownload(autoSyncStateObj);
     

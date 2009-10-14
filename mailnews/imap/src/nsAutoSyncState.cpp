@@ -388,14 +388,14 @@ NS_IMETHODIMP nsAutoSyncState::ProcessExistingHeaders(PRUint32 aNumOfHdrsToProce
         msgKeys.AppendElement(mExistingHeadersQ[mProcessPointer]);
     }
   }
-  nsCString folderName;
-  folder->GetURI(folderName);
-  PR_LOG(gAutoSyncLog, PR_LOG_DEBUG,
-        ("%d messages will be added into the download q of folder %s\n",
-          msgKeys.Length(), folderName.get()));
-
   if (!msgKeys.IsEmpty())
   {
+    nsCString folderName;
+    folder->GetURI(folderName);
+    PR_LOG(gAutoSyncLog, PR_LOG_DEBUG,
+          ("%d messages will be added into the download q of folder %s\n",
+            msgKeys.Length(), folderName.get()));
+
     rv = PlaceIntoDownloadQ(msgKeys);
     if (NS_FAILED(rv))
       mProcessPointer = lastIdx;
@@ -469,14 +469,14 @@ NS_IMETHODIMP nsAutoSyncState::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCode
              ("serverTotal = %lx lastServerTotal = %lx serverRecent = %lx lastServerRecent = %lx\n",
               serverTotal, mLastServerTotal, serverRecent, mLastServerRecent));
 
-      mSyncState = nsAutoSyncState::stUpdateIssued;
+      SetState(nsAutoSyncState::stUpdateIssued);
       return imapFolder->UpdateFolderWithListener(nsnull, autoSyncMgrListener);
     }
     else
     {
       ownerFolder->SetMsgDatabase(nsnull);
       // nothing more to do.
-      mSyncState = nsAutoSyncState::stCompletedIdle;
+      SetState(nsAutoSyncState::stCompletedIdle);
       // autoSyncMgr needs this notification, so manufacture it.
       return autoSyncMgrListener->OnStopRunningUrl(nsnull, NS_OK);
     }
@@ -499,13 +499,15 @@ NS_IMETHODIMP nsAutoSyncState::GetState(PRInt32 *aState)
   return NS_OK;
 }
 
+const char *stateStrings[] = {"idle", "status issued", "update issued", "downloading",
+                            "ready to download"};
+
 NS_IMETHODIMP nsAutoSyncState::SetState(PRInt32 aState)
 {
   mSyncState = aState;
   if (aState == stCompletedIdle)
   {
     ResetDownloadQ();
-    
     //tell folder to let go of its cached msg db pointer
     nsresult rv;
     nsCOMPtr<nsIMsgMailSession> session =
@@ -523,6 +525,10 @@ NS_IMETHODIMP nsAutoSyncState::SetState(PRInt32 aState)
         ownerFolder->SetMsgDatabase(nsnull);
     }
   }
+  nsCString logStr("Sync State set to ");
+  logStr.Append(stateStrings[aState]);
+  logStr.Append(" for ");
+  LogOwnerFolderName(logStr.get());
   return NS_OK;
 }
 
@@ -757,7 +763,7 @@ void nsAutoSyncState::LogQWithSize(nsIMutableArray *q, PRUint32 toOffset)
   }
 }
 
-void nsAutoSyncState::LogOwnerFolderName(char *s)
+void nsAutoSyncState::LogOwnerFolderName(const char *s)
 {
   nsCOMPtr <nsIMsgFolder> ownerFolder = do_QueryReferent(mOwnerFolder);
   if (ownerFolder)
