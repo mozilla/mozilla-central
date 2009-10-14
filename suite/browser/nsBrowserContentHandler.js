@@ -153,11 +153,12 @@ function getURLToLoad()
 {
   var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                         .getService(nsIPrefBranch);
+  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                            .getService(Components.interfaces.nsIURLFormatter);
 
   if (needHomePageOverride(prefs)) {
     try {
-      return prefs.getComplexValue("startup.homepage_override_url",
-                                   nsIPrefLocalizedString).data;
+      return formatter.formatURLPref("startup.homepage_override_url");
     } catch (e) {
     }
   }
