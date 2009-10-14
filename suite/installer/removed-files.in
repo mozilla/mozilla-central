@@ -131,7 +131,6 @@ greprefs/
 modules/JSON.jsm
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 @DLL_PREFIX@mozlcms@DLL_SUFFIX@
-res/cmessage.txt
 LICENSE
 #ifdef XP_WIN
 #ifdef MOZ_MEMORY
@@ -155,7 +154,18 @@ xpicleanup
 #endif
 #ifndef MOZILLA_1_9_1_BRANCH
 res/broken-image.gif
+#ifndef MOZILLA_1_9_2_BRANCH
+res/charsetalias.properties
+res/charsetData.properties
+#endif
+#endif
+res/cmessage.txt
+#ifndef MOZILLA_1_9_1_BRANCH
 res/loading-image.gif
+#ifndef MOZILLA_1_9_2_BRANCH
+res/unixcharset.properties
+res/wincharset.properties
+#endif
 #endif
 modules/dbViewWrapper.js
 modules/mailViewManager.js
