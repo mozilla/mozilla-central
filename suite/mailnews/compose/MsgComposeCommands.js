@@ -218,7 +218,7 @@ var gComposeRecyclingListener = {
     awGetInputElement(1).removeAttribute('focused');
 
     //Reset Boxes size
-    document.getElementById("headers-box").removeAttribute("height");
+    document.getElementById("compose-toolbox").removeAttribute("height");
     document.getElementById("appcontent").removeAttribute("height");
     document.getElementById("addresses-box").removeAttribute("width");
     document.getElementById("attachments-box").removeAttribute("width");
