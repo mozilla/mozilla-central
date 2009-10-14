@@ -488,7 +488,7 @@ Section "-Application" APP_IDX
     ${LogMsg} "Added Shortcut: $SMPROGRAMS\$StartMenuDir\${BrandFullName}.lnk"
     CreateShortCut "$SMPROGRAMS\$StartMenuDir\${BrandFullName} ($(SAFE_MODE)).lnk" "$INSTDIR\${FileMainEXE}" "-safe-mode" "$INSTDIR\${FileMainEXE}" 0
     ${LogMsg} "Added Shortcut: $SMPROGRAMS\$StartMenuDir\${BrandFullName} ($(SAFE_MODE)).lnk"
-    CreateShortCut "$SMPROGRAMS\$StartMenuDir\${BrandFullName} $(MAILNEWS_TEXT).lnk" "$INSTDIR\${FileMainEXE}" "-mail" "$INSTDIR\${FileMainEXE}" 0
+    CreateShortCut "$SMPROGRAMS\$StartMenuDir\${BrandFullName} $(MAILNEWS_TEXT).lnk" "$INSTDIR\${FileMainEXE}" "-mail" "$INSTDIR\chrome\icons\default\messengerWindow.ico" 0
     ${LogMsg} "Added Shortcut: $SMPROGRAMS\$StartMenuDir\${BrandFullName} $(MAILNEWS_TEXT).lnk"
     CreateShortCut "$SMPROGRAMS\$StartMenuDir\$(PROFILE_TEXT).lnk" "$INSTDIR\${FileMainEXE}" "-profileManager" "$INSTDIR\${FileMainEXE}" 0
     ${LogMsg} "Added Shortcut: $SMPROGRAMS\$StartMenuDir\$(PROFILE_TEXT).lnk"
