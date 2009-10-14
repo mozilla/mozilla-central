@@ -216,7 +216,7 @@ CountTotalMimeAttachments(MimeContainer *aObj)
   if ( (!aObj) || (!aObj->children) || (aObj->nchildren <= 0) )
     return 0;
 
-  if (mime_typep((MimeObject *)aObj, (MimeObjectClass *)&mimeExternalBodyClass))
+  if (!mime_typep(((MimeObject *) aObj), (MimeObjectClass*) &mimeContainerClass))
     return 0;
 
   for (i=0; i<aObj->nchildren; i++)
