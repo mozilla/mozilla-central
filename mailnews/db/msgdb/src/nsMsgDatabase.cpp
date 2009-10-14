@@ -1455,22 +1455,23 @@ nsresult nsMsgDatabase::GetTableCreateIfMissing(const char *scope, const char *k
 {
   struct mdbOid tableOID;
 
-  mdb_err err  = GetStore()->StringToToken(GetEnv(), scope, &scopeToken);
-  err = GetStore()->StringToToken(GetEnv(), kind, &kindToken);
+  if (!m_mdbStore)
+    return NS_ERROR_FAILURE;
+  (void) m_mdbStore->StringToToken(GetEnv(), scope, &scopeToken);
+  (void) m_mdbStore->StringToToken(GetEnv(), kind, &kindToken);
   tableOID.mOid_Scope = scopeToken;
   tableOID.mOid_Id = 1;
 
-  nsresult rv = GetStore()->GetTable(GetEnv(), &tableOID, table);
+  nsresult rv = m_mdbStore->GetTable(GetEnv(), &tableOID, table);
   if (rv != NS_OK)
     rv = NS_ERROR_FAILURE;
 
   // create new all all offline ops table, if it doesn't exist.
   if (NS_SUCCEEDED(rv) && !*table)
   {
-    nsIMdbStore *store = GetStore();
-    err = (nsresult) store->NewTable(GetEnv(), scopeToken,kindToken,
-                                    PR_FALSE, nsnull, table);
-    if (err != NS_OK || !*table)
+    rv = m_mdbStore->NewTable(GetEnv(), scopeToken,kindToken,
+                                          PR_FALSE, nsnull, table);
+    if (rv != NS_OK || !*table)
       rv = NS_ERROR_FAILURE;
   }
   NS_ASSERTION(NS_SUCCEEDED(rv), "couldn't create offline ops table");
