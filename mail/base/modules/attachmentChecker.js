@@ -38,6 +38,37 @@
 const EXPORTED_SYMBOLS = ["GetAttachmentKeywords"];
 
 /**
+ * Check current word has CJK character or not.
+ *
+ * @return true if it has CJK character.
+ */
+function IsCJKWord(aWord)
+{
+  var code;
+
+  for (var i = 0; i < aWord.length; i++)
+  {
+    code = aWord.charCodeAt(i);
+    if (code >= 0x2000 && code <= 0x9fff)
+    {
+      // Hiragana, Katakana and Kanaji
+      return true;
+    }
+    else if (code >= 0xac00 && code <= 0xd7ff)
+    {
+      // Hangul
+      return true;
+    }
+    else if (code >= 0xf900 && code <= 0xffff)
+    {
+      // Hiragana, Katakana and Kanaji
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Get the (possibly-empty) list of attachment keywords in this message.
  *
  * @return the (possibly-empty) list of attachment keywords in this message
@@ -59,7 +90,17 @@ function GetAttachmentKeywords(mailData,keywordsInCsv)
   var keywordsFound = [];
   for (var i = 0; i < keywordsArray.length; i++) {
     var kw = escapeRegxpSpecials(keywordsArray[i]);
-    var re = new RegExp("(([^\\s]*)\\b|\\s*)" + kw + "\\b", "i");
+    var re;
+    if (IsCJKWord(kw))
+    {
+      // CJK doesn't detect space and \b as word break, so we need
+      // special rule for CJK.
+      re = new RegExp("(([^\\s]*)\\b|\\s*)" + kw, "i");
+    }
+    else
+    {
+      re = new RegExp("(([^\\s]*)\\b|\\s*)" + kw + "\\b", "i");
+    }
     var matching = re.exec(mailData);
     // Ignore the match if it was a URL.
     if (matching && !(/^http|^ftp/i.test(matching[0])))
