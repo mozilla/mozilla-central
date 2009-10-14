@@ -98,6 +98,7 @@
 #include "nsIStringBundle.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgFilterList.h"
+#include "nsAutoPtr.h"
 
 #define PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS "mail.accountmanager.accounts"
 #define PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT "mail.accountmanager.defaultaccount"
@@ -2399,17 +2400,48 @@ public:
   NS_DECL_NSIDBCHANGELISTENER
 
   nsresult Init();
+  /**
+   *Posts an event to update the summary totals and commit the db.
+   * We post the event to avoid committing each time we're called
+   * in a synchronous loop.
+   */
+  nsresult PostUpdateEvent(nsIMsgFolder *folder, nsIMsgDatabase *db);
+  /// Handles event posted to event queue to batch notifications.
+  void ProcessUpdateEvent(nsIMsgFolder *folder, nsIMsgDatabase *db);
 
   nsCOMPtr <nsIMsgFolder> m_virtualFolder; // folder we're listening to db changes on behalf of.
   nsCOMPtr <nsIMsgFolder> m_folderWatching; // folder whose db we're listening to.
   nsCOMPtr <nsISupportsArray> m_searchTerms;
   nsCOMPtr <nsIMsgSearchSession> m_searchSession;
   PRBool m_searchOnMsgStatus;
+  PRBool m_batchingEvents;
+};
+
+class VFChangeListenerEvent : public nsRunnable
+{
+public:
+  VFChangeListenerEvent(VirtualFolderChangeListener *vfChangeListener,
+                        nsIMsgFolder *virtFolder, nsIMsgDatabase *virtDB)
+    : mVFChangeListener(vfChangeListener), mFolder(virtFolder), mDB(virtDB)
+  {}
+
+  NS_IMETHOD Run()
+  {
+    if (mVFChangeListener)
+      mVFChangeListener->ProcessUpdateEvent(mFolder, mDB);
+    return NS_OK;
+  }
+
+private:
+  nsRefPtr<VirtualFolderChangeListener> mVFChangeListener;
+  nsCOMPtr<nsIMsgFolder> mFolder;
+  nsCOMPtr<nsIMsgDatabase> mDB;
 };
 
 NS_IMPL_ISUPPORTS1(VirtualFolderChangeListener, nsIDBChangeListener)
 
-VirtualFolderChangeListener::VirtualFolderChangeListener() : m_searchOnMsgStatus(PR_FALSE)
+VirtualFolderChangeListener::VirtualFolderChangeListener() :
+  m_searchOnMsgStatus(PR_FALSE), m_batchingEvents(PR_FALSE)
 {}
 
 nsresult VirtualFolderChangeListener::Init()
@@ -2548,8 +2580,7 @@ VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBo
     msgDB->UpdateHdrInCache(searchUri.get(), aHdrChanged, totalDelta == 1);
   }
 
-  m_virtualFolder->UpdateSummaryTotals(PR_TRUE); // force update from db.
-  virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+    PostUpdateEvent(m_virtualFolder, virtDatabase);
 
   return NS_OK;
 }
@@ -2628,8 +2659,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrCh
       msgDB->UpdateHdrInCache(searchUri.get(), aHdrChanged, totalDelta == 1);
     }
 
-    m_virtualFolder->UpdateSummaryTotals(PR_TRUE); // force update from db.
-    virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+    PostUpdateEvent(m_virtualFolder, virtDatabase);
   }
   return rv;
 }
@@ -2675,8 +2705,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
     m_virtualFolder->GetURI(searchUri);
     msgDB->UpdateHdrInCache(searchUri.get(), aHdrDeleted, PR_FALSE);
 
-    m_virtualFolder->UpdateSummaryTotals(PR_TRUE); // force update from db.
-    virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+    PostUpdateEvent(m_virtualFolder, virtDatabase);
   }
   return rv;
 }
@@ -2718,8 +2747,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrAdded(nsIMsgDBHdr *aNewHdr, nsMs
     m_virtualFolder->GetURI(searchUri);
     msgDB->UpdateHdrInCache(searchUri.get(), aNewHdr, PR_TRUE);
     dbFolderInfo->ChangeNumMessages(1);
-    m_virtualFolder->UpdateSummaryTotals(true); // force update from db.
-    virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+    PostUpdateEvent(m_virtualFolder, virtDatabase);
   }
   return rv;
 }
@@ -2752,6 +2780,25 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnReadChanged(nsIDBChangeListener *aI
 NS_IMETHODIMP VirtualFolderChangeListener::OnJunkScoreChanged(nsIDBChangeListener *aInstigator)
 {
   return NS_OK;
+}
+
+nsresult VirtualFolderChangeListener::PostUpdateEvent(nsIMsgFolder *virtualFolder,
+                                                  nsIMsgDatabase *virtDatabase)
+{
+  if (m_batchingEvents)
+    return NS_OK;
+  m_batchingEvents = PR_TRUE;
+  nsCOMPtr<nsIRunnable> event = new VFChangeListenerEvent(this, virtualFolder,
+                                                          virtDatabase);
+  return NS_DispatchToCurrentThread(event);
+}
+
+void VirtualFolderChangeListener::ProcessUpdateEvent(nsIMsgFolder *virtFolder,
+                                                     nsIMsgDatabase *virtDB)
+{
+  m_batchingEvents = PR_FALSE;
+  virtFolder->UpdateSummaryTotals(true); // force update from db.
+  virtDB->Commit(nsMsgDBCommitType::kLargeCommit);
 }
 
 nsresult nsMsgAccountManager::GetVirtualFoldersFile(nsCOMPtr<nsILocalFile>& file)

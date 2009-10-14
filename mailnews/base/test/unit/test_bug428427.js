@@ -182,6 +182,7 @@ function testVirtualFolder()
   var message0 = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   message0.appendElement(hdrs[0], false);
   gLocalInboxFolder.markMessagesRead(message0, true);
+  virtualFolder.updateSummaryTotals(true);
 
   do_check_eq(2, virtualFolder.getNumUnread(false));
   
@@ -192,6 +193,7 @@ function testVirtualFolder()
   message1.appendElement(hdrs[1], false);
 
   gLocalInboxFolder.removeKeywordsFromMessages(message1, tag1);
+  virtualFolder.updateSummaryTotals(true);
   do_check_eq(3, virtualFolder.getTotalMessages(false));
   do_check_eq(1, virtualFolder.getNumUnread(false));
 
