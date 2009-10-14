@@ -98,10 +98,12 @@ components/walleteditor.xpt
 components/walletpreview.xpt
 components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
 #ifdef XP_WIN
-#ifndef MOZILLA_1_9_1_BRANCH
-components/xpinstal.dll
-#else
+#ifdef MOZILLA_1_9_2_BRANCH
 components/xpinstall.dll
+#elifdef MOZILLA_1_9_1_BRANCH
+components/xpinstall.dll
+#else
+components/xpinstal.dll
 #endif
 #endif
 components/winhooks.xpt
@@ -252,6 +254,7 @@ components/xpautoc.dll
 components/xpc3250.dll
 components/xppref32.dll
 #endif
+; MOZ_STATIC_BUILD
 #endif
 #ifdef XP_WIN
 #ifdef MOZILLA_1_9_1_BRANCH

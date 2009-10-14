@@ -110,6 +110,7 @@ bin/components/libwindowds.so
 bin/components/libxpautocomplete.so
 bin/components/libxpconnect.so
 bin/components/libzipwriter.so
+; ! MOZ_STATIC_BUILD
 #endif
 bin/components/libdbusservice.so
 bin/components/libimgicon.so
@@ -118,6 +119,7 @@ bin/components/libmozgnome.so
 bin/components/libnkgnomevfs.so
 bin/components/libsuite.so
 bin/components/libxpinstall.so
+
 ; component xpts
 bin/components/accessibility.xpt
 bin/components/alerts.xpt
@@ -222,8 +224,8 @@ bin/components/proxyObjInst.xpt
 bin/components/rdf.xpt
 bin/components/satchel.xpt
 bin/components/saxparser.xpt
-bin/components/shistory.xpt
 bin/components/shellservice.xpt
+bin/components/shistory.xpt
 bin/components/smile.xpt
 bin/components/spellchecker.xpt
 bin/components/storage.xpt
@@ -494,6 +496,7 @@ bin/components/libimport.so
 bin/components/libmail.so
 bin/components/libmsgsmime.so
 #endif
+
 ; component xpts
 bin/components/addrbook.xpt
 bin/components/import.xpt
@@ -508,6 +511,7 @@ bin/components/msglocal.xpt
 bin/components/msgnews.xpt
 bin/components/msgsearch.xpt
 bin/components/msgsmime.xpt
+
 ; JS components
 bin/components/mdn-service.js
 bin/components/newsblog.js

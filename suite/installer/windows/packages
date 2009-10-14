@@ -123,13 +123,18 @@ bin\components\xpautoc.dll
 bin\components\xpc3250.dll
 bin\components\xppref32.dll
 bin\components\zipwriter.dll
+; ! MOZ_STATIC_BUILD
 #endif
+bin\components\jsd3250.dll
 bin\components\suite.dll
 #ifdef MOZILLA_1_9_1_BRANCH
+bin\components\xpinstal.dll
+#elifdef MOZILLA_1_9_2_BRANCH
 bin\components\xpinstal.dll
 #else
 bin\components\xpinstall.dll
 #endif
+
 ; component xpts
 bin\components\accessibility.xpt
 bin\components\accessibility-msaa.xpt
@@ -154,6 +159,8 @@ bin\components\contentprefs.xpt
 bin\components\cookie.xpt
 bin\components\directory.xpt
 #ifdef MOZILLA_1_9_1_BRANCH
+bin\components\docshell_base.xpt
+#elifdef MOZILLA_1_9_2_BRANCH
 bin\components\docshell_base.xpt
 #else
 bin\components\docshell.xpt
@@ -199,7 +206,6 @@ bin\components\imglib2.xpt
 bin\components\inspector.xpt
 bin\components\intl.xpt
 bin\components\jar.xpt
-bin\components\jsd3250.dll
 bin\components\jsdservice.xpt
 bin\components\layout_base.xpt
 bin\components\layout_printing.xpt
@@ -237,6 +243,8 @@ bin\components\prefetch.xpt
 bin\components\profile.xpt
 #ifdef MOZILLA_1_9_1_BRANCH
 bin\components\proxyObject.xpt
+#elifdef MOZILLA_1_9_2_BRANCH
+bin\components\proxyObject.xpt
 #else
 bin\components\proxyObjInst.xpt
 #endif
@@ -273,6 +281,8 @@ bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt
 bin\components\xpcom_system.xpt
 #ifdef MOZILLA_1_9_1_BRANCH
+bin\components\xpcom_thread.xpt
+#elifdef MOZILLA_1_9_2_BRANCH
 bin\components\xpcom_thread.xpt
 #else
 bin\components\xpcom_threads.xpt
@@ -496,6 +506,7 @@ bin\components\mail.dll
 bin\components\msgMapi.dll
 bin\components\msgsmime.dll
 #endif
+
 ; component xpts
 bin\components\addrbook.xpt
 bin\components\import.xpt
@@ -511,6 +522,7 @@ bin\components\msglocal.xpt
 bin\components\msgnews.xpt
 bin\components\msgsearch.xpt
 bin\components\msgsmime.xpt
+
 ; JS components
 bin\components\mdn-service.js
 bin\components\newsblog.js
