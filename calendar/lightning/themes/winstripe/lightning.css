@@ -93,21 +93,21 @@ radio[pane=paneLightning] {
 }
 
 /* ::: tab icons ::: */
-.tabmail-tab[type="calendar"] .tab-icon-image {
+.tabmail-tab[type="calendar"] {
     list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
     -moz-image-region: rect(0px 64px 16px 48px);
 }
 
-.tabmail-tab[type="calendar"][selected="true"] .tab-icon-image {
+.tabmail-tab[type="calendar"][selected="true"] {
     -moz-image-region: rect(16px 64px 32px 48px);
 }
 
-.tabmail-tab[type="tasks"] .tab-icon-image {
+.tabmail-tab[type="tasks"] {
     list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
     -moz-image-region: rect(0px 80px 16px 64px);
 }
 
-.tabmail-tab[type="tasks"][selected="true"] .tab-icon-image {
+.tabmail-tab[type="tasks"][selected="true"] {
     -moz-image-region: rect(16px 80px 32px 64px);
 }
 

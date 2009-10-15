@@ -54,15 +54,18 @@
 .tab-icon-image {
   width: 16px;
   height: 16px;
-  list-style-image: url("chrome://global/skin/tree/item.png");
   margin-top: 2px;
 }
 
-.tabmail-tab[busy] > .tab-image-middle > .tab-icon-image {
+.tabmail-tab {
+  list-style-image: url("chrome://global/skin/tree/item.png");
+}
+
+.tabmail-tab[busy] {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
 }
 
-.tabmail-tab[thinking] > .tab-image-middle > .tab-icon-image {
+.tabmail-tab[thinking] {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
 }
 
@@ -70,7 +73,7 @@
   opacity: .6;
 }
 
-.tabmail-tab[type="glodaSearch"] > .tab-image-middle > .tab-icon-image {
+.tabmail-tab[type="glodaSearch"] {
   list-style-image: url("chrome://global/skin/icons/Search-glass.png");
 }
 
@@ -329,7 +332,7 @@ tabmail > tabbox > tabpanels {
  * All Tabs Menupopup 
  */
 
-.alltabs-item > .menu-iconic-left > .menu-iconic-icon {
+.alltabs-item {
   list-style-image: url("chrome://global/skin/tree/item.png");
 }
 
@@ -337,7 +340,7 @@ tabmail > tabbox > tabpanels {
   font-weight: bold;
 }
 
-.alltabs-item[busy] > .menu-iconic-left > .menu-iconic-icon {
+.alltabs-item[busy] {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
 }
 

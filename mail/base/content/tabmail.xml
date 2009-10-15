@@ -1119,7 +1119,8 @@
       <xul:hbox class="tab-image-left" xbl:inherits="selected"/>
       <xul:hbox class="tab-image-middle box-inherit" align="center"
                 xbl:inherits="dir,pack,orient,selected" flex="1">
-        <xul:image class="tab-icon-image" xbl:inherits="validate,src=image"/>
+        <xul:image class="tab-icon-image"
+                   xbl:inherits="validate,src=image,src"/>
         <xul:label class="tab-text"
                   xbl:inherits="value=label,accesskey,crop,disabled"
                   crop="right" flex="1"/>
@@ -1629,12 +1630,17 @@
               case "label":
               case "crop":
               case "busy":
-              case "image":
               case "selected":
                 if (aEvent.attrChange == aEvent.REMOVAL)
                   menuItem.removeAttribute(attrName);
                 else
                   menuItem.setAttribute(attrName, aEvent.newValue);
+            }
+            if (attrName == "busy") {
+              // With busy status changes the tab icon
+              let style = window.getComputedStyle(aEvent.target, null);
+              menuItem.style.listStyleImage = style.listStyleImage;
+              menuItem.style.MozImageRegion = style.MozImageRegion;
             }
           }
         ]]></body>
@@ -1705,7 +1711,11 @@
 
           menuItem.setAttribute("label", aTab.label);
           menuItem.setAttribute("crop", aTab.getAttribute("crop"));
-          menuItem.setAttribute("image", aTab.getAttribute("image"));
+
+          // Get the tabicon and set it here
+          let style = window.getComputedStyle(aTab, null);
+          menuItem.style.listStyleImage = style.listStyleImage;
+          menuItem.style.MozImageRegion = style.MozImageRegion;
 
           if (aTab.hasAttribute("busy"))
             menuItem.setAttribute("busy", aTab.getAttribute("busy"));

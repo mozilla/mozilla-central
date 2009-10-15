@@ -78,19 +78,24 @@ tabpanels {
   height: 16px;
   -moz-margin-start: 4px;
   -moz-margin-end: 3px;
+}
+
+.tabmail-tab {
   list-style-image: url("chrome://global/skin/icons/folder-item.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
 
-.tabmail-tab[busy] > .tab-image-middle > .tab-icon-image {
+.tabmail-tab[busy] {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+  -moz-image-region: auto !important;
 }
 
-.tabmail-tab[thinking] > .tab-image-middle > .tab-icon-image {
+.tabmail-tab[thinking] {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+  -moz-image-region: auto !important;
 }
 
-.tabmail-tab[type="glodaSearch"] > .tab-image-middle > .tab-icon-image {
+.tabmail-tab[type="glodaSearch"] {
   list-style-image: url(moz-icon://stock/gtk-find?size=menu);
 }
 
@@ -120,6 +125,7 @@ tabpanels {
   padding: 0px;
   border: none;
   list-style-image: url("moz-icon://stock/gtk-close?size=menu");
+  -moz-image-region: auto;
 }
 
 .tab-close-button:focus {
@@ -163,7 +169,7 @@ tabpanels {
 }
 
 /* All tabs menupopup */
-.alltabs-item > .menu-iconic-left > .menu-iconic-icon {
+.alltabs-item {
   list-style-image: url("chrome://global/skin/icons/folder-item.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
@@ -172,8 +178,9 @@ tabpanels {
   font-weight: bold;
 }
 
-.alltabs-item[busy] > .menu-iconic-left > .menu-iconic-icon {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+.alltabs-item[busy] {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+  -moz-image-region: auto !important;
 }
 
 .tabs-alltabs-button {
@@ -186,4 +193,8 @@ tabpanels {
 
 .tabs-alltabs-button > .toolbarbutton-icon {
   display: none;
+}
+
+.alltabs-item > .menu-iconic-left {
+  visibility: visible !important;
 }
