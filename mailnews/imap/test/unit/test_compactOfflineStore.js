@@ -98,7 +98,7 @@ const gTestArray =
   },
   function testPendingRemoval() {
     let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId2);
-    gMsgImapInboxFolder.markPendingRemoval(msgHdr);
+    gMsgImapInboxFolder.markPendingRemoval(msgHdr, true);
     gImapInboxOfflineStoreSize = gIMAPInbox.filePath.fileSize;
     gRootFolder.compactAll(UrlListener, null, true);
   },
@@ -192,7 +192,7 @@ function doTest(test)
       do_throw('Notifications not received in 10000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
     try {
     testFn();
-    } catch(ex) {dump(ex);}
+    } catch(ex) {do_throw(ex);}
   }
   else
   {
