@@ -791,7 +791,7 @@ nsNntpService::FindServerWithNewsgroup(nsCString &host, nsCString &groupName)
   if (serverInfo.server)
   {
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(serverInfo.server);
-    rv = server->GetRealHostName(host);
+    rv = server->GetHostName(host);
   }
 
   return rv;
@@ -823,7 +823,7 @@ nsNntpService::SetUpNntpUrlForPosting(const char *aAccountKey, char **newsUrlSpe
   rv = GetNntpServerByAccount(aAccountKey, getter_AddRefs(nntpServer));
   if (NS_SUCCEEDED(rv) && nntpServer)
   {
-    nntpServer->GetRealHostName(host);
+    nntpServer->GetHostName(host);
     nntpServer->GetPort(&port);
   }
 
