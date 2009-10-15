@@ -3410,6 +3410,7 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
                                               PRUint32 sourceOffset, PRUint32 aLength)
 {
   PRInt32 status = 0;
+  PRBool urlStatusSet = PR_FALSE;
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_url);
 
   PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS, ("Entering NET_ProcessPop3 %d",
@@ -3730,9 +3731,8 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
 
     case POP3_DONE:
       CommitState(PR_FALSE);
-
-      if (mailnewsurl)
-        mailnewsurl->SetUrlState(PR_FALSE, NS_OK);
+      m_pop3ConData->urlStatus = NS_OK;
+      urlStatusSet = PR_TRUE;
       m_pop3ConData->next_state = POP3_FREE;
       break;
 
@@ -3778,8 +3778,8 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
         /* Else we got a "real" error, so finish up. */
         m_pop3ConData->next_state = POP3_FREE;
 
-      if (mailnewsurl)
-        mailnewsurl->SetUrlState(PR_FALSE, NS_ERROR_FAILURE);
+      m_pop3ConData->urlStatus = NS_ERROR_FAILURE;
+      urlStatusSet = PR_TRUE;
       m_pop3ConData->pause_for_read = PR_FALSE;
       break;
 
@@ -3793,6 +3793,8 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
           server->SetServerBusy(PR_FALSE); // the server is now not busy
       }
       m_pop3Server->SetRunningProtocol(nsnull);
+      if (mailnewsurl && urlStatusSet)
+        mailnewsurl->SetUrlState(PR_FALSE, m_pop3ConData->urlStatus);
 
       CloseSocket();
       return NS_OK;

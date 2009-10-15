@@ -255,6 +255,7 @@ typedef struct _Pop3ConData {
     PRBool dot_fix;
     PRBool assumed_end;
     PRInt32 logonFailureCount;
+    nsresult urlStatus;
 } Pop3ConData;
 
 // State Flags (Note, I use the word state in terms of storing
