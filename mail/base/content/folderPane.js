@@ -1680,6 +1680,12 @@ let gFolderTreeController = {
         folder.throwAlertMsg("operationFailedFolderBusy", msgWindow);
         return;
       }
+      if (folder.supportsOffline) {
+        // Remove the offline store, if any.
+        let offlineStore = folder.filePath;
+        if (offlineStore.exists())
+          offlineStore.remove(false);
+      }
       folder.msgDatabase.summaryValid = false;
 
       var msgDB = folder.msgDatabase;
