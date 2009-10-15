@@ -1408,8 +1408,10 @@ BatchMessageMover.prototype = {
         msgs.forEach(function (item) {
           mutablearray.appendElement(item, false);
         });
+        // If the source folder doesn't support deleting messages, we
+        // make archive a copy, not a move.
         gCopyService.CopyMessages(srcFolder, mutablearray,
-                                  dstFolder, true, this, msgWindow, true);
+                                  dstFolder, srcFolder.canDeleteMessages, this, msgWindow, true);
         this._currentKey = key;
         break; // only do one.
       }
