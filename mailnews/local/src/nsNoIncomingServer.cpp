@@ -88,18 +88,16 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
       do_QueryInterface(rootFolder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  // None server may have an inbox if it's deferred to,
+  // or if it's the smart mailboxes account.
   PRUint32 mailboxFlags = nsMsgFolderFlags::SentMail |
                           nsMsgFolderFlags::Archive |
                           nsMsgFolderFlags::Drafts |
                           nsMsgFolderFlags::Templates |
                           nsMsgFolderFlags::Trash |
                           nsMsgFolderFlags::Junk |
+                          nsMsgFolderFlags::Inbox |
                           nsMsgFolderFlags::Queue;
-
-  // "none" may have a inbox if it is getting deferred to.
-  PRBool isDeferredTo;
-  if (NS_SUCCEEDED(GetIsDeferredTo(&isDeferredTo)) && isDeferredTo)
-    mailboxFlags |= nsMsgFolderFlags::Inbox;
 
   localFolder->SetFlagsOnDefaultMailboxes(mailboxFlags);
 
