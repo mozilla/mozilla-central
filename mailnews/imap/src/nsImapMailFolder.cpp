@@ -128,6 +128,7 @@
 #include "nsIMsgFilterCustomAction.h"
 #include "nsMsgReadStateTxn.h"
 #include "nsIStringEnumerator.h"
+#include "nsStringEnumerator.h"
 #include "nsIMsgStatusFeedback.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -6078,6 +6079,40 @@ PRBool nsMsgIMAPFolderACL::SetFolderRightsForUser(const nsACString& userName, co
     UpdateACLCache();
 
   return ret;
+}
+
+static PLDHashOperator fillArrayWithKeys(const nsACString& key,
+        const nsCString data, void* userArg)
+{
+  nsCStringArray* array = static_cast<nsCStringArray*>(userArg);
+  array->AppendCString(key);
+  return PL_DHASH_NEXT;
+}
+
+NS_IMETHODIMP nsImapMailFolder::GetOtherUsersWithAccess(
+        nsIUTF8StringEnumerator** aResult)
+{
+  return GetFolderACL()->GetOtherUsers(aResult);
+}
+
+nsresult nsMsgIMAPFolderACL::GetOtherUsers(nsIUTF8StringEnumerator** aResult)
+{
+  nsCStringArray *resultArray = new nsCStringArray;
+  m_rightsHash.EnumerateRead(fillArrayWithKeys, resultArray);
+
+  // enumerator will free resultArray
+  NS_NewAdoptingUTF8StringEnumerator(aResult, resultArray);
+  return NS_OK;
+}
+
+nsresult nsImapMailFolder::GetPermissionsForUser(const nsACString& otherUser,
+        nsACString& aResult)
+{
+  nsCString str;
+  nsresult rv = GetFolderACL()->GetRightsStringForUser(otherUser, str);
+  NS_ENSURE_SUCCESS(rv, rv);
+  aResult = str;
+  return NS_OK;
 }
 
 nsresult nsMsgIMAPFolderACL::GetRightsStringForUser(const nsACString& inUserName, nsCString &rights)

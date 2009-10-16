@@ -38,6 +38,7 @@
 
 #include "nsISupports.idl"
 #include "nsIMsgFolder.idl"
+#include "nsIStringEnumerator.idl"
 
 interface nsIMsgWindow;
 interface nsIImapIncomingServer;
@@ -78,7 +79,7 @@ interface nsIMsgImapFolderProps : nsISupports {
     void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
 };
 
-[scriptable, uuid(9da3a211-51bf-4db6-a109-863dbe7e14d7)]
+[scriptable, uuid(d33884c6-20d5-4a84-880c-02ac56c1119f)]
 interface nsIMsgImapMailFolder : nsISupports {
   void removeSubFolder(in nsIMsgFolder folder);
   void createClientSubfolderInfo(in ACString folderName, in char hierarchyDelimiter,
@@ -189,6 +190,36 @@ interface nsIMsgImapMailFolder : nsISupports {
    * Lotus Notes sends us maxKB = 0, usedKB > 0 for unlimited quota.
    */
   void getQuota(out boolean valid, out unsigned long usedKB, out unsigned long maxKB);
+
+  /**
+   * List all (human) users apart from the current user who have access to
+   * this folder.
+   *
+   * You can find out which rights they have with getRightsForUser().
+   */
+  nsIUTF8StringEnumerator getOtherUsersWithAccess();
+
+  /**
+   * Which access rights a certain user has for this folder.
+   *
+   * @return list of flags
+   * e.g. "lrswipcd" for write access and "lrs" for read only access.
+   *
+   * See RFC 2086 (e.g. Cyrus) and RFC 4314 (e.g. dovecot)
+   *
+   * l = locate = visible in folder list
+   * r = read = list mails, get/read mail contents
+   * s = set seen flag = mark read. Does not affect other users.
+   * d (or t) = delete mails
+   * w = write = change (other) flags of existing mails
+   * i = insert = add mails to this folder
+   * p = post = send mail directly to the submission address for folder
+   * c (or k) = create subfolders
+   * (e = expunge = compress)
+   * (x = delete folder)
+   * a = admin = change permissions
+   */
+  ACString getPermissionsForUser(in ACString username);
 
   /**
    * Change the number of "pending" messages in a folder,

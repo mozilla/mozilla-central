@@ -185,8 +185,11 @@ public:
   // Returns a newly allocated string describing these rights
   nsresult CreateACLRightsString(nsAString& rightsString);
 
-protected:
   nsresult GetRightsStringForUser(const nsACString& userName, nsCString &rights);
+
+  nsresult GetOtherUsers(nsIUTF8StringEnumerator** aResult);
+
+protected:
   PRBool GetFlagSetInRightsForUser(const nsACString& userName, char flag, PRBool defaultIfNotFound);
   void BuildInitialACLFromCache();
   void UpdateACLCache();
