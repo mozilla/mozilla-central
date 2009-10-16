@@ -6097,7 +6097,11 @@ NS_IMETHODIMP nsImapMailFolder::GetOtherUsersWithAccess(
 
 nsresult nsMsgIMAPFolderACL::GetOtherUsers(nsIUTF8StringEnumerator** aResult)
 {
-  nsCStringArray *resultArray = new nsCStringArray;
+#ifdef MOZILLA_1_9_1_BRANCH
+  nsCStringArray* resultArray = new nsCStringArray;
+#else
+  nsTArray<nsCString>* resultArray = new nsTArray<nsCString>;
+#endif
   m_rightsHash.EnumerateRead(fillArrayWithKeys, resultArray);
 
   // enumerator will free resultArray
