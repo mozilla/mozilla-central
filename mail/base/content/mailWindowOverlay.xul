@@ -358,14 +358,18 @@
   <key id="key_cut"/>
   <key id="key_copy"/>
   <key id="key_paste"/>
-  <key id="key_delete" oncommand="goDoCommand('cmd_delete');" shift="false"/>
 #ifdef XP_MACOSX
-  <key id="key_delete2" oncommand="goDoCommand('cmd_delete');" shift="false"/>
+  <key id="key_delete" keycode="VK_BACK"
+       oncommand="goDoCommand('cmd_delete');"/>
+  <key id="key_delete2" keycode="VK_DELETE"
+       oncommand="goDoCommand('cmd_delete');"/>
   <key id="cmd_shiftDelete" keycode="VK_BACK"
        oncommand="goDoCommand('cmd_shiftDelete');" modifiers="shift"/>
   <key id="cmd_shiftDelete2" keycode="VK_DELETE"
        oncommand="goDoCommand('cmd_shiftDelete');" modifiers="shift"/>
 #else
+  <key id="key_delete" keycode="VK_DELETE"
+       oncommand="goDoCommand('cmd_delete');"/>
   <key id="cmd_shiftDelete" keycode="VK_DELETE"
        oncommand="goDoCommand('cmd_shiftDelete');" modifiers="shift"/>
 #endif
