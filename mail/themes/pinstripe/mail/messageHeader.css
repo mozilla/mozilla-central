@@ -89,15 +89,17 @@
   background: none;
   font-weight: normal;
   color: #41413F; /* higher contrast */
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   font-size: 100%;
   padding-top: 0px;
+  -moz-box-shadow: none;
 }
 
 #otherActionsButton:hover {
   color: black;
-  background-color: rgb(230,231,227);
-  border: 2px solid #C0C3C6;
+  border: 1px solid rgb(145,145,145);
+  background-color: rgb(210,210,210);
+  -moz-box-shadow: 0px 4px 4px 0px rgb(255,255,255) inset;
 }
 
 
@@ -239,9 +241,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .msgHeaderView-button {
   -moz-appearance: none;
-  border: 1px solid #5F5F5F;
   -moz-border-radius: 4px;
-  background: url(chrome://global/skin/icons/white-gray-gradient.gif) #A09E9D repeat-x top center;
   min-height: 0;
   min-width: 0;
   padding: 2px;
@@ -249,13 +249,15 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   -moz-margin-start: 0.4em;
   vertical-align: middle;
   list-style-image: none; /* overrides the rule from primaryToolbar.css */
-  text-shadow: none;
-  color: #000000;
+  background-color: rgb(210,210,210);
+  border: 1px solid rgb(145,145,145);
+  -moz-box-shadow: 0px 20px 16px -10px rgb(255,255,255) inset, 0px 1px rgba(255,255,255, 0.4);
 }
 
 .msgHeaderView-button:active,
 .msgHeaderView-button[type="menu-button"][open] {
-  background-image: url(chrome://global/skin/icons/white-gray-gradient-active.gif);
+  background-color: rgb(186,186,186);
+  -moz-box-shadow: 0px 4px 4px 0px rgb(140,140,140) inset;
 }
 
 .msgHeaderView-flat-button {
