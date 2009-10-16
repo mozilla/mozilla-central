@@ -46,6 +46,7 @@
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/folderProps.dtd">
 
 <dialog
+  id="folderPropertiesDialog"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   title="&folderProps.windowtitle.label;"
   buttons="accept,cancel"
@@ -64,15 +65,16 @@
   </script>
 
 <tabbox id="folderPropTabBox">
-  <tabs>
+  <tabs id="folderPropTabs">
     <tab id="GeneralTab" label="&generalInfo.label;"/>
     <tab id="Retention" label="&retention.label;"/>
-    <tab hidefor="movemail,pop3,rss,none" hidable="true" id="SynchronizationTab" label="&folderSynchronizationTab.label;"/>
-    <tab hidefor="movemail,pop3,rss,none,nntp" hidable="true" id="SharingTab" label="&folderSharingTab.label;"/>
-    <tab hidefor="movemail,pop3,rss,none,nntp" hidable="true" id="QuotaTab" label="&folderQuotaTab.label;"/>
+    <tab id="SynchronizationTab" hidefor="movemail,pop3,rss,none" label="&folderSynchronizationTab.label;"/>
+    <tab id="SharingTab" hidefor="movemail,pop3,rss,none,nntp" label="&folderSharingTab.label;"/>
+    <tab id="QuotaTab" hidefor="movemail,pop3,rss,none,nntp" label="&folderQuotaTab.label;"/>
   </tabs>
-  <tabpanels>
-    <vbox>
+  <tabpanels id="folderPropTabPanels">
+
+    <vbox id="GeneralPanel">
       <hbox id="nameBox" align="center">
         <label value="&folderProps.name.label;" control="name"
                accesskey="&folderProps.name.accesskey;"/>
@@ -98,23 +100,23 @@
         <checkbox class="indent" id="folderCharsetOverride"
                   label="&folderCharsetOverride.label;"
                   accesskey="&folderCharsetOverride.accesskey;"/>
-        <checkbox hidable="true" hidefor="movemail,pop3,none,nntp"
+        <checkbox hidefor="movemail,pop3,none,nntp"
                   class="indent" id="folderCheckForNewMessages"
                   label="&folderCheckForNewMessages.label;"
                   accesskey="&folderCheckForNewMessages.accesskey;"/>
       </vbox>
       <hbox>
-        <button iscontrolcontainer="true" label="&folderRebuildSummaryFile.label;" 
+        <button label="&folderRebuildSummaryFile.label;"
                oncommand="RebuildSummaryInformation();" accesskey="&folderRebuildSummaryFile.accesskey;" 
                 tooltiptext="&folderRebuildSummaryFileTip.label;"
                align="center"/>
       </hbox>
     </vbox>
 
-    <vbox align="start">
-    <description hidable="true" hidefor="imap,pop3" class="desc">&retentionCleanup.label;</description>
-    <description hidable="true" hidefor="movemail,pop3,rss,none,nntp" class="desc">&retentionCleanupImap.label;</description>
-    <description hidable="true" hidefor="movemail,imap,rss,none,nntp" class="desc">&retentionCleanupPop.label;</description>
+    <vbox id="RetentionPanel" align="start">
+    <description hidefor="imap,pop3" class="desc">&retentionCleanup.label;</description>
+    <description hidefor="movemail,pop3,rss,none,nntp" class="desc">&retentionCleanupImap.label;</description>
+    <description hidefor="movemail,imap,rss,none,nntp" class="desc">&retentionCleanupPop.label;</description>
 
         <hbox align="center" class="indent">
           <checkbox wsm_persist="true" id="retention.useDefault" accesskey="&retentionUseAccount.accesskey;"
@@ -158,25 +160,26 @@
         </vbox>
     </vbox>
 
-    <vbox hidable="true" hidefor="movemail,pop3,rss,none" valign="top" align="start">
+    <vbox id="SyncPanel" valign="top" align="start">
       <vbox>
-        <checkbox iscontrolcontainer="true" hidable="true"  
+        <checkbox hidefor="nntp"
                   wsm_persist="true" id="offline.selectForOfflineFolder"  
-                  hidefor="nntp" label="&offlineFolder.check.label;"
+                  label="&offlineFolder.check.label;"
                   accesskey="&offlineFolder.check.accesskey;"/>
-        <checkbox iscontrolcontainer="true" hidable="true" 
+        <checkbox hidefor="imap"
                   wsm_persist="true" id="offline.selectForOfflineNewsgroup" 
-                  hidefor="imap" label="&selectofflineNewsgroup.check.label;"
+                  label="&selectofflineNewsgroup.check.label;"
                   accesskey="&selectofflineNewsgroup.check.accesskey;"/>
       </vbox>
-      <button iscontrolcontainer="true" hidable="true" label="&offlineFolder.button.label;" 
+      <button hidefor="nntp" label="&offlineFolder.button.label;"
               oncommand="onOfflineFolderDownload();" accesskey="&offlineFolder.button.accesskey;" 
-              id="offline.offlineFolderDownloadButton" hidefor="nntp" orient="right"/>
-      <button iscontrolcontainer="true" hidable="true" label="&offlineNewsgroup.button.label;" 
+              id="offline.offlineFolderDownloadButton" orient="right"/>
+      <button hidefor="imap" label="&offlineNewsgroup.button.label;"
               oncommand="onOfflineFolderDownload();" accesskey="&offlineNewsgroup.button.accesskey;" 
-              id="offline.offlineNewsgroupDownloadButton" hidefor="imap" orient="right"/>
+              id="offline.offlineNewsgroupDownloadButton" orient="right"/>
     </vbox>
-    <vbox hidable="true" hidefor="movemail,pop3,none,rss,nntp" valign="top">
+
+    <vbox id="SharingPanel" valign="top">
       <hbox align="start">
         <label value="&folderType.label;" id="folderTypeLabel"/>
         <label value="" id="folderType.text"/>
@@ -190,12 +193,13 @@
       </vbox>
       <spacer flex="100%"/>
       <vbox align="start">
-        <button iscontrolcontainer="true" hidable="true" label="&privileges.button.label;" 
+        <button hidefor="movemail,pop3,none,rss,nntp" label="&privileges.button.label;"
                 oncommand="onFolderPrivileges();" accesskey="&privileges.button.accesskey;"
-                id="imap.FolderPrivileges" hidefor="movemail,pop3,none,rss,nntp" orient="right"/>
+                id="imap.FolderPrivileges" orient="right"/>
       </vbox>
     </vbox>
-    <vbox hidable="true" hidefor="pop3,none,rss,nntp" valign="top">
+
+    <vbox id="QuotaPanel" valign="top">
       <label id="folderQuotaStatus" flex="1"/>
 
       <grid id="folderQuotaData" hidden="true" flex="1">
