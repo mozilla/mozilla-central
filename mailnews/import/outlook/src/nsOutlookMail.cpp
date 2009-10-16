@@ -47,7 +47,6 @@
 #include "nsIImportFieldMap.h"
 #include "nsIImportMailboxDescriptor.h"
 #include "nsIImportABDescriptor.h"
-#include "nsIImportMimeEncode.h"
 #include "nsReadableUtils.h"
 #include "nsOutlookStringBundle.h"
 #include "nsABBaseCID.h"
@@ -62,7 +61,6 @@
 #include "nsMsgI18N.h"
 #include "nsNetUtil.h"
 
-static NS_DEFINE_CID(kImportMimeEncodeCID,  NS_IMPORTMIMEENCODE_CID);
 static NS_DEFINE_IID(kISupportsIID,      NS_ISUPPORTS_IID);
 
 /* ------------ Address book stuff ----------------- */
@@ -318,8 +316,6 @@ nsresult nsOutlookMail::GetAddressBooks( nsISupportsArray **pArray)
 
   return( NS_OK);
 }
-
-
 
 void nsOutlookMail::OpenMessageStore( CMapiFolder *pNextFolder)
 {
@@ -641,7 +637,6 @@ BOOL nsOutlookMail::WriteMessage( nsIOutputStream *pDest, CMapiMessage *pMsg, in
       bResult = WriteStr( pDest, "\x0D\x0A");
   }
 
-
   pData = pMsg->GetBody( len);
   if (pData && len) {
     if (bResult)
@@ -654,7 +649,6 @@ BOOL nsOutlookMail::WriteMessage( nsIOutputStream *pDest, CMapiMessage *pMsg, in
 
   return( bResult);
 }
-
 
 BOOL nsOutlookMail::WriteData( nsIOutputStream *pDest, const char *pData, PRInt32 len)
 {
@@ -704,57 +698,6 @@ BOOL nsOutlookMail::WriteMimeBoundary( nsIOutputStream *pDest, CMapiMessage *pMs
 
   return( bResult);
 }
-
-
-/*
-PRBool nsOutlookMail::WriteAttachment( nsIOutputStream *pDest, CMapiMessage *pMsg)
-{
-  nsCOMPtr<nsIFileSpec> pSpec;
-  nsresult rv = NS_NewFileSpec( getter_AddRefs( pSpec));
-  if (NS_FAILED( rv) || !pSpec) {
-    IMPORT_LOG0( "*** Error creating file spec for attachment\n");
-    return( PR_FALSE);
-  }
-
-  if (pMsg->GetAttachFileLoc( pSpec)) {
-    PRBool  isFile = PR_FALSE;
-    PRBool  exists = PR_FALSE;
-    pSpec->Exists( &exists);
-    pSpec->IsFile( &isFile);
-
-    if (!exists || !isFile) {
-      IMPORT_LOG0( "Attachment file does not exist\n");
-      return( PR_TRUE);
-    }
-  }
-  else {
-    IMPORT_LOG0( "Attachment not processed, unable to obtain file\n");
-    return( PR_TRUE);
-  }
-
-  // Set up headers...
-  BOOL bResult = WriteMimeBoundary( pDest, pMsg, FALSE);
-  // Now set up the encoder object
-
-  if (bResult) {
-    nsCOMPtr<nsIImportMimeEncode> encoder = do_CreateInstance( kImportMimeEncodeCID, &rv);
-    if (NS_FAILED( rv)) {
-      IMPORT_LOG0( "*** Error creating mime encoder\n");
-      return( PR_FALSE);
-    }
-
-    encoder->Initialize( pSpec, pDest, pMsg->GetFileName(), pMsg->GetMimeType());
-    encoder->DoEncoding( &bResult);
-  }
-
-  return( bResult);
-}
-*/
-
-
-
-
-
 
 nsresult nsOutlookMail::DeleteFile( nsIFile *pFile)
 {
@@ -991,7 +934,6 @@ nsresult nsOutlookMail::ImportAddresses( PRUint32 *pCount, PRUint32 *pTotal, con
     }
   }
 
-
   rv = pDb->Commit(nsAddrDBCommitType::kLargeCommit);
   return rv;
 }
@@ -1041,13 +983,11 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
   nsString        subject;
   PRUint32 total;
 
-
   total=sa->cValues;
   for (idx = 0;idx < sa->cValues ;idx++)
   {
     lpEid= (LPENTRYID) sa->lpbin[idx].lpb;
     cbEid = sa->lpbin[idx].cb;
-
 
     if (!m_mapi.OpenEntry(cbEid, lpEid, (LPUNKNOWN *) &lpMsg))
     {
@@ -1089,12 +1029,8 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
         pDb->AddListCardColumnsToRow(userCard,
                                      newListRow,idx+1, getter_AddRefs(newCard),
                                      PR_TRUE, nsnull, nsnull);
-
-
       }
     }
-
-
   }
 
   rv = pDb->AddCardRowToDB(newListRow);
@@ -1104,7 +1040,6 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
   rv = pDb->AddListDirNode(newListRow);
   return rv;
 }
-
 
 void nsOutlookMail::SanitizeValue( nsString& val)
 {
@@ -1266,7 +1201,6 @@ PRBool nsOutlookMail::BuildCard( const PRUnichar *pName, nsIAddrDatabase *pDb, n
       }
     }
   }
-
 
   return( PR_TRUE);
 }
