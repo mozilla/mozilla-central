@@ -6084,8 +6084,13 @@ PRBool nsMsgIMAPFolderACL::SetFolderRightsForUser(const nsACString& userName, co
 static PLDHashOperator fillArrayWithKeys(const nsACString& key,
         const nsCString data, void* userArg)
 {
+#ifdef MOZILLA_1_9_1_BRANCH
   nsCStringArray* array = static_cast<nsCStringArray*>(userArg);
   array->AppendCString(key);
+#else
+  nsTArray<nsCString>* array = static_cast<nsTArray<nsCString>*>(userArg);
+  array->AppendElement(key);
+#endif
   return PL_DHASH_NEXT;
 }
 
@@ -6099,6 +6104,7 @@ nsresult nsMsgIMAPFolderACL::GetOtherUsers(nsIUTF8StringEnumerator** aResult)
 {
 #ifdef MOZILLA_1_9_1_BRANCH
   nsCStringArray* resultArray = new nsCStringArray;
+  // Note: make cast in fillArrayWithKeys() match
 #else
   nsTArray<nsCString>* resultArray = new nsTArray<nsCString>;
 #endif
