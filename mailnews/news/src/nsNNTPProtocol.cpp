@@ -440,13 +440,17 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
 
   NS_PRECONDITION(m_url , "invalid URL passed into NNTP Protocol");
 
-  m_runningURL = do_QueryInterface(m_url);
+  m_runningURL = do_QueryInterface(m_url, &rv);
+  if (NS_FAILED(rv)) return rv;
   SetIsBusy(PR_TRUE);
 
   nsCString group;
   nsCString commandSpecificData;
   PR_FREEIF(m_messageID);
 
+  // Initialize m_newsAction before possible use in ParseURL method
+  m_runningURL->GetNewsAction(&m_newsAction);
+  
   // parse url to get the msg folder and check if the message is in the folder's
   // local cache before opening a new socket and trying to download the message
   rv = ParseURL(m_url, getter_Copies(group), &m_messageID, getter_Copies(commandSpecificData));
@@ -459,7 +463,6 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
       if (aMsgWindow)
         mailnewsUrl->SetMsgWindow(aMsgWindow);
 
-      m_runningURL->GetNewsAction(&m_newsAction);
       if (m_newsAction == nsINntpUrl::ActionFetchArticle || m_newsAction == nsINntpUrl::ActionFetchPart
           || m_newsAction == nsINntpUrl::ActionSaveMessageToDisk)
       {
