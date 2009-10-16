@@ -69,8 +69,7 @@
 }
 
 .quick-search-clearbutton {
-  list-style-image: url("chrome://messenger/skin/icons/quick-search-clear.png");
-  -moz-image-region: rect(0px, 16px, 16px, 0px);
+  list-style-image: url("moz-icon://stock/gtk-clear?size=menu");
   -moz-appearance: none;
   padding: 0px !important;
   border: none !important;
@@ -78,14 +77,4 @@
 
 .quick-search-clearbutton > .toolbarbutton-icon {
   -moz-margin-end: 0px; /* override toolkit's default value */
-}
-
-.quick-search-clearbutton:hover {
-  -moz-image-region: rect(0px, 32px, 16px, 16px);
-  padding: 0px !important;
-}
-
-.quick-search-clearbutton:hover:active {
-  -moz-image-region: rect(0px, 48px, 16px, 32px);
-  padding: 0px !important;
 }
