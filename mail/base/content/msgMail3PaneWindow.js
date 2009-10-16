@@ -1089,15 +1089,63 @@ function ThreadPaneOnDragStart(aEvent) {
   if (aEvent.originalTarget.localName != "treechildren")
     return;
 
-  var messages = gFolderDisplay.selectedMessageUris;
+  let messages = gFolderDisplay.selectedMessageUris;
   if (!messages)
     return;
 
   gFolderDisplay.hintAboutToDeleteMessages();
-  for (let i in messages)
+  let ios = Components.classes["@mozilla.org/network/io-service;1"]
+                      .getService(Components.interfaces.nsIIOService);
+  let fileNames = [];
+  let msgUrls = {};
+  
+  // dragging multiple messages to desktop does not
+  // currently work, pending core fixes for
+  // multiple-drop-on-desktop support. (bug 513464)
+  for (let i in messages) {
+    messenger.messageServiceFromURI(messages[i])
+             .GetUrlForUri(messages[i], msgUrls, null);
+    var subject = messenger.messageServiceFromURI(messages[i])
+                           .messageURIToMsgHdr(messages[i]).mime2DecodedSubject;
+    var uniqueFileName = suggestUniqueFileName(subject.substr(0,124), ".eml",
+                                               fileNames);
+    fileNames[i] = uniqueFileName;
     aEvent.dataTransfer.mozSetDataAt("text/x-moz-message", messages[i], i);
+    aEvent.dataTransfer.mozSetDataAt("text/x-moz-url",msgUrls.value.spec, i);
+    aEvent.dataTransfer.mozSetDataAt("application/x-moz-file-promise-url",
+                                     msgUrls.value.spec + "&fileName=" + uniqueFileName,
+                                     i);
+    aEvent.dataTransfer.mozSetDataAt("application/x-moz-file-promise", null, i);
+  }
   aEvent.dataTransfer.effectAllowed = "copyMove";
   aEvent.dataTransfer.addElement(aEvent.originalTarget);
+}
+
+/**
+ * example use:
+ *   suggestUniqueFileName("testname",".txt",["testname", "testname1"])
+ *   returns "testname2"
+ * does not check file system for existing files
+ * @param existingNames array of names in use
+ */
+function suggestUniqueFileName(identifier, type, existingNames) {
+  let suffix = 1;
+  let suggestion;
+  let base = identifier;
+  let exists;
+  do {
+    exists = false;
+    suggestion = GenerateValidFilename(base, type);
+    for (let i = 0; i < existingNames.length; i++) {
+      if (existingNames[i] == suggestion) {
+        base = identifier + suffix;
+        suffix++;
+        exists = true;
+        break;
+      }
+    }
+  } while (exists);
+  return suggestion;
 }
 
 function ThreadPaneOnDragOver(aEvent) {
