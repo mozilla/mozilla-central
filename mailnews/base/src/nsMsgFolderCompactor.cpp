@@ -914,7 +914,9 @@ nsresult nsOfflineStoreCompactState::CopyNextMessage()
       hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
     }
   }
-  return rv;
+  // In theory, we might be able to stream the next message, so
+  // return NS_OK, not rv.
+  return NS_OK;
 }
 
 NS_IMETHODIMP
