@@ -167,17 +167,17 @@ function createAccountInBackend(config)
 
   identity.valid = true;
 
-  // account and hook up
-  var account = accountManager.createAccount();
-  account.incomingServer = inServer;
-  account.addIdentity(identity);
-  if (!accountManager.defaultAccount)
-    accountManager.defaultAccount = account;
-
   if (config.outgoing.existingServerKey)
     identity.smtpServerKey = config.outgoing.existingServerKey;
   else if (!config.outgoing.useGlobalPreferredServer)
     identity.smtpServerKey = outServer.key;
+
+  // account and hook up
+  var account = accountManager.createAccount();
+  account.addIdentity(identity);
+  account.incomingServer = inServer;
+  if (!accountManager.defaultAccount)
+    accountManager.defaultAccount = account;
 
   verifyLocalFoldersAccount(accountManager);
   setFolders(identity, inServer);
