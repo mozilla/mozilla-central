@@ -873,7 +873,10 @@
          class="toolbox-top"
          mode="full"
          defaultmode="full"
+#ifdef XP_MACOSX
+         iconsize="small"
          defaulticonsize="small"
+#endif
          labelalign="end">
   <!-- Menu -->
   <toolbar type="menubar" id="mail-toolbar-menubar2" class="chromeclass-menubar" customizable="true"
@@ -1816,9 +1819,9 @@
            accesskey="&showMessengerToolbarCmd.accesskey;"
            fullscreentoolbar="true" mode="full"
            customizable="true"
-           iconsize="small"
            context="toolbar-context-menu"
 #ifdef XP_MACOSX
+           iconsize="small"
            defaultset="button-getmsg,button-newmsg,button-address,spacer,button-tag,spring,gloda-search,throbber-box">
 #else
            defaultset="button-getmsg,button-newmsg,button-address,separator,button-tag,spring,gloda-search">

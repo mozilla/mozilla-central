@@ -243,7 +243,15 @@
             accesskey="&customizeToolbar.accesskey;"/>
 </popup>
 
-<toolbox id="ab-toolbox" class="toolbox-top" mode="full" defaultmode="full">
+<toolbox id="ab-toolbox"
+         class="toolbox-top"
+         mode="full"
+         defaultmode="full"
+#ifdef XP_MACOSX
+         iconsize="small"
+         defaulticonsize="small"
+#endif
+         labelalign="end">
   <toolbar type="menubar" id="addrbook-toolbar-menubar2" class="chromeclass-menubar" customizable="true"
 #ifdef XP_MACOSX
            defaultset="menubar-items"
@@ -579,6 +587,7 @@
            customizable="true"
            context="toolbar-context-menu"
 #ifdef XP_MACOSX
+           iconsize="small"
            defaultset="button-newcard,button-newlist,spacer,button-editcard,button-newmessage,spacer,button-abdelete,spring,search-container">
 #else
            defaultset="button-newcard,button-newlist,separator,button-editcard,button-newmessage,separator,button-abdelete,spring,search-container">

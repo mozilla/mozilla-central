@@ -304,7 +304,12 @@
   <toolbox id="compose-toolbox"
            class="toolbox-top"
            mode="full"
-           defaultmode="full">
+           defaultmode="full"
+#ifdef XP_MACOSX
+           iconsize="small"
+           defaulticonsize="small"
+#endif
+           labelalign="end">
 
   <!-- Menu -->
   <!-- if you change the id of the menubar, be sure to update mailCore.js::CustomizeMailToolbar and MailToolboxCustomizeDone -->
@@ -620,6 +625,7 @@
            accesskey="&showCompositionToolbarCmd.accesskey;"
            fullscreentoolbar="true" mode="full"
 #ifdef XP_MACOSX
+           iconsize="small"
            defaultset="button-send,separator,button-address,spellingButton,button-attach,button-security,button-save,spring"
 #else
            defaultset="button-send,separator,button-address,spellingButton,button-attach,button-security,button-save"
