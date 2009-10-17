@@ -173,6 +173,10 @@ function createAccountInBackend(config)
     identity.smtpServerKey = outServer.key;
 
   // account and hook up
+  // Note: Setting incomingServer will cause the AccountManager to refresh
+  // itself, which could be a problem if we came from it and we haven't set
+  // the identity (see bug 521955), so make sure everything else on the
+  // account is set up before you set the incomingServer.
   var account = accountManager.createAccount();
   account.addIdentity(identity);
   account.incomingServer = inServer;
