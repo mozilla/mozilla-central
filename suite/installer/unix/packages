@@ -139,6 +139,7 @@ bin/components/content_base.xpt
 #ifndef MOZILLA_1_9_1_BRANCH
 #ifndef MOZILLA_1_9_2_BRANCH
 bin/components/content_canvas.xpt
+bin/components/content_events.xpt
 #endif
 #endif
 bin/components/content_html.xpt
