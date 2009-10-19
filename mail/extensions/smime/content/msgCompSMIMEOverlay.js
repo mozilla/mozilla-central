@@ -44,6 +44,9 @@ var gBrandBundle;
 var gSMFields;
 var gEncryptedURIService = null;
 
+var gEncryptOptionChanged;
+var gSignOptionChanged;
+
 function onComposerClose()
 {
   gSMFields = null;
@@ -206,6 +209,8 @@ function toggleEncryptMessage()
   {
     setNoEncryptionUI();
   }
+
+  gEncryptOptionChanged = true;
 }
 
 function toggleSignMessage()
@@ -232,6 +237,8 @@ function toggleSignMessage()
   {
     setNoSignatureUI();
   }
+
+  gSignOptionChanged = true;
 }
 
 function setSecuritySettings(menu_id)
@@ -301,10 +308,10 @@ function showMessageComposeSecurityStatus()
 
   var encryptionCertName = gCurrentIdentity.getUnicharAttribute("encryption_cert_name");
   var signingCertName = gCurrentIdentity.getUnicharAttribute("signing_cert_name");
-  
-  window.openDialog('chrome://messenger-smime/content/msgCompSecurityInfo.xul',
-    '',
-    'chrome,resizable=1,modal=1,dialog=1', 
+
+  window.openDialog("chrome://messenger-smime/content/msgCompSecurityInfo.xul",
+    "",
+    "chrome,modal,resizable,centerscreen",
     {
       compFields : gMsgCompose.compFields,
       subject : GetMsgSubjectElement().value,
@@ -324,7 +331,7 @@ var SecurityController =
     {
       case "cmd_viewSecurityStatus":
         return true;
-      
+
       default:
         return false;
     }
@@ -386,9 +393,9 @@ function onComposerSendMessage()
     }
 
     if (autocompleteDirectory)
-      window.openDialog('chrome://messenger-smime/content/certFetchingStatus.xul',
-                        '',
-                        'chrome,resizable=1,modal=1,dialog=1', 
+      window.openDialog("chrome://messenger-smime/content/certFetchingStatus.xul",
+                        "",
+                        "chrome,modal,resizable,centerscreen",
                         autocompleteDirectory,
                         emailAddresses.value);
   }
@@ -399,32 +406,60 @@ function onComposerFromChanged()
   if (!gSMFields)
     return;
 
-  // In order to provide maximum protection to the user:
-  // - If encryption is already enabled, we will not turn it off automatically.
-  // - If encryption is not enabled, but the new account defaults to encryption, we will turn it on.
-  // - If signing is disabled, we will not turn it on automatically.
-  // - If signing is enabled, but the new account defaults to not sign, we will turn signing off.
-
-  if (!gSMFields.requireEncryptMessage)
+  var encryptionPolicy = gCurrentIdentity.getIntAttribute("encryptionpolicy");
+  var useEncryption = false;
+  if (!gEncryptOptionChanged)
   {
-    var encryptionPolicy = gCurrentIdentity.getIntAttribute("encryptionpolicy");
-    // 0 == never, 1 == if possible, 2 == always Encrypt.
+    // Encryption wasn't manually checked.
+    // Set up the encryption policy from the setting of the new identity.
 
-    if (encryptionPolicy == 2)
+    // 0 == never, 1 == if possible (ns4), 2 == always Encrypt.
+    useEncryption = (encryptionPolicy == 2);
+  }
+  else
+  {
+    // The encryption policy was manually checked. That means we can get into
+    // the situation that the new identity doesn't have a cert to encrypt with.
+    // If it doesn't, don't encrypt.
+
+    if (encryptionPolicy != 2) // Encrypted (policy unencrypted, manually changed).
     {
-      gSMFields.requireEncryptMessage = true;
-      setEncryptionUI();
+      // Make sure we have a cert for encryption.
+      var encryptionCertName = gCurrentIdentity.getUnicharAttribute("encryption_cert_name");
+      useEncryption = encryptionCertName;
     }
   }
+  gSMFields.requireEncryptMessage = useEncryption;
+  if (useEncryption)
+    setEncryptionUI();
+  else
+    setNoEncryptionUI();
 
-  if (gSMFields.signMessage)
+  var signMessage = gCurrentIdentity.getBoolAttribute("sign_mail");
+  var useSigning = false;
+  if (!gSignOptionChanged)
   {
-    var signMessage = gCurrentIdentity.getBoolAttribute("sign_mail");
+    // Signing wasn't manually checked.
+    // Set up the signing policy from the setting of the new identity.
 
-    if (!signMessage)
+    useSigning = signMessage;
+  }
+  else
+  {
+    // The signing policy was manually checked. That means we can get into
+    // the situation that the new identity doesn't have a cert to sign with.
+    // If it doesn't, don't sign.
+
+    if (!signMessage) // Signed (policy unsigned, manually changed).
     {
-      gSMFields.signMessage = false;
-      setNoSignatureUI();
+      // Make sure we have a cert for signing.
+      var signingCertName = gCurrentIdentity.getUnicharAttribute("signing_cert_name");
+      useSigning = signingCertName;
     }
   }
+  gSMFields.signMessage = useSigning;
+  if (useSigning)
+    setSignatureUI();
+  else
+    setNoSignatureUI();
 }
