@@ -188,6 +188,16 @@ var FeatureConfigurator = {
         newbar.currentSet = newcurrentset;
         // this makes it persist ...
         newbar.setAttribute("currentset", newcurrentset);
+        let labelalign = fakebar.hasAttribute("labelalign") ? fakebar.getAttribute("labelalign") : "bottom";
+        if (labelalign)
+          newbar.parentNode.setAttribute("labelalign", labelalign);
+        else
+          newbar.parentNode.removeAttribute("labelalign");
+        let iconsize = fakebar.hasAttribute("iconsize") ? fakebar.getAttribute("iconsize") : "large";
+        if (iconsize) {
+          newbar.setAttribute("iconsize", iconsize);
+          newbar.parentNode.setAttribute("iconsize", "large");
+        }
         dom.persist("mail-bar3", "currentset");
       } else {
         // reset to factory defaults (TB3)
@@ -196,6 +206,14 @@ var FeatureConfigurator = {
         newbar.currentSet = defaultset;
         // this makes it persist ...
         newbar.setAttribute("currentset", defaultset);
+        newbar.parentNode.setAttribute("labelalign", "end");
+#ifdef XP_MACOSX
+        newbar.setAttribute("iconsize", "small");
+        newbar.parentNode.setAttribute("iconsize", "small");
+#else
+        newbar.setAttribute("iconsize", "large");
+        newbar.parentNode.setAttribute("iconsize", "large");
+#endif
         dom.persist("mail-bar3", "currentset");
       }
       $("#toolbar_status").effect("highlight", {}, 1000);

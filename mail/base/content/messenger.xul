@@ -83,7 +83,7 @@
 
     If this not an upgrade from 2 to 3, then there won't be any persisted
     currentset, and we want the original defaultset -->
-<data id="mail-bar2" persist="currentset iconsize"
+<data id="mail-bar2" persist="currentset iconsize labelalign"
 #ifdef XP_MACOSX
   defaultset="button-getmsg,button-newmsg,button-address,spacer,button-reply,button-replyall,button-replylist,button-forward,spacer,button-tag,button-delete,button-junk,button-print,spacer,button-goback,button-goforward,spring,gloda-search,throbber-box"
 #else
