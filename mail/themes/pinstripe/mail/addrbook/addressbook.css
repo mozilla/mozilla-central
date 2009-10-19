@@ -69,7 +69,6 @@ toolbar {
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-1 {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
   -moz-box-orient: vertical;
 }
 
@@ -178,10 +177,6 @@ toolbox[labelalign="end"] toolbarbutton[type="menu-button"] > toolbarbutton {
   -moz-image-region: rect(64px 192px 96px 160px) !important;
 }
 /* ::::: small primary toolbar buttons ::::: */
-
-toolbar[iconsize="small"] .toolbarbutton-1 {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-}
 
 toolbar[iconsize="small"] #button-newcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");

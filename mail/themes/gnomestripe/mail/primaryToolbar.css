@@ -50,7 +50,6 @@
 
 .toolbarbutton-1 {
   -moz-box-orient: vertical;
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
 }
 
 toolbox[labelalign="end"] .toolbarbutton-1,
@@ -153,6 +152,7 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
 }
 
 #button-next, #button-previous[chromedir="rtl"] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 264px 24px 240px);
 }
 
@@ -161,6 +161,7 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
 }
 
 #button-previous, #button-next[chromedir="rtl"] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 240px 24px 216px);
 }
 
@@ -169,6 +170,7 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
 }
 
 #button-tag {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 288px 24px 264px);
 }
 
@@ -259,10 +261,6 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
 }
 
 /* ::::: small primary toolbar buttons ::::: */
-
-toolbar[iconsize="small"] .toolbarbutton-1 {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-}
 
 toolbar[iconsize="small"] #button-getmsg {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");

@@ -68,7 +68,6 @@ toolbar {
 .toolbarbutton-1 {
   -moz-box-orient: vertical;
   min-width: 0px;
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
 }
 
 toolbox[labelalign="end"] .toolbarbutton-1 {
@@ -214,10 +213,6 @@ toolbox[labelalign="end"] toolbarbutton[type="menu-button"] > toolbarbutton {
 }
 
 /* ::::: small primary toolbar buttons ::::: */
-
-toolbar[iconsize="small"] .toolbarbutton-1 {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-}
 
 toolbar[iconsize="small"] #button-send {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");

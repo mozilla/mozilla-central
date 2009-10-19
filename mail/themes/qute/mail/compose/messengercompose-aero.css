@@ -51,7 +51,6 @@
 .toolbarbutton-1 {
   -moz-box-orient: vertical;
   min-width: 0px;
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
 }
 
 toolbox[labelalign="end"] .toolbarbutton-1 {
@@ -189,10 +188,6 @@ toolbox[labelalign="end"] .toolbarbutton-1 .toolbarbutton-text {
 
 /* ::::: small primary toolbar buttons ::::: */
 
-toolbar[iconsize="small"] .toolbarbutton-1 {
-  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
-}
-
 toolbar[iconsize="small"] #button-send {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
   -moz-image-region: rect(0px 16px 16px 0px);
@@ -216,7 +211,7 @@ toolbar[iconsize="small"] #button-contacts:hover {
 }
 
 toolbar[iconsize="small"] #button-contacts[disabled] {
-   -moz-image-region: rect(32px 32px 48px 16px) !important;
+  -moz-image-region: rect(32px 32px 48px 16px) !important;
 }
 
 toolbar[iconsize="small"] #spellingButton {
