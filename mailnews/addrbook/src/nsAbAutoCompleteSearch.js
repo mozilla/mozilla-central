@@ -1,4 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -88,6 +87,10 @@ nsAbAutoCompleteResult.prototype = {
     return this._searchResults[aIndex].card;
   },
 
+  getEmailToUse: function getEmailToUse(aIndex) {
+    return this._searchResults[aIndex].emailToUse;
+  },
+
   // nsISupports
 
   QueryInterface: XPCOMUtils.generateQI([ACR, nsIAbAutoCompleteResult])
@@ -111,8 +114,18 @@ nsAbAutoCompleteSearch.prototype = {
                         .getService(Components.interfaces.nsIAbManager),
 
   // Private methods
-  _searchCards: function _searchCards(searchQuery, fullString, firstWord, rest,
-                                      directory, result) {
+
+  /**
+   * Searches cards in the given directory. It is not expected to search against
+   * email addresses (use _searchWithinEmails). If a card is matched (and isn't
+   * a mailing list) then the function will add a result for each email address
+   * that exists.
+   *
+   * @param searchQuery  The boolean search query to use.
+   * @param directory    An nsIAbDirectory to search.
+   * @param result       The result element to append results to.
+   */
+  _searchCards: function _searchCards(searchQuery, directory, result) {
     var childCards =
       this._abManager.getDirectory(directory.URI + searchQuery).childCards;
 
@@ -123,15 +136,77 @@ nsAbAutoCompleteSearch.prototype = {
     while (childCards.hasMoreElements()) {
       var card = childCards.getNext();
 
-      if (card instanceof Components.interfaces.nsIAbCard)
-        this._addToResult(commentColumn, card, result);
+      if (card instanceof Components.interfaces.nsIAbCard) {
+        if (card.isMailList)
+          this._addToResult(commentColumn, card, "", result);
+        else {
+          let email = card.primaryEmail;
+          if (email)
+            this._addToResult(commentColumn, card, email, result);
+
+          email = card.getProperty("SecondEmail", "");
+          if (email)
+            this._addToResult(commentColumn, card, email, result);
+        }
+      }
     }
   },
 
-  // fullString is the full search string.
-  // firstWord is the first word of the search string.
-  // rest is anything after the first word.
-  _checkEntry: function _checkEntry(card, fullString, firstWord, rest) {
+  /**
+   * Searches for cards in a directory matching against email addresses only.
+   * When matches are found it will add them to the results.
+   *
+   * @param searchQuery  The boolean search query to use.
+   * @param fullString   The full string that is being searched against. This
+   *                     is used as a "Begins with" check against the email
+   *                     addresses to ensure only matching results are added.
+   * @param directory    An nsIAbDirectory to search.
+   * @param result       The result element to append results to.
+   */
+  _searchWithinEmails: function _searchWithinEmails(searchQuery, fullString,
+                                                    directory, result) {
+    let childCards =
+      this._abManager.getDirectory(directory.URI + searchQuery).childCards;
+
+    // Cache this values to save going through xpconnect each time
+    let commentColumn = this._commentColumn == 1 ? directory.dirName : "";
+
+    // Now iterate through all the cards.
+    while (childCards.hasMoreElements()) {
+      let card = childCards.getNext();
+
+      if (card instanceof Components.interfaces.nsIAbCard) {
+        if (card.isMailList)
+          this._addToResult(commentColumn, card, "", result);
+        else {
+          let email = card.primaryEmail;
+          if (email && email.toLocaleLowerCase()
+                            .lastIndexOf(fullString, 0) == 0)
+            this._addToResult(commentColumn, card, email, result);
+
+          email = card.getProperty("SecondEmail", "");
+          if (email && email.toLocaleLowerCase()
+                            .lastIndexOf(fullString, 0) == 0)
+            this._addToResult(commentColumn, card, email, result);
+        }
+      }
+    }
+  },
+
+  /**
+   * Checks a card against the search parameters to see if it should be
+   * included in the result.
+   *
+   * @param card        The card to check.
+   * @param emailToUse  The email address to check against.
+   * @param fullString  The full search string.
+   * @param firstWord   The first word of the search string.
+   * @param rest        Anything after the first word.
+   * @return            True if the card matches the search parameters, false
+   *                    otherwise.
+   */
+  _checkEntry: function _checkEntry(card, emailToUse, fullString, firstWord,
+                                    rest) {
     var i;
     if (card.isMailList) {
       return card.displayName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
@@ -144,7 +219,7 @@ nsAbAutoCompleteSearch.prototype = {
     if (card.displayName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
         firstName.lastIndexOf(fullString, 0) == 0 ||
         lastName.lastIndexOf(fullString, 0) == 0 ||
-        card.primaryEmail.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0)
+        emailToUse.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0)
       return true;
 
     if (firstWord && rest &&
@@ -160,6 +235,17 @@ nsAbAutoCompleteSearch.prototype = {
     return false;
   },
 
+  /**
+   * Checks to see if an emailAddress (name/address) is a duplicate of an
+   * existing entry already in the results. If the emailAddress is found, it
+   * will remove the existing element if the popularity of the new card is
+   * higher than the previous card.
+   *
+   * @param card            The card that could be a duplicate.
+   * @param emailAddress    The emailAddress (name/address combination) to check
+   *                        for duplicates against.
+   * @param currentResults  The current results list.
+   */
   _checkDuplicate: function _checkDuplicate(card, emailAddress, currentResults) {
     var lcEmailAddress = emailAddress.toLocaleLowerCase();
 
@@ -183,12 +269,23 @@ nsAbAutoCompleteSearch.prototype = {
     return false;
   },
 
-  _addToResult: function _addToResult(commentColumn, card, result) {
+  /**
+   * Adds a card to the results list if it isn't a duplicate. The function will
+   * order the results by popularity.
+   *
+   * @param commentColumn  The text to be displayed in the comment column
+   *                       (if any).
+   * @param card           The card being added to the results.
+   * @param emailToUse     The email address from the card that should be used
+   *                       for this result.
+   * @param result         The result to add the new entry to.
+   */
+  _addToResult: function _addToResult(commentColumn, card, emailToUse, result) {
     var emailAddress =
       this._parser.makeFullAddress(card.displayName,
                                    card.isMailList ?
                                    card.getProperty("Notes", "") || card.displayName :
-                                   card.primaryEmail);
+                                   emailToUse);
 
     // The old code used to try it manually. I think if the parser can't work
     // out the address from what we've supplied, then its busted and we're not
@@ -222,11 +319,21 @@ nsAbAutoCompleteSearch.prototype = {
       value: emailAddress,
       comment: commentColumn,
       card: card,
+      emailToUse: emailToUse,
       popularity: cardPopularityIndex
     });
   },
 
   // nsIAutoCompleteSearch
+
+  /**
+   * Starts a search based on the given parameters.
+   *
+   * @see nsIAutoCompleteSearch for parameter details.
+   *
+   * It is expected that aSearchParam contains the identity (if any) to use
+   * for determining if an address book should be autocompleted against.
+   */
   startSearch: function startSearch(aSearchString, aSearchParam,
                                     aPreviousResult, aListener) {
     var result = new nsAbAutoCompleteResult(aSearchString);
@@ -269,7 +376,8 @@ nsAbAutoCompleteSearch.prototype = {
       // We have successful previous matches, therefore iterate through the
       // list and reduce as appropriate
       for (var i = 0; i < aPreviousResult.matchCount; ++i) {
-        if (this._checkEntry(aPreviousResult.getCardAt(i), fullString,
+        if (this._checkEntry(aPreviousResult.getCardAt(i),
+                             aPreviousResult.getEmailToUse(i), fullString,
                              firstWord, rest))
           // If it matches, just add it straight onto the array, these will
           // already be in order because the previous search returned them
@@ -278,6 +386,7 @@ nsAbAutoCompleteSearch.prototype = {
             value: aPreviousResult.getValueAt(i),
             comment: aPreviousResult.getCommentAt(i),
             card: aPreviousResult.getCardAt(i),
+            emailToUse: aPreviousResult.getEmailToUse(i),
             popularity: parseInt(aPreviousResult.getCardAt(i).getProperty("PopularityIndex", "0"))
           });
       }
@@ -287,7 +396,7 @@ nsAbAutoCompleteSearch.prototype = {
       // Construct the search query; using a query means we can optimise
       // on running the search through c++ which is better for string
       // comparisons (_checkEntry is relatively slow).
-      let searchQuery = "(or(PrimaryEmail,bw,@V)(DisplayName,bw,@V)(FirstName,bw,@V)(LastName,bw,@V)(NickName,bw,@V)(and(IsMailList,=,TRUE)(Notes,bw,@V)))";
+      let searchQuery = "(or(DisplayName,bw,@V)(FirstName,bw,@V)(LastName,bw,@V)(NickName,bw,@V)(and(IsMailList,=,TRUE)(Notes,bw,@V)))";
       searchQuery = searchQuery.replace(/@V/g, encodeURIComponent(fullString));
 
       if (firstWord && rest) {
@@ -299,6 +408,9 @@ nsAbAutoCompleteSearch.prototype = {
       }
 
       searchQuery = "?" + searchQuery;
+
+      let emailSearchQuery = "?(or(PrimaryEmail,bw,@V)(SecondEmail,bw,@V))";
+      emailSearchQuery = emailSearchQuery.replace(/@V/g, encodeURIComponent(fullString));
 
       // Now do the searching
       var allABs = this._abManager.directories;
@@ -312,7 +424,8 @@ nsAbAutoCompleteSearch.prototype = {
 
         if (dir instanceof Components.interfaces.nsIAbDirectory &&
             dir.useForAutocomplete(aSearchParam)) {
-          this._searchCards(searchQuery, fullString, firstWord, rest, dir, result);
+          this._searchCards(searchQuery, dir, result);
+          this._searchWithinEmails(emailSearchQuery, fullString, dir, result);
         }
       }
     }

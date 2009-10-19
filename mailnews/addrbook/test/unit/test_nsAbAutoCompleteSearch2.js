@@ -60,6 +60,11 @@ nsAbAutoCompleteResult.prototype = {
     return this._searchResults[aIndex].card;
   },
 
+  getEmailToUse: function getEmailToUse(aIndex) {
+    // For this test we can just use the primary email here.
+    return this._searchResults[aIndex].card.primaryEmail;
+  },
+
   // nsISupports
 
   QueryInterface: XPCOMUtils.generateQI([ACR, nsIAbAutoCompleteResult])

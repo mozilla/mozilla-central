@@ -45,10 +45,20 @@ interface nsIAbCard;
  * provide extra facilities for obtaining more details of the results of
  * an address book search.
  */
-[scriptable, uuid(968b6b4f-a93c-4db2-8d4c-0bc0396e08c6)]
+[scriptable, uuid(04cf19a9-6dd1-48c6-b3f8-38a1425660ba)]
 interface nsIAbAutoCompleteResult : nsIAutoCompleteResult {
   /**
    * Get the card from the result at the given index
    */
   nsIAbCard getCardAt(in long index);
+
+  /**
+   * Gets the email to use for the card within the result at the given index.
+   * This is the email that was matched against for the card where there are
+   * multiple email addresses on a card.
+   *
+   * @param index  Index of the autocomplete result to return the value for.
+   * @result       The email address to use from the card.
+   */
+  AString getEmailToUse(in long index);
 };
