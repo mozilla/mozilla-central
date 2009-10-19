@@ -351,12 +351,15 @@ nsresult nsMsgHdr::ParseReferences(const char *references)
 {
   const char *startNextRef = references;
   nsCAutoString resultReference;
+  nsCString messageId;
+  GetMessageId(getter_Copies(messageId));
 
   while (startNextRef && *startNextRef)
   {
     startNextRef = GetNextReference(startNextRef, resultReference,
                                     startNextRef == references);
-    if (!resultReference.IsEmpty())
+    // Don't add self-references.
+    if (!resultReference.IsEmpty() && !resultReference.Equals(messageId))
       m_references.AppendCString(resultReference);
   }
   m_numReferences = m_references.Count();
