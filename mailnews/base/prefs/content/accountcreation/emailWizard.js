@@ -773,6 +773,7 @@ EmailConfigWizard.prototype =
                         function(e) // failure
                         {
                           document.getElementById('create_button').disabled = false;
+                          me.editConfigDetails();
                         });
     else
       this.finish();
@@ -799,9 +800,8 @@ EmailConfigWizard.prototype =
       function(e) // failed
       {
         me.stopSpinner("config_unverifiable");
+        me._updateSpinner("username", true);
         me.setError('passworderror', 'user_pass_invalid');
-        alertPrompt(gStringsBundle.getString("error_creating_account"),
-                    gStringsBundle.getString("config_unverifiable"));
         if (errorCallback)
           errorCallback(e);
       });
@@ -1091,7 +1091,6 @@ EmailConfigWizard.prototype =
     if (config.incoming.username)
     {
       document.getElementById("username").value = config.incoming.username;
-      this._setIconAndTooltip("username", "strong", "");
     }
     else
     {
@@ -1264,7 +1263,6 @@ EmailConfigWizard.prototype =
   {
     this._showStatusTitle(false, actionStrName);
     if (which == "all") {
-      this._setIconAndTooltip("username", "hidden", "");
       this._setIconAndTooltip("incoming", "hidden", "");
       this._setIconAndTooltip("outgoing", "hidden", "");
     }
@@ -1276,7 +1274,6 @@ EmailConfigWizard.prototype =
   stopSpinner: function(actionStrName)
   {
     this._showStatusTitle(true, actionStrName);
-    this._updateSpinner("username", true);
     this._updateSpinner("incoming", true);
     this._updateSpinner("outgoing", true);
     gEmailWizardLogger.warn("all spinner stop " + actionStrName);
