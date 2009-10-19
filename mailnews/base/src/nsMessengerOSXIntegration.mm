@@ -219,6 +219,7 @@ nsMessengerOSXIntegration::nsMessengerOSXIntegration()
   mUnreadTotal = 0;
   mOnlyCountInboxes = PR_TRUE;
   mOnLeopardOrLater = OnLeopardOrLater();
+  mDoneInitialCount = PR_FALSE;
 }
 
 nsMessengerOSXIntegration::~nsMessengerOSXIntegration()
@@ -507,6 +508,15 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
   }
   else if (mTotalUnreadMessagesAtom == aProperty)
   {
+    // Insure we have already done an initial count so we don't double-count this change.
+    if (!mDoneInitialCount)
+    {
+      InitUnreadCount();
+      BadgeDockIcon();
+      // Return early, since the change below has just been counted.
+      return NS_OK;
+    }
+
     PRUint32 flags;
     nsresult rv = aFolder->GetFlags(&flags);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -917,6 +927,10 @@ nsMessengerOSXIntegration::GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCS
 void
 nsMessengerOSXIntegration::InitUnreadCount()
 {
+  // If we were forced to do a count early with an update, don't do it again on mail startup.
+  if (mDoneInitialCount)
+    return;
+
   // We either count just inboxes, or all folders
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -936,6 +950,8 @@ nsMessengerOSXIntegration::InitUnreadCount()
   PRUint32 count;
   rv = servers->Count(&count);
   NS_ENSURE_SUCCESS(rv, );
+
+  mUnreadTotal = 0;
 
   PRUint32 i;
   for (i = 0; i < count; i++)
@@ -964,6 +980,7 @@ nsMessengerOSXIntegration::InitUnreadCount()
     mUnreadTotal += numUnread;
     NS_ASSERTION(mUnreadTotal > -1, "Initial unread message count is less than zero.");
   }
+  mDoneInitialCount = PR_TRUE;
 }
 
 nsresult

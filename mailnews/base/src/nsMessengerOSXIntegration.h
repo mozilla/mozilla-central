@@ -92,6 +92,7 @@ private:
   PRInt32 mUnreadTotal;
   PRBool mOnlyCountInboxes;
   PRBool mOnLeopardOrLater;
+  PRBool mDoneInitialCount;
 };
 
 #endif // __nsMessengerOSXIntegration_h
