@@ -97,6 +97,7 @@ OBJDIR = os.path.abspath(os.path.realpath(options.objdir))
 AUTOMATION_DIR = os.path.join(OBJDIR, 'mozilla', 'build')
 sys.path.append(AUTOMATION_DIR)
 import automation
+from automationutils import checkForCrashes
 
 CWD = os.getcwd()
 SCRIPTDIR = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
@@ -192,8 +193,8 @@ for cmd in COMMANDS:
     binary = cmd['bin']
     args = cmd['args']
 
-  print >> sys.stderr, 'Running ' + cmd['name'] + ' in ' + CWD + ' : '
-  print >> sys.stderr, binary, args
+  print >> sys.stderr, 'INFO | runtest.py | Running ' + cmd['name'] + ' in ' + CWD + ' : '
+  print >> sys.stderr, 'INFO | runtest.py | ', binary, args
   envkeys = mailnewsEnv.keys()
   envkeys.sort()
   for envkey in envkeys:
@@ -207,5 +208,15 @@ for cmd in COMMANDS:
 
   status = proc.wait()
   if status != 0:
-    print >> sys.stderr, "Error: Exited with code %d during test run"%(status)
+    print >> sys.stderr, "TEST-UNEXPECTED-FAIL | runtest.py | Exited with code %d during test run"%(status)
+
+  if checkForCrashes(os.path.join(PROFILE, "minidumps"), automation.SYMBOLS_PATH, cmd['name']):
+    print >> sys.stderr, 'TinderboxPrint: ' + cmd['name'] + '<br/><em class="testfail">CRASH</em>'
+    status = -1
+
+  if status != 0:
     sys.exit(status)
+
+  print >> sys.stderr, 'INFO | runtest.py | ' + cmd['name'] + ' executed successfully.'
+
+print >> sys.stderr, 'INFO | runtest.py | All tests executed successfully.'
