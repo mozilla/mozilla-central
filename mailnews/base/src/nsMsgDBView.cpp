@@ -6177,7 +6177,8 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
           nsCString folderUri, msgUri;
           nsCString viewFolderUri;
           nsCOMPtr<nsIMsgFolder> curFolder = m_viewFolder ? m_viewFolder : m_folder;
-          curFolder->GetURI(viewFolderUri);
+          if (curFolder)
+            curFolder->GetURI(viewFolderUri);
           PRInt32 relPos = (motion == nsMsgNavigationType::forward)
             ? 1 : (m_currentlyDisplayedMsgKey != nsMsgKey_None) ? -1 : 0;
           PRInt32 curPos;
@@ -6186,7 +6187,8 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
           NS_ENSURE_SUCCESS(rv, rv);
           rv = messenger->GetFolderUriAtNavigatePos(relPos, folderUri);
           NS_ENSURE_SUCCESS(rv, rv);
-          if (folderUri.Equals(viewFolderUri))
+          // Empty viewFolderUri means we're in a search results view.
+          if (viewFolderUri.IsEmpty() || folderUri.Equals(viewFolderUri))
           {
             nsCOMPtr <nsIMsgDBHdr> msgHdr;
             rv = messenger->GetMsgUriAtNavigatePos(relPos, msgUri);
@@ -6285,6 +6287,7 @@ NS_IMETHODIMP nsMsgDBView::NavigateStatus(nsMsgNavigationTypeValue motion, PRBoo
         {
           PRUint32 curPos;
           PRUint32 historyCount;
+
           if (messenger)
           {
             messenger->GetNavigateHistory(&curPos, &historyCount, nsnull);
