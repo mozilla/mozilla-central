@@ -202,7 +202,7 @@ function replaceWithDefaultSmtpServer(deletedSmtpServerKey)
                      .getService(Ci.nsIMsgAccountManager);
   for each (var identity in fixIterator(am.allIdentities, Ci.nsIMsgIdentity)) {
     if (identity.smtpServerKey == deletedSmtpServerKey)
-      identity.smtpServerKey = smtpService.defaultServer.key;
+      identity.smtpServerKey = "";
   }
 
   // When accounts have already been loaded in the panel then the first
@@ -220,8 +220,7 @@ function replaceWithDefaultSmtpServer(deletedSmtpServerKey)
       var smtpServerKey = getAccountValue(account, accountValues, "identity",
                                           "smtpServerKey", null, false);
       if (smtpServerKey == deletedSmtpServerKey)
-        setAccountValue(accountValues, "identity", "smtpServerKey",
-                        smtpService.defaultServer.key);
+        setAccountValue(accountValues, "identity", "smtpServerKey", "");
     }
   }
 }

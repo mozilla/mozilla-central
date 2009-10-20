@@ -613,28 +613,26 @@ nsSmtpService::CreateSmtpServer(nsISmtpServer **aResult)
 
     loadSmtpServers();
     nsresult rv;
-    
     PRInt32 i = 0;
     PRBool unique = PR_FALSE;
 
     findServerByKeyEntry entry;
     nsCAutoString key;
-    
+
     do {
         key = "smtp";
         key.AppendInt(++i);
-        
         entry.key = key.get();
         entry.server = nsnull;
 
         mSmtpServers.EnumerateForwards(findServerByKey, (void *)&entry);
         if (!entry.server) unique=PR_TRUE;
-        
+
     } while (!unique);
 
     rv = createKeyedServer(key.get(), aResult);
-    saveKeyList();
-    return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
+    return saveKeyList();
 }
 
 

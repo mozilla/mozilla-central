@@ -55,17 +55,18 @@ function hostnameIsIllegal(hostname)
 
 function serverPageValidate() 
 {
-  /* if this is for a server that doesn't require a username, 
-   * check if the account exists. 
-   * for other types, we check after the user provides the username (see aw-login.js)
-   */
+  // If this is for a server that doesn't require a username, check if the
+  // account exists. For other types, we check after the user provides the
+  // username (see aw-login.js).
   var canAdvance = true;
 
   if (gOnMailServersPage) {
     var incomingServerName = document.getElementById("incomingServer").value;
     var smtpserver = document.getElementById("smtphostname").value;
+
+    var usingDefaultSMTP = document.getElementById("noSmtp").hidden;
     if ((!gHideIncoming && hostnameIsIllegal(incomingServerName)) ||
-        hostnameIsIllegal(smtpserver))
+        (!usingDefaultSMTP && hostnameIsIllegal(smtpserver)))
       canAdvance = false;
   }
   if (gOnNewsServerPage) {
@@ -182,9 +183,11 @@ function serverPageInit() {
 
   // Don't use the default smtp server if smtp server creation was explicitly
   // requested in isp rdf.
+  // If we're reusing the default smtp we should not set the smtp hostname.
   if (parent.smtpService.defaultServer && !smtpCreateNewServer) {
     smtpServer = parent.smtpService.defaultServer;
-    setPageData(pageData, "identity", "smtpServerKey", smtpServer.key);
+    reusingDefaultSmtp = true;
+    setPageData(pageData, "identity", "smtpServerKey", "");
   }
 
   var noSmtpBox = document.getElementById("noSmtp");
@@ -203,20 +206,16 @@ function serverPageInit() {
     var smtpTextBox = document.getElementById("smtphostname");
     if (smtpTextBox && smtpTextBox.value == "")
       smtpTextBox.value = pageData.server.smtphostname.value;
-    boxToShow = haveSmtpBox;
-    boxToHide = noSmtpBox;
   }
 
   if (smtpServer && smtpServer.hostname) {
     // we have a hostname, so modify and show the static text and 
     // store the value of the default smtp server in the textbox.
     modifyStaticText(smtpServer.hostname, "1")
-    var smtpTextBox = document.getElementById("smtphostname");
-    if (smtpTextBox && smtpTextBox.value == "")
-      smtpTextBox.value = smtpServer.hostname;
     boxToShow = haveSmtpBox;
     boxToHide = noSmtpBox;
-  } else {
+  }
+  else {
     // no default hostname yet
     boxToShow = noSmtpBox;
     boxToHide = haveSmtpBox;
@@ -227,7 +226,7 @@ function serverPageInit() {
 
   if (boxToShow)
     boxToShow.removeAttribute("hidden");
-  
+
   var type = parent.getCurrentServerType(pageData);
   gProtocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
                             .getService(Components.interfaces.nsIMsgProtocolInfo);

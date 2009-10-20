@@ -502,48 +502,28 @@ function finishAccount(account, accountData)
         if (destIdentity.attachSignature)
         {
             var sigFileName = accountData.signatureFileName;
-      
             var sigFile = gMailSession.getDataFilesDir("messenger");
             sigFile.append(sigFileName);
             destIdentity.signature = sigFile;
         }
 
-        // don't try to create an smtp server if we already have one.
-        if (!destIdentity.smtpServerKey)
+        if (accountData.smtp.hostname && !destIdentity.smtpServerKey)
         {
-            var smtpServer;
-        
-            /**
-             * Create a new smtp server if needed. If smtpCreateNewServer pref
-             * is set then createSmtpServer routine() will create one. Otherwise,
-             * default server is returned which is also set to create a new smtp server
-             * (via GetDefaultServer()) if no default server is found.
-             */
-            if (accountData.smtp.hostname != null)
-              smtpServer = smtpService.createSmtpServer();
-            else
-              smtpServer = smtpService.defaultServer;
+            // hostname + no key => create a new SMTP server.
 
-            // may not have a smtp server, see bug #138076
-            if (smtpServer) {
-              dump("Copying smtpServer (" + smtpServer + ") to accountData\n");
-              if (smtpService.defaultServer.hostname == null)
-                smtpService.defaultServer = smtpServer;
-
-              copyObjectToInterface(smtpServer, accountData.smtp, false);
-
-              // refer bug#141314
-              // since we clone the default smtpserver with the new account's username
-              // force every account to use the smtp server that was created or assigned to it in the
-              // case of isps using rdf files
-              try{
-                destIdentity.smtpServerKey = smtpServer.key;
-              }
-              catch(ex)
-              {
-                dump("There is no smtp server assigned to this account: Exception= "+ex+"\n");
-              }
+            var smtpServer = smtpService.createSmtpServer();
+            var isDefaultSmtpServer;
+            if (!smtpService.defaultServer.hostname) {
+              smtpService.defaultServer = smtpServer;
+              isDefaultSmtpServer = true;
             }
+
+            copyObjectToInterface(smtpServer, accountData.smtp, false);
+
+            // If it's the default server we created, make the identity use
+            // "Use Default" by default.
+            destIdentity.smtpServerKey =
+              (isDefaultSmtpServer) ? "" : smtpServer.key;
          }
      } // if the account has an identity...
 
