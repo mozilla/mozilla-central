@@ -841,6 +841,10 @@ nsMessenger::SaveAttachmentToFolder(const nsACString& contentType, const nsACStr
   ConvertAndSanitizeFileName(PromiseFlatCString(displayName).get(), unescapedFileName);
   rv = attachmentDestination->Append(unescapedFileName);
   NS_ENSURE_SUCCESS(rv, rv);
+#ifdef XP_MACOSX
+  rv = attachmentDestination->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
+  NS_ENSURE_SUCCESS(rv, rv);
+#endif
 
   rv = SaveAttachment(attachmentDestination, url, messageUri, contentType, nsnull, nsnull);
   attachmentDestination.swap(*aOutFile);
