@@ -220,7 +220,7 @@ function onLoad() {
 
     // Set initial values for datepickers in New Tasks dialog
     if (isToDo(item)) {
-        let initialDatesValue = getDefaultStartDate(args.initialStartDateValue).jsDate;
+        let initialDatesValue = args.initialStartDateValue.jsDate;
         setElementValue("completed-date-picker", initialDatesValue);
         setElementValue("todo-entrydate", initialDatesValue);
         setElementValue("todo-duedate", initialDatesValue);
@@ -2564,7 +2564,7 @@ function updateDateTime() {
               endTime.timezone = floating();
               setElementValue("todo-duedate", endTime.jsDate);
           } else {
-              startTime = getDefaultStartDate(window.initialStartDateValue);
+              startTime = window.initialStartDateValue;
               startTime.timezone = floating();
               endTime = startTime.clone();
 
@@ -2619,7 +2619,7 @@ function updateDateTime() {
                 endTime.timezone = floating();
                 setElementValue("todo-duedate", endTime.jsDate);
             } else {
-                startTime = getDefaultStartDate(window.initialStartDateValue);
+                startTime = window.initialStartDateValue
                 startTime.timezone = floating();
                 endTime = startTime.clone();
 

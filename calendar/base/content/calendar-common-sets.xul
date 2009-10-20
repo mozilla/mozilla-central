@@ -60,10 +60,12 @@
               events="calendar_commands"
               oncommandupdate="calendarController.updateCommands()">
     <command id="calendar_new_event_command" oncommand="goDoCommand('calendar_new_event_command')"/>
+    <command id="calendar_new_event_context_command" oncommand="goDoCommand('calendar_new_event_context_command')"/>
     <command id="calendar_modify_event_command" oncommand="goDoCommand('calendar_modify_event_command')"/>
     <command id="calendar_delete_event_command" oncommand="goDoCommand('calendar_delete_event_command')"/>
 
     <command id="calendar_new_todo_command" oncommand="goDoCommand('calendar_new_todo_command')"/>
+    <command id="calendar_new_todo_context_command" oncommand="goDoCommand('calendar_new_todo_context_command')"/>
     <command id="calendar_new_todo_todaypane_command" oncommand="goDoCommand('calendar_new_todo_todaypane_command')"/>
     <command id="calendar_modify_todo_command" oncommand="goDoCommand('calendar_modify_todo_command')"/>
     <command id="calendar_modify_todo_todaypane_command" oncommand="goDoCommand('calendar_modify_todo_todaypane_command')"/>
@@ -185,12 +187,12 @@
                 label="&calendar.context.newevent.label;"
                 accesskey="&calendar.context.newevent.accesskey;"
                 key="calendar-new-event-key"
-                observes="calendar_new_event_command"/>
+                observes="calendar_new_event_context_command"/>
       <menuitem id="calendar-item-context-menu-newtodo-menuitem"
                 label="&calendar.context.newtodo.label;"
                 accesskey="&calendar.context.newtodo.accesskey;"
                 key="calendar-new-todo-key"
-                observes="calendar_new_todo_command"/>
+                observes="calendar_new_todo_context_command"/>
       <menuseparator id="calendar-item-context-menuseparator-adddeletemodify"/>
       <menuitem id="calendar-item-context-menu-cut-menuitem"
                 label="&calendar.context.cutevent.label;"
@@ -243,12 +245,12 @@
     <popup id="calendar-view-context-menu">
       <menuitem id="calendar-view-context-menu-newevent"
                 label="&calendar.context.newevent.label;"
-                observes="calendar_new_event_command"
+                observes="calendar_new_event_context_command"
                 accesskey="&calendar.context.newevent.accesskey;"
                 key="calendar-new-event-key"/>
       <menuitem id="calendar-view-context-menu-newtodo"
                 label="&calendar.context.newtodo.label;"
-                observes="calendar_new_todo_command"
+                observes="calendar_new_todo_context_command"
                 accesskey="&calendar.context.newtodo.accesskey;"
                 key="calendar-new-todo-key"/>
       <!-- These labels are set dynamically, based on the current view -->

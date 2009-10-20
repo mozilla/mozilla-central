@@ -709,7 +709,7 @@
 
           onDoubleClick: function tTV_onDoubleClick(event) {
               if (event.button == 0) {
-                  let initialDate = this.binding.getInitialDate();
+                  let initialDate = getDefaultStartDate(this.binding.getInitialDate());
                   var col = {};
                   var item = this._getItemFromEvent(event, col);
                   if (item) {

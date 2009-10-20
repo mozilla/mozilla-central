@@ -536,6 +536,8 @@
       <field name="mShowDaysOutsideMonth">true</field>
       <field name="mShowFullMonth">true</field>
 
+      <field name="mClickedTime">null</field>
+
       <!-- other methods -->
       <method name="setAttribute">
         <parameter name="aAttr"/>
@@ -690,6 +692,15 @@
           }
           this.fireEvent("dayselect", realVal);
           return val;
+        ]]></setter>
+      </property>
+
+      <property name="selectedDateTime">
+        <getter><![CDATA[
+            return getDefaultStartDate(this.selectedDay);
+        ]]></getter>
+        <setter><![CDATA[
+            this.mClickedTime = val;
         ]]></setter>
       </property>
 

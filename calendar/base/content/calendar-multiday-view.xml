@@ -1851,6 +1851,7 @@
 
         ]]></body>
       </method>
+
       <method name="setDayStartEndMinutes">
         <parameter name="aDayStartMin"/>
         <parameter name="aDayEndMin"/>
@@ -1867,31 +1868,45 @@
           }
         ]]></body>
       </method>
+
+      <method name="getClickedDateTime">
+        <parameter name="event"/>
+        <body><![CDATA[
+          let newStart = this.date.clone();
+          newStart.isDate = false;
+          newStart.hour = 0;
+
+          const ROUND_INTERVAL = 15;
+
+          let interval = this.mPixPerMin * ROUND_INTERVAL;
+          let pos;
+          if (this.getAttribute("orient") == "vertical") {
+              pos = event.screenY - this.parentNode.boxObject.screenY;
+          } else {
+              pos = event.screenX - this.parentNode.boxObject.screenX;
+          }
+          newStart.minute = (Math.round(pos/interval) * ROUND_INTERVAL) + this.mStartMin;
+          event.stopPropagation();
+          return newStart;
+        ]]></body>
+      </method>
     </implementation>
 
     <handlers>
       <handler event="dblclick" button="0"><![CDATA[
         if (this.calendarView.controller) {
-            var newStart = this.date.clone();
-            newStart.isDate = false;
-            newStart.hour = 0;
-
-            const ROUND_INTERVAL = 15;
-
-            var interval = this.mPixPerMin * ROUND_INTERVAL;
-            var pos;
-            if (this.getAttribute("orient") == "vertical") {
-                pos = event.screenY - this.parentNode.boxObject.screenY;
-            } else {
-                pos = event.screenX - this.parentNode.boxObject.screenX;
-            }
-            newStart.minute = (Math.round(pos/interval) * ROUND_INTERVAL) + this.mStartMin;
+            let newStart = getClickedDateTime(event);
             this.calendarView.controller.createNewEvent(null, newStart, null);
         }
       ]]></handler>
 
       <handler event="click" button="0"><![CDATA[
         this.calendarView.setSelectedItems(0, []);
+      ]]></handler>
+
+      <handler event="click" button="2"><![CDATA[
+        let newStart = getClickedDateTime(event);
+        this.calendarView.selectedDateTime = newStart;
       ]]></handler>
 
       <!-- mouse down handler, in empty event column regions.  Starts sweeping out a new
@@ -2058,6 +2073,12 @@
       ]]></handler>
       <handler event="click" button="0"><![CDATA[
         this.calendarView.setSelectedItems(0, []);
+      ]]></handler>
+      <handler event="click" button="2"><![CDATA[
+        let newStart = this.calendarView.selectedDay.clone();
+        newStart.isDate = true;
+        this.calendarView.selectedDateTime = newStart;
+        event.stopPropagation();
       ]]></handler>
       <handler event="DOMMouseScroll"><![CDATA[
         if (this.getAttribute("orient") == "vertical") {
@@ -2453,6 +2474,7 @@
       <field name="mDayStartMin">0</field>
       <field name="mDayEndMin">0</field>
       <field name="mVisibleMinutes">9*60</field>
+      <field name="mClickedTime">null</field>
 
       <method name="flashAlarm">
         <parameter name="aAlarmItem"/>
@@ -2668,6 +2690,15 @@
            return dates;
         ]]></body>
       </method>
+
+      <property name="selectedDateTime">
+        <getter><![CDATA[
+            return this.mClickedTime;
+        ]]></getter>
+        <setter><![CDATA[
+            this.mClickedTime = val;
+        ]]></setter>
+      </property>
 
       <property name="selectedDay">
         <getter><![CDATA[
@@ -3496,6 +3527,9 @@
     </implementation>
 
     <handlers>
+      <handler event="click" button="2"><![CDATA[
+        this.selectedDateTime = null;
+      ]]></handler>
       <handler event="DOMMouseScroll" phase="bubbling"><![CDATA[
         if (!event.ctrlKey &&
             !event.shiftKey &&

@@ -284,7 +284,7 @@ function openEventDialog(calendarItem, calendar, mode, callback, job, initialDat
     args.mode = mode;
     args.onOk = callback;
     args.job = job;
-    args.initialStartDateValue = initialDate;
+    args.initialStartDateValue = (initialDate || getDefaultStartDate());
 
     // this will be called if file->new has been selected from within the dialog
     args.onNewEvent = function(calendar) {
