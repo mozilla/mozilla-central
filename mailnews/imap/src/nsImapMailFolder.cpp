@@ -4407,6 +4407,8 @@ nsImapMailFolder::ParseAdoptedMsgLine(const char *adoptedMessageLine,
   if (!m_offlineHeader)
   {
     rv = GetMessageHeader(uidOfMessage, getter_AddRefs(m_offlineHeader));
+    if (NS_SUCCEEDED(rv) && !m_offlineHeader)
+      rv = NS_ERROR_UNEXPECTED;
     NS_ENSURE_SUCCESS(rv, rv);
     rv = StartNewOfflineMessage();
     m_offlineHeader->SetMessageSize(aMsgSize);

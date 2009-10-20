@@ -1658,7 +1658,7 @@ NS_IMETHODIMP nsMsgDatabase::GetMsgHdrForKey(nsMsgKey key, nsIMsgDBHdr **pmsgHdr
   NS_ASSERTION(m_folder, "folder should be set");
 #endif
 
-  if (!pmsgHdr || !m_mdbAllMsgHeadersTable)
+  if (!pmsgHdr || !m_mdbAllMsgHeadersTable || !m_mdbStore)
     return NS_ERROR_NULL_POINTER;
 
   *pmsgHdr = NULL;
@@ -1669,7 +1669,7 @@ NS_IMETHODIMP nsMsgDatabase::GetMsgHdrForKey(nsMsgKey key, nsIMsgDBHdr **pmsgHdr
   rowObjectId.mOid_Id = key;
   rowObjectId.mOid_Scope = m_hdrRowScopeToken;
   err = m_mdbAllMsgHeadersTable->HasOid(GetEnv(), &rowObjectId, &hasOid);
-  if (err == NS_OK && m_mdbStore /* && hasOid */)
+  if (err == NS_OK /* && hasOid */)
   {
     nsIMdbRow *hdrRow;
     err = m_mdbStore->GetRow(GetEnv(), &rowObjectId, &hdrRow);
