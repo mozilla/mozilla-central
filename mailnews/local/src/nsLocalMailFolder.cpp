@@ -2864,6 +2864,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::StartMessage()
 // just finished the current message.
 NS_IMETHODIMP nsMsgLocalMailFolder::EndMessage(nsMsgKey key)
 {
+  NS_ENSURE_ARG_POINTER(mCopyState);
+
   nsRefPtr<nsLocalMoveCopyMsgTxn> localUndoTxn = mCopyState->m_undoMsgTxn;
   nsCOMPtr<nsIMsgWindow> msgWindow;
   nsresult rv;
