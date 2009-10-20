@@ -1296,16 +1296,37 @@ BatchMessageMover.prototype = {
     {
       let msgHdr = selectedMessages[i];
 
-      let rootFolder = msgHdr.folder.server.rootFolder;
+      let server = msgHdr.folder.server;
+      let rootFolder = server.rootFolder;
 
       let msgDate = new Date(msgHdr.date / 1000);  // convert date to JS date object
       let msgYear = msgDate.getFullYear().toString();
       let monthFolderName = msgDate.toLocaleFormat("%Y-%m")
-      let dstFolderName = monthFolderName;
+      let archiveFolderUri;
 
-      let copyBatchKey = msgHdr.folder.URI + '\000' + dstFolderName;
-      if (! (copyBatchKey in this._batches)) {
-        this._batches[copyBatchKey] = [msgHdr.folder, msgYear, dstFolderName];
+      if (server.type == 'rss') {
+        // RSS servers don't have an identity so we special case the archives URI.
+        archiveFolderUri =  server.serverURI + "/Archives";
+      }
+      else {
+        let identity = getIdentityForServer(server);
+        // Local Folders server doesn't have an identity, so if we don't
+        // get an identity from the server, figure it out from the message.
+        if (!identity)
+          identity = getIdentityForHeader(msgHdr);
+        archiveFolderUri = identity.archiveFolder;
+      }
+      let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      let granularity = archiveFolder.server.archiveGranularity;
+      
+      let copyBatchKey = msgHdr.folder.URI + '\000';
+      if (granularity >=  Components.interfaces.nsIMsgIncomingServer
+                                    .perMonthArchiveFolders)
+        copyBatchKey += monthFolderName;
+
+       if (! (copyBatchKey in this._batches)) {
+        this._batches[copyBatchKey] = [msgHdr.folder, archiveFolderUri,
+                                       granularity, msgYear, monthFolderName];
       }
       this._batches[copyBatchKey].push(msgHdr);
     }
@@ -1321,35 +1342,22 @@ BatchMessageMover.prototype = {
       this._currentKey = key;
       let batch = this._batches[key];
       let srcFolder = batch[0];
-      let msgYear = batch[1];
-      let msgMonth = batch[2];
-      let msgs = batch.slice(3,batch.length);
+      let archiveFolderUri = batch[1];
+      let granularity = batch[2];
+      let msgYear = batch[3];
+      let msgMonth = batch[4];
+      let msgs = batch.slice(5, batch.length);
       let subFolder, dstFolder;
       let Ci = Components.interfaces;
-      let identity;
-      let archiveFolderUri;
-      if (srcFolder.server.type == 'rss') {
-        // RSS servers don't have an identity so we special case the archives URI.
-        archiveFolderUri =  srcFolder.server.serverURI + "/Archives";
-      }
-      else {
-        identity = getIdentityForServer(srcFolder.server);
-        // Local Folders server doesn't have an identity, so if we don't
-        // get an identity from the server, figure it out from the message.
-        if (!identity)
-          identity = getIdentityForHeader(msgs[0]);
-        archiveFolderUri = identity.archiveFolder;
-      }
+
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
-      let granularity = archiveFolder.server.archiveGranularity;
       let isImap = archiveFolder.server.type == "imap";
       if (!archiveFolder.parent) {
         // make sure there's not an other archive folder with
         // a case-insensitive (ci) matching name. If so, we're going
         // to use that folder instead.
-        let ciArchive = null;
-        ciArchive = archiveFolder.server.rootFolder
-                     .getChildWithURI(archiveFolderUri, true, true);
+        let ciArchive = archiveFolder.server.rootFolder
+                        .getChildWithURI(archiveFolderUri, true, true);
         if (ciArchive)
         {
           // Found an archive folder with a different case. Switch
@@ -1357,6 +1365,11 @@ BatchMessageMover.prototype = {
           // make it point to the new folder.
           archiveFolder = ciArchive;
           archiveFolderUri = ciArchive.URI;
+          let identity = getIdentityForServer(srcFolder.server);
+          // Local Folders server doesn't have an identity, so if we don't
+          // get an identity from the server, figure it out from the message.
+          if (!identity)
+            identity = getIdentityForHeader(msgs[0]);
           if (identity)
             identity.archiveFolder = archiveFolderUri;
         }
