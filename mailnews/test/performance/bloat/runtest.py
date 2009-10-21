@@ -99,6 +99,8 @@ sys.path.append(AUTOMATION_DIR)
 import automation
 from automationutils import checkForCrashes
 
+SYMBOLS_PATH = os.path.abspath(os.path.join(AUTOMATION_DIR, automation.SYMBOLS_PATH))
+
 CWD = os.getcwd()
 SCRIPTDIR = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
 
@@ -210,7 +212,7 @@ for cmd in COMMANDS:
   if status != 0:
     print >> sys.stderr, "TEST-UNEXPECTED-FAIL | runtest.py | Exited with code %d during test run"%(status)
 
-  if checkForCrashes(os.path.join(PROFILE, "minidumps"), automation.SYMBOLS_PATH, cmd['name']):
+  if checkForCrashes(os.path.join(PROFILE, "minidumps"), SYMBOLS_PATH, cmd['name']):
     print >> sys.stderr, 'TinderboxPrint: ' + cmd['name'] + '<br/><em class="testfail">CRASH</em>'
     status = -1
 
