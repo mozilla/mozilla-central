@@ -810,6 +810,17 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
     if (!aSize && localFolder)
       (void) localFolder->DeleteDownloadMsg(hdr, &doSelect);
 
+    // If a header already exists for this message (for example, when
+    // getting a complete message when a partial exists), then update the new
+    // header from the old.
+    if (!m_origMessageUri.IsEmpty() && localFolder)
+    {
+      nsCOMPtr <nsIMsgDBHdr> oldMsgHdr;
+      rv = GetMsgDBHdrFromURI(m_origMessageUri.get(), getter_AddRefs(oldMsgHdr));
+      if (NS_SUCCEEDED(rv) && oldMsgHdr)
+        localFolder->UpdateNewMsgHdr(oldMsgHdr, hdr);
+    }
+
     if (m_downloadingToTempFile)
     {
       PRBool moved = PR_FALSE;
@@ -1032,5 +1043,19 @@ nsPop3Sink::SetBaseMessageUri(const char *baseMessageUri)
 {
   NS_ENSURE_ARG_POINTER(baseMessageUri);
   m_baseMessageUri = baseMessageUri;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsPop3Sink::GetOrigMessageUri(nsACString& aOrigMessageUri)
+{
+  aOrigMessageUri.Assign(m_origMessageUri);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsPop3Sink::SetOrigMessageUri(const nsACString& aOrigMessageUri)
+{
+  m_origMessageUri.Assign(aOrigMessageUri);
   return NS_OK;
 }

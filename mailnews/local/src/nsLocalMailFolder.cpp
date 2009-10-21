@@ -3165,6 +3165,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteDownloadMsg(nsIMsgDBHdr *aMsgHdr, PRBo
         rv = GetDatabase();
         if (!mDatabase)
           return rv;
+
+        UpdateNewMsgHdr(msgDBHdr, aMsgHdr);
+
 #if DOWNLOAD_NOTIFY_STYLE == DOWNLOAD_NOTIFY_LAST
         msgDBHdr->GetMessageKey(&mDownloadOldKey);
         msgDBHdr->GetThreadParent(&mDownloadOldParent);
@@ -3334,7 +3337,12 @@ nsMsgLocalMailFolder::OnStartRunningUrl(nsIURI * aUrl)
       nsCOMPtr<nsIPop3Sink> popsink;
       rv = popurl->GetPop3Sink(getter_AddRefs(popsink));
       if (NS_SUCCEEDED(rv))
+      {
         popsink->SetBaseMessageUri(mBaseMessageURI.get());
+        nsCString messageuri;
+        popurl->GetMessageUri(getter_Copies(messageuri));
+        popsink->SetOrigMessageUri(messageuri);
+      }
     }
   }
   return nsMsgDBFolder::OnStartRunningUrl(aUrl);
@@ -4064,4 +4072,26 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
 NS_IMETHODIMP nsMsgLocalMailFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords)
 {
   return ChangeKeywordForMessages(aMessages, aKeywords, PR_FALSE /* remove */);
+}
+
+NS_IMETHODIMP nsMsgLocalMailFolder::UpdateNewMsgHdr(nsIMsgDBHdr* aOldHdr, nsIMsgDBHdr* aNewHdr)
+{
+  NS_ENSURE_ARG_POINTER(aOldHdr);
+  NS_ENSURE_ARG_POINTER(aNewHdr);
+  // Preserve any properties set on the message.
+  CopyPropertiesToMsgHdr(aNewHdr, aOldHdr, PR_TRUE);
+
+  // Preserve keywords manually, since they are set as don't preserve.
+  nsCString keywordString;
+  aOldHdr->GetStringProperty("keywords", getter_Copies(keywordString));
+  aNewHdr->SetStringProperty("keywords", keywordString.get());
+
+  // If the junk score was set by the plugin, remove junkscore to force a new
+  // junk analysis, this time using the body.
+  nsCString junkScoreOrigin;
+  aOldHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
+  if (junkScoreOrigin.EqualsLiteral("plugin"))
+    aNewHdr->SetStringProperty("junkscore", "");
+
+  return NS_OK;
 }

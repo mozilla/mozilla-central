@@ -92,6 +92,7 @@ protected:
     nsCOMPtr <nsILocalFile> m_tmpDownloadFile;
     nsCString m_messageUri;
     nsCString m_baseMessageUri;
+    nsCString m_origMessageUri;
     nsCString m_accountKey;
     nsVoidArray m_partialMsgsArray;
 };

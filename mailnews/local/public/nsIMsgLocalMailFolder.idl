@@ -56,7 +56,7 @@ interface nsIMsgCopyServiceListener;
 struct nsLocalFolderScanState;
 %}
 
-[scriptable, uuid(dd95a709-3996-4573-84a8-aa936d0dc00c)]
+[scriptable, uuid(6AA1A91E-F51A-4a94-A5F7-90489D1DE826)]
 interface nsIMsgLocalMailFolder : nsISupports {
   /**
    * set the default flags on the subfolders of this folder, such as
@@ -105,4 +105,13 @@ interface nsIMsgLocalMailFolder : nsISupports {
   [noscript] void getUidlFromFolder(in nsLocalFolderScanState aState, in nsIMsgDBHdr aMsgHdr);
 
   boolean warnIfLocalFileTooBig(in nsIMsgWindow aWindow);
+
+  /**
+   * Update properties on a new header from an old header, for cases where
+   * a partial message will be replaced with a full message.
+   *
+   * @param   aOldHdr  message header used as properties source
+   * @param   aNewHdr  message header used as properties destination
+   */
+  void updateNewMsgHdr(in nsIMsgDBHdr aOldHdr, in nsIMsgDBHdr aNewHdr);
 };

@@ -41,7 +41,7 @@
 
 interface nsIURI;
 
-[scriptable, uuid(EC54D490-BB00-11D2-AB5E-00805F8AC968)]
+[scriptable, uuid(29F76AC4-51FF-4081-A268-B43CACDF4BFF)]
 interface nsIPop3Sink : nsISupports {
 
   attribute boolean userAuthenticated;
@@ -49,6 +49,9 @@ interface nsIPop3Sink : nsISupports {
   attribute boolean buildMessageUri;
   attribute string messageUri;
   attribute string baseMessageUri;
+
+  /// message uri for header-only message version
+  attribute ACString origMessageUri;
 
   boolean BeginMailDelivery(in boolean uidlDownload, in nsIMsgWindow msgWindow);
   void endMailDelivery(in nsIPop3Protocol protocol);
