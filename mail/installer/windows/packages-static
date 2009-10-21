@@ -82,6 +82,7 @@ bin\isp\*
 bin\components\aboutRights.js
 bin\components\activity.xpt
 bin\components\addrbook.xpt
+bin\components\fts3tok.xpt
 bin\components\mime.xpt
 bin\components\steel.xpt
 bin\components\msgbase.xpt

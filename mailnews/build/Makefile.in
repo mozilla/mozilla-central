@@ -69,6 +69,7 @@ REQUIRES	= xpcom \
 		  dom \
 		  docshell \
 		  editor \
+		  fts3tok \
 		  gfx \
 		  intl \
 	     	  locale \
@@ -89,6 +90,7 @@ REQUIRES	= xpcom \
 		  rdf \
 		  rdfutil \
 		  string \
+		  sqlite3 \
 		  txmgr \
 		  widget \
 		  webbrwsr \
@@ -127,6 +129,7 @@ SHARED_LIBRARY_LIBS = \
 	        ../mime/src/$(LIB_PREFIX)mime_s.$(LIB_SUFFIX) \
 	        ../mime/emitters/src/$(LIB_PREFIX)emitterutil_s.$(LIB_SUFFIX) \
 	        ../extensions/bayesian-spam-filter/src/$(LIB_PREFIX)bayesflt_s.$(LIB_SUFFIX) \
+	        ../extensions/fts3/src/$(LIB_PREFIX)fts3tok_s.$(LIB_SUFFIX) \
 	        ../extensions/mailviews/src/$(LIB_PREFIX)mailview_s.$(LIB_SUFFIX) \
                 ../extensions/mdn/src/$(LIB_PREFIX)msgmdn_s.$(LIB_SUFFIX) \
                 ../mime/cthandlers/vcard/$(LIB_PREFIX)vcard_s.$(LIB_SUFFIX) \
@@ -172,6 +175,7 @@ LOCAL_INCLUDES = -I$(srcdir) \
                  -I$(srcdir)/../mime/emitters/src \
                  -I$(srcdir)/../news/src \
                  -I$(srcdir)/../extensions/bayesian-spam-filter/src \
+                 -I$(srcdir)/../extensions/fts3/src \
                  -I$(srcdir)/../extensions/mailviews/src \
                  -I$(srcdir)/../extensions/mdn/src \
                  $(NULL)

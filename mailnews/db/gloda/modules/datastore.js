@@ -508,7 +508,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 13,
+  _schemaVersion: 14,
   _schema: {
     tables: {
 
@@ -742,6 +742,11 @@ var GlodaDatastore = {
         // see _createDB...
         dbConnection.executeSimpleSQL("PRAGMA cache_size = 8192");
 
+        // Register custom tokenizer to index all language text
+        var tokenizer = Cc["@mozilla.org/messenger/fts3tokenizer;1"].
+                          getService(Ci.nsIFts3Tokenizer);
+        tokenizer.registerTokenizer(dbConnection);
+
         if (dbConnection.schemaVersion != this._schemaVersion) {
           this._log.debug("Need to migrate database.  (DB version: " +
             dbConnection.schemaVersion + " desired version: " +
@@ -863,6 +868,10 @@ var GlodaDatastore = {
     //  get this large, then the memory does not get used.
     // Do not forget to update the code in _init if you change this value.
     dbConnection.executeSimpleSQL("PRAGMA cache_size = 8192");
+    // Register custom tokenizer to index all language text
+    var tokenizer = Cc["@mozilla.org/messenger/fts3tokenizer;1"].
+                      getService(Ci.nsIFts3Tokenizer);
+    tokenizer.registerTokenizer(dbConnection);
 
     dbConnection.beginTransaction();
     try {
@@ -888,7 +897,7 @@ var GlodaDatastore = {
     // - Create the fulltext table if applicable
     if (aTableDef.fulltextColumns) {
       let createFulltextSQL = "CREATE VIRTUAL TABLE " + aTableName + "Text" +
-        " USING fts3(tokenize porter, " +
+        " USING fts3(tokenize mozporter, " +
         [(coldef[0] + " " + coldef[1]) for each
          ([i, coldef] in Iterator(aTableDef.fulltextColumns))].join(", ") +
         ")";
@@ -994,7 +1003,9 @@ var GlodaDatastore = {
     // - altered toMe and ccMe to just be toMe
     // - exposes bcc to cc-related attributes
     // - MIME type DB schema overhaul
-    if (aCurVersion < 14) {
+    // version 15:
+    // - change tokenizer to mozporter to support CJK
+    if (aCurVersion < 15) {
       aDBConnection.close();
       aDBFile.remove(false);
       this._log.warn("Global database has been purged due to schema change.");

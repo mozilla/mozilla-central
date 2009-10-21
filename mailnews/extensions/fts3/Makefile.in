@@ -15,11 +15,12 @@
 # The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+# Mozilla Japan.
+# Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Makoto Kato <m_kato@ga2.so-net.ne.jp>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,23 +36,20 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../..
+DEPTH		= ../../..
 topsrcdir	= @top_srcdir@
+
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-# these extensions are not optional
-PARALLEL_DIRS	= mdn mailviews bayesian-spam-filter offline-startup newsblog fts3
+MODULE		= fts3tok
 
-ifdef MOZ_PSM
-BUILD_SMIME=1
-endif
+PARALLEL_DIRS	= public src
 
-ifdef BUILD_SMIME
-PARALLEL_DIRS	+= smime
+ifndef MOZ_STATIC_MAIL_BUILD
+DIRS	= build
 endif
 
 include $(topsrcdir)/config/rules.mk
-

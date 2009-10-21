@@ -254,11 +254,41 @@ GlodaMsgSearcher.prototype = {
       stashColumns: [14]
     });
 
+    // CJK character is indexed by bi-gram, so we need split it if CJK
+    let querywords = new Array();
+    this.fulltextTerms.forEach(function (term) {
+        let lastpos = 0;
+        let code;
+        for (var i = 1; i < term.length - 1; i++) {
+            code = term.charCodeAt(i);
+            // not CJK. Don't use bi-gram
+            if (code < 0x2000 || (code >= 0xa000 && c < 0xac00))
+                continue;
+
+            // bi-gram search text
+            querywords.push(term.substring(lastpos, i+1));
+            lastpos = i;
+        }
+
+        if (term.length) {
+            let querylast = term.substring(lastpos);
+            if (querylast.length == 1) {
+               code = querylast.charCodeAt(0);
+               if (code >= 0x2000 && !(code >= 0xa000 && code < 0xac00))
+               // Users uses just 1 character as search string.
+               // We have to consider it  for CJK (there is 1 character word in CJK)
+               querylast += "*";
+            }
+            querywords.push(querylast);
+        }
+    });
+
     let fulltextQueryString;
+
     if (this.andTerms)
-      fulltextQueryString = '"' + this.fulltextTerms.join('" "') + '"';
+      fulltextQueryString = '"' + querywords.join('" "') + '"';
     else
-      fulltextQueryString = '"' + this.fulltextTerms.join('" OR "') + '"';
+      fulltextQueryString = '"' + querywords.join('" OR "') + '"';
 
     query.fulltextMatches(fulltextQueryString);
     query.orderBy(this.sortBy);

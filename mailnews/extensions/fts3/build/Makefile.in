@@ -15,11 +15,12 @@
 # The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+# Mozilla Japan.
+# Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Makoto Kato <m_kato@ga2.so-net.ne.jp>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,23 +36,57 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../..
+DEPTH		= ../../../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-# these extensions are not optional
-PARALLEL_DIRS	= mdn mailviews bayesian-spam-filter offline-startup newsblog fts3
-
-ifdef MOZ_PSM
-BUILD_SMIME=1
+MODULE		= fts3tok
+LIBRARY_NAME	= fts3tok
+META_COMPONENT = mail
+EXPORT_LIBRARY = 1
+SHORT_LIBNAME	= fts3tok
+IS_COMPONENT	= 1
+MODULE_NAME	= nsFts3TokenizerModule
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
+MOZILLA_INTERNAL_API = 1
 endif
 
-ifdef BUILD_SMIME
-PARALLEL_DIRS	+= smime
+REQUIRES	= xpcom \
+		  string \
+		  sqlite3 \
+		  storage \
+		  $(NULL)
+
+ifeq ($(USE_SHORT_LIBNAME),1)
+EXTRA_DSO_LIBS = msgbsutl
+else
+EXTRA_DSO_LIBS = msgbaseutil
+endif
+
+CPPSRCS		= nsFts3TokenizerFactory.cpp
+
+LOCAL_INCLUDES += -I$(srcdir)/../src
+
+SHARED_LIBRARY_LIBS = \
+		../src/$(LIB_PREFIX)fts3tok_s.$(LIB_SUFFIX) \
+		$(NULL)
+
+ifdef MOZILLA_INTERNAL_API
+EXTRA_DSO_LDOPTS = \
+		$(LIBS_DIR) \
+		$(EXTRA_DSO_LIBS) \
+		$(MOZ_COMPONENT_LIBS) \
+		$(NULL)
+else
+EXTRA_DSO_LDOPTS = \
+	$(LIBS_DIR) \
+	$(EXTRA_DSO_LIBS) \
+	$(XPCOM_GLUE_LDOPTS) \
+	$(NSPR_LIBS) \
+	$(NULL)
 endif
 
 include $(topsrcdir)/config/rules.mk
-

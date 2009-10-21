@@ -26,6 +26,8 @@ var intlPhrases = [
   }
 ];
 
+var resultList = [];
+
 /**
  * For each phrase in the intlPhrases array (we are parameterized over it using
  *  parameterizeTest in the 'tests' declaration), create a message where the
@@ -51,6 +53,7 @@ function test_index(aPhrase) {
     });
 
     messages.push(smsg);
+    resultList.push(smsg);
   }
 
   indexMessages(messages, verify_index, next_test);
@@ -76,10 +79,20 @@ function verify_index(smsg, gmsg) {
   do_check_eq(actual, attachmentName);
 }
 
+function test_intl_fulltextsearch()
+{
+  var query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
+  /* CJK text is bi-gram */
+  query.bodyMatches('\u81ea\u52d5');
+  queryExpect(query, resultList);
+}
+
+
 /* ===== Driver ===== */
 
 var tests = [
   parameterizeTest(test_index, intlPhrases),
+  test_intl_fulltextsearch,
 ];
 
 function run_test() {

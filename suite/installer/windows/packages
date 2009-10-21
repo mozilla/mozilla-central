@@ -532,6 +532,7 @@ bin\components\msgsmime.dll
 
 ; component xpts
 bin\components\addrbook.xpt
+bin\components\fts3tok.xpt
 bin\components\import.xpt
 bin\components\impComm4xMail.xpt
 bin\components\mailview.xpt

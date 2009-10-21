@@ -1,0 +1,3 @@
+fts3_porter.c code is from SQLite3.
+
+This customized tokenizer "mozporter" by Mozilla supports CJK indexing using bi-gram. So you have to use bi-gram search string if you wanto to search CJK character.
