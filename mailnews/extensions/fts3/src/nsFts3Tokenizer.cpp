@@ -72,12 +72,14 @@ nsFts3Tokenizer::RegisterTokenizer(mozIStorageConnection *connection)
     if (!module)
         return NS_ERROR_FAILURE;
 
-    rv = selectStatement->BindStringParameter(0, NS_LITERAL_STRING("mozporter"));
-    rv = selectStatement->BindBlobParameter(1, (PRUint8*)&module, sizeof(module));
+    rv = selectStatement->BindStringParameter(0,
+                                              NS_LITERAL_STRING("mozporter"));
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = selectStatement->BindBlobParameter(1,
+                                            (PRUint8*)&module,
+                                            sizeof(module));
     NS_ENSURE_SUCCESS(rv, rv);
 
     PRBool hasMore;
-    rv = selectStatement->ExecuteStep(&hasMore);
-
-    return rv;
+    return selectStatement->ExecuteStep(&hasMore);
 }

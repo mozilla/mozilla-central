@@ -274,22 +274,15 @@ GlodaMsgSearcher.prototype = {
       if (iTerm)
         fulltextQueryString += this.andTerms ? " " : " OR ";
 
-      let magicWild = false;
-      // Check if this is a single-character CJK search query.  If so, we want
-      //  to add a wildcard.
-      if (term.length == 1) {
-        let code = term.charCodeAt(0);
-        // Our tokenizer treats anything at/above 0x2000 as CJK for now.
-        if (code >= 0x2000)
-          magicWild = true;
-      }
-
       // Put our term in quotes.  This is needed for the tokenizer to be able
       //  to do useful things.  The exception is people clever enough to use
       //  NEAR.
       if (/^NEAR(\/\d+)?$/.test(term))
         fulltextQueryString += term;
-      else if (magicWild)
+      // Check if this is a single-character CJK search query.  If so, we want
+      //  to add a wildcard.
+      // Our tokenizer treats anything at/above 0x2000 as CJK for now.
+      else if (term.length == 1 && term.charCodeAt(0) >= 0x2000)
         fulltextQueryString += term + "*";
       else
         fulltextQueryString += '"' + term + '"';

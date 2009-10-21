@@ -508,7 +508,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 14,
+  _schemaVersion: 13,
   _schema: {
     tables: {
 
@@ -997,14 +997,17 @@ var GlodaDatastore = {
     // - we are adding a new fulltext index column. blow away!
     // - note that I screwed up and failed to mark the schema change; apparently
     //   no database will claim to be version 13...
-    // version 14:
+    // version 14ish, still labeled 13?:
     // - new attributes: forwarded, repliedTo, bcc, recipients
     // - altered fromMeTo and fromMeCc to fromMe
     // - altered toMe and ccMe to just be toMe
     // - exposes bcc to cc-related attributes
     // - MIME type DB schema overhaul
-    // version 15:
+    // version 15ish, still labeled 13:
     // - change tokenizer to mozporter to support CJK
+    // (We are slip-streaming this so that only people who want to test CJK
+    //  have to test it.  We will properly bump the schema revision when the
+    //  gloda correctness patch lands.)
     if (aCurVersion < 15) {
       aDBConnection.close();
       aDBFile.remove(false);
