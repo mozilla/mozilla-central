@@ -957,13 +957,19 @@
           this.remainderList.childElementCount > 1;
 
         labelNode.setAttribute("state", "some");
+
+        // We used to use jQuery here, but it turns out that it has issues with
+        // XML namespaces and stringification, so we now resort to poking the
+        // nodes directly.
         if (remListVisible != remListShouldBeVisible)
-          showNodes = $([labelNode, this.remainderLabel]);
+          showNodes = [labelNode, this.remainderLabel];
         else
-          showNodes = $(labelNode);
-        showNodes
-          .hide()
-          .slideDown("fast", aCallback);
+          showNodes = [labelNode];
+
+        for each (let [, node] in Iterator(showNodes))
+          node.style.display = "block";
+
+        aCallback();
       ]]></body>
     </method>
     <method name="_flyBarAway">
