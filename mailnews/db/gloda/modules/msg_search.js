@@ -213,9 +213,23 @@ GlodaMsgSearcher.prototype = {
    */
   retrievalLimit: 400,
 
+  /**
+   * Parse the string into terms/phrases by finding matching double-quotes.
+   */
   parseSearchString: function GlodaMsgSearcher_parseSearchString(aSearchString) {
     aSearchString = aSearchString.trim();
     let terms = [];
+
+    /*
+     * Add the term as long as the trim on the way in didn't obliterate it.
+     *
+     * In the future this might have other helper logic; it did once before.
+     */
+    function addTerm(aTerm) {
+      if (aTerm)
+        terms.push(aTerm);
+    }
+
     while (aSearchString) {
       if (aSearchString[0] == '"') {
         let endIndex = aSearchString.indexOf(aSearchString[0], 1);
@@ -225,18 +239,18 @@ GlodaMsgSearcher.prototype = {
           continue;
         }
 
-        terms.push(aSearchString.substring(1, endIndex).trim());
+        addTerm(aSearchString.substring(1, endIndex).trim());
         aSearchString = aSearchString.substring(endIndex + 1);
         continue;
       }
 
       let spaceIndex = aSearchString.indexOf(" ");
       if (spaceIndex == -1) {
-        terms.push(aSearchString);
+        addTerm(aSearchString);
         break;
       }
 
-      terms.push(aSearchString.substring(0, spaceIndex));
+      addTerm(aSearchString.substring(0, spaceIndex));
       aSearchString = aSearchString.substring(spaceIndex+1);
     }
 
@@ -254,41 +268,33 @@ GlodaMsgSearcher.prototype = {
       stashColumns: [14]
     });
 
-    // CJK character is indexed by bi-gram, so we need split it if CJK
-    let querywords = new Array();
-    this.fulltextTerms.forEach(function (term) {
-        let lastpos = 0;
-        let code;
-        for (var i = 1; i < term.length - 1; i++) {
-            code = term.charCodeAt(i);
-            // not CJK. Don't use bi-gram
-            if (code < 0x2000 || (code >= 0xa000 && c < 0xac00))
-                continue;
+    let fulltextQueryString = "";
 
-            // bi-gram search text
-            querywords.push(term.substring(lastpos, i+1));
-            lastpos = i;
-        }
+    for each (let [iTerm, term] in Iterator(this.fulltextTerms)) {
+      if (iTerm)
+        fulltextQueryString += this.andTerms ? " " : " OR ";
 
-        if (term.length) {
-            let querylast = term.substring(lastpos);
-            if (querylast.length == 1) {
-               code = querylast.charCodeAt(0);
-               if (code >= 0x2000 && !(code >= 0xa000 && code < 0xac00))
-               // Users uses just 1 character as search string.
-               // We have to consider it  for CJK (there is 1 character word in CJK)
-               querylast += "*";
-            }
-            querywords.push(querylast);
-        }
-    });
+      let magicWild = false;
+      // Check if this is a single-character CJK search query.  If so, we want
+      //  to add a wildcard.
+      if (term.length == 1) {
+        let code = term.charCodeAt(0);
+        // Our tokenizer treats anything at/above 0x2000 as CJK for now.
+        if (code >= 0x2000)
+          magicWild = true;
+      }
 
-    let fulltextQueryString;
+      // Put our term in quotes.  This is needed for the tokenizer to be able
+      //  to do useful things.  The exception is people clever enough to use
+      //  NEAR.
+      if (/^NEAR(\/\d+)?$/.test(term))
+        fulltextQueryString += term;
+      else if (magicWild)
+        fulltextQueryString += term + "*";
+      else
+        fulltextQueryString += '"' + term + '"';
 
-    if (this.andTerms)
-      fulltextQueryString = '"' + querywords.join('" "') + '"';
-    else
-      fulltextQueryString = '"' + querywords.join('" OR "') + '"';
+    }
 
     query.fulltextMatches(fulltextQueryString);
     query.orderBy(this.sortBy);

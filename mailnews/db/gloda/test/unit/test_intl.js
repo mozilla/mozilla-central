@@ -79,12 +79,35 @@ function verify_index(smsg, gmsg) {
   do_check_eq(actual, attachmentName);
 }
 
-function test_intl_fulltextsearch()
+var intlSearchPhrases = [
+  // match bi-gram driven matches starting from the front
+  { name: '"\u81ea\u52d5"', match: true },
+  { name: '"\u81ea\u52d5\u552e"', match: true },
+  { name: '"\u81ea\u52d5\u552e\u8ca8"', match: true },
+  { name: '"\u81ea\u52d5\u552e\u8ca8\u6a5f"', match: true },
+  // now match from the back (bi-gram based)
+  { name: '"\u52d5\u552e\u8ca8\u6a5f"', match: true },
+  { name: '"\u552e\u8ca8\u6a5f"', match: true },
+  { name: '"\u8ca8\u6a5f"', match: true },
+  // now everybody in the middle!
+  { name: '"\u52d5\u552e\u8ca8"', match: true },
+  { name: '"\u552e\u8ca8"', match: true },
+  { name: '"\u52d5\u552e"', match: true },
+  // -- now match nobody!
+  // nothing in common with the right answer
+  { name: '"\u81eb\u52dc"', match: false },
+  // too long, no match
+  { name: '"\u81ea\u52d5\u552e\u8ca8\u6a5f\u6a5f"', match: false },
+  // minor change at the end
+  { name: '"\u81ea\u52d5\u552e\u8ca8\u6a5e"', match: false },
+];
+
+function test_intl_fulltextsearch(aPhrase)
 {
   var query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
   /* CJK text is bi-gram */
-  query.bodyMatches('\u81ea\u52d5');
-  queryExpect(query, resultList);
+  query.bodyMatches(aPhrase.name);
+  queryExpect(query, aPhrase.match ? resultList : []);
 }
 
 
@@ -92,7 +115,7 @@ function test_intl_fulltextsearch()
 
 var tests = [
   parameterizeTest(test_index, intlPhrases),
-  test_intl_fulltextsearch,
+  parameterizeTest(test_intl_fulltextsearch, intlSearchPhrases),
 ];
 
 function run_test() {
