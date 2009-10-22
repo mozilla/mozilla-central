@@ -1,22 +1,12 @@
 #!/usr/bin/env python
 
+# LDAP
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6D_MOZILLA_RTM'
-
-CHATZILLA_CO_TAG = 'HEAD'
-
 LDAPCSDK_DIRS = ('directory/c-sdk',)
 
+# Chatzilla
+CHATZILLA_CO_TAG = 'HEAD'
 CHATZILLA_DIRS = ('extensions/irc',)
-
-DEFAULT_COMM_REV = "default"
-
-# URL of the default hg repository to clone for Mozilla.
-DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/releases/mozilla-1.9.1/'
-DEFAULT_MOZILLA_REV = "default"
-
-# REGEX to match against, $1 should refer to protocol scheme
-MOZILLA_TRUNK_REPO_REGEXP = "(ssh|http|https):\/\/hg\.mozilla\.org\/mozilla-central\/?$"
-MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
 
 # URL of the default hg repository to clone for inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
@@ -25,6 +15,37 @@ DEFAULT_INSPECTOR_REV = "default"
 # URL of the default hg repository to clone for Venkman.
 DEFAULT_VENKMAN_REPO = 'http://hg.mozilla.org/venkman/'
 DEFAULT_VENKMAN_REV = "default"
+
+DEFAULT_COMM_REV = "default"
+
+# URL of the default hg repository to clone for Mozilla.
+DEFAULT_MOZILLA_REPO = 'http://hg.mozilla.org/mozilla-central/'
+DEFAULT_MOZILLA_REV = "default"
+
+# The set of defaults below relate to the current switching mechanism between
+# trunk or branches and back again if it is required.
+
+# The current version expected in the .treestate file for nothing to happen.
+# This reflects the "[treestate] src_update_version = ..." value.
+#
+# src_update_version values:
+# '1' : mozilla/ may have been moved to mozilla-1.9.1 (or kept the same
+#       depending on set-up).
+# '2' : mozilla/ may have been moved back to mozilla-central.
+CURRENT_TREESTATE_VERSION = '2'
+# REGEX to match against, $1 should refer to protocol scheme
+SWITCH_MOZILLA_REPO_REGEXP = '(ssh|http|https):\/\/hg\.mozilla\.org\/releases/mozilla-1.9.1\/?$'
+# The location to back-up the existing mozilla repo to, e.g. ".mozilla-trunk"
+# or ".mozilla-1.9.1".
+SWITCH_MOZILLA_REPO_BACKUP_LOCATION = ".mozilla-1.9.1"
+# This is the potential location for a repository from the last time we
+# switched. Can be blank for no effect.
+SWITCH_MOZILLA_REPO_OLD_REPO_LOCATION = ".mozilla-trunk"
+# This should be the same as DEFAULT_MOZILLA_REPO but using %s instead of http
+# for the scheme.
+SWITCH_MOZILLA_REPO_REPLACE = '%s://hg.mozilla.org/mozilla-central/'
+SWITCH_MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
+
 
 import os
 import sys
@@ -56,44 +77,56 @@ def check_call_noisy(cmd, *args, **kwargs):
 def repo_config():
     """Create/Update TREE_STATE_FILE as needed.
 
-    move_to_stable() is also called.
+    switch_mozilla_repo() may be called if the branch that the mozilla repo is
+    on needs changing
     """
-
-    move_to_stable()
 
     import ConfigParser
-    config = ConfigParser.ConfigParser()
-    config.read([TREE_STATE_FILE])
 
-    # 'src_update_version' values:
-    #   '1': "move_to_stable() was successfully run".
+    config_version = CURRENT_TREESTATE_VERSION
+
+    config = ConfigParser.ConfigParser()
+
+    # If the file exists, see if we need to move to the stable branch.
+    # If it doesn't exist, we assume the user hasn't pulled before (or has
+    # done it manually) and therefore leave his mozilla/ repo as it is.
+    if os.path.exists(TREE_STATE_FILE):
+        config.read([TREE_STATE_FILE])
+
+        if config.has_option('treestate', 'src_update_version'):
+            config_version = config.get('treestate', 'src_update_version')
+        else:
+            # If src_update_version doesn't exist, assume this to be '1' and
+            # apply the update. This was because the first version of this
+            # migration allowed the existence of the file to equate to '1'.
+            config_version = '1'
 
     # Do nothing if the current version is up to date.
-    if config.has_option('treestate', 'src_update_version') and \
-            config.get('treestate', 'src_update_version') == '1':
-        return
+    if config_version < CURRENT_TREESTATE_VERSION:
+        switch_mozilla_repo()
 
-    if not config.has_section('treestate'):
-      config.add_section('treestate')
-    config.set('treestate', 'src_update_version', '1')
+    if not os.path.exists(TREE_STATE_FILE) or config_version < CURRENT_TREESTATE_VERSION:
+        if not config.has_section('treestate'):
+            config.add_section('treestate')
+        config.set('treestate', 'src_update_version', CURRENT_TREESTATE_VERSION)
 
-    # Write this file out
-    f = open(TREE_STATE_FILE, 'w')
-    try:
-      config.write(f)
-    finally:
-      f.close()
+        # Write this file out
+        f = open(TREE_STATE_FILE, 'w')
+        try:
+            config.write(f)
+        finally:
+            f.close()
 
-def move_to_stable():
-    """Backup (unused anymore) trunk checkout of Mozilla.
+def switch_mozilla_repo():
+    """If the mozilla/ repo matches SWITCH_MOZILLA_REPO_REGEXP then:
+    1) Backup (unused anymore) checkout of mozilla/.
+    2a) If SWITCH_MOZILLA_REPO_OLD_REPO_LOCATION exists, move that to mozilla/.
+    2b) Else clone the backup of mozilla/ up to the SWITCH_MOZILLA_BASE_REV
+        revision and set the pull location to SWITCH_MOZILLA_REPO_REPLACE.
 
-    Also switch checkout to MOZILLA_BASE_REV of Mozilla 1.9.1.
+    It is expected that the normal pull/update functions in this script will
+    update the new mozilla/ repo to the latest version.
     """
-
-    # Do nothing if this function was already successfully run.
-    # Shortcut: checking file existence is enough.
-    if os.path.exists(TREE_STATE_FILE):
-        return
 
     mozilla_path = os.path.join(topsrcdir, 'mozilla')
     # Do nothing if there is no Mozilla directory.
@@ -107,40 +140,56 @@ def move_to_stable():
         # Abort, not to get into a possibly inconsistent state.
         sys.exit("Error: default path in mozilla/.hg/hgrc is undefined!")
 
-    # Compile the Mozilla trunk regex.
-    m_c_regex = re.compile(MOZILLA_TRUNK_REPO_REGEXP, re.I)
-    match = m_c_regex.match(config.get('paths', 'default'))
-    # Do nothing if not pulling from Mozilla trunk.
+    # Compile the Mozilla repository regex.
+    moz_old_regex = re.compile(SWITCH_MOZILLA_REPO_REGEXP, re.I)
+    match = moz_old_regex.match(config.get('paths', 'default'))
+    # Do nothing if not pulling from the one we're trying to switch from.
     if not match:
         return
 
     config.set('paths', 'default',
-               "%s://hg.mozilla.org/releases/mozilla-1.9.1/" % match.group(1) )
+               SWITCH_MOZILLA_REPO_REPLACE % match.group(1) )
 
     if config.has_option('paths', 'default-push'):
-      match = m_c_regex.match(config.get('paths', 'default-push'))
+      match = moz_old_regex.match(config.get('paths', 'default-push'))
       # Do not update this property if not pushing to Mozilla trunk.
       if match:
         config.set('paths', 'default-push',
-                   "%s://hg.mozilla.org/releases/mozilla-1.9.1/" % match.group(1) )
+                   SWITCH_MOZILLA_REPO_REPLACE % match.group(1) )
 
     hgopts = []
     if options.hgopts:
         hgopts = options.hgopts.split()
 
-    mozilla_trunk_path = os.path.join(topsrcdir, '.mozilla-trunk')
-    print "Moving mozilla to .mozilla-trunk..."
+    backup_mozilla_path = os.path.join(topsrcdir, SWITCH_MOZILLA_REPO_BACKUP_LOCATION)
+    print "Moving mozilla to " + SWITCH_MOZILLA_REPO_BACKUP_LOCATION + "..."
     try:
-        os.rename(mozilla_path, mozilla_trunk_path)
+        os.rename(mozilla_path, backup_mozilla_path)
     except:
         # Print the exception without its traceback.
         sys.excepthook(sys.exc_info()[0], sys.exc_info()[1], None)
         sys.exit("Error: Mozilla directory renaming failed!")
 
-    # Locally clone common repository history.
-    check_call_noisy([options.hg, 'clone', '-r', MOZILLA_BASE_REV] + hgopts + [mozilla_trunk_path, mozilla_path])
+    # Does the user have a pre-existing backup repository?
+    old_backup_repository = os.path.join(topsrcdir, SWITCH_MOZILLA_REPO_OLD_REPO_LOCATION)
+    if SWITCH_MOZILLA_REPO_OLD_REPO_LOCATION != "" and \
+            os.path.exists(old_backup_repository):
+        # Yes, so let's use that
+        print "Moving " + old_backup_repository + " to " + mozilla_path + "..."
+        try:
+            os.rename(old_backup_repository, mozilla_path)
+        except:
+            # Print the exception without its traceback.
+            sys.excepthook(sys.exc_info()[0], sys.exc_info()[1], None)
+            sys.exit("Error: Renaming old backup directory failed! You must recover manually.")
+        # Let's leave the hgrc as it was, so any repo specific config is left
+        # the same.
+        return
 
-    #Rewrite hgrc for new local mozilla repo based on pre-existing hgrc
+    # Locally clone common repository history.
+    check_call_noisy([options.hg, 'clone', '-r', SWITCH_MOZILLA_BASE_REV] + hgopts + [backup_mozilla_path, mozilla_path])
+
+    # Rewrite hgrc for new local mozilla repo based on pre-existing hgrc
     # but with new values
     f = open(os.path.join(topsrcdir, 'mozilla', '.hg', 'hgrc'), 'w')
     try:
