@@ -264,9 +264,10 @@ var Sanitizer = {
     sessions: {
       clear: function() {
         // clear all auth tokens
-        var sdr = Components.classes["@mozilla.org/security/sdr;1"]
-                            .getService(Components.interfaces.nsISecretDecoderRing);
-        sdr.logoutAndTeardown();
+        Components.classes["@mozilla.org/security/pk11tokendb;1"]
+                  .createInstance(Components.interfaces.nsIPK11TokenDB)
+                  .getInternalKeyToken()
+                  .checkPassword("");
 
         // clear plain HTTP auth sessions
         var authMgr = Components.classes["@mozilla.org/network/http-auth-manager;1"]

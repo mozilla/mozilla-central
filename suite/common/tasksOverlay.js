@@ -62,9 +62,10 @@ function ExpirePassword()
             .clearAll();
 
   // Expires the master password
-  Components.classes["@mozilla.org/security/sdr;1"]
-            .getService(Components.interfaces.nsISecretDecoderRing)
-            .logoutAndTeardown();
+  Components.classes["@mozilla.org/security/pk11tokendb;1"]
+            .createInstance(Components.interfaces.nsIPK11TokenDB)
+            .getInternalKeyToken()
+            .checkPassword("");
 }
 
 function toDownloadManager()
