@@ -186,9 +186,9 @@
           var item = this.mOccurrence;
 
           if (item.title && item.title != "") {
-            evl.value = item.title;
+            evl.value = item.title.replace(/\n/g, ' ');
           } else {
-            evl.value = calGetString("calendar", "eventUntitled")
+            evl.value = calGetString("calendar", "eventUntitled");
           }
         ]]></body>
       </method>

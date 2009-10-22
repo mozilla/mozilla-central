@@ -61,7 +61,7 @@ var taskDetailsView = {
         if (displayElement("calendar-task-details-container", item != null) &&
             displayElement("calendar-task-view-splitter", item != null)) {
             displayElement("calendar-task-details-title-row", true);
-            document.getElementById("calendar-task-details-title").value = item.title;
+            document.getElementById("calendar-task-details-title").value = item.title.replace(/\n/g, ' ');
             var organizer = item.organizer;
             if (displayElement("calendar-task-details-organizer-row", organizer != null)) {
                 var name = organizer.commonName;

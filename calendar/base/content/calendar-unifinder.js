@@ -783,7 +783,7 @@ var unifinderTreeView = {
 
         switch (column.element.getAttribute("itemproperty")) {
             case "title":
-                return calendarEvent.title;
+                return calendarEvent.title.replace(/\n/g, ' ');
 
             case "startDate":
                 return formatUnifinderEventDateTime(calendarEvent.startDate);

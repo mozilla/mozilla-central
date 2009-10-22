@@ -571,7 +571,7 @@
               switch (aCol.element.getAttribute("itemproperty")) {
                   case "title":
                       // return title, or "Untitled" if empty/null
-                      return task.title || calGetString("calendar", "eventUntitled");
+                      return task.title.replace(/\n/g, ' ') || calGetString("calendar", "eventUntitled");
                   case "entryDate":
                       return this._formatDateTime(task.entryDate);
                   case "dueDate":
