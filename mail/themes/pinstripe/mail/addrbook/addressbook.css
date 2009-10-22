@@ -76,6 +76,10 @@ toolbox[labelalign="end"] .toolbarbutton-1 {
   -moz-box-orient: horizontal;
 }
 
+toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
+  text-align: start;
+}
+
 toolbarbutton[type="menu-button"] > toolbarbutton {
   -moz-box-orient: vertical !important;
   padding: 0px;

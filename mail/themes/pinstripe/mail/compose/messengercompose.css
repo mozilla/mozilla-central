@@ -92,6 +92,10 @@ toolbox[labelalign="end"] toolbarbutton[type="menu-button"] > toolbarbutton {
   -moz-box-orient: horizontal !important;
 }
 
+toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
+  text-align: start;
+}
+
 #button-send {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
   -moz-image-region: rect(0px 32px 32px 0px);

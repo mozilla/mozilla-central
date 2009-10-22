@@ -58,15 +58,19 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu-button"]
   -moz-box-orient: horizontal;
 }
 
-toolbox[labelalign="end"] .toolbarbutton-1 .toolbarbutton-text {
-  -moz-padding-start: 3px;
+toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1 .toolbarbutton-text {
+  -moz-padding-start: 2px;
+}
+
+toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
+  text-align: start;
 }
 
 .toolbarbutton-1[type="menu"] {
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
 }
 
-toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
+toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu");
 }
 

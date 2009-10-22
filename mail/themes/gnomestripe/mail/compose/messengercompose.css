@@ -61,12 +61,12 @@ toolbox[labelalign="end"] .toolbarbutton-menubutton-button {
   -moz-box-orient: horizontal;
 }
 
-toolbox[labelalign="end"] .toolbarbutton-1 {
-  -moz-box-orient: horizontal;
+toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1 .toolbarbutton-text {
+  -moz-padding-start: 2px;
 }
 
-toolbox[labelalign="end"] .toolbarbutton-1 .toolbarbutton-text {
-  -moz-padding-start: 3px;
+toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
+  text-align: start;
 }
 
 #button-send {
