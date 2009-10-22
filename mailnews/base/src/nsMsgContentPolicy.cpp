@@ -393,12 +393,27 @@ nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
 
   nsresult rv = aRequestingLocation->SchemeIs("chrome", &isChrome);
   rv |= aRequestingLocation->SchemeIs("resource", &isRes);
-  rv |= aRequestingLocation->SchemeIs("about", &isAbout);
   rv |= aRequestingLocation->SchemeIs("file", &isFile);
 
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
-  return isChrome || isRes || isAbout || isFile;
+  if (isChrome || isRes || isFile)
+    return PR_TRUE;
+
+  // Only allow about: to load anything if the requesting location is not the
+  // special about:blank one.
+  rv = aRequestingLocation->SchemeIs("about", &isAbout);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+  if (!isAbout)
+    return PR_FALSE;
+
+
+  nsCString fullSpec;
+  rv = aRequestingLocation->GetSpec(fullSpec);
+  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+
+  return !fullSpec.EqualsLiteral("about:blank");
 }
 
 /**
