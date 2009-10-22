@@ -45,13 +45,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var MODULE_NAME = 'test-js-content-policy';
+var MODULE_NAME = 'test-object-content-policy';
 
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
                        'message-helpers'];
 
+// RELATIVE_ROOT messes with the collector, so we have to bring the path back
+// so we get the right path for the resources.
+
 var folder = null;
+var url = null;
+
 
 var setupModule = function (module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -61,39 +66,10 @@ var setupModule = function (module) {
   let mh = collector.getModule('message-helpers');
   mh.installInto(module);
 
-  folder = create_folder("jsContentPolicy");
+  folder = create_folder("objectContentPolicy");
 };
 
-function addToFolder(aSubject, aBody, aFolder) {
-
-  let msgId = Components.classes["@mozilla.org/uuid-generator;1"]
-                          .getService(Components.interfaces.nsIUUIDGenerator)
-                          .generateUUID() +"@mozillamessaging.invalid";
-
-  let source = "From - Sat Nov  1 12:39:54 2008\n" +
-               "X-Mozilla-Status: 0001\n" +
-               "X-Mozilla-Status2: 00000000\n" +
-               "Message-ID: <" + msgId + ">\n" +
-               "Date: Wed, 11 Jun 2008 20:32:02 -0400\n" +
-               "From: Tester <tests@mozillamessaging.invalid>\n" +
-               "User-Agent: Thunderbird 3.0a2pre (Macintosh/2008052122)\n" +
-               "MIME-Version: 1.0\n" +
-               "To: recipient@mozillamessaging.invalid\n" +
-               "Subject: " + aSubject + "\n" +
-               "Content-Type: text/html; charset=ISO-8859-1\n" +
-               "Content-Transfer-Encoding: 7bit\n" +
-               "\n" + aBody + "\n";
-
-  aFolder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
-  aFolder.gettingNewMessages = true;
-
-  aFolder.addMessage(source);
-  aFolder.gettingNewMessages = false;
-
-  return aFolder.msgDatabase.getMsgHdrForMessageID(msgId);
-}
-
-const jsMsgBody = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n' +
+const objectMsgBody = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n' +
 '<html>\n' +
 '<head>\n' +
 '\n' +
@@ -112,9 +88,9 @@ const jsMsgBody = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN
 
 let gMsgNo = 0;
 
-function checkJsInMail() {
-  let msgDbHdr = add_message_to_local_folder("JS test message " + gMsgNo,
-                                             jsMsgBody, folder);
+function checkObjectInMail() {
+  let msgDbHdr = add_message_to_local_folder("Object test message " + gMsgNo,
+                                             objectMsgBody, folder);
 
   // select the newly created message
   let msgHdr = select_click_row(gMsgNo);
@@ -126,26 +102,30 @@ function checkJsInMail() {
 
   // This works because messagepane is type=content-primary in these tests.
   if (typeof mozmill.getMail3PaneController().window.content.wrappedJSObject.jsIsTurnedOn != 'undefined')
-    throw new Error("JS is turned on in mail - it shouldn't be.");
+    throw new Error("<object>s are allowed in mail - they shouldn't be.");
 
   ++gMsgNo;
 }
 
-function checkJsInNonMessageContent() {
+function checkObjectInNonMessageContent() {
   // Deselect everything so we can load our content
   select_none();
 
   // load something non-message-like in the message pane
   mozmill.getMail3PaneController().window.GetMessagePaneFrame().location.href =
-    "data:text/html;charset=utf-8,<script>var jsIsTurnedOn%3Dtrue%3B<%2Fscript>bar";
+    url + "cookiestest1.html";
 
   wait_for_message_display_completion();
 
+  controller.sleep(600000);
+
   if (!mozmill.getMail3PaneController().window.content.wrappedJSObject.jsIsTurnedOn)
-    throw new Error("JS is not turned on in content - it should be.");
+    throw new Error("<object>s are not turned on in content - they should be.");
 }
 
-function test_jsContentPolicy() {
+function test_objectContentPolicy() {
+  url = collector.addHttpResource('../content/html', 'content');
+
   let folderTab = mc.tabmail.currentTabInfo;
   be_in_folder(folder);
 
@@ -153,9 +133,9 @@ function test_jsContentPolicy() {
 
   // run each test twice to ensure that there aren't any weird side effects,
   // given that these loads all happen in the same docshell
-  checkJsInMail();
-  checkJsInNonMessageContent();
+  checkObjectInMail();
+  checkObjectInNonMessageContent();
 
-  checkJsInMail();
-  checkJsInNonMessageContent();
+  checkObjectInMail();
+  checkObjectInNonMessageContent();
 }
