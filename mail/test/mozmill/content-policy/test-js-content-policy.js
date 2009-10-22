@@ -29,7 +29,6 @@
  * Contributor(s):
  *   Dan Mosedale <dmose@mozilla.org>
  *   Joey Minta <jminta@gmail.com>
- *   Mark Banner <bugzilla@standard8.plus.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,8 +47,7 @@
 var MODULE_NAME = 'test-js-content-policy';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
-                       'message-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 var folder = null;
 
@@ -58,8 +56,6 @@ var setupModule = function (module) {
   fdh.installInto(module);
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
-  let mh = collector.getModule('message-helpers');
-  mh.installInto(module);
 
   folder = create_folder("jsContentPolicy");
 };
@@ -113,8 +109,7 @@ const jsMsgBody = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN
 let gMsgNo = 0;
 
 function checkJsInMail() {
-  let msgDbHdr = add_message_to_local_folder("JS test message " + gMsgNo,
-                                             jsMsgBody, folder);
+  let msgDbHdr = addToFolder("JS test message " + gMsgNo, jsMsgBody, folder);
 
   // select the newly created message
   let msgHdr = select_click_row(gMsgNo);
