@@ -228,7 +228,11 @@ bin/components/plugin.xpt
 bin/components/pref.xpt
 bin/components/prefetch.xpt
 bin/components/profile.xpt
+#ifdef MOZILLA_1_9_2_BRANCH
 bin/components/proxyObjInst.xpt
+#else
+bin/components/proxyObject.xpt
+#endif
 bin/components/rdf.xpt
 bin/components/satchel.xpt
 bin/components/saxparser.xpt
