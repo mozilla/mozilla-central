@@ -118,6 +118,9 @@ defaults/wallet/DistinguishedSchema.tbl
 defaults/wallet/SchemaStrings.tbl
 defaults/wallet/PositionalSchema.tbl
 defaults/wallet/StateSchema.tbl
+#ifdef XP_WIN
+gksvggdiplus.dll
+#endif
 #ifdef MOZILLA_1_9_1_BRANCH
 greprefs.js
 #elifdef MOZILLA_1_9_2_BRANCH
@@ -250,7 +253,6 @@ components/libosxproxy.dylib
 components/libwidget_mac.dylib
 #endif
 #ifdef XP_WIN
-gksvggdiplus.dll
 jsj3250.dll
 components/appshell.dll
 components/cmdlines.dll

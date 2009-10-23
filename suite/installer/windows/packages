@@ -74,7 +74,6 @@ bin\AccessibleMarshal.dll
 bin\sqlite3.dll
 #ifndef MOZ_STATIC_BUILD
 bin\gkgfx.dll
-bin\gksvggdiplus.dll
 bin\jsj3250.dll
 bin\thebes.dll
 
