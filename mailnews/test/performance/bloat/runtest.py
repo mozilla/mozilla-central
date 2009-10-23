@@ -99,7 +99,9 @@ sys.path.append(AUTOMATION_DIR)
 import automation
 from automationutils import checkForCrashes
 
-SYMBOLS_PATH = os.path.abspath(os.path.join(AUTOMATION_DIR, automation.SYMBOLS_PATH))
+# XXX Symbols path is currently hard-coded to what we expect - bug 524125 will
+# fix this. 
+SYMBOLS_PATH = os.path.abspath(os.path.join(AUTOMATION_DIR, "../dist/crashreporter-symbols"))
 
 CWD = os.getcwd()
 SCRIPTDIR = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
