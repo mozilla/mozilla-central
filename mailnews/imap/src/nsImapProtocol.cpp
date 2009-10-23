@@ -4739,6 +4739,14 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
     GetImapServerKey(), kPersonalNamespace, ns);
   const char *nsPrefix = ns ? ns->GetPrefix() : 0;
 
+  if (m_specialXListMailboxes.Count() > 0)
+  {
+    PRInt32 hashValue = 0;
+    nsCString strHashKey(adoptedBoxSpec->mAllocatedPathName);
+    m_specialXListMailboxes.Get(strHashKey, &hashValue);
+    adoptedBoxSpec->mBoxFlags |= hashValue;
+  }
+
   switch (m_hierarchyNameState)
   {
   case kXListing:
@@ -4813,14 +4821,6 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
         if (m_imapServerSink)
         {
           PRBool newFolder;
-
-          if (m_specialXListMailboxes.Count() > 0)
-          {
-            PRInt32 hashValue = 0;
-            nsCString strHashKey(adoptedBoxSpec->mAllocatedPathName);
-            m_specialXListMailboxes.Get(strHashKey, &hashValue);
-            adoptedBoxSpec->mBoxFlags |= hashValue;
-          }
 
           m_imapServerSink->PossibleImapMailbox(adoptedBoxSpec->mAllocatedPathName,
                                                 adoptedBoxSpec->mHierarchySeparator,
@@ -6970,6 +6970,9 @@ void nsImapProtocol::DiscoverMailboxList()
   PRBool usingSubscription = PR_FALSE;
 
   m_hostSessionList->GetHostIsUsingSubscription(GetImapServerKey(), usingSubscription);
+  // Pretend that the Trash folder doesn't exist, so we will rediscover it if we need to.
+  m_hostSessionList->SetOnlineTrashFolderExistsForHost(GetImapServerKey(), PR_FALSE);
+
   // should we check a pref here, to be able to turn off XList?
   PRBool hasXLIST = GetServerStateParser().GetCapabilityFlag() & kHasXListCapability;
   if (hasXLIST && usingSubscription)
@@ -6991,9 +6994,6 @@ void nsImapProtocol::DiscoverMailboxList()
     m_hierarchyNameState = kListingForInfoAndDiscovery;
   else
     m_hierarchyNameState = kNoOperationInProgress;
-
-  // Pretend that the Trash folder doesn't exist, so we will rediscover it if we need to.
-  m_hostSessionList->SetOnlineTrashFolderExistsForHost(GetImapServerKey(), PR_FALSE);
 
   // iterate through all namespaces and LSUB them.
   PRUint32 count = 0;
