@@ -318,7 +318,12 @@ bin\components\nsAboutFeeds.js
 bin\components\nsAboutRights.js
 bin\components\nsAboutSessionRestore.js
 bin\components\nsAddonRepository.js
+#ifdef WINCE
+#ifndef MOZ_NO_ACTIVEX_SUPPORT
+; ToDo: check if this is needed/enough. (Bug 524008)
 bin\components\nsAxSecurityPolicy.js
+#endif
+#endif
 bin\components\nsBadCertHandler.js
 bin\components\nsBlocklistService.js
 bin\components\nsBrowserContentHandler.js
