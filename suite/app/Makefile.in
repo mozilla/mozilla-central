@@ -176,11 +176,11 @@ endif
 ifndef MOZILLA_1_9_2_BRANCH
 
 # OpenGL is required for MOZ_ENABLE_CANVAS3D (only set in m-c build system).
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 OS_LIBS += -framework OpenGL
 endif
 
-ifneq (,$(filter windows,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (windows,$(MOZ_WIDGET_TOOLKIT))
 OS_LIBS += opengl32.lib
 endif
 
