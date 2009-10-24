@@ -1575,13 +1575,11 @@
         <parameter name="aMask"/>
         <body>
           <![CDATA[
-/* Enable this _after_ MOZILLA_1_9_1_BRANCH.
             if (!aListener)
               throw Components.results.NS_ERROR_INVALID_ARG;
 
             if (this.mProgressListeners.indexOf(aListener) != -1)
               throw Components.results.NS_ERROR_FAILURE;
-*/
 
             // push() does not disturb possibly ongoing iterations.
             this.mProgressListeners.push(aListener);
@@ -1593,10 +1591,8 @@
         <parameter name="aListener"/>
         <body>
           <![CDATA[
-/* Enable this _after_ MOZILLA_1_9_1_BRANCH.
             if (this.mProgressListeners.indexOf(aListener) == -1)
               throw Components.results.NS_ERROR_FAILURE;
-*/
 
             // Create a new array, not to disturb possibly ongoing iterations.
             this.mProgressListeners =
