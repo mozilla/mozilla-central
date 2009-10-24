@@ -1388,11 +1388,8 @@ nsresult nsMsgSearchDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr,
     return GetXFThreadFromMsgHdr(msgHdr, pThread);
 
   // if not threaded, use the real thread. 
-  nsCOMPtr<nsIMsgFolder> folder;
-  nsresult rv = msgHdr->GetFolder(getter_AddRefs(folder));
-  NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIMsgDatabase> msgDB;
-  rv = folder->GetMsgDatabase(getter_AddRefs(msgDB));
+  nsresult rv = GetDBForHeader(msgHdr, getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
   return msgDB->GetThreadContainingMsgHdr(msgHdr, pThread);
 }
