@@ -2786,10 +2786,7 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
       case nsMsgViewCommandType::flagMessages:
         {
           nsCOMPtr<nsIMsgDatabase> db;
-          nsCOMPtr<nsIMsgFolder> folder;
-          rv = msgHdr->GetFolder(getter_AddRefs(folder));
-          NS_ENSURE_SUCCESS(rv, rv);
-          rv = folder->GetMsgDatabase(getter_AddRefs(db));
+          rv = GetDBForHeader(msgHdr, getter_AddRefs(db));
           NS_ENSURE_SUCCESS(rv, rv);
           db->MarkMarked(msgKey, (command == nsMsgViewCommandType::flagMessages), nsnull);
         }
@@ -3911,10 +3908,7 @@ nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortTyp
         nsCOMPtr <nsIMsgDatabase> dbToUse = m_db;
         if (!dbToUse) // probably search view
         {
-          nsCOMPtr <nsIMsgFolder> folder;
-          rv = msgHdr->GetFolder(getter_AddRefs(folder));
-          NS_ENSURE_SUCCESS(rv,rv);
-          rv = folder->GetMsgDatabase(getter_AddRefs(dbToUse));
+          rv = GetDBForHeader(msgHdr, getter_AddRefs(dbToUse));
           NS_ENSURE_SUCCESS(rv,rv);
         }
         rv = dbToUse->CreateCollationKey(strKey, result, len);
@@ -5917,12 +5911,15 @@ nsresult nsMsgDBView::MarkThreadRead(nsIMsgThread *threadHdr, nsMsgViewIndex thr
 
         nsMsgKey hdrMsgId;
         msgHdr->GetMessageKey(&hdrMsgId);
-        m_db->IsRead(hdrMsgId, &isRead);
+        nsCOMPtr<nsIMsgDatabase> db;
+        nsresult rv = GetDBForHeader(msgHdr, getter_AddRefs(db));
+        NS_ENSURE_SUCCESS(rv, rv);
+        db->IsRead(hdrMsgId, &isRead);
 
         if (isRead != bRead)
         {
             // MarkHdrRead will change the unread count on the thread
-            m_db->MarkHdrRead(msgHdr, bRead, nsnull);
+            db->MarkHdrRead(msgHdr, bRead, nsnull);
             // insert at the front.  should we insert at the end?
             idsMarkedRead.InsertElementAt(0, hdrMsgId);
         }
@@ -7328,6 +7325,14 @@ nsresult nsMsgDBView::GetViewEnumerator(nsISimpleEnumerator **enumerator)
 {
   NS_IF_ADDREF(*enumerator = new nsMsgViewHdrEnumerator(this));
   return (*enumerator) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+}
+
+nsresult nsMsgDBView::GetDBForHeader(nsIMsgDBHdr *msgHdr, nsIMsgDatabase **db)
+{
+  nsCOMPtr<nsIMsgFolder> folder;
+  nsresult rv = msgHdr->GetFolder(getter_AddRefs(folder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return folder->GetMsgDatabase(db);
 }
 
 /**
