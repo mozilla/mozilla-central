@@ -777,8 +777,11 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
                   m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
                   if (smtpServer)
                   {
-                    // if we are in probe mode, save what we found out for the future
-                    m_prefUseSecAuth = TestFlag(SMTP_AUTH_SEC_ENABLED);
+                    // If we are in probe mode, save what we found out for the future.
+                    // Don't trust GSSAPI since the server can advertise it 
+                    // but the client may not be set up for it.
+                    m_prefUseSecAuth = TestFlag(SMTP_AUTH_SEC_ENABLED &
+                                                ~SMTP_AUTH_GSSAPI_ENABLED);
                     smtpServer->SetUseSecAuth(m_prefUseSecAuth);
                     // then disable probing for next run
                     smtpServer->SetTrySecAuth(PR_FALSE);
