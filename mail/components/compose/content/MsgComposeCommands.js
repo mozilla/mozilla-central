@@ -1339,6 +1339,13 @@ function ShouldShowAttachmentNotification(async)
     if (sigIndex > 0)
       mailData = mailData.substring(0, sigIndex);
 
+    // Ignore forwarded messages (plain text and html compose mode).
+    let bundle = document.getElementById("bundle_composeMsgs");
+    let fwdText = bundle.getString("mailnews.reply_header_originalmessage");
+    let fwdIndex = mailData.indexOf(fwdText);
+    if (fwdIndex > 0)
+      mailData = mailData.substring(0, fwdIndex);
+
     if (!async)
       return GetAttachmentKeywords(mailData, keywordsInCsv).length != 0;
     attachmentWorker.postMessage([mailData, keywordsInCsv]);
