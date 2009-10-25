@@ -13,12 +13,14 @@
  *
  * The Original Code is Sun Microsystems code.
  *
- * The Initial Developer of the Original Code is Sun Microsystems.
+ * The Initial Developer of the Original Code is
+ * Sun Microsystems.
  * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,7 +41,6 @@
  * NOTE: The naming "Meteors" is historical.
  */
  var gCalendarStatusFeedback = {
-     mCalendarValue: 0,
      mCalendarStep: 0,
      mCalendarCount: 0,
      mWindow: null,
@@ -50,7 +51,6 @@
      mProgressMode: Components.interfaces.calIStatusObserver.NO_PROGRESS,
      mCurIndex: 0,
      mInitialized: false,
-     mProps: null,
      mCalendars: {},
 
     QueryInterface: function cStObs_QueryInterface(aIID) {
@@ -58,16 +58,13 @@
     },
 
      initialize: function cStObs_initialize(aWindow) {
-        if (this.mInitialized == false) {
+        if (!this.mInitialized) {
             this.mWindow = aWindow;
             this.mStatusText = this.mWindow.document.getElementById("statusText");
             this.mStatusBar = this.mWindow.document.getElementById("statusbar-icon");
             this.mStatusProgressPanel = this.mWindow.document.getElementById("statusbar-progresspanel");
             this.mThrobber = this.mWindow.document.getElementById("navigator-throbber");
-            var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                            .getService(Components.interfaces.nsIStringBundleService);
-            this.mProps = sbs.createBundle("chrome://calendar/locale/calendar.properties");
-            this. mInitialized = true;
+            this.mInitialized = true;
         }
      },
 
@@ -120,7 +117,6 @@
              if (this.mThrobber) {
                  this.mThrobber.setAttribute("busy", false);
              }
-             this.mCalendarValue = 0;
          }
      },
 
@@ -134,8 +130,8 @@
                      this.mCalendars[aCalendar.id] = true;
                      this.mStatusBar.value = (parseInt(this.mStatusBar.value) + this.mCalendarStep);
                      this.mCurIndex++;
-                     var curStatus = this.mProps.formatStringFromName("gettingCalendarInfoDetail",
-                              [this.mCurIndex, this.mCalendarCount], 2);
+                     let curStatus = calGetString("calendar", "gettingCalendarInfoDetail",
+                                                  [this.mCurIndex, this.mCalendarCount]);
                      this.showStatusString(curStatus);
                  }
              }
