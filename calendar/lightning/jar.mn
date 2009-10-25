@@ -55,8 +55,6 @@ calendar.jar:
     content/calendar/datetimepickers/datetimepickers.css   (/calendar/resources/content/datetimepickers/datetimepickers.css)
 *   content/calendar/datetimepickers/datetimepickers.xml   (/calendar/resources/content/datetimepickers/datetimepickers.xml)
     content/calendar/mouseoverPreviews.js                  (/calendar/resources/content/mouseoverPreviews.js)
-*   content/calendar/printDialog.js                        (/calendar/resources/content/printDialog.js)
-    content/calendar/printDialog.xul                       (/calendar/resources/content/printDialog.xul)
     content/calendar/publish.js                            (/calendar/resources/content/publish.js)
     content/calendar/publishDialog.js                      (/calendar/resources/content/publishDialog.js)
     content/calendar/publishDialog.xul                     (/calendar/resources/content/publishDialog.xul)

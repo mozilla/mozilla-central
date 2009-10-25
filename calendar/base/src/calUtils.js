@@ -314,7 +314,7 @@ function openCalendarProperties(aCalendar) {
  * Opens the print dialog
  */
 function calPrint() {
-    openDialog("chrome://calendar/content/printDialog.xul", "Print",
+    openDialog("chrome://calendar/content/calendar-print-dialog.xul", "Print",
                "centerscreen,chrome,resizable");
 }
 

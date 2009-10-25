@@ -69,6 +69,8 @@ calendar.jar:
     content/calendar/calendar-invitations-dialog.js        (content/dialogs/calendar-invitations-dialog.js)
     content/calendar/calendar-invitations-dialog.xul       (content/dialogs/calendar-invitations-dialog.xul)
     content/calendar/calendar-invitations-list.xml         (content/dialogs/calendar-invitations-list.xml)
+*   content/calendar/calendar-print-dialog.js              (content/dialogs/calendar-print-dialog.js)
+    content/calendar/calendar-print-dialog.xul             (content/dialogs/calendar-print-dialog.xul)
     content/calendar/calendar-properties-dialog.xul        (content/dialogs/calendar-properties-dialog.xul)
     content/calendar/calendar-properties-dialog.js         (content/dialogs/calendar-properties-dialog.js)
     content/calendar/calendar-providerUninstall-dialog.xul (content/dialogs/calendar-providerUninstall-dialog.xul)
