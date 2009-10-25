@@ -282,15 +282,15 @@
 
   <!-- NNTP -->
   <hbox hidefor="pop3,imap,movemail" align="center">
-    <checkbox wsm_persist="true" id="nntp.limitArticles"
+    <checkbox wsm_persist="true" id="nntp.notifyOn"
               label="&maxMessagesStart.label;"
               accesskey="&maxMessagesStart.accesskey;"
-              oncommand="onCheckItem('nntp.maxArticles', 'nntp.limitArticles');"
+              oncommand="onCheckItem('nntp.maxArticles', 'nntp.notifyOn');"
               prefattribute="value"
               prefstring="mail.server.%serverkey%.notify.on"/>
     <textbox wsm_persist="true" id="nntp.maxArticles"
              size="4" type="number" min="1" increment="10"
-             aria-labelledby="nntp.limitArticles nntp.maxArticles maxMessagesEnd"
+             aria-labelledby="nntp.notifyOn nntp.maxArticles maxMessagesEnd"
              preftype="int"
              prefstring="mail.server.%serverkey%.max_articles"/>
     <label control="nntp.maxArticles" value="&maxMessagesEnd.label;" id="maxMessagesEnd"/>

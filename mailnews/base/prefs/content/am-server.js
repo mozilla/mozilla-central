@@ -50,7 +50,7 @@ function onInit(aPageId, aServerId)
   initServerType();
 
   onCheckItem("server.biffMinutes", "server.doBiff");
-  onCheckItem("nntp.maxArticles", "nntp.limitArticles");
+  onCheckItem("nntp.maxArticles", "nntp.notifyOn");
   setupMailOnServerUI();
   setupFixedUI();
   if (document.getElementById("server.type").getAttribute("value") == "imap")
