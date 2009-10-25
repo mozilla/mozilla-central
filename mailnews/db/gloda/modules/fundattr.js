@@ -124,6 +124,10 @@ var GlodaFundAttr = {
           alias: "account",
           // Group the folders by their account (label)...
           groupIdAttr: "accountLabel",
+          // sort the groups by string using magic convenience value
+          groupComparator: function(a, b) {
+            return a.accountLabel.localeCompare(b.accountLabel);
+          },
           queryHelper: "Account",
           // Display the account label for the facet
           labelFunc: function(aGlodaFolder) {

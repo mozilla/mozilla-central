@@ -232,7 +232,7 @@ DiscreteFaceter.prototype = {
 
     let orderedGroups = [[valStrToVal[key], items] for each
                          ([key, items] in Iterator(groups))];
-    let comparator = nounDef.comparator;
+    let comparator = this.facetDef.groupComparator;
     function comparatorHelper(a, b) {
       return comparator(a[0], b[0]);
     }
@@ -274,7 +274,7 @@ DiscreteFaceter.prototype = {
 
     let orderedGroups = [[groupMap[key], items] for each
                          ([key, items] in Iterator(groups))];
-    let comparator = nounDef.comparator;
+    let comparator = this.facetDef.groupComparator;
     function comparatorHelper(a, b) {
       return comparator(a[0], b[0]);
     }
@@ -341,7 +341,7 @@ DiscreteSetFaceter.prototype = {
 
     let orderedGroups = [[valStrToVal[key], items] for each
                          ([key, items] in Iterator(groups))];
-    let comparator = nounDef.comparator;
+    let comparator = this.facetDef.groupComparator;
     function comparatorHelper(a, b) {
       return comparator(a[0], b[0]);
     }
@@ -387,7 +387,7 @@ DiscreteSetFaceter.prototype = {
 
     let orderedGroups = [[groupMap[key], items] for each
                          ([key, items] in Iterator(groups))];
-    let comparator = nounDef.comparator;
+    let comparator = this.facetDef.groupComparator;
     function comparatorHelper(a, b) {
       return comparator(a[0], b[0]);
     }

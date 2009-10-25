@@ -1717,6 +1717,8 @@ var Gloda = {
     function normalizeFacetDef(aFacetDef) {
       if (!("groupIdAttr" in aFacetDef))
         aFacetDef.groupIdAttr = aAttrDef.objectNounDef.idAttr;
+      if (!("groupComparator" in aFacetDef))
+        aFacetDef.groupComparator = aAttrDef.objectNounDef.comparator;
       if (!("filter" in aFacetDef))
         aFacetDef.filter = null;
     }
@@ -1731,6 +1733,7 @@ var Gloda = {
         aAttrDef.facet = {
           type: "default",
           groupIdAttr: aAttrDef.objectNounDef.idAttr,
+          groupComparator: aAttrDef.objectNounDef.comparator,
           filter: null,
         };
       }

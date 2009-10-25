@@ -205,7 +205,7 @@ function GlodaMsgSearcher(aListener, aSearchString, aAndTerms) {
   this.query = null;
   this.collection = null;
 
-  this.scoresById = {};
+  this.scores = null;
 }
 GlodaMsgSearcher.prototype = {
   /**
@@ -311,23 +311,20 @@ GlodaMsgSearcher.prototype = {
   sortBy: '-dascore',
 
   onItemsAdded: function GlodaMsgSearcher_onItemsAdded(aItems, aCollection) {
-    let scores = Gloda.scoreNounItems(
+    let newScores = Gloda.scoreNounItems(
       aItems,
       {
         terms: this.fulltextTerms,
         stashedColumns: aCollection.stashedColumns
       },
       [scoreOffsets]);
-    let actualItems = [];
-    for (let i = 0; i < aItems.length; i++) {
-      let item = aItems[i];
-      let score = scores[i];
-
-      this.scoresById[item.id] = score;
-    }
+    if (this.scores)
+      this.scores = this.scores.concat(newScores);
+    else
+      this.scores = newScores;
 
     if (this.listener)
-      this.listener.onItemsAdded(actualItems, aCollection);
+      this.listener.onItemsAdded(aItems, aCollection);
   },
   onItemsModified: function GlodaMsgSearcher_onItemsModified(aItems,
                                                              aCollection) {

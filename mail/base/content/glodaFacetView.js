@@ -365,16 +365,32 @@ var FacetContext = {
     return this._activeSet;
   },
 
+  /**
+   * fullSet is a special attribute which is passed a set of items that we're
+   * displaying, but the order of which is determined by the sortBy property.
+   * On setting the fullSet, we compute both sorted lists, and then on getting,
+   * we return the appropriate one.
+   */
   get fullSet() {
-    if (this._sortBy == '-dascore')
-      return this._relevantSortedItems;
-    return this._dateSortedItems;
+    return (this._sortBy == '-dascore' ?
+            this._relevantSortedItems :
+            this._dateSortedItems);
   },
 
-  set fullSet(val) {
-    if (this._sortBy == '-dascore')
-      this._relevantSortedItems = val;
-    this._dateSortedItems = val;
+  set fullSet(items) {
+    let scores;
+    if (this.searcher && this.searcher.scores)
+      scores = this.searcher.scores;
+    else
+      scores = Gloda.scoreNounItems(items);
+    let scoredItems = [[scores[i], item] for each
+                        ([i, item] in Iterator(items))];
+    scoredItems.sort(function(a,b) b[0]-a[0]);
+    this._relevantSortedItems = [scoredItem[1] for each
+                                  ([, scoredItem] in Iterator(scoredItems))];
+
+    this._dateSortedItems =
+      this._relevantSortedItems.concat().sort(function(a,b) b.date-a.date);
   },
 
   initialBuild: function() {
@@ -390,27 +406,19 @@ var FacetContext = {
 
     this.everFaceted = false;
     this._activeConstraints = {};
-    try {
-      if (this.searcher) {
-        this._sortBy = '-dascore';
-        this._relevantSortedItems = this._collection.items.concat();
-        this._dateSortedItems = this._relevantSortedItems.concat().sort(function(a,b) b.date-a.date);
-        this._activeSet = this._relevantSortedItems;
-      } else {
-        this._sortBy = '-date';
-        this._dateSortedItems = this.collection.items.concat();
-        this._relevantSortedItems = Gloda.scoreNounItems(this._dateSortedItems);
-        this._activeSet = this._dateSortedItems;
-      }
-      this._removeDupes();
-      this.build(this.fullSet);
-    } catch (e) {
-      logException(e);
-    }
+    if (this.searcher)
+      this._sortBy = '-dascore';
+    else
+      this._sortBy = '-date';
+    this.fullSet = this._removeDupes(this._collection.items.concat());
+    this.build(this.fullSet);
   },
 
   /**
    * Remove duplicate messages from search results.
+   *
+   * @param aItems the initial set of messages to deduplicate
+   * @return the subset of those, with duplicates removed.
    *
    * Some IMAP servers (here's looking at you, Gmail) will create message
    * duplicates unbeknownst to the user.  We'd like to deal with them earlier
@@ -419,16 +427,16 @@ var FacetContext = {
    * of doing that is just to cull (from the display) messages with have the
    * Message-ID of a message already displayed.
    */
-  _removeDupes: function() {
+  _removeDupes: function(aItems) {
     let deduped = [];
     let msgIdsSeen = {};
-    for each (let [, item] in Iterator(this.fullSet)) {
+    for each (let [, item] in Iterator(aItems)) {
       if (item.headerMessageID in msgIdsSeen)
         continue;
       deduped.push(item);
       msgIdsSeen[item.headerMessageID] = true;
     }
-    this.fullSet = deduped;
+    return deduped;
   },
 
   /**
