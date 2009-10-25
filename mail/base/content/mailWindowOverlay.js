@@ -351,14 +351,17 @@ function InitMessageMenu()
   document.getElementById("killSubthread").hidden = !isNews;
   document.getElementById("watchThread").hidden = !isNews;
 
-  // Disable the move and copy menus if there are no messages selected.
+
+  // Disable the move and copy menus if there are no messages selected or if
+  // the message is a dummy - e.g. opening a message in the standalone window.
+  let messageStoredInternally = selectedMsg && !gMessageDisplay.isDummy;
   // Disable the move menu if we can't delete msgs from the folder.
-  var msgFolder = gFolderDisplay.displayedFolder;
-  var enableMenuItem = selectedMsg && msgFolder && msgFolder.canDeleteMessages;
-  document.getElementById("moveMenu").disabled = !enableMenuItem;
+  let canMove = messageStoredInternally &&
+                gFolderDisplay.canDeleteSelectedMessages;
+  document.getElementById("moveMenu").disabled = !canMove;
 
   // Also disable copy when no folder is loaded (like for .eml files).
-  document.getElementById("copyMenu").disabled = !(selectedMsg && msgFolder);
+  document.getElementById("copyMenu").disabled = !messageStoredInternally;
 
   initMoveToFolderAgainMenu(document.getElementById("moveToFolderAgain"));
 
@@ -367,7 +370,7 @@ function InitMessageMenu()
 
   // Disable the Tag menu item if no message is selected or when we're
   // not in a folder.
-  document.getElementById("tagMenu").disabled = !(selectedMsg && msgFolder);
+  document.getElementById("tagMenu").disabled = !messageStoredInternally;
 
   // Initialize the Open Message menuitem
   var winType = document.documentElement.getAttribute('windowtype');
@@ -384,7 +387,7 @@ function InitMessageMenu()
     openRssMenu.hidden = true;
 
   // Disable mark menu when we're not in a folder.
-  document.getElementById("markMenu").disabled = !msgFolder;
+  document.getElementById("markMenu").disabled = !messageStoredInternally;
 
   document.commandDispatcher.updateCommands('create-menu-message');
 }
@@ -1196,7 +1199,11 @@ function MsgCopyMessage(aDestFolder)
 function MsgMoveMessage(aDestFolder)
 {
   // We don't move news messages, we copy them.
-  if (isNewsURI(gDBView.msgFolder.URI))
+  // XXX this check is incorrect in two ways. For saved searches we could have
+  // cross folder/newsgroup messages, so this check would do the wrong thing.
+  // For global search views, we don't have a msgFolder - however as we don't
+  // index newsgroup messages, we can at least temporarily get away with this.
+  if (gDBView.msgFolder && isNewsURI(gDBView.msgFolder.URI))
     gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, aDestFolder);
   else
   {
@@ -1318,7 +1325,7 @@ BatchMessageMover.prototype = {
       }
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
       let granularity = archiveFolder.server.archiveGranularity;
-      
+
       let copyBatchKey = msgHdr.folder.URI + '\000';
       if (granularity >=  Components.interfaces.nsIMsgIncomingServer
                                     .perMonthArchiveFolders)

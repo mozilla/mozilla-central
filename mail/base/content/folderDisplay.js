@@ -1913,6 +1913,24 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
+   * @return true if all the selected messages can be deleted from their
+   * folders, false otherwise.
+   */
+  get canDeleteSelectedMessages FolderDisplayWidget_get_canDeleteSelectedMessages() {
+    if (!this.view.dbView)
+      return false;
+
+    let selectedMessages = this.selectedMessages;
+    for (let i = 0; i < selectedMessages.length; ++i) {
+      if (selectedMessages[i].folder &&
+          !selectedMessages[i].folder.canDeleteMessages) {
+        return false;
+      }
+    }
+    return true;
+  },
+
+  /**
    * Clear the tree selection, making sure the message pane is cleared and
    *  the context display (toolbars, etc.) are updated.
    */

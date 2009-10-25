@@ -68,7 +68,6 @@ function nsContextMenu(aXulMenu) {
   this.inMessageArea = false;
   this.inThreadPane = false;
   this.numSelectedMessages = 0;
-  this.selectedMessage = null;
   this.isNewsgroup = false;
   this.hideMailItems = false;
 
@@ -198,8 +197,7 @@ nsContextMenu.prototype = {
       return;
     }
 
-    let msgFolder = gFolderDisplay.displayedFolder;
-    var canMove = msgFolder && msgFolder.canDeleteMessages;
+    let canMove = gFolderDisplay.canDeleteSelectedMessages;
 
     // Show the Open in New Window and New Tab options if there is exactly one
     // message selected.
@@ -222,7 +220,8 @@ nsContextMenu.prototype = {
     this.setSingleSelection("mailContext-copyMessageUrl", this.isNewsgroup);
 
     let msgModifyItems = this.numSelectedMessages > 0 && !this.hideMailItems &&
-                         msgFolder && !this.onPlayableMedia;
+      !this.onPlayableMedia &&
+      !(this.numSelectedMessages == 1 && gMessageDisplay.isDummy);
 
     this.showItem("mailContext-archive", canMove && msgModifyItems);
 
@@ -450,7 +449,6 @@ nsContextMenu.prototype = {
     if (!this.inMessageArea) {
       this.inThreadPane = false;
       this.numSelectedMessages = 0;
-      this.selectedMessage = null;
       this.isNewsgroup = false;
       this.hideMailItems = true;
       return;
@@ -458,7 +456,6 @@ nsContextMenu.prototype = {
 
     this.inThreadPane = this.popupNodeIsInThreadPane(aNode);
     this.numSelectedMessages = GetNumSelectedMessages();
-    this.selectedMessage = gFolderDisplay.selectedMessage;
     this.isNewsgroup = gFolderDisplay.selectedMessageIsNews;
     // Don't show mail items for links/images, just show related items.
     this.hideMailItems = !this.inThreadPane &&

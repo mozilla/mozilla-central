@@ -292,9 +292,11 @@ var DefaultController =
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.toggleThreadWatched);
       case "cmd_createFilterFromPopup":
       case "cmd_createFilterFromMenu":
-        if (!(gFolderDisplay.displayedFolder &&
-              gFolderDisplay.displayedFolder.server.canHaveFilters))
-          return false;   // else fall thru
+      {
+        let selectedMessages = gFolderDisplay.selectedMessages;
+        return selectedMessages.length == 1 && selectedMessages[0].folder &&
+               selectedMessages[0].folder.server.canHaveFilters;
+      }
       case "cmd_saveAsFile":
       case "cmd_saveAsTemplate":
         if (GetNumSelectedMessages() > 1)
