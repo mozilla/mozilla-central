@@ -672,10 +672,12 @@ nsNntpCacheStreamListener::OnStartRequest(nsIRequest *request, nsISupports * aCt
   nsCOMPtr <nsILoadGroup> loadGroup;
   nsCOMPtr <nsIRequest> ourRequest = do_QueryInterface(mChannelToUse);
 
-  mChannelToUse->GetLoadGroup(getter_AddRefs(loadGroup));
+  NS_ASSERTION(mChannelToUse, "null channel in OnStartRequest");
+  if (mChannelToUse)
+    mChannelToUse->GetLoadGroup(getter_AddRefs(loadGroup));
   if (loadGroup)
     loadGroup->AddRequest(ourRequest, nsnull /* context isupports */);
-  return mListener->OnStartRequest(ourRequest, aCtxt);
+  return (mListener) ? mListener->OnStartRequest(ourRequest, aCtxt) : NS_OK;
 }
 
 NS_IMETHODIMP
@@ -684,7 +686,9 @@ nsNntpCacheStreamListener::OnStopRequest(nsIRequest *request, nsISupports * aCtx
   nsCOMPtr <nsIRequest> ourRequest = do_QueryInterface(mChannelToUse);
   nsresult rv = mListener->OnStopRequest(ourRequest, aCtxt, aStatus);
   nsCOMPtr <nsILoadGroup> loadGroup;
-  mChannelToUse->GetLoadGroup(getter_AddRefs(loadGroup));
+  NS_ASSERTION(mChannelToUse, "null channel in OnStopRequest");
+  if (mChannelToUse)
+    mChannelToUse->GetLoadGroup(getter_AddRefs(loadGroup));
   if (loadGroup)
       loadGroup->RemoveRequest(ourRequest, nsnull, aStatus);
 
