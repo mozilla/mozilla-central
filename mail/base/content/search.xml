@@ -25,6 +25,7 @@
   -   Scott MacGregor <mscott@mozilla.org>
   -   Andrew Sutherland <asutherland@asutherland.org>
   -   David Ascher <dascher@mozillamessaging.com>
+  -   Thomas Düllmann <bugzilla2009@duellmann24.net>
   -
   - Alternatively, the contents of this file may be used under the terms of
   - either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -562,6 +563,11 @@
                   tabmail.closeTab();
                 }
                 this.value = ''; // clear our value, to avoid persistence
+                if (gFolderDisplay.view) {
+                  // if we started out from a gFolderDisplay.view,
+                  // remove existing (non-global) filter from view, to avoid persistence
+                  gFolderDisplay.view.search.userTerms = null;
+                }
                 tabmail.openTab("glodaFacet", {
                   searcher: new GlodaMsgSearcher(null, searchString)
                 });
