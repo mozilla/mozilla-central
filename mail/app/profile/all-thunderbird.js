@@ -485,3 +485,8 @@ pref("mailnews.database.global.logging.console", true);
 
 // page to load to find good header add-ons
 pref("mailnews.migration.header_addons_url","http://live.mozillamessaging.com/%APP%/addons/search?q=header&locale=%LOCALE%&lver=%VERSION%&hver=%VERSION%&os=%OS%");
+
+// What level of warning should we send to the error console?
+pref("mail.wizard.logging.console", "None");
+// What level of warning should we send to stdout via dump?
+pref("mail.wizard.logging.dump", "None");

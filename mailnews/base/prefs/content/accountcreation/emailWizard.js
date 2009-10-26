@@ -71,7 +71,7 @@ let gSmtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
                    .getService(Ci.nsISmtpService);
 let gAccountMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);
-let gEmailWizardLogger = Log4Moz.getConfiguredLogger("emailwizard");
+let gEmailWizardLogger = Log4Moz.getConfiguredLogger("mail.wizard");
 let gStringsBundle;
 let gBrandBundle;
 
@@ -766,8 +766,12 @@ EmailConfigWizard.prototype =
     document.getElementById('create_button').disabled = true;
     var me = this;
     if (!this._verifiedConfig)
-      this.verifyConfig(function() // success
+      this.verifyConfig(function(successfulServer) // success
                         {
+                          // useSecAuth might have changed, so we should
+                          // back-port it to the current config.
+                          me._currentConfigFilledIn.incoming.auth =
+                              successfulServer.useSecAuth ? 2 : 1;
                           me.finish();
                         },
                         function(e) // failure
@@ -789,13 +793,13 @@ EmailConfigWizard.prototype =
       // guess login config?
       this._currentConfigFilledIn.source != AccountConfig.kSourceXML,
       this._parentMsgWindow,
-      function() // success
+      function(successfulServer) // success
       {
         me._verifiedConfig = true;
         if (me._currentConfigFilledIn.incoming.password)
           me.stopSpinner("password_ok");
         if (successCallback)
-          successCallback();
+          successCallback(successfulServer);
       },
       function(e) // failed
       {

@@ -102,7 +102,10 @@ function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
     else {
       // Avoid pref pollution, clear out server prefs.
       accountManager.removeIncomingServer(inServer, true);
-      successCallback();
+      // inServer seems to still be sufficiently alive after being removed
+      // to be useful.  If this turns out to be a problem, we could just
+      // pass back the useSecAuth attribute.
+      successCallback(inServer);
     }
   } catch (e) {
     ddump("ERROR: verify logon shouldn't have failed");
@@ -150,22 +153,32 @@ function urlListener(config, server, alter, msgWindow, successCallback,
   this.mAlter = alter;
   this.mSuccessCallback = successCallback;
   this.mErrorCallback = errorCallback;
-  this.mUsernameSaved = null;
   this.mMsgWindow = msgWindow;
   this.mCertError = false;
+  this._log = Log4Moz.getConfiguredLogger("mail.wizard");
 }
 urlListener.prototype =
 {
   OnStartRunningUrl: function(aUrl)
   {
+    this._log.info("Starting to test username");
+    this._log.info("  username=" + (this.mConfig.incoming.username !=
+                                    this.mConfig.identity.emailAddress));
+    this._log.info("  secAuth=" + this.mServer.useSecAuth);
+    this._log.info("  savedUsername=" +
+                   (this.mConfig.usernameSaved ? "true" : "false"));
   },
 
   OnStopRunningUrl: function(aUrl, aExitCode)
   {
     if (Components.isSuccessCode(aExitCode))
     {
+      let successfulServer = this.mServer;
       this._cleanup();
-      this.mSuccessCallback();
+      // successfulServer seems to still be sufficiently alive after being
+      // removed (in _cleanup) to be useful.  If this turns out to be a
+      // problem, we could just pass back the useSecAuth attribute.
+      this.mSuccessCallback(successfulServer);
     }
     // Logon failed, and we aren't supposed to try other variations.
     else if (!this.mAlter)
@@ -186,36 +199,60 @@ urlListener.prototype =
 
   tryNextLogon: function()
   {
+    this._log.info("tryNextLogon()");
+    this._log.info("  username=" + (this.mConfig.incoming.username !=
+                                    this.mConfig.identity.emailAddress));
+    this._log.info("  secAuth=" + this.mServer.useSecAuth);
+    this._log.info("  savedUsername=" +
+                   (this.mConfig.usernameSaved ? "true" : "false"));
     // check if we tried full email address as username
     if (this.mConfig.incoming.username != this.mConfig.identity.emailAddress)
     {
-      this.mUsernameSaved = this.mConfig.incoming.username;
+      this._log.info("  Changing username to email address.");
+      this.mConfig.usernameSaved = this.mConfig.incoming.username;
       this.mConfig.incoming.username = this.mConfig.identity.emailAddress;
       this.mServer.username = this.mConfig.incoming.username;
       this.mServer.password = this.mConfig.incoming.password;
       verifyLogon(this.mConfig, this.mServer, this.mAlter, this.mMsgWindow,
                   this.mSuccessCallback, this.mErrorCallback);
+      return;
     }
+
+    if (this.mConfig.usernameSaved)
+    {
+      this._log.info("  Re-setting username.");
+      // If we tried the full email address as the username, then let's go
+      // back to trying just the username before trying the other cases.
+      this.mConfig.incoming.username = this.mConfig.usernameSaved;
+      this.mConfig.usernameSaved = null;
+    }
+
     // sec auth seems to have failed, and we've tried both
     // varieties of user name, sadly.
     // So fall back to non-secure auth, and
     // again try the user name and email address as username
-    else if (this.mServer.useSecAuth)
+    if (this.mServer.useSecAuth &&
+        (this.mServer.socketType == Ci.nsIMsgIncomingServer.useSSL ||
+         this.mServer.socketType == Ci.nsIMsgIncomingServer.alwaysUseTLS))
     {
+      this._log.info("  Changing useSecAuth to false.");
+      this._log.info("  password=" +
+                     (this.mServer.password ? "true" : "false"));
       this.mServer.useSecAuth = false;
-      this.mServer.username = this.mUsernameSaved;
+      this.mServer.username = this.mConfig.incoming.username;
       this.mServer.password = this.mConfig.incoming.password;
       verifyLogon(this.mConfig, this.mServer, this.mAlter, this.mMsgWindow,
                   this.mSuccessCallback, this.mErrorCallback);
+      return;
     }
-    else
-    {
-      // Tried all variations we can. Give up.
-      this._cleanup();
-      let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
-      let errorMsg = stringBundle.GetStringFromName("cannot_login.error");
-      this.mErrorCallback(new Exception(errorMsg));
-    }
+
+    // Tried all variations we can. Give up.
+    this._log.info("  Giving up.");
+    this._cleanup();
+    let stringBundle = getStringBundle("chrome://messenger/locale/accountCreationModel.properties");
+    let errorMsg = stringBundle.GetStringFromName("cannot_login.error");
+    this.mErrorCallback(new Exception(errorMsg));
+    return;
   },
 
   _cleanup : function()
