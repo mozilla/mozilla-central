@@ -514,8 +514,8 @@
               <modevbox id="task-filtertree-pane" flex="1" mode="task" broadcaster="modeBroadcaster" refcontrol="task-tree-filter-header">
                  <radiogroup id="task-tree-filtergroup" class="task-tree-subpane"
                              persist="value">
-                   <observes element="filterBroadcaster" 
-                             attribute="value" 
+                   <observes element="filterBroadcaster"
+                             attribute="value"
                              onbroadcast="checkRadioControl(this.parentNode, document.getElementById('filterBroadcaster').getAttribute('value'));"/>
                    <radio id="opt_all_filter" label="&calendar.task.filter.all.label;" value="all" command="calendar_task_filter_command"/>
                    <radio id="opt_today_filter" label="&calendar.task.filter.today.label;" value="today" command="calendar_task_filter_command"/>
@@ -538,7 +538,7 @@
                                label="&calendar.list.header.label;"/>
               <modevbox id="calendar-listtree-pane" flex="1" mode="calendar,task" broadcaster="modeBroadcaster"
                         refcontrol="calendar-list-header">
-                
+
                 <calendar-list-tree id="calendar-list-tree-widget"
                                     class="task-tree-subpane"
                                     flex="1"/>
@@ -558,8 +558,11 @@
   </tabpanels>
 
   <hbox id="tabmail-container">
-    <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed"
-              oncommand="storeWidthAndState()">
+    <splitter id="today-splitter"
+              collapse="after"
+              resizebefore="closest"
+              state="collapsed"
+              oncommand="TodayPane.storeWidthAndState();">
       <grippy/>
     </splitter>
     <modevbox id="today-pane-panel" />
@@ -584,7 +587,7 @@
              onclick="openInvitationsDialog()"
              onkeypress="if (event.keyCode == event.VK_ENTER ||
                              event.keyCode == event.VK_RETURN) {
-                             openInvitationsDialog()"/>
+                             openInvitationsDialog(); }"/>
     </statusbarpanel>
   </statusbar>
 </overlay>

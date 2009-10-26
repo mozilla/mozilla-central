@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
-<!--
-   - ***** BEGIN LICENSE BLOCK *****
+<!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
    - The contents of this file are subject to the Mozilla Public License Version
@@ -15,7 +14,8 @@
    -
    - The Original Code is Sun Microsystems code.
    -
-   - The Initial Developer of the Original Code is Sun Microsystems.
+   - The Initial Developer of the Original Code is
+   - Sun Microsystems.
    - Portions created by the Initial Developer are Copyright (C) 2006
    - the Initial Developer. All Rights Reserved.
    -
@@ -23,6 +23,7 @@
    -   Berend Cornelius <berend.cornelius@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Stefan Sitter <ssitter@gmail.com>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -32,12 +33,11 @@
    - under the terms of either the GPL or the LGPL, and not to allow others to
    - use your version of this file under the terms of the MPL, indicate your
    - decision by deleting the provisions above and replace them with the notice
-   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - and other provisions required by the LGPL or the GPL. If you do not delete
    - the provisions above, a recipient may use your version of this file under
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
-   - ***** END LICENSE BLOCK *****
--->
+   - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE overlay
 [
@@ -61,7 +61,7 @@
 <script type="application/javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
 <script type="application/javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
 
-    <modevbox id="today-pane-panel" 
+    <modevbox id="today-pane-panel"
               mode="mail,calendar,task" modewidths="200,200,200" modesplitterstates="open,open,open"
               refcontrol="calendar_toggle_todaypane_command"
               broadcaster="modeBroadcaster" persist="modewidths modesplitterstates">
@@ -83,7 +83,7 @@
         <spacer id="buttonspacer"/>
         <toolbarbutton id="today-closer" class="today-closebutton"
                        oncommand="document.getElementById('today-pane-panel').setVisible(false, true, true);
-                                  TodayPane.setTodayHeader(); 
+                                  TodayPane.setTodayHeader();
                                   TodayPane.updateSplitterState();"/>
       </sidebarheader>
       <vbox flex="1">
@@ -179,8 +179,10 @@
                                    tooltiptext="&showselectedday.tooltip;"
                                    type="menu">
                       <panel id="miniday-month-panel" position="after_start">
-                        <minimonth id="todayMinimonth" flex="1"
-                                   onchange="TodayPane.setDaywithjsDate(this.value);"/>
+                        <minimonth id="todayMinimonth"
+                                   flex="1"
+                                   onchange="TodayPane.setDaywithjsDate(this.value);
+                                             document.getElementById('miniday-month-panel').hidePopup();"/>
                       </panel>
                    </toolbarbutton>
                  </hbox>
@@ -233,7 +235,7 @@
                                                title="&calendar.tomorrow.button.label;"
                                                checked="false"
                                                persist="checked"/>
-                <agenda-checkbox-richlist-item id="nextweek-header-hidden" 
+                <agenda-checkbox-richlist-item id="nextweek-header-hidden"
                                                title="&calendar.soon.button.label;"
                                                checked="false"
                                                persist="checked"/>

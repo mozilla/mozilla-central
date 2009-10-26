@@ -47,13 +47,6 @@
 
 var gLastShownCalendarView = null;
 
-function yesterday()
-{
-    var d = now();
-    d.day--;
-    return d;
-}
-
 var calendarTabType = {
   name: "calendar",
   panelId: "calendarTabPanel",
@@ -308,24 +301,6 @@ function ltnFinish() {
 
     // Common finish steps
     commonFinishCalendar();
-}
-
-// After 1.5 was released, the search box was moved into an optional toolbar
-// item, with a different ID.  This function keeps us compatible with both.
-function findMailSearchBox() {
-    var tb15Box = document.getElementById("searchBox");
-    if (tb15Box) {
-        return tb15Box;
-    }
-
-    var tb2Box = document.getElementById("searchInput");
-    if (tb2Box) {
-        return tb2Box;
-    }
-
-    // In later versions, it's possible that a user removed the search box from
-    // the toolbar.
-    return null;
 }
 
 // == invitations link
