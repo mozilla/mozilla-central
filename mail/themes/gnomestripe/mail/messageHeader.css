@@ -51,7 +51,7 @@
 
 /* ::::: msg header toolbars ::::: */
 
-#expandedHeaderView {
+#expandedHeaderView[show_header_mode="all"] {
   overflow-y: auto;
   overflow-x: hidden;
   max-height: 14em;
@@ -584,4 +584,9 @@ mail-newsgroups-headerfield {
   margin: 0;
   padding: 0;
   -moz-box-align: baseline;
+}
+
+mail-headerfield > .headerValue {
+  -moz-user-focus: normal;
+  -moz-user-select: text;
 }

@@ -179,11 +179,12 @@
        use headerValue to set the header value. -->
   <binding id="mail-headerfield">
     <content>
-      <xul:textbox class="headerValue" anonid="headerValue" flex="1" readonly="true"/>
+      <xul:description class="headerValue" anonid="headerValue"
+                       flex="1" readonly="true" context="copyPopup"/>
     </content>
 
     <implementation>
-      <property name="headerValue" onset="return document.getAnonymousElementByAttribute(this, 'anonid', 'headerValue').value = val;"/>
+      <property name="headerValue" onset="return document.getAnonymousElementByAttribute(this, 'anonid', 'headerValue').textContent = val;"/>
     </implementation>
   </binding>
 

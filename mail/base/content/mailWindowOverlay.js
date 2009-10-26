@@ -415,14 +415,26 @@ function initMoveToFolderAgainMenu(aMenuItem)
 
 function InitViewHeadersMenu()
 {
-  const nsMimeHeaderDisplayTypes = Components.interfaces.nsMimeHeaderDisplayTypes;
+  const dt = Components.interfaces.nsMimeHeaderDisplayTypes;
   var headerchoice = pref.getIntPref("mail.show_headers");
+  AdjustHeaderView(headerchoice);
   document.getElementById("cmd_viewAllHeader")
-          .setAttribute("checked", headerchoice == nsMimeHeaderDisplayTypes.AllHeaders);
+          .setAttribute("checked", headerchoice == dt.AllHeaders);
   document.getElementById("cmd_viewNormalHeader")
-          .setAttribute("checked", headerchoice == nsMimeHeaderDisplayTypes.NormalHeaders);
+          .setAttribute("checked", headerchoice == dt.NormalHeaders);
   document.commandDispatcher.updateCommands("create-menu-mark");
 }
+
+/**
+ * @param headermode {Ci.nsMimeHeaderDisplayTypes}
+ */
+function AdjustHeaderView(headermode)
+{
+  const all = Components.interfaces.nsMimeHeaderDisplayTypes.AllHeaders;
+  document.getElementById("expandedHeaderView")
+      .setAttribute("show_header_mode", headermode == all ? "all" : "normal");
+}
+
 
 function InitViewBodyMenu()
 {
@@ -2045,13 +2057,17 @@ function ChangeMailLayoutForCommand(aCommand)
 
 function MsgViewAllHeaders()
 {
-  gPrefBranch.setIntPref("mail.show_headers", 2);
+  const mode = Components.interfaces.nsMimeHeaderDisplayTypes.AllHeaders;
+  gPrefBranch.setIntPref("mail.show_headers", mode); // 2
+  AdjustHeaderView(mode);
   ReloadMessage();
 }
 
 function MsgViewNormalHeaders()
 {
-  gPrefBranch.setIntPref("mail.show_headers", 1);
+  const mode = Components.interfaces.nsMimeHeaderDisplayTypes.NormalHeaders;
+  gPrefBranch.setIntPref("mail.show_headers", mode); // 1
+  AdjustHeaderView(mode);
   ReloadMessage();
 }
 

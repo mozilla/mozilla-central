@@ -195,6 +195,18 @@
               observes="cmd_createFilterFromPopup"/>
 </popup>
 
+<popup id="copyPopup">
+     <menuitem id="copyMenuitem"
+               label="&copyCmd.label;"
+               accesskey="&copyCmd.accesskey;"
+               tooltiptext="&copyCmd.label;"
+               oncommand="Components.classes['@mozilla.org/widget/clipboardhelper;1']
+                          .getService(Components.interfaces.nsIClipboardHelper)
+                          .copyString(window.getSelection().isCollapsed ?
+                              document.popupNode.textContent :
+                              window.getSelection().toString());"/>
+</popup>
+
 <popup id="newsgroupPopup" position="after_start" class="newsgroupPopup"
        onpopupshowing="setupNewsgroupPopup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup')); goUpdateCommand('cmd_createFilterFromPopup')"
        onpopuphiding="hideEmailNewsPopup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'));">
