@@ -5312,6 +5312,12 @@ PRInt32 nsMsgDBView::FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex start
 nsMsgViewIndex 
 nsMsgDBView::GetThreadRootIndex(nsIMsgDBHdr *msgHdr)
 {
+  if (!msgHdr)
+  {
+    NS_WARNING("null msgHdr parameter");
+    return nsMsgViewIndex_None;
+  }
+
   // Take advantage of the fact that we're already sorted
   // and find the thread root via a binary search.
 

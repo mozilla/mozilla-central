@@ -465,7 +465,6 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
       // get the thread root index before we add the header, because adding
       // the header can change the sort position.
       nsMsgViewIndex threadIndex = GetThreadRootIndex(threadRoot);
-      NS_ASSERTION(!m_levels[threadIndex], "threadRoot incorrect, or level incorrect");
       viewThread->AddHdr(msgHdr, msgIsReferredTo, posInThread,
                          getter_AddRefs(parent));
       if (threadIndex == nsMsgViewIndex_None)
@@ -473,6 +472,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
         NS_ERROR("couldn't find thread index for newly inserted header");
         return NS_OK; // not really OK, but not failure exactly.
       }
+      NS_ASSERTION(!m_levels[threadIndex], "threadRoot incorrect, or level incorrect");
 
       PRBool moveThread = PR_FALSE;
       if (m_sortType == nsMsgViewSortType::byDate)
