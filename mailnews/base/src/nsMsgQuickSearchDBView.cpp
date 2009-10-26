@@ -320,11 +320,13 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
       nsresult rv = m_db->RefreshCache(searchUri.get(), m_hdrHits.Count(),
                                        keyArray.Elements(), &numBadHits, &staleHits);
       NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr<nsIMsgDBHdr> hdrDeleted;
+
       for (i = 0; i < numBadHits; i++)
       {
-        nsMsgViewIndex staleHitIndex = FindKey(staleHits[i], PR_TRUE);
-        if (staleHitIndex != nsMsgViewIndex_None)
-          RemoveByIndex(staleHitIndex);
+        m_db->GetMsgHdrForKey(staleHits[i], getter_AddRefs(hdrDeleted));
+        if (hdrDeleted)
+          OnHdrDeleted(hdrDeleted, nsMsgKey_None, 0, this);
       }
       delete [] staleHits;
     }
