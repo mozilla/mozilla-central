@@ -766,12 +766,12 @@ EmailConfigWizard.prototype =
     document.getElementById('create_button').disabled = true;
     var me = this;
     if (!this._verifiedConfig)
-      this.verifyConfig(function(successfulServer) // success
+      this.verifyConfig(function(successfulConfig) // success
                         {
-                          // useSecAuth might have changed, so we should
-                          // back-port it to the current config.
+                          // the incoming auth might have changed, so we
+                          // should back-port it to the current config.
                           me._currentConfigFilledIn.incoming.auth =
-                              successfulServer.useSecAuth ? 2 : 1;
+                              successfulConfig.incoming.auth;
                           me.finish();
                         },
                         function(e) // failure

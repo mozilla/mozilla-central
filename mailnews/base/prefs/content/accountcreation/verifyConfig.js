@@ -102,10 +102,7 @@ function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
     else {
       // Avoid pref pollution, clear out server prefs.
       accountManager.removeIncomingServer(inServer, true);
-      // inServer seems to still be sufficiently alive after being removed
-      // to be useful.  If this turns out to be a problem, we could just
-      // pass back the useSecAuth attribute.
-      successCallback(inServer);
+      successCallback(config);
     }
   } catch (e) {
     ddump("ERROR: verify logon shouldn't have failed");
@@ -173,12 +170,8 @@ urlListener.prototype =
   {
     if (Components.isSuccessCode(aExitCode))
     {
-      let successfulServer = this.mServer;
       this._cleanup();
-      // successfulServer seems to still be sufficiently alive after being
-      // removed (in _cleanup) to be useful.  If this turns out to be a
-      // problem, we could just pass back the useSecAuth attribute.
-      this.mSuccessCallback(successfulServer);
+      this.mSuccessCallback(this.mConfig);
     }
     // Logon failed, and we aren't supposed to try other variations.
     else if (!this.mAlter)
@@ -238,6 +231,7 @@ urlListener.prototype =
       this._log.info("  Changing useSecAuth to false.");
       this._log.info("  password=" +
                      (this.mServer.password ? "true" : "false"));
+      this.mConfig.incoming.auth = 1; // "insecure" auth
       this.mServer.useSecAuth = false;
       this.mServer.username = this.mConfig.incoming.username;
       this.mServer.password = this.mConfig.incoming.password;
