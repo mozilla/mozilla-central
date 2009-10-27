@@ -1898,8 +1898,9 @@ function UpdateJunkButton()
   let hideJunk = (junkScore == Components.interfaces.nsIJunkMailPlugin.IS_SPAM_SCORE);
   if (!gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk))
     hideJunk = true;
-
-  document.getElementById('hdrJunkButton').disabled = hideJunk;
+  if (document.getElementById('hdrJunkButton')) {
+    document.getElementById('hdrJunkButton').disabled = hideJunk;
+  }
 }
 
 function MsgMarkMsgAsRead()
