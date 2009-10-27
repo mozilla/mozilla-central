@@ -132,25 +132,30 @@ function openComposeWithReply() {
   mc.keypress(null, "r", {shiftKey: false, accelKey: true});
   let replyWindow = windowHelper.wait_for_new_window("msgcompose");
 
-  let editorObserver = {
-    editorLoaded: false,
+  let editor = replyWindow.window.document.getElementsByTagName("editor")[0];
 
-    observe: function eO_observe(aSubject, aTopic, aData) {
-      if (aTopic == "obs_documentCreated") {
-        this.editorLoaded = true;
+  if (editor.webNavigation.busyFlags != Ci.nsIDocShell.BUSY_FLAGS_NONE) {
+    let editorObserver = {
+      editorLoaded: false,
+
+      observe: function eO_observe(aSubject, aTopic, aData) {
+        if (aTopic == "obs_documentCreated") {
+          this.editorLoaded = true;
+        }
       }
-    }
-  };
+    };
 
-  replyWindow.window.document.getElementsByTagName("editor")[0]
-    .commandManager.addCommandObserver(editorObserver, "obs_documentCreated");
+    editor.commandManager.addCommandObserver(editorObserver,
+                                             "obs_documentCreated");
 
-  mc.waitForEval("subject.editorLoaded == true", 10000, 10, editorObserver);
+    mc.waitForEval("subject.editorLoaded == true", 10000, 100, editorObserver);
 
-  mc.sleep(0);
+    // Let the event queue clear.
+    mc.sleep(0);
 
-  replyWindow.window.document.getElementsByTagName("editor")[0]
-    .commandManager.removeCommandObserver(editorObserver, "obs_documentCreated");
+    editor.commandManager.removeCommandObserver(editorObserver,
+                                                "obs_documentCreated");
+  }
 
   // Although the above is reasonable, testing has shown that the video elements
   // need to have a little longer to try and load the initial video data.
