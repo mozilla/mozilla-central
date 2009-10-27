@@ -2467,11 +2467,16 @@
   <li>If you have multiple mail accounts, choose the one to which you want to
     apply the filter.</li>
   <li>Click New. You use the Filter Rules dialog box to specify the types of
-    messages to act on, and the action you want the filter to perform.</li>
+    messages to act on, and the actions you want the filter to perform.</li>
   <li>Type a name for the filter.</li>
+  <li>Select when you want the filter to be applied. This setting enables you
+    to define some filters to be applied in an automatic way (when checking
+    mail), on demand (manually run), or both. <q>After classification</q> means
+    that junk and phishing controls will be run before applying the
+    filter.</li>
   <li>Select the matching option you want Mail to use: <q><em>all</em> of the
-    following</q> conditions (criteria) you choose, or <q><em>any</em> of the
-    following</q> conditions.</li>
+    following</q> conditions (criteria) you choose, <q><em>any</em> of the
+    following</q> conditions you choose, or <q><em>all messages</em></q>.</li>
   <li>Use the drop-down lists to choose the search criteria (for example,
     <q>Subject</q>, <q>Sender</q>, <q>contains</q>, <q>doesn&apos;t
     contain</q>) and then type the text or phrase you want to match.
@@ -2487,17 +2492,38 @@
   </li>
   <li>Click <q>+</q> to add criteria and <q>-</q> to remove them.</li>
   <li>Use the list to choose the action you want the filter to perform on the
-    messages (for example, Move to Folder).
+    messages (for example, Move Message To). Use <q>+</q> and <q>-</q> to add
+    or remove additional actions.
 
     <p><strong>Tip</strong>: To automatically tag incoming messages, choose
-      <q>Tag the message</q> from the drop-down list.</p>
+      <q>Tag Message</q> from the drop-down list.</p>
+
+    <p><strong>Tip</strong>: Message filters are applied one after another. It
+      could be that you don&apos;t want all filters to be run if one or more
+      messages match some conditions. For instance, you may want to tag all
+      messages from your boss&apos;s email address as <q>Important</q>, and
+      you may want all messages containing the word <q>Memorandum</q> in their
+      subject to be moved to a folder named <q>Pending Reads</q>, but you
+      don&apos;t want any message from your boss to be moved to another folder,
+      even if it contains <q>Memorandum</q> in the subject. So the first
+      message filter you define should match your boss&apos;s email address,
+      and would contain two actions: <q>Tag Message</q> as <q>Important</q> and
+      <q>Stop Filter Execution</q>.</p>
   </li>
-  <li>Choose a destination folder in which to store the messages, or create a
+  <li>If you have chosen <q>Move</q> or <q>Copy</q> message to a folder, then
+    select a destination folder in which to store the messages, or create a
     new folder.</li>
   <li>Click OK to confirm your settings.</li>
+  <li>To run filters on existing messages in a folder, select the folder
+    in the bottom dropdown list and click the <q>Run Now</q> button.</li>
   <li>Click OK in the Message Filters dialog box. The filter begins filtering
     incoming messages as soon as you click OK.</li>
 </ol>
+
+<p><strong>Note</strong>: You can also run message filters manually at any
+  time. In the Mail window, choose Tools, and then select Run Filters on Folder
+  to apply filters to the current folder, or Run Filters on Message to apply
+  filters to the selected message (if any).</p>
 
 <p>To manage your filters, begin from the Mail window:</p>
 
@@ -2554,12 +2580,18 @@
 
 <ol>
   <li>Select a message from a specific sender.</li>
-  <li>Open the Message menu, and choose Create Filter From Message. You see the
-    Filter Rules dialog box. Using the sender&apos;s email address,
-    &brandShortName; prefills the filter name, the filter matching criteria,
-    and the filter action (Move to folder).</li>
+  <li>Open the Message menu and choose Create Filter From Message. Or, in the
+    message header pane, right click the sender name and choose Create Filter
+    From.</li>
+  <li>You see the Filter Rules dialog box. Using the sender&apos;s email
+    address, &brandShortName; prefills the filter matching criteria and the
+    filter action (Move Message to). You can change or add new rules to the
+    matching criteria.</li>
   <li>Choose a destination folder in which to store the incoming messages from
-    the specified sender, or create a new folder.</li>
+    the specified sender, or create a new folder. You can also choose other
+    actions for this filter, or change the default one.</li>
+  <li>Note that, if you leave the filter name empty, &brandShortName; will
+    provide a name for it based on the first criterion.</li>
   <li>Click OK to confirm your settings. You see the
     <a href="#creating_message_filters">Message Filters</a> dialog box, where
     you can create, delete, or edit message filters.</li>
@@ -2749,11 +2781,13 @@ to filter unwanted mail, and how phishing detection works.</p>
 
 <h2 id="junk_controls_and_filters">Junk Mail Controls and Filters</h2>
 
-<p>Junk Mail Controls run after mail filters and apply only to the Inbox folder
-  and its sub-folders. Use this to your advantage, for example, you can filter
-  mail you are sure not to be Junk to a special folder outside of Inbox so that
-  the messages will not be classified as Junk (especially useful if you
-  subscribe to newsletters or if you are on a moderated mailing list).</p>
+<p>Junk Mail Controls run after mail filters (unless you set the filter to run
+  after classification, where <q>classification</q> includes junk and phishing
+  scanning) and apply only to the Inbox folder and its sub-folders. Use this to
+  your advantage, for example, you can filter mail you are sure not to be Junk
+  to a special folder outside of Inbox so that the messages will not be
+  classified as Junk (especially useful if you subscribe to newsletters or if
+  you are on a moderated mailing list).</p>
 
 <p>[<a href="#controlling_junk_mail">Return to beginning of section</a>]</p>
 
@@ -3158,9 +3192,9 @@ to filter unwanted mail, and how phishing detection works.</p>
   Instead, you will need to open a browser window, log in to your blog account
   and use the web interface.</p>
  
-<p>Some blog systems, however, allow posting blog messages by sending an e-mail
+<p>Some blog systems, however, allow posting blog messages by sending an email
   message to a specific address. You will need to find out if your blog service
-  implements this feature, and the correct e-mail address to use.</p>
+  implements this feature, and the correct email address to use.</p>
 
 <p>[<a href="#getting_started_with_blogs_and_news_feeds">Return to beginning of
   section</a>]</p>
@@ -3170,9 +3204,9 @@ to filter unwanted mail, and how phishing detection works.</p>
 <p>Since there is no standardized way to add comments to a blog post, you will
   usually need to open a browser window and use the web interface.</p>
  
-<p>Some blog systems, however, allow adding comments by sending an e-mail
+<p>Some blog systems, however, allow adding comments by sending an email
   message to a specific address. You will need to find out if the blog service
-  implements this feature, and the correct e-mail address to use.</p>
+  implements this feature, and the correct email address to use.</p>
 
 <p>[<a href="#getting_started_with_blogs_and_news_feeds">Return to beginning of
   section</a>]</p>
