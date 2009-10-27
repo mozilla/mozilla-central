@@ -1017,7 +1017,7 @@ int nsParseMailMessageState::ParseHeaders ()
       }
       break;
     case 'S': case 's':
-      if (!PL_strncasecmp ("Subject", buf, end - buf))
+      if (!PL_strncasecmp ("Subject", buf, end - buf) && !m_subject.length)
         header = &m_subject;
       else if (!PL_strncasecmp ("Sender", buf, end - buf))
         header = &m_sender;
