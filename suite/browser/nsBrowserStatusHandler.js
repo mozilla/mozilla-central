@@ -414,7 +414,7 @@ nsBrowserStatusHandler.prototype =
 
   startDocumentLoad : function(aRequest)
   {
-    var uri = aRequest.QueryInterface(Components.interfaces.nsIChannel).URI;
+    var uri = aRequest.QueryInterface(Components.interfaces.nsIChannel).originalURI;
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                     .getService(Components.interfaces.nsIObserverService);
 
