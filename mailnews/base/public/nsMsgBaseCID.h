@@ -526,4 +526,11 @@
 #define NS_MSGSHUTDOWNSERVICE_CONTRACTID   \
   "@mozilla.org/messenger/msgshutdownservice;1"
 
+//
+// msgAsyncPrompter (only contract id for utility purposes as the CID is defined
+// in js).
+//
+#define NS_MSGASYNCPROMPTER_CONTRACTID \
+  "@mozilla.org/messenger/msgAsyncPrompter;1"
+
 #endif // nsMessageBaseCID_h__
