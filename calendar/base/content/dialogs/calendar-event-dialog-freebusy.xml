@@ -1480,7 +1480,8 @@
       <method name="getFreeBusyElement">
         <parameter name="aRow"/>
         <body><![CDATA[
-          return document.getElementById("attendeeCol4#" + aRow);
+          return document.getAnonymousElementByAttribute(this, "id",
+                                                         "attendeeCol4#" + aRow);
         ]]></body>
       </method>
 
@@ -1494,7 +1495,7 @@
           for (var row = aRow + 1; row <= max; row++) {
               for (var col = 1; col <= numberOfCols; col++) {
                   var colID = "attendeeCol" + col + "#" + row;
-                  var elem = document.getElementById(colID);
+                  var elem = document.getAnonymousElementByAttribute(this, "id", colID);
                   if (elem) {
                       elem.setAttribute(
                           "id",
