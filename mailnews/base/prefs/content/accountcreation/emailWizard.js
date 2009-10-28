@@ -1059,7 +1059,7 @@ EmailConfigWizard.prototype =
   },
 
   // IDs of <textbox> inputs that can have a .value attr set
-  _configDetailTextInputs : ["password", "username", "incoming_server",
+  _configDetailTextInputs : ["username", "incoming_server",
                              "incoming_port", "incoming_protocol",
                              "outgoing_port"],
 
@@ -1074,7 +1074,8 @@ EmailConfigWizard.prototype =
   _disableConfigDetails : function(disabled)
   {
     let formElements =
-      this._configDetailTextInputs.concat(this._configDetailMenulists);
+      this._configDetailTextInputs.concat(this._configDetailMenulists)
+                                  .concat("password");
     for (let i = 0; i < formElements.length; i++)
     {
       document.getElementById(formElements[i]).disabled = disabled;
