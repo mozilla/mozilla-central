@@ -195,17 +195,19 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .msgHeaderView-button {
   -moz-appearance: button;
-  min-width: 1em;
   min-height: 1ex;
   margin: 0px 0px 0px 0.2em;
   vertical-align: middle;
   /* important required to override messenger.css rule */
+  min-width: 1em !important;
   padding: 0 !important;
   list-style-image: none; /* overrides the rule from primaryToolbar.css */
 }
 
-.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button > .button-box {
-  /* Needed to make the buttons the same height as the trash icon */
+.msgHeaderView-button > .toolbarbutton-icon,
+.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button
+> .toolbarbutton-icon {
+  /* Needed to make the buttons w/o icons the same height as those with icons */
   min-height: 16px;
 }
 

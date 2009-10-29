@@ -30,6 +30,11 @@ body {
   font: message-box;
 }
 
+.button > .button-box {
+  /* Needed to make the buttons w/o icons the same height as those with icons */
+  min-height: 16px;
+}
+
 .star {
   width: 12px;
   height: 12px;
