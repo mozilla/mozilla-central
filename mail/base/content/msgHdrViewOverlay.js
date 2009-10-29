@@ -2074,7 +2074,7 @@ function CopyWebsiteAddress(websiteAddressNode)
 {
   if (websiteAddressNode)
   {
-    var websiteAddress = websiteAddressNode.getAttribute("value");
+    var websiteAddress = websiteAddressNode.textContent;
 
     var contractid = "@mozilla.org/widget/clipboardhelper;1";
     var iid = Components.interfaces.nsIClipboardHelper;

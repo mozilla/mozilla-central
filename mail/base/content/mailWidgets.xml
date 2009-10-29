@@ -190,7 +190,9 @@
 
   <binding id="mail-urlfield" extends="chrome://messenger/content/mailWidgets.xml#mail-headerfield">
     <content>
-      <xul:label onclick="if (event.button != 2) openUILink(event.target.value, event);"
+      <xul:description
+                 onclick="if (event.button != 2)
+                            openUILink(event.target.textContent, event);"
                  class="headerValue text-link headerValueUrl"
                  anonid="headerValue" flex="1" readonly="true" context="copyUrlPopup"/>
     </content>
