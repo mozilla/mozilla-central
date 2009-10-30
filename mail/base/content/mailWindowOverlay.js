@@ -2212,13 +2212,18 @@ function MsgSynchronizeOffline()
 function SpaceHit(event)
 {
   var contentWindow = document.commandDispatcher.focusedWindow;
-  // If focus is in chrome, we want to scroll the content window; if focus is
-  // on a non-link content element like a button, bail so we don't scroll when
-  // the element is going to do something else.
-  if (contentWindow.top == window)
+  // If focus is in chrome, we want to scroll the content window, unless
+  // the focus is on the otherActionsButton popup; if focus is on a
+  // non-link content element like a button, bail so we don't scroll
+  // when the element is going to do something else.
+  let focusedElement = document.commandDispatcher.focusedElement;
+
+  if (contentWindow.top == window) {
     contentWindow = content;
-  else if (document.commandDispatcher.focusedElement &&
-           !hRefForClickEvent(event))
+    if (focusedElement && focusedElement.id == "otherActionsButton")
+      return;
+  }
+  else if (focusedElement && !hRefForClickEvent(event))
     return;
 
   var rssiframe = contentWindow.document.getElementById('_mailrssiframe');
