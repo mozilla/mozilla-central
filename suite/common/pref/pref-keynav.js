@@ -79,5 +79,5 @@ function WriteTabNav(aField)
 
 function SetLinksOnlyEnabled(aEnable)
 {
-  EnableTextbox("findAsYouTypeAutoWhat", aEnable, false);
+  EnableElementById("findAsYouTypeAutoWhat", aEnable, false);
 }
