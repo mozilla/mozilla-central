@@ -49,7 +49,6 @@ GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $
 
 PLATFORM_LICENSE_FILE = $(MOZILLA_SRCDIR)/toolkit/content/license.html
 MAIL_LICENSE_HTML_FILE = ../license.html
-MAIL_LICENSE_TXT_FILE = $(topsrcdir)/mail/LICENSE.txt
 MAIL_APP_LICENSE_FILE = $(srcdir)/app-license.html
 
 DEFINES += \
@@ -344,7 +343,7 @@ $(MAIL_LICENSE_HTML_FILE): $(PLATFORM_LICENSE_FILE) $(MAIL_APP_LICENSE_FILE)
 	$(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $< | \
 	sed -e "s/about:license\#/\#/" > $@
 
-libs:: $(MAIL_LICENSE_TXT_FILE) $(MAIL_LICENSE_HTML_FILE)
+libs:: $(MAIL_LICENSE_HTML_FILE)
 ifeq ($(OS_ARCH),WINNT)
 	$(EXIT_ON_ERROR) \
 	for file in $^; do \
