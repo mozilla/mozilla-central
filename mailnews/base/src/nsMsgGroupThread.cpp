@@ -871,10 +871,11 @@ nsMsgViewIndex nsMsgXFGroupThread::FindMsgHdr(nsIMsgDBHdr *hdr)
   nsCOMPtr<nsIMsgFolder> folder;
   hdr->GetFolder(getter_AddRefs(folder));
   PRUint32 index = 0;
-  while (index != -1) {
+  while (PR_TRUE) {
     index = m_keys.IndexOf(msgKey, index);
-    if (m_folders[index] == folder)
+    if (index == -1 || m_folders[index] == folder)
       break;
+    index++;
   }
   return (nsMsgViewIndex)index;
 }
