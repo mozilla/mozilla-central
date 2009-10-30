@@ -482,38 +482,6 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::SetViewFlags(nsMsgViewFlagsTypeValue a
   return rv;
 }
 
-NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgViewSortTypeValue aSortType,
-                                        nsMsgViewSortOrderValue aSortOrder, nsMsgViewFlagsTypeValue aViewFlags,
-                                        PRInt32 *aCount)
-{
-  if (aViewFlags & nsMsgViewFlagsType::kGroupBySort)
-    return nsMsgGroupView::OpenWithHdrs(aHeaders, aSortType, aSortOrder, 
-                                        aViewFlags, aCount);
-
-  m_sortType = aSortType;
-  m_sortOrder = aSortOrder;
-  m_viewFlags = aViewFlags;
-  SaveSortInfo(m_sortType, m_sortOrder);
-
-  PRBool hasMore;
-  nsCOMPtr<nsISupports> supports;
-  nsCOMPtr<nsIMsgDBHdr> msgHdr;
-  nsCOMPtr<nsIMsgFolder> folder;
-  nsresult rv = NS_OK;
-  while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(rv = aHeaders->HasMoreElements(&hasMore)) && hasMore)
-  {
-    rv = aHeaders->GetNext(getter_AddRefs(supports));
-    if (NS_SUCCEEDED(rv) && supports)
-    {
-      msgHdr = do_QueryInterface(supports);
-      msgHdr->GetFolder(getter_AddRefs(folder));
-      AddHdrFromFolder(msgHdr, folder); 
-    }
-  }
-  *aCount = m_keys.Length();
-  return rv;
-}
-
 
 nsresult 
 nsMsgXFVirtualFolderDBView::GetMessageEnumerator(nsISimpleEnumerator **enumerator)

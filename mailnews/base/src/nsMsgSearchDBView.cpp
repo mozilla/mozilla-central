@@ -80,6 +80,15 @@ NS_IMETHODIMP nsMsgSearchDBView::Open(nsIMsgFolder *folder,
                                       nsMsgViewFlagsTypeValue viewFlags, 
                                       PRInt32 *pCount)
 {
+  // dbViewWrapper.js likes to create search views with a sort order
+  // of byNone, in order to have the order be the order the search results
+  // are returned. But this doesn't work with threaded view, so make the
+  // sort order be byDate if we're threaded.
+
+  if (viewFlags & nsMsgViewFlagsType::kThreadedDisplay &&
+      sortType == nsMsgViewSortType::byNone)
+    sortType = nsMsgViewSortType::byDate;
+
   nsresult rv = nsMsgDBView::Open(folder, sortType, sortOrder, 
                                     viewFlags, pCount);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1188,6 +1197,41 @@ nsMsgSearchDBView::GetHdrForFirstSelectedMessage(nsIMsgDBHdr **hdr)
   }
 
   return GetMsgHdrForViewIndex(index, hdr);
+}
+
+NS_IMETHODIMP
+nsMsgSearchDBView::OpenWithHdrs(nsISimpleEnumerator *aHeaders,
+                                nsMsgViewSortTypeValue aSortType,
+                                nsMsgViewSortOrderValue aSortOrder,
+                                nsMsgViewFlagsTypeValue aViewFlags,
+                                PRInt32 *aCount)
+{
+  if (aViewFlags & nsMsgViewFlagsType::kGroupBySort)
+    return nsMsgGroupView::OpenWithHdrs(aHeaders, aSortType, aSortOrder, 
+                                        aViewFlags, aCount);
+
+  m_sortType = aSortType;
+  m_sortOrder = aSortOrder;
+  m_viewFlags = aViewFlags;
+  SaveSortInfo(m_sortType, m_sortOrder);
+
+  PRBool hasMore;
+  nsCOMPtr<nsISupports> supports;
+  nsCOMPtr<nsIMsgDBHdr> msgHdr;
+  nsCOMPtr<nsIMsgFolder> folder;
+  nsresult rv = NS_OK;
+  while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(rv = aHeaders->HasMoreElements(&hasMore)) && hasMore)
+  {
+    rv = aHeaders->GetNext(getter_AddRefs(supports));
+    if (NS_SUCCEEDED(rv) && supports)
+    {
+      msgHdr = do_QueryInterface(supports);
+      msgHdr->GetFolder(getter_AddRefs(folder));
+      AddHdrFromFolder(msgHdr, folder); 
+    }
+  }
+  *aCount = m_keys.Length();
+  return rv;
 }
 
 nsresult

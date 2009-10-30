@@ -76,6 +76,11 @@ public:
   NS_IMETHOD DoCommand(nsMsgViewCommandTypeValue command);
   NS_IMETHOD DoCommandWithFolder(nsMsgViewCommandTypeValue command, nsIMsgFolder *destFolder);
   NS_IMETHOD GetHdrForFirstSelectedMessage(nsIMsgDBHdr **hdr);
+  NS_IMETHOD OpenWithHdrs(nsISimpleEnumerator *aHeaders, 
+                          nsMsgViewSortTypeValue aSortType,
+                          nsMsgViewSortOrderValue aSortOrder, 
+                          nsMsgViewFlagsTypeValue aViewFlags,
+                          PRInt32 *aCount);
   NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, 
                           PRInt32 aFlags, nsIDBChangeListener *aInstigator);
   NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags,

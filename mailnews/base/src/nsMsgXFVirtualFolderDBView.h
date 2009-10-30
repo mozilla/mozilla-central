@@ -58,11 +58,6 @@ public:
   virtual const char * GetViewName(void) {return "XFVirtualFolderView"; }
   NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, 
         nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount);
-  NS_IMETHOD OpenWithHdrs(nsISimpleEnumerator *aHeaders, 
-                          nsMsgViewSortTypeValue aSortType,
-                          nsMsgViewSortOrderValue aSortOrder, 
-                          nsMsgViewFlagsTypeValue aViewFlags,
-                          PRInt32 *aCount);
   NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, 
                          nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval);
   NS_IMETHOD CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance, 
