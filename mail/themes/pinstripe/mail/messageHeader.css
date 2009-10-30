@@ -414,12 +414,14 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
   min-width: 50px;
   white-space: normal;
   color: black !important;
-  line-height: 1.4em;
+  line-height: 1.5em;
 
   -moz-appearance: none !important;
 
-  padding: 0px !important;
+  padding: .1em 0px !important;
   margin: 0px !important;
+  margin-bottom: 3px !important;
+
 
   /* 1px plus 2px of border-radius matches the 3px at the beginning of
     .emailDisplayButton, making email address header values and plain text
@@ -438,7 +440,6 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
 }
 
 .headerValueBox[singleline="true"] {
-  height: 1.9em;
   overflow: hidden;
 }
 
@@ -502,9 +503,6 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
   margin: 0;
   -moz-padding-start: 3px !important;
   -moz-padding-end: 3px !important;
-  padding-top: 0.1em;
-  padding-bottom: 0.1em;
-  margin-bottom: 3px !important;
   background-color: transparent;
   -moz-border-radius: 2px;
 }

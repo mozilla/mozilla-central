@@ -382,12 +382,13 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
   min-width: 50px;
   white-space: normal;
   color: WindowText;
-  line-height: 1.4em;
+  line-height: 1.5em;
 
   -moz-appearance: none !important;
 
-  padding: 0px !important;
+  padding: .1em 0px !important;
   margin: 0px !important;
+  margin-bottom: 3px !important;
   -moz-margin-start: 3px !important;
   border: none !important;
   background-color: transparent;
@@ -402,7 +403,6 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
 }
 
 .headerValueBox[singleline="true"] {
-  height: 1.9em;
   overflow: hidden;
 }
 
@@ -466,9 +466,6 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
   margin: 0;
   -moz-padding-start: 3px !important;
   -moz-padding-end: 3px !important;
-  padding-top: .1em;
-  padding-bottom: .1em;
-  margin-bottom: 3px !important;
   background-color: transparent;
   -moz-border-radius: 2px;
 }

@@ -85,7 +85,6 @@
 #header-view-toolbox {
   border-top-width: 0;
   -moz-appearance: none;
-  -moz-padding-end: 6px;
   padding-top: 3px;
 }
 
@@ -302,7 +301,7 @@ toolbar:not([mode="full"]) > .hdrArchiveButton {
  * space in full mode.  */
 toolbar:not([mode="full"]) > .hdrJunkButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 142px 16px 130px);
+  -moz-image-region: rect(0px 144px 16px 128px);
 }
 
 .hdrJunkButton[disabled="true"] {
@@ -390,10 +389,11 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
   min-width: 50px;
   white-space: normal;
   color: WindowText;
-  line-height: 1.4em;
+  line-height: 1.5em;
   -moz-appearance: none;
-  padding: 0px;
+  padding: .1em 0px;
   margin: 0px;
+  margin-bottom: 3px !important;
   -moz-margin-start: 3px;
   border-width: 0px;
   background-color: transparent;
@@ -408,7 +408,6 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
 }
 
 .headerValueBox[singleline="true"] {
-  height: 1.9em;
   overflow: hidden;
 }
 
@@ -472,9 +471,6 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
   margin: 0;
   -moz-padding-start: 3px !important;
   -moz-padding-end: 3px !important;
-  padding-top: .1em;
-  padding-bottom: .1em;
-  margin-bottom: 3px !important;
   background-color: transparent;
   -moz-border-radius: 2px;
 }
