@@ -4706,8 +4706,6 @@ nsresult nsMsgDBView::ExpandByIndex(nsMsgViewIndex index, PRUint32 *pNumExpanded
   nsCOMPtr <nsIMsgThread> pThread;
   nsresult rv = GetThreadContainingIndex(index, getter_AddRefs(pThread));
   NS_ENSURE_SUCCESS(rv, rv);
-  m_flags[index] = flags;
-  NoteChange(index, 1, nsMsgViewNotificationCode::changed);
   if (m_viewFlags & nsMsgViewFlagsType::kUnreadOnly)
   {
     if (flags & nsMsgMessageFlags::Read)
@@ -4717,6 +4715,11 @@ nsresult nsMsgDBView::ExpandByIndex(nsMsgViewIndex index, PRUint32 *pNumExpanded
   else
     rv = ListIdsInThread(pThread,  index, &numExpanded);
 
+  if (numExpanded > 0)
+  {
+    m_flags[index] = flags;
+    NoteChange(index, 1, nsMsgViewNotificationCode::changed);
+  }
   NoteStartChange(index + 1, numExpanded, nsMsgViewNotificationCode::insertOrDelete);
   NoteEndChange(index + 1, numExpanded, nsMsgViewNotificationCode::insertOrDelete);
   if (pNumExpanded != nsnull)
@@ -5212,9 +5215,11 @@ nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex st
   if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay && ! (m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
   {
     nsMsgKey parentKey = m_keys[startOfThreadViewIndex];
+    // If this fails, *pNumListed will be 0, and we'll fall back to just
+    // enumerating the messages in the thread below.
     rv = ListIdsInThreadOrder(threadHdr, parentKey, 1, &viewIndex, pNumListed);
   }
-  else
+  if (! *pNumListed)
   {
     PRUint32 ignoredHeaders = 0;
     // if we're not threaded, just list em out in db order
