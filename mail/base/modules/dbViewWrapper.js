@@ -702,6 +702,10 @@ DBViewWrapper.prototype = {
     if (this.search)
       doppel.search = this.search.clone(doppel);
 
+    if (doppel._underlyingData == this.kUnderlyingSearchView ||
+        doppel._underlyingData == this.kUnderlyingSynthetic)
+      FolderNotificationHelper.noteCuriosity(doppel);
+
     return doppel;
   },
 
