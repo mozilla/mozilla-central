@@ -3,12 +3,8 @@
   list-style-image: url("chrome://messenger/skin/icons/folder-closed.png");
 }
 
-.tabmail-tab[type="folder"][selected="true"] .tab-icon-image {
-  list-style-image: url("chrome://messenger/skin/icons/folder-open.png");
-}
-
 treechildren::-moz-tree-image(folderNameCol) {
-  -moz-margin-end: 2px;
+  -moz-margin-end: 4px;
   list-style-image: url("chrome://messenger/skin/icons/folder-closed.png");
 }
 
@@ -95,7 +91,7 @@ treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
 /* ..... Server Folders ..... */
 
 treechildren::-moz-tree-image(folderNameCol, isServer-true) {
-    list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
+  list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
 }
 
 treechildren::-moz-tree-image(folderNameCol, biffState-NewMail, isServer-true) {

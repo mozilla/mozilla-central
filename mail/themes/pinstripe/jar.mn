@@ -144,7 +144,6 @@ classic.jar:
   skin/classic/messenger/icons/folder-inbox.png                  (mail/icons/folder-inbox.png)
   skin/classic/messenger/icons/folder-junk.png                   (mail/icons/folder-junk.png)
   skin/classic/messenger/icons/folder-newsgroup.png              (mail/icons/folder-newsgroup.png)
-  skin/classic/messenger/icons/folder-open.png                   (mail/icons/folder-open.png)
   skin/classic/messenger/icons/folder-outbox.png                 (mail/icons/folder-outbox.png)
   skin/classic/messenger/icons/folder-sent.png                   (mail/icons/folder-sent.png)
   skin/classic/messenger/icons/folder-share.png                  (mail/icons/folder-share.png)

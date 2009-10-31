@@ -51,10 +51,6 @@
   list-style-image: url("chrome://messenger/skin/icons/folder-closed.png");
 }
 
-#subscriptionChildren::-moz-tree-image(folderNameCol, container, open) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-open.png");
-}
-
 #rssFeedInfoBox {
   border: 1px solid ThreeDShadow;
   -moz-border-radius: 0px;
