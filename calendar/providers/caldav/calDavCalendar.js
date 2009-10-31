@@ -265,8 +265,8 @@ calDavCalendar.prototype = {
     },
 
     get calendarUri caldav_get_calendarUri() {
-        calUri = this.mUri.clone();
-        var parts = calUri.spec.split('?');
+        let calUri = this.mUri.clone();
+        let parts = calUri.spec.split('?');
         if (parts.length > 1) {
             calUri.spec = parts.shift();
             this.mUriParams = '?' + parts.join('?');
@@ -278,13 +278,13 @@ calDavCalendar.prototype = {
     },
 
     setCalHomeSet: function caldav_setCalHomeSet() {
-        var calUri = this.mUri.clone();
-        var split1 = calUri.spec.split('?');
-        var baseUrl = split1[0];
+        let calUri = this.mUri.clone();
+        let split1 = calUri.spec.split('?');
+        let baseUrl = split1[0];
         if (baseUrl.charAt(baseUrl.length-1) == '/') {
             baseUrl = baseUrl.substring(0, baseUrl.length-2);
         }
-        var split2 = baseUrl.split('/');
+        let split2 = baseUrl.split('/');
         split2.pop();
         calUri.spec = split2.join('/') + '/';
         this.mCalHomeSet = calUri;
