@@ -1474,7 +1474,7 @@ function ComposeStartup(recycled, aParams)
           attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"].createInstance(Components.interfaces.nsIMsgAttachment);
           if (/^file:\/\//i.test(attachmentStr))
           {
-            attachment.url = attachmentStr;
+            attachment.url = encodeURI(attachmentStr);
           }
           else
           {
