@@ -94,6 +94,9 @@ messenger.jar:
     content/messenger/glodaFacetBindings.css        (content/glodaFacetBindings.css)
     content/messenger/glodaFacetBindings.xml        (content/glodaFacetBindings.xml)
     content/messenger/glodaFacetVis.js              (content/glodaFacetVis.js)
+# the following files are mail-specific overrides
+*+  content/messenger/license.html                  (/mozilla/toolkit/content/license.html)
+% override chrome://global/content/license.html chrome://messenger/content/license.html
 
 comm.jar:
 % content communicator %content/communicator/ xpcnativewrappers=yes

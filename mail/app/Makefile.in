@@ -47,16 +47,11 @@ AB_CD = $(MOZ_UI_LOCALE)
 GRE_MILESTONE = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build Milestone)
 GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
 
-PLATFORM_LICENSE_FILE = $(MOZILLA_SRCDIR)/toolkit/content/license.html
-MAIL_LICENSE_HTML_FILE = ../license.html
-MAIL_APP_LICENSE_FILE = $(srcdir)/app-license.html
-
 DEFINES += \
   -DTHUNDERBIRD_ICO=\"$(DIST)/branding/thunderbird.ico\" \
   -DAB_CD=$(AB_CD) \
   -DGRE_MILESTONE=$(GRE_MILESTONE) \
   -DGRE_BUILDID=$(GRE_BUILDID) \
-  -DAPP_EULA_BLOCK=$(MAIL_APP_LICENSE_FILE) \
    $(NULL)
 
 SOURCE_STAMP := $(shell cd $(topsrcdir) ; hg identify -i 2>/dev/null | cut -f1 -d' ')
@@ -76,7 +71,6 @@ endif
 DIRS		= profile
 
 GARBAGE += \
-	$(MAIL_LICENSE_HTML_FILE) \
 	$(FINAL_TARGET)/license.html \
 	$(NULL)
 
@@ -338,20 +332,6 @@ endif
 
 libs:: $(srcdir)/profile/prefs.js
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin/defaults/profile
-
-$(MAIL_LICENSE_HTML_FILE): $(PLATFORM_LICENSE_FILE) $(MAIL_APP_LICENSE_FILE)
-	$(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $< | \
-	sed -e "s/about:license\#/\#/" > $@
-
-libs:: $(MAIL_LICENSE_HTML_FILE)
-ifeq ($(OS_ARCH),WINNT)
-	$(EXIT_ON_ERROR) \
-	for file in $^; do \
-	$(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $$file > $(FINAL_TARGET)/`basename $$file`; \
-	done
-else
-	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
-endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 

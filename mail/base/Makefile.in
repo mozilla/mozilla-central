@@ -66,4 +66,11 @@ ifdef ENABLE_TESTS
 DIRS += test
 endif
 
+abs_srcdir = $(shell cd $(srcdir) && pwd)
+
+CHROME_DEPS += $(abs_srcdir)/content/overrides/app-license.html
+
+DEFINES += -DAPP_LICENSE_BLOCK=$(abs_srcdir)/content/overrides/app-license.html
+
 include $(topsrcdir)/config/rules.mk
+

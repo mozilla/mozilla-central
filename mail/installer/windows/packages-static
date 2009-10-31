@@ -64,7 +64,6 @@ bin\components\newsblog.js
 bin\thunderbird.exe
 bin\application.ini
 bin\platform.ini
-bin\license.html
 bin\README.txt
 bin\sqlite3.dll
 
