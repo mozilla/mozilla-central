@@ -1139,6 +1139,7 @@ nsContextMenu.prototype = {
         
         return ioService.newURI(baseURI.resolve(url), null, null).spec;
     },
+
     toString : function () {
         return "contextMenu.target     = " + this.target + "\n" +
                "contextMenu.onImage    = " + this.onImage + "\n" +
@@ -1147,6 +1148,20 @@ nsContextMenu.prototype = {
                "contextMenu.inFrame    = " + this.inFrame + "\n" +
                "contextMenu.hasBGImage = " + this.hasBGImage + "\n";
     },
+
+    // Returns true if aNode is a from control (except text boxes and images).
+    isTargetAFormControl : function( aNode )
+    {
+      if (aNode instanceof HTMLInputElement)
+        return (aNode.type != "text" && aNode.type != "password" &&
+                aNode.type != "image");
+
+      return (aNode instanceof HTMLButtonElement) ||
+             (aNode instanceof HTMLSelectElement) ||
+             (aNode instanceof HTMLOptionElement) ||
+             (aNode instanceof HTMLOptGroupElement);
+    },
+
     isTargetATextBox : function ( node )
     {
       if (node instanceof HTMLInputElement)
