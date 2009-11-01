@@ -291,7 +291,7 @@
                                     this._prefObserver);
           var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
                             .getService(Components.interfaces.nsIObserverService);
-          observerSvc.removeObserver("autocomplete-did-enter-text", this);
+          observerSvc.removeObserver(this, "autocomplete-did-enter-text");
         ]]>
       </destructor>
 
