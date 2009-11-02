@@ -2232,23 +2232,19 @@
               <menuitem id="markReadToolbarItem"
                         type="checkbox"
                         label="&markAsReadCmd.label;"
-                        key="key_toggleRead"
                         accesskey="&markAsReadCmd.accesskey;"
                         command="cmd_markAsRead"
                         default="true" />
               <menuitem id="button-markThreadAsRead"
                         label="&markThreadAsReadCmd.label;"
-                        key="key_markThreadAsRead"
                         accesskey="&markThreadAsReadCmd.accesskey;"
                         command="cmd_markThreadAsRead"/>
               <menuitem id="button-markReadByDate"
                         label="&markReadByDateCmd.label;"
-                        key="key_markReadByDate"
                         accesskey="&markReadByDateCmd.accesskey;"
                         command="cmd_markReadByDate"/>
               <menuitem id="button-markAllRead"
                         label="&markAllReadCmd.label;"
-                        key="key_markAllRead"
                         accesskey="&markAllReadCmd.accesskey;"
                         command="cmd_markAllRead"/>
               <menuseparator id="button-markAllReadSeparator"/>
@@ -2256,7 +2252,6 @@
                         type="checkbox"
                         label="&markFlaggedCmd.label;"
                         accesskey="&markFlaggedCmd.accesskey;"
-                        key="key_toggleFlagged"
                         command="cmd_markAsFlagged"/>
           </menupopup>
     </toolbarbutton>
