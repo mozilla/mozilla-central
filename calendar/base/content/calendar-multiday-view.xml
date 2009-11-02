@@ -585,9 +585,10 @@
                endHour = 24;
                endMinute = 0;
            }
-
-           return { start: startHour * 60 + startMinute,
-                    end:   endHour   * 60 + endMinute };
+           let dur = aOccurrence.duration;
+           return { start:        startHour * 60 + startMinute,
+                    end:          endHour   * 60 + endMinute,
+                    realDuration: (dur.days * 24 + dur.hours) * 60 + dur.minutes};
         ]]></body>
       </method>
 
@@ -825,7 +826,7 @@
                               chunkBox.selected = true;
                               this.mSelectedChunks.push(chunkBox);
                           }
-                          
+
                           this.mEventBoxes.push(chunkBox);
 
                           if (this.mEventToEdit &&
@@ -1245,7 +1246,7 @@
       <method name="onEventSweepMouseMove">
         <parameter name="event"/>
         <body><![CDATA[
-          var col = document.calendarEventColumnDragging;
+          let col = document.calendarEventColumnDragging;
           if (!col) return;
 
           if (event.clientX < (event.target.boxObject.x) ||
@@ -1253,7 +1254,7 @@
               event.clientY < (event.target.boxObject.y) ||
               event.clientY > (event.target.boxObject.y + event.target.boxObject.height)) {
 
-              var dragState = col.mDragState;
+              let dragState = col.mDragState;
               col.fgboxes.dragbox.removeAttribute("dragging");
               col.fgboxes.box.removeAttribute("dragging");
               window.removeEventListener("mousemove", col.onEventSweepMouseMove, false);
@@ -1281,7 +1282,7 @@
               return;
           }
 
-          var dragState = col.mDragState;
+          let dragState = col.mDragState;
 
           col.fgboxes.box.setAttribute("dragging", "true");
           col.fgboxes.dragbox.setAttribute("dragging", "true");
@@ -1304,23 +1305,22 @@
               }
           }
 
-          var pos;
-          var sizeattr;
+          let mousePos;
+          let sizeattr;
           if (col.getAttribute("orient") == "vertical") {
-              pos = event.screenY - col.parentNode.boxObject.screenY - dragState.mouseOffset;
+              mousePos = event.screenY - col.parentNode.boxObject.screenY;
               sizeattr = "height";
           } else {
-              pos = event.screenX - col.parentNode.boxObject.screenX - dragState.mouseOffset;
+              mousePos = event.screenX - col.parentNode.boxObject.screenX;
               sizeattr = "width";
           }
-          // don't let pos go outside the window edges
-          if (pos < 0)
-              pos = 0;
+          // don't let mouse position go outside the window edges
+          let pos = Math.max(0, mousePos) - dragState.mouseOffset;
 
           // snap to 15 minute intervals
-          var interval = col.mPixPerMin * 15;
-          var curmin = Math.floor(pos/interval) * 15;
-          var deltamin = curmin - dragState.origMin;
+          let interval = col.mPixPerMin * 15;
+          let curmin = Math.floor(pos/interval) * 15;
+          let deltamin = curmin - dragState.origMin;
 
           if (dragState.dragType == "new") {
               if (deltamin < 0) {
@@ -1331,9 +1331,13 @@
                   dragState.endMin = dragState.origMin + deltamin;
               }
           } else if (dragState.dragType == "move") {
-              // if we're moving, we can only move the start, and the end has to be exactly start+duration
-              dragState.startMin = dragState.origMin + deltamin;
-              dragState.endMin = dragState.startMin + dragState.limitDurationMin;
+              // if we're moving, we modify startMin and endMin. When startMin
+              // is negative, the event start is in the previous day. We keep
+              // track to calculate the event's final position but then we set
+              // startMin to zero to show the shadow box with the right size
+              dragState.lastStart = dragState.origMinStart + deltamin;
+              dragState.endMin = Math.min(1440, dragState.origMinEnd + deltamin);
+              dragState.startMin = Math.max(0, dragState.origMinStart + deltamin);
           } else if (dragState.dragType == "modify-start") {
               // if we're modifying the start, the end time is fixed.
               dragState.startMin = dragState.origMin + deltamin;
@@ -1403,11 +1407,12 @@
           var newEnd;
           var startTZ;
           var endTZ;
+          let dragDay = col.mDate;
 
           if (dragState.dragType == "new") {
-              newStart = col.mDate.clone();
+              newStart = dragDay.clone();
               newStart.isDate = false;
-              newEnd = col.mDate.clone();
+              newEnd = dragDay.clone();
               newEnd.isDate = false;
           } else {
               var oldStart = dragState.dragOccurrence.startDate || dragState.dragOccurrence.entryDate;
@@ -1429,8 +1434,6 @@
               }
           }
 
-          var dragDay = col.mDate;
-
           if (dragState.dragType == "modify-start" ||
               dragState.dragType == "new") {
               newStart.resetTo(dragDay.year, dragDay.month, dragDay.day,
@@ -1447,8 +1450,8 @@
 
           if (dragState.dragType == "move") {
               // Figure out how much the event moved.
-              var duration = col.mDate.subtractDate(dragState.origDate);
-              var minutes = dragState.startMin - dragState.origMin;
+              let duration = dragDay.subtractDate(dragState.origDate);
+              let minutes = dragState.lastStart - dragState.origMinStart;
 
               // Since both boxDate and beginMove are dates (note datetimes),
               // subtractDate will only give us a non-zero number of hours on
@@ -1578,13 +1581,26 @@
               this.fgboxes.dragbox.setAttribute(sizeattr, (this.mDragState.origMin - mins.start) * this.mPixPerMin);
           } else if (aGrabbedElement == "middle") {
               this.mDragState.dragType = "move";
-              this.mDragState.limitDurationMin = mins.end - mins.start;
+              this.mDragState.limitDurationMin = mins.realDuration;
 
               // in a move, origMin will be the min of the start element;
-              // so we snap start again, but we keep the duration the same
-              // (we move the end based on the duration of the event,
-              // not including our snap)
+              // but we also use the min of start and end separately because
+              // we snap to one or the other according to the event start.
               this.mDragState.origMin = Math.floor(mins.start/15) * 15;
+              if (this.mDragState.origMin == 0) {
+                  // event starts on 0:00 or the day before. We drag the final
+                  // part so we snap the end and subtract duration to set
+                  // origMinStart to the real event duration (if negative the
+                  // event starts in the previous day)
+                  this.mDragState.origMinEnd = Math.floor(mins.end/15) * 15;
+                  this.mDragState.origMinStart = this.mDragState.origMinEnd - this.mDragState.limitDurationMin;
+              } else {
+                  // event starts the day on which we are moving. We snap the
+                  // start and add duration to set origMinEnd to the real end
+                  // of the event
+                  this.mDragState.origMinStart = Math.floor(mins.start/15) * 15;
+                  this.mDragState.origMinEnd = this.mDragState.origMinStart + this.mDragState.limitDurationMin;
+              }
 
               // Because we can pass this event to other columns, we also need
               // to track the original column's date too, to get the correct offset
@@ -1641,10 +1657,7 @@
           var realstartmin = this.mDragState.startMin + this.mStartMin;
           var realendmin = this.mDragState.endMin + this.mStartMin;
 
-
-          if (this.mDragState.dragType == "move") {
-              realendmin = realstartmin + this.mDragState.limitDurationMin;
-          } else if (this.mDragState.dragType == "start") {
+          if (this.mDragState.dragType == "start") {
               realendmin = this.mDragState.limitEndMin;
           } else if (this.mDragState.dragType == "end") {
               realstartmin = this.mDragSTate.limitStartMin;
