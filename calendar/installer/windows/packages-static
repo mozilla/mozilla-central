@@ -43,17 +43,17 @@ bin\msvcr80.dll
 
 [calendar]
 ; [Base Calendar Files]
-bin\sunbird.exe
 bin\application.ini
-bin\platform.ini
 bin\LICENSE
+bin\platform.ini
 bin\README.txt
 bin\sqlite3.dll
+bin\sunbird.exe
 
 ; [Components]
 bin\AccessibleMarshal.dll
-bin\components\accessibility-msaa.xpt
 bin\components\accessibility.xpt
+bin\components\accessibility-msaa.xpt
 bin\components\alerts.xpt
 bin\components\appshell.xpt
 bin\components\appstartup.xpt
@@ -69,13 +69,17 @@ bin\components\chrome.xpt
 bin\components\commandhandler.xpt
 bin\components\commandlines.xpt
 bin\components\composer.xpt
-bin\components\contentprefs.xpt
 bin\components\content_base.xpt
+#ifndef MOZILLA_1_9_2_BRANCH
+bin\components\content_canvas.xpt
+bin\components\content_events.xpt
+#endif
 bin\components\content_html.xpt
 bin\components\content_htmldoc.xpt
 bin\components\content_xmldoc.xpt
 bin\components\content_xslt.xpt
 bin\components\content_xtf.xpt
+bin\components\contentprefs.xpt
 bin\components\cookie.xpt
 bin\components\docshell_base.xpt
 bin\components\dom.xpt
@@ -165,8 +169,8 @@ bin\components\update.xpt
 bin\components\uriloader.xpt
 bin\components\urlformatter.xpt
 bin\components\wcap.xpt
-bin\components\webbrowserpersist.xpt
 bin\components\webBrowser_core.xpt
+bin\components\webbrowserpersist.xpt
 bin\components\webshell_idls.xpt
 bin\components\widget.xpt
 bin\components\windowds.xpt
@@ -185,6 +189,7 @@ bin\components\xulapp.xpt
 bin\components\xuldoc.xpt
 bin\components\xultmpl.xpt
 bin\components\zipwriter.xpt
+
 ; JavaScript components
 bin\components\calCompositeCalendar.js
 bin\components\calDavCalendarModule.js
