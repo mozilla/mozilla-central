@@ -1196,7 +1196,8 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
       imapFolder = do_QueryInterface(m_currentFolder);
     m_currentFolder->GetFlags(&folderFlags);
     // need to check if folder has offline events, or is configured for offline
-    if (imapFolder && folderFlags & nsMsgFolderFlags::Offline)
+    if (imapFolder && folderFlags & nsMsgFolderFlags::Offline &&
+      ! (folderFlags & nsMsgFolderFlags::Virtual))
     {
       rv = m_currentFolder->DownloadAllForOffline(this, m_window);
       if (NS_SUCCEEDED(rv) || rv == NS_BINDING_ABORTED)
