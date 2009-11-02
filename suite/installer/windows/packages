@@ -30,9 +30,7 @@ bin\updater.ini
 
 [xpcom]
 bin\components\jar50.dll
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\js3250.dll
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\js3250.dll
 #else
 bin\mozjs.dll
@@ -54,10 +52,8 @@ bin\msvcm80.dll
 bin\msvcp80.dll
 bin\msvcr80.dll
 #else
-bin\mozcrt19.dll
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\mozcpp19.dll
-#endif
+bin\mozcrt19.dll
 #endif
 
 [browser]
@@ -103,9 +99,6 @@ bin\components\intlapp.dll
 bin\components\mork.dll
 bin\components\mozfind.dll
 bin\components\necko.dll
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\oji.dll
-#endif
 bin\components\perms.dll
 bin\components\places.dll
 bin\components\rdf.dll
@@ -128,9 +121,7 @@ bin\components\zipwriter.dll
 #endif
 bin\components\jsd3250.dll
 bin\components\suite.dll
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\xpinstal.dll
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\xpinstal.dll
 #else
 bin\components\xpinstall.dll
@@ -151,11 +142,9 @@ bin\components\commandhandler.xpt
 bin\components\commandlines.xpt
 bin\components\composer.xpt
 bin\components\content_base.xpt
-#ifndef MOZILLA_1_9_1_BRANCH
 #ifndef MOZILLA_1_9_2_BRANCH
 bin\components\content_canvas.xpt
 bin\components\content_events.xpt
-#endif
 #endif
 bin\components\content_html.xpt
 bin\components\content_htmldoc.xpt
@@ -165,9 +154,7 @@ bin\components\content_xtf.xpt
 bin\components\contentprefs.xpt
 bin\components\cookie.xpt
 bin\components\directory.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\docshell_base.xpt
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\docshell_base.xpt
 #else
 bin\components\docshell.xpt
@@ -185,9 +172,7 @@ bin\components\dom_loadsave.xpt
 bin\components\dom_offline.xpt
 bin\components\dom_range.xpt
 bin\components\dom_sidebar.xpt
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\components\dom_smil.xpt
-#endif
 bin\components\dom_storage.xpt
 bin\components\dom_stylesheets.xpt
 bin\components\dom_svg.xpt
@@ -222,9 +207,6 @@ bin\components\locale.xpt
 bin\components\loginmgr.xpt
 bin\components\lwbrk.xpt
 bin\components\mimetype.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\mozbrwsr.xpt
-#endif
 bin\components\mozfind.xpt
 bin\components\necko.xpt
 bin\components\necko_about.xpt
@@ -239,9 +221,6 @@ bin\components\necko_socket.xpt
 bin\components\necko_strconv.xpt
 bin\components\necko_viewsource.xpt
 bin\components\necko_wifi.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\oji.xpt
-#endif
 bin\components\parentalcontrols.xpt
 bin\components\places.xpt
 bin\components\plugin.xpt
@@ -281,9 +260,7 @@ bin\components\xpcom_components.xpt
 bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt
 bin\components\xpcom_system.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\xpcom_thread.xpt
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\xpcom_thread.xpt
 #else
 bin\components\xpcom_threads.xpt
@@ -300,9 +277,7 @@ bin\components\zipwriter.xpt
 bin\components\FeedConverter.js
 bin\components\FeedProcessor.js
 bin\components\FeedWriter.js
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\components\GPSDGeolocationProvider.js
-#endif
 bin\components\jsconsole-clhandler.js
 bin\components\NetworkGeolocationProvider.js
 bin\components\nsAboutAbout.js
@@ -325,22 +300,15 @@ bin\components\nsContentDispatchChooser.js
 bin\components\nsContentPrefService.js
 bin\components\nsDefaultCLH.js
 bin\components\nsExtensionManager.js
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\components\nsFormAutoComplete.js
-#endif
 bin\components\nsHandlerService.js
 bin\components\nsHelperAppDlg.js
 bin\components\nsLivemarkService.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\components\nsPlacesAutoComplete.js
-#endif
 bin\components\nsPlacesDBFlush.js
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\nsPostUpdateWin.js
-#endif
 bin\components\nsProgressDialog.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsSessionStartup.js
@@ -408,9 +376,7 @@ bin\extensions\modern@themes.mozilla.org\preview.png
 ; All the pref files must be part of base to prevent migration bugs
 bin\defaults\autoconfig\*
 bin\defaults\pref\*
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\greprefs\*
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\greprefs\*
 #else
 bin\greprefs.js
@@ -420,15 +386,8 @@ bin\greprefs.js
 ; Style Sheets, Graphics and other Resources used by the layout engine.
 bin\res\arrow.gif
 bin\res\arrowd.gif
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\res\broken-image.gif
-#else
 bin\res\broken-image.png
-#endif
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\res\charsetalias.properties
-bin\res\charsetData.properties
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\charsetalias.properties
 bin\res\charsetData.properties
 #endif
@@ -445,11 +404,7 @@ bin\res\html.css
 bin\res\html\*
 bin\res\langGroups.properties
 bin\res\language.properties
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\res\loading-image.gif
-#else
 bin\res\loading-image.png
-#endif
 bin\res\mathml.css
 bin\res\quirk.css
 bin\res\svg.css
@@ -473,9 +428,7 @@ bin\res\table-remove-row-hover.gif
 bin\res\table-remove-row.gif
 bin\res\ua.css
 bin\res\viewsource.css
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\res\wincharset.properties
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\wincharset.properties
 #endif
 
@@ -608,11 +561,6 @@ bin\extensions\inspector@mozilla.org\components\inspector-cmdline.js
 bin\extensions\inspector@mozilla.org\defaults\preferences\inspector.js
 
 #ifdef MOZILLA_1_9_2_BRANCH
-[reporter]
-bin\chrome\reporter.jar
-bin\chrome\reporter.manifest
-#endif
-#ifdef MOZILLA_1_9_1_BRANCH
 [reporter]
 bin\chrome\reporter.jar
 bin\chrome\reporter.manifest

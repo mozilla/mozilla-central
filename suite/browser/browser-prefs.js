@@ -290,9 +290,6 @@ pref("offline.startup_state",            0);
 pref("offline.send.unsent_messages",            0);
 pref("offline.download.download_messages",  0);
 
-#ifdef MOZILLA_1_9_1_BRANCH
-pref("browser.formfill.enable",             true);
-#endif
 pref("browser.formfill.expire_days",        180);
 
 // -- folders (Mac: these are binary aliases.)

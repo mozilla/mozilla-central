@@ -31,13 +31,12 @@ OS_LIBS         += $(call EXPAND_LIBNAME,ole32 version uuid shell32)
 EXTRA_COMPONENTS = nsSetDefault.js
 endif
 
-# On trunk we need to link the windows shell service into seamonkey.exe
-# We need to do this before we include config.mk and thus app-config.mk
+# We need to link the windows shell service into seamonkey.exe.
+# DEFINES needs to be set before config.mk is included,
+# because app-config.mk is loaded after config.mk reads DEFINES.
 ifdef BUILD_STATIC_LIBS
-ifndef MOZILLA_1_9_1_BRANCH
 BUILD_STATIC_SHELL = 1
 DEFINES += -DBUILD_STATIC_SHELL=1
-endif
 endif
 
 ifdef CPPSRCS
@@ -55,4 +54,3 @@ DEFINES += -DMOZ_MAIL_NEWS
 endif
 
 include $(topsrcdir)/config/rules.mk
-

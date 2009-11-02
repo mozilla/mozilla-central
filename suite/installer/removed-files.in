@@ -40,11 +40,9 @@ chrome/icons/default/msgcomposeWindow.xpm
 chrome/icons/default/msgcomposeWindow16.xpm
 chrome/icons/default/venkman-window.xpm
 chrome/icons/default/venkman-window16.xpm
-#ifndef MOZILLA_1_9_1_BRANCH
 #ifndef MOZILLA_1_9_2_BRANCH
 chrome/reporter.jar
 chrome/reporter.manifest
-#endif
 #endif
 chrome/venkman.jar
 #ifdef XP_MACOSX
@@ -56,31 +54,20 @@ components/bookmarks.xpt
 components/chatzilla-service.js
 components/crashreporter.xpt
 components/downloadmanager.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
-components/GPSDGeolocationProvider.js
-#endif
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
 components/nsDictionary.js
 components/nsDownloadProgressListener.js
-#ifdef MOZILLA_1_9_1_BRANCH
-components/nsFormAutoComplete.js
-#endif
 components/nsInterfaceInfoToIDL.js
 components/nsKillAll.js
 components/nsLDAPPrefsService.js
-#ifdef MOZILLA_1_9_1_BRANCH
-components/nsPlacesAutoComplete.js
-#endif
 components/nsResetPref.js
 components/nsScriptableIO.js
 components/nsSetDefaultBrowser.js
 components/nsSetDefaultMail.js
 components/nsUnsetDefaultMail.js
 components/nsXmlRpcClient.js
-#ifndef MOZILLA_1_9_1_BRANCH
 components/@DLL_PREFIX@oji@DLL_SUFFIX@
-#endif
 components/progressDlg.xpt
 components/search.xpt
 components/sigonviewer.xpt
@@ -103,8 +90,6 @@ components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
 #ifdef XP_WIN
 #ifdef MOZILLA_1_9_2_BRANCH
 components/xpinstall.dll
-#elifdef MOZILLA_1_9_1_BRANCH
-components/xpinstall.dll
 #else
 components/xpinstal.dll
 #endif
@@ -121,9 +106,7 @@ defaults/wallet/StateSchema.tbl
 #ifdef XP_WIN
 gksvggdiplus.dll
 #endif
-#ifdef MOZILLA_1_9_1_BRANCH
-greprefs.js
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 greprefs.js
 #else
 greprefs/all.js
@@ -143,32 +126,23 @@ msvcp80.dll
 msvcr80.dll
 #else
 mozcrt19.dll
-#ifdef MOZILLA_1_9_1_BRANCH
-mozcpp19.dll
-#endif
 #endif
 xpicleanup.exe
 regxpcom.exe
-#ifndef MOZILLA_1_9_1_BRANCH
 components/nsPostUpdateWin.js
-#endif
 #else
 xpicleanup
 #endif
-#ifndef MOZILLA_1_9_1_BRANCH
 res/broken-image.gif
 #ifndef MOZILLA_1_9_2_BRANCH
 res/charsetalias.properties
 res/charsetData.properties
 #endif
-#endif
 res/cmessage.txt
-#ifndef MOZILLA_1_9_1_BRANCH
 res/loading-image.gif
 #ifndef MOZILLA_1_9_2_BRANCH
 res/unixcharset.properties
 res/wincharset.properties
-#endif
 #endif
 modules/dbViewWrapper.js
 modules/mailViewManager.js
@@ -272,9 +246,7 @@ components/xppref32.dll
 ; MOZ_STATIC_BUILD
 #endif
 #ifdef XP_WIN
-#ifdef MOZILLA_1_9_1_BRANCH
-mozjs.dll
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 mozjs.dll
 #else
 js3250.dll

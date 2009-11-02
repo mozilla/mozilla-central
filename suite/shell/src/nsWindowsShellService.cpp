@@ -42,9 +42,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifdef MOZILLA_1_9_1_BRANCH
-#include "gfxIImageFrame.h"
-#endif
 #include "imgIContainer.h"
 #include "imgIRequest.h"
 #include "nsIDOMHTMLImageElement.h"
@@ -581,28 +578,6 @@ nsWindowsShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
 static nsresult
 WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
 {
-#ifdef MOZILLA_1_9_1_BRANCH
-  PRInt32 width, height;
-  nsCOMPtr<gfxIImageFrame> image;
-  nsresult rv = aImage->GetCurrentFrame(getter_AddRefs(image));
-  if (!image)
-    return rv;
-
-  image->GetWidth(&width);
-  image->GetHeight(&height);
-
-  PRUint8* bits;
-  PRUint32 length;
-  image->LockImageData();
-  image->GetImageData(&bits, &length);
-  if (!bits) {
-    image->UnlockImageData();
-    return NS_ERROR_FAILURE;
-  }
-
-  PRUint32 bpr;
-  image->GetImageBytesPerRow(&bpr);
-#else
   nsRefPtr<gfxImageSurface> image;
 #ifdef MOZILLA_1_9_2_BRANCH
   nsresult rv = aImage->CopyCurrentFrame(getter_AddRefs(image));
@@ -619,9 +594,8 @@ WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
   PRUint8* bits = image->Data();
   PRUint32 length = image->GetDataSize();
   PRUint32 bpr = PRUint32(image->Stride());
-#endif // else MOZILLA_1_9_1_BRANCH
 
-  PRInt32 bitCount = bpr/width;
+  PRInt32 bitCount = bpr / width;
 
   // initialize these bitmap structs which we will later
   // serialize directly to the head of the bitmap file
@@ -677,9 +651,6 @@ WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
     stream->Close();
   }
 
-#ifdef MOZILLA_1_9_1_BRANCH
-  image->UnlockImageData();
-#endif
   return rv;
 }
 

@@ -1188,9 +1188,6 @@ SessionStoreService.prototype = {
     let storageData = {};
     let hasContent = false;
 
-#ifdef MOZILLA_1_9_1_BRANCH
-    aDocShell.QueryInterface(Components.interfaces.nsIDocShell_MOZILLA_1_9_1_SessionStorage);
-#endif
     for (let i = 0; i < aHistory.count; i++) {
       let uri = aHistory.getEntryAtIndex(i, false).URI;
       // sessionStorage is saved per origin (cf. nsDocShell::GetSessionStorageForURI)
@@ -2020,9 +2017,6 @@ SessionStoreService.prototype = {
    */
   _deserializeSessionStorage: function sss_deserializeSessionStorage(aStorageData, aDocShell) {
     let ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-#ifdef MOZILLA_1_9_1_BRANCH
-    aDocShell.QueryInterface(Components.interfaces.nsIDocShell_MOZILLA_1_9_1_SessionStorage);
-#endif
     for (let url in aStorageData) {
       let uri = ioService.newURI(url, null, null);
       let storage = aDocShell.getSessionStorageForURI(uri);
