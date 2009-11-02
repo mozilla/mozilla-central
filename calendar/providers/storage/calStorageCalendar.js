@@ -47,213 +47,14 @@ Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
-
-const kStorageServiceContractID = "@mozilla.org/storage/service;1";
-const kStorageServiceIID = Components.interfaces.mozIStorageService;
-
-const kCalICalendar = Components.interfaces.calICalendar;
-
-const kCalAttendeeContractID = "@mozilla.org/calendar/attendee;1";
-const kCalIAttendee = Components.interfaces.calIAttendee;
-var CalAttendee;
-
-const kCalRecurrenceInfoContractID = "@mozilla.org/calendar/recurrence-info;1";
-const kCalIRecurrenceInfo = Components.interfaces.calIRecurrenceInfo;
-var CalRecurrenceInfo;
-
-const kCalRecurrenceRuleContractID = "@mozilla.org/calendar/recurrence-rule;1";
-const kCalIRecurrenceRule = Components.interfaces.calIRecurrenceRule;
-var CalRecurrenceRule;
-
-const kCalRecurrenceDateSetContractID = "@mozilla.org/calendar/recurrence-date-set;1";
-const kCalIRecurrenceDateSet = Components.interfaces.calIRecurrenceDateSet;
-var CalRecurrenceDateSet;
-
-const kCalRecurrenceDateContractID = "@mozilla.org/calendar/recurrence-date;1";
-const kCalIRecurrenceDate = Components.interfaces.calIRecurrenceDate;
-var CalRecurrenceDate;
-
-const kMozStorageStatementWrapperContractID = "@mozilla.org/storage/statement-wrapper;1";
-const kMozStorageStatementWrapperIID = Components.interfaces.mozIStorageStatementWrapper;
-var MozStorageStatementWrapper;
-
-if (!kMozStorageStatementWrapperIID) {
-    dump("*** mozStorage not available, calendar/storage provider will not function\n");
-}
-
-function initCalStorageCalendarComponent() {
-    CalAttendee = new Components.Constructor(kCalAttendeeContractID, kCalIAttendee);
-    CalRecurrenceInfo = new Components.Constructor(kCalRecurrenceInfoContractID, kCalIRecurrenceInfo);
-    CalRecurrenceRule = new Components.Constructor(kCalRecurrenceRuleContractID, kCalIRecurrenceRule);
-    CalRecurrenceDateSet = new Components.Constructor(kCalRecurrenceDateSetContractID, kCalIRecurrenceDateSet);
-    CalRecurrenceDate = new Components.Constructor(kCalRecurrenceDateContractID, kCalIRecurrenceDate);
-    MozStorageStatementWrapper = new Components.Constructor(kMozStorageStatementWrapperContractID, kMozStorageStatementWrapperIID);
-}
-
-//
-// calStorageCalendar.js
-//
-
-const CAL_ITEM_TYPE_EVENT = 0;
-const CAL_ITEM_TYPE_TODO = 1;
-
-// bitmasks
-const CAL_ITEM_FLAG_PRIVATE = 1;
-const CAL_ITEM_FLAG_HAS_ATTENDEES = 2;
-const CAL_ITEM_FLAG_HAS_PROPERTIES = 4;
-const CAL_ITEM_FLAG_EVENT_ALLDAY = 8;
-const CAL_ITEM_FLAG_HAS_RECURRENCE = 16;
-const CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32;
-const CAL_ITEM_FLAG_HAS_ATTACHMENTS = 64;
-const CAL_ITEM_FLAG_HAS_RELATIONS = 128;
-const CAL_ITEM_FLAG_HAS_ALARMS = 256;
+Components.utils.import("resource://calendar/modules/calStorageUpgrade.jsm");
+Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
 const USECS_PER_SECOND = 1000000;
+const kCalICalendar = Components.interfaces.calICalendar;
 
 var gTransCount = {};
 var gTransErr = {};
-
-//
-// Storage helpers
-//
-
-function createStatement (dbconn, sql) {
-    try {
-        var stmt = dbconn.createStatement(sql);
-        var wrapper = MozStorageStatementWrapper();
-        wrapper.initialize(stmt);
-        return wrapper;
-    } catch (e) {
-        Components.utils.reportError(
-            "mozStorage exception: createStatement failed, statement: '" + 
-            sql + "', error: '" + dbconn.lastErrorString + "' - " + e);
-    }
-
-    return null;
-}
-
-function getInUtcOrKeepFloating(dt) {
-    var tz = dt.timezone;
-    if (tz.isFloating || tz.isUTC) {
-        return dt;
-    } else {
-        return dt.getInTimezone(UTC());
-    }
-}
-
-function textToDate(d) {
-    var dval;
-    var tz = "UTC";
-
-    if (d[0] == 'Z') {
-        var strs = d.substr(2).split(":");
-        dval = parseInt(strs[0]);
-        tz = strs[1].replace(/%:/g, ":").replace(/%%/g, "%");
-    } else {
-        dval = parseInt(d.substr(2));
-    }
-
-    var date;
-    if (d[0] == 'U' || d[0] == 'Z') {
-        date = newDateTime(dval, tz);
-    } else if (d[0] == 'L') {
-        // is local time
-        date = newDateTime(dval, "floating");
-    }
-
-    if (d[1] == 'D')
-        date.isDate = true;
-    return date;
-}
-
-function dateToText(d) {
-    var datestr;
-    var tz = null;
-    if (!d.timezone.isFloating) {
-        if (d.timezone.isUTC) {
-            datestr = "U";
-        } else {
-            datestr = "Z";
-            tz = d.timezone.tzid;
-        }
-    } else {
-        datestr = "L";
-    }
-
-    if (d.isDate) {
-        datestr += "D";
-    } else {
-        datestr += "T";
-    }
-
-    datestr += d.nativeTime;
-
-    if (tz) {
-        // replace '%' with '%%', then replace ':' with '%:'
-        tz = tz.replace(/%/g, "%%");
-        tz = tz.replace(/:/g, "%:");
-        datestr += ":" + tz;
-    }
-    return datestr;
-}
-
-// 
-// other helpers
-//
-
-function calStorageTimezone(comp) {
-    this.wrappedJSObject = this;
-    this.provider = null;
-    this.icalComponent = comp;
-    this.tzid = comp.getFirstProperty("TZID").value;
-    this.displayName = null;
-    this.isUTC = false;
-    this.isFloating = false;
-    this.latitude = null;
-    this.longitude = null;
-}
-calStorageTimezone.prototype = {
-    toString: function() {
-        return this.icalComponent.toString();
-    }
-};
-var gForeignTimezonesCache = {};
-
-function getTimezone(aTimezone) {
-    let tz = null;
-    if (aTimezone.indexOf("BEGIN:VTIMEZONE") == 0) {
-        tz = gForeignTimezonesCache[aTimezone]; // using full definition as key
-        if (!tz) {
-            try {
-                // cannot cope without parent VCALENDAR:
-                var comp = getIcsService().parseICS("BEGIN:VCALENDAR\n" + aTimezone + "\nEND:VCALENDAR", null);
-                tz = new calStorageTimezone(comp.getFirstSubcomponent("VTIMEZONE"));
-                gForeignTimezonesCache[aTimezone] = tz;
-            } catch (exc) {
-                ASSERT(false, exc);
-            }
-        }
-    } else {
-        tz = cal.getTimezoneService().getTimezone(aTimezone);
-    }
-    return tz;
-}
-
-function newDateTime(aNativeTime, aTimezone) {
-    var t = createDateTime();
-    t.nativeTime = aNativeTime;
-    if (aTimezone) {
-        var tz = getTimezone(aTimezone);
-        if (tz) {
-            t = t.getInTimezone(tz);
-        } else {
-            ASSERT(false, "timezone not available: " + aTimezone);
-        }
-    } else {
-        t.timezone = floating();
-    }
-    return t;
-}
 
 //
 // calStorageCalendar
@@ -305,12 +106,12 @@ calStorageCalendar.prototype = {
     deleteCalendar: function cSC_deleteCalendar(cal, listener) {
         cal = cal.wrappedJSObject;
 
-        for (var i in this.mDeleteEventExtras) {
+        for (let i in this.mDeleteEventExtras) {
             this.mDeleteEventExtras[i].execute();
             this.mDeleteEventExtras[i].reset();
         }
 
-        for (var i in this.mDeleteTodoExtras) {
+        for (let i in this.mDeleteTodoExtras) {
             this.mDeleteTodoExtras[i].execute();
             this.mDeleteTodoExtras[i].reset();
         }
@@ -364,11 +165,11 @@ calStorageCalendar.prototype = {
             throw Components.results.NS_ERROR_FAILURE;
         }
 
-        var id = 0;
+        let id = 0;
 
         // check if there's a ?id=
-        var path = aUri.path;
-        var pos = path.indexOf("?id=");
+        let path = aUri.path;
+        let pos = path.indexOf("?id=");
 
         if (pos != -1) {
             id = parseInt(path.substr(pos+4));
@@ -378,23 +179,23 @@ calStorageCalendar.prototype = {
         this.mCalId = id;
         this.mUri = aUri;
 
-        var dbService;
+        let dbService = Components.classes["@mozilla.org/storage/service;1"]
+                                  .getService(Components.interfaces.mozIStorageService);
         if (aUri.scheme == "file") {
-            var fileURL = aUri.QueryInterface(Components.interfaces.nsIFileURL);
+            let fileURL = aUri.QueryInterface(Components.interfaces.nsIFileURL);
             if (!fileURL)
                 throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
 
             // open the database
-            dbService = Components.classes[kStorageServiceContractID].getService(kStorageServiceIID);
             this.mDB = dbService.openDatabase(fileURL.file);
         } else if (aUri.scheme == "moz-profile-calendar") {
-            dbService = Components.classes[kStorageServiceContractID].getService(kStorageServiceIID);
             let localDB = cal.getCalendarDirectory();
             localDB.append("local.sqlite");
             localDB = dbService.openDatabase(localDB);
 
             this.mDB = dbService.openSpecialDatabase("profile");
             if (this.mDB.tableExists("cal_events")) { // migrate data to local.sqlite:
+                cal.LOG("Storage: Migrating storage.sdb -> local.sqlite");
                 this.initDB(); // upgrade schema before migating data
                 let attachStatement = createStatement(this.mDB, "ATTACH DATABASE :file_path AS local_sqlite");
                 try {
@@ -412,7 +213,7 @@ calStorageCalendar.prototype = {
                     try {
                         if (this.mDB.tableExists("cal_events")) { // check again (with lock)
                             // take over data and drop from storage.sdb tables:
-                            for (let table in sqlTables) {
+                            for (let table in getSqlTable(DB_SCHEMA_VERSION)) {
                                 this.mDB.executeSimpleSQL("CREATE TABLE local_sqlite." +  table +
                                                           " AS SELECT * FROM " + table +
                                                           "; DROP TABLE IF EXISTS " +  table);
@@ -443,7 +244,7 @@ calStorageCalendar.prototype = {
 
     // void addItem( in calIItemBase aItem, in calIOperationListener aListener );
     addItem: function cSC_addItem(aItem, aListener) {
-        var newItem = aItem.clone();
+        let newItem = aItem.clone();
         return this.adoptItem(newItem, aListener);
     },
 
@@ -902,624 +703,16 @@ calStorageCalendar.prototype = {
     },
 
     //
-    // Helper functions
-    //
-
-    //
     // database handling
     //
-
-    // initialize the database schema.
-    // needs to do some version checking
-    initDBSchema: function cSC_initDBSchema() {
-        for (table in sqlTables) {
-            try {
-                this.mDB.executeSimpleSQL("DROP TABLE " + table);
-            } catch (e) { }
-            this.mDB.createTable(table, sqlTables[table]);
-        }
-
-        // Add a version stamp to the schema
-        this.mDB.executeSimpleSQL("INSERT INTO cal_calendar_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
-    },
-
-    DB_SCHEMA_VERSION: 16,
-
-    /** 
-     * @return      db schema version
-     * @exception   various, depending on error
-     */
-    getVersion: function calStorageGetVersion() {
-        var selectSchemaVersion;
-        var version = null;
-
-        try {
-            selectSchemaVersion = createStatement(this.mDB, 
-                                  "SELECT version FROM " +
-                                  "cal_calendar_schema_version LIMIT 1");
-            if (selectSchemaVersion.step()) {
-                version = selectSchemaVersion.row.version;
-            }
-
-            if (version !== null) {
-                // This is the only place to leave this function gracefully.
-                return version;
-            }
-        } catch (e) {
-            dump ("++++++++++++ calStorageGetVersion() error: " +
-                  this.mDB.lastErrorString + "\n");
-            Components.utils.reportError("Error getting storage calendar " +
-                                         "schema version! DB Error: " + 
-                                         this.mDB.lastErrorString);
-            throw e;
-        } finally {
-            if (selectSchemaVersion) {
-                selectSchemaVersion.reset();
-            }
-        }
-
-        throw "cal_calendar_schema_version SELECT returned no results";
-    },
-
-    upgradeDB: function cSC_upgradeDB(oldVersion) {
-        // some common helpers
-        function addColumn(db, tableName, colName, colType) {
-            db.executeSimpleSQL("ALTER TABLE " + tableName + " ADD COLUMN " + colName + " " + colType);
-        }
-
-        if (oldVersion == 2) {
-            dump ("**** Upgrading schema from 2 -> 3\n");
-
-            this.mDB.beginTransaction();
-            try {
-                // the change between 2 and 3 includes the splitting of cal_items into
-                // cal_events and cal_todos, and the addition of columns for
-                // event_start_tz, event_end_tz, todo_entry_tz, todo_due_tz.
-                // These need to default to "UTC" if their corresponding time is
-                // given, since that's what the default was for v2 calendars
-
-                // create the two new tables
-                try { this.mDB.executeSimpleSQL("DROP TABLE cal_events; DROP TABLE cal_todos;"); } catch (e) { }
-                this.mDB.createTable("cal_events", sqlTables["cal_events"]);
-                this.mDB.createTable("cal_todos", sqlTables["cal_todos"]);
-
-                // copy stuff over
-                var eventCols = ["cal_id", "id", "time_created", "last_modified", "title",
-                                 "priority", "privacy", "ical_status", "flags",
-                                 "event_start", "event_end", "event_stamp"];
-                var todoCols = ["cal_id", "id", "time_created", "last_modified", "title",
-                                "priority", "privacy", "ical_status", "flags",
-                                "todo_entry", "todo_due", "todo_completed", "todo_complete"];
-
-                this.mDB.executeSimpleSQL("INSERT INTO cal_events(" + eventCols.join(",") + ") " +
-                                          "     SELECT " + eventCols.join(",") +
-                                          "       FROM cal_items WHERE item_type = 0");
-                this.mDB.executeSimpleSQL("INSERT INTO cal_todos(" + todoCols.join(",") + ") " +
-                                          "     SELECT " + todoCols.join(",") +
-                                          "       FROM cal_items WHERE item_type = 1");
-
-                // now fix up the new _tz columns
-                this.mDB.executeSimpleSQL("UPDATE cal_events SET event_start_tz = 'UTC' WHERE event_start IS NOT NULL");
-                this.mDB.executeSimpleSQL("UPDATE cal_events SET event_end_tz = 'UTC' WHERE event_end IS NOT NULL");
-                this.mDB.executeSimpleSQL("UPDATE cal_todos SET todo_entry_tz = 'UTC' WHERE todo_entry IS NOT NULL");
-                this.mDB.executeSimpleSQL("UPDATE cal_todos SET todo_due_tz = 'UTC' WHERE todo_due IS NOT NULL");
-                this.mDB.executeSimpleSQL("UPDATE cal_todos SET todo_completed_tz = 'UTC' WHERE todo_completed IS NOT NULL");
-
-                // finally update the version
-                this.mDB.executeSimpleSQL("DELETE FROM cal_calendar_schema_version; INSERT INTO cal_calendar_schema_version VALUES (3);");
-
-                this.mDB.commitTransaction();
-
-                oldVersion = 3;
-            } catch (e) {
-                dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
-                Components.utils.reportError("Upgrade failed! DB Error: " +
-                                             this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion == 3) {
-            dump ("**** Upgrading schema from 3 -> 4\n");
-
-            this.mDB.beginTransaction();
-            try {
-                // the change between 3 and 4 is the addition of
-                // recurrence_id and recurrence_id_tz columns to
-                // cal_events, cal_todos, cal_attendees, and cal_properties
-                addColumn(this.mDB, "cal_events", "recurrence_id", "INTEGER");
-                addColumn(this.mDB, "cal_events", "recurrence_id_tz", "VARCHAR");
-
-                addColumn(this.mDB, "cal_todos", "recurrence_id", "INTEGER");
-                addColumn(this.mDB, "cal_todos", "recurrence_id_tz", "VARCHAR");
-
-                addColumn(this.mDB, "cal_attendees", "recurrence_id", "INTEGER");
-                addColumn(this.mDB, "cal_attendees", "recurrence_id_tz", "VARCHAR");
-
-                addColumn(this.mDB, "cal_properties", "recurrence_id", "INTEGER");
-                addColumn(this.mDB, "cal_properties", "recurrence_id_tz", "VARCHAR");
-
-                this.mDB.executeSimpleSQL("DELETE FROM cal_calendar_schema_version; INSERT INTO cal_calendar_schema_version VALUES (4);");
-                this.mDB.commitTransaction();
-
-                oldVersion = 4;
-            } catch (e) {
-                dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
-                Components.utils.reportError("Upgrade failed! DB Error: " +
-                                             this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion == 4) {
-            dump ("**** Upgrading schema from 4 -> 5\n");
-
-            this.mDB.beginTransaction();
-            try {
-                // the change between 4 and 5 is the addition of alarm_offset
-                // and alarm_last_ack columns.  The alarm_time column is not
-                // used in this version, but will likely return in future versions
-                // so it is not being removed
-                addColumn(this.mDB, "cal_events", "alarm_offset", "INTEGER");
-                addColumn(this.mDB, "cal_events", "alarm_related", "INTEGER");
-                addColumn(this.mDB, "cal_events", "alarm_last_ack", "INTEGER");
-
-                addColumn(this.mDB, "cal_todos", "alarm_offset", "INTEGER");
-                addColumn(this.mDB, "cal_todos", "alarm_related", "INTEGER");
-                addColumn(this.mDB, "cal_todos", "alarm_last_ack", "INTEGER");
-
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 5;");
-                this.mDB.commitTransaction();
-                oldVersion = 5;
-            } catch (e) {
-                dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
-                Components.utils.reportError("Upgrade failed! DB Error: " +
-                                             this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion == 5) {
-            dump ("**** Upgrading schema from 5 -> 6\n");
-
-            this.mDB.beginTransaction();
-            try {
-                // Schema changes between v5 and v6:
-                //
-                // - Change all STRING columns to TEXT to avoid SQLite's
-                //   "feature" where it will automatically convert strings to
-                //   numbers (ex: 10e4 -> 10000). See bug 333688.
-
-
-                // Create the new tables.
-                var tableNames = ["cal_events", "cal_todos", "cal_attendees",
-                                  "cal_recurrence", "cal_properties"];
-
-                var query = "";
-                try { 
-                    for (var i in tableNames) {
-                        query += "DROP TABLE " + tableNames[i] + "_v6;"
-                    }
-                    this.mDB.executeSimpleSQL(query);
-                } catch (e) {
-                    // We should get exceptions for trying to drop tables
-                    // that don't (shouldn't) exist.
-                }
-
-                this.mDB.createTable("cal_events_v6", sqlTables["cal_events"]);
-                this.mDB.createTable("cal_todos_v6", sqlTables["cal_todos"]);
-                this.mDB.createTable("cal_attendees_v6", sqlTables["cal_attendees"]);
-                this.mDB.createTable("cal_recurrence_v6", sqlTables["cal_recurrence"]);
-                this.mDB.createTable("cal_properties_v6", sqlTables["cal_properties"]);
-
-
-                // Copy in the data.
-                var cal_events_cols = ["cal_id", "id", "time_created",
-                                       "last_modified", "title", "priority",
-                                       "privacy", "ical_status",
-                                       "recurrence_id", "recurrence_id_tz",
-                                       "flags", "event_start",
-                                       "event_start_tz", "event_end",
-                                       "event_end_tz", "event_stamp",
-                                       "alarm_time", "alarm_time_tz",
-                                       "alarm_offset", "alarm_related",
-                                       "alarm_last_ack"];
-
-                var cal_todos_cols = ["cal_id", "id", "time_created",
-                                      "last_modified", "title", "priority",
-                                      "privacy", "ical_status",
-                                      "recurrence_id", "recurrence_id_tz",
-                                      "flags", "todo_entry", "todo_entry_tz",
-                                      "todo_due", "todo_due_tz",
-                                      "todo_completed", "todo_completed_tz",
-                                      "todo_complete", "alarm_time",
-                                      "alarm_time_tz", "alarm_offset",
-                                      "alarm_related", "alarm_last_ack"];
-
-                var cal_attendees_cols = ["item_id", "recurrence_id",
-                                          "recurrence_id_tz", "attendee_id",
-                                          "common_name", "rsvp", "role",
-                                          "status", "type"];
-
-                var cal_recurrence_cols = ["item_id", "recur_index",
-                                           "recur_type", "is_negative",
-                                           "dates", "count", "end_date",
-                                           "interval", "second", "minute",
-                                           "hour", "day", "monthday",
-                                           "yearday", "weekno", "month",
-                                           "setpos"];
-
-                var cal_properties_cols = ["item_id", "recurrence_id",
-                                           "recurrence_id_tz", "key",
-                                           "value"];
-
-                var theDB = this.mDB;
-                function copyDataOver(aTableName, aColumnNames) {
-                    theDB.executeSimpleSQL("INSERT INTO " + aTableName + "_v6(" + aColumnNames.join(",") + ") " + 
-                                           "     SELECT " + aColumnNames.join(",") + 
-                                           "       FROM " + aTableName + ";");
-                }
-
-                copyDataOver("cal_events", cal_events_cols);
-                copyDataOver("cal_todos", cal_todos_cols);
-                copyDataOver("cal_attendees", cal_attendees_cols);
-                copyDataOver("cal_recurrence", cal_recurrence_cols);
-                copyDataOver("cal_properties", cal_properties_cols);
-
-
-                // Delete each old table and rename the new ones to use the
-                // old tables' names.
-                for (var i in tableNames) {
-                    this.mDB.executeSimpleSQL("DROP TABLE  " + tableNames[i] + ";" +
-                                              "ALTER TABLE " + tableNames[i] + "_v6" + 
-                                              "  RENAME TO " + tableNames[i] + ";");
-                }
-
-
-                // Update the version stamp, and commit.
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 6;");
-                this.mDB.commitTransaction();
-                oldVersion = 6;
-            } catch (e) {
-                dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
-                Components.utils.reportError("Upgrade failed! DB Error: " +
-                                             this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        // add cal_tz_version for all versions 6, 7, 8, 9:
-        if (oldVersion >= 6 && oldVersion <= 9) {
-            dump ("**** Upgrading schema from 6/7/8/9 -> 10\n");
-            this.mDB.beginTransaction();
-            try {
-                this.mDB.createTable("cal_tz_version", sqlTables.cal_tz_version);
-                // Update the version stamp, and commit.
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 10;");
-                this.mDB.commitTransaction();
-                oldVersion = 10;
-            } catch (e) {
-                dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
-                Components.utils.reportError("Upgrade failed! DB Error: " +
-                                             this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion < 11) {
-            this.mDB.beginTransaction();
-            try {
-                this.mDB.createTable("cal_attachments", sqlTables.cal_attachments);
-
-                // update schema
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 11;");
-                this.mDB.commitTransaction();
-                oldVersion = 11;
-            } catch (e) {
-                cal.ERROR("Upgrade failed! DB Error: " + this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion < 12) {
-            this.mDB.beginTransaction();
-            try {
-                this.mDB.createTable("cal_metadata", sqlTables.cal_metadata);
-                addColumn(this.mDB, "cal_attendees", "is_organizer", "BOOLEAN");
-                addColumn(this.mDB, "cal_attendees", "properties", "BLOB");
-
-                // update schema
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 12;");
-                this.mDB.commitTransaction();
-                oldVersion = 12;
-            } catch (e) {
-                cal.ERROR("Upgrade failed! DB Error: " + this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion < 13) {
-            this.mDB.beginTransaction();
-            try {
-                // reset cal_metadata's item_id to longer be UNIQUE:
-                this.mDB.executeSimpleSQL("DROP TABLE IF EXISTS old_cal_metadata");
-                this.mDB.executeSimpleSQL("ALTER TABLE cal_metadata RENAME TO old_cal_metadata");
-                this.mDB.createTable("cal_metadata", sqlTables["cal_metadata"]);
-                this.mDB.executeSimpleSQL("INSERT INTO cal_metadata"
-                                          + " (cal_id, item_id, value) "
-                                          + " SELECT cal_id, item_id, value"
-                                          + " FROM old_cal_metadata");
-                this.mDB.executeSimpleSQL("DROP TABLE old_cal_metadata");
-
-                // match item ids to cal_id:
-                var calIds = {};
-                for each (var itemTable in ["events", "todos"]) {
-                    var stmt = createStatement(this.mDB,
-                                               "SELECT id, cal_id FROM cal_" + itemTable);
-                    while (stmt.step()) {
-                        calIds[stmt.row.id] = stmt.row.cal_id;
-                    }
-                    stmt.reset();
-                }
-
-                for each (var updTable in ["cal_attendees", "cal_recurrence",
-                                           "cal_properties", "cal_attachments"]) {
-                    try { // some tables might have been created with the
-                          // required columns already, see previous upgrade pathes
-                        addColumn(this.mDB, updTable, "cal_id", "INTEGER");
-                    } catch (ace) {}
-
-                    for (var itemId in calIds) {
-                        this.mDB.executeSimpleSQL("UPDATE " + updTable +
-                                                  " SET cal_id = " + calIds[itemId] +
-                                                  " WHERE item_id = '" + itemId + "'");
-                     }
-                }
-
-                this.mDB.executeSimpleSQL("DROP INDEX IF EXISTS" +
-                                          " idx_cal_properies_item_id");
-                this.mDB.executeSimpleSQL("CREATE INDEX IF NOT EXISTS" + 
-                                          " idx_cal_properies_item_id" +
-                                          " ON cal_properties(cal_id, item_id);");
-
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 13;");
-                this.mDB.commitTransaction();
-                oldVersion = 13;
-            } catch (e) {
-                cal.ERROR("Upgrade failed! DB Error: " + this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion < 14) {
-            this.mDB.beginTransaction();
-            try {
-                this.mDB.createTable("cal_relations", sqlTables.cal_relations);
-                // update schema
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 14;");
-                this.mDB.commitTransaction();
-                oldVersion = 14;
-            } catch (e) {
-                cal.ERROR("Upgrade failed! DB Error: " + this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion < 15) {
-            this.mDB.beginTransaction();
-            try {
-                addColumn(this.mDB, "cal_todos", "todo_stamp", "INTEGER");
-                // update schema
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 15;");
-                this.mDB.commitTransaction();
-                oldVersion = 15;
-            } catch (e) {
-                cal.ERROR("Upgrade failed! DB Error: " + this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion < 16) {
-            this.mDB.beginTransaction();
-            try {
-                this.mDB.createFunction("translateAlarm", 4, {
-                    onFunctionCall: function translateAlarm(storArgs) {
-                        let [aOffset, aRelated, aAlarmTime, aTzId] =
-                            [0,1,2,3].map(function(i) storArgs.getUTF8String(i));
-
-                        let alarm = cal.createAlarm();
-                        if (aOffset) {
-                            alarm.related = parseInt(aRelated, 10) + 1;
-                            alarm.offset = cal.createDuration();
-                            alarm.offset.inSeconds = aOffset;
-                        } else if (aAlarmTime) {
-                            alarm.related = alarm.ALARM_RELATED_ABSOLUTE;
-                            let alarmDate = cal.createDateTime();
-                            alarmDate.nativeTime = aAlarmTime;
-                            alarmDate.timezone = getTimezoneService().getTimezone(aTzId);
-                            alarm.alarmDate = alarmDate;
-                        }
-                        return alarm.icalString;
-                    }
-                });
-
-                let copyDataOver = function copyDataOver(tbl, db) {
-                    const transAlarm =  "translateAlarm(alarm_offset, alarm_related, alarm_time, alarm_time_tz)";
-                    db.executeSimpleSQL("INSERT INTO cal_alarms" +
-                        "(cal_id, item_id, icalString) SELECT " +
-                        "cal_id, id, " + transAlarm + " FROM " + tbl +
-                        " WHERE alarm_offset IS NOT NULL OR alarm_time IS NOT NULL;");
-
-                };
-                this.mDB.createTable("cal_alarms", sqlTables.cal_alarms);
-                copyDataOver("cal_events", this.mDB);
-                copyDataOver("cal_todos", this.mDB);
-                this.mDB.removeFunction("translateAlarm");
-
-                // Make sure the alarm flag is set on the item
-                this.mDB.executeSimpleSQL("UPDATE cal_events SET flags = flags | 256 WHERE id IN" +
-                                          " (SELECT item_id FROM cal_alarms WHERE cal_alarms.cal_id=cal_events.cal_id)");
-                this.mDB.executeSimpleSQL("UPDATE cal_todos SET flags = flags | 256 WHERE id IN" +
-                                          " (SELECT item_id FROM cal_alarms WHERE cal_alarms.cal_id=cal_todos.cal_id)");
-
-                // remove column. Not possible via ALTER TABLE.
-                this.mDB.createTable("cal_events_v16", sqlTables.cal_events);
-                this.mDB.createTable("cal_todos_v16", sqlTables.cal_todos);
-
-                let cal_events_cols = ["cal_id", "id", "time_created",
-                                       "last_modified", "title", "priority",
-                                       "privacy", "ical_status",
-                                       "recurrence_id", "recurrence_id_tz",
-                                       "flags", "event_start",
-                                       "event_start_tz", "event_end",
-                                       "event_end_tz", "event_stamp",
-                                       "alarm_last_ack"];
-
-                this.mDB.executeSimpleSQL("INSERT INTO cal_events_v16 (" +
-                                          cal_events_cols.join(",") + ") " +
-                                          "SELECT " + cal_events_cols.join(",") +
-                                          " FROM cal_events");
-
-                let cal_todos_cols = ["cal_id", "id", "time_created",
-                                      "last_modified", "title", "priority",
-                                      "privacy", "ical_status",
-                                      "recurrence_id", "recurrence_id_tz",
-                                      "flags", "todo_entry", "todo_entry_tz",
-                                      "todo_due", "todo_due_tz", "todo_stamp",
-                                      "todo_completed", "todo_completed_tz",
-                                      "todo_complete", "alarm_last_ack"];
-
-                this.mDB.executeSimpleSQL("INSERT INTO cal_todos_v16 (" +
-                                          cal_todos_cols.join(",") + ") " +
-                                          "SELECT " + cal_todos_cols.join(",") +
-                                          " FROM cal_todos");
-
-                this.mDB.executeSimpleSQL("DROP TABLE cal_events;" +
-                                          "ALTER TABLE cal_events_v16 RENAME TO cal_events;");
-                this.mDB.executeSimpleSQL("DROP TABLE cal_todos;" +
-                                          "ALTER TABLE cal_todos_v16 RENAME TO cal_todos;");
-
-                // update schema
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 16;");
-                this.mDB.commitTransaction();
-                oldVersion = 16;
-            } catch (e) {
-                cal.ERROR("Upgrade to v16 failed! DB Error: " +
-                          this.mDB.lastErrorString + " ex: " + e);
-                this.mDB.rollbackTransaction();
-                throw e;
-            }
-        }
-
-        if (oldVersion != this.DB_SCHEMA_VERSION) {
-            dump ("#######!!!!! calStorageCalendar Schema Update failed -- db version: " + oldVersion + " this version: " + this.DB_SCHEMA_VERSION + "\n");
-            throw Components.results.NS_ERROR_FAILURE;
-        }
-    },
-
-    ensureUpdatedTimezones: function cSC_ensureUpdatedTimezones() {
-        // check if timezone version has changed:
-        var selectTzVersion = createStatement(this.mDB, "SELECT version FROM cal_tz_version LIMIT 1");
-        var version;
-        try {
-            version = (selectTzVersion.step() ? selectTzVersion.row.version : null);
-        } finally {
-            selectTzVersion.reset();
-        }
-
-        var versionComp = 1;
-        if (version) {
-            versionComp = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
-                                    .getService(Components.interfaces.nsIVersionComparator)
-                                    .compare(cal.getTimezoneService().version, version);
-        }
-
-        if (versionComp < 0) {
-            // A timezones downgrade has happened!
-            throw Components.interfaces.calIErrors.STORAGE_UNKNOWN_TIMEZONES_ERROR;
-        } else if (versionComp > 0) {
-            LOG("timezones have been updated, updating calendar data.");
-
-            var zonesToUpdate = [];
-            var getZones = createStatement(
-                this.mDB,
-                "SELECT DISTINCT(zone) FROM ("+
-                "SELECT recurrence_id_tz AS zone FROM cal_attendees  WHERE recurrence_id_tz IS NOT NULL UNION " +
-                "SELECT recurrence_id_tz AS zone FROM cal_events     WHERE recurrence_id_tz IS NOT NULL UNION " +
-                "SELECT event_start_tz   AS zone FROM cal_events     WHERE event_start_tz   IS NOT NULL UNION " +
-                "SELECT event_end_tz     AS zone FROM cal_events     WHERE event_end_tz     IS NOT NULL UNION " +
-                "SELECT recurrence_id_tz AS zone FROM cal_properties WHERE recurrence_id_tz IS NOT NULL UNION " +
-                "SELECT recurrence_id_tz AS zone FROM cal_todos      WHERE recurrence_id_tz IS NOT NULL UNION " +
-                "SELECT todo_entry_tz    AS zone FROM cal_todos      WHERE todo_entry_tz    IS NOT NULL UNION " +
-                "SELECT todo_due_tz      AS zone FROM cal_todos      WHERE todo_due_tz      IS NOT NULL" +
-                ");");
-            try {
-                while (getZones.step()) {
-                    var zone = getZones.row.zone;
-                    // Send the timezones off to the timezone service to attempt conversion:
-                    var tz = getTimezone(zone);
-                    if (tz) {
-                        var refTz = cal.getTimezoneService().getTimezone(tz.tzid);
-                        if (refTz && refTz.tzid != zone) {
-                            zonesToUpdate.push({ oldTzId: zone, newTzId: refTz.tzid });
-                        }
-                    }
-                }
-            } finally {
-                getZones.reset();
-            }
-
-            this.mDB.beginTransaction();
-            try {
-                for each (var update in zonesToUpdate) {
-                    this.mDB.executeSimpleSQL(
-                        "UPDATE cal_attendees  SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_events     SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_events     SET event_start_tz   = '" + update.newTzId + "' WHERE event_start_tz   = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_events     SET event_end_tz     = '" + update.newTzId + "' WHERE event_end_tz     = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_properties SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_todos      SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_todos      SET todo_entry_tz    = '" + update.newTzId + "' WHERE todo_entry_tz    = '" + update.oldTzId + "'; " +
-                        "UPDATE cal_todos      SET todo_due_tz      = '" + update.newTzId + "' WHERE todo_due_tz      = '" + update.oldTzId + "';");
-                }
-                this.mDB.executeSimpleSQL("DELETE FROM cal_tz_version; INSERT INTO cal_tz_version VALUES ('" +
-                                          cal.getTimezoneService().version + "');");
-                this.mDB.commitTransaction();
-            } catch (exc) {
-                ASSERT(false, "Timezone update failed! DB Error: " + this.mDB.lastErrorString);
-                this.mDB.rollbackTransaction();
-                throw exc;
-            }
-        }
-    },
 
     // database initialization
     // assumes mDB is valid
 
     initDB: function cSC_initDB() {
         ASSERT(this.mDB, "Database has not been opened!", true);
-        if (!this.mDB.tableExists("cal_calendar_schema_version")) {
-            this.initDBSchema();
-        } else {
-            var version = this.getVersion();
-            if (version < this.DB_SCHEMA_VERSION) {
-                this.upgradeDB(version);
-            } else if (version > this.DB_SCHEMA_VERSION) {
-                throw Components.interfaces.calIErrors.STORAGE_UNKNOWN_SCHEMA_ERROR;
-            }
-        }
 
-        this.ensureUpdatedTimezones();
+        upgradeDB(this.mDB);
 
         // (Conditionally) add index
         this.mDB.executeSimpleSQL(
@@ -1891,7 +1084,7 @@ calStorageCalendar.prototype = {
 
         if (row.recurrence_id) {
             item.recurrenceId = newDateTime(row.recurrence_id, row.recurrence_id_tz);
-            if ((row.flags & CAL_ITEM_FLAG_EVENT_ALLDAY) != 0) {
+            if ((row.flags & CAL_ITEM_FLAG.EVENT_ALLDAY) != 0) {
                 item.recurrenceId.isDate = true;
             }
         }
@@ -1977,7 +1170,7 @@ calStorageCalendar.prototype = {
             item.endDate = newDateTime(row.event_end, row.event_end_tz);
         if (row.event_stamp)
             item.setProperty("DTSTAMP", newDateTime(row.event_stamp, "UTC"));
-        if ((row.flags & CAL_ITEM_FLAG_EVENT_ALLDAY) != 0) {
+        if ((row.flags & CAL_ITEM_FLAG.EVENT_ALLDAY) != 0) {
             item.startDate.isDate = true;
             item.endDate.isDate = true;
         }
@@ -2036,7 +1229,7 @@ calStorageCalendar.prototype = {
         // This is needed to keep the modification time intact.
         var savedLastModifiedTime = item.lastModifiedTime;
 
-        if (flags & CAL_ITEM_FLAG_HAS_ATTENDEES) {
+        if (flags & CAL_ITEM_FLAG.HAS_ATTENDEES) {
             var selectItem = null;
             if (item.recurrenceId == null)
                 selectItem = this.mSelectAttendeesForItem;
@@ -2066,7 +1259,7 @@ calStorageCalendar.prototype = {
         }
 
         var row;
-        if (flags & CAL_ITEM_FLAG_HAS_PROPERTIES) {
+        if (flags & CAL_ITEM_FLAG.HAS_PROPERTIES) {
             var selectItem = null;
             if (item.recurrenceId == null)
                 selectItem = this.mSelectPropertiesForItem;
@@ -2105,7 +1298,7 @@ calStorageCalendar.prototype = {
         }
 
         var i;
-        if (flags & CAL_ITEM_FLAG_HAS_RECURRENCE) {
+        if (flags & CAL_ITEM_FLAG.HAS_RECURRENCE) {
             if (item.recurrenceId)
                 throw Components.results.NS_ERROR_UNEXPECTED;
 
@@ -2121,7 +1314,8 @@ calStorageCalendar.prototype = {
                     if (row.recur_type == null ||
                         row.recur_type == "x-dateset")
                     {
-                        ritem = new CalRecurrenceDateSet();
+                        ritem = Components.classes["@mozilla.org/calendar/recurrence-date-set;1"]
+                                          .createInstance(Components.interfaces.calIRecurrenceDateSet);
 
                         var dates = row.dates.split(",");
                         for (i = 0; i < dates.length; i++) {
@@ -2129,11 +1323,12 @@ calStorageCalendar.prototype = {
                             ritem.addDate(date);
                         }
                     } else if (row.recur_type == "x-date") {
-                        ritem = new CalRecurrenceDate();
+                        ritem = Components.classes["@mozilla.org/calendar/recurrence-date;1"]
+                                          .createInstance(Components.interfaces.calIRecurrenceDate);
                         var d = row.dates;
                         ritem.date = textToDate(d);
                     } else {
-                        ritem = new CalRecurrenceRule();
+                        ritem = cal.createRecurrenceRule();
 
                         ritem.type = row.recur_type;
                         if (row.count) {
@@ -2179,8 +1374,7 @@ calStorageCalendar.prototype = {
                     if (row.is_negative)
                         ritem.isNegative = true;
                     if (rec == null) {
-                        rec = new CalRecurrenceInfo();
-                        rec.item = item;
+                        rec = cal.createRecurrenceInfo(item);
                     }
                     rec.appendRecurrenceItem(ritem);
                 }
@@ -2199,10 +1393,10 @@ calStorageCalendar.prototype = {
 
         }
 
-        if (flags & CAL_ITEM_FLAG_HAS_EXCEPTIONS) {
+        if (flags & CAL_ITEM_FLAG.HAS_EXCEPTIONS) {
             // it's safe that we don't run into this branch again for exceptions
             // (getAdditionalDataForItem->get[Event|Todo]FromRow->getAdditionalDataForItem):
-            // every excepton has a recurrenceId and isn't flagged as CAL_ITEM_FLAG_HAS_EXCEPTIONS
+            // every excepton has a recurrenceId and isn't flagged as CAL_ITEM_FLAG.HAS_EXCEPTIONS
             if (item.recurrenceId)
                 throw Components.results.NS_ERROR_UNEXPECTED;
 
@@ -2243,7 +1437,7 @@ calStorageCalendar.prototype = {
             }
         }
 
-        if (flags & CAL_ITEM_FLAG_HAS_ATTACHMENTS) {
+        if (flags & CAL_ITEM_FLAG.HAS_ATTACHMENTS) {
             var selectAttachment = this.mSelectAttachmentsForItem;
             selectAttachment.params.item_id = item.id;
 
@@ -2262,7 +1456,7 @@ calStorageCalendar.prototype = {
             }
         }
 
-        if (flags & CAL_ITEM_FLAG_HAS_RELATIONS) {
+        if (flags & CAL_ITEM_FLAG.HAS_RELATIONS) {
             var selectRelation = this.mSelectRelationsForItem;
             selectRelation.params.item_id = item.id;
             try {
@@ -2280,7 +1474,7 @@ calStorageCalendar.prototype = {
             }
         }
 
-        if (flags & CAL_ITEM_FLAG_HAS_ALARMS) {
+        if (flags & CAL_ITEM_FLAG.HAS_ALARMS) {
             let selectAlarm = this.mSelectAlarmsForItem;
             selectAlarm.params.item_id = item.id;
 
@@ -2305,7 +1499,7 @@ calStorageCalendar.prototype = {
     },
 
     getAttendeeFromRow: function cSC_getAttendeeFromRow(row) {
-        var a = CalAttendee();
+        let a = cal.createAttendee();
 
         a.id = row.attendee_id;
         a.commonName = row.common_name;
@@ -2322,9 +1516,9 @@ calStorageCalendar.prototype = {
         a.participationStatus = row.status;
         a.userType = row.type;
         a.isOrganizer = row.is_organizer;
-        var props = row.properties;
+        let props = row.properties;
         if (props) {
-            for each (var pair in props.split(",")) {
+            for each (let pair in props.split(",")) {
                 [key, value] = pair.split(":");
                 a.setProperty(decodeURIComponent(key), decodeURIComponent(value));
             }
@@ -2334,7 +1528,7 @@ calStorageCalendar.prototype = {
     },
 
     getAttachmentFromRow: function cSC_getAttachmentFromRow(row) {
-        var a = createAttachment();
+        let a = cal.createAttachment();
        
         // TODO we don't support binary data here, libical doesn't either.
         a.uri = makeURL(row.data);
@@ -2345,7 +1539,7 @@ calStorageCalendar.prototype = {
     },
 
     getRelationFromRow: function cSC_getRelationFromRow(row) {
-        var r = createRelation();
+        let r = cal.createRelation();
         r.relType = row.rel_type;
         r.relId = row.rel_id;
         return r;
@@ -2470,7 +1664,7 @@ calStorageCalendar.prototype = {
         }
 
         if (item.startDate.isDate)
-            flags |= CAL_ITEM_FLAG_EVENT_ALLDAY;
+            flags |= CAL_ITEM_FLAG.EVENT_ALLDAY;
 
         ip.flags = flags;
 
@@ -2495,7 +1689,7 @@ calStorageCalendar.prototype = {
 
         let someDate = (item.entryDate || item.dueDate);
         if (someDate && someDate.isDate) {
-            flags |= CAL_ITEM_FLAG_EVENT_ALLDAY;
+            flags |= CAL_ITEM_FLAG.EVENT_ALLDAY;
         }
 
         ip.flags = flags;
@@ -2575,7 +1769,7 @@ calStorageCalendar.prototype = {
                 this.mInsertAttendee.reset();
             }
 
-            return CAL_ITEM_FLAG_HAS_ATTENDEES;
+            return CAL_ITEM_FLAG.HAS_ATTENDEES;
         }
 
         return 0;
@@ -2608,7 +1802,7 @@ calStorageCalendar.prototype = {
         var ret = 0;
         var propEnumerator = item.propertyEnumerator;
         while (propEnumerator.hasMoreElements()) {
-            ret = CAL_ITEM_FLAG_HAS_PROPERTIES;
+            ret = CAL_ITEM_FLAG.HAS_PROPERTIES;
             var prop = propEnumerator.getNext().QueryInterface(Components.interfaces.nsIProperty);
             if (item.isPropertyPromoted(prop.name))
                 continue;
@@ -2617,7 +1811,7 @@ calStorageCalendar.prototype = {
 
         var cats = item.getCategories({});
         if (cats.length > 0) {
-            ret = CAL_ITEM_FLAG_HAS_PROPERTIES;
+            ret = CAL_ITEM_FLAG.HAS_PROPERTIES;
             this.writeProperty(item, "CATEGORIES", categoriesArrayToString(cats));
         }
 
@@ -2629,7 +1823,7 @@ calStorageCalendar.prototype = {
 
         var rec = item.recurrenceInfo;
         if (rec) {
-            flags = CAL_ITEM_FLAG_HAS_RECURRENCE;
+            flags = CAL_ITEM_FLAG.HAS_RECURRENCE;
             var ritems = rec.getRecurrenceItems ({});
             for (i in ritems) {
                 var ritem = ritems[i];
@@ -2637,11 +1831,11 @@ calStorageCalendar.prototype = {
                 ap.item_id = item.id;
                 ap.recur_index = i;
                 ap.is_negative = ritem.isNegative;
-                if (calInstanceOf(ritem, kCalIRecurrenceDate)) {
+                if (calInstanceOf(ritem, Components.interfaces.calIRecurrenceDate)) {
                     ap.recur_type = "x-date";
                     ap.dates = dateToText(getInUtcOrKeepFloating(ritem.date));
 
-                } else if (calInstanceOf(ritem, kCalIRecurrenceDateSet)) {
+                } else if (calInstanceOf(ritem, Components.interfaces.calIRecurrenceDateSet)) {
                     ap.recur_type = "x-dateset";
 
                     var rdates = ritem.getDates({});
@@ -2655,7 +1849,7 @@ calStorageCalendar.prototype = {
 
                     ap.dates = datestr;
 
-                } else if (calInstanceOf(ritem, kCalIRecurrenceRule)) {
+                } else if (calInstanceOf(ritem, Components.interfaces.calIRecurrenceRule)) {
                     ap.recur_type = ritem.type;
 
                     if (ritem.isByCount)
@@ -2692,7 +1886,7 @@ calStorageCalendar.prototype = {
 
             var exceptions = rec.getExceptionIds ({});
             if (exceptions.length > 0) {
-                flags |= CAL_ITEM_FLAG_HAS_EXCEPTIONS;
+                flags |= CAL_ITEM_FLAG.HAS_EXCEPTIONS;
 
                 // we need to serialize each exid as a separate
                 // event/todo; setupItemBase will handle
@@ -2722,7 +1916,7 @@ calStorageCalendar.prototype = {
                 this.mInsertAttachment.execute();
                 this.mInsertAttachment.reset();
             }
-            return CAL_ITEM_FLAG_HAS_ATTACHMENTS;
+            return CAL_ITEM_FLAG.HAS_ATTACHMENTS;
         }
         return 0;
     },
@@ -2739,7 +1933,7 @@ calStorageCalendar.prototype = {
                 this.mInsertRelation.execute();
                 this.mInsertRelation.reset();
             }
-            return CAL_ITEM_FLAG_HAS_RELATIONS;
+            return CAL_ITEM_FLAG.HAS_RELATIONS;
         }
         return 0;
     },          
@@ -2765,7 +1959,7 @@ calStorageCalendar.prototype = {
             }
         }
 
-        return CAL_ITEM_FLAG_HAS_ALARMS;
+        return CAL_ITEM_FLAG.HAS_ALARMS;
     },
 
     //
@@ -2896,167 +2090,4 @@ calStorageCalendar.prototype = {
         out_ids.value = ids;
         out_values.value = values;
     }
-};
-
-//
-// sqlTables generated from schema.sql via makejsschema.pl
-//
-
-var sqlTables = {
-  cal_calendar_schema_version:
-    "   version INTEGER" +
-    "",
-
-  cal_tz_version:
-    "   version TEXT" +
-    "",
-
-  cal_events:
-    /*  REFERENCES cal_calendars.id, */
-    "   cal_id          INTEGER, " +
-    /*  ItemBase bits */
-    "   id              TEXT," +
-    "   time_created    INTEGER," +
-    "   last_modified   INTEGER," +
-    "   title           TEXT," +
-    "   priority        INTEGER," +
-    "   privacy         TEXT," +
-    "   ical_status     TEXT," +
-    "   recurrence_id   INTEGER," +
-    "   recurrence_id_tz TEXT," +
-    /*  CAL_ITEM_FLAG_PRIVATE = 1 */
-    /*  CAL_ITEM_FLAG_HAS_ATTENDEES = 2 */
-    /*  CAL_ITEM_FLAG_HAS_PROPERTIES = 4 */
-    /*  CAL_ITEM_FLAG_EVENT_ALLDAY = 8 */
-    /*  CAL_ITEM_FLAG_HAS_RECURRENCE = 16 */
-    /*  CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32 */
-    /*  CAL_ITEM_FLAG_HAS_ATTACHMENTS = 64 */
-    /*  CAL_ITEM_FLAG_HAS_ALARMS = 256 */
-    "   flags           INTEGER," +
-    /*  Event bits */
-    "   event_start     INTEGER," +
-    "   event_start_tz  TEXT," +
-    "   event_end       INTEGER," +
-    "   event_end_tz    TEXT," +
-    "   event_stamp     INTEGER," +
-    "   alarm_last_ack  INTEGER" +
-    "",
-
-  cal_todos:
-    /*  REFERENCES cal_calendars.id, */
-    "   cal_id          INTEGER, " +
-    /*  ItemBase bits */
-    "   id              TEXT," +
-    "   time_created    INTEGER," +
-    "   last_modified   INTEGER," +
-    "   title           TEXT," +
-    "   priority        INTEGER," +
-    "   privacy         TEXT," +
-    "   ical_status     TEXT," +
-    "   recurrence_id   INTEGER," +
-    "   recurrence_id_tz        TEXT," +
-    /*  CAL_ITEM_FLAG_PRIVATE = 1 */
-    /*  CAL_ITEM_FLAG_HAS_ATTENDEES = 2 */
-    /*  CAL_ITEM_FLAG_HAS_PROPERTIES = 4 */
-    /*  CAL_ITEM_FLAG_EVENT_ALLDAY = 8 */
-    /*  CAL_ITEM_FLAG_HAS_RECURRENCE = 16 */
-    /*  CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32 */
-    /*  CAL_ITEM_FLAG_HAS_ALARMS = 256 */
-    "   flags           INTEGER," +
-    /*  Todo bits */
-    /*  date the todo is to be displayed */
-    "   todo_entry      INTEGER," +
-    "   todo_entry_tz   TEXT," +
-    /*  date the todo is due */
-    "   todo_due        INTEGER," +
-    "   todo_due_tz     TEXT," +
-    "   todo_stamp      INTEGER," +
-    /*  date the todo is completed */
-    "   todo_completed  INTEGER," +
-    "   todo_completed_tz TEXT," +
-    /*  percent the todo is complete (0-100) */
-    "   todo_complete   INTEGER," +
-    "   alarm_last_ack  INTEGER" +
-    "",
-
-  cal_attendees:
-    "   cal_id          INTEGER, " +
-    "   item_id         TEXT," +
-    "   recurrence_id   INTEGER," +
-    "   recurrence_id_tz        TEXT," +
-    "   attendee_id     TEXT," +
-    "   common_name     TEXT," +
-    "   rsvp            INTEGER," +
-    "   role            TEXT," +
-    "   status          TEXT," +
-    "   type            TEXT," +
-    "   is_organizer    BOOLEAN," +
-    "   properties      BLOB" +
-    "",
-
-  cal_recurrence:
-    "   cal_id          INTEGER, " +
-    "   item_id         TEXT," +
-    /*  the index in the recurrence array of this thing */
-    "   recur_index     INTEGER, " +
-    /*  values from calIRecurrenceInfo; if null, date-based. */
-    "   recur_type      TEXT, " +
-    "   is_negative     BOOLEAN," +
-    /*  */
-    /*  these are for date-based recurrence */
-    /*  */
-    /*  comma-separated list of dates */
-    "   dates           TEXT," +
-    /*  */
-    /*  these are for rule-based recurrence */
-    /*  */
-    "   count           INTEGER," +
-    "   end_date        INTEGER," +
-    "   interval        INTEGER," +
-    /*  components, comma-separated list or null */
-    "   second          TEXT," +
-    "   minute          TEXT," +
-    "   hour            TEXT," +
-    "   day             TEXT," +
-    "   monthday        TEXT," +
-    "   yearday         TEXT," +
-    "   weekno          TEXT," +
-    "   month           TEXT," +
-    "   setpos          TEXT" +
-    "",
-
-  cal_properties:
-    "   cal_id          INTEGER, " +
-    "   item_id         TEXT," +
-    "   recurrence_id   INTEGER," +
-    "   recurrence_id_tz TEXT," +
-    "   key             TEXT," +
-    "   value           BLOB" +
-    "",
-
-  cal_attachments:
-    "   cal_id          INTEGER, " +
-    "   item_id         TEXT," +
-    "   data            BLOB," +
-    "   format_type     TEXT," +
-    "   encoding        TEXT" +
-    "",  
-  
-  cal_relations:
-    "   cal_id          INTEGER," +
-    "   item_id         TEXT," +
-    "   rel_type        TEXT," +
-    "   rel_id          TEXT" +
-    "",
-
-  cal_metadata:
-    "   cal_id          INTEGER, " +
-    "   item_id         TEXT," + 
-    "   value           BLOB" + 
-    "",
-
-  cal_alarms:
-    "   cal_id          INTEGER, " +
-    "   item_id         TEXT," +
-    "   icalString      TEXT"
 };

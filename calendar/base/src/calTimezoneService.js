@@ -123,10 +123,11 @@ calTimezoneService.prototype = {
     mHasSetupObservers: false,
     floating: null,
     UTC: null,
+    mDb: null,
 
     createStatement: function calTimezoneService_createStatement(sql) {
-        var statement = this.mDb.createStatement(sql);
-        var ret = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
+        let statement = this.mDb.createStatement(sql);
+        let ret = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
                             .createInstance(Components.interfaces.mozIStorageStatementWrapper);
         ret.initialize(statement);
         return ret;
@@ -139,13 +140,16 @@ calTimezoneService.prototype = {
             // the timezones.sqlite as well as the timezones.properties into lightning for now.
 
             const kCalendarTimezonesXpiId = "calendar-timezones@mozilla.org";
-            var sqlTzFile;
-            var bundleURL;
+            let sqlTzFile;
+            let bundleURL;
 
             try {
-                var extMgr = Components.classes["@mozilla.org/extensions/manager;1"]
+                let extMgr = Components.classes["@mozilla.org/extensions/manager;1"]
                                        .getService(Components.interfaces.nsIExtensionManager);
-                sqlTzFile = extMgr.getInstallLocation(kCalendarTimezonesXpiId).getItemLocation(kCalendarTimezonesXpiId);
+
+                sqlTzFile = extMgr.getInstallLocation(kCalendarTimezonesXpiId)
+                                  .getItemLocation(kCalendarTimezonesXpiId);
+
                 bundleURL = "chrome://calendar-timezones/locale/timezones.properties";
             } catch (exc) {
                 try {
@@ -155,13 +159,13 @@ calTimezoneService.prototype = {
                         bundleURL = "chrome://lightning/locale/timezones.properties";
                     }
                 } catch (exc) { // we land here in case of the unit tests:
-                    var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
+                    let dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
                                            .getService(Components.interfaces.nsIProperties);
                     sqlTzFile = dirSvc.get("CurProcD", Components.interfaces.nsILocalFile);
                     sqlTzFile.append("extensions");
                     sqlTzFile.append(kCalendarTimezonesXpiId);
-                    WARN("\### USING " + sqlTzFile.path);
-                    var bundleFile = sqlTzFile.clone();
+                    cal.WARN("\### USING " + sqlTzFile.path);
+                    let bundleFile = sqlTzFile.clone();
                     bundleFile.append("chrome");
                     bundleFile.append("calendar-timezones-en-US.jar");
                     bundleURL = "jar:" + getIOService().newFileURI(bundleFile).spec + "!/locale/en-US/timezones.properties";
@@ -171,12 +175,12 @@ calTimezoneService.prototype = {
             try {
                 sqlTzFile.append("timezones.sqlite");
                 cal.LOG("[calTimezoneService] using " + sqlTzFile.path);
-                var dbService = Components.classes["@mozilla.org/storage/service;1"]
+                let dbService = Components.classes["@mozilla.org/storage/service;1"]
                                           .getService(Components.interfaces.mozIStorageService);
                 this.mDb = dbService.openDatabase(sqlTzFile);
                 this.mSelectByTzid = this.createStatement("SELECT * FROM tz_data WHERE tzid = :tzid LIMIT 1");
 
-                var selectVersion = this.createStatement("SELECT version FROM tz_version LIMIT 1");
+                let selectVersion = this.createStatement("SELECT version FROM tz_version LIMIT 1");
                 try {
                     if (selectVersion.step()) {
                         this.mVersion = selectVersion.row.version;
@@ -188,8 +192,8 @@ calTimezoneService.prototype = {
 
                 g_stringBundle = calGetStringBundle(bundleURL);
             } catch (exc) {
-                var msg = calGetString("calendar", "missingCalendarTimezonesError");
-                Components.utils.reportError(msg);
+                let msg = calGetString("calendar", "missingCalendarTimezonesError");
+                cal.ERROR(msg);
                 showError(msg);
             }
         }

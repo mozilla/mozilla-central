@@ -613,31 +613,34 @@ calCalendarManager.prototype = {
             calendar.uri = uri;
             return calendar;
         } catch (ex) {
-            var rc = ex;
-            var message = ex;
+            let rc = ex;
+            let uiMessage = ex;
             if (ex instanceof Components.interfaces.nsIException) {
                 rc = ex.result;
-                message = ex.message;
+                uiMessage = ex.message;
             }
             switch (rc) {
                 case Components.interfaces.calIErrors.STORAGE_UNKNOWN_SCHEMA_ERROR:
                     // For now we alert and quit on schema errors like we've done before:
                     this.alertAndQuit();
                 case Components.interfaces.calIErrors.STORAGE_UNKNOWN_TIMEZONES_ERROR:
-                    message = calGetString("calendar", "unknownTimezonesError", [uri.spec]);
+                    uiMessage = calGetString("calendar", "unknownTimezonesError", [uri.spec]);
                     break;
                 default:
-                    message = calGetString("calendar", "unableToCreateProvider", [uri.spec]);
+                    uiMessage = calGetString("calendar", "unableToCreateProvider", [uri.spec]);
                     break;
             }
-            ASSERT(false, message);
-            var paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
+            // Log the original exception via error console to provide more debug info
+            cal.ERROR(ex);
+
+            // Log the possibly translated message via the UI.
+            let paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
                                        .createInstance(Components.interfaces.nsIDialogParamBlock);
             paramBlock.SetNumberStrings(3);
-            paramBlock.SetString(0, message);
+            paramBlock.SetString(0, uiMessage);
             paramBlock.SetString(1, "0x" + rc.toString(0x10));
             paramBlock.SetString(2, ex);
-            var wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+            let wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                                      .getService(Components.interfaces.nsIWindowWatcher);
             wWatcher.openWindow(null,
                                 "chrome://calendar/content/calErrorPrompt.xul",

@@ -982,10 +982,12 @@ function ASSERT(aCondition, aMessage, aCritical) {
  * @param aMsg The message to be shown
  */
 function showError(aMsg) {
-    ASSERT(window, "missing window!");
-    let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(window, calGetString("calendar", "genericErrorTitle"), aMsg);
+    let window = window || null;
+    if (window) {
+        let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                      .getService(Components.interfaces.nsIPromptService);
+        promptService.alert(window, calGetString("calendar", "genericErrorTitle"), aMsg);
+    }
 }
 
 /**

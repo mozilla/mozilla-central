@@ -1,4 +1,3 @@
-# 
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -47,6 +46,10 @@ MODULE = calStorageCalendar
 
 EXTRA_COMPONENTS = calStorageCalendarModule.js
 EXTRA_SCRIPTS = calStorageCalendar.js
+EXTRA_JS_MODULES = \
+    calStorageHelpers.jsm \
+    calStorageUpgrade.jsm \
+    $(NULL)
 
 libs:: $(EXTRA_SCRIPTS)
 	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi
