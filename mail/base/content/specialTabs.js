@@ -109,7 +109,7 @@ tabProgressListener.prototype =
       if (!this.mBlank) {
         this.mTab.title = specialTabs.contentTabType.loadingTabString;
         tabmail.setTabBusy(this.mTab, true);
-        tabmail.setTabtitle(this.mTab);
+        tabmail.setTabTitle(this.mTab);
       }
     }
     else if (aStateFlags & nsIWebProgressListener.STATE_STOP &&
