@@ -250,7 +250,6 @@ pref("alerts.slideIncrementTime", 10);
 pref("alerts.totalOpenTime", 4000);
 
 pref("signon.rememberSignons",              true);
-pref("signon.expireMasterPassword",         false);
 pref("signon.SignonFileName",               "signons.txt");
 pref("signon.SignonFileName2",              "signons2.txt");
 pref("signon.SignonFileName3",              "signons3.txt");
