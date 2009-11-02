@@ -490,6 +490,42 @@ function BeginDragThreadPane(event)
     return BeginDragTree(event, threadTree, selectedMessages, "text/x-moz-message");
 }
 
+function DragOverThreadPane(aEvent)
+{
+  if (!gMsgFolderSelected.canFileMessages ||
+      gMsgFolderSelected.server.type == "rss")
+    return;
+  let dt = aEvent.dataTransfer;
+  dt.effectAllowed = "copy";
+  for (let i = 0; i < dt.mozItemCount; i++)
+  {
+    if (Array.indexOf(dt.mozTypesAt(i), "application/x-moz-file") != -1)
+    {
+      let extFile = dt.mozGetDataAt("application/x-moz-file", i)
+                      .QueryInterface(Components.interfaces.nsIFile);
+      if (extFile.isFile() && /\.eml$/.test(extFile.leafName))
+      {
+        aEvent.preventDefault();
+        return;
+      }
+    }
+  }
+}
+
+function DropOnThreadPane(aEvent)
+{
+  let dt = aEvent.dataTransfer;
+  let cs = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
+                     .getService(Components.interfaces.nsIMsgCopyService);
+  for (let i = 0; i < dt.mozItemCount; i++)
+  {
+    let extFile = dt.mozGetDataAt("application/x-moz-file", i)
+                    .QueryInterface(Components.interfaces.nsIFile);
+    if (extFile.isFile() && /\.eml$/.test(extFile.leafName))
+      cs.CopyFileMessage(extFile, gMsgFolderSelected, null, false, 1, "", null, msgWindow);
+  }
+}
+
 function BeginDragTree(event, tree, selArray, flavor)
 {
     var dataTransfer = event.dataTransfer;

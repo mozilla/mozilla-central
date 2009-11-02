@@ -118,7 +118,9 @@
     <treecol id="idCol" persist="hidden ordinal width" flex="1" hidden="true"
              label="&idColumn.label;" tooltiptext="&idColumn.tooltip;"/>
   </treecols>
-  <treechildren ondraggesture="BeginDragThreadPane(event);"/>
+  <treechildren ondraggesture="BeginDragThreadPane(event);"
+                ondragover="DragOverThreadPane(event);"
+                ondrop="DropOnThreadPane(event);"/>
 </tree>
 
 </overlay>
