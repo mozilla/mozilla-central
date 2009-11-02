@@ -155,7 +155,7 @@ function GetLabelForValue(aValue)
       RefreshAllViewPopups(viewPickerPopup, true);
       selectedItems = viewPickerPopup.getElementsByAttribute("value", aValue);
     }
-    label = selectedItems && selectedItems.length && selectedItems.item(0).label;
+    label = selectedItems && selectedItems.length && selectedItems.item(0).getAttribute("label");
   }
   return label;
 }
