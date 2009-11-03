@@ -1,9 +1,9 @@
 <!ENTITY matchAll.label     "Match all of the following">
-<!ENTITY matchAll.accesskey "a">
+<!ENTITY matchAll.accesskey "M">
 <!ENTITY matchAny.label     "Match any of the following">
-<!ENTITY matchAny.accesskey "o">
+<!ENTITY matchAny.accesskey "a">
 <!ENTITY matchAllMsgs.label     "Match all messages">
-<!ENTITY matchAllMsgs.accesskey "m">
+<!ENTITY matchAllMsgs.accesskey "t">
 <!-- LOCALIZATION NOTE  
   The values below are used to control the widths of the search widgets.
   Change the values only when the localized strings in the popup menus

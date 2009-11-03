@@ -253,6 +253,7 @@ function ShowSearchColumn(id)
 
 function searchOnLoad()
 {
+  setHelpFileURI("chrome://communicator/locale/help/suitehelp.rdf");
   initializeSearchWidgets();
   initializeSearchWindowWidgets();
   messenger = Components.classes["@mozilla.org/messenger;1"]

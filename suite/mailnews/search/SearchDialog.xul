@@ -22,6 +22,7 @@
  the Initial Developer. All Rights Reserved.
 
  Contributor(s):
+   Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -44,17 +45,19 @@
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/platformMailnewsOverlay.xul"?>
 
-<!DOCTYPE window SYSTEM "chrome://messenger/locale/SearchDialog.dtd" >
+<!DOCTYPE dialog SYSTEM "chrome://messenger/locale/SearchDialog.dtd">
 
-<window id="searchMailWindow"
+<dialog id="searchMailWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:nc="http://home.netscape.com/NC-rdf#"
-        onload="searchOnLoad();"
-        onunload="onSearchStop(); searchOnUnload();"
         windowtype="mailnews:search"
         title="&searchDialogTitle.label;"
         style="width: 52em; height: 34em;"
-        persist="screenX screenY width height sizemode">
+        persist="screenX screenY width height sizemode"
+        buttons="help"
+        ondialoghelp="return openHelp('search_messages');"
+        onload="searchOnLoad();"
+        onunload="onSearchStop(); searchOnUnload();">
 
   <stringbundle id="bundle_search" src="chrome://messenger/locale/search.properties"/>
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
@@ -94,7 +97,6 @@
       <command id="cmd_delete"/>
       <command id="cmd_shiftDelete" oncommand="goDoCommand('cmd_shiftDelete');"/>
     </commandset>
-    <command id="cmd_close" oncommand="window.close();"/>
   </commands>
 
   <keyset id="mailKeys">
@@ -102,7 +104,6 @@
     <key id="key_shiftDelete"/>
     <key id="key_delete2"/> <!-- secondary delete key -->
     <key id="key_shiftDelete2"/>
-    <key id="key_close"/>
   </keyset>
 
   <broadcasterset id="mailBroadcasters">
@@ -110,7 +111,7 @@
   </broadcasterset>
 
   <dummy class="usesMailWidgets"/>
-    
+ 
     <vbox id="searchTerms" flex="3" persist="height">
       <vbox>
          <hbox align="center">
@@ -124,13 +125,13 @@
         </hbox>
         <hbox align="center">
            <checkbox id="checkSearchSubFolders" label="&searchSubfolders.label;" checked="true" accesskey="&searchSubfolders.accesskey;"/>
-           <spacer flex="2"/>
+           <checkbox id="checkSearchLocalSystem"
+                     label="&searchLocalSystem.label;"
+                     accesskey="&searchLocalSystem.accesskey;"
+                     persist="checked"
+                     oncommand="updateSearchLocalSystem();"/>
+           <spacer flex="1"/>
            <button label="&resetButton.label;" oncommand="onResetSearch(event);" accesskey="&resetButton.accesskey;"/>
-         </hbox>
-         <hbox align="center">
-           <checkbox id="checkSearchLocalSystem" label="&searchLocalSystem.label;" persist="checked" accesskey="&searchLocalSystem.accesskey;" oncommand="updateSearchLocalSystem();"/>
-           <spacer flex="2"/>
-           <button label="&helpButton.label;" align="end" oncommand="openHelp('search_messages', 'chrome://communicator/locale/help/suitehelp.rdf');" accesskey="&helpButton.accesskey;"/> 
          </hbox>
       </vbox>
 
@@ -138,38 +139,42 @@
         <vbox id="searchTermListBox" flex="1"/>
       </hbox>
     </vbox>
-    
+ 
     <splitter id="gray_horizontal_splitter" collapse="after" persist="state">
       <grippy/>
     </splitter>
-    
+ 
     <vbox id="searchResults" flex="4" persist="height">
-       <vbox id="searchResultListBox" flex="1" >
+       <vbox id="searchResultListBox" flex="1">
             <tree id="threadTree" flex="1" context="threadPaneContext"/>
        </vbox>
-       <hbox align="start">
-            
+       <hbox align="center">
+ 
             <button label="&openButton.label;" id="openButton" command="cmd_open" accesskey="&openButton.accesskey;"/>
-            <button id="fileMessageButton" type="menu" label="&fileButton.label;"
+            <button id="fileMessageButton"
+                    type="menu"
+                    label="&fileButton.label;"
                     accesskey="&fileButton.accesskey;"
                     observes="file_message_button"
-                    oncommand="MoveMessageInSearch(event.target)" 
                     sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
                     sortDirection="ascending"
                     datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
-                    ref="msgaccounts:/">
+                    ref="msgaccounts:/"
+                    oncommand="MoveMessageInSearch(event.target);">
         <menupopup/>
-        <template> 
+        <template>
         <rule nc:NoSelect="true" iscontainer="true" isempty="false">
           <menupopup>
-            <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name">
+            <menu uri="..."
+                  class="folderMenuItem menu-iconic"
+                  label="rdf:http://home.netscape.com/NC-rdf#Name">
               <menupopup>
                 <menuitem label="&fileHereMenu.label;" accesskey="&fileHereMenu.accesskey;" disabled="true"/>
                 <menuseparator/>
               </menupopup>
             </menu>
           </menupopup>
-        </rule> 
+        </rule>
         <rule nc:NoSelect="true">
           <menupopup>
             <menuitem uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name" disabled="true"/>
@@ -184,7 +189,9 @@
                IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
                ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
                 <menupopup>
-                  <menuitem file-uri="..." label="&fileHereMenu.label;" accesskey="&fileHereMenu.accesskey;" />
+                  <menuitem file-uri="..."
+                            label="&fileHereMenu.label;"
+                            accesskey="&fileHereMenu.accesskey;"/>
                   <menuseparator/>
                 </menupopup>
               </menu>
@@ -220,19 +227,34 @@
         </template>
       </button>
 
-      <button label="&deleteButton.label;" id="deleteButton" command="button_delete" accesskey="&deleteButton.accesskey;"/>
-      <button label="&goToFolderButton.label;" id="goToFolderButton" command="goto_folder_button" accesskey="&goToFolderButton.accesskey;" />
-      <button label="&saveAsVFButton.label;" id="saveAsVFButton" command="saveas_vf_button" accesskey="&saveAsVFButton.accesskey;" />
-      <spacer flex="1" />
-    </hbox>      
+      <button id="deleteButton"
+              label="&deleteButton.label;"
+              accesskey="&deleteButton.accesskey;"
+              command="button_delete"/>
+      <button id="goToFolderButton"
+              label="&goToFolderButton.label;"
+              accesskey="&goToFolderButton.accesskey;"
+              command="goto_folder_button"/>
+      <button id="saveAsVFButton"
+              label="&saveAsVFButton.label;"
+              accesskey="&saveAsVFButton.accesskey;"
+              command="saveas_vf_button"/>
+      <spacer flex="1"/>
+      <button dlgtype="help" class="dialog-button"/>
+    </hbox>
   </vbox>
 
-  <statusbar class="chromeclass-status" id="status-bar"> 
-    <statusbarpanel class="statusbarpanel-iconic" id="offline-status"/>
-    <statusbarpanel class="statusbarpanel-progress" id="statusbar-progresspanel" collapsed="true">
-      <progressmeter class="progressmeter-statusbar" id="statusbar-icon" mode="normal" value="0"/>
+  <statusbar id="status-bar" class="chromeclass-status">
+    <statusbarpanel id="statusbar-progresspanel"
+                    class="statusbarpanel-progress"
+                    collapsed="true">
+      <progressmeter id="statusbar-icon"
+                     class="progressmeter-statusbar"
+                     mode="normal"
+                     value="0"/>
     </statusbarpanel>
     <statusbarpanel id="statusText" crop="right" flex="1"/>
-  </statusbar> 
+    <statusbarpanel id="offline-status" class="statusbarpanel-iconic"/>
+  </statusbar>
 
-</window>
+</dialog>

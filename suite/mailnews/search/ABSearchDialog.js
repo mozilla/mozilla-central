@@ -77,6 +77,7 @@ var gSearchAbViewListener = {
 
 function searchOnLoad()
 {
+  setHelpFileURI("chrome://communicator/locale/help/suitehelp.rdf");
   UpgradeAddressBookResultsPaneUI("mailnews.ui.advanced_directory_search_results.version");
 
   initializeSearchWidgets();

@@ -64,14 +64,6 @@
   <stringbundle id="bundle_filter"
                 src="chrome://messenger/locale/filter.properties"/>
 
-  <commandset id="filterListCommands">
-    <command id="cmd_close" oncommand="if (onFilterClose()) window.close();"/>
-  </commandset>
-
-  <keyset id="filterListKeys">
-    <key id="key_close"/>
-  </keyset>
-
   <grid flex="1">
     <columns>
       <column flex="1"/>

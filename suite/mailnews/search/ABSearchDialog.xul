@@ -21,6 +21,7 @@
  the Initial Developer. All Rights Reserved.
 
  Contributor(s):
+   Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -41,7 +42,7 @@
 <?xul-overlay href="chrome://messenger/content/searchTermOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 
-<!DOCTYPE window [
+<!DOCTYPE dialog [
 <!ENTITY % abResultsPaneOverlayDTD SYSTEM "chrome://messenger/locale/addressbook
 /abResultsPaneOverlay.dtd">
 %abResultsPaneOverlayDTD;
@@ -49,15 +50,17 @@
 %SearchDialogDTD;
 ]>
 
-<window id="searchAddressBookWindow"
+<dialog id="searchAddressBookWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:nc="http://home.netscape.com/NC-rdf#"
-        onload="searchOnLoad();"
-        onunload="onSearchStop(); searchOnUnload();"
         windowtype="mailnews:absearch"
         title="&abSearchDialogTitle.label;"
         style="width: 52em; height: 34em;"
-        persist="screenX screenY width height sizemode">
+        persist="screenX screenY width height sizemode"
+        buttons="help"
+        ondialoghelp="return openHelp('mail_advanced_ab_search');"
+        onload="searchOnLoad();"
+        onunload="onSearchStop(); searchOnUnload();">
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
@@ -81,16 +84,8 @@
 
   <broadcaster id="Communicator:WorkMode"/>
 
-  <commandset id="abSearchDialogCommands">
-    <command id="cmd_close" oncommand="window.close();"/>
-  </commandset>
-
-  <keyset id="abSearchDialogKeys">
-    <key id="key_close"/>
-  </keyset>
-
   <dummy class="usesMailWidgets"/>
-    
+ 
     <vbox id="searchTerms" flex="3" persist="height">
       <vbox>
         <hbox align="center">
@@ -105,10 +100,6 @@
           <spacer flex="1"/>
           <button label="&resetButton.label;" oncommand="onAbSearchReset(event);" accesskey="&resetButton.accesskey;"/>
         </hbox>
-        <hbox align="center">
-          <spacer flex="2"/>
-          <button label="&helpButton.label;" align="end" oncommand="openHelp('mail_advanced_ab_search', 'chrome://communicator/locale/help/suitehelp.rdf');" accesskey="&helpButton.accesskey;"/> 
-        </hbox>
       </vbox>
 
       <hbox flex="1">
@@ -121,14 +112,23 @@
     </splitter>
 
     <vbox id="searchResults" flex="4" persist="height">
-      <vbox id="searchResultListBox" flex="1" >
+      <vbox id="searchResultListBox" flex="1">
         <tree id="abResultsTree" flex="1" context="threadPaneContext"/>
       </vbox>
-      <hbox align="start">
-        <button label="&propertiesButton.label;" id="propertiesButton" oncommand="onProperties()" accesskey="&propertiesButton.accesskey;" disabled="true"/>
-        <button label="&composeButton.label;" id="composeButton" oncommand="onCompose()" accesskey="&composeButton.accesskey;" disabled="true"/>
-        <spacer flex="1" />
-      </hbox>      
+      <hbox align="center">
+        <button id="propertiesButton"
+                label="&propertiesButton.label;"
+                accesskey="&propertiesButton.accesskey;"
+                disabled="true"
+                oncommand="onProperties();"/>
+        <button id="composeButton"
+                label="&composeButton.label;"
+                accesskey="&composeButton.accesskey;"
+                disabled="true"
+                oncommand="onCompose();"/>
+        <spacer flex="1"/>
+        <button dlgtype="help" class="dialog-button"/>
+      </hbox>
     </vbox>
 
   <statusbar class="chromeclass-status" id="status-bar">
@@ -136,4 +136,4 @@
     <statusbarpanel id="offline-status" class="statusbarpanel-iconic"/>
   </statusbar>
 
-</window>
+</dialog>
