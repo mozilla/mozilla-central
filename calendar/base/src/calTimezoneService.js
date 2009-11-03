@@ -140,12 +140,13 @@ calTimezoneService.prototype = {
             // the timezones.sqlite as well as the timezones.properties into lightning for now.
 
             const kCalendarTimezonesXpiId = "calendar-timezones@mozilla.org";
+            let extMgr;
             let sqlTzFile;
             let bundleURL;
 
             try {
-                let extMgr = Components.classes["@mozilla.org/extensions/manager;1"]
-                                       .getService(Components.interfaces.nsIExtensionManager);
+                extMgr = Components.classes["@mozilla.org/extensions/manager;1"]
+                                   .getService(Components.interfaces.nsIExtensionManager);
 
                 sqlTzFile = extMgr.getInstallLocation(kCalendarTimezonesXpiId)
                                   .getItemLocation(kCalendarTimezonesXpiId);
