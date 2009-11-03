@@ -213,7 +213,7 @@ h1, h2, h3 {
   padding: 2px;
 }
 
-.bar-link[selected="true"] {
+.bar[selected="true"] {
   background: Highlight;
   color: HighlightText;
 }
@@ -286,7 +286,8 @@ h2 {
   -moz-border-radius: 4px;
 }
 
-#date-toggle:hover {
+#date-toggle:hover,
+#date-toggle:focus {
   background-color: #729fcf;
   color: #ffffff;
   background-image: url("chrome://messenger/skin/icons/timeline-inverted.png");
@@ -398,6 +399,7 @@ h2 {
 
 .facet-more[needed="true"] {
   display: inline-block;
+  margin: 1px;
   margin-top: 0.5em;
   padding: 0.2em 1em;
   font-weight: normal;
@@ -408,11 +410,12 @@ h2 {
   -moz-border-radius: 4px;
 }
 
-.facet-more[needed="true"]:hover {
+.facet-more[needed="true"]:hover,
+.facet-more[needed="true"]:focus {
   background-color: #729fcf;
   color: #ffffff;
   text-decoration: none;
- }
+}
 
 .facet-more[needed="false"] {
   display: none;
@@ -469,6 +472,25 @@ h2 {
   color: #333;
 }
 
+.bar:focus {
+  background: Highlight;
+  outline: none;
+}
+
+.bar:focus > .bar-link {
+  color: HighlightText;
+}
+.bar:focus > .bar-count {
+  color: HighlightText;
+}
+.bar[selected="true"]> .bar-link {
+  color: HighlightText;
+}
+.bar[selected="true"] > .bar-count {
+  color: HighlightText;
+}
+
+
 .bar-percent {
   display: block;
   position: absolute;
@@ -520,7 +542,8 @@ h2 {
   text-align: center;
 }
 
-.results-message-showall-button:hover {
+.results-message-showall-button:hover,
+.results-message-showall-button:focus {
   background-color: #729fcf;
   color: #ffffff;
   text-decoration: none;
@@ -542,7 +565,8 @@ h2 {
   padding: 0.2em;
 }
 
-.results-message-sort-value:hover {
+.results-message-sort-value:hover,
+.results-message-sort-value:focus {
   -moz-border-radius: 4px;
   background-color: #729fcf;
   color: #ffffff;
@@ -553,7 +577,8 @@ h2 {
   font-weight: bold;
 }
 
-.results-message-sort-value[selected="true"]:hover {
+.results-message-sort-value[selected="true"]:hover,
+.results-message-sort-value[selected="true"]:focus {
   cursor: default;
   background-color: #dcddde;
   color: #000000;
@@ -721,7 +746,8 @@ h2 {
   color: #000000;
 }
 
-.show-more:hover {
+.show-more:hover,
+.show-more:focus {
   background-color: #729fcf;
   color: #ffffff;
   cursor: pointer;

@@ -484,24 +484,31 @@
       ><html:div anonid="include-item" class="popup-menuitem top"
         tabindex="0"
         onmouseover="this.focus()"
-        onkeypress="if (event.keyCode == 13) this.parentNode.parentNode.doInclude()"
+        onkeypress="if (event.keyCode == event.DOM_VK_RETURN) this.parentNode.parentNode.doInclude()"
         onclick="this.parentNode.parentNode.doInclude()"></html:div
       ><html:div anonid="exclude-item" class="popup-menuitem bottom"
         tabindex="0"
         onmouseover="this.focus()"
-        onkeypress="if (event.keyCode == 13) this.parentNode.parentNode.doExclude()"
+        onkeypress="if (event.keyCode == event.DOM_VK_RETURN) this.parentNode.parentNode.doExclude()"
         onclick="this.parentNode.parentNode.doExclude()"></html:div
       ><html:div anonid="undo-item" class="popup-menuitem undo"
         tabindex="0"
         onmouseover="this.focus()"
-        onkeypress="if (event.keyCode == 13 this.parentNode.parentNode.doUndo()"
+        onkeypress="if (event.keyCode == event.DOM_VK_RETURN) this.parentNode.parentNode.doUndo()"
         onclick="this.parentNode.parentNode.doUndo()"></html:div
     ></html:div>
   </content>
   <handlers>
-    <handler event="keypress" keycode="VK_ESCAPE" action="return this.hide();"/>
-    <handler event="keypress" keycode="VK_DOWN" action="return this.moveFocus(event, 1);"/>
-    <handler event="keypress" keycode="VK_UP" action="return this.moveFocus(event, -1);"/>
+    <handler event="keypress" keycode="VK_ESCAPE"
+             action="this.hide();"/>
+    <handler event="keypress" keycode="VK_DOWN"
+             action="this.moveFocus(event, 1);"/>
+    <handler event="keypress" keycode="VK_TAB"
+             action="this.moveFocus(event, 1);"/>
+    <handler event="keypress" keycode="VK_TAB" modifiers="shift"
+             action="this.moveFocus(event, -1);"/>
+    <handler event="keypress" keycode="VK_UP"
+             action="this.moveFocus(event, -1);"/>
   </handlers>
   <implementation>
     <constructor><![CDATA[
@@ -582,28 +589,62 @@
       ]]>
       </body>
     </method>
+    <method name="selectItem">
+      <parameter name="event"/>
+      <body><![CDATA[
+      try {
+        let focused = document.activeElement;
+        if (focused == this.includeNode)
+          this.doInclude();
+        else if (focused == this.excludeNode)
+          this.doExclude();
+        else
+          this.doUndo();
+      } catch (e) {
+        logException(e);
+      }
+      ]]>
+      </body>
+    </method>
     <method name="show">
       <parameter name="event"/>
-      <parameter name="facetDef"/>
       <parameter name="facetNode"/>
-      <parameter name="groupValue"/>
+      <parameter name="barNode"/>
       <body><![CDATA[
-        // center the menu on the mouse click
         try {
-          this.node = event.originalTarget;
+          this.node = barNode;
           this.facetNode = facetNode;
-          this.build(facetDef, this.node.textContent, groupValue);
+          let facetDef = facetNode.facetDef;
+          let groupValue = barNode.groupValue;
+          let variety = barNode.getAttribute("variety");
+          label = barNode.getElementsByClassName("bar-link")[0].textContent;
+          this.build(facetDef, label, groupValue);
           this.node.setAttribute("selected", "true");
           /* We show different menus if we're on an "unselected" facet value,
              or if we're on a preselected facet value, whether included or
              excluded. The variety attribute handles that through CSS */
-          let variety = this.node.parentNode.getAttribute('variety');
           this.setAttribute("variety", variety);
-          let rect = this.getBoundingClientRect();
-          this.style.top = (event.pageY - 15) + "px";
-          this.style.left = Math.max(20, event.pageX- 10) + "px";
-          document.getAnonymousElementByAttribute(this,
-            "anonid", "parent").firstChild.focus();
+          let rect = barNode.getBoundingClientRect();
+          let X, Y;
+          if (event.type == "click") {
+            // center the menu on the mouse click
+            X = event.pageX- 10;
+            Y = Math.max(20, event.pageY - 15);
+          } else {
+            X = rect.left + rect.width / 2- 20;
+            Y = rect.top - 10;
+          }
+          this.style.left = X + "px";
+          this.style.top = Y + "px";
+
+          if (variety == "remainder")
+            // include
+            document.getAnonymousElementByAttribute(this,
+              "anonid", "parent").firstChild.focus();
+          else
+            // undo
+            document.getAnonymousElementByAttribute(this,
+              "anonid", "parent").lastChild.focus();
         } catch (e) {
           logException(e);
         }
@@ -612,16 +653,26 @@
     </method>
     <method name="hide">
       <body><![CDATA[
-        if (this.node)
-          this.node.removeAttribute("selected");
+      try {
         this.setAttribute("variety", "invisible");
+        if (this.node) {
+          this.node.removeAttribute("selected");
+          this.node.focus();
+        }
+      } catch (e) {
+        logException(e);
+      }
       ]]>
       </body>
     </method>
     <method name="doInclude">
       <body><![CDATA[
+      try {
         this.facetNode.includeFacet(this.node);
         this.hide();
+      } catch (e) {
+        logException(e);
+      }
       ]]>
       </body>
     </method>
@@ -656,7 +707,8 @@
       <html:ul anonid="remainder" class="facet-remaindered barry"></html:ul>
       <html:h3 anonid="excluded-label" class="facet-excluded-header"></html:h3>
       <html:ul anonid="excluded" class="facet-excluded barry"></html:ul>
-      <html:div anonid="more" class="facet-more" needed="false" />
+      <html:div anonid="more" class="facet-more" needed="false" tabindex="0"
+                role="button"/>
     </html:div>
   </html:div>
   </content>
@@ -843,7 +895,11 @@
           let [groupValue, groupItems] = groupPair;
           let li = document.createElement("li");
           li.setAttribute("class", "bar");
+          li.setAttribute("tabindex", "0");
+          li.setAttribute("role", "link");
+          li.setAttribute("aria-haspopup", "true");
           li.groupValue = groupValue;
+          li.setAttribute("groupValue", groupValue);
           li.groupItems = groupItems;
 
           let countSpan = document.createElement("span");
@@ -851,7 +907,7 @@
           countSpan.textContent = groupItems.length.toLocaleString();
           li.appendChild(countSpan);
 
-          let label = document.createElement("a");
+          let label = document.createElement("span");
           label.setAttribute("class", "bar-link");
           // The null value is a special indicator for 'none'
           if (groupValue == null) {
@@ -876,10 +932,6 @@
             label.textContent = labelStr;
           }
           li.appendChild(label);
-
-          let excludeSpan = document.createElement("span");
-          excludeSpan.setAttribute("class", "bar-exclude");
-          li.appendChild(excludeSpan);
 
           // root it under the appropriate list
           if (constraint) {
@@ -961,10 +1013,9 @@
         // We used to use jQuery here, but it turns out that it has issues with
         // XML namespaces and stringification, so we now resort to poking the
         // nodes directly.
+        let showNodes = [labelNode];
         if (remListVisible != remListShouldBeVisible)
           showNodes = [labelNode, this.remainderLabel];
-        else
-          showNodes = [labelNode];
 
         for each (let [, node] in Iterator(showNodes))
           node.style.display = "block";
@@ -1047,7 +1098,6 @@
       <body><![CDATA[
         let groupValue = aBarNode.groupValue;
         let groupItems = aBarNode.groupItems;
-
         let dis = this;
         // These determine what goAnimate actually does.
         // flyAway allows us to cancel flying in the case the constraint is
@@ -1122,9 +1172,8 @@
       <parameter name="node"/>
       <body>
       <![CDATA[
-          let barNode = node.parentNode;
-          this.barClicked(barNode,
-                          (barNode.getAttribute("variety") == "remainder") ?
+          this.barClicked(node,
+                          (node.getAttribute("variety") == "remainder") ?
                             "include" : "remainder");
       ]]>
       </body>
@@ -1133,9 +1182,8 @@
       <parameter name="node"/>
       <body>
       <![CDATA[
-          let barNode = node.parentNode;
-          this.barClicked(barNode,
-                          (barNode.getAttribute("variety") == "remainder") ?
+          this.barClicked(node,
+                          (node.getAttribute("variety") == "remainder") ?
                             "include" : "remainder");
       ]]>
       </body>
@@ -1144,32 +1192,67 @@
       <parameter name="node"/>
       <body>
       <![CDATA[
-        this.barClicked(node.parentNode, "exclude");
+        this.barClicked(node, "exclude");
+      ]]>
+      </body>
+    </method>
+    <method name="showPopup">
+      <parameter name="event"/>
+      <body>
+        <![CDATA[
+        try {
+          // event.originalTarget could be the <li> node, or a span inside
+          // of it, or perhaps the facet-more button, or maybe something
+          // else that we'll handle in the next version.  We walk up its
+          // parent chain until we get to the right level of the DOM
+          // hierarchy, or the facet-content which seems to be the root.
+          if (this.currentNode)
+            this.currentNode.removeAttribute("selected");
+
+          let node = event.originalTarget;
+          while ((! node.hasAttribute("class")) ||
+                 ((node.getAttribute("class").split(" ")[0] != "bar") &&
+                  (node.getAttribute("class").split(" ")[0] != "facet-content")))
+            node = node.parentNode;
+          this.currentNode = node;
+          node.setAttribute("selected", "true");
+          if (node.getAttribute("class").split(" ")[0] == "bar")
+            document.getElementById("popup-menu").show(event, this, node);
+          return false;
+        } catch (e) {
+          logException(e);
+        }
+      ]]>
+      </body>
+    </method>
+    <method name="activateLink">
+      <parameter name="event"/>
+      <body>
+        <![CDATA[
+        try {
+          let node = event.originalTarget;
+          while ((! node.hasAttribute("class")) ||
+                 ((node.getAttribute("class").split(" ")[0] != "facet-more") &&
+                  (node.getAttribute("class").split(" ")[0] != "facet-content")))
+            node = node.parentNode;
+          if (node.getAttribute("class").split(" ")[0] == "facet-more")
+            this.changeMode("all");
+          return false;
+        } catch (e) {
+          logException(e);
+        }
       ]]>
       </body>
     </method>
   </implementation>
   <handlers>
-    <handler event="click"><![CDATA[
-      // we dispatch based on the class of the thing we clicked on.
-      // there are other ways we could accomplish this, but they all sorta suck.
-      try {
-        let node = event.originalTarget;
-        let nodeClasses = node.getAttribute("class");
-        if (!nodeClasses)
-          return;
-
-        let nodeClass = nodeClasses.split(" ")[0];
-        if (nodeClass == "bar-exclude" || nodeClass == "bar-link")
-          document.getElementById("popup-menu").show(event, this.facetDef, this, node.parentNode.groupValue);
-        else if (nodeClass == "facet-more") {
-          this.changeMode("all");
-        }
-      } catch (e) {
-        logException(e);
-      }
-      ]]>
-    </handler>
+    <handler event="click" phase="target" action="this.showPopup(event)"/>
+    <handler event="keypress" keycode="VK_RETURN"
+             action="this.showPopup(event);"
+             phase="target" preventdefault="true"/>
+    <handler event="keypress" key=" "
+             action="this.activateLink(event);"
+             phase="target" preventdefault="true"/>
     <handler event="mouseover"><![CDATA[
       // we dispatch based on the class of the thing we clicked on.
       // there are other ways we could accomplish this, but they all sorta suck.
@@ -1203,7 +1286,8 @@
            it attempts to re-interpret the text and the html namespace no
            longer exists in that context. -->
       <html:div anonid="canvas" class="date-vis-frame"></html:div>
-      <html:div class="facet-date-zoom-out" onclick="FacetContext.zoomOut()"/>
+      <html:div class="facet-date-zoom-out" onclick="FacetContext.zoomOut()"
+                role="image"/>
     </html:div>
   </content>
   <implementation>
@@ -1253,13 +1337,16 @@
     <html:div class="results-message-header">
       <html:h2 class="results-message-count" anonid="count"></html:h2>
       <html:div class="results-message-showall">
-        <html:span class="results-message-showall-button" anonid="showall"
+        <html:span class="results-message-showall-button"
+            tabindex="0" anonid="showall" role="button"
             onclick="FacetContext.showActiveSetInTab()"></html:span>
       </html:div>
       <html:div anonid="sort" class="results-message-sort-bar">
         <html:span anonid="sort-label" class="results-message-sort-label"/>
-        <html:span anonid="sort-relevance" class="results-message-sort-value"/>
-        <html:span anonid="sort-date" class="results-message-sort-value"/>
+        <html:span anonid="sort-relevance" class="results-message-sort-value"
+            tabindex="0" role="button"/>
+        <html:span anonid="sort-date" class="results-message-sort-value"
+            tabindex="0" role="button"/>
       </html:div>
     </html:div>
     <html:div class="messages" anonid="messages">
@@ -1300,6 +1387,12 @@
                           this, "anonid", "showall");
         showNode.textContent = glodaFacetStrings.get(
           "glodaFacetView.results.message.openAsList.label");
+        showNode.onkeypress = function(event) {
+          if (event.charCode == KeyEvent.DOM_VK_SPACE) {
+            FacetContext.showActiveSetInTab()
+            event.preventDefault();
+          }
+        }
 
         let sortLabelNode = document.getAnonymousElementByAttribute(
                           this, "anonid", "sort-label");
@@ -1316,6 +1409,13 @@
           FacetContext.sortBy = '-dascore';
           dis.updateSortLabels();
         }
+        sortRelevanceNode.onkeypress = function(event) {
+          if (event.charCode == KeyEvent.DOM_VK_SPACE) {
+            FacetContext.sortBy = '-dascore';
+            dis.updateSortLabels();
+            event.preventDefault();
+          }
+        }
 
         let sortDateNode = document.getAnonymousElementByAttribute(
                           this, "anonid", "sort-date");
@@ -1324,6 +1424,13 @@
         sortDateNode.onclick = function() {
           FacetContext.sortBy = '-date';
           dis.updateSortLabels();
+        }
+        sortDateNode.onkeypress = function(event) {
+          if (event.charCode == KeyEvent.DOM_VK_SPACE) {
+            FacetContext.sortBy = '-date';
+            dis.updateSortLabels();
+            event.preventDefault();
+          }
         }
 
         this.updateSortLabels(FacetContext.sortBy);
@@ -1393,7 +1500,8 @@
         </html:div>
         <html:div class="message-subject-group">
           <html:span anonid="star" class="message-star"></html:span>
-          <html:span anonid="subject" class="message-subject"></html:span>
+          <html:span anonid="subject" class="message-subject" tabindex="0"
+              role="link"></html:span>
           <html:span anonid="tags" class="message-tags"></html:span>
           <html:div anonid="recipients-group" class="message-recipients-group">
             <html:span anonid="to" class="message-to-label"></html:span>
@@ -1422,6 +1530,11 @@
         subject.onclick = function(aEvent) {
           FacetContext.showConversationInTab(message,
                                              aEvent.button == 1);
+        }
+        subject.onkeypress = function(aEvent) {
+          if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
+            FacetContext.showConversationInTab(message,
+                                               aEvent.shiftKey == true);
         }
 
         // -- Content Poking

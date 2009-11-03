@@ -38,6 +38,7 @@
       src="chrome://messenger/content/glodaFacetVis.js"></script>
 </head>
 <body id="body" onload="reachOutAndTouchFrame()"
+      onkeypress="if (event.keyCode == event.DOM_VK_ESCAPE) document.getElementById('popup-menu').hide();"
       onmouseup="return clickOnBody(event)">
   <div id="popup-menu" class="popup-menu" variety="invisible"/>
   <div id="table">
@@ -58,7 +59,9 @@
     </div>
     <div id="main-column">
       <div id="header">
-        <div id="date-toggle" class="date-toggle" onclick="FacetContext.toggleTimeline()"/>
+        <div id="date-toggle" class="date-toggle" tabindex="0" role="button"
+           onclick="FacetContext.toggleTimeline()"
+           onkeypress="if (event.charCode == KeyEvent.DOM_VK_SPACE) { FacetContext.toggleTimeline(); event.preventDefault() }"/>
         <div id="search-value"/>
         <div id="query-explanation"/>
       </div>
@@ -67,7 +70,10 @@
         <div class="results" id="results" type="message" />
         <div class="loading" id="showLoading"><span class="loading"><img class="loading" src="chrome://global/skin/icons/loading_16.png"/>&glodaFacetView.loading.label;</span></div>
         <div class="empty" id="showEmpty"><span class="empty"><img class="empty" src="chrome://messenger/skin/icons/empty-search-results.png"/>&glodaFacetView.empty.label;</span></div>
-        <div class="show-more" id="showMore" onclick="FacetContext.showMore()">&glodaFacetView.pageMore.label;</div>
+        <div class="show-more" id="showMore" tabindex="0" role="button"
+             onclick="FacetContext.showMore()"
+             onkeypress="if (event.charCode == KeyEvent.DOM_VK_SPACE) { FacetContext.showMore(); event.preventDefault() }"
+             >&glodaFacetView.pageMore.label;</div>
       </div>
     </div>
   </div>

@@ -504,7 +504,12 @@ var FacetContext = {
           // explicit booleans should always be displayed for consistency
           if (faceter.groupCount >= 1 ||
               (explicitBinding.getAttribute("type").indexOf("boolean") != -1)) {
-            explicitBinding.build(true);
+            try {
+              explicitBinding.build(true);
+            } catch (e) {
+              logObject(explicitBinding);
+              logException(e);
+            }
             explicitBinding.removeAttribute("uninitialized");
           }
           faceter.xblNode = explicitBinding;
