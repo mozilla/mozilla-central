@@ -4,11 +4,11 @@
 LDAPCSDK_CO_TAG = 'LDAPCSDK_6_0_6D_MOZILLA_RTM'
 LDAPCSDK_DIRS = ('directory/c-sdk',)
 
-# Chatzilla
-CHATZILLA_CO_TAG = 'HEAD'
-CHATZILLA_DIRS = ('extensions/irc',)
+# URL of the default hg repository to clone for ChatZilla.
+DEFAULT_CHATZILLA_REPO = 'http://hg.mozilla.org/chatzilla/'
+DEFAULT_CHATZILLA_REV = "default"
 
-# URL of the default hg repository to clone for inspector.
+# URL of the default hg repository to clone for DOM Inspector.
 DEFAULT_INSPECTOR_REPO = 'http://hg.mozilla.org/dom-inspector/'
 DEFAULT_INSPECTOR_REV = "default"
 
@@ -197,23 +197,22 @@ def switch_mozilla_repo():
     finally:
       f.close()
 
-def backup_cvs_venkman():
-    """Backup (obsolete) Cvs checkout of Venkman.
+def backup_cvs_extension(extensionName, extensionDir, extensionPath):
+    """Backup (obsolete) cvs checkout of extensionName.
     """
 
-    venkmanpath = os.path.join(topsrcdir, 'mozilla', 'extensions', 'venkman')
-    # Do nothing if there is no Venkman cvs directory.
-    if not os.path.exists(os.path.join(venkmanpath, 'CVS')):
+    # Do nothing if there is no extensionName cvs directory.
+    if not os.path.exists(os.path.join(extensionPath, 'CVS')):
         return
 
-    venkmancvspath = venkmanpath + '-cvs'
-    print "Moving venkman to venkman-cvs..."
+    extensionBackupPath = extensionPath + '-cvs'
+    print "Moving %s to %s-cvs..." % (extensionDir, extensionDir)
     try:
-        os.rename(venkmanpath, venkmancvspath)
+        os.rename(extensionPath, extensionBackupPath)
     except:
         # Print the exception without its traceback.
         sys.excepthook(sys.exc_info()[0], sys.exc_info()[1], None)
-        sys.exit("Error: Venkman directory renaming failed!")
+        sys.exit("Error: %s directory renaming failed!" % extensionName)
 
 def do_hg_pull(dir, repository, hg, rev):
     fulldir = os.path.join(topsrcdir, dir)
@@ -280,21 +279,28 @@ o.add_option("--mozilla-rev", dest="mozilla_rev",
 
 o.add_option("--inspector-repo", dest="inspector_repo",
              default=None,
-             help="URL of DOM inspector repository to pull from (default: use hg default in mozilla/extensions/inspector/.hg/hgrc; or if that file doesn't exist, use \"" + DEFAULT_INSPECTOR_REPO + "\".)")
+             help="URL of DOM Inspector repository to pull from (default: use hg default in mozilla/extensions/inspector/.hg/hgrc; or if that file doesn't exist, use \"" + DEFAULT_INSPECTOR_REPO + "\".)")
 o.add_option("--skip-inspector", dest="skip_inspector",
              action="store_true", default=False,
-             help="Skip pulling the DOM inspector repository.")
+             help="Skip pulling the DOM Inspector repository.")
 o.add_option("--inspector-rev", dest="inspector_rev",
              default=DEFAULT_INSPECTOR_REV,
-             help="Revision of DOM inspector repository to update to. Default: \"" + DEFAULT_INSPECTOR_REV + "\"")
+             help="Revision of DOM Inspector repository to update to. Default: \"" + DEFAULT_INSPECTOR_REV + "\"")
 
 o.add_option("--skip-ldap", dest="skip_ldap",
              action="store_true", default=False,
              help="Skip pulling LDAP from the Mozilla CVS repository.")
 
+o.add_option("--chatzilla-repo", dest = "chatzilla_repo",
+             default = None,
+             help = "URL of ChatZilla repository to pull from (default: use hg default in mozilla/extensions/irc/.hg/hgrc; or if that file doesn't exist, use \"" + DEFAULT_CHATZILLA_REPO + "\".)")
 o.add_option("--skip-chatzilla", dest="skip_chatzilla",
              action="store_true", default=False,
              help="Skip pulling the ChatZilla repository.")
+o.add_option("--chatzilla-rev", dest = "chatzilla_rev",
+             default = DEFAULT_CHATZILLA_REV,
+             help = "Revision of ChatZilla repository to update to. Default: \"" + DEFAULT_CHATZILLA_REV + "\"")
+
 
 o.add_option("--venkman-repo", dest = "venkman_repo",
              default = None,
@@ -344,8 +350,22 @@ def fixup_mozilla_repo_options(options):
             not os.path.exists(os.path.join(topsrcdir, 'mozilla')):
         options.mozilla_repo = DEFAULT_MOZILLA_REPO
 
+def fixup_chatzilla_repo_options(options):
+    """Handle special case: initial hg checkout of Chatzilla.
+
+    See fixup_comm_repo_options().
+    backup_cvs_extension() is also called.
+    """
+
+    extensionPath = os.path.join(topsrcdir, 'mozilla', 'extensions', 'irc')
+
+    backup_cvs_extension('Chatzilla', 'irc', extensionPath)
+
+    if options.chatzilla_repo is None and not os.path.exists(extensionPath):
+        options.chatzilla_repo = DEFAULT_CHATZILLA_REPO
+
 def fixup_inspector_repo_options(options):
-    """Handle special case: initial checkout of inspector.
+    """Handle special case: initial checkout of DOM Inspector.
 
     See fixup_comm_repo_options().
     """
@@ -360,13 +380,14 @@ def fixup_venkman_repo_options(options):
     """Handle special case: initial hg checkout of Venkman.
 
     See fixup_comm_repo_options().
-    backup_cvs_venkman() is also called.
+    backup_cvs_extension() is also called.
     """
 
-    backup_cvs_venkman()
+    extensionPath = os.path.join(topsrcdir, 'mozilla', 'extensions', 'venkman')
 
-    if options.venkman_repo is None and \
-            not os.path.exists(os.path.join(topsrcdir, 'mozilla', 'extensions', 'venkman')):
+    backup_cvs_extension('Venkman', 'venkman', extensionPath)
+
+    if options.venkman_repo is None and not os.path.exists(extensionPath):
         options.venkman_repo = DEFAULT_VENKMAN_REPO
 
 try:
@@ -395,15 +416,16 @@ if action in ('checkout', 'co'):
         sys.exit("Error: mozilla/extensions directory does not exist;" + \
                  " ChatZilla, DOM Inspector and/or Venkman cannot be checked out!")
 
+    if not options.skip_chatzilla:
+        fixup_chatzilla_repo_options(options)
+        do_hg_pull(os.path.join('mozilla', 'extensions', 'irc'), options.chatzilla_repo, options.hg, options.chatzilla_rev)
+
     if not options.skip_inspector:
         fixup_inspector_repo_options(options)
         do_hg_pull(os.path.join('mozilla', 'extensions', 'inspector'), options.inspector_repo, options.hg, options.inspector_rev)
 
     if not options.skip_ldap:
         do_cvs_checkout(LDAPCSDK_DIRS, LDAPCSDK_CO_TAG, options.cvsroot, options.cvs, '')
-
-    if not options.skip_chatzilla:
-        do_cvs_checkout(CHATZILLA_DIRS, CHATZILLA_CO_TAG, options.cvsroot, options.cvs, 'mozilla')
 
     if not options.skip_venkman:
         fixup_venkman_repo_options(options)
