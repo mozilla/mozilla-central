@@ -87,6 +87,10 @@ DEFINES += \
 	-DMOZILLA_VERSION=${MOZILLA_VERSION} \
 	$(NULL)
 
+ifdef MOZ_UPDATER
+DEFINES += -DMOZ_UPDATER=1
+endif
+
 include $(topsrcdir)/config/config.mk
 
 installer::

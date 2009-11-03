@@ -303,7 +303,15 @@ bin/components/nsSuiteGlue.js
 bin/components/nsTaggingService.js
 bin/components/nsTryToClose.js
 bin/components/nsTypeAheadFind.js
+#ifdef MOZILLA_1_9_2_BRANCH
 bin/components/nsUpdateService.js
+#else
+#ifdef MOZ_UPDATER
+bin/components/nsUpdateService.js
+bin/components/nsUpdateServiceStub.js
+#endif
+bin/components/nsUpdateTimerManager.js
+#endif
 bin/components/nsURLFormatter.js
 bin/components/nsWebHandlerApp.js
 bin/components/pluginGlue.js

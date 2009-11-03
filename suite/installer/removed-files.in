@@ -252,3 +252,9 @@ mozjs.dll
 js3250.dll
 #endif
 #endif
+#ifndef MOZILLA_1_9_2_BRANCH
+#ifndef MOZ_UPDATER
+components/nsUpdateService.js
+components/nsUpdateServiceStub.js
+#endif
+#endif
