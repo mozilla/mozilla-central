@@ -1686,6 +1686,7 @@ let gFolderTreeController = {
         if (offlineStore.exists())
           offlineStore.remove(false);
       }
+      gFolderDisplay.view.close();
       folder.msgDatabase.summaryValid = false;
 
       var msgDB = folder.msgDatabase;
@@ -1698,6 +1699,7 @@ let gFolderTreeController = {
         folder.ForceDBClosed();
       }
       folder.updateFolder(msgWindow);
+      gFolderDisplay.show(folder);
     }
 
     window.openDialog("chrome://messenger/content/folderProps.xul",
