@@ -53,6 +53,10 @@ DEFINES += -DAPP_VERSION=$(APP_VERSION)
 PRE_RELEASE_SUFFIX := $(shell $(PYTHON) $(topsrcdir)/mozilla/config/printprereleasesuffix.py $(APP_VERSION))
 DEFINES += -DPRE_RELEASE_SUFFIX="$(PRE_RELEASE_SUFFIX)"
 
+ifdef MOZ_UPDATER
+DEFINES += -DMOZ_UPDATER=1
+endif
+
 PP_LOCALIZED_FILES = \
 	packages-static \
 	$(NULL)

@@ -68,6 +68,12 @@ components/nsScriptableIO.js
 components/nsSpotlightIntegration.js
 #endif
 components/nsUnsetDefaultMail.js
+#ifndef MOZILLA_1_9_2_BRANCH
+#ifndef MOZ_UPDATER
+components/nsUpdateService.js
+components/nsUpdateServiceStub.js
+#endif
+#endif
 components/nsUrlClassifierTable.js
 #ifdef XP_WIN
 components/nsWinSearchIntegration.js
