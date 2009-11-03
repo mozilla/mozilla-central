@@ -47,6 +47,10 @@ include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/package-name.mk
 CONFIG_DIR = instgen
 SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/sunbird/7zSD.sfx
 
+ifdef MOZ_UPDATER
+DEFINES += -DMOZ_UPDATER=1
+endif
+
 PP_LOCALIZED_FILES = \
 	packages-static \
 	$(NULL)

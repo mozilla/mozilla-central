@@ -359,7 +359,15 @@ extensions/talkback@mozilla.org/components/talkback.so
 #endif
 #endif
 #
-
+# Clean out update service components if MOZ_UPDATER isn't defined
+#
+#ifndef MOZILLA_1_9_2_BRANCH
+#ifndef MOZ_UPDATER
+components/nsUpdateService.js
+components/nsUpdateServiceStub.js
+#endif
+#endif
+#
 # bug 404085 (Consolidate provider methods into a default calendar
 # implementation)
 components/calDavCalendar.js
