@@ -69,6 +69,7 @@ var CAL_ITEM_FLAG = {
     HAS_ATTACHMENTS: 64,
     HAS_RELATIONS: 128,
     HAS_ALARMS: 256,
+    ALLDAY_OCCURRENCE: 512
 };
 
 // The cache of foreign timezones

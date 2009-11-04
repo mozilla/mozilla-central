@@ -1084,7 +1084,7 @@ calStorageCalendar.prototype = {
 
         if (row.recurrence_id) {
             item.recurrenceId = newDateTime(row.recurrence_id, row.recurrence_id_tz);
-            if ((row.flags & CAL_ITEM_FLAG.EVENT_ALLDAY) != 0) {
+            if ((row.flags & CAL_ITEM_FLAG.ALLDAY_OCCURRENCE) != 0) {
                 item.recurrenceId.isDate = true;
             }
         }
@@ -1654,7 +1654,7 @@ calStorageCalendar.prototype = {
 
     writeEvent: function cSC_writeEvent(item, olditem, flags) {
         var ip = this.mInsertEvent.params;
-        this.setupItemBaseParams(item, olditem,ip);
+        this.setupItemBaseParams(item, olditem, ip, flags);
 
         this.setDateParamHelper(ip, "event_start", item.startDate);
         this.setDateParamHelper(ip, "event_end", item.endDate);
@@ -1663,8 +1663,9 @@ calStorageCalendar.prototype = {
             ip.event_stamp = dtstamp.nativeTime;
         }
 
-        if (item.startDate.isDate)
+        if (item.startDate.isDate) {
             flags |= CAL_ITEM_FLAG.EVENT_ALLDAY;
+        }
 
         ip.flags = flags;
 
@@ -1675,7 +1676,7 @@ calStorageCalendar.prototype = {
     writeTodo: function cSC_writeTodo(item, olditem, flags) {
         var ip = this.mInsertTodo.params;
 
-        this.setupItemBaseParams(item, olditem,ip);
+        this.setupItemBaseParams(item, olditem, ip, flags);
 
         this.setDateParamHelper(ip, "todo_entry", item.entryDate);
         this.setDateParamHelper(ip, "todo_due", item.dueDate);
@@ -1698,11 +1699,15 @@ calStorageCalendar.prototype = {
         this.mInsertTodo.reset();
     },
 
-    setupItemBaseParams: function cSC_setupItemBaseParams(item, olditem, ip) {
+    setupItemBaseParams: function cSC_setupItemBaseParams(item, olditem, ip, flags) {
         ip.id = item.id;
 
-        if (item.recurrenceId)
+        if (item.recurrenceId) {
             this.setDateParamHelper(ip, "recurrence_id", item.recurrenceId);
+            if (item.recurrenceId.isDate) {
+                flags |= CAL_ITEM_FLAG.ALLDAY_OCCURRENCE;
+            }
+        }
 
         var tmp;
 
