@@ -1084,7 +1084,7 @@ calStorageCalendar.prototype = {
 
         if (row.recurrence_id) {
             item.recurrenceId = newDateTime(row.recurrence_id, row.recurrence_id_tz);
-            if ((row.flags & CAL_ITEM_FLAG.ALLDAY_OCCURRENCE) != 0) {
+            if ((row.flags & CAL_ITEM_FLAG.RECURRENCE_ID_ALLDAY) != 0) {
                 item.recurrenceId.isDate = true;
             }
         }
@@ -1705,7 +1705,7 @@ calStorageCalendar.prototype = {
         if (item.recurrenceId) {
             this.setDateParamHelper(ip, "recurrence_id", item.recurrenceId);
             if (item.recurrenceId.isDate) {
-                flags |= CAL_ITEM_FLAG.ALLDAY_OCCURRENCE;
+                flags |= CAL_ITEM_FLAG.RECURRENCE_ID_ALLDAY;
             }
         }
 
