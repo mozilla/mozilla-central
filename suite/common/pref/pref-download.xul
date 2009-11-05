@@ -75,8 +75,8 @@
                   name="browser.download.finished_download_sound"
                   type="bool"
                   onchange="SetSoundEnabled(this.value);"/>
-      <preference id="browser.download.finished_download_alert"
-                  name="browser.download.finished_download_alert"
+      <preference id="browser.download.manager.showAlertOnComplete"
+                  name="browser.download.manager.showAlertOnComplete"
                   type="bool"/>
       <preference id="browser.download.finished_sound_url"
                   name="browser.download.finished_sound_url"
@@ -155,7 +155,7 @@
                   accesskey="&playSound.accesskey;"/>
         <checkbox id="finishedNotificationAlert"
                   label="&showAlert.label;"
-                  preference="browser.download.finished_download_alert"
+                  preference="browser.download.manager.showAlertOnComplete"
                   accesskey="&showAlert.accesskey;"/>
       </hbox>
 
