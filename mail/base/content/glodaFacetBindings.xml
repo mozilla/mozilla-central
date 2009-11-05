@@ -485,17 +485,17 @@
         tabindex="0"
         onmouseover="this.focus()"
         onkeypress="if (event.keyCode == event.DOM_VK_RETURN) this.parentNode.parentNode.doInclude()"
-        onclick="this.parentNode.parentNode.doInclude()"></html:div
+        onmouseup="this.parentNode.parentNode.doInclude()"></html:div
       ><html:div anonid="exclude-item" class="popup-menuitem bottom"
         tabindex="0"
         onmouseover="this.focus()"
         onkeypress="if (event.keyCode == event.DOM_VK_RETURN) this.parentNode.parentNode.doExclude()"
-        onclick="this.parentNode.parentNode.doExclude()"></html:div
+        onmouseup="this.parentNode.parentNode.doExclude()"></html:div
       ><html:div anonid="undo-item" class="popup-menuitem undo"
         tabindex="0"
         onmouseover="this.focus()"
         onkeypress="if (event.keyCode == event.DOM_VK_RETURN) this.parentNode.parentNode.doUndo()"
-        onclick="this.parentNode.parentNode.doUndo()"></html:div
+        onmouseup="this.parentNode.parentNode.doUndo()"></html:div
     ></html:div>
   </content>
   <handlers>
@@ -617,7 +617,7 @@
           let facetDef = facetNode.facetDef;
           let groupValue = barNode.groupValue;
           let variety = barNode.getAttribute("variety");
-          label = barNode.getElementsByClassName("bar-link")[0].textContent;
+          let label = barNode.getElementsByClassName("bar-link")[0].textContent;
           this.build(facetDef, label, groupValue);
           this.node.setAttribute("selected", "true");
           /* We show different menus if we're on an "unselected" facet value,
@@ -1210,14 +1210,21 @@
             this.currentNode.removeAttribute("selected");
 
           let node = event.originalTarget;
-          while ((! node.hasAttribute("class")) ||
+          while ((! (node && node.hasAttribute && node.hasAttribute("class"))) ||
                  ((node.getAttribute("class").split(" ")[0] != "bar") &&
+                  (node.getAttribute("class").split(" ")[0] != "facet-more") &&
                   (node.getAttribute("class").split(" ")[0] != "facet-content")))
             node = node.parentNode;
+
+          if (! (node && node.hasAttribute && node.hasAttribute("class")))
+            return false;
+
           this.currentNode = node;
           node.setAttribute("selected", "true");
           if (node.getAttribute("class").split(" ")[0] == "bar")
             document.getElementById("popup-menu").show(event, this, node);
+          else if (node.getAttribute("class").split(" ")[0] == "facet-more")
+            this.changeMode("all");
           return false;
         } catch (e) {
           logException(e);
