@@ -2798,9 +2798,9 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     keysToDelete = existingKeys;
   else /* if ( !NET_IsOffline()) */
   {
-    FindKeysToDelete(existingKeys, keysToDelete, flagState);
     PRUint32 boxFlags;
     aSpec->GetBox_flags(&boxFlags);
+    FindKeysToDelete(existingKeys, keysToDelete, flagState, boxFlags);
     // if this is the result of an expunge then don't grab headers
     if (!(boxFlags & kJustExpunged))
       FindKeysToAdd(existingKeys, keysToFetch, numNewUnread, flagState);
@@ -4083,8 +4083,13 @@ nsresult nsImapMailFolder::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   return rv;
 }
 
-// both of these algorithms assume that key arrays and flag states are sorted by increasing key.
-void nsImapMailFolder::FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey> &keysToDelete, nsIImapFlagAndUidState *flagState)
+/**
+ * This method assumes that key arrays and flag states are sorted by increasing key.
+ */
+void nsImapMailFolder::FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys,
+                                        nsTArray<nsMsgKey> &keysToDelete,
+                                        nsIImapFlagAndUidState *flagState,
+                                        PRUint32 boxFlags)
 {
   PRBool showDeletedMessages = ShowDeletedMessages();
   PRInt32 numMessageInFlagState;
@@ -4111,6 +4116,30 @@ void nsImapMailFolder::FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys, 
           flagState->GetMessageFlags(i, &flags);
           if (flags & kImapMsgDeletedFlag)
             keysToDelete.AppendElement(uidOfMessage);
+        }
+      }
+    }
+    else if (boxFlags & kJustExpunged)
+    {
+      // we've just issued an expunge with a partial flag state. We should
+      // delete headers with the imap deleted flag set, because we can't
+      // tell from the expunge response which messages were deleted.
+      nsCOMPtr <nsISimpleEnumerator> hdrs;
+      nsresult rv = GetMessages(getter_AddRefs(hdrs));
+      NS_ENSURE_SUCCESS(rv,);
+      PRBool hasMore = PR_FALSE;
+      nsCOMPtr <nsIMsgDBHdr> pHeader;
+      while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
+      {
+        rv = hdrs->GetNext(getter_AddRefs(pHeader));
+        NS_ENSURE_SUCCESS(rv,);
+        PRUint32 msgFlags;
+        pHeader->GetFlags(&msgFlags);
+        if (msgFlags & nsMsgMessageFlags::IMAPDeleted)
+        {
+          nsMsgKey msgKey;
+          pHeader->GetMessageKey(&msgKey);
+          keysToDelete.AppendElement(msgKey);
         }
       }
     }

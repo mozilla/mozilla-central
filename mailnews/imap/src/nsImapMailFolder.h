@@ -358,7 +358,7 @@ protected:
   void FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
     &keysToFetch, PRUint32 &numNewUnread, nsIImapFlagAndUidState *flagState);
   void FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
-    &keysToFetch, nsIImapFlagAndUidState *flagState);
+    &keysToFetch, nsIImapFlagAndUidState *flagState, PRUint32 boxFlags);
   void PrepareToAddHeadersToMailDB(nsIImapProtocol* aProtocol, const
     nsTArray<nsMsgKey> &keysToFetch,
     nsIMailboxSpec *boxSpec);
