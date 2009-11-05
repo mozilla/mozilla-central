@@ -28,7 +28,13 @@ bin\update.locale
 bin\updater.ini
 
 [xpcom]
+#ifdef MOZILLA_1_9_1_BRANCH
 bin\js3250.dll
+#elifdef MOZILLA_1_9_2_BRANCH
+bin\js3250.dll
+#else
+bin\mozjs.dll
+#endif
 bin\plc4.dll
 bin\plds4.dll
 bin\xpcom.dll

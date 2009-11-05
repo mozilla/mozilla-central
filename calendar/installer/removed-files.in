@@ -459,3 +459,15 @@ calendar-js/calAuthUtils.js
 res/broken-image.gif
 res/loading-image.gif
 #endif
+
+#ifdef XP_WIN
+#ifdef MOZILLA_1_9_1_BRANCH
+mozjs.dll
+#elifdef MOZILLA_1_9_2_BRANCH
+mozjs.dll
+#else
+# Bug 504029
+js3250.dll
+#endif
+#endif
+
