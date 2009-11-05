@@ -708,6 +708,8 @@ function OnTagsChange()
 
       // we may need to collapse or show the tag header row...
       headerEntry.enclosingRow.collapsed = !headerEntry.valid;
+      // ... and ensure that all headers remain correctly aligned
+      syncGridColumnWidths();
     }
   }
 }
