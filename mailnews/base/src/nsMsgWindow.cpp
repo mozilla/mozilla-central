@@ -140,10 +140,10 @@ NS_IMETHODIMP nsMsgWindow::CloseWindow()
 
   StopUrls();
 
-  nsCOMPtr<nsIDocShell> rootShell(do_QueryReferent(mRootDocShellWeak));
-  if(rootShell)
+  nsCOMPtr<nsIDocShell> messagePaneDocShell(do_QueryReferent(mMessageWindowDocShellWeak));
+  if (messagePaneDocShell)
   {
-    nsCOMPtr<nsIURIContentListener> listener(do_GetInterface(rootShell));
+    nsCOMPtr<nsIURIContentListener> listener(do_GetInterface(messagePaneDocShell));
     if (listener)
       listener->SetParentContentListener(nsnull);
     SetRootDocShell(nsnull);
@@ -263,7 +263,10 @@ NS_IMETHODIMP nsMsgWindow::SetRootDocShell(nsIDocShell * aDocShell)
   if (aDocShell)
   {
     mRootDocShellWeak = do_GetWeakReference(aDocShell);
-    nsCOMPtr<nsIURIContentListener> listener(do_GetInterface(aDocShell));
+
+    nsCOMPtr<nsIDocShell> messagePaneDocShell;
+    GetMessageWindowDocShell(getter_AddRefs(messagePaneDocShell));
+    nsCOMPtr<nsIURIContentListener> listener(do_GetInterface(messagePaneDocShell));
     if (listener)
       listener->SetParentContentListener(this);
   
