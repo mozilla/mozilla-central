@@ -598,8 +598,16 @@ h2 {
 }
 
 .message:hover .message-subject {
-  text-decoration: underline;
+  color: #000000;
+  background-color: #e0eaf5;
 }
+
+.message .message-subject:hover,
+.message .message-subject:focus {
+  color: #ffffff;
+  background-color: #729fcf;
+}
+
 .message:focus {
   border: 1px dotted #111;
   padding: 1em 0px;
