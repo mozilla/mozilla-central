@@ -262,7 +262,9 @@ let mailTabType = {
               if (searchInput)
                   searchInput.searchMode = aPersistedState.searchMode;
             }
-            gFolderTreeView.selectFolder(folder);
+            if (!("dontRestoreFirstTab" in aPersistedState &&
+                  aPersistedState.dontRestoreFirstTab))
+              gFolderTreeView.selectFolder(folder);
           }
           else {
             let tabArgs = {

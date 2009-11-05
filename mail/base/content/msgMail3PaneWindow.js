@@ -64,7 +64,6 @@ const kNumFolderViews = 4; // total number of folder views
 var gMessagePane;
 
 var gThreadAndMessagePaneSplitter = null;
-var gStartFolderUri = null;
 /**
  * Tracks whether the right mouse button changed the selection or not.  If the
  * user right clicks on the selection, it stays the same.  If they click outside
@@ -322,19 +321,34 @@ function LoadPostAccountWizard()
 
   //need to add to session before trying to load start folder otherwise listeners aren't
   //set up correctly.
-  // argument[0] --> folder uri
-  if ("arguments" in window)
+
+  let startFolderURI = null, startMsgHdr = null;
+  if ("arguments" in window && window.arguments.length > 0)
   {
-    // filter our any feed urls that came in as arguments to the new window...
-    if (window.arguments.length && /^feed:/i.test(window.arguments[0] ))
+    let arg0 = window.arguments[0];
+    // If the argument is a string, it is either a folder URI or a feed URI
+    if (typeof arg0 == "string")
     {
-      var feedHandler = Components.classes["@mozilla.org/newsblog-feed-downloader;1"].getService(Components.interfaces.nsINewsBlogFeedDownloader);
-      if (feedHandler)
-        feedHandler.subscribeToFeed(window.arguments[0], null, msgWindow);
-      gStartFolderUri = null;
+      // filter our any feed urls that came in as arguments to the new window...
+      if (/^feed:/i.test(arg0))
+      {
+        let feedHandler = Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
+          .getService(Components.interfaces.nsINewsBlogFeedDownloader);
+        if (feedHandler)
+          feedHandler.subscribeToFeed(arg0, null, msgWindow);
+      }
+      else
+      {
+        startFolderURI = arg0;
+      }
     }
-    else
-      gStartFolderUri = (window.arguments.length > 0) ? window.arguments[0] : null;
+    else if (arg0)
+    {
+      // arg0 is an object
+      if (("wrappedJSObject" in arg0) && arg0.wrappedJSObject) 
+        arg0 = arg0.wrappedJSObject;
+      startMsgHdr = ("msgHdr" in arg0) ? arg0.msgHdr : null;
+    }
   }
 
   function completeStartup() {
@@ -394,7 +408,10 @@ function LoadPostAccountWizard()
   //  gFolderDisplay.ensureRowIsVisible use settimeout itself to defer that
   //  calculation, but that was ugly.  Also, in theory we will open the window
   //  faster if we let the event loop start doing things sooner.
-  window.setTimeout(loadStartFolder, 0, gStartFolderUri);
+  if (startMsgHdr)
+    window.setTimeout(loadStartMsgHdr, 0, startMsgHdr);
+  else
+    window.setTimeout(loadStartFolder, 0, startFolderURI);
 }
 
 function HandleAppCommandEvent(evt)
@@ -479,9 +496,14 @@ Components.utils.import("resource://app/modules/gloda/utils.js");
 
 /**
  * Attempt to restore our tab states.  This should only be called by
- *  loadStartFolder.
+ * |loadStartFolder| or |loadStartMsgHdr|.
+ *
+ * @param aDontRestoreFirstTab If this is true, the first tab will not be
+ *                             restored, and will continue to retain focus at
+ *                             the end. This is needed if the window was opened
+ *                             with a folder or a message as an argument.
  */
-function atStartupRestoreTabs() {
+function atStartupRestoreTabs(aDontRestoreFirstTab) {
   let file = Components.classes["@mozilla.org/file/directory_service;1"]
                        .getService(Components.interfaces.nsIProperties)
                        .get("ProfD", Components.interfaces.nsIFile);
@@ -501,7 +523,7 @@ function atStartupRestoreTabs() {
   let state = JSON.parse(data);
   let tabsState = state.windows[0].tabs;
   let tabmail = document.getElementById('tabmail');
-  tabmail.restoreTabs(tabsState);
+  tabmail.restoreTabs(tabsState, aDontRestoreFirstTab);
 
   return true;
 }
@@ -513,6 +535,22 @@ function loadExtraTabs()
       document.getElementById('tabmail').openTab(window.arguments[1].tabType, window.arguments[1].tabParams);
     }
   }
+}
+
+/**
+ * Loads the given message header at window open. Exactly one out of this and
+ * |loadStartFolder| should be called.
+ *
+ * @param aStartMsgHdr The message header to load at window open
+ */
+function loadStartMsgHdr(aStartMsgHdr)
+{
+  setTimeout(loadExtraTabs, 0);
+
+  // We'll just clobber the default tab
+  atStartupRestoreTabs(true);
+
+  MsgDisplayMessageInExistingFolderTab(aStartMsgHdr);
 }
 
 function loadStartFolder(initialUri)
@@ -542,8 +580,8 @@ function loadStartFolder(initialUri)
       }
     }
 
-    let loadFolder = !atStartupRestoreTabs();
     // If a URI was explicitly specified, we'll just clobber the default tab
+    let loadFolder = !atStartupRestoreTabs(!!initialUri);
     if (initialUri)
       loadFolder = true;
 

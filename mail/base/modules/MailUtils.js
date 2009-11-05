@@ -303,8 +303,17 @@ var MailUtils =
     let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
                            .getService(Ci.nsIWindowMediator);
     let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
-    if (mail3PaneWindow)
+    if (mail3PaneWindow) {
       mail3PaneWindow.MsgDisplayMessageInFolderTab(aMsgHdr);
-    // XXX handle the case where no 3pane window is open
+    }
+    else {
+      let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"]
+                            .getService(Ci.nsIWindowWatcher);
+      let args = {msgHdr: aMsgHdr};
+      args.wrappedJSObject = args;
+      windowWatcher.openWindow(null,
+          "chrome://messenger/content/", "",
+          "all,chrome,dialog=no,status,toolbar", args);
+    }
   }
 };

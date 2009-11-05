@@ -82,15 +82,48 @@ function setupModule(module) {
                                                {count: 1}]);
   taggedMsg.addTag("$label3");
   make_new_sets_in_folder(folderC, [{count: 50}]);
-
-  // We don't obey mail view persistence unless the view picker is there
-  add_to_toolbar(mc.e("mail-bar3"), "mailviews-container");
 }
+
+/**
+ * Helper to test that a new 3-pane window is opened, a message is displayed,
+ * and that the message is visible in the thread pane, even if there are no
+ * 3-pane windows open.
+ *
+ * This test is done right at the beginning so that the globals set up right
+ * after that are valid for all the other tests.
+ */
+function test_display_message_with_no_3pane_windows_open() {
+  be_in_folder(folderC);
+  // Scroll to the top
+  mc.folderDisplay.ensureRowIsVisible(0);
+  let msgHdr = mc.dbView.getMsgHdrAt(45);
+
+  // Switch to a different folder, just to exercise that code
+  be_in_folder(folderB);
+
+  mc.window.close();
+
+  display_message_in_folder_tab(msgHdr, true);
+
+  // Check that the right message is displayed
+  assert_number_of_tabs_open(1);
+  assert_folder_selected_and_displayed(folderC);
+  assert_selected_and_displayed(msgHdr);
+  // Check that row 45 is visible
+  assert_row_visible(45);
+}
+
 
 /**
  * Initialize the globals we'll need for all our tests.
  */
 function test_setup_displaying_messages_in_folder_tabs_globals() {
+  // We don't obey mail view persistence unless the view picker is there.
+  // XXX We used to do this in setupModule, but window.close() seems to cause
+  // bad problems with the toolbar item's persistence. (This seems to be an
+  // issue only in tests.)
+  add_to_toolbar(mc.e("mail-bar3"), "mailviews-container");
+
   folderTab = mc.tabmail.currentTabInfo;
 
   // Stash messages into arrays for convenience. We do it this way so that the

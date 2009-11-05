@@ -1839,41 +1839,52 @@ function MsgDisplayMessageInFolderTab(aMsgHdr) {
       {folder: aMsgHdr.folder, msgHdr: aMsgHdr, forceSelectMessage: true});
   }
   else {
-    // Look for a folder tab
-    let folderTab = tabmail.getTabInfoForCurrentOrFirstModeInstance(
-                        tabmail.tabModes["folder"]);
-    let folderDisplay = folderTab.folderDisplay;
-    let folder = aMsgHdr.folder;
+    MsgDisplayMessageInExistingFolderTab(aMsgHdr);
+  }
+}
 
-    // XXX Yuck. We really need to have the tabmail be able to handle an extra
-    // param with data to send to showTab, and to have the folder display have
-    // a |selectFolderAndMessage| method that handles most of the messiness.
-    folderDisplay.selectMessageComingUp();
+/**
+ * Display the given message in an existing folder tab.
+ *
+ * @param aMsgHdr The message header to display.
+ */
+function MsgDisplayMessageInExistingFolderTab(aMsgHdr)
+{
+  // Look for a folder tab
+  let tabmail = document.getElementById("tabmail");
+  let folderTab = tabmail.getTabInfoForCurrentOrFirstModeInstance(
+                      tabmail.tabModes["folder"]);
+  let folderDisplay = folderTab.folderDisplay;
+  let folder = aMsgHdr.folder;
 
-    // Switch to the tab
-    tabmail.switchToTab(folderTab);
+  // XXX Yuck. We really need to have the tabmail be able to handle an extra
+  // param with data to send to showTab, and to have the folder display have
+  // a |selectFolderAndMessage| method that handles most of the messiness.
+  folderDisplay.selectMessageComingUp();
 
-    // We don't want to drop view filters at first
-    if (folderDisplay.view.getViewIndexForMsgHdr(aMsgHdr, false) !=
-        nsMsgViewIndex_None) {
-      folderDisplay.selectMessage(aMsgHdr);
-    }
-    else {
-      if (folderDisplay.displayedFolder != folder ||
-          folderDisplay.view.isVirtual) {
-        // Switch to the folder
-        if (gFolderTreeView.getIndexOfFolder(folder) == null) {
-          // Switch to the default mode. The assumption here is that the default
-          // mode can display every folder
-          gFolderTreeView.mode = kDefaultMode;
-        }
-        folderDisplay.show(folder);
-        gFolderTreeView.selectFolder(folder);
+  // Switch to the tab
+  tabmail.switchToTab(folderTab);
+
+  // We don't want to drop view filters at first
+  if (folderDisplay.view.getViewIndexForMsgHdr(aMsgHdr, false) !=
+      nsMsgViewIndex_None) {
+    folderDisplay.selectMessage(aMsgHdr);
+  }
+  else {
+    if (folderDisplay.displayedFolder != folder ||
+        folderDisplay.view.isVirtual) {
+      // Switch to the folder
+      if (gFolderTreeView.getIndexOfFolder(folder) == null) {
+        // Switch to the default mode. The assumption here is that the default
+        // mode can display every folder
+        gFolderTreeView.mode = kDefaultMode;
       }
-
-      // Force select the message
-      folderDisplay.selectMessage(aMsgHdr, true);
+      folderDisplay.show(folder);
+      gFolderTreeView.selectFolder(folder);
     }
+
+    // Force select the message
+    folderDisplay.selectMessage(aMsgHdr, true);
   }
 }
 

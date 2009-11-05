@@ -82,6 +82,12 @@ const DO_NOT_EXPORT = {
   windowHelper: true
 };
 
+const EXPORT_VIA_GETTER_SETTER = {
+  // These should be getters and setters instead of direct property accesses so
+  // that setting them reflects across scopes.
+  mainController: true, mc: true,
+};
+
 var Application = Cc["@mozilla.org/steel/application;1"]
                     .getService(Ci.steelIApplication);
 
@@ -160,10 +166,21 @@ function installInto(module) {
 
   // now copy everything into the module they provided to us...
   let us = collector.getModule('folder-display-helpers');
+  let self = this;
   for each (let [key, value] in Iterator(us)) {
-    if (!(key in DO_NOT_EXPORT) &&
-        key[0] != "_")
+    if (key in EXPORT_VIA_GETTER_SETTER) {
+      // The value of |key| changes between iterations, so it's important to
+      // capture the right key in a local variable.
+      let thisKey = key;
+      module.__defineGetter__(thisKey, function () self[thisKey]);
+      module.__defineSetter__(thisKey, function (aNewValue) {
+                               self[thisKey] = aNewValue;
+                             });
+    }
+    else if (!(key in DO_NOT_EXPORT) &&
+             key[0] != "_") {
       module[key] = value;
+    }
   }
 }
 
@@ -359,10 +376,19 @@ function open_selected_message_in_new_window() {
  * tab.
  *
  * @param aMsgHdr The message header to display.
+ * @param [aExpectNew3Pane] This should be set to true if it is expected that a
+ *                          new 3-pane window will be opened as a result of
+ *                          the API call.
+ *
  * @returns The currently selected tab, guaranteed to be a folder tab.
  */
-function display_message_in_folder_tab(aMsgHdr) {
+function display_message_in_folder_tab(aMsgHdr, aExpectNew3Pane) {
+  if (aExpectNew3Pane)
+    windowHelper.plan_for_new_window("mail:3pane");
   MailUtils.displayMessageInFolderTab(aMsgHdr);
+  if (aExpectNew3Pane)
+    mc = mainController = windowHelper.wait_for_new_window("mail:3pane");
+
   wait_for_message_display_completion(mc, true);
 
   // Make sure that the tab we're returning is a folder tab

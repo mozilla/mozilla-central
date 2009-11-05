@@ -720,6 +720,7 @@
       </method>
       <method name="restoreTabs">
         <parameter name="aPersistedState"/>
+        <parameter name="aDontRestoreFirstTab"/>
         <body><![CDATA[
           /**
            * Attempts to restore tabs persisted from a prior call to
@@ -739,6 +740,12 @@
             if (!restoreFunc)
               continue;
 
+            // The first tab is a folder tab (we know that from our
+            // implementation). Tell the folder tab to back off if necessary.
+            // XXX find a better way to do this.
+            if (tabState.state.firstTab && aDontRestoreFirstTab)
+              tabState.state.dontRestoreFirstTab = aDontRestoreFirstTab;
+
             restoreFunc.call(mode.tabType, this, tabState.state);
 
             // If this persisted tab was the selected one, then mark the newest
@@ -746,8 +753,10 @@
             if (iTab == aPersistedState.selectedIndex)
               indexToSelect = this.tabInfo.length - 1;
           }
-          if (indexToSelect != null)
+          if (indexToSelect != null && !aDontRestoreFirstTab)
             this.tabContainer.selectedIndex = indexToSelect;
+          else
+            this.tabContainer.selectedIndex = 0;
         ]]></body>
       </method>
 

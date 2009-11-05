@@ -684,7 +684,7 @@ var PerWindowTypeAugmentations = {
      */
     getters: {
       dbView: function () {
-        return this.threadTree.view.QueryInterface(Ci.nsIMsgDBView);
+        return this.folderDisplay.view.dbView;
       },
       contentPane: function () {
         return this.tabmail.getBrowserForSelectedTab();
