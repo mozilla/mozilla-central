@@ -29,6 +29,7 @@ bin\update.locale
 bin\updater.ini
 
 [xpcom]
+bin\components\components.list
 bin\components\jar50.dll
 #ifdef MOZILLA_1_9_2_BRANCH
 bin\js3250.dll

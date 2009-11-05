@@ -28,6 +28,7 @@ bin/update.locale
 bin/updater.ini
 
 [xpcom]
+bin/components/components.list
 bin/components/libjar50.so
 bin/libmozjs.so
 #ifndef MOZ_STATIC_BUILD
