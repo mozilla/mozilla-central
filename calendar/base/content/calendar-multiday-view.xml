@@ -3227,6 +3227,13 @@
         <body><![CDATA[
           let scrollbox = document.getAnonymousElementByAttribute(this, "anonid", "scrollbox");
           let scrollBoxObject = scrollbox.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
+          // 'aMinute' will be the first minute showed in the view, so it must
+          // belong to the range 0 <-> (24*60 - minutes_showed_in_the_view) but
+          // we consider 25 hour instead of 24 to let the view scroll until
+          // showing events that start just before 0.00
+          let maxFirstMin = 25 * 60 - Math.round(scrollBoxObject.height / this.mPixPerMin);
+          aMinute = Math.min(maxFirstMin, Math.max(0, aMinute));
+
           if (scrollBoxObject && scrollbox.scrollHeight > 0) {
             let x = {}, y = {};
             scrollBoxObject.getPosition(x, y);
