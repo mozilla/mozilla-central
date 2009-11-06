@@ -111,6 +111,25 @@ let mailTabType = {
         this.openTab(aTab, true, new MessagePaneDisplayWidget(), true);
         // persistence and restoreTab wants to know if we are the magic first tab
         aTab.firstTab = true;
+        // Inherit the search mode from a window
+        let windowToInheritFrom = null;
+        if (window.opener &&
+            (window.opener.document.documentElement.getAttribute("windowtype") ==
+             "mail:3pane"))
+          windowToInheritFrom = window.opener;
+        else
+          windowToInheritFrom = FindOther3PaneWindow();
+
+        if (windowToInheritFrom) {
+          let searchInputToInheritFrom =
+            windowToInheritFrom.document.getElementById("searchInput");
+          if (searchInputToInheritFrom) {
+            let searchInput = document.getElementById("searchInput");
+            if (searchInput)
+              // This should set the aTab.searchMode as well
+              searchInput.searchMode = searchInputToInheritFrom.searchMode;
+          }
+        }
         aTab.folderDisplay.makeActive();
       },
       /**
@@ -137,11 +156,13 @@ let mailTabType = {
         //  "folder" tab.)
         let modelTab = document.getElementById("tabmail")
                          .getTabInfoForCurrentOrFirstModeInstance(aTab.mode);
+        let searchInput = document.getElementById("searchInput");
 
         if ("searchMode" in aArgs)
-          aTab.searchState = {'mode': aArgs.searchMode, 'string': ''};
-        else if (modelTab)
-          aTab.searchState = {'mode': modelTab.searchMode, 'string': ''};
+          aTab.searchMode = aArgs.searchMode;
+        else if (searchInput)
+          aTab.searchMode = searchInput.searchMode;
+        aTab.searchInputValue = "";
 
         // - figure out whether to show the folder pane
         let folderPaneShouldBeVisible;
@@ -216,9 +237,9 @@ let mailTabType = {
             folderPaneVisible: aTab.folderDisplay.folderPaneVisible,
             messagePaneVisible: aTab.messageDisplay.visible,
             firstTab: aTab.firstTab
-          }
-          if (aTab.searchState)
-            retval['searchMode'] = aTab.searchState['mode']
+          };
+          if ("searchMode" in aTab)
+            retval.searchMode = aTab.searchMode;
           return retval;
         } catch (e) {
           logException(e);

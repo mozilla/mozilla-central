@@ -344,7 +344,7 @@
             this.menupopup.getElementsByAttribute('value', this.searchMode)[0]
                           .setAttribute('checked', 'true');
             if (currentTabInfo)
-               currentTabInfo.searchState = this.state;
+             currentTabInfo.searchMode = this.searchMode;
             this.updateEmptyText();
           }
           this.setAttribute("autocompletesearchparam", val)

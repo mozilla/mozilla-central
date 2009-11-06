@@ -441,6 +441,24 @@ function HandleAppCommandEvent(evt)
 }
 
 /**
+ * Look for another 3-pane window.
+ */
+function FindOther3PaneWindow()
+{
+  let windowMediator =
+    Components.classes["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Components.interfaces.nsIWindowMediator);
+  let enumerator = windowMediator.getZOrderDOMWindowEnumerator("mail:3pane",
+                                                               true);
+  while (enumerator.hasMoreElements()) {
+    let win = enumerator.getNext();
+    if (win != window)
+      return win;
+  }
+  return null;
+}
+
+/**
  * Called by messenger.xul:onunload, the 3-pane window inside of tabs window.
  *  It's being unloaded!  Right now!
  */
@@ -450,8 +468,34 @@ function OnUnloadMessenger()
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
 
-  // - Persist the tab state and then close the tabs.
+  // - Persist the tab state and then close the tabs. If another 3-pane window
+  //   is open, do not persist tab state.
   // XXX do not assume there is only ever one 3-pane.
+  if (!FindOther3PaneWindow())
+    persistTabState();
+
+  let tabmail = document.getElementById("tabmail");
+  tabmail.closeTabs();
+
+  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
+                              .getService(Components.interfaces.nsIMsgMailSession);
+  mailSession.RemoveFolderListener(folderListener);
+
+  gPhishingDetector.shutdown();
+
+  // FIX ME - later we will be able to use onload from the overlay
+  OnUnloadMsgHeaderPane();
+
+  UnloadPanes();
+
+  OnMailWindowUnload();
+}
+
+/**
+ * This currently only happens at window unload.
+ */
+function persistTabState()
+{
   let tabmail = document.getElementById('tabmail');
   let tabsState = tabmail.persistTabs();
   // build the state like we aren't assuming a single 3-pane
@@ -473,22 +517,6 @@ function OnUnloadMessenger()
   foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
   foStream.write(data, data.length);
   foStream.close();
-
-  tabmail.closeTabs();
-
-
-  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
-                              .getService(Components.interfaces.nsIMsgMailSession);
-  mailSession.RemoveFolderListener(folderListener);
-
-  gPhishingDetector.shutdown();
-
-  // FIX ME - later we will be able to use onload from the overlay
-  OnUnloadMsgHeaderPane();
-
-  UnloadPanes();
-
-  OnMailWindowUnload();
 }
 
 // XXX provides GlodaUtils, remove once we migrate loadFileToString

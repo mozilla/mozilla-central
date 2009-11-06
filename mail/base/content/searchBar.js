@@ -85,6 +85,7 @@ var QuickSearchTabMonitor = {
     // save the current search field value
     if (aOldTab) {
       aOldTab.searchInputValue = searchInput.value;
+      // XXX search.xml also updates this, so this shouldn't be necessary
       aOldTab.searchMode = searchInput.searchMode;
     }
     // load (or clear if there is none) the persisted search field value

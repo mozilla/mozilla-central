@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Andrew Sutherland <asutherland@asutherland.org>
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -55,6 +56,23 @@ function setupModule(module) {
   [setFoo, setBar] =
     make_new_sets_in_folder(folder, [{subject: "foo", count: 1},
                                      {subject: "bar", count: 1}]);
+}
+
+function _assert_quick_search_mode(aController, aMode)
+{
+  let actualMode = aController.e("searchInput").searchMode;
+  if (actualMode != aMode)
+    throw new Error("The search mode is supposed to be " + aMode +
+                    ", but is actually " + actualMode);
+}
+
+function _open_3pane_window()
+{
+  let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"]
+                        .getService(Ci.nsIWindowWatcher);
+  windowWatcher.openWindow(null,
+      "chrome://messenger/content/", "",
+      "all,chrome,dialog=no,status,toolbar", null);
 }
 
 /**
@@ -130,4 +148,76 @@ function test_verify_saved_search() {
 
   be_in_folder(savedFolder);
   assert_messages_in_view(setFoo);
+}
+
+/**
+ * Test that when a new 3-pane window is opened from the original 3-pane, the
+ * search mode is persisted.
+ */
+function test_search_mode_persistence_new_3pane_from_original_3pane()
+{
+  plan_for_new_window("mail:3pane");
+  mc.window.MsgOpenNewWindowForFolder(null, -1);
+  let mc2 = wait_for_new_window("mail:3pane");
+
+  _assert_quick_search_mode(mc2,
+      QuickSearchConstants.kQuickSearchFromOrSubject.toString());
+
+  mc2.window.close();
+}
+
+/**
+ * Test that the window.close() above doesn't cause session persistence to come
+ * into play -- i.e. if we now change the search mode and open a window again,
+ * the new window has the new search mode and not the old one.
+ */
+function test_search_mode_persistence_new_3pane_from_original_3pane_again()
+{
+  mc.e("searchInput").searchMode =
+    QuickSearchConstants.kQuickSearchBody.toString();
+  plan_for_new_window("mail:3pane");
+  mc.window.MsgOpenNewWindowForFolder(null, -1);
+  let mc2 = wait_for_new_window("mail:3pane");
+
+  _assert_quick_search_mode(mc2,
+      QuickSearchConstants.kQuickSearchBody.toString());
+
+  mc2.window.close();
+}
+
+/**
+ * Test that when a new 3-pane window is opened independently of the original
+ * 3-pane, the search mode is persisted from the original 3-pane.
+ */
+function test_search_mode_persistence_new_3pane_independently()
+{
+  mc.e("searchInput").searchMode =
+    QuickSearchConstants.kQuickSearchFromOrSubject.toString();
+  plan_for_new_window("mail:3pane");
+  _open_3pane_window();
+  let mc2 = wait_for_new_window("mail:3pane");
+
+  _assert_quick_search_mode(mc2,
+      QuickSearchConstants.kQuickSearchFromOrSubject.toString());
+
+  mc2.window.close();
+}
+
+/**
+ * Test that the window.close() above doesn't cause session persistence to come
+ * into play -- i.e. if we now change the search mode and open a window again,
+ * the new window has the new search mode and not the old one.
+ */
+function test_search_mode_persistence_new_3pane_independently_again()
+{
+  mc.e("searchInput").searchMode =
+    QuickSearchConstants.kQuickSearchBody.toString();
+  plan_for_new_window("mail:3pane");
+  mc.window.MsgOpenNewWindowForFolder(null, -1);
+  let mc2 = wait_for_new_window("mail:3pane");
+
+  _assert_quick_search_mode(mc2,
+      QuickSearchConstants.kQuickSearchBody.toString());
+
+  mc2.window.close();
 }
