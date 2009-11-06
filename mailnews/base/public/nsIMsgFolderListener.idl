@@ -52,15 +52,52 @@ interface nsIArray;
  * these two interfaces should be combined somehow.
  */
 
-[scriptable, uuid(eebbedae-ce43-4151-9798-3f1c6e5a5af0)]
+[scriptable, uuid(63533aa2-9e03-424c-b308-a3ee5ad47bc5)]
 interface nsIMsgFolderListener : nsISupports {
   /**
-   * Notified immediately after a message is added to a folder. This could be a new incoming
-   * message to a local folder, or a new message in an IMAP folder when it is opened.
+   * Notified immediately after a message is added to a folder. This could be a
+   * new incoming message to a local folder, or a new message in an IMAP folder
+   * when it is opened.
+   *
+   * You may want to consider using the msgsClassified notification instead of
+   * this notification if any of the following are true:
+   *
+   * - You only want to be notified about messages after junk classification
+   *   has occurred (if it is going to occur for a message).  This also goes for
+   *   trait classification which is a generic use of the bayesian engine at
+   *   the heart of the spam logic.
+   *
+   * - You only want to be notified about messages after all filters have been
+   *   run.  Although some filters may be run before the msgAdded notification
+   *   is generated, filters dependent on junk/trait classification wait until
+   *   classification completes.
    *
    * @param aMsg The message header that was just added
    */
   void msgAdded(in nsIMsgDBHdr aMsg);
+
+  /**
+   * Notification that (new to the client) messages have been through junk and
+   * trait classification.  This event will occur for all messages at some point
+   * after their existence is revealed by msgAdded.
+   *
+   * Because junk classification does not run if no messages have ever been
+   * marked as junk by the user, it is possible to receive this message without
+   * any classification having actually been performed.  We still generate the
+   * notification in this case so that code is reliably notified about the
+   * existence of the new message headers.
+   *
+   * IMPORTANT! You may receive a notification for a message more than once
+   * because of deficiencies in our treatment of new messages.
+   *
+   * @param aMsgs The message headers that have been classified or were
+   *     intentionally not classified.
+   * @param aJunkProcessed Were the messages processed for junk classification?
+   * @param aTraitProcessed Were the messages processed for trait
+   *     classification?
+   */
+  void msgsClassified(in nsIArray aMsgs, in boolean aJunkProcessed,
+                      in boolean aTraitProcessed);
 
   /**
    * Notified after a command to delete a group of messages has been given, but before the
@@ -84,21 +121,25 @@ interface nsIMsgFolderListener : nsISupports {
   void msgsDeleted(in nsIArray aMsgs);
 
   /**
-   * Notified after a command to move or copy a group of messages completes. In case of a move,
-   * this is before the messages have been deleted from the source folder.
+   * Notified after a command to move or copy a group of messages completes. In
+   * case of a move, this is before the messages have been deleted from the
+   * source folder.
    *
    * @param aMove true if a move, false if a copy
    * @param aSrcMsgs An array of the message headers in the source folder
-   * @param aDestFolder The folder these messages were moved to
+   * @param aDestFolder The folder these messages were moved to.
+   * @param aDestMsgs Present only for local folder moves, it provides the list
+   *     of target message headers.
    *
    * @note
-   * If messages are moved from a server which uses the IMAP delete model, you'll get aMove =
-   * false. That's because the messages are not deleted from the source database, but instead
-   * simply marked deleted.
+   * If messages are moved from a server which uses the IMAP delete model,
+   * you'll get aMove = false. That's because the messages are not deleted from
+   * the source database, but instead simply marked deleted.
    */
-  void msgsMoveCopyCompleted(in boolean aMove, 
-                             in nsIArray aSrcMsgs, 
-                             in nsIMsgFolder aDestFolder);
+  void msgsMoveCopyCompleted(in boolean aMove,
+                             in nsIArray aSrcMsgs,
+                             in nsIMsgFolder aDestFolder,
+                             in nsIArray aDestMsgs);
 
   /**
    * Notified after a folder has been added.
@@ -138,8 +179,32 @@ interface nsIMsgFolderListener : nsISupports {
   void folderRenamed(in nsIMsgFolder aOrigFolder, in nsIMsgFolder aNewFolder);
   
   /**
-   * Notified when a particular event takes place for an item. Currently this is
-   * unused.
+   * Notified when a particular event takes place for an item.
+   *
+   * Current uses by event string:
+   *
+   * - FolderCompactStart: nsIMsgFolderCompactor is beginning compaction of the
+   *    folder.  If the summary file was missing or out-of-date and a parse
+   *    is required, this notification will come after the completion of the
+   *    parse.  The compactor will be holding the folder's semaphore when
+   *    this notification is generated.  This only happens for local folders
+   *    currently.  aItem is the folder.
+   * - FolderCompactFinish: nsIMsgFolderCompactor has completed compaction of
+   *    the folder.  This notification will be generated immediately prior to
+   *    the nsIFolderListener::itemEvent() notification with a
+   *    "CompactCompleted" atom.  At this point, the folder semaphore has been
+   *    released and the database has been committed.  aItem is the folder.
+   *
+   * - JunkStatusChanged: Indicates that some messages that had already been
+   *    reported by msgsClassified have had their junk status changed.  This
+   *    event will not fire for the initial automatic classification of
+   *    messages; msgsClassified will tell you about those messages.  This
+   *    notification may be promoted to an explicit callback function at some
+   *    point.  This is not guaranteed to be a comprehensive source of junk
+   *    notification events; right now any time an nsMsgDBView marks things as
+   *    junk/non-junk a notification is produced.  aItem is an nsIArray of
+   *    messages, aData is either a "junk" or "notjunk" atom if all of the
+   *    messages have the same state.
    *
    * @param aItem The item the event takes place on
    * @param aEvent String describing the event

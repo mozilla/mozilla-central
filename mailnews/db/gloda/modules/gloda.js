@@ -57,12 +57,8 @@ Cu.import("resource://app/modules/iteratorUtils.jsm");
 let MBM_LOG = Log4Moz.repository.getLogger("gloda.NS.mbm");
 
 /**
- * @class This callback handles processing the asynchronous query results of
+ * This callback handles processing the asynchronous query results of
  *  Gloda.getMessagesByMessageID.
- *
- * @param aMsgIDToIndex Map from message-id to the desired
- *
- * @constructor
  */
 function MessagesByMessageIdCallback(aMsgIDToIndex, aResults,
                                      aCallback, aCallbackThis) {
@@ -96,6 +92,19 @@ MessagesByMessageIdCallback.prototype = {
     this.callback.call(this.callbackThis, this.results);
   }
 };
+
+/**
+ * @see |Gloda.BadItemContentsError|
+ */
+function BadItemContentsError(aMessage) {
+  this.message = aMessage;
+}
+BadItemContentsError.prototype = {
+  toString: function BadItemContentsError_toString() {
+    return this.message;
+  }
+};
+
 
 /**
  * Provides the user-visible (and extension visible) global database
@@ -227,7 +236,7 @@ var Gloda = {
       let branch = prefService.getBranch("mailnews.database.global.logging.");
       enableConsoleLogging = branch.getBoolPref("console");
       enableDumpLogging = branch.getBoolPref("dump");
-      enableNetLogging = branch.getBoolPref("net");
+      considerNetLogging = branch.getBoolPref("net");
     } catch (ex) {}
 
     if (enableConsoleLogging) {
@@ -264,10 +273,15 @@ var Gloda = {
     this._log.info("Logging Initialized");
   },
 
+  /**
+   * The indexer is idle.
+   */
   kIndexerIdle: 0,
+  /**
+   * The indexer is doing something.  We used to have other specific states, but
+   *  they have been rendered irrelevant and wiped from existence.
+   */
   kIndexerIndexing: 1,
-  kIndexerMoving: 2,
-  kIndexerRemoving: 3,
 
   /** Synchronous activities performed, you can drive us more. */
   kWorkSync: 0,
@@ -394,18 +408,15 @@ var Gloda = {
       msgIDToIndex[msgID] = iID;
     }
 
-    let quotedIDs = ["'" + msgID.replace("'", "''", "g") + "'" for each
-                      ([i, msgID] in Iterator(aMessageIDs))];
-
     let query = Gloda.newQuery(Gloda.NOUN_MESSAGE, {
       noDbQueryValidityConstraints: true,
     });
-    query.headerMessageID.apply(query, quotedIDs);
+    query.headerMessageID.apply(query, aMessageIDs);
     query.frozen = true;
 
     let listener = new MessagesByMessageIdCallback(msgIDToIndex, results,
                                                    aCallback, aCallbackThis);
-    return query.getCollection(listener);
+    return query.getCollection(listener, null, {becomeNull: true});
   },
 
   /**
@@ -1921,6 +1932,15 @@ var Gloda = {
     GlodaCollectionManager.registerCollection(collection);
     return collection;
   },
+
+  /**
+   * Attribute providers attempting to index something that experience a fatal
+   *  problem should throw one of these.  For example:
+   *  "throw new Gloda.BadItemContentsError('Message lacks an author.');".
+   *
+   * We're not really taking advantage of this yet, but it's a good idea.
+   */
+  BadItemContentsError: BadItemContentsError,
 
   /**
    * Populate a gloda representation of an item given the thus-far built

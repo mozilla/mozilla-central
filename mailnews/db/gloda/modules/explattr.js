@@ -192,7 +192,7 @@ var GlodaExplicitAttr = {
       keywordMap[keyword] = true;
     }
 
-    let tagArray = this._msgTagService.getAllTags({});
+    let tagArray = TagNoun.getAllTags();
     for (let iTag = 0; iTag < tagArray.length; iTag++) {
       let tag = tagArray[iTag];
       if (tag.key in keywordMap)

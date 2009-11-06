@@ -56,6 +56,10 @@ Cu.import("resource://app/modules/gloda/collection.js");
 
 let PCH_LOG = Log4Moz.repository.getLogger("gloda.ds.pch");
 
+/**
+ * Commit async handler; hands off the notification to
+ *  |GlodaDatastore._asyncCompleted|.
+ */
 function PostCommitHandler(aCallbacks) {
   this.callbacks = aCallbacks;
   GlodaDatastore._pendingAsyncStatements++;
@@ -66,7 +70,7 @@ PostCommitHandler.prototype = {
   },
 
   handleError: function gloda_ds_pch_handleError(aError) {
-    PCH_LOG.error("database error:" + aError)
+    PCH_LOG.error("database error:" + aError);
   },
 
   handleCompletion: function gloda_ds_pch_handleCompletion(aReason) {
@@ -97,6 +101,18 @@ PostCommitHandler.prototype = {
 
 let QFQ_LOG = Log4Moz.repository.getLogger("gloda.ds.qfq");
 
+/**
+ * Singleton collection listener used by |QueryFromQueryCallback| to assist in
+ *  the loading of referenced noun instances.  Which is to say, messages have
+ *  identities (specific e-mail addresses) associated with them via attributes.
+ *  And these identities in turn reference / are referenced by contacts (the
+ *  notion of a person).
+ *
+ * This listener is primarily concerned with fixing up the references in each
+ *  noun instance to its referenced instances once they have been loaded.  It
+ *  also deals with caching so that our identity invariant is maintained: user
+ *  code should only ever see one distinct instance of a thing at a time.
+ */
 let QueryFromQueryResolver = {
   onItemsAdded: function(aIgnoredItems, aCollection, aFake) {
     let originColl = aCollection.dataStack ? aCollection.dataStack.pop()
@@ -161,8 +177,17 @@ let QueryFromQueryResolver = {
 };
 
 /**
- * @class Handles the results from a GlodaDatastore.queryFromQuery call.
- * @constructor
+ * Handles the results from a GlodaDatastore.queryFromQuery call in cooperation
+ *  with the |QueryFromQueryResolver| collection listener.  We do a lot of
+ *  legwork related to satisfying references to other noun instances on the
+ *  noun instances the user directy queried.  Messages reference identities
+ *  reference contacts which in turn (implicitly) reference identities again.
+ *  We have to spin up those other queries and stitch things together.
+ *
+ * While the code is generally up to the existing set of tasks it is called to
+ *  handle, I would not be surprised for it to fall down if things get more
+ *  complex.  Some of the logic here 'evolved' a bit and could benefit from
+ *  additional documentation and a fresh go-through.
  */
 function QueryFromQueryCallback(aStatement, aNounDef, aCollection) {
   this.statement = aStatement;
@@ -344,7 +369,7 @@ QueryFromQueryCallback.prototype = {
                   // we fully expect/allow for there being no such subcollection yet.
                   this.collection.masterCollection.subCollections[nounDef.id],
                   this.collection.masterCollection,
-                  /* become explicit */ true);
+                  {becomeExplicit: true});
             }
           }
 
@@ -365,7 +390,7 @@ QueryFromQueryCallback.prototype = {
                 // we fully expect/allow for there being no such subcollection yet.
                 this.collection.masterCollection.subCollections[nounDef.id],
                 this.collection.masterCollection,
-                /* become explicit */ true);
+                {becomeExplicit: true});
           }
         }
         else {
@@ -387,6 +412,7 @@ QueryFromQueryCallback.prototype = {
         }
       }
       catch (e) {
+        Components.utils.reportError(e);
         QFQ_LOG.error("Exception: " + e);
       }
     }
@@ -396,6 +422,35 @@ QueryFromQueryCallback.prototype = {
   }
 };
 
+/**
+ * Used by |GlodaDatastore.folderCompactionPassBlockFetch| to accumulate the
+ *  results and pass them back in to the compaction process in
+ *  |GlodaMsgIndexer._worker_folderCompactionPass|.
+ */
+function CompactionBlockFetcherHandler(aCallback) {
+  this.callback = aCallback;
+  this.idsAndMessageKeys = [];
+  GlodaDatastore._pendingAsyncStatements++;
+}
+CompactionBlockFetcherHandler.prototype = {
+  handleResult: function gloda_ds_cbfh_handleResult(aResultSet) {
+    let row;
+    while ((row = aResultSet.getNextRow())) {
+      this.idsAndMessageKeys.push([
+        row.getInt64(0), // id
+        row.getInt64(1), // messageKey
+        row.getString(2), // headerMessageID
+        ]);
+    }
+  },
+  handleError: function gloda_ds_cbfh_handleError(aError) {
+
+  },
+  handleCompletion: function gloda_ds_cbfh_handleCompletion(aReason) {
+    GlodaDatastore._asyncCompleted();
+    this.callback(this.idsAndMessageKeys);
+  }
+};
 
 /**
  * Database abstraction layer.  Contains explicit SQL schemas for our
@@ -508,7 +563,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 13,
+  _schemaVersion: 14,
   _schema: {
     tables: {
 
@@ -694,14 +749,14 @@ var GlodaDatastore = {
 
   /* ******************* LOGIC ******************* */
   /**
-   * Our synchronous connection, primarily intended for read-only use, so as to
-   *  avoid stepping on the toes of our asynchronous connection that will do
-   *  most/all of our updating.
+   * We only have one connection; this name exists for legacy reasons but helps
+   *  track when we are intentionally doing synchronous things during startup.
+   *  We do nothing synchronous once our setup has completed.
    */
   syncConnection: null,
   /**
-   * Our connection reused for asynchronous usage, intended for database write
-   *  purposes.
+   * We only have one connection and we only do asynchronous things after setup;
+   *  this name still exists mainly for legacy reasons.
    */
   asyncConnection: null,
 
@@ -791,13 +846,17 @@ var GlodaDatastore = {
    * Perform datastore shutdown.
    */
   shutdown: function gloda_ds_shutdown() {
-    // clear out any pending transaction by committing it.
-    // Although you might worry that this is potentially an arbitrary and
-    //  inconsistent point to issue a commit, it is not.  Because we are going
-    //  to be called from the main/UI thread, that means the indexer cannot be
-    //  active on the thread at the time.  The indexer only yields at times
-    //  when the database state AS ISSUED is coherent.  As noted below, the
-    //  async execution queue will actually be drained to completion.
+    // Clear out any pending transaction by committing it.
+    // The indexer has been shutdown by this point; it no longer has any active
+    //  indexing logic and it no longer has active event listeners capable of
+    //  generating new activity.
+    // Semantic consistency of the database is guaranteed by the indexer's
+    //  strategy of only yielding control at coherent times.  Although it takes
+    //  multiple calls and multiple SQL operations to update the state of our
+    //  database representations, the generator does not yield until it has
+    //  issued all the database statements required for said update.  As such,
+    //  this commit will leave us in a good way (and the commit will happen
+    //  because closing the connection will drain the async execution queue.)
     while (this._transactionDepth) {
       this._log.info("Closing pending transaction out for shutdown.");
       // just schedule this function to be run again once the transaction has
@@ -1008,6 +1067,9 @@ var GlodaDatastore = {
     // (We are slip-streaming this so that only people who want to test CJK
     //  have to test it.  We will properly bump the schema revision when the
     //  gloda correctness patch lands.)
+    // version 16ish, labeled 14
+    // - gloda message id's start from 32 now
+    // - all kinds of correctness changes
     if (aCurVersion < 15) {
       aDBConnection.close();
       aDBFile.remove(false);
@@ -1124,6 +1186,10 @@ var GlodaDatastore = {
             (typeof aVariant));
   },
 
+  /**
+   * Helper that uses the appropriate getter given the data type; should be
+   *  mooted once we move to 1.9.2 and can use built-in variant support.
+   */
   _getVariant: function gloda_ds_getBlob(aRow, aIndex) {
     let typeOfIndex = aRow.getTypeOfIndex(aIndex);
     if (typeOfIndex == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
@@ -1141,18 +1207,27 @@ var GlodaDatastore = {
   _transactionDepth: 0,
   _transactionGood: false,
 
+  /**
+   * Self-memoizing BEGIN TRANSACTION statement.
+   */
   get _beginTransactionStatement() {
     let statement = this._createAsyncStatement("BEGIN TRANSACTION");
     this.__defineGetter__("_beginTransactionStatement", function() statement);
     return this._beginTransactionStatement;
   },
 
+  /**
+   * Self-memoizing COMMIT statement.
+   */
   get _commitTransactionStatement() {
     let statement = this._createAsyncStatement("COMMIT");
     this.__defineGetter__("_commitTransactionStatement", function() statement);
     return this._commitTransactionStatement;
   },
 
+  /**
+   * Self-memoizing ROLLBACK statement.
+   */
   get _rollbackTransactionStatement() {
     let statement = this._createAsyncStatement("ROLLBACK");
     this.__defineGetter__("_rollbackTransactionStatement", function() statement);
@@ -1329,7 +1404,7 @@ var GlodaDatastore = {
     let attribs = {};
     // map the attribute id to [attribute, parameter] where parameter is null
     //  in cases where parameter is unused.
-    let idToAttribAndParam = {}
+    let idToAttribAndParam = {};
 
     this._log.info("loading all attribute defs");
 
@@ -1434,6 +1509,10 @@ var GlodaDatastore = {
     return folderURI in this._folderByURI;
   },
 
+  _folderIdKnown: function gloda_ds_folderIdKnown(aFolderID) {
+    return (aFolderID in this._folderByID);
+  },
+
   /**
    * Map a folder URI to a GlodaFolder instance, creating the mapping if it does
    *  not yet exist.
@@ -1451,9 +1530,23 @@ var GlodaDatastore = {
     let folderID = this._nextFolderId++;
 
     let indexingPriority = GlodaFolder.prototype.kIndexingDefaultPriority;
-    // do not walk into trash/junk folders.
-    if (aFolder.flags & (Ci.nsMsgFolderFlags.Trash |
-                         Ci.nsMsgFolderFlags.Junk))
+    // Do not walk into trash/junk folders.
+    // Queue folders should also be ignored just because messages should not
+    //  spend much time in there.
+    // We hate newsgroups, and public IMAP folders are similar.
+    // Other user IMAP folders should be ignored because it's not this user's
+    //  mail.
+    if (aFolder.flags & (Ci.nsMsgFolderFlags.Trash
+                         | Ci.nsMsgFolderFlags.Junk
+                         | Ci.nsMsgFolderFlags.Queue
+                         | Ci.nsMsgFolderFlags.Newsgroup
+                         // In unit testing at least folders can be confusingly
+                         //  labeled ImapPublic when they should not be.  Or
+                         //  at least I don't think they should be.  So they're
+                         //  legit for now.
+                         //| Ci.nsMsgFolderFlags.ImapPublic
+                         //| Ci.nsMsgFolderFlags.ImapOtherUser
+                        ))
       indexingPriority = GlodaFolder.prototype.kIndexingNeverPriority;
     else if (aFolder.flags & Ci.nsMsgFolderFlags.Inbox)
       indexingPriority = GlodaFolder.prototype.kIndexingInboxPriority;
@@ -1712,17 +1805,8 @@ var GlodaDatastore = {
     dcbids.bindInt64Parameter(0, aConversationID);
     dcbids.executeAsync(this.trackAsync());
 
-    // TODO: collection manager implications
-    //GlodaCollectionManager.removeByID()
-  },
-
-  get _selectConversationByIDStatement() {
-    let statement = this._createSyncStatement(
-      "SELECT id, subject, oldestMessageDate, newestMessageDate \
-         FROM conversations WHERE id = ?1");
-    this.__defineGetter__("_selectConversationByIDStatement",
-      function() statement);
-    return this._selectConversationByIDStatement;
+    GlodaCollectionManager.itemsDeleted(GlodaConversation.prototype.NOUN_ID,
+                                        [aConversationID]);
   },
 
   _conversationFromRow: function gloda_ds_conversationFromRow(aStmt) {
@@ -1739,39 +1823,24 @@ var GlodaDatastore = {
         aStmt.getString(1), oldestMessageDate, newestMessageDate);
   },
 
-  /**
-   * Synchronously look up a conversation given its ID.
-   */
-  getConversationByID: function gloda_ds_getConversationByID(aConversationID) {
-    let conversation = GlodaCollectionManager.cacheLookupOne(
-      GlodaConversation.prototype.NOUN_ID, aConversationID);
-
-    if (conversation === null) {
-      let scbids = this._selectConversationByIDStatement;
-
-      scbids.bindInt64Parameter(0, aConversationID);
-      if (this._syncStep(scbids)) {
-        conversation = this._conversationFromRow(scbids);
-        GlodaCollectionManager.itemLoaded(conversation);
-      }
-      scbids.reset();
-    }
-
-    return conversation;
-  },
-
   /* ********** Message ********** */
   /**
    * Next message id, managed because of our use of asynchronous inserts.
    * Initialized by _populateMessageManagedId called by _init.
+   *
+   * Start from 32 to leave us all kinds of magical sentinel values at the
+   *  bottom.
    */
-  _nextMessageId: 1,
+  _nextMessageId: 32,
 
   _populateMessageManagedId: function () {
     let stmt = this._createSyncStatement(
       "SELECT MAX(id) FROM messages", true);
     if (stmt.executeStep()) { // no chance of this SQLITE_BUSY on this call
-      this._nextMessageId = stmt.getInt64(0) + 1;
+      // 0 gets returned even if there are no messages...
+      let highestSeen = stmt.getInt64(0);
+      if (highestSeen != 0)
+        this._nextMessageId = highestSeen + 1;
     }
     stmt.finalize();
   },
@@ -1823,10 +1892,6 @@ var GlodaDatastore = {
       aDatePRTime ? new Date(aDatePRTime / 1000) : null,
       aHeaderMessageID,
       /* deleted */ false, /* jsonText */ undefined, /* notability*/ 0);
-
-    this._log.debug("CreateMessage: " + folderID + ", " + aMessageKey + ", " +
-                    aConversationID + ", " + aDatePRTime + ", " +
-                    aHeaderMessageID);
 
     // We would love to notify the collection manager about the message at this
     //  point (at least if it's not a ghost), but we can't yet.  We need to wait
@@ -1919,8 +1984,9 @@ var GlodaDatastore = {
                            date = ?4, \
                            headerMessageID = ?5, \
                            jsonAttributes = ?6, \
-                           notability = ?7 \
-              WHERE id = ?8");
+                           notability = ?7, \
+                           deleted = ?8 \
+              WHERE id = ?9");
     this.__defineGetter__("_updateMessageStatement", function() statement);
     return this._updateMessageStatement;
   },
@@ -1946,7 +2012,7 @@ var GlodaDatastore = {
    */
   updateMessage: function gloda_ds_updateMessage(aMessage) {
     let ums = this._updateMessageStatement;
-    ums.bindInt64Parameter(7, aMessage.id);
+    ums.bindInt64Parameter(8, aMessage.id);
     if (aMessage.folderID === null)
       ums.bindNullParameter(0);
     else
@@ -1966,6 +2032,7 @@ var GlodaDatastore = {
     else
       ums.bindNullParameter(5);
     ums.bindInt64Parameter(6, aMessage.notability);
+    ums.bindInt64Parameter(7, ("_deleted" in aMessage) && aMessage.deleted);
 
     ums.executeAsync(this.trackAsync());
 
@@ -2003,7 +2070,6 @@ var GlodaDatastore = {
     }
 
     aMessage._indexedBodyText = newIndexedBodyText;
-
     let umts = this._updateMessageTextStatement;
     umts.bindInt64Parameter(2, aMessage.id);
 
@@ -2041,9 +2107,10 @@ var GlodaDatastore = {
    *  database locations.  Also, update the in-memory representations.
    */
   updateMessageLocations: function gloda_ds_updateMessageLocations(aMessageIds,
-      aNewMessageKeys, aDestFolder) {
+      aNewMessageKeys, aDestFolder, aDoNotNotify) {
     let statement = this._updateMessageLocationStatement;
-    let destFolderID = this._mapFolder(aDestFolder).id;
+    let destFolderID = (typeof(aDestFolder) == "number") ? aDestFolder :
+                         this._mapFolder(aDestFolder).id;
 
     let modifiedItems = [];
 
@@ -2055,26 +2122,20 @@ var GlodaDatastore = {
       statement.executeAsync(this.trackAsync());
 
       // so, if the message is currently loaded, we also need to change it up...
+      // XXX we should be using cacheLookupMany.
       let message = GlodaCollectionManager.cacheLookupOne(
         GlodaMessage.prototype.NOUN_ID, id);
       if (message) {
         message._folderID = destFolderID;
+        message._messageKey = aNewMessageKeys[iMsg];
         modifiedItems.push(message);
       }
     }
 
-    // if we're talking about a lot of messages, it's worth committing after
-    //  this to ensure that we don't spill to disk and cause contention with
-    //  synchronous reads off (this) the main thread.
-    if ((aMessageIds.length > 200) && this._transactionDepth) {
-      this._commitTransaction();
-      this._beginTransaction();
-    }
-
     // tell the collection manager about the modified messages so it can update
     //  any existing views...
-    if (modifiedItems.length) {
-      GlodaCollectionManager.itemsModified(GlodaMessage.prototype.NOUN,
+    if (!aDoNotNotify && modifiedItems.length) {
+      GlodaCollectionManager.itemsModified(GlodaMessage.prototype.NOUN_ID,
                                            modifiedItems);
     }
   },
@@ -2083,30 +2144,29 @@ var GlodaDatastore = {
    * Asynchronously mutate message folder id/message keys for the given
    *  messages, indicating that we are moving them to the target folder, but
    *  don't yet know their target message keys.
+   *
+   * Updates in-memory representations too.
    */
   updateMessageFoldersByKeyPurging:
-      function gloda_ds_updateMessageFoldersByKeyPurging(aSrcFolder,
-        aMessageKeys, aDestFolder) {
-    let srcFolderID = this._mapFolder(aSrcFolder).id;
+      function gloda_ds_updateMessageFoldersByKeyPurging(aGlodaIds,
+                                                         aDestFolder) {
     let destFolderID = this._mapFolder(aDestFolder).id;
 
     let sqlStr = "UPDATE messages SET folderID = ?1, \
                                       messageKey = ?2 \
-                   WHERE folderID = ?3 \
-                     AND messageKey IN (" + aMessageKeys.join(", ") + ")";
+                   WHERE id IN (" + aGlodaIds.join(", ") + ")";
     let statement = this._createAsyncStatement(sqlStr, true);
-    statement.bindInt64Parameter(2, srcFolderID);
     statement.bindInt64Parameter(0, destFolderID);
     statement.bindNullParameter(1);
     statement.executeAsync(this.trackAsync());
     statement.finalize();
 
-    // if we're talking about a lot of messages, it's worth committing after
-    //  this to ensure that we don't spill to disk and cause contention with
-    //  synchronous reads off (this) the main thread.
-    if ((aMessageKeys.length > 200) && this._transactionDepth) {
-      this._commitTransaction();
-      this._beginTransaction();
+    let cached =
+      GlodaCollectionManager.cacheLookupManyList(GlodaMessage.prototype.NOUN_ID,
+                                                 aGlodaIds);
+    for each (let [, glodaMsg] in Iterator(cached)) {
+      glodaMsg._folderID = destFolderID;
+      glodaMsg._messageKey = null;
     }
   },
 
@@ -2157,92 +2217,6 @@ var GlodaDatastore = {
                             subject, indexedBodyText, attachmentNames);
   },
 
-  get _selectMessageByIDStatement() {
-    let statement = this._createSyncStatement(
-      "SELECT id, folderID, messageKey, conversationID, date, headerMessageID, \
-           deleted FROM messages WHERE id = ?1");
-    this.__defineGetter__("_selectMessageByIDStatement",
-      function() statement);
-    return this._selectMessageByIDStatement;
-  },
-
-  /**
-   * Synchronously retrieve the given message given its gloda message id.
-   */
-  getMessageByID: function gloda_ds_getMessageByID(aID) {
-    let message = GlodaCollectionManager.cacheLookupOne(
-      GlodaMessage.prototype.NOUN_ID, aID);
-
-    if (message === null) {
-      let smbis = this._selectMessageByIDStatement;
-
-      smbis.bindInt64Parameter(0, aID);
-      if (this._syncStep(smbis)) {
-        message = this._messageFromRow(smbis);
-        GlodaCollectionManager.itemLoaded(message);
-      }
-      smbis.reset();
-    }
-
-    return message;
-  },
-
-  get _selectMessageByLocationStatement() {
-    let statement = this._createSyncStatement(
-      "SELECT * FROM messages WHERE folderID = ?1 AND messageKey = ?2");
-    this.__defineGetter__("_selectMessageByLocationStatement",
-      function() statement);
-    return this._selectMessageByLocationStatement;
-  },
-
-  /**
-   * Synchronously retrieve the message that we believe to correspond to the
-   *  given message key in the given folder.
-   * @return null on failure to locate the message, the message on success.
-   *
-   * @XXX on failure, attempt to resolve the problem through re-indexing, etc.
-   */
-  getMessageFromLocation: function gloda_ds_getMessageFromLocation(aFolder,
-                                                                 aMessageKey) {
-    this._selectMessageByLocationStatement.bindInt64Parameter(0,
-      this._mapFolder(aFolder).id);
-    this._selectMessageByLocationStatement.bindInt64Parameter(1, aMessageKey);
-
-    let message = null;
-    if (this._syncStep(this._selectMessageByLocationStatement))
-      message = this._messageFromRow(this._selectMessageByLocationStatement);
-    this._selectMessageByLocationStatement.reset();
-
-    if (message === null)
-      this._log.info("Error locating message with key=" + aMessageKey +
-                     " and URI " + aFolder.URI);
-
-    return message && GlodaCollectionManager.cacheLoadUnifyOne(message);
-  },
-
-  get _selectMessageIDsByFolderStatement() {
-    let statement = this._createSyncStatement(
-      "SELECT id FROM messages WHERE folderID = ?1");
-    this.__defineGetter__("_selectMessageIDsByFolderStatement",
-      function() statement);
-    return this._selectMessageIDsByFolderStatement;
-  },
-
-  getMessageIDsByFolderID:
-      function gloda_ds_getMessageIDsFromFolderID(aFolderID) {
-    let messageIDs = [];
-
-    let smidbfs = this._selectMessageIDsByFolderStatement;
-    smidbfs.bindInt64Parameter(0, aFolderID);
-
-    while (this._syncStep(smidbfs)) {
-      messageIDs.push(smidbfs.getInt64(0));
-    }
-    smidbfs.reset();
-
-    return messageIDs;
-  },
-
   get _updateMessagesMarkDeletedByFolderID() {
     let statement = this._createAsyncStatement(
       "UPDATE messages SET folderID = NULL, messageKey = NULL, \
@@ -2252,13 +2226,34 @@ var GlodaDatastore = {
     return this._updateMessagesMarkDeletedByFolderID;
   },
 
+  /**
+   * Efficiently mark all the messages in a folder as deleted.  Unfortunately,
+   *  we obviously do not know the id's of the messages affected by this which
+   *  complicates in-memory updates.  The options are sending out to the SQL
+   *  database for a list of the message id's or some form of in-memory
+   *  traversal.  I/O costs being what they are, users having a propensity to
+   *  have folders with tens of thousands of messages, and the unlikeliness
+   *  of all of those messages being gloda-memory-resident, we go with the
+   *  in-memory traversal.
+   */
   markMessagesDeletedByFolderID:
       function gloda_ds_markMessagesDeletedByFolderID(aFolderID) {
     let statement = this._updateMessagesMarkDeletedByFolderID;
     statement.bindInt64Parameter(0, aFolderID);
     statement.executeAsync(this.trackAsync());
+
+    // Have the collection manager generate itemsRemoved events for any
+    //  in-memory messages in that folder.
+    GlodaCollectionManager.itemsDeletedByAttribute(
+      GlodaMessage.prototype.NOUN_ID,
+      function(aMsg) aMsg._folderID == aFolderID);
   },
 
+  /**
+   * Mark all the gloda messages as deleted blind-fire.  Check if any of the
+   *  messages are known to the collection manager and update them to be deleted
+   *  along with the requisite collection notifications.
+   */
   markMessagesDeletedByIDs: function gloda_ds_markMessagesDeletedByIDs(
       aMessageIDs) {
     let sqlString = "UPDATE messages SET deleted = 1 WHERE id IN (" +
@@ -2268,17 +2263,8 @@ var GlodaDatastore = {
     statement.executeAsync(this.trackAsync());
     statement.finalize();
 
-    // some people are inclined to deleting ridiculous numbers of messages at
-    //  a time.  if we are in a transaction, this has the potential to cause us
-    //  to spill the transaction to disk prior to disk, resulting in a lock
-    //  escalation and making any synchronous reads from the main thread need
-    //  to become blocking.  We don't want that, so:
-    // If we are in a transaction and there are a "lot" of messages being
-    //  marked as deleted, issue a commit and then re-open the transaction.
-    if ((aMessageIDs.length > 200) && this._transactionDepth) {
-      this._commitTransaction();
-      this._beginTransaction();
-    }
+    GlodaCollectionManager.itemsDeleted(GlodaMessage.prototype.NOUN_ID,
+                                        aMessageIDs);
   },
 
   get _deleteMessageByIDStatement() {
@@ -2289,86 +2275,47 @@ var GlodaDatastore = {
     return this._deleteMessageByIDStatement;
   },
 
+  get _deleteMessageTextByIDStatement() {
+    let statement = this._createAsyncStatement(
+      "DELETE FROM messagesText WHERE docid = ?1");
+    this.__defineGetter__("_deleteMessageTextByIDStatement",
+                          function() statement);
+    return this._deleteMessageTextByIDStatement;
+  },
+
+  /**
+   * Delete a message and its fulltext from the database.  It is assumed that
+   *  the message was already marked as deleted and so is not visible to the
+   *  collection manager and so nothing needs to be done about that.
+   */
   deleteMessageByID: function gloda_ds_deleteMessageByID(aMessageID) {
-    // TODO: collection manager implications
     let dmbids = this._deleteMessageByIDStatement;
     dmbids.bindInt64Parameter(0, aMessageID);
     dmbids.executeAsync(this.trackAsync());
+
+    let dmt = this._deleteMessageTextByIDStatement;
+    dmt.bindInt64Parameter(0, aMessageID);
+    dmt.executeAsync(this.trackAsync());
   },
 
-  get _deleteMessagesByConversationIDStatement() {
+  get _folderCompactionStatement() {
     let statement = this._createAsyncStatement(
-      "DELETE FROM messages WHERE conversationID = ?1");
-    this.__defineGetter__("_deleteMessagesByConversationIDStatement",
+      "SELECT id, messageKey, headerMessageID FROM messages \
+        WHERE folderID = ?1 AND \
+          messageKey >= ?2 AND +deleted = 0 ORDER BY messageKey LIMIT ?3");
+    this.__defineGetter__("_folderCompactionStatement",
                           function() statement);
-    return this._deleteMessagesByConversationIDStatement;
+    return this._folderCompactionStatement;
   },
 
-  /**
-   * Delete messages by conversation ID.  For use by the indexer's deletion
-   *  logic, NOT you.
-   */
-  deleteMessagesByConversationID:
-    // TODO: collection manager implications
-      function gloda_ds_deleteMessagesByConversationID(aConversationID) {
-    let dmbcids = this._deleteMessagesByConversationIDStatement;
-    dmbcids.bindInt64Parameter(0, aConversationID);
-    dmbcids.executeAsync(this.trackAsync());
-  },
-
-  get _selectMessagesByConversationIDStatement() {
-    let statement = this._createSyncStatement(
-      "SELECT * FROM messages WHERE conversationID = ?1");
-    this.__defineGetter__("_selectMessagesByConversationIDStatement",
-      function() statement);
-    return this._selectMessagesByConversationIDStatement;
-  },
-
-  get _selectMessagesByConversationIDNoGhostsStatement() {
-    let statement = this._createSyncStatement(
-      "SELECT * FROM messages WHERE conversationID = ?1 AND \
-                                    folderID IS NOT NULL");
-    this.__defineGetter__("_selectMessagesByConversationIDNoGhostsStatement",
-      function() statement);
-    return this._selectMessagesByConversationIDNoGhostsStatement;
-  },
-
-  /**
-   * Retrieve all the messages belonging to the given conversation.  This
-   *  method is used by the indexer and the GlodaConversation class and is not
-   *  intended to be used by any other code.  (Most other code should probably
-   *  use the GlodaConversation.messages attribute or the general purpose query
-   *  mechanism.)
-   *
-   * @param aConversationID The ID of the conversation for which you want all
-   *     the messages.
-   * @param aIncludeGhosts Boolean indicating whether you want 'ghost' messages
-   *     (true) or not (false).  'Ghost' messages are messages that exist in the
-   *     database purely for conversation tracking/threading purposes.  They
-   *     are markers for messages we have not yet seen yet assume must exist
-   *     based on references/in-reply-to headers from non-ghost messages in our
-   *     database.
-   */
-  getMessagesByConversationID: function gloda_ds_getMessagesByConversationID(
-        aConversationID, aIncludeGhosts) {
-    let statement;
-    if (aIncludeGhosts)
-      statement = this._selectMessagesByConversationIDStatement;
-    else
-      statement = this._selectMessagesByConversationIDNoGhostsStatement;
-    statement.bindInt64Parameter(0, aConversationID);
-
-    let messages = [];
-    while (this._syncStep(statement)) {
-      messages.push(this._messageFromRow(statement));
-    }
-    statement.reset();
-
-    if (messages.length)
-      GlodaCollectionManager.cacheLoadUnify(GlodaMessage.prototype.NOUN_ID,
-                                            messages);
-
-    return messages;
+  folderCompactionPassBlockFetch:
+      function gloda_ds_folderCompactionPassBlockFetch(
+        aFolderID, aStartingMessageKey, aLimit, aCallback) {
+    let fcs = this._folderCompactionStatement;
+    fcs.bindInt64Parameter(0, aFolderID);
+    fcs.bindInt64Parameter(1, aStartingMessageKey);
+    fcs.bindInt64Parameter(2, aLimit);
+    fcs.executeAsync(new CompactionBlockFetcherHandler(aCallback));
   },
 
   /* ********** Message Attributes ********** */
@@ -2483,44 +2430,6 @@ var GlodaDatastore = {
       this._deleteMessageAttributesByMessageIDStatement.executeAsync(
         this.trackAsync());
     }
-  },
-
-  get _selectMessageAttributesByMessageIDStatement() {
-    let statement = this._createSyncStatement(
-      "SELECT attributeID, value FROM messageAttributes \
-         WHERE messageID = ?1");
-    this.__defineGetter__("_selectMessageAttributesByMessageIDStatement",
-      function() statement);
-    return this._selectMessageAttributesByMessageIDStatement;
-  },
-
-  /**
-   * Look-up the attributes associated with the given GlodaMessage instance,
-   *  returning them in APV form (a tuple of Attribute definition object,
-   *  attribute Parameter, and attribute Value).
-   *
-   * @param aMessage The GlodaMessage whose attributes you want retrieved.
-   * @return An APV list of the attributes.
-   */
-  getMessageAttributes: function gloda_ds_getMessageAttributes(aMessage) {
-    // A list of [attribute def object, (attr) parameter value, attribute value]
-    let attribParamVals = []
-
-    let smas = this._selectMessageAttributesByMessageIDStatement;
-
-    smas.bindInt64Parameter(0, aMessage.id);
-    while (this._syncStep(smas)) {
-      let attributeID = smas.getInt64(0);
-      if (!(attributeID in this._attributeIDToDBDefAndParam)) {
-        this._log.error("Attribute ID " + attributeID + " not in our map!");
-      }
-      let attribAndParam = this._attributeIDToDBDefAndParam[attributeID];
-      let val = smas.getDouble(1);
-      attribParamVals.push([attribAndParam[0], attribAndParam[1], val]);
-    }
-    smas.reset();
-
-    return attribParamVals;
   },
 
   _stringSQLQuoter: function(aString) {
@@ -2735,9 +2644,11 @@ var GlodaDatastore = {
    *  its listener) as the state of the database changes.
    * This functionality is made user/extension visible by the Query's
    *  getCollection (asynchronous).
+   *
+   * @param [aArgs] See |GlodaQuery.getCollection| for info.
    */
   queryFromQuery: function gloda_ds_queryFromQuery(aQuery, aListener,
-      aListenerData, aExistingCollection, aMasterCollection, aBecomeExplicit) {
+      aListenerData, aExistingCollection, aMasterCollection, aArgs) {
     // when changing this method, be sure that GlodaQuery's testMatch function
     //  likewise has its changes made.
     let nounDef = aQuery._nounDef;
@@ -2948,8 +2859,10 @@ var GlodaDatastore = {
     // (we do not need to pass an argument to the explicitQueryClass constructor
     //  because it will be passed in to the collection's constructor, which will
     //  ensure that the collection attribute gets set.)
-    if (aBecomeExplicit)
+    if (aArgs && ("becomeExplicit" in aArgs) && aArgs.becomeExplicit)
       aQuery = new nounDef.explicitQueryClass();
+    else if (aArgs && ("becomeNull" in aArgs) && aArgs.becomeNull)
+      aQuery = new nounDef.nullQueryClass();
 
     return this._queryFromSQLString(sqlString, boundArgs, nounDef, aQuery,
         aListener, aListenerData, aExistingCollection, aMasterCollection);
@@ -3203,7 +3116,6 @@ var GlodaDatastore = {
   createContact: function gloda_ds_createContact(aDirectoryUUID, aContactUUID,
       aName, aPopularity, aFrecency) {
     let contactID = this._nextContactId++;
-    this._log.debug("createContact: " + contactID + ": " + aName);
     let contact = new GlodaContact(this, contactID,
                                    aDirectoryUUID, aContactUUID, aName,
                                    aPopularity, aFrecency);
@@ -3230,7 +3142,6 @@ var GlodaDatastore = {
       ics.bindNullParameter(6);
 
     ics.executeAsync(this.trackAsync());
-    this._log.debug("insertContact: " + aContact.id + ":" + aContact.name);
 
     return aContact;
   },
@@ -3292,6 +3203,12 @@ var GlodaDatastore = {
     return this._selectContactByIDStatement;
   },
 
+  /**
+   * Synchronous contact lookup currently only for use by gloda's creation
+   *  of the concept of "me".  It is okay for it to be doing synchronous work
+   *  because it is part of the startup process before any user code could
+   *  have gotten a reference to Gloda, but no one else should do this.
+   */
   getContactByID: function gloda_ds_getContactByID(aContactID) {
     let contact = GlodaCollectionManager.cacheLookupOne(
       GlodaContact.prototype.NOUN_ID, aContactID);
@@ -3364,7 +3281,11 @@ var GlodaDatastore = {
     return this._selectIdentityByKindValueStatement;
   },
 
-  /** Lookup an identity by kind and value.  Ex: (email, foo@bar.com) */
+  /**
+   * Synchronous lookup of an identity by kind and value, only for use by
+   *  the legacy gloda core code that creates a concept of "me".
+   *  Ex: (email, foo@bar.com)
+   */
   getIdentity: function gloda_ds_getIdentity(aKind, aValue) {
     let identity = GlodaCollectionManager.cacheLookupOneByUniqueValue(
       GlodaIdentity.prototype.NOUN_ID, aKind + "@" + aValue);
@@ -3380,55 +3301,10 @@ var GlodaDatastore = {
 
     return identity;
   },
-
-  get _selectIdentityByIDStatement() {
-    let statement = this._createSyncStatement(
-      "SELECT * FROM identities WHERE id = ?1");
-    this.__defineGetter__("_selectIdentityByIDStatement",
-      function() statement);
-    return this._selectIdentityByIDStatement;
-  },
-
-  getIdentityByID: function gloda_ds_getIdentityByID(aID) {
-    let identity = GlodaCollectionManager.cacheLookupOne(
-      GlodaIdentity.prototype.NOUN_ID, aID);
-
-    if (identity === null) {
-      let sibis = this._selectIdentityByIDStatement;
-      sibis.bindInt64Parameter(0, aID);
-      if (this._syncStep(sibis)) {
-        identity = this._identityFromRow(sibis);
-        GlodaCollectionManager.itemLoaded(identity);
-      }
-      sibis.reset();
-    }
-
-    return identity;
-  },
-
-  get _selectIdentityByContactIDStatement() {
-    let statement = this._createSyncStatement(
-      "SELECT * FROM identities WHERE contactID = ?1");
-    this.__defineGetter__("_selectIdentityByContactIDStatement",
-      function() statement);
-    return this._selectIdentityByContactIDStatement;
-  },
-
-  getIdentitiesByContactID: function gloda_ds_getIdentitiesByContactID(
-      aContactID) {
-    let sibcs = this._selectIdentityByContactIDStatement;
-
-    sibcs.bindInt64Parameter(0, aContactID);
-
-    let identities = [];
-    while (this._syncStep(sibcs)) {
-      identities.push(this._identityFromRow(sibcs));
-    }
-    sibcs.reset();
-
-    if (identities.length)
-      GlodaCollectionManager.cacheLoadUnify(GlodaIdentity.prototype.NOUN_ID,
-                                            identities);
-    return identities;
-  },
 };
+GlodaAttributeDBDef.prototype._datastore = GlodaDatastore;
+GlodaConversation.prototype._datastore = GlodaDatastore;
+GlodaFolder.prototype._datastore = GlodaDatastore;
+GlodaMessage.prototype._datastore = GlodaDatastore;
+GlodaContact.prototype._datastore = GlodaDatastore;
+GlodaIdentity.prototype._datastore = GlodaDatastore;

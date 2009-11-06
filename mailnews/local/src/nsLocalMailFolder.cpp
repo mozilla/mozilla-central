@@ -30,6 +30,7 @@
  *   Howard Chu <hyc@highlandsun.com>
  *   William Bonnet <wbonnet@on-x.com>
  *   Siddharth Agarwal <sid1337@gmail.com>
+ *   Andrew Sutherland <asutherland@asutherland.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -1582,6 +1583,11 @@ nsMsgLocalMailFolder::InitCopyState(nsISupports* aSupport,
     mCopyState->m_listener = do_QueryInterface(listener, &rv);
   mCopyState->m_copyingMultipleMessages = PR_FALSE;
   mCopyState->m_wholeMsgInStream = PR_FALSE;
+
+  // If we have source messages then we need destination messages too.
+  if (messages)
+    mCopyState->m_destMessages = do_CreateInstance(NS_ARRAY_CONTRACTID);
+
   return rv;
 }
 
@@ -2608,9 +2614,12 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
           mCopyState->m_message, PR_TRUE,
           getter_AddRefs(newHdr));
         PRUint32 newHdrFlags;
-        // turn off offline flag - it's not valid for local mail folders.
         if (newHdr)
+        {
+          // turn off offline flag - it's not valid for local mail folders.
           newHdr->AndFlags(~nsMsgMessageFlags::Offline, &newHdrFlags);
+          mCopyState->m_destMessages->AppendElement(newHdr, PR_FALSE);
+        }
       }
       // we can do undo with the dest folder db, see bug #198909
       //else
@@ -2689,6 +2698,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
           newHdr->GetMessageSize(&msgSize);
           localUndoTxn->AddDstMsgSize(msgSize);
         }
+
+        mCopyState->m_destMessages->AppendElement(newHdr, PR_FALSE);
       }
       // msgDb->SetSummaryValid(PR_TRUE);
       // msgDb->Commit(nsMsgDBCommitType::kLargeCommit);
@@ -2724,7 +2735,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
       // because deleting the source messages clears out the src msg db hdr.
       nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
-        notifier->NotifyMsgsMoveCopyCompleted(mCopyState->m_isMove, mCopyState->m_messages, this);
+        notifier->NotifyMsgsMoveCopyCompleted(mCopyState->m_isMove,
+                                              mCopyState->m_messages,
+                                              this, mCopyState->m_destMessages);
     }
 
     if(!mCopyState->m_isMove)
@@ -2763,7 +2776,15 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
     {
       nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
+      {
         notifier->NotifyMsgAdded(newHdr);
+        // We do not appear to trigger classification in this case, so let's
+        // paper over the abyss by just sending the classification notification.
+        nsCOMPtr <nsIMutableArray> oneHeaderArray =
+          do_CreateInstance(NS_ARRAY_CONTRACTID);
+        oneHeaderArray->AppendElement(newHdr, PR_FALSE);
+        notifier->NotifyMsgsClassified(oneHeaderArray, PR_FALSE, PR_FALSE);
+      }
     }
   }
   return rv;

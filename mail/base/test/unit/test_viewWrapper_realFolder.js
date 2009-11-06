@@ -4,9 +4,12 @@
  *  newsgroup specific.)
  */
 
+load("../../mailnews/resources/logHelper.js");
+load("../../mailnews/resources/asyncTestUtils.js");
+
 load("../../mailnews/resources/messageGenerator.js");
 load("../../mailnews/resources/messageModifier.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../mailnews/resources/messageInjection.js");
 
 load("resources/viewWrapperTestUtils.js");
 initViewWrapperTestUtils();
@@ -44,11 +47,11 @@ function test_real_folder_update() {
   verify_messages_in_view([setOne, setTwo], viewWrapper);
 
   // remove the first set of messages (more -> some)
-  yield async_delete_messages(setOne);
+  yield async_trash_messages(setOne);
   verify_messages_in_view(setTwo, viewWrapper);
 
   // remove the second set of messages (some -> none)
-  yield async_delete_messages(setTwo);
+  yield async_trash_messages(setTwo);
   verify_empty_view(viewWrapper);
 
 }
@@ -761,6 +764,5 @@ var tests = [
 ];
 
 function run_test() {
-  loadLocalMailAccount();
   async_run_tests(tests);
 }

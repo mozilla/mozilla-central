@@ -2166,24 +2166,61 @@ nsMsgDBFolder::OnMessageClassified(const char *aMsgURI,
 {
   if (!aMsgURI) // This signifies end of batch.
   {
+    nsresult rv = NS_OK;
     // Apply filters if needed.
     PRUint32 length;
-    if ((!mPostBayesMessagesToFilter ||
-         NS_FAILED(mPostBayesMessagesToFilter->GetLength(&length)) ||
-         !length))
-      return NS_OK; // No filtering needed or possible.
+    if (mPostBayesMessagesToFilter &&
+         NS_SUCCEEDED(mPostBayesMessagesToFilter->GetLength(&length)) &&
+         length)
+    {
+      // Apply post-bayes filtering.
+      nsCOMPtr<nsIMsgFilterService>
+        filterService(do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv));
+      if (NS_SUCCEEDED(rv))
+        // We use a null nsIMsgWindow because we don't want some sort of ui
+        // appearing in the middle of automatic filtering (plus I really don't
+        // want to propagate that value.)
+        rv = filterService->ApplyFilters(nsMsgFilterType::PostPlugin,
+                                         mPostBayesMessagesToFilter,
+                                         this, nsnull /* nsIMsgWindow */);
+      mPostBayesMessagesToFilter->Clear();
+    }
 
-    // Apply post-bayes filtering.
-    nsresult rv;
-    nsCOMPtr<nsIMsgFilterService> filterService(do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv));
-    if (NS_SUCCEEDED(rv))
-      // We use a null nsIMsgWindow because we don't want some sort of ui
-      // appearing in the middle of automatic filtering (plus I really don't
-      // want to propagate that value.)
-      rv = filterService->ApplyFilters(nsMsgFilterType::PostPlugin,
-                                       mPostBayesMessagesToFilter,
-                                       this, nsnull /* nsIMsgWindow */);
-    mPostBayesMessagesToFilter->Clear();
+    // Bail if we didn't actually classify any messages.
+    if (mBayesMsgKeys.IsEmpty())
+      return rv;
+
+    // Notify that we classified some messages.
+    nsCOMPtr<nsIMsgFolderNotificationService>
+      notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr <nsIMutableArray> classifiedMsgHdrs =
+      do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    PRUint32 numKeys = mBayesMsgKeys.Length();
+    for (PRUint32 i = 0 ; i < numKeys ; ++i)
+    {
+      nsCOMPtr <nsIMsgDBHdr> msgHdr;
+      PRBool hasKey;
+      // It is very possible for a message header to no longer be around because
+      // a filter moved it.
+      rv = mDatabase->ContainsKey(mBayesMsgKeys[i], &hasKey);
+      if (!NS_SUCCEEDED(rv) || !hasKey)
+        continue;
+      rv = mDatabase->GetMsgHdrForKey(mBayesMsgKeys[i],
+                                      getter_AddRefs(msgHdr));
+      if (!NS_SUCCEEDED(rv))
+        continue;
+      classifiedMsgHdrs->AppendElement(msgHdr, PR_FALSE);
+    }
+
+    notifier->NotifyMsgsClassified(classifiedMsgHdrs,
+                                   mBayesJunkClassifying,
+                                   mBayesTraitClassifying);
+    mBayesMsgKeys.Clear();
+
     return rv;
   }
 
@@ -2446,9 +2483,6 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     }
   }
 
-  if (!filterForOther && !filterForJunk && !filterPostPlugin)
-    return NS_OK;
-  
   // get the list of new messages
   //
   PRUint32 numNewKeys;
@@ -2457,6 +2491,9 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsTArray<nsMsgKey> newMessageKeys;
+  // Start from m_saveNewMsgs (and clear its current state).  m_saveNewMsgs is
+  // where we stash the list of new messages when we are told to clear the list
+  // of new messages by the UI (which purges the list from the nsMsgDatabase).
   newMessageKeys.SwapElements(m_saveNewMsgs);
   if (numNewKeys)
     newMessageKeys.AppendElements(newKeys, numNewKeys);
@@ -2467,11 +2504,44 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   if (newMessageKeys.IsEmpty())
     return NS_OK;
 
+  // If we do not need to do any work, leave.
+  // (We needed to get the list of new messages so we could get their headers so
+  // we can send notifications about them here.)
+  if (!filterForOther && !filterForJunk && !filterPostPlugin)
+  {
+    // notify that these messages are not being classified
+    nsCOMPtr<nsIMsgFolderNotificationService>
+      notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    if (notifier)
+    {
+      nsCOMPtr <nsIMutableArray> newMsgHdrs =
+        do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      PRUint32 numNewMessages = newMessageKeys.Length();
+      for (PRUint32 i = 0 ; i < numNewMessages ; ++i)
+      {
+        nsCOMPtr <nsIMsgDBHdr> msgHdr;
+        // We do not need to do a ContainsKey check here; nothing could have
+        // changed yet.
+        rv = mDatabase->GetMsgHdrForKey(newMessageKeys[i],
+                                        getter_AddRefs(msgHdr));
+        if (!NS_SUCCEEDED(rv))
+          continue;
+        newMsgHdrs->AppendElement(msgHdr, PR_FALSE);
+      }
+      // we need to build up a list of message headers for this notification
+      notifier->NotifyMsgsClassified(newMsgHdrs, filterForJunk, filterForOther);
+    }
+    return NS_OK;
+  }
+
   // build up list of keys to classify
   nsCString uri;
-  nsTArray<nsMsgKey> keysToClassify;
+  nsCOMPtr<nsIMutableArray> msgHdrsNotBeingClassified; // create on demand
+
   PRUint32 numNewMessages = newMessageKeys.Length();
-  for ( PRUint32 i=0 ; i < numNewMessages ; ++i )
+  for (PRUint32 i = 0 ; i < numNewMessages ; ++i)
   {
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
     nsMsgKey msgKey = newMessageKeys[i];
@@ -2518,11 +2588,21 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
 
     if (filterMessageForJunk || filterMessageForOther)
     {
-      keysToClassify.AppendElement(newMessageKeys[i]);
+      mBayesMsgKeys.AppendElement(newMessageKeys[i]);
       if (filterMessageForJunk)
         OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyJunk);
       if (filterMessageForOther)
         OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyTraits);
+    }
+    else
+    {
+      if (!msgHdrsNotBeingClassified)
+        msgHdrsNotBeingClassified = do_CreateInstance(NS_ARRAY_CONTRACTID);
+      if (!msgHdrsNotBeingClassified)
+        return NS_ERROR_OUT_OF_MEMORY;
+      // Accumulate the message header for immediate classified notification
+      // that we are not classifying it.
+      msgHdrsNotBeingClassified->AppendElement(msgHdr, PR_FALSE);
     }
 
     // Set messages to filter post-bayes.
@@ -2541,9 +2621,26 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     }
   }
 
-  if (!keysToClassify.IsEmpty())
+  // If we have any headers not being classified, notify about them.
+  if (msgHdrsNotBeingClassified)
   {
-    PRUint32 numMessagesToClassify = keysToClassify.Length();
+    nsCOMPtr<nsIMsgFolderNotificationService>
+      notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    if (notifier)
+      notifier->NotifyMsgsClassified(msgHdrsNotBeingClassified,
+                                     // no classification is being performed
+                                     PR_FALSE, PR_FALSE);
+  }
+
+  if (!mBayesMsgKeys.IsEmpty())
+  {
+    // Remember what classifications are the source of this decision for when
+    // we perform the notification in OnMessageClassified at the conclusion of
+    // classification.
+    mBayesJunkClassifying = filterForJunk;
+    mBayesTraitClassifying = filterForOther;
+
+    PRUint32 numMessagesToClassify = mBayesMsgKeys.Length();
     char ** messageURIs = (char **) PR_MALLOC(sizeof(const char *) * numMessagesToClassify);
     if (!messageURIs)
       return NS_ERROR_OUT_OF_MEMORY;
@@ -2551,7 +2648,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     for (PRUint32 msgIndex = 0; msgIndex < numMessagesToClassify ; ++msgIndex )
     {
       nsCString tmpStr;
-      rv = GenerateMessageURI(keysToClassify[msgIndex], tmpStr);
+      rv = GenerateMessageURI(mBayesMsgKeys[msgIndex], tmpStr);
       messageURIs[msgIndex] = ToNewCString(tmpStr);
       if (NS_FAILED(rv))
           NS_WARNING("nsMsgDBFolder::CallFilterPlugins(): could not"

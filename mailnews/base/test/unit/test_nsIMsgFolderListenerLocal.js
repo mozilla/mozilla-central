@@ -40,11 +40,19 @@ function addFolder(parent, folderName, storeIn)
     resetStatusAndProceed();
 }
 
+/**
+ * This will introduce a new message to the system which will generate an added
+ * notification and subsequently a classification notification.  For the
+ * classification because no messages have yet been marked as junk and there
+ * are no traits configured, aJunkProcessed and aTraitProcessed will be false.
+ */
 function copyFileMessage(file, destFolder, isDraftOrTemplate)
 {
   copyListener.mFolderStoredIn = destFolder;
-  gExpectedEvents = [[gMFNService.msgAdded, gHdrsReceived]];
-  gCopyService.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, "", copyListener, null);
+  gExpectedEvents = [[gMFNService.msgAdded, gHdrsReceived],
+                     [gMFNService.msgsClassified, gHdrsReceived, false, false]];
+  gCopyService.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, "",
+                               copyListener, null);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
     resetStatusAndProceed();
@@ -56,8 +64,10 @@ function copyMessages(items, isMove, srcFolder, destFolder)
   items.forEach(function (item) {
     array.appendElement(item, false);
   });
-  gExpectedEvents = [[gMFNService.msgsMoveCopyCompleted, isMove, items, destFolder]];
-  gCopyService.CopyMessages(srcFolder, array, destFolder, isMove, copyListener, null, true);
+  gExpectedEvents = [
+    [gMFNService.msgsMoveCopyCompleted, isMove, items, destFolder, true]];
+  gCopyService.CopyMessages(srcFolder, array, destFolder, isMove, copyListener,
+                            null, true);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
     resetStatusAndProceed();
@@ -93,7 +103,8 @@ function deleteMessages(srcFolder, items, deleteStorage, isMove)
   }
   else
     // We have to be getting a move notification, even if isMove is false
-    gExpectedEvents = [[gMFNService.msgsMoveCopyCompleted, true, items, gLocalTrashFolder]];
+    gExpectedEvents = [[gMFNService.msgsMoveCopyCompleted, true, items,
+                        gLocalTrashFolder, true]];
 
   srcFolder.deleteMessages(array, null, deleteStorage, isMove, copyListener, true);
   gCurrStatus |= kStatus.functionCallDone;
@@ -131,6 +142,18 @@ function deleteFolder(folder, child)
     gExpectedEvents = [[gMFNService.folderMoveCopyCompleted, true, [folder], gLocalTrashFolder]];
 
   folder.parent.deleteSubFolders(array, null);
+  gCurrStatus |= kStatus.functionCallDone;
+  if (gCurrStatus == kStatus.everythingDone)
+    resetStatusAndProceed();
+}
+
+function compactFolder(folder)
+{
+  gExpectedEvents = [[gMFNService.itemEvent, folder, "FolderCompactStart"],
+                     [gMFNService.itemEvent, folder, "FolderCompactFinish"]];
+  // We won't receive a copy listener notification for this
+  gCurrStatus |= kStatus.onStopCopyDone;
+  folder.compact(null, null);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
     resetStatusAndProceed();
@@ -242,7 +265,10 @@ const gTestArray =
     // Let's take a moment to re-initialize stuff that got moved
     gLocalFolder2 = gLocalTrashFolder.getChildNamed("folder2");
     gLocalFolder3 = gLocalFolder2.getChildNamed("folder3");
-    deleteFolder(gLocalFolder2, gLocalFolder3); }
+    deleteFolder(gLocalFolder2, gLocalFolder3); },
+  function compactInbox() {
+    compactFolder(gLocalInboxFolder);
+  }
 ];
   // Folder structure should just be
   // Inbox
@@ -251,7 +277,7 @@ const gTestArray =
 function run_test()
 {
   // Add a listener.
-  gMFNService.addListener(gMFListener, gMFNService.all);
+  gMFNService.addListener(gMFListener, allTestedEvents);
 
   loadLocalMailAccount();
 
@@ -279,6 +305,7 @@ function doTest(test)
     // Set a limit of three seconds; if the notifications haven't arrived by then there's a problem.
     do_timeout(10000, "if (gTest == "+test+") \
       do_throw('Notifications not received in 10000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
+    dump("=== Test: " + testFn.name + "\n");
     testFn();
   }
   else

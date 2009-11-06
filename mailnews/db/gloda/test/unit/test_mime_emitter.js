@@ -1,3 +1,40 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Thunderbird Global Database.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
 /*
  * General testing of the JS Mime Emitter to make sure it doesn't choke on any
  *  scenarios.
@@ -8,13 +45,9 @@
  * - sun attachment
  */
 
-load("../../mailnews/resources/messageGenerator.js");
 load("resources/glodaTestHelper.js");
 
 Components.utils.import("resource://app/modules/gloda/mimemsg.js");
-
-// Create a message generator
-var msgGen = new MessageGenerator();
 
 var partText = new SyntheticPartLeaf("I am text! Woo!");
 var partHtml = new SyntheticPartLeaf(
@@ -197,31 +230,16 @@ var messageInfos = [
   }
 ];
 
-function setup_create_message(info) {
-  info._synMsg = msgGen.makeMessage(info);
-  next_test();
-}
-
-var emittyFolder;
-
-/**
- * Actually inject all the messages we created above.
- */
-function setup_inject_messages() {
-  let synMessages = [info._synMsg for each
-                      ([, info] in Iterator(messageInfos))];
-  writeMessagesToMbox(synMessages, gProfileDir,
-                      "Mail", "Local Folders", "emitty");
-  emittyFolder = gLocalIncomingServer.rootMsgFolder.addSubfolder("emitty");
-  updateFolderAndNotify(emittyFolder, next_test);
-}
 
 function test_stream_message(info) {
-  let msgHdr =
-    emittyFolder.msgDatabase.getMsgHdrForMessageID(info._synMsg.messageId);
+  let synMsg = gMessageGenerator.makeMessage(info);
+  let synSet = new SyntheticMessageSet([synMsg]);
+  yield add_sets_to_folder(gInbox, [synSet]);
+
+  let msgHdr = synSet.getMsgHdr(0);
 
   MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
-    verify_stream_message(info, info._synMsg, aMsgHdr, aMimeMsg);
+    verify_stream_message(info, synMsg, aMsgHdr, aMimeMsg);
   });
 }
 
@@ -289,19 +307,21 @@ function verify_stream_message(aInfo, aSynMsg, aMsgHdr, aMimeMsg) {
        "\n\n");
   dump("MIME looks like:\n  " + aMimeMsg.prettyString(true, "  ") + "\n\n");
 
-  next_test();
+  async_driver();
 }
 
 /* ===== Driver ===== */
 
 var tests = [
-  parameterizeTest(setup_create_message, messageInfos),
-  setup_inject_messages,
   parameterizeTest(test_stream_message, messageInfos),
 ];
 
+var gInbox;
+
 function run_test() {
   // use mbox injection because the fake server chokes sometimes right now
-  injectMessagesUsing(INJECT_MBOX);
+  gInbox = configure_message_injection({mode: "local"});
+  // we do not require gloda indexing of anything.
+  configure_gloda_indexing({event: false});
   glodaHelperRunTests(tests);
 }

@@ -40,8 +40,6 @@ Components.utils.import("resource://app/modules/mailViewManager.js");
 Components.utils.import("resource://app/modules/quickSearchManager.js");
 Components.utils.import("resource://app/modules/virtualFolderWrapper.js");
 
-var gMessageGenerator, gMessageScenarioFactory;
-
 /**
  * Do initialization for xpcshell-tests; not used by
  *  test-folder-display-helpers.js, our friendly mozmill test helper.
@@ -51,6 +49,8 @@ function initViewWrapperTestUtils() {
   gMessageScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
 
   async_test_runner_register_helper(VWTU_testHelper);
+  register_message_injection_listener(VWTU_testHelper);
+  configure_message_injection({mode: "local"});
 }
 
 // something less sucky than do_check_true
@@ -146,6 +146,10 @@ var VWTU_testHelper = {
   active_view_wrappers: [],
   active_real_folders: [],
   active_virtual_folders: [],
+
+  onVirtualFolderCreated: function(aVirtualFolder) {
+    this.active_virtual_folders.push(aVirtualFolder);
+  },
 
   postTest: function () {
     // close all the views we opened
@@ -248,19 +252,6 @@ function async_view_end_update(aViewWrapper) {
   return false;
 }
 
-var gNextUniqueFolderId = 0;
-/**
- * Create and return an empty local folder.  If you want to delete this folder
- *  you must call delete_folder to kill it!
- */
-function make_empty_folder() {
-  let name = "gabba" + gNextUniqueFolderId++;
-  let testFolder = gLocalIncomingServer.rootMsgFolder.addSubfolder(name);
-  // track it for cleanup or error reporting (if the test hangs)
-  VWTU_testHelper.active_real_folders.push(testFolder);
-  return testFolder;
-}
-
 /**
  * The deletion is asynchronous from a view perspective because the view ends
  *  up re-creating itself which triggers a new search.  This function is
@@ -304,59 +295,6 @@ function async_delete_folder(aFolder, aViewWrapper) {
   return false;
 }
 var delete_folder = async_delete_folder;
-
-SEARCH_TERM_MAP_HELPER = {
-  subject: Components.interfaces.nsMsgSearchAttrib.Subject,
-  body: Components.interfaces.nsMsgSearchAttrib.Body,
-  from: Components.interfaces.nsMsgSearchAttrib.Sender,
-  to: Components.interfaces.nsMsgSearchAttrib.To,
-  cc: Components.interfaces.nsMsgSearchAttrib.CC,
-  recipient: Components.interfaces.nsMsgSearchAttrib.ToOrCC,
-  involves: Components.interfaces.nsMsgSearchAttrib.AllAddresses,
-  age: Components.interfaces.nsMsgSearchAttrib.AgeInDays,
-  tags: Components.interfaces.nsMsgSearchAttrib.Keywords,
-};
-/**
- * Create and return a virtual folder.
- *
- * @param aFolders The real folders this virtual folder should draw from.
- * @param aSearchDef The search definition to use to build the list of search
- *     terms that populate this virtual folder.  Keys should be stuff from
- *     SEARCH_TERM_MAP_HELPER and values should be strings to search for within
- *     those attribute things.
- * @param aBooleanAnd Should the search terms be and-ed together.
- * @param [aName] Name to use.
- */
-function make_virtual_folder(aFolders, aSearchDef, aBooleanAnd, aName) {
-  let name = aName ? aName : "virt" + gNextUniqueFolderId++;
-
-  let terms = [];
-  let termCreator = Components.classes["@mozilla.org/messenger/searchSession;1"]
-                              .createInstance(Ci.nsIMsgSearchSession);
-  for each (let [key, val] in Iterator(aSearchDef)) {
-    let term = termCreator.createTerm();
-    let value = term.value;
-    value.str = val;
-    term.value = value;
-    term.attrib = SEARCH_TERM_MAP_HELPER[key];
-    term.op = Components.interfaces.nsMsgSearchOp.Contains;
-    term.booleanAnd = Boolean(aBooleanAnd);
-    terms.push(term);
-  }
-  // create an ALL case if we didn't add any terms
-  if (terms.length == 0) {
-    let term = termCreator.createTerm();
-    term.matchAll = true;
-    terms.push(term);
-  }
-
-  let wrapped = VirtualFolderHelper.createNewVirtualFolder(
-    name, gLocalIncomingServer.rootMsgFolder, aFolders, terms,
-    /* online */ false);
-  // track it for cleanup or error reporting (if the test hangs)
-  VWTU_testHelper.active_virtual_folders.push(wrapped.virtualFolder);
-  return wrapped.virtualFolder;
-}
 
 /**
  * For assistance in debugging, dump information about a message header.
@@ -578,7 +516,6 @@ function verify_view_row_at_index_is_dummy(aViewWrapper) {
   }
 }
 
-
 /**
  * Expand all nodes in the view wrapper.  This is a debug helper function
  *  because there's no good reason to have it be on the view wrapper at this
@@ -589,154 +526,6 @@ function view_expand_all(aViewWrapper) {
   // we can't use the command because it has assertions about having a tree.
   aViewWrapper._viewFlags |= Ci.nsMsgViewFlagsType.kExpandAll;
 }
-
-/**
- * Create a new local folder, populating it with messages according to the set
- *  definition provided.
- *
- * @param aSynSetDefs A synthetic set definition, as appropriate to pass to
- *     make_new_sets_in_folder.
- * @return A list whose first element is the nsIMsgLocalMailFolder created and
- *     whose subsequent items are the SyntheticMessageSets used to populate the
- *     folder (as returned by make_new_sets_in_folder).
- */
-function make_folder_with_sets(aSynSetDefs) {
-  let msgFolder = make_empty_folder();
-  let results = make_new_sets_in_folder(msgFolder, aSynSetDefs);
-  results.unshift(msgFolder);
-  return results;
-}
-
-/**
- * Create multiple new local folders, populating them with messages according to
- *  the set definitions provided.  Differs from make_folder_with_sets by taking
- *  the number of folders to create and return the list of created folders as
- *  the first element in the returned list.  This method is simple enough that
- *  the limited code duplication is deemed acceptable in support of readability.
- *
- * @param aSynSetDefs A synthetic set definition, as appropriate to pass to
- *     make_new_sets_in_folder.
- * @return A list whose first element is the nsIMsgLocalMailFolder created and
- *     whose subsequent items are the SyntheticMessageSets used to populate the
- *     folder (as returned by make_new_sets_in_folder).
- */
-function make_folders_with_sets(aFolderCount, aSynSetDefs) {
-  let msgFolders = [];
-  for (let i = 0; i < aFolderCount; i++)
-    msgFolders.push(make_empty_folder());
-  let results = make_new_sets_in_folders(msgFolders, aSynSetDefs);
-  results.unshift(msgFolders);
-  return results;
-}
-
-/**
- * Given one or more existing local folder, create new message sets and add them
- *  to the folders using
- *
- * @param aMsgFolders A single nsIMsgLocalMailFolder or a list of them.  The
- *     synthetic messages will be added to the folder(s).
- * @param aSynSetDefs Either an integer describing the number of sets of
- *     messages to create (using default parameters), or a list of set
- *     definition objects as defined by MessageGenerator.makeMessages.
- * @return A list of SyntheticMessageSet objects, each corresponding to the
- *     entry in aSynSetDefs (or implied if an integer was passed).
- */
-function make_new_sets_in_folders(aMsgFolders, aSynSetDefs) {
-  // is it just a count of the number of plain vanilla sets to create?
-  if (typeof(aSynSetDefs) == "number") {
-    let setCount = aSynSetDefs;
-    aSynSetDefs = [];
-    for (let iSet = 0; iSet < setCount; iSet++)
-      aSynSetDefs.push({});
-  }
-  // now it must be a list of set descriptors
-
-  // - create the synthetic message sets
-  let messageSets = [];
-  for each (let [, synSetDef] in Iterator(aSynSetDefs)) {
-    let messages = gMessageGenerator.makeMessages(synSetDef);
-    messageSets.push(new SyntheticMessageSet(messages));
-  }
-
-  // - add the messages to the folders (interleaving them)
-  add_sets_to_folders(aMsgFolders, messageSets);
-
-  return messageSets;
-}
-/** singular folder alias for single-folder users' readability */
-let make_new_sets_in_folder = make_new_sets_in_folders;
-
-/**
- * An iterator that generates an infinite sequence of its argument.  So
- *  _looperator(1, 2, 3) will generate the iteration stream: [1, 2, 3, 1, 2, 3,
- *  1, 2, 3, ...].  For use by add_sets_across_folders.
- */
-function _looperator(aList) {
-  if (aList.length == 0)
-    throw Exception("aList must have at least one item!");
-
-  let i = 0, length = aList.length;
-  while (true) {
-    yield aList[i];
-    i = (i + 1) % length;
-  }
-}
-
-/**
- * Spreads the messages in aMessageSets across the folders in aMsgFolders.  Each
- *  message set is spread in a round-robin fashion across all folders.  At the
- *  same time, each message-sets insertion is interleaved with the other message
- *  sets.  This distributes message across multiple folders for useful
- *  cross-folder threading testing (via the round robin) while also hopefully
- *  avoiding making things pathologically easy for the code under test (by way
- *  of the interleaving.)
- *
- * For example, given the following 2 input message sets:
- *  message set 'lower': [a b c d e f]
- *  message set 'upper': [A B C D E F G H]
- *
- * across 2 folders:
- *  folder 1: [a A c C e E G]
- *  folder 2: [b B d D f F H
- * across 3 folders:
- *  folder 1: [a A d D G]
- *  folder 2: [b B e E H]
- *  folder 3: [c C f F]
- *
- * @param aMsgFolders An nsIMsgLocalMailFolder to add the message sets to or a
- *     list of them.
- * @param aMessageSets A list of SyntheticMessageSets.
- */
-function add_sets_to_folders(aMsgFolders, aMessageSets) {
-  if (!('length' in aMsgFolders))
-    aMsgFolders = [aMsgFolders];
-
-  for each (let [, folder] in Iterator(aMsgFolders)) {
-    if (!(folder instanceof Components.interfaces.nsIMsgLocalMailFolder))
-      throw Exception("All folders in aMsgFolders must be local folders!");
-  }
-
-  let iterFolders = _looperator(aMsgFolders);
-
-  let iPerSet = 0, folder = iterFolders.next();
-  // loop, incrementing our subscript until all message sets are out of messages
-  let didSomething;
-  do {
-    didSomething = false;
-    // for each message set, if it is not out of messages, add the message
-    for each (let [, messageSet] in Iterator(aMessageSets)) {
-      if (iPerSet < messageSet.synMessages.length) {
-        messageSet.addMessageToFolderByIndex(folder, iPerSet);
-        folder.hasNewMessages = true;
-        didSomething = true;
-      }
-    }
-    iPerSet++;
-    folder = iterFolders.next();
-  } while (didSomething);
-}
-/** singular function name for understandability of single-folder users */
-let add_sets_to_folder = add_sets_to_folders;
 
 /**
  * Create a name and address pair where the provided word is part of the name.

@@ -76,6 +76,7 @@
 #include "nsIPrompt.h"
 #include "nsIWindowWatcher.h"
 #include "nsMsgDBCID.h"
+#include "nsIMsgFolderNotificationService.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 
@@ -2809,6 +2810,18 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
         NS_ASSERTION(PR_FALSE, "unhandled command");
         break;
       }
+    }
+
+    // Provide junk-related batch notifications
+    if ((command == nsMsgViewCommandType::junk) &&
+        (command == nsMsgViewCommandType::unjunk)) {
+      nsCOMPtr<nsIMsgFolderNotificationService>
+        notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+      if (notifier)
+        notifier->NotifyItemEvent(messages,
+                                  NS_LITERAL_CSTRING("JunkStatusChanged"),
+                                  (command == nsMsgViewCommandType::junk) ?
+                                    kJunkMsgAtom : kNotJunkMsgAtom);
     }
   }
 

@@ -107,6 +107,15 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgAdded(nsIMsgDBHdr *aMsg)
   return NS_OK;
 }
 
+/* void notifyMsgsClassified (in  */
+NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsClassified(
+  nsIArray *aMsgs, PRBool aJunkProcessed, PRBool aTraitProcessed)
+{
+  NOTIFY_MSGFOLDER_LISTENERS(msgsClassified, MsgsClassified,
+                             (aMsgs, aJunkProcessed, aTraitProcessed));
+  return NS_OK;
+}
+
 /* void notifyMsgsDeleted (in nsIArray aMsgs); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsDeleted(nsIArray *aMsgs)
 {
@@ -114,8 +123,11 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsDeleted(nsIArray *aMsgs)
   return NS_OK;
 }
 
-/* void notifyMsgsMoveCopyCompleted (in boolean aMove, in nsIArray aSrcMsgs, in nsIMsgFolder aDestFolder); */
-NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(PRBool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder)
+/* void notifyMsgsMoveCopyCompleted (in boolean aMove, in nsIArray aSrcMsgs,
+                                     in nsIMsgFolder aDestFolder); */
+NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(
+  PRBool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder,
+  nsIArray *aDestMsgs)
 {
   PRUint32 count = mListeners.Length();
   
@@ -149,7 +161,7 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(PRBool
   }
 
   NOTIFY_MSGFOLDER_LISTENERS(msgsMoveCopyCompleted, MsgsMoveCopyCompleted,
-                             (isReallyMove, aSrcMsgs, aDestFolder));
+                             (isReallyMove, aSrcMsgs, aDestFolder, aDestMsgs));
   return NS_OK;
 }
 

@@ -45,9 +45,10 @@ const Cu = Components.utils;
 Cu.import("resource://app/modules/gloda/gloda.js");
 Cu.import("resource://app/modules/gloda/everybody.js");
 Cu.import("resource://app/modules/gloda/indexer.js");
+Cu.import("resource://app/modules/gloda/index_msg.js");
 
 /**
- * Expose some junk 
+ * Expose some junk
  */
 function proxy(aSourceObj, aSourceAttr, aDestObj, aDestAttr) {
   aDestObj[aDestAttr] = function() {
@@ -57,4 +58,4 @@ function proxy(aSourceObj, aSourceAttr, aDestObj, aDestAttr) {
 
 proxy(GlodaIndexer, "addListener", Gloda, "addIndexerListener");
 proxy(GlodaIndexer, "removeListener", Gloda, "removeIndexerListener");
-proxy(GlodaIndexer, "isMessageIndexed", Gloda, "isMessageIndexed");
+proxy(GlodaMsgIndexer, "isMessageIndexed", Gloda, "isMessageIndexed");

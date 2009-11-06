@@ -219,8 +219,8 @@ function loadFileToString(aFile, aCharset) {
  * A variant of do_timeout that accepts an actual function instead of
  *  requiring you to pass a string to evaluate.  If the function throws an
  *  exception when invoked, we will use do_throw to ensure that the test fails.
- * 
- * @param aDelayInMS The number of milliseconds to wait before firing the timer. 
+ *
+ * @param aDelayInMS The number of milliseconds to wait before firing the timer.
  * @param aFunc The function to invoke when the timer fires.
  * @param aFuncThis Optional 'this' pointer to use.
  * @param aFuncArgs Optional list of arguments to pass to the function.
@@ -246,7 +246,7 @@ function do_timeout_function(aDelayInMS, aFunc, aFuncThis, aFuncArgs) {
  * Ensure the given nsIMsgFolder's database is up-to-date, calling the provided
  *  callback once the folder has been loaded.  (This may be instantly or
  *  after a re-parse.)
- * 
+ *
  * @param aFolder The nsIMsgFolder whose database you want to ensure is
  *     up-to-date.
  * @param aCallback The callback function to invoke once the folder has been
@@ -256,9 +256,12 @@ function do_timeout_function(aDelayInMS, aFunc, aFuncThis, aFuncArgs) {
  * @param aCallbackArgs A list of arguments to pass to the callback via apply.
  *     If you provide [1,2,3], we will effectively call:
  *     aCallbackThis.aCallback(1,2,3);
+ * @param [aSomeoneElseWillTriggerTheUpdate=false] If this is true, we do not
+ *     trigger the updateFolder call and it is assumed someone else is taking
+ *     care of that.
  */
 function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
-    aCallbackArgs) {
+    aCallbackArgs, aSomeoneElseWillTriggerTheUpdate) {
   // register for the folder loaded notification ahead of time... even though
   //  we may not need it...
   let mailSession = Cc["@mozilla.org/messenger/services/session;1"]
@@ -278,7 +281,8 @@ function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
 
   mailSession.AddFolderListener(folderListener, Ci.nsIFolderListener.event);
 
-  aFolder.updateFolder(null);
+  if (!aSomeoneElseWillTriggerTheUpdate)
+    aFolder.updateFolder(null);
 }
 
 } // gMailTestUtils_js__

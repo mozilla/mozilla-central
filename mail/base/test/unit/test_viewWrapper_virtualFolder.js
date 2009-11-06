@@ -11,9 +11,12 @@
  * We could test all these things, but my patch is way behind schedule...
  */
 
+load("../../mailnews/resources/logHelper.js");
+load("../../mailnews/resources/asyncTestUtils.js");
+
 load("../../mailnews/resources/messageGenerator.js");
 load("../../mailnews/resources/messageModifier.js");
-load("../../mailnews/resources/asyncTestUtils.js");
+load("../../mailnews/resources/messageInjection.js");
 
 load("resources/viewWrapperTestUtils.js");
 initViewWrapperTestUtils();
@@ -461,6 +464,5 @@ var tests = [
 ];
 
 function run_test() {
-  loadLocalMailAccount();
   async_run_tests(tests);
 }

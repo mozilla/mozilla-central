@@ -302,6 +302,19 @@ protected:
 
   // list of nsIMsgDBHdrs for messages to process post-bayes
   nsCOMPtr<nsIMutableArray> mPostBayesMessagesToFilter;
+
+  /**
+   * The list of message keys of messages being processed by Bayesian
+   * classification.  We save the keys instead of the headers because it is
+   * possible that post-classification filters may end up moving the messages
+   * out of the folder (at which point the header becomes invalid).  (It also
+   * helps keep memory usage down when there are lots of messages.)
+   */
+  nsTArray<nsMsgKey> mBayesMsgKeys;
+  // Is the current bayes filtering doing junk classification?
+  PRBool mBayesJunkClassifying;
+  // Is the current bayes filtering doing trait classification?
+  PRBool mBayesTraitClassifying;
 };
 
 // This class is a kludge to allow nsMsgKeySet to be used with PRUint32 keys

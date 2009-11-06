@@ -5,23 +5,24 @@
  * Things we really should do:
  * - Test that secondary sorting works, especially when the primary column is
  *   a custom column.
+ *
+ * You may also want to look into the test_viewWrapper_*.js tests as well.
  */
 
-// this will be migrated out of gloda soon...
-load("../../mailnews/resources/messageGenerator.js");
+load("../../mailnews/resources/logHelper.js");
 load("../../mailnews/resources/asyncTestUtils.js");
 
-var gMessageGenerator;
-var gScenarioFactory;
+load("../../mailnews/resources/messageGenerator.js");
+load("../../mailnews/resources/messageModifier.js");
+load("../../mailnews/resources/messageInjection.js");
+
+var gMessageGenerator = new MessageGenerator();
+var gScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
 
 var gTestFolder;
 var gSiblingsMissingParentsSubject;
 
 function setup_globals(aNextFunc) {
-  loadLocalMailAccount();
-  gMessageGenerator = new MessageGenerator();
-  gScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
-
   // build up a diverse list of messages
   let messages = [];
   messages = messages.concat(gScenarioFactory.directReply(10));
@@ -49,13 +50,10 @@ function setup_globals(aNextFunc) {
   let msg3 = gMessageGenerator.makeMessage({inReplyTo: msg1});
   let msg4 = gMessageGenerator.makeMessage({inReplyTo: msg2});
   messages = messages.concat([msg1, msg2, msg3, msg4]);
+  let msgSet = new SyntheticMessageSet(messages);
 
-  let mboxName = "dbviewy";
-  writeMessagesToMbox(messages, gProfileDir,
-                      "Mail", "Local Folders", mboxName);
-  gTestFolder = gLocalIncomingServer.rootMsgFolder.addSubfolder(mboxName);
-  updateFolderAndNotify(gTestFolder, async_driver);
-  return false;
+  gTestFolder = make_empty_folder();
+  return add_sets_to_folders(gTestFolder, [msgSet]);
 }
 
 var gCommandUpdater = {
@@ -75,29 +73,21 @@ var gCommandUpdater = {
   summarizeSelection : function() {return false;}
 };
 
-var gNextUniqueFolderId = 0;
-function make_empty_folder() {
-  let name = "gabba" + gNextUniqueFolderId++;
-  let testFolder = gLocalIncomingServer.rootMsgFolder.addSubfolder(name);
-  return testFolder;
-}
-
 /**
  * Create a synthetic message by passing the provided aMessageArgs to
  *  the message generator, then add the resulting message to the given
  *  folder (or gTestFolder if no folder is provided).
+ *
+ * @TODO change callers to use more generic messageInjection mechanisms.
  */
-function make_and_add_message(aMessageArgs, aFolder) {
+function make_and_add_message(aMessageArgs) {
   // create the message
   let synMsg = gMessageGenerator.makeMessage(aMessageArgs);
+  let msgSet = new SyntheticMessageSet([synMsg]);
+  // this is synchronous for local stuff.
+  add_sets_to_folder(gTestFolder, [msgSet]);
 
-  // do it for the side-effect
-  if (aFolder == null)
-    aFolder = gTestFolder;
-  aFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
-  aFolder.addMessage(synMsg.toMboxString());
-
-  return synMsg;
+  return [synMsg, msgSet];
 }
 
 var WHITESPACE = "                                              ";
@@ -473,7 +463,7 @@ function test_msg_added_to_search_view() {
   // the search results, and verify it gets put at top.
   if (! (gDBView.viewFlags & ViewFlags.kGroupBySort)) {
     gDBView.sort(SortType.byDate, SortOrder.descending);
-    let synMsg = make_and_add_message();
+    let [synMsg, synSet] = make_and_add_message();
     let msgHdr = gTestFolder.msgDatabase.getMsgHdrForMessageID(synMsg.messageId);
     gDBView.QueryInterface(Components.interfaces.nsIMsgSearchNotify)
             .onSearchHit(msgHdr, msgHdr.folder);
@@ -498,7 +488,7 @@ function test_threading_levels() {
   if (!gTreeView.rowCount)
     do_throw("There are no rows in my folder! I can't test anything!");
   // only look at threaded, non-grouped views.
-  if ((gDBView.viewFlags & ViewFlags.kGroupBySort) || 
+  if ((gDBView.viewFlags & ViewFlags.kGroupBySort) ||
       ! (gDBView.viewFlags & ViewFlags.kThreadedDisplay))
     return;
 
@@ -545,7 +535,7 @@ function test_group_dummies_under_mutation_by_date() {
   //  either. bucket 1 is same day, bucket 2 is yesterday, bucket 3 is last
   //  week, so 2 days ago or older is always last week, even if we roll over
   //  and it becomes 3 days ago.)
-  let smsg = make_and_add_message({age: {days: 2, hours: 1}});
+  let [smsg, synSet] = make_and_add_message({age: {days: 2, hours: 1}});
 
   // - make sure the message and a dummy appear
   assert_view_row_count(2);
@@ -553,15 +543,15 @@ function test_group_dummies_under_mutation_by_date() {
   assert_view_index_is_not_dummy(1);
   assert_view_message_at_indices(smsg, 0, 1);
 
-  // - delete the message
-  yield async_delete_messages(smsg);
+  // - move the messages to the trash
+  yield async_trash_messages(synSet);
 
   // - make sure the message and dummy disappear
   assert_view_empty();
 
   // - add two messages from this week (same date bucket concerns)
-  let newer = make_and_add_message({age: {days: 2, hours: 1}});
-  let older = make_and_add_message({age: {days: 2, hours: 2}});
+  let [newer, newerSet] = make_and_add_message({age: {days: 2, hours: 1}});
+  let [older, olderSet] = make_and_add_message({age: {days: 2, hours: 2}});
 
   // - sanity check addition
   assert_view_row_count(3); // 2 messages + 1 dummy
@@ -573,7 +563,7 @@ function test_group_dummies_under_mutation_by_date() {
 
   // - delete the message right under the dummy
   // (this will be the newer one)
-  yield async_delete_messages(newer);
+  yield async_trash_messages(newerSet);
 
   // - ensure we still have the dummy and the right child node
   assert_view_row_count(2);
@@ -611,6 +601,7 @@ var tests_for_specific_views = {
 };
 
 function run_test() {
+  configure_message_injection({mode: "local"});
   do_test_pending();
   async_run({func: actually_run_test});
 }

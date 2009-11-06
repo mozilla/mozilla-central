@@ -152,6 +152,24 @@ var GlodaFundAttr = {
       objectNoun: Gloda.NOUN_NUMBER,
       }); // tested-by: test_attributes_fundamental
 
+    // We need to surface the deleted attribute for querying, but there is no
+    //  reason for user code, so let's call it "_deleted" rather than deleted.
+    // (In fact, our validity constraints require a special query formulation
+    //  that user code should have no clue exists.  That's right user code,
+    //  that's a dare.)
+    Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrFundamental,
+      attributeName: "_deleted",
+      singular: true,
+      special: Gloda.kSpecialColumn,
+      specialColumnName: "deleted",
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_NUMBER,
+      });
+
+
     // -- fulltext search helpers
     // fulltextMatches.  Match over message subject, body, and attachments
     // @testpoint gloda.noun.message.attr.fulltextMatches
@@ -319,7 +337,7 @@ var GlodaFundAttr = {
                         attributeType: Gloda.kAttrFundamental,
                         attributeName: "headerMessageID",
                         singular: true,
-                        special: Gloda.kSpecialColumn,
+                        special: Gloda.kSpecialString,
                         specialColumnName: "headerMessageID",
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_STRING,
@@ -492,10 +510,10 @@ var GlodaFundAttr = {
                                         aMsgHdr.ccList, aMsgHdr.bccList,
                                         normalizedListPost));
 
-    if (authorIdentities.length == 0) {
-      this._log.error("Message with subject '" + aMsgHdr.mime2DecodedSubject +
-                      "' somehow lacks a valid author.  Bailing.");
-      return; // being a generator, this generates an exception; we like.
+    if (authorIdentities.length != 1) {
+      throw new Gloda.BadItemContentsError(
+        "Message with subject '" + aMsgHdr.mime2DecodedSubject +
+          "' somehow lacks a valid author.  Bailing.");
     }
     let authorIdentity = authorIdentities[0];
     aGlodaMessage.from = authorIdentity;

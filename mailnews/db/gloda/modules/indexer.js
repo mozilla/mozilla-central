@@ -53,6 +53,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://app/modules/iteratorUtils.jsm");
 
 Cu.import("resource://app/modules/gloda/log4moz.js");
 
@@ -62,112 +63,12 @@ Cu.import("resource://app/modules/gloda/gloda.js");
 Cu.import("resource://app/modules/gloda/collection.js");
 Cu.import("resource://app/modules/gloda/connotent.js");
 
-Cu.import("resource://app/modules/gloda/mimemsg.js");
-
-// Components.results does not have mailnews error codes!
-const NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE = 0x80550005;
-
-const GLODA_MESSAGE_ID_PROPERTY = "gloda-id";
-const GLODA_DIRTY_PROPERTY = "gloda-dirty";
-
-// for list comprehension fun
-function range(begin, end) {
-  for (let i = begin; i < end; ++i) {
-    yield i;
-  }
-}
-
-const GFI = Log4Moz.repository.getLogger("gloda.fixiterator");
-
-
-// FROM STEEL (a la Joey Minta/jminta)
-// (and to go away when STEEL is checked in, although we may also want to
-//  consider just specializing the code in the few places this method is used.)
-/**
- * This function will take a variety of xpcom iterators designed for c++ and turn
- * them into a nice JavaScript style object that can be iterated using for...in
- *
- * Currently, we support the following types of xpcom iterators:
- *   nsISupportsArray
- *   nsIEnumerator
- *   nsISimpleEnumerator
- *
- *   @param aEnum  the enumerator to convert
- *   @param aIface (optional) an interface to QI each object to prior to returning
- *
- *   @note This does *not* return an Array object.  It returns an object that can
- *         be use in for...in contexts only.  To create such an array, use
- *         var array = [a for (a in fixIterator(xpcomEnumerator))];
- */
-function fixIterator(aEnum, aIface) {
-  let face = aIface || Ci.nsISupports;
-  // Try to QI our object to each of the known iterator types.  If the QI does
-  // not throw, assign our iteration function
-  try {
-    aEnum.QueryInterface(Ci.nsISupportsArray);
-    let iter = function() {
-      let count = aEnum.Count();
-      for (let i = 0; i < count; i++)
-        yield aEnum.GetElementAt(i).QueryInterface(face);
-    }
-    return { __iterator__: iter };
-  } catch(ex) {}
-
-  // Now try nsIEnumerator
-  try {
-    aEnum.QueryInterface(Ci.nsIEnumerator);
-    let done = false;
-    let iter = function() {
-      while (!done) {
-        try {
-          //rets.push(aEnum.currentItem().QueryInterface(face));
-          yield aEnum.currentItem().QueryInterface(face);
-          aEnum.next();
-        } catch(ex) {
-          done = true;
-          GFI.error(face + " => " + ex.fileName + ":" + ex.lineNumber + ": " + ex)
-        }
-      }
-    };
-
-    return { __iterator__: iter };
-  } catch(ex) {}
-
-  // how about nsISimpleEnumerator? this one is nice and simple
-  try {
-    aEnum.QueryInterface(Ci.nsISimpleEnumerator);
-    let iter = function () {
-      while (aEnum.hasMoreElements())
-        yield aEnum.getNext().QueryInterface(face);
-    }
-    return { __iterator__: iter };
-  } catch(ex) {}
-}
-
-function MakeCleanMsgHdrCallback(aMsgHdr, aGlodaMessageID) {
-  return function() {
-    // Mark this message as indexed
-    aMsgHdr.setUint32Property(GLODA_MESSAGE_ID_PROPERTY, aGlodaMessageID);
-    // If there is a gloda-dirty flag on there, clear it by writing a 0.  (But
-    //  don't do this if we didn't have a dirty flag on there in the first
-    //  case.)  It sounds like we would actually prefer to "cut" the "cell",
-    //  but I don't see any in-domain means of doing that.
-    try {
-      let isDirty = aMsgHdr.getUint32Property(GLODA_DIRTY_PROPERTY);
-      if (isDirty)
-        aMsgHdr.setUint32Property(GLODA_DIRTY_PROPERTY, 0);
-    }
-    catch (ex) {}
-  };
-}
-
 /**
  * @class Capture the indexing batch concept explicitly.
  *
  * @param aJobType The type of thing we are indexing.  Current choices are:
  *   "folder" and "message".  Previous choices included "account".  The indexer
  *   currently knows too much about these; they should be de-coupled.
- * @param aDeltaType -1 for deletion, 0 for move, 1 for addition/new.
  * @param aID Specific to the job type, but for now only used to hold folder
  *     IDs.
  *
@@ -183,24 +84,17 @@ function MakeCleanMsgHdrCallback(aMsgHdr, aGlodaMessageID) {
  *     This number may increase during the life of the job, but should not
  *     decrease.  This is used by the status notification code in conjunction
  *     with the goal.
- * @ivar recoverable Integer indicating if this job is recoverable, and how
- *     many failures we should allow for before we give up.  By default, this is
- *     set to 10, but your job should choose a more appopriate number itself.
- *
- * @constructor
  */
-function IndexingJob(aJobType, aDeltaType, aID, aItems) {
+function IndexingJob(aJobType, aID, aItems) {
   this.jobType = aJobType;
-  this.deltaType = aDeltaType;
   this.id = aID;
   this.items = (aItems != null) ? aItems : [];
   this.offset = 0;
   this.goal = null;
-  this.recoverable = 10;
 }
 IndexingJob.prototype = {
   toString: function IndexingJob_toString() {
-    return "[job:" + this.jobType + " delta:" + this.deltaType +
+    return "[job:" + this.jobType +
       " id:" + this.id + " items:" + (this.items ? this.items.length : "no") +
       " offset:" + this.offset + " goal:" + this.goal + "]";
   }
@@ -227,61 +121,18 @@ IndexingJob.prototype = {
  * - We should try to be O(1) memory-wise regardless of what notifications
  *   are thrown at us.
  *
- * === Indexing Strategy
- * To these ends, we implement things like so:
+ * ===  Indexing Throttling
  *
- * Mesage State Tracking
- * - We store a property on all indexed headers indicating their gloda message
- *   id.  This allows us to tell whether a message is indexed from the header,
- *   without having to consult the SQL database.
- * - When we receive an event that indicates that a message's meta-data has
- *   changed and gloda needs to re-index the message, we set a property on the
- *   header that indicates the message is dirty.
- * - We store a property on folders that indicate that the folder's index is
- *   up-to-date.  Absence of this property is akin to a 0=folder not up to date.
- *   There is no particular reason for the choice of using the folder's
- *   properties (via the folder cache implementation) over gloda's own folder
- *   meta-data.
- *
- * Indexing Message Control
- * - We index the headers of all IMAP messages. We index the bodies of all IMAP
- *   messages that are offline.  We index all local messages.
- *   We plan to avoid indexing news messages.
- * - We would like a way to express desires about indexing that either don't
- *   confound offline storage with indexing, or actually allow some choice.
- *
- * Indexing
- * - We process one folder at a time, walking the headers in the folder,
- *   indexing those which should be indexed, but which have never been indexed
- *   or are dirty.
- * - For local folders, we use GetDatabaseWithReparse to ensure that the .msf
- *   file exists.  For IMAP folders, we simply use GetDatabase because we know
- *   the auto-sync logic will make sure that the folder is up-to-date and we
- *   want to avoid creating problems through use of updateFolder.
- *
- * Indexing Throttling
- * - Unless we believe everything is up-to-date, then we are always indexing.
- *   We must be able to process messages
- *
- *
- * === Message Indexing
- *
- * We are good at listening to nsIMsgFolderListener events.  Unfortunately,
- *  MailNews isn't pervasively thorough at generating these yet (newsgroups
- *  don't produce them, probably not RSS either.)  This provides us with
- *  message addition, moves/copies, and deletion.
- * We are not good at listening to nsIFolderListener events.  This means we fail
- *  to update ourselves when a message is changed because of a change in tags,
- *  read status/starred status/etc.  (Well, in fairness, events aren't actually
- *  generated in all of those cases either, yet, but we should try.)  We need
- *  to handle this.
- *
- * Currently, when we index a message, when it comes to attributes, we ignore
- *  all that has come before us and simply blow away the attributes and apply
- *  those provided by the attribute providers anew.  This is not particularly
- *  efficient for anyone.  Also, I think we probably screw this up now that we
- *  have object identity support.  Uh, so, this should be improved, but
- *  certainly works.
+ * Adaptive Indexing
+ * - The indexer tries to stay out of the way of other running code in
+ *   Thunderbird (autosync) and other code on the system.  We try and target
+ *   some number of milliseconds of activity between intentional inactive
+ *   periods.  The number of milliseconds of activity varies based on whether we
+ *   believe the user to be actively using the computer or idle.  We use our
+ *   inactive periods as a way to measure system load; if we receive our
+ *   notification promptly at the end of our inactive period, we believe the
+ *   system is not heavily loaded.  If we do not get notified promptly, we
+ *   assume there is other stuff going on and back off.
  *
  */
 var GlodaIndexer = {
@@ -438,8 +289,29 @@ var GlodaIndexer = {
    * Maximum time delay between commits, in milliseconds.
    */
   _MAXIMUM_COMMIT_TIME: 20000,
+
   /**
-   * Last commit time.
+   * Unit testing hook to get us to emit additional logging that verges on
+   *  inane for general usage but is helpful in unit test output to get a lay
+   *  of the land and for paranoia reasons.
+   */
+  _unitTestSuperVerbose: false,
+  /**
+   * Unit test vector to get notified when a worker has a problem and it has
+   *  a recover helper associated.  This gets called with an argument
+   *  indicating whether the recovery helper indicates recovery was possible.
+   */
+  _unitTestHookRecover: null,
+  /**
+   * Unit test vector to get notified when a worker runs into an exceptional
+   *  situation (an exception propagates or gets explicitly killed) and needs
+   *  to be cleaned up.  This gets called with an argument indicating if there
+   *  was a helper that was used or if we just did the default cleanup thing.
+   */
+  _unitTestHookCleanup: null,
+
+  /**
+   * Last commit time.  Tracked to try and only commit at reasonable intervals.
    */
   _lastCommitTime: Date.now(),
 
@@ -452,10 +324,6 @@ var GlodaIndexer = {
       return;
 
     this._inited = true;
-
-    // initialize our listeners' this pointers
-    this._databaseAnnouncerListener.indexer = this;
-    this._msgFolderListener.indexer = this;
 
     this._callbackHandle.init();
 
@@ -509,9 +377,6 @@ var GlodaIndexer = {
   /**
    * Shutdown the indexing process and datastore as quickly as possible in
    *  a synchronous fashion.
-   *
-   * @returns true on full and immediate shutdown, false if we need to pend on
-   *     something asynchronous.
    */
   _shutdown: function gloda_index_shutdown() {
     // no more timer events, please
@@ -534,28 +399,81 @@ var GlodaIndexer = {
     this._indexerIsShutdown = true;
 
     if (!this.enabled)
-      return true;
+      return;
 
     this._log.info("Shutting Down");
 
+    // don't let anything try and convince us to start indexing again
     this.suppressIndexing = true;
-    this._indexerLeaveFolder(); // nop if we aren't "in" a folder
+
+    // If there is an active job and it has a cleanup handler, run it.
+    if (this._curIndexingJob) {
+      let workerDef = this._curIndexingJob._workerDef;
+      if (workerDef.cleanup)
+        workerDef.cleanup.call(workerDef.indexer, this._curIndexingJob);
+    }
+    // Definitely clean out the async call stack and any associated data
     this._callbackHandle.cleanup();
     this._workBatchData = undefined;
+
+    // disable ourselves and all of the specific indexers
     this.enabled = false;
 
     GlodaDatastore.shutdown();
   },
 
-  _otherIndexers: [],
+  /**
+   * The list of indexers registered with us.  If you are a core gloda indexer
+   *  (you ship with gloda), then you can import this file directly and should
+   *  make sure your indexer is imported in 'everybody.js' in the right order.
+   *  If you are not core gloda, then you should import 'public.js' and only
+   *  then should you import 'indexer.js' to get at GlodaIndexer.
+   */
+  _indexers: [],
+  /**
+   * Register an indexer with the Gloda indexing mechanism.
+   *
+   * @param aIndexer.name The name of your indexer.
+   * @param aIndexer.enable Your enable function.  This will be called during
+   *     the call to registerIndexer if Gloda indexing is already enabled.  If
+   *     indexing is not yet enabled, you will be called
+   * @param aIndexer.disable Your disable function.  This will be called when
+   *     indexing is disabled or we are shutting down.  This will only be called
+   *     if enable has already been called.
+   * @param aIndexer.workers A list of tuples of the form [worker type code,
+   *     worker generator function, optional scheduling trigger function].  The
+   *     type code is the string used to uniquely identify the job type.  If you
+   *     are not core gloda, your job type must start with your extension's name
+   *     and a colon; you can collow that with anything you want.  The worker
+   *     generator is not easily explained in here.  The trigger function is
+   *     invoked immediately prior to calling the generator to create it.  The
+   *     trigger function takes the job as an argument and should perform any
+   *     finalization required on the job.  Most workers should not need to use
+   *     the trigger function.
+   * @param aIndexer.initialSweep We call this to tell each indexer when it is
+   *     its turn to run its indexing sweep.  The idea of the indexing sweep is
+   *     that this is when you traverse things eligible for indexing to make
+   *     sure they are indexed.  Right now we just call everyone at the same
+   *     time and hope that their jobs don't fight too much.
+   */
   registerIndexer: function gloda_index_registerIndexer(aIndexer) {
     this._log.info("Registering indexer: " + aIndexer.name);
-    this._otherIndexers.push(aIndexer);
+    this._indexers.push(aIndexer);
 
     try {
       for each (let [iWorker, workerInfo] in Iterator(aIndexer.workers)) {
-        let [workerCode, workerFunc] = workerInfo;
-        this._otherIndexerWorkers[workerCode] = [aIndexer, workerFunc];
+        let workerCode = workerInfo[0];
+        let workerDef = workerInfo[1];
+        workerDef.indexer = aIndexer;
+        this._indexerWorkerDefs[workerCode] = workerDef;
+        if (!("recover" in workerDef))
+          workerDef.recover = null;
+        if (!("cleanup" in workerDef))
+          workerDef.cleanup = null;
+        if (!("onSchedule" in workerDef))
+          workerDef.onSchedule = null;
+        if (!("jobCanceled" in workerDef))
+          workerDef.jobCanceled = null;
       }
     }
     catch (ex) {
@@ -578,18 +496,6 @@ var GlodaIndexer = {
   get enabled() { return this._enabled; },
   set enabled(aEnable) {
     if (!this._enabled && aEnable) {
-      // register for:
-      // - folder loaded events, so we know when getDatabaseWithReparse has finished
-      //   updating the index/what not (if it was't immediately available)
-      // - property changes (so we know when a message's read/starred state have
-      //   changed.)
-      let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
-                          getService(Ci.nsIMsgMailSession);
-      this._folderListener._init(this);
-      mailSession.AddFolderListener(this._folderListener,
-                                    Ci.nsIFolderListener.propertyFlagChanged |
-                                    Ci.nsIFolderListener.event);
-
       // register for shutdown, offline notifications
       let observerService = Cc["@mozilla.org/observer-service;1"].
                               getService(Ci.nsIObserverService);
@@ -599,16 +505,9 @@ var GlodaIndexer = {
       // register for idle notification
       this._idleService.addIdleObserver(this, this._indexIdleThresholdSecs);
 
-      let notificationService =
-        Cc["@mozilla.org/messenger/msgnotificationservice;1"].
-        getService(Ci.nsIMsgFolderNotificationService);
-      notificationService.addListener(this._msgFolderListener,
-                                      Ci.nsIMsgFolderNotificationService.all &
-                                      ~Ci.nsIMsgFolderNotificationService.folderAdded);
-
       this._enabled = true;
 
-      for each (let [iIndexer, indexer] in Iterator(this._otherIndexers)) {
+      for each (let [iIndexer, indexer] in Iterator(this._indexers)) {
         try {
           indexer.enable();
         } catch (ex) {
@@ -628,7 +527,7 @@ var GlodaIndexer = {
           this._INITIAL_SWEEP_DELAY, Ci.nsITimer.TYPE_ONE_SHOT);
     }
     else if (this._enabled && !aEnable) {
-      for each (let [iIndexer, indexer] in Iterator(this._otherIndexers)) {
+      for each (let [iIndexer, indexer] in Iterator(this._indexers)) {
         try {
           indexer.disable();
         } catch (ex) {
@@ -645,20 +544,9 @@ var GlodaIndexer = {
       // remove idle
       this._idleService.removeIdleObserver(this, this._indexIdleThresholdSecs);
 
-      // remove FolderLoaded notification listener
-      let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
-                          getService(Ci.nsIMsgMailSession);
-      mailSession.RemoveFolderListener(this._folderListener);
-
-      let notificationService =
-        Cc["@mozilla.org/messenger/msgnotificationservice;1"].
-        getService(Ci.nsIMsgFolderNotificationService);
-      notificationService.removeListener(this._msgFolderListener);
-
       this._enabled = false;
     }
 
-    this._log.info("Event-Driven Indexing is now " + this._enabled);
   },
 
   /** Track whether indexing is desired (we have jobs to prosecute). */
@@ -693,7 +581,7 @@ var GlodaIndexer = {
       if (this.enabled && !this._indexingActive && !this._suppressIndexing) {
         this._log.info("+++ Indexing Queue Processing Commencing");
         this._indexingActive = true;
-        this._timer.initWithCallback(this._wrapCallbackDriver,
+        this._timer.initWithCallback(this._timerCallbackDriver,
                                      this._INDEX_KICKOFF_DELAY,
                                      Ci.nsITimer.TYPE_ONE_SHOT);
       }
@@ -717,12 +605,17 @@ var GlodaIndexer = {
         !this._indexingActive) {
         this._log.info("+++ Indexing Queue Processing Resuming");
         this._indexingActive = true;
-        this._timer.initWithCallback(this._wrapCallbackDriver,
+        this._timer.initWithCallback(this._timerCallbackDriver,
                                      this._INDEX_KICKOFF_DELAY,
                                      Ci.nsITimer.TYPE_ONE_SHOT);
     }
   },
 
+  /**
+   * Track whether an initial sweep has been performed.  This mainly exists so
+   *  that unit testing can stop us from performing an initial sweep.
+   */
+  _initialSweepPerformed: false,
   /**
    * Our timer-driven callback to schedule our first initial indexing sweep.
    *  Because it is invoked by an nsITimer it operates without the benefit of
@@ -733,61 +626,13 @@ var GlodaIndexer = {
    *  because the indexingSweepNeeded takes care of that.
    */
   _scheduleInitialSweep: function gloda_index_scheduleInitialSweep() {
-    if (!GlodaIndexer._initialSweepPerformed)
-      GlodaIndexer.indexingSweepNeeded = true;
-  },
-
-  _initialSweepPerformed: false,
-  _indexingSweepActive: false,
-  /**
-   * Indicate that an indexing sweep is desired.  We kick-off an indexing
-   *  sweep at start-up and whenever we receive an event-based notification
-   *  that we either can't process as an event or that we normally handle
-   *  during the sweep pass anyways.
-   */
-  set indexingSweepNeeded(aNeeded) {
-    if (!this._indexingSweepActive && aNeeded) {
-      let job = new IndexingJob("sweep", 0, null);
-      job.mappedFolders = false;
-      this._indexQueue.push(job);
-      this._indexingJobGoal++;
-      this._indexingSweepActive = true;
-      this.indexing = true;
+    if (GlodaIndexer._initialSweepPerformed)
+      return;
+    GlodaIndexer._initialSweepPerformed = true;
+    for each (let [, indexer] in Iterator(GlodaIndexer._indexers)) {
+      indexer.initialSweep();
     }
   },
-
-
-  /**
-   * Indicates that we have pending deletions to process, meaning that there
-   *  are gloda message rows flagged for deletion.  If this value is a boolean,
-   *  it means the value is known reliably.  If this value is null, it means
-   *  that we don't know, likely because we have started up and have not checked
-   *  the database.
-   */
-  pendingDeletions: null,
-
-  /**
-   * The message (or folder state) is believed up-to-date.
-   */
-  kMessageClean: 0,
-  /**
-   * The message (or folder) is known to not be up-to-date. In the case of
-   *  folders, this means that some of the messages in the folder may be dirty.
-   *  However, because of the way our indexing works, it is possible there may
-   *  actually be no dirty messages in a folder.  (We attempt to process
-   *  messages in an event-driven fashion for a finite number of messages, but
-   *  because we can quit without completing processing of the queue, we need to
-   *  mark the folder dirty, just-in-case.)  (We could do some extra leg-work
-   *  and do a better job of marking the folder clean again.)
-   */
-  kMessageDirty: 1,
-  /**
-   * We have not indexed the folder at all, but messages in the folder think
-   *  they are indexed.  Once we mark all the messages in the folder as being
-   *  dirty so that they don't confuse us, we downgrade the folder's dirty
-   *  status to just kMessageDirty.
-   */
-  kMessageFilthy: 2,
 
   kWorkSync: Gloda.kWorkSync,
   kWorkAsync: Gloda.kWorkAsync,
@@ -796,27 +641,15 @@ var GlodaIndexer = {
   kWorkDoneWithResult: Gloda.kWorkDoneWithResult,
 
   /**
-   * Our current job number, out of _indexingJobGoal.  Although our jobs comes
-   *  from _indexQueue, this is not an offset into that list because we forget
-   *  jobs once we complete them.  As such, this value is strictly for progress
-   *  tracking.
+   * Our current job number.  Meaningless value that increments with every job
+   *  we process that resets to 0 when we run out of jobs.  Currently used by
+   *  the activity manager's gloda listener to tell when we have changed jobs.
+   * We really need a better listener mechanism.
    */
   _indexingJobCount: 0,
-  /**
-   * Total number of jobs to process in this current indexing session; may
-   *  increase as new jobs are added to the _indexQueue.  This value won't
-   *  decrease until the indexing session is completed (and we become idle),
-   *  and then it will go to zero.
-   */
-  _indexingJobGoal: 0,
 
   /**
    * A list of IndexingJob instances to process.
-   * - ['account', account object]
-   * - ['folder', folder URI]
-   * - ['message', delta type, message header, folder ID, message key,
-   *      message ID]
-   *   (we use folder ID instead of URI so that renames can't trick us)
    */
   _indexQueue: [],
 
@@ -826,33 +659,10 @@ var GlodaIndexer = {
   _curIndexingJob: null,
 
   /**
-   * A message addition job yet to be (completely) processed.  Since message
-   *  addition events come to us one-by-one, in order to aggregate them into a
-   *  job, we need something like this.  It's up to the indexing loop to
-   *  decide when to null this out; it can either do it when it first starts
-   *  processing it, or when it has processed the last thing.  It's really a
-   *  question of whether we want retrograde motion in the folder progress bar
-   *  or the message progress bar.
-   */
-  _pendingAddJob: null,
-
-  /**
    * The number of seconds before we declare the user idle and commit if
    *  needed.
    */
   _indexIdleThresholdSecs: 3,
-
-  /**
-   * The number of messages that we should queue for processing before letting
-   *  them fall on the floor and relying on our folder-walking logic to ensure
-   *  that the messages are indexed.
-   * The reason we allow for queueing messages in an event-driven fashion is
-   *  that once we have reached a steady-state, it is preferable to be able to
-   *  deal with new messages and modified meta-data in a prompt fasion rather
-   *  than having to (potentially) walk every folder in the system just to find
-   *  the message that the user changed the tag on.
-   */
-  _indexMaxEventQueueMessages: 20,
 
   _indexListeners: [],
   /**
@@ -864,7 +674,7 @@ var GlodaIndexer = {
    *
    * @param aListener A listener function, taking arguments: status (Gloda.
    *     kIndexer*), the folder name if a folder is involved (string or null),
-   *     current zero-based job number (int), total number of jobs (int),
+   *     current zero-based job number (int),
    *     current item number being indexed in this job (int), total number
    *     of items in this job to be indexed (int).
    *
@@ -878,7 +688,7 @@ var GlodaIndexer = {
     // if we aren't indexing, give them an idle indicator, otherwise they can
     //  just be happy when we hit the next actual status point.
     if (!this.indexing)
-      aListener(Gloda.kIndexerIdle, null, 0, 1, 0, 1);
+      aListener(Gloda.kIndexerIdle, null, 0, 0, 1);
     return aListener;
   },
   /**
@@ -895,24 +705,26 @@ var GlodaIndexer = {
    *  the caller is just deciding when to send this update (preferably at
    *  reasonable intervals), and doesn't need to provide any indication of
    *  state... we figure that out ourselves.
+   *
+   * This was not pretty but got ugly once we moved the message indexing out
+   *  to its own indexer.  Some generalization is required but will likely
+   *  require string hooks.
    */
   _notifyListeners: function gloda_index_notifyListeners() {
-    let status, prettyName, jobIndex, jobTotal, jobItemIndex, jobItemGoal;
+    let status, prettyName, jobIndex, jobItemIndex, jobItemGoal;
 
     if (this.indexing && this._curIndexingJob) {
       let job = this._curIndexingJob;
-      if (job.deltaType > 0)
-        status = Gloda.kIndexerIndexing;
-      else if (job.deltaType == 0)
-        status = Gloda.kIndexerMoving;
-      else
-        status = Gloda.kIndexerRemoving;
+      status = Gloda.kIndexerIndexing;
 
-      prettyName = (this._indexingFolder !== null) ?
-                   this._indexingFolder.prettiestName : null;
+      let indexer = this._indexerWorkerDefs[job.jobType].indexer;
+      if ("_indexingFolder" in indexer)
+        prettyName = (indexer._indexingFolder != null) ?
+                     indexer._indexingFolder.prettiestName : null;
+      else
+        prettyName = null;
 
       jobIndex = this._indexingJobCount-1;
-      jobTotal = this._indexingJobGoal;
       jobItemIndex = job.offset;
       jobItemGoal  = job.goal;
     }
@@ -920,17 +732,20 @@ var GlodaIndexer = {
       status = Gloda.kIndexerIdle;
       prettyName = null;
       jobIndex = 0;
-      jobTotal = 1;
       jobItemIndex = 0;
       jobItemGoal = 1;
     }
+
+    // Some people ascribe to the belief that the most you can give is 100%.
+    // We know better, but let's humor them.
+    if (jobItemIndex > jobItemGoal)
+      jobItemGoal = jobItemIndex;
 
     for (let iListener = this._indexListeners.length-1; iListener >= 0;
          iListener--) {
       let listener = this._indexListeners[iListener];
       try {
-        listener(status, prettyName, jobIndex, jobTotal, jobItemIndex,
-                 jobItemGoal);
+        listener(status, prettyName, jobIndex, jobItemIndex, jobItemGoal);
       }
       catch(ex) {
         this._log.error(ex);
@@ -938,242 +753,19 @@ var GlodaIndexer = {
     }
   },
 
-  /** The GlodaFolder corresponding to the folder we are indexing. */
-  _indexingGlodaFolder: null,
-  /** The nsIMsgFolder we are currently indexing. */
-  _indexingFolder: null,
-  /** The nsIMsgDatabase we are currently indexing. */
-  _indexingDatabase: null,
   /**
-   * The iterator we are using to iterate over the headers in
-   *  this._indexingDatabase.
+   * A wrapped callback driver intended to be used by timers that provide
+   *  arguments we really do not care about.
    */
-  _indexingIterator: null,
-
-  /** folder whose entry we are pending on */
-  _pendingFolderEntry: null,
-
-  /**
-   * Common logic that we want to deal with the given folder ID.  Besides
-   *  cutting down on duplicate code, this ensures that we are listening on
-   *  the folder in case it tries to go away when we are using it.
-   *
-   * @return true when the folder was successfully entered, false when we need
-   *     to pend on notification of updating of the folder (due to re-parsing
-   *     or what have you).  In the event of an actual problem, an exception
-   *     will escape.
-   */
-  _indexerEnterFolder: function gloda_index_indexerEnterFolder(aFolderID) {
-    // leave the folder if we haven't explicitly left it.
-    if (this._indexingFolder !== null) {
-      this._indexerLeaveFolder();
-    }
-
-    this._indexingGlodaFolder = GlodaDatastore._mapFolderID(aFolderID);
-    this._indexingFolder = this._indexingGlodaFolder.getXPCOMFolder(
-                             this._indexingGlodaFolder.kActivityIndexing);
-
-    if (this._indexingFolder)
-      this._log.debug("Entering folder: " + this._indexingFolder.URI);
-
-    try {
-      // The msf may need to be created or otherwise updated for local folders.
-      // This may require yielding until such time as the msf has been created.
-      try {
-        if (this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder) {
-          this._indexingDatabase =
-            this._indexingFolder.getDatabaseWithReparse(null,
-                                                        null);
-        }
-        // we need do nothing special for IMAP, news, or other
-      }
-      // getDatabaseWithReparse can return either NS_ERROR_NOT_INITIALIZED or
-      //  NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE if the net result is that it
-      //  is going to send us a notification when the reparse has completed.
-      // (note that although internally NS_MSG_ERROR_FOLDER_SUMMARY_MISSING
-      //  might get flung around, it won't make it out to us, and will instead
-      //  be permuted into an NS_ERROR_NOT_INITIALIZED.)
-      catch (e if ((e.result == Cr.NS_ERROR_NOT_INITIALIZED) ||
-                   (e.result == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE))) {
-        // this means that we need to pend on the update; the listener for
-        //  FolderLoaded events will call _indexerCompletePendingFolderEntry.
-        this._log.debug("Pending on folder load...");
-        this._pendingFolderEntry = this._indexingFolder;
-        return this.kWorkAsync;
-      }
-      // we get an nsIMsgDatabase out of this (unsurprisingly) which
-      //  explicitly inherits from nsIDBChangeAnnouncer, which has the
-      //  AddListener call we want.
-      if (this._indexingDatabase == null)
-        this._indexingDatabase = this._indexingFolder.msgDatabase;
-      this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
-    }
-    catch (ex) {
-      this._log.error("Problem entering folder: " +
-                      (this._indexingFolder ?
-                         this._indexingFolder.prettiestName : "unknown") +
-                      ", skipping. Error was: " + ex.fileName + ":" +
-                      ex.lineNumber + ": " + ex);
-      this._indexingGlodaFolder.indexing = false;
-      this._indexingFolder = null;
-      this._indexingGlodaFolder = null;
-      this._indexingDatabase = null;
-      this._indexingEnumerator = null;
-
-      // re-throw, we just wanted to make sure this junk is cleaned up and
-      //  get localized error logging...
-      throw ex;
-    }
-
-    return this.kWorkSync;
+  _timerCallbackDriver: function gloda_index_timerCallbackDriver() {
+    GlodaIndexer.callbackDriver();
   },
 
   /**
-   * If the folder was still parsing/updating when we tried to enter, then this
-   *  handler will get called by the listener who got the FolderLoaded message.
-   * All we need to do is get the database reference, register a listener on
-   *  the db, and retrieve an iterator if desired.
-   */
-  _indexerCompletePendingFolderEntry:
-      function gloda_indexer_indexerCompletePendingFolderEntry() {
-    this._indexingDatabase = this._indexingFolder.msgDatabase;
-    this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
-    this._log.debug("...Folder Loaded!");
-
-    // the load is no longer pending; we certainly don't want more notifications
-    this._pendingFolderEntry = null;
-    // indexerEnterFolder returned kWorkAsync, which means we need to notify
-    //  the callback driver to get things going again.
-    this.callbackDriver();
-  },
-
-  /**
-   *  @param  aGetAll  should we get all messages
-   *                    (or only those we need to index)?
-   */
-  _indexerGetEnumerator: function gloda_indexer_indexerGetEnumerator(aGetAll) {
-    if (aGetAll) {
-      this._indexingEnumerator = this._indexingDatabase.EnumerateMessages();
-    }
-
-    else {
-      // We need to create search terms for messages to index. Messages should
-      //  be indexed if they're indexable (local or offline and not expunged)
-      //  and either haven't been indexed or are dirty.
-      // The basic search expression is:
-      //  ((GLODA_MESSAGE_ID_PROPERTY Is 0) || (GLODA_DIRTY_PROPERTY Isnt 0))
-      // If the folder !isLocal we add the terms:
-      //  - if the folder is offline -- && (Status Is nsMsgMessageFlags.Offline)
-      //  - && (Status Isnt nsMsgMessageFlags.Expunged)
-
-      let searchSession = Cc["@mozilla.org/messenger/searchSession;1"]
-                            .createInstance(Ci.nsIMsgSearchSession);
-      let searchTerms = Cc["@mozilla.org/array;1"]
-                         .createInstance(Ci.nsIMutableArray);
-      let isLocal = this._indexingFolder instanceof Ci.nsIMsgLocalMailFolder;
-
-      searchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail,
-                                 this._indexingFolder);
-      let nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
-      let nsMsgSearchOp = Ci.nsMsgSearchOp;
-
-      // first term: (GLODA_MESSAGE_ID_PROPERTY Is 0
-      let searchTerm = searchSession.createTerm();
-      searchTerm.booleanAnd = false; // actually don't care here
-      searchTerm.beginsGrouping = true;
-      searchTerm.attrib = nsMsgSearchAttrib.Uint32HdrProperty;
-      searchTerm.op = nsMsgSearchOp.Is;
-      let value = searchTerm.value;
-      value.attrib = searchTerm.attrib;
-      value.status = 0;
-      searchTerm.value = value;
-      searchTerm.hdrProperty = GLODA_MESSAGE_ID_PROPERTY;
-      searchTerms.appendElement(searchTerm, false);
-
-      //  second term: || GLODA_DIRTY_PROPERTY Isnt 0 )
-      searchTerm = searchSession.createTerm();
-      searchTerm.booleanAnd = false;
-      searchTerm.endsGrouping = true;
-      searchTerm.attrib = nsMsgSearchAttrib.Uint32HdrProperty;
-      searchTerm.op = nsMsgSearchOp.Isnt;
-      value = searchTerm.value;
-      value.attrib = searchTerm.attrib;
-      value.status = 0;
-      searchTerm.value = value;
-      searchTerm.hdrProperty = GLODA_DIRTY_PROPERTY;
-      searchTerms.appendElement(searchTerm, false);
-
-      if (!isLocal)
-      {
-        // If the folder is offline, then the message should be too
-        if (this._indexingFolder.flags & Ci.nsMsgFolderFlags.Offline) {
-          // third term: && Status Is nsMsgMessageFlags.Offline
-          searchTerm = searchSession.createTerm();
-          searchTerm.booleanAnd = true;
-          searchTerm.attrib = nsMsgSearchAttrib.MsgStatus;
-          searchTerm.op = nsMsgSearchOp.Is;
-          value = searchTerm.value;
-          value.attrib = searchTerm.attrib;
-          value.status = Ci.nsMsgMessageFlags.Offline;
-          searchTerm.value = value;
-          searchTerms.appendElement(searchTerm, false);
-        }
-
-        // fourth term: && Status Isnt nsMsgMessageFlags.Expunged
-        searchTerm = searchSession.createTerm();
-        searchTerm.booleanAnd = true;
-        searchTerm.attrib = nsMsgSearchAttrib.MsgStatus;
-        searchTerm.op = nsMsgSearchOp.Isnt;
-        value = searchTerm.value;
-        value.attrib = searchTerm.attrib;
-        value.status = Ci.nsMsgMessageFlags.Expunged;
-        searchTerm.value = value;
-        searchTerms.appendElement(searchTerm, false);
-      }
-
-      this._indexingEnumerator = this._indexingDatabase.getFilterEnumerator(searchTerms);
-    }
-  },
-
-  _indexerLeaveFolder: function gloda_index_indexerLeaveFolder(aExpected) {
-    if (this._indexingFolder !== null) {
-      if (this._indexingDatabase) {
-        this._indexingDatabase.Commit(Ci.nsMsgDBCommitType.kLargeCommit);
-        // remove our listener!
-        this._indexingDatabase.RemoveListener(this._databaseAnnouncerListener);
-      }
-      // let the gloda folder know we are done indexing
-      this._indexingGlodaFolder.indexing = false;
-      // null everyone out
-      this._indexingFolder = null;
-      this._indexingGlodaFolder = null;
-      this._indexingDatabase = null;
-      this._indexingEnumerator = null;
-    }
-  },
-
-  /**
-   * Event fed to us by our nsIFolderListener when a folder is loaded.  We use
-   *  this event to two ends:
-   *
-   * - Know when a folder we were trying to open to index is actually ready to
-   *   be indexed.  (The summary may have not existed, may have been out of
-   *   date, or otherwise.)
-   * - Know when
-   *
-   * @param aFolder An nsIMsgFolder, already QI'd.
-   */
-  _onFolderLoaded: function gloda_index_onFolderLoaded(aFolder) {
-    if ((this._pendingFolderEntry !== null) &&
-        (aFolder.URI == this._pendingFolderEntry.URI))
-      this._indexerCompletePendingFolderEntry();
-  },
-
-  /**
-   * A simple wrapper to make 'this' be right for incrementalIndex.
+   * A simple callback driver wrapper to provide 'this'.
    */
   _wrapCallbackDriver: function gloda_index_wrapCallbackDriver() {
-    GlodaIndexer.callbackDriver();
+    GlodaIndexer.callbackDriver.apply(GlodaIndexer, arguments);
   },
 
   /**
@@ -1210,7 +802,7 @@ var GlodaIndexer = {
     //  have been doing, but save the
     if (this._inCallback) {
       this._savedCallbackArgs = arguments;
-      this._timer.initWithCallback(this._wrapCallbackDriver,
+      this._timer.initWithCallback(this._timerCallbackDriver,
                                    0,
                                    Ci.nsITimer.TYPE_ONE_SHOT);
       return;
@@ -1251,7 +843,7 @@ var GlodaIndexer = {
         // the batch wants to get re-scheduled, do so.
         case this.kWorkPause:
           if (this.indexing)
-            this._timer.initWithCallback(this._wrapCallbackDriver,
+            this._timer.initWithCallback(this._timerCallbackDriver,
                                          this._INDEX_INTERVAL,
                                          Ci.nsITimer.TYPE_ONE_SHOT);
           else { // it's important to indicate no more callbacks are in flight
@@ -1275,19 +867,47 @@ var GlodaIndexer = {
       this.callbackThis = GlodaIndexer;
       this.callback = GlodaIndexer.callbackDriver;
     },
+    /**
+     * The stack of generators we are processing.  The (numerically) last one is
+     *  also the |activeIterator|.
+     */
     activeStack: [],
+    /**
+     * The generator at the top of the |activeStack| and that we will call next
+     *  or send on next if nothing changes.
+     */
     activeIterator: null,
-    push: function gloda_index_callbackhandle_push(aIterator) {
+    /**
+     * Meta-information about the generators at each level of the stack.
+     */
+    contextStack: [],
+    /**
+     * Push a new generator onto the stack.  It becomes the active generator.
+     */
+    push: function gloda_index_callbackhandle_push(aIterator, aContext) {
       this.activeStack.push(aIterator);
+      this.contextStack.push(aContext);
       this.activeIterator = aIterator;
     },
-    pushAndGo: function gloda_index_callbackhandle_pushAndGo(aIterator) {
-      this.push(aIterator);
-      return this.activeIterator.next();
+    /**
+     * For use by generators that want to call another asynchronous process
+     *  implemented as a generator.  They should do
+     *  "yield aCallbackHandle.pushAndGo(someGenerator(arg1, arg2));".
+     *
+     * @public
+     */
+    pushAndGo: function gloda_index_callbackhandle_pushAndGo(aIterator,
+                                                             aContext) {
+      this.push(aIterator, aContext);
+      return GlodaIndexer.kWorkSync;
     },
+    /**
+     * Pop the active generator off the stack and close it.
+     */
     pop: function gloda_index_callbackhandle_pop() {
       this.activeIterator.close();
       this.activeStack.pop();
+      this.contextStack.pop();
       if (this.activeStack.length)
         this.activeIterator = this.activeStack[this.activeStack.length - 1];
       else
@@ -1296,6 +916,10 @@ var GlodaIndexer = {
     /**
      * Someone propagated an exception and we need to clean-up all the active
      *  logic as best we can.  Which is not really all that well.
+     *
+     * @param [aOptionalStopAtDepth=0] The length the stack should be when this
+     *     method completes.  Pass 0 or omit for us to clear everything out.
+     *     Pass 1 to leave just the top-level generator intact.
      */
     cleanup: function gloda_index_callbackhandle_cleanup(aOptionalStopAtDepth) {
       if (aOptionalStopAtDepth === undefined)
@@ -1304,6 +928,13 @@ var GlodaIndexer = {
         this.pop();
       }
     },
+    /**
+     * For use when a generator finishes up by calling |doneWithResult| on us;
+     *  the async driver calls this to pop that generator off the stack
+     *  and get the result it passed in to its call to |doneWithResult|.
+     *
+     * @protected
+     */
     popWithResult: function gloda_index_callbackhandle_popWithResult() {
       this.pop();
       let result = this._result;
@@ -1311,6 +942,13 @@ var GlodaIndexer = {
       return result;
     },
     _result: null,
+    /**
+     * For use by generators that want to return a result to the calling
+     *  asynchronous generator.  Specifically, they should do
+     *  "yield aCallbackHandle.doneWithResult(RESULT);".
+     *
+     * @public
+     */
     doneWithResult: function gloda_index_callbackhandle_doneWithResult(aResult){
       this._result = aResult;
       return Gloda.kWorkDoneWithResult;
@@ -1394,7 +1032,8 @@ var GlodaIndexer = {
         //  if we left the loop due to an exception (without consuming all the
         //  tokens.)
         try {
-          switch (this._callbackHandle.activeIterator.send(this._workBatchData)) {
+          switch (this._callbackHandle.activeIterator.send(
+                    this._workBatchData)) {
             case this.kWorkSync:
               this._workBatchData = undefined;
               break;
@@ -1413,35 +1052,50 @@ var GlodaIndexer = {
           }
         }
         catch (ex) {
-          // Try and recover if the job is recoverable and the iterator that
-          //  experienced the problem wasn't the job worker.  (If it was the
-          //  job worker, we can't rely on its state to be intact.)
-          if (this._curIndexingJob.recoverable > 0 &&
-              this._callbackHandle.activeStack.length > 1) {
-            this._curIndexingJob.recoverable--;
-            this._log.warn("Problem during " + this._curIndexingJob +
-              ", trying to recover.  Problem was at " + ex.fileName + ":" +
-              ex.lineNumber + ": " + ex +
-              (ex.stack ? (". Stack:\n  " + ex.stack.replace("\n", "\n  ", "g"))
-                        : ""));
-            // cleanup but leave the job's iterator intact.
-            this._callbackHandle.cleanup(1);
-            // the data must now be invalid
-            this._workBatchData = undefined;
+          let workerDef = this._curIndexingJob._workerDef;
+          if (workerDef.recover) {
+            let recoverToDepth =
+              workerDef.recover.call(workerDef.indexer,
+                                     this._curIndexingJob,
+                                     this._callbackHandle.contextStack);
+            if (this._unitTestHookRecover)
+              this._unitTestHookRecover(recoverToDepth, ex,
+                                        this._curIndexingJob,
+                                        this._callbackHandle);
+
+            if (recoverToDepth) {
+              this._callbackHandle.cleanup(recoverToDepth);
+              continue;
+            }
+          }
+          // (we either did not have a recover handler or it couldn't recover)
+          // call the cleanup helper if there is one
+          if (workerDef.cleanup) {
+            workerDef.cleanup.call(workerDef.indexer, this._curIndexingJob);
+            if (this._unitTestHookCleanup)
+              this._unitTestHookCleanup(true, ex, this._curIndexingJob,
+                                        this._callbackHandle);
           }
           else {
-            this._log.warn("Problem during " + this._curIndexingJob +
-              ", bailing.  Problem was at " + ex.fileName + ":" +
-              ex.lineNumber + ": " + ex +
-              (ex.stack ? (". Stack:\n  " + ex.stack.replace("\n", "\n  ", "g"))
-                        : ""));
-            // make sure we no longer have a current folder
-            this._indexerLeaveFolder(true);
-            this._curIndexingJob = null;
-            // clear out our current generators and our related data
-            this._callbackHandle.cleanup();
-            this._workBatchData = undefined;
+            if (this._unitTestHookCleanup)
+              this._unitTestHookCleanup(false, ex, this._curIndexingJob,
+                                        this._callbackHandle);
           }
+
+          // Clean out everything on the async stack, warn about the job, kill.
+          // We do not log this warning lightly; it will break unit tests and
+          //  be visible to users.  Anything expected should likely have a
+          //  recovery function or the cleanup logic should be extended to
+          //  indicate that the failure is acceptable.
+          this._callbackHandle.cleanup();
+          this._log.warn("Problem during " + this._curIndexingJob +
+            ", bailing.  Problem was at " + ex.fileName + ":" +
+            ex.lineNumber + ": " + ex +
+            (ex.stack ? (". Stack:\n  " + ex.stack.replace("\n", "\n  ", "g"))
+                      : ""));
+          this._curIndexingJob = null;
+          // the data must now be invalid
+          this._workBatchData = undefined;
         }
       }
       this._perfIndexStopwatch.stop();
@@ -1515,18 +1169,17 @@ var GlodaIndexer = {
                       (inIdle && (elapsed > this._MINIMUM_COMMIT_TIME ||
                                   !haveMoreWork));
       if (doCommit) {
-        // XXX doing the dirty commit/check every time could be pretty expensive...
         GlodaCollectionManager.cacheCommitDirty();
-        // Set up an async notification to happen after the commit completes so that
-        //  we can avoid the indexer doing something with the database that causes the
-        //  main thread to block against the completion of the commit (which can be
-        //  a while) on 1.9.1.
+        // Set up an async notification to happen after the commit completes so
+        //  that we can avoid the indexer doing something with the database that
+        //  causes the main thread to block against the completion of the commit
+        //  (which can be a while) on 1.9.1.
         GlodaDatastore.runPostCommit(this._callbackHandle.wrappedCallback);
         // kick off the commit
         GlodaDatastore._commitTransaction();
         yield this.kWorkAsync;
-        // Let's do the GC after the commit completes just so we can avoid having any
-        //  ugly interactions.
+        // Let's do the GC after the commit completes just so we can avoid
+        //  having any ugly interactions.
         GlodaUtils.forceGarbageCollection(false);
         this._lastCommitTime = Date.now();
         // Restart the transaction if we still have work.
@@ -1551,62 +1204,64 @@ var GlodaIndexer = {
     yield this.kWorkDone;
   },
 
-  _otherIndexerWorkers: {},
+  /**
+   * Maps indexing job type names to a worker definition.
+   * The worker definition is an object with the following attributes where
+   *  only worker is required:
+   * - worker:
+   * - onSchedule: A function to be invoked when the worker is scheduled.  The
+   *    job is passed as an argument.
+   * - recover:
+   * - cleanup:
+   */
+  _indexerWorkerDefs: {},
   /**
    * Perform the initialization step and return a generator if there is any
    *  steady-state processing to be had.
    */
   _hireJobWorker: function gloda_index_hireJobWorker() {
+    // In no circumstances should there be data bouncing around from previous
+    //  calls if we are here.  |killActiveJob| depends on this.
+    this._workBatchData = undefined;
+
     if (this._indexQueue.length == 0) {
       this._log.info("--- Done indexing, disabling timer renewal.");
-
-      if (this._indexingFolder !== null) {
-        this._indexerLeaveFolder(true);
-      }
 
       this._curIndexingJob = null;
       this._indexingDesired = false;
       this._indexingJobCount = 0;
-      this._indexingJobGoal = 0;
       return false;
     }
 
-    //this._log.debug("++ Pulling job from queue of size " +
-    //                this._indexQueue.length);
     let job = this._curIndexingJob = this._indexQueue.shift();
     this._indexingJobCount++;
-    //this._log.debug("++ Pulled job: " + job.jobType + ", " +
-    //                job.deltaType + ", " + job.id);
+
     let generator = null;
 
-    if (job.jobType == "sweep") {
-      generator = this._worker_indexingSweep(job);
-    }
-    else if (job.jobType == "folder") {
-      generator = this._worker_folderIndex(job);
-    }
-    else if(job.jobType == "message") {
-      // we do not want new work items to be added as we are processing, so
-      //  clear _pendingAddJob.  A new job will be created as needed.
-      if (job === this._pendingAddJob)
-        this._pendingAddJob = null;
-      // update our goal from the items length
-      job.goal = job.items.length;
+    if (job.jobType in this._indexerWorkerDefs) {
+      let workerDef = this._indexerWorkerDefs[job.jobType];
+      job._workerDef = workerDef;
 
-      generator = this._worker_messageIndex(job);
-    }
-    else if (job.jobType == "delete") {
-      // we'll count the block processing as a cost of 1...
-      job.goal = 1;
-      generator = this._worker_processDeletes(job);
-    }
-    else if (job.jobType in this._otherIndexerWorkers) {
-      let [indexer, workerFunc] = this._otherIndexerWorkers[job.jobType];
-      generator = workerFunc.call(indexer, job, this._callbackHandle);
+      // Prior to creating the worker, call the scheduling trigger function
+      //  if there is one.  This is so that jobs can be finalized.  The
+      //  initial use case is event-driven message indexing that accumulates
+      //  a list of messages to index but wants it locked down once we start
+      //  processing the list.
+      if (workerDef.onSchedule)
+        workerDef.onSchedule.call(workerDef.indexer, job);
+
+      generator = workerDef.worker.call(workerDef.indexer, job,
+                                        this._callbackHandle);
     }
     else {
-      this._log.warn("Unknown job type: " + job.jobType);
+      // Nothing we can do about this.  Be loud about it and try to schedule
+      //  something else.
+      this._log.error("Unknown job type: " + job.jobType);
+      return this._hireJobWorker();
     }
+
+    if (this._unitTestSuperVerbose)
+      this._log.debug("Hired job of type: " + job.jobType);
 
     this._notifyListeners();
 
@@ -1619,400 +1274,76 @@ var GlodaIndexer = {
   },
 
   /**
-   * Performs the folder sweep, locating folders that should be indexed, and
-   *  creating a folder indexing job for them, and rescheduling itself for
-   *  execution after that job is completed.  Once it indexes all the folders,
-   *  if we believe we have deletions to process (or just don't know), it kicks
-   *  off a deletion processing job.
-   *
-   * Folder traversal logic is based off the spotlight/vista indexer code; we
-   *  retrieve the list of servers and folders each time want to find a new
-   *  folder to index.  This avoids needing to maintain a perfect model of the
-   *  folder hierarchy at all times.  (We may eventually want to do that, but
-   *  this is sufficient and safe for now.)  Although our use of dirty flags on
-   *  the folders allows us to avoid tracking the 'last folder' we processed,
-   *  we do so to avoid getting 'trapped' in a folder with a high rate of
-   *  changes.
+   * Schedule a job for indexing.
    */
-  _worker_indexingSweep: function gloda_worker_indexingSweep(aJob) {
-    if (!aJob.mappedFolders) {
-      // Walk the folders and make sure all the folders we would want to index
-      //  are mapped.  Build up a list of GlodaFolders as we go, so that we can
-      //  sort them by their indexing priority.
-      let foldersToProcess = aJob.foldersToProcess = [];
-
-      let accountManager = Cc["@mozilla.org/messenger/account-manager;1"].
-                           getService(Ci.nsIMsgAccountManager);
-      let servers = accountManager.allServers;
-      for (let i = 0; i < servers.Count(); i++) {
-        let server = servers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
-        let rootFolder = server.rootFolder;
-
-        let allFolders = Cc["@mozilla.org/supports-array;1"].
-          createInstance(Ci.nsISupportsArray);
-        rootFolder.ListDescendents(allFolders);
-        let numFolders = allFolders.Count();
-        for (let folderIndex = 0; folderIndex < numFolders; folderIndex++) {
-          let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
-            Ci.nsIMsgFolder);
-          if (!this.shouldIndexFolder(folder))
-            continue;
-
-          // we only index local or IMAP folders
-          if (!(folder instanceof Ci.nsIMsgLocalMailFolder) &&
-              !(folder instanceof Ci.nsIMsgImapMailFolder))
-            continue;
-
-          let glodaFolder = Gloda.getFolderForFolder(folder);
-          if (glodaFolder.indexingPriority !=
-              glodaFolder.kIndexingNeverPriority)
-            foldersToProcess.push(glodaFolder);
-        }
-      }
-
-      // sort the folders by priority (descending)
-      foldersToProcess.sort(function (a, b) {
-        return b.indexingPriority - a.indexingPriority;
-      });
-
-      aJob.mappedFolders = true;
-    }
-
-    // - process the folders (in sorted order)
-    while (aJob.foldersToProcess.length) {
-      let glodaFolder = aJob.foldersToProcess.shift();
-      if (glodaFolder._deleted || !glodaFolder.dirtyStatus)
-        continue;
-
-      this._indexingJobGoal += 2;
-      // add a job for the folder indexing
-      this._indexQueue.push(new IndexingJob("folder", 0, glodaFolder.id));
-      // re-schedule this job (although this worker will die)
-      this._indexQueue.push(aJob);
-      yield this.kWorkDone;
-    }
-
-    // consider deletion
-    if (this.pendingDeletion || this.pendingDeletion === null) {
-      this._indexingJobGoal++;
-      this._indexQueue.push(new IndexingJob("delete", 0, null));
-      // no need to set this.indexing to true, it must be true if we are here.
-    }
-
-    // if this is our first sweep, give the other indexers a chance to do their
-    //  own initial sweep.  it's on them to schedule their own job if they have
-    //  a lot to do, but if they only have a little to do, they can get away
-    //  with it, as we yield a sync after each one.
-    if (!this._initialSweepPerformed) {
-      for each (let [iIndexer, indexer] in Iterator(this._otherIndexers)) {
-        try {
-          indexer.initialSweep();
-        }
-        catch (ex) {
-          this._log.warn("Helper indexer threw exception on initial sweep:" +
-                         ex);
-        }
-        yield this.kWorkSync;
-      }
-      this._initialSweepPerformed = true;
-    }
-
-    // we don't have any more work to do...
-    this._indexingSweepActive = false;
-    yield this.kWorkDone;
-  },
-
-  /**
-   * Index the contents of a folder.
-   */
-  _worker_folderIndex: function gloda_worker_folderIndex(aJob) {
-    let logDebug = this._log.level <= Log4Moz.Level.Debug;
-    yield this._indexerEnterFolder(aJob.id);
-
-    if (!this.shouldIndexFolder(this._indexingFolder))
-      yield this.kWorkDone;
-
-    // Make sure listeners get notified about this job.
-    this._notifyListeners();
-
-    // there is of course a cost to all this header investigation even if we
-    //  don't do something.  so we will yield with kWorkSync for every block.
-    const HEADER_CHECK_BLOCK_SIZE = 25;
-
-    // we can safely presume if we are here that this folder has been selected
-    //  for offline processing...
-
-    // Handle the filthy case.  A filthy folder may have misleading properties
-    //  on the message that claim the message is indexed.  They are misleading
-    //  because the database, for whatever reason, does not have the messages
-    //  (accurately) indexed.
-    // We need to walk all the messages and mark them filthy if they have a
-    //  dirty property.  Once we have done this, we can downgrade the folder's
-    //  dirty status to plain dirty.  We do this rather than trying to process
-    //  everyone in one go in a filthy context because if we have to terminate
-    //  indexing before we quit, we don't want to have to re-index messages next
-    //  time.  (This could even lead to never completing indexing in a
-    //  pathological situation.)
-    let glodaFolder = GlodaDatastore._mapFolder(this._indexingFolder);
-    if (glodaFolder.dirtyStatus == glodaFolder.kFolderFilthy) {
-      this._indexerGetEnumerator(true);
-      let count = 0;
-      for (let msgHdr in fixIterator(this._indexingEnumerator,
-                                     Ci.nsIMsgDBHdr)) {
-        // we still need to avoid locking up the UI, pause periodically...
-        if (++count % HEADER_CHECK_BLOCK_SIZE == 0)
-          yield this.kWorkSync;
-
-        let glodaMessageId = msgHdr.getUint32Property(
-          GLODA_MESSAGE_ID_PROPERTY);
-        // if it has a gloda message id, we need to mark it filthy
-        if (glodaMessageId != 0)
-          msgHdr.setUint32Property(GLODA_DIRTY_PROPERTY, this.kMessageFilthy);
-        // if it doesn't have a gloda message id, we will definitely index it,
-        //  so no action is required.
-      }
-      // this will automatically persist to the database
-      glodaFolder.dirtyStatus = glodaFolder.kFolderDirty;
-    }
-
-    // Pass 1: count the number of messages to index.
-    //  We do this in order to be able to report to the user what we're doing.
-    // TODO: give up after reaching a certain number of messages in folders
-    //  with ridiculous numbers of messages and make the interface just say
-    //  something like "over N messages to go."
-
-    this._indexerGetEnumerator(false);
-    let numMessagesToIndex = 0;
-    let numMessagesOut = {};
-    // Keep going until we run out of headers.
-    while (this._indexingFolder.msgDatabase.nextMatchingHdrs(
-             this._indexingEnumerator,
-             HEADER_CHECK_BLOCK_SIZE * 8, // this way is much faster, do more
-             0, // moot, we don't return headers
-             null, // don't return headers, we just want the count
-             numMessagesOut)) {
-      numMessagesToIndex += numMessagesOut.value;
-      yield this.kWorkSync;
-    }
-    numMessagesToIndex += numMessagesOut.value;
-
-    aJob.goal = numMessagesToIndex;
-
-    if (numMessagesToIndex > 0) {
-      // We used up the iterator, get a new one.
-      this._indexerGetEnumerator(false);
-
-      // Pass 2: index the messages.
-      let count = 0;
-      for (let msgHdr in fixIterator(this._indexingEnumerator,
-                                     Ci.nsIMsgDBHdr)) {
-        // per above, we want to periodically release control while doing all
-        // this header traversal/investigation.
-        // XXX not clear that this is really needed, since search has its own
-        // method to yield to UI periodically.
-        if (++count % HEADER_CHECK_BLOCK_SIZE == 0)
-          yield this.kWorkSync;
-
-        ++aJob.offset;
-        if (logDebug)
-          this._log.debug(">>>  _indexMessage");
-        yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
-            this._callbackHandle));
-        if (logDebug)
-          this._log.debug("<<<  _indexMessage");
-      }
-    }
-
-    glodaFolder.dirtyStatus = glodaFolder.kFolderClean;
-
-    // by definition, it's not likely we'll visit this folder again anytime soon
-    this._indexerLeaveFolder();
-
-    yield this.kWorkDone;
-  },
-
-  /**
-   * Index a specific list of messages that we know to index from
-   *  event-notification hints.
-   */
-  _worker_messageIndex: function gloda_worker_messageAdd(aJob) {
-    // if we are already in the correct folder, our "get in the folder" clause
-    //  will not execute, so we need to make sure this value is accurate in
-    //  that case.  (and we want to avoid multiple checks...)
-    for (; aJob.offset < aJob.items.length; aJob.offset++) {
-      let item = aJob.items[aJob.offset];
-      // item is either [folder ID, message key] or
-      //                [folder ID, message ID]
-
-      // get in the folder
-      if (!this._indexingGlodaFolder ||
-          this._indexingGlodaFolder.id != item[0]) {
-        yield this._indexerEnterFolder(item[0]);
-
-        // stay out of folders we should not be in!
-        if (!this.shouldIndexFolder(this._indexingFolder))
-          continue;
-      }
-
-      let msgHdr;
-      if (typeof item[1] == "number")
-        msgHdr = this._indexingFolder.GetMessageHeader(item[1]);
-      else
-        // same deal as in move processing.
-        // TODO fixme to not assume singular message-id's.
-        msgHdr = this._indexingDatabase.getMsgHdrForMessageID(item[1]);
-
-      // it needs a header, and the header needs to not be expunged.
-      if (msgHdr &&
-          !(msgHdr.flags & Components.interfaces.nsMsgMessageFlags.Expunged))
-        yield this._callbackHandle.pushAndGo(this._indexMessage(msgHdr,
-            this._callbackHandle));
-      else
-        yield this.kWorkSync;
-    }
-    yield this.kWorkDone;
-  },
-
-  /**
-   * Process pending deletes...
-   */
-  _worker_processDeletes: function gloda_worker_processDeletes(aJob,
-      aCallbackHandle) {
-    // get a block of messages to delete.  for now, let's just do this
-    //  synchronously.  we don't care if there are un-landed delete changes
-    //  on the asynchronous thread.  (well, there is a potential race that
-    //  would result in us clearing pendingDeletions erroneously, but the
-    //  processedAny flag and our use of a while loop here make this
-    //  sufficiently close to zero until we move to being async.)
-    let messagesToDelete = this._datastore.getDeletedMessageBlock();
-    let processedAny = false;
-    while (messagesToDelete.length) {
-      aJob.goal += messagesToDelete.length;
-      for each (let [iMessage, message] in Iterator(messagesToDelete)) {
-        yield aCallbackHandle.pushAndGo(this._deleteMessage(message));
-        aJob.offset++;
-        yield this.kWorkSync;
-      }
-
-      processedAny = true;
-      messagesToDelete = this._datastore.getDeletedMessageBlock();
-    }
-    if (processedAny)
-      this.pendingDeletions = false;
-
-    yield this.kWorkDone;
-  },
-
-  /**
-   * Determine whether a folder is suitable for indexing.
-   *
-   * @param aMsgFolder An nsIMsgFolder you want to see if we should index.
-   *
-   * @returns true if we want to index messages in this type of folder, false if
-   *     we do not.
-   */
-  shouldIndexFolder: function(aMsgFolder) {
-    let folderFlags = aMsgFolder.flags;
-    // only index mail folders but stay out of virtual folders
-    return ((folderFlags & Ci.nsMsgFolderFlags.Mail) &&
-            !(folderFlags & Ci.nsMsgFolderFlags.Virtual));
-  },
-
-  /**
-   * Queue all of the folders of all of the accounts of the current profile
-   *  for indexing.  We traverse all folders and queue them immediately to try
-   *  and have an accurate estimate of the number of folders that need to be
-   *  indexed.  (We previously queued accounts rather than immediately
-   *  walking their list of folders.)
-   */
-  indexEverything: function glodaIndexEverything() {
-    this._log.info("Queueing all accounts for indexing.");
-    let msgAccountManager = Cc["@mozilla.org/messenger/account-manager;1"].
-                            getService(Ci.nsIMsgAccountManager);
-
-    GlodaDatastore._beginTransaction();
-    let sideEffects = [this.indexAccount(account) for each
-                       (account in fixIterator(msgAccountManager.accounts,
-                                               Ci.nsIMsgAccount))];
-    GlodaDatastore._commitTransaction();
-  },
-
-  /**
-   * Queue all of the folders belonging to an account for indexing.
-   */
-  indexAccount: function glodaIndexAccount(aAccount) {
-    let rootFolder = aAccount.incomingServer.rootFolder;
-    if (rootFolder instanceof Ci.nsIMsgFolder) {
-      this._log.info("Queueing account folders for indexing: " + aAccount.key);
-
-      let allFolders = Cc["@mozilla.org/supports-array;1"]
-                         .createInstance(Ci.nsISupportsArray);
-      rootFolder.ListDescendents(allFolders);
-      let numFolders = allFolders.Count();
-      let folderJobs = [];
-      for (let folderIndex = 0; folderIndex < numFolders; folderIndex++) {
-        let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
-                                                            Ci.nsIMsgFolder);
-        if (this.shouldIndexFolder(folder))
-          folderJobs.push(
-            new IndexingJob("folder", 1, GlodaDatastore._mapFolder(folder).id));
-      }
-
-      this._indexingJobGoal += folderJobs.length;
-      this._indexQueue = this._indexQueue.concat(folderJobs);
-      this.indexing = true;
-    }
-    else {
-      this._log.info("Skipping Account, root folder not nsIMsgFolder");
-    }
-  },
-
   indexJob: function glodaIndexJob(aJob) {
     this._log.info("Queue-ing job for indexing: " + aJob.jobType);
 
     this._indexQueue.push(aJob);
-    this._indexingJobGoal++;
     this.indexing = true;
   },
 
   /**
-   * Queue a single folder for indexing given an nsIMsgFolder.
-   */
-  indexFolder: function glodaIndexFolder(aFolder) {
-    this._log.info("Queue-ing folder for indexing: " + aFolder.prettiestName);
-
-    this._indexQueue.push(new IndexingJob("folder", 1,
-                          GlodaDatastore._mapFolder(aFolder).id));
-    this._indexingJobGoal++;
-    this.indexing = true;
-  },
-
-  /**
-   * Queue a list of messages for indexing.
+   * Kill the active job.  This means a few things:
+   * - Kill all the generators in the callbackHandle stack.
+   * - If we are currently waiting on an async return, we need to make sure it
+   *    does not screw us up.
+   * - Make sure the job's cleanup function gets called if appropriate.
    *
-   * @param aFoldersAndMessages List of [nsIMsgFolder, message key] tuples.
+   * The async return case is actually not too troublesome.  Since there is an
+   *  active indexing job and we are not (by fiat) in that call stack, we know
+   *  that the callback driver is guaranteed to get triggered again somehow.
+   *  The only issue is to make sure that _workBatchData does not end up with
+   *  the data.  We compel |_hireJobWorker| to erase it to this end.
+   *
+   * @note You MUST NOT call this function from inside a job or an async funtion
+   *    on the callbackHandle's stack of generators.  If you are in that
+   *    situation, you should just throw an exception.  At the very least,
+   *    use a timeout to trigger us.
    */
-  indexMessages: function gloda_index_indexMessages(aFoldersAndMessages) {
-    let job = new IndexingJob("message", 1, null);
-    job.items = [[GlodaDatastore._mapFolder(fm[0]).id, fm[1]] for each
-                 ([i, fm] in Iterator(aFoldersAndMessages))];
-    this._indexQueue.push(job);
-    this._indexingJobGoal++;
-    this.indexing = true;
+  killActiveJob: function() {
+    // There is nothing to do if we have no job
+    if (!this._curIndexingJob)
+      return;
+
+    // -- Blow away the stack with cleanup.
+    let workerDef = this._curIndexingJob._workerDef;
+    if (this._unitTestHookCleanup)
+      this._unitTestHookCleanup(workerDef.cleanup ? true : false,
+                                "no exception, this was killActiveJob",
+                                this._curIndexingJob,
+                                this._callbackHandle);
+    this._callbackHandle.cleanup();
+    if (workerDef.cleanup)
+      workerDef.cleanup.call(workerDef.indexer, this._curIndexingJob);
+
+    // Eliminate the job.
+    this._curIndexingJob = null;
   },
 
   /**
-   * Given a message header, return whether this message is likely to have
-   * been indexed or not.
+   * Purge all jobs that the filter function returns true for.  This does not
+   *  kill the active job, use |killActiveJob| to do that.
    *
-   * @param aMsgHdr A message header.
-   * @returns true if the message is likely to have been indexed.
+   * Make sure to call this function before killActiveJob
+   *
+   * @param aFilterElimFunc A filter function that takes an |IndexingJob| and
+   *     returns true if the job should be purged, false if it should not be.
+   *     The filter sees the jobs in the order they are scheduled.
    */
-  isMessageIndexed: function gloda_index_isMessageIndexed(aMsgHdr) {
-    let glodaFolder = GlodaDatastore._mapFolder(aMsgHdr.folder);
-    return aMsgHdr.getUint32Property(GLODA_MESSAGE_ID_PROPERTY) != 0 &&
-           aMsgHdr.getStringProperty(GLODA_DIRTY_PROPERTY) == 0 &&
-           glodaFolder && glodaFolder.dirtyStatus != glodaFolder.kFolderFilthy;
+  purgeJobsUsingFilter: function(aFilterElimFunc) {
+    for (let iJob = 0; iJob < this._indexQueue.length; iJob++) {
+      let job = this._indexQueue[iJob];
+
+      // If the filter says to, splice the job out of existence (and make sure
+      //  to fixup iJob to compensate.)
+      if (aFilterElimFunc(job)) {
+        this._indexQueue.splice(iJob--, 1);
+        let workerDef = this._indexerWorkerDefs[job.jobType];
+        if (workerDef.jobCanceled)
+          workerDef.jobCanceled.call(workerDef.indexer, job);
+      }
+    }
   },
 
   /* *********** Event Processing *********** */
@@ -2043,801 +1374,6 @@ var GlodaIndexer = {
     }
   },
 
-  /* ***** Folder Changes ***** */
-  /**
-   * All additions and removals are queued for processing.  Indexing messages
-   *  is potentially phenomenally expensive, and deletion can still be
-   *  relatively expensive due to our need to delete the message, its
-   *  attributes, and all attributes that reference it.  Additionally,
-   *  attribute deletion costs are higher than attribute look-up because
-   *  there is the actual row plus its 3 indices, and our covering indices are
-   *  no help there.
-   *
-   */
-  _msgFolderListener: {
-    indexer: null,
 
-    /**
-     * Handle a new-to-thunderbird message, meaning a newly fetched message
-     *  (local folder) one revealed by synching with the server (IMAP).  Because
-     *  the new-to-IMAP case requires Thunderbird to have opened the folder,
-     *  we either need to depend on MailNews to be aggressive about looking
-     *  for new messages in folders or try and do it ourselves.  For now, we
-     *  leave it up to MailNews proper.
-     *
-     * For the time being, we post the message header as received to our
-     *  indexing queue.  Depending on experience, it may be more suitable to
-     *  try and index the message immediately, or hold onto a less specific
-     *  form of message information than the nsIMsgDBHdr.  (If we were to
-     *  process immediately, it might appropriate to consider having a
-     *  transaction open that is commited by timer/sufficient activity, since it
-     *  is conceivable we will see a number of these events in fairly rapid
-     *  succession.)
-     */
-    msgAdded: function gloda_indexer_msgAdded(aMsgHdr) {
-      // make sure the message is eligible for indexing...
-      let msgFolder = aMsgHdr.folder;
-      if (!this.indexer.shouldIndexFolder(msgFolder))
-        return;
-
-      // Make sure the message is eligible for indexing.
-      // We index local messages, IMAP messages that are offline, and IMAP
-      // messages that aren't offline but whose folders aren't offline either
-      let isFolderLocal = msgFolder instanceof Ci.nsIMsgLocalMailFolder;
-      if (!isFolderLocal) {
-        if (!(aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline) &&
-            (msgFolder.flags & Ci.nsMsgFolderFlags.Offline))
-          return;
-      }
-
-      // mark the folder dirty so we know to look in it, but there is no need
-      //  to mark the message because it will lack a gloda-id anyways.
-      let glodaFolder = GlodaDatastore._mapFolder(msgFolder);
-      glodaFolder.dirtyStatus = true;
-
-      if (this.indexer._pendingAddJob === null) {
-        this.indexer._pendingAddJob = new IndexingJob("message", 1, null);
-        this.indexer._indexQueue.push(this.indexer._pendingAddJob);
-        this.indexer._indexingJobGoal++;
-      }
-      // only queue the message if we haven't overflowed our event-driven budget
-      if (this.indexer._pendingAddJob.items.length <
-          this.indexer._indexMaxEventQueueMessages) {
-        this.indexer._pendingAddJob.items.push(
-          [glodaFolder.id, aMsgHdr.messageKey]);
-        this.indexer.indexing = true;
-        this.indexer._log.debug("msgAdded notification, event indexing");
-      }
-      else {
-        this.indexer.indexingSweepNeeded = true;
-        this.indexer._log.debug("msgAdded notification, sweep indexing");
-      }
-    },
-
-    /**
-     * Handle real, actual deletion (move to trash and IMAP deletion model
-     *  don't count; we only see the deletion here when it becomes forever,
-     *  or rather _just before_ it becomes forever.  Because the header is
-     *  going away, we need to either process things immediately or extract the
-     *  information required to purge it later without the header.
-     * To this end, we mark all messages that were indexed in the gloda message
-     *  database as deleted.  We set our pending deletions flag to let our
-     *  indexing logic know that after its next wave of folder traversal, it
-     *  should perform a deletion pass.  If it turns out the messages are coming
-     *  back, the fact that deletion is thus deferred can be handy, as we can
-     *  reuse the existing gloda message.
-     */
-    msgsDeleted: function gloda_indexer_msgsDeleted(aMsgHdrs) {
-      this.indexer._log.debug("msgsDeleted notification");
-
-      let glodaMessageIds = [];
-
-      let deleteJob = new IndexingJob("message", -1, null);
-      for (let iMsgHdr = 0; iMsgHdr < aMsgHdrs.length; iMsgHdr++) {
-        let msgHdr = aMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
-        try {
-          glodaMessageIds.push(msgHdr.getUint32Property(
-            GLODA_MESSAGE_ID_PROPERTY));
-        }
-        catch (ex) {}
-      }
-
-      if (glodaMessageIds.length) {
-        this.indexer._datastore.markMessagesDeletedByIDs(glodaMessageIds);
-        this.indexer.pendingDeletions = true;
-      }
-    },
-
-    /**
-     * Process a move or copy.
-     * Moves to a local folder can be dealt with (relatively) efficiently; the
-     *  target message headers exist at the time of the notification.  The trick
-     *  is that we aren't provided with them.
-     * Moves to an IMAP folder are troublesome because mailnews may not actually
-     *  know anything about the messages in their new location.  If there isn't
-     *  a currently open connection to the destination folder, we will only hear
-     *  about the headers when the user browses there or IMAP auto-sync gets to
-     *  the folder.  Either way, we will actually receive a msgAdded event for
-     *  each message, so the main thing we need to do is provide a hint to the
-     *  indexing logic that the gloda message in question should be reused and
-     *  is not a duplicate.
-     * Because copied messages are, by their nature, duplicate messages, we
-     *  do not particularly care about them.  As such, we defer their processing
-     *  to the automatic sync logic that will happen much later on.  This is
-     *  potentially desirable in case the user deletes some of the original
-     *  messages, allowing us to reuse the gloda message representations when
-     *  we finally get around to indexing the messages.  We do need to mark the
-     *  folder as dirty, though, to clue in the sync logic.
-     */
-    msgsMoveCopyCompleted: function gloda_indexer_msgsMoveCopyCompleted(aMove,
-                             aSrcMsgHdrs, aDestFolder) {
-      this.indexer._log.debug("MoveCopy notification.  Move: " + aMove);
-      try {
-        if (aMove) {
-          // target is a local folder, we can find the destination messages
-          if (aDestFolder instanceof Ci.nsIMsgLocalMailFolder) {
-            // ...of course, finding the destination messages is not going to
-            //  be cheap.  we're O(n) for the messages in the target folder
-            //  (which is >= the number of moved messages).
-            // XXX for now, we assume the gloda-id is not propagated at the
-            //  cost of getting confused if multiple messages have the same
-            //  message-id header; we would do better to get the gloda-id
-            //  propagated and use that.  (needs C++ code changes.)
-            // (we would still need to do the traversal because we still need
-            //  to know the messageKey in the target folder...)
-            let srcMsgIdToHdr = {};
-
-            for (let iMsgHdr = 0; iMsgHdr < aSrcMsgHdrs.length; iMsgHdr++) {
-              let msgHdr = aSrcMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
-              // (note: collissions on message-id headers are possible and sad)
-              srcMsgIdToHdr[msgHdr.messageId] = msgHdr;
-            }
-            let glodaIds = [];
-            let newMessageKeys = [];
-            for each (let destMsgHdr in fixIterator(aDestFolder.messages,
-                                                    Ci.nsIMsgDBHdr)) {
-              let destMsgId = destMsgHdr.messageId;
-              let matchingSrcHdr = srcMsgIdToHdr[destMsgId];
-              if (matchingSrcHdr) {
-                try {
-                  let glodaId = matchingSrcHdr.getUint32Property(
-                    GLODA_MESSAGE_ID_PROPERTY);
-                  glodaIds.push(glodaId);
-                  newMessageKeys.push(destMsgHdr.messageKey);
-                }
-                // no gloda id means it hasn't been indexed, so the move isn't
-                //  required.
-                catch (ex) {}
-              }
-            }
-
-            // this method takes care to update the in-memory representations
-            //  too; we don't need to do anything
-            this.indexer._datastore.updateMessageLocations(glodaIds,
-              newMessageKeys, aDestFolder);
-          }
-          // target is IMAP or something we equally don't understand
-          else {
-            // XXX the srcFolder will always be the same for now, but we
-            //  probably don't want to depend on it, or at least want a unit
-            //  test that will break if it changes...
-            let srcFolder = aSrcMsgHdrs.queryElementAt(0,Ci.nsIMsgDBHdr).folder;
-
-            // get the current (about to be nulled) messageKeys and build the
-            //  job list too.
-            let messageKeys = [];
-            for (let iMsgHdr = 0; iMsgHdr < aSrcMsgHdrs.length; iMsgHdr++) {
-              let msgHdr = aSrcMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
-              messageKeys.push(msgHdr.messageKey);
-            }
-            // XXX we could extract the gloda message id's instead.
-            // quickly move them to the right folder, zeroing their message keys
-            this.indexer._datastore.updateMessageFoldersByKeyPurging(
-              srcFolder, messageKeys, aDestFolder);
-            // we _do not_ need to mark the folder as dirty, because the
-            //  message added events will cause that to happen.
-          }
-        }
-       // copy case
-        else {
-          // mark the folder as dirty; we'll get to it later.
-          let destGlodaFolder = GlodaDatastore._mapFolder(aDestFolder);
-          destGlodaFolder.dirtyStatus = true;
-          this.indexer.indexingSweepNeeded = true;
-        }
-      } catch (ex) {
-        this.indexer._log.error("Problem encountered during message move/copy" +
-          ": " + ex);
-      }
-    },
-
-    /**
-     * Handles folder no-longer-exists-ence.  We mark all messages as deleted
-     *  and remove the folder from our URI table.  Currently, if a folder that
-     *  contains other folders is deleted, we may either receive one
-     *  notification for the folder that is deleted, or a notification for the
-     *  folder and one for each of its descendents.  This depends upon the
-     *  underlying account implementation, so we explicitly handle each case.
-     *  Namely, we treat it as if we're only planning on getting one, but we
-     *  handle if the children are already gone for some reason.
-     */
-    folderDeleted: function gloda_indexer_folderDeleted(aFolder) {
-      this.indexer._log.debug("folderDeleted notification");
-
-      let delFunc = function(aFolder, indexer) {
-        if (indexer._datastore._folderKnown(aFolder)) {
-          let folder = GlodaDatastore._mapFolder(aFolder);
-          folder._deleted = true;
-          indexer._datastore.markMessagesDeletedByFolderID(folder.id);
-          indexer._datastore.deleteFolderByID(folder.id);
-        }
-      };
-
-      let descendentFolders = Cc["@mozilla.org/supports-array;1"].
-                                createInstance(Ci.nsISupportsArray);
-      aFolder.ListDescendents(descendentFolders);
-
-      // (the order of operations does not matter; child, non-child, whatever.)
-      // delete the parent
-      delFunc(aFolder, this.indexer);
-      // delete all its descendents
-      for (let folder in fixIterator(descendentFolders, Ci.nsIMsgFolder)) {
-        delFunc(folder, this.indexer);
-      }
-
-      this.indexer.pendingDeletions = true;
-    },
-
-    /**
-     * Handle a folder being copied or moved.
-     * Moves are handled by a helper function shared with _folderRenameHelper
-     *  (which takes care of any nesting involved).
-     * Copies are actually ignored, because our periodic indexing traversal
-     *  should discover these automatically.  We could hint ourselves into
-     *  action, but arguably a set of completely duplicate messages is not
-     *  a high priority for indexing.
-     */
-    folderMoveCopyCompleted: function gloda_indexer_folderMoveCopyCompleted(
-                               aMove, aSrcFolder, aDestFolder) {
-      this.indexer._log.debug("folderMoveCopy notification (Move: " + aMove
-                              + ")");
-      if (aMove) {
-        let srcURI = aSrcFolder.URI;
-        let targetURI = aDestFolder.URI +
-                        srcURI.substring(srcURI.lastIndexOf("/"));
-        return this._folderRenameHelper(aSrcFolder, targetURI);
-      }
-      this.indexer.indexingSweepNeeded = true;
-    },
-
-    /**
-     * We just need to update the URI <-> ID maps and the row in the database,
-     *  all of which is actually done by the datastore for us.
-     * This method needs to deal with the complexity where local folders will
-     *  generate a rename notification for each sub-folder, but IMAP folders
-     *  will generate only a single notification.  Our logic primarily handles
-     *  this by not exploding if the original folder no longer exists.
-     */
-    _folderRenameHelper: function gloda_indexer_folderRenameHelper(aOrigFolder,
-                                                                   aNewURI) {
-      let descendentFolders = Cc["@mozilla.org/supports-array;1"].
-                                createInstance(Ci.nsISupportsArray);
-      aOrigFolder.ListDescendents(descendentFolders);
-
-      let origURI = aOrigFolder.URI;
-      // this rename is straightforward.
-      GlodaDatastore.renameFolder(aOrigFolder, aNewURI);
-
-      for (let folder in fixIterator(descendentFolders, Ci.nsIMsgFolder)) {
-        let oldSubURI = folder.URI;
-        // mangle a new URI from the old URI.  we could also try and do a
-        //  parallel traversal of the new folder hierarchy, but that seems like
-        //  more work.
-        let newSubURI = aNewURI + oldSubURI.substring(origURI.length)
-        this.indexer._datastore.renameFolder(oldSubURI, newSubURI);
-      }
-
-      this.indexer._log.debug("folder renamed: " + origURI + " to " + aNewURI);
-    },
-
-    /**
-     * Handle folder renames, dispatching to our rename helper (which also
-     *  takes care of any nested folder issues.)
-     */
-    folderRenamed: function gloda_indexer_folderRenamed(aOrigFolder,
-                                                        aNewFolder) {
-      this._folderRenameHelper(aOrigFolder, aNewFolder.URI);
-    },
-
-    itemEvent: function gloda_indexer_itemEvent(aItem, aEvent, aData) {
-      // nop.  this is an expansion method on the part of the interface and has
-      //  no known events that we need to handle.
-    },
-  },
-
-  /**
-   * A nsIFolderListener (listening on nsIMsgMailSession so we get all of
-   *  these events) PRIMARILY to get folder loaded notifications.  Because of
-   *  deficiencies in the nsIMsgFolderListener's events at this time, we also
-   *  get our folder-added and newsgroup notifications from here for now.  (This
-   *  will be rectified.)
-   */
-  _folderListener: {
-    indexer: null,
-    _kFolderLoadedAtom: null,
-    _kKeywordsAtom: null,
-    _kStatusAtom: null,
-    _kFlaggedAtom: null,
-    _kJunkStatusChangedAtom: null,
-
-    _init: function gloda_indexer_fl_init(aIndexer) {
-      this.indexer = aIndexer;
-      let atomService = Cc["@mozilla.org/atom-service;1"].
-                        getService(Ci.nsIAtomService);
-      this._kFolderLoadedAtom = atomService.getAtom("FolderLoaded");
-      // we explicitly know about these things rather than bothering with some
-      //  form of registration scheme because these aren't going to change much.
-      this._kKeywordsAtom = atomService.getAtom("Keywords");
-      this._kStatusAtom = atomService.getAtom("Status");
-      this._kFlaggedAtom = atomService.getAtom("Flagged");
-      this._kJunkStatusChangedAtom = atomService.getAtom("JunkStatusChanged");
-    },
-
-    /**
-     * Helper method to do the leg-work associated with flagging a message
-     *  for re-indexing because of some change in meta-state that happened to
-     *  it.  Job-wise, we treat this as a message addition; we are uniquely
-     *  identifying the message by providing its folder ID and message key, and
-     *  the indexer will cleanly map this to the existing gloda message.
-     */
-    _reindexChangedMessage: function gloda_indexer_reindexChangedMessage(
-        aMsgHdr) {
-      // make sure the message is eligible for indexing...
-      let msgFolder = aMsgHdr.folder;
-      if (!this.indexer.shouldIndexFolder(msgFolder))
-        return;
-
-      // Make sure the message is eligible for indexing.
-      // We index local messages, IMAP messages that are offline, and IMAP
-      // messages that aren't offline but whose folders aren't offline either
-      let isFolderLocal = msgFolder instanceof Ci.nsIMsgLocalMailFolder;
-      if (!isFolderLocal) {
-        if (!(aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline) &&
-            (msgFolder.flags & Ci.nsMsgFolderFlags.Offline))
-          return;
-      }
-
-      // mark the message as dirty
-      // (We could check for the presence of the gloda message id property
-      //  first to know whether we technically need the dirty property.  I'm
-      //  not sure whether it is worth the high-probability exception cost.)
-      aMsgHdr.setUint32Property(GLODA_DIRTY_PROPERTY, 1);
-      // mark the folder dirty too, so we know to look inside
-      let glodaFolder = GlodaDatastore._mapFolder(msgFolder);
-      glodaFolder.dirtyStatus = true;
-
-      if (this.indexer._pendingAddJob === null) {
-        this.indexer._pendingAddJob = new IndexingJob("message", 1, null);
-        this.indexer._indexQueue.push(this.indexer._pendingAddJob);
-        this.indexer._indexingJobGoal++;
-      }
-      // only queue the message if we haven't overflowed our event-driven budget
-      if (this.indexer._pendingAddJob.items.length <
-          this.indexer._indexMaxEventQueueMessages) {
-        this.indexer._pendingAddJob.items.push(
-          [GlodaDatastore._mapFolder(msgFolder).id,
-           aMsgHdr.messageKey]);
-        this.indexer.indexing = true;
-      }
-      else {
-        this.indexer.indexingSweepNeeded = true;
-      }
-    },
-
-    OnItemAdded: function gloda_indexer_OnItemAdded(aParentItem, aItem) {
-    },
-    OnItemRemoved: function gloda_indexer_OnItemRemoved(aParentItem, aItem) {
-    },
-    OnItemPropertyChanged: function gloda_indexer_OnItemPropertyChanged(
-                             aItem, aProperty, aOldValue, aNewValue) {
-    },
-    OnItemIntPropertyChanged: function gloda_indexer_OnItemIntPropertyChanged(
-                                aItem, aProperty, aOldValue, aNewValue) {
-    },
-    OnItemBoolPropertyChanged: function gloda_indexer_OnItemBoolPropertyChanged(
-                                aItem, aProperty, aOldValue, aNewValue) {
-    },
-    OnItemUnicharPropertyChanged:
-        function gloda_indexer_OnItemUnicharPropertyChanged(
-          aItem, aProperty, aOldValue, aNewValue) {
-
-    },
-    /**
-     * Notice when user activity changes a message's status, or automated
-     *  junk processing flags a message as junk.
-     */
-    OnItemPropertyFlagChanged: function gloda_indexer_OnItemPropertyFlagChanged(
-                                aMsgHdr, aProperty, aOldValue, aNewValue) {
-      if (aProperty == this._kKeywordsAtom ||
-          aProperty == this._kStatusAtom ||
-          aProperty == this._kFlaggedAtom ||
-          aProperty == this._kJunkStatusChangedAtom) {
-        if (this.indexer.enabled) {
-          this.indexer._log.debug("ItemPropertyFlagChanged notification");
-          this._reindexChangedMessage(aMsgHdr);
-        }
-      }
-    },
-
-    /**
-     * Get folder loaded notifications for folders that had to do some
-     *  (asynchronous) processing before they could be opened.
-     */
-    OnItemEvent: function gloda_indexer_OnItemEvent(aFolder, aEvent) {
-      if (aEvent == this._kFolderLoadedAtom)
-        this.indexer._onFolderLoaded(aFolder);
-    },
-  },
-
-  /* ***** Rebuilding / Reindexing ***** */
-  // TODO: implement a folder observer doodad to handle rebuilding / reindexing
-  /**
-   * Allow us to invalidate an outstanding folder traversal because the
-   *  underlying database is going away.  We use other means for detecting
-   *  modifications of the message (labeling, marked (un)read, starred, etc.)
-   *
-   * This is an nsIDBChangeListener listening to an nsIDBChangeAnnouncer.  To
-   *  add ourselves, we get us a nice nsMsgDatabase, query it to the announcer,
-   *  then call AddListener.
-   */
-  _databaseAnnouncerListener: {
-    indexer: null,
-    onAnnouncerGoingAway: function gloda_indexer_dbGoingAway(
-                                         aDBChangeAnnouncer) {
-      this.indexer._indexerLeaveFolder(false);
-    },
-
-    onHdrFlagsChanged: function(aHdrChanged, aOldFlags, aNewFlags, aInstigator) {},
-    onHdrDeleted: function(aHdrChanged, aParentKey, aFlags, aInstigator) {},
-    onHdrAdded: function(aHdrChanged, aParentKey, aFlags, aInstigator) {},
-    onParentChanged: function(aKeyChanged, aOldParent, aNewParent,
-                              aInstigator) {},
-    onReadChanged: function(aInstigator) {},
-    onJunkScoreChanged: function(aInstigator) {},
-    onHdrPropertyChanged: function (aHdrToChange, aPreChange, aStatus,
-                                    aInstigator) {},
-    onEvent: function (aDB, aEvent) {},
-  },
-
-  _indexMessage: function gloda_indexMessage(aMsgHdr, aCallbackHandle) {
-    let logDebug = this._log.level <= Log4Moz.Level.Debug;
-    if (logDebug)
-      this._log.debug("*** Indexing message: " + aMsgHdr.messageKey + " : " +
-                      aMsgHdr.subject);
-
-    // If the message is offline, then get the message body as well
-    let isMsgOffline = false;
-    let aMimeMsg;
-    if ((aMsgHdr.flags & Ci.nsMsgMessageFlags.Offline) ||
-        (aMsgHdr.folder instanceof Ci.nsIMsgLocalMailFolder)) {
-      isMsgOffline = true;
-      MsgHdrToMimeMessage(aMsgHdr, aCallbackHandle.callbackThis,
-          aCallbackHandle.callback);
-      [,aMimeMsg] = yield this.kWorkAsync;
-    }
-    else {
-      if (logDebug)
-        this._log.debug("  * Message is not offline -- only headers indexed");
-    }
-
-    if (logDebug)
-      this._log.debug("  * Got message, subject " + aMsgHdr.subject);
-
-    if (this._unitTestSuperVerbose) {
-      if (aMimeMsg)
-        this._log.debug("  * Got Mime " + aMimeMsg.prettyString());
-      else
-        this._log.debug("  * NO MIME MESSAGE!!!\n");
-    }
-
-    // -- Find/create the conversation the message belongs to.
-    // Our invariant is that all messages that exist in the database belong to
-    //  a conversation.
-
-    // - See if any of the ancestors exist and have a conversationID...
-    // (references are ordered from old [0] to new [n-1])
-    let references = [aMsgHdr.getStringReference(i) for each
-                      (i in range(0, aMsgHdr.numReferences))];
-    // also see if we already know about the message...
-    references.push(aMsgHdr.messageId);
-
-    Gloda.getMessagesByMessageID(references, aCallbackHandle.callback,
-                                 aCallbackHandle.callbackThis);
-    // (ancestorLists has a direct correspondence to the message ids)
-    let ancestorLists = yield this.kWorkAsync;
-
-    if (logDebug) {
-      this._log.debug("ancestors raw: " + ancestorLists);
-      this._log.debug("ref len: " + references.length + " anc len: " + ancestorLists.length);
-      this._log.debug("references: " + Log4Moz.enumerateProperties(references).join(","));
-      this._log.debug("ancestors: " + Log4Moz.enumerateProperties(ancestorLists).join(","));
-    }
-
-    // pull our current message lookup results off
-    references.pop();
-    let candidateCurMsgs = ancestorLists.pop();
-
-    let conversationID = null;
-    let conversation = null;
-    // -- figure out the conversation ID
-    // if we have a clone/already exist, just use his conversation ID
-    if (candidateCurMsgs.length > 0) {
-      conversationID = candidateCurMsgs[0].conversationID;
-      conversation = candidateCurMsgs[0].conversation;
-    }
-    // otherwise check out our ancestors
-    else {
-      // (walk from closest to furthest ancestor)
-      for (let iAncestor = ancestorLists.length-1; iAncestor >= 0;
-          --iAncestor) {
-        let ancestorList = ancestorLists[iAncestor];
-
-        if (ancestorList.length > 0) {
-          // we only care about the first instance of the message because we are
-          //  able to guarantee the invariant that all messages with the same
-          //  message id belong to the same conversation.
-          let ancestor = ancestorList[0];
-          if (conversationID === null) {
-            conversationID = ancestor.conversationID;
-            conversation = ancestor.conversation;
-          }
-          else if (conversationID != ancestor.conversationID)
-            this._log.error("Inconsistency in conversations invariant on " +
-                            ancestor.headerMessageID + ".  It has conv id " +
-                            ancestor.conversationID + " but expected " +
-                            conversationID + ". ID: " + ancestor.id);
-        }
-      }
-    }
-
-    // nobody had one?  create a new conversation
-    if (conversationID === null) {
-      // (the create method could issue the id, making the call return
-      //  without waiting for the database...)
-      conversation = this._datastore.createConversation(
-          aMsgHdr.mime2DecodedSubject, null, null);
-      conversationID = conversation.id;
-    }
-
-    // Walk from furthest to closest ancestor, creating the ancestors that don't
-    //  exist. (This is possible if previous messages that were consumed in this
-    //  thread only had an in-reply-to or for some reason did not otherwise
-    //  provide the full references chain.)
-    for (let iAncestor = 0; iAncestor < ancestorLists.length; ++iAncestor) {
-      let ancestorList = ancestorLists[iAncestor];
-
-      if (ancestorList.length == 0) {
-        if (logDebug)
-          this._log.debug("creating message with: null, " + conversationID +
-                          ", " + references[iAncestor] +
-                          ", null.");
-        let ancestor = this._datastore.createMessage(null, null, // ghost
-                                                     conversationID, null,
-                                                     references[iAncestor],
-                                                     null, // no subject
-                                                     null, // no body
-                                                     null); // no attachments
-        this._datastore.insertMessage(ancestor);
-        ancestorLists[iAncestor].push(ancestor);
-      }
-    }
-    // now all our ancestors exist, though they may be ghost-like...
-
-    // find if there's a ghost version of our message or we already have indexed
-    //  this message.
-    let curMsg = null;
-    if (logDebug)
-      this._log.debug(candidateCurMsgs.length + " candidate messages");
-    for (let iCurCand = 0; iCurCand < candidateCurMsgs.length; iCurCand++) {
-      let candMsg = candidateCurMsgs[iCurCand];
-
-      if (logDebug)
-        this._log.debug("candidate folderID: " + candMsg.folderID +
-                        " messageKey: " + candMsg.messageKey);
-
-      if (candMsg.folderURI == aMsgHdr.folder.URI) {
-        // if we are in the same folder and we have the same message key, we
-        //  are definitely the same, stop looking.
-        if (candMsg.messageKey == aMsgHdr.messageKey) {
-          curMsg = candMsg;
-          break;
-        }
-        // if (we are in the same folder and) the candidate message has a null
-        //  message key, we treat it as our best option unless we find an exact
-        //  key match. (this would happen because the 'move' notification case
-        //  has to deal with not knowing the target message key.  this case
-        //  will hopefully be somewhat improved in the future to not go through
-        //  this path which mandates re-indexing of the message in its entirety)
-        if (candMsg.messageKey === null)
-          curMsg = candMsg;
-        // if (we are in the same folder and) the candidate message's underlying
-        //  message no longer exists/matches, we'll assume we are the same but
-        //  were betrayed by a re-indexing or something, but we have to make
-        //  sure a perfect match doesn't turn up.
-        else if ((curMsg === null) &&
-                 (aMsgHdr.folder.GetMessageHeader(candMsg.messageKey) === null))
-          curMsg = candMsg;
-      }
-      // our choice of last resort, but still okay, is a ghost message
-      else if ((curMsg === null) && (candMsg.folderID === null)) {
-        curMsg = candMsg;
-      }
-    }
-
-    let attachmentNames = null;
-    if (aMimeMsg) {
-      attachmentNames = [att.name for each
-                         ([i, att] in Iterator(aMimeMsg.allAttachments))
-                         if (att.isRealAttachment)];
-    }
-
-    let isConceptuallyNew, isRecordNew;
-    if (curMsg === null) {
-      curMsg = this._datastore.createMessage(aMsgHdr.folder,
-                                             aMsgHdr.messageKey,
-                                             conversationID,
-                                             aMsgHdr.date,
-                                             aMsgHdr.messageId);
-      curMsg._conversation = conversation;
-      isConceptuallyNew = isRecordNew = true;
-    }
-    else {
-      isRecordNew = false;
-      isConceptuallyNew = (curMsg._folderID === null); // aka was-a-ghost
-      // (messageKey can be null if it's not new in the move-case)
-      curMsg._folderID = this._datastore._mapFolder(aMsgHdr.folder).id;
-      curMsg._messageKey = aMsgHdr.messageKey;
-      curMsg.date = new Date(aMsgHdr.date / 1000);
-      // note: we are assuming that our matching logic is flawless in that
-      //  if this message was not a ghost, we are assuming the 'body'
-      //  associated with the id is still exactly the same.  It is conceivable
-      //  that there are cases where this is not true.
-    }
-
-    if (aMimeMsg) {
-      let bodyPlain = aMimeMsg.coerceBodyToPlaintext(aMsgHdr.folder);
-      if (bodyPlain) {
-        curMsg._bodyLines = bodyPlain.split(/\r?\n/);
-        // curMsg._content gets set by fundattr.js
-      }
-    }
-
-    if (isConceptuallyNew) {
-      curMsg._isNew = true;
-      // curMsg._indexedBodyText is set by GlodaDatastore.insertMessage or
-      //  GlodaDatastore.updateMessage
-    }
-
-    curMsg._subject = aMsgHdr.mime2DecodedSubject;
-    curMsg._attachmentNames = attachmentNames;
-
-    // curMsg._indexAuthor gets set by fundattr.js
-    // curMsg._indexRecipients gets set by fundattr.js
-
-    // zero the notability so everything in grokNounItem can just increment
-    curMsg.notability = 0;
-
-    yield aCallbackHandle.pushAndGo(
-        Gloda.grokNounItem(curMsg,
-            {header: aMsgHdr, mime: aMimeMsg, bodyLines: curMsg._bodyLines},
-            isConceptuallyNew, isRecordNew,
-            aCallbackHandle));
-
-    delete curMsg._bodyLines;
-    delete curMsg._content;
-    delete curMsg._isNew;
-    delete curMsg._indexAuthor;
-    delete curMsg._indexRecipients;
-
-    // we want to update the header for messages only after the transaction
-    //  irrevocably hits the disk.  otherwise we could get confused if the
-    //  transaction rolls back or what not.
-    GlodaDatastore.runPostCommit(MakeCleanMsgHdrCallback(aMsgHdr, curMsg.id));
-
-    yield this.kWorkDone;
-  },
-
-  /**
-   * Wipe a message out of existence from our index.  This is slightly more
-   *  tricky than one would first expect because there are potentially
-   *  attributes not immediately associated with this message that reference
-   *  the message.  Not only that, but deletion of messages may leave a
-   *  conversation posessing only ghost messages, which we don't want, so we
-   *  need to nuke the moot conversation and its moot ghost messages.
-   * For now, we are actually punting on that trickiness, and the exact
-   *  nuances aren't defined yet because we have not decided whether to store
-   *  such attributes redundantly.  For example, if we have subject-pred-object,
-   *  we could actually store this as attributes (subject, id, object) and
-   *  (object, id, subject).  In such a case, we could query on (subject, *)
-   *  and use the results to delete the (object, id, subject) case.  If we
-   *  don't redundantly store attributes, we can deal with the problem by
-   *  collecting up all the attributes that accept a message as their object
-   *  type and issuing a delete against that.  For example, delete (*, [1,2,3],
-   *  message id).
-   * (We are punting because we haven't implemented support for generating
-   *  attributes like that yet.)
-   *
-   * @TODO: implement deletion of attributes that reference (deleted) messages
-   */
-  _deleteMessage: function gloda_index_deleteMessage(aMessage) {
-    // -- delete our attributes
-    // delete the message's attributes (if we implement the cascade delete, that
-    //  could do the honors for us... right now we define the trigger in our
-    //  schema but the back-end ignores it)
-    aMessage._datastore.clearMessageAttributes(aMessage);
-
-    // -- delete our message or ghost us, and maybe nuke the whole conversation
-    // look at the other messages in the conversation.
-    let conversationCollection = aMessage.conversation.getMessagesCollection(
-        aCallbackHandle);
-    yield this.kWorkAsync;
-    let conversationMsgs = conversationCollection.items;
-
-    let ghosts = [];
-    let twinMessage = null;
-    for (let iMsg = 0; iMsg < conversationMsgs.length; iMsg++) {
-      let convMsg = conversationMsgs[iMsg];
-
-      // ignore our message
-      if (convMsg.id == aMessage.id)
-        continue;
-
-      if (convMsg.folderID !== null) {
-        if (convMsg.headerMessageID == aMessage.headerMessageID) {
-          twinMessage = convMsg;
-        }
-      }
-      else {
-        ghosts.push(convMsg);
-      }
-    }
-
-    // is everyone else a ghost? (note that conversationMsgs includes us, but
-    //  ghosts cannot)
-    if ((conversationMsgs.length - 1) == ghosts.length) {
-      // obliterate the conversation including aMessage.
-      // since everyone else is a ghost they have no attributes.  however, the
-      //  conversation may some day have attributes targeted against it, so it
-      //  gets a helper.
-      this._deleteConversationOfMessage(aMessage);
-      aMessage._nuke();
-    }
-    else { // there is at least one real message out there, so the only q is...
-      // do we have a twin (so it's okay to delete us) or do we become a ghost?
-      if (twinMessage !== null) { // just delete us
-        aMessage._datastore.deleteMessageByID(aMessage.id);
-        aMessage._nuke();
-      }
-      else { // ghost us
-        aMessage._ghost();
-        aMessage._datastore.updateMessage(aMessage);
-      }
-    }
-
-    yield this.kWorkDone;
-  },
-
-  /**
-   * Delete an entire conversation, using the passed-in message which must be
-   *  the last non-ghost in the conversation and have its attributes all
-   *  deleted.  This function issues the batch delete of all the ghosts (and the
-   *  message), and in the future will take care to nuke any attributes
-   *  referencing the conversation.
-   */
-  _deleteConversationOfMessage:
-      function gloda_index_deleteConversationOfMessage(aMessage) {
-    aMessage._datastore.deleteMessagesByConversationID(aMessage.conversationID);
-    aMessage._datastore.deleteConversationByID(aMessage.conversationID);
-  },
 };
 GlodaIndexer._init();

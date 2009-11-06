@@ -536,6 +536,11 @@ nsresult nsMsgSearchTerm::OutputValue(nsCString &outputStr)
         outputStr.AppendInt(m_value.u.size);
         break;
       }
+    case nsMsgSearchAttrib::Uint32HdrProperty:
+      {
+        outputStr.AppendInt(m_value.u.msgStatus);
+        break;
+      }
     default:
       NS_ASSERTION(PR_FALSE, "trying to output invalid attribute");
       break;
@@ -567,6 +572,11 @@ NS_IMETHODIMP nsMsgSearchTerm::GetTermAsString (nsACString &outStream)
   {
     // use the custom id as the string
     outputStr = m_customId;
+  }
+
+  else if (m_attribute == nsMsgSearchAttrib::Uint32HdrProperty)
+  {
+    outputStr = m_hdrProperty;
   }
 
   else {

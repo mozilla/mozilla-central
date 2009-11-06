@@ -134,8 +134,8 @@ var INBOX_DEFAULTS = [
  * Make sure we set the proper defaults for an Inbox.
  */
 function test_column_defaults_inbox() {
-  // just use the inbox
-  folderInbox = gLocalInboxFolder;
+  // just use the inbox; comes from test-folder-display-helpers
+  folderInbox = inboxFolder;
   enter_folder(folderInbox);
   assert_visible_columns(INBOX_DEFAULTS);
 }

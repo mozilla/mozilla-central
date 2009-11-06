@@ -122,6 +122,13 @@ function nsMailServer(handler) {
    */
   this._socketClosed = true;
 
+  /**
+   * Should we log transactions?  This only matters if you want to inspect the
+   * protocol traffic.  Defaults to true because this was written for protocol
+   * testing.
+   */
+  this._logTransactions = true;
+
   this._handler = handler;
   this._readers = [];
   this._test = false;
@@ -143,7 +150,8 @@ nsMailServer.prototype = {
                      .QueryInterface(Ci.nsIAsyncInputStream);
     this._inputStreams.push(input);
 
-    var reader = new nsMailReader(this, this._handler, trans, this._debug);
+    var reader = new nsMailReader(this, this._handler, trans, this._debug,
+                                  this._logTransactions);
     this._readers.push(reader);
 
     // Note: must use main thread here, or we might get a GC that will cause
@@ -303,7 +311,7 @@ function readTo(input, count, arr) {
  * closeSocket  Performs a server-side socket closing
  * setMultiline Sets the multiline mode based on the argument
  *****************************************************************************/
-function nsMailReader(server, handler, transport, debug) {
+function nsMailReader(server, handler, transport, debug, logTransaction) {
   this._debug = debug;
   this._server = server;
   this._buffer = [];
@@ -312,14 +320,18 @@ function nsMailReader(server, handler, transport, debug) {
   this._transport = transport;
   var output = transport.openOutputStream(Ci.nsITransport.OPEN_BLOCKING, 0, 0);
   this._output = output;
-  this.transaction = { us : [], them : [] };
+  if (logTransaction)
+    this.transaction = { us : [], them : [] };
+  else
+    this.transaction = null;
 
   // Send response line
   var response = this._handler.onStartup();
   response = response.replace(/([^\r])\n/g,"$1\r\n");
   if (response.charAt(response.length-1) != '\n')
     response = response + "\r\n";
-  this.transaction.us.push(response);
+  if (this.transaction)
+    this.transaction.us.push(response);
   this._output.write(response, response.length);
   this._output.flush();
 
@@ -402,7 +414,8 @@ nsMailReader.prototype = {
             continue;
         } else {
           // Record the transaction
-          this.transaction.them.push(line);
+          if (this.transaction)
+            this.transaction.them.push(line);
 
           // Find the command and splice it out...
           var splitter = line.indexOf(" ");
@@ -448,7 +461,8 @@ nsMailReader.prototype = {
         responses.forEach(function (line) { print("SEND: " + line); });
       }
 
-      this.transaction.us.push(response);
+      if (this.transaction)
+        this.transaction.us.push(response);
       this._output.write(response, response.length);
       this._output.flush();
 

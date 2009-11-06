@@ -21,7 +21,7 @@ var MockIndexer = {
   enabled: false,
   initialSweepCalled: false,
   indexForever: function() {
-    GlodaIndexer.indexJob(new IndexingJob("forever", 0, null));
+    GlodaIndexer.indexJob(new IndexingJob("forever", null));
   },
   stopIndexingForever: function() {
     GlodaIndexer.callbackDriver();
@@ -30,7 +30,7 @@ var MockIndexer = {
   _worker_index_forever: function(aJob, aCallbackHandle) {
     // pretend that something async is happening, but nothing is really
     //  happening!  muahahaha!
-    // 
+    //
     yield GlodaIndexer.kWorkAsync;
     yield GlodaIndexer.kWorkDone;
   }

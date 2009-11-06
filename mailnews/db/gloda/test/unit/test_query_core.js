@@ -1,3 +1,40 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Thunderbird Global Database.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2009
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
 /*
  * Test the mechanics our query functionality.  Tests in this file are intended
  *  to cover extreme boundary cases and things that are just unlikely to happen
@@ -162,8 +199,6 @@ function setup_test_noun_and_attributes() {
     subjectNouns: [WidgetNoun.id],
     objectNoun: Gloda.NOUN_NUMBER
   });
-
-  next_test();
 }
 
 /* ===== Tests ===== */
@@ -187,6 +222,7 @@ function test_lots_of_string_constraints() {
   query.str.apply(query, stringConstraints);
 
   queryExpect(query, []);
+  return false; // queryExpect is async
 }
 
 /* === Query === */
@@ -224,7 +260,8 @@ function setup_non_singular_values() {
   singularWidgets[0].multiIntAttr = [];
   // and don't bother setting it on singularWidgets[1]
 
-  GenericIndexer.indexNewObjects(nonSingularWidgets.concat(singularWidgets));
+  yield GenericIndexer.indexNewObjects(
+    nonSingularWidgets.concat(singularWidgets));
 }
 
 function test_query_has_value_for_non_singular() {
@@ -232,6 +269,7 @@ function test_query_has_value_for_non_singular() {
   query.inum(testUnique);
   query.multiIntAttr();
   queryExpect(query, nonSingularWidgets);
+  return false;
 }
 
 /* === Search === */
@@ -297,7 +335,7 @@ function setup_search_ranking_idiom() {
     new Widget(0, origin, "", 1, "bar baz", "bar baz bar bar") // 7 + 0
   ];
 
-  GenericIndexer.indexNewObjects(fooWidgets.concat(barBazWidgets));
+  yield GenericIndexer.indexNewObjects(fooWidgets.concat(barBazWidgets));
 }
 
 // add one because the last snippet shouldn't have a trailing space
@@ -342,7 +380,9 @@ function test_search_ranking_idiom_offsets() {
   });
   query.fulltextAll("foo");
   query.orderBy('-dascore');
-  queryExpect(query, fooWidgets, null, null, verify_widget_order_and_stashing);
+  queryExpect(query, fooWidgets, null, null,
+              verify_widget_order_and_stashing);
+  return false; // queryExpect is async
 }
 
 function test_search_ranking_idiom_score() {
@@ -357,7 +397,9 @@ function test_search_ranking_idiom_score() {
   });
   query.fulltextAll("bar OR baz");
   query.orderBy('-dascore');
-  queryExpect(query, barBazWidgets, null, null, verify_widget_order_and_stashing);
+  queryExpect(query, barBazWidgets, null, null,
+              verify_widget_order_and_stashing);
+  return false; // queryExpect is async
 }
 
 
@@ -375,5 +417,5 @@ var tests = [
 
 function run_test() {
   // Don't initialize the index message state
-  glodaHelperRunTests(tests, null, true);
+  glodaHelperRunTests(tests, "widget");
 }

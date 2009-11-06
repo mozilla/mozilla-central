@@ -1,3 +1,40 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Thunderbird Global Database.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2009
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
 /*
  * This file tests our querying support.  We build up a deterministic little
  *  'world' of messages spread across multiple conversations, multiple folders
@@ -15,19 +52,19 @@
  *  define a bunch of message corpuses entirely specialized for each test.
  */
 
-load("../../mailnews/resources/messageGenerator.js");
 load("resources/glodaTestHelper.js");
 
-// Create a message generator
-var msgGen = new MessageGenerator();
-// Create a message scenario generator using that message generator
-var scenarios = new MessageScenarioFactory(msgGen);
-// Whether we're using a single folder to test. We need to skip a few tests if
-// we're doing so
-var singleFolder = false;
-// Whether we expect fulltext results. IMAP folders that are offline shouldn't
-// have their bodies indexed.
+/**
+ * Whether we expect fulltext results. IMAP folders that are offline shouldn't
+ * have their bodies indexed.
+ */
 var expectFulltextResults = true;
+
+/**
+ * Should we force our folders offline after we have indexed them once.  We do
+ * this in the online_to_offline test variant.
+ */
+var goOffline = false;
 
 /* ===== Populate ===== */
 var world = {
@@ -191,7 +228,7 @@ function generateFolderMessages() {
 
   world.folderClumps.push(messages);
 
-  return messages;
+  return new SyntheticMessageSet(messages);
 }
 
 /**
@@ -209,13 +246,10 @@ function glodaInfoStasher(aSynthMessage, aGlodaMessage) {
 
 // We override these for the IMAP tests
 var pre_setup_populate_hook = function default_pre_setup_populate_hook() {
-  next_test();
 };
 var post_setup_populate_hook = function default_post_setup_populate_hook() {
-  next_test();
 };
 
-var gSynMessages = [];
 // first, we must populate our message store with delicious messages.
 function setup_populate() {
   world.glodaHolderCollection = Gloda.explicitCollection(Gloda.NOUN_MESSAGE,
@@ -231,22 +265,28 @@ function setup_populate() {
     world.glodaConversationIds.push(null);
   }
 
-  let messages = generateFolderMessages();
-  gSynMessages = gSynMessages.concat(messages);
-  indexMessages(messages, glodaInfoStasher, setup_populate_phase_two);
-}
+  let setOne = generateFolderMessages();
+  let folderOne = make_empty_folder();
+  yield add_sets_to_folders(folderOne, [setOne]);
+  // If this is the online_to_offline variant (indicated by goOffline) we want
+  //  to make the messages available offline.  This should trigger an event
+  //  driven re-indexing of the messages which should make the body available
+  //  for fulltext queries.
+  if (goOffline) {
+    yield wait_for_gloda_indexer(setOne);
+    yield make_folder_and_contents_offline(folderOne);
+  }
+  yield wait_for_gloda_indexer(setOne, {verifier: glodaInfoStasher});
 
-function setup_populate_phase_two() {
-  // If we have one folder, we don't attempt to populate the other one
-  if (singleFolder) {
-    next_test();
+  world.phase++;
+  let setTwo  = generateFolderMessages();
+  let folderTwo = make_empty_folder();
+  yield add_sets_to_folders(folderTwo, [setTwo]);
+  if (goOffline) {
+    yield wait_for_gloda_indexer(setTwo);
+    yield make_folder_and_contents_offline(folderTwo);
   }
-  else {
-    world.phase++;
-    let messages = generateFolderMessages();
-    gSynMessages = gSynMessages.concat(messages);
-    indexMessages(messages, glodaInfoStasher, next_test);
-  }
+  yield wait_for_gloda_indexer(setTwo, {verifier: glodaInfoStasher});
 }
 
 /* ===== Non-text queries ===== */
@@ -268,8 +308,8 @@ function verify_nonMatches(aQueries, aCollections) {
 
     for each (let [, item] in Iterator(nonmatches)) {
       if (testQuery.test(item)) {
-        ddumpObject(item, "item", 0);
-        ddumpObject(testQuery._constraints, "constraints", 2);
+        logObject(item, "item");
+        logObject(testQuery._constraints, "constraints");
         do_throw("Something should not match query.test(), but it does: " +
                  item);
       }
@@ -299,7 +339,7 @@ function test_query_messages_by_conversation() {
 
   ts_convQueries.push(query);
   ts_convCollections.push(queryExpect(query, world.conversationLists[convNum]));
-  // queryExpect calls next_test
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -307,7 +347,6 @@ function test_query_messages_by_conversation() {
  */
 function test_query_messages_by_conversation_nonmatches() {
   verify_nonMatches(ts_convQueries, ts_convCollections);
-  next_test();
 }
 
 var ts_folderNum = 0;
@@ -318,29 +357,20 @@ var ts_folderCollections = [];
  * @tests gloda.datastore.sqlgen.kConstraintIn
  */
 function test_query_messages_by_folder() {
-  // If we have one folder to test with, we can't do this test more times
-  if (singleFolder && ts_folderNum >= 1) {
-    next_test();
-    return;
-  }
-
   let folderNum = ts_folderNum++;
   let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
   query.folder(world.glodaFolders[folderNum]);
 
   ts_folderQueries.push(query);
   ts_folderCollections.push(queryExpect(query, world.folderClumps[folderNum]));
-  // queryExpect calls next_test
+  return false; // async pend on queryExpect
 }
 
 /**
  * @tests gloda.query.test.kConstraintIn
  */
 function test_query_messages_by_folder_nonmatches() {
-  // No can do with one folder
-  if (!singleFolder)
-    verify_nonMatches(ts_folderQueries, ts_folderCollections);
-  next_test();
+  verify_nonMatches(ts_folderQueries, ts_folderCollections);
 }
 
 /**
@@ -356,7 +386,7 @@ function test_get_message_for_header() {
                queryThis: Gloda,
                args: [glodaMessage.folderMessage], nounId: Gloda.NOUN_MESSAGE},
               [synthMessage]);
-  // queryExpect calls next_test
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -369,7 +399,7 @@ function test_get_messages_for_headers() {
                queryThis: Gloda,
                args: [headers], nounId: Gloda.NOUN_MESSAGE},
               world.conversationLists[0]);
-  // queryExpect calls next_test
+  return false; // async pend on queryExpect
 }
 
 // at this point we go run the identity and contact tests for side-effects
@@ -386,7 +416,7 @@ function test_query_messages_by_identity_peoples() {
 
   ts_messageIdentityQueries.push(query);
   ts_messageIdentityCollections.push(queryExpect(query, world.peoplesMessages));
-  // queryExpect calls next_test
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -400,7 +430,7 @@ function test_query_messages_by_identity_outlier() {
 
   ts_messageIdentityQueries.push(query);
   ts_messageIdentityCollections.push(queryExpect(query, world.outlierMessages));
-  // queryExpect calls next_test
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -408,12 +438,10 @@ function test_query_messages_by_identity_outlier() {
  */
 function test_query_messages_by_identity_nonmatches() {
   verify_nonMatches(ts_messageIdentityQueries, ts_messageIdentityCollections);
-  next_test();
 }
 
 function test_query_messages_by_contact() {
   // IOU
-  next_test();
 }
 
 var ts_messagesDateQuery;
@@ -428,6 +456,7 @@ function test_query_messages_by_date() {
   ts_messagesDateQuery.dateRange([world.peoplesMessages[1].date,
                                   world.peoplesMessages[2].date]);
   queryExpect(ts_messagesDateQuery, world.peoplesMessages.slice(1, 3));
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -438,14 +467,12 @@ function test_query_messages_by_date_nonmatches() {
       ts_messagesDateQuery.test(world.peoplesMessages[3])) {
     do_throw("The date testing mechanism is busted.");
   }
-  next_test();
 }
 
 
 /* === contacts === */
 function test_query_contacts_by_popularity() {
   // IOU
-  next_test();
 }
 
 /* === identities === */
@@ -455,7 +482,6 @@ function test_query_contacts_by_popularity() {
 /* === conversations === */
 
 function test_query_conversations_by_subject_text() {
-  next_test();
 }
 
 /* === messages === */
@@ -474,7 +500,8 @@ dump("convNum: " + convNum + " blah: " + world.conversationLists[convNum] + "\n"
   let convSubjectTerm = uniqueTermGenerator(
     UNIQUE_OFFSET_SUBJECT + UNIQUE_OFFSET_CONV + convNum);
   query.subjectMatches(convSubjectTerm);
-  queryExpect(query, world.conversationLists[convNum]); // calls next_test
+  queryExpect(query, world.conversationLists[convNum]);
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -491,7 +518,8 @@ function test_query_messages_by_body_text() {
     UNIQUE_OFFSET_BODY + UNIQUE_OFFSET_CONV + convNum);
   query.bodyMatches(convBodyTerm);
   queryExpect(query, expectFulltextResults ? world.conversationLists[convNum] :
-                                             []); // calls next_test
+                                             []);
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -507,7 +535,8 @@ function test_query_messages_by_attachment_names() {
     UNIQUE_OFFSET_ATTACHMENT + UNIQUE_OFFSET_CONV + convNum);
   query.attachmentNamesMatch(convUniqueAttachment);
   queryExpect(query, expectFulltextResults ? world.conversationLists[convNum] :
-                                             []); // calls next_test
+                                             []);
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -520,7 +549,8 @@ function test_query_messages_by_authorMatches_name() {
   let [authorName, authorMail] = world.peoples[0];
   let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
   query.authorMatches(authorName);
-  queryExpect(query, world.authorGroups[authorMail]); // calls next_test
+  queryExpect(query, world.authorGroups[authorMail]);
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -533,7 +563,8 @@ function test_query_messages_by_authorMatches_email() {
   let [authorName, authorMail] = world.peoples[0];
   let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
   query.authorMatches(authorMail);
-  queryExpect(query, world.authorGroups[authorMail]); // calls next_test
+  queryExpect(query, world.authorGroups[authorMail]);
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -548,7 +579,8 @@ function test_query_messages_by_recipients_name() {
   let [name,] = world.peoples[0];
   let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
   query.recipientsMatch(name);
-  queryExpect(query, world.peoplesMessages); // calls next_test
+  queryExpect(query, world.peoplesMessages);
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -563,7 +595,8 @@ function test_query_messages_by_recipients_email() {
   let [, mail] = world.peoples[0];
   let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
   query.recipientsMatch(mail);
-  queryExpect(query, world.peoplesMessages); // calls next_test
+  queryExpect(query, world.peoplesMessages);
+  return false; // async pend on queryExpect
 }
 
 /* === contacts === */
@@ -584,6 +617,7 @@ function test_query_contacts_by_name() {
                             contactLikeQuery.WILD);
 
   queryExpect(contactLikeQuery, [personName]);
+  return false; // async pend on queryExpect
 }
 
 /**
@@ -594,7 +628,6 @@ function test_query_contacts_by_name_nonmatch() {
   if (contactLikeQuery.test(otherContact)) {
     do_throw("The string LIKE mechanism as applied to contacts does not work.");
   }
-  next_test();
 }
 
 /* === identities === */
@@ -607,6 +640,7 @@ function test_query_identities_for_peoples() {
   let peopleAddrs = [nameAndAddr[1] for each (nameAndAddr in world.peoples)];
   peoplesIdentityQuery.value.apply(peoplesIdentityQuery, peopleAddrs);
   peoplesIdentityCollection = queryExpect(peoplesIdentityQuery, peopleAddrs);
+  return false; // async pend on queryExpect
 }
 
 var outlierIdentityQuery;
@@ -617,12 +651,12 @@ function test_query_identities_for_outliers() {
   let outlierAddrs = [world.outlierAuthor[1], world.outlierFriend[1]];
   outlierIdentityQuery.value.apply(outlierIdentityQuery, outlierAddrs);
   outlierIdentityCollection = queryExpect(outlierIdentityQuery, outlierAddrs);
+  return false; // async pend on queryExpect
 }
 
 function test_query_identities_by_kind_and_value_nonmatches() {
   verify_nonMatches([peoplesIdentityQuery, outlierIdentityQuery],
                     [peoplesIdentityCollection, outlierIdentityCollection]);
-  next_test();
 }
 
 
@@ -663,10 +697,3 @@ var tests = [
   test_query_contacts_by_name,
   test_query_contacts_by_name_nonmatch
 ];
-
-function run_test() {
-  glodaHelperRunTests(tests);
-}
-
-// use mbox injection so we get multiple folders...
-injectMessagesUsing(INJECT_MBOX);

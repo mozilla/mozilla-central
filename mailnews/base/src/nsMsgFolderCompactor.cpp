@@ -61,6 +61,8 @@
 #include "nsArrayUtils.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgStatusFeedback.h"
+#include "nsMsgBaseCID.h"
+#include "nsIMsgFolderNotificationService.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // nsFolderCompactState
@@ -366,8 +368,18 @@ NS_IMETHODIMP nsFolderCompactState::OnStopRunningUrl(nsIURI *url, nsresult statu
 nsresult nsFolderCompactState::StartCompacting()
 {
   nsresult rv = NS_OK;
+  // Notify that compaction is beginning.  We do this even if there are no
+  // messages to be copied because the summary database still gets blown away
+  // which is still pretty interesting.  (And we like consistency.)
+  nsCOMPtr<nsIMsgFolderNotificationService>
+    notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+  if (notifier)
+    notifier->NotifyItemEvent(m_folder,
+                              NS_LITERAL_CSTRING("FolderCompactStart"),
+                              nsnull);
   if (m_size > 0)
   {
+
     ShowCompactingStatusMsg();
     AddRef();
     rv = m_messageService->CopyMessages(m_keyArray, m_folder, this, PR_FALSE, nsnull, m_window, nsnull);
@@ -491,6 +503,13 @@ nsFolderCompactState::FinishCompact()
     m_db->Close(PR_TRUE);
   m_db = nsnull;
 
+  // Notify that compaction of the folder is completed.
+  nsCOMPtr<nsIMsgFolderNotificationService>
+    notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+  if (notifier)
+    notifier->NotifyItemEvent(m_folder,
+                              NS_LITERAL_CSTRING("FolderCompactFinish"),
+                              nsnull);
   m_folder->NotifyCompactCompleted();
 
   if (m_compactAll)

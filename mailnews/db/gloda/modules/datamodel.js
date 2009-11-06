@@ -59,7 +59,7 @@ Cu.import("resource://app/modules/gloda/utils.js");
  */
 function GlodaAttributeDBDef(aDatastore, aID, aCompoundName, aAttrType,
                            aPluginName, aAttrName) {
-  this._datastore = aDatastore;
+  // _datastore is now set on the prototype by GlodaDatastore
   this._id = aID;
   this._compoundName = aCompoundName;
   this._attrType = aAttrType;
@@ -73,6 +73,8 @@ function GlodaAttributeDBDef(aDatastore, aID, aCompoundName, aAttrType,
 }
 
 GlodaAttributeDBDef.prototype = {
+  // set by GlodaDatastore
+  _datastore: null,
   get id() { return this._id; },
   get attributeName() { return this._attrName; },
 
@@ -182,7 +184,7 @@ function MixIn(aConstructor, aMixIn) {
  */
 function GlodaConversation(aDatastore, aID, aSubject, aOldestMessageDate,
                            aNewestMessageDate) {
-  this._datastore = aDatastore;
+  // _datastore is now set on the prototype by GlodaDatastore
   this._id = aID;
   this._subject = aSubject;
   this._oldestMessageDate = aOldestMessageDate;
@@ -191,6 +193,8 @@ function GlodaConversation(aDatastore, aID, aSubject, aOldestMessageDate,
 
 GlodaConversation.prototype = {
   NOUN_ID: 101,
+  // set by GlodaDatastore
+  _datastore: null,
   get id() { return this._id; },
   get subject() { return this._subject; },
   get oldestMessageDate() { return this._oldestMessageDate; },
@@ -214,7 +218,7 @@ GlodaConversation.prototype = {
 
 function GlodaFolder(aDatastore, aID, aURI, aDirtyStatus, aPrettyName,
                      aIndexingPriority) {
-  this._datastore = aDatastore;
+  // _datastore is now set by GlodaDatastore
   this._id = aID;
   this._uri = aURI;
   this._dirtyStatus = aDirtyStatus;
@@ -224,10 +228,13 @@ function GlodaFolder(aDatastore, aID, aURI, aDirtyStatus, aPrettyName,
   this._activeHeaderRetrievalLastStamp = 0;
   this._indexingPriority = aIndexingPriority;
   this._deleted = false;
+  this._compacting = false;
 }
 
 GlodaFolder.prototype = {
   NOUN_ID: 100,
+  // set by GlodaDatastore
+  _datastore: null,
 
   /** The folder is believed to be up-to-date */
   kFolderClean: 0,
@@ -397,6 +404,21 @@ GlodaFolder.prototype = {
   },
 
   /**
+   * Indicate whether this folder is currently being compacted.  The
+   *  |GlodaMsgIndexer| keeps this in-memory-only value up-to-date.
+   */
+  get compacting gloda_folder_get_compacting() {
+    return this._compacting;
+  },
+  /**
+   * Set whether this folder is currently being compacted.  This is really only
+   *  for the |GlodaMsgIndexer| to set.
+   */
+  set compacting gloda_folder_set_compacting(aCompacting) {
+    this._compacting = aCompacting;
+  },
+
+  /**
    * Return the string associated with this account.
    */
   get accountLabel() {
@@ -413,7 +435,7 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
                       aHeaderMessageID, aDeleted, aJsonText,
                       aNotability,
                       aSubject, aIndexedBodyText, aAttachmentNames) {
-  this._datastore = aDatastore;
+  // _datastore is now set on the prototype by GlodaDatastore
   this._id = aID;
   this._folderID = aFolderID;
   this._messageKey = aMessageKey;
@@ -435,6 +457,8 @@ function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
 
 GlodaMessage.prototype = {
   NOUN_ID: 102,
+  // set by GlodaDatastore
+  _datastore: null,
   get id() { return this._id; },
   get folderID() { return this._folderID; },
   get messageKey() { return this._messageKey; },
@@ -483,7 +507,7 @@ GlodaMessage.prototype = {
   },
 
   _clone: function gloda_message_clone() {
-    return new GlodaMessage(this._datastore, this._id, this._folderID,
+    return new GlodaMessage(/* datastore */ null, this._id, this._folderID,
       this._messageKey, this._conversationID, this._conversation, this._date,
       this._headerMessageID, this._deleted, this._jsonText, this._notability,
       this._subject, this._indexedBodyText, this._attachmentNames);
@@ -492,6 +516,8 @@ GlodaMessage.prototype = {
   _ghost: function gloda_message_ghost() {
     this._folderID = null;
     this._messageKey = null;
+    // a ghost is not deleted
+    this._deleted = false;
   },
 
   _nuke: function gloda_message_nuke() {
@@ -502,8 +528,6 @@ GlodaMessage.prototype = {
     this._conversation = null;
     this.date = null;
     this._headerMessageID = null;
-
-    this._datastore = null;
   },
 
   /**
@@ -581,7 +605,7 @@ MixIn(GlodaMessage, GlodaHasAttributesMixIn);
  */
 function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName,
                       aPopularity, aFrecency, aJsonText) {
-  this._datastore = aDatastore;
+  // _datastore set on the prototype by GlodaDatastore
   this._id = aID;
   this._directoryUUID = aDirectoryUUID;
   this._contactUUID = aContactUUID;
@@ -596,6 +620,8 @@ function GlodaContact(aDatastore, aID, aDirectoryUUID, aContactUUID, aName,
 
 GlodaContact.prototype = {
   NOUN_ID: 103,
+  // set by GlodaDatastore
+  _datastore: null,
 
   get id() { return this._id; },
   get directoryUUID() { return this._directoryUUID; },
@@ -628,7 +654,7 @@ GlodaContact.prototype = {
   },
 
   _clone: function gloda_contact_clone() {
-    return new GlodaContact(this._datastore, this._id, this._directoryUUID,
+    return new GlodaContact(/* datastore */ null, this._id, this._directoryUUID,
       this._contactUUID, this._name, this._popularity, this._frecency);
   },
 };
@@ -640,7 +666,7 @@ MixIn(GlodaContact, GlodaHasAttributesMixIn);
  */
 function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue,
                        aDescription, aIsRelay) {
-  this._datastore = aDatastore;
+  // _datastore set on the prototype by GlodaDatastore
   this._id = aID;
   this._contactID = aContactID;
   this._contact = aContact;
@@ -656,6 +682,8 @@ function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue,
 
 GlodaIdentity.prototype = {
   NOUN_ID: 104,
+  // set by GlodaDatastore
+  _datastore: null,
   get id() { return this._id; },
   get contactID() { return this._contactID; },
   get contact() { return this._contact; },

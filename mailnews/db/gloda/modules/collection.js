@@ -182,6 +182,23 @@ var GlodaCollectionManager = {
   },
 
   /**
+   * Friendlier version of |cacheLookupMany|; takes a list of ids and returns
+   *  an object whose keys and values are the gloda id's and instances of the
+   *  instances that were found.  We don't tell you who we didn't find.  The
+   *  assumption is this is being used for in-memory updates where we only need
+   *  to tweak what is in memory.
+   */
+  cacheLookupManyList: function gloda_colm_cacheLookupManyList(aNounID, aIds) {
+    let checkMap = {}, targetMap = {};
+    for each (let [, id] in Iterator(aIds)) {
+      checkMap[id] = null;
+    }
+    // do not promote found items into the cache
+    this.cacheLookupMany(aNounID, checkMap, targetMap, false);
+    return targetMap;
+  },
+
+  /**
    * Attempt to locate an instance of the object of the given noun type with the
    *  given id.  Counts as a cache hit if found.  (And if it was't in a cache,
    *  but rather a collection, it is added to the cache.)
@@ -393,29 +410,70 @@ var GlodaCollectionManager = {
     }
   },
   /**
-   * This should be called when items in the global database are permanently
+   * This should be called when items in the global database are permanently-ish
    *  deleted.  (This is distinct from concepts like message deletion which may
    *  involved trash folders or other modified forms of existence.  Deleted
    *  means the data is gone and if it were to come back, it would come back
-   *  with a brand new unique id and we would get an itemsAdded event.)
+   *  via an itemsAdded event.)
    * We walk all existing collections for the given noun type.  For items
    *  currently in the collection, we generate onItemsRemoved events.
+   * 
+   * @param aItemIds A list of item ids that are being deleted.
    */
-  itemsDeleted: function gloda_colm_itemsDeleted(aNounID, aItems) {
+  itemsDeleted: function gloda_colm_itemsDeleted(aNounID, aItemIds) {
     // cache
     let cache = this._cachesByNoun[aNounID];
     if (cache) {
-      for each (let [iItem, item] in Iterator(aItem)) {
-        if (item.id in cache._idMap)
-          cache.delete(item);
+      for each (let [, itemId] in Iterator(aItemIds)) {
+        if (itemId in cache._idMap)
+          cache.deleted(cache._idMap[itemId]);
       }
     }
 
     // collections
     for each (let [iCollection, collection] in
               Iterator(this.getCollectionsForNounID(aNounID))) {
-      let removeItems = [item for each ([i, item] in Iterator(aItems))
-                         if (item.id in collection._idMap)];
+      let removeItems = [collection._idMap[itemId]
+                         for each ([, itemId] in Iterator(aItemIds))
+                         if (itemId in collection._idMap)];
+      if (removeItems.length)
+        collection._onItemsRemoved(removeItems);
+    }
+  },
+  /**
+   * Like |itemsDeleted| but for the case where the deletion is based on an
+   *  attribute that SQLite can more efficiently check than we can and where the
+   *  cost of scanning the in-memory items is presumably much cheaper than
+   *  trying to figure out what actually got deleted.
+   * 
+   * Since we are doing an in-memory walk, this is obviously O(n) where n is the
+   *  number of noun instances of a given type in-memory.  We are assuming this
+   *  is a reasonable number of things and that this type of deletion call is
+   *  not going to happen all that frequently.  If these assumptions are wrong,
+   *  callers are advised to re-think the whole situation.
+   * 
+   * @param aNounID Type of noun we are talking about here.
+   * @param aFilter A filter function that returns true when the item should be
+   *     thought of as deleted, or false if the item is still good.  Screw this
+   *     up and you will get some seriously wacky bugs, yo.
+   */
+  itemsDeletedByAttribute: function gloda_colm_itemsDeletedByAttribute(
+      aNounID, aFilter) {
+    // cache
+    let cache = this._cachesByNoun[aNounID];
+    if (cache) {
+      for each (let [, item] in Iterator(cache._idMap)) {
+        if (aFilter(item))
+          cache.deleted(item);
+      }
+    }
+
+    // collections
+    for each (let [, collection] in
+              Iterator(this.getCollectionsForNounID(aNounID))) {
+      let removeItems = [item
+                         for each ([, item] in Iterator(collection.items))
+                         if (aFilter(item))];
       if (removeItems.length)
         collection._onItemsRemoved(removeItems);
     }
@@ -583,7 +641,7 @@ GlodaCollection.prototype = {
       if (!(item.id in deleteMap))
         items[iWrite++] = item;
     }
-    items.slice(iWrite);
+    items.splice(iWrite);
 
     if (this._listener) {
       try {
@@ -721,7 +779,7 @@ GlodaLRUCacheCollection.prototype.deleted = function cache_deleted(aItem) {
     delete this._uniqueValueMap[aItem.uniqueValue];
 
   this._size--;
-}
+};
 
 /**
  * If any of the cached items are dirty, commit them, and make them no longer
@@ -739,4 +797,4 @@ GlodaLRUCacheCollection.prototype.commitDirty = function cache_commitDirty() {
       delete item.dirty;
     }
   }
-}
+};

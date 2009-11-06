@@ -6,7 +6,6 @@
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 
 load("../../mailnews/resources/messageGenerator.js");
-load("../../mailnews/resources/asyncTestUtils.js");
 
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                        .getService(Ci.nsIMsgMessageService);

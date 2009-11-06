@@ -19,6 +19,58 @@
  * }
  */
 
+Components.utils.import("resource://app/modules/errUtils.js");
+
+/**
+ * Url listener that can wrap another listener and trigger a callback, but
+ *  definitely calls async_driver to resume asynchronous processing.  Use
+ *  |asyncUrlListener| if you just need a url listener that resumes processing
+ *  without any additional legwork.
+ *
+ * @param [aWrapped] The nsIUrlListener to pass all notifications through to.
+ *     This gets called prior to the callback (or async resumption).
+ * @param [aCallback] The callback to call when the URL stops running.  It will
+ *     be provided with the same arguments the method receives.  If you need
+ *     to do anything non-trivial, you are strongly advised to just use
+ *     async_run to push another function/generator function onto the async
+ *     stack rather than trying to maintain a convoluted callback mechanism
+ *     yourself.
+ * @param [aPromise] The promise to notify on completion.  If not specified, we
+ *     simply call async_driver instead.
+ */
+function AsyncUrlListener(aWrapped, aCallback, aPromise) {
+  this.wrapped = aWrapped ? aWrapped.QueryInterface(Ci.nsIUrlListener) : null;
+  this.callback = aCallback;
+  this.promise = aPromise;
+}
+AsyncUrlListener.prototype = {
+  OnStartRunningUrl: function asyncUrlListener_OnStartRunningUrl(
+                         aUrl) {
+    if (this.wrapped)
+      this.wrapped.OnStartRunningUrl(aUrl);
+  },
+  OnStopRunningUrl: function asyncUrlListener_OnStopRunningUrl(
+                         aUrl, aExitCode) {
+    if (this.wrapped)
+      this.wrapped.OnStopRunningUrl(aUrl, aExitCode);
+    if (this.callback)
+      this.callback(aUrl, aExitCode);
+    if (this.promise)
+      this.promise();
+    else
+      async_driver();
+  }
+};
+
+/**
+ * nsIUrlListener that calls async_driver when the URL stops running.  Pass this
+ *  in as an argument to asynchronous native mechanisms that use a URL listener
+ *  to notify when they complete.  If you need to wrap an existing listener
+ *  and/or have a callback notified before triggering the async process, create
+ *  your own instance of |AsyncUrlListener|.
+ */
+var asyncUrlListener = new AsyncUrlListener();
+
 var asyncCopyListener = {
   OnStartCopy: function() {},
   OnProgress: function(aProgress, aProgressMax) {},
@@ -30,59 +82,54 @@ var asyncCopyListener = {
 };
 
 /**
- * Delete one or more synthetic messages.  If using SyntheticMessageSets, call
- *  once for each SyntheticMessageSet.  Otherwise, we take synthetic message
- *  instances that are assumed to live in gTestFolder.  The arguments can be one
- *  or more synthetic message instances or a singe list of synthetic messages.
- *  (Synthetic messages are from messageGenerator.js, SyntheticMessageSets are
- *  from messageModifier.js)
+ * Move the messages to the trash; do not use this on messages that are already
+ *  in the trash, we are not clever enough for that.
  *
- * Usage example using a SyntheticMessageSet (which defines the folder):
- *  yield async_delete_messages(syntheticMessageSet);
- *  yield async_delete_messages(new SyntheticMessageSet(folder, [synMsg]);
- * Usage example assuming gTestFolder:
- *  yield async_delete_messages(synMsg);
- *  yield async_delete_messages(synMsg1, synMsg2);
- *  yield async_delete_messages([synMsg1, synMsg2]);
+ * @param aSynMessageSet The set of messages to trash.  The messages do not all
+ *     have to be in the same folder, but we have to trash them folder by
+ *     folder if they are not.
  */
-function async_delete_messages() {
-  let synMessages;
-  if (arguments.length > 1)
-    synMessages = arguments;
-  else if (arguments[0].length)
-    synMessages = arguments[0];
-  else
-    synMessages = [arguments[0]];
+function async_trash_messages(aSynMessageSet) {
+  mark_action("messageInjection", "trashing messages",
+              aSynMessageSet.msgHdrList);
+  return async_run({func: function () {
+      for (let [folder, xpcomHdrArray] in
+           aSynMessageSet.foldersWithXpcomHdrArrays) {
+        mark_action("messageInjection", "trashing messages in folder",
+                    [folder]);
+        folder.deleteMessages(xpcomHdrArray, null, false, true,
+                              asyncCopyListener,
+                              /* do not allow undo, currently leaks */ false);
+        yield false;
+      }
+    },
+  });
+}
 
-  if (synMessages.length == 0)
-    do_throw("You need to tell us to delete at least one thing!");
-
-  // SyntheticMessageSet case
-  if (synMessages[0].synMessages) {
-    let messageSet = synMessages[0];
-    // because synthetic message sets
-    return async_run({func: function () {
-        for (let [folder, xpcomHdrArray] in
-             messageSet.foldersWithXpcomHdrArrays) {
-          folder.deleteMessages(xpcomHdrArray, null, false, true,
-                                asyncCopyListener, true);
-          yield false;
-        }
-      },
-    });
+/**
+ * Delete all of the messages in a SyntheticMessageSet like the user performed a
+ *  shift-delete (or if the messages were already in the trash).
+ *
+ * This is actually a synchronous operation.  I'm surprised too.
+ *
+ * @param aSynMessageSet The set of messages to delete.  The messages do not all
+ *     have to be in the same folder, but we have to delete them folder by
+ *     folder if they are not.
+ */
+function async_delete_messages(aSynMessageSet) {
+  mark_action("messageInjection", "deleting messages",
+              aSynMessageSet.msgHdrList);
+  for (let [folder, xpcomHdrArray] in
+       aSynMessageSet.foldersWithXpcomHdrArrays) {
+    mark_action("messageInjection", "deleting messages in folder",
+                [folder]);
+    folder.deleteMessages(xpcomHdrArray, null,
+                          /* delete storage */ true,
+                          /* is move? */ false,
+                          asyncCopyListener,
+                          /* do not allow undo, currently leaks */ false);
   }
-  // a list of synthetic messages case
-  else {
-    let msgDatabase = gTestFolder.msgDatabase;
-    let hdrArr = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
-    synMessages.forEach(function (synMsg) {
-      hdrArr.appendElement(msgDatabase.getMsgHdrForMessageID(synMsg.messageId),
-                           false);
-    });
-    gTestFolder.deleteMessages(hdrArr, null, false, true, asyncCopyListener,
-                               true);
-    return false;
-  }
+  return true;
 }
 
 
@@ -112,7 +159,11 @@ function async_run(aArgs) {
   let result = aArgs.func.apply(aArgs.dis || null, aArgs.args || []);
   if (result && result.next) {
     asyncGeneratorStack.push([result, aArgs.func.name]);
-    return _async_driver();
+    // Use the timer variant in case the asynchronous sub-call is able to run
+    //  to completion.  If we didn't do this, we might end up trying to re-call
+    //  into the same generator that is currently active.  We can obviously
+    //  make _async_driver more clever to deal with this if we have a reason.
+    return async_driver();
   }
   else {
     if (result === undefined)
@@ -135,6 +186,7 @@ function async_run(aArgs) {
  */
 function async_driver() {
   do_timeout_function(0, _async_driver);
+  return false;
 }
 
 // the real driver!
@@ -149,15 +201,21 @@ function _async_driver() {
     }
     catch (ex) {
       if (ex != StopIteration) {
+        let asyncStack = [];
         dump("*******************************************\n");
         dump("Generator explosion!\n");
         dump("Unhappiness at: " + ex.fileName + ":" + ex.lineNumber + "\n");
         dump("Because: " + ex + "\n");
+        dump("Stack:\n  " + ex.stack.replace("\n", "\n  ", "g") + "\n");
         dump("**** Async Generator Stack source functions:\n");
         for (let i = asyncGeneratorStack.length - 1; i >= 0; i--) {
           dump("  " + asyncGeneratorStack[i][1] + "\n");
+          asyncStack.push(asyncGeneratorStack[i][1]);
         }
-        do_throw(ex);
+        dump("*********\n");
+        logException(ex);
+        mark_failure(["Generator explosion. ex:", ex, "async stack",
+                      asyncStack]);
       }
       asyncGeneratorStack.pop();
     }
@@ -177,6 +235,14 @@ var ASYNC_TEST_RUNNER_HELPERS = [];
  */
 function async_test_runner_register_helper(aHelper) {
   ASYNC_TEST_RUNNER_HELPERS.push(aHelper);
+}
+
+/**
+ * Functions to run after the last test has completed.
+ */
+var ASYNC_TEST_RUNNER_FINAL_CLEANUP_HELPERS = [];
+function async_test_runner_register_final_cleanup_helper(aHelper) {
+  ASYNC_TEST_RUNNER_FINAL_CLEANUP_HELPERS.push(aHelper);
 }
 
 function _async_test_runner_postTest() {
@@ -246,20 +312,78 @@ function _async_test_runner(aTests) {
           paramDesc = parameter.toString();
           args = [parameter];
         }
-        dump("=== Running test: " + testFunc.name + " Parameter: " +
-             paramDesc + "\n");
+        mark_test_start(testFunc.name, paramDesc);
         yield async_run({func: testFunc, args: args});
         _async_test_runner_postTest();
+        mark_test_end();
       }
 
     }
     else {
-      dump("=== Running test: " + test.name + "\n");
+      mark_test_start(test.name);
       yield async_run({func: test});
       _async_test_runner_postTest();
+      mark_test_end();
     }
   }
 
   dump("=== (Done With Tests)\n");
+
+  for each (let [, cleanupHelper] in
+            Iterator(ASYNC_TEST_RUNNER_FINAL_CLEANUP_HELPERS)) {
+    try {
+      cleanupHelper();
+    }
+    catch (ex) {
+      mark_failure(["Problem during asyncTestUtils cleanup helper",
+                     cleanupHelper.name, "exception:", ex]);
+    }
+  }
+
+  mark_all_tests_run();
+
   do_test_finished();
+}
+
+var _async_promises = [];
+var _waiting_for_async_promises = false;
+/**
+ * Create an asynchronous promise, which is basically a 'future' where we don't
+ *  care about the result value, but we do care about the side-effects.
+ * This allows code that does not need to run-to-completion at the time the user
+ *  calls it to allow code that depends on it having run to explicitly wait for
+ *  its completion.  Rather than bother with actually exposing the promises, we
+ *  just have code with such dependencies to call |wait_for_async_promises| to
+ *  ensure that all promises have been fulfilled.
+ *
+ * For a realistic use-case, this allows messageInjection.js' make_empty_folder
+ *  to perform an asynchronous operation (the creation of a folder) but not have
+ *  to return an asynchronous result indicator.  This simplifies calling code
+ *  and avoids complicating the functions that combine make_empty_folder with
+ *  other functionality.  The message injection code is where we end up waiting
+ *  on the promises (if required).
+ */
+function async_create_promise() {
+  function promise_completed() {
+    _async_promises.splice(_async_promises.indexOf(promise_completed), 1);
+    if (_waiting_for_async_promises) {
+      async_driver();
+      _waiting_for_async_promises = false;
+    }
+  }
+  _async_promises.push(promise_completed);
+
+  return promise_completed;
+}
+
+/**
+ * Wait for all asynchronous promises to have been fulfilled.
+ */
+function wait_for_async_promises() {
+  if (_async_promises.length) {
+    _waiting_for_async_promises = true;
+    return false;
+  }
+
+  return true;
 }

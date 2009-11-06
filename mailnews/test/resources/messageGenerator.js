@@ -342,11 +342,22 @@ SyntheticPartMultiSignedPGP.prototype = {
  * A synthetic message, created by the MessageGenerator.  Captures both the
  *  ingredients that went into the synthetic message as well as the rfc822 form
  *  of the message.
+ * 
+ * @param [aHeaders] A dictionary of rfc822 header payloads.  The key should be
+ *     capitalized as you want it to appear in the output.  This requires
+ *     adherence to convention of this class.  You are best to just use the
+ *     helpers provided by this class.
+ * @param [aBodyPart] An instance of one of the many Synthetic part types
+ *     available in this file.
+ * @param [aMetaState] A dictionary of meta-state about the message that is only
+ *     relevant to the messageInjection logic and perhaps some testing logic.
+ * @param [aMetaState.junk=false] Is the method junk?
  */
-function SyntheticMessage(aHeaders, aBodyPart) {
+function SyntheticMessage(aHeaders, aBodyPart, aMetaState) {
   // we currently do not need to call SyntheticPart's constructor...
   this.headers = aHeaders || {};
   this.bodyPart = aBodyPart || new SyntheticPartLeaf("");
+  this.metaState = aMetaState || {junk: false};
 }
 
 SyntheticMessage.prototype = {
@@ -767,29 +778,48 @@ MessageGenerator.prototype = {
    *  that has not been used before.
    *
    * @param aArgs An object with any of the following attributes provided:
-   *     age: A dictionary with potential attributes 'minutes', 'hours', 'days',
-   *         'weeks' to specify the message be created that far in the past.
-   *     attachments: A list of dictionaries suitable for passing to
-   *         syntheticPartLeaf, plus a 'body' attribute that has already been
-   *         encoded.  Line chopping is on you FOR NOW.
-   *     body: A dictionary suitable for passing to SyntheticPart plus a 'body'
-   *         attribute that has already been encoded (if encoding is required).
-   *         Line chopping is on you FOR NOW.  Alternately, use bodyPart.
-   *     bodyPart: A SyntheticPart to uses as the body.  If you provide an
-   *         attachments value, this part will be wrapped in a multipart/mixed
-   *         to also hold your attachments.  (You can put attachments in the
-   *         bodyPart directly if you want and not use attachments.)
-   *     callerData: A value to propagate to the callerData attribute on the
-   *         resulting message.
-   *     inReplyTo: the SyntheticMessage this message should be in reply-to.
-   *         If that message was in reply to another message, we will
-   *         appropriately compensate for that.  If a SyntheticMessageSet is
-   *         provided we will use the first message in the set.
-   *     replyAll: a boolean indicating whether this should be a reply-to-all or
-   *         just to the author of the message.  (er, to-only, not cc.)
-   *     subject: The subject to use; you are responsible for doing any encoding
-   *         before passing it in.
-   *     toCount: the number of people who the message should be to.
+   * @param [aArgs.age] A dictionary with potential attributes 'minutes',
+   *     'hours', 'days', 'weeks' to specify the message be created that far in
+   *     the past.
+   * @param [aArgs.attachments] A list of dictionaries suitable for passing to
+   *     syntheticPartLeaf, plus a 'body' attribute that has already been
+   *     encoded.  Line chopping is on you FOR NOW.
+   * @param [aArgs.body] A dictionary suitable for passing to SyntheticPart plus
+   *     a 'body' attribute that has already been encoded (if encoding is
+   *     required).  Line chopping is on you FOR NOW.  Alternately, use
+   *     bodyPart.
+   * @param [aArgs.bodyPart] A SyntheticPart to uses as the body.  If you
+   *     provide an attachments value, this part will be wrapped in a
+   *     multipart/mixed to also hold your attachments.  (You can put
+   *     attachments in the bodyPart directly if you want and not use
+   *     attachments.)
+   * @param [aArgs.callerData] A value to propagate to the callerData attribute
+   *     on the resulting message.
+   * @param [aArgs.cc] A list of cc recipients (name and address pairs).  If
+   *     omitted, no cc is generated.
+   * @param [aArgs.from] The name and value pair this message should be from.
+   *     Defaults to the first recipient if this is a reply, otherwise a new
+   *     person is synthesized via |makeNameAndAddress|.
+   * @param [aArgs.inReplyTo] the SyntheticMessage this message should be in
+   *     reply-to.  If that message was in reply to another message, we will
+   *     appropriately compensate for that.  If a SyntheticMessageSet is
+   *     provided we will use the first message in the set.
+   * @param [aArgs.replyAll] a boolean indicating whether this should be a
+   *     reply-to-all or just to the author of the message.  (er, to-only, not
+   *     cc.)
+   * @param [aArgs.subject] subject to use; you are responsible for doing any
+   *     encoding before passing it in.
+   * @param [aArgs.to] The list of recipients for this message, defaults to a
+   *     set of toCount newly created persons.
+   * @param [aArgs.toCount=1] the number of people who the message should be to.
+   * @param [aArgs.clobberHeaders] An object whose contents will overwrite the
+   *     contents of the headers object.  This should only be used to construct
+   *     illegal header values; general usage should use another explicit
+   *     mechanism.
+   * @param [aArgs.junk] Should this message be flagged as junk for the benefit
+   *     of the messageInjection helper so that it can know to flag the message
+   *     as junk?  We have no concept of marking a message as definitely not
+   *     junk at this point.
    * @returns a SyntheticMessage fashioned just to your liking.
    */
   makeMessage: function(aArgs) {
@@ -849,6 +879,18 @@ MessageGenerator.prototype = {
       msg.date = this.makeDate();
     }
 
+    if ("clobberHeaders" in aArgs) {
+      for each (let [key, value] in Iterator(aArgs.clobberHeaders)) {
+        msg.headers[key] = value;
+        // clobber helper...
+        if (key == "From")
+          msg._from = ["", ""];
+      }
+    }
+
+    if ("junk" in aArgs && aArgs.junk)
+      msg.metaState.junk = true;
+
     let bodyPart;
     if (aArgs.bodyPart)
       bodyPart = aArgs.bodyPart;
@@ -877,7 +919,7 @@ MessageGenerator.prototype = {
     count: 10,
   },
   MAKE_MESSAGES_PROPAGATE: ['attachments', 'body', 'cc', 'from', 'inReplyTo',
-                            'subject', 'to'],
+                            'subject', 'to', 'clobberHeaders', 'junk'],
   /**
    * Given a set definition, produce a list of synthetic messages.
    *
@@ -886,12 +928,17 @@ MessageGenerator.prototype = {
    *  age: As used by makeMessage.
    *  age_incr: Similar to age, but used to increment the values in the age
    *      dictionary (assuming a value of zero if omitted).
+   *  @param [aSetDef.msgsPerThread=1] The number of messages per thread.  If
+   *      you want to create direct-reply threads, you can pass a value for this
+   *      and have it not be one.  If you need fancier reply situations,
+   *      directly use a scenario or hook us up to support that.
    *
    * Also supported are the following attributes as defined by makeMessage:
-   *  attachments, body, from, inReplyTo, subject, to
+   *  attachments, body, from, inReplyTo, subject, to, clobberHeaders, junk
    *
-   * If omitted, the following defaults are used:
-   *  count: 10
+   * If omitted, the following defaults are used, but don't depend on this as we
+   *  can change these at any time:
+   * - count: 10
    */
   makeMessages: function MessageGenerator_makeMessages(aSetDef) {
     let messages = [];
@@ -916,8 +963,16 @@ MessageGenerator.prototype = {
     }
 
     let count = aSetDef.count || this.MAKE_MESSAGES_DEFAULTS.count;
+    let messagsPerThread = aSetDef.msgsPerThread || 1;
+    let lastMessage = null;
     for (let iMsg = 0; iMsg < count; iMsg++) {
-      messages.push(this.makeMessage(args));
+      // primitive threading support...
+      if (lastMessage && (iMsg % messagsPerThread != 0))
+        args.inReplyTo = lastMessage;
+      else
+        args.inReplyTo = null;
+      lastMessage = this.makeMessage(args);
+      messages.push(lastMessage);
 
       if (aSetDef.age_incr) {
         for (let [unit, delta] in Iterator(aSetDef.age_incr))

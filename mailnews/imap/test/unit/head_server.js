@@ -10,7 +10,7 @@ const IMAP_PORT = 1024 + 143;
 
 function makeServer(daemon, infoString) {
   if (infoString in configurations)
-    return makeHandler(daemon, configurations[infoString].join(","));
+    return makeServer(daemon, configurations[infoString].join(","));
 
   var handler = new IMAP_RFC3501_handler(daemon);
   if (!infoString)
@@ -29,7 +29,7 @@ function makeServer(daemon, infoString) {
 function createLocalIMAPServer() {
   var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);
-  
+
   var server = acctmgr.createIncomingServer("user", "localhost", "imap");
   server.port = IMAP_PORT;
   server.username = "user";

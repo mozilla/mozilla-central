@@ -59,7 +59,9 @@ Cu.import("resource://app/modules/gloda/log4moz.js");
 Cu.import("resource://app/modules/gloda/gloda.js");
 Cu.import("resource://app/modules/gloda/indexer.js");
 
-// This module links the gloda indexer and the activity manager.
+/**
+ * Gloda message indexer feedback.
+ */
 let glodaIndexerActivity =
 {
   get log() {
@@ -80,7 +82,7 @@ let glodaIndexerActivity =
     return this.bundle = bundleSvc
       .createBundle("chrome://messenger/locale/activity.properties");
   },
-  
+
   getString: function(stringName) {
     try {
       return this.bundle.GetStringFromName(stringName);
@@ -94,8 +96,7 @@ let glodaIndexerActivity =
     // Register a listener with the Gloda indexer that receives notifications
     // about Gloda indexing status.  We wrap the listener in this function so we
     // can set |this| to the GlodaIndexerActivity object inside the listener.
-    function listenerWrapper(aStatus, aFolder, aJobNumber, aTotalJobNum,
-                             aItemNumber, aTotalItemNum)
+    function listenerWrapper()
     {
       glodaIndexerActivity.listener.apply(glodaIndexerActivity, arguments);
     };
@@ -118,11 +119,11 @@ let glodaIndexerActivity =
    */
   currentJob: null,
 
-  listener: function(aStatus, aFolder, aJobNumber, aTotalJobNum, aItemNumber,
+  listener: function(aStatus, aFolder, aJobNumber, aItemNumber,
                      aTotalItemNum)
   {
     this.log.debug("Gloda Indexer Folder/Status: " + aFolder + "/" + aStatus);
-    this.log.debug("Gloda Indexer Job: " + aJobNumber + "/" + aTotalJobNum);
+    this.log.debug("Gloda Indexer Job: " + aJobNumber);
     this.log.debug("Gloda Indexer Item: " + aItemNumber + "/" + aTotalItemNum);
 
     if (aStatus == Gloda.kIndexerIdle)
@@ -229,14 +230,14 @@ let glodaIndexerActivity =
                                        this.getString("indexedFolder"))
                           .replace("#1", totalItemNum)
                           .replace("#2", this.currentJob.folder);
-  
+
       let endTime = new Date();
       let secondsElapsed = parseInt((endTime - this.currentJob.startTime)/1000);
-  
+
       let statusText = PluralForm.get(secondsElapsed,
                                       this.getString("indexedFolderStatus"))
                          .replace("#1", secondsElapsed);
-  
+
       let event = new nsActEvent(displayText,
                                  Gloda,
                                  statusText,
@@ -250,7 +251,7 @@ let glodaIndexerActivity =
       let subjects = this.currentJob.process.getSubjects({});
       for each (let [, subject] in Iterator(subjects))
         event.addSubject(subject);
-  
+
       this.activityMgr.addActivity(event);
     }
 

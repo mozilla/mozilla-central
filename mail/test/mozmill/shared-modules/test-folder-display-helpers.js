@@ -63,6 +63,10 @@ Cu.import('resource://app/modules/MailUtils.js');
 Cu.import('resource://app/modules/MailConsts.js');
 Cu.import('resource://app/modules/mailViewManager.js');
 
+/**
+ * List of keys not to export via installInto; values do not matter, we just
+ *  use true.
+ */
 const DO_NOT_EXPORT = {
   // magic globals
   MODULE_NAME: true, DO_NOT_EXPORT: true,
@@ -79,6 +83,7 @@ const DO_NOT_EXPORT = {
   // internal setup flags
   initialized: false,
   // other libraries we use
+  testHelperModule: true,
   windowHelper: true
 };
 
@@ -98,17 +103,16 @@ var mc;
 var otherTab;
 
 // These are pseudo-modules setup by setupModule:
-var messageGenerator;
-var messageModifier;
-var viewWrapperTestUtils;
+var testHelperModule;
 // (end pseudo-modules)
 
 var msgGen;
 
-var gLocalIncomingServer = null;
-var gLocalInboxFolder = null;
+var inboxFolder = null;
 
-var rootFolder = null;
+// logHelper exports
+var mark_action;
+var mark_failure;
 
 // the windowHelper module
 var windowHelper;
@@ -119,34 +123,46 @@ function setupModule() {
     return;
   initialized = true;
 
+  testHelperModule = {
+    Cc: Cc,
+    Ci: Ci,
+    Cu: Cu,
+    // fake some xpcshell stuff
+    _TEST_FILE: ["mozmill"],
+    do_throw: function(aMsg) {
+      throw new Error(aMsg);
+    },
+    do_check_eq: function() {},
+    do_check_neq: function() {},
+  };
+
   // The xpcshell test resources assume they are loaded into a single global
   //  namespace, so we need to help them out to maintain their delusion.
-  messageGenerator = load_via_src_path(
-    'mailnews/test/resources/messageGenerator.js');
-  messageModifier = load_via_src_path(
-    'mailnews/test/resources/messageModifier.js');
-  viewWrapperTestUtils = load_via_src_path(
-    'mail/base/test/unit/resources/viewWrapperTestUtils.js');
-  // desired global types...
-  viewWrapperTestUtils.SyntheticMessageSet =
-    messageModifier.SyntheticMessageSet;
-  viewWrapperTestUtils.do_throw = function(aMsg) {
-    throw new Error(aMsg);
-  };
-  // viewWrapperTestUtils wants a gMessageGenerator (and so do we)
-  msgGen = new messageGenerator.MessageGenerator();
-  viewWrapperTestUtils.gMessageGenerator = msgGen;
-  viewWrapperTestUtils.gMessageScenarioFactory =
-    new messageGenerator.MessageScenarioFactory(msgGen);
+  load_via_src_path('mailnews/test/resources/logHelper.js',
+                    testHelperModule);
+  mark_action = testHelperModule.mark_action;
+  mark_failure = testHelperModule.mark_failure;
+
+  load_via_src_path('mailnews/test/resources/asyncTestUtils.js',
+                    testHelperModule);
+  load_via_src_path('mailnews/test/resources/messageGenerator.js',
+                    testHelperModule);
+  load_via_src_path('mailnews/test/resources/messageModifier.js',
+                    testHelperModule);
+  load_via_src_path('mailnews/test/resources/messageInjection.js',
+                    testHelperModule);
+  load_via_src_path('mail/base/test/unit/resources/viewWrapperTestUtils.js',
+                    testHelperModule);
+
+  // messageInjection wants a gMessageGenerator (and so do we)
+  msgGen = new testHelperModule.MessageGenerator();
+  testHelperModule.gMessageGenerator = msgGen;
+  testHelperModule.gMessageScenarioFactory =
+    new testHelperModule.MessageScenarioFactory(msgGen);
 
   make_new_sets_in_folders = make_new_sets_in_folder =
-    viewWrapperTestUtils.make_new_sets_in_folders;
-  add_sets_to_folders = viewWrapperTestUtils.add_sets_to_folders;
-  create_virtual_folder = viewWrapperTestUtils.make_virtual_folder;
-
-  viewWrapperTestUtils.Ci = Ci;
-  viewWrapperTestUtils.Cu = Cu;
-  viewWrapperTestUtils.Cc = Cc;
+    testHelperModule.make_new_sets_in_folders;
+  add_sets_to_folders = testHelperModule.add_sets_to_folders;
 
   // use window-helper's augment_controller method to get our extra good stuff
   //  we need.
@@ -155,7 +171,6 @@ function setupModule() {
   windowHelper.augment_controller(mc);
 
   setupAccountStuff();
-  viewWrapperTestUtils.gLocalIncomingServer = gLocalIncomingServer;
 }
 
 /**
@@ -185,26 +200,7 @@ function installInto(module) {
 }
 
 function setupAccountStuff() {
-  // Create a local account to work with folders.
-  // (Note this gives you an Outbox and Trash folder by default).
-  let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                          .getService(Components.interfaces.nsIMsgAccountManager);
-  //acctMgr.createLocalMailAccount();
-
-  gLocalIncomingServer = acctMgr.localFoldersServer;
-
-  rootFolder = gLocalIncomingServer.rootMsgFolder;
-  // Note: Inbox is not created automatically when there is no deferred server,
-  // so we need to create it.
-  gLocalInboxFolder = rootFolder.addSubfolder("Inbox");
-  // a local inbox should have a Mail flag!
-  gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
-  gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Inbox);
-
-  // Force an initialization of the Inbox folder database.
-  var folderName = gLocalInboxFolder.prettiestName;
-
-  gLocalInboxFolder = rootFolder.getChildNamed("Inbox");
+  inboxFolder = testHelperModule.configure_message_injection({mode: "local"});
 }
 
 /*
@@ -222,7 +218,7 @@ const FAST_INTERVAL = 100;
  * Create a folder and rebuild the folder tree view.
  */
 function create_folder(aFolderName) {
-  let folder = rootFolder.addSubfolder(aFolderName);
+  let folder = testHelperModule.make_empty_folder(aFolderName);
   mc.folderTreeView.mode = "all";
   return folder;
 }
@@ -232,7 +228,7 @@ function create_folder(aFolderName) {
  *  sure to rebuild the folder tree afterwards.
  */
 function create_virtual_folder() {
-  let folder = viewWrapperTestUtils.make_virtual_folder.apply(null, arguments);
+  let folder = testHelperModule.make_virtual_folder.apply(null, arguments);
   mc.folderTreeView.mode = "all";
   return folder;
 }
@@ -242,7 +238,8 @@ function create_virtual_folder() {
  * Create a thread with the specified number of messages in it.
  */
 function create_thread(aCount) {
-  return new viewWrapperTestUtils.SyntheticMessageSet(viewWrapperTestUtils.gMessageScenarioFactory.directReply(aCount));
+  return new testHelperModule.SyntheticMessageSet(
+    testHelperModule.gMessageScenarioFactory.directReply(aCount));
 }
 
 /**
@@ -1059,8 +1056,8 @@ function wait_for_folder_events() {
 function assert_messages_in_view(aSynSets, aController) {
   if (aController === undefined)
     aController = mc;
-  viewWrapperTestUtils.verify_messages_in_view(aSynSets,
-                                               aController.folderDisplay.view);
+  testHelperModule.verify_messages_in_view(aSynSets,
+                                           aController.folderDisplay.view);
 }
 
 /**
@@ -1938,11 +1935,11 @@ function throw_and_dump_view_state(aMessage, aController) {
     aController = mc;
 
   dump("******** " + aMessage + "\n");
-  viewWrapperTestUtils.dump_view_state(aController.folderDisplay.view);
+  testHelperModule.dump_view_state(aController.folderDisplay.view);
   throw new Error(aMessage);
 }
 
-/** exported from viewWrapperTestUtils */
+/** exported from messageInjection */
 var make_new_sets_in_folders;
 var make_new_sets_in_folder;
 var add_sets_to_folders;
@@ -1954,8 +1951,18 @@ var add_sets_to_folders;
  *
  * @return An object that serves as the global scope for the loaded file.
  */
-function load_via_src_path(aPath) {
+function load_via_src_path(aPath, aModule) {
+  let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"]
+                 .getService(Ci.mozIJSSubScriptLoader);
+  let ioService = Cc["@mozilla.org/network/io-service;1"]
+                    .getService(Ci.nsIIOService);
+
   let srcPath = os.abspath("../../../..",os.getFileForPath( __file__));
   let fullPath = os.abspath(aPath, os.getFileForPath(srcPath));
-  return frame.loadFile(fullPath, undefined);
+
+  let file = Cc["@mozilla.org/file/local;1"]
+               .createInstance(Ci.nsILocalFile);
+  file.initWithPath(fullPath);
+  let uri = ioService.newFileURI(file).spec;
+  loader.loadSubScript(uri, aModule);
 }

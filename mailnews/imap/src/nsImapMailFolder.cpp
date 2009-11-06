@@ -5048,9 +5048,9 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
       if (notifier && m_copyState)
       {
         if (imapAction == nsIImapUrl::nsImapOnlineMove)
-          notifier->NotifyMsgsMoveCopyCompleted(PR_TRUE, m_copyState->m_messages, this);
+          notifier->NotifyMsgsMoveCopyCompleted(PR_TRUE, m_copyState->m_messages, this, nsnull);
         else if (imapAction == nsIImapUrl::nsImapOnlineCopy)
-          notifier->NotifyMsgsMoveCopyCompleted(PR_FALSE, m_copyState->m_messages, this);
+          notifier->NotifyMsgsMoveCopyCompleted(PR_FALSE, m_copyState->m_messages, this, nsnull);
         else if (imapAction == nsIImapUrl::nsImapDeleteMsg)
           notifier->NotifyMsgsDeleted(m_copyState->m_messages);
       }
@@ -6535,7 +6535,7 @@ nsImapMailFolder::CopyNextStreamMessage(PRBool copySucceeded, nsISupports *copyS
       PRUint32 numHdrs;
       mailCopyState->m_messages->GetLength(&numHdrs);
       if (numHdrs)
-        notifier->NotifyMsgsMoveCopyCompleted(mailCopyState->m_isMove, mailCopyState->m_messages, this);
+        notifier->NotifyMsgsMoveCopyCompleted(mailCopyState->m_isMove, mailCopyState->m_messages, this, nsnull);
     }
 
 
@@ -7067,7 +7067,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   {
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
-      notifier->NotifyMsgsMoveCopyCompleted(isMove, msgHdrsCopied, this);
+      notifier->NotifyMsgsMoveCopyCompleted(isMove, msgHdrsCopied, this, nsnull);
   }
 
   if (isMove && (deleteToTrash || deleteImmediately))

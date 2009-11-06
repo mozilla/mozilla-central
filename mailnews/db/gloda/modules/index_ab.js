@@ -57,10 +57,10 @@ Cu.import("resource://app/modules/gloda/noun_freetag.js");
 var GlodaABIndexer = {
   _log: null,
 
-  name: "ab_indexer",
+  name: "index_ab",
   enable: function() {
     if (this._log == null)
-      this._log =  Log4Moz.repository.getLogger("gloda.ab_indexer");
+      this._log =  Log4Moz.repository.getLogger("gloda.index_ab");
 
     let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
     abManager.addAddressBookListener(this,
@@ -74,6 +74,7 @@ var GlodaABIndexer = {
     abManager.removeAddressBookListener(this);
   },
 
+  // it's a getter so we can reference 'this'
   get workers() {
     return [["ab-card", this._worker_index_card]];
   },
@@ -145,8 +146,8 @@ var GlodaABIndexer = {
       this._log.debug("Received Card Change Notification");
 
       let card = aItem; // instanceof already QueryInterface'd for us.
-      let job = new IndexingJob("ab-card", 1, card);
-      GlodaIndexer.indexJob(job);
+      let job = new IndexingJob("ab-card", card);
+      GlodaIndexer.indexJob(this, job, false);
     }
   }
 };

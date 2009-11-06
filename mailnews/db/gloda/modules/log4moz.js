@@ -188,6 +188,7 @@ let Log4Moz = {
   get Formatter() { return Formatter; },
   get BasicFormatter() { return BasicFormatter; },
   get XMLFormatter() { return XMLFormatter; },
+  get JSONFormatter() { return JSONFormatter; },
   get Appender() { return Appender; },
   get DumpAppender() { return DumpAppender; },
   get ConsoleAppender() { return ConsoleAppender; },
@@ -236,14 +237,36 @@ let Log4Moz = {
   }
 };
 
+function LoggerContext() {
+  this._started = this.lastStateChange = Date.now();
+  this._state = "started";
+}
+LoggerContext.prototype = {
+  _jsonMe: true,
+  _id: "unknown",
+  setState: function LoggerContext_state(aState) {
+    this._state = aState;
+    this._lastStateChange = Date.now();
+    return this;
+  },
+  finish: function LoggerContext_finish() {
+    this._finished = Date.now();
+    this._state = "finished";
+    return this;
+  },
+  toString: function LoggerContext_toString() {
+    return "[Context: " + this._id + " state: " + this._state + "]";
+  }
+};
+
 
 /*
  * LogMessage
  * Encapsulates a single log event's data
  */
-function LogMessage(loggerName, level, message){
+function LogMessage(loggerName, level, messageObjects){
   this.loggerName = loggerName;
-  this.message = message;
+  this.messageObjects = messageObjects;
   this.level = level;
   this.time = Date.now();
 }
@@ -258,7 +281,7 @@ LogMessage.prototype = {
 
   toString: function LogMsg_toString(){
     return "LogMessage [" + this.time + " " + this.level + " " +
-      this.message + "]";
+      this.messageObjects + "]";
   }
 };
 
@@ -315,6 +338,16 @@ Logger.prototype = {
     this._appenders.push(appender);
   },
 
+  _nextContextId: 0,
+  newContext: function Logger_newContext(objWithProps) {
+    if (!("_id" in objWithProps))
+      objWithProps._id = this._name + ":" + (++this._nextContextId);
+    objWithProps.__proto__ = LoggerContext.prototype;
+    objWithProps._isContext = true;
+    LoggerContext.call(objWithProps);
+    return objWithProps;
+  },
+
   log: function Logger_log(message) {
     if (this.level > message.level)
       return;
@@ -324,26 +357,33 @@ Logger.prototype = {
     }
   },
 
-  fatal: function Logger_fatal(string) {
-    this.log(new LogMessage(this._name, Log4Moz.Level.Fatal, string));
+  fatal: function Logger_fatal() {
+    this.log(new LogMessage(this._name, Log4Moz.Level.Fatal,
+                            Array.prototype.slice.call(arguments)));
   },
-  error: function Logger_error(string) {
-    this.log(new LogMessage(this._name, Log4Moz.Level.Error, string));
-  },
-  warn: function Logger_warn(string) {
-    this.log(new LogMessage(this._name, Log4Moz.Level.Warn, string));
-  },
-  info: function Logger_info(string) {
-    this.log(new LogMessage(this._name, Log4Moz.Level.Info, string));
-  },
-  config: function Logger_config(string) {
-    this.log(new LogMessage(this._name, Log4Moz.Level.Config, string));
-  },
-  debug: function Logger_debug(string) {
-    this.log(new LogMessage(this._name, Log4Moz.Level.Debug, string));
-  },
-  trace: function Logger_trace(string) {
-    this.log(new LogMessage(this._name, Log4Moz.Level.Trace, string));
+  error: function Logger_error() {
+    this.log(new LogMessage(this._name, Log4Moz.Level.Error,
+                            Array.prototype.slice.call(arguments)));
+   },
+  warn: function Logger_warn() {
+    this.log(new LogMessage(this._name, Log4Moz.Level.Warn,
+                            Array.prototype.slice.call(arguments)));
+   },
+  info: function Logger_info() {
+    this.log(new LogMessage(this._name, Log4Moz.Level.Info,
+                            Array.prototype.slice.call(arguments)));
+   },
+  config: function Logger_config() {
+    this.log(new LogMessage(this._name, Log4Moz.Level.Config,
+                            Array.prototype.slice.call(arguments)));
+   },
+  debug: function Logger_debug() {
+    this.log(new LogMessage(this._name, Log4Moz.Level.Debug,
+                            Array.prototype.slice.call(arguments)));
+   },
+  trace: function Logger_trace() {
+    this.log(new LogMessage(this._name, Log4Moz.Level.Trace,
+                            Array.prototype.slice.call(arguments)));
   }
 };
 
@@ -446,9 +486,12 @@ BasicFormatter.prototype = {
 
   format: function BF_format(message) {
     let date = new Date(message.time);
+    let messageString = [
+      ((typeof(mo) == "object") ? mo.toString() : mo) for each
+      ([,mo] in Iterator(message.messageObjects))].join(" ");
     return date.toLocaleFormat(this.dateFormat) + "\t" +
       message.loggerName + "\t" + message.levelDesc + "\t" +
-      message.message + "\n";
+      messageString + "\n";
   }
 };
 
@@ -466,15 +509,50 @@ XMLFormatter.prototype = {
   __proto__: Formatter.prototype,
 
   format: function XF_format(message) {
-    let cdataEscapedMessage = message.message.replace(CDATA_END,
-                                                      CDATA_ESCAPED_END, "g");
+    let cdataEscapedMessage =
+      [((typeof(mo) == "object") ? mo.toString() : mo) for each
+       ([,mo] in Iterator(message.messageObjects))]
+        .join(" ")
+        .replace(CDATA_END, CDATA_ESCAPED_END, "g");
     return "<log4j:event logger='" + message.loggerName + "' " +
                         "level='" + message.levelDesc + "' thread='unknown' " +
                         "timestamp='" + message.time + "'>" +
       "<log4j:message><![CDATA[" + cdataEscapedMessage + "]]></log4j:message>" +
       "</log4j:event>";
   }
+};
+
+function JSONFormatter() {
 }
+JSONFormatter.prototype = {
+  __proto__: Formatter.prototype,
+
+  format: function JF_format(message) {
+    let origMessageObjects = message.messageObjects;
+    message.messageObjects = [];
+    let reProto = [];
+    for each (let [, messageObject] in Iterator(origMessageObjects)) {
+      if (messageObject)
+        if (messageObject._jsonMe) {
+          message.messageObjects.push(messageObject);
+          // temporarily strip the prototype to avoid JSONing the impl.
+          reProto.push([messageObject, messageObject.__proto__]);
+          messageObject.__proto__ = undefined;
+        }
+        else
+          message.messageObjects.push(messageObject.toString());
+      else
+        message.messageObjects.push(messageObject);
+    }
+    let encoded = JSON.stringify(message) + "\r\n";
+    message.msgObjects = origMessageObjects;
+    for each (let [,objectAndProtoPair] in Iterator (reProto)) {
+      objectAndProtoPair[0].__proto__ = objectAndProtoPair[1];
+    }
+    return encoded;
+  }
+};
+
 
 /*
  * Appenders
@@ -655,7 +733,7 @@ RotatingFileAppender.prototype = {
  * Logs via TCP to a given host and port.  Attempts to automatically reconnect
  * when the connection drops or cannot be initially re-established.  Connection
  * attempts will happen at most every timeoutDelay seconds (has a sane default
- * if left blank).  Messages are dropped when there is no connection.  
+ * if left blank).  Messages are dropped when there is no connection.
  */
 
 function SocketAppender(host, port, formatter, timeoutDelay) {
@@ -683,7 +761,7 @@ SocketAppender.prototype = {
   openStream: function SApp_openStream() {
     let now = Date.now();
     if (now <= this._nextCheck) {
-      return null;
+      return;
     }
     this._nextCheck = now + this._timeout_delay * 1000;
     try {
@@ -698,12 +776,18 @@ SocketAppender.prototype = {
       //  writes to the socket within the timeout.  That, as you can imagine,
       //  is not what we want.
       this._transport.setEventSink(this, this._mainThread);
-  
-      this.__nos = this._transport.openOutputStream(
+
+      let outputStream = this._transport.openOutputStream(
         0, // neither blocking nor unbuffered operation is desired
         0, // default buffer size is fine
         0 // default buffer count is fine
         );
+
+      let uniOutputStream = Cc["@mozilla.org/intl/converter-output-stream;1"]
+                              .createInstance(Ci.nsIConverterOutputStream);
+      uniOutputStream.init(outputStream, "utf-8", 0, 0x0000);
+
+      this.__nos = uniOutputStream;
     } catch (ex) {
       dump("Unexpected SocketAppender connection problem: " +
            ex.fileName + ":" + ex.lineNumber + ": " + ex + "\n");
@@ -730,7 +814,7 @@ SocketAppender.prototype = {
     try {
       let nos = this._nos;
       if (nos)
-        nos.write(message, message.length);
+        nos.writeString(message);
     } catch(e) {
       if (this._transport && !this._transport.isAlive()) {
         this.closeStream();
@@ -740,9 +824,8 @@ SocketAppender.prototype = {
 
   clear: function SApp_clear() {
     this.closeStream();
-    this._file.remove(false);
   },
-  
+
   /* nsITransportEventSink */
   onTransportStatus: function SApp_onTransportStatus(aTransport, aStatus,
       aProgress, aProgressMax) {
@@ -754,7 +837,7 @@ SocketAppender.prototype = {
 /**
  * Throws an exception whenever it gets a message.  Intended to be used in
  * automated testing situations where the code would normally log an error but
- * not die in a fatal manner. 
+ * not die in a fatal manner.
  */
 function ThrowingAppender(thrower, formatter) {
   this._name = "ThrowingAppender";

@@ -77,13 +77,29 @@ function SyntheticMessageSet(aSynMessages, aMsgFolders, aFolderIndices) {
     this.folderIndices = aFolderIndices;
 }
 SyntheticMessageSet.prototype = {
-  addMessageToFolderByIndex: function(aFolder, aMessageIndex) {
+  /**
+   * Helper method for messageInjection to use to tell us it is injecting a
+   *  message in a given folder.  As a convenience, we also return the
+   *  synthetic message.
+   *
+   * @protected
+   */
+  _trackMessageAddition: function(aFolder, aMessageIndex) {
     let aFolderIndex = this.msgFolders.indexOf(aFolder);
     if (aFolderIndex == -1)
       aFolderIndex = this.msgFolders.push(aFolder) - 1;
     this.folderIndices[aMessageIndex] = aFolderIndex;
-    aFolder.addMessage(this.synMessages[aMessageIndex].toMboxString());
+    return this.synMessages[aMessageIndex];
   },
+  /**
+   * Helper method for use by |async_move_messages| to tell us that it moved
+   *  all the messages from aOldFolder to aNewFolder.
+   */
+  _folderSwap: function(aOldFolder, aNewFolder) {
+    let folderIndex = this.msgFolders.indexOf(aOldFolder);
+    this.msgFolders[folderIndex] = aNewFolder;
+  },
+
   /**
    * Union this set with another set and return the (new) result.
    *
@@ -120,10 +136,21 @@ SyntheticMessageSet.prototype = {
   },
 
   /**
-   * @return a JS list of the message headers for all messages inserted into a
-   *     folder.
+   * Get the single message header of the message at the given index; use
+   *  |msgHdrs| or |xpcomHdrArray| if you want to get all the headers at once.
+   */
+  getMsgHdr: function(aIndex) {
+    let folder = this.msgFolders[this.folderIndices[aIndex]];
+    let synMsg = this.synMessages[aIndex];
+    return folder.msgDatabase.getMsgHdrForMessageID(synMsg.messageId);
+  },
+
+  /**
+   * @return a JS iterator of the message headers for all messages inserted into
+   *     a folder.
    */
   get msgHdrs() {
+    // get the databases
     let msgDatabases = [folder.msgDatabase for each
                         ([, folder] in Iterator(this.msgFolders))];
     for (let [iMsg, synMsg] in Iterator(this.synMessages)) {
@@ -131,6 +158,13 @@ SyntheticMessageSet.prototype = {
       if (folderIndex != null)
         yield msgDatabases[folderIndex].getMsgHdrForMessageID(synMsg.messageId);
     }
+  },
+  /**
+   * @return a JS list of the message headers for all messages inserted into a
+   *     folder.
+   */
+  get msgHdrList() {
+    return [msgHdr for each (msgHdr in this.msgHdrs)];
   },
   /**
    * @return an nsIMutableArray of the message headers for all messages inserted
@@ -174,7 +208,7 @@ SyntheticMessageSet.prototype = {
   },
   setStarred: function(aStarred) {
     for each (let msgHdr in this.msgHdrs) {
-      msgHdr.markFlagged(aRead);
+      msgHdr.markFlagged(aStarred);
     }
   },
   addTag: function(aTagName) {
@@ -193,12 +227,24 @@ SyntheticMessageSet.prototype = {
    *  affecting our unit tests!  (Unless we were testing the bayesian
    *  classifier.  Which I'm conveniently not.  Feel free to add a
    *  "setJunkForRealsies" method if you are.)
+   *
+   * Generates a JunkStatusChanged nsIMsgFolderListener itemEvent notification.
    */
   setJunk: function(aIsJunk) {
     let junkscore = aIsJunk ? "100" : "0";
     for each (let msgHdr in this.msgHdrs) {
       msgHdr.setStringProperty("junkscore", junkscore);
     };
+
+    let notificationService =
+      Cc["@mozilla.org/messenger/msgnotificationservice;1"]
+        .getService(Ci.nsIMsgFolderNotificationService);
+    let atomService = Cc["@mozilla.org/atom-service;1"].
+                        getService(Ci.nsIAtomService);
+    let atom = atomService.getAtom(aIsJunk ? "junk" : "notjunk");
+    notificationService.notifyItemEvent(this.xpcomHdrArray,
+                                        "JunkStatusChanged",
+                                        atom);
   },
 
   /**
@@ -210,7 +256,11 @@ SyntheticMessageSet.prototype = {
                                                       arguments);
     let slicedIndices = this.folderIndices.slice.apply(this.folderIndices,
                                                        arguments);
-    return new SyntheticMessageSet(slicedMessages, this.msgFolders,
-                                   slicedIndices);
+    let sliced = new SyntheticMessageSet(slicedMessages, this.msgFolders,
+                                         slicedIndices);
+    if (("glodaMessages" in this) && this.glodaMessages)
+      sliced.glodaMessages = this.glodaMessages.slice.apply(this.glodaMessages,
+                                                            arguments);
+    return sliced;
   }
 };

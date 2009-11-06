@@ -136,10 +136,26 @@ GlodaQueryClass.prototype = {
    *  onItemsModified, and onItemsRemoved methods, all of which take a single
    *  argument which is the list of items which have been added, modified, or
    *  removed respectively.
+   * 
+   * @param aListener The collection listener.
+   * @param [aData] The data attribute to set on the collection.
+   * @param [aArgs.becomeExplicit] Make the collection explicit so that the
+   *     collection will only ever contain results found from the database
+   *     query and the query will not be updated as new items are indexed that
+   *     also match the query.
+   * @param [aArgs.becomeNull] Change the collection's query to a null query so
+   *     that it will never receive any additional added/modified/removed events
+   *     apart from the underlying database query.  This is really only intended
+   *     for gloda internal use but may be acceptable for non-gloda use.  Please
+   *     ask on mozilla.dev.apps.thunderbird first to make sure there isn't a
+   *     better solution for your use-case.  (Note: removals will still happen
+   *     when things get fully deleted.)
    */
-  getCollection: function gloda_query_getCollection(aListener, aData) {
+  getCollection: function gloda_query_getCollection(aListener, aData, aArgs) {
     this.completed = false;
-    return this._nounDef.datastore.queryFromQuery(this, aListener, aData);
+    return this._nounDef.datastore.queryFromQuery(this, aListener, aData,
+             /* aExistingCollection */ null, /* aMasterCollection */ null,
+             aArgs);
   },
 
   /**

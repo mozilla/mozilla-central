@@ -14,7 +14,11 @@ var GenericIndexer = {
     this.enabled = false;
   },
   get workers() {
-    return [["generic-new", this._worker_index_generic_new]];
+    return [
+      ["generic-new", {
+         worker: this._worker_index_generic_new,
+       }]
+    ];
   },
   initialSweep: function() {
   },
@@ -25,7 +29,8 @@ var GenericIndexer = {
     indexingInProgress = true;
     this._log.debug("enqueuing " + aObjects.length +
       " new generic objects with id: " + aObjects[0].NOUN_ID);
-    GlodaIndexer.indexJob(new IndexingJob("generic-new", 0, null, aObjects.concat()));
+    GlodaIndexer.indexJob(new IndexingJob("generic-new", null,
+                                          aObjects.concat()));
   },
   /* implementation */
   _worker_index_generic_new: function(aJob, aCallbackHandle) {
@@ -49,7 +54,7 @@ function genericIndexerCallback(aStatus) {
   // notification, so ignore it
   if (indexingInProgress && aStatus == Gloda.kIndexerIdle) {
     indexingInProgress = false;
-    next_test();
+    async_driver();
   }
 }
 Gloda.addIndexerListener(genericIndexerCallback);

@@ -238,8 +238,15 @@ let SearchSupport =
     {
       // This stuff we always need to do
       notificationService.addListener(this._msgFolderListener,
-                                      notificationService.all &
-                                      ~notificationService.folderAdded);
+        notificationService.msgAdded |
+        notificationService.msgsDeleted |
+        notificationService.msgsMoveCopyCompleted |
+        // this code pre-dates msgsClassified
+        // folderAdded intentionally omitted
+        notificationService.folderDeleted |
+        notificationService.folderMoveCopyCompleted |
+        notificationService.folderRenamed);
+        // itemEvent intentionally omitted
       let observerService = Cc["@mozilla.org/observer-service;1"]
                               .getService(Ci.nsIObserverService);
       observerService.addObserver(this, "MsgMsgDisplayed", false);
@@ -251,10 +258,13 @@ let SearchSupport =
       // We want to observe moves, deletes and renames in case we're disabled
       // If we don't, we'll have no idea the support files exist later
       notificationService.addListener(this._msgFolderListener,
-                                      notificationService.msgsMoveCopyCompleted |
-                                      notificationService.msgsDeleted |
-                                      (notificationService.allFolderNotifications &
-                                       ~notificationService.folderAdded));
+        notificationService.msgsMoveCopyCompleted |
+        notificationService.msgsDeleted |
+        // folderAdded intentionally omitted
+        notificationService.folderDeleted |
+        notificationService.folderMoveCopyCompleted |
+        notificationService.folderRenamed);
+
     this._enabled = aEnable;
   },
   get enabled()

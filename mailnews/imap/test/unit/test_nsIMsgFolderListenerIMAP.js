@@ -63,7 +63,8 @@ function copyFileMessage(file, messageId, destFolder)
   // copyListener.mMessageId = messageId;
 
   // Instead store the message id in gExpectedEvents, so we can match that up
-  gExpectedEvents = [[gMFNService.msgAdded, {expectedMessageId: messageId}]];
+  gExpectedEvents = [[gMFNService.msgAdded, {expectedMessageId: messageId}],
+                     [gMFNService.msgsClassified, [messageId], false, false]];
   destFolder.updateFolder(null);
   gCopyService.CopyFileMessage(file, destFolder, null, true, 0, "", copyListener, null);
   gCurrStatus |= kStatus.functionCallDone;
@@ -103,6 +104,9 @@ function addMessagesToServer(messages, mailbox, localFolder)
     // We can't get the headers again, so just pass on the message id
     gExpectedEvents.push([gMFNService.msgAdded, {expectedMessageId: message.messageId}]);
   });
+  gExpectedEvents.push([gMFNService.msgsClassified,
+                        [hdr.messageId for each (hdr in messages)],
+                        false, false]);
 
   // Create the imapMessages and store them on the mailbox
   messages.forEach(function (message)
@@ -131,8 +135,12 @@ function copyMessages(messages, isMove, srcFolder, destFolder)
   {
     // We can't use the headers directly, because the notifications we'll
     // receive are for message headers in the destination folder
-    gExpectedEvents.push([gMFNService.msgAdded, {expectedMessageId: message.messageId}]);
+    gExpectedEvents.push([gMFNService.msgAdded,
+                          {expectedMessageId: message.messageId}]);
   });
+  gExpectedEvents.push([gMFNService.msgsClassified,
+                        [hdr.messageId for each (hdr in messages)],
+                        false, false]);
   gCopyService.CopyMessages(srcFolder, array, destFolder, isMove, copyListener, null, true);
   gCurrStatus |= kStatus.functionCallDone;
 
@@ -187,7 +195,7 @@ function run_test()
   gTest = 0;
 
   // Add a listener.
-  gMFNService.addListener(gMFListener, gMFNService.all);
+  gMFNService.addListener(gMFListener, allTestedEvents);
   gIMAPDaemon = new imapDaemon();
   gServer = makeServer(gIMAPDaemon, "");
 
@@ -231,7 +239,7 @@ function run_test()
   // We get these notifications on initial discovery
   gRootFolder = gIMAPIncomingServer.rootFolder;
   gIMAPInbox = gRootFolder.getChildNamed("Inbox");
-  gExpectedEvents = [[gMFNService.folderAdded, gRootFolder, "Trash", 
+  gExpectedEvents = [[gMFNService.folderAdded, gRootFolder, "Trash",
                      "gIMAPTrashFolder"]];
   gCurrStatus |= kStatus.onStopCopyDone | kStatus.functionCallDone;
 

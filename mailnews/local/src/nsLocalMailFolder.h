@@ -67,7 +67,10 @@ struct nsLocalMailCopyState
   
   nsCOMPtr <nsIOutputStream> m_fileStream;
   nsCOMPtr<nsISupports> m_srcSupport;
+  /// Source nsIMsgDBHdr instances.
   nsCOMPtr<nsIArray> m_messages;
+  /// Destination nsIMsgDBHdr instances.
+  nsCOMPtr<nsIMutableArray> m_destMessages;
   nsRefPtr<nsLocalMoveCopyMsgTxn> m_undoMsgTxn;
   nsCOMPtr<nsIMsgDBHdr> m_message; // current copy message
   nsMsgMessageFlagType m_flags; // current copy message flags
@@ -84,6 +87,7 @@ struct nsLocalMailCopyState
   nsMsgKey m_curDstKey;
   PRUint32 m_curCopyIndex;
   nsCOMPtr <nsIMsgMessageService> m_messageService;
+  /// The number of messages in m_messages.
   PRUint32 m_totalMsgCount;
   char *m_dataBuffer;
   PRUint32 m_dataBufferSize;

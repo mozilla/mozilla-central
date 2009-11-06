@@ -12,6 +12,7 @@
  * messages option. 
  */
 
+load("../../mailnews/resources/logHelper.js");
 load("../../mailnews/resources/asyncTestUtils.js");
 
 var test = "sendMessageLater";

@@ -158,6 +158,35 @@ var GlodaUtils = {
     return data;
   },
 
+
+  _FORCE_GC_AFTER_NUM_HEADERS: 4096,
+  _headersSeen: 0,
+  /**
+   * As |forceGarbageCollection| says, once XPConnect sees a header, it likes
+   *  to hold onto that reference.  This method is used to track the number of
+   *  headers we have seen and force a GC when we have to.
+   *
+   * Ideally the indexer's idle-biased GC mechanism would take care of all the
+   *  GC; we are just a failsafe to make sure that our memory usage is bounded
+   *  based on the number of headers we have seen rather than just time.
+   *  Since holding onto headers can keep databases around too, this also
+   *  helps avoid keeping file handles open, etc.
+   *
+   * |forceGarbageCollection| will zero our tracking variable when a GC happens
+   *  so we are informed by the indexer's GC triggering.
+   *
+   * And of course, we don't want to trigger collections willy nilly because
+   *  they have a cost even if there is no garbage.
+   *
+   * @param aNumHeadersSeen The number of headers code has seen.  A granularity
+   *     of hundreds of messages should be fine.
+   */
+  considerHeaderBasedGC: function(aNumHeadersSeen) {
+    this._headersSeen += aNumHeadersSeen;
+    if (this._headersSeen >= this._FORCE_GC_AFTER_NUM_HEADERS)
+      this.forceGarbageCollection();
+  },
+
   /**
    * Force a garbage-collection sweep.  Gloda has to force garbage collection
    *  periodically because XPConnect's XPCJSRuntime::DeferredRelease mechanism
@@ -178,7 +207,8 @@ var GlodaUtils = {
    *     nsIDOMWindowUtils.garbageCollect() to do so.
    */
   forceGarbageCollection:
-    function gloda_utils_garbageCollection(aCycleCollecting) {
+      function gloda_utils_garbageCollection(aCycleCollecting) {
     Cu.forceGC();
+    this._headersSeen = 0;
   }
 };

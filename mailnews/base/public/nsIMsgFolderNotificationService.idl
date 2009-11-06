@@ -45,7 +45,7 @@ interface nsIArray;
 
 typedef unsigned long msgFolderListenerFlag;
 
-[scriptable, uuid(e5d75176-a3d7-4f80-a1fe-b915a679ca53)]
+[scriptable, uuid(45420c55-b460-4a61-bd67-7f763a69a46e)]
 interface nsIMsgFolderNotificationService : nsISupports {
   /**
    * @name Notification flags
@@ -61,8 +61,8 @@ interface nsIMsgFolderNotificationService : nsISupports {
   /// nsIMsgFolderListener::msgsMoveCopyCompleted notification
   const msgFolderListenerFlag msgsMoveCopyCompleted = 0x4;
 
-  /// All message notifications
-  const msgFolderListenerFlag allMsgNotifications = 0x7;
+  /// nsIMsgFolderListener::msgsClassified notification
+  const msgFolderListenerFlag msgsClassified = 0x8;
 
   /// nsIMsgFolderListener::folderAdded notification
   const msgFolderListenerFlag folderAdded = 0x8000;
@@ -76,27 +76,26 @@ interface nsIMsgFolderNotificationService : nsISupports {
   /// nsIMsgFolderListener::folderRenamed notification
   const msgFolderListenerFlag folderRenamed = 0x4000;
 
-  /// All folder notifications
-  const msgFolderListenerFlag allFolderNotifications = 0xF000;
-
   /// nsIMsgFolderListener::itemEvent notification
   const msgFolderListenerFlag itemEvent = 0x1000000;
-
-  /// All notifications
-  const msgFolderListenerFlag all = 0xFFFFFFFF;
   /** @} */
 
   readonly attribute boolean hasListeners;
-  void addListener(in nsIMsgFolderListener aListener, in msgFolderListenerFlag flags);
+  void addListener(in nsIMsgFolderListener aListener,
+                   in msgFolderListenerFlag flags);
   void removeListener(in nsIMsgFolderListener aListener);
 
   // message-specific functions
   // single message for added, array for delete/move/copy
   void notifyMsgAdded(in nsIMsgDBHdr aMsg);
+  void notifyMsgsClassified(in nsIArray aMsgs,
+                            in boolean aJunkProcessed,
+                            in boolean aTraitProcessed);
   void notifyMsgsDeleted(in nsIArray aMsgs);
   void notifyMsgsMoveCopyCompleted(in boolean aMove, 
                                    in nsIArray aSrcMsgs, 
-                                   in nsIMsgFolder aDestFolder);
+                                   in nsIMsgFolder aDestFolder,
+                                   in nsIArray aDestMsgs);
 
   // folder specific functions
   // single folders, all the time
@@ -105,8 +104,11 @@ interface nsIMsgFolderNotificationService : nsISupports {
   void notifyFolderMoveCopyCompleted(in boolean aMove,
                                      in nsIMsgFolder aSrcFolder,
                                      in nsIMsgFolder aDestFolder);
-  void notifyFolderRenamed(in nsIMsgFolder aOrigFolder, in nsIMsgFolder aNewFolder);
+  void notifyFolderRenamed(in nsIMsgFolder aOrigFolder,
+                           in nsIMsgFolder aNewFolder);
 
   // extensibility hook
-  void notifyItemEvent(in nsISupports aItem, in ACString aEvent, in nsISupports aData);
+  void notifyItemEvent(in nsISupports aItem,
+                       in ACString aEvent,
+                       in nsISupports aData);
 };

@@ -55,6 +55,7 @@ var TagNoun = {
   idAttr: "key",
   _msgTagService: null,
   _tagMap: null,
+  _tagList: null,
 
   _init: function () {
     this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
@@ -63,12 +64,14 @@ var TagNoun = {
   },
 
   getAllTags: function gloda_noun_tag_getAllTags() {
-    return this._msgTagService.getAllTags({});
+    if (this._tagList == null)
+      this._updateTagMap();
+    return this._tagList;
   },
 
   _updateTagMap: function gloda_noun_tag_updateTagMap() {
     this._tagMap = {};
-    let tagArray = this._msgTagService.getAllTags({});
+    let tagArray = this._tagList = this._msgTagService.getAllTags({});
     for (let iTag = 0; iTag < tagArray.length; iTag++) {
       let tag = tagArray[iTag];
       this._tagMap[tag.key] = tag;
@@ -111,6 +114,12 @@ var TagNoun = {
     // we intentionally are returning undefined if the tag doesn't exist
     return tag;
   },
+  /**
+   * Convenience helper to turn a tag key into a tag name.
+   */
+  getTag: function gloda_noun_tag_getTag(aTagKey) {
+    return this.fromJSON(aTagKey);
+  }
 };
 
 TagNoun._init();

@@ -24,6 +24,18 @@ const nsIMsgFolder = Ci.nsIMsgFolder;
 
 const gMFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
                       .getService(Ci.nsIMsgFolderNotificationService);
+
+const allTestedEvents =
+  gMFNService.msgAdded |
+  gMFNService.msgsClassified |
+  gMFNService.msgsDeleted |
+  gMFNService.msgsMoveCopyCompleted |
+  gMFNService.folderAdded |
+  gMFNService.folderDeleted |
+  gMFNService.folderMoveCopyCompleted |
+  gMFNService.folderRenamed |
+  gMFNService.itemEvent;
+
 const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
 
@@ -64,6 +76,28 @@ var gMFListener =
       if (gCurrStatus == kStatus.everythingDone)
         resetStatusAndProceed();
     }
+    else if (gExpectedEvents[0][0] == gMFNService.msgsClassified)
+    {
+      // XXX this is a hack to deal with limitations of the classification logic
+      //  and the new list.  We want to issue a call to clear the list once all
+      //  the messages have been added, which would be when the next expected
+      //  event is msgsClassified.  (The limitation is that if we don't do this,
+      //  we can end up getting told about this message again later.)
+      aMsg.folder.clearNewMessages();
+    }
+  },
+
+  msgsClassified: function(aMsgs, aJunkProcessed, aTraitProcessed)
+  {
+    dump("classified id: " + aMsgs.queryElementAt(0, Ci.nsIMsgDBHdr).messageId + "\n");
+    verify([gMFNService.msgsClassified, aMsgs, aJunkProcessed,
+              aTraitProcessed]);
+    if (gExpectedEvents.length == 0)
+    {
+      gCurrStatus |= kStatus.notificationsDone;
+      if (gCurrStatus == kStatus.everythingDone)
+        resetStatusAndProceed();
+    }
   },
 
   msgsDeleted: function(aMsgs)
@@ -77,9 +111,10 @@ var gMFListener =
     }
   },
 
-  msgsMoveCopyCompleted: function(aMove, aSrcMsgs, aDestFolder)
+  msgsMoveCopyCompleted: function(aMove, aSrcMsgs, aDestFolder, aDestMsgs)
   {
-    verify([gMFNService.msgsMoveCopyCompleted, aMove, aSrcMsgs, aDestFolder]);
+    verify([gMFNService.msgsMoveCopyCompleted, aMove, aSrcMsgs, aDestFolder,
+            aDestMsgs]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -124,6 +159,19 @@ var gMFListener =
   folderRenamed: function(aOrigFolder, aNewFolder)
   {
     verify([gMFNService.folderRenamed, aOrigFolder, aNewFolder]);
+    if (gExpectedEvents.length == 0)
+    {
+      gCurrStatus |= kStatus.notificationsDone;
+      if (gCurrStatus == kStatus.everythingDone)
+        resetStatusAndProceed();
+    }
+  },
+
+  itemEvent: function(aFolder, aEvent, aBetterBeNull)
+  {
+    // we currently require the third argument to be null...
+    do_check_eq(aBetterBeNull, null);
+    verify([gMFNService.itemEvent, aFolder, aEvent]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -224,6 +272,8 @@ function verify(event)
   var eventType = expected[0];
   do_check_eq(event[0], eventType);
 
+  dump("..... Verifying event type " + eventType + "\n");
+
   switch (eventType)
   {
   case gMFNService.msgAdded:
@@ -240,6 +290,33 @@ function verify(event)
     // Check: headers match/folder matches.
     hasExactlyElements(expected[1], event[1]);
     break;
+  case gMFNService.msgsClassified:
+    // In the IMAP case expected[1] is a list of mesage-id strings whereas in
+    // the local case (where we are copying from files), we actually have
+    // the headers.
+    if (typeof(expected[1][0]) == "string") { // IMAP; message id strings
+      // The IMAP case has additional complexity in that the 'new message'
+      // list is not tailored to our needs and so may over-report about
+      // new messagse.  So to deal with this we make sure the msgsClassified
+      // event is telling us about at least the N expected events and that
+      // the last N of these events match
+      if (event[1].length < expected[1].length)
+        do_throw("Not enough reported classified messages.");
+      let ignoreCount = event[1].length - expected[1].length;
+      for (let i = 0; i < expected[1].length; i++) {
+        let eventHeader = event[1].queryElementAt(i + ignoreCount,
+                                                  nsIMsgDBHdr);
+        do_check_eq(expected[1][i], eventHeader.messageId);
+      }
+    }
+    else { // actual headers
+      hasExactlyElements(expected[1], event[1]);
+    }
+    // aJunkProcessed: was the message processed for junk?
+    do_check_eq(expected[2], event[2]);
+    // aTraitProcessed: was the message processed for traits?
+    do_check_eq(expected[3], event[3]);
+    break;
   case gMFNService.msgsMoveCopyCompleted:
   case gMFNService.folderMoveCopyCompleted:
     // Check: Move or copy as expected.
@@ -250,6 +327,28 @@ function verify(event)
 
     // Check: destination folder matches.
     do_check_eq(expected[3], event[3]);
+
+    if (eventType == gMFNService.folderMoveCopyCompleted)
+      break;
+
+    // Check: destination headers.  We only expect these in the local folder
+    //  case, and in that case, we will not have heard about the headers ahead
+    //  of time, so the best we can do is make sure they match up.  To this end,
+    //  if null is expected then we check for null.  If true is expected, then
+    //  we check that the message-id header values match up.
+    if (expected[4] == null)
+    {
+      do_check_eq(null, event[4]);
+    }
+    else
+    {
+      for (let iMsg = 0; iMsg < event[2].length; iMsg++)
+      {
+        let srcHdr = event[2].queryElementAt(iMsg, nsIMsgDBHdr);
+        let destHdr = event[4].queryElementAt(iMsg, nsIMsgDBHdr);
+        do_check_eq(srcHdr.messageId, destHdr.messageId);
+      }
+    }
     break;
   case gMFNService.folderAdded:
     // Check: parent folder matches
@@ -269,6 +368,12 @@ function verify(event)
 
     // Check: destination folder name matches
     do_check_eq(expected[2], event[2].prettiestName);
+    break;
+  case gMFNService.itemEvent:
+    // the event string should match
+    do_check_eq(expected[2], event[2]);
+    // and so should the folder we are talking about
+    do_check_eq(expected[1], event[1]);
     break;
   }
 }

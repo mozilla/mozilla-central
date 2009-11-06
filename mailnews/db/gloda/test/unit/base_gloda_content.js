@@ -1,15 +1,53 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Thunderbird Global Database.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *   David Ascher <dascher@mozillamessaging.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
 /*
  * Tests the operation of the GlodaContent (in connotent.js) and its exposure
  * via Gloda.getMessageContent.  This may also be implicitly tested by indexing
  * and fulltext query tests (on messages), but the buck stops here for the
  * content stuff.
  *
- * Currently, we just test that quoting removal and that the content turns out
- * right.  We do not actually verify that the quoted blocks are correct.  (We
- * have no known consumers who care about the quoted blocks.)
+ * Currently, we just test quoting removal and that the content turns out right.
+ * We do not actually verify that the quoted blocks are correct (aka we might
+ * screw up eating the greater-than signs).  (We have no known consumers who
+ * care about the quoted blocks.)
  */
 
-load("../../mailnews/resources/messageGenerator.js");
 load("resources/glodaTestHelper.js");
 
 Components.utils.import("resource://app/modules/gloda/mimemsg.js");
@@ -17,8 +55,6 @@ Components.utils.import("resource://app/modules/gloda/mimemsg.js");
 // we need to be able to get at GlodaFundAttr to check the number of whittler
 //   invocations
 Components.utils.import("resource://app/modules/gloda/fundattr.js");
-
-var msgGen = new MessageGenerator();
 
 /* ===== Data ===== */
 var messageInfos = [
@@ -97,17 +133,6 @@ var messageInfos = [
 
 /* ===== Tests ===== */
 
-/**
- * Hooks for pre/post setup message, used for the IMAP tests.
- */
-var pre_inject_message_hook = function default_pre_inject_message_hook() {
-  next_test();
-};
-
-var post_inject_message_hook = function default_post_inject_message_hook() {
-  next_test();
-};
-
 function setup_create_message(info) {
   info.body = {body: [tupe[1] for each
                       ([, tupe] in Iterator(info.bode))].join("\r\n")};
@@ -116,7 +141,6 @@ function setup_create_message(info) {
                    (tupe[0])].join("\n");
 
   info._synMsg = msgGen.makeMessage(info);
-  next_test();
 }
 
 /**
@@ -136,12 +160,12 @@ function glodaInfoStasher(aSynthMessage, aGlodaMessage) {
 /**
  * Actually inject all the messages we created above.
  */
-var gSynMessages;
-
 function setup_inject_messages() {
-  gSynMessages = [info._synMsg for each
-                  ([, info] in Iterator(messageInfos))];
-  indexMessages(gSynMessages, glodaInfoStasher, next_test);
+  let msgSet = new SyntheticMessageSet(
+                 [info._synMsg for each ([, info] in Iterator(messageInfos))]);
+  let folder = make_empty_folder();
+  yield add_sets_to_folders(folder, [msgSet]);
+  yield wait_for_gloda_indexer(msgSet, {verifier: glodaInfoStasher});
 }
 
 function test_stream_message(info) {
@@ -171,23 +195,12 @@ function verify_message_content(aInfo, aSynMsg, aGlodaMsg, aMsgHdr, aMimeMsg) {
     do_throw("Whittle count is " + whittleCount + " but should be 1!");
 
   do_check_eq(content.getContentString(), aInfo.expected);
-
-  next_test();
 }
 
 /* ===== Driver ===== */
 
 var tests = [
   parameterizeTest(setup_create_message, messageInfos),
-  function pre_inject_message() { pre_inject_message_hook(); },
   setup_inject_messages,
-  function post_inject_message() { post_inject_message_hook(); },
- // disable_index_notifications,
   parameterizeTest(test_stream_message, messageInfos),
 ];
-
-function run_test() {
-  glodaHelperRunTests(tests);
-}
-
-injectMessagesUsing(INJECT_MBOX);

@@ -36,9 +36,43 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/*
+ * This file provides gloda testing infrastructure.
+ *
+ * A few words about how tests should expect to interact with indexing:
+ *
+ * By default, we enable only event-driven indexing with an infinite work queue
+ *  length.  This means that all messages will be queued for indexing as they
+ *  are added or modified.  You should yield to |wait_for_gloda_indexer| to wait
+ *  until the indexer completes.  If you want to assert that certain messages
+ *  will have been indexed during that pass, you can pass them as arguments to
+ *  the function.
+ * There is no need to tell us to expect the messages to be indexed prior to the
+ *  waiting as long as nothing spins the event loop after you perform the action
+ *  that triggers indexing.  None of our existing xpcshell tests do this, but it
+ *  is part of the mozmill idiom for its waiting mechanism, so be sure to not
+ *  perform a mozmill wait without first telling us to expect the messages.
+ */
+
 // Import the main scripts that mailnews tests need to set up and tear down
 load("../../mailnews/resources/mailDirService.js");
 load("../../mailnews/resources/mailTestUtils.js");
+load("../../mailnews/resources/logHelper.js");
+load("../../mailnews/resources/asyncTestUtils.js");
+
+load("../../mailnews/resources/messageGenerator.js");
+load("../../mailnews/resources/messageModifier.js");
+load("../../mailnews/resources/messageInjection.js");
+
+load("resources/folderEventLogHelper.js");
+// register this before gloda gets a chance to do anything so that
+registerFolderEventLogHelper();
+
+
+// Create a message generator
+const msgGen = gMessageGenerator = new MessageGenerator();
+// Create a message scenario generator using that message generator
+const scenarios = gMessageScenarioFactory = new MessageScenarioFactory(msgGen);
 
 Components.utils.import("resource://app/modules/errUtils.js");
 
@@ -72,8 +106,12 @@ gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
 // -- Import our modules
 Components.utils.import("resource://app/modules/gloda/public.js");
 Components.utils.import("resource://app/modules/gloda/indexer.js");
+Components.utils.import("resource://app/modules/gloda/index_msg.js");
 Components.utils.import("resource://app/modules/gloda/datastore.js");
 Components.utils.import("resource://app/modules/gloda/collection.js");
+Components.utils.import("resource://app/modules/gloda/datamodel.js");
+Components.utils.import("resource://app/modules/gloda/noun_tag.js");
+Components.utils.import("resource://app/modules/gloda/mimemsg.js");
 
 // -- Add a logger listener that throws when we give it a warning/error.
 Components.utils.import("resource://app/modules/gloda/log4moz.js");
@@ -83,157 +121,17 @@ Log4Moz.repository.rootLogger.addAppender(throwingAppender);
 
 var LOG = Log4Moz.repository.getLogger("gloda.test");
 
-/**
- * davida's patented dump function for what ails you.
- */
-function ddumpObject(obj, name, maxDepth, curDepth)
-{
-  if (curDepth == undefined)
-    curDepth = 0;
-  if (maxDepth != undefined && curDepth > maxDepth)
-    return;
+// index_msg does not export this, so we need to provide it.
+const GLODA_BAD_MESSAGE_ID = 1;
 
-  var i = 0;
-  for (prop in obj)
-  {
-    i++;
-    try {
-      if (typeof(obj[prop]) == "object")
-      {
-        if (obj[prop] && obj[prop].length != undefined)
-          ddump(name + "." + prop + "=[probably array, length "
-                + obj[prop].length + "]");
-        else
-          ddump(name + "." + prop + "=[" + typeof(obj[prop]) + "] (" +
-                obj[prop] + ")");
-        ddumpObject(obj[prop], name + "." + prop, maxDepth, curDepth+1);
-      }
-      else if (typeof(obj[prop]) == "function")
-        ddump(name + "." + prop + "=[function]");
-      else
-        ddump(name + "." + prop + "=" + obj[prop]);
-    } catch (e) {
-      ddump(name + "." + prop + "-> Exception(" + e + ")");
-    }
-  }
-  if (!i)
-    ddump(name + " is empty");
-}
-/** its kid brother */
-function ddump(text)
-{
-    dump(text + "\n");
-}
+function _prepareIndexerForTesting() {
+  if (!GlodaIndexer.enabled)
+    do_throw("The gloda indexer is somehow not enabled.  This is problematic.");
 
-function dumpExc(e, message) {
-  var objDump = getObjectTree(e,1);
-  if (typeof(e) == 'object' && 'stack' in e)
-      objDump += e.stack;
-  if (typeof(message)=='undefined' || !message)
-      message='';
-  dump(message+'\n-- EXCEPTION START --\n'+objDump+'-- EXCEPTION END --\n');
-}
+  // Make the indexer be more verbose about indexing for us...
+  GlodaIndexer._unitTestSuperVerbose = true;
+  GlodaMsgIndexer._unitTestSuperVerbose = true;
 
-function getObjectTree(o, recurse, compress, level)
-{
-    var s = "";
-    var pfx = "";
-
-    if (typeof recurse == "undefined")
-        recurse = 0;
-    if (typeof level == "undefined")
-        level = 0;
-    if (typeof compress == "undefined")
-        compress = true;
-
-    for (var i = 0; i < level; i++)
-        pfx += (compress) ? "| " : "|  ";
-
-    var tee = (compress) ? "+ " : "+- ";
-
-    if (typeof(o) != 'object') {
-        s += pfx + tee + i + " (" + typeof(o) + ") " + o + "\n";
-    } else
-    for (i in o)
-    {
-        var t;
-        try
-        {
-            t = typeof o[i];
-
-            switch (t)
-            {
-                case "function":
-                    var sfunc = String(o[i]).split("\n");
-                    if (sfunc[2] == "    [native code]")
-                        sfunc = "[native code]";
-                    else
-                        sfunc = sfunc.length + " lines";
-                    s += pfx + tee + i + " (function) " + sfunc + "\n";
-                    break;
-
-                case "object":
-                    s += pfx + tee + i + " (object) " + o[i] + "\n";
-                    if (!compress)
-                        s += pfx + "|\n";
-                    if ((i != "parent") && (recurse))
-                        s += getObjectTree(o[i], recurse - 1,
-                                             compress, level + 1);
-                    break;
-
-                case "string":
-                    if (o[i].length > 200)
-                        s += pfx + tee + i + " (" + t + ") " +
-                            o[i].length + " chars\n";
-                    else
-                        s += pfx + tee + i + " (" + t + ") '" + o[i] + "'\n";
-                    break;
-
-                default:
-                    s += pfx + tee + i + " (" + t + ") " + o[i] + "\n";
-            }
-        }
-        catch (ex)
-        {
-            s += pfx + tee + i + " (exception) " + ex + "\n";
-        }
-
-        if (!compress)
-            s += pfx + "|\n";
-
-    }
-
-    s += pfx + "*\n";
-
-    return s;
-}
-
-
-/**
- * Inject messages using a POP3 fake-server.
- *
- * @deprecated because the fake-server sometimes does something crazy and we
- *     never really needed it anyways.  I just didn't know about the local
- *     folder addMessage method.  (so sad!)
- */
-const INJECT_FAKE_SERVER = 1;
-/** Inject messages using freshly created mboxes. */
-const INJECT_MBOX = 2;
-/** Inject messages using addMessage. */
-const INJECT_ADDMESSAGE = 3;
-/** Inject messages using the IMAP fakeserver. */
-const INJECT_IMAP_FAKE_SERVER = 4;
-
-/**
- * Convert a list of synthetic messages to a form appropriate to feed to the
- *  POP3 fakeserver.
- */
-function _synthMessagesToFakeRep(aSynthMessages) {
-  return [{fileData: msg.toMessageString(), size: -1} for each
-          (msg in aSynthMessages)];
-}
-
-function prepareIndexerForTesting() {
   // -- Lobotomize the adaptive indexer
   // The indexer doesn't need to worry about load; zero his rescheduling time.
   GlodaIndexer._INDEX_INTERVAL = 0;
@@ -250,489 +148,383 @@ function prepareIndexerForTesting() {
     }
   };
 
+  // We want the event-driven indexer to always handle indexing and never spill
+  //  to an indexing sweep unless a test intentionally does so.
+  GlodaIndexer._indexMaxEventQueueMessages = 10000;
+
   // Lobotomize the adaptive indexer
   GlodaIndexer._cpuTargetIndexTime = 10000;
   GlodaIndexer._CPU_TARGET_INDEX_TIME_ACTIVE = 10000;
   GlodaIndexer._CPU_TARGET_INDEX_TIME_IDLE = 10000;
   GlodaIndexer._CPU_IS_BUSY_TIME = 10000;
   GlodaIndexer._PAUSE_LATE_IS_BUSY_TIME = 10000;
+
+  GlodaIndexer._unitTestHookRecover = _indexMessageState._testHookRecover;
+  GlodaIndexer._unitTestHookCleanup = _indexMessageState._testHookCleanup;
 }
 
-function imsInit() {
-  dump("Initializing index message state\n");
-  let ims = indexMessageState;
-
-  if (!ims.inited) {
-    // Disable new mail notifications
-    var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-      .getService(Components.interfaces.nsIPrefBranch);
-
-    prefSvc.setBoolPref("mail.biff.play_sound", false);
-    prefSvc.setBoolPref("mail.biff.show_alert", false);
-    prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
-    prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
-
-    // -- Get indexing events
-    Gloda.addIndexerListener(messageIndexerListener.onIndexNotification);
-    ims.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
-    ims.catchAllCollection.listener = messageCollectionListener;
-
-    // Make the indexer be more verbose about indexing for us...
-    GlodaIndexer._unitTestSuperVerbose = true;
-
-    prepareIndexerForTesting();
-
-    if (ims.injectMechanism == INJECT_FAKE_SERVER) {
-      // -- Pull in the POP3 fake-server / local account helper code
-      load("../../test_mailnewslocal/unit/head_maillocal.js");
-      // set up POP3 fakeserver to feed things in...
-      [ims.daemon, ims.server] = setupServerDaemon();
-      // (this will call loadLocalMailAccount())
-      ims.incomingServer = createPop3ServerAndLocalFolders();
-
-      ims.pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
-                          .getService(Ci.nsIPop3Service);
-    }
-    else if (ims.injectMechanism == INJECT_MBOX) {
-      // we need a local account to stash the mboxes under.
-      loadLocalMailAccount();
-    }
-    else if (ims.injectMechanism == INJECT_ADDMESSAGE) {
-      // we need an inbox
-      loadLocalMailAccount();
-    }
-    else if (ims.injectMechanism == INJECT_IMAP_FAKE_SERVER) {
-      // Pull in the IMAP fake server code
-      load("../../test_imap/unit/head_server.js");
-
-      // set up IMAP fakeserver and incoming server
-      ims.daemon = new imapDaemon();
-      ims.server = makeServer(ims.daemon, "");
-      ims.incomingServer = createLocalIMAPServer();
-      // we need a local account for the IMAP server to have its sent messages in
-      loadLocalMailAccount();
-
-      // We need an identity so that updateFolder doesn't fail
-      let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                      .getService(Ci.nsIMsgAccountManager);
-      let localAccount = acctMgr.createAccount();
-      let identity = acctMgr.createIdentity();
-      localAccount.addIdentity(identity);
-      localAccount.defaultIdentity = identity;
-      localAccount.incomingServer = gLocalIncomingServer;
-      acctMgr.defaultAccount = localAccount;
-
-      // Let's also have another account, using the same identity
-      let imapAccount = acctMgr.createAccount();
-      imapAccount.addIdentity(identity);
-      imapAccount.defaultIdentity = identity;
-      imapAccount.incomingServer = ims.incomingServer;
-
-      // The server doesn't support more than one connection
-      prefSvc.setIntPref("mail.server.server1.max_cached_connections", 1);
-      // We aren't interested in downloading messages automatically
-      prefSvc.setBoolPref("mail.server.server1.download_on_biff", false);
-
-      // Set the inbox to not be offline
-      ims.imapInbox = ims.incomingServer.rootFolder.getChildNamed("Inbox");
-      ims.imapInbox.flags &= ~Ci.nsMsgFolderFlags.Offline;
-    }
-
-    ims.inited = true;
-  }
-}
-
-/**
- * Have gloda index the given synthetic messages, calling the verifier function
- *  (with accumulator field) once the message has been succesfully indexed.
- *
- * We use two mechanisms to do this.  One: we create an open-ended message
- *  collection that gets notified whenever a new message hits the scene.  Two:
- *  we register as a notification listener so that we might know when indexing
- *  has completed.
- *
- * @param aSynthMessages The synthetic messages to introduce to a folder,
- *     resulting in gloda indexing them.
- * @param aVerifier The function to call to verify that the indexing had the
- *     desired result.  Takes arguments aSynthMessage (the synthetic message
- *     just indexed), aGlodaMessage (the gloda message representation of the
- *     indexed message), and aPreviousResult (the value last returned by the
- *     verifier function for this given set of messages, or undefined if it is
- *     the first message.)
- * @param aOnDone The function to call when we complete processing this set of
- *     messages.
- */
-function indexMessages(aSynthMessages, aVerifier, aOnDone) {
-  let ims = indexMessageState;
-  ims.expectMessages(aSynthMessages, aVerifier, aOnDone);
-
-  if (ims.injectMechanism == INJECT_FAKE_SERVER) {
-    ims.daemon.setMessages(_synthMessagesToFakeRep(aSynthMessages));
-    do_timeout(0, "drivePOP3FakeServer();");
-  }
-  else if (ims.injectMechanism == INJECT_MBOX) {
-    ims.mboxName = "injecty" + ims.nextMboxNumber++;
-    writeMessagesToMbox(aSynthMessages, gProfileDir,
-                        "Mail", "Local Folders", ims.mboxName);
-
-    let rootFolder = gLocalIncomingServer.rootMsgFolder;
-    let subFolder = rootFolder.addSubfolder(ims.mboxName);
-    // we need to explicitly kick off indexing...
-    updateFolderAndNotify(subFolder, function() {
-      // this flag gets lost for reasons I am not entirely clear on, but gloda
-      //  really wants it to be there.
-      subFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
-      GlodaIndexer.indexFolder(subFolder);
-    });
-  }
-  else if (ims.injectMechanism == INJECT_ADDMESSAGE) {
-    let localFolder = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
-    for (let [, msg] in Iterator(aSynthMessages)) {
-      localFolder.addMessage(msg.toMboxString());
-    }
-  }
-  else if (ims.injectMechanism == INJECT_IMAP_FAKE_SERVER) {
-    let ioService = Cc["@mozilla.org/network/io-service;1"]
-                      .getService(Ci.nsIIOService);
-    let serverInbox = ims.daemon.getMailbox("INBOX");
-
-    for (let [, msg] in Iterator(aSynthMessages)) {
-      // Generate a URI out of the message
-      let URI = ioService.newURI("data:text/plain;base64," + btoa(msg.toMessageString()), null, null);
-      // Add it to the server
-      serverInbox.addMessage(new imapMessage(URI.spec, serverInbox.uidnext++, []));
-    }
-    // Time to do stuff with the fakeserver
-    driveIMAPFakeServer();
-  }
-}
-
-function injectMessagesUsing(aInjectMechanism) {
-  indexMessageState.injectMechanism = aInjectMechanism;
-}
-
-var indexMessageState = {
-  /** have we been initialized (hooked listeners, etc.) */
-  inited: false,
-  /** whether we're due for any index notifications */
-  expectingIndexNotifications: false,
-  /** our catch-all message collection that nets us all messages passing by */
-  catchAllCollection: null,
-  /** the set of synthetic messages passed in to indexMessages */
-  inputMessages: null,
-  /** the gloda messages resulting from indexing corresponding to input ones */
-  glodaMessages: null,
-  /** the user-specified accumulate-style verification func */
+const _wait_for_gloda_indexer_defaults = {
   verifier: null,
-  /** the result of the last call to the verification function */
-  previousValue: undefined,
-  /** the function to call once we have indexed all the messages */
-  onDone: null,
+  augment: false,
+  deleted: null,
 
-  injectMechanism: INJECT_ADDMESSAGE,
-
-  /* === Fake Server State === */
-  /** nsMailServer instance (if POP3, with POP3_RFC1939 handler) */
-  server: null,
-  serverStarted: false,
-  /** pop3Daemon/imapDaemon instance */
-  daemon: null,
-  /** incoming pop3/imap server */
-  incomingServer: null,
-  /** pop3 service (not used for imap) */
-  pop3Service: null,
-  /** IMAP inbox */
-  imapInbox: null,
-
-  /* === MBox Injection State === */
-  nextMboxNumber: 0,
-  mboxName: null,
-
-  /**
-   * Sets up messages to expect index notifications for.
-   *
-   * @param aSynthMessages The synthetic messages to expect notifications
-   *     for. We currently don't do anything with these other than count them,
-   *     so pass whatever you want and it will be the 'source message' (1st
-   *     argument) to your verifier function.
-   * @param aVerifier The function to call to verify that the indexing had the
-   *     desired result.  Takes arguments aSynthMessage (the synthetic message
-   *     just indexed), aGlodaMessage (the gloda message representation of the
-   *     indexed message), and aPreviousResult (the value last returned by the
-   *     verifier function for this given set of messages, or undefined if it is
-   *     the first message.)
-   * @param aOnDone The function to call when we complete processing this set of
-   *     messages.
-   */
-  expectMessages: function indexMessageState_expectMessages(aSynthMessages, aVerifier,
-                                                            aOnDone) {
-    dump("^^^ setting up " + aSynthMessages.length + " message(s) to expect\n");
-    this.inputMessages = aSynthMessages;
-    this.expectingIndexNotifications = true;
-    this.glodaMessages = [];
-    this.verifier = aVerifier;
-    this.previousValue = undefined;
-    this.onDone = aOnDone;
-  },
-
-  /**
-   * Listener to handle the completion of the POP3 message retrieval (one way or
-   *  the other.)
-   */
-  urlListener: {
-    OnStartRunningUrl: function (url) {
-    },
-    OnStopRunningUrl: function (url, result) {
-      let ims = indexMessageState;
-      try {
-        // this returns a log of the transaction, but we don't care.  (we
-        //  assume that the POP3 stuff works.)
-        ims.server.playTransaction();
-        // doesn't hurt to break if the POP3 broke though...
-        do_check_eq(result, 0);
-      }
-      catch (e) {
-        // If we have an error, clean up nicely before we throw it.
-        ims.server.stop();
-
-        var thread = gThreadManager.currentThread;
-        while (thread.hasPendingEvents())
-          thread.processNextEvent(true);
-
-        do_throw(e);
-      }
-
-      // we are expecting the gloda indexer to receive some notification as the
-      //  result of the new messages showing up, so we don't actually need to
-      //  do anything here.
-    }
-  }
+  // Things should not be recovering or failing and cleaning up unless the test
+  //  is expecting it.
+  recovered: 0,
+  failedToRecover: 0,
+  cleanedUp: 0,
+  hadNoCleanUp: 0,
 };
 
 /**
- * Perform POP3 mail fetching, seeing it through to completion.
+ * Wait for the gloda indexer to finish indexing.  When it has finished,
+ *  assert that the set of messages indexed is exactly the set passed in.
+ *  If a verification function is provided, use it on a per-message basis
+ *  to make sure the resulting gloda message looks like it should given the
+ *  synthetic message.
+ *
+ * Note that if the indexer is not currently active we assume it has already
+ *  completed; we do not entertain the possibility that it has not yet started.
+ *  Since the indexer is 'active' as soon as it sees an event, this does mean
+ *  that you need to wait to make sure the indexing event has happened before
+ *  calling us.  This is reasonable.
+ *
+ * @param aSynMessageSets A single SyntheticMessageSet or list of
+ *     SyntheticMessageSets containing exactly the messages we should expect to
+ *     see.
+ * @param [aConfig.verifier] The function to call to verify that the indexing
+ *     had the desired result.  Takes arguments aSynthMessage (the synthetic
+ *     message just indexed), aGlodaMessage (the gloda message representation of
+ *     the indexed message), and aPreviousResult (the value last returned by the
+ *     verifier function for this given set of messages, or undefined if it is
+ *     the first message.)
+ * @param [aConfig.augment=false] Should we augment the synthetic message sets
+ *     with references to their corresponding gloda messages?  The messages
+ *     will show up in a 'glodaMessages' list on the syn set.
+ * @param [aConfig.deleted] A single SyntheticMessageSet or list of them
+ *     containing messages that should be recognized as deleted by the gloda
+ *     indexer in this pass.
  */
-function drivePOP3FakeServer() {
-  let ims = indexMessageState;
-dump(">>> enter drivePOP3FakeServer\n");
-  // Handle the server in a try/catch/finally loop so that we always will stop
-  // the server if something fails.
-  try {
-    if (!(ims.serverStarted)) {
-      dump("  starting fake server\n");
-      ims.server.start(POP3_PORT);
-      ims.serverStarted = true;
+function wait_for_gloda_indexer(aSynMessageSets, aConfig) {
+  let ims = _indexMessageState;
+
+  if (aSynMessageSets == null)
+    aSynMessageSets = [];
+  else if (!("length" in aSynMessageSets))
+    aSynMessageSets = [aSynMessageSets];
+
+  ims.synMessageSets = aSynMessageSets;
+
+  function get_val(aKey) {
+    if (aConfig && (aKey in aConfig))
+      return aConfig[aKey];
+    else
+      return _wait_for_gloda_indexer_defaults[aKey];
+  }
+
+  ims.verifier = get_val("verifier");
+  ims.augmentSynSets = get_val("augment");
+  ims.deletionSynSets = get_val("deleted");
+  if (ims.deletionSynSets && !("length" in ims.deletionSynSets))
+    ims.deletionSynSets = [ims.deletionSynSets];
+
+  ims.expectedWorkerRecoveredCount = get_val("recovered");
+  ims.expectedFailedToRecoverCount = get_val("failedToRecover");
+  ims.expectedCleanedUpCount = get_val("cleanedUp");
+  ims.expectedHadNoCleanUpCount = get_val("hadNoCleanUp");
+
+  // if we are still indexing, there is nothing to do right now, save off
+  //  and rely on the indexing completion state change to trigger things.
+  if (GlodaIndexer.indexing) {
+    ims.waiting = true;
+    mark_action("glodaTestHelper", "waiting for indexer asynchronously", []);
+    return false;
+  }
+
+  mark_action("glodaTestHelper", "indexing believed already completed", []);
+  ims.assertExpectedMessagesIndexed();
+  return true;
+}
+
+var _indexMessageState = {
+  /** have we been initialized (hooked listeners, etc.) */
+  _inited: false,
+
+  _init: function _indexMessageState_init() {
+    if (this._inited)
+      return;
+
+    Gloda.addIndexerListener(this.onIndexNotification);
+    this.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
+    this.catchAllCollection.listener = this;
+
+    this._inited = true;
+  },
+
+  /** our catch-all message collection that nets us all messages passing by */
+  catchAllCollection: null,
+
+  /** the synthetic message sets passed in to |wait_for_gloda_indexer| */
+  synMessageSets: null,
+  /** the user-specified accumulate-style verification func */
+  verifier: null,
+  /** should we augment the synthetic sets with gloda message info? */
+  augmentSynSets: false,
+  deletionSynSets: null,
+
+  /** Expected value of |_workerRecoveredCount| at assertion time */
+  expectedWorkerRecoveredCount: null,
+  /** Expected value of |_workerFailedToRecoverCount| at assertion time */
+  expectedFailedToRecoverCount: null,
+  /** Expected value of |_workerCleanedUpCount| at assertion time */
+  expectedCleanedUpCount: null,
+  /** Expected value of |_workerHadNoCleanUpCount| at assertion time */
+  expectedHadNoCleanUpCount: null,
+
+  /** The number of times a worker had a recover helper and it recovered. */
+  _workerRecoveredCount: 0,
+  /**
+   * The number of times a worker had a recover helper and it did not recover.
+   */
+  _workerFailedToRecoverCount: 0,
+  /**
+   * The number of times a worker had a cleanup helper and it cleaned up.
+   */
+  _workerCleanedUpCount: 0,
+  /**
+   * The number of times a worker had no cleanup helper but there was a cleanup.
+   */
+  _workerHadNoCleanUpCount: 0,
+
+  _jsonifyCallbackHandleState: function(aCallbackHandle) {
+    return {
+      _stringRep: aCallbackHandle.activeStack.length + " active generators",
+      activeStackLength: aCallbackHandle.activeStack.length,
+      contextStack: aCallbackHandle.contextStack,
+    };
+  },
+
+  _testHookRecover: function(aRecoverResult, aOriginEx, aActiveJob,
+                             aCallbackHandle) {
+    mark_action("glodaEvent", "indexer recovery hook fired",
+                ["recover result:", aRecoverResult,
+                 "originating exception:", aOriginEx,
+                 "active job:", aActiveJob,
+                 "callbackHandle:",
+                 _indexMessageState._jsonifyCallbackHandleState(
+                   aCallbackHandle)]);
+    if (aRecoverResult)
+      _indexMessageState._workerRecoveredCount++;
+    else
+      _indexMessageState._workerFailedToRecoverCount++;
+  },
+
+  _testHookCleanup: function(aHadCleanupFunc, aOriginEx, aActiveJob,
+                             aCallbackHandle) {
+    mark_action("glodaEvent", "indexer cleanup hook fired",
+                ["had cleanup?", aHadCleanupFunc,
+                 "originating exception:", aOriginEx,
+                 "active job:", aActiveJob,
+                 "callbackHandle",
+                 _indexMessageState._jsonifyCallbackHandleState(
+                   aCallbackHandle)]);
+    if (aHadCleanupFunc)
+      _indexMessageState._workerCleanedUpCount++;
+    else
+      _indexMessageState._workerHadNoCleanUpCount++;
+  },
+
+  /**
+   * The gloda messages indexed since the last call to |wait_for_gloda_indexer|.
+   */
+  _glodaMessagesByMessageId: {},
+  _glodaDeletionsByMessageId: {},
+
+  assertExpectedMessagesIndexed:
+      function _indexMessageState_assertExpectedMessagesIndexed() {
+    let verifier = this.verifier;
+    let previousValue = undefined;
+
+    // - Check we have a gloda message for every syn message and verify
+    for each (let [, msgSet] in Iterator(this.synMessageSets)) {
+      if (this.augmentSynSets)
+        msgSet.glodaMessages = [];
+      for each (let [iSynMsg, synMsg] in Iterator(msgSet.synMessages)) {
+        if (!(synMsg.messageId in this._glodaMessagesByMessageId)) {
+          let msgHdr = msgSet.getMsgHdr(iSynMsg);
+          mark_failure(
+            ["Header", msgHdr, "in folder", msgHdr ? msgHdr.folder: "no header?",
+             "should have been indexed."]);
+        }
+
+        let glodaMsg = this._glodaMessagesByMessageId[synMsg.messageId];
+        if (this.augmentSynSets)
+          msgSet.glodaMessages.push(glodaMsg);
+
+        this._glodaMessagesByMessageId[synMsg.messageId] = null;
+        if (verifier) {
+          try {
+            previousValue = verifier(synMsg, glodaMsg, previousValue);
+          }
+          catch (ex) {
+            // ugh, too verbose
+            //logObject(synMsg, "synMsg");
+            //logObject(glodaMsg, "glodaMsg");
+            dump("synMsg: " + synMsg + "\n");
+            dump("glodaMsg: " + glodaMsg + "\n");
+            mark_failure(
+              ["Verification failure:", synMsg, "is not close enough to",
+                glodaMsg, "; basing this on exception:", ex]);
+          }
+        }
+      }
     }
-    else {
-      dump("  resetting fake server\n");
-      ims.server.resetTest();
+
+    // - Check that we don't have any extra gloda messages (lacking syn msgs)
+    for each (let [, glodaMsg] in Iterator(this._glodaMessagesByMessageId)) {
+      if (glodaMsg != null) {
+        // logObject is too verbose right now
+        dump("gloda message: " + glodaMsg + "\n");
+        mark_failure(
+          ["Gloda message", glodaMsg, "should not have been indexed.",
+           "Source header:", glodaMsg.folderMessage]);
+      }
     }
 
-    // Now get the mail
-    dump("  issuing GetNewMail\n");
-    ims.pop3Service.GetNewMail(null, ims.urlListener, gLocalInboxFolder,
-                               ims.incomingServer);
-    dump("  issuing performTest\n")
-    ims.server.performTest();
-  }
-  catch (e) {
-    ims.server.stop();
-    do_throw(e);
-  }
-  finally {
-    dump("  draining events\n");
-    var thread = gThreadManager.currentThread;
-    while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
-  }
-dump("<<< exit drivePOP3FakeServer\n");
-}
+    if (this.deletionSynSets) {
+      for each (let [, msgSet] in Iterator(this.deletionSynSets)) {
+        for each (let [iSynMsg, synMsg] in Iterator(msgSet.synMessages)) {
+          if (!(synMsg.messageId in this._glodaDeletionsByMessageId)) {
+            do_throw("Synthetic message " + synMsg + " did not get deleted!");
+          }
 
-/**
- * Perform an IMAP mail fetch, seeing it through to completion
- */
-function driveIMAPFakeServer() {
-  dump(">>> enter driveIMAPFakeServer\n");
-  let ims = indexMessageState;
-  // Handle the server in a try/catch/finally loop so that we always will stop
-  // the server if something fails.
-  try {
-    dump("  resetting fake server\n");
-    ims.server.resetTest();
+          let glodaMsg = this._glodaMessagesByMessageId[synMsg.messageId];
 
-    // Update the inbox
-    dump("  issuing updateFolder\n");
-    ims.imapInbox.updateFolder(null);
-    // performTest won't work here because that seemingly blocks until the
-    // socket is closed, which is something undesirable here
-  }
-  catch (e) {
-    ims.server.stop();
-    do_throw(e);
-  }
-  finally {
-    dump("  draining events\n");
-    let thread = gThreadManager.currentThread;
-    while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
-  }
-  dump("<<< exit driveIMAPFakeServer\n");
-}
+          this._glodaDeletionsByMessageId[synMsg.messageId] = null;
+        }
+      }
+    }
 
+    // - Check that we don't have unexpected deletions
+    for each (let [messageId, glodaMsg] in
+              Iterator(this._glodaDeletionsByMessageId)) {
+      if (glodaMsg != null) {
+        logObject(glodaMsg, "glodaMsg");
+        do_throw("Gloda message with message id " + messageId + " was " +
+                 "unexpectedly deleted!");
+      }
+    }
 
-/**
- * Tear down the fake server.  This is very important to avoid things getting
- *  upset during shutdown.  (Namely, XPConnect will get mad about running in
- *  a context without "Components" defined.)
- */
-function killFakeServer() {
-  dump("Killing fake server\n");
-  let ims = indexMessageState;
+    if (this.expectedWorkerRecoveredCount != null &&
+        this.expectedWorkerRecoveredCount != this._workerRecoveredCount)
+      mark_failure(["Expected worker-recovered count did not match actual!",
+                    "Expected", this.expectedWorkerRecoveredCount,
+                    "actual", this._workerRecoveredCount]);
+    if (this.expectedFailedToRecoverCount != null &&
+        this.expectedFailedToRecoverCount != this._workerFailedToRecoverCount)
+      mark_failure(["Expected worker-failed-to-recover count did not match " +
+                     "actual!",
+                    "Expected", this.expectedFailedToRecoverCount,
+                    "actual", this._workerFailedToRecoverCount]);
+    if (this.expectedCleanedUpCount != null &&
+        this.expectedCleanedUpCount != this._workerCleanedUpCount)
+      mark_failure(["Expected worker-cleaned-up count did not match actual!",
+                    "Expected", this.expectedCleanedUpCount,
+                    "actual", this._workerCleanedUpCount]);
+    if (this.expectedHadNoCleanUpCount != null &&
+        this.expectedHadNoCleanUpCount != this._workerHadNoCleanUpCount)
+      mark_failure(["Expected worker-had-no-cleanup count did not match actual!",
+                    "Expected", this.expectedHadNoCleanUpCount,
+                    "actual", this._workerHadNoCleanUpCount]);
 
-  ims.incomingServer.closeCachedConnections();
+    this._glodaMessagesByMessageId = {};
+    this._glodaDeletionsByMessageId = {};
 
-  // No more tests, let everything finish
-  ims.server.stop();
+    this._workerRecoveredCount = 0;
+    this._workerFailedToRecoverCount = 0;
+    this._workerCleanedUpCount = 0;
+    this._workerHadNoCleanUpCount = 0;
 
-  var thread = gThreadManager.currentThread;
-  while (thread.hasPendingEvents())
-    thread.processNextEvent(true);
+    // make sure xpcshell head.js knows we tested something
+    _passedChecks++;
+  },
 
-  do_test_finished();
-}
-
-/**
- * Our catch-all collection listener.  Any time a new message gets indexed,
- *  we should receive an onItemsAdded call.  Any time an existing message
- *  gets reindexed, we should receive an onItemsModified call.  Any time an
- *  existing message actually gets purged from the system, we should receive
- *  an onItemsRemoved call.
- */
-var messageCollectionListener = {
+  /*
+   * Our catch-all collection listener.  Any time a new message gets indexed,
+   *  we should receive an onItemsAdded call.  Any time an existing message
+   *  gets reindexed, we should receive an onItemsModified call.  Any time an
+   *  existing message actually gets purged from the system, we should receive
+   *  an onItemsRemoved call.
+   */
   onItemsAdded: function(aItems) {
     dump("@@@ messageCollectionListener.onItemsAdded\n");
-    let ims = indexMessageState;
-    ims.glodaMessages = ims.glodaMessages.concat(aItems);
+
+    mark_action("glodaEvent", "indexed", aItems);
+
+    for each (let [, item] in Iterator(aItems)) {
+      if (item.headerMessageID in this._glodaMessagesByMessageId)
+        mark_failure(
+          ["Gloda message", item, "already indexed once since the last" +
+            "wait_for_gloda_indexer call!"]);
+
+      this._glodaMessagesByMessageId[item.headerMessageID] = item;
+    }
+
     // simulate some other activity clearing out the the current folder's
     // cached database, which used to kill the indexer's enumerator.
     if (++this._numItemsAdded == 3)
-      GlodaIndexer._indexingFolder.msgDatabase = null;
+      GlodaMsgIndexer._indexingFolder.msgDatabase = null;
   },
 
   onItemsModified: function(aItems) {
     dump("@@@ messageCollectionListener.onItemsModified\n");
-    let ims = indexMessageState;
-    ims.glodaMessages = ims.glodaMessages.concat(aItems);
+
+    mark_action("glodaEvent", "indexed", aItems);
+
+    for each (let [, item] in Iterator(aItems)) {
+      if (item.headerMessageID in this._glodaMessagesByMessageId)
+        mark_failure(
+          ["Gloda message", item, "already indexed once since the last" +
+            "wait_for_gloda_indexer call!"]);
+
+      this._glodaMessagesByMessageId[item.headerMessageID] = item;
+    }
   },
 
   onItemsRemoved: function(aItems) {
-    dump("!!! messageCollectionListener.onItemsRemoved\n");
+    dump("@@@ messageCollectionListener.onItemsRemoved\n");
+
+    mark_action("glodaEvent", "removed", aItems);
+
+    for each (let [, item] in Iterator(aItems)) {
+      if (item.headerMessageID in this._glodaDeletionsByMessageId)
+        mark_failure(
+          ["Gloda message", item, "already deleted once since the last" +
+            "wait_for_gloda_indexer call!"]);
+
+      this._glodaDeletionsByMessageId[item.headerMessageID] = item;
+    }
   },
 
-  _numItemsAdded : 0
-};
+  _numItemsAdded : 0,
 
-/**
- * Allow tests to register a callback to be invoked when the indexing completes.
- *   Only one at a time, etc.
- */
-function runOnIndexingComplete(aCallback) {
-  indexMessageState.expectingIndexNotifications = true;
-  messageIndexerListener.callbackOnDone = aCallback;
-}
-
-/**
- * Gloda indexer listener, used to know when all active indexing jobs have
- *  completed so that we can try and process all the things that should have
- *  been processed.
- */
-var messageIndexerListener = {
-  callbackOnDone: null,
-  onIndexNotification: function(aStatus, aPrettyName, aJobIndex, aJobTotal,
+  /**
+   * Gloda indexer listener, used to know when all active indexing jobs have
+   *  completed so that we can try and process all the things that should have
+   *  been processed.
+   */
+  onIndexNotification: function(aStatus, aPrettyName, aJobIndex,
                                 aJobItemIndex, aJobItemGoal) {
-    dump("((( Index listener notified! aStatus = " + aStatus + "\n");
-    // Ignore moving/removing notifications
-    if (aStatus == Gloda.kIndexerMoving || aStatus == Gloda.kIndexerRemoving)
-      return;
+    let ims = _indexMessageState;
+    dump("((( Index listener notified! aStatus = " + aStatus + " waiting: " +
+         ims.waiting + "\n");
 
-    let ims = indexMessageState;
-    // If we shouldn't be receiving notifications and we receive one with aStatus
-    // != kIndexerIdle. throw.
-    if (!ims.expectingIndexNotifications) {
-      if (aStatus == Gloda.kIndexerIdle) {
-        dump("((( Ignoring indexing notification since it's just kIndexerIdle.\n");
-        return;
-      }
-      else {
-        do_throw("Exception during index notification -- we weren't " +
-                 "expecting one.");
-      }
-    }
-
-    // we only care if indexing has just completed...
-    if (aStatus == Gloda.kIndexerIdle) {
-      if (messageIndexerListener.callbackOnDone) {
-        let callback = messageIndexerListener.callbackOnDone;
-        messageIndexerListener.callbackOnDone = null;
-        callback();
-      }
-
-      // if we haven't seen all the messages we should see, assume that the
-      //  rest are on their way, and are just coming in a subsequent job...
-      // (Also, the first time we register our listener, we will get a synthetic
-      //  idle status; at least if the indexer is idle.)
-      let glodaLen = ims.glodaMessages.length, inputLen =
-        ims.inputMessages.length;
-      if (glodaLen < inputLen) {
-        dump("((( indexing is no longer indexing, but we're still expecting " +
-             inputLen + " - " + glodaLen + " = " + (inputLen - glodaLen) +
-             " more results, ignoring.\n");
-        // If we're running IMAP, then update the folder once more
-        if (ims.imapInbox)
-          ims.imapInbox.updateFolder(null);
-        return;
-      }
-
-      dump("((( indexer notification (" + ims.glodaMessages.length +
-           " messages) about to verify: " +
-           (ims.verifier ? ims.verifier.name : "none") + " and complete: " +
-           (ims.onDone ? ims.onDone.name : "none") + "\n");
-      // If we're verifying messages, we shouldn't be expecting them
-      ims.expectingIndexNotifications = false;
-
-      // call the verifier.  (we expect them to generate an exception if the
-      //  verification fails, using do_check_*/do_throw; we don't care about
-      //  the return value except to propagate forward to subsequent calls.)
-      for (let iMessage=0; iMessage < ims.inputMessages.length; iMessage++) {
-        if (ims.verifier) {
-          try {
-            ims.previousValue = ims.verifier(ims.inputMessages[iMessage],
-                                             ims.glodaMessages[iMessage],
-                                             ims.previousValue);
-          }
-          catch (ex) {
-            do_throw("Exception during verification via " + ims.verifier.name +
-                " on message index: " + iMessage + " previous value: " +
-                ims.previousValue + " gloda message: " +
-                ims.glodaMessages[iMessage] + "\nexception: " + ex);
-          }
-        }
-      }
-
-      dump("((( Verification complete\n");
-      if (ims.onDone) {
-        try {
-          ims.onDone();
-        }
-        catch (ex) {
-          do_throw("Exception calling ims.onDone (" + ims.onDone.name + "): " +
-              ex);
-        }
-      }
-    }
-    else {
-      dump("((( gloda indexing listener notification. indexing: " +
-           GlodaIndexer.indexing + " status: " + aStatus + "\n");
+    // we only care if indexing has just completed and we're waiting
+    if (aStatus == Gloda.kIndexerIdle && ims.waiting) {
+      ims.assertExpectedMessagesIndexed();
+      ims.waiting = false;
+      dump ("  kicking driver...\n");
+      async_driver();
     }
   }
 };
@@ -752,85 +544,39 @@ var messageIndexerListener = {
  *   time.  (This is more to try and make sure we run the system with a 'dirty'
  *   state than a bid for efficiency.)
  * @param aVerifier Verifier function, same signature/intent as the same
- *   argument for indexMessages (who we internally end up calling).
- * @param aOnDone The (optional) function to call when we have finished
- *   processing.  Note that this handler is only called when there are no
- *   additional jobs to be queued.  So if you queue up 5 jobs, you can pass in
- *   the same aOnDone handler for all of them, confident in the knowledge that
- *   only the last job will result in the done handler being called.
+ *   argument for wait_for_gloda_indexer (who we internally end up calling).
  */
-function indexAndPermuteMessages(aScenarioMaker, aVerifier, aOnDone) {
-  let mis = multiIndexState;
-
-  mis.queue.push([aScenarioMaker, aVerifier, aOnDone]);
-
-  // start processing it immediately if we're not doing anything...
-  if (!mis.active)
-    _multiIndexNext();
+function indexAndPermuteMessages(aScenarioMaker, aVerifier) {
+  return async_run({func: _runPermutations,
+                    args: [aScenarioMaker, aVerifier]});
 }
 
 /**
- * Helper function that does the actual multi-indexing work for each call
- *  made to indexAndPermuteMessages.  Since those calls can stack, the arguments
- *  are queued, and we process them when there is no (longer) a current job.
- *  _permutationIndexed handles the work of trying the subsequent permutations
- *  for each job we de-queue and initiate.
+ * Actual worker for |indexAndPermuteMessages|.  This only exists because
+ *  |indexAndPermuteMessages| can't be a generator itself, so it just shims to
+ *  us.
  */
-function _multiIndexNext() {
-  let mis = multiIndexState;
+function _runPermutations(aScenarioMaker, aVerifier) {
+  let folder = make_empty_folder();
 
-  if (mis.queue.length) {
-    mis.active = true;
+  // To calculate the permutations, we need to actually see what gets produced.
+  let scenarioMessages = aScenarioMaker();
+  let numPermutations = Math.min(factorial(scenarioMessages.length), 32);
+  for (let iPermutation = 0; iPermutation < numPermutations; iPermutation++) {
+    mark_sub_test_start("Permutation",
+                        (iPermutation + 1) + "/" + numPermutations,
+                        true);
+    // if this is not the first time through, we need to create a new set
+    if (iPermutation)
+      scenarioMessages = aScenarioMaker();
+    scenarioMessages = permute(scenarioMessages, iPermutation);
+    let scenarioSet = new SyntheticMessageSet(scenarioMessages);
+    yield add_sets_to_folders(folder, [scenarioSet]);
+    yield wait_for_gloda_indexer(scenarioSet, aVerifier);
 
-    let [aScenarioMaker, aVerifier, aOnDone] = mis.queue.shift();
-
-    let firstSet = aScenarioMaker();
-
-    mis.scenarioMaker = aScenarioMaker;
-    mis.verifier = aVerifier;
-    // 32 permutations is probably too generous, not to mention an odd choice.
-    mis.numPermutations = Math.min(factorial(firstSet.length), 32);
-    mis.nextPermutationId = 1;
-
-    mis.onDone = aOnDone;
-
-    indexMessages(firstSet, mis.verifier, _permutationIndexed);
-  }
-  else {
-    mis.active = false;
-    if (mis.onDone)
-      mis.onDone();
+    mark_sub_test_end();
   }
 }
-
-/**
- * The onDone handler for indexAndPermuteMessages/_multiIndexNext's use of
- *  indexMessages under the hood.  Generates and initiates processing of then
- *  next permutation if any remain, otherwise deferring to _multiIndexNext to
- *  de-queue the next call/job or close up shop.
- */
-function _permutationIndexed() {
-  let mis = multiIndexState;
-  if (mis.nextPermutationId < mis.numPermutations)
-    indexMessages(permute(mis.scenarioMaker(), mis.nextPermutationId++),
-                  mis.verifier, _permutationIndexed);
-  else
-    _multiIndexNext();
-}
-
-/**
- * The state global for indexAndPermuteMessages / _multiIndexNext /
- *  _permutationIndexed.
- */
-var multiIndexState = {
-  scenarioMaker: null,
-  verifier: null,
-  onDone: null,
-  numPermutations: undefined,
-  nextPermutationId: undefined,
-  active: false,
-  queue: []
-};
 
 /**
  * A simple factorial function used to calculate the number of permutations
@@ -860,54 +606,6 @@ function permute(aArray, aPermutationId) {
     aPermutationId = Math.floor(aPermutationId / l);
   }
   return out;
-}
-
-/**
- * Given a SyntheticMessage instance, index it, and then process the contents
- *  of aActionsAndTests which provide "twiddle" functions that mutate the
- *  message and "test" functions that verify that the gloda message is
- *  accordingly updated to reflect the change.
- * This method automatically calls next_test when aActionsAndTests has been
- *  fully processed.
- *
- * @param aSynthMsg The synthetic message to index for testing.
- * @param aActionAndTests A list, where each sub-list is of the form [twiddle
- *     function, test function, twiddleValue, optionalTestValue].  The twiddle
- *     function is called with the nsIMsgDBHdr as its first argument and the
- *     twiddleValue as its second argument.  The test function is called with
- *     the synthetic message as its first argument, the gloda message as its
- *     second argument, and optionalTestValue as its third argument.  If the
- *     list did not contain an optionalTestValue (indicated by only having
- *     three elements in the list), then twiddleValue is passed instead.
- */
-function twiddleAndTest(aSynthMsg, aActionsAndTests) {
-  let iTwiddling = 0;
-  function twiddle_next_attr(smsg, gmsg) {
-    let curTwiddling = aActionsAndTests[iTwiddling];
-    let twiddleFunc = curTwiddling[0];
-    let desiredState = curTwiddling[2];
-
-    // the underlying nsIMsgDBHdr should exist at this point...
-    do_check_neq(gmsg.folderMessage, null);
-    // prepare
-    indexMessageState.expectMessages([gmsg.folderMessage], verify_next_attr);
-    // tell the function to perform its mutation to the desired state
-    twiddleFunc(gmsg.folderMessage, desiredState);
-  }
-  function verify_next_attr(smsg, gmsg) {
-    let curTwiddling = aActionsAndTests[iTwiddling];
-    let verifyFunc = curTwiddling[1];
-    let expectedVal = curTwiddling[curTwiddling.length == 3 ? 2 : 3];
-    dump("verifying: " + verifyFunc.name + ": " + expectedVal + "\n");
-    verifyFunc(smsg, gmsg, expectedVal);
-
-    if (++iTwiddling < aActionsAndTests.length)
-      twiddle_next_attr(smsg, gmsg);
-    else
-      next_test();
-  }
-
-  indexMessages([aSynthMsg], twiddle_next_attr);
 }
 
 var _defaultExpectationExtractors = {};
@@ -941,11 +639,13 @@ function expectExtract_default_toString(aThing) {
 }
 
 /// see {queryExpect} for info on what we do
-function QueryExpectationListener(aExpectedSet, aGlodaExtractor, aOrderVerifier) {
+function QueryExpectationListener(aExpectedSet, aGlodaExtractor,
+                                  aOrderVerifier, aCallerStackFrame) {
   this.expectedSet = aExpectedSet;
   this.glodaExtractor = aGlodaExtractor;
   this.orderVerifier = aOrderVerifier;
   this.completed = false;
+  this.callerStackFrame = aCallerStackFrame;
   // track our current 'index' in the results for the (optional) order verifier,
   //  but also so we can provide slightly more useful debug output
   this.nextIndex = 0;
@@ -966,13 +666,10 @@ QueryExpectationListener.prototype = {
       // make sure we were expecting this guy
       if (glodaStringRep in this.expectedSet)
         delete this.expectedSet[glodaStringRep];
-      else {
-        ddumpObject(item, "item", 0);
-        ddumpObject(this.expectedSet, "expectedSet", 1);
-        dump("glodaStringRep: " + glodaStringRep + "\n");
-        do_throw("Query returned unexpected result! gloda rep:" +
-                 glodaStringRep);
-      }
+      else
+        mark_failure(["Query returned unexpected result!", item,
+                      "expected set", this.expectedSet,
+                      "caller", this.callerStackFrame]);
 
       if (this.orderVerifier) {
         try {
@@ -1018,10 +715,14 @@ QueryExpectationListener.prototype = {
       do_throw("Query should have returned " + key + " (" + value + ")");
     }
 
-    dump(">>> queryCompleted, advancing to next test\n");
-    next_test();
+    // xpcshell exposure that we did something
+    _passedChecks++;
+
+    mark_action("glodaTestHelper", "query satisfied with:", aCollection.items);
+    dump(">>> queryCompleted\n");
+    async_driver();
   },
-}
+};
 
 /**
  * Execute the given query, verifying that the result set contains exactly the
@@ -1042,7 +743,9 @@ QueryExpectationListener.prototype = {
  *     - args: A list (possibly empty) or arguments to precede the traditional
  *         arguments to query.getCollection.
  *     - nounId: The (numeric) noun id of the noun type expected to be returned.
- * @param aExpectedSet The list of expected results from the query.
+ * @param aExpectedSet The list of expected results from the query where each
+ *     item is suitable for extraction using aExpectedExtractor.  We have a soft
+ *     spot for SyntheticMessageSets and automatically unbox them.
  * @param aGlodaExtractor The extractor function to take an instance of the
  *     gloda representation and return a string for comparison/equivalence
  *     against that returned by the expected extractor (against the input
@@ -1066,6 +769,9 @@ function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
   if (aQuery.test)
     aQuery = {queryFunc: aQuery.getCollection, queryThis: aQuery, args: [],
               nounId: aQuery._nounDef.id};
+
+  if ("synMessages" in aExpectedSet)
+    aExpectedSet = aExpectedSet.synMessages;
 
   // - set extractor functions to defaults if omitted
   if (aGlodaExtractor == null) {
@@ -1092,103 +798,217 @@ function queryExpect(aQuery, aExpectedSet, aGlodaExtractor,
                item + " exception: " + ex);
     }
   }
+  mark_action("glodaTestHelper", "expecting", [expectedSet]);
 
   // - create the listener...
   aQuery.args.push(new QueryExpectationListener(expectedSet,
                                                 aGlodaExtractor,
-                                                aOrderVerifier));
+                                                aOrderVerifier,
+                                                Components.stack.caller));
   return aQuery.queryFunc.apply(aQuery.queryThis, aQuery.args);
 }
 
 /**
- * Call the provided callback once the database has run all the async statements
- *  whose execution was queued prior to this call.
- * @param aCallback The callback to call.  No 'this' provided.
+ * Run an (async) SQL statement against the gloda database.  The statement
+ *  should be a SELECT COUNT; we check the count against aExpectedCount.
+ *  Any additional arguments are positionally bound to the statement.
+ *
+ * We run the statement asynchronously to get a consistent view of the database.
  */
-function notifyWhenDatastoreDone(aCallback) {
+function sqlExpectCount(aExpectedCount, aSQLString /* ... params */) {
+  let conn = GlodaDatastore.asyncConnection;
+  let stmt = conn.createStatement(aSQLString);
+
+  for (let iArg = 2; iArg < arguments.length; iArg++) {
+    GlodaDatastore._bindVariant(stmt, iArg-2, arguments[iArg]);
+  }
+
+  let desc = Array.slice.call(arguments, 1);
+  mark_action("glodaTestHelper", "running SQL count", desc);
+  stmt.executeAsync(new _SqlExpectationListener(aExpectedCount, desc,
+                                                Components.stack.caller));
+  // we don't need the statement anymore
+  stmt.finalize();
+
+  return false;
+}
+
+function _SqlExpectationListener(aExpectedCount, aDesc, aCallerStackFrame) {
+  this.actualCount = null;
+  this.expectedCount = aExpectedCount;
+  this.sqlDesc = aDesc;
+  this.callerStackFrame = aCallerStackFrame;
+}
+_SqlExpectationListener.prototype = {
+  handleResult: function sel_handleResult(aResultSet) {
+    let row = aResultSet.getNextRow();
+    if (!row)
+      mark_failure(["No result row returned from caller", this.callerStackFrame,
+                    "SQL:", sqlDesc]);
+    this.actualCount = row.getInt64(0);
+  },
+
+  handleError: function sel_handleError(aError) {
+    mark_failure(["SQL error from caller", this.callerStackFrame,
+                  "result", aError, "SQL: ", sqlDesc]);
+  },
+
+  handleCompletion: function sel_handleCompletion(aReason) {
+    if (this.actualCount != this.expectedCount)
+      mark_failure(["Actual count of", this.actualCount,
+                    "does not match expected count of", this.expectedCount,
+                    "from caller", this.callerStackFrame,
+                    "SQL", this.sqlDesc]);
+    async_driver();
+  },
+};
+
+/**
+ * Resume execution when the db has run all the async statements whose execution
+ *  was queued prior to this call.  We trigger a commit to accomplish this,
+ *  although this could also be accomplished without a commit.  (Though we would
+ *  have to reach into datastore.js and get at the raw connection or extend
+ *  datastore to provide a way to accomplish this.)
+ */
+function wait_for_gloda_db_flush() {
   // we already have a mechanism to do this by forcing a commit.  arguably,
   //  it would be better to use a mechanism that does not induce an fsync.
   var savedDepth = GlodaDatastore._transactionDepth;
   if (!savedDepth)
     GlodaDatastore._beginTransaction();
-  GlodaDatastore.runPostCommit(aCallback);
+  GlodaDatastore.runPostCommit(async_driver);
   // we don't actually need to run things to zero... we can just wait for the
   //  outer transaction to close itself...
   GlodaDatastore._commitTransaction();
   if (savedDepth)
     GlodaDatastore._beginTransaction();
+  return false;
 }
 
-var glodaHelperTests = [];
-var glodaHelperIterator = null;
+let _gloda_simulate_hang_data = null;
+let _gloda_simulate_hang_waiting_for_hang = false;
 
-function _gh_test_iterator() {
-  do_test_pending();
-
-  for (let iTest=0; iTest < glodaHelperTests.length; iTest++) {
-    let test = glodaHelperTests[iTest];
-    // deal with parameterized tests (via parameterizeTest)
-    if (test.length) {
-      let [testFunc, parameters] = test;
-      for each (let [, parameter] in Iterator(parameters)) {
-        dump("====== Test function: " + testFunc.name + " Parameter: " +
-             parameter.name + "\n");
-        yield testFunc(parameter);
-      }
-    }
-    else {
-      dump("====== Test function: " + test.name + "\n");
-      yield test();
-    }
-  }
-
-  if (indexMessageState.injectMechanism == INJECT_FAKE_SERVER ||
-      indexMessageState.injectMechanism == INJECT_IMAP_FAKE_SERVER) {
-    do_test_pending();
-    // Give a bit of time for any remaining notifications to go through.
-    do_timeout(500, "killFakeServer()");
-  }
-
-  do_test_finished();
-
-  // once the control flow hits the root after do_test_finished, we're done,
-  //  so let's just yield something to avoid callers having to deal with an
-  //  exception indicating completion.
-  yield null;
-  yield null;
+function _simulate_hang_on_MsgHdrToMimeMessage() {
+  _gloda_simulate_hang_data = [MsgHdrToMimeMessage, null, arguments];
+  if (_gloda_simulate_hang_waiting_for_hang)
+    async_driver();
 }
-
-var _next_test_currently_in_test = false;
-function next_test() {
-  // to avoid crazy messed up stacks, use a time-out to get us to our next thing
-  if (_next_test_currently_in_test) {
-    do_timeout(0, "next_test()");
-    return;
-  }
-
-  _next_test_currently_in_test = true;
-  try {
-    glodaHelperIterator.next();
-  }
-  catch (ex) {
-    dumpExc(ex);
-    do_throw("Caught an exception during execution of next_test: " + ex + ": " + ex.stack);
-  }
-  _next_test_currently_in_test = false;
-}
-
-DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS = 180;
 
 /**
- * Purely decorative function to help explain to people reading lists of tests
- *  using glodaHelperRunTests what is going on.  We just return a tuple of our
- *  arguments and _gh_test_iterator understands what to do with this, namely
- *  to run the test once for each element in the aParameters list.  If the
- *  elements in the aParameters list have a 'name' attribute, it will get
- *  printed out to help figure out what is actually happening.
+ * If you have configured gloda to hang while indexing, this is the thing
+ *  you wait on to make sure the indexer actually gets to the point where it
+ *  hangs.
  */
-function parameterizeTest(aTestFunc, aParameters) {
-  return [aTestFunc, aParameters];
+function wait_for_indexing_hang() {
+  // if we already hit the hang, no need to do anything async...
+  if (_gloda_simulate_hang_data != null)
+    return true;
+  _gloda_simulate_hang_waiting_for_hang = true;
+  return false;
+}
+
+/**
+ * An injected fault exception.
+ */
+function InjectedFault(aWhy) {
+  this.message = aWhy;
+}
+InjectedFault.prototype = {
+  toString: function() {
+    return "[InjectedFault: " + this.message + "]";
+  }
+};
+
+function _inject_failure_on_MsgHdrToMimeMessage() {
+  throw new InjectedFault("MsgHdrToMimeMessage");
+}
+
+/**
+ * Configure gloda indexing.  For most settings, the settings get clobbered by
+ *  the next time this method is called.  Omitted settings reset to the defaults.
+ *  However, anything labeled as a 'sticky' setting stays that way until
+ *  explicitly changed.
+ *
+ * @param {boolean} [aArgs.event=true] Should event-driven indexing be enabled
+ *     (true) or disabled (false)?  Right now, this actually suppresses
+ *     indexing... the semantics will be ironed out as-needed.
+ * @param [aArgs.hangWhile] Must be either omitted (for don't force a hang) or
+ *     "streaming" indicating that we should do a no-op instead of performing
+ *     the message streaming.  This will manifest as a hang until
+ *     |resume_from_simulated_hang| is invoked or the test explicitly causes the
+ *     indexer to abort (in which case you do not need to call the resume
+ *     function.)  You must omit injectFaultIn if you use hangWhile.
+ * @param [aArgs.injectFaultIn=null] Must be omitted (for don't inject a
+ *     failure) or "streaming" indicating that we should inject a failure when
+ *     the message indexer attempts to stream a message.  The fault will be an
+ *     appropriate exception.  You must omit hangWhile if you use injectFaultIn.
+ */
+function configure_gloda_indexing(aArgs) {
+  let shouldSuppress = ("event" in aArgs) ? !aArgs.event : false;
+  if (shouldSuppress != GlodaIndexer.suppressIndexing) {
+    mark_action("glodaTestHelper",
+                "setting supress indexing to " + shouldSuppress, []);
+    GlodaIndexer.suppressIndexing = shouldSuppress;
+  }
+
+  if ("hangWhile" in aArgs) {
+    mark_action("glodaTestHelper", "enabling hang injection in",
+                [aArgs.hangWhile]);
+    switch (aArgs.hangWhile) {
+      case "streaming":
+        GlodaMsgIndexer._MsgHdrToMimeMessageFunc =
+          _simulate_hang_on_MsgHdrToMimeMessage;
+        break;
+      default:
+        mark_failure([aArgs.hangWhile,
+                      "is not a legal choice for hangWhile"]);
+    }
+  }
+  else if ("injectFaultIn" in aArgs) {
+    mark_action("glodaTestHelper", "enabling fault injection in",
+                [aArgs.hangWhile]);
+    switch (aArgs.injectFaultIn) {
+      case "streaming":
+        GlodaMsgIndexer._MsgHdrToMimeMessageFunc =
+          _inject_failure_on_MsgHdrToMimeMessage;
+        break;
+      default:
+        mark_failure([aArgs.injectFaultIn,
+                      "is not a legal choice for injectFaultIn"]);
+    }
+  }
+  else {
+    if (GlodaMsgIndexer._MsgHdrToMimeMessageFunc != MsgHdrToMimeMessage)
+      mark_action("glodaTestHelper", "clearing hang/fault injection", []);
+    GlodaMsgIndexer._MsgHdrToMimeMessageFunc = MsgHdrToMimeMessage;
+  }
+}
+
+/**
+ * Call this to resume from the hang induced by configuring the indexer with
+ *  a "hangWhile" argument to |configure_gloda_indexing|.
+ *
+ * @param [aJustResumeExecution=false] Should we just poke the callback driver
+ *     for the indexer rather than continuing the call.  You would likely want
+ *     to do this if you committed a lot of violence while in the simulated
+ *     hang and proper resumption would throw exceptions all over the place.
+ *     (For example; if you hang before streaming and destroy the message
+ *     header while suspended, resuming the attempt to stream will throw.)
+ */
+function resume_from_simulated_hang(aJustResumeExecution) {
+  if (aJustResumeExecution) {
+    mark_action("glodaTestHelper",
+                "resuming from simulated hang with direct wrapper callback",
+                []);
+    GlodaIndexer._wrapCallbackDriver();
+  }
+  else {
+    let [func, dis, args] = _gloda_simulate_hang_data;
+    mark_action("glodaTestHelper",
+                "resuming from simulated hang with call to: " + func.name,
+                []);
+    func.apply(dis, args);
+  }
 }
 
 /**
@@ -1196,27 +1016,20 @@ function parameterizeTest(aTestFunc, aParameters) {
  *  needs to call (or cause to be called) next_test.
  *
  * @param aTests A list of test functions to call.
- * @param aLongestTestRunTimeConceivableInSecs Optional parameter
- * @param aDontInitIMS Optional parameter. If this is specified then the index
- *                     message state is not initialized
+ * @param [aNounID] The noun ID for the noun under test.
  */
-function glodaHelperRunTests(aTests, aLongestTestRunTimeConceivableInSecs,
-                             aDontInitIMS) {
-  if (aLongestTestRunTimeConceivableInSecs == null)
-    aLongestTestRunTimeConceivableInSecs =
-        DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS;
-  do_timeout(aLongestTestRunTimeConceivableInSecs * 1000,
-      "do_throw('Timeout running test, and we want you to have the log.');");
+function glodaHelperRunTests(aTests, aNounID) {
+  // Initialize the message state if we are dealing with messages.  At some
+  //  point we probably want to just completely generalize the indexing state.
+  //  That point is likely when our testing infrastructure needs the support
+  //  provided by _indexMessageState for things other than messages.
+  if (aNounID === undefined ||
+      aNounID == Gloda.NOUN_MESSAGE)
+    _indexMessageState._init();
 
-  if (!aDontInitIMS)
-    imsInit();
-  // even if we don't want to init IMS, we want to avoid anything adaptive
-  //  happening.
-  else
-    prepareIndexerForTesting();
-  glodaHelperTests = aTests;
-  glodaHelperIterator = _gh_test_iterator();
-  next_test();
+  _prepareIndexerForTesting();
+
+  async_run_tests(aTests);
 }
 
 /**
@@ -1252,12 +1065,12 @@ function nukeGlodaCachesAndCollections() {
     GlodaCollectionManager.registerCollection(Gloda._myIdentitiesCollection);
   }
   // don't forget our testing catch-all collection!
-  if (indexMessageState.catchAllCollection) {
+  if (_indexMessageState.catchAllCollection) {
     // empty it out in case it has anything in it
-    indexMessageState.catchAllCollection.clear();
+    _indexMessageState.catchAllCollection.clear();
     // and now we can register it
     GlodaCollectionManager.registerCollection(
-        indexMessageState.catchAllCollection);
+        _indexMessageState.catchAllCollection);
   }
 
   // caches aren't intended to be cleared, but we also don't want to lose our
@@ -1267,20 +1080,4 @@ function nukeGlodaCachesAndCollections() {
   for each (let cache in oldCaches) {
     GlodaCollectionManager.defineCache(cache._nounDef, cache._maxCacheSize);
   }
-}
-
-/**
- * Given an IMAP folder, marks it offline and downloads its messages.
- *
- * @param aFolder an IMAP message folder
- * @param aSynthMessages see indexMessageState.expectMessages
- * @param aVerifier see indexMessageState.expectMessages
- * @param aDone see indexMessageState.expectMessages
- */
-function imapDownloadAllMessages(aFolder, aSynthMessages, aVerifier, aDone) {
-  // Let the message state know that we're expecting messages
-  indexMessageState.expectMessages(aSynthMessages, aVerifier, aDone);
-  aFolder.setFlag(Ci.nsMsgFolderFlags.Offline);
-  aFolder.downloadAllForOffline(null, null);
-  // The indexer listener is going to call aDone, so our job is done here
 }

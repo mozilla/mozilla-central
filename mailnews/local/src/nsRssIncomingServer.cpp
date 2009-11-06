@@ -263,12 +263,21 @@ NS_IMETHODIMP nsRssIncomingServer::MsgAdded(nsIMsgDBHdr *aMsg)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsRssIncomingServer::MsgsClassified(nsIArray *aMsgs,
+                                                  PRBool aJunkProcessed,
+                                                  PRBool aTraitProcessed)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 NS_IMETHODIMP nsRssIncomingServer::MsgsDeleted(nsIArray *aMsgs)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::MsgsMoveCopyCompleted(PRBool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder)
+NS_IMETHODIMP nsRssIncomingServer::MsgsMoveCopyCompleted(
+  PRBool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder,
+  nsIArray *aDestMsgs)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
