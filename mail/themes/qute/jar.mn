@@ -1,23 +1,4 @@
 classic.jar:
-% skin communicator classic/1.0 %skin/classic/communicator/
-  skin/classic/communicator/communicator.css                      (mail/communicator.css)
-  skin/classic/communicator/smileys.css                       (mail/smileys.css)
-  skin/classic/communicator/icons/smileys/smiley-smile.png        (mail/icons/smiley-smile.png)
-  skin/classic/communicator/icons/smileys/smiley-frown.png        (mail/icons/smiley-frown.png)
-  skin/classic/communicator/icons/smileys/smiley-wink.png         (mail/icons/smiley-wink.png)
-  skin/classic/communicator/icons/smileys/smiley-tongue-out.png  (mail/icons/smiley-tongue-out.png)
-  skin/classic/communicator/icons/smileys/smiley-laughing.png (mail/icons/smiley-laughing.png)
-  skin/classic/communicator/icons/smileys/smiley-embarassed.png  (mail/icons/smiley-embarassed.png)
-  skin/classic/communicator/icons/smileys/smiley-undecided.png   (mail/icons/smiley-undecided.png)
-  skin/classic/communicator/icons/smileys/smiley-surprised.png   (mail/icons/smiley-surprised.png)
-  skin/classic/communicator/icons/smileys/smiley-kiss.png     (mail/icons/smiley-kiss.png)
-  skin/classic/communicator/icons/smileys/smiley-yell.png     (mail/icons/smiley-yell.png)
-  skin/classic/communicator/icons/smileys/smiley-cool.png     (mail/icons/smiley-cool.png)
-  skin/classic/communicator/icons/smileys/smiley-money-mouth.png (mail/icons/smiley-money-mouth.png)
-  skin/classic/communicator/icons/smileys/smiley-foot-in-mouth.png (mail/icons/smiley-foot-in-mouth.png)
-  skin/classic/communicator/icons/smileys/smiley-innocent.png (mail/icons/smiley-innocent.png)
-  skin/classic/communicator/icons/smileys/smiley-cry.png      (mail/icons/smiley-cry.png)
-  skin/classic/communicator/icons/smileys/smiley-sealed.png   (mail/icons/smiley-sealed.png)
 % skin editor classic/1.0 %skin/classic/editor/
   skin/classic/editor/editor.css                              (editor/editor.css)
   skin/classic/editor/EditorDialog.css                        (editor/EditorDialog.css)
@@ -26,8 +7,6 @@ classic.jar:
   skin/classic/editor/icons/img-align-middle.gif              (editor/img-align-middle.gif)
   skin/classic/editor/icons/img-align-right.gif               (editor/img-align-right.gif)
   skin/classic/editor/icons/img-align-top.gif                 (editor/img-align-top.gif)
-% skin messenger classic/1.0 %skin/classic/messenger/ os=WINNT osversion<6
-% skin messenger classic/1.0 %skin/classic/messenger/ os!=WINNT
 
 # ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
 # ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
@@ -40,6 +19,28 @@ classic.jar:
 # ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
 # ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION! ATTENTION!
 
+% skin communicator classic/1.0 %skin/classic/communicator/ os=WINNT osversion<6
+% skin communicator classic/1.0 %skin/classic/communicator/ os!=WINNT
+  skin/classic/communicator/communicator.css                       (mail/communicator.css)
+  skin/classic/communicator/smileys.css                            (mail/smileys.css)
+  skin/classic/communicator/icons/smileys/smiley-smile.png         (mail/icons/smiley-smile.png)
+  skin/classic/communicator/icons/smileys/smiley-frown.png         (mail/icons/smiley-frown.png)
+  skin/classic/communicator/icons/smileys/smiley-wink.png          (mail/icons/smiley-wink.png)
+  skin/classic/communicator/icons/smileys/smiley-tongue-out.png    (mail/icons/smiley-tongue-out.png)
+  skin/classic/communicator/icons/smileys/smiley-laughing.png      (mail/icons/smiley-laughing.png)
+  skin/classic/communicator/icons/smileys/smiley-embarassed.png    (mail/icons/smiley-embarassed.png)
+  skin/classic/communicator/icons/smileys/smiley-undecided.png     (mail/icons/smiley-undecided.png)
+  skin/classic/communicator/icons/smileys/smiley-surprised.png     (mail/icons/smiley-surprised.png)
+  skin/classic/communicator/icons/smileys/smiley-kiss.png          (mail/icons/smiley-kiss.png)
+  skin/classic/communicator/icons/smileys/smiley-yell.png          (mail/icons/smiley-yell.png)
+  skin/classic/communicator/icons/smileys/smiley-cool.png          (mail/icons/smiley-cool.png)
+  skin/classic/communicator/icons/smileys/smiley-money-mouth.png   (mail/icons/smiley-money-mouth.png)
+  skin/classic/communicator/icons/smileys/smiley-foot-in-mouth.png (mail/icons/smiley-foot-in-mouth.png)
+  skin/classic/communicator/icons/smileys/smiley-innocent.png      (mail/icons/smiley-innocent.png)
+  skin/classic/communicator/icons/smileys/smiley-cry.png           (mail/icons/smiley-cry.png)
+  skin/classic/communicator/icons/smileys/smiley-sealed.png        (mail/icons/smiley-sealed.png)
+% skin messenger classic/1.0 %skin/classic/messenger/ os=WINNT osversion<6
+% skin messenger classic/1.0 %skin/classic/messenger/ os!=WINNT
   skin/classic/messenger/featureConfigurator.css              (mail/featureConfigurator.css)
   skin/classic/messenger/primaryToolbar.css                   (mail/primaryToolbar.css)
   skin/classic/messenger/accountCentral.css                   (mail/accountCentral.css)
@@ -237,6 +238,25 @@ classic.jar:
   skin/classic/messenger-newsblog/icons/rss-feed.png          (mail/newsblog/rss-feed.png)
   skin/classic/messenger-newsblog/icons/server-rss.png        (mail/newsblog/server-rss.png)
 #ifdef XP_WIN
+% skin communicator classic/1.0 %skin/classic/aero/communicator/ os=WINNT osversion>=6
+  skin/classic/aero/communicator/communicator.css                       (mail/communicator.css)
+  skin/classic/aero/communicator/smileys.css                            (mail/smileys.css)
+  skin/classic/aero/communicator/icons/smileys/smiley-smile.png         (mail/icons/smiley-smile-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-frown.png         (mail/icons/smiley-frown-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-wink.png          (mail/icons/smiley-wink-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-tongue-out.png    (mail/icons/smiley-tongue-out-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-laughing.png      (mail/icons/smiley-laughing-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-embarassed.png    (mail/icons/smiley-embarassed-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-undecided.png     (mail/icons/smiley-undecided-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-surprised.png     (mail/icons/smiley-surprised-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-kiss.png          (mail/icons/smiley-kiss-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-yell.png          (mail/icons/smiley-yell-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-cool.png          (mail/icons/smiley-cool-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-money-mouth.png   (mail/icons/smiley-money-mouth-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-foot-in-mouth.png (mail/icons/smiley-foot-in-mouth-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-innocent.png      (mail/icons/smiley-innocent-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-cry.png           (mail/icons/smiley-cry-aero.png)
+  skin/classic/aero/communicator/icons/smileys/smiley-sealed.png        (mail/icons/smiley-sealed-aero.png)
 % skin messenger classic/1.0 %skin/classic/aero/messenger/ os=WINNT osversion>=6
   skin/classic/aero/messenger/featureConfigurator.css              (mail/featureConfigurator.css)
   skin/classic/aero/messenger/primaryToolbar.css                   (mail/primaryToolbar.css)
