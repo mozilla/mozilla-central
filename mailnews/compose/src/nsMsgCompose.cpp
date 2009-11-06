@@ -2008,6 +2008,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
               toField.Assign(author);
 
             ConvertRawBytesToUTF8(toField, originCharset.get(), decodedCString);
+            m_compFields->SetSenderReply(decodedCString.get());
             m_compFields->SetTo(decodedCString.get());
 
             // Setup quoting callbacks for later...
@@ -2455,6 +2456,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         nsAutoString messageId;
         nsAutoString references;
         nsAutoString listPost;
+        nsAutoString replyCompValue;
         nsCString outCString;
         PRBool needToRemoveDup = PR_FALSE;
         if (!mMimeConverter)
@@ -2465,13 +2467,35 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         nsCString charset;
         compFields->GetCharacterSet(getter_Copies(charset));
 
+        // Populate the AllReply compField.
+        mHeaders->ExtractHeader(HEADER_TO, PR_TRUE, getter_Copies(outCString));
+        ConvertRawBytesToUTF16(outCString, charset.get(), recipient);
+        mHeaders->ExtractHeader(HEADER_CC, PR_TRUE, getter_Copies(outCString));
+        ConvertRawBytesToUTF16(outCString, charset.get(), cc);
+
+        mHeaders->ExtractHeader(HEADER_MAIL_FOLLOWUP_TO, PR_TRUE,
+                                getter_Copies(outCString));
+        ConvertRawBytesToUTF16(outCString, charset.get(), mailFollowupTo);
+        if (! mailFollowupTo.IsEmpty())
+        {
+          // handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
+          compFields->SetAllReply(mailFollowupTo);
+        }
+        else
+        {
+          // default behaviour for messages without Mail-Followup-To
+          compFields->GetTo(replyCompValue);
+          if (!replyCompValue.IsEmpty() && !recipient.IsEmpty())
+            replyCompValue.AppendLiteral(", ");
+          replyCompValue.Append(recipient);
+          if (!replyCompValue.IsEmpty() && !cc.IsEmpty())
+            replyCompValue.AppendLiteral(", ");
+          replyCompValue.Append(cc);
+          compFields->SetAllReply(replyCompValue);
+        }
+
         if (type == nsIMsgCompType::ReplyAll)
         {
-          mHeaders->ExtractHeader(HEADER_TO, PR_TRUE, getter_Copies(outCString));
-          ConvertRawBytesToUTF16(outCString, charset.get(), recipient);
-          mHeaders->ExtractHeader(HEADER_CC, PR_TRUE, getter_Copies(outCString));
-          ConvertRawBytesToUTF16(outCString, charset.get(), cc);
-
           // preserve BCC for the reply-to-self case
           mHeaders->ExtractHeader(HEADER_BCC, PR_TRUE, getter_Copies(outCString));
           if (!outCString.IsEmpty())
@@ -2481,19 +2505,15 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
             compFields->SetBcc(bcc);
           }
 
-          mHeaders->ExtractHeader(HEADER_MAIL_FOLLOWUP_TO, PR_TRUE, getter_Copies(outCString));
-          ConvertRawBytesToUTF16(outCString, charset.get(), mailFollowupTo);
-
           if (! mailFollowupTo.IsEmpty())
-          { // handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
+          {
+            // handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
             compFields->SetTo(mailFollowupTo);
           }
           else
-          { // default behaviour for messages without Mail-Followup-To
-            if (!recipient.IsEmpty() && !cc.IsEmpty())
-              recipient.AppendLiteral(", ");
-            recipient += cc;
-            compFields->SetCc(recipient);
+          {
+            // default behaviour for messages without Mail-Followup-To
+            compFields->SetCc(replyCompValue);
           }
 
           needToRemoveDup = PR_TRUE;
@@ -2504,7 +2524,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
                                            PR_FALSE, PR_TRUE, listPost);
 
-        if (type == nsIMsgCompType::ReplyToList && !listPost.IsEmpty())
+        if (!listPost.IsEmpty())
         {
           PRInt32 startPos = listPost.Find("<mailto:");
           PRInt32 endPos = listPost.Find(">", startPos);
@@ -2513,7 +2533,9 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           {
             const PRUint32 mailtoLen = strlen("<mailto:");
             listPost = Substring(listPost, startPos + mailtoLen, endPos - (startPos + mailtoLen));
-            compFields->SetTo(listPost);
+            compFields->SetListReply(listPost);
+            if (type == nsIMsgCompType::ReplyToList)
+              compFields->SetTo(listPost);
           }
         }
 
@@ -2542,16 +2564,30 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
                                            PR_FALSE, PR_TRUE, references);
 
+        if (! mailReplyTo.IsEmpty())
+        {
+          // handle Mail-Reply-To (http://cr.yp.to/proto/replyto.html)
+          compFields->SetSenderReply(mailReplyTo);
+          needToRemoveDup = PR_TRUE;
+        }
+        else if (! replyTo.IsEmpty())
+        {
+          // default behaviour for messages without Mail-Reply-To
+          compFields->SetSenderReply(replyTo);
+        }
+
         if (! ((type == nsIMsgCompType::ReplyAll) && ! mailFollowupTo.IsEmpty()) &&
             ! ((type == nsIMsgCompType::ReplyToList) && ! listPost.IsEmpty()))
         {
           if (! mailReplyTo.IsEmpty())
-          { // handle Mail-Reply-To (http://cr.yp.to/proto/replyto.html)
+          {
+            // handle Mail-Reply-To (http://cr.yp.to/proto/replyto.html)
             compFields->SetTo(mailReplyTo);
             needToRemoveDup = PR_TRUE;
           }
           else if (! replyTo.IsEmpty())
-          { // default behaviour for messages without Mail-Reply-To
+          {
+            // default behaviour for messages without Mail-Reply-To
             compFields->SetTo(replyTo);
             needToRemoveDup = PR_TRUE;
           }
@@ -2562,7 +2598,10 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           if ((type != nsIMsgCompType::Reply) && (type != nsIMsgCompType::ReplyToSender))
             compFields->SetNewsgroups(newgroups);
           if (type == nsIMsgCompType::ReplyToGroup)
+          {
+            compFields->SetSenderReply(EmptyString());
             compFields->SetTo(EmptyString());
+          }
         }
 
         if (! followUpTo.IsEmpty())
@@ -2580,7 +2619,10 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
             // If reply-to is empty, use the from header to fetch
             // the original sender's email
             if (!replyTo.IsEmpty())
+            {
+              compFields->SetSenderReply(replyTo);
               compFields->SetTo(replyTo);
+            }
             else
             {
               mHeaders->ExtractHeader(HEADER_FROM, PR_FALSE, getter_Copies(outCString));
@@ -2588,6 +2630,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
               {
                 nsAutoString from;
                 ConvertRawBytesToUTF16(outCString, charset.get(), from);
+                compFields->SetSenderReply(from);
                 compFields->SetTo(from);
               }
             }
@@ -2602,7 +2645,10 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
             if (type != nsIMsgCompType::ReplyToSender)
               compFields->SetNewsgroups(followUpTo);
             if (type == nsIMsgCompType::Reply)
+            {
+              compFields->SetSenderReply(EmptyString());
               compFields->SetTo(EmptyString());
+            }
           }
         }
 
@@ -2611,37 +2657,57 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         references += messageId;
         compFields->SetReferences(NS_LossyConvertUTF16toASCII(references).get());
 
+        // Remove my address from Reply fields.
+        nsCString resultStr;
+        nsCOMPtr<nsIMsgHeaderParser> parser =
+          do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsMsgCompFields* _compFields = static_cast<nsMsgCompFields*>(compFields.get());  // XXX what is this?
+        if (mIdentity)
+        {
+          nsCString email;
+          mIdentity->GetEmail(email);
+          // We always need to remove dups for the Reply fields.
+          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetSenderReply()),
+                                                email, resultStr);
+          if (NS_SUCCEEDED(rv))
+            _compFields->SetSenderReply(resultStr.get());
+          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetAllReply()),
+                                                email, resultStr);
+          if (NS_SUCCEEDED(rv))
+            _compFields->SetAllReply(resultStr.get());
+          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetListReply()),
+                                                email, resultStr);
+          if (NS_SUCCEEDED(rv))
+            _compFields->SetListReply(resultStr.get());
+        }
+
+        // Remove duplicate addresses between TO && CC
         if (needToRemoveDup)
         {
-          // Remove duplicate addresses between TO && CC
-          nsCString resultStr;
-          nsCOMPtr<nsIMsgHeaderParser> parser =
-            do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
-          NS_ENSURE_SUCCESS(rv, rv);
-
-          nsMsgCompFields* _compFields = static_cast<nsMsgCompFields*>(compFields.get());  // XXX what is this?
           nsCString addressToBeRemoved(_compFields->GetTo());
+          // Remove my own address if using Mail-Followup-To (see bug 325429)
           if (mIdentity)
           {
             nsCString email;
             mIdentity->GetEmail(email);
             addressToBeRemoved.AppendLiteral(", ");
             addressToBeRemoved.Append(email);
-            // Remove my own address if using Mail-Followup-To (see bug 325429)
-            if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
+            rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
+                                                  email, resultStr);
+            if (NS_SUCCEEDED(rv))
             {
-              rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
-                                                    email, resultStr);
-              if (NS_SUCCEEDED(rv))
+              if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
                 _compFields->SetTo(resultStr.get());
             }
           }
-
           rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetCc()),
                                                 addressToBeRemoved, resultStr);
           if (NS_SUCCEEDED(rv))
             _compFields->SetCc(resultStr.get());
         }
+
       }
     }
 
@@ -3603,7 +3669,8 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
     rv = GetMsgDBHdrFromURI(curDraftIdURL.get(), getter_AddRefs(msgDBHdr));
     NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get msg header DB interface pointer.");
     if (NS_SUCCEEDED(rv) && msgDBHdr)
-    { // get the folder for the message resource
+    {
+      // get the folder for the message resource
       msgDBHdr->GetFolder(getter_AddRefs(msgFolder));
       NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get msg folder interface pointer.");
       if (NS_SUCCEEDED(rv) && msgFolder)
@@ -3612,7 +3679,8 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
         msgFolder->GetFlags(&folderFlags);
         // only do this if it's a drafts or templates folder.
         if (folderFlags & nsMsgFolderFlags::Drafts)
-        {  // build the msg arrary
+        {
+          // build the msg arrary
           nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
           NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't allocate array.");
 

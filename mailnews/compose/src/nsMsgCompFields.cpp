@@ -289,6 +289,36 @@ NS_IMETHODIMP nsMsgCompFields::GetOtherRandomHeaders(nsAString &_retval)
   return GetUnicodeHeader(MSG_OTHERRANDOMHEADERS_HEADER_ID, _retval);
 }
 
+NS_IMETHODIMP nsMsgCompFields::SetSenderReply(const nsAString &value)
+{
+  return SetUnicodeHeader(MSG_SENDERREPLY_HEADER_ID, value);
+}
+
+NS_IMETHODIMP nsMsgCompFields::GetSenderReply(nsAString &_retval)
+{
+  return GetUnicodeHeader(MSG_SENDERREPLY_HEADER_ID, _retval);
+}
+
+NS_IMETHODIMP nsMsgCompFields::SetAllReply(const nsAString &value)
+{
+  return SetUnicodeHeader(MSG_ALLREPLY_HEADER_ID, value);
+}
+
+NS_IMETHODIMP nsMsgCompFields::GetAllReply(nsAString &_retval)
+{
+  return GetUnicodeHeader(MSG_ALLREPLY_HEADER_ID, _retval);
+}
+
+NS_IMETHODIMP nsMsgCompFields::SetListReply(const nsAString &value)
+{
+  return SetUnicodeHeader(MSG_LISTREPLY_HEADER_ID, value);
+}
+
+NS_IMETHODIMP nsMsgCompFields::GetListReply(nsAString &_retval)
+{
+  return GetUnicodeHeader(MSG_LISTREPLY_HEADER_ID, _retval);
+}
+
 NS_IMETHODIMP nsMsgCompFields::SetNewspostUrl(const char *value)
 {
   return SetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID, value);

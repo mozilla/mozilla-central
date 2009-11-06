@@ -40,7 +40,7 @@
 #include "nsIMsgAttachment.idl"
 #include "nsISimpleEnumerator.idl"
 
-[scriptable, uuid(76b9314c-e397-4806-b816-d8531ab02d30)]
+[scriptable, uuid(a58cd120-ba9b-11de-8a39-0800200c9a66)]
 interface nsIMsgCompFields : nsISupports {
 
   attribute AString from;
@@ -79,6 +79,13 @@ interface nsIMsgCompFields : nsISupports {
   attribute boolean forceMsgEncoding;
 
   attribute AString otherRandomHeaders;
+
+  /**
+   * Addresses for the other forms of reply.
+   */
+  attribute AString senderReply;
+  attribute AString allReply;
+  attribute AString listReply;
 
   attribute AString body;
 
