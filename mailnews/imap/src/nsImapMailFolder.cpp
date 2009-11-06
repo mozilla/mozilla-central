@@ -6808,7 +6808,6 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   nsCOMPtr<nsIImapIncomingServer> imapServer;
   rv = GetImapIncomingServer(getter_AddRefs(imapServer));
   nsCOMPtr<nsIMutableArray> msgHdrsCopied(do_CreateInstance(NS_ARRAY_CONTRACTID));
-  nsCString messageIds;
 
   if (NS_SUCCEEDED(rv) && imapServer)
   {
@@ -6850,6 +6849,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
         rv = GetOfflineStoreOutputStream(getter_AddRefs(outputStream));
       NS_ENSURE_SUCCESS(rv, rv);
 
+      nsCString messageId;
       // put fake message in destination db, delete source if move
       for (PRUint32 sourceKeyIndex=0; !stopit && (sourceKeyIndex < srcCount); sourceKeyIndex++)
       {
@@ -6866,6 +6866,8 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
           NS_ASSERTION(PR_FALSE, "bad msg in src array");
           continue;
         }
+
+        message->GetMessageId(getter_Copies(messageId));
         nsCOMPtr <nsIMsgOfflineImapOperation> sourceOp;
         rv = sourceMailDB->GetOfflineOpForKey(originalKey, PR_TRUE, getter_AddRefs(sourceOp));
         if (NS_SUCCEEDED(rv) && sourceOp)
@@ -6922,11 +6924,10 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
 
             nsTArray<nsMsgKey> srcKeyArray;
 
-            messageIds.Truncate();
-            rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
+            srcKeyArray.AppendElement(originalKey);
             sourceOp->GetOperation(&opType);
             nsImapOfflineTxn *undoMsgTxn = new
-              nsImapOfflineTxn(srcFolder, &srcKeyArray, messageIds.get(), this, 
+              nsImapOfflineTxn(srcFolder, &srcKeyArray, messageId.get(), this, 
                                isMove, opType, message, m_thread);
             if (undoMsgTxn)
             {
@@ -7020,7 +7021,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
               opType = nsIMsgOfflineImapOperation::kMsgMarkedDeleted;
             srcKeyArray.AppendElement(msgKey);
             nsImapOfflineTxn *undoMsgTxn = new
-              nsImapOfflineTxn(srcFolder, &srcKeyArray, messageIds.get(), this, isMove, opType, mailHdr,
+              nsImapOfflineTxn(srcFolder, &srcKeyArray, messageId.get(), this, isMove, opType, mailHdr,
                 m_thread);
             if (undoMsgTxn)
             {
