@@ -4755,6 +4755,12 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
     {
       nsCString mailboxName(adoptedBoxSpec->mAllocatedPathName);
       m_specialXListMailboxes.Put(mailboxName, adoptedBoxSpec->mBoxFlags);
+      // Remember hierarchy delimiter in case this is the first time we've
+      // connected to the server and we need it to be correct for the two-level
+      // XLIST we send (INBOX is guaranteed to be in the first response).
+      if (adoptedBoxSpec->mBoxFlags & kImapInbox)
+        m_runningUrl->SetOnlineSubDirSeparator(adoptedBoxSpec->mHierarchySeparator);
+
     }
     break;
   case kListingForCreate:
