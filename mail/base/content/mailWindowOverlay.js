@@ -1822,33 +1822,11 @@ function MsgOpenNewWindowForMessage(aMsgHdr)
 }
 
 /**
- * Display the given message in a folder tab.
- * - If we're set to display messages in a new tab, open a new folder tab with
- *   the message.
- * - If we're set to display messages in a window (new or existing), select the
- *   message in the current tab.
- *
- * @param aMsgHdr the message header to display
- */
-function MsgDisplayMessageInFolderTab(aMsgHdr) {
-  let tabmail = document.getElementById("tabmail");
-  let openMessageBehavior = gPrefBranch.getIntPref("mail.openMessageBehavior");
-  if (openMessageBehavior == MailConsts.OpenMessageBehavior.NEW_TAB) {
-    // Open a new tab, and make sure we select the message
-    tabmail.openTab("folder",
-      {folder: aMsgHdr.folder, msgHdr: aMsgHdr, forceSelectMessage: true});
-  }
-  else {
-    MsgDisplayMessageInExistingFolderTab(aMsgHdr);
-  }
-}
-
-/**
  * Display the given message in an existing folder tab.
  *
  * @param aMsgHdr The message header to display.
  */
-function MsgDisplayMessageInExistingFolderTab(aMsgHdr)
+function MsgDisplayMessageInFolderTab(aMsgHdr)
 {
   // Look for a folder tab
   let tabmail = document.getElementById("tabmail");

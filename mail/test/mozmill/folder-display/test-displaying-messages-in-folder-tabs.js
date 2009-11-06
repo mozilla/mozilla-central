@@ -39,8 +39,7 @@
  * Test displaying messages in folder tabs. This is supposed to test a variety
  * of situations, including:
  * - dropping view filters to select the message
- * - respecting the open in message pref and opening new tabs only if the pref
- *   is set for messages to open in new tabs
+ * - displaying the message in an existing folder tab
  */
 
 var MODULE_NAME = "test-displaying-messages-in-folder-tabs";
@@ -138,24 +137,6 @@ function test_setup_displaying_messages_in_folder_tabs_globals() {
   // Mark all messages read -- we need this for some tests
   folderA.markAllMessagesRead(null);
   folderB.markAllMessagesRead(null);
-}
-
-/**
- * Verifies that a new tab was opened, and that the right folder and message
- * were selected. This also closes the tab that was opened.
- */
-function _verify_display_in_new_tab(aPreCount, aFolder, aMsgHdr) {
-  // Verify that a new tab has been opened
-  assert_number_of_tabs_open(aPreCount + 1);
-  // Verify that it's not the folder tab
-  assert_not_selected_tab(folderTab);
-  // Verify that the correct folder is selected
-  assert_folder_selected_and_displayed(aFolder);
-  // Verify that the correct message is displayed
-  assert_selected_and_displayed(aMsgHdr);
-
-  // Cleanup, close the tab
-  close_tab(mc.tabmail.currentTabInfo);
 }
 
 /**
@@ -435,7 +416,7 @@ function _generate_display_message_tests(aTests) {
     let helperFunc = this["_" + test + "_helper"];
     this["test_" + test + "_new_tab"] = function () {
       set_open_message_behavior("NEW_TAB");
-      helperFunc.apply(self, [_verify_display_in_new_tab]);
+      helperFunc.apply(self, [_verify_display_in_existing_tab]);
       reset_open_message_behavior();
     };
     this["test_" + test + "_new_window"] = function () {

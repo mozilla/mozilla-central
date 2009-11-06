@@ -578,7 +578,7 @@ function loadStartMsgHdr(aStartMsgHdr)
   // We'll just clobber the default tab
   atStartupRestoreTabs(true);
 
-  MsgDisplayMessageInExistingFolderTab(aStartMsgHdr);
+  MsgDisplayMessageInFolderTab(aStartMsgHdr);
 }
 
 function loadStartFolder(initialUri)
