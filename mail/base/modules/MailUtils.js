@@ -253,7 +253,7 @@ var MailUtils =
     let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"]
                           .getService(Ci.nsIWindowWatcher);
     windowWatcher.openWindow(null,
-        "chrome://messenger/content/messageWindow.xul", "_blank",
+        "chrome://messenger/content/messageWindow.xul", "",
         "all,chrome,dialog=no,status,toolbar", args);
   },
 

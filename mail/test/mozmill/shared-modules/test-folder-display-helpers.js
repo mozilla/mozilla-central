@@ -1896,6 +1896,27 @@ function reset_context_menu_background_tabs() {
 }
 
 /**
+ * Set the mail.close_message_window.on_delete pref.
+ *
+ * @param aPref true/false.
+ */
+function set_close_message_on_delete(aPref) {
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+                     .getService(Ci.nsIPrefService).getBranch(null);
+  prefBranch.setBoolPref("mail.close_message_window.on_delete", aPref);
+}
+
+/**
+ * Reset the mail.close_message_window.on_delete pref.
+ */
+function reset_close_message_on_delete() {
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+                     .getService(Ci.nsIPrefService).getBranch(null);
+  if (prefBranch.prefHasUserValue("mail.close_message_window.on_delete"))
+    prefBranch.clearUserPref("mail.close_message_window.on_delete");
+}
+
+/**
  * assert that the multimessage/thread summary view contains
  * the specified number of elements of the specified class.
  *

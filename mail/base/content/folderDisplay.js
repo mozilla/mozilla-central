@@ -1042,10 +1042,9 @@ FolderDisplayWidget.prototype = {
 
   /**
    * Messages (that may have been displayed) have been removed; this may impact
-   *  our message selection.  If we saw this coming, then
-   *  this._nextViewIndexAfterDelete should know what view index we should
-   *  select next.  (We should really always see this coming -- the extra code
-   *  is just in case we didn't.)
+   * our message selection. We might know it's coming; if we do then
+   * this._nextViewIndexAfterDelete should know what view index to select next.
+   * For the imap mark-as-deleted we won't know beforehand.
    */
   onMessagesRemoved: function FolderDisplayWidget_onMessagesRemoved() {
     // - we saw this coming
@@ -1062,7 +1061,8 @@ FolderDisplayWidget.prototype = {
       return;
     }
 
-    // - surprise!
+    // - we didn't see it coming
+
     // A deletion happened to our folder.
     let treeSelection = this.treeSelection;
     // we can't fix the selection if we have no selection

@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Magnus Melin <mkmelin+mozilla@iki.fi>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -172,8 +173,20 @@ StandaloneFolderDisplayWidget.prototype = {
       function StandaloneFolderDisplayWidget_onMessageCountsChaned() {
     UpdateStatusMessageCounts();
   },
-};
 
+  onMessagesRemoved: function StandaloneFolderDisplayWidget_onMessagesRemoved() {
+    // Close the stand alone window if there's nothing selected (i.e. the
+    // message that was displayed is now deleted) and the pref to close window
+    // on delete is set
+    if (this.treeSelection.count == 0 &&
+        pref.getBoolPref("mail.close_message_window.on_delete")) {
+      window.close();
+    }
+    else {
+      this.__proto__.__proto__.onMessagesRemoved.call(this);
+    }
+  }
+};
 
 /**
  * Display widget abstraction for a standalone message display.  Right now
@@ -673,7 +686,7 @@ function MsgDeleteMessageFromMessageWindow(reallyDelete, fromToolbar)
 {
   // if from the toolbar, return right away if this is a news message
   // only allow cancel from the menu:  "Edit | Cancel / Delete Message"
-  if (fromToolbar && gDisplayFolder.view.isNewsFolder)
+  if (fromToolbar && gFolderDisplay.view.isNewsFolder)
       return;
 
   gFolderDisplay.hintAboutToDeleteMessages();
