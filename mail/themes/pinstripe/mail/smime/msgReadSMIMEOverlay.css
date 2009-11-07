@@ -41,19 +41,19 @@
 }
 
 #status-bar[signed="ok"] #signed-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignOk.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignOk.png");
 }
 
 #status-bar[signed="unknown"] #signed-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignUnknown.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignUnknown.png");
 }
 
 #status-bar[signed="mismatch"] #signed-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignUnknown.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignUnknown.png");
 }
 
 #status-bar[signed="notok"] #signed-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignNotOk.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignNotOk.png");
 }
 
 #status-bar #encrypted-status {
@@ -61,9 +61,9 @@
 }
 
 #status-bar[encrypted="ok"] #encrypted-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoOk.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoOk.png");
 }
 
 #status-bar[encrypted="notok"] #encrypted-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoNotOk.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoNotOk.png");
 }

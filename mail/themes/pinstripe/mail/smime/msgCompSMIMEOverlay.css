@@ -74,12 +74,12 @@ toolbar[iconsize="small"] #button-security[disabled] {
 }
 
 #msgcomposeWindow[signing="ok"] #signing-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignOk.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignOk.png");
   visibility: visible;
 }
 
 #msgcomposeWindow[signing="notok"] #signing-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignNotOk.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignNotOk.png");
   visibility: visible;
 }
 
@@ -90,12 +90,12 @@ toolbar[iconsize="small"] #button-security[disabled] {
 }
 
 #msgcomposeWindow[crypto="ok"] #encryption-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoOk.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoOk.png");
   visibility: visible;
 }
 
 #msgcomposeWindow[crypto="notok"] #encryption-status {
-  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoNotOk.gif");
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoNotOk.png");
   visibility: visible;
 }
 
