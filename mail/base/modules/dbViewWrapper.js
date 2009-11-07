@@ -1559,10 +1559,10 @@ DBViewWrapper.prototype = {
       // (make sure it is valid...)
       this._ensureValidSort();
       // apply the sort to see what happens secondary-wise
-      this.dbView.sort(aSortType, aSortOrder);
+      this.dbView.sort(this._sort[0][0], this._sort[0][1]);
       // there is only a secondary sort if it's not none and not the same.
       if (this.dbView.secondarySortType != nsMsgViewSortType.byNone &&
-          this.dbView.secondarySortType != aSortType)
+          this.dbView.secondarySortType != this._sort[0][0])
         this._sort.push([this.dbView.secondarySortType,
                          this.dbView.secondarySortOrder]);
       // only tell our listener if we're not in a view update batch
@@ -1584,12 +1584,16 @@ DBViewWrapper.prototype = {
         nsMsgViewFlagsType.kGroupBySort) {
       // We cannot be sorting by thread, id, none, or size.  If we are, switch
       //  to sorting by date.
-      let sortType = this._sort[0][0];
-      if (sortType == nsMsgViewSortType.byThread ||
-          sortType == nsMsgViewSortType.byId ||
-          sortType == nsMsgViewSortType.byNone ||
-          sortType == nsMsgViewSortType.bySize)
-        this._sort = [nsMsgViewSortType.byDate, this._sort[0][1]];
+      for each (let [, sortPair] in Iterator(this._sort)) {
+        let sortType = sortPair[0];
+        if (sortType == nsMsgViewSortType.byThread ||
+            sortType == nsMsgViewSortType.byId ||
+            sortType == nsMsgViewSortType.byNone ||
+            sortType == nsMsgViewSortType.bySize) {
+          this._sort = [[nsMsgViewSortType.byDate, this._sort[0][1]]];
+          break;
+        }
+      }
     }
   },
 

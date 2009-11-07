@@ -172,6 +172,56 @@ function test_sort_secondary_implicit() {
 }
 
 /**
+ * Test that group-by-sort does not explode even if we try and get it to use
+ *  sorts that are illegal for group-by-sort mode.  It is important that we
+ *  test both illegal primary sorts (fixed a while back) plus illegal
+ *  secondary sorts (fixing now).
+ *
+ * Note: Sorting changes are synchronous, but toggling grouped by sort requries
+ *  a view rebuild.
+ */
+function test_sort_group_by_sort() {
+  let viewWrapper = make_view_wrapper();
+  // we need to put messages in the folder or the sort logic doesn't actually
+  //  save the sort state. (this is the C++ view's fault.)
+  let [folder, msgSet] = make_folder_with_sets(1);
+  yield async_view_open(viewWrapper, folder);
+
+  // - start out by being in an illegal (for group-by-sort) sort mode and
+  //  switch to group-by-sort.
+  // (sorting changes are synchronous)
+  viewWrapper.sort(Ci.nsMsgViewSortType.byId,
+                   Ci.nsMsgViewSortType.descending);
+  yield async_view_group_by_sort(viewWrapper, true);
+
+  // there should have been no explosion, and we should have changed to date
+  assert_equals(viewWrapper.primarySortType, Ci.nsMsgViewSortType.byDate,
+                "sort should have reset to date");
+
+  // - return to unthreaded, have an illegal secondary sort, go group-by-sort
+  yield async_view_group_by_sort(viewWrapper, false);
+
+  viewWrapper.sort(Ci.nsMsgViewSortType.byDate,
+                   Ci.nsMsgViewSortType.descending,
+                   Ci.nsMsgViewSortType.byId,
+                   Ci.nsMsgViewSortType.descending);
+
+  yield async_view_group_by_sort(viewWrapper, true);
+  // we should now only have a single sort type and it should be date
+  assert_equals(viewWrapper._sort.length, 1,
+                "we should only have one sort type active");
+  assert_equals(viewWrapper.primarySortType, Ci.nsMsgViewSortType.byDate,
+                "remaining (primary) sort type should be date");
+
+  // - try and make group-by-sort sort by something illegal
+  // (we're still in group-by-sort mode)
+  viewWrapper.magicSort(Ci.nsMsgViewSortType.byId,
+                        Ci.nsMsgViewSortOrder.descending);
+  assert_equals(viewWrapper.primarySortType, Ci.nsMsgViewSortType.byDate,
+                "remaining (primary) sort type should be date");
+}
+
+/**
  * Verify that mailview changes are properly persisted but that we only use them
  *  when the listener indicates we should use them (because the widget is
  *  presumably visible).
@@ -254,6 +304,7 @@ var tests = [
   test_sort_primary,
   test_sort_secondary_explicit,
   test_sort_secondary_implicit,
+  test_sort_group_by_sort,
   test_mailviews_persistence,
   test_view_update_depth_logic,
 ];

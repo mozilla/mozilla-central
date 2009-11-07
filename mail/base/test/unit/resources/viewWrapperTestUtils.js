@@ -240,6 +240,12 @@ function async_view_refresh(aViewWrapper) {
   return false;
 }
 
+function async_view_group_by_sort(aViewWrapper, aGroupBySort) {
+  aViewWrapper.listener.pendingLoad = true;
+  aViewWrapper.showGroupedBySort = aGroupBySort;
+  return false;
+}
+
 /**
  * Call endViewUpdate on your wrapper in the async idiom.  This is essential if
  *  you are doing things to a cross-folder view which does its searching in a
