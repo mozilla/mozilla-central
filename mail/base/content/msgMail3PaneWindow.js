@@ -448,8 +448,9 @@ function FindOther3PaneWindow()
   let windowMediator =
     Components.classes["@mozilla.org/appshell/window-mediator;1"]
         .getService(Components.interfaces.nsIWindowMediator);
-  let enumerator = windowMediator.getZOrderDOMWindowEnumerator("mail:3pane",
-                                                               true);
+  // XXX We'd like to use getZOrderDOMWindowEnumerator here, but it doesn't work
+  // on Linux
+  let enumerator = windowMediator.getEnumerator("mail:3pane");
   while (enumerator.hasMoreElements()) {
     let win = enumerator.getNext();
     if (win != window)
