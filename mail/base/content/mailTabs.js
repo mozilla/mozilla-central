@@ -278,14 +278,17 @@ let mailTabType = {
                 gMessageDisplay._visible = aPersistedState.messagePaneVisible;
             }
 
-            if ("searchMode" in aPersistedState) {
-              let searchInput = document.getElementById("searchInput");
-              if (searchInput)
-                  searchInput.searchMode = aPersistedState.searchMode;
-            }
             if (!("dontRestoreFirstTab" in aPersistedState &&
                   aPersistedState.dontRestoreFirstTab))
               gFolderTreeView.selectFolder(folder);
+
+            // This should be after selectFolder, so that onDisplayingFolder
+            // there doesn't clobber this.
+            if ("searchMode" in aPersistedState) {
+              let searchInput = document.getElementById("searchInput");
+              if (searchInput)
+                searchInput.searchMode = aPersistedState.searchMode;
+            }
           }
           else {
             let tabArgs = {
