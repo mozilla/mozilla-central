@@ -317,11 +317,15 @@ function migrateGlobalQuotingPrefs(allIdentities)
 // has closed, and this is confusing to the user
 function NewMailAccount(msgWindow, okCallback)
 {
+  if (!msgWindow)
+    throw new Error("NewMailAccount must be given a msgWindow.");
   setTimeout(msgNewMailAccount, 0, msgWindow, okCallback);
 }
 
 function msgNewMailAccount(msgWindow, okCallback)
 {
+  if (!msgWindow)
+    throw new Error("msgNewMailAccount must be given a msgWindow.");
   let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                      .getService()
                      .QueryInterface(Components.interfaces.nsIWindowMediator);

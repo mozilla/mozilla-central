@@ -721,7 +721,11 @@ EmailConfigWizard.prototype =
         // no certificate or cleartext issues
         this.validateAndFinish();
       }
-    } catch (ex) { alertPrompt(gStringsBundle.getString("error_creating_account"), ex); }
+    } catch (ex) {
+      gEmailWizardLogger.error("Error creating account.  ex=" + ex +
+                               ", stack=" + ex.stack);
+      alertPrompt(gStringsBundle.getString("error_creating_account"), ex);
+    }
   },
 
   getMeOutOfHere : function()

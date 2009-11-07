@@ -157,7 +157,7 @@
           <label class="acctCentralText acctCentralLinkText"
                  value="&newAcctLink.label;"
                  chromedir="&locale.dir;"
-                 onclick="msgNewMailAccount();"/>
+                 onclick="AddMailAccount();"/>
 #else
           <label class="acctCentralText acctCentralLinkText"
                  value="&newAcctLink.label;"
