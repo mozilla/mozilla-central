@@ -563,7 +563,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 14,
+  _schemaVersion: 16,
   _schema: {
     tables: {
 
@@ -1067,19 +1067,17 @@ var GlodaDatastore = {
     // (We are slip-streaming this so that only people who want to test CJK
     //  have to test it.  We will properly bump the schema revision when the
     //  gloda correctness patch lands.)
-    // version 16ish, labeled 14
+    // version 16ish, labeled 14 and now 16
     // - gloda message id's start from 32 now
     // - all kinds of correctness changes
-    if (aCurVersion < 15) {
-      aDBConnection.close();
-      aDBFile.remove(false);
-      this._log.warn("Global database has been purged due to schema change.");
-      return this._createDB(aDBService, aDBFile);
-    }
 
-    aDBConnection.schemaVersion = aNewVersion;
+    aDBConnection.close();
+    aDBFile.remove(false);
+    this._log.warn("Global database has been purged due to schema change.");
+    return this._createDB(aDBService, aDBFile);
 
-    return aDBConnection;
+    //aDBConnection.schemaVersion = aNewVersion;
+    //return aDBConnection;
   },
 
   _outstandingAsyncStatements: [],

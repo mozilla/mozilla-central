@@ -105,6 +105,31 @@ function test_pending_commit_tracker_flushes_correctly() {
 }
 
 /**
+ * Make sure that PendingCommitTracker causes a msgdb commit to occur so that
+ *  if the nsIMsgFolder's msgDatabase attribute has already been nulled
+ *  (which is normally how we force a msgdb commit), that the changes to the
+ *  header actually hit the disk.
+ */
+function test_pending_commit_causes_msgdb_commit() {
+  // new message, index it
+  let [folder, msgSet] = make_folder_with_sets([{count: 1}]);
+  yield wait_for_message_injection();
+  yield wait_for_gloda_indexer(msgSet, {augment: true});
+
+  // force the msgDatabase closed; the sqlite commit will not yet have occurred
+  get_real_injection_folder(folder).msgDatabase = null;
+  // make the commit happen, this causes the header to get set.
+  yield wait_for_gloda_db_flush();
+  // Force a GC.  this will kill off the header and the database, losing data
+  //  if we are not protecting it.
+  Components.utils.forceGC();
+
+  // now retrieve the header and make sure it has the gloda id set!
+  let msgHdr = msgSet.getMsgHdr(0);
+  do_check_eq(msgHdr.getUint32Property("gloda-id"), msgSet.glodaMessages[0].id);
+}
+
+/**
  * Give the indexing sweep a workout.
  *
  * This includes:
@@ -404,7 +429,7 @@ function test_attributes_explicit() {
 /**
  * Test actually deleting a message on a per-message basis (not just nuking the
  *  folder like emptying the trash does.)
- * 
+ *
  * Logic situations:
  * - Non-last message in a conversation, twin.
  * - Non-last message in a conversation, not a twin.
@@ -485,7 +510,7 @@ function test_message_deletion() {
   twinQuery.headerMessageID(twinSet.synMessages[0].messageId);
   let twinColl = queryExpect(twinQuery, twinSet);
   yield false; // queryExpect is async
-  
+
   // delete the twin
   yield async_delete_messages(twinSet);
   // which should result in an apparent deletion
@@ -496,7 +521,7 @@ function test_message_deletion() {
   // no longer show up in the standard query
   twinColl = queryExpect(twinQuery, []);
   yield false; // queryExpect is async
-  
+
   // still show up in a privileged query
   privQuery = Gloda.newQuery(Gloda.NOUN_MESSAGE, {
                                noDbQueryValidityConstraints: true,
@@ -598,7 +623,7 @@ function test_moving_to_trash_marks_deletion() {
   // there should be no apparent change as the result of this pass
   // (well, the conversation will die, but we can't see that.)
   yield wait_for_gloda_indexer([]);
-  
+
   // the conversation should be gone
   let convQuery = Gloda.newQuery(Gloda.NOUN_CONVERSATION);
   convQuery.id(convId);
@@ -640,7 +665,7 @@ function test_folder_nuking_message_deletion() {
   msgQuery.id(firstGlodaId, secondGlodaId);
   queryExpect(msgQuery, []);
   yield false; // queryExpect is async
-  
+
   // force a sweep
   GlodaMsgIndexer.indexingSweepNeeded = true;
   // there should be no apparent change as the result of this pass
@@ -786,6 +811,7 @@ function test_filthy_moves_slash_move_from_unindexed_to_indexed() {
 
 var tests = [
   test_pending_commit_tracker_flushes_correctly,
+  test_pending_commit_causes_msgdb_commit,
   test_indexing_sweep,
 
   test_threading,

@@ -132,8 +132,23 @@ var PendingCommitTracker = {
   /**
    * The function gets called when the commit actually happens to flush our
    *  message id's.
+   *
+   * It is very possible that by the time this call happens we have left the
+   *  folder and nulled out msgDatabase on the folder.  Since nulling it out
+   *  is what causes the commit, if we set the headers here without somehow
+   *  forcing a commit, we will lose.  Badly.
+   * Accordingly, we make a list of all the folders that the headers belong to
+   *  as we iterate, make sure to re-attach their msgDatabase before forgetting
+   *  the headers, then make sure to zero the msgDatabase again, triggering a
+   *  commit.  If there were a way to directly get the nsIMsgDatabase from the
+   *  header we could do that and call commit directly.  We don't track
+   *  databases along with the headers since the headers can change because of
+   *  moves and that would increase the number of moving parts.
    */
   _commitCallback: function PendingCommitTracker_commitCallback() {
+    let foldersByURI = {};
+    let lastFolder = null;
+
     for each (let [glodaId, [msgHdr, dirtyState]] in
               Iterator(
                 PendingCommitTracker._indexedMessagesPendingCommitByGlodaId)) {
@@ -144,6 +159,24 @@ var PendingCommitTracker = {
       let headerDirty = msgHdr.getUint32Property(GLODA_DIRTY_PROPERTY);
       if (headerDirty != dirtyState)
         msgHdr.setUint32Property(GLODA_DIRTY_PROPERTY, dirtyState);
+
+      if (lastFolder == msgHdr.folder)
+        continue;
+      lastFolder = msgHdr.folder;
+      let folderURI = lastFolder.URI;
+      if (!(folderURI in foldersByURI))
+        foldersByURI[folderURI] = lastFolder;
+    }
+
+    // it is vitally important to do this before we forget about the headers!
+    for each (let [, folder] in Iterator(foldersByURI)) {
+      // This will not cause a parse.  The database is in-memory since we have
+      //  a header that belongs to it.  This just causes the folder to
+      //  re-acquire a reference from the database manager.
+      let ignoredDb = folder.msgDatabase;
+      // And this will cause a commit.  (And must be done since we don't want
+      //  to cause a leak.)
+      folder.msgDatabase = null;
     }
 
     PendingCommitTracker._indexedMessagesPendingCommitByGlodaId = {};

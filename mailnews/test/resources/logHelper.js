@@ -304,6 +304,8 @@ function __simple_obj_copy(aObj, aDepthAllowed) {
 const _INTERESTING_MESSAGE_HEADER_PROPERTIES = {
   "gloda-id": 0,
   "gloda-dirty": 0,
+  "msgOffset": 0,
+  "offlineMsgSize": 0,
 };
 
 
