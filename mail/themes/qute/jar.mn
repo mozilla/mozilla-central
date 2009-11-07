@@ -371,7 +371,7 @@ classic.jar:
   skin/classic/aero/messenger/icons/message.png                    (mail/icons/message-aero.png)
   skin/classic/aero/messenger/icons/attachment-deleted.png         (mail/icons/attachment-deleted.png)
   skin/classic/aero/messenger/icons/attachment-deleted-large.png   (mail/icons/attachment-deleted-large.png)
-  skin/classic/aero/messenger/icons/attachment-col.png             (mail/icons/attachment-col.png)
+  skin/classic/aero/messenger/icons/attachment-col.png             (mail/icons/attachment-col-aero.png)
   skin/classic/aero/messenger/icons/junk-col.png                   (mail/icons/junk-col-aero.png)
   skin/classic/aero/messenger/icons/thread-col.png                 (mail/icons/thread-col.png)
   skin/classic/aero/messenger/icons/thread-col-sorta.png           (mail/icons/thread-col-sorta.png)
