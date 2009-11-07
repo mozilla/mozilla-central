@@ -97,7 +97,7 @@ Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
 // The current database version. Be sure to increment this when you create a new
 // updater.
-var DB_SCHEMA_VERSION = 16;
+var DB_SCHEMA_VERSION = 17;
 
 var EXPORTED_SYMBOLS = ["DB_SCHEMA_VERSION", "getSql", "getAllSql", "getSqlTable", "upgradeDB"];
 
@@ -349,14 +349,17 @@ function ensureUpdatedTimezones(db) {
         let zonesToUpdate = [];
         let getZones = createStatement(db,
             "SELECT DISTINCT(zone) FROM ("+
-            "SELECT recurrence_id_tz AS zone FROM cal_attendees  WHERE recurrence_id_tz IS NOT NULL UNION " +
-            "SELECT recurrence_id_tz AS zone FROM cal_events     WHERE recurrence_id_tz IS NOT NULL UNION " +
-            "SELECT event_start_tz   AS zone FROM cal_events     WHERE event_start_tz   IS NOT NULL UNION " +
-            "SELECT event_end_tz     AS zone FROM cal_events     WHERE event_end_tz     IS NOT NULL UNION " +
-            "SELECT recurrence_id_tz AS zone FROM cal_properties WHERE recurrence_id_tz IS NOT NULL UNION " +
-            "SELECT recurrence_id_tz AS zone FROM cal_todos      WHERE recurrence_id_tz IS NOT NULL UNION " +
-            "SELECT todo_entry_tz    AS zone FROM cal_todos      WHERE todo_entry_tz    IS NOT NULL UNION " +
-            "SELECT todo_due_tz      AS zone FROM cal_todos      WHERE todo_due_tz      IS NOT NULL" +
+            "SELECT recurrence_id_tz AS zone FROM cal_attendees    WHERE recurrence_id_tz IS NOT NULL UNION " +
+            "SELECT recurrence_id_tz AS zone FROM cal_events       WHERE recurrence_id_tz IS NOT NULL UNION " +
+            "SELECT event_start_tz   AS zone FROM cal_events       WHERE event_start_tz   IS NOT NULL UNION " +
+            "SELECT event_end_tz     AS zone FROM cal_events       WHERE event_end_tz     IS NOT NULL UNION " +
+            "SELECT recurrence_id_tz AS zone FROM cal_properties   WHERE recurrence_id_tz IS NOT NULL UNION " +
+            "SELECT recurrence_id_tz AS zone FROM cal_todos        WHERE recurrence_id_tz IS NOT NULL UNION " +
+            "SELECT todo_entry_tz    AS zone FROM cal_todos        WHERE todo_entry_tz    IS NOT NULL UNION " +
+            "SELECT todo_due_tz      AS zone FROM cal_todos        WHERE todo_due_tz      IS NOT NULL UNION " +
+            "SELECT recurrence_id_tz AS zone FROM cal_alarms       WHERE recurrence_id_tz IS NOT NULL UNION " +
+            "SELECT recurrence_id_tz AS zone FROM cal_relations    WHERE recurrence_id_tz IS NOT NULL UNION " +
+            "SELECT recurrence_id_tz AS zone FROM cal_attachments  WHERE recurrence_id_tz IS NOT NULL" +
             ");");
         try {
             while (getZones.step()) {
@@ -381,14 +384,17 @@ function ensureUpdatedTimezones(db) {
         try {
             for each (let update in zonesToUpdate) {
                 executeSimpleSQL(db,
-                    "UPDATE cal_attendees  SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
-                    "UPDATE cal_events     SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
-                    "UPDATE cal_events     SET event_start_tz   = '" + update.newTzId + "' WHERE event_start_tz   = '" + update.oldTzId + "'; " +
-                    "UPDATE cal_events     SET event_end_tz     = '" + update.newTzId + "' WHERE event_end_tz     = '" + update.oldTzId + "'; " +
-                    "UPDATE cal_properties SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
-                    "UPDATE cal_todos      SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
-                    "UPDATE cal_todos      SET todo_entry_tz    = '" + update.newTzId + "' WHERE todo_entry_tz    = '" + update.oldTzId + "'; " +
-                    "UPDATE cal_todos      SET todo_due_tz      = '" + update.newTzId + "' WHERE todo_due_tz      = '" + update.oldTzId + "';");
+                    "UPDATE cal_attendees    SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_events       SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_events       SET event_start_tz   = '" + update.newTzId + "' WHERE event_start_tz   = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_events       SET event_end_tz     = '" + update.newTzId + "' WHERE event_end_tz     = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_properties   SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_todos        SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_todos        SET todo_entry_tz    = '" + update.newTzId + "' WHERE todo_entry_tz    = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_todos        SET todo_due_tz      = '" + update.newTzId + "' WHERE todo_due_tz      = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_alarms       SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_relations    SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "'; " +
+                    "UPDATE cal_attachments  SET recurrence_id_tz = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "';");
             }
             executeSimpleSQL(db, "DELETE FROM cal_tz_version; " +
                                  "INSERT INTO cal_tz_version VALUES ('" +
@@ -412,6 +418,9 @@ function ensureUpdatedTimezones(db) {
  * @param db            (optional) The database to apply the operation on
  */
 function addColumn(tblData, tblName, colName, colType, db) {
+    cal.ASSERT(tblName in tblData,
+               "Table " + tblName + " is missing from table def",
+               true);
     tblData[tblName][colName] = colType;
 
     executeSimpleSQL(db, "ALTER TABLE " + tblName +
@@ -450,8 +459,9 @@ function deleteColumns(tblData, tblName, colNameArray, db) {
  * @param newTblName    The target table name.
  * @param db            (optional) The database to apply the operation on
  * @param condition     (optional) The condition to respect when copying
+ * @param selectOptions (optional) Extra options for the SELECT, i.e DISTINCT
  */
-function copyTable(tblData, tblName, newTblName, db, condition) {
+function copyTable(tblData, tblName, newTblName, db, condition, selectOptions) {
     function objcopy(obj) {
         return eval(obj.toSource());
     }
@@ -462,7 +472,7 @@ function copyTable(tblData, tblName, newTblName, db, condition) {
     executeSimpleSQL(db, getSql(newTblName, tblData));
     executeSimpleSQL(db, "INSERT INTO " + newTblName +
                          "  (" + columns.join(",") + ") " +
-                         "SELECT " + columns.join(",") +
+                         "SELECT " + selectOptions + " " + columns.join(",") +
                          "  FROM " + tblName + " " +
                               (condition ? condition : "") +
                          ";");
@@ -494,11 +504,31 @@ function alterTypes(tblData, tblName, colNameArray, newType, db) {
 }
 
 /**
+ * Renames the given table, giving it a new name.
+ *
+ * @param tblData       The table data object to apply the operation on.
+ * @param tblName       The table name to rename.
+ * @param newTblName    The new name of the table.
+ * @param db            (optional) The database to apply the operation on.
+ * @param overwrite     (optional) If true, the target table will be dropped
+ *                        before the rename
+ */
+function renameTable(tblData, tblName, newTblName, db, overwrite) {
+    if (overwrite) {
+        dropTable(tblData, newTblName, db);
+    }
+    tblData[newTblName] = tblData[tblName];
+    delete tblData[tblName];
+    executeSimpleSQL(db, "ALTER TABLE " + tblName +
+                         "  RENAME TO " + newTblName);
+}
+
+/**
  * Drops the given table.
  *
  * @param tblData       The table data object to apply the operation on.
- * @param tblName       The table name to drop
- * @param db            (optional) The database to apply the operation on
+ * @param tblName       The table name to drop.
+ * @param db            (optional) The database to apply the operation on.
  */
 function dropTable(tblData, tblName, db) {
     delete tblData[tblName];
@@ -510,9 +540,9 @@ function dropTable(tblData, tblName, db) {
  * Creates the given table.
  *
  * @param tblData       The table data object to apply the operation on.
- * @param tblName       The table name to add
- * @param def           The table definition object
- * @param db            (optional) The database to apply the operation on
+ * @param tblName       The table name to add.
+ * @param def           The table definition object.
+ * @param db            (optional) The database to apply the operation on.
  */
 function addTable(tblData, tblName, def, db) {
     tblData[tblName] = def;
@@ -976,6 +1006,11 @@ upgrade.v15 = function upgrade_v15(db, version) {
  * absolute alarms with fixed date/time - Storage Provider support for multiple
  * alarms.
  * r=dbo,ssitter, p=philipp
+ *
+ * This upgrader is a bit special. To fix bug 494140, we decided to change the
+ * upgrading code afterwards to make sure no data is lost for people upgrading
+ * from 0.9 -> 1.0b1 and later. The v17 upgrader will merely take care of the
+ * upgrade if a user is upgrading from 1.0pre -> 1.0b1 or later.
  */
 upgrade.v16 = function upgrade_v16(db, version) {
     let tbl = upgrade.v15(version < 15 && db, version);
@@ -1024,6 +1059,10 @@ upgrade.v16 = function upgrade_v16(db, version) {
         addTable(tbl, "cal_alarms", {
             cal_id: "INTEGER",
             item_id: "TEXT",
+            // Note the following two columns were not originally part of the
+            // v16 upgrade, see note above function.
+            recurrence_id: "INTEGER",
+            recurrence_id_tz: "TEXT",
             icalString: "TEXT"
         }, db);
 
@@ -1032,10 +1071,15 @@ upgrade.v16 = function upgrade_v16(db, version) {
                                                "alarm_related, " +
                                                "alarm_time, " +
                                                "alarm_time_tz)";
-            executeSimpleSQL(db, "INSERT INTO cal_alarms" +
-                "(cal_id, item_id, icalString) SELECT " +
-                "cal_id, id, " + transAlarm + " FROM " + tbl +
-                " WHERE alarm_offset IS NOT NULL OR alarm_time IS NOT NULL;");
+            executeSimpleSQL(db, "INSERT INTO cal_alarms (cal_id, item_id," +
+                                 "                        recurrence_id, " +
+                                 "                        recurrence_id_tz, " +
+                                 "                        icalString)" +
+                                 " SELECT cal_id, id, recurrence_id," +
+                                 "        recurrence_id_tz, " + transAlarm +
+                                 "   FROM " + tbl +
+                                 "  WHERE alarm_offset IS NOT NULL" +
+                                 "     OR alarm_time IS NOT NULL;");
 
         };
         copyDataOver("cal_events");
@@ -1066,6 +1110,70 @@ upgrade.v16 = function upgrade_v16(db, version) {
         }
 
         setDbVersionAndCommit(db, 16);
+    } catch (e) {
+        throw reportErrorAndRollback(db, e);
+    }
+
+    return tbl;
+};
+
+/**
+ * Bug 494140 - Multiple reminders,relations,attachments created by modifying
+ * repeating event.
+ * r=dbo,ssitter, p=philipp
+ *
+ * This upgrader is special. In bug 494140 we decided it would be better to fix
+ * the v16 upgrader so 0.9 users can update to 1.0b1 and later without dataloss.
+ * Therefore all this upgrader does is handle users of 1.0pre before the
+ * mentioned bug.
+ */
+upgrade.v17 = function upgrade_v17(db, version) {
+    let tbl = upgrade.v16(version < 16 && db, version);
+    LOGdb(db, "Storage: Upgrading to v17");
+    beginTransaction(db);
+    try {
+        for each (let tblName in ["alarms", "relations", "attachments"]) {
+            let hasColumns = true;
+            try {
+                // Creating the statement will fail if the columns don't exist.
+                // We don't use the delegate here since it will show an error to
+                // the user, even through we expect an error. If the db is null,
+                // then swallowing
+                // the error is ok too since the cols will already be added in
+                // v16.
+                db.createStatement("SELECT recurrence_id_tz," +
+                                   "       recurrence_id" +
+                                   "  FROM cal_" + tblName +
+                                   " LIMIT 1");
+            } catch (e) {
+                // An error happened, which means the cols don't exist
+                hasColumns = false;
+            }
+
+            // Only add the columns if they are not there yet (i.e added in v16)
+            // Since relations were broken all along, also make sure and add the
+            // columns to the javascript object if there is no database.
+            if (!hasColumns || !db) {
+                addColumn(tbl, "cal_" + tblName, "recurrence_id", "INTEGER", db);
+                addColumn(tbl, "cal_" + tblName, "recurrence_id_tz", "TEXT", db);
+            }
+
+            // Clear out entries that are exactly the same. This corrects alarms
+            // created in 1.0pre and relations and attachments created in 0.9.
+            copyTable(tbl,
+                      "cal_" + tblName,
+                      "cal_" + tblName + "_v17",
+                      db,
+                      null,
+                      "DISTINCT");
+            renameTable(tbl,
+                        "cal_" + tblName + "_v17",
+                        "cal_" + tblName,
+                        db,
+                        true);
+
+        }
+        setDbVersionAndCommit(db, 17);
     } catch (e) {
         throw reportErrorAndRollback(db, e);
     }

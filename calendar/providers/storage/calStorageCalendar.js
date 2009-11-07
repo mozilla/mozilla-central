@@ -881,13 +881,29 @@ calStorageCalendar.prototype = {
         this.mSelectAttachmentsForItem = createStatement(
             this.mDB,
             "SELECT * FROM cal_attachments " +
-            "WHERE item_id = :item_id AND cal_id = " + this.mCalId
+            "WHERE item_id = :item_id AND cal_id = " + this.mCalId +
+            " AND recurrence_id IS NULL"
+            );
+        this.mSelectAttachmentsForItemWithRecurrenceId = createStatement(
+            this.mDB,
+            "SELECT * FROM cal_attachments" +
+            " WHERE item_id = :item_id AND cal_id = " + this.mCalId +
+            " AND recurrence_id = :recurrence_id" +
+            " AND recurrence_id_tz = :recurrence_id_tz"
             );
 
         this.mSelectRelationsForItem = createStatement(
             this.mDB,
             "SELECT * FROM cal_relations " +
-            "WHERE item_id = :item_id AND cal_id = " + this.mCalId
+            "WHERE item_id = :item_id AND cal_id = " + this.mCalId +
+            " AND recurrence_id IS NULL"
+            );
+        this.mSelectRelationsForItemWithRecurrenceId = createStatement(
+            this.mDB,
+            "SELECT * FROM cal_relations" +
+            " WHERE item_id = :item_id AND cal_id = " + this.mCalId +
+            " AND recurrence_id = :recurrence_id" +
+            " AND recurrence_id_tz = :recurrence_id_tz"
             );
 
         this.mSelectMetaData = createStatement(
@@ -903,7 +919,16 @@ calStorageCalendar.prototype = {
         this.mSelectAlarmsForItem = createStatement(
             this.mDB,
             "SELECT icalString FROM cal_alarms"
-            + " WHERE item_id = :item_id AND cal_id = " + this.mCalId
+            + " WHERE item_id = :item_id AND cal_id = " + this.mCalId +
+            " AND recurrence_id IS NULL"
+            );
+
+        this.mSelectAlarmsForItemWithRecurrenceId = createStatement(
+            this.mDB,
+            "SELECT * FROM cal_alarms" +
+            " WHERE item_id = :item_id AND cal_id = " + this.mCalId +
+            " AND recurrence_id = :recurrence_id" +
+            " AND recurrence_id_tz = :recurrence_id_tz"
             );
 
         // insert statements
@@ -955,15 +980,15 @@ calStorageCalendar.prototype = {
         this.mInsertAttachment = createStatement (
             this.mDB,
             "INSERT INTO cal_attachments " + 
-            " (cal_id, item_id, data, format_type, encoding) " +
-            "VALUES (" + this.mCalId + ", :item_id, :data, :format_type, :encoding)"
+            " (cal_id, item_id, data, format_type, encoding, recurrence_id, recurrence_id_tz) " +
+            "VALUES (" + this.mCalId + ", :item_id, :data, :format_type, :encoding, :recurrence_id, :recurrence_id_tz)"
             );
 
         this.mInsertRelation = createStatement (
             this.mDB,
             "INSERT INTO cal_relations " + 
-            " (cal_id, item_id, rel_type, rel_id) " +
-            "VALUES (" + this.mCalId + ", :item_id, :rel_type, :rel_id)"
+            " (cal_id, item_id, rel_type, rel_id, recurrence_id, recurrence_id_tz) " +
+            "VALUES (" + this.mCalId + ", :item_id, :rel_type, :rel_id, :recurrence_id, :recurrence_id_tz)"
             );
 
         this.mInsertMetaData = createStatement(
@@ -975,8 +1000,8 @@ calStorageCalendar.prototype = {
         this.mInsertAlarm = createStatement(
             this.mDB,
             "INSERT INTO cal_alarms " +
-            "  (cal_id, item_id, icalString) " +
-            "VALUES  (" + this.mCalId + ", :item_id, :icalString)  "
+            "  (cal_id, item_id, icalString, recurrence_id, recurrence_id_tz) " +
+            "VALUES  (" + this.mCalId + ", :item_id, :icalString, :recurrence_id, :recurrence_id_tz)  "
             );
 
         // delete statements
@@ -1438,13 +1463,18 @@ calStorageCalendar.prototype = {
         }
 
         if (flags & CAL_ITEM_FLAG.HAS_ATTACHMENTS) {
-            var selectAttachment = this.mSelectAttachmentsForItem;
+            let selectAttachment = this.mSelectAttachmentsForItem;
+            if (item.recurrenceId != null) {
+                selectAttachment = this.mSelectAttachmentsForItemWithRecurrenceId;
+                this.setDateParamHelper(selectAttachment.params, "recurrence_id", item.recurrenceId);
+            }
+
             selectAttachment.params.item_id = item.id;
 
-            try { 
+            try {
                 while (selectAttachment.step()) {
-                    var row = selectAttachment.row;
-                    var attachment = this.getAttachmentFromRow(row);
+                    let row = selectAttachment.row;
+                    let attachment = this.getAttachmentFromRow(row);
                     item.addAttachment(attachment);
                 }
             } catch (e) {
@@ -1457,12 +1487,17 @@ calStorageCalendar.prototype = {
         }
 
         if (flags & CAL_ITEM_FLAG.HAS_RELATIONS) {
-            var selectRelation = this.mSelectRelationsForItem;
+            let selectRelation = this.mSelectRelationsForItem;
+            if (item.recurrenceId != null) {
+                selectRelation = this.mSelectRelationsForItemWithRecurrenceId;
+                this.setDateParamHelper(selectRelation.params, "recurrence_id", item.recurrenceId);
+            }
+
             selectRelation.params.item_id = item.id;
             try {
                 while (selectRelation.step()) {
-                    var row = selectRelation.row;
-                    var relation = this.getRelationFromRow(row);
+                    let row = selectRelation.row;
+                    let relation = this.getRelationFromRow(row);
                     item.addRelation(relation);
                 }
             } catch (e) {
@@ -1476,8 +1511,12 @@ calStorageCalendar.prototype = {
 
         if (flags & CAL_ITEM_FLAG.HAS_ALARMS) {
             let selectAlarm = this.mSelectAlarmsForItem;
-            selectAlarm.params.item_id = item.id;
+            if (item.recurrenceId != null) {
+                selectAlarm = this.mSelectAlarmsForItemWithRecurrenceId;
+                this.setDateParamHelper(selectAlarm.params, "recurrence_id", item.recurrenceId);
+            }
 
+            selectAlarm.params.item_id = item.id;
             try { 
                 while (selectAlarm.step()) {
                     let row = selectAlarm.row;
@@ -1913,6 +1952,7 @@ calStorageCalendar.prototype = {
         if (attachments && attachments.length > 0) {
             for each (att in attachments) {
                 var ap = this.mInsertAttachment.params;
+                this.setDateParamHelper(ap, "recurrence_id", item.recurrenceId);
                 ap.item_id = item.id;
                 ap.data = (att.uri ? att.uri.spec : "");
                 ap.format_type = att.formatType;
@@ -1931,6 +1971,7 @@ calStorageCalendar.prototype = {
         if (relations && relations.length > 0) {
             for each (var rel in relations) {
                 var rp = this.mInsertRelation.params;
+                this.setDateParamHelper(rp, "recurrence_id", item.recurrenceId);
                 rp.item_id = item.id;
                 rp.rel_type = rel.relType;
                 rp.rel_id = rel.relId;
@@ -1952,6 +1993,7 @@ calStorageCalendar.prototype = {
         for each (let alarm in alarms) {
             let pp = this.mInsertAlarm.params;
             try {
+                this.setDateParamHelper(pp, "recurrence_id", item.recurrenceId);
                 pp.item_id = item.id;
                 pp.icalString = alarm.icalString;
                 this.mInsertAlarm.execute();
