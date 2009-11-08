@@ -46,6 +46,14 @@
  *    that both the on-disk representations and in-memory representations are
  *    correct.
  *
+ * - Make sure that an indexing sweep performs a compaction pass if we kill the
+ *    compaction job automatically scheduled by the conclusion of the
+ *    compaction.  (Simulating the user quitting before all compactions have
+ *    been processed.)
+ *
+ * - Moves/deletes that happen after a compaction but before we process the
+ *    compaction generate a special type of edge case that we need to check.
+ *
  * There is also a less interesting case:
  *
  * - Make sure that the indexer does not try and start indexing a folder that is
@@ -121,6 +129,105 @@ function test_compaction_indexing_pass(aParam) {
 }
 
 /**
+ * Make sure that an indexing sweep performs a compaction pass if we kill the
+ *  compaction job automatically scheduled by the conclusion of the compaction.
+ *  (Simulating the user quitting before all compactions have been processed.)
+ */
+function test_sweep_performs_compaction() {
+  let [folder, moveSet, staySet] = make_folder_with_sets([
+    {count: 1}, {count: 1}]);
+  yield wait_for_message_injection();
+  yield wait_for_gloda_indexer([moveSet, staySet], {augment: true});
+
+  // move the message to another folder
+  let otherFolder = make_empty_folder();
+  yield async_move_messages(moveSet, otherFolder);
+  yield wait_for_gloda_indexer([moveSet]);
+
+  // compact
+  let msgFolder = get_real_injection_folder(folder);
+  mark_action("actual", "triggering compaction",
+              ["folder", msgFolder,
+               "gloda folder", Gloda.getFolderForFolder(msgFolder)]);
+  msgFolder.compact(asyncUrlListener, null);
+  yield false;
+
+  // The gloda compaction job should not have started yet.  Kill it!  Kill them
+  //  all!
+  GlodaIndexer.purgeJobsUsingFilter(function() true);
+  GlodaIndexer.killActiveJob();
+
+  // Make sure the folder is marked compacted...
+  let glodaFolder = Gloda.getFolderForFolder(msgFolder);
+  do_check_true(glodaFolder.compacted);
+
+  // Firing up an indexing pass
+  GlodaMsgIndexer.indexingSweepNeeded = true;
+  yield wait_for_gloda_indexer();
+
+  // Make sure the compaction happened
+  verify_message_keys(staySet);
+}
+
+/**
+ * Make sure that if we compact a folder then move messages out of it and/or
+ *  delete messages from it before its compaction pass happens that the
+ *  compaction pass properly marks the messages deleted.
+ */
+function test_moves_and_deletions_on_compacted_folder_edge_case() {
+  let [folder, compactMoveSet, moveSet, delSet, staySet] =
+    make_folder_with_sets([{count: 1}, {count: 1}, {count: 1}, {count: 1}]);
+  yield wait_for_message_injection();
+  yield wait_for_gloda_indexer([compactMoveSet, moveSet, delSet, staySet],
+                               {augment: true});
+
+  // move the message to another folder
+  let otherFolder = make_empty_folder();
+  yield async_move_messages(compactMoveSet, otherFolder);
+  yield wait_for_gloda_indexer([compactMoveSet]);
+
+  // compact
+  let msgFolder = get_real_injection_folder(folder);
+  mark_action("actual", "triggering compaction",
+              ["folder", msgFolder,
+               "gloda folder", Gloda.getFolderForFolder(msgFolder)]);
+  msgFolder.compact(asyncUrlListener, null);
+  yield false;
+
+  // The gloda compaction job should not have started yet.  Kill it!  Kill them
+  //  all!
+  mark_action("actual", "killing all indexing jobs", []);
+  GlodaIndexer.purgeJobsUsingFilter(function() true);
+  GlodaIndexer.killActiveJob();
+
+  // - Delete
+  // Becaus of the compaction, the PendingCommitTracker forgot that the message
+  //  we are deleting got indexed; we will receive no event.
+  yield async_delete_messages(delSet);
+
+  // - Move
+  // Same deal on the move, except that it will try and trigger event-based
+  //  indexing in the target folder...
+  yield async_move_messages(moveSet, otherFolder);
+  // Kill the event-based indexing of the target; we want the indexing sweep
+  //  to see it as a move.
+  mark_action("actual", "killing all indexing jobs", []);
+  GlodaIndexer.purgeJobsUsingFilter(function() true);
+  GlodaIndexer.killActiveJob();
+
+  // - Indexing pass
+  // This will trigger compaction (per the previous unit test) which should mark
+  //  moveSet and delSet as deleted.  Then it should happen in to the next
+  //  folder and add moveSet again...
+  mark_action("actual", "triggering indexing sweep", []);
+  GlodaMsgIndexer.indexingSweepNeeded = true;
+  yield wait_for_gloda_indexer([moveSet], {deleted: [moveSet, delSet]});
+
+  // Sanity check the compaction for giggles.
+  verify_message_keys(staySet);
+}
+
+/**
  * Induce a compaction while we are in the middle of indexing.  Make sure we
  *  clean up and that the folder ends
  *
@@ -192,6 +299,8 @@ function test_do_not_enter_compacting_folders() {
 
 var tests = [
   parameterizeTest(test_compaction_indexing_pass, indexingPassPermutations),
+  test_sweep_performs_compaction,
+  test_moves_and_deletions_on_compacted_folder_edge_case,
   test_compaction_interrupting_indexing,
   test_do_not_enter_compacting_folders,
 ];

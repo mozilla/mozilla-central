@@ -206,10 +206,43 @@ function test_indexing_sweep() {
   mark_sub_test_start("filthy folder indexing");
   let glodaFolderC = Gloda.getFolderForFolder(
                        get_real_injection_folder(folderC));
-  glodaFolderC.dirtyStatus = glodaFolderC.kFolderFilthy;
+  glodaFolderC._dirtyStatus = glodaFolderC.kFolderFilthy;
   mark_action("actual", "marked gloda folder dirty", [glodaFolderC]);
   GlodaMsgIndexer.indexingSweepNeeded = true;
   yield wait_for_gloda_indexer([setC1, setC2]);
+}
+
+/**
+ * We used to screw up and downgrade filthy folders to dirty if we saw an event
+ *  happen in the folder before we got to the folder; this tests that we no
+ *  longer do that.
+ */
+function test_event_driven_indexing_does_not_mess_with_filthy_folders() {
+  // add a folder with a message.
+  let [folder, msgSet] = make_folder_with_sets([{count: 1}]);
+  yield wait_for_message_injection();
+  yield wait_for_gloda_indexer([msgSet]);
+
+  // fake marking the folder filthy.
+  let glodaFolder = Gloda.getFolderForFolder(get_real_injection_folder(folder));
+  glodaFolder._dirtyStatus = glodaFolder.kFolderFilthy;
+
+  // generate an event in the folder
+  msgSet.setRead(true);
+  // make sure the indexer did not do anything and the folder is still filthy.
+  yield wait_for_gloda_indexer([]);
+  do_check_eq(glodaFolder._dirtyStatus, glodaFolder.kFolderFilthy);
+  // also, the message should not have actually gotten marked dirty
+  do_check_eq(msgSet.getMsgHdr(0).getUint32Property("gloda-dirty"), 0);
+
+  // let's make the message un-read again for consistency with the gloda state
+  msgSet.setRead(false);
+  // make the folder dirty and let an indexing sweep take care of this so we
+  //  don't get extra events in subsequent tests.
+  glodaFolder._dirtyStatus = glodaFolder.kFolderDirty;
+  GlodaMsgIndexer.indexingSweepNeeded = true;
+  // (the message won't get indexed though)
+  yield wait_for_gloda_indexer([]);
 }
 
 /* ===== Threading / Conversation Grouping ===== */
@@ -813,6 +846,7 @@ var tests = [
   test_pending_commit_tracker_flushes_correctly,
   test_pending_commit_causes_msgdb_commit,
   test_indexing_sweep,
+  test_event_driven_indexing_does_not_mess_with_filthy_folders,
 
   test_threading,
   test_attributes_fundamental,

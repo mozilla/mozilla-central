@@ -244,6 +244,15 @@ GlodaFolder.prototype = {
    * the messages in the folder. This state will be downgraded to dirty */
   kFolderFilthy: 2,
 
+  _kFolderDirtyStatusMask: 0x7,
+  /**
+   * The (local) folder has been compacted and all of its message keys are
+   *  potentially incorrect.  This is not a possible state for IMAP folders
+   *  because their message keys are based on UIDs rather than offsets into
+   *  the mbox file.
+   */
+  _kFolderCompactedFlag: 0x8,
+
   /** The folder should never be indexed. */
   kIndexingNeverPriority: -1,
   /** The lowest priority assigned to a folder. */
@@ -264,13 +273,68 @@ GlodaFolder.prototype = {
 
   get id() { return this._id; },
   get uri() { return this._uri; },
-  get dirtyStatus() { return this._dirtyStatus; },
-  set dirtyStatus(aNewStatus) {
-    if (aNewStatus != this._dirtyStatus) {
-      this._dirtyStatus = aNewStatus;
+  get dirtyStatus() {
+    return this._dirtyStatus & this._kFolderDirtyStatusMask;
+  },
+  /**
+   * Mark a folder as dirty if it was clean.  Do nothing if it was already dirty
+   *  or filthy.  For use by GlodaMsgIndexer only.  And maybe rkent and his
+   *  marvelous extensions.
+   */
+  _ensureFolderDirty: function gloda_folder__markFolderDirty() {
+    if (this.dirtyStatus == this.kFolderClean) {
+      this._dirtyStatus = (this.kFolderDirty & this._kFolderDirtyStatusMask) |
+                          (this._dirtyStatus & ~this._kFolderDirtyStatusMask);
       this._datastore.updateFolderDirtyStatus(this);
     }
   },
+  /**
+   * Definitely for use only by GlodaMsgIndexer to downgrade the dirty status of
+   *  a folder.
+   */
+  _downgradeDirtyStatus: function gloda_folder__downgradeDirtyStatus(
+                           aNewStatus) {
+    if (this._dirtyStatus != aNewStatus) {
+      this._dirtyStatus = (aNewStatus & this._kFolderDirtyStatusMask) |
+                          (this._dirtyStatus & ~this._kFolderDirtyStatusMask);
+      this._datastore.updateFolderDirtyStatus(this);
+    }
+  },
+  /**
+   * Indicate whether this folder is currently being compacted.  The
+   *  |GlodaMsgIndexer| keeps this in-memory-only value up-to-date.
+   */
+  get compacting gloda_folder_get_compacting() {
+    return this._compacting;
+  },
+  /**
+   * Set whether this folder is currently being compacted.  This is really only
+   *  for the |GlodaMsgIndexer| to set.
+   */
+  set compacting gloda_folder_set_compacting(aCompacting) {
+    this._compacting = aCompacting;
+  },
+  /**
+   * Indicate whether this folder was compacted and has not yet been
+   *  compaction processed.
+   */
+  get compacted gloda_folder_get_compacted() {
+    return Boolean(this._dirtyStatus & this._kFolderCompactedFlag);
+  },
+  /**
+   * For use only by GlodaMsgIndexer to set/clear the compaction state of this
+   *  folder.
+   */
+  _setCompactedState: function gloda_folder__clearCompactedState(aCompacted) {
+    if (this.compacted != aCompacted) {
+      if (aCompacted)
+        this._dirtyStatus |= this._kFolderCompactedFlag;
+      else
+        this._dirtyStatus &= ~this._kFolderCompactedFlag;
+      this._datastore.updateFolderDirtyStatus(this);
+    }
+  },
+
   get name() { return this._prettyName; },
   toString: function gloda_folder_toString() {
     return "Folder:" + this._id;
@@ -401,21 +465,6 @@ GlodaFolder.prototype = {
     }
 
     return true;
-  },
-
-  /**
-   * Indicate whether this folder is currently being compacted.  The
-   *  |GlodaMsgIndexer| keeps this in-memory-only value up-to-date.
-   */
-  get compacting gloda_folder_get_compacting() {
-    return this._compacting;
-  },
-  /**
-   * Set whether this folder is currently being compacted.  This is really only
-   *  for the |GlodaMsgIndexer| to set.
-   */
-  set compacting gloda_folder_set_compacting(aCompacting) {
-    this._compacting = aCompacting;
   },
 
   /**

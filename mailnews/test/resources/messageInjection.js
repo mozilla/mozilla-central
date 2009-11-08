@@ -112,6 +112,8 @@ function configure_message_injection(aInjectionConfig) {
     // a local inbox should have a Mail flag!
     mis.inboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
     mis.inboxFolder.setFlag(Ci.nsMsgFolderFlags.Inbox);
+    _messageInjectionSetup.notifyListeners("onRealFolderCreated",
+                                           [mis.inboxFolder]);
 
     // Force an initialization of the Inbox folder database.
     let unused = mis.inboxFolder.prettiestName;
@@ -173,6 +175,8 @@ function configure_message_injection(aInjectionConfig) {
       mis.inboxFolder.setFlag(Ci.nsMsgFolderFlags.Offline);
     else
       mis.inboxFolder.clearFlag(Ci.nsMsgFolderFlags.Offline);
+    _messageInjectionSetup.notifyListeners("onRealFolderCreated",
+                                           [mis.inboxFolder]);
 
     mis.mainThread = Cc["@mozilla.org/thread-manager;1"]
                        .getService()

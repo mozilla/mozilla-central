@@ -468,19 +468,6 @@ var GlodaMsgIndexer = {
    *  may be previous state left over from an earlier database.
    */
   kMessageFilthy: 2,
-  /**
-   * The (local) folder has been compacted and all of its message keys are
-   *  potentially incorrect.  This is not a possible state for IMAP folders
-   *  because their message keys are based on UIDs rather than offsets into
-   *  the mbox file.
-   * This is dealt with via a specialized/optimized processing pass and does not
-   *  attempt to touch every message and mark its dirty state.  This is because
-   *  we are able to (comparatively) efficiently process the folder, so it is
-   *  sufficiently likely we will run to completion.  Additionally, immediately
-   *  touching a property on every message in a folder and then touching them
-   *  again once processed in some ways defeats the benefits of compaction.
-   */
-  kMessageCompactedDirtyBit: 4,
 
   /**
    * A message addition job yet to be (completely) processed.  Since message
@@ -647,9 +634,12 @@ var GlodaMsgIndexer = {
    *
    * @param aEnumKind One of |kEnumAllMsgs|, |kEnumMsgsToIndex|, or
    *     |kEnumIndexedMsgs|.
+   * @param [aAllowPreBadIds=false] Only valid for |kEnumIndexedMsgs|, tells us
+   *     that we should treat message with any gloda-id as dirty, not just
+   *     messages that have non-bad message id's.
    */
   _indexerGetEnumerator: function gloda_indexer_indexerGetEnumerator(
-      aEnumKind) {
+      aEnumKind, aAllowPreBadIds) {
     if (aEnumKind == this.kEnumMsgsToIndex) {
       // We need to create search terms for messages to index. Messages should
       //  be indexed if they're indexable (local or offline and not expunged)
@@ -768,10 +758,12 @@ var GlodaMsgIndexer = {
       searchTerm.booleanAnd = false; // actually don't care here
       searchTerm.beginsGrouping = true;
       searchTerm.attrib = nsMsgSearchAttrib.Uint32HdrProperty;
-      searchTerm.op = nsMsgSearchOp.IsGreaterThan;
+      // use != 0 if we're allow pre-bad ids.
+      searchTerm.op = aAllowPreBadIds ? nsMsgSearchOp.Isnt
+                                      : nsMsgSearchOp.IsGreaterThan;
       let value = searchTerm.value;
       value.attrib = searchTerm.attrib;
-      value.status = GLODA_FIRST_VALID_MESSAGE_ID - 1;
+      value.status = aAllowPreBadIds ? 0 : (GLODA_FIRST_VALID_MESSAGE_ID - 1);
       searchTerm.value = value;
       searchTerm.hdrProperty = GLODA_MESSAGE_ID_PROPERTY;
       searchTerms.appendElement(searchTerm, false);
@@ -839,6 +831,8 @@ var GlodaMsgIndexer = {
     return [
       ["folderSweep", {
          worker: this._worker_indexingSweep,
+         jobCanceled: this._cleanup_indexingSweep,
+         cleanup: this._cleanup_indexingSweep,
        }],
       ["folder", {
          worker: this._worker_folderIndex,
@@ -935,19 +929,26 @@ var GlodaMsgIndexer = {
       aJob.mappedFolders = true;
     }
 
-    // - process the folders (in sorted order)
+    // -- process the folders (in sorted order)
     while (aJob.foldersToProcess.length) {
       let glodaFolder = aJob.foldersToProcess.shift();
       // ignore folders that:
       // - have been deleted out of existence!
-      // - are not dirty
+      // - are not dirty/have not been compacted
       // - are actively being compacted
-      if (glodaFolder._deleted || !glodaFolder.dirtyStatus ||
+      if (glodaFolder._deleted ||
+          (!glodaFolder.dirtyStatus && !glodaFolder.compacted) ||
           glodaFolder.compacting)
         continue;
 
-      // add a job for the folder indexing
-      GlodaIndexer.indexJob(new IndexingJob("folder", glodaFolder.id));
+      // If the folder is marked as compacted, give it a compaction job.
+      if (glodaFolder.compacted)
+        GlodaIndexer.indexJob(new IndexingJob("folderCompact", glodaFolder.id));
+
+      // add a job for the folder indexing if it was dirty
+      if (glodaFolder.dirtyStatus)
+        GlodaIndexer.indexJob(new IndexingJob("folder", glodaFolder.id));
+
       // re-schedule this job (although this worker will die)
       GlodaIndexer.indexJob(aJob);
       yield this.kWorkDone;
@@ -960,6 +961,14 @@ var GlodaMsgIndexer = {
     // we don't have any more work to do...
     this._indexingSweepActive = false;
     yield this.kWorkDone;
+  },
+
+  /**
+   * The only state we need to cleanup is that there is no longer an active
+   *  indexing sweep.
+   */
+  _cleanup_indexingSweep: function gloda_canceled_indexingSweep(aJob) {
+    this._indexingSweepActive = false;
   },
 
   /**
@@ -993,29 +1002,31 @@ var GlodaMsgIndexer = {
    * We end up processing two streams of gloda-id's and some extra info.  In
    *  the normal case we expect these two streams to line up exactly and all
    *  we need to do is update the message key if it has changed.
-   * The expected exceptional case is that we will sometimes see a gloda-id from
-   *  the gloda database that does not have a corresponding header from the
-   *  nsIMsgDBHdr-producing enumerator.  In this case we assume the message was
-   *  indexed and tracked by the PendingCommitTracker but got purged by the
-   *  compaction.  Since we have the message-id header for the gloda message
-   *  we are able to ask the nsIMsgDatabase for the matching message and mark
-   *  the header with the gloda-id using the PendingCommitTracker.  (We are
-   *  unable to verify that the information has been committed so we need to
-   *  wait on the commit again to mark it.)  Although the lookup is O(n)
-   *  it is native on the in-memory mork database and is far more preferable
-   *  than using an unfiltered iterator in the normal case as well.
-   * The unexpected exceptional case is that we will see a gloda-id from the
-   *  enumerator that has no corresponding entry in the actual database.
-   *  This should not happen.  We are able to differentiate this case from the
-   *  previous case by always checking for a message given its message-id
-   *  header value when we experience a gloda-id mis-match.  In all cases we
-   *  should be able to locate a message header with the message-id.  If
-   *  the message header's messageKey is greater than that of the enumerator's
-   *  header then we know we are in the unexpected case.  (It implies an
-   *  insertion in the enumerator stream which is how we define the unexpected
-   *  case.)  If the opposite is true, then that implies the enumerator skipped
-   *  over the message header because it never got marked by the
-   *  PendingCommitTracker which is the expected case.
+   *
+   * There are a few exceptional cases where things do not line up:
+   * 1) The gloda database knows about a message that the enumerator does not
+   *    know about...
+   *   a) This message exists in the folder (identified using its message-id
+   *      header).  This means the message got indexed but PendingCommitTracker
+   *      had to forget about the info when the compaction happened.  We
+   *      re-establish the link and track the message in PendingCommitTracker
+   *      again.
+   *   b) The message does not exist in the folder.  This means the message got
+   *      indexed, PendingCommitTracker had to forget about the info, and
+   *      then the message either got moved or deleted before now.  We mark
+   *      the message as deleted; this allows the gloda message to be reused
+   *      if the move target has not yet been indexed or purged if it already
+   *      has been and the gloda message is a duplicate.  And obviously, if the
+   *      event that happened was actually a delete, then the delete is the
+   *      right thing to do.
+   * 2) The enumerator knows about a message that the gloda database does not
+   *    know about.  This is unexpected and should not happen.  We log a
+   *    warning.  We are able to differentiate this case from case #1a by
+   *    retrieving the message header associated with the next gloda message
+   *    (using the message-id header per 1a again).  If the gloda message's
+   *    message key is after the enumerator's message key then we know this is
+   *    case #2.  (It implies an insertion in the enumerator stream which is how
+   *    we define the unexpected case.)
    *
    * Besides updating the database rows, we also need to make sure that
    *  in-memory representations are updated.  Immediately after dispatching
@@ -1038,6 +1049,13 @@ var GlodaMsgIndexer = {
   _worker_folderCompactionPass:
       function gloda_worker_folderCompactionPass(aJob, aCallbackHandle) {
     yield this._indexerEnterFolder(aJob.id);
+
+    // It's conceivable that with a folder sweep we might end up trying to
+    //  compact a folder twice.  Bail early in this case.
+    if (!this._indexingGlodaFolder.compacted)
+      yield this.kWorkDone;
+
+    // this is a forward enumeration (sometimes we reverse enumerate; not here)
     this._indexerGetEnumerator(this.kEnumIndexedMsgs);
 
     const HEADER_CHECK_SYNC_BLOCK_SIZE = this.HEADER_CHECK_SYNC_BLOCK_SIZE;
@@ -1055,6 +1073,8 @@ var GlodaMsgIndexer = {
     //  GlodaDatastore.updateMessageLocations
     let updateGlodaIds = [];
     let updateMessageKeys = [];
+    // list of gloda id's to mark deleted
+    let deleteGlodaIds = [];
     let exceptionalMessages = {};
 
     // for GC reasons we need to track the number of headers seen
@@ -1112,6 +1132,11 @@ var GlodaMsgIndexer = {
           updateMessageKeys = [];
         }
 
+        if (deleteGlodaIds.length) {
+          GlodaDatastore.markMessagesDeletedByIDs(deleteGlodaIds);
+          deleteGlodaIds = [];
+        }
+
         GlodaDatastore.folderCompactionPassBlockFetch(
           aJob.id, oldMessageKey + 1, FOLDER_COMPACTION_PASS_BATCH_SIZE,
           aCallbackHandle.wrappedCallback);
@@ -1140,7 +1165,7 @@ var GlodaMsgIndexer = {
         keepGlodaTuple = false;
       }
 
-      // normal expected case
+      // -- normal expected case
       if (glodaId == oldGlodaId) {
         // only need to do something if the key is not right
         if (msgHdr.messageKey != oldMessageKey) {
@@ -1148,16 +1173,19 @@ var GlodaMsgIndexer = {
           updateMessageKeys.push(msgHdr.messageKey);
         }
       }
-      // exceptional case;
+      // -- exceptional cases
       else {
         // This should always return a value unless something is very wrong.
         //  We do not want to catch the exception if one happens.
         let idBasedHeader = oldHeaderMessageId ?
           this._indexingDatabase.getMsgHdrForMessageID(oldHeaderMessageId) :
           false;
-        if (idBasedHeader == null)
-          throw new Error("Compaction pass failure; unable to locate header " +
-                          "with message-id " + oldHeaderMessageId);
+        // - Case 1b.
+        // We want to mark the message as deleted.
+        if (idBasedHeader == null) {
+          deleteGlodaIds.push(oldGlodaId);
+        }
+        // - Case 1a
         // The expected case is that the message referenced by the gloda
         //  database precedes the header the enumerator told us about.  This
         //  is expected because if PendingCommitTracker did not mark the
@@ -1165,7 +1193,7 @@ var GlodaMsgIndexer = {
         //  about it.
         // Also, if we ran out of headers from the enumerator, this is a dead
         //  giveaway that this is the expected case.
-        if (idBasedHeader &&
+        else if (idBasedHeader &&
              ((msgHdr &&
                idBasedHeader.messageKey < msgHdr.messageKey) ||
               !msgHdr)) {
@@ -1181,6 +1209,7 @@ var GlodaMsgIndexer = {
           //  database.
           keepIterHeader = true;
         }
+        // - Case 2
         // Whereas if the message referenced by gloda has a message key
         //  greater than the one returned by the enumerator, then we have a
         //  header claiming to be indexed by gloda that gloda does not
@@ -1202,6 +1231,10 @@ var GlodaMsgIndexer = {
       GlodaDatastore.updateMessageLocations(updateGlodaIds,
                                             updateMessageKeys,
                                             aJob.id, true);
+    if (deleteGlodaIds.length)
+      GlodaDatastore.markMessagesDeletedByIDs(deleteGlodaIds);
+
+    this._indexingGlodaFolder._setCompactedState(false);
 
     this._indexerLeaveFolder();
     yield this.kWorkDone;
@@ -1242,7 +1275,7 @@ var GlodaMsgIndexer = {
     //  pathological situation.)
     let glodaFolder = GlodaDatastore._mapFolder(this._indexingFolder);
     if (glodaFolder.dirtyStatus == glodaFolder.kFolderFilthy) {
-      this._indexerGetEnumerator(this.kEnumIndexedMsgs);
+      this._indexerGetEnumerator(this.kEnumIndexedMsgs, true);
       let count = 0;
       for (let msgHdr in fixIterator(this._indexingEnumerator, nsIMsgDBHdr)) {
         // we still need to avoid locking up the UI, pause periodically...
@@ -1264,7 +1297,7 @@ var GlodaMsgIndexer = {
       this._indexingDatabase.Commit(Ci.nsMsgDBCommitType.kLargeCommit);
 
       // this will automatically persist to the database
-      glodaFolder.dirtyStatus = glodaFolder.kFolderDirty;
+      glodaFolder._downgradeDirtyStatus(glodaFolder.kFolderDirty);
     }
 
     // Pass 1: count the number of messages to index.
@@ -1333,7 +1366,13 @@ var GlodaMsgIndexer = {
       }
     }
 
-    glodaFolder.dirtyStatus = glodaFolder.kFolderClean;
+    // This will trigger an (async) db update which cannot hit the disk prior to
+    //  the actual database records that constitute the clean state.
+    // XXX There is the slight possibility that, in the event of a crash, this
+    //  will hit the disk but the gloda-id properties on the headers will not
+    //  get set.  This should ideally be resolved by detecting a non-clean
+    //  shutdown and marking all folders as dirty.
+    glodaFolder._downgradeDirtyStatus(glodaFolder.kFolderClean);
 
     // by definition, it's not likely we'll visit this folder again anytime soon
     this._indexerLeaveFolder();
@@ -1385,10 +1424,11 @@ var GlodaMsgIndexer = {
       let glodaFolder = GlodaDatastore._mapFolderID(glodaFolderId);
 
       // Stay out of folders that:
-      // - are compacting
+      // - are compacting / compacted and not yet processed
       // - got deleted (this would be redundant if we had a stance on id nukage)
       // (these things could have changed since we queued the event)
-      if (glodaFolder.compacting || glodaFolder._deleted)
+      if (glodaFolder.compacting || glodaFolder.compacted ||
+          glodaFolder._deleted)
         continue;
 
       // get in the folder
@@ -1602,8 +1642,8 @@ var GlodaMsgIndexer = {
    */
   indexFolder: function glodaIndexFolder(aMsgFolder) {
     let glodaFolder = GlodaDatastore._mapFolder(aMsgFolder);
-    // stay out of compacting folders
-    if (glodaFolder.compacting)
+    // stay out of compacting/compacted folders
+    if (glodaFolder.compacting || glodaFolder.compacted)
       return;
 
     this._log.info("Queue-ing folder for indexing: " +
@@ -1665,6 +1705,12 @@ var GlodaMsgIndexer = {
       if (!this.shouldIndexFolder(msgFolder)) {
         continue;
       }
+      // -- Ignore messages in filthy folders!
+      // A filthy folder can only be processed by an indexing sweep, and at
+      //  that point the message will get indexed.
+      let glodaFolder = GlodaDatastore._mapFolder(msgHdr.folder);
+      if (glodaFolder.dirtyStatus == glodaFolder.kFolderFilthy)
+        continue;
 
       // -- Index this message?
       // We index local messages, IMAP messages that are offline, and IMAP
@@ -1713,8 +1759,7 @@ var GlodaMsgIndexer = {
       // (we want to index the message if we are here)
 
       // mark the folder dirty too, so we know to look inside
-      let glodaFolder = GlodaDatastore._mapFolder(msgFolder);
-      glodaFolder.dirtyStatus = glodaFolder.kFolderDirty;
+      glodaFolder._ensureFolderDirty();
 
       if (this._pendingAddJob == null) {
         this._pendingAddJob = new IndexingJob("message", null);
@@ -1834,7 +1879,20 @@ var GlodaMsgIndexer = {
      * We could fast-path the IMAP move case in msgsClassified by noticing that
      *  a message is showing up with a gloda-id header already and just
      *  performing an async location update.
-
+     *
+     * Moves that occur involving 'compacted' folders are fine and do not
+     *  require special handling here.  The one tricky super-edge-case that
+     *  can happen (and gets handled by the compaction pass) is the move of a
+     *  message that got gloda indexed that did not already have a gloda-id and
+     *  PendingCommitTracker did not get to flush the gloda-id before the
+     *  compaction happened.  In that case our move logic cannot know to do
+     *  anything and the gloda database still thinks the message lives in our
+     *  folder.  The compaction pass will deal with this by marking the message
+     *  as deleted.  The rationale being that marking it deleted allows the
+     *  message to be re-used if it gets indexed in the target location, or if
+     *  the target location has already been indexed, we no longer need the
+     *  duplicate and it should be deleted.  (Also, it is unable to distinguish
+     *  between a case where the message got deleted versus moved.)
      *
      * Because copied messages are, by their nature, duplicate messages, we
      *  do not particularly care about them.  As such, we defer their processing
@@ -1930,6 +1988,9 @@ var GlodaMsgIndexer = {
             let newMessageKeys = [];
             aSrcMsgHdrs.QueryInterface(nsIArray);
             aDestMsgHdrs.QueryInterface(nsIArray);
+            // Track whether we see any messages that are not gloda indexed so
+            //  we know if we have to mark the destination folder dirty.
+            let sawNonGlodaMessage = false;
             for (let iMsg = 0; iMsg < aSrcMsgHdrs.length; iMsg++) {
               let srcMsgHdr = aSrcMsgHdrs.queryElementAt(iMsg, nsIMsgDBHdr);
               let destMsgHdr = aDestMsgHdrs.queryElementAt(iMsg, nsIMsgDBHdr);
@@ -1944,6 +2005,9 @@ var GlodaMsgIndexer = {
                 glodaIds.push(glodaId);
                 newMessageKeys.push(destMsgHdr.messageKey);
               }
+              else {
+                sawNonGlodaMessage = true;
+              }
             }
 
             // this method takes care to update the in-memory representations
@@ -1951,6 +2015,14 @@ var GlodaMsgIndexer = {
             if (glodaIds.length)
               GlodaDatastore.updateMessageLocations(glodaIds, newMessageKeys,
                                                     aDestFolder);
+
+            // Mark the destination folder dirty if we saw any messages that
+            //  were not already gloda indexed.
+            if (sawNonGlodaMessage) {
+              let destGlodaFolder = GlodaDatastore._mapFolder(aDestFolder);
+              destGlodaFolder._ensureFolderDirty();
+              this.indexer.indexingSweepNeeded = true;
+            }
           }
           // --- No dest headers (IMAP case):
           // Update any valid gloda indexed messages into their new folder to
@@ -1996,7 +2068,7 @@ var GlodaMsgIndexer = {
 
           // mark the folder as dirty; we'll get to it later.
           let destGlodaFolder = GlodaDatastore._mapFolder(aDestFolder);
-          destGlodaFolder.dirtyStatus = destGlodaFolder.kFolderDirty;
+          destGlodaFolder._ensureFolderDirty();
           this.indexer.indexingSweepNeeded = true;
         }
       } catch (ex) {
@@ -2165,6 +2237,7 @@ var GlodaMsgIndexer = {
 
         let glodaFolder = GlodaDatastore._mapFolder(aMsgFolder);
         glodaFolder.compacting = false;
+        glodaFolder._setCompactedState(true);
 
         // Queue compaction unless the folder was filthy (in which case there
         //  are no valid gloda-id's to update.)

@@ -563,7 +563,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 16,
+  _schemaVersion: 17,
   _schema: {
     tables: {
 
@@ -1070,6 +1070,8 @@ var GlodaDatastore = {
     // version 16ish, labeled 14 and now 16
     // - gloda message id's start from 32 now
     // - all kinds of correctness changes
+    // version 17
+    // - more correctness fixes.
 
     aDBConnection.close();
     aDBFile.remove(false);

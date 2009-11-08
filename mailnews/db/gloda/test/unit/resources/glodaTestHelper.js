@@ -124,6 +124,22 @@ var LOG = Log4Moz.repository.getLogger("gloda.test");
 // index_msg does not export this, so we need to provide it.
 const GLODA_BAD_MESSAGE_ID = 1;
 
+// -- Add a hook that makes folders not filthy when we first see them.
+register_message_injection_listener({
+  /**
+   * By default all folders start out filthy.  This is great in the real world
+   *  but I went and wrote all the unit tests without entirely thinking about
+   *  how this affected said unit tests.  So we add a listener so that we can
+   *  force the folders to be clean.
+   * This is okay and safe because messageInjection always creates the folders
+   *  without any messages in them.
+   */
+  onRealFolderCreated: function gth_onRealFolderCreated(aRealFolder) {
+    let glodaFolder = Gloda.getFolderForFolder(aRealFolder);
+    glodaFolder._downgradeDirtyStatus(glodaFolder.kFolderClean);
+  }
+});
+
 function _prepareIndexerForTesting() {
   if (!GlodaIndexer.enabled)
     do_throw("The gloda indexer is somehow not enabled.  This is problematic.");
