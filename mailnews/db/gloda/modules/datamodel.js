@@ -294,7 +294,7 @@ GlodaFolder.prototype = {
    */
   _downgradeDirtyStatus: function gloda_folder__downgradeDirtyStatus(
                            aNewStatus) {
-    if (this._dirtyStatus != aNewStatus) {
+    if (this.dirtyStatus != aNewStatus) {
       this._dirtyStatus = (aNewStatus & this._kFolderDirtyStatusMask) |
                           (this._dirtyStatus & ~this._kFolderDirtyStatusMask);
       this._datastore.updateFolderDirtyStatus(this);
