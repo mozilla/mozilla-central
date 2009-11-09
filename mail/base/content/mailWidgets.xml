@@ -432,6 +432,12 @@
           <![CDATA[
             this.more.collapsed = true;
 
+            // HACK Bug 525302
+            // Workaround for bug 492645, which prevents bug 525225.
+            // Fake the "All Headers" mode, so that we get a scroll bar
+            // Will be reset when a new message loads
+            document.getElementById("expandedHeaderView").setAttribute("show_header_mode","all");
+
             // Causes different CSS selectors to be used, which allows all
             // of the addresses to be properly displayed and wrapped.
             this.longEmailAddresses.removeAttribute("singleline");

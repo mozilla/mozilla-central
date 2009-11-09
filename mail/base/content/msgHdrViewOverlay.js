@@ -818,6 +818,10 @@ function updateExpandedView()
   UpdateJunkButton();
   UpdateReplyButtons();
   displayAttachmentsForExpandedView();
+
+  try {
+    AdjustHeaderView(pref.getIntPref("mail.show_headers"));
+  } catch (e) { logException(e); }
 }
 
 /**

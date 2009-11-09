@@ -417,7 +417,6 @@ function InitViewHeadersMenu()
 {
   const dt = Components.interfaces.nsMimeHeaderDisplayTypes;
   var headerchoice = pref.getIntPref("mail.show_headers");
-  AdjustHeaderView(headerchoice);
   document.getElementById("cmd_viewAllHeader")
           .setAttribute("checked", headerchoice == dt.AllHeaders);
   document.getElementById("cmd_viewNormalHeader")
