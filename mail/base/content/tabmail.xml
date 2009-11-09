@@ -664,10 +664,12 @@
              */
             let [iTab, thisTab, tabNode] = this._getTabContextForTabbyThing(
                                            aTabNode, false);
-            for (var i = 0; i < this.tabInfo.length; i++) {
+
+            // closeTab mutates the tabInfo array, so start from the end.
+            for (let i = this.tabInfo.length - 1; i >= 0; i--) {
               let tab = this.tabInfo[i];
               if ((tab != thisTab) && tab.canClose)
-                this.closeTab(tab)
+                this.closeTab(tab);
             }
           ]]>
         </body>
