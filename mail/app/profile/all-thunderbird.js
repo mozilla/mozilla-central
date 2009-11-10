@@ -285,6 +285,8 @@ pref("offline.autoDetect", true);
 
 // Expose only select protocol handlers. All others should go
 // through the external protocol handler route.
+// If you are changing this list, you may need to also consider changing the
+// list in nsMsgContentPolicy::IsExposedProtocol.
 pref("network.protocol-handler.expose-all", false);
 pref("network.protocol-handler.expose.mailto", true);
 pref("network.protocol-handler.expose.news", true);

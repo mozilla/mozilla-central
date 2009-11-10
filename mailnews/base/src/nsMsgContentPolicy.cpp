@@ -417,7 +417,8 @@ nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
 }
 
 /**
- * Determines if the content location is a scheme that we're willing to expose.
+ * Determines if the content location is a scheme that we're willing to expose
+ * for unlimited loading of content.
  */
 PRBool
 nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
@@ -426,28 +427,17 @@ nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
   nsresult rv = aContentLocation->GetScheme(contentScheme);
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
-  PRBool isExposedProtocol = PR_FALSE;
-#ifdef MOZ_THUNDERBIRD
-  nsCOMPtr<nsIExternalProtocolService> extProtService =
-    do_GetService(NS_EXTERNALPROTOCOLSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
-
-  rv = extProtService->IsExposedProtocol(contentScheme.get(), &isExposedProtocol);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
-
-#else
-  isExposedProtocol = contentScheme.LowerCaseEqualsLiteral("mailto") ||
-    contentScheme.LowerCaseEqualsLiteral("news") ||
-    contentScheme.LowerCaseEqualsLiteral("snews") ||
-    contentScheme.LowerCaseEqualsLiteral("nntp") ||
-    contentScheme.LowerCaseEqualsLiteral("imap") ||
-    contentScheme.LowerCaseEqualsLiteral("addbook") ||
-    contentScheme.LowerCaseEqualsLiteral("pop") ||
-    contentScheme.LowerCaseEqualsLiteral("mailbox") ||
-    contentScheme.LowerCaseEqualsLiteral("about");
-#endif
-
-  if (isExposedProtocol)
+  // If you are changing this list, you may need to also consider changing the
+  // list of network.protocol-handler.expose.* prefs in all-thunderbird.js.
+  if (contentScheme.LowerCaseEqualsLiteral("mailto") ||
+      contentScheme.LowerCaseEqualsLiteral("news") ||
+      contentScheme.LowerCaseEqualsLiteral("snews") ||
+      contentScheme.LowerCaseEqualsLiteral("nntp") ||
+      contentScheme.LowerCaseEqualsLiteral("imap") ||
+      contentScheme.LowerCaseEqualsLiteral("addbook") ||
+      contentScheme.LowerCaseEqualsLiteral("pop") ||
+      contentScheme.LowerCaseEqualsLiteral("mailbox") ||
+      contentScheme.LowerCaseEqualsLiteral("about"))
     return PR_TRUE;
 
   PRBool isData;
