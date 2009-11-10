@@ -38,37 +38,6 @@
 const EXPORTED_SYMBOLS = ["GetAttachmentKeywords"];
 
 /**
- * Check current word has CJK character or not.
- *
- * @return true if it has CJK character.
- */
-function IsCJKWord(aWord)
-{
-  var code;
-
-  for (var i = 0; i < aWord.length; i++)
-  {
-    code = aWord.charCodeAt(i);
-    if (code >= 0x2000 && code <= 0x9fff)
-    {
-      // Hiragana, Katakana and Kanaji
-      return true;
-    }
-    else if (code >= 0xac00 && code <= 0xd7ff)
-    {
-      // Hangul
-      return true;
-    }
-    else if (code >= 0xf900 && code <= 0xffff)
-    {
-      // Hiragana, Katakana and Kanaji
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
  * Get the (possibly-empty) list of attachment keywords in this message.
  *
  * @return the (possibly-empty) list of attachment keywords in this message
@@ -87,20 +56,16 @@ function GetAttachmentKeywords(mailData,keywordsInCsv)
     return inputString.replace(" ", "\\s+");
   }
 
+  // NOT_W is the character class that isn't in the Unicode classes "Ll",
+  // "Lu" and "Lt".  It should work like \W, if \W knew about Unicode.
+  const NOT_W = "[^\\u0041-\\u005a\\u0061-\\u007a\\u00aa\\u00b5\\u00ba\\u00c0-\\u00d6\\u00d8-\\u00f6\\u00f8-\\u01ba\\u01bc-\\u01bf\\u01c4-\\u02ad\\u0386\\u0388-\\u0481\\u048c-\\u0556\\u0561-\\u0587\\u10a0-\\u10c5\\u1e00-\\u1fbc\\u1fbe\\u1fc2-\\u1fcc\\u1fd0-\\u1fdb\\u1fe0-\\u1fec\\u1ff2-\\u1ffc\\u207f\\u2102\\u2107\\u210a-\\u2113\\u2115\\u2119-\\u211d\\u2124\\u2126\\u2128\\u212a-\\u212d\\u212f-\\u2131\\u2133\\u2134\\u2139\\ufb00-\\ufb17\\uff21-\\uff3a\\uff41-\\uff5a]";
+
   var keywordsFound = [];
   for (var i = 0; i < keywordsArray.length; i++) {
     var kw = escapeRegxpSpecials(keywordsArray[i]);
-    var re;
-    if (IsCJKWord(kw))
-    {
-      // CJK doesn't detect space and \b as word break, so we need
-      // special rule for CJK.
-      re = new RegExp("(([^\\s]*)\\b|\\s*)" + kw, "i");
-    }
-    else
-    {
-      re = new RegExp("(([^\\s]*)\\b|\\s*)" + kw + "\\b", "i");
-    }
+    // We're not worried about matching too much because we only add the
+    // keyword to the list of found keywords.
+    var re = new RegExp("(^|" + NOT_W + ")" + kw + "(" + NOT_W + "|$)", "i");
     var matching = re.exec(mailData);
     // Ignore the match if it was a URL.
     if (matching && !(/^http|^ftp/i.test(matching[0])))
