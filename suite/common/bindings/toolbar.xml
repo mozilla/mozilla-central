@@ -280,6 +280,24 @@
     </implementation>
   </binding>
 
+  <binding id="grippytoolbar-primary-drag"
+           extends="chrome://communicator/content/bindings/toolbar.xml#grippytoolbar-primary">
+    <implementation>
+      <constructor>
+        <![CDATA[
+          try {
+            Components.utils.import("resource://gre/modules/WindowDraggingUtils.jsm");
+            let draggableThis = new WindowDraggingElement(this, window);
+            draggableThis.mouseDownCheck = function(e) {
+            // Don't move while customizing or while in full screen mode.
+              return !(this.parentNode.customizing || window.fullScreen);
+            }
+          } catch (e) {}
+        ]]>
+      </constructor>
+    </implementation>
+  </binding>
+
   <binding id="grippytoolbar-menubar"
            extends="chrome://communicator/content/bindings/toolbar.xml#grippytoolbar"
            display="xul:menubar"/>

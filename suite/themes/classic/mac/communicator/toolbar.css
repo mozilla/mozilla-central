@@ -47,6 +47,10 @@ toolbar:not([nowindowdrag="true"]):not([type="menubar"]) {
   -moz-binding: url("chrome://communicator/content/bindings/toolbar.xml#grippytoolbar-drag");
 }
 
+.toolbar-primary:not([nowindowdrag="true"]):not([type="menubar"]) {
+  -moz-binding: url("chrome://communicator/content/bindings/toolbar.xml#grippytoolbar-primary-drag");
+}
+
 toolbargrippy {
   display: none;
   -moz-box-orient: vertical;
