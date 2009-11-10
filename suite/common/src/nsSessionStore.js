@@ -23,6 +23,7 @@
  *   Ehsan Akhgari <ehsan.akhgari@gmail.com>
  *   Paul O’Shannessy <paul@oshannessy.com>
  *   Nils Maier <maierman@web.de>
+ *   Michael Kraft <morac99-firefox@yahoo.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -663,7 +664,7 @@ SessionStoreService.prototype = {
     // store closed-tab data for undo
     if (tabState.entries.length > 0) {
       let tabTitle = aTab.label;
-      let tabbrowser = aWindow.gBrowser;
+      let tabbrowser = aWindow.getBrowser();
       tabTitle = this._replaceLoadingTitle(tabTitle, tabbrowser, aTab);
 
       var tabsData = {
@@ -856,13 +857,22 @@ SessionStoreService.prototype = {
     if (!(aIndex in closedTabs))
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
-    //var browser = aWindow.getBrowser();
-    let browser = aWindow.gBrowser;
+    let browser = aWindow.getBrowser();
 
     // Seamonkey has it's own undoclosetab functionality
     var newTab = browser.restoreTab(aIndex);
 
     return newTab;
+  },
+
+  forgetClosedTab: function sss_forgetClosedTab(aWindow, aIndex) {
+    if (!aWindow.__SSi)
+      throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
+
+    let browser = aWindow.getBrowser();
+
+    if (!(browser.forgetSavedBrowser(aIndex)))
+      throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
   },
 
   getClosedWindowCount: function sss_getClosedWindowCount() {

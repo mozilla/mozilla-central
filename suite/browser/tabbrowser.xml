@@ -1543,6 +1543,27 @@
         </body>
       </method>
 
+      <method name="forgetSavedBrowser">
+        <parameter name="aIndex"/>
+        <body>
+          <![CDATA[
+            if (aIndex >= this.savedBrowsers.length || aIndex < 0)
+              return false;
+
+            let deadBrowser = this.savedBrowsers[aIndex].browser;
+            this.savedBrowsers.splice(aIndex, 1);
+            deadBrowser.parentNode.destroy();
+            deadBrowser.destroy();
+
+            // The pagehide event that this removal triggers is safe
+            // because the browser is no longer current at this point
+            this.mPanelContainer.removeChild(deadBrowser.parentNode);
+            this.mTabBox.selectedPanel = this.selectedTab.linkedBrowser.parentNode;
+            return true;
+          ]]>
+        </body>
+      </method>
+
       <method name="reloadAllTabs">
         <body>
           <![CDATA[

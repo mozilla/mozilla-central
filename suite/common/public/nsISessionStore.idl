@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Dietrich Ayala <dietrich@mozilla.com>
+ *   Michael Kraft <morac99-firefox@yahoo.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,7 +47,7 @@ interface nsIDOMNode;
  * - and allows to restore everything into one window.
  */
 
-[scriptable, uuid(8afb6a83-21e2-40d6-8416-1adfbbbe54cb)]
+[scriptable, uuid(c8543c08-396f-40ef-8170-3bfcd4a18ab8)]
 interface nsISessionStore : nsISupports
 {
   /**
@@ -125,6 +126,12 @@ interface nsISessionStore : nsISupports
    * @returns a reference to the reopened tab.
    */
   nsIDOMNode undoCloseTab(in nsIDOMWindow aWindow, in unsigned long aIndex);
+
+  /**
+   * @param aWindow is the browser window associated with the closed tab.
+   * @param aIndex  is the index of the closed tab to be removed (FIFO ordered).
+   */
+  nsIDOMNode forgetClosedTab(in nsIDOMWindow aWindow, in unsigned long aIndex);
 
   /**
    * @param aWindow is the window to get the value for.
