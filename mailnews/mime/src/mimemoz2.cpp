@@ -1195,11 +1195,7 @@ mime_image_make_image_html(void *image_closure)
 
   /* Internal-external-reconnect only works when going to the screen. */
   if (!mid->istream)
-#ifdef MOZILLA_1_9_1_BRANCH
-    return strdup("<P><CENTER><IMG SRC=\"resource://gre/res/loading-image.gif\" ALT=\"[Image]\"></CENTER><P>");
-#else
-    return strdup("<P><CENTER><IMG SRC=\"resource://gre/res/loading-image.png\" ALT=\"[Image]\"></CENTER><P>");
-#endif
+    return strdup("<P><CENTER><IMG SRC=\"resource://gre-resources/loading-image.png\" ALT=\"[Image]\"></CENTER><P>");
 
   nsCOMPtr<nsIPrefBranch> prefBranch;
   nsCOMPtr<nsIPrefService> prefSvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
