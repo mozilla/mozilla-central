@@ -1651,6 +1651,7 @@ var Gloda = {
    *     (true), or potentially multiple times (false).  This affects whether
    *     the binding returns a list or just a single item (which is null when
    *     the attribute is not present).
+   * @param [aAttrDef.emptySetIsSignificant=false] Should we
    * @param aAttrDef.subjectNouns A list of object types (NOUNs) that this
    *     attribute can be set on.  Each element in the list should be one of the
    *     NOUN_* constants or a dynamically registered noun type.
@@ -1675,10 +1676,13 @@ var Gloda = {
       throw Error("You omitted a required attribute defining property, please" +
                   " consult the documentation as penance.");
 
+    // -- Fill in defaults
+    if (!("emptySetIsSignificant" in aAttrDef))
+      aAttrDef.emptySetIsSignificant = false;
+
     // return if the attribute has already been defined
-    if (aAttrDef.dbDef) {
+    if (aAttrDef.dbDef)
       return aAttrDef;
-    }
 
     // - first time we've seen a provider init logic
     if (!(aAttrDef.provider.providerName in this._attrProviders)) {
@@ -2106,6 +2110,16 @@ var Gloda = {
             attribDB.convertValuesToDBAttributes(valuesRemoved));
         }
 
+        // Add/remove the empty set indicator as appropriate.
+        if (attrib.emptySetIsSignificant) {
+          // if we are now non-zero but previously were zero, remove.
+          if (value.length && !oldValue.length)
+            removeDBAttribs.push([GlodaDatastore.kEmptySetAttrId, attribDB.id]);
+          // if we are now zero length but previously were not, add
+          else if (!value.length && oldValue.length)
+            addDBAttribs.push([GlodaDatastore.kEmptySetAttrId, attribDB.id]);
+        }
+
         // replace the old value with the new values... (the 'old' item is
         //  canonical)
         aOldItem[key] = value;
@@ -2120,6 +2134,9 @@ var Gloda = {
           value = [value];
         addDBAttribs.push.apply(addDBAttribs,
                                 attribDB.convertValuesToDBAttributes(value));
+        // Add the empty set indicator for the attribute id if appropriate.
+        if (!value.length && attrib.emptySetIsSignificant)
+          addDBAttribs.push([GlodaDatastore.kEmptySetAttrId, attribDB.id]);
       }
     }
 
@@ -2145,6 +2162,9 @@ var Gloda = {
       let attribDB = attrib.dbDef;
       removeDBAttribs.push.apply(removeDBAttribs,
                                  attribDB.convertValuesToDBAttributes(value));
+      // remove the empty set marker if there should have been one
+      if (!value.length && attrib.emptySetIsSignificant)
+        removeDBAttribs.push([GlodaDatastore.kEmptySetAttrId, attribDB.id]);
       // delete these from the old item, as the old item is canonical, and
       //  should no longer have these values
       delete aOldItem[key];

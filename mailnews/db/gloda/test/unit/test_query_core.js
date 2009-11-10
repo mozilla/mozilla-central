@@ -52,15 +52,58 @@ load("resources/genericIndexer.js");
  * deal with the semantics of messages/friends and all their complexity.
  */
 
+/**
+ * Simple test object.
+ *
+ * Has some tricks for gloda indexing to deal with gloda's general belief that
+ *  things are immutable.  When we get indexed we stash all of our attributes
+ *  at that time in _indexStash.  Then when we get cloned we propagate our
+ *  current attributes over to the cloned object and restore _indexStash.  This
+ *  sets things up the way gloda expects them as long as we never de-persist
+ *  from the db.
+ */
 function Widget(inum, date, str, notability, text1, text2) {
+  this._id = undefined;
   this._inum = inum;
   this._date = date;
   this._str = str;
   this._notability = notability;
   this._text1 = text1;
   this._text2 = text2;
+
+  this._indexStash = null;
+  this._restoreStash = null;
 }
 Widget.prototype = {
+  _clone: function() {
+    let clonus = new Widget(this._inum, this._date, this._str, this._notability,
+                            this._text1, this._text2);
+    clonus._id = this._id;
+    clonus._iAmAClone = true;
+
+    for each (let [key, value] in Iterator(this)) {
+      if (key[0] == "_")
+        continue;
+      clonus[key] = value;
+      if (key in this._indexStash) {
+        this[key] = this._indexStash[key];
+      }
+    }
+
+    return clonus;
+  },
+  _stash: function() {
+    this._indexStash = {};
+    for each (let [key, value] in Iterator(this)) {
+      if (key[0] == "_")
+        continue;
+      this._indexStash[key] = value;
+    }
+  },
+
+  get id() { return this._id; },
+  set id(aVal) { this._id = aVal; },
+
   // gloda's attribute idiom demands that row attributes be prefixed with a '_'
   //  (because Gloda.grokNounItem detects attributes by just walking...).  This
   //  could be resolved by having the special attributes moot these dudes, but
@@ -97,7 +140,10 @@ function setup_test_noun_and_attributes() {
     name: "widget",
     clazz: Widget,
     allowsArbitraryAttrs: true,
-    //cache: true, cacheCost: 32,
+    // It is vitally important to our correctness that we allow caching
+    //  otherwise our in-memory representations will not be canonical and the db
+    //  will load some.  Or we could add things to collections as we index them.
+    cache: true, cacheCost: 32,
     schema: {
       columns: [['id', 'INTEGER PRIMARY KEY'],
                 ['intCol', 'NUMBER', 'inum'],
@@ -196,6 +242,7 @@ function setup_test_noun_and_attributes() {
     attributeType: Gloda.kAttrFundamental,
     attributeName: "multiIntAttr",
     singular: false,
+    emptySetIsSignificant: true,
     subjectNouns: [WidgetNoun.id],
     objectNoun: Gloda.NOUN_NUMBER
   });
@@ -260,7 +307,7 @@ function setup_non_singular_values() {
   singularWidgets[0].multiIntAttr = [];
   // and don't bother setting it on singularWidgets[1]
 
-  yield GenericIndexer.indexNewObjects(
+  yield GenericIndexer.indexObjects(
     nonSingularWidgets.concat(singularWidgets));
 }
 
@@ -270,6 +317,45 @@ function test_query_has_value_for_non_singular() {
   query.multiIntAttr();
   queryExpect(query, nonSingularWidgets);
   return false;
+}
+
+/**
+ * We should find the one singular object where we set the multiIntAttr to an
+ *  empty set.  We don't find the one without the attribute since that's
+ *  actually something different.
+ * We also want to test that re-indexing properly adds/removes the attribute
+ *  so change the object and make sure everything happens correctly.
+ *
+ * @tests gloda.datastore.sqlgen.kConstraintIn.emptySet
+ * @tests gloda.query.test.kConstraintIn.emptySet
+ */
+function test_empty_set_logic() {
+  // - initial query based on the setup previously
+  mark_sub_test_start("initial index case");
+  let query = Gloda.newQuery(WidgetNoun.id);
+  query.inum(testUnique);
+  query.multiIntAttr(null);
+  queryExpect(query, [singularWidgets[0]]);
+  yield false;
+
+  // - make one of the non-singulars move to empty and move the guy who matched
+  //  to no longer match.
+  mark_sub_test_start("incremental index case");
+  nonSingularWidgets[0].multiIntAttr = [];
+  singularWidgets[0].multiIntAttr = [4, 5];
+
+  yield GenericIndexer.indexObjects([nonSingularWidgets[0],
+                                     singularWidgets[0]]);
+
+  query = Gloda.newQuery(WidgetNoun.id);
+  query.inum(testUnique);
+  query.multiIntAttr(null);
+  queryExpect(query, [nonSingularWidgets[0]]);
+  yield false;
+
+  // make sure that the query doesn't explode when it has to handle a case
+  //  that's not supposed to match
+  do_check_false(query.test(singularWidgets[0]));
 }
 
 /* === Search === */
@@ -335,7 +421,7 @@ function setup_search_ranking_idiom() {
     new Widget(0, origin, "", 1, "bar baz", "bar baz bar bar") // 7 + 0
   ];
 
-  yield GenericIndexer.indexNewObjects(fooWidgets.concat(barBazWidgets));
+  yield GenericIndexer.indexObjects(fooWidgets.concat(barBazWidgets));
 }
 
 // add one because the last snippet shouldn't have a trailing space
@@ -410,6 +496,7 @@ var tests = [
   test_lots_of_string_constraints,
   setup_non_singular_values,
   test_query_has_value_for_non_singular,
+  test_empty_set_logic,
   setup_search_ranking_idiom,
   test_search_ranking_idiom_offsets,
   test_search_ranking_idiom_score,

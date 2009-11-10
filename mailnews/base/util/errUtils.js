@@ -109,7 +109,7 @@ Stringifier.prototype = {
     this._append(this.objectTreeAsString(exc));
     if (exc.stack) {
       this._append("-- Stack Trace --\n");
-      this._append(this.getStack(2)); // skip dumpException and logException
+      this._append(exc.stack); // skip dumpException and logException
     }
     dump(this._asString());
   },

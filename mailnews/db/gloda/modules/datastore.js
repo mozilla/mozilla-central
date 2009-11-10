@@ -563,7 +563,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 17,
+  _schemaVersion: 18,
   _schema: {
     tables: {
 
@@ -616,9 +616,11 @@ var GlodaDatastore = {
       messages: {
         columns: [
           ["id", "INTEGER PRIMARY KEY"],
-          ["folderID", "INTEGER REFERENCES folderLocations(id)"],
+          ["folderID", "INTEGER"],
           ["messageKey", "INTEGER"],
-          ["conversationID", "INTEGER NOT NULL REFERENCES conversations(id)"],
+          // conversationID used to have a REFERENCES but I'm losing it for
+          //  presumed performance reasons and it doesn't do anything for us.
+          ["conversationID", "INTEGER NOT NULL"],
           ["date", "INTEGER"],
           // we used to have the parentID, but because of the very real
           //  possibility of multiple copies of a message with a given
@@ -671,10 +673,18 @@ var GlodaDatastore = {
 
       messageAttributes: {
         columns: [
-          ["conversationID", "INTEGER NOT NULL REFERENCES conversations(id)"],
-          ["messageID", "INTEGER NOT NULL REFERENCES messages(id)"],
-          ["attributeID",
-           "INTEGER NOT NULL REFERENCES attributeDefinitions(id)"],
+          // conversationID and messageID used to have REFERENCES back to their
+          //  appropriate types.  I removed it when removing attributeID for
+          //  better reasons and because the code is not capable of violating
+          //  this constraint, so the check is just added cost.  (And we have
+          //  unit tests that sanity check my assertions.)
+          ["conversationID", "INTEGER NOT NULL"],
+          ["messageID", "INTEGER NOT NULL"],
+          // This used to be REFERENCES attributeDefinitions(id) but then we
+          //  introduced sentinel values and it's hard to justify the effort
+          //  to compel injection of the record or the overhead to do the
+          //  references checking.
+          ["attributeID", "INTEGER NOT NULL"],
           ["value", "NUMERIC"],
         ],
 
@@ -711,9 +721,9 @@ var GlodaDatastore = {
 
       contactAttributes: {
         columns: [
-          ["contactID", "INTEGER NOT NULL REFERENCES contacts(id)"],
+          ["contactID", "INTEGER NOT NULL"],
           ["attributeID",
-           "INTEGER NOT NULL REFERENCES attributeDefinitions(id)"],
+           "INTEGER NOT NULL"],
           ["value", "NUMERIC"]
         ],
         indices: {
@@ -729,7 +739,7 @@ var GlodaDatastore = {
       identities: {
         columns: [
           ["id", "INTEGER PRIMARY KEY"],
-          ["contactID", "INTEGER NOT NULL REFERENCES contacts(id)"],
+          ["contactID", "INTEGER NOT NULL"],
           ["kind", "TEXT NOT NULL"], // ex: email, irc, etc.
           ["value", "TEXT NOT NULL"], // ex: e-mail address, irc nick/handle...
           ["description", "NOT NULL"], // what makes this identity different
@@ -977,9 +987,8 @@ var GlodaDatastore = {
     if (aTableDef.genericAttributes) {
       aTableDef.genericAttributes = {
         columns: [
-          ["nounID", "INTEGER NOT NULL REFERENCES " + aTableName + "(id)"],
-          ["attributeID",
-           "INTEGER NOT NULL REFERENCES attributeDefinitions(id)"],
+          ["nounID", "INTEGER NOT NULL"],
+          ["attributeID", "INTEGER NOT NULL"],
           ["value", "NUMERIC"]
         ],
         indices: {}
@@ -1072,6 +1081,8 @@ var GlodaDatastore = {
     // - all kinds of correctness changes
     // version 17
     // - more correctness fixes.
+    // version 18
+    // - significant empty set support
 
     aDBConnection.close();
     aDBFile.remove(false);
@@ -1339,19 +1350,32 @@ var GlodaDatastore = {
   _attributeDBDefs: {},
   /** Map attribute ID to the definition and parameter value that produce it. */
   _attributeIDToDBDefAndParam: {},
+
+  /**
+   * This attribute id indicates that we are encoding that a non-singular
+   *  attribute has an empty set.  The value payload that goes with this should
+   *  the attribute id of the attribute we are talking about.
+   */
+  kEmptySetAttrId: 1,
+
   /**
    * We maintain the attributeDefinitions next id counter mainly because we can.
    *  Since we mediate the access, there's no real risk to doing so, and it
    *  allows us to keep the writes on the async connection without having to
    *  wait for a completion notification.
+   *
+   * Start from 32 so we can have a number of sentinel values.
    */
-  _nextAttributeId: 1,
+  _nextAttributeId: 32,
 
   _populateAttributeDefManagedId: function () {
     let stmt = this._createSyncStatement(
       "SELECT MAX(id) FROM attributeDefinitions", true);
     if (stmt.executeStep()) { // no chance of this SQLITE_BUSY on this call
-      this._nextAttributeId = stmt.getInt64(0) + 1;
+      // 0 gets returned even if there are no messages...
+      let highestSeen = stmt.getInt64(0);
+      if (highestSeen != 0)
+        this._nextAttributeId = highestSeen + 1;
     }
     stmt.finalize();
   },
@@ -2534,7 +2558,18 @@ var GlodaDatastore = {
     if (!objectNounDef.usesParameter) {
       let dbValues = [];
       for (let iValue = 0; iValue < aValues.length; iValue++) {
-        let dbValue = objectNounDef.toParamAndValue(aValues[iValue])[1];
+        let value = aValues[iValue];
+        // If the empty set is significant and it's an empty signifier, emit
+        //  the appropriate dbvalue.
+        if (value == null && aAttrDef.emptySetIsSignificant) {
+          yield [this.kEmptySetAttrId, [aAttrDef.id]];
+          // Bail if the only value was us; we don't want to add a
+          //  value-posessing wildcard into the mix.
+          if (aValues.length == 1)
+            return;
+          continue;
+        }
+        let dbValue = objectNounDef.toParamAndValue(value)[1];
         if (dbValue != null)
           dbValues.push(dbValue);
       }
@@ -2545,7 +2580,18 @@ var GlodaDatastore = {
     let curParam, attrID, dbValues;
     let attrDBDef = aAttrDef.dbDef;
     for (let iValue = 0; iValue < aValues.length; iValue++) {
-      let [dbParam, dbValue] = objectNounDef.toParamAndValue(aValues[iValue]);
+      let value = aValues[iValue];
+      // If the empty set is significant and it's an empty signifier, emit
+      //  the appropriate dbvalue.
+      if (value == null && aAttrDef.emptySetIsSignificant) {
+        yield [this.kEmptySetAttrId, [aAttrDef.id]];
+        // Bail if the only value was us; we don't want to add a
+        //  value-posessing wildcard into the mix.
+        if (aValues.length == 1)
+          return;
+        continue;
+      }
+      let [dbParam, dbValue] = objectNounDef.toParamAndValue(value);
       if (curParam === undefined) {
         curParam = dbParam;
         attrID = attrDBDef.bindParameter(curParam);

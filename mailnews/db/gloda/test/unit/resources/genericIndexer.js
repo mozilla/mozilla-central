@@ -15,8 +15,8 @@ var GenericIndexer = {
   },
   get workers() {
     return [
-      ["generic-new", {
-         worker: this._worker_index_generic_new,
+      ["generic", {
+         worker: this._worker_index_generic,
        }]
     ];
   },
@@ -25,21 +25,25 @@ var GenericIndexer = {
   /* mock interface */
   enabled: false,
   initialSweepCalled: false,
-  indexNewObjects: function(aObjects) {
+  indexObjects: function(aObjects) {
     indexingInProgress = true;
     this._log.debug("enqueuing " + aObjects.length +
-      " new generic objects with id: " + aObjects[0].NOUN_ID);
-    GlodaIndexer.indexJob(new IndexingJob("generic-new", null,
+      " generic objects with id: " + aObjects[0].NOUN_ID);
+    GlodaIndexer.indexJob(new IndexingJob("generic", null,
                                           aObjects.concat()));
   },
   /* implementation */
-  _worker_index_generic_new: function(aJob, aCallbackHandle) {
-    this._log.debug("Beginning indexing " + aJob.items.length + " generic new items");
+  _worker_index_generic: function(aJob, aCallbackHandle) {
+    this._log.debug("Beginning indexing " + aJob.items.length +
+                    " generic items");
     for (let [, item] in Iterator(aJob.items)) {
       this._log.debug("Indexing: " + item);
       yield aCallbackHandle.pushAndGo(
-        Gloda.grokNounItem(item, {}, true, true, aCallbackHandle,
+        Gloda.grokNounItem(item, {},
+                           item.id === undefined, item.id === undefined,
+                           aCallbackHandle,
                            item.NOUN_DEF.cache));
+      item._stash();
     }
 
     yield GlodaIndexer.kWorkDone;

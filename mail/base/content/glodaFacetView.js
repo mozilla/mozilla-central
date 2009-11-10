@@ -233,7 +233,8 @@ ActiveNonSingularConstraint.prototype = {
     let valList = aInclusive ? this.includedGroupValues
                              : this.excludedGroupValues;
     for each (let [, groupValue] in Iterator(aGroupValues)) {
-      let valId = (groupIdAttr !== null) ? groupValue[groupIdAttr] : groupValue;
+      let valId = (groupIdAttr !== null && groupValue != null) ?
+                    groupValue[groupIdAttr] : groupValue;
       idMap[valId] = true;
       valList.push(groupValue);
     }
@@ -260,7 +261,8 @@ ActiveNonSingularConstraint.prototype = {
     let valList = aInclusive ? this.includedGroupValues
                              : this.excludedGroupValues;
     for each (let [, groupValue] in Iterator(aGroupValues)) {
-      let valId = (groupIdAttr !== null) ? groupValue[groupIdAttr] : groupValue;
+      let valId = (groupIdAttr !== null && groupValue != null) ?
+                    groupValue[groupIdAttr] : groupValue;
       if (!(valId in idMap))
         throw new Error("Tried to relax a constraint that was not in force.");
       delete idMap[valId];
@@ -698,16 +700,26 @@ var FacetContext = {
    * Called by facet bindings when the user does some clicking and wants to
    *  impose a new constraint.
    *
-   * @param aFaceter
-   * @param aAttrDef
-   * @param {Boolean} aInclusive
-   * @param aGroupValues
-   * @param aRanged Is it a ranged constraint?  (Currently only for dates)
-   * @param aNukeExisting Do we need to replace the existing constraint and
+   * @param aFaceter The faceter that is the source of this constraint.  We
+   *     need to know this because once a facet has a constraint attached,
+   *     the UI stops updating it.
+   * @param {Boolean} aInclusive Is this an inclusive (true) or exclusive
+   *     (false) constraint?  The constraint instance is the one that deals with
+   *     the nuances resulting from this.
+   * @param aGroupValues A list of the group values this constraint covers.  In
+   *     general, we expect that only one group value will be present in the
+   *     list since this method should get called each time the user clicks
+   *     something.  Previously, we provided support for an "other" case which
+   *     covered multiple groupValues so a single click needed to be able to
+   *     pass in a list.  The "other" case is gone now, but semantically it's
+   *     okay for us to support a list.
+   * @param [aRanged] Is it a ranged constraint?  (Currently only for dates)
+   * @param [aNukeExisting] Do we need to replace the existing constraint and
    *     re-sieve everything?  This currently only happens for dates, where
    *     our display allows a click to actually make our range more generic
    *     than it currently is.  (But this only matters if we already have
    *     a date constraint applied.)
+   * @param [aCallback] The callback to call once (re-)faceting has completed.
    *
    * @return true if the caller needs to revalidate because the constraint has
    *     changed in a way other than explicitly requested.  This can occur if

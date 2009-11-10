@@ -81,11 +81,10 @@ function GlodaDatabind(aNounDef, aDatastore) {
   // For the update, we want the 'id' to be a constraint and not a value
   //  that gets set...
   let updateSql = "UPDATE " + this._tableName + " SET " +
-    [(coldef[0] + "= :" + coldef[0]) for each
+    [(coldef[0] + " = :" + coldef[0]) for each
      ([, coldef] in Iterator(this._tableDef.columns)) if
      (coldef[0] != "id")].join(", ") +
     " WHERE id = :id";
-
   this._insertStmt = aDatastore._createAsyncStatement(insertSql);
   this._updateStmt = aDatastore._createAsyncStatement(updateSql);
 
@@ -146,7 +145,7 @@ GlodaDatabind.prototype = {
   },
 
   objUpdate: function(aThing) {
-    let stmt = this._insertStmt;
+    let stmt = this._updateStmt;
     // note, we specially bound the location of 'id' for the insert, but since
     //  we're using named bindings, there is nothing special about setting it
     for each (let [iColDef, colDef] in Iterator(this._tableDef.columns)) {

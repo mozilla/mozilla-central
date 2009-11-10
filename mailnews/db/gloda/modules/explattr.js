@@ -104,6 +104,7 @@ var GlodaExplicitAttr = {
                         attributeName: "tag",
                         bindName: "tags",
                         singular: false,
+                        emptySetIsSignificant: true,
                         facet: true,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_TAG,

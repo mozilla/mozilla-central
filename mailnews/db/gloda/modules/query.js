@@ -136,7 +136,7 @@ GlodaQueryClass.prototype = {
    *  onItemsModified, and onItemsRemoved methods, all of which take a single
    *  argument which is the list of items which have been added, modified, or
    *  removed respectively.
-   * 
+   *
    * @param aListener The collection listener.
    * @param [aData] The data attribute to set on the collection.
    * @param [aArgs.becomeExplicit] Make the collection explicit so that the
@@ -210,6 +210,21 @@ GlodaQueryClass.prototype = {
                 testValues[0] != null)
               continue;
 
+            // If there are no test values and the empty set is significant,
+            //  then check if any of the constraint values are null (our
+            //  empty indicator.)
+            if (testValues.length == 0 && attrDef.emptySetIsSignificant) {
+              let foundEmptySetSignifier = false;
+              for each (let [,constraintValue] in Iterator(constraintValues)) {
+                if (constraintValue == null) {
+                  foundEmptySetSignifier = true;
+                  break;
+                }
+              }
+              if (foundEmptySetSignifier)
+                continue;
+            }
+
             let foundMatch = false;
             for each (let [,testValue] in Iterator(testValues)) {
               for each (let [,value] in Iterator(constraintValues)) {
@@ -245,11 +260,28 @@ GlodaQueryClass.prototype = {
             if (constraintValues.length == 0 && testValues.length &&
                 testValues[0] != null)
               continue;
+            // If there are no test values and the empty set is significant,
+            //  then check if any of the constraint values are null (our
+            //  empty indicator.)
+            if (testValues.length == 0 && attrDef.emptySetIsSignificant) {
+              let foundEmptySetSignifier = false;
+              for each (let [,constraintValue] in Iterator(constraintValues)) {
+                if (constraintValue == null) {
+                  foundEmptySetSignifier = true;
+                  break;
+                }
+              }
+              if (foundEmptySetSignifier)
+                continue;
+            }
 
             let foundMatch = false;
             for each (let [,testValue] in Iterator(testValues)) {
               let [aParam, aValue] = objectNounDef.toParamAndValue(testValue);
               for each (let [,value] in Iterator(constraintValues)) {
+                // skip empty set check sentinel values
+                if (value == null && attrDef.emptySetIsSignificant)
+                  continue;
                 let [bParam, bValue] = objectNounDef.toParamAndValue(value);
                 if (aParam == bParam && aValue == bValue) {
                   foundMatch = true;

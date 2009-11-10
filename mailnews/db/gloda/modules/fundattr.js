@@ -350,6 +350,7 @@ var GlodaFundAttr = {
       attributeType: Gloda.kAttrFundamental,
       attributeName: "attachmentTypes",
       singular: false,
+      emptySetIsSignificant: true,
       facet: {
         type: "default",
         // This will group the MIME types by their category.
@@ -456,6 +457,7 @@ var GlodaFundAttr = {
                         attributeName: "mailing-list",
                         bindName: "mailingLists",
                         singular: false,
+                        emptySetIsSignificant: true,
                         facet: true,
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_IDENTITY,
