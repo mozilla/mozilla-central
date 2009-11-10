@@ -58,6 +58,7 @@ DIRS += build
 
 EXTRA_COMPONENTS = \
 	nsMailDefaultHandler.js \
+	mailContentHandler.js \
 	aboutRights.js \
 	$(NULL)
 

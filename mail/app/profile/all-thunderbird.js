@@ -294,6 +294,11 @@ pref("network.protocol-handler.expose.imap", true);
 pref("network.protocol-handler.expose.addbook", true);
 pref("network.protocol-handler.expose.pop", true);
 pref("network.protocol-handler.expose.mailbox", true);
+// Although we allow these to be exposed internally, there are various places
+// (e.g. message pane) where we may divert them out to external applications.
+pref("network.protocol-handler.expose.about", true);
+pref("network.protocol-handler.expose.http", true);
+pref("network.protocol-handler.expose.https", true);
 
 // suppress external-load warning for standard browser schemes
 pref("network.protocol-handler.warn-external.http", false);
@@ -490,3 +495,23 @@ pref("mailnews.migration.header_addons_url","http://live.mozillamessaging.com/%A
 pref("mail.wizard.logging.console", "None");
 // What level of warning should we send to stdout via dump?
 pref("mail.wizard.logging.dump", "None");
+
+// Handle links targeting new windows (from within content tabs)
+// These are the values that Firefox can be set to:
+// 0=default window, 1=current window/tab, 2=new window,
+// 3=new tab in most recent window
+//
+// Thunderbird only supports a value of 3. Other values can be set, but are
+// not implemented or supported.
+pref("browser.link.open_newwindow", 3);
+
+// These are the values that Firefox can be set to:
+// 0: no restrictions - divert everything
+// 1: don't divert window.open at all
+// 2: don't divert window.open with features
+//
+// Thunderbird only supports a value of 0. Other values can be set, but are
+// not implemented or supported.
+pref("browser.link.open_newwindow.restriction", 0);
+
+pref("browser.tabs.loadDivertedInBackground", false);

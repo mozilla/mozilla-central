@@ -1,4 +1,4 @@
-# -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -407,4 +407,43 @@ function openFormattedURL(aPrefName)
   var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                               .getService(Components.interfaces.nsIExternalProtocolService);
   protocolSvc.loadURI(uri);
+}
+
+#ifndef XP_WIN
+#define BROKEN_WM_Z_ORDER
+#endif
+
+function getMostRecentMailWindow() {
+  let wm = Cc["@mozilla.org/appshell/window-mediator;1"]
+             .getService(Components.interfaces.nsIWindowMediator);
+
+#ifdef BROKEN_WM_Z_ORDER
+  let win = wm.getMostRecentWindow("mail:3pane", true);
+
+  // if we're lucky, this isn't a popup, and we can just return this
+  if (win && win.document.documentElement.getAttribute("chromehidden")) {
+    win = null;
+    var windowList = wm.getEnumerator("mail:3pane", true);
+    // this is oldest to newest, so this gets a bit ugly
+    while (windowList.hasMoreElements()) {
+      var nextWin = windowList.getNext();
+      if (!nextWin.document.documentElement.getAttribute("chromehidden"))
+        win = nextWin;
+    }
+  }
+#else
+  var windowList = wm.getZOrderDOMWindowEnumerator("mail:3pane", true);
+  if (!windowList.hasMoreElements())
+    return null;
+
+  var win = windowList.getNext();
+  while (win.document.documentElement.getAttribute("chromehidden")) {
+    if (!windowList.hasMoreElements())
+      return null;
+
+    win = windowList.getNext();
+  }
+#endif
+
+  return win;
 }

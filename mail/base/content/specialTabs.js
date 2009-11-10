@@ -135,6 +135,12 @@ tabProgressListener.prototype =
 
 var specialTabs = {
   _kAboutRightsVersion: 1,
+  get _protocolSvc() {
+    delete this._protocolSvc;
+    return this._protocolSvc =
+      Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
+                .getService(Components.interfaces.nsIExternalProtocolService);
+  },
 
   // This will open any special tabs if necessary on startup.
   openSpecialTabsOnStartup: function() {
@@ -228,6 +234,11 @@ var specialTabs = {
 
       aTab.browser.setAttribute("id", "contentTabBrowser" + this.lastBrowserId);
 
+      aTab.browser.setAttribute("onclick",
+                                "clickHandler" in aArgs && aArgs.clickHandler ?
+                                aArgs.clickHandler :
+                                "specialTabs.defaultClickHandler(event);");
+
       // Now initialise the find bar.
       aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
       aTab.findbar.setAttribute("browserid",
@@ -276,12 +287,16 @@ var specialTabs = {
       if (aTab.browser.currentURI.spec == "about:blank")
         return null;
 
+      let onClick = aTab.browser.getAttribute("onclick");
+
       return {
-        tabURI: aTab.browser.currentURI.spec
+        tabURI: aTab.browser.currentURI.spec,
+        clickHandler: onClick ? onClick : null
       };
     },
     restoreTab: function onRestoreTab(aTabmail, aPersistedState) {
       aTabmail.openTab("contentTab", { contentPage: aPersistedState.tabURI,
+                                       clickHandler: aPersistedState.clickHandler,
                                        background: true } );
     },
     onTitleChanged: function onTitleChanged(aTab) {
@@ -488,7 +503,8 @@ var specialTabs = {
         callback: function(aNotificationBar, aButton) {
           // Show the about:rights tab
           document.getElementById('tabmail')
-                  .openTab("contentTab", { contentPage: "about:rights" });
+                  .openTab("contentTab", { contentPage: "about:rights",
+                                           clickHandler: "specialTabs.aboutClickHandler(event);" });
         }
       }
     ];
@@ -501,6 +517,86 @@ var specialTabs = {
 
     // Set the pref to say we've displayed the notification.
     prefs.setIntPref("mail.rights.version", this._kAboutRightsVersion);
+  },
+
+  /**
+   * Handles links when displaying about: pages. Anything that is an about:
+   * link can be loaded internally, other links are redirected to an external
+   * browser.
+   */
+  aboutClickHandler: function aboutClickHandler(aEvent) {
+    if (!aEvent.isTrusted || aEvent.getPreventDefault())
+      return true;
+
+    let href = hRefForClickEvent(aEvent, true);
+    if (href) {
+      let uri = makeURI(href);
+      if (!this._protocolSvc.isExposedProtocol(uri.scheme) ||
+          uri.schemeIs("http") || uri.schemeIs("https")) {
+        aEvent.preventDefault();
+        openLinkExternally(href);
+      }
+    }
+  },
+
+  /**
+   * The default click handler for content tabs. Any clicks on links will get
+   * redirected to an external browser - effectively keeping the user on one
+   * page.
+   */
+  defaultClickHandler: function defaultClickHandler(aEvent) {
+    if (!aEvent.isTrusted || aEvent.getPreventDefault())
+      return true;
+
+    let href = hRefForClickEvent(aEvent, true);
+
+    // We've explicitly allowed http, https and about as additional exposed
+    // protocols in our default prefs, so these are the ones we need to check
+    // for here.
+    if (href) {
+      let uri = makeURI(href);
+      if (!this._protocolSvc.isExposedProtocol(uri.scheme) ||
+          uri.schemeIs("http") || uri.schemeIs("https") ||
+          uri.schemeIs("about")) {
+        aEvent.preventDefault();
+        openLinkExternally(href);
+      }
+    }
+  },
+
+  /**
+   * A site click handler for extensions to use. This does its best to limit
+   * loading of links that match the regexp to within the content tab it applies
+   * to within Thunderbird. Links that do not match the regexp will be loaded
+   * in the external browser.
+   *
+   * Note: Due to the limitations of http and the possibility for redirects, if
+   * sites change or use javascript, this function may not be able to ensure the
+   * contentTab stays "within" a site. Extensions using this function should
+   * consider this when implementing the extension.
+   *
+   * @param aEvent      The onclick event that is being handled.
+   * @param aSiteRegexp A regexp to match against to determine if the link
+   *                    clicked on should be loaded within the browser or not.
+   */
+  siteClickHandler: function siteClickHandler(aEvent, aSiteRegexp) {
+    if (!aEvent.isTrusted || aEvent.getPreventDefault())
+      return true;
+
+    let href = hRefForClickEvent(aEvent, true);
+
+    // We've explicitly allowed http, https and about as additional exposed
+    // protocols in our default prefs, so these are the ones we need to check
+    // for here.
+    if (href) {
+      let uri = makeURI(href);
+      if (!this._protocolSvc.isExposedProtocol(uri.scheme) ||
+          ((uri.schemeIs("http") || uri.schemeIs("https") ||
+            uri.schemeIs("about")) && !aSiteRegexp.test(uri.spec))) {
+        aEvent.preventDefault();
+        openLinkExternally(href);
+      }
+    }
   },
 
   chromeTabType: {
@@ -564,6 +660,11 @@ var specialTabs = {
       //aTab.browser.setAttribute("type", background ? "content-targetable" :
       //                                               "content-primary");
 
+      aTab.browser.setAttribute("onclick",
+                                "clickHandler" in aArgs && aArgs.clickHandler ?
+                                aArgs.clickHandler :
+                                "specialTabs.defaultClickHandler(event);");
+
       aTab.browser.setAttribute("id", "chromeTabBrowser" + this.lastBrowserId);
 
       // Now set up the listeners.
@@ -594,13 +695,17 @@ var specialTabs = {
       if (aTab.browser.currentURI.spec == "about:blank")
         return null;
 
+      let onClick = aTab.browser.getAttribute("onclick");
+
       return {
-        tabURI: aTab.browser.currentURI.spec
+        tabURI: aTab.browser.currentURI.spec,
+        clickHandler: onClick ? onClick : null
       };
     },
     restoreTab: function onRestoreTab(aTabmail, aPersistedState) {
       aTabmail.openTab("chromeTab", { chromePage: aPersistedState.tabURI,
-                                       background: true } );
+                                      clickHandler: aPersistedState.clickHandler,
+                                      background: true } );
     },
     onTitleChanged: function onTitleChanged(aTab) {
       aTab.title = aTab.browser.contentDocument.title;

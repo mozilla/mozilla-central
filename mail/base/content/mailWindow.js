@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://app/modules/appIdleManager.js");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 //This file stores variables common to mail windows
 var messenger;
@@ -76,6 +77,9 @@ function OnMailWindowUnload()
   mailSession.RemoveMsgWindow(msgWindow);
   // the tabs have the FolderDisplayWidget close their 'messenger' instances for us
 
+  window.QueryInterface(Components.interfaces.nsIDOMChromeWindow)
+        .browserDOMWindow = null;
+
   msgWindow.closeWindow();
 
   window.MsgStatusFeedback.unload();
@@ -106,6 +110,9 @@ function CreateMailWindowGlobals()
         .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
         .getInterface(Components.interfaces.nsIXULWindow)
         .XULBrowserWindow = window.MsgStatusFeedback;
+
+  window.QueryInterface(Components.interfaces.nsIDOMChromeWindow)
+        .browserDOMWindow = new nsBrowserAccess();
 
   statusFeedback = Components.classes["@mozilla.org/messenger/statusfeedback;1"]
                              .createInstance(Components.interfaces.nsIMsgStatusFeedback);
@@ -633,3 +640,74 @@ function FillInHTMLTooltip(tipElement)
   }
   return retVal;
 }
+
+function nsBrowserAccess() { }
+
+nsBrowserAccess.prototype = {
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIBrowserDOMWindow]),
+
+  openURI: function (aURI, aOpener, aWhere, aContext) {
+    const nsIBrowserDOMWindow = Components.interfaces.nsIBrowserDOMWindow;
+    let isExternal = aContext == nsIBrowserDOMWindow.OPEN_EXTERNAL;
+
+    if (isExternal && aURI && aURI.schemeIs("chrome")) {
+      Application.console.log("use -chrome command-line option to load external chrome urls\n");
+      return null;
+    }
+
+    let newWindow = null;
+    let loadflags = isExternal ?
+      Components.interfaces.nsIWebNavigation.LOAD_FLAGS_FROM_EXTERNAL :
+      Components.interfaces.nsIWebNavigation.LOAD_FLAGS_NONE;
+
+    if (aWhere != nsIBrowserDOMWindow.OPEN_NEWTAB)
+      Application.console.log("Opening a URI in something other than a new tab is not supported, opening in new tab instead");
+
+    let win, needToFocusWin;
+
+    // Try the current window. If we're in a popup, fall back on the most
+    // recent browser window.
+    if (!window.document.documentElement.getAttribute("chromehidden"))
+      win = window;
+    else {
+      win = getMostRecentMailWindow();
+      needToFocusWin = true;
+    }
+
+    if (!win)
+      throw("Couldn't get a suitable window for openURI");
+
+    let loadInBackground =
+      Application.prefs.getValue("browser.tabs.loadDivertedInBackground", false);
+
+    let newTab = win.document.getElementById("tabmail")
+                    .openTab("contentTab", {contentPage: "about:blank",
+                                            background: loadInBackground});
+
+    newWindow = newTab.browser.docShell
+                      .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                      .getInterface(Components.interfaces.nsIDOMWindow);
+    try {
+      if (aURI) {
+        if (aOpener) {
+          let location = aOpener.location;
+          let referrer =
+            Components.classes["@mozilla.org/network/io-service;1"]
+                      .getService(Components.interfaces.nsIIOService)
+                      .newURI(location, null, null);
+        }
+        newWindow.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                 .getInterface(Components.interfaces.nsIWebNavigation)
+                 .loadURI(aURI.spec, loadflags, referrer, null, null);
+      }
+      if (needToFocusWin || (!loadInBackground && isExternal))
+        newWindow.focus();
+    } catch(e) {
+    }
+    return newWindow;
+  },
+
+  isTabContentWindow: function (aWindow) {
+    return false;
+  }
+};

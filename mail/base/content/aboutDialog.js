@@ -94,11 +94,16 @@ function loadAbout(type)
     }
   }
 
+  const tabParams = {
+    contentPage: "about:" + type,
+    clickHandler: "specialTabs.aboutClickHandler(event);"
+  };
+
   if (tabmail)
-    tabmail.openTab("contentTab", {contentPage: "about:" + type});
+    tabmail.openTab("contentTab", tabParams);
   else
     window.openDialog("chrome://messenger/content/", "_blank",
                       "chrome,dialog=no,all", null,
                       { tabType: "contentTab",
-                        tabParams: {contentPage: "about:" + type} });
+                        tabParams: tabParams });
 }

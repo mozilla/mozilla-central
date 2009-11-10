@@ -138,10 +138,11 @@ bin\components\jsmimeemitter.js
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 bin\MapiProxy.dll
 bin\mozMapi32.dll
+bin\components\mailContentHandler.js
 bin\components\mapihook.xpt
+bin\components\nsMailDefaultHandler.js
 bin\components\nsSetDefaultMail.js
 bin\components\offlineStartup.js
-bin\components\nsMailDefaultHandler.js
 bin\components\steelApplication.js
 
 
