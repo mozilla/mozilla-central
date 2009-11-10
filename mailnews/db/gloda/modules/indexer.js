@@ -1100,15 +1100,23 @@ var GlodaIndexer = {
       }
       this._perfIndexStopwatch.stop();
 
-      // We want to stop ASAP when leaving idle, so we can't rely on the
-      // standard polled callback. We do the polling ourselves.
-      if (this._idleService.idleTime < this._INDEX_IDLE_ADJUSTMENT_TIME) {
-        inIdle = false;
-        this._cpuTargetIndexTime = this._CPU_TARGET_INDEX_TIME_ACTIVE;
+      // idleTime can throw if there is no idle-provider available, such as an
+      //  X session without the relevant extensions available.  In this case
+      //  we assume that the user is never idle.
+      try {
+        // We want to stop ASAP when leaving idle, so we can't rely on the
+        // standard polled callback. We do the polling ourselves.
+        if (this._idleService.idleTime < this._INDEX_IDLE_ADJUSTMENT_TIME) {
+          inIdle = false;
+          this._cpuTargetIndexTime = this._CPU_TARGET_INDEX_TIME_ACTIVE;
+        }
+        else {
+          inIdle = true;
+          this._cpuTargetIndexTime = this._CPU_TARGET_INDEX_TIME_IDLE;
+        }
       }
-      else {
-        inIdle = true;
-        this._cpuTargetIndexTime = this._CPU_TARGET_INDEX_TIME_IDLE;
+      catch (ex) {
+        inIdle = false;
       }
 
       // take a breather by having the caller re-schedule us sometime in the
