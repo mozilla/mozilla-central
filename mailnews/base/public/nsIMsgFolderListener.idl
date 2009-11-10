@@ -195,6 +195,16 @@ interface nsIMsgFolderListener : nsISupports {
    *    "CompactCompleted" atom.  At this point, the folder semaphore has been
    *    released and the database has been committed.  aItem is the folder.
    *
+   * - FolderReindexTriggered: The user has opted to rebuild the mork msf index
+   *    for a folder.  Following this notification, the database will be
+   *    closed, backed up (so that header properties can be propagated), and
+   *    then rebuilt from the source.  The rebuild is triggered by a call to
+   *    updateFolder, so an nsIFolderListener OnItemEvent(folder,
+   *    FolderLoaded atom) notification will be received if you want to know
+   *    when this is all completed.  Note: this event is only generated for
+   *    Thunderbird because the event currently comes from Thunderbird-specific
+   *    code.
+   *
    * - JunkStatusChanged: Indicates that some messages that had already been
    *    reported by msgsClassified have had their junk status changed.  This
    *    event will not fire for the initial automatic classification of

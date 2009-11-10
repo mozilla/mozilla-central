@@ -1675,7 +1675,8 @@ let gFolderTreeController = {
 
     //xxx useless param
     function rebuildSummary(aFolder) {
-      let folder = aFolder || gFolderTreeView.getSelectedFolders()[0];
+      // folder is already introduced in our containing function and is
+      //  lexically captured and available to us.
       if (folder.locked) {
         folder.throwAlertMsg("operationFailedFolderBusy", msgWindow);
         return;
@@ -1687,6 +1688,14 @@ let gFolderTreeController = {
           offlineStore.remove(false);
       }
       gFolderDisplay.view.close();
+
+      // Send a notification that we are triggering a database rebuild.
+      let notifier =
+        Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
+                  .getService(
+                    Components.interfaces.nsIMsgFolderNotificationService);
+      notifier.notifyItemEvent(folder, "FolderReindexTriggered", null);
+
       folder.msgDatabase.summaryValid = false;
 
       var msgDB = folder.msgDatabase;

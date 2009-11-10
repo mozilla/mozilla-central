@@ -152,20 +152,34 @@ var PendingCommitTracker = {
     for each (let [glodaId, [msgHdr, dirtyState]] in
               Iterator(
                 PendingCommitTracker._indexedMessagesPendingCommitByGlodaId)) {
-      // Mark this message as indexed
-      let curGlodaId = msgHdr.getUint32Property(GLODA_MESSAGE_ID_PROPERTY);
-      if (curGlodaId != glodaId)
-        msgHdr.setUint32Property(GLODA_MESSAGE_ID_PROPERTY, glodaId);
-      let headerDirty = msgHdr.getUint32Property(GLODA_DIRTY_PROPERTY);
-      if (headerDirty != dirtyState)
-        msgHdr.setUint32Property(GLODA_DIRTY_PROPERTY, dirtyState);
+      // Mark this message as indexed.
+      // It's conceivable the database could have gotten blown away, in which
+      //  case the message headers are going to throw exceptions when we try
+      //  and touch them.  So we wrap this in a try block that complains about
+      //  this unforeseen circumstance.  (noteFolderDatabaseGettingBlownAway
+      //  should have been called and avoided this situation in all known
+      //  situations.)
+      try {
+        let curGlodaId = msgHdr.getUint32Property(GLODA_MESSAGE_ID_PROPERTY);
+        if (curGlodaId != glodaId)
+          msgHdr.setUint32Property(GLODA_MESSAGE_ID_PROPERTY, glodaId);
+        let headerDirty = msgHdr.getUint32Property(GLODA_DIRTY_PROPERTY);
+        if (headerDirty != dirtyState)
+          msgHdr.setUint32Property(GLODA_DIRTY_PROPERTY, dirtyState);
 
-      if (lastFolder == msgHdr.folder)
-        continue;
-      lastFolder = msgHdr.folder;
-      let folderURI = lastFolder.URI;
-      if (!(folderURI in foldersByURI))
-        foldersByURI[folderURI] = lastFolder;
+        // Make sure this folder is in our foldersByURI map.
+        if (lastFolder == msgHdr.folder)
+          continue;
+        lastFolder = msgHdr.folder;
+        let folderURI = lastFolder.URI;
+        if (!(folderURI in foldersByURI))
+          foldersByURI[folderURI] = lastFolder;
+      }
+      catch (ex) {
+        GlodaMsgIndexer._log.error(
+          "Exception while attempting to mark message with gloda state after" +
+          "db commit", ex);
+      }
     }
 
     // it is vitally important to do this before we forget about the headers!
@@ -281,12 +295,23 @@ var PendingCommitTracker = {
   },
 
   /**
-   * When a folder compaction happens, we are basically out of luck and need
-   *  to discard everything about the folder.  The good news is that the
-   *  folder compaction pass is clever enough to put two and two together.
+   * Sometimes a folder database gets blown away.  This happens for one of two
+   *  expected reasons right now:
+   * - Folder compaction.
+   * - Explicit reindexing of a folder via the folder properties "rebuild index"
+   *    button.
+   *
+   * When this happens, we are basically out of luck and need to discard
+   *  everything about the folder.  The good news is that the folder compaction
+   *  pass is clever enough to re-establish the linkages that are being lost
+   *  when we drop these things on the floor.  Reindexing of a folder is not
+   *  clever enough to deal with this but is an exceptional case of last resort
+   *  (the user should not normally be performing a reindex as part of daily
+   *  operation), so we accept that messages may be redundantly indexed.
    */
-  noteFolderCompaction:
-      function PendingCommitTracker_noteFolderCompaction(aMsgFolder) {
+  noteFolderDatabaseGettingBlownAway:
+      function PendingCommitTracker_noteFolderDatabaseGettingBlownAway(
+                 aMsgFolder) {
     let uri = aMsgFolder.URI + "#";
     for (let key in Iterator(this._indexedMessagesPendingCommitByKey, true)) {
       // this is not as efficient as it could be, but compaction is relatively
@@ -2189,7 +2214,7 @@ var GlodaMsgIndexer = {
     },
 
     /**
-     * This tells us about compaction start and end events.  What we do:
+     * This tells us about many exciting things.  What they are and what we do:
      *
      * - FolderCompactStart: Mark the folder as compacting in our in-memory
      *    representation.  This should keep any new indexing out of the folder
@@ -2198,16 +2223,26 @@ var GlodaMsgIndexer = {
      * - FolderCompactFinish: Mark the folder as done compacting in our
      *    in-memory representation.  Assuming the folder was known to us and
      *    not marked filthy, queue a compaction job.
+     *
+     * - FolderReindexTriggered: We do the same thing as FolderCompactStart
+     *    but don't mark the folder as compacting.
+     *
+     * - JunkStatusChanged: We mark the messages that have had their junk
+     *    state change to be reindexed.
      */
     itemEvent: function gloda_indexer_itemEvent(aItem, aEvent, aData) {
-      if (aEvent == "FolderCompactStart") {
+      // Compact and Reindex are close enough that we can reuse the same code
+      //  with one minor difference.
+      if (aEvent == "FolderCompactStart" ||
+          aEvent == "FolderReindexTriggered") {
         let aMsgFolder = aItem.QueryInterface(nsIMsgFolder);
         // ignore folders we ignore...
         if (!GlodaMsgIndexer.shouldIndexFolder(aMsgFolder))
           return;
 
         let glodaFolder = GlodaDatastore._mapFolder(aMsgFolder);
-        glodaFolder.compacting = true;
+        if (aEvent == "FolderCompactStart")
+          glodaFolder.compacting = true;
 
         // Purge any explicit indexing of said folder.
         GlodaIndexer.purgeJobsUsingFilter(function (aJob) {
@@ -2224,7 +2259,7 @@ var GlodaMsgIndexer = {
         // Tell the PendingCommitTracker to throw away anything it is tracking
         //  about the folder.  We will pick up the pieces in the compaction
         //  pass.
-        PendingCommitTracker.noteFolderCompaction(aMsgFolder);
+        PendingCommitTracker.noteFolderDatabaseGettingBlownAway(aMsgFolder);
 
         // (We do not need to mark the folder dirty because if we were indexing
         //  it, it already must have been marked dirty.)
