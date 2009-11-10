@@ -158,6 +158,9 @@ function setFolder(msgFolder)
    if (list.getRowCount())
      list.selectItem(list.getItemAtIndex(0));
 
+   // this will get the deferred to account root folder, if server is deferred
+   msgFolder = msgFolder.server.rootMsgFolder;
+
    // root the folder picker to this server
    var runMenu = document.getElementById("runFiltersPopup");
    runMenu._teardown();
