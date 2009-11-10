@@ -590,7 +590,7 @@ var AugmentEverybodyWith = {
      *  // when the thing is vaguely deck-like
      *  a("searchVal0", {crazyDeck: 0});
      *  // when you want the first descendent with the given tagName
-     *  a("threadTree", {tagName: treechildren})
+     *  a("threadTree", {tagName: "treechildren"})
      *
      * @return the anonymous element determined by the query found in the
      *  anonymous sub-tree of the element with the given id.

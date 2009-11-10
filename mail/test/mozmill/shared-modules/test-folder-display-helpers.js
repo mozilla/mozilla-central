@@ -243,6 +243,29 @@ function create_thread(aCount) {
 }
 
 /**
+ * Create and return a SyntheticMessage object.
+ *
+ * @param {Object} aArgs An arguments object to be passed to
+ *                       MessageGenerator.makeMessage()
+ */
+ function create_message(aArgs) {
+  return msgGen.makeMessage(aArgs);
+}
+
+/**
+ * Add a SyntheticMessage to a folder.
+ *
+ * @param {SyntheticMessage} aMsg
+ * @param {Object} aFolder
+ */
+function add_message_to_folder(aFolder, aMsg) {
+  // should presumably use async_run here, but since setupAccountStuff is
+  // using a local store, it should be safe to assume synchronicity
+  add_sets_to_folders([aFolder],
+                      [new testHelperModule.SyntheticMessageSet([aMsg])]); 
+}
+
+/**
  * Make sure we are entering the folder from not having been in the folder.  We
  *  will leave the folder and come back if we have to.
  */

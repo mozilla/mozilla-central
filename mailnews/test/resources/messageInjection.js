@@ -622,9 +622,10 @@ let _imapNewMessagesWorkaround = {
  *     list of them.
  * @param aMessageSets A list of SyntheticMessageSets.
  *
- * @return true if we were able to do the injection synchronously, false if we
- *     kicked off an asynchronous process and we will call |async_driver| when
- *     we are done.  This is consistent with  asyncTestUtils support.
+ * @return true if we were able to do the injection synchronously (e.g. for
+ *     a localstore account), false if we kicked off an asynchronous process
+ *     (e.g. for an imap account) and we will call |async_driver| when
+ *     we are done.  This is consistent with asyncTestUtils support.
  */
 function add_sets_to_folders(aMsgFolders, aMessageSets) {
   if ((typeof(aMsgFolders) == "string") || !('length' in aMsgFolders))

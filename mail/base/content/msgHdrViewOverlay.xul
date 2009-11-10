@@ -294,8 +294,7 @@
                 <label id="expandedorganizationLabel" class="headerName"
                        value="&organizationField2.label;"
                        control="expandedorganizationBox"/>
-                <mail-headerfield id="expandedorganizationBox"
-                                  label="&organizationField2.label;"/>
+                <mail-headerfield id="expandedorganizationBox"/>
               </row>
               <row id="expandedsenderRow" collapsed="true">
                 <label id="expandedsenderLabel" class="headerName"
@@ -382,7 +381,8 @@
           <!-- perhaps this should be a customizable toolbar too -->
           <vbox id="otherActionsBox" align="end">
             <hbox id="dateValueBox" align="top" flex="1">  <!--For extensions-->
-              <label id="dateLabel" class="dateLabel" flex="1"/>
+              <label id="dateLabel" class="dateLabel" flex="1" role="textbox"
+                     aria-readonly="true"/>
             </hbox>
             <button type="menu" id="otherActionsButton"
                     label="&otherActionsButton.label;"

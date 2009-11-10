@@ -180,11 +180,33 @@
   <binding id="mail-headerfield">
     <content>
       <xul:description class="headerValue" anonid="headerValue"
-                       flex="1" readonly="true" context="copyPopup"/>
+                       flex="1" readonly="true" context="copyPopup"
+                       role="textbox" aria-readonly="true"/>
     </content>
 
     <implementation>
-      <property name="headerValue" onset="return document.getAnonymousElementByAttribute(this, 'anonid', 'headerValue').textContent = val;"/>
+      <property name="headerValue">
+        <setter>
+          <![CDATA[
+          let valueNode = document.getAnonymousElementByAttribute(this,
+                                                                  "anonid",
+                                                                  "headerValue");
+
+          // Since the control attribute points to the <mail-headerfield>
+          // element rather than the XUL <textbox>, screen readers don't know to
+          // automagically prepend the label when reading the textbox, so we
+          // force this.  Furthermore, at least on Mac, there is no
+          // JS labelElement property at all, so we skip this.  We get away
+          // with it because there's no screen reader support on the Mac.
+          if ("labelElement" in this) {
+            let ariaLabel = this.labelElement.value.slice(0,-1) + ": " + val;
+            valueNode.setAttribute("aria-label", ariaLabel);
+          }
+
+          return valueNode.textContent = val;
+          ]]>
+        </setter>
+      </property>
     </implementation>
   </binding>
 
@@ -194,7 +216,8 @@
                  onclick="if (event.button != 2)
                             openUILink(event.target.textContent, event);"
                  class="headerValue text-link headerValueUrl"
-                 anonid="headerValue" flex="1" readonly="true" context="copyUrlPopup"/>
+                 anonid="headerValue" flex="1" readonly="true"
+                 role="textbox" aria-readonly="true" context="copyUrlPopup"/>
     </content>
   </binding>
 
@@ -255,11 +278,18 @@
             aEmailNode.setAttribute("fullAddress", aAddress.fullAddress);
             aEmailNode.setAttribute("displayName", aAddress.displayName);
 
-            // Add aria-label with header field type and header field content
-            // for better accessibility.
-            var ariaLabel = this.getAttribute("label") + ": " +
-                            aEmailNode.getAttribute("label");
-            aEmailNode.setAttribute("aria-label", ariaLabel);
+            // Since the control attribute points to the
+            // <mail-multi-emailHeaderField> element rather than the XUL
+            // <mail-emailaddress>, screen readers don't know to automagically
+            // prepend the label when reading the tag, so we force this.
+            // Furthermore, at least on Mac, there is no JS labelElement
+            // property at all, so we skip in that case.  We get away with it
+            // because there's no screen reader support on the Mac.
+            if ("labelElement" in this) {
+                let ariaLabel = this.labelElement.value.slice(0, -1) + ": " +
+                                aAddress.fullAddress || aAddress.displayName;
+                aEmailNode.setAttribute("aria-label", ariaLabel);
+            }
 
             try
             {
@@ -500,7 +530,7 @@
       <xul:description anonid="emailValue" class="emailDisplayButton"
                        xbl:inherits="hascard,aria-label"
                        context="emailAddressPopup" popup="emailAddressPopup"
-                       flex="1">
+                       flex="1" role="textbox" aria-readonly="true">
         <xul:label class="emaillabel" anonid="emaillabel"
                    xbl:inherits="value=label,crop"/>
         <xul:image class="emailStar" anonid="emailStar"
@@ -533,10 +563,10 @@
   <binding id="mail-newsgroup">
     <content>
       <xul:description anonid="newsgroupValue" class="emailDisplayButton"
-                       xbl:inherits="aria-label"
                        context="newsgroupPopup" popup="newsgroupPopup"
                        flex="1">
         <xul:label class="newsgrouplabel" anonid="newsgrouplabel"
+                   role="textbox" aria-readonly="true"
                    xbl:inherits="value=label,crop"/>
       </xul:description>
     </content>
@@ -590,6 +620,23 @@
             let itemInDocument = this.newsgroups.appendChild(newNode);
             itemInDocument.setAttribute("label", this.mNewsgroups[i]);
             itemInDocument.setAttribute("newsgroup", this.mNewsgroups[i]);
+
+            // Since the control attribute points to the <newsgroups>
+            // element rather than the XUL <label>, screen
+            // readers don't know to automagically prepend the label when
+            // reading the tag, so we force this.  Furthermore, at least on
+            // Mac, there is no JS labelElement property at all, so we
+            // skip in that case.  We get away with it because there's no
+            // screen reader support on the Mac.
+            if ("labelElement" in this) {
+                let ariaLabel = this.labelElement.value.slice(0, -1) + ": " +
+                                this.mNewsgroups[i];
+                let contentElement =
+                  document.getAnonymousElementByAttribute(itemInDocument,
+                                                          "anonid",
+                                                          "newsgrouplabel");
+                contentElement.setAttribute("aria-label", ariaLabel);
+            }
           }
         ]]></body>
       </method>
@@ -810,6 +857,20 @@
               var label = document.createElement("label");
               label.setAttribute('value', tagName);
               label.className = "tagvalue blc-" + color.substr(1);
+
+              // Since the control attribute points to the
+              // <mail-headerfield-tags> rather than the XUL <label>, screen
+              // readers don't know to automagically prepend the label when
+              // reading the tag, so we force this.  Furthermore, at least on
+              // Mac, there is no JS labelElement property at all, so we
+              // skip in that case.  We get away with it because there's no
+              // screen reader support on the Mac.
+              if ("labelElement" in this) {
+                let ariaLabel = this.labelElement.value.slice(0, -1) + ": "
+                                + tagName;
+                label.setAttribute("aria-label", ariaLabel);
+              }
+
               headerValueNode.appendChild(label);
             }
         ]]>
