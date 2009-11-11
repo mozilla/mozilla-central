@@ -38,6 +38,28 @@
 const EXPORTED_SYMBOLS = ["GetAttachmentKeywords"];
 
 /**
+ * Check whether the character is a CJK character or not.
+ *
+ * @return true if it is a CJK character.
+ */
+function IsCJK(code)
+{
+  if (code >= 0x2000 && code <= 0x9fff) {
+    // Hiragana, Katakana and Kanaji
+    return true;
+  }
+  else if (code >= 0xac00 && code <= 0xd7ff) {
+    // Hangul
+    return true;
+  }
+  else if (code >= 0xf900 && code <= 0xffff) {
+    // Hiragana, Katakana and Kanaji
+    return true;
+  }
+  return false;
+}
+
+/**
  * Get the (possibly-empty) list of attachment keywords in this message.
  *
  * @return the (possibly-empty) list of attachment keywords in this message
@@ -63,12 +85,17 @@ function GetAttachmentKeywords(mailData,keywordsInCsv)
   var keywordsFound = [];
   for (var i = 0; i < keywordsArray.length; i++) {
     var kw = escapeRegxpSpecials(keywordsArray[i]);
-    // We're not worried about matching too much because we only add the
-    // keyword to the list of found keywords.
-    var re = new RegExp("(^|" + NOT_W + ")" + kw + "(" + NOT_W + "|$)", "i");
+    // If the keyword starts (ends) with a CJK character, we don't care
+    // what the previous (next) character is, because the words aren't
+    // space delimited.
+    var start = IsCJK(kw.charCodeAt(0)) ? "" : ("(^|" + NOT_W + ")");
+    var end = IsCJK(kw.charCodeAt(kw.length - 1)) ? "" : ("(" + NOT_W + "|$)");
+    var re = new RegExp(start + kw + end, "i");
     var matching = re.exec(mailData);
     // Ignore the match if it was a URL.
     if (matching && !(/^http|^ftp/i.test(matching[0])))
+      // We're not worried about matching too much because we only add the
+      // keyword to the list of found keywords.
       keywordsFound.push(keywordsArray[i]);
   }
   return keywordsFound;

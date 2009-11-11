@@ -95,15 +95,19 @@ function test_GetAttachmentKeywords(desc, mailData, keywords, expected)
 var tests = [
   // This is a function to demonstrate that we can put functions here.
   test_GetAttachmentKeywords_simple,
+
+  // Desc, mail body Data, keywords to search for, expected keywords found.
   ["Greek", "This is a Θεωρία test", "Θεωρία,is", "Θεωρία,is"],
   ["Greek missing", "This a Θεωρίαω test", "Θεωρία", ""],
   ["Greek and punctuation", "This a:Θεωρία-test", "Θεωρία", "Θεωρία"],
   ["Greek and Japanese", "This a 添Θεωρία付 test", "Θεωρία", "Θεωρία"],
   ["Japanese", "This is 添付! test", "Θεωρία,添付", "添付"],
+  ["More Japanese", "添付mailを送る", "添付,cv", "添付"],
+  ["Japanese and English", "添付mailを送る", "添付,mail", "添付,mail"],
+  ["Japanese and English Mixed", "添付mailを送る", "添付mail", "添付mail"],
+  ["Japanese and English Mixed missing", "添付mailing", "添付mail", ""],
   ["Japanese trailers", "This is 添添付付! test", "Θεωρία,添付", "添付"],
-
-  // It won't find the 添付, because it's surrounded by letters.
-  ["Multi-lang", "cv添付Θεωρία", "Θεωρία,添付,cv", "Θεωρία,cv"],
+  ["Multi-lang", "cv添付Θεωρία", "Θεωρία,添付,cv", "Θεωρία,添付,cv"],
 ];
 
 function run_test()
