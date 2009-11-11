@@ -1088,7 +1088,7 @@
   </menu>
 
   <menu id="menu_Edit" oncommand="CommandUpdate_UndoRedo();">
-    <menupopup id="menu_Edit_Popup" onpopupshowing="InitEditMessagesMenu()">
+    <menupopup id="menu_EditPopup" onpopupshowing="InitEditMessagesMenu()">
       <menuitem id="menu_undo"/>
       <menuitem id="menu_redo"/>
       <menuseparator id="editMenuAfterRedoSeparator"/>

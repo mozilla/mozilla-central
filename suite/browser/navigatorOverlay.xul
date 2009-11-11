@@ -350,7 +350,7 @@
     </menu>
 
     <menu id="menu_Edit">
-      <menupopup id="menu_Edit_Popup">
+      <menupopup id="menu_EditPopup">
         <menuitem id="menu_undo"/>
         <menuitem id="menu_redo"/>
         <menuseparator/>
