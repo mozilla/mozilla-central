@@ -1150,17 +1150,22 @@ nsNNTPNewsgroupList::CallFilters()
 
   for (PRUint32 i = 0; i < count; i++)
   {
+    m_newMsgHdr = m_newHeaders[i];
     if (!filterCount && !serverFilterCount)
     {
-      m_newsDB->AddNewHdrToDB(m_newHeaders[i], PR_TRUE);
+      m_newsDB->AddNewHdrToDB(m_newMsgHdr, PR_TRUE);
 
       if (notifier)
-        notifier->NotifyMsgAdded(m_newHeaders[i]);
+        notifier->NotifyMsgAdded(m_newMsgHdr);
+      // mark the header as not yet reported classified
+      nsMsgKey msgKey;
+      m_newMsgHdr->GetMessageKey(&msgKey);
+      folder->OrProcessingFlags(msgKey,
+                                nsMsgProcessingFlags::NotReportedClassified);
 
       continue;
     }
     m_addHdrToDB = PR_TRUE;
-    m_newMsgHdr = m_newHeaders[i];
 
     // build up a "headers" for filter code
     nsCString subject, author, date;
@@ -1221,6 +1226,11 @@ nsNNTPNewsgroupList::CallFilters()
       m_newsDB->AddNewHdrToDB(m_newMsgHdr, PR_TRUE);
       if (notifier)
         notifier->NotifyMsgAdded(m_newMsgHdr);
+      // mark the header as not yet reported classified
+      nsMsgKey msgKey;
+      m_newMsgHdr->GetMessageKey(&msgKey);
+      folder->OrProcessingFlags(msgKey,
+                                nsMsgProcessingFlags::NotReportedClassified);
     }
   }
   m_newHeaders.Clear();

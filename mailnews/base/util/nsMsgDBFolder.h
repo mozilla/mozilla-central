@@ -176,6 +176,12 @@ protected:
   virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
   void    SetMRUTime();
 
+  /**
+   * Clear all processing flags, presumably because message keys are no longer
+   * valid.
+   */
+  void ClearProcessingFlags();
+
 protected:
   nsCOMPtr<nsIMsgDatabase> mDatabase;
   nsCOMPtr<nsIMsgDatabase> mBackupDatabase;

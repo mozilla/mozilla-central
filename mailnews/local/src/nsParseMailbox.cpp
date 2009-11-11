@@ -1885,6 +1885,11 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
         nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
         if (notifier)
           notifier->NotifyMsgAdded(m_newMsgHdr);
+        // mark the header as not yet reported classified
+        nsMsgKey msgKey;
+        m_newMsgHdr->GetMessageKey(&msgKey);
+        m_downloadFolder->OrProcessingFlags(
+           msgKey, nsMsgProcessingFlags::NotReportedClassified);
       }
     } // if it was moved by imap filter, m_parseMsgState->m_newMsgHdr == nsnull
     m_newMsgHdr = nsnull;
@@ -2535,6 +2540,9 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
       nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
         notifier->NotifyMsgAdded(newHdr);
+      // mark the header as not yet reported classified
+      destIFolder->OrProcessingFlags(
+        newMsgPos, nsMsgProcessingFlags::NotReportedClassified);
       m_msgToForwardOrReply = newHdr;
     }
   }

@@ -216,6 +216,7 @@ nsMsgDBFolder::nsMsgDBFolder(void)
   mProcessingFlag[2].bit = nsMsgProcessingFlags::TraitsDone;
   mProcessingFlag[3].bit = nsMsgProcessingFlags::FiltersDone;
   mProcessingFlag[4].bit = nsMsgProcessingFlags::FilterToMove;
+  mProcessingFlag[5].bit = nsMsgProcessingFlags::NotReportedClassified;
   for (PRUint32 i = 0; i < nsMsgProcessingFlags::NumberOfFlags; i++)
     mProcessingFlag[i].keys = nsMsgKeySetU::Create();
 }
@@ -1067,6 +1068,11 @@ NS_IMETHODIMP nsMsgDBFolder::OnHdrDeleted(nsIMsgDBHdr *aHdrChanged, nsMsgKey  aP
   // as in this case, if there is only one new message and it's being deleted
   // the folder newness has to be cleared.
   CheckWithNewMessagesStatus(PR_FALSE);
+  // Remove all processing flags.  This is generally a good thing although
+  // undo-ing a message back into position will not re-gain the flags.
+  nsMsgKey msgKey;
+  aHdrChanged->GetMessageKey(&msgKey);
+  AndProcessingFlags(msgKey, 0);
   return OnHdrAddedOrDeleted(aHdrChanged, PR_FALSE);
 }
 
@@ -2202,13 +2208,21 @@ nsMsgDBFolder::OnMessageClassified(const char *aMsgURI,
     PRUint32 numKeys = mBayesMsgKeys.Length();
     for (PRUint32 i = 0 ; i < numKeys ; ++i)
     {
-      nsCOMPtr <nsIMsgDBHdr> msgHdr;
+      nsMsgKey msgKey = mBayesMsgKeys[i];
       PRBool hasKey;
       // It is very possible for a message header to no longer be around because
       // a filter moved it.
-      rv = mDatabase->ContainsKey(mBayesMsgKeys[i], &hasKey);
+      rv = mDatabase->ContainsKey(msgKey, &hasKey);
       if (!NS_SUCCEEDED(rv) || !hasKey)
         continue;
+      // Ignore headers that have already been reported.
+      PRUint32 processingFlags;
+      GetProcessingFlags(msgKey, &processingFlags);
+      if (!(processingFlags & nsMsgProcessingFlags::NotReportedClassified))
+        continue;
+      // Now the message will have been reported.  Hooray.
+      AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::NotReportedClassified);
+      nsCOMPtr <nsIMsgDBHdr> msgHdr;
       rv = mDatabase->GetMsgHdrForKey(mBayesMsgKeys[i],
                                       getter_AddRefs(msgHdr));
       if (!NS_SUCCEEDED(rv))
@@ -2521,11 +2535,19 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       PRUint32 numNewMessages = newMessageKeys.Length();
       for (PRUint32 i = 0 ; i < numNewMessages ; ++i)
       {
-        nsCOMPtr <nsIMsgDBHdr> msgHdr;
+        nsMsgKey msgKey = newMessageKeys[i];
+        // Ignore headers that have already been reported.
+        PRUint32 processingFlags;
+        GetProcessingFlags(msgKey, &processingFlags);
+        if (!(processingFlags & nsMsgProcessingFlags::NotReportedClassified))
+          continue;
+        // Now the message will have been reported.  Hooray.
+        AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::NotReportedClassified);
+
         // We do not need to do a ContainsKey check here; nothing could have
         // changed yet.
-        rv = mDatabase->GetMsgHdrForKey(newMessageKeys[i],
-                                        getter_AddRefs(msgHdr));
+        nsCOMPtr <nsIMsgDBHdr> msgHdr;
+        rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
         if (!NS_SUCCEEDED(rv))
           continue;
         newMsgHdrs->AppendElement(msgHdr, PR_FALSE);
@@ -2594,14 +2616,17 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       if (filterMessageForOther)
         OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyTraits);
     }
-    else
+    // Accumulate the message header for immediate classified notification
+    // that we are not classifying it if it has not already been reported.
+    else if (processingFlags & nsMsgProcessingFlags::NotReportedClassified)
     {
+      // Now the message will have been reported.  Hooray.
+      AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::NotReportedClassified);
       if (!msgHdrsNotBeingClassified)
         msgHdrsNotBeingClassified = do_CreateInstance(NS_ARRAY_CONTRACTID);
       if (!msgHdrsNotBeingClassified)
         return NS_ERROR_OUT_OF_MEMORY;
-      // Accumulate the message header for immediate classified notification
-      // that we are not classifying it.
+
       msgHdrsNotBeingClassified->AppendElement(msgHdr, PR_FALSE);
     }
 
@@ -5825,6 +5850,16 @@ NS_IMETHODIMP nsMsgDBFolder::AndProcessingFlags(nsMsgKey aKey, PRUint32 mask)
     if (!(mProcessingFlag[i].bit & mask) && mProcessingFlag[i].keys)
       mProcessingFlag[i].keys->Remove(aKey);
   return NS_OK;
+}
+
+void nsMsgDBFolder::ClearProcessingFlags()
+{
+  for (PRUint32 i = 0; i < nsMsgProcessingFlags::NumberOfFlags; i++)
+  {
+    // There is no clear method so we need to delete and re-create.
+    delete mProcessingFlag[i].keys;
+    mProcessingFlag[i].keys = nsMsgKeySetU::Create();
+  }
 }
 
 /* static */ nsMsgKeySetU* nsMsgKeySetU::Create()

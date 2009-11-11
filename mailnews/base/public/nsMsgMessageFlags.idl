@@ -176,6 +176,28 @@ interface nsMsgProcessingFlags
   /// This message has a move scheduled by filters
   const nsMsgProcessingFlagType FilterToMove   = 0x00000010;
 
+  /**
+   * This message is new to the folder and has yet to be reported via the
+   *  msgsClassified notification. This flag is required because the previously
+   *  used mechanism relied on the database's list of new messages and its
+   *  concept of 'new' is overloaded and has user-visible ramifications.  This
+   *  led to messages potentially being considered multiple times.
+   *
+   * Unfortunately none of the Done processing flags above are suitable for our
+   *  needs because they are not consistently applied and basically constitute
+   *  memory leaks (which makes the not consistently applied thing a good
+   *  thing.)
+   *
+   * I suspect we cannot reliably convert the Done flags above to our use case
+   *  either because of the situation where the user quits the program after the
+   *  messages are added but before the messages are processed.  Since the
+   *  processing flags are suppression flags, assuming the 'new' status is
+   *  persisted to the next time we are run, then this would represent a
+   *  change in behaviour.  I would need to exactly understand the new semantics
+   *  to know for sure though.
+   */
+  const nsMsgProcessingFlagType NotReportedClassified = 0x00000020;
+
   /// Number of processing flags
-  const nsMsgProcessingFlagType NumberOfFlags  = 5;
+  const nsMsgProcessingFlagType NumberOfFlags  = 6;
 };

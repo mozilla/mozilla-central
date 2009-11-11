@@ -895,6 +895,8 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
             nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
             if (notifier)
               notifier->NotifyMsgAdded(hdr);
+            m_folder->OrProcessingFlags(
+              newMsgPos, nsMsgProcessingFlags::NotReportedClassified);
           }
         }
         else

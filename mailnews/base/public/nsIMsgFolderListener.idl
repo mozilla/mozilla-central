@@ -87,9 +87,6 @@ interface nsIMsgFolderListener : nsISupports {
    * notification in this case so that code is reliably notified about the
    * existence of the new message headers.
    *
-   * IMPORTANT! You may receive a notification for a message more than once
-   * because of deficiencies in our treatment of new messages.
-   *
    * @param aMsgs The message headers that have been classified or were
    *     intentionally not classified.
    * @param aJunkProcessed Were the messages processed for junk classification?

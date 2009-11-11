@@ -3147,6 +3147,8 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
       notifier->NotifyMsgAdded(newMsgHdr);
+    // mark the header as not yet reported classified
+    OrProcessingFlags(m_curMsgUid, nsMsgProcessingFlags::NotReportedClassified);
   }
   // adjust highestRecordedUID
   if (mDatabase)

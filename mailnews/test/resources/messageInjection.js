@@ -541,63 +541,6 @@ function _looperator(aList) {
 }
 
 /**
- * This mechanism works around limitations in the new-handling logic that can
- *  cause the msgsClassified event to be produced for messages multiple times.
- *  We can generally avoid this problem in the local case, but it is harder
- *  to workaround in the IMAP case because so many events are out of our
- *  control.  By using the msgAdded notification we can trickily interpose
- *  ourselves, however.
- */
-let _imapNewMessagesWorkaround = {
-  _registered: false,
-  _register: function i_am_one_of_jacks_organs_with_a_bad_attitude() {
-    let notificationService =
-      Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-        .getService(Ci.nsIMsgFolderNotificationService);
-    notificationService.addListener(this,
-      Ci.nsIMsgFolderNotificationService.msgAdded);
-
-    this._registered = true;
-  },
-
-  _numberOfMessagesToGoPerFolder: {},
-
-  msgAdded: function that_last_function_name_was_a_fight_club_reference(
-              aMsgHdr) {
-    let folder = aMsgHdr.folder;
-    let uri = folder.URI;
-    if (uri in this._numberOfMessagesToGoPerFolder) {
-      if (--this._numberOfMessagesToGoPerFolder[uri] == 0) {
-        delete this._numberOfMessagesToGoPerFolder[uri];
-        mark_action("messageInjection",
-                    "clearing new messages to avoid classified problems",
-                    [folder]);
-        folder.clearNewMessages();
-      }
-    }
-  },
-
-  /**
-   * Log that one or more messages are expected to be added in the given folder
-   *  so that we have an accurate count.  We need to generate the
-   *  clearNewMessages call when the last message gets msgAdded.
-   */
-  expectMessageInFolder:
-      function you_see_the_workaround_makes_me_feel_many_complex_emotions(
-        aFolder, aCount) {
-    if (!this._registered)
-        this._register();
-    if (aCount == undefined)
-      aCount = 1;
-    let uri = aFolder.URI;
-    if (uri in this._numberOfMessagesToGoPerFolder)
-      this._numberOfMessagesToGoPerFolder[uri] += aCount;
-    else
-      this._numberOfMessagesToGoPerFolder[uri] = aCount;
-  },
-};
-
-/**
  * Spreads the messages in aMessageSets across the folders in aMsgFolders.  Each
  *  message set is spread in a round-robin fashion across all folders.  At the
  *  same time, each message-sets insertion is interleaved with the other message
@@ -701,15 +644,6 @@ function add_sets_to_folders(aMsgFolders, aMessageSets) {
     //  although since filters really want to be run on the inbox, there
     //  are separate potential semantic issues involved.
     for each (let [, folder] in Iterator(aMsgFolders)) {
-      // XXX Pretend we live in an ideal world by clearing the new list before
-      //  invoking callFilterPlugins.  Because it processes the union of the
-      //  new list and the saved new list (which is populated when you call
-      //  clearNewMessages and cleared by callFilterPlugins), by calling
-      //  clearNewMessages before callFilterPlugins we ensure that the message
-      //  only gets seen by the method once.
-      // The downside is that code in reality can be disappointed to get the
-      //  notification more than once.
-      folder.clearNewMessages();
       folder.callFilterPlugins(null);
     }
   }
@@ -742,7 +676,6 @@ function add_sets_to_folders(aMsgFolders, aMessageSets) {
             if (synMsg.metaState.junk)
               imapMsg.setFlag("Junk");
             fakeFolder.addMessage(imapMsg);
-            _imapNewMessagesWorkaround.expectMessageInFolder(realFolder);
           }
         }
         iPerSet++;
@@ -755,14 +688,6 @@ function add_sets_to_folders(aMsgFolders, aMessageSets) {
                     [realFolder]);
         updateFolderAndNotify(realFolder, async_driver);
         yield false;
-
-        // XXX Ideal-world-pretending just like the local case for problems with
-        //  the new list and callFilterPlugins.  We do this after updateFolder
-        //  because the new headers aren't known until this point.  For this
-        //  to work (which it appears to do), we must be doing this before
-        //  callFilterPlugins happens.  Not sure of exactly how that is managing
-        //  to happen, but I guess it is.
-        realFolder.clearNewMessages();
 
         // compel download of the messages if appropriate
         if (realFolder.flags & Ci.nsMsgFolderFlags.Offline) {
@@ -846,8 +771,6 @@ function async_move_messages(aSynMessageSet, aDestFolder) {
         mark_action("messageInjection",
                     "moving messages",
                     ["from", folder, "to", realDestFolder]);
-        _imapNewMessagesWorkaround.expectMessageInFolder(realDestFolder,
-                                                         xpcomHdrArray.length);
         copyService.CopyMessages(folder, xpcomHdrArray,
                                  realDestFolder, /* move */ true,
                                  asyncCopyListener, null,

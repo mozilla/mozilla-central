@@ -2784,6 +2784,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
           do_CreateInstance(NS_ARRAY_CONTRACTID);
         oneHeaderArray->AppendElement(newHdr, PR_FALSE);
         notifier->NotifyMsgsClassified(oneHeaderArray, PR_FALSE, PR_FALSE);
+        // (We do not add the NotReportedClassified processing flag since we
+        // just reported it!)
       }
     }
   }
@@ -3595,6 +3597,8 @@ nsMsgLocalMailFolder::NotifyCompactCompleted()
 {
   mExpungedBytes = 0;
   m_newMsgs.Clear(); // if compacted, m_newMsgs probably aren't valid.
+  // if compacted, processing flags probably also aren't valid.
+  ClearProcessingFlags();
   (void) RefreshSizeOnDisk();
   (void) CloseDBIfFolderNotOpen();
   nsCOMPtr <nsIAtom> compactCompletedAtom;
