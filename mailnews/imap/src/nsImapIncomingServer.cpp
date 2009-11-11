@@ -163,11 +163,11 @@ NS_IMETHODIMP nsImapIncomingServer::SetKey(const nsACString& aKey)  // override 
   hostSession->SetNamespaceFromPrefForHost(key.get(), personalNamespace.get(),
                                            kPersonalNamespace);
 
-  if (!publicNamespace.Length())
+  if (!publicNamespace.IsEmpty())
       hostSession->SetNamespaceFromPrefForHost(key.get(), publicNamespace.get(),
                                                kPublicNamespace);
 
-  if (otherUsersNamespace.Length())
+  if (!otherUsersNamespace.IsEmpty())
       hostSession->SetNamespaceFromPrefForHost(key.get(), otherUsersNamespace.get(),
                                                kOtherUsersNamespace);
   PRInt32 capability;
