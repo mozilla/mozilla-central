@@ -54,7 +54,7 @@ DEFINES += \
   -DGRE_BUILDID=$(GRE_BUILDID) \
    $(NULL)
 
-SOURCE_STAMP := $(shell cd $(topsrcdir) ; hg identify -i 2>/dev/null | cut -f1 -d' ')
+SOURCE_STAMP := $(shell cd $(topsrcdir) ; hg identify -i . 2>/dev/null | cut -f1 -d' ')
 ifdef SOURCE_STAMP
 DEFINES += -DMOZ_SOURCE_STAMP="$(SOURCE_STAMP)"
 endif
