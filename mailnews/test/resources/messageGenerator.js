@@ -342,7 +342,7 @@ SyntheticPartMultiSignedPGP.prototype = {
  * A synthetic message, created by the MessageGenerator.  Captures both the
  *  ingredients that went into the synthetic message as well as the rfc822 form
  *  of the message.
- * 
+ *
  * @param [aHeaders] A dictionary of rfc822 header payloads.  The key should be
  *     capitalized as you want it to appear in the output.  This requires
  *     adherence to convention of this class.  You are best to just use the
@@ -969,7 +969,7 @@ MessageGenerator.prototype = {
       // primitive threading support...
       if (lastMessage && (iMsg % messagsPerThread != 0))
         args.inReplyTo = lastMessage;
-      else
+      else if (!("inReplyTo" in aSetDef))
         args.inReplyTo = null;
       lastMessage = this.makeMessage(args);
       messages.push(lastMessage);
