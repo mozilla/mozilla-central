@@ -110,7 +110,7 @@ function test_add_tag_with_really_long_label() {
   if (topColumn.clientWidth == defaultWidth) {
     tagsLabel.value = oldTagsValue;
     throw new Error("Header columns didn't change width!  " +
-                    topColumn.clientWidth + " != " + defaultWidth);
+                    topColumn.clientWidth + " == " + defaultWidth);
   }
 
   // Remove the tag and put it back so that the a11y label gets regenerated
@@ -255,4 +255,34 @@ function test_a11y_attrs() {
   assert_selected_and_displayed(mc, curMessage);
 
   headersToTest.forEach(verify_header_a11y);
+}
+
+function test_that_msg_without_date_clears_previous_headers() {
+  be_in_folder(folder);
+
+  // create a message
+  let msg = create_message();
+
+  // ensure that this message doesn't have a Date header
+  delete msg.headers.Date;
+
+  // this will add the message to position 0 of the folder.
+  add_message_to_folder(folder, msg);
+
+  // select and open the first message
+  let curMessage = select_click_row(0);
+
+  // make sure it loads
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, curMessage);
+
+  // Since we didn't give create_message an argument that would create a
+  // Newsgroups header, the newsgroups <row> element should be collapsed.
+  // However, since the previously displayed message _did_ have such a header,
+  // certain bugs in the display of this header could cause the collapse
+  // never to have happened.
+  if (mc.e("expandednewsgroupsRow").collapsed != true) {
+    throw new Error("Expected <row> elemnent for Newsgroups header to be " +
+                    "collapsed, but it wasn't\n!");
+  }
 }

@@ -969,7 +969,16 @@ function UpdateExpandedMessageHeaders() {
       }
     }
   }
-  document.getElementById('dateLabel').textContent = currentHeaderData.date.headerValue;
+
+  let dateLabel = document.getElementById("dateLabel");
+  if ("date" in currentHeaderData) {
+    document.getElementById('dateLabel').textContent =
+      currentHeaderData.date.headerValue;
+    dateLabel.collapsed = false;
+  } else {
+    dateLabel.collapsed = true;
+  }
+
   gBuiltExpandedView = true;
 
   // now update the view to make sure the right elements are visible
