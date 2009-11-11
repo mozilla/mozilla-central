@@ -148,6 +148,7 @@ function setFolder(msgFolder)
 {
    if (msgFolder == gCurrentFolder)
      return;
+   gCurrentFolder = msgFolder;
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
    var filterList = msgFolder.getEditableFilterList(gFilterListMsgWindow);
@@ -158,7 +159,12 @@ function setFolder(msgFolder)
    if (list.getRowCount())
      list.selectItem(list.getItemAtIndex(0));
 
-   // this will get the deferred to account root folder, if server is deferred
+   // This will get the deferred to account root folder, if server is deferred.
+   // We intentionally do this after setting gCurrentFolder, as we want
+   // that to refer to the rootFolder for the actual server, not the
+   // deferred-to server, as gCurrentFolder is really a proxy for the
+   // server whose filters we are editing. But below here we are managing
+   // where the filters will get applied, which is on the deferred-to server.
    msgFolder = msgFolder.server.rootMsgFolder;
 
    // root the folder picker to this server
@@ -186,8 +192,6 @@ function setFolder(msgFolder)
    // Get the first folder for this server. INBOX for
    // imap and pop accts and 1st news group for news.
    updateButtons();
-
-   gCurrentFolder = msgFolder;
 }
 
 function toggleFilter(aFilter, aIndex)
