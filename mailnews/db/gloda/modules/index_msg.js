@@ -1367,9 +1367,10 @@ var GlodaMsgIndexer = {
         //  potentially skipping any messages.
         ++aJob.offset;
 
-        // skip messages that are currently being processed for junk
+        // Skip messages that have not yet been reported to us as existing via
+        //  msgsClassified.
         if (this._indexingFolder.getProcessingFlags(msgHdr.messageKey) &
-            nsMsgProcessingFlags.ClassifyJunk)
+            nsMsgProcessingFlags.NotReportedClassified)
           continue;
 
         // Because the gloda id could be in-flight, we need to double-check the
@@ -1747,6 +1748,13 @@ var GlodaMsgIndexer = {
           continue;
         }
       }
+      // Ignore messages whose processing flags indicate it has not yet been
+      //  classified.  In the IMAP case if the Offline flag is going to get set
+      //  we are going to see it before the msgsClassified event so this is
+      //  very important.
+      if (msgFolder.getProcessingFlags(msgHdr.messageKey) &
+          nsMsgProcessingFlags.NotReportedClassified)
+        continue;
 
       let [glodaId, glodaDirty] = PendingCommitTracker.getGlodaState(msgHdr);
 

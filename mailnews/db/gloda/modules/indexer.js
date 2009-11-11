@@ -1173,9 +1173,9 @@ var GlodaIndexer = {
       //  forever) if the user is active. If we're done and idling, we'll also
       //  commit, otherwise we'll let the idle callback do it.
       let doCommit = transactionToCommit &&
-                      (elapsed > this._MAXIMUM_COMMIT_TIME) ||
-                      (inIdle && (elapsed > this._MINIMUM_COMMIT_TIME ||
-                                  !haveMoreWork));
+                     ((elapsed > this._MAXIMUM_COMMIT_TIME) ||
+                      (inIdle &&
+                       (elapsed > this._MINIMUM_COMMIT_TIME || !haveMoreWork)));
       if (doCommit) {
         GlodaCollectionManager.cacheCommitDirty();
         // Set up an async notification to happen after the commit completes so

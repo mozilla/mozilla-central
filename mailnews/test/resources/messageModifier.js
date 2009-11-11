@@ -146,6 +146,14 @@ SyntheticMessageSet.prototype = {
   },
 
   /**
+   * Get the URI for the message at the given index.
+   */
+  getMsgURI: function(aIndex) {
+    let msgHdr = this.getMsgHdr(aIndex);
+    return msgHdr.folder.getUriForMsg(msgHdr);
+  },
+
+  /**
    * @return a JS iterator of the message headers for all messages inserted into
    *     a folder.
    */

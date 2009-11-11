@@ -137,6 +137,15 @@ register_message_injection_listener({
   onRealFolderCreated: function gth_onRealFolderCreated(aRealFolder) {
     let glodaFolder = Gloda.getFolderForFolder(aRealFolder);
     glodaFolder._downgradeDirtyStatus(glodaFolder.kFolderClean);
+  },
+
+  /**
+   * Make wait_for_gloda_indexer know that it should wait for a msgsClassified
+   *  event whenever messages have been injected, at least if event-driven
+   *  indexing is enabled.
+   */
+  onInjectingMessages: function gth_onInjectingMessages() {
+    _indexMessageState.interestingEvents.push("msgsClassified");
   }
 });
 
@@ -157,10 +166,10 @@ function _prepareIndexerForTesting() {
   GlodaIndexer._idleService = {
     idleTime: 1000,
     addIdleObserver: function() {
-      realIdleService.addIdleObserver.apply(realIdleService, arguments);
+      // There is no actual need to register with the idle observer, and if
+      //  we do, the stupid "idle" notification will trigger commits.
     },
     removeIdleObserver: function() {
-      realIdleService.removeIdleObserver.apply(realIdleService, arguments);
     }
   };
 
@@ -168,12 +177,23 @@ function _prepareIndexerForTesting() {
   //  to an indexing sweep unless a test intentionally does so.
   GlodaIndexer._indexMaxEventQueueMessages = 10000;
 
-  // Lobotomize the adaptive indexer
-  GlodaIndexer._cpuTargetIndexTime = 10000;
-  GlodaIndexer._CPU_TARGET_INDEX_TIME_ACTIVE = 10000;
-  GlodaIndexer._CPU_TARGET_INDEX_TIME_IDLE = 10000;
-  GlodaIndexer._CPU_IS_BUSY_TIME = 10000;
-  GlodaIndexer._PAUSE_LATE_IS_BUSY_TIME = 10000;
+  // Lobotomize the adaptive indexer's constants
+  GlodaIndexer._cpuTargetIndexTime = 10000000;
+  GlodaIndexer._CPU_TARGET_INDEX_TIME_ACTIVE = 10000000;
+  GlodaIndexer._CPU_TARGET_INDEX_TIME_IDLE = 10000000;
+  GlodaIndexer._CPU_IS_BUSY_TIME = 10000000;
+  GlodaIndexer._PAUSE_LATE_IS_BUSY_TIME = 10000000;
+
+  delete GlodaIndexer._indexTokens;
+  GlodaIndexer.__defineGetter__("_indexTokens", function() {
+    return this._CPU_MAX_TOKENS_PER_BATCH;
+  });
+  GlodaIndexer.__defineSetter__("_indexTokens", function() {});
+
+  // This includes making commits only happen when we the unit tests explicitly
+  //  tell them to.
+  GlodaIndexer._MINIMUM_COMMIT_TIME = 10000000;
+  GlodaIndexer._MAXIMUM_COMMIT_TIME = 10000000;
 
   GlodaIndexer._unitTestHookRecover = _indexMessageState._testHookRecover;
   GlodaIndexer._unitTestHookCleanup = _indexMessageState._testHookCleanup;
@@ -249,10 +269,17 @@ function wait_for_gloda_indexer(aSynMessageSets, aConfig) {
   ims.expectedCleanedUpCount = get_val("cleanedUp");
   ims.expectedHadNoCleanUpCount = get_val("hadNoCleanUp");
 
-  // if we are still indexing, there is nothing to do right now, save off
+  // If we are waiting on certain events to occur first, block on those.
+  if (ims.interestingEvents.length) {
+    ims.waitingForEvents = true;
+    mark_action("glodaTestHelper", "waiting for events", ims.interestingEvents);
+    return false;
+  }
+
+  // if we are still indexing, there is nothing to do right now; save off
   //  and rely on the indexing completion state change to trigger things.
   if (GlodaIndexer.indexing) {
-    ims.waiting = true;
+    ims.waitingForIndexingCompletion = true;
     mark_action("glodaTestHelper", "waiting for indexer asynchronously", []);
     return false;
   }
@@ -273,6 +300,15 @@ var _indexMessageState = {
     Gloda.addIndexerListener(this.onIndexNotification);
     this.catchAllCollection = Gloda._wildcardCollection(Gloda.NOUN_MESSAGE);
     this.catchAllCollection.listener = this;
+
+    // waitingForEvents support
+    // (we want this to happen after gloda registers its own listener, and it
+    //  does.)
+    let notificationService =
+      Cc["@mozilla.org/messenger/msgnotificationservice;1"].
+      getService(Ci.nsIMsgFolderNotificationService);
+    notificationService.addListener(this,
+      Ci.nsIMsgFolderNotificationService.msgsClassified);
 
     this._inited = true;
   },
@@ -311,6 +347,19 @@ var _indexMessageState = {
    * The number of times a worker had no cleanup helper but there was a cleanup.
    */
   _workerHadNoCleanUpCount: 0,
+
+  /**
+   * Are we currently in an async wait on events?  We only take concrete action
+   *  on an event if this is true (and we were expecting the event).
+   */
+  waitingForEvents: false,
+  /**
+   * A list of events that we need to see before we allow ourselves to perform
+   *  the indexer check.  For example, if "msgsClassified" is in here, it means
+   *  that whether the indexer is active or not is irrelevant until we have
+   *  seen that msgsClassified event.
+   */
+  interestingEvents: [],
 
   _jsonifyCallbackHandleState: function(aCallbackHandle) {
     return {
@@ -473,9 +522,7 @@ var _indexMessageState = {
    *  an onItemsRemoved call.
    */
   onItemsAdded: function(aItems) {
-    dump("@@@ messageCollectionListener.onItemsAdded\n");
-
-    mark_action("glodaEvent", "indexed", aItems);
+    mark_action("glodaEvent", "itemsAdded", aItems);
 
     for each (let [, item] in Iterator(aItems)) {
       if (item.headerMessageID in this._glodaMessagesByMessageId)
@@ -493,9 +540,7 @@ var _indexMessageState = {
   },
 
   onItemsModified: function(aItems) {
-    dump("@@@ messageCollectionListener.onItemsModified\n");
-
-    mark_action("glodaEvent", "indexed", aItems);
+    mark_action("glodaEvent", "itemsModified", aItems);
 
     for each (let [, item] in Iterator(aItems)) {
       if (item.headerMessageID in this._glodaMessagesByMessageId)
@@ -508,8 +553,6 @@ var _indexMessageState = {
   },
 
   onItemsRemoved: function(aItems) {
-    dump("@@@ messageCollectionListener.onItemsRemoved\n");
-
     mark_action("glodaEvent", "removed", aItems);
 
     for each (let [, item] in Iterator(aItems)) {
@@ -532,17 +575,47 @@ var _indexMessageState = {
   onIndexNotification: function(aStatus, aPrettyName, aJobIndex,
                                 aJobItemIndex, aJobItemGoal) {
     let ims = _indexMessageState;
-    dump("((( Index listener notified! aStatus = " + aStatus + " waiting: " +
-         ims.waiting + "\n");
+    LOG.debug("((( Index listener notified! aStatus = " + aStatus +
+              " waiting: " + ims.waitingForIndexingCompletion + "\n");
 
     // we only care if indexing has just completed and we're waiting
-    if (aStatus == Gloda.kIndexerIdle && ims.waiting) {
+    if (aStatus == Gloda.kIndexerIdle && ims.waitingForIndexingCompletion) {
       ims.assertExpectedMessagesIndexed();
-      ims.waiting = false;
-      dump ("  kicking driver...\n");
+      ims.waitingForIndexingCompletion = false;
+      LOG.debug("  kicking driver...\n");
       async_driver();
     }
-  }
+  },
+
+  /**
+   * If this was an expected interesting event, remove it from the list.  If it
+   *  was the last expected event and we were waiting for it, advance to
+   *  asserting about what we indexed or waiting for indexing to complete.
+   * If an event happens that we did not expect, it does not matter.  We know
+   *  this because we add events we care about to interestingEvents before they
+   *  can possibly be fired.
+   */
+  msgsClassified: function(aMsgHdrs, aJunkClassified, aTraitClassified) {
+    let idx = this.interestingEvents.indexOf("msgsClassified");
+    if (idx != -1) {
+      this.interestingEvents.splice(idx, 1);
+      // was that the last of the expected events?
+      if (!this.interestingEvents.length && this.waitingForEvents) {
+        this.waitingForEvents = false;
+        if (GlodaIndexer.indexing) {
+          this.waitingForIndexingCompletion = true;
+          mark_action("glodaTestHelper", "saw last interesting event, " +
+                      "waiting for indexer asynchronously", []);
+          return;
+        }
+
+        mark_action("glodaTestHelper", "saw last interesting event, " +
+                    "indexing believed already completed", []);
+        this.assertExpectedMessagesIndexed();
+        async_driver();
+      }
+    }
+  },
 };
 
 /**
@@ -735,7 +808,6 @@ QueryExpectationListener.prototype = {
     _passedChecks++;
 
     mark_action("glodaTestHelper", "query satisfied with:", aCollection.items);
-    dump(">>> queryCompleted\n");
     async_driver();
   },
 };

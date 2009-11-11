@@ -37,6 +37,10 @@
 
 var gMessageGenerator, gMessageScenarioFactory;
 
+/*
+ * IMAP port is 1167
+ */
+
 /**
  * @param aInjectionConfig.mode One of "local", "pop", "imap".
  * @param [aInjectionConfig.offline] Should the folder be marked offline (and
@@ -346,6 +350,12 @@ function make_empty_folder(aFolderName, aSpecialFlags) {
         // get the newly created nsIMsgFolder folder
         let msgFolder = mis.rootFolder.getChildNamed(aFolderName);
 
+        // XXX there is a bug that causes folders to be reported as ImapPublic
+        //  when there is no namespace support by the IMAP server.  This is
+        //  a temporary workaround.
+        msgFolder.clearFlag(Ci.nsMsgFolderFlags.ImapPublic);
+        msgFolder.setFlag(Ci.nsMsgFolderFlags.ImapPersonal);
+
         if (aSpecialFlags) {
           for each (let [, flag] in Iterator(aSpecialFlags)) {
             msgFolder.setFlag(flag);
@@ -578,6 +588,8 @@ function add_sets_to_folders(aMsgFolders, aMessageSets) {
 
   let iterFolders, folderList;
   let ioService, popMessages, msgHdrs;
+
+  _messageInjectionSetup.notifyListeners("onInjectingMessages", []);
 
   // -- Pre-loop
   if (mis.injectionConfig.mode == "local") {

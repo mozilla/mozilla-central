@@ -2230,9 +2230,11 @@ nsMsgDBFolder::OnMessageClassified(const char *aMsgURI,
       classifiedMsgHdrs->AppendElement(msgHdr, PR_FALSE);
     }
 
-    notifier->NotifyMsgsClassified(classifiedMsgHdrs,
-                                   mBayesJunkClassifying,
-                                   mBayesTraitClassifying);
+    // only generate the notification if there are some classified messages
+    if (NS_SUCCEEDED(classifiedMsgHdrs->GetLength(&length)) && length)
+      notifier->NotifyMsgsClassified(classifiedMsgHdrs,
+                                     mBayesJunkClassifying,
+                                     mBayesTraitClassifying);
     mBayesMsgKeys.Clear();
 
     return rv;
@@ -2552,8 +2554,10 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
           continue;
         newMsgHdrs->AppendElement(msgHdr, PR_FALSE);
       }
-      // we need to build up a list of message headers for this notification
-      notifier->NotifyMsgsClassified(newMsgHdrs, filterForJunk, filterForOther);
+      PRUint32 length;
+      if (NS_SUCCEEDED(newMsgHdrs->GetLength(&length)) && length)
+        notifier->NotifyMsgsClassified(newMsgHdrs, filterForJunk,
+                                       filterForOther);
     }
     return NS_OK;
   }

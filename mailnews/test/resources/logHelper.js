@@ -304,6 +304,8 @@ function __simple_obj_copy(aObj, aDepthAllowed) {
 const _INTERESTING_MESSAGE_HEADER_PROPERTIES = {
   "gloda-id": 0,
   "gloda-dirty": 0,
+  "junkscore": "",
+  "junkscoreorigin": "",
   "msgOffset": 0,
   "offlineMsgSize": 0,
 };
@@ -343,7 +345,7 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
     let properties = {};
     for each (let [name, propType] in
               Iterator(_INTERESTING_MESSAGE_HEADER_PROPERTIES)) {
-      if (propType == 0)
+      if (propType === 0)
         properties[name] = (aObj.getStringProperty(name) != "") ?
                              aObj.getUint32Property(name) : null;
       else
