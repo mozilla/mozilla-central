@@ -525,7 +525,9 @@ var specialTabs = {
    * browser.
    */
   aboutClickHandler: function aboutClickHandler(aEvent) {
-    if (!aEvent.isTrusted || aEvent.getPreventDefault())
+    // Don't handle events that: a) aren't trusted, b) have already been
+    // handled or c) aren't left-click.
+    if (!aEvent.isTrusted || aEvent.getPreventDefault() || aEvent.button)
       return true;
 
     let href = hRefForClickEvent(aEvent, true);
@@ -545,7 +547,9 @@ var specialTabs = {
    * page.
    */
   defaultClickHandler: function defaultClickHandler(aEvent) {
-    if (!aEvent.isTrusted || aEvent.getPreventDefault())
+    // Don't handle events that: a) aren't trusted, b) have already been
+    // handled or c) aren't left-click.
+    if (!aEvent.isTrusted || aEvent.getPreventDefault() || aEvent.button)
       return true;
 
     let href = hRefForClickEvent(aEvent, true);
@@ -580,7 +584,9 @@ var specialTabs = {
    *                    clicked on should be loaded within the browser or not.
    */
   siteClickHandler: function siteClickHandler(aEvent, aSiteRegexp) {
-    if (!aEvent.isTrusted || aEvent.getPreventDefault())
+    // Don't handle events that: a) aren't trusted, b) have already been
+    // handled or c) aren't left-click.
+    if (!aEvent.isTrusted || aEvent.getPreventDefault() || aEvent.button)
       return true;
 
     let href = hRefForClickEvent(aEvent, true);

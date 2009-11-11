@@ -144,7 +144,7 @@ function contentAreaClick(aEvent)
     return true;
   }
 
-  if (!href)
+  if (!href || aEvent.button)
     return true;
 
   // We want all about, http and https links in the message pane to be loaded
