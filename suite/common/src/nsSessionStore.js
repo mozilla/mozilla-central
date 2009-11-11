@@ -93,9 +93,13 @@ const WINDOW_HIDEABLE_FEATURES = [
 docShell capabilities to (re)store
 Restored in restoreHistory()
 eg: browser.docShell["allow" + aCapability] = false;
+
+XXX keep these in sync with all the attributes starting
+    with "allow" in /docshell/base/nsIDocShell.idl
 */
 const CAPABILITIES = [
-  "Subframes", "Plugins", "Javascript", "MetaRedirects", "Images"
+  "Subframes", "Plugins", "Javascript", "MetaRedirects", "Images",
+  "DNSPrefetch", "Auth"
 ];
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
