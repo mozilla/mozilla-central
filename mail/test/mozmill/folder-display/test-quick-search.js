@@ -60,10 +60,25 @@ function setupModule(module) {
 
 function _assert_quick_search_mode(aController, aMode)
 {
-  let actualMode = aController.e("searchInput").searchMode;
+  let searchInput = aController.e("searchInput");
+  let actualMode = searchInput.searchMode;
   if (actualMode != aMode)
     throw new Error("The search mode is supposed to be " + aMode +
                     ", but is actually " + actualMode);
+
+  // Check whether the menupopup has the correct value selected
+  let menupopupMode = searchInput.menupopup.getAttribute("value");
+  if (menupopupMode != aMode)
+    throw new Error("The search menupopup's mode is supposed to be " + aMode +
+                    ", but is actually " + menupopupMode);
+
+  // Also check the empty text
+  let expectedEmptyText = searchInput.menupopup.getElementsByAttribute("value",
+                              aMode)[0].getAttribute("label");
+  if (expectedEmptyText != searchInput.emptyText)
+    throw new Error("The search empty text is supposed to be " +
+                    expectedEmptyText + ", but is actually " +
+                    searchInput.emptyText);
 }
 
 function _open_3pane_window()
@@ -213,11 +228,31 @@ function test_search_mode_persistence_new_3pane_independently_again()
   mc.e("searchInput").searchMode =
     QuickSearchConstants.kQuickSearchBody.toString();
   plan_for_new_window("mail:3pane");
-  mc.window.MsgOpenNewWindowForFolder(null, -1);
+  _open_3pane_window();
   let mc2 = wait_for_new_window("mail:3pane");
 
   _assert_quick_search_mode(mc2,
       QuickSearchConstants.kQuickSearchBody.toString());
 
   mc2.window.close();
+}
+
+/**
+ * Test that persistence works properly if the "Subject, To or Cc" filter is
+ * selected.
+ */
+function test_search_mode_persistence_subject_to_cc_filter()
+{
+  mc.e("searchInput").searchMode =
+    QuickSearchConstants.kQuickSearchRecipientOrSubject.toString();
+  plan_for_window_close(mc);
+  mc.window.close();
+  wait_for_window_close();
+
+  plan_for_new_window("mail:3pane");
+  _open_3pane_window();
+  mc = mainController = wait_for_new_window("mail:3pane");
+
+  _assert_quick_search_mode(mc,
+      QuickSearchConstants.kQuickSearchRecipientOrSubject.toString());
 }
