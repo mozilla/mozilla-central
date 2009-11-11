@@ -849,7 +849,6 @@ MimeDecoderWrite (MimeDecoderData *data, const char *buffer, PRInt32 size)
 }
 
 
-
 /* ================== Encoders.
  */
 

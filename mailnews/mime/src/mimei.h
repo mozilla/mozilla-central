@@ -411,7 +411,6 @@ public:
 };
 
 
-
 /* Some output-generation utility functions...
  */
 extern int MimeObject_output_init(MimeObject *obj, const char *content_type);
