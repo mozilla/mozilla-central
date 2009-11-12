@@ -190,7 +190,30 @@ then
 fi
 MOZ_BUILD_ROOT=`pwd`
 
-dnl Default to MSVC for win32
+dnl Check for Perl first -- needed for win32 SDK checks
+AC_PATH_PROGS(PERL, $PERL perl5 perl)
+if test -z "$PERL" || test "$PERL" = ":"; then
+    AC_MSG_ERROR([perl not found in \$PATH])
+fi
+
+
+dnl Get mozilla version from central milestone file
+MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
+
+changequote(,)
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
+changequote([,])
+
+dnl Set the Gecko 1.9.2 branch version.
+MOZILLA_1_9_2_BRANCH=
+if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
+    MOZILLA_1_9_2_BRANCH=1
+    AC_DEFINE(MOZILLA_1_9_2_BRANCH)
+fi
+AC_SUBST(MOZILLA_1_9_2_BRANCH)
+
+
+dnl Default to MSVC for win32 and gcc-4.2 for darwin (on !MOZILLA_1_9_2_BRANCH)
 dnl ==============================================================
 if test -z "$CROSS_COMPILE"; then
 case "$target" in
@@ -204,6 +227,11 @@ case "$target" in
     if test -z "$AS"; then AS=ml; fi
     if test -z "$MIDL"; then MIDL=midl; fi
     ;;
+*-darwin*)
+    if test "$MOZILLA_1_9_2_BRANCH" != "1"; then
+        if test -z "$CC"; then CC=gcc-4.2; fi
+        if test -z "$CXX"; then CXX=g++-4.2; fi
+    fi
 esac
 fi
 
@@ -227,37 +255,6 @@ if test ! -z "$L10NBASEDIR"; then
     fi
 fi
 AC_SUBST(L10NBASEDIR)
-
-dnl Check for Perl first -- needed for win32 SDK checks
-AC_PATH_PROGS(PERL, $PERL perl5 perl)
-if test -z "$PERL" || test "$PERL" = ":"; then
-    AC_MSG_ERROR([perl not found in \$PATH])
-fi
-
-
-dnl Get mozilla version from central milestone file
-MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
-
-changequote(,)
-MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
-changequote([,])
-
-dnl Set the Gecko 1.9.1 branch version.
-MOZILLA_1_9_1_BRANCH=
-if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
-    MOZILLA_1_9_1_BRANCH=1
-    AC_DEFINE(MOZILLA_1_9_1_BRANCH)
-fi
-AC_SUBST(MOZILLA_1_9_1_BRANCH)
-
-dnl Set the Gecko 1.9.2 branch version.
-MOZILLA_1_9_2_BRANCH=
-if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
-    MOZILLA_1_9_2_BRANCH=1
-    AC_DEFINE(MOZILLA_1_9_2_BRANCH)
-fi
-AC_SUBST(MOZILLA_1_9_2_BRANCH)
-
 
 dnl ========================================================
 dnl Checks for compilers.
