@@ -45,6 +45,7 @@
 #include "nsIUrlListener.h"
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgMailSession.h"
+#include "nsIMsgFolderNotificationService.h"
 #include "nsThreadUtils.h"
 #include "nsIMsgDatabase.h"
 #include "nsIMutableArray.h"
@@ -277,7 +278,11 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
     }
     else
     {
-      nsCOMPtr<nsIMutableArray> srcMessages = do_CreateInstance(NS_ARRAY_CONTRACTID);
+      nsCOMPtr<nsIMutableArray> srcMessages =
+        do_CreateInstance(NS_ARRAY_CONTRACTID);
+      nsCOMPtr<nsIMutableArray> dstMessages =
+        do_CreateInstance(NS_ARRAY_CONTRACTID);
+
       srcDB->StartBatch();
       for (i = 0; i < count; i++)
       {
@@ -296,10 +301,23 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
             newHdr->SetStatusOffset(m_srcStatusOffsetArray[i]);
             srcDB->UndoDelete(newHdr);
             srcMessages->AppendElement(newHdr, PR_FALSE);
+            // (we want to keep these two lists in sync)
+            dstMessages->AppendElement(oldHdr, PR_FALSE);
           }
         }
       }
       srcDB->EndBatch();
+
+      nsCOMPtr<nsIMsgFolderNotificationService>
+        notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+      if (notifier)
+      {
+        // Remember that we're actually moving things back from the destination
+        //  to the source!
+        notifier->NotifyMsgsMoveCopyCompleted(PR_TRUE, dstMessages,
+                                              srcFolder, srcMessages);
+      }
+
       nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(srcFolder);
       if (localFolder)
         localFolder->MarkMsgsOnPop3Server(srcMessages, POP3_NONE /*deleteMsgs*/);
