@@ -161,7 +161,11 @@ function _prepareIndexerForTesting() {
   // The indexer doesn't need to worry about load; zero his rescheduling time.
   GlodaIndexer._INDEX_INTERVAL = 0;
 
+  // The indexer already registered for the idle service; we must remove this
+  //  or "idle" notifications will still get sent via the observer mechanism.
   let realIdleService = GlodaIndexer._idleService;
+  realIdleService.removeIdleObserver(GlodaIndexer,
+                                     GlodaIndexer._indexIdleThresholdSecs);
   // pretend we are always idle
   GlodaIndexer._idleService = {
     idleTime: 1000,
@@ -579,7 +583,8 @@ var _indexMessageState = {
               " waiting: " + ims.waitingForIndexingCompletion + "\n");
 
     // we only care if indexing has just completed and we're waiting
-    if (aStatus == Gloda.kIndexerIdle && ims.waitingForIndexingCompletion) {
+    if (aStatus == Gloda.kIndexerIdle && !GlodaIndexer.indexing &&
+        ims.waitingForIndexingCompletion) {
       ims.assertExpectedMessagesIndexed();
       ims.waitingForIndexingCompletion = false;
       LOG.debug("  kicking driver...\n");
