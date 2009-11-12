@@ -76,7 +76,11 @@ var GlodaABIndexer = {
 
   // it's a getter so we can reference 'this'
   get workers() {
-    return [["ab-card", this._worker_index_card]];
+    return [
+      ["ab-card", {
+         worker: this._worker_index_card,
+       }],
+    ];
   },
 
   _worker_index_card: function(aJob, aCallbackHandle) {
@@ -147,7 +151,7 @@ var GlodaABIndexer = {
 
       let card = aItem; // instanceof already QueryInterface'd for us.
       let job = new IndexingJob("ab-card", card);
-      GlodaIndexer.indexJob(this, job, false);
+      GlodaIndexer.indexJob(job);
     }
   }
 };
