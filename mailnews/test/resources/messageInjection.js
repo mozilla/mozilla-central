@@ -642,6 +642,13 @@ function add_sets_to_folders(aMsgFolders, aMessageSets) {
             let msgHdr = messageSet.getMsgHdr(iPerSet);
             msgHdr.setStringProperty("junkscore", "100");
           }
+          if (synMsg.metaState.read) {
+            // XXX this will generate an event; I'm not sure if we should be
+            //  trying to avoid that or not.  This case is really only added
+            //  for IMAP where this makes more sense.
+            let msgHdr = messageSet.getMsgHdr(iPerSet);
+            msgHdr.markRead(true);
+          }
           folder.gettingNewMessages = false;
           folder.hasNewMessages = true;
           didSomething = true;
@@ -687,6 +694,8 @@ function add_sets_to_folders(aMsgFolders, aMessageSets) {
             //  classifier won't run, so it's moot for now.
             if (synMsg.metaState.junk)
               imapMsg.setFlag("Junk");
+            if (synMsg.metaState.read)
+              imapMsg.setFlag("\\Seen");
             fakeFolder.addMessage(imapMsg);
           }
         }
@@ -783,6 +792,13 @@ function async_move_messages(aSynMessageSet, aDestFolder) {
         mark_action("messageInjection",
                     "moving messages",
                     ["from", folder, "to", realDestFolder]);
+
+        // In the IMAP case tell listeners we are moving messages without
+        //  destination headers.
+        if (!message_injection_is_local())
+          _messageInjectionSetup.notifyListeners(
+            "onMovingMessagesWithoutDestHeaders", [realDestFolder]);
+
         copyService.CopyMessages(folder, xpcomHdrArray,
                                  realDestFolder, /* move */ true,
                                  asyncCopyListener, null,
@@ -818,6 +834,95 @@ function async_move_messages(aSynMessageSet, aDestFolder) {
       }
     },
   });
+}
+
+/**
+ * Move the messages to the trash; do not use this on messages that are already
+ *  in the trash, we are not clever enough for that.
+ *
+ * @param aSynMessageSet The set of messages to trash.  The messages do not all
+ *     have to be in the same folder, but we have to trash them folder by
+ *     folder if they are not.
+ */
+function async_trash_messages(aSynMessageSet) {
+  mark_action("messageInjection", "trashing messages",
+              aSynMessageSet.msgHdrList);
+  return async_run({func: function () {
+      for (let [folder, xpcomHdrArray] in
+           aSynMessageSet.foldersWithXpcomHdrArrays) {
+        mark_action("messageInjection", "trashing messages in folder",
+                    [folder]);
+        // In the IMAP case tell listeners we are moving messages without
+        //  destination headers, since that's what trashing amounts to.
+        if (!message_injection_is_local())
+          _messageInjectionSetup.notifyListeners(
+            "onMovingMessagesWithoutDestHeaders", []);
+        folder.deleteMessages(xpcomHdrArray, null, false, true,
+                              asyncCopyListener,
+                              /* do not allow undo, currently leaks */ false);
+        yield false;
+
+        // just like the move case we need to force updateFolder calls for IMAP
+        if (!message_injection_is_local()) {
+          mark_action("messageInjection",
+                      "forcing update of folder so IMAP move issued",
+                      [folder]);
+          // update the source folder to force it to issue the move
+          updateFolderAndNotify(folder, async_driver);
+          yield false;
+
+          // trash folder may not have existed at startup but the deletion
+          //  will have created it.
+          if (!_messageInjectionSetup.trashFolder)
+            _messageInjectionSetup.trashFolder =
+              _messageInjectionSetup.rootFolder.getFolderWithFlags(
+                Ci.nsMsgFolderFlags.Trash);
+          let trashFolder = _messageInjectionSetup.trashFolder;
+
+          mark_action("messageInjection",
+                      "forcing update of folder so IMAP moved header seen",
+                      [trashFolder]);
+          // update the dest folder to see the new header.
+          updateFolderAndNotify(trashFolder, async_driver);
+          yield false;
+
+          // compel download of messages in dest folder if appropriate
+          if (trashFolder.flags & Ci.nsMsgFolderFlags.Offline) {
+            mark_action("messageInjection", "offlining messages",
+                        [trashFolder]);
+            trashFolder.downloadAllForOffline(asyncUrlListener, null);
+            yield false;
+          }
+        }
+      }
+    },
+  });
+}
+
+/**
+ * Delete all of the messages in a SyntheticMessageSet like the user performed a
+ *  shift-delete (or if the messages were already in the trash).
+ *
+ * This is actually a synchronous operation.  I'm surprised too.
+ *
+ * @param aSynMessageSet The set of messages to delete.  The messages do not all
+ *     have to be in the same folder, but we have to delete them folder by
+ *     folder if they are not.
+ */
+function async_delete_messages(aSynMessageSet) {
+  mark_action("messageInjection", "deleting messages",
+              aSynMessageSet.msgHdrList);
+  for (let [folder, xpcomHdrArray] in
+       aSynMessageSet.foldersWithXpcomHdrArrays) {
+    mark_action("messageInjection", "deleting messages in folder",
+                [folder]);
+    folder.deleteMessages(xpcomHdrArray, null,
+                          /* delete storage */ true,
+                          /* is move? */ false,
+                          asyncCopyListener,
+                          /* do not allow undo, currently leaks */ false);
+  }
+  return true;
 }
 
 /**

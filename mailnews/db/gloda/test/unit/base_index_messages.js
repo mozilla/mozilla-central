@@ -730,7 +730,20 @@ function test_folder_deletion_nested() {
 
 }
 
+/* ===== IMAP Nuances ===== */
 
+/**
+ * Verify that for IMAP folders we still see an index a message that is added
+ *  as read.
+ */
+function test_imap_add_unread_to_folder() {
+  if (message_injection_is_local())
+    return;
+
+  let [srcFolder, msgSet] = make_folder_with_sets([{count: 1, read: true}]);
+  yield wait_for_message_injection();
+  yield wait_for_gloda_indexer(msgSet);
+}
 
 /* ===== Message Moving ===== */
 
@@ -770,6 +783,9 @@ function test_message_moving() {
 
   do_check_eq(gmsg.folderURI,
               get_real_injection_folder(destFolder).URI);
+
+  // - make sure the message key is correct!
+  do_check_eq(gmsg.messageKey, msgSet.getMsgHdr(0).messageKey);
 
   // - move it back to its origin folder
   mark_sub_test_start("move it back");
@@ -853,6 +869,7 @@ var tests = [
   test_attributes_fundamental_from_disk,
   test_attributes_explicit,
 
+  test_imap_add_unread_to_folder,
   test_message_moving,
 
   test_message_deletion,

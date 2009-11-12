@@ -81,58 +81,6 @@ var asyncCopyListener = {
   }
 };
 
-/**
- * Move the messages to the trash; do not use this on messages that are already
- *  in the trash, we are not clever enough for that.
- *
- * @param aSynMessageSet The set of messages to trash.  The messages do not all
- *     have to be in the same folder, but we have to trash them folder by
- *     folder if they are not.
- */
-function async_trash_messages(aSynMessageSet) {
-  mark_action("messageInjection", "trashing messages",
-              aSynMessageSet.msgHdrList);
-  return async_run({func: function () {
-      for (let [folder, xpcomHdrArray] in
-           aSynMessageSet.foldersWithXpcomHdrArrays) {
-        mark_action("messageInjection", "trashing messages in folder",
-                    [folder]);
-        folder.deleteMessages(xpcomHdrArray, null, false, true,
-                              asyncCopyListener,
-                              /* do not allow undo, currently leaks */ false);
-        yield false;
-      }
-    },
-  });
-}
-
-/**
- * Delete all of the messages in a SyntheticMessageSet like the user performed a
- *  shift-delete (or if the messages were already in the trash).
- *
- * This is actually a synchronous operation.  I'm surprised too.
- *
- * @param aSynMessageSet The set of messages to delete.  The messages do not all
- *     have to be in the same folder, but we have to delete them folder by
- *     folder if they are not.
- */
-function async_delete_messages(aSynMessageSet) {
-  mark_action("messageInjection", "deleting messages",
-              aSynMessageSet.msgHdrList);
-  for (let [folder, xpcomHdrArray] in
-       aSynMessageSet.foldersWithXpcomHdrArrays) {
-    mark_action("messageInjection", "deleting messages in folder",
-                [folder]);
-    folder.deleteMessages(xpcomHdrArray, null,
-                          /* delete storage */ true,
-                          /* is move? */ false,
-                          asyncCopyListener,
-                          /* do not allow undo, currently leaks */ false);
-  }
-  return true;
-}
-
-
 var asyncGeneratorStack = [];
 
 /**

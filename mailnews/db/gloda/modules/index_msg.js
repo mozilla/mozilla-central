@@ -102,6 +102,15 @@ const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
 const nsMsgMessageFlags = Ci.nsMsgMessageFlags;
 const nsMsgProcessingFlags = Ci.nsMsgProcessingFlags;
 
+/**
+ * The processing flags that tell us that a message header has not yet been
+ *  reported to us via msgsClassified.  If it has one of these flags, it is
+ *  still being processed.
+ */
+const NOT_YET_REPORTED_PROCESSING_FLAGS =
+  nsMsgProcessingFlags.NotReportedClassified |
+  nsMsgProcessingFlags.ClassifyJunk;
+
 // for list comprehension fun
 function range(begin, end) {
   for (let i = begin; i < end; ++i) {
@@ -1370,7 +1379,7 @@ var GlodaMsgIndexer = {
         // Skip messages that have not yet been reported to us as existing via
         //  msgsClassified.
         if (this._indexingFolder.getProcessingFlags(msgHdr.messageKey) &
-            nsMsgProcessingFlags.NotReportedClassified)
+            NOT_YET_REPORTED_PROCESSING_FLAGS)
           continue;
 
         // Because the gloda id could be in-flight, we need to double-check the
@@ -1753,7 +1762,7 @@ var GlodaMsgIndexer = {
       //  we are going to see it before the msgsClassified event so this is
       //  very important.
       if (msgFolder.getProcessingFlags(msgHdr.messageKey) &
-          nsMsgProcessingFlags.NotReportedClassified)
+          NOT_YET_REPORTED_PROCESSING_FLAGS)
         continue;
 
       let [glodaId, glodaDirty] = PendingCommitTracker.getGlodaState(msgHdr);

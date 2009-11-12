@@ -1175,24 +1175,16 @@ nsMsgKeySet::LastMissingRange(PRInt32 min, PRInt32 max,
 }
 
 /**
- * Return a copy of this as an nsTArray<nsMsgKey>, which is much easier for
- * callers to manipulate.  Normal XPCOM calling conventions, although the
- * array itself isn't refcounted, so the caller should free when done
- * using NS_DELETEXPCOM().
+ * Fill the passed in aArray with the keys in the message key set.
  */
-nsresult 
-nsMsgKeySet::ToMsgKeyArray(nsTArray<nsMsgKey> **aArray)
+nsresult
+nsMsgKeySet::ToMsgKeyArray(nsTArray<nsMsgKey> &aArray)
 {
     PRInt32 size;
     PRInt32 *head;
     PRInt32 *tail;
     PRInt32 *end;
     PRInt32 last_art = -1;
-
-    nsTArray<nsMsgKey> *array;
-    NS_NEWXPCOM(array, nsTArray<nsMsgKey>);
-    if (!array) 
-        return NS_ERROR_OUT_OF_MEMORY;
 
     size = m_length;
     head = m_data;
@@ -1215,23 +1207,22 @@ nsMsgKeySet::ToMsgKeyArray(nsTArray<nsMsgKey> **aArray)
                 to = from;
                 tail++;
             }
-        if (from == 0) {
-            from = 1;               /* See 'hack' comment above  ### */
-        }
+        // The horrible news-hack used to adjust from to 1 if it was zero right
+        // here, but there is no longer a consumer of this method with that
+        // broken use-case.
         if (from <= last_art) from = last_art + 1;
         if (from <= to) {
             if (from < to) {
                 for (PRInt32 i = from; i <= to ; ++i ) {
-                    array->AppendElement(i);
+                    aArray.AppendElement(i);
                 }
             } else {
-                array->AppendElement(from);
+                aArray.AppendElement(from);
             }
             last_art = to;
         }
     }
 
-    *aArray = array;
     return NS_OK;
 }
 

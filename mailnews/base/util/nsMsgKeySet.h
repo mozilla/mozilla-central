@@ -101,14 +101,11 @@ public:
   // For debugging only...
   PRInt32 getLength() {return m_length;}
 
-  /**
-   * Return a copy of this as an nsTArray<nsMsgKey>, which is much easier for
-   * callers to manipulate.  Normal XPCOM calling conventions, although the
-   * array itself isn't refcounted, so the caller should free when done
-   * using NS_DELETEXPCOM().
-   */
-  nsresult ToMsgKeyArray(nsTArray<nsMsgKey> **aArray);
-  
+/**
+ * Fill the passed in aArray with the keys in the message key set.
+ */
+  nsresult ToMsgKeyArray(nsTArray<nsMsgKey> &aArray);
+
 #ifdef DEBUG
   static void RunTests();
 #endif

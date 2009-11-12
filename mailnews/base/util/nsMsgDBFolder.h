@@ -182,6 +182,8 @@ protected:
    */
   void ClearProcessingFlags();
 
+  nsresult NotifyHdrsNotBeingClassified();
+
 protected:
   nsCOMPtr<nsIMsgDatabase> mDatabase;
   nsCOMPtr<nsIMsgDatabase> mBackupDatabase;
@@ -310,13 +312,13 @@ protected:
   nsCOMPtr<nsIMutableArray> mPostBayesMessagesToFilter;
 
   /**
-   * The list of message keys of messages being processed by Bayesian
-   * classification.  We save the keys instead of the headers because it is
-   * possible that post-classification filters may end up moving the messages
-   * out of the folder (at which point the header becomes invalid).  (It also
-   * helps keep memory usage down when there are lots of messages.)
+   * The list of message keys that have been classified for msgsClassified
+   * batch notification purposes.  We add to this list in OnMessageClassified
+   * when we are told about a classified message (a URI is provided), and we
+   * notify for the list and clear it when we are told all the messages in
+   * the batch were classified (a URI is not provided).
    */
-  nsTArray<nsMsgKey> mBayesMsgKeys;
+  nsTArray<nsMsgKey> mClassifiedMsgKeys;
   // Is the current bayes filtering doing junk classification?
   PRBool mBayesJunkClassifying;
   // Is the current bayes filtering doing trait classification?
@@ -337,6 +339,8 @@ public:
   int Add(PRUint32 key);
   // Remove() removes the given article from the set. 
   int Remove(PRUint32 key);
+  // Add the keys in the set to aArray.
+  nsresult ToMsgKeyArray(nsTArray<nsMsgKey> &aArray);
 
 protected:
   nsMsgKeySetU();

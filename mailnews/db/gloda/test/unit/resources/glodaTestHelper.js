@@ -146,7 +146,17 @@ register_message_injection_listener({
    */
   onInjectingMessages: function gth_onInjectingMessages() {
     _indexMessageState.interestingEvents.push("msgsClassified");
-  }
+  },
+
+  /**
+   * This basically translates to "we are triggering an IMAP move" and has
+   *  the ramification that we should expect a msgsClassified event because
+   *  the destination will see the header get added at some point.
+   */
+  onMovingMessagesWithoutDestHeaders:
+      function gth_onMovingMessagesWithoutDestHeaders() {
+    _indexMessageState.interestingEvents.push("msgsClassified");
+  },
 });
 
 function _prepareIndexerForTesting() {

@@ -338,6 +338,11 @@ SyntheticPartMultiSignedPGP.prototype = {
 };
 
 
+const _DEFAULT_META_STATES = {
+  junk: false,
+  read: false,
+};
+
 /**
  * A synthetic message, created by the MessageGenerator.  Captures both the
  *  ingredients that went into the synthetic message as well as the rfc822 form
@@ -357,7 +362,11 @@ function SyntheticMessage(aHeaders, aBodyPart, aMetaState) {
   // we currently do not need to call SyntheticPart's constructor...
   this.headers = aHeaders || {};
   this.bodyPart = aBodyPart || new SyntheticPartLeaf("");
-  this.metaState = aMetaState || {junk: false};
+  this.metaState = aMetaState || {};
+  for each (let [key, value] in Iterator(_DEFAULT_META_STATES)) {
+    if (!(key in this.metaState))
+      this.metaState[key] = value;
+  }
 }
 
 SyntheticMessage.prototype = {
@@ -820,6 +829,7 @@ MessageGenerator.prototype = {
    *     of the messageInjection helper so that it can know to flag the message
    *     as junk?  We have no concept of marking a message as definitely not
    *     junk at this point.
+   * @param [aArgs.read] Should this message be marked as already read?
    * @returns a SyntheticMessage fashioned just to your liking.
    */
   makeMessage: function(aArgs) {
@@ -890,6 +900,8 @@ MessageGenerator.prototype = {
 
     if ("junk" in aArgs && aArgs.junk)
       msg.metaState.junk = true;
+    if ("read" in aArgs && aArgs.read)
+      msg.metaState.read = true;
 
     let bodyPart;
     if (aArgs.bodyPart)
@@ -919,7 +931,7 @@ MessageGenerator.prototype = {
     count: 10,
   },
   MAKE_MESSAGES_PROPAGATE: ['attachments', 'body', 'cc', 'from', 'inReplyTo',
-                            'subject', 'to', 'clobberHeaders', 'junk'],
+                            'subject', 'to', 'clobberHeaders', 'junk', 'read'],
   /**
    * Given a set definition, produce a list of synthetic messages.
    *

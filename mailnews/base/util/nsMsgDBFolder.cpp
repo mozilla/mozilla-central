@@ -2193,7 +2193,7 @@ nsMsgDBFolder::OnMessageClassified(const char *aMsgURI,
     }
 
     // Bail if we didn't actually classify any messages.
-    if (mBayesMsgKeys.IsEmpty())
+    if (mClassifiedMsgKeys.IsEmpty())
       return rv;
 
     // Notify that we classified some messages.
@@ -2205,26 +2205,18 @@ nsMsgDBFolder::OnMessageClassified(const char *aMsgURI,
       do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 numKeys = mBayesMsgKeys.Length();
+    PRUint32 numKeys = mClassifiedMsgKeys.Length();
     for (PRUint32 i = 0 ; i < numKeys ; ++i)
     {
-      nsMsgKey msgKey = mBayesMsgKeys[i];
+      nsMsgKey msgKey = mClassifiedMsgKeys[i];
       PRBool hasKey;
       // It is very possible for a message header to no longer be around because
       // a filter moved it.
       rv = mDatabase->ContainsKey(msgKey, &hasKey);
       if (!NS_SUCCEEDED(rv) || !hasKey)
         continue;
-      // Ignore headers that have already been reported.
-      PRUint32 processingFlags;
-      GetProcessingFlags(msgKey, &processingFlags);
-      if (!(processingFlags & nsMsgProcessingFlags::NotReportedClassified))
-        continue;
-      // Now the message will have been reported.  Hooray.
-      AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::NotReportedClassified);
       nsCOMPtr <nsIMsgDBHdr> msgHdr;
-      rv = mDatabase->GetMsgHdrForKey(mBayesMsgKeys[i],
-                                      getter_AddRefs(msgHdr));
+      rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
       if (!NS_SUCCEEDED(rv))
         continue;
       classifiedMsgHdrs->AppendElement(msgHdr, PR_FALSE);
@@ -2235,7 +2227,7 @@ nsMsgDBFolder::OnMessageClassified(const char *aMsgURI,
       notifier->NotifyMsgsClassified(classifiedMsgHdrs,
                                      mBayesJunkClassifying,
                                      mBayesTraitClassifying);
-    mBayesMsgKeys.Clear();
+    mClassifiedMsgKeys.Clear();
 
     return rv;
   }
@@ -2262,6 +2254,7 @@ nsMsgDBFolder::OnMessageClassified(const char *aMsgURI,
 
   if (processingFlags & nsMsgProcessingFlags::ClassifyJunk)
   {
+    mClassifiedMsgKeys.AppendElement(msgKey);
     AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::ClassifyJunk);
 
     nsCAutoString msgJunkScore;
@@ -2499,6 +2492,15 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     }
   }
 
+  // If there is nothing to do, leave now but let NotifyHdrsNotBeingClassified
+  // generate the msgsClassified notification for all newly added messages as
+  // tracked by the NotReportedClassified processing flag.
+  if (!filterForOther && !filterForJunk && !filterPostPlugin)
+  {
+    NotifyHdrsNotBeingClassified();
+    return NS_OK;
+  }
+
   // get the list of new messages
   //
   PRUint32 numNewKeys;
@@ -2516,55 +2518,9 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
 
   NS_Free(newKeys);
 
-  // if there weren't any, just return
-  if (newMessageKeys.IsEmpty())
-    return NS_OK;
-
-  // If we do not need to do any work, leave.
-  // (We needed to get the list of new messages so we could get their headers so
-  // we can send notifications about them here.)
-  if (!filterForOther && !filterForJunk && !filterPostPlugin)
-  {
-    // notify that these messages are not being classified
-    nsCOMPtr<nsIMsgFolderNotificationService>
-      notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
-    if (notifier)
-    {
-      nsCOMPtr <nsIMutableArray> newMsgHdrs =
-        do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      PRUint32 numNewMessages = newMessageKeys.Length();
-      for (PRUint32 i = 0 ; i < numNewMessages ; ++i)
-      {
-        nsMsgKey msgKey = newMessageKeys[i];
-        // Ignore headers that have already been reported.
-        PRUint32 processingFlags;
-        GetProcessingFlags(msgKey, &processingFlags);
-        if (!(processingFlags & nsMsgProcessingFlags::NotReportedClassified))
-          continue;
-        // Now the message will have been reported.  Hooray.
-        AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::NotReportedClassified);
-
-        // We do not need to do a ContainsKey check here; nothing could have
-        // changed yet.
-        nsCOMPtr <nsIMsgDBHdr> msgHdr;
-        rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
-        if (!NS_SUCCEEDED(rv))
-          continue;
-        newMsgHdrs->AppendElement(msgHdr, PR_FALSE);
-      }
-      PRUint32 length;
-      if (NS_SUCCEEDED(newMsgHdrs->GetLength(&length)) && length)
-        notifier->NotifyMsgsClassified(newMsgHdrs, filterForJunk,
-                                       filterForOther);
-    }
-    return NS_OK;
-  }
-
   // build up list of keys to classify
+  nsTArray<nsMsgKey> classifyMsgKeys;
   nsCString uri;
-  nsCOMPtr<nsIMutableArray> msgHdrsNotBeingClassified; // create on demand
 
   PRUint32 numNewMessages = newMessageKeys.Length();
   for (PRUint32 i = 0 ; i < numNewMessages ; ++i)
@@ -2596,52 +2552,46 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         break; // skip this msg since it's in the white list
       }
       filterMessageForJunk = PR_TRUE;
+
+      OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyJunk);
+      // Since we are junk processing, we want to defer the msgsClassified
+      // notification until the junk classification has occurred.  The event
+      // is sufficiently reliable that we know this will be handled in
+      // OnMessageClassified at the end of the batch.  We clear the
+      // NotReportedClassified flag since we know the message is in good hands.
+      AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::NotReportedClassified);
       break;
     }
 
     PRUint32 processingFlags;
     GetProcessingFlags(msgKey, &processingFlags);
 
-    // trait processing
     PRBool filterMessageForOther = PR_FALSE;
+    // trait processing
     if (!(processingFlags & nsMsgProcessingFlags::TraitsDone))
     {
       // don't do trait processing on this message again
       OrProcessingFlags(msgKey, nsMsgProcessingFlags::TraitsDone);
       if (filterForOther)
+      {
         filterMessageForOther = PR_TRUE;
+        OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyTraits);
+      }
     }
 
     if (filterMessageForJunk || filterMessageForOther)
-    {
-      mBayesMsgKeys.AppendElement(newMessageKeys[i]);
-      if (filterMessageForJunk)
-        OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyJunk);
-      if (filterMessageForOther)
-        OrProcessingFlags(msgKey, nsMsgProcessingFlags::ClassifyTraits);
-    }
-    // Accumulate the message header for immediate classified notification
-    // that we are not classifying it if it has not already been reported.
-    else if (processingFlags & nsMsgProcessingFlags::NotReportedClassified)
-    {
-      // Now the message will have been reported.  Hooray.
-      AndProcessingFlags(msgKey, ~nsMsgProcessingFlags::NotReportedClassified);
-      if (!msgHdrsNotBeingClassified)
-        msgHdrsNotBeingClassified = do_CreateInstance(NS_ARRAY_CONTRACTID);
-      if (!msgHdrsNotBeingClassified)
-        return NS_ERROR_OUT_OF_MEMORY;
-
-      msgHdrsNotBeingClassified->AppendElement(msgHdr, PR_FALSE);
-    }
+      classifyMsgKeys.AppendElement(newMessageKeys[i]);
 
     // Set messages to filter post-bayes.
     // Have we already filtered this message?
     if (!(processingFlags & nsMsgProcessingFlags::FiltersDone))
     {
-      // Don't do filters on this message again.
-      OrProcessingFlags(msgKey, nsMsgProcessingFlags::FiltersDone);
       if (filterPostPlugin)
       {
+        // Don't do filters on this message again.
+        // (Only set this if we are actually filtering since this is
+        // tantamount to a memory leak.)
+        OrProcessingFlags(msgKey, nsMsgProcessingFlags::FiltersDone);
         // Lazily create the array.
         if (!mPostBayesMessagesToFilter)
           mPostBayesMessagesToFilter = do_CreateInstance(NS_ARRAY_CONTRACTID);
@@ -2650,18 +2600,16 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     }
   }
 
-  // If we have any headers not being classified, notify about them.
-  if (msgHdrsNotBeingClassified)
-  {
-    nsCOMPtr<nsIMsgFolderNotificationService>
-      notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
-    if (notifier)
-      notifier->NotifyMsgsClassified(msgHdrsNotBeingClassified,
-                                     // no classification is being performed
-                                     PR_FALSE, PR_FALSE);
-  }
+  NotifyHdrsNotBeingClassified();
+  // If there weren't any new messages, just return.
+  if (newMessageKeys.IsEmpty())
+    return NS_OK;
 
-  if (!mBayesMsgKeys.IsEmpty())
+  // If we do not need to do any work, leave.
+  // (We needed to get the list of new messages so we could get their headers so
+  // we can send notifications about them here.)
+
+  if (!classifyMsgKeys.IsEmpty())
   {
     // Remember what classifications are the source of this decision for when
     // we perform the notification in OnMessageClassified at the conclusion of
@@ -2669,7 +2617,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     mBayesJunkClassifying = filterForJunk;
     mBayesTraitClassifying = filterForOther;
 
-    PRUint32 numMessagesToClassify = mBayesMsgKeys.Length();
+    PRUint32 numMessagesToClassify = classifyMsgKeys.Length();
     char ** messageURIs = (char **) PR_MALLOC(sizeof(const char *) * numMessagesToClassify);
     if (!messageURIs)
       return NS_ERROR_OUT_OF_MEMORY;
@@ -2677,7 +2625,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     for (PRUint32 msgIndex = 0; msgIndex < numMessagesToClassify ; ++msgIndex )
     {
       nsCString tmpStr;
-      rv = GenerateMessageURI(mBayesMsgKeys[msgIndex], tmpStr);
+      rv = GenerateMessageURI(classifyMsgKeys[msgIndex], tmpStr);
       messageURIs[msgIndex] = ToNewCString(tmpStr);
       if (NS_FAILED(rv))
           NS_WARNING("nsMsgDBFolder::CallFilterPlugins(): could not"
@@ -2700,6 +2648,41 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   }
 
   return rv;
+}
+
+/**
+ * Adds the messages in the NotReportedClassified mProcessing set to the
+ * (possibly empty) array of msgHdrsNotBeingClassified, and send the
+ * nsIMsgFolderNotificationService notification.
+ */
+nsresult nsMsgDBFolder::NotifyHdrsNotBeingClassified()
+{
+  nsCOMPtr<nsIMutableArray> msgHdrsNotBeingClassified;
+
+  if (mProcessingFlag[5].keys)
+  {
+    nsTArray<nsMsgKey> keys;
+    mProcessingFlag[5].keys->ToMsgKeyArray(keys);
+    if (keys.Length())
+    {
+      msgHdrsNotBeingClassified = do_CreateInstance(NS_ARRAY_CONTRACTID);
+      if (!msgHdrsNotBeingClassified)
+        return NS_ERROR_OUT_OF_MEMORY;
+      MsgGetHeadersFromKeys(mDatabase, keys, msgHdrsNotBeingClassified);
+
+      // Since we know we've handled all the NotReportedClassified messages,
+      // we clear the set by deleting and recreating it.
+      delete mProcessingFlag[5].keys;
+      mProcessingFlag[5].keys = nsMsgKeySetU::Create();
+      nsCOMPtr<nsIMsgFolderNotificationService>
+        notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+      if (notifier)
+        notifier->NotifyMsgsClassified(msgHdrsNotBeingClassified,
+                                       // no classification is being performed
+                                       PR_FALSE, PR_FALSE);
+    }
+  }
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -5913,3 +5896,12 @@ PRBool nsMsgKeySetU::IsMember(PRUint32 aKey)
     return loKeySet->IsMember(intKey);
   return hiKeySet->IsMember(intKey & kLowerBits);
 }
+
+nsresult nsMsgKeySetU::ToMsgKeyArray(nsTArray<nsMsgKey> &aArray)
+{
+  nsresult rv = loKeySet->ToMsgKeyArray(aArray);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return hiKeySet->ToMsgKeyArray(aArray);
+}
+
+
