@@ -562,14 +562,51 @@ GlodaMessage.prototype = {
       this._subject, this._indexedBodyText, this._attachmentNames);
   },
 
+  /**
+   * Mark this message as a ghost.  Ghosts are characterized by having no folder
+   *  id and no message key.  They also are not deleted or they would be of
+   *  absolutely no use to us.
+   *
+   * These changes are suitable for persistence.
+   */
   _ghost: function gloda_message_ghost() {
     this._folderID = null;
     this._messageKey = null;
-    // a ghost is not deleted
-    this._deleted = false;
+    if ("_deleted" in this)
+      delete this._deleted;
   },
 
-  _nuke: function gloda_message_nuke() {
+  /**
+   * Are we a ghost (which implies not deleted)?  We are not a ghost if we have
+   *  a definite folder location (we may not know our message key in the case
+   *  of IMAP moves not fully completed) and are not deleted.
+   */
+  get _isGhost() {
+    return this._folderID == null && !this._isDeleted;
+  },
+
+  /**
+   * If we were dead, un-dead us.
+   */
+  _ensureNotDeleted: function gloda_message__ensureNotDeleted() {
+    if ("_deleted" in this)
+      delete this._deleted;
+  },
+
+  /**
+   * Are we deleted?  This is private because deleted gloda messages are not
+   *  visible to non-core-gloda code.
+   */
+  get _isDeleted() {
+    return ("_deleted" in this) && this._deleted;
+  },
+
+  /**
+   * Trash this message's in-memory representation because it should no longer
+   *  be reachable by any code.  The database record is gone, it's not coming
+   *  back.
+   */
+  _objectPurgedMakeYourselfUnpleasant: function gloda_message_nuke() {
     this._id = null;
     this._folderID = null;
     this._messageKey = null;

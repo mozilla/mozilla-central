@@ -534,7 +534,7 @@ function test_message_deletion() {
   yield false; // queryExpect is async
 
 
-  // -- non-last message, no longer a twin
+  // -- non-last message, no longer a twin => ghost
   mark_sub_test_start("non-last message in conv, no longer a twin");
 
   // make sure nuking the twin didn't somehow kill them both
@@ -566,6 +566,11 @@ function test_message_deletion() {
   // force a deletion pass
   GlodaMsgIndexer.indexingSweepNeeded = true;
   yield wait_for_gloda_indexer([]);
+
+  // The message should be marked as a ghost now that the deletion pass.
+  // Ghosts have no fulltext rows, so check for that.
+  yield sqlExpectCount(0, "SELECT COUNT(*) FROM messagesText WHERE docid = ?1",
+                       twinSet.glodaMessages[0].id);
 
   // it still should show up in the privileged query; it's a ghost!
   let privColl = queryExpect(privQuery, twinSet);

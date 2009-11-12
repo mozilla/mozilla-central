@@ -563,7 +563,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 18,
+  _schemaVersion: 19,
   _schema: {
     tables: {
 
@@ -1078,19 +1078,31 @@ var GlodaDatastore = {
     //  gloda correctness patch lands.)
     // version 16ish, labeled 14 and now 16
     // - gloda message id's start from 32 now
-    // - all kinds of correctness changes
+    // - all kinds of correctness changes (blow away)
     // version 17
-    // - more correctness fixes.
+    // - more correctness fixes. (blow away)
     // version 18
-    // - significant empty set support
+    // - significant empty set support (blow away)
+    // version 19
+    // - there was a typo that was resulting in deleted getting set to the
+    //  numeric value of the javascript undefined value.  (migrate-able)
 
-    aDBConnection.close();
-    aDBFile.remove(false);
-    this._log.warn("Global database has been purged due to schema change.");
-    return this._createDB(aDBService, aDBFile);
+    // 1) Blow away if it's old enough that we can't patch things up below.
+    // 2) Blow away if it's from the future.
+    if (aCurVersion < 18 || aCurVersion > aNewVersion) {
+      aDBConnection.close();
+      aDBFile.remove(false);
+      this._log.warn("Global database has been purged due to schema change.");
+      return this._createDB(aDBService, aDBFile);
+    }
 
-    //aDBConnection.schemaVersion = aNewVersion;
-    //return aDBConnection;
+    this._log.warn("Global database performing schema update.");
+    // version 19
+    aDBConnection.executeSimpleSQL("UPDATE messages set deleted = 1 WHERE " +
+                                   "deleted < 0 or deleted > 1");
+
+    aDBConnection.schemaVersion = aNewVersion;
+    return aDBConnection;
   },
 
   _outstandingAsyncStatements: [],
@@ -2056,7 +2068,7 @@ var GlodaDatastore = {
     else
       ums.bindNullParameter(5);
     ums.bindInt64Parameter(6, aMessage.notability);
-    ums.bindInt64Parameter(7, ("_deleted" in aMessage) && aMessage.deleted);
+    ums.bindInt64Parameter(7, aMessage._isDeleted ? 1 : 0);
 
     ums.executeAsync(this.trackAsync());
 
@@ -2066,11 +2078,6 @@ var GlodaDatastore = {
       else
         this._updateMessageText(aMessage);
     }
-
-    // In completely abstract theory, this is where we would call
-    //  GlodaCollectionManager.itemsModified, except that the attributes may
-    //  also have changed, so it's out of our hands.  (Gloda.grokNoun
-    //  handles it.)
   },
 
   /**
@@ -2242,6 +2249,8 @@ var GlodaDatastore = {
   },
 
   get _updateMessagesMarkDeletedByFolderID() {
+    // When marking deleted clear the folderID and messageKey so that the
+    //  indexing process can reuse it without any location constraints.
     let statement = this._createAsyncStatement(
       "UPDATE messages SET folderID = NULL, messageKey = NULL, \
               deleted = 1 WHERE folderID = ?1");
@@ -2280,8 +2289,11 @@ var GlodaDatastore = {
    */
   markMessagesDeletedByIDs: function gloda_ds_markMessagesDeletedByIDs(
       aMessageIDs) {
-    let sqlString = "UPDATE messages SET deleted = 1 WHERE id IN (" +
-      aMessageIDs.join(",") + ")";
+    // When marking deleted clear the folderID and messageKey so that the
+    //  indexing process can reuse it without any location constraints.
+    let sqlString = "UPDATE messages SET folderID = NULL, messageKey = NULL, " +
+                     "deleted = 1 WHERE id IN (" +
+                     aMessageIDs.join(",") + ")";
 
     let statement = this._createAsyncStatement(sqlString, true);
     statement.executeAsync(this.trackAsync());
@@ -2317,6 +2329,10 @@ var GlodaDatastore = {
     dmbids.bindInt64Parameter(0, aMessageID);
     dmbids.executeAsync(this.trackAsync());
 
+    this.deleteMessageTextByID(aMessageID);
+  },
+
+  deleteMessageTextByID: function gloda_ds_deleteMessageTextByID(aMessageID) {
     let dmt = this._deleteMessageTextByIDStatement;
     dmt.bindInt64Parameter(0, aMessageID);
     dmt.executeAsync(this.trackAsync());

@@ -334,6 +334,46 @@ var PendingCommitTracker = {
 };
 
 /**
+ * This callback handles processing the asynchronous query results of
+ *  |GlodaMsgIndexer.getMessagesByMessageID|.
+ */
+function MessagesByMessageIdCallback(aMsgIDToIndex, aResults,
+                                     aCallback, aCallbackThis) {
+  this.msgIDToIndex = aMsgIDToIndex;
+  this.results = aResults;
+  this.callback = aCallback;
+  this.callbackThis = aCallbackThis;
+}
+
+MessagesByMessageIdCallback.prototype = {
+  _log: Log4Moz.repository.getLogger("gloda.index_msg.mbm"),
+
+  onItemsAdded: function gloda_ds_mbmi_onItemsAdded(aItems, aCollection) {
+    // just outright bail if we are shutdown
+    if (GlodaDatastore.datastoreIsShutdown)
+      return;
+
+    this._log.debug("getting results...");
+    for each (let [, message] in Iterator(aItems)) {
+      this.results[this.msgIDToIndex[message.headerMessageID]].push(message);
+    }
+  },
+  onItemsModified: function () {},
+  onItemsRemoved: function () {},
+  onQueryCompleted: function gloda_ds_mbmi_onQueryCompleted(aCollection) {
+    // just outright bail if we are shutdown
+    if (GlodaDatastore.datastoreIsShutdown)
+      return;
+
+    if (this._log.level <= Log4Moz.Level.Debug)
+      this._log.debug("query completed, notifying... " + this.results);
+
+    this.callback.call(this.callbackThis, this.results);
+  }
+};
+
+
+/**
  * The message indexer!
  *
  * === Message Indexing Strategy
@@ -2438,6 +2478,53 @@ var GlodaMsgIndexer = {
   },
 
   /**
+   * Given a list of Message-ID's, return a matching list of lists of messages
+   *  matching those Message-ID's.  So if you pass an array with three
+   *  Message-ID's ["a", "b", "c"], you would get back an array containing
+   *  3 lists, where the first list contains all the messages with a message-id
+   *  of "a", and so forth.  The reason a list is returned rather than null/a
+   *  message is that we accept the reality that we have multiple copies of
+   *  messages with the same ID.
+   * This call is asynchronous because it depends on previously created messages
+   *  to be reflected in our results, which requires us to execute on the async
+   *  thread where all our writes happen.  This also turns out to be a
+   *  reasonable thing because we could imagine pathological cases where there
+   *  could be a lot of message-id's and/or a lot of messages with those
+   *  message-id's.
+   *
+   * The returned collection will include both 'ghost' messages (messages
+   *  that exist for conversation-threading purposes only) as well as deleted
+   *  messages in addition to the normal 'live' messages that non-privileged
+   *  queries might return.
+   */
+  getMessagesByMessageID: function gloda_ns_getMessagesByMessageID(aMessageIDs,
+      aCallback, aCallbackThis) {
+    let msgIDToIndex = {};
+    let results = [];
+    for (let iID = 0; iID < aMessageIDs.length; ++iID) {
+      let msgID = aMessageIDs[iID];
+      results.push([]);
+      msgIDToIndex[msgID] = iID;
+    }
+
+    // (Note: although we are performing a lookup with no validity constraints
+    //  and using the same object-relational-mapper-ish layer used by things
+    //  that do have constraints, we are not at risk of exposing deleted
+    //  messages to other code and getting it confused.  The only way code
+    //  can find a message is if it shows up in their queries or gets announced
+    //  via GlodaCollectionManager.itemsAdded, neither of which will happen.)
+    let query = Gloda.newQuery(Gloda.NOUN_MESSAGE, {
+      noDbQueryValidityConstraints: true,
+    });
+    query.headerMessageID.apply(query, aMessageIDs);
+    query.frozen = true;
+
+    let listener = new MessagesByMessageIdCallback(msgIDToIndex, results,
+                                                   aCallback, aCallbackThis);
+    return query.getCollection(listener, null, {becomeNull: true});
+  },
+
+  /**
    * A reference to MsgHdrToMimeMessage that unit testing can clobber when it
    *  wants to cause us to hang or inject a fault.  If you are not
    *  glodaTestHelper.js then _do not touch this_.
@@ -2450,6 +2537,13 @@ var GlodaMsgIndexer = {
    *  determining whether to reuse existing gloda messages or whether a new one
    *  should be created.  Most attribute stuff happens in fund_attr.js or
    *  expl_attr.js.
+   *
+   * Prior to calling this method, the caller must have invoked
+   *  |_indexerEnterFolder|, leaving us with the following true invariants
+   *  below.
+   *
+   * @pre aMsgHdr.folder == this._indexingFolder
+   * @pre aMsgHdr.folder.msgDatabase == this._indexingDatabase
    */
   _indexMessage: function gloda_indexMessage(aMsgHdr, aCallbackHandle) {
     let logDebug = this._log.level <= Log4Moz.Level.Debug;
@@ -2493,8 +2587,8 @@ var GlodaMsgIndexer = {
     // also see if we already know about the message...
     references.push(aMsgHdr.messageId);
 
-    Gloda.getMessagesByMessageID(references, aCallbackHandle.callback,
-                                 aCallbackHandle.callbackThis);
+    this.getMessagesByMessageID(references, aCallbackHandle.callback,
+                                aCallbackHandle.callbackThis);
     // (ancestorLists has a direct correspondence to the message ids)
     let ancestorLists = yield this.kWorkAsync;
 
@@ -2593,7 +2687,7 @@ var GlodaMsgIndexer = {
         this._log.debug("candidate folderID: " + candMsg.folderID +
                         " messageKey: " + candMsg.messageKey);
 
-      if (candMsg.folderURI == aMsgHdr.folder.URI) {
+      if (candMsg.folderURI == this._indexingFolder.URI) {
         // if we are in the same folder and we have the same message key, we
         //  are definitely the same, stop looking.
         if (candMsg.messageKey == aMsgHdr.messageKey) {
@@ -2613,10 +2707,10 @@ var GlodaMsgIndexer = {
         //  were betrayed by a re-indexing or something, but we have to make
         //  sure a perfect match doesn't turn up.
         else if ((curMsg === null) &&
-                 (aMsgHdr.folder.GetMessageHeader(candMsg.messageKey) === null))
+                 !this._indexingDatabase.ContainsKey(candMsg.messageKey))
           curMsg = candMsg;
       }
-      // our choice of last resort, but still okay, is a ghost message
+      // a ghost/deleted message is fine
       else if ((curMsg === null) && (candMsg.folderID === null)) {
         curMsg = candMsg;
       }
@@ -2629,7 +2723,7 @@ var GlodaMsgIndexer = {
                          if (att.isRealAttachment)];
     }
 
-    let isConceptuallyNew, isRecordNew;
+    let isConceptuallyNew, isRecordNew, insertFulltext;
     if (curMsg === null) {
       curMsg = this._datastore.createMessage(aMsgHdr.folder,
                                              aMsgHdr.messageKey,
@@ -2637,15 +2731,19 @@ var GlodaMsgIndexer = {
                                              aMsgHdr.date,
                                              aMsgHdr.messageId);
       curMsg._conversation = conversation;
-      isConceptuallyNew = isRecordNew = true;
+      isConceptuallyNew = isRecordNew = insertFulltext = true;
     }
     else {
       isRecordNew = false;
-      isConceptuallyNew = (curMsg._folderID === null); // aka was-a-ghost
-      // (messageKey can be null if it's not new in the move-case)
+      // the message is conceptually new if it was a ghost or dead.
+      isConceptuallyNew = curMsg._isGhost || curMsg._isDeleted;
+      // we only insert fulltext if it was a ghost
+      insertFulltext = curMsg._isGhost;
       curMsg._folderID = this._datastore._mapFolder(aMsgHdr.folder).id;
       curMsg._messageKey = aMsgHdr.messageKey;
       curMsg.date = new Date(aMsgHdr.date / 1000);
+      // the message may have been deleted; tell it to make sure it's not.
+      curMsg._ensureNotDeleted();
       // note: we are assuming that our matching logic is flawless in that
       //  if this message was not a ghost, we are assuming the 'body'
       //  associated with the id is still exactly the same.  It is conceivable
@@ -2660,11 +2758,9 @@ var GlodaMsgIndexer = {
       }
     }
 
-    if (isConceptuallyNew) {
+    // Mark the message as new (for the purposes of fulltext insertion)
+    if (insertFulltext)
       curMsg._isNew = true;
-      // curMsg._indexedBodyText is set by GlodaDatastore.insertMessage or
-      //  GlodaDatastore.updateMessage
-    }
 
     curMsg._subject = aMsgHdr.mime2DecodedSubject;
     curMsg._attachmentNames = attachmentNames;
@@ -2716,8 +2812,6 @@ var GlodaMsgIndexer = {
    *  attributes like that yet.)
    *
    * @TODO: implement deletion of attributes that reference (deleted) messages
-   *
-   * @param
    */
   _deleteMessage: function gloda_index_deleteMessage(aMessage,
                                                      aCallbackHandle) {
@@ -2732,7 +2826,13 @@ var GlodaMsgIndexer = {
     GlodaDatastore.clearMessageAttributes(aMessage);
 
     // -- delete our message or ghost us, and maybe nuke the whole conversation
-    // look at the other messages in the conversation.
+    // Look at the other messages in the conversation.
+    // (Note: although we are performing a lookup with no validity constraints
+    //  and using the same object-relational-mapper-ish layer used by things
+    //  that do have constraints, we are not at risk of exposing deleted
+    //  messages to other code and getting it confused.  The only way code
+    //  can find a message is if it shows up in their queries or gets announced
+    //  via GlodaCollectionManager.itemsAdded, neither of which will happen.)
     let convPrivQuery = Gloda.newQuery(Gloda.NOUN_MESSAGE, {
                                          noDbQueryValidityConstraints: true,
                                        });
@@ -2742,45 +2842,54 @@ var GlodaMsgIndexer = {
 
     let conversationMsgs = conversationCollection.items;
 
-    let ghosts = [];
-    let twinMessage = null;
+    // Count the number of ghosts messages we see to determine if we are
+    //  the last message alive.
+    let ghostCount = 0;
+    let twinMessageExists = false;
     for each (let [, convMsg] in Iterator(conversationMsgs)) {
       // ignore our own message
       if (convMsg.id == aMessage.id)
         continue;
 
-      if (convMsg.folderID !== null) {
-        if (convMsg.headerMessageID == aMessage.headerMessageID) {
-          twinMessage = convMsg;
-        }
-      }
-      else {
-        ghosts.push(convMsg);
-      }
+      if (convMsg._isGhost)
+        ghostCount++;
+      // This message is our (living) twin if it is not a ghost, not deleted,
+      //  and has the same message-id header.
+      else if (!convMsg._isDeleted &&
+               convMsg.headerMessageID == aMessage.headerMessageID)
+        twinMessageExists = true;
     }
 
-    // is everyone else a ghost? (note that conversation includes us, but
-    //  ghosts cannot)
-    if ((conversationMsgs.length - 1) == ghosts.length) {
-      // obliterate the conversation including aMessage.
-      // since everyone else is a ghost they have no attributes.  however, the
-      //  conversation may some day have attributes targeted against it, so it
-      //  gets a helper.
+    // -- If everyone else is a ghost, blow away the conversation.
+    // If there are messages still alive or deleted but we have not yet gotten
+    //  to them yet _deleteMessage, then do not do this.  (We will eventually
+    //  hit this case if they are all deleted.)
+    if ((conversationMsgs.length - 1) == ghostCount) {
+      // - Obliterate each message
       for each (let [, msg] in Iterator(conversationMsgs)) {
         GlodaDatastore.deleteMessageByID(msg.id);
       }
+      // - Obliterate the conversation
       GlodaDatastore.deleteConversationByID(aMessage.conversationID);
-      aMessage._nuke();
+      // *no one* should hold a reference or use aMessage after this point,
+      //  trash it so such ne'er do'wells are made plain.
+      aMessage._objectPurgedMakeYourselfUnpleasant();
     }
-    else { // there is at least one real message out there, so the only q is...
-      // do we have a twin (so it's okay to delete us) or do we become a ghost?
-      if (twinMessage !== null) { // just delete us
+    // -- Ghost or purge us as appropriate
+    else {
+      // Purge us if we have a (living) twin; no ghost required.
+      if (twinMessageExists) {
         GlodaDatastore.deleteMessageByID(aMessage.id);
-        aMessage._nuke();
+        // *no one* should hold a reference or use aMessage after this point,
+        //  trash it so such ne'er do'wells are made plain.
+        aMessage._objectPurgedMakeYourselfUnpleasant();
       }
-      else { // ghost us
+      // No twin, a ghost is required, we become the ghost.
+      else {
         aMessage._ghost();
         GlodaDatastore.updateMessage(aMessage);
+        // ghosts don't have fulltext. purge it.
+        GlodaDatastore.deleteMessageTextByID(aMessage.id);
       }
     }
 

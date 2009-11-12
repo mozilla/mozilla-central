@@ -213,6 +213,32 @@ function _prepareIndexerForTesting() {
   GlodaIndexer._unitTestHookCleanup = _indexMessageState._testHookCleanup;
 }
 
+/*
+ * Add logsploder helpers to let us see what is being passed to the database
+ *  manipulation functions and what is being extracted.
+ */
+if (logHelperHasInterestedListeners) {
+  let msgNounDef = GlodaMessage.prototype.NOUN_DEF;
+  let orig_insertMessage = GlodaDatastore.insertMessage;
+  GlodaDatastore.insertMessage = msgNounDef.objInsert = function() {
+    mark_action("glodaWrapped", "insertMessage", [arguments[0]]);
+    return orig_insertMessage.apply(GlodaDatastore, arguments);
+  };
+
+  let orig_updateMessage = GlodaDatastore.updateMessage;
+  GlodaDatastore.updateMessage = msgNounDef.objUpdate = function() {
+    mark_action("glodaWrapped", "updateMessage", [arguments[0]]);
+    return orig_updateMessage.apply(GlodaDatastore, arguments);
+  };
+
+  let orig__messageFromRow = GlodaDatastore._messageFromRow;
+  GlodaDatastore._messageFromRow = msgNounDef.objFromRow = function() {
+    let rv = orig__messageFromRow.apply(GlodaDatastore, arguments);
+    mark_action("glodaWrapped", "_messageFromRow", [rv]);
+    return rv;
+  };
+}
+
 const _wait_for_gloda_indexer_defaults = {
   verifier: null,
   augment: false,
