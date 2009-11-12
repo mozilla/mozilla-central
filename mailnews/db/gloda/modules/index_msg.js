@@ -2113,6 +2113,8 @@ var GlodaMsgIndexer = {
           else {
             let glodaIds = [];
 
+            let srcFolderIsLocal =
+              (srcMsgFolder instanceof nsIMsgLocalMailFolder);
             for (let iMsgHdr = 0; iMsgHdr < aSrcMsgHdrs.length; iMsgHdr++) {
               let msgHdr = aSrcMsgHdrs.queryElementAt(iMsgHdr, nsIMsgDBHdr);
 
@@ -2124,7 +2126,25 @@ var GlodaMsgIndexer = {
                 PendingCommitTracker.noteBlindMove(msgHdr);
                 // but we always need to update our database
                 glodaIds.push(glodaId);
+
+                // XXX UNDO WORKAROUND
+                // This constitutes a move from a local folder to an IMAP
+                //  folder.  Undo does not currently do the right thing for us,
+                //  but we have a chance of not orphaning the message if we
+                //  mark the source header as dirty so that when the message
+                //  gets re-added we see it.  (This does require that we enter
+                //  the folder; we set the folder dirty after the loop to
+                //  increase the probability of this but it's not foolproof
+                //  depending on when the next indexing sweep happens and when
+                //  the user performs an undo.)
+                msgHdr.setUint32Property(GLODA_DIRTY_PROPERTY,
+                                         GlodaMsgIndexer.kMessageDirty);
               }
+            }
+            // XXX ALSO UNDO WORKAROUND
+            if (srcFolderIsLocal) {
+              let srcGlodaFolder = GlodaDatastore._mapFolder(srcMsgFolder);
+              srcGlodaFolder._ensureFolderDirty();
             }
 
             // quickly move them to the right folder, zeroing their message keys
