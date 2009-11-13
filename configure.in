@@ -2741,19 +2741,6 @@ case "$target" in
 esac
 AC_SUBST(NO_LD_ARCHIVE_FLAGS)
 
-if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
-dnl
-dnl Indicate that platform requires special thread safe 
-dnl locking when starting up the OJI JVM 
-dnl (see mozilla/modules/oji/src/nsJVMManager.cpp)
-dnl ========================================================
-case "$target" in
-    *-hpux*)      
-        AC_DEFINE(MOZ_OJI_REQUIRE_THREAD_SAFE_ON_STARTUP)
-        ;;
-esac
-fi
-
 dnl ========================================================
 dnl = Flags to strip unused symbols from .so components
 dnl ========================================================
@@ -4445,9 +4432,6 @@ MOZ_NO_FAST_LOAD=
 MOZ_OGG=1
 MOZ_SYDNEYAUDIO=
 MOZ_WAVE=1
-if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
-MOZ_OJI=1
-fi
 MOZ_PERMISSIONS=1
 MOZ_PLACES=
 MOZ_PLAINTEXT_EDITOR_ONLY=
@@ -4530,9 +4514,6 @@ basic)
   MOZ_NO_INSPECTOR_APIS=1
   MOZ_NO_XPCOM_OBSOLETE=1
   MOZ_NO_FAST_LOAD=1
-  if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
-  MOZ_OJI=
-  fi
   MOZ_PLAINTEXT_EDITOR_ONLY=1
 #  MOZ_PLUGINS=
   MOZ_PREF_EXTENSIONS=
@@ -4565,9 +4546,6 @@ minimal)
   MOZ_NO_INSPECTOR_APIS=1
   MOZ_NO_XPCOM_OBSOLETE=1
   MOZ_NO_FAST_LOAD=1
-  if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
-  MOZ_OJI=
-  fi
   MOZ_PLAINTEXT_EDITOR_ONLY=1
   MOZ_PLUGINS=
   MOZ_PREF_EXTENSIONS=
@@ -5163,19 +5141,6 @@ MOZ_ARG_DISABLE_BOOL(plugins,
 [  --disable-plugins       Disable plugins support],
     MOZ_PLUGINS=,
     MOZ_PLUGINS=1)
-
-if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
-dnl ========================================================
-dnl = Open JVM Interface (OJI) support
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(oji,
-[  --disable-oji           Disable Open JVM Integration support],
-    MOZ_OJI=,
-    MOZ_OJI=1)
-if test -n "$MOZ_OJI"; then
-    AC_DEFINE(OJI)
-fi
-fi
 
 dnl bi-directional support always on
 IBMBIDI=1
@@ -7094,11 +7059,6 @@ AC_SUBST(MOZ_DEBUG_LDFLAGS)
 AC_SUBST(WARNINGS_AS_ERRORS)
 AC_SUBST(MOZ_DBGRINFO_MODULES)
 AC_SUBST(MOZ_JSDEBUGGER)
-if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
-AC_SUBST(MOZ_OJI)
-# Dumb statemet, not to have an empty block.
-true
-fi
 AC_SUBST(MOZ_NO_XPCOM_OBSOLETE)
 AC_SUBST(MOZ_PLUGINS)
 AC_SUBST(ENABLE_EAZEL_PROFILER)

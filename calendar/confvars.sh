@@ -49,8 +49,7 @@ MOZ_ACTIVEX_SCRIPTING_SUPPORT=
 MOZ_INSTALLER=
 MOZ_MATHML=
 NECKO_DISK_CACHE=
-# MOZ_OJI is only required to be cleared for MOZILLA_1_9_1_BRANCH.
-# mozilla-central does not have this.
+# MOZ_OJI is only required to be cleared for MOZILLA_1_9_2_BRANCH (OS X).
 MOZ_OJI=
 NECKO_COOKIES=
 MOZ_NO_XPCOM_OBSOLETE=1
