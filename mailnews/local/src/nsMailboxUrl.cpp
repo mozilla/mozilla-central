@@ -169,7 +169,7 @@ NS_IMETHODIMP nsMailboxUrl::Clone(nsIURI **_retval)
   nsresult rv = nsMsgMailNewsUrl::Clone(_retval);
   NS_ENSURE_SUCCESS(rv, rv);
   // also clone the mURI member, because GetUri below won't work if
-  // mURI isn't set due to nsFileSpec/nsIFile fun.
+  // mURI isn't set due to nsIFile fun.
   nsCOMPtr <nsIMsgMessageUrl> clonedUrl = do_QueryInterface(*_retval);
   if (clonedUrl)
     clonedUrl->SetUri(mURI.get());
@@ -195,11 +195,9 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
         m_baseURL->GetSpec(baseUri);
       nsCString baseMessageURI;
       nsCreateLocalBaseMessageURI(baseUri, baseMessageURI);
-      char * uri = nsnull;
       nsCAutoString uriStr;
       nsBuildLocalMessageURI(baseMessageURI.get(), m_messageKey, uriStr);
-      uri = ToNewCString(uriStr);
-      *aURI = uri;
+      *aURI = ToNewCString(uriStr);
     }
     else
       *aURI = nsnull;
@@ -524,5 +522,3 @@ NS_IMETHODIMP nsMailboxUrl::GetNumMoveCopyMsgs(PRUint32 *numMsgs)
   *numMsgs = m_keys.Length();
   return NS_OK;
 }
-
-
