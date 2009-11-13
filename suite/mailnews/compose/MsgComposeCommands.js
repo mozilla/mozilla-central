@@ -706,7 +706,7 @@ function MessageComposeOfflineStateChanged(goingOffline)
 {
   try {
     var sendButton = document.getElementById("button-send");
-    var sendNowMenuItem = document.getElementById("menu-item-send-now");
+    var sendNowMenuItem = document.getElementById("menu_sendNow");
 
     if (!gSavedSendNowKey) {
       gSavedSendNowKey = sendNowMenuItem.getAttribute('key');
