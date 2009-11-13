@@ -251,23 +251,25 @@ bin\components\widget.xpt
 bin\components\gfx.xpt
 
 ; layout
-bin\components\layout_base.xpt
-bin\components\layout_printing.xpt
-bin\components\layout_xul.xpt
 bin\components\content_base.xpt
-bin\components\htmlparser.xpt
-#ifndef MOZILLA_1_9_1_BRANCH
+#ifndef MOZILLA_1_9_2_BRANCH
 bin\components\content_canvas.xpt
 #endif
+bin\components\content_events.xpt
 bin\components\content_html.xpt
 bin\components\content_htmldoc.xpt
 bin\components\content_xmldoc.xpt
 bin\components\content_xslt.xpt
 bin\components\content_xtf.xpt
 bin\components\contentprefs.xpt
-bin\components\xultmpl.xpt
-bin\components\xuldoc.xpt
+bin\components\htmlparser.xpt
+bin\components\layout_base.xpt
+bin\components\layout_printing.xpt
+bin\components\layout_xul.xpt
 bin\components\xulapp.xpt
+bin\components\xuldoc.xpt
+bin\components\xultmpl.xpt
+
 bin\components\inspector.xpt
 
 ; Imaging:
