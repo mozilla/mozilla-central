@@ -314,11 +314,7 @@
               <image id="thepreviewimage"/>
             </hbox>
             <hbox id="brokenimagecontainer" pack="center" collapsed="true">
-#ifdef MOZILLA_1_9_1_BRANCH
-              <image id="brokenimage" src="resource:///res/broken-image.gif"/>
-#else
-              <image id="brokenimage" src="resource:///res/broken-image.png"/>
-#endif
+              <image id="brokenimage" src="resource://gre-resources/broken-image.png"/>
             </hbox>
           </vbox>
         </vbox>

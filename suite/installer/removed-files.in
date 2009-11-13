@@ -133,15 +133,30 @@ components/nsPostUpdateWin.js
 #else
 xpicleanup
 #endif
+#ifndef MOZILLA_1_9_2_BRANCH
+res/arrow.gif
+res/arrowd.gif
+#endif
 res/broken-image.gif
 #ifndef MOZILLA_1_9_2_BRANCH
+res/broken-image.png
 res/charsetalias.properties
 res/charsetData.properties
 #endif
 res/cmessage.txt
+#ifndef MOZILLA_1_9_2_BRANCH
+res/forms.css
+res/hiddenWindow.html
+res/html.css
+#endif
 res/loading-image.gif
 #ifndef MOZILLA_1_9_2_BRANCH
+res/loading-image.png
+res/mathml.css
+res/quirk.css
+res/ua.css
 res/unixcharset.properties
+res/viewsource.css
 res/wincharset.properties
 #endif
 modules/dbViewWrapper.js

@@ -389,10 +389,10 @@ bin\greprefs.js
 
 ; [Layout Engine Resources]
 ; Style Sheets, Graphics and other Resources used by the layout engine.
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\arrow.gif
 bin\res\arrowd.gif
 bin\res\broken-image.png
-#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\charsetalias.properties
 bin\res\charsetData.properties
 #endif
@@ -402,16 +402,22 @@ bin\res\dtd\*
 bin\res\EditorOverride.css
 bin\res\entityTables\*
 bin\res\fonts\*
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\forms.css
+#endif
 bin\res\grabber.gif
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\hiddenWindow.html
 bin\res\html.css
+#endif
 bin\res\html\*
 bin\res\langGroups.properties
 bin\res\language.properties
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\loading-image.png
 bin\res\mathml.css
 bin\res\quirk.css
+#endif
 bin\res\svg.css
 bin\res\table-add-column-after-active.gif
 bin\res\table-add-column-after-hover.gif
@@ -431,9 +437,9 @@ bin\res\table-remove-column.gif
 bin\res\table-remove-row-active.gif
 bin\res\table-remove-row-hover.gif
 bin\res\table-remove-row.gif
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\ua.css
 bin\res\viewsource.css
-#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\wincharset.properties
 #endif
 

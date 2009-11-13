@@ -50,6 +50,6 @@ comm.jar:
    content/navigator/pageinfo/feeds.xml                             (pageinfo/feeds.xml)
    content/navigator/pageinfo/pageInfo.css                          (pageinfo/pageInfo.css)
    content/navigator/pageinfo/pageInfo.js                           (pageinfo/pageInfo.js)
-*  content/navigator/pageinfo/pageInfo.xul                          (pageinfo/pageInfo.xul)
+   content/navigator/pageinfo/pageInfo.xul                          (pageinfo/pageInfo.xul)
    content/navigator/pageinfo/permissions.js                        (pageinfo/permissions.js)
    content/navigator/pageinfo/security.js                           (pageinfo/security.js)
