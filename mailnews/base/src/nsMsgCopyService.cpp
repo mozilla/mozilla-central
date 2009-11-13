@@ -365,6 +365,13 @@ nsMsgCopyService::DoNextCopy()
     return rv;
 }
 
+/**
+ * Find a request in m_copyRequests which matches the passed in source 
+ * and destination folders.
+ *
+ * @param aSupport the iSupports of the source folder.
+ * @param dstFolder the destination folder of the copy request.
+ */
 nsCopyRequest*
 nsMsgCopyService::FindRequest(nsISupports* aSupport,
                               nsIMsgFolder* dstFolder)
@@ -373,7 +380,7 @@ nsMsgCopyService::FindRequest(nsISupports* aSupport,
   PRInt32 cnt, i;
 
   cnt = m_copyRequests.Count();
-  for (i=0; i < cnt; i++)
+  for (i = 0; i < cnt; i++)
   {
     copyRequest = (nsCopyRequest*) m_copyRequests.ElementAt(i);
     if (copyRequest->m_requestType == nsCopyFoldersType)
@@ -636,6 +643,7 @@ nsMsgCopyService::NotifyCompletion(nsISupports* aSupport,
                                    nsresult result)
 {
   nsCopyRequest* copyRequest = nsnull;
+  PRInt32 numOrigRequests = m_copyRequests.Count();
   do
   {
     // loop for copy requests, because if we do a cross server folder copy,
@@ -646,22 +654,33 @@ nsMsgCopyService::NotifyCompletion(nsISupports* aSupport,
 
     if (copyRequest)
     {
+      // ClearRequest can cause a new request to get added to m_copyRequests
+      // with matching source and dest folders if the copy listener starts
+      // a new copy. We want to ignore any such request here, because it wasn't
+      // the one that was completed. So we keep track of how many original
+      // requests there were.
+      if (m_copyRequests.IndexOf(copyRequest) >= numOrigRequests)
+        break;
       // check if this copy request is done by making sure all the
       // sources have been processed.
       PRInt32 sourceIndex, sourceCount;
       sourceCount = copyRequest->m_copySourceArray.Count();
-      for (sourceIndex = 0; sourceIndex < sourceCount; sourceIndex++)
+      for (sourceIndex = 0; sourceIndex < sourceCount;)
       {
         if (!((nsCopySource*)
             copyRequest->m_copySourceArray.ElementAt(sourceIndex))->m_processed)
             break;
+         sourceIndex++;
       }
       // if all sources processed, mark the request as processed
       if (sourceIndex >= sourceCount)
         copyRequest->m_processed = PR_TRUE;
-    // if this request is done, or failed, clear it.
+      // if this request is done, or failed, clear it.
       if (copyRequest->m_processed || NS_FAILED(result))
+      {
         ClearRequest(copyRequest, result);
+        numOrigRequests--;
+      }
       else
         break;
     }
