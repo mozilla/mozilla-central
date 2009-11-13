@@ -145,8 +145,8 @@ bin\components\composer.xpt
 bin\components\content_base.xpt
 #ifndef MOZILLA_1_9_2_BRANCH
 bin\components\content_canvas.xpt
-bin\components\content_events.xpt
 #endif
+bin\components\content_events.xpt
 bin\components\content_html.xpt
 bin\components\content_htmldoc.xpt
 bin\components\content_xmldoc.xpt
