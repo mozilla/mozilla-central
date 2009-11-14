@@ -48,7 +48,7 @@ interface nsIImapMockChannel;
  * nsIImapServerSink is designed to be used as a proxy to the application's UI
  * thread from the running IMAP threads.
  */
-[scriptable, uuid(ef0a5ddc-9478-4fe5-be41-8ec1079ce9d9)]
+[scriptable, uuid(9417d665-6850-4903-ad01-17c915e34441)]
 interface nsIImapServerSink : nsISupports {
   /**
    * Check if the given folder path is a possible IMAP mailbox.
@@ -143,4 +143,6 @@ interface nsIImapServerSink : nsISupports {
 
   readonly attribute boolean showAttachmentsInline;
   string cramMD5Hash(in string decodedChallenge, in string key);
+  /// String to send to the imap server as the login user name.
+  readonly attribute ACString loginUsername;
 };

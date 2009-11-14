@@ -7968,6 +7968,9 @@ PRBool nsImapProtocol::TryToLogon()
 
   // get the password and user name for the current incoming server...
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server);
+  if (!m_imapServerSink)
+    return NS_ERROR_FAILURE;
+
   if (server)
   {
     // we are in the imap thread so *NEVER* try to extract the password with UI
@@ -7976,7 +7979,7 @@ PRBool nsImapProtocol::TryToLogon()
       password.Assign(m_logonCookie);
     else
       rv = server->GetPassword(password);
-    rv = server->GetRealUsername(userName);
+    rv = m_imapServerSink->GetLoginUsername(userName);
   }
 
   do

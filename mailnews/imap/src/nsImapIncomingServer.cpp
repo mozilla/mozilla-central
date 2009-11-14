@@ -3239,3 +3239,8 @@ nsImapIncomingServer::CramMD5Hash(const char *decodedChallenge, const char *key,
   return (*result) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
+NS_IMETHODIMP
+nsImapIncomingServer::GetLoginUsername(nsACString &aLoginUsername)
+{
+  return GetRealUsername(aLoginUsername);
+}
