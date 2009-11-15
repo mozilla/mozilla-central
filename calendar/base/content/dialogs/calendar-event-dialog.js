@@ -231,6 +231,10 @@ function onLoad() {
 
     document.getElementById("item-title").focus();
     document.getElementById("item-title").select();
+
+    // This causes the app to ask if the window should be closed when the
+    // application is closed.
+    window.tryToClose = onCancel;
 }
 
 /**
