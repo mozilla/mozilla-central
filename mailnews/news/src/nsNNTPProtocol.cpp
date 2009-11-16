@@ -914,7 +914,7 @@ nsNNTPProtocol::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCacheAcc
       rv = entry->OpenOutputStream(0, getter_AddRefs(out));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      rv = tee->Init(m_channelListener, out);
+      rv = tee->Init(m_channelListener, out, nsnull);
       m_channelListener = do_QueryInterface(tee);
       NS_ENSURE_SUCCESS(rv, rv);
     }
