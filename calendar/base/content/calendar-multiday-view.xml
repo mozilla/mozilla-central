@@ -554,9 +554,10 @@
         ]]></body>
       </method>
 
-      <!-- NOTE: This function may not return the true start and end time
-                 of an occurrence if that occurrence starts or ends on a day
-                 different than the day of this column -->
+      <!-- This function returns the start and end minutes of the occurrence
+           part in the day of this column, moreover, the real start and end
+           minutes of the whole occurrence (which could span multiple days)
+           relative to the time 0:00 of the day in this column -->
       <method name="getStartEndMinutesForOccurrence">
         <parameter name="aOccurrence"/>
         <body><![CDATA[
@@ -585,10 +586,22 @@
                endHour = 24;
                endMinute = 0;
            }
-           let dur = aOccurrence.duration;
+
+           // For occurrences that span multiple days, we figure out the real
+           // occurrence start and end minutes relative to the date of this
+           // column and time 0:00
+           let durend = enddate.subtractDate(this.mDate);
+           let durstart = stdate.subtractDate(this.mDate);
+           // 'durend' is always positive, instead 'durstart' might be negative
+           // if the event starts one or more days before the date of this column
+           let realStart_ = (durstart.days * 24 + durstart.hours) * 60 + durstart.minutes;
+           realStart_ = durstart.isNegative ? -1 * realStart_ : realStart_;
+           let realEnd_ = (durend.days * 24 + durend.hours) * 60 + durend.minutes;
+
            return { start:        startHour * 60 + startMinute,
                     end:          endHour   * 60 + endMinute,
-                    realDuration: (dur.days * 24 + dur.hours) * 60 + dur.minutes};
+                    realStart:    realStart_,
+                    realEnd:      realEnd_ };
         ]]></body>
       </method>
 
@@ -1581,26 +1594,15 @@
               this.fgboxes.dragbox.setAttribute(sizeattr, (this.mDragState.origMin - mins.start) * this.mPixPerMin);
           } else if (aGrabbedElement == "middle") {
               this.mDragState.dragType = "move";
-              this.mDragState.limitDurationMin = mins.realDuration;
+              this.mDragState.limitDurationMin = mins.realEnd - mins.realStart;
 
               // in a move, origMin will be the min of the start element;
               // but we also use the min of start and end separately because
-              // we snap to one or the other according to the event start.
+              // we keep track of both to figure out the real shadow size.
+              // We snap to the start and add the real duration to find the end
               this.mDragState.origMin = Math.floor(mins.start/15) * 15;
-              if (this.mDragState.origMin == 0) {
-                  // event starts on 0:00 or the day before. We drag the final
-                  // part so we snap the end and subtract duration to set
-                  // origMinStart to the real event duration (if negative the
-                  // event starts in the previous day)
-                  this.mDragState.origMinEnd = Math.floor(mins.end/15) * 15;
-                  this.mDragState.origMinStart = this.mDragState.origMinEnd - this.mDragState.limitDurationMin;
-              } else {
-                  // event starts the day on which we are moving. We snap the
-                  // start and add duration to set origMinEnd to the real end
-                  // of the event
-                  this.mDragState.origMinStart = Math.floor(mins.start/15) * 15;
-                  this.mDragState.origMinEnd = this.mDragState.origMinStart + this.mDragState.limitDurationMin;
-              }
+              this.mDragState.origMinStart = Math.floor(mins.realStart/15) * 15;
+              this.mDragState.origMinEnd = this.mDragState.origMinStart + this.mDragState.limitDurationMin;
 
               // Because we can pass this event to other columns, we also need
               // to track the original column's date too, to get the correct offset
