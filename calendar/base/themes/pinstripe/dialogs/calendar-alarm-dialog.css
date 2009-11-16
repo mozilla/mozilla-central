@@ -101,7 +101,7 @@ calendar-alarm-widget[selected="true"] .alarm-calendar-image {
 #calendar-alarm-snooze-popup-window {
     background-color: menu;
     color: menutext;
-    padding: 3px
+    padding: 3px;
     z-index: 2147483648;
 }
 
