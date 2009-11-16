@@ -157,7 +157,7 @@ var gComposePane = {
     {
       try {
         langId = dictList[i];
-        isoStrArray = dictList[i].split("-");
+        isoStrArray = dictList[i].split(/[-_]/);
 
         if (languageBundle && isoStrArray[0])
           langLabel = languageBundle.getString(isoStrArray[0].toLowerCase());
