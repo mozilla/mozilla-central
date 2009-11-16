@@ -263,7 +263,7 @@
                    flex="1"
                    disabled="true">
         <xul:listcols>
-          <xul:listcol id="day-column" flex="1"/>
+          <xul:listcol anonid="day-column" flex="1"/>
         </xul:listcols>
         <xul:listitem anonid="item" allowevents="true">
           <xul:listcell >
@@ -1019,7 +1019,7 @@
                    flex="1"
                    style="min-width: 50em; min-height: 30em">
         <xul:listcols>
-          <xul:listcol id="grid-column" flex="1"/>
+          <xul:listcol anonid="grid-column" flex="1"/>
         </xul:listcols>
         <xul:listitem anonid="item"
                       class="addressingWidgetItem"
