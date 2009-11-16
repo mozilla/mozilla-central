@@ -48,9 +48,8 @@ include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/package-name.mk
 CONFIG_DIR = instgen
 SFX_MODULE = $(topsrcdir)/other-licenses/7zstub/thunderbird/7zSD.sfx
 
-APP_VERSION := $(shell cat $(MOZ_APP_VERSION_TXT))
-DEFINES += -DAPP_VERSION=$(APP_VERSION)
-PRE_RELEASE_SUFFIX := $(shell $(PYTHON) $(topsrcdir)/mozilla/config/printprereleasesuffix.py $(APP_VERSION))
+DEFINES += -DMOZ_APP_VERSION=$(MOZ_APP_VERSION)
+PRE_RELEASE_SUFFIX := $(shell $(PYTHON) $(topsrcdir)/mozilla/config/printprereleasesuffix.py $(MOZ_APP_VERSION))
 DEFINES += -DPRE_RELEASE_SUFFIX="$(PRE_RELEASE_SUFFIX)"
 
 ifdef MOZ_UPDATER

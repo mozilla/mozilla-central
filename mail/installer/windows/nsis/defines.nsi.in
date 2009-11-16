@@ -1,5 +1,5 @@
 #filter substitution
-!define AppVersion            "@APP_VERSION@"
+!define AppVersion            "@MOZ_APP_VERSION@"
 !define GREVersion            @MOZILLA_VERSION@
 !define AB_CD                 "@AB_CD@"
 
