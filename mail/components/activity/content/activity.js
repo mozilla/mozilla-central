@@ -57,6 +57,7 @@ const nsActEvent = Components.Constructor("@mozilla.org/activity-event;1",
                                           "nsIActivityEvent", "init");
 const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
                                             "nsIActivityWarning", "init");
+const ACTIVITY_LIMIT = 250;
 
 var activityObject =
 {
@@ -65,6 +66,7 @@ var activityObject =
   _activitiesView: null,
   _activityLogger: Log4Moz.getConfiguredLogger("activitymgr"),
   _ignoreNotifications: false,
+  _groupCache: {},
 
   selectAll: function() {
     this._activitiesView.selectAll();
@@ -100,15 +102,7 @@ var activityObject =
    * and context of the given activity, if any.
    */
   getActivityGroupBindingByContext: function(aContextType, aContextObj) {
-    for (let i = 0; i < this._activitiesView.itemCount; i++) {
-      let item = this._activitiesView.getItemAtIndex(i)
-      if (item.isGroup &&
-          item.contextType == aContextType &&
-          item.contextObj == aContextObj) {
-        return item;
-      }
-    }
-    return null;
+    return this._groupCache[aContextType + ":" + aContextObj];
   },
 
   /**
@@ -128,6 +122,11 @@ var activityObject =
       else
         this._activitiesView.appendChild(aBinding);
     }
+    if (aBinding.isGroup)
+      this._groupCache[aBinding.contextType + ":" + aBinding.contextObj] =
+        aBinding;
+    while (this._activitiesView.childNodes.length > ACTIVITY_LIMIT)
+      this.removeActivityBinding(this._activitiesView.lastChild.getAttribute('actID'));
   },
 
   /**
@@ -193,8 +192,9 @@ var activityObject =
   removeActivityBinding: function(aID) {
     // Note: document.getAnonymousNodes(_activitiesView); didn't work
     this._activityLogger.info("removing Activity ID: " + aID);
-    for (let i = 0; i < this._activitiesView.itemCount; i++) {
-      let item = this._activitiesView.getItemAtIndex(i);
+    let activities = this._activitiesView.childNodes;
+    for (let i = 0; i < activities.length; i++) {
+      let item = activities[i];
       if (!item) {
         this._activityLogger.debug("returning as empty")
         return;
@@ -225,8 +225,10 @@ var activityObject =
 
           // if the group becomes empty after the removal,
           // get rid of the group as well
-          if (groupView.getRowCount() == 0)
+          if (groupView.getRowCount() == 0) {
+            delete this._groupCache[item.contextType + ":" + item.contextObj];
             this._activitiesView.removeChild(item);
+          }
 
           break;
         }
@@ -245,7 +247,9 @@ var activityObject =
                          .classes["@mozilla.org/activity-manager;1"]
                          .getService(Components.interfaces.nsIActivityManager);
       let activities = activityManager.getActivities({});
-      for each (let [, activity] in Iterator(activities)) {
+      for (let iActivity = Math.max(0, activities.length - ACTIVITY_LIMIT);
+           iActivity < activities.length; iActivity++) {
+        let activity = activities[iActivity];
         this.addActivityBinding(activity.id, activity);
       }
 
@@ -293,8 +297,9 @@ var activityObject =
     // since XBL dtors are not working properly when we remove the element,
     // we have to explicitly remove the binding from activities' listeners
     // list. See bug 230086 for details.
-    for (let i = 0; i < this._activitiesView.itemCount; i++) {
-      let item = this._activitiesView.getItemAtIndex(i);
+    let activities = this._activitiesView.childNodes;
+    for (let i = activities.length - 1; i >= 0; i--) {
+      let item = activities[i];
       if (!item.isGroup)
         item.detachFromActivity();
       else {
@@ -313,6 +318,7 @@ var activityObject =
       this._activitiesView.parentNode.replaceChild(empty, this._activitiesView);
       this._activitiesView = empty;
     }
+    this._groupCache = {};
     this.rebuild();
     this._ignoreNotifications = false;
     this._activitiesView.focus();
