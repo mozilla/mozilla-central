@@ -129,7 +129,7 @@ var sanitize =
     if (!/^[a-zA-Z0-9\-\.%]*$/.test(unchecked))
       throw new MalformedException("hostname_syntax.error", unchecked);
 
-    return str;
+    return str.toLowerCase();
   },
   /**
    * A non-chrome URL that's safe to request.

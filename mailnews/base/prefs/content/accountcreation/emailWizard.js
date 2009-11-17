@@ -172,7 +172,7 @@ EmailConfigWizard.prototype =
 
     this.showConfigDetails();
 
-    this._domain = this._email.split("@")[1];
+    this._domain = this._email.split("@")[1].toLowerCase();
     this.findConfig(this._domain, this._email);
 
     // swap out buttons
@@ -886,7 +886,9 @@ EmailConfigWizard.prototype =
     {
       config.outgoing.username = document.getElementById("username").value;
       config.outgoing.hostname =
-        document.getElementById("outgoing_server").value;
+        sanitize.hostname(document.getElementById("outgoing_server").value);
+      document.getElementById("outgoing_server").value =
+        config.outgoing.hostname;
       config.outgoing.port =
         sanitize.integerRange(document.getElementById("outgoing_port").value, 1,
                               kHighestPort);
@@ -894,7 +896,9 @@ EmailConfigWizard.prototype =
         parseInt(document.getElementById("outgoing_security").value);
     }
     config.incoming.username = document.getElementById("username").value;
-    config.incoming.hostname = document.getElementById("incoming_server").value;
+    config.incoming.hostname =
+      sanitize.hostname(document.getElementById("incoming_server").value);
+    document.getElementById("incoming_server").value = config.incoming.hostname;
     config.incoming.port =
       sanitize.integerRange(document.getElementById("incoming_port").value, 1,
                             kHighestPort);
