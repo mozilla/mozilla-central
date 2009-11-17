@@ -112,6 +112,16 @@ Widget.prototype = {
   set inum(aVal) { this._inum = aVal; },
   get date() { return this._date; },
   set date(aVal) { this._date = aVal; },
+
+  get datePRTime() {
+    return this._date.valueOf() * 1000;
+  },
+  // We need a special setter to convert back from PRTime to an actual
+  //  date object.
+  set datePRTime(aVal) {
+    this._date = new Date(aVal / 1000);
+  },
+
   get str() { return this._str; },
   set str(aVal) { this._str = aVal; },
   get notability() { return this._notability; },
@@ -147,7 +157,8 @@ function setup_test_noun_and_attributes() {
     schema: {
       columns: [['id', 'INTEGER PRIMARY KEY'],
                 ['intCol', 'NUMBER', 'inum'],
-                ['dateCol', 'NUMBER', 'date'],
+                // datePRTime is special and creates a Date object.
+                ['dateCol', 'NUMBER', 'datePRTime'],
                 ['strCol', 'STRING', 'str'],
                 ['notabilityCol', 'NUMBER', 'notability'],
                 ['textOne', 'STRING', 'text1'],
@@ -375,8 +386,8 @@ function test_empty_set_logic() {
 /**
  * How much time boost should a 'score point' amount to?  The authoritative,
  *  incontrivertible answer, across all time and space, is a week.
- *  Note that gloda stores timestamps as PRTimes for no exceedingly good
- *  reason.
+ *  Gloda and storage like to store things as PRTime and so we do it too,
+ *  even though milliseconds are the actual granularity of JS Date instances.
  */
 const SCORE_TIMESTAMP_FACTOR = 1000 * 1000 * 60 * 60 * 24 * 7;
 
