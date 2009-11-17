@@ -182,11 +182,9 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
 {
   nsresult rv = NS_OK;
   nsCOMPtr<nsIMailboxUrl> mailboxurl;
-
   nsMailboxAction actionToUse = mailboxAction;
-
-  nsCOMPtr <nsIURI> url;
-
+  nsCOMPtr<nsIURI> url;
+  nsCOMPtr<nsIMsgMailNewsUrl> msgUrl;
   nsCAutoString uriString(aMessageURI);
 
   if (!strncmp(aMessageURI, "file:", 5))
@@ -206,11 +204,11 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
     rv = NS_NewURI(getter_AddRefs(url), uriString);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIMsgMailNewsUrl> msgurl = do_QueryInterface(url);
-    if (msgurl)
+    msgUrl = do_QueryInterface(url);
+    if (msgUrl)
     {
-      msgurl->SetMsgWindow(aMsgWindow);
-      nsCOMPtr <nsIMailboxUrl> mailboxUrl = do_QueryInterface(msgurl, &rv);
+      msgUrl->SetMsgWindow(aMsgWindow);
+      nsCOMPtr <nsIMailboxUrl> mailboxUrl = do_QueryInterface(msgUrl, &rv);
       mailboxUrl->SetMessageSize((PRUint32) fileSize);
       nsCOMPtr <nsIMsgHeaderSink> headerSink;
        // need to tell the header sink to capture some headers to create a fake db header
@@ -228,7 +226,6 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
   }
   else
   {
-
     // this happens with forward inline of message/rfc822 attachment
     // opened in a stand-alone msg window.
     PRInt32 typeIndex = uriString.Find("&type=application/x-message-display");
@@ -244,14 +241,16 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
     if (NS_SUCCEEDED(rv))
     {
       url = do_QueryInterface(mailboxurl);
-      nsCOMPtr<nsIMsgMailNewsUrl> msgUrl (do_QueryInterface(url));
+      msgUrl = do_QueryInterface(url);
       msgUrl->SetMsgWindow(aMsgWindow);
-      nsCOMPtr<nsIMsgI18NUrl> i18nurl (do_QueryInterface(msgUrl));
-      i18nurl->SetCharsetOverRide(aCharsetOverride);
       if (aFileName)
         msgUrl->SetFileName(nsDependentCString(aFileName));
     }
   }
+
+  nsCOMPtr<nsIMsgI18NUrl> i18nurl(do_QueryInterface(msgUrl));
+  if (i18nurl)
+    i18nurl->SetCharsetOverRide(aCharsetOverride);
 
   // instead of running the mailbox url like we used to, let's try to run the url in the docshell...
   nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(aDisplayConsumer, &rv));
