@@ -458,17 +458,7 @@ function SelectLanguage()
       gLastSelectedLang = item;
     }
     else {
-      var dictionaryUrl = getDictionaryURL();
-                      
-      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService);
-      uri = ioService.newURI(dictionaryUrl, null, null);
-      var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
-                                  .getService(Components.interfaces.nsIExternalProtocolService);
-      if (protocolSvc.isExposedProtocol(uri.scheme))
-        opener.openDialog(getBrowserURL(), "_blank", "all,dialog=no", dictionaryUrl);
-      else
-        protocolSvc.loadUrl(uri);
+      openURL(getDictionaryURL());
 
       if (gLastSelectedLang)
         gDialog.LanguageMenulist.selectedItem = gLastSelectedLang;
