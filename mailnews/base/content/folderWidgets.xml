@@ -500,6 +500,8 @@
                                  this.getAttribute("showFileHereLabel"));
               popup.setAttribute("oncommand",
                                  this.getAttribute("oncommand"));
+              popup.setAttribute("mode",
+                                 this.getAttribute("mode"));
 
               // If there are labels, add the labels now
               if (labels) {
