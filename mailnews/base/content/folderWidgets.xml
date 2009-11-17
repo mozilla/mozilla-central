@@ -490,7 +490,11 @@
               this.appendChild(node);
 
               // Create the submenu
-              var popup = document.createElement(this.localName);
+              // (We must use cloneNode here because on OS X the native menu
+              // functionality and very sad limitations of XBL1 cause the bindings
+              // to never get created for popup if we create a new element.  We
+              // perform a shallow clone to avoid picking up any of our children.)
+              var popup = this.cloneNode(false);
               popup._parentFolder = folder;
               popup.setAttribute("class", this.getAttribute("class"));
               popup.setAttribute("type", this.getAttribute("type"));
