@@ -42,9 +42,6 @@ var gEncryptionCert = null;
 var gBundle;
 var gBrandBundle;
 
-const nsPKIParamBlock    = "@mozilla.org/security/pkiparamblock;1";
-const nsIPKIParamBlock    = Components.interfaces.nsIPKIParamBlock;
-
 addEventListener("load", smimeReadOnLoad, false);
 
 function smimeReadOnLoad()
@@ -74,50 +71,48 @@ function setupBundles()
 
 function showImapSignatureUnknown()
 {
+  setupBundles();
+  if (!gBundle || !gBrandBundle)
+    return;
+
   let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                 .getService(Components.interfaces.nsIPromptService);
-  setupBundles();
-
-  if (promptService && gBundle && gBrandBundle) {
-    if (promptService.confirm(window,
-          gBrandBundle.getString("brandShortName"),
-          gBundle.getString("ImapOnDemand"))) {
-      gDBView.reloadMessageWithAllParts();
-    }
-  }
+  if (promptService &&
+      promptService.confirm(window, gBrandBundle.getString("brandShortName"),
+                                    gBundle.getString("ImapOnDemand")))
+    gDBView.reloadMessageWithAllParts();
 }
 
 function showMessageReadSecurityInfo()
 {
-  var gSignedUINode = document.getElementById('signedHdrIcon');
-  if (gSignedUINode) {
-    if (gSignedUINode.getAttribute("signed") == "unknown") {
-      showImapSignatureUnknown();
-      return;
-    }
+  let gSignedUINode = document.getElementById("signedHdrIcon");
+  if (gSignedUINode && gSignedUINode.getAttribute("signed") == "unknown")
+  {
+    showImapSignatureUnknown();
+    return;
   }
 
-  var pkiParams = Components.classes[nsPKIParamBlock].createInstance(nsIPKIParamBlock);
+  let pkiParams = Components.classes["@mozilla.org/security/pkiparamblock;1"]
+                            .createInstance(Components.interfaces.nsIPKIParamBlock);
 
   // isupport array starts with index 1
   pkiParams.setISupportAtIndex(1, gSignerCert);
   pkiParams.setISupportAtIndex(2, gEncryptionCert);
 
   var params = pkiParams.QueryInterface(Components.interfaces.nsIDialogParamBlock);
-
   // int array starts with index 0, but that is used for window exit status
   params.SetInt(1, gSignatureStatus);
   params.SetInt(2, gEncryptionStatus);
 
-  window.openDialog('chrome://messenger-smime/content/msgReadSecurityInfo.xul',
-    '', 'chrome,resizable=1,modal=1,dialog=1', pkiParams );
+  window.openDialog("chrome://messenger-smime/content/msgReadSecurityInfo.xul",
+                    "", "chrome,resizable=1,modal=1,dialog=1", pkiParams);
 }
 
 var SecurityController =
 {
   supportsCommand: function(command)
   {
-    switch ( command )
+    switch (command)
     {
       case "cmd_viewSecurityStatus":
         return true;
@@ -129,23 +124,19 @@ var SecurityController =
 
   isCommandEnabled: function(command)
   {
-    switch ( command )
+    switch (command)
     {
       case "cmd_viewSecurityStatus":
         if (document.documentElement.getAttribute('windowtype') == "mail:messageWindow")
+          return GetNumSelectedMessages() > 0;
+
+        if (GetNumSelectedMessages() > 0 && gDBView)
         {
-          return (GetNumSelectedMessages() > 0);
-        }
-        else
-        {
-          if (GetNumSelectedMessages() > 0 && gDBView)
-          {
-            var enabled = new Object();
-            enabled.value = false;
-            var checkStatus = new Object();
-            gDBView.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody, enabled, checkStatus);
-            return enabled.value;
-          }
+          let enabled = {value: false};
+          let checkStatus = {};
+          gDBView.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody,
+                                   enabled, checkStatus);
+          return enabled.value;
         }
         // else: fall through.
 
