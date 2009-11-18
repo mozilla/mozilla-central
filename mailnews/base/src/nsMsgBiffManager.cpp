@@ -253,7 +253,7 @@ nsresult nsMsgBiffManager::SetNextBiffTime(nsBiffEntry &biffEntry, const nsTime 
       // - minimum 1 second (to avoid a modulo with 0)
       // - maximum 30 seconds (to avoid problems when biffInterval is very large)
       PRInt64 jitter = (PRInt64)(0.05 * (PRInt64)chosenTimeInterval);
-      jitter = PR_MAX(1000000LL, PR_MIN(jitter, 30000000LL));
+      jitter = NS_MAX(1000000LL, NS_MIN(jitter, 30000000LL));
       jitter = ((rand() % 2) ? 1 : -1) * (rand() % jitter);
 
       biffEntry.nextBiffTime += jitter;

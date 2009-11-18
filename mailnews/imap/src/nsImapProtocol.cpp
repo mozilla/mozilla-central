@@ -911,7 +911,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
           // which should be rare, increase the timeout based on number 
           // of messages. 40 messages per second should be sufficiently slow.
           if (copyCount > 2400) // 40 * 60, 60 is default read write timeout
-            readWriteTimeout = PR_MAX(readWriteTimeout, copyCount/40);
+            readWriteTimeout = NS_MAX(readWriteTimeout, (PRInt32)copyCount/40);
         }
       }
       m_transport->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, readWriteTimeout);

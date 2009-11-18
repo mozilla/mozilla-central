@@ -1272,8 +1272,8 @@ msg_format_Header_addresses (const char *names, const char *addrs,
 
     len1 = (len1 * 2) + 2;  //(N*2) + 2 in case we need to quote it
     len2 = (len2 * 2) + 2;
-    name_maxlen = PR_MAX(name_maxlen, len1);
-    addr_maxlen = PR_MAX(addr_maxlen, len2);
+    name_maxlen = NS_MAX(name_maxlen, len1);
+    addr_maxlen = NS_MAX(addr_maxlen, len2);
     size += len1 + len2 + 10;
   }
 

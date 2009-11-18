@@ -6769,8 +6769,8 @@ nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder,
         rv = inputStream->Read(inputBuffer, inputBufferSize, &bytesRead);
         if (NS_SUCCEEDED(rv) && bytesRead > 0)
         {
-          rv = outputStream->Write(inputBuffer, PR_MIN((PRInt32) bytesRead, bytesLeft), &bytesWritten);
-          NS_ASSERTION((PRInt32) bytesWritten == PR_MIN((PRInt32) bytesRead, bytesLeft), "wrote out incorrect number of bytes");
+          rv = outputStream->Write(inputBuffer, NS_MIN((PRInt32) bytesRead, bytesLeft), &bytesWritten);
+          NS_ASSERTION((PRInt32) bytesWritten == NS_MIN((PRInt32) bytesRead, bytesLeft), "wrote out incorrect number of bytes");
         }
         else
           break;

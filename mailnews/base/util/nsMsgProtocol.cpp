@@ -1025,7 +1025,7 @@ public:
         }
 
         PRUint32 bytesWritten;
-        rv =  aOutStream->WriteFrom(mInStream, PR_MIN(avail, 4096), &bytesWritten);
+        rv = aOutStream->WriteFrom(mInStream, NS_MIN(avail, 4096U), &bytesWritten);
         // if were full at the time, the input stream may be backed up and we need to read any remains from the last ODA call
         // before we'll get more ODA calls
         if (mMsgProtocol->mSuspendedRead)
@@ -1330,7 +1330,7 @@ nsresult nsMsgAsyncWriteProtocol::UnblockPostReader()
       PRUint32 avail = 0;
       mPostDataStream->Available(&avail);
 
-      m_outputStream->WriteFrom(mPostDataStream, PR_MIN(avail, mSuspendedReadBytes), &amountWritten);
+      m_outputStream->WriteFrom(mPostDataStream, NS_MIN(avail, mSuspendedReadBytes), &amountWritten);
       // hmm sometimes my mSuspendedReadBytes is getting out of whack...so for now, reset it
       // if necessary.
       if (mSuspendedReadBytes > avail)

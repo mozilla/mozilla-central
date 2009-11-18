@@ -439,7 +439,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
                 rv = NS_OK;
                 while (bytesLeft > 0 && NS_SUCCEEDED(rv))
                 {
-                  PRInt32 bytesToRead = PR_MIN(inputBufferSize, bytesLeft);
+                  PRInt32 bytesToRead = NS_MIN(inputBufferSize, bytesLeft);
                   rv = offlineStoreInputStream->Read(inputBuffer, bytesToRead, &bytesRead);
                   if (NS_SUCCEEDED(rv) && bytesRead > 0)
                   {

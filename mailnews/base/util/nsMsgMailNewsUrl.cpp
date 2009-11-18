@@ -917,7 +917,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
   }
   return rv;
   
-  //  rv = m_outputStream->WriteFrom(inStream, PR_MIN(available, count), &bytesWritten);
+  //  rv = m_outputStream->WriteFrom(inStream, NS_MIN(available, count), &bytesWritten);
 }
 
 nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, PRBool addDummyEnvelope)

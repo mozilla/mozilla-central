@@ -935,7 +935,8 @@ nsMsgSearchValidityTable::GetAvailableOperators(nsMsgSearchAttribValue aAttribut
     if (aAttribute == nsMsgSearchAttrib::Default)
       attr = m_defaultAttrib;
     else
-       attr = PR_MIN(aAttribute, nsMsgSearchAttrib::OtherHeader);
+      attr = NS_MIN(aAttribute,
+                    (nsMsgSearchAttribValue)nsMsgSearchAttrib::OtherHeader);
 
     PRUint32 totalOperators=0;
     PRInt32 i;
@@ -1202,7 +1203,8 @@ nsMsgSearchValidityManager::SetOtherHeadersInTable (nsIMsgSearchValidityTable *a
 
   NS_ASSERTION(nsMsgSearchAttrib::OtherHeader + numHeaders < nsMsgSearchAttrib::kNumMsgSearchAttributes, "more headers than the table can hold");
 
-  PRUint32 maxHdrs= PR_MIN(nsMsgSearchAttrib::OtherHeader + numHeaders+1, nsMsgSearchAttrib::kNumMsgSearchAttributes);
+  PRUint32 maxHdrs = NS_MIN(nsMsgSearchAttrib::OtherHeader + numHeaders + 1,
+                            (PRUint32)nsMsgSearchAttrib::kNumMsgSearchAttributes);
   for (PRUint32 i=nsMsgSearchAttrib::OtherHeader+1;i< maxHdrs;i++)
   {
     aTable->SetAvailable (i, nsMsgSearchOp::Contains, 1);   // added for arbitrary headers

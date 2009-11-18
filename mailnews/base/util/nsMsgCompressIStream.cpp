@@ -184,7 +184,7 @@ NS_IMETHODIMP nsMsgCompressIStream::Read(char * aBuf, PRUint32 aCount, PRUint32 
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  *aResult = PR_MIN(m_dataleft, aCount);
+  *aResult = NS_MIN(m_dataleft, aCount);
 
   if (*aResult)
   {

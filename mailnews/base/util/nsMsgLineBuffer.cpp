@@ -394,7 +394,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
       NS_ASSERTION(m_startPos == 0, "m_startPos should be 0 .....\n");
     }
     
-    PRUint32 numBytesToCopy = PR_MIN(numFreeBytesInBuffer - 1 /* leave one for a null terminator */, numBytesInStream);
+    PRUint32 numBytesToCopy = NS_MIN(numFreeBytesInBuffer - 1 /* leave one for a null terminator */, numBytesInStream);
     if (numBytesToCopy > 0)
     {
       // read the data into the end of our data buffer

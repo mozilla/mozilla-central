@@ -305,7 +305,7 @@ NS_IMETHODIMP nsImapUrl::GetListOfMessageIds(nsACString &aResult)
   // since that can specify an IMAP MIME part
   char *wherePart = PL_strstr(m_listOfMessageIds, "/;section=");
   if (wherePart)
-    bytesToCopy = PR_MIN(bytesToCopy, wherePart - m_listOfMessageIds);
+    bytesToCopy = NS_MIN(bytesToCopy, wherePart - m_listOfMessageIds);
 
   aResult.Assign(m_listOfMessageIds, bytesToCopy);
   return NS_OK;

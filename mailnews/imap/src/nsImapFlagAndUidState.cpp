@@ -224,7 +224,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFla
   // make sure there is room for this pair
   if (fNumberOfMessagesAdded >= fNumberOfMessageSlotsAllocated)
   {
-    PRInt32 sizeToGrowBy = PR_MAX(kImapFlagAndUidStateSize, 
+    PRInt32 sizeToGrowBy = NS_MAX(kImapFlagAndUidStateSize, 
                       fNumberOfMessagesAdded - fNumberOfMessageSlotsAllocated);
     fNumberOfMessageSlotsAllocated += sizeToGrowBy;
     fUids.InsertElementsAt(fUids.Length(), sizeToGrowBy, 0);
