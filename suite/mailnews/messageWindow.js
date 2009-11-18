@@ -251,6 +251,7 @@ function OnLoadMessageWindow()
   InitMsgWindow();
 
   messenger.setWindow(window, msgWindow);
+  AddDataSources();
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadMsgHeaderPane();
 
