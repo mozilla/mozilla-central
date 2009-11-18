@@ -2381,15 +2381,36 @@ FakeTreeBoxObject.prototype = {
     if (selection)
       selection.adjustSelection(aIndex, aCount);
   },
-  /**
-   * Sleight of hand!  If someone asks us about an nsIBoxObject, we tell them
-   *  about a real box object that only has an onselect event listener attached
-   *  to it. (This violates the QI equivalence requirement, though.)
-   */
+  get domElement() {return this.domNode;},
+  get x() {return this.domNode.boxObject.x},
+  get y() {return this.domNode.boxObject.y},
+  get screenX() {return this.domNode.boxObject.screenX},
+  get screenY() {return this.domNode.boxObject.screenY},
+  get width() {return this.domNode.boxObject.width},
+  get height()  {return this.domNode.boxObject.height},
+  get parentBox() {return this.domNode.boxObject.parentBox},
+  get firstChild() {return this.domNode.boxObject.firstChild},
+  get lastChild() {return this.domNode.boxObject.lastChild},
+  get nextSibling() {return this.domNode.boxObject.nextSibling},
+  get previousSibling() {return this.domNode.boxObject.previousSibling},
+  getPropertyAsSupports : function FakeTreeBoxObject_getPropertyAsSupports(propertyName) {
+    return this.domNode.boxObject.getPropertyAsSupports(propertyName);
+  },
+  setPropertyAsSupports : function FakeTreeBoxObject_setPropertyAsSupports(propertyName, value) {
+    this.domNode.boxObject.setPropertyAsSupports(propertyName, value);
+  },
+  getProperty : function FakeTreeBoxObject_getProperty(propertyName) {
+    return this.domNode.boxObject.getProperty(propertyName);
+  },
+  setProperty : function FakeTreeBoxObject_setProperty(propertyName, value) {
+    return this.domNode.boxObject.setProperty(propertyName, value);
+  },
+  removeProperty : function FakeTreeBoxObject_removeProperty(propertyName) {
+    return this.domNode.boxObject.removeProperty(propertyName);
+  },
   QueryInterface: function FakeTreeBoxObject_QueryInterface(aIID) {
-    if (aIID.equals(Components.interfaces.nsIBoxObject))
-      return this.domNode.boxObject;
     if (!aIID.equals(Components.interfaces.nsISupports) &&
+        !aIID.equals(Components.interfaces.nsIBoxObject) &&
         !aIID.equals(Components.interfaces.nsITreeBoxObject))
       throw Components.results.NS_ERROR_NO_INTERFACE;
     return this;
