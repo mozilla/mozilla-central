@@ -89,7 +89,7 @@
 
 // HACK: this code is copied from nsToolkit.mm in order to deal with
 // version checks below.  This should be tidied once we are not on
-// MOZILLA_1_9_1_BRANCH or MOZILLA_1_9_2_BRANCH
+// MOZILLA_1_9_2_BRANCH.
 #define MAC_OS_X_VERSION_10_4_HEX 0x00001040
 #define MAC_OS_X_VERSION_10_5_HEX 0x00001050
 long OSXVersion()

@@ -7056,14 +7056,10 @@ nsresult nsMsgDBView::GetImapDeleteModel(nsIMsgFolder *folder)
 //
 // Can't drop on the thread pane.
 //
-#ifdef MOZILLA_1_9_1_BRANCH
-NS_IMETHODIMP nsMsgDBView::CanDrop(PRInt32 index, PRInt32 orient, PRBool *_retval)
-#else
 NS_IMETHODIMP nsMsgDBView::CanDrop(PRInt32 index,
                                    PRInt32 orient,
                                    nsIDOMDataTransfer *dataTransfer,
                                    PRBool *_retval)
-#endif
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = PR_FALSE;
@@ -7077,13 +7073,9 @@ NS_IMETHODIMP nsMsgDBView::CanDrop(PRInt32 index,
 //
 // Can't drop on the thread pane.
 //
-#ifdef MOZILLA_1_9_1_BRANCH
-NS_IMETHODIMP nsMsgDBView::Drop(PRInt32 row, PRInt32 orient)
-#else
 NS_IMETHODIMP nsMsgDBView::Drop(PRInt32 row,
                                 PRInt32 orient,
                                 nsIDOMDataTransfer *dataTransfer)
-#endif
 {
   return NS_OK;
 }

@@ -204,11 +204,7 @@ for cmd in COMMANDS:
   for envkey in envkeys:
     print >> sys.stderr, "%s=%s"%(envkey, mailnewsEnv[envkey])
 
-  # The try case handles MOZILLA_1_9_1_BRANCH, the except case handles trunk.
-  try:
-    proc = automation.Process(binary, args, env = mailnewsEnv)
-  except TypeError:
-    proc = automation.Process([binary] + args, env = mailnewsEnv)
+  proc = automation.Process([binary] + args, env = mailnewsEnv)
 
   status = proc.wait()
   if status != 0:
