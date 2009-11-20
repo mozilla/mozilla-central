@@ -686,7 +686,7 @@ var GlodaMsgIndexer = {
     this._pendingFolderEntry = null;
     // indexerEnterFolder returned kWorkAsync, which means we need to notify
     //  the callback driver to get things going again.
-    this.callbackDriver();
+    GlodaIndexer.callbackDriver();
   },
 
   /**
