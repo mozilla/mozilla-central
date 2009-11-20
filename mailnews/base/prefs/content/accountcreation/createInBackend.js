@@ -159,7 +159,6 @@ function createAccountInBackend(config)
   // identity
   // TODO accounts without identity?
   var identity = accountManager.createIdentity();
-  identity.identityName = config.identity.emailAddress;
   identity.fullName = config.identity.realname;
   identity.email = config.identity.emailAddress;
   if (config.incoming.type == "nntp")
