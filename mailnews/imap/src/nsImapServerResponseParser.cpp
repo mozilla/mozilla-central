@@ -2191,72 +2191,79 @@ void nsImapServerResponseParser::msg_obsolete()
     SetSyntaxError(PR_TRUE);
   
 }
+
 void nsImapServerResponseParser::capability_data()
 {
+  PRInt32 endToken = -1;
   fCapabilityFlag = kCapabilityDefined;
   do {
     AdvanceToNextToken();
     if (fNextToken) {
-      if(! PL_strcasecmp(fNextToken, "AUTH=LOGIN"))
+      nsCString token(fNextToken);
+      endToken = token.FindChar(']');
+      if (endToken >= 0)
+        token.Truncate(endToken);
+
+      if(token.Equals("AUTH=LOGIN", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasAuthLoginCapability;
-      else if (! PL_strcasecmp(fNextToken, "AUTH=PLAIN"))
+      else if(token.Equals("AUTH=PLAIN", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasAuthPlainCapability;
-      else if (! PL_strcasecmp(fNextToken, "AUTH=CRAM-MD5"))
+      else if (token.Equals("AUTH=CRAM-MD5", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasCRAMCapability;
-      else if (! PL_strcasecmp(fNextToken, "AUTH=NTLM"))
+      else if (token.Equals("AUTH=NTLM", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasAuthNTLMCapability;
-      else if (! PL_strcasecmp(fNextToken, "AUTH=GSSAPI"))
+      else if (token.Equals("AUTH=GSSAPI", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasAuthGssApiCapability;
-      else if (! PL_strcasecmp(fNextToken, "AUTH=MSN"))
+      else if (token.Equals("AUTH=MSN", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasAuthMSNCapability;
-      else if (! PL_strcasecmp(fNextToken, "STARTTLS"))
+      else if (token.Equals("STARTTLS", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasStartTLSCapability;
-      else if (! PL_strcasecmp(fNextToken, "LOGINDISABLED"))
+      else if (token.Equals("LOGINDISABLED", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kLoginDisabled;
-      else if (! PL_strcasecmp(fNextToken, "X-NETSCAPE"))
+      else if (token.Equals("X-NETSCAPE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasXNetscapeCapability;
-      else if (! PL_strcasecmp(fNextToken, "XSENDER"))
+      else if (token.Equals("XSENDER", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasXSenderCapability;
-      else if (! PL_strcasecmp(fNextToken, "IMAP4"))
+      else if (token.Equals("IMAP4", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kIMAP4Capability;
-      else if (! PL_strcasecmp(fNextToken, "IMAP4rev1"))
+      else if (token.Equals("IMAP4rev1", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kIMAP4rev1Capability;
-      else if (! PL_strncasecmp(fNextToken, "IMAP4", 5))
+      else if (Substring(token,0,5).Equals("IMAP4", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kIMAP4other;
-      else if (! PL_strcasecmp(fNextToken, "X-NO-ATOMIC-RENAME"))
+      else if (token.Equals("X-NO-ATOMIC-RENAME", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kNoHierarchyRename;
-      else if (! PL_strcasecmp(fNextToken, "X-NON-HIERARCHICAL-RENAME"))
+      else if (token.Equals("X-NON-HIERARCHICAL-RENAME", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kNoHierarchyRename;
-      else if (! PL_strcasecmp(fNextToken, "NAMESPACE"))
+      else if (token.Equals("NAMESPACE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kNamespaceCapability;
-      else if (! PL_strcasecmp(fNextToken, "MAILBOXDATA"))
+      else if (token.Equals("MAILBOXDATA", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kMailboxDataCapability;
-      else if (! PL_strcasecmp(fNextToken, "ACL"))
+      else if (token.Equals("ACL", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kACLCapability;
-      else if (! PL_strcasecmp(fNextToken, "XSERVERINFO"))
+      else if (token.Equals("XSERVERINFO", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kXServerInfoCapability;
-      else if (! PL_strcasecmp(fNextToken, "UIDPLUS"))
+      else if (token.Equals("UIDPLUS", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kUidplusCapability;
-      else if (! PL_strcasecmp(fNextToken, "LITERAL+"))
+      else if (token.Equals("LITERAL+", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kLiteralPlusCapability;
-      else if (! PL_strcasecmp(fNextToken, "XAOL-OPTION"))
+      else if (token.Equals("XAOL-OPTION", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kAOLImapCapability;
-      else if (! PL_strcasecmp(fNextToken, "QUOTA"))
+      else if (token.Equals("QUOTA", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kQuotaCapability;
-      else if (! PL_strcasecmp(fNextToken, "LANGUAGE"))
+      else if (token.Equals("LANGUAGE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasLanguageCapability;
-      else if (! PL_strcasecmp(fNextToken, "IDLE"))
+      else if (token.Equals("IDLE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasIdleCapability;
-      else if (! PL_strcasecmp(fNextToken, "CONDSTORE"))
+      else if (token.Equals("CONDSTORE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasCondStoreCapability;
-      else if (! PL_strcasecmp(fNextToken, "ENABLE"))
+      else if (token.Equals("ENABLE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasEnableCapability;
-      else if (! PL_strcasecmp(fNextToken, "XLIST"))
+      else if (token.Equals("XLIST", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasXListCapability;
-      else if (! PL_strcasecmp(fNextToken, "COMPRESS=DEFLATE"))
+      else if (token.Equals("COMPRESS=DEFLATE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasCompressDeflateCapability;
     }
-  } while (fNextToken && !fAtEndOfLine && ContinueParse());
+  } while (fNextToken && endToken < 0 && !fAtEndOfLine && ContinueParse());
 
   if (fHostSessionList)
     fHostSessionList->SetCapabilityForHost(
