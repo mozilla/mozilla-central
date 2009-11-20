@@ -8617,7 +8617,11 @@ nsImapMockChannel::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCache
         rv = entry->OpenOutputStream(0, getter_AddRefs(out));
         if (NS_SUCCEEDED(rv))
         {
-          rv = tee->Init(m_channelListener, out, nsnull);
+          rv = tee->Init(m_channelListener, out
+#ifndef MOZILLA_1_9_2_BRANCH
+                         , nsnull
+#endif
+                         );
           m_channelListener = do_QueryInterface(tee);
         }
       }
