@@ -37,7 +37,7 @@
 #include "nsIMsgFolder.idl"
 #include "nsIFolderListener.idl"
 
-[scriptable, uuid(a767c5d1-5142-41a2-8873-71df09b4ce89)]
+[scriptable, uuid(20b81f2b-ea81-4baa-b378-c5e6d3dc94e5)]
 interface nsIStatusBarBiffManager : nsIFolderListener {
   // see  nsIMsgFolder for definition and constants
   readonly attribute nsMsgBiffState biffState;

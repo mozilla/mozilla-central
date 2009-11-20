@@ -61,7 +61,7 @@ interface nsIMsgDBHdr;
     */
 
 
-[scriptable, uuid(33ef10af-54fb-42ce-95d0-52d8f6f1e681)]
+[scriptable, uuid(fc5dcb4e-333b-475f-a7e5-32a7aab97630)]
 interface nsIMsgCustomColumnHandler : nsITreeView
 {
   AString getSortStringForRow(in nsIMsgDBHdr aHdr);
