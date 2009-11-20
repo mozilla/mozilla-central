@@ -438,11 +438,73 @@ calItemBase.prototype = {
         } else {
             this.mProperties.deleteProperty(aName);
         }
+        delete this.mPropertyParams[aName];
     },
 
     // AString getPropertyParameter(in AString aPropertyName,
-    getPropertyParameter: function getPP(aPropName, aParamName) {
-        return this.mPropertyParams[aPropName][aParamName];
+    //                              in AString aParameterName);
+    getPropertyParameter: function cIB_getPropertyParameter(aPropName, aParamName) {
+        let propName = aPropName.toUpperCase();
+        let paramName = aParamName.toUpperCase();
+        if (propName in this.mPropertyParams) {
+            // If the property is not in mPropertyParams, then this just means
+            // there are no properties set.
+            return this.mPropertyParams[propName][paramName];
+        }
+        return null;
+    },
+
+    // boolean hasPropertyParameter(in AString aPropertyName,
+    //                              in AString aParameterName);
+    hasPropertyParameter: function cIB_hasPropertyParameter(aPropName, aParamName) {
+        let propName = aPropName.toUpperCase();
+        let paramName = aParamName.toUpperCase();
+        return ((propName in this.mPropertyParams) &&
+                (paramName in this.mPropertyParams[propName]));
+    },
+
+    //void setPropertyParameter(in AString aPropertyName,
+    //                          in AString aParameterName,
+    //                          in AUTF8String aParameterValue);
+    setPropertyParameter: function cIB_setPropertyParameter(aPropName, aParamName, aParamValue) {
+        let propName = aPropName.toUpperCase();
+        let paramName = aParamName.toUpperCase();
+        if (!(propName in this.mPropertyParams)) {
+            throw "Property " + aPropName + " not set";
+        }
+        this.modify();
+        if (aParamValue || !isNaN(parseInt(aParamValue, 10))) {
+            this.mPropertyParams[propName][paramName] = aParamValue;
+        } else {
+            delete this.mPropertyParams[propName][paramName];
+        }
+        return aParamValue;
+    },
+
+    // nsISimpleEnumerator getParameterEnumerator(in AString aPropertyName);
+    getParameterEnumerator: function cIB_getParameterEnumerator(aPropName) {
+        let propName = aPropName.toUpperCase();
+        if (!(propName in this.mPropertyParams)) {
+            throw "Property " + aPropName + " not set";
+        }
+        let parameters = this.mPropertyParams[propName];
+        return { // nsISimpleEnumerator
+            mParamNames: [ key for (key in parameters) ],
+            hasMoreElements: function cIB_gPE_hasMoreElements() {
+                return (this.mParamNames.length > 0);
+            },
+
+            getNext: function cIB_gPE_getNext() {
+                let paramName = this.mParamNames.pop()
+                return { // nsIProperty
+                    QueryInterface: function cIB_gPE_gN_QueryInterface(aIID) {
+                        return doQueryInterface(this, null, aIID, [Components.interfaces.nsIProperty]);
+                    },
+                    name: paramName,
+                    value: parameters[paramName]
+                };
+            }
+        };
     },
 
     // void getAttendees(out PRUint32 count,

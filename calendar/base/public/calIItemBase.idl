@@ -87,14 +87,14 @@ interface calIItemBase : nsISupports
 
   /**
    * Checks whether the argument object refers the same calendar item as
-   * this one, by testing both the id and recurrenceId property.  This 
+   * this one, by testing both the id and recurrenceId property.  This
    *
    * @arg aItem     the item to compare against this one
    *
    * @return        true if both ids match, false otherwise
    */
   boolean hasSameIds(in calIItemBase aItem);
-  
+
   //
   // the generation number of this item
   //
@@ -174,7 +174,7 @@ interface calIItemBase : nsISupports
   attribute calIRecurrenceInfo recurrenceInfo;
   readonly attribute calIDateTime recurrenceStartDate;
 
-  // 
+  //
   // All event properties are stored in a property bag;
   // some number of these are "promoted" to top-level
   // accessor attributes.  For example, "SUMMARY" is
@@ -182,7 +182,7 @@ interface calIItemBase : nsISupports
   //
   // If you use the has/get/set/deleteProperty
   // methods, property names are case-insensitive.
-  // 
+  //
   // For purposes of ICS serialization, all property names in
   // the hashbag are in uppercase.
   //
@@ -235,14 +235,44 @@ interface calIItemBase : nsISupports
   boolean isPropertyPromoted(in AString name);
 
   /**
-   * Returns a particular parameter value for a property, or null if the 
+   * Returns a particular parameter value for a property, or null if the
    * parameter does not exist.  If the property does not exist, throws.
    *
    * @param aPropertyName  the name of the property
    * @param aParameterName the name of the parameter on the property
    */
-   AString getPropertyParameter(in AString aPropertyName, 
-                                in AString aParameterName);
+  AString getPropertyParameter(in AString aPropertyName,
+                               in AString aParameterName);
+
+  /**
+   * Checks if the given property has the given parameter.
+   *
+   * @param aPropertyName   The name of the property.
+   * @param aParameterName  The name of the parameter on the property.
+   * @return                True, if the parameter exists on the property
+   */
+  boolean hasPropertyParameter(in AString aPropertyName,
+                              in AString aParameterName);
+
+  /**
+   * Sets a particular parameter value for a property, or unsets if null is
+   * passed. If the property does not exist, throws.
+   *
+   * @param aPropertyName   The name of the property
+   * @param aParameterName  The name of the parameter on the property
+   * @param aParameterValue The value of the parameter to set
+   */
+  void setPropertyParameter(in AString aPropertyName,
+                            in AString aParameterName,
+                            in AUTF8String aParameterValue);
+
+  /**
+   * Returns a property parameter enumerator for the given property name
+   *
+   * @param aPropertyName   The name of the property.
+   * @return                The parameter enumerator.
+   */
+  nsISimpleEnumerator getParameterEnumerator(in AString aPropertyName);
 
   /**
    * The organizer (originator) of the item.  We will likely not
@@ -316,7 +346,7 @@ interface calIItemBase : nsISupports
    * Removes the relation for this item and the referred item
    */
   void removeRelation(in calIRelation relation);
-  
+
   /**
    * Removes every relation for this item (in this items and also where it is referred
    */
