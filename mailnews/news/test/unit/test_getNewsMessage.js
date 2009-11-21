@@ -29,21 +29,16 @@ var streamListener =
   onStartRequest: function(aRequest, aContext) {
   },
   onStopRequest: function(aRequest, aContext, aStatusCode) {
-    localserver.closeCachedConnections();
-
-    server.stop();
-
-    var thread = gThreadManager.currentThread;
-    while (thread.hasPendingEvents())
-      thread.processNextEvent(true);
-
     do_check_eq(aStatusCode, 0);
 
     // Reduce any \r\n to just \n so we can do a good comparison on any
     // platform.
     var reduced = this._data.replace(/\r\n/g, "\n");
     do_check_eq(reduced, kSimpleNewsArticle);
-    do_test_finished();
+
+    // We must finish closing connections and tidying up after a timeout
+    // so that the thread has time to unwrap itself.
+    do_timeout(0, "doTestFinished();");
   },
 
   // nsIStreamListener
@@ -56,6 +51,18 @@ var streamListener =
     this._data += scriptStream.read(aCount);
   }
 };
+
+function doTestFinished() {
+    localserver.closeCachedConnections();
+
+    server.stop();
+
+    var thread = gThreadManager.currentThread;
+    while (thread.hasPendingEvents())
+      thread.processNextEvent(true);
+
+    do_test_finished();
+}
 
 function run_test() {
   type = "RFC 977";
