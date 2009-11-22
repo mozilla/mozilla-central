@@ -1976,7 +1976,18 @@ ConvertBufToPlainText(nsString &aConBuf, PRBool formatflowed /* = PR_FALSE */)
   if (NS_SUCCEEDED(rv) && parser)
   {
     PRUint32 converterFlags = 0;
-    PRUint32 wrapWidth = 72;
+    PRInt32 wrapWidth = 72;
+    nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+
+    if (pPrefBranch)
+    {
+      pPrefBranch->GetIntPref("mailnews.wraplength", &wrapWidth);
+      // Let sanity reign!
+      if (wrapWidth == 0 || wrapWidth > 990)
+	 wrapWidth = 990;
+      else if (wrapWidth < 10)
+	 wrapWidth = 10;
+    }
 
     converterFlags |= nsIDocumentEncoder::OutputFormatted;
 
