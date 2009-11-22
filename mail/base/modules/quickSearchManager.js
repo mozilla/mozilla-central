@@ -24,6 +24,7 @@
  *   Scott MacGregor <mscott@mozilla.org>
  *   David Bienvenu <bienvenu@nventure.com>
  *   Andrew Sutherland <asutherland@asutherland.org>
+ *   Thomas Düllmann <bugzilla2009@duellmann24.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -80,9 +81,10 @@ var QuickSearchConstants = {
   kQuickSearchSubject: 3,
   kQuickSearchFrom: 4,
   kQuickSearchRecipient: 5,
-  kQuickSearchBody: 6
+  kQuickSearchBody: 6,
+  kQuickSearchEntireMessage: 7
 };
-const kQuickSearchCount = 7;
+const kQuickSearchCount = 8;
 
 var QuickSearchLabels = null; // populated dynamically from properties files
 
@@ -116,6 +118,8 @@ var QuickSearchManager = {
       quickSearchStrings.get("searchMsgBody.label");
     this._modeLabels[QuickSearchConstants.kQuickSearchSubjectFromOrRecipient] =
       quickSearchStrings.get("searchSubjectFromOrRecipient.label");
+    this._modeLabels[QuickSearchConstants.kQuickSearchEntireMessage] =
+      quickSearchStrings.get("searchEntireMessage.label");
 
   },
 
@@ -167,16 +171,17 @@ var QuickSearchManager = {
       if (termList[i] == "")
         continue;
 
-      // create, fill, and append the subject term
+      // create, fill, and append the terms for subject etc.
       let term;
       let value;
 
-      // if our search criteria is subject or subject|from then add a term for
+      // if our search criteria is subject or subject|from etc. then add a term for
       // the subject
       if (aSearchMode == QuickSearchConstants.kQuickSearchSubject ||
           aSearchMode == QuickSearchConstants.kQuickSearchFromOrSubject ||
           aSearchMode == QuickSearchConstants.kQuickSearchRecipientOrSubject ||
-          aSearchMode == QuickSearchConstants.kQuickSearchSubjectFromOrRecipient)
+          aSearchMode == QuickSearchConstants.kQuickSearchSubjectFromOrRecipient ||
+          aSearchMode == QuickSearchConstants.kQuickSearchEntireMessage)
       {
         term = aTermCreator.createTerm();
         value = term.value;
@@ -188,7 +193,9 @@ var QuickSearchManager = {
         searchTerms.push(term);
       }
 
-      if (aSearchMode == QuickSearchConstants.kQuickSearchBody)
+      // create, fill, and append a term for the body
+      if (aSearchMode == QuickSearchConstants.kQuickSearchBody ||
+          aSearchMode == QuickSearchConstants.kQuickSearchEntireMessage)
       {
         // what do we do for news and imap users that aren't configured for offline use?
         // in these cases the body search will never return any matches. Should we try to
@@ -204,7 +211,7 @@ var QuickSearchManager = {
         searchTerms.push(term);
       }
 
-      // create, fill, and append the from (or recipient) term
+      // create, fill, and append a term for from
       if (aSearchMode == QuickSearchConstants.kQuickSearchFrom ||
           aSearchMode == QuickSearchConstants.kQuickSearchFromOrSubject)
       {
@@ -218,7 +225,8 @@ var QuickSearchManager = {
         searchTerms.push(term);
       }
 
-      // create, fill, and append the recipient
+      // create, fill, and append a term for the recipient
+      // XXX: need to include bcc here
       if (aSearchMode == QuickSearchConstants.kQuickSearchRecipient ||
           aSearchMode == QuickSearchConstants.kQuickSearchRecipientOrSubject)
       {
@@ -233,7 +241,8 @@ var QuickSearchManager = {
       }
 
       // create, fill, and append the AllAddresses term
-      if (aSearchMode == QuickSearchConstants.kQuickSearchSubjectFromOrRecipient)
+      if (aSearchMode == QuickSearchConstants.kQuickSearchSubjectFromOrRecipient ||
+          aSearchMode == QuickSearchConstants.kQuickSearchEntireMessage)
       {
         term = aTermCreator.createTerm();
         value = term.value;
