@@ -22,6 +22,7 @@ lightning.jar:
 % overlay chrome://lightning/content/lightning-standalone.xul chrome://lightning/content/messenger-overlay-sidebar.xul
 % overlay chrome://calendar/content/calendarCreation.xul chrome://lightning/content/lightning-calendar-creation.xul
 % overlay chrome://calendar/content/calendar-properties-dialog.xul chrome://lightning/content/lightning-calendar-properties.xul
+% override chrome://lightning/skin/accountCentral.css chrome://lightning/skin/suite-accountCentral.css application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
 % content lightning %content/lightning/
     content/lightning/imip-bar.js                          (content/imip-bar.js)
     content/lightning/imip-bar-overlay.xul                 (content/imip-bar-overlay.xul)
@@ -48,6 +49,7 @@ lightning.jar:
     skin/lightning/lightning.css                           (themes/@THEME@/lightning.css)
     skin/lightning/accountCentral.css                      (themes/@THEME@/accountCentral.css)
     skin/lightning/lightning-widgets.css                   (themes/@THEME@/lightning-widgets.css)
+    skin/lightning/suite-accountCentral.css                (themes/common/suite-accountCentral.css)
 
 calendar.jar:
     content/calendar/calendarCreation.xul                  (/calendar/resources/content/calendarCreation.xul)
