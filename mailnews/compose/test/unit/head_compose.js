@@ -51,6 +51,8 @@ function getSmtpIdentity(senderName, smtpServer) {
   return identity;
 }
 
+var test;
+
 function do_check_transaction(real, expected) {
   // real.them may have an extra QUIT on the end, where the stream is only
   // closed after we have a chance to process it and not them. We therefore

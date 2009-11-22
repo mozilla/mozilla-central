@@ -182,7 +182,7 @@ function run_test() {
   acctMgr.setSpecialFolders();
 
   var account = acctMgr.createAccount();
-  incomingServer = acctMgr.createIncomingServer("test", "localhost", "pop3");
+  var incomingServer = acctMgr.createIncomingServer("test", "localhost", "pop3");
 
   var smtpServer = getBasicSmtpServer();
   identity = getSmtpIdentity(kSender, smtpServer);
