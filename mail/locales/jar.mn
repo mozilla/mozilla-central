@@ -154,6 +154,7 @@
   locale/@AB_CD@/messenger/activity.properties                          (%chrome/messenger/activity.properties)
   locale/@AB_CD@/messenger/downloads/settingsChange.dtd                 (%chrome/overrides/settingsChange.dtd)
   locale/@AB_CD@/messenger/netError.dtd                                 (%chrome/overrides/netError.dtd)
+  locale/@AB_CD@/messenger/downloadsOverlay.dtd                         (%chrome/messenger/downloadsOverlay.dtd)
 % locale messenger-mapi @AB_CD@ %locale/@AB_CD@/messenger-mapi/
   locale/@AB_CD@/messenger-mapi/mapi.properties                         (%chrome/messenger-mapi/mapi.properties)
 % locale messenger-newsblog @AB_CD@ %locale/@AB_CD@/messenger-newsblog/

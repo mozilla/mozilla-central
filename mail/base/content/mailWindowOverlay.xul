@@ -492,6 +492,10 @@
        key="&addressBookCmd.key;"
        modifiers="accel, shift"
        oncommand="toAddressBook();"/>
+  <key id="key_savedFiles"
+       key="&savedFiles.key;"
+       modifiers="accel"
+       oncommand="openSavedFilesWnd();"/>
 
 #ifdef XP_UNIX
 #ifndef XP_MACOSX
@@ -1503,7 +1507,12 @@
                   accesskey="&addressBookCmd.accesskey;"
                   key="key_addressbook"
                   oncommand="toOpenWindowByType('mail:addressbook', 'chrome://messenger/content/addressbook/addressbook.xul');"/>
+        <menuseparator id="devToolsSeparator"/>
 #endif
+        <menuitem id="menu_openSavedFilesWnd" label="&savedFiles.label;"
+                  accesskey="&savedFiles.accesskey;"
+                  key="key_savedFiles"
+                  oncommand="openSavedFilesWnd();"/>
         <menuitem id="addonsManager" label="&addons.label;" accesskey="&addons.accesskey;"
                   oncommand="openAddonsMgr();"/>
         <menuitem id="activityManager" label="&activitymanager.label;"

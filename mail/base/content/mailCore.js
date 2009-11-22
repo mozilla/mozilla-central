@@ -343,6 +343,13 @@ function openActivityMgr()
     getService(Components.interfaces.nsIActivityManagerUI).show(window);
 }
 
+function openSavedFilesWnd()
+{
+  Components.classes['@mozilla.org/download-manager-ui;1']
+            .getService(Components.interfaces.nsIDownloadManagerUI)
+            .show(window);
+}
+
 function SetBusyCursor(window, enable)
 {
     // setCursor() is only available for chrome windows.

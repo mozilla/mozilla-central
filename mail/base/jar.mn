@@ -94,6 +94,7 @@ messenger.jar:
     content/messenger/glodaFacetBindings.css        (content/glodaFacetBindings.css)
     content/messenger/glodaFacetBindings.xml        (content/glodaFacetBindings.xml)
     content/messenger/glodaFacetVis.js              (content/glodaFacetVis.js)
+    content/messenger/downloadsOverlay.xul          (content/downloadsOverlay.xul)
 # the following files are mail-specific overrides
 *+  content/messenger/license.html                  (/mozilla/toolkit/content/license.html)
 % override chrome://global/content/license.html chrome://messenger/content/license.html
@@ -106,3 +107,4 @@ comm.jar:
 
 toolkit.jar:
 % overlay chrome://global/content/customizeToolbar.xul chrome://messenger/content/customizeToolbarOverlay.xul
+% overlay chrome://mozapps/content/downloads/downloads.xul chrome://messenger/content/downloadsOverlay.xul
