@@ -9,14 +9,17 @@
 
   <script type="application/javascript">
   <![CDATA[
-    var gHasIntegratedMailClient = ("@mozilla.org/messengercompose/composeparams;1" in Components.classes);
+    var gUseExternalMailto = Application.prefs.getValue("network.protocol-handler.external.mailto", false);
 
     // attachment: 0 - link
     //             1 - page
     //             2 - image
     function openComposeWindow(url, title, attachment, charset)
     {
-      if (gHasIntegratedMailClient) {                                                                      
+      if (gUseExternalMailto) {
+        openExternalMailer(url, title);
+      }
+      else {
         var params = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
                                .createInstance(Components.interfaces.nsIMsgComposeParams);
         if (params)
@@ -59,9 +62,6 @@
           }                                                                         
         }                                                                         
       }
-      else {
-        openExternalMailer(url, title);
-      }
     }
 
     function openExternalMailer(url, title) {
@@ -83,7 +83,10 @@
 
     function goOpenNewMessage()
     {
-      if (gHasIntegratedMailClient) {
+      if (gUseExternalMailto) {
+        openExternalMailer();
+      }
+      else {
         if ("MsgNewMessage" in window)
         {
           MsgNewMessage(null);
@@ -96,9 +99,6 @@
                                            Components.interfaces.nsIMsgCompType.New,
                                            Components.interfaces.nsIMsgCompFormat.Default,
                                            null, null);
-      }
-      else {
-        openExternalMailer();
       }
     }
 
@@ -138,7 +138,7 @@
       var shouldShowSendPage = !(gContextMenu.onTextInput || gContextMenu.isContentSelected ||
                                gContextMenu.onVideo || gContextMenu.onAudio) &&
                                !(gContextMenu.onLink && gContextMenu.onImage) &&
-                               gHasIntegratedMailClient;
+                               !gUseExternalMailto;
       gContextMenu.showItem("context-sendpage", shouldShowSendPage);
    
       gContextMenu.showItem("context-sep-apps", gContextMenu.shouldShowSeparator("context-sep-apps"));
@@ -152,10 +152,10 @@
     }
 
     function hideMenuitems() {
-      document.getElementById("menu_newCard").hidden = !gHasIntegratedMailClient;
+      document.getElementById("menu_newCard").hidden = gUseExternalMailto;
       var menu_sendPage = document.getElementById("menu_sendPage");
       if (menu_sendPage)
-        menu_sendPage.hidden = !gHasIntegratedMailClient;
+        menu_sendPage.hidden = gUseExternalMailto;
     }
 
     function initOverlay(aEvent) {
