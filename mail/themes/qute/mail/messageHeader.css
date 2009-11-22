@@ -473,6 +473,7 @@ toolbar:not([mode="full"]) > .hdrJunkButton {
   -moz-padding-end: 3px !important;
   background-color: transparent;
   -moz-border-radius: 2px;
+  border: 1px dotted transparent;
 }
 
 .emailDisplayButton:hover {
