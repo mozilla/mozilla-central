@@ -248,11 +248,9 @@ else # ! MOZ_DEBUG
 # We don't build a static CRT when building a custom CRT,
 # it appears to be broken. So don't link to jemalloc if
 # the Makefile wants static CRT linking.
-ifndef MOZILLA_1_9_1_BRANCH
 ifeq ($(MOZ_MEMORY)_$(USE_STATIC_LIBS),1_)
 # Disable default CRT libs and add the right lib path for the linker
 OS_LDFLAGS += $(MOZ_MEMORY_LDFLAGS)
-endif
 endif
 
 # MOZ_DEBUG_SYMBOLS generates debug symbols in separate PDB files.

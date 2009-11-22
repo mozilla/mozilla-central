@@ -379,8 +379,8 @@ if test -n "$CROSS_COMPILE" && test "$target" != "$host"; then
         dnl checks will fail.  Fake a working SDK in that case.
         _SAVE_CFLAGS=$CFLAGS
         _SAVE_CXXFLAGS=$CXXLAGS
-        dnl 1.9.1 and 1.9.2 support 10.4, 1.9.3 and later don't.
-        if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1";
+        dnl 1.9.2 support 10.4, 1.9.3 and later don't.
+        if test "$MOZILLA_1_9_2_BRANCH" = "1";
         then
         CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk $CFLAGS"
         CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk $CXXFLAGS"
@@ -961,8 +961,8 @@ dnl ========================================================
 dnl Check for MacOS deployment target version
 dnl ========================================================
 
-dnl 1.9.1 and 1.9.2 support 10.4, 1.9.3 and later don't.
-if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1"; then
+dnl 1.9.2 support 10.4, 1.9.3 and later don't.
+if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
 MOZ_ARG_ENABLE_STRING(macos-target,
                       [  --enable-macos-target=VER (default=10.4)
                           Set the minimum MacOS version needed at runtime],
@@ -984,7 +984,7 @@ case "$target" in
         dnl No value specified on the command line or in the environment,
         dnl use the lesser of the application's minimum or the architecture's
         dnl minimum.
-        if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1"; then
+        if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
         export MACOSX_DEPLOYMENT_TARGET=10.4
         else
         export MACOSX_DEPLOYMENT_TARGET=10.5
@@ -2151,7 +2151,7 @@ case "$target" in
     MOZ_DEBUG_FLAGS='-Zi'
     MOZ_DEBUG_LDFLAGS='-DEBUG -DEBUGTYPE:CV'
     MOZ_FIX_LINK_PATHS=
-    if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1"; then
+    if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
         MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/js$(MOZ_BITS)$(VERSION_NUMBER).lib'
     else
         MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/mozjs.lib'
@@ -2214,7 +2214,7 @@ case "$target" in
         RCFLAGS='-O coff --use-temp-file'
         # mingw doesn't require kernel32, user32, and advapi32 explicitly
         LIBS="$LIBS -lgdi32 -lwinmm -lwsock32"
-        if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1"; then
+        if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
             MOZ_JS_LIBS='-L$(LIBXUL_DIST)/lib -ljs$(MOZ_BITS)$(VERSION_NUMBER)'
         fi
         MOZ_FIX_LINK_PATHS=
@@ -2253,7 +2253,7 @@ case "$target" in
         MOZ_DEBUG_LDFLAGS='-DEBUG -DEBUGTYPE:CV'
         WARNINGS_AS_ERRORS='-WX'
     	MOZ_OPTIMIZE_FLAGS='-O1'
-        if test "$MOZILLA_1_9_1_BRANCH" = "1" -o "$MOZILLA_1_9_2_BRANCH" = "1"; then
+        if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
             MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/js$(MOZ_BITS)$(VERSION_NUMBER).lib'
         else
             MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/mozjs.lib'
@@ -3080,11 +3080,7 @@ EOF
                        ])
         if test "$ac_cv_have_visibility_builtin_bug" = "no" -a \
                 "$ac_cv_have_visibility_class_bug" = "no"; then
-if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
-          VISIBILITY_FLAGS='-I$(DIST)/include/system_wrappers -include $(MOZILLA_SRCDIR)/config/gcc_hidden.h'
-else
           VISIBILITY_FLAGS='-I$(DIST)/system_wrappers -include $(MOZILLA_SRCDIR)/config/gcc_hidden.h'
-fi
         else
           VISIBILITY_FLAGS='-fvisibility=hidden'
         fi # have visibility pragma bug
