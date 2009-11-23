@@ -3027,8 +3027,6 @@ function subjectKeyPress(event)
 
 function AttachmentBucketClicked(event)
 {
-  event.currentTarget.focus();
-
   if (event.button != 0)
     return;
 
