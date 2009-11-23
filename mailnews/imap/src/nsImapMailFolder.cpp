@@ -7739,7 +7739,12 @@ nsImapMailFolder::CopyFileMessage(nsIFile* file,
     if( m_copyState )
       copySupport = do_QueryInterface(m_copyState);
     if (!isDraftOrTemplate)
+    {
       m_copyState->m_totalCount = 1;
+      // This makes the IMAP APPEND set the INTERNALDATE for the msg copy
+      // we make when detaching/deleting attachments to the original msg date.
+      m_copyState->m_message = msgToReplace;
+    }
     rv = imapService->AppendMessageFromFile(m_thread, file, this,
                                             messageId,
                                             PR_TRUE, isDraftOrTemplate,
