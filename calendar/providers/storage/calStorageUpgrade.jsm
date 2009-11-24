@@ -1174,16 +1174,17 @@ upgrade.v17 = function upgrade_v17(db, version) {
         for each (let tblName in ["alarms", "relations", "attachments"]) {
             let hasColumns = true;
             try {
-                // Creating the statement will fail if the columns don't exist.
-                // We don't use the delegate here since it will show an error to
-                // the user, even through we expect an error. If the db is null,
-                // then swallowing
-                // the error is ok too since the cols will already be added in
-                // v16.
-                db.createStatement("SELECT recurrence_id_tz," +
-                                   "       recurrence_id" +
-                                   "  FROM cal_" + tblName +
-                                   " LIMIT 1");
+                // Stepping this statement will fail if the columns don't exist.
+                // We don't use the delegate here since it would show an error to
+                // the user, even through we expect the error. If the db is null,
+                // then swallowing the error is ok too since the cols will
+                // already be added in v16.
+                let stmt = db.createStatement("SELECT recurrence_id_tz," +
+                                              "       recurrence_id" +
+                                              "  FROM cal_" + tblName +
+                                              " LIMIT 1");
+                stmt.step();
+                stmt.finalize();
             } catch (e) {
                 // An error happened, which means the cols don't exist
                 hasColumns = false;
