@@ -193,7 +193,7 @@ else
 RCFLAGS += -DMOZ_SUITE --include-dir $(srcdir)
 endif
 ifdef BUILD_STATIC_LIBS
-OS_LIBS += $(call EXPAND_LIBNAME, msimg32)
+OS_LIBS += $(call EXPAND_LIBNAME, msimg32 shlwapi)
 RCFLAGS += -DMOZ_STATIC_BUILD
 endif
 endif
