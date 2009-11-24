@@ -401,7 +401,7 @@
       <!-- The number of addresses buildViews will display before adding a
            (more) indicator to the widget; the nodes associated with these
            addresses are cached for the lifetime of the widget. -->
-      <field name="maxAddressesBeforeMore">2</field>
+      <field name="maxAddressesBeforeMore">1</field>
 
       <!-- Public method to build the DOM nodes for display, to be called
            after all the addresses have been added to the widget. Displays at
