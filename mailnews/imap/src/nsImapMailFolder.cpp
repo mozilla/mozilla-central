@@ -6131,6 +6131,7 @@ NS_IMETHODIMP nsImapMailFolder::GetOtherUsersWithAccess(
 nsresult nsMsgIMAPFolderACL::GetOtherUsers(nsIUTF8StringEnumerator** aResult)
 {
   nsTArray<nsCString>* resultArray = new nsTArray<nsCString>;
+  // Note: make cast in fillArrayWithKeys() match
   m_rightsHash.EnumerateRead(fillArrayWithKeys, resultArray);
 
   // enumerator will free resultArray
