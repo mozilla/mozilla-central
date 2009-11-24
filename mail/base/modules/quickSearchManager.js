@@ -24,7 +24,7 @@
  *   Scott MacGregor <mscott@mozilla.org>
  *   David Bienvenu <bienvenu@nventure.com>
  *   Andrew Sutherland <asutherland@asutherland.org>
- *   Thomas Düllmann <bugzilla2009@duellmann24.net>
+ *   Thomas DÃ¼llmann <bugzilla2009@duellmann24.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
