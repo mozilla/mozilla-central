@@ -152,8 +152,8 @@ nsMsgTraitService.prototype =
 
   getEnabledIndices: function(aCount, aProIndices, aAntiIndices)
   {
-    proIndices = [];
-    antiIndices = [];
+    let proIndices = [];
+    let antiIndices = [];
     for (id in _traits)
       if (_traits[id].enabled)
       {
