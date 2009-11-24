@@ -2808,31 +2808,6 @@ function OnMsgLoaded(aUrl)
 
   // See if MDN was requested but has not been sent.
   HandleMDNResponse(aUrl);
-
-  if (!gFolderDisplay.selectedMessageIsImap)
-    return;
-
-  var imapServer = folder.server.QueryInterface(Components.interfaces.nsIImapIncomingServer);
-  if (imapServer.storeReadMailInPFC)
-  {
-    // Look in read mail PFC for msg with same msg id - if we find one,
-    // don't put this message in the read mail pfc.
-    var outputPFC = imapServer.GetReadMailPFC(true);
-
-    if (msgHdr && msgHdr.messageId.length > 0)
-    {
-      var readMailDB = outputPFC.msgDatabase;
-      if (readMailDB && readMailDB.getMsgHdrForMessageID(msgHdr.messageId))
-        return; // Don't copy to offline folder.
-    }
-
-    var messages = Components.classes["@mozilla.org/array;1"]
-                              .createInstance(Components.interfaces.nsIMutableArray);
-    messages.appendElement(msgHdr, false);
-    outputPFC.copyMessages(folder, messages, false /*isMove*/,
-                            msgWindow /*nsIMsgWindow*/, null /*listener*/,
-                            false /*isFolder*/, false /*allowUndo*/);
-  }
 }
 
 /**

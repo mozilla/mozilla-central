@@ -481,15 +481,8 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
   nsAutoString currentFolderDBNameStr;  // possibly munged name
   nsCOMPtr<nsIMsgFolder> child;
   nsCOMPtr<nsIMsgIncomingServer> server;
-  nsCOMPtr<nsIImapIncomingServer> imapServer;
   rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
-
-  imapServer = do_QueryInterface(server, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRBool isServer;
-  rv = GetIsServer(&isServer);
 
   nsCAutoString folderName;
   nsCOMPtr <nsISimpleEnumerator> children;
@@ -510,18 +503,6 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
     nsCOMPtr <nsILocalFile> currentFolderPath = do_QueryInterface(dirEntry);
     currentFolderPath->GetNativeLeafName(folderName);
     NS_CopyNativeToUnicode(folderName, currentFolderNameStr);
-    if (isServer && imapServer)
-    {
-      PRBool isPFC;
-      imapServer->GetIsPFC(folderName, &isPFC);
-      if (isPFC)
-      {
-        nsCOMPtr <nsIMsgFolder> pfcFolder;
-        imapServer->GetPFC(PR_TRUE, getter_AddRefs(pfcFolder));
-        continue;
-      }
-      // should check if this is the PFC
-    }
     if (nsShouldIgnoreFile(currentFolderNameStr))
       continue;
 

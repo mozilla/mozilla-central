@@ -55,7 +55,7 @@ interface nsMsgImapDeleteModels
   const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(3b5ada31-561f-4a76-b1be-0b2bba8e9389)]
+[scriptable, uuid(fd8b94f8-c8dc-4595-a651-ecaa0f8a8e90)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
@@ -77,7 +77,6 @@ interface nsIImapIncomingServer : nsISupports {
   attribute boolean fetchByChunks;
   attribute boolean mimePartsOnDemand;
   attribute boolean isAOLServer;
-  attribute boolean aOLMailboxView;
   attribute boolean useIdle;
 
   /// Is this a GMail Server?
@@ -95,8 +94,6 @@ interface nsIImapIncomingServer : nsISupports {
 
   attribute AString trashFolderName;
 
-  boolean getIsPFC(in ACString folderName);
-  nsIMsgFolder getPFC(in boolean createIfMissing);
   attribute boolean downloadBodiesOnGetNewMail;
   attribute boolean autoSyncOfflineStores;
 
@@ -114,8 +111,6 @@ interface nsIImapIncomingServer : nsISupports {
   void CloseConnectionForFolder(in nsIMsgFolder aMsgFolder);
   void reDiscoverAllFolders();
   nsIURI subscribeToFolder(in AString name, in boolean subscribe);
-  nsIMsgFolder GetReadMailPFC(in boolean createIfMissing);
-  nsIMsgFolder GetSentMailPFC(in boolean createIfMissing);
   void GetNewMessagesForNonInboxFolders(in nsIMsgFolder aRootFolder,
                                         in nsIMsgWindow aWindow,
                                         in boolean forceAllFolders,

@@ -88,9 +88,6 @@ PR_END_EXTERN_C
 #define IMAP_NO_NEW_MESSAGES                        5056
 #define IMAP_DEFAULT_ACCOUNT_NAME                   5057
 #define IMAP_EMPTY_TRASH_CONFIRM                    5061
-#define IMAP_PERSONAL_FILING_CABINET                5062
-#define IMAP_PFC_READ_MAIL                          5063
-#define IMAP_PFC_SENT_MAIL                          5064
 #define IMAP_SPECIAL_CHAR                           5065
 #define IMAP_PERSONAL_SHARED_FOLDER_TYPE_NAME       5066
 #define IMAP_PUBLIC_FOLDER_TYPE_NAME                5067

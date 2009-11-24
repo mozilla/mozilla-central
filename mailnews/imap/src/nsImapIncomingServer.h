@@ -116,8 +116,6 @@ protected:
   nsresult GetStringBundle();
   nsString GetImapStringByName(const nsString &aName);
 
-  void     GetPFCName(nsACString&); 
-  nsresult GetPFCForStringId(PRBool createIfMissing, PRInt32 stringId, nsIMsgFolder **aFolder);
 private:
   nsresult SubscribeToFolder(const PRUnichar *aName, PRBool subscribe);
   nsresult GetImapConnection (nsIEventTarget* aEventTarget,
@@ -142,12 +140,10 @@ private:
   nsVoidArray       m_urlConsumers;
   PRUint32          m_capability;
   nsCString         m_manageMailAccountUrl;
-  PRPackedBool      m_readPFCName;
   PRPackedBool      m_userAuthenticated;
   PRPackedBool      mDoingSubscribeDialog;
   PRPackedBool      mDoingLsub;
   PRPackedBool      m_shuttingDown;
-  nsCString         m_pfcName;
 
   // subscribe dialog stuff
   nsresult AddFolderToSubscribeDialog(const char *parentUri, const char *uri,const char *folderName);

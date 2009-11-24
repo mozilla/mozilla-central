@@ -2849,45 +2849,6 @@ function OnMsgLoaded(aUrl)
 
     // See if MDN was requested but has not been sent.
     HandleMDNResponse(aUrl);
-
-    var currentMsgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
-    if (!IsImapMessage(msgURI))
-      return;
-
-    var imapServer = currentMsgFolder.server.QueryInterface(Components.interfaces.nsIImapIncomingServer);
-    var storeReadMailInPFC = imapServer.storeReadMailInPFC;
-    if (storeReadMailInPFC)
-    {
-      var messageID;
-
-      var copyToOfflineFolder = true;
-
-      // look in read mail PFC for msg with same msg id - if we find one,
-      // don't put this message in the read mail pfc.
-      var outputPFC = imapServer.GetReadMailPFC(true);
-
-      if (msgHdr)
-      {
-        messageID = msgHdr.messageId;
-        if (messageID.length > 0)
-        {
-          var readMailDB = outputPFC.msgDatabase;
-          if (readMailDB)
-          {
-            var hdrInDestDB = readMailDB.getMsgHdrForMessageID(messageID);
-            if (hdrInDestDB)
-              copyToOfflineFolder = false;
-          }
-        }
-      }
-      if (copyToOfflineFolder)
-      {
-        var messages = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
-        messages.appendElement(msgHdr, false);
-
-        res = outputPFC.copyMessages(currentMsgFolder, messages, false /*isMove*/, msgWindow /* nsIMsgWindow */, null /* listener */, false /* isFolder */, false /*allowUndo*/ );
-      }
-     }
 }
 
 //

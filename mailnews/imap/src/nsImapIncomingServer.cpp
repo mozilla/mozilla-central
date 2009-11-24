@@ -108,7 +108,6 @@ nsImapIncomingServer::nsImapIncomingServer()
   mDoingLsub = PR_FALSE;
   m_canHaveFilters = PR_TRUE;
   m_userAuthenticated = PR_FALSE;
-  m_readPFCName = PR_FALSE;
   m_shuttingDown = PR_FALSE;
 }
 
@@ -384,9 +383,6 @@ NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, FetchByChunks,
 
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, MimePartsOnDemand,
                        "mime_parts_on_demand")
-
-NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, AOLMailboxView,
-                       "aol_mailbox_view")
 
 NS_IMETHODIMP
 nsImapIncomingServer::GetIsAOLServer(PRBool *aBool)
@@ -1006,99 +1002,6 @@ nsImapIncomingServer::CloseCachedConnections()
 
   PR_CExitMonitor(this);
   return NS_OK;
-}
-
-void nsImapIncomingServer::GetPFCName(nsACString& aPfcname)
-{
-  if (!m_readPFCName)
-  {
-    if(NS_SUCCEEDED(GetStringBundle()))
-    {
-      nsAutoString pfcName;
-      nsresult res = m_stringBundle->GetStringFromID(IMAP_PERSONAL_FILING_CABINET, getter_Copies(pfcName));
-      if (NS_SUCCEEDED(res))
-        CopyUTF16toUTF8(pfcName, m_pfcName);
-    }
-    m_readPFCName = PR_TRUE;
-  }
-  aPfcname = m_pfcName;
-  return;
-}
-
-NS_IMETHODIMP nsImapIncomingServer::GetIsPFC(const nsACString& folderName, PRBool *result)
-{
-  NS_ENSURE_ARG(result);
-  nsCString pfcName;
-  GetPFCName(pfcName);
-  *result = folderName.Equals(pfcName);
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsImapIncomingServer::GetPFC(PRBool createIfMissing, nsIMsgFolder **pfcFolder)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgAccountManager> accountManager =
-           do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv))
-  {
-    nsCOMPtr <nsIMsgIncomingServer> server;
-    rv = accountManager->GetLocalFoldersServer(getter_AddRefs(server));
-    if (NS_SUCCEEDED(rv) && server)
-      return server->GetRootMsgFolder(pfcFolder);
-  }
-  return rv;
-}
-
-nsresult nsImapIncomingServer::GetPFCForStringId(PRBool createIfMissing, PRInt32 stringId, nsIMsgFolder **aFolder)
-{
-  NS_ENSURE_ARG_POINTER(aFolder);
-  nsCOMPtr <nsIMsgFolder> pfcParent;
-
-  nsresult rv = GetPFC(createIfMissing, getter_AddRefs(pfcParent));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCString pfcURI;
-  pfcParent->GetURI(pfcURI);
-
-  rv = GetStringBundle();
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsAutoString pfcName;
-  rv = m_stringBundle->GetStringFromID(stringId, getter_Copies(pfcName));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCAutoString pfcMailUri(pfcURI);
-//  pfcMailUri.Append(".sbd");
-  pfcMailUri.Append('/');
-  AppendUTF16toUTF8(pfcName, pfcMailUri);
-  pfcParent->GetChildWithURI(pfcMailUri, PR_FALSE, PR_FALSE /* caseInsensitive*/, aFolder);
-  if (!*aFolder && createIfMissing)
-  {
-    // get the URI from the incoming server
-    nsCOMPtr<nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    nsCOMPtr<nsIRDFResource> res;
-    rv = rdf->GetResource(pfcMailUri, getter_AddRefs(res));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr <nsIMsgFolder> parentToCreate = do_QueryInterface(res, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    parentToCreate->SetParent(pfcParent);
-    parentToCreate->CreateStorageIfMissing(nsnull);
-    NS_IF_ADDREF(*aFolder = parentToCreate);
-  }
-  return rv;
-}
-
-NS_IMETHODIMP nsImapIncomingServer::GetReadMailPFC(PRBool createIfMissing, nsIMsgFolder **aFolder)
-{
-  NS_ENSURE_ARG_POINTER(aFolder);
-  return GetPFCForStringId(createIfMissing, IMAP_PFC_READ_MAIL, aFolder);
-}
-
-NS_IMETHODIMP nsImapIncomingServer::GetSentMailPFC(PRBool createIfMissing, nsIMsgFolder **aFolder)
-{
-  NS_ENSURE_ARG_POINTER(aFolder);
-  return GetPFCForStringId(createIfMissing, IMAP_PFC_SENT_MAIL, aFolder);
 }
 
 nsresult
