@@ -714,12 +714,6 @@ calStorageCalendar.prototype = {
 
         upgradeDB(this.mDB);
 
-        // (Conditionally) add index
-        this.mDB.executeSimpleSQL(
-            "CREATE INDEX IF NOT EXISTS " + 
-            "idx_cal_properies_item_id ON cal_properties(cal_id, item_id);"
-            );
-
         this.mSelectEvent = createStatement (
             this.mDB,
             "SELECT * FROM cal_events " +
@@ -859,16 +853,18 @@ calStorageCalendar.prototype = {
 
         this.mSelectPropertiesForItem = createStatement(
             this.mDB,
-            "SELECT * FROM cal_properties " +
-            "WHERE item_id = :item_id AND recurrence_id IS NULL"
+            "SELECT * FROM cal_properties" +
+            " WHERE item_id = :item_id" +
+            "   AND cal_id = " + this.mCalId +
+            "   AND recurrence_id IS NULL"
             );
 
         this.mSelectPropertiesForItemWithRecurrenceId = createStatement(
             this.mDB,
             "SELECT * FROM cal_properties " +
             "WHERE item_id = :item_id AND cal_id = " + this.mCalId +
-            " AND recurrence_id = :recurrence_id" +
-            " AND recurrence_id_tz = :recurrence_id_tz"
+            "  AND recurrence_id = :recurrence_id" +
+            "  AND recurrence_id_tz = :recurrence_id_tz"
             );
 
         this.mSelectRecurrenceForItem = createStatement(
@@ -925,7 +921,7 @@ calStorageCalendar.prototype = {
 
         this.mSelectAlarmsForItemWithRecurrenceId = createStatement(
             this.mDB,
-            "SELECT * FROM cal_alarms" +
+            "SELECT icalString FROM cal_alarms" +
             " WHERE item_id = :item_id AND cal_id = " + this.mCalId +
             " AND recurrence_id = :recurrence_id" +
             " AND recurrence_id_tz = :recurrence_id_tz"

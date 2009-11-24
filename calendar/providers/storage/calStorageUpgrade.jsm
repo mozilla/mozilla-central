@@ -65,6 +65,12 @@
  * not null. If you need to call new functions on the database object, check out
  * the createDBDelegate function below.
  *
+ * When adding new tables to the table data object, please note that there is a
+ * special prefix for indexes. These are also kept in the table data object to
+ * make sure that getAllSql also includes CREATE INDEX statements. New tables
+ * MUST NOT be prefixed with "idx_". If you would like to add a new index,
+ * please use the createIndex function.
+ *
  * The basic structure for an upgrader is (NN is current version, XX = NN - 1)
  *
  * upgrader.vNN = function upgrade_vNN(db, version) {
@@ -97,28 +103,38 @@ Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
 // The current database version. Be sure to increment this when you create a new
 // updater.
-var DB_SCHEMA_VERSION = 17;
+var DB_SCHEMA_VERSION = 18;
 
 var EXPORTED_SYMBOLS = ["DB_SCHEMA_VERSION", "getSql", "getAllSql", "getSqlTable", "upgradeDB"];
 
 /**
- * Gets the SQL for the given table data and table name
+ * Gets the SQL for the given table data and table name. This can be both a real
+ * table or the name of an index. Indexes must contain the idx_ prefix.
  *
- * @param tblName       The name of the table to retrieve sql for
+ * @param tblName       The name of the table or index to retrieve sql for
  * @param tblData       The table data object, as returned from the upgrade_v*
  *                        functions. If null, then the latest table data is
  *                        retrieved.
- * @param alternateName (optional) The table name to be used in the resulting
- *                        CREATE TABLE statement. If not set, tblName will be
- *                        used.
- * @return              The SQL Statement for the given table and version as a
- *                        string.
+ * @param alternateName (optional) The table or index name to be used in the
+ *                        resulting CREATE statement. If not set, tblName will
+ *                        be used.
+ * @return              The SQL Statement for the given table or index and
+ *                        version as a string.
  */
 function getSql(tblName, tblData, alternateName) {
     tblData = tblData || getSqlTable();
-    let sql = "CREATE TABLE " +  (alternateName || tblName) + " (\n";
-    for (let [key, type] in Iterator(tblData[tblName]))  {
-        sql += "    " + key + " " + type + ",\n";
+    let altName = (alternateName || tblName);
+    let sql;
+    if (tblName.substr(0, 4) == "idx_") {
+        // If this is an index, we need construct the SQL differently
+        let idxTbl = tblData[tblName].shift();
+        let idxOn = idxTbl + "(" + tblData[tblName].join(",") + ")";
+        sql = "CREATE INDEX " + altName + " ON " + idxOn + ";";
+    } else {
+        sql = "CREATE TABLE " + altName  + " (\n";
+        for (let [key, type] in Iterator(tblData[tblName]))  {
+            sql += "    " + key + " " + type + ",\n";
+        }
     }
 
     return sql.replace(/,\s*$/, ");");
@@ -287,6 +303,29 @@ var removeFunction = createDBDelegate("removeFunction");
 var createFunction = createDBDelegate("createFunction");
 
 var lastErrorString = createDBDelegateGetter("lastErrorString");
+
+
+/**
+ * Helper function to create an index on the database if it doesn't already
+ * exist.
+ *
+ * @param tblData       The table data object to save the index in.
+ * @param tblName       The name of the table to index.
+ * @param colNameArray  An array of columns to index over.
+ * @param db            (optional) The database to create the index on.
+ */
+function createIndex(tblData, tblName, colNameArray, db) {
+    let idxName = "idx_" + tblName + "_" + colNameArray.join("_");
+    let idxOn = tblName + "(" + colNameArray.join(",") + ")";
+
+    // Construct the table data for this index
+    tblData[idxName] = colNameArray.concat([]);
+    tblData[idxName].unshift(tblName);
+
+    // Execute the sql, if there is a db
+    return executeSimpleSQL(db, "CREATE INDEX IF NOT EXISTS " + idxName +
+                                "                        ON " + idxOn);
+}
 
 /**
  * Often in an upgrader we want to log something only if there is a database. To
@@ -1174,6 +1213,52 @@ upgrade.v17 = function upgrade_v17(db, version) {
 
         }
         setDbVersionAndCommit(db, 17);
+    } catch (e) {
+        throw reportErrorAndRollback(db, e);
+    }
+
+    return tbl;
+};
+
+/**
+ * Bug 529326 -  Create indexes for the local calendar
+ * r=mschroeder, p=philipp
+ *
+ * This bug adds some indexes to improve performance. If you would like to add
+ * additional indexes, please read http://www.sqlite.org/optoverview.html first.
+ */
+upgrade.v18 = function upgrade_v18(db, version) {
+    let tbl = upgrade.v17(version < 17 && db, version);
+    LOGdb(db, "Storage: Upgrading to v18");
+    beginTransaction(db);
+    try {
+        // These fields are often indexed over
+        let simpleIds = ["cal_id", "item_id"];
+        let allIds = simpleIds.concat(["recurrence_id", "recurrence_id_tz"]);
+
+        // Alarms, Attachments, Attendees, Relations
+        for each (let tblName in ["alarms", "attachments", "attendees", "relations"]) {
+            createIndex(tbl, "cal_" + tblName, allIds, db);
+        }
+
+        // Events and Tasks
+        for each (let tblName in ["events", "todos"]) {
+            createIndex(tbl, "cal_" + tblName, ["flags", "cal_id", "recurrence_id"], db);
+            createIndex(tbl, "cal_" + tblName, ["id", "cal_id", "recurrence_id"], db);
+        }
+
+        // Metadata
+        createIndex(tbl, "cal_metadata", simpleIds, db);
+
+        // Properties. Remove the index we used to create first, since our index
+        // is much more complete.
+        executeSimpleSQL(db, "DROP INDEX IF EXISTS idx_cal_properies_item_id");
+        createIndex(tbl, "cal_properties", allIds, db);
+
+        // Recurrence
+        createIndex(tbl, "cal_recurrence", simpleIds, db);
+
+        setDbVersionAndCommit(db, 18);
     } catch (e) {
         throw reportErrorAndRollback(db, e);
     }
