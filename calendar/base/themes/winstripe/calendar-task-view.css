@@ -141,8 +141,8 @@
 
 #calendar-delete-task-button {
     -moz-box-orient: vertical;
-    list-style-image: url(chrome://messenger/skin/icons/folder.png);
-    -moz-image-region: rect(0pt, 144px, 16px, 128px);
+    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
+    -moz-image-region: rect(0px, 48px, 16px, 32px);
 }
 
 #calendar-add-task-button {
