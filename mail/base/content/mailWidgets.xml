@@ -2042,8 +2042,8 @@
 
             // skip servers, Trash and Junk folders
             if (!aFolder || aFolder.isServer ||
-                 aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Junk) ||
-                 aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash))
+                aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Junk) ||
+                aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash))
               return false;
             var pref = Components.classes["@mozilla.org/preferences-service;1"]
                                  .getService(Components.interfaces.nsIPrefBranch);
@@ -2056,8 +2056,7 @@
               var srchFolderUriArray = srchFolderUri.split('|');
               var foldersAdded = 0;
               var RDF = Components.classes['@mozilla.org/rdf/rdf-service;1']
-                                  .getService()
-                                  .QueryInterface(Components.interfaces.nsIRDFService);
+                                  .getService(Components.interfaces.nsIRDFService);
               for (var i in srchFolderUriArray)
               {
                 var realFolder = RDF.GetResource(srchFolderUriArray[i])
