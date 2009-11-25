@@ -214,9 +214,11 @@ calStorageCalendar.prototype = {
                         if (this.mDB.tableExists("cal_events")) { // check again (with lock)
                             // take over data and drop from storage.sdb tables:
                             for (let table in getSqlTable(DB_SCHEMA_VERSION)) {
-                                this.mDB.executeSimpleSQL("CREATE TABLE local_sqlite." +  table +
-                                                          " AS SELECT * FROM " + table +
-                                                          "; DROP TABLE IF EXISTS " +  table);
+                                if (table.substr(0, 4) != "idx_") {
+                                    this.mDB.executeSimpleSQL("CREATE TABLE local_sqlite." +  table +
+                                                              " AS SELECT * FROM " + table +
+                                                              "; DROP TABLE IF EXISTS " +  table);
+                                }
                             }
                             this.mDB.commitTransaction();
                         } else { // migration done in the meantime

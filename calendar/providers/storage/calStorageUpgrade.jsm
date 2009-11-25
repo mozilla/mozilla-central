@@ -158,7 +158,8 @@ function getAllSql(version) {
 }
 
 /**
- * Get the JS object corresponding to the given schema version
+ * Get the JS object corresponding to the given schema version. This object will
+ * contain both tables and indexes, where indexes are prefixed with "idx_".
  *
  * @param schemaVersion       The schema version to get. If null, the latest
  *                              schema version will be used.
