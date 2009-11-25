@@ -1269,6 +1269,7 @@ function editAttendees() {
         gItemDuration = duration;
         updateAttendees();
         updateDateTime();
+        updateAllDay();
         if (isAllDay != gStartTime.isDate){
             setShowTimeAs(gStartTime.isDate)
         }
