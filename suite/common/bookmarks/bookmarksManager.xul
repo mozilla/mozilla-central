@@ -184,7 +184,7 @@
                     checked="true"/>
           <menu label="&menuitem.view.show_columns.label;"
                 accesskey="&menuitem.view.show_columns.accesskey;">
-            <menupopup onpopupshowing="UpdateViewColumns();"
+            <menupopup id="columnsPopup" onpopupshowing="UpdateViewColumns();"
                        oncommand="onViewMenuColumnItemSelected(event);">
               <menuitem id="columnMenuItem:Name" disabled="true" label="&treecol.name.label;"
                         accesskey="&treecol.name.accesskey;" type="checkbox"/>
