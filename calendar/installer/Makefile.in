@@ -120,5 +120,5 @@ endif
 make-package : removed-files-checked
 
 removed-files-checked : removed-files stage-package
-	$(PERL) $(srcdir)/check-remove-files.pl removed-files $(DIST)/$(MOZ_PKG_APPNAME)
+	$(PERL) $(srcdir)/check-remove-files.pl removed-files $(DIST)/bin
 
