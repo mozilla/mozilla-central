@@ -97,6 +97,11 @@ MOZ_PKG_MAC_BACKGROUND=branding/background.png
 MOZ_PKG_MAC_ICON=branding/disk.icns
 endif
 
+
+# On mozilla-central, packager.mk uses core_abspath to redefine DIST
+# As the comm-central config.mk doesn't set it, do it ourselves instead
+core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(CURDIR)/$(1)))
+
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 
 ifeq (WINNT,$(OS_ARCH))
@@ -120,5 +125,4 @@ endif
 make-package : removed-files-checked
 
 removed-files-checked : removed-files stage-package
-	$(PERL) $(srcdir)/check-remove-files.pl removed-files $(DIST)/bin
-
+	$(PERL) $(srcdir)/check-remove-files.pl removed-files $(DIST)/$(MOZ_PKG_APPNAME)
