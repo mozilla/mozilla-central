@@ -128,26 +128,36 @@ include $(topsrcdir)/config/rules.mk
 
 # Call this target to trigger repackaging lightning for a specific language
 # Usage: make AB_CD=<language> repack-l10n
+repack-l10n: L10N_XPI_NAME=$(subst -en-US,,$(XPI_NAME)-$(AB_CD))
 repack-l10n: repack-clobber libs-$(AB_CD) repack-process-extrafiles
 	@echo "Finished repackaging $(XPI_NAME) locale for Language $(AB_CD)"
 
 # This target should not be called directly
-repack-clobber:
+repack-clobber-all:
 	@echo "Repackaging $(XPI_NAME) locale for Language $(AB_CD)"
 	rm -rf $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
 	cp -R $(DIST)/xpi-stage/$(XPI_NAME) $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
+
+# This target should not be called directly
+repack-clobber: repack-clobber-all
 	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/lightning-en-US.jar
 	rm $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)/chrome/calendar-en-US.jar
 
-libs-%: L10N_XPI_NAME=$(subst -en-US,,$(XPI_NAME)-$*)
+# Repack the existing lightning to contain all locales in lightning-all.xpi
+repack-l10n-all: AB_CD=all
+repack-l10n-all: L10N_XPI_NAME=lightning-all
+repack-l10n-all: repack-clobber-all $(addprefix libs-,$(shell cat $(topsrcdir)/calendar/locales/shipped-locales))
+
+# Actual locale packaging targets. If L10N_XPI_NAME is set, then use it.
+# Otherwise keep the original XPI_NAME
+libs-%: FINAL_XPI_NAME=$(if $(L10N_XPI_NAME),$(L10N_XPI_NAME),$(XPI_NAME))
 libs-%:
-	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=$(L10N_XPI_NAME) XPI_PKGNAME=$(L10N_XPI_NAME) USE_EXTENSION_MANIFEST=1
-	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=$(L10N_XPI_NAME) XPI_PKGNAME=$(L10N_XPI_NAME) USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
 
-
-repack-process-extrafiles: L10N_XPI_NAME=$(subst -en-US,,$(XPI_NAME)-$(AB_CD))
+# For localized xpis, the install.rdf and lightning-l10n.js need to be
+# reprocessed with some defines from the locale.
 repack-process-extrafiles: LOCALE_BASEDIR=$(call EXPAND_LOCALE_SRCDIR,calendar/locales)
 repack-process-extrafiles:
 	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) -I $(LOCALE_BASEDIR)/defines.inc $(srcdir)/install.rdf > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/install.rdf
 	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(LOCALE_BASEDIR)/lightning-l10n.js  > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/$(PREF_DIR)/lightning-l10n.js
-
