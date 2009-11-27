@@ -58,3 +58,8 @@ MOZ_EXTENSIONS_DEFAULT=" venkman inspector irc gnomevfs reporter"
 MOZ_PLACES=1
 MOZ_UPDATER=1
 MOZ_HELP_VIEWER=1
+
+# Disable libxul which is (now) the default on mozilla-central. (Bug 394502)
+MOZ_ENABLE_LIBXUL=
+# Until we can build with libxul, we can't have ipc either. (Bug 531292)
+MOZ_ENABLE_IPC=
