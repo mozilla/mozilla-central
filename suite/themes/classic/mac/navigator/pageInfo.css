@@ -59,9 +59,12 @@ windowdragbox {
 }
 
 #tabs {
-  padding: 4px 0 8px;
-  margin: 0;
+  padding: 1px;
+  margin: 5px 0 9px;
   -moz-appearance: none;
+  background-color: rgba(0, 0, 0, 0.55);
+  -moz-border-radius: 3px;
+  -moz-box-shadow: 0 1px rgba(255, 255, 255, 0.4);
 }
 
 .tab-middle {
@@ -80,100 +83,58 @@ tab {
   -moz-appearance: none;
   -moz-box-orient: vertical;
   font: menu;
-  text-shadow: rgba(255, 255, 255, 0.4) 0 1px;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.4);
   margin: 0;
-  padding: 3px 0 0;
-  height: 24px;
-  background-color: transparent;
-  border: solid transparent;
-  border-width: 0 4px 0 5px;
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-middle.png") 0 4 0 5 repeat stretch;
+  padding: 0 4px;
+  border: none;
+  border-left: 1px solid rgba(0, 0, 0, 0.8);
+  background: -moz-linear-gradient(top, #FFF, #ADADAD) repeat-x;
 }
 
 tab:active:hover {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-middle-down.png") 0 4 0 5 repeat stretch;
+  background: #B5B5B5;
+  -moz-box-shadow: inset rgba(0, 0, 0, 0.3) 0 -6px 14px, inset #000 0 1px 4px, inset rgba(0, 0, 0, 0.2) 0 1px 4px;
 }
 
 tab[selected=true] {
   color: #FFF !important;
-  text-shadow: rgba(0, 0, 0, 0.4) 0 1px;
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-middle-selected.png") 0 4 0 5 repeat stretch;
+  text-shadow:  0 1px rgba(0, 0, 0, 0.4);
+  background: #606060;
+  -moz-box-shadow: inset #2A2A2A 0 3px 5px;
 }
 
 tab[selected=true]:active:hover {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-middle-selected-down.png") 0 4 0 5 repeat stretch;
+  background-color: #4E4E4E;
+  -moz-box-shadow: inset #1c1c1c 0 3px 5px;
+}
+
+:root:not([active]) #tabs {
+  background-color: rgba(0, 0, 0, 0.25);
 }
 
 :root:not([active]) tab {
   color: #7C7C7C !important; /* remove this when we support click-through */
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-middle-inactive.png") 0 4 0 5 repeat stretch;
+  border-color: rgba(0, 0, 0, 0.4);
+  background-image: -moz-linear-gradient(top, #FFF, #CCC);
 }
 
 :root:not([active]) tab[selected=true] {
-  color: #C5C5C5 !important; /* remove this when we support click-through */
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-middle-selected-inactive.png") 0 4 0 5 repeat stretch;
+  color: #E6E6E6 !important; /* remove this when we support click-through */
+  background: #8E8E8E;
+  -moz-box-shadow: inset rgba(0, 0, 0, 0.5) 0 3px 5px;
 }
 
 #tabs > :first-child,
 #tabs[chromedir=rtl] > :last-child {
-  border-width: 0 4px 0 6px;
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-left.png") 0 4 0 6 repeat stretch;
-}
-
-#tabs > :first-child:active:hover,
-#tabs[chromedir=rtl] > :last-child:active:hover {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-left-down.png") 0 4 0 6 repeat stretch;
-}
-
-#tabs > tab:first-child[selected=true],
-#tabs[chromedir=rtl] > tab:last-child[selected=true] {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-left-selected.png") 0 4 0 6 repeat stretch;
-}
-
-#tabs > tab:first-child[selected=true]:active:hover,
-#tabs[chromedir=rtl] > tab:last-child[selected=true]:active:hover {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-left-selected-down.png") 0 4 0 6 repeat stretch;
-}
-
-:root:not([active]) #tabs > :first-child,
-:root:not([active]) #tabs[chromedir=rtl] > :last-child {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-left-inactive.png") 0 4 0 6 repeat stretch;
-}
-
-:root:not([active]) #tabs > tab:first-child[selected=true],
-:root:not([active]) #tabs[chromedir=rtl] > tab:last-child[selected=true] {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-left-selected-inactive.png") 0 4 0 6 repeat stretch;
+  -moz-border-radius-topleft: 2px;
+  -moz-border-radius-bottomleft: 2px;
+   border-left: none !important;
 }
 
 #tabs > :last-child,
 #tabs[chromedir=rtl] > :first-child {
-  border-width: 0 6px 0 5px;
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-right.png") 0 6 0 5 repeat stretch;
-}
-
-#tabs > :last-child:active:hover,
-#tabs[chromedir=rtl] > :first-child:active:hover {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-right-down.png") 0 6 0 5 repeat stretch;
-}
-
-#tabs > tab:last-child[selected=true],
-#tabs[chromedir=rtl] > tab:first-child[selected=true] {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-right-selected.png") 0 6 0 5 repeat stretch;
-}
-
-#tabs > tab:last-child[selected=true]:active:hover,
-#tabs[chromedir=rtl] > tab:first-child[selected=true]:active:hover {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-right-selected-down.png") 0 6 0 5 repeat stretch;
-}
-
-:root:not([active]) #tabs > :last-child,
-:root:not([active]) #tabs[chromedir=rtl] > :first-child {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-right-inactive.png") 0 6 0 5 repeat stretch;
-}
-
-:root:not([active]) #tabs > tab:last-child[selected=true],
-:root:not([active]) #tabs[chromedir=rtl] > tab:first-child[selected=true] {
-  -moz-border-image: url("chrome://global/skin/toolbar/viewbutton-right-selected-inactive.png") 0 6 0 5 repeat stretch;
+  -moz-border-radius-topright: 2px;
+  -moz-border-radius-bottomright: 2px;
 }
 
 /* Misc */
