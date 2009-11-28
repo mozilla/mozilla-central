@@ -283,7 +283,10 @@
               validate="never"
               type="rdf:http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
               label="rdf:http://home.netscape.com/NC-rdf#Name">
-          <menupopup context="bookmarks-context-menu">
+          <!-- Since this may be in a mac native menu, we can't hide the "empty"
+               menuitem with css. -->
+          <menupopup context="bookmarks-context-menu"
+                     onpopupshowing="this.firstChild.hidden = this.childNodes.length > 1; event.stopPropagation();">
             <menuitem label="&emptyItem.label;" disabled="true" class="isempty"/>
           </menupopup>
         </menu>
