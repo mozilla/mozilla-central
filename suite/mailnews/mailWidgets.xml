@@ -1104,8 +1104,7 @@
             else if (val == Components.interfaces.nsMsgSearchAttrib.AgeInDays)
             {
               // Bug 187741 We want "Age in Days" to default to "is less than".
-              var menulist = document.getAnonymousNodes(this)[0];
-              menulist.value = Components.interfaces.nsMsgSearchOp.IsLessThan;
+              this.value = Components.interfaces.nsMsgSearchOp.IsLessThan;
             }
             return val;
           ]]>
