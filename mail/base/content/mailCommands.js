@@ -359,18 +359,61 @@ function SubscribeOKCallback(changeTable)
   }
 }
 
-function SaveAsFile(uri)
+function SaveAsFile(uris)
 {
-  if (uri) {
-    var filename = null;
-    try {
-      var subject = messenger.messageServiceFromURI(uri)
-                             .messageURIToMsgHdr(uri).mime2DecodedSubject;
-      filename = GenerateValidFilename(subject, ".eml");
-    }
-    catch (ex) {}
+  if (uris.length == 1) {
+    let uri = uris[0];
+    let msgHdr = messenger.messageServiceFromURI(uri)
+                          .messageURIToMsgHdr(uri);
+    let name = msgHdr.mime2DecodedSubject;
+    if (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.HasRe)
+      name = (name) ? "Re: " + name : "Re: ";
+
+    let filename = GenerateValidFilename(name, ".eml");
     messenger.saveAs(uri, true, null, filename);
   }
+  else {
+    let filenames = [];
+    for (let i = 0; i < uris.length; i++) {
+      let msgHdr = messenger.messageServiceFromURI(uris[i])
+                            .messageURIToMsgHdr(uris[i]);
+
+      let name = GenerateFilenameFromMsgHdr(msgHdr);
+      name = GenerateValidFilename(name, ".eml");
+      let number = 2;
+      while (filenames.indexOf(name) != -1) { // should be unlikely
+        name = name.substring(0, name.length - 4) + "-" + number + ".eml";
+        number++;
+      }
+      filenames.push(name);
+    }
+    messenger.saveMessages(uris.length, filenames, uris);
+  }
+}
+
+function GenerateFilenameFromMsgHdr(msgHdr) {
+
+  function MakeIS8601ODateString(date) {
+    function pad(n) {return n < 10 ? "0" + n : n;}
+    return date.getFullYear() + "-" +
+           pad(date.getMonth() + 1)  + "-" +
+           pad(date.getDate())  + " " +
+           pad(date.getHours())  + "" +
+           pad(date.getMinutes()) + "";
+  }
+
+  let filename;
+  if (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.HasRe)
+    filename = (msgHdr.mime2DecodedSubject) ? "Re: " + msgHdr.mime2DecodedSubject : "Re: ";
+  else
+    filename = msgHdr.mime2DecodedSubject;
+
+  filename += " - ";
+  filename += msgHdr.mime2DecodedAuthor  + " - ";
+  filename += MakeIS8601ODateString(new Date(msgHdr.date/1000));
+
+  return filename;
+
 }
 
 function SaveAsTemplate(uri, folder)

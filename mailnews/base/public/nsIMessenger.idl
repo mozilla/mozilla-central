@@ -49,7 +49,7 @@ interface nsIMsgMessageService;
 interface nsIFile;
 interface nsIUrlListener;
 
-[scriptable, uuid(4ef633e5-8723-44fa-aa54-34b56f67481c)]
+[scriptable, uuid(2f6438bb-30a9-4e31-b27d-0c7554469280)]
 interface nsIMessenger : nsISupports {
 
     const long eUnknown = 0;
@@ -80,6 +80,18 @@ interface nsIMessenger : nsISupports {
     void redo(in nsIMsgWindow msgWindow);
     void setDocumentCharset(in ACString characterSet);
     void saveAs(in ACString aURI, in boolean aAsFile, in nsIMsgIdentity aIdentity, in AString aMsgFilename);
+
+    /**
+     * Save the given messages as files in a folder - the user will be prompted
+     * for which folder to use.
+     * @param count message count
+     * @param filenameArray the filenames to use
+     * @param messageUriArray uris of the messages to save
+     */
+    void saveMessages(in unsigned long count,
+                      [array, size_is(count)] in wstring filenameArray,
+                      [array, size_is(count)] in string messageUriArray);
+
     void openAttachment(in ACString contentTpe, in ACString url, in ACString displayName, in ACString messageUri, in boolean isExternalAttachment);
     void saveAttachment(in ACString contentTpe, in ACString url, in ACString displayName, in ACString messageUri, in boolean isExternalAttachment);
     void saveAllAttachments(in unsigned long count, [array, size_is(count)] in string contentTypeArray,

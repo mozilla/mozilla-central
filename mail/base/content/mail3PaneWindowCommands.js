@@ -298,6 +298,7 @@ var DefaultController =
                selectedMessages[0].folder.server.canHaveFilters;
       }
       case "cmd_saveAsFile":
+        return GetNumSelectedMessages() > 0;
       case "cmd_saveAsTemplate":
         if (GetNumSelectedMessages() > 1)
           return false;   // else fall thru

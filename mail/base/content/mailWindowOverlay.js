@@ -1686,8 +1686,7 @@ function ToggleFavoriteFolderFlag()
 
 function MsgSaveAsFile()
 {
-  if (GetNumSelectedMessages() == 1)
-    SaveAsFile(gFolderDisplay.selectedMessageUris[0]);
+  SaveAsFile(gFolderDisplay.selectedMessageUris);
 }
 
 function MsgSaveAsTemplate()

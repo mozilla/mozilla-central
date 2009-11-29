@@ -1248,6 +1248,117 @@ nsMessenger::GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileTy
   return NS_OK;
 }
 
+/**
+ * Show a Save All dialog allowing the user to pick which folder to save
+ * messages to.
+ * @param [out] aSaveDir directory to save to. Will be null on cancel.
+ */
+nsresult
+nsMessenger::GetSaveToDir(nsILocalFile **aSaveDir)
+{
+  nsresult rv;
+  nsCOMPtr<nsIFilePicker> filePicker =
+    do_CreateInstance("@mozilla.org/filepicker;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsString chooseFolderStr;
+  GetString(NS_LITERAL_STRING("ChooseFolder"), chooseFolderStr);
+  filePicker->Init(mWindow, chooseFolderStr, nsIFilePicker::modeGetFolder);
+
+  nsCOMPtr<nsILocalFile> lastSaveDir;
+  rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
+  if (NS_SUCCEEDED(rv) && lastSaveDir)
+    filePicker->SetDisplayDirectory(lastSaveDir);
+
+  PRInt16 dialogResult;
+  rv = filePicker->Show(&dialogResult);
+  if (NS_FAILED(rv) || dialogResult == nsIFilePicker::returnCancel)
+  {
+    // We'll indicate this by setting the outparam to null.
+    *aSaveDir = nsnull;
+    return NS_OK;
+  }
+
+  nsCOMPtr<nsILocalFile> dir;
+  rv = filePicker->GetFile(getter_AddRefs(dir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = SetLastSaveDirectory(dir);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  *aSaveDir = nsnull;
+  dir.swap(*aSaveDir);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMessenger::SaveMessages(PRUint32 aCount,
+                          const PRUnichar **aFilenameArray,
+                          const char **aMessageUriArray)
+{
+  NS_ENSURE_ARG_MIN(aCount, 1);
+  NS_ENSURE_ARG_POINTER(aFilenameArray);
+  NS_ENSURE_ARG_POINTER(aMessageUriArray);
+
+  nsresult rv;
+
+  nsCOMPtr<nsILocalFile> saveDir;
+  rv = GetSaveToDir(getter_AddRefs(saveDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (!saveDir) // A null saveDir means that the user canceled the save.
+    return NS_OK;
+
+  for (PRUint32 i = 0; i < aCount; i++) {
+    if (!aFilenameArray[i]) // just to be sure
+      return NS_ERROR_FAILURE;
+
+    nsCOMPtr<nsILocalFile> saveToFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = saveToFile->InitWithFile(saveDir);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = saveToFile->Append(nsDependentString(aFilenameArray[i]));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = PromptIfFileExists(saveToFile);
+    if (NS_FAILED(rv))
+      continue;
+
+    nsCOMPtr<nsIMsgMessageService> messageService;
+    nsCOMPtr<nsIUrlListener> urlListener;
+
+    rv = GetMessageServiceFromURI(nsDependentCString(aMessageUriArray[i]),
+                                  getter_AddRefs(messageService));
+    if (NS_FAILED(rv)) {
+      Alert("saveMessageFailed");
+      return rv;
+    }
+
+    nsSaveMsgListener *saveListener = new nsSaveMsgListener(saveToFile, this, nsnull);
+    if (!saveListener) {
+      NS_IF_RELEASE(saveListener);
+      Alert("saveMessageFailed");
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+    NS_ADDREF(saveListener);
+
+    rv = saveListener->QueryInterface(NS_GET_IID(nsIUrlListener),
+                                      getter_AddRefs(urlListener));
+    if (NS_FAILED(rv)) {
+      NS_IF_RELEASE(saveListener);
+      Alert("saveMessageFailed");
+      return rv;
+    }
+
+    // Ok, now save the message.
+    rv = messageService->SaveMessageToDisk(aMessageUriArray[i],
+                                           saveToFile, PR_FALSE,
+                                           urlListener, nsnull,
+                                           PR_TRUE, mMsgWindow);
+  }
+  return rv;
+}
+
 nsresult
 nsMessenger::Alert(const char *stringName)
 {

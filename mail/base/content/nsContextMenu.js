@@ -245,7 +245,12 @@ nsContextMenu.prototype = {
 
     this.showItem("mailContext-mark", msgModifyItems);
 
-    this.setSingleSelection("mailContext-saveAs");
+    this.showItem("mailContext-saveAs", this.numSelectedMessages > 0 &&
+                                        !this.hideMailItems &&
+                                        !gMessageDisplay.isDummy &&
+                                        !this.onPlayableMedia);
+
+
     if (Application.platformIsMac)
       this.showItem("mailContext-printpreview", false);
     else

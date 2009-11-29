@@ -53,7 +53,7 @@
 
 class nsMessenger : public nsIMessenger, public nsIObserver, public nsSupportsWeakReference, public nsIFolderListener
 {
-  
+
 public:
   nsMessenger();
   virtual ~nsMessenger();
@@ -62,9 +62,9 @@ public:
   NS_DECL_NSIMESSENGER
   NS_DECL_NSIOBSERVER
   NS_DECL_NSIFOLDERLISTENER
-    
+
   nsresult Alert(const char * stringName);
-  
+
   nsresult SaveAttachment(nsIFile *file, const nsACString& unescapedUrl,
                           const nsACString& messageUri, const nsACString& contentType, 
                           void *closure, nsIUrlListener *aListener);
@@ -97,6 +97,8 @@ private:
 
   nsresult GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileType,
                          nsILocalFile **aSaveAsFile);
+
+  nsresult GetSaveToDir(nsILocalFile **aSaveToDir);
 
   nsresult SetDisplayProperties();
 
