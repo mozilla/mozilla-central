@@ -50,6 +50,8 @@
 #include "nsStringGlue.h"
 
 #ifdef XP_WIN
+// we want to use the DLL blocklist if possible
+#define XRE_WANT_DLL_BLOCKLIST
 #include "nsWindowsWMain.cpp"
 #endif
 
