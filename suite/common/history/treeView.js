@@ -664,6 +664,7 @@ PlacesTreeView.prototype = {
     // we should do nothing.
     if (this._result != val) {
       this._result = val;
+      this._result.root.viewIndex = -1;
       this._finishInit();
     }
     return val;
