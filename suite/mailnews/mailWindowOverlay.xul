@@ -584,10 +584,6 @@
               label="&contextReplySenderAndNewsgroup.label;"
               accesskey="&contextReplySenderAndNewsgroup.accesskey;"
               oncommand="MsgReplyToSenderAndGroup(event);"/>
-    <menuitem id="mailContext-archive"
-              label="&contextArchive.label;"
-              accesskey="&contextArchive.accesskey;"
-              oncommand="MsgArchiveSelectedMessages(event);"/>
     <menuitem id="mailContext-replyAll"
               label="&contextReplyAll.label;"
               accesskey="&contextReplyAll.accesskey;"
@@ -685,6 +681,10 @@
               label="&copyMessageLocation.label;"
               accesskey="&copyMessageLocation.accesskey;"
               oncommand="CopyMessageUrl()"/>
+    <menuitem id="mailContext-archive"
+              label="&contextArchive.label;"
+              accesskey="&contextArchive.accesskey;"
+              oncommand="MsgArchiveSelectedMessages(event);"/>
     <menu id="mailContext-moveMenu"
           label="&contextMoveMsgMenu.label;"
           accesskey="&contextMoveMsgMenu.accesskey;"
@@ -1492,11 +1492,6 @@
                 accesskey="&newMsgCmd.accesskey;"
                 key="key_newMessage"
                 oncommand="MsgNewMessage(null);"/>
-      <menuitem id="archiveMainMenu"
-                label="&archiveMsgCmd.label;"
-                accesskey="&archiveMsgCmd.accesskey;"
-                key="key_archive"
-                command="cmd_archive"/>
       <menuitem id="replyMainMenu"
                 label="&replyMsgCmd.label;"
                 accesskey="&replyMsgCmd.accesskey;"
@@ -1581,6 +1576,11 @@
        <menupopup id="attachmentMenuList" onpopupshowing="FillAttachmentListPopup(this);"/>
      </menu>
      <menuseparator id="messageAfterAttachmentMenuSeparator"/>
+     <menuitem id="archiveMainMenu"
+               label="&archiveMsgCmd.label;"
+               accesskey="&archiveMsgCmd.accesskey;"
+               key="key_archive"
+               command="cmd_archive"/>
      <menu id="moveMenu"
            label="&moveMsgToMenu.label;"
            accesskey="&moveMsgToMenu.accesskey;"
