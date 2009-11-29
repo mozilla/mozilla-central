@@ -244,9 +244,6 @@
   <key id="key_undo"
        key="&undoCmd.key;"
        modifiers="accel"/>
-  <key id="key_redo"
-       key="&redoCmd.key;"
-       modifiers="accel"/>
   <key id="key_cut"
        key="&cutCmd.key;"
        modifiers="accel"/>
