@@ -51,6 +51,7 @@
 
   <prefpane id="paneCompose" onpaneload="gComposePane.init();">
     <script type="application/x-javascript" src="chrome://messenger/content/preferences/compose.js"/>
+    <script type="application/javascript" src="chrome://global/content/contentAreaUtils.js"/>
 
     <stringbundle id="languageBundle" src="chrome://global/locale/languageNames.properties"/>
     <stringbundle id="regionBundle" src="chrome://global/locale/regionNames.properties"/>
@@ -251,6 +252,7 @@
             <separator/>
             <hbox>
               <label id="downloadDictionaries" class="text-link"
+                     onclick="if (event.button == 0) { openURL(this.getAttribute('getDictionariesURL')); }"
                      value="&downloadDictionaries.label;"/>
               <spacer flex="1"/>
             </hbox>

@@ -49,7 +49,7 @@ var gComposePane = {
 
     this.populateFonts();
 
-    document.getElementById('downloadDictionaries').setAttribute('href', this.getDictionaryURL());
+    document.getElementById('downloadDictionaries').setAttribute('getDictionariesURL', this.getDictionaryURL());
 
     var preference = document.getElementById("mail.preferences.compose.selectedTabIndex");
     if (preference.value)
