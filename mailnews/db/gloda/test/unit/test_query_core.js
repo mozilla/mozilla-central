@@ -171,7 +171,7 @@ function setup_test_noun_and_attributes() {
     }
   });
 
-  EXT_NAME = "test";
+  const EXT_NAME = "test";
 
   // --- special (on-row) attributes
   Gloda.defineAttribute({
@@ -261,7 +261,7 @@ function setup_test_noun_and_attributes() {
 
 /* ===== Tests ===== */
 
-ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 function test_lots_of_string_constraints() {
   let stringConstraints = [];
   for (let i = 0; i < 2049; i++) {

@@ -613,8 +613,8 @@ function test_query_contacts_by_name() {
   // chop off the first and last letter...  this isn't the most edge-case
   //  handling way to roll, but LOOK OVER THERE? IS THAT ELVIS?
   let personNameSubstring = personName.substring(1, personName.length-1);
-  contactLikeQuery.nameLike(contactLikeQuery.WILD, personNameSubstring,
-                            contactLikeQuery.WILD);
+  contactLikeQuery.nameLike(contactLikeQuery.WILDCARD, personNameSubstring,
+                            contactLikeQuery.WILDCARD);
 
   queryExpect(contactLikeQuery, [personName]);
   return false; // async pend on queryExpect

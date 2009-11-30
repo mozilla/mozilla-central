@@ -237,13 +237,14 @@ ContactIdentityCompleter.prototype = {
     let pending = {contactToThing: contactToThing, pendingCount: 2};
 
     let contactQuery = Gloda.newQuery(Gloda.NOUN_CONTACT);
-    contactQuery.nameLike(contactQuery.WILD, aString, contactQuery.WILD);
+    contactQuery.nameLike(contactQuery.WILDCARD, aString,
+	contactQuery.WILDCARD);
     pending.contactColl = contactQuery.getCollection(this, aResult);
     pending.contactColl.becomeExplicit();
 
     let identityQuery = Gloda.newQuery(Gloda.NOUN_IDENTITY);
-    identityQuery.kind("email").valueLike(identityQuery.WILD, aString,
-        identityQuery.WILD);
+    identityQuery.kind("email").valueLike(identityQuery.WILDCARD, aString,
+        identityQuery.WILDCARD);
     pending.identityColl = identityQuery.getCollection(this, aResult);
     pending.identityColl.becomeExplicit();
 

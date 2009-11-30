@@ -14,11 +14,11 @@ function setupGlobals()
 {
   loadLocalMailAccount();
   // Create a message generator
-  gMessageGenerator = new MessageGenerator();
+  let messageGenerator = new MessageGenerator();
   let localInbox = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
 
   for (let i = 0; i < kSetCount; i++) {
-    let message = gMessageGenerator.makeMessage();
+    let message = messageGenerator.makeMessage();
     gMessages.push(message);
     localInbox.addMessage(message.toMboxString());
   }
