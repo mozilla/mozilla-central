@@ -7,7 +7,7 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>{972ce4c6-7e08-4474-a285-3208198ce6fd}</em:id>
-    <em:version>2.0</em:version>
+    <em:version>@THUNDERBIRD_VERSION@</em:version>
     
     <!-- Target Application this theme can install into, 
         with minimum and maximum supported versions. --> 
