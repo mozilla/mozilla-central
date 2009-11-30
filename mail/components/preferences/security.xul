@@ -180,7 +180,7 @@
 
           <separator class="thin"/>
 
-          <description flex="1">&masterPassword.intro;</description>
+          <description>&masterPassword.intro;</description>
           <hbox>
             <checkbox id="useMasterPassword" flex="1"
                       label="&useMasterPassword.label;" accesskey="&useMasterPassword.accesskey;"
