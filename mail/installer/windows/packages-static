@@ -79,6 +79,7 @@ bin\components\addrbook.xpt
 bin\components\fts3tok.xpt
 bin\components\mime.xpt
 bin\components\steel.xpt
+bin\components\msgAsyncPrompter.js
 bin\components\msgbase.xpt
 bin\components\msgcompo.xpt
 bin\components\msgdb.xpt
@@ -447,16 +448,20 @@ bin\components\cookie.xpt
 bin\components\places.xpt
 bin\components\prefetch.xpt
 
-bin\res\hiddenWindow.html
-bin\res\ua.css
-bin\res\html.css
-bin\res\quirk.css
-bin\res\forms.css
-bin\res\viewsource.css
-bin\res\mathml.css
 #ifdef MOZILLA_1_9_2_BRANCH
+bin\res\arrow.gif
+bin\res\arrowd.gif
+bin\res\broken-image.png
 bin\res\charsetData.properties
 bin\res\charsetalias.properties
+bin\res\forms.css
+bin\res\hiddenWindow.html
+bin\res\html.css
+bin\res\loading-image.png
+bin\res\mathml.css
+bin\res\quirk.css
+bin\res\ua.css
+bin\res\viewsource.css
 bin\res\wincharset.properties
 #endif
 bin\res\langGroups.properties
@@ -464,13 +469,9 @@ bin\res\language.properties
 bin\res\entityTables\*
 bin\res\dtd\*
 bin\res\fonts\*
-bin\res\arrow.gif
-bin\res\arrowd.gif
 bin\res\contenteditable.css
 bin\res\designmode.css
 bin\res\html\folder.png
-bin\res\broken-image.png
-bin\res\loading-image.png
 
 ; editor resource files
 bin\res\EditorOverride.css
