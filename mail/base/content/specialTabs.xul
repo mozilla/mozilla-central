@@ -36,18 +36,13 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay [
-<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
-%globalDTD;
-]>
-
 <overlay id="specialTabs"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <popupset id="mainPopupSet">
     <!-- for search and content formfill/pw manager -->
     <panel type="autocomplete" id="PopupAutoComplete" level="top"
-           noautofocus="true" chromedir="&locale.dir;"/>
+           noautofocus="true"/>
   </popupset>
 
   <vbox id="contentTab" collapsed="true">

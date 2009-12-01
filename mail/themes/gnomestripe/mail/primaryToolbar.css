@@ -155,21 +155,21 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(24px 216px 48px 192px) !important;
 }
 
-#button-next, #button-previous[chromedir="rtl"] {
+#button-next, #button-previous:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 264px 24px 240px);
 }
 
-#button-next[disabled], #button-previous[chromedir="rtl"][disabled] {
+#button-next[disabled], #button-previous:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(24px 264px 48px 240px) !important;
 }
 
-#button-previous, #button-next[chromedir="rtl"] {
+#button-previous, #button-next:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 240px 24px 216px);
 }
 
-#button-previous[disabled], #button-next[chromedir="rtl"][disabled] {
+#button-previous[disabled], #button-next:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(24px 240px 48px 216px) !important;
 }
 
@@ -240,11 +240,11 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
   list-style-image: url("moz-icon://stock/gtk-go-back-ltr?size=toolbar&state=disabled");
 }
 
-#button-goback[chromedir="rtl"] {
+#button-goback:-moz-locale-dir(rtl) {
   list-style-image: url("moz-icon://stock/gtk-go-back-rtl?size=toolbar");
 }
 
-#button-goback[chromedir="rtl"][disabled] {
+#button-goback:-moz-locale-dir(rtl)[disabled] {
   list-style-image: url("moz-icon://stock/gtk-go-back-rtl?size=toolbar&state=disabled");
 }
 
@@ -252,7 +252,7 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
   list-style-image: url("moz-icon://stock/gtk-go-forward-ltr?size=toolbar");
 }
 
-#button-goforward[chromedir="rtl"] {
+#button-goforward:-moz-locale-dir(rtl) {
   list-style-image: url("moz-icon://stock/gtk-go-forward-rtl?size=toolbar");
 }
 
@@ -260,7 +260,7 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
   list-style-image: url("moz-icon://stock/gtk-go-forward-ltr?size=toolbar&state=disabled");
 }
 
-#button-goforward[chromedir="rtl"][disabled] {
+#button-goforward:-moz-locale-dir(rtl)[disabled] {
   list-style-image: url("moz-icon://stock/gtk-go-forward-rtl?size=toolbar&state=disabled");
 }
 
@@ -356,12 +356,12 @@ toolbar[iconsize="small"] #button-next[disabled] {
   -moz-image-region: rect(16px 160px 32px 144px);
 } 
 
-toolbar[iconsize="small"] #button-next[chromedir="rtl"] {
+toolbar[iconsize="small"] #button-next:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 176px 16px 160px);
 }
 
-toolbar[iconsize="small"] #button-next[chromedir="rtl"][disabled] {
+toolbar[iconsize="small"] #button-next:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(16px 176px 32px 160px);
 } 
 
@@ -374,12 +374,12 @@ toolbar[iconsize="small"] #button-previous[disabled] {
   -moz-image-region: rect(16px 176px 32px 160px);
 } 
 
-toolbar[iconsize="small"] #button-previous[chromedir="rtl"] {
+toolbar[iconsize="small"] #button-previous:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 160px 16px 144px);
 }
 
-toolbar[iconsize="small"] #button-previous[chromedir="rtl"][disabled] {
+toolbar[iconsize="small"] #button-previous:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(16px 160px 32px 144px);
 }
 

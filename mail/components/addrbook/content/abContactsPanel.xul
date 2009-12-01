@@ -49,8 +49,6 @@
 %abResultsPaneOverlayDTD;
 <!ENTITY % abContactsPanelDTD SYSTEM "chrome://messenger/locale/addressbook/abContactsPanel.dtd" >
 %abContactsPanelDTD;
-<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
-%globalDTD;
 ]>
 
 <page id="abContactsPanel"
@@ -97,7 +95,7 @@
              control="peopleSearchInput"/>
       <textbox id="peopleSearchInput" flex="1" type="search" timeout="800"
                emptytext="&SearchNameOrEmail.label;" clickSelectsAll="true"
-               oncommand="onEnterInSearchBar();" chromedir="&locale.dir;"/>
+               oncommand="onEnterInSearchBar();"/>
     </vbox>
 
     <separator class="thin"/>

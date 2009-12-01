@@ -58,8 +58,6 @@
 %messengerDTD;
 <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
 %customizeToolbarDTD;
-<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
-%globalDTD;
 ]>
 
 <!--
@@ -257,12 +255,10 @@
                 <label id="folderpane-title"/>
                 <spacer flex="1"/>
                 <toolbarbutton id="folderview-cycler-prev"
-                               chromedir="&locale.dir;"
                                dir="prev"
                                class="folderview-cycler"
                                onclick="gFolderTreeView.cycleMode(false);"/>
                 <toolbarbutton id="folderview-cycler-next"
-                               chromedir="&locale.dir;"
                                dir="next"
                                class="folderview-cycler"
                                onclick="gFolderTreeView.cycleMode(true);"/>
@@ -409,7 +405,6 @@
 
                 <!-- if you change this id, please change GetThreadAndMessagePaneSplitter() and MsgToggleMessagePane() -->
                 <splitter id="threadpane-splitter"
-                          chromedir="&locale.dir;"
                           collapse="after"
                           collapsed="true"
                           onmouseup="OnMouseUpThreadAndMessagePaneSplitter()"/>
@@ -452,9 +447,6 @@
   <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"
             style="&dialog.style;"
-#ifdef MOZILLA_1_9_1_BRANCH
-            chromedir="&locale.dir;"
-#endif
             hidden="true"/>
   </panel>
 

@@ -43,8 +43,6 @@
 %messengerDTD;
 <!ENTITY % tabMailDTD SYSTEM "chrome://messenger/locale/tabmail.dtd" >
  %tabMailDTD;
- <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
- %globalDTD;
 ]>
 
 <bindings id="tabmailBindings"
@@ -1117,8 +1115,7 @@
 
   <binding id="tabmail-tab" display="xul:box"
            extends="chrome://global/content/bindings/tabbox.xml#tab">
-    <content chromedir="&locale.dir;"
-             closetabtext="&closeTab.label;">
+    <content closetabtext="&closeTab.label;">
       <xul:hbox class="tab-image-left" xbl:inherits="selected"/>
       <xul:hbox class="tab-image-middle box-inherit" align="center"
                 xbl:inherits="dir,pack,orient,selected" flex="1">
@@ -1163,8 +1160,7 @@
                          anonid="scrollbutton-up"
                          onmousedown="_startScroll(-1);"
                          onmouseup="_stopScroll();"
-                         onmouseout="_stopScroll();"
-                         chromedir="&locale.dir;"/>
+                         onmouseout="_stopScroll();"/>
       <xul:scrollbox xbl:inherits="orient,align,pack,dir" flex="1" anonid="scrollbox">
         <children/>
       </xul:scrollbox>
@@ -1178,8 +1174,7 @@
                            anonid="scrollbutton-down"
                            onmousedown="_startScroll(1);"
                            onmouseup="_stopScroll();"
-                           onmouseout="_stopScroll();"
-                           chromedir="&locale.dir;"/>
+                           onmouseout="_stopScroll();"/>
       </xul:stack>
     </content>
     <implementation>
@@ -1256,12 +1251,11 @@
                                 anonid="arrowscrollbox"
                                 orient="horizontal"
                                 flex="1"
-                                style="min-width: 1px;"
-                                chromedir="&locale.dir;">
+                                style="min-width: 1px;">
               <children includes="tab"/>
             </xul:arrowscrollbox>
             <children/>
-            <xul:stack align="center" pack="end" chromedir="&locale.dir;">
+            <xul:stack align="center" pack="end">
               <xul:hbox class="tabs-alltabs-box" anonid="alltabs-box" flex="1"/>
               <xul:hbox class="tabs-alltabs-box-animate"
                         anonid="alltabs-box-animate"

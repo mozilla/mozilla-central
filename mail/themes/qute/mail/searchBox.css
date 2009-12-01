@@ -58,7 +58,7 @@
   height: 16px;
 }
 
-.quick-search-button-image[chromedir="rtl"] {
+.quick-search-button-image:-moz-locale-dir(rtl) {
   -moz-transform: scaleX(-1);
 }
 

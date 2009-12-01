@@ -37,8 +37,6 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE overlay [
-<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
-%globalDTD;
 <!ENTITY % editContactOverlayDTD SYSTEM "chrome://messenger/locale/editContactOverlay.dtd">
 %editContactOverlayDTD;
 ]>
@@ -55,7 +53,6 @@
 
   <panel id="editContactPanel" orient="vertical" ignorekeys="true" hidden="true"
 	 aria-labelledby="editContactPanelTitle"
-	 chromedir="&locale.dir;"
 	 onpopuphidden="editContactInlineUI.onPopupHidden(event);"
          onpopupshown="editContactInlineUI.onPopupShown(event);"
 	 onkeypress="editContactInlineUI.onKeyPress(event, true);">

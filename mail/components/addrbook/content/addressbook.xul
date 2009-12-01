@@ -50,8 +50,6 @@
 %abMainWindowDTD;
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
 %brandDTD;
-<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
-%globalDTD;
 <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
 %customizeToolbarDTD;
 ]>
@@ -575,8 +573,7 @@
         <textbox id="peopleSearchInput" flex="1" timeout="800"
                  type="search"
                  emptytext="&SearchNameOrEmail.label;"
-                 oncommand="onEnterInSearchBar();"
-                 chromedir="&locale.dir;"/>
+                 oncommand="onEnterInSearchBar();"/>
       </toolbaritem>     
   </toolbarpalette>
   <!-- toolbar -->
@@ -850,9 +847,6 @@
   <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"
             style="&dialog.style;"
-#ifdef MOZILLA_1_9_1_BRANCH
-            chromedir="&locale.dir;"
-#endif
             hidden="true"/>
   </panel>
   

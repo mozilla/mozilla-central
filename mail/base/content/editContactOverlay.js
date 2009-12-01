@@ -114,9 +114,9 @@ var editContactInlineUI = {
 
   showEditContactPanel: function showEditContactPanel(aCardDetails, aAnchorElement) {
     this._cardDetails = aCardDetails;
-    this._doShowEditContactPanel(aAnchorElement,
-                                 this.panel.getAttribute("chromedir") == "ltr" ?
-                                 "after_start" : "after_end");
+    let position = (getComputedStyle(this.panel, null).direction == "rtl") ?
+      "after_end" : "after_start";
+    this._doShowEditContactPanel(aAnchorElement, position);
   },
 
   _doShowEditContactPanel: function (aAnchorElement, aPosition) {

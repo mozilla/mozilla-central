@@ -406,7 +406,7 @@ treechildren::-moz-tree-row(dummy, focus, selected)  {
 }
 
 .folderview-cycler[dir="prev"],
-.folderview-cycler[dir="next"][chromedir="rtl"] {
+.folderview-cycler[dir="next"]:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/spin-buttons.png");
   -moz-image-region: rect(0 15px 16px 0);
   padding: 0 !important;
@@ -414,7 +414,7 @@ treechildren::-moz-tree-row(dummy, focus, selected)  {
 }
 
 .folderview-cycler[dir="next"],
-.folderview-cycler[dir="prev"][chromedir="rtl"] {
+.folderview-cycler[dir="prev"]:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/spin-buttons.png");
   -moz-image-region: rect(0 31px 16px 15px);
   padding: 0 !important;
@@ -443,7 +443,7 @@ splitter {
   -moz-border-end: 1px solid #8C8C8C;
 }
 
-#threadpane-splitter[chromedir="rtl"] {
+#threadpane-splitter:-moz-locale-dir(rtl) {
   background-image: url("chrome://messenger/skin/icons/vertical-threadpane-splitter-bg-rtl.gif");
 }
 

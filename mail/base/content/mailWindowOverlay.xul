@@ -47,8 +47,6 @@
 <?xul-overlay href="chrome://messenger/content/baseMenuOverlay.xul"?>
 
 <!DOCTYPE overlay [
-  <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
-  %globalDTD;
   <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
   %messengerDTD;
   <!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd" >
@@ -1319,10 +1317,10 @@
           </menu>
           <menuitem id="menu_goForward" label="&goForwardCmd.label;"
                     accesskey="&goForwardCmd.accesskey;" command="cmd_goForward"
-                    chromedir="&locale.dir;" key="key_goForward"/>
+                    key="key_goForward"/>
           <menuitem id="menu_goBack" label="&goBackCmd.label;"
                     accesskey="&goBackCmd.accesskey;" command="cmd_goBack"
-                    chromedir="&locale.dir;" key="key_goBack"/>
+                    key="key_goBack"/>
           <menuseparator id="goNextSeparator"/>
           <menuitem id="goStartPage"
                     label="&startPageCmd.label;"
@@ -1650,7 +1648,6 @@
                    class="toolbarbutton-1"
                    type="menu-button"
                    label="&backButton1.label;"
-                   chromedir="&locale.dir;"
                    oncommand="goDoCommand('cmd_goBack')"
                    tooltiptext="&goBackButton.tooltip;"
                    observes="button_goBack">
@@ -1663,7 +1660,6 @@
                    class="toolbarbutton-1"
                    type="menu-button"
                    label="&goForwardButton1.label;"
-                   chromedir="&locale.dir;"
                    oncommand="goDoCommand('cmd_goForward')"
                    tooltiptext="&goForwardButton.tooltip;"
                    observes="button_goForward">
@@ -1677,14 +1673,12 @@
     <toolbarbutton id="button-previous"
                    class="toolbarbutton-1"
                    label="&previousButton.label;"
-                   chromedir="&locale.dir;"
                    oncommand="goDoCommand('button_previous')"
                    tooltiptext="&previousButton.tooltip;"
                    observes="button_previous"/>
     <toolbarbutton id="button-next"
                    class="toolbarbutton-1"
                    label="&nextButton.label;"
-                   chromedir="&locale.dir;"
                    oncommand="goDoCommand('button_next')"
                    tooltiptext="&nextButton.tooltip;"
                    observes="button_next"/>

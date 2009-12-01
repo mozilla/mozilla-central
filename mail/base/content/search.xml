@@ -41,8 +41,6 @@
   - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE bindings [
-<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
-%globalDTD;
 <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
 %messengerDTD;
 ]>
@@ -67,7 +65,7 @@
     </resources>
 
     <content>
-      <xul:button anonid="quick-search-button" class="quick-search-button" type="menu" chromedir="&locale.dir;">
+      <xul:button anonid="quick-search-button" class="quick-search-button" type="menu">
         <xul:menupopup anonid="quick-search-menupopup"
                    class="quick-search-menupopup"
                    persist="value"
@@ -91,8 +89,7 @@
       </xul:hbox>
       <xul:toolbarbutton anonid="quick-search-clearbutton" xbl:inherits=""
                          disabled="true" class="quick-search-clearbutton"
-                         onclick="this.parentNode.value = ''; this.parentNode.doSearch(); this.parentNode.select(); return false;"
-                         chromedir="&locale.dir;"/>
+                         onclick="this.parentNode.value = ''; this.parentNode.doSearch(); this.parentNode.select(); return false;"/>
                          <!--XXX update search if not global-->
 
     </content>
@@ -688,8 +685,7 @@
       <children/>
       <xul:stack flex="1">
         <xul:hbox align="center">
-          <xul:image class="quick-search-button-image" xbl:inherits="src"
-                     chromedir="&locale.dir;"/>
+          <xul:image class="quick-search-button-image" xbl:inherits="src"/>
         </xul:hbox>
         <xul:hbox align="center">
           <xul:image class="quick-search-button-dropmarker"/>

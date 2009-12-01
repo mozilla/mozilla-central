@@ -244,29 +244,29 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(48px 288px 72px 264px) !important;
 } 
 
-#button-next, #button-previous[chromedir="rtl"] {
+#button-next, #button-previous:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 312px 24px 288px);
 }
 
-#button-next:hover, #button-previous:hover[chromedir="rtl"]{
+#button-next:hover, #button-previous:hover:-moz-locale-dir(rtl) {
   -moz-image-region: rect(24px 312px 48px 288px);
 } 
 
-#button-next[disabled], #button-previous[chromedir="rtl"][disabled] {
+#button-next[disabled], #button-previous:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(48px 312px 72px 288px) !important;
 } 
 
-#button-previous, #button-next[chromedir="rtl"] {
+#button-previous, #button-next:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 336px 24px 312px);
 }
 
-#button-previous:hover, #button-next:hover[chromedir="rtl"]{
+#button-previous:hover, #button-next:hover:-moz-locale-dir(rtl) {
   -moz-image-region: rect(24px 336px 48px 312px);
 } 
 
-#button-previous[disabled], #button-next[chromedir="rtl"][disabled] {
+#button-previous[disabled], #button-next:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(48px 336px 72px 312px) !important;
 } 
 
@@ -296,29 +296,29 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(48px 384px 72px 360px) !important;
 } 
 
-#button-goback, #button-goforward[chromedir="rtl"] {
+#button-goback, #button-goforward:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 408px 24px 384px);
 }
 
-#button-goback:hover, #button-goforward:hover[chromedir="rtl"]{
+#button-goback:hover, #button-goforward:hover:-moz-locale-dir(rtl) {
   -moz-image-region: rect(24px 408px 48px 384px);
 } 
 
-#button-goback[disabled], #button-goforward[chromedir="rtl"][disabled] {
+#button-goback[disabled], #button-goforward:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(48px 408px 72px 384px) !important;
 } 
 
-#button-goforward, #button-goback[chromedir="rtl"] {
+#button-goforward, #button-goback:-moz-locale-dir(rtl) {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 432px 24px 408px);
 }
 
-#button-goforward:hover, #button-goback:hover[chromedir="rtl"]{
+#button-goforward:hover, #button-goback:hover:-moz-locale-dir(rtl) {
   -moz-image-region: rect(24px 432px 48px 408px);
 } 
 
-#button-goforward[disabled], #button-goback[chromedir="rtl"][disabled] {
+#button-goforward[disabled], #button-goback:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(48px 432px 72px 408px) !important;
 }
 
@@ -507,15 +507,15 @@ toolbar[iconsize="small"] #button-next[disabled] {
   -moz-image-region: rect(32px 208px 48px 192px) !important;
 } 
 
-toolbar[iconsize="small"] #button-next[chromedir="rtl"] {
+toolbar[iconsize="small"] #button-next:-moz-locale-dir(rtl) {
   -moz-image-region: rect(0px 224px 16px 208px);
 }
 
-toolbar[iconsize="small"] #button-next:hover[chromedir="rtl"] {
+toolbar[iconsize="small"] #button-next:hover:-moz-locale-dir(rtl) {
   -moz-image-region: rect(16px 224px 32px 208px);
 } 
 
-toolbar[iconsize="small"] #button-next[chromedir="rtl"][disabled] {
+toolbar[iconsize="small"] #button-next:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(32px 224px 48px 208px) !important;
 } 
 
@@ -532,15 +532,15 @@ toolbar[iconsize="small"] #button-previous[disabled] {
   -moz-image-region: rect(32px 224px 48px 208px) !important;
 } 
 
-toolbar[iconsize="small"] #button-previous[chromedir="rtl"] {
+toolbar[iconsize="small"] #button-previous:-moz-locale-dir(rtl) {
   -moz-image-region: rect(0px 208px 16px 192px);
 }
 
-toolbar[iconsize="small"] #button-previous:hover[chromedir="rtl"] {
+toolbar[iconsize="small"] #button-previous:hover:-moz-locale-dir(rtl) {
   -moz-image-region: rect(16px 208px 32px 192px);
 } 
 
-toolbar[iconsize="small"] #button-previous[chromedir="rtl"][disabled] {
+toolbar[iconsize="small"] #button-previous:-moz-locale-dir(rtl)[disabled] {
   -moz-image-region: rect(32px 208px 48px 192px) !important;
 } 
 

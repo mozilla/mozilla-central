@@ -213,7 +213,7 @@ tabmail > tabbox > tabpanels {
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up,
-.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[chromedir="rtl"] {
+.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down:-moz-locale-dir(rtl) {
   border: 0;
   border-right: 2px solid;
   -moz-border-right-colors: rgba(0,0,0,0.25) rgba(255,255,255,0.15);
@@ -224,7 +224,7 @@ tabmail > tabbox > tabpanels {
   margin: 0;
 }
 
-.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[chromedir="rtl"] {
+.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down:-moz-locale-dir(rtl) {
   -moz-border-end: none;
 }
 
@@ -237,13 +237,13 @@ tabmail > tabbox > tabpanels {
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"],
-.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[disabled="true"][chromedir="rtl"] {
+.tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[disabled="true"]:-moz-locale-dir(rtl) {
   -moz-image-region: rect(0px, 28px, 11px, 21px);
   background-color: transparent !important; 
 }
 
 .tabmail-arrowscrollbox .scrollbutton-down,
-.tabmail-arrowscrollbox > .scrollbutton-up[chromedir="rtl"] {
+.tabmail-arrowscrollbox > .scrollbutton-up:-moz-locale-dir(rtl) {
   border-left: 2px solid;
   -moz-border-left-colors: rgba(0,0,0,0.25) rgba(255,255,255,0.15);
   list-style-image: url("chrome://messenger/skin/tabs/tab-arrow-end.png");
@@ -254,7 +254,7 @@ tabmail > tabbox > tabpanels {
   margin: 0;
 }
 
-.tabmail-arrowscrollbox > .scrollbutton-up[chromedir="rtl"] {
+.tabmail-arrowscrollbox > .scrollbutton-up:-moz-locale-dir(rtl) {
   -moz-border-start: none;
 }
 
@@ -267,7 +267,7 @@ tabmail > tabbox > tabpanels {
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[disabled="true"],
-.tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"][chromedir="rtl"] {
+.tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"]:-moz-locale-dir(rtl) {
   -moz-image-region: rect(0px, 23px, 11px, 16px);
   background-color: transparent !important;
 }

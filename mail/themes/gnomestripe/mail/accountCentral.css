@@ -109,7 +109,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/read-messages.png")  no-repeat !important;
 }
 
-#ReadMessages label[chromedir="rtl"] {
+#ReadMessages label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/read-messages.png") right no-repeat !important;
 }
 
@@ -117,7 +117,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/write-message.png")  no-repeat !important;
 }
 
-#ComposeMessage label[chromedir="rtl"] {
+#ComposeMessage label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/write-message.png") right no-repeat !important;
 }
 
@@ -125,7 +125,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/account-settings.png")  no-repeat !important;
 }
 
-#AccountSettings label[chromedir="rtl"] {
+#AccountSettings label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/account-settings.png") right no-repeat !important;
 }
 
@@ -133,7 +133,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/create-account.png")  no-repeat !important;
 }
 
-#CreateAccount label[chromedir="rtl"] {
+#CreateAccount label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/create-account.png") right no-repeat !important;
 }
 
@@ -141,7 +141,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/search-messages.png")  no-repeat !important;
 }
 
-#SearchMessages label[chromedir="rtl"] {
+#SearchMessages label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/search-messages.png") right no-repeat !important;
 }
 
@@ -149,7 +149,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/manage-filters.png")  no-repeat !important;
 }
 
-#CreateFilters label[chromedir="rtl"] {
+#CreateFilters label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/manage-filters.png") right no-repeat !important;
 }
 
@@ -157,7 +157,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/offline-settings.png")  no-repeat !important;
 }
 
-#OfflineSettings label[chromedir="rtl"] {
+#OfflineSettings label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/offline-settings.png") right no-repeat !important;
 }
 
@@ -165,7 +165,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/manage-imap.png")  no-repeat !important;
 }
 
-#SubscribeImapFolders label[chromedir="rtl"] {
+#SubscribeImapFolders label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/manage-imap.png") right no-repeat !important;
 }
 
@@ -173,7 +173,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/manage-newsgroups.png")  no-repeat !important;
 }
 
-#SubscribeNewsgroups label[chromedir="rtl"] {
+#SubscribeNewsgroups label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/manage-newsgroups.png") right no-repeat !important;
 }
 
@@ -181,7 +181,7 @@ separator.thin {
   background: url("chrome://messenger/skin/accountcentral/manage-rss.png")  no-repeat !important;
 }
 
-#SubscribeRSS label[chromedir="rtl"] {
+#SubscribeRSS label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/manage-rss.png") right no-repeat !important;
 }
 

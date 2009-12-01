@@ -128,19 +128,9 @@ function CustomizeMailToolbar(toolboxId, customizePopupId)
       sheetFrame.setAttribute("src", customizeURL);
 
     var sheetWidth = sheetFrame.style.width.match(/([0-9]+)px/)[1];
-#ifdef MOZILLA_1_9_1_BRANCH
-    var rtl = sheetFrame.getAttribute("chromedir") == "rtl";
-    var position = "after_start";
-    if (rtl)
-      position = "after_end";
-    document.getElementById("customizeToolbarSheetPopup")
-            .openPopup(toolbox, position,
-                       (window.innerWidth - sheetWidth) / 2, 0);
-#else
     document.getElementById("customizeToolbarSheetPopup")
             .openPopup(toolbox, "after_start",
                        (window.innerWidth - sheetWidth) / 2, 0);
-#endif
   }
   else {
     var wintype = document.documentElement.getAttribute("windowtype");

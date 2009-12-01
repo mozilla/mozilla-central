@@ -277,11 +277,11 @@ menuitem[key="cmd_goBack"][disabled] {
   list-style-image: url("moz-icon://stock/gtk-go-back-ltr?size=menu&state=disabled");
 }
 
-menuitem[command="cmd_goBack"][chromedir="rtl"] {
+menuitem[command="cmd_goBack"]:-moz-locale-dir(rtl) {
   list-style-image: url("moz-icon://stock/gtk-go-back-rtl?size=menu");
 }
 
-menuitem[command="cmd_goBack"][disabled][chromedir="rtl"] {
+menuitem[command="cmd_goBack"][disabled]:-moz-locale-dir(rtl) {
   list-style-image: url("moz-icon://stock/gtk-go-back-rtl?size=menu&state=disabled");
 }
 
@@ -293,11 +293,11 @@ menuitem[command="cmd_goForward"][disabled] {
   list-style-image: url("moz-icon://stock/gtk-go-forward-ltr?size=menu&state=disabled");
 }
 
-menuitem[command="cmd_goForward"][chromedir="rtl"] {
+menuitem[command="cmd_goForward"]:-moz-locale-dir(rtl) {
   list-style-image: url("moz-icon://stock/gtk-go-forward-rtl?size=menu");
 }
 
-menuitem[command="cmd_goForward"][disabled][chromedir="rtl"] {
+menuitem[command="cmd_goForward"][disabled]:-moz-locale-dir(rtl) {
   list-style-image: url("moz-icon://stock/gtk-go-forward-rtl?size=menu&state=disabled");
 }
 
