@@ -72,7 +72,8 @@ function AccountConfig()
     daysToLeaveMessagesOnServer : 14,
     deleteByAgeFromServer : true,
     // When user hits delete, delete from local store and from server
-    deleteOnServerWhenLocalDelete: true
+    deleteOnServerWhenLocalDelete: true,
+    downloadOnBiff: true
   },
   this.outgoing =
   {

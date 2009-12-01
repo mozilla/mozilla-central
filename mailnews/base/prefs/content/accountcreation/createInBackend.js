@@ -95,6 +95,8 @@ function createAccountInBackend(config)
       "mail.server.%serverkey%.delete_mail_left_on_server";
     const deleteByAgeFromServerPrefTemplate =
       "mail.server.%serverkey%.delete_by_age_from_server";
+    const downloadOnBiffPrefTemplate =
+      "mail.server.%serverkey%.download_on_biff";
     var leaveOnServerPref =
       leaveOnServerPrefTemplate.replace("%serverkey%", inServer.key);
     var ageFromServerPref =
@@ -103,6 +105,8 @@ function createAccountInBackend(config)
       daysToLeaveOnServerPrefTemplate.replace("%serverkey%", inServer.key);
     var deleteFromServerPref =
       deleteFromServerPrefTemplate.replace("%serverkey%", inServer.key);
+    let downloadOnBiffPref =
+      downloadOnBiffPrefTemplate.replace("%serverkey%", inServer.key);
     prefs.setBoolPref(leaveOnServerPref,
                       config.incoming.leaveMessagesOnServer);
     prefs.setIntPref(daysToLeaveOnServerPref,
@@ -111,6 +115,8 @@ function createAccountInBackend(config)
                       config.incoming.deleteOnServerWhenLocalDelete);
     prefs.setBoolPref(ageFromServerPref,
                       config.incoming.deleteByAgeFromServer);
+    prefs.setBoolPref(downloadOnBiffPref,
+                      config.incoming.downloadOnBiff);
   }
   inServer.valid = true;
 
