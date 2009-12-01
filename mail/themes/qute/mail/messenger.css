@@ -41,11 +41,15 @@ menuitem.menuitem-iconic > .menu-iconic-left {
   width: 16px;
   min-height: 16px;
   margin: 0 3px;
-  list-style-image: url("chrome://global/skin/icons/notloading_16.png");
 }
 
 #throbber-box[busy="true"] {
   list-style-image: url("chrome://global/skin/icons/loading_16.png");
+}
+
+#throbber-box,
+#wrapper-throbber-box > #throbber-box {
+  list-style-image: url("chrome://global/skin/icons/notloading_16.png");
 }
 
 /* ::::: online/offline icons ::::: */
