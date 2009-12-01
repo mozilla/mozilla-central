@@ -17,21 +17,16 @@ bin\isp\@AB_CD@\*
 [xpcom]
 bin\xpcom.dll
 bin\xpcom_core.dll
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\components\jar50.dll
-#endif
 bin\nspr4.dll
 bin\plc4.dll
 bin\plds4.dll
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\js3250.dll
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\js3250.dll
 #else
 bin\mozjs.dll
 #endif
 bin\components\jsd3250.dll
-#ifdef MOZILLA_1_9_1_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\xpinstal.dll
 #else
 bin\components\xpinstall.dll
@@ -43,7 +38,7 @@ bin\msvcp80.dll
 bin\msvcr80.dll
 #else
 bin\mozcrt19.dll
-#ifndef MOZILLA_1_9_1_BRANCH
+#ifndef MOZILLA_1_9_2_BRANCH
 bin\mozcpp19.dll
 #endif
 #endif
@@ -105,7 +100,7 @@ bin\components\xpcom_system.xpt
 bin\components\xpcom_components.xpt
 bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\xpcom_thread.xpt
 #else
 bin\components\xpcom_threads.xpt
@@ -170,9 +165,7 @@ bin\defaults\pref\mailnews.js
 bin\defaults\pref\mdn.js
 bin\defaults\pref\smime.js
 bin\defaults\pref\thunderbird-branding.js
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\greprefs\*
-#elifdef MOZILLA_1_9_2_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\greprefs\*
 #else
 bin\greprefs.js
@@ -286,7 +279,7 @@ bin\components\caps.xpt
 ; glue: appshell, docshell, uriloader, chrome, components
 bin\components\appshell.xpt
 bin\components\appstartup.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\docshell_base.xpt
 #else
 bin\components\docshell.xpt
@@ -296,7 +289,7 @@ bin\components\webBrowser_core.xpt
 bin\components\windowwatcher.xpt
 bin\components\webbrowserpersist.xpt
 bin\components\commandhandler.xpt
-#ifdef MOZILLA_1_9_1_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\mozbrwsr.xpt
 #endif
 
@@ -314,9 +307,7 @@ bin\components\toolkitprofile.xpt
 bin\components\commandlines.xpt
 bin\components\chrome.xpt
 bin\components\nsDefaultCLH.js
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\components\nsFormAutoComplete.js
-#endif
 
 ; rdf
 bin\components\rdf.xpt
@@ -340,7 +331,7 @@ bin\components\dom_json.xpt
 bin\components\dom_offline.xpt
 bin\components\dom_range.xpt
 bin\components\dom_sidebar.xpt
-#ifndef MOZILLA_1_9_1_BRANCH
+#ifndef MOZILLA_1_9_2_BRANCH
 bin\components\dom_smil.xpt
 #endif
 bin\components\dom_storage.xpt
@@ -352,9 +343,7 @@ bin\components\dom_xbl.xpt
 bin\components\dom_xul.xpt
 bin\components\dom_loadsave.xpt
 bin\components\NetworkGeolocationProvider.js
-#ifndef MOZILLA_1_9_1_BRANCH
 bin\components\GPSDGeolocationProvider.js
-#endif
 
 ; editor / composer for HTML compose
 bin\components\editor.xpt
@@ -432,9 +421,6 @@ bin\components\fastfind.xpt
 bin\components\find.xpt
 bin\components\chardet.xpt
 bin\components\jsconsole-clhandler.js
-#ifndef MOZILLA_1_9_1_BRANCH
-bin\components\jsctypes.xpt
-#endif
 bin\components\layout_xul_tree.xpt
 bin\components\mozfind.xpt
 bin\components\mimetype.xpt
@@ -468,7 +454,7 @@ bin\res\quirk.css
 bin\res\forms.css
 bin\res\viewsource.css
 bin\res\mathml.css
-#ifdef MOZILLA_1_9_1_BRANCH
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\res\charsetData.properties
 bin\res\charsetalias.properties
 bin\res\wincharset.properties
@@ -483,13 +469,8 @@ bin\res\arrowd.gif
 bin\res\contenteditable.css
 bin\res\designmode.css
 bin\res\html\folder.png
-#ifdef MOZILLA_1_9_1_BRANCH
-bin\res\broken-image.gif
-bin\res\loading-image.gif
-#else
 bin\res\broken-image.png
 bin\res\loading-image.png
-#endif
 
 ; editor resource files
 bin\res\EditorOverride.css
