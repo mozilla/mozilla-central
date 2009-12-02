@@ -199,7 +199,11 @@
 
   <!-- Edit Menu -->
   <key id="key_undo" key="&undoCmd.key;" modifiers="accel"/>
+#ifdef XP_MACOSX
+  <key id="key_redo" key="&undoCmd.key;" modifiers="accel,shift"/>
+#else
   <key id="key_redo" key="&redoCmd.key;" modifiers="accel"/>
+#endif
   <key id="key_cut" key="&cutCmd.key;" modifiers="accel"/>
   <key id="key_copy" key="&copyCmd.key;" modifiers="accel"/>
   <key id="key_paste" key="&pasteCmd.key;" modifiers="accel"/>

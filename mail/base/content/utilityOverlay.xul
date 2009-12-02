@@ -81,10 +81,12 @@
        modifiers="accel"/>
 #endif
   <key id="key_undo" key="&undoCmd.key;" modifiers="accel"/>
-  <key id="key_redo" key="&redoCmd.key;"
+  <key id="key_redo"
 #ifdef XP_MACOSX
+       key="&undoCmd.key;"
        modifiers="shift, accel"/>
 #else
+       key="&redoCmd.key;"
        modifiers="accel"/>
 #endif
   <key id="key_cut" key="&cutCmd.key;" modifiers="accel"/>
