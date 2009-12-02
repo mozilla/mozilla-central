@@ -49,7 +49,7 @@ treechildren::-moz-tree-image(noicon) {
 }
 
 treechildren::-moz-tree-image(noicon) {
-  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png");
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.gif");
 }
 
 treechildren::-moz-tree-image(container, noicon) {
