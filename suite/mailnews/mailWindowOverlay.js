@@ -3135,6 +3135,7 @@ function MailToolboxCustomizeInit()
 function MailToolboxCustomizeDone(aToolboxChanged)
 {
   toolboxCustomizeDone("mail-menubar", getMailToolbox(), aToolboxChanged);
+  SetupMoveCopyMenus('button-file', accountManagerDataSource, folderDataSource);
 }
 
 function MailToolboxCustomizeChange(event)
