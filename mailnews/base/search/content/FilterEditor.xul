@@ -64,11 +64,11 @@
     <stringbundle id="bundle_search" src="chrome://messenger/locale/search.properties"/>
   </stringbundleset>
 
-  <script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/mailCommands.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/FilterEditor.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/mailCommands.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/FilterEditor.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
 
   <hbox align="center">
     <label value="&filterName.label;" accesskey="&filterName.accesskey;" control="filterName"/>

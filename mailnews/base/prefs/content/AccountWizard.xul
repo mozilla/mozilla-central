@@ -50,16 +50,16 @@
 
   <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/amUtils.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/accountUtils.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/AccountWizard.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/ispUtils.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/aw-accounttype.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/aw-identity.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/aw-server.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/aw-login.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/aw-accname.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/aw-done.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/accountUtils.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/AccountWizard.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/ispUtils.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/aw-accounttype.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/aw-identity.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/aw-server.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/aw-login.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/aw-accname.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/aw-done.js"/>
 
   <!-- Account Type page : Displays choices of mail and news accounts that user can create -->
   <wizardpage id="accounttype" pageid="accounttype"

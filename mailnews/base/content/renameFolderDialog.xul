@@ -48,7 +48,7 @@
         onload="onLoad();">
 
   <stringbundleset id="stringbundleset"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/renameFolderDialog.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/renameFolderDialog.js"/>
 
   <label value="&rename.label;" accesskey="&rename.accesskey;" control="name"/>
   <textbox id="name" oninput="doEnabling();"/>

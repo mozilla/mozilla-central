@@ -55,11 +55,11 @@
       title="&serverSettings.label;"
       onload="parent.onPanelLoaded('am-server.xul');">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/am-server.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/am-prefs.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/amUtils.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/am-server.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/am-prefs.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
 
   <label hidden="true" wsm_persist="true" id="server.type"/>

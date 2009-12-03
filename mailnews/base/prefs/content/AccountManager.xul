@@ -15,11 +15,11 @@
         ondialogaccept="return onAccept();">
 <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
 <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
-<script type="application/x-javascript" src="chrome://messenger/content/amUtils.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/accountUtils.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/am-prefs.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/am-help.js"/>
+<script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
+<script type="application/javascript" src="chrome://messenger/content/accountUtils.js"/>
+<script type="application/javascript" src="chrome://messenger/content/am-prefs.js"/>
+<script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+<script type="application/javascript" src="chrome://messenger/content/am-help.js"/>
 
   <hbox flex="1">
     <vbox style="&accountTree.width;">

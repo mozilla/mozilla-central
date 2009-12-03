@@ -54,7 +54,7 @@
         ondialogaccept="return onOK();">
 
   <stringbundleset id="stringbundleset"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/newFolderDialog.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/newFolderDialog.js"/>
 
     <label value="&name.label;" accesskey="&name.accesskey;" control="name"/>
     <textbox id="name" oninput="doEnabling();"/>

@@ -48,8 +48,8 @@
   onload="onLoad();"
   ondialogaccept="return onAccept();">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/markByDate.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/dateFormat.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/markByDate.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/dateFormat.js"/>
 
   <hbox align="center" pack="end">
     <label control="lowerDate"

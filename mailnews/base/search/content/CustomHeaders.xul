@@ -53,7 +53,7 @@
   <stringbundle id="bundle_custom" src="chrome://messenger/locale/custom.properties"/>
   </stringbundleset>
 
-  <script type="application/x-javascript" src="chrome://messenger/content/CustomHeaders.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/CustomHeaders.js"/>
 
   <!-- we need to override the dialogs default key behavior so we can re-route enter/return
        to the add button if the add button is suddenly the default action

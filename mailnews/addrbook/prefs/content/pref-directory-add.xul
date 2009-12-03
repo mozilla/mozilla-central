@@ -53,7 +53,7 @@
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/pref-directory-add.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/pref-directory-add.js"/>
   <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
   <stringbundle id="bundle_replication" src="chrome://messenger/locale/addressbook/replicationProgress.properties"/>
 

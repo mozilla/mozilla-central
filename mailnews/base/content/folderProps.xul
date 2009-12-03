@@ -54,10 +54,10 @@
   ondialogaccept="return folderPropsOKButton();">
  
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
-  <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/retention.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/folderProps.js"/>
-  <script type="application/x-javascript">
+  <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/retention.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/folderProps.js"/>
+  <script type="application/javascript">
   <![CDATA[
     var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
     observerService.notifyObservers(null, "charsetmenu-selected", "other");

@@ -49,9 +49,9 @@
 
     <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/> 
 
-    <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
-    <script type="application/x-javascript" src="chrome://messenger/content/retention.js"/>
-    <script type="application/x-javascript" src="chrome://messenger/content/am-offline.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/retention.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/am-offline.js"/>
 
     <label hidden="true" wsm_persist="true" id="server.type"/>  
     <label id="imap.autoSyncMaxAgeDays" hidden="true"

@@ -50,7 +50,7 @@
   style="width: 40em;">
 
 <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
-<script type="application/x-javascript" src="am-identities-list.js"/>
+<script type="application/javascript" src="am-identities-list.js"/>
 
 <label control="identitiesList" flex="1">&identitiesListDesc.label;</label>
 

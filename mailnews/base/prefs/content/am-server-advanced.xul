@@ -50,7 +50,7 @@
         onload="onLoad();"
         ondialogaccept="return onOk();">
 
-  <script type="application/x-javascript" src="am-server-advanced.js"/>
+  <script type="application/javascript" src="am-server-advanced.js"/>
   <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
 
     <!-- IMAP Panel -->

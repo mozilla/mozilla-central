@@ -49,9 +49,9 @@
         onload="onInitEditDirectories();"
         onunload="onUninitEditDirectories();">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger/content/addressbook/abCommon.js"/>
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger/content/addressbook/pref-editdirectories.js"/>
 
   <stringbundle id="bundle_addressBook"

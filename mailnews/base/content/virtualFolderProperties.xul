@@ -65,10 +65,10 @@
     <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   </stringbundleset>
 
-  <script type="application/x-javascript" src="chrome://messenger/content/mailCommands.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/commandglue.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/virtualFolderProperties.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/mailCommands.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/commandglue.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/virtualFolderProperties.js"/>
 
   <keyset id="dialogKeys"/>
    

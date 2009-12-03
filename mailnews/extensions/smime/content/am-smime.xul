@@ -49,8 +49,8 @@
         onload="parent.onPanelLoaded('am-smime.xul');"
         ondialogaccept="smimeOnAcceptEditor();">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/am-smime.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/am-smime.js"/>
 
   <dialogheader title="&securityTitle.label;"/>
 

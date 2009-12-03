@@ -51,7 +51,7 @@
         style="width: 35em;"
         ondialogaccept="return syncOkButton();">
 
-<script type="application/x-javascript" src="chrome://messenger/content/msgSynchronize.js"/>
+<script type="application/javascript" src="chrome://messenger/content/msgSynchronize.js"/>
 
     <keyset id="keyset"/>
     <label hidden="true" wsm_persist="true" id="server.type"/>

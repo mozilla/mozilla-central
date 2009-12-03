@@ -46,7 +46,7 @@
   buttons="accept"
   onload="onLoad();">
 
-  <script type="application/x-javascript" src="chrome://messenger-smime/content/msgReadSecurityInfo.js"/>
+  <script type="application/javascript" src="chrome://messenger-smime/content/msgReadSecurityInfo.js"/>
 
   <stringbundle id="bundle_smime_read_info" src="chrome://messenger-smime/locale/msgSecurityInfo.properties"/> 
 

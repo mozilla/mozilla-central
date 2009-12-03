@@ -8,8 +8,8 @@
       title="&accountTitle.label;"
       onload="parent.onPanelLoaded('am-serverwithnoidentities.xul');">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/am-serverwithnoidentities.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/amUtils.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/am-serverwithnoidentities.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
 
   <dialogheader title="&accountTitle.label;"/>
 

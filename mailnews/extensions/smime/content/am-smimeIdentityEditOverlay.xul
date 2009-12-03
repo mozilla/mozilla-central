@@ -54,9 +54,9 @@
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger/content/am-smime.js"/>
 
   <tabs id="identitySettings">
@@ -67,7 +67,7 @@
     <vbox flex="1" name="smimeEditingContent" id="smimeEditing"/>
   </tabpanels>
 
-  <script type="application/x-javascript">
+  <script type="application/javascript">
   <![CDATA[
     window.addEventListener("load", smimeOnLoadEditor, false);
   ]]>

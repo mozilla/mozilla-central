@@ -46,8 +46,8 @@
     onload="parent.onPanelLoaded('am-mdn.xul');">
 
   <stringbundle id="bundle_smime" src="chrome://messenger/locale/am-mdn.properties"/> 
-  <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/am-mdn.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/am-mdn.js"/>
   
   <dialogheader title="&pane.title;"/>
 

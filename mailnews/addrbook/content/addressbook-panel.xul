@@ -62,12 +62,12 @@
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
   </stringbundleset>
 
-  <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abSelectAddressesDialog.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/addressbook-panel.js"/>
+  <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abSelectAddressesDialog.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/addressbook-panel.js"/>
 
   <commandset id="addressbook-panel-commandset">
     <command id="cmd_newlist" oncommand="AbNewList();"/>

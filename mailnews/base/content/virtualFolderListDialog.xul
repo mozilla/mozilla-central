@@ -55,8 +55,8 @@
         ondialogaccept="return onOK();"
         ondialogcancel="return onCancel();">   
 
-<script type="application/x-javascript" src="chrome://messenger/content/virtualFolderListDialog.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
+<script type="application/javascript" src="chrome://messenger/content/virtualFolderListDialog.js"/>
+<script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
 
   <label control="folderPickerTree">&virtualFolderDesc.label;</label>
 

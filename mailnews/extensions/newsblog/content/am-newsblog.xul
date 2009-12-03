@@ -48,11 +48,11 @@
       title="&accountTitle.label;"
       onload="parent.onPanelLoaded('am-newsblog.xul');">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger-newsblog/content/am-newsblog.js"/>
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
 
   <dialogheader id="am-newsblog-title" defaultTitle="&accountTitle.label;"/>

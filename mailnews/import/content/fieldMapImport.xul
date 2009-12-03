@@ -47,7 +47,7 @@
         ondialogaccept="FieldImportOKButton();"
         onload="OnLoadFieldMapImport();">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/fieldMapImport.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/fieldMapImport.js"/>
 
   <hbox align="center">
     <label value="&fieldMapImport.recordNumber;"/>

@@ -46,7 +46,7 @@
         buttons="cancel"
         ondialogcancel="return onCancel();">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/shutdownWindow.js"></script>
+  <script type="application/javascript" src="chrome://messenger/content/shutdownWindow.js"></script>
   <stringbundle id="bundle_shutdown" src="chrome://messenger/locale/shutdownWindow.properties"/>
   
   <vbox align="center">

@@ -49,7 +49,7 @@
         onload="OnLoad();">
 
   <stringbundle id="bundle_news" src="chrome://messenger/locale/news.properties"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/downloadheaders.js" />
+  <script type="application/javascript" src="chrome://messenger/content/downloadheaders.js" />
 
   <label class="header" style="width: 25em; max-width: 25em;" id="newsgroupLabel" control="downloadGroup"/> 
   <description style="width: 25em; max-width: 25em;" id="info" control="downloadGroup"/>

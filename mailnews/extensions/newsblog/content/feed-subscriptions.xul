@@ -56,14 +56,14 @@
         windowtype="Mail:News-BlogSubscriptions"
         flex="1">
 
-  <script type="application/x-javascript" src="utils.js"/>
-  <script type="application/x-javascript" src="file-utils.js"/>
-  <script type="application/x-javascript" src="debug-utils.js"/>
-  <script type="application/x-javascript" src="feed-subscriptions.js"/>
-  <script type="application/x-javascript" src="Feed.js"/>
-  <script type="application/x-javascript" src="FeedItem.js"/>
-  <script type="application/x-javascript" src="feed-parser.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/javascript" src="utils.js"/>
+  <script type="application/javascript" src="file-utils.js"/>
+  <script type="application/javascript" src="debug-utils.js"/>
+  <script type="application/javascript" src="feed-subscriptions.js"/>
+  <script type="application/javascript" src="Feed.js"/>
+  <script type="application/javascript" src="FeedItem.js"/>
+  <script type="application/javascript" src="feed-parser.js"/>
+  <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
   <keyset id="extensionsKeys">
     <key id="key_close"   key="&cmd.close.commandKey;" modifiers="accel" oncommand="window.close();"/>
