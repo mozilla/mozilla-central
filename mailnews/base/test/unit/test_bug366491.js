@@ -103,7 +103,7 @@ var doTestingListener =
     // Have we completed a classification? If so, test
     if (haveClassification)
     {
-      test = tests.shift();
+      let test = tests.shift();
       do_check_eq(getSpec(test.fileName), aMsgURI);
       do_check_eq(test.junkPercent, aJunkPercent);
     }

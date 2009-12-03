@@ -59,7 +59,7 @@ var Tests =
 ]
 
 // nsIMsgSearchCustomTerm object
-customTerm =
+var customTerm =
 {
   id: kCustomId,
   name: "term name",

@@ -20,6 +20,7 @@ var gMsgFile1;
 var gLocalTrashFolder;
 var gCurTestNum;
 var gMsgHdrs = new Array();
+var gRootFolder;
 
 const mFNSContractID = "@mozilla.org/messenger/msgnotificationservice;1";
 const nsIMFNService = Ci.nsIMsgFolderNotificationService;

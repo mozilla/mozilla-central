@@ -219,7 +219,6 @@ function testSearch()
   }
   else
   {
-    gSearchSession = null;
     do_test_finished();
   }
 }

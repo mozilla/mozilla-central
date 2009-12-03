@@ -45,7 +45,7 @@ const gStringBundle = Cc["@mozilla.org/intl/stringbundle;1"]
 
 // The following table of valid table scopes matches the allowable table
 // scopes in nsMsgSearchValidityManager::GetTable
-kValidScopes =
+const kValidScopes =
 [
   Ci.nsMsgSearchScope.offlineMail,
   Ci.nsMsgSearchScope.offlineMailFilter,

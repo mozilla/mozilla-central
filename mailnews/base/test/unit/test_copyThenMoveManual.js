@@ -126,7 +126,7 @@ function run_test()
 
 function doTest()
 {
-  test = gCurTestNum;
+  var test = gCurTestNum;
   if (test <= gTestArray.length)
   {
     var testFn = gTestArray[test-1];

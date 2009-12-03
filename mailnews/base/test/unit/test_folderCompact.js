@@ -25,6 +25,9 @@ var gCurTestNum;
 // folder size to be.
 var gExpectedFolderSize;
 var gMsgHdrs = new Array();
+var gExpectedInboxSize;
+var gExpectedFolder2Size;
+var gExpectedFolder3Size;
 
 const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);

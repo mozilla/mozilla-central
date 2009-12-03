@@ -105,7 +105,7 @@ function setupVirtualFolder()
   
   // add tag1 to 4 messages
   var messages0to3 = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
-  for (i = 0; i <= 3; i++)
+  for (var i = 0; i <= 3; i++)
     messages0to3.appendElement(hdrs[i], false);
   gLocalInboxFolder.addKeywordsToMessages(messages0to3, tag1);
 
@@ -121,7 +121,7 @@ function setupVirtualFolder()
   gLocalInboxFolder.markMessagesRead(messages3to4, true);
 
   // search will look for tag tag1 in the inbox folder
-  searchTerm = makeSearchTerm(gLocalInboxFolder, tag1, 
+  var searchTerm = makeSearchTerm(gLocalInboxFolder, tag1, 
     Ci.nsMsgSearchAttrib.Keywords, Ci.nsMsgSearchOp.Contains);
     
   var rootFolder = gLocalIncomingServer.rootMsgFolder;
