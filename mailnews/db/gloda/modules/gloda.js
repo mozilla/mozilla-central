@@ -53,6 +53,7 @@ Cu.import("resource://app/modules/gloda/query.js");
 Cu.import("resource://app/modules/gloda/utils.js");
 
 Cu.import("resource://app/modules/iteratorUtils.jsm");
+Cu.import("resource://app/modules/IOUtils.js");
 
 /**
  * @see |Gloda.BadItemContentsError|
@@ -219,7 +220,7 @@ var Gloda = {
                     .get("TmpD", Ci.nsIFile);
       file.append("chainsaw.ptr");
       if (file.exists()) {
-        let data = GlodaUtils.loadFileToString(file);
+        let data = IOUtils.loadFileToString(file);
         data = data.trim();
         let [host, port] = data.split(":");
         let xf = new Log4Moz.XMLFormatter();

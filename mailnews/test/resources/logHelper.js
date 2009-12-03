@@ -9,9 +9,7 @@
  */
 
 Components.utils.import("resource://app/modules/gloda/log4moz.js");
-// We need loadFileToString and honestly this is no crazier a dependency than
-//  gloda's Log4Moz
-Components.utils.import("resource://app/modules/gloda/utils.js");
+Components.utils.import("resource://app/modules/IOUtils.js");
 
 var _testLogger;
 var _xpcshellLogger;
@@ -103,7 +101,7 @@ function _init_log_helper() {
   if (file.exists()) {
     _logHelperInterestedListeners = true;
 
-    let data = GlodaUtils.loadFileToString(file);
+    let data = IOUtils.loadFileToString(file);
     data = data.trim();
     let [host, port] = data.split(":");
     let jf = new Log4Moz.JSONFormatter();

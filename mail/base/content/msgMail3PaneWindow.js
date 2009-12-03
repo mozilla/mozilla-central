@@ -46,6 +46,7 @@ Components.utils.import("resource://gre/modules/folderUtils.jsm");
 Components.utils.import("resource://app/modules/activity/activityModules.js");
 Components.utils.import("resource://app/modules/jsTreeSelection.js");
 Components.utils.import("resource://app/modules/MailConsts.js");
+Components.utils.import("resource://app/modules/IOUtils.js");
 
 /* This is where functions related to the 3 pane window are kept */
 
@@ -520,9 +521,6 @@ function persistTabState()
   foStream.close();
 }
 
-// XXX provides GlodaUtils, remove once we migrate loadFileToString
-Components.utils.import("resource://app/modules/gloda/utils.js");
-
 /**
  * Attempt to restore our tab states.  This should only be called by
  * |loadStartFolder| or |loadStartMsgHdr|.
@@ -540,9 +538,7 @@ function atStartupRestoreTabs(aDontRestoreFirstTab) {
   if (!file.exists())
     return false;
 
-  // XXX migrate loadFileToString to MessengerUtils once it exists (it's in
-  //  another patch)
-  let data = GlodaUtils.loadFileToString(file);
+  let data = IOUtils.loadFileToString(file);
 
   // delete the file before restoring state in case there is something
   //  crash-inducing about the restoration process.  Also, this avoids weird

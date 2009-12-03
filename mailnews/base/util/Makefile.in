@@ -136,6 +136,7 @@ EXTRA_JS_MODULES = \
 		autoconfigUtils.jsm \
 		StringBundle.js \
 		templateUtils.js \
+		IOUtils.js \
 		$(NULL)
 
 ifndef MOZ_STATIC_MAIL_BUILD
