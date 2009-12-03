@@ -106,6 +106,7 @@ protected:
 
   PRBool m_isPostMessage;
   PRBool m_requestDSN;
+  nsCString m_dsnEnvid;
   PRBool m_verifyLogon;
 
   // Smtp specific event sinks

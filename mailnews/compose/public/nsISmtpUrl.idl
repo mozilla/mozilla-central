@@ -46,7 +46,7 @@ interface nsISmtpServer;
 interface nsIInterfaceRequestor;
 interface nsIFile;
 
-[scriptable, uuid(ffc85194-21cc-42a2-9844-34068888a117)]
+[scriptable, uuid(da22b8ac-059d-4f82-bf99-f5f3d3c8202d)]
 interface nsISmtpUrl : nsISupports {
   /**
    * SMTP Parse specific getters.
@@ -68,6 +68,11 @@ interface nsISmtpUrl : nsISupports {
   attribute nsIFile postMessageFile;
 
   attribute boolean requestDSN;
+
+  /**
+   * The envid which is used in the DSN.
+   */
+  attribute ACString dsnEnvid;
 
   /**
    * SMTP Url instance specific getters and setters

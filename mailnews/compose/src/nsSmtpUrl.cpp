@@ -735,6 +735,20 @@ NS_IMETHODIMP nsSmtpUrl::GetPostMessageFile(nsIFile ** aFile)
 NS_IMPL_GETSET(nsSmtpUrl, RequestDSN, PRBool, m_requestDSN)
 
 NS_IMETHODIMP 
+nsSmtpUrl::SetDsnEnvid(const nsACString &aDsnEnvid)
+{
+    m_dsnEnvid = aDsnEnvid;
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+nsSmtpUrl::GetDsnEnvid(nsACString &aDsnEnvid)
+{
+    aDsnEnvid = m_dsnEnvid;
+    return NS_OK;
+}
+
+NS_IMETHODIMP
 nsSmtpUrl::GetSenderIdentity(nsIMsgIdentity * *aSenderIdentity)
 {
   NS_ENSURE_ARG_POINTER(aSenderIdentity); 

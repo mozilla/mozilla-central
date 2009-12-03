@@ -3738,9 +3738,17 @@ nsMsgComposeAndSend::DeliverFileAsMail()
     if (!msgStatus)
       msgStatus = do_QueryInterface(mStatusFeedback);
 
+    nsCOMPtr<nsIURI> runningUrl;
     rv = smtpService->SendMailMessage(mTempFile, buf, mUserIdentity,
                                       mSmtpPassword.get(), deliveryListener, msgStatus,
-                                      callbacks, mCompFields->GetDSN(), nsnull, getter_AddRefs(mRunningRequest));
+                                      callbacks, mCompFields->GetDSN(),
+                                      getter_AddRefs(runningUrl),
+                                      getter_AddRefs(mRunningRequest));
+
+    // set envid on the returned URL
+    nsCOMPtr<nsISmtpUrl> smtpUrl(do_QueryInterface(runningUrl, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    smtpUrl->SetDsnEnvid(nsDependentCString(mCompFields->GetMessageId()));
   }
 
   PR_FREEIF(buf); // free the buf because we are done with it....

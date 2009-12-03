@@ -640,11 +640,16 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
 
       buffer += requestRetFull ? " RET=FULL" : " RET=HDRS";
 
-      char* msgID = msg_generate_message_id(senderIdentity);
-      buffer += " ENVID=";
-      buffer += msgID;
+      nsCString dsnEnvid;
 
-      PR_Free(msgID);
+      // get the envid from the smtpUrl
+      rv = m_runningURL->GetDsnEnvid(dsnEnvid);
+
+      if (dsnEnvid.IsEmpty())
+          dsnEnvid.Adopt(msg_generate_message_id(senderIdentity));
+
+      buffer += " ENVID=";
+      buffer += dsnEnvid;
     }
   }
 
