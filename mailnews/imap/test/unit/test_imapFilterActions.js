@@ -26,6 +26,7 @@ var gServer; // the imap fake server
 var gIMAPIncomingServer; // nsIMsgIncomingServer for the imap server
 var gRootFolder; // root message folder for the imap server
 var gIMAPInbox; // imap inbox message folder
+var gIMAPMailbox; // imap mailbox
 var gIMAPTrashFolder; // imap trash message folder
 var gSubfolder; // a local message folder used as a target for moves and copies
 var gLastKey; // the last message key
@@ -39,6 +40,7 @@ var gChecks; // the function that will be used to check the results of the filte
 var gInboxCount; // the previous number of messages in the Inbox
 var gSubfolderCount; // the previous number of messages in the subfolder
 var gMoveCallbackCount; // the number of callbacks from the move listener
+var gCurTestNum; // the current test number
 const gMessage = "draft1"; // message file used as the test message
 
 // subject of the test message
@@ -310,9 +312,6 @@ const gTestArray =
 
 function run_test()
 {
-  // This is before any of the actual tests, so...
-  gTest = 0;
-
   // Add a listener.
   gIMAPDaemon = new imapDaemon();
   gServer = makeServer(gIMAPDaemon, "");
@@ -356,7 +355,7 @@ function run_test()
   gIMAPInbox = gRootFolder.getChildNamed("INBOX");
   gIMAPMailbox = gIMAPDaemon.getMailbox("INBOX");
   dump("gIMAPInbox uri = " + gIMAPInbox.URI + "\n");
-  msgImapFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
+  let msgImapFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
@@ -478,7 +477,7 @@ function doTest()
   if (gChecks)
     gChecks();
 
-  test = gCurTestNum;
+  var test = gCurTestNum;
   if (test <= gTestArray.length)
   {
 
@@ -491,7 +490,7 @@ function doTest()
     testFn();
     } catch(ex) {
       gServer.stop();
-      do_throw ('TEST FAILED ' + e);
+      do_throw ('TEST FAILED ' + ex);
     }
   }
   else
@@ -586,7 +585,7 @@ var URLListener =
 function DBListener()
 {
   this.counts = {};
-  counts = this.counts;
+  let counts = this.counts;
   counts.onHdrFlagsChanged = 0;
   counts.onHdrDeleted = 0;
   counts.onHdrAdded = 0;

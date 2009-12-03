@@ -14,6 +14,7 @@ var gRootFolder;
 var gIMAPInbox, gIMAPTrashFolder, gMsgImapInboxFolder;
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 var gImapInboxOfflineStoreSize;
+var gCurTestNum;
 
 const gMsgFile1 = do_get_file("../../mailnews/data/bugmail10");
 const gMsgFile2 = do_get_file("../../mailnews/data/bugmail11");
@@ -83,9 +84,9 @@ const gTestArray =
     let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     array.appendElement(msgHdr, false);
     gIMAPInbox.deleteMessages(array, null, false, true, CopyListener, false);
-    gIMAPTrash = gRootFolder.getChildNamed("Trash");
+    gIMAPTrashFolder = gRootFolder.getChildNamed("Trash");
     // hack to force uid validity to get initialized for trash.
-    gIMAPTrash.updateFolder(null);
+    gIMAPTrashFolder.updateFolder(null);
   },
   function compactOfflineStore() {
     dump("compacting offline store\n");
@@ -112,9 +113,6 @@ const gTestArray =
 
 function run_test()
 {
-  // This is before any of the actual tests, so...
-  gTest = 0;
-
   // Add a listener.
   gIMAPDaemon = new imapDaemon();
   gServer = makeServer(gIMAPDaemon, "");
@@ -200,7 +198,7 @@ function doTest(test)
     // server
     gRootFolder = null;
     gIMAPInbox = null;
-    gMsgImapFolder = null;
+    gMsgImapInboxFolder = null;
     gIMAPTrashFolder = null;
     do_timeout_function(1000, endTest);
   }

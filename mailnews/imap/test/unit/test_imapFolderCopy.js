@@ -14,6 +14,7 @@ var gEmptyLocal1, gEmptyLocal2, gEmptyLocal3;
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                 .getService(Ci.nsIMsgCopyService);
+var gCurTestNum;
 
 Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/folderUtils.jsm");
@@ -85,9 +86,6 @@ const gTestArray =
 
 function run_test()
 {
-  // This is before any of the actual tests, so...
-  gTest = 0;
-
   // Add a listener.
   gIMAPDaemon = new imapDaemon();
   gServer = makeServer(gIMAPDaemon, "");
@@ -133,7 +131,7 @@ function run_test()
   gRootFolder = gIMAPIncomingServer.rootFolder;
   gIMAPInbox = gRootFolder.getChildNamed("INBOX");
   dump("gIMAPInbox uri = " + gIMAPInbox.URI + "\n");
-  msgImapFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
+  let msgImapFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and

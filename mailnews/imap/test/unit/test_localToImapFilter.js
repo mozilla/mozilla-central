@@ -25,6 +25,7 @@ var gLastKey;
 var gMessages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
 var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                 .getService(Ci.nsIMsgCopyService);
+var gCurTestNum;
 const gFiles = ["../../mailnews/data/bugmail1",
                 "../../mailnews/data/draft1"];
 
@@ -109,10 +110,7 @@ function folderCount(folder)
 function run_test()
 {
   // XXX Disabled due to intermittent failures, bug 502928 will fix.
-  return 0;
-
-  // This is before any of the actual tests, so...
-  gTest = 0;
+  //return 0;
 
   // Add a listener.
   gIMAPDaemon = new imapDaemon();
@@ -153,7 +151,7 @@ function run_test()
   gRootFolder = gIMAPIncomingServer.rootFolder;
   gIMAPInbox = gRootFolder.getChildNamed("INBOX");
   dump("gIMAPInbox uri = " + gIMAPInbox.URI + "\n");
-  msgImapFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
+  let msgImapFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
@@ -172,7 +170,7 @@ function run_test()
 
 function doTest()
 {
-  test = gCurTestNum;
+  var test = gCurTestNum;
   if (test <= gTestArray.length)
   {
     dump("Doing test " + test + "\n");

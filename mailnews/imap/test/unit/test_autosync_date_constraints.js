@@ -15,6 +15,7 @@ var gRootFolder;
 var gIMAPInbox, gIMAPTrashFolder, gMsgImapInboxFolder;
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 var gImapInboxOfflineStoreSize;
+var gCurTestNum;
 
 // Adds some messages directly to a mailbox (eg new mail)
 function addMessagesToServer(messages, mailbox, localFolder)
@@ -57,9 +58,6 @@ const gTestArray =
 
 function run_test()
 {
-  // This is before any of the actual tests, so...
-  gTest = 0;
-
   // Add a listener.
   gIMAPDaemon = new imapDaemon();
   gServer = makeServer(gIMAPDaemon, "");
@@ -113,14 +111,14 @@ function run_test()
 
   // Add a couple of messages to the INBOX
   // this is synchronous, afaik
-  gMessageGenerator = new MessageGenerator();
-  gScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
+  let messageGenerator = new MessageGenerator();
+  let scenarioFactory = new MessageScenarioFactory(messageGenerator);
 
   // build up a diverse list of messages
   let messages = [];
-  messages = messages.concat(gMessageGenerator.makeMessage({age: {days: 2, hours: 1}}));
-  messages = messages.concat(gMessageGenerator.makeMessage({age: {days: 8, hours: 1}}));
-  messages = messages.concat(gMessageGenerator.makeMessage({age: {days: 10, hours: 1}}));
+  messages = messages.concat(messageGenerator.makeMessage({age: {days: 2, hours: 1}}));
+  messages = messages.concat(messageGenerator.makeMessage({age: {days: 8, hours: 1}}));
+  messages = messages.concat(messageGenerator.makeMessage({age: {days: 10, hours: 1}}));
 
   addMessagesToServer(messages,
                       gIMAPDaemon.getMailbox("INBOX"), gIMAPInbox);
@@ -152,7 +150,7 @@ function doTest(test)
     // server
     gRootFolder = null;
     gIMAPInbox = null;
-    gMsgImapFolder = null;
+    gMsgImapInboxFolder = null;
     gIMAPTrashFolder = null;
     do_timeout_function(1000, endTest);
   }

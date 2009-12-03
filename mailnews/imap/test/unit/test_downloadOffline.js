@@ -13,6 +13,7 @@ const gFileName = "bug460636";
 const gMsgFile = do_get_file("../../mailnews/data/" + gFileName);
 
 var gDownloadedOnce = false;
+var gIMAPInbox;
 
 function run_test()
 {

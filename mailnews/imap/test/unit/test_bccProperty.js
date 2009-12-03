@@ -16,6 +16,7 @@ const gFileName = "draft1";
 const gMsgFile = do_get_file("../../mailnews/data/" + gFileName);
 
 var gDownloadedOnce = false;
+var gIMAPInbox;
 
 function run_test()
 {

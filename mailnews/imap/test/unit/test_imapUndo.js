@@ -22,6 +22,7 @@ var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                 .getService(Ci.nsIMsgCopyService);
 var gMessenger;
 var gMsgWindow;
+var gCurTestNum;
 
 Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 
@@ -97,9 +98,6 @@ const gTestArray =
 
 function run_test()
 {
-  // This is before any of the actual tests, so...
-  gTest = 0;
-
   gIMAPDaemon = new imapDaemon();
   gServer = makeServer(gIMAPDaemon, "");
 

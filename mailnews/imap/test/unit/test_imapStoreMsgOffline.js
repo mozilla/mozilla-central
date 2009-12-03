@@ -12,6 +12,16 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const nsMsgMessageFlags = Ci.nsMsgMessageFlags;
 
+var gServer;
+var gIMAPDaemon;
+var gIMAPInbox;
+var gIMAPIncomingServer;
+var gIMAPTrashFolder;
+var gMessenger;
+var gMsgWindow;
+var gRootFolder;
+var gCurTestNum;
+
 var gMsgFile1 = do_get_file("../../mailnews/data/bugmail10");
 const gMsgId1 = "200806061706.m56H6RWT004933@mrapp54.mozilla.org";
 var gMsgFile2 = do_get_file("../../mailnews/data/image-attach-test");
@@ -67,9 +77,6 @@ function addMessagesToServer(messages, mailbox, localFolder)
 
 var incomingServer, server;
 function run_test() {
-  // This is before any of the actual tests, so...
-  gTest = 0;
-
   // The server doesn't support more than one connection
   let prefBranch = Cc["@mozilla.org/preferences-service;1"]
                      .getService(Ci.nsIPrefBranch);
