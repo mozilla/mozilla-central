@@ -4923,7 +4923,6 @@ MOZ_ARG_ENABLE_BOOL(official-branding,
 [case "$MOZ_BUILD_APP" in
 calendar)
     MOZ_BRANDING_DIRECTORY=other-licenses/branding/sunbird
-    MOZ_APP_DISPLAYNAME=Sunbird
     ;;
 
 mail)
