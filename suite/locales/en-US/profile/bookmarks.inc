@@ -37,19 +37,19 @@
 #define extend_seamonkey Extending SeaMonkey
 
 # LOCALIZATION NOTE (seamonkey_addons):
-# link title for https://en-US.add-ons.mozilla.com/en-US/seamonkey/
+# link title for https://addons.mozilla.org/en-US/seamonkey/
 #define seamonkey_addons SeaMonkey Add-ons
 
 # LOCALIZATION NOTE (seamonkey_themes):
-# link title for https://en-US.add-ons.mozilla.com/en-US/seamonkey/themes
+# link title for https://addons.mozilla.org/en-US/seamonkey/themes
 #define seamonkey_themes SeaMonkey Themes
 
 # LOCALIZATION NOTE (seamonkey_dictionaries):
-# link title for https://en-US.add-ons.mozilla.com/en-US/seamonkey/dictionaries
+# link title for https://addons.mozilla.org/en-US/seamonkey/dictionaries
 #define seamonkey_dictionaries Spell Checking Dictionaries
 
 # LOCALIZATION NOTE (seamonkey_plugins):
-# link title for https://en-US.add-ons.mozilla.com/en-US/seamonkey/plugins
+# link title for https://addons.mozilla.org/en-US/seamonkey/plugins
 #define seamonkey_plugins Plugins for SeaMonkey
 
 # LOCALIZATION NOTE (mozdev):
@@ -81,7 +81,7 @@
 
 # LOCALIZATION NOTE (seamonkey_l10n_long):
 # insert full bookmark line for localized SeaMonkey page (normal bookmark)
-# e.g. #define seamonkey_l10n <DT><A HREF="http://www.seamonkey.tld/">tlhIngan Hol SeaMonkey</a>
+# e.g. #define seamonkey_l10n_long <DT><A HREF="http://www.seamonkey.tld/">tlhIngan Hol SeaMonkey</a>
 #define seamonkey_l10n_long  
 
 #unfilter emptyLines
