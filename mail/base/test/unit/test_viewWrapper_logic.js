@@ -191,7 +191,7 @@ function test_sort_group_by_sort() {
   //  switch to group-by-sort.
   // (sorting changes are synchronous)
   viewWrapper.sort(Ci.nsMsgViewSortType.byId,
-                   Ci.nsMsgViewSortType.descending);
+                   Ci.nsMsgViewSortOrder.descending);
   yield async_view_group_by_sort(viewWrapper, true);
 
   // there should have been no explosion, and we should have changed to date
@@ -202,9 +202,9 @@ function test_sort_group_by_sort() {
   yield async_view_group_by_sort(viewWrapper, false);
 
   viewWrapper.sort(Ci.nsMsgViewSortType.byDate,
-                   Ci.nsMsgViewSortType.descending,
+                   Ci.nsMsgViewSortOrder.descending,
                    Ci.nsMsgViewSortType.byId,
-                   Ci.nsMsgViewSortType.descending);
+                   Ci.nsMsgViewSortOrder.descending);
 
   yield async_view_group_by_sort(viewWrapper, true);
   // we should now only have a single sort type and it should be date
