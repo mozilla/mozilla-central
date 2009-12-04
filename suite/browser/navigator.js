@@ -74,8 +74,14 @@ const gButtonPrefListener =
   init: function()
   {
     var array = pref.getChildList(this.domain, {});
-    for (var i in array)
-      this.updateButton(array[i]);
+    array.forEach(
+      function(item) {
+        if (/\.(bookmarks|home|print)$/.test(item))
+          Application.prefs.get(item).reset();
+        else
+          this.updateButton(item);
+      }, this
+    )
   },
   observe: function(subject, topic, prefName)
   {
