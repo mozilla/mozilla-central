@@ -110,7 +110,7 @@ function folderCount(folder)
 function run_test()
 {
   // XXX Disabled due to intermittent failures, bug 502928 will fix.
-  //return 0;
+  return 0;
 
   // Add a listener.
   gIMAPDaemon = new imapDaemon();
