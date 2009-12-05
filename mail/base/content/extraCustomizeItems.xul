@@ -40,8 +40,6 @@
  -->
 
 <!DOCTYPE overlay [
-  <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
-  %globalDTD;
   <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
   %messengerDTD;
   <!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd" >
@@ -55,7 +53,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <popupset>
-    <panel type="glodacomplete-richlistbox" chromedir="ltr"
+    <panel type="glodacomplete-richlistbox"
            id="PopupGlodaAutocomplete" noautofocus="true" />
   </popupset>
 
@@ -67,7 +65,6 @@
                  flex="1"
                  class="chromeclass-toolbar-additional">
         <textbox id="searchInput" 
-                 chromedir="ltr"
                  flex="1"
                  searchCriteria="true"
                  type="glodacomplete"
