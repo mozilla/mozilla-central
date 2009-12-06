@@ -299,10 +299,6 @@ function fullSanitize() {
   poppref.setBoolPref("promptOnSanitize", false);
 
   for (var testName in sanTests) {
-    // XXX Disabled due to bug 400238
-    if (testName == "passwords")
-      continue;
-
     var test = sanTests[testName];
     ok(test.setup(), test.desc + " test setup successfully for full sanitize");
     prefs.setBoolPref(testName, true);
@@ -317,6 +313,7 @@ function fullSanitize() {
       prefs.clearUserPref(testName);
     } catch (ex) {}
   }
+
   try {
     poppref.clearUserPref("promptOnSanitize");
   } catch(ex) {}
@@ -324,15 +321,21 @@ function fullSanitize() {
 
 function test() {
   waitForExplicitFinish();
+
+  // Sanitize one item at a time.
   for (var testName in sanTests) {
     var test = sanTests[testName];
+
     ok(test.setup(), test.desc + " test setup successfully");
 
     ok(Sanitizer.items[testName].canClear, test.desc + " can be cleared");
-
     Sanitizer.items[testName].clear();
     ok(!test.check(), test.desc + " data cleared");
   }
+
+  // Sanitize all items at once.
   fullSanitize();
-  finish();
+
+  // executeSoon() prevents (in the "pass" case only) leaking Console messages (...) to the next test.
+  executeSoon(finish);
 }
