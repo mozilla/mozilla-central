@@ -53,7 +53,7 @@ function test() {
   let eventFired = false;
 
   // Do stuff just after the page loads, so the page script can do its stuff
-  testBrowser.addEventListener("load", function() setTimeout(function() {
+  testBrowser.addEventListener("load", function() executeSoon(function() {
     // The test page loaded, so open an empty tab, select it, then restore
     // the test tab. This causes the test page's focused element to be removed
     // from its document.
@@ -70,7 +70,7 @@ function test() {
       gBrowser.removeCurrentTab();
       finish();
     }
-  }, 0), true);
+  }), true);
 
   // Start the test by loading the test page
   testBrowser.contentWindow.location = testPage;

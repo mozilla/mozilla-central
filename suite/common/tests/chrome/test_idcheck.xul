@@ -337,7 +337,7 @@
       }
 
       // wait for all tests to finish
-      setTimeout(FinishTest, 0);
+      executeSoon(FinishTest);
     }
   ]]>
   </script>

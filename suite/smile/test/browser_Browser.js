@@ -16,12 +16,12 @@ function test() {
   if ("nsIFocusManager" in Ci) {
     if (Cc["@mozilla.org/focus-manager;1"].getService(Ci.nsIFocusManager)
                                           .activeWindow != window) {
-      setTimeout(test, 0);
+      executeSoon(test);
       window.focus();
       return;
     }
   } else if (!document.hasFocus()) {
-    setTimeout(test, 0);
+    executeSoon(test);
     window.focus();
     return;
   }
