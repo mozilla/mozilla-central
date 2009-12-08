@@ -71,9 +71,16 @@ function ltnInitMailIdentitiesRow() {
 
     // If there is no transport but also no organizer id, then the
     // provider has not statically configured an organizer id. This is
-    // basically what happens when "None" is selected. Also, if there is
-    // a transport, 
+    // basically what happens when "None" is selected.
     var menuPopup = document.getElementById("email-identity-menupopup");
+
+    // Remove all children from the email list to avoid duplicates if the list
+    // has already been populated during a previous step in the calendar
+    // creation wizard.
+    while (menuPopup.lastChild) {
+        menuPopup.removeChild(menuPopup.lastChild);
+    }
+
     addMenuItem(menuPopup, ltnGetString("lightning", "imipNoIdentity"), "none");
     var identities = getAccountManager().allIdentities;
     for (var i = 0; i <  identities.Count(); ++i) {
