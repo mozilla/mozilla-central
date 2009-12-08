@@ -100,7 +100,7 @@ PlacesTreeView.prototype = {
   },
 
   /**
-   * Call to completely rebuild the list of visible items. Note if there is no
+   * Call to completely rebuild the list of visible nodes. Note if there is no
    * tree or root this will just clear out the list, so you can also call this
    * when a tree is detached to clear the list.
    */
@@ -157,7 +157,7 @@ PlacesTreeView.prototype = {
       var curChild = aContainer.getChild(i);
       var curChildType = curChild.type;
 
-      // add item
+      // add node
       curChild.viewIndex = aVisibleStartIndex + aVisible.length;
       aVisible.push({ node: curChild, properties: null });
 
@@ -178,17 +178,17 @@ PlacesTreeView.prototype = {
   },
 
   /**
-   * This counts how many rows an item takes in the tree, that is, the
-   * item itself plus any nodes following it with an increased indent.
-   * This allows you to figure out how many rows an item (=1) or a
+   * This counts how many rows a node takes in the tree, that is, the
+   * node itself plus any nodes following it with an increased indent.
+   * This allows you to figure out how many rows a node (=1) or a
    * container with all of its children takes.
    */
-  _countVisibleRowsForItem: function PTV__countVisibleRowsForItem(aNode) {
+  _countVisibleRowsForNode: function PTV__countVisibleRowsForNode(aNode) {
     if (aNode == this._result.root)
       return this._visibleElements.length;
 
     var viewIndex = aNode.viewIndex;
-    NS_ASSERT(viewIndex >= 0, "Item is not visible, no rows to count");
+    NS_ASSERT(viewIndex >= 0, "Node is not visible, no rows to count");
     var outerLevel = aNode.indentLevel;
     for (var i = viewIndex + 1; i < this._visibleElements.length; i++) {
       if (this._visibleElements[i].node.indentLevel <= outerLevel)
@@ -223,10 +223,10 @@ PlacesTreeView.prototype = {
     }
 
     var startReplacement = aContainer.viewIndex + 1;
-    var replaceCount = this._countVisibleRowsForItem(aContainer);
+    var replaceCount = this._countVisibleRowsForNode(aContainer);
 
-    // We don't replace the container item itself so we decrease the
-    // replaceCount by 1. We don't do so though if there is no visible item
+    // We don't replace the container node itself so we decrease the
+    // replaceCount by 1. We don't do so though if there is no visible node
     // for the container. This happens when aContainer is the root node
     if (aContainer.viewIndex != -1)
       replaceCount-=1;
@@ -282,22 +282,22 @@ PlacesTreeView.prototype = {
 
     // now, open any containers that were persisted
     for (var i = 0; i < toOpenElements.length; i++) {
-      var item = toOpenElements[i];
-      var parent = item.parent;
+      var node = toOpenElements[i];
+      var parent = node.parent;
       // avoid recursively opening containers
       while (parent) {
-        if (parent.uri == item.uri)
+        if (parent.uri == node.uri)
           break;
         parent = parent.parent;
       }
       // if we don't have a parent, we made it all the way to the root
-      // and didn't find a match, so we can open our item
-      if (!parent && !item.containerOpen) {
+      // and didn't find a match, so we can open our node
+      if (!parent && !node.containerOpen) {
         // 474287 Places enforces title sorting for groups, which we don't want.
-        if (asQuery(item).queryOptions.resultType ==
+        if (asQuery(node).queryOptions.resultType ==
             Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_URI)
-          item.queryOptions.sortingMode = this._result.sortingMode;
-        item.containerOpen = true;
+          node.queryOptions.sortingMode = this._result.sortingMode;
+        node.containerOpen = true;
       }
     }
 
@@ -374,21 +374,21 @@ PlacesTreeView.prototype = {
   },
 
   // nsINavHistoryResultViewer
-  itemInserted: function PTV_itemInserted(aParent, aItem, aNewIndex) {
+  nodeInserted: function PTV_nodeInserted(aParent, aNode, aNewIndex) {
     if (!this._tree)
       return;
     if (!this._result)
       throw Components.results.NS_ERROR_UNEXPECTED;
 
-    // update parent when inserting the first item because twisty may
+    // update parent when inserting the first node because twisty may
     // have changed
     if (aParent.childCount == 1)
-      this.itemChanged(aParent);
+      this.invalidateNode(aParent);
 
-    // compute the new view index of the item
+    // compute the new view index of the node
     var newViewIndex = -1;
     if (aNewIndex == 0) {
-      // item is the first thing in our child list, it takes our index +1. Note
+      // node is the first thing in our child list, it takes our index +1. Note
       // that this computation still works if the parent is an invisible root
       // node, because root_index + 1 = -1 + 1 = 0
       newViewIndex = aParent.viewIndex + 1;
@@ -402,42 +402,42 @@ PlacesTreeView.prototype = {
         var viewIndex = aParent.getChild(i).viewIndex;
         if (viewIndex >= 0) {
           // the view indices of subsequent children have not been shifted so
-          // the next item will have what should be our index
+          // the next node will have what should be our index
           newViewIndex = viewIndex;
           break;
         }
       }
       if (newViewIndex < 0) {
         // At the end of the child list without finding a visible sibling: This
-        // is a little harder because we don't know how many rows the last item
+        // is a little harder because we don't know how many rows the last node
         // in our list takes up (it could be a container with many children).
         var prevChild = aParent.getChild(aNewIndex - 1);
-        newViewIndex = prevChild.viewIndex + this._countVisibleRowsForItem(prevChild);
+        newViewIndex = prevChild.viewIndex + this._countVisibleRowsForNode(prevChild);
       }
     }
 
-    aItem.viewIndex = newViewIndex;
+    aNode.viewIndex = newViewIndex;
     this._visibleElements.splice(newViewIndex, 0,
-                                 { node: aItem, properties: null });
+                                 { node: aNode, properties: null });
     for (var i = newViewIndex + 1;
          i < this._visibleElements.length; i ++) {
       this._visibleElements[i].node.viewIndex = i;
     }
     this._tree.rowCountChanged(newViewIndex, 1);
 
-    if (PlacesUtils.nodeIsContainer(aItem) && asContainer(aItem).containerOpen)
-      this._refreshVisibleSection(aItem);
+    if (PlacesUtils.nodeIsContainer(aNode) && asContainer(aNode).containerOpen)
+      this._refreshVisibleSection(aNode);
   },
 
-  // this is used in itemRemoved and itemMoved to fix viewIndex values
-  // throw if the item has an invalid viewIndex
-  _fixViewIndexOnRemove: function PTV_fixViewIndexOnRemove(aItem, aParent) {
-    var oldViewIndex = aItem.viewIndex;
+  // this is used in nodeRemoved and nodeMoved to fix viewIndex values
+  // throw if the node has an invalid viewIndex
+  _fixViewIndexOnRemove: function PTV_fixViewIndexOnRemove(aNode, aParent) {
+    var oldViewIndex = aNode.viewIndex;
     // this may have been a container, in which case it has a lot of rows
-    var count = this._countVisibleRowsForItem(aItem);
+    var count = this._countVisibleRowsForNode(aNode);
 
     if (oldViewIndex > this._visibleElements.length)
-      throw("Trying to remove an item with an invalid viewIndex");
+      throw("Trying to remove a node with an invalid viewIndex");
 
     this._visibleElements.splice(oldViewIndex, count);
     for (var i = oldViewIndex; i < this._visibleElements.length; i++)
@@ -447,7 +447,7 @@ PlacesTreeView.prototype = {
 
     // redraw parent because twisty may have changed
     if (!aParent.hasChildren)
-      this.itemChanged(aParent);
+      this.invalidateNode(aParent);
 
     return;
   },
@@ -457,20 +457,20 @@ PlacesTreeView.prototype = {
    * removed but the node it is collapsed with is not being removed (this then
    * just swap out the removee with its collapsing partner). The only time
    * when we really remove things is when deleting URIs, which will apply to
-   * all collapsees. This function is called sometimes when resorting items.
+   * all collapsees. This function is called sometimes when resorting nodes.
    * However, we won't do this when sorted by date because dates will never
    * change for visits, and date sorting is the only time things are collapsed.
    */
-  itemRemoved: function PTV_itemRemoved(aParent, aItem, aOldIndex) {
+  nodeRemoved: function PTV_nodeRemoved(aParent, aNode, aOldIndex) {
     NS_ASSERT(this._result, "Got a notification but have no result!");
     if (!this._tree)
       return; // nothing to do
 
-    var oldViewIndex = aItem.viewIndex;
+    var oldViewIndex = aNode.viewIndex;
     if (oldViewIndex < 0)
-      return; // item was already invisible, nothing to do
+      return; // node was already invisible, nothing to do
 
-    // if the item was exclusively selected, the node next to it will be
+    // if the node was exclusively selected, the node next to it will be
     // selected
     var selectNext = false;
     var selection = this.selection;
@@ -478,14 +478,14 @@ PlacesTreeView.prototype = {
       var min = { }, max = { };
       selection.getRangeAt(0, min, max);
       if (min.value == max.value &&
-          this.nodeForTreeIndex(min.value) == aItem)
+          this.nodeForTreeIndex(min.value) == aNode)
         selectNext = true;
     }
 
-    // remove the item and fix viewIndex values
-    this._fixViewIndexOnRemove(aItem, aParent);
+    // remove the node and fix viewIndex values
+    this._fixViewIndexOnRemove(aNode, aParent);
 
-    // restore selection if the item was exclusively selected
+    // restore selection if the node was exclusively selected
     if (!selectNext)
       return;
     // restore selection
@@ -502,18 +502,18 @@ PlacesTreeView.prototype = {
    * Be careful, aOldIndex and aNewIndex specify the index in the
    * corresponding parent nodes, not the visible indexes.
    */
-  itemMoved:
-  function PTV_itemMoved(aItem, aOldParent, aOldIndex, aNewParent, aNewIndex) {
+  nodeMoved:
+  function PTV_nodeMoved(aNode, aOldParent, aOldIndex, aNewParent, aNewIndex) {
     NS_ASSERT(this._result, "Got a notification but have no result!");
     if (!this._tree)
       return; // nothing to do
 
-    var oldViewIndex = aItem.viewIndex;
+    var oldViewIndex = aNode.viewIndex;
     if (oldViewIndex < 0)
-      return; // item was already invisible, nothing to do
+      return; // node was already invisible, nothing to do
 
     // this may have been a container, in which case it has a lot of rows
-    var count = this._countVisibleRowsForItem(aItem);
+    var count = this._countVisibleRowsForNode(aNode);
 
     // Persist selection state
     var nodesToSelect = [];
@@ -532,11 +532,11 @@ PlacesTreeView.prototype = {
     if (nodesToSelect.length > 0)
       selection.selectEventsSuppressed = true;
 
-    // remove item from the old position
-    this._fixViewIndexOnRemove(aItem, aOldParent);
+    // remove node from the old position
+    this._fixViewIndexOnRemove(aNode, aOldParent);
 
-    // insert the item into the new position
-    this.itemInserted(aNewParent, aItem, aNewIndex);
+    // insert the node into the new position
+    this.nodeInserted(aNewParent, aNode, aNewIndex);
 
     // restore selection
     if (nodesToSelect.length > 0) {
@@ -551,53 +551,75 @@ PlacesTreeView.prototype = {
 
   /**
    * Be careful, the parameter 'aIndex' here specifies the index in the parent
-   * node of the item, not the visible index.
+   * node of the node, not the visible index.
    *
-   * This is called from the result when the item is replaced, but this object
+   * This is called from the result when the node is replaced, but this object
    * calls this function internally also when duplicate collapsing changes. In
    * this case, aIndex will be 0, so we should be careful not to use the value.
    */
-  itemReplaced:
-  function PTV_itemReplaced(aParent, aOldItem, aNewItem, aIndexDoNotUse) {
+  nodeReplaced:
+  function PTV_nodeReplaced(aParent, aOldNode, aNewNode, aIndexDoNotUse) {
     if (!this._tree)
       return;
 
-    var viewIndex = aOldItem.viewIndex;
-    aNewItem.viewIndex = viewIndex;
+    var viewIndex = aOldNode.viewIndex;
+    aNewNode.viewIndex = viewIndex;
     if (viewIndex >= 0 &&
         viewIndex < this._visibleElements.length) {
-      this._visibleElements[viewIndex].node = aNewItem;
+      this._visibleElements[viewIndex].node = aNewNode;
       this._visibleElements[viewIndex].properties = null;
     }
-    aOldItem.viewIndex = -1;
+    aOldNode.viewIndex = -1;
     this._tree.invalidateRow(viewIndex);
   },
 
-  itemChanged: function PTV_itemChanged(aItem) {
+  nodeTitleChanged: function PTV_nodeTitleChanged(aNode) {
+    this.invalidateNode(aNode);
+  },
+
+  nodeURIChanged: function PTV_nodeURIChanged(aNode) { },
+
+  nodeIconChanged: function PTV_nodeIconChanged(aNode) { },
+
+  nodeHistoryDetailsChanged: function PTV_nodeHistoryDetailsChanged(aNode) {
+    this.invalidateNode(aNode);
+  },
+
+  nodeTagsChanged: function PTV_nodeTagsChanged(aNode) { },
+
+  nodeKeywordChanged: function PTV_nodeKeywordChanged(aNode) { },
+
+  nodeAnnotationhanged: function PTV_nodeAnnotationhanged(aNode) { },
+
+  nodeDateAddedChanged: function PTV_nodeDateAddedChanged(aNode) { },
+
+  nodeLastModifiedChanged: function PTV_nodeLastModifiedChanged(aNode) { },
+
+  invalidateNode: function PTV_invalidateNode(aNode) {
     NS_ASSERT(this._result, "Got a notification but have no result!");
-    var viewIndex = aItem.viewIndex;
+    var viewIndex = aNode.viewIndex;
     if (this._tree && viewIndex >= 0)
       this._tree.invalidateRow(viewIndex);
   },
 
-  containerOpened: function PTV_containerOpened(aItem) {
-    this.invalidateContainer(aItem);
+  containerOpened: function PTV_containerOpened(aNode) {
+    this.invalidateContainer(aNode);
   },
 
-  containerClosed: function PTV_containerClosed(aItem) {
-    this.invalidateContainer(aItem);
+  containerClosed: function PTV_containerClosed(aNode) {
+    this.invalidateContainer(aNode);
   },
 
-  invalidateContainer: function PTV_invalidateContainer(aItem) {
+  invalidateContainer: function PTV_invalidateContainer(aNode) {
     NS_ASSERT(this._result, "Got a notification but have no result!");
     if (!this._tree)
       return; // nothing to do, container is not visible
-    var viewIndex = aItem.viewIndex;
+    var viewIndex = aNode.viewIndex;
     if (viewIndex >= this._visibleElements.length) {
       // be paranoid about visible indices since others can change it
       throw Components.results.NS_ERROR_UNEXPECTED;
     }
-    this._refreshVisibleSection(aItem);
+    this._refreshVisibleSection(aNode);
   },
 
   invalidateAll: function PTV_invalidateAll() {
@@ -841,7 +863,7 @@ PlacesTreeView.prototype = {
     var node = this._visibleElements[aRow].node;
     switch (aColumn.id) {
       case "Name":
-        // normally, this is just the title, but we don't want empty items in
+        // normally, this is just the title, but we don't want empty nodes in
         // the tree view so return a special string if the title is empty.
         // Do it here so that callers can still get at the 0 length title
         // if they go through the "result" API.
@@ -856,7 +878,7 @@ PlacesTreeView.prototype = {
           // Actually, you could argue this point, but looking at the
           // results, seeing the most recently visited date is not what
           // I expect, and gives me no information I know how to use.
-          // Only show this for URI-based items.
+          // Only show this for URI-based nodes.
           return "";
         }
         return this._convertPRTimeToString(node.time);
