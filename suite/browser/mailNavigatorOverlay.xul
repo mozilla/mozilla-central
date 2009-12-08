@@ -9,7 +9,11 @@
 
   <script type="application/javascript">
   <![CDATA[
-    var gUseExternalMailto = Application.prefs.getValue("network.protocol-handler.external.mailto", false);
+    var gUseExternalMailto =
+        Components.classes["@mozilla.org/network/io-service;1"]
+                  .getService(Components.interfaces.nsIIOService)
+                  .getProtocolHandler("mailto")
+                   instanceof Components.interfaces.nsIExternalProtocolHandler;
 
     // attachment: 0 - link
     //             1 - page
@@ -24,7 +28,7 @@
                                .createInstance(Components.interfaces.nsIMsgComposeParams);
         if (params)
         {
-          params.composeFields = Components.classes['@mozilla.org/messengercompose/composefields;1']
+          params.composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
                                            .createInstance(Components.interfaces.nsIMsgCompFields);
           if (params.composeFields)
           {
