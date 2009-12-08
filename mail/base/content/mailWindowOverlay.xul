@@ -40,6 +40,13 @@
 <?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 <?xml-stylesheet href="chrome://communicator/skin/tasksOverlay.css" type="text/css"?>
 
+<!-- Overlaying utilityOverlay.xul here is a temporary band-aid for a
+     hard-to-reproduce problem where File, Edit, and View menus disappear on
+     Mac when certain add-ons are installed (bug 398702).  Work to find a
+     better fix is ongoing.  Ultimately, utilityOverlay.xul wants to
+     disappear from Thunderbird entirely (bug 359748). -->
+<?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
+
 <?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
 #ifdef XP_MACOSX
 <?xul-overlay href="chrome://messenger/content/macMenuOverlay.xul"?>
