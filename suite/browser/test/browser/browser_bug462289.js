@@ -1,5 +1,10 @@
 var tab1, tab2;
 
+function executeSoon(step) {
+  todo(false, "Using setTimeout(,0) instead of real executeSoon() otherwise this test breaks");
+  setTimeout(step, 0);
+}
+
 function test() {
   waitForExplicitFinish();
 

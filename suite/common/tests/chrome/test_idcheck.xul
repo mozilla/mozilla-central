@@ -337,7 +337,7 @@
       }
 
       // wait for all tests to finish
-      executeSoon(FinishTest);
+      SimpleTest.executeSoon(FinishTest);
     }
   ]]>
   </script>
