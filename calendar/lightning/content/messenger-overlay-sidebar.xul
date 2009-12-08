@@ -111,7 +111,8 @@
               command="calendar_new_todo_command"
               observes="calendar_new_todo_command"/>
     <menuseparator id="afterltnNewTask"
-                   insertbefore="menu_newFolder"/>
+                   insertbefore="menu_newFolder"
+                   observes="menu_newFolder"/>
 
     <menuseparator id="beforenewAccountMenuItem"
                    insertbefore="newAccountMenuItem"/>
