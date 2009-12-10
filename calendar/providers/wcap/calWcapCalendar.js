@@ -318,11 +318,14 @@ calWcapCalendar.prototype = {
 
     get defaultTimezone calWcapCalendar_defaultTimezoneGetter() {
         var tzid = this.getCalendarProperties("X-NSCP-CALPROPS-TZID");
-        if (tzid.length == 0) {
+        if (tzid.length > 0) { // first try server-configured tz:
+            return tzid[0];
+        } else {
             logWarning("defaultTimezone: cannot get X-NSCP-CALPROPS-TZID!", this);
-            return "UTC"; // fallback
+            // try to use local one if supported:
+            let tzid = cal.getTimezoneService().defaultTimezone.tzid;
+            return (this.session.getTimezone(tzid) ? tzid : "UTC");
         }
-        return tzid[0];
     },
 
     getAlignedTzid: function calWcapCalendar_getAlignedTzid(tz) {
