@@ -993,6 +993,7 @@ calDavCalendar.prototype = {
         let queryXml = <D:propfind xmlns:D="DAV:">
                         <D:prop>
                             <D:getcontenttype/>
+                            <D:resourcetype/>
                             <D:getetag/>
                         </D:prop>
                        </D:propfind>;

@@ -252,8 +252,11 @@ etagsHandler.prototype = {
         switch (aLocalName) {
             case "response":
                 this.currentResponse = {};
+                this.currentResponse.isCollection = false;
                 this.tag = null
                 break;
+            case "collection":
+                this.currentResponse.isCollection = true;
             case "href":
             case "getetag":
             case "status":
@@ -276,7 +279,8 @@ etagsHandler.prototype = {
                 if (r.status.indexOf(" 200") > 0 &&
                     r.getetag && r.getetag.length &&
                     r.href && r.href.length &&
-                    r.getcontenttype && r.getcontenttype.length) {
+                    r.getcontenttype && r.getcontenttype.length &&
+                    !r.isCollection) {
                     let href;
                     if (r.getcontenttype.substr(0, 14) == "message/rfc822") {
                         // workaround for a Scalix bug which causes incorrect
