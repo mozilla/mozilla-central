@@ -77,20 +77,6 @@ var CACHE_LAST_RESULTS_INVALIDATE = 120;
 var LOG_LEVEL = 0;
 
 function initWcapProvider() {
-    try {
-        // xxx todo: hack
-        // the master password prompt is currently not guarded against
-        // multiple prompt; this initializes/raises the pw db at early stage.
-        let token = Components.classes["@mozilla.org/security/pk11tokendb;1"]
-                              .getService(Components.interfaces.nsIPK11TokenDB)
-                              .getInternalKeyToken();
-        if (!token.checkPassword("")) {
-            token.login(false);
-        }
-    } catch (exc) {
-        // Ignore if the user cancels the prompt or other strange things happen
-    }
-    
     try {        
         // ctors:
         CalDuration = new Components.Constructor("@mozilla.org/calendar/duration;1", "calIDuration");
