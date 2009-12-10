@@ -77,7 +77,7 @@ const gButtonPrefListener =
     array.forEach(
       function(item) {
         if (/\.(bookmarks|home|print)$/.test(item))
-          Application.prefs.get(item).reset();
+          pref.clearUserPref(item);
         else
           this.updateButton(item);
       }, this
