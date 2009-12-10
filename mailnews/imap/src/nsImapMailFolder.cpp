@@ -404,9 +404,15 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
   uri.Append('/');
   AppendUTF16toUTF8(name, uri);
 
+  PRBool isServer;
+  rv = GetIsServer(&isServer);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool isInbox = isServer && name.LowerCaseEqualsLiteral("inbox");
+
   //will make sure mSubFolders does not have duplicates because of bogus msf files.
   nsCOMPtr <nsIMsgFolder> msgFolder;
-  rv = GetChildWithURI(uri, PR_FALSE/*deep*/, PR_FALSE /*case Insensitive*/, getter_AddRefs(msgFolder));
+  rv = GetChildWithURI(uri, PR_FALSE/*deep*/, isInbox /*case Insensitive*/, getter_AddRefs(msgFolder));
   if (NS_SUCCEEDED(rv) && msgFolder)
     return NS_MSG_FOLDER_EXISTS;
 
@@ -426,10 +432,6 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
   folder->SetParent(this);
   flags |= nsMsgFolderFlags::Mail;
 
-  PRBool isServer;
-  rv = GetIsServer(&isServer);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   PRInt32 pFlags;
   GetFlags ((PRUint32 *) &pFlags);
   PRBool isParentInbox = pFlags & nsMsgFolderFlags::Inbox;
@@ -439,7 +441,7 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
   NS_ENSURE_SUCCESS(rv, rv);
 
   //Only set these if these are top level children or parent is inbox
-  if (isServer && name.LowerCaseEqualsLiteral("inbox"))
+  if (isInbox)
     flags |= nsMsgFolderFlags::Inbox;
   else if (isServer || isParentInbox)
   {
@@ -454,8 +456,8 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
     }
   }
 
-  //special case: 
-  // Make the folder offline if it is newly created and offline_download pref is true 
+  //special case:
+  // Make the folder offline if it is newly created and offline_download pref is true.
   if (brandNew)
   {
     PRBool setNewFoldersForOffline = PR_FALSE;
