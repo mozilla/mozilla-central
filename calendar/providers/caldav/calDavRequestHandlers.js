@@ -287,7 +287,10 @@ etagsHandler.prototype = {
                         // contenttype to be returned.
                         r.getcontenttype = "text/calendar";
                     }
-
+                    if (r.getcontenttype == "text/vtodo") {
+                        // workaround Kerio wierdness
+                        r.getcontenttype = "text/calendar";
+                    }
                     if (r.getcontenttype.substr(0,13) == "text/calendar") {
                         // Only handle calendar items
 

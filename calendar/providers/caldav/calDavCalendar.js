@@ -1638,8 +1638,16 @@ calDavCalendar.prototype = {
 
         // We want a trailing slash, ensure it.
         let nsUri = this.calendarUri.clone();
-        nsUri.path = aNameSpaceList.pop().replace(/([^\/])$/, "$1/");
-        let requestUri = this.makeUri(null, nsUri);
+        let nextNS = aNameSpaceList.pop().replace(/([^\/])$/, "$1/");
+        let requestUri;
+        // nextNS could be either a spec or a path
+        if (nextNS.charAt(0) == "/") {
+            nsUri.path = nextNS;
+            requestUri = this.makeUri(null, nsUri);
+        } else {
+            requestUri = makeURL(nextNS);
+        }
+
 
         if (this.verboseLogging()) {
             cal.LOG("CalDAV: send: " + queryMethod + " " + requestUri.spec + "\n" + queryXml);
@@ -1702,7 +1710,13 @@ calDavCalendar.prototype = {
                     }
                 }
                 let ibUrl = thisCalendar.mUri.clone();
-                ibUrl.path = thisCalendar.ensurePath(response..*::["schedule-inbox-URL"]..*::href[0].toString());
+                try {
+                    ibUrl.path = thisCalendar.ensurePath(response..*::["schedule-inbox-URL"]..*::href[0].toString());
+                } catch (ex) {
+                    // most likely this is a Kerio server that omits the "href"
+                    ibUrl.path = thisCalendar.ensurePath(response..*::["schedule-inbox-URL"].toString());
+                }
+
                 thisCalendar.mInboxUrl = ibUrl;
                 if (thisCalendar.calendarUri.spec == ibUrl.spec) {
                     // If the inbox matches the calendar uri (i.e SOGo), then we
@@ -1711,7 +1725,13 @@ calDavCalendar.prototype = {
                 }
 
                 let obUrl = thisCalendar.mUri.clone();
-                obUrl.path = thisCalendar.ensurePath(response..*::["schedule-outbox-URL"]..*::href[0].toString());
+                try {
+                    obUrl.path = thisCalendar.ensurePath(response..*::["schedule-outbox-URL"]..*::href[0].toString());
+                } catch (ex) {
+                    // most likely this is a Kerio server that omits the "href"
+                    obUrl.path = thisCalendar.ensurePath(response..*::["schedule-outbox-URL"].toString());
+                }
+
                 thisCalendar.mOutboxUrl = obUrl;
             }
 
