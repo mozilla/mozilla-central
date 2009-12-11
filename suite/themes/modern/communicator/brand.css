@@ -41,6 +41,7 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+#wrapper-throbber-box > #throbber-box > #navigator-throbber,
 #navigator-throbber {
   -moz-binding: url("chrome://global/content/bindings/button.xml#button-image");
   -moz-user-focus: ignore !important;
@@ -67,6 +68,8 @@ toolbar[mode="icons"] #navigator-throbber {
 }
 
 window[chromehidden~="toolbar"] #navigator-throbber,
+toolbar[mode="text"] #wrapper-throbber-box > #throbber-box > #navigator-throbber,
+toolbar[iconsize="small"] #wrapper-throbber-box > #throbber-box > #navigator-throbber,
 toolbar[mode="text"] #navigator-throbber,
 toolbar[iconsize="small"] #navigator-throbber {
   margin-top: 2px;
