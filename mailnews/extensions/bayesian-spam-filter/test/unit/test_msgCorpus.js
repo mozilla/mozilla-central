@@ -72,7 +72,7 @@ var gTests =
     msgCorpus.corpusCounts(1003, messageCount);
     do_check_eq(1, messageCount.value);
 
-    for (i = 0; i < tokenData.length; i++) {
+    for (let i = 0; i < tokenData.length; i++) {
       let id = tokenData[i][0];
       let count = tokenData[i][1];
       let word = tokenData[i][2];
@@ -91,7 +91,7 @@ var gTests =
     msgCorpus.corpusCounts(1003, messageCount);
     do_check_eq(2, messageCount.value);
 
-    for (i = 0; i < tokenData.length; i++) {
+    for (let i = 0; i < tokenData.length; i++) {
       let id = tokenData[i][0];
       let count = 2 * tokenData[i][1];
       let word = tokenData[i][2];
@@ -104,7 +104,7 @@ var gTests =
     let file = do_get_file("resources/" + fileName);
     msgCorpus.updateData(file, true, 2, [1001, 1003], [1, 3]);
 
-    for (i = 0; i < tokenData.length; i++) {
+    for (let i = 0; i < tokenData.length; i++) {
       let id = tokenData[i][0] - 1000;
       let count = tokenData[i][1];
       let word = tokenData[i][2];
@@ -124,7 +124,7 @@ var gTests =
     msgCorpus.corpusCounts(1003, messageCount);
     do_check_eq(1, messageCount.value);
 
-    for (i = 0; i < tokenData.length; i++) {
+    for (let i = 0; i < tokenData.length; i++) {
       let id = tokenData[i][0];
       let count = tokenData[i][1];
       let word = tokenData[i][2];
@@ -149,7 +149,7 @@ var gTests =
     msgCorpus.corpusCounts(1003, messageCountObject);
     do_check_eq(1, messageCountObject.value);
     // check that token count was cleared
-    for (i = 0; i < tokenData.length; i++) {
+    for (let i = 0; i < tokenData.length; i++) {
       let id = tokenData[i][0];
       let count = tokenData[i][1];
       let word = tokenData[i][2];

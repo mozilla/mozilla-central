@@ -57,6 +57,7 @@ var emails =          [ "ham1.eml",  "ham2.eml",  "spam1.eml",
                         "spam2.eml", "spam3.eml", "spam4.eml" ];
 var classifications = [ kGood,       kGood,       kJunk,
                         kJunk,       kJunk,       kJunk ];
+var trainingData;
 
 // main test
 function run_test()

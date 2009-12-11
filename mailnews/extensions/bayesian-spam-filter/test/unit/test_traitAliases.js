@@ -172,15 +172,15 @@ function startCommand()
   let antiAliases = traitService.getAliases(kAntiTrait, {});
   let proAlias;
   let antiAlias;
-  while (proAlias = proAliases.pop())
+  while ((proAlias = proAliases.pop()))
     traitService.removeAlias(kProTrait, proAlias);
-  while (antiAlias = antiAliases.pop())
+  while ((antiAlias = antiAliases.pop()))
     traitService.removeAlias(kAntiTrait, antiAlias);
 
   // add new aliases
-  while (proAlias = gTest.proAliases.pop())
+  while ((proAlias = gTest.proAliases.pop()))
     traitService.addAlias(kProTrait, proAlias);
-  while (antiAlias = gTest.antiAliases.pop())
+  while ((antiAlias = gTest.antiAliases.pop()))
     traitService.addAlias(kAntiTrait, antiAlias);
   
   nsIJunkMailPlugin.classifyTraitsInMessage(
