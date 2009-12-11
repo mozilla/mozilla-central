@@ -132,6 +132,7 @@ function nsMailServer(handler) {
   this._handler = handler;
   this._readers = [];
   this._test = false;
+  this._watchWord = undefined;
 
   /**
    * An array to hold refs to all the input streams below, so that they don't

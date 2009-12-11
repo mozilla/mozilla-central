@@ -182,7 +182,7 @@ NNTP_RFC977_handler.prototype = {
        return info[1];
 
      var response = info[1]+'\n';
-     for (var header in info[0].headers)
+     for (let header in info[0].headers)
        response += header + ": " + info[0].headers[header] + "\n";
      response += ".";
      return response;
@@ -217,7 +217,7 @@ NNTP_RFC977_handler.prototype = {
   },
   LIST : function (args) {
     var response = "215 list of newsgroup follows\n";
-    for (group in this._daemon._groups) {
+    for (let group in this._daemon._groups) {
       var stats = this._daemon.getGroupStats(this._daemon._groups[group]);
       response += group + " " + stats[1] + " " + stats[0] + " " +
                   (hasFlag(group.flags, NNTP_POSTABLE) ? "y" : "n") + "\n";
@@ -287,7 +287,7 @@ NNTP_RFC977_handler.prototype = {
     }
 
     if (this.posting) {
-      if (line[0] == '.')
+      if (line.charAt(0) == '.')
         line = line.substring(1);
 
       this.post += line+'\n';
@@ -352,7 +352,7 @@ NNTP_RFC977_handler.prototype = {
  */
 function subclass(sub, sup, def) {
   sub.prototype = new sup();
-  for (var obj in def) {
+  for (let obj in def) {
     sub.prototype[obj] = def[obj];
   }
 }

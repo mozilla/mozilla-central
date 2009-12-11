@@ -123,7 +123,7 @@ SMTP_RFC2822_handler.prototype = {
     }
 
     if (this.expectingData) {
-	    if (line[0] == '.')
+	    if (line.charAt(0) == '.')
         line = line.substring(1);
       // This uses CR LF to match with the specification
 	    this.post += line + '\r\n';
