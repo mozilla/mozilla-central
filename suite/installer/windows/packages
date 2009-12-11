@@ -90,7 +90,11 @@ bin\components\docshell.dll
 bin\components\embedcomponents.dll
 bin\components\gkgfxthebes.dll
 bin\components\gklayout.dll
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\gkparser.dll
+#else
+bin\components\htmlpars.dll
+#endif
 bin\components\gkplugin.dll
 bin\components\gkwidget.dll
 bin\components\i18n.dll

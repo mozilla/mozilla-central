@@ -262,8 +262,10 @@ components/xppref32.dll
 #endif
 #ifdef XP_WIN
 #ifdef MOZILLA_1_9_2_BRANCH
+components/htmlpars.dll
 mozjs.dll
 #else
+components/gkparser.dll
 js3250.dll
 #endif
 #endif
