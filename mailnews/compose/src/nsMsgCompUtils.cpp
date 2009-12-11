@@ -972,7 +972,11 @@ mime_generate_attachment_headers (const char *type,
 
     buf.Append("Content-Disposition: ");
 
-    if (pref_content_disposition == 1)
+    // If this is an attachment which is part of the message body and therefore has a
+    // Content-ID (e.g, image in HTML msg), then Content-Disposition has to be inline
+    if (content_id && *content_id)
+      buf.Append("inline");
+    else if (pref_content_disposition == 1)
       buf.Append("attachment");
     else
       if (pref_content_disposition == 2 &&
