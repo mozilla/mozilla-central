@@ -163,8 +163,9 @@ function UpdateHomePageButtons()
 function UpdateHomePagePrefs()
 {
   // update the list of <preference>s to the current settings
-  var newCount = 0; // current number of homepages
+  var newCount = 1; // current number of homepages
   var homePageGroup = CanonifyURLList(GetHomePageGroup()).split("\n");
+  GetHomePagePref(0).value = "about:blank"; // in case it's empty
   if (homePageGroup[0])
   {
     // we have at least one homepage
@@ -273,15 +274,12 @@ function SetHomePageToDefaultPage()
 function Startup()
 {
   // homepage groups can have an arbitrary number of <preference>s,
-  // thus we create them manually here 
+  // except for the default (0), thus we create them manually here 
   gPreferences = document.getElementById("navigator_preferences");
-  var homePageGroup = "";
   var count = GetHomePagePrefCount();
-  for (var i = 0; i < count; ++i)
-  {
-    var pref = AddHomePagePref(i);
-    homePageGroup += pref.value + "\n";
-  }
+  var homePageGroup = GetHomePagePref(0).value + "\n";
+  for (var i = 1; i < count; ++i)
+    homePageGroup += AddHomePagePref(i).value + "\n";
   gDefaultHomePage = CanonifyURLList(GetHomePagePref(0).defaultValue);
   SetHomePageValue(homePageGroup);
   UpdateHomePageButtons();

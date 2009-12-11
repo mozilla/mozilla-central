@@ -59,6 +59,9 @@
       <preference id="browser.tabs.loadOnNewTab"
                   name="browser.tabs.loadOnNewTab"
                   type="int"/>
+      <preference id="browser.startup.homepage"
+                  name="browser.startup.homepage"
+                  type="wstring"/>
       <preference id="browser.startup.homepage.count"
                   name="browser.startup.homepage.count"
                   type="int"/>
