@@ -1869,11 +1869,6 @@ function GetCharsetUIString()
 
 function GenericSendMessage( msgType )
 {
-// This try/catch ensures errors make it to the error console on the
-// MOZILLA_1_9_1_BRANCH. On 1.9.2 and later, globalOverlay.js has been fixed
-// to put the errors to the error console for us and therefore this try/catch
-// can be removed.
-try {
   if (gMsgCompose != null)
   {
     var msgCompFields = gMsgCompose.compFields;
@@ -2121,13 +2116,6 @@ try {
   }
   else
     dump("###SendMessage Error: composeAppCore is null!\n");
-// This try/catch ensures errors make it to the error console on the
-// MOZILLA_1_9_1_BRANCH. On 1.9.2 and later, globalOverlay.js has been fixed
-// to put the errors to the error console for us and therefore this try/catch
-// can be removed.
-} catch (e) {
-  logException(e);
-}
 }
 
 function CheckValidEmailAddress(to, cc, bcc)
