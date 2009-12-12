@@ -357,7 +357,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
       //Don't need to repeat ourself!
       if (!currMessage.Equals(dialogMessage))
       {
-        if (! dialogMessage.IsEmpty())
+        if (!dialogMessage.IsEmpty())
           dialogMessage.Append(PRUnichar('\n'));
         dialogMessage.Append(currMessage);
       }
@@ -368,7 +368,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
       PRBool oopsGiveMeBackTheComposeWindow = PR_TRUE;
       nsString text1;
       bundle->GetStringFromID(NS_MSG_ASK_TO_COMEBACK_TO_COMPOSE, getter_Copies(text1));
-      if (dialogMessage.IsEmpty())
+      if (!dialogMessage.IsEmpty())
         dialogMessage.AppendLiteral("\n");
       dialogMessage.Append(text1);
       nsMsgAskBooleanQuestionByString(prompt, dialogMessage.get(), &oopsGiveMeBackTheComposeWindow, dialogTitle.get());
