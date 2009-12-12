@@ -5473,6 +5473,7 @@ NS_IMETHODIMP
 nsImapMailFolder::NotifySearchHit(nsIMsgMailNewsUrl * aUrl,
                                   const char* searchHitLine)
 {
+  NS_ENSURE_ARG_POINTER(aUrl);
   nsresult rv = GetDatabase();
   if (!mDatabase || NS_FAILED(rv))
     return rv;
