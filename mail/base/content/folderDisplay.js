@@ -2381,7 +2381,7 @@ FakeTreeBoxObject.prototype = {
     if (selection)
       selection.adjustSelection(aIndex, aCount);
   },
-  get element() {return this.domNode;},
+  get domElement() {return this.domNode;},
   get x() {return this.domNode.boxObject.x},
   get y() {return this.domNode.boxObject.y},
   get screenX() {return this.domNode.boxObject.screenX},
