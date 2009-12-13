@@ -262,10 +262,26 @@ components/xppref32.dll
 #endif
 #ifdef XP_WIN
 #ifdef MOZILLA_1_9_2_BRANCH
+components/commandlines.dll
 components/htmlpars.dll
+components/nsappshell.dll
+components/permissions.dll
+components/spellchecker.dll
+components/storagecomps.dll
+components/tkautocomplete.dll
+components/toolkitcomps.dll
+components/xpautocomplete.dll
 mozjs.dll
 #else
+components/appshell.dll
+components/cmdlines.dll
 components/gkparser.dll
+components/perms.dll
+components/spellchk.dll
+components/strgcmps.dll
+components/tkautoc.dll
+components/tkitcmps.dll
+components/xpautoc.dll
 js3250.dll
 #endif
 #endif

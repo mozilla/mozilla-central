@@ -77,13 +77,21 @@ bin\thebes.dll
 ; component binaries
 bin\components\accessibility.dll
 bin\components\appcomps.dll
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\appshell.dll
+#else
+bin\components\nsappshell.dll
+#endif
 bin\components\auth.dll
 bin\components\autoconfig.dll
 bin\components\caps.dll
 bin\components\chardet.dll
 bin\components\chrome.dll
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\cmdlines.dll
+#else
+bin\components\commandlines.dll
+#endif
 bin\components\composer.dll
 bin\components\cookie.dll
 bin\components\docshell.dll
@@ -104,21 +112,36 @@ bin\components\intlapp.dll
 bin\components\mork.dll
 bin\components\mozfind.dll
 bin\components\necko.dll
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\perms.dll
+#else
+bin\components\permissions.dll
+#endif
 bin\components\places.dll
 bin\components\rdf.dll
 bin\components\satchel.dll
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\spellchk.dll
 bin\components\strgcmps.dll
 bin\components\tkautoc.dll
 bin\components\tkitcmps.dll
+#else
+bin\components\spellchecker.dll
+bin\components\storagecomps.dll
+bin\components\tkautocomplete.dll
+bin\components\toolkitcomps.dll
+#endif
 bin\components\txmgr.dll
 bin\components\uconv.dll
 bin\components\ucvmath.dll
 bin\components\universalchardet.dll
 bin\components\webbrwsr.dll
 bin\components\windowds.dll
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\components\xpautoc.dll
+#else
+bin\components\xpautocomplete.dll
+#endif
 bin\components\xpc3250.dll
 bin\components\xppref32.dll
 bin\components\zipwriter.dll
