@@ -39,7 +39,8 @@
 var MODULE_NAME = 'test-quick-search';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
+var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
+                       'search-window-helpers'];
 
 Cu.import("resource://app/modules/quickSearchManager.js");
 
@@ -51,6 +52,8 @@ function setupModule(module) {
   fdh.installInto(module);
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
+  let sh = collector.getModule('search-window-helpers');
+  sh.installInto(module);
 
   folder = create_folder("QuickSearch");
   [setFoo, setBar] =
@@ -245,6 +248,11 @@ function test_search_mode_persistence_subject_to_cc_filter()
 {
   mc.e("searchInput").searchMode =
     QuickSearchConstants.kQuickSearchRecipientOrSubject.toString();
+
+  // Make sure we have a different window open, so that we don't start shutting
+  // down just because the last window was closed.
+  let swc = open_search_window();
+
   plan_for_window_close(mc);
   mc.window.close();
   wait_for_window_close();
@@ -252,6 +260,11 @@ function test_search_mode_persistence_subject_to_cc_filter()
   plan_for_new_window("mail:3pane");
   _open_3pane_window();
   mc = mainController = wait_for_new_window("mail:3pane");
+
+  // We don't need the search window any more
+  plan_for_window_close(swc);
+  swc.window.close();
+  wait_for_window_close();
 
   _assert_quick_search_mode(mc,
       QuickSearchConstants.kQuickSearchRecipientOrSubject.toString());

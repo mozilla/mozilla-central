@@ -45,7 +45,8 @@
 var MODULE_NAME = "test-displaying-messages-in-folder-tabs";
 
 var RELATIVE_ROOT = "../shared-modules";
-var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers"];
+var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
+                       "search-window-helpers"];
 
 var folderA;
 var folderB;
@@ -73,6 +74,8 @@ function setupModule(module) {
   fdh.installInto(module);
   let wh = collector.getModule("window-helpers");
   wh.installInto(module);
+  let sh = collector.getModule("search-window-helpers");
+  sh.installInto(module);
 
   folderA = create_folder("DisplayMessageFolderTabA");
   folderB = create_folder("DisplayMessageFolderTabB");
@@ -102,11 +105,20 @@ function test_display_message_with_no_3pane_windows_open() {
   // Switch to a different folder, just to exercise that code
   be_in_folder(folderB);
 
+  // Make sure we have a different window open, so that we don't start shutting
+  // down just because the last window was closed.
+  let swc = open_search_window();
+
   plan_for_window_close(mc);
   mc.window.close();
   wait_for_window_close();
 
   display_message_in_folder_tab(msgHdr, true);
+
+  // We don't need the search window any more
+  plan_for_window_close(swc);
+  swc.window.close();
+  wait_for_window_close();
 
   // Check that the right message is displayed
   assert_number_of_tabs_open(1);
