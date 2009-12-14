@@ -191,6 +191,9 @@ bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
 bin\components\storage-Legacy.js
 bin\components\storage-mozStorage.js
+#ifndef MOZILLA_1_9_2_BRANCH
+bin\components\crypto-SDR.js
+#endif
 
 ; download progress
 bin\components\nsHelperAppDlg.js
