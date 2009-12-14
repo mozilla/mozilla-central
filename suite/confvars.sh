@@ -62,4 +62,4 @@ MOZ_HELP_VIEWER=1
 # Disable libxul which is (now) the default on mozilla-central. (Bug 394502)
 MOZ_ENABLE_LIBXUL=
 # Until we can build with libxul, we can't have ipc either. (Bug 531292)
-MOZ_ENABLE_IPC=
+MOZ_IPC=

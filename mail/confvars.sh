@@ -70,4 +70,4 @@ MOZ_NO_XPCOM_OBSOLETE=1
 
 # Until we can build with libxul, we can't have ipc either
 MOZ_ENABLE_LIBXUL=
-MOZ_ENABLE_IPC=
+MOZ_IPC=
