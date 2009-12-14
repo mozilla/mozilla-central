@@ -1920,7 +1920,7 @@ DBViewWrapper.prototype = {
   getViewIndexForMsgHdr: function DBViewWrapper_getViewIndexForMsgHdr(aMsgHdr,
       aForceFind) {
     if (this.dbView) {
-      if (this.isSingleFolder && aMsgHdr.folder != this.displayedFolder)
+      if (this.isSingleFolder && aMsgHdr.folder != this.dbView.msgFolder)
         return nsMsgViewIndex_None;
 
       let viewIndex = this.dbView.findIndexOfMsgHdr(aMsgHdr, true);
