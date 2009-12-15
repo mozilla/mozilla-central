@@ -114,7 +114,7 @@ function doTest()
     try {
       testFn();
     } catch(ex) {
-      do_throw ('TEST FAILED ' + e);
+      do_throw ('TEST FAILED ' + ex);
     }
   }
   else
