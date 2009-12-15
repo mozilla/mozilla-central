@@ -414,7 +414,6 @@
                  type="search"
                  emptytext="&searchNameAndEmail.emptytext;"
                  clickSelectsAll="true"
-                 oninput="SearchInputChanged();"
                  oncommand="onEnterInSearchBar();"
                  onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) this.select();"/>
       </toolbaritem>
