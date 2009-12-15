@@ -1248,12 +1248,14 @@
                 return;
             }
             var role = target.getAttribute("role");
-            if (role == "CHAIR") {
+            if (role == "NON-PARTICIPANT") {
                 target.setAttribute("role", "REQ-PARTICIPANT");
             } else if (role == "REQ-PARTICIPANT") {
                 target.setAttribute("role", "OPT-PARTICIPANT");
             } else if (role == "OPT-PARTICIPANT") {
                 target.setAttribute("role", "CHAIR");
+            } else if (role == "CHAIR") {
+                target.setAttribute("role", "NON-PARTICIPANT");
             }
             return;
         }

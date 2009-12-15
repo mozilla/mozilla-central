@@ -639,6 +639,13 @@ daypicker-monthday {
     -moz-image-region: rect(0px 201px 16px 180px);
 }
 
+.role-icon[role="NON-PARTICIPANT"] {
+    -moz-image-region: rect(0px 222px 16px 201px);
+}
+.role-icon[role="NON-PARTICIPANT"][disabled="true"] {
+    -moz-image-region: rect(0px 222px 16px 201px);
+}
+
 .zoom-in-icon {
     margin: 3px 3px;
     list-style-image: url(chrome://calendar/skin/calendar-event-dialog-attendees.png);

@@ -363,6 +363,7 @@
 <!ENTITY event.attendee.role.required           "Required Attendee">
 <!ENTITY event.attendee.role.optional           "Optional Attendee">
 <!ENTITY event.attendee.role.chair              "Chair">
+<!ENTITY event.attendee.role.nonparticipant     "Non Participant">
 
 <!-- Timezone dialog -->
 <!ENTITY timezone.title.label            "Please Specify the Timezone">
