@@ -173,7 +173,7 @@ function doTest(test)
     testFn();
     } catch(ex) {
       gServer.stop();
-      do_throw ('TEST FAILED ' + e);
+      do_throw ('TEST FAILED ' + ex);
     }
   }
   else
