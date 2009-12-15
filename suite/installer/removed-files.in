@@ -53,6 +53,9 @@ components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
 components/chatzilla-service.js
 components/crashreporter.xpt
+#ifdef MOZILLA_1_9_2_BRANCH
+components/crypto-SDR.js
+#endif
 components/downloadmanager.xpt
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
