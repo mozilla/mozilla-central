@@ -257,7 +257,7 @@
           id="popup"
           insertbefore="navBeginGlobalItems"
           oncommand="popupBlockerMenuCommand(event.target);"
-          onpopupshowing="return popupBlockerMenuShowing(event)" >
+          onpopupshowing="if (!/Mac/.test(navigator.platform)) return popupBlockerMenuShowing(event);">
       <menupopup>
         <menuitem id="AllowPopups" label="&cookieAllowPopupsCmd.label;"
                   accesskey="&cookieAllowPopupsCmd.accesskey;" 
@@ -267,8 +267,8 @@
                   oncommand="viewPopups('');"
                   hidden="true"/>
         <menuseparator id="popupMenuSeparator" hidden="true"/>
-        <!-- Additional items are generated, see popupBlockerMenuShowing()
-             in navigator.js -->
+        <!-- Additional items are generated (except for mac - see bug 533097)
+             by popupBlockerMenuShowing() in navigator.js. -->
       </menupopup>
     </menu>
   </menupopup>
