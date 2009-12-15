@@ -94,9 +94,7 @@ treechildren::-moz-tree-cell-text(broken) {
 
 /* Feeds Tab */
 #feedListbox > richlistitem {
-  padding-top: 6px;
-  padding-bottom: 6px;
-  padding: 0 7px;
+  padding: 6px 7px;
   min-height: 25px;
   border-bottom: 1px dotted #C7D0D9;
 }
