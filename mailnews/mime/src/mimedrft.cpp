@@ -417,11 +417,7 @@ mime_free_attach_data ( nsMsgAttachmentData *attachData)
 
   while (tmp && tmp->real_name)
   {
-    if (tmp->url)
-    {
-      delete tmp->url;
-      tmp->url = nsnull;
-    }
+    NS_IF_RELEASE(tmp->url);
     PR_FREEIF(tmp->real_name);
 
     PR_FREEIF(tmp->desired_type);
@@ -516,11 +512,8 @@ mime_draft_process_attachments(mime_draft_data *mdd)
         goto FAIL;
 
       if (NS_FAILED(nsMimeNewURI(&(tmp->url), tmpSpec.get(), nsnull)))
-      {
         goto FAIL;
-      }
 
-      NS_ADDREF(tmp->url);
       if (!tmp->real_name)
       {
         if (tmpFile->real_name)
