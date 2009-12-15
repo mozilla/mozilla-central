@@ -60,7 +60,11 @@ bin\thunderbird.exe
 bin\application.ini
 bin\platform.ini
 bin\README.txt
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\sqlite3.dll
+#else
+bin\mozsqlite3.dll
+#endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Mail Specific Files

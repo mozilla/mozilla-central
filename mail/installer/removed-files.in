@@ -252,6 +252,11 @@ res/html/gopher-sound.gif
 res/html/gopher-telnet.gif
 res/html/gopher-text.gif
 res/html/gopher-unknown.gif
+#ifdef MOZILLA_1_9_2_BRANCH
+@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
+#else
+@DLL_PREFIX@sqlite3@DLL_SUFFIX@
+#endif
 #ifdef XP_MACOSX
 Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Info.plist
 Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/MacOS/Thunderbird

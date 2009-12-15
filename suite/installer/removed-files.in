@@ -127,6 +127,11 @@ msvcr80.dll
 #else
 mozcrt19.dll
 #endif
+#ifdef MOZILLA_1_9_2_BRANCH
+@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
+#else
+@DLL_PREFIX@sqlite3@DLL_SUFFIX@
+#endif
 xpicleanup.exe
 regxpcom.exe
 components/nsPostUpdateWin.js

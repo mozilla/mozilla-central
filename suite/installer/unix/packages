@@ -55,6 +55,11 @@ bin/blocklist.xml
 
 bin/mozilla-xremote-client
 bin/plugins/libnullplugin.so
+#ifdef MOZILLA_1_9_2_BRANCH
+bin\libsqlite3.so
+#else
+bin\libmozsqlite3.so
+#endif
 bin/libsqlite3.so
 #ifndef MOZ_STATIC_BUILD
 bin/libgfxpsshar.so

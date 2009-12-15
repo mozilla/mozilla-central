@@ -68,7 +68,11 @@ bin\blocklist.xml
 
 bin\plugins\npnul32.dll
 bin\AccessibleMarshal.dll
+#ifdef MOZILLA_1_9_2_BRANCH
 bin\sqlite3.dll
+#else
+bin\mozsqlite3.dll
+#endif
 #ifndef MOZ_STATIC_BUILD
 bin\gkgfx.dll
 bin\jsj3250.dll
