@@ -89,6 +89,7 @@ bin/components/libhtmlpars.so
 bin/components/libi18n.so
 bin/components/libimglib2.so
 bin/components/libintlapp.so
+bin/components/libjsctypes.so
 bin/components/libmork.so
 bin/components/libmozfind.so
 bin/components/libnecko.so
