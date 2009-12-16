@@ -642,10 +642,15 @@ nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
   nsCOMPtr <nsISimpleEnumerator> msgEnumerator;
   nsresult rv = threadHdr->EnumerateMessages(parentKey, getter_AddRefs(msgEnumerator));
   NS_ENSURE_SUCCESS(rv, rv);
+  
+  // We use the numChildren as a sanity check on the thread structure.
+  PRUint32 numChildren;
+  (void) threadHdr->GetNumChildren(&numChildren);
   PRBool hasMore;
   nsCOMPtr <nsISupports> supports;
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
-  while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(rv = msgEnumerator->HasMoreElements(&hasMore)) && hasMore)
+  while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(rv = msgEnumerator->HasMoreElements(&hasMore)) &&
+         hasMore)
   {
     rv = msgEnumerator->GetNext(getter_AddRefs(supports));
     if (NS_SUCCEEDED(rv) && supports)
@@ -655,6 +660,17 @@ nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
       msgHdr->GetMessageKey(&msgKey);
       if (msgKey == keyToSkip)
         continue;
+
+      // If we discover depths of more than numChildren, it means we have
+      // some sort of circular thread relationship and we bail out of the
+      // while loop before overflowing the stack with recursive calls.
+      // Technically, this is an error, but forcing a database rebuild
+      // is too destructive so we just return.
+      if (*pNumListed > numChildren)
+      {
+        NS_ERROR("loop in message threading while listing children");
+        return NS_OK;
+      }
 
       PRInt32 childLevel = level;
       if (m_origKeys.BinaryIndexOf(msgKey) != -1)
