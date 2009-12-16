@@ -213,6 +213,7 @@ components/@DLL_PREFIX@i18n@DLL_SUFFIX@
 components/@DLL_PREFIX@imglib2@DLL_SUFFIX@
 components/@DLL_PREFIX@import@DLL_SUFFIX@
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
+components/@DLL_PREFIX@jar50@DLL_SUFFIX@
 components/@DLL_PREFIX@mail@DLL_SUFFIX@
 components/@DLL_PREFIX@mork@DLL_SUFFIX@
 components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
