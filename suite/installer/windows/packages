@@ -141,6 +141,7 @@ bin\components\uconv.dll
 bin\components\ucvmath.dll
 bin\components\universalchardet.dll
 bin\components\webbrwsr.dll
+bin\components\windowsproxy.dll
 bin\components\windowds.dll
 #ifdef MOZILLA_1_9_2_BRANCH
 bin\components\xpautoc.dll

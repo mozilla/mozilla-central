@@ -279,6 +279,7 @@ components/spellchk.dll
 components/strgcmps.dll
 components/tkautoc.dll
 components/tkitcmps.dll
+components/windowsproxy.dll
 components/xpautoc.dll
 components/xpc3250.dll
 components/xppref32.dll
