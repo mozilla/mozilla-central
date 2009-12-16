@@ -64,7 +64,6 @@ bin/libmozsqlite3.so
 bin/libgfxpsshar.so
 bin/libgkgfx.so
 bin/libgtkxtbin.so
-bin/libjsj.so
 bin/libthebes.so
 
 ; component binaries

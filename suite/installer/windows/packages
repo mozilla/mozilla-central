@@ -75,7 +75,6 @@ bin\mozsqlite3.dll
 #endif
 #ifndef MOZ_STATIC_BUILD
 bin\gkgfx.dll
-bin\jsj3250.dll
 bin\thebes.dll
 
 ; component binaries
