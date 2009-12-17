@@ -546,19 +546,24 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
             else
               pFile->GetLeafName (leafName);
 
-             nsCOMPtr <nsIFile> pTempFile;
-             rv = pTempDir->Clone(getter_AddRefs(pTempFile));
-             if (NS_FAILED(rv) || (!pTempFile) )
-               return rv;
+            nsCOMPtr<nsIMsgAttachment> attachment = do_CreateInstance(NS_MSGATTACHMENT_CONTRACTID, &rv);
+            NS_ENSURE_SUCCESS(rv, rv);
+            attachment->SetName(leafName);
 
-             pTempFile->Append(leafName);
-             pTempFile->Exists(&bExist);
-             if (bExist)
-             {
-               rv = pTempFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0777);
-               NS_ENSURE_SUCCESS(rv, rv);
-               pTempFile->Remove(PR_FALSE); // remove so we can copy over it.
-             }
+            nsCOMPtr<nsIFile> pTempFile;
+            rv = pTempDir->Clone(getter_AddRefs(pTempFile));
+            if (NS_FAILED(rv) || !pTempFile)
+              return rv;
+
+            pTempFile->Append(leafName);
+            pTempFile->Exists(&bExist);
+            if (bExist)
+            {
+              rv = pTempFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0777);
+              NS_ENSURE_SUCCESS(rv, rv);
+              pTempFile->Remove(PR_FALSE); // remove so we can copy over it.
+              pTempFile->GetLeafName(leafName);
+            }
             // copy the file to its new location and file name
             pFile->CopyTo(pTempDir, leafName);
             // point pFile to the new location of the attachment
@@ -566,8 +571,6 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
             pFile->Append(leafName);
 
             // create MsgCompose attachment object
-            nsCOMPtr<nsIMsgAttachment> attachment = do_CreateInstance(NS_MSGATTACHMENT_CONTRACTID, &rv);
-            NS_ENSURE_SUCCESS(rv, rv);
             attachment->SetTemporary(PR_TRUE); // this one is a temp file so set the flag for MsgCompose
 
             // now set the attachment object
