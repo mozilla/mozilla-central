@@ -180,6 +180,8 @@ classic.jar:
   skin/classic/messenger/icons/symbol-forwarded-selected.png     (mail/icons/symbol-forwarded-selected.png)
   skin/classic/messenger/icons/symbol-replied.png                (mail/icons/symbol-replied.png)
   skin/classic/messenger/icons/symbol-replied-selected.png       (mail/icons/symbol-replied-selected.png)
+  skin/classic/messenger/icons/symbol-replied-forwarded.png       (mail/icons/symbol-replied-forwarded.png)
+  skin/classic/messenger/icons/symbol-replied-forwarded-selected.png       (mail/icons/symbol-replied-forwarded-selected.png)
   skin/classic/messenger/icons/symbol-imapdeleted.png            (mail/icons/symbol-imapdeleted.png)
   skin/classic/messenger/icons/symbol-imapdeleted-selected.png   (mail/icons/symbol-imapdeleted-selected.png)
   skin/classic/messenger/icons/symbol-null.png                   (mail/icons/symbol-null.png)
