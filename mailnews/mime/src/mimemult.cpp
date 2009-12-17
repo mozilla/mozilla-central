@@ -617,7 +617,13 @@ MimeMultipart_close_child(MimeObject *object)
   if (cont->nchildren > 0)
   {
     MimeObject *kid = cont->children[cont->nchildren-1];
-    if (kid)
+    // If we have a child and it has not already been closed, process it.
+    // The kid would be already be closed if we encounter a multipart section
+    // that did not have a fully delineated header block.  No header block means
+    // no creation of a new child, but the termination case still happens and
+    // we still end up here.  Obviously, we don't want to close the child a
+    // second time and the best thing we can do is nothing.
+    if (kid && !kid->closed_p)
     {
       int status;
       status = kid->clazz->parse_eof(kid, PR_FALSE);
