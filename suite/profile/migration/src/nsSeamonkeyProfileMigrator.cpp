@@ -90,8 +90,11 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems,
     GetProfilePath(aStartup, getter_AddRefs(mTargetProfile));
     if (!mTargetProfile) return NS_ERROR_FAILURE;
   }
-  if (!mSourceProfile)
+  if (!mSourceProfile) {
     GetSourceProfile(aProfile);
+    if (!mSourceProfile)
+      return NS_ERROR_FAILURE;
+  }
 
   NOTIFY_OBSERVERS(MIGRATION_STARTED, nsnull);
 
