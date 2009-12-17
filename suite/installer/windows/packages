@@ -585,10 +585,11 @@ bin\components\jsmimeemitter.js
 bin\modules\gloda\*
 
 [chatzilla]
-bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\components\chatzilla-service.js
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\chrome\chatzilla.jar
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\chrome\icons\default\chatzilla-window.ico
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\chrome.manifest
+bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\components\chatzilla-service.js
+bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\components\components.list
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\install.rdf
 bin\extensions\langpack-@AB_CD@@chatzilla.mozilla.org\chrome\chatzilla.jar
 bin\extensions\langpack-@AB_CD@@chatzilla.mozilla.org\chrome.manifest
@@ -596,9 +597,10 @@ bin\extensions\langpack-@AB_CD@@chatzilla.mozilla.org\install.js
 bin\extensions\langpack-@AB_CD@@chatzilla.mozilla.org\install.rdf
 
 [venkman]
-bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\components\venkman-service.js
 bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\chrome\venkman.jar
 bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\chrome.manifest
+bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\components\components.list
+bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\components\venkman-service.js
 bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\install.rdf
 
 [inspector]
@@ -606,6 +608,7 @@ bin\extensions\inspector@mozilla.org\install.rdf
 bin\extensions\inspector@mozilla.org\chrome.manifest
 bin\extensions\inspector@mozilla.org\chrome\inspector.jar
 bin\extensions\inspector@mozilla.org\platform\WINNT\chrome\icons\default\winInspectorMain.ico
+bin\extensions\inspector@mozilla.org\components\components.list
 bin\extensions\inspector@mozilla.org\components\inspector-cmdline.js
 bin\extensions\inspector@mozilla.org\defaults\preferences\inspector.js
 
