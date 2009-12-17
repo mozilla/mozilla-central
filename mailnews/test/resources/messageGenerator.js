@@ -117,9 +117,12 @@ function SyntheticPart(aProperties) {
       this._encoding = aProperties.encoding;
     if ("contentId" in aProperties)
       this._contentId = aProperties.contentId;
+    if ("disposition" in aProperties)
+      this._forceDisposition = aProperties.disposition;
   }
 }
 SyntheticPart.prototype = {
+  _forceDisposition: null,
   get contentTypeHeaderValue() {
     let s = this._contentType;
     if (this._charset)
@@ -143,11 +146,13 @@ SyntheticPart.prototype = {
     return this._encoding;
   },
   get hasDisposition() {
-    return this._filename;
+    return this._forceDisposition || this._filename;
   },
   get contentDispositionHeaderValue() {
     let s = '';
-    if (this._filename)
+    if (this._forceDisposition)
+      s += this._forceDisposition;
+    else if (this._filename)
       s += 'attachment;\r\n filename="' + this._filename + '"';
     return s;
   },
@@ -181,6 +186,21 @@ SyntheticPartLeaf.prototype = {
 };
 
 /**
+ * A part that tells us to produce NO output in a multipart section.  So if our
+ *  separator is "--BOB", we might produce "--BOB\n--BOB--\n" instead of having
+ *  some headers and actual content in there.
+ * This is not a good idea and probably not legal either, but it happens and
+ *  we need to test for it.
+ */
+function SyntheticDegeneratePartEmpty() {
+}
+SyntheticDegeneratePartEmpty.prototype = {
+  prettyString: function SyntheticDegeneratePartEmpty_prettyString(aIndent) {
+    return "Degenerate Empty Part";
+  }
+};
+
+/**
  * Multipart (multipart/*) MIME part base class.
  */
 function SyntheticPartMulti(aParts, aProperties) {
@@ -197,6 +217,8 @@ SyntheticPartMulti.prototype = {
     let s = "This is a multi-part message in MIME format.\r\n";
     for (let [,part] in Iterator(this.parts)) {
       s += "--" + this._boundary + "\r\n";
+      if (part instanceof SyntheticDegeneratePartEmpty)
+        continue;
       s += "Content-Type: " + part.contentTypeHeaderValue + '\r\n';
       if (part.hasTransferEncoding)
         s += 'Content-Transfer-Encoding: ' +

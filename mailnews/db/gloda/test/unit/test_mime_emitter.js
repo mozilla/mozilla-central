@@ -45,7 +45,24 @@
  * - sun attachment
  */
 
-load("resources/glodaTestHelper.js");
+/*
+ * Do not include glodaTestHelper because we do not want gloda loaded and it
+ *  adds a lot of runtime overhead which makes certain debugging strategies like
+ *  using chronicle-recorder impractical.
+ */
+load("../../mailnews/resources/mailDirService.js");
+load("../../mailnews/resources/mailTestUtils.js");
+load("../../mailnews/resources/logHelper.js");
+load("../../mailnews/resources/asyncTestUtils.js");
+
+load("../../mailnews/resources/messageGenerator.js");
+load("../../mailnews/resources/messageModifier.js");
+load("../../mailnews/resources/messageInjection.js");
+
+// Create a message generator
+const msgGen = gMessageGenerator = new MessageGenerator();
+// Create a message scenario generator using that message generator
+const scenarios = gMessageScenarioFactory = new MessageScenarioFactory(msgGen);
 
 Components.utils.import("resource://app/modules/gloda/mimemsg.js");
 
@@ -61,6 +78,11 @@ var partMailingListFooter = new SyntheticPartLeaf("I am an annoying footer!");
 
 var tachText = {filename: 'bob.txt', body: 'I like cheese!'};
 var partTachText = new SyntheticPartLeaf(tachText.body, tachText);
+var tachInlineText = {filename: 'foo.txt', body: 'Rock the mic',
+                      format: null, charset: null,
+                      disposition: 'inline'};
+var partTachInlineText = new SyntheticPartLeaf(tachInlineText.body,
+                                               tachInlineText);
 
 var tachImage = {filename: 'bob.png', contentType: 'image/png',
                  encoding: 'base64', charset: null, format: null,
@@ -83,6 +105,8 @@ var partTachApplication = new SyntheticPartLeaf(tachApplication.body,
                                                 tachApplication);
 
 var partTachMessages = [msgGen.makeMessage(), msgGen.makeMessage()];
+
+var partEmpty = new SyntheticDegeneratePartEmpty();
 
 var messageInfos = [
   // -- simple
@@ -227,7 +251,24 @@ var messageInfos = [
   {
     name: 'multipart/parallel',
     bodyPart: new SyntheticPartMultiParallel([partText, partTachImage]),
-  }
+  },
+  // -- empty sections
+  // This was a crasher because the empty part made us try and close the
+  //  child preceding the empty part a second time.  The nested multipart led
+  //  to the crash providing evidence of the double-close bug but there was
+  //  nothing inherently nested-multipart-requiring to trigger the double-close
+  //  bug.
+  {
+    name: 'nested multipart with empty multipart section',
+    bodyPart: new SyntheticPartMultiMixed([
+        new SyntheticPartMultiRelated([partAlternative, partTachText]),
+        partEmpty
+      ])
+  },
+  {
+    name: 'empty multipart section produces no child',
+    bodyPart: new SyntheticPartMultiMixed([partText, partEmpty, partTachText])
+  },
 ];
 
 
@@ -264,9 +305,16 @@ function verify_body_part_equivalence(aSynBodyPart, aMimePart) {
     do_check_eq(aSynBodyPart.body.trim(), aMimePart.body.trim());
   if (aSynBodyPart.parts) {
     let iPart;
+    let realPartOffsetCompensator = 0;
     for (iPart = 0; iPart < aSynBodyPart.parts.length; iPart++) {
       let subSyn = aSynBodyPart.parts[iPart];
-      let subMime = aMimePart.parts[iPart];
+      // If this is a degenerate empty, it should not produce output, so
+      //  compensate for the offset drift and get on with our lives.
+      if (subSyn instanceof SyntheticDegeneratePartEmpty) {
+        realPartOffsetCompensator--;
+        continue;
+      }
+      let subMime = aMimePart.parts[iPart + realPartOffsetCompensator];
       // our special case is the signature, which libmime does not expose to us.
       // ignore! (also, have our too-many-part checker below not trip on this)
       if (subSyn._contentType != PKCS_SIGNATURE_MIME_TYPE) {
@@ -321,7 +369,5 @@ var gInbox;
 function run_test() {
   // use mbox injection because the fake server chokes sometimes right now
   gInbox = configure_message_injection({mode: "local"});
-  // we do not require gloda indexing of anything.
-  configure_gloda_indexing({event: false});
-  glodaHelperRunTests(tests);
+  async_run_tests(tests);
 }
