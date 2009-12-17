@@ -798,7 +798,10 @@ nsresult EscapeFromSpaceLine(nsIOutputStream *outputStream, char *start, const c
   pChar = start;
   while (start < end)
   {
-    while ((pChar < end) && (*pChar != '\r') && (*(pChar+1) != '\n'))
+    while ((pChar < end) && (*pChar != '\r') && ((pChar + 1) < end) &&
+           (*(pChar + 1) != '\n'))
+      pChar++;
+    if ((pChar + 1) == end)
       pChar++;
 
     if (pChar < end)
