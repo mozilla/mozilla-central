@@ -845,6 +845,19 @@ function middle_click_on_folder(aFolder) {
 }
 
 /**
+ * Get a reference to the smart folder with the given name.
+ *
+ * @param aFolderName The name of the smart folder (e.g. "Inbox").
+ * @returns An nsIMsgFolder representing the smart folder with the given name.
+ */
+function get_smart_folder_named(aFolderName) {
+  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
+                  .getService(Ci.nsIMsgAccountManager);
+  let smartServer = acctMgr.FindServer("nobody", "smart mailboxes", "none");
+  return smartServer.rootFolder.getChildNamed(aFolderName);
+}
+
+/**
  * Assuming the context popup is popped-up (via right_click_on_row), select
  *  the deletion option.  If the popup is not popped up, you are out of luck.
  */

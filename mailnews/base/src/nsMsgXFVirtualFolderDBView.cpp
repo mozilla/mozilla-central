@@ -114,6 +114,24 @@ nsMsgXFVirtualFolderDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger 
 
   newMsgDBView->m_viewFolder = m_viewFolder;
   newMsgDBView->m_searchSession = m_searchSession;
+
+  PRInt32 scopeCount;
+  nsCOMPtr <nsIMsgSearchSession> searchSession =
+    do_QueryReferent(m_searchSession);
+  nsresult rv;
+  nsCOMPtr<nsIMsgDBService> msgDBService =
+    do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  searchSession->CountSearchScopes(&scopeCount);
+  for (PRInt32 i = 0; i < scopeCount; i++)
+  {
+    nsMsgSearchScopeValue scopeId;
+    nsCOMPtr<nsIMsgFolder> searchFolder;
+    searchSession->GetNthSearchScope(i, &scopeId, getter_AddRefs(searchFolder));
+    if (searchFolder)
+      msgDBService->RegisterPendingListener(searchFolder, newMsgDBView);
+  }
+
   return NS_OK;
 }
 

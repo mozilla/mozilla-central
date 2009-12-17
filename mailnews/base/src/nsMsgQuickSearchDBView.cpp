@@ -75,6 +75,25 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTy
   return InitThreadedView(pCount);
 }
 
+NS_IMETHODIMP
+nsMsgQuickSearchDBView::CloneDBView(nsIMessenger *aMessengerInstance,
+                                    nsIMsgWindow *aMsgWindow,
+                                    nsIMsgDBViewCommandUpdater *aCmdUpdater,
+                                    nsIMsgDBView **_retval)
+{
+  nsMsgQuickSearchDBView* newMsgDBView;
+  NS_NEWXPCOM(newMsgDBView, nsMsgQuickSearchDBView);
+
+  if (!newMsgDBView)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  nsresult rv = CopyDBView(newMsgDBView, aMessengerInstance, aMsgWindow, aCmdUpdater);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  NS_IF_ADDREF(*_retval = newMsgDBView);
+  return NS_OK;
+}
+
 nsresult nsMsgQuickSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage)
 {
   for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++) 

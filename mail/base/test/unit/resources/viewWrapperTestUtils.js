@@ -127,7 +127,10 @@ var gMockViewWrapperListener = {
     }
   },
 
-
+  messagesRemovedEventCount: 0,
+  onMessagesRemoved: function() {
+    this.messagesRemovedEventCount++;
+  }
 };
 
 function punt() {
@@ -208,6 +211,15 @@ var VWTU_testHelper = {
 
 function make_view_wrapper() {
   let wrapper = new DBViewWrapper(gMockViewWrapperListener);
+  VWTU_testHelper.active_view_wrappers.push(wrapper);
+  return wrapper;
+}
+
+/**
+ * Clone an open and valid view wrapper.
+ */
+function clone_view_wrapper(aViewWrapper) {
+  let wrapper = aViewWrapper.clone(gMockViewWrapperListener);
   VWTU_testHelper.active_view_wrappers.push(wrapper);
   return wrapper;
 }

@@ -412,6 +412,11 @@ function test_virtual_folder_param_quick_search_complex(aNumFolders) {
 
 /* ===== Virtual Folder, Mail View and Quick Search ===== */
 
+/**
+ * Test the complex intersection of all three search clauses for result
+ *  retrieval and that deletion correctly removes rows.  Check that clones
+ *  end up operating the same too.
+ */
 function test_virtual_folder_param_mail_view_and_quick_search(aNumFolders) {
   let viewWrapper = make_view_wrapper();
 
@@ -423,15 +428,44 @@ function test_virtual_folder_param_mail_view_and_quick_search(aNumFolders) {
        {subject: "bar"}, {}]);
   let virt = make_virtual_folder(folders, {subject: "foo"});
   yield async_view_open(viewWrapper, virt);
+  // mailview on unread
   yield async_view_set_mail_view(viewWrapper, MailViewConstants.kViewItemUnread);
   yield async_view_quick_search(viewWrapper,
                                 QuickSearchConstants.kQuickSearchSubject,
                                 "bar");
   verify_messages_in_view([fooBarOne, fooBarTwo], viewWrapper);
 
+  // clone and make sure the clone has the same results before/after refresh
+  let clonedWrapper = clone_view_wrapper(viewWrapper);
+  verify_messages_in_view([fooBarOne, fooBarTwo], clonedWrapper);
+  yield async_view_refresh(clonedWrapper);
+  verify_messages_in_view([fooBarOne, fooBarTwo], clonedWrapper);
+
+  // - Mark a set read so only one set remains.
   fooBarTwo.setRead(true);
+  // We need to refresh to actually see the change (views do not make things
+  //  disappear out from under the user for attribute changes.)
   yield async_view_refresh(viewWrapper);
   verify_messages_in_view(fooBarOne, viewWrapper);
+  // (and make sure the clone sees this change too)
+  yield async_view_refresh(clonedWrapper);
+  verify_messages_in_view(fooBarOne, clonedWrapper);
+
+  // Make another clone to make sure the deleted notification shows up even
+  //  without a refresh triggering the creation of a new search session.
+  let doubleClone = clone_view_wrapper(clonedWrapper);
+
+  // - Delete some messages
+  // This should result in both views getting a messages removed notification.
+  gMockViewWrapperListener.messagesRemovedEventCount = 0;
+  yield async_delete_messages(fooBarOne);
+  // (thrice for each folder because we have three views listening)
+  do_check_eq(gMockViewWrapperListener.messagesRemovedEventCount,
+              aNumFolders * 3);
+
+  verify_messages_in_view([], viewWrapper);
+  verify_messages_in_view([], clonedWrapper);
+  verify_messages_in_view([], doubleClone);
 }
 
 var tests = [

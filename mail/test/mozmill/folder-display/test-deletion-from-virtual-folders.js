@@ -49,6 +49,8 @@ var baseFolder, folder, lastMessageFolder;
 
 var tabFolder, tabMessage, tabMessageBackground, curMessage, nextMessage;
 
+var setNormal;
+
 /**
  * The message window controller.
  */
@@ -67,6 +69,8 @@ function setupModule(module) {
   let [, setTagged] = make_new_sets_in_folder(baseFolder, [{count: 4},
                                                            {count: 4}]);
   setTagged.addTag("$label1"); // Important, by default
+  // We depend on the count for this, too
+  [setNormal] = make_new_sets_in_folder(inboxFolder, [{count: 4}]);
 
   // Add the view picker to the toolbar
   let toolbar = mc.e("mail-bar3");
@@ -137,11 +141,7 @@ function subtest_save_mail_view(savc) {
   savc.window.onOK();
 }
 
-function test_open_first_message_in_virtual_folder() {
-  folder = baseFolder.findSubFolder(baseFolder.prettyName + "-Important");
-  if (!folder)
-    throw new Error("DeletionFromVirtualFoldersA-Important was not created!");
-
+function _open_first_message() {
   // Enter the folder and open a message
   tabFolder = be_in_folder(folder);
   curMessage = select_click_row(0);
@@ -162,6 +162,15 @@ function test_open_first_message_in_virtual_folder() {
   switch_tab(tabFolder);
   msgc = open_selected_message_in_new_window();
   assert_selected_and_displayed(msgc, curMessage);
+}
+
+
+function test_open_first_message_in_virtual_folder() {
+  folder = baseFolder.findSubFolder(baseFolder.prettyName + "-Important");
+  if (!folder)
+    throw new Error("DeletionFromVirtualFoldersA-Important was not created!");
+
+  _open_first_message();
 }
 
 /**
@@ -243,4 +252,106 @@ function test_delete_last_message_from_virtual_folder_closes_message_displays() 
   // the below check is implied by the previous check if things are sane-ish
   if (mc.tabmail.currentTabInfo != tabFolder)
     throw new Error("We should be on the folder tab!");
+}
+
+/**
+ * Open the first message in the smart inbox.
+ */
+function test_open_first_message_in_smart_inbox() {
+  // Switch to smart folders
+  mc.folderTreeView.mode = "smart";
+  // Select the smart inbox
+  folder = get_smart_folder_named("Inbox");
+  be_in_folder(folder);
+  assert_messages_in_view(setNormal);
+  // Open the first message
+  _open_first_message();
+}
+
+/**
+ * Perform a deletion from the folder tab, verify the others update correctly
+ * (advancing to the next message).
+ */
+function test_delete_from_smart_inbox_in_folder_tab() {
+  // XXX We need to do this to get the test working on trunk. If we don't have
+  // this, the deletes never happen, probably because we don't receive the delete
+  // keypress event.
+  focus_thread_tree();
+
+  // - plan to end up on the guy who is currently at index 1
+  curMessage = mc.dbView.getMsgHdrAt(1);
+  // while we're at it, figure out who is at 2 for the next step
+  nextMessage = mc.dbView.getMsgHdrAt(2);
+  // - delete the message
+  press_delete();
+
+  // - verify all displays
+  _verify_message_is_displayed_in(VERIFY_ALL, curMessage, 0);
+}
+
+/**
+ * Perform a deletion from the message tab, verify the others update correctly
+ *  (advancing to the next message).
+ */
+function test_delete_from_smart_inbox_in_message_tab() {
+  switch_tab(tabMessage);
+  // nextMessage is the guy we want to see once the delete completes.
+  press_delete();
+  curMessage = nextMessage;
+
+  // - verify all displays
+  _verify_message_is_displayed_in(VERIFY_ALL, curMessage, 0);
+
+  // figure out the next guy...
+  nextMessage = mc.dbView.getMsgHdrAt(1);
+  if (!nextMessage)
+    throw new Error("We ran out of messages early?");
+}
+
+/**
+ * Perform a deletion from the message window, verify the others update
+ *  correctly (advancing to the next message).
+ */
+function test_delete_from_smart_inbox_in_message_window() {
+  // - delete
+  press_delete(msgc);
+  curMessage = nextMessage;
+  // - verify all displays
+  _verify_message_is_displayed_in(VERIFY_ALL, curMessage, 0);
+}
+
+/**
+ * Delete the last message in that folder, which should close all message
+ *  displays.
+ */
+function test_delete_last_message_from_smart_inbox_closes_message_displays() {
+  // - since we have both foreground and background message tabs, we don't need
+  // to open yet another tab to test
+
+  // - prep for the message window disappearing
+  plan_for_window_close(msgc);
+
+  // - let's arbitrarily perform the deletion on this message tab
+  switch_tab(tabMessage);
+  press_delete();
+
+  // - the message window should have gone away...
+  // (this also helps ensure that the 3pane gets enough event loop time to do
+  //  all that it needs to accomplish)
+  wait_for_window_close(msgc);
+  msgc = null;
+
+  // - and we should now be on the folder tab and there should be no other tabs
+  if (mc.tabmail.tabInfo.length != 1)
+    throw new Error("There should only be one tab left!");
+  // the below check is implied by the previous check if things are sane-ish
+  if (mc.tabmail.currentTabInfo != tabFolder)
+    throw new Error("We should be on the folder tab!");
+}
+
+/**
+ * Switch back to the all folders mode for further tests.
+ */
+function test_switch_back_to_all_folders_mode() {
+  mc.folderTreeView.mode = "all";
 }

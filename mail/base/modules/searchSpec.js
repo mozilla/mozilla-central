@@ -79,8 +79,8 @@ SearchSpec.prototype = {
 
     // we can just copy the terms since we never mutate them
     doppel._viewTerms = this._viewTerms;
-    doppel._virtualFolderTerms = this._viewTerms;
-    doppel._userTerms = this._viewTerms;
+    doppel._virtualFolderTerms = this._virtualFolderTerms;
+    doppel._userTerms = this._userTerms;
 
     // _session can stay null
     // no listener is required, so we can keep _sessionListener and

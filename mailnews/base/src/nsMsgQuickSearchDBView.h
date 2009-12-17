@@ -64,6 +64,10 @@ public:
                           nsMsgViewSortOrderValue aSortOrder, 
                           nsMsgViewFlagsTypeValue aViewFlags, 
                           PRInt32 *aCount);
+  NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance,
+                         nsIMsgWindow *aMsgWindow,
+                         nsIMsgDBViewCommandUpdater *aCommandUpdater,
+                         nsIMsgDBView **_retval);
   NS_IMETHOD DoCommand(nsMsgViewCommandTypeValue aCommand);
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags);
