@@ -593,8 +593,6 @@ function loadStartFolder(initialUri)
                   .getService(Components.interfaces.nsIPK11TokenDB)
                   .getInternalKeyToken();
 
-      // If an empty string is valid for the internal token, then we don't
-      // have a master password, else, if it does, then try to login.
       try {
         // For an empty master password, calling token.login() doesn't show the prompt.
         token.login(false);
