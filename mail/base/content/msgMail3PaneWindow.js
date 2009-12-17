@@ -1176,7 +1176,7 @@ function ThreadPaneOnDragStart(aEvent) {
     aEvent.dataTransfer.mozSetDataAt("text/x-moz-message", messages[i], i);
     aEvent.dataTransfer.mozSetDataAt("text/x-moz-url",msgUrls.value.spec, i);
     aEvent.dataTransfer.mozSetDataAt("application/x-moz-file-promise-url",
-                                     msgUrls.value.spec + "&fileName=" + uniqueFileName,
+                                     msgUrls.value.spec + "?fileName=" + uniqueFileName,
                                      i);
     aEvent.dataTransfer.mozSetDataAt("application/x-moz-file-promise", null, i);
   }

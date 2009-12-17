@@ -379,7 +379,6 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetSpec(nsACString &aSpec)
   return m_baseURL->GetSpec(aSpec);
 }
 
-#define FILENAME_PART "&filename="
 #define FILENAME_PART_LEN 10
 
 NS_IMETHODIMP nsMsgMailNewsUrl::SetSpec(const nsACString &aSpec)
@@ -387,7 +386,9 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SetSpec(const nsACString &aSpec)
   nsCAutoString spec(aSpec);
   // Parse out "filename" attribute if present.
   char *start, *end;
-  start = PL_strcasestr(spec.BeginWriting(),FILENAME_PART);
+  start = PL_strcasestr(spec.BeginWriting(),"?filename=");
+  if (!start)
+    start = PL_strcasestr(spec.BeginWriting(),"&filename=");
   if (start)
   { // Make sure we only get our own value.
     end = PL_strcasestr((char*)(start+FILENAME_PART_LEN),"&");
