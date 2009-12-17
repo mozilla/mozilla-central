@@ -1983,10 +1983,10 @@ mimeSetNewURL(nsMIMESession *stream, char *url)
 
   char *tmpPtr = strdup(url);
   if (!tmpPtr)
-    return NS_ERROR_FAILURE;
+    return NS_ERROR_OUT_OF_MEMORY;
 
   PR_FREEIF(msd->url_name);
-  msd->url_name = strdup(tmpPtr);
+  msd->url_name = tmpPtr;
   return NS_OK;
 }
 
