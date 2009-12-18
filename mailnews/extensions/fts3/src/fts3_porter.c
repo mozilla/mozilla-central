@@ -95,7 +95,7 @@ static const unsigned char sqlite3Utf8Trans1[] = {
  *
  * @param zIn A pointer to the current position that is updated by the routine,
  *     pointing at the start of the next character when the routine returns.
- * @param zTerm A pointer to the end of the buffer.
+ * @param zTerm A pointer one past the end of the buffer.
  * @param c The 'unsigned int' to hold the resulting character value.  Do not
  *      use a short or a char.
  */
@@ -726,7 +726,7 @@ static const char porterIdChar[] = {
 
 static int isDelim(
   const unsigned char *zCur,    /* IN: current pointer of token */
-  const unsigned char *zTerm,   /* IN: last pointer of token */
+  const unsigned char *zTerm,   /* IN: one character beyond end of token */
   int *len,                     /* OUT: analyzed bytes in this token */
   int *state                    /* IN/OUT: analyze state */
 ){
@@ -899,7 +899,7 @@ static int porterNext(
       /* Scan past delimiter characters */
       state = BIGRAM_RESET; /* reset */
       while (c->iOffset < c->nInput &&
-             isDelim(z + c->iOffset, z + c->nInput - 1, &len, &state)) {
+             isDelim(z + c->iOffset, z + c->nInput, &len, &state)) {
         c->iOffset += len;
       }
 
@@ -931,7 +931,7 @@ static int porterNext(
     //  the number of bytes in the character found at iOffset.  (This is useful
     //  in the CJK case.)
     while (c->iOffset < c->nInput &&
-           !isDelim(z + c->iOffset, z + c->nInput - 1, &len, &state)) {
+           !isDelim(z + c->iOffset, z + c->nInput, &len, &state)) {
       c->iOffset += len;
       numChars++;
     }

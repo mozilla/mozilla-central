@@ -36,17 +36,32 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
- * Test that i18n goes through das pipes acceptably.  Currently this means:
- * - Subject, Body, and Attachment names are properly indexed.
+ * Sanity check our encoding transforms and make sure the mozporter tokenizer
+ *  is resulting in the expected fulltext search results.  Specifically:
+ * - Check that subject, body, and attachment names are properly indexed;
+ *    previously we screwed up at least one of these in terms of handling
+ *    encodings properly.
+ * - Check that we can fulltext search on those things afterwards.
  */
 
 load("resources/glodaTestHelper.js");
 
 /* ===== Tests ===== */
 
+/**
+ * To make the encoding pairs:
+ * - For the subject bit:
+ *   import email
+ *   h = email.header.Header(charset=CHARSET)
+ *   h.append(STRING)
+ *   h.encode()
+ * - For the body bit
+ *   s.encode(CHARSET)
+ */
 var intlPhrases = [
+  // -- CJK case
   {
-    name: "Vending Machine",
+    name: "CJK: Vending Machine",
     actual: '\u81ea\u52d5\u552e\u8ca8\u6a5f',
     encodings: {
       'utf-8': ['=?utf-8?b?6Ieq5YuV5ZSu6LKo5qmf?=',
@@ -55,11 +70,55 @@ var intlPhrases = [
                  '\xbc\xab\xc6\xb0\xd3\xb4\xb2\xdf\xb5\xa1'],
       'shift-jis': ['=?shift-jis?b?jqmTrppTid2LQA==?=',
                     '\x8e\xa9\x93\xae\x9aS\x89\xdd\x8b@']
-    }
+    },
+    searchPhrases: [
+      // match bi-gram driven matches starting from the front
+      { body: '"\u81ea\u52d5"', match: true },
+      { body: '"\u81ea\u52d5\u552e"', match: true },
+      { body: '"\u81ea\u52d5\u552e\u8ca8"', match: true },
+      { body: '"\u81ea\u52d5\u552e\u8ca8\u6a5f"', match: true },
+      // now match from the back (bi-gram based)
+      { body: '"\u52d5\u552e\u8ca8\u6a5f"', match: true },
+      { body: '"\u552e\u8ca8\u6a5f"', match: true },
+      { body: '"\u8ca8\u6a5f"', match: true },
+      // now everybody in the middle!
+      { body: '"\u52d5\u552e\u8ca8"', match: true },
+      { body: '"\u552e\u8ca8"', match: true },
+      { body: '"\u52d5\u552e"', match: true },
+      // -- now match nobody!
+      // nothing in common with the right answer
+      { body: '"\u81eb\u52dc"', match: false },
+      // too long, no match
+      { body: '"\u81ea\u52d5\u552e\u8ca8\u6a5f\u6a5f"', match: false },
+      // minor change at the end
+      { body: '"\u81ea\u52d5\u552e\u8ca8\u6a5e"', match: false },
+    ]
+  },
+  // Use two words where the last character is a multi-byte sequence and one of
+  //  them is the last word in the string.  This helps test an off-by-one error
+  //  in both the asymmetric case (query's last character is last character in
+  //  the tokenized string but it is not the last character in the body string)
+  //  and symmetric case (last character in the query and the body).
+  {
+    name: "Czech diacritics",
+    actual: "Slov\u00e1cko Moravsk\u00e9 rodin\u011b",
+    encodings: {
+      "utf-8": ["=?utf-8?b?U2xvdsOhY2tvIE1vcmF2c2vDqSByb2RpbsSb?=",
+                "Slov\xc3\xa1cko Moravsk\xc3\xa9 rodin\xc4\x9b"]
+    },
+    searchPhrases: [
+      // -- desired
+      // Match on exact for either word should work
+      {body: "Slov\u00e1cko", match: true},
+      {body: "Moravsk\u00e9", match: true},
+      {body: "rodin\u011b", match: true},
+      // The ASCII uppercase letters get case-folded
+      {body: "slov\u00e1cko", match: true},
+      {body: "moravsk\u00e9", match: true},
+      {body: "rODIN\u011b", match: true},
+    ]
   }
 ];
-
-var resultList = [];
 
 /**
  * For each phrase in the intlPhrases array (we are parameterized over it using
@@ -68,10 +127,14 @@ var resultList = [];
  *  the phrase's "encodings" attribute, one encoding per message.  Make sure
  *  that the strings as exposed by the gloda representation are equal to the
  *  expected/actual value.
+ * Stash each created synthetic message in a resultList list on the phrase so
+ *  that we can use them as expected query results in
+ *  |test_fulltextsearch|.
  */
 function test_index(aPhrase) {
   // create a synthetic message for each of the delightful encoding types
   let messages = [];
+  aPhrase.resultList = [];
   for each (let [charset, encodings] in Iterator(aPhrase.encodings)) {
     let [quoted, bodyEncoded] = encodings;
 
@@ -86,7 +149,7 @@ function test_index(aPhrase) {
     });
 
     messages.push(smsg);
-    resultList.push(smsg);
+    aPhrase.resultList.push(smsg);
   }
   let synSet = new SyntheticMessageSet(messages);
   yield add_sets_to_folder(gInbox, [synSet]);
@@ -114,36 +177,18 @@ function verify_index(smsg, gmsg) {
   do_check_eq(actual, attachmentName);
 }
 
-var intlSearchPhrases = [
-  // match bi-gram driven matches starting from the front
-  { name: '"\u81ea\u52d5"', match: true },
-  { name: '"\u81ea\u52d5\u552e"', match: true },
-  { name: '"\u81ea\u52d5\u552e\u8ca8"', match: true },
-  { name: '"\u81ea\u52d5\u552e\u8ca8\u6a5f"', match: true },
-  // now match from the back (bi-gram based)
-  { name: '"\u52d5\u552e\u8ca8\u6a5f"', match: true },
-  { name: '"\u552e\u8ca8\u6a5f"', match: true },
-  { name: '"\u8ca8\u6a5f"', match: true },
-  // now everybody in the middle!
-  { name: '"\u52d5\u552e\u8ca8"', match: true },
-  { name: '"\u552e\u8ca8"', match: true },
-  { name: '"\u52d5\u552e"', match: true },
-  // -- now match nobody!
-  // nothing in common with the right answer
-  { name: '"\u81eb\u52dc"', match: false },
-  // too long, no match
-  { name: '"\u81ea\u52d5\u552e\u8ca8\u6a5f\u6a5f"', match: false },
-  // minor change at the end
-  { name: '"\u81ea\u52d5\u552e\u8ca8\u6a5e"', match: false },
-];
-
-function test_intl_fulltextsearch(aPhrase)
+/**
+ * For each phrase, make sure that all of the searchPhrases either match or fail
+ *  to match as appropriate.
+ */
+function test_fulltextsearch(aPhrase)
 {
-  var query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
-  /* CJK text is bi-gram */
-  query.bodyMatches(aPhrase.name);
-  queryExpect(query, aPhrase.match ? resultList : []);
-  return false; // queryExpect is async
+  for each (let [, searchPhrase] in Iterator(aPhrase.searchPhrases)) {
+    let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
+    query.bodyMatches(searchPhrase.body);
+    queryExpect(query, searchPhrase.match ? aPhrase.resultList : []);
+    yield false; // queryExpect is async
+  }
 }
 
 
@@ -151,7 +196,11 @@ function test_intl_fulltextsearch(aPhrase)
 
 var tests = [
   parameterizeTest(test_index, intlPhrases),
-  parameterizeTest(test_intl_fulltextsearch, intlSearchPhrases),
+  // force a db flush so I can investigate the database if I want.
+  function() {
+    return wait_for_gloda_db_flush();
+  },
+  parameterizeTest(test_fulltextsearch, intlPhrases),
 ];
 
 var gInbox;
