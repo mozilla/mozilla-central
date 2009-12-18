@@ -863,16 +863,7 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
       // file name, lets do some better checking not to inline something bad
       //
       if (override_content_type && (PL_strcasecmp(override_content_type, UNKNOWN_CONTENT_TYPE)))
-      {
-        // Only inline this if it makes sense to do so!
-        if ( (!content_type) ||
-             (content_type && (!PL_strcasecmp(content_type, UNKNOWN_CONTENT_TYPE))) )
-        {
-          content_type = override_content_type;
-        }
-        else
-          PR_FREEIF(override_content_type);
-      }
+        content_type = override_content_type;
     }
   }
 
