@@ -162,7 +162,9 @@ function run_test() {
 
     server.performTest();
 
-    do_timeout(10000, "if (!finished) do_throw('Notifications of message send/copy not received');");
+    do_timeout(10000, function()
+        {if (!finished) do_throw('Notifications of message send/copy not received');}
+      );
 
     do_test_pending();
 

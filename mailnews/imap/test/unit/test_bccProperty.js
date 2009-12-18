@@ -51,7 +51,10 @@ function run_test()
   inbox.addMessage(new imapMessage(msgfileuri.spec, inbox.uidnext++, []));
 
   do_test_pending();
-  do_timeout(10000, "do_throw('downloadAllForOffline did not complete within 10 seconds. ABORTING.');");
+  do_timeout(10000, function(){
+      do_throw('downloadAllForOffline did not complete within 10 seconds. ABORTING.');
+      }
+    );
 
   // Get the IMAP inbox...
   let rootFolder = gIMAPIncomingServer.rootFolder;
@@ -74,7 +77,7 @@ var UrlListener =
       gIMAPInbox.downloadAllForOffline(UrlListener, null);
       return;
     }
-    do_timeout(1000, "endTest();");
+    do_timeout(1000, endTest);
   }
 };
 

@@ -424,7 +424,7 @@ function testContinue(source)
         return;
     }
     gCurTestNum++;
-    do_timeout(200, "doTest();");
+    do_timeout(200, doTest);
   }
 }
 
@@ -484,8 +484,13 @@ function doTest()
     var testFn = gTestArray[test-1];
     dump("Doing test " + test + " " + testFn.name + "\n");
     // Set a limit of ten seconds; if the notifications haven't arrived by then there's a problem.
-    do_timeout(10000, "if (gCurTestNum == "+test+") \
-      do_throw('Notifications not received in 10000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
+    do_timeout(10000, function()
+        {
+          if (gCurTestNum == test)
+            do_throw("Notifications not received in 10000 ms for operation " + testFn.name +
+              ", current status is " + gCurrStatus);
+        }
+      );
     try {
     testFn();
     } catch(ex) {
@@ -494,7 +499,7 @@ function doTest()
     }
   }
   else
-    do_timeout(1000, "endTest();");
+    do_timeout(1000, endTest);
 }
 
 // Cleanup, null out everything, close all cached connections and stop the
@@ -723,7 +728,7 @@ function showResults() {
   if (gInboxListener)
     printListener(gInboxListener);
   gCurTestNum++;
-  do_timeout(100, "doTest();");
+  do_timeout(100, doTest);
 }
 
 // static variables used in testCounts

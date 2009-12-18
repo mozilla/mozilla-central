@@ -285,7 +285,7 @@ function startCommand()
     case kClass:
       // classify message
       gPOP3Pump.files = [gTest.fileName];
-      gPOP3Pump.onDone = "do_timeout(100, startCommand());";
+      gPOP3Pump.onDone = function(){do_timeout(100, startCommand());};
       gPOP3Pump.run();
       break;
   }

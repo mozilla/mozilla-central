@@ -91,7 +91,7 @@ var step3 =
   SetMessageId: function(aMessageId) {},
   OnStopCopy: function(aStatus)
   {
-    do_timeout(2000, "step4();");
+    do_timeout(2000, step4);
   }
 }
 

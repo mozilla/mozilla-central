@@ -73,7 +73,7 @@ var gCurTestNum = 0;
 var progressListener = {
   onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
     if (aStateFlags & Ci.nsIWebProgressListener.STATE_STOP){
-      do_timeout(0, "doTest(++gCurTestNum);");
+      do_timeout(0, function(){doTest(++gCurTestNum);});
     }
   },
 
@@ -164,7 +164,7 @@ function checkAttachment(expectedCD, expectedCT) {
   } while (contentType.substr(pos, 1) == " ");
   contentType = contentType.substr(0, pos);
   do_check_eq(contentType, expectedCT);
-  do_timeout(0, "doTest(++gCurTestNum);");
+  do_timeout(0, function(){doTest(++gCurTestNum);});
 }
 
 const gTestArray =
@@ -208,8 +208,12 @@ function doTest(test)
     var testFn = gTestArray[test-1];
 
     // Set a limit in case the notifications haven't arrived (i.e. a problem)
-    do_timeout(10000, "if (gCurTestNum == "+test+")               \
-               do_throw('Notifications not received in 10000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
+    do_timeout(10000, function() {
+        if(gCurTestNum == test)
+	  do_throw("Notifications not received in 10000 ms for operation " + testFn.name +
+            ", current status is " + gCurrStatus);
+        }
+      );
     try {
       testFn();
     } catch(ex) {

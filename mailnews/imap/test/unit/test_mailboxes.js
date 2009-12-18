@@ -28,7 +28,7 @@ function run_test() {
 
   do_test_pending();
 
-  do_timeout(1000, "endTest();");
+  do_timeout(1000, endTest);
 }
 
 function endTest()

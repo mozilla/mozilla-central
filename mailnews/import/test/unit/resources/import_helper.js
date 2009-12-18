@@ -147,7 +147,7 @@ AbImportHelper.prototype =
     if (this.mAbInterface.GetProgress() != 100) {
       // use the helper object to check the progress of the import after 200 ms
       gAbImportHelper = this;
-      do_timeout(200, "gAbImportHelper.checkProgress();");
+      do_timeout(200, function(){gAbImportHelper.checkProgress();});
     }
     // if it is done, check the results or finish the test.
     else

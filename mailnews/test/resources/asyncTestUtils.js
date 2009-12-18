@@ -232,7 +232,7 @@ function async_run_tests(aTests, aLongestTestRunTimeConceivableInSecs) {
     aLongestTestRunTimeConceivableInSecs =
         DEFAULT_LONGEST_TEST_RUN_CONCEIVABLE_SECS;
   do_timeout(aLongestTestRunTimeConceivableInSecs * 1000,
-      "_async_test_runner_timeout();");
+      _async_test_runner_timeout);
 
   do_test_pending();
 

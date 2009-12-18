@@ -87,7 +87,7 @@ function doUpdateFolder(test)
   if (gCurrStatus == kStatus.everythingDone)
     resetStatusAndProceed();
   else
-    do_timeout(1000, "doUpdateFolder(" + test + ")");
+    do_timeout(1000, function(){doUpdateFolder(test);});
 }
 
 // Adds some messages directly to a mailbox (eg new mail)
@@ -258,8 +258,12 @@ function doTest(test)
     let testFn = gTestArray[test-1];
 
     // Set a limit of ten seconds; if the notifications haven't arrived by then there's a problem.
-    do_timeout(10000, "if (gTest == "+test+") \
-      do_throw('Notifications not received in 10000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
+    do_timeout(10000, function(){
+        if (gTest == test)
+          do_throw("Notifications not received in 10000 ms for operation " + testFn.name + 
+            ", current status is " + gCurrStatus);
+        }
+      );
     testFn();
   }
   else
@@ -272,7 +276,7 @@ function doTest(test)
     gIMAPFolder2 = null;
     gIMAPFolder3 = null;
     gIMAPTrashFolder = null;
-    do_timeout(1000, "endTest();");
+    do_timeout(1000, endTest);
   }
 }
 

@@ -156,7 +156,7 @@ function run_test() {
   do_check_eq(logins[0].username, kUserName);
   do_check_eq(logins[0].password, kValidPassword);
 
-  do_timeout(500, "endTest()");
+  do_timeout(500, endTest);
 }
 
 function endTest() {

@@ -302,9 +302,13 @@ function doTest(test)
   if (test <= gTestArray.length)
   {
     var testFn = gTestArray[test-1];
-    // Set a limit of three seconds; if the notifications haven't arrived by then there's a problem.
-    do_timeout(10000, "if (gTest == "+test+") \
-      do_throw('Notifications not received in 10000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
+    // Set a limit of 10 seconds; if the notifications haven't arrived by then there's a problem.
+    do_timeout(10000, function(){
+        if (gTest == test)
+          do_throw("Notifications not received in 10000 ms for operation " + testFn.name + 
+            ", current status is " + gCurrStatus);
+        }
+      );
     dump("=== Test: " + testFn.name + "\n");
     testFn();
   }

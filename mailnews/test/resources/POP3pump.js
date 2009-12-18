@@ -62,7 +62,7 @@ POP3Pump.prototype._urlListener =
     }
 
     // Let OnStopRunningUrl return cleanly before doing anything else.
-    do_timeout(0, "gPOP3Pump._checkBusy();");
+    do_timeout(0, _checkPumpBusy);
   }
 };
 
@@ -107,14 +107,14 @@ POP3Pump.prototype._checkBusy = function _checkBusy()
     // No more tests, let everything finish
     this._server.stop();
     this._finalCleanup = true;
-    do_timeout(20, "gPOP3Pump._checkBusy();");
+    do_timeout(20, _checkPumpBusy);
     return;
   }
 
   if (this._finalCleanup)
   {
     if (gThreadManager.currentThread.hasPendingEvents())
-      do_timeout(20, "gPOP3Pump._checkBusy();");
+      do_timeout(20, _checkPumpBusy);
     else
     {
       // exit this module
@@ -129,7 +129,7 @@ POP3Pump.prototype._checkBusy = function _checkBusy()
       (this._incomingServer instanceof Ci.nsIPop3IncomingServer &&
        this._incomingServer.runningProtocol))
   {
-    do_timeout(20, "gPOP3Pump._checkBusy();");
+    do_timeout(20, _checkPumpBusy);
     return;
   }
 
@@ -214,3 +214,5 @@ POP3Pump.prototype.run = function run()
 
 gPOP3Pump = new POP3Pump();
 gPOP3Pump._incomingServer = gPOP3Pump._createPop3ServerAndLocalFolders();
+
+function _checkPumpBusy() { gPOP3Pump._checkBusy(); }

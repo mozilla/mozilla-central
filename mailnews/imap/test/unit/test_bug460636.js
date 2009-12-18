@@ -54,7 +54,11 @@ function run_test()
   gSavedMsgFile.append(gFileName + ".eml");
 
   do_test_pending();
-  do_timeout(10000, "do_throw('SaveMessageToDisk did not complete within 10 seconds (incorrect messageURI?). ABORTING.');");
+  do_timeout(10000, function(){
+      do_throw('SaveMessageToDisk did not complete within 10 seconds' +
+        '(incorrect messageURI?). ABORTING.');
+      }
+    );
 
   /*
    * From nsIMsgMessageService.idl:
@@ -99,6 +103,6 @@ var UrlListener =
     // The file doesn't get closed straight away, but does after a little bit.
     // So wait, and then remove it. We need to test this to ensure we don't
     // indefinitely lock the file.
-    do_timeout(1000, "endTest();");
+    do_timeout(1000, endTest);
   }
 };

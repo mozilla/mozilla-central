@@ -16,7 +16,7 @@ function run_test()
 
   gPOP3Pump.files = ["../../mailnews/data/bugmail1",
                       "../../mailnews/data/draft1"];
-  gPOP3Pump.onDone = "continueTest();";
+  gPOP3Pump.onDone = continueTest;
   do_test_pending();
   gPOP3Pump.run();
 }

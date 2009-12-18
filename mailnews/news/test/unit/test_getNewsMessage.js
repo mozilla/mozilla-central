@@ -38,7 +38,7 @@ var streamListener =
 
     // We must finish closing connections and tidying up after a timeout
     // so that the thread has time to unwrap itself.
-    do_timeout(0, "doTestFinished();");
+    do_timeout(0, doTestFinished);
   },
 
   // nsIStreamListener

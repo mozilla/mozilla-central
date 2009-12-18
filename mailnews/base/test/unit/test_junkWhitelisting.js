@@ -84,7 +84,7 @@ function run_test()
 
   // kick off copying
   gPOP3Pump.files = Files;
-  gPOP3Pump.onDone = "continueTest();";
+  gPOP3Pump.onDone = continueTest;
   gPOP3Pump.run();
 }
 

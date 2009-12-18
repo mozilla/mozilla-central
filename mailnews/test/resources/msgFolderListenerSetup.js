@@ -214,7 +214,7 @@ function resetStatusAndProceed()
   // This can happen with a bunch of synchronous functions grouped together, and
   // can even cause tests to fail because they're still waiting for the listener
   // to return
-  do_timeout(0, "doTest(++gTest)");
+  do_timeout(0, function(){doTest(++gTest);});
 }
 
 // Checks whether the array returned from a function has exactly these elements.

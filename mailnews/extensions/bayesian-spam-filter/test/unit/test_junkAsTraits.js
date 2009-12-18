@@ -530,7 +530,7 @@ function startCommand()
       do_check_eq(tokenCount, gTest.tokenCount);
       do_check_eq(junkCount, gTest.junkCount);
       do_check_eq(goodCount, gTest.goodCount);
-      do_timeout(0, "startCommand();");
+      do_timeout(0, startCommand);
       break;
   }
 }

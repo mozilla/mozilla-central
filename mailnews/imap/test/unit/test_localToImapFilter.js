@@ -177,8 +177,12 @@ function doTest()
 
     var testFn = gTestArray[test-1];
     // Set a limit of ten seconds; if the notifications haven't arrived by then there's a problem.
-    do_timeout(10000, "if (gCurTestNum == "+test+") \
-      do_throw('Notifications not received in 10000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
+    do_timeout(10000, function(){
+          if (gCurTestNum == test)
+            do_throw("Notifications not received in 10000 ms for operation " + testFn.name + 
+              ", current status is " + gCurrStatus);
+        }
+      );
     try {
     testFn();
     } catch(ex) {
@@ -187,7 +191,7 @@ function doTest()
     }
   }
   else
-    do_timeout(1000, "endTest();");
+    do_timeout(1000, endTest);
 }
 
 // nsIMsgCopyServiceListener implementation - runs next test when copy
@@ -211,7 +215,7 @@ var CopyListener =
     // can even cause tests to fail because they're still waiting for the listener
     // to return
     ++gCurTestNum;
-    do_timeout(0, "doTest()");
+    do_timeout(0, doTest);
   }
 };
 
@@ -224,7 +228,7 @@ var URLListener =
     dump("in OnStopRunningURL " + gCurTestNum + "\n");
     do_check_eq(aStatus, 0);
     gCurTestNum++;
-    do_timeout(0, "doTest();");
+    do_timeout(0, doTest);
   }
 }
 

@@ -48,7 +48,7 @@ var urlListener =
     }
 
     // Let OnStopRunningUrl return cleanly before doing anything else.
-    do_timeout(0, "checkBusy();");
+    do_timeout(0, checkBusy);
   }
 };
 
@@ -71,7 +71,7 @@ function checkBusy() {
   if (incomingServer.serverBusy ||
       (incomingServer instanceof Ci.nsIPop3IncomingServer &&
        incomingServer.runningProtocol)) {
-    do_timeout(20, "checkBusy();");
+    do_timeout(20, checkBusy);
     return;
   }
 
