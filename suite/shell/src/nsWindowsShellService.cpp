@@ -406,7 +406,7 @@ nsresult nsWindowsShellService::Init()
 PRBool
 nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient)
 {
-#if !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
+#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
   IApplicationAssociationRegistration* pAAR;
 
   HRESULT hr = CoCreateInstance(CLSID_ApplicationAssociationRegistration,
