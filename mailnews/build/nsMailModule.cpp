@@ -48,7 +48,7 @@
  * 
  * Please be advised that if you are adding something here, you should also
  * strongly consider adding it to the other place it goes too!  These can be
- * found in paths like so: mailnews/.../build/*Factory.cpp
+ * found in paths like so: mailnews/.../build/WhateverFactory.cpp
  * 
  * If you do not, your (static) release builds will be quite pleasant, but
  * (dynamic) debug builds will disappoint you by not having your component in
