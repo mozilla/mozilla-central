@@ -232,12 +232,16 @@ var gAdvancedPane = {
   {
     var aus = 
         Components.classes["@mozilla.org/updates/update-service;1"].
+#ifdef MOZILLA_1_9_2_BRANCH
+        getService(Components.interfaces.nsIApplicationUpdateService2);
+#else
         getService(Components.interfaces.nsIApplicationUpdateService);
+#endif
 
     var enabledPref = document.getElementById("app.update.enabled");
     var enableAppUpdate = document.getElementById("enableAppUpdate");
 
-    enableAppUpdate.disabled = !aus.canUpdate || enabledPref.locked;
+    enableAppUpdate.disabled = !aus.canCheckForUpdates || enabledPref.locked;
   },
 
   updateAutoItems: function () 

@@ -228,7 +228,11 @@ function buildHelpMenu()
 #ifdef MOZ_UPDATER
   var updates =
       Components.classes["@mozilla.org/updates/update-service;1"].
+#ifdef MOZILLA_1_9_2_BRANCH
+      getService(Components.interfaces.nsIApplicationUpdateService2);
+#else
       getService(Components.interfaces.nsIApplicationUpdateService);
+#endif
   var um =
       Components.classes["@mozilla.org/updates/update-manager;1"].
       getService(Components.interfaces.nsIUpdateManager);
@@ -236,9 +240,9 @@ function buildHelpMenu()
   // Disable the UI if the update enabled pref has been locked by the
   // administrator or if we cannot update for some other reason.
   var checkForUpdates = document.getElementById("checkForUpdates");
-  var canUpdate = updates.canUpdate;
-  checkForUpdates.setAttribute("disabled", !canUpdate);
-  if (!canUpdate)
+  var canCheckForUpdates = updates.canCheckForUpdates;
+  checkForUpdates.setAttribute("disabled", !canCheckForUpdates);
+  if (!canCheckForUpdates)
     return;
 
   var strings = document.getElementById("bundle_messenger");
