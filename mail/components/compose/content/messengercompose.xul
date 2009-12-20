@@ -68,6 +68,7 @@
         onfocus="EditorOnFocus()"
         title="&msgComposeWindow.title;"
         windowtype="msgcompose"
+        toggletoolbar="true"
         persist="screenX screenY width height sizemode"> 
 
 <stringbundleset id="stringbundleset">

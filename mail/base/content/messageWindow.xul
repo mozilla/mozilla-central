@@ -66,6 +66,7 @@
         onload="OnLoadMessageWindow()"
         onunload="OnUnloadMessageWindow()"
         persist="width height screenX screenY sizemode"
+        toggletoolbar="true"
         windowtype="mail:messageWindow">
 
   <stringbundleset id="stringbundleset">
