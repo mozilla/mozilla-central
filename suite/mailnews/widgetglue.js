@@ -260,11 +260,6 @@ function FolderProperties(name, oldName, uri)
     RenameFolder(name, uri);
 }
 
-function MsgSetFolderCharset() 
-{
-  MsgFolderProperties() 
-}
-
 // Given a URI we would like to return corresponding message folder here.
 // An additonal input param which specifies whether or not to check folder 
 // attributes (like if there exists a parent or is it a server) is also passed

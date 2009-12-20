@@ -634,7 +634,7 @@ var DefaultController =
 				MsgViewPageSource();
 				return;
 			case "cmd_setFolderCharset":
-				MsgSetFolderCharset();
+				MsgFolderProperties();
 				return;
 			case "cmd_reload":
 				MsgReload();
