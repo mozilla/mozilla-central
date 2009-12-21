@@ -12,20 +12,10 @@ var gPageLoadCount = 0;
 function test() {
   waitForExplicitFinish();
 
-  // nsIFocusManager is not available on MOZILLA_1_9_1
-  if ("nsIFocusManager" in Ci) {
-    if (Cc["@mozilla.org/focus-manager;1"].getService(Ci.nsIFocusManager)
-                                          .activeWindow != window) {
-      executeSoon(test);
-      window.focus();
-      return;
-    }
-  } else if (!document.hasFocus()) {
-    executeSoon(test);
-    window.focus();
-    return;
-  }
+  waitForFocus(continue_test);
+}
 
+function continue_test() {
   var windows = Application.windows;
   ok(windows, "Check access to browser windows");
   is(windows.length, 1, "There should be one browser window open");
