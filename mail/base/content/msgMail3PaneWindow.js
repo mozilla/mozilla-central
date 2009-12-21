@@ -586,22 +586,21 @@ function loadStartFolder(initialUri)
     var isLoginAtStartUpEnabled = false;
 
     if (!initialUri) {
-      // Look to see if a master password is set, if so prompt for it to try
-      // and avoid the multiple master password prompts on startup scenario.
+      // Try to avoid the multiple master password prompts on startup scenario
+      // by prompting for the master password upfront.
       let token =
         Components.classes["@mozilla.org/security/pk11tokendb;1"]
                   .getService(Components.interfaces.nsIPK11TokenDB)
                   .getInternalKeyToken();
 
-      // If an empty string is valid for the internal token, then we don't
-      // have a master password, else, if it does, then try to login.
+      // Only log in to the internal token if it is already initialized,
+      // otherwise we get a "Change Master Password" dialog.
       try {
-        if (!token.checkPassword(""))
+        if (!token.needsUserInit)
           token.login(false);
       }
       catch (ex) {
-      // If user cancels an exception is expected. checkPassword also
-      // seems to fail w/ mozmill.
+      // If user cancels an exception is expected.
       }
     }
 
