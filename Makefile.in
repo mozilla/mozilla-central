@@ -47,7 +47,7 @@ include $(topsrcdir)/$(MOZ_BUILD_APP)/build.mk
 
 include $(topsrcdir)/config/config.mk
 
-default export libs clean realclean distclean alldep maybe_clobber_profiledbuild rebase uploadsymbols signnss deliver::
+default export libs clean realclean distclean alldep maybe_clobber_profiledbuild uploadsymbols::
 	$(MAKE) -C mozilla $@
 
 ifdef ENABLE_TESTS
