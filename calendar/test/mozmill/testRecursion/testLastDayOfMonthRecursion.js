@@ -43,6 +43,7 @@ var MODULE_REQUIRES = ['CalendarUtils', 'ModalDialogAPI'];
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testLastDayOfMonthRecursion = function () {
@@ -66,7 +67,6 @@ var testLastDayOfMonthRecursion = function () {
   md.start();
   event.select(new elementslib.ID(event.window.document, "item-repeat"), undefined, undefined,
     "custom");
-  event.sleep(0); // without it dialog won't open, bug 504468#10
   
   event.click(new elementslib.ID(event.window.document, "button-save"));
   controller.sleep(sleep);
@@ -137,7 +137,6 @@ function setRecurrence(recurrence){
   // monthly
   recurrence.select(new elementslib.ID(recurrence.window.document, "period-list"), undefined,
     undefined, "2");
-  recurrence.sleep(0);
   
   // last day of month
   recurrence.click(new elementslib.ID(recurrence.window.document, "montly-period-relative-date-radio"));
@@ -152,4 +151,8 @@ function setRecurrence(recurrence){
   // close dialog
   recurrence.click(new elementslib.Lookup(recurrence.window.document,
     '/id("calendar-event-dialog-recurrence")/anon({"anonid":"buttons"})/{"dlgtype":"accept"}'));
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }

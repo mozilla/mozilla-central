@@ -37,6 +37,7 @@
 const sleep = 500;
 var calendar = "Mozmill";
 var hour = 8;
+var startDate = new Date(2009, 0, 6);
 var eventPath = '/{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
 
 var RELATIVE_ROOT = '../shared-modules';
@@ -44,6 +45,7 @@ var MODULE_REQUIRES = ['CalendarUtils', 'ModalDialogAPI', 'UtilsAPI'];
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testWeeklyWithExceptionRecursion = function () {
@@ -76,23 +78,27 @@ var testWeeklyWithExceptionRecursion = function () {
   event = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Calendar:EventDialog")[0]);
   event.sleep(sleep);
   
-  let startDate = new elementslib.Lookup(event.window.document, '/id("calendar-event-dialog")/'
+  let startDateInput = new elementslib.Lookup(event.window.document, '/id("calendar-event-dialog")/'
     + 'id("event-grid")/id("event-grid-rows")/id("event-grid-startdate-row")/'
     + 'id("event-grid-startdate-picker-box")/id("event-starttime")/anon({"anonid":"hbox"})/'
     + 'anon({"anonid":"date-picker"})/anon({"class":"datepicker-box-class"})/'
     + '{"class":"datepicker-text-class"}/anon({"class":"menulist-editable-box textbox-input-box"})/'
     + 'anon({"anonid":"input"})');
-  let endDate = new elementslib.Lookup(event.window.document, '/id("calendar-event-dialog")/'
+  let endDateInput = new elementslib.Lookup(event.window.document, '/id("calendar-event-dialog")/'
     + 'id("event-grid")/id("event-grid-rows")/id("event-grid-enddate-row")/[1]/'
     + 'id("event-grid-enddate-picker-box")/id("event-endtime")/anon({"anonid":"hbox"})/'
     + 'anon({"anonid":"date-picker"})/anon({"class":"datepicker-box-class"})/'
     + '{"class":"datepicker-text-class"}/anon({"class":"menulist-editable-box textbox-input-box"})/'
     + 'anon({"anonid":"input"})');
 
-  event.keypress(startDate, "a", {ctrlKey:true});
-  event.type(startDate, "06.01.2009");
+  event.keypress(startDateInput, "a", {ctrlKey:true});
+  let dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                     .getService(Components.interfaces.nsIScriptableDateFormat);
+  let startDateString = dateService.FormatDate("", dateService.dateFormatShort, 
+                                             startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate());
+  event.type(startDateInput, startDateString);
   // applies startdate change
-  event.click(endDate);
+  event.click(endDateInput);
 
   event.click(new elementslib.ID(event.window.document, "button-save"));
   controller.sleep(sleep);
@@ -318,4 +324,8 @@ function checkMultiWeekView(view){
   controller.assertNode(new elementslib.Lookup(controller.window.document, path + eventPath));
   path = CalendarUtils.getEventBoxPath(view, CalendarUtils.EVENT_BOX, startWeek + 1, 7, hour, controller);
   controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document, path + eventPath));
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }

@@ -44,6 +44,7 @@ var MODULE_REQUIRES = ['CalendarUtils', 'ModalDialogAPI', 'UtilsAPI'];
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testWeeklyNRecursion = function () {
@@ -65,7 +66,6 @@ var testWeeklyNRecursion = function () {
   let md = new ModalDialogAPI.modalDialog(setRecurrence);
   md.start();
   event.select(new elementslib.ID(event.window.document, "item-repeat"), undefined, undefined, "custom");
-  event.sleep(0); // without it dialog won't open, bug 504468#10
   
   event.click(new elementslib.ID(event.window.document, "button-save"));
   controller.sleep(sleep);
@@ -177,4 +177,8 @@ function checkMultiWeekView(view){
   let box = CalendarUtils.getEventBoxPath(view, CalendarUtils.EVENT_BOX, week, 7, undefined, controller)
     + eventPath;
   controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document, box));
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }

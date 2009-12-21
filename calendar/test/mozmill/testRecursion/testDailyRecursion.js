@@ -43,6 +43,7 @@ var MODULE_REQUIRES = ['CalendarUtils'];
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testDailyRecursion = function () {
@@ -64,7 +65,6 @@ var testDailyRecursion = function () {
   
   event.select(new elementslib.ID(event.window.document, "item-repeat"), undefined, undefined,
     "daily");
-  event.sleep(0);
   event.click(new elementslib.ID(event.window.document, "button-save"));
   
   // check day view for 7 days
@@ -176,7 +176,6 @@ var testDailyRecursion = function () {
   
   event.select(new elementslib.ID(event.window.document, "item-repeat"), undefined, undefined,
     "every.weekday");
-  event.sleep(0);
   event.click(new elementslib.ID(event.window.document, "button-save"));
   controller.sleep(sleep);
   
@@ -238,4 +237,8 @@ var testDailyRecursion = function () {
   CalendarUtils.handleParentDeletion(false);
   controller.keypress(new elementslib.ID(controller.window.document, "month-view"),
     "VK_DELETE", {});
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }

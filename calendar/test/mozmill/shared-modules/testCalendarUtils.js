@@ -279,3 +279,45 @@ function forward(n){
     controller.sleep(sleep);
   }
 }
+
+/**
+ * Deletes all calendars with given name
+ * @param name - calendar name
+ */
+function deleteCalendars(name){
+  let defaultView = (new elementslib.ID(controller.window.document, "messengerWindow"))
+                    .getNode().ownerDocument.defaultView;
+  let manager = defaultView.getCalendarManager();
+  let cals = manager.getCalendars({});
+
+  for (let i = 0; i < cals.length; i++)
+    if (cals[i].name == name){
+      manager.unregisterCalendar(cals[i]);
+      manager.deleteCalendar(cals[i]);
+    }
+}
+
+/**
+ * Creates local calendar with given name and select it in calendars list
+ * @param name - calendar name
+ */
+function createCalendar(name){
+  let defaultView = (new elementslib.ID(controller.window.document, "messengerWindow"))
+                    .getNode().ownerDocument.defaultView;
+  let manager = defaultView.getCalendarManager();
+
+  let url = defaultView.makeURL("moz-profile-calendar://");
+  let calendar = manager.createCalendar("storage", url);
+  calendar.name = name;
+  manager.registerCalendar(calendar);
+  
+  let id = calendar.id;
+  let calendarTree = (new elementslib.Lookup(controller.window.document,
+    '/id("messengerWindow")/id("tabmail-container")/id("tabmail")/id("tabpanelcontainer")/'
+    + 'id("calendarTabPanel")/id("calendarContent")/id("ltnSidebar")/id("calendar-panel")/'
+    + 'id("calendar-list-pane")/id("calendar-listtree-pane")/id("calendar-list-tree-widget")'))
+    .getNode();
+  for(i = 0; i < calendarTree.mCalendarList.length; i++)
+    if(calendarTree.mCalendarList[i].id == id)
+      calendarTree.tree.view.selection.select(i);
+}

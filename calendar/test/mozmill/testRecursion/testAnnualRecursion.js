@@ -44,6 +44,7 @@ var MODULE_REQUIRES = ['CalendarUtils'];
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testAnnualRecursion = function () {
@@ -65,7 +66,6 @@ var testAnnualRecursion = function () {
   event.sleep(sleep);
   event.select(new elementslib.ID(event.window.document, "item-repeat"), undefined, undefined,
     "yearly");
-  event.sleep(0); // gets saved wrong without it
   event.click(new elementslib.ID(event.window.document, "button-save"));
   controller.sleep(sleep);
   
@@ -111,4 +111,7 @@ var testAnnualRecursion = function () {
   controller.keypress(new elementslib.ID(controller.window.document, "day-view"),
     "VK_DELETE", {});
 }
- 
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
+}

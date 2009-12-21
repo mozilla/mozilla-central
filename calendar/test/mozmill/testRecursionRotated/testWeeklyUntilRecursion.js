@@ -36,7 +36,7 @@
  
 const sleep = 500;
 var calendar = "Mozmill";
-var endDate = "26.01.2009"; // last Monday in month
+var endDate = new Date(2009, 0, 26); // last Monday in month
 var hour = 8;
 var eventPath = '/{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
 
@@ -45,6 +45,7 @@ var MODULE_REQUIRES = ['CalendarUtils', 'ModalDialogAPI', 'UtilsAPI'];
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testWeeklyUntilRecursion = function () {
@@ -66,7 +67,6 @@ var testWeeklyUntilRecursion = function () {
   let md = new ModalDialogAPI.modalDialog(setRecurrence);
   md.start();
   event.select(new elementslib.ID(event.window.document, "item-repeat"), undefined, undefined, "custom");
-  event.sleep(0); // without it dialog won't open, bug 504468#10
   
   event.click(new elementslib.ID(event.window.document, "button-save"));
   controller.sleep(sleep);
@@ -176,7 +176,13 @@ function setRecurrence(recurrence){
   // delete previous date
   recurrence.keypress(new elementslib.Lookup(recurrence.window.document, input), "a", {ctrlKey:true});
   recurrence.keypress(new elementslib.Lookup(recurrence.window.document, input), "VK_DELETE", {});
-  recurrence.type(new elementslib.Lookup(recurrence.window.document, input), endDate);
+  
+  let dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                     .getService(Components.interfaces.nsIScriptableDateFormat);
+  let endDateString = dateService.FormatDate("", dateService.dateFormatShort, 
+                                             endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate());
+	
+  recurrence.type(new elementslib.Lookup(recurrence.window.document, input), endDateString);
   
   // close dialog
   recurrence.click(new elementslib.Lookup(recurrence.window.document, '/id("calendar-event-dialog-recurrence")/'
@@ -212,4 +218,8 @@ function checkMultiWeekView(view){
   box = CalendarUtils.getEventBoxPath(view, CalendarUtils.EVENT_BOX, startWeek + 3, 4,
     undefined, controller) + eventPath;
   controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document, box));
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }

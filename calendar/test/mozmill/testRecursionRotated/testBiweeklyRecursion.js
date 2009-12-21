@@ -43,6 +43,7 @@ var MODULE_REQUIRES = ['CalendarUtils'];
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testBiweeklyRecursion = function () {
@@ -64,7 +65,6 @@ var testBiweeklyRecursion = function () {
   event.sleep(sleep);
   
   event.select(new elementslib.ID(event.window.document, "item-repeat"), undefined, undefined, "bi.weekly");
-  event.sleep(0); // gets saved wrong without it
   event.click(new elementslib.ID(event.window.document, "button-save"));
   controller.sleep(sleep);
   
@@ -139,4 +139,8 @@ var testBiweeklyRecursion = function () {
   // reset view
   CalendarUtils.switchToView("day", controller);
   controller.click(new elementslib.Elem(controller.menus.menu_View.ltnCalendarMenu.ltnCalendarCurrentViewMenu.ltnViewRotated));
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }
