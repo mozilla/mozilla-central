@@ -1,0 +1,88 @@
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is Thunderbird unofficial branding.
+#
+# The Initial Developer of the Original Code is
+# Mozilla Messaging
+# Portions created by the Initial Developer are Copyright (C) 2008
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#   Mark Banner <bugzilla@standard8.plus.com>
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+# Branding Makefile for nightlies/unofficial branding
+
+DEPTH = ../../..
+topsrcdir = @top_srcdir@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+DIRS = \
+	locales \
+	$(NULL)
+
+PREF_JS_EXPORTS += $(srcdir)/thunderbird-branding.js
+
+include $(topsrcdir)/config/rules.mk
+
+export::
+	$(NSINSTALL) -D $(DIST)/branding
+ifeq ($(OS_ARCH),WINNT)
+	cp $(srcdir)/thunderbird.ico   $(DIST)/branding/thunderbird.ico
+	cp $(srcdir)/branding.nsi      $(DIST)/branding/branding.nsi
+	cp $(srcdir)/wizHeader.bmp     $(DIST)/branding/wizHeader.bmp
+	cp $(srcdir)/wizHeaderRTL.bmp  $(DIST)/branding/wizHeaderRTL.bmp
+	cp $(srcdir)/wizWatermark.bmp  $(DIST)/branding/wizWatermark.bmp
+endif
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+	cp $(srcdir)/background.png    $(DIST)/branding/background.png
+	cp $(srcdir)/dsstore           $(DIST)/branding/dsstore
+	cp $(srcdir)/disk.icns         $(DIST)/branding/disk.icns
+	cp $(srcdir)/thunderbird.icns  $(DIST)/branding/thunderbird.icns
+endif
+ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
+	cp $(srcdir)/mailicon16.png  $(DIST)/branding/default16.png
+	cp $(srcdir)/mailicon22.png  $(DIST)/branding/default22.png
+	cp $(srcdir)/mailicon24.png  $(DIST)/branding/default24.png
+	cp $(srcdir)/mailicon32.png  $(DIST)/branding/default32.png
+	cp $(srcdir)/mailicon48.png  $(DIST)/branding/default48.png
+	cp $(srcdir)/mailicon256.png $(DIST)/branding/default256.png
+endif
+ifeq ($(OS_ARCH),OS2)
+	cp $(srcdir)/thunderbird-os2.ico   $(DIST)/branding/thunderbird.ico
+endif
+
+# Now sort out the branding specific icons
+ifeq ($(OS_ARCH),WINNT)
+	cp $(srcdir)/windows/messengerWindow.ico  $(DIST)/branding/messengerWindow.ico
+endif
+ifeq ($(OS_ARCH),OS2)
+	cp $(srcdir)/os2/messengerWindow.ico  $(DIST)/branding/messengerWindow.ico
+endif
