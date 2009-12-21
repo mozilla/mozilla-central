@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *    David Bienvenu <bienvenu@mozillamessaging.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,16 +36,18 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * This test currently just makes sure the test case in bug 505221 doesn't
-   assert or crash. This test file could be extended to other particular 
-   mime test cases.
+ * This test iterates over the test files in gTestFiles, and streams
+ * each as a message and makes sure the streaming doesn't assert or crash.
  */
 load("../../mailnews/resources/mailTestUtils.js");
+Components.utils.import("resource://app/modules/IOUtils.js");
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
-const bug505221 = do_get_file("../../mailnews/data/bug505221");
-var gHdr; // header of test message in local folder
+var gTestFiles =[ 
+  "../../mailnews/data/bug505221",
+  "../../mailnews/data/bug513543",
+];
+
+var gMsgEnumerator;
 
 var gMessenger = Cc["@mozilla.org/messenger;1"].
                    createInstance(Ci.nsIMessenger);
@@ -63,28 +66,13 @@ loadLocalMailAccount();
 function run_test()
 {
   do_test_pending();
-  // step 1: copy a message into the local inbox
-  copyService.CopyFileMessage(bug505221, gLocalInboxFolder, null, false, 0,
-                              "", step2, null);
-  return;
+  gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  for each(let fileName in gTestFiles) {
+    gLocalInboxFolder.addMessage(IOUtils.loadFileToString(do_get_file(fileName)));
+  };
+  gMsgEnumerator = gLocalInboxFolder.msgDatabase.EnumerateMessages();
+  doNextTest();
 }
-
-// step 2: wait for copy to finish and then stream the message
-// nsIMsgCopyServiceListener implementation
-var step2 = 
-{
-  OnStartCopy: function() {},
-  OnProgress: function(aProgress, aProgressMax) {},
-  SetMessageKey: function(aKey)
-  {
-    gHdr = gLocalInboxFolder.GetMessageHeader(aKey);
-  },
-  SetMessageId: function(aMessageId) {},
-  OnStopCopy: function(aStatus)
-  {
-    streamMsg(gHdr);
-  }
-};
 
 function streamMsg(msgHdr)
 {
@@ -108,6 +96,7 @@ gStreamListener = {
   onStartRequest: function (aRequest, aContext) {
   },
   onStopRequest: function (aRequest, aContext, aStatusCode) {
+    doNextTest();
   },
 
   /* okay, our onDataAvailable should actually never be called.  the stream
@@ -121,7 +110,12 @@ gStreamListener = {
       this._stream.init(aInputStream);
     }
     this._stream.read(aCount);
-
   },
 };
 
+function doNextTest() {
+  if (gMsgEnumerator.hasMoreElements())
+    streamMsg(gMsgEnumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr));
+  else
+    do_test_finished();
+}

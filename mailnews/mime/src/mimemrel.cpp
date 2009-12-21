@@ -1057,6 +1057,11 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
     }
   }
 
+  if (!body->parent) {
+    NS_WARNING("unexpected mime multipart related structure");
+    goto FAIL;
+  }
+
   body->dontShowAsAttachment = body->clazz->displayable_inline_p(body->clazz, body->headers);
 
 #ifdef MIME_DRAFTS
