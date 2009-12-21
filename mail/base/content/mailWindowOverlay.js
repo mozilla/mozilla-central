@@ -1338,8 +1338,11 @@ BatchMessageMover.prototype = {
       let granularity = archiveFolder.server.archiveGranularity;
 
       let copyBatchKey = msgHdr.folder.URI + '\000';
-      if (granularity >=  Components.interfaces.nsIMsgIncomingServer
-                                    .perMonthArchiveFolders)
+      if (granularity >= Components.interfaces.nsIMsgIncomingServer
+                                   .perYearArchiveFolders)
+        copyBatchKey += msgYear;
+      if (granularity >= Components.interfaces.nsIMsgIncomingServer
+                                   .perMonthArchiveFolders)
         copyBatchKey += monthFolderName;
 
        if (! (copyBatchKey in this._batches)) {

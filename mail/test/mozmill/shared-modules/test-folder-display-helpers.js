@@ -901,6 +901,33 @@ function press_delete(aController) {
 }
 
 /**
+ * Archive the selected messages, and wait for it to complete.
+ *
+ * @param aController The controller in whose context to do this, defaults to
+ *     |mc| if omitted.
+ */
+function archive_selected_messages(aController) {
+  if (aController === undefined)
+    aController = mc;
+  let expectedCount = aController.dbView.rowCount - aController.dbView.numSelected;
+  // XXX We seem to sometimes have focus issues on trunk; this works around it.
+  focus_thread_tree();
+  aController.keypress(null, "a", {});
+
+  // Wait for the view rowCount to decrease by the number of selected messages.
+  let messagesDeletedFromView = function() {
+    return aController.dbView.rowCount == expectedCount;
+  };
+  controller.waitForEval('subject()',
+                         NORMAL_TIMEOUT,
+                         FAST_INTERVAL, messagesDeletedFromView);
+  // The above may return immediately, meaning the event queue might not get a
+  //  chance.  give it a chance now.
+  aController.sleep(0);
+
+}
+
+/**
  * Pretend we are pressing the Enter key, triggering opening selected messages.
  * Note that since we don't know where this is going to trigger a message load,
  * you're going to have to wait for message display completion yourself.
