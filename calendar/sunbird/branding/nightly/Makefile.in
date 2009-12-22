@@ -14,13 +14,14 @@
 # The Original Code is Mozilla Calendar code.
 #
 # The Initial Developer of the Original Code is
-#   Matthew Willis <lilmatt@mozilla.com>
-# Portions created by the Initial Developer are Copyright (C) 2006
+#   Philipp Kewisch <mozilla@kewis.ch>
+# Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Brian Ryner <bryner@brianryner.com>
+#   Matthew Willis <lilmatt@mozilla.com>
 #   Robert Strong <robert.bugzilla@gmail.com>
-#   Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,11 +37,11 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH = ../../..
+DEPTH = ../../../..
 topsrcdir = @top_srcdir@
 srcdir = @srcdir@
 VPATH = @srcdir@
-relativesrcdir = other-licenses/branding/sunbird/locales
+relativesrcdir = calendar/sunbird/branding/sunbird/locales
 
 include $(DEPTH)/config/autoconf.mk
 
@@ -51,34 +52,30 @@ include $(topsrcdir)/config/rules.mk
 export::
 	$(NSINSTALL) -D $(DIST)/branding
 ifeq ($(OS_ARCH),WINNT)
-	cp $(srcdir)/sunbird.ico        $(DIST)/branding/sunbird.ico
-	cp $(srcdir)/sunbird.ico        $(DIST)/branding/app.ico
-	cp $(srcdir)/branding.nsi       $(DIST)/branding/branding.nsi
-	cp $(srcdir)/wizHeader.bmp      $(DIST)/branding/wizHeader.bmp
-	cp $(srcdir)/wizHeaderRTL.bmp   $(DIST)/branding/wizHeaderRTL.bmp
-	cp $(srcdir)/wizWatermark.bmp   $(DIST)/branding/wizWatermark.bmp
-	cp $(srcdir)/license.txt        $(DIST)/branding/license.txt
-	cp $(srcdir)/Header.bmp         $(DIST)/branding/Header.bmp
-	cp $(srcdir)/Watermrk.bmp       $(DIST)/branding/Watermrk.bmp
+	cp $(srcdir)/sunbird.ico       $(DIST)/branding/sunbird.ico
+	cp $(srcdir)/sunbird.ico       $(DIST)/branding/app.ico
+	cp $(srcdir)/sunbird.ico       $(DIST)/branding/document.ico
+	cp $(srcdir)/branding.nsi      $(DIST)/branding/branding.nsi
+	cp $(srcdir)/wizHeader.bmp     $(DIST)/branding/wizHeader.bmp
+	cp $(srcdir)/wizHeaderRTL.bmp  $(DIST)/branding/wizHeaderRTL.bmp
+	cp $(srcdir)/wizWatermark.bmp  $(DIST)/branding/wizWatermark.bmp
+	cp $(srcdir)/license.txt       $(DIST)/branding/license.txt
+	cp $(srcdir)/Header.bmp        $(DIST)/branding/Header.bmp
+	cp $(srcdir)/Watermrk.bmp      $(DIST)/branding/Watermrk.bmp
 endif
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-	cp $(srcdir)/sunbird.icns       $(DIST)/branding/sunbird.icns
-	cp $(srcdir)/sb_ICS.icns        $(DIST)/branding/sb_ICS.icns
-	cp $(srcdir)/document.icns      $(DIST)/branding/document.icns
-	cp $(srcdir)/dsstore            $(DIST)/branding/dsstore
-	cp $(srcdir)/background.png     $(DIST)/branding/background.png
-	cp $(srcdir)/disk.icns          $(DIST)/branding/disk.icns
-	cp $(srcdir)/license.r          $(DIST)/branding/license.r
+	cp $(srcdir)/sunbird.icns      $(DIST)/branding/sunbird.icns
+	cp $(srcdir)/sb_ICS.icns       $(DIST)/branding/sb_ICS.icns
+	cp $(srcdir)/background.png    $(DIST)/branding/background.png
+	cp $(srcdir)/dsstore           $(DIST)/branding/dsstore
+	cp $(srcdir)/disk.icns         $(DIST)/branding/disk.icns
 endif
-ifneq (,$(filter gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
-	cp $(srcdir)/mozicon128.png     $(DIST)/branding/default128.png
-	cp $(srcdir)/mozicon50.xpm      $(DIST)/branding/default50.xpm
-	cp $(srcdir)/mozicon16.xpm      $(DIST)/branding/default16.xpm
-	cp $(srcdir)/default.xpm        $(DIST)/branding/default.xpm
-	$(NSINSTALL) -D $(DIST)/install
-	cp $(srcdir)/header.png         $(DIST)/install/header.png
-	cp $(srcdir)/watermark.png      $(DIST)/install/watermark.png
+ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
+	cp $(srcdir)/mozicon128.png    $(DIST)/branding/default128.png
+	cp $(srcdir)/mozicon50.xpm     $(DIST)/branding/default50.xpm
+	cp $(srcdir)/mozicon16.xpm     $(DIST)/branding/default16.xpm
+	cp $(srcdir)/default.xpm       $(DIST)/branding/default.xpm
 endif
 ifeq ($(OS_ARCH),OS2)
-	cp $(srcdir)/sunbird-os2.ico    $(DIST)/branding/sunbird.ico
+	cp $(srcdir)/sunbird-os2.ico   $(DIST)/branding/sunbird.ico
 endif

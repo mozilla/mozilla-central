@@ -280,54 +280,12 @@ GARBAGE += $(addprefix $(DIST)/bin/defaults/pref/, sunbird.js)
 
 endif
 
-ifneq (,$(filter gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
-ICON_FILES = \
-    $(DIST)/branding/mozicon128.png \
-    $(DIST)/branding/mozicon50.xpm \
-    $(DIST)/branding/mozicon16.xpm \
-    $(NULL)
-
-libs:: $(ICON_FILES)
-	$(INSTALL) $^ $(DIST)/bin/icons
-
-install::
-	$(SYSINSTALL) $(IFLAGS1) $(ICON_FILES) $(DESTDIR)$(mozappdir)/icons
-endif
-
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
 libs::
-	$(INSTALL) $(DIST)/branding/default.xpm $(DIST)/bin/chrome/icons/default
+	$(INSTALL) $(IFLAGS1) $(DIST)/branding/default* $(DIST)/bin/chrome/icons/default
 
 install::
-	$(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/default.xpm $(DESTDIR)$(mozappdir)/chrome/icons/default
-endif
-
-export::
-ifndef MOZ_BRANDING_DIRECTORY
-	$(NSINSTALL) -D $(DIST)/branding
-ifeq ($(OS_ARCH),WINNT)
-	cp $(srcdir)/sunbird.ico  $(DIST)/branding/sunbird.ico
-	cp $(srcdir)/sunbird.ico  $(DIST)/branding/app.ico
-	cp $(srcdir)/sunbird.ico  $(DIST)/branding/document.ico
-endif
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-	cp $(srcdir)/macbuild/sunbird.icns  $(DIST)/branding/sunbird.icns
-	cp $(srcdir)/macbuild/sb_ICS.icns  $(DIST)/branding/sb_ICS.icns
-	cp $(srcdir)/macbuild/dsstore  $(DIST)/branding/dsstore
-	cp $(srcdir)/macbuild/background.png  $(DIST)/branding/background.png
-	cp $(srcdir)/macbuild/disk.icns  $(DIST)/branding/disk.icns
-endif
-ifneq (,$(filter gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
-	cp $(srcdir)/mozicon128.png  $(DIST)/branding/mozicon128.png
-	cp $(srcdir)/mozicon50.xpm   $(DIST)/branding/mozicon50.xpm
-	cp $(srcdir)/mozicon16.xpm   $(DIST)/branding/mozicon16.xpm
-endif
-ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
-	cp $(srcdir)/default.xpm  $(DIST)/branding/default.xpm
-endif
-ifeq ($(OS_ARCH),OS2)
-	cp $(srcdir)/sunbird-os2.ico  $(DIST)/branding/sunbird.ico
-endif
+	$(SYSINSTALL) $(IFLAGS1) $(DIST)/branding/default* $(DESTDIR)$(mozappdir)/chrome/icons/default
 endif
 
 libs::

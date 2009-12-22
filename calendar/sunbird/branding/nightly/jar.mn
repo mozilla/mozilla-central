@@ -1,0 +1,15 @@
+#filter substitution
+
+sunbird.jar:
+% content branding %content/branding/
+    content/branding/about.png                             (content/about.png)
+    content/branding/aboutCredits.png                      (content/aboutCredits.png)
+    content/branding/aboutFooter.png                       (content/aboutFooter.png)
+    content/branding/icon64.png                            (content/icon64.png)
+    content/branding/icon48.png                            (content/icon48.png)
+
+@AB_CD@.jar:
+% locale branding @AB_CD@ %locale/branding/
+# Calendar branding only exists in en-US
+  locale/branding/brand.dtd                                (locales/en-US/brand.dtd)
+* locale/branding/brand.properties                         (locales/en-US/brand.properties)

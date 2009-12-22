@@ -1,12 +1,5 @@
 #filter substitution
 
-#ifdef MOZ_USE_GENERIC_BRANDING
-@AB_CD@.jar:
-% locale branding @AB_CD@ %locale/branding/
-+   locale/branding/brand.dtd                              (%chrome/branding/brand.dtd)
-+   locale/branding/brand.properties                       (%chrome/branding/brand.properties)
-#endif
-
 sunbird-@AB_CD@.jar:
 % locale sunbird @AB_CD@ %locale/@AB_CD@/sunbird/
     locale/@AB_CD@/sunbird/aboutDialog.dtd                 (%chrome/sunbird/aboutDialog.dtd)

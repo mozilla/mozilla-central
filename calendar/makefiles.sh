@@ -21,7 +21,8 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   - Simon Paquet <bugzilla@babylonsounds.com>
+#   Simon Paquet <bugzilla@babylonsounds.com>
+#   Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,20 +40,13 @@
 
 if [ "$COMM_BUILD" ]; then
 
-add_makefiles "
-calendar/sunbird/Makefile
-calendar/sunbird/app/Makefile
-calendar/sunbird/base/Makefile
-calendar/sunbird/locales/Makefile
-"
-
-if test -n "$MOZ_BRANDING_DIRECTORY"; then
-  add_makefiles "
+    add_makefiles "
+    calendar/sunbird/Makefile
+    calendar/sunbird/app/Makefile
+    calendar/sunbird/base/Makefile
+    calendar/sunbird/locales/Makefile
     $MOZ_BRANDING_DIRECTORY/Makefile
-    $MOZ_BRANDING_DIRECTORY/content/Makefile
-    $MOZ_BRANDING_DIRECTORY/locales/Makefile
-  "
-fi
+    "
 
- . ${srcdir}/calendar/shared_makefiles.sh
+   . ${srcdir}/calendar/shared_makefiles.sh
 fi

@@ -18,11 +18,3 @@ sunbird.jar:
     skin/sunbird/calendar.css                              (themes/@THEME@/calendar.css)
     skin/sunbird/toolbar.css                               (themes/@THEME@/toolbar.css)
     skin/sunbird/offline-online.png                        (themes/@THEME@/offline-online.png)
-#ifdef MOZ_USE_GENERIC_BRANDING
-% content branding %content/branding/
-    content/branding/about.png                             (branding/about.png)
-    content/branding/aboutCredits.png                      (branding/aboutCredits.png)
-    content/branding/aboutFooter.png                       (branding/aboutFooter.png)
-    content/branding/icon64.png                            (branding/icon64.png)
-    content/branding/icon48.png                            (branding/icon48.png)
-#endif
