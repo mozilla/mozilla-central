@@ -301,3 +301,7 @@ pref("view_source.wrap_long_lines", false);
 
 // The breakpad report server to link to in about:crashes
 pref("breakpad.reportURL", "http://crash-stats.mozilla.com/report/index/");
+
+// The Necko Disk Cache. Disable the cache until Sunbird makes correct use of it
+// and offers UI preferences to control it.
+pref("browser.cache.disk.enable", false);
