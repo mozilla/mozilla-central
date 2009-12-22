@@ -63,7 +63,10 @@ let _errorConsoleTunnel = {
     // meh, let's just use mark_failure for now.
     // and let's avoid feedback loops (happens in mozmill)
     if ((aMessage instanceof Components.interfaces.nsIScriptError) &&
-        (aMessage.errorMessage.indexOf("Error console says") == -1))
+        (aMessage.errorMessage.indexOf("Error console says") == -1) &&
+        // MOZILLA_1_9_2_BRANCH fix: gre-resources alias causes an expected
+        //  warning that should not cause us to fail.
+        (aMessage.errorMessage.indexOf("Duplicate resource declaration") == -1))
       mark_failure(["Error console says", aMessage]);
   }
 };
