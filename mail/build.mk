@@ -79,8 +79,6 @@ tier_app_dirs += \
 	mail \
 	$(NULL)
 
-endif # COMM_BUILD
-
 installer:
 	@$(MAKE) -C mail/installer installer
 
@@ -100,6 +98,9 @@ upload::
 	@$(MAKE) -C mail/installer upload
 
 ifdef ENABLE_TESTS
+# Additional mailnews targets to call automated test suites
+include $(topsrcdir)/mailnews/testsuite-targets.mk
+
 # Instructions below this line are for mail/ specific tests.
 
 MOZMILLDIR=$(DEPTH)/mozilla/_tests/mozmill
@@ -128,4 +129,6 @@ mozmill-one::
 	cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= $(PYTHON) runtest.py \
 	--test=$(topsrcdir)/mail/test/mozmill/$(SOLO_TEST) --binary=$(PROGRAM) \
 	--default-profile=$(PROGRAM_LOCATION)/defaults/profile $(MOZMILL_EXTRA)
-endif
+endif # ENABLE_TESTS
+
+endif # COMM_BUILD

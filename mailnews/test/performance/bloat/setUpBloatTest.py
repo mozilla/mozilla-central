@@ -46,22 +46,28 @@ import sys
 sys.path.append(os.path.join(os.getcwd(), '../common'))
 import setUpCommonMailNews
 
+copyFiles = ["bloatComposeOverlay.js",
+             "bloatComposeOverlay.xul",
+             "bloatAddrOverlay.js",
+             "bloatAddrOverlay.xul",
+             "bloatMainOverlay.js",
+             "bloatMainOverlay.xul"];
+
 class BloatProfileOptions(optparse.OptionParser):
     """Parses Set Up Bloat Profile commandline options."""
     def __init__(self, **kwargs):
         optparse.OptionParser.__init__(self, **kwargs)
         defaults = {}
 
+        self.add_option("--cleanup",
+                        action = "store_true", dest = "cleanup",
+                        help = "Clean up rather than shut down.")
+        defaults["cleanup"] = False
+
         setUpCommonMailNews.AddCommonOptions(self, defaults);
 
 def copyChromeFiles(destination):
     # Copy bloat*Overlay.js/xul to the chrome directory
-    copyFiles = ["bloatComposeOverlay.js",
-                 "bloatComposeOverlay.xul",
-                 "bloatAddrOverlay.js",
-                 "bloatAddrOverlay.xul",
-                 "bloatMainOverlay.js",
-                 "bloatMainOverlay.xul"];
     for file in copyFiles:
         shutil.copy(file, destination)
 
@@ -89,6 +95,11 @@ overlay chrome://messenger/content/messengercompose/messengercompose.xul chrome:
     f.write(text)
     f.close()
 
+def removeFiles(destination, manifestFileName):
+    for file in copyFiles:
+        os.remove(os.path.join(destination, file))
+
+    os.remove(os.path.join(destination, manifestFileName))
 
 def main():
     # Argument parsing and checking
@@ -106,11 +117,12 @@ def main():
     # The main work
     print "Running setUpBloatTest.py"
 
-    copyChromeFiles(options.binaryDir + "/chrome")
-
-    createManifest(options.binaryDir + "/chrome", "mailnewstest.manifest")
-
-    setUpCommonMailNews.copyCommonProfileFiles(options.profileDir)
+    if options.cleanup:
+        removeFiles(options.binaryDir + "/chrome", "mailnewstest.manifest")
+    else:
+        copyChromeFiles(options.binaryDir + "/chrome")
+        createManifest(options.binaryDir + "/chrome", "mailnewstest.manifest")
+        setUpCommonMailNews.copyCommonProfileFiles(options.profileDir)
 
     print "setUpBloatTest.py completed succesfully"
 

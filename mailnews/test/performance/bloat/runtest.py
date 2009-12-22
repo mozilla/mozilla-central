@@ -45,16 +45,19 @@ import sys
 import os
 import shutil
 
+import automation
+from automationutils import checkForCrashes
+
 class BloatRunTestOptions(optparse.OptionParser):
     """Parses Bloat runtest.py commandline options."""
     def __init__(self, **kwargs):
         optparse.OptionParser.__init__(self, **kwargs)
         defaults = {}
 
-        self.add_option("--objdir",
-                        action = "store", type = "string", dest = "objdir",
+        self.add_option("--distdir",
+                        action = "store", type = "string", dest = "distdir",
                         help = "object directory of build to run")
-        defaults["objdir"] = "objdir-tb"
+        defaults["distdir"] = "distdir-tb"
 
         self.add_option("--bin",
                         action = "store", type = "string", dest = "bin",
@@ -66,11 +69,10 @@ class BloatRunTestOptions(optparse.OptionParser):
                         help = "The current branding, including Debug if necessary")
         defaults["brand"] = "Shredder"
 
-        self.add_option("--release",
-                        action = "store_false", dest = "debug",
-                        help = "Specify if the build is a release build")
-
-        defaults["debug"] = True
+        self.add_option("--symbols-path",
+                        action = "store", type = "string", dest = "symbols",
+                        help = "The path to the symbol files from build_symbols")
+        defaults["symbols"] = ""
 
         self.add_option("--extra-startup-arg",
                         action = "store", type = "string", dest = "extraArg",
@@ -89,39 +91,30 @@ All arguments must be specified.
 parser = BloatRunTestOptions()
 options, args = parser.parse_args()
 
-if options.objdir == "" or options.bin == "" or options.brand == "":
+if options.distdir == "" or options.bin == "" or options.brand == "":
   parser.print_help()
   sys.exit(1)
 
-OBJDIR = os.path.abspath(os.path.realpath(options.objdir))
-AUTOMATION_DIR = os.path.join(OBJDIR, 'mozilla', 'build')
-sys.path.append(AUTOMATION_DIR)
-import automation
-from automationutils import checkForCrashes
-
-# XXX Symbols path is currently hard-coded to what we expect - bug 524125 will
-# fix this. 
-SYMBOLS_PATH = os.path.abspath(os.path.join(AUTOMATION_DIR, "../dist/crashreporter-symbols"))
+DISTDIR = os.path.abspath(os.path.realpath(options.distdir))
+print DISTDIR
 
 CWD = os.getcwd()
 SCRIPTDIR = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
 
 if automation.IS_MAC:
-  if options.debug:
-    APPBUNDLE = options.brand + 'Debug.app'
-  else:
-    APPBUNDLE = options.brand + '.app'
-
-  BINDIR = os.path.join(OBJDIR, 'mozilla', 'dist', APPBUNDLE, 'Contents', 'MacOS')
+  APPBUNDLE = options.brand + '.app'
+  BINDIR = os.path.join(DISTDIR, APPBUNDLE, 'Contents', 'MacOS')
 else:
-  BINDIR = os.path.join(OBJDIR, 'mozilla', 'dist', 'bin')
+  BINDIR = os.path.join(DISTDIR, 'bin')
 
 if automation.IS_MAC:
   EXECUTABLE = options.bin + '-bin'
 else:
   EXECUTABLE = options.bin
 BIN = os.path.join(BINDIR, EXECUTABLE)
-PROFILE = os.path.join(OBJDIR, 'mozilla', '_leaktest', 'leakprofile')
+PROFILE = os.path.join(DISTDIR, '..', '_leaktest', 'leakprofile')
+print BIN
+print EXECUTABLE
 
 # Wipe the profile
 if os.path.exists(PROFILE):
@@ -167,6 +160,16 @@ COMMANDS = [
             '--shutdown-leaks', 'sdleak.log',
            ],
    'env': {'XPCOM_MEM_BLOAT_LOG': 'trace-bloat.log'},
+  },
+  {
+   'name': 'cleanup tests',
+   'bin':  sys.executable,
+   'args': ['setUpBloatTest.py',
+            '--profile-dir=' + PROFILE,
+            '--binary-dir=' + BINDIR,
+            '--cleanup'
+           ],
+    'cwd': SCRIPTDIR,
   }
 ]
 
@@ -210,7 +213,7 @@ for cmd in COMMANDS:
   if status != 0:
     print >> sys.stderr, "TEST-UNEXPECTED-FAIL | runtest.py | Exited with code %d during test run"%(status)
 
-  if checkForCrashes(os.path.join(PROFILE, "minidumps"), SYMBOLS_PATH, cmd['name']):
+  if checkForCrashes(os.path.join(PROFILE, "minidumps"), options.symbols, cmd['name']):
     print >> sys.stderr, 'TinderboxPrint: ' + cmd['name'] + '<br/><em class="testfail">CRASH</em>'
     status = -1
 
