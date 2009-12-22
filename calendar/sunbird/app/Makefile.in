@@ -339,8 +339,6 @@ libs repackage:: $(PROGRAM)
 	rsync -a $(DIST)/bin/ $(DIST)/$(APP_NAME).app/Contents/MacOS
 	rm -f $(DIST)/$(APP_NAME).app/Contents/MacOS/$(PROGRAM) $(DIST)/$(APP_NAME).app/Contents/MacOS/mangle $(DIST)/$(APP_NAME).app/Contents/MacOS/shlibsign
 	rsync -aL $(PROGRAM) $(DIST)/$(APP_NAME).app/Contents/MacOS
-	mkdir -p $(DIST)/$(APP_NAME).app/Contents/Plug-Ins
-	rsync -a --copy-unsafe-links $(DIST)/package/PrintPDE.plugin $(DIST)/$(APP_NAME).app/Contents/Plug-Ins
 	-cp -L $(DIST)/bin/mangle $(DIST)/bin/shlibsign $(DIST)/$(APP_NAME).app/Contents/MacOS
 	cp -RL $(DIST)/branding/sunbird.icns $(DIST)/$(APP_NAME).app/Contents/Resources/sunbird.icns
 	cp -RL $(DIST)/branding/sb_ICS.icns $(DIST)/$(APP_NAME).app/Contents/Resources/sb_ICS.icns

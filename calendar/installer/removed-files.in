@@ -471,3 +471,12 @@ js3250.dll
 #endif
 #endif
 
+# bug 520394 - We now use Cocoa Printing instead of PrintPDE
+#ifdef XP_MACOSX
+../Plug-Ins/PrintPDE.plugin/Contents/Info.plist
+../Plug-Ins/PrintPDE.plugin/Contents/MacOS/PrintPDE
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/Localizable.strings
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/classes.nib
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/info.nib
+../Plug-Ins/PrintPDE.plugin/Contents/Resources/English.lproj/PrintPDE.nib/objects.xib
+#endif
