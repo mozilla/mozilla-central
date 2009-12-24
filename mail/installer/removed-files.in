@@ -74,6 +74,7 @@ components/nsWinSearchIntegration.js
 components/progressDlg.xpt
 components/sidebar.xpt
 components/signonviewer.xpt
+components/thunderbird.xpt
 components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
 components/spellchk.dll
 components/@DLL_PREFIX@wallet@DLL_SUFFIX@

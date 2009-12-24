@@ -27,7 +27,7 @@
 @BINPATH@/chrome/@AB_CD@.jar
 @BINPATH@/chrome/@AB_CD@.manifest
 @BINPATH@/@PREF_DIR@/all-l10n.js
-@BINPATH@/dictionaries/
+@BINPATH@/dictionaries/*
 #ifdef XP_WIN32
 @BINPATH@/uninstall/helper.exe
 #endif
@@ -74,7 +74,7 @@
 #endif
 
 ; Modules
-@BINPATH@/modules/
+@BINPATH@/modules/*
 
 ; Optional RSS extension
 [newsblog]
@@ -112,7 +112,7 @@
 @BINPATH@/defaults/profile/prefs.js
 @BINPATH@/defaults/profile/mimeTypes.rdf
 
-@BINPATH@/isp/
+@BINPATH@/isp/*
 
 @BINPATH@/components/components.list
 @BINPATH@/components/aboutRights.js
@@ -219,7 +219,7 @@
 @BINPATH@/defaults/pref/smime.js
 @BINPATH@/defaults/pref/thunderbird-branding.js
 #ifdef MOZILLA_1_9_2_BRANCH
-@BINPATH@/greprefs/
+@BINPATH@/greprefs/*
 #else
 @BINPATH@/greprefs.js
 #endif
