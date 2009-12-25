@@ -54,7 +54,7 @@
         persist="screenX screenY width height"
         style="width: 40em; height: 25em;">
   
-  <script type="application/x-javascript" src="chrome://messenger/content/preferences/junkLog.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/preferences/junkLog.js"/>
   
   <vbox flex="1">
     <hbox>

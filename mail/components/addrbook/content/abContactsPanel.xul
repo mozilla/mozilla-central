@@ -61,12 +61,12 @@
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
   </stringbundleset>
 
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abDragDrop.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abContactsPanel.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
+  <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abDragDrop.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abContactsPanel.js"/>
 
   <popup id="cardProperties">
     <menuitem label="&deleteAddrBookCard.label;" oncommand="AbDelete();"/>

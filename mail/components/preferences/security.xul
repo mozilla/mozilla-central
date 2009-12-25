@@ -48,7 +48,7 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
            
   <prefpane id="paneSecurity" onpaneload="gSecurityPane.init();">
-    <script type="application/x-javascript" src="chrome://messenger/content/preferences/security.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/preferences/security.js"/>
 
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
 

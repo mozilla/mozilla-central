@@ -42,7 +42,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript" src="chrome://messenger-smime/content/msgReadSMIMEOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger-smime/content/msgReadSMIMEOverlay.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_read_smime" src="chrome://messenger-smime/locale/msgReadSMIMEOverlay.properties"/>

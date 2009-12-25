@@ -56,7 +56,7 @@
             title="&dialog.title;">
 
   <prefpane id="SendOptionsDialogPane" onpaneload="gSendOptionsDialog.init();">
-    <script type="application/x-javascript" src="chrome://messenger/content/preferences/sendoptions.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/preferences/sendoptions.js"/>
 
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
 

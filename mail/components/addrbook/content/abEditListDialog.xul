@@ -54,9 +54,9 @@
   </stringbundleset>
 
   <!-- move needed functions into a single js file -->
-  <script type="application/x-javascript" src="chrome://messenger/content/messengercompose/addressingWidgetOverlay.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abMailListDialog.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/messengercompose/addressingWidgetOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abMailListDialog.js"/>
 
   <vbox id="editlist">
     <hbox>

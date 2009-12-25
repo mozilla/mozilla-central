@@ -48,7 +48,7 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <prefpane id="paneGeneral" onpaneload="gGeneralPane.init();">
-    <script type="application/x-javascript" src="chrome://messenger/content/preferences/general.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/preferences/general.js"/>
 
     <preferences id="generalPreferences">
       <preference id="mail.pane_config.dynamic" name="mail.pane_config.dynamic" type="int"/>

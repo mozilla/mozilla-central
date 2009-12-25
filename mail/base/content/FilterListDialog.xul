@@ -58,7 +58,7 @@
   persist="width height screenX screenY"
   title="&window.title;">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/FilterListDialog.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/FilterListDialog.js"/>
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_filter" src="chrome://messenger/locale/filter.properties"/>
   </stringbundleset>

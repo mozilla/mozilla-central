@@ -50,7 +50,7 @@
             dlgbuttons="accept,cancel"
             title="&dialog.title;">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/preferences/dsn.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/preferences/dsn.js"/>
         
   <prefpane id="DSNDialogPane" onpaneload="onInit();">
     <preferences id="DSNPreferences">

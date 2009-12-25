@@ -71,22 +71,22 @@
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   </stringbundleset>
 
-<script type="application/x-javascript" src="chrome://messenger/content/accountUtils.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/mailCore.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
-<script type="application/x-javascript" src="chrome://communicator/content/contentAreaClick.js"/>
-<script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/msgPrintEngine.js"/>
+<script type="application/javascript" src="chrome://messenger/content/accountUtils.js"/>
+<script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
+<script type="application/javascript" src="chrome://messenger/content/mailCore.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
+<script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
+<script type="application/javascript" src="chrome://global/content/printUtils.js"/>
+<script type="application/javascript" src="chrome://messenger/content/msgPrintEngine.js"/>
 
 <!-- move needed functions into a single js file -->
-<script type="application/x-javascript" src="chrome://communicator/content/utilityOverlay.js"/>
-<script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/addressbook/abDragDrop.js"/>
-<script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
-<script type="application/x-javascript" src="chrome://messenger/content/addressbook/abCardViewOverlay.js"/>
+<script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
+<script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/abDragDrop.js"/>
+<script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
+<script type="application/javascript" src="chrome://messenger/content/addressbook/abCardViewOverlay.js"/>
 
 <commandset id="addressBook">
   <commandset id="CommandUpdate_AddressBook"

@@ -63,7 +63,7 @@
         buttons="accept"
         persist="screenX screenY width height">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/mailViewList.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/mailViewList.js"/>
 
   <vbox flex="1">
     <hbox flex="1">

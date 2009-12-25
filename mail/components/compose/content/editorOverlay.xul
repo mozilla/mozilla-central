@@ -52,8 +52,8 @@
 <overlay id="editorOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<script type="application/x-javascript" src="chrome://editor/content/editorUtilities.js"/>
-<script type="application/x-javascript" src="chrome://editor/content/ComposerCommands.js"/>
+<script type="application/javascript" src="chrome://editor/content/editorUtilities.js"/>
+<script type="application/javascript" src="chrome://editor/content/ComposerCommands.js"/>
 
   <keyset id="editorKeys">
     <key id="boldkb"         key="&styleBoldCmd.key;"       observes="cmd_bold" modifiers="accel"/>

@@ -48,9 +48,9 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <prefpane id="paneDisplay" onpaneload="gDisplayPane.init();">
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://mozapps/content/preferences/fontbuilder.js"/>
-    <script type="application/x-javascript"
+    <script type="application/javascript"
             src="chrome://messenger/content/preferences/display.js"/>
 
     <preferences id="displayPreferences">

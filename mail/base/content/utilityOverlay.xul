@@ -13,7 +13,7 @@
 
 <overlay id="utilityOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript" src="chrome://communicator/content/utilityOverlay.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
   
   <!-- File Menu -->
   <menu id="menu_File" label="&fileMenu.label;" accesskey="&fileMenu.accesskey;"/>

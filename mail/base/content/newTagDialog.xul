@@ -48,7 +48,7 @@
     <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   </stringbundleset>
   
-  <script type="application/x-javascript" src="chrome://messenger/content/newTagDialog.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/newTagDialog.js"/>
   <label value="&name.label;" accesskey="&name.accesskey;" control="name"/>
   <hbox>
     <textbox id="name" oninput="doEnabling();"/>

@@ -49,7 +49,7 @@
   buttons="accept"
   onload="onLoad();">
 
-  <script type="application/x-javascript" src="chrome://messenger-smime/content/msgCompSecurityInfo.js"/>
+  <script type="application/javascript" src="chrome://messenger-smime/content/msgCompSecurityInfo.js"/>
 
   <stringbundle id="bundle_smime_comp_info" src="chrome://messenger-smime/locale/msgCompSecurityInfo.properties"/> 
 

@@ -46,10 +46,10 @@
          xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://communicator/content/utilityOverlay.js"/>
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
           src="chrome://messenger/content/mailCore.js"/>
 
 #ifdef XP_WIN

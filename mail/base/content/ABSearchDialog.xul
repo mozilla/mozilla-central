@@ -68,14 +68,14 @@
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   </stringbundleset>
 
-  <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/mailWindow.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/commandglue.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/ABSearchDialog.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
+  <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/mailWindow.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
+  <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/commandglue.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/ABSearchDialog.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
 
   <keyset id="mailKeys">
     <key key="&closeCmd.key;" modifiers="accel" oncommand="onSearchStop(); closeWindow(true);"/>
