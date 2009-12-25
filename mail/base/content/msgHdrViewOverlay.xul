@@ -52,14 +52,17 @@
        onpopupshowing="FillMessageIdContextMenu(document.popupNode);">
   <menuitem id="messageIdContext-messageIdTarget"
             disabled="true"/>
-  <menuseparator/>
-  <menuitem label="&OpenMessageForMsgId.label;"
+  <menuseparator id="messageIdContext-separator"/>
+  <menuitem id="messageIdContext-openMessageForMsgId"
+            label="&OpenMessageForMsgId.label;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
                        OpenMessageForMessageId(messageId)"/>
-  <menuitem label="&OpenBrowserWithMsgId.label;"
+  <menuitem id="messageIdContext-openBrowserWithMsgId"
+            label="&OpenBrowserWithMsgId.label;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
                        OpenBrowserWithMessageId(messageId)"/>
-  <menuitem label="&CopyMessageId.label;"
+  <menuitem id="messageIdContext-copyMessageId"
+            label="&CopyMessageId.label;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, false);
                        CopyMessageId(messageId);"/>
 </popup>

@@ -100,14 +100,22 @@ function fillMailContextMenu(event)
   return true;
 }
 
-// show the message id in the context menu
+/**
+ * Set the message id to show as label in the context menu item designated
+ * for that purpose.
+ */
 function FillMessageIdContextMenu(messageIdNode)
 {
-  if (messageIdNode)
-  {
-    document.getElementById("messageIdContext-messageIdTarget")
-            .setAttribute("label", messageIdNode.getAttribute("messageid"));
-  }
+  var msgId = messageIdNode.getAttribute("messageid");
+  document.getElementById("messageIdContext-messageIdTarget")
+          .setAttribute("label", msgId);
+
+  // We don't want to show "open message for id" for the same message we're
+  // viewing.
+  var currentMsgId = "<" + gFolderDisplay.selectedMessage.messageId + ">";
+  document.getElementById("messageIdContext-openMessageForMsgId")
+          .setAttribute("hidden", (currentMsgId == msgId));
+
 }
 
 function CopyMessageId(messageId)
@@ -129,14 +137,16 @@ function GetMessageIdFromNode(messageIdNode, cleanMessageId)
   return messageId;
 }
 
-// take the message id from the messageIdNode and use the
-// url defined in the hidden pref "mailnews.messageid_browser.url"
-// to open it in a browser window (%mid is replaced by the message id)
+/**
+ * Take the message id from the messageIdNode and use the url defined in the
+ * hidden pref "mailnews.messageid_browser.url" to open it in a browser window
+ * (%mid is replaced by the message id).
+ * @param messageId the message id to open
+ */
 function OpenBrowserWithMessageId(messageId)
 {
   var browserURL = pref.getComplexValue("mailnews.messageid_browser.url",
                                         Components.interfaces.nsIPrefLocalizedString).data;
-
   browserURL = browserURL.replace(/%mid/, messageId);
   try
   {
@@ -144,18 +154,21 @@ function OpenBrowserWithMessageId(messageId)
   }
   catch (ex)
   {
-    dump("Failed to open message-id in browser!");
+    Components.utils.reportError("Failed to open message-id in browser; " +
+                                 "browserURL=" + browserURL);
   }
 }
 
-// take the message id from the messageIdNode, search for the
-// corresponding message in all folders starting with the current
-// selected folder, then the current account followed by the other
-// accounts and open corresponding message if found
+/**
+ * Take the message id from the messageIdNode, search for the corresponding
+ * message in all folders starting with the current selected folder, then the
+ * current account followed by the other accounts and open corresponding
+ * message if found.
+ * @param messageId the message id to open
+ */
 function OpenMessageForMessageId(messageId)
 {
   var startServer = msgWindow.openFolder.server;
-  var messageHeader;
 
   window.setCursor("wait");
 
@@ -275,20 +288,22 @@ function SearchForMessageIdInSubFolder(folder, messageId)
   return messageHeader;
 }
 
-// check folder for corresponding message to given message id
-// return message header if message was found
+/**
+ * Check folder for corresponding message to given message id.
+ * @return the message header if message was found
+ */
 function CheckForMessageIdInFolder(folder, messageId)
 {
   var messageDatabase = folder.msgDatabase;
   var messageHeader;
-
   try
   {
     messageHeader = messageDatabase.getMsgHdrForMessageID(messageId);
   }
   catch (ex)
   {
-    dump("Failed to find message-id in folder!");
+    Components.utils.reportError("Failed to find message-id in folder; " +
+                                 "messageId=" + messageId);
   }
   var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
                               .getService(Components.interfaces.nsIMsgMailSession);
