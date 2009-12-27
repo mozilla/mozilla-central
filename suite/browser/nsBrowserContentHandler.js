@@ -429,6 +429,16 @@ var nsBrowserContentHandler = {
       }
     } catch (e) {
     }
+ 
+    try {
+      var fileParam = cmdLine.handleFlagWithParam("file", false);
+      if (fileParam) {
+       fileParam = resolveURIInternal(cmdLine, fileParam);
+       handURIToExistingBrowser(fileParam, nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW, features);
+       cmdLine.preventDefault = true;
+      }
+    } catch (e) {
+    }
 
     if (cmdLine.handleFlag("preferences", false)) {
       openPreferences();
