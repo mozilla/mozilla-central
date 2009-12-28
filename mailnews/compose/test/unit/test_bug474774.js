@@ -103,7 +103,7 @@ function OnStopCopy(aStatus)
     do_check_eq(originalData, fileData);
 
     do_test_pending();
-    do_timeout(sendMessageLater(), 0);
+    sendMessageLater();
   } catch (e) {
     do_throw(e);
   } finally {

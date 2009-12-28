@@ -113,7 +113,7 @@ function OnStopCopy(aStatus) {
     // Check the data is matching.
     do_check_eq(originalData, fileData);
 
-    do_timeout(sendMessageLater(), 0);
+    sendMessageLater();
   } catch (e) {
     do_throw(e);
   } finally {
