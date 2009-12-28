@@ -221,7 +221,9 @@
                 }
 
                 // don't add the tag action, several tags can be set
-                if (!isCustom && actionValue != 'addtagtomessage')
+                // don't add the forward action, severals forwards are OK
+                if (!isCustom && actionValue != 'addtagtomessage' &&
+                                 actionValue != 'forwardmessage')
                   usedActions[actionValue] = true;
               }
             }
