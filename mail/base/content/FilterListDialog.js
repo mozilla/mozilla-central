@@ -273,7 +273,9 @@ function onDeleteFilter()
   if (checkValue.value) 
      prefBranch.setBoolPref("mailnews.filters.confirm_delete", false);
      
-  for each (var item in items) {
+  // must reverse the loop, as the items list shrinks when we delete
+  for (let index = items.length - 1; index >= 0; --index) {
+    let item = items[index];
     gCurrentFilterList.removeFilter(item._filter);
     document.getElementById("filterList").removeChild(item);
   }

@@ -105,6 +105,7 @@
       <row flex="1">
         <vbox>
           <listbox id="filterList" flex="1" onselect="updateButtons();"
+                   seltype="multiple"
                    onkeypress="onFilterListKeyPress(event);">
             <listhead>
               <listheader id="nameColumn" label="&nameColumn.label;" flex="1"/>
