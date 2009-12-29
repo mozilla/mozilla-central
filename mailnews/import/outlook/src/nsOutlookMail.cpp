@@ -960,19 +960,27 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
   NS_ENSURE_SUCCESS(rv, rv);
 
   HRESULT             hr;
-  LPSPropValue aValue = NULL ;
-  ULONG aValueCount = 0 ;
+  LPSPropValue value = NULL;
+  ULONG valueCount = 0;
 
-  LPSPropTagArray properties = NULL ;
+  LPSPropTagArray properties = NULL;
   m_mapi.MAPIAllocateBuffer(CbNewSPropTagArray(1),
-    (void **)&properties) ;
+    (void **)&properties);
   properties->cValues = 1;
   properties->aulPropTag [0] = m_mapi.GetEmailPropertyTag(pUserList, 0x8054);
-  hr = pUserList->GetProps(properties, 0, &aValueCount, &aValue) ;
+  hr = pUserList->GetProps(properties, 0, &valueCount, &value);
+  m_mapi.MAPIFreeBuffer(properties);
+  if (HR_FAILED(hr))
+    return NS_ERROR_FAILURE;
+  if (!value)
+    return NS_ERROR_NOT_AVAILABLE;
+  // XXX from here out, value must be freed with MAPIFreeBuffer 
 
-  SBinaryArray *sa=(SBinaryArray *)&aValue->Value.bin;
-  if (!sa || !sa->lpbin)
+  SBinaryArray *sa=(SBinaryArray *)&value->Value.bin;
+  if (!sa || !sa->lpbin) {
+    m_mapi.MAPIFreeBuffer(value);
     return NS_ERROR_NULL_POINTER;
+  }
 
   LPENTRYID    lpEid;
   ULONG        cbEid;
@@ -984,7 +992,7 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
   PRUint32 total;
 
   total=sa->cValues;
-  for (idx = 0;idx < sa->cValues ;idx++)
+  for (idx = 0; idx < sa->cValues; idx++)
   {
     lpEid= (LPENTRYID) sa->lpbin[idx].lpb;
     cbEid = sa->lpbin[idx].cb;
@@ -993,6 +1001,7 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
     {
 
       IMPORT_LOG1( "*** Error opening messages in mailbox: %S\n", pName);
+      m_mapi.MAPIFreeBuffer(value);
       return( NS_ERROR_FAILURE);
     }
     // This is a contact, add it to the address book!
@@ -1032,6 +1041,7 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
       }
     }
   }
+  m_mapi.MAPIFreeBuffer(value);
 
   rv = pDb->AddCardRowToDB(newListRow);
   NS_ENSURE_SUCCESS(rv, rv);
