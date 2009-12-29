@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Robert Kaiser <kairo@kairo.at>
+ *   Markus Stange <mstange@themasta.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -46,24 +47,28 @@
   -moz-appearance: none;
   -moz-box-orient: vertical;
   -moz-box-align: center;
-  text-shadow: rgba(255, 255, 255, 0.4) 0 1px;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.4);
   padding: 0;
   margin: 2px 4px 0 4px;
   min-height: 20px;
   min-width: 0;
-  border: solid transparent;
-  border-width: 0 6px;
-  -moz-border-image: url("chrome://global/skin/toolbar/roundrectbutton.png") 0 6 round stretch;
+  border: 1px solid rgba(59, 59, 59, 0.9);
+  -moz-border-radius: 3px;
+  -moz-box-shadow: 0 1px rgba(255, 255, 255, 0.4);
+  background-color: #B5B5B5;
+  background-image: -moz-linear-gradient(top, #FFFFFF, #ADADAD);
 }
 
 #clearListButton:active:hover:not([disabled="true"]) {
-  -moz-border-image: url("chrome://global/skin/toolbar/roundrectbutton-down.png") 0 6 round stretch;
+  background-image: none;
+  -moz-box-shadow: inset rgba(0, 0, 0, 0.3) 0 -6px 14px, inset #000 0 1px 4px, inset rgba(0, 0, 0, 0.2) 0 1px 4px, 0 1px rgba(255, 255, 255, .4);
 }
 
 #clearListButton[disabled="true"],
 :root:not([active]) #clearListButton {
   color: #7C7C7C !important; /* remove this when we support click-through */
-  -moz-border-image: url("chrome://global/skin/toolbar/roundrectbutton-inactive.png") 0 6 round stretch;
+  border-color: rgba(146, 146, 146, 0.84);
+  background-image: -moz-linear-gradient(top, #FFFFFF, #CCCCCC);
 }
 
 treechildren::-moz-tree-image {
