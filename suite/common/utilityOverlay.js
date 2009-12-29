@@ -57,6 +57,9 @@ const kProxyManual = ["network.proxy.ftp",
                       "network.proxy.http",
                       "network.proxy.socks",
                       "network.proxy.ssl"];
+const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
+const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
+const kNewTab = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWTAB;
 var gShowBiDi = false;
 var gUtilityBundle = null;
 
@@ -611,9 +614,6 @@ function openTopWin( url, opener )
 
 function goAbout(aProtocol)
 {
-  const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
-  const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
-
   var target;
   var url = "about:" + (aProtocol || "");
   var pref = Components.classes["@mozilla.org/preferences-service;1"]
@@ -904,6 +904,79 @@ function isElementVisible(aElement)
   // height, width or both will be 0.
   var bo = aElement.boxObject;
   return (bo.height > 0 && bo.width > 0);
+}
+
+function openAsExternal(aURL)
+{
+  var loadType = pref.getIntPref("browser.link.open_external");
+  var loadInBackground = pref.getBoolPref("browser.tabs.loadDivertedInBackground");
+  openNewTabWindowOrExistingWith(loadType, aURL, null, loadInBackground);
+}
+
+function openNewWindowWith(aURL, aDoc)
+{
+  openNewTabWindowOrExistingWith(kNewWindow, aURL, aDoc, false);
+}
+
+function openNewTabWith(aURL, aDoc, aReverseBackgroundPref)
+{
+  var loadInBackground = false;
+  if (pref) {
+    loadInBackground = pref.getBoolPref("browser.tabs.loadInBackground");
+    if (aReverseBackgroundPref)
+      loadInBackground = !loadInBackground;
+  }
+  openNewTabWindowOrExistingWith(kNewTab, aURL, aDoc, loadInBackground);
+}
+
+function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground)
+{
+  // Make sure we are allowed to open this url
+  if (aDoc)
+    urlSecurityCheck(aURL, aDoc.nodePrincipal,
+                     Components.interfaces.nsIScriptSecurityManager.STANDARD);
+
+  // get referrer, if as external should be null
+  var referrer = aDoc ? aDoc.documentURIObject : null;
+
+  var browserWin;
+  // if we're not opening a new window, try and find existing window
+  if (aType != kNewWindow)
+    browserWin = getTopWin();
+
+  // Where appropriate we want to pass the charset of the
+  // current document over to a new tab / window.
+  var originCharset = null;
+  if (aType != kExistingWindow) {
+    var wintype = document.documentElement.getAttribute('windowtype');
+    if (wintype == "navigator:browser")
+      originCharset = window.content.document.characterSet;
+  }
+
+  // We want to open in a new window or no existing window can be found.
+  if (!browserWin) {
+    var charsetArg = null;
+    if (originCharset)
+      charsetArg = "charset=" + originCharset;
+    window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no",
+                      aURL, charsetArg, referrer);
+    return;
+  }
+
+  // Get the existing browser object
+  var browser = browserWin.getBrowser();
+
+  // Open link in an existing window.
+  if (aType == kExistingWindow) {
+    browser.loadURI(aURL);
+    browserWin.content.focus();
+    return;
+  }
+
+  // open link in new tab
+  browser.addTab(aURL, referrer, originCharset, !aLoadInBackground);
+  if (!aLoadInBackground)
+    browserWin.content.focus();
 }
 
 /**
