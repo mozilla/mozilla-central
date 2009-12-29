@@ -61,7 +61,7 @@
 
 #clearListButton:active:hover:not([disabled="true"]) {
   background-image: none;
-  -moz-box-shadow: inset rgba(0, 0, 0, 0.3) 0 -6px 14px, inset #000 0 1px 4px, inset rgba(0, 0, 0, 0.2) 0 1px 4px, 0 1px rgba(255, 255, 255, .4);
+  -moz-box-shadow: inset rgba(0, 0, 0, 0.3) 0 -6px 14px, inset #000000 0 1px 4px, inset rgba(0, 0, 0, 0.2) 0 1px 4px, 0 1px rgba(255, 255, 255, .4);
 }
 
 #clearListButton[disabled="true"],
