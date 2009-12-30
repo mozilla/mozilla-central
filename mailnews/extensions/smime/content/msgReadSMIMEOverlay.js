@@ -39,8 +39,6 @@ var gEncryptionStatus = -1;
 var gSignatureStatus = -1;
 var gSignerCert = null;
 var gEncryptionCert = null;
-var gBundle;
-var gBrandBundle;
 
 addEventListener("load", smimeReadOnLoad, false);
 
@@ -60,26 +58,18 @@ function smimeReadOnUnload()
   top.controllers.removeController(SecurityController);
 }
 
-function setupBundles()
-{
-  if (gBundle)
-    return;
-
-  gBundle = document.getElementById("bundle_read_smime");
-  gBrandBundle = document.getElementById("bundle_brand");
-}
-
 function showImapSignatureUnknown()
 {
-  setupBundles();
-  if (!gBundle || !gBrandBundle)
+  let readSmimeBundle = document.getElementById("bundle_read_smime");
+  let brandBundle = document.getElementById("bundle_brand");
+  if (!readSmimeBundle || !brandBundle)
     return;
 
   let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                 .getService(Components.interfaces.nsIPromptService);
   if (promptService &&
-      promptService.confirm(window, gBrandBundle.getString("brandShortName"),
-                                    gBundle.getString("ImapOnDemand")))
+      promptService.confirm(window, brandBundle.getString("brandShortName"),
+                                    readSmimeBundle.getString("ImapOnDemand")))
     gDBView.reloadMessageWithAllParts();
 }
 
