@@ -2433,38 +2433,41 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       do_GetService("@mozilla.org/msg-trait-service;1", &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 count, *proIndices, *antiIndices;
+  PRUint32 count = 0, *proIndices, *antiIndices;
   rv = traitService->GetEnabledIndices(&count, &proIndices, &antiIndices);
   PRBool filterForOther = PR_FALSE;
-  for (PRUint32 i = 0; i < count; ++i)
+  if (NS_SUCCEEDED(rv)) // We just skip this on failure, since it is rarely used
   {
-    // The trait service determines which traits are globally enabled or
-    // disabled. If a trait is enabled, it can still be made inactive
-    // on a particular folder using an inherited property. To do that,
-    // set "dobayes." + trait proID as an inherited folder property with
-    // the string value "false"
-    //
-    // If any non-junk traits are active on the folder, then the bayes
-    // processing will calculate probabilities for all enabled traits.
-
-    if (proIndices[i] != nsIJunkMailPlugin::JUNK_TRAIT)
+    for (PRUint32 i = 0; i < count; ++i)
     {
-      filterForOther = PR_TRUE;
-      nsCAutoString traitId;
-      nsCAutoString property("dobayes.");
-      traitService->GetId(proIndices[i], traitId);
-      property.Append(traitId);
-      nsCAutoString isEnabledOnFolder;
-      GetInheritedStringProperty(property.get(), isEnabledOnFolder);
-      if (isEnabledOnFolder.EqualsLiteral("false"))
-        filterForOther = PR_FALSE;
-      // We might have to allow a "true" override in the future, but
-      // for now there is no way for that to affect the processing
-      break;
+      // The trait service determines which traits are globally enabled or
+      // disabled. If a trait is enabled, it can still be made inactive
+      // on a particular folder using an inherited property. To do that,
+      // set "dobayes." + trait proID as an inherited folder property with
+      // the string value "false"
+      //
+      // If any non-junk traits are active on the folder, then the bayes
+      // processing will calculate probabilities for all enabled traits.
+
+      if (proIndices[i] != nsIJunkMailPlugin::JUNK_TRAIT)
+      {
+        filterForOther = PR_TRUE;
+        nsCAutoString traitId;
+        nsCAutoString property("dobayes.");
+        traitService->GetId(proIndices[i], traitId);
+        property.Append(traitId);
+        nsCAutoString isEnabledOnFolder;
+        GetInheritedStringProperty(property.get(), isEnabledOnFolder);
+        if (isEnabledOnFolder.EqualsLiteral("false"))
+          filterForOther = PR_FALSE;
+        // We might have to allow a "true" override in the future, but
+        // for now there is no way for that to affect the processing
+        break;
+      }
     }
+    NS_Free(proIndices);
+    NS_Free(antiIndices);
   }
-  NS_Free(proIndices);
-  NS_Free(antiIndices);
 
   // Do we need to apply message filters?
   PRBool filterPostPlugin = PR_FALSE; // Do we have a post-analysis filter?
