@@ -3502,10 +3502,10 @@ var envelopeDragObserver = {
   getSupportedFlavours: function ()
     {
       var flavourSet = new FlavourSet();
-      flavourSet.appendFlavour("text/x-moz-url");
       flavourSet.appendFlavour("text/x-moz-message");
       flavourSet.appendFlavour("application/x-moz-file", "nsIFile");
       flavourSet.appendFlavour("text/x-moz-address");
+      flavourSet.appendFlavour("text/x-moz-url");
       return flavourSet;
     }
 };
