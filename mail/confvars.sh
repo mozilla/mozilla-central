@@ -54,11 +54,13 @@ MOZ_COMPOSER=1
 MOZ_SAFE_BROWSING=1
 
 # Needed for the mozilla-central build side of the system.
-# Can be dropped when we branch MOZILLA_1_9_1_BRANCH
+# Can be dropped when we branch MOZILLA_1_9_2_BRANCH
 MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
 
-if test "$MOZILLA_BRANCH_VERSION" = "1.9.1"; then
-  MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/config/version-191.txt
+if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
+  # Use unofficial branding for the 1.9.2 branch
+  MOZ_BRANDING_DIRECTORY=mail/branding/unofficial
+  MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/config/version-192.txt
 else
   MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/config/version.txt
 fi

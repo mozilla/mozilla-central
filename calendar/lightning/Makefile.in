@@ -54,8 +54,8 @@ STRIP_XPI = 1
 DIST_FILES = install.rdf
 PREF_JS_EXPORTS = $(srcdir)/content/lightning.js
 LIGHTNING_VERSION := $(shell cat $(srcdir)/../sunbird/config/version.txt)
-ifdef MOZILLA_1_9_1_BRANCH
-THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version-191.txt)
+ifdef MOZILLA_1_9_2_BRANCH
+THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version-192.txt)
 else
 THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version.txt)
 endif
