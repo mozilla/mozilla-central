@@ -756,6 +756,99 @@ function assert_row_visible(aViewIndex) {
 }
 
 /**
+ * Assert that the given folder mode is the current one.
+ */
+function assert_folder_mode(aMode) {
+  let actualMode = mc.folderTreeView.mode;
+  if (actualMode != aMode)
+    throw new Error("The folder mode should be " + aMode +
+                    ", but is actually " + actualMode);
+}
+
+/**
+ * Assert that the given folder is the child of the given parent in the folder
+ * tree view. aParent == null is equivalent to saying that the given folder
+ * should be a top-level folder.
+ */
+function assert_folder_child_in_view(aChild, aParent) {
+  let actualParent = mc.folderTreeView.getParentOfFolder(aChild);
+  if (actualParent != aParent)
+    throw new Error("Folder " + aChild.URI + " should be the child of " +
+                    (aParent && aParent.URI) +
+                    ", but is actually the child of " +
+                    (actualParent && actualParent.URI));
+      
+}
+
+/**
+ * Assert that the given folder is in the current folder mode and is visible.
+ *
+ * @returns The index of the folder, if it is visible.
+ */
+function assert_folder_visible(aFolder) {
+  let folderIndex = mc.folderTreeView.getIndexOfFolder(aFolder);
+  if (folderIndex == null)
+    throw new Error("Folder: " + aFolder.URI + " should be visible, but isn't");
+
+  return folderIndex;
+}
+
+/**
+ * Assert that the given folder is either not in the current folder mode at all,
+ * or is not currently visible.
+ */
+function assert_folder_not_visible(aFolder) {
+  let folderIndex = mc.folderTreeView.getIndexOfFolder(aFolder);
+  if (folderIndex != null)
+    throw new Error("Folder: " + aFolder.URI +
+                    " should not be visible, but is");
+}
+
+/**
+ * Collapse a folder if it has children. This will throw if the folder itself is
+ * not visible in the folder view.
+ */
+function collapse_folder(aFolder) {
+  let folderIndex = assert_folder_visible(aFolder);
+  let folderFTVItem = mc.folderTreeView.getFTVItemForIndex(folderIndex);
+  if (folderFTVItem.open)
+    mc.folderTreeView.toggleOpenState(folderIndex);
+}
+
+/**
+ * Expand a folder if it has children. This will throw if the folder itself is
+ * not visible in the folder view.
+ */
+function expand_folder(aFolder) {
+  let folderIndex = assert_folder_visible(aFolder);
+  let folderFTVItem = mc.folderTreeView.getFTVItemForIndex(folderIndex);
+  if (!folderFTVItem.open)
+    mc.folderTreeView.toggleOpenState(folderIndex);
+}
+
+/**
+ * Assert that a folder is currently visible and collapsed. This will throw if
+ * either of the two is untrue.
+ */
+function assert_folder_collapsed(aFolder) {
+  let folderIndex = assert_folder_visible(aFolder);
+  let folderFTVItem = mc.folderTreeView.getFTVItemForIndex(folderIndex);
+  if (folderFTVItem.open)
+    throw new Error("Folder: " + aFolder.URI + " should be collapsed, but isn't");
+}
+
+/**
+ * Assert that a folder is currently visible and expanded. This will throw if
+ * either of the two is untrue.
+ */
+function assert_folder_expanded(aFolder) {
+  let folderIndex = assert_folder_visible(aFolder);
+  let folderFTVItem = mc.folderTreeView.getFTVItemForIndex(folderIndex);
+  if (!folderFTVItem.open)
+    throw new Error("Folder: " + aFolder.URI + " should be expanded, but isn't");
+}
+
+/**
  * Clear the selection in the folder tree view.
  */
 function select_no_folders() {

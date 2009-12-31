@@ -1852,14 +1852,9 @@ function MsgDisplayMessageInFolderTab(aMsgHdr)
   else {
     if (folderDisplay.displayedFolder != folder ||
         folderDisplay.view.isVirtual) {
-      // Switch to the folder
-      if (gFolderTreeView.getIndexOfFolder(folder) == null) {
-        // Switch to the default mode. The assumption here is that the default
-        // mode can display every folder
-        gFolderTreeView.mode = kDefaultMode;
-      }
+      // Force select the folder
       folderDisplay.show(folder);
-      gFolderTreeView.selectFolder(folder);
+      gFolderTreeView.selectFolder(folder, true);
     }
 
     // Force select the message

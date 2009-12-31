@@ -70,8 +70,18 @@ var MailUtils =
     let accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
                            .getService(Ci.nsIMsgAccountManager);
     let servers = accountManager.allServers;
-    for each (let server in fixIterator(servers, Ci.nsIMsgIncomingServer))
-      server.rootFolder.subFolders;
+    for each (let server in fixIterator(servers, Ci.nsIMsgIncomingServer)) {
+      // Bug 466311 Sometimes this can throw file not found, we're unsure
+      // why, but catch it and log the fact.
+      try {
+        server.rootFolder.subFolders;
+      }
+      catch (ex) {
+        Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService)
+          .logStringMessage("Discovering folders for account failed with " +
+                            "exception: " + ex);
+      }
+    }
   },
 
   /**

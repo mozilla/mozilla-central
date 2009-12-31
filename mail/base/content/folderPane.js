@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Siddharth Agarwal <sid.bugzilla@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,8 +37,10 @@
 
 Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/folderUtils.jsm");
-
+Components.utils.import("resource://app/modules/MailUtils.js");
 const kDefaultMode = "smart";
+
+var nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
 
 /**
  * This file contains the controls and functions for the folder pane.
@@ -47,6 +50,76 @@ const kDefaultMode = "smart";
  * ftvItem  - folder tree view item, representing a row in the tree
  * mode - folder view type, e.g., all folders, favorite folders, MRU...
  */
+
+/**
+ * An interface that needs to be implemented in order to add a new view to the
+ * folder tree. For default behavior, it is recommended that implementers
+ * subclass this interface instead of relying on duck typing.
+ *
+ * For implementation examples, see |gFolderTreeView._modes|. For how to
+ * register this mode with |gFolderTreeView|, see
+ * |gFolderTreeView.registerFolderTreeMode|.
+ */
+let IFolderTreeMode = {
+  /**
+   * Generates the folder map for this mode.
+   *
+   * @param aFolderTreeView The gFolderTreeView for which this mode is being
+   *     activated.
+   *
+   * @returns An array containing ftvItem instances representing the top-level
+   *     folders in this view.
+   */
+  generateMap: function IFolderTreeMode_generateMap(aFolderTreeView) {
+    return null;
+  },
+
+  /**
+   * Given an nsIMsgFolder, returns its parent in the map. The default behaviour
+   * is to return the folder's actual parent (aFolder.parent). Folder tree modes
+   * may decide to override it.
+   *
+   * If the parent isn't easily computable given just the folder, you may
+   * consider generating the entire ftvItem tree at once and using a map from
+   * folders to ftvItems.
+   *
+   * @returns an nsIMsgFolder representing the parent of the folder in the view,
+   *     or null if the folder is a top-level folder in the map. It is expected
+   *     that the returned parent will have the given folder as one of its
+   *     children.
+   * @note This function need not guarantee that either the folder or its parent
+   *       is actually in the view.
+   */
+  getParentOfFolder: function IFolderTreeMode_getParentOfFolder(aFolder) {
+    return aFolder.parent;
+  },
+
+  /**
+   * Given an nsIMsgDBHdr, returns the folder it is considered to be contained
+   * in, in this mode. This is usually just the physical folder it is contained
+   * in (aMsgHdr.folder), but some views may decide to override this. For
+   * example, combined views like Smart Folders return the smart inbox for any
+   * messages in any inbox.
+   *
+   * The folder returned doesn't need to be in the view.
+   */
+  getFolderForMsgHdr: function IFolderTreeMode_getFolderForMsgHdr(aMsgHdr) {
+    return aMsgHdr.folder;
+  },
+
+  /**
+   * Notified when a folder is added. The default behavior is to add it as a
+   * child of the parent item, but some views may decide to override this. For
+   * example, combined views like Smart Folders add any new inbox as a child of
+   * the smart inbox.
+   *
+   * @param aParent The parent of the folder that was added.
+   * @param aFolder The folder that was added.
+   */
+  onFolderAdded: function IFolderTreeMode_onFolderAdded(aParent, aFolder) {
+    gFolderTreeView.addFolder(aParent, aFolder);
+  }
+};
 
 /**
  * This is our controller for the folder-tree. It includes our nsITreeView
@@ -64,8 +137,7 @@ let gFolderTreeView = {
 
     let smartName = document.getElementById("bundle_messenger")
                             .getString("folderPaneHeader_smart");
-    this.registerMode("smart", this._smartFoldersGenerator, smartName);
-    this._mapItemAdded["smart"] = this._smartItemAdded;
+
     // the folder pane can be used for other trees which may not have these elements.
     if (document.getElementById("folderpane_splitter"))
       document.getElementById("folderpane_splitter").collapsed = false;
@@ -166,15 +238,14 @@ let gFolderTreeView = {
    * Extensions can use this function to add a new mode to the folder pane.
    *
    * @param aCommonName  an internal name to identify this mode. Must be unique
-   * @param aGenerator  a function that will return objects corresponding to the
-   *                    the rows that will be displayed. See ftvItem for more
-   *                    info on how these row-objects should look. See this
-   *                    object's _mapGenerators for examples.
+   * @param aMode An implementation of |IFolderTreeMode| for this mode.
    * @param aDisplayName  a localized name for this mode
    */
-  registerMode: function ftv_registerMode(aCommonName, aGenerator, aDisplayName) {
+  registerFolderTreeMode: function ftv_registerFolderTreeMode(aCommonName,
+                                                              aMode,
+                                                              aDisplayName) {
     this._modeNames.push(aCommonName);
-    this._mapGenerators[aCommonName] = aGenerator;
+    this._modes[aCommonName] = aGenerator;
     this._modeDisplayNames[aCommonName] = aDisplayName;
   },
 
@@ -184,9 +255,9 @@ let gFolderTreeView = {
    * @param aCommonName  the common-name with which the mode was previously
    *                     registered
    */
-  unregisterMode: function ftv_unregisterMode(aCommonName) {
+  unregisterFolderTreeMode: function ftv_unregisterFolderTreeMode(aCommonName) {
     this._modeNames.splice(this._modeNames.indexOf(aCommonName), 1);
-    delete this._mapGenerators[aCommonName];
+    delete this._modes[aCommonName];
     delete this._modeDisplayNames[aCommonName];
     if (this._mode == aCommonName)
       this.mode = kDefaultMode;
@@ -235,14 +306,14 @@ let gFolderTreeView = {
 
   /**
    * A string representation for the current display-mode.  Each value here must
-   * correspond to an entry in _mapGenerators
+   * correspond to an entry in _modes
    */
   _mode: null,
   get mode() {
     if (!this._mode) {
       this._mode = this._treeElement.getAttribute("mode");
       // this can happen when an extension is removed
-      if (!(this._mode in this._mapGenerators))
+      if (!(this._mode in this._modes))
         this._mode = kDefaultMode;
     }
     return this._mode;
@@ -269,33 +340,59 @@ let gFolderTreeView = {
    * ancestors are collapsed.
    *
    * @param aFolder  the nsIMsgFolder to select
+   * @param [aForceSelect] Whether we should switch to the default mode to
+   *      select the folder in case we didn't find the folder in the current
+   *      view. Defaults to false.
+   * @returns true if the folder selection was successful, false if it failed
+   *     (probably because the folder isn't in the view at all)
    */
-  selectFolder: function ftv_selectFolder(aFolder) {
+  selectFolder: function ftv_selectFolder(aFolder, aForceSelect) {
     // "this" inside the nested function refers to the function...
     // Also note that openIfNot is recursive.
     let tree = this;
+    let folderTreeMode = this._modes[this._mode];
     function openIfNot(aFolderToOpen) {
       let index = tree.getIndexOfFolder(aFolderToOpen);
       if (index != null) {
         if (!tree._rowMap[index].open)
           tree._toggleRow(index, false);
-        return;
+        return true;
       }
 
       // not found, so open the parent
-      if (!aFolderToOpen.isServer && aFolderToOpen.parent)
-        openIfNot(aFolderToOpen.parent);
+      let parent = folderTreeMode.getParentOfFolder(aFolderToOpen);
+      if (parent && openIfNot(parent)) {
+        // now our parent is open, so we can open ourselves
+        index = tree.getIndexOfFolder(aFolderToOpen);
+        if (index != null) {
+          tree._toggleRow(index, false);
+          return true;
+        }
+      }
 
-      // now our parent is open, so we can open ourselves
-      index = tree.getIndexOfFolder(aFolderToOpen);
-      if (index != null)
-        tree._toggleRow(index, false);
+      // No way we can find the folder now.
+      return false;
     }
-    if (!aFolder.isServer && aFolder.parent)
-      openIfNot(aFolder.parent);
+    let parent = folderTreeMode.getParentOfFolder(aFolder);
+    if (parent)
+      openIfNot(parent);
+
     let folderIndex = tree.getIndexOfFolder(aFolder);
+    if (folderIndex == null) {
+      if (aForceSelect) {
+        // Switch to the default mode. The assumption here is that the default
+        // mode can display every folder
+        this.mode = kDefaultMode;
+        // We don't want to get stuck in an infinite recursion, so pass in false
+        return this.selectFolder(aFolder, false);
+      }
+
+      return false;
+    }
+
     this.selection.select(folderIndex);
     this._treeElement.treeBoxObject.ensureRowIsVisible(folderIndex);
+    return true;
   },
 
   /**
@@ -327,6 +424,32 @@ let gFolderTreeView = {
   },
 
   /**
+   * Returns the parent of a folder in the current view. This may be, but is not
+   * necessarily, the actual parent of the folder (aFolder.parent). In
+   * particular, in the smart view, special folders are usually children of the
+   * smart folder of that kind.
+   *
+   * @param aFolder The folder to get the parent of.
+   * @returns The parent of the folder, or null if the parent wasn't found.
+   * @note This function does not guarantee that either the folder or its parent
+   *       is actually in the view.
+   */
+  getParentOfFolder: function ftv_getParentOfFolder(aFolder) {
+    return this._modes[this._mode].getParentOfFolder(aFolder);
+  },
+
+  /**
+   * Returns the |ftvItem| for an index in the current display. Intended for use
+   * by folder tree mode implementers.
+   *
+   * @param aIndex The index for which the ftvItem should be returned.
+   * @note If the index is out of bounds, this function returns null.
+   */
+  getFTVItemForIndex: function ftv_getFTVItemForIndex(aIndex) {
+    return this._rowMap[aIndex];
+  },
+
+  /**
    * Returns an array of nsIMsgFolders corresponding to the current selection
    * in the tree
    */
@@ -344,6 +467,19 @@ let gFolderTreeView = {
       }
     }
     return folderArray;
+  },
+
+  /**
+   * Adds a new child |ftvItem| to the given parent |ftvItem|. Intended for use
+   * by folder tree mode implementers.
+   *
+   * @param aParentItem The parent ftvItem. It is assumed that this is visible
+   *     in the view.
+   * @param aParentIndex The index of the parent ftvItem in the view.
+   * @param aItem The item to add.
+   */
+  addChildItem: function ftv_addChildItem(aParentItem, aParentIndex, aItem) {
+    this._addChildToView(aParentItem, aParentIndex, aItem);
   },
 
   // ****************** Start of nsITreeView implementation **************** //
@@ -777,68 +913,6 @@ let gFolderTreeView = {
     return folders;
   },
 
-  _smartFoldersGenerator: function ftv_smartFoldersGenerator(ftv)
-  {
-    let map = [];
-    let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                    .getService(Components.interfaces.nsIMsgAccountManager);
-    let accounts = gFolderTreeView._sortedAccounts();
-    let smartServer;
-    try {
-      smartServer = acctMgr.FindServer("nobody", "smart mailboxes", "none");
-    } catch (ex) {
-      smartServer = acctMgr.createIncomingServer("nobody", "smart mailboxes", "none");
-      // We don't want the "smart" server/account leaking out into the ui in
-      // other places, so set it as hidden.
-      smartServer.hidden = true;
-      let account = acctMgr.createAccount();
-      account.incomingServer = smartServer;
-    }
-    smartServer.prettyName = document.getElementById("bundle_messenger")
-                             .getString("smartAccountName");
-    smartServer.canHaveFilters = false;
-
-    let smartRoot = smartServer.rootFolder;
-    let smartChildren = new Array;
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
-                                            nsMsgFolderFlags.Inbox, "Inbox");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
-                                            nsMsgFolderFlags.Drafts, "Drafts");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
-                                            nsMsgFolderFlags.SentMail, "Sent");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
-                                            nsMsgFolderFlags.Trash, "Trash");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
-                                            nsMsgFolderFlags.Templates, "Templates");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
-                                            nsMsgFolderFlags.Archive, "Archives");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
-                                            nsMsgFolderFlags.Junk, "Junk");
-    gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts, smartRoot,
-                                            nsMsgFolderFlags.Queue, "Outbox");
-
-    sortFolderItems(smartChildren);
-    for each (smartChild in smartChildren)
-      map.push(smartChild);
-
-    for each (acct in accounts) {
-      // Bug 466311 Sometimes this can throw file not found, we're unsure
-      // why, but catch it and log the fact.
-      try {
-        acct.incomingServer.rootFolder.subFolders;
-      }
-      catch (ex) {
-        Components.classes["@mozilla.org/consoleservice;1"]
-                  .getService(Components.interfaces.nsIConsoleService)
-                  .logStringMessage("Discovering folders for account failed with exception: " + ex);
-      }
-    }
-    for each (acct in accounts)
-      map.push(new ftv_SmartItem(acct.incomingServer.rootFolder));
-
-    return map;
-  },
-
   /**
    * Add a smart folder for folders with the passed flag set. But if there's
    * only one folder with the flag set, just put it at the top level.
@@ -850,6 +924,7 @@ let gFolderTreeView = {
    * @param folderName name to give smart folder
    * @param position optional place to put folder item in map. If not specified,
    *                 folder item will be appended at the end of map.
+   * @returns The smart folder's ftvItem if one was added, null otherwise.
    */
   _addSmartFoldersForFlag: function ftv_addSFForFlag(map, accounts, smartRootFolder,
                                                      flag, folderName, position)
@@ -865,7 +940,8 @@ let gFolderTreeView = {
         map.push(folderItem);
       else
         map[position] = folderItem;
-      return;
+      // No smart folder was added
+      return null;
     }
 
     let smartFolder;
@@ -926,8 +1002,10 @@ let gFolderTreeView = {
         aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
                              .getService(Components.interfaces.nsIAtomService)
                              .getAtom("specialFolder-Smart"));
-       };
-     }
+      };
+    }
+
+    return smartFolderItem;
   },
   _createVFFolder: function ftv_createVFFolder(newName, parentFolder,
                                                searchFolderURIs, folderFlag)
@@ -980,9 +1058,9 @@ let gFolderTreeView = {
 
   /**
    * This is an array of all possible modes for the folder tree. You should not
-   * modify this directly, but rather use registerMode.
+   * modify this directly, but rather use registerFolderTreeMode.
    */
-  _modeNames: ["all", "unread", "favorite", "recent"],
+  _modeNames: ["all", "unread", "favorite", "recent", "smart"],
   _modeDisplayNames: {},
 
   /**
@@ -1029,8 +1107,6 @@ let gFolderTreeView = {
    */
   _rowMap: null,
 
-  _mapItemAdded: {},
-
   /**
    * Completely discards the current tree and rebuilds it based on current
    * settings
@@ -1038,13 +1114,13 @@ let gFolderTreeView = {
   _rebuild: function ftv__rebuild() {
     let oldCount = this._rowMap ? this._rowMap.length : null;
     try {
-      this._rowMap = this._mapGenerators[this.mode](this);
+      this._rowMap = this._modes[this.mode].generateMap(this);
     } catch(ex) {
       Components.classes["@mozilla.org/consoleservice;1"]
                 .getService(Components.interfaces.nsIConsoleService)
                 .logStringMessage("generator " + this.mode + " failed with exception: " + ex);
       this.mode = "all";
-      this._rowMap = this._mapGenerators[this.mode](this);
+      this._rowMap = this._modes[this.mode].generateMap(this);
     }
 
     let evt = document.createEvent("Events");
@@ -1101,37 +1177,27 @@ let gFolderTreeView = {
       accounts.sort(sortAccounts);
       return accounts;
   },
-  /**
-   * This object holds the functions that actually build the tree for each mode.
-   * When the tree must be rebuilt, we call the function here for the current
-   * mode.  That function should return an array of ftvItems that should be
-   * displayed.
-   *
-   * Extensions should feel free to plug in here!
-   */
-  _mapGenerators: {
 
+  /**
+   * Contains the set of modes registered with the folder tree, initially those
+   * included by default. This is a map from names of modes to their
+   * implementations of |IFolderTreeMode|.
+   */
+  _modes: {
     /**
      * The all mode returns all folders, arranged in a hierarchy
      */
-    all: function ftv__mg_all() {
-      let accounts = gFolderTreeView._sortedAccounts();
-      // force each root folder to do its local subfolder discovery.
-      for each (acct in accounts) {
-        // Bug 466311 Sometimes this can throw file not found, we're unsure
-        // why, but catch it and log the fact.
-        try {
-          acct.incomingServer.rootFolder.subFolders;
-        }
-        catch (ex) {
-          Components.classes["@mozilla.org/consoleservice;1"]
-                    .getService(Components.interfaces.nsIConsoleService)
-                    .logStringMessage("Discovering folders for account failed with exception: " + ex);
-        }
-      }
+    all: {
+      __proto__: IFolderTreeMode,
 
-      return [new ftvItem(acct.incomingServer.rootFolder)
-              for each (acct in accounts)];
+      generateMap: function ftv_all_generateMap(ftv) {
+        let accounts = gFolderTreeView._sortedAccounts();
+        // force each root folder to do its local subfolder discovery.
+        MailUtils.discoverFolders();
+
+        return [new ftvItem(acct.incomingServer.rootFolder)
+                for each (acct in accounts)];
+      }
     },
 
     /**
@@ -1139,106 +1205,322 @@ let gFolderTreeView = {
      * have unread items.  Also always keep the currently selected folder
      * so it doesn't disappear under the user.
      */
-    unread: function ftv__mg_unread(ftv) {
-      let map = [];
-      let currentFolder = gFolderTreeView.getSelectedFolders()[0];
-      const outFolderFlagMask = nsMsgFolderFlags.SentMail |
-        nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue |
-        nsMsgFolderFlags.Templates;
-      for each (let folder in ftv._enumerateFolders) {
-        if (!folder.isSpecialFolder(outFolderFlagMask, true) &&
-            (!folder.isServer && folder.getNumUnread(false) > 0) ||
-            (folder == currentFolder))
-          map.push(new ftvItem(folder));
-      }
+    unread: {
+      __proto__: IFolderTreeMode,
 
-      // There are no children in this view!
-      for each (let folder in map) {
-        folder.__defineGetter__("children", function() []);
-        folder.addServerName = true;
+      generateMap: function ftv_unread_generateMap(ftv) {
+        let map = [];
+        let currentFolder = gFolderTreeView.getSelectedFolders()[0];
+        const outFolderFlagMask = nsMsgFolderFlags.SentMail |
+          nsMsgFolderFlags.Drafts | nsMsgFolderFlags.Queue |
+          nsMsgFolderFlags.Templates;
+        for each (let folder in ftv._enumerateFolders) {
+          if (!folder.isSpecialFolder(outFolderFlagMask, true) &&
+              (!folder.isServer && folder.getNumUnread(false) > 0) ||
+              (folder == currentFolder))
+            map.push(new ftvItem(folder));
+        }
+
+        // There are no children in this view!
+        for each (let folder in map) {
+          folder.__defineGetter__("children", function() []);
+          folder.addServerName = true;
+        }
+        sortFolderItems(map);
+        return map;
+      },
+
+      getParentOfFolder: function ftv_unread_getParentOfFolder(aFolder) {
+        // This is a flat view, so no folders have parents.
+        return null;
       }
-      sortFolderItems(map);
-      return map;
     },
 
     /**
      * The favorites mode returns all folders whose flags are set to include
      * the favorite flag
      */
-    favorite: function ftv__mg_favorite(ftv) {
-      let faves = [];
-      for each (let folder in ftv._enumerateFolders) {
-        if (folder.flags & nsMsgFolderFlags.Favorite)
-          faves.push(new ftvItem(folder));
-      }
+    favorite: {
+      __proto__: IFolderTreeMode,
 
-      // There are no children in this view!
-      // And we want to display the account name to distinguish folders w/
-      // the same name.
-      for each (let folder in faves) {
-        folder.__defineGetter__("children", function() []);
-        folder.addServerName = true;
+      generateMap: function ftv_favorite_generateMap(ftv) {
+        let faves = [];
+        for each (let folder in ftv._enumerateFolders) {
+          if (folder.flags & nsMsgFolderFlags.Favorite)
+            faves.push(new ftvItem(folder));
+        }
+
+        // There are no children in this view!
+        // And we want to display the account name to distinguish folders w/
+        // the same name.
+        for each (let folder in faves) {
+          folder.__defineGetter__("children", function() []);
+          folder.addServerName = true;
+        }
+        sortFolderItems(faves);
+        return faves;
+      },
+
+      getParentOfFolder: function ftv_unread_getParentOfFolder(aFolder) {
+        // This is a flat view, so no folders have parents.
+        return null;
       }
-      sortFolderItems(faves);
-      return faves;
+    },
+
+    recent: {
+      __proto__: IFolderTreeMode,
+
+      generateMap: function ftv_recent_generateMap(ftv) {
+        const MAXRECENT = 15;
+
+        /**
+         * Sorts our folders by their recent-times.
+         */
+        function sorter(a, b) {
+          return Number(a.getStringProperty("MRUTime")) <
+            Number(b.getStringProperty("MRUTime"));
+        }
+
+        /**
+         * This function will add a folder to the recentFolders array if it
+         * is among the 15 most recent.  If we exceed 15 folders, it will pop
+         * the oldest folder, ensuring that we end up with the right number
+         *
+         * @param aFolder the folder to check
+         */
+        let recentFolders = [];
+        let oldestTime = 0;
+        function addIfRecent(aFolder) {
+          let time;
+          try {
+            time = Number(aFolder.getStringProperty("MRUTime")) || 0;
+          } catch (ex) {return;}
+          if (time <= oldestTime)
+            return;
+
+          if (recentFolders.length == MAXRECENT) {
+            recentFolders.sort(sorter);
+            recentFolders.pop();
+            let oldestFolder = recentFolders[recentFolders.length - 1];
+            oldestTime = Number(oldestFolder.getStringProperty("MRUTime"));
+          }
+          recentFolders.push(aFolder);
+        }
+
+        for each (let folder in ftv._enumerateFolders)
+          addIfRecent(folder);
+
+        recentFolders.sort(sorter);
+
+        let items = [new ftvItem(f) for each (f in recentFolders)];
+
+        // There are no children in this view!
+        // And we want to display the account name to distinguish folders w/
+        // the same name.
+        for each (let folder in items) {
+          folder.__defineGetter__("children", function() []);
+          folder.addServerName = true;
+        }
+
+        return items;
+      },
+
+      getParentOfFolder: function ftv_unread_getParentOfFolder(aFolder) {
+        // This is a flat view, so no folders have parents.
+        return null;
+      }
     },
 
     /**
-     * The recent mode is a flat view of the 15 most recently used folders
+     * The smart folder mode combines special folders of a particular type
+     * across accounts into a single cross-folder saved search.
      */
-    recent: function ftv__mg_recent(ftv) {
-      const MAXRECENT = 15;
+    smart: {
+      __proto__: IFolderTreeMode,
 
       /**
-       * Sorts our folders by their recent-times.
+       * The smart server. This will create the server if it doesn't exist.
        */
-      function sorter(a, b) {
-        return Number(a.getStringProperty("MRUTime")) <
-          Number(b.getStringProperty("MRUTime"));
-      }
-
-      /**
-       * This function will add a folder to the recentFolders array if it
-       * is among the 15 most recent.  If we exceed 15 folders, it will pop
-       * the oldest folder, ensuring that we end up with the right number
-       *
-       * @param aFolder the folder to check
-       */
-      let recentFolders = [];
-      let oldestTime = 0;
-      function addIfRecent(aFolder) {
-      let time;
+      get _smartServer ftv_smart_get_smartServer() {
+        let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                                .getService(Components.interfaces.nsIMsgAccountManager);
+        let smartServer;
         try {
-          time = Number(aFolder.getStringProperty("MRUTime")) || 0;
-        } catch (ex) {return;}
-        if (time <= oldestTime)
-          return;
-
-        if (recentFolders.length == MAXRECENT) {
-          recentFolders.sort(sorter);
-          recentFolders.pop();
-          let oldestFolder = recentFolders[recentFolders.length - 1];
-          oldestTime = Number(oldestFolder.getStringProperty("MRUTime"));
+          smartServer = acctMgr.FindServer("nobody", "smart mailboxes", "none");
         }
-        recentFolders.push(aFolder);
+        catch (ex) {
+          smartServer = acctMgr.createIncomingServer("nobody",
+                                                     "smart mailboxes", "none");
+          // We don't want the "smart" server/account leaking out into the ui in
+          // other places, so set it as hidden.
+          smartServer.hidden = true;
+          let account = acctMgr.createAccount();
+          account.incomingServer = smartServer;
+        }
+        delete this._smartServer;
+        return this._smartServer = smartServer;
+      },
+
+      /**
+       * A list of [flag, name, isDeep] triples for smart folders. isDeep ==
+       * false means that subfolders are displayed as subfolders of the account,
+       * not of the smart folder. This list is expected to be constant through a
+       * session.
+       */
+      _flagNameList: [
+        [nsMsgFolderFlags.Inbox, "Inbox", false],
+        [nsMsgFolderFlags.Drafts, "Drafts", false],
+        [nsMsgFolderFlags.SentMail, "Sent", true],
+        [nsMsgFolderFlags.Trash, "Trash", true],
+        [nsMsgFolderFlags.Templates, "Templates", false],
+        [nsMsgFolderFlags.Archive, "Archives", true],
+        [nsMsgFolderFlags.Junk, "Junk", false],
+        [nsMsgFolderFlags.Queue, "Outbox", true]
+      ],
+
+      /**
+       * All the flags above, bitwise ORed.
+       */
+      get _allFlags ftv_smart_get_allFlags() {
+        delete this._allFlags;
+        return this._allFlags = this._flagNameList.reduce(
+          function (res, [flag,, isDeep]) res | flag, 0);
+      },
+
+      /**
+       * All the "shallow" flags above (isDeep set to false), bitwise ORed.
+       */
+      get _allShallowFlags ftv_smart_get_allShallowFlags() {
+        delete this._allShallowFlags;
+        return this._allShallowFlags = this._flagNameList.reduce(
+          function (res, [flag,, isDeep]) isDeep ? res : (res | flag), 0);
+      },
+
+      /**
+       * Returns a triple describing the smart folder if the given folder is a
+       * special folder, else returns null.
+       */
+      _getSmartFolderType: function ftv_smart__getSmartFolderType(aFolder) {
+        for each (let [, type] in Iterator(this._flagNameList)) {
+          if (aFolder.flags & type[0])
+            return type;
+        }
+        return null;
+      },
+
+      generateMap: function ftv_smart_generateMap(ftv) {
+        let map = [];
+        let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                                .getService(Components.interfaces.nsIMsgAccountManager);
+        let accounts = gFolderTreeView._sortedAccounts();
+        let smartServer = this._smartServer;
+        smartServer.prettyName = document.getElementById("bundle_messenger")
+                                         .getString("smartAccountName");
+        smartServer.canHaveFilters = false;
+
+        let smartRoot = smartServer.rootFolder;
+        let smartChildren = [];
+        for each (let [, [flag, name,]] in Iterator(this._flagNameList)) {
+          gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts,
+                                                  smartRoot, flag, name);
+        }
+
+        sortFolderItems(smartChildren);
+        for each (smartChild in smartChildren)
+          map.push(smartChild);
+
+        MailUtils.discoverFolders();
+
+        for each (acct in accounts)
+          map.push(new ftv_SmartItem(acct.incomingServer.rootFolder));
+
+        return map;
+      },
+
+      /**
+       * Returns the parent of a folder in the view.
+       *
+       * - The smart mailboxes are all top-level, so there's no parent.
+       * - For one of the special folders, it is the smart folder of that kind
+       *   if we're showing it (this happens when there's more than one folder
+       *   of the kind). Otherwise it's a top-level folder, so there isn't a
+       *   parent.
+       * - For a child of a "shallow" special folder (see |_flagNameList| for
+       *   the definition), it is the account.
+       * - Otherwise it is simply the folder's actual parent.
+       */
+      getParentOfFolder: function ftv_smart_getParentOfFolder(aFolder) {
+        let smartServer = this._smartServer;
+        if (aFolder.server == smartServer)
+          // This is a smart mailbox
+          return null;
+
+        let smartType = this._getSmartFolderType(aFolder);
+        if (smartType) {
+          // This is a special folder
+          let [, name,] = smartType;
+          let smartRoot = smartServer.rootFolder;
+          let smartFolder = smartRoot.getChildWithURI(
+            smartRoot.URI + "/" + name, false, true);
+          if (smartFolder &&
+              gFolderTreeView.getIndexOfFolder(smartFolder) != null)
+            return smartFolder;
+
+          return null;
+        }
+
+        let parent = aFolder.parent;
+        if (parent && parent.isSpecialFolder(this._allShallowFlags, false)) {
+          // Child of a shallow special folder
+          return aFolder.server.rootFolder;
+        }
+
+        return parent;
+      },
+
+      /**
+       * Handles the case of a new folder being added.
+       *
+       * - If a new special folder is added, we need to add it as a child of the
+       *   corresponding smart folder.
+       * - If the parent is a shallow special folder, we need to add it as a
+       *   top-level folder in its account.
+       * - Otherwise, we need to add it as a child of its parent (as normal).
+       */
+      onFolderAdded: function ftv_smart_onFolderAdded(aParent, aFolder) {
+        if (aFolder.flags & this._allFlags) {
+          // add as child of corresponding smart folder
+          let smartServer = this._smartServer;
+          let smartRoot = smartServer.rootFolder;
+          // In theory, a folder can have multiple flags set, so we need to
+          // check each flag separately.
+          for each (let [, [flag, name,]] in Iterator(this._flagNameList)) {
+            if (aFolder.flags & flag)
+              gFolderTreeView._addSmartSubFolder(aFolder, smartRoot, name,
+                                                 flag);
+          }
+        }
+        else if (aParent.isSpecialFolder(this._allShallowFlags, false)) {
+          // add as a child of the account
+          let rootIndex = gFolderTreeView.getIndexOfFolder(
+            aFolder.server.rootFolder);
+          let root = gFolderTreeView._rowMap[rootIndex];
+          if (!root)
+            return;
+
+          let newChild = new ftv_SmartItem(aFolder);
+          root.children.push(newChild);
+          newChild._level = root._level + 1;
+          newChild._parent = root;
+          sortFolderItems(root._children);
+
+          gFolderTreeView._addChildToView(root, rootIndex, newChild);
+        }
+        else {
+          // add as normal
+          gFolderTreeView.addFolder(aParent, aFolder);
+        }
       }
-
-      for each (let folder in ftv._enumerateFolders)
-        addIfRecent(folder);
-
-      recentFolders.sort(sorter);
-
-      let items = [new ftvItem(f) for each (f in recentFolders)];
-
-      // There are no children in this view!
-      // And we want to display the account name to distinguish folders w/
-      // the same name.
-      for each (let folder in items) {
-        folder.__defineGetter__("children", function() []);
-        folder.addServerName = true;
-      }
-
-      return items;
     }
   },
 
@@ -1277,69 +1559,6 @@ let gFolderTreeView = {
     }
   },
 
-  _smartItemAdded: function ftl_smartItemAdded(aFTV, aParentItem, aItem) {
-    aFTV._addSmartItem(aParentItem, aItem);
-  },
-  _addSmartItem: function ftl_addSmartItem(aParentItem, aItem) {
-    // If aItem is a special folder, we need to add it as a child of the
-    // corresponding smart folder.
-    // If aParentItem is a special folder other than Sent/Archives/Trash,
-    // we need to add aItem as a top-level folder in its account.
-    // Otherwise, we need to add it as a child of its parent.
-    if (aItem.flags & (nsMsgFolderFlags.Inbox | nsMsgFolderFlags.Drafts |
-                       nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Trash |
-                       nsMsgFolderFlags.Templates | nsMsgFolderFlags.Archive |
-                       nsMsgFolderFlags.Junk | nsMsgFolderFlags.Queue)) {
-      // add as child of corresponding smart folder
-      let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                      .getService(Components.interfaces.nsIMsgAccountManager);
-      let smartServer;
-      try {
-        smartServer = acctMgr.FindServer("nobody", "smart mailboxes", "none");
-      } catch (ex) { /* not much we can do without the root */
-         return;
-      }
-      let smartRootFolder = smartServer.rootFolder;
-      // In theory, a folder can have multiple flags set, so we need to check
-      // each flag separately.
-      if (aItem.flags & nsMsgFolderFlags.Inbox)
-        this._addSmartSubFolder(aItem, smartRootFolder, "Inbox", nsMsgFolderFlags.Inbox);
-      if (aItem.flags & nsMsgFolderFlags.Drafts)
-        this._addSmartSubFolder(aItem, smartRootFolder, "Drafts", nsMsgFolderFlags.Drafts);
-      if (aItem.flags & nsMsgFolderFlags.SentMail)
-        this._addSmartSubFolder(aItem, smartRootFolder, "Sent", nsMsgFolderFlags.SentMail);
-      if (aItem.flags & nsMsgFolderFlags.Trash)
-        this._addSmartSubFolder(aItem, smartRootFolder, "Trash", nsMsgFolderFlags.Trash);
-      if (aItem.flags & nsMsgFolderFlags.Templates)
-        this._addSmartSubFolder(aItem, smartRootFolder, "Templates", nsMsgFolderFlags.Templates);
-      if (aItem.flags & nsMsgFolderFlags.Archive)
-        this._addSmartSubFolder(aItem, smartRootFolder, "Archives", nsMsgFolderFlags.Archive);
-      if (aItem.flags & nsMsgFolderFlags.Junk)
-        this._addSmartSubFolder(aItem, smartRootFolder, "Junk", nsMsgFolderFlags.Junk);
-      if (aItem.flags & nsMsgFolderFlags.Queue)
-        this._addSmartSubFolder(aItem, smartRootFolder, "Outbox", nsMsgFolderFlags.Queue);
-    }
-    else if (aParentItem.isSpecialFolder(nsMsgFolderFlags.Inbox |
-                                         nsMsgFolderFlags.Drafts |
-                                         nsMsgFolderFlags.Templates |
-                                         nsMsgFolderFlags.Junk, false)) {
-      let parentIndex = this.getIndexOfFolder(aItem.server.rootFolder);
-      let parent = this._rowMap[parentIndex];
-      if (!parent)
-         return;
-
-      let newChild = new ftv_SmartItem(aItem);
-      parent.children.push(newChild);
-      newChild._level = parent._level + 1;
-      newChild._parent = parent;
-      sortFolderItems(parent._children);
-
-      this._addChildToView(parent, parentIndex, newChild);
-    }
-    else {
-      return this.addFolder(aParentItem, aItem);
-    }
-  },
   /**
    * This updates the rowmap and invalidates the right row(s) in the tree
    */
@@ -1438,9 +1657,8 @@ let gFolderTreeView = {
         this._rebuild();
       return;
     }
-    if (this._mapItemAdded[this._mode] != undefined)
-      return this._mapItemAdded[this._mode](this, aParentItem, aItem);
-    return this.addFolder(aParentItem, aItem);
+    this._modes[this._mode].onFolderAdded(
+      aParentItem.QueryInterface(Components.interfaces.nsIMsgFolder), aItem);
   },
   addFolder: function ftl_add_folder(aParentItem, aItem)
   {
