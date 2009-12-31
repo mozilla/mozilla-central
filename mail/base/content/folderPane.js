@@ -276,7 +276,7 @@ let gFolderTreeView = {
     let tree = this;
     function openIfNot(aFolderToOpen) {
       let index = tree.getIndexOfFolder(aFolderToOpen);
-      if (index) {
+      if (index != null) {
         if (!tree._rowMap[index].open)
           tree._toggleRow(index, false);
         return;
@@ -288,7 +288,7 @@ let gFolderTreeView = {
 
       // now our parent is open, so we can open ourselves
       index = tree.getIndexOfFolder(aFolderToOpen);
-      if (index)
+      if (index != null)
         tree._toggleRow(index, false);
     }
     if (!aFolder.isServer && aFolder.parent)
@@ -302,13 +302,14 @@ let gFolderTreeView = {
    * Returns the index of a folder in the current display.
    *
    * @param aFolder  the folder whose index should be returned.
+   * @returns The index of the folder in the view (a number).
    * @note If the folder is not in the display (perhaps because one of its
    *       anscetors is collapsed), this function returns null.
    */
   getIndexOfFolder: function ftv_getIndexOfFolder(aFolder) {
-    for (let i in this._rowMap) {
-      if (this._rowMap[i].id == aFolder.URI)
-        return i;
+    for each (let [iRow, row] in Iterator(this._rowMap)) {
+      if (row.id == aFolder.URI)
+        return iRow;
     }
     return null;
   },
@@ -1378,7 +1379,7 @@ let gFolderTreeView = {
     let parentIndex = -1;
     let newChild;
     let newChildIndex = 0;
-    if (!smartFolder || !this.getIndexOfFolder(smartFolder)) {
+    if (!smartFolder || this.getIndexOfFolder(smartFolder) == null) {
       newChild = new ftv_SmartItem(aItem);
       newChild._level = 0;
       while (newChildIndex < this.rowCount) {
@@ -1428,7 +1429,7 @@ let gFolderTreeView = {
   OnItemAdded: function ftl_add(aParentItem, aItem) {
     // Ignore this item if it's not a folder, or we knew about it.
     if (!(aItem instanceof Components.interfaces.nsIMsgFolder) ||
-        this.getIndexOfFolder(aItem))
+        this.getIndexOfFolder(aItem) != null)
       return;
 
     // if no parent, this is an account, so let's rebuild.
@@ -1477,7 +1478,7 @@ let gFolderTreeView = {
       this._persistOpenMap[this.mode].splice(persistMapIndex, 1);
 
     let index = this.getIndexOfFolder(aItem);
-    if (!index)
+    if (index == null)
       return;
     // forget our parent's children; they'll get rebuilt
     if (aRDFParentItem)
@@ -1500,7 +1501,7 @@ let gFolderTreeView = {
     // newly unread folder, and we didn't already have the folder.
     if (this._mode == "unread" &&
         aProperty == "TotalUnreadMessages" && aOld == 0 &&
-        !this.getIndexOfFolder(aItem)) {
+        this.getIndexOfFolder(aItem) == null) {
       this._rebuild();
       return;
     }
@@ -1508,7 +1509,7 @@ let gFolderTreeView = {
     if (aItem instanceof Components.interfaces.nsIMsgFolder)
     {
       let index = this.getIndexOfFolder(aItem);
-      if (index)
+      if (index != null)
         this._tree.invalidateRow(index);
     }
   },
@@ -1518,7 +1519,7 @@ let gFolderTreeView = {
   OnItemPropertyFlagChanged: function(aItem, aProperty, aOld, aNew) {},
   OnItemEvent: function(aFolder, aEvent) {
     let index = this.getIndexOfFolder(aFolder);
-    if (index)
+    if (index != null)
       this._tree.invalidateRow(index);
   }
 };

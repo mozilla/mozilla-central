@@ -1787,6 +1787,16 @@ let assert_folder_selected_and_displayed =
     assert_folders_selected_and_displayed;
 
 /**
+ * Assert that there are the given number of rows (not including children of
+ * collapsed parents) in the folder tree view.
+ */
+function assert_folder_tree_view_row_count(aCount) {
+  if (mc.folderTreeView.rowCount != aCount)
+    throw new Error("The folder tree view's row count should be " + aCount +
+                    ", but is actually " + mc.folderTreeView.rowCount);
+}
+
+/**
  * Since indexOf does strict equality checking, we need this.
  */
 function _non_strict_index_of(aArray, aSearchElement) {
