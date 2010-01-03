@@ -75,3 +75,6 @@ buildsymbols ::
 	$(MAKE) -C mozilla MAKE_SYM_STORE_PATH=$(MAKE_SYM_STORE_PATH) SYM_STORE_SOURCE_DIRS="$(topsrcdir)/mozilla/extensions/inspector $(topsrcdir)/mozilla $(topsrcdir)" $@
 
 include $(topsrcdir)/config/rules.mk
+
+MOZ_SOURCE_STAMP = $(shell hg -R $(srcdir) parent --template="{node|short}\n" 2>/dev/null)
+export MOZ_SOURCE_STAMP
