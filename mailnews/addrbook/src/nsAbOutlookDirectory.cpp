@@ -1439,6 +1439,13 @@ NS_IMETHODIMP nsAbOutlookDirectory::OnQueryResult(PRInt32 aResult,
   return OnSearchFinished(aResult, EmptyString());
 }
 
+NS_IMETHODIMP nsAbOutlookDirectory::UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = PR_FALSE;
+  return NS_OK;
+}
+
 static void splitString(nsString& aSource, nsString& aTarget)
 {
   aTarget.Truncate();

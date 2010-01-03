@@ -75,6 +75,7 @@ public:
   NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, PRBool *aHasDirectory);
   NS_IMETHOD DeleteCards(nsIArray *aCardList);
   NS_IMETHOD DeleteDirectory(nsIAbDirectory *aDirectory);
+  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult);
   NS_IMETHOD AddCard(nsIAbCard *aData, nsIAbCard **addedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
   NS_IMETHOD DropCard(nsIAbCard *aData, PRBool needToCopyCard);
