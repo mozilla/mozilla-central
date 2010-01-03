@@ -56,6 +56,7 @@ try {
 
 var gSelectionListener = {
   timeout: 0,
+  attached: false,
   notifySelectionChanged: function(doc, sel, reason)
   {
     // Coalesce notifications within 100ms intervals.
@@ -257,6 +258,7 @@ function onLoadContent()
   window.content.getSelection()
    .QueryInterface(nsISelectionPrivate)
    .addSelectionListener(gSelectionListener);
+  gSelectionListener.attached = true;
 }
 
 function onUnloadContent()
@@ -266,6 +268,16 @@ function onUnloadContent()
   // or toggling of syntax highlighting.
   //
   document.getElementById('cmd_goToLine').setAttribute('disabled', 'true');
+
+  // If we're not just unloading the initial "about:blank" which doesn't have
+  // a selection listener, get rid of it so it doesn't try to fire after the
+  // window has gone away.
+  if (gSelectionListener.attached) {
+    window.content.getSelection()
+          .QueryInterface(nsISelectionPrivate)
+          .removeSelectionListener(gSelectionListener);
+    gSelectionListener.attached = false;
+  }
 }
 
 function HandleAppCommandEvent(event)
@@ -345,15 +357,16 @@ function ViewSourceGoToLine()
         null,
         {value:0});
 
-    if (!ok) return;
+    if (!ok)
+      return;
 
-    var line = parseInt(input.value);
- 
+    var line = parseInt(input.value, 10);
+
     if (!(line > 0)) {
       promptService.alert(window,
           viewSourceBundle.getString("invalidInputTitle"),
           viewSourceBundle.getString("invalidInputText"));
-  
+
       continue;
     }
 
@@ -412,7 +425,7 @@ function goToLine(line)
   // to position the focusNode and the caret at the beginning of the line.
 
   selection.QueryInterface(nsISelectionPrivate)
-    .interlinePosition = true;	
+           .interlinePosition = true;
 
   selection.addRange(result.range);
 
