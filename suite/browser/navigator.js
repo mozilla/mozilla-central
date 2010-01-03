@@ -63,10 +63,6 @@ var pref = null;
 //cached elements
 var gBrowser = null;
 
-// focused frame URL
-var gFocusedURL = null;
-var gFocusedDocument = null;
-
 // Pref listener constants
 const gButtonPrefListener =
 {
@@ -235,16 +231,6 @@ function getContentAreaFrameCount()
     var autoDownload = pref.getBoolPref("browser.download.useDownloadDir");
     goSetMenuValue("saveframe", autoDownload ? "valueSave" : "valueSaveAs");
     saveFrameItem.removeAttribute("hidden");
-  }
-}
-
-// When a content area frame is focused, update the focused frame URL
-function contentAreaFrameFocus()
-{
-  const focusedWindow = document.commandDispatcher.focusedWindow;
-  if (focusedWindow && focusedWindow.top == window.content) {
-    gFocusedURL = focusedWindow.location.href;
-    gFocusedDocument = focusedWindow.document;
   }
 }
 
@@ -513,7 +499,6 @@ function Startup()
   //  so we'll be notified when onloads complete.
   var contentArea = document.getElementById("appcontent");
   contentArea.addEventListener("pageshow", pageShowEventHandlers, true);
-  contentArea.addEventListener("focus", contentAreaFrameFocus, true);
 
   // set default character set if provided
   if ("arguments" in window && window.arguments.length > 1 && window.arguments[1]) {
