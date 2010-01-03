@@ -502,30 +502,6 @@ case "$target" in
     ;;
 esac
 
-if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
-
-MOZ_ARG_WITH_STRING(windows-version,
-[  --with-windows-version=WINVER
-                          Minimum Windows version (WINVER) to support
-                              400: Windows 95
-                              500: Windows 2000
-                              501: Windows XP],
-  WINVER=$withval)
-
-case "$WINVER" in
-400|500|501)
-    ;;
-
-*)
-    AC_MSG_ERROR([Invalid value --with-windows-version, must be 400, 500 or 501]);
-    ;;
-
-esac
-
-dnl MOZILLA_1_9_1_BRANCH.
-else
-dnl Not MOZILLA_1_9_1_BRANCH.
-
 dnl Target the Windows Vista SDK by default
 WINSDK_TARGETVER=600
 
@@ -569,9 +545,6 @@ fi
 fi
 
 AC_SUBST(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
-
-dnl Not MOZILLA_1_9_1_BRANCH.
-fi
 
 case "$target" in
 *-cygwin*|*-mingw*|*-msvc*|*-mks*|*-wince)
@@ -787,8 +760,6 @@ EOF
     # Require OS features provided by IE 5.0
     AC_DEFINE_UNQUOTED(_WIN32_IE,0x0500)
 
-    if test "$MOZILLA_1_9_1_BRANCH" != "1"; then
-
     # If the maximum version supported by this SDK is lower than the target
     # version, error out
     AC_MSG_CHECKING([for Windows SDK being recent enough])
@@ -804,10 +775,6 @@ EOF
     AC_DEFINE_UNQUOTED(MOZ_NTDDI_WS03, 0x05020000)
     AC_DEFINE_UNQUOTED(MOZ_NTDDI_LONGHORN, 0x06000000)
     AC_DEFINE_UNQUOTED(MOZ_NTDDI_WIN7, 0x06010000)
-
-    # Not MOZILLA_1_9_1_BRANCH.
-    fi
-
     ;;
 esac
 
@@ -5571,38 +5538,6 @@ if test -n "$MOZ_DISABLE_PARENTAL_CONTROLS"; then
     AC_DEFINE(MOZ_DISABLE_PARENTAL_CONTROLS)
 fi
 
-if test "$MOZILLA_1_9_1_BRANCH" = "1"; then
-
-dnl ========================================================
-dnl Vista SDK specific api
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(vista-sdk-requirements,
-[  --disable-vista-sdk-requirements
-                           Do not build Vista SDK specific code],
-   MOZ_DISABLE_VISTA_SDK_REQUIREMENTS=1,
-   MOZ_DISABLE_VISTA_SDK_REQUIREMENTS=)
-if test -n "$COMPILE_ENVIRONMENT"; then
-if test -n "$MOZ_DISABLE_VISTA_SDK_REQUIREMENTS"; then
-    AC_MSG_WARN([Resulting builds will not be compatible with Windows Vista. (bug 428970)])
-    AC_DEFINE(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
-    if test -z "$MOZ_DISABLE_PARENTAL_CONTROLS"; then
-        AC_DEFINE(MOZ_DISABLE_PARENTAL_CONTROLS)
-    fi
-    MOZ_DISABLE_PARENTAL_CONTROLS=1
-else
-case "$target" in
-*-mingw*|*-cygwin*|*-msvc*|*-mks*)
-    if test "$ac_cv_header_wpcapi_h" = "no"; then
-        AC_MSG_ERROR([System header wpcapi.h is not available. See updated http://developer.mozilla.org/en/docs/wpcapi.h for details on fixing this problem.])
-    fi
-    ;;
-esac
-fi
-fi
-AC_SUBST(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
-
-dnl MOZILLA_1_9_1_BRANCH.
-fi
 AC_SUBST(MOZ_DISABLE_PARENTAL_CONTROLS)
 
 dnl ========================================================
