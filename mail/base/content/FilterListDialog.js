@@ -379,10 +379,20 @@ function rebuildFilterList(aFilterList)
   for (var i = 0; i < list.selectedItems.length; i++)
     selectedNames.push(list.selectedItems[i]._filter.filterName);
 
+  // Save scroll position so we can try to restore it later.
+  let firstVisibleRowIndex = list.getIndexOfFirstVisibleRow();
+
   // Remove any existing child nodes, but not our headers
   for (var i = list.childNodes.length - 1; i > 0; i--) {
     list.removeChild(list.childNodes[i]);
   }
+
+  // listbox.xml seems to cache the value of the first selected item in a
+  // range at _selectionStart. The old value though is now obsolete,
+  // since we will recreate all of the elements. We need to clear this,
+  // and one way to do this is with a call to clearSelection. This might be
+  // ugly from an accessibility perspective, since it fires an onSelect event.
+  list.clearSelection();
 
   for (i = 0; i < aFilterList.filterCount; i++) {
     var filter = aFilterList.getFilterAt(i);
@@ -407,6 +417,20 @@ function rebuildFilterList(aFilterList)
     if (selectedNames.indexOf(filter.filterName) != -1)
       list.addItemToSelection(listitem);
   }
+
+  // Restore to the extent possible the scroll position.
+  if (firstVisibleRowIndex && list.itemCount)
+    list.scrollToIndex(Math.min(firstVisibleRowIndex, list.itemCount - 1));
+
+  if (list.selectedCount) {
+    // Make sure that at least the first selected item is visible.
+    list.ensureElementIsVisible(list.selectedItems[0]);
+
+    // The current item should be the first selected item, so that keyboard
+    // selection extension can work.
+    list.currentItem = list.selectedItems[0];
+  }
+
   updateButtons();
   list.focus();
 }
