@@ -200,10 +200,11 @@ function toggleEncryptMessage()
     if (!encryptionCertName)
     {
       gSMFields.requireEncryptMessage = false;
-      setNoEncryptionUI();
       showNeedSetupInfo();
       return;
     }
+
+    setEncryptionUI();
   }
   else
   {
