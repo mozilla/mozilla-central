@@ -458,7 +458,7 @@
   <key keycode="VK_F6" oncommand="SwitchPaneFocus(event);"/>
 
   <!-- View Toggle Keys (F8) -->
-  <key id="key_toggleMessagePane" keycode="VK_F8" command="cmd_toggleMessagePane"/>
+  <key id="key_toggleMessagePane" keycode="VK_F8" oncommand="goDoCommand('cmd_toggleMessagePane');"/>
 
   <!-- Tag Keys -->
   <!-- Includes both shifted and not, for Azerty and other layouts where the
