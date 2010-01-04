@@ -3244,12 +3244,11 @@ nsImapMailboxSpec *nsImapServerResponseParser::CreateCurrentMailboxSpec(const ch
   return returnSpec;
   
 }
-// zero stops a list recording of flags and causes the flags for
-// each individual message to be sent back to libmsg 
-void nsImapServerResponseParser::ResetFlagInfo(int numberOfInterestingMessages)
+// Reset the flag state.
+void nsImapServerResponseParser::ResetFlagInfo()
 {
   if (fFlagState)
-    fFlagState->Reset(numberOfInterestingMessages);
+    fFlagState->Reset();
 }
 
 

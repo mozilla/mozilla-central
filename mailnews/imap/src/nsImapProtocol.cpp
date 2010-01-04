@@ -2369,7 +2369,6 @@ void nsImapProtocol::ProcessSelectedStateURL()
           nsCString messageIdString;
           m_runningUrl->GetListOfMessageIds(messageIdString);
           // we don't want to send the flags back in a group
-          // GetServerStateParser().ResetFlagInfo(0);
           if (HandlingMultipleMessages(messageIdString) || m_imapAction == nsIImapUrl::nsImapMsgDownloadForOffline
              || m_imapAction == nsIImapUrl::nsImapMsgPreview)
           {
@@ -2546,8 +2545,6 @@ void nsImapProtocol::ProcessSelectedStateURL()
           nsCString messageIds;
           m_runningUrl->GetListOfMessageIds(messageIds);
 
-          // we don't want to send the flags back in a group
-          //        GetServerStateParser().ResetFlagInfo(0);
           FetchMessage(messageIds,
             kHeadersRFC822andUid);
           // if we explicitly ask for headers, as opposed to getting them as a result
@@ -3028,7 +3025,7 @@ void nsImapProtocol::SelectMailbox(const char *mailboxName)
   IncrementCommandTagNumber();
 
   m_closeNeededBeforeSelect = PR_FALSE;   // initial value
-  GetServerStateParser().ResetFlagInfo(0);
+  GetServerStateParser().ResetFlagInfo();
   nsCString escapedName;
   CreateEscapedMailboxName(mailboxName, escapedName);
   nsCString commandBuffer(GetServerCommandTag());
@@ -3932,7 +3929,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
               mFolderTotalMsgCount != GetServerStateParser().NumberOfMessages())
           {
             // sanity check failed - fall back to full flag sync
-            m_flagState->Reset(0);
+            m_flagState->Reset();
             m_flagState->SetPartialUIDFetch(PR_FALSE);
             FetchMessage(NS_LITERAL_CSTRING("1:*"), kFlags);  
           }
@@ -3966,7 +3963,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
     }
   }
   else if (!DeathSignalReceived())
-    GetServerStateParser().ResetFlagInfo(0);
+    GetServerStateParser().ResetFlagInfo();
 
   if (!DeathSignalReceived())
   {
@@ -4028,7 +4025,7 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
     }
   }
   if (DeathSignalReceived())
-    GetServerStateParser().ResetFlagInfo(0);
+    GetServerStateParser().ResetFlagInfo();
 
   NS_IF_RELEASE(new_spec);
 }
@@ -7885,7 +7882,7 @@ void nsImapProtocol::Close(PRBool shuttingDown /* = PR_FALSE */,
   if (!shuttingDown)
     ProgressEventFunctionUsingId (IMAP_STATUS_CLOSE_MAILBOX);
 
-  GetServerStateParser().ResetFlagInfo(0);
+  GetServerStateParser().ResetFlagInfo();
 
   nsresult rv = SendData(command.get());
   if (m_transport && shuttingDown)

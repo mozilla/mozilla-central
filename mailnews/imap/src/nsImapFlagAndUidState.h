@@ -72,7 +72,7 @@ private:
     PRInt32                 fNumberOfMessagesAdded;
     PRInt32                 fNumberOfMessageSlotsAllocated;
     nsTArray<nsMsgKey>      fUids;
-    imapMessageFlagsType    *fFlags;
+    nsTArray<imapMessageFlagsType> fFlags;
     nsDataHashtable<nsUint32HashKey, char *> m_customFlagsHash;	// Hash table, mapping uids to extra flags
     PRUint16                fSupportedUserFlags;
     PRInt32                 fNumberDeleted;

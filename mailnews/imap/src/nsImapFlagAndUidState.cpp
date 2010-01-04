@@ -124,11 +124,9 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages)
   fNumberOfMessagesAdded = 0;
   fNumberOfMessageSlotsAllocated = numberOfMessages;
   if (!fNumberOfMessageSlotsAllocated)
-	  fNumberOfMessageSlotsAllocated = kImapFlagAndUidStateSize;
-  fFlags = (imapMessageFlagsType*) PR_Malloc(sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated); // new imapMessageFlagsType[fNumberOfMessageSlotsAllocated];
-  
+    fNumberOfMessageSlotsAllocated = kImapFlagAndUidStateSize;
+  fFlags.InsertElementsAt(0, fNumberOfMessageSlotsAllocated, 0);
   fUids.InsertElementsAt(0, fNumberOfMessageSlotsAllocated, 0);
-  memset(fFlags, 0, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated);
   fSupportedUserFlags = 0;
   fNumberDeleted = 0;
   fPartialUIDFetch = PR_TRUE;
@@ -144,7 +142,6 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages)
 
 nsImapFlagAndUidState::~nsImapFlagAndUidState()
 {
-  PR_Free(fFlags);
   if (m_customFlagsHash.IsInitialized())
     m_customFlagsHash.EnumerateRead(FreeCustomFlags, nsnull);
 }
@@ -167,14 +164,16 @@ nsImapFlagAndUidState::GetSupportedUserFlags(uint16 *aFlags)
 // we need to reset our flags, (re-read all) but chances are the memory allocation needed will be
 // very close to what we were already using
 
-NS_IMETHODIMP nsImapFlagAndUidState::Reset(PRUint32 howManyLeft)
+NS_IMETHODIMP nsImapFlagAndUidState::Reset()
 {
   PR_CEnterMonitor(this);
-  if (!howManyLeft)
-    fNumberOfMessagesAdded = fNumberDeleted = 0; // used space is still here
+  fNumberOfMessagesAdded = fNumberDeleted = 0;
   if (m_customFlagsHash.IsInitialized())
     m_customFlagsHash.EnumerateRead(FreeCustomFlags, nsnull);
   m_customFlagsHash.Clear();
+  fUids.Clear();
+  fFlags.Clear();
+  fNumberOfMessageSlotsAllocated = 0;
   fPartialUIDFetch = PR_TRUE;
   PR_CExitMonitor(this);
   return NS_OK;
@@ -189,22 +188,16 @@ NS_IMETHODIMP nsImapFlagAndUidState::ExpungeByIndex(PRUint32 msgIndex)
   if ((PRInt32) msgIndex < 0)
     return NS_ERROR_INVALID_ARG;
 
-  PRUint32 counter = 0;
-  
   if ((PRUint32) fNumberOfMessagesAdded < msgIndex)
     return NS_ERROR_INVALID_ARG;
-  
+
   PR_CEnterMonitor(this);
   msgIndex--;  // msgIndex is 1-relative
   fNumberOfMessagesAdded--;
-  if (fFlags[msgIndex] & kImapMsgDeletedFlag)	// see if we already had counted this one as deleted
+  if (fFlags[msgIndex] & kImapMsgDeletedFlag) // see if we already had counted this one as deleted
     fNumberDeleted--;
-  for (counter = msgIndex; counter < (PRUint32) fNumberOfMessagesAdded; counter++)
-  {
-    fUids[counter] = fUids[counter + 1];
-    fFlags[counter] = fFlags[counter + 1];                                  
-  }
-
+  fUids.RemoveElementAt(msgIndex);
+  fFlags.RemoveElementAt(msgIndex);
   PR_CExitMonitor(this);
   return NS_OK;
 }
@@ -228,9 +221,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFla
                       fNumberOfMessagesAdded - fNumberOfMessageSlotsAllocated);
     fNumberOfMessageSlotsAllocated += sizeToGrowBy;
     fUids.InsertElementsAt(fUids.Length(), sizeToGrowBy, 0);
-    fFlags = (imapMessageFlagsType*) PR_REALLOC(fFlags, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated); // new imapMessageFlagsType[fNumberOfMessageSlotsAllocated];
-    if (!fFlags)
-      return NS_ERROR_OUT_OF_MEMORY;
+    fFlags.InsertElementsAt(fFlags.Length(), sizeToGrowBy, 0);
   }
 
   fUids[zeroBasedIndex] = uid;

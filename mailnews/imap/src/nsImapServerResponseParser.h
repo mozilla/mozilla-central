@@ -112,9 +112,8 @@ public:
   // libmsg c interface
   nsImapMailboxSpec *CreateCurrentMailboxSpec(const char *mailboxName = nsnull);
 
-  // zero stops a list recording of flags and causes the flags for
-  // each individual message to be sent back to libmsg
-  void ResetFlagInfo(int numberOfInterestingMessages);
+  // Resets the flags state.
+  void ResetFlagInfo();
 
   // set this to false if you don't want to alert the user to server
   // error messages
