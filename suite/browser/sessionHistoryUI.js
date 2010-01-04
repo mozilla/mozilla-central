@@ -78,13 +78,16 @@ function FillHistoryMenu(aParent, aMenu)
             }
           break;
         case "go":
-          aParent.lastChild.hidden = (count == 0);
+          var startHistory = document.getElementById("startHistorySeparator");
+          var endHistory = document.getElementById("endHistorySeparator");
+          startHistory.hidden = (count == 0);
+          endHistory.hidden = (endHistory == aParent.lastChild);
           end = count > MAX_HISTORY_MENU_ITEMS ? count - MAX_HISTORY_MENU_ITEMS : 0;
           for (j = count - 1; j >= end; j--)
             {
               entry = sessionHistory.getEntryAtIndex(j, false);
               if (entry)
-                createRadioMenuItem(aParent, j, entry.title, j==index);
+                createRadioMenuItem(aParent, endHistory, j, entry.title, j == index);
             }
           break;
       }
@@ -142,23 +145,23 @@ function createUBHistoryMenu( aParent )
     na.setAttribute("disabled", "true");
   }
 
-function createMenuItem( aParent, aIndex, aLabel)
+function createMenuItem(aParent, aIndex, aLabel)
   {
     var menuitem = document.createElement( "menuitem" );
     menuitem.setAttribute( "label", aLabel );
     menuitem.setAttribute( "index", aIndex );
-    aParent.appendChild( menuitem );
+    aParent.appendChild(menuitem);
   }
 
-function createRadioMenuItem( aParent, aIndex, aLabel, aChecked)
+function createRadioMenuItem(aParent, aAnchor, aIndex, aLabel, aChecked)
   {
-    var menuitem = document.createElement( "menuitem" );
-    menuitem.setAttribute( "type", "radio" );
-    menuitem.setAttribute( "label", aLabel );
-    menuitem.setAttribute( "index", aIndex );
-    if (aChecked==true)
-      menuitem.setAttribute( "checked", "true" );
-    aParent.appendChild( menuitem );
+    var menuitem = document.createElement("menuitem");
+    menuitem.setAttribute("type", "radio");
+    menuitem.setAttribute("label", aLabel);
+    menuitem.setAttribute("index", aIndex);
+    if (aChecked)
+      menuitem.setAttribute("checked", "true");
+    aParent.insertBefore(menuitem, aAnchor);
   }
 
 function deleteHistoryItems(aParent)

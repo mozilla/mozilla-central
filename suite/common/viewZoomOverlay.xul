@@ -64,11 +64,23 @@
 
   <menu id="menu_zoom" accesskey="&zoomMenu.accesskey;">
     <menupopup id="menu_zoomPopup" onpopupshowing="updateZoomMenu();" oncommand="ZoomManager.prototype.getInstance().currentZoom = event.target.value;">
-      <menuitem key="key_zoomReduce"  label="&zoomReduceCmd.label;"  accesskey="&zoomReduceCmd.accesskey;" command="cmd_zoomReduce"/>
-      <menuitem key="key_zoomEnlarge" label="&zoomEnlargeCmd.label;" accesskey="&zoomEnlargeCmd.accesskey;" command="cmd_zoomEnlarge"/>
+      <menuitem id="menu_zoomReduce"
+                key="key_zoomReduce"
+                label="&zoomReduceCmd.label;"
+                accesskey="&zoomReduceCmd.accesskey;"
+                command="cmd_zoomReduce"/>
+      <menuitem id="menu_zoomEnlarge"
+                key="key_zoomEnlarge"
+                label="&zoomEnlargeCmd.label;"
+                accesskey="&zoomEnlargeCmd.accesskey;"
+                command="cmd_zoomEnlarge"/>
       <menuseparator/>
       <menuseparator id="menu_zoomInsertBefore"/>
-      <menuitem id="menu_zoomOther" type="radio" name="zoom" accesskey="&zoomOtherCmd.accesskey;" command="cmd_zoomOther"/>
+      <menuitem id="menu_zoomOther"
+                type="radio"
+                name="zoom"
+                accesskey="&zoomOtherCmd.accesskey;"
+                command="cmd_zoomOther"/>
     </menupopup>
   </menu>
 
