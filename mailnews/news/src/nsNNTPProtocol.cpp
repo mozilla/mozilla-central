@@ -684,13 +684,16 @@ NS_IMETHODIMP
 nsNntpCacheStreamListener::OnStopRequest(nsIRequest *request, nsISupports * aCtxt, nsresult aStatus)
 {
   nsCOMPtr <nsIRequest> ourRequest = do_QueryInterface(mChannelToUse);
-  nsresult rv = mListener->OnStopRequest(ourRequest, aCtxt, aStatus);
+  nsresult rv = NS_OK;
+  NS_ASSERTION(mListener, "this assertion is for Bug 531794 comment 7");
+  if (mListener)
+    mListener->OnStopRequest(ourRequest, aCtxt, aStatus);
   nsCOMPtr <nsILoadGroup> loadGroup;
   NS_ASSERTION(mChannelToUse, "null channel in OnStopRequest");
   if (mChannelToUse)
     mChannelToUse->GetLoadGroup(getter_AddRefs(loadGroup));
   if (loadGroup)
-      loadGroup->RemoveRequest(ourRequest, nsnull, aStatus);
+    loadGroup->RemoveRequest(ourRequest, nsnull, aStatus);
 
   // clear out mem cache entry so we're not holding onto it.
   if (mRunningUrl)
@@ -709,6 +712,7 @@ nsNntpCacheStreamListener::OnStopRequest(nsIRequest *request, nsISupports * aCtx
 NS_IMETHODIMP
 nsNntpCacheStreamListener::OnDataAvailable(nsIRequest *request, nsISupports * aCtxt, nsIInputStream * aInStream, PRUint32 aSourceOffset, PRUint32 aCount)
 {
+    NS_ENSURE_STATE(mListener);
     nsCOMPtr <nsIRequest> ourRequest = do_QueryInterface(mChannelToUse);
     return mListener->OnDataAvailable(ourRequest, aCtxt, aInStream, aSourceOffset, aCount);
 }
