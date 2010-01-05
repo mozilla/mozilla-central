@@ -52,7 +52,7 @@
 #include "nsISupportsObsolete.h"
 #include "nsQuickSort.h"
 #include "nsAutoPtr.h"
-#ifdef XP_MACOSX
+#if defined(XP_MACOSX) && !defined(__LP64__)
 #include "nsIAppleFileDecoder.h"
 #include "nsILocalFileMac.h"
 #endif
@@ -1758,7 +1758,7 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRUint32 a
       }
     }
     
-#ifdef XP_MACOSX
+#if defined(XP_MACOSX) && !defined(__LP64__)
     /* if we are saving an appledouble or applesingle attachment, we need to use an Apple File Decoder */
     if (m_contentType.LowerCaseEqualsLiteral(APPLICATION_APPLEFILE) ||
         m_contentType.LowerCaseEqualsLiteral(MULTIPART_APPLEDOUBLE))
