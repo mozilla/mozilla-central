@@ -380,6 +380,7 @@ SearchSpec.prototype = {
       return;
     }
 
+    let filtering = this._userTerms != null || this._viewTerms != null;
     let ioService = Cc["@mozilla.org/network/io-service;1"]
                       .getService(Ci.nsIIOService);
     let validityManager = Cc['@mozilla.org/mail/search/validityManager;1']
@@ -419,9 +420,10 @@ SearchSpec.prototype = {
               onlineAvailable = false;
           }
         }
-        // If both scopes work, honor the onlineSearch request
+        // If both scopes work, honor the onlineSearch request, unless we're
+        // filtering (quick search and/or a view selected)
         if (onlineAvailable && offlineAvailable)
-          scope = this.onlineSearch ? serverScope : offlineScope;
+          scope = (!filtering && this.onlineSearch) ? serverScope : offlineScope;
         // If only one works, use it. Otherwise, default to offline
         else if (onlineAvailable)
           scope = serverScope;
