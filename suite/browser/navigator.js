@@ -1317,26 +1317,23 @@ function updateCloseItems()
   var ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
                      .getService(Components.interfaces.nsISessionStore);
 
-  if (browser && browser.getStripVisibility()) {
-    document.getElementById('menu_closeOtherTabs').hidden = false;
-    if (browser.tabContainer.childNodes.length > 1) {
-      document.getElementById('menu_close').setAttribute('label', gNavigatorBundle.getString('tabs.closeTab.label'));
-      document.getElementById('menu_close').setAttribute('accesskey', gNavigatorBundle.getString('tabs.closeTab.accesskey'));
-      document.getElementById('cmd_closeOtherTabs').removeAttribute('disabled');
-      document.getElementById('menu_closeWindow').hidden = false;
-    }
-    else {
-      document.getElementById('menu_close').setAttribute('label', gNavigatorBundle.getString('tabs.close.label'));
-      document.getElementById('menu_close').setAttribute('accesskey', gNavigatorBundle.getString('tabs.close.accesskey'));
-      document.getElementById('cmd_closeOtherTabs').setAttribute('disabled', 'true');
-      document.getElementById('menu_closeWindow').hidden = true;
-    }
+  var hideCloseWindow = pref.getBoolPref("browser.tabs.closeWindowWithLastTab") &&
+                        (!browser || browser.tabContainer.childNodes.length <= 1);
+  document.getElementById("menu_closeWindow").hidden = hideCloseWindow;
+  var closeItem = document.getElementById("menu_close");
+  if (hideCloseWindow) {
+    closeItem.setAttribute("label", gNavigatorBundle.getString("tabs.close.label"));
+    closeItem.setAttribute("accesskey", gNavigatorBundle.getString("tabs.close.accesskey"));
   } else {
-    document.getElementById('menu_close').setAttribute('label', gNavigatorBundle.getString('tabs.close.label'));
-    document.getElementById('menu_close').setAttribute('accesskey', gNavigatorBundle.getString('tabs.close.accesskey'));
-    document.getElementById('menu_closeWindow').hidden = true;
-    document.getElementById('menu_closeOtherTabs').hidden = true;
+    closeItem.setAttribute("label", gNavigatorBundle.getString("tabs.closeTab.label"));
+    closeItem.setAttribute("accesskey", gNavigatorBundle.getString("tabs.closeTab.accesskey"));
   }
+
+  var hideCloseOtherTabs = !browser || !browser.getStripVisibility();
+  document.getElementById("menu_closeOtherTabs").hidden = hideCloseOtherTabs;
+  if (!hideCloseOtherTabs)
+    document.getElementById("cmd_closeOtherTabs").setAttribute("disabled", hideCloseWindow);
+
   var recentTabsItem = document.getElementById("menu_recentTabs");
   recentTabsItem.setAttribute("disabled", !browser || browser.getUndoList().length == 0);
   var recentWindowsItem = document.getElementById("menu_recentWindows");
@@ -1411,7 +1408,8 @@ function BrowserCloseOtherTabs()
 function BrowserCloseTabOrWindow()
 {
   var browser = getBrowser();
-  if (browser.tabContainer.childNodes.length > 1) {
+  if (browser.tabContainer.childNodes.length > 1 ||
+      !pref.getBoolPref("browser.tabs.closeWindowWithLastTab")) {
     // Just close up a tab.
     browser.removeCurrentTab();
     return;

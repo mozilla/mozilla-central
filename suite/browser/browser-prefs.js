@@ -220,6 +220,7 @@ pref("browser.tabs.tooltippreview.enable", true);
 pref("browser.tabs.tooltippreview.width", 300);
 pref("browser.tabs.autoHide", true);
 pref("browser.tabs.forceHide", false);
+pref("browser.tabs.closeWindowWithLastTab", true);
 pref("browser.tabs.warnOnClose", true);
 pref("browser.tabs.warnOnCloseOther", true);
 pref("browser.tabs.warnOnOpen", true);
