@@ -43,7 +43,7 @@
 <overlay id="EdImageOverlay"
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript" src="chrome://editor/content/EdImageOverlay.js"/>
+  <script type="application/javascript" src="chrome://editor/content/EdImageOverlay.js"/>
 
   <tab id="imageInputTab" label="&imageInputTab.label;"/>
   <tab id="imageLocationTab" label="&imageLocationTab.label;"/>

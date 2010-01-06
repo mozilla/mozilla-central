@@ -52,9 +52,9 @@
    ondialogaccept="return onAccept();"
    ondialogcancel="return onCancel();">
 
-  <script type="application/x-javascript" src="chrome://editor/content/editorUtilities.js"/>
-  <script type="application/x-javascript" src="chrome://editor/content/EdDialogCommon.js"/>
-  <script type="application/x-javascript" src="chrome://editor/content/EdLinkProps.js"/>
+  <script type="application/javascript" src="chrome://editor/content/editorUtilities.js"/>
+  <script type="application/javascript" src="chrome://editor/content/EdDialogCommon.js"/>
+  <script type="application/javascript" src="chrome://editor/content/EdLinkProps.js"/>
 
   <broadcaster id="args" value=""/>
   <spacer id="location" offsetY="50" persist="offsetX offsetY"/>

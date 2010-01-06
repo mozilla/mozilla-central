@@ -57,16 +57,16 @@
     ondialogcancel="return onCancel();">
 
   <!-- Methods common to all editor dialogs -->
-  <script type="application/x-javascript" src="chrome://editor/content/editorUtilities.js"/>
-  <script type="application/x-javascript" src="chrome://editor/content/EdDialogCommon.js"/>
+  <script type="application/javascript" src="chrome://editor/content/editorUtilities.js"/>
+  <script type="application/javascript" src="chrome://editor/content/EdDialogCommon.js"/>
   <!-- element page functions -->
-  <script type="application/x-javascript" src="chrome://editor/content/EdAEHTMLAttributes.js"/>
-  <script type="application/x-javascript" src="chrome://editor/content/EdAECSSAttributes.js"/>
-  <script type="application/x-javascript" src="chrome://editor/content/EdAEJSEAttributes.js"/>
-  <script type="application/x-javascript" src="chrome://editor/content/EdAEAttributes.js"/>
+  <script type="application/javascript" src="chrome://editor/content/EdAEHTMLAttributes.js"/>
+  <script type="application/javascript" src="chrome://editor/content/EdAECSSAttributes.js"/>
+  <script type="application/javascript" src="chrome://editor/content/EdAEJSEAttributes.js"/>
+  <script type="application/javascript" src="chrome://editor/content/EdAEAttributes.js"/>
 
   <!-- global dialog functions -->
-  <script type="application/x-javascript" src="chrome://editor/content/EdAdvancedEdit.js"/>
+  <script type="application/javascript" src="chrome://editor/content/EdAdvancedEdit.js"/>
 
   <broadcaster id="args" value=""/>
 

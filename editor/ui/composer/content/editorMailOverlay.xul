@@ -6,7 +6,7 @@
 <overlay id="editorMailOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript" src="editorApplicationOverlay.js"/>
+  <script type="application/javascript" src="editorApplicationOverlay.js"/>
 
   <!-- navigator specific commands -->
   <commandset id="tasksCommands">
