@@ -61,6 +61,7 @@
 #include "prprf.h"
 #include "plstr.h"
 #include "nsQuickSort.h"
+#include "msgCore.h"
 
 #include <ctype.h>
 
@@ -964,7 +965,7 @@ static char * dir_ConvertDescriptionToPrefName(DIR_Server * server)
     numSrcBytes = PL_strlen(descr);
     while (srcIndex < numSrcBytes && destIndex < MAX_PREF_NAME_SIZE-1)
     {
-      if (isdigit(descr[srcIndex]) || isalpha(descr[srcIndex]) )
+      if (IS_DIGIT(descr[srcIndex]) || IS_ALPHA(descr[srcIndex]))
       {
         fileNameBuf[destIndex] = descr[srcIndex];
         destIndex++;
