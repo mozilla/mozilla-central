@@ -370,7 +370,7 @@ PRBool nsMsgMdnGenerator::ValidateReturnPath()
     nsCString returnPath;
     m_headers->ExtractHeader(HEADER_RETURN_PATH, PR_FALSE,
                              getter_Copies(returnPath));
-    if (!returnPath.IsEmpty())
+    if (returnPath.IsEmpty())
     {
       m_autoSend = PR_FALSE;
       return m_reallySendMdn;
