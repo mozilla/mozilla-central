@@ -206,10 +206,18 @@ MimeMultCMS_init (MimeObject *obj)
   data->hash_type = hash_type;
 
   data->data_hash_context = do_CreateInstance("@mozilla.org/security/hash;1", &rv);
-  if (NS_FAILED(rv)) return 0;
+  if (NS_FAILED(rv))
+  {
+    delete data;
+    return 0;
+  }
 
   rv = data->data_hash_context->Init(data->hash_type);
-  if (NS_FAILED(rv)) return 0;
+  if (NS_FAILED(rv))
+  {
+    delete data;
+    return 0;
+  }
 
   PR_SetError(0,0);
 
