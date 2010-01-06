@@ -1490,10 +1490,11 @@ int
 mime_parse_url_options(const char *url, MimeDisplayOptions *options)
 {
   const char *q;
-  MimeHeadersState default_headers = options->headers;
 
   if (!url || !*url) return 0;
   if (!options) return 0;
+
+  MimeHeadersState default_headers = options->headers;
 
   q = PL_strrchr (url, '?');
   if (! q) return 0;
