@@ -45,7 +45,13 @@ import sys
 import os
 import shutil
 
-import automation
+# The try case handles trunk. The exception case handles MOZILLA_1_9_2_BRANCH.
+try:
+    from automation import Automation
+    automation = Automation()
+except ImportError:
+    import automation
+
 from automationutils import checkForCrashes
 
 class BloatRunTestOptions(optparse.OptionParser):
