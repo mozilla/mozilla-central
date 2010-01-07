@@ -139,7 +139,7 @@ var FeatureConfigurator = {
         let allFolders = Cc["@mozilla.org/supports-array;1"].
                            createInstance(Ci.nsISupportsArray);
 
-        server.offlineDownload = this.checked;
+        server.offlineDownload = sync;
         server.rootFolder.ListDescendents(allFolders);
         for each (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
           if (sync)
