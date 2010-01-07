@@ -2808,6 +2808,16 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     mDatabase->DeleteMessages(&keysToDelete, nsnull);
     total = keysToDelete.Length();
   }
+  PRInt32 numUnreadFromServer;
+  aSpec->GetNumUnseenMessages(&numUnreadFromServer);
+  
+  PRBool partialUIDFetch;
+  flagState->GetPartialUIDFetch(&partialUIDFetch);
+  
+  // For partial UID fetches, we can only trust the numUnread from the server.
+  if (partialUIDFetch)
+    numNewUnread = numUnreadFromServer;
+    
   // If we are performing biff for this folder, tell the
   // stand-alone biff about the new high water mark
   if (m_performingBiff && numNewUnread)
@@ -2820,8 +2830,6 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
      SetNumNewMessages(numNewUnread);
   }
   SyncFlags(flagState);
-  PRInt32 numUnreadFromServer;
-  aSpec->GetNumUnseenMessages(&numUnreadFromServer);
   if (mDatabase && mNumUnreadMessages + keysToFetch.Length() > numUnreadFromServer)
     mDatabase->SyncCounts();
 
