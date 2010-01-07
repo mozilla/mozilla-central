@@ -715,7 +715,7 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
                                      void *closure,
                                      nsIUrlListener *aListener)
 {
-  nsIMsgMessageService *messageService = nsnull;
+  nsCOMPtr<nsIMsgMessageService> messageService;
   nsSaveAllAttachmentsState *saveState= (nsSaveAllAttachmentsState*) closure;
   nsCOMPtr<nsIMsgMessageFetchPartService> fetchService;
   nsCAutoString urlString;
@@ -761,7 +761,7 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
 
   if (NS_SUCCEEDED(rv))
   {
-    rv = GetMessageServiceFromURI(aMessageUri, &messageService);
+    rv = GetMessageServiceFromURI(aMessageUri, getter_AddRefs(messageService));
     if (NS_SUCCEEDED(rv))
     {
       fetchService = do_QueryInterface(messageService);
