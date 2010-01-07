@@ -879,8 +879,48 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
     }
   }
   // and here the fun begins - file out term list...
+  PRUint32 searchIndex;
   nsCAutoString  condition;
-  err = MsgTermListToString(m_termList, condition);
+  PRUint32 count;
+  m_termList->Count(&count);
+  for (searchIndex = 0; searchIndex < count && NS_SUCCEEDED(err);
+        searchIndex++)
+  {
+    nsCAutoString  stream;
+
+    nsCOMPtr<nsIMsgSearchTerm> term;
+    m_termList->QueryElementAt(searchIndex, NS_GET_IID(nsIMsgSearchTerm),
+      (void **)getter_AddRefs(term));
+    if (!term)
+      continue;
+
+    if (condition.Length() > 1)
+      condition += ' ';
+
+    PRBool booleanAnd;
+    PRBool matchAll;
+    term->GetBooleanAnd(&booleanAnd);
+    term->GetMatchAll(&matchAll);
+    if (matchAll)
+    {
+      condition += "ALL";
+      break;
+    }
+    else if (booleanAnd)
+      condition += "AND (";
+    else
+      condition += "OR (";
+
+    nsresult searchError = term->GetTermAsString(stream);
+    if (NS_FAILED(searchError))
+    {
+      err = searchError;
+      break;
+    }
+
+    condition += stream;
+    condition += ')';
+  }
   if (NS_SUCCEEDED(err))
     err = filterList->WriteStrAttr(nsIMsgFilterList::attribCondition, condition.get(), aStream);
   return err;
