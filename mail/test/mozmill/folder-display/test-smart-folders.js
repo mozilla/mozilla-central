@@ -69,6 +69,24 @@ function setupModule(module) {
     nsMsgFolderFlags.Trash);
   trashFolder.createSubfolder("SmartFoldersB", null);
   trashSubfolder = trashFolder.getChildNamed("SmartFoldersB");
+
+  // The message itself doesn't really matter, as long as there's at least one
+  // in the folder.
+  make_new_sets_in_folder(inboxFolder, [{count: 1}]);
+  make_new_sets_in_folder(inboxSubfolder, [{count: 1}]);
+}
+
+/**
+ * Assert that the given folder is considered to be the container of the given
+ * message header in this folder mode.
+ */
+function assert_folder_for_msg_hdr(aMsgHdr, aFolder) {
+  let actualFolder = mc.folderTreeView.getFolderForMsgHdr(aMsgHdr);
+  if (actualFolder != aFolder)
+    throw new Error("Message " + aMsgHdr.messageId +
+                    " should be contained in folder " + aFolder.URI +
+                    "in this view, but is actually contained in " +
+                    actualFolder.URI);
 }
 
 /**
@@ -102,6 +120,19 @@ function test_get_parent_of_folder() {
   inboxSubfolder.createSubfolder("SmartFoldersC", null);
   assert_folder_child_in_view(inboxSubfolder.getChildNamed("SmartFoldersC"),
                        inboxSubfolder);
+}
+
+/**
+ * Test the getFolderForMsgHdr function.
+ */
+function test_get_folder_for_msg_hdr() {
+  be_in_folder(inboxFolder);
+  let inboxMsgHdr = mc.dbView.getMsgHdrAt(0);
+  assert_folder_for_msg_hdr(inboxMsgHdr, smartInboxFolder);
+
+  be_in_folder(inboxSubfolder);
+  let inboxSubMsgHdr = mc.dbView.getMsgHdrAt(0);
+  assert_folder_for_msg_hdr(inboxSubMsgHdr, inboxSubfolder);
 }
 
 /**

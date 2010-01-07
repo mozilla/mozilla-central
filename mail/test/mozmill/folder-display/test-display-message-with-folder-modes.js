@@ -51,6 +51,7 @@ var RELATIVE_ROOT = "../shared-modules";
 var MODULE_REQUIRES = ["folder-display-helpers"];
 
 var folder;
+var smartInboxFolder;
 
 var msgHdr;
 
@@ -64,6 +65,9 @@ function setupModule(module) {
   inboxFolder.createSubfolder("DisplayMessageWithFolderModesA", null);
   folder = inboxFolder.getChildNamed("DisplayMessageWithFolderModesA");
   make_new_sets_in_folder(folder, [{count: 5}]);
+  // The message itself doesn't really matter, as long as there's at least one
+  // in the inbox.
+  make_new_sets_in_folder(inboxFolder, [{count: 1}]);
 }
 
 /**
@@ -126,7 +130,7 @@ function test_display_message_in_smart_folder_mode_works() {
   assert_folder_child_in_view(folder, rootFolder);
 
   // Collapse everything
-  let smartInboxFolder = get_smart_folder_named("Inbox");
+  smartInboxFolder = get_smart_folder_named("Inbox");
   collapse_folder(smartInboxFolder);
   assert_folder_collapsed(smartInboxFolder);
   collapse_folder(rootFolder);
@@ -142,6 +146,37 @@ function test_display_message_in_smart_folder_mode_works() {
   assert_folder_expanded(rootFolder);
   assert_folder_selected_and_displayed(folder);
   assert_selected_and_displayed(msgHdr);
+}
+
+/**
+ * Test that displaying a message in an inbox in smart folders mode causes the
+ * message to be displayed in the smart inbox.
+ */
+function test_display_inbox_message_in_smart_folder_mode_works() {
+  be_in_folder(inboxFolder);
+  let inboxMsgHdr = mc.dbView.getMsgHdrAt(0);
+
+  // Collapse everything
+  collapse_folder(smartInboxFolder);
+  assert_folder_collapsed(smartInboxFolder);
+  assert_folder_not_visible(inboxFolder);
+  let rootFolder = folder.server.rootFolder;
+  collapse_folder(rootFolder);
+  assert_folder_collapsed(rootFolder);
+
+  // Move to a different folder
+  be_in_folder(get_smart_folder_named("Trash"));
+  assert_message_not_in_view(inboxMsgHdr);
+
+  // Try displaying the message
+  display_message_in_folder_tab(inboxMsgHdr);
+
+  // Check that nothing has expanded, and that the right folder is selected
+  assert_folder_mode("smart");
+  assert_folder_collapsed(smartInboxFolder);
+  assert_folder_collapsed(rootFolder);
+  assert_folder_selected_and_displayed(smartInboxFolder);
+  assert_selected_and_displayed(inboxMsgHdr);
 }
 
 /**

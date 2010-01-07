@@ -97,11 +97,17 @@ let IFolderTreeMode = {
   /**
    * Given an nsIMsgDBHdr, returns the folder it is considered to be contained
    * in, in this mode. This is usually just the physical folder it is contained
-   * in (aMsgHdr.folder), but some views may decide to override this. For
+   * in (aMsgHdr.folder), but some modes may decide to override this. For
    * example, combined views like Smart Folders return the smart inbox for any
    * messages in any inbox.
    *
    * The folder returned doesn't need to be in the view.
+
+   * @returns The folder the message header is considered to be contained in, in
+   *     this mode. The returned folder may or may not actually be in the view
+   *     -- however, given a valid nsIMsgDBHdr, it is expected that a) a
+   *     non-null folder is returned, and that b) the folder that is returned
+   *     actually does contain the message header.
    */
   getFolderForMsgHdr: function IFolderTreeMode_getFolderForMsgHdr(aMsgHdr) {
     return aMsgHdr.folder;
@@ -436,6 +442,16 @@ let gFolderTreeView = {
    */
   getParentOfFolder: function ftv_getParentOfFolder(aFolder) {
     return this._modes[this._mode].getParentOfFolder(aFolder);
+  },
+
+  /**
+   * Given an nsIMsgDBHdr, returns the folder it is considered to be contained
+   * in, in the current mode. This is usually, but not necessarily, the actual
+   * folder the message is in (aMsgHdr.folder). For more details, see
+   * |IFolderTreeMode.getFolderForMsgHdr|.
+   */
+  getFolderForMsgHdr: function ftv_getFolderForMsgHdr(aMsgHdr) {
+    return this._modes[this._mode].getFolderForMsgHdr(aMsgHdr);
   },
 
   /**
@@ -1408,6 +1424,15 @@ let gFolderTreeView = {
         return null;
       },
 
+      /**
+       * Returns the smart folder with the given name.
+       */
+      _getSmartFolderNamed: function ftv_smart__getSmartFolderNamed(aName) {
+        let smartRoot = this._smartServer.rootFolder;
+        return smartRoot.getChildWithURI(smartRoot.URI + "/" + aName, false,
+                                         true);
+      },
+
       generateMap: function ftv_smart_generateMap(ftv) {
         let map = [];
         let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
@@ -1459,9 +1484,7 @@ let gFolderTreeView = {
         if (smartType) {
           // This is a special folder
           let [, name,] = smartType;
-          let smartRoot = smartServer.rootFolder;
-          let smartFolder = smartRoot.getChildWithURI(
-            smartRoot.URI + "/" + name, false, true);
+          let smartFolder = this._getSmartFolderNamed(name);
           if (smartFolder &&
               gFolderTreeView.getIndexOfFolder(smartFolder) != null)
             return smartFolder;
@@ -1476,6 +1499,25 @@ let gFolderTreeView = {
         }
 
         return parent;
+      },
+
+      /**
+       * For a folder of a particular type foo, this returns the smart folder of
+       * that type (if it's displayed). Otherwise this returns the folder the
+       * message is in.
+       */
+      getFolderForMsgHdr: function ftv_smart_getFolderForMsgHdr(aMsgHdr) {
+        let folder = aMsgHdr.folder;
+
+        let smartType = this._getSmartFolderType(folder);
+        if (smartType) {
+          let [, name,] = smartType;
+          let smartFolder = this._getSmartFolderNamed(name);
+          if (smartFolder &&
+              gFolderTreeView.getIndexOfFolder(smartFolder) != null)
+            return smartFolder;
+        }
+        return folder;
       },
 
       /**

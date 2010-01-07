@@ -1834,7 +1834,7 @@ function MsgDisplayMessageInFolderTab(aMsgHdr)
   let folderTab = tabmail.getTabInfoForCurrentOrFirstModeInstance(
                       tabmail.tabModes["folder"]);
   let folderDisplay = folderTab.folderDisplay;
-  let folder = aMsgHdr.folder;
+  let folder = gFolderTreeView.getFolderForMsgHdr(aMsgHdr);
 
   // XXX Yuck. We really need to have the tabmail be able to handle an extra
   // param with data to send to showTab, and to have the folder display have
