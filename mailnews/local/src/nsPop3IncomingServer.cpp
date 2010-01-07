@@ -133,7 +133,41 @@ NS_IMPL_SERVERPREF_BOOL(nsPop3IncomingServer,
 
 NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
 {
-  return GetCharValue("deferred_to_account", aRetVal);
+  nsresult rv = GetCharValue("deferred_to_account", aRetVal);
+  if (aRetVal.IsEmpty())
+    return rv;
+  // We need to repair broken profiles that defer to hidden or invalid servers,
+  // so find out if the deferred to account has a valid non-hidden server, and
+  // if not, defer to the local folders inbox.
+  nsCOMPtr<nsIMsgAccountManager> acctMgr =
+                      do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID);
+  PRBool invalidAccount = PR_TRUE;
+  if (acctMgr)
+  {
+    nsCOMPtr<nsIMsgAccount> account;
+    rv = acctMgr->GetAccount(aRetVal, getter_AddRefs(account));
+    if (account)
+    {
+      nsCOMPtr<nsIMsgIncomingServer> server;
+      account->GetIncomingServer(getter_AddRefs(server));
+      if (server)
+        server->GetHidden(&invalidAccount);
+    }
+    if (invalidAccount)
+    {
+      nsCOMPtr<nsIMsgIncomingServer> localServer;
+      nsCOMPtr<nsIMsgAccount> localAccount;
+
+      rv = acctMgr->GetLocalFoldersServer(getter_AddRefs(localServer));
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = acctMgr->FindAccountForServer(localServer, getter_AddRefs(localAccount));
+      NS_ENSURE_SUCCESS(rv, rv);
+      localAccount->GetKey(aRetVal);
+      // Can't call SetDeferredToAccount because it calls GetDeferredToAccount.
+      return SetCharValue("deferred_to_account", aRetVal);
+    }
+  }
+  return rv;
 }
 
 NS_IMETHODIMP nsPop3IncomingServer::SetDeferredToAccount(const nsACString& aAccountKey)

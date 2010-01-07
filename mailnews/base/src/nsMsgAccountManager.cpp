@@ -1359,9 +1359,6 @@ nsMsgAccountManager::LoadAccounts()
 
     nsCOMPtr<nsIMsgIncomingServer> server;
     account->GetIncomingServer(getter_AddRefs(server));
-    // if no server, we should get rid of the account.
-    if (!server)
-      RemoveAccount(account);
   }
 
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
