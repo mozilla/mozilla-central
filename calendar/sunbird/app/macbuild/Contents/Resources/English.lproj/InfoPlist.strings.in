@@ -1,4 +1,3 @@
 /* Localized versions of Info.plist keys */
 
 CFBundleName = %APP_NAME%;
-NSHumanReadableCopyright = "Copyright © 1998-2009 Contributors.";
