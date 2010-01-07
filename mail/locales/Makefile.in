@@ -342,6 +342,7 @@ endif
 	chmod -vR 775 $(UPLOAD_DIR)
 
 generate-snippet-%:
+ifdef MOZILLA_1_9_2_BRANCH
 	$(PYTHON) $(MOZILLA_SRCDIR)/tools/update-packaging/generatesnippet.py \
 	    --mar-path=$(_ABS_DIST)/update \
 	    --application-ini-file=$(STAGEDIST)/application.ini \
@@ -349,6 +350,16 @@ generate-snippet-%:
 	    --product=$(MOZ_PKG_APPNAME) \
 	    --download-base-URL=$(DOWNLOAD_BASE_URL) \
 	    --verbose
+else
+	$(PYTHON) $(MOZILLA_SRCDIR)/tools/update-packaging/generatesnippet.py \
+	    --mar-path=$(_ABS_DIST)/update \
+	    --application-ini-file=$(STAGEDIST)/application.ini \
+	    --locale=$* \
+	    --product=$(MOZ_PKG_APPNAME) \
+	    --platform=$(MOZ_PKG_PLATFORM) \
+	    --download-base-URL=$(DOWNLOAD_BASE_URL) \
+	    --verbose
+endif
 
 l10n-upload-%: AB_CD=$*
 l10n-upload-%:
