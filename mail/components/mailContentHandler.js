@@ -76,6 +76,14 @@ var mailContentHandler = {
     }
 
     aRequest.QueryInterface(Ci.nsIChannel);
+
+    // For internal protocols (e.g. imap, mailbox, mailto), we want to handle
+    // them internally as we know what to do. For http and https we don't
+    // actually deal with external windows very well, so we redirect them to
+    // the external browser.
+    if (!aRequest.URI.schemeIs("http") && !aRequest.URI.schemeIs("https"))
+      throw NS_ERROR_WONT_HANDLE_CONTENT;
+
     this.openInExternal(aRequest.URI);
     aRequest.cancel(Cr.NS_BINDING_ABORTED);
   },
