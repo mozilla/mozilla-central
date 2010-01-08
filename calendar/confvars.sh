@@ -58,3 +58,7 @@ MOZ_EXTENSIONS_DEFAULT=
 MOZ_UNIVERSALCHARDET=
 MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/sunbird/config/version.txt`
 SUNBIRD_VERSION=$MOZ_APP_VERSION
+
+# Until we can build with libxul, we can't have ipc either
+MOZ_ENABLE_LIBXUL=
+MOZ_IPC=
