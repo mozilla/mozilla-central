@@ -49,6 +49,15 @@
   ; Upgrade the copies of the MAPI DLL's
   ${UpgradeMapiDLLs}
 
+  ; Delete two files installed by Kaspersky Anti-Spam extension that are only
+  ; compatible with Thunderbird 2 (bug 533692).
+  ${If} ${FileExists} "$INSTDIR\components\klthbplg.dll"
+    Delete /REBOOTOK "$INSTDIR\components\klthbplg.dll"
+  ${EndIf}
+  ${If} ${FileExists} "$INSTDIR\components\IKLAntiSpam.xpt"
+    Delete /REBOOTOK "$INSTDIR\components\IKLAntiSpam.xpt"
+  ${EndIf}
+
   ClearErrors
   WriteRegStr HKLM "Software\Mozilla" "${BrandShortName}InstallerTest" "Write Test"
   ${If} ${Errors}
