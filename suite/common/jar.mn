@@ -61,6 +61,7 @@ comm.jar:
    content/communicator/defaultClientDialog.xul
    content/communicator/editorBindings.xul
    content/communicator/findUtils.js
+   content/communicator/fullscreen-video.xhtml
    content/communicator/helpEditorOverlay.xul
    content/communicator/helpMessengerOverlay.xul
    content/communicator/helpSecurityOverlay.xul

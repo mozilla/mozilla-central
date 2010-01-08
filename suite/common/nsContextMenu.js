@@ -343,6 +343,7 @@ nsContextMenu.prototype = {
         this.showItem( "context-media-unmute", onMedia && this.target.muted );
         this.showItem( "context-media-showcontrols", onMedia && !this.target.controls );
         this.showItem( "context-media-hidecontrols", onMedia && this.target.controls );
+        this.showItem( "context-video-fullscreen", this.onVideo );
         // Disable them when there isn't a valid media source loaded.
         if (onMedia) {
           var hasError = this.target.error != null;
@@ -352,6 +353,8 @@ nsContextMenu.prototype = {
           this.setItemAttr( "context-media-unmute", "disabled", hasError );
           this.setItemAttr( "context-media-showcontrols", "disabled", hasError );
           this.setItemAttr( "context-media-hidecontrols", "disabled", hasError );
+          if (this.onVideo)
+            this.setItemAttr( "context-video-fullscreen",  "disabled", hasError );
         }
         this.showItem( "context-media-sep-commands", onMedia );
     },
@@ -749,6 +752,14 @@ nsContextMenu.prototype = {
                             Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME );
         }
         openTopWin( viewURL, this.target.ownerDocument.defaultView );
+    },
+    // Full screen video playback
+    fullScreenVideo: function () {
+        var isPaused = this.target.paused && this.target.currentTime > 0;
+        this.target.pause();
+
+        openDialog( "chrome://communicator/content/fullscreen-video.xhtml",
+                    "", "chrome,dialog=no", this.target, isPaused );
     },
     // Change current window to the URL of the background image.
     viewBGImage : function () {

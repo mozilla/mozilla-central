@@ -1,0 +1,29 @@
+html,
+body,
+video {
+  height: 100%;
+}
+
+html {
+  background-color: black;
+}
+
+body {
+  margin: 0px;
+  overflow: -moz-hidden-unscrollable;
+  visibility: hidden;
+}
+
+video {
+  width: 100%;
+  max-height: 100%;
+}
+
+div {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 32px;
+  height: 32px;
+  background: url("chrome://communicator/skin/icons/closeFullScreenVideo.png") center center no-repeat;
+}
