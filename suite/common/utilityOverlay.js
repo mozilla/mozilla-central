@@ -1371,3 +1371,29 @@ function subscribeToFeedMiddleClick(href, event) {
     closeMenus(event.target);
   }
 }
+
+function FillInHTMLTooltip(tipElement)
+{
+  if (tipElement.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul")
+    return false;
+
+  while (tipElement instanceof Element) {
+    if (tipElement.hasAttribute("title")) {
+      var defView = tipElement.ownerDocument.defaultView;
+      var titleText = tipElement.getAttribute("title");
+      // XXX Work around bug 350679:
+      // "Tooltips can be fired in documents with no view".
+      if (!defView || !titleText)
+        return false;
+
+      var tipNode = document.getElementById("aHTMLTooltip");
+      tipNode.style.direction = defView.getComputedStyle(tipElement, "")
+                                       .getPropertyValue("direction");
+      tipNode.label = titleText;
+      return true;
+    }
+    tipElement = tipElement.parentNode;
+  }
+
+  return false;
+}
