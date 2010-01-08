@@ -217,15 +217,6 @@ Section "-InstallStartCleanup"
     ClearErrors
   ${EndIf}
 
-  ; Delete two files installed by Kaspersky Anti-Spam extension that are only
-  ; compatible with Thunderbird 2 (bug 533692).
-  ${If} ${FileExists} "$INSTDIR\components\klthbplg.dll"
-    Delete /REBOOTOK "$INSTDIR\components\klthbplg.dll"
-  ${EndIf}
-  ${If} ${FileExists} "$INSTDIR\components\IKLAntiSpam.xpt"
-    Delete /REBOOTOK "$INSTDIR\components\IKLAntiSpam.xpt"
-  ${EndIf}
-
   ; Remove the updates directory for Vista and above
   ${CleanUpdatesDir} "Thunderbird"
 
