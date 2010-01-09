@@ -549,15 +549,15 @@ NS_IMETHODIMP nsImportFieldMap::GetFieldValueByDescription(nsIAbCard *card, cons
     return NS_ERROR_NULL_POINTER;
   PRInt32 i = FindFieldNum( fieldDesc);
   if (i == -1)
-    return( NS_ERROR_FAILURE);
-  return( GetFieldValue( card, i, _retval));
+    return NS_ERROR_FAILURE;
+  return GetFieldValue( card, i, _retval);
 }
 
 
 nsresult nsImportFieldMap::Allocate( PRInt32 newSize)
 {
   if (newSize <= m_allocated)
-    return( NS_OK);
+    return NS_OK;
 
   PRInt32 sz = m_allocated;
   while (sz < newSize)
@@ -565,11 +565,12 @@ nsresult nsImportFieldMap::Allocate( PRInt32 newSize)
 
   PRInt32  *pData = new PRInt32[ sz];
   if (!pData)
-    return( NS_ERROR_FAILURE);
+    return NS_ERROR_OUT_OF_MEMORY;
   PRBool *pActive = new PRBool[sz];
-  if (!pActive)
-    return( NS_ERROR_FAILURE);
-
+  if (!pActive) {
+    delete [] pData;
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
 
   PRInt32  i;
   for (i = 0; i < sz; i++) {
@@ -587,19 +588,17 @@ nsresult nsImportFieldMap::Allocate( PRInt32 newSize)
   m_allocated = sz;
   m_pFields = pData;
   m_pActive = pActive;
-  return( NS_OK);
+  return NS_OK;
 }
 
 PRInt32 nsImportFieldMap::FindFieldNum( const PRUnichar *pDesc)
 {
-  nsString *  pStr;
+  nsString *pStr;
   for (PRInt32 i = 0; i < m_mozFieldCount; i++) {
     pStr = (nsString *)m_descriptions.ElementAt( i);
     if (!pStr->Equals(pDesc))
-      return( i);
+      return i;
   }
 
-  return( -1);
+  return -1;
 }
-
-
