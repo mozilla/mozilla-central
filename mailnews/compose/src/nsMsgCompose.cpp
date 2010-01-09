@@ -2527,7 +2527,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         if (!listPost.IsEmpty())
         {
           PRInt32 startPos = listPost.Find("<mailto:");
-          PRInt32 endPos = listPost.Find(">", startPos);
+          PRInt32 endPos = listPost.Find(">", PR_FALSE, startPos);
           // Extract the e-mail address.
           if (endPos > startPos)
           {
