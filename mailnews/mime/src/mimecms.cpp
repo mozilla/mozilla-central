@@ -432,10 +432,18 @@ static void *MimeCMS_init(MimeObject *obj,
   data->output_closure = output_closure;
   PR_SetError(0, 0);
   data->decoder_context = do_CreateInstance(NS_CMSDECODER_CONTRACTID, &rv);
-  if (NS_FAILED(rv)) return 0;
+  if (NS_FAILED(rv))
+  {
+    delete data;
+    return 0;
+  }
 
   rv = data->decoder_context->Start(MimeCMS_content_callback, data);
-  if (NS_FAILED(rv)) return 0;
+  if (NS_FAILED(rv))
+  {
+    delete data;
+    return 0;
+  }
 
   // XXX Fix later XXX //
   data->parent_holds_stamp_p =
