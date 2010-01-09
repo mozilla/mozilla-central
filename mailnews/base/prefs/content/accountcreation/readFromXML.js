@@ -81,9 +81,9 @@ function readFromXML(clientConfigXML)
     if ("leaveMessagesOnServer" in iX.pop3)
       iO.leaveMessagesOnServer = sanitize.boolean(iX.pop3.leaveMessagesOnServer);
     if ("daysToLeaveMessagesOnServer" in iX.pop3)
-      iO.daysToLeaveMessagesOnServer = iX.pop3.daysToLeaveMessagesOnServer;
+      iO.daysToLeaveMessagesOnServer = sanitize.integer(iX.pop3.daysToLeaveMessagesOnServer);
     if ("downloadOnBiff" in iX.pop3)
-      iO.downloadOnBiff = iX.pop3.downloadOnBiff;
+      iO.downloadOnBiff = sanitize.boolean(iX.pop3.downloadOnBiff);
   }
 
   // outgoing server

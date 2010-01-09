@@ -52,6 +52,17 @@
 // Globals
 
 Components.utils.import("resource://gre/modules/autoconfigUtils.jsm");
+var xmlReader = {};
+var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+                       .getService(Components.interfaces.mozIJSSubScriptLoader);
+loader.loadSubScript("chrome://messenger/content/accountcreation/util.js",
+                     xmlReader);
+loader.loadSubScript("chrome://messenger/content/accountcreation/accountConfig.js",
+                     xmlReader);
+loader.loadSubScript("chrome://messenger/content/accountcreation/sanitizeDatatypes.js",
+                     xmlReader);
+loader.loadSubScript("chrome://messenger/content/accountcreation/readFromXML.js",
+                     xmlReader);
 
 /*
  * UTILITIES
@@ -294,6 +305,46 @@ function test_getOutgoingTryOrder()
                            [SMTP, NONE, port]]);
 };
 
+/**
+ * Test that the xml reader returns something we can copy.
+ */
+function test_copying_readFromXML()
+{
+  let clientConfigXML = new XML(
+    '<clientConfig>' +
+    '  <emailProvider id="inbox.lv">' +
+    '    <domain>inbox.lv</domain>' +
+    '    <displayName>Inbox.lv</displayName>' +
+    '    <displayShortName>Inbox.lv</displayShortName>' +
+    '    <incomingServer type="pop3">' +
+    '      <hostname>mail.inbox.lv</hostname>' +
+    '      <port>995</port>' +
+    '      <socketType>SSL</socketType>' +
+    '      <username>%EMAILLOCALPART%</username>' +
+    '      <authentication>plain</authentication>' +
+    '      <pop3>' +
+    '        <leaveMessagesOnServer>true</leaveMessagesOnServer>' +
+    '        <daysToLeaveMessagesOnServer>999</daysToLeaveMessagesOnServer>' +
+    '      </pop3>' +
+    '    </incomingServer>' +
+    '    <outgoingServer type="smtp">' +
+    '      <hostname>mail.inbox.lv</hostname>' +
+    '      <port>587</port>' +
+    '      <socketType>STARTTLS</socketType>' +
+    '      <username>%EMAILLOCALPART%</username>' +
+    '      <authentication>plain</authentication>' +
+    '      <addThisServer>true</addThisServer>' +
+    '      <useGlobalPreferredServer>false</useGlobalPreferredServer>' +
+    '    </outgoingServer>' +
+    '  </emailProvider>' +
+    '</clientConfig>');
+  let config = xmlReader.readFromXML(clientConfigXML);
+
+  // This will throw "can't copy objects of type xml yet" if we forget to
+  // sanitize some of the xml data.
+  let config2 = config.copy();
+}
+
 function run_test()
 {
   do_test_pending();
@@ -301,6 +352,7 @@ function run_test()
   test_getHostEntry();
   test_getIncomingTryOrder();
   test_getOutgoingTryOrder();
+  test_copying_readFromXML();
 
   do_test_finished();
 };
