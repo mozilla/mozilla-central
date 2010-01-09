@@ -55,6 +55,7 @@ nsMsgXFVirtualFolderDBView::nsMsgXFVirtualFolderDBView()
 {
   mSuppressMsgDisplay = PR_FALSE;
   m_doingSearch = PR_FALSE;
+  m_doingQuickSearch = PR_FALSE;
 }
 
 nsMsgXFVirtualFolderDBView::~nsMsgXFVirtualFolderDBView()
@@ -284,7 +285,7 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *aFol
   nsCOMPtr<nsIDBFolderInfo> folderInfo;
   aFolder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(dbToUse));
 
-  if (m_curFolderGettingHits != aFolder && m_doingSearch)
+  if (m_curFolderGettingHits != aFolder && m_doingSearch && !m_doingQuickSearch)
   {
     m_curFolderHasCachedHits = PR_FALSE;
     // since we've gotten a hit for a new folder, the searches for
@@ -297,8 +298,11 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *aFol
   }
   PRBool hdrInCache = PR_FALSE;
   nsCString searchUri;
-  m_viewFolder->GetURI(searchUri);
-  dbToUse->HdrIsInCache(searchUri.get(), aMsgHdr, &hdrInCache);
+  if (!m_doingQuickSearch)
+  {
+    m_viewFolder->GetURI(searchUri);
+    dbToUse->HdrIsInCache(searchUri.get(), aMsgHdr, &hdrInCache);    
+  }
   if (!m_doingSearch || !m_curFolderHasCachedHits || !hdrInCache)
   {
     if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
@@ -317,7 +321,7 @@ NS_IMETHODIMP
 nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
 {
   // handle any non verified hits we haven't handled yet.
-  if (NS_SUCCEEDED(status) && status != NS_MSG_SEARCH_INTERRUPTED)
+  if (NS_SUCCEEDED(status) && !m_doingQuickSearch && status != NS_MSG_SEARCH_INTERRUPTED)
     UpdateCacheAndViewForPrevSearchedFolders(nsnull);
 
   m_doingSearch = PR_FALSE;
@@ -329,8 +333,8 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   if (curFolder)
     GetImapDeleteModel(curFolder);
 
-  nsCOMPtr <nsIMsgDatabase> virtDatabase;
-  nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
+  nsCOMPtr<nsIMsgDatabase> virtDatabase;
+  nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
   nsresult rv = m_viewFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
   NS_ENSURE_SUCCESS(rv, rv);
   // count up the number of unread and total messages from the view, and set those in the
@@ -380,9 +384,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   PRInt32 oldSize = GetSize();
 
   RemovePendingDBListeners();
-
   m_doingSearch = PR_TRUE;
-
   m_folders.Clear();
   m_keys.Clear();
   m_levels.Clear();
@@ -401,8 +403,35 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   nsCOMPtr <nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID);
   searchSession->CountSearchScopes(&scopeCount);
-  if (mTree)
+
+  // Figure out how many search terms the virtual folder has.
+  nsCOMPtr<nsIMsgDatabase> virtDatabase;
+  nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
+  nsresult rv = m_viewFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCString terms;
+  dbFolderInfo->GetCharProperty("searchStr", terms);
+  nsCOMPtr<nsISupportsArray> searchTerms;
+  rv = searchSession->GetSearchTerms(getter_AddRefs(searchTerms));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCString curSearchAsString;
+
+  rv = MsgTermListToString(searchTerms, curSearchAsString);
+  // Trim off the initial AND/OR, which is irrelevant and inconsistent between
+  // what searchSpec.js generates, and what's in virtualFolders.dat.
+  curSearchAsString.Cut(0, StringBeginsWith(curSearchAsString, NS_LITERAL_CSTRING("AND")) ? 3 : 2);
+  terms.Cut(0, StringBeginsWith(terms, NS_LITERAL_CSTRING("AND")) ? 3 : 2);
+
+  NS_ENSURE_SUCCESS(rv, rv);
+  // If the search session search string doesn't match the vf search str, then we're doing
+  // quick search, which means we don't want to invalidate cached results, or
+  // used cached results.
+  m_doingQuickSearch = !curSearchAsString.Equals(terms);
+
+  if (mTree && !m_doingQuickSearch)
     mTree->BeginUpdateBatch();
+
   for (PRInt32 i = 0; i < scopeCount; i++)
   {
     nsMsgSearchScopeValue scopeId;
@@ -421,6 +450,8 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
           msgDBService->RegisterPendingListener(searchFolder, this);
 
         m_foldersSearchingOver.AppendObject(searchFolder);
+        if (m_doingQuickSearch) // ignore cached hits in quick search case.
+          continue;
         searchDB->GetCachedHits(searchUri.get(), getter_AddRefs(cachedHits));
         PRBool hasMore;
         if (cachedHits)
@@ -428,7 +459,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
           cachedHits->HasMoreElements(&hasMore);
           if (hasMore)
           {
-             nsMsgKey prevKey = nsMsgKey_None;
+            nsMsgKey prevKey = nsMsgKey_None;
             while (hasMore)
             {
               nsCOMPtr <nsIMsgDBHdr> pHeader;
@@ -451,7 +482,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
       }
     }
   }
-  if (mTree)
+  if (mTree && !m_doingQuickSearch)
     mTree->EndUpdateBatch();
 
   m_curFolderStartKeyIndex = 0;
@@ -469,7 +500,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
       Sort(m_sortType, m_sortOrder);
     }
   }
-    return NS_OK;
+  return NS_OK;
 }
 
 

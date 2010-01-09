@@ -88,6 +88,8 @@
 #include "nsIMsgWindow.h"
 #include "nsIWindowWatcher.h"
 #include "nsIPrompt.h"
+#include "nsISupportsArray.h"
+#include "nsIMsgSearchTerm.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -1957,3 +1959,45 @@ NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays)
   return now - microSecondsInDay;
 }
 
+NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString &aOutString)
+{
+  PRUint32 count;
+  aTermList->Count(&count);
+  nsresult rv = NS_OK;
+
+  for (PRUint32 searchIndex = 0; searchIndex < count;
+       searchIndex++)
+  {
+    nsCAutoString stream;
+
+    nsCOMPtr<nsIMsgSearchTerm> term;
+    aTermList->QueryElementAt(searchIndex, NS_GET_IID(nsIMsgSearchTerm),
+                               (void **)getter_AddRefs(term));
+    if (!term)
+      continue;
+
+    if (aOutString.Length() > 1)
+      aOutString += ' ';
+
+    PRBool booleanAnd;
+    PRBool matchAll;
+    term->GetBooleanAnd(&booleanAnd);
+    term->GetMatchAll(&matchAll);
+    if (matchAll)
+    {
+      aOutString += "ALL";
+      continue;
+    }
+    else if (booleanAnd)
+      aOutString += "AND (";
+    else
+      aOutString += "OR (";
+
+    rv = term->GetTermAsString(stream);
+    NS_ENSURE_SUCCESS(rv, rv);
+    
+    aOutString += stream;
+    aOutString += ')';
+  }
+  return rv;
+}

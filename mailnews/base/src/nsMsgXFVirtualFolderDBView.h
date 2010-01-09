@@ -86,6 +86,8 @@ protected:
   PRUint32 m_curFolderStartKeyIndex; // keeps track of the index of the first hit from the cur folder
   PRBool m_curFolderHasCachedHits;
   PRBool m_doingSearch;
+  // Are we doing a quick search on top of the virtual folder search?
+  PRBool m_doingQuickSearch;
 };
 
 #endif

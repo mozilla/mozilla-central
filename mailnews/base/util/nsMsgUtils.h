@@ -57,6 +57,7 @@ class nsIMsgDatabase;
 class nsIMutableArray;
 class nsIProxyInfo;
 class nsIMsgWindow;
+class nsISupportsArray;
 
 //These are utility functions that can used throughout the mailnews code
 
@@ -267,5 +268,14 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
  * days ago. This is used by various retention setting algorithms.
  */
 NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays);
+
+/**
+ * Converts the passed in term list to its string representation.
+ *
+ * @param      aTermList    Array of nsIMsgSearchTerms
+ * @param[out] aOutString   result representation of search terms.
+ *
+ */
+NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString &aOutString);
 
 #endif
