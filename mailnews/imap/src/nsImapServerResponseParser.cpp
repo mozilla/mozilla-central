@@ -3062,6 +3062,11 @@ PRBool nsImapServerResponseParser::msg_fetch_literal(PRBool chunk, PRInt32 origi
     // some complexity.
     charsReadSoFar = fServerConnection.OpenTunnel(numberOfCharsInThisChunk);
   }
+  // If we're fetching the whole message, the length of the returned literal
+  // must be the message size, and for servers like Exchange that only
+  // approximate the rfc822 size, we can use this size as the correct size.
+  if (!chunk && fFetchEverythingRFC822)
+    fSizeOfMostRecentMessage = numberOfCharsInThisChunk;
   
   // If we opened a tunnel, finish everything off here.  Otherwise, get everything here.
   // (just like before)

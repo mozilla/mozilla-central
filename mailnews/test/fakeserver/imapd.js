@@ -319,6 +319,7 @@ var gIOService;
 function imapMessage(URI, uid, flags) {
   this._URI = URI;
   this.uid = uid;
+  this.size = 0;
   this.flags = new Array;
   for each (flag in flags)
     this.flags.push(flag);
@@ -334,6 +335,10 @@ imapMessage.prototype = {
   setFlag : function (flag) {
    if (this.flags.indexOf(flag) == -1)
      this.flags.push(flag);
+  },
+  // This allows us to simulate servers that approximate the rfc822 size.
+  setSize: function(size) {
+    this.size = size;
   },
   clearFlag : function (flag) {
     if ((index = this.flags.indexOf(flag)) != -1)
@@ -1460,7 +1465,7 @@ IMAP_RFC3501_handler.prototype = {
     
     if (query == "RFC822.SIZE") {
       var channel = message.channel;
-      var length = channel.contentLength;
+      var length = message.size ? message.size : channel.contentLength;
       if (length == -1) {
         var inputStream = channel.open();
         length = inputStream.available();
