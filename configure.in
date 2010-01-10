@@ -80,6 +80,28 @@ dnl export this, so the var is set for mozilla/configure
 MOZCONFIG=`$_AUTOCONF_TOOLS_DIR/mozconfig-find $topsrcdir`
 export MOZCONFIG
 
+dnl Check for Perl first -- needed for win32 SDK checks
+AC_PATH_PROGS(PERL, $PERL perl5 perl)
+if test -z "$PERL" || test "$PERL" = ":"; then
+    AC_MSG_ERROR([perl not found in \$PATH])
+fi
+
+
+dnl Get mozilla version from central milestone file
+MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
+
+changequote(,)
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
+changequote([,])
+
+dnl Set the Gecko 1.9.2 branch version.
+MOZILLA_1_9_2_BRANCH=
+if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
+    MOZILLA_1_9_2_BRANCH=1
+    AC_DEFINE(MOZILLA_1_9_2_BRANCH)
+fi
+AC_SUBST(MOZILLA_1_9_2_BRANCH)
+
 MOZ_DEB_TIMESTAMP=`date +"%a, %d  %b %Y %T %z"   2>&1` 
 AC_SUBST(MOZ_DEB_TIMESTAMP)
 
@@ -119,7 +141,11 @@ _SUBDIR_CONFIG_ARGS="$ac_configure_args"
 dnl Set the version number of the libs included with mozilla
 dnl ========================================================
 MOZJPEG=62
+if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
 MOZPNG=10217
+else
+MOZPNG=10400
+fi
 MOZZLIB=0x1230
 NSPR_VERSION=4
 NSS_VERSION=3
@@ -189,29 +215,6 @@ then
   fi
 fi
 MOZ_BUILD_ROOT=`pwd`
-
-dnl Check for Perl first -- needed for win32 SDK checks
-AC_PATH_PROGS(PERL, $PERL perl5 perl)
-if test -z "$PERL" || test "$PERL" = ":"; then
-    AC_MSG_ERROR([perl not found in \$PATH])
-fi
-
-
-dnl Get mozilla version from central milestone file
-MOZILLA_VERSION=`$PERL $MOZILLA_SRCDIR/config/milestone.pl -topsrcdir $MOZILLA_SRCDIR`
-
-changequote(,)
-MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
-changequote([,])
-
-dnl Set the Gecko 1.9.2 branch version.
-MOZILLA_1_9_2_BRANCH=
-if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
-    MOZILLA_1_9_2_BRANCH=1
-    AC_DEFINE(MOZILLA_1_9_2_BRANCH)
-fi
-AC_SUBST(MOZILLA_1_9_2_BRANCH)
-
 
 dnl Default to MSVC for win32 and gcc-4.2 for darwin (on !MOZILLA_1_9_2_BRANCH)
 dnl ==============================================================
