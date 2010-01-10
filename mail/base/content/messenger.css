@@ -244,3 +244,15 @@ menupopup[type="folder"] {
 .addrbooksPopup {
   -moz-binding: url("chrome://messenger/content/addressbook/addrbookWidgets.xml#addrbooks-menupopup");
 }
+
+/**
+ * Toolboxes default to overflow: visible, and we need to override that to
+ * prevent the toolbox from causing its containing box (the entire content
+ * area) to become wider than the viewport, which has the bad side-effect of
+ * causing the _other_ children (i.e. tabmail, which contains important widgetry
+ * like the message scrollbar) to be rendered out of view.
+ */
+#mail-toolbox {
+  overflow: hidden;
+}
+
