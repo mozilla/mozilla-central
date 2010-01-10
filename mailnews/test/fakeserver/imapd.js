@@ -335,6 +335,10 @@ imapMessage.prototype = {
    if (this.flags.indexOf(flag) == -1)
      this.flags.push(flag);
   },
+  clearFlag : function (flag) {
+    if ((index = this.flags.indexOf(flag)) != -1)
+      this.flags.splice(index, 1);
+  },
   getText : function (start, length) {
     if (!start)
       start = 0;

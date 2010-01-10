@@ -4676,15 +4676,10 @@ nsresult nsImapMailFolder::SyncFlags(nsIImapFlagAndUidState *flagState)
     if (NS_SUCCEEDED(dbHdr->GetMessageSize(&messageSize)))
       mFolderSize += messageSize;
 
-    if (flags & kImapMsgCustomKeywordFlag)
-    {
-      nsCString keywords;
-      if (NS_SUCCEEDED(flagState->GetCustomFlags(uidOfMessage, getter_Copies(keywords))))
-      {
-        if (!keywords.IsEmpty() && dbHdr && NS_SUCCEEDED(rv))
-          HandleCustomFlags(uidOfMessage, dbHdr, supportedUserFlags, keywords);
-      }
-    }
+    nsCString keywords;
+    if (NS_SUCCEEDED(flagState->GetCustomFlags(uidOfMessage, getter_Copies(keywords))))
+        HandleCustomFlags(uidOfMessage, dbHdr, supportedUserFlags, keywords);
+
     NotifyMessageFlagsFromHdr(dbHdr, uidOfMessage, flags);
   }
   if (oldFolderSize != mFolderSize)
@@ -4700,6 +4695,7 @@ nsresult nsImapMailFolder::NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKe
   mDatabase->MarkHdrReplied(dbHdr, (flags & kImapMsgAnsweredFlag) != 0, nsnull);
   mDatabase->MarkHdrMarked(dbHdr, (flags & kImapMsgFlaggedFlag) != 0, nsnull);
   mDatabase->MarkImapDeleted(msgKey, (flags & kImapMsgDeletedFlag) != 0, nsnull);
+  mDatabase->MarkForwarded(msgKey, (flags & kImapMsgForwardedFlag) != 0, nsnull);
   // this turns on labels, but it doesn't handle the case where the user
   // unlabels a message on one machine, and expects it to be unlabeled
   // on their other machines. If I turn that on, I'll be removing all the labels
