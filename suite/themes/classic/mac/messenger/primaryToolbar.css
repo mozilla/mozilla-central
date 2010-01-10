@@ -77,7 +77,8 @@
   -moz-image-region: rect(210px 29px 239px 0);
 }
 
-#button-reply:hover:active {
+#button-reply:hover:active,
+#button-reply[open] {
   -moz-image-region: rect(210px 59px 239px 30px);
 }
 
@@ -90,7 +91,8 @@
   -moz-image-region: rect(240px 29px 269px 0);
 }
 
-#button-replyall:hover:active {
+#button-replyall:hover:active,
+#button-replyall[open] {
   -moz-image-region: rect(240px 59px 269px 30px);
 } 
 
