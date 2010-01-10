@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Phil Lacy <philbaseless-firefox@yahoo.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -267,6 +268,7 @@ PRBool nsOE5File::IsFromLine( char *pLine, PRUint32 len)
 
 // Anything over 16K will be assumed BAD, BAD, BAD!
 #define  kMailboxBufferSize  0x4000
+#define  kMaxAttrCount       0x0030
 const char *nsOE5File::m_pFromLineSep = "From - Mon Jan 1 00:00:00 1965\x0D\x0A";
 
 nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount)
@@ -290,7 +292,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
   PRUint64  *  pTime;
 
   if (!ReadIndex( inputStream, &pIndex, &indexSize)) {
-    IMPORT_LOG1( "No messages found in mailbox: %S\n", name.get());
+    IMPORT_LOG1( "No messages found in mailbox: %s\n", NS_LossyConvertUTF16toASCII(name.get()));
     return( NS_OK);
   }
 
@@ -458,7 +460,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
           }
           else
           {
-            IMPORT_LOG2( "Error reading message from %S at 0x%lx\n", name.get(), pIndex[i]);
+            IMPORT_LOG2( "Error reading message from %s at 0x%lx\n", NS_LossyConvertUTF16toASCII(name.get()), pIndex[i]);
             rv = outputStream->Write( "\x0D\x0A", 2, &written);
             next = 0;
           }
@@ -491,7 +493,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
     }
     else {
       // Error reading message, should this be logged???
-      IMPORT_LOG2( "Error reading message from %S at 0x%lx\n", name.get(), pIndex[i]);
+      IMPORT_LOG2( "Error reading message from %s at 0x%lx\n", NS_LossyConvertUTF16toASCII(name.get()), pIndex[i]);
       *pAbort = PR_TRUE;
     }
   }
@@ -523,6 +525,10 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsStrin
   -hi bit== 0 means (PRUint24) attr[1] = offset into data segment for data
   -attr[0] & 7f == tag index
   Header above is 0xC bytes, attr's are number * 4 bytes then follows data segment
+  The data segment length is undefined. The index data is either part of the 
+  index structure or the index structure points to address in data that follows
+  index structure table. Use that location to calculate file position of data.
+  MSDN indicates 0x28 attributes possible.
 
   Current known tags are:
   0x01 - flags addressed
@@ -547,6 +553,7 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
   // for each index record, get the actual message offset!  If there is a
   // problem just record the message offset as 0 and the message reading code
   // can log that error information.
+  // XXXTODO- above error reporting is not done
 
   PRUint8   recordHead[12];
   PRUint32  marker;
@@ -559,6 +566,7 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
   PRUint32  tagData;
   PRUint32  flags;
   PRUint64  time;
+  PRUint32  dataStart;
 
   for (PRUint32 i = 0; i < size; i++) {
     offset = 0;
@@ -568,8 +576,9 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
       memcpy( &marker, recordHead, 4);
       memcpy( &recordSize, recordHead + 4, 4);
       numAttrs = (PRUint32) recordHead[10];
-      if ((marker == pIndex[i]) && (recordSize < kMailboxBufferSize) && ((numAttrs * 4) <= recordSize)) {
-        if (ReadBytes( pFile, pBuffer, kDontSeek, recordSize)) {
+      if (marker == pIndex[i] && numAttrs <= kMaxAttrCount) {
+        dataStart = pIndex[i] + 12 + (numAttrs * 4);
+        if (ReadBytes( pFile, pBuffer, kDontSeek, numAttrs * 4)) {
           attrOffset = 0;
           for (attrIndex = 0; attrIndex < numAttrs; attrIndex++, attrOffset += 4) {
             tag = (PRUint8) pBuffer[attrOffset];
@@ -577,15 +586,11 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
               tagData = 0;
               memcpy( &tagData, pBuffer + attrOffset + 1, 3);
               offset = tagData;
-              break;  // ok to break. 4 is last of interest
-                      // (attr's are sorted) so flags will be found.
             }
             else if (tag == (PRUint8) 0x04) {
               tagData = 0;
               memcpy( &tagData, pBuffer + attrOffset + 1, 3);
-              if (((numAttrs * 4) + tagData + 4) <= recordSize)
-                memcpy( &offset, pBuffer + (numAttrs * 4) + tagData, 4);
-              break;
+              ReadBytes(pFile, &offset, dataStart + tagData, 4);
             }
             else if (tag == (PRUint8) 0x81) {
               tagData = 0;
@@ -595,14 +600,12 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
             else if (tag == (PRUint8) 0x01) {
               tagData = 0;
               memcpy( &tagData, pBuffer + attrOffset +1, 3);
-              if (((numAttrs *4) + tagData + 4) <= recordSize)
-                memcpy( &flags, pBuffer + (numAttrs * 4) + tagData, 4);
+              ReadBytes(pFile, &flags, dataStart + tagData, 4);
             }
             else if (tag == (PRUint8) 0x02) {
               tagData = 0;
               memcpy( &tagData, pBuffer + attrOffset +1, 3);
-              if (((numAttrs *4) + tagData + 4) <= recordSize)
-                memcpy( &time, pBuffer + (numAttrs * 4) + tagData, 8);
+              ReadBytes(pFile, &time, dataStart + tagData, 4);
             }
           }
         }

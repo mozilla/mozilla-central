@@ -483,7 +483,7 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
   PRUint32 msgCount = 0;
   nsresult rv;
   if (nsOE5File::IsLocalMailFile( inFile)) {
-    IMPORT_LOG1( "Importing OE5 mailbox: %S!\n", name.get());
+    IMPORT_LOG1( "Importing OE5 mailbox: %s!\n", NS_LossyConvertUTF16toASCII(name.get()));
     rv = nsOE5File::ImportMailbox( &m_bytesDone, &abort, name, inFile, pDestination, &msgCount);
   }
   else {
