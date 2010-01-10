@@ -52,6 +52,8 @@
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsServiceManagerUtils.h"
+#include "nsIMutableArray.h"
+#include "nsMsgUtils.h"
 
 static NS_DEFINE_CID(kCPop3ServiceCID, NS_POP3SERVICE_CID);
 
@@ -145,10 +147,10 @@ NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
   if (acctMgr)
   {
     nsCOMPtr<nsIMsgAccount> account;
+    nsCOMPtr<nsIMsgIncomingServer> server;
     rv = acctMgr->GetAccount(aRetVal, getter_AddRefs(account));
     if (account)
     {
-      nsCOMPtr<nsIMsgIncomingServer> server;
       account->GetIncomingServer(getter_AddRefs(server));
       if (server)
         server->GetHidden(&invalidAccount);
@@ -160,6 +162,66 @@ NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
 
       rv = acctMgr->GetLocalFoldersServer(getter_AddRefs(localServer));
       NS_ENSURE_SUCCESS(rv, rv);
+      // Try to copy any folders that have been stranded in the hidden account
+      // into the local folders account.
+      if (server)
+      {
+        nsCOMPtr<nsIMsgFolder> hiddenRootFolder;
+        nsCOMPtr<nsIMsgFolder> localFoldersRoot;
+        server->GetRootFolder(getter_AddRefs(hiddenRootFolder));
+        localServer->GetRootFolder(getter_AddRefs(localFoldersRoot));
+        if (hiddenRootFolder && localFoldersRoot)
+        {
+          // We're going to iterate over the folders in Local Folders-1,
+          // though I suspect only the Inbox will have messages. I don't
+          // think Sent Mail could end up here, but if any folders have
+          // messages, might as well copy them to the real Local Folders
+          // account.
+          nsCOMPtr<nsISimpleEnumerator> enumerator;
+          rv = hiddenRootFolder->GetSubFolders(getter_AddRefs(enumerator));
+          if (NS_SUCCEEDED(rv))
+          {
+            PRBool hasMore;
+            while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) &&
+                   hasMore)
+            {
+              nsCOMPtr<nsISupports> item;
+              enumerator->GetNext(getter_AddRefs(item));
+              nsCOMPtr<nsIMsgFolder> subFolder(do_QueryInterface(item));
+              if (subFolder)
+              {
+                nsCOMPtr<nsIMsgDatabase> subFolderDB;
+                subFolder->GetMsgDatabase(getter_AddRefs(subFolderDB));
+                if (subFolderDB)
+                {
+                  // Copy any messages in this sub-folder of the hidden
+                  // account to the corresponding folder in Local Folders.
+                  nsTArray<nsMsgKey> keys;
+                  rv = subFolderDB->ListAllKeys(keys);
+                  nsCOMPtr<nsIMutableArray> hdrsToCopy(do_CreateInstance(NS_ARRAY_CONTRACTID));
+                  MsgGetHeadersFromKeys(subFolderDB, keys, hdrsToCopy);
+                  PRUint32 numHdrs = 0;
+                  if (hdrsToCopy)
+                    hdrsToCopy->GetLength(&numHdrs);
+                  if (numHdrs)
+                  {
+                    // Look for a folder with the same name in Local Folders.
+                    nsCOMPtr<nsIMsgFolder> dest;
+                    nsString folderName;
+                    subFolder->GetName(folderName);
+                    localFoldersRoot->GetChildNamed(folderName,
+                                                    getter_AddRefs(dest));
+                    if (dest)
+                      dest->CopyMessages(subFolder, hdrsToCopy, PR_FALSE,
+                                         nsnull, nsnull, PR_FALSE,PR_FALSE);
+                    // Should we copy the folder if the dest doesn't exist?
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
       rv = acctMgr->FindAccountForServer(localServer, getter_AddRefs(localAccount));
       NS_ENSURE_SUCCESS(rv, rv);
       localAccount->GetKey(aRetVal);
