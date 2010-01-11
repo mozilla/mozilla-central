@@ -292,7 +292,7 @@ function _synthMessagesToFakeRep(aSynthMessages) {
 }
 
 
-SEARCH_TERM_MAP_HELPER = {
+const SEARCH_TERM_MAP_HELPER = {
   subject: Components.interfaces.nsMsgSearchAttrib.Subject,
   body: Components.interfaces.nsMsgSearchAttrib.Body,
   from: Components.interfaces.nsMsgSearchAttrib.Sender,

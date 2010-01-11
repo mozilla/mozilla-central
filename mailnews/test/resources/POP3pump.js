@@ -212,7 +212,7 @@ POP3Pump.prototype.run = function run()
   this._testNext();
 };
 
-gPOP3Pump = new POP3Pump();
+var gPOP3Pump = new POP3Pump();
 gPOP3Pump._incomingServer = gPOP3Pump._createPop3ServerAndLocalFolders();
 
 function _checkPumpBusy() { gPOP3Pump._checkBusy(); }
