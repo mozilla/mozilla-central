@@ -171,9 +171,9 @@ function _verify_display_in_existing_tab(aPreCount, aFolder, aMsgHdr) {
 }
 
 /**
- * Helper to test displaying a message with the same folder already open.
+ * Test displaying a message with the same folder already open.
  */
-function _display_message_in_same_folder_helper(aVerifier) {
+function test_display_message_in_same_folder() {
   be_in_folder(folderA);
   let preCount = mc.tabmail.tabContainer.childNodes.length;
 
@@ -181,13 +181,13 @@ function _display_message_in_same_folder_helper(aVerifier) {
 
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderA, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderA, msgHdr);
 }
 
 /**
- * Helper to test displaying a message with a different folder open.
+ * Test displaying a message with a different folder open.
  */
-function _display_message_in_different_folder_helper(aVerifier) {
+function test_display_message_in_different_folder() {
   be_in_folder(folderB);
   let preCount = mc.tabmail.tabContainer.childNodes.length;
 
@@ -195,14 +195,13 @@ function _display_message_in_different_folder_helper(aVerifier) {
 
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderA, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderA, msgHdr);
 }
 
 /**
- * Helper to test displaying a message with a message tab active.
+ * Test displaying a message with a message tab active.
  */
-function _display_message_in_same_folder_with_message_tab_active_helper(
-    aVerifier) {
+function test_display_message_in_same_folder_with_message_tab_active() {
   be_in_folder(folderA);
 
   let indexToOpen = indexes.next();
@@ -213,18 +212,17 @@ function _display_message_in_same_folder_with_message_tab_active_helper(
   let msgHdr = msgHdrsInFolderA[indexes.next()];
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderA, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderA, msgHdr);
 
   // Clean up, close the message tab
   close_tab(messageTab);
 }
 
 /**
- * Helper to test displaying a message with a different folder open and a
- * message tab active.
+ * Test displaying a message with a different folder open and a message tab
+ * active.
  */
-function _display_message_in_different_folder_with_message_tab_active_helper(
-    aVerifier) {
+function test_display_message_in_different_folder_with_message_tab_active() {
   be_in_folder(folderA);
 
   let indexToOpen = indexes.next();
@@ -235,16 +233,16 @@ function _display_message_in_different_folder_with_message_tab_active_helper(
   let msgHdr = msgHdrsInFolderB[indexes.next()];
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderB, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderB, msgHdr);
 
   // Clean up, close the message tab
   close_tab(messageTab);
 }
 
 /**
- * Helper to test displaying a message with the same folder open but filtered.
+ * Test displaying a message with the same folder open but filtered.
  */
-function _display_message_in_same_folder_filtered_helper(aVerifier) {
+function test_display_message_in_same_folder_filtered() {
   be_in_folder(folderA);
   set_mail_view(MailViewConstants.kViewItemTags, "$label1");
   // Make sure all the messages have actually disappeared
@@ -254,17 +252,16 @@ function _display_message_in_same_folder_filtered_helper(aVerifier) {
   let msgHdr = msgHdrsInFolderA[indexes.next()];
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderA, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderA, msgHdr);
 
   // Reset the mail view
   set_mail_view(MailViewConstants.kViewItemAll, null);
 }
 
 /**
- * Helper to test displaying a message with the folder filtered, and another
- * folder open.
+ * Test displaying a message with the folder filtered, and another folder open.
  */
-function _display_message_in_different_folder_filtered_helper(aVerifier) {
+function test_display_message_in_different_folder_filtered() {
   be_in_folder(folderB);
   set_mail_view(MailViewConstants.kViewItemTags, "$label1");
   // Make sure all the messages have actually disappeared
@@ -279,7 +276,7 @@ function _display_message_in_different_folder_filtered_helper(aVerifier) {
   let msgHdr = msgHdrsInFolderB[indexes.next()];
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderB, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderB, msgHdr);
   // Reset folder B's state
   be_in_folder(folderB);
   set_mail_view(MailViewConstants.kViewItemAll, null);
@@ -292,11 +289,9 @@ function _display_message_in_different_folder_filtered_helper(aVerifier) {
 }
 
 /**
- * Helper to test displaying a message with the folder filtered and a message
- * tab active.
+ * Test displaying a message with the folder filtered and a message tab active.
  */
-function _display_message_in_same_folder_filtered_with_message_tab_active_helper(
-    aVerifier) {
+function test_display_message_in_same_folder_filtered_with_message_tab_active() {
   be_in_folder(folderB);
 
   let indexToOpen = indexes.next();
@@ -313,7 +308,7 @@ function _display_message_in_same_folder_filtered_with_message_tab_active_helper
   let msgHdr = msgHdrsInFolderB[indexes.next()];
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderB, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderB, msgHdr);
 
   // Clean up, close the message tab and reset the mail view
   close_tab(messageTab);
@@ -321,12 +316,11 @@ function _display_message_in_same_folder_filtered_with_message_tab_active_helper
 }
 
 /**
- * Helper to test displaying a message with the folder filtered, a different
- * folder open, and a message tab active.
+ * Test displaying a message with the folder filtered, a different folder open,
+ * and a message tab active.
  */
 function
-  _display_message_in_different_folder_filtered_with_message_tab_active_helper(
-      aVerifier) {
+  test_display_message_in_different_folder_filtered_with_message_tab_active() {
   be_in_folder(folderA);
   set_mail_view(MailViewConstants.kViewItemTags, "$label1");
   // Make sure all the messages have actually disappeared
@@ -342,7 +336,7 @@ function
   let msgHdr = msgHdrsInFolderA[indexes.next()];
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderA, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderA, msgHdr);
   // Close the message tab
   close_tab(messageTab);
   // Reset folder A's state
@@ -357,10 +351,9 @@ function
 }
 
 /**
- * Helper to test displaying a message with the folder set to show unread
- * messages only.
+ * Test displaying a message with the folder set to show unread messages only.
  */
-function _display_message_in_same_folder_unread_helper(aVerifier) {
+function test_display_message_in_same_folder_unread() {
   be_in_folder(folderB);
   set_show_unread_only(true);
   // Make sure all the messages have actually disappeared
@@ -370,17 +363,17 @@ function _display_message_in_same_folder_unread_helper(aVerifier) {
   let msgHdr = msgHdrsInFolderB[indexes.next()];
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderB, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderB, msgHdr);
   // Reset the state
   be_in_folder(folderB);
   set_show_unread_only(false);
 }
 
 /**
- * Helper to test displaying a message with the folder set to show unread
- * messages only, and a different folder open.
+ * Test displaying a message with the folder set to show unread messages only,
+ * and a different folder open.
  */
-function _display_message_in_different_folder_unread_helper(aVerifier) {
+function test_display_message_in_different_folder_unread() {
   be_in_folder(folderA);
   set_show_unread_only(true);
   // Make sure all the messages have actually disappeared
@@ -395,7 +388,7 @@ function _display_message_in_different_folder_unread_helper(aVerifier) {
   let msgHdr = msgHdrsInFolderA[indexes.next()];
   display_message_in_folder_tab(msgHdr);
   // Verify
-  aVerifier(preCount, folderA, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderA, msgHdr);
   // Reset folder A's state
   be_in_folder(folderA);
   set_show_unread_only(false);
@@ -408,10 +401,9 @@ function _display_message_in_different_folder_unread_helper(aVerifier) {
 }
 
 /**
- * Helper to test that we correctly scroll to the index of the message in a
- * folder.
+ * Test that we correctly scroll to the index of the message in a folder.
  */
-function _display_message_scrolls_to_message_helper(aVerifier) {
+function test_display_message_scrolls_to_message() {
   be_in_folder(folderC);
   // Scroll to the top
   mc.folderDisplay.ensureRowIsVisible(0);
@@ -423,46 +415,12 @@ function _display_message_scrolls_to_message_helper(aVerifier) {
   // Check that row 45 is visible
   assert_row_visible(45);
   // Verify the rest
-  aVerifier(preCount, folderC, msgHdr);
+  _verify_display_in_existing_tab(preCount, folderC, msgHdr);
 }
 
-function _generate_display_message_tests(aTests) {
-  let self = this;
-  for each (let [, test] in Iterator(aTests)) {
-    let helperFunc = this["_" + test + "_helper"];
-    this["test_" + test + "_new_tab"] = function () {
-      set_open_message_behavior("NEW_TAB");
-      helperFunc.apply(self, [_verify_display_in_existing_tab]);
-      reset_open_message_behavior();
-    };
-    this["test_" + test + "_new_window"] = function () {
-      set_open_message_behavior("NEW_WINDOW");
-      helperFunc.apply(self, [_verify_display_in_existing_tab]);
-      reset_open_message_behavior();
-    };
-    this["test_" + test + "_existing_window"] = function () {
-      set_open_message_behavior("EXISTING_WINDOW");
-      helperFunc.apply(self, [_verify_display_in_existing_tab]);
-      reset_open_message_behavior();
-    };
-  }
-
-  // Clean up and remove the view picker
-  this.test_cleanup = function () {
-    remove_from_toolbar(mc.e("mail-bar3"), "mailviews-container");
-  };
-}
- 
-_generate_display_message_tests([
-  "display_message_in_same_folder",
-  "display_message_in_different_folder",
-  "display_message_in_same_folder_with_message_tab_active",
-  "display_message_in_different_folder_with_message_tab_active",
-  "display_message_in_same_folder_filtered",
-  "display_message_in_different_folder_filtered",
-  "display_message_in_same_folder_filtered_with_message_tab_active",
-  "display_message_in_different_folder_filtered_with_message_tab_active",
-  "display_message_in_same_folder_unread",
-  "display_message_in_different_folder_unread",
-  "display_message_scrolls_to_message",
-]);
+/**
+ * Clean up and remove the view picker.
+ */
+function test_cleanup() {
+  remove_from_toolbar(mc.e("mail-bar3"), "mailviews-container");
+};
