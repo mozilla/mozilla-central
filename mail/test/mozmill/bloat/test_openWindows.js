@@ -10,19 +10,19 @@ Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
 var controller = {};
 Components.utils.import('resource://mozmill/modules/controller.js', controller);
 
-var mainController = null;
+var mc = null;
 
 var setupModule = function(module) {
-  mainController = mozmill.getMail3PaneController();
+  mc = mozmill.getMail3PaneController();
   controller.sleep(10000);
 };
 
 var test_start = function() {
   // We have to do this manually, MozMill doesn't have a function for non-browser windows.
-  mainController.click(new elementslib.Elem(mainController.window.document.getElementById("button-address")));
-  mainController.click(new elementslib.Elem(mainController.window.document.getElementById("button-newmsg")));
+  mc.click(new elementslib.Elem(mc.window.document.getElementById("button-address")));
+  mc.click(new elementslib.Elem(mc.window.document.getElementById("button-newmsg")));
 
-  mainController.sleep(5000);
+  mc.sleep(5000);
 }
 
 var test_addressBook = function() {
@@ -39,5 +39,5 @@ var test_compose = function() {
 }
 
 var test_shutdown = function() {
-  mainController.sleep(5000);
+  mc.sleep(5000);
 }

@@ -90,14 +90,13 @@ const DO_NOT_EXPORT = {
 const EXPORT_VIA_GETTER_SETTER = {
   // These should be getters and setters instead of direct property accesses so
   // that setting them reflects across scopes.
-  mainController: true, mc: true,
+  mc: true,
 };
 
 var Application = Cc["@mozilla.org/steel/application;1"]
                     .getService(Ci.steelIApplication);
 
-var mainController = null;
-/** convenience shorthand for the mainController. */
+/** The controller for the main 3-pane window. */
 var mc;
 /** the index of the current 'other' tab */
 var otherTab;
@@ -167,7 +166,7 @@ function setupModule() {
   // use window-helper's augment_controller method to get our extra good stuff
   //  we need.
   windowHelper = collector.getModule('window-helpers');
-  mc = mainController = windowHelper.wait_for_existing_window("mail:3pane");
+  mc = windowHelper.wait_for_existing_window("mail:3pane");
   windowHelper.augment_controller(mc);
 
   setupAccountStuff();
@@ -407,7 +406,7 @@ function display_message_in_folder_tab(aMsgHdr, aExpectNew3Pane) {
     windowHelper.plan_for_new_window("mail:3pane");
   MailUtils.displayMessageInFolderTab(aMsgHdr);
   if (aExpectNew3Pane)
-    mc = mainController = windowHelper.wait_for_new_window("mail:3pane");
+    mc = windowHelper.wait_for_new_window("mail:3pane");
 
   wait_for_message_display_completion(mc, true);
 
@@ -1207,7 +1206,7 @@ function wait_for_folder_events() {
  *
  * @param aSynSets Either a single SyntheticMessageSet or a list of them.
  * @param aController Optional controller, which we get the folderDisplay
- *     property from.  If omitted, we use the mc (mainController).
+ *     property from.  If omitted, we use mc.
  */
 function assert_messages_in_view(aSynSets, aController) {
   if (aController === undefined)

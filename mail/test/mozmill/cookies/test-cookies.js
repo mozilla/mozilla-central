@@ -52,8 +52,7 @@ Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 
-// The main controller and an easy alias.
-var mainController = null;
+// The main controller.
 var mc;
 
 // The windowHelper module.
@@ -67,7 +66,7 @@ var url = collector.addHttpResource('../cookies/html', 'cookies');
 
 function setupModule(module) {
   windowHelper = collector.getModule('window-helpers');
-  mc = mainController = windowHelper.wait_for_existing_window("mail:3pane");
+  mc = windowHelper.wait_for_existing_window("mail:3pane");
   windowHelper.augment_controller(mc);
 }
 

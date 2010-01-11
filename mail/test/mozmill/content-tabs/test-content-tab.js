@@ -49,7 +49,6 @@ var elementslib = {};
 Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 
 var windowHelper;
-var mainController = null;
 var mc;
 
 // RELATIVE_ROOT messes with the collector, so we have to bring the path back
@@ -59,7 +58,7 @@ var whatsUrl = url + "whatsnew.html";
 
 var setupModule = function (module) {
   windowHelper = collector.getModule('window-helpers');
-  mc = mainController = windowHelper.wait_for_existing_window("mail:3pane");
+  mc = windowHelper.wait_for_existing_window("mail:3pane");
   windowHelper.installInto(module);
   windowHelper.augment_controller(mc);
 };

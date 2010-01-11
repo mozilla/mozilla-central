@@ -259,7 +259,7 @@ function test_search_mode_persistence_subject_to_cc_filter()
 
   plan_for_new_window("mail:3pane");
   _open_3pane_window();
-  mc = mainController = wait_for_new_window("mail:3pane");
+  mc = wait_for_new_window("mail:3pane");
 
   // We don't need the search window any more
   plan_for_window_close(swc);
