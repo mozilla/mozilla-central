@@ -93,7 +93,7 @@
       <field name="mPrefs">null</field>
       <field name="mIsOffline">0</field>
       <field name="mLDAPSession">null</field>
-      <field name="mSessionAdded">0</field>
+      <field name="mSessionAdded">false</field>
       <field name="mIsReadOnly">false</field>
       <field name="mIsInvitation">false</field>
       <field name="mPopupOpen">false</field>
@@ -267,7 +267,11 @@
           this.removeDirectoryServerObserver();
           this.releaseAutoCompleteState();
           this.mIOService = null;
+
+          // We need to force the ldap session to be cleaned up as soon as
+          // possible to avoid hangs on shutdown.
           this.mLDAPSession = null;
+          Components.utils.forceGC();
         ]]></body>
       </method>
 
@@ -944,6 +948,7 @@
 
       <method name="setupAutocomplete">
         <body><![CDATA[
+          var setupObserver = false;
           var autocompleteLdap = false;
           var autocompleteDirectory = null;
           var prevAutocompleteDirectory = this.mCurrentAutocompleteDirectory;
@@ -957,6 +962,13 @@
           if (autocompleteLdap) {
               autocompleteDirectory = this.mPrefs.getCharPref(
                   "ldap_2.autoComplete.directoryServer");
+          } else {
+              if (this.mLDAPSession && this.mSessionAdded) {
+                  for (var i = 1; i <= this.mMaxAttendees; i++)
+                      this.getInputElement(i).removeSession(this.mLDAPSession);
+                  this.mSessionAdded = false;
+              }
+              return;
           }
 
           // Use a temporary to do the setup so that we don't overwrite the
@@ -973,7 +985,7 @@
                       Components.interfaces.nsILDAPAutoCompleteSession);
           }
 
-          if (autocompleteDirectory && !this.mIsOffline) {
+          if (LDAPSession && autocompleteDirectory && !this.mIsOffline) {
               // Add observer on the directory server we are autocompleting against
               // only if current server is different from previous.
               // Remove observer if current server is different from previous
@@ -982,13 +994,16 @@
                   if (prevAutocompleteDirectory != this.mCurrentAutocompleteDirectory) {
                       this.removeDirectorySettingsObserver(prevAutocompleteDirectory);
                       this.addDirectorySettingsObserver();
+                      setupObserver = true;
+                  } else {
+                      setupObserver = false;
                   }
               } else {
                   this.addDirectorySettingsObserver();
+                  setupObserver = true;
               }
 
-              // Fill in the session params if there is a session
-              if (LDAPSession) {
+              if (setupObserver) {
                   let url = this.mPrefs.getComplexValue(autocompleteDirectory +".uri",
                                                         Components.interfaces.nsISupportsString).data;
 
@@ -997,9 +1012,9 @@
 
                   // Get the login to authenticate as, if there is one
                   try {
-		      LDAPSession.login = this.mPrefs.getComplexValue(
-                          autocompleteDirectory + ".auth.dn",
-                          Components.interfaces.nsISupportsString).data;
+                      LDAPSession.login = this.mPrefs.getComplexValue(
+                        autocompleteDirectory + ".auth.dn",
+                        Components.interfaces.nsISupportsString).data;
                   } catch (ex) {
                       // If we don't have this pref, no big deal
                   }
@@ -1139,39 +1154,29 @@
                       // Just let nsLDAPAutoCompleteSession use its default.
                   }
 
-                  if (!this.mSessionAdded) {
-                      // If we make it here, we know that session initialization has
-                      // succeeded; add the session for all recipients, and
-                      // remember that we've done so
-                      var autoCompleteWidget;
-                      for (i = 1; i <= this.mMaxAttendees; i++) {
-                          autoCompleteWidget = this.getInputElement(i);
-                          if (autoCompleteWidget) {
-                              autoCompleteWidget.addSession(LDAPSession);
-                              // Ldap searches don't insert a default entry with
-                              // the default domain appended to it so reduce the
-                              // minimum results for a popup to 2 in this case.
-                              autoCompleteWidget.minResultsForPopup = 2;
-                          }
-                       }
-                       this.mSessionAdded = true;
-                  }
+                  this.mLDAPSession = LDAPSession;
               }
-          } else {
-              if (this.mCurrentAutocompleteDirectory) {
-                  // Remove observer on the directory server since we are not doing Ldap
-                  // autocompletion.
-                  this.removeDirectorySettingsObserver(this.mCurrentAutocompleteDirectory);
-                  this.mCurrentAutocompleteDirectory = null;
-              }
-              if (this.mLDAPSession && this.mSessionAdded) {
-                  for (var i = 1; i <= this.mMaxAttendees; i++)
-                  this.getInputElement(i).removeSession(this.mLDAPSession);
-                  this.mSessionAdded = false;
+
+              // Add as many autocomplete widgets as needed, but only if they
+              // haven't been added or if they have been removed.
+              if (!this.mSessionAdded) {
+                  // If we make it here, we know that session initialization has
+                  // succeeded; add the session for all recipients, and
+                  // remember that we've done so
+                  var autoCompleteWidget;
+                  for (i = 1; i <= this.mMaxAttendees; i++) {
+                      autoCompleteWidget = this.getInputElement(i);
+                      if (autoCompleteWidget) {
+                          autoCompleteWidget.addSession(LDAPSession);
+                          // Ldap searches don't insert a default entry with
+                          // the default domain appended to it so reduce the
+                          // minimum results for a popup to 2 in this case.
+                          autoCompleteWidget.minResultsForPopup = 2;
+                      }
+                   }
+                   this.mSessionAdded = true;
               }
           }
-
-          this.mLDAPSession = LDAPSession;
         ]]></body>
       </method>
 
