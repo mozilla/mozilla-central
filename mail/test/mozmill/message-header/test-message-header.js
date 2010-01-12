@@ -126,7 +126,7 @@ function test_add_tag_with_really_long_label() {
  *        with the data.
  * @param expectedName code to be eval()ed returning the expected value of
  *                     nsIAccessible.name for the DOM element in question
- * @param expectedFinalRole the expected value for nsIAccessible.finalRole
+ * @param expectedRole the expected value for nsIAccessible.role
  */
 let headersToTest = [
 {
@@ -134,14 +134,14 @@ let headersToTest = [
   headerValueElement: "mc.a('expandedsubjectBox', {class: 'headerValue'})",
   expectedName: "mc.e('expandedsubjectLabel').value.slice(0,-1) + ': ' + " +
                 "headerValueElement.textContent",
-  expectedFinalRole: Ci.nsIAccessibleRole.ROLE_ENTRY
+  expectedRole: Ci.nsIAccessibleRole.ROLE_ENTRY
 },
 {
   headerName: "Content-Base",
   headerValueElement: "mc.a('expandedcontent-baseBox', {class: 'headerValue text-link headerValueUrl'})",
   expectedName: "mc.e('expandedcontent-baseLabel').value.slice(0,-1) + ': ' + " +
                 "headerValueElement.textContent",
-  expectedFinalRole: Ci.nsIAccessibleRole.ROLE_ENTRY
+  expectedRole: Ci.nsIAccessibleRole.ROLE_ENTRY
 },
 {
   headerName: "From",
@@ -150,7 +150,7 @@ let headersToTest = [
                       "'class', 'emailDisplayButton')",
   expectedName: "mc.e('expandedfromLabel').value.slice(0,-1) + ': ' + " +
                 "headerValueElement.parentNode.getAttribute('fullAddress')",
-  expectedFinalRole: Ci.nsIAccessibleRole.ROLE_ENTRY
+  expectedRole: Ci.nsIAccessibleRole.ROLE_ENTRY
 },
 {
   headerName: "To",
@@ -159,7 +159,7 @@ let headersToTest = [
                       "'class', 'emailDisplayButton')",
   expectedName: "mc.e('expandedtoLabel').value.slice(0,-1) + ': ' + " + 
                 "headerValueElement.parentNode.getAttribute('fullAddress')",
-  expectedFinalRole: Ci.nsIAccessibleRole.ROLE_ENTRY
+  expectedRole: Ci.nsIAccessibleRole.ROLE_ENTRY
 },
 {
   headerName: "Cc",
@@ -168,7 +168,7 @@ let headersToTest = [
                       "'class', 'emailDisplayButton')",
   expectedName: "mc.e('expandedccLabel').value.slice(0,-1) + ': ' + " +
                 "headerValueElement.parentNode.getAttribute('fullAddress')",
-  expectedFinalRole: Ci.nsIAccessibleRole.ROLE_ENTRY
+  expectedRole: Ci.nsIAccessibleRole.ROLE_ENTRY
 },
 {
   headerName: "Bcc",
@@ -177,7 +177,7 @@ let headersToTest = [
                       "'class', 'emailDisplayButton')",
   expectedName: "mc.e('expandedbccLabel').value.slice(0,-1) + ': ' + " +
                 "headerValueElement.parentNode.getAttribute('fullAddress')",
-  expectedFinalRole: Ci.nsIAccessibleRole.ROLE_ENTRY
+  expectedRole: Ci.nsIAccessibleRole.ROLE_ENTRY
 },
 {
   headerName: "Reply-To",
@@ -186,7 +186,7 @@ let headersToTest = [
                       "'class', 'emailDisplayButton')",
   expectedName: "mc.e('expandedreply-toLabel').value.slice(0,-1) + ': ' + " +
                 "headerValueElement.parentNode.getAttribute('fullAddress')",
-  expectedFinalRole: Ci.nsIAccessibleRole.ROLE_ENTRY
+  expectedRole: Ci.nsIAccessibleRole.ROLE_ENTRY
 },
 {
   headerName: "Newsgroups",
@@ -195,14 +195,14 @@ let headersToTest = [
                       "'class', 'newsgrouplabel')",
   expectedName: "mc.e('expandednewsgroupsLabel').value.slice(0,-1) + ': ' + " +
                 "headerValueElement.parentNode.parentNode.getAttribute('newsgroup')",
-  expectedFinalRole: Ci.nsIAccessibleRole.ROLE_ENTRY
+  expectedRole: Ci.nsIAccessibleRole.ROLE_ENTRY
 },
 {
   headerName: "Tags",
   headerValueElement: "mc.a('expandedtagsBox', {class: 'tagvalue blc-FF0000'})",
   expectedName: "mc.e('expandedtagsLabel').value.slice(0,-1) + ': ' + " +
                 "headerValueElement.getAttribute('value')",
-  expectedFinalRole: Ci.nsIAccessibleRole.ROLE_LABEL
+  expectedRole: Ci.nsIAccessibleRole.ROLE_LABEL
 }
 ];
 
@@ -223,10 +223,10 @@ function verify_header_a11y(aHeaderInfo) {
   let headerValueElement = eval(aHeaderInfo.headerValueElement);
 
   let headerAccessible = gAccRetrieval.getAccessibleFor(headerValueElement);
-  if (headerAccessible.finalRole != aHeaderInfo.expectedFinalRole) {
-    throw new Error("finalRole for " + aHeaderInfo.headerName + " was " +
-                    headerAccessible.finalRole + "; should have been " +
-                    aHeaderInfo.expectedFinalRole);
+  if (headerAccessible.role != aHeaderInfo.expectedRole) {
+    throw new Error("role for " + aHeaderInfo.headerName + " was " +
+                    headerAccessible.role + "; should have been " +
+                    aHeaderInfo.expectedRole);
   }
 
   let expectedName = eval(aHeaderInfo.expectedName);
