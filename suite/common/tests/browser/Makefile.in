@@ -44,13 +44,14 @@ relativesrcdir  = suite/common/tests/browser
 include $(DEPTH)/config/autoconf.mk
 include $(topsrcdir)/config/rules.mk
 
-_BROWSER_FILES = browser_bug463504.js \
-    browser_bug510890.js \
-    browser_bug509315.js \
-    browser_bug515006.js \
-    browser_bug524345.js \
-    browser_bug524365.js \
-    $(NULL)
+_BROWSER_FILES =
+	browser_bug431826.js \
+	browser_bug509315.js \
+	browser_bug510890.js \
+	browser_bug515006.js \
+	browser_bug524345.js \
+	browser_bug524365.js \
+	$(NULL)
 
 libs::	$(_BROWSER_FILES)
 	$(INSTALL) $(foreach f,$^,"$f") $(MOZDEPTH)/_tests/testing/mochitest/browser/$(relativesrcdir)
