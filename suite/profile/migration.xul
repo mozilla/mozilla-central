@@ -46,6 +46,7 @@
         onload="MigrationWizard.init()"
         onunload="MigrationWizard.uninit()"
         style="width: 40em; height: 32em;"
+        branded="true"
         buttons="accept,cancel"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
