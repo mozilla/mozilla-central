@@ -68,6 +68,7 @@ endif
 
 tier_app_dirs += \
 	mailnews/base \
+	mailnews/mime/public \
 	mailnews \
 	$(NULL)
 
