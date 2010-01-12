@@ -845,6 +845,22 @@ function getDefaultFileName(aDefaultFileName, aURI, aDocument,
   return "index";
 }
 
+function validateFileName(aFileName)
+{
+  var re = /[\/]+/g;
+  if (navigator.appVersion.indexOf("Windows") != -1) {
+    re = /[\\\/\|]+/g;
+    aFileName = aFileName.replace(/[\"]+/g, "'");
+    aFileName = aFileName.replace(/[\*\:\?]+/g, " ");
+    aFileName = aFileName.replace(/[\<]+/g, "(");
+    aFileName = aFileName.replace(/[\>]+/g, ")");
+  }
+  else if (navigator.appVersion.indexOf("Macintosh") != -1)
+    re = /[\:\/]+/g;
+  
+  return aFileName.replace(re, "_");
+}
+
 function getNormalizedLeafName(aFile, aDefaultExtension)
 {
   if (!aDefaultExtension)

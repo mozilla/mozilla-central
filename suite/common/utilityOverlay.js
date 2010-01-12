@@ -868,6 +868,9 @@ function utilityOnUnload(aEvent)
 
 addEventListener("load", utilityOnLoad, false);
 
+/**
+ * @deprecated   Please use validateFileName from contentAreaUtils.js directly.
+ */
 function GenerateValidFilename(filename, extension)
 {
   if (filename) // we have a title; let's see if it's usable
@@ -879,22 +882,6 @@ function GenerateValidFilename(filename, extension)
       return filename + extension;
   }
   return null;
-}
-
-function validateFileName(aFileName)
-{
-  var re = /[\/]+/g;
-  if (navigator.appVersion.indexOf("Windows") != -1) {
-    re = /[\\\/\|]+/g;
-    aFileName = aFileName.replace(/[\"]+/g, "'");
-    aFileName = aFileName.replace(/[\*\:\?]+/g, " ");
-    aFileName = aFileName.replace(/[\<]+/g, "(");
-    aFileName = aFileName.replace(/[\>]+/g, ")");
-  }
-  else if (navigator.appVersion.indexOf("Macintosh") != -1)
-    re = /[\:\/]+/g;
-
-  return aFileName.replace(re, "_");
 }
 
 function focusElement(aElement)
