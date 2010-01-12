@@ -346,7 +346,7 @@ function LoadPostAccountWizard()
     else if (arg0)
     {
       // arg0 is an object
-      if (("wrappedJSObject" in arg0) && arg0.wrappedJSObject) 
+      if (("wrappedJSObject" in arg0) && arg0.wrappedJSObject)
         arg0 = arg0.wrappedJSObject;
       startMsgHdr = ("msgHdr" in arg0) ? arg0.msgHdr : null;
     }
@@ -1005,6 +1005,8 @@ function FolderPaneOnClick(event)
 
 function OpenMessageInNewTab(event)
 {
+  if (!gFolderDisplay.selectedMessage)
+    return;
   var bgLoad = gPrefBranch.getBoolPref("mail.tabs.loadInBackground");
   if (event.shiftKey)
     bgLoad = !bgLoad;
@@ -1160,7 +1162,7 @@ function ThreadPaneOnDragStart(aEvent) {
                       .getService(Components.interfaces.nsIIOService);
   let fileNames = [];
   let msgUrls = {};
-  
+
   // dragging multiple messages to desktop does not
   // currently work, pending core fixes for
   // multiple-drop-on-desktop support. (bug 513464)
