@@ -162,13 +162,6 @@ function saveImageURL(aURL, aFileName, aFilePickerTitleKey, aShouldBypassCache,
                true, null);
 }
 
-function saveFrameDocument()
-{
-  var focusedWindow = document.commandDispatcher.focusedWindow;
-  if (isContentFrame(focusedWindow))
-    saveDocument(focusedWindow.document);
-}
-
 function saveDocument(aDocument)
 {
   if (!aDocument)

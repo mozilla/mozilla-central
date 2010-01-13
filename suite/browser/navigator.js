@@ -234,6 +234,13 @@ function getContentAreaFrameCount()
   }
 }
 
+function saveFrameDocument()
+{
+  var focusedWindow = document.commandDispatcher.focusedWindow;
+  if (isContentFrame(focusedWindow))
+    saveDocument(focusedWindow.document);
+}
+
 function updateHomeButtonTooltip()
 {
   var homePage = getHomePage();
