@@ -43,6 +43,7 @@ var printEngineContractID      = "@mozilla.org/messenger/msgPrintEngine;1";
 var printEngineWindow;
 var printEngine;
 var printSettings = null;
+var printOpener = null;
 
 const kMsgBundle = "chrome://messenger/locale/messenger.properties";
 
@@ -142,8 +143,34 @@ const gStartupPPObserver =
   }
 };
 
+function ReplaceWithSelection()
+{
+  var selection = printOpener.content.getSelection();
+
+  if ( selection != "" ) {
+    var range = selection.getRangeAt( 0 );
+    var contents = range.cloneContents();
+
+    var bodies = window.content.document.getElementsByTagName( "body" );
+
+    /* Replace the content of <body> with the users' selection. */
+    if ( bodies.length > 0 ) {
+      bodies[0].innerHTML = "";
+      bodies[0].appendChild( contents );
+    }
+  }
+}
+
 function InitPrintEngineWindow()
 {
+  /* Store the current opener for later access in ReplaceWithSelection() */
+  printOpener = opener;
+
+  /* Register the event listener to be able to replace the document
+   * content with the user selection when loading is finished.
+   */
+  document.getElementById("content").addEventListener("load", ReplaceWithSelection, true);
+
   /* Tell the nsIPrintEngine object what window is rendering the email */
   printEngine.setWindow(window);
 
