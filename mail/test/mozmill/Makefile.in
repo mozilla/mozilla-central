@@ -52,6 +52,7 @@ include $(MOZILLA_DIR)/build/automation-build.mk
 
 _DEST_DIR = $(MOZDEPTH)/_tests/mozmill
 
+ifdef MOZILLA_1_9_2_BRANCH
 _HARNESS_FILES = \
 	$(srcdir)/runtest.py \
 	$(srcdir)/runtestlist.py \
@@ -59,6 +60,15 @@ _HARNESS_FILES = \
 	automation.py \
 	automationutils.py \
 	$(NULL)
+else
+_HARNESS_FILES = \
+	$(srcdir)/runtest.py \
+	$(srcdir)/runtestlist.py \
+	$(srcdir)/mozmilltests.list \
+	automation.py \
+	$(MOZILLA_DIR)/build/automationutils.py \
+	$(NULL)
+endif
 
 GARBAGE += automation.py
 
