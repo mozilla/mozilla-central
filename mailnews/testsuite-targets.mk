@@ -48,8 +48,16 @@ EXTRA_BLOAT_ARGS := -mail
 endif
 
 mailbloat:
+ifdef MOZILLA_1_9_2_BRANCH
 	$(PYTHON) -u $(topsrcdir)/mozilla/config/pythonpath.py \
         -I$(DIST)/../build \
         $(topsrcdir)/mailnews/test/performance/bloat/runtest.py \
 	--distdir=$(DIST) --bin=$(MOZ_APP_NAME) --brand=$(APP_NAME) \
 	$(SYMBOLS_PATH) $(EXTRA_BLOAT_ARGS)
+else
+	$(PYTHON) -u $(topsrcdir)/mozilla/config/pythonpath.py \
+        -I$(DIST)/../build -I$(MOZILLA_DIR)/build \
+        $(topsrcdir)/mailnews/test/performance/bloat/runtest.py \
+	--distdir=$(DIST) --bin=$(MOZ_APP_NAME) --brand=$(APP_NAME) \
+	$(SYMBOLS_PATH) $(EXTRA_BLOAT_ARGS)
+endif
