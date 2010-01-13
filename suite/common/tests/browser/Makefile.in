@@ -44,7 +44,7 @@ relativesrcdir  = suite/common/tests/browser
 include $(DEPTH)/config/autoconf.mk
 include $(topsrcdir)/config/rules.mk
 
-_BROWSER_FILES =
+_BROWSER_FILES = \
 	browser_bug431826.js \
 	browser_bug509315.js \
 	browser_bug510890.js \
