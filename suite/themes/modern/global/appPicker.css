@@ -6,6 +6,12 @@
   font-weight: bold;
 }
 
+/*
+ * MOZILLA_1_9_2_BRANCH
+ * The following styles apply to the toolkit 1.9.2 version of the App Picker.
+ * These should be removed once the comm-1.9.2 branch is created.
+ */
+
 #app-picker-list {
   height: 224px;
 }
@@ -16,5 +22,22 @@
 
 #app-picker-item-image,
 #app-picker-item-cell {
+  padding: 5px;
+}
+
+/* End of 1.9.2 styles */
+
+.listitem-iconic {
+  border-bottom: 1px dotted #C7D0D9;
+}
+
+#content-icon,
+.listcell-icon {
+  margin: 5px;
+  width: 32px;
+  height: 32px;
+}
+
+.listcell-label {
   padding: 5px;
 }
