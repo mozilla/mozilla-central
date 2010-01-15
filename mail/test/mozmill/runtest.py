@@ -53,7 +53,12 @@ import socket
 import copy
 SCRIPT_DIRECTORY = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
 sys.path.append(SCRIPT_DIRECTORY)
-import automation
+# The try case handles trunk. The exception case handles MOZILLA_1_9_2_BRANCH.
+try:
+    from automation import Automation
+    automation = Automation()
+except ImportError:
+    import automation
 from time import sleep
 
 # We need this because rmtree-ing read-only files fails on Windows
