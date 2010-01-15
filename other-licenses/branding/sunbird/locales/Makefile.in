@@ -1,4 +1,3 @@
-#! /bin/sh
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,17 +11,15 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is the the Mozilla build system
+# The Original Code is Thunderbird unofficial branding.
 #
 # The Initial Developer of the Original Code is
-# Ben Turner <mozilla@songbirdnest.com>
-#
-# Portions created by the Initial Developer are Copyright (C) 2007
+# Mozilla Messaging
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Simon Paquet <bugzilla@babylonsounds.com>
-#   Philipp Kewisch <mozilla@kewis.ch>
+#   Mark Banner <bugzilla@standard8.plus.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,16 +35,14 @@
 #
 # ***** END LICENSE BLOCK *****
 
-if [ "$COMM_BUILD" ]; then
+DEPTH          = ../../../..
+topsrcdir      = @top_srcdir@
+srcdir         = @srcdir@
+VPATH          = @srcdir@
+relativesrcdir = other-licenses/branding/sunbird/locales
 
-    add_makefiles "
-    calendar/sunbird/Makefile
-    calendar/sunbird/app/Makefile
-    calendar/sunbird/base/Makefile
-    calendar/sunbird/locales/Makefile
-    $MOZ_BRANDING_DIRECTORY/Makefile
-    $MOZ_BRANDING_DIRECTORY/locales/Makefile
-    "
+include $(DEPTH)/config/autoconf.mk
 
-   . ${srcdir}/calendar/shared_makefiles.sh
-fi
+DEFINES += -DAB_CD=$(AB_CD) -DMOZ_DISTRIBUTION_ID_UNQUOTED=$(MOZ_DISTRIBUTION_ID)
+
+include $(topsrcdir)/config/rules.mk

@@ -40,11 +40,12 @@ DEPTH = ../../..
 topsrcdir = @top_srcdir@
 srcdir = @srcdir@
 VPATH = @srcdir@
-relativesrcdir = other-licenses/branding/sunbird/locales
 
 include $(DEPTH)/config/autoconf.mk
 
-DEFINES += -DAB_CD=$(AB_CD)
+DIRS = \
+	locales \
+	$(NULL)
 
 include $(topsrcdir)/config/rules.mk
 
