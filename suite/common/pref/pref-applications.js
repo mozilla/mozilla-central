@@ -928,6 +928,11 @@ var gApplicationsPane = {
     this._rebuildVisibleTypes();
     this._sortVisibleTypes();
     this._rebuildView();
+
+    // Notify observers that the UI is now ready
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .notifyObservers(window, "app-handler-pane-loaded", null);
   },
 
   destroy: function() {
@@ -1664,9 +1669,7 @@ var gApplicationsPane = {
                       "chrome,modal,centerscreen,titlebar,dialog=yes",
                       params);
 
-    if (params.handlerApp && 
-        params.handlerApp.executable && 
-        params.handlerApp.executable.isFile()) {
+    if (this.isValidHandlerApp(params.handlerApp)) {
       handlerApp = params.handlerApp;
 
       // Add the app to the type's list of possible handlers.

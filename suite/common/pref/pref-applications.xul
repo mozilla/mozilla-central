@@ -108,6 +108,7 @@
                type="search"
                emptytext="&search.emptytext;"
                clickSelectsAll="true"
+               aria-controls="handlersView"
                oncommand="gApplicationsPane._rebuildView();"/>
     </hbox>
 
