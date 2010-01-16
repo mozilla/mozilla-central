@@ -49,9 +49,9 @@ SWITCH_MOZILLA_BASE_REV = "GECKO_1_9_1_BASE"
 import sys
 # Test Python Version. 2.4 required for `import subprocess`
 pyver = sys.version_info
-if pyver[0] == 2 and pyver[1] < 4:
+if pyver[0] <= 1 or (pyver[0] == 2 and pyver[1] < 4):
   sys.exit("ERROR: Python 2.4 or newer required")
-elif pyver[0] == 3:
+elif pyver[0] >= 3:
   sys.exit("ERROR: Python series 3 is not supported, use series 2 > 2.4")
 del pyver
 
