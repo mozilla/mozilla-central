@@ -197,27 +197,13 @@ function test_videoAllowedInMail() {
   // Click on the allow remote content button
   mc.click(new elib.ID(mozmill.getMail3PaneController().window.document, "remoteContentBarButton"));
 
-  wait_for_message_display_completion();
+  wait_for_message_display_completion(mc, true);
 
   if (mozmill.getMail3PaneController().window.content.document
              .getElementById("video1").networkState ==
-      Components.interfaces.nsIDOMHTMLMediaElement.NETWORK_NO_SOURCE) {
+      Components.interfaces.nsIDOMHTMLMediaElement.NETWORK_NO_SOURCE)
+    throw new Error("Video has been unexpectedly blocked.");
 
-    // This is altered debug for bug 539908 (random failure of the above check)
-    // and isn't the normal execution path.
-    // throw new Error("Video has been unexpectedly blocked.");
-
-    // Try waiting a bit longer and then checking, just in case
-    // wait_for_message_display_completion should have waited a bit longer
-    mc.sleep(3000);
-    // Although this may not be an error now, we still want to treat it as one
-    // so we can track down the cause of this random failure.
-    throw new Error("Video was unexpectedly blocked. Network State was: " +
-                    Components.interfaces.nsIDOMHTMLMediaElement.NETWORK_NO_SOURCE +
-                    "After a 3 second sleep, the network state is now: " +
-                    mozmill.getMail3PaneController().window.content.document
-                           .getElementById("video1").networkState);
-  }
   ++gMsgNo;
 }
 
