@@ -201,8 +201,23 @@ function test_videoAllowedInMail() {
 
   if (mozmill.getMail3PaneController().window.content.document
              .getElementById("video1").networkState ==
-      Components.interfaces.nsIDOMHTMLMediaElement.NETWORK_NO_SOURCE)
-    throw new Error("Video has not been blocked in message content as expected.");
+      Components.interfaces.nsIDOMHTMLMediaElement.NETWORK_NO_SOURCE) {
+
+    // This is altered debug for bug 539908 (random failure of the above check)
+    // and isn't the normal execution path.
+    // throw new Error("Video has been unexpectedly blocked.");
+
+    // Try waiting a bit longer and then checking, just in case
+    // wait_for_message_display_completion should have waited a bit longer
+    mc.sleep(3000);
+    // Although this may not be an error now, we still want to treat it as one
+    // so we can track down the cause of this random failure.
+    throw new Error("Video was unexpectedly blocked. Network State was: " +
+                    Components.interfaces.nsIDOMHTMLMediaElement.NETWORK_NO_SOURCE +
+                    "After a 3 second sleep, the network state is now: " +
+                    mozmill.getMail3PaneController().window.content.document
+                           .getElementById("video1").networkState);
+  }
   ++gMsgNo;
 }
 
@@ -213,7 +228,7 @@ function test_videoAllowedInReplyWindow()
   if (replyWindow.window.document
                  .getElementById("content-frame").contentDocument.getElementById("video1").networkState ==
       Components.interfaces.nsIDOMHTMLMediaElement.NETWORK_NO_SOURCE)
-    throw new Error("Video has not been blocked in reply window as expected.");
+    throw new Error("Video has been unexpectedly blocked.");
 
   windowHelper.close_window(replyWindow);
 }
