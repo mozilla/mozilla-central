@@ -449,6 +449,16 @@ endif
 # Set the permissions that the folders will have in ftp once uploaded
 	chmod -vR 775 $(UPLOAD_DIR)
 
+generate-snippet-%:
+	$(PYTHON) $(MOZILLA_SRCDIR)/tools/update-packaging/generatesnippet.py \
+	    --mar-path=$(_ABS_DIST)/update \
+	    --application-ini-file=$(STAGEDIST)/application.ini \
+	    --locale=$* \
+	    --product=$(MOZ_PKG_APPNAME) \
+	    --platform=$(MOZ_PKG_PLATFORM) \
+	    --download-base-URL=$(DOWNLOAD_BASE_URL) \
+	    --verbose
+
 l10n-upload-%: AB_CD=$*
 l10n-upload-%:
 	$(PYTHON) $(MOZILLA_SRCDIR)/build/upload.py --base-path $(DIST) "$(DIST)/$(PACKAGE)" $(DIST)/$(LANGPACK)
