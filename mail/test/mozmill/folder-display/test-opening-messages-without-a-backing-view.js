@@ -180,10 +180,9 @@ function test_open_message_without_backing_view_in_existing_window() {
 
   // Open another message
   let msgHdr = msgHdrsInFolder[7];
+  plan_for_message_display(msgc);
   MailUtils.displayMessage(msgHdr);
-  // We don't need to pass true here, as open_selected_message should have
-  // started off the load before returning.
-  wait_for_message_display_completion(msgc);
+  wait_for_message_display_completion(msgc, true);
 
   // Check if our old window displays the message
   assert_selected_and_displayed(msgc, msgHdr);
