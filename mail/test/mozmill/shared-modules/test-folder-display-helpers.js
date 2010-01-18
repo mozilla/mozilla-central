@@ -776,7 +776,7 @@ function assert_folder_child_in_view(aChild, aParent) {
                     (aParent && aParent.URI) +
                     ", but is actually the child of " +
                     (actualParent && actualParent.URI));
-      
+
 }
 
 /**
@@ -1058,17 +1058,46 @@ function wait_for_all_messages_to_load(aController) {
 }
 
 /**
- * If  a message is in the process of loading, let it finish.  Otherwise we get
- *  horrible assertions like so:
+ * Call this before triggering a message display that you are going to wait for
+ *  using |wait_for_message_display_completion| where you are passing true for
+ *  the aLoadDemanded argument.  This ensures that if a message is already
+ *  displayed for the given controller that state is sufficiently cleaned up
+ *  so it doesn't trick us into thinking that there is no need to wait.
+ *
+ * @param [aController] optional controller, defaulting to |mc|.
+ */
+function plan_for_message_display(aController) {
+  if (aController === undefined)
+    aController = mc;
+  aController.messageDisplay.messageLoaded = false;
+}
+
+/**
+ * If a message is in the process of loading, let it finish; optionally, be sure
+ *  to wait for a load to happen (assuming |plan_for_message_display| is used.)
+ *
+ * This method is used defensively by a lot of other code in this file that is
+ *  realy not sure whether there might be a load in progress or not.  So by
+ *  default we only do something if there is obviously a message display in
+ *  progress.  Since some events may end up getting deferred due to script
+ *  blockers or the like, it is possible the event that triggers the display
+ *  may not have happened by the time you call this.  In that case, you should
+ *  1) pass true for aLoadDemanded and 2) invoke |plan_for_message_display|
+ *  before triggering the event that will induce a message display.  You do not
+ *  need to do #2 if you are opening a new message window and can assume that
+ *  this will be the first message ever displayed in the window.
+ *
+ * If we didn't use this method defensively, we would get horrible assertions
+ *  like so:
  * ###!!! ASSERTION: Overwriting an existing document channel!
  *
- * @param aController optional controller, defaulting to |mc|.
- * @param aLoadDemanded optional indication that we expect and demand that a
- *     message be loaded.  If you call us before the message loading is
- *     initiated, you will need to pass true for this so that we don't see
- *     that a load hasn't started and assume none is required.  Defaults to
- *     false.  This relies on aController.messageDisplay.messageLoaded to
- *     be reliable; make sure it is false when entering this function.
+ *
+ * @param [aController] optional controller, defaulting to |mc|.
+ * @param [aLoadDemanded=false] Should we require that we wait for a message to
+ *     be loaded?  You should use this in conjunction with
+ *     |plan_for_message_display| as per the documentation above.  If you do
+ *     not pass true and there is no message load in process, this method will
+ *     return immediately.
  */
 function wait_for_message_display_completion(aController, aLoadDemanded) {
   if (aController === undefined)
@@ -1088,8 +1117,10 @@ function wait_for_message_display_completion(aController, aLoadDemanded) {
   //  for us.
   let isLoadedChecker = function() {
     // If a load is demanded, first require that MessageDisplayWidget think
-    //  that the message is loaded.  Because the notification is imperfect,
-    //  this will strictly happen before the URL finishes running.
+    //  that the message is loaded.  Because the notification that sets the flag
+    //  happens when the message reader code gets told about the last attachment,
+    //  this will actually happen before the URL is finished running.  Luckily
+    //  we have the code below to try and deal with that.
     if (aLoadDemanded && !aController.messageDisplay.messageLoaded)
       return false;
 

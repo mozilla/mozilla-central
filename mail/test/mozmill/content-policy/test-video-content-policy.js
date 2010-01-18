@@ -194,6 +194,8 @@ function test_videoDeniedInReplyWindow()
 function test_videoAllowedInMail() {
   addMsgToFolderAndCheckNoRemoteVideo(folder);
 
+  plan_for_message_display(mc);
+
   // Click on the allow remote content button
   mc.click(new elib.ID(mozmill.getMail3PaneController().window.document, "remoteContentBarButton"));
 

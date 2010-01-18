@@ -118,6 +118,20 @@ MessageDisplayWidget.prototype = {
    */
   //@{
 
+  /**
+   * Unit testing support variable that tracks whether a message load is in
+   *  process.  This is set to true when |onDisplayingMessage| is invoked and
+   *  cleared by invoking |clearDisplay| or when the message finishes streaming
+   *  and |messageLoaded| is set to true.
+   */
+  messageLoading: false,
+  /**
+   * Unit testing support variable that tracks whether there is currently a
+   *  fully displayed message.  This is cleared when |clearDisplay| is invoked
+   *  or we hear that a new message begins streaming via |onDisplayingMessage|.
+   */
+  messageLoaded: false,
+
   clearDisplay: function MessageDisplayWidget_clearDisplay() {
     this.displayedMessage = null;
     this.messageLoading = false;

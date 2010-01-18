@@ -636,6 +636,25 @@ var AugmentEverybodyWith = {
     aid: function _get_anon_elementid(aId, aQuery) {
       return new elib.Elem(this.a(aId, aQuery));
     },
+
+    /**
+     * Debug helper that defers a click until the next event loop spin in order
+     *  to create situations that are hard to test in isolation.  In order to
+     *  fashion reliable failures, we currently use a 1-second delay to make
+     *  sure things get sufficiently gummed up.
+     * Only use this for locally reproducing tinderbox failures; do not commit
+     *  code that uses this!
+     *
+     * This gets its own method rather than a generic deferring wrapper so we
+     *  can strap debug on and because it's meant so you can easily just
+     *  prefix on 'defer_' and be done with it.
+     */
+    defer_click: function _augmented_defer_click(aWhatToClick) {
+      let dis = this;
+      dis.window.setTimeout(function() {
+                              dis.click(aWhatToClick);
+                            }, 1000);
+    },
   },
 };
 

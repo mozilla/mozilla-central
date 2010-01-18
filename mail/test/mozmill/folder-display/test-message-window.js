@@ -82,6 +82,7 @@ function test_open_message_window() {
  * and verify that it is indeed loaded.
  */
 function test_navigate_to_next_message() {
+  plan_for_message_display(msgc);
   msgc.keypress(null, "f", {});
   wait_for_message_display_completion(msgc, true);
   assert_selected_and_displayed(msgc, 1);
@@ -93,6 +94,7 @@ function test_navigate_to_next_message() {
  * the previous message was deleted.
  */
 function test_delete_single_message() {
+  plan_for_message_display(msgc);
   press_delete(msgc);
   wait_for_message_display_completion(msgc, true);
   assert_selected_and_displayed(msgc, 1);
