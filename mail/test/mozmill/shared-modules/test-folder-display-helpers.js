@@ -80,6 +80,8 @@ const DO_NOT_EXPORT = {
   MailUtils: true, MailViewManager: true,
   // internal setup functions
   setupModule: true, setupAccountStuff: true,
+  // we export this separately
+  teardownImporter: true,
   // internal setup flags
   initialized: false,
   // other libraries we use
@@ -196,10 +198,80 @@ function installInto(module) {
       module[key] = value;
     }
   }
+
+  // Export the teardown helper
+  let customTeardown = null;
+  // Mozmill uses __teardownModule__ to store what it thinks is the
+  // teardownModule function. Unfortunately, all this is figured out when the
+  // file is loaded, and we're evaluated much too late for that, so overwrite
+  // it.
+  if ("__teardownModule__" in module)
+    customTeardown = module.__teardownModule__;
+  module.__teardownModule__ = teardownImporter(customTeardown);
 }
 
 function setupAccountStuff() {
   inboxFolder = testHelperModule.configure_message_injection({mode: "local"});
+}
+
+/**
+ * This returns a function that cleans up state in case any tests have failed,
+ * so that the chain of failures isn't propagated to the rest of the suite. We
+ * attempt to guarantee that after the teardown is executed:
+ * - exactly one 3-pane window is open, and its controller is assigned to |mc|
+ * - there are no other windows open
+ * - the 3-pane window has exactly one tab open -- the main 3-pane tab
+ * - the folder mode is set to All Folders
+ *
+ * @param [customTeardown] A custom teardown function, if it's already been
+ *     defined in a particular module. This will always be executed before any
+ *     cleanup we perform.
+ */
+function teardownImporter(customTeardown) {
+  let teardownModule = function teardownModule() {
+    if (customTeardown)
+      customTeardown();
+
+    // - If there are no 3-pane windows open, open one.
+    let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
+                           .getService(Ci.nsIWindowMediator);
+    let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+    if (!mail3PaneWindow) {
+      windowHelper.plan_for_new_window("mail:3pane");
+      let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"]
+                            .getService(Ci.nsIWindowWatcher);
+      windowWatcher.openWindow(null,
+          "chrome://messenger/content/", "",
+          "all,chrome,dialog=no,status,toolbar", args);
+      mc = windowHelper.wait_for_new_window("mail:3pane");
+    }
+    else {
+      // - We might have a window open, but not be assigned to mc -- so if
+      //   mc.window.closed is true, look for a window to assign to mc.
+      if (!mc || mc.window.closed)
+        mc = windowHelper.wait_for_existing_window("mail:3pane");
+    }
+
+    // Run through all open windows, closing any that aren't assigned to mc.
+    let enumerator = windowMediator.getEnumerator(null);
+    while (enumerator.hasMoreElements()) {
+      let win = enumerator.getNext();
+      if (win != mc.window)
+        win.close();
+    }
+
+    // At this point we should have exactly one window open.
+    // - Close all tabs other than the first one.
+    mc.tabmail.closeOtherTabs(mc.tabmail.tabInfo[0]);
+
+    // - Set the mode to All Folders.
+    if (mc.folderTreeView.mode != "all")
+      mc.folderTreeView.mode = "all";
+  };
+  // Another internal mozmill thing, again figured out too early for it to have
+  // a chance.
+  teardownModule.__name__ = "teardownModule";
+  return teardownModule;
 }
 
 /*
