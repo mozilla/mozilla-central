@@ -766,7 +766,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
     if (!fileLineStream)
       return nsnull;
     // ### really want to skip past headers...
-    PRUint32 messageOffset;
+    PRUint64 messageOffset;
     PRUint32 lineCount;
     hdr->GetMessageOffset(&messageOffset);
     hdr->GetLineCount(&lineCount);
