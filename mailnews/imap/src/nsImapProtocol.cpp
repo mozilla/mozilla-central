@@ -8850,7 +8850,8 @@ PRBool nsImapMockChannel::ReadFromLocalCache()
       // we want to create a file channel and read the msg from there.
       nsCOMPtr<nsIInputStream> fileStream;
       nsMsgKey msgKey = atoi(messageIdString.get());
-      PRUint32 size, offset;
+      PRUint32 size;
+      PRUint64 offset;
       rv = folder->GetOfflineFileStream(msgKey, &offset, &size, getter_AddRefs(fileStream));
       // get the file channel from the folder, somehow (through the message or
       // folder sink?) We also need to set the transfer offset to the message offset
@@ -8866,7 +8867,7 @@ PRBool nsImapMockChannel::ReadFromLocalCache()
         // XXX make offset/size 64-bit ints
         nsCOMPtr<nsIInputStreamPump> pump;
         rv = NS_NewInputStreamPump(getter_AddRefs(pump), fileStream,
-                                   nsInt64(offset), nsInt64(size));
+                                   offset, (PRInt64) size);
         if (NS_SUCCEEDED(rv))
           rv = pump->AsyncRead(cacheListener, m_channelContext);
 

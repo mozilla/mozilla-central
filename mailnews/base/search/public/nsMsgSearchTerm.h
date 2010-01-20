@@ -62,29 +62,6 @@ public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIMSGSEARCHTERM
 
-
-  PRInt32 GetNextIMAPOfflineMsgLine (char * buf, int bufferSize, int msgOffset, nsIMsgDBHdr * msg, nsIMsgDatabase * db);
-
-
-    //  nsresult MatchBody (nsIMsgSearchScopeTerm*, PRUint32 offset, PRUint32 length, const char *charset,
-    //            nsIMsgDBHdr * msg, nsIMsgDatabase * db, PRBool *pResult);
-    //  nsresult MatchArbitraryHeader (nsIMsgSearchScopeTerm *,
-    //                                   PRUint32 offset,
-    //                                   PRUint32 length,
-    //                                   const char *charset,
-    //                                   nsIMsgDBHdr * msg,
-    //                                   nsIMsgDatabase *db,
-    //                                   const char * headers, /* NULL terminated header list for msgs being filtered. Ignored unless ForFilters */
-    //                                   PRUint32 headersSize, /* size of the NULL terminated list of headers */
-    //                                   PRBool ForFilters /* true if we are filtering */,
-    //                   PRBool *pResult);
-  // nsresult MatchDate (PRTime, PRBool *result);
-  // nsresult MatchStatus (PRUint32, PRBool *result);
-  // nsresult MatchPriority (nsMsgPriorityValue, PRBool *result);
-  // nsresult MatchSize (PRUint32, PRBool *result);
-    //  nsresult MatchRfc822String(const char *, const char *charset, PRBool *pResult);
-  // nsresult MatchAge (PRTime, PRBool *result);
-
   nsresult DeStream (char *, PRInt16 length);
   nsresult DeStreamNew (char *, PRInt16 length);
 

@@ -137,7 +137,7 @@ interface nsMsgDBCommitType
  * The contract ID for this component is
  * <tt>\@mozilla.org/msgDatabase/msgDBService;1</tt>.
  */
-[scriptable, uuid(959d0a27-9a00-4ce8-b01d-180ff2387b6a)]
+[scriptable, uuid(e25d07fc-2a85-437f-9227-065c88a0b29f)]
 interface nsIMsgDBService : nsISupports
 {
   /**
@@ -479,6 +479,23 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
 
   void setUint32AttributeOnPendingHdr(in nsIMsgDBHdr pendingHdr, in string property,
                                   in unsigned long propertyVal);
+
+  /**
+   * Sets a pending 64 bit attribute, which tells the DB that when a message
+   * which looks like the pendingHdr (e.g., same message-id) is added to the
+   * db, set the passed in property and value on the new header. This is
+   * usually because we've copied an imap message to a different folder, and
+   * want to carry forward attributes from the original message to the copy,
+   * but don't have the message hdr for the copy yet so we can't set
+   * attributes directly.
+   *
+   * @param aPendingHdr usually the source of the copy.
+   * @param aProperty name of property to set.
+   * @param aPropertyVal 64 bit value of property to set.
+   */
+  void setUint64AttributeOnPendingHdr(in nsIMsgDBHdr aPendingHdr,
+                                      in string aProperty,
+                                      in unsigned long long aPropertyVal);
 
   readonly attribute nsMsgKey lowWaterArticleNum;
   readonly attribute nsMsgKey highWaterArticleNum;

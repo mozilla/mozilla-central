@@ -633,7 +633,7 @@ NS_IMETHODIMP nsMsgHdr::GetAccountKey(char **aResult)
 }
 
 
-NS_IMETHODIMP nsMsgHdr::GetMessageOffset(PRUint32 *result)
+NS_IMETHODIMP nsMsgHdr::GetMessageOffset(PRUint64 *result)
 {
   NS_ENSURE_ARG(result);
 
@@ -643,7 +643,7 @@ NS_IMETHODIMP nsMsgHdr::GetMessageOffset(PRUint32 *result)
   GetRawFlags(&rawFlags);
   if (rawFlags & nsMsgMessageFlags::Offline)
   {
-    return GetUInt32Column(m_mdb->m_offlineMsgOffsetColumnToken, result);
+    return GetUInt64Column(m_mdb->m_offlineMsgOffsetColumnToken, result);
   }
   else
   {
@@ -652,9 +652,9 @@ NS_IMETHODIMP nsMsgHdr::GetMessageOffset(PRUint32 *result)
   }
 }
 
-NS_IMETHODIMP nsMsgHdr::SetMessageOffset(PRUint32 offset)
+NS_IMETHODIMP nsMsgHdr::SetMessageOffset(PRUint64 offset)
 {
-  SetUInt32Column(offset, m_mdb->m_offlineMsgOffsetColumnToken);
+  SetUInt64Column(offset, m_mdb->m_offlineMsgOffsetColumnToken);
   return NS_OK;
 }
 
@@ -809,6 +809,16 @@ nsresult nsMsgHdr::SetUInt32Column(PRUint32 value, mdb_token token)
 nsresult nsMsgHdr::GetUInt32Column(mdb_token token, PRUint32 *pvalue, PRUint32 defaultValue)
 {
   return m_mdb->RowCellColumnToUInt32(GetMDBRow(), token, pvalue, defaultValue);
+}
+
+nsresult nsMsgHdr::SetUInt64Column(PRUint64 value, mdb_token token)
+{
+  return m_mdb->UInt64ToRowCellColumn(m_mdbRow, token, value);
+}
+
+nsresult nsMsgHdr::GetUInt64Column(mdb_token token, PRUint64 *pvalue, PRUint64 defaultValue)
+{
+  return m_mdb->RowCellColumnToUInt64(GetMDBRow(), token, pvalue, defaultValue);
 }
 
 /**

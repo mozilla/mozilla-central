@@ -383,7 +383,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
   nsresult rv = m_currentDB->GetMsgHdrForKey(msgKey, getter_AddRefs(mailHdr)); 
   if (NS_SUCCEEDED(rv) && mailHdr)
   {
-    nsMsgKey messageOffset;
+    PRUint64 messageOffset;
     PRUint32 messageSize;
     mailHdr->GetMessageOffset(&messageOffset);
     mailHdr->GetOfflineMessageSize(&messageSize);

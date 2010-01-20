@@ -759,7 +759,7 @@ nsresult nsMsgSearchTerm::DeStreamNew (char *inStream, PRInt16 /*length*/)
 // Looks in the MessageDB for the user specified arbitrary header, if it finds the header, it then looks for a match against
 // the value for the header.
 nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
-                                                PRUint32 offset,
+                                                PRUint64 offset,
                                                 PRUint32 length /* in lines*/,
                                                 const char *charset,
                                                 PRBool charsetOverride,
@@ -912,7 +912,7 @@ NS_IMETHODIMP nsMsgSearchTerm::MatchUint32HdrProperty(nsIMsgDBHdr *aHdr, PRBool 
   return NS_OK;
 }
 
-nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, PRUint32 offset, PRUint32 length /*in lines*/, const char *folderCharset,
+nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, PRUint64 offset, PRUint32 length /*in lines*/, const char *folderCharset,
                                       nsIMsgDBHdr *msg, nsIMsgDatabase* db, PRBool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);

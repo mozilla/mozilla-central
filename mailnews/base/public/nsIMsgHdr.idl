@@ -48,7 +48,7 @@
 interface nsIMsgFolder;
 interface nsIUTF8StringEnumerator;
 
-[scriptable, uuid(1CE98909-F83C-4f88-B660-A279850D3112)]
+[scriptable, uuid(574611fe-f170-4eb4-a30c-a26e2c62703a)]
 interface nsIMsgDBHdr : nsISupports
 {
     /* general property routines - I think this can retrieve any
@@ -90,7 +90,8 @@ interface nsIMsgDBHdr : nsISupports
     attribute unsigned long messageSize;
     attribute unsigned long lineCount;
     attribute unsigned long statusOffset;
-    attribute unsigned long messageOffset;
+    /// The offset into the local folder/offline store of the message.
+    attribute unsigned long long messageOffset;
     attribute unsigned long offlineMessageSize;
     /* common headers */
     attribute PRTime date;

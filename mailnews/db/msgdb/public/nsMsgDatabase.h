@@ -175,6 +175,7 @@ public:
   nsresult RowCellColumnTonsString(nsIMdbRow *row, mdb_token columnToken, nsAString &resultStr);
   nsresult RowCellColumnToUInt32(nsIMdbRow *row, mdb_token columnToken, PRUint32 *uint32Result, PRUint32 defaultValue = 0);
   nsresult RowCellColumnToUInt32(nsIMdbRow *row, mdb_token columnToken, PRUint32 &uint32Result, PRUint32 defaultValue = 0);
+  nsresult RowCellColumnToUInt64(nsIMdbRow *row, mdb_token columnToken, PRUint64 *uint64Result, PRUint64 defaultValue = 0);
   nsresult RowCellColumnToMime2DecodedString(nsIMdbRow *row, mdb_token columnToken, nsAString &resultStr);
   nsresult RowCellColumnToCollationKey(nsIMdbRow *row, mdb_token columnToken, PRUint8 **result, PRUint32 *len);
   nsresult RowCellColumnToConstCharPtr(nsIMdbRow *row, mdb_token columnToken, const char **ptr);
@@ -188,6 +189,7 @@ public:
   nsresult        SetPropertyFromNSString(nsIMdbRow *row, const char *propertyName, const nsAString &propertyVal);
   nsresult        GetUint32Property(nsIMdbRow *row, const char *propertyName, PRUint32 *result, PRUint32 defaultValue = 0);
   nsresult        SetUint32Property(nsIMdbRow *row, const char *propertyName, PRUint32 propertyVal);
+  nsresult        SetUint64Property(nsIMdbRow *row, const char *propertyName, PRUint64 propertyVal);
   nsresult        GetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
                                      PRBool *result, PRBool defaultValue = PR_FALSE);
   nsresult        SetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
@@ -199,15 +201,17 @@ public:
   nsresult        UInt32ToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, PRUint32 value);
   nsresult        CharPtrToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, const char *charPtr);
   nsresult        RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnToken, char **result);
-  
-  
+  nsresult        UInt64ToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, PRUint64 value);
+
   // helper functions to copy an nsString to a yarn, int32 to yarn, and vice versa.
   static struct mdbYarn *nsStringToYarn(struct mdbYarn *yarn, const nsAString &str);
   static struct mdbYarn *UInt32ToYarn(struct mdbYarn *yarn, PRUint32 i);
+  static struct mdbYarn *UInt64ToYarn(struct mdbYarn *yarn, PRUint64 i);
   static void YarnTonsString(struct mdbYarn *yarn, nsAString &str);
   static void YarnTonsCString(struct mdbYarn *yarn, nsACString &str);
   static void YarnToUInt32(struct mdbYarn *yarn, PRUint32 *i);
-  
+  static void YarnToUInt64(struct mdbYarn *yarn, PRUint64 *i);
+
   static void   CleanupCache();
   static void   DumpCache();
 #ifdef DEBUG

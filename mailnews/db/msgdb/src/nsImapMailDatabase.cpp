@@ -281,3 +281,15 @@ nsImapMailDatabase::SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr,
   NS_ENSURE_SUCCESS(rv, rv);
   return SetUint32Property(pendingRow, property, propertyVal);
 }
+
+NS_IMETHODIMP
+nsImapMailDatabase::SetUint64AttributeOnPendingHdr(nsIMsgDBHdr *aPendingHdr,
+                                                   const char *aProperty,
+                                                   PRUint64 aPropertyVal)
+{
+  NS_ENSURE_ARG_POINTER(aPendingHdr);
+  nsCOMPtr<nsIMdbRow> pendingRow;
+  nsresult rv = GetRowForPendingHdr(aPendingHdr, getter_AddRefs(pendingRow));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return SetUint64Property(pendingRow, aProperty, aPropertyVal);
+}

@@ -6718,7 +6718,7 @@ nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder,
   nsresult rv;
   nsCOMPtr <nsISeekableStream> seekable (do_QueryInterface(outputStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsMsgKey messageOffset;
+  PRUint64 messageOffset;
   PRUint32 messageSize;
   origHdr->GetMessageOffset(&messageOffset);
   origHdr->GetOfflineMessageSize(&messageSize);
@@ -6730,8 +6730,7 @@ nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder,
   }
   PRInt64 tellPos;
   seekable->Tell(&tellPos);
-  nsInt64 curStorePos = tellPos;
-  destHdr->SetMessageOffset((PRUint32) curStorePos);
+  destHdr->SetMessageOffset(tellPos);
   nsCOMPtr<nsISeekableStream> seekStream = do_QueryInterface(inputStream);
   NS_ASSERTION(seekStream, "non seekable stream - can't read from offline msg");
   if (seekStream)
@@ -7156,13 +7155,13 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, PRBool aIsMove)
       }
 
       PRUint32 messageSize;
-      nsMsgKey messageOffset;
+      PRUint64 messageOffset;
       msgDBHdr->GetMessageOffset(&messageOffset);
       msgDBHdr->GetOfflineMessageSize(&messageSize);
       if (messageSize)
       {
         mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "offlineMsgSize", messageSize);
-        mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "msgOffset", messageOffset);
+        mDatabase->SetUint64AttributeOnPendingHdr(msgDBHdr, "msgOffset", messageOffset);
         mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "flags", nsMsgMessageFlags::Offline);
       }
       nsMsgPriorityValue priority;
@@ -8814,7 +8813,7 @@ NS_IMETHODIMP nsImapMailFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUi
       msgHdr->GetMessageKey(&msgKey);
       if (msgFlags & nsMsgMessageFlags::Offline)
       {
-        nsMsgKey messageOffset;
+        PRUint64 messageOffset;
         PRUint32 messageSize;
         GetOfflineFileStream(msgKey, &messageOffset, &messageSize, getter_AddRefs(inputStream));
         if (inputStream)

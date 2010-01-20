@@ -520,7 +520,7 @@ nsresult nsMsgProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
 
         nsCOMPtr<nsIInputStreamPump> pump;
         rv = NS_NewInputStreamPump(getter_AddRefs(pump),
-          m_inputStream, nsInt64(-1), m_readCount);
+          m_inputStream, -1, m_readCount);
         if (NS_FAILED(rv)) return rv;
 
         m_request = pump; // keep a reference to the pump so we can cancel it

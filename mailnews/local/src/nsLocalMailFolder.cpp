@@ -3776,7 +3776,7 @@ NS_IMETHODIMP
 nsMsgLocalMailFolder::GetUidlFromFolder(nsLocalFolderScanState *aState, nsIMsgDBHdr *aMsgDBHdr)
 {
   nsresult rv;
-  PRUint32 messageOffset;
+  PRUint64 messageOffset;
   PRBool more = PR_FALSE;
   PRUint32 size = 0, len = 0;
   const char *accountKey = nsnull;
@@ -3936,7 +3936,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, 
     msgHdr->GetStringProperty("preview", getter_Copies(prevBody));
     if (!prevBody.IsEmpty())
       continue;
-    PRUint32 messageOffset;
+    PRUint64 messageOffset;
 
     msgHdr->GetMessageOffset(&messageOffset);
     nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(inputStream);
@@ -3997,11 +3997,11 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
     {
       nsCOMPtr<nsIMsgDBHdr> message = do_QueryElementAt(aMessages, i, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
-      PRUint32 messageOffset;
+      PRUint64 messageOffset;
       message->GetMessageOffset(&messageOffset);
       PRUint32 statusOffset = 0;
       (void)message->GetStatusOffset(&statusOffset);
-      PRUint32 desiredOffset = messageOffset + statusOffset;
+      PRUint64 desiredOffset = messageOffset + statusOffset;
 
       nsTArray<nsCString> keywordArray;
       ParseString(aKeywords, ' ', keywordArray);
@@ -4019,7 +4019,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
         lineBuffer->start = lineBuffer->end = lineBuffer->buf;
         PRBool inKeywordHeader = PR_FALSE;
         PRBool foundKeyword = PR_FALSE;
-        PRUint32 offsetToAddKeyword = 0;
+        PRUint64 offsetToAddKeyword = 0;
         PRBool more;
         message->GetMessageSize(&len);
         // loop through

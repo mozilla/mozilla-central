@@ -519,8 +519,19 @@ interface nsIMsgFolder : nsISupports {
   boolean shouldStoreMsgOffline(in nsMsgKey msgKey);
   boolean hasMsgOffline(in nsMsgKey msgKey);
 
-  nsIInputStream getOfflineFileStream(in nsMsgKey msgKey, out PRUint32 offset,
-                                      out PRUint32 size);
+  /**
+   * Get an input stream to read the offline contents of an imap or news
+   * message.
+   *
+   * @param aMsgKey key of message to get input stream for.
+   * @param[out] aOffset filled in with the offset into the stream of the message.
+   * @param[out] aSize filled in with the size of the message in the offline store.
+   *
+   * @returns input stream to read the message from.
+   */
+  nsIInputStream getOfflineFileStream(in nsMsgKey aMsgKey,
+                                      out unsigned long long aOffset,
+                                      out unsigned long aSize);
   readonly attribute nsIOutputStream offlineStoreOutputStream;
   readonly attribute nsIInputStream offlineStoreInputStream;
   void DownloadMessagesForOffline(in nsIArray messages,

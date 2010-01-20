@@ -2051,8 +2051,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
             if (NS_SUCCEEDED(rv) && fakeHdr)
             {
               PRUint32 resultFlags;
-              nsInt64 tellPos = curOfflineStorePos;
-              fakeHdr->SetMessageOffset((PRUint32) tellPos);
+              fakeHdr->SetMessageOffset(curOfflineStorePos);
               fakeHdr->OrFlags(nsMsgMessageFlags::Offline | nsMsgMessageFlags::Read, &resultFlags);
               fakeHdr->SetOfflineMessageSize(fileSize);
               destDB->AddNewHdrToDB(fakeHdr, PR_TRUE /* notify */);

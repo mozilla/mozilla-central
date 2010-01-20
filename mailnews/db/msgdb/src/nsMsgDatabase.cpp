@@ -3568,6 +3568,40 @@ nsresult nsMsgDatabase::UInt32ToRowCellColumn(nsIMdbRow *row, mdb_token columnTo
   return row->AddColumn(GetEnv(),  columnToken, UInt32ToYarn(&yarn, value));
 }
 
+nsresult nsMsgDatabase::UInt64ToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, PRUint64 value)
+{
+  NS_ENSURE_ARG_POINTER(row);
+  struct mdbYarn yarn;
+  char  yarnBuf[17]; // max string is 16 bytes, + 1 for null.
+
+  yarn.mYarn_Buf = (void *) yarnBuf;
+  yarn.mYarn_Size = sizeof(yarnBuf);
+  yarn.mYarn_Form = 0;
+  yarn.mYarn_Grow = NULL;
+  PR_snprintf((char *) yarn.mYarn_Buf, yarn.mYarn_Size, "%llx", value);
+  yarn.mYarn_Fill = PL_strlen((const char *) yarn.mYarn_Buf);
+  return row->AddColumn(GetEnv(),  columnToken, &yarn);
+}
+
+nsresult
+nsMsgDatabase::RowCellColumnToUInt64(nsIMdbRow *hdrRow, mdb_token columnToken,
+                                     PRUint64 *uint64Result,
+                                     PRUint64 defaultValue)
+{
+  nsresult  err = NS_OK;
+
+  if (uint64Result)
+    *uint64Result = defaultValue;
+  if (hdrRow)  // ### probably should be an error if hdrRow is NULL...
+  {
+    struct mdbYarn yarn;
+    err = hdrRow->AliasCellYarn(GetEnv(), columnToken, &yarn);
+    if (NS_SUCCEEDED(err))
+      YarnToUInt64(&yarn, uint64Result);
+  }
+  return err;
+}
+
 nsresult nsMsgDatabase::CharPtrToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, const char *charPtr)
 {
   if (!row)
@@ -3627,6 +3661,14 @@ nsresult nsMsgDatabase::RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnT
   return yarn;
 }
 
+/* static */struct mdbYarn *nsMsgDatabase::UInt64ToYarn(struct mdbYarn *yarn, PRUint64 i)
+{
+  PR_snprintf((char *) yarn->mYarn_Buf, yarn->mYarn_Size, "%llx", i);
+  yarn->mYarn_Fill = PL_strlen((const char *) yarn->mYarn_Buf);
+  yarn->mYarn_Form = 0;
+  return yarn;
+}
+
 /* static */void nsMsgDatabase::YarnTonsString(struct mdbYarn *yarn, nsAString &str)
 {
   const char* buf = (const char*)yarn->mYarn_Buf;
@@ -3671,6 +3713,33 @@ nsresult nsMsgDatabase::RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnT
     *pResult = result;
   }
 }
+
+// WARNING - if yarn is empty, *pResult will not be changed!!!!
+// this is so we can leave default values as they were.
+/* static */void nsMsgDatabase::YarnToUInt64(struct mdbYarn *yarn, PRUint64 *pResult)
+{
+  PRUint64 result;
+  char *p = (char *) yarn->mYarn_Buf;
+  PRInt32 numChars = NS_MIN((mdb_fill)16, yarn->mYarn_Fill);
+  PRInt32 i;
+
+  if (numChars > 0)
+  {
+    for (i = 0, result = 0; i < numChars; i++, p++)
+    {
+      char C = *p;
+
+      PRInt8 unhex = ((C >= '0' && C <= '9') ? C - '0' :
+      ((C >= 'A' && C <= 'F') ? C - 'A' + 10 :
+         ((C >= 'a' && C <= 'f') ? C - 'a' + 10 : -1)));
+       if (unhex < 0)
+         break;
+       result = (result << 4) | unhex;
+    }
+    *pResult = result;
+  }
+}
+
 
 nsresult nsMsgDatabase::GetProperty(nsIMdbRow *row, const char *propertyName, char **result)
 {
@@ -3753,6 +3822,31 @@ nsresult nsMsgDatabase::SetUint32Property(nsIMdbRow *row, const char *propertyNa
   if (err == NS_OK)
   {
     UInt32ToYarn(&yarn, propertyVal);
+    err = row->AddColumn(GetEnv(), property_token, &yarn);
+  }
+  return err;
+}
+
+nsresult nsMsgDatabase::SetUint64Property(nsIMdbRow *row,
+                                          const char *propertyName,
+                                          PRUint64 propertyVal)
+{
+  struct mdbYarn yarn;
+  char  int64StrBuf[100];
+  yarn.mYarn_Buf = int64StrBuf;
+  yarn.mYarn_Size = sizeof(int64StrBuf);
+  yarn.mYarn_Fill = sizeof(int64StrBuf);
+
+  NS_ENSURE_STATE(m_mdbStore); // db might have been closed out from under us.
+  if (!row)
+    return NS_ERROR_NULL_POINTER;
+
+  mdb_token  property_token;
+
+  nsresult err = m_mdbStore->StringToToken(GetEnv(),  propertyName, &property_token);
+  if (err == NS_OK)
+  {
+    UInt64ToYarn(&yarn, propertyVal);
     err = row->AddColumn(GetEnv(), property_token, &yarn);
   }
   return err;
@@ -4535,6 +4629,14 @@ NS_IMETHODIMP nsMsgDatabase::SetAttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, c
 
 NS_IMETHODIMP nsMsgDatabase::SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
                                   PRUint32 propertyVal)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+nsMsgDatabase::SetUint64AttributeOnPendingHdr(nsIMsgDBHdr *aPendingHdr,
+                                              const char *aProperty,
+                                              PRUint64 aPropertyVal)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

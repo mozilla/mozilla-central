@@ -107,9 +107,9 @@ public:
   nsCOMPtr<nsIMsgDatabase> m_backupMailDB;
 
   nsMailboxParseState   m_state;
-  PRUint32              m_position;
-  PRUint32              m_envelope_pos;
-  PRUint32              m_headerstartpos;
+  PRUint64              m_position;
+  PRUint64              m_envelope_pos;
+  PRUint64              m_headerstartpos;
 
   nsByteArray           m_headers;
 
@@ -292,7 +292,7 @@ protected:
   PRUint32      m_ibuffer_size;
   // used for applying move filters, because in the case of using a temporary
   // download file, the offset/key in the msg hdr is not right.
-  PRUint32      m_curHdrOffset;
+  PRUint64      m_curHdrOffset;
 
   // we have to apply the reply/forward filters in a second pass, after
   // msg quarantining and moving to other local folders, so we remember the

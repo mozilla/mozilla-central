@@ -44,7 +44,7 @@ interface nsIMsgDBHdr;
 interface nsIMsgDatabase;
 interface nsIMsgSearchScopeTerm;
 
-[scriptable, uuid(80BC6107-A61D-4469-B7D6-18C17D6DEC91)]
+[scriptable, uuid(bb0e5261-c7da-44de-83b9-a39064ad707f)]
 interface nsIMsgSearchTerm : nsISupports {
     attribute nsMsgSearchAttribValue attrib;
     attribute nsMsgSearchOpValue op;
@@ -90,27 +90,48 @@ interface nsIMsgSearchTerm : nsISupports {
      */
     boolean matchJunkScoreOrigin(in string aJunkScoreOrigin);
 
-    boolean matchBody(in nsIMsgSearchScopeTerm scopeTerm,
-                      in unsigned long offset,
-                      in unsigned long length,
-                      in string charset,
-                      in nsIMsgDBHdr msg,
-                      in nsIMsgDatabase db);
+    /**
+     * Test if the body of the passed in message matches "this" search term.
+     * @param aScopeTerm scope of search
+     * @param aOffset offset of message in message store.
+     * @param aLength length of message.
+     * @param aCharset folder charset.
+     * @param aMsg db msg hdr of message to match.
+     * @param aDB db containing msg header.
+     */
+    boolean matchBody(in nsIMsgSearchScopeTerm aScopeTerm,
+                      in unsigned long long aOffset,
+                      in unsigned long aLength,
+                      in string aCharset,
+                      in nsIMsgDBHdr aMsg,
+                      in nsIMsgDatabase aDb);
 
-    // marking noscript because headers is a null-separated list of strings,
-    // which is not scriptable
+    /**
+     * Test if the arbitrary header specified by this search term
+     * matches the corresponding header in the passed in message.
+     *
+     * @param aScopeTerm scope of search
+     * @param aOffset offset of message in message store
+     * @param aLength length of message
+     * @param aCharset The charset to apply to un-labeled non-UTF-8 data.
+     * @param aCharsetOverride If true, aCharset is used instead of any
+     *                         charset labeling other than UTF-8.
+     *
+     * N.B. This is noscript because headers is a null-separated list of
+     * strings, which is not scriptable.
+     */
     [noscript]
-    boolean matchArbitraryHeader(in nsIMsgSearchScopeTerm scopeTerm,
-                                 in unsigned long offset,
-                                 in unsigned long length,
-                                 in string charset,
-                                 in boolean charsetOverride,
-                                 in nsIMsgDBHdr msg,
-                                 in nsIMsgDatabase db,
+    boolean matchArbitraryHeader(in nsIMsgSearchScopeTerm aScopeTerm,
+                                 in unsigned long long aOffset,
+                                 in unsigned long aLength,
+                                 in string aCharset,
+                                 in boolean aCharsetOverride,
+                                 in nsIMsgDBHdr aMsg,
+                                 in nsIMsgDatabase aDb,
                                  //[array, size_is(headerLength)] in string headers,
-                                 in string headers,
-                                 in unsigned long headerLength,
-                                 in boolean forFilters);
+                                 in string aHeaders,
+                                 in unsigned long aHeaderLength,
+                                 in boolean aForFilters);
 
     /**
      * Compares value.str with nsIMsgHdr::GetProperty(hdrProperty).

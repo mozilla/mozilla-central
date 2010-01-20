@@ -520,7 +520,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       }
       case nsMsgSearchAttrib::Body:
        {
-         nsMsgKey messageOffset;
+         PRUint64 messageOffset;
          PRUint32 lineCount;
          msgToMatch->GetMessageOffset(&messageOffset);
          msgToMatch->GetLineCount(&lineCount);
@@ -675,9 +675,9 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
           {
             PRUint32 lineCount;
             msgToMatch->GetLineCount(&lineCount);
-            nsMsgKey messageKey;
-            msgToMatch->GetMessageOffset(&messageKey);
-            err = aTerm->MatchArbitraryHeader (scope, messageKey, lineCount,charset, charsetOverride,
+            PRUint64 messageOffset;
+            msgToMatch->GetMessageOffset(&messageOffset);
+            err = aTerm->MatchArbitraryHeader (scope, messageOffset, lineCount,charset, charsetOverride,
                                                 msgToMatch, db, headers, headerSize, Filtering, &result);
           }
           else

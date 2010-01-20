@@ -72,10 +72,12 @@ public:
     PRBool      IsAncestorKilled(PRUint32 ancestorsToCheck);
     void        ReparentInThread(nsIMsgThread *thread);
 protected:
-    nsresult	SetStringColumn(const char *str, mdb_token token);
-    nsresult	SetUInt32Column(PRUint32 value, mdb_token token);
-    nsresult	GetUInt32Column(mdb_token token, PRUint32 *pvalue, PRUint32 defaultValue = 0);
-    nsresult    BuildRecipientsFromArray(const char *names, const char *addresses, PRUint32 numAddresses, nsCAutoString& allRecipients);
+    nsresult SetStringColumn(const char *str, mdb_token token);
+    nsresult SetUInt32Column(PRUint32 value, mdb_token token);
+    nsresult GetUInt32Column(mdb_token token, PRUint32 *pvalue, PRUint32 defaultValue = 0);
+    nsresult SetUInt64Column(PRUint64 value, mdb_token token);
+    nsresult GetUInt64Column(mdb_token token, PRUint64 *pvalue, PRUint64 defaultValue = 0);
+    nsresult BuildRecipientsFromArray(const char *names, const char *addresses, PRUint32 numAddresses, nsCAutoString& allRecipients);
 
     // reference and threading stuff.
     nsresult	ParseReferences(const char *references);

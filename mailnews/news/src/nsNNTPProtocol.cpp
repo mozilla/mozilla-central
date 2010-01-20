@@ -850,7 +850,8 @@ PRBool nsNNTPProtocol::ReadFromLocalCache()
     {
     // we want to create a file channel and read the msg from there.
       nsCOMPtr<nsIInputStream> fileStream;
-      PRUint32 offset=0, size=0;
+      PRUint64 offset=0;
+      PRUint32 size=0;
       rv = folder->GetOfflineFileStream(m_key, &offset, &size, getter_AddRefs(fileStream));
 
       // get the file stream from the folder, somehow (through the message or
@@ -870,10 +871,10 @@ PRBool nsNNTPProtocol::ReadFromLocalCache()
         cacheListener->Init(m_channelListener, static_cast<nsIChannel *>(this), mailnewsUrl);
 
         // create a stream pump that will async read the specified amount of data.
-        // XXX make offset and size 64-bit ints
+        // XXX make size 64-bit int
         nsCOMPtr<nsIInputStreamPump> pump;
         rv = NS_NewInputStreamPump(getter_AddRefs(pump),
-                                   fileStream, nsInt64(offset), nsInt64(size));
+                                   fileStream, offset, (PRInt64) size);
         if (NS_SUCCEEDED(rv))
           rv = pump->AsyncRead(cacheListener, m_channelContext);
 

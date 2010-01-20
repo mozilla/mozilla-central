@@ -21,7 +21,7 @@ public:
   // filtering...we need the list of headers and the header size as well
   // if we are doing filtering...if ForFilters is false, headers and
   // headersSize is ignored!!!
-  nsMsgBodyHandler (nsIMsgSearchScopeTerm *, PRUint32 offset,
+  nsMsgBodyHandler (nsIMsgSearchScopeTerm *, PRUint64 offset,
     PRUint32 length, nsIMsgDBHdr * msg, nsIMsgDatabase * db,
     const char * headers /* NULL terminated list of headers */,
     PRUint32 headersSize, PRBool ForFilters);
@@ -61,7 +61,7 @@ protected:
   // need a file stream here, I bet
 
   // current offset into the mail folder file.
-  PRInt32 m_localFileOffset;
+  PRUint64 m_localFileOffset;
   /**
    * The number of lines in the message.  If |m_lineCountInBodyLines| then this
    * is the number of body lines, otherwise this is the entire number of lines

@@ -1068,9 +1068,9 @@ nsFolderCompactState::StartMessage()
     // but it doesn't, and I'm afraid to change that nsIFileStream.cpp code anymore.
     seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, 0);
     // record the new message key for the message
-    PRInt64 filePos;
-    seekableStream->Tell(&filePos);
-    m_startOfNewMsg = (PRUint32) filePos;
+    PRInt64 curStreamPos;
+    seekableStream->Tell(&curStreamPos);
+    m_startOfNewMsg = curStreamPos;
     rv = NS_OK;
   }
   return rv;
@@ -1094,10 +1094,15 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
     return NS_OK;
   }
 
-    // okay done with the current message; copying the existing message header
-    // to the new database
+  /**
+   * Done with the current message; copying the existing message header
+   * to the new database.
+   * XXX This will need to be changed when we support local mail folders
+   * > 4GB. We'll need to set the messageOffset attribute on the new header,
+   * and assign the nsMsgKey some other way.
+   */
   if (m_curSrcHdr)
-    m_db->CopyHdrFromExistingHdr(m_startOfNewMsg, m_curSrcHdr, PR_TRUE,
+    m_db->CopyHdrFromExistingHdr((nsMsgKey) m_startOfNewMsg, m_curSrcHdr, PR_TRUE,
                                getter_AddRefs(newMsgHdr));
   m_curSrcHdr = nsnull;
   if (newMsgHdr)

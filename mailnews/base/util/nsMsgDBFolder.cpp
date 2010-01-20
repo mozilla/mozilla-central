@@ -775,7 +775,7 @@ PRBool nsMsgDBFolder::VerifyOfflineMessage(nsIMsgDBHdr *msgHdr, nsIInputStream *
   nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(fileStream);
   if (seekableStream)
   {
-    PRUint32 offset;
+    PRUint64 offset;
     msgHdr->GetMessageOffset(&offset);
     nsresult rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, offset);
     char startOfMsg[100];
@@ -792,7 +792,7 @@ PRBool nsMsgDBFolder::VerifyOfflineMessage(nsIMsgDBHdr *msgHdr, nsIInputStream *
   return PR_TRUE;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint32 *offset, PRUint32 *size, nsIInputStream **aFileStream)
+NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint64 *offset, PRUint32 *size, nsIInputStream **aFileStream)
 {
   NS_ENSURE_ARG(aFileStream);
 
@@ -1591,27 +1591,22 @@ nsresult nsMsgDBFolder::WriteStartOfNewLocalMessage()
   m_bytesAddedToLocalMsg = result.Length();
 
   nsCOMPtr <nsISeekableStream> seekable;
-  nsInt64 curStorePos;
+  PRInt64 curStorePos;
 
   if (m_offlineHeader)
     seekable = do_QueryInterface(m_tempMessageStream);
 
   if (seekable)
   {
-    PRInt64 tellPos;
-    seekable->Tell(&tellPos);
-    curStorePos = tellPos;
-    // ### todo - need to convert this to 64 bits
-    m_offlineHeader->SetMessageOffset((PRUint32) curStorePos);
+    seekable->Tell(&curStorePos);
+    m_offlineHeader->SetMessageOffset(curStorePos);
   }
   m_tempMessageStream->Write(result.get(), result.Length(),
                              &writeCount);
   if (seekable)
   {
-    PRInt64 tellPos;
     seekable->Seek(PR_SEEK_CUR, 0); // seeking causes a flush, w/o syncing
-    seekable->Tell(&tellPos);
-    curStorePos = tellPos;
+    seekable->Tell(&curStorePos);
     m_offlineHeader->SetStatusOffset((PRUint32) curStorePos);
   }
 
@@ -1646,8 +1641,8 @@ nsresult nsMsgDBFolder::StartNewOfflineMessage()
 nsresult nsMsgDBFolder::EndNewOfflineMessage()
 {
   nsCOMPtr <nsISeekableStream> seekable;
-  nsInt64 curStorePos;
-  PRUint32 messageOffset;
+  PRInt64 curStorePos;
+  PRUint64 messageOffset;
   PRUint32 messageSize;
 
   nsMsgKey messageKey;

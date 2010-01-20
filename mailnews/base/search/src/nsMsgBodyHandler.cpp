@@ -73,7 +73,7 @@ nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope, PRUint32 offs
 }
 
 nsMsgBodyHandler::nsMsgBodyHandler(nsIMsgSearchScopeTerm * scope,
-                                   PRUint32 offset, PRUint32 numLines,
+                                   PRUint64 offset, PRUint32 numLines,
                                    nsIMsgDBHdr* msg, nsIMsgDatabase* db,
                                    const char * headers, PRUint32 headersSize,
                                    PRBool Filtering)

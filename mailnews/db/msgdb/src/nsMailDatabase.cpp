@@ -277,10 +277,10 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
       
     if (fileStream) 
     {
-      PRUint32 msgOffset;
+      PRUint64 msgOffset;
       (void)mailHdr->GetMessageOffset(&msgOffset);
-      PRUint32 statusPos = offset + msgOffset;
-      PR_ASSERT(offset < 10000);
+      PRUint64 statusPos = msgOffset + offset;
+      NS_ASSERTION(offset < 10000, "extremely unlikely status offset");
       seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, statusPos);
       buf[0] = '\0';
       nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(fileStream);
@@ -319,7 +319,7 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
           PR_snprintf(buf, sizeof(buf), X_MOZILLA_STATUS_FORMAT,
             flags & 0x0000FFFF);
           PRInt32 lineLen = PL_strlen(buf);
-          PRUint32 status2Pos = statusPos + lineLen + MSG_LINEBREAK_LEN;
+          PRUint64 status2Pos = statusPos + lineLen + MSG_LINEBREAK_LEN;
           fileStream->Write(buf, lineLen, &bytesWritten);
           
           // time to upate x-mozilla-status2

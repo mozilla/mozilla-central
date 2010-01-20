@@ -1803,7 +1803,7 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
       // the flushing...
       // flush the inbox because filters will read from disk
       // m_inboxFileStream->Flush();
-      PRUint32 msgOffset;
+      PRUint64 msgOffset;
       (void) m_newMsgHdr->GetMessageOffset(&msgOffset);
       m_curHdrOffset = msgOffset;
 
