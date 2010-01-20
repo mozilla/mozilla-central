@@ -372,8 +372,7 @@ let mailTabType = {
 
         // Once we're brought into the foreground, the message pane should
         // get focus
-        aTab._focusedWindow = GetMessagePaneFrame();
-        aTab._focusedElement = null;
+        aTab._focusedElement = document.getElementById("messagepane");
 
         // we only want to make it active after setting up the view and the message
         //  to avoid generating bogus summarization events.
@@ -550,23 +549,31 @@ let mailTabType = {
 
   /**
    * Save off the tab's currently focused element or window.
-   * - If the message pane or summary is currently focused, we'll save this as
-   *   our focused window. We won't try to save the focused element, as they'll
-   *   be rebuilt every time we switch panes and it'll be too hard for us to do
-   *   that.
+   * - If the message pane or summary is currently focused, save the
+   *   corresponding browser element as the focused element.
    * - If the thread tree or folder tree is focused, save that as the focused
-   *   element and the toplevel window as the focused window.
+   *   element.
    */
   saveFocus: function mailTabType_saveFocus(aTab) {
+    dump("focused window = " + document.commandDispatcher.focusedWindow.top + "\n");
+    dump("focused element = " + document.commandDispatcher.focusedElement + "\n");
+    let focusManager = Components.classes["@mozilla.org/focus-manager;1"]
+                                 .getService(Components.interfaces.nsIFocusManager);
+    let fw = {};
+    let fe = focusManager.getFocusedElementForWindow(window, true, fw);
+    dump("focusmanager focused window = " + fw.value + "\n");
+    dump("focusmanager focused element = " + fe + "\n");
     let focusedWindow = document.commandDispatcher.focusedWindow.top;
-    if (focusedWindow == document.getElementById("messagepane").contentWindow ||
-        focusedWindow == document.getElementById("multimessage").contentWindow) {
-      aTab._focusedWindow = focusedWindow;
-      aTab._focusedElement = null;
+
+    let messagepane = document.getElementById("messagepane");
+    let multimessage = document.getElementById("multimessage");
+    if (focusedWindow == messagepane.contentWindow) {
+      aTab._focusedElement = messagepane;
+    }
+    else if (focusedWindow == multimessage.contentWindow) {
+      aTab._focusedElement = multimessage;
     }
     else {
-      aTab._focusedWindow = window;
-
       // Look for children as well. This logic is copied from the mail 3pane
       // version of WhichPaneHasFocus().
       let focusedElement = document.commandDispatcher.focusedElement;
@@ -589,25 +596,11 @@ let mailTabType = {
     // There seem to be issues with opening multiple messages at once, so allow
     // things to stabilize a bit before proceeding
     let reallyRestoreFocus = function mailTabType_reallyRestoreFocus(aTab) {
-      if ("_focusedWindow" in aTab && aTab._focusedWindow) {
-        let windowWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                              .getService(Components.interfaces.nsIWindowWatcher);
-        if (windowWatcher.activeWindow == window)
-          aTab._focusedWindow.focus();
-        else
-          // We can't focus() the window if it's in the background relative to
-          // other windows within this process, or it'll steal focus. Set the
-          // focused window instead, so that when this window receives focus
-          // again, we'll focus the right thing.
-          // XXX This should only be needed for 1.9.1
-          document.commandDispatcher.focusedWindow = aTab._focusedWindow;
-      }
       if ("_focusedElement" in aTab && aTab._focusedElement)
         aTab._focusedElement.focus();
-      aTab._focusedWindow = aTab._focusedElement = null;
+      aTab._focusedElement = null;
     };
 
-    let self = this;
     window.setTimeout(reallyRestoreFocus, 0, aTab);
   },
 
