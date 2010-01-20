@@ -83,7 +83,6 @@
 
 #define XP_SHSetUnreadMailCounts "SHSetUnreadMailCountW"
 #define XP_SHEnumerateUnreadMailAccounts "SHEnumerateUnreadMailAccountsW"
-#define ShellNotifyWideVersion "Shell_NotifyIconW"
 #define NOTIFICATIONCLASSNAME "MailBiffNotificationMessageWindow"
 #define UNREADMAILNODEKEY "Software\\Microsoft\\Windows\\CurrentVersion\\UnreadMail\\"
 #define SHELL32_DLL NS_LITERAL_CSTRING("shell32.dll")
@@ -260,7 +259,6 @@ nsMessengerWinIntegration::nsMessengerWinIntegration()
   mSuppressBiffIcon = PR_FALSE;
   mAlertInProgress = PR_FALSE;
   mBiffIconInitialized = PR_FALSE;
-  mUseWideCharBiffIcon = PR_FALSE;
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
 }
 
@@ -301,21 +299,16 @@ nsMessengerWinIntegration::ResetCurrent()
   return NS_OK;
 }
 
-NOTIFYICONDATA nsMessengerWinIntegration::sNativeBiffIconData = { sizeof(NOTIFYICONDATA),
-                                                    0,
-                                                    2,
-                                                    NIF_ICON | NIF_MESSAGE | NIF_TIP,
-                                                    WM_USER,
-                                                    0,
-                                                    0 };
-
-NOTIFYICONDATAW nsMessengerWinIntegration::sWideBiffIconData = { sizeof(NOTIFYICONDATAW),
-                                                    0,
-                                                    2,
-                                                    NIF_ICON | NIF_MESSAGE | NIF_TIP,
-                                                    WM_USER,
-                                                    0,
-                                                    0 };
+NOTIFYICONDATAW sBiffIconData = { sizeof(NOTIFYICONDATAW),
+                                  0,
+                                  2,
+                                  NIF_ICON | NIF_MESSAGE | NIF_TIP,
+                                  WM_USER,
+                                  0,
+                                  0 };
+// allow for the null terminator
+static const PRUint32 kMaxTooltipSize = sizeof(sBiffIconData.szTip) /
+                                        sizeof(sBiffIconData.szTip[0]) - 1;
 
 #ifdef MOZ_STATIC_BUILD
 #define MAIL_DLL_NAME NULL
@@ -332,18 +325,8 @@ void nsMessengerWinIntegration::InitializeBiffStatusIcon()
   // initialize our biff status bar icon
   Create();
 
-  if (mUseWideCharBiffIcon)
-  {
-    sWideBiffIconData.hWnd = (HWND) msgWindow;
-    sWideBiffIconData.hIcon =  ::LoadIcon( ::GetModuleHandle( MAIL_DLL_NAME ), MAKEINTRESOURCE(IDI_MAILBIFF) );
-    sWideBiffIconData.szTip[0] = 0;
-  }
-  else
-  {
-    sNativeBiffIconData.hWnd = (HWND) msgWindow;
-    sNativeBiffIconData.hIcon =  ::LoadIcon( ::GetModuleHandle( MAIL_DLL_NAME ), MAKEINTRESOURCE(IDI_MAILBIFF) );
-    sNativeBiffIconData.szTip[0] = 0;
-  }
+  sBiffIconData.hWnd = (HWND) msgWindow;
+  sBiffIconData.hIcon = ::LoadIcon( ::GetModuleHandle( MAIL_DLL_NAME ), MAKEINTRESOURCE(IDI_MAILBIFF) );
 
   mBiffIconInitialized = PR_TRUE;
 }
@@ -381,9 +364,6 @@ nsMessengerWinIntegration::Init()
   if (hModule) {
     mSHSetUnreadMailCount = (fnSHSetUnreadMailCount)GetProcAddress(hModule, XP_SHSetUnreadMailCounts);
     mSHEnumerateUnreadMailAccounts = (fnSHEnumerateUnreadMailAccounts)GetProcAddress(hModule, XP_SHEnumerateUnreadMailAccounts);
-    mShellNotifyWideChar = (fnShellNotifyW)GetProcAddress(hModule, ShellNotifyWideVersion);
-    if (mShellNotifyWideChar)
-       mUseWideCharBiffIcon = PR_TRUE; // this version of the shell supports I18N friendly ShellNotify routines.
   }
 
   // if failed to get either of the process addresses, this is not XP platform
@@ -419,11 +399,9 @@ nsMessengerWinIntegration::Init()
     NS_ENSURE_SUCCESS(rv, rv);
 
     // get application path
-    char appPath[_MAX_PATH] = {0};
-    GetModuleFileName(nsnull, appPath, sizeof(appPath));
-    WCHAR wideFormatAppPath[_MAX_PATH*2] = {0};
-    MultiByteToWideChar(CP_ACP, 0, appPath, strlen(appPath), wideFormatAppPath, _MAX_PATH*2);
-    mAppName.Assign((PRUnichar *)wideFormatAppPath);
+    WCHAR appPath[_MAX_PATH] = {0};
+    ::GetModuleFileNameW(nsnull, appPath, sizeof(appPath));
+    mAppName.Assign((PRUnichar *)appPath);
 
     rv = ResetCurrent();
     NS_ENSURE_SUCCESS(rv,rv);
@@ -650,7 +628,6 @@ void nsMessengerWinIntegration::FillToolTipInfo()
 
   PRUint32 count = 0;
   mFoldersWithNewMail->Count(&count);
-  PRUint32 maxTooltipSize = GetToolTipSize();
 
   for (PRUint32 index = 0; index < count; index++)
   {
@@ -686,7 +663,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
           animatedAlertText = finalText;
 
         // only add this new string if it will fit without truncation....
-        if (maxTooltipSize >= toolTipText.Length() + accountName.Length() + finalText.Length() + 2)
+        if (kMaxTooltipSize >= toolTipText.Length() + accountName.Length() + finalText.Length() + 2)
         {
           if (index > 0)
             toolTipText.Append(PRUnichar('\n'));
@@ -698,7 +675,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
     } // if we got a folder
   } // for each folder
 
-  SetToolTipStringOnIconData(toolTipText.get());
+  ::wcsncpy( sBiffIconData.szTip, toolTipText.get(), kMaxTooltipSize);
 
   if (!mBiffIconVisible)
   {
@@ -778,68 +755,9 @@ void nsMessengerWinIntegration::DestroyBiffIcon()
   // Don't call DestroyIcon().  see http://bugzilla.mozilla.org/show_bug.cgi?id=134745
 }
 
-PRUint32 nsMessengerWinIntegration::GetToolTipSize()
-{
-  if (mUseWideCharBiffIcon)
-    return (sizeof(sWideBiffIconData.szTip)/sizeof(sWideBiffIconData.szTip[0]));
-  else
-    return (sizeof(sNativeBiffIconData.szTip));
-}
-
-void nsMessengerWinIntegration::SetToolTipStringOnIconData(const PRUnichar * aToolTipString)
-{
-  if (!aToolTipString) return;
-
-  PRUint32 toolTipBufSize = GetToolTipSize();
-
-  if (mUseWideCharBiffIcon)
-  {
-    ::wcsncpy( sWideBiffIconData.szTip, aToolTipString, toolTipBufSize);
-    if (wcslen(aToolTipString) >= toolTipBufSize)
-      sWideBiffIconData.szTip[toolTipBufSize - 1] = 0;
-  }
-  else
-  {
-    nsCAutoString nativeToolTipString;
-    NS_CopyUnicodeToNative(nsDependentString(aToolTipString),
-                           nativeToolTipString);
-    ::strncpy(sNativeBiffIconData.szTip,
-              nativeToolTipString.get(), GetToolTipSize());
-    if (nativeToolTipString.Length() >= toolTipBufSize)
-      sNativeBiffIconData.szTip[toolTipBufSize - 1] = 0;
-  }
-}
-
 void nsMessengerWinIntegration::GenericShellNotify(DWORD aMessage)
 {
-  if (mUseWideCharBiffIcon)
-  {
-    BOOL res = mShellNotifyWideChar( aMessage, &sWideBiffIconData );
-    if (!res)
-      RevertToNonUnicodeShellAPI(); // oops we don't really implement the unicode shell apis...fall back.
-    else
-      return;
-  }
-
-  ::Shell_NotifyIcon( aMessage, &sNativeBiffIconData );
-}
-
-// some flavors of windows define ShellNotifyW but when you actually try to use it,
-// they return an error. In this case, we'll have a routine which converts us over to the
-// default ASCII version.
-void nsMessengerWinIntegration::RevertToNonUnicodeShellAPI()
-{
-  mUseWideCharBiffIcon = PR_FALSE;
-
-  // now initialize the ascii shell notify struct
-  InitializeBiffStatusIcon();
-
-  // now we need to copy over any left over tool tip strings
-  if (sWideBiffIconData.szTip)
-  {
-    const PRUnichar * oldTooltipString = sWideBiffIconData.szTip;
-    SetToolTipStringOnIconData(oldTooltipString);
-  }
+  ::Shell_NotifyIconW( aMessage, &sBiffIconData );
 }
 
 NS_IMETHODIMP
