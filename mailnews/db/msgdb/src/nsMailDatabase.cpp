@@ -165,7 +165,7 @@ NS_IMETHODIMP nsMailDatabase::EndBatch()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailDatabase::DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsMailDatabase::DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys, nsIDBChangeListener *instigator)
 {
   nsresult rv;
   if (!m_folderStream && m_folder)
@@ -182,7 +182,7 @@ NS_IMETHODIMP nsMailDatabase::DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, nsID
     m_ownFolderStream = PR_TRUE;
   }
 
-  rv = nsMsgDatabase::DeleteMessages(nsMsgKeys, instigator);
+  rv = nsMsgDatabase::DeleteMessages(aNumKeys, nsMsgKeys, instigator);
   if (m_ownFolderStream)//only if we own the stream, then we should close it
   {
     if (m_folderStream)

@@ -62,7 +62,7 @@ public:
                                   const char *propertyVal);
   NS_IMETHOD    SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
                                   PRUint32 propertyVal);
-  NS_IMETHOD    DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys,
+  NS_IMETHOD    DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys,
                                nsIDBChangeListener *instigator);
 
 protected:

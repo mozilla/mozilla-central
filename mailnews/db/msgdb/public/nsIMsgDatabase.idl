@@ -242,7 +242,7 @@ interface nsIMsgDBService : nsISupports
   nsIMsgDatabase cachedDBForFolder(in nsIMsgFolder aFolder);
 };
 
-[scriptable, uuid(231E3473-DA59-4d18-AD54-F5A9D24AE3FC)]
+[scriptable, uuid(cc07931e-73f6-4e4c-be96-59c70e0ca0a4)]
 interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   /**
    * Opens a database folder.
@@ -397,7 +397,9 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
 
   [noscript] void MarkReadByDate (in PRTime startDate, in PRTime endDate, in nsMsgKeyArrayPtr markedIds);
 
-  [noscript] void DeleteMessages(in nsMsgKeyArrayPtr nsMsgKeys, in nsIDBChangeListener instigator);
+  void deleteMessages(in unsigned long aNumKeys,
+                      [array, size_is(aNumKeys)] in nsMsgKey nsMsgKeys,
+                      in nsIDBChangeListener instigator);
   void DeleteMessage(in nsMsgKey key, 
                            in nsIDBChangeListener instigator,
                            in boolean commit);

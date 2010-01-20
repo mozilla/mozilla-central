@@ -894,28 +894,24 @@ MsgMapiListContext::DeleteMessage(nsMsgKey key)
   if (!m_db)
     return FALSE;
   
-  nsAutoTArray<nsMsgKey, 1> messageKeys;      
-  messageKeys.AppendElement(key);
-  
   if ( !IsIMAPHost() )
   {
-    return NS_SUCCEEDED((m_db->DeleteMessages(&messageKeys, nsnull)));
+    return NS_SUCCEEDED((m_db->DeleteMessages(1, &key, nsnull)));
   }
-  else
-  {
-    return FALSE;
 #if 0 
-    if ( m_folder->GetIMAPFolderInfoMail() )
+  else if ( m_folder->GetIMAPFolderInfoMail() )
     {
+    nsAutoTArray<nsMsgKey, 1> messageKeys;
+    messageKeys.AppendElement(key);
+
       (m_folder->GetIMAPFolderInfoMail())->DeleteSpecifiedMessages(pane, messageKeys, nsMsgKey_None);
       m_db->DeleteMessage(key, nsnull, FALSE);
       return TRUE;
     }
+#endif
     else
     {
       return FALSE;
-    }
-#endif
   }
 }
 

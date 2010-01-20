@@ -1684,7 +1684,7 @@ NS_IMETHODIMP nsMsgNewsFolder::RemoveMessages(nsTArray<nsMsgKey> &aMsgKeys)
     notifier->NotifyMsgsDeleted(msgHdrs);
   }
 
-  return mDatabase->DeleteMessages(&aMsgKeys, nsnull);
+  return mDatabase->DeleteMessages(aMsgKeys.Length(), aMsgKeys.Elements(), nsnull);
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::CancelComplete()

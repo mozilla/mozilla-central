@@ -55,7 +55,7 @@ public:
   virtual ~nsMailDatabase();
   NS_IMETHOD  Open(nsILocalFile *aFolderName, PRBool create, PRBool upgrading);
   NS_IMETHOD  ForceClosed();
-  NS_IMETHOD DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, nsIDBChangeListener *instigator);
+  NS_IMETHOD DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys, nsIDBChangeListener *instigator);
 
   NS_IMETHOD StartBatch();
   NS_IMETHOD EndBatch();

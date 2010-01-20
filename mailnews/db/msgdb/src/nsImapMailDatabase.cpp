@@ -87,9 +87,9 @@ void nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, PRBool /* 
 
 // We override this to avoid our parent class (nsMailDatabase)'s 
 // grabbing of the folder semaphore, and bailing on failure.
-NS_IMETHODIMP nsImapMailDatabase::DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsImapMailDatabase::DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys, nsIDBChangeListener *instigator)
 {
-  return nsMsgDatabase::DeleteMessages(nsMsgKeys, instigator);
+  return nsMsgDatabase::DeleteMessages(aNumKeys, nsMsgKeys, instigator);
 }
 
 // We override this so we won't try to change the x-mozilla-status flags

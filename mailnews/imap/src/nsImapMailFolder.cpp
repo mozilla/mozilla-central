@@ -2332,7 +2332,7 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
             if (notifier)
               notifier->NotifyMsgsDeleted(messages);
           }
-          mDatabase->DeleteMessages(&srcKeyArray,nsnull);
+          mDatabase->DeleteMessages(srcKeyArray.Length(), srcKeyArray.Elements(), nsnull);
           EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_TRUE /*dbBatching*/);
         }
         NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
@@ -2805,7 +2805,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     }
 
     // It would be nice to notify RDF or whoever of a mass delete here.
-    mDatabase->DeleteMessages(&keysToDelete, nsnull);
+    mDatabase->DeleteMessages(keysToDelete.Length(), keysToDelete.Elements(), nsnull);
     total = keysToDelete.Length();
   }
   PRInt32 numUnreadFromServer;
@@ -4775,7 +4775,7 @@ nsImapMailFolder::NotifyMessageDeleted(const char * onlineFolderName, PRBool del
     if (!ShowDeletedMessages())
     {
       if (!affectedMessages.IsEmpty()) // perhaps Search deleted these messages
-          mDatabase->DeleteMessages(&affectedMessages, nsnull);
+          mDatabase->DeleteMessages(affectedMessages.Length(), affectedMessages.Elements(), nsnull);
     }
     else // && !imapDeleteIsMoveToTrash
       SetIMAPDeletedFlag(mDatabase, affectedMessages, nsnull);
@@ -5085,7 +5085,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                 }
 
                 if (!ShowDeletedMessages())
-                  srcDB->DeleteMessages(&srcKeyArray, nsnull);
+                  srcDB->DeleteMessages(srcKeyArray.Length(), srcKeyArray.Elements(), nsnull);
                 else
                   MarkMessagesImapDeleted(&srcKeyArray, PR_TRUE, srcDB);
               }
@@ -5191,7 +5191,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                     notifier->NotifyMsgsDeleted(msgHdrs);
                 }
 
-                db->DeleteMessages(&keyArray, nsnull);
+                db->DeleteMessages(keyArray.Length(), keyArray.Elements(), nsnull);
                 db->SetSummaryValid(PR_TRUE);
                 db->Commit(nsMsgDBCommitType::kLargeCommit);
               }
@@ -7052,7 +7052,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   }
 
   if (isMove && (deleteToTrash || deleteImmediately))
-    sourceMailDB->DeleteMessages(&keysToDelete, nsnull);
+    sourceMailDB->DeleteMessages(keysToDelete.Length(), keysToDelete.Elements(), nsnull);
 
   nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(srcFolder);
   OnCopyCompleted(srcSupport, rv);
