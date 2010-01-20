@@ -82,7 +82,7 @@
 #endif
   <key id="key_undo" key="&undoCmd.key;" modifiers="accel"/>
   <key id="key_redo"
-#ifdef XP_MACOSX
+#ifdef XP_UNIX
        key="&undoCmd.key;"
        modifiers="shift, accel"/>
 #else
