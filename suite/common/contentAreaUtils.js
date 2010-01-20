@@ -93,19 +93,6 @@ function urlSecurityCheck(aURI, aPrincipal, aFlags)
   }
 }
 
-function getContentFrameURI(aFocusedWindow)
-{
-  var contentFrame = isContentFrame(aFocusedWindow) ? aFocusedWindow : window.content;
-  return contentFrame.location.href;
-}
-
-function getContentFrameDocument(aFocusedWindow)
-{
-  var contentFrame = isContentFrame(aFocusedWindow) ?
-                       aFocusedWindow : window.content;
-  return contentFrame.document;
-}
-
 // Clientelle: (Make sure you don't break any of these)
 //  - File    ->  Save Page/Frame As...
 //  - Context ->  Save Page/Frame As...

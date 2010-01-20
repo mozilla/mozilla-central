@@ -75,6 +75,13 @@ function editPageOrFrame()
   editPage(getContentFrameURI(focusedWindow));
 }
 
+function getContentFrameURI(aFocusedWindow)
+{
+  var contentFrame = isContentFrame(aFocusedWindow) ?
+                       aFocusedWindow : window.content;
+  return contentFrame.location.href;
+}
+
 // Any non-editor window wanting to create an editor with a URL
 //   should use this instead of "window.openDialog..."
 //  We must always find an existing window with requested URL
