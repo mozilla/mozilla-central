@@ -2183,7 +2183,7 @@ case "$target" in
     MOZ_DEBUG_LDFLAGS='-DEBUG -DEBUGTYPE:CV'
     MOZ_FIX_LINK_PATHS=
     if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
-        MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/js$(MOZ_BITS)$(VERSION_NUMBER).lib'
+        MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/js32$(VERSION_NUMBER).lib'
     else
         MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/mozjs.lib'
     fi
@@ -2246,7 +2246,7 @@ case "$target" in
         # mingw doesn't require kernel32, user32, and advapi32 explicitly
         LIBS="$LIBS -lgdi32 -lwinmm -lwsock32"
         if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
-            MOZ_JS_LIBS='-L$(LIBXUL_DIST)/lib -ljs$(MOZ_BITS)$(VERSION_NUMBER)'
+            MOZ_JS_LIBS='-L$(LIBXUL_DIST)/lib -ljs32$(VERSION_NUMBER)'
         fi
         MOZ_FIX_LINK_PATHS=
         DYNAMIC_XPCOM_LIBS='-L$(LIBXUL_DIST)/lib -lxpcom -lxpcom_core'
@@ -2289,7 +2289,7 @@ case "$target" in
         WARNINGS_AS_ERRORS='-WX'
     	MOZ_OPTIMIZE_FLAGS='-O1'
         if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
-            MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/js$(MOZ_BITS)$(VERSION_NUMBER).lib'
+            MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/js32$(VERSION_NUMBER).lib'
         else
             MOZ_JS_LIBS='$(LIBXUL_DIST)/lib/mozjs.lib'
         fi
@@ -2320,7 +2320,7 @@ case "$target" in
             fi
         fi
     fi
-    MOZ_JPEG_LIBS='$(call EXPAND_LIBNAME_PATH,jpeg$(MOZ_BITS)$(VERSION_NUMBER),$(DEPTH)/mozilla/jpeg)'
+    MOZ_JPEG_LIBS='$(call EXPAND_LIBNAME_PATH,jpeg32$(VERSION_NUMBER),$(DEPTH)/mozilla/jpeg)'
     MOZ_PNG_LIBS='$(call EXPAND_LIBNAME_PATH,png,$(DEPTH)/mozilla/modules/libimg/png)'
     AC_DEFINE(HAVE_SNPRINTF)
     AC_DEFINE(_WINDOWS)
