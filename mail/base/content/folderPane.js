@@ -1128,16 +1128,20 @@ let gFolderTreeView = {
    * settings
    */
   _rebuild: function ftv__rebuild() {
-    let oldCount = this._rowMap ? this._rowMap.length : null;
+    let newRowMap;
     try {
-      this._rowMap = this._modes[this.mode].generateMap(this);
+      newRowMap = this._modes[this.mode].generateMap(this);
     } catch(ex) {
       Components.classes["@mozilla.org/consoleservice;1"]
                 .getService(Components.interfaces.nsIConsoleService)
                 .logStringMessage("generator " + this.mode + " failed with exception: " + ex);
       this.mode = "all";
-      this._rowMap = this._modes[this.mode].generateMap(this);
+      newRowMap = this._modes[this.mode].generateMap(this);
     }
+    // There's a chance the call to the map generator altered this._rowMap, so
+    // evaluate oldCount after calling it rather than before
+    let oldCount = this._rowMap ? this._rowMap.length : null;
+    this._rowMap = newRowMap;
 
     let evt = document.createEvent("Events");
     evt.initEvent("mapRebuild", true, false);
