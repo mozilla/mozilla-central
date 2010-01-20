@@ -449,9 +449,9 @@ function ViewPageSource(messages)
 
   try {
     // First, get the mail session
-    const mailSessionContractID = "@mozilla.org/messenger/services/session;1";
     const nsIMsgMailSession = Components.interfaces.nsIMsgMailSession;
-    var mailSession = Components.classes[mailSessionContractID].getService(nsIMsgMailSession);
+    var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
+                                .getService(nsIMsgMailSession);
     var mailCharacterSet = "charset=" + msgWindow.mailCharacterSet;
 
     for (var i = 0; i < numMessages; i++)

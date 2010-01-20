@@ -42,7 +42,6 @@
  //This file stores variables common to mail windows
 var messengerContractID        = "@mozilla.org/messenger;1";
 var statusFeedbackContractID   = "@mozilla.org/messenger/statusfeedback;1";
-var mailSessionContractID      = "@mozilla.org/messenger/services/session;1";
 var secureUIContractID         = "@mozilla.org/secure_browser_ui;1";
 var msgWindowContractID      = "@mozilla.org/messenger/msgwindow;1";
 
@@ -96,7 +95,8 @@ function OnMailWindowUnload()
     dbview.close(); 
   }
 
-  var mailSession = Components.classes[mailSessionContractID].getService();
+  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
+                              .getService();
   if (mailSession instanceof Components.interfaces.nsIMsgMailSession)
     mailSession.RemoveFolderListener(folderListener);
   mailSession.RemoveMsgWindow(msgWindow);

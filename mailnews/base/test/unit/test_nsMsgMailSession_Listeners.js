@@ -3,12 +3,11 @@
  * Test suite for nsMsgMailSession functions relating to listeners.
  */
 
-const mailSessionContractID = "@mozilla.org/messenger/services/session;1";
 const nsIMsgMailSession = Components.interfaces.nsIMsgMailSession;
 const nsIFolderListener = Components.interfaces.nsIFolderListener;
 const numListenerFunctions = 8;
 
-var gMailSession = Components.classes[mailSessionContractID]
+var gMailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
                              .getService(nsIMsgMailSession);
 var gMailSessionNotifier = gMailSession.QueryInterface(nsIFolderListener);
 

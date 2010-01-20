@@ -513,11 +513,11 @@ function SearchNewFolderOkCallback(name, uri)
     imapFolder = msgFolder.QueryInterface(Components.interfaces.nsIMsgImapMailFolder);
   }
   catch(ex) {}
-  var mailSessionContractID = "@mozilla.org/messenger/services/session;1";
   if (imapFolder) //imapFolder creation is asynchronous.
   {
     if (!gMailSession)
-      gMailSession = Components.classes[mailSessionContractID].getService(Components.interfaces.nsIMsgMailSession);
+      gMailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
+                               .getService(Components.interfaces.nsIMsgMailSession);
     try
     {
       var nsIFolderListener = Components.interfaces.nsIFolderListener;

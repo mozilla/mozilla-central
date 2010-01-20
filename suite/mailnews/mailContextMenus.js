@@ -658,7 +658,7 @@ function CheckForMessageIdInFolder(folder, messageId)
 
   if (!gMailSession)
   {
-    gMailSession = Components.classes[mailSessionContractID]
+    gMailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
                              .getService(Components.interfaces.nsIMsgMailSession);
   }
 

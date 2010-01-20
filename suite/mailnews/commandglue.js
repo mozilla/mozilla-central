@@ -1007,7 +1007,8 @@ function setupXFVirtualFolderSearch(folderUrisToSearch, searchTerms, searchOnlin
 
     gSearchSession = Components.classes[searchSessionContractID].createInstance(Components.interfaces.nsIMsgSearchSession);
 
-    gMailSession = Components.classes[mailSessionContractID].getService(Components.interfaces.nsIMsgMailSession);
+    gMailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
+                             .getService(Components.interfaces.nsIMsgMailSession);
 
   for (i in folderUrisToSearch)
     {
