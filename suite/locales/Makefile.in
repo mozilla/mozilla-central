@@ -457,6 +457,7 @@ generate-snippet-%:
 	    --product=$(MOZ_PKG_APPNAME) \
 	    --platform=$(MOZ_PKG_PLATFORM) \
 	    --download-base-URL=$(DOWNLOAD_BASE_URL) \
+	    --branch=$(FILE_BRANCH) \
 	    --verbose
 
 l10n-upload-%: AB_CD=$*
