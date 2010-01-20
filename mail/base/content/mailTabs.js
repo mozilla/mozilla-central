@@ -555,14 +555,6 @@ let mailTabType = {
    *   element.
    */
   saveFocus: function mailTabType_saveFocus(aTab) {
-    dump("focused window = " + document.commandDispatcher.focusedWindow.top + "\n");
-    dump("focused element = " + document.commandDispatcher.focusedElement + "\n");
-    let focusManager = Components.classes["@mozilla.org/focus-manager;1"]
-                                 .getService(Components.interfaces.nsIFocusManager);
-    let fw = {};
-    let fe = focusManager.getFocusedElementForWindow(window, true, fw);
-    dump("focusmanager focused window = " + fw.value + "\n");
-    dump("focusmanager focused element = " + fe + "\n");
     let focusedWindow = document.commandDispatcher.focusedWindow.top;
 
     let messagepane = document.getElementById("messagepane");
