@@ -97,6 +97,7 @@ function test_folder_tabs_update_correctly() {
 
   // tab with nothing
   let tabB = open_folder_in_new_tab(folder);
+  wait_for_blank_content_pane();
   assert_nothing_selected();
 
   // correct changes, none <=> summary

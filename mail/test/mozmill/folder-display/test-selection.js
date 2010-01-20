@@ -116,6 +116,7 @@ function test_selection_persists_through_folder_tab_changes() {
   select_click_row(2);
 
   let tab2 = open_folder_in_new_tab(folder2);
+  wait_for_blank_content_pane();
   assert_nothing_selected();
 
   switch_tab(tab1);

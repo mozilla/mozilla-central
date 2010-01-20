@@ -82,6 +82,7 @@ function test_open_folder_a() {
  */
 function test_open_folder_b_in_tab() {
   tabFolderB = open_folder_in_new_tab(folderB);
+  wait_for_blank_content_pane();
   assert_messages_in_view(setB);
   assert_nothing_selected();
   // Thread tree here

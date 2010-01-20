@@ -97,6 +97,7 @@ function test_folder_toolbar_shows_correct_item()
 
   // Open tab b, make sure it works right.
   let tabFolderB = open_folder_in_new_tab(folderB);
+  wait_for_blank_content_pane();
   assert_folder_selected_and_displayed(folderB);
   assert_nothing_selected();
   assert_equals(folderLoc.node.label, "FolderToolbarB",

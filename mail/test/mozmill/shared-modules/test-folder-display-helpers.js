@@ -380,7 +380,13 @@ function be_in_folder(aFolder) {
 }
 
 /**
- * Create a new tab displaying a folder, making that tab the current tab.
+ * Create a new tab displaying a folder, making that tab the current tab. This
+ * does not wait for message completion, because it doesn't know whether a
+ * message display will be triggered. If you know that a message display will be
+ * triggered, you should follow this up with
+ * |wait_for_message_display_completion(mc, true)|. If you know that a blank
+ * pane should be displayed, you should follow this up with
+ * |wait_for_blank_content_pane()| instead.
  *
  * @return The tab info of the current tab (a more persistent identifier for
  *     tabs than the index, which will change as tabs open/close).
@@ -1154,10 +1160,18 @@ function plan_for_message_display(aController) {
  *  progress.  Since some events may end up getting deferred due to script
  *  blockers or the like, it is possible the event that triggers the display
  *  may not have happened by the time you call this.  In that case, you should
- *  1) pass true for aLoadDemanded and 2) invoke |plan_for_message_display|
- *  before triggering the event that will induce a message display.  You do not
- *  need to do #2 if you are opening a new message window and can assume that
- *  this will be the first message ever displayed in the window.
+ *
+ *  1) pass true for aLoadDemanded, and
+ *  2) invoke |plan_for_message_display|
+ *
+ *  before triggering the event that will induce a message display.  Note that:
+ *  - You cannot do #2 if you are opening a new message window and can assume
+ *    that this will be the first message ever displayed in the window. This is
+ *    fine, because messageLoaded is initially false.
+ *  - You should not do #2 if you are opening a new folder or message tab. That
+ *    is because you'll affect the old tab's message display instead of the new
+ *    tab's display. Again, this is fine, because a new message display will be
+ *    created for the new tab, and messageLoaded will initially be false for it.
  *
  * If we didn't use this method defensively, we would get horrible assertions
  *  like so:
