@@ -135,6 +135,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mail.smtpserver.smtp1.username' :  "tinderbox",
         'mail.smtpservers' :  "smtp1",
         'mail.startup.enabledMailCheckOnce' :  True,
+        'extensions.checkCompatibility.3.1b': False,
         'extensions.checkCompatibility.3.2a': False,
         # Don't load what's new or the remote start page - keep everything local
         # under our control.
