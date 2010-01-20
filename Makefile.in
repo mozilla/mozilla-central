@@ -78,3 +78,13 @@ include $(topsrcdir)/config/rules.mk
 
 MOZ_SOURCE_STAMP = $(shell hg -R $(srcdir) parent --template="{node|short}\n" 2>/dev/null)
 export MOZ_SOURCE_STAMP
+
+DIST_GARBAGE = config.cache config.log config.status config-defs.h \
+   dependencies.beos config/myrules.mk config/myconfig.mk \
+   unallmakefiles mozilla-config.h \
+   $(topsrcdir)/.mozconfig.mk $(topsrcdir)/.mozconfig.out
+
+distclean::
+	cat unallmakefiles | $(XARGS) rm -f
+	rm -f $(DIST_GARBAGE)
+
