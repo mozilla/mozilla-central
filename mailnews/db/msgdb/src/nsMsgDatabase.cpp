@@ -39,6 +39,9 @@
 
 // this file implements the nsMsgDatabase interface using the MDB Interface.
 
+#ifdef MOZ_LOGGING
+#define FORCE_PR_LOG /* Allow logging in the release build */
+#endif
 #include <sys/stat.h>
 
 #include "nscore.h"
@@ -97,10 +100,13 @@ static const nsMsgKey kAllThreadsTableKey = 0xfffffffd;
 static const nsMsgKey kFirstPseudoKey = 0xfffffff0;
 static const nsMsgKey kIdStartOfFake = 0xffffff80;
 
+static PRLogModuleInfo* DBLog;
+
 NS_IMPL_ISUPPORTS1(nsMsgDBService, nsIMsgDBService)
 
 nsMsgDBService::nsMsgDBService()
 {
+  DBLog = PR_NewLogModule("MSGDB");
 }
 
 
@@ -837,16 +843,22 @@ void nsMsgDatabase::RemoveFromCache(nsMsgDatabase* pMessageDB)
   GetDBCache()->RemoveElement(pMessageDB);
 }
 
-
-#ifdef DEBUG
+/**
+ * Log the open db's, and how many headers are in memory.
+ */
 void nsMsgDatabase::DumpCache()
 {
   nsTArray<nsMsgDatabase*>* dbCache = GetDBCache();
-  nsMsgDatabase* pMessageDB = nsnull;
+  nsMsgDatabase* db = nsnull;
+  PR_LOG(DBLog, PR_LOG_ALWAYS, ("%d open DB's\n", dbCache->Length()));
   for (PRUint32 i = 0; i < dbCache->Length(); i++)
-    pMessageDB = dbCache->ElementAt(i);
+  {
+    db = dbCache->ElementAt(i);
+    PR_LOG(DBLog, PR_LOG_ALWAYS, ("%s - %ld hdrs in use\n",
+      (const char*)db->m_dbName.get(),
+      db->m_headersInUse ? db->m_headersInUse->entryCount : 0));
+  }
 }
-#endif /* DEBUG */
 
 nsMsgDatabase::nsMsgDatabase()
         : m_dbFolderInfo(nsnull),
@@ -908,14 +920,10 @@ nsMsgDatabase::~nsMsgDatabase()
     m_msgReferences = nsnull;
   }
 
+  PR_LOG(DBLog, PR_LOG_ALWAYS, ("closing database    %s\n",
+    (const char*)m_dbName.get()));
+
   RemoveFromCache(this);
-#ifdef DEBUG_bienvenu1
-  if (GetNumInCache() != 0)
-  {
-    XP_Trace("closing %s\n", m_dbName);
-    DumpCache();
-  }
-#endif
   // if the db folder info refers to the mdb db, we must clear it because
   // the reference will be a dangling one soon.
   if (m_dbFolderInfo)
@@ -993,12 +1001,6 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRB
 
   nsIDBFolderInfo  *folderInfo = nsnull;
 
-#if defined(DEBUG_bienvenu)
-
-  printf("really opening db in nsImapMailDatabase::Open(%s, %s, %p, %s) -> %s\n",
-    (const char*)folderName, aCreate ? "TRUE":"FALSE",
-    this, aLeaveInvalidDB ? "TRUE":"FALSE", (const char*)folderName);
-#endif
   PRBool exists;
   PRInt64 fileSize;
   summaryFile->Exists(&exists);
@@ -1014,7 +1016,19 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRB
 
   nsCAutoString summaryFilePath;
   summaryFile->GetNativePath(summaryFilePath);
+
+  PR_LOG(DBLog, PR_LOG_ALWAYS, ("nsMsgDatabase::Open(%s, %s, %p, %s)\n",
+    (const char*)summaryFilePath.get(), aCreate ? "TRUE":"FALSE",
+    this, aLeaveInvalidDB ? "TRUE":"FALSE"));
+
+
   err = OpenMDB(summaryFilePath.get(), aCreate);
+  if (NS_FAILED(err))
+    PR_LOG(DBLog, PR_LOG_ALWAYS, ("error opening db %lx", err));
+
+  if (PR_LOG_TEST(DBLog, PR_LOG_DEBUG))
+    DumpCache();
+
   if (err == NS_ERROR_FILE_TARGET_DOES_NOT_EXIST)
     return err;
 
@@ -5483,7 +5497,7 @@ NS_IMETHODIMP nsMsgDatabase::RefreshCache(const char *aSearchFolderUri, PRUint32
     if (tableRowIndex > 1 && oid.mOid_Id <= prevId)
     {
       NS_ASSERTION(PR_FALSE, "inserting row into cached hits table, not sorted correctly");
-      printf("key %lx is before or equal %lx \n", prevId, oid.mOid_Id);
+      printf("key %lx is before or equal %lx\n", prevId, oid.mOid_Id);
     }
     prevId = oid.mOid_Id;
   }

@@ -209,8 +209,8 @@ public:
   static void YarnToUInt32(struct mdbYarn *yarn, PRUint32 *i);
   
   static void   CleanupCache();
-#ifdef DEBUG
   static void   DumpCache();
+#ifdef DEBUG
   virtual nsresult DumpContents();
   nsresult DumpThread(nsMsgKey threadId);
   nsresult DumpMsgChildren(nsIMsgDBHdr *msgHdr);
