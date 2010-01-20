@@ -100,9 +100,19 @@ private:
 
   nsresult LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType, 
                                nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI, 
-                               nsIMsgDBHdr * aOrigMsgHdr, PRBool aAddInlineHeaders,
+                               nsIMsgDBHdr * aOrigMsgHdr, PRBool aForwardInline,
                                MSG_ComposeFormat format,
                                nsIMsgWindow *aMsgWindow);
+
+  nsresult RunMessageThroughMimeDraft(const nsACString& aMsgURI,
+                                      nsMimeOutputType aOutType,
+                                      nsIMsgIdentity * aIdentity,
+                                      const char * aOriginalMsgURI,
+                                      nsIMsgDBHdr * aOrigMsgHdr,
+                                      PRBool aForwardInline,
+                                      const nsAString &forwardTo,
+                                      PRBool overrideComposeFormat,
+                                      nsIMsgWindow *aMsgWindow);
 
   nsresult ShowCachedComposeWindow(nsIDOMWindowInternal *aComposeWindow, PRBool aShow);
 

@@ -669,23 +669,22 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
         {
           nsCString forwardTo;
           filterAction->GetStrValue(forwardTo);
-          nsCOMPtr <nsIMsgIncomingServer> server;
+          nsCOMPtr<nsIMsgIncomingServer> server;
           rv = m_curFolder->GetServer(getter_AddRefs(server));
           NS_ENSURE_SUCCESS(rv, rv);
           if (!forwardTo.IsEmpty())
           {
-            nsCOMPtr <nsIMsgComposeService> compService = do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID) ;
-            if (compService)
+            nsCOMPtr<nsIMsgComposeService> compService = 
+              do_GetService(NS_MSGCOMPOSESERVICE_CONTRACTID, &rv);
+            NS_ENSURE_SUCCESS(rv, rv);
+            for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
             {
-              for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
-              {
-                nsCOMPtr <nsIMsgDBHdr> msgHdr;
-                m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
-                if (msgHdr)
-                {
-                  rv = compService->ForwardMessage(NS_ConvertASCIItoUTF16(forwardTo), msgHdr, m_msgWindow, server);
-                }
-              }
+              nsCOMPtr<nsIMsgDBHdr> msgHdr(do_QueryElementAt(m_searchHitHdrs,
+                                           msgIndex));
+              if (msgHdr)
+                rv = compService->ForwardMessage(NS_ConvertASCIItoUTF16(forwardTo),
+                                                 msgHdr, m_msgWindow, server,
+                                                 nsIMsgComposeService::kForwardAsDefault);
             }
           }
         }

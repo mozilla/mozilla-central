@@ -3616,14 +3616,17 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         {
           nsCString forwardTo;
           filterAction->GetStrValue(forwardTo);
-          nsCOMPtr <nsIMsgIncomingServer> server;
+          nsCOMPtr<nsIMsgIncomingServer> server;
           rv = GetServer(getter_AddRefs(server));
           NS_ENSURE_SUCCESS(rv, rv);
           if (!forwardTo.IsEmpty())
           {
-            nsCOMPtr <nsIMsgComposeService> compService = do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID) ;
-            if (compService)
-              rv = compService->ForwardMessage(NS_ConvertASCIItoUTF16(forwardTo), msgHdr, msgWindow, server);
+            nsCOMPtr<nsIMsgComposeService> compService =
+              do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID, &rv);
+            NS_ENSURE_SUCCESS(rv, rv);
+            rv = compService->ForwardMessage(NS_ConvertASCIItoUTF16(forwardTo),
+                                             msgHdr, msgWindow, server,
+                                             nsIMsgComposeService::kForwardAsDefault);
           }
         }
         break;

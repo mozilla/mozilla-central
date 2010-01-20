@@ -181,22 +181,20 @@ mime_dump_attachments ( nsMsgAttachmentData *attachData )
 }
 #endif
 
-nsresult
-CreateTheComposeWindow(nsIMsgCompFields *   compFields,
-                       nsMsgAttachmentData *attachmentList,
-                       MSG_ComposeType      composeType,
-                       MSG_ComposeFormat    composeFormat,
-                       nsIMsgIdentity *     identity,
-                       const char *         originalMsgURI,
-                       nsIMsgDBHdr *        origMsgHdr
-                       )
+nsresult CreateComposeParams(nsCOMPtr<nsIMsgComposeParams> &pMsgComposeParams,
+                             nsIMsgCompFields * compFields,
+                             nsMsgAttachmentData *attachmentList,
+                             MSG_ComposeType composeType,
+                             MSG_ComposeFormat composeFormat,
+                             nsIMsgIdentity * identity,
+                             const char *originalMsgURI,
+                             nsIMsgDBHdr *origMsgHdr)
 {
-  nsresult            rv;
-
 #ifdef NS_DEBUG
   mime_dump_attachments ( attachmentList );
 #endif
 
+  nsresult rv;
   nsMsgAttachmentData *curAttachment = attachmentList;
   if (curAttachment)
   {
@@ -227,11 +225,6 @@ CreateTheComposeWindow(nsIMsgCompFields *   compFields,
     }
   }
 
-  nsCOMPtr<nsIMsgComposeService> msgComposeService =
-           do_GetService(kCMsgComposeServiceCID, &rv);
-  if ((NS_FAILED(rv)) || (!msgComposeService))
-    return rv;
-
   MSG_ComposeFormat format = composeFormat; // Format to actually use.
   if (identity && composeType == nsIMsgCompType::ForwardInline)
   {
@@ -245,21 +238,78 @@ CreateTheComposeWindow(nsIMsgCompFields *   compFields,
                  nsIMsgCompFormat::HTML : nsIMsgCompFormat::PlainText;
   }
 
-  nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv) && pMsgComposeParams)
-  {
-    pMsgComposeParams->SetType(composeType);
-    pMsgComposeParams->SetFormat(format);
-    pMsgComposeParams->SetIdentity(identity);
-    pMsgComposeParams->SetComposeFields(compFields);
-    if (originalMsgURI)
-      pMsgComposeParams->SetOriginalMsgURI(originalMsgURI);
-    if (origMsgHdr)
-      pMsgComposeParams->SetOrigMsgHdr(origMsgHdr);
+  pMsgComposeParams = do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = msgComposeService->OpenComposeWindowWithParams(nsnull /* default chrome */, pMsgComposeParams);
-  }
-  return rv;
+  pMsgComposeParams->SetType(composeType);
+  pMsgComposeParams->SetFormat(format);
+  pMsgComposeParams->SetIdentity(identity);
+  pMsgComposeParams->SetComposeFields(compFields);
+  if (originalMsgURI)
+    pMsgComposeParams->SetOriginalMsgURI(originalMsgURI);
+  if (origMsgHdr)
+    pMsgComposeParams->SetOrigMsgHdr(origMsgHdr);
+  return NS_OK;
+}
+
+nsresult
+CreateTheComposeWindow(nsIMsgCompFields *   compFields,
+                       nsMsgAttachmentData *attachmentList,
+                       MSG_ComposeType      composeType,
+                       MSG_ComposeFormat    composeFormat,
+                       nsIMsgIdentity *     identity,
+                       const char *         originalMsgURI,
+                       nsIMsgDBHdr *        origMsgHdr
+                       )
+{
+  nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams;
+  nsresult rv = CreateComposeParams(pMsgComposeParams, compFields,
+                       attachmentList,
+                       composeType,
+                       composeFormat,
+                       identity,
+                       originalMsgURI,
+                       origMsgHdr);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgComposeService> msgComposeService =
+           do_GetService(kCMsgComposeServiceCID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return msgComposeService->OpenComposeWindowWithParams(nsnull /* default chrome */, pMsgComposeParams);
+}
+
+nsresult
+SendTheMessage(nsIMsgCompFields *   compFields,
+               nsMsgAttachmentData *attachmentList,
+               MSG_ComposeType      composeType,
+               MSG_ComposeFormat    composeFormat,
+               nsIMsgIdentity *     identity,
+               const char *         originalMsgURI,
+               nsIMsgDBHdr *        origMsgHdr)
+{
+  nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams;
+  nsresult rv = CreateComposeParams(pMsgComposeParams, compFields,
+                       attachmentList,
+                       composeType,
+                       composeFormat,
+                       identity,
+                       originalMsgURI,
+                       origMsgHdr);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgComposeService> msgComposeService =
+           do_GetService(kCMsgComposeServiceCID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  // create the nsIMsgCompose object to send the object
+  nsCOMPtr<nsIMsgCompose> pMsgCompose (do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
+  rv = pMsgCompose->Initialize(nsnull, pMsgComposeParams) ;
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull) ;
 }
 
 nsresult
@@ -1463,14 +1513,15 @@ mime_parse_stream_complete (nsMIMESession *stream)
                 bodyLen = strlen(body);
               }
 
-              PRUint32 newbodylen = bodyLen + 12; //+11 chars for <pre> & </pre> tags
+               //+13 chars for <pre> & </pre> tags and CRLF
+              PRUint32 newbodylen = bodyLen + 14;
               char* newbody = (char *)PR_MALLOC (newbodylen);
               if (newbody)
               {
                 *newbody = 0;
                 PL_strcatn(newbody, newbodylen, "<PRE>");
                 PL_strcatn(newbody, newbodylen, body);
-                PL_strcatn(newbody, newbodylen, "</PRE>");
+                PL_strcatn(newbody, newbodylen, "</PRE>"CRLF);
                 PR_Free(body);
                 body = newbody;
               }
@@ -1529,7 +1580,15 @@ mime_parse_stream_complete (nsMIMESession *stream)
             fields->ConvertBodyToPlainText();
           if (mdd->overrideComposeFormat)
             composeFormat = nsIMsgCompFormat::OppositeOfDefault;
-          CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::ForwardInline, composeFormat, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
+          if (mdd->forwardInlineFilter)
+          {
+            fields->SetTo(mdd->forwardToAddress);
+            SendTheMessage(fields, newAttachData, nsIMsgCompType::ForwardInline,
+                           composeFormat, mdd->identity, mdd->originalMsgURI,
+                           mdd->origMsgHdr);
+          }
+          else
+            CreateTheComposeWindow(fields, newAttachData, nsIMsgCompType::ForwardInline, composeFormat, mdd->identity, mdd->originalMsgURI, mdd->origMsgHdr);
         }
         else
         {
@@ -2040,6 +2099,8 @@ mime_bridge_create_draft_stream(
   }
 
   newPluginObj2->GetForwardInline(&mdd->forwardInline);
+  newPluginObj2->GetForwardInlineFilter(&mdd->forwardInlineFilter);
+  newPluginObj2->GetForwardToAddress(mdd->forwardToAddress);
   newPluginObj2->GetOverrideComposeFormat(&mdd->overrideComposeFormat);
   newPluginObj2->GetIdentity(getter_AddRefs(mdd->identity));
   newPluginObj2->GetOriginalMsgURI(&mdd->originalMsgURI);

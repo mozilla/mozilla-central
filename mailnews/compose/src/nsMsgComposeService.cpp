@@ -568,7 +568,8 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDB
 
     return LoadDraftOrTemplate(uriToOpen, type == nsIMsgCompType::ForwardInline || type == nsIMsgCompType::Draft ?
                                nsMimeOutput::nsMimeMessageDraftOrTemplate : nsMimeOutput::nsMimeMessageEditorTemplate,
-                               identity, originalMsgURI, origMsgHdr, type == nsIMsgCompType::ForwardInline, format, aMsgWindow);
+                               identity, originalMsgURI, origMsgHdr, type == nsIMsgCompType::ForwardInline,
+                               format == nsIMsgCompFormat::OppositeOfDefault, aMsgWindow);
   }
 
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
@@ -1212,12 +1213,56 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   return folder->AddMessageDispositionState(aMsgHdr, nsIMsgFolder::nsMsgDispositionState_Replied);
 }
 
-NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, nsIMsgDBHdr *aMsgHdr,
-                                             nsIMsgWindow *aMsgWindow, nsIMsgIncomingServer *aServer)
+NS_IMETHODIMP
+nsMsgComposeService::ForwardMessage(const nsAString &forwardTo,
+                                    nsIMsgDBHdr *aMsgHdr,
+                                    nsIMsgWindow *aMsgWindow,
+                                    nsIMsgIncomingServer *aServer,
+                                    PRUint32 aForwardType)
 {
   NS_ENSURE_ARG_POINTER(aMsgHdr);
 
   nsresult rv;
+  if (aForwardType == nsIMsgComposeService::kForwardAsDefault)
+  {
+    PRInt32 forwardPref = 0;
+    nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    prefBranch->GetIntPref("mail.forward_message_mode", &forwardPref);
+    // 0=default as attachment 2=forward as inline with attachments,
+    // (obsolete 4.x value)1=forward as quoted (mapped to 2 in mozilla)
+    aForwardType = forwardPref == 0 ? nsIMsgComposeService::kForwardAsAttachment :
+                                      nsIMsgComposeService::kForwardInline;
+  }
+  nsCString msgUri;
+
+  nsCOMPtr<nsIMsgFolder> folder;
+  aMsgHdr->GetFolder(getter_AddRefs(folder));
+  if (!folder)
+    return NS_ERROR_NULL_POINTER;
+  folder->GetUriForMsg(aMsgHdr, msgUri);
+
+  // get the MsgIdentity for the above key using AccountManager
+  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+    do_GetService (NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgAccount> account;
+  nsCOMPtr<nsIMsgIdentity> identity;
+
+  rv = accountManager->FindAccountForServer(aServer, getter_AddRefs(account));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = account->GetDefaultIdentity(getter_AddRefs(identity));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (aForwardType == nsIMsgComposeService::kForwardInline)
+    return RunMessageThroughMimeDraft(msgUri,
+                                      nsMimeOutput::nsMimeMessageDraftOrTemplate,
+                                      identity,
+                                      msgUri.get(), aMsgHdr,
+                                      PR_TRUE, forwardTo,
+                                      PR_FALSE, aMsgWindow);
+
   nsCOMPtr<nsIDOMWindowInternal> parentWindow;
   if (aMsgWindow)
   {
@@ -1227,41 +1272,14 @@ NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, ns
     parentWindow = do_GetInterface(docShell);
     NS_ENSURE_TRUE(parentWindow, NS_ERROR_FAILURE);
   }
-  if ( NS_FAILED(rv) ) return rv ;
-  // get the MsgIdentity for the above key using AccountManager
-  nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService (NS_MSGACCOUNTMANAGER_CONTRACTID) ;
-  if (NS_FAILED(rv) || (!accountManager) ) return rv ;
-
-  nsCOMPtr <nsIMsgAccount> account;
-  nsCOMPtr <nsIMsgIdentity> identity;
-
-  rv = accountManager->FindAccountForServer(aServer, getter_AddRefs(account));
-  NS_ENSURE_SUCCESS(rv, rv);
-  account->GetDefaultIdentity(getter_AddRefs(identity));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   // create the compose params object
   nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
-  if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
-  nsCOMPtr<nsIMsgCompFields> compFields = do_CreateInstance(NS_MSGCOMPFIELDS_CONTRACTID, &rv) ;
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgCompFields> compFields = do_CreateInstance(NS_MSGCOMPFIELDS_CONTRACTID, &rv);
 
   compFields->SetTo(forwardTo);
-  nsCString msgUri;
-  PRInt32 forwardType = 0;
-
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-  if (prefBranch)
-    prefBranch->GetIntPref("mail.forward_message_mode", &forwardType);
-
-  nsCOMPtr<nsIMsgFolder> folder;
-  aMsgHdr->GetFolder(getter_AddRefs(folder));
-  if (!folder)
-    return NS_ERROR_NULL_POINTER;
-  folder->GetUriForMsg(aMsgHdr, msgUri);
   // populate the compose params
-  // right now, forward inline won't work, since that requires opening a compose window,
-  // and would require major whackage of the compose code.
-  pMsgComposeParams->SetType(/* forwardType ? nsIMsgCompType::ForwardInline : */nsIMsgCompType::ForwardAsAttachment);
+  pMsgComposeParams->SetType(nsIMsgCompType::ForwardAsAttachment);
   pMsgComposeParams->SetFormat(nsIMsgCompFormat::Default);
   pMsgComposeParams->SetIdentity(identity);
   pMsgComposeParams->SetComposeFields(compFields);
@@ -1517,23 +1535,66 @@ nsresult
 nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType,
                                          nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI,
                                          nsIMsgDBHdr * aOrigMsgHdr,
-                                         PRBool aAddInlineHeaders,
-                                         MSG_ComposeFormat format,
+                                         PRBool aForwardInline,
+                                         PRBool overrideComposeFormat,
                                          nsIMsgWindow *aMsgWindow)
 {
-  nsresult rv;
+  return RunMessageThroughMimeDraft(aMsgURI, aOutType, aIdentity,
+                                    aOriginalMsgURI, aOrigMsgHdr,
+                                    aForwardInline, EmptyString(),
+                                    overrideComposeFormat, aMsgWindow);
+}
+
+/**
+ * Run the aMsgURI message through libmime. We set various attributes of the 
+ * nsIMimeStreamConverter so mimedrft.cpp will know what to do with the message
+ * when its done streaming. Usually that will be opening a compose window
+ * with the contents of the message, but if forwardTo is non-empty, mimedrft.cpp
+ * will forward the contents directly.
+ *
+ * @param aMsgURI URI to stream, which is the msgUri + any extra terms, e.g.,
+ *                "redirect=true".
+ * @param aOutType  nsMimeOutput::nsMimeMessageDraftOrTemplate or
+ *                  nsMimeOutput::nsMimeMessageEditorTemplate
+ * @param aIdentity identity to use for the new message
+ * @param aOriginalMsgURI msgURI w/o any extra terms
+ * @param aOrigMsgHdr nsIMsgDBHdr corresponding to aOriginalMsgURI
+ * @param aForwardInline true if doing a forward inline
+ * @param aForwardTo  e-mail address to forward msg to. This is used for
+ *                     forward inline message filter actions.
+ * @param aOverrideComposeFormat True if the user had shift key down when
+                                 doing a command that opens the compose window,
+ *                               which means we switch the compose window used
+ *                               from the default.
+ * @param aMsgWindow msgWindow to pass into DisplayMessage.
+ */
+nsresult
+nsMsgComposeService::RunMessageThroughMimeDraft(
+            const nsACString& aMsgURI, nsMimeOutputType aOutType,
+            nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI,
+            nsIMsgDBHdr * aOrigMsgHdr,
+            PRBool aForwardInline,
+            const nsAString &aForwardTo,
+            PRBool aOverrideComposeFormat,
+            nsIMsgWindow *aMsgWindow)
+{
   nsCOMPtr <nsIMsgMessageService> messageService;
-  rv = GetMessageServiceFromURI(aMsgURI, getter_AddRefs(messageService));
+  nsresult rv = GetMessageServiceFromURI(aMsgURI, getter_AddRefs(messageService));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // Now, we can create a mime parser (nsIStreamConverter)!
+  // Create a mime parser (nsIMimeStreamConverter)to do the conversion.
   nsCOMPtr<nsIMimeStreamConverter> mimeConverter =
     do_CreateInstance(NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mimeConverter->SetMimeOutputType(aOutType);  // Set the type of output for libmime
-  mimeConverter->SetForwardInline(aAddInlineHeaders);
-  mimeConverter->SetOverrideComposeFormat(format == nsIMsgCompFormat::OppositeOfDefault);
+  mimeConverter->SetMimeOutputType(aOutType); // Set the type of output for libmime
+  mimeConverter->SetForwardInline(aForwardInline);
+  if (!aForwardTo.IsEmpty())
+  {
+    mimeConverter->SetForwardInlineFilter(PR_TRUE);
+    mimeConverter->SetForwardToAddress(aForwardTo);
+  }
+  mimeConverter->SetOverrideComposeFormat(aOverrideComposeFormat);
   mimeConverter->SetIdentity(aIdentity);
   mimeConverter->SetOriginalMsgURI(aOriginalMsgURI);
   mimeConverter->SetOrigMsgHdr(aOrigMsgHdr);

@@ -48,8 +48,8 @@
 #include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 
-class nsStreamConverter : public nsIStreamConverter, public nsIMimeStreamConverter { 
-public: 
+class nsStreamConverter : public nsIStreamConverter, public nsIMimeStreamConverter {
+public:
   nsStreamConverter();
   virtual ~nsStreamConverter();
 
@@ -100,7 +100,9 @@ private:
 
   nsCOMPtr<nsIMimeStreamConverterListener>  mMimeStreamConverterListener;
   PRBool                        mForwardInline;
+  PRBool                        mForwardInlineFilter;
   PRBool                        mOverrideComposeFormat;
+  nsString                      mForwardToAddress;
   nsCOMPtr<nsIMsgIdentity>      mIdentity;
   nsCString                     mOriginalMsgURI;
   nsCOMPtr<nsIMsgDBHdr>         mOrigMsgHdr;
@@ -112,6 +114,6 @@ private:
 #endif
   nsIRequest *                  mPendingRequest;  // used when we need to delay to fire onStartRequest
   nsISupports *                 mPendingContext;  // used when we need to delay to fire onStartRequest
-}; 
+};
 
 #endif /* nsStreamConverter_h_ */

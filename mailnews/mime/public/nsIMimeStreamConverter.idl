@@ -75,7 +75,7 @@ interface nsIMimeStreamConverterListener : nsISupports{
  * converters. Most of the code is just stuff that has been moved out
  * of nsIStreamConverter.idl to make it more generic.
  */
-[scriptable, uuid(ed861e40-6901-4bb0-b9ec-7a8e7a79bb0e)]
+[scriptable, uuid(d894c833-29c5-495b-880c-9a9f847bfdc9)]
 interface nsIMimeStreamConverter : nsISupports {
 
   /**
@@ -97,10 +97,20 @@ interface nsIMimeStreamConverter : nsISupports {
   void SetMimeHeadersListener(in nsIMimeStreamConverterListener listener, in nsMimeOutputType aType);
 
   /**
-   * This is used for forward inline.
+   * This is used for forward inline, both as a filter action, and from the UI.
    */
-  attribute PRBool forwardInline;
+  attribute boolean forwardInline;
 
+  /**
+   * This is used for a forward inline filter action. When streaming is done,
+   * we won't open a compose window with the editor contents.
+   */
+  attribute boolean forwardInlineFilter;
+
+  /**
+   * Address for the forward inline filter to forward the message to.
+   */
+  attribute AString forwardToAddress;
   /**
    * Use the opposite compose format, used for forward inline.
    */

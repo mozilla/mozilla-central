@@ -526,10 +526,11 @@ nsStreamConverter::nsStreamConverter()
 {
   // Init member variables...
   mWrapperOutput = PR_FALSE;
-  mBridgeStream = NULL;
+  mBridgeStream = nsnull;
   mOutputFormat = "text/html";
   mAlreadyKnowOutputType = PR_FALSE;
   mForwardInline = PR_FALSE;
+  mForwardInlineFilter = PR_FALSE;
   mOverrideComposeFormat = PR_FALSE;
 
   mPendingRequest = nsnull;
@@ -787,9 +788,23 @@ nsStreamConverter::SetMimeHeadersListener(nsIMimeStreamConverterListener *listen
 }
 
 NS_IMETHODIMP
-nsStreamConverter::SetForwardInline(PRBool forwardInline)
+nsStreamConverter::SetForwardInline(PRBool aForwardInline)
 {
-  mForwardInline = forwardInline;
+  mForwardInline = aForwardInline;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsStreamConverter::GetForwardToAddress(nsAString &aAddress)
+{
+  aAddress = mForwardToAddress;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsStreamConverter::SetForwardToAddress(const nsAString &aAddress)
+{
+  mForwardToAddress = aAddress;
   return NS_OK;
 }
 
@@ -810,10 +825,25 @@ nsStreamConverter::SetOverrideComposeFormat(PRBool aOverrideComposeFormat)
 }
 
 NS_IMETHODIMP
-nsStreamConverter::GetForwardInline(PRBool *result)
+nsStreamConverter::GetForwardInline(PRBool *aResult)
 {
-  if (!result) return NS_ERROR_NULL_POINTER;
-  *result = mForwardInline;
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = mForwardInline;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsStreamConverter::GetForwardInlineFilter(PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = mForwardInlineFilter;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsStreamConverter::SetForwardInlineFilter(PRBool aForwardInlineFilter)
+{
+  mForwardInlineFilter = aForwardInlineFilter;
   return NS_OK;
 }
 

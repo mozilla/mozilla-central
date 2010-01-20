@@ -47,7 +47,7 @@ interface nsIMsgIdentity;
 interface nsIMsgIncomingServer;
 interface nsIMsgDBHdr;
 
-[scriptable, uuid(ce5f77c8-f278-4ec7-b8dd-ea9dc84af137)]
+[scriptable, uuid(dbf4b3a7-dc38-4362-a620-ff5d22b3777c)]
 interface nsIMsgComposeService : nsISupports {
 
   /* we need a msg window because when we forward inline we may need progress */
@@ -97,14 +97,28 @@ interface nsIMsgComposeService : nsISupports {
   nsIMsgComposeParams getParamsForMailto(in nsIURI aURI); 
 
   /**
+   * @{
+   * These constants control how to forward messages in forwardMessage.
+   * kForwardAsDefault uses value of pref "mail.forward_message_mode".
+   */
+  const unsigned long kForwardAsDefault = 0;
+  const unsigned long kForwardAsAttachment = 1;
+  const unsigned long kForwardInline = 2;
+  /** @} */
+
+  /**
    * Allow filters to automatically forward a message to the given address(es).
    * @param forwardTo the address(es) to forward to
    * @param msgHdr the header of the message being replied to
    * @param msgWindow message window to use
    * @param server server to use for determining which account to send from
+   * @param aForwardType - How to forward the message one of 3 values:
+   *                       kForwardAsDefault, kForwardInline, or
+   *                       kForwardAsAttachment.
    */
   void forwardMessage(in AString forwardTo, in nsIMsgDBHdr msgHdr,
-                      in nsIMsgWindow msgWindow, in nsIMsgIncomingServer server);
+                      in nsIMsgWindow msgWindow, in nsIMsgIncomingServer server,
+                      in unsigned long aForwardType);
 
   /**
    * Allow filters to automatically reply to a message. The reply message is

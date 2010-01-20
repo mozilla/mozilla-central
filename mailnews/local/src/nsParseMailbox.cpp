@@ -2273,9 +2273,12 @@ nsresult nsParseNewMailState::ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow
       rv = m_rootFolder->GetServer(getter_AddRefs(server));
       NS_ENSURE_SUCCESS(rv, rv);
       {
-        nsCOMPtr <nsIMsgComposeService> compService = do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID) ;
-        if (compService)
-          rv = compService->ForwardMessage(forwardStr, m_msgToForwardOrReply, msgWindow, server);
+        nsCOMPtr<nsIMsgComposeService> compService =
+          do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+        rv = compService->ForwardMessage(forwardStr, m_msgToForwardOrReply,
+                                         msgWindow, server,
+                                         nsIMsgComposeService::kForwardAsDefault);
       }
     }
   }
