@@ -867,8 +867,10 @@ function IsReplyAllEnabled()
     addresses += currentHeaderData.bcc.headerValue;
 
   // Check to see if my email address is in the list of addresses.
-  let myEmail = getIdentityForHeader(msgHdr).email.toLowerCase();
-  let imInAddresses = addresses.toLowerCase().indexOf(myEmail) != -1;
+  let myEmail = getIdentityForHeader(msgHdr).email;
+  // We aren't guaranteed to have an email address, so guard against that.
+  let imInAddresses = myEmail && (addresses.toLowerCase().indexOf(
+                                    myEmail.toLowerCase()) != -1);
 
   // Now, let's get the number of unique addresses.
   let hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]

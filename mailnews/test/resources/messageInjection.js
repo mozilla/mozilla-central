@@ -105,6 +105,9 @@ function configure_message_injection(aInjectionConfig) {
 
     // We need an identity or we get angry warnings.
     let identity = acctMgr.createIdentity();
+    // We need an email to protect against random code assuming it exists and
+    // throwing exceptions.
+    identity.email = "sender@nul.nul";
     localAccount.addIdentity(identity);
     localAccount.defaultIdentity = identity;
 
@@ -154,6 +157,9 @@ function configure_message_injection(aInjectionConfig) {
     // We need an identity so that updateFolder doesn't fail
     let localAccount = acctMgr.createAccount();
     let identity = acctMgr.createIdentity();
+    // We need an email to protect against random code assuming it exists and
+    // throwing exceptions.
+    identity.email = "sender@nul.nul";
     localAccount.addIdentity(identity);
     localAccount.defaultIdentity = identity;
     localAccount.incomingServer = mis.incomingServer;
