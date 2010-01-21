@@ -75,6 +75,7 @@ function test_close_message_window_on_delete_from_message_window() {
   let msgc2 = open_selected_message_in_new_window();
 
   let preCount = folder.getTotalMessages(false);
+  msgc.window.focus();
   plan_for_window_close(msgc);
   press_delete(msgc);
   if (folder.getTotalMessages(false) != preCount - 1)
@@ -107,7 +108,7 @@ function test_close_multiple_message_windows_on_delete_from_message_window() {
   let msgc2 = open_selected_message_in_new_window();
 
   let preCount = folder.getTotalMessages(false);
-
+  msgc.window.focus();
   plan_for_window_close(msgc);
   plan_for_window_close(msgcA);
   press_delete(msgc);
@@ -143,7 +144,7 @@ function test_close_multiple_message_windows_on_delete_from_3pane_window() {
   let msgc2 = open_selected_message_in_new_window();
 
   let preCount = folder.getTotalMessages(false);
-
+  mc.window.focus();
   plan_for_window_close(msgc);
   plan_for_window_close(msgcA);
   select_click_row(0);
