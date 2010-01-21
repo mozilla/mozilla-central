@@ -139,6 +139,9 @@ msvcm80.dll
 msvcp80.dll
 msvcr80.dll
 #else
+#ifdef MOZILLA_1_9_2_BRANCH
+mozcpp19.dll
+#endif
 mozcrt19.dll
 #endif
 #ifdef MOZILLA_1_9_2_BRANCH

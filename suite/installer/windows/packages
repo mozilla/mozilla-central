@@ -55,7 +55,9 @@ bin\msvcm80.dll
 bin\msvcp80.dll
 bin\msvcr80.dll
 #else
+#ifndef MOZILLA_1_9_2_BRANCH
 bin\mozcpp19.dll
+#endif
 bin\mozcrt19.dll
 #endif
 
