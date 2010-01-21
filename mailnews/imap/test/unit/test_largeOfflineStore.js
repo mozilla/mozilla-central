@@ -17,6 +17,11 @@ var gOfflineStoreSize;
 
 function run_test()
 {
+  if ("@mozilla.org/windows-registry-key;1" in Cc) {
+    dump("This test doesn't work on Windows tinderboxes due to FAT32 limitations\n");
+    return;
+  }
+
   loadLocalMailAccount();
 
   /*
