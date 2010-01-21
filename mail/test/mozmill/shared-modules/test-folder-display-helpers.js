@@ -633,6 +633,7 @@ function select_none(aController) {
   }
   controller.sleep('subject()',
                    NORMAL_TIMEOUT, FAST_INTERVAL, noMessageChecker);
+  wait_for_blank_content_pane(aController);
 }
 
 /**
