@@ -153,4 +153,16 @@ EXTRA_DSO_LDOPTS += -framework Cocoa  \
 										$(NULL)
 endif
 
+ifeq ($(OS_ARCH),AIX)
+ifdef MOZILLA_INTERNAL_API
+EXTRA_DSO_LDOPTS += \
+	$(MOZDEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
+	$(NULL)
+else
+EXTRA_DSO_LDOPTS += \
+	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \
+	$(NULL)
+endif
+endif
+
 include $(topsrcdir)/config/rules.mk
