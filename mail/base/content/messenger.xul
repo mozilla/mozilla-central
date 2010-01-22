@@ -445,7 +445,9 @@
     <vbox id="contentTab"/>
     <vbox id="chromeTab"/>
   </hbox>
-  <panel id="customizeToolbarSheetPopup" noautohide="true">
+  <panel id="customizeToolbarSheetPopup"
+         noautohide="true"
+         onpopupshown="this.moveTo(this.boxObject.screenX + (window.innerWidth - this.boxObject.width) / 2, this.boxObject.screenY);">
     <iframe id="customizeToolbarSheetIFrame"
             style="&dialog.style;"
             hidden="true"/>

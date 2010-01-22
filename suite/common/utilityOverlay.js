@@ -310,13 +310,8 @@ function goCustomizeToolbar(toolbox)
     else
       sheetFrame.setAttribute("src", customizeURL);
 
-    // XXXmano: there's apparently no better way to get this when the iframe
-    // is hidden
-    var sheetWidth = sheetFrame.style.width.match(/([0-9]+)px/)[1];
     document.getElementById("customizeToolbarSheetPopup")
-            .openPopup(toolbox,
-                       "after_start",
-                       (window.innerWidth - sheetWidth) / 2, 0);
+            .openPopup(toolbox, "after_start", 0, 0);
 
     return sheetFrame.contentWindow;
   }
@@ -487,8 +482,7 @@ function toolboxCustomizeInit(menubarID)
 function toolboxCustomizeDone(menubarID, toolbox, aToolboxChanged)
 {
   if (gCustomizeSheet) {
-    var sheetFrame = document.getElementById("customizeToolbarSheetIFrame");
-    sheetFrame.hidden = true;
+    document.getElementById("customizeToolbarSheetIFrame").hidden = true;
     document.getElementById("customizeToolbarSheetPopup").hidePopup();
     if (content)
       content.focus();

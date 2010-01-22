@@ -127,10 +127,8 @@ function CustomizeMailToolbar(toolboxId, customizePopupId)
     else
       sheetFrame.setAttribute("src", customizeURL);
 
-    var sheetWidth = sheetFrame.style.width.match(/([0-9]+)px/)[1];
     document.getElementById("customizeToolbarSheetPopup")
-            .openPopup(toolbox, "after_start",
-                       (window.innerWidth - sheetWidth) / 2, 0);
+            .openPopup(toolbox, "after_start", 0, 0);
   }
   else {
     var wintype = document.documentElement.getAttribute("windowtype");
