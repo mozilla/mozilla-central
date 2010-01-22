@@ -52,6 +52,9 @@ components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
 components/chatzilla-service.js
+#ifdef MOZILLA_1_9_2_BRANCH
+components/contentSecurityPolicy.js
+#endif
 components/crashreporter.xpt
 #ifdef MOZILLA_1_9_2_BRANCH
 components/crypto-SDR.js

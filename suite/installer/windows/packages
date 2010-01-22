@@ -312,6 +312,7 @@ bin\components\zipwriter.xpt
 
 ; JavaScript components
 #ifndef MOZILLA_1_9_2_BRANCH
+bin\components\contentSecurityPolicy.js
 bin\components\crypto-SDR.js
 #endif
 bin\components\FeedConverter.js
