@@ -1,3 +1,7 @@
+// Workaround until Application.prefs can be used safely. (Bug 534647)
+var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
+                             .getService(Components.interfaces.nsIPrefBranch);
+
 function test() {
   waitForExplicitFinish();
 
@@ -20,7 +24,8 @@ function testBrokenCert() {
   ok(expertDiv.hasAttribute("collapsed"), "Expert content should be collapsed by default");
 
   // Tweak the expert mode pref
-  Application.prefs.setValue("browser.xul.error_pages.expert_bad_cert", true);
+  gPrefService.setBoolPref("browser.xul.error_pages.expert_bad_cert", true);
+  // Application.prefs.setValue("browser.xul.error_pages.expert_bad_cert", true);
 
   window.addEventListener("DOMContentLoaded", testExpertPref, true);
   gBrowser.reload();
@@ -36,6 +41,8 @@ function testExpertPref() {
 
   // Clean up
   gBrowser.removeCurrentTab();
-  Application.prefs.get("browser.xul.error_pages.expert_bad_cert").reset();
+  if (gPrefService.prefHasUserValue("browser.xul.error_pages.expert_bad_cert"))
+    gPrefService.clearUserPref("browser.xul.error_pages.expert_bad_cert");
+  // Application.prefs.get("browser.xul.error_pages.expert_bad_cert").reset();
   finish();
 }
