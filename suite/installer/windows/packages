@@ -350,6 +350,9 @@ bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
 bin\components\nsPlacesAutoComplete.js
 bin\components\nsPlacesDBFlush.js
+#ifndef MOZILLA_1_9_2_BRANCH
+bin\components\nsPlacesExpiration.js
+#endif
 bin\components\nsProgressDialog.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsSessionStartup.js
