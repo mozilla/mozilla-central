@@ -71,9 +71,9 @@ function initServerSettings()
     document.getElementById("offline.notDownload").checked =  gIncomingServer.limitOfflineMessageSize;
     document.getElementById("autosync.notDownload").checked =  gIncomingServer.limitOfflineMessageSize;
     if(gIncomingServer.maxMessageSize > 0)
-        document.getElementById("offline.notDownloadMin").setAttribute("value", gIncomingServer.maxMessageSize);
+        document.getElementById("offline.notDownloadMin").value = gIncomingServer.maxMessageSize;
     else
-        document.getElementById("offline.notDownloadMin").setAttribute("value", "50");
+        document.getElementById("offline.notDownloadMin").value = "50";
 
     if(gServerType == "imap") {
         gImapIncomingServer = gIncomingServer.QueryInterface(Components.interfaces.nsIImapIncomingServer);
