@@ -47,7 +47,21 @@ include $(topsrcdir)/$(MOZ_BUILD_APP)/build.mk
 
 include $(topsrcdir)/config/config.mk
 
-default export libs clean realclean distclean alldep maybe_clobber_profiledbuild uploadsymbols::
+default alldep all:: $(topsrcdir)/configure config.status
+
+$(topsrcdir)/configure: $(topsrcdir)/configure.in
+	@echo "STOP!  configure.in has changed, and your configure is out of date."
+	@echo "Please rerun autoconf and configure."
+	@echo "To ignore this message, touch 'configure' in the source directory."
+	@exit 1
+
+config.status: $(topsrcdir)/configure
+	@echo "STOP!  configure has changed and needs to be run in this build directory."
+	@echo "Please rerun configure."
+	@echo "To ignore this message, touch 'config.status' in the build directory."
+	@exit 1
+
+default export libs clean realclean distclean alldep maybe_clobber_profiledbuild uploadsymbols all::
 	$(MAKE) -C mozilla $@
 
 ifdef ENABLE_TESTS
