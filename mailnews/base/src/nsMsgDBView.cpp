@@ -427,18 +427,27 @@ nsresult nsMsgDBView::FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount)
   nsresult rv = aHdr->GetAccountKey(getter_Copies(accountKey));
 
   // Cache the account manager?
-  nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-  nsCOMPtr <nsIMsgAccount> account;
+  nsCOMPtr<nsIMsgAccountManager> accountManager(
+    do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgAccount> account;
+  nsCOMPtr<nsIMsgIncomingServer> server;
   if (!accountKey.IsEmpty())
     rv = accountManager->GetAccount(accountKey, getter_AddRefs(account));
+    
   if (account)
   {
-    nsCOMPtr <nsIMsgIncomingServer> server;
     account->GetIncomingServer(getter_AddRefs(server));
-    if (server)
-      server->GetPrettyName(aAccount);
   }
+  else
+  {
+    nsCOMPtr<nsIMsgFolder> folder;
+    aHdr->GetFolder(getter_AddRefs(folder));
+    if (folder)
+     folder->GetServer(getter_AddRefs(server));
+  }
+  if (server)
+    server->GetPrettyName(aAccount);
   else
     CopyASCIItoUTF16(accountKey, aAccount);
   return NS_OK;
