@@ -70,6 +70,9 @@ components/nsLDAPPrefsService.js
 #ifdef MOZILLA_1_9_2_BRANCH
 components/nsPlacesExpiration.js
 #endif
+#ifdef XP_WIN
+components/nsPostUpdateWin.js
+#endif
 components/nsResetPref.js
 components/nsScriptableIO.js
 components/nsSetDefaultBrowser.js
@@ -82,22 +85,24 @@ components/@DLL_PREFIX@oji@DLL_SUFFIX@
 #endif
 components/progressDlg.xpt
 components/search.xpt
-components/sigonviewer.xpt
 components/sidebar.xpt
+components/sigonviewer.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
-components/suitetypeaheadfind.xpt
 components/@DLL_PREFIX@suitetypeaheadfind@DLL_SUFFIX@
+components/suitetypeaheadfind.xpt
 components/urlwidgt.xpt
 components/util.xpt
 components/venkman-service.js
 components/@DLL_PREFIX@wallet@DLL_SUFFIX@
-components/@DLL_PREFIX@walletviewers@DLL_SUFFIX@
-#ifdef XP_WIN
-components/wlltvwrs.dll
-#endif
 components/wallet.xpt
 components/walleteditor.xpt
 components/walletpreview.xpt
+components/@DLL_PREFIX@walletviewers@DLL_SUFFIX@
+components/winhooks.xpt
+#ifdef XP_WIN
+components/wlltvwrs.dll
+#endif
+components/xml-rpc.xpt
 components/@DLL_PREFIX@xmlextras@DLL_SUFFIX@
 #ifdef XP_WIN
 #ifdef MOZILLA_1_9_2_BRANCH
@@ -106,8 +111,6 @@ components/xpinstall.dll
 components/xpinstal.dll
 #endif
 #endif
-components/winhooks.xpt
-components/xml-rpc.xpt
 defaults/wallet/VcardSchema.tbl
 defaults/wallet/FieldSchema.tbl
 defaults/wallet/SchemaConcat.tbl
@@ -157,7 +160,6 @@ mozcrt19.dll
 #endif
 xpicleanup.exe
 regxpcom.exe
-components/nsPostUpdateWin.js
 #else
 xpicleanup
 #endif
