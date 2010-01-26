@@ -1235,7 +1235,7 @@ nsAbManager::Handle(nsICommandLine* aCmdLine)
 
   nsCOMPtr<nsIDOMWindow> opened;
   wwatch->OpenWindow(nsnull, "chrome://messenger/content/addressbook/addressbook.xul",
-                     "_blank", "chrome,dialog=no,all", nsnull, getter_AddRefs(opened));
+                     "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar", nsnull, getter_AddRefs(opened));
   aCmdLine->SetPreventDefault(PR_TRUE);
   return NS_OK;
 }
