@@ -182,7 +182,9 @@ res/html.css
 res/loading-image.gif
 #ifndef MOZILLA_1_9_2_BRANCH
 res/loading-image.png
+res/maccharset.properties
 res/mathml.css
+res/os2charset.properties
 res/quirk.css
 res/ua.css
 res/unixcharset.properties
