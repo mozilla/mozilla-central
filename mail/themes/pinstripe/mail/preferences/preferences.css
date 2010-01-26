@@ -69,23 +69,6 @@ prefpane {
 
 .paneSelector {
   list-style-image: url("chrome://messenger/skin/preferences/mail-options.png");
-  padding: 0 5px 2px;
-  -moz-appearance: -moz-mac-unified-toolbar;
-  margin: 0;
-}
-
-.paneSelector radio {
-  border-right: 2px solid transparent;
-  border-left: 2px solid transparent;
-  padding: 5px 0 3px;
-  margin: 0;
-  -moz-appearance: none !important;
-}
-
-radio[pane][selected="true"] {
-    background: url("chrome://messenger/skin/preferences/radio-selected-bg.png") repeat-x center center;
-    -moz-border-left-colors: #6a6a6a #868686;
-    -moz-border-right-colors: #6a6a6a #868686;    
 }
 
 radio[pane=paneGeneral] {

@@ -105,7 +105,6 @@ classic.jar:
   skin/classic/messenger/preferences/preferences.css             (mail/preferences/preferences.css)
   skin/classic/messenger/preferences/applications.css            (mail/preferences/applications.css)
   skin/classic/messenger/preferences/mail-options.png            (mail/preferences/mail-options.png)
-  skin/classic/messenger/preferences/radio-selected-bg.png       (mail/preferences/radio-selected-bg.png)
   skin/classic/messenger/smime/msgCompSMIMEOverlay.css           (mail/smime/msgCompSMIMEOverlay.css)
   skin/classic/messenger/smime/msgHdrViewSMIMEOverlay.css        (mail/smime/msgHdrViewSMIMEOverlay.css)
   skin/classic/messenger/smime/msgReadSMIMEOverlay.css           (mail/smime/msgReadSMIMEOverlay.css)
