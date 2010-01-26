@@ -46,24 +46,8 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 @namespace html url("http://www.w3.org/1999/xhtml");
 
-/* Inactive window state */
-#addressbookWindow:not([active="true"]) > #ab-toolbox > toolbar {
-  border-top-color: rgba(255,255,255,0.45);
-  border-bottom-color: rgba(0,0,0,0.35);
-  background-color: #cfcfcf;
-}
-
-
 #ab-bar2 {
   padding: 0 4px;
-}
-
-
-toolbox,
-toolbar {
-  -moz-appearance: none;
-  background-color: transparent;
-  background-image: none;
 }
 
 /* ::::: primary toolbar buttons ::::: */

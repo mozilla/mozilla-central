@@ -56,11 +56,8 @@
   padding: 0 4px;
 }
 
-toolbox,
-toolbar {
+toolbar[nowindowdrag="true"] {
   -moz-appearance: none;
-  background-color: transparent;
-  background-image: none;
 }
 
 /* ::::: primary toolbar buttons ::::: */
