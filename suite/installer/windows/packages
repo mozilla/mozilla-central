@@ -244,6 +244,9 @@ bin\components\locale.xpt
 bin\components\loginmgr.xpt
 bin\components\lwbrk.xpt
 bin\components\mimetype.xpt
+#ifdef MOZILLA_1_9_2_BRANCH
+bin\components\mozbrwsr.xpt
+#endif
 bin\components\mozfind.xpt
 bin\components\necko.xpt
 bin\components\necko_about.xpt

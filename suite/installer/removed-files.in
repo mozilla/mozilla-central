@@ -60,6 +60,9 @@ components/crashreporter.xpt
 components/crypto-SDR.js
 #endif
 components/downloadmanager.xpt
+#ifndef MOZILLA_1_9_2_BRANCH
+components/mozbrwsr.xpt
+#endif
 components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
 components/nsDictionary.js
