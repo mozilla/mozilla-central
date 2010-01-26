@@ -153,15 +153,6 @@
 <!ENTITY  event.menu.options.show.time.free.label             "Free">
 <!ENTITY  event.menu.options.show.time.free.accesskey         "F">
 
-<!ENTITY event.help.label                                 "Help">
-<!ENTITY event.help.accesskey                             "H">
-<!ENTITY event.help.release.notes.label                   "Release Notes">
-<!ENTITY event.help.release.notes.accesskey               "R">
-<!ENTITY event.help.help.label                            "&brandShortName; Help">
-<!ENTITY event.help.help.accesskey                        "H">
-<!ENTITY event.help.about.label                           "About &brandShortName;">
-<!ENTITY event.help.about.accesskey                       "A">
-
 <!ENTITY event.invite.attendees.label                     "Invite Attendees…">
 <!ENTITY event.invite.attendees.accesskey                 "I">
 <!ENTITY event.email.attendees.label                      "Compose E-Mail to All Attendees…">

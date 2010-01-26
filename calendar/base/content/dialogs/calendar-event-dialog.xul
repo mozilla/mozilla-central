@@ -558,28 +558,6 @@
                   </menu>
                 </menupopup>
             </menu>
-
-            <!-- Help Menu -->
-            <menu id="help-menu"
-                  label="&event.help.label;"
-                  accesskey="&event.help.accesskey;">
-                <menupopup id="help-menupopup">
-                    <menuitem id="help-relnotes-menuitem"
-                              label="&event.help.release.notes.label;"
-                              accesskey="&event.help.release.notes.accesskey;"
-                              oncommand="openReleaseNotes()"/>
-                    <menuitem id="help-help-menuitem"
-                              label="&event.help.help.label;"
-                              accesskey="&event.help.help.accesskey;"
-                              oncommand="openRegionURL('mailnews.hints_and_tips.url')"
-                              class="lightning-only"/>
-                    <menuseparator id="help-menuseparator1"/>
-                    <menuitem id="help-about-menuitem"
-                              label="&event.help.about.label;"
-                              accesskey="&event.help.about.accesskey;"
-                              oncommand="openAboutDialog()"/>
-                </menupopup>
-            </menu>
         </menubar>
 
         <!-- Toolbar -->
