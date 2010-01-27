@@ -6964,6 +6964,14 @@ fi
 
 AC_SUBST(MOZ_RDF)
 
+dnl
+dnl Build jsctypes on the platforms we can.
+dnl
+AC_SUBST(BUILD_CTYPES)
+if test "$OS_ARCH" != "WINCE" -o `echo $OS_TEST | grep -ic arm` != 1; then
+  BUILD_CTYPES=1
+  AC_DEFINE(BUILD_CTYPES)
+fi
 
 dnl Only build Mork if it's required
 AC_SUBST(MOZ_MORK)

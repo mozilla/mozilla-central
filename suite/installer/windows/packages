@@ -116,7 +116,9 @@ bin\components\i18n.dll
 bin\components\imgicon.dll
 bin\components\imglib2.dll
 bin\components\intlapp.dll
+#ifdef BUILD_CTYPES
 bin\components\jsctypes.dll
+#endif
 bin\components\mork.dll
 bin\components\mozfind.dll
 bin\components\necko.dll
