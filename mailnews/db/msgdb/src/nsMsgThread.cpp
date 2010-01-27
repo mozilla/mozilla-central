@@ -454,12 +454,12 @@ nsresult nsMsgThread::ReparentNonReferenceChildrenOf(nsIMsgDBHdr *oldTopLevelHdr
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgThread::GetChildKeyAt(PRUint32 aIndex, nsMsgKey *aResult)
+NS_IMETHODIMP nsMsgThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   nsresult rv;
 
-  if (aIndex >= m_numChildren)
+  if (aIndex >= (PRInt32) m_numChildren)
   {
     *aResult = nsMsgKey_None;
     return NS_ERROR_ILLEGAL_VALUE;
@@ -472,7 +472,7 @@ NS_IMETHODIMP nsMsgThread::GetChildKeyAt(PRUint32 aIndex, nsMsgKey *aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgThread::GetChildAt(PRUint32 aIndex, nsIMsgDBHdr **result)
+NS_IMETHODIMP nsMsgThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **result)
 {
   nsresult rv;
 
@@ -514,7 +514,7 @@ NS_IMETHODIMP nsMsgThread::GetChild(nsMsgKey msgKey, nsIMsgDBHdr **result)
 }
 
 
-NS_IMETHODIMP nsMsgThread::GetChildHdrAt(PRUint32 aIndex, nsIMsgDBHdr **result)
+NS_IMETHODIMP nsMsgThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **result)
 {
   nsresult rv;
 
@@ -526,7 +526,7 @@ NS_IMETHODIMP nsMsgThread::GetChildHdrAt(PRUint32 aIndex, nsIMsgDBHdr **result)
   *result = nsnull;
   // mork doesn't seem to handle this correctly, so deal with going off
   // the end here.
-  if (aIndex > m_numChildren)
+  if (aIndex > (PRInt32) m_numChildren)
     return NS_OK;
 
   nsIMdbTableRowCursor *rowCursor;

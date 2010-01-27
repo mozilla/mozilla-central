@@ -200,7 +200,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
     newHdr->GetDateInSeconds(&msgDate);
     nsCOMPtr<nsIMsgDBHdr> child;
     nsMsgViewIndex i;
-    PRUint32 insertIndex = m_keys.Length();
+    PRInt32 insertIndex = m_keys.Length();
     for (i = parentIndex; 
          i < m_keys.Length() && (i == parentIndex ||  m_levels[i] > parentLevel); i++)
     {
@@ -293,9 +293,9 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgXFViewThread::GetChildAt(PRUint32 aIndex, nsIMsgDBHdr **aResult)
+NS_IMETHODIMP nsMsgXFViewThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
 {
-  if (aIndex >= m_keys.Length())
+  if (aIndex >= (PRInt32) m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
   nsCOMPtr<nsIMsgDatabase> db;
   nsresult rv = m_folders[aIndex]->GetMsgDatabase(getter_AddRefs(db));
@@ -303,7 +303,7 @@ NS_IMETHODIMP nsMsgXFViewThread::GetChildAt(PRUint32 aIndex, nsIMsgDBHdr **aResu
   return db->GetMsgHdrForKey(m_keys[aIndex], aResult);
 }
 
-NS_IMETHODIMP nsMsgXFViewThread::GetChildHdrAt(PRUint32 aIndex, nsIMsgDBHdr **aResult)
+NS_IMETHODIMP nsMsgXFViewThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
 {
   return GetChildAt(aIndex, aResult);
 }
@@ -364,7 +364,7 @@ NS_IMETHODIMP nsMsgXFViewThread::GetRootHdr(PRInt32 *aResultIndex, nsIMsgDBHdr *
   return GetChildHdrAt(0, aResult);
 }
 
-NS_IMETHODIMP nsMsgXFViewThread::GetChildKeyAt(PRUint32 aIndex, nsMsgKey *aResult)
+NS_IMETHODIMP nsMsgXFViewThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 {
   NS_ASSERTION(PR_FALSE, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -377,7 +377,7 @@ NS_IMETHODIMP nsMsgXFViewThread::GetChild(nsMsgKey msgKey, nsIMsgDBHdr **aResult
 }
 
 
-PRInt32 nsMsgXFViewThread::HdrIndex(nsIMsgDBHdr *hdr)
+PRUint32 nsMsgXFViewThread::HdrIndex(nsIMsgDBHdr *hdr)
 {
   nsMsgKey msgKey;
   nsCOMPtr<nsIMsgFolder> folder;

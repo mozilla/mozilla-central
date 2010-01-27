@@ -67,7 +67,7 @@ public:
 
   nsresult  AddHdr(nsIMsgDBHdr *newHdr, PRBool reparentChildren, 
                    PRUint32 &whereInserted, nsIMsgDBHdr **outParent);
-  PRInt32   HdrIndex(nsIMsgDBHdr *hdr);
+  PRUint32  HdrIndex(nsIMsgDBHdr *hdr);
   PRUint32  ChildLevelAt(PRUint32 msgIndex) {return m_levels[msgIndex];}
   PRUint32  MsgCount() {return m_numChildren;};
 

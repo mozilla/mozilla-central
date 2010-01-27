@@ -2673,7 +2673,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
       dbFolderInfo->SetCharProperty(kModSeqPropertyName, nsDependentCString(intStrBuf));
     }
     mDatabase->ListAllKeys(existingKeys);
-    PRUint32 keyCount = existingKeys.Length();
+    PRInt32 keyCount = existingKeys.Length();
     mDatabase->ListAllOfflineDeletes(&existingKeys);
     if (keyCount < existingKeys.Length())
       existingKeys.Sort();
@@ -2733,6 +2733,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
 
     // Create a new summary file, update the folder message counts, and
     // Close the summary file db.
+    PRBool created;
     rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
 
     if (NS_FAILED(rv) && mDatabase)
@@ -4102,7 +4103,7 @@ void nsImapMailFolder::FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys,
   {
     if (!showDeletedMessages)
     {
-      for (PRInt32 i = 0; i < numMessageInFlagState; i++)
+      for (PRUint32 i = 0; i < numMessageInFlagState; i++)
       {
         flagState->GetUidOfMessage(i, &uidOfMessage);
         // flag state will be zero filled up to first real uid, so ignore those.
@@ -7389,7 +7390,7 @@ nsImapFolderCopyState::StartNextCopy()
 
 nsresult nsImapFolderCopyState::AdvanceToNextFolder(nsresult aStatus)
 {
-  nsresult rv = NS_OK;
+  nsresult rv;
   m_childIndex++;
   PRUint32 childCount = 0;
   if (m_srcChildFolders)

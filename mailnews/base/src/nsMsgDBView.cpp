@@ -2623,6 +2623,7 @@ nsresult nsMsgDBView::GetHeadersFromSelection(PRUint32 *indices,
         rv = ListCollapsedChildren(viewIndex, messageArray);
       continue;
     }
+    nsMsgKey key = m_keys[viewIndex];
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
     rv = GetMsgHdrForViewIndex(viewIndex, getter_AddRefs(msgHdr));
     if (NS_SUCCEEDED(rv) && msgHdr)
@@ -2763,11 +2764,12 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
     rv = GetHeadersFromSelection(indices, numIndices, messages);
     NS_ENSURE_SUCCESS(rv, rv);
     messages->GetLength(&length);
+    PRUint32 numMsgsSelected = length;
 
     if (thisIsImapFolder)
       imapUids.SetLength(length);
 
-    for (PRUint32 i = 0; i < length; i++)
+    for (PRInt32 i = 0; i < length; i++)
     {
       nsMsgKey msgKey;
       nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(messages, i);
@@ -2838,6 +2840,7 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
   {
     imapMessageFlagsType flags = kNoImapMsgFlag;
     PRBool addFlags = PR_FALSE;
+    PRBool isRead = PR_FALSE;
     nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
     switch (command)
     {
@@ -3317,7 +3320,7 @@ nsMsgDBView::PerformActionsOnJunkMsgs(PRBool msgsAreJunk)
       nsCOMPtr<nsIMsgImapMailFolder> imapFolder(do_QueryInterface(srcFolder));
       nsTArray<nsMsgKey> imapUids;
       imapUids.SetLength(numJunkHdrs);
-      for (PRUint32 i = 0; i < numJunkHdrs; i++)
+      for (int32 i = 0; i < numJunkHdrs; i++)
       {
         nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(mJunkHdrs, i);
         msgHdr->GetMessageKey(&imapUids[i]);

@@ -43,7 +43,7 @@ interface nsIMsgDBHdr;
 
 interface nsIDBChangeAnnouncer;
 
-[scriptable, uuid(45f11afe-4ac4-428b-b2ed-4c7038e6d7d6)]
+[scriptable, uuid(1a32967f-0b80-4b20-a046-716d0f3e69bf)]
 interface nsIMsgThread : nsISupports {
   attribute nsMsgKey threadKey;
   attribute unsigned long flags;
@@ -53,10 +53,10 @@ interface nsIMsgThread : nsISupports {
   readonly attribute unsigned long numUnreadChildren;
 
   void addChild(in nsIMsgDBHdr child, in nsIMsgDBHdr inReplyTo, in boolean threadInThread, in nsIDBChangeAnnouncer announcer);
-  nsIMsgDBHdr getChildAt(in unsigned long index);
-  nsMsgKey getChildKeyAt(in unsigned long index);
+  nsIMsgDBHdr getChildAt(in long index);
+  nsMsgKey getChildKeyAt(in long index);
   nsIMsgDBHdr getChild(in nsMsgKey msgKey);
-  nsIMsgDBHdr getChildHdrAt(in unsigned long index);
+  nsIMsgDBHdr getChildHdrAt(in long index);
   nsIMsgDBHdr getRootHdr(out long index);
   void removeChildAt(in long index);
   void removeChildHdr(in nsIMsgDBHdr child, in nsIDBChangeAnnouncer announcer);
