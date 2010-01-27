@@ -1773,7 +1773,7 @@ NS_IMETHODIMP nsMsgDatabase::DeleteHeader(nsIMsgDBHdr *msg, nsIDBChangeListener 
   // only need to do this for mail - will this speed up news expiration?
   SetHdrFlag(msg, PR_TRUE, nsMsgMessageFlags::Expunged);  // tell mailbox (mail)
 
-  PRBool hdrWasNew = m_newSet.BinaryIndexOf(key) != -1;
+  PRBool hdrWasNew = m_newSet.BinaryIndexOf(key) != m_newSet.NoIndex;
   m_newSet.RemoveElement(key);
 
   if (m_dbFolderInfo != NULL)
@@ -1887,7 +1887,9 @@ PRUint32  nsMsgDatabase::GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags)
 
   nsMsgKey key;
   (void)msgHdr->GetMessageKey(&key);
-  if (!m_newSet.IsEmpty() && m_newSet[m_newSet.Length() - 1] == key || m_newSet.BinaryIndexOf(key) != -1)
+  if (!m_newSet.IsEmpty() &&
+      m_newSet[m_newSet.Length() - 1] == key ||
+      m_newSet.BinaryIndexOf(key) != m_newSet.NoIndex)
     statusFlags |= nsMsgMessageFlags::New;
   if (IsHeaderRead(msgHdr, &isRead) == NS_OK && isRead)
     statusFlags |= nsMsgMessageFlags::Read;

@@ -1066,7 +1066,6 @@ nsMsgSearchDBView::OnStopCopy(nsresult aStatus)
   if (NS_SUCCEEDED(aStatus))
   {
     mCurIndex++;
-    PRUint32 numFolders = 0;
     if (mCurIndex < (PRUint32) m_uniqueFoldersSelected.Count())
     {
       nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));

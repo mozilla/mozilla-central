@@ -1113,7 +1113,7 @@ nsNNTPNewsgroupList::AddHeader(const char *header, const char *value)
   {
     rv = m_newMsgHdr->SetLineCount(atol(value));
   }
-  else if (m_filterHeaders.IndexOf(nsDependentCString(header)) != -1)
+  else if (m_filterHeaders.IndexOf(nsDependentCString(header)) != m_filterHeaders.NoIndex)
   {
     rv = m_newMsgHdr->SetStringProperty(header, value);
   }

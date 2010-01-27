@@ -147,7 +147,7 @@ nsresult nsMsgQuickSearchDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *res
   nsMsgKey msgKey;
   msgHdr->GetMessageKey(&msgKey);
   // protect against duplication.
-  if (m_origKeys.BinaryIndexOf(msgKey)== -1)
+  if (m_origKeys.BinaryIndexOf(msgKey) == m_origKeys.NoIndex)
   {
     nsMsgViewIndex insertIndex = GetInsertIndexHelper(msgHdr, m_origKeys, nsnull,
                     nsMsgViewSortOrder::ascending, nsMsgViewSortType::byId);
@@ -438,7 +438,7 @@ nsresult nsMsgQuickSearchDBView::GetFirstMessageHdrToDisplayInThread(nsIMsgThrea
 
       // this works because we've already sorted m_keys by id.
       nsMsgViewIndex keyIndex = m_origKeys.BinaryIndexOf(msgKey);
-      if (keyIndex != kNotFound)
+      if (keyIndex != m_origKeys.NoIndex)
       {
         // this is the root, so it's the best we're going to do.
         if (msgKey == threadRootKey)
@@ -502,7 +502,7 @@ nsresult nsMsgQuickSearchDBView::SortThreads(nsMsgViewSortTypeValue sortType, ns
       threadHdr->GetChildKeyAt(0, &rootKey);
       nsMsgViewIndex threadRootIndex = threadRootIds.BinaryIndexOf(rootKey);
       // if we already have that id in top level threads, ignore this msg.
-      if (threadRootIndex != kNotFound)
+      if (threadRootIndex != threadRootIds.NoIndex)
         continue;
       // it would be nice if GetInsertIndexHelper always found the hdr, but it doesn't.
       threadHdr->GetChildHdrAt(0, getter_AddRefs(rootHdr));
@@ -584,7 +584,7 @@ nsMsgQuickSearchDBView::ListCollapsedChildren(nsMsgViewIndex viewIndex,
       if (msgKey != rootKey || (GroupViewUsesDummyRow() && rootKeySkipped))
       {
         // if this hdr is in the original view, add it to new view.
-        if (m_origKeys.BinaryIndexOf(msgKey) != kNotFound)
+        if (m_origKeys.BinaryIndexOf(msgKey) != m_origKeys.NoIndex)
           messageArray->AppendElement(msgHdr, PR_FALSE);
       }
       else
@@ -629,7 +629,7 @@ nsresult nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgV
       {
         nsMsgViewIndex threadRootIndex = m_origKeys.BinaryIndexOf(msgKey);
         // if this hdr is in the original view, add it to new view.
-        if (threadRootIndex != kNotFound)
+        if (threadRootIndex != m_origKeys.NoIndex)
         {
           PRUint32 childFlags;
           msgHdr->GetFlags(&childFlags);
@@ -772,7 +772,7 @@ nsresult nsMsgQuickSearchDBView::ExpansionDelta(nsMsgViewIndex index, PRInt32 *e
       if (msgKey != rootKey || (GroupViewUsesDummyRow() && rootKeySkipped))
       {
         // if this hdr is in the original view, add it to new view.
-        if (m_origKeys.BinaryIndexOf(msgKey) != kNotFound)
+        if (m_origKeys.BinaryIndexOf(msgKey) != m_origKeys.NoIndex)
           (*expansionDelta)++;
       }
       else

@@ -1309,9 +1309,12 @@ nsresult nsMsgComposeAndSend::BeginCryptoEncapsulation ()
 }
 
 nsresult
-mime_write_message_body(nsIMsgSend *state, const char *buf, PRInt32 size)
+mime_write_message_body(nsIMsgSend *state, const char *buf, PRInt32 aSize)
 {
   NS_ENSURE_ARG_POINTER(state);
+  if (aSize < 0)
+    return NS_ERROR_INVALID_ARG;
+  PRUint32 size = (PRUint32) aSize;
 
   nsCOMPtr<nsIOutputStream> output;
   nsCOMPtr<nsIMsgComposeSecure> crypto_closure;
@@ -1329,13 +1332,9 @@ mime_write_message_body(nsIMsgSend *state, const char *buf, PRInt32 size)
   PRUint32 n;
   nsresult rv = output->Write(buf, size, &n);
   if (NS_FAILED(rv) || n != size)
-  {
     return NS_MSG_ERROR_WRITING_FILE;
-  }
-  else
-  {
-    return NS_OK;
-  }
+
+  return NS_OK;
 }
 
 nsresult

@@ -2433,7 +2433,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CopyData(nsIInputStream *aIStream, PRInt32 a
   char *start = mCopyState->m_dataBuffer + 1;
   char *endBuffer = mCopyState->m_dataBuffer + mCopyState->m_leftOver + 1;
 
-  PRInt32 lineLength;
+  PRUint32 lineLength;
   PRUint32 bytesWritten;
 
   while (1)
@@ -4045,7 +4045,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
               break;
             else
               continue;
-            PRInt32 keywordHdrLength = keywordHeaders.Length();
+            PRUint32 keywordHdrLength = keywordHeaders.Length();
             PRInt32 startOffset, keywordLength;
             // check if we have the keyword
             if (MsgFindKeyword(keywordArray[j], keywordHeaders, &startOffset, &keywordLength))
