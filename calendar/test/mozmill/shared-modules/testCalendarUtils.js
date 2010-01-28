@@ -37,7 +37,7 @@
 const MODULE_NAME = 'CalendarUtils';
 
 const RELATIVE_ROOT = '.';
-const MODULE_REQUIRES = ['ModalDialogAPI'];
+const MODULE_REQUIRES = ['ModalDialogAPI', 'UtilsAPI'];
 
 const sleep = 500;
 const EVENT_BOX = 0; // Use when you need an event box
@@ -65,12 +65,11 @@ function handleAddingAttachment(url){
   let api = collector.getModule('ModalDialogAPI');
   let md = new api.modalDialog(
     function(attachment){
-      attachment.sleep(sleep);
-      attachment.type(new elementslib.Lookup(attachment.window.document, '/id("commonDialog")/[4]/'
-        + '[1]/id("loginContainer")/id("loginTextbox")/anon({"class":"textbox-input-box"})/'
-        + 'anon({"anonid":"input"})'), url);
+      let input = new elementslib.ID(attachment.window.document, 'loginTextbox');
+      attachment.waitForElement(input);
+      input.getNode().value = url;
       attachment.click(new elementslib.Lookup(attachment.window.document, '/id("commonDialog")/'
-      + 'anon({"anonid":"buttons"})/{"dlgtype":"accept"}'));
+        + 'anon({"anonid":"buttons"})/{"dlgtype":"accept"}'));
     }
   );
   md.start();
@@ -320,4 +319,232 @@ function createCalendar(name){
   for(i = 0; i < calendarTree.mCalendarList.length; i++)
     if(calendarTree.mCalendarList[i].id == id)
       calendarTree.tree.view.selection.select(i);
+}
+
+/**
+ *  Helper function to enter event dialog data
+ *  @param data - dataset object
+ *                  title - event title
+ *                  location - event location
+ *                  description - event description
+ *                  category - category label
+ *                  allday - boolean value
+ *                  startdate - Date object
+ *                  starttime - Date object
+ *                  enddate - Date object
+ *                  endtime - Date object
+ *                  timezone - false for local, true for set timezone
+ *                  repeat - reccurrence value, one of none/daily/weekly/every.weekday/bi.weekly/
+ *                           monthly/yearly/custom
+ *                  reminder - reminder option index
+ *                  priority - none/low/normal/high
+ *                  privacy - public/confidential/private
+ *                  status - none/tentative/confirmed/cancelled
+ *                  freebusy - free/busy
+ *                  attachment.add - url to add
+ *                  attachment.remove - label of url to remove (without http://)
+ *  @param event - event controller
+ */
+function setData(data, event) {
+  let eventDialog = '/id("calendar-event-dialog")/id("event-grid")/id("event-grid-rows")/';
+  let dateInput = 'anon({"anonid":"hbox"})/anon({"anonid":"date-picker"})/'
+    + 'anon({"class":"datepicker-box-class"})/{"class":"datepicker-text-class"}/'
+    + 'anon({"class":"menulist-editable-box textbox-input-box"})/anon({"anonid":"input"})';
+  let timeInput = 'anon({"anonid":"hbox"})/anon({"anonid":"time-picker"})/'
+    + 'anon({"class":"timepicker-box-class"})/anon({"class":"timepicker-text-class"})/'
+    + 'anon({"flex":"1"})/anon({"anonid":"input"})'
+  let startDateInput = new elementslib.Lookup(event.window.document, eventDialog
+    + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/id("event-starttime")/'
+    + dateInput);
+  let endDateInput = new elementslib.Lookup(event.window.document, eventDialog
+    + 'id("event-grid-enddate-row")/[1]/id("event-grid-enddate-picker-box")/id("event-endtime")/'
+    + dateInput);
+  let startTimeInput = new elementslib.Lookup(event.window.document, eventDialog
+    + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/id("event-starttime")/'
+    + timeInput);
+  let endTimeInput = new elementslib.Lookup(event.window.document, eventDialog
+    + 'id("event-grid-enddate-row")/[1]/id("event-grid-enddate-picker-box")/id("event-endtime")/'
+    + timeInput);
+  let dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                              .getService(Components.interfaces.nsIScriptableDateFormat);
+  let utilsapi = collector.getModule('UtilsAPI');
+  let mac = utilsapi.appInfo.os.toLowerCase().indexOf("darwin") != -1;
+  // wait for input elements' values to be populated
+  event.sleep(sleep);
+  
+  // title
+  if (data.title != undefined) {
+    if (!mac) {
+      event.keypress(new elementslib.Lookup(event.window.document, eventDialog
+        + 'id("event-grid-title-row")/id("item-title")/anon({"class":"textbox-input-box"})/'
+        + 'anon({"anonid":"input"})'),
+        'a', {ctrlKey: true});
+      event.type(new elementslib.Lookup(event.window.document, eventDialog
+        + 'id("event-grid-title-row")/id("item-title")/anon({"class":"textbox-input-box"})/'
+        + 'anon({"anonid":"input"})'),
+        data.title);
+    } else {
+      let titleField = new elementslib.ID(event.window.document, "item-title");
+      titleField.getNode().value = data.title;
+    }
+  }
+  
+  // location
+  if (data.location != undefined) {
+    if (!mac) {
+      event.keypress(new elementslib.Lookup(event.window.document, eventDialog
+        + 'id("event-grid-location-row")/id("item-location")/anon({"class":"textbox-input-box"})/'
+        + 'anon({"anonid":"input"})'),
+        'a', {ctrlKey: true});
+      event.type(new elementslib.Lookup(event.window.document, eventDialog
+        + 'id("event-grid-location-row")/id("item-location")/anon({"class":"textbox-input-box"})/'
+        + 'anon({"anonid":"input"})'),
+        data.location);
+    } else {
+      let locationField = new elementslib.ID(event.window.document, "item-location");
+      locationField.getNode().value = data.location;
+    }
+  }
+  
+  // category
+  if (data.category != undefined) {
+    event.select(new elementslib.ID(event.window.document, "item-categories"), undefined,
+      data.category);
+    event.sleep(sleep);
+  }
+  
+  // all-day
+  if (data.allday != undefined) {
+    event.check(new elementslib.ID(event.window.document, "event-all-day"), data.allday);
+  }
+  
+  // timezone
+  if (data.timezone != undefined) {
+    let menuitem = new elementslib.Elem(event.menus["options-menu"]["options-timezone-menuitem"]);
+    menuitem.getNode().setAttribute("checked", data.timezone);
+    event.click(menuitem);
+  }
+  
+  // startdate
+  if (data.startdate != undefined && data.startdate.constructor.name == 'Date') {
+    let startdate = dateService.FormatDate("", dateService.dateFormatShort,
+      data.startdate.getFullYear(), data.startdate.getMonth() + 1, data.startdate.getDate());
+    if (utilsapi.appInfo.os.toLowerCase().indexOf("darwin") == -1) {
+      event.keypress(startDateInput, 'a', {ctrlKey: true});
+      event.type(startDateInput, startdate);
+    } else {
+      startDateInput.getNode().value = startdate;
+    }
+  }
+  
+  // starttime
+  if (data.starttime != undefined && data.starttime.constructor.name == 'Date') {
+    let starttime = dateService.FormatTime("", dateService.timeFormatNoSeconds,
+      data.starttime.getHours(), data.starttime.getMinutes(), 0);
+    if (utilsapi.appInfo.os.toLowerCase().indexOf("darwin") == -1) {
+      event.keypress(startTimeInput, 'a', {ctrlKey: true});
+      event.type(startTimeInput, starttime);
+    } else {
+      startTimeInput.getNode().value = starttime;
+      event.sleep(sleep);
+    }
+  }
+  
+  if (data.enddate != undefined && data.enddate.constructor.name == 'Date') {
+    let enddate = dateService.FormatDate("", dateService.dateFormatShort,
+      data.enddate.getFullYear(), data.enddate.getMonth() + 1, data.enddate.getDate());
+    if (utilsapi.appInfo.os.toLowerCase().indexOf("darwin") == -1) {
+      event.keypress(endDateInput, 'a', {ctrlKey: true});
+      event.type(endDateInput, enddate);
+    } else {
+      endDateInput.getNode().value = enddate;
+    }
+  }
+  
+  // endttime
+  if (data.endtime != undefined && data.endtime.constructor.name == 'Date') {
+    let endtime = dateService.FormatTime("", dateService.timeFormatNoSeconds,
+      data.endtime.getHours(), data.endtime.getMinutes(), 0);
+    if (utilsapi.appInfo.os.toLowerCase().indexOf("darwin") == -1) {
+      event.keypress(endTimeInput, 'a', {ctrlKey:true});
+      event.type(endTimeInput, endtime);
+    } else {
+      endTimeInput.getNode().value = endtime;
+      event.sleep(sleep);
+    }
+  }
+  
+  // recurrence
+  if (data.repeat != undefined) {
+    event.select(new elementslib.ID(event.window.document, "item-repeat"), undefined, undefined,
+      data.repeat);
+  }
+  
+  // reminder
+  if (data.reminder != undefined) {
+    event.select(new elementslib.ID(event.window.document, "item-alarm"), data.reminder);
+  }
+  
+  // description
+  if (data.description != undefined) {
+    if (!mac) {
+      event.keypress(new elementslib.Lookup(event.window.document, eventDialog
+        + 'id("event-grid-description-row")/id("item-description")/'
+        + 'anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'),
+        'a', {ctrlKey: true});
+      event.type(new elementslib.Lookup(event.window.document, eventDialog
+        + 'id("event-grid-description-row")/id("item-description")/'
+        + 'anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'),
+        data.description);
+    } else {
+      let descField = new elementslib.Lookup(event.window.document, eventDialog
+        + 'id("event-grid-description-row")/id("item-description")/'
+        + 'anon({"class":"textbox-input-box"})/anon({"anonid":"input"})');
+      descField.getNode().value = data.description;
+    }
+  }
+  
+  // priority
+  if (data.priority != undefined) {
+    event.click(new elementslib.Elem(event
+      .menus["options-menu"]["options-priority-menu"]["options-priority-" + data.priority
+      + "-label"]));
+  }
+  
+  // privacy
+  if (data.privacy != undefined) {
+    event.click(new elementslib.Elem(event
+      .menus["options-menu"]["options-privacy-menu"]["options-privacy-" + data.privacy
+      + "-menuitem"]));
+  }
+  
+  // status
+  if (data.status != undefined) {
+    event.click(new elementslib.Elem(event
+      .menus["options-menu"]["options-status-menu"]["options-status-" + data.status
+      + "-menuitem"]));
+  }
+  
+  // free/busy
+  if (data.freebusy != undefined) {
+    event.click(new elementslib.Elem(event
+      .menus["options-menu"]["options-freebusy-menu"]["options-freebusy-" + data.freebusy
+      + "-menuitem"]));
+  }
+  
+  // attachment
+  if (data.attachment != undefined) {
+    if (data.attachment.add != undefined) {
+      handleAddingAttachment(data.attachment.add);
+      event.click(new elementslib.ID(event.window.document, "button-url"));
+    }
+    if (data.attachment.delete != undefined) {
+      event.click(new elementslib.Lookup(event.window.document, eventDialog
+        + 'id("event-grid-attachment-row")/id("attachment-link")/{"label":"' +
+        data.attachment.delete + '"}'));
+      event.keypress(new elementslib.ID(event.window.document, "attachment-link"), "VK_DELETE", {});
+    }
+  }
+  
+  event.sleep(sleep);
 }
