@@ -978,12 +978,6 @@ endif # NO_PROFILE_GUIDED_OPTIMIZE
 checkout:
 	$(PYTHON) $(topsrcdir)/client.py checkout
 
-run_viewer: $(FINAL_TARGET)/viewer
-	cd $(FINAL_TARGET); \
-	MOZILLA_FIVE_HOME=`pwd` \
-	LD_LIBRARY_PATH=".:$(LIBS_PATH):$$LD_LIBRARY_PATH" \
-	viewer
-
 clean clobber realclean clobber_all:: $(SUBMAKEFILES)
 	-rm -f $(ALL_TRASH)
 	-rm -rf $(ALL_TRASH_DIRS)
@@ -2082,7 +2076,7 @@ endif
 # Fake targets.  Always run these rules, even if a file/directory with that
 # name already exists.
 #
-.PHONY: all all_platforms alltags boot checkout chrome realchrome clean clobber clobber_all export install libs makefiles realclean run_viewer run_apprunner tools $(DIRS) $(TOOL_DIRS) FORCE
+.PHONY: all all_platforms alltags boot checkout chrome realchrome clean clobber clobber_all export install libs makefiles realclean run_apprunner tools $(DIRS) $(TOOL_DIRS) FORCE
 
 # Used as a dependency to force targets to rebuild
 FORCE:
