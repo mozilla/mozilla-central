@@ -162,40 +162,49 @@ function goToDate(year, month, day, controller){
   let activeYear = (new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
     + 'anon({"anonid":"years-popup"})/[0]/{"current":"true"}')).getNode().getAttribute("value");
+  let activeMonth = (new elementslib.Lookup(controller.window.document, miniMonth
+    + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
+    + 'anon({"anonid":"months-popup"})/[0]/{"current":"true"}')).getNode().getAttribute("index");
   let yearDifference = activeYear - year;
+  let monthDifference = activeMonth - (month - 1);
   
-  let scrollArrow = yearDifference > 0 ?
-    (new elementslib.Lookup(controller.window.document, miniMonth
+  if (yearDifference != 0) {
+    let scrollArrow = yearDifference > 0 ?
+      (new elementslib.Lookup(controller.window.document, miniMonth
+        + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
+        + 'anon({"anonid":"years-popup"})/[0]/{"class":"autorepeatbutton-up"}')).getNode() :
+      (new elementslib.Lookup(controller.window.document, miniMonth
+        + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
+        + 'anon({"anonid":"years-popup"})/[0]/{"class":"autorepeatbutton-down"}')).getNode();
+    
+    // pick year
+    controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+      + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"yearcell"})'));
+    controller.sleep(500);
+    
+    for(let i = 0; i < Math.abs(yearDifference); i++){
+      scrollArrow.doCommand();
+      controller.sleep(100);
+    }
+  
+    controller.click(new elementslib.Lookup(controller.window.document, miniMonth
       + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
-      + 'anon({"anonid":"years-popup"})/[0]/{"class":"autorepeatbutton-up"}')).getNode() :
-    (new elementslib.Lookup(controller.window.document, miniMonth
-      + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
-      + 'anon({"anonid":"years-popup"})/[0]/{"class":"autorepeatbutton-down"}')).getNode();
-  
-  // pick year
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
-    + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"yearcell"})'));
-  controller.sleep(500);
-  
-  for(let i = 0; i < Math.abs(yearDifference); i++){
-    scrollArrow.doCommand();
-    controller.sleep(100);
+      + 'anon({"anonid":"years-popup"})/[0]/{"value":"' + year + '"}'));
+    controller.sleep(500);
   }
   
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
-    + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
-    + 'anon({"anonid":"years-popup"})/[0]/{"value":"' + year + '"}'));
-  controller.sleep(500);
+  if (monthDifference != 0) {
+    // pick month
+    controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+      + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"monthheader"})/[' + activeMonth
+      + ']'));
+    controller.sleep(500);
+    controller.click(new elementslib.Lookup(controller.window.document, miniMonth
+      + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
+      + 'anon({"anonid":"months-popup"})/[0]/{"index":"' + (month - 1) + '"}'));
+    controller.sleep(500);
+  }
   
-  // pick month
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
-    + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"monthheader"})'));
-  controller.sleep(500);
-  controller.click(new elementslib.Lookup(controller.window.document, miniMonth
-    + 'anon({"anonid":"minimonth-header"})/anon({"anonid":"minmonth-popupset"})/'
-    + 'anon({"anonid":"months-popup"})/[0]/{"index":"' + (month - 1) + '"}'));
-  controller.sleep(500);
-
   let lastDayInFirstRow = (new elementslib.Lookup(controller.window.document,
     miniMonth + 'anon({"anonid":"minimonth-calendar"})/[1]/[6]')).getNode().getAttribute("value");
   let positionOfFirst = 7 - lastDayInFirstRow;
@@ -206,6 +215,7 @@ function goToDate(year, month, day, controller){
   controller.click(new elementslib.Lookup(controller.window.document, miniMonth
     + 'anon({"anonid":"minimonth-calendar"})/[' + (dateRow + 1) + ']/[' + dateColumn + ']'));
   controller.sleep(1000);
+
 }
 
 /**
@@ -280,6 +290,16 @@ function forward(n){
 }
 
 /**
+ * @param n - how many times previous button in view is clicked
+ */
+function back(n){
+  for(let i = 0; i < n; i++){
+    controller.click(new elementslib.ID(controller.window.document, "previous-view-button"));
+    controller.sleep(sleep);
+  }
+}
+
+/**
  * Deletes all calendars with given name
  * @param name - calendar name
  */
@@ -319,6 +339,23 @@ function createCalendar(name){
   for(i = 0; i < calendarTree.mCalendarList.length; i++)
     if(calendarTree.mCalendarList[i].id == id)
       calendarTree.tree.view.selection.select(i);
+}
+
+/**
+ * Retrieves array of all calendar-event-box elements in node
+ * @param node - node to be searched
+ * @param eventNodes - array where to put resultíng nodes
+ */
+function findEventsInNode(node, eventNodes) {
+  if(node.tagName == "calendar-event-box") {
+    eventNodes.push(node);
+    return;
+  }
+  else if(node.children.length > 0) {
+    for (let i = 0; i < node.children.length; i++) {
+      findEventsInNode(node.children[i], eventNodes);
+    }
+  }
 }
 
 /**
