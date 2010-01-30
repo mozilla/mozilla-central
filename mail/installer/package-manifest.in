@@ -577,9 +577,9 @@
 #endif
 @BINPATH@/res/langGroups.properties
 @BINPATH@/res/language.properties
-@BINPATH@/res/entityTables/
-@BINPATH@/res/dtd/
-@BINPATH@/res/fonts/
+@BINPATH@/res/entityTables/*
+@BINPATH@/res/dtd/*
+@BINPATH@/res/fonts/*
 @BINPATH@/res/contenteditable.css
 @BINPATH@/res/designmode.css
 @BINPATH@/res/html/folder.png
