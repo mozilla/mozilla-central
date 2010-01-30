@@ -164,6 +164,22 @@
 				<key>CFBundleTypeIconFile</key>
 				<string>html.icns</string>
 			</dict>
+
+			<dict>
+				<key>CFBundleTypeName</key>
+				<string>@MOZ_APP_DISPLAYNAME@ E-mail</string>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+				<key>CFBundleTypeOSTypes</key>
+				<array>
+					<string>TEXT</string>
+					<string>utxt</string>
+				</array>
+				<key>CFBundleTypeExtensions</key>
+				<array>
+					<string>eml</string>
+				</array>
+			</dict>
 			
 	<!--Image Icon image.icns does not yet exist, but associating Images with the application here-->
 			
