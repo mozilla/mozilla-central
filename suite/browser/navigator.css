@@ -43,6 +43,22 @@ panel[for="urlbar"] {
   display: none;
 }
 
+/* ::::: autohide the menubar for full screen on linux too ::::: */
+
+#toolbar-menubar[autohide="true"]
+{
+  -moz-binding: url("chrome://global/content/bindings/toolbar.xml#toolbar-menubar-autohide");
+  overflow: hidden;
+}
+
+#toolbar-menubar[autohide="true"][inactive="true"]
+{
+  min-height: 0px !important;
+  height: 0px !important;
+  -moz-appearance: none !important;
+  border-style: none !important;
+}
+
 /* ::::: Wallpaper fix for Bug 435652. Remove when Bug 204743 is fixed ::::: */
 
 .textbox-input-box {

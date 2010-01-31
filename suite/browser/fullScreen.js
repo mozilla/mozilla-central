@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var FullScreen = 
+var FullScreen =
 {
   toggle: function()
   {
@@ -55,7 +55,7 @@ var FullScreen =
     for (let i = 0; i < controls.length; ++i)
       controls[i].hidden = show;
   },
-  
+
   showXULChrome: function(aTag, aShow)
   {
     var XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
@@ -102,6 +102,11 @@ var FullScreen =
 
           els[i].removeAttribute("inFullscreen");
         }
+      } else if (els[i].getAttribute("type") == "menubar") {
+        if (aShow)
+          els[i].removeAttribute("autohide");
+        else
+          els[i].setAttribute("autohide", "true");
       } else {
         // use moz-collapsed so it doesn't persist hidden/collapsed,
         // so that new windows don't have missing toolbars
