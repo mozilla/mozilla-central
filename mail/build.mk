@@ -106,7 +106,7 @@ include $(topsrcdir)/mailnews/testsuite-targets.mk
 
 MOZMILLDIR=$(DEPTH)/mozilla/_tests/mozmill
 
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 # Mac options
 APP_NAME = $(MOZ_APP_DISPLAYNAME)
 ifdef MOZ_DEBUG
