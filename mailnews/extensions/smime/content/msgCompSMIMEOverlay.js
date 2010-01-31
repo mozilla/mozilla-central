@@ -39,6 +39,7 @@
 
 // Account encryption policy values:
 // const kEncryptionPolicy_Never = 0;
+// 'IfPossible' was used by ns4.
 // const kEncryptionPolicy_IfPossible = 1;
 const kEncryptionPolicy_Always = 2;
 
@@ -140,8 +141,6 @@ function showNeedSetupInfo()
   var ifps = Components.interfaces.nsIPromptService;
   let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                 .getService(ifps);
-  if (!promptService)
-    return;
 
   let buttonPressed =
     promptService.confirmEx(window,
