@@ -38,11 +38,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// Account encryption policy values:
+// const kEncryptionPolicy_Never = 0;
+// 'IfPossible' was used by ns4.
+// const kEncryptionPolicy_IfPossible = 1;
+const kEncryptionPolicy_Always = 2;
+
+var gEncryptedURIService =
+        Components.classes["@mozilla.org/messenger-smime/smime-encrypted-uris-service;1"]
+                  .getService(Components.interfaces.nsIEncryptedSMIMEURIsService);
+
 var gNextSecurityButtonCommand = "";
-var gBundle;
-var gBrandBundle;
-var gSMFields;
-var gEncryptedURIService = null;
+var gSMFields = null;
 
 var gEncryptOptionChanged;
 var gSignOptionChanged;
@@ -69,35 +76,31 @@ function onComposerReOpen()
 
   gSMFields = Components.classes["@mozilla.org/messenger-smime/composefields;1"]
                         .createInstance(Components.interfaces.nsIMsgSMIMECompFields);
-  if (gSMFields)
+  if (!gSMFields)
+    return;
+
+  gMsgCompose.compFields.securityInfo = gSMFields;
+
+  // Set up the intial security state.
+  gSMFields.requireEncryptMessage =
+    gCurrentIdentity.getIntAttribute("encryptionpolicy") == kEncryptionPolicy_Always;
+  if (!gSMFields.requireEncryptMessage &&
+      gEncryptedURIService &&
+      gEncryptedURIService.isEncrypted(gMsgCompose.originalMsgURI))
   {
-    gMsgCompose.compFields.securityInfo = gSMFields;
-    // set up the intial security state....
-    var encryptionPolicy = gCurrentIdentity.getIntAttribute("encryptionpolicy");
-    // 0 == never, 1 == if possible, 2 == always Encrypt.
-    gSMFields.requireEncryptMessage = encryptionPolicy == 2;
-
-    gSMFields.signMessage = gCurrentIdentity.getBoolAttribute("sign_mail");
-
-    if (gEncryptedURIService && !gSMFields.requireEncryptMessage)
-    {
-      if (gEncryptedURIService.isEncrypted(gMsgCompose.originalMsgURI))
-      {
-        // Override encryption setting if original is known as encrypted.
-        gSMFields.requireEncryptMessage = true;
-      }
-    }
-
-    if (gSMFields.requireEncryptMessage)
-      setEncryptionUI();
-    else
-      setNoEncryptionUI();
-
-    if (gSMFields.signMessage)
-      setSignatureUI();
-    else
-      setNoSignatureUI();
+    // Override encryption setting if original is known as encrypted.
+    gSMFields.requireEncryptMessage = true;
   }
+  if (gSMFields.requireEncryptMessage)
+    setEncryptionUI();
+  else
+    setNoEncryptionUI();
+
+  gSMFields.signMessage = gCurrentIdentity.getBoolAttribute("sign_mail");
+  if (gSMFields.signMessage)
+    setSignatureUI();
+  else
+    setNoSignatureUI();
 }
 
 addEventListener("load", smimeComposeOnLoad, false);
@@ -107,11 +110,6 @@ addEventListener("load", smimeComposeOnLoad, false);
 function smimeComposeOnLoad()
 {
   removeEventListener("load", smimeComposeOnLoad, false);
-
-  if (!gEncryptedURIService)
-    gEncryptedURIService = 
-      Components.classes["@mozilla.org/messenger-smime/smime-encrypted-uris-service;1"]
-      .getService(Components.interfaces.nsIEncryptedSMIMEURIsService);
 
   onComposerReOpen();
 
@@ -137,15 +135,6 @@ function smimeComposeOnUnload()
   top.controllers.removeController(SecurityController);
 }
 
-function setupBundles()
-{
-  if (gBundle)
-    return;
-
-  gBundle = document.getElementById("bundle_comp_smime");
-  gBrandBundle = document.getElementById("bundle_brand");
-}
-
 // stub routine to make our call to MsgAccountManager work correctly
 function GetSelectedFolderURI()
 {
@@ -160,29 +149,22 @@ function GetServer(uri)
 
 function showNeedSetupInfo()
 {
-  var ifps = Components.interfaces.nsIPromptService;
+  let compSmimeBundle = document.getElementById("bundle_comp_smime");
+  let brandBundle = document.getElementById("bundle_brand");
+  if (!compSmimeBundle || !brandBundle)
+    return;
 
+  var ifps = Components.interfaces.nsIPromptService;
   let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                 .getService(ifps);
-  setupBundles();
 
-  if (promptService && gBundle && gBrandBundle) {
-    var dummy = new Object;
-    var buttonPressed =
+  let buttonPressed =
     promptService.confirmEx(window,
-      gBrandBundle.getString("brandShortName"),
-      gBundle.getString("NeedSetup"), 
-      ifps.STD_YES_NO_BUTTONS,
-      0,
-      0,
-      0,
-      null,
-      dummy);
-    
-    if (0 == buttonPressed) {
-      MsgAccountManager('am-smime.xul');
-    }
-  }
+                            brandBundle.getString("brandShortName"),
+                            compSmimeBundle.getString("NeedSetup"),
+                            ifps.STD_YES_NO_BUTTONS, 0, 0, 0, null, {});
+  if (buttonPressed == 0)
+    MsgAccountManager("am-smime.xul");
 }
 
 function toggleEncryptMessage()
@@ -190,14 +172,12 @@ function toggleEncryptMessage()
   if (!gSMFields)
     return;
 
-  // toggle
   gSMFields.requireEncryptMessage = !gSMFields.requireEncryptMessage;
 
   if (gSMFields.requireEncryptMessage)
   {
     // Make sure we have a cert.
-    var encryptionCertName = gCurrentIdentity.getUnicharAttribute("encryption_cert_name");
-    if (!encryptionCertName)
+    if (!gCurrentIdentity.getUnicharAttribute("encryption_cert_name"))
     {
       gSMFields.requireEncryptMessage = false;
       showNeedSetupInfo();
@@ -219,13 +199,11 @@ function toggleSignMessage()
   if (!gSMFields)
     return;
 
-  // toggle
   gSMFields.signMessage = !gSMFields.signMessage;
 
   if (gSMFields.signMessage) // make sure we have a cert name...
   {
-    var signingCertName = gCurrentIdentity.getUnicharAttribute("signing_cert_name");
-    if (!signingCertName)
+    if (!gCurrentIdentity.getUnicharAttribute("signing_cert_name"))
     {
       gSMFields.signMessage = false;
       showNeedSetupInfo();
@@ -307,18 +285,18 @@ function showMessageComposeSecurityStatus()
 {
   Recipients2CompFields(gMsgCompose.compFields);
 
-  var encryptionCertName = gCurrentIdentity.getUnicharAttribute("encryption_cert_name");
-  var signingCertName = gCurrentIdentity.getUnicharAttribute("signing_cert_name");
-
-  window.openDialog("chrome://messenger-smime/content/msgCompSecurityInfo.xul",
+  window.openDialog(
+    "chrome://messenger-smime/content/msgCompSecurityInfo.xul",
     "",
     "chrome,modal,resizable,centerscreen",
     {
       compFields : gMsgCompose.compFields,
       subject : GetMsgSubjectElement().value,
       smFields : gSMFields,
-      isSigningCertAvailable : (signingCertName.length > 0),
-      isEncryptionCertAvailable : (encryptionCertName.length > 0),
+      isSigningCertAvailable :
+        gCurrentIdentity.getUnicharAttribute("signing_cert_name") != "",
+      isEncryptionCertAvailable :
+        gCurrentIdentity.getUnicharAttribute("encryption_cert_name") != "",
       currentIdentity : gCurrentIdentity
     }
   );
@@ -328,7 +306,7 @@ var SecurityController =
 {
   supportsCommand: function(command)
   {
-    switch ( command )
+    switch (command)
     {
       case "cmd_viewSecurityStatus":
         return true;
@@ -340,7 +318,7 @@ var SecurityController =
 
   isCommandEnabled: function(command)
   {
-    switch ( command )
+    switch (command)
     {
       case "cmd_viewSecurityStatus":
         return true;
@@ -356,17 +334,16 @@ function onComposerSendMessage()
   let missingCount = new Object();
   let emailAddresses = new Object();
 
-  try {
-    if (!gMsgCompose.compFields.securityInfo.requireEncryptMessage) {
+  try
+  {
+    if (!gMsgCompose.compFields.securityInfo.requireEncryptMessage)
       return;
-    }
 
-    var helper = Components.classes["@mozilla.org/messenger-smime/smimejshelper;1"]
-                           .createInstance(Components.interfaces.nsISMimeJSHelper);
-    helper.getNoCertAddresses(
-      gMsgCompose.compFields,
-      missingCount,
-      emailAddresses);
+    Components.classes["@mozilla.org/messenger-smime/smimejshelper;1"]
+              .createInstance(Components.interfaces.nsISMimeJSHelper)
+              .getNoCertAddresses(gMsgCompose.compFields,
+                                  missingCount,
+                                  emailAddresses);
   }
   catch (e)
   {
@@ -378,11 +355,13 @@ function onComposerSendMessage()
     // The rules here: If the current identity has a directoryServer set, then
     // use that, otherwise, try the global preference instead.
 
-    var autocompleteDirectory = null;
+    let autocompleteDirectory;
 
     // Does the current identity override the global preference?
     if (gCurrentIdentity.overrideGlobalPref)
+    {
       autocompleteDirectory = gCurrentIdentity.directoryServer;
+    }
     else
     {
       // Try the global one
@@ -414,8 +393,7 @@ function onComposerFromChanged()
     // Encryption wasn't manually checked.
     // Set up the encryption policy from the setting of the new identity.
 
-    // 0 == never, 1 == if possible (ns4), 2 == always Encrypt.
-    useEncryption = (encryptionPolicy == 2);
+    useEncryption = (encryptionPolicy == kEncryptionPolicy_Always);
   }
   else
   {
@@ -423,7 +401,7 @@ function onComposerFromChanged()
     // the situation that the new identity doesn't have a cert to encrypt with.
     // If it doesn't, don't encrypt.
 
-    if (encryptionPolicy != 2) // Encrypted (policy unencrypted, manually changed).
+    if (encryptionPolicy != kEncryptionPolicy_Always) // Encrypted (policy unencrypted, manually changed).
     {
       // Make sure we have a cert for encryption.
       var encryptionCertName = gCurrentIdentity.getUnicharAttribute("encryption_cert_name");

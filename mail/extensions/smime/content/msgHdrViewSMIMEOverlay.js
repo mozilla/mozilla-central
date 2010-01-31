@@ -20,7 +20,7 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Scott MacGreogr <mscott@netscape.com>
+#   Scott MacGregor <mscott@netscape.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
