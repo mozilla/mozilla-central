@@ -6943,6 +6943,17 @@ PRBool nsMsgDBView::OfflineMsgSelected(nsMsgViewIndex * indices, PRInt32 numIndi
 
   for (nsMsgViewIndex index = 0; index < (nsMsgViewIndex) numIndices; index++)
   {
+    // For cross-folder saved searches, we need to check if any message
+    // is in a local folder.
+    if (!m_folder)
+    {
+      nsCOMPtr<nsIMsgFolder> folder;
+      GetFolderForViewIndex(indices[index], getter_AddRefs(folder));
+      nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(folder);
+      if (localFolder)
+        return PR_TRUE;
+    }
+
     PRUint32 flags = m_flags[indices[index]];
     if ((flags & nsMsgMessageFlags::Offline))
       return PR_TRUE;
