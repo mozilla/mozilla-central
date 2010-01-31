@@ -4439,7 +4439,6 @@ MOZ_XSLT_STANDALONE=
 MOZ_XTF=1
 MOZ_XUL=1
 MOZ_ZIPWRITER=1
-NS_PRINTING=1
 JS_STATIC_BUILD=
 XPC_IDISPATCH_SUPPORT=
 
@@ -4509,7 +4508,6 @@ basic)
   MOZ_XTF=
   MOZ_ZIPWRITER=
   NS_DISABLE_LOGGING=1
-  NS_PRINTING=
   JS_STATIC_BUILD=1
   ;;
 
@@ -4545,7 +4543,6 @@ minimal)
   MOZ_ZIPWRITER=
   MOZ_RDF=
   NS_DISABLE_LOGGING=1
-  NS_PRINTING=
   JS_STATIC_BUILD=1
   ;;
 
@@ -5192,19 +5189,6 @@ MOZ_ARG_DISABLE_BOOL(jsloader,
     MOZ_JSLOADER=1 )
 if test "$MOZ_JSLOADER"; then
     AC_DEFINE(MOZ_JSLOADER)
-fi
-
-dnl ========================================================
-dnl Disable printing
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(printing,
-[  --disable-printing  Disable printing support],
-    NS_PRINTING=,
-    NS_PRINTING=1 )
-
-if test "$NS_PRINTING"; then
-    AC_DEFINE(NS_PRINTING)
-    AC_DEFINE(NS_PRINT_PREVIEW)
 fi
 
 dnl ========================================================
@@ -7015,7 +6999,6 @@ AC_SUBST(MOZ_PLACES)
 AC_SUBST(MOZ_PLACES_BOOKMARKS)
 AC_SUBST(MOZ_STORAGE)
 AC_SUBST(MOZ_FEEDS)
-AC_SUBST(NS_PRINTING)
 
 AC_SUBST(MOZ_PROFILELOCKING)
 
