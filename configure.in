@@ -4439,7 +4439,6 @@ MOZ_XSLT_STANDALONE=
 MOZ_XTF=1
 MOZ_XUL=1
 MOZ_ZIPWRITER=1
-JS_STATIC_BUILD=
 XPC_IDISPATCH_SUPPORT=
 
 
@@ -4508,7 +4507,6 @@ basic)
   MOZ_XTF=
   MOZ_ZIPWRITER=
   NS_DISABLE_LOGGING=1
-  JS_STATIC_BUILD=1
   ;;
 
 minimal)
@@ -4543,7 +4541,6 @@ minimal)
   MOZ_ZIPWRITER=
   MOZ_RDF=
   NS_DISABLE_LOGGING=1
-  JS_STATIC_BUILD=1
   ;;
 
 *)
@@ -6713,25 +6710,6 @@ else
         AC_DEFINE(MOZ_STATIC_BUILD)
     fi
     XPCOM_LIBS="$DYNAMIC_XPCOM_LIBS"
-fi
-
-dnl ========================================================
-dnl = Force JS to be a static lib
-dnl ========================================================
-MOZ_ARG_ENABLE_BOOL(js-static-build,
-[  --enable-js-static-build  Force js to be a static lib],
-    JS_STATIC_BUILD=1,
-    JS_STATIC_BUILD= )
-
-AC_SUBST(JS_STATIC_BUILD)
-        
-if test -n "$JS_STATIC_BUILD"; then
-    AC_DEFINE(EXPORT_JS_API)
-
-if test -z "$BUILD_STATIC_LIBS"; then
-    AC_MSG_ERROR([--enable-js-static-build is only compatible with --enable-static])
-fi
-
 fi
 
 dnl Disable static mail in debug builds, but not with libxul sdk.
