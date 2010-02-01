@@ -1,7 +1,8 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
- * Test to ensure that imap flag changes made from a different profile/machine
- * are stored in db.
+ * Test to ensure that changes made from a different profile/machine
+ * are synced correctly. In particular, we're checking that emptying out
+ * an imap folder on the server makes us delete all the headers from our db.
  */
 
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
@@ -32,63 +33,14 @@ const gTestArray =
     // upon reselecting the Inbox.
     gSecondFolder.updateFolderWithListener(null, UrlListener);
   },
-  function simulateForwardFlagSet() {
-    gMessage.setFlag("$Forwarded");
+  function simulateMailboxEmptied() {
+    gMessage.setFlag("\\Deleted");
+    gIMAPDaemon.getMailbox("INBOX").expunge();
     gIMAPInbox.updateFolderWithListener(null, UrlListener);
   },
-  function checkForwardedFlagSet() {
+  function checkMailboxEmpty() {
     let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
-    do_check_eq(msgHdr.flags & Ci.nsMsgMessageFlags.Forwarded,
-      Ci.nsMsgMessageFlags.Forwarded);
-    gSecondFolder.updateFolderWithListener(null, UrlListener);
-  },
-  function clearForwardedFlag() {
-    gMessage.clearFlag("$Forwarded");
-    gIMAPInbox.updateFolderWithListener(null, UrlListener);
-  },
-  function checkForwardedFlagCleared() {
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
-    do_check_eq(msgHdr.flags & Ci.nsMsgMessageFlags.Forwarded, 0);
-    gSecondFolder.updateFolderWithListener(null, UrlListener);
-  },
-  function setSeenFlag() {
-    gMessage.setFlag("\\Seen");
-    gIMAPInbox.updateFolderWithListener(null, UrlListener);
-  },
-  function checkSeenFlagSet() {
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
-    do_check_eq(msgHdr.flags & Ci.nsMsgMessageFlags.Read,
-                Ci.nsMsgMessageFlags.Read);
-    gSecondFolder.updateFolderWithListener(null, UrlListener);
-  },
-  function simulateRepliedFlagSet() {
-    gMessage.setFlag("\\Answered");
-    gIMAPInbox.updateFolderWithListener(null, UrlListener);
-  },
-  function checkRepliedFlagSet() {
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
-    do_check_eq(msgHdr.flags & Ci.nsMsgMessageFlags.Replied,
-      Ci.nsMsgMessageFlags.Replied);
-    gSecondFolder.updateFolderWithListener(null, UrlListener);
-  },
-  function simulateTagAdded() {
-    gMessage.setFlag("randomtag");
-    gIMAPInbox.updateFolderWithListener(null, UrlListener);
-  },
-  function checkTagSet() {
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
-    let keywords = msgHdr.getStringProperty("keywords");
-    do_check_true(keywords.indexOf("randomtag") != -1);
-    gSecondFolder.updateFolderWithListener(null, UrlListener);
-  },
-  function clearTag() {
-    gMessage.clearFlag("randomtag");
-    gIMAPInbox.updateFolderWithListener(null, UrlListener);
-  },
-  function checkTagCleared() {
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
-    let keywords = msgHdr.getStringProperty("keywords");
-    do_check_eq(keywords.indexOf("randomtag"), -1);
+    do_check_eq(gIMAPInbox.getTotalMessages(false), 0);
     doTest(++gTest);
   },
 ];
@@ -131,7 +83,7 @@ function run_test()
   prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
   prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
 
-  // build up a diverse list of messages
+
   let messages = [];
   let gMessageGenerator = new MessageGenerator();
   messages = messages.concat(gMessageGenerator.makeMessage());
