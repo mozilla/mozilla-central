@@ -224,6 +224,9 @@ NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
       }
       rv = acctMgr->FindAccountForServer(localServer, getter_AddRefs(localAccount));
       NS_ENSURE_SUCCESS(rv, rv);
+      if (!localAccount)
+        return NS_ERROR_NOT_AVAILABLE;
+
       localAccount->GetKey(aRetVal);
       // Can't call SetDeferredToAccount because it calls GetDeferredToAccount.
       return SetCharValue("deferred_to_account", aRetVal);
