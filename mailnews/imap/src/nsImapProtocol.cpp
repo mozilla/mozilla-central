@@ -4267,8 +4267,6 @@ void nsImapProtocol::Log(const char *logSubName, const char *extraInfo, const ch
     static const char nonAuthStateName[] = "NA";
     static const char authStateName[] = "A";
     static const char selectedStateName[] = "S";
-      //  static const char waitingStateName[] = "W";
-    const char *stateName = NULL;
     const nsCString& hostName = GetImapHostName();  // initilize to empty string
 
     PRInt32 logDataLen = PL_strlen(logData); // PL_strlen checks for null
@@ -4276,7 +4274,8 @@ void nsImapProtocol::Log(const char *logSubName, const char *extraInfo, const ch
     const char *logDataToLog;
     PRInt32 lastLineEnd;
 
-    const int kLogDataChunkSize = 400; // nspr line length is 512, and we allow some space for the log preamble.
+    const int kLogDataChunkSize = 400; // nspr line length is 512, and we
+                                       // allow some space for the log preamble.
 
     // break up buffers > 400 bytes on line boundaries.
     if (logDataLen > kLogDataChunkSize)
@@ -4300,30 +4299,35 @@ void nsImapProtocol::Log(const char *logSubName, const char *extraInfo, const ch
     case nsImapServerResponseParser::kFolderSelected:
       if (extraInfo)
         PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s-%s:%s:%s: %.400s", this, hostName.get(),
-               selectedStateName, GetServerStateParser().GetSelectedMailboxName(), logSubName, extraInfo, logDataToLog));
+               selectedStateName, GetServerStateParser().GetSelectedMailboxName(),
+               logSubName, extraInfo, logDataToLog));
       else
         PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s-%s:%s: %.400s", this, hostName.get(),
-               selectedStateName, GetServerStateParser().GetSelectedMailboxName(), logSubName, logDataToLog));
-      return;
+               selectedStateName, GetServerStateParser().GetSelectedMailboxName(),
+               logSubName, logDataToLog));
+      break;
     case nsImapServerResponseParser::kNonAuthenticated:
-      stateName = nonAuthStateName;
-      break;
     case nsImapServerResponseParser::kAuthenticated:
-      stateName = authStateName;
-      break;
+    {
+      const char *stateName = (GetServerStateParser().GetIMAPstate() ==
+                               nsImapServerResponseParser::kNonAuthenticated)
+                               ? nonAuthStateName : authStateName;
+      if (extraInfo)
+        PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s:%s:%s: %.400s", this,
+               hostName.get(),stateName,logSubName,extraInfo,logDataToLog));
+      else
+        PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s:%s: %.400s",this,
+               hostName.get(),stateName,logSubName,logDataToLog));
     }
-
-    if (extraInfo)
-      PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s:%s:%s: %.400s", this,hostName.get(),stateName,logSubName,extraInfo,logDataToLog));
-    else
-      PR_LOG(IMAP, PR_LOG_ALWAYS, ("%x:%s:%s:%s: %.400s",this,hostName.get(),stateName,logSubName,logDataToLog));
+    }
 
     // dump the rest of the string in < 400 byte chunks
     while (logDataLen > kLogDataChunkSize)
     {
       logDataLines.Cut(0, lastLineEnd + 2); // + 2 to account for the LF and the '\0' we added
       logDataLen = logDataLines.Length();
-      lastLineEnd = (logDataLen > kLogDataChunkSize) ? logDataLines.RFindChar('\n', kLogDataChunkSize) : kNotFound;
+      lastLineEnd = (logDataLen > kLogDataChunkSize)
+                    ? logDataLines.RFindChar('\n', kLogDataChunkSize) : kNotFound;
       // null terminate the last line
       if (lastLineEnd == kNotFound)
         lastLineEnd = kLogDataChunkSize - 1;
