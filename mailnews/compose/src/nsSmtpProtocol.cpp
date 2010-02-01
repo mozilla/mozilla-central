@@ -316,7 +316,8 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
         smtpServer->GetAuthMethod(&m_prefAuthMethod);
         smtpServer->GetTrySSL(&m_prefTrySSL);
         smtpServer->GetUseSecAuth(&m_prefUseSecAuth);
-        smtpServer->GetTrySecAuth(&m_prefTrySecAuth);
+        // Uncomment out the following line to turn back on sec auth probing
+        // smtpServer->GetTrySecAuth(&m_prefTrySecAuth);
         smtpServer->GetHelloArgument(getter_Copies(m_helloArgument));
     }
 
