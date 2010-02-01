@@ -160,6 +160,13 @@ interface nsIMsgAccountManager : nsISupports {
    */
   long FindServerIndex(in nsIMsgIncomingServer server);
 
+  /**
+   * Finds an account for the given incoming server.
+   *
+   * @param server  An incoming server to find the account for.
+   * @return        If found, the nsIMsgAccount representing the account found.
+   *                Otherwise returns null.
+   */
   nsIMsgAccount FindAccountForServer(in nsIMsgIncomingServer server);
 
   /* given a server, return all identities in accounts that have this server
