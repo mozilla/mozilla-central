@@ -69,7 +69,9 @@ function loadLocalMailAccount()
 }
 
 /**
- * Converts a base64-encoded to a string with the octet data.
+ * atob() = base64 decode
+ * Converts a base64-encoded string to a string with the octet data.
+ * @see RFC 4648
  *
  * The extra parameters are optional arguments that are used to override the
  * official base64 characters for values 62 and 63. If not specified, they
@@ -97,9 +99,9 @@ function atob(str, c62, c63) {
     else if (48 <= c && c <= 57) // 0-9
       val = c-48+52;
     else if (c == c62)
-      value = 62;
+      val = 62;
     else if (c == c63)
-      value = 63;
+      val = 63;
     else if (c == 61) {
       for (var q=i+1;q<str.length;q++)
         if (str[q] != '=')
@@ -118,11 +120,13 @@ function atob(str, c62, c63) {
         return (form << 1) | bit;
       }, 0));
   }
-  return result.reduce(function (str, c) { return str+c }, "");
+  return result.reduce(function (str, c) { return str + String.fromCharCode(c); }, "");
 }
 
 /**
+ * btoa() = base64 encode
  * Converts a string or array of octets to a base64-encoded string.
+ * @see RFC 4648
  *
  * The extra parameters are optional arguments that are used to override the
  * official base64 characters for values 62 and 63. If not specified, they
