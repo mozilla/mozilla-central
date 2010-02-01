@@ -381,6 +381,7 @@ nsMsgSearchTerm::nsMsgSearchTerm()
     m_value.attribute=0;
     m_value.u.priority=0;
     m_attribute = nsMsgSearchAttrib::Default;
+    m_operator = nsMsgSearchOp::Contains;
     mBeginsGrouping = PR_FALSE;
     mEndsGrouping = PR_FALSE;
     m_matchAll = PR_FALSE;

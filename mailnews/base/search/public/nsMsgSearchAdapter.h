@@ -162,19 +162,25 @@ private:
 
 // Using getters and setters seems a little nicer then dumping the 2-D array
 // syntax all over the code
+#define CHECK_AO if (a < 0 || \
+                     a >= nsMsgSearchAttrib::kNumMsgSearchAttributes || \
+                     o < 0 || \
+                     o >= nsMsgSearchOp::kNumMsgSearchOperators) \
+                   return NS_ERROR_ILLEGAL_VALUE;
 inline nsresult nsMsgSearchValidityTable::SetAvailable (int a, int o, PRBool b)
-{ m_table [a][o].bitAvailable = b; return NS_OK;}
+{ CHECK_AO; m_table [a][o].bitAvailable = b; return NS_OK;}
 inline nsresult nsMsgSearchValidityTable::SetEnabled (int a, int o, PRBool b)
-{ m_table [a][o].bitEnabled = b; return NS_OK; }
+{ CHECK_AO; m_table [a][o].bitEnabled = b; return NS_OK; }
 inline nsresult nsMsgSearchValidityTable::SetValidButNotShown (int a, int o, PRBool b)
-{ m_table [a][o].bitValidButNotShown = b; return NS_OK;}
+{ CHECK_AO; m_table [a][o].bitValidButNotShown = b; return NS_OK;}
 
 inline nsresult nsMsgSearchValidityTable::GetAvailable (int a, int o, PRBool *aResult)
-{ *aResult = m_table [a][o].bitAvailable; return NS_OK;}
+{ CHECK_AO; *aResult = m_table [a][o].bitAvailable; return NS_OK;}
 inline nsresult nsMsgSearchValidityTable::GetEnabled (int a, int o, PRBool *aResult)
-{  *aResult = m_table [a][o].bitEnabled; return NS_OK;}
+{ CHECK_AO; *aResult = m_table [a][o].bitEnabled; return NS_OK;}
 inline nsresult nsMsgSearchValidityTable::GetValidButNotShown (int a, int o, PRBool *aResult)
-{  *aResult = m_table [a][o].bitValidButNotShown; return NS_OK;}
+{ CHECK_AO; *aResult = m_table [a][o].bitValidButNotShown; return NS_OK;}
+#undef CHECK_AO
 
 class nsMsgSearchValidityManager : public nsIMsgSearchValidityManager
 {

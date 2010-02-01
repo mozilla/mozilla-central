@@ -177,8 +177,10 @@ function onEnterInSearchTerm()
 
 function onAccept()
 {
-  if (!saveFilter())
-    return false;
+  try {
+    if (!saveFilter())
+      return false;
+  } catch(e) {Components.utils.reportError(e); return false;}
 
   // parent should refresh filter list..
   // this should REALLY only happen when some criteria changes that
@@ -333,6 +335,9 @@ function saveFilter()
   for (var index = 0; index < gSearchTerms.length && allValid; index++)
   {
     let obj = gSearchTerms[index].obj;
+    // We don't need to check validity of matchAll terms
+    if (obj.matchAll)
+      continue;
     if (isNaN(obj.searchattribute.value)) // is this a custom term?
     {
       let filterService = Components.classes["@mozilla.org/messenger/services/filters;1"]
