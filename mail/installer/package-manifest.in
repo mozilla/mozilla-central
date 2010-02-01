@@ -716,7 +716,9 @@
 @BINPATH@/components/@DLL_PREFIX@import@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@jar50@DLL_SUFFIX@
+#ifdef BUILD_CTYPES
 @BINPATH@/components/@DLL_PREFIX@jsctypes@DLL_SUFFIX@
+#endif
 @BINPATH@/components/@DLL_PREFIX@mail@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mork@DLL_SUFFIX@
 @BINPATH@/components/@DLL_PREFIX@mozfind@DLL_SUFFIX@
