@@ -911,7 +911,6 @@
 <rdf:Description about="#using-priv-help-encrypt">
     <nc:subheadings>
       <rdf:Seq>
-        <rdf:li><rdf:Description ID="using-priv-help-encrypt-on" nc:name="Turning Encryption On and Off" nc:link="using_priv_help.xhtml#turning_encryption_on_and_off"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-encrypt-master" nc:name="Setting a Master Password" nc:link="using_priv_help.xhtml#setting_a_master_password"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-encrypt-change" nc:name="Changing Your Master Password" nc:link="using_priv_help.xhtml#changing_your_master_password"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-encrypt-logout" nc:name="Logging Out of Your Master Password" nc:link="using_priv_help.xhtml#logging_out_of_your_master_password"/> </rdf:li>
