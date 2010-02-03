@@ -4427,6 +4427,9 @@ MOZ_HELP_VIEWER=
 MOZ_SPELLCHECK=1
 MOZ_STATIC_MAIL_BUILD=
 MOZ_STORAGE=1
+if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+MOZ_SVG=1
+fi
 MOZ_TIMELINE=
 MOZ_UI_LOCALE=en-US
 MOZ_UNIVERSALCHARDET=1
@@ -4498,6 +4501,9 @@ basic)
   MOZ_PREF_EXTENSIONS=
   MOZ_PROFILELOCKING=
   MOZ_SPELLCHECK=
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+  MOZ_SVG=
+  fi
   MOZ_UNIVERSALCHARDET=
   MOZ_UPDATER=
   MOZ_USE_NATIVE_UCONV=
@@ -4530,6 +4536,9 @@ minimal)
   MOZ_SPELLCHECK=
   MOZ_STORAGE=1
   MOZ_PLACES=
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+  MOZ_SVG=
+  fi
   MOZ_UNIVERSALCHARDET=
   MOZ_UPDATER=
   MOZ_USE_NATIVE_UCONV=1
@@ -5341,6 +5350,27 @@ MOZ_ARG_DISABLE_BOOL(universalchardet,
                           Disable universal encoding detection],
   MOZ_UNIVERSALCHARDET=,
   MOZ_UNIVERSALCHARDET=1 )
+
+dnl ========================================================
+dnl SVG
+dnl ========================================================
+if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+
+MOZ_ARG_DISABLE_BOOL(svg,
+[  --disable-svg            Disable SVG support (NB: unsupported option in comm-central)],
+    MOZ_SVG=,
+    MOZ_SVG=1 )
+if test -z "$MOZ_SVG"; then
+  AC_MSG_ERROR([comm-central does not support disabling SVG.])
+fi
+
+else
+
+MOZ_ARG_DISABLE_BOOL(svg,
+[  --disable-svg            Disable SVG support (NB: unsupported option in comm-central)],
+    AC_MSG_ERROR([comm-central does not support disabling SVG.]))
+
+fi
 
 dnl ========================================================
 dnl Build Freetype in the tree
