@@ -439,9 +439,9 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
   addr_start = addr_buf;
   this_start = line;
 
-  /* Skip over extra whitespace or commas before addresses.
-   */
-  while (*line_end && (IS_SPACE(*line_end) || *line_end == ','))
+  /* Skip over extra whitespace, commas or semicolons before addresses. */
+  while (*line_end && (IS_SPACE(*line_end) || *line_end == ',' ||
+                       *line_end == ';'))
     NEXT_CHAR(line_end);
 
   while (*line_end)
@@ -451,9 +451,85 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
     const char *mailbox_start = 0;
     const char *mailbox_end = 0;
 
+    // Find the first non-empty group address or a non-group address
+    const char *line_temp = line_end;
+    while (*line_temp &&
+           !(*line_temp == ',' && paren_depth <= 0 &&
+             (!mailbox_start || mailbox_end)) &&
+           !(*line_temp == ';' && paren_depth <= 0 &&
+             (!mailbox_start || mailbox_end))
+           )
+    {
+      if (*line_temp == '(')
+      {
+        paren_depth++;
+      }
+      else if (*line_temp == '<' && paren_depth == 0)
+      {
+        mailbox_start = line_temp;
+      }
+      else if (*line_temp == '>' && mailbox_start && paren_depth == 0)
+      {
+        mailbox_end = line_temp;
+      }
+      else if (*line_temp == ')' && paren_depth > 0)
+      {
+        paren_depth--;
+      }
+      // rfc5322#appendix-A.1.3 Group Addresses
+      else if (*line_temp == ':' && paren_depth == 0)
+      {
+        line_temp++;
+
+        // Is this an empty group?
+        while (*line_temp && IS_SPACE(*line_temp))
+          line_temp++;
+
+        if (!*line_temp)
+        {
+          line_end = line_temp;
+          break;
+        }
+        else if (*line_temp == ';')
+        {
+          line_temp++;
+
+          // Found an empty group, go to the next address
+          while (*line_temp && (IS_SPACE(*line_temp) || *line_temp == ',' ||
+                                *line_temp == ';'))
+            line_temp++;
+
+          line_end = line_temp;
+        }
+        else
+        {
+          // Found a non-empty group
+          line_end = line_temp;
+          break;
+        }
+      }
+
+      NEXT_CHAR(line_temp);
+    }
+
+    /* Skip over extra whitespace, commas or semicolons before addresses. */
+    while (*line_end && (IS_SPACE(*line_end) || *line_end == ',' ||
+                         *line_end == ';'))
+      NEXT_CHAR(line_end);
+
+    if (!*line_end)
+      break;
+
+    paren_depth = 0;
+    mailbox_start = 0;
+    mailbox_end = 0;
+    this_start = line_end;
+
     while (   *line_end
            && !(   *line_end == ',' && paren_depth <= 0 /* comma is ok inside () */
-                    && (!mailbox_start || mailbox_end)))    /* comma is ok inside <> */
+                    && (!mailbox_start || mailbox_end))    /* comma is ok inside <> */
+           && !(   *line_end == ';' && paren_depth <= 0 /* Add ';' as an address */
+                    && (!mailbox_start || mailbox_end)))   /* delimiter */
     {
       if (*line_end == '\\')
       {
@@ -752,8 +828,9 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
     if (*line_end)
       NEXT_CHAR(line_end);
 
-    /* Skip over extra whitespace or commas between addresses. */
-    while (*line_end && (IS_SPACE(*line_end) || *line_end == ','))
+    /* Skip over extra whitespace, commas or semicolons between addresses. */
+    while (*line_end && (IS_SPACE(*line_end) || *line_end == ',' ||
+                         *line_end == ';'))
       line_end++;
 
     this_start = line_end;
