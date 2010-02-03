@@ -39,7 +39,6 @@
  * Test file to check that cookies are correctly enabled in Thunderbird.
  *
  * XXX: Still need to check remote content in messages.
- * XXX: Swap cookie checks when bug 501925 lands.
  */
 
 var MODULE_NAME = 'test-cookies';
@@ -80,10 +79,7 @@ function test_load_cookie_page() {
   if (!newTab)
     throw new Error("Expected new tab info to be returned from openTab");
 
-  // XXX When bug 508999 is fixed, remove the sleep and use the waitForEval
-  // instead.
-  // controller.waitForEval("subject.busy == false", 1000, 100, newTab);
-  controller.sleep(1000);
+  mc.waitForEval("subject.busy == false", 5000, 100, newTab);
 }
 
 function test_load_cookie_result_page() {
@@ -93,10 +89,7 @@ function test_load_cookie_result_page() {
   if (!newTab)
     throw new Error("Expected new tab info to be returned from openTab");
 
-  // XXX When bug 508999 is fixed, remove the sleep and use the waitForEval
-  // instead.
-  // controller.waitForEval("subject.busy == false", 1000, 100, newTab);
-  controller.sleep(1000);
+  mc.waitForEval("subject.busy == false", 5000, 100, newTab);
 
   if (mc.window.content.document.title != "Cookie Test 2")
     throw new Error("The cookie test 2 page is not the selected tab or not content-primary");

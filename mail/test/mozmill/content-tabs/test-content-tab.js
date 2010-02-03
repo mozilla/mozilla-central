@@ -74,14 +74,14 @@ function test_content_tab_open() {
 
   mc.click(new elementslib.Elem(mc.menus.helpMenu.whatsNew));
 
-  controller.sleep(0);
-  // XXX When bug 508999 is fixed, remove the sleep and use the waitForEval
-  // instead.
-  // controller.waitForEval("subject.busy == false", 1000, 100, newTab);
-  controller.sleep(400);
+  mc.waitForEval("subject.childNodes.length == " + (preCount + 1), 1000, 100,
+                 mc.tabmail.tabContainer);
 
   if (mc.tabmail.tabContainer.childNodes.length != preCount + 1)
     throw new Error("The content tab didn't open");
+
+  mc.waitForEval("subject.busy == false", 3000, 100,
+                 mc.tabmail.selectedTab);
 
   if (mc.tabmail.selectedTab.title != "What's New Content Test")
     throw new Error("The content tab has an incorrect title");
