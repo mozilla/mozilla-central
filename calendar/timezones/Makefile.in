@@ -77,8 +77,10 @@ INSTALL_EXTENSION_ID = calendar-timezones@mozilla.org
 endif
 
 ifdef MOZILLA_1_9_2_BRANCH
+CALENDAR_VERSION := $(shell cat $(topsrcdir)/calendar/sunbird/config/version-192.txt)
 THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version-192.txt)
 else
+CALENDAR_VERSION := $(shell cat $(topsrcdir)/calendar/sunbird/config/version.txt)
 THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version.txt)
 endif
 ifdef MOZILLA_1_9_1_BRANCH
@@ -86,7 +88,6 @@ SEAMONKEY_VERSION := $(shell cat $(topsrcdir)/suite/config/version-191.txt)
 else
 SEAMONKEY_VERSION := $(shell cat $(topsrcdir)/suite/config/version.txt)
 endif
-CALENDAR_VERSION := $(shell cat $(topsrcdir)/calendar/sunbird/config/version.txt)
 TIMEZONES_VERSION := $(shell cat $(srcdir)/config/version.txt)
 
 DEFINES += -DAB_CD=$(AB_CD) \

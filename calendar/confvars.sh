@@ -56,7 +56,19 @@ NECKO_COOKIES=
 MOZ_NO_XPCOM_OBSOLETE=1
 MOZ_EXTENSIONS_DEFAULT=
 MOZ_UNIVERSALCHARDET=
-MOZ_APP_VERSION=`cat $topsrcdir/$MOZ_BUILD_APP/sunbird/config/version.txt`
+
+# Needed for the mozilla-central build side of the system.
+# Can be dropped when we branch MOZILLA_1_9_2_BRANCH
+MOZILLA_BRANCH_VERSION=`echo ${MOZILLA_VERSION} | sed -e 's/^\([0-9]\.[0-9]\.[0-9]\).*/\1/;'`
+
+if test "$MOZILLA_BRANCH_VERSION" = "1.9.2"; then
+  MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/sunbird/config/version-192.txt
+else
+  MOZ_APP_VERSION_TXT=$topsrcdir/$MOZ_BUILD_APP/sunbird/config/version.txt
+fi
+
+MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
+
 SUNBIRD_VERSION=$MOZ_APP_VERSION
 
 # Until we can build with libxul, we can't have ipc either
