@@ -73,7 +73,7 @@ toolbar[mode="full"] .cal-toolbarbutton-2 {
 
 toolbar[iconsize="small"] .cal-toolbarbutton-2 {
     -moz-box-orient: vertical;
-    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png");
+    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar-small.png");
 }
 
 /*--------------------------------------------------------------------
@@ -94,6 +94,20 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
 #button-attendees:hover:active {
 }
 
+toolbar[iconsize="small"] #button-attendees {
+    -moz-image-region: rect(0px 32px 16px 16px);
+}
+toolbar[iconsize="small"] #button-attendees[disabled="true"],
+toolbar[iconsize="small"] #button-attendees[disabled="true"]:hover,
+toolbar[iconsize="small"] #button-attendees[disabled="true"]:hover:active {
+    -moz-image-region: rect(32px 32px 48px 16px);
+}
+toolbar[iconsize="small"] #button-attendees:hover {
+    -moz-image-region: rect(16px 32px 32px 16px);
+}
+toolbar[iconsize="small"] #button-attendees:hover:active {
+}
+
 /*--------------------------------------------------------------------
  *   spellcheck button
  *-------------------------------------------------------------------*/
@@ -110,6 +124,20 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
     -moz-image-region: rect(24px 72px 48px 48px);
 }
 #button-spellcheck:hover:active {
+}
+
+toolbar[iconsize="small"] #button-spellcheck {
+    -moz-image-region: rect(0px 48px 16px 32px);
+}
+toolbar[iconsize="small"] #button-spellcheck[disabled="true"],
+toolbar[iconsize="small"] #button-spellcheck[disabled="true"]:hover,
+toolbar[iconsize="small"] #button-spellcheck[disabled="true"]:hover:active {
+    -moz-image-region: rect(32px 48px 48px 32px);
+}
+toolbar[iconsize="small"] #button-spellcheck:hover {
+    -moz-image-region: rect(16px 48px 32px 32px);
+}
+toolbar[iconsize="small"] #button-spellcheck:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -130,6 +158,20 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
 #button-url:hover:active {
 }
 
+toolbar[iconsize="small"] #button-url {
+    -moz-image-region: rect(0px 64px 16px 48px);
+}
+toolbar[iconsize="small"] #button-url[disabled="true"],
+toolbar[iconsize="small"] #button-url[disabled="true"]:hover,
+toolbar[iconsize="small"] #button-url[disabled="true"]:hover:active {
+    -moz-image-region: rect(32px 64px 48px 48px);
+}
+toolbar[iconsize="small"] #button-url:hover {
+    -moz-image-region: rect(16px 64px 32px 48px);
+}
+toolbar[iconsize="small"] #button-url:hover:active {
+}
+
 /*--------------------------------------------------------------------
  *   privacy button
  *-------------------------------------------------------------------*/
@@ -146,6 +188,20 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
     -moz-image-region: rect(24px 120px 48px 96px);
 }
 #button-privacy:hover:active {
+}
+
+toolbar[iconsize="small"] #button-privacy {
+    -moz-image-region: rect(0px 80px 16px 64px);
+}
+toolbar[iconsize="small"] #button-privacy[disabled="true"],
+toolbar[iconsize="small"] #button-privacy[disabled="true"]:hover,
+toolbar[iconsize="small"] #button-privacy[disabled="true"]:hover:active {
+    -moz-image-region: rect(32px 80px 48px 64px);
+}
+toolbar[iconsize="small"] #button-privacy:hover {
+    -moz-image-region: rect(16px 80px 32px 64px);
+}
+toolbar[iconsize="small"] #button-privacy:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -166,6 +222,20 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
 #button-save:hover:active {
 }
 
+toolbar[iconsize="small"] #button-save {
+    -moz-image-region: rect(0px 96px 16px 80px);
+}
+toolbar[iconsize="small"] #button-save[disabled="true"],
+toolbar[iconsize="small"] #button-save[disabled="true"]:hover,
+toolbar[iconsize="small"] #button-save[disabled="true"]:hover:active {
+    -moz-image-region: rect(32px 96px 48px 80px);
+}
+toolbar[iconsize="small"] #button-save:hover {
+    -moz-image-region: rect(16px 96px 32px 80px);
+}
+toolbar[iconsize="small"] #button-save:hover:active {
+}
+
 /*--------------------------------------------------------------------
  *   delete button
  *-------------------------------------------------------------------*/
@@ -182,6 +252,20 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
     -moz-image-region: rect(24px 408px 48px 384px);
 }
 #button-delete:hover:active {
+}
+
+toolbar[iconsize="small"] #button-delete {
+    -moz-image-region: rect(0px 272px 16px 256px);
+}
+toolbar[iconsize="small"] #button-delete[disabled="true"],
+toolbar[iconsize="small"] #button-delete[disabled="true"]:hover,
+toolbar[iconsize="small"] #button-delete[disabled="true"]:hover:active {
+    -moz-image-region: rect(32px 272px 48px 256px);
+}
+toolbar[iconsize="small"] #button-delete:hover {
+    -moz-image-region: rect(16px 272px 32px 256px);
+}
+toolbar[iconsize="small"] #button-delete:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -202,6 +286,20 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
 #button-print:hover:active {
 }
 
+toolbar[iconsize="small"] #button-print {
+    -moz-image-region: rect(0px 304px 16px 288px);
+}
+toolbar[iconsize="small"] #button-print[disabled="true"],
+toolbar[iconsize="small"] #button-print[disabled="true"]:hover,
+toolbar[iconsize="small"] #button-print[disabled="true"]:hover:active {
+    -moz-image-region: rect(32px 304px 48px 288px);
+}
+toolbar[iconsize="small"] #button-print:hover {
+    -moz-image-region: rect(16px 304px 32px 288px);
+}
+toolbar[iconsize="small"] #button-print:hover:active {
+}
+
 /*--------------------------------------------------------------------
  *   help button
  *-------------------------------------------------------------------*/
@@ -218,6 +316,20 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
     -moz-image-region: rect(24px 576px 48px 552px);
 }
 #button-question:hover:active {
+}
+
+toolbar[iconsize="small"] #button-question {
+    -moz-image-region: rect(0px 384px 16px 368px);
+}
+toolbar[iconsize="small"] #button-question[disabled="true"],
+toolbar[iconsize="small"] #button-question[disabled="true"]:hover,
+toolbar[iconsize="small"] #button-question[disabled="true"]:hover:active {
+    -moz-image-region: rect(32px 384px 48px 368px);
+}
+toolbar[iconsize="small"] #button-question:hover {
+    -moz-image-region: rect(16px 384px 32px 368px);
+}
+toolbar[iconsize="small"] #button-question:hover:active {
 }
 
 /*--------------------------------------------------------------------

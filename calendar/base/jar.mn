@@ -129,6 +129,7 @@ calendar.jar:
     skin/calendar/calendar-event-dialog.css                (themes/@THEME@/dialogs/calendar-event-dialog.css)
     skin/calendar/calendar-event-dialog-attendees.png      (themes/@THEME@/dialogs/calendar-event-dialog-attendees.png)
     skin/calendar/calendar-event-dialog-toolbar.png        (themes/@THEME@/dialogs/calendar-event-dialog-toolbar.png)
+    skin/calendar/calendar-event-dialog-toolbar-small.png  (themes/@THEME@/dialogs/calendar-event-dialog-toolbar-small.png)
     skin/calendar/calendar-event-dialog.png                (themes/@THEME@/dialogs/calendar-event-dialog.png)
     skin/calendar/calendar-invitations-dialog.css          (themes/@THEME@/dialogs/calendar-invitations-dialog.css)
     skin/calendar/calendar-invitations-dialog-button-images.png  (themes/@THEME@/dialogs/calendar-invitations-dialog-button-images.png)
