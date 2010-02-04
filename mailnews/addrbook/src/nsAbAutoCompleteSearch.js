@@ -116,6 +116,41 @@ nsAbAutoCompleteSearch.prototype = {
   // Private methods
 
   /**
+   * Returns the popularity index for a given card. This takes account of a
+   * translation bug whereby Thunderbird 2 stores its values in mork as
+   * hexadecimal, and Thunderbird 3 stores as decimal.
+   *
+   * @param aDirectory  The directory that the card is in.
+   * @param aCard       The card to return the popularity index for.
+   */
+  _getPopularityIndex: function _getPopularityIndex(aDirectory, aCard) {
+    let popularityValue = aCard.getProperty("PopularityIndex", "0");
+    let popularityIndex = parseInt(popularityValue);
+
+    // If we haven't parsed it the first time round, parse it as hexadecimal
+    // and repair so that we don't have to keep repairing.
+    if (isNaN(popularityIndex)) {
+      popularityIndex = parseInt(popularityValue, 16);
+
+      // If its still NaN, just give up, we shouldn't ever get here.
+      if (isNaN(popularityIndex))
+        popularityIndex = 0;
+
+      // Now store this change so that we're not changing it each time around.
+      if (!aDirectory.readOnly) {
+        aCard.setProperty("PopularityIndex", popularityIndex);
+        try {
+          aDirectory.modifyCard(aCard);
+        }
+        catch (ex) {
+          Components.utils.reportError(e);
+        }
+      }
+    }
+    return popularityIndex;
+  },
+
+  /**
    * Searches cards in the given directory. It is not expected to search against
    * email addresses (use _searchWithinEmails). If a card is matched (and isn't
    * a mailing list) then the function will add a result for each email address
@@ -138,15 +173,15 @@ nsAbAutoCompleteSearch.prototype = {
 
       if (card instanceof Components.interfaces.nsIAbCard) {
         if (card.isMailList)
-          this._addToResult(commentColumn, card, "", result);
+          this._addToResult(commentColumn, directory, card, "", result);
         else {
           let email = card.primaryEmail;
           if (email)
-            this._addToResult(commentColumn, card, email, result);
+            this._addToResult(commentColumn, directory, card, email, result);
 
           email = card.getProperty("SecondEmail", "");
           if (email)
-            this._addToResult(commentColumn, card, email, result);
+            this._addToResult(commentColumn, directory, card, email, result);
         }
       }
     }
@@ -177,17 +212,17 @@ nsAbAutoCompleteSearch.prototype = {
 
       if (card instanceof Components.interfaces.nsIAbCard) {
         if (card.isMailList)
-          this._addToResult(commentColumn, card, "", result);
+          this._addToResult(commentColumn, directory, card, "", result);
         else {
           let email = card.primaryEmail;
           if (email && email.toLocaleLowerCase()
                             .lastIndexOf(fullString, 0) == 0)
-            this._addToResult(commentColumn, card, email, result);
+            this._addToResult(commentColumn, directory, card, email, result);
 
           email = card.getProperty("SecondEmail", "");
           if (email && email.toLocaleLowerCase()
                             .lastIndexOf(fullString, 0) == 0)
-            this._addToResult(commentColumn, card, email, result);
+            this._addToResult(commentColumn, directory, card, email, result);
         }
       }
     }
@@ -241,15 +276,17 @@ nsAbAutoCompleteSearch.prototype = {
    * will remove the existing element if the popularity of the new card is
    * higher than the previous card.
    *
+   * @param directory       The directory that the card is in.
    * @param card            The card that could be a duplicate.
    * @param emailAddress    The emailAddress (name/address combination) to check
    *                        for duplicates against.
    * @param currentResults  The current results list.
    */
-  _checkDuplicate: function _checkDuplicate(card, emailAddress, currentResults) {
+  _checkDuplicate: function _checkDuplicate(directory, card, emailAddress,
+                                            currentResults) {
     var lcEmailAddress = emailAddress.toLocaleLowerCase();
 
-    var popIndex = parseInt(card.getProperty("PopularityIndex", "0"));
+    var popIndex = this._getPopularityIndex(directory, card);
     for (var i = 0; i < currentResults._searchResults.length; ++i) {
       if (currentResults._searchResults[i].value.toLocaleLowerCase() ==
           lcEmailAddress)
@@ -275,12 +312,14 @@ nsAbAutoCompleteSearch.prototype = {
    *
    * @param commentColumn  The text to be displayed in the comment column
    *                       (if any).
+   * @param directory      The directory that the card is in.
    * @param card           The card being added to the results.
    * @param emailToUse     The email address from the card that should be used
    *                       for this result.
    * @param result         The result to add the new entry to.
    */
-  _addToResult: function _addToResult(commentColumn, card, emailToUse, result) {
+  _addToResult: function _addToResult(commentColumn, directory, card,
+                                      emailToUse, result) {
     var emailAddress =
       this._parser.makeFullAddress(card.displayName,
                                    card.isMailList ?
@@ -295,13 +334,12 @@ nsAbAutoCompleteSearch.prototype = {
 
     // If it is a duplicate, then just return and don't add it. The
     // _checkDuplicate function deals with it all for us.
-    if (this._checkDuplicate(card, emailAddress, result))
+    if (this._checkDuplicate(directory, card, emailAddress, result))
       return;
 
     // Find out where to insert the card.
     var insertPosition = 0;
-    // Hack - mork adds in as a string, but we want to get as an integer...
-    var cardPopularityIndex = parseInt(card.getProperty("PopularityIndex", "0"));
+    var cardPopularityIndex = this._getPopularityIndex(directory, card);
 
     while (insertPosition < result._searchResults.length &&
            cardPopularityIndex <

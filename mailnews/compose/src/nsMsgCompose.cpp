@@ -4790,9 +4790,33 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
 
               // bump the popularity index for this card since we are about to send e-mail to it
               PRUint32 popularityIndex = 0;
-              if (!readOnly && NS_SUCCEEDED(existingCard->GetPropertyAsUint32(
-                      kPopularityIndexProperty, &popularityIndex)))
+              if (!readOnly)
               {
+                if (NS_FAILED(existingCard->GetPropertyAsUint32(
+                      kPopularityIndexProperty, &popularityIndex)))
+                {
+                  // TB 2 wrote the popularity value as hex, so if we get here,
+                  // then we've probably got a hex value. We'll convert it back
+                  // to decimal, as that's the best we can do.
+
+                  nsCString hexPopularity;
+                  if (NS_SUCCEEDED(existingCard->GetPropertyAsAUTF8String(kPopularityIndexProperty, hexPopularity)))
+                  {
+#ifdef MOZILLA_INTERNAL_API
+                    PRInt32 errorCode = 0;
+#else
+                    nsresult errorCode = NS_OK;
+#endif
+                    popularityIndex = hexPopularity.ToInteger(&errorCode, 16);
+                    if (errorCode)
+                      // We failed, just set it to zero.
+                      popularityIndex = 0;
+                  }                   
+                  else
+                    // We couldn't get it as a string either, so just reset to
+                    // zero.
+                    popularityIndex = 0;
+                }
 
                 existingCard->SetPropertyAsUint32(kPopularityIndexProperty,
                                                   ++popularityIndex);
