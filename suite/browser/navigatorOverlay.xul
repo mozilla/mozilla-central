@@ -67,7 +67,7 @@
     <!-- File Menu -->
     <key id="key_newNavigator"/>
     <key id="key_newNavigatorTab" key="&tabCmd.commandkey;" modifiers="accel" command="cmd_newNavigatorTab"/>
-    <key id="key_restoreTab" key="&recentTabs.commandkey;" modifiers="accel,shift" oncommand="gBrowser.restoreTab(0);"/>
+    <key id="key_restoreTab" key="&recentTabs.commandkey;" modifiers="accel,shift" oncommand="gBrowser.undoCloseTab(0);"/>
     <key id="key_restoreWindow" key="&recentWindows.commandkey;" modifiers="accel,shift" oncommand="undoCloseWindow();"/>
     <key id="key_newBlankPage"/>
     <key id="focusURLBar"      key="&openCmd.commandkey;" oncommand="ShowAndSelectContentsOfURLBar();"
@@ -334,7 +334,7 @@
                   key="openFileKb"
                   command="Browser:OpenFile"/>
         <menu label="&recentTabs.label;" accesskey="&recentTabs.accesskey;" id="menu_recentTabs">
-          <menupopup id="menu_recentTabsPopup" onpopupshowing="updateRecentTabs(this);" oncommand="gBrowser.restoreTab(event.target.value);"/>
+          <menupopup id="menu_recentTabsPopup" onpopupshowing="updateRecentTabs(this);" oncommand="gBrowser.undoCloseTab(event.target.value);"/>
         </menu>
         <menu label="&recentWindows.label;" accesskey="&recentWindows.accesskey;" id="menu_recentWindows">
           <menupopup id="menu_recentWindowsPopup" onpopupshowing="updateRecentWindows(this);" oncommand="undoCloseWindow(event.target.value);"/>

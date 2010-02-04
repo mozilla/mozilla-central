@@ -228,6 +228,9 @@ pref("browser.tabs.maxOpenBeforeWarn", 15);
 // 0 = append, 1 = replace
 pref("browser.tabs.loadGroup", 1);
 
+// how many browsers can be saved in the DOM (by the tabbed browser)
+pref("browser.tabs.max_tabs_undo", 3);
+
 // tab width and clipping
 pref("browser.tabs.tabMinWidth", 100);
 pref("browser.tabs.tabMaxWidth", 250);

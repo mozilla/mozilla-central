@@ -667,17 +667,13 @@ SessionStoreService.prototype = {
 
     // store closed-tab data for undo
     if (tabState.entries.length > 0) {
-      let tabTitle = aTab.label;
       let tabbrowser = aWindow.getBrowser();
-      tabTitle = this._replaceLoadingTitle(tabTitle, tabbrowser, aTab);
 
-      var tabsData = {
-          state: tabState,
-          title: tabTitle,
-          image: aTab.getAttribute("image"),
-          pos: tabState.entries.length - 1
-      };
-      aTab.tabData = tabsData;
+      aTab.tabData.state = tabState;
+      var closedTabs = this._windows[aWindow.__SSi]._closedTabs;
+      closedTabs.unshift(aTab.tabData);
+      if (closedTabs.length > maxTabsUndo)
+        closedTabs.length = maxTabsUndo;
     };
   },
 
@@ -836,17 +832,26 @@ SessionStoreService.prototype = {
       // XXXzeniko shouldn't we throw here?
       return 0; // not a browser window, or not otherwise tracked by SS.
 
-    let closedTabs = this._getClosedTabs(aWindow);
+    var closedTabs = this._windows[aWindow.__SSi]._closedTabs;
+    closedTabs = closedTabs.concat(aWindow.getBrowser().savedBrowsers);
+    closedTabs = closedTabs.filter(function(aTabData, aIndex, aArray) {
+      return aArray.indexOf(aTabData) == aIndex;
+    });
     return closedTabs.length;
   },
 
-  getClosedTabData: function sss_getClosedTabDataAt(aWindow) {
+  getClosedTabData: function sss_getClosedTabData(aWindow) {
     if (!aWindow.__SSi && !aWindow.__SS_dyingCache)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
     if (!aWindow.__SSi)
       return this._toJSONString(aWindow.__SS_dyingCache._closedTabs);
-    let closedTabs = this._getClosedTabs(aWindow);
+
+    var closedTabs = this._windows[aWindow.__SSi]._closedTabs;
+    closedTabs = closedTabs.concat(aWindow.getBrowser().savedBrowsers);
+    closedTabs = closedTabs.filter(function(aTabData, aIndex, aArray) {
+      return aArray.indexOf(aTabData) == aIndex;
+    });
     return this._toJSONString(closedTabs);
   },
 
@@ -854,29 +859,49 @@ SessionStoreService.prototype = {
     if (!aWindow.__SSi)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
-    var closedTabs = this._getClosedTabs(aWindow);
-    // default to the most-recently closed tab
-
-    aIndex = aIndex || 0;
+    var closedTabs = this._windows[aWindow.__SSi]._closedTabs;
     if (!(aIndex in closedTabs))
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
-    let browser = aWindow.getBrowser();
+    // fetch the data of closed tab, while removing it from the array
+    let closedTab = closedTabs.splice(aIndex, 1)[0];
+    var browser = aWindow.getBrowser();
+    var index = browser.savedBrowsers.indexOf(closedTab);
+    if (index != -1)
+      // SeaMonkey has its own undoclosetab functionality
+      return browser.restoreTab(index);
 
-    // Seamonkey has it's own undoclosetab functionality
-    var newTab = browser.restoreTab(aIndex);
+    // create a new tab
+    var browser = aWindow.getBrowser();
+    var tab = browser.addTab();
 
-    return newTab;
+    // restore the tab's position
+    browser.moveTabTo(tab, closedTab.pos);
+
+    // restore tab content
+    this.restoreHistoryPrecursor(aWindow, [tab], [closedTab.state], 1, 0, 0);
+
+    // focus the tab's content area
+    var content = browser.getBrowserForTab(tab).contentWindow;
+    aWindow.setTimeout(function() { content.focus(); }, 0);
+
+    return tab;
   },
 
   forgetClosedTab: function sss_forgetClosedTab(aWindow, aIndex) {
     if (!aWindow.__SSi)
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
 
-    let browser = aWindow.getBrowser();
-
-    if (!(browser.forgetSavedBrowser(aIndex)))
+    var closedTabs = this._windows[aWindow.__SSi]._closedTabs;
+    if (!(aIndex in closedTabs))
       throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
+
+    // remove closed tab from the array
+    var closedTab = closedTabs.splice(aIndex, 1)[0];
+    var browser = aWindow.getBrowser();
+    var index = browser.savedBrowsers.indexOf(closedTab);
+    if (index != -1)
+      browser.forgetSavedBrowser(aIndex);
   },
 
   getClosedWindowCount: function sss_getClosedWindowCount() {
@@ -1609,7 +1634,6 @@ SessionStoreService.prototype = {
     }
 
     var total = [this._windows[aWindow.__SSi]];
-    total._closedTabs = this._getClosedTabs(aWindow);
     this._updateCookies(total);
 
     return { windows: total };
@@ -1624,8 +1648,6 @@ SessionStoreService.prototype = {
     this._updateTextAndScrollData(aWindow);
     this._updateCookieHosts(aWindow);
     this._updateWindowFeatures(aWindow);
-
-    this._windows[aWindow.__SSi]._closedTabs = this._getClosedTabs(aWindow);
 
     this._dirtyWindows[aWindow.__SSi] = false;
   },
@@ -1729,17 +1751,6 @@ SessionStoreService.prototype = {
     if (aOverwriteTabs || root._firstTabs) {
       this._windows[aWindow.__SSi]._closedTabs = winData._closedTabs || [];
     }
-
-    // this part of code should reconstruct savedBrowsers from session
-    // file. Commenting out now, will file separate bug for this.
-    //if (winData._closedTabs && (root._firstTabs || aOverwriteTabs)) {
-      //aWindow.getBrowser().savedBrowsers.tabData = winData._closedTabs;
-      //aWindow.getBrowser().savedBrowsers.map(function(e) { return e.tabData; })
-    //  for ( var iix = winData._closedTabs.length - 1; iix >= 0 ; iix--) {
-        //aWindow.getBrowser().savedBrowsers[iix].tabData = winData._closedTabs[iix];
-    //    aWindow.getBrowser().savedBrowsers.unshift({browser: aWindow.getBrowser(), history: {}, tabData: winData._closedTabs[iix] });
-    //  }
-    //}
 
     this.restoreHistoryPrecursor(aWindow, tabs, winData.tabs,
       (aOverwriteTabs ? (parseInt(winData.selected) || 1) : 0), 0, 0);
@@ -2563,9 +2574,10 @@ SessionStoreService.prototype = {
    * @returns the object's JSON representation
    */
   _toJSONString: function sss_toJSONString(aJSObject) {
-    // XXXzeniko drop the following keys used only for internal bookkeeping:
-    //           _tabStillLoading, _hosts, _formDataSaved
-    return JSON.stringify(aJSObject);
+    function exclude(key, value) {
+      return value instanceof Components.interfaces.nsISupports ? undefined : value;
+    }
+    return JSON.stringify(aJSObject, exclude);
   },
 
   _notifyIfAllWindowsRestored: function sss_notifyIfAllWindowsRestored() {
@@ -2589,15 +2601,6 @@ SessionStoreService.prototype = {
    */
   _isWindowLoaded: function sss_isWindowLoaded(aWindow) {
     return !aWindow.__SS_restoreID;
-  },
-
-  /**
-   * gets SeaMonkey's closed tabs
-   * param aWindow
-   *       Window reference
-   */
-  _getClosedTabs: function sss_getClosedTabs(aWindow) {
-    return aWindow.getBrowser().savedBrowsers.map(function(e) { return e.tabData; });
   },
 
   /**

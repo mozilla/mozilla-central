@@ -86,7 +86,7 @@
                           xbl:inherits="oncommand=onnewtab"/>
             <xul:menuitem label="&undoCloseTab.label;" accesskey="&undoCloseTab.accesskey;" tbattr="tabbrowser-undoclosetab"
                           oncommand="var tabbrowser = this.parentNode.parentNode.parentNode.parentNode;
-                                     tabbrowser.restoreTab(0);"/>
+                                     tabbrowser.undoCloseTab(0);"/>
             <xul:menuseparator/>
             <xul:menuitem label="&bookmarkGroup.label;" accesskey="&bookmarkGroup.accesskey;"
                           tbattr="tabbrowser-multiple"
@@ -128,6 +128,10 @@
       <children/>
     </content>
     <implementation implements="nsIObserver">
+      <field name="mSessionStore" readonly="true">
+        Components.classes["@mozilla.org/suite/sessionstore;1"]
+                   .getService(Components.interfaces.nsISessionStore);
+      </field>
       <field name="mPrefs" readonly="true">
         Components.classes['@mozilla.org/preferences-service;1']
                   .getService(Components.interfaces.nsIPrefService)
@@ -805,8 +809,8 @@
               menuItems[i].setAttribute("disabled", disabled);
 
             var undoItem = document.getAnonymousElementByAttribute(this, "tbattr", "tabbrowser-undoclosetab");
-            undoItem.setAttribute("disabled", this.savedBrowsers.length == 0);
-            undoItem.hidden = this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
+            undoItem.setAttribute("disabled", this.mSessionStore.getClosedTabCount(window) == 0);
+            undoItem.hidden = this.mPrefs.getIntPref("browser.tabs.max_tabs_undo") <= 0 && this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
           ]]>
         </body>
       </method>
@@ -1324,12 +1328,18 @@
       <method name="getUndoList">
         <body>
           <![CDATA[
-            var list = [];
-            for (var i = 0; i < this.savedBrowsers.length; i++) {
-              var hist = this.savedBrowsers[i].history;
-              list.push(hist.getEntryAtIndex(hist.index, false).title);
-            }
-            return list;
+            return JSON.parse(this.mSessionStore.getClosedTabData(window))
+                       .map(function(aTabData) { return aTabData.title; });
+          ]]>
+        </body>
+      </method>
+
+      <method name="undoCloseTab">
+        <parameter name="aIndex"/>
+        <body>
+          <![CDATA[
+            if (this.mSessionStore.getClosedTabCount(window))
+              return this.mSessionStore.undoCloseTab(window, aIndex);
           ]]>
         </body>
       </method>
@@ -1379,6 +1389,9 @@
             this.mTabListeners[position] = tabListener;
             this.mTabFilters[position] = filter;
 
+            if (savedData.pos < position)
+              this.moveTabTo(position, savedData.pos);
+
             if (this.mTabs.length == 2 &&
                 !this.mTabs[0].linkedBrowser.webNavigation.sessionHistory.count)
               this.removeTab(this.mTabs[0]); // only one tab => selected anyway
@@ -1408,6 +1421,13 @@
             if (ds.contentViewer && !ds.contentViewer.permitUnload())
               return;
 
+            aTab.tabData = {
+              pos: this.getTabIndex(aTab),
+              panel: oldBrowser.parentNode.id,
+              title: oldBrowser.contentDocument.title ||
+                     this.getTitleForURI(oldBrowser.currentURI) ||
+                     this.mStringBundle.getString("tabs.untitled")
+            }
             // We're committed to closing the tab now.
             // Dispatch a notification.
             // We dispatch it before any teardown so that event listeners can
@@ -1482,7 +1502,7 @@
             // Save the tab for undo.
             // Even though we navigate to about:blank, it costs more RAM than
             // really closing the tab.  The pref controls how far you can undo
-            var maxUndoDepth = this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo");
+            var maxUndoDepth = this.mPrefs.getIntPref("browser.tabs.max_tabs_undo");
             var oldSH = oldBrowser.webNavigation.sessionHistory;
             var inOnLoad = oldBrowser.docShell.isExecutingOnLoadHandler;
             if (maxUndoDepth <= 0 || oldSH.count == 0 || aDisableUndo || inOnLoad) {
@@ -1512,7 +1532,9 @@
             //    into bfcache - allows for saving of JS modifications
             //    and also saves RAM by allowing bfcache to evict the full page
 
-            this.savedBrowsers.unshift({browser: oldBrowser, history: oldSH, tabData: aTab.tabData || {} });
+            aTab.tabData.browser = oldBrowser;
+            aTab.tabData.history = oldSH;
+            this.savedBrowsers.unshift(aTab.tabData);
 
             var newSH = Components.classes["@mozilla.org/browser/shistory;1"]
                                   .createInstance(Components.interfaces.nsISHistoryInternal);
@@ -1529,7 +1551,10 @@
 
             // remove overflow from the undo stack
             if (this.savedBrowsers.length > maxUndoDepth) {
-              var deadBrowser = this.savedBrowsers.pop().browser;
+              var tabData = this.savedBrowsers.pop();
+              var deadBrowser = tabData.browser;
+              delete tabData.browser;
+              delete tabData.history;
               deadBrowser.parentNode.destroy();
               deadBrowser.destroy();
 
@@ -1549,8 +1574,10 @@
             if (aIndex >= this.savedBrowsers.length || aIndex < 0)
               return false;
 
-            let deadBrowser = this.savedBrowsers[aIndex].browser;
-            this.savedBrowsers.splice(aIndex, 1);
+            var tabData = this.savedBrowsers.splice(aIndex, 1)[0];
+            var deadBrowser = tabData.browser;
+            delete tabData.browser;
+            delete tabData.history;
             deadBrowser.parentNode.destroy();
             deadBrowser.destroy();
 
@@ -2292,7 +2319,10 @@
 
             // Wipe out savedBrowsers since history is gone
             while (this.savedBrowsers.length) {
-              var deadBrowser = this.savedBrowsers.pop().browser;
+              var tabData = this.savedBrowsers.pop();
+              var deadBrowser = tabData.browser;
+              delete tabData.browser;
+              delete tabData.history;
               deadBrowser.parentNode.destroy();
               deadBrowser.destroy();
 
@@ -2378,6 +2408,10 @@
           var os = Components.classes["@mozilla.org/observer-service;1"]
                              .getService(Components.interfaces.nsIObserverService);
           os.removeObserver(this, "browser:purge-session-history");
+          this.savedBrowsers.forEach(function(aTabData) {
+            delete aTabData.browser;
+            delete aTabData.history;
+          });
         ]]>
       </destructor>
     </implementation>
