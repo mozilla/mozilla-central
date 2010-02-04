@@ -251,7 +251,7 @@ let gFolderTreeView = {
                                                               aMode,
                                                               aDisplayName) {
     this._modeNames.push(aCommonName);
-    this._modes[aCommonName] = aGenerator;
+    this._modes[aCommonName] = aMode;
     this._modeDisplayNames[aCommonName] = aDisplayName;
   },
 
