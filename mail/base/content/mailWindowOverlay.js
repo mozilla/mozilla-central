@@ -1258,17 +1258,10 @@ function MsgNewMessage(event)
 
 function MsgReplyMessage(event)
 {
-  var loadedFolder = gFolderDisplay.displayedFolder;
-  if (loadedFolder)
-  {
-    var server = loadedFolder.server;
-    if(server && server.type == "nntp")
-    {
-      MsgReplyGroup(event);
-      return;
-    }
-  }
-  MsgReplySender(event);
+  if (gFolderDisplay.selectedMessageIsNews)
+    MsgReplyGroup(event);
+  else
+    MsgReplySender(event);
 }
 
 function MsgReplySender(event)
