@@ -309,8 +309,10 @@ function DisplayCardViewPane(realCard)
     if (day > 0 && day < 32 && month > 0 && month < 13) {
       var date = new Date(year, month - 1, day);
       // if the year exists, just use Date.toLocaleString
-      if (year)
+      if (year) {
+        date.setFullYear(year);
         dateStr = date.toLocaleDateString();
+      }
       // if the year doesn't exist, display Month DD (ex. January 01)
       else
         dateStr = date.toLocaleFormat(gAddressBookBundle.getString("dateformat"));
