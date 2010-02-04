@@ -108,7 +108,7 @@ nsMapiSupport::~nsMapiSupport()
 NS_IMETHODIMP
 nsMapiSupport::InitializeMAPISupport()
 {
-    ::CoInitialize(nsnull) ;
+    ::OleInitialize(nsnull) ;
 
     if (m_nsMapiFactory == nsnull)    // No Registering if already done.  Sanity Check!!
     {
@@ -146,7 +146,7 @@ nsMapiSupport::ShutdownMAPISupport()
         m_nsMapiFactory = nsnull;
     }
 
-    ::CoUninitialize();
+    ::OleUninitialize();
 
     return NS_OK ;
 }
