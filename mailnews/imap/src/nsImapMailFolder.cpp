@@ -2727,9 +2727,10 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     mDatabase = nsnull;
 
     nsCOMPtr <nsILocalFile> summaryFile;
-    GetSummaryFileLocation(pathFile, getter_AddRefs(summaryFile));
+    rv = GetSummaryFileLocation(pathFile, getter_AddRefs(summaryFile));
     // Remove summary file.
-    summaryFile->Remove(PR_FALSE);
+    if (NS_SUCCEEDED(rv) && summaryFile)
+      summaryFile->Remove(PR_FALSE);
 
     // Create a new summary file, update the folder message counts, and
     // Close the summary file db.
