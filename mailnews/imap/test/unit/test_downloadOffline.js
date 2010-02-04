@@ -102,9 +102,11 @@ var UrlListener =
         else
           do_throw("Message not downloaded for offline use");
       }
-      endTest();
     }
     do_timeout(1000, endTest);
+  },
+  finalize: function() {
+    do_timeout(0, endTest);
   }
 };
 
