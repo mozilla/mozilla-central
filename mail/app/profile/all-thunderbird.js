@@ -472,11 +472,13 @@ pref("mail.compose.attachment_reminder", true);
 pref("mail.compose.attachment_reminder_keywords", "chrome://messenger/locale/messengercompose/composeMsgs.properties");
 
 pref("browser.formfill.enable", true);
+#ifdef MOZILLA_1_9_2_BRANCH
 // Override the all.js values so that unit tests pass and we get sane values.
 pref("browser.formfill.expire_days", 180);
 pref("browser.history_expire_days", 180);
 pref("browser.history_expire_days_min", 90);
 pref("browser.history_expire_sites", 40000);
+#endif
 
 // Disable autoplay as we don't handle audio elements in emails very well.
 // See bug 515082.
