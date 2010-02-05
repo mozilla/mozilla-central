@@ -86,12 +86,12 @@
 
   <listbox id="addressingWidget" style="height: 15em;"
            onclick="awClickEmptySpace(event.target, true)">
-
-    <listitem class="addressingWidgetItem">
+    <listitem class="addressingWidgetItem" allowevents="true">
       <listcell class="addressingWidgetCell">
         <textbox id="addressCol1#1"
                  class="plain textbox-addressingWidget uri-element"
-                 type="autocomplete" allowevents="true" flex="1"
+                 type="autocomplete"
+                 flex="1"
                  autocompletesearch="addrbook" timeout="300" maxrows="4" 
                  completedefaultindex="true" forcecomplete="true"
                  minresultsforpopup="3"
