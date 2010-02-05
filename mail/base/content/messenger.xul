@@ -426,12 +426,19 @@
                     <hbox id="msgHeaderView"/>
                     <hbox id="editMessageBox"/>
                     <deck id="msgNotificationBar"/>
-                    <browser id="messagepane" context="mailContext" autofind="false"
-                             minheight="1" flex="1" name="messagepane" tooltip="aHTMLTooltip"
-                             disablehistory="true" type="content-primary" src="about:blank"
-                             onresize="return messagePaneOnResize(event);"
-                             disablesecurity="true" onclick="return contentAreaClick(event);"/>
-                    <splitter id="attachment-splitter" collapse="after" resizebefore="closest" resizeafter="closest" collapsed="true"/>
+                    <hbox id="messagepanewrapper" flex="1">
+                      <browser id="messagepane" context="mailContext"
+                               autofind="false" minheight="1" flex="1"
+                               name="messagepane" tooltip="aHTMLTooltip"
+                               disablehistory="true" type="content-primary"
+                               src="about:blank"
+                               onresize="return messagePaneOnResize(event);"
+                               disablesecurity="true"
+                               onclick="return contentAreaClick(event);"/>
+                    </hbox>
+                    <splitter id="attachment-splitter" collapse="after"
+                              resizebefore="closest" resizeafter="closest"
+                              collapsed="true"/>
                     <hbox id="attachmentView"/>
                     <findbar id="FindToolbar" browserid="messagepane"/>
                   </vbox>
