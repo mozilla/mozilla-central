@@ -6,6 +6,7 @@ content-policy
 content-tabs
 message-header
 folder-pane
+message-window
 session-store
 pref-window
 folder-tree-modes

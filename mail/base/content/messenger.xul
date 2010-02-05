@@ -434,6 +434,8 @@
                     <hbox id="msgHeaderView"/>
                     <hbox id="editMessageBox"/>
                     <deck id="msgNotificationBar"/>
+                    <!-- The messagepanewrapper hbox exists to allow
+                         extensions to add sidebars to the message. -->
                     <hbox id="messagepanewrapper" flex="1">
                       <browser id="messagepane" context="mailContext"
                                autofind="false" minheight="1" flex="1"
