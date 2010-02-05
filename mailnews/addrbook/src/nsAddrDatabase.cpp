@@ -329,7 +329,8 @@ PRBool nsAddrDatabase::MatchDbName(nsIFile* dbName)    // returns PR_TRUE if the
 //----------------------------------------------------------------------
 void nsAddrDatabase::RemoveFromCache(nsAddrDatabase* pAddrDB)
 {
-  GetDBCache()->RemoveElement(pAddrDB);
+  if (m_dbCache)
+    m_dbCache->RemoveElement(pAddrDB);
 }
 
 void nsAddrDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)

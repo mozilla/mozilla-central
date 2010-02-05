@@ -840,7 +840,8 @@ PRBool nsMsgDatabase::MatchDbName(nsILocalFile *dbName)  // returns PR_TRUE if t
 //----------------------------------------------------------------------
 void nsMsgDatabase::RemoveFromCache(nsMsgDatabase* pMessageDB)
 {
-  GetDBCache()->RemoveElement(pMessageDB);
+  if (m_dbCache)
+  m_dbCache->RemoveElement(pMessageDB);
 }
 
 /**
