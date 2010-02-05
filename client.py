@@ -168,6 +168,10 @@ def switch_mozilla_repo():
     if options.hgopts:
         hgopts = options.hgopts.split()
 
+    hgcloneopts = []
+    if options.hgcloneopts:
+        hgcloneopts = options.hgcloneopts.split()
+
     backup_mozilla_path = os.path.join(topsrcdir, SWITCH_MOZILLA_REPO_BACKUP_LOCATION)
     print "Moving mozilla to " + SWITCH_MOZILLA_REPO_BACKUP_LOCATION + "..."
     try:
@@ -227,9 +231,14 @@ def do_hg_pull(dir, repository, hg, rev):
     hgopts = []
     if options.hgopts:
         hgopts = options.hgopts.split()
+    
+    hgcloneopts = []
+    if options.hgcloneopts:
+        hgcloneopts = options.hgcloneopts.split()
+
     if not os.path.exists(fulldir):
         fulldir = os.path.join(topsrcdir, dir)
-        check_call_noisy([hg, 'clone'] + hgopts + [repository, fulldir])
+        check_call_noisy([hg, 'clone'] + hgcloneopts + hgopts + [repository, fulldir])
     else:
         cmd = [hg, 'pull', '-R', fulldir] + hgopts
         if repository is not None:
@@ -331,6 +340,8 @@ o.add_option("-v", "--verbose", dest="verbose",
              help="Enable verbose output on hg updates")
 o.add_option("--hg-options", dest="hgopts",
              help="Pass arbitrary options to hg commands (i.e. --debug, --time)")
+o.add_option("--hg-clone-options", dest="hgcloneopts",
+             help="Pass arbitrary options to hg clone commands (i.e. --debug, --time)")
 
 def fixup_comm_repo_options(options):
     """Check options.comm_repo value.
