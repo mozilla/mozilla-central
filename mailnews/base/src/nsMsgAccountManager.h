@@ -131,11 +131,11 @@ private:
 
   nsresult GetLocalFoldersPrettyName(nsString &localFoldersName);
 
-  /* internal destruction routines - fixes prefs */
-  nsresult removeKeyedAccount(const nsCString& key);
-
   // sets the pref for the default server
   nsresult setDefaultAccountPref(nsIMsgAccount *aDefaultAccount);
+
+  // Write out the accounts pref from the m_accounts list of accounts.
+  nsresult OutputAccountsPref();
 
   // fires notifications to the appropriate root folders
   nsresult notifyDefaultServerChange(nsIMsgAccount *aOldAccount,

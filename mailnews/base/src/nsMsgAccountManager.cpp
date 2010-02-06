@@ -163,6 +163,10 @@ typedef struct _findAccountByKeyEntry {
   nsIMsgAccount* account;
 } findAccountByKeyEntry;
 
+static PLDHashOperator
+hashCleanupDeferral(nsCStringHashKey::KeyType aKey,
+                    nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure);
+
 NS_IMPL_THREADSAFE_ISUPPORTS5(nsMsgAccountManager,
                               nsIMsgAccountManager,
                               nsIObserver,
@@ -621,24 +625,18 @@ NS_IMETHODIMP
 nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
 {
   NS_ENSURE_ARG_POINTER(aAccount);
-  nsresult rv;
-  rv = LoadAccounts();
+  nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // order is important!
-  // remove it from the prefs first
-  nsCString key;
-  rv = aAccount->GetKey(key);
-  NS_ENSURE_SUCCESS(rv, rv);
+  PRBool accountRemoved = m_accounts->RemoveElement(aAccount);
 
-  rv = removeKeyedAccount(key);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // we were able to save the new prefs (i.e. not locked) so now remove it
-  // from the account manager... ignore the error though, because the only
-  // possible problem is that it wasn't in the hash table anyway... and if
-  // so, it doesn't matter.
-  m_accounts->RemoveElement(aAccount);
+  rv  = OutputAccountsPref();
+  // If we couldn't write out the pref, restore the account.
+  if (NS_FAILED(rv) && accountRemoved)
+  {
+    m_accounts->AppendElement(aAccount);
+    return rv;
+  }
 
   // if it's the default, clear the default account
   if (m_defaultAccount.get() == aAccount)
@@ -697,45 +695,27 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   return NS_OK;
 }
 
-// remove the account with the given key.
-// note that this does NOT remove any of the related prefs
-// (like the server, identity, etc)
 nsresult
-nsMsgAccountManager::removeKeyedAccount(const nsCString& key)
+nsMsgAccountManager::OutputAccountsPref()
 {
-  nsresult rv;
-  rv = getPrefService();
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv = NS_OK;
 
-  nsCString accountList;
-  rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS, getter_Copies(accountList));
-  NS_ENSURE_SUCCESS(rv, rv);
+  PRUint32 numAccounts;
+  m_accounts->Count(&numAccounts);
+  nsCString accountKey;
+  mAccountKeyList.Truncate();
 
-  // reconstruct the new account list, re-adding all accounts except
-  // the one with 'key'
-  nsCAutoString newAccountList;
-  char *newStr = accountList.BeginWriting();
-  char *token = NS_strtok(",", &newStr);
-  while (token) {
-    nsCAutoString testKey(token);
-    testKey.StripWhitespace();
-
-    // re-add the candidate key only if it's not the key we're looking for
-    if (!testKey.IsEmpty() && !testKey.Equals(key)) {
-      if (!newAccountList.IsEmpty())
-        newAccountList.Append(',');
-      newAccountList += testKey;
-    }
-
-    token = NS_strtok(",", &newStr);
+  for (PRUint32 index = 0; index < numAccounts; index++)
+  {
+    nsCOMPtr<nsIMsgAccount> account = do_QueryElementAt(m_accounts, index, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    account->GetKey(accountKey);
+    if (index)
+      mAccountKeyList.Append(ACCOUNT_DELIMITER);
+    mAccountKeyList.Append(accountKey);
   }
-
-  // Update mAccountKeyList to reflect the deletion
-  mAccountKeyList = newAccountList;
-
-  // now write the new account list back to the prefs
   return m_prefs->SetCharPref(PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS,
-                                newAccountList.get());
+                                mAccountKeyList.get());
 }
 
 /* get the default account. If no default account, pick the first account */
@@ -1248,6 +1228,10 @@ nsMsgAccountManager::LoadAccounts()
   if (NS_SUCCEEDED(rv))
     purgeService->Init();
 
+  nsCOMPtr<nsIPrefService> prefservice(do_GetService(NS_PREFSERVICE_CONTRACTID,
+                                       &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // Ensure messenger OS integration service has started
   // note, you can't expect the integrationService to be there
   // we don't have OS integration on all platforms.
@@ -1275,9 +1259,6 @@ nsMsgAccountManager::LoadAccounts()
      * This pref contains the list of pre-configured accounts that ISP/Vendor wants to
      * to add to the existing accounts list.
      */
-    nsCOMPtr<nsIPrefService> prefservice(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-    NS_ENSURE_SUCCESS(rv,rv);
-
     nsCOMPtr<nsIPrefBranch> defaultsPrefBranch;
     rv = prefservice->GetDefaultBranch(MAILNEWS_ROOT_PREF, getter_AddRefs(defaultsPrefBranch));
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1299,12 +1280,16 @@ nsMsgAccountManager::LoadAccounts()
 
       // Get a list of pre-configured accounts
       nsCString appendAccountList;
-      rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_APPEND_ACCOUNTS, getter_Copies(appendAccountList));
+      rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_APPEND_ACCOUNTS,
+                                getter_Copies(appendAccountList));
       appendAccountList.StripWhitespace();
 
-      // If there are pre-configured accounts, we need to add them to the existing list.
-      if (!appendAccountList.IsEmpty()) {
-        if (!accountList.IsEmpty()) {
+      // If there are pre-configured accounts, we need to add them to the
+      // existing list.
+      if (!appendAccountList.IsEmpty())
+      {
+        if (!accountList.IsEmpty())
+        {
           // Tokenize the data and add each account
           // in the user's current mailnews account list
           nsTArray<nsCString> accountsArray;
@@ -1315,14 +1300,17 @@ nsMsgAccountManager::LoadAccounts()
           ParseString(appendAccountList, ACCOUNT_DELIMITER, accountsArray);
 
           // Now add each account that does not already appear in the list
-          for (; i < accountsArray.Length(); i++) {
-            if (accountsArray.IndexOf(accountsArray[i]) == i) {
-              accountList.Append(',');
+          for (; i < accountsArray.Length(); i++)
+          {
+            if (accountsArray.IndexOf(accountsArray[i]) == i)
+            {
+              accountList.Append(ACCOUNT_DELIMITER);
               accountList.Append(accountsArray[i]);
             }
           }
         }
-        else {
+        else
+        {
           accountList = appendAccountList;
         }
         // Increase the version number so that updates will happen as and when needed
@@ -1331,7 +1319,8 @@ nsMsgAccountManager::LoadAccounts()
     }
   }
 
-  m_accountsLoaded = PR_TRUE;  //It is ok to return null accounts like when we create new profile
+  // It is ok to return null accounts like when we create new profile.
+  m_accountsLoaded = PR_TRUE;
   m_haveShutdown = PR_FALSE;
 
   if (accountList.IsEmpty())
@@ -1339,26 +1328,103 @@ nsMsgAccountManager::LoadAccounts()
 
   /* parse accountList and run loadAccount on each string, comma-separated */
   nsCOMPtr<nsIMsgAccount> account;
-  char *newStr = accountList.BeginWriting();
-  nsCAutoString str;
-  for (char *token = NS_strtok(",", &newStr); token; token = NS_strtok(",", &newStr))
-  {
-    str = token;
-    str.StripWhitespace();
+  // Tokenize the data and add each account
+  // in the user's current mailnews account list
+  nsTArray<nsCString> accountsArray;
+  ParseString(accountList, ACCOUNT_DELIMITER, accountsArray);
 
-    if (str.IsEmpty() ||
-        NS_FAILED(createKeyedAccount(str, getter_AddRefs(account))) ||
-        !account) {
+  // These are the duplicate accounts we found. We keep track of these
+  // because if any other server defers to one of these accounts, we need
+  // to defer to the correct account.
+  nsCOMArray<nsIMsgAccount> dupAccounts;
+
+  // Now add each account that does not already appear in the list
+  for (PRUint32 i = 0; i < accountsArray.Length(); i++)
+  {
+    // if we've already seen this exact account, advance to the next account.
+    // After the loop, we'll notice that we don't have as many actual accounts
+    // as there were accounts in the pref, and rewrite the pref.
+    if (accountsArray.IndexOf(accountsArray[i]) != i)
+      continue;
+
+    // get the "server" pref to see if we already have an account with this
+    // server. If we do, we ignore this account.
+    nsCAutoString serverKeyPref("mail.account.");
+    serverKeyPref += accountsArray[i];
+
+    nsCOMPtr<nsIPrefBranch> accountPrefBranch;
+    rv = prefservice->GetBranch(serverKeyPref.get(),
+                                getter_AddRefs(accountPrefBranch));
+    NS_ENSURE_SUCCESS(rv,rv);
+
+    serverKeyPref += ".server";
+    nsCString serverKey;
+    rv = m_prefs->GetCharPref(serverKeyPref.get(), getter_Copies(serverKey));
+    if (NS_FAILED(rv))
+      continue;
+
+    findAccountByKeyEntry entry;
+    entry.key = serverKey;
+    entry.account = nsnull;
+
+    m_accounts->EnumerateForwards(findAccountByServerKey, (void *)&entry);
+    // If we have an existing account with the same server, ignore it, and
+    // clear out the prefs.
+    if (entry.account)
+    {
+      dupAccounts.AppendObject(entry.account);
+      continue;
+    }
+    if (NS_FAILED(createKeyedAccount(accountsArray[i],
+                                     getter_AddRefs(account))) || !account)
+    {
       NS_WARNING("unexpected entry in account list; prefs corrupt?");
       continue;
     }
-
     // force load of accounts (need to find a better way to do this)
     nsCOMPtr<nsISupportsArray> identities;
     account->GetIdentities(getter_AddRefs(identities));
 
     nsCOMPtr<nsIMsgIncomingServer> server;
     account->GetIncomingServer(getter_AddRefs(server));
+    // If we couldn't create the server, the account is either horked
+    // or a duplicate. Add it to the list of accounts to be cleaned up.
+    if (!server)
+    {
+      dupAccounts.AppendObject(account);
+      m_accounts->RemoveElement(account);
+    }
+  }
+
+  PRUint32 numAccounts;
+  m_accounts->Count(&numAccounts);
+  // Check if we removed one or more of the accounts in the pref string.
+  // If so, rewrite the pref string.
+  if (accountsArray.Length() != numAccounts)
+    OutputAccountsPref();
+
+  PRInt32 cnt = dupAccounts.Count();
+  nsCOMPtr<nsIMsgAccount> dupAccount;
+
+  // Go through the accounts seeing if any existing server is deferred to
+  // an account we removed. If so, fix the deferral. Then clean up the prefs
+  // for the removed account.
+  for (PRInt32 i = 0; i < cnt; i++)
+  {
+    dupAccount = dupAccounts[i];
+    m_incomingServers.Enumerate(hashCleanupDeferral, (void *) dupAccount.get());
+    nsCAutoString accountKeyPref("mail.account.");
+    nsCString dupAccountKey;
+    dupAccount->GetKey(dupAccountKey);
+    if (dupAccountKey.IsEmpty())
+      continue;
+    accountKeyPref += dupAccountKey;
+
+    nsCOMPtr<nsIPrefBranch> accountPrefBranch;
+    rv = prefservice->GetBranch(accountKeyPref.get(),
+                                getter_AddRefs(accountPrefBranch));
+    if (accountPrefBranch)
+      accountPrefBranch->DeleteBranch("");
   }
 
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
@@ -2090,6 +2156,96 @@ hashRemoveListener(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer
   NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
 
   rv = rootFolder->RemoveFolderListener(listener);
+  return PL_DHASH_NEXT;
+}
+
+/**
+ * This method gets called for every incoming server, and is passed a duplicate
+ * account. It checks that the server is not deferred to the duplicate account.
+ * If it is, then it looks up the information for the duplicate account's
+ * server (username, hostName, type), and finds an account with a server with
+ * the same username, hostname, and type, and if it finds one, defers to that
+ * account instead. Generally, this will be a Local Folders account, since
+ * 2.0 has a bug where duplicate Local Folders accounts are created.
+ *
+ * @param aKey serverKey.
+ * @param aServer server object
+ * @param aClosure duplicate account (nsIMsgAccount)
+ *
+ * @returns PL_DHASH_NEXT to keep iterating over servers.
+ */
+static PLDHashOperator
+hashCleanupDeferral(nsCStringHashKey::KeyType aKey,
+                    nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
+{
+  nsIMsgAccount *dupAccount = (nsIMsgAccount *) aClosure;
+
+  nsCString type;
+  aServer->GetType(type);
+  if (type.EqualsLiteral("pop3"))
+  {
+    nsCString deferredToAccount;
+    // Get the pref directly, because the GetDeferredToAccount accessor
+    // attempts to fix broken deferrals, but we know more about what the
+    // deferred to account was.
+    aServer->GetCharValue("deferred_to_account", deferredToAccount);
+    if (!deferredToAccount.IsEmpty())
+    {
+      nsCString dupAccountKey;
+      dupAccount->GetKey(dupAccountKey);
+      if (deferredToAccount.Equals(dupAccountKey))
+      {
+        nsresult rv;
+        nsCString accountPref("mail.account.");
+        nsCString dupAccountServerKey;
+        accountPref.Append(dupAccountKey);
+        accountPref.Append(".server");
+        nsCOMPtr<nsIPrefService> prefservice(
+          do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+        NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
+        nsCOMPtr<nsIPrefBranch> prefBranch(
+          do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+        NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
+        rv = prefBranch->GetCharPref(accountPref.get(),
+                                     getter_Copies(dupAccountServerKey));
+        NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
+        nsCOMPtr<nsIPrefBranch> serverPrefBranch;
+        NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
+        nsCString serverKeyPref(PREF_MAIL_SERVER_PREFIX);
+        serverKeyPref.Append(dupAccountServerKey);
+        serverKeyPref.Append(".");
+        rv = prefservice->GetBranch(serverKeyPref.get(),
+                                    getter_AddRefs(serverPrefBranch));
+        NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
+        nsCString userName;
+        nsCString hostName;
+        nsCString type;
+        serverPrefBranch->GetCharPref("userName", getter_Copies(userName));
+        serverPrefBranch->GetCharPref("hostname", getter_Copies(hostName));
+        serverPrefBranch->GetCharPref("type", getter_Copies(type));
+        // Find a server with the same info.
+        nsCOMPtr<nsIMsgAccountManager> accountManager =
+                 do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, PL_DHASH_NEXT);
+        nsCOMPtr<nsIMsgIncomingServer> server;
+        accountManager->FindServer(userName, hostName, type,
+                                   getter_AddRefs(server));
+        if (server)
+        {
+          nsCOMPtr<nsIMsgAccount> replacement;
+          accountManager->FindAccountForServer(server,
+                                               getter_AddRefs(replacement));
+          if (replacement)
+          {
+            nsCString accountKey;
+            replacement->GetKey(accountKey);
+            if (!accountKey.IsEmpty())
+              aServer->SetCharValue("deferred_to_account", accountKey);
+          }
+        }
+      }
+    }
+  }
   return PL_DHASH_NEXT;
 }
 
