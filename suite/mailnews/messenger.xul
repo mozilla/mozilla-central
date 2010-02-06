@@ -239,20 +239,24 @@
                     focusring="false">
                 <deck id="msgNotificationBar"/>
                 <hbox id="msgHeaderView"/>
-                <browser id="messagepane"
-                         name="messagepane"
-                         height="0"
-                         flex="1"
-                         minwidth="1"
-                         minheight="1"
-                         tooltip="aHTMLTooltip"
-                         context="mailContext"
-                         disablesecurity="true"
-                         disablehistory="true"
-                         autofind="false"
-                         type="content-primary"
-                         onresize="return messagePaneOnResize(event);"
-                         onclick="return messagePaneOnClick(event);"/>
+                <!-- The messagepanewrapper hbox exists to allow extensions
+                     to add sidebars to the message pane. -->
+                <hbox id="messagepanewrapper" flex="1">
+                  <browser id="messagepane"
+                           name="messagepane"
+                           height="0"
+                           flex="1"
+                           minwidth="1"
+                           minheight="1"
+                           tooltip="aHTMLTooltip"
+                           context="mailContext"
+                           disablesecurity="true"
+                           disablehistory="true"
+                           autofind="false"
+                           type="content-primary"
+                           onresize="return messagePaneOnResize(event);"
+                           onclick="return messagePaneOnClick(event);"/>
+                </hbox>
               </vbox>
             </box>
           </box>
