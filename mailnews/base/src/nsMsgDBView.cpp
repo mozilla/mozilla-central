@@ -3387,23 +3387,13 @@ nsMsgDBView::DetermineActionsForJunkChange(PRBool msgsAreJunk,
   rv = server->GetSpamSettings(getter_AddRefs(spamSettings));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // if the spam system is completely disabled we won't do anything
-  // question: is this a valid choice?
-  PRInt32 spamLevel;
-  (void)spamSettings->GetLevel(&spamLevel);
-  if (!spamLevel)
-    return NS_OK;
-
   // When the user explicitly marks a message as junk, we can mark it as read,
   // too. This is independent of the "markAsReadOnSpam" pref, which applies
   // only to automatically-classified messages.
   // Note that this behaviour should match the one in the front end for marking
   // as junk via toolbar/context menu.
-  if (NS_SUCCEEDED(rv))
-  {
-    prefBranch->GetBoolPref("mailnews.ui.junk.manualMarkAsJunkMarksRead",
-                            &changeReadState);
-  }
+  prefBranch->GetBoolPref("mailnews.ui.junk.manualMarkAsJunkMarksRead",
+                          &changeReadState);
 
   // now let's determine whether we'll be taking the second action,
   // the move / deletion (and also determine which of these two)
@@ -3435,9 +3425,22 @@ nsMsgDBView::DetermineActionsForJunkChange(PRBool msgsAreJunk,
     if (!spamFolderURI.IsEmpty())
     {
       rv = GetExistingFolder(spamFolderURI, targetFolder);
-      NS_ENSURE_SUCCESS(rv,rv);
-
-      moveMessages = true;
+      if (NS_SUCCEEDED(rv) && *targetFolder)
+      {
+        moveMessages = true;
+      }
+      else
+      {
+        // XXX ToDo: GetOrCreateFolder will only create a folder with localized
+        //           name "Junk" regardless of spamFolderURI. So if someone
+        //           sets the junk folder to an existing folder of a different
+        //           name, then deletes that folder, this will fail to create
+        //           the correct folder.
+        rv = GetOrCreateFolder(spamFolderURI, nsnull /* aListener */);
+        if (NS_SUCCEEDED(rv))
+          rv = GetExistingFolder(spamFolderURI, targetFolder);
+        NS_ASSERTION(NS_SUCCEEDED(rv) && *targetFolder, "GetOrCreateFolder failed");
+      }
     }
     return NS_OK;
   }
