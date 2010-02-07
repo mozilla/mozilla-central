@@ -341,13 +341,12 @@ FeedWriter.prototype = {
    *          A date as extracted from a feed entry. (entry.updated)
    */
   _parseDate: function parseDate(dateString) {
-    // Convert the date into the user's local time zone
-    var dateObj = new Date(dateString);
-
     // Make sure the date we're given is valid.
-    if (isNaN(dateObj.getTime()))
+    if (isNaN(Date.parse(dateString)))
       return null;
 
+    // Convert the date into the user's local time zone.
+    var dateObj = new Date(dateString);
     var dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
                                 .getService(Components.interfaces.nsIScriptableDateFormat);
     return dateService.FormatDateTime("", dateService.dateFormatLong, dateService.timeFormatNoSeconds,
