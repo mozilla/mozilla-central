@@ -163,7 +163,6 @@ MAKE_VERSION=3.78
 WINDRES_VERSION=2.14.90
 W32API_VERSION=3.8
 GNOMEVFS_VERSION=2.0
-GNOMEUI_VERSION=2.2.0
 GCONF_VERSION=1.2.1
 LIBGNOME_VERSION=2.0
 STARTUP_NOTIFICATION_VERSION=0.8
@@ -178,7 +177,6 @@ MSMANIFEST_TOOL=
 
 dnl Set various checks
 dnl ========================================================
-MISSING_X=
 AC_PROG_AWK
 
 dnl Initialize the Pthread test variables early so they can be
@@ -1803,13 +1801,8 @@ case "$target" in
             # AIX_OBJMODEL=ibm to .mozconfig.
             if test "$AIX_OBJMODEL" = "ibm"; then
                 CXXFLAGS="$CXXFLAGS -qobjmodel=ibm"
-            else
-                AIX_OBJMODEL=compat
             fi
-        else
-            AIX_OBJMODEL=compat
         fi
-        AC_SUBST(AIX_OBJMODEL)
         DSO_LDOPTS='-qmkshrobj=1'
         DSO_CFLAGS='-qflag=w:w'
         DSO_PIC_CFLAGS=
@@ -3200,18 +3193,15 @@ else
 	XLIBS="-lX11 $XLIBS"
 	_SAVE_LDFLAGS="$LDFLAGS"
 	LDFLAGS="$XLDFLAGS $LDFLAGS"
-	AC_CHECK_LIB(X11, XDrawLines, [X11_LIBS="-lX11"],
-		[MISSING_X="$MISSING_X -lX11"], $XLIBS)
-	AC_CHECK_LIB(Xext, XextAddDisplay, [XEXT_LIBS="-lXext"],
-		[MISSING_X="$MISSING_X -lXext"], $XLIBS)
+	AC_CHECK_LIB(X11, XDrawLines, [X11_LIBS="-lX11"],, $XLIBS)
+	AC_CHECK_LIB(Xext, XextAddDisplay, [XEXT_LIBS="-lXext"],, $XLIBS)
    
      
 	AC_CHECK_LIB(Xt, XtFree, [ XT_LIBS="-lXt"], [
         unset ac_cv_lib_Xt_XtFree
 	    AC_CHECK_LIB(ICE, IceFlush, [XT_LIBS="-lICE $XT_LIBS"],, $XT_LIBS $XLIBS)
 	    AC_CHECK_LIB(SM, SmcCloseConnection, [XT_LIBS="-lSM $XT_LIBS"],, $XT_LIBS $XLIBS) 
-        AC_CHECK_LIB(Xt, XtFree, [ XT_LIBS="-lXt $XT_LIBS"],
-		    [MISSING_X="$MISSING_X -lXt"], $X_PRE_LIBS $XT_LIBS $XLIBS)
+        AC_CHECK_LIB(Xt, XtFree, [ XT_LIBS="-lXt $XT_LIBS"],, $X_PRE_LIBS $XT_LIBS $XLIBS)
         ])
 
     # AIX needs the motif library linked before libXt to prevent
@@ -3221,37 +3211,6 @@ else
         XT_LIBS="-lXm $XT_LIBS"
         ;;
     esac
-
-    dnl ========================================================
-    dnl = Check for XShm
-    dnl ========================================================
-    AC_CHECK_LIB(Xext, XShmCreateImage, _HAVE_XSHM_XEXT=1,,
-        $XLIBS $XEXT_LIBS)
-    AC_CHECK_HEADER(X11/extensions/XShm.h)
-    if test "$ac_cv_header_X11_extensions_XShm_h" = "yes" &&
-        test -n "$_HAVE_XSHM_XEXT"; then
-        AC_DEFINE(HAVE_XSHM)
-    fi
-
-    dnl ========================================================
-    dnl = Check for XIE
-    dnl ========================================================
-    AC_CHECK_LIB(XIE, XieFloGeometry, [MOZ_XIE_LIBS="-lXIE"],,
-        $XLIBS $XEXT_LIBS)
-    AC_CHECK_HEADER(X11/extensions/XIElib.h)
-
-    if test "$MOZ_XIE_LIBS"; then
-	dnl ====================================================
-	dnl = If XIE is present and is desired, turn it on
-	dnl ====================================================
-	case $target in
-	    *-hpux*)
-		;;
-	    *)
-		HAVE_XIE=1
-		;;
-	esac
-    fi
 
 	LDFLAGS="$_SAVE_LDFLAGS"
 fi # $no_x
@@ -5040,42 +4999,6 @@ then
 
     AC_SUBST(MOZ_ENABLE_GNOME_COMPONENT)
 fi
-
-dnl ========================================================
-dnl = libgnomeui support module
-dnl ========================================================
-
-if test "$MOZ_ENABLE_GTK2"
-then
-    MOZ_ENABLE_GNOMEUI=1
-
-    MOZ_ARG_DISABLE_BOOL(gnomeui,
-    [  --disable-gnomeui       Disable libgnomeui support (default: auto, optional at runtime) ],
-        MOZ_ENABLE_GNOMEUI=,
-        MOZ_ENABLE_GNOMEUI=force)
-
-    if test "$MOZ_ENABLE_GNOMEUI"
-    then
-        PKG_CHECK_MODULES(MOZ_GNOMEUI, libgnomeui-2.0 >= $GNOMEUI_VERSION,
-        [
-            MOZ_GNOMEUI_LIBS=`echo $MOZ_GNOMEUI_LIBS | sed 's/-llinc\>//'`
-            MOZ_ENABLE_GNOMEUI=1
-        ],[
-            if test "$MOZ_ENABLE_GNOMEUI" = "force"
-            then
-                AC_MSG_ERROR([* * * Could not find libgnomeui-2.0 >= $GNOMEUI_VERSION])
-            fi
-            MOZ_ENABLE_GNOMEUI=
-        ])
-    fi
-
-    if test "$MOZ_ENABLE_GNOMEUI"; then
-        AC_DEFINE(MOZ_ENABLE_GNOMEUI)
-    fi
-fi
-AC_SUBST(MOZ_ENABLE_GNOMEUI)
-AC_SUBST(MOZ_GNOMEUI_CFLAGS)
-AC_SUBST(MOZ_GNOMEUI_LIBS)
 
 dnl ========================================================
 dnl = dbus support
@@ -6996,9 +6919,6 @@ AC_SUBST(MOZ_FEEDS)
 
 AC_SUBST(MOZ_PROFILELOCKING)
 
-AC_SUBST(HAVE_XIE)
-AC_SUBST(MOZ_XIE_LIBS)
-
 AC_SUBST(XPCOM_USE_LEA)
 AC_SUBST(BUILD_STATIC_LIBS)
 AC_SUBST(MOZ_ENABLE_LIBXUL)
@@ -7211,10 +7131,6 @@ if test "$MOZ_X11"; then
     ], [], 
     [ AC_MSG_ERROR([Could not compile basic X program.]) ])
     CFLAGS="$_SAVE_CFLAGS"
-
-    if test ! -z "$MISSING_X"; then
-        AC_MSG_ERROR([ Could not find the following X libraries: $MISSING_X ]);
-    fi
 
 fi # MOZ_X11
 fi # COMPILE_ENVIRONMENT
