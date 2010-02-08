@@ -269,6 +269,12 @@ LDFLAGS += /HEAP:0x40000
 endif
 endif
 
+ifeq ($(OS_ARCH),AIX)
+ifdef BUILD_STATIC_LIBS
+LDFLAGS += -bbigtoc
+endif
+endif
+
 $(PROGRAM): $(MOZDEPTH)/toolkit/xre/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX)
 
 ifneq (,$(filter windows os2,$(MOZ_WIDGET_TOOLKIT)))
