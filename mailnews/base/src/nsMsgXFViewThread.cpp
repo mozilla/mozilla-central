@@ -265,7 +265,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
       m_levels.AppendElement(1);
       m_folders.AppendObject(newHdrFolder);
       if (outParent)
-        NS_ADDREF(*outParent = rootHdr);
+        NS_IF_ADDREF(*outParent = rootHdr);
       whereInserted = m_keys.Length() -1;
     }
   }
