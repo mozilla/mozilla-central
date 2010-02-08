@@ -1024,6 +1024,8 @@ nsMessengerWinIntegration::SetupInbox()
   nsCOMPtr <nsIMsgIncomingServer> server;
   rv = account->GetIncomingServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv,rv);
+  if (!server)
+    return NS_ERROR_FAILURE;
 
   nsCString type;
   rv = server->GetType(type);
@@ -1058,9 +1060,6 @@ nsMessengerWinIntegration::SetupInbox()
     rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
                                       getter_AddRefs(inboxFolder));
     NS_ENSURE_TRUE(inboxFolder, NS_ERROR_FAILURE);
-
-    if (!inboxFolder)
-     return NS_ERROR_FAILURE;
 
     rv = inboxFolder->GetURI(mInboxURI);
     NS_ENSURE_SUCCESS(rv,rv);

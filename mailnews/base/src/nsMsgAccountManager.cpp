@@ -776,7 +776,7 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
     }
   }
 
-  NS_IF_ADDREF(*aDefaultAccount = m_defaultAccount);
+  NS_ADDREF(*aDefaultAccount = m_defaultAccount);
   return NS_OK;
 }
 
