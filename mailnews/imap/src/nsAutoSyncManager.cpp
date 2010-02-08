@@ -59,6 +59,9 @@ const char* kAppIdleNotification = "mail:appIdle";
 const char* kStartupDoneNotification = "mail-startup-done";
 PRLogModuleInfo *gAutoSyncLog;
 
+// recommended size of each group of messages per download
+static const PRUint32 kDefaultGroupSize = 50U*1024U /* 50K */;
+
 nsDefaultAutoSyncMsgStrategy::nsDefaultAutoSyncMsgStrategy()
 {
 }

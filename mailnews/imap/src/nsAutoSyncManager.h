@@ -152,8 +152,6 @@ class nsAutoSyncManager : public nsIObserver,
   static const PRUint32 kDefaultUpdateInterval = 10UL;                  // 10min
   static const PRInt32 kTimerIntervalInMs = 400;
   static const PRUint32 kNumberOfHeadersToProcess = 250U;
-  // recommended size of each group of messages per download
-  static const PRUint32 kDefaultGroupSize = 50U*1024U /* 50K */;
   // enforced size of the first group that will be downloaded before idle time
   static const PRUint32 kFirstGroupSizeLimit = 60U*1024U /* 60K */; 
   static const PRInt32 kIdleTimeInSec = 10;
