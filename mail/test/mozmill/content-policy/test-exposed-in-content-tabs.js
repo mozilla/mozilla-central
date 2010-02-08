@@ -21,7 +21,7 @@
  *
  * The Initial Developer of the Original Code is
  * Mozilla Foundation.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -163,7 +163,6 @@ function checkContentTab(msgURL) {
 }
 
 function test_exposedInContentTabs() {
-  let folderTab = mc.tabmail.currentTabInfo;
   be_in_folder(folder);
 
   assert_nothing_selected();
