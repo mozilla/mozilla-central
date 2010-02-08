@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
  * Test to ensure that downloadAllForOffline works correctly for large imap
  * stores, i.e., > 4GB.
@@ -17,11 +17,6 @@ var gOfflineStoreSize;
 
 function run_test()
 {
-  if ("@mozilla.org/windows-registry-key;1" in Cc) {
-    dump("This test doesn't work on Windows tinderboxes due to FAT32 limitations\n");
-    return;
-  }
-
   loadLocalMailAccount();
 
   /*
@@ -39,6 +34,47 @@ function run_test()
   prefBranch.setBoolPref("mail.biff.show_alert", false);
   prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
   prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
+
+  // On Windows, check whether the drive is NTFS. If it is, mark the file as
+  // sparse. If it isn't, then bail out now, because in all probability it is
+  // FAT32, which doesn't support file sizes greater than 4 GB.
+  if ("@mozilla.org/windows-registry-key;1" in Cc)
+  {
+    // Figure out the name of the IMAP inbox
+    let file = gIMAPIncomingServer.rootMsgFolder.filePath.clone();
+
+    file.append("INBOX");
+    if (!file.exists())
+      file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0644);
+
+    // Now call upon our helper
+    let args = [file.path];
+    let helper = Cc["@mozilla.org/file/directory_service;1"]
+                   .getService(Ci.nsIProperties)
+                   .get("CurProcD", Ci.nsIFile);
+
+    helper.append("LargeOfflineStoreHelper.exe");
+    let helperProc = Cc["@mozilla.org/process/util;1"]
+                       .createInstance(Ci.nsIProcess);
+    helperProc.init(helper);
+    // XXX This needs to be fixed to use runw once it lands (bug 411511)
+    helperProc.run(true, args, args.length);
+
+    let exitValue = helperProc.exitValue;
+    // 0 is success, 1 is "unable to run," and any other value is failure
+    if (exitValue == 1)
+    {
+      dump("On Windows, this test only works on NTFS volumes.\n");
+      endTest();
+      return;
+    }
+
+    if (exitValue != 0)
+    {
+      throw new Error("Helper failed with exit value " + exitValue +
+                      ", see above for details");
+    }
+  }
 
   let inbox = gIMAPDaemon.getMailbox("INBOX");
 
@@ -70,8 +106,12 @@ function run_test()
   // Get the IMAP inbox...
   let rootFolder = gIMAPIncomingServer.rootFolder;
   let freeDiskSpace = rootFolder.filePath.diskSpaceAvailable;
-  // check that there are at least 8GB free before consuming 4GB disk space.
-  if (freeDiskSpace < 0x200000000) {
+
+  // On Windows, the file is marked as sparse above. Linux file systems
+  // generally support sparse files automatically. OS X's HFS+, however, doesn't
+  // support sparse files, so check for at least 8 GB of free disk space before
+  // consuming 4 GB.
+  if ("nsILocalFileMac" in Ci && freeDiskSpace < 0x200000000) {
     dump("not enough free disk space\n");
     endTest();
     return;
@@ -80,7 +120,7 @@ function run_test()
   gIMAPInbox = rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Inbox);
   let outputStream = gIMAPInbox.offlineStoreOutputStream
                                .QueryInterface(Ci.nsISeekableStream);
-  // seek past 4GB.
+  // seek to 15 bytes past 4GB.
   outputStream.seek(0, 0x10000000f);
   outputStream.write("from\r\n", 6);
   outputStream.close();
