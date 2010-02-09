@@ -145,39 +145,19 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         'mailnews.database.global.indexer.enabled': False
         }
 
-    def __init__(self, default_profile=None, profile=None, create_new=True,
-                 plugins=[], preferences={}):
-        self.init_env()
-        self.profile_dir = os.path.join(SCRIPT_DIRECTORY, 'mozmillprofile')
-
-        mozrunner.Profile.__init__(self, default_profile, profile, create_new, plugins, preferences)
-
-
-    def init_env(self):
-        self.base_env = dict(os.environ)
-        # note, we do NOT want to set NO_EM_RESTART or jsbridge wouldn't work
-        # avoid dialogs on windows
-        self.base_env['XPCOM_DEBUG_BREAK'] = 'stack'
-        # do not reuse an existing instance
-        self.base_env['MOZ_NO_REMOTE'] = '1'
-
-    def _run(self, *args, **extraenv):
-        env = self.base_env.copy()
-        env.update(extraenv)
-        allArgs = [BINARY]
-        allArgs.extend(args)
-        proc = automation.Process(allArgs, env=env)
-        status = proc.wait()
-
-    def create_new_profile(self, default_profile):
+    def create_new_profile(self, binary):
+        '''
+        We always put our profile in the same location.  We only clear it out
+        when we are creating a new profile so that we can go in after the run
+        and examine things for debugging or general interest.
+        '''
+        profile_dir = os.path.join(SCRIPT_DIRECTORY, 'mozmillprofile')
         # create a clean directory
-        if os.path.exists(self.profile_dir):
-            shutil.rmtree(self.profile_dir, onerror=rmtree_onerror)
-        os.makedirs(self.profile_dir)
+        if os.path.exists(profile_dir):
+            shutil.rmtree(profile_dir, onerror=rmtree_onerror)
+        os.makedirs(profile_dir)
 
-        # explicitly create a profile in that directory
-        self._run('-CreateProfile', 'test ' + self.profile_dir)
-        return self.profile_dir
+        return profile_dir
 
     def cleanup(self):
         '''
@@ -188,10 +168,13 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         pass
 
 class ThunderTestRunner(mozrunner.ThunderbirdRunner):
-
     def __init__(self, *args, **kwargs):
-        self.profile = args[1]
-        kwargs['env'] = self.profile.base_env
+        kwargs['env'] = env = dict(os.environ)
+        # note, we do NOT want to set NO_EM_RESTART or jsbridge wouldn't work
+        # avoid dialogs on windows
+        env['XPCOM_DEBUG_BREAK'] = 'stack'
+        # do not reuse an existing instance
+        env['MOZ_NO_REMOTE'] = '1'
         mozrunner.Runner.__init__(self, *args, **kwargs)
 
     def find_binary(self):
@@ -205,43 +188,16 @@ class ThunderTestCLI(mozmill.CLI):
     parser_options = copy.copy(mozmill.CLI.parser_options)
     parser_options[('-m', '--bloat-tests')] = {"default":None, "dest":"created_profile", "help":"Log file name."}
 
-    def parse_and_get_runner(self):
-        """Parses the command line arguments and returns a runner instance."""
-        (options, args) = self.parser.parse_args()
-        self.options = options
-        self.args = args
-        if self.options.plugins is None:
-            plugins = []
-        else:
-            plugins = self.options.plugins.split(',')
+    def __init__(self, *args, **kwargs):
+        # invoke jsbridge.CLI's constructor directly since we are explicitly
+        #  trying to replace mozmill's CLI constructor here (which hardcodes
+        #  the firefox runner and profile in 1.3 for no clear reason).
+        jsbridge.CLI.__init__(self, *args, **kwargs)
+        self.mozmill = self.mozmill_class(runner_class=self.runner_class,
+                                          profile_class=self.profile_class,
+                                          jsbridge_port=int(self.options.port))
 
-        if self.options.test is not None:
-            curdir = os.getcwd()
-            localprofile = os.path.join(curdir, self.options.test, "profile")
-
-            if os.path.isfile(localprofile):
-                profilefile = open(localprofile, "r")
-                nameinfile = profilefile.readline()
-                default_profile = os.path.join(curdir, "profiles", nameinfile)
-            else:
-                default_profile = options.default_profile
-
-        # We use a global as there appears to be no easy way of getting the
-        # binary details into the profile without re-implementing what mozmill
-        # gives us.
-        global BINARY
-        BINARY = self.options.binary
-        print BINARY
-
-        # We override profile in ThunderbirdTestProfile, so no point in setting
-        # it here.
-        profile = self.get_profile(default_profile, 
-                                   None, True,
-                                   plugins=plugins)
-        runner = self.get_runner(binary=self.options.binary, 
-                                 profile=profile)
-        
-        return runner
+        self.mozmill.add_global_listener(mozmill.LoggerListener())
 
 
 TEST_RESULTS = []

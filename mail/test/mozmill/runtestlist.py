@@ -57,11 +57,6 @@ class RunTestListOptions(optparse.OptionParser):
                         help = "Binary to be run")
         defaults["binary"] = ""
 
-        self.add_option("--default-profile",
-                        action = "store", type = "string", dest = "default_profile",
-                        help = "Location of profile to copy from. May be overriden by individual test setups.")
-        defaults["default_profile"] = ""
-
         self.add_option("--list",
                         action = "store", type = "string", dest = "list",
                         help = "List of tests to be run")
@@ -88,7 +83,7 @@ log.addHandler(handler)
 parser = RunTestListOptions()
 options, args = parser.parse_args()
 
-if options.binary == "" or options.list == "" or options.default_profile == "":
+if options.binary == "" or options.list == "":
     parser.print_help()
     sys.exit(1)
 
@@ -105,8 +100,7 @@ for directory in f:
     else:
         testDirectory = directory.rstrip()
     args = ["python", "runtest.py", "-t", testDirectory,
-            "--binary", options.binary,
-            "--default-profile", options.default_profile]
+            "--binary", options.binary]
     print args
     outputPipe = subprocess.PIPE
 
