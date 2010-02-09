@@ -2252,7 +2252,22 @@ nsImapIncomingServer::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
     case nsIImapUrl::nsImapFolderStatus:
     {
       PRInt32 folderCount = m_foldersToStat.Count();
+      nsCOMPtr<nsIMsgFolder> msgFolder(
+          do_QueryInterface(m_foldersToStat[folderCount - 1]));
+      if (msgFolder)
+      {
+        nsresult rv;
+        nsCOMPtr<nsIMsgMailSession> session =
+                 do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+        PRBool folderOpen;
+        rv = session->IsFolderOpenInWindow(msgFolder, &folderOpen);
+        if (NS_SUCCEEDED(rv) && !folderOpen && msgFolder)
+          msgFolder->SetMsgDatabase(nsnull);
+      }
       m_foldersToStat.RemoveObjectAt(folderCount - 1);
+      // This should be done on a timeout, since we shouldn't start a new url
+      // from here.
       if (folderCount > 1)
         m_foldersToStat[folderCount - 2]->UpdateStatus(this, nsnull);
     }
