@@ -197,9 +197,9 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
     if (curPos) {
       nsCString unescapedStr;
       MsgUnescapeString(nsDependentCString(curPos), 0, unescapedStr);
-      NS_MsgCreatePathStringFromFolderURI(unescapedStr.get(), newPath);
+      NS_MsgCreatePathStringFromFolderURI(unescapedStr.get(), newPath, NS_LITERAL_CSTRING("none"));
     } else
-      NS_MsgCreatePathStringFromFolderURI(curPos, newPath);
+      NS_MsgCreatePathStringFromFolderURI(curPos, newPath, NS_LITERAL_CSTRING("none"));
 
     pathResult.Append('/');
     pathResult.Append(newPath);

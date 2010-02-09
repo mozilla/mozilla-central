@@ -3099,7 +3099,8 @@ nsMsgDBFolder::parseURI(PRBool needServer)
                        scheme.EqualsLiteral("snews") ||
                        scheme.EqualsLiteral("nntp");
       }
-      NS_MsgCreatePathStringFromFolderURI(urlPath.get(), newPath, isNewsFolder);
+      NS_MsgCreatePathStringFromFolderURI(urlPath.get(), newPath, scheme,
+                                          isNewsFolder);
     }
 
     // now append munged path onto server path

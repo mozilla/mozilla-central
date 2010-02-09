@@ -84,9 +84,19 @@ NS_MSG_BASE nsresult NS_MsgGetUntranslatedPriorityName(
 NS_MSG_BASE nsresult NS_MsgHashIfNecessary(nsAutoString &name);
 NS_MSG_BASE nsresult NS_MsgHashIfNecessary(nsCAutoString &name);
 
-NS_MSG_BASE nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI, 
-                                                         nsCString& aPathString,
-                                                         PRBool aIsNewsFolder=PR_FALSE);
+/**
+ * given a folder uri, return the path to folder in the user profile directory.
+ *
+ * @param aFolderURI uri of folder we want the path to, without the scheme
+ * @param[out] aPathString result path string
+ * @param aScheme scheme of the uri
+ * @param[optional] aIsNewsFolder is this a news folder?
+ */
+NS_MSG_BASE nsresult 
+NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
+                                    nsCString& aPathString,
+                                    const nsCString &aScheme,
+                                    PRBool aIsNewsFolder=PR_FALSE);
 
 /**
  * Given a string and a length, removes any "Re:" strings from the front.

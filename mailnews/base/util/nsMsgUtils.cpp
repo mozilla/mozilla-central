@@ -494,6 +494,7 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
 
 nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
                                              nsCString& aPathCString,
+                                             const nsCString &aScheme,
                                              PRBool aIsNewsFolder)
 {
   // A file name has to be in native charset. Here we convert
@@ -509,6 +510,9 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
     ? oldPath.FindChar('/', startSlashPos + 1) - 1 : oldPath.Length() - 1;
   if (endSlashPos < 0)
     endSlashPos = oldPath.Length();
+#ifdef XP_MACOSX
+  PRBool isMailboxUri = aScheme.EqualsLiteral("none");
+#endif
   // trick to make sure we only add the path to the first n-1 folders
   PRBool haveFirst=PR_FALSE;
   while (startSlashPos != -1) {
@@ -529,7 +533,12 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
           CopyUTF16toMUTF7(pathPiece, tmp);
           CopyASCIItoUTF16(tmp, pathPiece);
       }
-
+#ifdef XP_MACOSX
+      // Don't hash path pieces because local mail folder uri's have already
+      // been hashed. We're only doing this on the mac to limit potential
+      // regressions.
+      if (!isMailboxUri)
+#endif
       NS_MsgHashIfNecessary(pathPiece);
       path += pathPiece;
       haveFirst=PR_TRUE;
