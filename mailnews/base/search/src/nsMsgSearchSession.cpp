@@ -541,14 +541,14 @@ nsresult nsMsgSearchSession::AddUrl(const char *url)
 
 nsresult nsMsgSearchSession::StartTimer()
 {
-  nsresult err;
-  PRBool done;
+  nsresult rv;
 
-  m_backgroundTimer = do_CreateInstance("@mozilla.org/timer;1", &err);
+  m_backgroundTimer = do_CreateInstance("@mozilla.org/timer;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   m_backgroundTimer->InitWithFuncCallback(TimerCallback, (void *) this, 0,
                                           nsITimer::TYPE_REPEATING_SLACK);
-  // ### start meteors?
-  return TimeSlice(&done);
+  TimerCallback(m_backgroundTimer, this);
+  return NS_OK;
 }
 
 nsresult nsMsgSearchSession::SearchWOUrls ()

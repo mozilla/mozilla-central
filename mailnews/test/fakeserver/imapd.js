@@ -622,7 +622,8 @@ function formatArg(argument, spec) {
 // KNOWN DEVIATIONS FROM RFC 3501:                                            //
 // + The autologout timer is 3 minutes, not 30 minutes. A test with a logout  //
 //   of 30 minutes would take a very long time if it failed.                  //
-// + SEARCH and STARTTLS are not supported, nor is all of FETCH.              //
+// + SEARCH (except for UNDELETED) and STARTTLS are not supported,            //
+//   nor is all of FETCH.                                                     //
 // + Concurrent mailbox access is probably compliant with a rather liberal    //
 //   implentation of RFC 3501, although probably not what one would expect,   //
 //   and certainly not what the Dovecot IMAP server tests expect.             //
@@ -1101,7 +1102,18 @@ IMAP_RFC3501_handler.prototype = {
     return response + "OK EXPUNGE completed";
   },
   SEARCH : function (args, uid) {
-    return "BAD not here yet";
+    if (args[0] == "UNDELETED") {
+      let response = "* SEARCH";
+      let messages = this._selectedMailbox._messages;
+      for (let i = 0; i < messages.length; i++) {
+        if (messages[i].flags.indexOf("\\Deleted") == -1)
+          response += " " + messages[i].uid;
+      }
+      response += '\0';
+      return response + "OK SEARCH COMPLETED\0";
+    }
+    else
+      return "BAD not here yet";
   },
   FETCH : function (args, uid) {
     // Step 1: Get the messages to fetch
