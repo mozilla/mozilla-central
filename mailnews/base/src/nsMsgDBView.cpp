@@ -6783,8 +6783,8 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
         // If the tree selection is goofy (eg adjacent or overlapping ranges),
         // complain about it, but don't try and cope.  Just live with the fact
         // that one of the deleted messages is going to end up selected.
-        NS_WARN_IF_FALSE(endFirstRange == startRange, 
-                        "goofy tree selection state: two ranges are adjacent!");
+        NS_WARN_IF_FALSE(endFirstRange != startRange, 
+                         "goofy tree selection state: two ranges are adjacent!");
       }
       *msgToSelectAfterDelete = NS_MIN(*msgToSelectAfterDelete,
                                        (nsMsgViewIndex)startRange);
