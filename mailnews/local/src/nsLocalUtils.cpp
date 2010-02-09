@@ -242,7 +242,7 @@ nsresult nsParseLocalMessageURI(const char* uri,
 #else
     nsresult errorCode;
 #endif
-    *key = keyStr.ToInteger(&errorCode);
+    *key = keyStr.ToInteger(&errorCode, 10);
 
     return errorCode;
   }

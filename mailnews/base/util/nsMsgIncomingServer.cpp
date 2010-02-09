@@ -1177,12 +1177,12 @@ nsMsgIncomingServer::InternalSetHostName(const nsACString& aHostname, const char
     hostname.SetLength(colonPos);
 #ifdef MOZILLA_INTERNAL_API
     PRInt32 err;
-    PRInt32 port = portString.ToInteger(&err);
+    PRInt32 port = portString.ToInteger(&err, 10);
     if (!err)
       SetPort(port);
 #else
     nsresult err;
-    PRInt32 port = portString.ToInteger(&err);
+    PRInt32 port = portString.ToInteger(&err, 10);
     if (NS_SUCCEEDED(err))
       SetPort(port);
 #endif

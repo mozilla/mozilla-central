@@ -957,7 +957,7 @@ nsNNTPNewsgroupList::ProcessXHDRLine(const nsACString &line)
     return NS_OK;
 
   PRInt32 code;
-  PRInt32 number = key.ToInteger(&code);
+  PRInt32 number = key.ToInteger(&code, 10);
   if (code != NS_OK)
     return NS_ERROR_FAILURE;
   // RFC 2980 specifies one or more spaces.

@@ -604,7 +604,7 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
       // get message key
       nsMsgKey key = nsMsgKey_None;
       PRInt32 errorCode;
-      key = keyStr.ToInteger(&errorCode);
+      key = keyStr.ToInteger(&errorCode, 10);
 
       // get userPass
       nsCAutoString userPass;

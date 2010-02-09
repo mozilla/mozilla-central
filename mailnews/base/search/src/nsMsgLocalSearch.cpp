@@ -615,7 +615,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
         if ( junkScoreOriginStr.Equals(NS_LITERAL_CSTRING("plugin")) &&
             !junkPercentStr.IsEmpty())
         {
-          junkPercent = junkPercentStr.ToInteger(&rv);
+          junkPercent = junkPercentStr.ToInteger(&rv, 10);
           NS_ENSURE_SUCCESS(rv, rv);
         }
         else
@@ -627,7 +627,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
             junkPercent = nsIJunkMailPlugin::IS_HAM_SCORE;
           else
           {
-            junkPercent = junkScoreStr.ToInteger(&rv);
+            junkPercent = junkScoreStr.ToInteger(&rv, 10);
             NS_ENSURE_SUCCESS(rv, rv);
           }
         }

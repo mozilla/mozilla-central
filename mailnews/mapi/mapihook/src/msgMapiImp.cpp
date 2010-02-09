@@ -452,7 +452,7 @@ STDMETHODIMP CMapiImp::ReadMail(unsigned long aSession, unsigned long ulUIParam,
   PRInt32 irv;
   nsCAutoString keyString((char *) lpszMessageID);
   PR_LOG(MAPI, PR_LOG_DEBUG, ("CMapiImp::ReadMail asking for key %s\n", (char *) lpszMessageID));
-  nsMsgKey msgKey = keyString.ToInteger(&irv);
+  nsMsgKey msgKey = keyString.ToInteger(&irv, 10);
   if (irv)
   {
     NS_ASSERTION(PR_FALSE, "invalid lpszMessageID");
@@ -477,7 +477,7 @@ STDMETHODIMP CMapiImp::DeleteMail(unsigned long aSession, unsigned long ulUIPara
 {
   PRInt32 irv;
   nsCAutoString keyString((char *) lpszMessageID);
-  nsMsgKey msgKey = keyString.ToInteger(&irv);
+  nsMsgKey msgKey = keyString.ToInteger(&irv, 10);
   if (irv)
     return SUCCESS_SUCCESS;
   MsgMapiListContext *listContext;
