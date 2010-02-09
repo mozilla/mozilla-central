@@ -617,8 +617,8 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
   /* allocate enough buffer for conversion, this way it can avoid
      do another memory allocation which is expensive
    */
-  PRInt32 charsPerLine = (foldlen - perLineOverhead) / 4;
-  PRInt32 maxNumLines = (strlen(src) / charsPerLine) + 1;
+  PRInt32 encodedCharsPerLine = foldlen - perLineOverhead;
+  PRInt32 maxNumLines = (strlen(src) * 4 / encodedCharsPerLine) + 1;
   outputlen = strlen(src) * 4 + (maxNumLines * perLineOverhead) + 20 /* fudge */;
   if ((outputtail = output = (char *)PR_Malloc(outputlen)) == nsnull) {
     PR_Free(src_head);
