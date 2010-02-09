@@ -174,7 +174,8 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
         # avoid dialogs on windows
         if 'NO_EM_RESTART' in env:
             del env['NO_EM_RESTART']
-        env['XPCOM_DEBUG_BREAK'] = 'stack'
+        if 'XPCOM_DEBUG_BREAK' not in env:
+            env['XPCOM_DEBUG_BREAK'] = 'stack'
         # do not reuse an existing instance
         env['MOZ_NO_REMOTE'] = '1'
         mozrunner.Runner.__init__(self, *args, **kwargs)
