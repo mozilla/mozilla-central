@@ -172,6 +172,8 @@ class ThunderTestRunner(mozrunner.ThunderbirdRunner):
         kwargs['env'] = env = dict(os.environ)
         # note, we do NOT want to set NO_EM_RESTART or jsbridge wouldn't work
         # avoid dialogs on windows
+        if 'NO_EM_RESTART' in env:
+            del env['NO_EM_RESTART']
         env['XPCOM_DEBUG_BREAK'] = 'stack'
         # do not reuse an existing instance
         env['MOZ_NO_REMOTE'] = '1'
