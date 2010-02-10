@@ -679,7 +679,8 @@ PRBool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
         // with a multipart body, and that message is being generated,
         // then generate this part.
         nsIMAPBodypart *grandParent = m_parentPart->GetParentPart();
-        NS_ASSERTION(grandParent, "grandparent doesn't exist for multi-part alt");		// grandParent must exist, since multiparts need parents
+        // grandParent must exist, since multiparts need parents
+        NS_ASSERTION(grandParent, "grandparent doesn't exist for multi-part alt");
         if (grandParent && 
           (grandParent->GetType() == IMAP_BODY_MESSAGE_RFC822) &&
           (!PL_strcmp(grandParent->GetPartNumberString(), generatingPart)) &&
