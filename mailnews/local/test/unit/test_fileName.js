@@ -13,15 +13,15 @@ function run_test() {
   if (! ("nsILocalFileMac" in Components.interfaces))
     return;
   // test file with ':' in the name (generated from Mozilla 1.8 branch).
-  let bugmail = do_get_file("../../mailnews/data/bugmail:1");
-  let bugmailmsf = do_get_file("../../mailnews/data/bugmail:1.msf");
+  let bugmail = do_get_file("../../mailnews/data/bugmail-1");
+  let bugmailmsf = do_get_file("../../mailnews/data/bugmail-1.msf");
   let localMailDir = gProfileDir;
   localMailDir.append("Mail");
   localMailDir.append("Local Folders");
   
   // Copy the file to the profile directory for a PAB
-  bugmail.copyTo(localMailDir, "");
-  bugmailmsf.copyTo(localMailDir, "");
+  bugmail.copyTo(localMailDir, "bugmail/1");
+  bugmailmsf.copyTo(localMailDir, "bugmail/1.msf");
  
   const prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
                  .getService(Components.interfaces.nsIPrefBranch);
