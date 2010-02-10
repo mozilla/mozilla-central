@@ -730,29 +730,39 @@ PRBool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
         prefBranch->GetBoolPref("mailnews.display.prefer_plaintext", &preferPlainText);
 
       nsIMAPBodypart *grandParentPart = m_parentPart->GetParentPart();
-      if (((preferPlainText || !PL_strcasecmp(m_parentPart->GetBodySubType(), "mixed")) 
-              && !PL_strcmp(m_partNumberString, "1") 
-              && !PL_strcasecmp(m_bodyType, "text"))
-          || ((!PL_strcasecmp(m_parentPart->GetBodySubType(), "alternative") ||
-                (grandParentPart && !PL_strcasecmp(grandParentPart->GetBodySubType(), "alternative"))) &&
-                m_parentPart->IsLastTextPart(m_partNumberString)))
-      {
-        return PR_TRUE;	// we're downloading it inline
-      }
-      else
-      {
-        // This is the first text part of a top-level multipart.
-        // For instance, a message with multipart body, where the first
-        // part is multipart, and this is the first leaf of that first part.
-        if (m_parentPart->GetType() == IMAP_BODY_MULTIPART &&
-          (PL_strlen(m_partNumberString) >= 2) &&
-          !PL_strcmp(m_partNumberString + PL_strlen(m_partNumberString) - 2, ".1") &&	// this is the first text type on this level
-          (!PL_strcmp(m_parentPart->GetPartNumberString(), "1") || !PL_strcmp(m_parentPart->GetPartNumberString(), "2")) &&
+      if ((preferPlainText || !PL_strcasecmp(m_parentPart->GetBodySubType(), "mixed")) &&
+          !PL_strcmp(m_partNumberString, "1") &&
           !PL_strcasecmp(m_bodyType, "text"))
-          return PR_TRUE;
-        else
-          return PR_FALSE;	// we can leave it on the server
-      }
+        return PR_TRUE;         // we're downloading it inline
+
+      if (   (!PL_strcasecmp(m_parentPart->GetBodySubType(), "alternative") ||
+              (grandParentPart && !PL_strcasecmp(grandParentPart->GetBodySubType(), "alternative")))
+          && !PL_strcasecmp(m_bodyType, "text")
+          && ((!PL_strcasecmp(m_bodySubType, "plain") && preferPlainText) ||
+              (!PL_strcasecmp(m_bodySubType, "html") && !preferPlainText)))
+        return PR_TRUE;
+
+      // This is the first text part of a top-level multipart.
+      // For instance, a message with multipart body, where the first
+      // part is multipart, and this is the first leaf of that first part.
+      if (m_parentPart->GetType() == IMAP_BODY_MULTIPART &&
+          (PL_strlen(m_partNumberString) >= 2) &&
+          !PL_strcmp(m_partNumberString + PL_strlen(m_partNumberString) - 2, ".1") && // this is the first text type on this level
+          (!PL_strcmp(m_parentPart->GetPartNumberString(), "1") || !PL_strcmp(m_parentPart->GetPartNumberString(), "2")) && 
+          !PL_strcasecmp(m_bodyType, "text"))
+        return PR_TRUE;
+      // This is the first text part of a top-level multipart of the toplevelmessage
+      // This 'assumes' the text body is first leaf. This is not required for valid email.
+      // The only other way is to get content-disposition = attachment and exclude those text parts.
+      if (m_parentPart->GetType() == IMAP_BODY_MULTIPART &&
+          !PL_strcasecmp(m_bodyType, "text") &&
+          !PL_strcmp(m_parentPart->GetPartNumberString(), "0") &&
+          !PL_strcmp(m_partNumberString, "1"))
+         return PR_TRUE;
+
+      // we may have future problems needing tests here
+
+      return PR_FALSE;  // we can leave it on the server
     }
 #ifdef XP_MACOSX
     // If it is either applesingle, or a resource fork for appledouble
@@ -1074,7 +1084,10 @@ PRBool nsIMAPBodypartMultipart::ShouldFetchInline(nsIMAPBodyShell *aShell)
       return PR_TRUE;
     if (ShouldExplicitlyNotFetchInline())
       return PR_FALSE;
-    
+
+    if (!PL_strcasecmp(m_bodySubType, "alternative"))
+      return PR_TRUE;
+
     nsIMAPBodypart *grandparentPart = m_parentPart->GetParentPart();
 
     // if we're a multipart sub-part of multipart alternative, we need to 
