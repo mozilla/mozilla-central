@@ -91,7 +91,6 @@ function toggleAffectedChrome(aHide)
 
   var statusbar = document.getElementById("status-bar");
   getNavToolbox().hidden = aHide; 
-  var theTabbrowser = document.getElementById("content"); 
   var notificationBox = gBrowser.getNotificationBox();
 
   // sidebar states map as follows:
@@ -115,8 +114,7 @@ function toggleAffectedChrome(aHide)
     document.getElementById("sidebar-splitter").hidden = true;
 
     // deal with tab browser
-    gChromeState.hadTabStrip = theTabbrowser.getStripVisibility();
-    theTabbrowser.setStripVisibilityTo(false);
+    gBrowser.mStrip.setAttribute("moz-collapsed", "true");
 
     // deal with the Status Bar
     gChromeState.statusbarWasHidden = statusbar.hidden;
@@ -136,7 +134,7 @@ function toggleAffectedChrome(aHide)
       document.getElementById("sidebar-box").hidden = false;
 
     // restore tab browser
-    theTabbrowser.setStripVisibilityTo(gChromeState.hadTabStrip);
+    gBrowser.mStrip.removeAttribute("moz-collapsed");
 
     // restore the Status Bar
     statusbar.hidden = gChromeState.statusbarWasHidden;
@@ -150,18 +148,39 @@ function toggleAffectedChrome(aHide)
     SidebarRebuild();
 }
 
-function onEnterPrintPreview()
-{
-  toggleAffectedChrome(true);
-  gInPrintPreviewMode = true;
-}
+var PrintPreviewListener = {
+  _printPreviewTab: null,
+  _tabBeforePrintPreview: null,
 
-function onExitPrintPreview()
-{
-  gInPrintPreviewMode = false;
-  // restore chrome to original state
-  toggleAffectedChrome(false);
-}
+  getPrintPreviewBrowser: function () {
+    if (!this._printPreviewTab) {
+      this._tabBeforePrintPreview = getBrowser().selectedTab;
+      this._printPreviewTab = getBrowser().addTab("about:blank");
+      getBrowser().selectedTab = this._printPreviewTab;
+    }
+    return getBrowser().getBrowserForTab(this._printPreviewTab);
+  },
+  getSourceBrowser: function () {
+    return this._tabBeforePrintPreview ?
+      getBrowser().getBrowserForTab(this._tabBeforePrintPreview) :
+      getBrowser().selectedBrowser;
+  },
+  getNavToolbox: function () {
+    return window.getNavToolbox();
+  },
+  onEnter: function () {
+    gInPrintPreviewMode = true;
+    toggleAffectedChrome(true);
+  },
+  onExit: function () {
+    getBrowser().selectedTab = this._tabBeforePrintPreview;
+    this._tabBeforePrintPreview = null;
+    getBrowser().removeTab(this._printPreviewTab, true);
+    this._printPreviewTab = null;
+    gInPrintPreviewMode = false;
+    toggleAffectedChrome(false);
+  }
+};
 
 function getNavToolbox()
 {
@@ -170,14 +189,9 @@ function getNavToolbox()
   return gNavToolbox;
 }
 
-function getPPBrowser()
-{
-  return document.getElementById("browser");
-}
-
 function BrowserPrintPreview()
 {
-  PrintUtils.printPreview(onEnterPrintPreview, onExitPrintPreview);
+  PrintUtils.printPreview(PrintPreviewListener);
 }
 
 function BrowserSetDefaultCharacterSet(aCharset)
