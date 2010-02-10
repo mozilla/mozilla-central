@@ -43,6 +43,9 @@ components/airbag.xpt
 components/bookmarks.xpt
 components/downloadmanager.xpt
 components/compreg.dat
+#ifdef MOZILLA_1_9_2_BRANCH
+components/contentSecurityPolicy.js
+#endif
 components/history.xpt
 components/jsconsole.xpt
 components/mailnews.xpt
@@ -53,6 +56,9 @@ components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
 components/nsComposerCmdLineHandler.js
 components/nsDownloadProgressListener.js
+#ifdef MOZILLA_1_9_2_BRANCH
+@BINPATH@/components/nsINIProcessor.js
+#endif
 components/nsInterfaceInfoToIDL.js
 components/nsLDAPPrefsService.js
 #ifdef XP_WIN

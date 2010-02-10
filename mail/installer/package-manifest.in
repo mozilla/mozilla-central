@@ -519,6 +519,9 @@
 @BINPATH@/components/fastfind.xpt
 @BINPATH@/components/find.xpt
 @BINPATH@/components/chardet.xpt
+#ifndef MOZILLA_1_9_2_BRANCH
+@BINPATH@/components/contentSecurityPolicy.js
+#endif
 @BINPATH@/components/jsconsole-clhandler.js
 @BINPATH@/components/layout_xul_tree.xpt
 @BINPATH@/components/mozfind.xpt
@@ -538,6 +541,9 @@
 @BINPATH@/components/windowds.xpt
 @BINPATH@/components/dom_xpath.xpt
 @BINPATH@/components/lwbrk.xpt
+#ifndef MOZILLA_1_9_2_BRANCH
+@BINPATH@/components/nsINIProcessor.js
+#endif
 @BINPATH@/components/nsTryToClose.js
 @BINPATH@/components/pluginGlue.js
 @BINPATH@/components/txEXSLTRegExFunctions.js
