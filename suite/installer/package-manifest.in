@@ -475,6 +475,9 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/nsFormAutoComplete.js
 @BINPATH@/components/nsHandlerService.js
 @BINPATH@/components/nsHelperAppDlg.js
+#ifndef MOZILLA_1_9_2_BRANCH
+@BINPATH@/components/nsINIProcessor.js
+#endif
 @BINPATH@/components/nsLivemarkService.js
 @BINPATH@/components/nsLoginInfo.js
 @BINPATH@/components/nsLoginManager.js

@@ -70,6 +70,9 @@ components/@DLL_PREFIX@myspell@DLL_SUFFIX@
 components/nsCloseAllWindows.js
 components/nsDictionary.js
 components/nsDownloadProgressListener.js
+#ifdef MOZILLA_1_9_2_BRANCH
+components/nsINIProcessor.js
+#endif
 components/nsInterfaceInfoToIDL.js
 components/nsKillAll.js
 components/nsLDAPPrefsService.js
