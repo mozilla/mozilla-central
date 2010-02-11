@@ -965,7 +965,8 @@ NS_IMETHODIMP nsMsgDBView::ReloadMessageWithAllParts()
   nsresult rv = messenger->OpenURL(forceAllParts);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return UpdateDisplayMessage(m_currentlyDisplayedViewIndex);
+  UpdateDisplayMessage(m_currentlyDisplayedViewIndex);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDBView::ReloadMessage()
@@ -978,7 +979,8 @@ NS_IMETHODIMP nsMsgDBView::ReloadMessage()
   nsresult rv = messenger->OpenURL(m_currentlyDisplayedMsgUri);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return UpdateDisplayMessage(m_currentlyDisplayedViewIndex);
+  UpdateDisplayMessage(m_currentlyDisplayedViewIndex);
+  return NS_OK;
 }
 
 nsresult nsMsgDBView::UpdateDisplayMessage(nsMsgViewIndex viewPosition)
