@@ -1652,6 +1652,8 @@ NS_MSG_BASE nsresult MsgEscapeURL(const nsACString &aStr, PRUint32 aFlags,
   return nu->EscapeURL(aStr, aFlags, aResult);
 }
 
+#ifndef MOZILLA_INTERNAL_API
+
 NS_MSG_BASE char *MsgEscapeHTML(const char *string)
 {
   char *rv = nsnull;
@@ -1716,7 +1718,7 @@ NS_MSG_BASE char *MsgEscapeHTML(const char *string)
   return(rv);
 }
 
-NS_MSG_BASE PRUnichar *MsgEscapeHTML(const PRUnichar *aSourceBuffer, 
+NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aSourceBuffer,
                                       PRInt32 aSourceBufferLen)
 {
   // if the caller didn't calculate the length
@@ -1779,10 +1781,6 @@ NS_MSG_BASE PRUnichar *MsgEscapeHTML(const PRUnichar *aSourceBuffer,
 
 NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString)
 {
-#ifdef MOZILLA_INTERNAL_API
-  // Use the convenience function provided by the internal API.
-  aString.CompressWhitespace(PR_TRUE, PR_TRUE);
-#else
   // This code is frozen linkage specific
   aString.Trim(" \f\n\r\t\v");
 
@@ -1816,8 +1814,9 @@ NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString)
 
   // Set the new length.
   aString.SetLength(end - start);
-#endif
 }
+
+#endif
 
 NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<nsMsgKey> &aMsgKeys,
                                            nsIMutableArray *aHeaders)

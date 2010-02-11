@@ -208,8 +208,6 @@ NS_MSG_BASE nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILoca
 
 NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src);
 
-NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString);
-
 /*
  * Utility function copied from nsReadableUtils
  */
@@ -227,15 +225,6 @@ NS_MSG_BASE nsresult MsgUnescapeString(const nsACString &aStr,
 
 NS_MSG_BASE nsresult MsgEscapeURL(const nsACString &aStr, PRUint32 aFlags,
                                   nsACString &aResult);
-
-/*
- * Utility functions that got moved from nsEscape
- */
-
-NS_MSG_BASE char *MsgEscapeHTML(const char *string);
-
-NS_MSG_BASE PRUnichar *MsgEscapeHTML(const PRUnichar *aSourceBuffer,
-                                     PRInt32 aSourceBufferLen);
 
 // Converts an array of nsMsgKeys plus a database, to an array of nsIMsgDBHdrs.
 NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, 
@@ -287,5 +276,93 @@ NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays);
  *
  */
 NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString &aOutString);
+
+/**
+ * The following definitons exist for compatibility between the internal and
+ * external APIs. Where possible they just forward to the existing API.
+ */
+
+#ifdef MOZILLA_INTERNAL_API
+#include "nsEscape.h"
+
+/**
+ * The internal API expects nsCaseInsensitiveC?StringComparator() and PR_TRUE.
+ * Redefine CaseInsensitiveCompare so that Find works.
+ */
+#define CaseInsensitiveCompare PR_TRUE
+/**
+ * The internal API expects a PRInt32 error pointer, although the error is
+ * always NS_ERROR_ILLEGAL_VALUE. Make it accept an nsresult.
+ */
+#define ToInteger(prv, radix) ToInteger(reinterpret_cast<PRInt32*>(prv), radix)
+/**
+ * The following methods are not exposed to the external API, but when we're
+ * using the internal API we can simply redirect the calls appropriately.
+ */
+#define MsgLowerCaseEqualsLiteral(str, l) \
+        str.LowerCaseEqualsLiteral(l)
+#define MsgRFindChar(str, ch, len) \
+        str.RFindChar(ch, len)
+#define MsgCompressWhitespace(str) \
+        str.CompressWhitespace()
+#define MsgEscapeHTML(str) \
+        nsEscapeHTML(str)
+#define MsgEscapeHTML2(buffer, len) \
+        nsEscapeHTML2(buffer, len)
+
+#else
+
+/**
+ * The external API expects CaseInsensitiveCompare. Redefine
+ * nsCaseInsensitiveC?StringComparator() so that Equals works.
+ */
+#define nsCaseInsensitiveCStringComparator() \
+        CaseInsensitiveCompare
+#define nsCaseInsensitiveStringComparator() \
+        CaseInsensitiveCompare
+/// The external API does not provide kNotFound.
+#define kNotFound -1
+/**
+ * The external API does not provide the following methods. While we can
+ * reasonably easily define them in terms of existing methods, we only want
+ * to do this when using the external API.
+ */
+#define AppendASCII \
+        AppendLiteral
+#define AppendUTF16toUTF8(source, dest) \
+        (dest).Append(NS_ConvertUTF16toUTF8(source))
+#define AppendUTF8toUTF16(source, dest) \
+        (dest).Append(NS_ConvertUTF8toUTF16(source))
+#define AppendASCIItoUTF16(source, dest) \
+        (dest).Append(NS_ConvertASCIItoUTF16(source))
+#define Compare(str1, str2, comp) \
+        (str1).Compare(str2, comp)
+#define LossyAppendUTF16toASCII(source, dest) \
+        (dest).Append(NS_LossyConvertUTF16toASCII(source))
+#define Last() \
+        EndReading()[-1]
+#define SetCharAt(ch, index) \
+        Replace(index, 1, ch)
+#define NS_NewISupportsArray(result) \
+        CallCreateInstance(NS_SUPPORTSARRAY_CONTRACTID, static_cast<nsISupportsArray**>(result))
+
+/**
+ * The following methods are not exposed to the external API so we define
+ * equivalent versions here.
+ */
+/// Equivalent of LowerCaseEqualsLiteral(literal)
+#define MsgLowerCaseEqualsLiteral(str, literal) \
+        (str).Equals(literal, CaseInsensitiveCompare)
+/// Equivalent of RFindChar(ch, len)
+#define MsgRFindChar(str, ch, len) \
+        StringHead(str, len).RFindChar(ch)
+/// Equivalent of aString.CompressWhitespace()
+NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString);
+/// Equivalent of nsEscapeHTML(aString)
+NS_MSG_BASE char *MsgEscapeHTML(const char *aString);
+/// Equivalent of nsEscapeHTML2(aBuffer, aLen)
+NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aBuffer, PRInt32 aLen);
+
+#endif
 
 #endif

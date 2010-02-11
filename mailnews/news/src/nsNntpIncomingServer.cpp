@@ -93,6 +93,17 @@
 // operating system.
 #define HOSTINFO_FILE_BUFFER_SIZE 1024
 
+#ifndef MOZILLA_INTERNAL_API
+/// SortIgnoreCase() is not supported. Define our own private version.
+static int
+CompareCStringIgnoreCase(const nsCString* aString1, const nsCString* aString2, void*)
+{
+  return Compare(*aString1, *aString2, CaseInsensitiveCompare);
+}
+#define SortIgnoreCase() \
+        Sort(CompareCStringIgnoreCase, nsnull)
+#endif
+
 static NS_DEFINE_CID(kSubscribableServerCID, NS_SUBSCRIBABLESERVER_CID);
 
 NS_IMPL_ADDREF_INHERITED(nsNntpIncomingServer, nsMsgIncomingServer)
