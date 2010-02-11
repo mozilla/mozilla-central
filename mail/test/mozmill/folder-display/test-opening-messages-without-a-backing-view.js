@@ -87,8 +87,10 @@ function test_open_single_message_without_backing_view_in_tab() {
   let msgHdr = msgHdrsInFolder[4];
   // Open it
   MailUtils.displayMessage(msgHdr);
-  // This is going to trigger a message display in the main 3pane window
-  wait_for_message_display_completion(mc);
+  // This is going to trigger a message display in the main 3pane window. Since
+  // the message will open in a new tab, we shouldn't
+  // plan_for_message_display().
+  wait_for_message_display_completion(mc, true);
   // Check that the tab count has increased by 1
   assert_number_of_tabs_open(preCount + 1);
   // Check that the currently displayed tab is a message tab (i.e. our newly
@@ -118,8 +120,10 @@ function test_open_multiple_messages_without_backing_views_in_tabs() {
 
   // Open them
   MailUtils.displayMessages(msgHdrs);
-  // This is going to trigger a message display in the main 3pane window
-  wait_for_message_display_completion(mc);
+  // This is going to trigger a message display in the main 3pane window. Since
+  // the message will open in a new tab, we shouldn't
+  // plan_for_message_display().
+  wait_for_message_display_completion(mc, true);
   // Check that the tab count has increased by the correct number
   assert_number_of_tabs_open(preCount + NUM_MESSAGES_TO_OPEN);
   // Check that the currently displayed tab is a message tab (i.e. one of our
