@@ -44,7 +44,6 @@ MOZ_ACTIVEX_SCRIPTING_SUPPORT=
 # MOZ_OJI is only required to be cleared for MOZILLA_1_9_2_BRANCH (OS X).
 MOZ_OJI=
 NECKO_PROTOCOLS_DEFAULT="about data file ftp http res viewsource"
-MOZ_IMG_DECODERS_DEFAULT=`echo "$MOZ_IMG_DECODERS_DEFAULT" | sed "s/ xbm//"`
 MOZ_MAIL_NEWS=1
 if [ "$COMM_BUILD" ]; then
   MOZ_LDAP_XPCOM=1
