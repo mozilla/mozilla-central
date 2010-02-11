@@ -5990,14 +5990,6 @@ if test "$MOZ_MEMORY"; then
     AC_MSG_ERROR([--enable-jemalloc not supported on ${target}])
     ;;
   esac
-
-  AC_ARG_WITH([valgrind],
-    [  --with-valgrind         Enable valgrind integration hooks],
-    [enable_valgrind="yes"], [enable_valgrind="no"])
-  AC_CHECK_HEADER([valgrind/valgrind.h], [], [enable_valgrind="no"])
-  if test "x$enable_valgrind" = "xyes" ; then
-    AC_DEFINE(MOZ_VALGRIND)
-  fi
 fi
 AC_SUBST(MOZ_MEMORY)
 AC_SUBST(MOZ_MEMORY_LDFLAGS)
