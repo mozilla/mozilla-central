@@ -132,18 +132,18 @@ function switchToView(view, controller){
     case "week":
       controller.click(new elementslib.ID(controller.window.document,
         "calendar-week-view-button"));
-    break;
-  case "multiweek":
-    controller.waitThenClick(new elementslib.ID(controller.window.document,
+      break;
+    case "multiweek":
+      controller.waitThenClick(new elementslib.ID(controller.window.document,
         "calendar-multiweek-view-button"));
       break;
-  case "month":
+    case "month":
       controller.waitThenClick(new elementslib.ID(controller.window.document,
         "calendar-month-view-button"));
-    break;
-  default:
-    controller.waitThenClick(new elementslib.ID(controller.window.document,
-      "calendar-day-view-button"));
+      break;
+    default:
+      controller.waitThenClick(new elementslib.ID(controller.window.document,
+        "calendar-day-view-button"));
   }
   controller.sleep(500);
 }
@@ -285,7 +285,7 @@ function getEventBoxPath(view, option, row, column, hour, controller){
 function forward(n){
   for(let i = 0; i < n; i++){
     controller.click(new elementslib.ID(controller.window.document, "next-view-button"));
-    controller.sleep(sleep);
+    controller.sleep(100);
   }
 }
 
@@ -295,7 +295,7 @@ function forward(n){
 function back(n){
   for(let i = 0; i < n; i++){
     controller.click(new elementslib.ID(controller.window.document, "previous-view-button"));
-    controller.sleep(sleep);
+    controller.sleep(100);
   }
 }
 

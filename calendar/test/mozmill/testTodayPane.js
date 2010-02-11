@@ -34,10 +34,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var RELATIVE_ROOT = './shared-modules';
+var MODULE_REQUIRES = ['CalendarUtils'];
+
 var sleep = 500;
+var calendar = "Mozmill";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testTodayPane = function () {
@@ -126,12 +131,12 @@ var testTodayPane = function () {
   controller.click(new elementslib.Lookup(controller.window.document, '/id("messengerWindow")/'
     + 'id("tabmail-container")/id("tabmail")/anon({"anonid":"tabbox"})/anon({"anonid":"strip"})/'
     + 'anon({"anonid":"tabcontainer"})/{"type":"folder","first-tab":"true"}/'
-    + 'anon({"class":"tab-image-middle"})/{"class":"tab-text"}'));
+    + 'anon({"class":"tab-image-middle box-inherit"})/{"class":"tab-text"}'));
   controller.sleep(sleep);
   
   // verify today pane open
-  controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document,
-    '/id("messengerWindow")/id("tabmail-container")/{"collapsed":"true"}'));
+  controller.assertPropertyNotExist(new elementslib.Lookup(controller.window.document,
+    '/id("messengerWindow")/id("tabmail-container")/id("today-pane-panel")'), "collapsed");
   
   // verify today pane's date
   controller.assertValue(new elementslib.ID(controller.window.document, "datevalue-label"),
@@ -206,8 +211,8 @@ var testTodayPane = function () {
   
   // reset today pane
   controller.click(new elementslib.ID(controller.window.document, "calendar-status-todaypane-button"));
-  controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document,
-    '/id("messengerWindow")/id("tabmail-container")/{"collapsed":"true"}'));
+  controller.assertPropertyNotExist(new elementslib.Lookup(controller.window.document,
+    '/id("messengerWindow")/id("tabmail-container")/id("today-pane-panel")'), "collapsed");
   controller.click(new elementslib.Lookup(controller.window.document, '/id("messengerWindow")/'
     + 'id("tabmail-container")/id("today-pane-panel")/[1]/id("agenda-panel")/[3]/'
     + 'id("agenda-listbox")/id("tomorrow-header")/anon({"anonid":"agenda-checkbox-widget"})/'
@@ -238,4 +243,8 @@ var getIsoDate = function() {
   let day = (date.getDate() < 10)? '0' + date.getDate() : date.getDate();
   let isoDate = year + '' + month + '' + day;
   return isoDate;
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }

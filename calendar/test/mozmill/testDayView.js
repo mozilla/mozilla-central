@@ -33,7 +33,10 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
+var RELATIVE_ROOT = './shared-modules';
+var MODULE_REQUIRES = ['CalendarUtils'];
+
 var sleep = 500;
 var calendar = "Mozmill";
 var title1 = "Day View Event";
@@ -42,9 +45,12 @@ var desc = "Day View Event Description";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testDayView = function () {
+  let dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                              .getService(Components.interfaces.nsIScriptableDateFormat);
   // paths
   let miniMonth = '/id("messengerWindow")/id("tabmail-container")/id("tabmail")/'
     + 'id("tabpanelcontainer")/id("calendarTabPanel")/id("calendarContent")/id("ltnSidebar")/'
@@ -101,13 +107,15 @@ var testDayView = function () {
     + 'anon({"class":"timepicker-box-class"})/anon({"class":"timepicker-text-class"})/'
     + 'anon({"flex":"1"})/anon({"anonid":"input"})'),
     '8:00');
+  let date = startdate = dateService.FormatDate("", dateService.dateFormatShort,
+    2009, 1, 1);
   event.assertValue(new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/'
     + 'id("event-starttime")/anon({"anonid":"hbox"})/anon({"anonid":"date-picker"})/'
     + 'anon({"flex":"1","id":"hbox","class":"datepicker-box-class"})/'
     + '{"class":"datepicker-text-class"}/anon({"class":"menulist-editable-box textbox-input-box"})/'
     + 'anon({"anonid":"input"})'),
-    '01.01.2009');
+    date);
     
   // fill in title, description and calendar
   event.type(new elementslib.Lookup(event.window.document, eventDialog
@@ -147,15 +155,14 @@ var testDayView = function () {
   controller.sleep(sleep);
   
   // check if name was saved
-  controller.assertText(new elementslib.Lookup(controller.window.document, dayView
+  controller.assertProperty(new elementslib.Lookup(controller.window.document, dayView
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"scrollbox"})/anon({"anonid":"daybox"})/'
     + '{"class":"calendar-event-column-even"}/anon({"anonid":"boxstack"})/'
     + 'anon({"anonid":"topbox"})/{"flex":"1"}/{"flex":"1"}/{"flex":"1"}/'
     + '{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}/anon({"flex":"1"})/'
     + 'anon({"anonid":"event-container"})/{"class":"calendar-event-selection"}/'
-    + 'anon({"anonid":"eventbox"})/{"class":"calendar-event-details"}/'
-    + 'anon({"anonid":"event-name"})/anon({"anonid":"event-name-div"})'),
-    title2);
+    + 'anon({"anonid":"eventbox"})/{"class":"calendar-event-details"}/anon({"anonid":"event-name"})'),
+    "textContent", title2);
   
   // delete event
   controller.click(new elementslib.Lookup(controller.window.document, dayView
@@ -171,4 +178,8 @@ var testDayView = function () {
     + '{"class":"calendar-event-column-even"}/anon({"anonid":"boxstack"})/'
     + 'anon({"anonid":"topbox"})/{"flex":"1"}/{"flex":"1"}/{"flex":"1"}/'
     + '{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}'));
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }

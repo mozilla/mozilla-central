@@ -33,20 +33,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
-var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
-
-var RELATIVE_ROOT = 'shared-modules';
-var MODULE_REQUIRES = ['ModalDialogAPI'];
+var RELATIVE_ROOT = './shared-modules';
+var MODULE_REQUIRES = ['CalendarUtils', 'ModalDialogAPI'];
 
 var sleep = 500;
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
-  module.modalDialogAPI = collector.getModule('ModalDialogAPI');
 }
 
 var testSmokeTest = function () {
+  let dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                              .getService(Components.interfaces.nsIScriptableDateFormat);
   let path = '/id("messengerWindow")/id("tabmail-container")/id("tabmail")/id("tabpanelcontainer")/'
     + 'id("calendarTabPanel")/id("calendarContent")/';
 
@@ -73,10 +71,11 @@ var testSmokeTest = function () {
   controller.assertNode(new elementslib.ID(controller.window.document, "unifinder-search-field"));
   
   // default view is day view which should have 09:00 label and box
+  let label = dateService.FormatTime("", dateService.timeFormatNoSeconds, 9, 0, 0);
   controller.assertNode(new elementslib.Lookup(controller.window.document, path
     + 'id("calendarDisplayDeck")/id("calendar-view-box")/id("view-deck")/id("day-view")/'
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"scrollbox"})/anon({"anonid":"timebar"})/'
-    + 'anon({"anonid":"topbox"})/[9]/{"class":"calendar-time-bar-label","value":"09:00",}'));
+    + 'anon({"anonid":"topbox"})/[9]/{"class":"calendar-time-bar-label","value":"' + label + '"}'));
   controller.assertNode(new elementslib.Lookup(controller.window.document, path
     + 'id("calendarDisplayDeck")/id("calendar-view-box")/id("view-deck")/id("day-view")/'
     + 'anon({"anonid":"mainbox"})/anon({"anonid":"scrollbox"})/anon({"anonid":"daybox"})/[0]/'
@@ -93,13 +92,14 @@ var testSmokeTest = function () {
   controller.assertNode(new elementslib.Lookup(controller.window.document, path
     + 'id("calendarDisplayDeck")/id("calendar-task-box")/[1]/id("calendar-task-tree")/'
     + 'anon({"anonid":"calendar-task-tree"})/{"tooltip":"taskTreeTooltip"}'));
-    
+  
   // create test calendar
-  let md = new modalDialogAPI.modalDialog(handleDialog);
+  let md = new ModalDialogAPI.modalDialog(handleDialog);
   md.start();
-  controller.doubleClick(new elementslib.Lookup(controller.window.document, path 
+  let calendarList = new elementslib.Lookup(controller.window.document, path 
     + '/id("ltnSidebar")/id("calendar-panel")/id("calendar-list-pane")/id("calendar-listtree-pane")/'
-    + 'id("calendar-list-tree-widget")/anon({"anonid":"tree"})/anon({"anonid":"treechildren"})'));
+    + 'id("calendar-list-tree-widget")/anon({"anonid":"tree"})/anon({"anonid":"treechildren"})');
+  controller.doubleClick(calendarList, 0, calendarList.getNode().boxObject.height); // bottom left
 }
 
 function handleDialog(controller) { 
@@ -108,6 +108,8 @@ function handleDialog(controller) {
     + 'anon({"anonid":"WizardButtonDeck"})/';
   
   // click next
+  controller.waitForElement(new elementslib.Lookup(controller.window.document, wizardPath
+    + '[1]/{"dlgtype":"next"}'));
   controller.click(new elementslib.Lookup(controller.window.document, wizardPath
     + '[1]/{"dlgtype":"next"}'));
   controller.sleep(sleep);
@@ -127,4 +129,8 @@ function handleDialog(controller) {
   // click finish
   controller.click(new elementslib.Lookup(controller.window.document, wizardPath
     + '/[0]/{"dlgtype":"finish"}'));
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars("Mozmill");
 }

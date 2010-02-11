@@ -34,6 +34,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var RELATIVE_ROOT = './shared-modules';
+var MODULE_REQUIRES = ['CalendarUtils'];
+
 var sleep = 500;
 var calendar = "Mozmill";
 var title1 = "Week View Event";
@@ -42,9 +45,12 @@ var desc = "Week View Event Description";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testWeekView = function () {
+  let dateService = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                              .getService(Components.interfaces.nsIScriptableDateFormat);
   // paths
   let miniMonth = '/id("messengerWindow")/id("tabmail-container")/id("tabmail")/'
     + 'id("tabpanelcontainer")/id("calendarTabPanel")/id("calendarContent")/id("ltnSidebar")/'
@@ -104,13 +110,15 @@ var testWeekView = function () {
     + 'anon({"class":"timepicker-box-class"})/anon({"class":"timepicker-text-class"})/'
     + 'anon({"flex":"1"})/anon({"anonid":"input"})'),
     '8:00');
+  let date = dateService.FormatDate("", dateService.dateFormatShort,
+    2009, 1, 1);
   event.assertValue(new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/'
     + 'id("event-starttime")/anon({"anonid":"hbox"})/anon({"anonid":"date-picker"})/'
     + 'anon({"flex":"1","id":"hbox","class":"datepicker-box-class"})/'
     + '{"class":"datepicker-text-class"}/anon({"class":"menulist-editable-box textbox-input-box"})/'
     + 'anon({"anonid":"input"})'),
-    '01.01.2009');
+    date);
     
   // fill in title, description and calendar
   event.type(new elementslib.Lookup(event.window.document, eventDialog
@@ -146,11 +154,11 @@ var testWeekView = function () {
   controller.sleep(sleep);
   
   // check if name was saved
-  controller.assertText(new elementslib.Lookup(controller.window.document, eventBox
+  controller.assertProperty(new elementslib.Lookup(controller.window.document, eventBox
     + '/anon({"flex":"1"})/anon({"anonid":"event-container"})/{"class":"calendar-event-selection"}/'
     + 'anon({"anonid":"eventbox"})/{"class":"calendar-event-details"}/'
-    + 'anon({"anonid":"event-name"})/anon({"anonid":"event-name-div"})'),
-    title2);
+    + 'anon({"anonid":"event-name"})'),
+    "textContent", title2);
   
   // delete event
   controller.click(new elementslib.Lookup(controller.window.document, eventBox));
@@ -158,4 +166,8 @@ var testWeekView = function () {
     "VK_DELETE", {});
   controller.sleep(sleep);
   controller.assertNodeNotExist(new elementslib.Lookup(controller.window.document, eventBox));
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }

@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var RELATIVE_ROOT = 'shared-modules';
+var RELATIVE_ROOT = './shared-modules';
 var MODULE_REQUIRES = ['ModalDialogAPI', 'UtilsAPI', 'CalendarUtils'];
 
 var sleep = 500;
@@ -47,6 +47,7 @@ var url = "http://mozilla.org";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 var testEventDialog = function () {
@@ -265,7 +266,7 @@ function checkTooltip(monthView, row, col, date, startTime, endTime){
   let mouseOverItem = monthView + 'anon({"anonid":"mainbox"})/anon({"anonid":"monthgrid"})/'
     + 'anon({"anonid":"monthgridrows"})/[rowNumber]/[columnNumber]/'
     + '{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
-  controller.mouseover(new elementslib.Lookup(controller.window.document, 
+  controller.mouseOver(new elementslib.Lookup(controller.window.document, 
           mouseOverItem.replace("rowNumber", row).replace("columnNumber", col)));
   
   // check title
@@ -281,4 +282,8 @@ function checkTooltip(monthView, row, col, date, startTime, endTime){
     + '{"class":"tooltipBox"}/{"class":"tooltipHeaderGrid"}/[1]/[2]/[1]').getNode().textContent + '';
   controller.assertJS(dateTime.indexOf(date) != -1 && dateTime.indexOf(startTime) != -1
     && dateTime.indexOf(endTime) != -1);
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }

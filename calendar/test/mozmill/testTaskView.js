@@ -34,8 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var RELATIVE_ROOT = 'shared-modules';
-var MODULE_REQUIRES = ['UtilsAPI'];
+var RELATIVE_ROOT = './shared-modules';
+var MODULE_REQUIRES = ['CalendarUtils', 'UtilsAPI'];
 
 var sleep = 500;
 var calendar = "Mozmill";
@@ -45,6 +45,7 @@ var percentComplete = "50";
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  CalendarUtils.createCalendar(calendar);
 }
 
 // mozmill doesn't support trees yet, therefore completed checkbox and line-through style are not
@@ -122,12 +123,14 @@ var testTaskView = function () {
   // delete default 0 percent complete
   task.keypress(new elementslib.Lookup(task.window.document, taskDialog
     + 'id("event-grid-todo-status-row")/id("event-grid-todo-status-picker-box")/'
-    + 'id("percent-complete-textbox")/anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'),
+    + 'id("percent-complete-textbox")/anon({"class":"textbox-input-box numberbox-input-box"})/'
+    + 'anon({"anonid":"input"})'),
     "VK_BACK_SPACE",
     {});
   task.type(new elementslib.Lookup(task.window.document, taskDialog
     + 'id("event-grid-todo-status-row")/id("event-grid-todo-status-picker-box")/'
-    + 'id("percent-complete-textbox")/anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'),
+    + 'id("percent-complete-textbox")/anon({"class":"textbox-input-box numberbox-input-box"})/'
+    + 'anon({"anonid":"input"})'),
     percentComplete);
   
   // save
@@ -165,7 +168,7 @@ var testTaskView = function () {
   
   controller.assertJS(toolTipName.getNode().textContent == title);
   controller.assertJS(toolTipPriority.getNode().textContent == priority);
-  controller.assertJS(toolTipStatus.getNode().textContent == status);
+  controller.assertJS(toolTipStatus.getNode().textContent.toLowerCase() == status.toLowerCase());
   controller.assertJS(toolTipComplete.getNode().textContent == percentComplete + '%');
   
   // mark completed, verify
@@ -177,11 +180,15 @@ var testTaskView = function () {
   status = UtilsAPI.getProperty("chrome://calendar/locale/calendar.properties",
     "taskDetailsStatusCompleted");
   toolTipNode.ownerDocument.defaultView.showToolTip(toolTipNode, taskTreeNode.getTaskAtRow(0));
-  controller.assertJS(toolTipStatus.getNode().textContent == status);
+  controller.assertJS(toolTipStatus.getNode().textContent.toLowerCase() == status.toLowerCase());
   
   // delete task, verify
   controller.click(new elementslib.ID(controller.window.document, "task-context-menu-delete"));
   controller.click(new elementslib.ID(controller.window.document, "calendar-delete-task-button"));
   let countAfterDelete = taskTreeNode.mTaskArray.length;
   controller.assertJS(countAfter - 1 == countAfterDelete);
+}
+
+var teardownTest = function(module) {
+  CalendarUtils.deleteCalendars(calendar);
 }
