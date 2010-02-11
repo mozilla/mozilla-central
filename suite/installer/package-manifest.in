@@ -368,7 +368,7 @@
 @BINPATH@/components/necko_strconv.xpt
 @BINPATH@/components/necko_viewsource.xpt
 @BINPATH@/components/necko_wifi.xpt
-#ifdef MOZ_ENABLE_GNOME_COMPONENT
+#ifdef MOZ_ENABLE_GNOMEVFS
 bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 #endif
 @BINPATH@/components/parentalcontrols.xpt
