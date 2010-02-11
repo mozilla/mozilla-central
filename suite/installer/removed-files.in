@@ -99,6 +99,9 @@ components/sigonviewer.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/@DLL_PREFIX@suitetypeaheadfind@DLL_SUFFIX@
 components/suitetypeaheadfind.xpt
+#ifndef MOZILLA_1_9_2_BRANCH
+components/@DLL_PREFIX@ucvmath@DLL_SUFFIX@
+#endif
 components/urlwidgt.xpt
 components/util.xpt
 components/venkman-service.js
@@ -264,7 +267,9 @@ components/@DLL_PREFIX@tkautocomplete@DLL_SUFFIX@
 components/@DLL_PREFIX@toolkitcomps@DLL_SUFFIX@
 components/@DLL_PREFIX@txmgr@DLL_SUFFIX@
 components/@DLL_PREFIX@uconv@DLL_SUFFIX@
+#ifdef MOZILLA_1_9_2_BRANCH
 components/@DLL_PREFIX@ucvmath@DLL_SUFFIX@
+#endif
 components/@DLL_PREFIX@universalchardet@DLL_SUFFIX@
 components/@DLL_PREFIX@unixproxy@DLL_SUFFIX@
 components/@DLL_PREFIX@webbrwsr@DLL_SUFFIX@
