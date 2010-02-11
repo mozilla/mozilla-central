@@ -100,3 +100,8 @@ menulist > menupopup,
   padding: 0px;
   min-width: 0px;
 }
+
+menupopup > menu > .menulist-menupopup,
+popup > menu > .menulist-menupopup {
+  margin: -1px;
+}

@@ -182,11 +182,14 @@ popup > menuitem[_moz-menuactive="true"] {
 menulist > menupopup > menuitem,
 .menulist-menupopup > menu,
 menulist > menupopup > menu {
-  -moz-padding-end: 30px;
   padding-top: 1px;
   padding-bottom: 1px;
   max-width: none;
   font: message-box;
+}
+
+menulist > menupopup > menuitem {
+  -moz-padding-end: 30px;
 }
     
 /* ..... selected state ..... */
