@@ -128,7 +128,9 @@ bin\components\jar.xpt
 bin\components\jsd3250.dll
 bin\components\jsdservice.xpt
 bin\components\layout_base.xpt
+#ifdef NS_PRINTING
 bin\components\layout_printing.xpt
+#endif
 bin\components\layout_xul.xpt
 bin\components\layout_xul_tree.xpt
 bin\components\locale.xpt

@@ -4405,6 +4405,7 @@ MOZ_XSLT_STANDALONE=
 MOZ_XTF=1
 MOZ_XUL=1
 MOZ_ZIPWRITER=1
+NS_PRINTING=1
 XPC_IDISPATCH_SUPPORT=
 
 
@@ -4476,6 +4477,9 @@ basic)
   MOZ_XTF=
   MOZ_ZIPWRITER=
   NS_DISABLE_LOGGING=1
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+  NS_PRINTING=
+  fi
   ;;
 
 minimal)
@@ -4513,6 +4517,9 @@ minimal)
   MOZ_ZIPWRITER=
   MOZ_RDF=
   NS_DISABLE_LOGGING=1
+  if test "$MOZILLA_1_9_2_BRANCH" = "1"; then
+  NS_PRINTING=
+  fi
   ;;
 
 *)
@@ -4676,6 +4683,7 @@ cairo-qt)
     MOZ_WIDGET_TOOLKIT=qt
     MOZ_ENABLE_QT=1
     USE_ELF_DYNSTR_GC=
+    NS_PRINTING=
 
     AC_DEFINE(MOZ_X11)
     MOZ_X11=1
@@ -5117,6 +5125,23 @@ MOZ_ARG_DISABLE_BOOL(jsloader,
     MOZ_JSLOADER=1 )
 if test "$MOZ_JSLOADER"; then
     AC_DEFINE(MOZ_JSLOADER)
+fi
+
+dnl ========================================================
+dnl Disable printing
+dnl ========================================================
+MOZ_ARG_DISABLE_BOOL(printing,
+[  --disable-printing  Disable printing support],
+    NS_PRINTING=,
+    NS_PRINTING=1 )
+
+if test "$MOZ_WIDGET_TOOLKIT" = "qt"; then
+    AC_MSG_WARN([Printing does not work with Qt at this time. Omitting printing support.])
+    NS_PRINTING=
+fi
+
+if test "$NS_PRINTING"; then
+    AC_DEFINE(NS_PRINTING)
 fi
 
 dnl ========================================================
@@ -6916,6 +6941,7 @@ AC_SUBST(MOZ_PLACES)
 AC_SUBST(MOZ_PLACES_BOOKMARKS)
 AC_SUBST(MOZ_STORAGE)
 AC_SUBST(MOZ_FEEDS)
+AC_SUBST(NS_PRINTING)
 
 AC_SUBST(MOZ_PROFILELOCKING)
 

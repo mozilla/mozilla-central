@@ -326,7 +326,9 @@
 @BINPATH@/components/contentprefs.xpt
 @BINPATH@/components/htmlparser.xpt
 @BINPATH@/components/layout_base.xpt
+#ifdef NS_PRINTING
 @BINPATH@/components/layout_printing.xpt
+#endif
 @BINPATH@/components/layout_xul.xpt
 @BINPATH@/components/xulapp.xpt
 @BINPATH@/components/xuldoc.xpt

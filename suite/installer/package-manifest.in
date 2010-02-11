@@ -336,7 +336,9 @@
 @BINPATH@/components/@DLL_PREFIX@jsd@DLL_SUFFIX@
 #endif
 @BINPATH@/components/layout_base.xpt
+#ifdef NS_PRINTING
 @BINPATH@/components/layout_printing.xpt
+#endif
 @BINPATH@/components/layout_xul_tree.xpt
 @BINPATH@/components/layout_xul.xpt
 #ifdef UNIX_BUT_NOT_MAC
