@@ -960,7 +960,12 @@ NS_IMETHODIMP nsMsgDBView::ReloadMessageWithAllParts()
   forceAllParts += (forceAllParts.FindChar('?') == kNotFound) ? "?" : "&";
   forceAllParts.AppendLiteral("fetchCompleteMessage=true");
   nsCOMPtr<nsIMessenger> messenger (do_QueryReferent(mMessengerWeak));
-  return messenger ? messenger->OpenURL(forceAllParts) : NS_ERROR_FAILURE;
+  NS_ENSURE_TRUE(messenger, NS_ERROR_FAILURE);
+
+  nsresult rv = messenger->OpenURL(forceAllParts);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return UpdateDisplayMessage(m_currentlyDisplayedViewIndex);
 }
 
 NS_IMETHODIMP nsMsgDBView::ReloadMessage()
@@ -968,7 +973,12 @@ NS_IMETHODIMP nsMsgDBView::ReloadMessage()
   if (m_currentlyDisplayedMsgUri.IsEmpty() || mSuppressMsgDisplay)
     return NS_OK;
   nsCOMPtr<nsIMessenger> messenger (do_QueryReferent(mMessengerWeak));
-  return messenger ? messenger->OpenURL(m_currentlyDisplayedMsgUri) : NS_ERROR_FAILURE;
+  NS_ENSURE_TRUE(messenger, NS_ERROR_FAILURE);
+
+  nsresult rv = messenger->OpenURL(m_currentlyDisplayedMsgUri);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return UpdateDisplayMessage(m_currentlyDisplayedViewIndex);
 }
 
 nsresult nsMsgDBView::UpdateDisplayMessage(nsMsgViewIndex viewPosition)

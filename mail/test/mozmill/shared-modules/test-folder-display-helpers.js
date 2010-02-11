@@ -267,6 +267,10 @@ function teardownImporter(customTeardown) {
     // - Set the mode to All Folders.
     if (mc.folderTreeView.mode != "all")
       mc.folderTreeView.mode = "all";
+
+    // - Make sure the message pane is visible.
+    if (mc.window.IsMessagePaneCollapsed())
+      mc.window.MsgToggleMessagePane();
   };
   // Another internal mozmill thing, again figured out too early for it to have
   // a chance.
@@ -1350,6 +1354,87 @@ function assert_messages_not_in_view(aMessages, aController) {
   }
 }
 var assert_message_not_in_view = assert_messages_not_in_view;
+
+/**
+ * When displaying a folder, assert that the message pane is visible and all the
+ *  menus, splitters, etc. are set up right.
+ */
+function assert_message_pane_visible(aThreadPaneIllegal) {
+  if (!mc.messageDisplay.visible)
+    throw new Error("The message display does not think it is visible, but " +
+                    "it should!");
+
+  // - message pane should be visible
+  if (mc.e("messagepanebox").getAttribute("collapsed"))
+    throw new Error("messagepanebox should not be collapsed!");
+
+  // if the thread pane is illegal, then the splitter should not be visible
+  if (aThreadPaneIllegal) {
+    if (mc.e("threadpane-splitter").getAttribute("collapsed") != "true")
+      throw new Error("threadpane-splitter should be collapsed because the " +
+                      "thread pane is illegal");
+  }
+  else {
+    if (mc.e("threadpane-splitter").getAttribute("collapsed") == "true")
+      throw new Error("threadpane-splitter should not be collapsed");
+  }
+
+  // - the menu item should be checked
+  // force the view menu to update.
+  mc.window.view_init();
+  let paneMenuItem = mc.e("menu_showMessage");
+  if (paneMenuItem.getAttribute("checked") != "true")
+    throw new Error("The Message Pane menu item should be checked.");
+}
+
+/**
+ * When displaying a folder, assert that the message pane is hidden and all the
+ *  menus, splitters, etc. are set up right.
+ *
+ * @param aMessagePaneIllegal Is the pane illegal to display at this time?  This
+ *     impacts whether the splitter should be visible, menu items should be
+ *     visible, etc.
+ */
+function assert_message_pane_hidden(aMessagePaneIllegal) {
+  // check messageDisplay.visible if we are not showing account central
+  if (!mc.folderDisplay.isAccountCentralDisplayed && mc.messageDisplay.visible)
+    throw new Error("The message display thinks it is visible, but it should " +
+                    "not!");
+
+  if (mc.e("messagepanebox").getAttribute("collapsed") != "true")
+    throw new Error("messagepanebox should be collapsed!");
+
+  // force the view menu to update.
+  mc.window.view_init();
+  let paneMenuItem = mc.e("menu_showMessage");
+  if (aMessagePaneIllegal) {
+    if (mc.e("threadpane-splitter").getAttribute("collapsed") != "true")
+      throw new Error("threadpane-splitter should be collapsed because the " +
+                      "message pane is illegal.");
+    if (paneMenuItem.getAttribute("disabled") != "true")
+      throw new Error("The Message Pane menu item should be disabled.");
+  }
+  else {
+    if (mc.e("threadpane-splitter").getAttribute("collapsed"))
+      throw new Error("threadpane-splitter should not be collapsed; the " +
+                      "message pane is legal.");
+    if (paneMenuItem.getAttribute("checked") == "true")
+      throw new Error("The Message Pane menu item should not be checked.");
+  }
+}
+
+/**
+ * Toggle the visibility of the message pane.
+ */
+function toggle_message_pane() {
+  let expectMessageDisplay = !mc.messageDisplay.visible &&
+    mc.folderDisplay.selectedCount;
+  if (expectMessageDisplay)
+    plan_for_message_display(mc);
+  mc.keypress(null, "VK_F8", {});
+  if (expectMessageDisplay)
+    wait_for_message_display_completion(mc, true);
+}
 
 /**
  * Helper function for use by assert_selected / assert_selected_and_displayed /
